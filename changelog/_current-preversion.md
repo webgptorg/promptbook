@@ -1,3 +1,9 @@
+-   Deprecated the legacy `ACTION` / `ACTIONS` commitment family in favor of the dedicated `USE*` commitments:
+
+    -   Added deprecation metadata and migration docs to `ACTION` so editors and generated Book language documentation now surface it as a legacy commitment.
+    -   Kept the legacy runtime behavior unchanged for backward compatibility, including existing `ACTION` books that still compile.
+    -   Added regression coverage for the deprecation metadata and legacy compile path.
+
 -   Made the core Book commitment catalog prioritize `GOAL`, `RULE`, `KNOWLEDGE`, and `TEAM` everywhere they are surfaced:
 
     -   Added a shared `isImportant` flag to commitment definitions and used it to sort the commitment catalog for documentation, the Agents Server documentation menu, and Book editor intellisense.

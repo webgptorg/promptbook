@@ -71,8 +71,6 @@ const BEHAVIOR_COMMITMENT_TYPES = new Set([
     'LANGUAGES',
     'FORMAT',
     'FORMATS',
-    'ACTION',
-    'ACTIONS',
     'WRITING SAMPLE',
     'WRITING RULES',
     'SAMPLE',

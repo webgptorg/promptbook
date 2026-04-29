@@ -5,8 +5,8 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 /**
  * ACTION commitment definition
  *
- * The ACTION commitment defines specific actions or capabilities that the agent can perform.
- * This helps define what the agent is capable of doing and how it should approach tasks.
+ * Deprecated legacy commitment for broad capability notes.
+ * New books should prefer the appropriate `USE*` commitment instead.
  *
  * Example usage in agent source:
  *
@@ -26,7 +26,16 @@ export class ActionCommitmentDefinition extends BaseCommitmentDefinition<'ACTION
      * Short one-line description of ACTION.
      */
     get description(): string {
-        return 'Define agent capabilities and actions it can perform.';
+        return 'Deprecated legacy capability commitment. Prefer concrete `USE*` commitments.';
+    }
+
+    /**
+     * Optional UI/docs-only deprecation metadata.
+     */
+    public override get deprecation() {
+        return {
+            message: 'Use a concrete `USE*` commitment instead.',
+        } as const;
     }
 
     /**
@@ -43,33 +52,43 @@ export class ActionCommitmentDefinition extends BaseCommitmentDefinition<'ACTION
         return spaceTrim(`
             # ${this.type}
 
-            Defines specific actions or capabilities that the agent can perform.
+            Deprecated legacy commitment for broad capability notes.
 
-            ## Key aspects
+            ## Migration
 
-            - Both terms work identically and can be used interchangeably.
-            - Each action adds to the agent's capability list.
-            - Actions help users understand what the agent can do.
+            - Existing \`${this.type}\` and \`ACTIONS\` books still parse and compile.
+            - New books should prefer the appropriate \`USE*\` commitment instead.
+            - Keep \`${this.type}\` only when maintaining older books that already rely on it.
 
-            ## Examples
+            ## Preferred replacement
+
+            \`\`\`book
+            Research Assistant
+
+            PERSONA You are a helpful research assistant
+            USE SEARCH ENGINE
+            RULE Always cite your sources when providing information from the web
+            \`\`\`
+
+            ## Legacy compatibility example
+
+            \`\`\`book
+            Research Assistant
+
+            PERSONA You are a helpful research assistant
+            ACTION Can search for current information and summarize findings
+            RULE Always cite your sources when providing information from the web
+            \`\`\`
+
+            ## Legacy compatibility example with additional tools
 
             \`\`\`book
             Code Assistant
 
             PERSONA You are a programming assistant
-            ACTION Can generate code snippets and explain programming concepts
-            ACTION Able to debug existing code and suggest improvements
-            ACTION Can create unit tests for functions
-            \`\`\`
-
-            \`\`\`book
-            Data Scientist
-
-            PERSONA You are a data analysis expert
-            ACTION Able to analyze data and provide insights
-            ACTION Can create visualizations and charts
-            ACTION Capable of statistical analysis and modeling
-            KNOWLEDGE Data analysis best practices and statistical methods
+            USE BROWSER
+            USE SEARCH ENGINE
+            RULE Prefer the narrowest useful capability for the task.
             \`\`\`
         `);
     }
@@ -81,7 +100,7 @@ export class ActionCommitmentDefinition extends BaseCommitmentDefinition<'ACTION
             return requirements;
         }
 
-        // Add action capability to the system message
+        // Keep the legacy capability note for backward compatibility.
         const actionSection = `Capability: ${trimmedContent}`;
 
         return this.appendToSystemMessage(requirements, actionSection, '\n\n');
