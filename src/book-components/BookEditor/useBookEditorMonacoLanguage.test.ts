@@ -163,9 +163,9 @@ describe('ensureBookEditorMonacoLanguage', () => {
         };
 
         const completionResult = completionProvider.provideCompletionItems(
-            ({
+            {
                 getWordUntilPosition: () => ({ startColumn: 1, endColumn: 1 }),
-            } as unknown) as editor.ITextModel,
+            } as unknown as editor.ITextModel,
             { lineNumber: 1, column: 1 } as Position,
         );
 

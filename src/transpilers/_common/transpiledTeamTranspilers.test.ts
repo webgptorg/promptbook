@@ -73,10 +73,14 @@ describe('transpiled TEAM support', () => {
 
     it.each(transpilers)('embeds TEAM hierarchy in %s', async (transpiler) => {
         const llm = await $provideLlmToolsForTestingAndScriptsAndPlayground();
-        const code = await transpiler.transpileBook(ROOT_AGENT_SOURCE, { llm }, {
-            isVerbose: true,
-            transpiledTeam: TRANSPILED_TEAM,
-        });
+        const code = await transpiler.transpileBook(
+            ROOT_AGENT_SOURCE,
+            { llm },
+            {
+                isVerbose: true,
+                transpiledTeam: TRANSPILED_TEAM,
+            },
+        );
 
         expect(code).toContain('PROMPTBOOK_TEAM_AGENTS');
         expect(code).toContain('consultPromptbookBuiltInTeamMember');

@@ -79,7 +79,9 @@ export const AnthropicClaudeManagedTranspiler = {
                         isKnowledgeHandledWithRetrieval,
                     }),
                 )}
-                ${block(createManagedClaudeToolkitSection(modelRequirements.tools || [], usedToolFunctions, transpiledTeam))}
+                ${block(
+                    createManagedClaudeToolkitSection(modelRequirements.tools || [], usedToolFunctions, transpiledTeam),
+                )}
 
                 /**
                  * Starts the managed Claude-backed chat harness.

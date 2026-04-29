@@ -105,7 +105,8 @@ export function sortCommitmentDefinitions<TCommitmentDefinition extends Commitme
             }
 
             if (left.definition.isImportant && right.definition.isImportant) {
-                const leftPriority = IMPORTANT_COMMITMENT_TYPE_SORT_ORDER.get(left.definition.type) ?? Number.MAX_SAFE_INTEGER;
+                const leftPriority =
+                    IMPORTANT_COMMITMENT_TYPE_SORT_ORDER.get(left.definition.type) ?? Number.MAX_SAFE_INTEGER;
                 const rightPriority =
                     IMPORTANT_COMMITMENT_TYPE_SORT_ORDER.get(right.definition.type) ?? Number.MAX_SAFE_INTEGER;
 

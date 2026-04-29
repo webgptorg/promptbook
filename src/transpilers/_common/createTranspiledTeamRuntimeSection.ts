@@ -165,10 +165,11 @@ export function createTranspiledTeamAwareToolFunctions(
     const rootAgent = transpiledTeam.agents.find((agent) => agent.url === transpiledTeam.rootAgentUrl);
 
     for (const teammate of rootAgent?.teammates || []) {
-        nextToolFunctions[teammate.toolName as string_javascript_name] =
-            `async (args) => consultPromptbookBuiltInTeamMember(${JSON.stringify(
-                transpiledTeam.rootAgentUrl,
-            )}, ${JSON.stringify(teammate.toolName)}, args)`;
+        nextToolFunctions[
+            teammate.toolName as string_javascript_name
+        ] = `async (args) => consultPromptbookBuiltInTeamMember(${JSON.stringify(
+            transpiledTeam.rootAgentUrl,
+        )}, ${JSON.stringify(teammate.toolName)}, args)`;
     }
 
     return nextToolFunctions;

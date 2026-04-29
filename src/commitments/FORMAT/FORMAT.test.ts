@@ -15,12 +15,17 @@ describe('FORMAT commitment', () => {
             replacedBy: ['WRITING SAMPLE', 'WRITING RULES'],
         });
         expect(commitment.icon).toBeTruthy();
-        expect(commitment.documentation).toContain('Deprecated legacy commitment for output formatting and response structure.');
+        expect(commitment.documentation).toContain(
+            'Deprecated legacy commitment for output formatting and response structure.',
+        );
         expect(commitment.documentation).toContain('WRITING SAMPLE');
         expect(commitment.documentation).toContain('WRITING RULES');
 
         const initialRequirements = createBasicAgentModelRequirements('Test Agent');
-        const updatedRequirements = commitment.applyToAgentModelRequirements(initialRequirements, 'Use markdown headings.');
+        const updatedRequirements = commitment.applyToAgentModelRequirements(
+            initialRequirements,
+            'Use markdown headings.',
+        );
 
         expect(updatedRequirements.systemMessage).toContain('Output Format: Use markdown headings.');
     });

@@ -15,7 +15,9 @@ describe('TEMPLATE commitment', () => {
             replacedBy: ['WRITING SAMPLE', 'WRITING RULES'],
         });
         expect(commitment.icon).toBeTruthy();
-        expect(commitment.documentation).toContain('Deprecated legacy commitment for response structure and templates.');
+        expect(commitment.documentation).toContain(
+            'Deprecated legacy commitment for response structure and templates.',
+        );
         expect(commitment.documentation).toContain('WRITING SAMPLE');
         expect(commitment.documentation).toContain('WRITING RULES');
         expect(commitment.requiresContent).toBe(false);

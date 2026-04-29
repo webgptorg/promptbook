@@ -30,8 +30,7 @@ export type CommitmentNoticeMetadata = {
 /**
  * Warning message used for unfinished commitments.
  */
-const UNFINISHED_COMMITMENT_MESSAGE =
-    'This commitment is unfinished and not ready to use. Be careful when using it.';
+const UNFINISHED_COMMITMENT_MESSAGE = 'This commitment is unfinished and not ready to use. Be careful when using it.';
 
 /**
  * Low-level warning message used for low-level commitments.
