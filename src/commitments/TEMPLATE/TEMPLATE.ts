@@ -5,11 +5,10 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 /**
  * TEMPLATE commitment definition
  *
- * The TEMPLATE commitment enforces a specific response structure or template
- * that the agent must follow when generating responses. This helps ensure
- * consistent message formatting across all agent interactions.
+ * Deprecated legacy commitment for response templates and output structure.
+ * New books should prefer `WRITING SAMPLE` and `WRITING RULES`.
  *
- * Example usage in agent source:
+ * Legacy example usage in agent source:
  *
  * ```book
  * TEMPLATE Always structure your response with: 1) Summary, 2) Details, 3) Next steps
@@ -30,7 +29,17 @@ export class TemplateCommitmentDefinition extends BaseCommitmentDefinition<'TEMP
      * Short one-line description of TEMPLATE.
      */
     get description(): string {
-        return 'Enforce a specific message structure or response template.';
+        return 'Deprecated legacy template commitment. Prefer `WRITING SAMPLE` and `WRITING RULES` for new books.';
+    }
+
+    /**
+     * Optional UI/docs-only deprecation metadata.
+     */
+    public override get deprecation() {
+        return {
+            message: 'Use `WRITING SAMPLE` and `WRITING RULES` instead.',
+            replacedBy: ['WRITING SAMPLE', 'WRITING RULES'],
+        } as const;
     }
 
     /**
@@ -47,38 +56,32 @@ export class TemplateCommitmentDefinition extends BaseCommitmentDefinition<'TEMP
         return spaceTrim(`
             # ${this.type}
 
-            Enforces a specific response structure or template that the agent must follow when generating responses.
+            Deprecated legacy commitment for response structure and templates.
 
-            ## Key aspects
+            ## Migration
 
-            - Both terms work identically and can be used interchangeably.
-            - Can be used with or without content.
-            - When used without content, enables template mode for structured responses.
-            - When used with content, defines the specific template structure to follow.
-            - Multiple templates can be combined, with later ones taking precedence.
+            - Existing \`${this.type}\` and \`TEMPLATES\` books still parse and compile.
+            - New books should use \`WRITING SAMPLE\` for concrete response exemplars and \`WRITING RULES\` for structure or formatting constraints.
+            - Runtime behavior is intentionally unchanged for backward compatibility.
 
-            ## Examples
+            ## Preferred replacement
 
             \`\`\`book
             Customer Support Agent
 
-            PERSONA You are a helpful customer support representative
+            GOAL Help the user with support questions.
+            WRITING SAMPLE
+            Thanks for reaching out. Here is the summary, details, and next step.
+            WRITING RULES Keep the response structured as: summary, details, next step.
+            \`\`\`
+
+            ## Legacy compatibility example
+
+            \`\`\`book
+            Customer Support Agent
+
+            GOAL Help the user with support questions.
             TEMPLATE Always structure your response with: 1) Acknowledgment, 2) Solution, 3) Follow-up question
-            WRITING RULES Be professional and empathetic
-            \`\`\`
-
-            \`\`\`book
-            Technical Documentation Assistant
-
-            PERSONA You are a technical writing expert
-            TEMPLATE Use the following format: **Topic:** [topic] | **Explanation:** [details] | **Example:** [code]
-            FORMAT Use markdown with clear headings
-            \`\`\`
-
-            \`\`\`book
-            Simple Agent
-
-            PERSONA You are a virtual assistant
             TEMPLATE
             \`\`\`
         `);

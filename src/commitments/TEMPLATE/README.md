@@ -1,6 +1,7 @@
 # TEMPLATE Commitment
 
-The `TEMPLATE` commitment enforces a specific message structure or response template that the agent must follow when generating responses.
+The `TEMPLATE` commitment is a deprecated legacy commitment for response structure and templates.
+New books should use `WRITING SAMPLE` and `WRITING RULES` instead.
 
 ## Icon
 
@@ -8,15 +9,15 @@ The `TEMPLATE` commitment enforces a specific message structure or response temp
 
 ## Description
 
-Enforce a specific message structure or response template.
+Deprecated legacy message structure or response template commitment.
 
-## Usage
+## Migration
 
-The TEMPLATE commitment can be used in two ways:
+The legacy `TEMPLATE` commitment can still be used in two ways for backward compatibility:
 
-### 1. Template Mode (Without Content)
+### 1. Legacy Template Mode (Without Content)
 
-Use `TEMPLATE` alone to enable template mode, which instructs the agent to use structured, consistent formatting:
+Use `TEMPLATE` alone only when maintaining older books. New books should express the same idea with `WRITING SAMPLE` and `WRITING RULES`:
 
 ```book
 Customer Support Agent
@@ -26,9 +27,9 @@ TEMPLATE
 STYLE Be professional and empathetic
 ```
 
-### 2. Specific Template (With Content)
+### 2. Legacy Specific Template (With Content)
 
-Provide specific template structure instructions:
+Provide specific template structure instructions only for legacy books:
 
 ```book
 Technical Assistant
@@ -39,12 +40,12 @@ TEMPLATE Always structure your response with: 1) Summary, 2) Details, 3) Example
 
 ## Key Features
 
-- **Both forms work**: Use `TEMPLATE` or `TEMPLATES` (singular/plural are aliases)
+- **Both forms still work**: Use `TEMPLATE` or `TEMPLATES` (singular/plural are legacy aliases)
 - **Optional content**: Can be used with or without content
 - **Accumulative**: Multiple templates can be combined
 - **Metadata tracking**: Templates are stored in `metadata.templates` for programmatic access
 
-## Examples
+## Legacy Examples
 
 ### Example 1: Research Assistant
 
@@ -94,7 +95,9 @@ When applied to agent model requirements:
 
 ## Related Commitments
 
-- **FORMAT**: Specifies output structure or formatting (e.g., JSON, markdown)
+- **WRITING SAMPLE**: Preferred way to show a concrete response shape or voice exemplar
+- **WRITING RULES**: Preferred way to describe formatting, structure, and writing-only constraints
+- **FORMAT**: Deprecated legacy output-format commitment
 - **STYLE**: Controls tone and writing style
 - **RULE**: Adds behavioral constraints
 

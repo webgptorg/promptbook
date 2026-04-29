@@ -71,6 +71,8 @@ const BEHAVIOR_COMMITMENT_TYPES = new Set([
     'LANGUAGES',
     'FORMAT',
     'FORMATS',
+    'TEMPLATE',
+    'TEMPLATES',
     'WRITING SAMPLE',
     'WRITING RULES',
     'SAMPLE',
@@ -179,7 +181,7 @@ export function createStandaloneBookLanguageMarkdown(): string {
             1. **Identity/Profile layer**:
             Agent name (first non-commitment line), the last \`GOAL\` (preferred) or deprecated \`PERSONA\`, and \`META*\` commitments.
             2. **Behavior layer**:
-            \`RULE\`, \`KNOWLEDGE\`, \`WRITING RULES\`, deprecated \`STYLE\`, \`LANGUAGE\`, \`GOAL\`, and related commitments.
+            \`RULE\`, \`KNOWLEDGE\`, \`WRITING SAMPLE\`, \`WRITING RULES\`, deprecated \`STYLE\`, \`FORMAT\`, \`TEMPLATE\`, \`LANGUAGE\`, \`GOAL\`, and related commitments.
             3. **Capability layer**:
             \`USE*\`, \`MEMORY\`, and other tooling commitments exposing runtime abilities.
             4. **Composition layer**:

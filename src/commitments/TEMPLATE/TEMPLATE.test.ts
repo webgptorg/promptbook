@@ -3,13 +3,21 @@ import { createBasicAgentModelRequirements } from '../_base/createEmptyAgentMode
 import { TemplateCommitmentDefinition } from './TEMPLATE';
 
 describe('TEMPLATE commitment', () => {
-    it('should have correct metadata', () => {
+    it('marks the legacy template commitment as deprecated while keeping runtime behavior', () => {
         const commitment = new TemplateCommitmentDefinition();
 
         expect(commitment.type).toBe('TEMPLATE');
-        expect(commitment.description).toBeTruthy();
+        expect(commitment.description).toBe(
+            'Deprecated legacy template commitment. Prefer `WRITING SAMPLE` and `WRITING RULES` for new books.',
+        );
+        expect(commitment.deprecation).toEqual({
+            message: 'Use `WRITING SAMPLE` and `WRITING RULES` instead.',
+            replacedBy: ['WRITING SAMPLE', 'WRITING RULES'],
+        });
         expect(commitment.icon).toBeTruthy();
-        expect(commitment.documentation).toBeTruthy();
+        expect(commitment.documentation).toContain('Deprecated legacy commitment for response structure and templates.');
+        expect(commitment.documentation).toContain('WRITING SAMPLE');
+        expect(commitment.documentation).toContain('WRITING RULES');
         expect(commitment.requiresContent).toBe(false);
     });
 

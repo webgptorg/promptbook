@@ -5,11 +5,10 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 /**
  * FORMAT commitment definition
  *
- * The FORMAT commitment defines the specific output structure and formatting
- * that the agent should use in its responses. This includes data formats,
- * response templates, and structural requirements.
+ * Deprecated legacy commitment for output formatting and response structure.
+ * New books should prefer `WRITING SAMPLE` and `WRITING RULES`.
  *
- * Example usage in agent source:
+ * Legacy example usage in agent source:
  *
  * ```book
  * FORMAT Always respond in JSON format with 'status' and 'data' fields
@@ -27,7 +26,17 @@ export class FormatCommitmentDefinition extends BaseCommitmentDefinition<'FORMAT
      * Short one-line description of FORMAT.
      */
     get description(): string {
-        return 'Specify output structure or formatting requirements.';
+        return 'Deprecated legacy formatting commitment. Prefer `WRITING SAMPLE` and `WRITING RULES` for new books.';
+    }
+
+    /**
+     * Optional UI/docs-only deprecation metadata.
+     */
+    public override get deprecation() {
+        return {
+            message: 'Use `WRITING SAMPLE` and `WRITING RULES` instead.',
+            replacedBy: ['WRITING SAMPLE', 'WRITING RULES'],
+        } as const;
     }
 
     /**
@@ -44,31 +53,39 @@ export class FormatCommitmentDefinition extends BaseCommitmentDefinition<'FORMAT
         return spaceTrim(`
             # ${this.type}
 
-            Defines the specific output structure and formatting for responses (data formats, templates, structure).
+            Deprecated legacy commitment for output formatting and response structure.
 
-            ## Key aspects
+            ## Migration
 
-            - Both terms work identically and can be used interchangeably.
-            - If they are in conflict, the last one takes precedence.
-            - You can specify both data formats and presentation styles.
+            - Existing \`${this.type}\` and \`FORMATS\` books still parse and compile.
+            - New books should use \`WRITING RULES\` for formatting or structure constraints and \`WRITING SAMPLE\` when a concrete example communicates the target shape better.
+            - Runtime behavior is intentionally unchanged for backward compatibility.
 
-            ## Examples
-
-            \`\`\`book
-            Customer Support Bot
-
-            PERSONA You are a helpful customer support agent
-            FORMAT Always respond in JSON format with 'status' and 'data' fields
-            FORMAT Use markdown formatting for all code blocks
-            \`\`\`
+            ## Preferred replacement
 
             \`\`\`book
             Data Analyst
 
-            PERSONA You are a data analysis expert
+            GOAL Present results in a clean, readable structure.
+            WRITING RULES Use markdown headings for sections and bullet points for lists.
+            WRITING RULES Keep tables narrow and readable.
+            WRITING SAMPLE
+            Summary
+            - ...
+            Details
+            - ...
+            Next steps
+            - ...
+            \`\`\`
+
+            ## Legacy compatibility example
+
+            \`\`\`book
+            Data Analyst
+
+            GOAL Present results in a clean structure.
             FORMAT Present results in structured tables
             FORMAT Include confidence scores for all predictions
-            WRITING RULES Be concise and precise in explanations
             \`\`\`
         `);
     }

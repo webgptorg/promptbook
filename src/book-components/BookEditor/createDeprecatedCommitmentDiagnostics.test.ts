@@ -65,6 +65,30 @@ WRITING RULES Keep paragraphs short.`),
         ]);
     });
 
+    it('creates warning diagnostics for deprecated TEMPLATE and FORMAT commitments', () => {
+        const diagnostics = createDeprecatedCommitmentDiagnostics(
+            validateBook(`Data Analyst
+
+TEMPLATE Always structure the response with summary, details, and next steps.
+FORMAT Use markdown headings and bullet points.`),
+        );
+
+        expect(diagnostics).toEqual([
+            expect.objectContaining({
+                startLineNumber: 3,
+                message: '`TEMPLATE` is deprecated. Use `WRITING SAMPLE` and `WRITING RULES` instead.',
+                severity: 'warning',
+                source: 'Promptbook',
+            }),
+            expect.objectContaining({
+                startLineNumber: 4,
+                message: '`FORMAT` is deprecated. Use `WRITING SAMPLE` and `WRITING RULES` instead.',
+                severity: 'warning',
+                source: 'Promptbook',
+            }),
+        ]);
+    });
+
     it('does not create warnings for WRITING SAMPLE, WRITING RULES, or RULE', () => {
         const diagnostics = createDeprecatedCommitmentDiagnostics(
             validateBook(`Copywriter

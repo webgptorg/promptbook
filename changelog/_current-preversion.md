@@ -1,3 +1,9 @@
+-   Deprecated the legacy `TEMPLATE` / `TEMPLATES` and `FORMAT` / `FORMATS` commitment families in favor of `WRITING SAMPLE` and `WRITING RULES`:
+
+    -   Added deprecation metadata and migration docs to both commitments so generated Book language documentation and the Book editor now surface them as legacy aliases.
+    -   Kept the legacy runtime behavior unchanged for backward compatibility, including existing books that still compile with `TEMPLATE` or `FORMAT`.
+    -   Added regression coverage for the deprecation metadata, grouped commitment catalog, and editor warning diagnostics.
+
 -   Deprecated the legacy `ACTION` / `ACTIONS` commitment family in favor of the dedicated `USE*` commitments:
 
     -   Added deprecation metadata and migration docs to `ACTION` so editors and generated Book language documentation now surface it as a legacy commitment.
