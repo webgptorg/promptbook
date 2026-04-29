@@ -9,7 +9,7 @@ export type CommitmentNoticeMetadata = {
     /**
      * Machine-readable notice kind.
      */
-    readonly kind: 'deprecated' | 'unfinished';
+    readonly kind: 'deprecated' | 'unfinished' | 'lowLevel';
 
     /**
      * Short badge label shown in documentation and menus.
@@ -28,10 +28,16 @@ export type CommitmentNoticeMetadata = {
 };
 
 /**
- * Low-level warning message used for unfinished commitments.
+ * Warning message used for unfinished commitments.
  */
 const UNFINISHED_COMMITMENT_MESSAGE =
     'This commitment is unfinished and not ready to use. Be careful when using it.';
+
+/**
+ * Low-level warning message used for low-level commitments.
+ */
+const LOW_LEVEL_COMMITMENT_MESSAGE =
+    'This commitment is low-level and not used by most of the users. Be careful when using it.';
 
 /**
  * Short badge text used for deprecated commitments.
@@ -39,7 +45,7 @@ const UNFINISHED_COMMITMENT_MESSAGE =
 const DEPRECATED_COMMITMENT_BADGE_LABEL = 'Deprecated';
 
 /**
- * Short badge text used for unfinished commitments.
+ * Short badge text used for unfinished and low-level commitments.
  */
 const LOW_LEVEL_COMMITMENT_BADGE_LABEL = 'Low-level';
 
@@ -49,7 +55,7 @@ const LOW_LEVEL_COMMITMENT_BADGE_LABEL = 'Low-level';
 const DEPRECATED_COMMITMENT_DETAIL_LABEL = 'Deprecated commitment';
 
 /**
- * Longer label used for unfinished commitments.
+ * Longer label used for unfinished and low-level commitments.
  */
 const LOW_LEVEL_COMMITMENT_DETAIL_LABEL = 'Low-level commitment';
 
@@ -75,7 +81,19 @@ export function formatCommitmentReplacementText(replacedBy?: ReadonlyArray<strin
 }
 
 /**
- * Resolves the notice metadata for deprecated or unfinished commitments.
+ * Returns true when one commitment notice should be rendered with low-visibility styling.
+ *
+ * @param notice - Commitment notice metadata or null.
+ * @returns True for unfinished and low-level notices.
+ *
+ * @private internal utility of commitment catalog notices
+ */
+export function isLowVisibilityCommitmentNotice(notice: CommitmentNoticeMetadata | null): boolean {
+    return Boolean(notice && notice.kind !== 'deprecated');
+}
+
+/**
+ * Resolves the notice metadata for deprecated, unfinished, or low-level commitments.
  *
  * @param definition - Commitment definition to inspect.
  * @returns Notice metadata when the commitment should be surfaced with caution.
@@ -84,7 +102,7 @@ export function formatCommitmentReplacementText(replacedBy?: ReadonlyArray<strin
  */
 export function getCommitmentNoticeMetadata(
     definition: Pick<CommitmentDefinition, 'deprecation'> &
-        Partial<Pick<CommitmentDefinition, 'isUnfinished'>>,
+        Partial<Pick<CommitmentDefinition, 'isUnfinished' | 'isLowLevel'>>,
 ): CommitmentNoticeMetadata | null {
     if (definition.isUnfinished) {
         return {
@@ -92,6 +110,15 @@ export function getCommitmentNoticeMetadata(
             badgeLabel: LOW_LEVEL_COMMITMENT_BADGE_LABEL,
             detailLabel: LOW_LEVEL_COMMITMENT_DETAIL_LABEL,
             message: UNFINISHED_COMMITMENT_MESSAGE,
+        };
+    }
+
+    if (definition.isLowLevel) {
+        return {
+            kind: 'lowLevel',
+            badgeLabel: LOW_LEVEL_COMMITMENT_BADGE_LABEL,
+            detailLabel: LOW_LEVEL_COMMITMENT_DETAIL_LABEL,
+            message: LOW_LEVEL_COMMITMENT_MESSAGE,
         };
     }
 

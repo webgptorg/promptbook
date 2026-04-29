@@ -60,6 +60,14 @@ export type CommitmentDefinition = {
     readonly isUnfinished: boolean;
 
     /**
+     * Whether this commitment is low-level and should be surfaced with caution.
+     *
+     * Low-level commitments are fully implemented, but they are intended for
+     * advanced use and are not used by most users.
+     */
+    readonly isLowLevel: boolean;
+
+    /**
      * Human-readable markdown documentation for this commitment.
      * Should explain what the commitment does and include example usage.
      * This is available at runtime for UIs, docs, and tooling.

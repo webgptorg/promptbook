@@ -113,6 +113,24 @@ REMOVE Remove conflicting tone requirements`),
         ]);
     });
 
+    it('creates warning diagnostics for low-level MODEL commitments', () => {
+        const diagnostics = createDeprecatedCommitmentDiagnostics(
+            validateBook(`Model Tuner
+
+MODEL NAME gpt-4
+RULE Keep responses precise.`),
+        );
+
+        expect(diagnostics).toEqual([
+            expect.objectContaining({
+                startLineNumber: 3,
+                message: '`MODEL` is low-level and not used by most of the users. Be careful when using it.',
+                severity: 'warning',
+                source: 'Promptbook',
+            }),
+        ]);
+    });
+
     it('does not create warnings for WRITING SAMPLE, WRITING RULES, or RULE', () => {
         const diagnostics = createDeprecatedCommitmentDiagnostics(
             validateBook(`Copywriter

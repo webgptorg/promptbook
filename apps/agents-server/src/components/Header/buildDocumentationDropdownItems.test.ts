@@ -3,7 +3,7 @@ import { getVisibleCommitmentDefinitions } from '../../utils/getVisibleCommitmen
 import { buildDocumentationDropdownItems } from './buildDocumentationDropdownItems';
 
 describe('buildDocumentationDropdownItems', () => {
-    it('puts important commitments before the rest of the documentation catalogue', () => {
+    it('puts important commitments before the rest of the documentation catalogue and fades low-level entries', () => {
         const items = buildDocumentationDropdownItems(getVisibleCommitmentDefinitions(), (key) => key);
 
         expect(items.slice(0, 2).map(({ href }) => href)).toEqual(['/docs', '/swagger']);
@@ -15,6 +15,10 @@ describe('buildDocumentationDropdownItems', () => {
         ]);
         expect(items[6]?.label).toBe('header.documentationAll');
         expect(items[6]?.items?.length).toBeGreaterThan(0);
-        expect(items[6]?.items?.[items[6]!.items!.length - 1]?.href).toBe('/docs/DELETE');
+        const lastItem = items[6]?.items?.[items[6]!.items!.length - 1];
+        const lastLabel = lastItem?.label as { props?: { className?: string } } | undefined;
+
+        expect(lastItem?.href).toBe('/docs/MODEL');
+        expect(lastLabel?.props?.className).toContain('opacity-70');
     });
 });

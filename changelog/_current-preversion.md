@@ -1,3 +1,9 @@
+-   Marked the `MODEL` / `MODELS` commitment family as low-level instead of regular:
+
+    -   Added a shared `isLowLevel` commitment flag and surfaced low-level commitments with the same warning plumbing as deprecated and unfinished ones, but with a caution message that they are not used by most of the users.
+    -   Kept the runtime behavior unchanged, while moving low-level commitments to the bottom of the catalog, fading them in the Agents Server docs and Book editor, and marking them as low-level in the generated Book language docs.
+    -   Added regression coverage for the new notice metadata, commitment ordering, editor diagnostics, and docs/menu presentation.
+
 -   Grouped `OPEN` and `CLOSED` as one documentation family across the Agents Server docs and Book language markdown:
 
     -   Made the shared commitment grouping helper keep `OPEN` and `CLOSED` together as one catalog entry so the `/docs` pages, documentation dropdown, search results, and `/api/docs/book-language.md` now present them side by side.

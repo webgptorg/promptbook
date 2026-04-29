@@ -24,6 +24,7 @@ export function getGroupedCommitmentDefinitions(): ReadonlyArray<GroupedCommitme
     for (const commitment of sortCommitmentDefinitions(COMMITMENT_REGISTRY, {
         isDeprecatedLast: true,
         isUnfinishedLast: true,
+        isLowLevelLast: true,
     })) {
         const lastGroup = groupedCommitments[groupedCommitments.length - 1];
 

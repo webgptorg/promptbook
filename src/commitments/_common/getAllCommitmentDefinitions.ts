@@ -11,5 +11,5 @@ import { sortCommitmentDefinitions } from './sortCommitmentDefinitions';
  * @public exported from `@promptbook/core`
  */
 export function getAllCommitmentDefinitions(): ReadonlyArray<CommitmentDefinition> {
-    return $deepFreeze(sortCommitmentDefinitions(COMMITMENT_REGISTRY, { isUnfinishedLast: true }));
+    return $deepFreeze(sortCommitmentDefinitions(COMMITMENT_REGISTRY, { isUnfinishedLast: true, isLowLevelLast: true }));
 }

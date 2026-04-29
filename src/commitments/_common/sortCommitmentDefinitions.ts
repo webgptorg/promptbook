@@ -15,6 +15,11 @@ type CommitmentDefinitionSortOptions = {
      * When enabled, unfinished commitments are moved behind all other commitments.
      */
     readonly isUnfinishedLast?: boolean;
+
+    /**
+     * When enabled, low-level commitments are moved behind all other commitments.
+     */
+    readonly isLowLevelLast?: boolean;
 };
 
 /**
@@ -35,7 +40,7 @@ const IMPORTANT_COMMITMENT_TYPE_SORT_ORDER = new Map<string, number>([
 ]);
 
 /**
- * Sort rank used when unfinished and deprecated commitments should be grouped last.
+ * Sort rank used when unfinished, low-level, and deprecated commitments should be grouped last.
  *
  * @private internal constant of commitment catalog sorting
  */
@@ -43,6 +48,7 @@ const COMMITMENT_STATUS_SORT_ORDER = {
     normal: 0,
     deprecated: 1,
     unfinished: 2,
+    lowLevel: 3,
 } as const;
 
 /**
@@ -58,15 +64,21 @@ function resolveCommitmentStatusSortRank(
     definition: CommitmentDefinition,
     options: CommitmentDefinitionSortOptions,
 ): number {
-    if (options.isUnfinishedLast && definition.isUnfinished) {
-        return COMMITMENT_STATUS_SORT_ORDER.unfinished;
-    }
+    let statusSortRank: number = COMMITMENT_STATUS_SORT_ORDER.normal;
 
     if (options.isDeprecatedLast && definition.deprecation) {
-        return COMMITMENT_STATUS_SORT_ORDER.deprecated;
+        statusSortRank = Math.max(statusSortRank, COMMITMENT_STATUS_SORT_ORDER.deprecated);
     }
 
-    return COMMITMENT_STATUS_SORT_ORDER.normal;
+    if (options.isUnfinishedLast && definition.isUnfinished) {
+        statusSortRank = Math.max(statusSortRank, COMMITMENT_STATUS_SORT_ORDER.unfinished);
+    }
+
+    if (options.isLowLevelLast && definition.isLowLevel) {
+        statusSortRank = Math.max(statusSortRank, COMMITMENT_STATUS_SORT_ORDER.lowLevel);
+    }
+
+    return statusSortRank;
 }
 
 /**

@@ -56,6 +56,13 @@ export abstract class BaseCommitmentDefinition<TBookCommitment extends string> i
     }
 
     /**
+     * Whether this commitment is low-level and should be surfaced with caution.
+     */
+    public get isLowLevel(): boolean {
+        return false;
+    }
+
+    /**
      * Human-readable markdown documentation for this commitment, available at runtime.
      * Must be implemented by each concrete commitment.
      */

@@ -4,7 +4,7 @@ import { getCommitmentDefinition } from '../../commitments/_common/getCommitment
 import { getCommitmentNoticeMetadata } from '../../commitments/_common/getCommitmentNoticeMetadata';
 
 /**
- * Monaco diagnostic shape used by deprecated and unfinished commitment warnings.
+ * Monaco diagnostic shape used by deprecated, unfinished, and low-level commitment warnings.
  *
  * @private internal type of `BookEditorMonaco`
  */
@@ -19,14 +19,15 @@ type CommitmentNoticeDiagnostic = {
 };
 
 /**
- * Creates Book editor diagnostics for deprecated and unfinished commitment keywords.
+ * Creates Book editor diagnostics for deprecated, unfinished, and low-level commitment keywords.
  *
- * The notice metadata is UI-only. This helper surfaces it in Monaco so legacy
- * and unfinished commitments remain functional while still guiding authors
- * toward preferred replacements or cautioning them about low-level usage.
+ * The notice metadata is UI-only. This helper surfaces it in Monaco so legacy,
+ * unfinished, and low-level commitments remain functional while still guiding
+ * authors toward preferred replacements or cautioning them about low-level
+ * usage.
  *
  * @param agentSource - Current editor content.
- * @returns Warning markers for deprecated and unfinished commitment keywords.
+ * @returns Warning markers for deprecated, unfinished, and low-level commitment keywords.
  *
  * @private internal utility of `BookEditorMonaco`
  */
@@ -59,10 +60,11 @@ export function createDeprecatedCommitmentDiagnostics(
         const startColumn = leadingCharactersCount + 1;
         const endColumn = startColumn + matchedType.length;
 
+        // Keep the diagnostic sentence compact while reusing the shared notice copy.
         const message =
-            notice.kind === 'unfinished'
-                ? `\`${commitment.type}\` is unfinished and not ready to use. Be careful when using it.`
-                : `\`${commitment.type}\` is deprecated. ${notice.message}`;
+            notice.kind === 'deprecated'
+                ? `\`${commitment.type}\` is deprecated. ${notice.message}`
+                : `\`${commitment.type}\` is ${notice.message.replace(/^This commitment is\s+/u, '')}`;
 
         diagnostics.push({
             startLineNumber: commitment.lineNumber,

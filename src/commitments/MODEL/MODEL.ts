@@ -37,7 +37,14 @@ export class ModelCommitmentDefinition extends BaseCommitmentDefinition<'MODEL' 
      * Short one-line description of MODEL.
      */
     get description(): string {
-        return 'Enforce AI model requirements including name and technical parameters.';
+        return 'Low-level commitment for explicit model selection and technical parameters. Use carefully.';
+    }
+
+    /**
+     * Marks MODEL as a low-level commitment surfaced with caution.
+     */
+    public override get isLowLevel(): boolean {
+        return true;
     }
 
     /**
@@ -54,11 +61,17 @@ export class ModelCommitmentDefinition extends BaseCommitmentDefinition<'MODEL' 
         return spaceTrim(`
             # ${this.type}
 
-            Enforces technical parameters for the AI model, ensuring consistent behavior across different execution environments.
+            Low-level commitment for explicit AI model selection and technical parameters.
+
+            ## Status
+
+            - This commitment is low-level and not used by most of the users.
+            - Use it when you need to pin a specific model or fine-tune model parameters directly.
+            - Prefer automatic model selection when you do not need manual control.
 
             ## Key aspects
 
-            - When no \`MODEL\` commitment is specified, the best model requirement is picked automatically based on the agent \`PERSONA\`, \`KNOWLEDGE\`, \`TOOLS\` and other commitments
+            - When no \`MODEL\` commitment is specified, the best model requirement is picked automatically based on the agent \`PERSONA\`, \`KNOWLEDGE\`, \`TOOLS\` and other commitments.
             - Multiple \`MODEL\` commitments can be used to specify different parameters
             - Both \`MODEL\` and \`MODELS\` terms work identically and can be used interchangeably
             - Parameters control the randomness, creativity, and technical aspects of model responses

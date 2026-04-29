@@ -7,7 +7,10 @@ import { Section } from '../../components/Homepage/Section';
 import { OpenMojiIcon } from '../../components/OpenMojiIcon/OpenMojiIcon';
 import { PrintHeader } from '../../components/PrintHeader/PrintHeader';
 import { getVisibleCommitmentDefinitions } from '../../utils/getVisibleCommitmentDefinitions';
-import { getCommitmentNoticeMetadata } from '../../../../../src/commitments/_common/getCommitmentNoticeMetadata';
+import {
+    getCommitmentNoticeMetadata,
+    isLowVisibilityCommitmentNotice,
+} from '../../../../../src/commitments/_common/getCommitmentNoticeMetadata';
 
 /**
  * Handles docs page.
@@ -26,14 +29,13 @@ export default function DocsPage() {
                     <Section title="Documentation">
                         {groupedCommitments.map(({ primary, aliases }) => {
                             const notice = getCommitmentNoticeMetadata(primary);
+                            const isLowVisibilityNotice = isLowVisibilityCommitmentNotice(notice);
 
                             return (
                                 <Link key={primary.type} href={`/docs/${primary.type}`} className="block h-full group">
                                     <Card
                                         className={`h-full group-hover:border-blue-500 transition-colors ${
-                                            primary.isUnfinished
-                                                ? 'opacity-75 transition-opacity group-hover:opacity-100'
-                                                : ''
+                                            isLowVisibilityNotice ? 'opacity-75 transition-opacity group-hover:opacity-100' : ''
                                         }`}
                                     >
                                         <div className="flex flex-wrap items-center gap-2 mb-2">
@@ -47,14 +49,14 @@ export default function DocsPage() {
                                                     </span>
                                                 )}
                                             </h3>
-                                            {primary.deprecation && (
+                                            {notice?.kind === 'deprecated' && (
                                                 <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
                                                     Deprecated
                                                 </span>
                                             )}
-                                            {notice?.kind === 'unfinished' && (
+                                            {isLowVisibilityNotice && (
                                                 <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
-                                                    {notice.badgeLabel}
+                                                    {notice?.badgeLabel}
                                                 </span>
                                             )}
                                         </div>
