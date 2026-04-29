@@ -1,12 +1,13 @@
 'use server';
 
-import { $provideServer } from '@/src/tools/$provideServer';
 import { ForbiddenPage } from '@/src/components/ForbiddenPage/ForbiddenPage';
+import { $provideServer } from '@/src/tools/$provideServer';
 import { resolveAgentAccess } from '@/src/utils/agentAccess';
-import { ensureChatHistoryIdentity } from '@/src/utils/currentUserIdentity';
 import { isPublicAgentVisibility } from '@/src/utils/agentVisibility';
+import { ensureChatHistoryIdentity } from '@/src/utils/currentUserIdentity';
 import { getServerVisibility } from '@/src/utils/getServerVisibility';
 import { isUserAdmin } from '@/src/utils/isUserAdmin';
+import { isPublicServerVisibility } from '@/src/utils/serverVisibility';
 import { saturate } from '@promptbook-local/color';
 import { NotFoundError, PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import { headers } from 'next/headers';
@@ -14,20 +15,20 @@ import { notFound, redirect } from 'next/navigation';
 import { resolveAgentAvatarImageUrl } from '../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 import { Color } from '../../../../../../src/utils/color/Color';
 import { resolveSpeechRecognitionLanguage } from '../../../../../../src/utils/language/getBrowserPreferredSpeechRecognitionLanguage';
+import { TODO_USE } from '../../../../../../src/utils/organization/TODO_USE';
+import { HeadlessLink } from '../../../components/_utils/headlessParam';
 import { DeletedAgentBanner } from '../../../components/DeletedAgentBanner';
-import { formatAgentNamingText } from '../../../utils/agentNaming';
-import { loadChatConfiguration } from '../../../utils/chatConfiguration';
 import { resolveAgentChatInputPlaceholder } from '../../../utils/agentChatInputPlaceholder';
+import { formatAgentNamingText } from '../../../utils/agentNaming';
 import { resolveAgentRouteTarget, type AgentRouteTarget } from '../../../utils/agentRouting/resolveAgentRouteTarget';
+import { loadChatConfiguration } from '../../../utils/chatConfiguration';
 import { getAgentNaming } from '../../../utils/getAgentNaming';
+import { getPseudoAgentDescriptor } from '../../../utils/pseudoAgents';
+import { getAgentFolderContext, getAgentName, getAgentProfile, isAgentDeleted } from './_utils';
 import { getAgentLinks } from './agentLinks';
 import { AgentProfileWrapper } from './AgentProfileWrapper';
 import { DeferredAgentProfileChat } from './DeferredAgentProfileChat';
-import { getAgentFolderContext, getAgentName, getAgentProfile, isAgentDeleted } from './_utils';
-import { getPseudoAgentDescriptor } from '../../../utils/pseudoAgents';
-import { isPublicServerVisibility } from '@/src/utils/serverVisibility';
 import { PseudoAgentProfilePage } from './PseudoAgentProfile';
-import { HeadlessLink } from '../../../components/_utils/headlessParam';
 
 /**
  * Query parameters supported by the agent profile route.
@@ -357,6 +358,8 @@ function redirectProfileRequestsToChatPage(canonicalAgentId: string, currentSear
  * @returns Loaded profile page dependencies.
  */
 async function loadAgentPageData(canonicalAgentId: string, isAuthenticated: boolean): Promise<AgentPageData> {
+    TODO_USE(/* or remove */ isAuthenticated);
+
     const requestHeadersPromise = headers();
     const isAdminPromise = isUserAdmin();
     const historyIdentityAvailablePromise = ensureChatHistoryIdentity();
@@ -460,8 +463,11 @@ function createAgentPageViewModel(
     const speechRecognitionLanguage = resolveSpeechRecognitionLanguage({
         acceptLanguageHeader: requestHeaders.get('accept-language'),
     });
-    const fallbackAvatarPath = `/agents/${encodeURIComponent(agentProfile.permanentId || route.canonicalAgentId)}/images/default-avatar.png`;
-    const avatarSrc = resolveAgentAvatarImageUrl({ agent: agentProfile, baseUrl: publicUrl.href }) || fallbackAvatarPath;
+    const fallbackAvatarPath = `/agents/${encodeURIComponent(
+        agentProfile.permanentId || route.canonicalAgentId,
+    )}/images/default-avatar.png`;
+    const avatarSrc =
+        resolveAgentAvatarImageUrl({ agent: agentProfile, baseUrl: publicUrl.href }) || fallbackAvatarPath;
 
     return {
         publicAgentProfileStructuredData: createPublicAgentProfileStructuredData({
@@ -516,7 +522,9 @@ function createAgentPageActions(
 
     return (
         <>
-            {getAgentLinks(agentProfile.permanentId || canonicalAgentId, (text) => formatAgentNamingText(text, agentNaming))
+            {getAgentLinks(agentProfile.permanentId || canonicalAgentId, (text) =>
+                formatAgentNamingText(text, agentNaming),
+            )
                 .filter((link) => link.id === 'book' || link.id === 'integration')
                 .map((link) => (
                     <HeadlessLink
