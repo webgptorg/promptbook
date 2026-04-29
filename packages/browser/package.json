@@ -101,7 +101,7 @@
         "@promptbook/core": "0.112.0-55"
     },
     "dependencies": {
-        "@openai/agents": "0.4.12",
+        "@openai/agents": "0.4.15",
         "bottleneck": "2.19.5",
         "colors": "1.4.0",
         "crypto": "1.0.1",
