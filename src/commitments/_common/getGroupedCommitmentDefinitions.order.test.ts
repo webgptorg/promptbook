@@ -11,11 +11,15 @@ describe('getGroupedCommitmentDefinitions ordering', () => {
             'KNOWLEDGE',
             'TEAM',
         ]);
+        const ruleGroup = groupedCommitments.find((group) => group.primary.type === 'RULE');
+        const languageGroup = groupedCommitments.find((group) => group.primary.type === 'LANGUAGE');
 
         const deprecatedCommitments = groupedCommitments.filter(({ primary }) => Boolean(primary.deprecation));
         const unfinishedCommitments = groupedCommitments.filter(({ primary }) => primary.isUnfinished);
         const lowLevelCommitments = groupedCommitments.filter(({ primary }) => primary.isLowLevel);
 
+        expect(ruleGroup?.aliases).toEqual(['RULES']);
+        expect(languageGroup?.aliases).toEqual(['LANGUAGES']);
         expect(deprecatedCommitments.length).toBeGreaterThan(0);
         expect(unfinishedCommitments.length).toBeGreaterThan(0);
         expect(lowLevelCommitments.length).toBeGreaterThan(0);

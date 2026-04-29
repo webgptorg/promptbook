@@ -1,3 +1,9 @@
+-   Preferred singular commitment names over plural aliases in the commitment registry and generated catalogs:
+
+    -   Reordered the shared commitment registry so canonical singular keywords now appear before their plural aliases, including `RULE` before `RULES` and `LANGUAGE` before `LANGUAGES`.
+    -   Kept the sorted documentation and Book editor completion flow unchanged, so `/docs`, `/api/docs/book-language.md`, and BookEditor intellisense now reflect the singular-first registry order automatically.
+    -   Added regression coverage for the raw registry ordering plus the grouped documentation and completion catalogues that consume it.
+
 -   Marked the `MODEL` / `MODELS` commitment family as low-level instead of regular:
 
     -   Added a shared `isLowLevel` commitment flag and surfaced low-level commitments with the same warning plumbing as deprecated and unfinished ones, but with a caution message that they are not used by most of the users.
