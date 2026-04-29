@@ -7,7 +7,7 @@ import {
     updateAgentScopedUserChatTimeout,
 } from '@/src/utils/userChatTimeout';
 import type { UpdateAgentScopedUserChatTimeoutPatch } from '@/src/utils/userChatTimeout';
-import { resolveUserChatScope } from '../../user-chats/resolveUserChatScope';
+import { createUserChatScopeErrorResponse, resolveUserChatScope } from '../../user-chats/resolveUserChatScope';
 
 /**
  * Updates one durable timeout owned by current user for one agent.
@@ -23,14 +23,10 @@ export async function PATCH(
     const { agentName: rawAgentName, timeoutId: rawTimeoutId } = await params;
     const agentName = decodeURIComponent(rawAgentName);
     const timeoutId = decodeURIComponent(rawTimeoutId);
-    const scopeResult = await resolveUserChatScope(agentName);
+    const scopeResult = await resolveUserChatScope(agentName, request);
 
     if (!scopeResult.ok) {
-        if (scopeResult.error === 'UNAUTHORIZED') {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
-        return NextResponse.json({ error: 'Agent not found.' }, { status: 404 });
+        return createUserChatScopeErrorResponse(scopeResult.error);
     }
 
     try {
@@ -97,14 +93,10 @@ export async function DELETE(
     const { agentName: rawAgentName, timeoutId: rawTimeoutId } = await params;
     const agentName = decodeURIComponent(rawAgentName);
     const timeoutId = decodeURIComponent(rawTimeoutId);
-    const scopeResult = await resolveUserChatScope(agentName);
+    const scopeResult = await resolveUserChatScope(agentName, request);
 
     if (!scopeResult.ok) {
-        if (scopeResult.error === 'UNAUTHORIZED') {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
-        return NextResponse.json({ error: 'Agent not found.' }, { status: 404 });
+        return createUserChatScopeErrorResponse(scopeResult.error);
     }
 
     try {

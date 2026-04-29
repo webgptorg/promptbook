@@ -6,6 +6,7 @@ import {
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import { resolveServerAgentContext } from '@/src/utils/resolveServerAgentContext';
+import { resolveAgentVisibilityAccess } from '@/src/utils/agentAccess';
 import { computeAgentHash } from '@promptbook-local/core';
 import { serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
@@ -36,6 +37,18 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
     agentName = decodeURIComponent(agentName);
 
     try {
+        const access = await resolveAgentVisibilityAccess({
+            agentIdentifier: agentName,
+            request,
+            isInternalAgentAccessAllowed: true,
+        });
+        if (!access.isAllowed) {
+            return new Response(JSON.stringify({ error: 'Forbidden' }), {
+                status: 403,
+                headers: { 'Content-Type': 'application/json' },
+            });
+        }
+
         const collection = await $provideAgentCollectionForServer();
         const baseAgentReferenceResolver = await $provideAgentReferenceResolver();
         const resolvedAgentContext = await resolveServerAgentContext({

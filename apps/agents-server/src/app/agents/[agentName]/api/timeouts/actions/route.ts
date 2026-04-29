@@ -5,7 +5,7 @@ import {
     pauseAllActiveAgentScopedUserChatTimeouts,
     resumeAllPausedAgentScopedUserChatTimeouts,
 } from '@/src/utils/userChatTimeout';
-import { resolveUserChatScope } from '../../user-chats/resolveUserChatScope';
+import { createUserChatScopeErrorResponse, resolveUserChatScope } from '../../user-chats/resolveUserChatScope';
 
 /**
  * Supported bulk actions for one agent-scoped timeout manager request.
@@ -48,14 +48,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
 
     const { agentName: rawAgentName } = await params;
     const agentName = decodeURIComponent(rawAgentName);
-    const scopeResult = await resolveUserChatScope(agentName);
+    const scopeResult = await resolveUserChatScope(agentName, request);
 
     if (!scopeResult.ok) {
-        if (scopeResult.error === 'UNAUTHORIZED') {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
-        return NextResponse.json({ error: 'Agent not found.' }, { status: 404 });
+        return createUserChatScopeErrorResponse(scopeResult.error);
     }
 
     try {

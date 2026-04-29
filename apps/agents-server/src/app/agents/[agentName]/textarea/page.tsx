@@ -1,7 +1,8 @@
 'use server';
 
-import { notFound, redirect } from 'next/navigation';
+import { forbidden, notFound, redirect } from 'next/navigation';
 import { $provideServer } from '@/src/tools/$provideServer';
+import { resolveAgentVisibilityAccess } from '@/src/utils/agentAccess';
 import { resolveAgentAvatarImageUrl } from '../../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 import { formatAgentNamingText } from '../../../../utils/agentNaming';
 import { resolveAgentChatInputPlaceholder } from '../../../../utils/agentChatInputPlaceholder';
@@ -44,6 +45,11 @@ export default async function AgentTextareaPage({ params }: { params: Promise<{ 
     const canonicalAgentId = routeTarget.canonicalAgentId;
     if (agentName !== canonicalAgentId) {
         redirect(buildCanonicalAgentTextareaPath(canonicalAgentId));
+    }
+
+    const access = await resolveAgentVisibilityAccess({ agentIdentifier: canonicalAgentId });
+    if (!access.isAllowed) {
+        forbidden();
     }
 
     const [{ publicUrl }, agentProfile, agentNaming] = await Promise.all([

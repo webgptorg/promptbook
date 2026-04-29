@@ -1,6 +1,7 @@
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
+import { getSignedInUserForAgentAccess } from '@/src/utils/agentAccess';
 import { createAgentWithDefaultVisibility } from '@/src/utils/createAgentWithDefaultVisibility';
 import { resolveCurrentUserIdentity } from '@/src/utils/currentUserIdentity';
 import { NotFoundError } from '@promptbook-local/core';
@@ -55,9 +56,13 @@ async function resolveSourceAgentFolderId(agentPermanentId: string_agent_permane
 export async function POST(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     const { agentName } = await params;
     const collection = await $provideAgentCollectionForServer();
-    const currentUserIdentity = await resolveCurrentUserIdentity();
 
     try {
+        if (!(await getSignedInUserForAgentAccess())) {
+            return NextResponse.json({ success: false, error: 'Authentication required.' }, { status: 401 });
+        }
+
+        const currentUserIdentity = await resolveCurrentUserIdentity();
         const requestBody = (await request.json().catch(() => ({}))) as { name?: unknown };
         const providedName = typeof requestBody.name === 'string' ? requestBody.name.trim() : '';
         const hasCustomName = Boolean(providedName);

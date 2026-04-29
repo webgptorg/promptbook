@@ -128,6 +128,10 @@ type AgentsListViewContentProps = {
      */
     readonly isAdmin: boolean;
     /**
+     * Whether signed-in-only agent controls should be shown.
+     */
+    readonly isLoggedIn: boolean;
+    /**
      * Office-view subset of agents.
      */
     readonly officeAgents: AgentOrganizationAgent[];
@@ -273,6 +277,7 @@ export function AgentsListViewContent({
     handleRenameFolder,
     handleRequestAgentVisibilityChange,
     isAdmin,
+    isLoggedIn,
     mazeAgents,
     officeAgents,
     officeFolders,
@@ -312,6 +317,7 @@ export function AgentsListViewContent({
                 handleRenameFolder={handleRenameFolder}
                 handleRequestAgentVisibilityChange={handleRequestAgentVisibilityChange}
                 isAdmin={isAdmin}
+                isLoggedIn={isLoggedIn}
                 onNavigateToFolder={onNavigateToFolder}
                 parentFolderInfo={parentFolderInfo}
                 publicUrl={publicUrl}

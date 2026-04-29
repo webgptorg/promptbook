@@ -90,6 +90,9 @@ export type UserLocationRuntimeContext = {
  * @private internal runtime wiring for commitment tools
  */
 export type ToolRuntimeContext = {
+    server?: {
+        origin?: string;
+    };
     memory?: {
         enabled?: boolean;
         userId?: number;

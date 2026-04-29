@@ -3,6 +3,7 @@ import { normalizeChatAttachments } from '@promptbook-local/core';
 import { serializeError } from '@promptbook-local/utils';
 import { parseBookScopedAgentIdentifier } from '@/src/utils/agentReferenceResolver/bookScopedAgentReferences';
 import { resolveChatMessageContentForApiRequest } from '@/src/utils/chat/validateChatMessageContent';
+import { resolveAgentVisibilityAccess } from '@/src/utils/agentAccess';
 import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
@@ -66,6 +67,15 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             410, // Gone - indicates the resource is no longer available
             'agent_deleted',
         );
+    }
+
+    const access = await resolveAgentVisibilityAccess({
+        agentIdentifier: deletedCheckAgentIdentifier,
+        request,
+        isInternalAgentAccessAllowed: true,
+    });
+    if (!access.isAllowed) {
+        return createAgentChatApiErrorResponse('Forbidden', 403, 'forbidden');
     }
 
     const rawBody = (await request.json().catch(() => null)) as unknown;

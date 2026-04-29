@@ -69,7 +69,7 @@ export function AgentsList(props: AgentsListProps) {
     const onRenameContextMenuFolder =
         canOrganize && contextMenuFolder ? () => state.handleRenameFolder(contextMenuFolder.id) : undefined;
     const onRequestContextMenuFolderVisibilityUpdate =
-        isAdmin && contextMenuFolder ? () => state.handleRequestFolderVisibilityUpdate(contextMenuFolder.id) : undefined;
+        canOrganize && contextMenuFolder ? () => state.handleRequestFolderVisibilityUpdate(contextMenuFolder.id) : undefined;
 
     return (
         <section className="mt-16 first:mt-4 mb-4">
@@ -112,6 +112,7 @@ export function AgentsList(props: AgentsListProps) {
                 handleRenameFolder={state.handleRenameFolder}
                 handleRequestAgentVisibilityChange={state.handleRequestAgentVisibilityChange}
                 isAdmin={isAdmin}
+                isLoggedIn={canOrganize}
                 mazeAgents={state.mazeAgents}
                 officeAgents={state.officeAgents}
                 officeFolders={state.officeFolders}
@@ -138,6 +139,7 @@ export function AgentsList(props: AgentsListProps) {
                 folderEditDialogMode={state.folderEditDialogMode}
                 isFolderEditSubmitting={state.isFolderEditSubmitting}
                 isAdmin={isAdmin}
+                isLoggedIn={canOrganize}
                 onAgentRenamed={state.handleContextMenuAgentRenamed}
                 onCloseContextMenu={state.handleCloseContextMenu}
                 onCloseFolderContextMenu={state.handleCloseFolderContextMenu}

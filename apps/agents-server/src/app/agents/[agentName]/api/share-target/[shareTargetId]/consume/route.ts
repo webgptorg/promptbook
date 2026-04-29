@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
 import { consumeShareTargetPayload } from '@/src/utils/shareTargetPayloads';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
+import { resolveAgentVisibilityAccess } from '@/src/utils/agentAccess';
 
 /**
  * Marks one pending share-target payload as consumed once the chat UI has accepted it for auto-send.
  */
 export async function POST(
-    _request: Request,
+    request: Request,
     { params }: { params: Promise<{ agentName: string; shareTargetId: string }> },
 ) {
     const { agentName: rawAgentName, shareTargetId: rawShareTargetId } = await params;
@@ -17,6 +18,11 @@ export async function POST(
 
     if (!canonicalAgentId) {
         return NextResponse.json({ error: 'Agent not found.' }, { status: 404 });
+    }
+
+    const access = await resolveAgentVisibilityAccess({ agentIdentifier: canonicalAgentId, request });
+    if (!access.isAllowed) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     await consumeShareTargetPayload({

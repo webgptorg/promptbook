@@ -6,9 +6,9 @@ import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $invalidateProvidedAgentReferenceResolverCache } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
-import { isUserAdmin } from '@/src/utils/isUserAdmin';
 import { buildAgentNameOrIdFilter } from '@/src/utils/agentIdentifier';
 import { createAgentWithDefaultVisibility } from '@/src/utils/createAgentWithDefaultVisibility';
+import { getSignedInUserForAgentAccess } from '@/src/utils/agentAccess';
 import { resolveCurrentUserIdentity } from '@/src/utils/currentUserIdentity';
 
 /**
@@ -34,7 +34,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
     agentName = decodeURIComponent(agentName);
 
     try {
-        if (!(await isUserAdmin())) {
+        if (!(await getSignedInUserForAgentAccess())) {
             throw new Error('You are not authorized to create agents');
         }
 

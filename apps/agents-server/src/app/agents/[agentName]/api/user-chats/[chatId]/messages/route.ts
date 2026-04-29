@@ -18,7 +18,7 @@ import { UserChatReplyValidationError } from '@/src/utils/userChat/UserChatReply
 import { UserChatScopeError } from '@/src/utils/userChat/UserChatScopeError';
 import { normalizeChatAttachments } from '@promptbook-local/core';
 import { resolveChatMessageValidationIssue } from '@/src/utils/chat/validateChatMessageContent';
-import { resolveUserChatScope } from '../../resolveUserChatScope';
+import { createUserChatScopeErrorResponse, resolveUserChatScope } from '../../resolveUserChatScope';
 
 /**
  * Enqueues one durable user chat turn and immediately returns canonical chat state.
@@ -34,13 +34,10 @@ export async function POST(
     const { agentName: rawAgentName, chatId: rawChatId } = await params;
     const agentName = decodeURIComponent(rawAgentName);
     const chatId = decodeURIComponent(rawChatId);
-    const scopeResult = await resolveUserChatScope(agentName);
+    const scopeResult = await resolveUserChatScope(agentName, request);
 
     if (!scopeResult.ok) {
-        if (scopeResult.error === 'UNAUTHORIZED') {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-        return NextResponse.json({ error: 'Agent not found.' }, { status: 404 });
+        return createUserChatScopeErrorResponse(scopeResult.error);
     }
 
     try {

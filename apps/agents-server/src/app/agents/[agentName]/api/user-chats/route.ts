@@ -11,7 +11,7 @@ import {
 import { listUserChatTimeoutActivities } from '@/src/utils/userChatTimeout/userChatTimeoutStore';
 import type { ChatMessage } from '@promptbook-local/types';
 import { NextResponse } from 'next/server';
-import { resolveUserChatScope } from './resolveUserChatScope';
+import { createUserChatScopeErrorResponse, resolveUserChatScope } from './resolveUserChatScope';
 
 /**
  * Lists user chats for one agent and returns active chat payload.
@@ -22,13 +22,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
     if (isPrivateModeEnabledFromRequest(request)) {
         return NextResponse.json({ error: 'Private mode is enabled.' }, { status: 403 });
     }
-    const scopeResult = await resolveUserChatScope(agentName);
+    const scopeResult = await resolveUserChatScope(agentName, request);
 
     if (!scopeResult.ok) {
-        if (scopeResult.error === 'UNAUTHORIZED') {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-        return NextResponse.json({ error: 'Agent not found.' }, { status: 404 });
+        return createUserChatScopeErrorResponse(scopeResult.error);
     }
 
     try {
@@ -101,13 +98,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
     if (isPrivateModeEnabledFromRequest(request)) {
         return NextResponse.json({ error: 'Private mode is enabled.' }, { status: 403 });
     }
-    const scopeResult = await resolveUserChatScope(agentName);
+    const scopeResult = await resolveUserChatScope(agentName, request);
 
     if (!scopeResult.ok) {
-        if (scopeResult.error === 'UNAUTHORIZED') {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-        return NextResponse.json({ error: 'Agent not found.' }, { status: 404 });
+        return createUserChatScopeErrorResponse(scopeResult.error);
     }
 
     try {

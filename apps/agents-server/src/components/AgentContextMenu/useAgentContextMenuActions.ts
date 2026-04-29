@@ -494,20 +494,20 @@ async function promptForVisibilitySelection(
 }
 
 /**
- * Creates the visibility-specific handlers used by the admin menu section.
+ * Creates the visibility-specific handlers used by the signed-in menu section.
  *
  * @param actionContext - Shared action context.
- * @param isAdmin - Whether the current user is an admin.
+ * @param isLoggedIn - Whether the current request belongs to a signed-in user.
  * @returns Visibility action handler and render flag.
  *
  * @private function of useAgentContextMenuItems
  */
 function useAgentContextMenuVisibilityActions(
     actionContext: AgentContextMenuActionContext,
-    isAdmin: boolean,
+    isLoggedIn: boolean,
 ): UseAgentContextMenuVisibilityActionsResult {
     const { agent, agentIdentifier, formatText } = actionContext;
-    const shouldShowVisibilityAction = Boolean(isAdmin && agent.visibility);
+    const shouldShowVisibilityAction = Boolean(isLoggedIn && agent.visibility);
 
     const handleSetVisibility = useCallback(
         async (visibility: AgentVisibility) => {
@@ -559,7 +559,7 @@ export function useAgentContextMenuActions(
     const handleCloneAgent = useAgentContextMenuCloneAction(actionContext);
     const { handleRequestVisibilityUpdate, shouldShowVisibilityAction } = useAgentContextMenuVisibilityActions(
         actionContext,
-        props.isAdmin ?? false,
+        props.isLoggedIn ?? false,
     );
 
     return {

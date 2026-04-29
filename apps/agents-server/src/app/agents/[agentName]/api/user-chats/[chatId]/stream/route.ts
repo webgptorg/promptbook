@@ -3,7 +3,7 @@ import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 import { createUserChatDetailPayload, getUserChat, isFrozenUserChatSource } from '@/src/utils/userChat';
 import type { ChatMessage } from '@promptbook-local/types';
 import { NextResponse } from 'next/server';
-import { resolveUserChatScope } from '../../resolveUserChatScope';
+import { createUserChatScopeErrorResponse, resolveUserChatScope } from '../../resolveUserChatScope';
 
 /**
  * Faster refresh cadence used while the active chat still has background work in flight.
@@ -43,14 +43,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
     const { agentName: rawAgentName, chatId: rawChatId } = await params;
     const agentName = decodeURIComponent(rawAgentName);
     const chatId = decodeURIComponent(rawChatId);
-    const scopeResult = await resolveUserChatScope(agentName);
+    const scopeResult = await resolveUserChatScope(agentName, request);
 
     if (!scopeResult.ok) {
-        if (scopeResult.error === 'UNAUTHORIZED') {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
-        return NextResponse.json({ error: 'Agent not found.' }, { status: 404 });
+        return createUserChatScopeErrorResponse(scopeResult.error);
     }
 
     const chat = await getUserChat({

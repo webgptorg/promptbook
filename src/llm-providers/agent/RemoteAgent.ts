@@ -79,6 +79,23 @@ type RemoteAgentHttpError = Error & {
 };
 
 /**
+ * Builds request headers for remote agent HTTP calls.
+ */
+function createRemoteAgentRequestHeaders(
+    baseHeaders: HeadersInit | undefined,
+    headers?: Record<string, string>,
+): Headers {
+    const requestHeaders = new Headers(baseHeaders);
+    const versionedHeaders = attachClientVersionHeader(headers);
+
+    for (const [key, value] of Object.entries(versionedHeaders)) {
+        requestHeaders.set(key, value);
+    }
+
+    return requestHeaders;
+}
+
+/**
  * Parses one failed remote agent response into a structured error.
  */
 async function createRemoteAgentHttpError(response: Response): Promise<RemoteAgentHttpError> {
@@ -206,7 +223,7 @@ export class RemoteAgent extends Agent {
     public static async connect(options: RemoteAgentOptions) {
         const agentProfileUrl = `${options.agentUrl}/api/profile`;
         const profileResponse = await fetch(agentProfileUrl, {
-            headers: attachClientVersionHeader(),
+            headers: createRemoteAgentRequestHeaders(options.headers),
         });
         // <- TODO: [🐱‍🚀] What about closed-source agents?
         // <- TODO: [🐱‍🚀] Maybe use promptbookFetch
@@ -303,10 +320,12 @@ export class RemoteAgent extends Agent {
         return this._isVoiceTtsSttEnabled;
     }
     public knowledgeSources: Array<{ url: string; filename: string }> = [];
+    private headers: HeadersInit | undefined;
 
     private constructor(options: AgentOptions & RemoteAgentOptions) {
         super(options);
         this.agentUrl = options.agentUrl;
+        this.headers = options.headers;
     }
 
     public override get agentName(): string_agent_name {
@@ -356,7 +375,7 @@ export class RemoteAgent extends Agent {
 
             const response = await fetch(`${this.agentUrl}/api/voice`, {
                 method: 'POST',
-                headers: attachClientVersionHeader(),
+                headers: createRemoteAgentRequestHeaders(this.headers),
                 body: formData,
             });
 
@@ -397,7 +416,7 @@ export class RemoteAgent extends Agent {
 
         const bookResponse = await fetch(`${this.agentUrl}/api/chat`, {
             method: 'POST',
-            headers: attachClientVersionHeader({
+            headers: createRemoteAgentRequestHeaders(this.headers, {
                 'Content-Type': 'application/json',
             }),
             body: JSON.stringify({

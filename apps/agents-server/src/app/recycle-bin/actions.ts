@@ -2,7 +2,7 @@
 
 import { restoreAgentAndFolders } from '@/src/utils/agentOrganization/restoreAgentAndFolders';
 import { revalidatePath } from 'next/cache';
-import { isUserAdmin } from '../../utils/isUserAdmin';
+import { getSignedInUserForAgentAccess } from '../../utils/agentAccess';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 
 /**
@@ -11,7 +11,7 @@ import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentColle
  * @param agentName - Agent identifier to restore.
  */
 export async function restoreDeletedAgent(agentName: string) {
-    if (!(await isUserAdmin())) {
+    if (!(await getSignedInUserForAgentAccess())) {
         throw new Error('You are not authorized to restore agents');
     }
 
@@ -28,7 +28,7 @@ export async function restoreDeletedAgent(agentName: string) {
  * @param agentName - Agent identifier to delete.
  */
 export async function deleteAgent(agentName: string) {
-    if (!(await isUserAdmin())) {
+    if (!(await getSignedInUserForAgentAccess())) {
         throw new Error('You are not authorized to delete agents');
     }
 

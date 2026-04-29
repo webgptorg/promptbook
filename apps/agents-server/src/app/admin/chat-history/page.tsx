@@ -1,5 +1,5 @@
 import { ForbiddenPage } from '../../../components/ForbiddenPage/ForbiddenPage';
-import { isUserAdmin } from '../../../utils/isUserAdmin';
+import { getSignedInUserForAgentAccess } from '../../../utils/agentAccess';
 import { ChatHistoryClient } from './ChatHistoryClient';
 
 /**
@@ -15,9 +15,9 @@ type AdminChatHistoryPageProps = {
  * Handles admin chat history page.
  */
 export default async function AdminChatHistoryPage({ searchParams }: AdminChatHistoryPageProps) {
-    const isAdmin = await isUserAdmin();
+    const signedInUser = await getSignedInUserForAgentAccess();
 
-    if (!isAdmin) {
+    if (!signedInUser) {
         return <ForbiddenPage />;
     }
 

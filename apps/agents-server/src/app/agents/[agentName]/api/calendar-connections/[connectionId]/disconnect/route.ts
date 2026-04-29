@@ -1,6 +1,6 @@
 import { createCalendarActivity, disconnectCalendarConnection, listCalendarConnections } from '@/src/utils/calendars';
 import { NextResponse } from 'next/server';
-import { resolveUserChatScope } from '../../../user-chats/resolveUserChatScope';
+import { createUserChatScopeErrorResponse, resolveUserChatScope } from '../../../user-chats/resolveUserChatScope';
 
 /**
  * Disconnects one connected calendar from one agent.
@@ -17,13 +17,9 @@ export async function POST(
         return NextResponse.json({ error: 'Invalid connection id.' }, { status: 400 });
     }
 
-    const scopeResult = await resolveUserChatScope(agentName);
+    const scopeResult = await resolveUserChatScope(agentName, request);
     if (!scopeResult.ok) {
-        if (scopeResult.error === 'UNAUTHORIZED') {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
-        return NextResponse.json({ error: 'Agent not found.' }, { status: 404 });
+        return createUserChatScopeErrorResponse(scopeResult.error);
     }
 
     try {

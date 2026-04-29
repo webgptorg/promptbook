@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 import { cancelScheduledUserChatTimeout, getUserChatTimeout } from '@/src/utils/userChatTimeout';
 import { createUserChatDetailPayload, getUserChat, isFrozenUserChatSource } from '@/src/utils/userChat';
-import { resolveUserChatScope } from '../../../../resolveUserChatScope';
+import { createUserChatScopeErrorResponse, resolveUserChatScope } from '../../../../resolveUserChatScope';
 
 /**
  * Requests cancellation for one queued or running thread-scoped timeout.
@@ -19,14 +19,10 @@ export async function POST(
     const agentName = decodeURIComponent(rawAgentName);
     const chatId = decodeURIComponent(rawChatId);
     const timeoutId = decodeURIComponent(rawTimeoutId);
-    const scopeResult = await resolveUserChatScope(agentName);
+    const scopeResult = await resolveUserChatScope(agentName, request);
 
     if (!scopeResult.ok) {
-        if (scopeResult.error === 'UNAUTHORIZED') {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
-        return NextResponse.json({ error: 'Agent not found.' }, { status: 404 });
+        return createUserChatScopeErrorResponse(scopeResult.error);
     }
 
     try {

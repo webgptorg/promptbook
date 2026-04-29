@@ -33,9 +33,9 @@ export type SortableAgentCardProps = {
      */
     readonly publicUrl: string_url;
     /**
-     * Whether the current user is an admin.
+     * Whether signed-in-only agent controls should be shown.
      */
-    readonly isAdmin: boolean;
+    readonly isLoggedIn: boolean;
     /**
      * Whether drag-and-drop organization is enabled.
      */
@@ -76,7 +76,7 @@ export function SortableAgentCard({
     dragId,
     agentIdentifier,
     publicUrl,
-    isAdmin,
+    isLoggedIn,
     canOrganize,
     activeDragType,
     onDelete,
@@ -116,7 +116,7 @@ export function SortableAgentCard({
                 agent={agent}
                 publicUrl={publicUrl}
                 href={buildFreshAgentChatHref(agentIdentifier)}
-                isAdmin={isAdmin}
+                isAdmin={isLoggedIn}
                 onDelete={onDelete}
                 onRequestVisibilityChange={onRequestVisibilityChange}
                 visibility={agent.visibility}

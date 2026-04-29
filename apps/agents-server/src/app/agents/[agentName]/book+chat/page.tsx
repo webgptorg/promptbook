@@ -1,11 +1,11 @@
 'use server';
 
-import { ForbiddenPage } from '@/src/components/ForbiddenPage/ForbiddenPage';
 import { loadChatConfiguration } from '@/src/utils/chatConfiguration';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
-import { isUserAdmin } from '@/src/utils/isUserAdmin';
+import { getSignedInUserForAgentAccess } from '@/src/utils/agentAccess';
 import { getThinkingMessages } from '@/src/utils/thinkingMessages';
 import { headers } from 'next/headers';
+import { forbidden } from 'next/navigation';
 import { resolveSpeechRecognitionLanguage } from '../../../../../../../src/utils/language/getBrowserPreferredSpeechRecognitionLanguage';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
 import { DeletedAgentBanner } from '../../../../components/DeletedAgentBanner';
@@ -32,9 +32,8 @@ export default async function AgentBookAndChatPage({ params }: { params: Promise
         );
     }
 
-    if (!(await isUserAdmin())) {
-        /* <- TODO: [👹] Here should be user permissions */
-        return <ForbiddenPage />;
+    if (!(await getSignedInUserForAgentAccess())) {
+        forbidden();
     }
 
     const collection = await $provideAgentCollectionForServer();

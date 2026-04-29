@@ -10,27 +10,22 @@ import { UserChatReplyValidationError } from '@/src/utils/userChat/UserChatReply
 import { isUserChatNotFoundScopeError, UserChatScopeError } from '@/src/utils/userChat/UserChatScopeError';
 import type { ChatMessage } from '@promptbook-local/types';
 import { NextResponse } from 'next/server';
-import { resolveUserChatScope } from '../resolveUserChatScope';
+import { createUserChatScopeErrorResponse, resolveUserChatScope } from '../resolveUserChatScope';
 
 /**
  * Loads one chat for current user.
  */
 export async function GET(request: Request, { params }: { params: Promise<{ agentName: string; chatId: string }> }) {
-    void request;
-
     const { agentName: rawAgentName, chatId: rawChatId } = await params;
     const agentName = decodeURIComponent(rawAgentName);
     if (isPrivateModeEnabledFromRequest(request)) {
         return NextResponse.json({ error: 'Private mode is enabled.' }, { status: 403 });
     }
     const chatId = decodeURIComponent(rawChatId);
-    const scopeResult = await resolveUserChatScope(agentName);
+    const scopeResult = await resolveUserChatScope(agentName, request);
 
     if (!scopeResult.ok) {
-        if (scopeResult.error === 'UNAUTHORIZED') {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-        return NextResponse.json({ error: 'Agent not found.' }, { status: 404 });
+        return createUserChatScopeErrorResponse(scopeResult.error);
     }
 
     try {
@@ -65,13 +60,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ ag
     const { agentName: rawAgentName, chatId: rawChatId } = await params;
     const agentName = decodeURIComponent(rawAgentName);
     const chatId = decodeURIComponent(rawChatId);
-    const scopeResult = await resolveUserChatScope(agentName);
+    const scopeResult = await resolveUserChatScope(agentName, request);
 
     if (!scopeResult.ok) {
-        if (scopeResult.error === 'UNAUTHORIZED') {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-        return NextResponse.json({ error: 'Agent not found.' }, { status: 404 });
+        return createUserChatScopeErrorResponse(scopeResult.error);
     }
 
     try {
@@ -165,8 +157,6 @@ function resolveUserChatUpdateScopeErrorResponse(error: UserChatScopeError): Nex
  * Deletes one chat for current user.
  */
 export async function DELETE(request: Request, { params }: { params: Promise<{ agentName: string; chatId: string }> }) {
-    void request;
-
     if (isPrivateModeEnabledFromRequest(request)) {
         return NextResponse.json({ error: 'Private mode is enabled.' }, { status: 403 });
     }
@@ -174,13 +164,10 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ a
     const { agentName: rawAgentName, chatId: rawChatId } = await params;
     const agentName = decodeURIComponent(rawAgentName);
     const chatId = decodeURIComponent(rawChatId);
-    const scopeResult = await resolveUserChatScope(agentName);
+    const scopeResult = await resolveUserChatScope(agentName, request);
 
     if (!scopeResult.ok) {
-        if (scopeResult.error === 'UNAUTHORIZED') {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-        return NextResponse.json({ error: 'Agent not found.' }, { status: 404 });
+        return createUserChatScopeErrorResponse(scopeResult.error);
     }
 
     try {

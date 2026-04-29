@@ -8,7 +8,7 @@ import { isUserAdmin } from '@/src/utils/isUserAdmin';
 import { saturate } from '@promptbook-local/color';
 import { NotFoundError, PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import { headers } from 'next/headers';
-import { notFound, redirect } from 'next/navigation';
+import { forbidden, notFound, redirect } from 'next/navigation';
 import { resolveAgentAvatarImageUrl } from '../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 import { Color } from '../../../../../../src/utils/color/Color';
 import { resolveSpeechRecognitionLanguage } from '../../../../../../src/utils/language/getBrowserPreferredSpeechRecognitionLanguage';
@@ -18,6 +18,7 @@ import { loadChatConfiguration } from '../../../utils/chatConfiguration';
 import { resolveAgentChatInputPlaceholder } from '../../../utils/agentChatInputPlaceholder';
 import { resolveAgentRouteTarget, type AgentRouteTarget } from '../../../utils/agentRouting/resolveAgentRouteTarget';
 import { getAgentNaming } from '../../../utils/getAgentNaming';
+import { resolveAgentVisibilityAccess } from '../../../utils/agentAccess';
 import { getAgentLinks } from './agentLinks';
 import { AgentProfileWrapper } from './AgentProfileWrapper';
 import { DeferredAgentProfileChat } from './DeferredAgentProfileChat';
@@ -91,6 +92,7 @@ type AgentPageViewModel = {
     agentName: string;
     isAdmin: boolean;
     isHeadless: boolean;
+    isLoggedIn: boolean;
     folderContext: AgentPageData['folderContext'];
     actions: React.ReactNode;
     isDeleted: boolean;
@@ -360,7 +362,7 @@ async function loadAgentPageData(canonicalAgentId: string): Promise<AgentPageDat
     const serverVisibilityPromise = getServerVisibility();
     const chatConfigurationPromise = loadChatConfiguration();
     const agentNamingPromise = getAgentNaming();
-    const folderContextPromise = isAdminPromise.then((isAdmin) => getAgentFolderContext(canonicalAgentId, isAdmin));
+    const folderContextPromise = getAgentFolderContext(canonicalAgentId);
     const agentProfilePromise = getAgentProfileOrNotFound(canonicalAgentId);
     const isDeletedPromise = isAgentDeleted(canonicalAgentId);
 
@@ -445,6 +447,7 @@ function isMissingAgentProfileError(error: unknown): boolean {
 function createAgentPageViewModel(
     route: Extract<ResolvedAgentPageRoute, { kind: 'local' }>,
     data: AgentPageData,
+    isLoggedIn: boolean,
 ): AgentPageViewModel {
     const { agentProfile, agentNaming, isDeleted, publicUrl, requestHeaders, serverVisibility } = data;
 
@@ -476,9 +479,10 @@ function createAgentPageViewModel(
         agentEmail: `${route.canonicalAgentId}@${publicUrl.hostname}`,
         agentName: route.canonicalAgentId,
         isAdmin: data.isAdmin,
+        isLoggedIn,
         isHeadless: route.isHeadless,
         folderContext: data.folderContext,
-        actions: createAgentPageActions(agentProfile, agentNaming, route.canonicalAgentId),
+        actions: createAgentPageActions(agentProfile, agentNaming, route.canonicalAgentId, isLoggedIn),
         isDeleted,
         fullname,
         inputPlaceholder,
@@ -503,7 +507,12 @@ function createAgentPageActions(
     agentProfile: AgentPageData['agentProfile'],
     agentNaming: AgentPageData['agentNaming'],
     canonicalAgentId: string,
+    isLoggedIn: boolean,
 ): React.ReactNode {
+    if (!isLoggedIn) {
+        return null;
+    }
+
     return (
         <>
             {getAgentLinks(agentProfile.permanentId || canonicalAgentId, (text) => formatAgentNamingText(text, agentNaming))
@@ -565,6 +574,7 @@ function renderAgentProfilePage(viewModel: AgentPageViewModel) {
                 agentEmail={viewModel.agentEmail}
                 agentName={viewModel.agentName}
                 isAdmin={viewModel.isAdmin}
+                isLoggedIn={viewModel.isLoggedIn}
                 isHeadless={viewModel.isHeadless}
                 folderContext={viewModel.folderContext}
                 actions={viewModel.actions}
@@ -601,8 +611,13 @@ export default async function AgentPage(props: AgentPageProps) {
         return renderPseudoAgentProfilePage(route);
     }
 
+    const access = await resolveAgentVisibilityAccess({ agentIdentifier: route.canonicalAgentId });
+    if (!access.isAllowed) {
+        forbidden();
+    }
+
     const pageData = await loadAgentPageData(route.canonicalAgentId);
-    return renderAgentProfilePage(createAgentPageViewModel(route, pageData));
+    return renderAgentProfilePage(createAgentPageViewModel(route, pageData, Boolean(access.currentUser)));
 }
 
 // TODO: [🐱‍🚀] Make this page look nice - 🃏

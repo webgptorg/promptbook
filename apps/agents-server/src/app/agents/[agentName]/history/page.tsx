@@ -1,7 +1,9 @@
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { formatAgentNamingText } from '@/src/utils/agentNaming';
+import { getSignedInUserForAgentAccess } from '@/src/utils/agentAccess';
 import { getAgentNaming } from '@/src/utils/getAgentNaming';
 import { HistoryIcon } from 'lucide-react';
+import { forbidden } from 'next/navigation';
 import { RestoreVersionButton } from './RestoreVersionButton';
 
 /**
@@ -21,6 +23,10 @@ export async function generateMetadata() {
  */
 export default async function AgentHistoryPage({ params }: { params: Promise<{ agentName: string }> }) {
     const { agentName } = await params;
+    if (!(await getSignedInUserForAgentAccess())) {
+        forbidden();
+    }
+
     const collection = await $provideAgentCollectionForServer();
     const agentId = await collection.getAgentPermanentId(agentName);
     const history = await collection.listAgentHistory(agentId);

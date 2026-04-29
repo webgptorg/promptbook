@@ -2,9 +2,11 @@
 
 import { $provideServer } from '@/src/tools/$provideServer';
 import { formatAgentNamingText } from '@/src/utils/agentNaming';
+import { getSignedInUserForAgentAccess } from '@/src/utils/agentAccess';
 import { getAgentNaming } from '@/src/utils/getAgentNaming';
 import { PromptbookAgentIntegration } from '@promptbook-local/components';
 import { headers } from 'next/headers';
+import { forbidden } from 'next/navigation';
 import { spaceTrim } from 'spacetrim';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
 import { just } from '../../../../../../../src/utils/organization/just';
@@ -36,6 +38,10 @@ export default async function WebsiteIntegrationAgentPage({ params }: { params: 
     $sideEffect(headers());
     let { agentName } = await params;
     agentName = decodeURIComponent(agentName);
+    if (!(await getSignedInUserForAgentAccess())) {
+        forbidden();
+    }
+
     const agentNaming = await getAgentNaming();
     const agentProfile = await getAgentProfile(agentName);
     const { meta } = agentProfile;
