@@ -1,3 +1,8 @@
+-   Finished dark-mode styling for the Agents Server chat page:
+
+    -   Added shared dark-aware chat surface variables so the standalone chat composer footer no longer falls back to a bright gradient in dark mode.
+    -   Darkened article-mode message utility controls, report-issue pills, reply previews, file previews, speech status bubbles, and dictation panels to keep chat interactions visually consistent.
+
 -   Tightened Agents Server agent visibility enforcement:
 
     -   Added shared server-side visibility checks so private agents return forbidden responses to anonymous profile/chat/API access while unlisted agents remain usable by direct link.
