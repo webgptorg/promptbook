@@ -406,6 +406,7 @@ async function loadAgentPageData(canonicalAgentId: string, isAuthenticated: bool
         serverVisibility,
         agentProfile,
         isDeleted,
+        isAuthenticated,
     };
 }
 
