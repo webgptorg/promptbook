@@ -598,7 +598,8 @@ export function AgentChatSidebarDefault({
                     <SolidArrowButton
                         direction={isCollapsed ? 'right' : 'left'}
                         onClick={onToggleCollapse}
-                        className="pointer-events-auto"
+                        className="pointer-events-auto agent-chat-sidebar-toggle"
+                        iconClassName="agent-chat-sidebar-toggle-icon"
                         aria-controls={sidebarId}
                         aria-expanded={!isCollapsed}
                         aria-label={sidebarToggleLabel}

@@ -1,3 +1,8 @@
+-   Refined the Agents Server chat sidebar opener so the arrow that opens the chats tray now better matches the page design:
+
+    -   Replaced the generic gray floating arrow with a slimmer glassy sidebar handle that uses the same blue-accent visual language as the rest of the chat route.
+    -   Added dedicated light and dark mode styling for the desktop chats-tray toggle without changing the shared scroll-to-bottom arrow behavior.
+
 -   Fixed rapid Agents Server homepage organization changes so quickly moving multiple agents or folders no longer snaps back to stale positions:
 
     -   Serialized optimistic organization writes on the client, so rapid drag-and-drop changes are persisted in the same order they were made instead of racing each other.
