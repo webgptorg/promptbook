@@ -3,113 +3,44 @@ import moment from 'moment';
 import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
 import { DatabaseError } from '../../../src/errors/DatabaseError';
-import { OPENAI_MODELS } from '../../../src/llm-providers/openai/openai-models';
 import { just } from '../../../src/utils/organization/just';
 import type { RunOptions } from '../cli/RunOptions';
 import { parseRunOptions } from '../cli/parseRunOptions';
-import { appendCoderContext } from '../common/appendCoderContext';
 import { CliProgressDisplay } from '../common/cliProgressDisplay';
-import { formatCommitMessageForDisplay } from '../common/formatCommitMessageForDisplay';
-import {
-    captureChangedFilesSnapshot,
-    normalizeLineEndingsInFilesChangedSinceSnapshot,
-    type ChangedFilesSnapshot,
-} from '../common/normalizeLineEndingsInChangedFiles';
-import { printCommitMessage } from '../common/printCommitMessage';
 import { resolveCoderContext } from '../common/resolveCoderContext';
-import { withPromptRuntimeLog } from '../common/runGoScript/withPromptRuntimeLog';
-import { waitForEnter } from '../common/waitForEnter';
 import { checkPause, listenForPause } from '../common/waitForPause';
 import { printAgentGitIdentityTipIfNeeded } from '../git/agentGitIdentity';
-import { commitChanges } from '../git/commitChanges';
 import { ensureWorkingTreeClean } from '../git/ensureWorkingTreeClean';
-import { runAutoMigrateTestingServers } from '../migrations/runAutoMigrateTestingServers';
-import { buildCodexPrompt } from '../prompts/buildCodexPrompt';
-import { buildCommitMessage } from '../prompts/buildCommitMessage';
 import { buildPromptLabelForDisplay } from '../prompts/buildPromptLabelForDisplay';
 import { buildPromptSummary } from '../prompts/buildPromptSummary';
-import { buildScriptPath } from '../prompts/buildScriptPath';
 import { findNextTodoPrompt } from '../prompts/findNextTodoPrompt';
 import { listUpcomingTasks } from '../prompts/listUpcomingTasks';
 import { loadPromptFiles } from '../prompts/loadPromptFiles';
-import { markPromptDone } from '../prompts/markPromptDone';
-import { markPromptFailed } from '../prompts/markPromptFailed';
 import { printPromptsToBeWritten } from '../prompts/printPromptsToBeWritten';
 import { printStats } from '../prompts/printStats';
 import { printUpcomingTasks } from '../prompts/printUpcomingTasks';
 import { summarizePrompts } from '../prompts/summarizePrompts';
+import type { PromptFile } from '../prompts/types/PromptFile';
+import type { PromptSelection } from '../prompts/types/PromptSelection';
+import type { PromptStats } from '../prompts/types/PromptStats';
 import { waitForPromptStart } from '../prompts/waitForPromptStart';
-import { writePromptErrorLog } from '../prompts/writePromptErrorLog';
-import { writePromptFile } from '../prompts/writePromptFile';
-import { ClaudeCodeRunner } from '../runners/claude-code/ClaudeCodeRunner';
-import { ClineRunner } from '../runners/cline/ClineRunner';
-import { DEFAULT_GEMINI_MODEL, GeminiRunner } from '../runners/gemini/GeminiRunner';
-import { GitHubCopilotRunner } from '../runners/github-copilot/GitHubCopilotRunner';
-import { OpenAiCodexRunner } from '../runners/openai-codex/OpenAiCodexRunner';
-import { OpencodeRunner } from '../runners/opencode/OpencodeRunner';
-import type { PromptRunner } from '../runners/types/PromptRunner';
-import { runPromptWithTestFeedback } from '../testing/runPromptWithTestFeedback';
 import { renderCoderRunUi, type CoderRunUiHandle } from '../ui/renderCoderRunUi';
+import { resolvePromptRunner } from './resolvePromptRunner';
+import { runPromptRound } from './runPromptRound';
 
 /**
  * Constant for prompts dir.
  */
 const PROMPTS_DIR = join(process.cwd(), 'prompts');
-/**
- * Constant for default codex model.
- */
-const DEFAULT_CODEX_MODEL = 'gpt-5.2-codex';
-/**
- * Constant for cline model.
- */
-const CLINE_MODEL = 'gemini:gemini-3-flash-preview';
 
 /**
- * Type describing runner agent name.
+ * Prompt queue snapshot for one top-level loop iteration.
  */
-type RunnerAgentName = NonNullable<RunOptions['agentName']>;
-
-/**
- * Map of runner labels.
- */
-const RUNNER_LABELS: Record<RunnerAgentName, string> = {
-    'openai-codex': 'OpenAI Codex',
-    'github-copilot': 'GitHub Copilot',
-    cline: 'Cline',
-    'claude-code': 'Claude Code',
-    opencode: 'Opencode',
-    gemini: 'Gemini CLI',
+type PromptQueueSnapshot = {
+    promptFiles: PromptFile[];
+    stats: PromptStats;
+    nextPrompt?: PromptSelection;
 };
-
-/**
- * Runner metadata used in prompt status lines.
- */
-type RunnerMetadata = {
-    runnerName: string;
-    modelName?: string;
-};
-
-/**
- * Resolves runner metadata for prompt status lines.
- */
-function getRunnerMetadata(options: RunOptions, actualModel?: string): RunnerMetadata {
-    const runnerName = options.agentName ? RUNNER_LABELS[options.agentName] ?? 'unknown' : 'unknown';
-    let modelName: string | undefined;
-
-    if (options.agentName === 'openai-codex') {
-        modelName = actualModel;
-    } else if (options.agentName === 'github-copilot') {
-        modelName = actualModel;
-    } else if (options.agentName === 'gemini') {
-        modelName = actualModel;
-    } else if (options.agentName === 'cline') {
-        modelName = CLINE_MODEL;
-    } else if (options.agentName === 'opencode') {
-        modelName = options.model;
-    }
-
-    return { runnerName, modelName };
-}
 
 /**
  * Main entry point for running prompts with the selected agent.
@@ -120,7 +51,90 @@ function getRunnerMetadata(options: RunOptions, actualModel?: string): RunnerMet
  */
 export async function runCodexPrompts(providedOptions?: RunOptions): Promise<void> {
     const options = providedOptions ?? parseRunOptions(process.argv.slice(2));
+    validateRunCodexPromptOptions(options);
 
+    const runStartDate = moment();
+    const { isRichUiEnabled, progressDisplay, uiHandle } = createRunDisplays(options, runStartDate);
+    const waitForRequestedPause = createPauseWaiter({ isRichUiEnabled, progressDisplay, uiHandle });
+
+    startPauseListenerIfNeeded(isRichUiEnabled);
+
+    try {
+        const resolvedCoderContext = await resolveCoderContext(options.context, process.cwd());
+
+        if (await runDryRunIfRequested(options)) {
+            return;
+        }
+
+        const { runner, actualRunnerModel, runnerMetadata } = resolvePromptRunner(options);
+        console.info(colors.green(`Running prompts with ${runner.name}`));
+
+        initializeRunUi(uiHandle, runner.name, actualRunnerModel, options);
+
+        let hasShownUpcomingTasks = false;
+        let hasWaitedForStart = false;
+
+        while (just(true)) {
+            await waitForRequestedPause();
+
+            const promptQueueSnapshot = await loadPromptQueueSnapshot({
+                options,
+                isRichUiEnabled,
+                progressDisplay,
+                uiHandle,
+            });
+
+            hasShownUpcomingTasks ||= showUpcomingTasksOnce({
+                hasShownUpcomingTasks,
+                promptFiles: promptQueueSnapshot.promptFiles,
+                stats: promptQueueSnapshot.stats,
+                minimumPriority: options.priority,
+                isRichUiEnabled,
+            });
+
+            if (finishWhenNoPromptIsAvailable(promptQueueSnapshot, isRichUiEnabled, uiHandle)) {
+                return;
+            }
+
+            const nextPrompt = promptQueueSnapshot.nextPrompt!;
+            const promptLabel = buildPromptLabelForDisplay(nextPrompt.file, nextPrompt.section);
+
+            hasWaitedForStart = await waitForPromptConfirmationIfNeeded({
+                options,
+                nextPrompt,
+                promptLabel,
+                hasWaitedForStart,
+                isRichUiEnabled,
+                progressDisplay,
+                uiHandle,
+            });
+
+            if (!options.ignoreGitChanges) {
+                await ensureWorkingTreeClean();
+            }
+
+            await runPromptRound({
+                options,
+                runner,
+                runnerMetadata,
+                nextPrompt,
+                promptLabel,
+                resolvedCoderContext,
+                isRichUiEnabled,
+                progressDisplay,
+                uiHandle,
+                waitForRequestedPause,
+            });
+        }
+    } finally {
+        cleanupRunDisplays(progressDisplay, uiHandle, options);
+    }
+}
+
+/**
+ * Validates cross-flag constraints before the run starts.
+ */
+function validateRunCodexPromptOptions(options: RunOptions): void {
     if (options.allowDestructiveAutoMigrate && !options.autoMigrate) {
         throw new DatabaseError(
             spaceTrim(`
@@ -128,13 +142,42 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
             `),
         );
     }
+}
 
-    const runStartDate = moment();
+/**
+ * Creates the progress display and rich UI handles used during the run.
+ */
+function createRunDisplays(
+    options: RunOptions,
+    runStartDate: moment.Moment,
+): {
+    isRichUiEnabled: boolean;
+    progressDisplay?: CliProgressDisplay;
+    uiHandle?: CoderRunUiHandle;
+} {
     const isRichUiEnabled = !options.dryRun && !options.noUi && Boolean(process.stdout.isTTY);
     const progressDisplay =
         options.dryRun || options.noUi || isRichUiEnabled ? undefined : new CliProgressDisplay(runStartDate, options.priority);
-    const uiHandle: CoderRunUiHandle | undefined = isRichUiEnabled ? renderCoderRunUi(runStartDate) : undefined;
-    const waitForRequestedPause = async (): Promise<void> => {
+    const uiHandle = isRichUiEnabled ? renderCoderRunUi(runStartDate) : undefined;
+
+    return {
+        isRichUiEnabled,
+        progressDisplay,
+        uiHandle,
+    };
+}
+
+/**
+ * Creates a pause waiter that keeps the progress display and rich UI in sync.
+ */
+function createPauseWaiter(options: {
+    isRichUiEnabled: boolean;
+    progressDisplay?: CliProgressDisplay;
+    uiHandle?: CoderRunUiHandle;
+}): () => Promise<void> {
+    const { isRichUiEnabled, progressDisplay, uiHandle } = options;
+
+    return async (): Promise<void> => {
         await checkPause({
             silent: isRichUiEnabled,
             onPaused: () => {
@@ -151,366 +194,203 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
             },
         });
     };
+}
 
-    // When the Ink UI is active it handles keyboard input itself, so skip the raw stdin listener.
+/**
+ * Starts the pause listener only when the rich TTY UI is not consuming keyboard input.
+ */
+function startPauseListenerIfNeeded(isRichUiEnabled: boolean): void {
     if (!isRichUiEnabled) {
         listenForPause();
     }
-
-    try {
-        const resolvedCoderContext = await resolveCoderContext(options.context, process.cwd());
-
-        if (options.dryRun) {
-            const promptFiles = await loadPromptFiles(PROMPTS_DIR);
-            const stats = summarizePrompts(promptFiles, options.priority);
-            printStats(stats, options.priority);
-            console.info(colors.yellow('Following prompts need to be written:'));
-            printPromptsToBeWritten(promptFiles, options.priority);
-            return;
-        }
-
-        let runner: PromptRunner;
-        let actualRunnerModel: string | undefined;
-        const agentName = options.agentName;
-
-        if (!agentName) {
-            throw new Error('Missing --agent in non-dry run mode');
-        }
-
-        if (agentName === 'openai-codex') {
-            let modelToUse: string;
-            if (!options.model) {
-                console.error(colors.red('Error: --model is required when using --agent openai-codex'));
-                console.error('');
-                console.error(colors.cyan('Available models:'));
-                const codexModels = OPENAI_MODELS.filter((m) => m.modelVariant === 'CHAT').map((m) => m.modelName);
-                codexModels.forEach((model) => {
-                    console.error(colors.gray(`  - ${model}`));
-                });
-                console.error('');
-                console.error(colors.cyan('Example usage:'));
-                console.error(colors.gray(`  --agent openai-codex --model gpt-5.2-codex`));
-                console.error(colors.gray(`  --agent openai-codex --model default`));
-                process.exit(1);
-            } else if (options.model === 'default') {
-                modelToUse = DEFAULT_CODEX_MODEL;
-            } else {
-                modelToUse = options.model;
-            }
-
-            actualRunnerModel = modelToUse;
-            runner = new OpenAiCodexRunner({
-                codexCommand: 'codex',
-                model: modelToUse,
-                thinkingLevel: options.thinkingLevel,
-                sandbox: 'danger-full-access',
-                askForApproval: 'never',
-                allowCredits: options.allowCredits,
-            });
-
-            if (!options.allowCredits) {
-                console.info(
-                    colors.gray(
-                        'OpenAI Codex credit spending is disabled. Use `--allow-credits` to explicitly opt in.',
-                    ),
-                );
-            }
-        } else if (agentName === 'cline') {
-            runner = new ClineRunner({
-                model: CLINE_MODEL,
-            });
-        } else if (agentName === 'github-copilot') {
-            const modelToUse = options.model === 'default' ? undefined : options.model;
-
-            actualRunnerModel = modelToUse;
-            runner = new GitHubCopilotRunner({
-                model: modelToUse,
-                thinkingLevel: options.thinkingLevel,
-            });
-        } else if (agentName === 'claude-code') {
-            runner = new ClaudeCodeRunner();
-        } else if (agentName === 'opencode') {
-            runner = new OpencodeRunner({
-                model: options.model,
-            });
-        } else if (agentName === 'gemini') {
-            let modelToUse: string;
-            if (!options.model) {
-                console.error(colors.red('Error: --model is required when using --agent gemini'));
-                console.error('');
-                console.error(colors.cyan('Example usage:'));
-                console.error(colors.gray(`  --agent gemini --model ${DEFAULT_GEMINI_MODEL}`));
-                console.error(colors.gray('  --agent gemini --model default'));
-                process.exit(1);
-            } else if (options.model === 'default') {
-                modelToUse = DEFAULT_GEMINI_MODEL;
-            } else {
-                modelToUse = options.model;
-            }
-
-            actualRunnerModel = modelToUse;
-            runner = new GeminiRunner({
-                model: modelToUse,
-            });
-        } else {
-            throw new Error(`Unknown agent: ${agentName}`);
-        }
-
-        console.info(colors.green(`Running prompts with ${runner.name}`));
-        const runnerMetadata = getRunnerMetadata(options, actualRunnerModel);
-
-        // Feed configuration into the terminal UI
-        uiHandle?.state.setConfig({
-            agentName: runner.name,
-            modelName: actualRunnerModel,
-            thinkingLevel: options.thinkingLevel,
-            context: options.context,
-            priority: options.priority,
-            testCommand: options.testCommand,
-        });
-        uiHandle?.state.setPhase('loading');
-        uiHandle?.state.setStatusMessage(`Running prompts with ${runner.name}`);
-
-        let hasShownUpcomingTasks = false;
-        let hasWaitedForStart = false;
-
-        while (just(true)) {
-            await waitForRequestedPause();
-            if (isRichUiEnabled) {
-                uiHandle?.state.setPhase('loading');
-                uiHandle?.state.setStatusMessage('Loading prompts...');
-            }
-            const promptFiles = await loadPromptFiles(PROMPTS_DIR);
-            const stats = summarizePrompts(promptFiles, options.priority);
-            progressDisplay?.update(stats);
-            uiHandle?.state.updateProgress(stats);
-            if (!isRichUiEnabled) {
-                printStats(stats, options.priority);
-            }
-
-            const nextPrompt = findNextTodoPrompt(promptFiles, options.priority);
-
-            if (!hasShownUpcomingTasks) {
-                if (stats.toBeWritten > 0 && !isRichUiEnabled) {
-                    console.info(colors.yellow('Following prompts need to be written:'));
-                    printPromptsToBeWritten(promptFiles, options.priority);
-                    console.info('');
-                }
-                if (!isRichUiEnabled) {
-                    printUpcomingTasks(listUpcomingTasks(promptFiles, options.priority));
-                }
-                hasShownUpcomingTasks = true;
-            }
-
-            if (!nextPrompt) {
-                if (stats.toBeWritten > 0) {
-                    const message = 'No prompts ready for agent.';
-                    uiHandle?.state.setStatusMessage(message);
-                    uiHandle?.state.setPhase('done');
-                    if (!isRichUiEnabled) {
-                        console.info(colors.yellow(message));
-                    }
-                } else {
-                    const message = 'All prompts are done.';
-                    uiHandle?.state.setStatusMessage(message);
-                    uiHandle?.state.setPhase('done');
-                    if (!isRichUiEnabled) {
-                        console.info(colors.green(message));
-                    }
-                }
-                return;
-            }
-
-            const promptLabel = buildPromptLabelForDisplay(nextPrompt.file, nextPrompt.section);
-
-            if (options.waitForUser) {
-                progressDisplay?.pauseTimer();
-                uiHandle?.state.pauseTimer();
-                uiHandle?.state.setCurrentPrompt(promptLabel);
-                uiHandle?.state.setPhase('waiting');
-                uiHandle?.state.setStatusMessage(
-                    hasWaitedForStart ? 'Waiting for confirmation to continue' : 'Waiting for confirmation to start',
-                );
-                uiHandle?.state.setDetailLines([buildPromptSummary(nextPrompt.file, nextPrompt.section)]);
-                if (isRichUiEnabled) {
-                    await uiHandle?.waitForEnter(hasWaitedForStart ? 'Continue' : 'Start');
-                } else {
-                    await waitForPromptStart(nextPrompt.file, nextPrompt.section, !hasWaitedForStart);
-                }
-                uiHandle?.state.setDetailLines([]);
-                progressDisplay?.resumeTimer();
-                uiHandle?.state.resumeTimer();
-                hasWaitedForStart = true;
-            }
-
-            if (!options.ignoreGitChanges) {
-                await ensureWorkingTreeClean();
-            }
-
-            const commitMessage = buildCommitMessage(nextPrompt.file, nextPrompt.section);
-            const codexPrompt = appendCoderContext(
-                buildCodexPrompt(nextPrompt.file, nextPrompt.section),
-                resolvedCoderContext,
-            );
-
-            const scriptPath = buildScriptPath(nextPrompt.file, nextPrompt.section);
-            await waitForRequestedPause();
-
-            if (isRichUiEnabled) {
-                uiHandle?.state.setCurrentPrompt(promptLabel);
-                uiHandle?.state.setPhase('running');
-                uiHandle?.state.setStatusMessage('Running');
-            } else {
-                console.info(colors.blue(`Processing ${promptLabel}`));
-            }
-
-            const promptExecutionStartedDate = moment();
-            let attemptCount = 1;
-            const roundChangedFilesSnapshot = options.normalizeLineEndings
-                ? await captureChangedFilesSnapshot(process.cwd())
-                : undefined;
-
-            await withPromptRuntimeLog(
-                scriptPath,
-                async (logPath) => {
-                    try {
-                        uiHandle?.startCapturingAgentOutput();
-
-                        const result = await runPromptWithTestFeedback({
-                            runner,
-                            prompt: codexPrompt,
-                            scriptPath,
-                            projectPath: process.cwd(),
-                            promptLabel,
-                            testCommand: options.testCommand,
-                            preserveArtifactsOnSuccess: options.preserveLogs,
-                            logPath,
-                            onAttemptStarted: (nextAttemptCount) => {
-                                attemptCount = nextAttemptCount;
-                                uiHandle?.state.setAttempt(nextAttemptCount);
-                                if (nextAttemptCount > 1) {
-                                    uiHandle?.state.setStatusMessage(`Retrying (attempt ${nextAttemptCount})`);
-                                    uiHandle?.state.setPhase('verifying');
-                                }
-                            },
-                        });
-
-                        uiHandle?.stopCapturingAgentOutput();
-                        uiHandle?.state.setStatusMessage('Committing changes');
-
-                        markPromptDone(
-                            nextPrompt.file,
-                            nextPrompt.section,
-                            result.usage,
-                            runnerMetadata.runnerName,
-                            runnerMetadata.modelName,
-                            promptExecutionStartedDate,
-                            result.attemptCount,
-                        );
-                        await writePromptFile(nextPrompt.file);
-                        await normalizeLineEndingsForCurrentRound(options, roundChangedFilesSnapshot);
-
-                        if (options.waitForUser) {
-                            progressDisplay?.pauseTimer();
-                            uiHandle?.state.pauseTimer();
-                            uiHandle?.state.setPhase('waiting');
-                            uiHandle?.state.setStatusMessage('Review the commit preview and confirm to continue');
-                            if (isRichUiEnabled) {
-                                uiHandle?.state.setDetailLines(
-                                    formatCommitMessageForDisplay(commitMessage)
-                                        .split(/\r?\n/)
-                                        .map((line) => line.trim()),
-                                );
-                                await uiHandle?.waitForEnter('Commit');
-                                uiHandle?.state.setDetailLines([]);
-                            } else {
-                                printCommitMessage(commitMessage);
-                                await waitForEnter(colors.bgWhite('Press Enter to commit and continue...'));
-                            }
-                            progressDisplay?.resumeTimer();
-                            uiHandle?.state.resumeTimer();
-                        }
-
-                        await commitChanges(commitMessage, {
-                            autoPush: options.autoPush,
-                            // Keep the live runtime log out of default commits because it is deleted after a successful round.
-                            excludePaths: options.preserveLogs ? undefined : [logPath],
-                        });
-                        await runPostPromptAutoMigrationIfEnabled(options);
-                    } catch (error) {
-                        uiHandle?.stopCapturingAgentOutput();
-                        uiHandle?.state.setPhase('error');
-                        uiHandle?.state.addError(error instanceof Error ? error.message : String(error));
-
-                        markPromptFailed(
-                            nextPrompt.file,
-                            nextPrompt.section,
-                            runnerMetadata.runnerName,
-                            runnerMetadata.modelName,
-                            promptExecutionStartedDate,
-                            attemptCount,
-                        );
-                        await writePromptFile(nextPrompt.file);
-                        await writePromptErrorLog({
-                            file: nextPrompt.file,
-                            section: nextPrompt.section,
-                            runnerName: runnerMetadata.runnerName,
-                            modelName: runnerMetadata.modelName,
-                            error,
-                        });
-                        await normalizeLineEndingsForCurrentRound(options, roundChangedFilesSnapshot);
-
-                        throw error;
-                    }
-                },
-                { preserveArtifactsOnSuccess: options.preserveLogs },
-            );
-        }
-    } finally {
-        progressDisplay?.stop();
-        uiHandle?.cleanup();
-        if (!options.dryRun) {
-            printAgentGitIdentityTipIfNeeded();
-        }
-    }
 }
 
 /**
- * Runs post-prompt testing-server auto-migration when enabled.
+ * Runs the dry-run reporting mode and returns whether the main execution should stop.
  */
-async function runPostPromptAutoMigrationIfEnabled(options: RunOptions): Promise<void> {
-    if (!options.autoMigrate) {
-        return;
+async function runDryRunIfRequested(options: RunOptions): Promise<boolean> {
+    if (!options.dryRun) {
+        return false;
     }
 
-    await runAutoMigrateTestingServers({
-        allowDestructiveAutoMigrate: options.allowDestructiveAutoMigrate,
-        logger: console,
-    });
+    const promptFiles = await loadPromptFiles(PROMPTS_DIR);
+    const stats = summarizePrompts(promptFiles, options.priority);
+    printStats(stats, options.priority);
+    console.info(colors.yellow('Following prompts need to be written:'));
+    printPromptsToBeWritten(promptFiles, options.priority);
+    return true;
 }
 
 /**
- * Normalizes line endings in files modified during the current coding round.
+ * Seeds the rich UI with the selected runner configuration.
  */
-async function normalizeLineEndingsForCurrentRound(
+function initializeRunUi(
+    uiHandle: CoderRunUiHandle | undefined,
+    runnerName: string,
+    actualRunnerModel: string | undefined,
     options: RunOptions,
-    roundChangedFilesSnapshot?: ChangedFilesSnapshot,
-): Promise<void> {
-    if (!options.normalizeLineEndings || !roundChangedFilesSnapshot) {
-        return;
+): void {
+    uiHandle?.state.setConfig({
+        agentName: runnerName,
+        modelName: actualRunnerModel,
+        thinkingLevel: options.thinkingLevel,
+        context: options.context,
+        priority: options.priority,
+        testCommand: options.testCommand,
+    });
+    uiHandle?.state.setPhase('loading');
+    uiHandle?.state.setStatusMessage(`Running prompts with ${runnerName}`);
+}
+
+/**
+ * Loads prompt files, updates progress displays, and selects the next runnable prompt.
+ */
+async function loadPromptQueueSnapshot(options: {
+    options: RunOptions;
+    isRichUiEnabled: boolean;
+    progressDisplay?: CliProgressDisplay;
+    uiHandle?: CoderRunUiHandle;
+}): Promise<PromptQueueSnapshot> {
+    const { options: runOptions, isRichUiEnabled, progressDisplay, uiHandle } = options;
+
+    if (isRichUiEnabled) {
+        uiHandle?.state.setPhase('loading');
+        uiHandle?.state.setStatusMessage('Loading prompts...');
     }
 
-    try {
-        const result = await normalizeLineEndingsInFilesChangedSinceSnapshot({
-            projectPath: process.cwd(),
-            snapshot: roundChangedFilesSnapshot,
-        });
+    const promptFiles = await loadPromptFiles(PROMPTS_DIR);
+    const stats = summarizePrompts(promptFiles, runOptions.priority);
 
-        if (result.normalizedFiles > 0) {
-            console.info(colors.gray(`Normalized line endings to LF in ${result.normalizedFiles} changed file(s).`));
-        }
-    } catch (error) {
-        const details = error instanceof Error ? error.message : String(error);
-        console.warn(colors.yellow(`Automatic line-ending normalization failed: ${details}`));
+    progressDisplay?.update(stats);
+    uiHandle?.state.updateProgress(stats);
+
+    if (!isRichUiEnabled) {
+        printStats(stats, runOptions.priority);
+    }
+
+    return {
+        promptFiles,
+        stats,
+        nextPrompt: findNextTodoPrompt(promptFiles, runOptions.priority),
+    };
+}
+
+/**
+ * Prints upcoming tasks only on the first loop iteration in plain-console mode.
+ */
+function showUpcomingTasksOnce(options: {
+    hasShownUpcomingTasks: boolean;
+    promptFiles: PromptFile[];
+    stats: PromptStats;
+    minimumPriority: number;
+    isRichUiEnabled: boolean;
+}): boolean {
+    const { hasShownUpcomingTasks, promptFiles, stats, minimumPriority, isRichUiEnabled } = options;
+
+    if (hasShownUpcomingTasks || isRichUiEnabled) {
+        return true;
+    }
+
+    if (stats.toBeWritten > 0) {
+        console.info(colors.yellow('Following prompts need to be written:'));
+        printPromptsToBeWritten(promptFiles, minimumPriority);
+        console.info('');
+    }
+
+    printUpcomingTasks(listUpcomingTasks(promptFiles, minimumPriority));
+    return true;
+}
+
+/**
+ * Prints the terminal status when there is no runnable prompt left and tells the caller to stop.
+ */
+function finishWhenNoPromptIsAvailable(
+    promptQueueSnapshot: PromptQueueSnapshot,
+    isRichUiEnabled: boolean,
+    uiHandle?: CoderRunUiHandle,
+): boolean {
+    if (promptQueueSnapshot.nextPrompt) {
+        return false;
+    }
+
+    if (promptQueueSnapshot.stats.toBeWritten > 0) {
+        announceRunCompletion('No prompts ready for agent.', colors.yellow, isRichUiEnabled, uiHandle);
+    } else {
+        announceRunCompletion('All prompts are done.', colors.green, isRichUiEnabled, uiHandle);
+    }
+
+    return true;
+}
+
+/**
+ * Updates UI state and plain-console output for the terminal completion message.
+ */
+function announceRunCompletion(
+    message: string,
+    colorize: (message: string) => string,
+    isRichUiEnabled: boolean,
+    uiHandle?: CoderRunUiHandle,
+): void {
+    uiHandle?.state.setStatusMessage(message);
+    uiHandle?.state.setPhase('done');
+
+    if (!isRichUiEnabled) {
+        console.info(colorize(message));
+    }
+}
+
+/**
+ * Waits for the optional user confirmation before starting the selected prompt.
+ */
+async function waitForPromptConfirmationIfNeeded(options: {
+    options: RunOptions;
+    nextPrompt: PromptSelection;
+    promptLabel: string;
+    hasWaitedForStart: boolean;
+    isRichUiEnabled: boolean;
+    progressDisplay?: CliProgressDisplay;
+    uiHandle?: CoderRunUiHandle;
+}): Promise<boolean> {
+    const { options: runOptions, nextPrompt, promptLabel, hasWaitedForStart, isRichUiEnabled, progressDisplay, uiHandle } =
+        options;
+
+    if (!runOptions.waitForUser) {
+        return hasWaitedForStart;
+    }
+
+    progressDisplay?.pauseTimer();
+    uiHandle?.state.pauseTimer();
+    uiHandle?.state.setCurrentPrompt(promptLabel);
+    uiHandle?.state.setPhase('waiting');
+    uiHandle?.state.setStatusMessage(
+        hasWaitedForStart ? 'Waiting for confirmation to continue' : 'Waiting for confirmation to start',
+    );
+    uiHandle?.state.setDetailLines([buildPromptSummary(nextPrompt.file, nextPrompt.section)]);
+
+    if (isRichUiEnabled) {
+        await uiHandle?.waitForEnter(hasWaitedForStart ? 'Continue' : 'Start');
+    } else {
+        await waitForPromptStart(nextPrompt.file, nextPrompt.section, !hasWaitedForStart);
+    }
+
+    uiHandle?.state.setDetailLines([]);
+    progressDisplay?.resumeTimer();
+    uiHandle?.state.resumeTimer();
+    return true;
+}
+
+/**
+ * Stops active displays and prints the git identity tip for real runs.
+ */
+function cleanupRunDisplays(
+    progressDisplay: CliProgressDisplay | undefined,
+    uiHandle: CoderRunUiHandle | undefined,
+    options: RunOptions,
+): void {
+    progressDisplay?.stop();
+    uiHandle?.cleanup();
+
+    if (!options.dryRun) {
+        printAgentGitIdentityTipIfNeeded();
     }
 }

@@ -1,3 +1,8 @@
+-   Refactored `scripts/run-codex-prompts/main/runCodexPrompts.ts` into smaller orchestration helpers without changing prompt-runner behavior:
+
+    -   Moved runner selection and model-validation branching into a dedicated internal `resolvePromptRunner` helper so the main entrypoint focuses on overall run flow.
+    -   Moved single-round prompt execution, commit confirmation, failure bookkeeping, and post-round cleanup into `runPromptRound`, leaving `runCodexPrompts` responsible for high-level loop orchestration and UI coordination.
+
 -   Refactored `scripts/generate-packages/getPackagesMetadata.ts` into smaller focused validation steps without changing package-generation behavior:
 
     -   Split package export parsing, package assignment, visibility validation, and buffered error reporting into dedicated helpers so the main metadata flow is easier to follow.
