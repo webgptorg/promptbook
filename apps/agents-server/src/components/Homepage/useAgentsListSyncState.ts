@@ -8,7 +8,11 @@ import {
     type Dispatch,
     type SetStateAction,
 } from 'react';
-import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../../utils/agentOrganization/types';
+import type {
+    AgentOrganizationAgent,
+    AgentOrganizationFolder,
+    AgentOrganizationUpdatePayload,
+} from '../../utils/agentOrganization/types';
 import { getAgentIdentifier } from './agentOrganizationUtils';
 
 /**
@@ -98,6 +102,10 @@ type UseAgentsListSyncStateResult = {
     readonly lastSyncedRouteKey: string | null;
     readonly setAgents: AgentOrganizationStateSetter;
     readonly setFolders: FolderOrganizationStateSetter;
+    readonly persistQueuedOrganizationMutation: (
+        payload: AgentOrganizationUpdatePayload,
+        mutationName: string,
+    ) => Promise<void>;
     readonly synchronizeAfterMutation: (mutationName: string) => void;
     readonly synchronizeOrganizationState: (
         reason: AgentOrganizationSyncReason,
@@ -186,6 +194,27 @@ function parseOrganizationSyncPayload(
 }
 
 /**
+ * Parses one organization mutation response and throws a useful error when it fails.
+ *
+ * @param response - Fetch response for the mutation request.
+ * @returns Promise resolved when the response indicates success.
+ *
+ * @private function of AgentsList
+ */
+async function assertOrganizationMutationResponse(response: Response): Promise<void> {
+    if (response.ok) {
+        return;
+    }
+
+    const responseBody = await response.json().catch(() => ({}));
+    throw new Error(
+        typeof responseBody.error === 'string' && responseBody.error.length > 0
+            ? responseBody.error
+            : 'Failed to update organization.',
+    );
+}
+
+/**
  * Checks whether a synchronized snapshot differs from the current local snapshot.
  *
  * @param previousAgents - Current local agents.
@@ -209,6 +238,27 @@ function hasOrganizationSnapshotChanged(
 }
 
 /**
+ * Decides whether one synchronized snapshot should be ignored because newer optimistic
+ * organization mutations already exist locally.
+ *
+ * @param options - Synchronization request and pending-mutation metadata.
+ * @returns `true` when the synchronized snapshot is older than the local optimistic state.
+ *
+ * @private function of AgentsList
+ */
+export function shouldSkipSynchronizedOrganizationSnapshot(options: {
+    pendingOrganizationMutationCount: number;
+    latestQueuedOrganizationMutationId: number;
+    queuedOrganizationMutationIdAtSyncStart: number;
+}): boolean {
+    if (options.pendingOrganizationMutationCount > 0) {
+        return true;
+    }
+
+    return options.latestQueuedOrganizationMutationId > options.queuedOrganizationMutationIdAtSyncStart;
+}
+
+/**
  * Owns the interactive organization caches together with their background synchronization lifecycle.
  *
  * @param props - Initial organization snapshot and route key for synchronization.
@@ -225,6 +275,9 @@ export function useAgentsListSyncState({
     const [folders, setFolders] = useState<AgentOrganizationFolder[]>(() => Array.from(initialFolders));
     const [lastSyncedRouteKey, setLastSyncedRouteKey] = useState<string | null>(null);
     const hasMountedRef = useRef(false);
+    const lastQueuedOrganizationMutationIdRef = useRef(0);
+    const organizationMutationQueueRef = useRef<Promise<void>>(Promise.resolve());
+    const pendingOrganizationMutationCountRef = useRef(0);
     const syncAbortControllerRef = useRef<AbortController | null>(null);
     const agentsRef = useRef<AgentOrganizationAgent[]>(Array.from(initialAgents));
     const foldersRef = useRef<AgentOrganizationFolder[]>(Array.from(initialFolders));
@@ -233,6 +286,7 @@ export function useAgentsListSyncState({
         async (reason: AgentOrganizationSyncReason, routeKeyAtSync: string = routeSyncKey) => {
             syncAbortControllerRef.current?.abort();
             const abortController = new AbortController();
+            const queuedOrganizationMutationIdAtSyncStart = lastQueuedOrganizationMutationIdRef.current;
             syncAbortControllerRef.current = abortController;
 
             logOrganizationSyncDebug('Starting synchronization request', {
@@ -250,6 +304,23 @@ export function useAgentsListSyncState({
                 });
                 const payload = (await response.json().catch(() => ({}))) as AgentOrganizationSyncPayload;
                 const snapshot = parseOrganizationSyncPayload(response, payload);
+                const shouldSkipSnapshot = shouldSkipSynchronizedOrganizationSnapshot({
+                    pendingOrganizationMutationCount: pendingOrganizationMutationCountRef.current,
+                    latestQueuedOrganizationMutationId: lastQueuedOrganizationMutationIdRef.current,
+                    queuedOrganizationMutationIdAtSyncStart,
+                });
+
+                if (shouldSkipSnapshot) {
+                    logOrganizationSyncDebug('Skipping synchronized snapshot because newer optimistic mutations exist locally', {
+                        reason,
+                        routeKey: routeKeyAtSync,
+                        pendingOrganizationMutations: pendingOrganizationMutationCountRef.current,
+                        latestQueuedOrganizationMutationId: lastQueuedOrganizationMutationIdRef.current,
+                        queuedOrganizationMutationIdAtSyncStart,
+                    });
+                    setLastSyncedRouteKey(routeKeyAtSync);
+                    return;
+                }
 
                 if (
                     hasOrganizationSnapshotChanged(
@@ -288,6 +359,43 @@ export function useAgentsListSyncState({
             }
         },
         [routeSyncKey],
+    );
+
+    const persistQueuedOrganizationMutation = useCallback(
+        async (payload: AgentOrganizationUpdatePayload, mutationName: string) => {
+            pendingOrganizationMutationCountRef.current += 1;
+            const mutationId = ++lastQueuedOrganizationMutationIdRef.current;
+            let isMutationSuccessful = false;
+            const queuedMutation = organizationMutationQueueRef.current.catch(() => undefined).then(async () => {
+                const response = await fetch(AGENT_ORGANIZATION_SYNC_API_PATH, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+
+                await assertOrganizationMutationResponse(response);
+            });
+
+            organizationMutationQueueRef.current = queuedMutation.catch(() => undefined);
+
+            try {
+                await queuedMutation;
+                isMutationSuccessful = true;
+            } finally {
+                pendingOrganizationMutationCountRef.current = Math.max(
+                    0,
+                    pendingOrganizationMutationCountRef.current - 1,
+                );
+
+                if (lastQueuedOrganizationMutationIdRef.current === mutationId) {
+                    const synchronizationReason: AgentOrganizationSyncReason = isMutationSuccessful
+                        ? `mutation:${mutationName}`
+                        : 'error-recovery';
+                    void synchronizeOrganizationState(synchronizationReason);
+                }
+            }
+        },
+        [synchronizeOrganizationState],
     );
 
     const synchronizeAfterMutation = useCallback(
@@ -368,6 +476,7 @@ export function useAgentsListSyncState({
         agents,
         folders,
         lastSyncedRouteKey,
+        persistQueuedOrganizationMutation,
         setAgents,
         setFolders,
         synchronizeAfterMutation,

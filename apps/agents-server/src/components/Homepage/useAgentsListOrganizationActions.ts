@@ -17,7 +17,6 @@ import {
     createReorderedAgentUpdates,
     createReorderedFolderUpdates,
 } from './agentOrganizationUtils';
-import { AGENT_ORGANIZATION_SYNC_API_PATH } from './useAgentsListSyncState';
 
 /**
  * Setter for the interactive local agents cache.
@@ -42,9 +41,12 @@ type UseAgentsListOrganizationActionsProps = {
     readonly agents: AgentOrganizationAgent[];
     readonly childrenByParentId: ReadonlyMap<number | null, number[]>;
     readonly folders: AgentOrganizationFolder[];
+    readonly persistQueuedOrganizationMutation: (
+        payload: AgentOrganizationUpdatePayload,
+        mutationName: string,
+    ) => Promise<void>;
     readonly setAgents: AgentOrganizationStateSetter;
     readonly setFolders: FolderOrganizationStateSetter;
-    readonly synchronizeAfterMutation: (mutationName: string) => void;
     readonly visibleAgents: AgentOrganizationAgent[];
     readonly visibleFolders: AgentOrganizationFolder[];
 };
@@ -73,30 +75,12 @@ export function useAgentsListOrganizationActions({
     agents,
     childrenByParentId,
     folders,
+    persistQueuedOrganizationMutation,
     setAgents,
     setFolders,
-    synchronizeAfterMutation,
     visibleAgents,
     visibleFolders,
 }: UseAgentsListOrganizationActionsProps): UseAgentsListOrganizationActionsResult {
-    const persistOrganizationUpdates = useCallback(
-        async (payload: AgentOrganizationUpdatePayload) => {
-            const response = await fetch(AGENT_ORGANIZATION_SYNC_API_PATH, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload),
-            });
-
-            if (!response.ok) {
-                const responseBody = await response.json().catch(() => ({}));
-                throw new Error(responseBody.error || 'Failed to update organization.');
-            }
-
-            synchronizeAfterMutation('organization-update');
-        },
-        [synchronizeAfterMutation],
-    );
-
     const reorderFolders = useCallback(
         async (draggedId: number, targetId: number) => {
             const updatedFolders = createReorderedFolderUpdates(folders, visibleFolders, draggedId, targetId);
@@ -105,9 +89,9 @@ export function useAgentsListOrganizationActions({
             }
 
             setFolders((prev) => applyFolderUpdates(prev, updatedFolders));
-            await persistOrganizationUpdates(buildFolderOrganizationUpdates(updatedFolders));
+            await persistQueuedOrganizationMutation(buildFolderOrganizationUpdates(updatedFolders), 'reorder-folders');
         },
-        [folders, persistOrganizationUpdates, setFolders, visibleFolders],
+        [folders, persistQueuedOrganizationMutation, setFolders, visibleFolders],
     );
 
     const reorderAgents = useCallback(
@@ -118,9 +102,9 @@ export function useAgentsListOrganizationActions({
             }
 
             setAgents((prev) => applyAgentUpdates(prev, updates));
-            await persistOrganizationUpdates(buildAgentOrganizationUpdates(updates));
+            await persistQueuedOrganizationMutation(buildAgentOrganizationUpdates(updates), 'reorder-agents');
         },
-        [agents, persistOrganizationUpdates, setAgents, visibleAgents],
+        [agents, persistQueuedOrganizationMutation, setAgents, visibleAgents],
     );
 
     const moveFolderToParent = useCallback(
@@ -139,9 +123,9 @@ export function useAgentsListOrganizationActions({
             }
 
             setFolders((prev) => applyFolderUpdates(prev, movePlan.updates));
-            await persistOrganizationUpdates(buildFolderOrganizationUpdates(movePlan.updates));
+            await persistQueuedOrganizationMutation(buildFolderOrganizationUpdates(movePlan.updates), 'move-folder');
         },
-        [childrenByParentId, folders, persistOrganizationUpdates, setFolders],
+        [childrenByParentId, folders, persistQueuedOrganizationMutation, setFolders],
     );
 
     const moveAgentToFolder = useCallback(
@@ -152,9 +136,9 @@ export function useAgentsListOrganizationActions({
             }
 
             setAgents((prev) => applyAgentUpdates(prev, updates));
-            await persistOrganizationUpdates(buildAgentOrganizationUpdates(updates));
+            await persistQueuedOrganizationMutation(buildAgentOrganizationUpdates(updates), 'move-agent');
         },
-        [agents, persistOrganizationUpdates, setAgents],
+        [agents, persistQueuedOrganizationMutation, setAgents],
     );
 
     return {

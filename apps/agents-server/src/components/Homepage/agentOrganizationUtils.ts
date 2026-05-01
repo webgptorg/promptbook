@@ -455,6 +455,9 @@ export function applyAgentUpdates(
 function moveItem<T>(items: ReadonlyArray<T>, fromIndex: number, toIndex: number): T[] {
     const updated = [...items];
     const [moved] = updated.splice(fromIndex, 1);
+    if (moved === undefined) {
+        return updated;
+    }
     const clampedIndex = Math.max(0, Math.min(updated.length, toIndex));
     updated.splice(clampedIndex, 0, moved);
     return updated;
@@ -469,7 +472,8 @@ function moveItem<T>(items: ReadonlyArray<T>, fromIndex: number, toIndex: number
  * @private function of AgentsList
  */
 function resolveNextSortOrder<T extends { sortOrder: number }>(items: ReadonlyArray<T>): number {
-    return items.length > 0 ? items[items.length - 1].sortOrder + 1 : 0;
+    const lastItem = items[items.length - 1];
+    return lastItem ? lastItem.sortOrder + 1 : 0;
 }
 
 /**

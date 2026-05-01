@@ -90,10 +90,10 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
         agents,
         folders,
         lastSyncedRouteKey,
+        persistQueuedOrganizationMutation,
         setAgents,
         setFolders,
         synchronizeAfterMutation,
-        synchronizeOrganizationState,
     } = useAgentsListSyncState({
         initialAgents,
         initialFolders,
@@ -148,9 +148,9 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
         agents,
         childrenByParentId: folderMaps.childrenByParentId,
         folders,
+        persistQueuedOrganizationMutation,
         setAgents,
         setFolders,
-        synchronizeAfterMutation,
         visibleAgents,
         visibleFolders,
     });
@@ -200,7 +200,6 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
         moveFolderToParent: organizationActions.moveFolderToParent,
         reorderAgents: organizationActions.reorderAgents,
         reorderFolders: organizationActions.reorderFolders,
-        synchronizeOrganizationState,
     });
     const sensors = useAgentsListDragSensors();
     const visibleFolderDragIds = useMemo(

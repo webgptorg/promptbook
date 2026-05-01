@@ -18,7 +18,6 @@ import type { DropIndicator } from './DropIndicator';
 import { findAgentByIdentifier, findFolderById } from './agentOrganizationUtils';
 import { getDropIntentFromRects } from './getDropIntentFromRects';
 import type { BreadcrumbDropTargetData } from './useBreadcrumbDropTarget';
-import type { AgentOrganizationSyncReason } from './useAgentsListSyncState';
 
 /**
  * Drop target payload accepted by drag-and-drop handlers.
@@ -74,10 +73,6 @@ type UseAgentsListDragStateProps = {
     readonly moveFolderToParent: (folderId: number, targetParentId: number | null) => Promise<void>;
     readonly reorderAgents: (draggedId: string, targetId: string) => Promise<void>;
     readonly reorderFolders: (draggedId: number, targetId: number) => Promise<void>;
-    readonly synchronizeOrganizationState: (
-        reason: AgentOrganizationSyncReason,
-        routeKeyAtSync?: string,
-    ) => Promise<void>;
 };
 
 /**
@@ -420,7 +415,6 @@ export function useAgentsListDragState({
     moveFolderToParent,
     reorderAgents,
     reorderFolders,
-    synchronizeOrganizationState,
 }: UseAgentsListDragStateProps): UseAgentsListDragStateResult {
     const [activeDragItem, setActiveDragItem] = useState<DragItem | null>(null);
     const [dropIndicator, setDropIndicator] = useState<DropIndicator | null>(null);
@@ -507,17 +501,9 @@ export function useAgentsListDragState({
                     title: 'Update failed',
                     message: error instanceof Error ? error.message : 'Failed to update organization.',
                 }).catch(() => undefined);
-                void synchronizeOrganizationState('error-recovery');
             }
         },
-        [
-            canOrganize,
-            dropIndicator,
-            handleAgentDrop,
-            handleFolderDrop,
-            resetDragState,
-            synchronizeOrganizationState,
-        ],
+        [canOrganize, dropIndicator, handleAgentDrop, handleFolderDrop, resetDragState],
     );
 
     const handleDragCancel = useCallback(() => {

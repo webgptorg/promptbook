@@ -57,6 +57,15 @@ const cachedActiveOrganizationSnapshotByKey = new Map<
 >();
 
 /**
+ * Clears the short-lived active organization snapshot cache.
+ *
+ * @private internal utility of Agents Server organization loading
+ */
+export function invalidateCachedActiveOrganizationSnapshots(): void {
+    cachedActiveOrganizationSnapshotByKey.clear();
+}
+
+/**
  * Converts a database agent row into the organization payload.
  *
  * @param row - Raw agent row from Supabase.
@@ -276,7 +285,7 @@ export async function loadAgentOrganizationState(
     const [agentTable, folderTable] = await Promise.all([$getTableName('Agent'), $getTableName('AgentFolder')]);
     const visibilityScope: AgentOrganizationVisibilityScope = currentUser || includePrivate ? 'all' : 'public';
     const snapshot =
-        options.status === 'ACTIVE'
+        options.status === 'ACTIVE' && options.bypassCache !== true
             ? await loadCachedActiveOrganizationSnapshot({
                   agentTable,
                   folderTable,

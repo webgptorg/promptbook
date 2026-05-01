@@ -1,3 +1,9 @@
+-   Fixed rapid Agents Server homepage organization changes so quickly moving multiple agents or folders no longer snaps back to stale positions:
+
+    -   Serialized optimistic organization writes on the client, so rapid drag-and-drop changes are persisted in the same order they were made instead of racing each other.
+    -   Prevented background organization sync from overwriting newer optimistic moves while organization mutations are still pending or when the sync started before a newer move was queued.
+    -   Made the `/api/agent-organization` sync endpoint bypass and invalidate the short-lived active organization cache, so re-syncs now read freshly updated folder and agent ordering.
+
 -   Finished dark-mode styling for the Agents Server chat page:
 
     -   Added shared dark-aware chat surface variables so the standalone chat composer footer no longer falls back to a bright gradient in dark mode.

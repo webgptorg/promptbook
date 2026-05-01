@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { $getTableName } from '../../../database/$getTableName';
 import { $provideSupabaseForServer } from '../../../database/$provideSupabaseForServer';
 import type { AgentOrganizationUpdatePayload } from '../../../utils/agentOrganization/types';
+import { invalidateCachedActiveOrganizationSnapshots } from '../../../utils/agentOrganization/loadAgentOrganizationState';
 import { loadAgentOrganizationState } from '../../../utils/agentOrganization/loadAgentOrganizationState';
 import { getCurrentUser } from '../../../utils/getCurrentUser';
 import { buildAgentNameOrIdFilter } from '@/src/utils/agentIdentifier';
@@ -13,7 +14,7 @@ import { buildAgentNameOrIdFilter } from '@/src/utils/agentIdentifier';
  */
 export async function GET() {
     try {
-        const { agents, folders } = await loadAgentOrganizationState({ status: 'ACTIVE' });
+        const { agents, folders } = await loadAgentOrganizationState({ status: 'ACTIVE', bypassCache: true });
 
         return NextResponse.json(
             {
@@ -95,5 +96,6 @@ export async function POST(request: Request) {
         }
     }
 
+    invalidateCachedActiveOrganizationSnapshots();
     return NextResponse.json({ success: true });
 }
