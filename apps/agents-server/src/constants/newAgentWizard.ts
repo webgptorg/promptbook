@@ -14,6 +14,23 @@ export const NEW_AGENT_WIZZARD_VALUES = ['BOILERPLATE', 'WIZARD'] as const;
 export type NewAgentWizardMode = (typeof NEW_AGENT_WIZZARD_VALUES)[number];
 
 /**
+ * Shared select options for the new-agent experience metadata.
+ */
+export const NEW_AGENT_WIZZARD_OPTIONS: ReadonlyArray<{
+    readonly value: NewAgentWizardMode;
+    readonly label: string;
+}> = [
+    {
+        value: 'BOILERPLATE',
+        label: 'Boilerplate',
+    },
+    {
+        value: 'WIZARD',
+        label: 'Wizard',
+    },
+] as const;
+
+/**
  * Default creation experience used when metadata is missing or invalid.
  */
 export const DEFAULT_NEW_AGENT_WIZZARD_MODE: NewAgentWizardMode = 'BOILERPLATE';

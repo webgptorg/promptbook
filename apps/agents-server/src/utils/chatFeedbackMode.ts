@@ -1,7 +1,33 @@
 /**
  * Supported chat feedback modes in the Agents Server UI.
  */
-export type ChatFeedbackMode = 'off' | 'stars' | 'report_issue';
+export const CHAT_FEEDBACK_MODE_VALUES = ['off', 'stars', 'report_issue'] as const;
+
+/**
+ * Supported chat feedback modes in the Agents Server UI.
+ */
+export type ChatFeedbackMode = (typeof CHAT_FEEDBACK_MODE_VALUES)[number];
+
+/**
+ * Shared select options for chat feedback mode pickers.
+ */
+export const CHAT_FEEDBACK_MODE_OPTIONS: ReadonlyArray<{
+    readonly value: ChatFeedbackMode;
+    readonly label: string;
+}> = [
+    {
+        value: 'off',
+        label: 'Off',
+    },
+    {
+        value: 'stars',
+        label: 'Stars',
+    },
+    {
+        value: 'report_issue',
+        label: 'Report issue',
+    },
+] as const;
 
 /**
  * Default feedback mode used when metadata is missing or invalid.

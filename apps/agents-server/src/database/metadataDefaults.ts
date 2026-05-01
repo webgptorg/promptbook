@@ -7,7 +7,14 @@ import {
     FEDERATED_AGENT_IMPORT_RETRY_DELAY_MS_METADATA_KEY,
 } from '../constants/federatedAgentImport';
 import { MetadataType } from '../constants/metadataTypes';
-import { NEW_AGENT_WIZZARD_METADATA_KEY } from '../constants/newAgentWizard';
+import { CHAT_VISUAL_MODE_OPTIONS, CHAT_VISUAL_MODE_METADATA_KEY, DEFAULT_CHAT_VISUAL_MODE } from '../constants/chatVisualMode';
+import {
+    DEFAULT_AGENT_AVATAR_VISUAL_METADATA_KEY,
+    DEFAULT_AGENT_AVATAR_VISUAL_METADATA_OPTIONS,
+    DEFAULT_AGENT_AVATAR_VISUAL_METADATA_VALUE,
+} from '../constants/defaultAgentAvatarVisual';
+import { DEFAULT_NAME_POOL, NAME_POOL_METADATA_KEY, NAME_POOL_OPTIONS } from '../constants/namePool';
+import { NEW_AGENT_WIZZARD_METADATA_KEY, NEW_AGENT_WIZZARD_OPTIONS } from '../constants/newAgentWizard';
 import {
     DEFAULT_SERVER_LIMIT_VALUES,
     MAX_FILE_UPLOAD_SIZE_MB_METADATA_KEY,
@@ -15,19 +22,68 @@ import {
 } from '../constants/serverLimits';
 import { DEFAULT_TOOL_USAGE_LIMITS, TOOL_USAGE_LIMITS_METADATA_KEY } from '../constants/toolUsageLimits';
 import {
-    CHAT_VISUAL_MODE_METADATA_KEY,
-    DEFAULT_CHAT_VISUAL_MODE,
-    CHAT_VISUAL_MODES,
-} from '../constants/chatVisualMode';
-import {
-    DEFAULT_AGENT_AVATAR_VISUAL_METADATA_KEY,
-    DEFAULT_AGENT_AVATAR_VISUAL_METADATA_VALUE,
-    DEFAULT_AGENT_AVATAR_VISUAL_METADATA_VALUES,
-} from '../constants/defaultAgentAvatarVisual';
-import {
     IS_SERVER_LANGUAGE_ENFORCED_METADATA_KEY,
+    SERVER_LANGUAGE_OPTIONS,
     SERVER_LANGUAGE_METADATA_KEY,
 } from '../languages/ServerLanguageRegistry';
+import { AGENT_VISIBILITY_OPTIONS, DEFAULT_VISIBILITY_METADATA_KEY } from '../utils/agentVisibility';
+import { CHAT_FEEDBACK_MODE_OPTIONS } from '../utils/chatFeedbackMode';
+import { SERVER_VISIBILITY_METADATA_KEY, SERVER_VISIBILITY_OPTIONS } from '../utils/serverVisibility';
+
+/**
+ * One predefined selectable option for a metadata value.
+ */
+export type MetadataDefinitionOption = {
+    /**
+     * Raw value stored in the `Metadata` table.
+     */
+    readonly value: string;
+
+    /**
+     * Human-friendly option label shown in the admin UI.
+     */
+    readonly label: string;
+};
+
+/**
+ * One supported metadata definition surfaced in the admin UI.
+ */
+export type MetadataDefinition = {
+    /**
+     * Metadata key stored in the database.
+     */
+    readonly key: string;
+
+    /**
+     * Default metadata value used when the database row is absent.
+     */
+    readonly value: string;
+
+    /**
+     * Human-readable explanation shown in the admin UI.
+     */
+    readonly note: string;
+
+    /**
+     * Primitive editor type used for the value field.
+     */
+    readonly type: MetadataType;
+
+    /**
+     * Optional predefined values rendered as a select instead of a free-form input.
+     */
+    readonly options?: ReadonlyArray<MetadataDefinitionOption>;
+};
+
+/**
+ * Formats metadata option values for notes and validation errors.
+ *
+ * @param options - Selectable metadata options.
+ * @returns Comma-separated list of raw stored values.
+ */
+function formatMetadataOptionValues(options: ReadonlyArray<MetadataDefinitionOption>): string {
+    return options.map(({ value }) => value).join(', ');
+}
 
 /**
  * Default metadata entries produced from the analytics configuration definitions.
@@ -57,8 +113,9 @@ export const metadataDefaults = [
     {
         key: SERVER_LANGUAGE_METADATA_KEY,
         value: 'en',
-        note: 'Default language of the server UI. Available values: en, cs.',
+        note: `Default language of the server UI. Available values: ${formatMetadataOptionValues(SERVER_LANGUAGE_OPTIONS)}.`,
         type: 'TEXT_SINGLE_LINE',
+        options: SERVER_LANGUAGE_OPTIONS,
     },
     {
         key: IS_SERVER_LANGUAGE_ENFORCED_METADATA_KEY,
@@ -73,10 +130,13 @@ export const metadataDefaults = [
         type: 'TEXT',
     },
     {
-        key: 'SERVER_VISIBILITY',
+        key: SERVER_VISIBILITY_METADATA_KEY,
         value: 'PRIVATE',
-        note: 'Global crawling/indexing mode for this server. PRIVATE blocks sitemap and indexing; PUBLIC enables indexing for PUBLIC agents.',
+        note: `Global crawling/indexing mode for this server. Allowed values: ${formatMetadataOptionValues(
+            SERVER_VISIBILITY_OPTIONS,
+        )}. PRIVATE blocks sitemap and indexing; PUBLIC enables indexing for PUBLIC agents.`,
         type: 'TEXT_SINGLE_LINE',
+        options: SERVER_VISIBILITY_OPTIONS,
     },
     {
         key: 'AGENT_NAMING',
@@ -192,8 +252,11 @@ export const metadataDefaults = [
     {
         key: 'CHAT_FEEDBACK_MODE',
         value: 'stars',
-        note: 'Controls post-response feedback UI mode. Allowed values: off, stars, report_issue.',
+        note: `Controls post-response feedback UI mode. Allowed values: ${formatMetadataOptionValues(
+            CHAT_FEEDBACK_MODE_OPTIONS,
+        )}.`,
         type: 'TEXT_SINGLE_LINE',
+        options: CHAT_FEEDBACK_MODE_OPTIONS,
     },
     {
         key: 'IS_FEEDBACK_ENABLED',
@@ -276,16 +339,26 @@ export const metadataDefaults = [
     {
         key: CHAT_VISUAL_MODE_METADATA_KEY,
         value: DEFAULT_CHAT_VISUAL_MODE,
-        note: `Default chat visual mode for new browser sessions. Allowed values: ${CHAT_VISUAL_MODES.BUBBLE_MODE}, ${CHAT_VISUAL_MODES.ARTICLE_MODE}.`,
+        note: `Default chat visual mode for new browser sessions. Allowed values: ${formatMetadataOptionValues(
+            CHAT_VISUAL_MODE_OPTIONS,
+        )}.`,
         type: 'TEXT_SINGLE_LINE',
+        options: CHAT_VISUAL_MODE_OPTIONS,
     },
     {
         key: DEFAULT_AGENT_AVATAR_VISUAL_METADATA_KEY,
         value: DEFAULT_AGENT_AVATAR_VISUAL_METADATA_VALUE,
-        note: `Default built-in avatar visual used for agents without \`META IMAGE\` or \`META AVATAR\`. Allowed values: ${DEFAULT_AGENT_AVATAR_VISUAL_METADATA_VALUES.join(
-            ', ',
+        note: `Default built-in avatar visual used for agents without \`META IMAGE\` or \`META AVATAR\`. Allowed values: ${formatMetadataOptionValues(
+            DEFAULT_AGENT_AVATAR_VISUAL_METADATA_OPTIONS.map(({ metadataValue, title }) => ({
+                value: metadataValue,
+                label: title,
+            })),
         )}.`,
         type: 'TEXT_SINGLE_LINE',
+        options: DEFAULT_AGENT_AVATAR_VISUAL_METADATA_OPTIONS.map(({ metadataValue, title }) => ({
+            value: metadataValue,
+            label: title,
+        })),
     },
     {
         key: 'IS_FOOTER_SHOWN',
@@ -306,10 +379,13 @@ export const metadataDefaults = [
         type: 'NUMBER',
     },
     {
-        key: 'NAME_POOL',
-        value: 'ENGLISH',
-        note: 'Language for generating new agent names. Possible values: ENGLISH, CZECH.',
+        key: NAME_POOL_METADATA_KEY,
+        value: DEFAULT_NAME_POOL,
+        note: `Language for generating new agent names. Allowed values: ${formatMetadataOptionValues(
+            NAME_POOL_OPTIONS,
+        )}.`,
         type: 'TEXT_SINGLE_LINE',
+        options: NAME_POOL_OPTIONS,
     },
     {
         key: 'ADMIN_EMAIL',
@@ -318,16 +394,20 @@ export const metadataDefaults = [
         type: 'TEXT_SINGLE_LINE',
     },
     {
-        key: 'DEFAULT_VISIBILITY',
+        key: DEFAULT_VISIBILITY_METADATA_KEY,
         value: 'UNLISTED',
-        note: 'Default visibility for new agents. Can be PRIVATE, UNLISTED, or PUBLIC.',
+        note: `Default visibility for new agents. Allowed values: ${formatMetadataOptionValues(
+            AGENT_VISIBILITY_OPTIONS,
+        )}.`,
         type: 'TEXT_SINGLE_LINE',
+        options: AGENT_VISIBILITY_OPTIONS,
     },
     {
         key: NEW_AGENT_WIZZARD_METADATA_KEY,
         value: 'BOILERPLATE',
-        note: 'Controls the "new agent" flow. Possible values: BOILERPLATE or WIZARD.',
+        note: `Controls the "new agent" flow. Allowed values: ${formatMetadataOptionValues(NEW_AGENT_WIZZARD_OPTIONS)}.`,
         type: 'TEXT_SINGLE_LINE',
+        options: NEW_AGENT_WIZZARD_OPTIONS,
     },
     {
         key: 'MANAGEMENT_API_CORS_ORIGINS',
@@ -384,9 +464,48 @@ export const metadataDefaults = [
         type: 'TEXT_SINGLE_LINE',
     },
     ...analyticsMetadataDefaults,
-] as const satisfies ReadonlyArray<{
-    key: string;
-    value: string;
-    note: string;
-    type: MetadataType;
-}>;
+] as const satisfies ReadonlyArray<MetadataDefinition>;
+
+/**
+ * Lookup map for metadata definitions by key.
+ *
+ * @private
+ */
+const metadataDefinitionMap = new Map<string, MetadataDefinition>(
+    metadataDefaults.map((metadataDefinition) => [metadataDefinition.key, metadataDefinition]),
+);
+
+/**
+ * Returns the curated metadata definition for one key when available.
+ *
+ * @param key - Metadata key to look up.
+ * @returns Matching metadata definition or `undefined`.
+ *
+ * @private
+ */
+export function getMetadataDefinition(key: string): MetadataDefinition | undefined {
+    return metadataDefinitionMap.get(key);
+}
+
+/**
+ * Validates one metadata value against its curated definition.
+ *
+ * @param key - Metadata key being written.
+ * @param value - Raw metadata value being persisted.
+ * @returns Error message when invalid, otherwise `null`.
+ *
+ * @private
+ */
+export function validateMetadataValue(key: string, value: string): string | null {
+    const metadataDefinition = getMetadataDefinition(key);
+
+    if (!metadataDefinition?.options || metadataDefinition.options.length === 0) {
+        return null;
+    }
+
+    if (metadataDefinition.options.some((option) => option.value === value)) {
+        return null;
+    }
+
+    return `Unsupported value for \`${key}\`. Allowed values: ${formatMetadataOptionValues(metadataDefinition.options)}.`;
+}

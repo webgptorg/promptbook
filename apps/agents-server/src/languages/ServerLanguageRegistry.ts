@@ -14,6 +14,17 @@ export const ServerLanguageRegistry = [EnglishServerLanguagePack, CzechServerLan
 export type ServerLanguageCode = (typeof ServerLanguageRegistry)[number]['language'];
 
 /**
+ * Shared select options for server-language configuration.
+ */
+export const SERVER_LANGUAGE_OPTIONS: ReadonlyArray<{
+    readonly value: ServerLanguageCode;
+    readonly label: string;
+}> = ServerLanguageRegistry.map((languagePack) => ({
+    value: languagePack.language,
+    label: languagePack.englishName,
+}));
+
+/**
  * Metadata key controlling the default server language.
  */
 export const SERVER_LANGUAGE_METADATA_KEY = 'SERVER_LANGUAGE';

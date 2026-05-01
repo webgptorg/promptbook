@@ -4,12 +4,12 @@ import { Loader2, Plus, Trash2, X } from 'lucide-react';
 import type { ChangeEvent, RefObject } from 'react';
 import { Dialog } from '../../../components/Portal/Dialog';
 import { SecretInput } from '../../../components/SecretInput/SecretInput';
+import { SERVER_LANGUAGE_OPTIONS } from '../../../languages/ServerLanguageRegistry';
+import { CHAT_FEEDBACK_MODE_OPTIONS } from '../../../utils/chatFeedbackMode';
 import { MANAGED_SERVER_ENVIRONMENT_OPTIONS } from './useServersRegistryState';
 import {
-    CHAT_FEEDBACK_MODE_OPTIONS,
     CREATE_SERVER_BOOLEAN_FEATURE_FLAGS,
     CREATE_SERVER_WIZARD_STEPS,
-    SERVER_LANGUAGE_OPTIONS,
     type CreateServerWizardError,
     type CreateServerWizardState,
     type UpdateCreateServerAdditionalUser,

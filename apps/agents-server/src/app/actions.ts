@@ -4,6 +4,7 @@ import { $generateBookBoilerplate } from '@promptbook-local/core';
 import { string_agent_name, string_book } from '@promptbook-local/types';
 import { revalidatePath } from 'next/cache';
 import { string_agent_permanent_id } from '../../../../src/types/typeAliases';
+import { DEFAULT_NAME_POOL, NAME_POOL_METADATA_KEY, parseNamePool } from '../constants/namePool';
 import { NEW_AGENT_WIZZARD_METADATA_KEY, parseNewAgentWizardMode } from '../constants/newAgentWizard';
 import { getMetadata } from '../database/getMetadata';
 import { $provideAgentCollectionForServer } from '../tools/$provideAgentCollectionForServer';
@@ -26,7 +27,7 @@ export async function $createAgentAction(): Promise<{ agentName: string_agent_na
     }
 
     const collection = await $provideAgentCollectionForServer();
-    const namePool = (await getMetadata('NAME_POOL')) || 'ENGLISH';
+    const namePool = parseNamePool((await getMetadata(NAME_POOL_METADATA_KEY)) || DEFAULT_NAME_POOL);
     const agentSource = $generateBookBoilerplate({ namePool });
     const currentUserIdentity = await resolveCurrentUserIdentity();
 
@@ -43,7 +44,7 @@ export async function $createAgentAction(): Promise<{ agentName: string_agent_na
  * @returns Generated boilerplate agent source.
  */
 export async function $generateAgentBoilerplateAction(): Promise<string_book> {
-    const namePool = (await getMetadata('NAME_POOL')) || 'ENGLISH';
+    const namePool = parseNamePool((await getMetadata(NAME_POOL_METADATA_KEY)) || DEFAULT_NAME_POOL);
     return $generateBookBoilerplate({ namePool });
 }
 

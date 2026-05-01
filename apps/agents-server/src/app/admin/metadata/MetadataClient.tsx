@@ -1,16 +1,14 @@
 'use client';
 
 import { upload } from '@vercel/blob/client';
-import { FileTextIcon, HashIcon, ImageIcon, ShieldIcon, ToggleLeftIcon, TypeIcon, Upload } from 'lucide-react';
+import { FileTextIcon, HashIcon, ImageIcon, ListIcon, ShieldIcon, ToggleLeftIcon, TypeIcon, Upload } from 'lucide-react';
 import Link from 'next/link';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { showConfirm } from '../../../components/AsyncDialogs/asyncDialogs';
-import { metadataDefaults } from '../../../database/metadataDefaults';
+import { getMetadataDefinition, metadataDefaults, type MetadataDefinition } from '../../../database/metadataDefaults';
 import { getSafeCdnPath } from '../../../utils/cdn/utils/getSafeCdnPath';
 import { normalizeUploadFilename } from '../../../utils/normalization/normalizeUploadFilename';
 import { getDeprecatedLimitMetadataDefinition, type DeprecatedLimitMetadataDefinition } from '../../../constants/serverLimits';
-import { MetadataType } from '../../../constants/metadataTypes';
-import { SERVER_VISIBILITY_METADATA_KEY } from '../../../utils/serverVisibility';
 
 /**
  * Type describing metadata entry.
@@ -23,7 +21,7 @@ type MetadataEntry = {
     createdAt: string;
     updatedAt: string;
     isDefault?: boolean;
-    type?: MetadataType;
+    definition?: MetadataDefinition;
     deprecatedLimitMetadata?: DeprecatedLimitMetadataDefinition | null;
 };
 
@@ -58,7 +56,6 @@ type MetadataFormState = {
     key: string;
     value: string;
     note: string;
-    type?: MetadataType;
 };
 
 /**
@@ -98,8 +95,7 @@ const validateIpOrCidr = (ip: string): boolean => {
  * @private
  */
 type MetadataValueFieldProps = {
-    metadataKey: string;
-    type?: MetadataType;
+    definition?: MetadataDefinition;
     value: string;
     onValueChange: (value: string) => void;
     isUploading: boolean;
@@ -117,8 +113,7 @@ type MetadataValueFieldProps = {
  * @private
  */
 const MetadataValueField = ({
-    metadataKey,
-    type,
+    definition,
     value,
     onValueChange,
     isUploading,
@@ -126,7 +121,7 @@ const MetadataValueField = ({
     onFileUpload,
     fieldId,
 }: MetadataValueFieldProps) => {
-    if (metadataKey === SERVER_VISIBILITY_METADATA_KEY) {
+    if (definition?.options && definition.options.length > 0) {
         return (
             <select
                 id={fieldId}
@@ -134,11 +129,16 @@ const MetadataValueField = ({
                 onChange={(e) => onValueChange(e.target.value)}
                 className={METADATA_INPUT_CLASS_NAME}
             >
-                <option value="PRIVATE">Private (default)</option>
-                <option value="PUBLIC">Public</option>
+                {definition.options.map((option) => (
+                    <option key={option.value} value={option.value}>
+                        {option.label}
+                    </option>
+                ))}
             </select>
         );
     }
+
+    const type = definition?.type;
 
     if (type === 'TEXT_SINGLE_LINE') {
         return (
@@ -289,17 +289,16 @@ function mergeMetadataWithDefaults(data: MetadataEntry[]): MetadataEntry[] {
 
     // First prefer existing (non-default) metadata coming from the database
     for (const entry of data) {
-        const existing = byKey.get(entry.key);
-        if (!existing || existing.isDefault) {
-            // Find type from defaults
-            const def = metadataDefaults.find((d) => d.key === entry.key);
-            byKey.set(entry.key, {
-                ...entry,
-                type: def?.type,
-                deprecatedLimitMetadata: getDeprecatedLimitMetadataDefinition(entry.key),
-            });
+            const existing = byKey.get(entry.key);
+            if (!existing || existing.isDefault) {
+                const definition = getMetadataDefinition(entry.key);
+                byKey.set(entry.key, {
+                    ...entry,
+                    definition,
+                    deprecatedLimitMetadata: getDeprecatedLimitMetadataDefinition(entry.key),
+                });
+            }
         }
-    }
 
     // Then add defaults only for keys that are missing
     for (const def of metadataDefaults) {
@@ -312,7 +311,7 @@ function mergeMetadataWithDefaults(data: MetadataEntry[]): MetadataEntry[] {
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
                 isDefault: true,
-                type: def.type,
+                definition: def,
                 deprecatedLimitMetadata: getDeprecatedLimitMetadataDefinition(def.key),
             });
         }
@@ -414,7 +413,6 @@ export function MetadataClient() {
             key: entry.key,
             value: entry.value,
             note: entry.note || '',
-            type: entry.type,
         });
     };
 
@@ -448,7 +446,12 @@ export function MetadataClient() {
         setEditingFormState(createEmptyFormState());
     };
 
-    const getTypeIcon = (type?: MetadataType) => {
+    const getTypeIcon = (definition?: MetadataDefinition) => {
+        if (definition?.options && definition.options.length > 0) {
+            return <ListIcon className="w-4 h-4" />;
+        }
+
+        const type = definition?.type;
         switch (type) {
             case 'TEXT_SINGLE_LINE':
                 return <TypeIcon className="w-4 h-4" />;
@@ -593,9 +596,8 @@ export function MetadataClient() {
                             Value
                         </label>
                         <MetadataValueField
-                            metadataKey={addFormState.key}
+                            definition={getMetadataDefinition(addFormState.key)}
                             fieldId="add-metadata-value"
-                            type={addFormState.type}
                             value={addFormState.value}
                             onValueChange={(value) => setAddFormState((prev) => ({ ...prev, value }))}
                             isUploading={isAddUploading}
@@ -666,8 +668,15 @@ export function MetadataClient() {
                                     <Fragment key={`${entry.key}-${entry.id}`}>
                                         <tr>
                                             <td className="px-4 py-2 whitespace-nowrap text-gray-500 text-sm sm:px-6 sm:py-4">
-                                                <div className="flex items-center" title={entry.type || 'Unknown'}>
-                                                    {getTypeIcon(entry.type)}
+                                                <div
+                                                    className="flex items-center"
+                                                    title={
+                                                        entry.definition?.options?.length
+                                                            ? `ENUM (${entry.definition.type})`
+                                                            : entry.definition?.type || 'Unknown'
+                                                    }
+                                                >
+                                                    {getTypeIcon(entry.definition)}
                                                 </div>
                                             </td>
                                             <td className="px-4 py-2 whitespace-normal break-all text-sm font-medium text-gray-900 sm:px-6 sm:py-4">
@@ -753,9 +762,8 @@ export function MetadataClient() {
                                                                     Value
                                                                 </label>
                                                                 <MetadataValueField
-                                                                    metadataKey={editingFormState.key}
+                                                                    definition={getMetadataDefinition(editingFormState.key)}
                                                                     fieldId={editValueFieldId}
-                                                                    type={editingFormState.type}
                                                                     value={editingFormState.value}
                                                                     onValueChange={(value) =>
                                                                         setEditingFormState((prev) => ({ ...prev, value }))

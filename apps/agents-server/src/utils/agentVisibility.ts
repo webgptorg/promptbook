@@ -9,6 +9,27 @@ export const AGENT_VISIBILITY_VALUES = ['PRIVATE', 'UNLISTED', 'PUBLIC'] as cons
 export type AgentVisibility = (typeof AGENT_VISIBILITY_VALUES)[number];
 
 /**
+ * Shared select options for agent-visibility pickers.
+ */
+export const AGENT_VISIBILITY_OPTIONS: ReadonlyArray<{
+    readonly value: AgentVisibility;
+    readonly label: string;
+}> = [
+    {
+        value: 'PRIVATE',
+        label: 'Private',
+    },
+    {
+        value: 'UNLISTED',
+        label: 'Unlisted',
+    },
+    {
+        value: 'PUBLIC',
+        label: 'Public',
+    },
+] as const;
+
+/**
  * Metadata key used to configure default visibility for newly created agents.
  */
 export const DEFAULT_VISIBILITY_METADATA_KEY = 'DEFAULT_VISIBILITY' as const;

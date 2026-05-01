@@ -215,36 +215,6 @@ export const CREATE_SERVER_WIZARD_STEPS = [
 ] as const;
 
 /**
- * Language presets exposed by the wizard.
- *
- * @private function of <ServersClient/>
- */
-export const SERVER_LANGUAGE_OPTIONS = [
-    { value: 'en', label: 'English' },
-    { value: 'cs', label: 'Czech' },
-] as const;
-
-/**
- * Chat feedback mode options exposed in the create-server wizard.
- *
- * @private function of <ServersClient/>
- */
-export const CHAT_FEEDBACK_MODE_OPTIONS: ReadonlyArray<{ readonly value: ChatFeedbackMode; readonly label: string }> = [
-    {
-        value: 'off',
-        label: 'Off',
-    },
-    {
-        value: 'stars',
-        label: 'Stars',
-    },
-    {
-        value: 'report_issue',
-        label: 'Report issue',
-    },
-] as const;
-
-/**
  * Boolean settings rendered as checkbox cards in the final wizard step.
  *
  * @private function of <ServersClient/>

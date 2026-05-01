@@ -9,6 +9,23 @@ export const SERVER_VISIBILITY_VALUES = ['PRIVATE', 'PUBLIC'] as const;
 export type ServerVisibility = (typeof SERVER_VISIBILITY_VALUES)[number];
 
 /**
+ * Shared select options for server-visibility pickers.
+ */
+export const SERVER_VISIBILITY_OPTIONS: ReadonlyArray<{
+    readonly value: ServerVisibility;
+    readonly label: string;
+}> = [
+    {
+        value: 'PRIVATE',
+        label: 'Private',
+    },
+    {
+        value: 'PUBLIC',
+        label: 'Public',
+    },
+] as const;
+
+/**
  * Metadata key used to configure server crawling/indexing visibility.
  */
 export const SERVER_VISIBILITY_METADATA_KEY = 'SERVER_VISIBILITY' as const;

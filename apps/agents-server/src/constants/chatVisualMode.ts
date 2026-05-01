@@ -17,6 +17,23 @@ export const CHAT_VISUAL_MODES = {
 export type ChatVisualMode = (typeof CHAT_VISUAL_MODES)[keyof typeof CHAT_VISUAL_MODES];
 
 /**
+ * Shared select options for default chat visual mode configuration.
+ */
+export const CHAT_VISUAL_MODE_OPTIONS: ReadonlyArray<{
+    readonly value: ChatVisualMode;
+    readonly label: string;
+}> = [
+    {
+        value: CHAT_VISUAL_MODES.BUBBLE_MODE,
+        label: 'Bubble mode',
+    },
+    {
+        value: CHAT_VISUAL_MODES.ARTICLE_MODE,
+        label: 'Article mode',
+    },
+] as const;
+
+/**
  * Local storage key used for per-browser visual mode overrides.
  */
 export const CHAT_VISUAL_MODE_STORAGE_KEY = 'promptbook_agents_chat_visual_mode';
