@@ -1,3 +1,8 @@
+-   Refactored `scripts/generate-packages/getPackagesMetadata.ts` into smaller focused validation steps without changing package-generation behavior:
+
+    -   Split package export parsing, package assignment, visibility validation, and buffered error reporting into dedicated helpers so the main metadata flow is easier to follow.
+    -   Kept the existing `@public` / `@private` validation rules and implicit `@promptbook/types` export handling unchanged while reducing nested branching in `getPackagesMetadata`.
+
 -   Refactored the Agents Server chat-history Playwright coverage into focused support modules without changing the covered behavior:
 
     -   Extracted shared e2e management helpers for token creation, agent creation, and seeded chats, and reused them across related header navigation specs.
