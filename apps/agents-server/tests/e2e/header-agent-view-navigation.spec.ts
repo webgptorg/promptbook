@@ -1,15 +1,16 @@
-import { expect, test, type Page } from 'playwright/test';
+import { expect, test } from 'playwright/test';
 import { loginAsAdmin } from './support/auth';
+import { AgentManagementApi } from './support/AgentManagementApi';
 
 /**
- * Minimal management-agent payload needed by header navigation regression coverage.
+ * Note stored with management API tokens created for header agent-view navigation coverage.
  */
-type ManagementAgent = {
-    /**
-     * Canonical agent slug used in URLs.
-     */
-    readonly agentName: string;
-};
+const HEADER_AGENT_VIEW_API_TOKEN_NOTE = 'E2E header agent-view navigation';
+
+/**
+ * Persona used by deterministic header agent-view navigation test agents.
+ */
+const HEADER_AGENT_VIEW_PERSONA = 'You help with header navigation regression tests.';
 
 /**
  * Escapes one literal string so it can be embedded into a `RegExp`.
@@ -21,90 +22,16 @@ function escapeForRegExp(value: string): string {
     return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-/**
- * Creates one management API token for the authenticated browser session.
- *
- * @param page - Current Playwright page.
- * @returns Raw bearer token.
- */
-async function createManagementApiToken(page: Page): Promise<string> {
-    return page.evaluate(async () => {
-        const response = await fetch('/api/api-tokens', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                note: 'E2E header agent-view navigation',
-            }),
-        });
-
-        if (!response.ok) {
-            throw new Error(`Failed to create management API token: ${response.status}`);
-        }
-
-        const payload = (await response.json()) as { token?: string };
-        if (!payload.token) {
-            throw new Error('Management API token response did not include `token`.');
-        }
-
-        return payload.token;
-    });
-}
-
-/**
- * Creates one deterministic test agent through the management API.
- *
- * @param page - Current Playwright page.
- * @param apiKey - Bearer token used for the management API call.
- * @param label - Human-readable label used in the agent source.
- * @returns Canonical agent routing data.
- */
-async function createTestAgent(page: Page, apiKey: string, label: string): Promise<ManagementAgent> {
-    return page.evaluate(
-        async ({ apiKey: token, label: displayName }) => {
-            const source = `${displayName}\nPERSONA You help with header navigation regression tests.\nRULE Keep replies concise.`;
-            const response = await fetch('/api/v1/agents', {
-                method: 'POST',
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    source,
-                    visibility: 'UNLISTED',
-                }),
-            });
-
-            if (!response.ok) {
-                throw new Error(`Failed to create test agent: ${response.status}`);
-            }
-
-            const payload = (await response.json()) as {
-                agent?: {
-                    agentName?: string;
-                };
-            };
-
-            if (!payload.agent?.agentName) {
-                throw new Error('Test agent response did not include the canonical agent name.');
-            }
-
-            return {
-                agentName: payload.agent.agentName,
-            };
-        },
-        { apiKey, label },
-    );
-}
-
 test.describe('header agent-view navigation', () => {
     test('navigates between profile and chat from the active agent breadcrumb menu', async ({ page }) => {
         await page.goto('/');
         await loginAsAdmin(page);
 
-        const apiKey = await createManagementApiToken(page);
-        const agent = await createTestAgent(page, apiKey, 'E2E Header Agent View Navigation');
+        const apiKey = await AgentManagementApi.createManagementApiToken(page, HEADER_AGENT_VIEW_API_TOKEN_NOTE);
+        const agent = await AgentManagementApi.createTestAgent(page, apiKey, {
+            label: 'E2E Header Agent View Navigation',
+            persona: HEADER_AGENT_VIEW_PERSONA,
+        });
         const escapedAgentName = escapeForRegExp(agent.agentName);
         const header = page.getByRole('banner');
 

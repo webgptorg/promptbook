@@ -1,80 +1,23 @@
-import { expect, test, type Page, type Route } from 'playwright/test';
+import { expect, test, type Page } from 'playwright/test';
 import { loginAsAdmin } from './support/auth';
+import { AgentManagementApi } from './support/AgentManagementApi';
+import { ChatHistoryNavigationExpectation } from './support/ChatHistoryNavigationExpectation';
+import { ChatHistoryNavigationSupport } from './support/ChatHistoryNavigationSupport';
 
 /**
- * Shared control contract for one deliberately delayed matching network request.
+ * Note stored with management API tokens created for chat history navigation coverage.
  */
-type DelayedRequestControl = {
-    /**
-     * Resolves once the delayed request has been intercepted.
-     */
-    readonly waitUntilStarted: Promise<void>;
-    /**
-     * Resolves once the delayed request has completed after release.
-     */
-    readonly waitUntilFinished: Promise<void>;
-    /**
-     * Allows the intercepted request to continue.
-     */
-    release(): void;
-    /**
-     * Removes the route interception.
-     */
-    dispose(): Promise<void>;
-};
+const CHAT_HISTORY_API_TOKEN_NOTE = 'E2E chat history navigation';
 
 /**
- * Input options for delaying one matching request.
+ * Persona used by deterministic chat-history test agents.
  */
-type DelayNextMatchingRequestOptions = {
-    /**
-     * Expected request method.
-     */
-    readonly method: 'GET' | 'POST';
-    /**
-     * URL matcher for one targeted request.
-     */
-    readonly isMatchingUrl: (url: string) => boolean;
-};
+const CHAT_HISTORY_TEST_AGENT_PERSONA = 'You help with regression tests.';
 
 /**
- * Minimal management-agent payload needed by chat history navigation tests.
+ * Rule used by deterministic chat-history test agents.
  */
-type ManagementAgent = {
-    /**
-     * Canonical browser-route slug and user-chat API identifier.
-     */
-    readonly agentName: string;
-    /**
-     * Stable standalone chat route returned by the management API.
-     */
-    readonly managementChatUrl: string;
-};
-
-/**
- * Minimal seeded chat payload used by chat history navigation tests.
- */
-type SeededChat = {
-    /**
-     * Durable user-chat identifier.
-     */
-    readonly id: string;
-};
-
-/**
- * Handle for one deliberately delayed `GET /api/user-chats?chat=...` request.
- */
-type DelayedUserChatRequest = DelayedRequestControl;
-
-/**
- * Handle for one deliberately delayed `GET /agents/[agent]/api/profile` request.
- */
-type DelayedAgentProfileRequest = DelayedRequestControl;
-
-/**
- * Handle for one deliberately delayed `POST /api/user-chats/[chatId]/messages` request.
- */
-type DelayedUserChatMessageCreateRequest = DelayedRequestControl;
+const CHAT_HISTORY_TEST_AGENT_RULE = 'Keep replies concise.';
 
 /**
  * Visible label used by the default profile/chat quick button fixture.
@@ -92,427 +35,51 @@ const DEFAULT_QUICK_BUTTON_MESSAGE = 'Hello, can you tell me about yourself?';
 const PROFILE_COMPOSER_MESSAGE = 'Hello from profile composer';
 
 /**
- * Maximum wait after releasing one delayed network request in navigation tests.
+ * Expected HTTP status returned by accepted async message-create requests.
  */
-const DELAYED_REQUEST_RELEASE_TIMEOUT_MS = 20_000;
+const ACCEPTED_MESSAGE_CREATE_STATUS = 202;
 
 /**
- * Escapes one literal string so it can be matched exactly inside a `RegExp`.
- *
- * @param value - Literal text that should be treated as plain content.
- * @returns Escaped text safe to interpolate into a regular expression.
- */
-function escapeForRegExp(value: string): string {
-    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-/**
- * Builds the current browser-facing standalone chat route for one agent.
- *
- * @param agentName - Canonical browser-route slug.
- * @param options - Optional query parameters.
- * @returns Relative chat URL used by the browser app.
- */
-function buildAgentBrowserChatUrl(agentName: string, options: { chatId?: string; forceNewChat?: boolean } = {}): string {
-    const params = new URLSearchParams();
-    if (options.forceNewChat) {
-        params.set('chat', 'new');
-    } else if (options.chatId !== undefined) {
-        params.set('chat', options.chatId);
-    }
-
-    const pathname = `/agents/${encodeURIComponent(agentName)}/chat`;
-    const query = params.toString();
-    return query ? `${pathname}?${query}` : pathname;
-}
-
-/**
- * Creates one management API token for the authenticated browser session.
+ * Creates one deterministic agent tailored for chat-history navigation coverage.
  *
  * @param page - Current Playwright page.
- * @returns Raw bearer token.
- */
-async function createManagementApiToken(page: Page): Promise<string> {
-    return page.evaluate(async () => {
-        const response = await fetch('/api/api-tokens', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                note: 'E2E chat history navigation',
-            }),
-        });
-
-        if (!response.ok) {
-            throw new Error(`Failed to create management API token: ${response.status}`);
-        }
-
-        const payload = (await response.json()) as { token?: string };
-        if (!payload.token) {
-            throw new Error('Management API token response did not include `token`.');
-        }
-
-        return payload.token;
-    });
-}
-
-/**
- * Creates one deterministic test agent through the management API.
- *
- * @param page - Current Playwright page.
- * @param apiKey - Bearer token used for the management API call.
  * @param label - Human-readable label used in the agent source.
- * @param initialMessage - Optional configured initial message for the created agent.
+ * @param initialMessage - Optional configured initial message.
  * @returns Canonical agent routing data.
  */
-async function createTestAgent(
-    page: Page,
-    apiKey: string,
-    label: string,
-    initialMessage?: string,
-): Promise<ManagementAgent> {
-    return page.evaluate(
-        async ({ apiKey: token, label: displayName, initialMessage: configuredInitialMessage }) => {
-            const source = [
-                displayName,
-                'PERSONA You help with regression tests.',
-                'RULE Keep replies concise.',
-                ...(configuredInitialMessage ? [`INITIAL MESSAGE ${configuredInitialMessage}`] : []),
-            ].join('\n');
-            const response = await fetch('/api/v1/agents', {
-                method: 'POST',
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    source,
-                    visibility: 'UNLISTED',
-                }),
-            });
+async function createChatHistoryTestAgent(page: Page, label: string, initialMessage?: string) {
+    const apiKey = await AgentManagementApi.createManagementApiToken(page, CHAT_HISTORY_API_TOKEN_NOTE);
 
-            if (!response.ok) {
-                throw new Error(`Failed to create test agent: ${response.status}`);
-            }
-
-            const payload = (await response.json()) as {
-                agent?: {
-                    agentName?: string;
-                    links?: {
-                        chatUrl?: string;
-                    };
-                };
-            };
-
-            if (!payload.agent?.agentName || !payload.agent.links?.chatUrl) {
-                throw new Error('Test agent response did not include chat routing data.');
-            }
-
-            return {
-                agentName: payload.agent.agentName,
-                managementChatUrl: payload.agent.links.chatUrl,
-            };
-        },
-        { apiKey, label, initialMessage },
-    );
-}
-
-/**
- * Creates one durable seeded chat with stable user/agent messages.
- *
- * @param page - Current Playwright page.
- * @param agentName - Canonical agent slug.
- * @param title - First user message used as chat title.
- * @returns Newly created chat identifier.
- */
-async function createSeededChat(page: Page, agentName: string, title: string): Promise<SeededChat> {
-    return page.evaluate(
-        async ({ agentName: currentAgentName, title: currentTitle }) => {
-            const now = new Date().toISOString();
-            const safeId = currentTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-            const payload = {
-                messages: [
-                    {
-                        id: `user-${safeId}`,
-                        sender: 'USER',
-                        content: currentTitle,
-                        createdAt: now,
-                        isComplete: true,
-                    },
-                    {
-                        id: `agent-${safeId}`,
-                        sender: 'AGENT',
-                        content: `Reply for ${currentTitle}`,
-                        createdAt: now,
-                        isComplete: true,
-                    },
-                ],
-            };
-            const response = await fetch(`/agents/${encodeURIComponent(currentAgentName)}/api/user-chats`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(payload),
-            });
-
-            if (!response.ok) {
-                throw new Error(`Failed to create seeded chat: ${response.status}`);
-            }
-
-            const chatDetail = (await response.json()) as { chat?: { id?: string } };
-            if (!chatDetail.chat?.id) {
-                throw new Error('Seeded chat response did not include `chat.id`.');
-            }
-
-            return { id: chatDetail.chat.id };
-        },
-        { agentName, title },
-    );
-}
-
-/**
- * Returns the current `chat` query parameter from one URL string.
- *
- * @param url - Absolute page URL.
- * @returns Selected chat id or `null` when absent.
- */
-function readChatIdFromUrl(url: string): string | null {
-    return new URL(url).searchParams.get('chat');
-}
-
-/**
- * Checks whether one browser URL points to a selected durable chat for the target agent.
- *
- * The browser currently navigates using the agent-name route alias, while the management
- * API still returns the durable standalone link. Accepting both path shapes keeps this
- * regression focused on "chat selected" behavior instead of one specific alias.
- *
- * @param url - Absolute page URL.
- * @param agent - Targeted management-agent payload.
- * @returns `true` when the URL represents a selected durable chat for the agent.
- */
-function isSelectedDurableAgentChatUrl(url: string, agent: ManagementAgent): boolean {
-    const parsedUrl = new URL(url);
-    const selectedChatId = parsedUrl.searchParams.get('chat');
-
-    if (!selectedChatId) {
-        return false;
-    }
-
-    const candidatePathnames = new Set([
-        buildAgentBrowserChatUrl(agent.agentName),
-        new URL(agent.managementChatUrl).pathname,
-    ]);
-
-    return candidatePathnames.has(parsedUrl.pathname);
-}
-
-/**
- * Checks whether one network URL matches the targeted user-chat snapshot request.
- *
- * @param url - Network URL reported by Playwright.
- * @param agentName - Canonical agent slug.
- * @param chatId - Expected selected chat id.
- * @returns `true` when the URL represents `GET /agents/[agent]/api/user-chats?chat=[chatId]`.
- */
-function isMatchingUserChatSnapshotRequest(url: string, agentName: string, chatId: string): boolean {
-    const parsedUrl = new URL(url);
-    const canonicalAgentPath = `/agents/${encodeURIComponent(agentName)}/api/user-chats`;
-    const isUserChatsPath =
-        parsedUrl.pathname === canonicalAgentPath || /^\/agents\/[^/]+\/api\/user-chats$/.test(parsedUrl.pathname);
-
-    return isUserChatsPath && parsedUrl.searchParams.get('chat') === chatId;
-}
-
-/**
- * Checks whether one network URL matches the public agent profile endpoint.
- *
- * @param url - Network URL reported by Playwright.
- * @param agentName - Canonical agent slug.
- * @returns `true` when the URL represents `GET /agents/[agent]/api/profile`.
- */
-function isMatchingAgentProfileRequest(url: string, agentName: string): boolean {
-    const parsedUrl = new URL(url);
-    const canonicalPath = `/agents/${encodeURIComponent(agentName)}/api/profile`;
-
-    return parsedUrl.pathname === canonicalPath || /^\/agents\/[^/]+\/api\/profile$/.test(parsedUrl.pathname);
-}
-
-/**
- * Checks whether one network URL matches the durable user-message creation endpoint.
- *
- * @param url - Network URL reported by Playwright.
- * @param agentName - Canonical agent slug.
- * @returns `true` when the URL represents `POST /agents/[agent]/api/user-chats/[chatId]/messages`.
- */
-function isMatchingUserChatMessageCreateRequest(url: string, agentName: string): boolean {
-    const parsedUrl = new URL(url);
-    const canonicalPrefix = `/agents/${encodeURIComponent(agentName)}/api/user-chats/`;
-    const isCanonicalPath = parsedUrl.pathname.startsWith(canonicalPrefix) && parsedUrl.pathname.endsWith('/messages');
-    const isFallbackPath = /^\/agents\/[^/]+\/api\/user-chats\/[^/]+\/messages$/.test(parsedUrl.pathname);
-
-    return isCanonicalPath || isFallbackPath;
-}
-
-/**
- * Delays the next matching request until the test explicitly releases it.
- *
- * The completion promise is resolved from the intercepted request itself to avoid
- * response-predicate races when app navigation and request timing overlap.
- *
- * @param page - Current Playwright page.
- * @param options - Method and URL matcher for the targeted request.
- * @returns Control handle for the delayed request.
- */
-async function delayNextMatchingRequest(
-    page: Page,
-    options: DelayNextMatchingRequestOptions,
-): Promise<DelayedRequestControl> {
-    let hasInterceptedTargetRequest = false;
-    let releaseRequest: (() => void) | null = null;
-    let markStarted: (() => void) | null = null;
-    let markFinished: (() => void) | null = null;
-
-    const waitUntilStarted = new Promise<void>((resolve) => {
-        markStarted = resolve;
+    return AgentManagementApi.createTestAgent(page, apiKey, {
+        label,
+        persona: CHAT_HISTORY_TEST_AGENT_PERSONA,
+        rule: CHAT_HISTORY_TEST_AGENT_RULE,
+        initialMessage,
     });
-    const waitUntilFinished = new Promise<void>((resolve) => {
-        markFinished = resolve;
-    });
-
-    const routeHandler = async (route: Route) => {
-        const request = route.request();
-        if (
-            hasInterceptedTargetRequest ||
-            request.method() !== options.method ||
-            !options.isMatchingUrl(request.url())
-        ) {
-            await route.continue();
-            return;
-        }
-
-        hasInterceptedTargetRequest = true;
-        markStarted?.();
-
-        await new Promise<void>((resolve) => {
-            releaseRequest = resolve;
-        });
-
-        try {
-            await route.continue();
-            await request.response().catch(() => null);
-        } finally {
-            markFinished?.();
-        }
-    };
-
-    await page.route('**/*', routeHandler);
-
-    return {
-        waitUntilStarted,
-        waitUntilFinished,
-        release() {
-            releaseRequest?.();
-        },
-        async dispose() {
-            await page.unroute('**/*', routeHandler);
-        },
-    };
-}
-
-/**
- * Delays the next targeted public agent-profile request until the test explicitly releases it.
- *
- * @param page - Current Playwright page.
- * @param agentName - Canonical agent slug.
- * @returns Control handle for the delayed request.
- */
-async function delayNextAgentProfileRequest(page: Page, agentName: string): Promise<DelayedAgentProfileRequest> {
-    return delayNextMatchingRequest(page, {
-        method: 'GET',
-        isMatchingUrl: (url) => isMatchingAgentProfileRequest(url, agentName),
-    });
-}
-
-/**
- * Delays the next targeted user-chat snapshot request until the test explicitly releases it.
- *
- * @param page - Current Playwright page.
- * @param agentName - Canonical agent slug.
- * @param chatId - Targeted selected chat id.
- * @returns Control handle for the delayed request.
- */
-async function delayNextUserChatSnapshotRequest(
-    page: Page,
-    agentName: string,
-    chatId: string,
-): Promise<DelayedUserChatRequest> {
-    return delayNextMatchingRequest(page, {
-        method: 'GET',
-        isMatchingUrl: (url) => isMatchingUserChatSnapshotRequest(url, agentName, chatId),
-    });
-}
-
-/**
- * Delays the next durable user-message creation request until the test explicitly releases it.
- *
- * @param page - Current Playwright page.
- * @param agentName - Canonical agent slug.
- * @returns Control handle for the delayed request.
- */
-async function delayNextUserChatMessageCreateRequest(
-    page: Page,
-    agentName: string,
-): Promise<DelayedUserChatMessageCreateRequest> {
-    return delayNextMatchingRequest(page, {
-        method: 'POST',
-        isMatchingUrl: (url) => isMatchingUserChatMessageCreateRequest(url, agentName),
-    });
-}
-
-/**
- * Releases one delayed request and fails if it does not finish promptly afterward.
- *
- * @param page - Current Playwright page.
- * @param delayedRequest - Request control returned by a delay helper.
- * @param failureMessage - Error message used when completion does not arrive.
- */
-async function releaseDelayedRequestOrFail(
-    page: Page,
-    delayedRequest: DelayedRequestControl,
-    failureMessage: string,
-): Promise<void> {
-    delayedRequest.release();
-    await Promise.race([
-        delayedRequest.waitUntilFinished,
-        page.waitForTimeout(DELAYED_REQUEST_RELEASE_TIMEOUT_MS).then(() => {
-            throw new Error(failureMessage);
-        }),
-    ]);
-    await delayedRequest.dispose();
 }
 
 /**
  * Chat-history navigation regressions for explicit user-selected chats.
  */
 test.describe('Agents Server chat history navigation', () => {
+    test.beforeEach(async ({ page }) => {
+        await page.goto('/');
+        await loginAsAdmin(page);
+    });
+
     test('renders the configured initial message on the profile page without a temporary hello fallback, even while profile loading is delayed', async ({
         page,
     }) => {
-        await page.goto('/');
-        await loginAsAdmin(page);
-
-        const apiKey = await createManagementApiToken(page);
         const configuredInitialMessage = 'Configured initial message for delayed profile loading.';
-        const agent = await createTestAgent(
+        const agent = await createChatHistoryTestAgent(
             page,
-            apiKey,
             'E2E Profile Initial Message No Blink',
             configuredInitialMessage,
         );
-        const delayedProfileRequest = await delayNextAgentProfileRequest(page, agent.agentName);
+        const delayedProfileRequest = await ChatHistoryNavigationSupport.delayNextAgentProfileRequest(
+            page,
+            agent.agentName,
+        );
 
         await page.goto(`/agents/${encodeURIComponent(agent.agentName)}`, {
             waitUntil: 'domcontentloaded',
@@ -522,7 +89,7 @@ test.describe('Agents Server chat history navigation', () => {
         await expect(page.getByText(configuredInitialMessage, { exact: true })).toBeVisible();
         await expect(page.getByText(/Hello! I am /)).toHaveCount(0);
 
-        await releaseDelayedRequestOrFail(
+        await ChatHistoryNavigationSupport.releaseDelayedRequestOrFail(
             page,
             delayedProfileRequest,
             'Expected delayed agent-profile request to finish after release.',
@@ -535,12 +102,11 @@ test.describe('Agents Server chat history navigation', () => {
     test('shows the first user message immediately as sending when starting a chat from the profile page', async ({
         page,
     }) => {
-        await page.goto('/');
-        await loginAsAdmin(page);
-
-        const apiKey = await createManagementApiToken(page);
-        const agent = await createTestAgent(page, apiKey, 'E2E Optimistic First Message');
-        const delayedMessageCreate = await delayNextUserChatMessageCreateRequest(page, agent.agentName);
+        const agent = await createChatHistoryTestAgent(page, 'E2E Optimistic First Message');
+        const delayedMessageCreate = await ChatHistoryNavigationSupport.delayNextUserChatMessageCreateRequest(
+            page,
+            agent.agentName,
+        );
 
         await page.goto(
             `/agents/${encodeURIComponent(agent.agentName)}?message=${encodeURIComponent('Hello from profile page')}`,
@@ -550,17 +116,17 @@ test.describe('Agents Server chat history navigation', () => {
             .filter({ hasText: /^Hello from profile page$/ })
             .first();
 
-        await expect
-            .poll(() => isSelectedDurableAgentChatUrl(page.url(), agent), {
-                message: 'Expected profile-page send to navigate to the durable chat route.',
-            })
-            .toBe(true);
+        await ChatHistoryNavigationExpectation.expectSelectedDurableChatUrl(
+            page,
+            agent,
+            'Expected profile-page send to navigate to the durable chat route.',
+        );
 
         await expect(optimisticMessageBubble).toBeVisible();
         await expect(page.getByText('Sending', { exact: true })).toBeVisible();
         await expect(page.getByText(/Hello! I am /)).toBeVisible();
 
-        await releaseDelayedRequestOrFail(
+        await ChatHistoryNavigationSupport.releaseDelayedRequestOrFail(
             page,
             delayedMessageCreate,
             'Expected delayed message-create request to finish after release.',
@@ -571,12 +137,11 @@ test.describe('Agents Server chat history navigation', () => {
     });
 
     test('processes two rapid sends on a freshly created chat without a chat-not-found failure', async ({ page }) => {
-        await page.goto('/');
-        await loginAsAdmin(page);
-
-        const apiKey = await createManagementApiToken(page);
-        const agent = await createTestAgent(page, apiKey, 'E2E Rapid Consecutive Sends');
-        const delayedFirstMessageCreate = await delayNextUserChatMessageCreateRequest(page, agent.agentName);
+        const agent = await createChatHistoryTestAgent(page, 'E2E Rapid Consecutive Sends');
+        const delayedFirstMessageCreate = await ChatHistoryNavigationSupport.delayNextUserChatMessageCreateRequest(
+            page,
+            agent.agentName,
+        );
         const dialogMessages: Array<string> = [];
         const messageCreateStatuses: Array<number> = [];
 
@@ -587,7 +152,7 @@ test.describe('Agents Server chat history navigation', () => {
         page.on('response', (response) => {
             if (
                 response.request().method() === 'POST' &&
-                isMatchingUserChatMessageCreateRequest(response.url(), agent.agentName)
+                ChatHistoryNavigationSupport.isMatchingUserChatMessageCreateRequest(response.url(), agent.agentName)
             ) {
                 messageCreateStatuses.push(response.status());
             }
@@ -598,12 +163,11 @@ test.describe('Agents Server chat history navigation', () => {
         );
         await delayedFirstMessageCreate.waitUntilStarted;
 
-        await expect
-            .poll(() => page.url(), {
-                message:
-                    'Expected the rapid-send regression to navigate to the durable chat route before the second send.',
-            })
-            .toContain('/chat?chat=');
+        await ChatHistoryNavigationExpectation.expectPageUrlToContain(
+            page,
+            '/chat?chat=',
+            'Expected the rapid-send regression to navigate to the durable chat route before the second send.',
+        );
 
         const composer = page.locator('textarea.chat-input-textarea');
         await expect(composer).toBeVisible();
@@ -617,7 +181,7 @@ test.describe('Agents Server chat history navigation', () => {
                 .first(),
         ).toBeVisible();
 
-        await releaseDelayedRequestOrFail(
+        await ChatHistoryNavigationSupport.releaseDelayedRequestOrFail(
             page,
             delayedFirstMessageCreate,
             'Expected the delayed first message-create request to finish after release in the rapid-send regression.',
@@ -629,29 +193,25 @@ test.describe('Agents Server chat history navigation', () => {
             })
             .toBe(2);
 
-        expect(messageCreateStatuses).toEqual([202, 202]);
+        expect(messageCreateStatuses).toEqual([ACCEPTED_MESSAGE_CREATE_STATUS, ACCEPTED_MESSAGE_CREATE_STATUS]);
         expect(dialogMessages).toEqual([]);
         await expect(page.getByText('Failed', { exact: true })).toHaveCount(0);
     });
 
     test('navigates from the profile page when opening an existing chat preview card', async ({ page }) => {
-        await page.goto('/');
-        await loginAsAdmin(page);
-
-        const apiKey = await createManagementApiToken(page);
-        const agent = await createTestAgent(page, apiKey, 'E2E Profile My Chats Navigation');
-        const existingChat = await createSeededChat(page, agent.agentName, 'Alpha seeded chat');
+        const agent = await createChatHistoryTestAgent(page, 'E2E Profile My Chats Navigation');
+        const existingChat = await AgentManagementApi.createSeededChat(page, agent.agentName, 'Alpha seeded chat');
 
         await page.goto(`/agents/${encodeURIComponent(agent.agentName)}`);
         await expect(page.getByRole('link', { name: /Alpha seeded chat/i })).toBeVisible();
 
         await page.getByRole('link', { name: /Alpha seeded chat/i }).click();
 
-        await expect
-            .poll(() => readChatIdFromUrl(page.url()), {
-                message: 'Expected clicking a profile My chats card to open the selected durable chat.',
-            })
-            .toBe(existingChat.id);
+        await ChatHistoryNavigationExpectation.expectSelectedChatId(
+            page,
+            existingChat.id,
+            'Expected clicking a profile My chats card to open the selected durable chat.',
+        );
         await expect(
             page
                 .locator('p')
@@ -661,50 +221,56 @@ test.describe('Agents Server chat history navigation', () => {
     });
 
     test('navigates from the profile page for quick buttons and composer sends', async ({ page }) => {
-        await page.goto('/');
-        await loginAsAdmin(page);
+        const agent = await createChatHistoryTestAgent(page, 'E2E Profile Entry Actions');
 
-        const apiKey = await createManagementApiToken(page);
-        const agent = await createTestAgent(page, apiKey, 'E2E Profile Entry Actions');
-
-        const delayedQuickButtonSend = await delayNextUserChatMessageCreateRequest(page, agent.agentName);
+        const delayedQuickButtonSend = await ChatHistoryNavigationSupport.delayNextUserChatMessageCreateRequest(
+            page,
+            agent.agentName,
+        );
 
         await page.goto(`/agents/${encodeURIComponent(agent.agentName)}`);
         await expect(page.getByRole('button', { name: DEFAULT_QUICK_BUTTON_LABEL })).toBeVisible();
 
         await page.getByRole('button', { name: DEFAULT_QUICK_BUTTON_LABEL }).click();
 
-        await expect
-            .poll(() => isSelectedDurableAgentChatUrl(page.url(), agent), {
-                message: 'Expected clicking a profile quick button to navigate to the durable chat route.',
-            })
-            .toBe(true);
+        await ChatHistoryNavigationExpectation.expectSelectedDurableChatUrl(
+            page,
+            agent,
+            'Expected clicking a profile quick button to navigate to the durable chat route.',
+        );
         await expect(
             page
                 .locator('p')
-                .filter({ hasText: new RegExp(`^${escapeForRegExp(DEFAULT_QUICK_BUTTON_MESSAGE)}$`) })
+                .filter({
+                    hasText: new RegExp(
+                        `^${ChatHistoryNavigationSupport.escapeForRegExp(DEFAULT_QUICK_BUTTON_MESSAGE)}$`,
+                    ),
+                })
                 .first(),
         ).toBeVisible();
         await expect(page.getByText('Sending', { exact: true })).toBeVisible();
 
-        await releaseDelayedRequestOrFail(
+        await ChatHistoryNavigationSupport.releaseDelayedRequestOrFail(
             page,
             delayedQuickButtonSend,
             'Expected delayed quick-button message-create request to finish after release.',
         );
 
-        const delayedManualSend = await delayNextUserChatMessageCreateRequest(page, agent.agentName);
+        const delayedManualSend = await ChatHistoryNavigationSupport.delayNextUserChatMessageCreateRequest(
+            page,
+            agent.agentName,
+        );
 
         await page.goto(`/agents/${encodeURIComponent(agent.agentName)}`);
         await expect(page.getByPlaceholder('Write a message...')).toBeVisible();
         await page.getByPlaceholder('Write a message...').fill(PROFILE_COMPOSER_MESSAGE);
         await page.locator('button[data-button-type="call-to-action"]').last().click();
 
-        await expect
-            .poll(() => isSelectedDurableAgentChatUrl(page.url(), agent), {
-                message: 'Expected sending a profile composer message to navigate to the durable chat route.',
-            })
-            .toBe(true);
+        await ChatHistoryNavigationExpectation.expectSelectedDurableChatUrl(
+            page,
+            agent,
+            'Expected sending a profile composer message to navigate to the durable chat route.',
+        );
         await expect(
             page
                 .locator('p')
@@ -713,7 +279,7 @@ test.describe('Agents Server chat history navigation', () => {
         ).toBeVisible();
         await expect(page.getByText('Sending', { exact: true })).toBeVisible();
 
-        await releaseDelayedRequestOrFail(
+        await ChatHistoryNavigationSupport.releaseDelayedRequestOrFail(
             page,
             delayedManualSend,
             'Expected delayed profile-composer message-create request to finish after release.',
@@ -721,32 +287,35 @@ test.describe('Agents Server chat history navigation', () => {
     });
 
     test('sends quick-button prompts from the durable chat page', async ({ page }) => {
-        await page.goto('/');
-        await loginAsAdmin(page);
+        const agent = await createChatHistoryTestAgent(page, 'E2E Chat Quick Button Send');
+        const delayedMessageCreate = await ChatHistoryNavigationSupport.delayNextUserChatMessageCreateRequest(
+            page,
+            agent.agentName,
+        );
 
-        const apiKey = await createManagementApiToken(page);
-        const agent = await createTestAgent(page, apiKey, 'E2E Chat Quick Button Send');
-        const delayedMessageCreate = await delayNextUserChatMessageCreateRequest(page, agent.agentName);
-
-        await page.goto(buildAgentBrowserChatUrl(agent.agentName));
+        await page.goto(ChatHistoryNavigationSupport.buildAgentBrowserChatUrl(agent.agentName));
         await expect(page.getByRole('button', { name: DEFAULT_QUICK_BUTTON_LABEL })).toBeVisible();
-        await expect
-            .poll(() => isSelectedDurableAgentChatUrl(page.url(), agent), {
-                message: 'Expected the durable chat page to select or create an active chat before sending.',
-            })
-            .toBe(true);
+        await ChatHistoryNavigationExpectation.expectSelectedDurableChatUrl(
+            page,
+            agent,
+            'Expected the durable chat page to select or create an active chat before sending.',
+        );
 
         await page.getByRole('button', { name: DEFAULT_QUICK_BUTTON_LABEL }).click();
 
         await expect(
             page
                 .locator('p')
-                .filter({ hasText: new RegExp(`^${escapeForRegExp(DEFAULT_QUICK_BUTTON_MESSAGE)}$`) })
+                .filter({
+                    hasText: new RegExp(
+                        `^${ChatHistoryNavigationSupport.escapeForRegExp(DEFAULT_QUICK_BUTTON_MESSAGE)}$`,
+                    ),
+                })
                 .first(),
         ).toBeVisible();
         await expect(page.getByText('Sending', { exact: true })).toBeVisible();
 
-        await releaseDelayedRequestOrFail(
+        await ChatHistoryNavigationSupport.releaseDelayedRequestOrFail(
             page,
             delayedMessageCreate,
             'Expected delayed chat quick-button message-create request to finish after release.',
@@ -756,15 +325,13 @@ test.describe('Agents Server chat history navigation', () => {
     test('keeps the newly created chat selected after a delayed stale refresh and does not open a native dialog', async ({
         page,
     }) => {
-        await page.goto('/');
-        await loginAsAdmin(page);
+        const agent = await createChatHistoryTestAgent(page, 'E2E Chat Navigation New Chat');
+        const firstChat = await AgentManagementApi.createSeededChat(page, agent.agentName, 'Alpha seeded chat');
+        const secondChat = await AgentManagementApi.createSeededChat(page, agent.agentName, 'Bravo seeded chat');
 
-        const apiKey = await createManagementApiToken(page);
-        const agent = await createTestAgent(page, apiKey, 'E2E Chat Navigation New Chat');
-        const firstChat = await createSeededChat(page, agent.agentName, 'Alpha seeded chat');
-        const secondChat = await createSeededChat(page, agent.agentName, 'Bravo seeded chat');
-
-        await page.goto(buildAgentBrowserChatUrl(agent.agentName, { chatId: firstChat.id }));
+        await page.goto(
+            ChatHistoryNavigationSupport.buildAgentBrowserChatUrl(agent.agentName, { chatId: firstChat.id }),
+        );
         const newChatLink = page.getByRole('link', { name: 'New chat' }).first();
         await expect(newChatLink).toBeVisible();
 
@@ -774,23 +341,28 @@ test.describe('Agents Server chat history navigation', () => {
             await dialog.dismiss();
         });
 
-        const delayedRefresh = await delayNextUserChatSnapshotRequest(page, agent.agentName, firstChat.id);
+        const delayedRefresh = await ChatHistoryNavigationSupport.delayNextUserChatSnapshotRequest(
+            page,
+            agent.agentName,
+            firstChat.id,
+        );
 
-        await page.evaluate(() => {
-            window.dispatchEvent(new Event('focus'));
-        });
+        await ChatHistoryNavigationExpectation.dispatchWindowFocus(page);
         await delayedRefresh.waitUntilStarted;
 
         await newChatLink.click();
 
-        await expect
-            .poll(() => readChatIdFromUrl(page.url()), {
-                message: 'Expected New chat to navigate away from the previously selected chat.',
-            })
-            .not.toBe(firstChat.id);
+        await ChatHistoryNavigationExpectation.expectDifferentSelectedChatId(
+            page,
+            firstChat.id,
+            'Expected New chat to navigate away from the previously selected chat.',
+        );
 
-        const createdChatId = readChatIdFromUrl(page.url());
+        const createdChatId = ChatHistoryNavigationSupport.readChatIdFromUrl(page.url());
         expect(createdChatId).toBeTruthy();
+        if (!createdChatId) {
+            throw new Error('Expected New chat navigation to select a chat id.');
+        }
         const createdChatWasInitiallyOptimistic = createdChatId?.startsWith('optimistic-user-chat:') === true;
 
         delayedRefresh.release();
@@ -798,56 +370,37 @@ test.describe('Agents Server chat history navigation', () => {
         await delayedRefresh.dispose();
 
         if (createdChatWasInitiallyOptimistic) {
-            await expect
-                .poll(
-                    () => {
-                        const currentChatId = readChatIdFromUrl(page.url());
-                        return (
-                            currentChatId !== null && currentChatId !== firstChat.id && currentChatId !== secondChat.id
-                        );
-                    },
-                    {
-                        message:
-                            'Expected the delayed stale refresh to keep a newly created chat selected instead of any existing seeded chat.',
-                    },
-                )
-                .toBe(true);
+            await ChatHistoryNavigationExpectation.expectSelectedChatIdNotIn(
+                page,
+                [firstChat.id, secondChat.id],
+                'Expected the delayed stale refresh to keep a newly created chat selected instead of any existing seeded chat.',
+            );
         } else {
-            await expect
-                .poll(() => readChatIdFromUrl(page.url()), {
-                    message: 'Expected the delayed stale refresh to preserve the selected newly created chat.',
-                })
-                .toBe(createdChatId);
+            await ChatHistoryNavigationExpectation.expectSelectedChatId(
+                page,
+                createdChatId,
+                'Expected the delayed stale refresh to preserve the selected newly created chat.',
+            );
         }
         expect(sawNativeDialog).toBe(false);
     });
 
     test('creates a fresh chat when the durable route is opened directly with ?chat=new', async ({ page }) => {
-        await page.goto('/');
-        await loginAsAdmin(page);
+        const agent = await createChatHistoryTestAgent(page, 'E2E Chat Direct New Route');
+        const firstChat = await AgentManagementApi.createSeededChat(page, agent.agentName, 'Alpha seeded chat');
+        const secondChat = await AgentManagementApi.createSeededChat(page, agent.agentName, 'Bravo seeded chat');
 
-        const apiKey = await createManagementApiToken(page);
-        const agent = await createTestAgent(page, apiKey, 'E2E Chat Direct New Route');
-        const firstChat = await createSeededChat(page, agent.agentName, 'Alpha seeded chat');
-        const secondChat = await createSeededChat(page, agent.agentName, 'Bravo seeded chat');
+        await page.goto(
+            ChatHistoryNavigationSupport.buildAgentBrowserChatUrl(agent.agentName, { forceNewChat: true }),
+            {
+                waitUntil: 'domcontentloaded',
+            },
+        );
 
-        await page.goto(buildAgentBrowserChatUrl(agent.agentName, { forceNewChat: true }), {
-            waitUntil: 'domcontentloaded',
-        });
-
-        await expect
-            .poll(
-                () => {
-                    const currentChatId = readChatIdFromUrl(page.url());
-                    return currentChatId && currentChatId !== 'new' ? currentChatId : null;
-                },
-                {
-                    message: 'Expected loading /chat?chat=new to create and select a fresh chat.',
-                },
-            )
-            .not.toBeNull();
-
-        const createdChatId = readChatIdFromUrl(page.url());
+        const createdChatId = await ChatHistoryNavigationExpectation.expectFreshlyCreatedChatId(
+            page,
+            'Expected loading /chat?chat=new to create and select a fresh chat.',
+        );
 
         expect(createdChatId).toBeTruthy();
         expect(createdChatId).not.toBe('new');
@@ -858,39 +411,41 @@ test.describe('Agents Server chat history navigation', () => {
     test('keeps the last clicked chat selected when an earlier navigation response finishes later', async ({
         page,
     }) => {
-        await page.goto('/');
-        await loginAsAdmin(page);
+        const agent = await createChatHistoryTestAgent(page, 'E2E Chat Navigation Last Click Wins');
+        const alphaChat = await AgentManagementApi.createSeededChat(page, agent.agentName, 'Alpha history chat');
+        const bravoChat = await AgentManagementApi.createSeededChat(page, agent.agentName, 'Bravo history chat');
+        const charlieChat = await AgentManagementApi.createSeededChat(page, agent.agentName, 'Charlie history chat');
 
-        const apiKey = await createManagementApiToken(page);
-        const agent = await createTestAgent(page, apiKey, 'E2E Chat Navigation Last Click Wins');
-        const alphaChat = await createSeededChat(page, agent.agentName, 'Alpha history chat');
-        const bravoChat = await createSeededChat(page, agent.agentName, 'Bravo history chat');
-        const charlieChat = await createSeededChat(page, agent.agentName, 'Charlie history chat');
-
-        await page.goto(buildAgentBrowserChatUrl(agent.agentName, { chatId: alphaChat.id }));
+        await page.goto(
+            ChatHistoryNavigationSupport.buildAgentBrowserChatUrl(agent.agentName, { chatId: alphaChat.id }),
+        );
         await expect(page.getByRole('button', { name: /Bravo history chat/i })).toBeVisible();
         await expect(page.getByRole('button', { name: /Charlie history chat/i })).toBeVisible();
 
-        const delayedBravoNavigation = await delayNextUserChatSnapshotRequest(page, agent.agentName, bravoChat.id);
+        const delayedBravoNavigation = await ChatHistoryNavigationSupport.delayNextUserChatSnapshotRequest(
+            page,
+            agent.agentName,
+            bravoChat.id,
+        );
 
         await page.getByRole('button', { name: /Bravo history chat/i }).click();
         await delayedBravoNavigation.waitUntilStarted;
 
         await page.getByRole('button', { name: /Charlie history chat/i }).click();
-        await expect
-            .poll(() => readChatIdFromUrl(page.url()), {
-                message: 'Expected the second click to navigate to the later selected chat.',
-            })
-            .toBe(charlieChat.id);
+        await ChatHistoryNavigationExpectation.expectSelectedChatId(
+            page,
+            charlieChat.id,
+            'Expected the second click to navigate to the later selected chat.',
+        );
 
         delayedBravoNavigation.release();
         await delayedBravoNavigation.waitUntilFinished;
         await delayedBravoNavigation.dispose();
 
-        await expect
-            .poll(() => readChatIdFromUrl(page.url()), {
-                message: 'Expected the delayed earlier navigation to be discarded.',
-            })
-            .toBe(charlieChat.id);
+        await ChatHistoryNavigationExpectation.expectSelectedChatId(
+            page,
+            charlieChat.id,
+            'Expected the delayed earlier navigation to be discarded.',
+        );
     });
 });

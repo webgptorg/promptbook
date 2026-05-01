@@ -1,3 +1,8 @@
+-   Refactored the Agents Server chat-history Playwright coverage into focused support modules without changing the covered behavior:
+
+    -   Extracted shared e2e management helpers for token creation, agent creation, and seeded chats, and reused them across related header navigation specs.
+    -   Moved chat-history-specific URL parsing and delayed-request interception behind a dedicated support facade so the main spec now focuses on regression scenarios.
+
 -   Refined the Agents Server chat sidebar opener so the arrow that opens the chats tray now better matches the page design:
 
     -   Replaced the generic gray floating arrow with a slimmer glassy sidebar handle that uses the same blue-accent visual language as the rest of the chat route.
@@ -3152,6 +3157,7 @@
     -   Added the new built-in `ascii-octopus` canvas renderer to the shared avatar registry without changing the existing `Octopus`, `Octopus2`, `Octopus3`, pixel-art, Minecraft, or Fractal visuals.
     -   Kept the implementation DRY by reusing shared octopus body and tentacle geometry helpers, while translating that geometry into deterministic ASCII glyphs instead of painted surfaces.
     -   Updated the existing utils `/avatars` playground and regression coverage so the new renderer appears in the selector, preview grid, deterministic sample gallery, and supported URL-state parsing without creating a separate page.
+
 -   Fixed Agents Server metadata enum handling so predefined metadata keys no longer accept arbitrary strings in `/admin/metadata`:
 
     -   Added shared metadata definitions with reusable predefined option lists, so enum-like metadata such as `DEFAULT_AGENT_AVATAR_VISUAL`, `SERVER_LANGUAGE`, `SERVER_VISIBILITY`, `CHAT_FEEDBACK_MODE`, `CHAT_VISUAL_MODE`, `NAME_POOL`, `DEFAULT_VISIBILITY`, and `NEW_AGENT_WIZZARD` now render as selects instead of free-form text inputs.
