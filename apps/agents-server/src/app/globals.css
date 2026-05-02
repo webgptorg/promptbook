@@ -579,6 +579,58 @@ html.dark .agent-chat-route-surface {
     height: var(--agent-chat-arrow-icon-size);
 }
 
+.agent-chat-route-surface .agent-chat-sidebar-toggle-slot {
+    padding-right: 2px;
+}
+
+.agent-chat-route-surface .agent-chat-sidebar-toggle.agent-chat-solid-arrow-button {
+    width: 36px;
+    height: 84px;
+    border-width: 1px 1px 1px 0;
+    border-style: solid;
+    border-color: rgba(148, 163, 184, 0.3);
+    border-radius: 0 22px 22px 0;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(241, 245, 249, 0.94));
+    color: #475569;
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.16), inset 1px 0 0 rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(16px);
+}
+
+.agent-chat-route-surface .agent-chat-sidebar-toggle.agent-chat-solid-arrow-button:hover {
+    border-color: rgba(96, 165, 250, 0.38);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(226, 232, 240, 0.97));
+    color: #0f172a;
+    box-shadow: 0 18px 34px rgba(15, 23, 42, 0.22), inset 1px 0 0 rgba(255, 255, 255, 0.8);
+    transform: translateX(2px);
+}
+
+.agent-chat-route-surface .agent-chat-sidebar-toggle.agent-chat-solid-arrow-button:active {
+    transform: translateX(1px);
+}
+
+.agent-chat-route-surface .agent-chat-sidebar-toggle.agent-chat-solid-arrow-button:focus-visible {
+    outline-offset: 3px;
+}
+
+.agent-chat-route-surface .agent-chat-sidebar-toggle-icon.agent-chat-solid-arrow-icon {
+    width: 18px;
+    height: 18px;
+}
+
+html.dark .agent-chat-route-surface .agent-chat-sidebar-toggle.agent-chat-solid-arrow-button {
+    border-color: rgba(96, 165, 250, 0.24);
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(30, 41, 59, 0.94));
+    color: #cbd5e1;
+    box-shadow: 0 18px 34px rgba(2, 6, 23, 0.5), inset 1px 0 0 rgba(148, 163, 184, 0.12);
+}
+
+html.dark .agent-chat-route-surface .agent-chat-sidebar-toggle.agent-chat-solid-arrow-button:hover {
+    border-color: rgba(125, 211, 252, 0.42);
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.99), rgba(30, 64, 175, 0.66));
+    color: #f8fafc;
+    box-shadow: 0 20px 38px rgba(2, 6, 23, 0.6), inset 1px 0 0 rgba(191, 219, 254, 0.18);
+}
+
 .agent-chat-route-surface .chat-scrollToBottom.chat-scrollToBottom + [role='status'] {
     top: auto;
     right: auto;

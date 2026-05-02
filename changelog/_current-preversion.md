@@ -1,3 +1,8 @@
+-   Refined the Agents Server chats-tray desktop arrow so it now feels attached to the sidebar instead of floating beside the page:
+
+    -   Restyled the expand/collapse toggle into a slimmer glassy handle that visually connects to the tray edge and better matches the surrounding chat surface.
+    -   Kept the existing shared arrow control and accessibility behavior intact, limiting the change to the Agents Server chat-sidebar presentation.
+
 -   Fixed rapid Agents Server homepage organization changes so quickly moving multiple agents or folders no longer snaps back to stale positions:
 
     -   Serialized optimistic organization writes on the client, so rapid drag-and-drop changes are persisted in the same order they were made instead of racing each other.

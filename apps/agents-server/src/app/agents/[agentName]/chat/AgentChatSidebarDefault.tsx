@@ -594,14 +594,16 @@ export function AgentChatSidebarDefault({
                     </div>
                 </div>
 
-                <div className="pointer-events-none absolute inset-y-0 right-0 z-10 hidden translate-x-1/2 items-center justify-center md:flex">
+                <div className="agent-chat-sidebar-toggle-slot pointer-events-none absolute inset-y-0 right-0 z-10 hidden translate-x-1/2 items-center justify-center md:flex">
                     <SolidArrowButton
                         direction={isCollapsed ? 'right' : 'left'}
                         onClick={onToggleCollapse}
-                        className="pointer-events-auto"
+                        className="agent-chat-sidebar-toggle pointer-events-auto"
+                        iconClassName="agent-chat-sidebar-toggle-icon"
                         aria-controls={sidebarId}
                         aria-expanded={!isCollapsed}
                         aria-label={sidebarToggleLabel}
+                        title={sidebarToggleLabel}
                     />
                 </div>
 
