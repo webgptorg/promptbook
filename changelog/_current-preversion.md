@@ -1,3 +1,8 @@
+-   Fixed `USE CALENDAR` tool schemas so Agents Server calendar-enabled agents can create, update, and invite guests without OpenAI rejecting the function definitions:
+
+    -   Added explicit JSON Schema `items` definitions for calendar guest and reminder arrays, matching the runtime contract already used by the calendar tools.
+    -   Expanded the shared tool-definition typing to cover nested JSON Schema fields used by those tools, while keeping existing editable pipeline code paths compatible.
+
 -   Refined the Agents Server chats-tray desktop arrow so it now feels attached to the sidebar instead of floating beside the page:
 
     -   Restyled the expand/collapse toggle into a slimmer glassy handle that visually connects to the tray edge and better matches the surrounding chat surface.

@@ -23,6 +23,9 @@ describe('USE CALENDAR commitment', () => {
             basicRequirements,
             'https://calendar.google.com/calendar/u/0/r',
         );
+        const createEventTool = result.tools?.find((tool) => tool.name === 'calendar_create_event');
+        const updateEventTool = result.tools?.find((tool) => tool.name === 'calendar_update_event');
+        const inviteGuestsTool = result.tools?.find((tool) => tool.name === 'calendar_invite_guests');
 
         expect(result._metadata?.useCalendar).toBe(true);
         expect(result._metadata?.useCalendars).toEqual(
@@ -42,6 +45,30 @@ describe('USE CALENDAR commitment', () => {
                 expect.objectContaining({ name: 'calendar_delete_event' }),
                 expect.objectContaining({ name: 'calendar_invite_guests' }),
             ]),
+        );
+        expect(createEventTool?.parameters.properties.attendees).toEqual(
+            expect.objectContaining({
+                type: 'array',
+                items: expect.objectContaining({ type: 'string' }),
+            }),
+        );
+        expect(createEventTool?.parameters.properties.reminderMinutes).toEqual(
+            expect.objectContaining({
+                type: 'array',
+                items: expect.objectContaining({ type: 'integer' }),
+            }),
+        );
+        expect(updateEventTool?.parameters.properties.attendees).toEqual(
+            expect.objectContaining({
+                type: 'array',
+                items: expect.objectContaining({ type: 'string' }),
+            }),
+        );
+        expect(inviteGuestsTool?.parameters.properties.guests).toEqual(
+            expect.objectContaining({
+                type: 'array',
+                items: expect.objectContaining({ type: 'string' }),
+            }),
         );
     });
 

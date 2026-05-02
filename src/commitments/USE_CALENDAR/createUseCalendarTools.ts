@@ -10,6 +10,51 @@ const CALENDAR_URL_PARAMETER_DESCRIPTION =
     'Google Calendar URL configured by USE CALENDAR (for example "https://calendar.google.com/...").';
 
 /**
+ * Shared schema for string arrays used by USE CALENDAR tools.
+ *
+ * @private constant of createUseCalendarTools
+ */
+const STRING_ARRAY_ITEMS_SCHEMA = {
+    type: 'string',
+} as const;
+
+/**
+ * Shared schema for integer arrays used by USE CALENDAR tools.
+ *
+ * @private constant of createUseCalendarTools
+ */
+const INTEGER_ARRAY_ITEMS_SCHEMA = {
+    type: 'integer',
+} as const;
+
+/**
+ * Shared `sendUpdates` schema used by USE CALENDAR tools.
+ *
+ * @private constant of createUseCalendarTools
+ */
+const SEND_UPDATES_PARAMETER_SCHEMA = {
+    type: 'string',
+    description: 'Guest update policy ("all", "externalOnly", "none").',
+    enum: ['all', 'externalOnly', 'none'],
+} satisfies LlmToolDefinition['parameters']['properties'][string];
+
+/**
+ * Creates an array parameter schema with explicit item definition so OpenAI accepts it.
+ *
+ * @private function of createUseCalendarTools
+ */
+function createArrayParameterSchema(
+    description: string,
+    items: NonNullable<LlmToolDefinition['parameters']['properties'][string]['items']>,
+): LlmToolDefinition['parameters']['properties'][string] {
+    return {
+        type: 'array',
+        description,
+        items,
+    };
+}
+
+/**
  * Adds USE CALENDAR tool definitions while keeping already registered tools untouched.
  *
  * @private function of UseCalendarCommitmentDefinition
@@ -119,18 +164,12 @@ export function createUseCalendarTools(existingTools: ReadonlyArray<LlmToolDefin
                     type: 'string',
                     description: 'Optional timezone for datetime values.',
                 },
-                attendees: {
-                    type: 'array',
-                    description: 'Optional guest email list.',
-                },
-                reminderMinutes: {
-                    type: 'array',
-                    description: 'Optional popup reminder minute offsets.',
-                },
-                sendUpdates: {
-                    type: 'string',
-                    description: 'Guest update policy ("all", "externalOnly", "none").',
-                },
+                attendees: createArrayParameterSchema('Optional guest email list.', STRING_ARRAY_ITEMS_SCHEMA),
+                reminderMinutes: createArrayParameterSchema(
+                    'Optional popup reminder minute offsets.',
+                    INTEGER_ARRAY_ITEMS_SCHEMA,
+                ),
+                sendUpdates: SEND_UPDATES_PARAMETER_SCHEMA,
             },
             required: ['summary', 'start', 'end'],
         },
@@ -174,18 +213,15 @@ export function createUseCalendarTools(existingTools: ReadonlyArray<LlmToolDefin
                     type: 'string',
                     description: 'Optional timezone for datetime values.',
                 },
-                attendees: {
-                    type: 'array',
-                    description: 'Optional replacement guest email list.',
-                },
-                reminderMinutes: {
-                    type: 'array',
-                    description: 'Optional replacement popup reminder minute offsets.',
-                },
-                sendUpdates: {
-                    type: 'string',
-                    description: 'Guest update policy ("all", "externalOnly", "none").',
-                },
+                attendees: createArrayParameterSchema(
+                    'Optional replacement guest email list.',
+                    STRING_ARRAY_ITEMS_SCHEMA,
+                ),
+                reminderMinutes: createArrayParameterSchema(
+                    'Optional replacement popup reminder minute offsets.',
+                    INTEGER_ARRAY_ITEMS_SCHEMA,
+                ),
+                sendUpdates: SEND_UPDATES_PARAMETER_SCHEMA,
             },
             required: ['eventId'],
         },
@@ -205,10 +241,7 @@ export function createUseCalendarTools(existingTools: ReadonlyArray<LlmToolDefin
                     type: 'string',
                     description: 'Google Calendar event id.',
                 },
-                sendUpdates: {
-                    type: 'string',
-                    description: 'Guest update policy ("all", "externalOnly", "none").',
-                },
+                sendUpdates: SEND_UPDATES_PARAMETER_SCHEMA,
             },
             required: ['eventId'],
         },
@@ -228,14 +261,8 @@ export function createUseCalendarTools(existingTools: ReadonlyArray<LlmToolDefin
                     type: 'string',
                     description: 'Google Calendar event id.',
                 },
-                guests: {
-                    type: 'array',
-                    description: 'Guest email list to add to the event.',
-                },
-                sendUpdates: {
-                    type: 'string',
-                    description: 'Guest update policy ("all", "externalOnly", "none").',
-                },
+                guests: createArrayParameterSchema('Guest email list to add to the event.', STRING_ARRAY_ITEMS_SCHEMA),
+                sendUpdates: SEND_UPDATES_PARAMETER_SCHEMA,
             },
             required: ['eventId', 'guests'],
         },
