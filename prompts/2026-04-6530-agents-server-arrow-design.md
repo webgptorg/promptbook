@@ -1,4 +1,4 @@
-[x] ~$0.00 an hour by GitHub Copilot `gpt-5.4`
+[ ] !
 
 [✨🃏] Make the Arrow design more fitting into the page
 
@@ -45,4 +45,3 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
