@@ -65,3 +65,17 @@
 
 ![Ugly dark mode](prompts/screenshots/2026-04-6670-agents-server-dark-mode-11.png)
 ![Good looking light mode](prompts/screenshots/2026-04-6670-agents-server-dark-mode-12.png)
+
+---
+
+[ ]
+
+[✨🌘] Finish the dark mode on chat page
+
+-   In dark mode there are some ugly and unfinished places:
+    -   Skeleton loadings in dark mode has white background and it blinks badly ![alt text](prompts/screenshots/2026-04-6670-agents-server-dark-mode-13.png)
+    -   Agent in the folder view are bit too light ![alt text](prompts/screenshots/2026-04-6670-agents-server-dark-mode-14.png)
+    -   Some buttons across the app are white with white text ![alt text](prompts/screenshots/2026-04-6670-agents-server-dark-mode-15.png)
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing
+-   You are working with the [Agents Server](apps/agents-server)
