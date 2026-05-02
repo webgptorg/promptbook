@@ -1,3 +1,8 @@
+-   Refactored `scripts/use-packages/use-packages.ts` into smaller focused helpers without changing downstream package-update behavior:
+
+    -   Split version lookup, npm-availability waiting, managed file updates, git-status decisions, and summary rendering into dedicated internal steps so the script is easier to follow.
+    -   Kept the existing dependency rewriting, Dockerfile rewriting, guarded auto-commit behavior, and push-failure reporting unchanged while reducing branching inside `usePackages`.
+
 -   Refactored `scripts/run-codex-prompts/main/runCodexPrompts.ts` into smaller orchestration helpers without changing prompt-runner behavior:
 
     -   Moved runner selection and model-validation branching into a dedicated internal `resolvePromptRunner` helper so the main entrypoint focuses on overall run flow.
