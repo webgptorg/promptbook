@@ -1,3 +1,8 @@
+-   Refactored `src/book-2.0/agent-source/parseAgentSource.ts` into smaller focused parser internals without changing the public parsing behavior:
+
+    -   Moved profile text selection, initial-message extraction, capability derivation, conversation-sample accumulation, and META commitment handling behind dedicated private helpers under `src/book-2.0/agent-source/parseAgentSource/`.
+    -   Kept the existing capability badges, knowledge-source extraction, fullname fallback, and commitment override behavior unchanged while making the exported `parseAgentSource` entrypoint a small orchestration flow.
+
 -   Refactored `src/book-2.0/agent-source/createAgentModelRequirementsWithCommitments.ts` into smaller focused internals without changing requirement-compilation behavior:
  
     -   Split commitment filtering/application, source-derived system-message augmentation, and inline-knowledge materialization into dedicated private helpers so the entrypoint now reads as a compact orchestration flow.
