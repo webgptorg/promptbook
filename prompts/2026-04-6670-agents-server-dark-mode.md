@@ -68,7 +68,7 @@
 
 ---
 
-[ ]
+[ ] !
 
 [✨🌘] Finish the dark mode on chat page
 
