@@ -1,3 +1,8 @@
+-   Aligned and slimmed the Agents Server desktop chat-sidebar collapse handle so its arrow now sits on the sidebar divider more cleanly:
+
+    -   Shifted the toggle arrow closer to the sidebar edge so the chevron visually lines up with the vertical divider instead of floating to the right.
+    -   Reduced the handle and chevron size slightly to keep the control lighter without changing its behavior or accessibility.
+
 -   Fixed `USE CALENDAR` tool schemas so Agents Server calendar-enabled agents can create, update, and invite guests without OpenAI rejecting the function definitions:
 
     -   Added explicit JSON Schema `items` definitions for calendar guest and reminder arrays, matching the runtime contract already used by the calendar tools.

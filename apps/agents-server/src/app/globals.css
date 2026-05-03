@@ -456,6 +456,10 @@ html.dark ::-webkit-scrollbar-thumb:hover {
     view-transition-name: agent-chat-route-surface;
     --agent-chat-arrow-button-size: 46px;
     --agent-chat-arrow-icon-size: 20px;
+    --agent-chat-sidebar-toggle-width: 30px;
+    --agent-chat-sidebar-toggle-height: 76px;
+    --agent-chat-sidebar-toggle-icon-size: 15px;
+    --agent-chat-sidebar-toggle-icon-offset: -3px;
     --agent-chat-primary-action-border-color: rgba(0, 102, 204, 0.9);
     --agent-chat-primary-action-border-color-hover: rgba(0, 119, 221, 0.96);
     --agent-chat-primary-action-text-color: #ffffff;
@@ -580,16 +584,18 @@ html.dark .agent-chat-route-surface {
 }
 
 .agent-chat-route-surface .agent-chat-sidebar-toggle-slot {
-    padding-right: 2px;
+    padding-right: 0;
 }
 
 .agent-chat-route-surface .agent-chat-sidebar-toggle.agent-chat-solid-arrow-button {
-    width: 36px;
-    height: 84px;
+    width: var(--agent-chat-sidebar-toggle-width);
+    height: var(--agent-chat-sidebar-toggle-height);
+    justify-content: flex-start;
+    padding-left: 6px;
     border-width: 1px 1px 1px 0;
     border-style: solid;
     border-color: rgba(148, 163, 184, 0.3);
-    border-radius: 0 22px 22px 0;
+    border-radius: 0 18px 18px 0;
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(241, 245, 249, 0.94));
     color: #475569;
     box-shadow: 0 14px 30px rgba(15, 23, 42, 0.16), inset 1px 0 0 rgba(255, 255, 255, 0.72);
@@ -613,8 +619,9 @@ html.dark .agent-chat-route-surface {
 }
 
 .agent-chat-route-surface .agent-chat-sidebar-toggle-icon.agent-chat-solid-arrow-icon {
-    width: 18px;
-    height: 18px;
+    width: var(--agent-chat-sidebar-toggle-icon-size);
+    height: var(--agent-chat-sidebar-toggle-icon-size);
+    transform: translateX(var(--agent-chat-sidebar-toggle-icon-offset));
 }
 
 html.dark .agent-chat-route-surface .agent-chat-sidebar-toggle.agent-chat-solid-arrow-button {
