@@ -3,7 +3,11 @@
 import type { ChangeEvent } from 'react';
 import { MonacoEditorWithShadowDom } from '../../../components/_utils/MonacoEditorWithShadowDom';
 import { usePromptbookTheme } from '../../../components/ThemeMode/usePromptbookTheme';
-import { CUSTOM_RESOURCE_INPUT_CLASS_NAME } from '../custom-resource/shared';
+import {
+    CUSTOM_RESOURCE_INPUT_CLASS_NAME,
+    CUSTOM_RESOURCE_PRIMARY_BUTTON_CLASS_NAME,
+    CUSTOM_RESOURCE_SECONDARY_BUTTON_CLASS_NAME,
+} from '../custom-resource/shared';
 import type { CustomJavascriptFileState } from './CustomJavascriptFileState';
 
 /**
@@ -100,7 +104,7 @@ export function CustomJsEditorPanel({
                             type="button"
                             onClick={() => void onSaveCurrentFile()}
                             disabled={isSaving || remainingCharacters < 0 || !hasCurrentChanges}
-                            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+                            className={CUSTOM_RESOURCE_PRIMARY_BUTTON_CLASS_NAME}
                         >
                             {isSaving ? 'Saving...' : 'Save script'}
                         </button>
@@ -108,14 +112,14 @@ export function CustomJsEditorPanel({
                             type="button"
                             onClick={onResetToTemplate}
                             disabled={isSaving}
-                            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-60 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+                            className={CUSTOM_RESOURCE_SECONDARY_BUTTON_CLASS_NAME}
                         >
                             Reset to template
                         </button>
                         <button
                             type="button"
                             onClick={onDownloadCurrentFile}
-                            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+                            className={CUSTOM_RESOURCE_SECONDARY_BUTTON_CLASS_NAME}
                         >
                             Download file
                         </button>
@@ -131,7 +135,7 @@ export function CustomJsEditorPanel({
                             type="button"
                             onClick={() => void onReloadFromServer()}
                             disabled={isSaving || isLoading}
-                            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-60 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+                            className={CUSTOM_RESOURCE_SECONDARY_BUTTON_CLASS_NAME}
                         >
                             Reload from server
                         </button>

@@ -1,3 +1,9 @@
+-   Finished the remaining Agents Server dark-mode gaps on the chat and book experience:
+
+    -   Reworked chat and editor loading skeleton surfaces so dark mode now uses dark containers, darker shimmer gradients, and avoids the bright white flash while the page is still streaming.
+    -   Darkened folder and agent cards, the active chat row in the "My chats" tray, and the chat/book switcher pills so selected and nested states no longer show pale or white outlines on dark backgrounds.
+    -   Fixed shared dark-mode editor controls by theming the Book editor dropdown menu, missing-reference cards, and reusable primary admin buttons that previously rendered light disabled backgrounds with unreadable white text.
+
 -   Aligned and slimmed the Agents Server desktop chat-sidebar collapse handle so its arrow now sits on the sidebar divider more cleanly:
 
     -   Shifted the toggle arrow closer to the sidebar edge so the chevron visually lines up with the vertical divider instead of floating to the right.

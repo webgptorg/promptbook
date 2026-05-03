@@ -136,14 +136,14 @@ function resolveAgentChatSidebarCollapsedStatusClassName(
     isActive: boolean,
 ): string {
     if (activityKind === 'scheduled') {
-        return 'text-amber-700';
+        return 'text-amber-700 dark:text-amber-300';
     }
 
     if (activityKind === 'running' || isActive) {
-        return 'text-blue-700';
+        return 'text-blue-700 dark:text-blue-300';
     }
 
-    return 'text-slate-400';
+    return 'text-slate-400 dark:text-slate-500';
 }
 
 /**
@@ -153,14 +153,14 @@ function resolveAgentChatSidebarCollapsedStatusClassName(
  */
 function resolveAgentChatSidebarExpandedStatusClassName(activityKind: AgentChatSidebarActivityState['kind']): string {
     if (activityKind === 'scheduled') {
-        return 'font-semibold text-amber-700';
+        return 'font-semibold text-amber-700 dark:text-amber-300';
     }
 
     if (activityKind === 'running') {
-        return 'font-semibold text-blue-700';
+        return 'font-semibold text-blue-700 dark:text-blue-300';
     }
 
-    return 'text-slate-400';
+    return 'text-slate-400 dark:text-slate-500';
 }
 
 /**
@@ -183,8 +183,8 @@ function AgentChatSidebarDefaultCollapsedRow({
             onClick={() => onChatSelect(item.id)}
             className={`group relative flex w-full min-w-0 flex-col items-center gap-1 rounded-2xl border px-1.5 py-2 transition focus-visible:outline focus-visible:outline-blue-400 focus-visible:outline-offset-2 ${
                 item.isActive
-                    ? 'border-blue-300 bg-blue-50 text-blue-700 shadow-sm'
-                    : 'border-transparent bg-slate-100/80 text-slate-700 hover:border-slate-300 hover:bg-slate-100'
+                    ? 'border-blue-300 bg-blue-50 text-blue-700 shadow-sm dark:border-blue-500/40 dark:bg-blue-500/12 dark:text-blue-100'
+                    : 'border-transparent bg-slate-100/80 text-slate-700 hover:border-slate-300 hover:bg-slate-100 dark:bg-slate-900/88 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-900'
             } ${item.isEmpty && !item.isActive ? 'opacity-40' : ''}`}
             aria-label={item.content.accessibilityLabel}
             title={item.content.accessibilityLabel}
@@ -199,7 +199,7 @@ function AgentChatSidebarDefaultCollapsedRow({
             )}
             <span
                 className={`absolute right-0.5 top-0.5 z-[5] inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-bold leading-none shadow-sm ${
-                    item.isActive ? 'bg-blue-500 text-white' : 'bg-slate-400 text-white'
+                    item.isActive ? 'bg-blue-500 text-white' : 'bg-slate-400 text-white dark:bg-slate-600'
                 }`}
                 aria-label={item.content.messagesCountLabel}
             >
@@ -208,12 +208,12 @@ function AgentChatSidebarDefaultCollapsedRow({
             <div
                 className={`aspect-square w-full overflow-hidden rounded-xl border px-1.5 py-1.5 text-left ${
                     item.isActive
-                        ? 'border-blue-300 bg-white/90 text-blue-700'
-                        : 'border-slate-200 bg-white/90 text-slate-600'
+                        ? 'border-blue-300 bg-white/90 text-blue-700 dark:border-blue-500/40 dark:bg-slate-950/82 dark:text-blue-100'
+                        : 'border-slate-200 bg-white/90 text-slate-600 dark:border-slate-700 dark:bg-slate-950/78 dark:text-slate-300'
                 }`}
             >
                 <div className="max-w-full truncate text-[10px] font-semibold leading-none">{item.content.title}</div>
-                <div className="mt-1 max-w-full truncate text-[9px] leading-tight text-slate-500">
+                <div className="mt-1 max-w-full truncate text-[9px] leading-tight text-slate-500 dark:text-slate-400">
                     {item.content.preview}
                 </div>
             </div>
@@ -241,8 +241,8 @@ function AgentChatSidebarDefaultExpandedRow({
         <div
             className={`group relative rounded-xl border ${
                 item.isActive
-                    ? 'border-blue-300 bg-blue-50 shadow-sm'
-                    : 'border-transparent hover:border-slate-200 hover:bg-slate-100/80'
+                    ? 'border-blue-300 bg-blue-50 shadow-sm dark:border-blue-500/40 dark:bg-blue-500/12'
+                    : 'border-transparent hover:border-slate-200 hover:bg-slate-100/80 dark:hover:border-slate-700 dark:hover:bg-slate-900/88'
             } ${item.isEmpty && !item.isActive ? 'opacity-40' : ''}`}
         >
             <span className="absolute left-3 top-3.5 z-[5]">
@@ -256,14 +256,16 @@ function AgentChatSidebarDefaultExpandedRow({
                 title={item.content.accessibilityLabel}
             >
                 <div className="flex items-center gap-2">
-                    <div className="min-w-0 flex-1 truncate text-sm font-medium text-slate-800">{item.content.title}</div>
+                    <div className="min-w-0 flex-1 truncate text-sm font-medium text-slate-800 dark:text-slate-100">
+                        {item.content.title}
+                    </div>
                     {item.content.sourceChipLabel && (
                         <span className="inline-flex flex-shrink-0 items-center rounded-full bg-slate-900 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white">
                             {item.content.sourceChipLabel}
                         </span>
                     )}
                 </div>
-                <div className="mt-1 truncate text-xs text-slate-500">{item.content.preview}</div>
+                <div className="mt-1 truncate text-xs text-slate-500 dark:text-slate-400">{item.content.preview}</div>
                 <div className="mt-2 flex items-center justify-between gap-2">
                     <div className={`truncate text-[11px] ${statusClassName}`}>
                         {item.content.activityIndicator.compactLabel || item.content.lastActivity}
@@ -273,7 +275,7 @@ function AgentChatSidebarDefaultExpandedRow({
             {!item.isReadOnly && (
                 <button
                     type="button"
-                    className="absolute right-2 top-2 rounded-md p-1.5 text-slate-400 opacity-0 transition hover:bg-white/90 hover:text-red-600 group-hover:opacity-100 focus-visible:outline focus-visible:outline-blue-400 focus-visible:outline-offset-2"
+                    className="absolute right-2 top-2 rounded-md p-1.5 text-slate-400 opacity-0 transition hover:bg-white/90 hover:text-red-600 group-hover:opacity-100 focus-visible:outline focus-visible:outline-blue-400 focus-visible:outline-offset-2 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-red-300"
                     onClick={(event) => {
                         event.preventDefault();
                         event.stopPropagation();
@@ -308,7 +310,7 @@ function AgentChatSidebarDefaultCollapsedFilters({
                 <button
                     type="button"
                     onClick={onToggleEmptyChatVisibility}
-                    className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+                    className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-200"
                     title={
                         isShowingEmptyChats
                             ? formatText('Hide empty chats')
@@ -324,8 +326,8 @@ function AgentChatSidebarDefaultCollapsedFilters({
                     onClick={onToggleExternalChatVisibility}
                     className={`inline-flex h-8 min-w-8 items-center justify-center rounded-full px-2 text-[9px] font-bold uppercase tracking-[0.18em] transition ${
                         isShowingExternalChats
-                            ? 'bg-slate-900 text-white'
-                            : 'text-slate-400 hover:bg-slate-100 hover:text-slate-600'
+                            ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950'
+                            : 'text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-200'
                     }`}
                     title={
                         isShowingExternalChats ? formatText('Hide external chats') : formatText('Show external chats')
@@ -354,8 +356,8 @@ function AgentChatSidebarDefaultExpandedFilters({
 }: AgentChatSidebarDefaultExpandedFiltersProps) {
     return (
         <div className="px-2 pb-2">
-            <div className="rounded-2xl border border-slate-200/80 bg-slate-50/80 p-2">
-                <div className="px-1 pb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+            <div className="rounded-2xl border border-slate-200/80 bg-slate-50/80 p-2 dark:border-slate-700 dark:bg-slate-900/88">
+                <div className="px-1 pb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
                     {formatText('Filters')}
                 </div>
                 <div className="flex flex-col gap-1">
@@ -363,7 +365,7 @@ function AgentChatSidebarDefaultExpandedFilters({
                         <button
                             type="button"
                             onClick={onToggleEmptyChatVisibility}
-                            className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+                            className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
                         >
                             {isShowingEmptyChats ? (
                                 <>
@@ -384,8 +386,8 @@ function AgentChatSidebarDefaultExpandedFilters({
                             onClick={onToggleExternalChatVisibility}
                             className={`inline-flex w-full items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs transition ${
                                 isShowingExternalChats
-                                    ? 'bg-slate-900 text-white'
-                                    : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'
+                                    ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950'
+                                    : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100'
                             }`}
                         >
                             {isShowingExternalChats
@@ -426,7 +428,7 @@ function AgentChatSidebarDefaultCollapsedSection({
             <a
                 href={newChatHref}
                 onClick={onNewChatLinkClick}
-                className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-slate-300 hover:text-slate-900"
+                className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-slate-300 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300 dark:shadow-slate-950/30 dark:hover:border-slate-600 dark:hover:text-slate-100"
                 title={formatText('New chat')}
                 aria-label={formatText('New chat')}
             >
@@ -438,7 +440,7 @@ function AgentChatSidebarDefaultCollapsedSection({
             ) : (
                 <div className="flex min-h-0 w-full flex-1 flex-col gap-2 overflow-y-auto scrollbar-hidden">
                     {sidebarItems.length === 0 ? (
-                        <p className="px-1 text-center text-[11px] text-slate-500">{emptyStateText}</p>
+                        <p className="px-1 text-center text-[11px] text-slate-500 dark:text-slate-400">{emptyStateText}</p>
                     ) : (
                         sidebarItems.map((item) => (
                             <AgentChatSidebarDefaultCollapsedRow
@@ -463,7 +465,7 @@ function AgentChatSidebarDefaultCollapsedSection({
                 />
             )}
 
-            <p className="text-[11px] text-slate-400">{formatText('Chats')}</p>
+            <p className="text-[11px] text-slate-400 dark:text-slate-500">{formatText('Chats')}</p>
         </div>
     );
 }
@@ -493,11 +495,11 @@ function AgentChatSidebarDefaultExpandedSection({
 
     return (
         <>
-            <div className="border-b border-slate-200 p-3">
+            <div className="border-b border-slate-200 p-3 dark:border-slate-700">
                 <a
                     href={newChatHref}
                     onClick={onNewChatLinkClick}
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100 dark:hover:bg-slate-900"
                 >
                     <MessageSquarePlusIcon className="h-4 w-4" />
                     {formatText('New chat')}
@@ -509,7 +511,7 @@ function AgentChatSidebarDefaultExpandedSection({
             ) : (
                 <div className="flex-1 space-y-2 overflow-y-auto p-2 scrollbar-hidden">
                     {sidebarItems.length === 0 ? (
-                        <p className="px-2 text-xs text-slate-500">{emptyStateText}</p>
+                        <p className="px-2 text-xs text-slate-500 dark:text-slate-400">{emptyStateText}</p>
                     ) : (
                         sidebarItems.map((item) => (
                             <AgentChatSidebarDefaultExpandedRow
@@ -579,13 +581,13 @@ export function AgentChatSidebarDefault({
         <>
             <aside
                 id={sidebarId}
-                className={`fixed inset-y-0 left-0 z-[60] flex flex-col border-r border-slate-200 bg-white/95 shadow-xl backdrop-blur md:static md:bg-white/90 md:shadow-none ${panelTransitionClasses} ${widthClasses} ${transformClasses} md:translate-x-0`}
+                className={`fixed inset-y-0 left-0 z-[60] flex flex-col border-r border-slate-200 bg-white/95 shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-950/95 md:static md:bg-white/90 md:shadow-none dark:md:bg-slate-950/90 ${panelTransitionClasses} ${widthClasses} ${transformClasses} md:translate-x-0`}
             >
-                <div className="flex items-center justify-between border-b border-slate-200 px-3 py-2">
+                <div className="flex items-center justify-between border-b border-slate-200 px-3 py-2 dark:border-slate-700">
                     <div className="flex items-center gap-1">
                         <button
                             type="button"
-                            className="p-1 text-slate-500 hover:text-slate-900 focus-visible:outline focus-visible:outline-blue-400 focus-visible:outline-offset-2 md:hidden"
+                            className="p-1 text-slate-500 hover:text-slate-900 focus-visible:outline focus-visible:outline-blue-400 focus-visible:outline-offset-2 dark:text-slate-400 dark:hover:text-slate-100 md:hidden"
                             onClick={onCloseMobileSidebar}
                             aria-label={formatText('Close chats sidebar')}
                         >

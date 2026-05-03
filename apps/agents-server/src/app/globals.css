@@ -429,6 +429,7 @@ html.dark ::-webkit-scrollbar-thumb:hover {
     position: relative;
     overflow: hidden;
     background: linear-gradient(135deg, rgba(226, 232, 240, 0.95), rgba(248, 250, 252, 0.95));
+    will-change: transform;
 }
 
 .skeleton-block::after {
@@ -768,15 +769,15 @@ html.dark .component-preview {
 }
 
 html.dark .skeleton-block {
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.92), rgba(30, 41, 59, 0.94));
+    background: linear-gradient(135deg, rgba(8, 15, 28, 0.96), rgba(15, 23, 42, 0.94));
 }
 
 html.dark .skeleton-block::after {
     background: linear-gradient(
         100deg,
         transparent 10%,
-        rgba(148, 163, 184, 0.12) 42%,
-        rgba(255, 255, 255, 0.05) 52%,
+        rgba(59, 130, 246, 0.12) 42%,
+        rgba(125, 211, 252, 0.08) 52%,
         transparent 85%
     );
 }

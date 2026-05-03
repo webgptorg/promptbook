@@ -70,11 +70,11 @@ export function FolderCard({
     return (
         <div className="relative h-full group">
             <button type="button" onClick={onOpen} className="block h-full w-full text-left">
-                <FileCard className="flex h-full items-center gap-3 border-yellow-200 bg-yellow-50/60 hover:border-yellow-300">
+                <FileCard className="flex h-full items-center gap-3 border-yellow-200 bg-yellow-50/60 hover:border-yellow-300 dark:border-amber-500/30 dark:bg-amber-500/10 dark:hover:border-amber-400/40">
                     <div className="h-12 w-1 rounded-sm" style={{ backgroundColor: resolvedFolderColor }} />
                     <FolderAppearanceIcon icon={folderIcon} color={folderColor} />
                     <div className="min-w-0 flex-1">
-                        <h3 className="text-sm font-semibold text-gray-900 truncate" title={folderName}>
+                        <h3 className="truncate text-sm font-semibold text-gray-900 dark:text-slate-100" title={folderName}>
                             {folderName}
                         </h3>
                         <div className="mt-1 flex items-center gap-1.5">
@@ -83,7 +83,7 @@ export function FolderCard({
                                     return (
                                         <div
                                             key={`placeholder-${index}`}
-                                            className="h-5 w-5 rounded border border-yellow-200 bg-yellow-100"
+                                            className="h-5 w-5 rounded border border-yellow-200 bg-yellow-100 dark:border-amber-500/25 dark:bg-amber-500/12"
                                         />
                                     );
                                 }
@@ -91,7 +91,7 @@ export function FolderCard({
                                 return (
                                     <div
                                         key={agent.permanentId || agent.agentName}
-                                        className="h-5 w-5 rounded overflow-hidden border border-yellow-200 bg-white/70"
+                                        className="h-5 w-5 overflow-hidden rounded border border-yellow-200 bg-white/70 dark:border-amber-500/25 dark:bg-slate-950/80"
                                     >
                                         <AgentAvatar
                                             agent={agent}

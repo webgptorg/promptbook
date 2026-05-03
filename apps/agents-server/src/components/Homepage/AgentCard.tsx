@@ -126,7 +126,7 @@ export function AgentCard({
                             backgroundPosition: 'center',
                         }}
                     >
-                        <div className="absolute inset-0 pointer-events-none bg-white/40 backdrop-blur-[2px] dark:bg-slate-950/58" />
+                        <div className="pointer-events-none absolute inset-0 bg-white/40 backdrop-blur-[2px] dark:bg-slate-950/72" />
 
                         <div
                             className="relative z-10 mt-0.5 h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg border bg-white shadow-sm dark:bg-slate-900 dark:shadow-slate-950/35"
@@ -142,11 +142,11 @@ export function AgentCard({
                             />
                         </div>
                         <div className="relative z-10 min-w-0 flex-1">
-                            <h3 className="truncate text-sm font-bold text-gray-900" title={fullname}>
+                            <h3 className="truncate text-sm font-bold text-gray-900 dark:text-slate-100" title={fullname}>
                                 {fullname}
                             </h3>
                             {personaDescription && (
-                                <p className="mt-1 line-clamp-2 text-xs font-medium leading-snug text-gray-800">
+                                <p className="mt-1 line-clamp-2 text-xs font-medium leading-snug text-gray-800 dark:text-slate-300">
                                     {personaDescription}
                                 </p>
                             )}
@@ -175,7 +175,7 @@ export function AgentCard({
                             backgroundPosition: 'center',
                         }}
                     >
-                        <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] pointer-events-none dark:bg-slate-950/58" />
+                        <div className="pointer-events-none absolute inset-0 bg-white/40 backdrop-blur-[2px] dark:bg-slate-950/72" />
 
                         <div
                             className="relative z-10 mt-0.5 h-12 w-12 rounded-lg overflow-hidden flex-shrink-0 bg-white shadow-sm border dark:bg-slate-900 dark:shadow-slate-950/35"
@@ -191,11 +191,11 @@ export function AgentCard({
                             />
                         </div>
                         <div className="relative z-10 min-w-0 flex-1">
-                            <h3 className="text-sm font-bold text-gray-900 truncate" title={fullname}>
+                            <h3 className="truncate text-sm font-bold text-gray-900 dark:text-slate-100" title={fullname}>
                                 {fullname}
                             </h3>
                             {personaDescription && (
-                                <p className="text-xs text-gray-800 line-clamp-2 leading-snug mt-1 font-medium">
+                                <p className="mt-1 line-clamp-2 text-xs font-medium leading-snug text-gray-800 dark:text-slate-300">
                                     {personaDescription}
                                 </p>
                             )}

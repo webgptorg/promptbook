@@ -41,15 +41,15 @@ export function ParentFolderCard({ label, folderId, onOpen, canOrganize }: Paren
         <button type="button" ref={setNodeRef} onClick={onOpen} className="block h-full w-full text-left">
             <FileCard
                 className={`flex h-full items-center gap-3 border-blue-200 bg-blue-50/60 hover:border-blue-300 ${
-                    isDropTarget ? 'ring-2 ring-blue-400 ring-offset-2 ring-offset-white' : ''
+                    isDropTarget ? 'ring-2 ring-blue-400 ring-offset-2 ring-offset-white dark:ring-offset-slate-950' : ''
                 }`}
             >
-                <div className="flex h-12 w-12 items-center justify-center rounded-md bg-blue-100 border border-blue-200 text-blue-700">
+                <div className="flex h-12 w-12 items-center justify-center rounded-md border border-blue-200 bg-blue-100 text-blue-700 dark:border-blue-500/30 dark:bg-blue-500/12 dark:text-blue-100">
                     <ArrowUp className="w-5 h-5" />
                 </div>
                 <div className="min-w-0 flex-1">
-                    <p className="text-[11px] uppercase tracking-wide text-blue-700">Parent folder</p>
-                    <h3 className="text-sm font-semibold text-gray-900 truncate" title={label}>
+                    <p className="text-[11px] uppercase tracking-wide text-blue-700 dark:text-blue-200">Parent folder</p>
+                    <h3 className="truncate text-sm font-semibold text-gray-900 dark:text-slate-100" title={label}>
                         {label}
                     </h3>
                 </div>

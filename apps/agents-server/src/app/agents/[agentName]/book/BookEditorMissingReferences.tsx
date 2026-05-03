@@ -43,7 +43,9 @@ export function BookEditorMissingReferences({
 
     return (
         <aside className={className}>
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Missing referenced agents</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                Missing referenced agents
+            </p>
             <div className="flex flex-col gap-4">
                 {missingAgentReferences.map((reference) => (
                     <MissingAgentReferenceCard
@@ -84,17 +86,17 @@ function MissingAgentReferenceCard({ member, isCreating, onCreate }: MissingAgen
     const commitmentLabel = formatCommitmentLabel(member.commitmentType);
 
     return (
-        <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4">
-            <p className="text-sm text-slate-700">
-                Referenced agent <span className="font-semibold text-slate-900">{displayToken}</span> is not found. Do
-                you want to create it?
+        <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4 dark:border-slate-700 dark:bg-slate-900/88">
+            <p className="text-sm text-slate-700 dark:text-slate-300">
+                Referenced agent <span className="font-semibold text-slate-900 dark:text-slate-100">{displayToken}</span>{' '}
+                is not found. Do you want to create it?
             </p>
-            <p className="mt-1 text-xs uppercase tracking-wide text-slate-500">
+            <p className="mt-1 text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 Missing in the {commitmentLabel} commitment
             </p>
             <button
                 type="button"
-                className="mt-3 inline-flex w-full items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:cursor-not-allowed disabled:bg-blue-400 disabled:opacity-70"
+                className="mt-3 inline-flex w-full items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-100 disabled:opacity-70 dark:disabled:bg-slate-700 dark:disabled:text-slate-300"
                 onClick={onCreate}
                 disabled={isCreating}
             >

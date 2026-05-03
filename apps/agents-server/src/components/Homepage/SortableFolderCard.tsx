@@ -112,9 +112,9 @@ export function SortableFolderCard({
         activeDragType === 'FOLDER' && dropIndicator?.id === dragId && dropIndicator.intent !== 'inside';
     const dropClasses =
         isInsideTarget || isDropTarget
-            ? 'ring-2 ring-emerald-400 ring-offset-2 ring-offset-white bg-emerald-50/40'
+            ? 'ring-2 ring-emerald-400 ring-offset-2 ring-offset-white bg-emerald-50/40 dark:ring-offset-slate-950 dark:bg-emerald-500/10'
             : isReorderTarget
-            ? 'ring-2 ring-blue-400 ring-offset-2 ring-offset-white'
+            ? 'ring-2 ring-blue-400 ring-offset-2 ring-offset-white dark:ring-offset-slate-950'
             : '';
     const dragProps = buildCardDragProps(allowFullCardDrag, attributes, listeners);
 

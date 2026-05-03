@@ -328,7 +328,7 @@ function AgentChatHistoryReadyView(props: AgentChatHistoryReadyViewProps) {
     const chatSurface = (
         <div className="relative flex min-h-0 flex-1 overflow-hidden">
             {isActiveChatLoading ? (
-                <div className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-white/30 bg-white/70 backdrop-blur-sm">
+                <div className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-white/30 bg-white/70 backdrop-blur-sm dark:border-slate-700/60 dark:bg-slate-950/70">
                     <ChatThreadLoadingSkeleton />
                 </div>
             ) : (

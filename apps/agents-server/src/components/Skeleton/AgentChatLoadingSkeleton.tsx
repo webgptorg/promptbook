@@ -31,7 +31,7 @@ export function AgentChatLoadingSkeleton({
 }: AgentChatLoadingSkeletonProps) {
     return (
         <div
-            className="h-full w-full min-h-0 bg-slate-50/80"
+            className="h-full w-full min-h-0 bg-slate-50/80 dark:bg-slate-950/92"
             role="status"
             aria-live="polite"
             aria-busy="true"
@@ -40,18 +40,18 @@ export function AgentChatLoadingSkeleton({
             <div className="flex h-full min-h-0">
                 {showSidebar && (
                     <aside
-                        className={`hidden border-r border-slate-200/80 bg-white/90 backdrop-blur md:flex md:flex-col ${
+                        className={`hidden border-r border-slate-200/80 bg-white/90 backdrop-blur dark:border-slate-700/80 dark:bg-slate-950/90 md:flex md:flex-col ${
                             isSidebarCollapsed ? 'md:w-20' : 'md:w-72'
                         }`}
                     >
-                        <div className="border-b border-slate-200/70 p-3">
+                        <div className="border-b border-slate-200/70 p-3 dark:border-slate-700/70">
                             <Skeleton className="h-10 w-full rounded-lg" />
                         </div>
                         <ChatListLoadingSkeleton isCollapsed={isSidebarCollapsed} />
                     </aside>
                 )}
                 <section className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
-                    <div className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-white/30 bg-white/70 backdrop-blur-sm">
+                    <div className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-white/30 bg-white/70 backdrop-blur-sm dark:border-slate-700/60 dark:bg-slate-950/74">
                         <ChatThreadLoadingSkeleton className="h-full" />
                     </div>
                     {threadOverlay && <div className="pointer-events-none absolute inset-0">{threadOverlay}</div>}
