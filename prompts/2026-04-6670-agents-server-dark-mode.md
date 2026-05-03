@@ -77,6 +77,7 @@
     -   Agent in the folder view are bit too light ![alt text](prompts/screenshots/2026-04-6670-agents-server-dark-mode-14.png)
     -   Some buttons across the app are white with white text ![alt text](prompts/screenshots/2026-04-6670-agents-server-dark-mode-15.png)
     -   Current chat in my chats tray has ugly white outline ![alt text](prompts/screenshots/2026-04-6670-agents-server-dark-mode-16.png)
+    -   Book editor in wizzard ![alt text](prompts/screenshots/2026-04-6670-agents-server-dark-mode-17.png)
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing
 -   You are working with the [Agents Server](apps/agents-server)
