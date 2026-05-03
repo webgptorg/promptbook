@@ -9,16 +9,14 @@
 
 ---
 
-[-]
+[ ] !
 
-[✨🃏] foo
+[✨🃏] Align the Arrow the the vertical line
 
--   @@@
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
+-   And also make it bit smaller
 -   You are working with the [Agents Server](apps/agents-server)
--   If you need to do the database migration, do it
--   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![alt text](prompts/screenshots/2026-04-6530-agents-server-arrow-design.png)
 
 ---
 
@@ -46,3 +44,15 @@
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
+---
+
+[-]
+
+[✨🃏] foo
+
+-   @@@
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+-   If you need to do the database migration, do it
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
