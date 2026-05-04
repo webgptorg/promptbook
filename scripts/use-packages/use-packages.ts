@@ -387,7 +387,9 @@ async function getRemoteFolderGitStatus(remoteFolder: string): Promise<RemoteFol
         .split(/\r?\n/)
         .filter((line: string) => line);
     const changedFiles = changedLines.map((line: string) => line.split(' ', 2).pop() || '');
-    const unexpectedChanges = changedFiles.filter((file) => !ALLOWED_GIT_CHANGED_FILES.includes(basename(file)));
+    const unexpectedChanges = changedFiles.filter(
+        (file: string) => !ALLOWED_GIT_CHANGED_FILES.includes(basename(file)),
+    );
 
     return {
         changedLines,
@@ -496,10 +498,7 @@ function recordUpdatedProjectIfNeeded(
  * @param summary - Shared script summary
  * @param currentVersion - Version that was used during the update
  */
-function logUsePackagesSummary(
-    summary: UsePackagesSummary,
-    currentVersion: string_version_dependency,
-): void {
+function logUsePackagesSummary(summary: UsePackagesSummary, currentVersion: string_version_dependency): void {
     console.info('\n'.repeat(3));
     console.info(colors.bgGreen(`Promptbook ${currentVersion}:`));
     console.info(colors.green(`  Committed (${summary.committedProjects.length}):`));
