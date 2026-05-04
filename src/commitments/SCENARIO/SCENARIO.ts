@@ -122,11 +122,8 @@ export class ScenarioCommitmentDefinition extends BaseCommitmentDefinition<'SCEN
             return requirements;
         }
 
-        // Create scenario section for system message
-        const scenarioSection = `Scenario: ${trimmedContent}`;
-
         // Scenarios provide important contextual information that affects behavior
-        return this.appendToSystemMessage(requirements, scenarioSection, '\n\n');
+        return this.appendBulletPointToSection(requirements, 'Scenarios', trimmedContent);
     }
 }
 

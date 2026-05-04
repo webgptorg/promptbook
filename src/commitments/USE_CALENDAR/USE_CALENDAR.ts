@@ -4,12 +4,11 @@ import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentMo
 import type { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 import { formatOptionalInstructionBlock } from '../_base/formatOptionalInstructionBlock';
+import { parseUseCalendarCommitmentContent, type CalendarReference } from './calendarReference';
 import { createUseCalendarToolFunctions } from './createUseCalendarToolFunctions';
 import { createUseCalendarTools } from './createUseCalendarTools';
 import { getUseCalendarToolTitles } from './getUseCalendarToolTitles';
 import { normalizeConfiguredCalendars } from './normalizeConfiguredCalendars';
-import { parseUseCalendarCommitmentContent, type CalendarReference } from './calendarReference';
-import { UseCalendarWallet } from './UseCalendarWallet';
 
 /**
  * USE CALENDAR commitment definition.
@@ -84,25 +83,28 @@ export class UseCalendarCommitmentDefinition extends BaseCommitmentDefinition<'U
             addConfiguredCalendarIfMissing(existingConfiguredCalendars, parsedCommitment.calendar);
         }
 
-        const calendarsList =
+        const calendarBullets =
             existingConfiguredCalendars.length > 0
-                ? existingConfiguredCalendars
-                      .map((calendar) =>
-                          [
-                              `- ${calendar.provider}: ${calendar.url}`,
-                              calendar.scopes.length > 0 ? `  scopes: ${calendar.scopes.join(', ')}` : '',
-                          ]
-                              .filter(Boolean)
-                              .join('\n'),
-                      )
-                      .join('\n')
-                : '- Calendar is resolved from runtime context';
+                ? existingConfiguredCalendars.map((calendar) => `-   ${calendar.provider}: ${calendar.url}`).join('\n')
+                : '-   Calendar is resolved from runtime context';
         const extraInstructions = formatOptionalInstructionBlock(
             'Calendar instructions',
             parsedCommitment.instructions,
         );
 
-        return this.appendToSystemMessage(
+        const calendarSectionContent = spaceTrim(
+            (block) => `
+                ## Calendar
+
+                -   Use \`calendar_list_events\`, \`calendar_get_event\`, \`calendar_create_event\`, \`calendar_update_event\`, \`calendar_delete_event\`, and \`calendar_invite_guests\` to manage events in configured calendars.
+                -   Supported operations include read, create, update, delete, invite guests, and reminders.
+                -   Configured calendars:
+                ${block(calendarBullets)}
+                ${block(extraInstructions)}
+            `,
+        );
+
+        return this.replaceOrCreateSection(
             {
                 ...requirements,
                 tools: createUseCalendarTools(requirements.tools || []),
@@ -112,20 +114,8 @@ export class UseCalendarCommitmentDefinition extends BaseCommitmentDefinition<'U
                     useCalendars: existingConfiguredCalendars,
                 },
             },
-            spaceTrim(
-                (block) => `
-                    Calendar tools:
-                    - You can inspect and manage events in configured calendars.
-                    - Supported operations include read, create, update, delete, invite guests, and reminders.
-                    - Configured calendars:
-                      ${block(calendarsList)}
-                    - USE CALENDAR credentials are read from wallet records (ACCESS_TOKEN, service "${
-                        UseCalendarWallet.service
-                    }", key "${UseCalendarWallet.key}").
-                    - If credentials are missing, ask user to connect calendar credentials in host UI and/or add them to wallet.
-                    ${block(extraInstructions)}
-                `,
-            ),
+            'Calendar',
+            calendarSectionContent,
         );
     }
 

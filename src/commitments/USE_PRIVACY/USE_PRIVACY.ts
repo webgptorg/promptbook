@@ -184,11 +184,12 @@ export class UsePrivacyCommitmentDefinition extends BaseCommitmentDefinition<'US
             },
             spaceTrim(
                 (block) => `
-                    Privacy mode:
-                    - Use "${TURN_PRIVACY_ON_TOOL_NAME}" when the user asks for a private/sensitive conversation.
-                    - This tool requests a UI confirmation dialog. Private mode is enabled only after user confirms.
-                    - Current implementation uses the existing chat private mode (no chat persistence, memory persistence, or self-learning while active).
-                    - Do not claim that end-to-end encryption is implemented yet.
+                    ## Privacy
+
+                    -   Use \`${TURN_PRIVACY_ON_TOOL_NAME}\` when the user asks for a private/sensitive conversation.
+                    -   This tool requests a UI confirmation dialog. Private mode is enabled only after user confirms.
+                    -   Current implementation uses the existing chat private mode (no chat persistence, memory persistence, or self-learning while active).
+                    -   Do not claim that end-to-end encryption is implemented yet.
                     ${block(extraInstructions)}
                 `,
             ),

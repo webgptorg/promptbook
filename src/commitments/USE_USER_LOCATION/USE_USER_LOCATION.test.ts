@@ -17,7 +17,7 @@ describe('createAgentModelRequirementsWithCommitments with USE USER LOCATION', (
                 name: 'get_user_location',
             }),
         );
-        expect(requirements.systemMessage).toContain('"get_user_location"');
+        expect(requirements.systemMessage).toContain('`get_user_location`');
     });
 
     it('should include extra instructions in the system message when provided', async () => {

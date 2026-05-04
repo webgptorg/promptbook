@@ -16,7 +16,8 @@ describe('createAgentModelRequirementsWithCommitments with USE DEEPSEARCH', () =
                 name: 'deep_search',
             }),
         );
-        expect(requirements.systemMessage).toContain('You have access to DeepSearch');
+        expect(requirements.systemMessage).toContain('## Deep Research');
+        expect(requirements.systemMessage).toContain('`deep_search`');
     });
 
     it('should add extra deep-search instructions to the system message when provided', async () => {

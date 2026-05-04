@@ -208,6 +208,71 @@ export abstract class BaseCommitmentDefinition<TBookCommitment extends string> i
     }
 
     /**
+     * Helper method to append a bullet point to an existing `## SectionTitle` section in the system
+     * message, or to create a new section when it does not yet exist.
+     *
+     * Handles the case where the same commitment type appears multiple times in the book source and
+     * all entries should be grouped under one shared heading rather than emitting a duplicate block.
+     *
+     * @param requirements - Current model requirements.
+     * @param sectionTitle - Section title without the `##` prefix.
+     * @param bulletContent - Bullet content without the leading `-   ` prefix.
+     * @returns Requirements with the bullet appended to the section.
+     */
+    protected appendBulletPointToSection(
+        requirements: AgentModelRequirements,
+        sectionTitle: string,
+        bulletContent: string,
+    ): AgentModelRequirements {
+        const sectionHeader = `## ${sectionTitle}`;
+        const bullet = `-   ${bulletContent}`;
+
+        if (requirements.systemMessage.includes(sectionHeader)) {
+            // Append bullet to end of existing section, before the next h2 heading or end of message
+            const newSystemMessage = requirements.systemMessage.replace(
+                new RegExp(
+                    `(## ${sectionTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\n\\n)([\\s\\S]*?)(?=\\n\\n##|$)`,
+                ),
+                `$1$2\n${bullet}`,
+            );
+            return { ...requirements, systemMessage: newSystemMessage };
+        }
+
+        return this.appendToSystemMessage(requirements, `${sectionHeader}\n\n${bullet}`, '\n\n');
+    }
+
+    /**
+     * Helper method to replace an existing `## SectionTitle` section in the system message, or to
+     * append a new one when the section does not yet exist.
+     *
+     * Use this when a commitment type can appear multiple times and each subsequent occurrence should
+     * update the single shared section rather than appending a duplicate block.
+     *
+     * @param requirements - Current model requirements.
+     * @param sectionTitle - Section title without the `##` prefix.
+     * @param sectionContent - Full section content including the `## Title` header line.
+     * @returns Requirements with the section replaced or appended.
+     */
+    protected replaceOrCreateSection(
+        requirements: AgentModelRequirements,
+        sectionTitle: string,
+        sectionContent: string,
+    ): AgentModelRequirements {
+        const sectionHeader = `## ${sectionTitle}`;
+
+        if (requirements.systemMessage.includes(sectionHeader)) {
+            // Replace all text from the heading until the next h2 heading or end of message
+            const newSystemMessage = requirements.systemMessage.replace(
+                new RegExp(`## ${sectionTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[\\s\\S]*?(?=\\n\\n##|$)`),
+                sectionContent,
+            );
+            return { ...requirements, systemMessage: newSystemMessage };
+        }
+
+        return this.appendToSystemMessage(requirements, sectionContent, '\n\n');
+    }
+
+    /**
      * Gets tool function implementations provided by this commitment
      *
      * When the `applyToAgentModelRequirements` adds tools to the requirements, this method should return the corresponding function definitions.

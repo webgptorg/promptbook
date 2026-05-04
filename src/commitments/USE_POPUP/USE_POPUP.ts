@@ -114,11 +114,12 @@ export class UsePopupCommitmentDefinition extends BaseCommitmentDefinition<'USE 
             },
             spaceTrim(
                 (block) => `
-                    Tool:
-                    - You can open a popup window with a specific URL using the tool "open_popup".
-                    - Use this when you want the user to see or interact with a specific website.
+                    ## Popup
+
+                    -   You can open a popup window with a specific URL using the tool \`open_popup\`.
+                    -   Use this when you want the user to see or interact with a specific website.
                     ${block(extraInstructions)}
-            `,
+                `,
             ),
         );
     }

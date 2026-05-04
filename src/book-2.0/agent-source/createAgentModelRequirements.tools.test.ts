@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
-import { createTeamToolName } from './createTeamToolName';
-import { createAgentModelRequirements } from './createAgentModelRequirements';
 import type { AgentReferenceResolver } from './AgentReferenceResolver';
+import { createAgentModelRequirements } from './createAgentModelRequirements';
+import { createTeamToolName } from './createTeamToolName';
 import { createPseudoUserTeammateLabel, PSEUDO_AGENT_USER_URL } from './pseudoAgentReferences';
 import { validateBook } from './string_book';
 
@@ -47,7 +47,7 @@ describe('USE SEARCH ENGINE and USE BROWSER commitments', () => {
                 }),
             ]),
         );
-        expect(requirements.systemMessage).toContain('## Teammates:');
+        expect(requirements.systemMessage).toContain('## Teammates');
         expect(requirements.systemMessage).toContain('team_chat_joe_green');
         expect(requirements.systemMessage).not.toContain('team_chat_joe_green_');
         expect(requirements.systemMessage).not.toContain('https://agents.ptbk.ik/agents/joe-green');
@@ -84,8 +84,8 @@ describe('USE SEARCH ENGINE and USE BROWSER commitments', () => {
         expect(pseudoUserTool?.description).toContain(`Consult teammate ${pseudoUserLabel}`);
         expect(pseudoUserTool?.description).toContain('TEAM instructions:');
         expect(pseudoUserTool?.description).toContain('for everything');
-        expect(requirements.systemMessage).toContain('## Language:');
-        expect(requirements.systemMessage).toContain('## Teammates:');
+        expect(requirements.systemMessage).toContain('## Language');
+        expect(requirements.systemMessage).toContain('## Teammates');
         expect(requirements.systemMessage).toContain(
             'If a teammate is relevant to the request, consult that teammate using the matching tool.',
         );
@@ -155,7 +155,7 @@ describe('USE SEARCH ENGINE and USE BROWSER commitments', () => {
         expect(teamTool?.description).toContain('Consult teammate slave');
         expect(teamTool?.description).toContain('TEAM instructions: Ask for anything');
         expect(teamTool?.description).toContain('Profile: I know DNS records of Domain ptbk.io.');
-        expect(requirements.systemMessage).toContain('## Teammates:');
+        expect(requirements.systemMessage).toContain('## Teammates');
         expect(requirements.systemMessage).toContain('TEAM instructions: Ask for anything');
     });
 

@@ -1,3 +1,28 @@
+-   Improved generated system message quality and structure for all commitments:
+
+    -   System messages are now well-structured valid Markdown with proper `##` h2 section headers for Goal, Language, Rules, and tool sections instead of plain-text labels.
+    -   All `RULE`/`RULES` commitments are now grouped under a single `## Rules` section with bullet points instead of separate `Rule: ...` lines.
+    -   `GOAL` now renders as `## Goal` with the content below rather than an inline `Goal: ...` label.
+    -   `LANGUAGE` now renders as `## Language` with a bullet `Your language is ...` instead of a `## Language:` block with an explanatory arrow.
+    -   `USE TIME` now renders under `## Time and date context` with bullet points and backtick-wrapped tool name.
+    -   `USE TIMEOUT` now renders under `## Timeout scheduling` with bullet points and backtick-wrapped tool names.
+    -   `USE BROWSER` renders under `## Browser`, `USE SEARCH ENGINE` under `## Web Search`, `USE DEEPSEARCH` under `## Deep Research`.
+    -   `USE EMAIL` removes wallet/SMTP credential instructions from the system message entirely (the agent no longer needs to know about wallet secrets or SMTP configuration). The section is now `## Emails` and handles multiple `USE EMAIL` commitments by listing all configured senders.
+    -   `USE CALENDAR` removes wallet credential instructions from the system message. The section is now `## Calendar` and properly replaces itself when multiple `USE CALENDAR` commitments are present, listing all configured calendars.
+    -   `USE SPAWN` now renders under `## Spawning agents` with backtick-wrapped tool name.
+    -   `USE PROJECT` now renders under `## GitHub repositories`, removes wallet credential details (the agent no longer sees wallet service/key names), and uses `replaceOrCreateSection` to merge multiple occurrences.
+    -   `USE USER LOCATION` now renders under `## User location` with backtick-wrapped tool name.
+    -   `USE POPUP` now renders under `## Popup` with backtick-wrapped tool name.
+    -   `USE PRIVACY` now renders under `## Privacy` with backtick-wrapped tool name.
+    -   `USE IMAGE GENERATOR` now renders under `## Image generation` with consistent `-   ` bullet format.
+    -   `MEMORY` now renders under `## Memory` with backtick-wrapped tool names.
+    -   `SCENARIO`/`SCENARIOS` commitments are now grouped under a single `## Scenarios` section as bullet points instead of separate inline `Scenario: ...` entries.
+    -   `MESSAGE`/`MESSAGES` commitments are now grouped under a single `## Previous messages` section as bullet points instead of separate inline `Previous Message: ...` entries.
+    -   `TEAM` section title no longer has a trailing colon (`## Teammates` instead of `## Teammates:`), and guidance lines use consistent `-   ` bullet format.
+    -   `DICTIONARY` entries are now grouped under `## Dictionary` with bullet points instead of a `# DICTIONARY` comment block.
+    -   Tool descriptions in `send_email` no longer reference Promptbook-internal types.
+    -   The initial-message / sample-interaction section is now headed with `## Sample of communication with the agent:` and uses `**Agent:**` / `**User:**` markdown bold labels.
+
 -   Finished the remaining Agents Server dark-mode gaps on the chat and book experience:
 
     -   Reworked chat and editor loading skeleton surfaces so dark mode now uses dark containers, darker shimmer gradients, and avoids the bright white flash while the page is still streaming.

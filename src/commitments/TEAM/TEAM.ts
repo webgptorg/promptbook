@@ -16,16 +16,16 @@ import type { ChatPrompt } from '../../types/Prompt';
 import type { ToolCall } from '../../types/ToolCall';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 import {
+    createTeamInternalAgentAccessHeaders,
+    TEAM_INTERNAL_AGENT_ACCESS_HEADER,
+} from '../_common/teamInternalAgentAccess';
+import {
     parseToolRuntimeContext,
     serializeToolRuntimeContext,
     TOOL_RUNTIME_CONTEXT_ARGUMENT,
     TOOL_RUNTIME_CONTEXT_PARAMETER,
     type ToolRuntimeContext,
 } from '../_common/toolRuntimeContext';
-import {
-    createTeamInternalAgentAccessHeaders,
-    TEAM_INTERNAL_AGENT_ACCESS_HEADER,
-} from '../_common/teamInternalAgentAccess';
 
 /**
  * Tool registration entry for a teammate.
@@ -113,8 +113,8 @@ const teamToolTitles: Record<string_javascript_name, string> = {};
  * @private
  */
 const TEAM_SYSTEM_MESSAGE_GUIDANCE_LINES = [
-    '- If a teammate is relevant to the request, consult that teammate using the matching tool.',
-    '- Do not ask the user for information that a listed teammate can provide directly.',
+    '-   If a teammate is relevant to the request, consult that teammate using the matching tool.',
+    '-   Do not ask the user for information that a listed teammate can provide directly.',
 ] as const;
 /**
  * Constant for remote agents by Url.
@@ -281,10 +281,7 @@ export class TeamCommitmentDefinition extends BaseCommitmentDefinition<'TEAM'> {
             });
         }
 
-        const teamSystemMessage = this.createSystemMessageSection(
-            'Teammates:',
-            buildTeamSystemMessageBody(teamEntries),
-        );
+        const teamSystemMessage = this.createSystemMessageSection('Teammates', buildTeamSystemMessageBody(teamEntries));
 
         return this.appendToSystemMessage(
             {

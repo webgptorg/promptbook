@@ -149,8 +149,8 @@ describe('resolveAgentStateFromSource', () => {
         const modelRequirements = await createAgentModelRequirements(resolvedAgentState.resolvedAgentSource);
 
         expect(resolvedAgentState.resolvedAgentProfile.personaDescription).toBe('Child goal.');
-        expect(modelRequirements.systemMessage).toContain('Goal: Child goal.');
-        expect(modelRequirements.systemMessage).not.toContain('Goal: Parent goal.');
+        expect(modelRequirements.systemMessage).toContain('Child goal.');
+        expect(modelRequirements.systemMessage).not.toContain('Parent goal.');
         expect(modelRequirements.systemMessage).toContain('Follow the parent rule.');
         expect(modelRequirements.systemMessage).toContain('Follow the child rule.');
     });

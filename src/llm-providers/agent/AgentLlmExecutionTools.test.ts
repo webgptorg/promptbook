@@ -78,7 +78,7 @@ describe('AgentLlmExecutionTools', () => {
 
         expect(callChatModelMock).toHaveBeenCalledTimes(1);
         const forwardedPrompt = callChatModelMock.mock.calls[0]![0] as Prompt;
-        expect(forwardedPrompt.content).toBe('Please answer plainly.\n\nRule: Rule 1\nRule: Rule 2\nRule: Rule 3');
+        expect(forwardedPrompt.content).toBe('Please answer plainly.\n\n-   Rule 1\n-   Rule 2\n-   Rule 3');
     });
 
     it('merges runtime prompt tools with tools coming from agent commitments', async () => {
@@ -164,7 +164,7 @@ describe('AgentLlmExecutionTools', () => {
         ` as string_book;
 
         const precomputedModelRequirements: AgentModelRequirements = {
-            systemMessage: '## Teammates:\n1) slave tool `team_chat_slave`\n   TEAM instructions: Ask for anything',
+            systemMessage: '## Teammates\n1) slave tool `team_chat_slave`\n   TEAM instructions: Ask for anything',
             promptSuffix: '',
             modelName: 'mock-chat-model' as string_model_name,
             parentAgentUrl: null,

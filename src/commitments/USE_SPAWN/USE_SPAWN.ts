@@ -2,8 +2,8 @@ import { spaceTrim } from 'spacetrim';
 import { string_javascript_name } from '../../_packages/types.index';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import {
-    createCreateAgentInputToolParametersSchema,
     CREATE_AGENT_INPUT_SOURCE_MAX_LENGTH,
+    createCreateAgentInputToolParametersSchema,
 } from '../../collection/agent-collection/CreateAgentInput';
 import { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
 import type { LlmToolDefinition } from '../../types/LlmToolDefinition';
@@ -112,11 +112,12 @@ export class UseSpawnCommitmentDefinition extends BaseCommitmentDefinition<'USE 
             },
             spaceTrim(
                 (block) => `
-                    Spawning agents:
-                    - Use "${SPAWN_AGENT_TOOL_NAME}" only when user asks to create a persistent new agent.
-                    - Pass full agent source in \`source\`.
-                    - Keep \`source\` concise; the maximum accepted length is ${CREATE_AGENT_INPUT_SOURCE_MAX_LENGTH} characters.
-                    - Do not add unknown fields in tool arguments.
+                    ## Spawning agents
+
+                    -   Use \`${SPAWN_AGENT_TOOL_NAME}\` only when user asks to create a persistent new agent.
+                    -   Pass full agent source in \`source\`.
+                    -   Keep \`source\` concise; the maximum accepted length is ${CREATE_AGENT_INPUT_SOURCE_MAX_LENGTH} characters.
+                    -   Do not add unknown fields in tool arguments.
                     ${block(extraInstructions)}
                 `,
             ),

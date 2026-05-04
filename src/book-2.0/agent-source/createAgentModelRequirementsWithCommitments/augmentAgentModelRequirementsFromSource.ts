@@ -255,7 +255,7 @@ function createExampleInteractionsContent(
         return null;
     }
 
-    return `Example interaction:\n\n${examples.join('\n\n')}`;
+    return `## Sample of communication with the agent:\n\n${examples.join('\n\n')}`;
 }
 
 /**
@@ -275,12 +275,12 @@ function collectExampleInteractionLines(
     const initialMessage = parseResult.commitments.find((commitment) => commitment.type === 'INITIAL MESSAGE')?.content;
 
     if (initialMessage) {
-        examples.push(`Agent: ${initialMessage}`);
+        examples.push(`**Agent:**\n${initialMessage}`);
     }
 
     if (samples && samples.length > 0) {
         for (const sample of samples) {
-            examples.push(`User: ${sample.question}\nAgent: ${sample.answer}`);
+            examples.push(`**User:** ${sample.question}\n\n**Agent:**\n${sample.answer}`);
         }
     }
 

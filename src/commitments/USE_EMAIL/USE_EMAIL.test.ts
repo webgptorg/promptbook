@@ -22,7 +22,9 @@ describe('UseEmailCommitmentDefinition', () => {
         expect(result._metadata?.useEmail).toBe(true);
         expect(result._metadata?.useEmailSender).toBe('agent@example.com');
         expect(result.systemMessage).toContain('send_email');
-        expect(result.systemMessage).toContain('use-email-smtp-credentials');
+        expect(result.systemMessage).toContain('## Emails');
+        expect(result.systemMessage).not.toContain('smtp');
+        expect(result.systemMessage).not.toContain('wallet');
     });
 
     it('does not duplicate send_email tool', () => {

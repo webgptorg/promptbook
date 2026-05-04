@@ -14,7 +14,8 @@ describe('createAgentModelRequirementsWithCommitments with USE SEARCH ENGINE', (
                 name: 'web_search',
             }),
         );
-        expect(requirements.systemMessage).toContain('You have access to the web search engine');
+        expect(requirements.systemMessage).toContain('## Web Search');
+        expect(requirements.systemMessage).toContain('`web_search`');
     });
 
     it('should add extra search instructions to the system message when provided', async () => {
@@ -38,6 +39,7 @@ describe('createAgentModelRequirementsWithCommitments with USE SEARCH ENGINE', (
                 name: 'web_search',
             }),
         );
-        expect(requirements.systemMessage).toContain('You have access to the web search engine');
+        expect(requirements.systemMessage).toContain('## Web Search');
+        expect(requirements.systemMessage).toContain('`web_search`');
     });
 });

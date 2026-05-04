@@ -86,9 +86,10 @@ function createAggregatedUseCommitmentSystemMessage(
         case 'USE TIME':
             return spaceTrim(
                 (block) => `
-                    Time and date context:
-                    - It is ${moment().format('MMMM YYYY')} now.
-                    - If you need more precise current time information, use the tool "get_current_time".
+                    ## Time and date context
+
+                    -   It is ${moment().format('MMMM YYYY')} now.
+                    -   If you need more precise current time information, use the tool \`get_current_time\`.
                     ${block(formatOptionalInstructionBlock('Time instructions', combinedAdditionalInstructions))}
                 `,
             );
@@ -96,10 +97,11 @@ function createAggregatedUseCommitmentSystemMessage(
         case 'USE BROWSER':
             return spaceTrim(
                 (block) => `
-                    You have access to browser tools to fetch and access content from the internet.
-                    - Use "fetch_url_content" to retrieve content from specific URLs (webpages or documents) using scrapers.
-                    - Use "run_browser" for real interactive browser automation (navigation, clicks, typing, waiting, scrolling).
-                    When you need to know information from a specific website or document, use the fetch_url_content tool.
+                    ## Browser
+
+                    -   Use \`fetch_url_content\` to retrieve content from specific URLs (webpages or documents) using scrapers.
+                    -   Use \`run_browser\` for real interactive browser automation (navigation, clicks, typing, waiting, scrolling).
+                    -   When you need to know information from a specific website or document, use the tools provided.
                     ${block(formatOptionalInstructionBlock('Browser instructions', combinedAdditionalInstructions))}
                 `,
             );
@@ -107,12 +109,12 @@ function createAggregatedUseCommitmentSystemMessage(
         case 'USE SEARCH ENGINE':
             return spaceTrim(
                 (block) => `
-                    Tool:
-                    - You have access to the web search engine via the tool "web_search".
-                    - Use it to find up-to-date information or facts that you don't know.
-                    - When you need to know some information from the internet, use the tool provided to you.
-                    - Do not make up information when you can search for it.
-                    - Do not tell the user you cannot search for information, YOU CAN.
+                    ## Web Search
+
+                    -   Use \`web_search\` to find up-to-date information or facts.
+                    -   When you need to know some information from the internet, use the search tool provided.
+                    -   Do not make up information when you can search for it.
+                    -   Do not tell the user you cannot search for information, YOU CAN.
                     ${block(formatOptionalInstructionBlock('Search instructions', combinedAdditionalInstructions))}
                 `,
             );
@@ -120,11 +122,11 @@ function createAggregatedUseCommitmentSystemMessage(
         case 'USE DEEPSEARCH':
             return spaceTrim(
                 (block) => `
-                    Tool:
-                    - You have access to DeepSearch via the tool "deep_search".
-                    - Use it for broader research tasks that need multi-step investigation, comparison, or synthesis across multiple sources.
-                    - Prefer it over quick search when the user asks for a well-grounded brief, report, or deeper investigation.
-                    - Do not pretend you cannot research current information when this tool is available.
+                    ## Deep Research
+
+                    -   Use \`deep_search\` for broader research tasks that need multi-step investigation, comparison, or synthesis across multiple sources.
+                    -   Prefer it over quick search when the user asks for a well-grounded brief, report, or deeper investigation.
+                    -   Do not pretend you cannot research current information when this tool is available.
                     ${block(formatOptionalInstructionBlock('DeepSearch instructions', combinedAdditionalInstructions))}
                 `,
             );

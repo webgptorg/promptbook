@@ -18,7 +18,7 @@ import { Agent } from './Agent';
 describe('Agent', () => {
     it('preserves precomputed model requirements during initial source subscription', async () => {
         const precomputedModelRequirements: AgentModelRequirements = {
-            systemMessage: '## Teammates:\n1) slave tool `team_chat_slave`\n   TEAM instructions: Ask for anything',
+            systemMessage: '## Teammates\n1) slave tool `team_chat_slave`\n   TEAM instructions: Ask for anything',
             promptSuffix: '',
             modelName: 'mock-chat-model' as string_model_name,
             parentAgentUrl: null,

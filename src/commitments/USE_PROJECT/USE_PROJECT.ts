@@ -9,7 +9,6 @@ import { createUseProjectTools } from './createUseProjectTools';
 import { getUseProjectToolTitles } from './getUseProjectToolTitles';
 import { normalizeConfiguredProjects } from './normalizeConfiguredProjects';
 import { parseUseProjectCommitmentContent, type GitHubRepositoryReference } from './projectReference';
-import { UseProjectWallet } from './UseProjectWallet';
 
 /**
  * USE PROJECT commitment definition.
@@ -77,10 +76,20 @@ export class UseProjectCommitmentDefinition extends BaseCommitmentDefinition<'US
         const existingConfiguredProjects = normalizeConfiguredProjects(requirements._metadata?.useProjects);
         addConfiguredProjectIfMissing(existingConfiguredProjects, parsedCommitment.repository);
 
-        const repositoriesList = existingConfiguredProjects.map((project) => `- ${project.url}`).join('\n');
         const extraInstructions = formatOptionalInstructionBlock('Project instructions', parsedCommitment.instructions);
 
-        return this.appendToSystemMessage(
+        const sectionContent = spaceTrim(
+            (block) => `
+                -   You can inspect and edit configured GitHub repositories using project tools.
+                -   Configured repositories:
+                    ${block(existingConfiguredProjects.map((project) => `-   ${project.url}`).join('\n'))}
+                -   When a repository is not obvious from context, pass \`repository\` in tool arguments explicitly.
+                -   If credentials are missing, ask the user to connect their GitHub account in the host UI.
+                ${block(extraInstructions)}
+            `,
+        );
+
+        return this.replaceOrCreateSection(
             {
                 ...requirements,
                 tools: createUseProjectTools(requirements.tools || []),
@@ -90,20 +99,8 @@ export class UseProjectCommitmentDefinition extends BaseCommitmentDefinition<'US
                     useProjects: existingConfiguredProjects,
                 },
             },
-            spaceTrim(
-                (block) => `
-                    Project tools:
-                    - You can inspect and edit configured GitHub repositories using project tools.
-                    - Configured repositories:
-                      ${block(repositoriesList)}
-                    - When a repository is not obvious from context, pass "repository" in tool arguments explicitly.
-                    - USE PROJECT credentials are read from wallet records (ACCESS_TOKEN, service "${
-                        UseProjectWallet.service
-                    }", key "${UseProjectWallet.key}").
-                    - If credentials are missing, ask the user to connect credentials in host UI and/or add them to wallet.
-                    ${block(extraInstructions)}
-                `,
-            ),
+            'GitHub repositories',
+            sectionContent,
         );
     }
 

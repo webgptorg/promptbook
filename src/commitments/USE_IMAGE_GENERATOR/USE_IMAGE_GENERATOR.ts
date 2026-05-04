@@ -90,13 +90,14 @@ export class UseImageGeneratorCommitmentDefinition extends BaseCommitmentDefinit
             },
             spaceTrim(
                 (block) => `
-                    Image generation:
-                    - You do not generate images directly and you do not call any image tool.
-                    - When the user asks for an image, include markdown notation in your message:
-                      \`![<alt text>](?image-prompt=<prompt>)\`
-                    - Keep \`<alt text>\` short and descriptive.
-                    - Keep \`<prompt>\` detailed so the generated image matches the request.
-                    - You can include normal explanatory text before and after the notation.
+                    ## Image generation
+
+                    -   You do not generate images directly and you do not call any image tool.
+                    -   When the user asks for an image, include markdown notation in your message:
+                        \`![<alt text>](?image-prompt=<prompt>)\`
+                    -   Keep \`<alt text>\` short and descriptive.
+                    -   Keep \`<prompt>\` detailed so the generated image matches the request.
+                    -   You can include normal explanatory text before and after the notation.
                     ${block(extraInstructions)}
                 `,
             ),

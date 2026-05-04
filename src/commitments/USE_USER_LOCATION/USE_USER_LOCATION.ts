@@ -218,10 +218,11 @@ export class UseUserLocationCommitmentDefinition extends BaseCommitmentDefinitio
             },
             spaceTrim(
                 (block) => `
-                    User location:
-                    - Use "${GET_USER_LOCATION_TOOL_NAME}" only when location is needed for a better answer.
-                    - If the tool returns "unavailable" or "permission-denied", ask user to share location or provide city manually.
-                    - Do not invent coordinates or local facts when location is unavailable.
+                    ## User location
+
+                    -   Use \`${GET_USER_LOCATION_TOOL_NAME}\` only when location is needed for a better answer.
+                    -   If the tool returns "unavailable" or "permission-denied", ask user to share location or provide city manually.
+                    -   Do not invent coordinates or local facts when location is unavailable.
                     ${block(extraInstructions)}
                 `,
             ),

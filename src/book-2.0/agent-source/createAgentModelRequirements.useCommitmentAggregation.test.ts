@@ -28,7 +28,7 @@ describe('createAgentModelRequirements USE commitment aggregation', () => {
         expect(
             countOccurrences(
                 requirements.systemMessage,
-                'If you need more precise current time information, use the tool "get_current_time".',
+                'If you need more precise current time information, use the tool `get_current_time`.',
             ),
         ).toBe(1);
         expect(countOccurrences(requirements.systemMessage, 'Time instructions')).toBe(1);
@@ -48,7 +48,7 @@ describe('createAgentModelRequirements USE commitment aggregation', () => {
         expect(
             countOccurrences(
                 requirements.systemMessage,
-                'If you need more precise current time information, use the tool "get_current_time".',
+                'If you need more precise current time information, use the tool `get_current_time`.',
             ),
         ).toBe(1);
         expect(countOccurrences(requirements.systemMessage, 'Time instructions')).toBe(1);
@@ -71,7 +71,7 @@ describe('createAgentModelRequirements USE commitment aggregation', () => {
         expect(
             countOccurrences(
                 requirements.systemMessage,
-                'You have access to browser tools to fetch and access content from the internet.',
+                'Use `fetch_url_content` to retrieve content from specific URLs',
             ),
         ).toBe(1);
         expect((requirements.tools || []).filter((tool) => tool.name === 'fetch_url_content')).toHaveLength(1);
@@ -92,7 +92,7 @@ describe('createAgentModelRequirements USE commitment aggregation', () => {
         expect(
             countOccurrences(
                 requirements.systemMessage,
-                'You have access to browser tools to fetch and access content from the internet.',
+                'Use `fetch_url_content` to retrieve content from specific URLs',
             ),
         ).toBe(1);
         expect(countOccurrences(requirements.systemMessage, 'Browser instructions')).toBe(1);
@@ -101,7 +101,7 @@ describe('createAgentModelRequirements USE commitment aggregation', () => {
         expect(requirements.systemMessage.indexOf('Prefer official documentation.')).toBeLessThan(
             requirements.systemMessage.indexOf('Prefer primary sources.'),
         );
-        expect(countOccurrences(requirements.systemMessage, 'You have access to the web search engine')).toBe(1);
+        expect(countOccurrences(requirements.systemMessage, 'Use `web_search` to find up-to-date information')).toBe(1);
         expect(countOccurrences(requirements.systemMessage, 'Search instructions')).toBe(1);
         expect(countOccurrences(requirements.systemMessage, 'Search in English.')).toBe(1);
         expect(countOccurrences(requirements.systemMessage, 'Prefer vendor-maintained documentation.')).toBe(1);
@@ -122,7 +122,7 @@ describe('createAgentModelRequirements USE commitment aggregation', () => {
 
         const requirements = await createAgentModelRequirements(agentSource);
 
-        expect(countOccurrences(requirements.systemMessage, 'You have access to DeepSearch')).toBe(1);
+        expect(countOccurrences(requirements.systemMessage, 'Use `deep_search` for broader research tasks')).toBe(1);
         expect(countOccurrences(requirements.systemMessage, 'DeepSearch instructions')).toBe(1);
         expect(countOccurrences(requirements.systemMessage, 'Compare primary sources.')).toBe(1);
         expect(countOccurrences(requirements.systemMessage, 'Summarize competing viewpoints.')).toBe(1);
@@ -156,10 +156,11 @@ describe('createAgentModelRequirements USE commitment aggregation', () => {
 
         const requirements = await createAgentModelRequirements(agentSource);
 
-        expect(countOccurrences(requirements.systemMessage, 'Goal: Inherited goal.')).toBe(0);
-        expect(countOccurrences(requirements.systemMessage, 'Goal: Final goal.')).toBe(1);
-        expect(countOccurrences(requirements.promptSuffix, 'Goal: Inherited goal.')).toBe(0);
-        expect(countOccurrences(requirements.promptSuffix, 'Goal: Final goal.')).toBe(1);
-        expect(requirements.systemMessage).toContain('Rule: Stay concise.');
+        expect(countOccurrences(requirements.systemMessage, 'Inherited goal.')).toBe(0);
+        expect(countOccurrences(requirements.systemMessage, 'Final goal.')).toBe(1);
+        expect(countOccurrences(requirements.promptSuffix, 'Inherited goal.')).toBe(0);
+        expect(countOccurrences(requirements.promptSuffix, 'Final goal.')).toBe(1);
+        expect(requirements.systemMessage).toContain('## Rules');
+        expect(requirements.systemMessage).toContain('-   Stay concise.');
     });
 });

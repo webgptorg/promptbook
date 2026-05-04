@@ -50,9 +50,9 @@ describe('communication samples into system message', () => {
         );
 
         const requirements = await createAgentModelRequirementsWithCommitments(agentSource);
-        expect(requirements.systemMessage).toContain('Example interaction:');
-        expect(requirements.systemMessage).toContain('Agent: I am ready to help.');
-        expect(requirements.systemMessage).toContain('User: Hello\nAgent: Hi there!');
+        expect(requirements.systemMessage).toContain('## Sample of communication with the agent:');
+        expect(requirements.systemMessage).toContain('**Agent:**\nI am ready to help.');
+        expect(requirements.systemMessage).toContain('**User:** Hello\n\n**Agent:**\nHi there!');
     });
 
     it('should NOT include horizontal lines in the system message', async () => {
@@ -91,8 +91,8 @@ describe('communication samples into system message', () => {
         );
 
         const requirements = await createAgentModelRequirementsWithCommitments(agentSource);
-        expect(requirements.systemMessage).toContain('User: One\nAgent: Two');
-        expect(requirements.systemMessage).toContain('User: Three\nAgent: Four');
+        expect(requirements.systemMessage).toContain('**User:** One\n\n**Agent:**\nTwo');
+        expect(requirements.systemMessage).toContain('**User:** Three\n\n**Agent:**\nFour');
     });
 
     it('should keep USER and AGENT pairing when INTERNAL MESSAGE is present between them', async () => {
@@ -119,7 +119,7 @@ describe('communication samples into system message', () => {
         });
 
         const requirements = await createAgentModelRequirementsWithCommitments(agentSource);
-        expect(requirements.systemMessage).toContain('User: Find weather in Prague\nAgent: It is sunny.');
+        expect(requirements.systemMessage).toContain('**User:** Find weather in Prague\n\n**Agent:**\nIt is sunny.');
         expect(requirements.systemMessage).not.toContain('INTERNAL MESSAGE');
     });
 });

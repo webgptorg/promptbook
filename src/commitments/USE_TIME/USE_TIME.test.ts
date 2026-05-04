@@ -15,7 +15,7 @@ describe('createAgentModelRequirementsWithCommitments with USE TIME', () => {
             }),
         );
         expect(requirements.systemMessage).toContain(
-            'If you need more precise current time information, use the tool "get_current_time"',
+            'If you need more precise current time information, use the tool `get_current_time`',
         );
     });
 

@@ -16,20 +16,6 @@ import { sendEmailViaBrowser } from './sendEmailViaBrowser';
 const SEND_EMAIL_TOOL_NAME = 'send_email' as string_javascript_name;
 
 /**
- * Wallet service used for SMTP credentials required by USE EMAIL.
- *
- * @private internal USE EMAIL constant
- */
-const USE_EMAIL_SMTP_WALLET_SERVICE = 'smtp';
-
-/**
- * Wallet key used for SMTP credentials required by USE EMAIL.
- *
- * @private internal USE EMAIL constant
- */
-const USE_EMAIL_SMTP_WALLET_KEY = 'use-email-smtp-credentials';
-
-/**
  * USE EMAIL commitment definition.
  *
  * The `USE EMAIL` commitment enables outbound email sending through the `send_email` tool.
@@ -93,13 +79,40 @@ export class UseEmailCommitmentDefinition extends BaseCommitmentDefinition<'USE 
 
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
         const parsedCommitment = parseUseEmailCommitmentContent(content);
-        const extraInstructions = formatOptionalInstructionBlock('Email instructions', parsedCommitment.instructions);
-        const senderInstruction = parsedCommitment.senderEmail
-            ? `- Default sender address from commitment: "${parsedCommitment.senderEmail}".`
-            : '';
         const updatedTools = addUseEmailTools(requirements.tools || []);
 
-        return this.appendToSystemMessage(
+        // Collect all configured sender emails across multiple USE EMAIL commitments
+        const existingSenders: string[] = Array.isArray(requirements._metadata?.useEmailSenders)
+            ? [...(requirements._metadata!.useEmailSenders as string[])]
+            : [];
+        if (parsedCommitment.senderEmail && !existingSenders.includes(parsedCommitment.senderEmail)) {
+            existingSenders.push(parsedCommitment.senderEmail);
+        }
+
+        const senderBullets =
+            existingSenders.length > 0
+                ? existingSenders
+                      .map((email, index) =>
+                          index === 0
+                              ? `-   Default sender address: "${email}".`
+                              : `-   Additional sender address: "${email}".`,
+                      )
+                      .join('\n')
+                : '';
+
+        const extraInstructions = formatOptionalInstructionBlock('Email instructions', parsedCommitment.instructions);
+
+        const emailSectionContent = spaceTrim(
+            (block) => `
+                ## Emails
+
+                -   Use \`${SEND_EMAIL_TOOL_NAME}\` to send outbound emails.
+                ${block(senderBullets)}
+                ${block(extraInstructions)}
+            `,
+        );
+
+        return this.replaceOrCreateSection(
             {
                 ...requirements,
                 tools: updatedTools,
@@ -107,21 +120,11 @@ export class UseEmailCommitmentDefinition extends BaseCommitmentDefinition<'USE 
                     ...requirements._metadata,
                     useEmail: true,
                     ...(parsedCommitment.senderEmail ? { useEmailSender: parsedCommitment.senderEmail } : {}),
+                    useEmailSenders: existingSenders,
                 },
             },
-            spaceTrim(
-                (block) => `
-                    Email tool:
-                    - Use "${SEND_EMAIL_TOOL_NAME}" to send outbound emails.
-                    - Prefer \`message\` argument compatible with Promptbook \`Message\` type.
-                    - Include subject in \`message.metadata.subject\` (or use legacy \`subject\` argument).
-                    - USE EMAIL credentials are read from wallet records (ACCESS_TOKEN, service "${USE_EMAIL_SMTP_WALLET_SERVICE}", key "${USE_EMAIL_SMTP_WALLET_KEY}").
-                    - Wallet secret must contain SMTP credentials in JSON format with fields \`host\`, \`port\`, \`secure\`, \`username\`, \`password\`.
-                    - If credentials are missing, ask user to add wallet credentials.
-                    ${block(senderInstruction)}
-                    ${block(extraInstructions)}
-                `,
-            ),
+            'Emails',
+            emailSectionContent,
         );
     }
 
@@ -162,15 +165,13 @@ function addUseEmailTools(existingTools: ReadonlyArray<LlmToolDefinition>): Arra
         ...existingTools,
         {
             name: SEND_EMAIL_TOOL_NAME,
-            description:
-                'Send an outbound email through configured SMTP credentials. Prefer providing Message-like payload in `message`.',
+            description: 'Send an outbound email.',
             parameters: {
                 type: 'object',
                 properties: {
                     message: {
                         type: 'object',
-                        description:
-                            'Preferred input payload compatible with Promptbook Message type. Use metadata.subject for subject line.',
+                        description: 'Email payload. Use metadata.subject for the subject line.',
                     },
                     to: {
                         type: 'string',

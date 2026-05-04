@@ -114,11 +114,8 @@ export class MessageCommitmentDefinition extends BaseCommitmentDefinition<'MESSA
             return requirements;
         }
 
-        // Create message section for system message
-        const messageSection = `Previous Message: ${trimmedContent}`;
-
         // Messages represent conversation history and should be included for context
-        return this.appendToSystemMessage(requirements, messageSection, '\n\n');
+        return this.appendBulletPointToSection(requirements, 'Previous messages', trimmedContent);
     }
 }
 
