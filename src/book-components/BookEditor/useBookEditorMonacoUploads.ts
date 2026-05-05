@@ -1,5 +1,5 @@
 import type { editor } from 'monaco-editor';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { type MutableRefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Promisable } from 'type-fest';
 import { BookEditable } from '../../book-2.0/agent-source/BookEditable';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
@@ -131,6 +131,34 @@ type UseBookEditorMonacoUploadsProps = {
     readonly monaco: MonacoEditor | null;
     readonly onFileUpload?: BookEditorMonacoOnFileUpload;
 };
+
+/**
+ * Setter-like updater used by upload state helpers.
+ */
+type SetUploadItems = (updater: (items: UploadItem[]) => UploadItem[]) => void;
+
+/**
+ * Single-upload updater used by upload state helpers.
+ */
+type UpdateUploadItem = (
+    uploadId: string,
+    createNextUploadItem: (uploadItem: UploadItem) => UploadItem,
+) => void;
+
+/**
+ * Mutable upload items reference shared across upload helpers.
+ */
+type UploadItemsRef = MutableRefObject<UploadItem[]>;
+
+/**
+ * Mutable upload file registry reference shared across upload helpers.
+ */
+type UploadFilesRef = MutableRefObject<Map<string, File>>;
+
+/**
+ * Mutable Monaco decoration registry reference shared across upload helpers.
+ */
+type UploadDecorationIdsRef = MutableRefObject<Map<string, string>>;
 
 /**
  * Delay before clearing completed uploads from UI.
@@ -472,37 +500,62 @@ function createUploadStats(uploadItems: ReadonlyArray<UploadItem>): UploadStats 
 }
 
 /**
- * Handles file uploads and placeholder rendering inside `BookEditorMonaco`.
+ * Internal upload item state shared by Monaco upload helpers.
  *
  * @private function of BookEditorMonaco
  */
-export function useBookEditorMonacoUploads({ editor, monaco, onFileUpload }: UseBookEditorMonacoUploadsProps) {
+function useBookEditorMonacoUploadItemsState() {
     const [uploadItems, setUploadItemsState] = useState<UploadItem[]>([]);
     const uploadItemsRef = useRef<UploadItem[]>([]);
-    const uploadFilesRef = useRef<Map<string, File>>(new Map());
-    const uploadDecorationIdsRef = useRef<Map<string, string>>(new Map());
-    const uploadControllersRef = useRef<Map<string, AbortController>>(new Map());
-    const uploadQueueTimerRef = useRef<number | null>(null);
-    const editorUpdateTimerRef = useRef<number | null>(null);
-    const progressUpdateTimerRef = useRef<number | null>(null);
-    const pendingReplacementsRef = useRef<UploadReplacement[]>([]);
-    const pendingProgressUpdatesRef = useRef<Map<string, UploadProgressUpdate>>(new Map());
-    const processUploadQueueRef = useRef<() => void>(() => undefined);
 
-    const setUploadItems = useCallback((updater: (items: UploadItem[]) => UploadItem[]) => {
+    const setUploadItems = useCallback<SetUploadItems>((updater) => {
         const next = updater(uploadItemsRef.current);
         uploadItemsRef.current = next;
         setUploadItemsState(next);
     }, []);
 
-    const updateUploadItem = useCallback(
-        (uploadId: string, createNextUploadItem: (uploadItem: UploadItem) => UploadItem) => {
+    const updateUploadItem = useCallback<UpdateUploadItem>(
+        (uploadId, createNextUploadItem) => {
             setUploadItems((currentUploadItems) =>
                 replaceUploadItemById(currentUploadItems, uploadId, createNextUploadItem),
             );
         },
         [setUploadItems],
     );
+
+    const uploadStats = useMemo<UploadStats>(() => createUploadStats(uploadItems), [uploadItems]);
+    const activeUploadItems = useMemo(
+        () => uploadItems.filter((uploadItem) => uploadItem.status !== 'completed'),
+        [uploadItems],
+    );
+
+    return {
+        uploadItems,
+        uploadItemsRef,
+        setUploadItems,
+        updateUploadItem,
+        uploadStats,
+        activeUploadItems,
+    };
+}
+
+/**
+ * Debounces upload progress updates before they hit React state.
+ *
+ * @private function of BookEditorMonaco
+ */
+function useBookEditorMonacoUploadProgressQueue({ setUploadItems }: { readonly setUploadItems: SetUploadItems }) {
+    const progressUpdateTimerRef = useRef<number | null>(null);
+    const pendingProgressUpdatesRef = useRef<Map<string, UploadProgressUpdate>>(new Map());
+
+    const flushProgressUpdates = useCallback(() => {
+        progressUpdateTimerRef.current = null;
+
+        const progressUpdates = pendingProgressUpdatesRef.current;
+        pendingProgressUpdatesRef.current = new Map();
+
+        setUploadItems((currentUploadItems) => applyProgressUpdates(currentUploadItems, progressUpdates));
+    }, [setUploadItems]);
 
     const queueProgressUpdate = useCallback(
         (uploadId: string, progress: number, loadedBytes: number, totalBytes: number) => {
@@ -517,15 +570,45 @@ export function useBookEditorMonacoUploads({ editor, monaco, onFileUpload }: Use
             }
 
             progressUpdateTimerRef.current = window.setTimeout(() => {
-                progressUpdateTimerRef.current = null;
-                const progressUpdates = pendingProgressUpdatesRef.current;
-                pendingProgressUpdatesRef.current = new Map();
-
-                setUploadItems((currentUploadItems) => applyProgressUpdates(currentUploadItems, progressUpdates));
+                flushProgressUpdates();
             }, BookEditorMonacoConstants.UPLOAD_PROGRESS_DEBOUNCE_MS);
         },
-        [setUploadItems],
+        [flushProgressUpdates],
     );
+
+    const clearProgressQueue = useCallback(() => {
+        clearScheduledTimer(progressUpdateTimerRef.current);
+        progressUpdateTimerRef.current = null;
+        pendingProgressUpdatesRef.current = new Map();
+    }, []);
+
+    return {
+        queueProgressUpdate,
+        clearProgressQueue,
+    };
+}
+
+/**
+ * Props for Monaco placeholder and replacement synchronization.
+ */
+type UseBookEditorMonacoUploadEditorSyncProps = {
+    readonly editor: editor.IStandaloneCodeEditor | null;
+    readonly uploadFilesRef: UploadFilesRef;
+    readonly uploadDecorationIdsRef: UploadDecorationIdsRef;
+};
+
+/**
+ * Manages Monaco placeholder insertion and later replacement with uploaded URLs.
+ *
+ * @private function of BookEditorMonaco
+ */
+function useBookEditorMonacoUploadEditorSync({
+    editor,
+    uploadFilesRef,
+    uploadDecorationIdsRef,
+}: UseBookEditorMonacoUploadEditorSyncProps) {
+    const editorUpdateTimerRef = useRef<number | null>(null);
+    const pendingReplacementsRef = useRef<UploadReplacement[]>([]);
 
     const flushEditorReplacements = useCallback(() => {
         if (!editor) {
@@ -568,38 +651,6 @@ export function useBookEditorMonacoUploads({ editor, monaco, onFileUpload }: Use
         }
     }, [editor]);
 
-    const queueEditorReplacement = useCallback(
-        (uploadId: string, replacementText: string) => {
-            const decorationId = uploadDecorationIdsRef.current.get(uploadId);
-            if (!decorationId) {
-                return;
-            }
-
-            const pendingIndex = pendingReplacementsRef.current.findIndex((item) => item.uploadId === uploadId);
-            const nextReplacement: UploadReplacement = {
-                uploadId,
-                decorationId,
-                replacementText,
-            };
-
-            if (pendingIndex >= 0) {
-                pendingReplacementsRef.current[pendingIndex] = nextReplacement;
-            } else {
-                pendingReplacementsRef.current.push(nextReplacement);
-            }
-
-            if (editorUpdateTimerRef.current !== null) {
-                return;
-            }
-
-            editorUpdateTimerRef.current = window.setTimeout(() => {
-                editorUpdateTimerRef.current = null;
-                flushEditorReplacements();
-            }, BookEditorMonacoConstants.UPLOAD_EDIT_DEBOUNCE_MS);
-        },
-        [flushEditorReplacements],
-    );
-
     const registerUploadPlaceholderResources = useCallback(
         (placeholders: ReadonlyArray<UploadPlaceholderEntry>, decorationIds: ReadonlyArray<string>) => {
             placeholders.forEach((placeholder, index) => {
@@ -613,6 +664,172 @@ export function useBookEditorMonacoUploads({ editor, monaco, onFileUpload }: Use
         },
         [],
     );
+
+    const queueEditorReplacement = useCallback(
+        (uploadId: string, replacementText: string) => {
+            const hasQueuedReplacement = queueEditorReplacementItem(
+                uploadId,
+                replacementText,
+                uploadDecorationIdsRef,
+                pendingReplacementsRef,
+            );
+            if (!hasQueuedReplacement) {
+                return;
+            }
+
+            if (editorUpdateTimerRef.current !== null) {
+                return;
+            }
+
+            editorUpdateTimerRef.current = window.setTimeout(() => {
+                editorUpdateTimerRef.current = null;
+                flushEditorReplacements();
+            }, BookEditorMonacoConstants.UPLOAD_EDIT_DEBOUNCE_MS);
+        },
+        [flushEditorReplacements, uploadDecorationIdsRef],
+    );
+
+    const clearEditorSync = useCallback(() => {
+        clearScheduledTimer(editorUpdateTimerRef.current);
+        editorUpdateTimerRef.current = null;
+        pendingReplacementsRef.current = [];
+    }, []);
+
+    return {
+        registerUploadPlaceholderResources,
+        queueEditorReplacement,
+        clearEditorSync,
+    };
+}
+
+/**
+ * Enqueues replacement text for one upload placeholder.
+ *
+ * @private function of BookEditorMonaco
+ */
+function queueEditorReplacementItem(
+    uploadId: string,
+    replacementText: string,
+    uploadDecorationIdsRef: UploadDecorationIdsRef,
+    pendingReplacementsRef: MutableRefObject<UploadReplacement[]>,
+): boolean {
+    const decorationId = uploadDecorationIdsRef.current.get(uploadId);
+    if (!decorationId) {
+        return false;
+    }
+
+    const pendingIndex = pendingReplacementsRef.current.findIndex((item) => item.uploadId === uploadId);
+    const nextReplacement: UploadReplacement = {
+        uploadId,
+        decorationId,
+        replacementText,
+    };
+
+    if (pendingIndex >= 0) {
+        pendingReplacementsRef.current[pendingIndex] = nextReplacement;
+    } else {
+        pendingReplacementsRef.current.push(nextReplacement);
+    }
+
+    return true;
+}
+
+/**
+ * Props for Monaco placeholder insertion.
+ */
+type EnqueueFilesForUploadProps = {
+    readonly editor: editor.IStandaloneCodeEditor | null;
+    readonly monaco: MonacoEditor | null;
+    readonly registerUploadPlaceholderResources: (
+        placeholders: ReadonlyArray<UploadPlaceholderEntry>,
+        decorationIds: ReadonlyArray<string>,
+    ) => void;
+    readonly setUploadItems: SetUploadItems;
+};
+
+/**
+ * Inserts Monaco placeholders and queues matching upload items.
+ *
+ * @private function of BookEditorMonaco
+ */
+function enqueueFilesForUpload({
+    editor,
+    monaco,
+    registerUploadPlaceholderResources,
+    setUploadItems,
+}: EnqueueFilesForUploadProps): (files: ReadonlyArray<File>) => boolean {
+    return (files) => {
+        if (!editor || !monaco) {
+            return false;
+        }
+
+        const model = editor.getModel();
+        if (!model) {
+            return false;
+        }
+
+        const placeholders = createUploadPlaceholderEntries(files);
+        const insertPlan = createUploadPlaceholderInsertPlan(model, monaco, placeholders);
+
+        editor.executeEdits('upload-placeholders', [
+            {
+                range: new monaco.Range(
+                    insertPlan.insertLine,
+                    insertPlan.insertColumn,
+                    insertPlan.insertLine,
+                    insertPlan.insertColumn,
+                ),
+                text: insertPlan.textToInsert,
+                forceMoveMarkers: true,
+            },
+        ]);
+
+        const placeholderDecorations = createUploadPlaceholderDecorations(
+            model,
+            monaco,
+            placeholders,
+            insertPlan.insertStartOffset,
+            insertPlan.prefixLength,
+        );
+        const decorationIds = editor.deltaDecorations([], placeholderDecorations);
+
+        registerUploadPlaceholderResources(placeholders, decorationIds);
+        setUploadItems((currentUploadItems) => [...currentUploadItems, ...createQueuedUploadItems(placeholders)]);
+
+        return true;
+    };
+}
+
+/**
+ * Props for upload queue processing and pause/resume handling.
+ */
+type UseBookEditorMonacoUploadQueueProps = {
+    readonly onFileUpload?: BookEditorMonacoOnFileUpload;
+    readonly uploadItemsRef: UploadItemsRef;
+    readonly uploadFilesRef: UploadFilesRef;
+    readonly queueProgressUpdate: QueueProgressUpdate;
+    readonly queueEditorReplacement: (uploadId: string, replacementText: string) => void;
+    readonly setUploadItems: SetUploadItems;
+    readonly updateUploadItem: UpdateUploadItem;
+};
+
+/**
+ * Manages upload concurrency, retries, pausing and completion side effects.
+ *
+ * @private function of BookEditorMonaco
+ */
+function useBookEditorMonacoUploadQueue({
+    onFileUpload,
+    uploadItemsRef,
+    uploadFilesRef,
+    queueProgressUpdate,
+    queueEditorReplacement,
+    setUploadItems,
+    updateUploadItem,
+}: UseBookEditorMonacoUploadQueueProps) {
+    const uploadControllersRef = useRef<Map<string, AbortController>>(new Map());
+    const uploadQueueTimerRef = useRef<number | null>(null);
+    const processUploadQueueRef = useRef<() => void>(() => undefined);
 
     const queueUploadProcessing = useCallback(() => {
         if (uploadQueueTimerRef.current !== null) {
@@ -770,6 +987,8 @@ export function useBookEditorMonacoUploads({ editor, monaco, onFileUpload }: Use
             onFileUpload,
             queueProgressUpdate,
             queueUploadProcessing,
+            uploadFilesRef,
+            uploadItemsRef,
         ],
     );
 
@@ -786,15 +1005,14 @@ export function useBookEditorMonacoUploads({ editor, monaco, onFileUpload }: Use
         queuedUploadIds.forEach((queuedUploadId) => {
             void startUpload(queuedUploadId);
         });
-    }, [onFileUpload, startUpload]);
+    }, [onFileUpload, startUpload, uploadItemsRef]);
 
     processUploadQueueRef.current = processUploadQueue;
 
     const pauseUpload = useCallback(
         (uploadId: string) => {
             pauseQueuedUpload(uploadId);
-            const controller = uploadControllersRef.current.get(uploadId);
-            controller?.abort();
+            uploadControllersRef.current.get(uploadId)?.abort();
         },
         [pauseQueuedUpload],
     );
@@ -807,27 +1025,50 @@ export function useBookEditorMonacoUploads({ editor, monaco, onFileUpload }: Use
         [queueUploadProcessing, resetUploadForRetry],
     );
 
-    useEffect(() => {
-        return () => {
-            clearScheduledTimer(uploadQueueTimerRef.current);
-            clearScheduledTimer(editorUpdateTimerRef.current);
-            clearScheduledTimer(progressUpdateTimerRef.current);
+    const clearUploadQueue = useCallback(() => {
+        clearScheduledTimer(uploadQueueTimerRef.current);
+        uploadQueueTimerRef.current = null;
 
-            for (const controller of uploadControllersRef.current.values()) {
-                controller.abort();
-            }
+        for (const controller of uploadControllersRef.current.values()) {
+            controller.abort();
+        }
 
-            uploadControllersRef.current.clear();
-        };
+        uploadControllersRef.current.clear();
     }, []);
 
+    useEffect(() => clearUploadQueue, [clearUploadQueue]);
+
+    return {
+        pauseUpload,
+        resumeUpload,
+        queueUploadProcessing,
+        clearUploadQueue,
+    };
+}
+
+/**
+ * Clears upload UI state shortly after all uploads finish.
+ *
+ * @private function of BookEditorMonaco
+ */
+function useCompletedUploadsAutoClear({
+    uploadItems,
+    uploadFilesRef,
+    uploadDecorationIdsRef,
+    setUploadItems,
+}: {
+    readonly uploadItems: ReadonlyArray<UploadItem>;
+    readonly uploadFilesRef: UploadFilesRef;
+    readonly uploadDecorationIdsRef: UploadDecorationIdsRef;
+    readonly setUploadItems: SetUploadItems;
+}) {
     useEffect(() => {
         if (uploadItems.length === 0) {
             return;
         }
 
-        const hasActive = uploadItems.some((item) => item.status !== 'completed');
-        if (hasActive) {
+        const hasActiveUploads = uploadItems.some((item) => item.status !== 'completed');
+        if (hasActiveUploads) {
             return;
         }
 
@@ -840,77 +1081,76 @@ export function useBookEditorMonacoUploads({ editor, monaco, onFileUpload }: Use
         return () => {
             clearTimeout(timer);
         };
-    }, [setUploadItems, uploadItems]);
+    }, [setUploadItems, uploadDecorationIdsRef, uploadFilesRef, uploadItems]);
+}
 
-    const enqueueFilesForUpload = useCallback(
-        (files: ReadonlyArray<File>) => {
-            if (!editor || !monaco) {
-                return false;
-            }
+/**
+ * Handles file uploads and placeholder rendering inside `BookEditorMonaco`.
+ *
+ * @private function of BookEditorMonaco
+ */
+export function useBookEditorMonacoUploads({ editor, monaco, onFileUpload }: UseBookEditorMonacoUploadsProps) {
+    const uploadFilesRef = useRef<Map<string, File>>(new Map());
+    const uploadDecorationIdsRef = useRef<Map<string, string>>(new Map());
+    const { uploadItems, uploadItemsRef, setUploadItems, updateUploadItem, uploadStats, activeUploadItems } =
+        useBookEditorMonacoUploadItemsState();
+    const { queueProgressUpdate, clearProgressQueue } = useBookEditorMonacoUploadProgressQueue({ setUploadItems });
+    const { registerUploadPlaceholderResources, queueEditorReplacement, clearEditorSync } = useBookEditorMonacoUploadEditorSync({
+        editor,
+        uploadFilesRef,
+        uploadDecorationIdsRef,
+    });
 
-            const model = editor.getModel();
-            if (!model) {
-                return false;
-            }
-
-            const placeholders = createUploadPlaceholderEntries(files);
-            const insertPlan = createUploadPlaceholderInsertPlan(model, monaco, placeholders);
-
-            editor.executeEdits('upload-placeholders', [
-                {
-                    range: new monaco.Range(
-                        insertPlan.insertLine,
-                        insertPlan.insertColumn,
-                        insertPlan.insertLine,
-                        insertPlan.insertColumn,
-                    ),
-                    text: insertPlan.textToInsert,
-                    forceMoveMarkers: true,
-                },
-            ]);
-
-            const placeholderDecorations = createUploadPlaceholderDecorations(
-                model,
+    const enqueueFiles = useMemo(
+        () =>
+            enqueueFilesForUpload({
+                editor,
                 monaco,
-                placeholders,
-                insertPlan.insertStartOffset,
-                insertPlan.prefixLength,
-            );
-            const decorationIds = editor.deltaDecorations([], placeholderDecorations);
-
-            registerUploadPlaceholderResources(placeholders, decorationIds);
-            setUploadItems((currentUploadItems) => [...currentUploadItems, ...createQueuedUploadItems(placeholders)]);
-
-            return true;
-        },
+                registerUploadPlaceholderResources,
+                setUploadItems,
+            }),
         [editor, monaco, registerUploadPlaceholderResources, setUploadItems],
     );
 
+    const { pauseUpload, resumeUpload, queueUploadProcessing, clearUploadQueue } = useBookEditorMonacoUploadQueue({
+        onFileUpload,
+        uploadItemsRef,
+        uploadFilesRef,
+        queueProgressUpdate,
+        queueEditorReplacement,
+        setUploadItems,
+        updateUploadItem,
+    });
+
+    useCompletedUploadsAutoClear({
+        uploadItems,
+        uploadFilesRef,
+        uploadDecorationIdsRef,
+        setUploadItems,
+    });
+
+    useEffect(() => {
+        return () => {
+            clearEditorSync();
+            clearProgressQueue();
+            clearUploadQueue();
+        };
+    }, [clearEditorSync, clearProgressQueue, clearUploadQueue]);
+
     const handleFiles = useCallback(
         async (files: File[]) => {
-            if (!onFileUpload) {
+            if (!onFileUpload || files.length === 0) {
                 return;
             }
 
-            if (files.length === 0) {
-                return;
-            }
-
-            const hasQueuedUploads = enqueueFilesForUpload(files);
+            const hasQueuedUploads = enqueueFiles(files);
             if (!hasQueuedUploads) {
                 return;
             }
 
             queueUploadProcessing();
         },
-        [enqueueFilesForUpload, onFileUpload, queueUploadProcessing],
-    );
-
-    const uploadStats = useMemo<UploadStats>(() => createUploadStats(uploadItems), [uploadItems]);
-
-    const activeUploadItems = useMemo(
-        () => uploadItems.filter((uploadItem) => uploadItem.status !== 'completed'),
-        [uploadItems],
+        [enqueueFiles, onFileUpload, queueUploadProcessing],
     );
 
     return {

@@ -1,3 +1,8 @@
+-   Refactored `useBookEditorMonacoUploads` internals to keep upload behavior unchanged while making the code easier to follow and maintain:
+
+    -   Split the hook into focused internal helpers for upload item state, progress batching, Monaco placeholder/replacement syncing, queue processing, and completed-upload cleanup.
+    -   Reduced branching inside the main hook so `useBookEditorMonacoUploads` now primarily composes these smaller steps instead of handling every upload concern inline.
+
 -   Switched Agents Server `KNOWLEDGE` search for AgentKit chats from OpenAI hosted vector stores to a LlamaIndex-backed `knowledge_search` tool:
 
     -   Kept the existing AgentKit preparation and citation flow, but now materializes knowledge sources into an in-memory LlamaIndex vector index and injects a native AgentKit search tool.
