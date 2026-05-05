@@ -1,3 +1,9 @@
+-   Refactored `BookEditorMonaco` internals to keep the component behavior unchanged while making the code easier to follow and maintain:
+
+    -   Moved Monaco lifecycle wiring into a focused internal hook so editor mount, re-apply, focus, save-notification, and page lifecycle concerns are handled in one place.
+    -   Moved drag-and-drop, paste-upload, file-input, and touch-focus overlay logic into a dedicated internal hook, leaving the component primarily responsible for composition and rendering.
+    -   Extracted small view-model helpers for action-bar visibility, zoom-derived layout values, and Monaco options to reduce branching inside the main component.
+
 -   Improved generated system message quality and structure for all commitments:
 
     -   System messages are now well-structured valid Markdown with proper `##` h2 section headers for Goal, Language, Rules, and tool sections instead of plain-text labels.
