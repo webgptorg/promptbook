@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/editable",
-    "version": "0.112.0-60",
+    "version": "0.112.0-61",
     "description": "Promptbook: Create persistent AI agents that turn your company's scattered knowledge into action",
     "private": false,
     "sideEffects": false,
@@ -99,7 +99,7 @@
     "types": "./esm/src/_packages/editable.index.d.ts",
     "typings": "./esm/src/_packages/editable.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.112.0-60"
+        "@promptbook/core": "0.112.0-61"
     },
     "dependencies": {
         "crypto-js": "4.2.0",
