@@ -427,7 +427,7 @@
             "commands": [
                 "set -a && source .env && set +a",
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --agent openai-codex --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --priority 1 --test npm run test-for-ptbk-coder --no-wait && npx ts-node ./src/cli/test/ptbk.ts coder run --agent openai-codex --model gpt-5.3-codex --thinking-level xhigh --context AGENTS.md --test npm run test-for-ptbk-coder --no-wait && ./scripts/lines-to-lf.sh && npx ts-node ./scripts/prettify-all/prettify-all.ts --ignore-git-changes --commit && npm run test && npx ts-node ./scripts/generate-packages/generate-packages.ts"
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --agent openai-codex --model gpt-5.5 --thinking-level xhigh --context AGENTS.md --priority 1 --test npm run test-for-ptbk-coder --no-wait && npm version prerelease && npx ts-node ./src/cli/test/ptbk.ts coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --test npm run test-for-ptbk-coder --no-wait && ./scripts/lines-to-lf.sh && npx ts-node ./scripts/prettify-all/prettify-all.ts --ignore-git-changes --commit && npm run test && npx ts-node ./scripts/generate-packages/generate-packages.ts"
             ],
             "execute": false,
             "onlySingle": false,
