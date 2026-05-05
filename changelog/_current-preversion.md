@@ -1,3 +1,8 @@
+-   Refactored `ChatRatingModal` internals to keep the feedback flow unchanged while making the modal easier to follow and maintain:
+
+    -   Split user-question lookup, modal copy resolution, star rendering, and footer actions into focused private helpers inside the modal file.
+    -   Reduced branching inside `ChatRatingModal` so the component now primarily composes precomputed view state and small internal sections.
+
 -   Refactored `ChatInputArea` internals to keep the composer behavior unchanged while making the component easier to follow and maintain:
 
     -   Split reply preview, uploaded-file preview, upload-state, drag-overlay, and composer button rendering into focused internal helpers.
