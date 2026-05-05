@@ -287,10 +287,10 @@ async function createHandleChatCompletionAgent(options: {
         },
     );
 
-    console.info('[🤰]', `AgentKit cache ${agentKitResult.fromCache ? 'hit' : 'miss'} (OpenAI)`, {
+    console.info('[🤰]', `AgentKit cache ${agentKitResult.fromCache ? 'hit' : 'miss'} (LlamaIndex knowledge)`, {
         agentName: options.agentName,
         assistantCacheKey: agentKitResult.assistantCacheKey,
-        vectorStoreHash: agentKitResult.vectorStoreHash,
+        knowledgeBaseHash: agentKitResult.vectorStoreHash,
         vectorStoreId: agentKitResult.vectorStoreId,
     });
 

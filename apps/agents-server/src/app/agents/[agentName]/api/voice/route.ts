@@ -28,6 +28,7 @@ import { textToSpeechText } from '../../../../../utils/textToSpeechText';
 import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 import { resolveServerAgentContext } from '@/src/utils/resolveServerAgentContext';
 import { resolveAppendOnlySelfLearningAgentSource } from '@/src/utils/resolveAppendOnlySelfLearningAgentSource';
+import { AgentKitCacheManager } from '@/src/utils/cache/AgentKitCacheManager';
 
 /**
  * Constant for max duration.
@@ -194,15 +195,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             inlineKnowledgeSourceUploader: createInlineKnowledgeSourceUploader(),
         });
         const openAiAgentKitExecutionTools = await $provideOpenAiAgentKitExecutionToolsForServer();
-        const agent = new Agent({
-            isVerbose: true,
-            executionTools: {
-                llm: openAiAgentKitExecutionTools,
-            },
-            agentSource,
-            precomputedModelRequirements: modelRequirements,
-            teacherAgent: null, // <- TODO: [🦋] DRY place to provide the teacher
-        });
 
         // 1. Transcribe Audio (STT)
         const client = await openAiAgentKitExecutionTools.getClient();
@@ -213,6 +205,28 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         const message = transcription.text;
 
         // --- Common Chat Logic Start (TODO: Extract) ---
+
+        const agentKitCacheManager = new AgentKitCacheManager({ isVerbose: true });
+        const agentKitResult = await agentKitCacheManager.getOrCreateAgentKitAgent(
+            agentSource,
+            resolvedAgentContext.resolvedAgentName,
+            openAiAgentKitExecutionTools,
+            {
+                includeDynamicContext: true,
+                agentId: agentPermanentId,
+                modelRequirements,
+            },
+        );
+        const agent = new Agent({
+            isVerbose: true,
+            assistantPreparationMode: 'external',
+            executionTools: {
+                llm: agentKitResult.tools,
+            },
+            agentSource,
+            precomputedModelRequirements: modelRequirements,
+            teacherAgent: null, // <- TODO: [🦋] DRY place to provide the teacher
+        });
 
         const agentHash = computeAgentHash(agentSource);
         const recordChatHistoryMessage = await createChatHistoryRecorder({

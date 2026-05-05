@@ -1,3 +1,9 @@
+-   Switched Agents Server `KNOWLEDGE` search for AgentKit chats from OpenAI hosted vector stores to a LlamaIndex-backed `knowledge_search` tool:
+
+    -   Kept the existing AgentKit preparation and citation flow, but now materializes knowledge sources into an in-memory LlamaIndex vector index and injects a native AgentKit search tool.
+    -   Reused the existing knowledge-source hashing path for short-lived cache reuse without storing OpenAI vector-store IDs.
+    -   Added voice-chat AgentKit preparation to the same cache manager path so voice calls use the LlamaIndex knowledge search behavior too.
+
 -   Refactored `BookEditorMonaco` internals to keep the component behavior unchanged while making the code easier to follow and maintain:
 
     -   Moved Monaco lifecycle wiring into a focused internal hook so editor mount, re-apply, focus, save-notification, and page lifecycle concerns are handled in one place.

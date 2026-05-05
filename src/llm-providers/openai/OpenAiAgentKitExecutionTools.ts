@@ -657,6 +657,7 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
         readonly instructions: string_markdown;
         readonly knowledgeSources?: ReadonlyArray<string>;
         readonly tools?: ModelRequirements['tools'];
+        readonly nativeAgentKitTools?: ReadonlyArray<AgentKitTool>;
         readonly vectorStoreId?: string;
         readonly storeAsPrepared?: boolean;
     }): Promise<OpenAiAgentKitPreparedAgent> {
@@ -665,6 +666,7 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
             instructions,
             knowledgeSources,
             tools,
+            nativeAgentKitTools,
             vectorStoreId: cachedVectorStoreId,
             storeAsPrepared,
         } = options;
@@ -677,6 +679,7 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
                 instructionsLength: instructions.length,
                 knowledgeSourcesCount: knowledgeSources?.length ?? 0,
                 toolsCount: tools?.length ?? 0,
+                nativeAgentKitToolsCount: nativeAgentKitTools?.length ?? 0,
             });
         }
 
@@ -697,7 +700,7 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
             });
         }
 
-        const agentKitTools = this.buildAgentKitTools({ tools, vectorStoreId });
+        const agentKitTools = this.buildAgentKitTools({ tools, nativeAgentKitTools, vectorStoreId });
         const openAiAgentKitAgent = new AgentFromKit({
             name,
             model: this.agentKitModelName,
@@ -744,13 +747,18 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
      */
     private buildAgentKitTools(options: {
         readonly tools?: ModelRequirements['tools'];
+        readonly nativeAgentKitTools?: ReadonlyArray<AgentKitTool>;
         readonly vectorStoreId?: string;
     }): Array<AgentKitTool> {
-        const { tools, vectorStoreId } = options;
+        const { tools, nativeAgentKitTools, vectorStoreId } = options;
         const agentKitTools: Array<AgentKitTool> = [];
 
         if (vectorStoreId) {
             agentKitTools.push(fileSearchTool(vectorStoreId));
+        }
+
+        if (nativeAgentKitTools && nativeAgentKitTools.length > 0) {
+            agentKitTools.push(...nativeAgentKitTools);
         }
 
         if (tools && tools.length > 0) {
