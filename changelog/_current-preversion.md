@@ -1,3 +1,8 @@
+-   Refactored `ChatInputArea` internals to keep the composer behavior unchanged while making the component easier to follow and maintain:
+
+    -   Split reply preview, uploaded-file preview, upload-state, drag-overlay, and composer button rendering into focused internal helpers.
+    -   Moved color/style derivation and reply-preview preparation into dedicated helper functions so the main component now mostly composes hook state and view sections.
+
 -   Refactored `useBookEditorMonacoUploads` internals to keep upload behavior unchanged while making the code easier to follow and maintain:
 
     -   Split the hook into focused internal helpers for upload item state, progress batching, Monaco placeholder/replacement syncing, queue processing, and completed-upload cleanup.
