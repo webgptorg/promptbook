@@ -1,3 +1,8 @@
+-   Refactored `TeamToolCallModalContent` internals to keep the TEAM tool-call modal behavior unchanged while making the file easier to follow and maintain:
+
+    -   Split transcript creation, participant/header resolution, and tool-call summary rendering into focused private helpers and internal sections.
+    -   Reduced branching inside `TeamToolCallModalContent` so the main component now primarily composes precomputed view data and small render helpers.
+
 -   Refactored `ChatRatingModal` internals to keep the feedback flow unchanged while making the modal easier to follow and maintain:
 
     -   Split user-question lookup, modal copy resolution, star rendering, and footer actions into focused private helpers inside the modal file.
