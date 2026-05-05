@@ -15,6 +15,14 @@ export function buildGitHubCopilotScript(options: GitHubCopilotScriptOptions): s
         (block) => `
             cd "${projectPath}"
 
+            if [ -f .env ]; then
+            set -a
+            source .env
+            set +a
+            fi
+
+            unset GITHUB_TOKEN
+
             copilot -p "$(cat <<'${delimiter}'
 
             ${block(options.prompt)}
