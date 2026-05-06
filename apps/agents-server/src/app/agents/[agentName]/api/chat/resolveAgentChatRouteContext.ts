@@ -186,7 +186,7 @@ export async function resolveAgentChatRouteContext(
         teamInternalAccessToken: resolveTeamInternalAgentAccessToken(),
     });
 
-    // Use AgentKitCacheManager for AgentKit and LlamaIndex knowledge caching.
+    // Use AgentKitCacheManager for vector store caching
     const agentKitCacheManager = new AgentKitCacheManager({ isVerbose: true });
     const baseOpenAiToolsPromise = $provideOpenAiAgentKitExecutionToolsForServer();
     const agentHash = computeAgentHash(agentSource);

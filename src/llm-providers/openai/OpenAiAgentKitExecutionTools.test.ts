@@ -4,8 +4,7 @@ import { OpenAiAgentKitExecutionTools } from './OpenAiAgentKitExecutionTools';
 
 type BuildAgentKitToolsAccessor = {
     buildAgentKitTools(options: {
-        tools?: NonNullable<ModelRequirements['tools']>;
-        nativeAgentKitTools?: Array<Record<string, unknown>>;
+        tools: NonNullable<ModelRequirements['tools']>;
         vectorStoreId?: string;
     }): Array<Record<string, unknown>>;
 };
@@ -46,22 +45,5 @@ describe('OpenAiAgentKitExecutionTools', () => {
             }),
         );
         expect((builtTools[0]?.parameters as { required?: string[] } | undefined)?.required).toEqual(['query']);
-    });
-
-    it('keeps externally supplied native AgentKit tools in the prepared tool list', () => {
-        const tools = new OpenAiAgentKitExecutionTools({
-            apiKey: 'test-api-key',
-        });
-        const nativeAgentKitTool = {
-            type: 'function',
-            name: 'knowledge_search',
-            description: 'Search local knowledge.',
-        };
-
-        const builtTools = (tools as unknown as BuildAgentKitToolsAccessor).buildAgentKitTools({
-            nativeAgentKitTools: [nativeAgentKitTool],
-        });
-
-        expect(builtTools).toEqual([nativeAgentKitTool]);
     });
 });

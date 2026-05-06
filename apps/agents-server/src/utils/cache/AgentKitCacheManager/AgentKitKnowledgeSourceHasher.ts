@@ -1,7 +1,6 @@
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import { createHash } from 'crypto';
-import { parseDataUrlKnowledgeSource } from '../../../../../../src/utils/knowledge/inlineKnowledgeSource';
 
 /**
  * Constant for knowledge source hash timeout ms.
@@ -11,11 +10,11 @@ import { parseDataUrlKnowledgeSource } from '../../../../../../src/utils/knowled
 const KNOWLEDGE_SOURCE_HASH_TIMEOUT_MS = 30_000;
 
 /**
- * Constant for LlamaIndex knowledge-base hash version.
+ * Constant for vector store hash version.
  *
  * @private function of AgentKitCacheManager
  */
-const KNOWLEDGE_BASE_HASH_VERSION = 'llama-index-knowledge-v1';
+const VECTOR_STORE_HASH_VERSION = 'vector-store-v1';
 
 /**
  * Constant for vector store source hash table.
@@ -61,7 +60,7 @@ type KnowledgeSourceHashResult = {
 };
 
 /**
- * Computes stable knowledge-base hashes from knowledge sources.
+ * Computes stable vector-store hashes from remote knowledge sources.
  *
  * @private function of AgentKitCacheManager
  */
@@ -76,9 +75,9 @@ export class AgentKitKnowledgeSourceHasher {
     }
 
     /**
-     * Computes a stable hash for the knowledge sources used by LlamaIndex knowledge bases.
+     * Computes a stable hash for the knowledge sources used by vector stores.
      */
-    public async computeKnowledgeBaseHash(options: {
+    public async computeVectorStoreHash(options: {
         readonly agentName: string;
         readonly knowledgeSources: ReadonlyArray<string>;
     }): Promise<string | null> {
@@ -91,13 +90,6 @@ export class AgentKitKnowledgeSourceHasher {
         const contentHashes: string[] = [];
 
         for (const source of knowledgeSources) {
-            if (this.isDataUrlKnowledgeSource(source)) {
-                const dataUrlHash = this.hashDataUrlKnowledgeSource(source);
-
-                contentHashes.push(dataUrlHash || this.hashKnowledgeSourceIdentifier(source));
-                continue;
-            }
-
             if (!this.isRemoteKnowledgeSource(source)) {
                 if (this.isVerbose) {
                     console.info('[🤰]', 'Skipping knowledge source for hash (unsupported)', {
@@ -105,7 +97,6 @@ export class AgentKitKnowledgeSourceHasher {
                         source,
                     });
                 }
-                contentHashes.push(this.hashKnowledgeSourceIdentifier(source));
                 continue;
             }
 
@@ -149,41 +140,20 @@ export class AgentKitKnowledgeSourceHasher {
                     lastModified: metadata?.lastModified ?? hashResult.lastModified ?? null,
                     sizeBytes: hashResult.sizeBytes,
                 });
-            } else {
-                contentHashes.push(this.hashKnowledgeSourceIdentifier(source));
             }
         }
 
-        const knowledgeBaseHash = this.buildKnowledgeBaseHash(contentHashes);
+        const vectorStoreHash = this.buildVectorStoreHash(contentHashes);
 
         if (this.isVerbose) {
-            console.info('[🤰]', 'Computed LlamaIndex knowledge-base hash', {
+            console.info('[🤰]', 'Computed vector store hash', {
                 agentName,
-                knowledgeBaseHash,
+                vectorStoreHash,
                 fileCount: contentHashes.length,
             });
         }
 
-        return knowledgeBaseHash;
-    }
-
-    /**
-     * Computes a stable hash for the knowledge sources used by vector stores.
-     *
-     * @deprecated Use `computeKnowledgeBaseHash` for AgentKit knowledge search.
-     */
-    public async computeVectorStoreHash(options: {
-        readonly agentName: string;
-        readonly knowledgeSources: ReadonlyArray<string>;
-    }): Promise<string | null> {
-        return this.computeKnowledgeBaseHash(options);
-    }
-
-    /**
-     * Returns true when the knowledge source is an inline data URL.
-     */
-    private isDataUrlKnowledgeSource(source: string): boolean {
-        return source.startsWith('data:');
+        return vectorStoreHash;
     }
 
     /**
@@ -191,33 +161,6 @@ export class AgentKitKnowledgeSourceHasher {
      */
     private isRemoteKnowledgeSource(source: string): boolean {
         return source.startsWith('http://') || source.startsWith('https://');
-    }
-
-    /**
-     * Hashes one inline data URL knowledge source.
-     */
-    private hashDataUrlKnowledgeSource(source: string): string | null {
-        const parsedSource = parseDataUrlKnowledgeSource(source);
-
-        if (!parsedSource) {
-            return null;
-        }
-
-        return createHash('sha256').update(parsedSource.buffer).digest('hex');
-    }
-
-    /**
-     * Hashes a source identifier when source content cannot be downloaded or decoded.
-     */
-    private hashKnowledgeSourceIdentifier(source: string): string {
-        return createHash('sha256')
-            .update(
-                JSON.stringify({
-                    type: 'knowledge-source-identifier',
-                    source,
-                }),
-            )
-            .digest('hex');
     }
 
     /**
@@ -468,12 +411,12 @@ export class AgentKitKnowledgeSourceHasher {
     }
 
     /**
-     * Builds a stable LlamaIndex knowledge-base hash from individual content hashes.
+     * Builds a stable vector store hash from individual content hashes.
      */
-    private buildKnowledgeBaseHash(contentHashes: ReadonlyArray<string>): string {
+    private buildVectorStoreHash(contentHashes: ReadonlyArray<string>): string {
         const sortedHashes = [...contentHashes].sort();
         const payload = JSON.stringify({
-            version: KNOWLEDGE_BASE_HASH_VERSION,
+            version: VECTOR_STORE_HASH_VERSION,
             hashes: sortedHashes,
         });
         return createHash('sha256').update(payload).digest('hex');
