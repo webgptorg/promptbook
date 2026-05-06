@@ -1,3 +1,8 @@
+-   Refactored `useChatInputAreaDictation` internals to keep chat dictation behavior unchanged while making the hook easier to follow and maintain:
+
+    -   Split speech-recognition event handling, finalized transcript insertion, backtracking, correction application, and panel-visibility decisions into focused private helpers.
+    -   Kept dictation start/stop behavior, transcript refinement, learned corrections, and panel interactions unchanged while reducing branching inside the main hook.
+
 -   Refactored `useChatInputAreaComposer` internals to keep chat-composer behavior unchanged while making the hook easier to follow and maintain:
 
     -   Moved send orchestration, deferred Enter scheduling, and keydown branching into focused private helpers so the main hook now reads as smaller, single-purpose steps.

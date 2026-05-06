@@ -6,6 +6,7 @@ import type { ChatProps } from './ChatProps';
 import { insertDictationChunk } from './insertDictationChunk';
 import { learnDictationDictionary } from './learnDictationDictionary';
 import {
+    type DictationDictionary,
     normalizeDictationWhitespace,
     refineFinalDictationChunk,
     type DictationRefinementSettings,
@@ -41,6 +42,41 @@ type DictationChunk = {
 type DictationError = {
     readonly code?: SpeechRecognitionErrorCode;
     readonly message: string;
+};
+
+/**
+ * Successful insertion plan derived from one final speech-recognition result.
+ *
+ * @private function of `useChatInputAreaDictation`
+ */
+type FinalDictationInsertion = {
+    readonly previousMessageContent: string;
+    readonly refinedText: string;
+    readonly insertion: ReturnType<typeof insertDictationChunk>;
+};
+
+/**
+ * Result of undoing the most recent dictated chunk.
+ *
+ * @private function of `useChatInputAreaDictation`
+ */
+type DictationBacktrackResult = {
+    readonly removedChunk: DictationChunk;
+    readonly nextChunks: Array<DictationChunk>;
+    readonly previousFinalChunk: string;
+};
+
+/**
+ * Data needed to apply a manual correction to the last dictated chunk.
+ *
+ * @private function of `useChatInputAreaDictation`
+ */
+type DictationCorrection = {
+    readonly correctedChunk: string;
+    readonly previousChunk: string;
+    readonly nextMessageContent: string;
+    readonly nextChunks: Array<DictationChunk>;
+    readonly nextDictionary: DictationDictionary;
 };
 
 /**
@@ -81,6 +117,222 @@ function replaceLastOccurrence(text: string, search: string, replacement: string
  */
 function createDictationChunkId(): string {
     return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+/**
+ * Resolves the current textarea selection for the latest composer value.
+ *
+ * @private function of `useChatInputAreaDictation`
+ */
+function resolveDictationSelection(
+    textarea: HTMLTextAreaElement,
+    messageContent: string,
+): { selectionStart: number; selectionEnd: number } {
+    const selectionStart = textarea.selectionStart ?? messageContent.length;
+    const selectionEnd = textarea.selectionEnd ?? selectionStart;
+
+    return {
+        selectionStart,
+        selectionEnd,
+    };
+}
+
+/**
+ * Returns whether the next final transcript should replace the current selection.
+ *
+ * @private function of `useChatInputAreaDictation`
+ */
+function shouldReplaceSelectedTextOnNextFinal(textarea: HTMLTextAreaElement | null): boolean {
+    if (!textarea) {
+        return false;
+    }
+
+    const selectionStart = textarea.selectionStart ?? 0;
+    const selectionEnd = textarea.selectionEnd ?? selectionStart;
+
+    return selectionStart !== selectionEnd;
+}
+
+/**
+ * Builds the insertion plan for one finalized dictated chunk.
+ *
+ * @private function of `useChatInputAreaDictation`
+ */
+function resolveFinalDictationInsertion(params: {
+    readonly rawText: string;
+    readonly textarea: HTMLTextAreaElement;
+    readonly previousMessageContent: string;
+    readonly dictationSettings: DictationRefinementSettings;
+    readonly dictationDictionary: DictationDictionary;
+    readonly shouldReplaceSelection: boolean;
+}): FinalDictationInsertion | null {
+    const {
+        rawText,
+        textarea,
+        previousMessageContent,
+        dictationSettings,
+        dictationDictionary,
+        shouldReplaceSelection,
+    } = params;
+    const refinedText = refineFinalDictationChunk(rawText, dictationSettings, dictationDictionary);
+    if (!refinedText) {
+        return null;
+    }
+
+    const { selectionStart, selectionEnd } = resolveDictationSelection(textarea, previousMessageContent);
+
+    return {
+        previousMessageContent,
+        refinedText,
+        insertion: insertDictationChunk({
+            currentValue: previousMessageContent,
+            dictatedText: refinedText,
+            selectionStart,
+            selectionEnd,
+            shouldReplaceSelection,
+        }),
+    };
+}
+
+/**
+ * Appends one finalized dictated chunk to the stored chunk history.
+ *
+ * @private function of `useChatInputAreaDictation`
+ */
+function appendDictationChunk(
+    previousChunks: Array<DictationChunk>,
+    insertionPlan: FinalDictationInsertion,
+): Array<DictationChunk> {
+    return [
+        ...previousChunks,
+        {
+            id: createDictationChunkId(),
+            beforeValue: insertionPlan.previousMessageContent,
+            finalText: insertionPlan.refinedText,
+            start: insertionPlan.insertion.start,
+        },
+    ];
+}
+
+/**
+ * Removes the last dictated chunk and returns the previous correction state.
+ *
+ * @private function of `useChatInputAreaDictation`
+ */
+function resolveDictationBacktrack(dictationChunks: ReadonlyArray<DictationChunk>): DictationBacktrackResult | null {
+    const removedChunk = dictationChunks[dictationChunks.length - 1];
+    if (!removedChunk) {
+        return null;
+    }
+
+    const nextChunks = dictationChunks.slice(0, -1);
+
+    return {
+        removedChunk,
+        nextChunks,
+        previousFinalChunk: nextChunks[nextChunks.length - 1]?.finalText || '',
+    };
+}
+
+/**
+ * Replaces the stored final text of the latest dictated chunk when present.
+ *
+ * @private function of `useChatInputAreaDictation`
+ */
+function replaceLastDictationChunk(
+    previousChunks: Array<DictationChunk>,
+    correctedChunk: string,
+): Array<DictationChunk> {
+    const lastChunk = previousChunks[previousChunks.length - 1];
+    if (!lastChunk) {
+        return previousChunks;
+    }
+
+    return [
+        ...previousChunks.slice(0, -1),
+        {
+            ...lastChunk,
+            finalText: correctedChunk,
+        },
+    ];
+}
+
+/**
+ * Resolves the next state when the user manually corrects the last transcript chunk.
+ *
+ * @private function of `useChatInputAreaDictation`
+ */
+function resolveDictationCorrection(params: {
+    readonly editableChunk: string;
+    readonly previousChunk: string;
+    readonly messageContent: string;
+    readonly dictationChunks: Array<DictationChunk>;
+    readonly dictationDictionary: DictationDictionary;
+}): DictationCorrection | null {
+    const { editableChunk, previousChunk, messageContent, dictationChunks, dictationDictionary } = params;
+    const correctedChunk = normalizeDictationWhitespace(editableChunk);
+
+    if (!correctedChunk || !previousChunk || correctedChunk === previousChunk) {
+        return null;
+    }
+
+    return {
+        correctedChunk,
+        previousChunk,
+        nextMessageContent: replaceLastOccurrence(messageContent, previousChunk, correctedChunk),
+        nextChunks: replaceLastDictationChunk(dictationChunks, correctedChunk),
+        nextDictionary: learnDictationDictionary(previousChunk, correctedChunk, dictationDictionary),
+    };
+}
+
+/**
+ * Maps speech-recognition errors to the dictation UI state.
+ *
+ * @private function of `useChatInputAreaDictation`
+ */
+function resolveDictationErrorUiState(errorCode?: SpeechRecognitionErrorCode): DictationUiState {
+    return errorCode === 'permission-denied' ? 'disabled' : 'error';
+}
+
+/**
+ * Returns whether dictation is currently active enough to treat toggle as stop.
+ *
+ * @private function of `useChatInputAreaDictation`
+ */
+function isDictationActive(dictationUiState: DictationUiState): boolean {
+    return dictationUiState === 'listening' || dictationUiState === 'processing';
+}
+
+/**
+ * Returns whether the dictation panel should stay visible.
+ *
+ * @private function of `useChatInputAreaDictation`
+ */
+function shouldShowDictationPanel(params: {
+    readonly hasSpeechRecognition: boolean;
+    readonly isDictationPanelExpanded: boolean;
+    readonly dictationUiState: DictationUiState;
+    readonly dictationInterimText: string;
+    readonly dictationError: DictationError | null;
+    readonly dictationLastFinalChunk: string;
+}): boolean {
+    const {
+        hasSpeechRecognition,
+        isDictationPanelExpanded,
+        dictationUiState,
+        dictationInterimText,
+        dictationError,
+        dictationLastFinalChunk,
+    } = params;
+
+    return (
+        hasSpeechRecognition &&
+        (isDictationPanelExpanded ||
+            dictationUiState !== 'idle' ||
+            Boolean(dictationInterimText) ||
+            Boolean(dictationError) ||
+            Boolean(dictationLastFinalChunk))
+    );
 }
 
 /**
@@ -140,6 +392,14 @@ export function useChatInputAreaDictation({
         [textareaRef],
     );
 
+    const schedulePendingStopFallback = useCallback(() => {
+        clearPendingStopFallback();
+        pendingStopFallbackRef.current = setTimeout(() => {
+            setDictationUiState('idle');
+            setDictationInterimText('');
+        }, STOP_LISTENING_FALLBACK_TIMEOUT_MS);
+    }, [clearPendingStopFallback]);
+
     const handleDictationFinalResult = useCallback(
         (rawText: string) => {
             const textarea = textareaRef.current;
@@ -147,87 +407,104 @@ export function useChatInputAreaDictation({
                 return;
             }
 
-            const previousMessageContent = messageContentRef.current;
-            const refinedText = refineFinalDictationChunk(rawText, dictationSettings, dictationDictionary);
-            if (!refinedText) {
-                return;
-            }
-
-            const selectionStart = textarea.selectionStart ?? previousMessageContent.length;
-            const selectionEnd = textarea.selectionEnd ?? selectionStart;
-            const insertion = insertDictationChunk({
-                currentValue: previousMessageContent,
-                dictatedText: refinedText,
-                selectionStart,
-                selectionEnd,
+            const insertionPlan = resolveFinalDictationInsertion({
+                rawText,
+                textarea,
+                previousMessageContent: messageContentRef.current,
+                dictationSettings,
+                dictationDictionary,
                 shouldReplaceSelection: replaceSelectionOnNextFinalRef.current,
             });
+            if (!insertionPlan) {
+                return;
+            }
 
             replaceSelectionOnNextFinalRef.current = false;
             setDictationInterimText('');
             setDictationError(null);
             setDictationUiState('listening');
-            applyMessageContent(insertion.nextValue);
-            setDictationChunks((previousChunks) => [
-                ...previousChunks,
-                {
-                    id: createDictationChunkId(),
-                    beforeValue: previousMessageContent,
-                    finalText: refinedText,
-                    start: insertion.start,
-                },
-            ]);
-            setDictationLastFinalChunk(refinedText);
-            setDictationEditableChunk(refinedText);
+            applyMessageContent(insertionPlan.insertion.nextValue);
+            setDictationChunks((previousChunks) => appendDictationChunk(previousChunks, insertionPlan));
+            setDictationLastFinalChunk(insertionPlan.refinedText);
+            setDictationEditableChunk(insertionPlan.refinedText);
             setIsDictationPanelExpanded(true);
-            focusTextareaSelection(insertion.caret, insertion.caret);
+            focusTextareaSelection(insertionPlan.insertion.caret, insertionPlan.insertion.caret);
         },
         [
             applyMessageContent,
             dictationDictionary,
             dictationSettings,
             focusTextareaSelection,
-            messageContentRef,
             textareaRef,
         ],
     );
+
+    const handleSpeechRecognitionStart = useCallback(() => {
+        clearPendingStopFallback();
+        setDictationUiState('listening');
+        setDictationError(null);
+    }, [clearPendingStopFallback]);
+
+    const handleSpeechRecognitionTranscribing = useCallback(() => {
+        setDictationUiState('processing');
+    }, []);
+
+    const handleSpeechRecognitionInterimResult = useCallback((text: string) => {
+        setDictationInterimText(text);
+        setIsDictationPanelExpanded(true);
+    }, []);
+
+    const handleSpeechRecognitionError = useCallback(
+        (event: Extract<SpeechRecognitionEvent, { type: 'ERROR' }>) => {
+            clearPendingStopFallback();
+            setDictationError({
+                code: event.code,
+                message: event.message,
+            });
+            setDictationUiState(resolveDictationErrorUiState(event.code));
+            setIsDictationPanelExpanded(true);
+        },
+        [clearPendingStopFallback],
+    );
+
+    const handleSpeechRecognitionStop = useCallback(() => {
+        clearPendingStopFallback();
+        setDictationUiState((currentState) => (currentState === 'disabled' ? currentState : 'idle'));
+        setDictationInterimText('');
+    }, [clearPendingStopFallback]);
 
     const handleSpeechRecognitionEvent = useCallback(
         (event: SpeechRecognitionEvent) => {
             switch (event.type) {
                 case 'START':
-                    clearPendingStopFallback();
-                    setDictationUiState('listening');
-                    setDictationError(null);
+                    handleSpeechRecognitionStart();
                     return;
                 case 'TRANSCRIBING':
-                    setDictationUiState('processing');
+                    handleSpeechRecognitionTranscribing();
                     return;
                 case 'RESULT':
                     if (event.isFinal) {
                         handleDictationFinalResult(event.text);
                     } else {
-                        setDictationInterimText(event.text);
-                        setIsDictationPanelExpanded(true);
+                        handleSpeechRecognitionInterimResult(event.text);
                     }
                     return;
                 case 'ERROR':
-                    clearPendingStopFallback();
-                    setDictationError({
-                        code: event.code,
-                        message: event.message,
-                    });
-                    setDictationUiState(event.code === 'permission-denied' ? 'disabled' : 'error');
-                    setIsDictationPanelExpanded(true);
+                    handleSpeechRecognitionError(event);
                     return;
                 case 'STOP':
-                    clearPendingStopFallback();
-                    setDictationUiState((currentState) => (currentState === 'disabled' ? currentState : 'idle'));
-                    setDictationInterimText('');
+                    handleSpeechRecognitionStop();
                     return;
             }
         },
-        [clearPendingStopFallback, handleDictationFinalResult],
+        [
+            handleDictationFinalResult,
+            handleSpeechRecognitionError,
+            handleSpeechRecognitionInterimResult,
+            handleSpeechRecognitionStart,
+            handleSpeechRecognitionStop,
+            handleSpeechRecognitionTranscribing,
+        ],
     );
 
     useEffect(() => {
@@ -255,13 +532,7 @@ export function useChatInputAreaDictation({
             return;
         }
 
-        const textarea = textareaRef.current;
-        if (textarea) {
-            const selectionStart = textarea.selectionStart ?? 0;
-            const selectionEnd = textarea.selectionEnd ?? selectionStart;
-            replaceSelectionOnNextFinalRef.current = selectionStart !== selectionEnd;
-        }
-
+        replaceSelectionOnNextFinalRef.current = shouldReplaceSelectedTextOnNextFinal(textareaRef.current);
         setDictationError(null);
         setDictationInterimText('');
         setDictationUiState('listening');
@@ -279,19 +550,15 @@ export function useChatInputAreaDictation({
 
         setDictationUiState('processing');
         speechRecognition.$stop();
-        clearPendingStopFallback();
-        pendingStopFallbackRef.current = setTimeout(() => {
-            setDictationUiState('idle');
-            setDictationInterimText('');
-        }, STOP_LISTENING_FALLBACK_TIMEOUT_MS);
-    }, [clearPendingStopFallback, speechRecognition]);
+        schedulePendingStopFallback();
+    }, [schedulePendingStopFallback, speechRecognition]);
 
     const handleToggleVoiceInput = useCallback(() => {
         if (!speechRecognition) {
             return;
         }
 
-        if (dictationUiState === 'listening' || dictationUiState === 'processing') {
+        if (isDictationActive(dictationUiState)) {
             stopVoiceInput();
             return;
         }
@@ -300,55 +567,37 @@ export function useChatInputAreaDictation({
     }, [dictationUiState, speechRecognition, startVoiceInput, stopVoiceInput]);
 
     const handleBacktrackLastChunk = useCallback(() => {
-        const previousChunks = [...dictationChunks];
-        const lastChunk = previousChunks.pop();
-
-        if (!lastChunk) {
+        const backtrackResult = resolveDictationBacktrack(dictationChunks);
+        if (!backtrackResult) {
             return;
         }
 
-        setDictationChunks(previousChunks);
-        applyMessageContent(lastChunk.beforeValue);
-
-        const previousFinalChunk = previousChunks[previousChunks.length - 1]?.finalText || '';
-        setDictationLastFinalChunk(previousFinalChunk);
-        setDictationEditableChunk(previousFinalChunk);
-        focusTextareaSelection(lastChunk.start, lastChunk.start);
+        setDictationChunks(backtrackResult.nextChunks);
+        applyMessageContent(backtrackResult.removedChunk.beforeValue);
+        setDictationLastFinalChunk(backtrackResult.previousFinalChunk);
+        setDictationEditableChunk(backtrackResult.previousFinalChunk);
+        focusTextareaSelection(backtrackResult.removedChunk.start, backtrackResult.removedChunk.start);
     }, [applyMessageContent, dictationChunks, focusTextareaSelection]);
 
     const handleApplyCorrection = useCallback(() => {
-        const correctedChunk = normalizeDictationWhitespace(dictationEditableChunk);
-        const previousChunk = dictationLastFinalChunk;
-
-        if (!correctedChunk || !previousChunk || correctedChunk === previousChunk) {
+        const correction = resolveDictationCorrection({
+            editableChunk: dictationEditableChunk,
+            previousChunk: dictationLastFinalChunk,
+            messageContent: messageContentRef.current,
+            dictationChunks,
+            dictationDictionary,
+        });
+        if (!correction) {
             return;
         }
 
-        const nextMessageContent = replaceLastOccurrence(messageContentRef.current, previousChunk, correctedChunk);
-        applyMessageContent(nextMessageContent);
-        setDictationLastFinalChunk(correctedChunk);
-        setDictationChunks((previousChunks) => {
-            if (previousChunks.length === 0) {
-                return previousChunks;
-            }
-
-            const nextChunks = [...previousChunks];
-            const lastChunk = nextChunks[nextChunks.length - 1];
-
-            if (!lastChunk) {
-                return previousChunks;
-            }
-
-            nextChunks[nextChunks.length - 1] = {
-                ...lastChunk,
-                finalText: correctedChunk,
-            };
-
-            return nextChunks;
-        });
-        setDictationDictionary(learnDictationDictionary(previousChunk, correctedChunk, dictationDictionary));
+        applyMessageContent(correction.nextMessageContent);
+        setDictationLastFinalChunk(correction.correctedChunk);
+        setDictationChunks(correction.nextChunks);
+        setDictationDictionary(correction.nextDictionary);
     }, [
         applyMessageContent,
+        dictationChunks,
         dictationDictionary,
         dictationEditableChunk,
         dictationLastFinalChunk,
@@ -388,18 +637,18 @@ export function useChatInputAreaDictation({
         [setDictationSettings],
     );
 
-    const shouldShowDictationPanel = Boolean(
-        speechRecognition &&
-            (isDictationPanelExpanded ||
-                dictationUiState !== 'idle' ||
-                Boolean(dictationInterimText) ||
-                Boolean(dictationError) ||
-                Boolean(dictationLastFinalChunk)),
-    );
+    const isDictationPanelVisible = shouldShowDictationPanel({
+        hasSpeechRecognition: Boolean(speechRecognition),
+        isDictationPanelExpanded,
+        dictationUiState,
+        dictationInterimText,
+        dictationError,
+        dictationLastFinalChunk,
+    });
 
     return {
         speechRecognitionUiDescriptor,
-        shouldShowDictationPanel,
+        shouldShowDictationPanel: isDictationPanelVisible,
         isDictationPanelExpanded,
         toggleDictationPanel,
         expandDictationPanel,
