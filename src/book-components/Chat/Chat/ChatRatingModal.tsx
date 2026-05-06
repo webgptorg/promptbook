@@ -211,10 +211,7 @@ function resolveChatRatingStarColor(star: number, selectedRating: number, mode: 
  *
  * @private function of `<ChatRatingModal/>`
  */
-function resolveExpectedAnswerPlaceholder(
-    selectedMessage: ChatMessage,
-    modalCopy: ChatRatingModalCopy,
-): string {
+function resolveExpectedAnswerPlaceholder(selectedMessage: ChatMessage, modalCopy: ChatRatingModalCopy): string {
     return selectedMessage.content || modalCopy.expectedAnswerPlaceholder;
 }
 

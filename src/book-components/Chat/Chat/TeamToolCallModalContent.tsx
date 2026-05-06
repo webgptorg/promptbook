@@ -456,11 +456,7 @@ function TeamToolCallDetailsPanel(props: {
                     Action details
                     <span className={styles.toolCallOrigin}>by {selectedTeamToolCall.origin.label}</span>
                 </span>
-                <button
-                    type="button"
-                    className={styles.teamToolCallDetailsClear}
-                    onClick={onClearSelectedTeamToolCall}
-                >
+                <button type="button" className={styles.teamToolCallDetailsClear} onClick={onClearSelectedTeamToolCall}>
                     Clear
                 </button>
             </div>

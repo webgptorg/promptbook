@@ -140,10 +140,7 @@ type SetUploadItems = (updater: (items: UploadItem[]) => UploadItem[]) => void;
 /**
  * Single-upload updater used by upload state helpers.
  */
-type UpdateUploadItem = (
-    uploadId: string,
-    createNextUploadItem: (uploadItem: UploadItem) => UploadItem,
-) => void;
+type UpdateUploadItem = (uploadId: string, createNextUploadItem: (uploadItem: UploadItem) => UploadItem) => void;
 
 /**
  * Mutable upload items reference shared across upload helpers.
@@ -1095,11 +1092,12 @@ export function useBookEditorMonacoUploads({ editor, monaco, onFileUpload }: Use
     const { uploadItems, uploadItemsRef, setUploadItems, updateUploadItem, uploadStats, activeUploadItems } =
         useBookEditorMonacoUploadItemsState();
     const { queueProgressUpdate, clearProgressQueue } = useBookEditorMonacoUploadProgressQueue({ setUploadItems });
-    const { registerUploadPlaceholderResources, queueEditorReplacement, clearEditorSync } = useBookEditorMonacoUploadEditorSync({
-        editor,
-        uploadFilesRef,
-        uploadDecorationIdsRef,
-    });
+    const { registerUploadPlaceholderResources, queueEditorReplacement, clearEditorSync } =
+        useBookEditorMonacoUploadEditorSync({
+            editor,
+            uploadFilesRef,
+            uploadDecorationIdsRef,
+        });
 
     const enqueueFiles = useMemo(
         () =>

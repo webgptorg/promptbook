@@ -629,10 +629,7 @@ export function ChatInputArea(props: ChatInputAreaProps) {
         <div className={classNames(styles.chatInput, chatInputClassName, isDragOver && styles.dragOver)} {...rootProps}>
             <ChatInputAreaReplyPreviewSection replyPreview={replyPreview} />
 
-            <ChatInputAreaUploadedFilesSection
-                uploadedFiles={uploadedFiles}
-                removeUploadedFile={removeUploadedFile}
-            />
+            <ChatInputAreaUploadedFilesSection uploadedFiles={uploadedFiles} removeUploadedFile={removeUploadedFile} />
 
             <div
                 className={classNames(styles.inputContainer, chatCssClassNames.inputContainer)}
