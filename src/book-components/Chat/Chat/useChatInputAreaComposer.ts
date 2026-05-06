@@ -35,6 +35,16 @@ type PendingEnterIntentSnapshot = {
 };
 
 /**
+ * Send-ready payload derived from the current composer state.
+ *
+ * @private function of `useChatInputAreaComposer`
+ */
+type ComposerMessagePayload = {
+    readonly attachments: ReturnType<typeof createMessageAttachments>;
+    readonly contentToSend: string;
+};
+
+/**
  * Props for `useChatInputAreaComposer`.
  *
  * @private function of `<ChatInputArea/>`
@@ -260,6 +270,76 @@ function createMessageAttachments(uploadedFiles: ReadonlyArray<ChatInputUploaded
 }
 
 /**
+ * Resolves the current message payload and validates that something is sendable.
+ *
+ * @private function of `useChatInputAreaComposer`
+ */
+function createComposerMessagePayload(params: {
+    readonly messageContent: string;
+    readonly uploadedFiles: ReadonlyArray<ChatInputUploadedFile>;
+}): ComposerMessagePayload {
+    const { messageContent, uploadedFiles } = params;
+    const attachments = createMessageAttachments(uploadedFiles);
+
+    if (spaceTrim(messageContent) === '' && attachments.length === 0) {
+        throw new Error(`You need to write some text or upload a file`);
+    }
+
+    return {
+        attachments,
+        contentToSend: messageContent,
+    };
+}
+
+/**
+ * Performs the side effects needed to send one composer message.
+ *
+ * @private function of `useChatInputAreaComposer`
+ */
+async function sendComposerMessage(params: {
+    readonly textareaElement: HTMLTextAreaElement;
+    readonly onMessage: NonNullable<ChatProps['onMessage']>;
+    readonly uploadedFiles: ReadonlyArray<ChatInputUploadedFile>;
+    readonly messageContentRef: MutableRefObject<string>;
+    readonly replyingToMessage: ChatMessage | null | undefined;
+    readonly onCancelReply?: ChatProps['onCancelReply'];
+    readonly soundSystem?: ChatSoundSystem;
+    readonly applyMessageContent: (nextContent: string) => void;
+    readonly clearUploadedFiles: () => void;
+}): Promise<void> {
+    const {
+        textareaElement,
+        onMessage,
+        uploadedFiles,
+        messageContentRef,
+        replyingToMessage,
+        onCancelReply,
+        soundSystem,
+        applyMessageContent,
+        clearUploadedFiles,
+    } = params;
+    const wasTextareaFocused = document.activeElement === textareaElement;
+    const { attachments, contentToSend } = createComposerMessagePayload({
+        messageContent: messageContentRef.current,
+        uploadedFiles,
+    });
+
+    if (soundSystem) {
+        /* not await */ soundSystem.play('message_send');
+    }
+
+    applyMessageContent('');
+    clearUploadedFiles();
+
+    if (wasTextareaFocused) {
+        textareaElement.focus();
+    }
+
+    await onMessage(contentToSend, attachments, replyingToMessage || null);
+    onCancelReply?.();
+}
+
+/**
  * Resolves one deferred Enter intent after the host finishes deciding between send/newline.
  *
  * @private function of `useChatInputAreaComposer`
@@ -309,6 +389,107 @@ async function resolvePendingEnterIntent(params: {
     }
 
     handleInsertNewline(snapshot.selectionStart, snapshot.selectionEnd);
+}
+
+/**
+ * Starts one deferred Enter resolution while guarding against overlapping resolutions.
+ *
+ * @private function of `useChatInputAreaComposer`
+ */
+function startDeferredEnterResolution(params: {
+    readonly isResolvingEnterBehaviorRef: MutableRefObject<boolean>;
+    readonly textareaRef: MutableRefObject<HTMLTextAreaElement | null>;
+    readonly resolveEnterBehavior: NonNullable<ChatProps['resolveEnterBehavior']>;
+    readonly messageContentRef: MutableRefObject<string>;
+    readonly uploadedFilesRef: MutableRefObject<Array<ChatInputUploadedFile>>;
+    readonly replyingToMessage: ChatMessage | null | undefined;
+    readonly handleInsertNewline: (selectionStart?: number, selectionEnd?: number) => void;
+    readonly handleSend: () => Promise<void>;
+}): void {
+    const {
+        isResolvingEnterBehaviorRef,
+        textareaRef,
+        resolveEnterBehavior,
+        messageContentRef,
+        uploadedFilesRef,
+        replyingToMessage,
+        handleInsertNewline,
+        handleSend,
+    } = params;
+
+    if (isResolvingEnterBehaviorRef.current) {
+        return;
+    }
+
+    const textareaElement = textareaRef.current;
+    if (!textareaElement) {
+        return;
+    }
+
+    const snapshot = createPendingEnterIntentSnapshot({
+        textareaElement,
+        messageContent: messageContentRef.current,
+        uploadedFiles: uploadedFilesRef.current,
+        replyingToMessage,
+    });
+
+    isResolvingEnterBehaviorRef.current = true;
+
+    void resolvePendingEnterIntent({
+        resolveEnterBehavior,
+        snapshot,
+        messageContentRef,
+        uploadedFilesRef,
+        replyingToMessage,
+        handleInsertNewline,
+        handleSend,
+    }).finally(() => {
+        isResolvingEnterBehaviorRef.current = false;
+    });
+}
+
+/**
+ * Handles one textarea key press that may affect reply state or Enter behavior.
+ *
+ * @private function of `useChatInputAreaComposer`
+ */
+function handleComposerKeyboardEvent(params: {
+    readonly event: ReactKeyboardEvent<HTMLTextAreaElement>;
+    readonly replyingToMessage: ChatMessage | null | undefined;
+    readonly onCancelReply?: ChatProps['onCancelReply'];
+    readonly enterBehavior?: ChatProps['enterBehavior'];
+    readonly resolveEnterBehavior?: ChatProps['resolveEnterBehavior'];
+    readonly handleDeferredEnterAction: (resolveEnterBehavior: NonNullable<ChatProps['resolveEnterBehavior']>) => void;
+    readonly handleImmediateEnterAction: (isCtrlPressed: boolean) => void;
+}): void {
+    const {
+        event,
+        replyingToMessage,
+        onCancelReply,
+        enterBehavior,
+        resolveEnterBehavior,
+        handleDeferredEnterAction,
+        handleImmediateEnterAction,
+    } = params;
+
+    if (event.key === 'Escape' && replyingToMessage && onCancelReply) {
+        event.preventDefault();
+        onCancelReply();
+        return;
+    }
+
+    if (!isComposerEnterAction(event)) {
+        return;
+    }
+
+    event.preventDefault();
+
+    if (shouldResolveDeferredEnterBehavior(enterBehavior, event.ctrlKey, resolveEnterBehavior)) {
+        handleDeferredEnterAction(resolveEnterBehavior);
+        return;
+    }
+
+    handleImmediateEnterAction(event.ctrlKey);
 }
 
 /**
@@ -410,29 +591,18 @@ export function useChatInputAreaComposer(props: UseChatInputAreaComposerProps) {
             throw new Error(`Can not find textarea`);
         }
 
-        const wasTextareaFocused = document.activeElement === textareaElement;
-
         try {
-            const attachments = createMessageAttachments(uploadedFiles);
-            const contentToSend = messageContentRef.current;
-
-            if (spaceTrim(contentToSend) === '' && attachments.length === 0) {
-                throw new Error(`You need to write some text or upload a file`);
-            }
-
-            if (soundSystem) {
-                /* not await */ soundSystem.play('message_send');
-            }
-
-            applyMessageContent('');
-            clearUploadedFiles();
-
-            if (wasTextareaFocused) {
-                textareaElement.focus();
-            }
-
-            await onMessage(contentToSend, attachments, replyingToMessage || null);
-            onCancelReply?.();
+            await sendComposerMessage({
+                textareaElement,
+                onMessage,
+                uploadedFiles,
+                messageContentRef,
+                replyingToMessage,
+                onCancelReply,
+                soundSystem,
+                applyMessageContent,
+                clearUploadedFiles,
+            });
         } catch (error) {
             if (!(error instanceof Error)) {
                 throw error;
@@ -467,59 +637,31 @@ export function useChatInputAreaComposer(props: UseChatInputAreaComposerProps) {
 
     const handleDeferredEnterAction = useCallback(
         (resolveDeferredEnterBehavior: NonNullable<ChatProps['resolveEnterBehavior']>) => {
-            if (isResolvingEnterBehaviorRef.current) {
-                return;
-            }
-
-            const textareaElement = textareaRef.current;
-            if (!textareaElement) {
-                return;
-            }
-
-            const snapshot = createPendingEnterIntentSnapshot({
-                textareaElement,
-                messageContent: messageContentRef.current,
-                uploadedFiles: uploadedFilesRef.current,
-                replyingToMessage,
-            });
-
-            isResolvingEnterBehaviorRef.current = true;
-
-            void resolvePendingEnterIntent({
+            startDeferredEnterResolution({
+                isResolvingEnterBehaviorRef,
+                textareaRef,
                 resolveEnterBehavior: resolveDeferredEnterBehavior,
-                snapshot,
                 messageContentRef,
                 uploadedFilesRef,
                 replyingToMessage,
                 handleInsertNewline,
                 handleSend,
-            }).finally(() => {
-                isResolvingEnterBehaviorRef.current = false;
             });
         },
-        [handleInsertNewline, handleSend, replyingToMessage, uploadedFilesRef],
+        [handleInsertNewline, handleSend, replyingToMessage, textareaRef, uploadedFilesRef],
     );
 
     const handleComposerKeyDown = useCallback(
         (event: ReactKeyboardEvent<HTMLTextAreaElement>) => {
-            if (event.key === 'Escape' && replyingToMessage && onCancelReply) {
-                event.preventDefault();
-                onCancelReply();
-                return;
-            }
-
-            if (!isComposerEnterAction(event)) {
-                return;
-            }
-
-            event.preventDefault();
-
-            if (shouldResolveDeferredEnterBehavior(enterBehavior, event.ctrlKey, resolveEnterBehavior)) {
-                handleDeferredEnterAction(resolveEnterBehavior);
-                return;
-            }
-
-            handleImmediateEnterAction(event.ctrlKey);
+            handleComposerKeyboardEvent({
+                event,
+                replyingToMessage,
+                onCancelReply,
+                enterBehavior,
+                resolveEnterBehavior,
+                handleDeferredEnterAction,
+                handleImmediateEnterAction,
+            });
         },
         [
             enterBehavior,

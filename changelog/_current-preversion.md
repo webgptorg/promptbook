@@ -1,3 +1,8 @@
+-   Refactored `useChatInputAreaComposer` internals to keep chat-composer behavior unchanged while making the hook easier to follow and maintain:
+
+    -   Moved send orchestration, deferred Enter scheduling, and keydown branching into focused private helpers so the main hook now reads as smaller, single-purpose steps.
+    -   Kept newline-vs-send behavior, deferred Enter guards, reply cancellation, and attachment handling unchanged while reducing the cognitive load of the main composer hook.
+
 -   Refactored `renderTimeoutToolCallDetails` internals to keep the timeout tool-call modal behavior unchanged while making the code easier to follow:
 
     -   Moved timeout title, quick-action, timezone, and date-validation decisions into focused private helpers instead of keeping all branching inside the main renderer.
