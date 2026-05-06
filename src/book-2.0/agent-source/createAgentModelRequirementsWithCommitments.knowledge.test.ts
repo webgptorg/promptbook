@@ -17,9 +17,12 @@ KNOWLEDGE Read https://example.com/alpha.pdf and https://example.com/beta.txt be
         expect(sources).toContain('https://example.com/alpha.pdf');
         expect(sources).toContain('https://example.com/beta.txt');
         expect(inlineSource).toBeDefined();
-        expect(requirements.systemMessage).toContain('Knowledge Source URL: https://example.com/alpha.pdf');
-        expect(requirements.systemMessage).toContain('Knowledge Source URL: https://example.com/beta.txt');
-        expect(requirements.systemMessage).toContain('Knowledge Source Inline');
+        expect(requirements.systemMessage).toContain('## Knowledge');
+        expect(requirements.systemMessage).toContain('`knowledge_search`');
+        expect(requirements.systemMessage).toContain('https://example.com/alpha.pdf (processed for retrieval during chat)');
+        expect(requirements.systemMessage).toContain('https://example.com/beta.txt (processed for retrieval during chat)');
+        expect(requirements.systemMessage).toContain('(derived from inline content and processed for retrieval during chat)');
+        expect(requirements.tools?.map((tool) => tool.name)).toContain('knowledge_search');
 
         const parsedInline = inlineSource ? parseDataUrlKnowledgeSource(inlineSource) : null;
         expect(parsedInline?.buffer.toString('utf-8')).toContain('Read https://example.com/alpha.pdf');
@@ -35,6 +38,7 @@ KNOWLEDGE https://example.com/alpha.pdf https://example.com/beta.txt
         const sources = requirements.knowledgeSources ?? [];
 
         expect(sources).toEqual(['https://example.com/alpha.pdf', 'https://example.com/beta.txt']);
-        expect(requirements.systemMessage).not.toContain('Knowledge Source Inline');
+        expect(requirements.systemMessage).not.toContain('derived from inline content');
+        expect(requirements.tools?.map((tool) => tool.name)).toContain('knowledge_search');
     });
 });

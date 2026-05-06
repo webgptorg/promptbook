@@ -18,6 +18,43 @@ import type {
 export type ChatToolCall = ToolCall;
 
 /**
+ * One structured knowledge/source record attached to a chat message.
+ *
+ * @public exported from `@promptbook/components`
+ */
+export type ChatMessageUsedSource = {
+    /**
+     * Optional stable identifier of the retrieved chunk/source.
+     */
+    readonly id?: string;
+
+    /**
+     * Human-readable source label.
+     */
+    readonly name: string;
+
+    /**
+     * Optional source URL.
+     */
+    readonly url?: string;
+
+    /**
+     * Optional excerpt actually retrieved from the source.
+     */
+    readonly excerpt?: string;
+
+    /**
+     * Optional similarity score returned by the retrieval layer.
+     */
+    readonly score?: number;
+
+    /**
+     * Tool that reported this source.
+     */
+    readonly toolName?: string;
+};
+
+/**
  * One item in a user-facing progress card shown while assistant response is still running.
  *
  * @public exported from `@promptbook/components`
@@ -310,6 +347,11 @@ export type ChatMessage = Omit<Message<id>, 'direction' | 'recipients' | 'thread
          */
         excerpt?: string;
     }>;
+
+    /**
+     * Optional list of structured sources actually used by tool-assisted retrieval.
+     */
+    readonly usedSources?: ReadonlyArray<ChatMessageUsedSource>;
 
     /**
      * Optional structured progress-card payload shown while a response is still in progress.

@@ -5,9 +5,15 @@ import {
     type MemoryToolRecord,
     type MemoryToolRuntimeContext,
 } from '../../../../src/commitments/MEMORY/MEMORY';
+import {
+    setKnowledgeToolRuntimeAdapter,
+    type KnowledgeToolRuntimeContext,
+    type KnowledgeToolSource,
+} from '../../../../src/commitments/KNOWLEDGE/KNOWLEDGE';
 import { OpenAiAgentKitExecutionTools } from '../../../../src/llm-providers/openai/OpenAiAgentKitExecutionTools';
 import { JavascriptExecutionTools } from '../../../../src/scripting/javascript/JavascriptExecutionTools';
 import { configureTimeoutToolRuntimeAdapterForServer } from './configureTimeoutToolRuntimeAdapterForServer';
+import { $provideAgentCollectionForServer } from './$provideAgentCollectionForServer';
 import {
     createUserMemory,
     deleteUserMemory,
@@ -17,6 +23,13 @@ import {
     updateUserMemory,
 } from '../utils/userMemory';
 import { getAllToolFunctionsForServer } from './getAllToolFunctionsForServer';
+import { $provideAgentReferenceResolver } from '../utils/agentReferenceResolver/$provideAgentReferenceResolver';
+import {
+    resolveCachedServerAgentContext,
+    resolveCachedServerAgentModelRequirements,
+} from '../utils/cachedServerAgentRuntime';
+import { KnowledgeSearchIndexManager } from '../utils/knowledge/KnowledgeSearchIndexManager';
+import { resolveCurrentOrInternalServerOrigin } from '../utils/resolveCurrentOrInternalServerOrigin';
 
 /**
  * Cache of provided OpenAiAgentKitExecutionTools.
@@ -200,10 +213,61 @@ function createMemoryRuntimeAdapter() {
 }
 
 /**
+ * Creates a knowledge runtime adapter backed by Agents Server LlamaIndex snapshots.
+ */
+function createKnowledgeRuntimeAdapter() {
+    return {
+        async searchKnowledge(
+            args: { query: string; limit?: number },
+            runtimeContext: KnowledgeToolRuntimeContext,
+        ): Promise<KnowledgeToolSource[]> {
+            if (!runtimeContext.agentId) {
+                throw new Error('Knowledge search is unavailable because agent context is missing.');
+            }
+
+            const [localServerUrl, collection, baseAgentReferenceResolver] = await Promise.all([
+                resolveCurrentOrInternalServerOrigin(),
+                $provideAgentCollectionForServer(),
+                $provideAgentReferenceResolver(),
+            ]);
+            const resolvedAgentContext = await resolveCachedServerAgentContext({
+                collection,
+                agentIdentifier: runtimeContext.agentId,
+                localServerUrl,
+                fallbackResolver: baseAgentReferenceResolver,
+            });
+            const preparedAgentModelRequirements = await resolveCachedServerAgentModelRequirements({
+                resolvedAgentContext,
+                localServerUrl,
+                fallbackResolver: baseAgentReferenceResolver,
+            });
+            const knowledgeSources = preparedAgentModelRequirements.modelRequirements.knowledgeSources ?? [];
+
+            if (knowledgeSources.length === 0) {
+                return [];
+            }
+
+            const knowledgeSearchIndexManager = new KnowledgeSearchIndexManager({
+                isVerbose: true,
+            });
+
+            return knowledgeSearchIndexManager.searchKnowledge({
+                agentPermanentId: runtimeContext.agentId,
+                agentName: resolvedAgentContext.resolvedAgentName,
+                query: args.query,
+                limit: args.limit,
+                fallbackKnowledgeSources: knowledgeSources,
+            });
+        },
+    };
+}
+
+/**
  * Provides a cached OpenAiAgentKitExecutionTools instance for the Agents Server.
  */
 export async function $provideOpenAiAgentKitExecutionToolsForServer(): Promise<OpenAiAgentKitExecutionTools> {
     setMemoryToolRuntimeAdapter(createMemoryRuntimeAdapter());
+    setKnowledgeToolRuntimeAdapter(createKnowledgeRuntimeAdapter());
     configureTimeoutToolRuntimeAdapterForServer();
 
     const isVerbose = true; // <- TODO: [🤰] Pass

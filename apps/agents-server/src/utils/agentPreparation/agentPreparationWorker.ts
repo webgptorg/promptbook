@@ -27,6 +27,7 @@ import {
     resolveAgentPreparationFailureBackoffMs,
     shouldDisableAgentPreparationBackgroundWorkerLoop,
 } from './agentPreparationShared';
+import { triggerAgentPreparationWorker } from './triggerAgentPreparationWorker';
 import type { AgentPreparationRow } from './agentPreparationTypes';
 
 /**
@@ -99,7 +100,18 @@ export function scheduleAgentPreparationWakeup(tablePrefix: string, wakeAtIso: s
 
     const wakeupTimeout = setTimeout(() => {
         AGENT_PREPARATION_WAKEUP_TIMEOUTS_BY_PREFIX.delete(normalizedTablePrefix);
-        void runAgentPreparationWorkerTick();
+        void triggerAgentPreparationWorker({
+            origin: resolveInternalServerOrigin(),
+            tablePrefix: normalizedTablePrefix,
+        }).catch((error) => {
+            console.warn('[agent-preparation] Failed to trigger worker route, falling back to in-process tick.', {
+                tablePrefix: normalizedTablePrefix,
+                error: serializeError(error as Error),
+            });
+            void runAgentPreparationWorkerTick({
+                tablePrefix: normalizedTablePrefix,
+            });
+        });
     }, delayMs);
 
     wakeupTimeout.unref?.();
@@ -111,19 +123,23 @@ export function scheduleAgentPreparationWakeup(tablePrefix: string, wakeAtIso: s
  *
  * @private function of agentPreparation
  */
-async function runAgentPreparationWorkerTick(): Promise<void> {
+export async function runAgentPreparationWorkerTick(options: { tablePrefix?: string } = {}): Promise<void> {
     if (isAgentPreparationWorkerTickRunning) {
         return;
     }
 
-    if (ACTIVE_TABLE_PREFIXES.size === 0) {
+    const tablePrefixesToProcess = options.tablePrefix
+        ? [normalizeAgentPreparationTablePrefix(options.tablePrefix)]
+        : [...ACTIVE_TABLE_PREFIXES];
+
+    if (tablePrefixesToProcess.length === 0) {
         return;
     }
 
     isAgentPreparationWorkerTickRunning = true;
 
     try {
-        for (const tablePrefix of ACTIVE_TABLE_PREFIXES) {
+        for (const tablePrefix of tablePrefixesToProcess) {
             await processDueAgentPreparationJobsForPrefix(tablePrefix);
         }
     } catch (error) {

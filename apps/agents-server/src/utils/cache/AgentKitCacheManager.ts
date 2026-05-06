@@ -1,4 +1,3 @@
-import { resolveWebsiteKnowledgeSourcesForServer } from '@/src/utils/knowledge/resolveWebsiteKnowledgeSourcesForServer';
 import type { AgentModelRequirements, string_agent_permanent_id, string_book } from '@promptbook-local/types';
 import { OpenAiAgentKitExecutionTools } from '../../../../../src/llm-providers/openai/OpenAiAgentKitExecutionTools';
 import type { AgentReferenceResolver } from '../../../../../src/book-2.0/agent-source/AgentReferenceResolver';
@@ -16,6 +15,7 @@ import {
 import { AgentKitVectorStoreCache } from './AgentKitCacheManager/AgentKitVectorStoreCache';
 import { resolveAgentKitModelRequirements } from './AgentKitCacheManager/resolveAgentKitModelRequirements';
 import { withAgentKitSourceCitationPolicy } from './AgentKitCacheManager/withAgentKitSourceCitationPolicy';
+import { KnowledgeSearchIndexManager } from '../knowledge/KnowledgeSearchIndexManager';
 
 /**
  * Result of getting or creating an AgentKit-backed agent.
@@ -63,6 +63,7 @@ export class AgentKitCacheManager {
     private readonly knowledgeSourceHasher: AgentKitKnowledgeSourceHasher;
     private readonly preparedCache: AgentKitPreparedCache;
     private readonly vectorStoreCache: AgentKitVectorStoreCache;
+    private readonly knowledgeSearchIndexManager: KnowledgeSearchIndexManager;
 
     /**
      * Creates a new AgentKitCacheManager.
@@ -72,6 +73,7 @@ export class AgentKitCacheManager {
         this.knowledgeSourceHasher = new AgentKitKnowledgeSourceHasher(options);
         this.preparedCache = new AgentKitPreparedCache();
         this.vectorStoreCache = new AgentKitVectorStoreCache(options);
+        this.knowledgeSearchIndexManager = new KnowledgeSearchIndexManager(options);
     }
 
     /**
@@ -137,6 +139,7 @@ export class AgentKitCacheManager {
             assistantCacheKey,
             configuration,
             agentName,
+            agentId,
             baseTools,
             onCacheMiss,
             agentReferenceResolver,
@@ -167,6 +170,7 @@ export class AgentKitCacheManager {
         readonly assistantCacheKey: string;
         readonly configuration: AssistantConfiguration;
         readonly agentName: string;
+        readonly agentId?: string_agent_permanent_id;
         readonly baseTools: OpenAiAgentKitExecutionTools;
         readonly onCacheMiss?: () => void | Promise<void>;
         readonly agentReferenceResolver?: AgentReferenceResolver;
@@ -199,6 +203,7 @@ export class AgentKitCacheManager {
                     assistantCacheKey: options.assistantCacheKey,
                     configuration: options.configuration,
                     agentName: options.agentName,
+                    agentId: options.agentId,
                     baseTools: options.baseTools,
                     onCacheMiss: options.onCacheMiss,
                     modelRequirements: resolvedModelRequirements,
@@ -213,6 +218,7 @@ export class AgentKitCacheManager {
         readonly assistantCacheKey: string;
         readonly configuration: AssistantConfiguration;
         readonly agentName: string;
+        readonly agentId?: string_agent_permanent_id;
         readonly baseTools: OpenAiAgentKitExecutionTools;
         readonly onCacheMiss?: () => void | Promise<void>;
         readonly modelRequirements: AgentModelRequirements;
@@ -233,34 +239,24 @@ export class AgentKitCacheManager {
             agentName: options.agentName,
             knowledgeSources,
         });
-        const cachedVectorStoreId = vectorStoreHash
-            ? await this.vectorStoreCache.getCachedVectorStoreId(vectorStoreHash, options.baseTools)
-            : null;
-
-        if (cachedVectorStoreId && this.isVerbose) {
-            console.info('[🤰]', 'AgentKit cache hit (vector store)', {
-                agentName: options.agentName,
-                assistantCacheKey: options.assistantCacheKey,
-                vectorStoreHash,
-                vectorStoreId: cachedVectorStoreId,
-            });
-        }
-
-        if (!cachedVectorStoreId && knowledgeSources.length > 0 && options.onCacheMiss) {
+        if (knowledgeSources.length > 0 && options.onCacheMiss) {
             await options.onCacheMiss();
         }
 
-        const preparedKnowledgeSources =
-            !cachedVectorStoreId && knowledgeSources.length > 0
-                ? await resolveWebsiteKnowledgeSourcesForServer(knowledgeSources, { isVerbose: this.isVerbose })
-                : knowledgeSources;
+        if (knowledgeSources.length > 0 && options.agentId) {
+            await this.knowledgeSearchIndexManager.ensureKnowledgeIndexSnapshot({
+                agentPermanentId: options.agentId,
+                agentName: options.agentName,
+                knowledgeSources,
+            });
+        }
 
         if (this.isVerbose) {
             console.info('[🤰]', 'Preparing AgentKit agent via cache manager', {
                 agentName: options.agentName,
                 agentKitName,
                 instructionsLength: instructions.length,
-                knowledgeSourcesCount: preparedKnowledgeSources.length,
+                knowledgeSourcesCount: knowledgeSources.length,
                 toolsCount: tools?.length ?? 0,
             });
         }
@@ -268,23 +264,12 @@ export class AgentKitCacheManager {
         const preparedAgent = await options.baseTools.prepareAgentKitAgent({
             name: agentKitName,
             instructions,
-            knowledgeSources: preparedKnowledgeSources,
             tools,
-            vectorStoreId: cachedVectorStoreId ?? undefined,
         });
-
-        if (!cachedVectorStoreId && preparedAgent.vectorStoreId && vectorStoreHash) {
-            await this.vectorStoreCache.cacheVectorStore({
-                vectorStoreHash,
-                vectorStoreId: preparedAgent.vectorStoreId,
-                agentName: options.agentName,
-                knowledgeSources,
-            });
-        }
 
         return {
             preparedAgent,
-            fromCache: Boolean(cachedVectorStoreId),
+            fromCache: false,
             vectorStoreHash,
         };
     }

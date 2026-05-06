@@ -2,6 +2,7 @@ import { prepareToolCallsForStreaming } from '@/src/utils/toolCallStreaming';
 import type { ChatMessage, LlmToolDefinition, ToolCall } from '@promptbook-local/types';
 import type { ChatPromptResult } from '../../../../../src/execution/PromptResult';
 import { mergeToolCalls } from '../../../../../src/utils/toolCalls/mergeToolCalls';
+import { extractUsedKnowledgeSourcesFromToolCalls } from './extractUsedKnowledgeSourcesFromToolCalls';
 import { persistUserChatJobTerminalState } from './persistUserChatJobTerminalState';
 import { updateUserChatAssistantMessage } from './updateUserChatAssistantMessage';
 import { USER_CHAT_JOB_ASSISTANT_MESSAGE_PERSIST_INTERVAL_MS } from './userChatJobRuntimeConstants';
@@ -129,6 +130,7 @@ export function createRunUserChatJobPersistenceController(options: {
                 ...message,
                 content: latestContent,
                 ongoingToolCalls: latestToolCalls,
+                usedSources: extractUsedKnowledgeSourcesFromToolCalls(latestToolCalls),
                 lifecycleState: 'running',
                 lifecycleError: undefined,
                 isComplete: false,
@@ -236,6 +238,7 @@ export function createRunUserChatJobPersistenceController(options: {
                     ongoingToolCalls: undefined,
                     toolCalls: completedResponse.toolCalls ?? message.toolCalls,
                     completedToolCalls: completedResponse.toolCalls ?? message.completedToolCalls,
+                    usedSources: extractUsedKnowledgeSourcesFromToolCalls(completedResponse.toolCalls ?? message.toolCalls),
                     generationDurationMs: completedResponse.generationDurationMs,
                     prompt: options.createPromptSnapshot({
                         toolCalls: completedResponse.toolCalls,

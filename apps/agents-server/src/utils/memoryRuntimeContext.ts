@@ -106,6 +106,7 @@ function createMergedRuntimeContext(
 ): ToolRuntimeContext {
     return {
         ...existingRuntimeContext,
+        knowledge: createKnowledgeRuntimeContext(options, existingRuntimeContext),
         memory: createMemoryRuntimeContext(options, existingRuntimeContext),
         userLocation: resolveUserLocationRuntimeContext(
             preparedPromptParameters.normalizedBaseParameters,
@@ -125,6 +126,21 @@ function createMergedRuntimeContext(
             preparedPromptParameters.promptParametersForChatContext,
             existingRuntimeContext,
         ),
+    };
+}
+
+/**
+ * Resolves the knowledge-related runtime context shared with KNOWLEDGE tools.
+ */
+function createKnowledgeRuntimeContext(
+    options: ComposePromptParametersWithMemoryContextOptions,
+    existingRuntimeContext: ToolRuntimeContext,
+): NonNullable<ToolRuntimeContext['knowledge']> {
+    return {
+        ...(existingRuntimeContext.knowledge || {}),
+        enabled: Boolean(options.agentPermanentId),
+        agentId: options.agentPermanentId,
+        agentName: options.agentName,
     };
 }
 

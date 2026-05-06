@@ -1,5 +1,7 @@
 import { spaceTrim } from 'spacetrim';
+import type { string_javascript_name } from '../../_packages/types.index';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
+import type { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
 import type { string_knowledge_source_link } from '../../types/typeAliases';
 import { extractUrlsFromText } from '../../utils/validators/url/extractUrlsFromText';
 import {
@@ -7,6 +9,17 @@ import {
     createInlineKnowledgeSourceFile,
 } from '../../utils/knowledge/inlineKnowledgeSource';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
+import { createKnowledgeSystemMessage } from './createKnowledgeSystemMessage';
+import { createKnowledgeToolFunctions } from './createKnowledgeToolFunctions';
+import { createKnowledgeTools } from './createKnowledgeTools';
+
+export { setKnowledgeToolRuntimeAdapter } from './setKnowledgeToolRuntimeAdapter';
+export type {
+    KnowledgeToolRuntimeAdapter,
+    KnowledgeToolRuntimeContext,
+    KnowledgeToolSource,
+    SearchKnowledgeToolResult,
+} from './KnowledgeToolRuntimeAdapter';
 
 /**
  * KNOWLEDGE commitment definition
@@ -104,10 +117,12 @@ export class KnowledgeCommitmentDefinition extends BaseCommitmentDefinition<'KNO
             return requirements;
         }
 
+        const tools = createKnowledgeTools(requirements.tools);
         const extractedUrls = extractUrlsFromText(trimmedContent);
         const knowledgeSources = [...(requirements.knowledgeSources ?? [])];
         const existingKnowledgeSources = new Set(knowledgeSources);
-        const knowledgeInfoEntries: string[] = [];
+        const existingKnowledgeInfoEntries = ((requirements._metadata?.knowledgeInfoEntries as string[]) || []).slice();
+        const nextKnowledgeInfoEntries = [...existingKnowledgeInfoEntries];
 
         for (const url of extractedUrls) {
             if (existingKnowledgeSources.has(url)) {
@@ -116,14 +131,15 @@ export class KnowledgeCommitmentDefinition extends BaseCommitmentDefinition<'KNO
 
             knowledgeSources.push(url as string_knowledge_source_link);
             existingKnowledgeSources.add(url);
-            knowledgeInfoEntries.push(`Knowledge Source URL: ${url} (will be processed for retrieval during chat)`);
+            nextKnowledgeInfoEntries.push(`${url} (processed for retrieval during chat)`);
         }
 
         let nextRequirements: AgentModelRequirements =
-            knowledgeInfoEntries.length > 0
+            nextKnowledgeInfoEntries.length > existingKnowledgeInfoEntries.length || requirements.tools !== tools
                 ? {
                       ...requirements,
                       knowledgeSources,
+                      tools,
                   }
                 : requirements;
 
@@ -138,19 +154,46 @@ export class KnowledgeCommitmentDefinition extends BaseCommitmentDefinition<'KNO
                 _metadata: {
                     ...nextRequirements._metadata,
                     inlineKnowledgeSources: [...existingInlineSources, inlineSource],
+                    knowledgeInfoEntries: nextKnowledgeInfoEntries,
                 },
             };
 
-            knowledgeInfoEntries.push(
-                `Knowledge Source Inline: ${inlineSource.filename} (derived from inline content and processed for retrieval during chat)`,
-            );
+            nextKnowledgeInfoEntries.push(`${inlineSource.filename} (derived from inline content and processed for retrieval during chat)`);
+        } else {
+            nextRequirements = {
+                ...nextRequirements,
+                _metadata: {
+                    ...nextRequirements._metadata,
+                    knowledgeInfoEntries: nextKnowledgeInfoEntries,
+                },
+            };
         }
 
-        if (knowledgeInfoEntries.length === 0) {
+        if (nextKnowledgeInfoEntries.length === 0) {
             return nextRequirements;
         }
 
-        return this.appendToSystemMessage(nextRequirements, knowledgeInfoEntries.join('\n'), '\n\n');
+        return this.replaceOrCreateSection(
+            nextRequirements,
+            'Knowledge',
+            createKnowledgeSystemMessage(nextKnowledgeInfoEntries),
+        );
+    }
+
+    /**
+     * Gets human-readable titles for tool functions provided by this commitment.
+     */
+    getToolTitles(): Record<string_javascript_name, string> {
+        return {
+            knowledge_search: 'Knowledge search',
+        };
+    }
+
+    /**
+     * Gets KNOWLEDGE tool function implementations.
+     */
+    getToolFunctions(): Record<string_javascript_name, ToolFunction> {
+        return createKnowledgeToolFunctions();
     }
 }
 

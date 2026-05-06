@@ -64,6 +64,7 @@ import { mdSaveFormatDefinition } from '../book-components/Chat/save/markdown/md
 import { pdfSaveFormatDefinition } from '../book-components/Chat/save/pdf/pdfSaveFormatDefinition';
 import { reactSaveFormatDefinition } from '../book-components/Chat/save/react/reactSaveFormatDefinition';
 import { txtSaveFormatDefinition } from '../book-components/Chat/save/text/txtSaveFormatDefinition';
+import type { ChatMessageUsedSource } from '../book-components/Chat/types/ChatMessage';
 import type { ChatProgressItem } from '../book-components/Chat/types/ChatMessage';
 import type { ChatProgressCard } from '../book-components/Chat/types/ChatMessage';
 import type { ChatMessageReplyingTo } from '../book-components/Chat/types/ChatMessage';
@@ -152,6 +153,7 @@ export { mdSaveFormatDefinition };
 export { pdfSaveFormatDefinition };
 export { reactSaveFormatDefinition };
 export { txtSaveFormatDefinition };
+export type { ChatMessageUsedSource };
 export type { ChatProgressItem };
 export type { ChatProgressCard };
 export type { ChatMessageReplyingTo };

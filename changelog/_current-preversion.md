@@ -1,3 +1,11 @@
+-   Replaced Agents Server `KNOWLEDGE` search internals with a LlamaIndex-backed knowledge tool while keeping the agent-facing behavior and UI flow intact:
+
+    -   `KNOWLEDGE` now registers a dedicated `knowledge_search` tool plus explicit system-message guidance, instead of relying on OpenAI hosted file-search/vector-store tooling.
+    -   Agents Server now prepares and caches one serialized LlamaIndex snapshot per agent in the database, reusing existing knowledge-source hashing so documents are only re-indexed when their content changes.
+    -   Background agent preparation now wakes a dedicated internal worker route on Vercel, so knowledge indexing runs outside the editing request while durable chat still falls back safely if preparation has not finished yet.
+    -   Knowledge retrieval reuses the existing Promptbook scraping/website-resolution pipeline, so PDFs, uploaded files, websites, and inline `KNOWLEDGE` content keep working through the new indexer.
+    -   Used knowledge sources are now persisted on `ChatMessage.usedSources`, allowing chat history to keep the structured source records returned by knowledge-search tool calls.
+
 -   Refactored `BookEditorMonaco` internals to keep the component behavior unchanged while making the code easier to follow and maintain:
 
     -   Moved Monaco lifecycle wiring into a focused internal hook so editor mount, re-apply, focus, save-notification, and page lifecycle concerns are handled in one place.

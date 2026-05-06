@@ -196,6 +196,52 @@ export type AgentsServerDatabase = {
                 };
                 Relationships: [];
             };
+            KnowledgeIndexSnapshot: {
+                Row: {
+                    id: number;
+                    createdAt: string;
+                    updatedAt: string;
+                    agentPermanentId: string;
+                    knowledgeHash: string;
+                    knowledgeSources: Json;
+                    documentCount: number;
+                    documentStore: Json | null;
+                    indexStore: Json | null;
+                    vectorStore: Json | null;
+                };
+                Insert: {
+                    id?: number;
+                    createdAt?: string;
+                    updatedAt?: string;
+                    agentPermanentId: string;
+                    knowledgeHash: string;
+                    knowledgeSources?: Json;
+                    documentCount?: number;
+                    documentStore?: Json | null;
+                    indexStore?: Json | null;
+                    vectorStore?: Json | null;
+                };
+                Update: {
+                    id?: number;
+                    createdAt?: string;
+                    updatedAt?: string;
+                    agentPermanentId?: string;
+                    knowledgeHash?: string;
+                    knowledgeSources?: Json;
+                    documentCount?: number;
+                    documentStore?: Json | null;
+                    indexStore?: Json | null;
+                    vectorStore?: Json | null;
+                };
+                Relationships: [
+                    {
+                        foreignKeyName: 'KnowledgeIndexSnapshot_agentPermanentId_fkey';
+                        columns: ['agentPermanentId'];
+                        referencedRelation: 'Agent';
+                        referencedColumns: ['permanentId'];
+                    },
+                ];
+            };
             AgentFolder: {
                 Row: {
                     id: number;

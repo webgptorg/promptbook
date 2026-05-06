@@ -127,4 +127,62 @@ describe('persistUserChatJobTerminalState', () => {
             }).prompt,
         ).toBe(prompt);
     });
+
+    it('persists used knowledge sources extracted from knowledge-search tool calls', async () => {
+        updateUserChatAssistantMessageMock.mockResolvedValue({
+            id: 'chat-123',
+            userId: 3,
+            messages: [],
+        });
+
+        await persistUserChatJobTerminalState({
+            job: {
+                id: 'job-123',
+                userId: 3,
+                agentPermanentId: 'agent-123',
+                chatId: 'chat-123',
+                assistantMessageId: 'assistant-123',
+            },
+            status: 'COMPLETED',
+            toolCalls: [
+                {
+                    name: 'knowledge_search',
+                    result: {
+                        action: 'search',
+                        status: 'ok',
+                        query: 'pricing',
+                        sources: [
+                            {
+                                id: 'node-1',
+                                name: 'Product Handbook',
+                                url: 'https://example.com/handbook.pdf',
+                                excerpt: 'Pricing is billed monthly.',
+                                score: 0.91,
+                            },
+                        ],
+                    },
+                },
+            ],
+        });
+
+        const mutateMessage = (updateUserChatAssistantMessageMock.mock.calls[0]?.[0] as {
+            mutateMessage: (message: Record<string, unknown>) => Record<string, unknown>;
+        }).mutateMessage;
+
+        expect(
+            mutateMessage({
+                content: '',
+                isComplete: false,
+            }).usedSources,
+        ).toEqual([
+            {
+                id: 'node-1',
+                name: 'Product Handbook',
+                url: 'https://example.com/handbook.pdf',
+                excerpt: 'Pricing is billed monthly.',
+                score: 0.91,
+                toolName: 'knowledge_search',
+            },
+        ]);
+    });
 });

@@ -90,6 +90,11 @@ export type UserLocationRuntimeContext = {
  * @private internal runtime wiring for commitment tools
  */
 export type ToolRuntimeContext = {
+    knowledge?: {
+        enabled?: boolean;
+        agentId?: string;
+        agentName?: string;
+    };
     memory?: {
         enabled?: boolean;
         userId?: number;

@@ -1,5 +1,6 @@
 import type { ChatMessage, LlmToolDefinition, ToolCall } from '@promptbook-local/types';
 import { sendUserChatPushNotification } from '../sendUserChatPushNotification';
+import { extractUsedKnowledgeSourcesFromToolCalls } from './extractUsedKnowledgeSourcesFromToolCalls';
 import type { UserChatJobRecord } from './UserChatJobRecord';
 import { isUserChatNotFoundScopeError } from './UserChatScopeError';
 import { finalizeUserChatJob } from './finalizeUserChatJob';
@@ -44,6 +45,7 @@ export async function persistUserChatJobTerminalState(options: {
                 ongoingToolCalls: undefined,
                 toolCalls: options.toolCalls ?? message.toolCalls,
                 completedToolCalls: options.toolCalls ?? message.completedToolCalls,
+                usedSources: extractUsedKnowledgeSourcesFromToolCalls(options.toolCalls ?? message.toolCalls),
                 generationDurationMs: options.generationDurationMs ?? message.generationDurationMs,
                 progressCard: undefined,
                 availableTools: options.availableTools ?? message.availableTools,
