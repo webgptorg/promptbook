@@ -1,3 +1,8 @@
+-   Refactored `renderTimeoutToolCallDetails` internals to keep the timeout tool-call modal behavior unchanged while making the code easier to follow:
+
+    -   Moved timeout title, quick-action, timezone, and date-validation decisions into focused private helpers instead of keeping all branching inside the main renderer.
+    -   Added a small timeout detail view-model plus dedicated render helpers for the clock section, summary copy, and action row so each function now owns one clear responsibility.
+
 -   Replaced Agents Server `KNOWLEDGE` search internals with a LlamaIndex-backed knowledge tool while keeping the agent-facing behavior and UI flow intact:
 
     -   `KNOWLEDGE` now registers a dedicated `knowledge_search` tool plus explicit system-message guidance, instead of relying on OpenAI hosted file-search/vector-store tooling.
