@@ -1,3 +1,8 @@
+-   Refactored `MockedChat` internals to keep simulated chat playback behavior unchanged while making the simulation flow easier to follow and maintain:
+
+    -   Split the former `simulateChat` branching into focused private helpers for offset normalization, pause handling, inter-message delays, typed-message updates, and completion handling.
+    -   Kept reset, pause/resume, deterministic offsets, blocky playback, and local appended-message behavior unchanged while reducing the cognitive load inside `MockedChat.tsx`.
+
 -   Refactored `useChatInputAreaDictation` internals to keep chat dictation behavior unchanged while making the hook easier to follow and maintain:
 
     -   Split speech-recognition event handling, finalized transcript insertion, backtracking, correction application, and panel-visibility decisions into focused private helpers.

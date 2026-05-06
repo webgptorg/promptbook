@@ -1,5 +1,6 @@
 'use client';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { forTime } from 'waitasecond';
 import chatStyles from '../../Chat/Chat/Chat.module.css';
 import { PauseIcon } from '../../icons/PauseIcon';
@@ -124,6 +125,477 @@ export type MockedChatProps = Omit<
 };
 
 /**
+ * Resolved playback state for the mocked chat state machine.
+ *
+ * @private function of `MockedChat`
+ */
+type MockedChatPlaybackState = 'RUNNING' | 'PAUSING' | 'PAUSED';
+
+/**
+ * Fully resolved delay configuration used during playback.
+ *
+ * @private function of `MockedChat`
+ */
+type MockedChatResolvedDelayConfig = {
+    readonly beforeFirstMessage?: number | [number, number];
+    readonly thinkingBetweenMessages?: number | [number, number];
+    readonly waitAfterWord?: number | [number, number];
+    readonly extraWordDelay?: number | [number, number];
+    readonly longPauseChance?: number;
+    readonly longPauseDuration?: [number, number];
+    readonly blocky?: boolean;
+    readonly showIntermediateMessages?: number;
+};
+
+/**
+ * Shared setters used by the mocked playback helpers.
+ *
+ * @private function of `MockedChat`
+ */
+type MockedChatSimulationSetters = {
+    readonly setDisplayedMessages: Dispatch<SetStateAction<ReadonlyArray<ChatMessage>>>;
+    readonly setIsSimulationComplete: Dispatch<SetStateAction<boolean>>;
+    readonly setLocalAppendedMessages: Dispatch<SetStateAction<ReadonlyArray<ChatMessage>>>;
+    readonly setPlaybackState: Dispatch<SetStateAction<MockedChatPlaybackState>>;
+};
+
+/**
+ * Shared simulation inputs passed into the playback helpers.
+ *
+ * @private function of `MockedChat`
+ */
+type MockedChatSimulationContext = MockedChatSimulationSetters & {
+    readonly delays: MockedChatResolvedDelayConfig;
+    readonly normalizedMessageOffsetsMs: ReadonlyArray<number> | null;
+    readonly originalMessages: ReadonlyArray<ChatMessage>;
+    readonly onSimulationComplete?: () => void;
+    readonly pauseRequestedRef: MutableRefObject<boolean>;
+};
+
+/**
+ * Returns one random-or-fixed delay value from the configured range.
+ *
+ * @private function of `MockedChat`
+ */
+function getDelay(val: number | [number, number] | undefined, fallback: number): number {
+    if (Array.isArray(val) && val.length === 2) {
+        const [min, max] = val;
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    if (typeof val === 'number') {
+        return val;
+    }
+
+    return fallback;
+}
+
+/**
+ * Clamps and monotonic-normalizes optional deterministic message offsets.
+ *
+ * @private function of `MockedChat`
+ */
+function normalizeMessageOffsets(
+    messageOffsetsMs: ReadonlyArray<number> | undefined,
+    originalMessages: ReadonlyArray<ChatMessage>,
+): ReadonlyArray<number> | null {
+    if (!messageOffsetsMs || messageOffsetsMs.length === 0) {
+        return null;
+    }
+
+    let previousOffset = 0;
+    return originalMessages.map((_message, messageIndex) => {
+        const rawOffset = messageOffsetsMs[messageIndex];
+        const nextOffset = Number.isFinite(rawOffset) ? Math.max(0, Math.floor(rawOffset || 0)) : previousOffset;
+        previousOffset = Math.max(previousOffset, nextOffset);
+        return previousOffset;
+    });
+}
+
+/**
+ * Resolves the deterministic wait before the given message index.
+ *
+ * @private function of `MockedChat`
+ */
+function resolveOffsetDelayBeforeMessage(
+    normalizedMessageOffsetsMs: ReadonlyArray<number> | null,
+    messageIndex: number,
+): number {
+    if (!normalizedMessageOffsetsMs) {
+        return 0;
+    }
+
+    const currentOffset = normalizedMessageOffsetsMs[messageIndex] || 0;
+    const previousOffset = messageIndex > 0 ? normalizedMessageOffsetsMs[messageIndex - 1] || 0 : 0;
+    return Math.max(0, currentOffset - previousOffset);
+}
+
+/**
+ * Builds one displayed-message snapshot for the typing simulation.
+ *
+ * @private function of `MockedChat`
+ */
+function createDisplayedMessageSnapshot(
+    message: ChatMessage,
+    content: string,
+    isComplete: boolean,
+): ChatMessage {
+    return {
+        id: message.id,
+        createdAt: message.createdAt,
+        sender: message.sender,
+        content,
+        isComplete,
+        expectedAnswer: message.expectedAnswer,
+        isVoiceCall: message.isVoiceCall,
+    };
+}
+
+/**
+ * Replaces the last displayed message in state.
+ *
+ * @private function of `MockedChat`
+ */
+function replaceLastDisplayedMessage(
+    previousMessages: ReadonlyArray<ChatMessage>,
+    nextMessage: ChatMessage,
+): ReadonlyArray<ChatMessage> {
+    const nextMessages = [...previousMessages];
+    nextMessages[nextMessages.length - 1] = nextMessage;
+    return nextMessages;
+}
+
+/**
+ * Resets local playback-managed state before a new simulation run starts.
+ *
+ * @private function of `MockedChat`
+ */
+function resetSimulationState({
+    setDisplayedMessages,
+    setLocalAppendedMessages,
+    setIsSimulationComplete,
+}: Pick<
+    MockedChatSimulationSetters,
+    'setDisplayedMessages' | 'setLocalAppendedMessages' | 'setIsSimulationComplete'
+>) {
+    setDisplayedMessages([]);
+    setLocalAppendedMessages([]);
+    setIsSimulationComplete(false);
+}
+
+/**
+ * Marks the simulation as finished and fires the completion callback.
+ *
+ * @private function of `MockedChat`
+ */
+function completeSimulation({
+    setIsSimulationComplete,
+    onSimulationComplete,
+}: Pick<MockedChatSimulationContext, 'setIsSimulationComplete' | 'onSimulationComplete'>) {
+    setIsSimulationComplete(true);
+    onSimulationComplete?.();
+}
+
+/**
+ * Waits until playback is resumed when a pause was requested between messages.
+ *
+ * @private function of `MockedChat`
+ */
+async function waitIfPaused(params: {
+    readonly isCancelled: () => boolean;
+    readonly pauseRequestedRef: MutableRefObject<boolean>;
+    readonly setPlaybackState: Dispatch<SetStateAction<MockedChatPlaybackState>>;
+}) {
+    const { isCancelled, pauseRequestedRef, setPlaybackState } = params;
+
+    if (!pauseRequestedRef.current) {
+        return;
+    }
+
+    setPlaybackState('PAUSED');
+
+    while (pauseRequestedRef.current) {
+        if (isCancelled()) {
+            return;
+        }
+
+        await forTime(100);
+    }
+
+    setPlaybackState('RUNNING');
+}
+
+/**
+ * Returns how many initial messages should be shown immediately.
+ *
+ * @private function of `MockedChat`
+ */
+function getInitialVisibleMessageCount(delays: MockedChatResolvedDelayConfig): number {
+    return delays.showIntermediateMessages || 0;
+}
+
+/**
+ * Shows the configured leading messages immediately before playback starts typing.
+ *
+ * @private function of `MockedChat`
+ */
+function showInitialMessagesImmediately(params: {
+    readonly delays: MockedChatResolvedDelayConfig;
+    readonly originalMessages: ReadonlyArray<ChatMessage>;
+    readonly setDisplayedMessages: Dispatch<SetStateAction<ReadonlyArray<ChatMessage>>>;
+}) {
+    const { delays, originalMessages, setDisplayedMessages } = params;
+    const initialVisibleMessageCount = getInitialVisibleMessageCount(delays);
+
+    if (initialVisibleMessageCount > 0) {
+        setDisplayedMessages(originalMessages.slice(0, initialVisibleMessageCount));
+    }
+}
+
+/**
+ * Waits before rendering the first simulated message.
+ *
+ * @private function of `MockedChat`
+ */
+async function waitBeforeFirstRenderedMessage(params: {
+    readonly delays: MockedChatResolvedDelayConfig;
+    readonly isCancelled: () => boolean;
+    readonly normalizedMessageOffsetsMs: ReadonlyArray<number> | null;
+}) {
+    const { delays, isCancelled, normalizedMessageOffsetsMs } = params;
+    const firstMessageIndex = getInitialVisibleMessageCount(delays);
+    const initialDelay = normalizedMessageOffsetsMs
+        ? resolveOffsetDelayBeforeMessage(normalizedMessageOffsetsMs, firstMessageIndex)
+        : getDelay(delays.beforeFirstMessage, 1000);
+
+    if (initialDelay > 0) {
+        await forTime(initialDelay);
+    }
+
+    return !isCancelled();
+}
+
+/**
+ * Returns true when the next rendered message should use the configured long-pause branch.
+ *
+ * @private function of `MockedChat`
+ */
+function shouldUseLongPause(params: {
+    readonly delays: MockedChatResolvedDelayConfig;
+    readonly messageIndex: number;
+    readonly originalMessages: ReadonlyArray<ChatMessage>;
+}): boolean {
+    const { delays, messageIndex, originalMessages } = params;
+
+    return !!(
+        delays.longPauseChance &&
+        Math.random() < delays.longPauseChance &&
+        messageIndex > 0 &&
+        originalMessages[messageIndex]!.sender !== originalMessages[messageIndex - 1]!.sender
+    );
+}
+
+/**
+ * Waits between two rendered messages, using either deterministic offsets or heuristic delays.
+ *
+ * @private function of `MockedChat`
+ */
+async function waitBeforeMessage(params: {
+    readonly delays: MockedChatResolvedDelayConfig;
+    readonly isCancelled: () => boolean;
+    readonly messageIndex: number;
+    readonly normalizedMessageOffsetsMs: ReadonlyArray<number> | null;
+    readonly originalMessages: ReadonlyArray<ChatMessage>;
+}) {
+    const { delays, isCancelled, messageIndex, normalizedMessageOffsetsMs, originalMessages } = params;
+    const firstRenderedMessageIndex = getInitialVisibleMessageCount(delays);
+
+    if (messageIndex <= firstRenderedMessageIndex) {
+        return !isCancelled();
+    }
+
+    if (normalizedMessageOffsetsMs) {
+        const deterministicDelay = resolveOffsetDelayBeforeMessage(normalizedMessageOffsetsMs, messageIndex);
+
+        if (deterministicDelay > 0) {
+            await forTime(deterministicDelay);
+        }
+
+        return !isCancelled();
+    }
+
+    const nextDelay = shouldUseLongPause({ delays, messageIndex, originalMessages })
+        ? getDelay(delays.longPauseDuration, 2000)
+        : getDelay(delays.thinkingBetweenMessages, 2000);
+
+    await forTime(nextDelay);
+    return !isCancelled();
+}
+
+/**
+ * Types the current message either word-by-word or immediately in block mode.
+ *
+ * @private function of `MockedChat`
+ */
+async function typeMessage(params: {
+    readonly currentMessage: ChatMessage;
+    readonly delays: MockedChatResolvedDelayConfig;
+    readonly isCancelled: () => boolean;
+    readonly setDisplayedMessages: Dispatch<SetStateAction<ReadonlyArray<ChatMessage>>>;
+}) {
+    const { currentMessage, delays, isCancelled, setDisplayedMessages } = params;
+
+    setDisplayedMessages((previousMessages) => [
+        ...previousMessages,
+        createDisplayedMessageSnapshot(currentMessage, '', false),
+    ]);
+
+    if (delays.blocky) {
+        setDisplayedMessages((previousMessages) =>
+            replaceLastDisplayedMessage(previousMessages, createDisplayedMessageSnapshot(currentMessage, currentMessage.content, true)),
+        );
+        return !isCancelled();
+    }
+
+    const words = currentMessage.content.split(' ');
+    let currentContent = '';
+
+    for (const [wordIndex, word] of words.entries()) {
+        if (isCancelled()) {
+            return false;
+        }
+
+        currentContent += (wordIndex > 0 ? ' ' : '') + word;
+
+        setDisplayedMessages((previousMessages) =>
+            replaceLastDisplayedMessage(
+                previousMessages,
+                createDisplayedMessageSnapshot(currentMessage, currentContent, false),
+            ),
+        );
+
+        await forTime(getDelay(delays.waitAfterWord, 100) + getDelay(delays.extraWordDelay, 50));
+    }
+
+    if (isCancelled()) {
+        return false;
+    }
+
+    setDisplayedMessages((previousMessages) =>
+        replaceLastDisplayedMessage(previousMessages, createDisplayedMessageSnapshot(currentMessage, currentMessage.content, true)),
+    );
+
+    return !isCancelled();
+}
+
+/**
+ * Applies the small post-message pause used by heuristic playback mode.
+ *
+ * @private function of `MockedChat`
+ */
+async function waitAfterTypedMessage(params: {
+    readonly isCancelled: () => boolean;
+    readonly normalizedMessageOffsetsMs: ReadonlyArray<number> | null;
+}) {
+    const { isCancelled, normalizedMessageOffsetsMs } = params;
+
+    if (normalizedMessageOffsetsMs) {
+        return !isCancelled();
+    }
+
+    await forTime(200);
+    return !isCancelled();
+}
+
+/**
+ * Runs one full mocked-chat simulation pass.
+ *
+ * @private function of `MockedChat`
+ */
+async function simulateChat(
+    context: MockedChatSimulationContext,
+    isCancelled: () => boolean,
+): Promise<void> {
+    const {
+        delays,
+        normalizedMessageOffsetsMs,
+        onSimulationComplete,
+        originalMessages,
+        pauseRequestedRef,
+        setDisplayedMessages,
+        setIsSimulationComplete,
+        setLocalAppendedMessages,
+        setPlaybackState,
+    } = context;
+
+    resetSimulationState({ setDisplayedMessages, setLocalAppendedMessages, setIsSimulationComplete });
+
+    if (originalMessages.length === 0) {
+        completeSimulation({ setIsSimulationComplete, onSimulationComplete });
+        return;
+    }
+
+    showInitialMessagesImmediately({ delays, originalMessages, setDisplayedMessages });
+
+    if (!(await waitBeforeFirstRenderedMessage({ delays, isCancelled, normalizedMessageOffsetsMs }))) {
+        return;
+    }
+
+    for (let messageIndex = getInitialVisibleMessageCount(delays); messageIndex < originalMessages.length; messageIndex++) {
+        if (pauseRequestedRef.current) {
+            await waitIfPaused({ isCancelled, pauseRequestedRef, setPlaybackState });
+            if (isCancelled()) {
+                return;
+            }
+        }
+
+        const currentMessage = originalMessages[messageIndex];
+        if (!currentMessage) {
+            continue;
+        }
+
+        if (
+            !(await waitBeforeMessage({
+                delays,
+                isCancelled,
+                messageIndex,
+                normalizedMessageOffsetsMs,
+                originalMessages,
+            }))
+        ) {
+            return;
+        }
+
+        if (pauseRequestedRef.current) {
+            await waitIfPaused({ isCancelled, pauseRequestedRef, setPlaybackState });
+            if (isCancelled()) {
+                return;
+            }
+        }
+
+        if (!(await typeMessage({ currentMessage, delays, isCancelled, setDisplayedMessages }))) {
+            return;
+        }
+
+        if (!(await waitAfterTypedMessage({ isCancelled, normalizedMessageOffsetsMs }))) {
+            return;
+        }
+    }
+
+    completeSimulation({ setIsSimulationComplete, onSimulationComplete });
+}
+
+/**
+ * Returns the local sender name for appended UI-only messages.
+ *
+ * @private function of `MockedChat`
+ */
+function getLocalSenderName(participants: ChatProps['participants']): ChatMessage['sender'] {
+    const senderName = participants?.find((participant) => participant.isMe)?.name;
+    return senderName === undefined ? 'USER' : String(senderName);
+}
+
+/**
  * MockedChat component that shows the same chat as Chat but emulates ongoing discussion
  * with realistic typing delays and thinking pauses.
  *
@@ -142,43 +614,36 @@ export function MockedChat(props: MockedChatProps) {
         ...chatProps
     } = props;
 
-    // Helper to get random delay from config
-    function getDelay(val: number | [number, number] | undefined, fallback: number): number {
-        if (Array.isArray(val) && val.length === 2) {
-            const [min, max] = val;
-            return Math.floor(Math.random() * (max - min + 1)) + min;
-        }
-        if (typeof val === 'number') return val;
-        return fallback;
-    }
-
-    const delays = {
-        ...MOCKED_CHAT_DELAY_CONFIGS.NORMAL_FLOW,
-        ...delayConfig,
-    };
+    const delays = useMemo<MockedChatResolvedDelayConfig>(
+        () => ({
+            ...MOCKED_CHAT_DELAY_CONFIGS.NORMAL_FLOW,
+            ...delayConfig,
+        }),
+        [
+            delayConfig?.beforeFirstMessage,
+            delayConfig?.thinkingBetweenMessages,
+            delayConfig?.waitAfterWord,
+            delayConfig?.extraWordDelay,
+            delayConfig?.longPauseChance,
+            delayConfig?.longPauseDuration,
+            delayConfig?.blocky,
+            delayConfig?.showIntermediateMessages,
+        ],
+    );
 
     const [displayedMessages, setDisplayedMessages] = useState<ReadonlyArray<ChatMessage>>([]);
     const [localAppendedMessages, setLocalAppendedMessages] = useState<ReadonlyArray<ChatMessage>>([]);
     const [isSimulationComplete, setIsSimulationComplete] = useState(false);
 
-    const normalizedMessageOffsetsMs = useMemo(() => {
-        if (!messageOffsetsMs || messageOffsetsMs.length === 0) {
-            return null;
-        }
-
-        let previousOffset = 0;
-        return originalMessages.map((_message, messageIndex) => {
-            const rawOffset = messageOffsetsMs[messageIndex];
-            const nextOffset = Number.isFinite(rawOffset) ? Math.max(0, Math.floor(rawOffset || 0)) : previousOffset;
-            previousOffset = Math.max(previousOffset, nextOffset);
-            return previousOffset;
-        });
-    }, [messageOffsetsMs, originalMessages]);
+    const normalizedMessageOffsetsMs = useMemo(
+        () => normalizeMessageOffsets(messageOffsetsMs, originalMessages),
+        [messageOffsetsMs, originalMessages],
+    );
 
     // Playback state machine
     // RUNNING -> (user clicks Pause) -> PAUSING (finish current message) -> PAUSED
     // PAUSED -> (user clicks Resume) -> RUNNING
-    const [playbackState, setPlaybackState] = useState<'RUNNING' | 'PAUSING' | 'PAUSED'>('RUNNING');
+    const [playbackState, setPlaybackState] = useState<MockedChatPlaybackState>('RUNNING');
     const pauseRequestedRef = useRef(false);
     const onSimulationCompleteRef = useRef(onSimulationComplete);
 
@@ -198,25 +663,11 @@ export function MockedChat(props: MockedChatProps) {
             setIsSimulationComplete(false);
             setResetNonce((nonce) => nonce + 1);
         };
-    }, [resetNonce, isResettable]);
-
-    // Helper: Wait while paused (entered only between messages, never mid-typing)
-    const waitIfPaused = async (isCancelledRef: () => boolean) => {
-        if (!pauseRequestedRef.current) return;
-        setPlaybackState('PAUSED');
-        // Busy wait with small sleeps until resume
-        while (pauseRequestedRef.current) {
-            if (isCancelledRef()) return;
-            await forTime(100);
-        }
-        // Resumed
-        setPlaybackState('RUNNING');
-    };
+    }, [isResettable]);
 
     const requestPause = () => {
         if (playbackState === 'RUNNING') {
             pauseRequestedRef.current = true;
-            // Will flip to PAUSING when current message completes
             setPlaybackState('PAUSING');
         }
     };
@@ -224,192 +675,34 @@ export function MockedChat(props: MockedChatProps) {
     const resume = () => {
         pauseRequestedRef.current = false;
         if (playbackState !== 'RUNNING') {
-            // Actual state will become RUNNING after loop exits waitIfPaused
             setPlaybackState('RUNNING');
         }
     };
 
-    /**
-     * Resolves deterministic waiting time before one message when fixed offsets are supplied.
-     */
-    const resolveOffsetDelayBeforeMessage = useCallback(
-        (messageIndex: number): number => {
-            if (!normalizedMessageOffsetsMs) {
-                return 0;
-            }
-
-            const currentOffset = normalizedMessageOffsetsMs[messageIndex] || 0;
-            const previousOffset = messageIndex > 0 ? normalizedMessageOffsetsMs[messageIndex - 1] || 0 : 0;
-            return Math.max(0, currentOffset - previousOffset);
-        },
-        [normalizedMessageOffsetsMs],
-    );
-
     useEffect(() => {
         let isCancelled = false;
 
-        const simulateChat = async () => {
-            // Reset state
-            setDisplayedMessages([]);
-            setLocalAppendedMessages([]);
-            setIsSimulationComplete(false);
-
-            if (originalMessages.length === 0) {
-                setIsSimulationComplete(true);
-                onSimulationCompleteRef.current?.();
-                return;
-            }
-
-            // Show intermediate messages immediately
-            const showIntermediateMessages = delays.showIntermediateMessages || 0;
-            if (showIntermediateMessages > 0) {
-                setDisplayedMessages(originalMessages.slice(0, showIntermediateMessages));
-            }
-
-            // Wait before first rendered message.
-            const firstMessageIndex = showIntermediateMessages;
-            const initialDelay = normalizedMessageOffsetsMs
-                ? resolveOffsetDelayBeforeMessage(firstMessageIndex)
-                : getDelay(delays.beforeFirstMessage, 1000);
-            if (initialDelay > 0) {
-                await forTime(initialDelay);
-            }
-            if (isCancelled) return;
-
-            for (let i = showIntermediateMessages; i < originalMessages.length; i++) {
-                // If a pause was requested earlier, we only pause between messages
-                if (pauseRequestedRef.current) {
-                    await waitIfPaused(() => isCancelled);
-                    if (isCancelled) return;
-                }
-                if (isCancelled) return;
-
-                const currentMessage = originalMessages[i];
-                if (!currentMessage) continue;
-
-                // Add delay between rendered messages.
-                if (i > showIntermediateMessages) {
-                    if (normalizedMessageOffsetsMs) {
-                        const deterministicDelay = resolveOffsetDelayBeforeMessage(i);
-                        if (deterministicDelay > 0) {
-                            await forTime(deterministicDelay);
-                            if (isCancelled) return;
-                        }
-                    } else {
-                        // Sometimes do a longer pause (agent switch or random)
-                        let didLongPause = false;
-                        if (
-                            delays.longPauseChance &&
-                            Math.random() < delays.longPauseChance &&
-                            i > 0 &&
-                            originalMessages[i]!.sender !== originalMessages[i - 1]!.sender
-                        ) {
-                            await forTime(getDelay(delays.longPauseDuration, 2000));
-                            didLongPause = true;
-                            if (isCancelled) return;
-                        }
-                        // Otherwise normal thinking delay
-                        if (!didLongPause) {
-                            await forTime(getDelay(delays.thinkingBetweenMessages, 2000));
-                            if (isCancelled) return;
-                        }
-                    }
-                    // Pause check (still between messages)
-                    if (pauseRequestedRef.current) {
-                        await waitIfPaused(() => isCancelled);
-                        if (isCancelled) return;
-                    }
-                }
-
-                // Show incomplete message first (for typing effect)
-                const incompleteMessage: ChatMessage = {
-                    // channel: 'PROMPTBOOK_CHAT',
-                    id: currentMessage.id,
-                    createdAt: currentMessage.createdAt,
-                    sender: currentMessage.sender,
-                    content: '',
-                    isComplete: false,
-                    expectedAnswer: currentMessage.expectedAnswer,
-                    isVoiceCall: currentMessage.isVoiceCall,
-                };
-
-                setDisplayedMessages((prev) => [...prev, incompleteMessage]);
-
-                // Split message content into words
-                const words = currentMessage.content.split(' ');
-                let currentContent = '';
-
-                // Type each word with delay (randomized)
-                for (let wordIndex = 0; wordIndex < words.length; wordIndex++) {
-                    if (isCancelled) return;
-
-                    const word = words[wordIndex];
-                    currentContent += (wordIndex > 0 ? ' ' : '') + word;
-
-                    // Update the message with current content
-                    const updatingMessage: ChatMessage = {
-                        // channel: 'PROMPTBOOK_CHAT',
-                        id: currentMessage.id,
-                        createdAt: currentMessage.createdAt,
-                        sender: currentMessage.sender,
-                        content: currentContent,
-                        isComplete: false,
-                        expectedAnswer: currentMessage.expectedAnswer,
-                        isVoiceCall: currentMessage.isVoiceCall,
-                    };
-
-                    setDisplayedMessages((prev) => {
-                        const newMessages = [...prev];
-                        newMessages[newMessages.length - 1] = updatingMessage;
-                        return newMessages;
-                    });
-
-                    // Wait after word with extra delay (randomized)
-                    await forTime(getDelay(delays.waitAfterWord, 100) + getDelay(delays.extraWordDelay, 50));
-                    if (isCancelled) return;
-                }
-
-                // Mark message as complete
-                const completeMessage: ChatMessage = {
-                    // channel: 'PROMPTBOOK_CHAT',
-                    id: currentMessage.id,
-                    createdAt: currentMessage.createdAt,
-                    sender: currentMessage.sender,
-                    content: currentMessage.content,
-                    isComplete: true,
-                    expectedAnswer: currentMessage.expectedAnswer,
-                    isVoiceCall: currentMessage.isVoiceCall,
-                };
-
-                setDisplayedMessages((prev) => {
-                    const newMessages = [...prev];
-                    newMessages[newMessages.length - 1] = completeMessage;
-                    return newMessages;
-                });
-
-                if (!normalizedMessageOffsetsMs) {
-                    // Small pause after completing the message
-                    await forTime(200);
-                    if (isCancelled) return;
-                }
-
-                // Transition PAUSING -> PAUSED (after finishing current message)
-                if (pauseRequestedRef.current && playbackState === 'PAUSING') {
-                    // Will block further messages
-                }
-            }
-
-            setIsSimulationComplete(true);
-            onSimulationCompleteRef.current?.();
-        };
-
-        simulateChat().catch((error) => {
+        simulateChat(
+            {
+                delays,
+                normalizedMessageOffsetsMs,
+                originalMessages,
+                onSimulationComplete: () => onSimulationCompleteRef.current?.(),
+                pauseRequestedRef,
+                setDisplayedMessages,
+                setIsSimulationComplete,
+                setLocalAppendedMessages,
+                setPlaybackState,
+            },
+            () => isCancelled,
+        ).catch((error) => {
             if (!isCancelled) {
                 console.error('Error in MockedChat simulation:', error);
-                // Fallback to showing all messages immediately
                 setDisplayedMessages(originalMessages);
-                setIsSimulationComplete(true);
-                onSimulationCompleteRef.current?.();
+                completeSimulation({
+                    setIsSimulationComplete,
+                    onSimulationComplete: onSimulationCompleteRef.current,
+                });
             }
         });
 
@@ -418,12 +711,8 @@ export function MockedChat(props: MockedChatProps) {
         };
     }, [
         originalMessages,
+        delays,
         normalizedMessageOffsetsMs,
-        delays.beforeFirstMessage,
-        delays.thinkingBetweenMessages,
-        delays.waitAfterWord,
-        delays.extraWordDelay,
-        resolveOffsetDelayBeforeMessage,
         resetNonce,
     ]);
 
@@ -440,10 +729,9 @@ export function MockedChat(props: MockedChatProps) {
         return async (messageContent: string) => {
             const trimmedContent = messageContent.trim();
             if (appendMessagesLocallyOnSend && trimmedContent.length > 0) {
-                const sender = chatProps.participants?.find((participant) => participant.isMe)?.name || 'USER';
                 const localMessage: ChatMessage = {
                     id: `local-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
-                    sender,
+                    sender: getLocalSenderName(chatProps.participants),
                     content: trimmedContent,
                     isComplete: true,
                     createdAt: new Date().toISOString() as ChatMessage['createdAt'],
