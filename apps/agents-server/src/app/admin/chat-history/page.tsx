@@ -1,5 +1,5 @@
 import { ForbiddenPage } from '../../../components/ForbiddenPage/ForbiddenPage';
-import { getCurrentUser } from '../../../utils/getCurrentUser';
+import { getCurrentUser, isUserAdmin } from '../../../utils/getCurrentUser';
 import { ChatHistoryClient } from './ChatHistoryClient';
 
 /**
@@ -17,7 +17,7 @@ type AdminChatHistoryPageProps = {
 export default async function AdminChatHistoryPage({ searchParams }: AdminChatHistoryPageProps) {
     const currentUser = await getCurrentUser();
 
-    if (!currentUser) {
+    if (!currentUser || !(await isUserAdmin(currentUser))) {
         return <ForbiddenPage />;
     }
 
