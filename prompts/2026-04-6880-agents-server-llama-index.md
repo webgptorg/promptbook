@@ -1,4 +1,8 @@
-[x] ~$0.00 2 hours by GitHub Copilot `gpt-5.4`
+[x] ~$0.00 2 hours by GitHub Copilot `gpt-5.4` - Is it done?!
+
+---
+
+[ ]
 
 [✨🚡] Do the knowledge search with LlamaIndex Framework not with OpenAI native vector store
 
