@@ -149,9 +149,7 @@ function normalizeSdkTranspilerModelRequirements(
  * @returns System message without the runtime-only knowledge-search section.
  */
 function removeKnowledgeSearchSystemSection(systemMessage: string): string {
-    return systemMessage
-        .replace(/(?:^|\n\n)## Knowledge Search[\s\S]*?(?=\n\n##|$)/, '')
-        .trim();
+    return systemMessage.replace(/(?:^|\n\n)## Knowledge Search[\s\S]*?(?=\n\n##|$)/, '').trim();
 }
 
 /**

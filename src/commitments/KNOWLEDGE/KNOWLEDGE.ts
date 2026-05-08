@@ -210,7 +210,10 @@ function addKnowledgeSearchToolAndSystemSection(requirements: AgentModelRequirem
             ...nextRequirements,
             systemMessage: nextRequirements.systemMessage.replace(
                 new RegExp(
-                    `## ${KNOWLEDGE_SEARCH_SYSTEM_SECTION_TITLE.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[\\s\\S]*?(?=\\n\\n##|$)`,
+                    `## ${KNOWLEDGE_SEARCH_SYSTEM_SECTION_TITLE.replace(
+                        /[.*+?^${}()|[\]\\]/g,
+                        '\\$&',
+                    )}[\\s\\S]*?(?=\\n\\n##|$)`,
                 ),
                 section,
             ),

@@ -341,9 +341,7 @@ export const ChatMessageItem = memo(
         );
         const structuredSourceCitations = useMemo(() => {
             const footnoteSourceKeys = new Set(
-                citationFootnoteRenderModel.footnotes.map((footnote) =>
-                    footnote.citation.source.trim().toLowerCase(),
-                ),
+                citationFootnoteRenderModel.footnotes.map((footnote) => footnote.citation.source.trim().toLowerCase()),
             );
 
             return (message.sources || []).filter((source) => {
