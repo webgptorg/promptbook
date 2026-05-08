@@ -7,12 +7,14 @@ import type { ToolFunction } from '../../../../src/scripting/javascript/Javascri
 import { getAllCommitmentsToolFunctionsForNode } from '../../../../src/commitments/_common/getAllCommitmentsToolFunctionsForNode';
 import { agent_progress } from './agent_progress';
 import { createChatAttachmentToolFunctions } from './createChatAttachmentToolFunctions';
+import { KNOWLEDGE_SEARCH_TOOL_FUNCTIONS } from './knowledge_search';
 
 /**
  * Static tool functions added by the Agents Server on top of commitment-provided tools.
  */
 const SERVER_TOOL_FUNCTIONS: CommitmentToolFunctions = {
     ...createChatAttachmentToolFunctions(),
+    ...KNOWLEDGE_SEARCH_TOOL_FUNCTIONS,
     agent_progress,
 };
 

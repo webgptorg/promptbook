@@ -26,14 +26,9 @@ export type AgentKitPreparedCacheEntry = {
     readonly preparedAgent: Awaited<ReturnType<OpenAiAgentKitExecutionTools['prepareAgentKitAgent']>>;
 
     /**
-     * Whether the initial preparation reused a durable vector-store cache entry.
+     * Whether the prepared AgentKit agent came from the in-memory cache.
      */
     readonly fromCache: boolean;
-
-    /**
-     * Vector store hash used for the prepared agent.
-     */
-    readonly vectorStoreHash: string | null;
 };
 
 /**

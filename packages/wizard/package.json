@@ -115,6 +115,7 @@
         "dotenv": "16.3.2",
         "jsdom": "25.0.1",
         "jszip": "3.10.1",
+        "llamaindex": "0.12.1",
         "markitdown-ts": "0.0.10",
         "moment": "2.30.1",
         "openai": "6.18.0",

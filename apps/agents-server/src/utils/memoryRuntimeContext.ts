@@ -54,6 +54,7 @@ export type ComposePromptParametersWithMemoryContextOptions = {
     chatAttachments?: ReadonlyArray<ChatAttachment>;
     localServerUrl?: string;
     teamInternalAccessToken?: string | null;
+    knowledgeSources?: ReadonlyArray<string>;
 };
 
 /**
@@ -119,6 +120,7 @@ function createMergedRuntimeContext(
         email: createEmailRuntimeContext(options, existingRuntimeContext),
         calendars: createCalendarsRuntimeContext(options, existingRuntimeContext),
         agentsServer: createAgentsServerRuntimeContext(options, existingRuntimeContext),
+        knowledge: createKnowledgeRuntimeContext(options, existingRuntimeContext),
         spawn: createSpawnRuntimeContext(options.agentPermanentId, existingRuntimeContext),
         chat: createChatRuntimeContext(
             options,
@@ -244,6 +246,25 @@ function createAgentsServerRuntimeContext(
 }
 
 /**
+ * Resolves knowledge-source metadata used by `knowledge_search`.
+ */
+function createKnowledgeRuntimeContext(
+    options: ComposePromptParametersWithMemoryContextOptions,
+    existingRuntimeContext: ToolRuntimeContext,
+): ToolRuntimeContext['knowledge'] {
+    const sources = resolveKnowledgeSources(options.knowledgeSources, existingRuntimeContext);
+
+    if (sources.length === 0) {
+        return existingRuntimeContext.knowledge;
+    }
+
+    return {
+        ...(existingRuntimeContext.knowledge || {}),
+        sources,
+    };
+}
+
+/**
  * Resolves the spawn metadata carried into nested agent/tool executions.
  */
 function createSpawnRuntimeContext(
@@ -322,6 +343,18 @@ function resolveProjectGithubToken(
     );
 
     return normalizeOptionalText(projectGithubToken) || projectGithubTokenFromPrompt;
+}
+
+/**
+ * Resolves materialized knowledge sources from explicit options or the existing runtime context.
+ */
+function resolveKnowledgeSources(
+    knowledgeSources: ComposePromptParametersWithMemoryContextOptions['knowledgeSources'],
+    existingRuntimeContext: ToolRuntimeContext,
+): string[] {
+    return knowledgeSources === undefined
+        ? normalizeKnowledgeSources(existingRuntimeContext.knowledge?.sources)
+        : normalizeKnowledgeSources(knowledgeSources);
 }
 
 /**
@@ -412,6 +445,34 @@ function excludeInternalRuntimeParameters(parameters: Record<string, string>): R
 function excludeToolRuntimeContextParameter(parameters: Record<string, string>): Record<string, string> {
     const filteredEntries = Object.entries(parameters).filter(([key]) => key !== TOOL_RUNTIME_CONTEXT_PARAMETER);
     return Object.fromEntries(filteredEntries);
+}
+
+/**
+ * Normalizes configured knowledge sources while preserving declaration order.
+ */
+function normalizeKnowledgeSources(rawSources: unknown): string[] {
+    if (!Array.isArray(rawSources)) {
+        return [];
+    }
+
+    const sources: string[] = [];
+    const seenSources = new Set<string>();
+
+    for (const rawSource of rawSources) {
+        if (typeof rawSource !== 'string') {
+            continue;
+        }
+
+        const source = rawSource.trim();
+        if (!source || seenSources.has(source)) {
+            continue;
+        }
+
+        sources.push(source);
+        seenSources.add(source);
+    }
+
+    return sources;
 }
 
 /**

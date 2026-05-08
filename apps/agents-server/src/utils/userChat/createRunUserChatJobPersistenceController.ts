@@ -2,6 +2,7 @@ import { prepareToolCallsForStreaming } from '@/src/utils/toolCallStreaming';
 import type { ChatMessage, LlmToolDefinition, ToolCall } from '@promptbook-local/types';
 import type { ChatPromptResult } from '../../../../../src/execution/PromptResult';
 import { mergeToolCalls } from '../../../../../src/utils/toolCalls/mergeToolCalls';
+import { applyKnowledgeSourcesToChatMessage } from '../knowledgeIndex/extractKnowledgeSourcesFromToolCalls';
 import { persistUserChatJobTerminalState } from './persistUserChatJobTerminalState';
 import { updateUserChatAssistantMessage } from './updateUserChatAssistantMessage';
 import { USER_CHAT_JOB_ASSISTANT_MESSAGE_PERSIST_INTERVAL_MS } from './userChatJobRuntimeConstants';
@@ -227,23 +228,28 @@ export function createRunUserChatJobPersistenceController(options: {
             generationDurationMs: number;
         }): Promise<void> => {
             if (options.runState.hasQueuedCompletedPersistence) {
-                queueAssistantMessageUpdate((message) => ({
-                    ...message,
-                    content: completedResponse.content,
-                    isComplete: true,
-                    lifecycleState: 'completed',
-                    lifecycleError: undefined,
-                    ongoingToolCalls: undefined,
-                    toolCalls: completedResponse.toolCalls ?? message.toolCalls,
-                    completedToolCalls: completedResponse.toolCalls ?? message.completedToolCalls,
-                    generationDurationMs: completedResponse.generationDurationMs,
-                    prompt: options.createPromptSnapshot({
-                        toolCalls: completedResponse.toolCalls,
-                        completedToolCalls: completedResponse.toolCalls,
-                        rawPromptContent: completedResponse.rawPromptContent,
-                        rawRequest: completedResponse.rawRequest,
-                    }),
-                }));
+                queueAssistantMessageUpdate((message) =>
+                    applyKnowledgeSourcesToChatMessage(
+                        {
+                            ...message,
+                            content: completedResponse.content,
+                            isComplete: true,
+                            lifecycleState: 'completed',
+                            lifecycleError: undefined,
+                            ongoingToolCalls: undefined,
+                            toolCalls: completedResponse.toolCalls ?? message.toolCalls,
+                            completedToolCalls: completedResponse.toolCalls ?? message.completedToolCalls,
+                            generationDurationMs: completedResponse.generationDurationMs,
+                            prompt: options.createPromptSnapshot({
+                                toolCalls: completedResponse.toolCalls,
+                                completedToolCalls: completedResponse.toolCalls,
+                                rawPromptContent: completedResponse.rawPromptContent,
+                                rawRequest: completedResponse.rawRequest,
+                            }),
+                        },
+                        completedResponse.toolCalls ?? message.toolCalls,
+                    ),
+                );
                 await persistQueue;
                 return;
             }

@@ -77,6 +77,41 @@ export type ChatProgressCard = {
 };
 
 /**
+ * Source used by an assistant message.
+ *
+ * This is used for knowledge-search results and other RAG systems that can
+ * attach structured source metadata independently of inline citation markers.
+ *
+ * @public exported from `@promptbook/components`
+ */
+export type ChatMessageSource = {
+    /**
+     * The unique identifier for the source citation (e.g., "0:0")
+     */
+    readonly id: string;
+
+    /**
+     * The source document name (e.g., "document.pdf")
+     */
+    readonly source: string;
+
+    /**
+     * Optional URL to the source document
+     */
+    readonly url?: string;
+
+    /**
+     * Optional preview/excerpt from the source
+     */
+    readonly excerpt?: string;
+
+    /**
+     * Optional retrieval score.
+     */
+    readonly score?: number;
+};
+
+/**
  * Serialized reference to an earlier chat message quoted by a reply bubble.
  *
  * Stores the durable relationship (`threadId` + `messageId`) together with a
@@ -310,6 +345,11 @@ export type ChatMessage = Omit<Message<id>, 'direction' | 'recipients' | 'thread
          */
         excerpt?: string;
     }>;
+
+    /**
+     * Optional structured sources used to produce this message.
+     */
+    readonly sources?: ReadonlyArray<ChatMessageSource>;
 
     /**
      * Optional structured progress-card payload shown while a response is still in progress.

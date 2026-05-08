@@ -682,7 +682,7 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
 
         let vectorStoreId = cachedVectorStoreId;
 
-        if (!vectorStoreId && knowledgeSources && knowledgeSources.length > 0) {
+        if (this.isNativeKnowledgeSearchEnabled && !vectorStoreId && knowledgeSources && knowledgeSources.length > 0) {
             const vectorStoreResult = await this.createVectorStoreWithKnowledgeSources({
                 client: await this.getClient(),
                 name,
@@ -690,14 +690,21 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
                 logLabel: 'agentkit preparation',
             });
             vectorStoreId = vectorStoreResult.vectorStoreId;
-        } else if (vectorStoreId && this.options.isVerbose) {
+        } else if (this.isNativeKnowledgeSearchEnabled && vectorStoreId && this.options.isVerbose) {
             console.info('[🤰]', 'Using cached vector store for AgentKit agent', {
                 name,
                 vectorStoreId,
             });
         }
 
-        const agentKitTools = this.buildAgentKitTools({ tools, vectorStoreId });
+        if (!this.isNativeKnowledgeSearchEnabled) {
+            vectorStoreId = undefined;
+        }
+
+        const agentKitTools = this.buildAgentKitTools({
+            tools,
+            vectorStoreId,
+        });
         const openAiAgentKitAgent = new AgentFromKit({
             name,
             model: this.agentKitModelName,
@@ -719,7 +726,7 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
                 name,
                 model: this.agentKitModelName,
                 toolCount: agentKitTools.length,
-                hasVectorStore: Boolean(vectorStoreId),
+                hasVectorStore: this.isNativeKnowledgeSearchEnabled && Boolean(vectorStoreId),
             });
         }
 
@@ -1320,6 +1327,13 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
      */
     private get agentKitOptions(): OpenAiAgentKitExecutionToolsOptions {
         return this.options as OpenAiAgentKitExecutionToolsOptions;
+    }
+
+    /**
+     * Returns true when hosted OpenAI vector-store search should back `knowledgeSources`.
+     */
+    private get isNativeKnowledgeSearchEnabled(): boolean {
+        return this.agentKitOptions.isNativeKnowledgeSearchEnabled !== false;
     }
 
     /**

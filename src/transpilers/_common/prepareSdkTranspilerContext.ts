@@ -4,6 +4,7 @@ import { parseAgentSource } from '../../book-2.0/agent-source/parseAgentSource';
 import { parseAgentSourceWithCommitments } from '../../book-2.0/agent-source/parseAgentSourceWithCommitments';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import { getAllCommitmentDefinitions } from '../../commitments/_common/getAllCommitmentDefinitions';
+import { KNOWLEDGE_SEARCH_TOOL_NAME } from '../../commitments/KNOWLEDGE/KNOWLEDGE';
 import type { LlmToolDefinition } from '../../types/LlmToolDefinition';
 import type { BookTranspilerOptions } from './BookTranspilerOptions';
 import {
@@ -74,7 +75,7 @@ export async function prepareSdkTranspilerContext(
     options?: BookTranspilerOptions,
 ): Promise<PreparedSdkTranspilerContext> {
     const { agentName } = await parseAgentSource(book);
-    const modelRequirements = await createAgentModelRequirements(book, undefined, undefined, undefined, {
+    const rawModelRequirements = await createAgentModelRequirements(book, undefined, undefined, undefined, {
         agentReferenceResolver: options?.agentReferenceResolver,
         inlineKnowledgeSourceUploader: options?.inlineKnowledgeSourceUploader,
         teammateProfileResolver: options?.teammateProfileResolver,
@@ -85,7 +86,12 @@ export async function prepareSdkTranspilerContext(
     const directKnowledge = knowledgeContent.filter((content) => !isKnowledgeSourceUrl(content));
     const knowledgeSources = knowledgeContent.filter((content) => isKnowledgeSourceUrl(content));
     const isKnowledgeHandledWithRetrieval =
-        directKnowledge.join('\n').length > SDK_TRANSPILER_KNOWLEDGE_THRESHOLD || knowledgeSources.length > 0;
+        directKnowledge.join('\n').length > SDK_TRANSPILER_KNOWLEDGE_THRESHOLD ||
+        knowledgeSources.length > 0 ||
+        knowledgeCommitments.length > 0;
+    const modelRequirements = normalizeSdkTranspilerModelRequirements(rawModelRequirements, {
+        isKnowledgeHandledWithRetrieval,
+    });
     const transpiledTeam = createTranspiledTeamExportForContext({
         agentName,
         agentSource: book,
@@ -106,6 +112,46 @@ export async function prepareSdkTranspilerContext(
         isKnowledgeHandledWithRetrieval,
         transpiledTeam,
     };
+}
+
+/**
+ * Removes the runtime-only knowledge-search tool from SDK harnesses that provide
+ * their own generated retrieval scaffold.
+ *
+ * @param modelRequirements - Raw compiled model requirements.
+ * @param options - Knowledge handling mode selected for the generated harness.
+ * @returns Model requirements safe to embed into a standalone SDK export.
+ */
+function normalizeSdkTranspilerModelRequirements(
+    modelRequirements: AgentModelRequirements,
+    options: {
+        readonly isKnowledgeHandledWithRetrieval: boolean;
+    },
+): AgentModelRequirements {
+    if (!options.isKnowledgeHandledWithRetrieval) {
+        return modelRequirements;
+    }
+
+    const tools = modelRequirements.tools?.filter((tool) => tool.name !== KNOWLEDGE_SEARCH_TOOL_NAME);
+
+    return {
+        ...modelRequirements,
+        systemMessage: removeKnowledgeSearchSystemSection(modelRequirements.systemMessage),
+        ...(tools ? { tools } : {}),
+    };
+}
+
+/**
+ * Removes the generated `## Knowledge Search` instructions from SDK exports
+ * that answer with the transpiler's native retrieval scaffold instead.
+ *
+ * @param systemMessage - Raw system message from compiled model requirements.
+ * @returns System message without the runtime-only knowledge-search section.
+ */
+function removeKnowledgeSearchSystemSection(systemMessage: string): string {
+    return systemMessage
+        .replace(/(?:^|\n\n)## Knowledge Search[\s\S]*?(?=\n\n##|$)/, '')
+        .trim();
 }
 
 /**

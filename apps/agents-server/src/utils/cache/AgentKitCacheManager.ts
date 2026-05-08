@@ -1,4 +1,3 @@
-import { resolveWebsiteKnowledgeSourcesForServer } from '@/src/utils/knowledge/resolveWebsiteKnowledgeSourcesForServer';
 import type { AgentModelRequirements, string_agent_permanent_id, string_book } from '@promptbook-local/types';
 import { OpenAiAgentKitExecutionTools } from '../../../../../src/llm-providers/openai/OpenAiAgentKitExecutionTools';
 import type { AgentReferenceResolver } from '../../../../../src/book-2.0/agent-source/AgentReferenceResolver';
@@ -8,12 +7,10 @@ import {
     extractAssistantConfiguration,
     formatAssistantNameWithHash,
 } from './computeAssistantCacheKey';
-import { AgentKitKnowledgeSourceHasher } from './AgentKitCacheManager/AgentKitKnowledgeSourceHasher';
 import {
     AgentKitPreparedCache,
     type AgentKitPreparedCacheEntry,
 } from './AgentKitCacheManager/AgentKitPreparedCache';
-import { AgentKitVectorStoreCache } from './AgentKitCacheManager/AgentKitVectorStoreCache';
 import { resolveAgentKitModelRequirements } from './AgentKitCacheManager/resolveAgentKitModelRequirements';
 import { withAgentKitSourceCitationPolicy } from './AgentKitCacheManager/withAgentKitSourceCitationPolicy';
 
@@ -37,49 +34,31 @@ export type AgentKitCacheResult = {
     readonly assistantCacheKey: string;
 
     /**
-     * Hash of the knowledge source file contents used for the vector store.
-     */
-    readonly vectorStoreHash: string | null;
-
-    /**
      * The agent configuration used to compute the assistant cache key.
      */
     readonly configuration: AssistantConfiguration;
-
-    /**
-     * Vector store ID attached to the AgentKit agent (if any).
-     */
-    readonly vectorStoreId?: string;
 };
 
 /**
- * Manages the lifecycle of OpenAI AgentKit agents with vector store caching.
- *
- * The caching strategy stores vector store identifiers in AgentExternals so
- * knowledge uploads are reused across agents that share the same files.
+ * Manages the lifecycle of short-lived OpenAI AgentKit agents.
  */
 export class AgentKitCacheManager {
     private readonly isVerbose: boolean;
-    private readonly knowledgeSourceHasher: AgentKitKnowledgeSourceHasher;
     private readonly preparedCache: AgentKitPreparedCache;
-    private readonly vectorStoreCache: AgentKitVectorStoreCache;
 
     /**
      * Creates a new AgentKitCacheManager.
      */
     public constructor(options: { isVerbose?: boolean } = {}) {
         this.isVerbose = options.isVerbose ?? false;
-        this.knowledgeSourceHasher = new AgentKitKnowledgeSourceHasher(options);
         this.preparedCache = new AgentKitPreparedCache();
-        this.vectorStoreCache = new AgentKitVectorStoreCache(options);
     }
 
     /**
-     * Gets an existing AgentKit vector store from cache or creates a new one.
+     * Gets an existing prepared AgentKit agent from memory or creates a new one.
      *
      * Dynamic CONTEXT lines are included in the assistant cache key by default; set
-     * includeDynamicContext to false to ignore them. Vector store caching is based
-     * solely on knowledge source file contents.
+     * includeDynamicContext to false to ignore them.
      *
      * @param agentSource - The agent source (may include dynamic CONTEXT lines)
      * @param agentName - The agent name for logging and fallback
@@ -103,7 +82,7 @@ export class AgentKitCacheManager {
             agentId?: string_agent_permanent_id;
 
             /**
-             * Optional callback invoked before creating a new vector store on cache miss.
+             * Optional callback invoked before preparing a new AgentKit agent.
              */
             onCacheMiss?: () => void | Promise<void>;
 
@@ -147,17 +126,8 @@ export class AgentKitCacheManager {
             tools: baseTools.getPreparedAgentTools(preparedAgentKitCacheEntry.preparedAgent),
             fromCache: preparedAgentKitCacheEntry.fromCache,
             assistantCacheKey,
-            vectorStoreHash: preparedAgentKitCacheEntry.vectorStoreHash,
             configuration,
-            vectorStoreId: preparedAgentKitCacheEntry.preparedAgent.vectorStoreId,
         };
-    }
-
-    /**
-     * Invalidates cache for a specific vector store hash.
-     */
-    public async invalidateCache(vectorStoreHash: string): Promise<void> {
-        await this.vectorStoreCache.invalidateCache(vectorStoreHash);
     }
 
     /**
@@ -184,13 +154,11 @@ export class AgentKitCacheManager {
 
         return this.preparedCache.getOrCreate({
             cacheKey: preparedAgentKitCacheKey,
-            onCacheHit: (cachedEntry) => {
+            onCacheHit: () => {
                 if (this.isVerbose) {
                     console.info('[🤰]', 'AgentKit cache hit (prepared agent)', {
                         agentName: options.agentName,
                         preparedAgentCacheKey: preparedAgentKitCacheKey,
-                        vectorStoreHash: cachedEntry.vectorStoreHash,
-                        vectorStoreId: cachedEntry.preparedAgent.vectorStoreId,
                     });
                 }
             },
@@ -229,38 +197,17 @@ export class AgentKitCacheManager {
             options.configuration.name || options.agentName,
             options.assistantCacheKey,
         );
-        const vectorStoreHash = await this.knowledgeSourceHasher.computeVectorStoreHash({
-            agentName: options.agentName,
-            knowledgeSources,
-        });
-        const cachedVectorStoreId = vectorStoreHash
-            ? await this.vectorStoreCache.getCachedVectorStoreId(vectorStoreHash, options.baseTools)
-            : null;
 
-        if (cachedVectorStoreId && this.isVerbose) {
-            console.info('[🤰]', 'AgentKit cache hit (vector store)', {
-                agentName: options.agentName,
-                assistantCacheKey: options.assistantCacheKey,
-                vectorStoreHash,
-                vectorStoreId: cachedVectorStoreId,
-            });
-        }
-
-        if (!cachedVectorStoreId && knowledgeSources.length > 0 && options.onCacheMiss) {
+        if (options.onCacheMiss) {
             await options.onCacheMiss();
         }
-
-        const preparedKnowledgeSources =
-            !cachedVectorStoreId && knowledgeSources.length > 0
-                ? await resolveWebsiteKnowledgeSourcesForServer(knowledgeSources, { isVerbose: this.isVerbose })
-                : knowledgeSources;
 
         if (this.isVerbose) {
             console.info('[🤰]', 'Preparing AgentKit agent via cache manager', {
                 agentName: options.agentName,
                 agentKitName,
                 instructionsLength: instructions.length,
-                knowledgeSourcesCount: preparedKnowledgeSources.length,
+                knowledgeSourcesCount: knowledgeSources.length,
                 toolsCount: tools?.length ?? 0,
             });
         }
@@ -268,24 +215,13 @@ export class AgentKitCacheManager {
         const preparedAgent = await options.baseTools.prepareAgentKitAgent({
             name: agentKitName,
             instructions,
-            knowledgeSources: preparedKnowledgeSources,
+            knowledgeSources: [],
             tools,
-            vectorStoreId: cachedVectorStoreId ?? undefined,
         });
-
-        if (!cachedVectorStoreId && preparedAgent.vectorStoreId && vectorStoreHash) {
-            await this.vectorStoreCache.cacheVectorStore({
-                vectorStoreHash,
-                vectorStoreId: preparedAgent.vectorStoreId,
-                agentName: options.agentName,
-                knowledgeSources,
-            });
-        }
 
         return {
             preparedAgent,
-            fromCache: Boolean(cachedVectorStoreId),
-            vectorStoreHash,
+            fromCache: false,
         };
     }
 }

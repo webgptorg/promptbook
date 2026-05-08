@@ -1,12 +1,11 @@
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
-import { $provideOpenAiAgentKitExecutionToolsForServer } from '@/src/tools/$provideOpenAiAgentKitExecutionToolsForServer';
 import { createServerAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/createServerAgentReferenceResolver';
-import { AgentKitCacheManager } from '@/src/utils/cache/AgentKitCacheManager';
 import {
     resolveCachedServerAgentContext,
     resolveCachedServerAgentModelRequirements,
 } from '@/src/utils/cachedServerAgentRuntime';
 import { getFederatedServers } from '@/src/utils/getFederatedServers';
+import { KnowledgeIndexCacheManager } from '@/src/utils/knowledgeIndex/KnowledgeIndexCacheManager';
 import { resolveInternalServerOrigin } from '@/src/utils/resolveInternalServerOrigin';
 import { retryWithBackoff } from '@/src/utils/retryWithBackoff';
 import { AgentCollectionInSupabase } from '@promptbook-local/core';
@@ -256,22 +255,18 @@ async function processClaimedAgentPreparationJob(
             localServerUrl,
             fallbackResolver: fallbackAgentReferenceResolver,
         });
-        const openAiTools = await $provideOpenAiAgentKitExecutionToolsForServer();
-        const agentKitCacheManager = new AgentKitCacheManager({ isVerbose: true });
+        const knowledgeIndexCacheManager = new KnowledgeIndexCacheManager({
+            tablePrefix,
+            isVerbose: true,
+        });
         const startedAt = Date.now();
 
         await retryWithBackoff(
             async () => {
-                await agentKitCacheManager.getOrCreateAgentKitAgent(
-                    resolvedAgentContext.resolvedAgentSource,
-                    resolvedAgentContext.resolvedAgentName,
-                    openAiTools,
-                    {
-                        includeDynamicContext: true,
-                        agentId: claimedJob.agentPermanentId,
-                        modelRequirements: preparedAgentModelRequirements.modelRequirements,
-                    },
-                );
+                await knowledgeIndexCacheManager.prepareKnowledgeIndex({
+                    agentName: resolvedAgentContext.resolvedAgentName,
+                    knowledgeSources: preparedAgentModelRequirements.modelRequirements.knowledgeSources ?? [],
+                });
             },
             {
                 retries: 2,

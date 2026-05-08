@@ -20,9 +20,12 @@ export const AGENT_PREPARATION_MAX_JOBS_PER_TICK = 2;
 export const AGENT_PREPARATION_WAKEUP_BUFFER_MS = 100;
 
 /**
- * Maximum wait for chat routes that decide to wait for a currently running preparation.
+ * Maximum wait for chat routes that nudge background preparation.
+ *
+ * Knowledge indexing must not block chat requests; the route still registers
+ * the worker prefix and kicks the background tick through `waitForRunningAgentPreparation`.
  */
-export const AGENT_PREPARATION_CHAT_WAIT_TIMEOUT_MS = 2_500;
+export const AGENT_PREPARATION_CHAT_WAIT_TIMEOUT_MS = 0;
 
 /**
  * Default polling interval used while waiting for a running preparation.

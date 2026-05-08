@@ -339,6 +339,18 @@ export const ChatMessageItem = memo(
                 }),
             [message.citations, sanitizedContentWithoutButtons],
         );
+        const structuredSourceCitations = useMemo(() => {
+            const footnoteSourceKeys = new Set(
+                citationFootnoteRenderModel.footnotes.map((footnote) =>
+                    footnote.citation.source.trim().toLowerCase(),
+                ),
+            );
+
+            return (message.sources || []).filter((source) => {
+                const sourceKey = source.source.trim().toLowerCase();
+                return sourceKey && !footnoteSourceKeys.has(sourceKey);
+            });
+        }, [citationFootnoteRenderModel.footnotes, message.sources]);
         const contentSegments = useMemo(
             () => splitMessageContentIntoSegments(citationFootnoteRenderModel.content),
             [citationFootnoteRenderModel.content],
@@ -958,6 +970,18 @@ export const ChatMessageItem = memo(
                                 ))}
                             </div>
                         )}
+                        {structuredSourceCitations.length > 0 && (
+                            <div className={styles.sourceCitations}>
+                                {structuredSourceCitations.map((citation, index) => (
+                                    <SourceChip
+                                        key={`message-source-${citation.source}-${citation.id}-${index}`}
+                                        citation={citation}
+                                        onClick={onCitationClick}
+                                        isCitationIdVisible={false}
+                                    />
+                                ))}
+                            </div>
+                        )}
                         {transitiveCitations.length > 0 && (
                             <div className={styles.sourceCitations}>
                                 {transitiveCitations.map((citation, index) => (
@@ -1102,6 +1126,10 @@ export const ChatMessageItem = memo(
         }
 
         if (prev.message.citations !== next.message.citations) {
+            return false;
+        }
+
+        if (prev.message.sources !== next.message.sources) {
             return false;
         }
 

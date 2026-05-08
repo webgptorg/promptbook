@@ -1,4 +1,5 @@
 import type { ChatMessage, LlmToolDefinition, ToolCall } from '@promptbook-local/types';
+import { applyKnowledgeSourcesToChatMessage } from '../knowledgeIndex/extractKnowledgeSourcesFromToolCalls';
 import { sendUserChatPushNotification } from '../sendUserChatPushNotification';
 import type { UserChatJobRecord } from './UserChatJobRecord';
 import { isUserChatNotFoundScopeError } from './UserChatScopeError';
@@ -35,20 +36,24 @@ export async function persistUserChatJobTerminalState(options: {
             agentPermanentId: options.job.agentPermanentId,
             chatId: options.job.chatId,
             assistantMessageId: options.job.assistantMessageId,
-            mutateMessage: (message) => ({
-                ...message,
-                content: options.content ?? message.content,
-                isComplete: true,
-                lifecycleState: resolveMessageLifecycleStateFromJobStatus(options.status),
-                lifecycleError: options.failureReason ?? undefined,
-                ongoingToolCalls: undefined,
-                toolCalls: options.toolCalls ?? message.toolCalls,
-                completedToolCalls: options.toolCalls ?? message.completedToolCalls,
-                generationDurationMs: options.generationDurationMs ?? message.generationDurationMs,
-                progressCard: undefined,
-                availableTools: options.availableTools ?? message.availableTools,
-                prompt: options.prompt ?? message.prompt,
-            }),
+            mutateMessage: (message) =>
+                applyKnowledgeSourcesToChatMessage(
+                    {
+                        ...message,
+                        content: options.content ?? message.content,
+                        isComplete: true,
+                        lifecycleState: resolveMessageLifecycleStateFromJobStatus(options.status),
+                        lifecycleError: options.failureReason ?? undefined,
+                        ongoingToolCalls: undefined,
+                        toolCalls: options.toolCalls ?? message.toolCalls,
+                        completedToolCalls: options.toolCalls ?? message.completedToolCalls,
+                        generationDurationMs: options.generationDurationMs ?? message.generationDurationMs,
+                        progressCard: undefined,
+                        availableTools: options.availableTools ?? message.availableTools,
+                        prompt: options.prompt ?? message.prompt,
+                    },
+                    options.toolCalls ?? message.toolCalls,
+                ),
         });
     } catch (error) {
         if (!isUserChatNotFoundScopeError(error)) {

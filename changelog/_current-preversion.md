@@ -1,3 +1,9 @@
+-   Reworked Agents Server `KNOWLEDGE` search to use an internal LlamaIndex-backed index instead of OpenAI native vector stores:
+
+    -   Added a database-backed LlamaIndex cache for knowledge indexes and per-source hashes, with background preparation so chat requests no longer wait for indexing.
+    -   Exposed `KNOWLEDGE` as the `knowledge_search` tool with a `## Knowledge Search` system-message section while keeping source chips under answers.
+    -   Persisted knowledge-search sources on `ChatMessage.sources` and continued mirroring them into legacy citations for existing chat rendering.
+
 -   Refactored `BookEditorMonaco` internals to keep the component behavior unchanged while making the code easier to follow and maintain:
 
     -   Moved Monaco lifecycle wiring into a focused internal hook so editor mount, re-apply, focus, save-notification, and page lifecycle concerns are handled in one place.

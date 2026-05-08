@@ -1,4 +1,4 @@
-[ ] !!
+[x] ~$1.73 2 hours by OpenAI Codex `gpt-5.5`
 
 [✨🚡] Do the knowledge search with LlamaIndex Framework not with OpenAI native vector store
 
@@ -54,3 +54,4 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

@@ -224,6 +224,7 @@ export async function $provideOpenAiAgentKitExecutionToolsForServer(): Promise<O
                 functions: getAllToolFunctionsForServer(),
             }),
         },
+        isNativeKnowledgeSearchEnabled: false,
         isVerbose,
     });
 
