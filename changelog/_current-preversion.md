@@ -1,3 +1,8 @@
+-   Refactored `useChatInputAreaDictation` internals to keep dictation behavior unchanged while making the hook easier to follow and maintain:
+
+    -   Split final-result insertion, speech-recognition lifecycle/control handling, correction actions, and panel visibility into focused internal helpers.
+    -   Reduced branching inside the exported hook so it now primarily composes smaller dictation responsibilities instead of mixing event handling, text mutation, and UI-state transitions in one place.
+
 -   Refactored `useChatInputAreaComposer` internals to keep chat-composer behavior unchanged while making the hook easier to follow and maintain:
 
     -   Split message-content state, initial focus, newline insertion, send handling, and Enter-key orchestration into focused internal helpers.
