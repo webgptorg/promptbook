@@ -1,3 +1,8 @@
+-   Refactored `useChatInputAreaComposer` internals to keep chat-composer behavior unchanged while making the hook easier to follow and maintain:
+
+    -   Split message-content state, initial focus, newline insertion, send handling, and Enter-key orchestration into focused internal helpers.
+    -   Reduced branching inside the main hook so the exported composer hook now primarily wires together the smaller responsibilities.
+
 -   Refactored `renderTimeoutToolCallDetails` internals to keep timeout modal behavior unchanged while making the code easier to follow:
 
     -   Split timeout detail rendering into focused internal steps for building the view model, rendering the clock section, rendering summary copy, and rendering quick actions.

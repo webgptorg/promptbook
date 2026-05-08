@@ -56,6 +56,64 @@ type UseChatInputAreaComposerProps = {
 };
 
 /**
+ * Props for internal message-content state wiring.
+ *
+ * @private function of `useChatInputAreaComposer`
+ */
+type UseChatInputAreaMessageContentStateProps = Pick<UseChatInputAreaComposerProps, 'defaultMessage' | 'onChange'>;
+
+/**
+ * Props for initial composer focus handling.
+ *
+ * @private function of `useChatInputAreaComposer`
+ */
+type UseChatInputAreaComposerFocusProps = Pick<UseChatInputAreaComposerProps, 'isFocusedOnLoad' | 'isMobile'> & {
+    readonly textareaRef: MutableRefObject<HTMLTextAreaElement | null>;
+};
+
+/**
+ * Props for newline insertion handling.
+ *
+ * @private function of `useChatInputAreaComposer`
+ */
+type UseChatInputAreaNewlineHandlerProps = {
+    readonly textareaRef: MutableRefObject<HTMLTextAreaElement | null>;
+    readonly messageContentRef: MutableRefObject<string>;
+    readonly applyMessageContent: (nextContent: string) => void;
+};
+
+/**
+ * Props for send action handling.
+ *
+ * @private function of `useChatInputAreaComposer`
+ */
+type UseChatInputAreaSendActionProps = Pick<
+    UseChatInputAreaComposerProps,
+    'onMessage' | 'clearUploadedFiles' | 'replyingToMessage' | 'onCancelReply' | 'soundSystem'
+> & {
+    readonly textareaRef: MutableRefObject<HTMLTextAreaElement | null>;
+    readonly messageContentRef: MutableRefObject<string>;
+    readonly applyMessageContent: (nextContent: string) => void;
+    readonly uploadedFiles: ReadonlyArray<ChatInputUploadedFile>;
+};
+
+/**
+ * Props for Enter-key handling.
+ *
+ * @private function of `useChatInputAreaComposer`
+ */
+type UseChatInputAreaEnterKeyHandlerProps = Pick<
+    UseChatInputAreaComposerProps,
+    'enterBehavior' | 'resolveEnterBehavior' | 'replyingToMessage' | 'onCancelReply'
+> & {
+    readonly textareaRef: MutableRefObject<HTMLTextAreaElement | null>;
+    readonly messageContentRef: MutableRefObject<string>;
+    readonly uploadedFilesRef: MutableRefObject<Array<ChatInputUploadedFile>>;
+    readonly handleInsertNewline: (selectionStart?: number, selectionEnd?: number) => void;
+    readonly handleSend: () => Promise<void>;
+};
+
+/**
  * Inverts the primary Enter behavior for the `Ctrl+Enter` secondary binding.
  *
  * @private function of `useChatInputAreaComposer`
@@ -238,12 +296,21 @@ function hasPendingEnterIntentStayedCurrent(params: {
 }
 
 /**
+ * Returns true when the composer contains text or attachments that can be sent.
+ *
+ * @private function of `useChatInputAreaComposer`
+ */
+function hasSendableComposerContent(messageContent: string, attachmentCount: number): boolean {
+    return spaceTrim(messageContent) !== '' || attachmentCount > 0;
+}
+
+/**
  * Returns true when the deferred Enter snapshot still contains something sendable.
  *
  * @private function of `useChatInputAreaComposer`
  */
 function hasPendingEnterIntentContent(snapshot: PendingEnterIntentSnapshot): boolean {
-    return spaceTrim(snapshot.value) !== '' || snapshot.attachmentIds.length > 0;
+    return hasSendableComposerContent(snapshot.value, snapshot.attachmentIds.length);
 }
 
 /**
@@ -312,30 +379,48 @@ async function resolvePendingEnterIntent(params: {
 }
 
 /**
- * Manages textarea state, send/newline behavior, and deferred Enter resolution for `<ChatInputArea/>`.
+ * Returns the required `onMessage` callback or throws when the composer is misconfigured.
  *
- * @private function of `<ChatInputArea/>`
+ * @private function of `useChatInputAreaComposer`
  */
-export function useChatInputAreaComposer(props: UseChatInputAreaComposerProps) {
-    const {
-        onMessage,
-        onChange,
-        defaultMessage,
-        enterBehavior,
-        resolveEnterBehavior,
-        isFocusedOnLoad,
-        isMobile,
-        uploadedFiles,
-        uploadedFilesRef,
-        clearUploadedFiles,
-        replyingToMessage,
-        onCancelReply,
-        soundSystem,
-    } = props;
-    const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+function getRequiredOnMessage(
+    onMessage: ChatProps['onMessage'],
+): NonNullable<UseChatInputAreaComposerProps['onMessage']> {
+    if (!onMessage) {
+        throw new Error(`Can not find onMessage callback`);
+    }
+
+    return onMessage;
+}
+
+/**
+ * Returns the active composer textarea or throws when the DOM node is missing.
+ *
+ * @private function of `useChatInputAreaComposer`
+ */
+function getRequiredTextareaElement(
+    textareaRef: MutableRefObject<HTMLTextAreaElement | null>,
+): HTMLTextAreaElement {
+    const textareaElement = textareaRef.current;
+
+    if (!textareaElement) {
+        throw new Error(`Can not find textarea`);
+    }
+
+    return textareaElement;
+}
+
+/**
+ * Manages controlled message text state and change propagation for the composer.
+ *
+ * @private function of `useChatInputAreaComposer`
+ */
+function useChatInputAreaMessageContentState({
+    defaultMessage,
+    onChange,
+}: UseChatInputAreaMessageContentStateProps) {
     const [messageContent, setMessageContent] = useState(defaultMessage || '');
     const messageContentRef = useRef(messageContent);
-    const isResolvingEnterBehaviorRef = useRef(false);
 
     const applyMessageContent = useCallback(
         (nextContent: string) => {
@@ -352,6 +437,31 @@ export function useChatInputAreaComposer(props: UseChatInputAreaComposerProps) {
         setMessageContent(nextDefaultMessage);
     }, [defaultMessage]);
 
+    const handleTextInputChange = useCallback(
+        (event: ChangeEvent<HTMLTextAreaElement>) => {
+            applyMessageContent(event.target.value);
+        },
+        [applyMessageContent],
+    );
+
+    return {
+        messageContent,
+        messageContentRef,
+        applyMessageContent,
+        handleTextInputChange,
+    };
+}
+
+/**
+ * Applies initial-focus behavior for the composer textarea.
+ *
+ * @private function of `useChatInputAreaComposer`
+ */
+function useChatInputAreaComposerFocus({
+    textareaRef,
+    isFocusedOnLoad,
+    isMobile,
+}: UseChatInputAreaComposerFocusProps): void {
     useEffect(
         (/* Focus textarea on page load */) => {
             if (!textareaRef.current) {
@@ -364,17 +474,21 @@ export function useChatInputAreaComposer(props: UseChatInputAreaComposerProps) {
                 textareaRef.current.focus();
             }
         },
-        [isFocusedOnLoad, isMobile],
+        [isFocusedOnLoad, isMobile, textareaRef],
     );
+}
 
-    const handleTextInputChange = useCallback(
-        (event: ChangeEvent<HTMLTextAreaElement>) => {
-            applyMessageContent(event.target.value);
-        },
-        [applyMessageContent],
-    );
-
-    const handleInsertNewline = useCallback(
+/**
+ * Creates the newline insertion action used by the composer Enter handling.
+ *
+ * @private function of `useChatInputAreaComposer`
+ */
+function useChatInputAreaNewlineHandler({
+    textareaRef,
+    messageContentRef,
+    applyMessageContent,
+}: UseChatInputAreaNewlineHandlerProps) {
+    return useCallback(
         (selectionStart?: number, selectionEnd?: number) => {
             const textareaElement = textareaRef.current;
             if (!textareaElement) {
@@ -397,26 +511,36 @@ export function useChatInputAreaComposer(props: UseChatInputAreaComposerProps) {
             applyMessageContent(insertion.nextValue);
             focusTextareaCaret(textareaElement, insertion.caret);
         },
-        [applyMessageContent],
+        [applyMessageContent, messageContentRef, textareaRef],
     );
+}
 
-    const handleSend = useCallback(async () => {
-        if (!onMessage) {
-            throw new Error(`Can not find onMessage callback`);
-        }
-
-        const textareaElement = textareaRef.current;
-        if (!textareaElement) {
-            throw new Error(`Can not find textarea`);
-        }
-
+/**
+ * Creates the send action while keeping focus restoration and attachments in sync.
+ *
+ * @private function of `useChatInputAreaComposer`
+ */
+function useChatInputAreaSendAction({
+    onMessage,
+    textareaRef,
+    uploadedFiles,
+    clearUploadedFiles,
+    messageContentRef,
+    applyMessageContent,
+    replyingToMessage,
+    onCancelReply,
+    soundSystem,
+}: UseChatInputAreaSendActionProps) {
+    return useCallback(async () => {
+        const onMessageCallback = getRequiredOnMessage(onMessage);
+        const textareaElement = getRequiredTextareaElement(textareaRef);
         const wasTextareaFocused = document.activeElement === textareaElement;
 
         try {
             const attachments = createMessageAttachments(uploadedFiles);
             const contentToSend = messageContentRef.current;
 
-            if (spaceTrim(contentToSend) === '' && attachments.length === 0) {
+            if (!hasSendableComposerContent(contentToSend, attachments.length)) {
                 throw new Error(`You need to write some text or upload a file`);
             }
 
@@ -431,7 +555,7 @@ export function useChatInputAreaComposer(props: UseChatInputAreaComposerProps) {
                 textareaElement.focus();
             }
 
-            await onMessage(contentToSend, attachments, replyingToMessage || null);
+            await onMessageCallback(contentToSend, attachments, replyingToMessage || null);
             onCancelReply?.();
         } catch (error) {
             if (!(error instanceof Error)) {
@@ -444,12 +568,33 @@ export function useChatInputAreaComposer(props: UseChatInputAreaComposerProps) {
     }, [
         applyMessageContent,
         clearUploadedFiles,
+        messageContentRef,
         onCancelReply,
         onMessage,
         replyingToMessage,
         soundSystem,
+        textareaRef,
         uploadedFiles,
     ]);
+}
+
+/**
+ * Creates the keyboard handler that coordinates reply cancel, send, newline, and deferred Enter behavior.
+ *
+ * @private function of `useChatInputAreaComposer`
+ */
+function useChatInputAreaEnterKeyHandler({
+    textareaRef,
+    enterBehavior,
+    resolveEnterBehavior,
+    messageContentRef,
+    uploadedFilesRef,
+    replyingToMessage,
+    onCancelReply,
+    handleInsertNewline,
+    handleSend,
+}: UseChatInputAreaEnterKeyHandlerProps) {
+    const isResolvingEnterBehaviorRef = useRef(false);
 
     const handleImmediateEnterAction = useCallback(
         (isCtrlPressed: boolean) => {
@@ -497,39 +642,115 @@ export function useChatInputAreaComposer(props: UseChatInputAreaComposerProps) {
                 isResolvingEnterBehaviorRef.current = false;
             });
         },
-        [handleInsertNewline, handleSend, replyingToMessage, uploadedFilesRef],
+        [handleInsertNewline, handleSend, messageContentRef, replyingToMessage, textareaRef, uploadedFilesRef],
     );
 
-    const handleComposerKeyDown = useCallback(
-        (event: ReactKeyboardEvent<HTMLTextAreaElement>) => {
-            if (event.key === 'Escape' && replyingToMessage && onCancelReply) {
-                event.preventDefault();
-                onCancelReply();
-                return;
+    const handleReplyCancelShortcut = useCallback(
+        (event: ReactKeyboardEvent<HTMLTextAreaElement>): boolean => {
+            if (event.key !== 'Escape' || !replyingToMessage || !onCancelReply) {
+                return false;
             }
 
+            event.preventDefault();
+            onCancelReply();
+
+            return true;
+        },
+        [onCancelReply, replyingToMessage],
+    );
+
+    const handleComposerEnterKeyDown = useCallback(
+        (event: ReactKeyboardEvent<HTMLTextAreaElement>): boolean => {
             if (!isComposerEnterAction(event)) {
-                return;
+                return false;
             }
 
             event.preventDefault();
 
             if (shouldResolveDeferredEnterBehavior(enterBehavior, event.ctrlKey, resolveEnterBehavior)) {
                 handleDeferredEnterAction(resolveEnterBehavior);
-                return;
+                return true;
             }
 
             handleImmediateEnterAction(event.ctrlKey);
+            return true;
         },
-        [
-            enterBehavior,
-            handleDeferredEnterAction,
-            handleImmediateEnterAction,
-            onCancelReply,
-            replyingToMessage,
-            resolveEnterBehavior,
-        ],
+        [enterBehavior, handleDeferredEnterAction, handleImmediateEnterAction, resolveEnterBehavior],
     );
+
+    return useCallback(
+        (event: ReactKeyboardEvent<HTMLTextAreaElement>) => {
+            if (handleReplyCancelShortcut(event)) {
+                return;
+            }
+
+            handleComposerEnterKeyDown(event);
+        },
+        [handleComposerEnterKeyDown, handleReplyCancelShortcut],
+    );
+}
+
+/**
+ * Manages textarea state, send/newline behavior, and deferred Enter resolution for `<ChatInputArea/>`.
+ *
+ * @private function of `<ChatInputArea/>`
+ */
+export function useChatInputAreaComposer(props: UseChatInputAreaComposerProps) {
+    const {
+        onMessage,
+        onChange,
+        defaultMessage,
+        enterBehavior,
+        resolveEnterBehavior,
+        isFocusedOnLoad,
+        isMobile,
+        uploadedFiles,
+        uploadedFilesRef,
+        clearUploadedFiles,
+        replyingToMessage,
+        onCancelReply,
+        soundSystem,
+    } = props;
+    const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+    const { messageContent, messageContentRef, applyMessageContent, handleTextInputChange } =
+        useChatInputAreaMessageContentState({
+            defaultMessage,
+            onChange,
+        });
+
+    useChatInputAreaComposerFocus({
+        textareaRef,
+        isFocusedOnLoad,
+        isMobile,
+    });
+
+    const handleInsertNewline = useChatInputAreaNewlineHandler({
+        textareaRef,
+        messageContentRef,
+        applyMessageContent,
+    });
+    const handleSend = useChatInputAreaSendAction({
+        onMessage,
+        textareaRef,
+        uploadedFiles,
+        clearUploadedFiles,
+        messageContentRef,
+        applyMessageContent,
+        replyingToMessage,
+        onCancelReply,
+        soundSystem,
+    });
+    const handleComposerKeyDown = useChatInputAreaEnterKeyHandler({
+        textareaRef,
+        enterBehavior,
+        resolveEnterBehavior,
+        messageContentRef,
+        uploadedFilesRef,
+        replyingToMessage,
+        onCancelReply,
+        handleInsertNewline,
+        handleSend,
+    });
 
     return {
         textareaRef,
