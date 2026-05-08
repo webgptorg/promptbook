@@ -1,3 +1,8 @@
+-   Refactored `MockedChat` internals to keep playback behavior unchanged while making the simulation flow easier to follow and maintain:
+
+    -   Split the playback loop into focused internal helpers for deterministic offset handling, inter-message delays, pause waiting, message typing, and simulation lifecycle resets/completion.
+    -   Reduced branching inside the main component so `MockedChat` now primarily wires state, controls, and the simulation runner instead of mixing those concerns in one large effect body.
+
 -   Refactored `useChatInputAreaDictation` internals to keep dictation behavior unchanged while making the hook easier to follow and maintain:
 
     -   Split final-result insertion, speech-recognition lifecycle/control handling, correction actions, and panel visibility into focused internal helpers.
