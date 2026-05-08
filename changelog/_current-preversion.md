@@ -1,3 +1,8 @@
+-   Refactored `renderTimeoutToolCallDetails` internals to keep timeout modal behavior unchanged while making the code easier to follow:
+
+    -   Split timeout detail rendering into focused internal steps for building the view model, rendering the clock section, rendering summary copy, and rendering quick actions.
+    -   Centralized timeout-detail label fallback resolution so the main renderer no longer mixes translation defaults with UI branching.
+
 -   Reworked Agents Server `KNOWLEDGE` search to use an internal LlamaIndex-backed index instead of OpenAI native vector stores:
 
     -   Added a database-backed LlamaIndex cache for knowledge indexes and per-source hashes, with background preparation so chat requests no longer wait for indexing.
