@@ -87,6 +87,7 @@ export const TOOL_TITLES: Record<string, { title: string; emoji: string }> = {
     request_wallet_record: { title: 'Requesting wallet', emoji: '👛' },
     web_search: { title: 'Searching the web', emoji: '🔎' },
     deep_search: { title: 'Deep research', emoji: '🔬' },
+    knowledge_search: { title: 'Searching knowledge', emoji: '📚' },
     useSearchEngine: { title: 'Searching the web', emoji: '🔎' },
     search: { title: 'Searching the web', emoji: '🔎' },
     useBrowser: { title: 'Browsing the web', emoji: '🌐' },

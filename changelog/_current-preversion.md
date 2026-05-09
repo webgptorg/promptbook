@@ -1,3 +1,9 @@
+-   Fixed Agents Server knowledge search on cold indexes so the first chat turn waits for automatic LlamaIndex preparation instead of answering with "Knowledge index is still being prepared":
+
+    -   Reused one in-flight preparation per knowledge-index hash so concurrent searches do not rebuild the same index and the next message can use the cached index immediately.
+    -   Streamed knowledge-index preparation progress through the existing tool-call chip under the assistant message while the first search waits.
+    -   Added a dedicated `knowledge_search` chip label and modal rendering support for knowledge excerpts.
+
 -   Refactored `useChatAutoScroll` internals to keep chat scrolling behavior unchanged while making the hook easier to follow and maintain:
 
     -   Split viewport detection, scroll-event handling, message-change decisions, and ref initialization into focused internal helpers.

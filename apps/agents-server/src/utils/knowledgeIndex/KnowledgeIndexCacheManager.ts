@@ -54,7 +54,59 @@ const MAX_KNOWLEDGE_SEARCH_EXCERPT_LENGTH = 1_200;
 /**
  * In-flight background index preparations keyed by knowledge index hash.
  */
-const PENDING_KNOWLEDGE_INDEX_PREPARATIONS = new Map<string, Promise<void>>();
+const PENDING_KNOWLEDGE_INDEX_PREPARATIONS = new Map<string, Promise<KnowledgeIndexPreparationResult>>();
+
+/**
+ * Event emitted when a search has to wait for missing index preparation.
+ */
+type KnowledgeIndexPreparationStartedEvent = {
+    readonly hash: string;
+    readonly sourceCount: number;
+    readonly isReusingPendingPreparation: boolean;
+};
+
+/**
+ * Event emitted after search-time index preparation finished.
+ */
+type KnowledgeIndexPreparationCompletedEvent = {
+    readonly result: KnowledgeIndexPreparationResult;
+};
+
+/**
+ * Event emitted after search-time index preparation failed.
+ */
+type KnowledgeIndexPreparationFailedEvent = {
+    readonly hash: string;
+    readonly error: unknown;
+};
+
+/**
+ * Progress callbacks used by chat tools while search waits for index preparation.
+ */
+type KnowledgeIndexPreparationProgressCallbacks = {
+    readonly onPreparationStarted?: (event: KnowledgeIndexPreparationStartedEvent) => void;
+    readonly onPreparationCompleted?: (event: KnowledgeIndexPreparationCompletedEvent) => void;
+    readonly onPreparationFailed?: (event: KnowledgeIndexPreparationFailedEvent) => void;
+};
+
+/**
+ * Input accepted by `searchKnowledgeIndex`.
+ */
+type SearchKnowledgeIndexOptions = KnowledgeIndexPreparationProgressCallbacks & {
+    readonly agentName: string;
+    readonly knowledgeSources: ReadonlyArray<string>;
+    readonly query: string;
+    readonly limit?: number;
+};
+
+/**
+ * Input accepted by preparation helpers once the index hash is already known.
+ */
+type PrepareKnowledgeIndexForHashOptions = {
+    readonly agentName: string;
+    readonly knowledgeSources: ReadonlyArray<string>;
+    readonly expectedHash: string;
+};
 
 /**
  * Result of preparing the cached index.
@@ -120,18 +172,19 @@ export class KnowledgeIndexCacheManager {
             return { status: 'empty' };
         }
 
-        const cachedIndex = await this.repository.getKnowledgeIndexCache(hashResult.hash);
+        return this.prepareKnowledgeIndexForHash({
+            agentName: options.agentName,
+            knowledgeSources: options.knowledgeSources,
+            expectedHash: hashResult.hash,
+        });
+    }
 
-        if (cachedIndex && cachedIndex.payload.version === KNOWLEDGE_INDEX_CACHE_PAYLOAD_VERSION) {
-            return {
-                status: 'cached',
-                hash: cachedIndex.hash,
-                sourceCount: cachedIndex.sourceCount,
-                documentCount: cachedIndex.documentCount,
-                nodeCount: cachedIndex.nodeCount,
-            };
-        }
-
+    /**
+     * Builds and stores a LlamaIndex index for one already-computed hash.
+     */
+    private async buildKnowledgeIndexCache(
+        options: PrepareKnowledgeIndexForHashOptions,
+    ): Promise<KnowledgeIndexPreparationResult> {
         const documents = await loadKnowledgeDocumentsForLlamaIndex({
             knowledgeSources: options.knowledgeSources,
             isVerbose: this.isVerbose,
@@ -169,7 +222,7 @@ export class KnowledgeIndexCacheManager {
         const nodeCount = countVectorStoreNodes(payload.vectorStore);
 
         await this.repository.upsertKnowledgeIndexCache({
-            hash: hashResult.hash,
+            hash: options.expectedHash,
             embeddingModel: this.embeddingModelName,
             sourceCount: options.knowledgeSources.length,
             documentCount: documents.length,
@@ -180,7 +233,7 @@ export class KnowledgeIndexCacheManager {
         if (this.isVerbose) {
             console.info('[knowledge-index] prepared LlamaIndex cache', {
                 agentName: options.agentName,
-                hash: hashResult.hash,
+                hash: options.expectedHash,
                 documentCount: documents.length,
                 nodeCount,
                 hashVersion: KNOWLEDGE_INDEX_HASH_VERSION,
@@ -189,7 +242,7 @@ export class KnowledgeIndexCacheManager {
 
         return {
             status: 'prepared',
-            hash: hashResult.hash,
+            hash: options.expectedHash,
             sourceCount: options.knowledgeSources.length,
             documentCount: documents.length,
             nodeCount,
@@ -197,14 +250,41 @@ export class KnowledgeIndexCacheManager {
     }
 
     /**
+     * Ensures one cache row exists, reusing any in-flight preparation for the same hash.
+     */
+    private async prepareKnowledgeIndexForHash(
+        options: PrepareKnowledgeIndexForHashOptions,
+    ): Promise<KnowledgeIndexPreparationResult> {
+        const cachedIndex = await this.getSupportedKnowledgeIndexCache(options.expectedHash);
+
+        if (cachedIndex) {
+            return {
+                status: 'cached',
+                hash: cachedIndex.hash,
+                sourceCount: cachedIndex.sourceCount,
+                documentCount: cachedIndex.documentCount,
+                nodeCount: cachedIndex.nodeCount,
+            };
+        }
+
+        const pendingPreparation = PENDING_KNOWLEDGE_INDEX_PREPARATIONS.get(options.expectedHash);
+        if (pendingPreparation) {
+            return pendingPreparation;
+        }
+
+        const nextPreparation = this.buildKnowledgeIndexCache(options).finally(() => {
+            PENDING_KNOWLEDGE_INDEX_PREPARATIONS.delete(options.expectedHash);
+        });
+
+        PENDING_KNOWLEDGE_INDEX_PREPARATIONS.set(options.expectedHash, nextPreparation);
+
+        return nextPreparation;
+    }
+
+    /**
      * Searches the cached LlamaIndex index.
      */
-    public async searchKnowledgeIndex(options: {
-        readonly agentName: string;
-        readonly knowledgeSources: ReadonlyArray<string>;
-        readonly query: string;
-        readonly limit?: number;
-    }): Promise<KnowledgeSearchToolResult> {
+    public async searchKnowledgeIndex(options: SearchKnowledgeIndexOptions): Promise<KnowledgeSearchToolResult> {
         const query = options.query.trim();
 
         if (!query) {
@@ -230,21 +310,68 @@ export class KnowledgeIndexCacheManager {
             };
         }
 
-        const cachedIndex = await this.repository.getKnowledgeIndexCache(hashResult.hash);
+        let cachedIndex = await this.getSupportedKnowledgeIndexCache(hashResult.hash);
 
-        if (!cachedIndex || cachedIndex.payload.version !== KNOWLEDGE_INDEX_CACHE_PAYLOAD_VERSION) {
-            this.prepareKnowledgeIndexInBackground({
-                agentName: options.agentName,
-                knowledgeSources: options.knowledgeSources,
-                expectedHash: hashResult.hash,
+        if (!cachedIndex) {
+            const isReusingPendingPreparation = PENDING_KNOWLEDGE_INDEX_PREPARATIONS.has(hashResult.hash);
+            options.onPreparationStarted?.({
+                hash: hashResult.hash,
+                sourceCount: options.knowledgeSources.length,
+                isReusingPendingPreparation,
             });
 
+            let preparationResult: KnowledgeIndexPreparationResult;
+
+            try {
+                preparationResult = await this.prepareKnowledgeIndexForHash({
+                    agentName: options.agentName,
+                    knowledgeSources: options.knowledgeSources,
+                    expectedHash: hashResult.hash,
+                });
+            } catch (error) {
+                options.onPreparationFailed?.({
+                    hash: hashResult.hash,
+                    error,
+                });
+                console.error('[knowledge-index] LlamaIndex preparation failed during search', {
+                    agentName: options.agentName,
+                    indexHash: hashResult.hash,
+                    error,
+                });
+
+                return {
+                    status: 'error',
+                    query,
+                    results: [],
+                    indexHash: hashResult.hash,
+                    message: createKnowledgeIndexPreparationErrorMessage(error),
+                };
+            }
+
+            options.onPreparationCompleted?.({
+                result: preparationResult,
+            });
+
+            if (preparationResult.status === 'empty') {
+                return {
+                    status: 'empty',
+                    query,
+                    results: [],
+                    indexHash: hashResult.hash,
+                    message: 'No readable knowledge content was found for this agent.',
+                };
+            }
+
+            cachedIndex = await this.getSupportedKnowledgeIndexCache(hashResult.hash);
+        }
+
+        if (!cachedIndex) {
             return {
-                status: 'indexing',
+                status: 'error',
                 query,
                 results: [],
                 indexHash: hashResult.hash,
-                message: 'Knowledge index is still being prepared. Try the search again after indexing finishes.',
+                message: 'Knowledge index was prepared but could not be loaded for search.',
             };
         }
 
@@ -310,34 +437,16 @@ export class KnowledgeIndexCacheManager {
     }
 
     /**
-     * Starts a best-effort background index preparation after a search-time cache miss.
+     * Loads a cached index row only when it uses the current payload version.
      */
-    private prepareKnowledgeIndexInBackground(options: {
-        readonly agentName: string;
-        readonly knowledgeSources: ReadonlyArray<string>;
-        readonly expectedHash: string;
-    }): void {
-        if (PENDING_KNOWLEDGE_INDEX_PREPARATIONS.has(options.expectedHash)) {
-            return;
+    private async getSupportedKnowledgeIndexCache(hash: string): Promise<KnowledgeIndexCacheRecord | null> {
+        const cachedIndex = await this.repository.getKnowledgeIndexCache(hash);
+
+        if (!cachedIndex || cachedIndex.payload.version !== KNOWLEDGE_INDEX_CACHE_PAYLOAD_VERSION) {
+            return null;
         }
 
-        const pendingPreparation = this.prepareKnowledgeIndex({
-            agentName: options.agentName,
-            knowledgeSources: options.knowledgeSources,
-        })
-            .then(() => undefined)
-            .catch((error) => {
-                console.error('[knowledge-index] Background LlamaIndex preparation failed', {
-                    agentName: options.agentName,
-                    indexHash: options.expectedHash,
-                    error,
-                });
-            })
-            .finally(() => {
-                PENDING_KNOWLEDGE_INDEX_PREPARATIONS.delete(options.expectedHash);
-            });
-
-        PENDING_KNOWLEDGE_INDEX_PREPARATIONS.set(options.expectedHash, pendingPreparation);
+        return cachedIndex;
     }
 }
 
@@ -387,6 +496,14 @@ function createKnowledgeSearchExcerpt(content: string): string {
     }
 
     return `${normalizedContent.slice(0, MAX_KNOWLEDGE_SEARCH_EXCERPT_LENGTH - 3)}...`;
+}
+
+/**
+ * Formats an index-preparation failure as a model-visible tool message.
+ */
+function createKnowledgeIndexPreparationErrorMessage(error: unknown): string {
+    const detail = error instanceof Error ? error.message : String(error);
+    return `Knowledge index could not be prepared before search: ${detail}`;
 }
 
 /**

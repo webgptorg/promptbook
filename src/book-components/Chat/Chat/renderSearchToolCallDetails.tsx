@@ -65,13 +65,15 @@ export function renderSearchToolCallDetails(options: RenderSearchToolCallDetails
                                 <h4 className={styles.searchResultTitle}>
                                     {item.url ? (
                                         <a href={item.url} target="_blank" rel="noreferrer">
-                                            {item.title || 'Untitled'}
+                                            {item.title || item.source || 'Untitled'}
                                         </a>
                                     ) : (
-                                        item.title || 'Untitled'
+                                        item.title || item.source || 'Untitled'
                                     )}
                                 </h4>
-                                <p className={styles.searchResultSnippet}>{item.snippet || item.content || ''}</p>
+                                <p className={styles.searchResultSnippet}>
+                                    {item.snippet || item.content || item.excerpt || ''}
+                                </p>
                             </div>
                         ))}
                     </div>
