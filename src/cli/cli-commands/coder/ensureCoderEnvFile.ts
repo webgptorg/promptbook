@@ -1,8 +1,8 @@
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
-import type { InitializationStatus } from './boilerplateTemplates';
 import { appendBlock } from './appendBlock';
+import type { InitializationStatus } from './boilerplateTemplates';
 import { readTextFileIfExists } from './readTextFileIfExists';
 
 /**
@@ -114,10 +114,12 @@ function parseEnvVariableNames(envContent: string): Set<string> {
  * Builds a `.env` block containing missing coder environment variables.
  */
 function buildMissingEnvVariablesBlock(variables: ReadonlyArray<RequiredCoderEnvVariable>): string {
-    return spaceTrim(`
-        # Promptbook coder identity (initialized by \`ptbk coder init\`)
-        ${variables.map(({ name, value }) => `${name}=${JSON.stringify(value)}`).join('\n')}
-    `);
+    return spaceTrim(
+        (block) => `
+            # Promptbook coder identity (initialized by \`ptbk coder init\`; add your values and uncomment to use)
+            ${block(variables.map(({ name, value }) => `# ${name}=${JSON.stringify(value)}`).join('\n'))}
+        `,
+    );
 }
 
 // Note: [🟡] Code for coder init environment bootstrapping [ensureCoderEnvFile](src/cli/cli-commands/coder/ensureCoderEnvFile.ts) should never be published outside of `@promptbook/cli`

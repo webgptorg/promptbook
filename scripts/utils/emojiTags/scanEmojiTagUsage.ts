@@ -135,7 +135,13 @@ export async function scanEmojiTagUsage(options: EmojiTagScanOptions): Promise<E
             const fileContent = readFileSync(filePath, 'utf-8'); /* Note: sync file reads are fine for local tooling. */
             const scannedEmojis = scanFileForEmojiTags(fileContent, matcher);
             addEmojis(usedEmojis, scannedEmojis);
-            nextCacheFiles[cacheKey] = updateCachedFile(cachedFile, fileStats.mtimeMs, fileStats.size, tagPrefix, scannedEmojis);
+            nextCacheFiles[cacheKey] = updateCachedFile(
+                cachedFile,
+                fileStats.mtimeMs,
+                fileStats.size,
+                tagPrefix,
+                scannedEmojis,
+            );
             scannedFileCount += 1;
             isCacheDirty = true;
         } catch (error) {

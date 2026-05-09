@@ -1,8 +1,8 @@
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import { escapeRegExp } from '../../../utils/chat/escapeRegExp';
-import type { InitializationStatus } from './boilerplateTemplates';
 import { appendBlock } from './appendBlock';
+import type { InitializationStatus } from './boilerplateTemplates';
 import { readTextFileIfExists } from './readTextFileIfExists';
 
 /**
@@ -19,6 +19,11 @@ const CODER_TEMP_GITIGNORE_RULE = '/.tmp';
  * Promptbook coder cache directory that should stay out of version control.
  */
 const CODER_CACHE_GITIGNORE_RULE = '/.promptbook/ptbk-coder';
+
+/**
+ * Promptbook coder environment file that should stay out of version control.
+ */
+const CODER_ENV_GITIGNORE_RULE = '.env';
 
 /**
  * Standard header used when appending Promptbook coder rules into `.gitignore`.
@@ -48,7 +53,7 @@ export async function ensureCoderGitignoreFile(projectPath: string): Promise<Ini
  * Returns the Promptbook coder gitignore rules that still need to be added.
  */
 function getMissingCoderGitignoreRules(gitignoreContent: string): Array<string> {
-    const requiredRules = [CODER_TEMP_GITIGNORE_RULE, CODER_CACHE_GITIGNORE_RULE];
+    const requiredRules = [CODER_TEMP_GITIGNORE_RULE, CODER_CACHE_GITIGNORE_RULE, CODER_ENV_GITIGNORE_RULE];
     return requiredRules.filter((rule) => !hasGitignoreRule(gitignoreContent, rule));
 }
 
