@@ -2,7 +2,7 @@
  * Default npm scripts initialized by `ptbk coder init`.
  */
 const DEFAULT_CODER_PACKAGE_JSON_SCRIPTS = {
-    'coder:generate-boilerplates': 'npx ptbk coder generate-boilerplates',
+    'coder:generate-boilerplates': 'npx ptbk coder generate-boilerplates --template ./prompts/templates/common.md',
     'coder:run':
         'npx ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --no-wait',
     'coder:find-refactor-candidates': 'npx ptbk coder find-refactor-candidates',
