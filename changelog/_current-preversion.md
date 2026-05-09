@@ -1,3 +1,8 @@
+-   Refactored `useChatAutoScroll` internals to keep chat scrolling behavior unchanged while making the hook easier to follow and maintain:
+
+    -   Split viewport detection, scroll-event handling, message-change decisions, and ref initialization into focused internal helpers.
+    -   Reduced branching inside the exported hook so `useChatAutoScroll` now primarily wires together the smaller scrolling responsibilities.
+
 -   Refactored `MockedChat` internals to keep playback behavior unchanged while making the simulation flow easier to follow and maintain:
 
     -   Split the playback loop into focused internal helpers for deterministic offset handling, inter-message delays, pause waiting, message typing, and simulation lifecycle resets/completion.

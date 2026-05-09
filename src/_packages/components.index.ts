@@ -39,6 +39,7 @@ import type { ChatEffect } from '../book-components/Chat/effects/types/ChatEffec
 import type { ChatEffectConfig } from '../book-components/Chat/effects/types/ChatEffectConfig';
 import type { ChatEffectsSystemProps } from '../book-components/Chat/effects/types/ChatEffectsSystemProps';
 import type { ChatEffectType } from '../book-components/Chat/effects/types/ChatEffectType';
+import type { ChatAutoScrollConfig } from '../book-components/Chat/hooks/useChatAutoScroll';
 import { useChatAutoScroll } from '../book-components/Chat/hooks/useChatAutoScroll';
 import type { SendMessageToLlmChatFunction } from '../book-components/Chat/hooks/useSendMessageToLlmChat';
 import { useSendMessageToLlmChat } from '../book-components/Chat/hooks/useSendMessageToLlmChat';
@@ -128,6 +129,7 @@ export type { ChatEffect };
 export type { ChatEffectConfig };
 export type { ChatEffectsSystemProps };
 export type { ChatEffectType };
+export type { ChatAutoScrollConfig };
 export { useChatAutoScroll };
 export type { SendMessageToLlmChatFunction };
 export { useSendMessageToLlmChat };
