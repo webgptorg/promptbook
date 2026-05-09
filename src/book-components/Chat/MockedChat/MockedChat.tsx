@@ -1,13 +1,5 @@
 'use client';
-import {
-    useEffect,
-    useMemo,
-    useRef,
-    useState,
-    type Dispatch,
-    type MutableRefObject,
-    type SetStateAction,
-} from 'react';
+import { useEffect, useMemo, useRef, useState, type Dispatch, type MutableRefObject, type SetStateAction } from 'react';
 import { forTime } from 'waitasecond';
 import chatStyles from '../../Chat/Chat/Chat.module.css';
 import { PauseIcon } from '../../icons/PauseIcon';

@@ -398,9 +398,7 @@ function getRequiredOnMessage(
  *
  * @private function of `useChatInputAreaComposer`
  */
-function getRequiredTextareaElement(
-    textareaRef: MutableRefObject<HTMLTextAreaElement | null>,
-): HTMLTextAreaElement {
+function getRequiredTextareaElement(textareaRef: MutableRefObject<HTMLTextAreaElement | null>): HTMLTextAreaElement {
     const textareaElement = textareaRef.current;
 
     if (!textareaElement) {
@@ -415,10 +413,7 @@ function getRequiredTextareaElement(
  *
  * @private function of `useChatInputAreaComposer`
  */
-function useChatInputAreaMessageContentState({
-    defaultMessage,
-    onChange,
-}: UseChatInputAreaMessageContentStateProps) {
+function useChatInputAreaMessageContentState({ defaultMessage, onChange }: UseChatInputAreaMessageContentStateProps) {
     const [messageContent, setMessageContent] = useState(defaultMessage || '');
     const messageContentRef = useRef(messageContent);
 

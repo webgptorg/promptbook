@@ -1,11 +1,4 @@
-import {
-    useCallback,
-    useEffect,
-    useRef,
-    useState,
-    type MutableRefObject,
-    type UIEvent,
-} from 'react';
+import { useCallback, useEffect, useRef, useState, type MutableRefObject, type UIEvent } from 'react';
 
 /**
  * Configuration for the auto-scroll behavior.
@@ -58,8 +51,7 @@ const MOBILE_BREAKPOINT_PX = 768;
  *
  * @private function of `useChatAutoScroll`
  */
-const MOBILE_DEVICE_USER_AGENT_PATTERN =
-    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
+const MOBILE_DEVICE_USER_AGENT_PATTERN = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
 
 /**
  * Timeout handle used by the hook across browser and Node.js test environments.
@@ -206,9 +198,7 @@ type InitializeChatMessagesElementProps = {
  * @private function of `useChatAutoScroll`
  */
 function isMobileChatViewport(): boolean {
-    return (
-        window.innerWidth <= MOBILE_BREAKPOINT_PX || MOBILE_DEVICE_USER_AGENT_PATTERN.test(navigator.userAgent)
-    );
+    return window.innerWidth <= MOBILE_BREAKPOINT_PX || MOBILE_DEVICE_USER_AGENT_PATTERN.test(navigator.userAgent);
 }
 
 /**
@@ -305,9 +295,7 @@ function hasExpandedSelectionInChat(chatMessagesElement: HTMLDivElement): boolea
     }
 
     const range = selection.getRangeAt(0);
-    return (
-        chatMessagesElement.contains(range.startContainer) || chatMessagesElement.contains(range.endContainer)
-    );
+    return chatMessagesElement.contains(range.startContainer) || chatMessagesElement.contains(range.endContainer);
 }
 
 /**
@@ -352,13 +340,7 @@ function shouldAutoScrollForMessagesChange({
     readonly isAutoScrolling: boolean;
     readonly wasAtBottomBeforeNewContent: boolean;
 }): boolean {
-    return (
-        hasNewContent &&
-        isAutoScrolling &&
-        wasAtBottomBeforeNewContent &&
-        !hasSelectionInChat &&
-        !hasManualScroll
-    );
+    return hasNewContent && isAutoScrolling && wasAtBottomBeforeNewContent && !hasSelectionInChat && !hasManualScroll;
 }
 
 /**
@@ -523,7 +505,14 @@ function useChatScrollHandler({
                 syncAutoScrollState,
             });
         },
-        [checkIfAtBottom, hasManualScrollRef, isAutoScrolling, scrollTimeoutRef, setIsAutoScrolling, syncAutoScrollState],
+        [
+            checkIfAtBottom,
+            hasManualScrollRef,
+            isAutoScrolling,
+            scrollTimeoutRef,
+            setIsAutoScrolling,
+            syncAutoScrollState,
+        ],
     );
 }
 
