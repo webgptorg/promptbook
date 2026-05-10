@@ -31,7 +31,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             - gemini: Google Gemini CLI integration (requires --model)
 
             Features:
-            - Automatically stages and commits changes with agent identity
+            - Automatically stages and commits changes with agent identity unless --no-commit is used
             - Optional post-commit git push with explicit --auto-push opt-in
             - Optional --preserve-logs keeps temp prompt/log artifacts after successful rounds
             - Optional --no-ui keeps plain streaming console output for logging and debugging
@@ -81,6 +81,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
     );
     command.option('--priority <minimum-priority>', 'Filter prompts by minimum priority level', parseIntOption, 0);
     command.option('--no-wait', 'Skip user prompts between processing');
+    command.option('--no-commit', 'Leave successful changes in the working directory instead of creating git commits');
     command.option('--ignore-git-changes', 'Skip clean working tree check before running prompts', false);
     command.option(
         '--allow-credits',
@@ -114,6 +115,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 thinkingLevel,
                 priority,
                 wait,
+                commit,
                 ignoreGitChanges,
                 allowCredits,
                 normalizeLineEndings,
@@ -131,6 +133,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 readonly thinkingLevel?: ThinkingLevel;
                 readonly priority: number;
                 readonly wait: boolean;
+                readonly commit: boolean;
                 readonly ignoreGitChanges: boolean;
                 readonly allowCredits: boolean;
                 readonly normalizeLineEndings: boolean;
@@ -185,6 +188,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             const runOptions = {
                 dryRun,
                 waitForUser: wait,
+                noCommit: !commit,
                 ignoreGitChanges,
                 agentName,
                 model,

@@ -69,7 +69,7 @@ export function getDefaultCoderAgentCodingFileContent({
         '',
         '## Customizing the workflow',
         '-   Edit `package.json` if you want `npm run coder:run` to use another coding agent, model, thinking level, context file, or wait mode.',
-        '-   Use direct CLI commands when you need one-off flags such as `--priority`, `--ignore-git-changes`, `--dry-run`, `--test`, `--allow-credits`, or `--auto-migrate`.',
+        '-   Use direct CLI commands when you need one-off flags such as `--priority`, `--ignore-git-changes`, `--no-commit`, `--dry-run`, `--test`, `--allow-credits`, or `--auto-migrate`.',
         '-   Use `npx ptbk coder --help` and `npx ptbk coder <command> --help` for the full CLI reference.',
     ].join('\n');
 }

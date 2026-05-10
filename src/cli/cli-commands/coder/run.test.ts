@@ -64,6 +64,32 @@ describe('$initializeCoderRunCommand', () => {
         );
     });
 
+    it('defaults noCommit to false when --no-commit is omitted', async () => {
+        const program = createProgramWithRunCommand();
+
+        await program.parseAsync(['node', 'test', 'run', '--dry-run'], { from: 'node' });
+
+        expect(getRunCodexPromptsMock()).toHaveBeenCalledWith(
+            expect.objectContaining({
+                dryRun: true,
+                noCommit: false,
+            }),
+        );
+    });
+
+    it('passes noCommit as true when --no-commit is provided', async () => {
+        const program = createProgramWithRunCommand();
+
+        await program.parseAsync(['node', 'test', 'run', '--dry-run', '--no-commit'], { from: 'node' });
+
+        expect(getRunCodexPromptsMock()).toHaveBeenCalledWith(
+            expect.objectContaining({
+                dryRun: true,
+                noCommit: true,
+            }),
+        );
+    });
+
     it('defaults autoPush to false when --auto-push is omitted', async () => {
         const program = createProgramWithRunCommand();
 

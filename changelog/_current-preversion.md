@@ -1,3 +1,8 @@
+-   Added `--no-commit` to `ptbk coder run` so coding-agent runs can leave successful changes in the working directory without creating git commits:
+
+    -   Skips the per-prompt commit step while keeping the rest of the successful prompt bookkeeping unchanged.
+    -   Rejects `--no-commit --no-wait` unless `--ignore-git-changes` is also provided, preventing the next prompt round from failing immediately on the clean working tree check.
+
 -   Fixed Agents Server knowledge search on cold indexes so the first chat turn waits for automatic LlamaIndex preparation instead of answering with "Knowledge index is still being prepared":
 
     -   Reused one in-flight preparation per knowledge-index hash so concurrent searches do not rebuild the same index and the next message can use the cached index immediately.

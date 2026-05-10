@@ -3,6 +3,7 @@ import moment from 'moment';
 import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
 import { DatabaseError } from '../../../src/errors/DatabaseError';
+import { NotAllowed } from '../../../src/errors/NotAllowed';
 import { just } from '../../../src/utils/organization/just';
 import type { RunOptions } from '../cli/RunOptions';
 import { parseRunOptions } from '../cli/parseRunOptions';
@@ -139,6 +140,16 @@ function validateRunCodexPromptOptions(options: RunOptions): void {
         throw new DatabaseError(
             spaceTrim(`
                 Flag \`--allow-destructive-auto-migrate\` requires \`--auto-migrate\`.
+            `),
+        );
+    }
+
+    if (options.noCommit && !options.waitForUser && !options.ignoreGitChanges) {
+        throw new NotAllowed(
+            spaceTrim(`
+                Flag \`--no-commit\` requires \`--ignore-git-changes\` when combined with \`--no-wait\`.
+
+                Without commits, the next prompt round would fail the clean working tree check.
             `),
         );
     }

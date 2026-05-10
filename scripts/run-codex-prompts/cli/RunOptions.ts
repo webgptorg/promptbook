@@ -30,6 +30,10 @@ export type RunOptions = {
     thinkingLevel?: ThinkingLevel;
     waitForUser: boolean;
     /**
+     * Leave successful round changes in the git working tree instead of creating an agent commit.
+     */
+    noCommit: boolean;
+    /**
      * Skip the clean working tree check before running prompts.
      */
     ignoreGitChanges: boolean;

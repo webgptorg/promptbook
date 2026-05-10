@@ -186,7 +186,7 @@ async function finalizeSuccessfulPromptRound(options: {
     } = options;
 
     uiHandle?.stopCapturingAgentOutput();
-    uiHandle?.state.setStatusMessage('Committing changes');
+    uiHandle?.state.setStatusMessage(runOptions.noCommit ? 'Leaving changes uncommitted' : 'Committing changes');
 
     markPromptDone(
         nextPrompt.file,
@@ -199,18 +199,22 @@ async function finalizeSuccessfulPromptRound(options: {
     );
     await writePromptFile(nextPrompt.file);
     await normalizeLineEndingsForCurrentRound(runOptions, roundChangedFilesSnapshot);
-    await waitForCommitConfirmationIfNeeded({
-        options: runOptions,
-        commitMessage,
-        isRichUiEnabled,
-        progressDisplay,
-        uiHandle,
-    });
-    await commitChanges(commitMessage, {
-        autoPush: runOptions.autoPush,
-        // Keep the live runtime log out of default commits because it is deleted after a successful round.
-        excludePaths: runOptions.preserveLogs ? undefined : [logPath],
-    });
+
+    if (!runOptions.noCommit) {
+        await waitForCommitConfirmationIfNeeded({
+            options: runOptions,
+            commitMessage,
+            isRichUiEnabled,
+            progressDisplay,
+            uiHandle,
+        });
+        await commitChanges(commitMessage, {
+            autoPush: runOptions.autoPush,
+            // Keep the live runtime log out of default commits because it is deleted after a successful round.
+            excludePaths: runOptions.preserveLogs ? undefined : [logPath],
+        });
+    }
+
     await runPostPromptAutoMigrationIfEnabled(runOptions);
 }
 

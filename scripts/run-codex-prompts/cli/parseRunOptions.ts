@@ -7,7 +7,7 @@ import type { RunOptions } from './RunOptions';
  * CLI usage text for this script.
  */
 const USAGE =
-    'Usage: run-codex-prompts [--dry-run] [--agent <agent-name>] [--model <model>] [--context <context-or-file>] [--test <test-command...>] [--preserve-logs] [--no-ui] [--thinking-level <thinking-level>] [--priority <minimum-priority>] [--allow-credits] [--auto-migrate] [--allow-destructive-auto-migrate] [--no-wait] [--ignore-git-changes] [--no-normalize-line-endings] [--auto-push]';
+    'Usage: run-codex-prompts [--dry-run] [--agent <agent-name>] [--model <model>] [--context <context-or-file>] [--test <test-command...>] [--preserve-logs] [--no-ui] [--thinking-level <thinking-level>] [--priority <minimum-priority>] [--allow-credits] [--auto-migrate] [--allow-destructive-auto-migrate] [--no-wait] [--no-commit] [--ignore-git-changes] [--no-normalize-line-endings] [--auto-push]';
 
 /**
  * Top-level flags supported by this command.
@@ -26,6 +26,7 @@ const KNOWN_OPTION_FLAGS = new Set([
     '--auto-migrate',
     '--allow-destructive-auto-migrate',
     '--no-wait',
+    '--no-commit',
     '--ignore-git-changes',
     '--no-normalize-line-endings',
     '--auto-push',
@@ -64,6 +65,7 @@ export function parseRunOptions(args: string[]): RunOptions {
     const thinkingLevelValue = readOptionValue(args, '--thinking-level');
     const hasPriorityFlag = args.includes('--priority');
     const priority = parsePriority(readOptionValue(args, '--priority'), hasPriorityFlag);
+    const noCommit = args.includes('--no-commit');
     const ignoreGitChanges = args.includes('--ignore-git-changes');
     const normalizeLineEndings = !args.includes('--no-normalize-line-endings');
     const allowCredits = args.includes('--allow-credits');
@@ -99,6 +101,7 @@ export function parseRunOptions(args: string[]): RunOptions {
     return {
         dryRun,
         waitForUser: !args.includes('--no-wait'),
+        noCommit,
         ignoreGitChanges,
         normalizeLineEndings,
         allowCredits,

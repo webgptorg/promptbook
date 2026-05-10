@@ -30,6 +30,7 @@ describe('parseRunOptions', () => {
             dryRun: false,
             agentName: 'gemini',
             priority: 0,
+            noCommit: false,
             autoPush: false,
             preserveLogs: false,
             noUi: false,
@@ -48,6 +49,7 @@ describe('parseRunOptions', () => {
             agentName: 'github-copilot',
             model: 'gpt-5.4',
             priority: 0,
+            noCommit: false,
             autoPush: false,
             preserveLogs: false,
             noUi: false,
@@ -65,6 +67,7 @@ describe('parseRunOptions', () => {
             dryRun: true,
             agentName: undefined,
             priority: 0,
+            noCommit: false,
             autoPush: false,
             preserveLogs: false,
             noUi: false,
@@ -104,6 +107,19 @@ describe('parseRunOptions', () => {
             model: 'gpt-5.2-codex',
             context: 'AGENTS.md',
             priority: 3,
+        });
+    });
+
+    it('leaves changes uncommitted only when --no-commit is provided', () => {
+        const options = parseRunOptions(['--agent', 'github-copilot', '--no-commit']);
+
+        expect(options).toMatchObject({
+            dryRun: false,
+            agentName: 'github-copilot',
+            noCommit: true,
+            autoPush: false,
+            preserveLogs: false,
+            noUi: false,
         });
     });
 
@@ -164,6 +180,7 @@ describe('parseRunOptions', () => {
             dryRun: true,
             waitForUser: false,
             priority: 2,
+            noCommit: false,
             autoPush: false,
             preserveLogs: false,
             noUi: false,
