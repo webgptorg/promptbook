@@ -33,6 +33,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             Features:
             - Automatically stages and commits changes with agent identity unless --no-commit is used
             - Optional post-commit git push with explicit --auto-push opt-in
+            - Optional pre-prompt git pull with explicit --auto-pull opt-in
             - Optional --preserve-logs keeps temp prompt/log artifacts after successful rounds
             - Optional --no-ui keeps plain streaming console output for logging and debugging
             - Supports GPG signing of commits
@@ -93,6 +94,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
         'Disable automatic LF normalization for files changed in each coding round',
     );
     command.option('--auto-push', 'Automatically git push after each commit', false);
+    command.option('--auto-pull', 'Automatically git pull before the first and each subsequent prompt', false);
     command.option(
         '--auto-migrate',
         'Run testing-server database migrations automatically after each successfully processed prompt',
@@ -122,6 +124,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 autoMigrate,
                 allowDestructiveAutoMigrate,
                 autoPush,
+                autoPull,
             } = cliOptions as {
                 readonly dryRun: boolean;
                 readonly agent?: string;
@@ -140,6 +143,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 readonly autoMigrate: boolean;
                 readonly allowDestructiveAutoMigrate: boolean;
                 readonly autoPush: boolean;
+                readonly autoPull: boolean;
             };
 
             const testCommand = normalizeCommandOptionValue(test);
@@ -203,6 +207,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 autoMigrate,
                 allowDestructiveAutoMigrate,
                 autoPush,
+                autoPull,
             };
 
             // Note: Import the function dynamically to avoid loading heavy dependencies until needed

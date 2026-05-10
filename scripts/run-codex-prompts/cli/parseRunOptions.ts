@@ -7,7 +7,7 @@ import type { RunOptions } from './RunOptions';
  * CLI usage text for this script.
  */
 const USAGE =
-    'Usage: run-codex-prompts [--dry-run] [--agent <agent-name>] [--model <model>] [--context <context-or-file>] [--test <test-command...>] [--preserve-logs] [--no-ui] [--thinking-level <thinking-level>] [--priority <minimum-priority>] [--allow-credits] [--auto-migrate] [--allow-destructive-auto-migrate] [--no-wait] [--no-commit] [--ignore-git-changes] [--no-normalize-line-endings] [--auto-push]';
+    'Usage: run-codex-prompts [--dry-run] [--agent <agent-name>] [--model <model>] [--context <context-or-file>] [--test <test-command...>] [--preserve-logs] [--no-ui] [--thinking-level <thinking-level>] [--priority <minimum-priority>] [--allow-credits] [--auto-migrate] [--allow-destructive-auto-migrate] [--no-wait] [--no-commit] [--ignore-git-changes] [--no-normalize-line-endings] [--auto-push] [--auto-pull]';
 
 /**
  * Top-level flags supported by this command.
@@ -30,6 +30,7 @@ const KNOWN_OPTION_FLAGS = new Set([
     '--ignore-git-changes',
     '--no-normalize-line-endings',
     '--auto-push',
+    '--auto-pull',
 ]);
 
 /**
@@ -72,6 +73,7 @@ export function parseRunOptions(args: string[]): RunOptions {
     const autoMigrate = args.includes('--auto-migrate');
     const allowDestructiveAutoMigrate = args.includes('--allow-destructive-auto-migrate');
     const autoPush = args.includes('--auto-push');
+    const autoPull = args.includes('--auto-pull');
     let thinkingLevel: ThinkingLevel | undefined;
 
     if (hasTestCommandFlag && testCommand === undefined) {
@@ -108,6 +110,7 @@ export function parseRunOptions(args: string[]): RunOptions {
         autoMigrate,
         allowDestructiveAutoMigrate,
         autoPush,
+        autoPull,
         preserveLogs,
         noUi,
         agentName,

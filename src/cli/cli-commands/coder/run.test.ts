@@ -116,6 +116,32 @@ describe('$initializeCoderRunCommand', () => {
         );
     });
 
+    it('defaults autoPull to false when --auto-pull is omitted', async () => {
+        const program = createProgramWithRunCommand();
+
+        await program.parseAsync(['node', 'test', 'run', '--dry-run'], { from: 'node' });
+
+        expect(getRunCodexPromptsMock()).toHaveBeenCalledWith(
+            expect.objectContaining({
+                dryRun: true,
+                autoPull: false,
+            }),
+        );
+    });
+
+    it('passes autoPull as true when --auto-pull is provided', async () => {
+        const program = createProgramWithRunCommand();
+
+        await program.parseAsync(['node', 'test', 'run', '--dry-run', '--auto-pull'], { from: 'node' });
+
+        expect(getRunCodexPromptsMock()).toHaveBeenCalledWith(
+            expect.objectContaining({
+                dryRun: true,
+                autoPull: true,
+            }),
+        );
+    });
+
     it('passes thinkingLevel through when provided', async () => {
         const program = createProgramWithRunCommand();
 

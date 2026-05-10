@@ -98,6 +98,7 @@ function createRunOptions(overrides: Partial<RunOptions> = {}): RunOptions {
         autoMigrate: false,
         allowDestructiveAutoMigrate: false,
         autoPush: false,
+        autoPull: false,
         agentName: 'github-copilot',
         model: 'gpt-5.4',
         priority: 0,

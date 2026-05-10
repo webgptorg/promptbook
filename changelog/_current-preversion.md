@@ -1,3 +1,9 @@
+-   Added `--auto-pull` to `ptbk coder run` so coding-agent runs can refresh from Git before the first prompt and between committed prompt rounds:
+
+    -   Pulled the latest repository state before loading prompts when `--auto-pull` is enabled, keeping each next prompt aligned with the freshest checked-out codebase.
+    -   Kept `--auto-push` separate, so pushing commits and pulling incoming changes can be enabled independently.
+    -   Rejected incompatible `--auto-pull --no-commit` runs because the repository must return to a clean committed state before the next automatic pull.
+
 -   Added `--no-commit` to `ptbk coder run` so coding-agent runs can leave successful changes in the working directory without creating git commits:
 
     -   Skips the per-prompt commit step while keeping the rest of the successful prompt bookkeeping unchanged.

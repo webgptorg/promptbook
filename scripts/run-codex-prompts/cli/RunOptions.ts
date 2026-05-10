@@ -57,6 +57,10 @@ export type RunOptions = {
      * When true, push each successful coding-agent commit to the configured remote.
      */
     autoPush: boolean;
+    /**
+     * When true, pull the latest repository changes before processing prompts.
+     */
+    autoPull: boolean;
     agentName?: 'openai-codex' | 'github-copilot' | 'cline' | 'claude-code' | 'opencode' | 'gemini';
     model?: string;
     /**

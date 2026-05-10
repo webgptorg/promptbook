@@ -12,6 +12,7 @@ import { resolveCoderContext } from '../common/resolveCoderContext';
 import { checkPause, listenForPause } from '../common/waitForPause';
 import { printAgentGitIdentityTipIfNeeded } from '../git/agentGitIdentity';
 import { ensureWorkingTreeClean } from '../git/ensureWorkingTreeClean';
+import { pullLatestChanges } from '../git/pullLatestChanges';
 import { buildPromptLabelForDisplay } from '../prompts/buildPromptLabelForDisplay';
 import { buildPromptSummary } from '../prompts/buildPromptSummary';
 import { findNextTodoPrompt } from '../prompts/findNextTodoPrompt';
@@ -77,6 +78,11 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
 
         while (just(true)) {
             await waitForRequestedPause();
+            await pullLatestChangesIfEnabled({
+                options,
+                isRichUiEnabled,
+                uiHandle,
+            });
 
             const promptQueueSnapshot = await loadPromptQueueSnapshot({
                 options,
@@ -153,6 +159,40 @@ function validateRunCodexPromptOptions(options: RunOptions): void {
             `),
         );
     }
+
+    if (options.autoPull && options.noCommit && !options.dryRun) {
+        throw new NotAllowed(
+            spaceTrim(`
+                Flag \`--auto-pull\` requires commits, so it cannot be combined with \`--no-commit\`.
+
+                Auto-pull keeps the repository up to date between prompt rounds, which requires each successful round to end with a clean committed working tree.
+            `),
+        );
+    }
+}
+
+/**
+ * Pulls the latest repository state before loading prompts when the feature is enabled.
+ */
+async function pullLatestChangesIfEnabled(options: {
+    options: RunOptions;
+    isRichUiEnabled: boolean;
+    uiHandle?: CoderRunUiHandle;
+}): Promise<void> {
+    const { options: runOptions, isRichUiEnabled, uiHandle } = options;
+
+    if (!runOptions.autoPull || runOptions.dryRun) {
+        return;
+    }
+
+    uiHandle?.state.setPhase('loading');
+    uiHandle?.state.setStatusMessage('Pulling latest changes...');
+
+    if (!isRichUiEnabled) {
+        console.info(colors.gray('Pulling latest changes before the next prompt...'));
+    }
+
+    await pullLatestChanges();
 }
 
 /**

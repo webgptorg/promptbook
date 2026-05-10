@@ -3,6 +3,7 @@ import { dirname, join, relative, resolve } from 'path';
 import { spaceTrim } from 'spacetrim';
 import { $execCommand } from '../../../src/utils/execCommand/$execCommand';
 import { buildAgentGitEnv, buildAgentGitSigningFlag } from './agentGitIdentity';
+import { hasUpstreamBranch, listGitRemotes, readCurrentBranchName, readOptionalGitConfig } from './gitBranchContext';
 import { runGitCommand } from './runGitCommand';
 
 /**
@@ -157,24 +158,6 @@ async function pushCommittedChanges(projectPath: string, agentEnv?: Record<strin
 }
 
 /**
- * Checks whether the current branch has an upstream reference.
- */
-async function hasUpstreamBranch(projectPath: string, agentEnv?: Record<string, string>): Promise<boolean> {
-    try {
-        await $execCommand({
-            command: 'git rev-parse --abbrev-ref --symbolic-full-name @{upstream}',
-            cwd: projectPath,
-            env: agentEnv,
-            isVerbose: false,
-        });
-
-        return true;
-    } catch {
-        return false;
-    }
-}
-
-/**
  * Counts commits present on local `HEAD` but not on the upstream branch.
  */
 async function countCommitsAheadOfUpstream(projectPath: string, agentEnv?: Record<string, string>): Promise<number> {
@@ -191,20 +174,6 @@ async function countCommitsAheadOfUpstream(projectPath: string, agentEnv?: Recor
     }
 
     return parsed;
-}
-
-/**
- * Reads the current local branch name.
- */
-async function readCurrentBranchName(projectPath: string, agentEnv?: Record<string, string>): Promise<string> {
-    const branch = await $execCommand({
-        command: 'git rev-parse --abbrev-ref HEAD',
-        cwd: projectPath,
-        env: agentEnv,
-        isVerbose: false,
-    });
-
-    return branch.trim();
 }
 
 /**
@@ -225,16 +194,7 @@ async function resolveDefaultRemoteName(
         return branchRemote;
     }
 
-    const remoteOutput = await $execCommand({
-        command: 'git remote',
-        cwd: projectPath,
-        env: agentEnv,
-        isVerbose: false,
-    });
-    const remotes = remoteOutput
-        .split('\n')
-        .map((remote: string) => remote.trim())
-        .filter(Boolean);
+    const remotes = await listGitRemotes(projectPath, agentEnv);
 
     if (remotes.includes('origin')) {
         return 'origin';
@@ -265,29 +225,6 @@ async function resolveDefaultRemoteName(
             - Add a remote (for example \`git remote add origin <repository-url>\`) and rerun the coding script.
         `),
     );
-}
-
-/**
- * Reads optional git config value; returns undefined when the key is missing.
- */
-async function readOptionalGitConfig(
-    name: string,
-    projectPath: string,
-    agentEnv?: Record<string, string>,
-): Promise<string | undefined> {
-    try {
-        const value = await $execCommand({
-            command: `git config --get "${name}"`,
-            cwd: projectPath,
-            env: agentEnv,
-            isVerbose: false,
-        });
-
-        const trimmed = value.trim();
-        return trimmed || undefined;
-    } catch {
-        return undefined;
-    }
 }
 
 /**
