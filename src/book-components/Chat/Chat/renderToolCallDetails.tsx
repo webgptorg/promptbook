@@ -356,7 +356,6 @@ function isSearchToolCallName(toolName: string): boolean {
     return (
         toolName === 'web_search' ||
         toolName === 'deep_search' ||
-        toolName === 'knowledge_search' ||
         toolName === 'useSearchEngine' ||
         toolName === 'search'
     );
