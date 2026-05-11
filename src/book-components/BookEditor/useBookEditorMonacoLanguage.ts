@@ -309,6 +309,18 @@ export function ensureBookEditorMonacoLanguage(monaco: MonacoEditor, theme: Book
     const commitmentDefinitionByType = new Map(
         commitmentDefinitions.map((definition) => [definition.type, definition]),
     );
+    const completionCommitmentTypes = [...commitmentTypes].sort((leftType, rightType) => {
+        const leftDefinition = commitmentDefinitionByType.get(leftType);
+        const rightDefinition = commitmentDefinitionByType.get(rightType);
+        const leftRank = leftDefinition?.isUnfinished ? 1 : 0;
+        const rightRank = rightDefinition?.isUnfinished ? 1 : 0;
+
+        if (leftRank !== rightRank) {
+            return leftRank - rightRank;
+        }
+
+        return commitmentTypes.indexOf(leftType) - commitmentTypes.indexOf(rightType);
+    });
     const noteLikeCommitmentTypeSet = new Set<string>([...TODO_COMMITMENT_TYPES, ...NOTE_COMMITMENT_TYPES]);
     const noteLikeCommitmentStates = createNoteLikeCommitmentStates(commitmentTypes);
     const executableCommitmentTypes = commitmentTypes.filter(
@@ -379,7 +391,7 @@ export function ensureBookEditorMonacoLanguage(monaco: MonacoEditor, theme: Book
                 endColumn: word.endColumn,
             };
 
-            const suggestions = commitmentTypes.map((type, index) => {
+            const suggestions = completionCommitmentTypes.map((type, index) => {
                 const definition = commitmentDefinitionByType.get(type);
                 const notice = definition ? getCommitmentNoticeMetadata(definition) : null;
                 const completionDocumentation = notice

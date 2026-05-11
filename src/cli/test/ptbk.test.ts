@@ -3,6 +3,7 @@ import { Command as Program } from 'commander';
 import { mkdtemp, rm } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
+import { $initializeAgentInitCommand } from '../cli-commands/agent/init';
 import { $initializeCoderInitCommand } from '../cli-commands/coder/init';
 import { $execCommand } from '../../utils/execCommand/$execCommand';
 import { PROMPTBOOK_ENGINE_VERSION } from '../../version';
@@ -42,6 +43,15 @@ describe('how promptbookCli works', () => {
             }),
         ).resolves.toContain('Initialize Promptbook coder configuration for current project'));
 
+    it('should expose `agent run` command', () =>
+        expect(
+            $execCommand({
+                command: 'ts-node src/cli/test/ptbk.ts agent run --help',
+                crashOnError: false,
+                cwd: process.cwd(),
+            }),
+        ).resolves.toContain('Run an agent to answer user questions'));
+
     it('should expose `coder initialize` alias', () =>
         expect(
             $execCommand({
@@ -54,6 +64,7 @@ describe('how promptbookCli works', () => {
     it('should print checked standalone bootstrap summary for `coder init`', async () => {
         const temporaryDirectory = await createTemporaryDirectory();
         const consoleInfoMock = jest.spyOn(console, 'info').mockImplementation(() => undefined);
+        const processExitMock = jest.spyOn(process, 'exit').mockImplementation((() => undefined) as never);
         const originalWorkingDirectory = process.cwd();
 
         try {
@@ -75,6 +86,36 @@ describe('how promptbookCli works', () => {
         } finally {
             process.chdir(originalWorkingDirectory);
             consoleInfoMock.mockRestore();
+            processExitMock.mockRestore();
+            await rm(temporaryDirectory, { recursive: true, force: true }).catch(() => undefined);
+        }
+    });
+
+    it('should print checked standalone bootstrap summary for `agent init`', async () => {
+        const temporaryDirectory = await createTemporaryDirectory();
+        const consoleInfoMock = jest.spyOn(console, 'info').mockImplementation(() => undefined);
+        const processExitMock = jest.spyOn(process, 'exit').mockImplementation((() => undefined) as never);
+        const originalWorkingDirectory = process.cwd();
+
+        try {
+            const program = new Program();
+            process.chdir(temporaryDirectory);
+            $initializeAgentInitCommand(program);
+            await program.parseAsync(['node', 'test', 'init']);
+
+            const output = consoleInfoMock.mock.calls.flat().join('\n');
+
+            expect(output).toContain('Promptbook agent configuration initialized.');
+            expect(output).toContain('✔ messages/: created');
+            expect(output).toContain('✔ messages/queued/: created');
+            expect(output).toContain('✔ messages/finished/: created');
+            expect(output).toContain('✔ knowledge/: created');
+            expect(output).toContain('✔ agent.book: created');
+            expect(output).toContain('✔ docs/book-language-manual.md: created');
+        } finally {
+            process.chdir(originalWorkingDirectory);
+            consoleInfoMock.mockRestore();
+            processExitMock.mockRestore();
             await rm(temporaryDirectory, { recursive: true, force: true }).catch(() => undefined);
         }
     });

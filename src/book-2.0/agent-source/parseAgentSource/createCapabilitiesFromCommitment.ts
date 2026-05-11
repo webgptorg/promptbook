@@ -159,7 +159,6 @@ function createInheritanceCapability(content: string): AgentCapability | null {
     if (isVoidPseudoAgentReference(reference)) {
         label = VOID_PSEUDO_AGENT_REFERENCE; // <- {Void} label
         iconName = 'ShieldAlert';
-        return null; // <- Note: Do not show `{Void}` in capabilities, it's only used for internal logic
     }
 
     return {

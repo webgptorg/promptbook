@@ -1,4 +1,5 @@
 import type { ThinkingLevel } from '../../../src/cli/cli-commands/coder/ThinkingLevel';
+import type { PromptRunnerAgentName } from '../../../src/cli/cli-commands/common/promptRunnerCliOptions';
 
 /**
  * CLI options for running the prompt runner.
@@ -61,7 +62,7 @@ export type RunOptions = {
      * When true, pull the latest repository changes before processing prompts.
      */
     autoPull: boolean;
-    agentName?: 'openai-codex' | 'github-copilot' | 'cline' | 'claude-code' | 'opencode' | 'gemini';
+    agentName?: PromptRunnerAgentName;
     model?: string;
     /**
      * Minimum prompt priority required for processing.

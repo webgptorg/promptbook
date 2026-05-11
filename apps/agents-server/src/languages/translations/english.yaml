@@ -287,6 +287,7 @@ agentCreation.wizard.customWritingSamplePreviewTitle: Custom sample preview
 agentCreation.wizard.writingPreviewUserMessage: Can you summarize what I should do next?
 agentCreation.wizard.capabilityBrowser: Can use browser
 agentCreation.wizard.capabilitySearchEngine: Can search the web
+agentCreation.wizard.capabilityDeepSearch: Can do deep research
 agentCreation.wizard.capabilitySpawn: Can create new agents
 agentCreation.wizard.capabilityTimeout: Can manage timers
 agentCreation.wizard.capabilityTime: Knows current time

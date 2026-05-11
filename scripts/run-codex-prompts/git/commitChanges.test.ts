@@ -126,6 +126,24 @@ describe('commitChanges', () => {
         expect(gitCommitIndex).toBeGreaterThan(gitResetIndex);
     });
 
+    it('can stage only selected paths before creating the commit', async () => {
+        temporaryProjectPath = await createTemporaryGitProject();
+        process.chdir(temporaryProjectPath);
+
+        const execMock = getExecCommandMock();
+        execMock.mockImplementation(async () => okResult());
+
+        await commitChanges('test commit', {
+            includePaths: ['messages/queued/question.md', 'messages/finished/question.md'],
+        });
+
+        const calledCommands = getCalledCommands(execMock);
+        expect(calledCommands).toContain(
+            'git add --all -- "messages/queued/question.md" "messages/finished/question.md"',
+        );
+        expect(calledCommands).not.toContain('git add .');
+    });
+
     it('pushes to upstream branch after commit when there are outgoing commits', async () => {
         const execMock = getExecCommandMock();
         execMock.mockImplementation(async (options) => {
@@ -252,8 +270,8 @@ describe('commitChanges', () => {
 
         const calledCommands = getCalledCommands(execMock);
         const commitCommand = calledCommands.find((command) => command.startsWith('git commit '));
-        const gitAddCallOptions = execMock.mock.calls.find(([options]) =>
-            (typeof options === 'string' ? options : options.command) === 'git add .',
+        const gitAddCallOptions = execMock.mock.calls.find(
+            ([options]) => (typeof options === 'string' ? options : options.command) === 'git add .',
         )?.[0];
 
         expect(commitCommand).toBeDefined();
@@ -322,7 +340,10 @@ describe('commitChanges', () => {
                 if (isFirstGitCommitAttempt) {
                     isFirstGitCommitAttempt = false;
                     throw new Error(
-                        `fatal: Unable to create '${staleIndexLockPath.replace(/\\/g, '/')}': File exists.\nAnother git process seems to be running in this repository.`,
+                        `fatal: Unable to create '${staleIndexLockPath.replace(
+                            /\\/g,
+                            '/',
+                        )}': File exists.\nAnother git process seems to be running in this repository.`,
                     );
                 }
 

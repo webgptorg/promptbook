@@ -32,11 +32,11 @@ type CommitmentDefinitionSortOptions = {
  */
 const IMPORTANT_COMMITMENT_TYPE_SORT_ORDER = new Map<string, number>([
     ['GOAL', 0],
-    ['GOALS', 1],
-    ['RULE', 2],
-    ['RULES', 3],
-    ['KNOWLEDGE', 4],
-    ['TEAM', 5],
+    ['RULE', 1],
+    ['KNOWLEDGE', 2],
+    ['TEAM', 3],
+    ['GOALS', 4],
+    ['RULES', 5],
 ]);
 
 /**

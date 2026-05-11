@@ -20,6 +20,13 @@ const OVERWRITTEN_COMMITMENT_GROUP_BY_TYPE = new Map<BookCommitment, 'GOAL'>([
 ]);
 
 /**
+ * Legacy commitments that should be parsed for compatibility but ignored by the model-requirements pipeline.
+ *
+ * @private internal constant of `filterCommitmentsForAgentModelRequirements`
+ */
+const IGNORED_COMMITMENT_TYPES = new Set<BookCommitment>(['WALLET', 'WALLETS']);
+
+/**
  * Applies the commitment filtering rules used before commitment definitions are executed.
  *
  * @param commitments - Parsed commitments in original source order.
@@ -77,6 +84,10 @@ function filterDeletedCommitments(commitments: ReadonlyArray<ParsedCommitment>):
     const filteredCommitments: ParsedCommitment[] = [];
 
     for (const commitment of commitments) {
+        if (isIgnoredCommitmentType(commitment.type)) {
+            continue;
+        }
+
         if (!isDeleteCommitmentType(commitment.type)) {
             filteredCommitments.push(commitment);
             continue;
@@ -113,6 +124,18 @@ function filterDeletedCommitments(commitments: ReadonlyArray<ParsedCommitment>):
  */
 function isDeleteCommitmentType(commitmentType: ParsedCommitment['type']): boolean {
     return DELETE_COMMITMENT_TYPES.has(commitmentType);
+}
+
+/**
+ * Checks whether a parsed commitment is intentionally ignored by the current model compiler.
+ *
+ * @param commitmentType - Commitment type to check.
+ * @returns `true` when the commitment should not affect model requirements.
+ *
+ * @private internal utility of `filterDeletedCommitments`
+ */
+function isIgnoredCommitmentType(commitmentType: ParsedCommitment['type']): boolean {
+    return IGNORED_COMMITMENT_TYPES.has(commitmentType);
 }
 
 /**

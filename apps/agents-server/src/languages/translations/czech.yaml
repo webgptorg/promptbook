@@ -283,6 +283,7 @@ agentCreation.wizard.customWritingSamplePreviewTitle: Náhled vlastní ukázky
 agentCreation.wizard.writingPreviewUserMessage: Můžeš stručně shrnout, co mám udělat dál?
 agentCreation.wizard.capabilityBrowser: Používá prohlížeč
 agentCreation.wizard.capabilitySearchEngine: Vyhledává na webu
+agentCreation.wizard.capabilityDeepSearch: Provádí hluboký výzkum
 agentCreation.wizard.capabilitySpawn: Vytváří nové agenty
 agentCreation.wizard.capabilityTimeout: Pracuje s časovači
 agentCreation.wizard.capabilityTime: Zná aktuální čas

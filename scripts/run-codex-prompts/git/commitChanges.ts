@@ -9,12 +9,13 @@ import { runGitCommand } from './runGitCommand';
 /**
  * Commits staged changes with the provided message using the dedicated coding-agent identity when configured,
  * otherwise falls back to the default Git configuration. Remote pushing is opt-in via `options.autoPush`,
- * while `options.excludePaths` can keep temporary artifacts out of the created commit.
+ * `options.includePaths` can restrict staging, and `options.excludePaths` can keep temporary artifacts out of the created commit.
  */
 export async function commitChanges(
     message: string,
     options?: {
         autoPush?: boolean;
+        includePaths?: ReadonlyArray<string>;
         excludePaths?: ReadonlyArray<string>;
     },
 ): Promise<void> {
@@ -26,7 +27,7 @@ export async function commitChanges(
     try {
         const agentEnv = buildAgentGitEnv();
         const signingFlag = buildAgentGitSigningFlag();
-        await stageCommitChanges(projectPath, agentEnv, options?.excludePaths);
+        await stageCommitChanges(projectPath, agentEnv, options?.includePaths, options?.excludePaths);
 
         await runGitCommand({
             command: buildGitCommitCommand(commitMessagePath, signingFlag),
@@ -48,10 +49,11 @@ export async function commitChanges(
 async function stageCommitChanges(
     projectPath: string,
     agentEnv: Record<string, string> | undefined,
+    includePaths: ReadonlyArray<string> | undefined,
     excludePaths: ReadonlyArray<string> | undefined,
 ): Promise<void> {
     await runGitCommand({
-        command: 'git add .',
+        command: buildGitAddCommand(includePaths),
         cwd: projectPath,
         env: agentEnv,
     });
@@ -67,6 +69,17 @@ async function stageCommitChanges(
         env: agentEnv,
         isVerbose: false,
     });
+}
+
+/**
+ * Builds the git add command for either the whole tree or a focused set of paths.
+ */
+function buildGitAddCommand(includePaths: ReadonlyArray<string> | undefined): string {
+    if (!includePaths || includePaths.length === 0) {
+        return 'git add .';
+    }
+
+    return `git add --all -- ${includePaths.map(quoteShellPath).join(' ')}`;
 }
 
 /**

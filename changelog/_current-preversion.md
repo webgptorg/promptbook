@@ -1,3 +1,9 @@
+-   Added `ptbk agent` commands for repository-backed non-coding agents:
+
+    -   Added `ptbk agent init` to create `messages/queued`, `messages/finished`, `knowledge`, `agent.book`, and `docs/book-language-manual.md`.
+    -   Added `ptbk agent tick` to answer one queued markdown message through the same runner integrations used by `ptbk coder`, move it to `messages/finished`, and commit it as `Answering message ...`.
+    -   Added `ptbk agent run` to keep watching the queued-message folder and process messages one at a time as they appear.
+
 -   Added `--auto-pull` to `ptbk coder run` so coding-agent runs can refresh from Git before the first prompt and between committed prompt rounds:
 
     -   Pulled the latest repository state before loading prompts when `--auto-pull` is enabled, keeping each next prompt aligned with the freshest checked-out codebase.

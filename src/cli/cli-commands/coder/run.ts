@@ -1,13 +1,16 @@
 import colors from 'colors';
-import {
-    Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
-    Option,
-} from 'commander';
+import { Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */ } from 'commander';
 import { spaceTrim } from 'spacetrim';
 import { assertsError } from '../../../errors/assertsError';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
 import { handleActionErrors } from '../common/handleActionErrors';
-import { THINKING_LEVEL_VALUES, type ThinkingLevel } from './ThinkingLevel';
+import {
+    addPromptRunnerExecutionOptions,
+    addPromptRunnerSelectionOptions,
+    normalizePromptRunnerCliOptions,
+    PROMPT_RUNNER_DESCRIPTION,
+    type PromptRunnerCliOptions,
+} from '../common/promptRunnerCliOptions';
 
 /**
  * Initializes `coder run` command for Promptbook CLI utilities
@@ -22,13 +25,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
         spaceTrim(`
             Execute coding prompts through selected AI agent
 
-            Runners:
-            - openai-codex: OpenAI Codex integration (requires --model)
-            - github-copilot: GitHub Copilot CLI integration
-            - cline: Cline CLI integration
-            - claude-code: Claude Code integration
-            - opencode: Opencode integration
-            - gemini: Google Gemini CLI integration (requires --model)
+            ${PROMPT_RUNNER_DESCRIPTION}
 
             Features:
             - Automatically stages and commits changes with agent identity unless --no-commit is used
@@ -44,19 +41,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
     );
 
     command.option('--dry-run', 'Print unwritten prompts without executing', false);
-    command.option(
-        '--agent <agent-name>',
-        'Select runner: openai-codex, github-copilot, cline, claude-code, opencode, gemini (required for non-dry-run)',
-    );
-    command.option(
-        '--model <model>',
-        spaceTrim(`
-            Model to use (required for openai-codex and gemini)
-
-            OpenAI examples: gpt-5.2-codex, default
-            Gemini examples: gemini-3-flash-preview, default
-        `),
-    );
+    addPromptRunnerSelectionOptions(command);
     command.option(
         '--context <context-or-file>',
         'Append extra instructions either inline or from a file path relative to the current project',
@@ -70,31 +55,9 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
         'Keep generated temp prompt/log artifacts after successful rounds for debugging and analytics',
         false,
     );
-    command.option(
-        '--no-ui',
-        'Disable the rich terminal UI and keep plain streaming console output for logging and debugging',
-    );
-    command.addOption(
-        new Option(
-            '--thinking-level <thinking-level>',
-            `Set reasoning effort for supported runners (${THINKING_LEVEL_VALUES.join(', ')})`,
-        ).choices([...THINKING_LEVEL_VALUES]),
-    );
+    addPromptRunnerExecutionOptions(command);
     command.option('--priority <minimum-priority>', 'Filter prompts by minimum priority level', parseIntOption, 0);
     command.option('--no-wait', 'Skip user prompts between processing');
-    command.option('--no-commit', 'Leave successful changes in the working directory instead of creating git commits');
-    command.option('--ignore-git-changes', 'Skip clean working tree check before running prompts', false);
-    command.option(
-        '--allow-credits',
-        'Allow OpenAI Codex runner to spend credits when rate limits are exhausted',
-        false,
-    );
-    command.option(
-        '--no-normalize-line-endings',
-        'Disable automatic LF normalization for files changed in each coding round',
-    );
-    command.option('--auto-push', 'Automatically git push after each commit', false);
-    command.option('--auto-pull', 'Automatically git pull before the first and each subsequent prompt', false);
     command.option(
         '--auto-migrate',
         'Run testing-server database migrations automatically after each successfully processed prompt',
@@ -106,108 +69,43 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
 
     command.action(
         handleActionErrors(async (cliOptions) => {
-            const {
-                dryRun,
-                agent,
-                model,
-                context,
-                test,
-                preserveLogs,
-                ui,
-                thinkingLevel,
-                priority,
-                wait,
-                commit,
-                ignoreGitChanges,
-                allowCredits,
-                normalizeLineEndings,
-                autoMigrate,
-                allowDestructiveAutoMigrate,
-                autoPush,
-                autoPull,
-            } = cliOptions as {
-                readonly dryRun: boolean;
-                readonly agent?: string;
-                readonly model?: string;
-                readonly context?: string;
-                readonly test?: string | string[];
-                readonly preserveLogs: boolean;
-                readonly ui: boolean;
-                readonly thinkingLevel?: ThinkingLevel;
-                readonly priority: number;
-                readonly wait: boolean;
-                readonly commit: boolean;
-                readonly ignoreGitChanges: boolean;
-                readonly allowCredits: boolean;
-                readonly normalizeLineEndings: boolean;
-                readonly autoMigrate: boolean;
-                readonly allowDestructiveAutoMigrate: boolean;
-                readonly autoPush: boolean;
-                readonly autoPull: boolean;
-            };
+            const { dryRun, context, test, preserveLogs, priority, wait, autoMigrate, allowDestructiveAutoMigrate } =
+                cliOptions as {
+                    readonly dryRun: boolean;
+                    readonly context?: string;
+                    readonly test?: string | string[];
+                    readonly preserveLogs: boolean;
+                    readonly priority: number;
+                    readonly wait: boolean;
+                    readonly autoMigrate: boolean;
+                    readonly allowDestructiveAutoMigrate: boolean;
+                } & PromptRunnerCliOptions;
 
             const testCommand = normalizeCommandOptionValue(test);
-            const noUi = !ui;
-
-            // Validate agent
-            let agentName:
-                | 'openai-codex'
-                | 'github-copilot'
-                | 'cline'
-                | 'claude-code'
-                | 'opencode'
-                | 'gemini'
-                | undefined = undefined;
-
-            if (agent) {
-                if (
-                    agent === 'openai-codex' ||
-                    agent === 'github-copilot' ||
-                    agent === 'cline' ||
-                    agent === 'claude-code' ||
-                    agent === 'opencode' ||
-                    agent === 'gemini'
-                ) {
-                    agentName = agent;
-                } else {
-                    console.error(
-                        colors.red(
-                            `Invalid agent "${agent}". Must be one of: openai-codex, github-copilot, cline, claude-code, opencode, gemini`,
-                        ),
-                    );
-                    return process.exit(1);
-                }
-            }
-
-            if (!agentName && !dryRun) {
-                console.error(
-                    colors.red(
-                        'You must choose an agent using --agent <openai-codex|github-copilot|cline|claude-code|opencode|gemini>',
-                    ),
-                );
-                return process.exit(1);
-            }
+            const runnerOptions = normalizePromptRunnerCliOptions(cliOptions as PromptRunnerCliOptions, {
+                isAgentRequired: !dryRun,
+            });
 
             // Convert commander options to RunOptions format
             const runOptions = {
                 dryRun,
                 waitForUser: wait,
-                noCommit: !commit,
-                ignoreGitChanges,
-                agentName,
-                model,
+                noCommit: runnerOptions.noCommit,
+                ignoreGitChanges: runnerOptions.ignoreGitChanges,
+                agentName: runnerOptions.agentName,
+                model: runnerOptions.model,
                 context,
                 testCommand,
                 preserveLogs,
-                noUi,
-                thinkingLevel,
+                noUi: runnerOptions.noUi,
+                thinkingLevel: runnerOptions.thinkingLevel,
                 priority,
-                normalizeLineEndings,
-                allowCredits,
+                normalizeLineEndings: runnerOptions.normalizeLineEndings,
+                allowCredits: runnerOptions.allowCredits,
                 autoMigrate,
                 allowDestructiveAutoMigrate,
-                autoPush,
-                autoPull,
+                autoPush: runnerOptions.autoPush,
+                autoPull: runnerOptions.autoPull,
             };
 
             // Note: Import the function dynamically to avoid loading heavy dependencies until needed

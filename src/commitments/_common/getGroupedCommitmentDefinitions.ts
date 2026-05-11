@@ -26,6 +26,12 @@ export function getGroupedCommitmentDefinitions(): ReadonlyArray<GroupedCommitme
         isUnfinishedLast: true,
         isLowLevelLast: true,
     })) {
+        const existingGroup = findExistingCommitmentGroup(groupedCommitments, commitment);
+        if (existingGroup) {
+            existingGroup.aliases.push(commitment.type);
+            continue;
+        }
+
         const lastGroup = groupedCommitments[groupedCommitments.length - 1];
 
         // Check if we should group with the previous item
@@ -69,4 +75,30 @@ export function getGroupedCommitmentDefinitions(): ReadonlyArray<GroupedCommitme
     }
 
     return $deepFreeze(groupedCommitments);
+}
+
+/**
+ * Finds an existing group for aliases that were separated from their primary commitment by priority sorting.
+ *
+ * @param groupedCommitments - Groups collected so far.
+ * @param commitment - Commitment definition that may be an alias of an earlier group.
+ * @returns Existing alias group or `null` when a new group should be created.
+ *
+ * @private internal utility of `getGroupedCommitmentDefinitions`
+ */
+function findExistingCommitmentGroup(
+    groupedCommitments: ReadonlyArray<GroupedCommitmentDefinition>,
+    commitment: CommitmentDefinition,
+): GroupedCommitmentDefinition | null {
+    if (commitment instanceof NotYetImplementedCommitmentDefinition) {
+        return null;
+    }
+
+    return (
+        groupedCommitments.find(
+            (group) =>
+                !(group.primary instanceof NotYetImplementedCommitmentDefinition) &&
+                group.primary.constructor === commitment.constructor,
+        ) || null
+    );
 }

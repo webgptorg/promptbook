@@ -1,6 +1,10 @@
 import colors from 'colors';
 import type { ThinkingLevel } from '../../../src/cli/cli-commands/coder/ThinkingLevel';
 import { THINKING_LEVEL_VALUES, parseThinkingLevel } from '../../../src/cli/cli-commands/coder/ThinkingLevel';
+import {
+    PROMPT_RUNNER_AGENT_NAMES,
+    type PromptRunnerAgentName,
+} from '../../../src/cli/cli-commands/common/promptRunnerCliOptions';
 import type { RunOptions } from './RunOptions';
 
 /**
@@ -37,22 +41,14 @@ const KNOWN_OPTION_FLAGS = new Set([
  * Parses CLI arguments into runner options.
  */
 export function parseRunOptions(args: string[]): RunOptions {
-    let agentName: 'openai-codex' | 'github-copilot' | 'cline' | 'claude-code' | 'opencode' | 'gemini' | undefined =
-        undefined;
+    let agentName: PromptRunnerAgentName | undefined = undefined;
     const dryRun = args.includes('--dry-run');
 
     const agentValue = readOptionValue(args, '--agent');
     if (agentValue) {
         const value = agentValue;
-        if (
-            value === 'openai-codex' ||
-            value === 'github-copilot' ||
-            value === 'cline' ||
-            value === 'claude-code' ||
-            value === 'opencode' ||
-            value === 'gemini'
-        ) {
-            agentName = value;
+        if (PROMPT_RUNNER_AGENT_NAMES.includes(value as PromptRunnerAgentName)) {
+            agentName = value as PromptRunnerAgentName;
         }
     }
 
@@ -83,9 +79,7 @@ export function parseRunOptions(args: string[]): RunOptions {
     }
 
     if (hasThinkingLevelFlag && thinkingLevelValue === undefined) {
-        exitWithUsageError(
-            `Missing value for --thinking-level. Use one of: ${THINKING_LEVEL_VALUES.join(', ')}.`,
-        );
+        exitWithUsageError(`Missing value for --thinking-level. Use one of: ${THINKING_LEVEL_VALUES.join(', ')}.`);
     }
 
     try {

@@ -324,7 +324,7 @@ function createKnowledgeSourceSystemEntries(requirements: AgentModelRequirements
         .filter(Boolean);
 
     for (const filename of inlineSources) {
-        const entry = `Inline source: ${filename} (processed for retrieval during chat)`;
+        const entry = `Knowledge Source Inline: ${filename} (Inline source: processed for retrieval during chat)`;
         if (seenEntries.has(entry)) {
             continue;
         }

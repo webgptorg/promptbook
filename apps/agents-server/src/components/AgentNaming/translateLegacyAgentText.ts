@@ -1,4 +1,4 @@
-import { parse } from 'yaml';
+import { load } from 'js-yaml';
 import type { ServerLanguageCode } from '../../languages/ServerLanguageRegistry';
 import legacyAgentTextTranslationsCsYaml from './legacyAgentTextTranslations.cs.yaml?raw';
 
@@ -24,7 +24,7 @@ const EMPTY_LEGACY_AGENT_TEXT_TRANSLATIONS = Object.freeze({}) as Readonly<Recor
  * @returns Readonly dictionary of translated phrases.
  */
 function createLegacyAgentTextTranslations(rawYaml: string): Readonly<Record<string, string>> {
-    const parsed = parse(rawYaml);
+    const parsed = load(rawYaml);
 
     if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
         throw new Error('Legacy AgentNaming translations must be defined as a mapping of strings.');

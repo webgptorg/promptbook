@@ -373,6 +373,14 @@ export const NEW_AGENT_WIZARD_CAPABILITY_PRESETS = [
         setupKind: 'none',
     },
     {
+        id: 'deep-search',
+        labelKey: 'agentCreation.wizard.capabilityDeepSearch',
+        icon: '🔎',
+        commitmentKeyword: 'USE DEEPSEARCH',
+        availability: 'wizard',
+        setupKind: 'none',
+    },
+    {
         id: 'spawn',
         labelKey: 'agentCreation.wizard.capabilitySpawn',
         icon: '🧬',

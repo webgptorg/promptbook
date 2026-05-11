@@ -289,6 +289,7 @@ export const SERVER_TRANSLATION_KEYS = [
     'agentCreation.wizard.writingPreviewUserMessage',
     'agentCreation.wizard.capabilityBrowser',
     'agentCreation.wizard.capabilitySearchEngine',
+    'agentCreation.wizard.capabilityDeepSearch',
     'agentCreation.wizard.capabilitySpawn',
     'agentCreation.wizard.capabilityTimeout',
     'agentCreation.wizard.capabilityTime',
