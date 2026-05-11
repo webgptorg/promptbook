@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/azure-openai",
-    "version": "0.112.0-62",
+    "version": "0.112.0-63",
     "description": "Promptbook: Create persistent AI agents that turn your company's scattered knowledge into action",
     "private": false,
     "sideEffects": false,
@@ -109,7 +109,7 @@
     "types": "./esm/src/_packages/azure-openai.index.d.ts",
     "typings": "./esm/src/_packages/azure-openai.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.112.0-62"
+        "@promptbook/core": "0.112.0-63"
     },
     "dependencies": {
         "@azure/openai": "1.0.0-beta.13",
