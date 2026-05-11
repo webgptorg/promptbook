@@ -1,12 +1,15 @@
 import { mkdir, unlink, writeFile } from 'fs/promises';
-import { dirname } from 'path/posix';
+import { dirname } from 'path';
 import type { RunGoScriptOptions } from './RunGoScriptOptions';
 import { shouldDeleteTemporaryArtifact } from './shouldDeleteTemporaryArtifact';
 
 /**
  * Creates a temporary script file, runs a handler, and cleans it up unless preservation is requested or the run fails.
  */
-export async function withTempScript<T>(options: RunGoScriptOptions, handler: (scriptPath: string) => Promise<T>): Promise<T> {
+export async function withTempScript<T>(
+    options: RunGoScriptOptions,
+    handler: (scriptPath: string) => Promise<T>,
+): Promise<T> {
     const { scriptPath, scriptContent } = options;
     let hasFailed = false;
 
@@ -19,7 +22,9 @@ export async function withTempScript<T>(options: RunGoScriptOptions, handler: (s
         hasFailed = true;
         throw error;
     } finally {
-        if (shouldDeleteTemporaryArtifact({ preserveArtifactsOnSuccess: options.preserveArtifactsOnSuccess, hasFailed })) {
+        if (
+            shouldDeleteTemporaryArtifact({ preserveArtifactsOnSuccess: options.preserveArtifactsOnSuccess, hasFailed })
+        ) {
             await unlink(scriptPath).catch(() => undefined);
         }
     }

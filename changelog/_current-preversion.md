@@ -3,6 +3,7 @@
     -   Added `ptbk agent init` to create `messages/queued`, `messages/finished`, `knowledge`, `agent.book`, and `docs/book-language-manual.md`.
     -   Added `ptbk agent tick` to answer one queued markdown message through the same runner integrations used by `ptbk coder`, move it to `messages/finished`, and commit it as `Answering message ...`.
     -   Added `ptbk agent run` to keep watching the queued-message folder and process messages one at a time as they appear.
+    -   Fixed `ptbk agent run` on Windows so generated message runner shell scripts are created under `.tmp/agent-messages` before the shared coding-agent runner executes them.
 
 -   Added `--auto-pull` to `ptbk coder run` so coding-agent runs can refresh from Git before the first prompt and between committed prompt rounds:
 
