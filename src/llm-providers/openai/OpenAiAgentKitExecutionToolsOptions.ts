@@ -13,14 +13,4 @@ export type OpenAiAgentKitExecutionToolsOptions = OpenAiVectorStoreHandlerOption
      * @default gpt-5.2
      */
     readonly agentKitModelName?: string_model_name;
-
-    /**
-     * Enables OpenAI hosted vector-store file search for `knowledgeSources`.
-     *
-     * Agents Server sets this to `false` because it uses a DB-backed LlamaIndex
-     * implementation exposed through the `knowledge_search` tool instead.
-     *
-     * @default true
-     */
-    readonly isNativeKnowledgeSearchEnabled?: boolean;
 };

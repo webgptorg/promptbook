@@ -12,13 +12,7 @@ const SOURCE_CITATION_POLICY_SENTINEL = 'Source citation policy:';
  *
  * @private function of AgentKitCacheManager
  */
-const SOURCE_CITATION_TOOL_NAMES = new Set([
-    'knowledge_search',
-    'web_search',
-    'deep_search',
-    'fetch_url_content',
-    'run_browser',
-]);
+const SOURCE_CITATION_TOOL_NAMES = new Set(['web_search', 'deep_search', 'fetch_url_content', 'run_browser']);
 
 /**
  * Minimal shape needed to inspect tool names for citation policy decisions.
@@ -57,7 +51,7 @@ export function withAgentKitSourceCitationPolicy(
         `
             ${SOURCE_CITATION_POLICY_SENTINEL}
             - When an answer relies on knowledge sources or web/browser tool results, include source citations.
-            - Use citation markers returned by the tools in the answer body (for example: \`[0:0]\` or \u30104:0\u2020source\u3011).
+            - Use OpenAI citation markers in the answer body (for example: \u30104:0\u2020source\u3011).
             - Do not present source-backed factual claims without citations.
             - If no external source was used, state that clearly instead of inventing citations.
         `,

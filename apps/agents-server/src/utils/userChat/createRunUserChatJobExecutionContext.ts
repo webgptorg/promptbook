@@ -131,7 +131,6 @@ export async function createRunUserChatJobExecutionContext(options: {
         chatAttachments: options.userMessageAttachments,
         localServerUrl,
         teamInternalAccessToken: resolveTeamInternalAgentAccessToken(),
-        knowledgeSources: preparedAgentModelRequirements.modelRequirements.knowledgeSources,
     });
     const chatPrompt = createRunUserChatJobPrompt({
         resolvedAgentName,

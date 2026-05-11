@@ -1,5 +1,4 @@
 import { spaceTrim } from 'spacetrim';
-import type { string_javascript_name } from '../../_packages/types.index';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import type { string_knowledge_source_link } from '../../types/typeAliases';
 import { extractUrlsFromText } from '../../utils/validators/url/extractUrlsFromText';
@@ -8,20 +7,6 @@ import {
     createInlineKnowledgeSourceFile,
 } from '../../utils/knowledge/inlineKnowledgeSource';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
-
-/**
- * Name of the tool used by agents to search configured `KNOWLEDGE` sources.
- *
- * @public exported from `@promptbook/core`
- */
-export const KNOWLEDGE_SEARCH_TOOL_NAME = 'knowledge_search' as string_javascript_name;
-
-/**
- * Title of the system-message section generated for `KNOWLEDGE` commitments.
- *
- * @private constant of `KnowledgeCommitmentDefinition`
- */
-const KNOWLEDGE_SEARCH_SYSTEM_SECTION_TITLE = 'Knowledge Search';
 
 /**
  * KNOWLEDGE commitment definition
@@ -162,19 +147,10 @@ export class KnowledgeCommitmentDefinition extends BaseCommitmentDefinition<'KNO
         }
 
         if (knowledgeInfoEntries.length === 0) {
-            return addKnowledgeSearchToolAndSystemSection(nextRequirements);
+            return nextRequirements;
         }
 
-        return addKnowledgeSearchToolAndSystemSection(nextRequirements);
-    }
-
-    /**
-     * Gets human-readable titles for tool functions provided by this commitment.
-     */
-    getToolTitles(): Record<string_javascript_name, string> {
-        return {
-            [KNOWLEDGE_SEARCH_TOOL_NAME]: 'Knowledge search',
-        };
+        return this.appendToSystemMessage(nextRequirements, knowledgeInfoEntries.join('\n'), '\n\n');
     }
 }
 
@@ -190,148 +166,4 @@ function hasMeaningfulNonUrlText(content: string, urls: ReadonlyArray<string>): 
     const significantText = contentWithoutUrls.replace(/[\s.,!?;:'"`()[\]{}<>/-]+/g, '');
 
     return significantText.length > 0;
-}
-
-/**
- * Adds the shared `knowledge_search` tool definition and the consolidated system-message section.
- *
- * @param requirements - Requirements after one `KNOWLEDGE` commitment was applied.
- * @returns Requirements with the knowledge search instructions and tool definition.
- *
- * @private internal utility of `KnowledgeCommitmentDefinition`
- */
-function addKnowledgeSearchToolAndSystemSection(requirements: AgentModelRequirements): AgentModelRequirements {
-    const nextRequirements = addKnowledgeSearchTool(requirements);
-    const section = createKnowledgeSearchSystemSection(nextRequirements);
-    const sectionHeader = `## ${KNOWLEDGE_SEARCH_SYSTEM_SECTION_TITLE}`;
-
-    if (nextRequirements.systemMessage.includes(sectionHeader)) {
-        return {
-            ...nextRequirements,
-            systemMessage: nextRequirements.systemMessage.replace(
-                new RegExp(
-                    `## ${KNOWLEDGE_SEARCH_SYSTEM_SECTION_TITLE.replace(
-                        /[.*+?^${}()|[\]\\]/g,
-                        '\\$&',
-                    )}[\\s\\S]*?(?=\\n\\n##|$)`,
-                ),
-                section,
-            ),
-        };
-    }
-
-    return {
-        ...nextRequirements,
-        systemMessage: nextRequirements.systemMessage.trim()
-            ? `${nextRequirements.systemMessage}\n\n${section}`
-            : section,
-    };
-}
-
-/**
- * Adds the `knowledge_search` model tool when it is not already present.
- *
- * @param requirements - Current model requirements.
- * @returns Requirements with the tool definition available to the model.
- *
- * @private internal utility of `KnowledgeCommitmentDefinition`
- */
-function addKnowledgeSearchTool(requirements: AgentModelRequirements): AgentModelRequirements {
-    const existingTools = requirements.tools || [];
-
-    if (existingTools.some((tool) => tool.name === KNOWLEDGE_SEARCH_TOOL_NAME)) {
-        return requirements;
-    }
-
-    return {
-        ...requirements,
-        tools: [
-            ...existingTools,
-            {
-                name: KNOWLEDGE_SEARCH_TOOL_NAME,
-                description: spaceTrim(`
-                    Search the agent's configured knowledge sources and return relevant excerpts with citation ids.
-                    Use this before answering questions that may depend on the agent's KNOWLEDGE commitments.
-                `),
-                parameters: {
-                    type: 'object',
-                    properties: {
-                        query: {
-                            type: 'string',
-                            description: 'The natural-language search query for the knowledge base.',
-                        },
-                        limit: {
-                            type: 'integer',
-                            description: 'Maximum number of matching source excerpts to return.',
-                        },
-                    },
-                    required: ['query'],
-                },
-            },
-        ],
-    };
-}
-
-/**
- * Creates the model-facing system-message section for knowledge search.
- *
- * @param requirements - Current model requirements.
- * @returns Markdown system-message section.
- *
- * @private internal utility of `KnowledgeCommitmentDefinition`
- */
-function createKnowledgeSearchSystemSection(requirements: AgentModelRequirements): string {
-    const sourceEntries = createKnowledgeSourceSystemEntries(requirements);
-    const sourceList = sourceEntries.length > 0 ? sourceEntries.map((entry) => `-   ${entry}`).join('\n') : '-   None';
-
-    return spaceTrim(`
-        ## ${KNOWLEDGE_SEARCH_SYSTEM_SECTION_TITLE}
-
-        -   Use \`${KNOWLEDGE_SEARCH_TOOL_NAME}\` to search the configured knowledge sources before answering questions that depend on this agent's knowledge base.
-        -   Base source-backed factual answers on the returned excerpts.
-        -   When you use a returned excerpt, include its citation marker in the answer body, for example \`[0:0]\`.
-        -   If the search returns no relevant information, say that the knowledge base did not contain the answer instead of inventing it.
-
-        Configured knowledge sources:
-        ${sourceList}
-    `);
-}
-
-/**
- * Builds a stable list of configured knowledge sources for system-message diagnostics.
- *
- * @param requirements - Current model requirements.
- * @returns Human-readable source entries.
- *
- * @private internal utility of `KnowledgeCommitmentDefinition`
- */
-function createKnowledgeSourceSystemEntries(requirements: AgentModelRequirements): string[] {
-    const entries: string[] = [];
-    const seenEntries = new Set<string>();
-
-    for (const source of requirements.knowledgeSources || []) {
-        const entry = `Source URL: ${source} (processed for retrieval during chat)`;
-        if (seenEntries.has(entry)) {
-            continue;
-        }
-
-        seenEntries.add(entry);
-        entries.push(entry);
-    }
-
-    const inlineSources = ((requirements._metadata?.inlineKnowledgeSources as InlineKnowledgeSourceFile[]) || [])
-        .map((source) => source.filename)
-        .filter(Boolean);
-
-    for (const filename of inlineSources) {
-        const entry = `Knowledge Source Inline: ${filename} (Inline source: processed for retrieval during chat)`;
-        if (seenEntries.has(entry)) {
-            continue;
-        }
-
-        seenEntries.add(entry);
-        entries.push(entry);
-    }
-
-    return entries;
 }

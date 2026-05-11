@@ -69,7 +69,6 @@ export async function createHandleChatCompletionPromptContext(options: {
         calendarConnections: runtime.calendarConnections,
         localServerUrl: runtime.localServerUrl,
         teamInternalAccessToken: resolveTeamInternalAgentAccessToken(),
-        knowledgeSources: runtime.modelRequirements.knowledgeSources,
     });
     const prompt: ChatPrompt = {
         title,

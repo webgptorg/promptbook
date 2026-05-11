@@ -174,10 +174,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             }
         }
 
-        const modelRequirements = await createAgentModelRequirements(agentSource, undefined, undefined, undefined, {
-            agentReferenceResolver: resolvedAgentContext.scopedAgentReferenceResolver,
-            inlineKnowledgeSourceUploader: createInlineKnowledgeSourceUploader(),
-        });
         const promptParameters = composePromptParametersWithMemoryContext({
             baseParameters: {},
             currentUserIdentity,
@@ -192,7 +188,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             calendarConnections,
             localServerUrl,
             teamInternalAccessToken: resolveTeamInternalAgentAccessToken(),
-            knowledgeSources: modelRequirements.knowledgeSources,
+        });
+        const modelRequirements = await createAgentModelRequirements(agentSource, undefined, undefined, undefined, {
+            agentReferenceResolver: resolvedAgentContext.scopedAgentReferenceResolver,
+            inlineKnowledgeSourceUploader: createInlineKnowledgeSourceUploader(),
         });
         const openAiAgentKitExecutionTools = await $provideOpenAiAgentKitExecutionToolsForServer();
         const agent = new Agent({

@@ -31,7 +31,6 @@ import { getAllCommitmentTypes } from '../commitments/_common/getAllCommitmentTy
 import { getCommitmentDefinition } from '../commitments/_common/getCommitmentDefinition';
 import { getGroupedCommitmentDefinitions } from '../commitments/_common/getGroupedCommitmentDefinitions';
 import { isCommitmentSupported } from '../commitments/_common/isCommitmentSupported';
-import { KNOWLEDGE_SEARCH_TOOL_NAME } from '../commitments/KNOWLEDGE/KNOWLEDGE';
 import { NAME } from '../config';
 import { ADMIN_EMAIL } from '../config';
 import { PROMPTBOOK_LEGAL_ENTITY } from '../config';
@@ -262,7 +261,6 @@ export { getAllCommitmentTypes };
 export { getCommitmentDefinition };
 export { getGroupedCommitmentDefinitions };
 export { isCommitmentSupported };
-export { KNOWLEDGE_SEARCH_TOOL_NAME };
 export { NAME };
 export { ADMIN_EMAIL };
 export { PROMPTBOOK_LEGAL_ENTITY };

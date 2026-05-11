@@ -55,26 +55,6 @@ describe('composePromptParametersWithMemoryContext', () => {
         });
     });
 
-    it('embeds configured knowledge sources into hidden runtime context', () => {
-        const parameters = composePromptParametersWithMemoryContext({
-            baseParameters: {
-                plain: 'value',
-            },
-            currentUserIdentity: null,
-            agentName: 'Knowledge Agent',
-            knowledgeSources: [
-                'https://example.com/handbook.pdf',
-                'https://example.com/handbook.pdf',
-                'data:text/plain;base64,SGVsbG8=',
-            ],
-        });
-
-        const runtimeContext = JSON.parse(parameters[TOOL_RUNTIME_CONTEXT_PARAMETER]!);
-        expect(runtimeContext.knowledge).toEqual({
-            sources: ['https://example.com/handbook.pdf', 'data:text/plain;base64,SGVsbG8='],
-        });
-    });
-
     it('prefers explicitly provided projectGithubToken over prompt parameter', () => {
         const parameters = composePromptParametersWithMemoryContext({
             baseParameters: {

@@ -1,7 +1,7 @@
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideOpenAiAgentKitExecutionToolsForServer } from '@/src/tools/$provideOpenAiAgentKitExecutionToolsForServer';
 import { Agent, computeAgentHash, createAgentModelRequirements } from '@promptbook-local/core';
-import type { AgentModelRequirements, string_book, TODO_any } from '@promptbook-local/types';
+import type { string_book, TODO_any } from '@promptbook-local/types';
 import { createInlineKnowledgeSourceUploader } from '@/src/utils/knowledge/createInlineKnowledgeSourceUploader';
 import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
 import { extractUseCalendarConnectionsFromAgentSource } from '@/src/utils/calendars/extractUseCalendarConnectionsFromAgentSource';
@@ -36,7 +36,6 @@ export type HandleChatCompletionRuntime = {
     collection: Awaited<ReturnType<typeof $provideAgentCollectionForServer>>;
     resolvedAgentContext: Awaited<ReturnType<typeof resolveCachedServerAgentContext>>;
     agent: Agent;
-    modelRequirements: AgentModelRequirements;
     agentSource: string_book;
     unresolvedAgentSource: Awaited<ReturnType<typeof resolveCachedServerAgentContext>>['unresolvedAgentSource'];
     messageSuffix: string | null;
@@ -124,33 +123,21 @@ export async function resolveHandleChatCompletionRuntime(options: {
             calendarConnections,
             useEmailConfiguration,
         });
-    const runtimeAgentReferenceResolver = hasDynamicContext
-        ? createBookScopedAgentReferenceResolver({
-              parentAgentSource: resolvedAgentContext.parentAgentSource,
-              parentAgentIdentifier: resolvedAgentContext.parentAgentPermanentId,
-              localServerUrl,
-              fallbackResolver: baseAgentReferenceResolver,
-          })
-        : undefined;
-    const agentModelRequirements =
-        preparedAgentModelRequirements?.modelRequirements ||
-        (await createAgentModelRequirements(agentSource, undefined, undefined, undefined, {
-            agentReferenceResolver: runtimeAgentReferenceResolver,
-            inlineKnowledgeSourceUploader: createInlineKnowledgeSourceUploader(),
-        }));
     const agent = await createHandleChatCompletionAgent({
         agentName,
         agentSource,
         agentId,
         resolvedAgentContext,
-        agentModelRequirements,
+        localServerUrl,
+        baseAgentReferenceResolver,
+        hasDynamicContext,
+        preparedAgentModelRequirements,
     });
 
     return {
         collection,
         resolvedAgentContext,
         agent,
-        modelRequirements: agentModelRequirements,
         agentSource,
         unresolvedAgentSource,
         messageSuffix,
@@ -267,10 +254,27 @@ async function createHandleChatCompletionAgent(options: {
     agentSource: string_book;
     agentId: string;
     resolvedAgentContext: Awaited<ReturnType<typeof resolveCachedServerAgentContext>>;
-    agentModelRequirements: AgentModelRequirements;
+    localServerUrl: string;
+    baseAgentReferenceResolver: Awaited<ReturnType<typeof $provideAgentReferenceResolver>>;
+    hasDynamicContext: boolean;
+    preparedAgentModelRequirements: Awaited<ReturnType<typeof resolveCachedServerAgentModelRequirements>> | null;
 }): Promise<Agent> {
     const agentKitCacheManager = new AgentKitCacheManager({ isVerbose: true });
     const baseOpenAiToolsPromise = $provideOpenAiAgentKitExecutionToolsForServer();
+    const runtimeAgentReferenceResolver = options.hasDynamicContext
+        ? createBookScopedAgentReferenceResolver({
+              parentAgentSource: options.resolvedAgentContext.parentAgentSource,
+              parentAgentIdentifier: options.resolvedAgentContext.parentAgentPermanentId,
+              localServerUrl: options.localServerUrl,
+              fallbackResolver: options.baseAgentReferenceResolver,
+          })
+        : undefined;
+    const agentModelRequirements =
+        options.preparedAgentModelRequirements?.modelRequirements ||
+        (await createAgentModelRequirements(options.agentSource, undefined, undefined, undefined, {
+            agentReferenceResolver: runtimeAgentReferenceResolver,
+            inlineKnowledgeSourceUploader: createInlineKnowledgeSourceUploader(),
+        }));
 
     const agentKitResult = await agentKitCacheManager.getOrCreateAgentKitAgent(
         options.agentSource,
@@ -279,13 +283,15 @@ async function createHandleChatCompletionAgent(options: {
         {
             includeDynamicContext: true,
             agentId: options.agentId,
-            modelRequirements: options.agentModelRequirements,
+            modelRequirements: agentModelRequirements,
         },
     );
 
     console.info('[🤰]', `AgentKit cache ${agentKitResult.fromCache ? 'hit' : 'miss'} (OpenAI)`, {
         agentName: options.agentName,
         assistantCacheKey: agentKitResult.assistantCacheKey,
+        vectorStoreHash: agentKitResult.vectorStoreHash,
+        vectorStoreId: agentKitResult.vectorStoreId,
     });
 
     return new Agent({
@@ -293,7 +299,7 @@ async function createHandleChatCompletionAgent(options: {
         executionTools: {
             llm: agentKitResult.tools,
         },
-        precomputedModelRequirements: options.agentModelRequirements,
+        precomputedModelRequirements: agentModelRequirements,
         assistantPreparationMode: 'external',
         isVerbose: true,
         teacherAgent: null,

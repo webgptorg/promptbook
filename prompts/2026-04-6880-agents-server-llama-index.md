@@ -1,4 +1,4 @@
-[x] ~$1.73 2 hours by OpenAI Codex `gpt-5.5`
+[ ] !!
 
 [✨🚡] Do the knowledge search with LlamaIndex Framework not with OpenAI native vector store
 

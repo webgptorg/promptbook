@@ -121,12 +121,6 @@ export type ToolRuntimeContext = {
         localServerUrl?: string;
         teamInternalAccessToken?: string;
     };
-    knowledge?: {
-        /**
-         * Final materialized knowledge sources available to the current agent.
-         */
-        sources?: string[];
-    };
     spawn?: {
         depth?: number;
         parentRunId?: string;

@@ -184,10 +184,9 @@ export async function resolveAgentChatRouteContext(
         chatAttachments: attachments,
         localServerUrl,
         teamInternalAccessToken: resolveTeamInternalAgentAccessToken(),
-        knowledgeSources: preparedAgentModelRequirements.modelRequirements.knowledgeSources,
     });
 
-    // Reuse short-lived prepared AgentKit agents across nearby chat requests.
+    // Use AgentKitCacheManager for vector store caching
     const agentKitCacheManager = new AgentKitCacheManager({ isVerbose: true });
     const baseOpenAiToolsPromise = $provideOpenAiAgentKitExecutionToolsForServer();
     const agentHash = computeAgentHash(agentSource);
