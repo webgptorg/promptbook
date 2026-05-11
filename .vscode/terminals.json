@@ -396,14 +396,28 @@
         },
         {
             "name": "⚡🏭 Generate \"Agents server\" prompt boilerplates for Coding Agent",
-            "command": "npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --count 10 --template prompts/_templates/agents-server.md",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --count 5 --template prompts/_templates/agents-server.md",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "⚡🏭 Generate \"Utils app\" prompt boilerplates for Coding Agent",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --count 5 --template prompts/_templates/utils-app.md",
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "⚡🏭 Generate \"ptbk coder\" prompt boilerplates for Coding Agent",
-            "command": "npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --count 10 --template prompts/_templates/ptbk-coder.md",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --count 5 --template prompts/_templates/ptbk-coder.md",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "⚡🏭 Generate \"ptbk agent\" prompt boilerplates for Coding Agent",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --count 5 --template prompts/_templates/ptbk-agent.md",
             "execute": true,
             "onlySingle": true,
             "focus": true
