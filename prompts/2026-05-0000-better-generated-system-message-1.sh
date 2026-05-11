@@ -629,7 +629,7 @@ Dokážu najít volný termín, připravit shrnutí dne a navrhnout follow-upy p
 -   This is relevant for all the commitments which are putting something into the system message.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
--   Add the changes into the [changelog](./changelog/_current-preversion.md)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ## How to Contribute
 

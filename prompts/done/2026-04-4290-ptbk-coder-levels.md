@@ -17,7 +17,7 @@ $ ptbk coder run --thinking-level xhigh
 -   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Also update [`terminals.json` file with local workflows that codes on Promptbook itself](.vscode/terminals.json)
--   Add the changes into the [changelog](./changelog/_current-preversion.md)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
@@ -36,7 +36,7 @@ ptbk coder find-refactor-candidates --level xhigh
 -   Extract this configuration into a separate file and use it in the implementation of the command
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
--   Add the changes into the [changelog](./changelog/_current-preversion.md)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
@@ -52,7 +52,7 @@ ptbk coder find-refactor-candidates --level xhigh
 -   The levels should have bigger spread, for example `xlow` should be very benevolent and find only the most obvious candidates, while `extreme` should be very aggressive and find a lot of candidates, even the ones that are not very good but could be improved
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
--   Add the changes into the [changelog](./changelog/_current-preversion.md)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
@@ -69,7 +69,7 @@ ptbk coder find-refactor-candidates
 -   Also do not hardcode any specific path to the script itself, this should be dynamic and work in any (typescript) project, it should find the `.gitignore` file in the project and read it
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
--   Add the changes into the [changelog](./changelog/_current-preversion.md)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
@@ -96,7 +96,7 @@ ptbk coder find-refactor-candidates --level extreme
 -   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
--   Add the changes into the [changelog](./changelog/_current-preversion.md)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
@@ -107,5 +107,4 @@ ptbk coder find-refactor-candidates --level extreme
 -   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
--   Add the changes into the [changelog](./changelog/_current-preversion.md)
-
+-   Add the changes into the [changelog](changelog/_current-preversion.md)

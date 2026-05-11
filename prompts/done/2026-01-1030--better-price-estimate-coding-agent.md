@@ -26,7 +26,7 @@
 -   There was 711,043 tokens used
 -   The price for the OpenAI codecs should be per model.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the [changelog](./changelog/_current-preversion.md)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
@@ -55,4 +55,4 @@
 [✨🦔] qux
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the [changelog](./changelog/_current-preversion.md)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)

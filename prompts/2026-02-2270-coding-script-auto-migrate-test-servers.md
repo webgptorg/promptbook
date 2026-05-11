@@ -16,7 +16,7 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle, there is already logic for running migrations you are only connecting it to the coding script and adding the heuristic check.
 -   Do a proper analysis of the current functionality of coding script and migrations and `terminals.json` before you start implementing.
 -   You are working with the [coding script](scripts/run-codex-prompts/run-codex-prompts.ts)
--   Add the changes into the [changelog](./changelog/_current-preversion.md)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
@@ -26,7 +26,7 @@
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
--   Add the changes into the [changelog](./changelog/_current-preversion.md)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
@@ -36,7 +36,7 @@
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
--   Add the changes into the [changelog](./changelog/_current-preversion.md)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
@@ -46,5 +46,4 @@
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
--   Add the changes into the [changelog](./changelog/_current-preversion.md)
-
+-   Add the changes into the [changelog](changelog/_current-preversion.md)

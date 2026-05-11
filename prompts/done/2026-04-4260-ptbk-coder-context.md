@@ -17,7 +17,7 @@ $ ptbk coder run --context AGENTS.md
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Also update [`terminals.json` file with local workflows that codes on Promptbook itself](.vscode/terminals.json)
 -   Also put Promptbooks own context into AGENTS.md and use it in the Promptbook workdlow itself
--   Add the changes into the [changelog](./changelog/_current-preversion.md)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
@@ -28,7 +28,7 @@ $ ptbk coder run --context AGENTS.md
 -   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
--   Add the changes into the [changelog](./changelog/_current-preversion.md)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
@@ -39,7 +39,7 @@ $ ptbk coder run --context AGENTS.md
 -   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
--   Add the changes into the [changelog](./changelog/_current-preversion.md)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
@@ -50,4 +50,4 @@ $ ptbk coder run --context AGENTS.md
 -   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
--   Add the changes into the [changelog](./changelog/_current-preversion.md)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)

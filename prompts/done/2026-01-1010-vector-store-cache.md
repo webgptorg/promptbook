@@ -17,7 +17,7 @@
 -   For additional context, you can look at the [migration file from OpenaAI Assistants to AgentKit](prompts/2026-01-1000-migrate-to-agent-kit.md)
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   This should work in the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](./changelog/_current-preversion.md)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
@@ -62,7 +62,7 @@
 -   For additional context, you can look at the [migration file from OpenaAI Assistants to AgentKit](prompts/2026-01-1000-migrate-to-agent-kit.md), [migration 2 file from OpenaAI Assistants to AgentKit](prompts/2026-01-1010-vector-store-cache.md)
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   This should work in the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](./changelog/_current-preversion.md)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 **Here are the logs from local Vercel `next dev`:**
 
@@ -1641,7 +1641,7 @@ POST /agents/RLcP3snv2ifR3H/api/chat 200 in 35932ms
 
 ---
 
-[.] *<- TODO: Maybe not needed*
+[.] _<- TODO: Maybe not needed_
 
 [✨🦂] Use locking mechanism to avoid creating two same vector stores at once.
 
@@ -1654,7 +1654,7 @@ POST /agents/RLcP3snv2ifR3H/api/chat 200 in 35932ms
 -   For additional context, you can look at the [migration file from OpenaAI Assistants to AgentKit](prompts/2026-01-1000-migrate-to-agent-kit.md), [migration 2 file from OpenaAI Assistants to AgentKit](prompts/2026-01-1010-vector-store-cache.md)
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   This should work in the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](./changelog/_current-preversion.md)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
