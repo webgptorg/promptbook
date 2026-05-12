@@ -1,4 +1,4 @@
-[-]
+[ ] !!!!!!
 
 [✨🌦] bar
 
@@ -12,7 +12,10 @@ ptbk agent init
 ptbk agent run --agent github-copilot --model gpt-5.4 --thinking-level xhigh
 ```
 
--   @@@
+-   Do not reference "the book manual" in BUT just place
+-   @@@ `buildAgentMessagePrompt`
+
+-   # Book Language blueprint
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality of `ptbk agent` and related functionality before you start implementing.
 -   You are working with [`ptbk agent`](src/cli/cli-commands/agent/run.ts)

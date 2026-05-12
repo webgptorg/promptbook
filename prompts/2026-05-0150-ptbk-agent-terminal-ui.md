@@ -1,6 +1,6 @@
-[-]
+[ ] !
 
-[✨🛅] foo
+[✨🛅] Enhance terminal UI of `ptbk agent run`
 
 ```bash
 @@@
