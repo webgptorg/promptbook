@@ -4,6 +4,7 @@ import glob from 'glob-promise';
 import { join, relative } from 'path';
 import type { string_char_emoji } from '../../../src/types/typeAliasEmoji';
 import { escapeRegExp } from '../../../src/utils/chat/escapeRegExp';
+import { getPromptbookTempPath, getPromptbookTempPosixPath } from '../../../src/utils/files/getPromptbookTempPath';
 
 /**
  * Default file globs scanned for emoji tags.
@@ -13,12 +14,12 @@ const DEFAULT_INCLUDE_GLOBS = ['**/*.{ts,tsx,js,jsx,json,md,txt}'];
 /**
  * Default ignored paths while scanning the repository.
  */
-const DEFAULT_IGNORE_GLOBS = ['**/node_modules/**', '**/.git/**', '**/.promptbook/ptbk-coder/**'];
+const DEFAULT_IGNORE_GLOBS = ['**/node_modules/**', '**/.git/**', `**/${getPromptbookTempPosixPath('ptbk-coder')}/**`];
 
 /**
  * Directory used for Promptbook coder runtime caches.
  */
-const PTBK_CODER_CACHE_DIRECTORY_PATH = '.promptbook/ptbk-coder';
+const PTBK_CODER_CACHE_DIRECTORY_PATH = getPromptbookTempPath('ptbk-coder');
 
 /**
  * Relative cache file path storing per-file emoji-tag scan results.

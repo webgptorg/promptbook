@@ -1,3 +1,8 @@
+-   Unified Promptbook-owned temporary folders under `.promptbook` instead of mixing `.tmp` and `.promptbook`:
+    
+    -   Added one shared Promptbook temp-path helper and switched repository scripts, CLI bootstrapping, and Agents Server browser artifact/user-data defaults to create temp files only inside `.promptbook`.
+    -   Updated generated `.gitignore` content and scanning ignore rules so new Promptbook temp artifacts live under `.promptbook`, with repository-specific `.promptbook` subfolders ignored in one place.
+
 -   Added a new `Minecraft 3D 2` built-in avatar visual with proper 3D cuboid rendering and pointer-driven head turning:
     
     -   Reused shared Minecraft texture helpers so both Minecraft-style visuals stay deterministic without duplicating the face / torso pixel-generation logic.

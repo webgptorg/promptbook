@@ -1,6 +1,7 @@
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import { escapeRegExp } from '../../../utils/chat/escapeRegExp';
+import { getPromptbookTempGitignoreRule } from '../../../utils/files/getPromptbookTempPath';
 import { appendBlock } from './appendBlock';
 import type { InitializationStatus } from './boilerplateTemplates';
 import { readTextFileIfExists } from './readTextFileIfExists';
@@ -11,14 +12,9 @@ import { readTextFileIfExists } from './readTextFileIfExists';
 const GITIGNORE_FILE_PATH = '.gitignore';
 
 /**
- * Promptbook coder temp directory that should stay out of version control.
+ * Shared Promptbook working directory that should stay out of version control.
  */
-const CODER_TEMP_GITIGNORE_RULE = '/.tmp';
-
-/**
- * Promptbook coder cache directory that should stay out of version control.
- */
-const CODER_CACHE_GITIGNORE_RULE = '/.promptbook/ptbk-coder';
+const CODER_TEMP_GITIGNORE_RULE = getPromptbookTempGitignoreRule();
 
 /**
  * Promptbook coder environment file that should stay out of version control.
@@ -31,7 +27,7 @@ const CODER_ENV_GITIGNORE_RULE = '.env';
 const CODER_GITIGNORE_HEADER = '# Promptbook Coder';
 
 /**
- * Ensures `.gitignore` contains the standalone Promptbook coder temp and cache entries.
+ * Ensures `.gitignore` contains the shared Promptbook working-directory entry.
  *
  * @private function of `initializeCoderProjectConfiguration`
  */
@@ -53,7 +49,7 @@ export async function ensureCoderGitignoreFile(projectPath: string): Promise<Ini
  * Returns the Promptbook coder gitignore rules that still need to be added.
  */
 function getMissingCoderGitignoreRules(gitignoreContent: string): Array<string> {
-    const requiredRules = [CODER_TEMP_GITIGNORE_RULE, CODER_CACHE_GITIGNORE_RULE, CODER_ENV_GITIGNORE_RULE];
+    const requiredRules = [CODER_TEMP_GITIGNORE_RULE, CODER_ENV_GITIGNORE_RULE];
     return requiredRules.filter((rule) => !hasGitignoreRule(gitignoreContent, rule));
 }
 

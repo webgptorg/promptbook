@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from '@jest/globals';
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
+import { getPromptbookTempGitignoreRule } from '../../../utils/files/getPromptbookTempPath';
 import { AGENT_CODING_FILE_PATH, getDefaultCoderAgentCodingFileContent } from './agentCodingFile';
 import { AGENTS_FILE_PATH, getDefaultCoderAgentsFileContent } from './agentsFile';
 import {
@@ -97,7 +98,7 @@ describe('coder boilerplate templates', () => {
 
         const gitignoreContent = await readFile(join(projectPath, '.gitignore'), 'utf-8');
         expect(normalizeLineEndings(gitignoreContent)).toBe(
-            '# Promptbook Coder\n/.tmp\n/.promptbook/ptbk-coder\n.env\n',
+            `# Promptbook Coder\n${getPromptbookTempGitignoreRule()}\n.env\n`,
         );
 
         expect(await readJsonFile(join(projectPath, 'package.json'))).toEqual({
@@ -137,7 +138,7 @@ describe('coder boilerplate templates', () => {
 
         const gitignoreContent = await readFile(join(projectPath, '.gitignore'), 'utf-8');
         expect(normalizeLineEndings(gitignoreContent)).toBe(
-            'node_modules\n.tmp\n\n# Promptbook Coder\n/.promptbook/ptbk-coder\n.env\n',
+            `node_modules\n.tmp\n\n# Promptbook Coder\n${getPromptbookTempGitignoreRule()}\n.env\n`,
         );
 
         expect(await readJsonFile(join(projectPath, 'package.json'))).toEqual({

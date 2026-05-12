@@ -1,4 +1,4 @@
-import { join } from 'path';
+import { resolvePromptbookTempPath } from '../../../src/utils/files/getPromptbookTempPath';
 import type { AgentMessageFile } from './AgentMessageFile';
 
 /**
@@ -6,5 +6,5 @@ import type { AgentMessageFile } from './AgentMessageFile';
  */
 export function buildAgentMessageScriptPath(projectPath: string, messageFile: AgentMessageFile): string {
     const scriptFileName = `${messageFile.fileName.replace(/\.[^.]+$/u, '')}.sh`;
-    return join(projectPath, '.tmp', 'agent-messages', scriptFileName);
+    return resolvePromptbookTempPath(projectPath, 'scripts', 'agent-messages', scriptFileName);
 }

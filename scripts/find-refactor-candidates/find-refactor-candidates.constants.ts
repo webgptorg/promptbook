@@ -1,3 +1,5 @@
+import { getPromptbookTempPosixPath } from '../../src/utils/files/getPromptbookTempPath';
+
 /**
  * Root folders that contain source-like files for scanning.
  */
@@ -18,9 +20,8 @@ export const SOURCE_FILE_IGNORE_GLOBS: ReadonlyArray<string> = [
     '**/.git/**',
     '**/.idea/**',
     '**/.vscode/**',
-    '**/.promptbook/**',
+    `**/${getPromptbookTempPosixPath()}/**`,
     '**/.next/**',
-    '**/.tmp/**',
     '**/tmp/**',
     '**/coverage/**',
     '**/dist/**',
