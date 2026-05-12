@@ -3,6 +3,8 @@ import { getCommitmentDefinition } from '../../commitments/_common/getCommitment
 
 /**
  * Minimal commitment shape used by documentation renderers.
+ *
+ * @private internal utility of `createStandaloneBookLanguageMarkdown`
  */
 type CommitmentDocumentationSource = {
     /**
@@ -18,6 +20,8 @@ type CommitmentDocumentationSource = {
 
 /**
  * Grouped commitment metadata consumed by the docs renderer.
+ *
+ * @private internal utility of `createStandaloneBookLanguageMarkdown`
  */
 type GroupedCommitmentDocumentationSource = {
     /**
@@ -33,6 +37,8 @@ type GroupedCommitmentDocumentationSource = {
 
 /**
  * Canonical commitment keyword for the open/closed family.
+ *
+ * @private internal utility of `createStandaloneBookLanguageMarkdown`
  */
 const OPEN_COMMITMENT_TYPE = 'OPEN';
 
@@ -46,6 +52,8 @@ const CLOSED_COMMITMENT_TYPE = 'CLOSED';
  *
  * @param markdown - Original markdown source.
  * @returns Markdown without the first `#` heading.
+ *
+ * @private internal utility of `createStandaloneBookLanguageMarkdown`
  */
 function removeLeadingTopLevelHeading(markdown: string): string {
     return markdown.replace(/^\s*#\s+[^\n]+\n*/u, '').trim();
@@ -57,6 +65,8 @@ function removeLeadingTopLevelHeading(markdown: string): string {
  * @param title - Heading label for the subsection.
  * @param documentation - Raw commitment documentation markdown.
  * @returns Markdown subsection with a `####` heading.
+ *
+ * @private internal utility of `createStandaloneBookLanguageMarkdown`
  */
 function renderDocumentationSection(title: string, documentation: string): string {
     return `#### ${title}\n\n${removeLeadingTopLevelHeading(documentation)}`;
@@ -70,6 +80,8 @@ function renderDocumentationSection(title: string, documentation: string): strin
  *
  * @param group - Grouped commitment metadata.
  * @returns Markdown body for the docs page/catalog entry.
+ *
+ * @private internal utility of `createStandaloneBookLanguageMarkdown`
  */
 export function renderGroupedCommitmentDocumentationMarkdown(group: GroupedCommitmentDocumentationSource): string {
     const commitmentTypes = new Set([group.primary.type, ...group.aliases]);

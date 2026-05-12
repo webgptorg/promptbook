@@ -1,23 +1,27 @@
 import { spaceTrim } from 'spacetrim';
+import { BOOK_LANGUAGE_VERSION, getGroupedCommitmentDefinitions } from '../../_packages/core.index';
 import { NotYetImplementedCommitmentDefinition } from '../../commitments/_base/NotYetImplementedCommitmentDefinition';
 import {
     formatCommitmentReplacementText,
     getCommitmentNoticeMetadata,
 } from '../../commitments/_common/getCommitmentNoticeMetadata';
+import { string_markdown } from '../../types/string_markdown';
 import type { BookLanguageDocumentationExample } from './BookLanguageDocumentationExample';
 import { bookLanguageCommonPitfalls } from './bookLanguageCommonPitfalls';
 import { bookLanguageDocumentationExamples } from './bookLanguageDocumentationExamples';
 import { renderGroupedCommitmentDocumentationMarkdown } from './renderGroupedCommitmentDocumentationMarkdown';
-import { BOOK_LANGUAGE_VERSION, getGroupedCommitmentDefinitions } from '../../_packages/core.index';
-import { string_markdown } from '../../types/string_markdown';
 
 /**
  * Commitment types that primarily model composition of multiple agents.
+ * 
+ * @private internal utility of `createStandaloneBookLanguageMarkdown` 
  */
 const COMPOSITION_COMMITMENT_TYPES = new Set(['FROM', 'IMPORT', 'IMPORTS', 'TEAM']);
 
 /**
  * Commitment types that expose tools/runtime capabilities.
+ * 
+ * @private internal utility of `createStandaloneBookLanguageMarkdown` 
  */
 const TOOLING_COMMITMENT_TYPES = new Set([
     'USE BROWSER',
@@ -40,6 +44,8 @@ const TOOLING_COMMITMENT_TYPES = new Set([
 
 /**
  * Commitment types that primarily define agent profile metadata.
+ * 
+ * @private internal utility of `createStandaloneBookLanguageMarkdown` 
  */
 const PROFILE_COMMITMENT_TYPES = new Set([
     'GOAL',
@@ -64,6 +70,8 @@ const PROFILE_COMMITMENT_TYPES = new Set([
 
 /**
  * Commitment types that primarily define behavioral constraints or prompt shaping.
+ * 
+ * @private internal utility of `createStandaloneBookLanguageMarkdown` 
  */
 const BEHAVIOR_COMMITMENT_TYPES = new Set([
     'RULE',
@@ -97,6 +105,8 @@ const BEHAVIOR_COMMITMENT_TYPES = new Set([
 
 /**
  * One grouped commitment definition as returned by the runtime registry.
+ * 
+ * @private internal utility of `createStandaloneBookLanguageMarkdown` 
  */
 type GroupedCommitmentDefinition = ReturnType<typeof getGroupedCommitmentDefinitions>[number];
 
@@ -109,6 +119,8 @@ type GroupedCommitmentDefinition = ReturnType<typeof getGroupedCommitmentDefinit
  * so docs stay up-to-date by design.
  *
  * @returns Full standalone markdown document.
+ * 
+ * @public exported from `@promptbook/core`
  */
 export function createStandaloneBookLanguageMarkdown(): string_markdown {
     const groupedCommitments = getGroupedCommitmentDefinitions();
@@ -377,6 +389,8 @@ export function createStandaloneBookLanguageMarkdown(): string_markdown {
  *
  * @param groupedCommitment - Grouped commitment definition with aliases.
  * @returns Markdown section for a single commitment.
+ * 
+ * @private internal utility of `createStandaloneBookLanguageMarkdown` 
  */
 function renderCommitmentCatalogSection(groupedCommitment: GroupedCommitmentDefinition): string {
     const { primary, aliases } = groupedCommitment;
@@ -416,6 +430,8 @@ function renderCommitmentCatalogSection(groupedCommitment: GroupedCommitmentDefi
  *
  * @param example - Example definition.
  * @returns Markdown section for one example.
+ * 
+ * @private internal utility of `createStandaloneBookLanguageMarkdown` 
  */
 function renderExampleSection(example: BookLanguageDocumentationExample): string {
     return spaceTrim(
@@ -440,6 +456,8 @@ function renderExampleSection(example: BookLanguageDocumentationExample): string
  *
  * @param value - Raw heading/identifier text.
  * @returns Stable lowercase anchor id.
+ * 
+ * @private internal utility of `createStandaloneBookLanguageMarkdown` 
  */
 function toStableAnchorId(value: string): string {
     return value
@@ -454,6 +472,8 @@ function toStableAnchorId(value: string): string {
  *
  * @param regex - Regex instance.
  * @returns Printable regex pattern and flags.
+ * 
+ * @private internal utility of `createStandaloneBookLanguageMarkdown` 
  */
 function stringifyRegex(regex: RegExp): string {
     return `/${regex.source}/${regex.flags}`;
@@ -465,6 +485,8 @@ function stringifyRegex(regex: RegExp): string {
  * @param content - Raw code content.
  * @param language - Optional info-string language label.
  * @returns Fenced code block.
+ * 
+ * @private internal utility of `createStandaloneBookLanguageMarkdown` 
  */
 function getSafeCodeBlock(content: string, language = 'markdown'): string {
     const maxBacktickCount = Math.max(0, ...(content.match(/`+/g) || []).map((match) => match.length));

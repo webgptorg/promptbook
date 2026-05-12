@@ -1,5 +1,7 @@
 /**
  * One practical "don't vs do" pitfall item for Book language authoring.
+ * 
+ * @private internal utility of `createStandaloneBookLanguageMarkdown` 
  */
 export type BookLanguageCommonPitfall = {
     /**
@@ -20,6 +22,8 @@ export type BookLanguageCommonPitfall = {
 
 /**
  * Common anti-patterns with practical fixes.
+ * 
+ * @private internal utility of `createStandaloneBookLanguageMarkdown` 
  */
 export const bookLanguageCommonPitfalls: ReadonlyArray<BookLanguageCommonPitfall> = [
     {
