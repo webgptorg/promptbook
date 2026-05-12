@@ -23,17 +23,18 @@ export function buildGitHubCopilotScript(options: GitHubCopilotScriptOptions): s
 
             unset GITHUB_TOKEN
 
-            copilot -p "$(cat <<'${delimiter}'
-
-            ${block(options.prompt)}
-
-            ${delimiter}
-            )" \\
+            # Avoid passing the prompt as one CLI argument because large agent prompts can exceed Windows/MSYS limits.
+            copilot \\
                 --yolo \\
                 --no-ask-user \\
                 --no-color \\
                 --output-format json \\
-                --stream off${modelArgument}${thinkingLevelArgument}
+                --stream off${modelArgument}${thinkingLevelArgument} \\
+                <<'${delimiter}'
+
+            ${block(options.prompt)}
+
+            ${delimiter}
         `,
     );
 }

@@ -64,8 +64,7 @@ export async function POST(request: NextRequest) {
             // This is a simplified execution. Ideally, this would be a loop.
             // We ask the LLM to give us a JSON of actions to perform immediately.
 
-            const systemPrompt = spaceTrim(
-                (block) => `
+            const systemPrompt = spaceTrim(`
                     You are an autonomous agent interacting with Facebook.
                     Your goal is to help the user achieve: "${goal}".
                     ${

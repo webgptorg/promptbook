@@ -1,7 +1,7 @@
 import { buildGitHubCopilotScript } from './buildGitHubCopilotScript';
 
 describe('buildGitHubCopilotScript', () => {
-    it('uses the provided model in the Copilot CLI command', () => {
+    it('uses stdin instead of a huge `-p` shell argument', () => {
         const script = buildGitHubCopilotScript({
             prompt: 'Hello from test prompt',
             projectPath: '/project/path',
@@ -9,7 +9,9 @@ describe('buildGitHubCopilotScript', () => {
         });
 
         expect(script).toContain('cd "/project/path"');
-        expect(script).toContain('copilot -p "$(cat');
+        expect(script).toContain("<<'GITHUB_COPILOT_PROMPT'");
+        expect(script).toContain('copilot \\');
+        expect(script).not.toContain('copilot -p');
         expect(script).toContain('--model gpt-5.4');
         expect(script).toContain('Hello from test prompt');
     });
@@ -33,5 +35,6 @@ describe('buildGitHubCopilotScript', () => {
         expect(script).not.toContain('--model');
         expect(script).not.toContain('--reasoning-effort');
         expect(script).toContain('--output-format json');
+        expect(script).toContain('--stream off');
     });
 });

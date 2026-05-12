@@ -3213,3 +3213,8 @@
     -   Added shared metadata definitions with reusable predefined option lists, so enum-like metadata such as `DEFAULT_AGENT_AVATAR_VISUAL`, `SERVER_LANGUAGE`, `SERVER_VISIBILITY`, `CHAT_FEEDBACK_MODE`, `CHAT_VISUAL_MODE`, `NAME_POOL`, `DEFAULT_VISIBILITY`, and `NEW_AGENT_WIZZARD` now render as selects instead of free-form text inputs.
     -   Reused the same option registries across the metadata page and existing server-creation flows to keep enum values centralized and DRY.
     -   Added server-side validation for predefined metadata options, so invalid enum values are rejected even when `/api/metadata` is called directly.
+-   Fixed `ptbk agent run` / `ptbk agent tick` with the GitHub Copilot runner on Windows/MSYS for large queued-message prompts:
+
+    -   Stopped passing the full generated agent prompt as one `copilot -p "..."` shell argument, which could exceed the shell/Node argument-length limit and fail with `Argument list too long`.
+    -   Switched the GitHub Copilot runner to feed prompts through standard input instead, keeping `--model`, `--reasoning-effort`, and the existing non-interactive flags unchanged.
+    -   Added regression coverage for the new stdin-based invocation shape so agent-mode prompts stay safe even when the Book Language blueprint makes them much larger than coder prompts.

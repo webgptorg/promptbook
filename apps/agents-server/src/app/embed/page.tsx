@@ -14,6 +14,21 @@ export default function EmbedPage() {
     const agentUrl = searchParams?.get('agentUrl');
     const metaParam = searchParams?.get('meta');
     const isInitiallyOpen = searchParams?.get('open') === '1';
+    const embedGlobalStyles = spaceTrim(`
+        html,
+        body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            background: transparent !important;
+            overflow: hidden;
+        }
+
+        #__next {
+            width: 100%;
+            height: 100%;
+        }
+    `);
     const [isOpen, setIsOpen] = useState(isInitiallyOpen);
 
     const meta = useMemo(() => {
@@ -57,23 +72,7 @@ export default function EmbedPage() {
 
     return (
         <>
-            <style jsx global>
-                {spaceTrim(`
-                    html,
-                    body {
-                        margin: 0;
-                        width: 100%;
-                        height: 100%;
-                        background: transparent !important;
-                        overflow: hidden;
-                    }
-
-                    #__next {
-                        width: 100%;
-                        height: 100%;
-                    }
-                `)}
-            </style>
+            <style jsx global>{embedGlobalStyles}</style>
             <PromptbookAgentIntegration
                 agentUrl={agentUrl}
                 meta={meta}
