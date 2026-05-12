@@ -354,7 +354,13 @@ function buildTeamSystemMessageBody(teamEntries: ReadonlyArray<TeamToolEntry>): 
  */
 function buildTeamToolDescription(entry: TeamToolEntry): string {
     const detailLines = collectTeamEntryDetails(entry).map(({ label, content }) => `${label}: ${content}`);
-    return [`Consult teammate ${entry.teammate.label}`, ...detailLines].join('\n');
+
+    return spaceTrim(
+        (block) => `
+            Consult teammate ${entry.teammate.label}
+            ${block(detailLines.join('\n'))}
+        `,
+    );
 }
 
 /**

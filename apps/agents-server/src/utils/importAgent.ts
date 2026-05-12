@@ -5,6 +5,7 @@ import {
     string_book,
     TODO_any,
 } from '../../../../src/_packages/types.index'; // <- [🚾]
+import { spaceTrim } from 'spacetrim';
 import { assertsError } from '../../../../src/errors/assertsError';
 import { NotYetImplementedError } from '../../../../src/errors/NotYetImplementedError';
 import { deserializeError } from '../../../../src/errors/utils/deserializeError';
@@ -208,8 +209,15 @@ export async function importAgent(
             return source;
         } catch (error) {
             assertsError(error);
+            const originalMessage = error.message;
 
-            error.message = `Failed to import agent from "${agentIdentification}"` + '\n\n' + error.message;
+            error.message = spaceTrim(
+                (block) => `
+                    Failed to import agent from "${agentIdentification}"
+
+                    ${block(originalMessage)}
+                `,
+            );
             throw error;
         } finally {
             PENDING_IMPORTED_AGENT_REQUESTS.delete(cacheKey);

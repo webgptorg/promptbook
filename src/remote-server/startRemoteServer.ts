@@ -416,8 +416,12 @@ async function renderMarkdownServerIndex<TCustomOptions>(
             ${block(
                 !runtime.configuration.isApplicationModeAllowed || runtime.configuration.collection === null
                     ? ''
-                    : '**Pipelines in collection:**\n' +
-                          serverInfo.pipelines.map((pipelineUrl) => `- ${pipelineUrl}`).join('\n'),
+                    : spaceTrim(
+                          (nestedBlock) => `
+                              **Pipelines in collection:**
+                              ${nestedBlock(serverInfo.pipelines.map((pipelineUrl) => `- ${pipelineUrl}`).join('\n'))}
+                          `,
+                      ),
             )}
             **Running executions:** ${serverInfo.runningExecutions}
 

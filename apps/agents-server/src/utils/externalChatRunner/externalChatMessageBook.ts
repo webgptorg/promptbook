@@ -1,8 +1,17 @@
+import { spaceTrim } from 'spacetrim';
+
 /**
  * Creates one queued chat-message book consumed by the external runner.
  */
 export function createExternalChatQueuedMessageBook(options: { messageContent: string }): string {
-    return normalizeBookText(`MESSAGE @User\n${options.messageContent}`);
+    return normalizeBookText(
+        spaceTrim(
+            (block) => `
+                MESSAGE @User
+                ${block(options.messageContent)}
+            `,
+        ),
+    );
 }
 
 /**

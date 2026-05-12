@@ -1,3 +1,5 @@
+import { spaceTrim } from 'spacetrim';
+
 /**
  * Builds a human-friendly note for a cached vector store.
  *
@@ -8,13 +10,14 @@ export function createAgentKitVectorStoreNote(options: {
     readonly knowledgeSources: ReadonlyArray<string>;
 }): string {
     const { agentName, knowledgeSources } = options;
-    const lines = [`Agent: ${agentName}`, 'Files:'];
 
-    for (const source of knowledgeSources) {
-        lines.push(`- ${formatKnowledgeSourceLabel(source)}`);
-    }
-
-    return lines.join('\n');
+    return spaceTrim(
+        (block) => `
+            Agent: ${agentName}
+            Files:
+            ${block(knowledgeSources.map((source) => `- ${formatKnowledgeSourceLabel(source)}`).join('\n'))}
+        `,
+    );
 }
 
 /**

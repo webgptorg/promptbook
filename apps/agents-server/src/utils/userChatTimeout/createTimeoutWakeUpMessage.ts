@@ -1,3 +1,5 @@
+import { spaceTrim } from 'spacetrim';
+
 /**
  * Builds the synthetic user-like message injected when a timeout elapses.
  *
@@ -8,14 +10,13 @@ export function createTimeoutWakeUpMessage(options: {
     readonly durationMs: number;
     readonly message?: string | null;
 }): string {
-    const lines = [
-        `⏱️ Timeout elapsed after ${options.durationMs}ms.`,
-        `timeoutId: ${options.timeoutId}`,
-    ];
+    const message = options.message?.trim() || '';
 
-    if (options.message && options.message.trim()) {
-        lines.push(options.message.trim());
-    }
-
-    return lines.join('\n');
+    return spaceTrim(
+        (block) => `
+            ⏱️ Timeout elapsed after ${options.durationMs}ms.
+            timeoutId: ${options.timeoutId}
+            ${message ? block(message) : ''}
+        `,
+    );
 }

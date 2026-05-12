@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import type { string_javascript_name } from '../../_packages/types.index';
 import type { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
 import { createToolExecutionEnvelope } from '../_common/toolExecutionEnvelope';
@@ -269,7 +270,12 @@ function createListedTimeoutsAssistantMessage(options: { total: number; items: A
         summaryRows.push(`...and ${hiddenCount} more.`);
     }
 
-    return [`Found ${options.total} ${options.total === 1 ? 'timeout' : 'timeouts'}:`, ...summaryRows].join('\n');
+    return spaceTrim(
+        (block) => `
+            Found ${options.total} ${options.total === 1 ? 'timeout' : 'timeouts'}:
+            ${block(summaryRows.join('\n'))}
+        `,
+    );
 }
 
 /**
