@@ -1,4 +1,4 @@
-[ ] !!
+[.] _(Dedend, not going this way)_
 
 [✨🚡] Do the knowledge search with LlamaIndex Framework not with OpenAI native vector store
 
@@ -18,7 +18,7 @@
 
 ---
 
-[ ] !!!!
+[.] _(Dedend, not going this way)_
 
 [✨🚡] The knowledge search fails on "Knowledge index is still being prepared. Try the search again after indexing finishes."
 
