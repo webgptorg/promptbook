@@ -17,6 +17,11 @@ const GITHUB_API_VERSION = '2022-11-28';
 const GITHUB_USER_AGENT = 'Promptbook-Agents-Server-External-Chat-Runner';
 
 /**
+ * Maximum attempts for one conflict-prone GitHub contents write.
+ */
+const GITHUB_FILE_WRITE_MAX_ATTEMPTS = 3;
+
+/**
  * Minimal repository metadata returned by GitHub.
  */
 export type GithubRepositoryMetadata = {
@@ -156,18 +161,7 @@ export async function upsertGithubFile(options: {
     content: string;
     message: string;
 }): Promise<boolean> {
-    const currentFile = await readGithubFile(options.configuration, options.repositoryFullName, options.path);
-
-    if (currentFile?.content === options.content) {
-        return false;
-    }
-
-    await writeGithubFile({
-        ...options,
-        sha: currentFile?.sha,
-    });
-
-    return true;
+    return (await writeGithubFileWithConflictsHandled({ ...options, mode: 'upsert' })) === 'written';
 }
 
 /**
@@ -180,13 +174,7 @@ export async function createGithubFileIfMissing(options: {
     content: string;
     message: string;
 }): Promise<boolean> {
-    const currentFile = await readGithubFile(options.configuration, options.repositoryFullName, options.path);
-    if (currentFile) {
-        return false;
-    }
-
-    await writeGithubFile(options);
-    return true;
+    return (await writeGithubFileWithConflictsHandled({ ...options, mode: 'createIfMissing' })) === 'written';
 }
 
 /**
@@ -194,6 +182,74 @@ export async function createGithubFileIfMissing(options: {
  */
 export function isGithubApiNotFoundError(error: unknown): boolean {
     return error instanceof GithubApiError && error.status === 404;
+}
+
+/**
+ * Retries file writes when GitHub rejects a stale optimistic-lock SHA.
+ */
+async function writeGithubFileWithConflictsHandled(
+    options: {
+        configuration: ExternalChatRunnerGithubConfiguration;
+        repositoryFullName: string;
+        path: string;
+        content: string;
+        message: string;
+    } & (
+        | {
+              mode: 'upsert';
+          }
+        | {
+              mode: 'createIfMissing';
+          }
+    ),
+): Promise<'written' | 'unchanged' | 'alreadyExists'> {
+    for (let attemptIndex = 0; attemptIndex < GITHUB_FILE_WRITE_MAX_ATTEMPTS; attemptIndex++) {
+        const currentFile = await readGithubFile(options.configuration, options.repositoryFullName, options.path);
+
+        if (currentFile?.content === options.content) {
+            return 'unchanged';
+        }
+
+        if (options.mode === 'createIfMissing' && currentFile) {
+            return 'alreadyExists';
+        }
+
+        try {
+            await writeGithubFile({
+                ...options,
+                sha: currentFile?.sha,
+            });
+
+            return 'written';
+        } catch (error) {
+            if (!isGithubApiFileWriteConflictError(error) || attemptIndex === GITHUB_FILE_WRITE_MAX_ATTEMPTS - 1) {
+                throw error;
+            }
+        }
+    }
+
+    throw new Error('GitHub file write retry loop exhausted unexpectedly.');
+}
+
+/**
+ * Returns true for transient GitHub contents-write conflicts caused by stale SHAs.
+ */
+function isGithubApiFileWriteConflictError(error: unknown): boolean {
+    if (!(error instanceof GithubApiError)) {
+        return false;
+    }
+
+    const payloadMessage =
+        error.payload && typeof error.payload === 'object' && 'message' in error.payload
+            ? error.payload.message
+            : undefined;
+    const message = typeof payloadMessage === 'string' ? payloadMessage.toLowerCase() : '';
+
+    if (error.status === 409) {
+        return true;
+    }
+
+    return error.status === 422 && (message.includes('sha') || message.includes('already exists'));
 }
 
 /**
