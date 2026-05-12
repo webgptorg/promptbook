@@ -6,7 +6,7 @@ import { parseServerRecord, type ServerRecord } from '../utils/serverRegistry';
 /**
  * SQL query used to load all registered servers in a deterministic order.
  */
-const LIST_REGISTERED_SERVERS_SQL = `
+const LIST_REGISTERED_SERVERS_SQL = spaceTrim(`
     SELECT
         "id",
         "name",
@@ -17,7 +17,7 @@ const LIST_REGISTERED_SERVERS_SQL = `
         "updatedAt"
     FROM "_Server"
     ORDER BY "name" ASC
-`;
+`);
 
 /**
  * Minimal PostgreSQL client contract required by the registry reader.

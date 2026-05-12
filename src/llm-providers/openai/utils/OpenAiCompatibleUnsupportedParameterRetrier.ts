@@ -1,4 +1,5 @@
 import colors from 'colors';
+import { spaceTrim } from 'spacetrim';
 import { PipelineExecutionError } from '../../../errors/PipelineExecutionError';
 import type { ModelRequirements } from '../../../types/ModelRequirements';
 import type { string_model_name } from '../../../types/typeAliases';
@@ -132,9 +133,13 @@ export class OpenAiCompatibleUnsupportedParameterRetrier {
      */
     private createAttemptHistoryError(finalErrorMessage: string): PipelineExecutionError {
         return new PipelineExecutionError(
-            `All attempts failed. Attempt history:\n` +
-                formatUnsupportedParameterAttemptHistory(this.attemptStack) +
-                `\nFinal error: ${finalErrorMessage}`,
+            spaceTrim(
+                (block) => `
+                    All attempts failed. Attempt history:
+                    ${block(formatUnsupportedParameterAttemptHistory(this.attemptStack))}
+                    Final error: ${finalErrorMessage}
+                `,
+            ),
         );
     }
 }

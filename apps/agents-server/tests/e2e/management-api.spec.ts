@@ -1,5 +1,6 @@
 import type { Page } from '@playwright/test';
 import { expect, test } from 'playwright/test';
+import { spaceTrim } from 'spacetrim';
 import { loginAsAdmin } from './support/auth';
 
 /**
@@ -133,7 +134,11 @@ test.describe('Agents Server management API', () => {
             method: 'POST',
             token: apiKey,
             body: {
-                source: 'E2E Support Agent\nPERSONA You help with support tickets.\nRULE Keep replies concise.',
+                source: spaceTrim(`
+                    E2E Support Agent
+                    PERSONA You help with support tickets.
+                    RULE Keep replies concise.
+                `),
                 visibility: 'UNLISTED',
             },
         });
@@ -200,7 +205,11 @@ test.describe('Agents Server management API', () => {
             token: apiKey,
             body: {
                 name: 'E2E Support Agent Updated',
-                source: 'Placeholder\nPERSONA You help with escalations.\nRULE Provide next steps.',
+                source: spaceTrim(`
+                    Placeholder
+                    PERSONA You help with escalations.
+                    RULE Provide next steps.
+                `),
                 visibility: 'PUBLIC',
             },
         });

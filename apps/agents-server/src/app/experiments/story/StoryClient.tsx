@@ -5,6 +5,7 @@ import { BookEditor } from '@promptbook-local/components';
 import { validateBook } from '@promptbook-local/core';
 import { ChevronDown, Save } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
+import { spaceTrim } from 'spacetrim';
 import { usePromptbookTheme } from '../../../components/ThemeMode/usePromptbookTheme';
 import { AgentsPanel } from './AgentsPanel';
 import { getStories, saveStories } from './actions';
@@ -377,16 +378,18 @@ function buildStoryContinuationMessage(story: Story, agentLabel: string): string
             ? `You are ${agentLabel}. Continue the scene with one paragraph of dialogue that starts with "${agentLabel}:" and keeps the tone dramatic.`
             : `You are ${agentLabel}. Continue the narrative with one paragraph that flows naturally from the existing story.`;
 
-    return [
-        `Story title: ${title}`,
-        `Story mode: ${story.mode}`,
-        '',
-        'Current story:',
-        storyContext,
-        '',
-        instructions,
-        'Return only the paragraph you write and do not mention you are AI.',
-    ].join('\n');
+    return spaceTrim(
+        (block) => `
+            Story title: ${title}
+            Story mode: ${story.mode}
+
+            Current story:
+            ${block(storyContext)}
+
+            ${instructions}
+            Return only the paragraph you write and do not mention you are AI.
+        `,
+    );
 }
 
 /**

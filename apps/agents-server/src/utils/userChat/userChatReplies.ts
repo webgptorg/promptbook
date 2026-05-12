@@ -35,9 +35,9 @@ export function resolveUserChatReplyReference(options: {
                 repliedToMessageId: repliedToMessageId || null,
                 replyThreadId: threadId || null,
             },
-            `
+            spaceTrim(`
                 Reply creation requires both \`threadId\` and \`repliedToMessageId\`.
-            `,
+            `),
         );
     }
 
@@ -49,9 +49,9 @@ export function resolveUserChatReplyReference(options: {
                 repliedToMessageId,
                 replyThreadId: threadId,
             },
-            `
+            spaceTrim(`
                 Reply target thread \`${threadId}\` does not match chat \`${chatId}\`.
-            `,
+            `),
         );
     }
 
@@ -91,6 +91,8 @@ export function assertValidUserChatMessageReplies(options: {
 
     for (let index = 0; index < messages.length; index++) {
         const message = messages[index]!;
+        const messageId = resolveMessageId(message);
+        const messageIdLabel = messageId || 'unknown';
         const rawReplyReference = (message as { replyingTo?: unknown }).replyingTo;
         if (rawReplyReference === undefined) {
             continue;
@@ -110,11 +112,11 @@ export function assertValidUserChatMessageReplies(options: {
                         typeof (rawReplyReference as { threadId?: unknown } | null)?.threadId === 'string'
                             ? (rawReplyReference as { threadId: string }).threadId
                             : null,
-                    messageId: resolveMessageId(message),
+                    messageId,
                 },
-                `
+                spaceTrim(`
                     Message reply metadata is invalid for chat \`${chatId}\`.
-                `,
+                `),
             );
         }
 
@@ -125,11 +127,11 @@ export function assertValidUserChatMessageReplies(options: {
                     chatId,
                     repliedToMessageId: replyReference.messageId,
                     replyThreadId: replyReference.threadId,
-                    messageId: resolveMessageId(message),
+                    messageId,
                 },
-                `
-                    Message \`${resolveMessageId(message) || 'unknown'}\` replies to thread \`${replyReference.threadId}\`, but it is stored in chat \`${chatId}\`.
-                `,
+                spaceTrim(`
+                    Message \`${messageIdLabel}\` replies to thread \`${replyReference.threadId}\`, but it is stored in chat \`${chatId}\`.
+                `),
             );
         }
 
@@ -141,11 +143,11 @@ export function assertValidUserChatMessageReplies(options: {
                     chatId,
                     repliedToMessageId: replyReference.messageId,
                     replyThreadId: replyReference.threadId,
-                    messageId: resolveMessageId(message),
+                    messageId,
                 },
-                `
-                    Message \`${resolveMessageId(message) || 'unknown'}\` replies to \`${replyReference.messageId}\`, which does not exist in chat \`${chatId}\`.
-                `,
+                spaceTrim(`
+                    Message \`${messageIdLabel}\` replies to \`${replyReference.messageId}\`, which does not exist in chat \`${chatId}\`.
+                `),
             );
         }
 
@@ -156,11 +158,11 @@ export function assertValidUserChatMessageReplies(options: {
                     chatId,
                     repliedToMessageId: replyReference.messageId,
                     replyThreadId: replyReference.threadId,
-                    messageId: resolveMessageId(message),
+                    messageId,
                 },
-                `
-                    Message \`${resolveMessageId(message) || 'unknown'}\` can only reply to earlier messages in chat \`${chatId}\`.
-                `,
+                spaceTrim(`
+                    Message \`${messageIdLabel}\` can only reply to earlier messages in chat \`${chatId}\`.
+                `),
             );
         }
 
@@ -172,11 +174,11 @@ export function assertValidUserChatMessageReplies(options: {
                     chatId,
                     repliedToMessageId: replyReference.messageId,
                     replyThreadId: replyReference.threadId,
-                    messageId: resolveMessageId(message),
+                    messageId,
                 },
-                `
-                    Message \`${resolveMessageId(message) || 'unknown'}\` replies to \`${replyReference.messageId}\`, which is not complete yet.
-                `,
+                spaceTrim(`
+                    Message \`${messageIdLabel}\` replies to \`${replyReference.messageId}\`, which is not complete yet.
+                `),
             );
         }
     }
@@ -250,10 +252,11 @@ export function createReplyAwareUserChatPromptContent(
         return message.content;
     }
 
+    const replyReference = message.replyingTo;
     const repliedToPreview = resolveChatMessageReplyPreviewText(
         {
-            content: message.replyingTo.content,
-            attachmentNames: message.replyingTo.attachmentNames,
+            content: replyReference.content,
+            attachmentNames: replyReference.attachmentNames,
         },
         {
             maxLength: USER_CHAT_REPLY_PROMPT_PREVIEW_MAX_LENGTH,
@@ -265,16 +268,18 @@ export function createReplyAwareUserChatPromptContent(
             ? message.content
             : '[No text content. See attachments if provided.]';
 
-    return spaceTrim(`
-        Reply context:
-        - Thread ID: \`${message.replyingTo.threadId}\`
-        - Reply target ID: \`${message.replyingTo.messageId}\`
-        - Reply target sender: \`${message.replyingTo.sender}\`
-        - Reply target preview: ${repliedToPreview}
+    return spaceTrim(
+        (block) => `
+            Reply context:
+            - Thread ID: \`${replyReference.threadId}\`
+            - Reply target ID: \`${replyReference.messageId}\`
+            - Reply target sender: \`${replyReference.sender}\`
+            - Reply target preview: ${repliedToPreview}
 
-        Message:
-        ${currentMessageText}
-    `);
+            Message:
+            ${block(currentMessageText)}
+        `,
+    );
 }
 
 /**
@@ -298,9 +303,9 @@ function resolveReplyTargetMessage(options: {
                 repliedToMessageId,
                 replyThreadId: chatId,
             },
-            `
+            spaceTrim(`
                 Reply target message \`${repliedToMessageId}\` was not found in chat \`${chatId}\`.
-            `,
+            `),
         );
     }
 
@@ -312,9 +317,9 @@ function resolveReplyTargetMessage(options: {
                 repliedToMessageId,
                 replyThreadId: chatId,
             },
-            `
+            spaceTrim(`
                 Reply target message \`${repliedToMessageId}\` is still being generated and cannot be replied to yet.
-            `,
+            `),
         );
     }
 

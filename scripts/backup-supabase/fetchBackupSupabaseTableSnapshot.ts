@@ -1,4 +1,5 @@
 import { Client } from 'pg';
+import { spaceTrim } from 'spacetrim';
 import { DatabaseError } from '../../src/errors/DatabaseError';
 import { NotFoundError } from '../../src/errors/NotFoundError';
 import type { TableReference } from './fetchBackupSupabaseTableReferences';
@@ -168,7 +169,7 @@ export async function fetchBackupSupabaseTableSnapshot(
  */
 async function fetchTableColumns(client: Client, tableReference: TableReference): Promise<Array<TableColumn>> {
     const { rows } = await client.query<TableColumn>(
-        `
+        spaceTrim(`
             SELECT
                 attribute.attname AS "columnName",
                 pg_catalog.format_type(attribute.atttypid, attribute.atttypmod) AS "dataType",
@@ -189,7 +190,7 @@ async function fetchTableColumns(client: Client, tableReference: TableReference)
               AND attribute.attnum > 0
               AND NOT attribute.attisdropped
             ORDER BY attribute.attnum
-        `,
+        `),
         [tableReference.schemaName, tableReference.tableName],
     );
 
@@ -207,7 +208,7 @@ async function fetchTableColumns(client: Client, tableReference: TableReference)
  */
 async function fetchTableConstraints(client: Client, tableReference: TableReference): Promise<Array<TableConstraint>> {
     const { rows } = await client.query<TableConstraint>(
-        `
+        spaceTrim(`
             SELECT
                 constraint_data.conname AS "constraintName",
                 pg_catalog.pg_get_constraintdef(constraint_data.oid, true) AS "constraintDefinition"
@@ -227,7 +228,7 @@ async function fetchTableConstraints(client: Client, tableReference: TableRefere
                     ELSE 5
                 END,
                 constraint_data.conname
-        `,
+        `),
         [tableReference.schemaName, tableReference.tableName],
     );
 
@@ -245,7 +246,7 @@ async function fetchTableConstraints(client: Client, tableReference: TableRefere
  */
 async function fetchConstraintBackedIndexNames(client: Client, tableReference: TableReference): Promise<Set<string>> {
     const { rows } = await client.query<{ readonly indexName: string }>(
-        `
+        spaceTrim(`
             SELECT
                 index_relation.relname AS "indexName"
             FROM pg_catalog.pg_constraint AS constraint_data
@@ -258,7 +259,7 @@ async function fetchConstraintBackedIndexNames(client: Client, tableReference: T
             WHERE namespace.nspname = $1
               AND relation.relname = $2
               AND constraint_data.conindid <> 0
-        `,
+        `),
         [tableReference.schemaName, tableReference.tableName],
     );
 
@@ -276,7 +277,7 @@ async function fetchConstraintBackedIndexNames(client: Client, tableReference: T
  */
 async function fetchTableIndexes(client: Client, tableReference: TableReference): Promise<Array<TableIndex>> {
     const { rows } = await client.query<TableIndex>(
-        `
+        spaceTrim(`
             SELECT
                 indexname AS "indexName",
                 indexdef AS "indexDefinition"
@@ -284,7 +285,7 @@ async function fetchTableIndexes(client: Client, tableReference: TableReference)
             WHERE schemaname = $1
               AND tablename = $2
             ORDER BY indexname
-        `,
+        `),
         [tableReference.schemaName, tableReference.tableName],
     );
 
@@ -302,7 +303,7 @@ async function fetchTableIndexes(client: Client, tableReference: TableReference)
  */
 async function fetchTableTriggers(client: Client, tableReference: TableReference): Promise<Array<TableTrigger>> {
     const { rows } = await client.query<TableTrigger>(
-        `
+        spaceTrim(`
             SELECT
                 trigger_data.tgname AS "triggerName",
                 pg_catalog.pg_get_triggerdef(trigger_data.oid, true) AS "triggerDefinition"
@@ -315,7 +316,7 @@ async function fetchTableTriggers(client: Client, tableReference: TableReference
               AND relation.relname = $2
               AND NOT trigger_data.tgisinternal
             ORDER BY trigger_data.tgname
-        `,
+        `),
         [tableReference.schemaName, tableReference.tableName],
     );
 
@@ -333,7 +334,7 @@ async function fetchTableTriggers(client: Client, tableReference: TableReference
  */
 async function fetchTablePrimaryKeyColumns(client: Client, tableReference: TableReference): Promise<Array<string>> {
     const { rows } = await client.query<{ readonly columnName: string }>(
-        `
+        spaceTrim(`
             SELECT
                 attribute.attname AS "columnName"
             FROM pg_catalog.pg_constraint AS constraint_data
@@ -350,7 +351,7 @@ async function fetchTablePrimaryKeyColumns(client: Client, tableReference: Table
               AND relation.relname = $2
               AND constraint_data.contype = 'p'
             ORDER BY key_data.ordinality
-        `,
+        `),
         [tableReference.schemaName, tableReference.tableName],
     );
 
@@ -512,7 +513,7 @@ async function fetchSequenceMetadata(
     sequenceName: string,
 ): Promise<Omit<TableSequence, 'owningColumnName'>> {
     const { rows } = await client.query<Omit<TableSequence, 'owningColumnName'>>(
-        `
+        spaceTrim(`
             SELECT
                 schemaname AS "sequenceSchemaName",
                 sequencename AS "sequenceName",
@@ -527,7 +528,7 @@ async function fetchSequenceMetadata(
             WHERE schemaname = $1
               AND sequencename = $2
             LIMIT 1
-        `,
+        `),
         [sequenceSchemaName, sequenceName],
     );
 

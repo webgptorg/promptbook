@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { getCommitmentDefinition } from '../../../../../src/commitments/_common/getCommitmentDefinition';
 
 /**
@@ -70,9 +71,7 @@ function renderDocumentationSection(title: string, documentation: string): strin
  * @param group - Grouped commitment metadata.
  * @returns Markdown body for the docs page/catalog entry.
  */
-export function renderGroupedCommitmentDocumentationMarkdown(
-    group: GroupedCommitmentDocumentationSource,
-): string {
+export function renderGroupedCommitmentDocumentationMarkdown(group: GroupedCommitmentDocumentationSource): string {
     const commitmentTypes = new Set([group.primary.type, ...group.aliases]);
 
     if (commitmentTypes.has(OPEN_COMMITMENT_TYPE) && commitmentTypes.has(CLOSED_COMMITMENT_TYPE)) {
@@ -80,10 +79,15 @@ export function renderGroupedCommitmentDocumentationMarkdown(
         const closedCommitmentDefinition = getCommitmentDefinition(CLOSED_COMMITMENT_TYPE);
 
         if (openCommitmentDefinition && closedCommitmentDefinition) {
-            return [
-                renderDocumentationSection(OPEN_COMMITMENT_TYPE, openCommitmentDefinition.documentation),
-                renderDocumentationSection(CLOSED_COMMITMENT_TYPE, closedCommitmentDefinition.documentation),
-            ].join('\n\n');
+            return spaceTrim(
+                (block) => `
+                    ${block(renderDocumentationSection(OPEN_COMMITMENT_TYPE, openCommitmentDefinition.documentation))}
+
+                    ${block(
+                        renderDocumentationSection(CLOSED_COMMITMENT_TYPE, closedCommitmentDefinition.documentation),
+                    )}
+                `,
+            );
         }
     }
 

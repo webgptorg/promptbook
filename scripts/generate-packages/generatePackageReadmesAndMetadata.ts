@@ -168,7 +168,13 @@ async function generatePackageReadmeAndMetadata(
 ): Promise<void> {
     const { isBuilded, packageBasename, packageFullname, readmeFilePath } = packageMetadata;
     const packageReadmeExtra = await readFile(readmeFilePath, 'utf-8');
-    const packageReadme = createPackageReadme(mainReadme, packageReadmeExtra, packageFullname, isBuilded, mainPackageJson);
+    const packageReadme = createPackageReadme(
+        mainReadme,
+        packageReadmeExtra,
+        packageFullname,
+        isBuilded,
+        mainPackageJson,
+    );
     const packageJson = createGeneratedPackageJson(mainPackageJson, packageFullname);
 
     packageJson.keywords = createPackageKeywords(packageFullname);
@@ -357,7 +363,14 @@ function createPackageKeywords(packageFullname: string): Array<string> {
  * @private internal utility of generatePackageReadmesAndMetadata
  */
 async function writeGeneratedPackageIgnoreFiles(packageBasename: string): Promise<void> {
-    await writeFile(`./packages/${packageBasename}/.gitignore`, ['esm', 'umd', 'apps'].join('\n'));
+    await writeFile(
+        `./packages/${packageBasename}/.gitignore`,
+        spaceTrim(`
+            esm
+            umd
+            apps
+        `),
+    );
     await writeFile(
         `./packages/${packageBasename}/.npmignore`,
         spaceTrim(`

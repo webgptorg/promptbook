@@ -1,4 +1,5 @@
 import { Code as CodeIcon } from 'lucide-react';
+import { spaceTrim } from 'spacetrim';
 import { Code } from '../Code/Code';
 
 /**
@@ -8,27 +9,51 @@ export default function CountingUtilitiesCodeSamples() {
     const samples = [
         {
             name: 'Characters',
-            code: `import { countCharacters } from '@promptbook/utils';\n\ncountCharacters('Hello World');`,
+            code: spaceTrim(`
+                import { countCharacters } from '@promptbook/utils';
+
+                countCharacters('Hello World');
+            `),
         },
         {
             name: 'Words',
-            code: `import { countWords } from '@promptbook/utils';\n\ncountWords('Hello World');`,
+            code: spaceTrim(`
+                import { countWords } from '@promptbook/utils';
+
+                countWords('Hello World');
+            `),
         },
         {
             name: 'Sentences',
-            code: `import { countSentences } from '@promptbook/utils';\n\ncountSentences('Hello World. How are you?');`,
+            code: spaceTrim(`
+                import { countSentences } from '@promptbook/utils';
+
+                countSentences('Hello World. How are you?');
+            `),
         },
         {
             name: 'Paragraphs',
-            code: `import { countParagraphs } from '@promptbook/utils';\n\ncountParagraphs('Hello World.\\n\\nHow are you?');`,
+            code: spaceTrim(`
+                import { countParagraphs } from '@promptbook/utils';
+
+                countParagraphs('Hello World.\\n\\nHow are you?');
+            `),
         },
         {
             name: 'Lines',
-            code: `import { countLines } from '@promptbook/utils';\n\ncountLines('Hello World.\\nHow are you?');`,
+            code: spaceTrim(`
+                import { countLines } from '@promptbook/utils';
+
+                countLines('Hello World.\\nHow are you?');
+            `),
         },
         {
             name: 'Pages',
-            code: `import { countPages } from '@promptbook/utils';\n\ncountPages('...');`,
+            code: spaceTrim(`
+                import { countPages } from '@promptbook/utils';
+
+                countPages('...');
+            `),
         },
     ];
 

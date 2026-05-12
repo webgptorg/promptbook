@@ -2,6 +2,7 @@
 
 import mermaid from 'mermaid';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { spaceTrim } from 'spacetrim';
 
 /**
  * Type describing node.
@@ -91,11 +92,12 @@ export default function MermaidSocialGraph({
         });
 
         // Add styling classes
-        syntax += `
-    classDef person fill:#e1f5fe,stroke:#01579b,stroke-width:2px
-    classDef organization fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
-    classDef group fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px
-    `;
+        syntax += spaceTrim(`
+            classDef person fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+            classDef organization fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+            classDef group fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px
+        `);
+        syntax += '\n';
 
         // Apply classes to nodes
         nodes.forEach((node) => {

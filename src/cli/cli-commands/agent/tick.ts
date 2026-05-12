@@ -2,6 +2,7 @@ import colors from 'colors';
 import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
+import { spaceTrim } from 'spacetrim';
 import { assertsError } from '../../../errors/assertsError';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
 import { handleActionErrors } from '../common/handleActionErrors';
@@ -22,17 +23,19 @@ import { type AgentRunCliOptions, createAgentRunOptionsFromCliOptions } from './
 export function $initializeAgentTickCommand(program: Program): $side_effect {
     const command = program.command('tick');
     command.description(
-        [
-            'Answer one queued user message and then exit',
-            '',
-            PROMPT_RUNNER_DESCRIPTION,
-            '',
-            'Features:',
-            '- Automatically stages and commits answered messages with agent identity',
-            '- Optional post-commit git push with explicit --auto-push opt-in',
-            '- Optional --no-ui keeps plain streaming console output for logging and debugging',
-            '- Supports GPG signing of commits',
-        ].join('\n'),
+        spaceTrim(
+            (block) => `
+                Answer one queued user message and then exit
+
+                ${block(PROMPT_RUNNER_DESCRIPTION)}
+
+                Features:
+                - Automatically stages and commits answered messages with agent identity
+                - Optional post-commit git push with explicit --auto-push opt-in
+                - Optional --no-ui keeps plain streaming console output for logging and debugging
+                - Supports GPG signing of commits
+            `,
+        ),
     );
 
     addPromptRunnerSelectionOptions(command);

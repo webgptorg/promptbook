@@ -1,4 +1,5 @@
 import type { Page } from 'playwright/test';
+import { spaceTrim } from 'spacetrim';
 
 /**
  * Input contract for creating one deterministic test agent through the management API.
@@ -73,12 +74,12 @@ const DEFAULT_RULE = 'Keep replies concise.';
  * @private internal utility of AgentManagementApi
  */
 function buildTestAgentSource(options: CreateTestAgentOptions): string {
-    return [
-        options.label,
-        `PERSONA ${options.persona}`,
-        `RULE ${options.rule ?? DEFAULT_RULE}`,
-        ...(options.initialMessage ? [`INITIAL MESSAGE ${options.initialMessage}`] : []),
-    ].join('\n');
+    return spaceTrim(`
+        ${options.label}
+        PERSONA ${options.persona}
+        RULE ${options.rule ?? DEFAULT_RULE}
+        ${options.initialMessage ? `INITIAL MESSAGE ${options.initialMessage}` : ''}
+    `);
 }
 
 /**

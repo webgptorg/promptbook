@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import type { ResolvedChatAttachmentContent } from '../chatAttachments';
 
 /**
@@ -32,26 +33,30 @@ function formatResolvedChatAttachmentContent(contentResolution: ResolvedChatAtta
             : null;
     const warningsLine =
         contentResolution.warnings.length > 0 ? `Warnings: ${contentResolution.warnings.join(' | ')}` : null;
+    const metadataLines = [decodingLine, warningsLine].filter((line): line is string => Boolean(line)).join('\n');
+    const resolvedContent = contentResolution.content;
 
-    if (!contentResolution.content) {
+    if (!resolvedContent) {
         const reason = contentResolution.reason || 'content unavailable';
-        return [`- ${attachmentLabel}: ${reason}. URL: ${contentResolution.attachment.url}`, decodingLine, warningsLine]
-            .filter(Boolean)
-            .join('\n');
+        return spaceTrim(
+            (block) => `
+                - ${attachmentLabel}: ${reason}. URL: ${contentResolution.attachment.url}
+                ${block(metadataLines)}
+            `,
+        );
     }
 
     const truncatedLabel = contentResolution.isTruncated ? ' [truncated]' : '';
-    return [
-        `File: ${attachmentLabel}${truncatedLabel}`,
-        `URL: ${contentResolution.attachment.url}`,
-        decodingLine,
-        warningsLine,
-        '```text',
-        contentResolution.content,
-        '```',
-    ]
-        .filter(Boolean)
-        .join('\n');
+    return spaceTrim(
+        (block) => `
+            File: ${attachmentLabel}${truncatedLabel}
+            URL: ${contentResolution.attachment.url}
+            ${block(metadataLines)}
+            \`\`\`text
+            ${block(resolvedContent)}
+            \`\`\`
+        `,
+    );
 }
 
 /**
@@ -69,9 +74,16 @@ export function formatChatAttachmentContentContext(
         return '';
     }
 
-    return [
-        CHAT_ATTACHMENT_CONTENT_HEADING,
-        CHAT_ATTACHMENT_CONTENT_INSTRUCTION,
-        ...resolvedContents.map((resolvedContent) => formatResolvedChatAttachmentContent(resolvedContent)),
-    ].join('\n\n');
+    return spaceTrim(
+        (block) => `
+            ${CHAT_ATTACHMENT_CONTENT_HEADING}
+            ${CHAT_ATTACHMENT_CONTENT_INSTRUCTION}
+
+            ${block(
+                resolvedContents
+                    .map((resolvedContent) => formatResolvedChatAttachmentContent(resolvedContent))
+                    .join('\n\n'),
+            )}
+        `,
+    );
 }

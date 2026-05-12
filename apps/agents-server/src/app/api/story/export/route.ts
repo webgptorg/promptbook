@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { spaceTrim } from 'spacetrim';
 import { getStories } from '../../../experiments/story/actions';
 import {
     getStoryBodyFromContent,
@@ -9,12 +10,12 @@ import {
 /**
  * Constant for experimental notice.
  */
-const EXPERIMENTAL_NOTICE = `
----
-**EXPERIMENTAL**
-This story was generated using an experimental app. Features may change or be removed at any time.
----
-`;
+const EXPERIMENTAL_NOTICE = spaceTrim(`
+    ---
+    **EXPERIMENTAL**
+    This story was generated using an experimental app. Features may change or be removed at any time.
+    ---
+`);
 
 /**
  * Exports a story as text or markdown.

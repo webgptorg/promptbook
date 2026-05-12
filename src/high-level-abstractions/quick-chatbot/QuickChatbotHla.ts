@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import type { $PipelineJson } from '../../commands/_common/types/CommandParser';
 import type { SyncHighLevelAbstraction } from '../_common/HighLevelAbstraction';
 
@@ -71,14 +72,22 @@ export const QuickChatbotHla = {
             },
         );
 
-        // TODO: Use spaceTrim in multiline strings
         $pipelineJson.tasks.push(
             {
                 taskType: 'PROMPT_TASK',
                 name: 'create-an-answer',
                 title: 'Create an answer',
-                content:
-                    'Write a response to the user message:\n\n**Question from user**\n\n> {userMessage}\n\n**Previous conversation**\n\n> {previousConversationSummary}',
+                content: spaceTrim(`
+                    Write a response to the user message:
+
+                    **Question from user**
+
+                    > {userMessage}
+
+                    **Previous conversation**
+
+                    > {previousConversationSummary}
+                `),
                 resultingParameterName: 'chatbotResponse',
                 personaName,
                 dependentParameterNames: [
@@ -91,8 +100,26 @@ export const QuickChatbotHla = {
                 taskType: 'PROMPT_TASK',
                 name: 'summarize-the-conversation',
                 title: 'Summarize the conversation',
-                content:
-                    'Summarize the conversation in a few words:\n\n## Rules\n\n-   Summarise the text of the conversation in a few words\n-   Convert the text to its basic idea\n-   Imagine you are writing the headline or subject line of an email\n-   Respond with a few words of summary only\n\n## Conversation\n\n**User:**\n\n> {userMessage}\n\n**You:**\n\n> {chatbotResponse}',
+                content: spaceTrim(`
+                    Summarize the conversation in a few words:
+
+                    ## Rules
+
+                    -   Summarise the text of the conversation in a few words
+                    -   Convert the text to its basic idea
+                    -   Imagine you are writing the headline or subject line of an email
+                    -   Respond with a few words of summary only
+
+                    ## Conversation
+
+                    **User:**
+
+                    > {userMessage}
+
+                    **You:**
+
+                    > {chatbotResponse}
+                `),
                 resultingParameterName: 'conversationSummary',
                 personaName,
                 expectations: {

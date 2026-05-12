@@ -1,3 +1,5 @@
+-   Leveraged `spaceTrim` across prompt, documentation, SQL, markdown, and code-sample builders so multiline strings can stay readable in source while trimming indentation consistently.
+
 -   Externalized Agents Server durable chat execution through per-agent GitHub runner repositories:
 
     -   Added GitHub-backed runner repository synchronization using `PROMPTBOOK_AGENT_RUNNER_GITHUB_TOKEN` and `PROMPTBOOK_AGENT_RUNNER_GITHUB_OWNER`, storing repository links in `AgentExternals`.

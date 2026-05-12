@@ -1,6 +1,7 @@
 import { $provideBrowserForServer } from '@/src/tools/$provideBrowserForServer';
 import { NextRequest, NextResponse } from 'next/server';
 import { OpenAI } from 'openai';
+import { spaceTrim } from 'spacetrim';
 
 /**
  * Constant for max duration.
@@ -41,13 +42,13 @@ export async function POST(request: NextRequest) {
         const pageText = await page.evaluate(() => document.body.innerText.slice(0, 10000)); // Limit text size
 
         if (action === 'plan') {
-            const systemPrompt = `
+            const systemPrompt = spaceTrim(`
                 You are an autonomous agent interacting with Facebook.
                 Your goal is to help the user achieve: "${goal}".
                 Analyze the current page content and propose a step-by-step plan.
                 Keep the plan concise and actionable.
                 Do not execute any actions yet, just list them.
-            `;
+            `);
 
             const completion = await openai.chat.completions.create({
                 model: 'gpt-4o',
@@ -62,25 +63,36 @@ export async function POST(request: NextRequest) {
         } else if (action === 'execute') {
             // This is a simplified execution. Ideally, this would be a loop.
             // We ask the LLM to give us a JSON of actions to perform immediately.
-            
-            const systemPrompt = `
-                You are an autonomous agent interacting with Facebook.
-                Your goal is to help the user achieve: "${goal}".
-                ${plan ? `You have previously agreed to this plan:\n${plan}\n\n` : ''}
-                Based on the current page content, generate a list of low-level actions to perform NOW to advance the plan.
-                
-                Supported actions:
-                - { "type": "click", "selector": "css selector", "description": "reason" }
-                - { "type": "type", "selector": "css selector", "text": "text to type", "description": "reason" }
-                - { "type": "scroll", "amount": number, "description": "reason" }
-                - { "type": "wait", "ms": number, "description": "reason" }
-                - { "type": "navigate", "url": "url", "description": "reason" }
 
-                Return a JSON object with a key "actions" containing an array of these actions.
-                Example: { "actions": [{ "type": "scroll", "amount": 500, "description": "scanning feed" }, { "type": "click", "selector": "...", "description": "liking post" }] }
-                
-                IMPORTANT: Return ONLY valid JSON.
-            `;
+            const systemPrompt = spaceTrim(
+                (block) => `
+                    You are an autonomous agent interacting with Facebook.
+                    Your goal is to help the user achieve: "${goal}".
+                    ${
+                        plan
+                            ? spaceTrim(
+                                  (block) => `
+                                      You have previously agreed to this plan:
+                                      ${block(plan)}
+                                  `,
+                              )
+                            : ''
+                    }
+                    Based on the current page content, generate a list of low-level actions to perform NOW to advance the plan.
+
+                    Supported actions:
+                    - { "type": "click", "selector": "css selector", "description": "reason" }
+                    - { "type": "type", "selector": "css selector", "text": "text to type", "description": "reason" }
+                    - { "type": "scroll", "amount": number, "description": "reason" }
+                    - { "type": "wait", "ms": number, "description": "reason" }
+                    - { "type": "navigate", "url": "url", "description": "reason" }
+
+                    Return a JSON object with a key "actions" containing an array of these actions.
+                    Example: { "actions": [{ "type": "scroll", "amount": 500, "description": "scanning feed" }, { "type": "click", "selector": "...", "description": "liking post" }] }
+
+                    IMPORTANT: Return ONLY valid JSON.
+                `,
+            );
 
             const completion = await openai.chat.completions.create({
                 model: 'gpt-4o',
@@ -139,7 +151,6 @@ export async function POST(request: NextRequest) {
         }
 
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
-
     } catch (error) {
         console.error('Error in Act on Facebook:', error);
         return NextResponse.json({ error: String(error) }, { status: 500 });

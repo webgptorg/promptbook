@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { z } from 'zod';
 import { ManagementApiErrorSchema } from './managementApiResponses';
 
@@ -117,7 +118,11 @@ export const ManagementAgentUpdateRequestSchema = z
 export const ManagementAgentListQuerySchema = z.object({
     page: z.coerce.number().int().min(1).default(1),
     limit: z.coerce.number().int().min(1).max(100).default(20),
-    q: z.string().trim().optional().transform((value) => value || undefined),
+    q: z
+        .string()
+        .trim()
+        .optional()
+        .transform((value) => value || undefined),
     sort: ManagementAgentListSortSchema.default('updatedAt:desc'),
 });
 
@@ -325,7 +330,11 @@ export const MANAGEMENT_API_EXAMPLES = {
             chatUrl: 'https://agents.example.com/agents/Ar6LPaP9H8Y4Q2/chat',
             integrationUrl: 'https://agents.example.com/agents/Ar6LPaP9H8Y4Q2/integration',
         },
-        source: 'Support Concierge\nPERSONA You triage support tickets.\nRULE Escalate billing issues.',
+        source: spaceTrim(`
+            Support Concierge
+            PERSONA You triage support tickets.
+            RULE Escalate billing issues.
+        `),
         profile: {
             meta: {
                 fullname: 'Support Concierge',
@@ -335,7 +344,11 @@ export const MANAGEMENT_API_EXAMPLES = {
         },
     },
     createAgentRequest: {
-        source: 'Support Concierge\nPERSONA You triage support tickets.\nRULE Escalate billing issues.',
+        source: spaceTrim(`
+            Support Concierge
+            PERSONA You triage support tickets.
+            RULE Escalate billing issues.
+        `),
         folderId: 12,
         visibility: 'UNLISTED',
     },

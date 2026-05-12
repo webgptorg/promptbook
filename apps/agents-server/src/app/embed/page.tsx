@@ -3,6 +3,7 @@
 import { PromptbookAgentIntegration } from '@promptbook-local/components';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
+import { spaceTrim } from 'spacetrim';
 
 /**
  * Hosts the embeddable Promptbook widget inside an iframe and synchronizes
@@ -56,21 +57,23 @@ export default function EmbedPage() {
 
     return (
         <>
-            <style jsx global>{`
-                html,
-                body {
-                    margin: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: transparent !important;
-                    overflow: hidden;
-                }
+            <style jsx global>
+                {spaceTrim(`
+                    html,
+                    body {
+                        margin: 0;
+                        width: 100%;
+                        height: 100%;
+                        background: transparent !important;
+                        overflow: hidden;
+                    }
 
-                #__next {
-                    width: 100%;
-                    height: 100%;
-                }
-            `}</style>
+                    #__next {
+                        width: 100%;
+                        height: 100%;
+                    }
+                `)}
+            </style>
             <PromptbookAgentIntegration
                 agentUrl={agentUrl}
                 meta={meta}

@@ -165,7 +165,7 @@ type GitHubDiscussion = {
  */
 async function fetchGitHubDiscussions(): Promise<GitHubDiscussion[]> {
     // TODO: [💆] Paginate through all discussions (Maybe @JorgeSquared)
-    const query = `
+    const query = spaceTrim(`
         query {
             repository(owner: "webgptorg", name: "promptbook") {
                 discussions(first: 100) {
@@ -182,7 +182,7 @@ async function fetchGitHubDiscussions(): Promise<GitHubDiscussion[]> {
                 }
             }
         }
-    `;
+    `);
 
     const response = await fetch('https://api.github.com/graphql', {
         method: 'POST',

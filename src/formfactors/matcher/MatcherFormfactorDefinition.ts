@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import type { AbstractFormfactorDefinition } from '../_common/AbstractFormfactorDefinition';
 
 /**
@@ -9,8 +10,10 @@ import type { AbstractFormfactorDefinition } from '../_common/AbstractFormfactor
  */
 export const MatcherFormfactorDefinition = {
     name: 'EXPERIMENTAL_MATCHER',
-    description: `An evaluation system that determines whether content meets specific criteria or patterns.
-    Used for content validation, quality assessment, and intelligent filtering tasks. Currently in experimental phase.`,
+    description: spaceTrim(`
+        An evaluation system that determines whether content meets specific criteria or patterns.
+        Used for content validation, quality assessment, and intelligent filtering tasks. Currently in experimental phase.
+    `),
     documentationUrl: `https://github.com/webgptorg/promptbook/discussions/177`,
     pipelineInterface: {
         inputParameters: [

@@ -31,16 +31,18 @@ export function createExternalAgentRepositoryFiles(options: {
  * Creates `.gitignore` content for runner repositories.
  */
 function createExternalAgentRepositoryGitignore(): string {
-    return normalizeTextFile(`
-        .env
+    return normalizeTextFile(
+        spaceTrim(`
+            .env
 
-        node_modules
-        .promptbook
+            node_modules
+            .promptbook
 
-        # Promptbook Coder
-        /.tmp
-        /.promptbook/ptbk-coder
-    `);
+            # Promptbook Coder
+            /.tmp
+            /.promptbook/ptbk-coder
+        `),
+    );
 }
 
 /**
@@ -62,20 +64,22 @@ function createExternalAgentRepositoryPackageJson(): string {
  * Creates `README.md` content for runner repositories.
  */
 function createExternalAgentRepositoryReadme(options: { agentName: string; agentPermanentId: string }): string {
-    return normalizeTextFile(`
-        # ${options.agentName}
+    return normalizeTextFile(
+        spaceTrim(`
+            # ${options.agentName}
 
-        This repository is managed by Promptbook Agents Server.
+            This repository is managed by Promptbook Agents Server.
 
-        - Agent permanent ID: \`${options.agentPermanentId}\`
-        - Agent source: \`agent.book\`
-        - Queued messages: \`messages/queued/*.book\`
-        - Finished messages: \`messages/finished/*.book\`
-        - Failed messages: \`messages/failed/*.book\`
+            - Agent permanent ID: \`${options.agentPermanentId}\`
+            - Agent source: \`agent.book\`
+            - Queued messages: \`messages/queued/*.book\`
+            - Finished messages: \`messages/finished/*.book\`
+            - Failed messages: \`messages/failed/*.book\`
 
-        The external runner is expected to process queued message books and move them to
-        \`messages/finished\` or \`messages/failed\`.
-    `);
+            The external runner is expected to process queued message books and move them to
+            \`messages/finished\` or \`messages/failed\`.
+        `),
+    );
 }
 
 /**

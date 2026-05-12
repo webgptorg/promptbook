@@ -3,6 +3,7 @@ import {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
     Option,
 } from 'commander';
+import { spaceTrim } from 'spacetrim';
 import {
     DEFAULT_REFACTOR_CANDIDATE_LEVEL,
     REFACTOR_CANDIDATE_LEVEL_VALUES,
@@ -23,16 +24,20 @@ import { handleActionErrors } from '../common/handleActionErrors';
 export function $initializeCoderFindRefactorCandidatesCommand(program: Program): $side_effect {
     const command = program.command('find-refactor-candidates');
     command.description(
-        [
-            'Scan source files to identify refactoring candidates',
-            '',
-            'Levels:',
-            ...REFACTOR_CANDIDATE_LEVEL_VALUES.map(
-                (level) => `- ${level}: ${getRefactorCandidateLevelDescription(level)}`,
-            ),
-            '',
-            'Generates refactor prompts with guidance for identified candidates.',
-        ].join('\n'),
+        spaceTrim(
+            (block) => `
+                Scan source files to identify refactoring candidates
+
+                Levels:
+                ${block(
+                    REFACTOR_CANDIDATE_LEVEL_VALUES.map(
+                        (level) => `- ${level}: ${getRefactorCandidateLevelDescription(level)}`,
+                    ).join('\n'),
+                )}
+
+                Generates refactor prompts with guidance for identified candidates.
+            `,
+        ),
     );
     command.addOption(
         new Option('--level <level>', `Set scan aggressiveness (${REFACTOR_CANDIDATE_LEVEL_VALUES.join(', ')})`)

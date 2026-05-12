@@ -1,4 +1,5 @@
 import { join } from 'path';
+import { spaceTrim } from 'spacetrim';
 
 /**
  * Relative path to the local agent source initialized by `ptbk agent init`.
@@ -55,16 +56,16 @@ export const AGENT_BOOK_LANGUAGE_MANUAL_FILE_PATH = join(AGENT_DOCS_DIRECTORY_PA
  * @private internal utility of `ptbk agent`
  */
 export function getDefaultAgentBookContent(): string {
-    return [
-        'Local Agent',
-        '',
-        'GOAL Answer user questions from queued message files using the repository knowledge when useful.',
-        'RULE Add the answer to the same message file under a new `MESSAGE @Agent` block.',
-        'RULE Keep the answer focused on the most recent `MESSAGE @User` block.',
-        'RULE Use files in the `knowledge` folder as the primary local knowledge source when they are relevant.',
-        'RULE If the available information is not enough, say what is missing instead of inventing facts.',
-        'CLOSED',
-    ].join('\n');
+    return spaceTrim(`
+        Local Agent
+
+        GOAL Answer user questions from queued message files using the repository knowledge when useful.
+        RULE Add the answer to the same message file under a new \`MESSAGE @Agent\` block.
+        RULE Keep the answer focused on the most recent \`MESSAGE @User\` block.
+        RULE Use files in the \`knowledge\` folder as the primary local knowledge source when they are relevant.
+        RULE If the available information is not enough, say what is missing instead of inventing facts.
+        CLOSED
+    `);
 }
 
 /**
@@ -73,33 +74,33 @@ export function getDefaultAgentBookContent(): string {
  * @private internal utility of `ptbk agent`
  */
 export function getDefaultBookLanguageManualContent(): string {
-    return [
-        '# Book language manual',
-        '',
-        'Book language defines a local AI agent as plain text. The first non-empty line is the agent name. Each following commitment starts with an uppercase keyword and continues until the next commitment.',
-        '',
-        'Common commitments:',
-        '',
-        '- `GOAL` describes what the agent should achieve.',
-        '- `RULE` adds one behavioral constraint.',
-        '- `KNOWLEDGE` adds inline facts or points to knowledge the agent should use.',
-        '- `LANGUAGE` sets the expected response language.',
-        '- `TEAM` references other agents that can be consulted.',
-        '- `CLOSED` asks the agent to keep behavior stable instead of self-modifying.',
-        '',
-        'Example:',
-        '',
-        '```book',
-        'Support Agent',
-        '',
-        'GOAL Answer customer support questions.',
-        'RULE Be concise and factual.',
-        'KNOWLEDGE Product documentation is stored in the `knowledge` folder.',
-        'CLOSED',
-        '```',
-        '',
-        'For `ptbk agent`, the coding runner reads this manual and `agent.book`, then edits only the queued message file by appending an answer that starts with `MESSAGE @Agent`.',
-    ].join('\n');
+    return spaceTrim(`
+        # Book language manual
+
+        Book language defines a local AI agent as plain text. The first non-empty line is the agent name. Each following commitment starts with an uppercase keyword and continues until the next commitment.
+
+        Common commitments:
+
+        - \`GOAL\` describes what the agent should achieve.
+        - \`RULE\` adds one behavioral constraint.
+        - \`KNOWLEDGE\` adds inline facts or points to knowledge the agent should use.
+        - \`LANGUAGE\` sets the expected response language.
+        - \`TEAM\` references other agents that can be consulted.
+        - \`CLOSED\` asks the agent to keep behavior stable instead of self-modifying.
+
+        Example:
+
+        \`\`\`book
+        Support Agent
+
+        GOAL Answer customer support questions.
+        RULE Be concise and factual.
+        KNOWLEDGE Product documentation is stored in the \`knowledge\` folder.
+        CLOSED
+        \`\`\`
+
+        For \`ptbk agent\`, the coding runner reads this manual and \`agent.book\`, then edits only the queued message file by appending an answer that starts with \`MESSAGE @Agent\`.
+    `);
 }
 
 // Note: [🟡] Code for CLI command [agent](src/cli/cli-commands/agent/agentProjectPaths.ts) should never be published outside of `@promptbook/cli`

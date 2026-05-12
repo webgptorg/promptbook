@@ -159,12 +159,18 @@ async function resolveDefaultAgentDirectory(): Promise<string> {
     }
 
     throw new DatabaseError(
-        spaceTrim(`
-            Failed to locate the default Agents Server books directory.
+        spaceTrim(
+            (block) => `
+                Failed to locate the default Agents Server books directory.
 
-            Checked:
-            ${DEFAULT_AGENT_DIRECTORY_CANDIDATES.map((candidate) => `- \`${normalizePathForLogs(candidate)}\``).join('\n')}
-        `),
+                Checked:
+                ${block(
+                    DEFAULT_AGENT_DIRECTORY_CANDIDATES.map(
+                        (candidate) => `- \`${normalizePathForLogs(candidate)}\``,
+                    ).join('\n'),
+                )}
+            `,
+        ),
     );
 }
 

@@ -2,6 +2,7 @@ import colors from 'colors';
 import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
+import { spaceTrim } from 'spacetrim';
 import { assertsError } from '../../../errors/assertsError';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
 import { handleActionErrors } from '../common/handleActionErrors';
@@ -22,18 +23,20 @@ import { type AgentRunCliOptions, createAgentRunOptionsFromCliOptions } from './
 export function $initializeAgentRunCommand(program: Program): $side_effect {
     const command = program.command('run');
     command.description(
-        [
-            'Run an agent to answer user questions',
-            '',
-            PROMPT_RUNNER_DESCRIPTION,
-            '',
-            'Features:',
-            '- Automatically stages and commits answered messages with agent identity',
-            '- Optional post-commit git push with explicit --auto-push opt-in',
-            '- Optional --no-ui keeps plain streaming console output for logging and debugging',
-            '- Supports GPG signing of commits',
-            '- Progress tracking and interactive controls',
-        ].join('\n'),
+        spaceTrim(
+            (block) => `
+                Run an agent to answer user questions
+
+                ${block(PROMPT_RUNNER_DESCRIPTION)}
+
+                Features:
+                - Automatically stages and commits answered messages with agent identity
+                - Optional post-commit git push with explicit --auto-push opt-in
+                - Optional --no-ui keeps plain streaming console output for logging and debugging
+                - Supports GPG signing of commits
+                - Progress tracking and interactive controls
+            `,
+        ),
     );
 
     addPromptRunnerSelectionOptions(command);

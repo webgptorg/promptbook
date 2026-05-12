@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import type { AbstractFormfactorDefinition } from '../_common/AbstractFormfactorDefinition';
 
 /**
@@ -8,9 +9,11 @@ import type { AbstractFormfactorDefinition } from '../_common/AbstractFormfactor
  */
 export const TranslatorFormfactorDefinition = {
     name: 'TRANSLATOR',
-    description: `A text transformation system that converts input content into different forms,
-    including language translations, paraphrasing, style conversions, and tone adjustments.
-    This form factor takes one input and produces one transformed output.`,
+    description: spaceTrim(`
+        A text transformation system that converts input content into different forms,
+        including language translations, paraphrasing, style conversions, and tone adjustments.
+        This form factor takes one input and produces one transformed output.
+    `),
     documentationUrl: `https://github.com/webgptorg/promptbook/discussions/175`,
     pipelineInterface: {
         inputParameters: [

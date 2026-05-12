@@ -1,3 +1,5 @@
+import { spaceTrim } from 'spacetrim';
+
 /**
  * Supported presentation variants for the application error page.
  */
@@ -262,7 +264,9 @@ function normalizeFilenameSegment(value: string): string {
  */
 function createFilenameTimestamp(reportedAt: string): string {
     const parsedTimestamp = new Date(reportedAt);
-    const isoTimestamp = Number.isNaN(parsedTimestamp.getTime()) ? new Date().toISOString() : parsedTimestamp.toISOString();
+    const isoTimestamp = Number.isNaN(parsedTimestamp.getTime())
+        ? new Date().toISOString()
+        : parsedTimestamp.toISOString();
 
     return isoTimestamp.replace(/[:.]/g, '-');
 }
@@ -286,43 +290,44 @@ export function createApplicationErrorReportMarkdown(
     const pageUrl = formatOptionalReportValue(report.pageUrl);
     const nextDigest = formatOptionalReportValue(report.nextDigest);
 
-    return [
-        '# Application Error Report',
-        '',
-        '## Human Summary',
-        sanitizeForCodeFence(headline.trim()),
-        '',
-        sanitizeForCodeFence(description.trim()),
-        '',
-        '## Correlation',
-        `- Server: \`${sanitizeForCodeFence(report.serverName)}\``,
-        `- Variant: \`${sanitizeForCodeFence(report.variant)}\``,
-        `- Digest: \`${sanitizeForCodeFence(report.digest)}\``,
-        `- Next.js digest: \`${sanitizeForCodeFence(nextDigest)}\``,
-        `- Reported at (UTC): \`${sanitizeForCodeFence(report.reportedAt)}\``,
-        '',
-        '## Request Context',
-        `- Page URL: \`${sanitizeForCodeFence(pageUrl)}\``,
-        '',
-        '## Exception',
-        `- Name: \`${sanitizeForCodeFence(report.errorName)}\``,
-        '',
-        '### Message',
-        '```text',
-        sanitizeForCodeFence(errorMessage),
-        '```',
-        '',
-        '### Stack Trace',
-        '```text',
-        sanitizeForCodeFence(errorStack),
-        '```',
-        '',
-        '## Raw Report Payload',
-        '```json',
-        sanitizeForCodeFence(payloadJson),
-        '```',
-        '',
-    ].join('\n');
+    return spaceTrim(
+        (block) => `
+            # Application Error Report
+
+            ## Human Summary
+            ${block(sanitizeForCodeFence(headline.trim()))}
+
+            ${block(sanitizeForCodeFence(description.trim()))}
+
+            ## Correlation
+            - Server: \`${sanitizeForCodeFence(report.serverName)}\`
+            - Variant: \`${sanitizeForCodeFence(report.variant)}\`
+            - Digest: \`${sanitizeForCodeFence(report.digest)}\`
+            - Next.js digest: \`${sanitizeForCodeFence(nextDigest)}\`
+            - Reported at (UTC): \`${sanitizeForCodeFence(report.reportedAt)}\`
+
+            ## Request Context
+            - Page URL: \`${sanitizeForCodeFence(pageUrl)}\`
+
+            ## Exception
+            - Name: \`${sanitizeForCodeFence(report.errorName)}\`
+
+            ### Message
+            \`\`\`text
+            ${block(sanitizeForCodeFence(errorMessage))}
+            \`\`\`
+
+            ### Stack Trace
+            \`\`\`text
+            ${block(sanitizeForCodeFence(errorStack))}
+            \`\`\`
+
+            ## Raw Report Payload
+            \`\`\`json
+            ${block(sanitizeForCodeFence(payloadJson))}
+            \`\`\`
+        `,
+    );
 }
 
 /**

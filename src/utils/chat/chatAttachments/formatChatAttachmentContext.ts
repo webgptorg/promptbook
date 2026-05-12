@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import type { ChatAttachment } from '../chatAttachments';
 
 /**
@@ -36,9 +37,11 @@ export function formatChatAttachmentContext(attachments: ReadonlyArray<ChatAttac
         return '';
     }
 
-    return [
-        CHAT_ATTACHMENTS_HEADING,
-        ...attachments.map((attachment) => formatChatAttachmentLine(attachment)),
-        CHAT_ATTACHMENTS_INSTRUCTION,
-    ].join('\n');
+    return spaceTrim(
+        (block) => `
+            ${CHAT_ATTACHMENTS_HEADING}
+            ${block(attachments.map((attachment) => formatChatAttachmentLine(attachment)).join('\n'))}
+            ${CHAT_ATTACHMENTS_INSTRUCTION}
+        `,
+    );
 }

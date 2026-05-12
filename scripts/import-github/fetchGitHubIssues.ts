@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { makeGitHubGraphQLRequest } from './makeGitHubGraphQLRequest';
 
 /**
@@ -49,7 +50,7 @@ export async function fetchGitHubIssues(): Promise<GitHubIssue[]> {
     let hasNextPage = true;
     let endCursor: string | null = null;
 
-    const query = `
+    const query = spaceTrim(`
         query($cursor: String) {
             repository(owner: "webgptorg", name: "promptbook") {
                 issues(first: 100, after: $cursor, orderBy: {field: CREATED_AT, direction: DESC}) {
@@ -84,7 +85,7 @@ export async function fetchGitHubIssues(): Promise<GitHubIssue[]> {
                 }
             }
         }
-    `;
+    `);
 
     while (hasNextPage) {
         const data = await makeGitHubGraphQLRequest<GitHubIssuesResponse>(query, { cursor: endCursor });

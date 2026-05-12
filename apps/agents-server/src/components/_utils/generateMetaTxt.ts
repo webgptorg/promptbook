@@ -3,6 +3,7 @@
 import { $provideServer } from '@/src/tools/$provideServer';
 import { getServerVisibility } from '@/src/utils/getServerVisibility';
 import { isPublicServerVisibility } from '@/src/utils/serverVisibility';
+import { spaceTrim } from 'spacetrim';
 
 /**
  * Agent sub-routes that should not be indexed directly.
@@ -24,14 +25,7 @@ const AGENT_PROFILE_DISALLOWED_SUBPATHS = [
 /**
  * Global routes that are not intended for search indexing.
  */
-const GLOBAL_DISALLOWED_PATHS = [
-    '/admin/',
-    '/api/',
-    '/recycle-bin/',
-    '/restricted',
-    '/search',
-    '/system/',
-] as const;
+const GLOBAL_DISALLOWED_PATHS = ['/admin/', '/api/', '/recycle-bin/', '/restricted', '/search', '/system/'] as const;
 
 /**
  * Builds static line set for a private robots policy.
@@ -92,12 +86,11 @@ export async function generateRobotsTxt(): Promise<string> {
 export async function generateSecurityTxt(): Promise<string> {
     const { publicUrl } = await $provideServer();
     // See https://securitytxt.org/ for more fields
-    return [
-        `Contact: mailto:security@ptbk.io`,
-        `Expires: ${new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}`,
-        `Canonical: ${publicUrl.href}security.txt`,
-        '',
-    ].join('\n');
+    return spaceTrim(`
+        Contact: mailto:security@ptbk.io
+        Expires: ${new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
+        Canonical: ${publicUrl.href}security.txt
+    `);
 }
 
 /**
@@ -107,9 +100,10 @@ export async function generateSecurityTxt(): Promise<string> {
  */
 export async function generateHumansTxt(): Promise<string> {
     const { publicUrl } = await $provideServer();
-    return ['/* TEAM */', 'Developer: Promptbook Team', `Site: https://ptbk.io`, `Instance: ${publicUrl.href}`].join(
-        '\n',
-    );
+    return spaceTrim(`
+        /* TEAM */
+        Developer: Promptbook Team
+        Site: https://ptbk.io
+        Instance: ${publicUrl.href}
+    `);
 }
-
-// TODO: Use `spaceTrim`

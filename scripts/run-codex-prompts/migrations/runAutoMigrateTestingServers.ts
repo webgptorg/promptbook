@@ -236,14 +236,14 @@ async function listPendingMigrationFilesForPrefix(options: {
  */
 async function doesTableExist(client: Client, tableName: string): Promise<boolean> {
     const { rows } = await client.query<{ hasTable: boolean }>(
-        `
-        SELECT EXISTS (
-            SELECT 1
-            FROM information_schema.tables
-            WHERE table_schema = current_schema()
-              AND table_name = $1
-        ) AS "hasTable"
-        `,
+        spaceTrim(`
+            SELECT EXISTS (
+                SELECT 1
+                FROM information_schema.tables
+                WHERE table_schema = current_schema()
+                  AND table_name = $1
+            ) AS "hasTable"
+        `),
         [tableName],
     );
 

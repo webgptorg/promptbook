@@ -161,7 +161,13 @@ export class PersonaCommitmentDefinition extends BaseCommitmentDefinition<'PERSO
         // Create new system message with persona at the beginning
         // Format: "You are {agentName}\n{personaContent}"
         // The # PERSONA comment will be removed later by removeCommentsFromSystemMessage
-        const personaSection = `# PERSONA\nYou are ${agentName}\n${mergedPersonaContent}`; // <- TODO: Use spaceTrim
+        const personaSection = spaceTrim(
+            (block) => `
+                # PERSONA
+                You are ${agentName}
+                ${block(mergedPersonaContent)}
+            `,
+        );
         const newSystemMessage = cleanedMessage ? `${personaSection}\n\n${cleanedMessage}` : personaSection;
 
         return {

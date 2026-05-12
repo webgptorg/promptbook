@@ -1,5 +1,6 @@
 import { appendFile, mkdir } from 'fs/promises';
 import { dirname } from 'path';
+import { spaceTrim } from 'spacetrim';
 import { formatUnknownErrorDetails } from '../formatUnknownErrorDetails';
 import { toPosixPath } from './toPosixPath';
 
@@ -11,17 +12,20 @@ export const PTBK_CODER_LOG_FILE_ENV_NAME = 'PTBK_CODER_LOG_FILE';
 /**
  * Small bash wrapper that preserves stdout/stderr streams while teeing both into the runtime log file.
  */
-const LOGGED_BASH_WRAPPER_COMMAND = `
-if [ -n "\${${PTBK_CODER_LOG_FILE_ENV_NAME}:-}" ]; then
-    exec > >(tee -a "\$${PTBK_CODER_LOG_FILE_ENV_NAME}") 2> >(tee -a "\$${PTBK_CODER_LOG_FILE_ENV_NAME}" >&2)
-fi
-bash "$1"
-`.trim();
+const LOGGED_BASH_WRAPPER_COMMAND = spaceTrim(`
+    if [ -n "\${${PTBK_CODER_LOG_FILE_ENV_NAME}:-}" ]; then
+        exec > >(tee -a "\$${PTBK_CODER_LOG_FILE_ENV_NAME}") 2> >(tee -a "\$${PTBK_CODER_LOG_FILE_ENV_NAME}" >&2)
+    fi
+    bash "$1"
+`);
 
 /**
  * Shapes one bash invocation that optionally mirrors live script output into a temporary log file.
  */
-export function buildLoggedBashExecution(scriptPath: string, logPath?: string): {
+export function buildLoggedBashExecution(
+    scriptPath: string,
+    logPath?: string,
+): {
     args: string[];
     env?: Record<string, string>;
 } {
@@ -51,16 +55,17 @@ export async function appendScriptExecutionLogStart({
 
     const scriptKind = describeTempScriptKind(scriptPath);
     const normalizedInput = scriptContent.replace(/\r\n/g, '\n').trimEnd();
-    const logSection = [
-        `=== ${scriptKind} started at ${new Date().toISOString()} ===`,
-        `Script path: ${toPosixPath(scriptPath)}`,
-        '',
-        '--- raw input ---',
-        normalizedInput,
-        '',
-        '--- raw output ---',
-        '',
-    ].join('\n');
+    const logSection = spaceTrim(
+        (block) => `
+            === ${scriptKind} started at ${new Date().toISOString()} ===
+            Script path: ${toPosixPath(scriptPath)}
+
+            --- raw input ---
+            ${block(normalizedInput)}
+
+            --- raw output ---
+        `,
+    );
 
     await appendFile(logPath, `${logSection}\n`, 'utf-8');
 }
@@ -84,11 +89,7 @@ export async function appendScriptExecutionLogFinish({
     }
 
     const scriptKind = describeTempScriptKind(scriptPath);
-    const logLines = [
-        '',
-        `=== ${scriptKind} finished at ${new Date().toISOString()} ===`,
-        `Status: ${status}`,
-    ];
+    const logLines = ['', `=== ${scriptKind} finished at ${new Date().toISOString()} ===`, `Status: ${status}`];
 
     if (details !== undefined) {
         logLines.push('');

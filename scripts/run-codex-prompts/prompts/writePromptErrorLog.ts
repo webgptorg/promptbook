@@ -1,6 +1,7 @@
 import { writeFile } from 'fs/promises';
 import moment from 'moment';
 import { extname } from 'path';
+import { spaceTrim } from 'spacetrim';
 import { formatUnknownErrorDetails } from '../common/formatUnknownErrorDetails';
 import { buildPromptLabelForDisplay } from './buildPromptLabelForDisplay';
 import { buildPromptSummary } from './buildPromptSummary';
@@ -30,18 +31,19 @@ export async function writePromptErrorLog(options: WritePromptErrorLogOptions): 
     const modelSuffix = options.modelName ? ` (${options.modelName})` : '';
     const runnerLabel = `${options.runnerName || 'unknown'}${modelSuffix}`;
 
-    const log = [
-        `Timestamp: ${moment().toISOString()}`,
-        `Prompt: ${label}`,
-        `Prompt file: ${options.file.path}`,
-        `Prompt section: ${options.section.index + 1}`,
-        `Prompt summary: ${summary}`,
-        `Runner: ${runnerLabel}`,
-        '',
-        'CLI output and error:',
-        details,
-        '',
-    ].join('\n');
+    const log = spaceTrim(
+        (block) => `
+            Timestamp: ${moment().toISOString()}
+            Prompt: ${label}
+            Prompt file: ${options.file.path}
+            Prompt section: ${options.section.index + 1}
+            Prompt summary: ${summary}
+            Runner: ${runnerLabel}
+
+            CLI output and error:
+            ${block(details)}
+        `,
+    );
 
     await writeFile(logPath, log, 'utf-8');
 }

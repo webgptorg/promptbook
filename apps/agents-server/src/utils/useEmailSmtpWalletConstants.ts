@@ -65,17 +65,15 @@ export const USE_EMAIL_SMTP_WALLET_SECRET_JSON_EXAMPLE = spaceTrim(`
  * Builds user-facing guidance for missing USE EMAIL SMTP wallet credentials.
  */
 export function createUseEmailSmtpWalletMissingCredentialMessage(defaultFromAddress?: string): string {
-    const defaultSenderLine = defaultFromAddress
-        ? `Default sender from commitment: ${defaultFromAddress}`
-        : undefined;
+    const defaultSenderLine = defaultFromAddress ? `Default sender from commitment: ${defaultFromAddress}` : undefined;
 
-    return [
-        'SMTP credentials are missing in wallet.',
-        `Add ACCESS_TOKEN record with service "${USE_EMAIL_SMTP_WALLET_SERVICE}" and key "${USE_EMAIL_SMTP_WALLET_KEY}".`,
-        'Put SMTP JSON into Secret, for example:',
-        USE_EMAIL_SMTP_WALLET_SECRET_JSON_EXAMPLE,
-        defaultSenderLine,
-    ]
-        .filter((line): line is string => Boolean(line))
-        .join('\n');
+    return spaceTrim(
+        (block) => `
+            SMTP credentials are missing in wallet.
+            Add ACCESS_TOKEN record with service "${USE_EMAIL_SMTP_WALLET_SERVICE}" and key "${USE_EMAIL_SMTP_WALLET_KEY}".
+            Put SMTP JSON into Secret, for example:
+            ${block(USE_EMAIL_SMTP_WALLET_SECRET_JSON_EXAMPLE)}
+            ${defaultSenderLine || ''}
+        `,
+    );
 }

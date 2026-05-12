@@ -2,6 +2,7 @@
 
 import { $getTableName } from '@/src/database/$getTableName';
 import { TODO_any } from '@promptbook-local/types';
+import { spaceTrim } from 'spacetrim';
 import { $provideSupabaseForServer } from '../../../database/$provideSupabaseForServer';
 
 /**
@@ -42,13 +43,13 @@ export async function listImages(options: {
     } = await supabase
         .from(await $getTableName('Image'))
         .select(
-            `
-            *,
-            agent:agentId (
-                id,
-                agentName
-            )
-        `,
+            spaceTrim(`
+                *,
+                agent:agentId (
+                    id,
+                    agentName
+                )
+            `),
             { count: 'exact' },
         )
         .range(offset, offset + limit - 1)

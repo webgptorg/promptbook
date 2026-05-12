@@ -1,4 +1,5 @@
 import { Client } from 'pg';
+import { spaceTrim } from 'spacetrim';
 
 /**
  * One physical table selected for backup.
@@ -31,7 +32,7 @@ export async function fetchBackupSupabaseTableReferences(
     schemaNames: ReadonlyArray<string>,
 ): Promise<Array<TableReference>> {
     const { rows } = await client.query<TableReference>(
-        `
+        spaceTrim(`
             SELECT
                 table_schema AS "schemaName",
                 table_name AS "tableName"
@@ -39,7 +40,7 @@ export async function fetchBackupSupabaseTableReferences(
             WHERE table_type = 'BASE TABLE'
               AND table_schema = ANY($1::text[])
             ORDER BY table_schema, table_name
-        `,
+        `),
         [schemaNames],
     );
 
