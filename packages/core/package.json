@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/core",
-    "version": "0.112.0-64",
+    "version": "0.112.0-65",
     "description": "Promptbook: Create persistent AI agents that turn your company's scattered knowledge into action",
     "private": false,
     "sideEffects": false,
