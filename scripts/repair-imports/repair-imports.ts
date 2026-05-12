@@ -11,6 +11,7 @@ import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
 import { findAllProjectEntities } from '../utils/findAllProjectEntities';
 import { readAllProjectFiles } from '../utils/readAllProjectFiles';
 import { writeAllProjectFiles } from '../utils/writeAllProjectFiles';
+import { parseNamedImportSpecifiers, resolveImportEntity } from './utils/repairImportUtils';
 /*
 import { findAllProjectFiles } from '../utils/findAllProjectFiles';
 import { execCommands } from '../utils/execCommand/execCommands';
@@ -81,7 +82,7 @@ async function repairImports({
         throw new Error(`Working tree is not clean`);
     }
 
-    const allEntities = await findAllProjectEntities();
+    const allEntities = await findAllProjectEntities({ includeScripts: true, allowDuplicateNames: true });
     const files = await readAllProjectFiles();
     const unfoundEntities: Array<{ entity: string; filePath: string }> = [];
 
@@ -114,7 +115,7 @@ async function repairImports({
 
         const matches = Array.from(
             file.content.matchAll(
-                /**/ /^import\s+(type\s+)?\{\s+(?<importedEntities>[^;]*?)\s+\}\s+from\s+'\..*?';$/gm,
+                /**/ /^import\s+(?<topLevelType>type\s+)?\{\s+(?<importedEntities>[^;]*?)\s+\}\s+from\s+'(?<importPath>\..*?)';$/gm,
                 //   /^import\s+(type\s+)?\{\s+(?<importedEntities>[^;]*?)\s+\}\s+from\s+'((.*?\.index))';$/gm,
             ),
         );
@@ -128,26 +129,24 @@ async function repairImports({
         }
 
         for (const match of matches) {
-            if (
-                file.path.includes('AzureOpenAiExecutionTools.ts') &&
-                match.groups!.importedEntities.includes('Usage')
-            ) {
-                console.log({ match });
-            }
-
-            const importedEntities = match
-                .groups!.importedEntities.split(',')
-                .map((importedEntity) => spaceTrim(importedEntity))
-                .filter((entity) => entity !== '');
+            const importedEntities = parseNamedImportSpecifiers(
+                match.groups!.importedEntities,
+                Boolean(match.groups!.topLevelType),
+            );
 
             const validImports: string[] = [];
             let hasUnfoundEntities = false;
 
             for (const importedEntity of importedEntities) {
-                const entity = allEntities.find(({ name }) => name === importedEntity);
+                const entity = resolveImportEntity({
+                    allEntities,
+                    currentFilePath: file.path,
+                    currentImportPath: match.groups!.importPath,
+                    importedName: importedEntity.importedName,
+                });
 
                 if (!entity) {
-                    unfoundEntities.push({ entity: importedEntity, filePath: file.path });
+                    unfoundEntities.push({ entity: importedEntity.importedName, filePath: file.path });
                     hasUnfoundEntities = true;
                 } else {
                     let importFrom = relative(dirname(file.path), entity.filename)
@@ -163,7 +162,9 @@ async function repairImports({
                     }
 
                     validImports.push(
-                        `import ${!entity.isType ? `` : `type `}{ ${importedEntity} } from '${importFrom}';`,
+                        `import ${entity.isType || importedEntity.isType ? `type ` : ``}{ ${
+                            importedEntity.renderedName
+                        } } from '${importFrom}';`,
                     );
                 }
             }

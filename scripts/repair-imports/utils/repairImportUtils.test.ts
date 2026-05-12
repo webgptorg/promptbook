@@ -1,0 +1,92 @@
+import { parseNamedImportSpecifiers, resolveImportEntity } from './repairImportUtils';
+
+describe('parseNamedImportSpecifiers', () => {
+    it('parses inline type modifiers without treating them as part of the entity name', () => {
+        expect(parseNamedImportSpecifiers('ChatInputArea, type ChatInputAreaProps', false)).toEqual([
+            {
+                importedName: 'ChatInputArea',
+                renderedName: 'ChatInputArea',
+                isType: false,
+            },
+            {
+                importedName: 'ChatInputAreaProps',
+                renderedName: 'ChatInputAreaProps',
+                isType: true,
+            },
+        ]);
+    });
+
+    it('preserves aliases and top-level type imports', () => {
+        expect(parseNamedImportSpecifiers('ToolCallProgressUpdate as ProgressUpdate', true)).toEqual([
+            {
+                importedName: 'ToolCallProgressUpdate',
+                renderedName: 'ToolCallProgressUpdate as ProgressUpdate',
+                isType: true,
+            },
+        ]);
+    });
+});
+
+describe('resolveImportEntity', () => {
+    it('prefers the entity exported from the currently imported module when names are duplicated elsewhere', () => {
+        expect(
+            resolveImportEntity({
+                currentFilePath: 'C:\\repo\\src\\cli\\cli-commands\\agent\\run.test.ts',
+                currentImportPath: '../../../../scripts/run-agent-messages/main/runAgentMessages',
+                importedName: 'runAgentMessages',
+                allEntities: [
+                    {
+                        filename: 'C:\\repo\\scripts\\run-agent-messages\\main\\runAgentMessages.ts',
+                        type: 'function',
+                        name: 'runAgentMessages',
+                        tags: [],
+                        isType: false,
+                    },
+                    {
+                        filename: 'C:\\repo\\scripts\\other\\runAgentMessages.ts',
+                        type: 'function',
+                        name: 'runAgentMessages',
+                        tags: [],
+                        isType: false,
+                    },
+                ],
+            }),
+        ).toEqual(
+            expect.objectContaining({
+                filename: 'C:\\repo\\scripts\\run-agent-messages\\main\\runAgentMessages.ts',
+            }),
+        );
+    });
+
+    it('prefers entities from src when a src barrel import collides with a script export of the same name', () => {
+        expect(
+            resolveImportEntity({
+                currentFilePath: 'C:\\repo\\src\\book-2.0\\book-language-documentation\\createStandaloneBookLanguageMarkdown.ts',
+                currentImportPath: '../../_packages/core.index',
+                importedName: 'BOOK_LANGUAGE_VERSION',
+                allEntities: [
+                    {
+                        filename: 'C:\\repo\\src\\version.ts',
+                        type: 'const',
+                        name: 'BOOK_LANGUAGE_VERSION',
+                        tags: [],
+                        isType: false,
+                    },
+                    {
+                        filename: 'C:\\repo\\scripts\\update-version-in-config\\update-version-in-config.ts',
+                        type: 'const',
+                        name: 'BOOK_LANGUAGE_VERSION',
+                        tags: [],
+                        isType: false,
+                    },
+                ],
+            }),
+        ).toEqual(
+            expect.objectContaining({
+                filename: 'C:\\repo\\src\\version.ts',
+            }),
+        );
+    });
+});
+
+// Note: [⚫] Code for repository script [repairImportUtils.test](scripts/repair-imports/utils/repairImportUtils.test.ts) should never be published in any package

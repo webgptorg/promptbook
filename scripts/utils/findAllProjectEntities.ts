@@ -42,18 +42,42 @@ export type EntityMetadata = {
 };
 
 /**
+ * Options for scanning repository exports.
+ */
+export type FindAllProjectEntitiesOptions = {
+    /**
+     * Whether repository scripts should be included alongside `src`.
+     */
+    readonly includeScripts?: boolean;
+
+    /**
+     * Whether duplicate export names across different files should be tolerated.
+     */
+    readonly allowDuplicateNames?: boolean;
+};
+
+/**
  * Scans the project source code to identify and extract metadata about all exported entities
  * i.e. functions, classes, interfaces, and type definitions
  */
-export async function findAllProjectEntities(): Promise<ReadonlyArray<EntityMetadata>> {
-    const files = await readAllProjectFiles();
+export async function findAllProjectEntities({
+    includeScripts = false,
+    allowDuplicateNames = false,
+}: FindAllProjectEntitiesOptions = {}): Promise<ReadonlyArray<EntityMetadata>> {
+    const files = await readAllProjectFiles({ includeScripts });
 
     const entitities: Array<EntityMetadata> = [];
     for (const file of files) {
         for (const match of file.content.matchAll(
             /(?<annotation>\/\*\*((?!\/\*\*).)*?\*\/\s*)?export(?:\s+declare)?(?:\s+abstract)?(?:\s+async)?(?:\s+(?<type>[a-z]+))(?:\s+(?<name>[a-zA-Z0-9_$]+))/gs,
         )) {
-            const { type, name, annotation } = match.groups!;
+            const type = match.groups?.type;
+            const name = match.groups?.name;
+            const annotation = match.groups?.annotation;
+
+            if (!type || !name) {
+                continue;
+            }
 
             const tags = Array.from(annotation?.match(/@([a-zA-Z0-9_-]+)*/g) || []);
 
@@ -117,7 +141,7 @@ export async function findAllProjectEntities(): Promise<ReadonlyArray<EntityMeta
             );
         }
     }
-    if (isDuplicateNameFound) {
+    if (isDuplicateNameFound && !allowDuplicateNames) {
         throw new Error('Duplicate entity names found. Please resolve them before proceeding with the script.');
     }
 
