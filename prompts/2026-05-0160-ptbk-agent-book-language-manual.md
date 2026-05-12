@@ -1,6 +1,6 @@
 [.] - Done manually
 
-[✨🌦] bar
+[✨🌦] Reference Book Language blueprint internally in `ptbk agent` prompts
 
 ```bash
 @@@
