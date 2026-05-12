@@ -1,3 +1,9 @@
+-   Added a new `Minecraft 3D 2` built-in avatar visual with proper 3D cuboid rendering and pointer-driven head turning:
+    
+    -   Reused shared Minecraft texture helpers so both Minecraft-style visuals stay deterministic without duplicating the face / torso pixel-generation logic.
+    -   Added a proper 3D projected head-and-torso renderer for the new visual, including textured visible faces, depth sorting, and directional shading.
+    -   Enabled avatar pointer tracking so the Minecraft 3D 2 silhouette turns its head toward the mouse cursor like the other interactive avatar visuals.
+
 -   Leveraged `spaceTrim` across prompt, documentation, SQL, markdown, and code-sample builders so multiline strings can stay readable in source while trimming indentation consistently.
 
 -   Externalized Agents Server durable chat execution through per-agent GitHub runner repositories:

@@ -2,6 +2,7 @@
 
 import { createRoundedRectPath, drawAvatarFrame } from '../avatarRenderingUtils';
 import type { AvatarVisualDefinition } from '../types/AvatarVisualDefinition';
+import { createMinecraftHeadTextures, createMinecraftTorsoTextures } from './minecraftAvatarVisualShared';
 
 /**
  * Minecraft-style 3D avatar visual.
@@ -26,8 +27,8 @@ export const minecraftAvatarVisual: AvatarVisualDefinition = {
         const bodyX = size * 0.33;
         const bodyY = headY + headSize * 0.96;
         const hasHeadband = random() < 0.5;
-        const faceTexture = createMinecraftFaceTexture(createRandom('minecraft-face'), palette, hasHeadband);
-        const shirtTexture = createMinecraftShirtTexture(createRandom('minecraft-shirt'), palette);
+        const headTextures = createMinecraftHeadTextures(createRandom('minecraft-face'), palette, hasHeadband);
+        const torsoTextures = createMinecraftTorsoTextures(createRandom('minecraft-shirt'), palette);
 
         drawAvatarFrame(context, size, palette);
 
@@ -58,7 +59,7 @@ export const minecraftAvatarVisual: AvatarVisualDefinition = {
             width: bodyWidth,
             height: bodyHeight,
             depth: bodyDepth,
-            frontTexture: shirtTexture,
+            frontTexture: torsoTextures.front,
             topColor: `${palette.highlight}cc`,
             sideColor: `${palette.secondary}dd`,
             outlineColor: `${palette.shadow}aa`,
@@ -70,7 +71,7 @@ export const minecraftAvatarVisual: AvatarVisualDefinition = {
             width: headSize,
             height: headSize,
             depth,
-            frontTexture: faceTexture,
+            frontTexture: headTextures.front,
             topColor: `${palette.highlight}ee`,
             sideColor: `${palette.secondary}ee`,
             outlineColor: `${palette.shadow}cc`,
@@ -159,102 +160,4 @@ function drawVoxelCuboid(context: CanvasRenderingContext2D, cuboid: VoxelCuboid)
     context.lineTo(x, y + height);
     context.closePath();
     context.stroke();
-}
-
-/**
- * Creates the front-face pixel texture for the cube head.
- *
- * @param random Seeded random generator.
- * @param palette Derived avatar palette.
- * @param hasHeadband Whether the avatar should render a headband row.
- * @returns 8x8 pixel texture.
- *
- * @private helper of `minecraftAvatarVisual`
- */
-function createMinecraftFaceTexture(
-    random: () => number,
-    palette: {
-        primary: string;
-        secondary: string;
-        accent: string;
-        highlight: string;
-        ink: string;
-        shadow: string;
-    },
-    hasHeadband: boolean,
-): ReadonlyArray<ReadonlyArray<string>> {
-    const texture = Array.from({ length: 8 }, () => Array.from({ length: 8 }, () => palette.highlight));
-    const hairlineColor = random() < 0.5 ? palette.primary : palette.secondary;
-    const cheekColor = random() < 0.5 ? `${palette.accent}bb` : `${palette.secondary}bb`;
-
-    for (let rowIndex = 0; rowIndex < 2; rowIndex++) {
-        for (let columnIndex = 0; columnIndex < 8; columnIndex++) {
-            texture[rowIndex]![columnIndex] = hairlineColor;
-        }
-    }
-
-    texture[2]![0] = hairlineColor;
-    texture[2]![7] = hairlineColor;
-    texture[3]![0] = hairlineColor;
-    texture[3]![7] = hairlineColor;
-
-    if (hasHeadband) {
-        for (let columnIndex = 0; columnIndex < 8; columnIndex++) {
-            texture[2]![columnIndex] = palette.accent;
-        }
-    }
-
-    texture[3]![2] = palette.ink;
-    texture[3]![5] = palette.ink;
-    texture[4]![2] = '#ffffff';
-    texture[4]![5] = '#ffffff';
-    texture[5]![1] = cheekColor;
-    texture[5]![6] = cheekColor;
-    texture[5]![3] = palette.shadow;
-    texture[5]![4] = palette.shadow;
-    texture[6]![3] = palette.shadow;
-    texture[6]![4] = palette.shadow;
-
-    return texture;
-}
-
-/**
- * Creates the front-face pixel texture for the torso.
- *
- * @param random Seeded random generator.
- * @param palette Derived avatar palette.
- * @returns 8x8 torso texture.
- *
- * @private helper of `minecraftAvatarVisual`
- */
-function createMinecraftShirtTexture(
-    random: () => number,
-    palette: {
-        primary: string;
-        secondary: string;
-        accent: string;
-        highlight: string;
-        shadow: string;
-    },
-): ReadonlyArray<ReadonlyArray<string>> {
-    const texture = Array.from({ length: 8 }, () => Array.from({ length: 8 }, () => palette.primary));
-    const stripeColor = random() < 0.5 ? palette.secondary : palette.highlight;
-
-    for (let rowIndex = 0; rowIndex < 2; rowIndex++) {
-        for (let columnIndex = 0; columnIndex < 8; columnIndex++) {
-            texture[rowIndex]![columnIndex] = palette.shadow;
-        }
-    }
-
-    for (let rowIndex = 2; rowIndex < 8; rowIndex++) {
-        texture[rowIndex]![3] = stripeColor;
-        texture[rowIndex]![4] = stripeColor;
-    }
-
-    texture[4]![1] = palette.accent;
-    texture[4]![6] = palette.accent;
-    texture[5]![2] = palette.highlight;
-    texture[5]![5] = palette.highlight;
-
-    return texture;
 }

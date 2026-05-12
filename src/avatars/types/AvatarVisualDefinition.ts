@@ -14,6 +14,7 @@ export type AvatarVisualId =
     | 'octopus3'
     | 'ascii-octopus'
     | 'minecraft'
+    | 'minecraft2'
     | 'fractal'
     | 'orb';
 
