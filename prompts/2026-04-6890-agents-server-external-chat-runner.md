@@ -82,3 +82,21 @@ node_modules
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
+---
+
+[ ] !!!!!
+
+[✨🕟] Fix "GitHub API request failed (409): is at b410adb8d2a49269c5014e478c680369e9249bc5 but expected a9febf53b7dbcc6cd7a0dab75bf634ad1c9f8210"
+
+-   When migrating to the new way of running the chats on the external service, there are some issues with the github integration and syncing the changes
+-   The repositories are successfully created and the some files are commited, but there are some issues
+-   Do a proper analysis of the current functionality before you start implementing. And also the change which was made:
+    -   [File with PRD](prompts/2026-04-6890-agents-server-external-chat-runner.md)
+    -   Commit `e7337c3607779880abae0eac06f4da5892ff4d51`
+-   You are working with the [Agents Server](apps/agents-server)
+-   If you need to do the database migration, do it
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![alt text](prompts/screenshots/2026-04-6890-agents-server-external-chat-runner.png)
+![alt text](prompts/screenshots/2026-04-6890-agents-server-external-chat-runner-1.png)
+![alt text](prompts/screenshots/2026-04-6890-agents-server-external-chat-runner-2.png)

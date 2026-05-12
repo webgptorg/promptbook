@@ -1,5 +1,5 @@
-import { PROMPTBOOK_ENGINE_VERSION } from '../../../../../src/version';
 import { spaceTrim } from 'spacetrim';
+import { PROMPTBOOK_ENGINE_VERSION } from '../../../../../src/version';
 
 /**
  * Files that should exist in every external agent runner repository.
@@ -53,6 +53,10 @@ function createExternalAgentRepositoryPackageJson(): string {
         {
             dependencies: {
                 ptbk: PROMPTBOOK_ENGINE_VERSION,
+            },
+            scripts: {
+                start: 'npm run agent:run',
+                'agent:run': 'npx ptbk agent run --agent github-copilot --model gpt-5.4',
             },
         },
         null,
