@@ -133,3 +133,10 @@
   - `packages/cli/umd/index.umd.js` still references `llamaindex` in a dynamic import path, but `packages/cli/package.json` does not currently publish `llamaindex`.
   - `packages/core/esm/index.es.js` and `packages/wizard/esm/index.es.js` also reference `llamaindex`, and `packages/components/esm/index.es.js` references `lucide-react`, while those package manifests do not currently declare those runtime dependencies either.
   - I kept this task scoped to the reported `typescript` issue and did not widen the package-generation behavior to auto-publish every devDependency-backed bundle import.
+
+## 2026-05-12
+
+- `npm run test-app-agents-server` is blocked in `test-e2e` after successful app lint and successful production build:
+  - `lint` passed and `test-build` completed, including Next type validation and route generation.
+  - Playwright then timed out with `Timed out waiting 480000ms from config.webServer` while its managed web server was still building/collecting page data.
+  - The log includes existing dynamic-render and Edge-runtime warnings, plus remote agent lookup timeouts, and does not point to the external chat runner files touched in this task.

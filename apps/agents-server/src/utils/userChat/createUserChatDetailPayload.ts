@@ -1,4 +1,5 @@
 import type { UserChatRecord } from './UserChatRecord';
+import { synchronizeExternalUserChatJobsForChat } from '../externalChatRunner/synchronizeExternalUserChatJobs';
 import { createUserChatTimeoutActivity } from '../userChatTimeout/createUserChatTimeoutActivity';
 import { listUserChatTimeouts } from '../userChatTimeout/userChatTimeoutStore';
 import { createUserChatSummary } from './createUserChatSummary';
@@ -17,6 +18,20 @@ export async function createUserChatDetailPayload(chat: UserChatRecord): Promise
     activeTimeouts: Awaited<ReturnType<typeof listUserChatTimeouts>>;
 }> {
     let currentChat = chat;
+    const hasSynchronizedExternalJobs = await synchronizeExternalUserChatJobsForChat(currentChat);
+
+    if (hasSynchronizedExternalJobs) {
+        const refreshedChat = await getUserChat({
+            userId: currentChat.userId,
+            agentPermanentId: currentChat.agentPermanentId,
+            chatId: currentChat.id,
+        });
+
+        if (refreshedChat) {
+            currentChat = refreshedChat;
+        }
+    }
+
     let activeJobs = await listUserChatJobs({
         userId: currentChat.userId,
         agentPermanentId: currentChat.agentPermanentId,

@@ -1,5 +1,7 @@
 import type { UserChatJobRecord } from './UserChatJobRecord';
 import type { UserChatJobRow } from './UserChatJobRow';
+import type { Json } from '@/src/database/schema';
+import { withoutExternalUserChatJobMetadata } from '../externalChatRunner/ExternalUserChatJobMetadata';
 import { getUserChatJobById } from './getUserChatJobById';
 import { mapUserChatJobRow } from './mapUserChatJobRow';
 import { provideUserChatJobTable } from './provideUserChatJobTable';
@@ -34,6 +36,7 @@ export async function retryUserChatJob(jobId: string): Promise<UserChatJobRecord
             leaseExpiresAt: null,
             provider: null,
             failureReason: null,
+            parameters: withoutExternalUserChatJobMetadata(existingJob.parameters) as Json,
         })
         .eq('id', jobId)
         .eq('status', 'FAILED')

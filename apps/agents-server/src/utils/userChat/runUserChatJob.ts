@@ -82,6 +82,8 @@ type RunUserChatJobPersistenceController = ReturnType<typeof createRunUserChatJo
 
 /**
  * Runs one claimed durable chat job to completion.
+ *
+ * @deprecated Agents Server chat execution is now externalized through git-backed runner repositories.
  */
 export async function runUserChatJob(job: UserChatJobRecord): Promise<RunUserChatJobResult> {
     const startContext = await resolveRunUserChatJobStartContext(job);

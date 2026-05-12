@@ -1,3 +1,9 @@
+-   Externalized Agents Server durable chat execution through per-agent GitHub runner repositories:
+
+    -   Added GitHub-backed runner repository synchronization using `PROMPTBOOK_AGENT_RUNNER_GITHUB_TOKEN` and `PROMPTBOOK_AGENT_RUNNER_GITHUB_OWNER`, storing repository links in `AgentExternals`.
+    -   Changed durable chat jobs to create `messages/queued/*.book` files and reconcile `messages/finished` / `messages/failed` outputs instead of running inference inside the Vercel worker.
+    -   Kept timed-out external messages visible as failed after 5 minutes without moving the queued file, while allowing later finished files to update the chat to completed.
+
 -   Refactored `BookEditorMonaco` internals to keep the component behavior unchanged while making the code easier to follow and maintain:
 
     -   Moved Monaco lifecycle wiring into a focused internal hook so editor mount, re-apply, focus, save-notification, and page lifecycle concerns are handled in one place.

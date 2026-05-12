@@ -1,11 +1,7 @@
+import { processNextExternalUserChatJob } from '@/src/utils/externalChatRunner';
 import {
-    claimNextQueuedUserChatJob,
-    createUserChatJobFailureDetails,
-    finalizeUserChatJob,
-    persistUserChatJobTerminalState,
     recoverExpiredRunningUserChatJobs,
     resolveUserChatWorkerInternalToken,
-    runUserChatJob,
     triggerUserChatJobWorker,
 } from '@/src/utils/userChat';
 import { after, NextResponse } from 'next/server';
@@ -54,43 +50,9 @@ async function handleUserChatJobWorkerRequest(request: Request) {
     try {
         await recoverExpiredRunningUserChatJobs();
 
-        const claimedJob = await claimNextQueuedUserChatJob({ preferredJobId });
-        if (!claimedJob) {
+        const processedJob = await processNextExternalUserChatJob({ preferredJobId });
+        if (!processedJob) {
             return new Response(null, { status: 204 });
-        }
-
-        try {
-            await runUserChatJob(claimedJob);
-        } catch (error) {
-            const failureReason = error instanceof Error ? error.message : 'Chat generation failed.';
-            const failureDetails = createUserChatJobFailureDetails({
-                job: claimedJob,
-                summary: failureReason,
-                source: 'userChatJobWorkerRoute',
-                provider: claimedJob.provider,
-                error,
-            });
-
-            console.error('[user-chat-job] unexpected worker failure', {
-                chatId: claimedJob.chatId,
-                messageId: claimedJob.userMessageId,
-                jobId: claimedJob.id,
-                error,
-            });
-
-            await persistUserChatJobTerminalState({
-                job: claimedJob,
-                status: 'FAILED',
-                failureReason,
-                failureDetails,
-            }).catch(async () => {
-                await finalizeUserChatJob({
-                    jobId: claimedJob.id,
-                    status: 'FAILED',
-                    failureReason,
-                    failureDetails,
-                });
-            });
         }
 
         after(() =>
