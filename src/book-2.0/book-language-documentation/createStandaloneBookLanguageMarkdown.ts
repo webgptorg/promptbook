@@ -1,14 +1,15 @@
-import { BOOK_LANGUAGE_VERSION, getGroupedCommitmentDefinitions } from '@promptbook-local/core';
 import { spaceTrim } from 'spacetrim';
-import { NotYetImplementedCommitmentDefinition } from '../../../../../src/commitments/_base/NotYetImplementedCommitmentDefinition';
+import { NotYetImplementedCommitmentDefinition } from '../../commitments/_base/NotYetImplementedCommitmentDefinition';
 import {
     formatCommitmentReplacementText,
     getCommitmentNoticeMetadata,
-} from '../../../../../src/commitments/_common/getCommitmentNoticeMetadata';
+} from '../../commitments/_common/getCommitmentNoticeMetadata';
 import type { BookLanguageDocumentationExample } from './BookLanguageDocumentationExample';
 import { bookLanguageCommonPitfalls } from './bookLanguageCommonPitfalls';
 import { bookLanguageDocumentationExamples } from './bookLanguageDocumentationExamples';
 import { renderGroupedCommitmentDocumentationMarkdown } from './renderGroupedCommitmentDocumentationMarkdown';
+import { BOOK_LANGUAGE_VERSION, getGroupedCommitmentDefinitions } from '../../_packages/core.index';
+import { string_markdown } from '../../types/string_markdown';
 
 /**
  * Commitment types that primarily model composition of multiple agents.
@@ -109,7 +110,7 @@ type GroupedCommitmentDefinition = ReturnType<typeof getGroupedCommitmentDefinit
  *
  * @returns Full standalone markdown document.
  */
-export function createStandaloneBookLanguageMarkdown(): string {
+export function createStandaloneBookLanguageMarkdown(): string_markdown {
     const groupedCommitments = getGroupedCommitmentDefinitions();
     const generatedAtIso = new Date().toISOString();
     const placeholderCommitmentCount = groupedCommitments.filter(

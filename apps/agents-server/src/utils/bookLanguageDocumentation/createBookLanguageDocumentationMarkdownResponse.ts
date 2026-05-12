@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createStandaloneBookLanguageMarkdown } from './createStandaloneBookLanguageMarkdown';
+import { createStandaloneBookLanguageMarkdown } from '../../../../../src/book-2.0/book-language-documentation/createStandaloneBookLanguageMarkdown';
 
 /**
  * Response headers for standalone Book language markdown docs.

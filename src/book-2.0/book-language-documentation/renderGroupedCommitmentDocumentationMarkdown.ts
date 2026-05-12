@@ -1,5 +1,5 @@
 import { spaceTrim } from 'spacetrim';
-import { getCommitmentDefinition } from '../../../../../src/commitments/_common/getCommitmentDefinition';
+import { getCommitmentDefinition } from '../../commitments/_common/getCommitmentDefinition';
 
 /**
  * Minimal commitment shape used by documentation renderers.

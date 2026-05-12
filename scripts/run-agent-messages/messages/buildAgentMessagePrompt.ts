@@ -1,5 +1,5 @@
 import { spaceTrim } from 'spacetrim';
-import { createStandaloneBookLanguageMarkdown } from '../../../apps/agents-server/src/utils/bookLanguageDocumentation/createStandaloneBookLanguageMarkdown';
+import { createStandaloneBookLanguageMarkdown } from '../../../src/book-2.0/book-language-documentation/createStandaloneBookLanguageMarkdown';
 
 /**
  * Builds the prompt sent to the selected coding runner for one queued user message.

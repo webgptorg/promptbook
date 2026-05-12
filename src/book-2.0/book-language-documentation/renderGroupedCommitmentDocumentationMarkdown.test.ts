@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { getGroupedCommitmentDefinitions } from '../../../../../src/commitments/_common/getGroupedCommitmentDefinitions';
+import { getGroupedCommitmentDefinitions } from '../../commitments/_common/getGroupedCommitmentDefinitions';
 import { renderGroupedCommitmentDocumentationMarkdown } from './renderGroupedCommitmentDocumentationMarkdown';
 
 describe('renderGroupedCommitmentDocumentationMarkdown', () => {

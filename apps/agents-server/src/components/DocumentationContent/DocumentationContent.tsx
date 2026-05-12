@@ -1,11 +1,11 @@
 import { MarkdownContent } from '@promptbook-local/components';
-import { OpenMojiIcon } from '../OpenMojiIcon/OpenMojiIcon';
+import { renderGroupedCommitmentDocumentationMarkdown } from '../../../../../src/book-2.0/book-language-documentation/renderGroupedCommitmentDocumentationMarkdown';
 import {
     formatCommitmentReplacementText,
     getCommitmentNoticeMetadata,
     isLowVisibilityCommitmentNotice,
 } from '../../../../../src/commitments/_common/getCommitmentNoticeMetadata';
-import { renderGroupedCommitmentDocumentationMarkdown } from '../../utils/bookLanguageDocumentation/renderGroupedCommitmentDocumentationMarkdown';
+import { OpenMojiIcon } from '../OpenMojiIcon/OpenMojiIcon';
 
 /**
  * Props for documentation content.
@@ -47,7 +47,9 @@ export function DocumentationContent({ primary, aliases = [], isPrintOnly = fals
             <div
                 className={`p-8 border-b border-gray-100 bg-gray-50/50 ${
                     isPrintOnly ? 'border-none bg-white p-0 mb-4' : ''
-                } ${isLowVisibilityNotice ? 'opacity-90 print:opacity-100' : ''} print:p-0 print:border-none print:bg-white print:mb-4`}
+                } ${
+                    isLowVisibilityNotice ? 'opacity-90 print:opacity-100' : ''
+                } print:p-0 print:border-none print:bg-white print:mb-4`}
             >
                 <div className="flex items-center gap-4 mb-4">
                     <h1 className="text-4xl font-bold text-gray-900 tracking-tight print:text-3xl">
