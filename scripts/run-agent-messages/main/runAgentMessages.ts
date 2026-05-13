@@ -5,6 +5,7 @@ import { NotAllowed } from '../../../src/errors/NotAllowed';
 import { just } from '../../../src/utils/organization/just';
 import type { AgentRunOptions } from '../AgentRunOptions';
 import { listQueuedAgentMessages } from '../messages/listQueuedAgentMessages';
+import { pullLatestChangesForAgentQueueIfEnabled } from './pullLatestChangesForAgentQueueIfEnabled';
 import { tickAgentMessages } from './tickAgentMessages';
 import { validateAgentRunOptions } from './validateAgentRunOptions';
 
@@ -14,11 +15,18 @@ import { validateAgentRunOptions } from './validateAgentRunOptions';
 const AGENT_QUEUE_POLL_INTERVAL_MS = 2_000;
 
 /**
+ * Delay between idle auto-pull runs while the queue stays empty.
+ */
+const AGENT_IDLE_AUTO_PULL_INTERVAL_MS = 30_000;
+
+/**
  * Watches the queued message directory and answers messages one by one.
  */
 export async function runAgentMessages(options: AgentRunOptions): Promise<void> {
     validateAgentRunOptions(options);
     validateAgentWatchOptions(options);
+    const projectPath = process.cwd();
+    let autoPullTimestamp = options.autoPull ? Date.now() : undefined;
 
     console.info(
         colors.green(
@@ -28,12 +36,17 @@ export async function runAgentMessages(options: AgentRunOptions): Promise<void> 
 
     while (just(true)) {
         const result = await tickAgentMessages(options, { isQuietWhenIdle: true });
+        autoPullTimestamp = result.autoPullTimestamp ?? autoPullTimestamp;
 
         if (result.isMessageProcessed) {
             continue;
         }
 
-        await waitForQueuedAgentMessage(process.cwd());
+        autoPullTimestamp = await waitForQueuedAgentMessage({
+            projectPath,
+            options,
+            autoPullTimestamp,
+        });
     }
 }
 
@@ -57,14 +70,46 @@ function validateAgentWatchOptions(options: AgentRunOptions): void {
 /**
  * Polls until at least one queued `.book` message is available.
  */
-async function waitForQueuedAgentMessage(projectPath: string): Promise<void> {
+async function waitForQueuedAgentMessage(options: {
+    readonly projectPath: string;
+    readonly options: AgentRunOptions;
+    readonly autoPullTimestamp: number | undefined;
+}): Promise<number | undefined> {
+    const { projectPath, options: runOptions } = options;
+    let { autoPullTimestamp } = options;
+
     while (just(true)) {
         await wait(AGENT_QUEUE_POLL_INTERVAL_MS);
 
         if ((await listQueuedAgentMessages(projectPath)).length > 0) {
-            return;
+            return autoPullTimestamp;
+        }
+
+        if (!shouldAutoPullWhileIdle(runOptions, autoPullTimestamp)) {
+            continue;
+        }
+
+        autoPullTimestamp = await pullLatestChangesForAgentQueueIfEnabled({
+            projectPath,
+            runOptions,
+            logMessage: 'Pulling latest changes while idle...',
+        });
+
+        if ((await listQueuedAgentMessages(projectPath)).length > 0) {
+            return autoPullTimestamp;
         }
     }
+}
+
+/**
+ * Decides whether the empty queue has been idle long enough for another auto-pull.
+ */
+function shouldAutoPullWhileIdle(options: AgentRunOptions, autoPullTimestamp: number | undefined): boolean {
+    if (!options.autoPull || autoPullTimestamp === undefined) {
+        return false;
+    }
+
+    return Date.now() - autoPullTimestamp >= AGENT_IDLE_AUTO_PULL_INTERVAL_MS;
 }
 
 /**

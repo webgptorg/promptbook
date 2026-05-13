@@ -1,3 +1,9 @@
+-   Improved `ptbk agent run --auto-pull` so agent runners also keep their queue repository fresh while idle:
+
+    -   Extracted the shared agent-queue auto-pull path so the same clean-tree guard and Git pull flow is reused both before answering a queued message and during idle watch periods.
+    -   Changed the watch loop to trigger periodic pulls when the queue stays empty, letting remote queued messages show up even after all local work has been finished.
+    -   Added regression coverage for the shared pre-message auto-pull helper and the new idle auto-pull watch-loop behavior.
+
 -   Unified Promptbook temporary-folder handling under `.promptbook` across the engine, CLI scripts, and Agents Server:
 
     -   Added one shared temp-path helper so Promptbook-managed caches and runtime artifacts now resolve from the same `.promptbook/...` root instead of mixing `.tmp`, `.promptbook`, and OS temp folders.

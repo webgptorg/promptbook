@@ -11,13 +11,11 @@ import {
 import { withPromptRuntimeLog } from '../../run-codex-prompts/common/runGoScript/withPromptRuntimeLog';
 import { printAgentGitIdentityTipIfNeeded } from '../../run-codex-prompts/git/agentGitIdentity';
 import { commitChanges } from '../../run-codex-prompts/git/commitChanges';
-import { pullLatestChanges } from '../../run-codex-prompts/git/pullLatestChanges';
 import { resolvePromptRunner } from '../../run-codex-prompts/main/resolvePromptRunner';
 import type { PromptRunner } from '../../run-codex-prompts/runners/types/PromptRunner';
 import { runPromptWithTestFeedback } from '../../run-codex-prompts/testing/runPromptWithTestFeedback';
 import { renderCoderRunUi, type CoderRunUiHandle } from '../../run-codex-prompts/ui/renderCoderRunUi';
 import type { AgentRunOptions } from '../AgentRunOptions';
-import { ensureWorkingTreeCleanForAgentQueue } from '../git/ensureWorkingTreeCleanForAgentQueue';
 import { isGitPathTracked } from '../git/isGitPathTracked';
 import type { AgentMessageFile } from '../messages/AgentMessageFile';
 import { buildAgentMessageCommitMessage } from '../messages/buildAgentMessageCommitMessage';
@@ -28,6 +26,7 @@ import { moveAgentMessageToFinished, type FinishedAgentMessageFile } from '../me
 import { buildAgentRunUiFrame } from '../ui/buildAgentRunUiFrame';
 import { loadAgentRunUiMetadata } from '../ui/loadAgentRunUiMetadata';
 import { createCoderRunOptionsForAgent } from './createCoderRunOptionsForAgent';
+import { pullLatestChangesForAgentQueueIfEnabled } from './pullLatestChangesForAgentQueueIfEnabled';
 import { validateAgentRunOptions } from './validateAgentRunOptions';
 
 /**
@@ -35,6 +34,7 @@ import { validateAgentRunOptions } from './validateAgentRunOptions';
  */
 export type AgentTickResult = {
     readonly isMessageProcessed: boolean;
+    readonly autoPullTimestamp?: number;
     readonly queuedMessage?: AgentMessageFile;
     readonly finishedMessage?: FinishedAgentMessageFile;
 };
@@ -72,20 +72,21 @@ export async function tickAgentMessages(
         return { isMessageProcessed: false };
     }
 
-    if (options.autoPull) {
-        await ensureCleanQueueIfNeeded(projectPath, options);
-        console.info(colors.gray('Pulling latest changes before answering the next message...'));
-        await pullLatestChanges();
+    const autoPullTimestamp = await pullLatestChangesForAgentQueueIfEnabled({
+        projectPath,
+        runOptions: options,
+        logMessage: 'Pulling latest changes before answering the next message...',
+    });
+
+    if (autoPullTimestamp !== undefined) {
         queueSnapshot = await loadAgentMessageQueueSnapshot(projectPath);
         queuedMessage = queueSnapshot.queuedMessages[0];
 
         if (!queuedMessage) {
             announceNoQueuedMessages(tickOptions);
-            return { isMessageProcessed: false };
+            return { isMessageProcessed: false, autoPullTimestamp };
         }
     }
-
-    await ensureCleanQueueIfNeeded(projectPath, options);
 
     const sharedRunOptions = createCoderRunOptionsForAgent(options);
     const { runner, actualRunnerModel } = resolvePromptRunner(sharedRunOptions);
@@ -119,6 +120,7 @@ export async function tickAgentMessages(
 
         return {
             isMessageProcessed: true,
+            autoPullTimestamp,
             queuedMessage,
             finishedMessage,
         };
@@ -276,17 +278,6 @@ function createAgentQueueProgressSnapshot(queueSnapshot: AgentMessageQueueSnapsh
         belowMinimumPriority: 0,
         toBeWritten: 0,
     };
-}
-
-/**
- * Runs the clean working tree guard unless the user explicitly disabled it.
- */
-async function ensureCleanQueueIfNeeded(projectPath: string, options: AgentRunOptions): Promise<void> {
-    if (options.ignoreGitChanges) {
-        return;
-    }
-
-    await ensureWorkingTreeCleanForAgentQueue(projectPath);
 }
 
 /**

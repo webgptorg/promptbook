@@ -12,9 +12,9 @@ import {
 import { withPromptRuntimeLog } from '../../run-codex-prompts/common/runGoScript/withPromptRuntimeLog';
 import { printAgentGitIdentityTipIfNeeded } from '../../run-codex-prompts/git/agentGitIdentity';
 import { commitChanges } from '../../run-codex-prompts/git/commitChanges';
-import { pullLatestChanges } from '../../run-codex-prompts/git/pullLatestChanges';
 import { resolvePromptRunner } from '../../run-codex-prompts/main/resolvePromptRunner';
 import { runPromptWithTestFeedback } from '../../run-codex-prompts/testing/runPromptWithTestFeedback';
+import { pullLatestChangesForAgentQueueIfEnabled } from './pullLatestChangesForAgentQueueIfEnabled';
 import { tickAgentMessages } from './tickAgentMessages';
 
 jest.mock('../../run-codex-prompts/common/normalizeLineEndingsInChangedFiles', () => ({
@@ -36,10 +36,6 @@ jest.mock('../../run-codex-prompts/git/commitChanges', () => ({
     commitChanges: jest.fn(),
 }));
 
-jest.mock('../../run-codex-prompts/git/pullLatestChanges', () => ({
-    pullLatestChanges: jest.fn(),
-}));
-
 jest.mock('../../run-codex-prompts/main/resolvePromptRunner', () => ({
     resolvePromptRunner: jest.fn(),
 }));
@@ -54,6 +50,10 @@ jest.mock('../git/ensureWorkingTreeCleanForAgentQueue', () => ({
 
 jest.mock('../git/isGitPathTracked', () => ({
     isGitPathTracked: jest.fn(),
+}));
+
+jest.mock('./pullLatestChangesForAgentQueueIfEnabled', () => ({
+    pullLatestChangesForAgentQueueIfEnabled: jest.fn(),
 }));
 
 /**
@@ -107,7 +107,6 @@ describe('tickAgentMessages', () => {
             >
         ).mockResolvedValue({ scannedFiles: 0, normalizedFiles: 0, skippedBinaryFiles: 0 });
         (commitChanges as jest.MockedFunction<typeof commitChanges>).mockResolvedValue(undefined);
-        (pullLatestChanges as jest.MockedFunction<typeof pullLatestChanges>).mockResolvedValue(undefined);
         (resolvePromptRunner as jest.MockedFunction<typeof resolvePromptRunner>).mockReturnValue({
             runner: {
                 name: 'github-copilot',
@@ -123,6 +122,9 @@ describe('tickAgentMessages', () => {
             usage: UNCERTAIN_USAGE,
             attemptCount: 1,
         });
+        (
+            pullLatestChangesForAgentQueueIfEnabled as jest.MockedFunction<typeof pullLatestChangesForAgentQueueIfEnabled>
+        ).mockResolvedValue(undefined);
     });
 
     afterEach(async () => {
@@ -144,6 +146,26 @@ describe('tickAgentMessages', () => {
         expect(result.isMessageProcessed).toBe(false);
         expect(resolvePromptRunner).not.toHaveBeenCalled();
         expect(commitChanges).not.toHaveBeenCalled();
+    });
+
+    it('delegates pre-message auto-pull through the shared helper', async () => {
+        temporaryProjectPath = await createTemporaryProject();
+        process.chdir(temporaryProjectPath);
+        await mkdir(join(temporaryProjectPath, 'messages', 'queued'), { recursive: true });
+        await writeFile(join(temporaryProjectPath, 'messages', 'queued', 'question.book'), 'MESSAGE @User\nHi\n', 'utf-8');
+
+        (
+            pullLatestChangesForAgentQueueIfEnabled as jest.MockedFunction<typeof pullLatestChangesForAgentQueueIfEnabled>
+        ).mockResolvedValue(123_456);
+
+        const result = await tickAgentMessages(createAgentRunOptions({ autoPull: true }));
+
+        expect(result.autoPullTimestamp).toBe(123_456);
+        expect(pullLatestChangesForAgentQueueIfEnabled).toHaveBeenCalledWith({
+            projectPath: temporaryProjectPath,
+            runOptions: expect.objectContaining({ autoPull: true }),
+            logMessage: 'Pulling latest changes before answering the next message...',
+        });
     });
 
     it('answers one queued message, moves it to finished, and commits only that message', async () => {
