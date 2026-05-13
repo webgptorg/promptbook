@@ -55,7 +55,7 @@ function validateAgentWatchOptions(options: AgentRunOptions): void {
 }
 
 /**
- * Polls until at least one queued markdown message is available.
+ * Polls until at least one queued `.book` message is available.
  */
 async function waitForQueuedAgentMessage(projectPath: string): Promise<void> {
     while (just(true)) {

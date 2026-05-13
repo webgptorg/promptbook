@@ -55,7 +55,7 @@ type AgentMessageQueueSnapshot = {
 };
 
 /**
- * Answers one queued markdown message and moves it to `messages/finished`.
+ * Answers one queued `.book` message thread and moves it to `messages/finished`.
  */
 export async function tickAgentMessages(
     options: AgentRunOptions,
@@ -330,10 +330,10 @@ function announceNoQueuedMessages(options: TickAgentMessagesOptions): void {
  * Reads current queued and finished message counts for the agent dashboard.
  */
 async function loadAgentMessageQueueSnapshot(projectPath: string): Promise<AgentMessageQueueSnapshot> {
-    const [queuedMessages, finishedMessageCount] = await Promise.all([
-        listQueuedAgentMessages(projectPath),
-        countMarkdownFiles(join(projectPath, AGENT_FINISHED_MESSAGES_DIRECTORY_PATH)),
-    ]);
+        const [queuedMessages, finishedMessageCount] = await Promise.all([
+            listQueuedAgentMessages(projectPath),
+            countBookFiles(join(projectPath, AGENT_FINISHED_MESSAGES_DIRECTORY_PATH)),
+        ]);
 
     return {
         queuedMessages,
@@ -342,13 +342,12 @@ async function loadAgentMessageQueueSnapshot(projectPath: string): Promise<Agent
 }
 
 /**
- * Counts markdown files inside one queue directory and treats a missing directory as empty.
+ * Counts `.book` files inside one queue directory and treats a missing directory as empty.
  */
-async function countMarkdownFiles(directoryPath: string): Promise<number> {
+async function countBookFiles(directoryPath: string): Promise<number> {
     try {
         const directoryEntries = await readdir(directoryPath, { withFileTypes: true });
-        return directoryEntries.filter((directoryEntry) => directoryEntry.isFile() && /\.m(?:d|arkdown)$/iu.test(directoryEntry.name))
-            .length;
+        return directoryEntries.filter((directoryEntry) => directoryEntry.isFile() && /\.book$/iu.test(directoryEntry.name)).length;
     } catch (error) {
         if (
             error &&

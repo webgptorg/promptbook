@@ -1,59 +1,58 @@
-import { spaceTrim } from 'spacetrim';
+import { Book } from '@promptbook-local/core';
+import type { ChatMessage } from '@promptbook-local/types';
+import type { string_book } from '@promptbook-local/types';
 
 /**
- * Creates one queued chat-message book consumed by the external runner.
+ * Creates one queued chat-thread book consumed by the external runner.
  */
-export function createExternalChatQueuedMessageBook(options: { messageContent: string }): string {
-    return normalizeBookText(
-        spaceTrim(
-            (block) => `
-                MESSAGE @User
-                ${block(options.messageContent)}
-            `,
-        ),
-    );
+export function createExternalChatQueuedMessageBook(options: {
+    messages: ReadonlyArray<Pick<ChatMessage, 'content'> & { sender: string }>;
+}): string {
+    return Book.fromMessages(options.messages).stringify();
 }
 
 /**
- * Parses the agent answer from one finished chat-message book.
+ * Parses the agent answer from one finished chat-thread book when the expected turn is complete.
  */
-export function parseExternalChatFinishedMessageBook(bookContent: string): string {
-    const answerMarkerIndex = findBookCommitmentLineIndex(bookContent, 'ANSWER @Agent');
+export function parseExternalChatFinishedMessageBook(options: {
+    bookContent: string;
+    expectedMessagesBeforeAnswer: number;
+}): string | null {
+    const finishedMessages = Book.parse(options.bookContent as string_book).getMessages();
+    const answerMessage = finishedMessages[options.expectedMessagesBeforeAnswer];
 
-    if (answerMarkerIndex === -1) {
-        return bookContent.trim();
+    if (!answerMessage || answerMessage.sender !== 'AGENT') {
+        return null;
     }
 
-    return bookContent
-        .split(/\r?\n/)
-        .slice(answerMarkerIndex + 1)
-        .join('\n')
-        .trim();
+    return answerMessage.content.trim();
 }
 
 /**
- * Builds a human-readable failure reason from one failed chat-message book.
+ * Builds a human-readable failure reason from one failed chat-thread book.
  */
-export function parseExternalChatFailedMessageBook(bookContent: string): string {
-    const normalized = bookContent.trim();
-    if (normalized.length === 0) {
+export function parseExternalChatFailedMessageBook(options: {
+    bookContent: string;
+    expectedMessagesBeforeAnswer: number;
+}): string | null {
+    const parsedAnswer = parseExternalChatFinishedMessageBook(options);
+    if (parsedAnswer) {
+        return parsedAnswer;
+    }
+
+    const normalizedBookContent = options.bookContent.trim();
+    if (normalizedBookContent.length === 0) {
         return 'External chat runner moved the message to failed.';
     }
 
-    const parsedAnswer = parseExternalChatFinishedMessageBook(normalized);
-    return parsedAnswer || normalized;
-}
+    const finishedMessages = Book.parse(options.bookContent as string_book).getMessages();
+    if (finishedMessages.length === 0) {
+        return normalizedBookContent;
+    }
 
-/**
- * Normalizes `.book` message content to LF and one trailing newline.
- */
-function normalizeBookText(value: string): string {
-    return `${value.replace(/\r\n/g, '\n').trimEnd()}\n`;
-}
+    if (finishedMessages.length < options.expectedMessagesBeforeAnswer) {
+        return null;
+    }
 
-/**
- * Finds the line index of one exact commitment marker.
- */
-function findBookCommitmentLineIndex(bookContent: string, marker: string): number {
-    return bookContent.split(/\r?\n/).findIndex((line) => line.trim() === marker);
+    return 'External chat runner moved the message to failed.';
 }

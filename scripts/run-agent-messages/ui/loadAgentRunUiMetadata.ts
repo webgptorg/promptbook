@@ -1,5 +1,6 @@
 import { readFile } from 'fs/promises';
 import { join } from 'path';
+import { Book } from '../../../src/book-3.0/Book';
 import { parseAgentSourceWithCommitments } from '../../../src/book-2.0/agent-source/parseAgentSourceWithCommitments';
 import type { string_book } from '../../../src/book-2.0/agent-source/string_book';
 import { AGENT_BOOK_FILE_PATH } from '../../../src/cli/cli-commands/agent/agentProjectPaths';
@@ -56,18 +57,13 @@ async function readLocalAgentName(projectPath: string): Promise<string> {
  * Extracts the latest `MESSAGE @User` block while preserving the original line breaks.
  */
 export function extractLatestUserMessageLines(messageContent: string): readonly string[] {
-    const messageBlockPattern = /^MESSAGE\s+@User\b[^\n]*\n([\s\S]*?)(?=^MESSAGE\s+@|(?![\s\S]))/gmu;
-    let latestMatch: RegExpExecArray | null = null;
+    const latestUserMessageContent =
+        [...Book.parse(messageContent as string_book).getMessages()]
+            .reverse()
+            .find((message) => message.sender === 'USER')?.content || messageContent;
 
-    while (true) {
-        const currentMatch = messageBlockPattern.exec(messageContent);
-        if (!currentMatch) {
-            break;
-        }
-
-        latestMatch = currentMatch;
-    }
-
-    const latestUserMessageContent = (latestMatch?.[1] || messageContent).trim();
-    return latestUserMessageContent.length > 0 ? latestUserMessageContent.split(/\r?\n/gu) : [];
+    const normalizedLatestUserMessageContent = latestUserMessageContent.trim();
+    return normalizedLatestUserMessageContent.length > 0
+        ? normalizedLatestUserMessageContent.split(/\r?\n/gu)
+        : [];
 }

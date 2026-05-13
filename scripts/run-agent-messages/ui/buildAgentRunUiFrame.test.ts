@@ -25,7 +25,7 @@ function createFrameOptions(overrides: Partial<Parameters<typeof buildAgentRunUi
             priority: 0,
         },
         phase: 'running' as const,
-        currentPromptLabel: 'messages/queued/message-0008.md',
+        currentPromptLabel: 'messages/queued/message-0008.book',
         currentAttempt: 1,
         maxAttempts: 3,
         statusMessage: 'Running',

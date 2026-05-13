@@ -1,4 +1,3 @@
-import { randomUUID } from 'crypto';
 import type { UserChatJobParameters, UserChatJobRecord } from '../userChat/UserChatJobRecord';
 import {
     EXTERNAL_USER_CHAT_JOB_PARAMETERS_KEY,
@@ -9,14 +8,15 @@ import {
  * Metadata persisted with one UserChatJob after it is mirrored to GitHub.
  */
 export type ExternalUserChatJobMetadata = {
-    version: 1;
+    version: 2;
     repositoryFullName: string;
-    externalChatId: string;
+    threadId: string;
     fileName: string;
     queuedPath: string;
     finishedPath: string;
     failedPath: string;
     queuedAt: string;
+    expectedMessagesBeforeAnswer: number;
 };
 
 /**
@@ -24,20 +24,22 @@ export type ExternalUserChatJobMetadata = {
  */
 export function createExternalUserChatJobMetadata(options: {
     repositoryFullName: string;
+    threadId: string;
     queuedAt: string;
+    expectedMessagesBeforeAnswer: number;
 }): ExternalUserChatJobMetadata {
-    const externalChatId = randomUUID();
-    const fileName = createExternalChatMessageFileName(new Date(options.queuedAt), externalChatId);
+    const fileName = createExternalChatMessageFileName(options.threadId);
 
     return {
-        version: 1,
+        version: 2,
         repositoryFullName: options.repositoryFullName,
-        externalChatId,
+        threadId: options.threadId,
         fileName,
         queuedPath: `messages/queued/${fileName}`,
         finishedPath: `messages/finished/${fileName}`,
         failedPath: `messages/failed/${fileName}`,
         queuedAt: options.queuedAt,
+        expectedMessagesBeforeAnswer: options.expectedMessagesBeforeAnswer,
     };
 }
 
@@ -54,14 +56,15 @@ export function getExternalUserChatJobMetadata(
 
     const metadata = rawMetadata as Record<string, unknown>;
     if (
-        metadata.version !== 1 ||
+        metadata.version !== 2 ||
         typeof metadata.repositoryFullName !== 'string' ||
-        typeof metadata.externalChatId !== 'string' ||
+        typeof metadata.threadId !== 'string' ||
         typeof metadata.fileName !== 'string' ||
         typeof metadata.queuedPath !== 'string' ||
         typeof metadata.finishedPath !== 'string' ||
         typeof metadata.failedPath !== 'string' ||
-        typeof metadata.queuedAt !== 'string'
+        typeof metadata.queuedAt !== 'string' ||
+        typeof metadata.expectedMessagesBeforeAnswer !== 'number'
     ) {
         return null;
     }
@@ -99,28 +102,14 @@ export function withoutExternalUserChatJobMetadata(parameters: UserChatJobParame
 }
 
 /**
- * Creates the external runner filename required by the git message contract.
+ * Creates the external runner filename required by the git thread-message contract.
  */
-export function createExternalChatMessageFileName(date: Date, externalChatId: string): string {
-    return `${formatExternalChatMessageTimestamp(date)}-${externalChatId}.book`;
-}
+export function createExternalChatMessageFileName(threadId: string): string {
+    const normalizedThreadId = threadId.trim().replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/^-+|-+$/g, '');
 
-/**
- * Formats one UTC timestamp as YYYY-MM-DD-HH-MM.
- */
-function formatExternalChatMessageTimestamp(date: Date): string {
-    return [
-        date.getUTCFullYear(),
-        padDatePart(date.getUTCMonth() + 1),
-        padDatePart(date.getUTCDate()),
-        padDatePart(date.getUTCHours()),
-        padDatePart(date.getUTCMinutes()),
-    ].join('-');
-}
+    if (normalizedThreadId.length > 0) {
+        return `${normalizedThreadId}.book`;
+    }
 
-/**
- * Pads one timestamp part to two digits.
- */
-function padDatePart(value: number): string {
-    return String(value).padStart(2, '0');
+    return `${Buffer.from(threadId, 'utf8').toString('hex') || 'thread'}.book`;
 }

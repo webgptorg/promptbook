@@ -1,8 +1,6 @@
-import { mkdir, rename, stat } from 'fs/promises';
+import { mkdir, rename, rm, stat } from 'fs/promises';
 import { join } from 'path';
-import { spaceTrim } from 'spacetrim';
 import { AGENT_FINISHED_MESSAGES_DIRECTORY_PATH } from '../../../src/cli/cli-commands/agent/agentProjectPaths';
-import { ConflictError } from '../../../src/errors/ConflictError';
 import type { AgentMessageFile } from './AgentMessageFile';
 
 /**
@@ -27,17 +25,10 @@ export async function moveAgentMessageToFinished(
         join(AGENT_FINISHED_MESSAGES_DIRECTORY_PATH, messageFile.fileName),
     );
 
-    if (await isExistingPath(finishedMessagePath)) {
-        throw new ConflictError(
-            spaceTrim(`
-                Cannot move answered message to \`${finishedMessageRelativePath}\` because the file already exists.
-
-                Rename or remove the existing finished message, then run \`ptbk agent tick\` again.
-            `),
-        );
-    }
-
     await mkdir(finishedDirectoryPath, { recursive: true });
+    if (await isExistingPath(finishedMessagePath)) {
+        await rm(finishedMessagePath, { force: true });
+    }
     await rename(messageFile.absolutePath, finishedMessagePath);
 
     return {

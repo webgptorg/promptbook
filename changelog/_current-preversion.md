@@ -1,3 +1,10 @@
+-   Reworked external agent chat thread files so Agents Server and `ptbk agent run` now operate on shared `.book` thread documents without duplicating messages:
+
+    -   Finished `src/book-3.0/Book.ts` so Promptbook can parse and stringify threaded `MESSAGE @User` / `MESSAGE @Agent` books and reuse them from both the CLI runner and the external chat runner integration.
+    -   Changed `ptbk agent run` to consume `.book` files instead of markdown queue files, keep replies in the same thread file, and replace the previous finished thread snapshot on the next answered turn.
+    -   Changed external runner metadata from per-message UUID files to stable per-chat thread files, so each queued/finished repo file now contains the whole thread up to the newest answer instead of splitting every turn into separate files.
+    -   Fixed duplicate/triplicate external message files by claiming queued jobs before enqueue and by preventing chat-detail synchronization from enqueueing still-local queued jobs on its own.
+
 -   Added a new `Minecraft 3D 2` built-in avatar visual with proper 3D cuboid rendering and pointer-driven head turning:
     
     -   Reused shared Minecraft texture helpers so both Minecraft-style visuals stay deterministic without duplicating the face / torso pixel-generation logic.

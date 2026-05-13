@@ -15,7 +15,7 @@ describe('loadAgentRunUiMetadata', () => {
 
     it('reads the local agent title from `agent.book` and returns the latest queued user message', async () => {
         temporaryProjectPath = await mkdtemp(join(tmpdir(), 'ptbk-agent-ui-'));
-        const queuedMessagePath = join(temporaryProjectPath, 'messages', 'queued', 'message-0001.md');
+        const queuedMessagePath = join(temporaryProjectPath, 'messages', 'queued', 'message-0001.book');
 
         await mkdir(join(temporaryProjectPath, 'messages', 'queued'), { recursive: true });
         await writeFile(
@@ -43,8 +43,8 @@ describe('loadAgentRunUiMetadata', () => {
         await expect(
             loadAgentRunUiMetadata(temporaryProjectPath, {
                 absolutePath: queuedMessagePath,
-                relativePath: 'messages/queued/message-0001.md',
-                fileName: 'message-0001.md',
+                relativePath: 'messages/queued/message-0001.book',
+                fileName: 'message-0001.book',
             }),
         ).resolves.toEqual({
             localAgentName: 'Support Assistant',

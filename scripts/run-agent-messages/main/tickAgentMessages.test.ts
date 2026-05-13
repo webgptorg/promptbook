@@ -151,16 +151,16 @@ describe('tickAgentMessages', () => {
         process.chdir(temporaryProjectPath);
         await mkdir(join(temporaryProjectPath, 'messages', 'queued'), { recursive: true });
         await writeFile(
-            join(temporaryProjectPath, 'messages', 'queued', 'question.md'),
+            join(temporaryProjectPath, 'messages', 'queued', 'question.book'),
             'MESSAGE @User\nHow many events are in my calendar for this week?\n',
             'utf-8',
         );
 
         (runPromptWithTestFeedback as jest.MockedFunction<typeof runPromptWithTestFeedback>).mockImplementation(
             async ({ prompt }) => {
-                expect(prompt).toContain('[user question](messages/queued/question.md)');
+                expect(prompt).toContain('[user question](messages/queued/question.book)');
                 await appendFile(
-                    join(temporaryProjectPath!, 'messages', 'queued', 'question.md'),
+                    join(temporaryProjectPath!, 'messages', 'queued', 'question.book'),
                     '\nMESSAGE @Agent\nThere are 5 events in your calendar for this week.\n',
                     'utf-8',
                 );
@@ -171,12 +171,12 @@ describe('tickAgentMessages', () => {
         const result = await tickAgentMessages(createAgentRunOptions({ autoPush: true }));
 
         expect(result.isMessageProcessed).toBe(true);
-        expect(await readFile(join(temporaryProjectPath, 'messages', 'finished', 'question.md'), 'utf-8')).toContain(
+        expect(await readFile(join(temporaryProjectPath, 'messages', 'finished', 'question.book'), 'utf-8')).toContain(
             'MESSAGE @Agent',
         );
-        expect(commitChanges).toHaveBeenCalledWith('Answering message question.md', {
+        expect(commitChanges).toHaveBeenCalledWith('Answering message question.book', {
             autoPush: true,
-            includePaths: ['messages/finished/question.md'],
+            includePaths: ['messages/finished/question.book'],
         });
         expect(printAgentGitIdentityTipIfNeeded).toHaveBeenCalled();
     });
@@ -185,14 +185,52 @@ describe('tickAgentMessages', () => {
         temporaryProjectPath = await createTemporaryProject();
         process.chdir(temporaryProjectPath);
         await mkdir(join(temporaryProjectPath, 'messages', 'queued'), { recursive: true });
-        await writeFile(join(temporaryProjectPath, 'messages', 'queued', 'tracked.md'), 'MESSAGE @User\nHi\n', 'utf-8');
+        await writeFile(
+            join(temporaryProjectPath, 'messages', 'queued', 'tracked.book'),
+            'MESSAGE @User\nHi\n',
+            'utf-8',
+        );
         (isGitPathTracked as jest.MockedFunction<typeof isGitPathTracked>).mockResolvedValue(true);
 
         await tickAgentMessages(createAgentRunOptions());
 
-        expect(commitChanges).toHaveBeenCalledWith('Answering message tracked.md', {
+        expect(commitChanges).toHaveBeenCalledWith('Answering message tracked.book', {
             autoPush: false,
-            includePaths: ['messages/queued/tracked.md', 'messages/finished/tracked.md'],
+            includePaths: ['messages/queued/tracked.book', 'messages/finished/tracked.book'],
         });
+    });
+
+    it('replaces the previous finished thread file when answering the next message in the same chat', async () => {
+        temporaryProjectPath = await createTemporaryProject();
+        process.chdir(temporaryProjectPath);
+        await mkdir(join(temporaryProjectPath, 'messages', 'queued'), { recursive: true });
+        await mkdir(join(temporaryProjectPath, 'messages', 'finished'), { recursive: true });
+        await writeFile(
+            join(temporaryProjectPath, 'messages', 'finished', 'thread.book'),
+            'MESSAGE @User\nFirst question\n\nMESSAGE @Agent\nFirst answer\n',
+            'utf-8',
+        );
+        await writeFile(
+            join(temporaryProjectPath, 'messages', 'queued', 'thread.book'),
+            'MESSAGE @User\nFirst question\n\nMESSAGE @Agent\nFirst answer\n\nMESSAGE @User\nSecond question\n',
+            'utf-8',
+        );
+
+        (runPromptWithTestFeedback as jest.MockedFunction<typeof runPromptWithTestFeedback>).mockImplementation(
+            async () => {
+                await appendFile(
+                    join(temporaryProjectPath!, 'messages', 'queued', 'thread.book'),
+                    '\nMESSAGE @Agent\nSecond answer\n',
+                    'utf-8',
+                );
+                return { usage: UNCERTAIN_USAGE, attemptCount: 1 };
+            },
+        );
+
+        await tickAgentMessages(createAgentRunOptions());
+
+        expect(await readFile(join(temporaryProjectPath, 'messages', 'finished', 'thread.book'), 'utf-8')).toContain(
+            'Second answer',
+        );
     });
 });

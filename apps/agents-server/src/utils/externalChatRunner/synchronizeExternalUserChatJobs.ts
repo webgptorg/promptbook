@@ -54,7 +54,7 @@ async function listSynchronizableExternalUserChatJobs(options: {
     const userChatJobTable = await provideUserChatJobTable();
     let query = userChatJobTable
         .select('*')
-        .in('status', ['QUEUED', 'RUNNING', 'FAILED'])
+        .in('status', ['RUNNING', 'FAILED'])
         .order('updatedAt', { ascending: false })
         .limit(options.limit);
 
@@ -77,5 +77,5 @@ async function listSynchronizableExternalUserChatJobs(options: {
 
     return ((data || []) as Array<UserChatJobRow>)
         .map((row) => mapUserChatJobRow(row))
-        .filter((job) => job.status === 'QUEUED' || isExternalUserChatJob(job) || getExternalUserChatJobMetadata(job));
+        .filter((job) => isExternalUserChatJob(job) || getExternalUserChatJobMetadata(job));
 }

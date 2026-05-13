@@ -5,14 +5,14 @@ import { AGENT_QUEUED_MESSAGES_DIRECTORY_PATH } from '../../../src/cli/cli-comma
 import type { AgentMessageFile } from './AgentMessageFile';
 
 /**
- * Lists queued markdown message files in deterministic filename order.
+ * Lists queued `.book` message files in deterministic filename order.
  */
 export async function listQueuedAgentMessages(projectPath: string): Promise<ReadonlyArray<AgentMessageFile>> {
     const queuedMessagesDirectoryPath = join(projectPath, AGENT_QUEUED_MESSAGES_DIRECTORY_PATH);
     const directoryEntries = await readQueuedMessageDirectoryEntries(queuedMessagesDirectoryPath);
 
     return directoryEntries
-        .filter((entry) => entry.isFile() && isMarkdownFileName(entry.name))
+        .filter((entry) => entry.isFile() && isBookFileName(entry.name))
         .map((entry) => ({
             absolutePath: join(queuedMessagesDirectoryPath, entry.name),
             relativePath: normalizeRelativePath(join(AGENT_QUEUED_MESSAGES_DIRECTORY_PATH, entry.name)),
@@ -37,10 +37,10 @@ async function readQueuedMessageDirectoryEntries(queuedMessagesDirectoryPath: st
 }
 
 /**
- * Checks whether one filename is a markdown message file.
+ * Checks whether one filename is a `.book` message file.
  */
-function isMarkdownFileName(fileName: string): boolean {
-    return /\.m(?:d|arkdown)$/iu.test(fileName);
+function isBookFileName(fileName: string): boolean {
+    return /\.book$/iu.test(fileName);
 }
 
 /**

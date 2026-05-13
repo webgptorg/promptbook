@@ -9,27 +9,71 @@ describe('how `Book` works', () => {
                 book`
                     AI agent
                 `,
-            ).agentName,
-        ).toBe('AI agent'));
+             ).agentName,
+         ).toBe('AI agent'));
 
-    // TODO: Write tests
+    it('should parse and stringify chat messages in one thread book', () => {
+        const parsedBook = Book.parse(
+            book`
+                AI agent
 
-    it('should work with parsing chat', () =>
+                RULE Be concise.
+
+                MESSAGE @User
+                Hello, agent!
+
+                MESSAGE @Agent
+                Hello, user!
+            `,
+        );
+
+        expect(parsedBook.agentName).toBe('AI agent');
+        expect(parsedBook.commitments).toEqual([
+            {
+                type: 'RULE',
+                subject: 'Be concise.',
+                content: '',
+            },
+        ]);
+        expect(parsedBook.getMessages()).toEqual([
+            {
+                sender: 'USER',
+                content: 'Hello, agent!',
+                isComplete: true,
+            },
+            {
+                sender: 'AGENT',
+                content: 'Hello, user!',
+                isComplete: true,
+            },
+        ]);
+        expect(parsedBook.stringify()).toBe(
+            'AI agent\n\nRULE Be concise.\n\nMESSAGE @User\nHello, agent!\n\nMESSAGE @Agent\nHello, user!\n',
+        );
+    });
+
+    it('should work with parsing chat files without agent source header', () =>
         expect(
             Book.parse(
                 book`
-                    AI agent
-
                     MESSAGE @User
                     Hello, agent!
 
                     MESSAGE @Agent
                     Hello, user!
-                    
+
                 `,
             ).getMessages(),
-        ).toBe([
-            // <- TODO: Maybe toMatch or other matcher with partial object match
-            /* TODO */
+        ).toEqual([
+            {
+                sender: 'USER',
+                content: 'Hello, agent!',
+                isComplete: true,
+            },
+            {
+                sender: 'AGENT',
+                content: 'Hello, user!',
+                isComplete: true,
+            },
         ]));
 });

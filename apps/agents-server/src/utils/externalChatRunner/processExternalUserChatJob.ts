@@ -1,5 +1,6 @@
 import type { Json } from '@/src/database/schema';
 import { createUserChatJobFailureDetails } from '../userChat/createUserChatJobFailureDetails';
+import { claimNextQueuedUserChatJob } from '../userChat/claimNextQueuedUserChatJob';
 import { finalizeUserChatJob } from '../userChat/finalizeUserChatJob';
 import { getUserChat } from '../userChat/getUserChat';
 import { getUserChatJobById } from '../userChat/getUserChatJobById';
@@ -8,6 +9,7 @@ import { provideUserChatJobTable } from '../userChat/provideUserChatJobTable';
 import { updateUserChatAssistantMessage } from '../userChat/updateUserChatAssistantMessage';
 import type { UserChatJobRecord } from '../userChat/UserChatJobRecord';
 import type { UserChatJobRow } from '../userChat/UserChatJobRow';
+import { resolvePromptThreadBeforeUserMessage } from '../userChat/userChatMessageLifecycle';
 import {
     EXTERNAL_USER_CHAT_JOB_ANSWER_TIMEOUT_MS,
     EXTERNAL_USER_CHAT_JOB_PROVIDER,
@@ -24,8 +26,8 @@ import {
     loadExternalAgentSourceSnapshot,
 } from './ensureExternalAgentRepository';
 import {
-    createGithubFileIfMissing,
     readGithubFile,
+    upsertGithubFile,
 } from './GithubRepositoryClient';
 import {
     createExternalChatQueuedMessageBook,
@@ -61,11 +63,16 @@ export async function processExternalUserChatJob(job: UserChatJobRecord): Promis
             return { didMutate: true, outcome: 'cancelled' };
         }
 
+        const metadata = getExternalUserChatJobMetadata(job);
         if (job.status === 'QUEUED') {
+            const claimedJob = await claimNextQueuedUserChatJob({ preferredJobId: job.id });
+            return claimedJob ? await enqueueExternalUserChatJob(claimedJob) : { didMutate: false, outcome: 'waiting' };
+        }
+
+        if (job.status === 'RUNNING' && !metadata) {
             return await enqueueExternalUserChatJob(job);
         }
 
-        const metadata = getExternalUserChatJobMetadata(job);
         if (!metadata) {
             return { didMutate: false, outcome: 'ignored' };
         }
@@ -83,8 +90,18 @@ export async function processNextExternalUserChatJob(options: {
     preferredJobId?: string;
 } = {}): Promise<ProcessExternalUserChatJobResult | null> {
     if (options.preferredJobId) {
+        const claimedPreferredJob = await claimNextQueuedUserChatJob({ preferredJobId: options.preferredJobId });
+        if (claimedPreferredJob) {
+            return await enqueueExternalUserChatJob(claimedPreferredJob);
+        }
+
         const preferredJob = await getUserChatJobById(options.preferredJobId);
         return preferredJob ? await processExternalUserChatJob(preferredJob) : null;
+    }
+
+    const claimedJob = await claimNextQueuedUserChatJob();
+    if (claimedJob) {
+        return await enqueueExternalUserChatJob(claimedJob);
     }
 
     const candidates = await listExternalUserChatJobCandidates();
@@ -126,23 +143,38 @@ async function enqueueExternalUserChatJob(job: UserChatJobRecord): Promise<Proce
         throw new Error(`User message "${job.userMessageId}" was not found in chat "${job.chatId}".`);
     }
 
+    const previousThreadMessages = resolvePromptThreadBeforeUserMessage(chat.messages, job.userMessageId);
+    if (previousThreadMessages.some((message) => message.sender === 'AGENT' && message.isComplete === false)) {
+        return { didMutate: false, outcome: 'waiting' };
+    }
+
+    const threadMessages = [...previousThreadMessages, userMessage]
+        .filter((message) => message.isComplete !== false)
+        .filter((message) => message.sender === 'USER' || message.sender === 'AGENT')
+        .map((message) => ({
+            sender: String(message.sender),
+            content: message.content,
+        }));
+
     const repository = await ensureExternalAgentRepository(agentSourceSnapshot);
     const queuedAt = new Date().toISOString();
     const metadata = createExternalUserChatJobMetadata({
         repositoryFullName: repository.fullName,
+        threadId: chat.id,
         queuedAt,
+        expectedMessagesBeforeAnswer: threadMessages.length,
     });
     const configuration = ensureExternalChatRunnerGithubConfiguration();
 
-    await createGithubFileIfMissing({
+    await upsertGithubFile({
         configuration,
         repositoryFullName: repository.fullName,
         path: metadata.queuedPath,
-        content: createExternalChatQueuedMessageBook({ messageContent: userMessage.content }),
-        message: `Queue chat ${metadata.externalChatId}`,
+        content: createExternalChatQueuedMessageBook({ messages: threadMessages }),
+        message: `Queue chat thread ${metadata.threadId}`,
     });
 
-    await markExternalUserChatJobAsRunning(job, metadata);
+    await persistExternalUserChatJobEnqueueMetadata(job, metadata);
     await updateUserChatAssistantMessage({
         userId: job.userId,
         agentPermanentId: job.agentPermanentId,
@@ -170,19 +202,34 @@ async function synchronizeExternalUserChatJob(
     const finishedFile = await readGithubFile(configuration, metadata.repositoryFullName, metadata.finishedPath);
 
     if (finishedFile) {
-        await persistUserChatJobTerminalState({
-            job,
-            status: 'COMPLETED',
-            provider: EXTERNAL_USER_CHAT_JOB_PROVIDER,
-            content: parseExternalChatFinishedMessageBook(finishedFile.content),
-            generationDurationMs: resolveExternalUserChatJobDurationMs(metadata.queuedAt),
+        const content = parseExternalChatFinishedMessageBook({
+            bookContent: finishedFile.content,
+            expectedMessagesBeforeAnswer: metadata.expectedMessagesBeforeAnswer,
         });
-        return { didMutate: true, outcome: 'completed' };
+
+        if (content) {
+            await persistUserChatJobTerminalState({
+                job,
+                status: 'COMPLETED',
+                provider: EXTERNAL_USER_CHAT_JOB_PROVIDER,
+                content,
+                generationDurationMs: resolveExternalUserChatJobDurationMs(metadata.queuedAt),
+            });
+            return { didMutate: true, outcome: 'completed' };
+        }
     }
 
     const failedFile = await readGithubFile(configuration, metadata.repositoryFullName, metadata.failedPath);
     if (failedFile) {
-        const failureReason = parseExternalChatFailedMessageBook(failedFile.content);
+        const failureReason = parseExternalChatFailedMessageBook({
+            bookContent: failedFile.content,
+            expectedMessagesBeforeAnswer: metadata.expectedMessagesBeforeAnswer,
+        });
+
+        if (!failureReason) {
+            return { didMutate: false, outcome: 'waiting' };
+        }
+
         await persistUserChatJobTerminalState({
             job,
             status: 'FAILED',
@@ -211,9 +258,9 @@ async function synchronizeExternalUserChatJob(
 }
 
 /**
- * Marks one queued UserChatJob as externally running.
+ * Persists external-runner metadata after one chat thread has been mirrored to GitHub.
  */
-async function markExternalUserChatJobAsRunning(
+async function persistExternalUserChatJobEnqueueMetadata(
     job: UserChatJobRecord,
     metadata: ExternalUserChatJobMetadata,
 ): Promise<void> {
@@ -226,7 +273,7 @@ async function markExternalUserChatJobAsRunning(
             startedAt: job.startedAt || nowIso,
             lastHeartbeatAt: nowIso,
             leaseExpiresAt: null,
-            attemptCount: job.attemptCount + 1,
+            attemptCount: job.attemptCount,
             provider: EXTERNAL_USER_CHAT_JOB_PROVIDER,
             failureReason: null,
             parameters: withExternalUserChatJobMetadata(job.parameters, metadata) as Json,
@@ -246,7 +293,7 @@ async function listExternalUserChatJobCandidates(): Promise<Array<UserChatJobRec
     const userChatJobTable = await provideUserChatJobTable();
     const { data, error } = await userChatJobTable
         .select('*')
-        .in('status', ['QUEUED', 'RUNNING'])
+        .in('status', ['RUNNING', 'FAILED'])
         .order('queuedAt', { ascending: true })
         .order('createdAt', { ascending: true })
         .limit(20);
@@ -256,7 +303,9 @@ async function listExternalUserChatJobCandidates(): Promise<Array<UserChatJobRec
     }
 
     const { mapUserChatJobRow } = await import('../userChat/mapUserChatJobRow');
-    return ((data || []) as Array<UserChatJobRow>).map((row) => mapUserChatJobRow(row));
+    return ((data || []) as Array<UserChatJobRow>)
+        .map((row) => mapUserChatJobRow(row))
+        .filter((candidate) => candidate.status === 'RUNNING' || isExternalUserChatJob(candidate));
 }
 
 /**
@@ -269,7 +318,7 @@ async function handleExternalUserChatJobProcessingError(
     const metadata = getExternalUserChatJobMetadata(job);
     const failureReason = error instanceof Error ? error.message : 'External chat runner synchronization failed.';
 
-    if (job.status === 'QUEUED' || (metadata && isExternalUserChatJobTimedOut(metadata))) {
+    if (job.status === 'QUEUED' || (job.status === 'RUNNING' && !metadata) || (metadata && isExternalUserChatJobTimedOut(metadata))) {
         await persistUserChatJobTerminalState({
             job,
             status: 'FAILED',
