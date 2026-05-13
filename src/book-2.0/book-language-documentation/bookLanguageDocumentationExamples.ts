@@ -6,8 +6,8 @@ import type { BookLanguageDocumentationExample } from './BookLanguageDocumentati
  *
  * These are intentionally compact but complete, so they can be copy-pasted and
  * used as practical starting points.
- * 
- * @private internal utility of `createStandaloneBookLanguageMarkdown` 
+ *
+ * @private internal utility of `createStandaloneBookLanguageMarkdown`
  */
 export const bookLanguageDocumentationExamples: ReadonlyArray<BookLanguageDocumentationExample> = [
     {

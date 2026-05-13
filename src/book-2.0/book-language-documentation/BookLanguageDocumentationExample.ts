@@ -1,7 +1,7 @@
 /**
  * One end-to-end Book language example used in standalone documentation.
- * 
- * @private internal utility of `createStandaloneBookLanguageMarkdown` 
+ *
+ * @private internal utility of `createStandaloneBookLanguageMarkdown`
  */
 export type BookLanguageDocumentationExample = {
     /**

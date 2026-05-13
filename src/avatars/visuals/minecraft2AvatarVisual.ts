@@ -93,7 +93,11 @@ export const minecraft2AvatarVisual: AvatarVisualDefinition = {
         const spotlightY = size * 0.22;
         const headRandom = createRandom('minecraft2-head');
         const hasHeadband = headRandom() < 0.5;
-        const headTextures = createMinecraftHeadTextures(createRandom('minecraft2-head-textures'), palette, hasHeadband);
+        const headTextures = createMinecraftHeadTextures(
+            createRandom('minecraft2-head-textures'),
+            palette,
+            hasHeadband,
+        );
         const torsoTextures = createMinecraftTorsoTextures(createRandom('minecraft2-body-textures'), palette);
         const bob = Math.sin(timeMs / 880) * size * 0.014;
         const bodyYaw = -0.24 + Math.sin(timeMs / 2300) * 0.06 + interaction.bodyOffsetX * 0.16;
@@ -329,35 +333,34 @@ function resolveVisibleCuboidFaces(
         },
     ];
 
-    const visibleFaces: Array<VisibleCuboidFace | null> = faceDefinitions
-        .map((faceDefinition) => {
-            const transformedCorners = faceDefinition.corners.map((corner) =>
-                transformScenePoint(corner, cuboid.center, cuboid.rotationX, cuboid.rotationY),
-            ) as [Point3D, Point3D, Point3D, Point3D];
-            const faceNormal = normalizeVector3(
-                crossProduct3D(
-                    subtractPoint3D(transformedCorners[1], transformedCorners[0]),
-                    subtractPoint3D(transformedCorners[2], transformedCorners[0]),
-                ),
-            );
+    const visibleFaces: Array<VisibleCuboidFace | null> = faceDefinitions.map((faceDefinition) => {
+        const transformedCorners = faceDefinition.corners.map((corner) =>
+            transformScenePoint(corner, cuboid.center, cuboid.rotationX, cuboid.rotationY),
+        ) as [Point3D, Point3D, Point3D, Point3D];
+        const faceNormal = normalizeVector3(
+            crossProduct3D(
+                subtractPoint3D(transformedCorners[1], transformedCorners[0]),
+                subtractPoint3D(transformedCorners[2], transformedCorners[0]),
+            ),
+        );
 
-            if (faceNormal.z <= 0.02) {
-                return null;
-            }
+        if (faceNormal.z <= 0.02) {
+            return null;
+        }
 
-            const projectedCorners = transformedCorners.map((corner) =>
-                projectScenePoint(corner, size, sceneCenterX, sceneCenterY),
-            ) as [ProjectedPoint, ProjectedPoint, ProjectedPoint, ProjectedPoint];
+        const projectedCorners = transformedCorners.map((corner) =>
+            projectScenePoint(corner, size, sceneCenterX, sceneCenterY),
+        ) as [ProjectedPoint, ProjectedPoint, ProjectedPoint, ProjectedPoint];
 
-            return {
-                corners: projectedCorners,
-                texture: faceDefinition.texture,
-                averageDepth:
-                    transformedCorners.reduce((depthSum, corner) => depthSum + corner.z, 0) / transformedCorners.length,
-                lightIntensity: clampNumber(dotProduct3D(faceNormal, LIGHT_DIRECTION), -1, 1),
-                outlineColor: cuboid.outlineColor,
-            } satisfies VisibleCuboidFace;
-        });
+        return {
+            corners: projectedCorners,
+            texture: faceDefinition.texture,
+            averageDepth:
+                transformedCorners.reduce((depthSum, corner) => depthSum + corner.z, 0) / transformedCorners.length,
+            lightIntensity: clampNumber(dotProduct3D(faceNormal, LIGHT_DIRECTION), -1, 1),
+            outlineColor: cuboid.outlineColor,
+        } satisfies VisibleCuboidFace;
+    });
 
     return visibleFaces.filter((visibleFace): visibleFace is VisibleCuboidFace => visibleFace !== null);
 }
@@ -385,12 +388,16 @@ function drawTexturedProjectedFace(context: CanvasRenderingContext2D, face: Visi
             const startY = rowIndex / rows;
             const endY = (rowIndex + 1) / rows;
 
-            drawProjectedQuad(context, [
-                interpolateProjectedQuad(face.corners, startX, startY),
-                interpolateProjectedQuad(face.corners, endX, startY),
-                interpolateProjectedQuad(face.corners, endX, endY),
-                interpolateProjectedQuad(face.corners, startX, endY),
-            ], face.texture[rowIndex]![columnIndex]!);
+            drawProjectedQuad(
+                context,
+                [
+                    interpolateProjectedQuad(face.corners, startX, startY),
+                    interpolateProjectedQuad(face.corners, endX, startY),
+                    interpolateProjectedQuad(face.corners, endX, endY),
+                    interpolateProjectedQuad(face.corners, startX, endY),
+                ],
+                face.texture[rowIndex]![columnIndex]!,
+            );
         }
     }
 
@@ -469,7 +476,11 @@ function interpolateProjectedQuad(
  *
  * @private helper of `minecraft2AvatarVisual`
  */
-function interpolateProjectedPoint(startPoint: ProjectedPoint, endPoint: ProjectedPoint, ratio: number): ProjectedPoint {
+function interpolateProjectedPoint(
+    startPoint: ProjectedPoint,
+    endPoint: ProjectedPoint,
+    ratio: number,
+): ProjectedPoint {
     return {
         x: startPoint.x + (endPoint.x - startPoint.x) * ratio,
         y: startPoint.y + (endPoint.y - startPoint.y) * ratio,
