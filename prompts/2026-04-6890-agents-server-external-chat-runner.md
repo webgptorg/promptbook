@@ -101,3 +101,21 @@ node_modules
 ![alt text](prompts/screenshots/2026-04-6890-agents-server-external-chat-runner-1.png)
 ![alt text](prompts/screenshots/2026-04-6890-agents-server-external-chat-runner-2.png)
 
+---
+
+[ ] !!!!!!!
+
+[✨🕟] The messages should work in threads and should not be duplicated
+
+-   One file should not correspond to one `.book` file _(now each message is sepated into one file and also there is a bug that theese files are triplicated)_
+-   Long threads of messages should be supported, so one file can contain multiple messages in the thread, and also the answer to the message should be in the same file, not in the separate file, both from point of view of the agent server and the `ptbk agent run` utility which is running the chats on the external service
+-   The `ptbk agent` should look at `.book` files (not `.md` files)
+-   Parse the book files with messages via `src/book-3.0/Book.ts` and finish it
+-   Do a proper analysis of the current functionality of chat on agent server and `ptbk agent` before you start implementing. And also the change which was made:
+    -   [File with PRD](prompts/2026-04-6890-agents-server-external-chat-runner.md)
+-   You are working with the [Agents Server](apps/agents-server)
+-   You are working with [`ptbk agent` CLI command](src/cli/cli-commands/agent/run.ts)
+-   We don't need to keep backwards compatibility of `ptbk agent` and the created repos. We are in the development of the new feature, which isn't deployed for any real customer yet, so we can change the existing functionality and do breaking changes if needed
+-   If you need to do the database migration, do it
+
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
