@@ -1,5 +1,8 @@
 import colors from 'colors';
+import { readdir } from 'fs/promises';
 import moment from 'moment';
+import { join } from 'path';
+import { AGENT_FINISHED_MESSAGES_DIRECTORY_PATH } from '../../../src/cli/cli-commands/agent/agentProjectPaths';
 import {
     captureChangedFilesSnapshot,
     normalizeLineEndingsInFilesChangedSinceSnapshot,
@@ -22,6 +25,8 @@ import { buildAgentMessagePrompt } from '../messages/buildAgentMessagePrompt';
 import { buildAgentMessageScriptPath } from '../messages/buildAgentMessageScriptPath';
 import { listQueuedAgentMessages } from '../messages/listQueuedAgentMessages';
 import { moveAgentMessageToFinished, type FinishedAgentMessageFile } from '../messages/moveAgentMessageToFinished';
+import { buildAgentRunUiFrame } from '../ui/buildAgentRunUiFrame';
+import { loadAgentRunUiMetadata } from '../ui/loadAgentRunUiMetadata';
 import { createCoderRunOptionsForAgent } from './createCoderRunOptionsForAgent';
 import { validateAgentRunOptions } from './validateAgentRunOptions';
 
@@ -42,6 +47,14 @@ export type TickAgentMessagesOptions = {
 };
 
 /**
+ * Queue counts and files used to render the agent-specific dashboard.
+ */
+type AgentMessageQueueSnapshot = {
+    readonly queuedMessages: ReadonlyArray<AgentMessageFile>;
+    readonly finishedMessageCount: number;
+};
+
+/**
  * Answers one queued markdown message and moves it to `messages/finished`.
  */
 export async function tickAgentMessages(
@@ -51,7 +64,8 @@ export async function tickAgentMessages(
     validateAgentRunOptions(options);
 
     const projectPath = process.cwd();
-    let queuedMessage = await findNextQueuedMessage(projectPath);
+    let queueSnapshot = await loadAgentMessageQueueSnapshot(projectPath);
+    let queuedMessage = queueSnapshot.queuedMessages[0];
 
     if (!queuedMessage) {
         announceNoQueuedMessages(tickOptions);
@@ -62,7 +76,8 @@ export async function tickAgentMessages(
         await ensureCleanQueueIfNeeded(projectPath, options);
         console.info(colors.gray('Pulling latest changes before answering the next message...'));
         await pullLatestChanges();
-        queuedMessage = await findNextQueuedMessage(projectPath);
+        queueSnapshot = await loadAgentMessageQueueSnapshot(projectPath);
+        queuedMessage = queueSnapshot.queuedMessages[0];
 
         if (!queuedMessage) {
             announceNoQueuedMessages(tickOptions);
@@ -74,7 +89,15 @@ export async function tickAgentMessages(
 
     const sharedRunOptions = createCoderRunOptionsForAgent(options);
     const { runner, actualRunnerModel } = resolvePromptRunner(sharedRunOptions);
-    const uiHandle = createAgentRunUiHandle(options, runner, actualRunnerModel, queuedMessage);
+    const agentUiMetadata = await loadAgentRunUiMetadata(projectPath, queuedMessage);
+    const uiHandle = createAgentRunUiHandle(
+        options,
+        runner,
+        actualRunnerModel,
+        queuedMessage,
+        queueSnapshot,
+        agentUiMetadata,
+    );
 
     try {
         const finishedMessage = await runQueuedAgentMessage({
@@ -85,6 +108,12 @@ export async function tickAgentMessages(
             uiHandle,
         });
 
+        uiHandle?.state.updateProgress(
+            createAgentQueueProgressSnapshot({
+                finishedMessageCount: queueSnapshot.finishedMessageCount + 1,
+                queuedMessages: queueSnapshot.queuedMessages.slice(1),
+            }),
+        );
         uiHandle?.state.setStatusMessage('Message answered');
         uiHandle?.state.setPhase('done');
 
@@ -174,25 +203,24 @@ function createAgentRunUiHandle(
     runner: PromptRunner,
     actualRunnerModel: string | undefined,
     queuedMessage: AgentMessageFile,
+    queueSnapshot: AgentMessageQueueSnapshot,
+    agentUiMetadata: Awaited<ReturnType<typeof loadAgentRunUiMetadata>>,
 ): CoderRunUiHandle | undefined {
     if (options.noUi || !process.stdout.isTTY) {
         return undefined;
     }
 
-    const uiHandle = renderCoderRunUi(moment());
+    const uiHandle = renderCoderRunUi(moment(), { buildFrameLines: buildAgentRunUiFrame });
     uiHandle.state.setConfig({
         agentName: runner.name,
+        localAgentName: agentUiMetadata.localAgentName,
         modelName: actualRunnerModel,
         thinkingLevel: options.thinkingLevel,
         priority: 0,
     });
-    uiHandle.state.updateProgress({
-        done: 0,
-        forAgent: 1,
-        belowMinimumPriority: 0,
-        toBeWritten: 0,
-    });
+    uiHandle.state.updateProgress(createAgentQueueProgressSnapshot(queueSnapshot));
     uiHandle.state.setCurrentPrompt(queuedMessage.relativePath);
+    uiHandle.state.setMessagePreviewLines([...agentUiMetadata.latestUserMessageLines]);
     uiHandle.state.setPhase('loading');
     uiHandle.state.setStatusMessage('Preparing message');
 
@@ -239,11 +267,15 @@ function buildCommitIncludePaths(
 }
 
 /**
- * Finds the next queued message or returns undefined when the queue is empty.
+ * Converts agent queue counts into the prompt-style snapshot used by the shared rich UI state.
  */
-async function findNextQueuedMessage(projectPath: string): Promise<AgentMessageFile | undefined> {
-    const queuedMessages = await listQueuedAgentMessages(projectPath);
-    return queuedMessages[0];
+function createAgentQueueProgressSnapshot(queueSnapshot: AgentMessageQueueSnapshot) {
+    return {
+        done: queueSnapshot.finishedMessageCount,
+        forAgent: queueSnapshot.queuedMessages.length,
+        belowMinimumPriority: 0,
+        toBeWritten: 0,
+    };
 }
 
 /**
@@ -292,4 +324,41 @@ function announceNoQueuedMessages(options: TickAgentMessagesOptions): void {
     }
 
     console.info(colors.gray('No queued agent messages.'));
+}
+
+/**
+ * Reads current queued and finished message counts for the agent dashboard.
+ */
+async function loadAgentMessageQueueSnapshot(projectPath: string): Promise<AgentMessageQueueSnapshot> {
+    const [queuedMessages, finishedMessageCount] = await Promise.all([
+        listQueuedAgentMessages(projectPath),
+        countMarkdownFiles(join(projectPath, AGENT_FINISHED_MESSAGES_DIRECTORY_PATH)),
+    ]);
+
+    return {
+        queuedMessages,
+        finishedMessageCount,
+    };
+}
+
+/**
+ * Counts markdown files inside one queue directory and treats a missing directory as empty.
+ */
+async function countMarkdownFiles(directoryPath: string): Promise<number> {
+    try {
+        const directoryEntries = await readdir(directoryPath, { withFileTypes: true });
+        return directoryEntries.filter((directoryEntry) => directoryEntry.isFile() && /\.m(?:d|arkdown)$/iu.test(directoryEntry.name))
+            .length;
+    } catch (error) {
+        if (
+            error &&
+            typeof error === 'object' &&
+            'code' in error &&
+            ((error as { code?: string }).code === 'ENOENT' || (error as { code?: string }).code === 'ENOTDIR')
+        ) {
+            return 0;
+        }
+
+        throw error;
+    }
 }

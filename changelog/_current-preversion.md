@@ -3238,3 +3238,8 @@
     -   Stopped passing the full generated agent prompt as one `copilot -p "..."` shell argument, which could exceed the shell/Node argument-length limit and fail with `Argument list too long`.
     -   Switched the GitHub Copilot runner to feed prompts through standard input instead, keeping `--model`, `--reasoning-effort`, and the existing non-interactive flags unchanged.
     -   Added regression coverage for the new stdin-based invocation shape so agent-mode prompts stay safe even when the Book Language blueprint makes them much larger than coder prompts.
+-   Enhanced the `ptbk agent run` rich terminal UI so it now reflects queued-message workflows instead of mirroring `ptbk coder run`:
+    
+    -   The top branding now uses compact initials derived from the local `agent.book` title, making the dashboard identify the actual agent definition rather than only the runner selected by `--agent`.
+    -   The session summary now distinguishes the local agent from the execution runner and shows queue-specific totals (`finished` / `queued` / total) with a progress bar based on answered messages instead of `Task 1/1`.
+    -   Added a dedicated `User message` box that shows the latest `MESSAGE @User` block 1:1 with line-preserving trimming, while keeping the live streaming output panel unchanged.

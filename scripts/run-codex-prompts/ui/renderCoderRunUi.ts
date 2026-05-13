@@ -1,7 +1,7 @@
 import moment from 'moment';
 import { clearLine, cursorTo } from 'readline';
 import { getPauseState, togglePauseState } from '../common/waitForPause';
-import { buildCoderRunUiFrame } from './buildCoderRunUiFrame';
+import { buildCoderRunUiFrame, type BuildCoderRunUiFrameOptions } from './buildCoderRunUiFrame';
 import { CoderRunUiState } from './CoderRunUiState';
 import { getCoderRunUiAutoRefreshInterval } from './coderRunUiRefresh';
 
@@ -67,8 +67,14 @@ export type CoderRunUiHandle = {
  *
  * @private internal entry point of coder run UI
  */
-export function renderCoderRunUi(startTime: moment.Moment): CoderRunUiHandle {
+export function renderCoderRunUi(
+    startTime: moment.Moment,
+    options: {
+        readonly buildFrameLines?: (options: BuildCoderRunUiFrameOptions) => string[];
+    } = {},
+): CoderRunUiHandle {
     const state = new CoderRunUiState(startTime);
+    const buildFrameLinesFromState = options.buildFrameLines || buildCoderRunUiFrame;
 
     if (!process.stdout.isTTY) {
         return {
@@ -232,7 +238,7 @@ export function renderCoderRunUi(startTime: moment.Moment): CoderRunUiHandle {
      * Builds the current frame snapshot from the latest state.
      */
     function buildFrameLines(): string[] {
-        return buildCoderRunUiFrame({
+        return buildFrameLinesFromState({
             terminalWidth: getTerminalWidth(),
             animationFrame: spinnerFrame,
             spinner: SPINNER_FRAMES[spinnerFrame]!,
@@ -244,6 +250,7 @@ export function renderCoderRunUi(startTime: moment.Moment): CoderRunUiHandle {
             maxAttempts: state.maxAttempts,
             statusMessage: state.statusMessage,
             detailLines: state.detailLines,
+            messagePreviewLines: state.messagePreviewLines,
             pendingEnterLabel: state.pendingEnterLabel,
             agentOutputLines: state.agentOutputLines,
             errors: state.errors,

@@ -33,6 +33,7 @@ export type CoderRunPhase =
  */
 export type CoderRunConfig = {
     readonly agentName: string;
+    readonly localAgentName?: string;
     readonly modelName?: string;
     readonly thinkingLevel?: string;
     readonly context?: string;
@@ -61,6 +62,7 @@ export class CoderRunUiState extends EventEmitter {
     public currentAttempt = 1;
     public maxAttempts = 3;
     public detailLines: string[] = [];
+    public messagePreviewLines: string[] = [];
     public pendingEnterLabel: string | undefined;
     public agentOutputLines: string[] = [];
     public phase: CoderRunPhase = 'initializing';
@@ -130,6 +132,7 @@ export class CoderRunUiState extends EventEmitter {
     public setCurrentPrompt(label: string): void {
         this.currentPromptLabel = label;
         this.detailLines = [];
+        this.messagePreviewLines = [];
         this.pendingEnterLabel = undefined;
         this.agentOutputLines = [];
         this.currentAttempt = 1;
@@ -180,6 +183,14 @@ export class CoderRunUiState extends EventEmitter {
      */
     public setDetailLines(detailLines: string[]): void {
         this.detailLines = detailLines.filter((detailLine) => detailLine.trim() !== '');
+        this.emitChange();
+    }
+
+    /**
+     * Replaces the exact user-message preview lines shown in agent-specific panels.
+     */
+    public setMessagePreviewLines(messagePreviewLines: string[]): void {
+        this.messagePreviewLines = [...messagePreviewLines];
         this.emitChange();
     }
 
