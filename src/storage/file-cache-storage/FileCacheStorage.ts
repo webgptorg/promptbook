@@ -7,7 +7,7 @@ import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError'
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import { jsonParse } from '../../formats/json/utils/jsonParse';
-import type { string_filename } from '../../types/typeAliases';
+import type { string_filename } from '../../types/string_filename';
 import { stringifyPipelineJson } from '../../utils/editable/utils/stringifyPipelineJson';
 import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
 import { isFileExisting } from '../../utils/files/isFileExisting';

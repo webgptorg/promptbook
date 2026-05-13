@@ -1,4 +1,4 @@
-import type { string_javascript_name } from '../../../types/typeAliases';
+import type { string_javascript_name } from '../../../types/string_person_fullname';
 import type { really_unknown } from '../../organization/really_unknown';
 
 /**

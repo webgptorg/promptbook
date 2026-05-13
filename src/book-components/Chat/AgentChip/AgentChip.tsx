@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import type { string_url } from '../../../types/typeAliases';
+import type { string_url } from '../../../types/string_url';
 import { loadAgentProfile, resolveAgentProfileFallback, shouldFetchAgentProfile } from '../utils/loadAgentProfile';
 import styles from './AgentChip.module.css';
 

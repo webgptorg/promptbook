@@ -1,11 +1,11 @@
-import { asciiOctopusAvatarVisual } from './asciiOctopusAvatarVisual';
 import type { AvatarVisualDefinition, AvatarVisualId } from '../types/AvatarVisualDefinition';
+import { asciiOctopusAvatarVisual } from './asciiOctopusAvatarVisual';
 import { fractalAvatarVisual } from './fractalAvatarVisual';
-import { minecraftAvatarVisual } from './minecraftAvatarVisual';
 import { minecraft2AvatarVisual } from './minecraft2AvatarVisual';
-import { octopusAvatarVisual } from './octopusAvatarVisual';
+import { minecraftAvatarVisual } from './minecraftAvatarVisual';
 import { octopus2AvatarVisual } from './octopus2AvatarVisual';
 import { octopus3AvatarVisual } from './octopus3AvatarVisual';
+import { octopusAvatarVisual } from './octopusAvatarVisual';
 import { orbAvatarVisual } from './orbAvatarVisual';
 import { pixelArtAvatarVisual } from './pixelArtAvatarVisual';
 

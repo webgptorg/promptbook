@@ -1,4 +1,4 @@
-import type { InputParameters } from '../types/typeAliases';
+import type { InputParameters } from '../types/Parameters';
 import type { ExecutionTask } from './ExecutionTask';
 
 /**

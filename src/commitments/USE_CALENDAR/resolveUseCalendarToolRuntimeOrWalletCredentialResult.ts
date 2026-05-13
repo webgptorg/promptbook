@@ -1,5 +1,6 @@
 import { readToolRuntimeContextFromToolArgs } from '../_common/toolRuntimeContext';
-import { parseGoogleCalendarReference, type CalendarReference } from './calendarReference';
+import type { CalendarReference } from './calendarReference';
+import { parseGoogleCalendarReference } from './calendarReference';
 import { UseCalendarWallet } from './UseCalendarWallet';
 
 /**

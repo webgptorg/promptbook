@@ -1,6 +1,6 @@
 import type { ErrorJson } from '../../../errors/utils/ErrorJson';
 import type { PipelineJson } from '../../../pipeline/PipelineJson/PipelineJson';
-import type { string_date_iso8601 } from '../../../types/typeAliases';
+import type { string_date_iso8601 } from '../../../types/string_token';
 
 /**
  * Represents a single pipeline in PromptbookStudio

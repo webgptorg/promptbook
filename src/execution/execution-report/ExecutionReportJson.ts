@@ -1,6 +1,6 @@
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_pipeline_url } from '../../types/typeAliases';
-import type { string_semantic_version } from '../../types/typeAliases';
+import type { string_markdown_text } from '../../types/string_markdown';
+import type { string_pipeline_url } from '../../types/string_pipeline_url';
+import type { string_semantic_version } from '../../types/string_sha256';
 import type { ExecutionPromptReportJson } from './ExecutionPromptReportJson';
 
 /**

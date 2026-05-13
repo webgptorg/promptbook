@@ -1,17 +1,14 @@
 import colors from 'colors';
 import type {
-    Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
+  Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */
 } from 'commander';
 import { spaceTrim } from 'spacetrim';
 import { assertsError } from '../../../errors/assertsError';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
 import { handleActionErrors } from '../common/handleActionErrors';
-import {
-    addPromptRunnerExecutionOptions,
-    addPromptRunnerSelectionOptions,
-    PROMPT_RUNNER_DESCRIPTION,
-} from '../common/promptRunnerCliOptions';
-import { type AgentRunCliOptions, createAgentRunOptionsFromCliOptions } from './agentRunCliOptions';
+import { addPromptRunnerExecutionOptions, addPromptRunnerSelectionOptions, PROMPT_RUNNER_DESCRIPTION } from '../common/promptRunnerCliOptions';
+import type { AgentRunCliOptions } from './agentRunCliOptions';
+import { createAgentRunOptionsFromCliOptions } from './agentRunCliOptions';
 
 /**
  * Initializes `agent tick` command for Promptbook CLI utilities.

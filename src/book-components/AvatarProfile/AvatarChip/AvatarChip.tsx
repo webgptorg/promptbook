@@ -1,5 +1,5 @@
 import type { AgentBasicInformation } from '../../../book-2.0/agent-source/AgentBasicInformation';
-import type { string_css_class } from '../../../types/typeAliases';
+import type { string_css_class } from '../../../types/string_markdown';
 import { resolveAgentAvatarImageUrl } from '../../../utils/agents/resolveAgentAvatarImageUrl';
 import { classNames } from '../../_common/react-utils/classNames';
 import styles from './AvatarChip.module.css';

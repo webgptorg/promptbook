@@ -1,27 +1,19 @@
 import type { Tool as AgentKitTool } from '@openai/agents';
 import {
-    Agent as AgentFromKit,
-    tool as agentKitTool,
-    fileSearchTool,
-    run,
-    setDefaultOpenAIClient,
-    setDefaultOpenAIKey,
-    webSearchTool,
+  Agent as AgentFromKit, fileSearchTool,
+  run,
+  setDefaultOpenAIClient,
+  setDefaultOpenAIKey, tool as agentKitTool, webSearchTool
 } from '@openai/agents';
 import OpenAI from 'openai';
 import { spaceTrim } from 'spacetrim';
-import { TODO_any } from '../../_packages/types.index';
-import { serializeError } from '../../_packages/utils.index';
 import { parseToolExecutionEnvelope } from '../../commitments/_common/toolExecutionEnvelope';
-import {
-    registerToolCallProgressListener,
-    TOOL_PROGRESS_TOKEN_PARAMETER,
-    type ToolCallProgressUpdate,
-    unregisterToolCallProgressListener,
-} from '../../commitments/_common/toolRuntimeContext';
+import type { ToolCallProgressUpdate } from '../../commitments/_common/toolRuntimeContext';
+import { registerToolCallProgressListener, TOOL_PROGRESS_TOKEN_PARAMETER, unregisterToolCallProgressListener } from '../../commitments/_common/toolRuntimeContext';
 import { assertsError } from '../../errors/assertsError';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
+import { serializeError } from '../../errors/utils/serializeError';
 import type { CallChatModelStreamOptions, LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import type { ScriptExecutionTools } from '../../execution/ScriptExecutionTools';
@@ -29,20 +21,18 @@ import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import { UNCERTAIN_USAGE } from '../../execution/utils/usage-constants';
 import type { ModelRequirements } from '../../types/ModelRequirements';
 import type { Prompt } from '../../types/Prompt';
+import type { string_markdown, string_markdown_text } from '../../types/string_markdown';
+import type { string_model_name } from '../../types/string_model_name';
+import type { string_javascript_name } from '../../types/string_person_fullname';
+import type { string_prompt } from '../../types/string_prompt';
+import type { string_title } from '../../types/string_title';
+import type { string_date_iso8601 } from '../../types/string_token';
 import type { ToolCall, ToolCallLogEntry, ToolCallState } from '../../types/ToolCall';
-import type {
-    string_date_iso8601,
-    string_javascript_name,
-    string_markdown,
-    string_markdown_text,
-    string_model_name,
-    string_prompt,
-    string_title,
-} from '../../types/typeAliases';
 import type { ChatAttachment } from '../../utils/chat/chatAttachments';
-import { normalizeChatAttachments } from '../../utils/chat/chatAttachments';
+import { normalizeChatAttachments } from '../../utils/chat/chatAttachments/normalizeChatAttachments';
 import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
 import type { chococake } from '../../utils/organization/really_any';
+import type { TODO_any } from '../../utils/organization/TODO_any';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import type { OpenAiAgentKitExecutionToolsOptions } from './OpenAiAgentKitExecutionToolsOptions';
 import type { OpenAiCompatibleExecutionToolsNonProxiedOptions } from './OpenAiCompatibleExecutionToolsOptions';

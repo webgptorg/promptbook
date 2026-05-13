@@ -1,10 +1,9 @@
 import { spaceTrim } from 'spacetrim';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
-import type { string_script } from '../../types/typeAliases';
-import type { BookTranspiler } from '../_common/BookTranspiler';
-import type { BookTranspilerOptions } from '../_common/BookTranspilerOptions';
+import type { string_script } from '../../types/string_markdown';
 import { OpenAiSdkTranspiler } from '../openai-sdk/OpenAiSdkTranspiler';
+import type { BookTranspilerOptions } from '../_common/BookTranspilerOptions';
 
 /**
  * Transpiler to a JavaScript launcher that runs the exported agent inside an E2B sandbox.

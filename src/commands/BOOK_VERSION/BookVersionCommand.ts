@@ -1,4 +1,4 @@
-import type { string_semantic_version } from '../../types/typeAliases';
+import type { string_semantic_version } from '../../types/string_sha256';
 
 /**
  * Parsed BOOK_VERSION command

@@ -1,6 +1,6 @@
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParseError } from '../../errors/ParseError';
-import type { string_markdown_text } from '../../types/typeAliases';
+import type { string_markdown_text } from '../../types/string_markdown';
 import type { $side_effect } from '../../utils/organization/$side_effect';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { validateParameterName } from '../../utils/validators/parameterName/validateParameterName';

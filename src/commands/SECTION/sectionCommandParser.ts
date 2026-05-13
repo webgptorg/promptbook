@@ -5,16 +5,11 @@ import { ParseError } from '../../errors/ParseError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import { SectionTypes } from '../../types/SectionType';
-import type { string_markdown_text } from '../../types/typeAliases';
+import type { string_markdown_text } from '../../types/string_markdown';
 import type { $side_effect } from '../../utils/organization/$side_effect';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { knowledgeCommandParser } from '../KNOWLEDGE/knowledgeCommandParser';
-import type {
-    $PipelineJson,
-    $TaskJson,
-    CommandParserInput,
-    PipelineTaskCommandParser,
-} from '../_common/types/CommandParser';
+import type { $PipelineJson, $TaskJson, CommandParserInput, PipelineTaskCommandParser } from '../_common/types/CommandParser';
 import type { SectionCommand } from './SectionCommand';
 
 /**

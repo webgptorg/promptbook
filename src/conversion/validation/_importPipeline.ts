@@ -5,7 +5,7 @@ import type { PipelineString } from '../../pipeline/PipelineString';
 import { validatePipelineString } from '../../pipeline/validatePipelineString';
 import { unpreparePipeline } from '../../prepare/unpreparePipeline';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
-import type { string_filename } from '../../types/typeAliases';
+import type { string_filename } from '../../types/string_filename';
 import { loadArchive } from '../archive/loadArchive';
 
 /**

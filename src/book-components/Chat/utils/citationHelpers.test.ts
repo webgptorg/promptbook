@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import type { ChatParticipant } from '../types/ChatParticipant';
-import type { ParsedCitation } from './parseCitationsFromContent';
 import { getCitationLabel, isPlainTextCitation, resolveCitationPreviewUrl } from './citationHelpers';
+import type { ParsedCitation } from './parseCitationsFromContent';
 
 describe('citation helper heuristics', () => {
     it('classifies multiline sentences as plain text and truncates the label to 30 chars', () => {

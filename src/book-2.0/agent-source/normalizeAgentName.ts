@@ -1,6 +1,6 @@
 import { spaceTrim } from 'spacetrim';
-import { titleToName } from '../../_packages/utils.index';
-import { string_agent_name } from '../../types/typeAliases';
+import type { string_agent_name } from '../../types/string_agent_name';
+import { titleToName } from '../../utils/normalization/titleToName';
 
 /**
  * Normalizes agent name from arbitrary string to valid agent name

@@ -1,7 +1,7 @@
 'use client';
 
-import type { ParsedCitation } from '../utils/parseCitationsFromContent';
 import { getCitationLabel, isCitationUrl, isPlainTextCitation } from '../utils/citationHelpers';
+import type { ParsedCitation } from '../utils/parseCitationsFromContent';
 import styles from './SourceChip.module.css';
 
 /**

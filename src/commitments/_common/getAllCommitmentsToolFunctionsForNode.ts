@@ -1,14 +1,12 @@
-import { $isRunningInNode, spaceTrim } from '../../_packages/utils.index';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
+import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
+import { spaceTrim } from '../../utils/organization/spaceTrim';
 import { fetchUrlContent } from '../USE_BROWSER/fetchUrlContent';
 import { resolveRunBrowserToolForNode } from '../USE_BROWSER/resolveRunBrowserToolForNode';
 import { resolveSendEmailToolForNode } from '../USE_EMAIL/resolveSendEmailToolForNode';
 import { resolveSpawnAgentToolForNode } from '../USE_SPAWN/resolveSpawnAgentToolForNode';
-import {
-    collectCommitmentToolFunctions,
-    createToolFunctionsProxy,
-    type CommitmentToolFunctions,
-} from './commitmentToolFunctions';
+import type { CommitmentToolFunctions } from './commitmentToolFunctions';
+import { collectCommitmentToolFunctions, createToolFunctionsProxy } from './commitmentToolFunctions';
 
 /**
  * Map of node tool functions.

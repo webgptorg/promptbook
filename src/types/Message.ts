@@ -1,6 +1,7 @@
 import { Arrayable } from 'type-fest';
-import { really_any } from '../_packages/types.index';
-import { id, string_date_iso8601, string_markdown } from './typeAliases';
+import type { really_any } from '../utils/organization/really_any';
+import type { string_markdown } from './string_markdown';
+import type { id, string_date_iso8601 } from './string_token';
 
 /**
  * A generic message structure for various communication channels

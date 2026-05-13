@@ -1,7 +1,7 @@
 import type { AgentBasicInformation } from '../../../../book-2.0/agent-source/AgentBasicInformation';
 import { parseAgentSource } from '../../../../book-2.0/agent-source/parseAgentSource';
 import type { string_book } from '../../../../book-2.0/agent-source/string_book';
-import type { string_agent_permanent_id } from '../../../../types/typeAliases';
+import type { string_agent_permanent_id } from '../../../../types/string_agent_name';
 
 /**
  * Prepared agent source payload ready for database persistence.

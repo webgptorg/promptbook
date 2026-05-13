@@ -1,10 +1,11 @@
 import { spaceTrim } from 'spacetrim';
-import type { string_javascript_name } from '../../_packages/types.index';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import type { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
+import type { string_javascript_name } from '../../types/string_person_fullname';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 import { formatOptionalInstructionBlock } from '../_base/formatOptionalInstructionBlock';
-import { parseUseCalendarCommitmentContent, type CalendarReference } from './calendarReference';
+import type { CalendarReference } from './calendarReference';
+import { parseUseCalendarCommitmentContent } from './calendarReference';
 import { createUseCalendarToolFunctions } from './createUseCalendarToolFunctions';
 import { createUseCalendarTools } from './createUseCalendarTools';
 import { getUseCalendarToolTitles } from './getUseCalendarToolTitles';

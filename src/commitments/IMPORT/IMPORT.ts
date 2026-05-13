@@ -1,9 +1,9 @@
 import { spaceTrim } from 'spacetrim';
-import { isValidFilePath } from '../../_packages/utils.index';
-import { isValidAgentUrl } from '../../_packages/utils.index';
-import { isValidUrl } from '../../_packages/utils.index';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
-import type { string_agent_url } from '../../types/typeAliases';
+import type { string_agent_url } from '../../types/string_agent_url';
+import { isValidFilePath } from '../../utils/validators/filePath/isValidFilePath';
+import { isValidAgentUrl } from '../../utils/validators/url/isValidAgentUrl';
+import { isValidUrl } from '../../utils/validators/url/isValidUrl';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 
 /**

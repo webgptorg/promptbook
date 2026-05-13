@@ -3,30 +3,28 @@
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
 import { Pause, Play, Reply } from 'lucide-react';
-import type { CSSProperties, ReactElement, PointerEvent as ReactPointerEvent } from 'react';
+import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactElement } from 'react';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { colorToDataUrl } from '../../../_packages/color.index';
 import { AvatarOrImage } from '../../../avatars/AvatarOrImage';
 import { PROMPTBOOK_CHAT_COLOR, USER_CHAT_COLOR } from '../../../config';
-import type { id } from '../../../types/typeAliases';
+import type { id } from '../../../types/string_token';
 import { Color } from '../../../utils/color/Color';
 import { textColor } from '../../../utils/color/operators/furthest';
-import { classNames } from '../../_common/react-utils/classNames';
+import { colorToDataUrl } from '../../../utils/color/utils/colorToDataUrl';
 import { AvatarProfileTooltip } from '../../AvatarProfile/AvatarProfile/AvatarProfileTooltip';
+import { classNames } from '../../_common/react-utils/classNames';
 import { MarkdownContent } from '../MarkdownContent/MarkdownContent';
-import { SourceChip } from '../SourceChip';
+import { SourceChip } from '../SourceChip/SourceChip';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
 import { createCitationFootnoteRenderModel } from '../utils/createCitationFootnoteRenderModel';
 import { getChatMessageTimingDisplay } from '../utils/getChatMessageTimingDisplay';
-import { type ParsedCitation } from '../utils/parseCitationsFromContent';
-import { parseMessageButtons, type MessageButton } from '../utils/parseMessageButtons';
+import type { ParsedCitation } from '../utils/parseCitationsFromContent';
+import type { MessageButton } from '../utils/parseMessageButtons';
+import { parseMessageButtons } from '../utils/parseMessageButtons';
 import { resolveChatMessageReplyPreviewText } from '../utils/resolveChatMessageReplyPreviewText';
 import { resolveChatMessageReplySenderLabel } from '../utils/resolveChatMessageReplySenderLabel';
-import {
-    getLatestStreamingFeatureBoundary,
-    sanitizeStreamingMessageContent,
-} from '../utils/sanitizeStreamingMessageContent';
+import { getLatestStreamingFeatureBoundary, sanitizeStreamingMessageContent } from '../utils/sanitizeStreamingMessageContent';
 import { splitMessageContentIntoSegments } from '../utils/splitMessageContentIntoSegments';
 import styles from './Chat.module.css';
 import { chatCssClassNames } from './chatCssClassNames';

@@ -1,17 +1,13 @@
 import colors from 'colors';
 import type {
-    Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
+  Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */
 } from 'commander';
 import { mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
-import {
-    getDefaultCoderPromptTemplateDefinitions,
-    PROMPTS_DIRECTORY_PATH,
-    resolveCoderPromptTemplate,
-} from './boilerplateTemplates';
 import { handleActionErrors } from '../common/handleActionErrors';
+import { getDefaultCoderPromptTemplateDefinitions, PROMPTS_DIRECTORY_PATH, resolveCoderPromptTemplate } from './boilerplateTemplates';
 
 /**
  * Initializes `coder generate-boilerplates` command for Promptbook CLI utilities

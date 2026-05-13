@@ -1,7 +1,7 @@
 import type { ParseResult } from 'papaparse';
 import { parse } from 'papaparse';
+import type { Parameters } from '../../../types/Parameters';
 import type { TODO_any } from '../../../utils/organization/TODO_any';
-import type { Parameters } from '../../../types/typeAliases';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';
 import type { CsvSettings } from '../CsvSettings';
 import { MANDATORY_CSV_SETTINGS } from '../CsvSettings';

@@ -9,7 +9,7 @@ import type { CacheLlmToolsOptions } from '../../llm-providers/_common/utils/cac
 import type { LlmExecutionToolsWithTotalUsage } from '../../llm-providers/_common/utils/count-total-usage/LlmExecutionToolsWithTotalUsage';
 import type { LoginResponse } from '../../remote-server/types/RemoteServerOptions';
 import { promptbookFetch } from '../../scrapers/_common/utils/promptbookFetch';
-import type { string_promptbook_server_url } from '../../types/typeAliases';
+import type { string_promptbook_server_url } from '../../types/string_promptbook_server_url';
 import type { really_unknown } from '../../utils/organization/really_unknown';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import { isValidEmail } from '../../utils/validators/email/isValidEmail';

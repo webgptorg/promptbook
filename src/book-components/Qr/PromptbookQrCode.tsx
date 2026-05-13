@@ -1,5 +1,5 @@
 import { QRCodeRenderersOptions } from 'qrcode';
-import type { string_data_url } from '../../types/typeAliases';
+import type { string_data_url } from '../../types/string_base64';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 
 /**

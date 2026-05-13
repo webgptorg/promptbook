@@ -1,4 +1,4 @@
-import type { string_markdown } from '../../types/typeAliases';
+import type { string_markdown } from '../../types/string_markdown';
 
 /**
  * Change unprintable hard spaces to regular spaces and drop zero-width spaces

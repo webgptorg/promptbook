@@ -1,6 +1,6 @@
-import { TODO_any } from '../../_packages/types.index';
 import type { ToolCallLogEntry, ToolCallState } from '../../types/ToolCall';
 import type { ChatAttachment } from '../../utils/chat/chatAttachments';
+import type { TODO_any } from '../../utils/organization/TODO_any';
 
 /**
  * Prompt parameter key used to pass hidden runtime context to tool execution.

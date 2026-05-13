@@ -1,6 +1,8 @@
 import colors from 'colors';
 import { spaceTrim } from 'spacetrim';
-import type { string_filename, string_markdown, string_name } from '../../../types/typeAliases';
+import type { string_filename } from '../../../types/string_filename';
+import type { string_markdown } from '../../../types/string_markdown';
+import type { string_name } from '../../../types/string_name';
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import type { Registered } from '../../../utils/misc/$Register';
 import type { $side_effect } from '../../../utils/organization/$side_effect';

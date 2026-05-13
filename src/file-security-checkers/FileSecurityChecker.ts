@@ -1,5 +1,7 @@
 import type { Promisable } from 'type-fest';
-import type { string_markdown, string_title, string_url } from '../types/typeAliases';
+import type { string_markdown } from '../types/string_markdown';
+import type { string_title } from '../types/string_title';
+import type { string_url } from '../types/string_url';
 import type { FileSecurityCheckResult } from './FileSecurityCheckResult';
 
 /**

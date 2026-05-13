@@ -1,11 +1,11 @@
 import { spaceTrim } from 'spacetrim';
-import { TODO_any } from '../../../_packages/types.index';
 import { parseUseProjectCommitmentContent } from '../../../commitments/USE_PROJECT/projectReference';
-import { extractUrlsFromText } from '../../../utils/validators/url/extractUrlsFromText';
 import type { ParsedCommitment } from '../../../commitments/_base/ParsedCommitment';
+import type { TODO_any } from '../../../utils/organization/TODO_any';
+import { extractUrlsFromText } from '../../../utils/validators/url/extractUrlsFromText';
 import type { AgentCapability } from '../AgentBasicInformation';
 import { parseTeamCommitmentContent } from '../parseTeamCommitment';
-import { VOID_PSEUDO_AGENT_REFERENCE, isVoidPseudoAgentReference } from '../pseudoAgentReferences';
+import { isVoidPseudoAgentReference, VOID_PSEUDO_AGENT_REFERENCE } from '../pseudoAgentReferences';
 import type { ParseAgentSourceState } from './ParseAgentSourceState';
 
 /**

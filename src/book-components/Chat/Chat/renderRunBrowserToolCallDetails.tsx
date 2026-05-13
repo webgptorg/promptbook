@@ -3,11 +3,11 @@ import type { TODO_any } from '../../../utils/organization/TODO_any';
 import { classNames } from '../../_common/react-utils/classNames';
 import { MarkdownContent } from '../MarkdownContent/MarkdownContent';
 import type { ChatMessage } from '../types/ChatMessage';
-import { resolveRunBrowserArtifactUrl } from '../utils/toolCallParsing';
+import { resolveRunBrowserArtifactUrl } from '../utils/toolCallParsing/resolveRunBrowserArtifactUrl';
+import styles from './Chat.module.css';
 import { renderToolCallProgressPlaceholder } from './renderToolCallProgressPlaceholder';
 import { resolveRunBrowserToolCallDetailsState } from './resolveRunBrowserToolCallDetailsState';
 import { resolveToolCallProgressMessage } from './resolveToolCallProgressMessage';
-import styles from './Chat.module.css';
 
 /**
  * Rendering options for the browser replay view.

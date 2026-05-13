@@ -1,6 +1,5 @@
 import { spaceTrim } from 'spacetrim';
-import type { string_html } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
+import type { string_html, string_markdown } from '../../types/string_markdown';
 /**
  * Removes Markdown (or HTML) comments
  *

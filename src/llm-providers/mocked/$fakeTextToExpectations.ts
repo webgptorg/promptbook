@@ -6,7 +6,7 @@ import type { ScriptExecutionTools } from '../../execution/ScriptExecutionTools'
 import { isPassingExpectations } from '../../execution/utils/checkExpectations';
 import type { Expectations } from '../../pipeline/PipelineJson/Expectations';
 import { JavascriptExecutionTools } from '../../scripting/javascript/JavascriptExecutionTools';
-import type { string_postprocessing_function_name } from '../../types/typeAliases';
+import type { string_postprocessing_function_name } from '../../types/string_person_fullname';
 
 /**
  * Gets the expectations and creates a fake text that meets the expectations

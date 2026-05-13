@@ -1,4 +1,4 @@
-import type { string_hostname } from '../../../types/typeAliases';
+import type { string_hostname } from '../../../types/string_host';
 
 /**
  * Options for `isHostnameOnPrivateNetwork`

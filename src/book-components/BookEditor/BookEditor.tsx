@@ -8,15 +8,13 @@ import type { Promisable } from 'type-fest';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import { DEFAULT_BOOK } from '../../book-2.0/agent-source/string_book';
 import { DEFAULT_IS_VERBOSE } from '../../config';
-import type {
-    number_percent,
-    number_positive,
-    string_css_value,
-    string_knowledge_source_content,
-} from '../../types/typeAliases';
+import type { number_percent } from '../../types/number_percent';
+import type { number_positive } from '../../types/number_positive';
+import type { string_knowledge_source_content } from '../../types/string_knowledge_source_content';
+import type { string_css_value } from '../../types/string_markdown';
 import { countLines } from '../../utils/expectation-counters/countLines';
-import { classNames } from '../_common/react-utils/classNames';
 import type { HoistedMenuItem } from '../_common/MenuHoisting/MenuHoistingContext';
+import { classNames } from '../_common/react-utils/classNames';
 import styles from './BookEditor.module.css';
 import { BookEditorMonaco } from './BookEditorMonaco';
 

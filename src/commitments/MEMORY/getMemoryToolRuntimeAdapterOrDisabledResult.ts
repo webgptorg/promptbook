@@ -1,13 +1,4 @@
-import type {
-    DeleteMemoryToolResult,
-    MemoryToolAction,
-    MemoryToolResult,
-    MemoryToolRuntimeAdapter,
-    MemoryToolRuntimeContext,
-    RetrieveMemoryToolResult,
-    StoreMemoryToolResult,
-    UpdateMemoryToolResult,
-} from './MemoryToolRuntimeAdapter';
+import type { DeleteMemoryToolResult, MemoryToolAction, MemoryToolResult, MemoryToolRuntimeAdapter, MemoryToolRuntimeContext, RetrieveMemoryToolResult, StoreMemoryToolResult, UpdateMemoryToolResult } from './MemoryToolRuntimeAdapter';
 import { getMemoryToolRuntimeAdapter } from './setMemoryToolRuntimeAdapter';
 
 /**

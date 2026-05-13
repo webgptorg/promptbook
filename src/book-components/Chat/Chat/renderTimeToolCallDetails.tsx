@@ -2,9 +2,9 @@ import { type ReactElement } from 'react';
 import type { TODO_any } from '../../../utils/organization/TODO_any';
 import { formatToolCallDateTime } from '../utils/formatToolCallDateTime';
 import { formatToolCallTranslationTemplate } from '../utils/formatToolCallTranslationTemplate';
-import { getToolCallResultDate } from '../utils/toolCallParsing';
-import { renderToolCallClockPanel } from './renderToolCallClockPanel';
+import { getToolCallResultDate } from '../utils/toolCallParsing/getToolCallResultDate';
 import styles from './Chat.module.css';
+import { renderToolCallClockPanel } from './renderToolCallClockPanel';
 
 /**
  * Rendering options for time tool calls.

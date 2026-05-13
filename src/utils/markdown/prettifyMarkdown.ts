@@ -1,4 +1,4 @@
-import type { string_html } from '../../types/typeAliases';
+import type { string_html } from '../../types/string_markdown';
 
 /**
  * Prettify the html code

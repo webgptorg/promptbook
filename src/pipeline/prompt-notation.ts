@@ -2,7 +2,7 @@ import { spaceTrim } from 'spacetrim';
 import { REPLACING_NONCE } from '../constants';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
 import { UnexpectedError } from '../errors/UnexpectedError';
-import type { string_prompt } from '../types/typeAliases';
+import type { string_prompt } from '../types/string_prompt';
 import type { really_unknown } from '../utils/organization/really_unknown';
 import { templateParameters } from '../utils/parameters/templateParameters';
 import { valueToString } from '../utils/parameters/valueToString';

@@ -1,4 +1,4 @@
-import type { number_seed } from '../../types/typeAliases';
+import type { number_seed } from '../../types/number_percent';
 
 /**
  * Generates random seed

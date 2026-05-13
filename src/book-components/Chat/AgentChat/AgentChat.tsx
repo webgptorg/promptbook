@@ -4,10 +4,11 @@
 
 /* Context removed – using attachable sendMessage from hook */
 import { spaceTrim } from 'spacetrim';
-import { Color, saturate } from '../../../_packages/color.index';
 import { PROMPTBOOK_COLOR } from '../../../config';
 import { asUpdatableSubject } from '../../../types/Updatable';
 import { resolveAgentAvatar } from '../../../utils/agents/resolveAgentAvatarImageUrl';
+import { Color } from '../../../utils/color/Color';
+import { saturate } from '../../../utils/color/operators/saturate';
 import { $getCurrentDate } from '../../../utils/misc/$getCurrentDate';
 import type { TODO_any } from '../../../utils/organization/TODO_any';
 import { LlmChat } from '../LlmChat/LlmChat';

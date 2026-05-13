@@ -1,6 +1,6 @@
 import { spaceTrim } from 'spacetrim';
+import type { string_url } from '../../types/string_url';
 import type { really_any } from '../../utils/organization/really_any';
-import type { string_url } from '../../types/typeAliases';
 import type { FileSecurityChecker } from '../FileSecurityChecker';
 import type { FileSecurityCheckResult } from '../FileSecurityCheckResult';
 

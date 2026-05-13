@@ -1,5 +1,5 @@
-import type { string_name } from '../../types/typeAliases';
-import type { string_persona_description } from '../../types/typeAliases';
+import type { string_name } from '../../types/string_name';
+import type { string_persona_description } from '../../types/string_persona_description';
 
 /**
  * Parsed PERSONA command

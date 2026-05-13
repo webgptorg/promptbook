@@ -1,7 +1,7 @@
 import type { $PipelineJson } from '../../../commands/_common/types/CommandParser';
 import { PipelineLogicError } from '../../../errors/PipelineLogicError';
 import type { PipelineJson } from '../../../pipeline/PipelineJson/PipelineJson';
-import type { string_name } from '../../../types/typeAliases';
+import type { string_name } from '../../../types/string_name';
 import type { TODO_remove_as } from '../../organization/TODO_remove_as';
 
 /**

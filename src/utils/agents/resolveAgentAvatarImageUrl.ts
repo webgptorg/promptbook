@@ -1,10 +1,11 @@
 import { createAvatarDefinitionFromAgentBasicInformation } from '../../avatars/avatarRenderingUtils';
-import { resolveAvatarVisualId } from '../../avatars/visuals/avatarVisualRegistry';
 import type { AvatarDefinition } from '../../avatars/types/AvatarDefinition';
 import type { AvatarVisualId } from '../../avatars/types/AvatarVisualDefinition';
-import { generatePlaceholderAgentProfileImageUrl } from '../../book-2.0/utils/generatePlaceholderAgentProfileImageUrl';
+import { resolveAvatarVisualId } from '../../avatars/visuals/avatarVisualRegistry';
 import type { AgentBasicInformation } from '../../book-2.0/agent-source/AgentBasicInformation';
-import type { string_url, string_url_image } from '../../types/typeAliases';
+import { generatePlaceholderAgentProfileImageUrl } from '../../book-2.0/utils/generatePlaceholderAgentProfileImageUrl';
+import type { string_url } from '../../types/string_url';
+import type { string_url_image } from '../../types/string_url_image';
 
 /**
  * Options for resolving agent avatar URLs.

@@ -1,7 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import { PUBLIC_AGENTS_SERVERS } from '../../../servers';
 import { CLAIM, IS_COST_PREVENTED, NAME } from '../../config';
-import type { string_markdown } from '../../types/typeAliases';
+import type { string_markdown } from '../../types/string_markdown';
 import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../../version';
 import { $detectRuntimeEnvironment } from '../environment/$detectRuntimeEnvironment';
 import { valueToString } from '../parameters/valueToString';

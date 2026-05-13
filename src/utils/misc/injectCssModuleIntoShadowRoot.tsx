@@ -1,5 +1,5 @@
 import { collectCssTextsForClass } from '../../book-components/_common/react-utils/collectCssTextsForClass';
-import type { string_css_class } from '../../types/typeAliases';
+import type { string_css_class } from '../../types/string_markdown';
 
 /**
  * Options for inject Css module into shadow root.

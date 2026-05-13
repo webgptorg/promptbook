@@ -1,4 +1,4 @@
-import type { string_email } from './string_url';
+import type { string_email } from './string_email';
 
 /**
  * Generic identifier helper.

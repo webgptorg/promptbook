@@ -1,5 +1,5 @@
 import { spaceTrim } from 'spacetrim';
-import { isValidEmail } from '../../_packages/utils.index';
+import { isValidEmail } from '../../utils/validators/email/isValidEmail';
 
 /**
  * Lightweight email token matcher used for `USE EMAIL` first-line parsing.

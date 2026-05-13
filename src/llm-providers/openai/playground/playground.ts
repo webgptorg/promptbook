@@ -8,7 +8,7 @@ import colors from 'colors'; // <- TODO: [🔶] Make system to put color and sty
 import { embeddingVectorToString } from '../../../execution/embeddingVectorToString';
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import { JavascriptEvalExecutionTools } from '../../../scripting/javascript/JavascriptEvalExecutionTools';
-import type { ChatPrompt, Prompt } from '../../../types/Prompt';
+import type { Prompt } from '../../../types/Prompt';
 import { keepUnused } from '../../../utils/organization/keepUnused';
 // import { OpenAiAssistantExecutionTools } from '../OpenAiAssistantExecutionTools';
 import { join } from 'path';
@@ -18,8 +18,8 @@ import { $provideFilesystemForNode } from '../../../scrapers/_common/register/$p
 import { FileCacheStorage } from '../../../storage/file-cache-storage/FileCacheStorage';
 import { cacheLlmTools } from '../../_common/utils/cache/cacheLlmTools';
 import { countUsage } from '../../_common/utils/count-total-usage/countUsage';
-import { OpenAiExecutionTools } from '../OpenAiExecutionTools';
 import { OpenAiAgentKitExecutionTools } from '../OpenAiAgentKitExecutionTools';
+import { OpenAiExecutionTools } from '../OpenAiExecutionTools';
 
 playground()
     .catch((error) => {

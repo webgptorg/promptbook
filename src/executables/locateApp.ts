@@ -1,6 +1,6 @@
 import type { RequireAtLeastOne } from 'type-fest';
 import { EnvironmentMismatchError } from '../errors/EnvironmentMismatchError';
-import type { string_executable_path } from '../types/typeAliases';
+import type { string_executable_path } from '../types/string_filename';
 import { $isRunningInNode } from '../utils/environment/$isRunningInNode';
 import { locateAppOnLinux } from './platforms/locateAppOnLinux';
 import { locateAppOnMacOs } from './platforms/locateAppOnMacOs';

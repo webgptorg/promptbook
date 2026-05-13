@@ -1,10 +1,11 @@
 import { spaceTrim } from 'spacetrim';
-import { string_javascript_name, TODO_any } from '../../_packages/types.index';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
-import { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
+import type { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
 import type { LlmToolDefinition } from '../../types/LlmToolDefinition';
-import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
+import type { string_javascript_name } from '../../types/string_person_fullname';
+import type { TODO_any } from '../../utils/organization/TODO_any';
 import { appendAggregatedUseCommitmentPlaceholder } from '../USE/aggregateUseCommitmentSystemMessages';
+import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 import { fetchUrlContentViaBrowser } from './fetchUrlContentViaBrowser';
 
 /**

@@ -2,7 +2,7 @@ import { spaceTrim } from 'spacetrim';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParseError } from '../../errors/ParseError';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
-import type { string_markdown_text } from '../../types/typeAliases';
+import type { string_markdown_text } from '../../types/string_markdown';
 import type { $side_effect } from '../../utils/organization/$side_effect';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { isValidFilePath } from '../../utils/validators/filePath/isValidFilePath';

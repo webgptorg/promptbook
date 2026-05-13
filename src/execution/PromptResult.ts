@@ -1,5 +1,7 @@
+import type { string_model_name } from '../types/string_model_name';
+import type { string_prompt } from '../types/string_prompt';
+import type { string_date_iso8601 } from '../types/string_token';
 import type { ToolCall } from '../types/ToolCall';
-import type { string_date_iso8601, string_model_name, string_prompt } from '../types/typeAliases';
 import type { TODO_object } from '../utils/organization/TODO_object';
 import type { EmbeddingVector } from './EmbeddingVector';
 import type { Usage } from './Usage';

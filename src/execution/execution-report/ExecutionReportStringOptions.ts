@@ -1,4 +1,4 @@
-import type { number_percent } from '../../types/typeAliases';
+import type { number_percent } from '../../types/number_percent';
 
 /**
  * Options for `executionReportJsonToString`

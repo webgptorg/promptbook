@@ -1,4 +1,4 @@
-import type { string_email_private, string_emails_private } from './string_email_private';
+import type { string_emails_private, string_email_private } from './string_email_private';
 
 /**
  * Semantic helper

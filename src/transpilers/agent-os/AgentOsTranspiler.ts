@@ -2,14 +2,13 @@ import { spaceTrim } from 'spacetrim';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import type { LlmToolDefinition } from '../../types/LlmToolDefinition';
-import type { string_script } from '../../types/typeAliases';
+import type { string_script } from '../../types/string_markdown';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
-import type { BookTranspiler } from '../_common/BookTranspiler';
 import type { BookTranspilerOptions } from '../_common/BookTranspilerOptions';
 import { createTranspiledTeamRuntimeSection } from '../_common/createTranspiledTeamRuntimeSection';
+import { createZodSchemaSource } from '../_common/createZodSchemaSource';
 import { formatUsedToolFunctions } from '../_common/formatUsedToolFunctions';
 import { prepareSdkTranspilerContext } from '../_common/prepareSdkTranspilerContext';
-import { createZodSchemaSource } from '../_common/createZodSchemaSource';
 import type { TranspiledTeamExport } from '../_common/TranspiledTeamExport';
 
 /**

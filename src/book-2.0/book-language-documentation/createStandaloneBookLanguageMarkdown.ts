@@ -1,13 +1,11 @@
 import { spaceTrim } from 'spacetrim';
-import { BOOK_LANGUAGE_VERSION, getGroupedCommitmentDefinitions } from '../../_packages/core.index';
 import { NotYetImplementedCommitmentDefinition } from '../../commitments/_base/NotYetImplementedCommitmentDefinition';
-import {
-    formatCommitmentReplacementText,
-    getCommitmentNoticeMetadata,
-} from '../../commitments/_common/getCommitmentNoticeMetadata';
-import { string_markdown } from '../../types/string_markdown';
-import type { BookLanguageDocumentationExample } from './BookLanguageDocumentationExample';
+import { formatCommitmentReplacementText, getCommitmentNoticeMetadata } from '../../commitments/_common/getCommitmentNoticeMetadata';
+import { getGroupedCommitmentDefinitions } from '../../commitments/_common/getGroupedCommitmentDefinitions';
+import type { string_markdown } from '../../types/string_markdown';
+import { BOOK_LANGUAGE_VERSION } from '../../version';
 import { bookLanguageCommonPitfalls } from './bookLanguageCommonPitfalls';
+import type { BookLanguageDocumentationExample } from './BookLanguageDocumentationExample';
 import { bookLanguageDocumentationExamples } from './bookLanguageDocumentationExamples';
 import { renderGroupedCommitmentDocumentationMarkdown } from './renderGroupedCommitmentDocumentationMarkdown';
 

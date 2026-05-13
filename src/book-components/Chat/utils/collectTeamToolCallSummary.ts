@@ -1,9 +1,12 @@
-import { isAssistantPreparationToolCall, type ToolCall } from '../../../types/ToolCall';
+import type { ToolCall } from '../../../types/ToolCall';
+import { isAssistantPreparationToolCall } from '../../../types/ToolCall';
 import { getToolCallIdentity } from '../../../utils/toolCalls/getToolCallIdentity';
 import { isTeamToolName } from './createTeamToolNameFromUrl';
 import type { ParsedCitation } from './parseCitationsFromContent';
 import { parseCitationsFromContent } from './parseCitationsFromContent';
-import { parseTeamToolResult, parseToolCallResult, type TeamToolResult } from './toolCallParsing';
+import { parseTeamToolResult } from './toolCallParsing/parseTeamToolResult';
+import { parseToolCallResult } from './toolCallParsing/parseToolCallResult';
+import type { TeamToolResult } from './toolCallParsing/TeamToolResult';
 
 /**
  * Origin metadata for a tool call or citation executed by a teammate.

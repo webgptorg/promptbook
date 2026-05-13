@@ -1,7 +1,7 @@
 import { spaceTrim } from 'spacetrim';
-import type { ToolFunction } from '../../_packages/types.index';
-import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import { assertsError } from '../../errors/assertsError';
+import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
+import type { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
 
 /**
  * Cached implementation of `run_browser` when it can be resolved.

@@ -1,4 +1,4 @@
-import type { string_agent_url } from '../../../types/typeAliases';
+import type { string_agent_url } from '../../../types/string_agent_url';
 import type { really_unknown } from '../../organization/really_unknown';
 import { isValidUrl } from './isValidUrl';
 

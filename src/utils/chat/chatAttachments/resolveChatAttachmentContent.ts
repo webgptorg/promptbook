@@ -1,7 +1,7 @@
-import type { ChatAttachment, ResolveChatAttachmentOptions, ResolvedChatAttachmentContent } from '../chatAttachments';
 import { decodeAttachmentAsText, DEFAULT_ATTACHMENT_TEXT_DECODE_BYTES } from '../../files/decodeAttachmentAsText';
 import { readResponseBytes } from '../../files/readResponseBytes';
 import { isUrlOnPrivateNetwork } from '../../validators/url/isUrlOnPrivateNetwork';
+import type { ChatAttachment, ResolveChatAttachmentOptions, ResolvedChatAttachmentContent } from '../chatAttachments';
 
 /**
  * Timeout used when downloading one attachment for inline context.

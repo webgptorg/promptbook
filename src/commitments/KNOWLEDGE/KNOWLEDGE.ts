@@ -1,11 +1,9 @@
 import { spaceTrim } from 'spacetrim';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
-import type { string_knowledge_source_link } from '../../types/typeAliases';
+import type { string_knowledge_source_link } from '../../types/string_knowledge_source_content';
+import type { InlineKnowledgeSourceFile } from '../../utils/knowledge/inlineKnowledgeSource';
+import { createInlineKnowledgeSourceFile } from '../../utils/knowledge/inlineKnowledgeSource';
 import { extractUrlsFromText } from '../../utils/validators/url/extractUrlsFromText';
-import {
-    InlineKnowledgeSourceFile,
-    createInlineKnowledgeSourceFile,
-} from '../../utils/knowledge/inlineKnowledgeSource';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 
 /**

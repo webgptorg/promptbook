@@ -1,9 +1,6 @@
 import { BehaviorSubject } from 'rxjs';
-import type {
-    AgentBasicInformation,
-    AgentCapability,
-    BookParameter,
-} from '../../book-2.0/agent-source/AgentBasicInformation';
+import type { AvatarVisualId } from '../../avatars/types/AvatarVisualDefinition';
+import type { AgentBasicInformation, AgentCapability, BookParameter } from '../../book-2.0/agent-source/AgentBasicInformation';
 import { computeAgentHash } from '../../book-2.0/agent-source/computeAgentHash';
 import { createDefaultAgentName } from '../../book-2.0/agent-source/createDefaultAgentName';
 import { parseAgentSource } from '../../book-2.0/agent-source/parseAgentSource';
@@ -13,20 +10,15 @@ import { PROMPT_PARAMETER_SELF_LEARNING_ENABLED } from '../../constants';
 import type { CallChatModelStreamOptions, LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
+import type { string_agent_hash, string_agent_name } from '../../types/string_agent_name';
+import type { string_agent_url } from '../../types/string_agent_url';
+import type { string_fonts, string_markdown } from '../../types/string_markdown';
+import type { string_color } from '../../types/string_person_fullname';
+import type { string_prompt } from '../../types/string_prompt';
+import type { string_date_iso8601 } from '../../types/string_token';
+import type { string_url_image } from '../../types/string_url_image';
 import type { SelfLearningToolCallResult, ToolCall } from '../../types/ToolCall';
-import type {
-    string_agent_hash,
-    string_agent_name,
-    string_agent_url,
-    string_color,
-    string_date_iso8601,
-    string_fonts,
-    string_markdown,
-    string_prompt,
-    string_url_image,
-} from '../../types/typeAliases';
 import { asUpdatableSubject } from '../../types/Updatable';
-import type { AvatarVisualId } from '../../avatars/types/AvatarVisualDefinition';
 import { normalizeMessageText } from '../../utils/normalization/normalizeMessageText';
 import { getSingleLlmExecutionTools } from '../_multiple/getSingleLlmExecutionTools';
 import { AgentLlmExecutionTools } from './AgentLlmExecutionTools';

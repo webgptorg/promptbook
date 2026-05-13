@@ -1,14 +1,15 @@
 import { spaceTrim } from 'spacetrim';
-import type { string_javascript_name } from '../../_packages/types.index';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import type { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
+import type { string_javascript_name } from '../../types/string_person_fullname';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 import { formatOptionalInstructionBlock } from '../_base/formatOptionalInstructionBlock';
 import { createUseProjectToolFunctions } from './createUseProjectToolFunctions';
 import { createUseProjectTools } from './createUseProjectTools';
 import { getUseProjectToolTitles } from './getUseProjectToolTitles';
 import { normalizeConfiguredProjects } from './normalizeConfiguredProjects';
-import { parseUseProjectCommitmentContent, type GitHubRepositoryReference } from './projectReference';
+import type { GitHubRepositoryReference } from './projectReference';
+import { parseUseProjectCommitmentContent } from './projectReference';
 
 /**
  * USE PROJECT commitment definition.

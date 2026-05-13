@@ -1,5 +1,5 @@
 import type { Usage } from '../../execution/Usage';
-import type { number_id } from '../../types/typeAliases';
+import type { number_id } from '../../types/number_id';
 import type { string_promptbook_version } from '../../version';
 
 /**

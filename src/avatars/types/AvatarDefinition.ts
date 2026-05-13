@@ -1,4 +1,5 @@
-import type { string_agent_hash, string_agent_name, string_color } from '../../types/typeAliases';
+import type { string_agent_hash, string_agent_name } from '../../types/string_agent_name';
+import type { string_color } from '../../types/string_person_fullname';
 
 /**
  * Normalized identity payload used by all canvas avatar visuals.

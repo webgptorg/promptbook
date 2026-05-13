@@ -1,6 +1,6 @@
-import { COMMITMENT_REGISTRY } from '..';
-import { $deepFreeze } from '../../_packages/utils.index';
-import { CommitmentDefinition } from '../_base/CommitmentDefinition';
+import { $deepFreeze } from '../../utils/serialization/$deepFreeze';
+import { COMMITMENT_REGISTRY } from '../index';
+import type { CommitmentDefinition } from '../_base/CommitmentDefinition';
 import { NotYetImplementedCommitmentDefinition } from '../_base/NotYetImplementedCommitmentDefinition';
 import { sortCommitmentDefinitions } from './sortCommitmentDefinitions';
 

@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Promisable } from 'type-fest';
-import type { id } from '../../../types/typeAliases';
-import type { ChatMessage } from '../types/ChatMessage';
+import type { id } from '../../../types/string_token';
 import type { ChatFeedbackMode, ChatFeedbackResponse, ChatProps } from '../Chat/ChatProps';
+import type { ChatMessage } from '../types/ChatMessage';
 
 /**
  * Input parameters for the chat rating hook.

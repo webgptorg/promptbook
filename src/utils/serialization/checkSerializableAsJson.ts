@@ -1,7 +1,7 @@
 import { spaceTrim } from 'spacetrim';
-import { UnexpectedError } from '../../errors/UnexpectedError';
 import { assertsError } from '../../errors/assertsError';
-import type { string_name } from '../../types/typeAliases';
+import { UnexpectedError } from '../../errors/UnexpectedError';
+import type { string_name } from '../../types/string_name';
 import type { really_unknown } from '../organization/really_unknown';
 
 /**

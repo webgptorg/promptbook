@@ -1,5 +1,5 @@
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
-import type { string_base_url } from '../../types/typeAliases';
+import type { string_base_url } from '../../types/string_base_url';
 import type { Identification } from '../socket-types/_subtypes/Identification';
 
 /**

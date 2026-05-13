@@ -1,5 +1,5 @@
 import { keepUnused } from './keepUnused';
-import { chococake } from './really_any';
+import type { chococake } from './really_any';
 
 /**
  * Just says that the dependency is imported, not used but should be kept

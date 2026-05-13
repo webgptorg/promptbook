@@ -1,7 +1,9 @@
 import { spaceTrim } from 'spacetrim';
 import { DEFAULT_IS_VERBOSE } from '../../../config';
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
-import type { string_markdown_text, string_mime_type_with_wildcard, string_user_id } from '../../../types/typeAliases';
+import type { string_markdown_text } from '../../../types/string_markdown';
+import type { string_mime_type_with_wildcard } from '../../../types/string_mime_type';
+import type { string_user_id } from '../../../types/string_token';
 import { $isRunningInBrowser } from '../../../utils/environment/$isRunningInBrowser';
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import { $isRunningInWebWorker } from '../../../utils/environment/$isRunningInWebWorker';

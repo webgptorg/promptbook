@@ -1,12 +1,10 @@
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import { preparePersona } from '../../personas/preparePersona';
-import type {
-    string_agent_name,
-    string_model_name,
-    string_system_message,
-    string_url_image,
-} from '../../types/typeAliases';
+import type { string_agent_name } from '../../types/string_agent_name';
+import type { string_model_name } from '../../types/string_model_name';
+import type { string_system_message } from '../../types/string_prompt';
+import type { string_url_image } from '../../types/string_url_image';
 import type { AgentModelRequirements } from './AgentModelRequirements';
 import type { CreateAgentModelRequirementsOptions } from './CreateAgentModelRequirementsOptions';
 import { createAgentModelRequirementsWithCommitments } from './createAgentModelRequirementsWithCommitments';

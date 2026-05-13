@@ -3,11 +3,8 @@
 import { useMemo } from 'react';
 import { resolveSpeechRecognitionLanguage } from '../../../utils/language/getBrowserPreferredSpeechRecognitionLanguage';
 import type { ChatProps } from './ChatProps';
-import {
-    resolveSpeechRecognitionUiDescriptor,
-    type DictationUiState,
-    type SpeechRecognitionUiDescriptor,
-} from './resolveSpeechRecognitionUiDescriptor';
+import type { DictationUiState, SpeechRecognitionUiDescriptor } from './resolveSpeechRecognitionUiDescriptor';
+import { resolveSpeechRecognitionUiDescriptor } from './resolveSpeechRecognitionUiDescriptor';
 
 /**
  * Props for `useChatInputAreaDictationSupport`.

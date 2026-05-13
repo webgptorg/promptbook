@@ -1,10 +1,8 @@
 import type { EmbeddingVector } from '../../execution/EmbeddingVector';
-import type { number_id } from '../../types/typeAliases';
-import type { number_linecol_number } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_model_name } from '../../types/typeAliases';
-import type { string_name } from '../../types/typeAliases';
+import type { number_id, number_linecol_number } from '../../types/number_id';
+import type { string_markdown, string_markdown_text } from '../../types/string_markdown';
+import type { string_model_name } from '../../types/string_model_name';
+import type { string_name } from '../../types/string_name';
 import type { string_keyword } from '../../utils/normalization/IKeywords';
 
 /**

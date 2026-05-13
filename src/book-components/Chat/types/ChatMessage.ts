@@ -1,16 +1,13 @@
-import { Message } from '../../../types/Message';
 import type { LlmToolDefinition } from '../../../types/LlmToolDefinition';
+import type { Message } from '../../../types/Message';
 import type { ChatModelRequirements } from '../../../types/ModelRequirements';
+import type { Parameters } from '../../../types/Parameters';
+import type { string_markdown } from '../../../types/string_markdown';
+import type { string_prompt } from '../../../types/string_prompt';
+import type { string_title } from '../../../types/string_title';
+import type { id, string_date_iso8601 } from '../../../types/string_token';
 import type { ToolCall } from '../../../types/ToolCall';
 import type { TODO_object } from '../../../utils/organization/TODO_object';
-import type {
-    id,
-    Parameters,
-    string_date_iso8601,
-    string_markdown,
-    string_prompt,
-    string_title,
-} from '../../../types/typeAliases';
 
 /**
  * Type describing chat tool call.

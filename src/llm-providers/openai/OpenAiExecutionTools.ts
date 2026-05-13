@@ -1,7 +1,9 @@
 import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { string_markdown, string_markdown_text, string_name, string_title } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text } from '../../types/string_markdown';
+import type { string_name } from '../../types/string_name';
+import type { string_title } from '../../types/string_title';
 import { computeOpenAiUsage } from './computeOpenAiUsage';
 import { OPENAI_MODELS } from './openai-models';
 import { OpenAiCompatibleExecutionTools } from './OpenAiCompatibleExecutionTools';

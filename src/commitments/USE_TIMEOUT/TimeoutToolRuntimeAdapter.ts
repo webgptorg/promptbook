@@ -1,4 +1,4 @@
-import type { TODO_any } from '../../_packages/types.index';
+import type { TODO_any } from '../../utils/organization/TODO_any';
 
 /**
  * Tool arguments for scheduling one timeout.

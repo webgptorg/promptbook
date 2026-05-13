@@ -1,13 +1,9 @@
-import type {
-    string_agent_hash,
-    string_agent_name,
-    string_agent_permanent_id,
-    string_agent_url,
-    string_color,
-    string_fonts,
-    string_url_image,
-} from '../../types/typeAliases';
 import type { AvatarVisualId } from '../../avatars/types/AvatarVisualDefinition';
+import type { string_agent_hash, string_agent_name, string_agent_permanent_id } from '../../types/string_agent_name';
+import type { string_agent_url } from '../../types/string_agent_url';
+import type { string_fonts } from '../../types/string_markdown';
+import type { string_color } from '../../types/string_person_fullname';
+import type { string_url_image } from '../../types/string_url_image';
 
 /**
  * Unified parameter representation that supports two different notations:

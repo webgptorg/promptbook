@@ -2,7 +2,7 @@ import { spaceTrim } from 'spacetrim';
 import { LOOP_LIMIT } from '../../../config';
 import { REPLACING_NONCE } from '../../../constants';
 import { UnexpectedError } from '../../../errors/UnexpectedError';
-import type { string_json } from '../../../types/typeAliases';
+import type { string_json } from '../../../types/string_markdown';
 import { isSerializableAsJson } from '../../serialization/isSerializableAsJson';
 
 /**

@@ -5,15 +5,11 @@ import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type {
-    ChatPromptResult,
-    CompletionPromptResult,
-    EmbeddingPromptResult,
-    ImagePromptResult,
-    PromptResult,
-} from '../../execution/PromptResult';
+import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult, ImagePromptResult, PromptResult } from '../../execution/PromptResult';
 import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, ImagePrompt, Prompt } from '../../types/Prompt';
-import type { string_markdown, string_markdown_text, string_name, string_title } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text } from '../../types/string_markdown';
+import type { string_name } from '../../types/string_name';
+import type { string_title } from '../../types/string_title';
 import type { chococake } from '../../utils/organization/really_any';
 
 /**

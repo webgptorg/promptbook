@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
-import { getAllCommitmentsToolFunctionsForNode } from '../../_packages/node.index';
+import { getAllCommitmentsToolFunctionsForNode } from '../../commitments/_common/getAllCommitmentsToolFunctionsForNode';
 import { JavascriptEvalExecutionTools } from './JavascriptEvalExecutionTools';
 
 describe('JavascriptEvalExecutionTools', () => {

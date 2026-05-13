@@ -1,9 +1,9 @@
 import type { ToolCallLogEntry, ToolCallState } from '../../../types/ToolCall';
 import type { TODO_any } from '../../../utils/organization/TODO_any';
 import type { ChatMessage } from '../types/ChatMessage';
-import type { RunBrowserToolArtifact, RunBrowserToolError } from '../utils/toolCallParsing';
-import { parseRunBrowserToolResult } from '../utils/toolCallParsing';
 import { resolveToolCallState } from '../utils/resolveToolCallState';
+import { parseRunBrowserToolResult } from '../utils/toolCallParsing/parseRunBrowserToolResult';
+import type { RunBrowserToolArtifact, RunBrowserToolError } from '../utils/toolCallParsing/RunBrowserToolResult';
 
 /**
  * One browser tool call rendered in the replay modal.

@@ -1,11 +1,8 @@
-import type { string_javascript_name } from '../../_packages/types.index';
 import type { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
+import type { string_javascript_name } from '../../types/string_person_fullname';
 import { callGoogleCalendarApi } from './callGoogleCalendarApi';
-import {
-    resolveUseCalendarToolRuntimeOrWalletCredentialResult,
-    type UseCalendarToolArgsBase,
-    type UseCalendarToolRuntimeResolution,
-} from './resolveUseCalendarToolRuntimeOrWalletCredentialResult';
+import type { UseCalendarToolArgsBase, UseCalendarToolRuntimeResolution } from './resolveUseCalendarToolRuntimeOrWalletCredentialResult';
+import { resolveUseCalendarToolRuntimeOrWalletCredentialResult } from './resolveUseCalendarToolRuntimeOrWalletCredentialResult';
 import { UseCalendarToolNames } from './UseCalendarToolNames';
 
 /**

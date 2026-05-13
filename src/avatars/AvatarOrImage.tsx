@@ -1,7 +1,8 @@
 'use client';
 
 import type { CSSProperties } from 'react';
-import type { string_css_class, string_url_image } from '../types/typeAliases';
+import type { string_css_class } from '../types/string_markdown';
+import type { string_url_image } from '../types/string_url_image';
 import { Avatar } from './Avatar';
 import type { AvatarDefinition } from './types/AvatarDefinition';
 import type { AvatarSurfaceStyle, AvatarVisualId } from './types/AvatarVisualDefinition';

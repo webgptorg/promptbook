@@ -1,10 +1,10 @@
 /** @jest-environment jsdom */
 
-import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, jest } from '@jest/globals';
-import { Color } from '../../../utils/color/Color';
+import { fireEvent, render, screen } from '@testing-library/react';
+import type { string_date_iso8601 } from '../../../types/string_token';
 import type { ToolCall } from '../../../types/ToolCall';
-import type { string_date_iso8601 } from '../../../types/typeAliases';
+import { Color } from '../../../utils/color/Color';
 
 jest.mock('../../_common/MonacoEditorWithShadowDom', () => ({
     MonacoEditorWithShadowDom: ({ value }: { value: string }) => <pre>{value}</pre>,

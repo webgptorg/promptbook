@@ -1,4 +1,4 @@
-import type { string_markdown } from '../../types/typeAliases';
+import type { string_markdown } from '../../types/string_markdown';
 
 /**
  * Change dash-like characters to regular dashes `-` -> `-` and remove soft hyphens

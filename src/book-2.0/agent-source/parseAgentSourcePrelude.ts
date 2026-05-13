@@ -1,4 +1,4 @@
-import type { string_agent_name } from '../../types/typeAliases';
+import type { string_agent_name } from '../../types/string_agent_name';
 import type { string_book } from './string_book';
 
 /**

@@ -1,12 +1,10 @@
 import type { CsvSettings } from './formats/csv/CsvSettings';
 import type { IntermediateFilesStrategy } from './types/IntermediateFilesStrategy';
-import type {
-    string_app_id,
-    string_email,
-    string_legal_entity,
-    string_name,
-    string_promptbook_server_url,
-} from './types/typeAliases';
+import type { string_email } from './types/string_email';
+import type { string_name } from './types/string_name';
+import type { string_legal_entity } from './types/string_person_fullname';
+import type { string_promptbook_server_url } from './types/string_promptbook_server_url';
+import type { string_app_id } from './types/string_token';
 import { Color } from './utils/color/Color';
 import { grayscale } from './utils/color/operators/grayscale';
 import { lighten } from './utils/color/operators/lighten';

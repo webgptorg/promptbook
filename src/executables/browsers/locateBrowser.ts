@@ -1,7 +1,7 @@
-import { $provideFilesystemForNode } from '../../_packages/node.index';
-import { TODO_any } from '../../_packages/types.index';
-import type { string_executable_path } from '../../types/typeAliases';
+import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
+import type { string_executable_path } from '../../types/string_filename';
 import { isExecutable } from '../../utils/files/isExecutable';
+import type { TODO_any } from '../../utils/organization/TODO_any';
 import { locateChrome } from './locateChrome';
 import { locateDefaultSystemBrowser } from './locateDefaultSystemBrowser';
 import { locateEdge } from './locateEdge';

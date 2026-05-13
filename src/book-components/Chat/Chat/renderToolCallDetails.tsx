@@ -1,29 +1,28 @@
 import { type ReactElement } from 'react';
+import { Color } from '../../../utils/color/Color';
 import type { TODO_any } from '../../../utils/organization/TODO_any';
 import type { WithTake } from '../../../utils/take/interfaces/ITakeChain';
 import { classNames } from '../../_common/react-utils/classNames';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
 import { getToolCallChipletInfo, TOOL_TITLES } from '../utils/getToolCallChipletInfo';
-import { getToolCallTimestamp, parseToolCallArguments, parseToolCallResult } from '../utils/toolCallParsing';
 import { resolveToolCallState } from '../utils/resolveToolCallState';
-import {
-    parseWalletCredentialToolCallResult,
-    WALLET_CREDENTIAL_TOOL_CALL_NAME,
-} from '../utils/walletCredentialToolCall';
-import { Color } from '../../../utils/color/Color';
+import { getToolCallTimestamp } from '../utils/toolCallParsing/getToolCallTimestamp';
+import { parseToolCallArguments } from '../utils/toolCallParsing/parseToolCallArguments';
+import { parseToolCallResult } from '../utils/toolCallParsing/parseToolCallResult';
+import { parseWalletCredentialToolCallResult, WALLET_CREDENTIAL_TOOL_CALL_NAME } from '../utils/walletCredentialToolCall';
+import styles from './Chat.module.css';
 import { renderEmailToolCallDetails } from './renderEmailToolCallDetails';
 import { renderMemoryToolCallDetails } from './renderMemoryToolCallDetails';
 import { renderPopupToolCallDetails } from './renderPopupToolCallDetails';
 import { renderRunBrowserToolCallDetails } from './renderRunBrowserToolCallDetails';
 import { renderSearchToolCallDetails } from './renderSearchToolCallDetails';
 import { renderSelfLearningToolCallDetails } from './renderSelfLearningToolCallDetails';
-import { renderTimeToolCallDetails } from './renderTimeToolCallDetails';
 import { renderTimeoutToolCallDetails } from './renderTimeoutToolCallDetails';
+import { renderTimeToolCallDetails } from './renderTimeToolCallDetails';
 import { renderToolCallProgressPlaceholder } from './renderToolCallProgressPlaceholder';
 import { renderWalletCredentialToolCallDetails } from './renderWalletCredentialToolCallDetails';
 import { resolveToolCallProgressMessage } from './resolveToolCallProgressMessage';
-import styles from './Chat.module.css';
 
 /**
  * Options for rendering a tool call detail view.

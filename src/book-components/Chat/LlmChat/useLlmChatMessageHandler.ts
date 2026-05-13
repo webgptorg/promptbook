@@ -1,17 +1,18 @@
 'use client';
 
 import {
-    useCallback,
-    useEffect,
-    useRef,
-    useState,
-    type Dispatch,
-    type MutableRefObject,
-    type SetStateAction,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type Dispatch,
+  type MutableRefObject,
+  type SetStateAction
 } from 'react';
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
 import type { Prompt } from '../../../types/Prompt';
-import type { id, string_date_iso8601, string_markdown } from '../../../types/typeAliases';
+import type { string_markdown } from '../../../types/string_markdown';
+import type { id, string_date_iso8601 } from '../../../types/string_token';
 import { $getCurrentDate } from '../../../utils/misc/$getCurrentDate';
 import type { ChatMessage } from '../types/ChatMessage';
 import { getRandomThinkingMessageDelayMs, getRandomThinkingMessageVariant } from '../utils/thinkingMessageVariants';

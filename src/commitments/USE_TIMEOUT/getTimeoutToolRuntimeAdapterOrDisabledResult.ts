@@ -1,10 +1,5 @@
-import type {
-    TimeoutToolAction,
-    TimeoutToolResult,
-    TimeoutToolRuntimeAdapter,
-    TimeoutToolRuntimeContext,
-} from './TimeoutToolRuntimeAdapter';
 import { getTimeoutToolRuntimeAdapter } from './setTimeoutToolRuntimeAdapter';
+import type { TimeoutToolAction, TimeoutToolResult, TimeoutToolRuntimeAdapter, TimeoutToolRuntimeContext } from './TimeoutToolRuntimeAdapter';
 
 /**
  * Builds a disabled timeout-tool payload.

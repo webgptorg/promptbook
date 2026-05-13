@@ -15,12 +15,10 @@ import { $provideFilesystemForNode } from '../scrapers/_common/register/$provide
 import { $provideScrapersForNode } from '../scrapers/_common/register/$provideScrapersForNode';
 import { promptbookFetch } from '../scrapers/_common/utils/promptbookFetch';
 import { JavascriptExecutionTools } from '../scripting/javascript/JavascriptExecutionTools';
-import type {
-    InputParameters,
-    string_filename,
-    string_parameter_value,
-    string_pipeline_url,
-} from '../types/typeAliases';
+import type { InputParameters } from '../types/Parameters';
+import type { string_filename } from '../types/string_filename';
+import type { string_parameter_value } from '../types/string_name';
+import type { string_pipeline_url } from '../types/string_pipeline_url';
 import { $isRunningInNode } from '../utils/environment/$isRunningInNode';
 import { $getCompiledBook } from './$getCompiledBook';
 

@@ -1,6 +1,6 @@
 import { join } from 'path';
 import type { FilesystemTools } from '../../execution/FilesystemTools';
-import type { string_dirname, string_filename } from '../../types/typeAliases';
+import type { string_dirname, string_filename } from '../../types/string_filename';
 import { isDirectoryExisting } from './isDirectoryExisting';
 
 /**

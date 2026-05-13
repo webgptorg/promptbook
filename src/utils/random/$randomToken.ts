@@ -1,5 +1,5 @@
 import { randomBytes } from 'crypto';
-import type { string_token } from '../../types/typeAliases';
+import type { string_token } from '../../types/string_token';
 
 /**
  * Generates random token

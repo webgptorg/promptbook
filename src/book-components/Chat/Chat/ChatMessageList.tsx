@@ -2,7 +2,7 @@
 
 import type { UIEvent } from 'react';
 import type { Promisable } from 'type-fest';
-import type { id } from '../../../types/typeAliases';
+import type { id } from '../../../types/string_token';
 import { classNames } from '../../_common/react-utils/classNames';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';

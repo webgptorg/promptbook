@@ -11,25 +11,20 @@ import type { CallChatModelStreamOptions, LlmExecutionTools } from '../../execut
 import type { ChatPromptResult, CommonPromptResult } from '../../execution/PromptResult';
 import { UNCERTAIN_USAGE } from '../../execution/utils/usage-constants';
 import type { ChatPrompt, Prompt } from '../../types/Prompt';
+import type { string_markdown, string_markdown_text } from '../../types/string_markdown';
+import type { string_model_name } from '../../types/string_model_name';
+import type { string_prompt } from '../../types/string_prompt';
+import type { string_title } from '../../types/string_title';
 import { ASSISTANT_PREPARATION_TOOL_CALL_NAME } from '../../types/ToolCall';
-import type {
-    string_markdown,
-    string_markdown_text,
-    string_model_name,
-    string_prompt,
-    string_title,
-} from '../../types/typeAliases';
-import { appendChatAttachmentContextWithContent, normalizeChatAttachments } from '../../utils/chat/chatAttachments';
+import { appendChatAttachmentContextWithContent } from '../../utils/chat/chatAttachments/appendChatAttachmentContextWithContent';
+import { normalizeChatAttachments } from '../../utils/chat/chatAttachments/normalizeChatAttachments';
 import { humanizeAiText } from '../../utils/markdown/humanizeAiText';
 import { promptbookifyAiText } from '../../utils/markdown/promptbookifyAiText';
 import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
 import { normalizeToKebabCase } from '../../utils/normalization/normalize-to-kebab-case';
 import { keepUnused } from '../../utils/organization/keepUnused';
-import { really_unknown } from '../../utils/organization/really_unknown';
-import {
-    OpenAiAgentKitExecutionTools,
-    mapResponseFormatToAgentOutputType,
-} from '../openai/OpenAiAgentKitExecutionTools';
+import type { really_unknown } from '../../utils/organization/really_unknown';
+import { mapResponseFormatToAgentOutputType, OpenAiAgentKitExecutionTools } from '../openai/OpenAiAgentKitExecutionTools';
 import { OpenAiAssistantExecutionTools } from '../openai/OpenAiAssistantExecutionTools';
 import type { CreateAgentLlmExecutionToolsOptions } from './CreateAgentLlmExecutionToolsOptions';
 

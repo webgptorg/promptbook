@@ -1,5 +1,5 @@
 import type { PipelineJson } from './pipeline/PipelineJson/PipelineJson';
-import type { string_name } from './types/typeAliases';
+import type { string_name } from './types/string_name';
 import type { ExportJsonOptions } from './utils/serialization/exportJson';
 import { exportJson } from './utils/serialization/exportJson';
 

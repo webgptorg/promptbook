@@ -1,10 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import {
-    DEFAULT_AGENT_AVATAR_VISUAL_ID,
-    resolveAgentAvatar,
-    resolveAgentAvatarVisualId,
-    resolveAgentAvatarImageUrl,
-} from './resolveAgentAvatarImageUrl';
+import { DEFAULT_AGENT_AVATAR_VISUAL_ID, resolveAgentAvatar, resolveAgentAvatarImageUrl, resolveAgentAvatarVisualId } from './resolveAgentAvatarImageUrl';
 
 describe('resolveAgentAvatar', () => {
     it('prefers explicit META IMAGE when one is provided', () => {

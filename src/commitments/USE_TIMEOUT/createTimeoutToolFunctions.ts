@@ -1,22 +1,12 @@
 import { spaceTrim } from 'spacetrim';
-import type { string_javascript_name } from '../../_packages/types.index';
 import type { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
+import type { string_javascript_name } from '../../types/string_person_fullname';
 import { createToolExecutionEnvelope } from '../_common/toolExecutionEnvelope';
 import { getTimeoutToolRuntimeAdapterOrDisabledResult } from './getTimeoutToolRuntimeAdapterOrDisabledResult';
 import { parseTimeoutToolArgs } from './parseTimeoutToolArgs';
-import { TimeoutToolNames } from './TimeoutToolNames';
-import type {
-    CancelTimeoutToolArgs,
-    CancelTimeoutToolResult,
-    ListTimeoutsToolArgs,
-    ListTimeoutsToolResult,
-    SetTimeoutToolArgs,
-    SetTimeoutToolResult,
-    TimeoutToolListItem,
-    UpdateTimeoutToolArgs,
-    UpdateTimeoutToolResult,
-} from './TimeoutToolRuntimeAdapter';
 import { resolveTimeoutRuntimeContext } from './resolveTimeoutRuntimeContext';
+import { TimeoutToolNames } from './TimeoutToolNames';
+import type { CancelTimeoutToolArgs, CancelTimeoutToolResult, ListTimeoutsToolArgs, ListTimeoutsToolResult, SetTimeoutToolArgs, SetTimeoutToolResult, TimeoutToolListItem, UpdateTimeoutToolArgs, UpdateTimeoutToolResult } from './TimeoutToolRuntimeAdapter';
 
 /**
  * Maximum number of timeout rows rendered into the assistant-visible `list_timeouts` message.

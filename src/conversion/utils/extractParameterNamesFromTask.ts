@@ -1,8 +1,8 @@
 import type { ReadonlyDeep } from 'type-fest';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import { extractVariablesFromJavascript } from '../../scripting/javascript/utils/extractVariablesFromJavascript';
-import type { string_javascript_name } from '../../types/typeAliases';
-import type { string_parameter_name } from '../../types/typeAliases';
+import type { string_parameter_name } from '../../types/string_name';
+import type { string_javascript_name } from '../../types/string_person_fullname';
 import { extractParameterNames } from '../../utils/parameters/extractParameterNames';
 
 /**

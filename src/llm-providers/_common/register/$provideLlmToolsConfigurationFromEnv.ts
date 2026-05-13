@@ -1,6 +1,6 @@
 import * as dotenv from 'dotenv';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
-import type { string_name } from '../../../types/typeAliases';
+import type { string_name } from '../../../types/string_name';
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import { $llmToolsMetadataRegister } from './$llmToolsMetadataRegister';
 import { $provideEnvFilename } from './$provideEnvFilename';

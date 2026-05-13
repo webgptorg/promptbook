@@ -1,5 +1,5 @@
 import { spaceTrim } from 'spacetrim';
-import type { string_markdown } from '../../types/typeAliases';
+import type { string_markdown } from '../../types/string_markdown';
 import type { UncertainNumber } from '../UncertainNumber';
 import type { Usage } from '../Usage';
 import { usageToWorktime } from './usageToWorktime';

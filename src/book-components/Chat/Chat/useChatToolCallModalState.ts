@@ -4,23 +4,16 @@ import { useCallback, useEffect, useMemo, useRef, useState, type MutableRefObjec
 import { isPseudoAgentUrl } from '../../../book-2.0/agent-source/pseudoAgentReferences';
 import type { AgentChipData } from '../AgentChip/AgentChip';
 import type { ChatMessage } from '../types/ChatMessage';
-import {
-    type TeamToolCallSummary,
-    type TransitiveToolCall,
-    collectTeamToolCallSummary,
-} from '../utils/collectTeamToolCallSummary';
+import type { TeamToolCallSummary, TransitiveToolCall } from '../utils/collectTeamToolCallSummary';
+import { collectTeamToolCallSummary } from '../utils/collectTeamToolCallSummary';
 import { downloadFile } from '../utils/downloadFile';
-import { loadAgentProfile, resolveAgentProfileFallback, type AgentProfileData } from '../utils/loadAgentProfile';
-import {
-    getToolCallTimestamp,
-    parseTeamToolResult,
-    parseToolCallResult,
-    type TeamToolResult,
-} from '../utils/toolCallParsing';
-import {
-    createAdvancedToolCallReportFilename,
-    createAdvancedToolCallReportMarkdown,
-} from './renderAdvancedToolCallDetails';
+import type { AgentProfileData } from '../utils/loadAgentProfile';
+import { loadAgentProfile, resolveAgentProfileFallback } from '../utils/loadAgentProfile';
+import { getToolCallTimestamp } from '../utils/toolCallParsing/getToolCallTimestamp';
+import { parseTeamToolResult } from '../utils/toolCallParsing/parseTeamToolResult';
+import { parseToolCallResult } from '../utils/toolCallParsing/parseToolCallResult';
+import type { TeamToolResult } from '../utils/toolCallParsing/TeamToolResult';
+import { createAdvancedToolCallReportFilename, createAdvancedToolCallReportMarkdown } from './renderAdvancedToolCallDetails';
 
 /**
  * Tool-call snapshot rendered by the modal.

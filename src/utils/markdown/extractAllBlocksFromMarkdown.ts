@@ -1,6 +1,6 @@
 import type { Writable } from 'type-fest';
 import { ParseError } from '../../errors/ParseError';
-import type { string_markdown } from '../../types/typeAliases';
+import type { string_markdown } from '../../types/string_markdown';
 import { capitalize } from '../normalization/capitalize';
 
 /**

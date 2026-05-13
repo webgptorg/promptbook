@@ -2,12 +2,8 @@ import colors from 'colors';
 import { spaceTrim } from 'spacetrim';
 import { PipelineExecutionError } from '../../../errors/PipelineExecutionError';
 import type { ModelRequirements } from '../../../types/ModelRequirements';
-import type { string_model_name } from '../../../types/typeAliases';
-import {
-    isUnsupportedParameterError,
-    parseUnsupportedParameterError,
-    removeUnsupportedModelRequirement,
-} from '../../_common/utils/removeUnsupportedModelRequirements';
+import type { string_model_name } from '../../../types/string_model_name';
+import { isUnsupportedParameterError, parseUnsupportedParameterError, removeUnsupportedModelRequirement } from '../../_common/utils/removeUnsupportedModelRequirements';
 
 /**
  * Tracks one failed request attempt while stripping unsupported model parameters.

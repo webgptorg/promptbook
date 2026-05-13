@@ -1,6 +1,7 @@
 import type { ChatMessage } from '../types/ChatMessage';
-import { parseCitationsFromContent, type ParsedCitation } from './parseCitationsFromContent';
 import { parseCitationMarker } from './parseCitationMarker';
+import type { ParsedCitation } from './parseCitationsFromContent';
+import { parseCitationsFromContent } from './parseCitationsFromContent';
 
 /**
  * Regex that matches both OpenAI-style full citation markers and bracketed id tokens.

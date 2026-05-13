@@ -14,12 +14,12 @@ import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
 import { $execCommand } from '../../utils/execCommand/$execCommand';
 import { getFileExtension } from '../../utils/files/getFileExtension';
 import { isFileExisting } from '../../utils/files/isFileExisting';
+import { MarkdownScraper } from '../markdown/MarkdownScraper';
 import type { Converter } from '../_common/Converter';
 import type { ScraperAndConverterMetadata } from '../_common/register/ScraperAndConverterMetadata';
 import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
 import type { ScraperIntermediateSource } from '../_common/ScraperIntermediateSource';
 import { getScraperIntermediateSource } from '../_common/utils/getScraperIntermediateSource';
-import { MarkdownScraper } from '../markdown/MarkdownScraper';
 import { documentScraperMetadata } from './register-metadata';
 
 /**

@@ -1,5 +1,7 @@
 import { PROMPTBOOK_LEGAL_ENTITY } from './src/config';
-import type { string_legal_entity, string_promptbook_server_url, string_title } from './src/types/typeAliases';
+import type { string_legal_entity } from './src/types/string_person_fullname';
+import type { string_promptbook_server_url } from './src/types/string_promptbook_server_url';
+import type { string_title } from './src/types/string_title';
 
 /**
  * Open Promptbook server usable for public

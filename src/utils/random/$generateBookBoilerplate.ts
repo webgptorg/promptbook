@@ -3,7 +3,7 @@ import type { PartialDeep } from 'type-fest';
 import type { AgentBasicInformation } from '../../book-2.0/agent-source/AgentBasicInformation';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import { validateBook } from '../../book-2.0/agent-source/string_book';
-import type { string_agent_name_in_book } from '../../types/typeAliases';
+import type { string_agent_name_in_book } from '../../types/string_agent_name';
 import { TODO_USE } from '../organization/TODO_USE';
 import { $randomAgentPersona } from './$randomAgentPersona';
 import { $randomAgentRule } from './$randomAgentRule';

@@ -1,6 +1,6 @@
-import { createBasicAgentModelRequirements } from '../../commitments/_base/createEmptyAgentModelRequirements';
 import { aggregateUseCommitmentSystemMessages } from '../../commitments/USE/aggregateUseCommitmentSystemMessages';
-import type { string_model_name } from '../../types/typeAliases';
+import { createBasicAgentModelRequirements } from '../../commitments/_base/createEmptyAgentModelRequirements';
+import type { string_model_name } from '../../types/string_model_name';
 import type { AgentModelRequirements } from './AgentModelRequirements';
 import type { CreateAgentModelRequirementsOptions } from './CreateAgentModelRequirementsOptions';
 import { applyCommitmentsToAgentModelRequirements } from './createAgentModelRequirementsWithCommitments/applyCommitmentsToAgentModelRequirements';

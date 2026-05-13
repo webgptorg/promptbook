@@ -1,11 +1,12 @@
 /** @jest-environment jsdom */
 
-import { act, fireEvent, render, waitFor } from '@testing-library/react';
 import { describe, expect, it, jest } from '@jest/globals';
+import { act, fireEvent, render, waitFor } from '@testing-library/react';
 import { Color } from '../../../utils/color/Color';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
-import { ChatInputArea, type ChatInputAreaProps } from './ChatInputArea';
+import type { ChatInputAreaProps } from './ChatInputArea';
+import { ChatInputArea } from './ChatInputArea';
 
 /**
  * Shared participant fixture used by composer tests.

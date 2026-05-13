@@ -1,4 +1,5 @@
-import { ChatMessage, string_book } from '../_packages/types.index';
+import type { string_book } from '../book-2.0/agent-source/string_book';
+import type { ChatMessage } from '../book-components/Chat/types/ChatMessage';
 import { book } from '../pipeline/book-notation';
 
 /**

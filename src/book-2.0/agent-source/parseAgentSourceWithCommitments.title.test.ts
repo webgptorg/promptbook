@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { COMMITMENT_REGISTRY } from '../../commitments';
+import { COMMITMENT_REGISTRY } from '../../commitments/index';
 import { parseAgentSourceWithCommitments } from './parseAgentSourceWithCommitments';
 import { validateBook } from './string_book';
 

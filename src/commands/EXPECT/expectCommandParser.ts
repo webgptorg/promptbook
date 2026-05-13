@@ -4,7 +4,7 @@ import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParseError } from '../../errors/ParseError';
 import type { ExpectationUnit } from '../../pipeline/PipelineJson/Expectations';
 import { EXPECTATION_UNITS } from '../../pipeline/PipelineJson/Expectations';
-import type { string_markdown_text } from '../../types/typeAliases';
+import type { string_markdown_text } from '../../types/string_markdown';
 import { parseNumber } from '../../utils/misc/parseNumber';
 import type { $side_effect } from '../../utils/organization/$side_effect';
 import { keepUnused } from '../../utils/organization/keepUnused';

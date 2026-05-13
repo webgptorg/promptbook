@@ -1,6 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import { DEFAULT_BOOK_TITLE } from '../../config';
-import type { string_markdown } from '../../types/typeAliases';
+import type { string_markdown } from '../../types/string_markdown';
 import { parseMarkdownSection } from './parseMarkdownSection';
 import { splitMarkdownIntoSections } from './splitMarkdownIntoSections';
 

@@ -1,5 +1,5 @@
 import type { ParsedCommitment } from '../../commitments/_base/ParsedCommitment';
-import { string_agent_name } from '../../types/typeAliases';
+import type { string_agent_name } from '../../types/string_agent_name';
 
 /**
  * Result of parsing agent source for commitments

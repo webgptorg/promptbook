@@ -2,11 +2,11 @@ import { type ReactElement } from 'react';
 import type { TODO_any } from '../../../utils/organization/TODO_any';
 import { MarkdownContent } from '../MarkdownContent/MarkdownContent';
 import type { ChatMessage } from '../types/ChatMessage';
-import { extractSearchResults } from '../utils/toolCallParsing';
 import { resolveToolCallState } from '../utils/resolveToolCallState';
+import { extractSearchResults } from '../utils/toolCallParsing/extractSearchResults';
+import styles from './Chat.module.css';
 import { renderToolCallProgressPlaceholder } from './renderToolCallProgressPlaceholder';
 import { resolveToolCallProgressMessage } from './resolveToolCallProgressMessage';
-import styles from './Chat.module.css';
 
 /**
  * Rendering options for search tool calls.

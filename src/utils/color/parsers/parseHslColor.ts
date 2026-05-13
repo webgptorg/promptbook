@@ -1,4 +1,4 @@
-import type { string_color } from '../../../types/typeAliases';
+import type { string_color } from '../../../types/string_person_fullname';
 import type { ColorChannelSet } from './ColorChannelSet';
 
 /**

@@ -1,7 +1,7 @@
 import type { Promisable } from 'type-fest';
-import { TODO_any } from '../../_packages/types.index';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
-import type { string_postprocessing_function_name } from '../../types/typeAliases';
+import type { string_postprocessing_function_name } from '../../types/string_person_fullname';
+import type { TODO_any } from '../../utils/organization/TODO_any';
 
 /**
  * Options for `JavascriptExecutionTools`

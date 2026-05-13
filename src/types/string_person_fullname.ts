@@ -1,4 +1,4 @@
-import type { string_title } from './string_parameter_name';
+import type { string_title } from './string_title';
 
 /**
  * Semantic helper

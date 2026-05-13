@@ -1,5 +1,6 @@
-import { generatePlaceholderAgentProfileImageUrl } from '../../../_packages/core.index';
-import type { string_url, string_url_image } from '../../../types/typeAliases';
+import { generatePlaceholderAgentProfileImageUrl } from '../../../book-2.0/utils/generatePlaceholderAgentProfileImageUrl';
+import type { string_url } from '../../../types/string_url';
+import type { string_url_image } from '../../../types/string_url_image';
 
 /**
  * Input data for resolving agent profiles.

@@ -1,8 +1,8 @@
 import { SHA256 as sha256 } from 'crypto-js';
 import hexEncoder from 'crypto-js/enc-hex';
 import { spaceTrim } from 'spacetrim';
-import { string_sha256 } from '../../types/typeAliases';
-import { really_unknown } from '../organization/really_unknown';
+import type { string_sha256 } from '../../types/string_sha256';
+import type { really_unknown } from '../organization/really_unknown';
 import { valueToString } from '../parameters/valueToString';
 
 /**

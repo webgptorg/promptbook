@@ -1,4 +1,4 @@
-import { COMMITMENT_REGISTRY } from '..';
+import { COMMITMENT_REGISTRY } from '../index';
 import type { BookCommitment } from '../_base/BookCommitment';
 
 /**

@@ -1,6 +1,6 @@
 import type { LlmToolsConfiguration } from '../../../llm-providers/_common/register/LlmToolsConfiguration';
-import type { string_ip_address } from '../../../types/typeAliases';
-import type { string_user_id } from '../../../types/typeAliases';
+import type { string_ip_address } from '../../../types/string_host';
+import type { string_user_id } from '../../../types/string_token';
 import type { ApplicationRemoteServerClientOptions } from '../../types/RemoteServerOptions';
 
 /**

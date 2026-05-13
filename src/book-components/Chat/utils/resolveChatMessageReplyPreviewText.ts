@@ -1,6 +1,6 @@
-import type { ChatMessage, ChatMessageReplyingTo } from '../types/ChatMessage';
 import { removeMarkdownFormatting } from '../../../utils/markdown/removeMarkdownFormatting';
 import { removeMarkdownLinks } from '../../../utils/markdown/removeMarkdownLinks';
+import type { ChatMessage, ChatMessageReplyingTo } from '../types/ChatMessage';
 
 /**
  * Lightweight message-like shape accepted by reply-preview text helpers.

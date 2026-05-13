@@ -1,4 +1,4 @@
-import type { string_filename } from '../../../types/typeAliases';
+import type { string_filename } from '../../../types/string_filename';
 import type { really_unknown } from '../../organization/really_unknown';
 
 /**

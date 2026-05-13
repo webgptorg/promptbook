@@ -1,7 +1,9 @@
 import { Promisable } from 'type-fest';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
-import type { string_name, string_script, string_title } from '../../types/typeAliases';
+import type { string_script } from '../../types/string_markdown';
+import type { string_name } from '../../types/string_name';
+import type { string_title } from '../../types/string_title';
 import type { Registered } from '../../utils/misc/$Register';
 import type { BookTranspilerOptions } from './BookTranspilerOptions';
 

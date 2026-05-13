@@ -1,7 +1,9 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 import { createBasicAgentModelRequirements } from '../_base/createEmptyAgentModelRequirements';
 import { TOOL_RUNTIME_CONTEXT_ARGUMENT } from '../_common/toolRuntimeContext';
-import { setWalletToolRuntimeAdapter, WalletCommitmentDefinition, type WalletToolRuntimeAdapter } from './WALLET';
+import { setWalletToolRuntimeAdapter } from './setWalletToolRuntimeAdapter';
+import { WalletCommitmentDefinition } from './WALLET';
+import type { WalletToolRuntimeAdapter } from './WalletToolRuntimeAdapter';
 
 /**
  * Helper to parse JSON tool results.

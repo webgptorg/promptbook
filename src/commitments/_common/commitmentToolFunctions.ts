@@ -1,6 +1,6 @@
-import { ToolFunction } from '../../_packages/types.index';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import { string_javascript_name } from '../../types/typeAliases';
+import type { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
+import type { string_javascript_name } from '../../types/string_person_fullname';
 import { just } from '../../utils/organization/just';
 import { getAllCommitmentDefinitions } from './getAllCommitmentDefinitions';
 

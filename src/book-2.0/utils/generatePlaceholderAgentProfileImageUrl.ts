@@ -1,9 +1,6 @@
-import type {
-    string_agent_name,
-    string_agent_permanent_id,
-    string_url,
-    string_url_image,
-} from '../../types/typeAliases';
+import type { string_agent_name, string_agent_permanent_id } from '../../types/string_agent_name';
+import type { string_url } from '../../types/string_url';
+import type { string_url_image } from '../../types/string_url_image';
 
 /**
  * Generates an image for the agent to use as profile image

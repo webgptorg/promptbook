@@ -4,7 +4,7 @@ import { mkdir, rm } from 'fs/promises';
 import { dirname, join } from 'path';
 import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
 import { nameToSubfolderPath } from '../../../storage/file-cache-storage/utils/nameToSubfolderPath';
-import type { string_file_extension } from '../../../types/typeAliases';
+import type { string_file_extension } from '../../../types/string_sha256';
 import { normalizeToKebabCase } from '../../../utils/normalization/normalize-to-kebab-case';
 import { titleToName } from '../../../utils/normalization/titleToName';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';

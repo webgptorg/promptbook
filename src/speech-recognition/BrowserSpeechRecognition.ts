@@ -1,10 +1,5 @@
-import { TODO_any } from '../_packages/types.index';
-import type {
-    SpeechRecognition,
-    SpeechRecognitionEvent,
-    SpeechRecognitionStartOptions,
-    SpeechRecognitionState,
-} from '../types/SpeechRecognition';
+import type { SpeechRecognition, SpeechRecognitionEvent, SpeechRecognitionStartOptions, SpeechRecognitionState } from '../types/SpeechRecognition';
+import type { TODO_any } from '../utils/organization/TODO_any';
 
 /**
  * Speech recognition using Web Speech API `SpeechRecognition` available in modern browsers

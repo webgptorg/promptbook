@@ -1,12 +1,8 @@
 import { type ReactElement } from 'react';
 import type { TODO_any } from '../../../utils/organization/TODO_any';
-import {
-    buildTimeoutToolPrimarySentence,
-    buildTimeoutToolScheduleSentence,
-    resolveTimeoutToolCallPresentation,
-} from '../utils/timeoutToolCallPresentation';
-import { renderToolCallClockPanel } from './renderToolCallClockPanel';
+import { buildTimeoutToolPrimarySentence, buildTimeoutToolScheduleSentence, resolveTimeoutToolCallPresentation } from '../utils/timeoutToolCallPresentation';
 import styles from './Chat.module.css';
+import { renderToolCallClockPanel } from './renderToolCallClockPanel';
 
 /**
  * Default snooze interval used by timeout quick actions.

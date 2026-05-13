@@ -1,5 +1,5 @@
-import type { TODO_any } from '../../_packages/types.index';
 import type { LlmToolDefinition } from '../../types/LlmToolDefinition';
+import type { TODO_any } from '../../utils/organization/TODO_any';
 import { WalletToolNames } from './WalletToolNames';
 
 /**

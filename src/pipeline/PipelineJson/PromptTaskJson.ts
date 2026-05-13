@@ -1,5 +1,5 @@
 import type { ModelRequirements } from '../../types/ModelRequirements';
-import type { string_name } from '../../types/typeAliases';
+import type { string_name } from '../../types/string_name';
 import type { CommonTaskJson } from './CommonTaskJson';
 
 /**

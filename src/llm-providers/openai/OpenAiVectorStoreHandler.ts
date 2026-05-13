@@ -1,12 +1,12 @@
 import type { ClientOptions } from 'openai';
 import OpenAI from 'openai';
-import { TODO_any } from '../../_packages/types.index';
-import { serializeError } from '../../_packages/utils.index';
 import { assertsError } from '../../errors/assertsError';
-import type { string_title } from '../../types/typeAliases';
+import { serializeError } from '../../errors/utils/serializeError';
+import type { string_title } from '../../types/string_title';
+import { isDataUrlKnowledgeSource, parseDataUrlKnowledgeSource } from '../../utils/knowledge/inlineKnowledgeSource';
+import type { TODO_any } from '../../utils/organization/TODO_any';
 import type { OpenAiCompatibleExecutionToolsOptions } from './OpenAiCompatibleExecutionToolsOptions';
 import { OpenAiExecutionTools } from './OpenAiExecutionTools';
-import { isDataUrlKnowledgeSource, parseDataUrlKnowledgeSource } from '../../utils/knowledge/inlineKnowledgeSource';
 
 /**
  * Constant for default knowledge source download timeout ms.

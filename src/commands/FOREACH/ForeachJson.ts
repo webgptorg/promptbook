@@ -1,4 +1,4 @@
-import type { string_parameter_name } from '../../types/typeAliases';
+import type { string_parameter_name } from '../../types/string_name';
 import type { TODO_string } from '../../utils/organization/TODO_string';
 
 /**

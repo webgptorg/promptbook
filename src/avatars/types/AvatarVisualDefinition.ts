@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react';
-import type { string_color, string_css_class } from '../../types/typeAliases';
+import type { string_css_class } from '../../types/string_markdown';
+import type { string_color } from '../../types/string_person_fullname';
 import type { AvatarDefinition } from './AvatarDefinition';
 
 /**

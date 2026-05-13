@@ -1,6 +1,6 @@
-import { isValidAgentUrl } from '../../_packages/utils.index';
-import type { string_agent_url } from '../../types/typeAliases';
+import type { string_agent_url } from '../../types/string_agent_url';
 import { normalizeWhitespaces } from '../../utils/normalization/normalizeWhitespaces';
+import { isValidAgentUrl } from '../../utils/validators/url/isValidAgentUrl';
 
 /**
  * Parsed TEAM teammate entry.

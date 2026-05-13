@@ -15,7 +15,8 @@ import { DownloadIcon } from '../icons/DownloadIcon';
 import { ExitFullscreenIcon } from '../icons/ExitFullscreenIcon';
 import { FullscreenIcon } from '../icons/FullscreenIcon';
 import { Dropdown } from '../_common/Dropdown/Dropdown';
-import { HoistedMenuItem, useMenuHoisting } from '../_common/MenuHoisting/MenuHoistingContext';
+import type { HoistedMenuItem } from '../_common/MenuHoisting/MenuHoistingContext';
+import { useMenuHoisting } from '../_common/MenuHoisting/MenuHoistingContext';
 import { Modal } from '../_common/Modal/Modal';
 import styles from './BookEditor.module.css';
 

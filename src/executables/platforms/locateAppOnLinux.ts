@@ -1,5 +1,5 @@
 import { assertsError } from '../../errors/assertsError';
-import type { string_executable_path } from '../../types/typeAliases';
+import type { string_executable_path } from '../../types/string_filename';
 import { $execCommand } from '../../utils/execCommand/$execCommand';
 import type { LocateAppOptions } from '../locateApp';
 

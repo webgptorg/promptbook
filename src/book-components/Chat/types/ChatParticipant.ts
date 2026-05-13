@@ -1,8 +1,10 @@
-import type { string_book } from '../../../book-2.0/agent-source/string_book';
-import type { id, string_color, string_person_fullname, string_url_image } from '../../../types/typeAliases';
-import { Color } from '../../../utils/color/Color';
 import type { AvatarDefinition } from '../../../avatars/types/AvatarDefinition';
 import type { AvatarVisualId } from '../../../avatars/types/AvatarVisualDefinition';
+import type { string_book } from '../../../book-2.0/agent-source/string_book';
+import type { string_color, string_person_fullname } from '../../../types/string_person_fullname';
+import type { id } from '../../../types/string_token';
+import type { string_url_image } from '../../../types/string_url_image';
+import { Color } from '../../../utils/color/Color';
 
 /**
  * A participant in the chat

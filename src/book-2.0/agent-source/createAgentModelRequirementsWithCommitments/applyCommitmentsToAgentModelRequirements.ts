@@ -1,7 +1,7 @@
 import type { BookCommitment } from '../../../commitments/_base/BookCommitment';
 import type { ParsedCommitment } from '../../../commitments/_base/ParsedCommitment';
 import { getCommitmentDefinition } from '../../../commitments/_common/getCommitmentDefinition';
-import { chococake } from '../../../utils/organization/really_any';
+import type { chococake } from '../../../utils/organization/really_any';
 import type { AgentModelRequirements } from '../AgentModelRequirements';
 import type { CreateAgentModelRequirementsOptions } from '../CreateAgentModelRequirementsOptions';
 import { parseTeamCommitmentContent } from '../parseTeamCommitment';

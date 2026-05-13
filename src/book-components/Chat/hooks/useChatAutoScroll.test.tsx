@@ -2,7 +2,8 @@
 import { describe, expect, it, jest } from '@jest/globals';
 import { act, useEffect, type UIEvent } from 'react';
 import { createRoot } from 'react-dom/client';
-import { type ChatAutoScrollConfig, useChatAutoScroll } from './useChatAutoScroll';
+import type { ChatAutoScrollConfig } from './useChatAutoScroll';
+import { useChatAutoScroll } from './useChatAutoScroll';
 
 /**
  * React test flag required by concurrent `act(...)` checks.

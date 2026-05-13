@@ -1,4 +1,4 @@
-import type { string_javascript_name } from '../../_packages/types.index';
+import type { string_javascript_name } from '../../types/string_person_fullname';
 
 /**
  * Names of tools used by the USE CALENDAR commitment.

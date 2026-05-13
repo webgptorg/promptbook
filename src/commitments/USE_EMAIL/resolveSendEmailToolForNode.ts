@@ -1,6 +1,6 @@
 import { spaceTrim } from 'spacetrim';
-import type { ToolFunction } from '../../_packages/types.index';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
+import type { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
 
 /**
  * Resolves the server-side implementation of the send_email tool for Node.js environments.

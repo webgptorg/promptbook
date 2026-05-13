@@ -1,4 +1,4 @@
-import type { string_user_id } from '../types/typeAliases';
+import type { string_user_id } from '../types/string_token';
 
 /**
  * Common options shared across various execution tools.

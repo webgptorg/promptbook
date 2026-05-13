@@ -1,5 +1,6 @@
 import { BehaviorSubject } from 'rxjs';
 import { spaceTrim } from 'spacetrim';
+import type { AvatarVisualId } from '../../avatars/types/AvatarVisualDefinition';
 import type { AgentCapability } from '../../book-2.0/agent-source/AgentBasicInformation';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import { CHAT_STREAM_KEEP_ALIVE_TOKEN } from '../../constants/streaming';
@@ -7,17 +8,13 @@ import type { CallChatModelStreamOptions } from '../../execution/LlmExecutionToo
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import { book } from '../../pipeline/book-notation';
 import type { ChatPrompt, Prompt } from '../../types/Prompt';
+import type { string_agent_hash, string_agent_name } from '../../types/string_agent_name';
+import type { string_agent_url } from '../../types/string_agent_url';
+import type { string_fonts } from '../../types/string_markdown';
+import type { string_color } from '../../types/string_person_fullname';
+import type { string_date_iso8601 } from '../../types/string_token';
+import type { string_url_image } from '../../types/string_url_image';
 import { isAssistantPreparationToolCall } from '../../types/ToolCall';
-import type {
-    string_agent_hash,
-    string_agent_name,
-    string_agent_url,
-    string_color,
-    string_date_iso8601,
-    string_fonts,
-    string_url_image,
-} from '../../types/typeAliases';
-import type { AvatarVisualId } from '../../avatars/types/AvatarVisualDefinition';
 import { decodeChatStreamWhitespaceFromTransport } from '../../utils/chat/decodeChatStreamWhitespaceFromTransport';
 import { attachClientVersionHeader } from '../../utils/clientVersion';
 import type { TODO_any } from '../../utils/organization/TODO_any';

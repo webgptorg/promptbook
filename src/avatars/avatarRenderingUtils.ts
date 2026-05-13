@@ -1,8 +1,8 @@
 /* eslint-disable no-magic-numbers */
 
-import { PROMPTBOOK_COLOR } from '../config';
 import type { AgentBasicInformation } from '../book-2.0/agent-source/AgentBasicInformation';
-import type { string_color } from '../types/typeAliases';
+import { PROMPTBOOK_COLOR } from '../config';
+import type { string_color } from '../types/string_person_fullname';
 import { Color } from '../utils/color/Color';
 import { darken } from '../utils/color/operators/darken';
 import { lighten } from '../utils/color/operators/lighten';

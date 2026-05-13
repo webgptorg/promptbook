@@ -1,7 +1,8 @@
 import { describe, expect, it, jest } from '@jest/globals';
 import { CHAT_STREAM_KEEP_ALIVE_TOKEN } from '../../constants/streaming';
+import type { Parameters } from '../../types/Parameters';
 import type { Prompt } from '../../types/Prompt';
-import type { Parameters, string_agent_url } from '../../types/typeAliases';
+import type { string_agent_url } from '../../types/string_agent_url';
 import { RemoteAgent } from './RemoteAgent';
 
 /**

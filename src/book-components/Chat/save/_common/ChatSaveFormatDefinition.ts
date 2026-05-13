@@ -1,5 +1,6 @@
 import type { Promisable } from 'type-fest';
-import type { string_file_extension, string_mime_type } from '../../../../types/typeAliases';
+import type { string_mime_type } from '../../../../types/string_mime_type';
+import type { string_file_extension } from '../../../../types/string_sha256';
 import type { ChatMessage } from '../../types/ChatMessage';
 import type { ChatParticipant } from '../../types/ChatParticipant';
 

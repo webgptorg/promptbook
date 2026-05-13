@@ -2,11 +2,9 @@ import { afterEach, describe, expect, it } from '@jest/globals';
 import { createBasicAgentModelRequirements } from '../_base/createEmptyAgentModelRequirements';
 import { parseToolExecutionEnvelope } from '../_common/toolExecutionEnvelope';
 import { TOOL_RUNTIME_CONTEXT_ARGUMENT } from '../_common/toolRuntimeContext';
-import {
-    setTimeoutToolRuntimeAdapter,
-    UseTimeoutCommitmentDefinition,
-    type TimeoutToolRuntimeAdapter,
-} from './USE_TIMEOUT';
+import { setTimeoutToolRuntimeAdapter } from './setTimeoutToolRuntimeAdapter';
+import type { TimeoutToolRuntimeAdapter } from './TimeoutToolRuntimeAdapter';
+import { UseTimeoutCommitmentDefinition } from './USE_TIMEOUT';
 
 /**
  * Helper to parse plain JSON tool results.

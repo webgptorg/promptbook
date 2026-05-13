@@ -2,9 +2,9 @@
 
 import type { ReactElement } from 'react';
 import { classNames } from '../../_common/react-utils/classNames';
-import { AgentChip } from '../AgentChip';
-import type { ToolCallChipEntry } from './createChatMessageToolCallRenderModel';
+import { AgentChip } from '../AgentChip/AgentChip';
 import styles from './Chat.module.css';
+import type { ToolCallChipEntry } from './createChatMessageToolCallRenderModel';
 
 /**
  * Props for rendering the tool-call chip list below one chat message.

@@ -1,5 +1,5 @@
 import { spaceTrim } from 'spacetrim';
-import type { string_markdown, string_markdown_text } from '../../../types/typeAliases';
+import type { string_markdown, string_markdown_text } from '../../../types/string_markdown';
 import type { Scraper } from '../Scraper';
 import { $scrapersMetadataRegister } from './$scrapersMetadataRegister';
 import { $scrapersRegister } from './$scrapersRegister';

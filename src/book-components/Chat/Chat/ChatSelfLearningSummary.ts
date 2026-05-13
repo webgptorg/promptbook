@@ -3,7 +3,7 @@ import type { SelfLearningToolCallResult } from '../../../types/ToolCall';
 import { countLines } from '../../../utils/expectation-counters/countLines';
 import type { TODO_any } from '../../../utils/organization/TODO_any';
 import type { ChatMessage } from '../types/ChatMessage';
-import { getToolCallTimestamp } from '../utils/toolCallParsing';
+import { getToolCallTimestamp } from '../utils/toolCallParsing/getToolCallTimestamp';
 
 /**
  * Resolved summary data for self-learning tool calls.

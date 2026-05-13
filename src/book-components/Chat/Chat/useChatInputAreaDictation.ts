@@ -1,23 +1,20 @@
 'use client';
 
 import {
-    useCallback,
-    useEffect,
-    useRef,
-    useState,
-    type Dispatch,
-    type MutableRefObject,
-    type SetStateAction,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type Dispatch,
+  type MutableRefObject,
+  type SetStateAction
 } from 'react';
 import type { SpeechRecognitionErrorCode, SpeechRecognitionEvent } from '../../../types/SpeechRecognition';
 import type { ChatProps } from './ChatProps';
 import { insertDictationChunk } from './insertDictationChunk';
 import { learnDictationDictionary } from './learnDictationDictionary';
-import {
-    normalizeDictationWhitespace,
-    refineFinalDictationChunk,
-    type DictationRefinementSettings,
-} from './refineFinalDictationChunk';
+import type { DictationRefinementSettings } from './refineFinalDictationChunk';
+import { normalizeDictationWhitespace, refineFinalDictationChunk } from './refineFinalDictationChunk';
 import type { DictationUiState } from './resolveSpeechRecognitionUiDescriptor';
 import { useChatInputAreaDictationPersistence } from './useChatInputAreaDictationPersistence';
 import { useChatInputAreaDictationSupport } from './useChatInputAreaDictationSupport';

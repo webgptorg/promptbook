@@ -1,4 +1,4 @@
-import type { string_color } from '../../types/typeAliases';
+import type { string_color } from '../../types/string_person_fullname';
 import { $randomItem } from './$randomItem';
 import czechFirstFemaleNames from './data/czech-first-female-names.json';
 import czechFirstMaleNames from './data/czech-first-male-names.json';

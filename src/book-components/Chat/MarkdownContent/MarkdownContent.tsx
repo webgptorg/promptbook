@@ -4,7 +4,7 @@ import katex from 'katex';
 import { memo, useEffect, useMemo, useRef } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { Converter as ShowdownConverter } from 'showdown';
-import type { string_html, string_markdown } from '../../../types/typeAliases';
+import type { string_html, string_markdown } from '../../../types/string_markdown';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';
 import { classNames } from '../../_common/react-utils/classNames';
 import { CodeBlock } from '../CodeBlock/CodeBlock';

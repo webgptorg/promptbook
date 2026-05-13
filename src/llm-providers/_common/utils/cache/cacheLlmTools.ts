@@ -1,16 +1,12 @@
 import hexEncoder from 'crypto-js/enc-hex';
 import sha256 from 'crypto-js/sha256';
 import { spaceTrim } from 'spacetrim';
-import { serializeError } from '../../../../_packages/utils.index';
 import { DEFAULT_IS_VERBOSE, MAX_FILENAME_LENGTH } from '../../../../config';
 import { assertsError } from '../../../../errors/assertsError';
 import { PipelineExecutionError } from '../../../../errors/PipelineExecutionError';
+import { serializeError } from '../../../../errors/utils/serializeError';
 import type { LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
-import type {
-    ChatPromptResult,
-    CompletionPromptResult,
-    EmbeddingPromptResult,
-} from '../../../../execution/PromptResult';
+import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } from '../../../../execution/PromptResult';
 import { validatePromptResult } from '../../../../execution/utils/validatePromptResult';
 import { MemoryStorage } from '../../../../storage/memory/MemoryStorage';
 import type { Prompt } from '../../../../types/Prompt';

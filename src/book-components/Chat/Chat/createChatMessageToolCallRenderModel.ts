@@ -1,19 +1,13 @@
 import type { ToolCall } from '../../../types/ToolCall';
 import { ASSISTANT_PREPARATION_TOOL_CALL_NAME } from '../../../types/ToolCall';
 import { resolveToolCallIdempotencyKey } from '../../../utils/toolCalls/resolveToolCallIdempotencyKey';
-import type { AgentChipData } from '../AgentChip';
+import type { AgentChipData } from '../AgentChip/AgentChip';
 import type { ChatMessage } from '../types/ChatMessage';
-import {
-    collectTeamToolCallSummary,
-    type TransitiveCitation,
-    type TransitiveToolCall,
-} from '../utils/collectTeamToolCallSummary';
+import type { TransitiveCitation, TransitiveToolCall } from '../utils/collectTeamToolCallSummary';
+import { collectTeamToolCallSummary } from '../utils/collectTeamToolCallSummary';
 import { isTeamToolName } from '../utils/createTeamToolNameFromUrl';
-import {
-    buildToolCallChipText,
-    getToolCallChipletInfo,
-    type ToolCallChipletInfo,
-} from '../utils/getToolCallChipletInfo';
+import type { ToolCallChipletInfo } from '../utils/getToolCallChipletInfo';
+import { buildToolCallChipText, getToolCallChipletInfo } from '../utils/getToolCallChipletInfo';
 import { resolveToolCallState } from '../utils/resolveToolCallState';
 import { createDeduplicatedWalletCredentialToolCalls } from '../utils/walletCredentialToolCall';
 import type { ChatProps } from './ChatProps';

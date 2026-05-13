@@ -1,4 +1,4 @@
-import { ChatParticipant } from '../types/ChatParticipant';
+import type { ChatParticipant } from '../types/ChatParticipant';
 
 /**
  * Resolves the URL for a citation source by looking up KNOWLEDGE commitments in the agent's source code.

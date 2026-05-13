@@ -3,7 +3,7 @@ import { padBook } from '../../../book-2.0/agent-source/padBook';
 import { DEFAULT_BOOK_OUTPUT_PARAMETER_NAME, DEFAULT_BOOK_TITLE } from '../../../config';
 import type { PipelineString } from '../../../pipeline/PipelineString';
 import { validatePipelineString } from '../../../pipeline/validatePipelineString';
-import type { string_prompt } from '../../../types/typeAliases';
+import type { string_prompt } from '../../../types/string_prompt';
 import type { chococake } from '../../organization/really_any';
 import { isFlatPipeline } from '../utils/isFlatPipeline';
 

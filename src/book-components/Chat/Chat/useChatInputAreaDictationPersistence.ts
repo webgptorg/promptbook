@@ -1,11 +1,8 @@
 'use client';
 
 import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
-import {
-    DEFAULT_DICTATION_SETTINGS,
-    type DictationDictionary,
-    type DictationRefinementSettings,
-} from './refineFinalDictationChunk';
+import type { DictationDictionary, DictationRefinementSettings } from './refineFinalDictationChunk';
+import { DEFAULT_DICTATION_SETTINGS } from './refineFinalDictationChunk';
 
 /**
  * Key used to persist dictation refinement preferences.

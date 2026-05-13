@@ -4,10 +4,11 @@ import { CodeBlock } from '../CodeBlock/CodeBlock';
 import { MarkdownContent } from '../MarkdownContent/MarkdownContent';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatMessageContentSegment } from '../utils/splitMessageContentIntoSegments';
-import { LOADING_INTERACTIVE_IMAGE } from './constants';
 import { ChatMessageMap } from './ChatMessageMap';
+import { LOADING_INTERACTIVE_IMAGE } from './constants';
 import { ImagePromptRenderer } from './ImagePromptRenderer';
-import { StreamingFeaturePlaceholder, type StreamingFeaturePlaceholderKind } from './StreamingFeaturePlaceholder';
+import type { StreamingFeaturePlaceholderKind } from './StreamingFeaturePlaceholder';
+import { StreamingFeaturePlaceholder } from './StreamingFeaturePlaceholder';
 
 /**
  * Props for rendering the rich message-body content area.

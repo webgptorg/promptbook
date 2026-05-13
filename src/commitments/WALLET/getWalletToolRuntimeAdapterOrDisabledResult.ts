@@ -1,10 +1,5 @@
-import type {
-    WalletDisabledToolResult,
-    WalletRuntimeToolAction,
-    WalletToolRuntimeAdapter,
-    WalletToolRuntimeContext,
-} from './WalletToolRuntimeAdapter';
 import { getWalletToolRuntimeAdapter } from './setWalletToolRuntimeAdapter';
+import type { WalletDisabledToolResult, WalletRuntimeToolAction, WalletToolRuntimeAdapter, WalletToolRuntimeContext } from './WalletToolRuntimeAdapter';
 
 /**
  * Resolves disabled message for wallet runtime context.

@@ -1,4 +1,4 @@
-import type { string_pipeline_url } from '../../../types/typeAliases';
+import type { string_pipeline_url } from '../../../types/string_pipeline_url';
 import type { really_unknown } from '../../organization/really_unknown';
 import { isValidUrl } from './isValidUrl';
 

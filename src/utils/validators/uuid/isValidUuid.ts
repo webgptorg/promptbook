@@ -1,4 +1,4 @@
-import type { string_uuid } from '../../../types/typeAliases';
+import type { string_uuid } from '../../../types/string_sha256';
 import type { really_unknown } from '../../organization/really_unknown';
 
 /**

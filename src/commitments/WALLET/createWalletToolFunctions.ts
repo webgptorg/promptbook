@@ -1,19 +1,10 @@
-import type { string_javascript_name } from '../../_packages/types.index';
 import type { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
-import {
-    getWalletToolRuntimeAdapterOrDisabledResult,
-    resolveWalletDisabledMessage,
-} from './getWalletToolRuntimeAdapterOrDisabledResult';
+import type { string_javascript_name } from '../../types/string_person_fullname';
+import { getWalletToolRuntimeAdapterOrDisabledResult, resolveWalletDisabledMessage } from './getWalletToolRuntimeAdapterOrDisabledResult';
 import { parseWalletToolArgs } from './parseWalletToolArgs';
 import { resolveWalletRuntimeContext } from './resolveWalletRuntimeContext';
-import type {
-    DeleteWalletRecordToolArgs,
-    RequestWalletRecordToolArgs,
-    RetrieveWalletRecordsToolArgs,
-    StoreWalletRecordToolArgs,
-    UpdateWalletRecordToolArgs,
-} from './WalletToolRuntimeAdapter';
 import { WalletToolNames } from './WalletToolNames';
+import type { DeleteWalletRecordToolArgs, RequestWalletRecordToolArgs, RetrieveWalletRecordsToolArgs, StoreWalletRecordToolArgs, UpdateWalletRecordToolArgs } from './WalletToolRuntimeAdapter';
 
 /**
  * Creates runtime wallet tool function implementations.

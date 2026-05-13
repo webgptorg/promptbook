@@ -1,4 +1,4 @@
-import type { string_title } from '../../../types/typeAliases';
+import type { string_title } from '../../../types/string_title';
 import type { Registered } from '../../../utils/misc/$Register';
 import type { LlmToolsOptions } from './LlmToolsOptions';
 

@@ -1,5 +1,6 @@
 import { IDestroyable, ITeardownLogic, Registration } from 'destroyable';
-import type { string_mime_type, string_url } from '../../types/typeAliases';
+import type { string_mime_type } from '../../types/string_mime_type';
+import type { string_url } from '../../types/string_url';
 
 /**
  * Converts Blob, File or MediaSource to url using URL.createObjectURL

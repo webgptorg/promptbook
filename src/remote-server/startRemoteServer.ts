@@ -1,6 +1,6 @@
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
-import express from 'express';
 import type { NextFunction, Request, Response } from 'express';
+import express from 'express';
 import * as OpenApiValidator from 'express-openapi-validator';
 import http from 'http';
 import { DefaultEventsMap, Server, Socket } from 'socket.io';
@@ -33,14 +33,14 @@ import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
 import { openapiJson } from './openapi';
 import type { paths } from './openapi-types';
 import type { RemoteServer } from './RemoteServer';
-import type { PromptbookServer_Error } from './socket-types/_common/PromptbookServer_Error';
-import type { Identification } from './socket-types/_subtypes/Identification';
 import type { PromptbookServer_ListModels_Request } from './socket-types/listModels/PromptbookServer_ListModels_Request';
 import type { PromptbookServer_ListModels_Response } from './socket-types/listModels/PromptbookServer_ListModels_Response';
 import type { PromptbookServer_PreparePipeline_Request } from './socket-types/prepare/PromptbookServer_PreparePipeline_Request';
-import { PromptbookServer_PreparePipeline_Response } from './socket-types/prepare/PromptbookServer_PreparePipeline_Response';
+import type { PromptbookServer_PreparePipeline_Response } from './socket-types/prepare/PromptbookServer_PreparePipeline_Response';
 import type { PromptbookServer_Prompt_Request } from './socket-types/prompt/PromptbookServer_Prompt_Request';
 import type { PromptbookServer_Prompt_Response } from './socket-types/prompt/PromptbookServer_Prompt_Response';
+import type { PromptbookServer_Error } from './socket-types/_common/PromptbookServer_Error';
+import type { Identification } from './socket-types/_subtypes/Identification';
 import type { ApplicationRemoteServerOptions, LoginResponse, RemoteServerOptions } from './types/RemoteServerOptions';
 import { renderServerIndexHtml } from './ui/renderServerIndexHtml';
 import type { ServerInfo } from './ui/types';

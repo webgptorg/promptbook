@@ -3,7 +3,9 @@ import { RESERVED_PARAMETER_MISSING_VALUE, RESERVED_PARAMETER_RESTRICTED } from 
 import { LimitReachedError } from '../../errors/LimitReachedError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import type { Parameters, string_parameter_name, string_template } from '../../types/typeAliases';
+import type { Parameters } from '../../types/Parameters';
+import type { string_parameter_name } from '../../types/string_name';
+import type { string_template } from '../../types/string_prompt';
 import type { really_unknown } from '../organization/really_unknown';
 import { valueToString } from './valueToString';
 

@@ -1,6 +1,6 @@
 import type { ToolCall } from '../../../types/ToolCall';
 import { resolveToolCallIdempotencyKey } from '../../../utils/toolCalls/resolveToolCallIdempotencyKey';
-import { parseToolCallResult } from './toolCallParsing';
+import { parseToolCallResult } from './toolCallParsing/parseToolCallResult';
 
 /**
  * Synthetic tool name used for wallet-credential chips in chat UI.

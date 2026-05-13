@@ -1,13 +1,11 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import type { really_any } from '../organization/really_any';
-import {
-    appendChatAttachmentContext,
-    appendChatAttachmentContextWithContent,
-    formatChatAttachmentContentContext,
-    formatChatAttachmentContext,
-    normalizeChatAttachments,
-    resolveChatAttachmentContents,
-} from './chatAttachments';
+import { appendChatAttachmentContext } from './chatAttachments/appendChatAttachmentContext';
+import { appendChatAttachmentContextWithContent } from './chatAttachments/appendChatAttachmentContextWithContent';
+import { formatChatAttachmentContentContext } from './chatAttachments/formatChatAttachmentContentContext';
+import { formatChatAttachmentContext } from './chatAttachments/formatChatAttachmentContext';
+import { normalizeChatAttachments } from './chatAttachments/normalizeChatAttachments';
+import { resolveChatAttachmentContents } from './chatAttachments/resolveChatAttachmentContents';
 
 /**
  * Stable Windows-1250 sample text fixture used to verify guessed decoding metadata.

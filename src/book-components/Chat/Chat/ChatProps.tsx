@@ -4,10 +4,10 @@
 
 import type { CSSProperties, ReactNode } from 'react';
 import type { Promisable } from 'type-fest';
-import { Color } from '../../../_packages/color.index';
-import { SpeechRecognition } from '../../../types/SpeechRecognition';
-import type { string_href } from '../../../types/typeAliases';
-import { string_color } from '../../../types/typeAliases';
+import type { SpeechRecognition } from '../../../types/SpeechRecognition';
+import type { string_href } from '../../../types/string_href';
+import type { string_color } from '../../../types/string_person_fullname';
+import { Color } from '../../../utils/color/Color';
 import type { AgentChipData } from '../AgentChip/AgentChip';
 import type { string_chat_format_name } from '../save/_common/string_chat_format_name';
 import type { ChatMessage } from '../types/ChatMessage';

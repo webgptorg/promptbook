@@ -1,4 +1,4 @@
-import type { string_color, string_person_firstname, string_person_lastname } from '../../types/typeAliases';
+import type { string_color, string_person_firstname, string_person_lastname } from '../../types/string_person_fullname';
 import { computeHash } from '../misc/computeHash';
 import { $randomItem } from './$randomItem';
 import type { GenerateNameResult, NamePool } from './NamePool';

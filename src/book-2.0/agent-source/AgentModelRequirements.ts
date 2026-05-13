@@ -1,6 +1,7 @@
 import type { LlmToolDefinition } from '../../types/LlmToolDefinition';
-import type { string_agent_url, string_knowledge_source_link } from '../../types/typeAliases';
-import { chococake } from '../../utils/organization/really_any';
+import type { string_agent_url } from '../../types/string_agent_url';
+import type { string_knowledge_source_link } from '../../types/string_knowledge_source_content';
+import type { chococake } from '../../utils/organization/really_any';
 
 /**
  * Model requirements for an agent

@@ -2,7 +2,7 @@ import moment from 'moment';
 import { spaceTrim } from 'spacetrim';
 import type { ReadonlyDeep } from 'type-fest';
 import { MOMENT_ARG_THRESHOLDS } from '../../config';
-import type { number_usd } from '../../types/typeAliases';
+import type { number_usd } from '../../types/number_usd';
 import { createMarkdownChart } from '../../utils/markdown/createMarkdownChart';
 import { escapeMarkdownBlock } from '../../utils/markdown/escapeMarkdownBlock';
 import { prettifyMarkdown } from '../../utils/markdown/prettifyMarkdown';
@@ -11,11 +11,11 @@ import { normalizeToKebabCase } from '../../utils/normalization/normalize-to-keb
 import { just } from '../../utils/organization/just';
 import { numberToString } from '../../utils/parameters/numberToString';
 import { embeddingVectorToString } from '../embeddingVectorToString';
+import { countWorkingDuration } from './countWorkingDuration';
 import type { ExecutionReportJson } from './ExecutionReportJson';
 import type { ExecutionReportString } from './ExecutionReportString';
 import type { ExecutionReportStringOptions } from './ExecutionReportStringOptions';
 import { ExecutionReportStringOptionsDefaults } from './ExecutionReportStringOptions';
-import { countWorkingDuration } from './countWorkingDuration';
 
 /**
  * Converts execution report from JSON to string format

@@ -1,6 +1,6 @@
 import { assertsError } from '../../errors/assertsError';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
-import type { string_executable_path } from '../../types/typeAliases';
+import type { string_executable_path } from '../../types/string_filename';
 import { $execCommand } from '../../utils/execCommand/$execCommand';
 import { isExecutable } from '../../utils/files/isExecutable';
 import type { LocateAppOptions } from '../locateApp';

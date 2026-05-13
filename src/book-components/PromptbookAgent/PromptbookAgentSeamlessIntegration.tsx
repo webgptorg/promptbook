@@ -2,10 +2,10 @@
 
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { RemoteAgent } from '../../llm-providers/agent/RemoteAgent';
-import { classNames } from '../_common/react-utils/classNames';
 import { AgentChat } from '../Chat/AgentChat/AgentChat';
 import { CloseIcon } from '../icons/CloseIcon';
-import { PromptbookAgentIntegrationProps } from './PromptbookAgentIntegration';
+import { classNames } from '../_common/react-utils/classNames';
+import type { PromptbookAgentIntegrationProps } from './PromptbookAgentIntegration';
 import styles from './PromptbookAgentSeamlessIntegration.module.css';
 
 /**

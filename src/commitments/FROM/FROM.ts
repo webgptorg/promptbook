@@ -1,8 +1,8 @@
 import { spaceTrim } from 'spacetrim';
-import { isValidAgentUrl } from '../../_packages/utils.index';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { isVoidPseudoAgentReference } from '../../book-2.0/agent-source/pseudoAgentReferences';
-import type { string_agent_url } from '../../types/typeAliases';
+import type { string_agent_url } from '../../types/string_agent_url';
+import { isValidAgentUrl } from '../../utils/validators/url/isValidAgentUrl';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 
 /**

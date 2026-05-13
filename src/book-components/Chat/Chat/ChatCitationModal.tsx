@@ -1,8 +1,8 @@
 'use client';
 
-import { classNames } from '../../_common/react-utils/classNames';
 import { CloseIcon } from '../../icons/CloseIcon';
 import { DownloadIcon } from '../../icons/DownloadIcon';
+import { classNames } from '../../_common/react-utils/classNames';
 import { MarkdownContent } from '../MarkdownContent/MarkdownContent';
 import type { ChatParticipant } from '../types/ChatParticipant';
 import { getCitationLabel, isPlainTextCitation, resolveCitationPreviewUrl } from '../utils/citationHelpers';

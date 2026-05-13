@@ -1,6 +1,5 @@
-import type { string_name } from '../../types/typeAliases';
-import type { string_parameter_name } from '../../types/typeAliases';
-import type { string_template } from '../../types/typeAliases';
+import type { string_name, string_parameter_name } from '../../types/string_name';
+import type { string_template } from '../../types/string_prompt';
 
 /**
  * Parses the task and returns the list of all parameter names

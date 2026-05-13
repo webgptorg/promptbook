@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { AgentCapability } from '../../../book-2.0/agent-source/AgentBasicInformation';
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
-import type { id } from '../../../types/typeAliases';
+import type { id } from '../../../types/string_token';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
 import { ChatPersistence } from '../utils/ChatPersistence';

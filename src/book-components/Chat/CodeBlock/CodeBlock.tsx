@@ -2,12 +2,13 @@
 
 import { useId, useMemo, useState } from 'react';
 import type { string_book } from '../../../book-2.0/agent-source/string_book';
+import { BookEditor } from '../../BookEditor/BookEditor';
 import { MonacoEditorWithShadowDom } from '../../_common/MonacoEditorWithShadowDom';
 import { classNames } from '../../_common/react-utils/classNames';
-import { BookEditor } from '../../BookEditor/BookEditor';
 import { downloadFile } from '../utils/downloadFile';
-import { resolveCodeBlockLanguage, type MonacoCodeBlockLanguage } from './resolveCodeBlockLanguage';
 import styles from './CodeBlock.module.css';
+import type { MonacoCodeBlockLanguage } from './resolveCodeBlockLanguage';
+import { resolveCodeBlockLanguage } from './resolveCodeBlockLanguage';
 
 /**
  * Props for `<CodeBlock/>`.

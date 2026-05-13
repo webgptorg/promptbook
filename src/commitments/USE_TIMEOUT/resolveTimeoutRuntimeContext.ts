@@ -1,4 +1,4 @@
-import type { TODO_any } from '../../_packages/types.index';
+import type { TODO_any } from '../../utils/organization/TODO_any';
 import { readToolRuntimeContextFromToolArgs } from '../_common/toolRuntimeContext';
 import type { TimeoutToolRuntimeContext } from './TimeoutToolRuntimeAdapter';
 

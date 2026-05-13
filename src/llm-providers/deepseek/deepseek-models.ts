@@ -1,5 +1,5 @@
 import type { AvailableModel } from '../../execution/AvailableModel';
-import type { number_usd } from '../../types/typeAliases';
+import type { number_usd } from '../../types/number_usd';
 import { exportJson } from '../../utils/serialization/exportJson';
 import { pricing } from '../_common/utils/pricing';
 

@@ -1,4 +1,4 @@
-import type { string_name } from '../../types/typeAliases';
+import type { string_name } from '../../types/string_name';
 
 /**
  * Parsed POSTPROCESS command

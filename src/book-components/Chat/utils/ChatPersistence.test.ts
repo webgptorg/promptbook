@@ -2,8 +2,8 @@
  * @jest-environment jsdom
  */
 
+import type { string_date_iso8601 } from '../../../types/string_token';
 import type { ChatMessage } from '../types/ChatMessage';
-import type { string_date_iso8601 } from '../../../types/typeAliases';
 import { ChatPersistence } from './ChatPersistence';
 
 /**

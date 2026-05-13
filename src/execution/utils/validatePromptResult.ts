@@ -5,7 +5,7 @@ import { UnexpectedError } from '../../errors/UnexpectedError';
 import { isValidJsonString } from '../../formats/json/utils/isValidJsonString';
 import type { Expectations } from '../../pipeline/PipelineJson/Expectations';
 import { extractJsonBlock } from '../../postprocessing/utils/extractJsonBlock';
-import type { string_postprocessing_function_name } from '../../types/typeAliases';
+import type { string_postprocessing_function_name } from '../../types/string_person_fullname';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { checkExpectations } from './checkExpectations';
 

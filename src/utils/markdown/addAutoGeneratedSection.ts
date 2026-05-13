@@ -1,7 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import { GENERATOR_WARNING } from '../../config';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_name } from '../../types/typeAliases';
+import type { string_markdown } from '../../types/string_markdown';
+import type { string_name } from '../../types/string_name';
 import { removeMarkdownComments } from './removeMarkdownComments';
 
 /**

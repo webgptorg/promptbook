@@ -1,4 +1,5 @@
-import type { string_markdown_text, string_name } from './typeAliases';
+import type { string_markdown_text } from './string_markdown';
+import type { string_name } from './string_name';
 
 /**
  * Minimal recursive JSON Schema entry used by tool definitions.

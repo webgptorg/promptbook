@@ -1,13 +1,4 @@
-import type {
-    DeleteWalletRecordToolArgs,
-    RequestWalletRecordToolArgs,
-    RetrieveWalletRecordsToolArgs,
-    StoreWalletRecordToolArgs,
-    UpdateWalletRecordToolArgs,
-    WalletRecordType,
-    WalletRequestRecord,
-    WalletToolRecord,
-} from './WalletToolRuntimeAdapter';
+import type { DeleteWalletRecordToolArgs, RequestWalletRecordToolArgs, RetrieveWalletRecordsToolArgs, StoreWalletRecordToolArgs, UpdateWalletRecordToolArgs, WalletRecordType, WalletRequestRecord, WalletToolRecord } from './WalletToolRuntimeAdapter';
 
 /**
  * Parsed payload for retrieving wallet records.

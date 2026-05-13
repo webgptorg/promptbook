@@ -1,6 +1,6 @@
+import styles from './BookEditor.module.css';
 import { BookEditorMonacoFormatting } from './BookEditorMonacoFormatting';
 import type { UploadItem, UploadStats } from './useBookEditorMonacoUploads';
-import styles from './BookEditor.module.css';
 
 /**
  * Map of upload status labels.

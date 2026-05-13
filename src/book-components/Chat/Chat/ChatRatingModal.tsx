@@ -1,11 +1,11 @@
 'use client';
 
 import type { MouseEventHandler } from 'react';
-import type { id } from '../../../types/typeAliases';
+import type { id } from '../../../types/string_token';
 import { classNames } from '../../_common/react-utils/classNames';
 import type { ChatMessage } from '../types/ChatMessage';
-import type { ChatFeedbackMode, ChatProps } from './ChatProps';
 import styles from './Chat.module.css';
+import type { ChatFeedbackMode, ChatProps } from './ChatProps';
 
 /**
  * Supported star values rendered by the rating UI.

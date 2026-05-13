@@ -1,4 +1,4 @@
-import type { string_dirname } from '../../types/typeAliases';
+import type { string_dirname } from '../../types/string_filename';
 
 /**
  * Configuration options for the FileCacheStorage implementation.

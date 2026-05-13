@@ -1,8 +1,8 @@
 import { spaceTrim } from 'spacetrim';
-import { PromptbookFetchError } from '../../../errors/PromptbookFetchError';
 import { assertsError } from '../../../errors/assertsError';
+import { PromptbookFetchError } from '../../../errors/PromptbookFetchError';
 import type { PromptbookFetch } from '../../../execution/PromptbookFetch';
-import type { string_url } from '../../../types/typeAliases';
+import type { string_url } from '../../../types/string_url';
 
 /**
  * The built-in `fetch' function with a lightweight error handling wrapper as default fetch function used in Promptbook scrapers

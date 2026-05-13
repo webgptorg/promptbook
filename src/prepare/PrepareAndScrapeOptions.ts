@@ -1,5 +1,5 @@
 import type { IntermediateFilesStrategy } from '../types/IntermediateFilesStrategy';
-import type { string_dirname } from '../types/typeAliases';
+import type { string_dirname } from '../types/string_filename';
 
 /**
  * Options for preparation of the pipeline

@@ -1,7 +1,7 @@
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { createCommitmentRegex, createCommitmentTypeRegex } from '../../book-2.0/agent-source/createCommitmentRegex';
-import { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
-import { string_javascript_name } from '../../types/typeAliases';
+import type { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
+import type { string_javascript_name } from '../../types/string_person_fullname';
 import type { BookCommitment } from './BookCommitment';
 import type { CommitmentDefinition } from './CommitmentDefinition';
 

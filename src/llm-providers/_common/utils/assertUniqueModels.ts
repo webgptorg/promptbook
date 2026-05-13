@@ -1,4 +1,4 @@
-import { AvailableModel } from '../../../execution/AvailableModel';
+import type { AvailableModel } from '../../../execution/AvailableModel';
 
 /**
  * Utility to assert that all models in the provided array have unique `modelName` values.

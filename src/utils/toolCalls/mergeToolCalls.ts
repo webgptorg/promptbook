@@ -1,4 +1,5 @@
-import { isAssistantPreparationToolCall, type ToolCall, type ToolCallState } from '../../types/ToolCall';
+import type { ToolCall, ToolCallState } from '../../types/ToolCall';
+import { isAssistantPreparationToolCall } from '../../types/ToolCall';
 import { getToolCallIdentity } from './getToolCallIdentity';
 
 /**

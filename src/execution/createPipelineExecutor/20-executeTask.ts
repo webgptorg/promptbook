@@ -5,10 +5,10 @@ import { extractParameterNamesFromTask } from '../../conversion/utils/extractPar
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
-import type { Parameters } from '../../types/typeAliases';
+import type { LlmCall } from '../../types/LlmCall';
+import type { Parameters } from '../../types/Parameters';
 import { difference } from '../../utils/sets/difference';
 import { union } from '../../utils/sets/union';
-import type { LlmCall } from '../../types/LlmCall';
 import type { ExecutionReportJson } from '../execution-report/ExecutionReportJson';
 import type { PipelineExecutorResult } from '../PipelineExecutorResult';
 import type { CreatePipelineExecutorOptions } from './00-CreatePipelineExecutorOptions';

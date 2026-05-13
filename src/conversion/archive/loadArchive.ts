@@ -3,7 +3,7 @@ import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { FilesystemTools } from '../../execution/FilesystemTools';
 import { jsonParse } from '../../formats/json/utils/jsonParse';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
-import type { string_filename } from '../../types/typeAliases';
+import type { string_filename } from '../../types/string_filename';
 import { validatePipeline } from '../validation/validatePipeline';
 
 /**

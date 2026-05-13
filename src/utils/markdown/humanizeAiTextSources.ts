@@ -1,4 +1,4 @@
-import type { string_markdown } from '../../types/typeAliases';
+import type { string_markdown } from '../../types/string_markdown';
 
 /**
  * Remove bracketed source citation artifacts like `\u30105:1\u2020source\u3011`.

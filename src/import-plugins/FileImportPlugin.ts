@@ -1,4 +1,4 @@
-import type { string_mime_type } from '../types/typeAliases';
+import type { string_mime_type } from '../types/string_mime_type';
 
 /**
  * Type for file import plugins

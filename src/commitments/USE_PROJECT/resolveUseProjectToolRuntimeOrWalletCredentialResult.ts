@@ -1,6 +1,7 @@
 import { readToolRuntimeContextFromToolArgs } from '../_common/toolRuntimeContext';
 import { normalizeOptionalToolText } from './normalizeOptionalToolText';
-import { parseGitHubRepositoryReference, type GitHubRepositoryReference } from './projectReference';
+import type { GitHubRepositoryReference } from './projectReference';
+import { parseGitHubRepositoryReference } from './projectReference';
 import { UseProjectWallet } from './UseProjectWallet';
 
 /**

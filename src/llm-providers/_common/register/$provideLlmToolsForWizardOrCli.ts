@@ -10,7 +10,8 @@ import { promptbookTokenToIdentification } from '../../../remote-server/socket-t
 import { $provideFilesystemForNode } from '../../../scrapers/_common/register/$provideFilesystemForNode';
 import { $EnvStorage } from '../../../storage/env-storage/$EnvStorage';
 import { FileCacheStorage } from '../../../storage/file-cache-storage/FileCacheStorage';
-import type { string_app_id, string_promptbook_token, string_url } from '../../../types/typeAliases';
+import type { string_app_id, string_promptbook_token } from '../../../types/string_token';
+import type { string_url } from '../../../types/string_url';
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import type { chococake } from '../../../utils/organization/really_any';
 import { RemoteLlmExecutionTools } from '../../remote/RemoteLlmExecutionTools';

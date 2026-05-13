@@ -1,24 +1,13 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import {
-    createAvatarDefinitionKey,
-    createAvatarInteractionRuntimeState,
-    createIdleAvatarInteractionState,
-    resolveAvatarPointerTarget,
-    stepAvatarInteractionRuntimeState,
-} from './avatarInteractionUtils';
 import { retainAvatarAnimationListener } from './avatarAnimationScheduler';
-import { observeAvatarVisibility } from './avatarVisibilityTracking';
-import {
-    getAvatarPointerSnapshot,
-    getAvatarPointerSnapshotVersion,
-    getAvatarViewportLayoutVersion,
-    retainAvatarPointerTracking,
-} from './avatarPointerTracking';
-import type { AvatarProps } from './types/AvatarVisualDefinition';
-import { renderAvatarVisual, resolveAvatarRenderDefinition } from './renderAvatarVisual';
+import { createAvatarDefinitionKey, createAvatarInteractionRuntimeState, createIdleAvatarInteractionState, resolveAvatarPointerTarget, stepAvatarInteractionRuntimeState } from './avatarInteractionUtils';
+import { getAvatarPointerSnapshot, getAvatarPointerSnapshotVersion, getAvatarViewportLayoutVersion, retainAvatarPointerTracking } from './avatarPointerTracking';
 import { DEFAULT_AVATAR_SIZE } from './avatarRenderingUtils';
+import { observeAvatarVisibility } from './avatarVisibilityTracking';
+import { renderAvatarVisual, resolveAvatarRenderDefinition } from './renderAvatarVisual';
+import type { AvatarProps } from './types/AvatarVisualDefinition';
 
 /**
  * Border radius ratio for the shared avatar canvas.

@@ -1,15 +1,12 @@
-import { createAgentModelRequirements } from '../../book-2.0/agent-source/createAgentModelRequirements';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
+import { createAgentModelRequirements } from '../../book-2.0/agent-source/createAgentModelRequirements';
 import { parseAgentSource } from '../../book-2.0/agent-source/parseAgentSource';
 import { parseAgentSourceWithCommitments } from '../../book-2.0/agent-source/parseAgentSourceWithCommitments';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import { getAllCommitmentDefinitions } from '../../commitments/_common/getAllCommitmentDefinitions';
 import type { LlmToolDefinition } from '../../types/LlmToolDefinition';
 import type { BookTranspilerOptions } from './BookTranspilerOptions';
-import {
-    createTranspiledTeamAwareToolFunctions,
-    createTranspiledTeamExportForContext,
-} from './createTranspiledTeamRuntimeSection';
+import { createTranspiledTeamAwareToolFunctions, createTranspiledTeamExportForContext } from './createTranspiledTeamRuntimeSection';
 import type { TranspiledTeamExport } from './TranspiledTeamExport';
 
 /**

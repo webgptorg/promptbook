@@ -4,8 +4,8 @@
 
 import { useCallback, useMemo, type MouseEvent } from 'react';
 import { Color } from '../../../utils/color/Color';
-import { classNames } from '../../_common/react-utils/classNames';
 import { SolidArrowButton } from '../../icons/SolidArrowButton';
+import { classNames } from '../../_common/react-utils/classNames';
 import { ChatEffectsSystem } from '../effects/ChatEffectsSystem';
 import type { ChatEffectConfig } from '../effects/types/ChatEffectConfig';
 import { useChatCompleteNotification } from '../hooks/useChatCompleteNotification';
@@ -14,12 +14,12 @@ import type { ChatMessage } from '../types/ChatMessage';
 import styles from './Chat.module.css';
 import { ChatActionsBar } from './ChatActionsBar';
 import { ChatCitationModal } from './ChatCitationModal';
+import { chatCssClassNames, getChatCssClassName } from './chatCssClassNames';
 import { ChatInputArea } from './ChatInputArea';
 import { ChatMessageList } from './ChatMessageList';
 import type { ChatProps } from './ChatProps';
 import { ChatRatingModal } from './ChatRatingModal';
 import { ChatToolCallModal } from './ChatToolCallModal';
-import { chatCssClassNames, getChatCssClassName } from './chatCssClassNames';
 import { useChatPostprocessedMessages } from './useChatPostprocessedMessages';
 import { useChatScrollState } from './useChatScrollState';
 import { useChatToolCallState } from './useChatToolCallState';

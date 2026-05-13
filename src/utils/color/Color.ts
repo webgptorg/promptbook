@@ -1,4 +1,5 @@
-import type { string_color, string_url_image } from '../../types/typeAliases';
+import type { string_color } from '../../types/string_person_fullname';
+import type { string_url_image } from '../../types/string_url_image';
 import { spaceTrim } from '../organization/spaceTrim';
 import { TODO_USE } from '../organization/TODO_USE';
 import type { WithTake } from '../take/interfaces/ITakeChain';
@@ -7,7 +8,7 @@ import { CSS_COLORS } from './css-colors';
 import { checkChannelValue } from './internal-utils/checkChannelValue';
 import { parseHexColor } from './parsers/parseHexColor';
 import { parseHslColor } from './parsers/parseHslColor';
-import { parseRgbColor, parseRgbaColor } from './parsers/parseRgbColor';
+import { parseRgbaColor, parseRgbColor } from './parsers/parseRgbColor';
 
 /**
  * Pattern matching hsl regex.

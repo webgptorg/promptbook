@@ -1,5 +1,6 @@
-import type { string_url } from '../../../types/typeAliases';
-import { isHostnameOnPrivateNetwork, type IsHostnameOnPrivateNetworkOptions } from './isHostnameOnPrivateNetwork';
+import type { string_url } from '../../../types/string_url';
+import type { IsHostnameOnPrivateNetworkOptions } from './isHostnameOnPrivateNetwork';
+import { isHostnameOnPrivateNetwork } from './isHostnameOnPrivateNetwork';
 
 /**
  * Options for `isUrlOnPrivateNetwork`

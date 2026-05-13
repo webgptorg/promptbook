@@ -1,4 +1,4 @@
-import type { string_executable_path } from '../../types/typeAliases';
+import type { string_executable_path } from '../../types/string_filename';
 import { locateApp } from '../locateApp';
 
 /**

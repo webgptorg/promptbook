@@ -4,7 +4,8 @@ import type { string_book } from '../../../book-2.0/agent-source/string_book';
 import type { ChatPromptResult } from '../../../execution/PromptResult';
 import { UNCERTAIN_USAGE } from '../../../execution/utils/usage-constants';
 import type { Prompt } from '../../../types/Prompt';
-import type { string_date_iso8601, string_model_name } from '../../../types/typeAliases';
+import type { string_model_name } from '../../../types/string_model_name';
+import type { string_date_iso8601 } from '../../../types/string_token';
 import { SelfLearningManager } from './SelfLearningManager';
 
 describe('SelfLearningManager', () => {

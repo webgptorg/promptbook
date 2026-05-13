@@ -2,7 +2,7 @@
 
 import { CSSProperties } from 'react';
 import type { AgentBasicInformation } from '../../book-2.0/agent-source/AgentBasicInformation';
-import { string_css_class } from '../../types/typeAliases';
+import type { string_css_class } from '../../types/string_markdown';
 import { just } from '../../utils/organization/just';
 import { PromptbookAgentSeamlessIntegration } from './PromptbookAgentSeamlessIntegration';
 

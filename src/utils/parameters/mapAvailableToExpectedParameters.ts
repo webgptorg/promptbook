@@ -1,6 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
-import type { string_parameter_name, string_parameter_value } from '../../types/typeAliases';
+import type { string_parameter_name, string_parameter_value } from '../../types/string_name';
 import { union } from '../sets/union';
 
 /**

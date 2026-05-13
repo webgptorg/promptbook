@@ -1,4 +1,4 @@
-import type { task_id } from '../types/typeAliases';
+import type { task_id } from '../types/string_token';
 import { $randomToken } from '../utils/random/$randomToken';
 
 /**

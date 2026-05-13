@@ -2,12 +2,8 @@
 
 import { drawAvatarFrame } from '../avatarRenderingUtils';
 import type { AvatarPalette, AvatarVisualDefinition } from '../types/AvatarVisualDefinition';
-import {
-    createMinecraftHeadTextures,
-    createMinecraftTorsoTextures,
-    type MinecraftCuboidTextures,
-    type MinecraftTexture,
-} from './minecraftAvatarVisualShared';
+import type { MinecraftCuboidTextures, MinecraftTexture } from './minecraftAvatarVisualShared';
+import { createMinecraftHeadTextures, createMinecraftTorsoTextures } from './minecraftAvatarVisualShared';
 
 /**
  * Camera-space point used by the projected Minecraft cuboid renderer.

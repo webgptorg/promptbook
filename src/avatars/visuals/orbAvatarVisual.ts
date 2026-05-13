@@ -1,11 +1,11 @@
 /* eslint-disable no-magic-numbers */
 
-import { drawAvatarFrame, pickRandomItem } from '../avatarRenderingUtils';
-import type { AvatarPalette, AvatarVisualDefinition } from '../types/AvatarVisualDefinition';
 import { Color } from '../../utils/color/Color';
 import { darken } from '../../utils/color/operators/darken';
 import { lighten } from '../../utils/color/operators/lighten';
 import { saturate } from '../../utils/color/operators/saturate';
+import { drawAvatarFrame, pickRandomItem } from '../avatarRenderingUtils';
+import type { AvatarPalette, AvatarVisualDefinition } from '../types/AvatarVisualDefinition';
 import { traceSmoothClosedPath } from './octopusAvatarVisualShared';
 
 /**

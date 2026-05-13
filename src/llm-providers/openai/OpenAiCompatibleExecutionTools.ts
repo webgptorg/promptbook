@@ -8,23 +8,15 @@ import { assertsError } from '../../errors/assertsError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { CallChatModelStreamOptions, LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type {
-    ChatPromptResult,
-    CompletionPromptResult,
-    EmbeddingPromptResult,
-    ImagePromptResult,
-} from '../../execution/PromptResult';
+import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult, ImagePromptResult } from '../../execution/PromptResult';
 import type { Usage } from '../../execution/Usage';
 import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import type { Prompt } from '../../types/Prompt';
-import type {
-    string_date_iso8601,
-    string_markdown,
-    string_markdown_text,
-    string_model_name,
-    string_title,
-} from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text } from '../../types/string_markdown';
+import type { string_model_name } from '../../types/string_model_name';
+import type { string_title } from '../../types/string_title';
+import type { string_date_iso8601 } from '../../types/string_token';
 import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
 import type { chococake } from '../../utils/organization/really_any';
 import type { TODO_any } from '../../utils/organization/TODO_any';

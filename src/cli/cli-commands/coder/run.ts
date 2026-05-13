@@ -4,13 +4,8 @@ import { spaceTrim } from 'spacetrim';
 import { assertsError } from '../../../errors/assertsError';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
 import { handleActionErrors } from '../common/handleActionErrors';
-import {
-    addPromptRunnerExecutionOptions,
-    addPromptRunnerSelectionOptions,
-    normalizePromptRunnerCliOptions,
-    PROMPT_RUNNER_DESCRIPTION,
-    type PromptRunnerCliOptions,
-} from '../common/promptRunnerCliOptions';
+import type { PromptRunnerCliOptions } from '../common/promptRunnerCliOptions';
+import { addPromptRunnerExecutionOptions, addPromptRunnerSelectionOptions, normalizePromptRunnerCliOptions, PROMPT_RUNNER_DESCRIPTION } from '../common/promptRunnerCliOptions';
 
 /**
  * Initializes `coder run` command for Promptbook CLI utilities

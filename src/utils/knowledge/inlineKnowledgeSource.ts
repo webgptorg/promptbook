@@ -1,4 +1,6 @@
-import type { string_data_url, string_filename, string_knowledge_source_link } from '../../types/typeAliases';
+import type { string_data_url } from '../../types/string_base64';
+import type { string_filename } from '../../types/string_filename';
+import type { string_knowledge_source_link } from '../../types/string_knowledge_source_content';
 import { normalizeToKebabCase } from '../normalization/normalize-to-kebab-case';
 
 /**

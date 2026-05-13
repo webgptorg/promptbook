@@ -5,17 +5,15 @@ import { DEFAULT_IS_VERBOSE } from '../../../../config';
 import { DatabaseError } from '../../../../errors/DatabaseError';
 import { NotFoundError } from '../../../../errors/NotFoundError';
 import { UnexpectedError } from '../../../../errors/UnexpectedError';
-import type { string_agent_name, string_agent_permanent_id } from '../../../../types/typeAliases';
+import type { string_agent_name, string_agent_permanent_id } from '../../../../types/string_agent_name';
 import { spaceTrim } from '../../../../utils/organization/spaceTrim';
 import { TODO_USE } from '../../../../utils/organization/TODO_USE';
 import { $randomBase58 } from '../../../../utils/random/$randomBase58';
 import { PROMPTBOOK_ENGINE_VERSION } from '../../../../version';
-import { AgentCollectionInSupabaseOptions } from './AgentCollectionInSupabaseOptions';
+import type { AgentCollectionInSupabaseOptions } from './AgentCollectionInSupabaseOptions';
 import type { AgentsDatabaseSchema } from './AgentsDatabaseSchema';
-import {
-    createAgentPersistenceRecords,
-    type CreateAgentPersistenceRecordsOptions,
-} from './createAgentPersistenceRecords';
+import type { CreateAgentPersistenceRecordsOptions } from './createAgentPersistenceRecords';
+import { createAgentPersistenceRecords } from './createAgentPersistenceRecords';
 import { prepareAgentSourceForPersistence } from './prepareAgentSourceForPersistence';
 
 // import { getTableName } from '../../../../../apps/agents-server/src/database/getTableName';

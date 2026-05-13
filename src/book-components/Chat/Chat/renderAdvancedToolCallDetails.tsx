@@ -4,8 +4,9 @@ import { MonacoEditorWithShadowDom } from '../../_common/MonacoEditorWithShadowD
 import type { ChatMessage } from '../types/ChatMessage';
 import { getToolCallChipletInfo, TOOL_TITLES } from '../utils/getToolCallChipletInfo';
 import { resolveToolCallState } from '../utils/resolveToolCallState';
-import { parseToolCallArguments, parseToolCallResult } from '../utils/toolCallParsing';
 import { isTimeoutToolCallName, resolveTimeoutToolCallPresentation } from '../utils/timeoutToolCallPresentation';
+import { parseToolCallArguments } from '../utils/toolCallParsing/parseToolCallArguments';
+import { parseToolCallResult } from '../utils/toolCallParsing/parseToolCallResult';
 import styles from './Chat.module.css';
 
 /**

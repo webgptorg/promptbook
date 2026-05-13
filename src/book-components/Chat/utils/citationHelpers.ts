@@ -1,7 +1,7 @@
-import { ChatParticipant } from '../types/ChatParticipant';
+import { simplifyKnowledgeLabel } from '../../../utils/knowledge/simplifyKnowledgeLabel';
+import type { ChatParticipant } from '../types/ChatParticipant';
 import type { ParsedCitation } from './parseCitationsFromContent';
 import { resolveCitationUrl } from './resolveCitationUrl';
-import { simplifyKnowledgeLabel } from '../../../utils/knowledge/simplifyKnowledgeLabel';
 
 /**
  * Maximum length of plain-text citation labels before truncation.

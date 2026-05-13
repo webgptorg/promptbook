@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
+import type { string_book } from '../../../book-2.0/agent-source/string_book';
+import type { ChatParticipant } from '../types/ChatParticipant';
 import { resolveCitationUrl } from './resolveCitationUrl';
-import { ChatParticipant } from '../types/ChatParticipant';
-import { string_book } from '../../../book-2.0/agent-source/string_book';
 
 describe('resolveCitationUrl', () => {
     const mockParticipant: ChatParticipant = {

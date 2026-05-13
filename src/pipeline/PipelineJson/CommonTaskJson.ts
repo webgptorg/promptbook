@@ -1,14 +1,10 @@
 import type { ForeachJson } from '../../commands/FOREACH/ForeachJson';
 import type { FormatCommand } from '../../commands/FORMAT/FormatCommand';
 import type { SectionType } from '../../types/SectionType';
-import type { string_javascript } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_name } from '../../types/typeAliases';
-import type { string_parameter_name } from '../../types/typeAliases';
-import type { string_postprocessing_function_name } from '../../types/typeAliases';
-import type { string_prompt } from '../../types/typeAliases';
-import type { string_template } from '../../types/typeAliases';
+import type { string_javascript, string_markdown, string_markdown_text } from '../../types/string_markdown';
+import type { string_name, string_parameter_name } from '../../types/string_name';
+import type { string_postprocessing_function_name } from '../../types/string_person_fullname';
+import type { string_prompt, string_template } from '../../types/string_prompt';
 import type { Expectations } from './Expectations';
 
 /**

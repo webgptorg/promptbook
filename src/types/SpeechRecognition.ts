@@ -1,4 +1,4 @@
-import type { string_language } from './typeAliases';
+import type { string_language } from './string_token';
 
 /**
  * Stable speech-recognition error codes consumed by UI and telemetry.

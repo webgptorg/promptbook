@@ -1,4 +1,5 @@
-import { parseRunBrowserToolResult, resolveRunBrowserArtifactUrl } from './toolCallParsing';
+import { parseRunBrowserToolResult } from './toolCallParsing/parseRunBrowserToolResult';
+import { resolveRunBrowserArtifactUrl } from './toolCallParsing/resolveRunBrowserArtifactUrl';
 
 describe('toolCallParsing run_browser helpers', () => {
     it('parses embedded run_browser JSON payload from markdown', () => {

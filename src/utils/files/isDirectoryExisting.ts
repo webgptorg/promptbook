@@ -1,5 +1,5 @@
 import type { FilesystemTools } from '../../execution/FilesystemTools';
-import type { string_dirname } from '../../types/typeAliases';
+import type { string_dirname } from '../../types/string_filename';
 
 /**
  * Checks if the directory exists

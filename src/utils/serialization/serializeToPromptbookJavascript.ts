@@ -1,6 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import type { string_javascript } from '../../types/typeAliases';
+import type { string_javascript } from '../../types/string_markdown';
 import { Color } from '../color/Color';
 import type { TODO_any } from '../organization/TODO_any';
 

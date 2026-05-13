@@ -1,8 +1,8 @@
 import { LIMITS } from '../../constants';
-import { string_agent_name } from '../../types/typeAliases';
+import type { string_agent_name } from '../../types/string_agent_name';
 import { computeAgentHash } from './computeAgentHash';
 import { normalizeAgentName } from './normalizeAgentName';
-import { string_book } from './string_book';
+import type { string_book } from './string_book';
 
 /**
  * Creates temporary default agent name based on agent source hash

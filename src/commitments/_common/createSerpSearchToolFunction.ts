@@ -1,7 +1,7 @@
 import { spaceTrim } from 'spacetrim';
-import { string_javascript_name } from '../../_packages/types.index';
 import type { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
 import { SerpSearchEngine } from '../../search-engines/serp/SerpSearchEngine';
+import type { string_javascript_name } from '../../types/string_person_fullname';
 
 /**
  * Creates one SERP-backed tool function used as a local fallback for search-like commitments.

@@ -1,6 +1,6 @@
 import colors from 'colors';
 import type {
-    Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
+  Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */
 } from 'commander';
 import { spaceTrim } from 'spacetrim';
 import { forEver } from 'waitasecond';
@@ -8,12 +8,12 @@ import { createPipelineCollectionFromDirectory } from '../../collection/pipeline
 import { DEFAULT_BOOKS_DIRNAME } from '../../config';
 import { AuthenticationError } from '../../errors/AuthenticationError';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
-import { ExecutionTools } from '../../execution/ExecutionTools';
 import { startRemoteServer } from '../../remote-server/startRemoteServer';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
 import { $provideScriptingForNode } from '../../scrapers/_common/register/$provideScriptingForNode';
-import type { number_port, string_url } from '../../types/typeAliases';
+import type { number_port } from '../../types/number_positive';
+import type { string_url } from '../../types/string_url';
 import { suffixUrl } from '../../utils/normalization/suffixUrl';
 import type { $side_effect } from '../../utils/organization/$side_effect';
 import { keepUnused } from '../../utils/organization/keepUnused';

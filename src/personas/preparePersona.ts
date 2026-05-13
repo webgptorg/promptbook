@@ -9,7 +9,7 @@ import { getSingleLlmExecutionTools } from '../llm-providers/_multiple/getSingle
 import type { PersonaPreparedJson } from '../pipeline/PipelineJson/PersonaJson';
 import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 import type { PrepareAndScrapeOptions } from '../prepare/PrepareAndScrapeOptions';
-import type { string_persona_description } from '../types/typeAliases';
+import type { string_persona_description } from '../types/string_persona_description';
 import type { TODO_any } from '../utils/organization/TODO_any';
 
 /**
