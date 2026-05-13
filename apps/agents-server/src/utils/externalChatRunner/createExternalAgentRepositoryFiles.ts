@@ -56,7 +56,8 @@ function createExternalAgentRepositoryPackageJson(): string {
             },
             scripts: {
                 start: 'npm run agent:run',
-                'agent:run': 'npx ptbk agent run --agent github-copilot --model gpt-5.4',
+                'agent:run':
+                    'npx ptbk agent run --agent github-copilot --model gpt-5.4 --thinking-level high --auto-pull --auto-push',
             },
         },
         null,
