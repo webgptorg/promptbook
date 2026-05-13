@@ -158,7 +158,7 @@ describe('tickAgentMessages', () => {
 
         (runPromptWithTestFeedback as jest.MockedFunction<typeof runPromptWithTestFeedback>).mockImplementation(
             async ({ prompt }) => {
-                expect(prompt).toContain('[user question](messages/queued/question.book)');
+                expect(prompt).toContain('Read `messages/queued/question.book` and answer the most recent `MESSAGE @User`');
                 await appendFile(
                     join(temporaryProjectPath!, 'messages', 'queued', 'question.book'),
                     '\nMESSAGE @Agent\nThere are 5 events in your calendar for this week.\n',

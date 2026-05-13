@@ -1,4 +1,6 @@
 import { UNCERTAIN_USAGE } from '../../../../src/execution/utils/usage-constants';
+import { EnvironmentMismatchError } from '../../../../src/errors/EnvironmentMismatchError';
+import { spaceTrim } from '../../../../src/utils/organization/spaceTrim';
 import { $runGoScript } from '../../common/runGoScript/$runGoScript';
 import type { PromptRunner } from '../types/PromptRunner';
 import type { PromptRunOptions } from '../types/PromptRunOptions';
@@ -28,13 +30,61 @@ export class GitHubCopilotRunner implements PromptRunner {
             thinkingLevel: this.options.thinkingLevel,
         });
 
-        await $runGoScript({
-            scriptPath: options.scriptPath,
-            scriptContent,
-            logPath: options.logPath,
-            preserveArtifactsOnSuccess: options.preserveArtifactsOnSuccess,
-        });
+        try {
+            await $runGoScript({
+                scriptPath: options.scriptPath,
+                scriptContent,
+                logPath: options.logPath,
+                preserveArtifactsOnSuccess: options.preserveArtifactsOnSuccess,
+            });
+        } catch (error) {
+            throw normalizeGitHubCopilotRunnerError(error);
+        }
 
         return { usage: UNCERTAIN_USAGE };
     }
+}
+
+/**
+ * Rewrites known GitHub Copilot CLI shell-wrapper failures into a more actionable Promptbook error.
+ */
+function normalizeGitHubCopilotRunnerError(error: unknown): Error {
+    if (!(error instanceof Error)) {
+        return new Error(String(error));
+    }
+
+    if (!isGitHubCopilotArgumentLimitError(error)) {
+        return error;
+    }
+
+    return new EnvironmentMismatchError(
+        spaceTrim(
+            (block) => `
+                GitHub Copilot CLI failed before it could process the Promptbook agent prompt.
+
+                On Windows/MSYS this usually means the Copilot shell wrapper still hit an argument-length limit and the underlying Node launcher never started.
+
+                ### Copilot CLI output
+                \`\`\`
+                ${block(error.message)}
+                \`\`\`
+
+                ### What to check
+                - Update to the newest \`ptbk\` package so \`ptbk agent run\` uses the smaller local-manual prompt shape.
+                - Keep the local agent instructions in \`agent.book\` and \`docs/book-language-manual.md\` reasonably compact.
+                - If needed, compare with the local source runner (\`ts-node src/cli/test/ptbk.ts agent run ...\`), which bypasses stale published bundles.
+            `,
+        ),
+    );
+}
+
+/**
+ * Detects the Windows/MSYS GitHub Copilot wrapper failure that reports `Argument list too long`.
+ */
+function isGitHubCopilotArgumentLimitError(error: Error): boolean {
+    return (
+        error.message.includes('copilot:') &&
+        error.message.includes('Argument list too long') &&
+        error.message.includes('bin/node')
+    );
 }

@@ -1,3 +1,8 @@
+-   Hardened `ptbk agent run` / `ptbk agent tick` for the GitHub Copilot runner on Windows/MSYS:
+
+    -   Stopped inlining the full standalone Book Language blueprint into each queued-message prompt and switched `ptbk agent` to reference the local `agent.book` and `docs/book-language-manual.md` files instead, which keeps Copilot agent prompts much smaller than before.
+    -   Added a dedicated GitHub Copilot Windows/MSYS diagnostic for `Argument list too long` launcher failures, so stale published bundles now point users to the real limitation and the updated fix path instead of surfacing the raw shell-wrapper error alone.
+
 -   Reworked external agent chat thread files so Agents Server and `ptbk agent run` now operate on shared `.book` thread documents without duplicating messages:
 
     -   Finished `src/book-3.0/Book.ts` so Promptbook can parse and stringify threaded `MESSAGE @User` / `MESSAGE @Agent` books and reuse them from both the CLI runner and the external chat runner integration.
