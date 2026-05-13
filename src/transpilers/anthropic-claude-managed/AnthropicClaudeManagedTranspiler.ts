@@ -11,6 +11,7 @@ import { formatUsedToolFunctions } from '../_common/formatUsedToolFunctions';
 import { prepareSdkTranspilerContext } from '../_common/prepareSdkTranspilerContext';
 import { resolveClaudeModelName } from '../_common/resolveClaudeModelName';
 import type { TranspiledTeamExport } from '../_common/TranspiledTeamExport';
+import { BookTranspiler } from '../_common/BookTranspiler';
 
 /**
  * MCP server name used for Promptbook tool commitments in the managed Claude harness.

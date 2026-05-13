@@ -1,6 +1,6 @@
 import colors from 'colors';
 import type {
-  Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */
+    Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
 import { spaceTrim } from 'spacetrim';
 import { forEver } from 'waitasecond';
@@ -8,6 +8,7 @@ import { createPipelineCollectionFromDirectory } from '../../collection/pipeline
 import { DEFAULT_BOOKS_DIRNAME } from '../../config';
 import { AuthenticationError } from '../../errors/AuthenticationError';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
+import { ExecutionTools } from '../../execution/ExecutionTools';
 import { startRemoteServer } from '../../remote-server/startRemoteServer';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
@@ -120,7 +121,6 @@ export function $initializeStartPipelinesServerCommand(program: Program): $side_
                 scrapers: await $provideScrapersForNode({ fs, llm, executables }, prepareAndScrapeOptions),
                 script: await $provideScriptingForNode(prepareAndScrapeOptions),
             } satisfies ExecutionTools; /* <- Note: [🤛] */
-
             // TODO: [🧟‍♂️][◽] DRY:
             const collection = await createPipelineCollectionFromDirectory(path, tools, {
                 isVerbose,

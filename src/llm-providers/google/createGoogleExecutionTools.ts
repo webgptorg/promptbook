@@ -1,6 +1,7 @@
 import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import { LlmExecutionToolsConstructor } from '../../execution/LlmExecutionToolsConstructor';
 import type { ImagePromptResult } from '../../execution/PromptResult';
 import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
@@ -283,7 +284,7 @@ export const createGoogleExecutionTools = Object.assign(
         packageName: '@promptbook/google',
         className: 'GoogleExecutionTools',
     },
-) satisfies LlmExecutionToolsConstructor;
+) satisfies LlmExecutionToolsConstructor /* <- Note: [🤛] */;
 
 // TODO: !!!!! Rename to `createGoogleLlmExecutionTools`, `...GoogleLlmExecutionTools`
 // TODO: [🎶] Naming "constructor" vs "creator" vs "factory"

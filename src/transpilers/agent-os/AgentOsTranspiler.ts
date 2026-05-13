@@ -4,6 +4,7 @@ import type { ExecutionTools } from '../../execution/ExecutionTools';
 import type { LlmToolDefinition } from '../../types/LlmToolDefinition';
 import type { string_script } from '../../types/string_markdown';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
+import { BookTranspiler } from '../_common/BookTranspiler';
 import type { BookTranspilerOptions } from '../_common/BookTranspilerOptions';
 import { createTranspiledTeamRuntimeSection } from '../_common/createTranspiledTeamRuntimeSection';
 import { createZodSchemaSource } from '../_common/createZodSchemaSource';
@@ -178,7 +179,7 @@ export const AgentOsTranspiler = {
             `,
         );
     },
-} as const satisfies BookTranspiler;
+} as const satisfies BookTranspiler; /* <- Note: [🤛] */
 
 /**
  * Returns the system prompt used by the generated Pi extension.

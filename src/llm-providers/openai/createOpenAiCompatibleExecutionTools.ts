@@ -1,6 +1,7 @@
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import { LlmExecutionToolsConstructor } from '../../execution/LlmExecutionToolsConstructor';
 import type { Usage } from '../../execution/Usage';
 import { UNCERTAIN_ZERO_VALUE } from '../../execution/utils/usage-constants';
 import type { string_markdown, string_markdown_text } from '../../types/string_markdown';
@@ -62,7 +63,7 @@ export const createOpenAiCompatibleExecutionTools = Object.assign(
         packageName: '@promptbook/openai',
         className: 'OpenAiCompatibleExecutionTools',
     },
-) satisfies LlmExecutionToolsConstructor;
+) satisfies LlmExecutionToolsConstructor /* <- Note: [🤛] */;
 
 /**
  * Execution Tools for calling ONE SPECIFIC PRECONFIGURED OpenAI compatible provider

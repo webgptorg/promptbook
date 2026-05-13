@@ -5,6 +5,7 @@ import type { ExecutionTools } from '../../execution/ExecutionTools';
 import type { LlmToolDefinition } from '../../types/LlmToolDefinition';
 import type { string_script } from '../../types/string_markdown';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
+import { BookTranspiler } from '../_common/BookTranspiler';
 import type { BookTranspilerOptions } from '../_common/BookTranspilerOptions';
 import { createTranspiledTeamRuntimeSection } from '../_common/createTranspiledTeamRuntimeSection';
 import { formatUsedToolFunctions } from '../_common/formatUsedToolFunctions';
@@ -221,7 +222,7 @@ export const OpenAiAgentsTranspiler = {
             `,
         );
     },
-} as const satisfies BookTranspiler;
+} as const satisfies BookTranspiler; /* <- Note: [🤛] */
 
 /**
  * Creates the shared tool scaffold used by the generated OpenAI Agents harness.

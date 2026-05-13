@@ -4,6 +4,7 @@ import { getSingleLlmExecutionTools } from '../../llm-providers/_multiple/getSin
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import type { Parameters } from '../../types/Parameters';
+import { Prompt } from '../../types/Prompt';
 import type { string_markdown } from '../../types/string_markdown';
 import type { string_parameter_value } from '../../types/string_name';
 import type { ExecutionTools } from '../ExecutionTools';

@@ -2,8 +2,9 @@ import { spaceTrim } from 'spacetrim';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import type { string_script } from '../../types/string_markdown';
-import { OpenAiSdkTranspiler } from '../openai-sdk/OpenAiSdkTranspiler';
+import { BookTranspiler } from '../_common/BookTranspiler';
 import type { BookTranspilerOptions } from '../_common/BookTranspilerOptions';
+import { OpenAiSdkTranspiler } from '../openai-sdk/OpenAiSdkTranspiler';
 
 /**
  * Transpiler to a JavaScript launcher that runs the exported agent inside an E2B sandbox.
@@ -149,7 +150,7 @@ export const E2BTranspiler = {
             `,
         );
     },
-} as const satisfies BookTranspiler;
+} as const satisfies BookTranspiler; /* <- Note: [🤛] */
 
 /**
  * Extracts `process.env` variables referenced in the generated harness source.
