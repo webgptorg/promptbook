@@ -1,7 +1,6 @@
 import { mkdir, readFile, writeFile } from 'fs/promises';
-import { dirname } from 'path';
+import { dirname, join } from 'path';
 import { execCommand } from '../../src/utils/execCommand/execCommand';
-import { getPromptbookTempPath, resolvePromptbookTempPath } from '../../src/utils/files/getPromptbookTempPath';
 
 /**
  * Organizes the imports of a typescript file
@@ -10,8 +9,8 @@ import { getPromptbookTempPath, resolvePromptbookTempPath } from '../../src/util
  * @returns the file contents with organized imports
  */
 export async function organizeImports(fileContents: string): Promise<string> {
-    const tmpFilePathRelative = getPromptbookTempPath('scripts', 'organize-imports', 'file-to-import-organize.ts');
-    const tmpFilePath = resolvePromptbookTempPath(process.cwd(), 'scripts', 'organize-imports', 'file-to-import-organize.ts');
+    const tmpFilePathRelative = '.tmp/file-to-import-organize.ts';
+    const tmpFilePath = join(process.cwd(), tmpFilePathRelative);
 
     await mkdir(dirname(tmpFilePath), { recursive: true });
     await writeFile(tmpFilePath, fileContents, 'utf-8');

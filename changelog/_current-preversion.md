@@ -1,14 +1,3 @@
--   Fixed the `repair-imports` repository script so it can resolve entities that already exist instead of failing with false "not found" errors:
-    
-    -   The import parser now understands inline named type specifiers such as `import { Foo, type Bar } ...` and no longer treats `type Bar` as a literal export name.
-    -   The entity scan used by `repair-imports` now includes repository `scripts/*` exports without changing the stricter default behavior used by package-generation utilities.
-    -   When duplicate export names exist, `repair-imports` now prefers the entity from the currently imported module path before falling back to a global unique match.
-
--   Unified Promptbook-owned temporary folders under `.promptbook` instead of mixing `.tmp` and `.promptbook`:
-    
-    -   Added one shared Promptbook temp-path helper and switched repository scripts, CLI bootstrapping, and Agents Server browser artifact/user-data defaults to create temp files only inside `.promptbook`.
-    -   Updated generated `.gitignore` content and scanning ignore rules so new Promptbook temp artifacts live under `.promptbook`, with repository-specific `.promptbook` subfolders ignored in one place.
-
 -   Added a new `Minecraft 3D 2` built-in avatar visual with proper 3D cuboid rendering and pointer-driven head turning:
     
     -   Reused shared Minecraft texture helpers so both Minecraft-style visuals stay deterministic without duplicating the face / torso pixel-generation logic.

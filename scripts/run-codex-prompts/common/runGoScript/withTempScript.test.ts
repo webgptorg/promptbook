@@ -1,7 +1,6 @@
 import { mkdtemp, readFile, rm, stat } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
-import { resolvePromptbookTempPath } from '../../../../src/utils/files/getPromptbookTempPath';
 import { withTempScript } from './withTempScript';
 
 describe('withTempScript', () => {
@@ -16,7 +15,7 @@ describe('withTempScript', () => {
     });
 
     it('creates missing parent directories before writing the temporary script', async () => {
-        const scriptPath = resolvePromptbookTempPath(temporaryDirectoryPath, 'scripts', 'agent-messages', 'message-0001.sh');
+        const scriptPath = join(temporaryDirectoryPath, '.tmp', 'agent-messages', 'message-0001.sh');
 
         await withTempScript(
             {

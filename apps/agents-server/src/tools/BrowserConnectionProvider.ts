@@ -1,7 +1,7 @@
 import { mkdir } from 'fs/promises';
+import { tmpdir } from 'os';
 import { join } from 'path';
 import { BrowserContext, chromium } from 'playwright';
-import { resolvePromptbookTempPath } from '../../../../src/utils/files/getPromptbookTempPath';
 import { locateChrome } from '../../../../src/executables/browsers/locateChrome';
 import { REMOTE_BROWSER_URL } from '../../config';
 import { retryWithBackoff } from '../utils/retryWithBackoff';
@@ -23,7 +23,7 @@ type BrowserConnectionMode = { readonly type: 'local' } | { readonly type: 'remo
 /**
  * Constant for default browser user data dir.
  */
-const DEFAULT_BROWSER_USER_DATA_DIR = resolvePromptbookTempPath(process.cwd(), 'agents-server', 'browser', 'user-data');
+const DEFAULT_BROWSER_USER_DATA_DIR = join(tmpdir(), 'promptbook', 'browser', 'user-data');
 
 /**
  * Default remote browser connect timeout in milliseconds.

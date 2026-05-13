@@ -11,7 +11,6 @@ import { Color } from './utils/color/Color';
 import { grayscale } from './utils/color/operators/grayscale';
 import { lighten } from './utils/color/operators/lighten';
 import { saturate } from './utils/color/operators/saturate';
-import { getPromptbookTempPath } from './utils/files/getPromptbookTempPath';
 import { just } from './utils/organization/just';
 
 /**
@@ -328,6 +327,8 @@ export const DEFAULT_BOOKS_DIRNAME = './books';
 export const DEFAULT_AGENTS_DIRNAME = './agents';
 // <- TODO: [🕝] Make also `AGENTS_DIRNAME_ALTERNATIVES`
 
+// TODO: Just `.promptbook` in config, hardcode subfolders like `download-cache` or `execution-cache`
+
 /**
  * Where to store the temporary downloads
  *
@@ -335,7 +336,7 @@ export const DEFAULT_AGENTS_DIRNAME = './agents';
  *
  * @public exported from `@promptbook/core`
  */
-export const DEFAULT_DOWNLOAD_CACHE_DIRNAME = getPromptbookTempPath('download-cache');
+export const DEFAULT_DOWNLOAD_CACHE_DIRNAME = './.promptbook/download-cache';
 
 /**
  * Where to store the cache of executions for promptbook CLI
@@ -344,7 +345,7 @@ export const DEFAULT_DOWNLOAD_CACHE_DIRNAME = getPromptbookTempPath('download-ca
  *
  * @public exported from `@promptbook/core`
  */
-export const DEFAULT_EXECUTION_CACHE_DIRNAME = getPromptbookTempPath('execution-cache');
+export const DEFAULT_EXECUTION_CACHE_DIRNAME = './.promptbook/execution-cache';
 
 /**
  * Where to store the scrape cache
@@ -353,7 +354,7 @@ export const DEFAULT_EXECUTION_CACHE_DIRNAME = getPromptbookTempPath('execution-
  *
  * @public exported from `@promptbook/core`
  */
-export const DEFAULT_SCRAPE_CACHE_DIRNAME = getPromptbookTempPath('scrape-cache');
+export const DEFAULT_SCRAPE_CACHE_DIRNAME = './.promptbook/scrape-cache';
 
 /**
  * Id of application for the CLI when using remote server

@@ -1,5 +1,4 @@
 import { spaceTrim } from 'spacetrim';
-import { getPromptbookTempGitignoreRule } from '../../../../../src/utils/files/getPromptbookTempPath';
 import { PROMPTBOOK_ENGINE_VERSION } from '../../../../../src/version';
 
 /**
@@ -37,9 +36,11 @@ function createExternalAgentRepositoryGitignore(): string {
             .env
 
             node_modules
+            .promptbook
 
             # Promptbook Coder
-            ${getPromptbookTempGitignoreRule()}
+            /.tmp
+            /.promptbook/ptbk-coder
         `),
     );
 }

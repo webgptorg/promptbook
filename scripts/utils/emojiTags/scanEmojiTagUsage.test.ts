@@ -3,13 +3,12 @@ import { mkdtemp, readFile, rm, stat, utimes, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import type { string_char_emoji } from '../../../src/types/typeAliasEmoji';
-import { getPromptbookTempPath } from '../../../src/utils/files/getPromptbookTempPath';
 import { scanEmojiTagUsage } from './scanEmojiTagUsage';
 
 /**
  * Relative cache file path written by the emoji-tag scanner.
  */
-const EMOJI_TAG_SCAN_CACHE_FILE_PATH = getPromptbookTempPath('ptbk-coder', 'emoji-tag-scan-cache.json');
+const EMOJI_TAG_SCAN_CACHE_FILE_PATH = join('.promptbook', 'ptbk-coder', 'emoji-tag-scan-cache.json');
 
 /**
  * Creates and tracks one temporary directory for filesystem-based emoji-tag scan tests.
