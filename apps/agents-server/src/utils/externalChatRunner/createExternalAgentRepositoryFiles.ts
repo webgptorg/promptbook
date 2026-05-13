@@ -37,10 +37,6 @@ function createExternalAgentRepositoryGitignore(): string {
 
             node_modules
             .promptbook
-
-            # Promptbook Coder
-            /.tmp
-            /.promptbook/ptbk-coder
         `),
     );
 }

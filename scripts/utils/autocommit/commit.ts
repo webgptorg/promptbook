@@ -1,8 +1,9 @@
 import colors from 'colors';
 import { mkdir, unlink, writeFile } from 'fs/promises';
-import { dirname, join } from 'path';
+import { dirname } from 'path';
 import { spaceTrim } from 'spacetrim';
 import { $execCommand } from '../../../src/utils/execCommand/$execCommand';
+import { resolvePromptbookTemporaryPath } from '../../../src/utils/filesystem/promptbookTemporaryPath';
 import { isWorkingTreeClean } from './isWorkingTreeClean';
 
 /**
@@ -15,7 +16,7 @@ export async function commit(addPaths: ReadonlyArray<string>, message: string): 
     const projectPath = process.cwd();
     // const addPath = '.';
 
-    const commitMessageFilePath = join(process.cwd(), '.tmp', 'COMMIT_MESSAGE');
+    const commitMessageFilePath = resolvePromptbookTemporaryPath(projectPath, 'scripts', 'autocommit', 'COMMIT_MESSAGE');
     const commitMessage = spaceTrim(
         (block) => `
         ${block(message)}

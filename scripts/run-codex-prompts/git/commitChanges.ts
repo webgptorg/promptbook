@@ -1,7 +1,8 @@
 import { mkdir, unlink, writeFile } from 'fs/promises';
-import { dirname, join, relative, resolve } from 'path';
+import { dirname, relative, resolve } from 'path';
 import { spaceTrim } from 'spacetrim';
 import { $execCommand } from '../../../src/utils/execCommand/$execCommand';
+import { resolvePromptbookTemporaryPath } from '../../../src/utils/filesystem/promptbookTemporaryPath';
 import { buildAgentGitEnv, buildAgentGitSigningFlag } from './agentGitIdentity';
 import { hasUpstreamBranch, listGitRemotes, readCurrentBranchName, readOptionalGitConfig } from './gitBranchContext';
 import { runGitCommand } from './runGitCommand';
@@ -20,7 +21,12 @@ export async function commitChanges(
     },
 ): Promise<void> {
     const projectPath = process.cwd();
-    const commitMessagePath = join(projectPath, '.tmp', 'codex-prompts', `COMMIT_MESSAGE_${Date.now()}.txt`);
+    const commitMessagePath = resolvePromptbookTemporaryPath(
+        projectPath,
+        'ptbk-coder',
+        'commit-messages',
+        `COMMIT_MESSAGE_${Date.now()}.txt`,
+    );
     await mkdir(dirname(commitMessagePath), { recursive: true });
     await writeFile(commitMessagePath, message, 'utf-8');
 

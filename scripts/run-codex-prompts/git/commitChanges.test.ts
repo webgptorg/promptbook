@@ -275,7 +275,9 @@ describe('commitChanges', () => {
         )?.[0];
 
         expect(commitCommand).toBeDefined();
-        expect(commitCommand).toMatch(/^git commit --file ".*COMMIT_MESSAGE_\d+\.txt"$/);
+        expect(commitCommand).toMatch(
+            /^git commit --file ".*\.promptbook\/ptbk-coder\/commit-messages\/COMMIT_MESSAGE_\d+\.txt"$/,
+        );
         expect(commitCommand).not.toContain('--gpg-sign');
         expect(typeof gitAddCallOptions === 'string' ? undefined : gitAddCallOptions?.env).toBeUndefined();
     });

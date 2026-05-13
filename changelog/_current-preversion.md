@@ -1,3 +1,9 @@
+-   Unified Promptbook temporary-folder handling under `.promptbook` across the engine, CLI scripts, and Agents Server:
+
+    -   Added one shared temp-path helper so Promptbook-managed caches and runtime artifacts now resolve from the same `.promptbook/...` root instead of mixing `.tmp`, `.promptbook`, and OS temp folders.
+    -   Switched coder/agent script commit-message files, agent-message runner scripts, Agents Server browser user-data, and `run_browser` artifacts to subfolders inside `.promptbook`.
+    -   Updated coder bootstrap gitignore/docs and external runner repository templates to ignore `/.promptbook` as the single Promptbook temp root, and taught Jest to ignore `.promptbook` when discovering tests.
+
 -   Hardened `ptbk agent run` / `ptbk agent tick` for the GitHub Copilot runner on Windows/MSYS:
 
     -   Stopped inlining the full standalone Book Language blueprint into each queued-message prompt and switched `ptbk agent` to reference the local `agent.book` and `docs/book-language-manual.md` files instead, which keeps Copilot agent prompts much smaller than before.

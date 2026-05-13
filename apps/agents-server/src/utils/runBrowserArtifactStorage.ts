@@ -1,5 +1,4 @@
-import { tmpdir } from 'os';
-import { join } from 'path';
+import { resolvePromptbookTemporaryPath } from '../../../../src/utils/filesystem/promptbookTemporaryPath';
 
 /**
  * Logical public directory marker used in `run_browser` payload paths.
@@ -16,7 +15,11 @@ const RUN_BROWSER_ARTIFACT_STORAGE_DIRECTORY_ENV = 'RUN_BROWSER_ARTIFACT_STORAGE
 /**
  * Default writable directory for `run_browser` screenshot/video artifacts.
  */
-const DEFAULT_RUN_BROWSER_ARTIFACT_STORAGE_DIRECTORY = join(tmpdir(), 'promptbook', 'run-browser-artifacts');
+const DEFAULT_RUN_BROWSER_ARTIFACT_STORAGE_DIRECTORY = resolvePromptbookTemporaryPath(
+    process.cwd(),
+    'agents-server',
+    'run-browser-artifacts',
+);
 
 /**
  * Whitelist pattern for browser artifact filenames produced by `run_browser`.
@@ -47,7 +50,7 @@ export function resolveRunBrowserArtifactStorageDirectory(): string {
  * Resolves absolute filesystem path of one artifact filename.
  */
 export function resolveRunBrowserArtifactFilesystemPath(artifactFilename: string): string {
-    return join(resolveRunBrowserArtifactStorageDirectory(), artifactFilename);
+    return `${resolveRunBrowserArtifactStorageDirectory()}/${artifactFilename}`;
 }
 
 /**

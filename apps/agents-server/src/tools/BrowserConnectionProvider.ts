@@ -1,8 +1,7 @@
 import { mkdir } from 'fs/promises';
-import { tmpdir } from 'os';
-import { join } from 'path';
 import { BrowserContext, chromium } from 'playwright';
 import { locateChrome } from '../../../../src/executables/browsers/locateChrome';
+import { resolvePromptbookTemporaryPath } from '../../../../src/utils/filesystem/promptbookTemporaryPath';
 import { REMOTE_BROWSER_URL } from '../../config';
 import { retryWithBackoff } from '../utils/retryWithBackoff';
 import {
@@ -23,7 +22,12 @@ type BrowserConnectionMode = { readonly type: 'local' } | { readonly type: 'remo
 /**
  * Constant for default browser user data dir.
  */
-const DEFAULT_BROWSER_USER_DATA_DIR = join(tmpdir(), 'promptbook', 'browser', 'user-data');
+const DEFAULT_BROWSER_USER_DATA_DIR = resolvePromptbookTemporaryPath(
+    process.cwd(),
+    'agents-server',
+    'browser',
+    'user-data',
+);
 
 /**
  * Default remote browser connect timeout in milliseconds.
@@ -402,7 +406,7 @@ export class BrowserConnectionProvider {
             console.info('[BrowserConnectionProvider] Launching local browser context');
         }
 
-        const userDataDir = join(DEFAULT_BROWSER_USER_DATA_DIR, 'run-browser');
+        const userDataDir = `${DEFAULT_BROWSER_USER_DATA_DIR}/run-browser`;
         await mkdir(userDataDir, { recursive: true });
 
         const launchOptions: NonNullable<Parameters<typeof chromium.launchPersistentContext>[1]> = {
