@@ -41,6 +41,12 @@
     -   Added a proper 3D projected head-and-torso renderer for the new visual, including textured visible faces, depth sorting, and directional shading.
     -   Enabled avatar pointer tracking so the Minecraft 3D 2 silhouette turns its head toward the mouse cursor like the other interactive avatar visuals.
 
+-   Added a new `Octopus 3D` built-in avatar visual that evolves `Octopus3` into a proper 3D portrait with cursor-driven head turning:
+
+    -   Reused the seeded `Octopus3` morphology profile so the new visual keeps the same recognizable octopus-family variety in its mantle, face spacing, and tentacle proportions.
+    -   Added a shared 3D projection helper used by both `Minecraft 3D 2` and `Octopus 3D`, so the proper-3D visuals reuse the same camera, projection, and vector math instead of duplicating it.
+    -   Rendered the octopus as depth-sorted organic 3D meshes plus projected tentacles, and kept the expressive eyes locked to the turning head while still tracking the viewer pointer.
+
 -   Leveraged `spaceTrim` across prompt, documentation, SQL, markdown, and code-sample builders so multiline strings can stay readable in source while trimming indentation consistently.
 
 -   Extended `spaceTrim` usage to more human-facing multiline builders across runners, timeout messages, TEAM tool descriptions, external chat books, and cache notes so nested content is indented in source without manual `'\n'` stitching.

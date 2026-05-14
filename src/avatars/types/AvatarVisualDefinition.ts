@@ -13,6 +13,7 @@ export type AvatarVisualId =
     | 'octopus'
     | 'octopus2'
     | 'octopus3'
+    | 'octopus3d'
     | 'ascii-octopus'
     | 'minecraft'
     | 'minecraft2'

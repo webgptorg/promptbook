@@ -2,30 +2,20 @@
 
 import { drawAvatarFrame } from '../avatarRenderingUtils';
 import type { AvatarPalette, AvatarVisualDefinition } from '../types/AvatarVisualDefinition';
+import {
+    clampNumber,
+    crossProduct3D,
+    dotProduct3D,
+    getProjectedQuadPerimeter,
+    normalizeVector3,
+    projectScenePoint,
+    subtractPoint3D,
+    transformScenePoint,
+    type Point3D,
+    type ProjectedPoint,
+} from './avatar3dProjectionShared';
 import type { MinecraftCuboidTextures, MinecraftTexture } from './minecraftAvatarVisualShared';
 import { createMinecraftHeadTextures, createMinecraftTorsoTextures } from './minecraftAvatarVisualShared';
-
-/**
- * Camera-space point used by the projected Minecraft cuboid renderer.
- *
- * @private helper of `minecraft2AvatarVisual`
- */
-type Point3D = {
-    readonly x: number;
-    readonly y: number;
-    readonly z: number;
-};
-
-/**
- * Projected 2D point derived from one 3D model-space position.
- *
- * @private helper of `minecraft2AvatarVisual`
- */
-type ProjectedPoint = {
-    readonly x: number;
-    readonly y: number;
-    readonly z: number;
-};
 
 /**
  * One textured cuboid placed in the Minecraft 3D 2 scene.
@@ -55,13 +45,6 @@ type VisibleCuboidFace = {
     readonly lightIntensity: number;
     readonly outlineColor: string;
 };
-
-/**
- * Fixed scene camera distance used for the proper-3D projection.
- *
- * @private helper of `minecraft2AvatarVisual`
- */
-const CAMERA_DISTANCE_RATIO = 1.4;
 
 /**
  * Shared light direction used to shade projected cuboid faces.
@@ -482,193 +465,4 @@ function interpolateProjectedPoint(
         y: startPoint.y + (endPoint.y - startPoint.y) * ratio,
         z: startPoint.z + (endPoint.z - startPoint.z) * ratio,
     };
-}
-
-/**
- * Projects one rotated scene point into canvas coordinates.
- *
- * @param point Scene point.
- * @param size Canvas size in CSS pixels.
- * @param sceneCenterX Horizontal scene center.
- * @param sceneCenterY Vertical scene center.
- * @returns Projected point.
- *
- * @private helper of `minecraft2AvatarVisual`
- */
-function projectScenePoint(point: Point3D, size: number, sceneCenterX: number, sceneCenterY: number): ProjectedPoint {
-    const cameraDistance = size * CAMERA_DISTANCE_RATIO;
-    const perspectiveScale = cameraDistance / Math.max(cameraDistance - point.z, cameraDistance * 0.35);
-
-    return {
-        x: sceneCenterX + point.x * perspectiveScale,
-        y: sceneCenterY + point.y * perspectiveScale,
-        z: point.z,
-    };
-}
-
-/**
- * Applies the local cuboid rotations and translation to one scene point.
- *
- * @param localPoint Point in cuboid-local space.
- * @param center Cuboid center in scene space.
- * @param rotationX Cuboid pitch in radians.
- * @param rotationY Cuboid yaw in radians.
- * @returns Transformed scene-space point.
- *
- * @private helper of `minecraft2AvatarVisual`
- */
-function transformScenePoint(localPoint: Point3D, center: Point3D, rotationX: number, rotationY: number): Point3D {
-    const yawedPoint = rotatePointAroundY(localPoint, rotationY);
-    const pitchedPoint = rotatePointAroundX(yawedPoint, rotationX);
-
-    return {
-        x: center.x + pitchedPoint.x,
-        y: center.y + pitchedPoint.y,
-        z: center.z + pitchedPoint.z,
-    };
-}
-
-/**
- * Rotates one point around the local Y axis.
- *
- * @param point Source point.
- * @param angle Rotation angle in radians.
- * @returns Rotated point.
- *
- * @private helper of `minecraft2AvatarVisual`
- */
-function rotatePointAroundY(point: Point3D, angle: number): Point3D {
-    const cosine = Math.cos(angle);
-    const sine = Math.sin(angle);
-
-    return {
-        x: point.x * cosine + point.z * sine,
-        y: point.y,
-        z: -point.x * sine + point.z * cosine,
-    };
-}
-
-/**
- * Rotates one point around the local X axis.
- *
- * @param point Source point.
- * @param angle Rotation angle in radians.
- * @returns Rotated point.
- *
- * @private helper of `minecraft2AvatarVisual`
- */
-function rotatePointAroundX(point: Point3D, angle: number): Point3D {
-    const cosine = Math.cos(angle);
-    const sine = Math.sin(angle);
-
-    return {
-        x: point.x,
-        y: point.y * cosine - point.z * sine,
-        z: point.y * sine + point.z * cosine,
-    };
-}
-
-/**
- * Subtracts one 3D point from another.
- *
- * @param leftPoint Left point.
- * @param rightPoint Right point.
- * @returns Difference vector.
- *
- * @private helper of `minecraft2AvatarVisual`
- */
-function subtractPoint3D(leftPoint: Point3D, rightPoint: Point3D): Point3D {
-    return {
-        x: leftPoint.x - rightPoint.x,
-        y: leftPoint.y - rightPoint.y,
-        z: leftPoint.z - rightPoint.z,
-    };
-}
-
-/**
- * Computes the 3D cross product of two vectors.
- *
- * @param leftVector Left vector.
- * @param rightVector Right vector.
- * @returns Cross product.
- *
- * @private helper of `minecraft2AvatarVisual`
- */
-function crossProduct3D(leftVector: Point3D, rightVector: Point3D): Point3D {
-    return {
-        x: leftVector.y * rightVector.z - leftVector.z * rightVector.y,
-        y: leftVector.z * rightVector.x - leftVector.x * rightVector.z,
-        z: leftVector.x * rightVector.y - leftVector.y * rightVector.x,
-    };
-}
-
-/**
- * Computes the 3D dot product of two vectors.
- *
- * @param leftVector Left vector.
- * @param rightVector Right vector.
- * @returns Dot product.
- *
- * @private helper of `minecraft2AvatarVisual`
- */
-function dotProduct3D(leftVector: Point3D, rightVector: Point3D): number {
-    return leftVector.x * rightVector.x + leftVector.y * rightVector.y + leftVector.z * rightVector.z;
-}
-
-/**
- * Normalizes one 3D vector while keeping zero vectors stable.
- *
- * @param vector Source vector.
- * @returns Normalized vector.
- *
- * @private helper of `minecraft2AvatarVisual`
- */
-function normalizeVector3(vector: Point3D): Point3D {
-    const length = Math.hypot(vector.x, vector.y, vector.z);
-
-    if (length === 0) {
-        return vector;
-    }
-
-    return {
-        x: vector.x / length,
-        y: vector.y / length,
-        z: vector.z / length,
-    };
-}
-
-/**
- * Clamps one number into the provided range.
- *
- * @param value Input value.
- * @param minimumValue Inclusive lower bound.
- * @param maximumValue Inclusive upper bound.
- * @returns Clamped value.
- *
- * @private helper of `minecraft2AvatarVisual`
- */
-function clampNumber(value: number, minimumValue: number, maximumValue: number): number {
-    return Math.min(maximumValue, Math.max(minimumValue, value));
-}
-
-/**
- * Measures the perimeter of one projected quad.
- *
- * @param corners Quad corners.
- * @returns Perimeter length.
- *
- * @private helper of `minecraft2AvatarVisual`
- */
-function getProjectedQuadPerimeter(
-    corners: readonly [ProjectedPoint, ProjectedPoint, ProjectedPoint, ProjectedPoint],
-): number {
-    let perimeter = 0;
-
-    for (let cornerIndex = 0; cornerIndex < corners.length; cornerIndex++) {
-        const currentCorner = corners[cornerIndex]!;
-        const nextCorner = corners[(cornerIndex + 1) % corners.length]!;
-        perimeter += Math.hypot(nextCorner.x - currentCorner.x, nextCorner.y - currentCorner.y);
-    }
-
-    return perimeter;
 }

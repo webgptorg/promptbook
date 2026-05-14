@@ -5,6 +5,7 @@ import { minecraft2AvatarVisual } from './minecraft2AvatarVisual';
 import { minecraftAvatarVisual } from './minecraftAvatarVisual';
 import { octopus2AvatarVisual } from './octopus2AvatarVisual';
 import { octopus3AvatarVisual } from './octopus3AvatarVisual';
+import { octopus3dAvatarVisual } from './octopus3dAvatarVisual';
 import { octopusAvatarVisual } from './octopusAvatarVisual';
 import { orbAvatarVisual } from './orbAvatarVisual';
 import { pixelArtAvatarVisual } from './pixelArtAvatarVisual';
@@ -21,6 +22,7 @@ export const AVATAR_VISUALS: ReadonlyArray<AvatarVisualDefinition> = [
     octopusAvatarVisual,
     octopus2AvatarVisual,
     octopus3AvatarVisual,
+    octopus3dAvatarVisual,
     asciiOctopusAvatarVisual,
     minecraftAvatarVisual,
     minecraft2AvatarVisual,

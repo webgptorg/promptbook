@@ -204,6 +204,16 @@ describe('parseAgentSource', () => {
                 ),
             ).meta.avatar,
         ).toBe('octopus3');
+        expect(
+            parseAgentSource(
+                validateBook(
+                    spaceTrim(`
+                        AI Avatar
+                        META avatar Octopus 3D
+                    `),
+                ),
+            ).meta.avatar,
+        ).toBe('octopus3d');
     });
 
     it('parses agent with multiple META commitments and overrides', () => {
