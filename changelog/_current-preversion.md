@@ -1,3 +1,5 @@
+-   Fixed the draft CLI installer so it now installs `ptbk` globally via `npm install --global ptbk`, removes legacy `/usr/bin/ptbk` wrappers that shadow the npm binary, and verifies the installed `ptbk` command instead of writing an `npx`-based shim.
+
 -   Fixed bare `ptbk` CLI startup so `npx ptbk` now prints the same top-level help as `npx ptbk --help` instead of falling through to the default `run` command and crashing on a missing pipeline argument.
 
 -   Renamed and expanded the `ptbk agent` runner command family so one process can now serve multiple local agent repositories:

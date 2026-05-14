@@ -1,19 +1,61 @@
 #!/bin/sh
 
-# TODO: [🎺] This is a draft of installer script
+set -eu
 
-# Look at real installer script and take inspiration from it
-# @see https://github.com/nvm-sh/nvm/blob/master/README.md
-#> curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
-#> wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+LEGACY_GLOBAL_PTBK_SHIM='/usr/bin/ptbk'
 
-cd /usr/bin
+require_command() {
+    if command -v "$1" >/dev/null 2>&1; then
+        return
+    fi
 
-cat > ptbk <<'EOF'
-#!/bin/sh
-npx --yes @promptbook/cli "$@"
-EOF
+    echo "Missing required command: $1" >&2
+    exit 1
+}
 
-chmod +x ptbk
+remove_legacy_ptbk_shim() {
+    if [ ! -f "$LEGACY_GLOBAL_PTBK_SHIM" ]; then
+        return
+    fi
 
-echo 'Promptbook CLI installed successfully!'
+    if ! grep -Eq 'ts-node .*/src/cli/test/ptbk\.ts|npx --yes @promptbook/cli' "$LEGACY_GLOBAL_PTBK_SHIM"; then
+        return
+    fi
+
+    if rm -f "$LEGACY_GLOBAL_PTBK_SHIM"; then
+        echo "Removed legacy shim: $LEGACY_GLOBAL_PTBK_SHIM"
+    else
+        echo "Warning: Failed to remove legacy shim $LEGACY_GLOBAL_PTBK_SHIM" >&2
+    fi
+}
+
+find_ptbk_command_path() {
+    if command -v ptbk >/dev/null 2>&1; then
+        command -v ptbk
+        return
+    fi
+
+    npm_prefix="$(npm config get prefix)"
+
+    for candidate in "$npm_prefix/ptbk" "$npm_prefix/bin/ptbk"; do
+        if [ -x "$candidate" ]; then
+            printf '%s\n' "$candidate"
+            return
+        fi
+    done
+
+    exit 1
+}
+
+verify_ptbk_installation() {
+    ptbk_command_path="$(find_ptbk_command_path)"
+
+    "$ptbk_command_path" --help >/dev/null 2>&1
+    echo "Promptbook CLI installed successfully at $ptbk_command_path"
+}
+
+require_command npm
+remove_legacy_ptbk_shim
+npm install --global ptbk
+hash -r 2>/dev/null || true
+verify_ptbk_installation
