@@ -1,3 +1,5 @@
+-   Fixed bare `ptbk` CLI startup so `npx ptbk` now prints the same top-level help as `npx ptbk --help` instead of falling through to the default `run` command and crashing on a missing pipeline argument.
+
 -   Renamed and expanded the `ptbk agent` runner command family so one process can now serve multiple local agent repositories:
 
     -   Added canonical `ptbk agent run-once`, `ptbk agent run-agent`, and `ptbk agent run-multiple` subcommands while keeping the previous `tick` and `run` names as backward-compatible aliases.

@@ -25,6 +25,23 @@ describe('how promptbookCli works', () => {
             }),
         ).resolves.toContain('Usage: promptbook|ptbk [options] [command]'));
 
+    it('should print the same top-level help when started without arguments', async () => {
+        const [helpOutput, defaultOutput] = await Promise.all([
+            $execCommand({
+                command: 'ts-node src/cli/test/ptbk.ts --help',
+                crashOnError: false,
+                cwd: process.cwd(),
+            }),
+            $execCommand({
+                command: 'ts-node src/cli/test/ptbk.ts',
+                crashOnError: false,
+                cwd: process.cwd(),
+            }),
+        ]);
+
+        expect(defaultOutput).toBe(helpOutput);
+    });
+
     it('should report version', () =>
         expect(
             $execCommand({

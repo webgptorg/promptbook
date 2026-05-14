@@ -37,7 +37,8 @@ export async function promptbookCli(): Promise<void> {
         );
     }
 
-    const isVerbose = process.argv.some((arg) => arg === '--verbose' || arg === '-v');
+    const cliArguments = process.argv.slice(2);
+    const isVerbose = cliArguments.some((arg) => arg === '--verbose' || arg === '-v');
     //     <- TODO: Can be this be done with commander before the commander commands are initialized?
     if (isVerbose) {
         console.info(
@@ -70,6 +71,11 @@ export async function promptbookCli(): Promise<void> {
 
     // TODO: [🧠] Should it be here or not> $addGlobalOptionsToCommand(program);
     program.commands.forEach($addGlobalOptionsToCommand);
+
+    if (cliArguments.length === 0) {
+        program.outputHelp();
+        return process.exit(0);
+    }
 
     program.parse(process.argv);
 }
