@@ -1,4 +1,5 @@
 import moment from 'moment';
+import { spaceTrim } from 'spacetrim';
 import { UNCERTAIN_USAGE } from '../../../src/execution/utils/usage-constants';
 import { markPromptDone } from './markPromptDone';
 import { markPromptFailed } from './markPromptFailed';
@@ -6,7 +7,13 @@ import { parsePromptFile } from './parsePromptFile';
 
 describe('prompt attempt metadata', () => {
     it('keeps done prompts unchanged for a single attempt', () => {
-        const file = parsePromptFile('prompts/mark-prompt-done.md', ['[ ]', 'Implement the feature'].join('\n'));
+        const file = parsePromptFile(
+            'prompts/mark-prompt-done.md',
+            spaceTrim(`
+                [ ]
+                Implement the feature
+            `),
+        );
         const section = file.sections[0]!;
 
         markPromptDone(file, section, UNCERTAIN_USAGE, 'GitHub Copilot', 'gpt-5.4', moment(), 1);
@@ -16,7 +23,13 @@ describe('prompt attempt metadata', () => {
     });
 
     it('stores attempt counts for successful retries', () => {
-        const file = parsePromptFile('prompts/mark-prompt-done.md', ['[ ]', 'Implement the feature'].join('\n'));
+        const file = parsePromptFile(
+            'prompts/mark-prompt-done.md',
+            spaceTrim(`
+                [ ]
+                Implement the feature
+            `),
+        );
         const section = file.sections[0]!;
 
         markPromptDone(file, section, UNCERTAIN_USAGE, 'GitHub Copilot', 'gpt-5.4', moment(), 2);
@@ -25,7 +38,13 @@ describe('prompt attempt metadata', () => {
     });
 
     it('stores attempt counts for failed prompts after repeated verification retries', () => {
-        const file = parsePromptFile('prompts/mark-prompt-failed.md', ['[ ]', 'Implement the feature'].join('\n'));
+        const file = parsePromptFile(
+            'prompts/mark-prompt-failed.md',
+            spaceTrim(`
+                [ ]
+                Implement the feature
+            `),
+        );
         const section = file.sections[0]!;
 
         markPromptFailed(file, section, 'GitHub Copilot', 'gpt-5.4', moment(), 3);

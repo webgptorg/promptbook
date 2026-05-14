@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { $fileImportPlugins } from '../../../import-plugins/$fileImportPlugins';
 import { promptbookFetch } from '../../../scrapers/_common/utils/promptbookFetch';
 import { isValidUrl } from '../../../utils/validators/url/isValidUrl';
@@ -255,7 +256,13 @@ function createExampleInteractionsContent(
         return null;
     }
 
-    return `## Sample of communication with the agent:\n\n${examples.join('\n\n')}`;
+    return spaceTrim(
+        (block) => `
+            ## Sample of communication with the agent:
+
+            ${block(examples.join('\n\n'))}
+        `,
+    );
 }
 
 /**
@@ -299,7 +306,13 @@ function collectExampleInteractionLines(
 function appendSystemMessageSection(requirements: AgentModelRequirements, section: string): AgentModelRequirements {
     return {
         ...requirements,
-        systemMessage: requirements.systemMessage + '\n\n' + section,
+        systemMessage: spaceTrim(
+            (block) => `
+                ${block(requirements.systemMessage)}
+
+                ${block(section)}
+            `,
+        ),
     };
 }
 

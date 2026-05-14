@@ -107,55 +107,67 @@ export function executionReportJsonToString(
                 (taxRate !== 0 ? ` *(with tax ${taxRate * 100}%)*` : ''),
         );
 
-        executionReportString += '\n\n' + headerList.map((header) => `- ${header}`).join('\n');
+        executionReportString = spaceTrim(
+            (block) => `
+                ${block(executionReportString)}
 
-        executionReportString +=
-            '\n\n' +
-            '## 🗃 Index' +
-            '\n\n' +
-            executionReportJson.promptExecutions
-                .map((promptExecution) => {
-                    // TODO: [💩] Make some better system to convert headings to links
-                    let hash = normalizeToKebabCase(promptExecution.prompt.title);
-                    if (/^\s*\p{Extended_Pictographic}/u.test(promptExecution.prompt.title)) {
-                        hash = '-' + hash;
-                    }
+                ${block(headerList.map((header) => `- ${header}`).join('\n'))}
 
-                    // TODO: Make working hash link for the task in md + pdf
+                ## 🗃 Index
 
-                    return `- [${promptExecution.prompt.title}](#${hash})`;
-                })
-                .join('\n');
+                ${block(
+                    executionReportJson.promptExecutions
+                        .map((promptExecution) => {
+                            // TODO: [💩] Make some better system to convert headings to links
+                            let hash = normalizeToKebabCase(promptExecution.prompt.title);
+                            if (/^\s*\p{Extended_Pictographic}/u.test(promptExecution.prompt.title)) {
+                                hash = '-' + hash;
+                            }
 
-        executionReportString +=
-            '\n\n' +
-            '## ⌚ Time chart' +
-            '\n\n' +
-            createMarkdownChart({
-                nameHeader: 'Task',
-                valueHeader: 'Timeline',
-                items: timingItems,
-                width: chartsWidth,
-                unitName: 'seconds',
-            });
+                            // TODO: Make working hash link for the task in md + pdf
 
-        executionReportString +=
-            '\n\n' +
-            '## 💸 Cost chart' +
-            '\n\n' +
-            createMarkdownChart({
-                nameHeader: 'Task',
-                valueHeader: 'Cost',
-                items: costItems,
-                width: chartsWidth,
-                unitName: 'USD',
-            });
+                            return `- [${promptExecution.prompt.title}](#${hash})`;
+                        })
+                        .join('\n'),
+                )}
+
+                ## ⌚ Time chart
+
+                ${block(
+                    createMarkdownChart({
+                        nameHeader: 'Task',
+                        valueHeader: 'Timeline',
+                        items: timingItems,
+                        width: chartsWidth,
+                        unitName: 'seconds',
+                    }),
+                )}
+
+                ## 💸 Cost chart
+
+                ${block(
+                    createMarkdownChart({
+                        nameHeader: 'Task',
+                        valueHeader: 'Cost',
+                        items: costItems,
+                        width: chartsWidth,
+                        unitName: 'USD',
+                    }),
+                )}
+            `,
+        );
     } else {
         headerList.push(`TOTAL COST $0 *(Nothing executed)*`);
     }
 
     for (const promptExecution of executionReportJson.promptExecutions) {
-        executionReportString += '\n\n\n\n' + `## ${promptExecution.prompt.title}`;
+        executionReportString = spaceTrim(
+            (block) => `
+                ${block(executionReportString)}
+
+                ## ${promptExecution.prompt.title}
+            `,
+        );
 
         const taskList: Array<string> = [];
 
@@ -177,7 +189,13 @@ export function executionReportJsonToString(
             taskList.push(`COST UNKNOWN`);
         }
 
-        executionReportString += '\n\n' + taskList.map((header) => `- ${header}`).join('\n');
+        executionReportString = spaceTrim(
+            (block) => `
+                ${block(executionReportString)}
+
+                ${block(taskList.map((header) => `- ${header}`).join('\n'))}
+            `,
+        );
 
         /*
           -   MODEL VARIANT ${promptExecution.prompt.modelRequirements.modelVariant}
@@ -187,57 +205,73 @@ export function executionReportJsonToString(
         */
 
         if (just(true)) {
-            executionReportString +=
-                '\n\n\n\n' +
-                spaceTrim(
-                    (block) => `
+            executionReportString = spaceTrim(
+                (block) => `
+                    ${block(executionReportString)}
 
-                        ### Prompt
+                    ### Prompt
 
-                        \`\`\`
-                        ${block(
-                            escapeMarkdownBlock(
-                                promptExecution.result?.rawPromptContent || promptExecution.prompt.content,
-                            ),
-                        )}
-                        \`\`\`
-
-                    `,
-                );
+                    \`\`\`
+                    ${block(
+                        escapeMarkdownBlock(promptExecution.result?.rawPromptContent || promptExecution.prompt.content),
+                    )}
+                    \`\`\`
+                `,
+            );
         }
 
         if (promptExecution.result && promptExecution.result.content) {
-            executionReportString += '\n\n\n\n' + '### Result' + '\n\n';
+            const resultContent = promptExecution.result.content;
+
+            executionReportString = spaceTrim(
+                (block) => `
+                    ${block(executionReportString)}
+
+                    ### Result
+                `,
+            );
 
             if (promptExecution.result === undefined) {
-                executionReportString += '*No result*';
-            } else if (typeof promptExecution.result.content === 'string') {
-                executionReportString += spaceTrim(
+                executionReportString = spaceTrim(
                     (block) => `
-                          \`\`\`
-                          ${block(escapeMarkdownBlock(promptExecution.result!.content as string))}
-                          \`\`\`
-                      `,
+                        ${block(executionReportString)}
+
+                        *No result*
+                    `,
+                );
+            } else if (typeof resultContent === 'string') {
+                executionReportString = spaceTrim(
+                    (block) => `
+                        ${block(executionReportString)}
+
+                        \`\`\`
+                        ${block(escapeMarkdownBlock(resultContent))}
+                        \`\`\`
+                    `,
                 );
             } else {
-                executionReportString += embeddingVectorToString(promptExecution.result.content);
+                executionReportString = spaceTrim(
+                    (block) => `
+                        ${block(executionReportString)}
+
+                        ${block(embeddingVectorToString(resultContent))}
+                    `,
+                );
             }
         }
 
         if (promptExecution.error && promptExecution.error.message) {
-            executionReportString +=
-                '\n\n\n\n' +
-                spaceTrim(
-                    (block) => `
+            executionReportString = spaceTrim(
+                (block) => `
+                    ${block(executionReportString)}
 
-                        ### Error
+                    ### Error
 
-                        \`\`\`
-                        ${block(escapeMarkdownBlock(promptExecution.error!.message))}
-                        \`\`\`
-
-                    `,
-                );
+                    \`\`\`
+                    ${block(escapeMarkdownBlock(promptExecution.error!.message))}
+                    \`\`\`
+                `,
+            );
         }
     }
 

@@ -334,18 +334,29 @@ function resolveTeamTeammateLabels(teamContent: string, teammates: ReadonlyArray
  * Each teammate is listed with its tool name, TEAM instructions, and optional profile hints.
  */
 function buildTeamSystemMessageBody(teamEntries: ReadonlyArray<TeamToolEntry>): string {
-    const lines = [
-        ...TEAM_SYSTEM_MESSAGE_GUIDANCE_LINES,
-        '',
-        ...teamEntries.map((entry, index) => {
-            const toolLine = `${index + 1}) ${entry.teammate.label} tool \`${entry.toolName}\``;
-            const detailLines = collectTeamEntryDetails(entry).map(formatTeamEntryDetailLine);
+    const teammateSections = teamEntries.map((entry, index) => {
+        const toolLine = `${index + 1}) ${entry.teammate.label} tool \`${entry.toolName}\``;
+        const detailLines = collectTeamEntryDetails(entry).map(formatTeamEntryDetailLine);
 
-            return [toolLine, ...detailLines].join('\n');
-        }),
-    ];
+        if (detailLines.length === 0) {
+            return toolLine;
+        }
 
-    return lines.join('\n');
+        return spaceTrim(
+            (block) => `
+                ${toolLine}
+                ${block(detailLines.join('\n'))}
+            `,
+        );
+    });
+
+    return spaceTrim(
+        (block) => `
+            ${block(TEAM_SYSTEM_MESSAGE_GUIDANCE_LINES.join('\n'))}
+
+            ${block(teammateSections.join('\n\n'))}
+        `,
+    );
 }
 
 /**

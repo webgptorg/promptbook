@@ -45,6 +45,8 @@
 
 -   Extended `spaceTrim` usage to more human-facing multiline builders across runners, timeout messages, TEAM tool descriptions, external chat books, and cache notes so nested content is indented in source without manual `'\n'` stitching.
 
+    -   Replaced more remaining manual multiline prompt, markdown, CLI-output, and test-fixture builders with `spaceTrim`, and switched nested multiline interpolations to `block(...)` where needed.
+
 -   Externalized Agents Server durable chat execution through per-agent GitHub runner repositories:
 
     -   Added GitHub-backed runner repository synchronization using `PROMPTBOOK_AGENT_RUNNER_GITHUB_TOKEN` and `PROMPTBOOK_AGENT_RUNNER_GITHUB_OWNER`, storing repository links in `AgentExternals`.

@@ -1,6 +1,7 @@
 import { mkdir, mkdtemp, rm, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
+import { spaceTrim } from 'spacetrim';
 import { resolveRefactorCandidateProject } from './resolveRefactorCandidateProject';
 
 /**
@@ -28,7 +29,11 @@ describe('resolveRefactorCandidateProject', () => {
         await mkdir(nestedPath, { recursive: true });
         await writeFile(
             join(projectPath, '.gitignore'),
-            ['dist/', '*.generated.ts', '!src/keep.generated.ts'].join('\n'),
+            spaceTrim(`
+                dist/
+                *.generated.ts
+                !src/keep.generated.ts
+            `),
             'utf-8',
         );
 

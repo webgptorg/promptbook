@@ -110,20 +110,22 @@ function buildPullFailureMessage(command: string, error: unknown): string {
     const hints = buildPullFailureHints(details);
     const hintsMarkdown = hints.map((hint) => `- ${hint}`).join('\n');
 
-    return spaceTrim(`
-        Failed to pull the latest repository changes before running the next prompt.
+    return spaceTrim(
+        (block) => `
+            Failed to pull the latest repository changes before running the next prompt.
 
-        Command:
-        \`${command}\`
+            Command:
+            \`${command}\`
 
-        Git output:
-        \`\`\`
-        ${details}
-        \`\`\`
+            Git output:
+            \`\`\`
+            ${block(details)}
+            \`\`\`
 
-        Actionable hints:
-        ${hintsMarkdown}
-    `);
+            Actionable hints:
+            ${block(hintsMarkdown)}
+        `,
+    );
 }
 
 /**
@@ -146,7 +148,9 @@ function buildPullFailureHints(output: string): string[] {
             'publickey',
         ])
     ) {
-        hints.push('Authentication/authorization failed. Verify Git credentials or SSH key and repository permissions.');
+        hints.push(
+            'Authentication/authorization failed. Verify Git credentials or SSH key and repository permissions.',
+        );
     }
 
     if (
@@ -169,11 +173,15 @@ function buildPullFailureHints(output: string): string[] {
             'cannot pull with rebase',
         ])
     ) {
-        hints.push('Git pull requires manual conflict resolution. Resolve the rebase/merge state, then rerun the coding script.');
+        hints.push(
+            'Git pull requires manual conflict resolution. Resolve the rebase/merge state, then rerun the coding script.',
+        );
     }
 
     if (hasAnyPattern(normalizedOutput, ['please commit your changes', 'would be overwritten', 'unstaged changes'])) {
-        hints.push('Working tree is not clean enough for pull. Commit, stash, or discard local changes before rerunning.');
+        hints.push(
+            'Working tree is not clean enough for pull. Commit, stash, or discard local changes before rerunning.',
+        );
     }
 
     if (hints.length === 0) {

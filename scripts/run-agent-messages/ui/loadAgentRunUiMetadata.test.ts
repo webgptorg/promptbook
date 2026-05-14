@@ -1,6 +1,7 @@
 import { mkdir, mkdtemp, rm, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
+import { spaceTrim } from 'spacetrim';
 import { extractLatestUserMessageLines, loadAgentRunUiMetadata } from './loadAgentRunUiMetadata';
 
 describe('loadAgentRunUiMetadata', () => {
@@ -18,25 +19,20 @@ describe('loadAgentRunUiMetadata', () => {
         const queuedMessagePath = join(temporaryProjectPath, 'messages', 'queued', 'message-0001.book');
 
         await mkdir(join(temporaryProjectPath, 'messages', 'queued'), { recursive: true });
-        await writeFile(
-            join(temporaryProjectPath, 'agent.book'),
-            'Support Assistant\n\nRULE Be concise.\n',
-            'utf-8',
-        );
+        await writeFile(join(temporaryProjectPath, 'agent.book'), 'Support Assistant\n\nRULE Be concise.\n', 'utf-8');
         await writeFile(
             queuedMessagePath,
-            [
-                'MESSAGE @User',
-                'First question',
-                '',
-                'MESSAGE @Agent',
-                'First answer',
-                '',
-                'MESSAGE @User',
-                'Second question',
-                'With context',
-                '',
-            ].join('\n'),
+            spaceTrim(`
+                MESSAGE @User
+                First question
+
+                MESSAGE @Agent
+                First answer
+
+                MESSAGE @User
+                Second question
+                With context
+            `),
             'utf-8',
         );
 

@@ -19,12 +19,13 @@ import { capitalize } from '../utils/normalization/capitalize';
 export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString {
     const { title, pipelineUrl, bookVersion, description, parameters, tasks } = pipelineJson;
 
-    let pipelineString: string_markdown = `# ${title}`;
+    let pipelineString: string_markdown = spaceTrim(
+        (block) => `
+            # ${title}
 
-    if (description) {
-        pipelineString += '\n\n';
-        pipelineString += description;
-    }
+            ${block(description || '')}
+        `,
+    );
 
     const commands: Array<string> = [];
 
@@ -47,8 +48,13 @@ export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString
         commands.push(`OUTPUT PARAMETER ${taskParameterJsonToString(parameter)}`);
     }
 
-    pipelineString += '\n\n';
-    pipelineString += commands.map((command) => `- ${command}`).join('\n');
+    pipelineString = spaceTrim(
+        (block) => `
+            ${block(pipelineString)}
+
+            ${block(commands.map((command) => `- ${command}`).join('\n'))}
+        `,
+    );
 
     for (const task of tasks) {
         const {
@@ -64,14 +70,6 @@ export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString
             format,
             resultingParameterName,
         } = task;
-
-        pipelineString += '\n\n';
-        pipelineString += `## ${title}`;
-
-        if (description) {
-            pipelineString += '\n\n';
-            pipelineString += description;
-        }
 
         const commands: Array<string> = [];
         let contentLanguage: 'markdown' | 'text' | 'javascript' | 'typescript' | 'python' | '' = 'text';
@@ -136,20 +134,25 @@ export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString
             }
         } /* not else */
 
-        pipelineString += '\n\n';
-        pipelineString += commands.map((command) => `- ${command}`).join('\n');
+        pipelineString = spaceTrim(
+            (block) => `
+                ${block(pipelineString)}
 
-        pipelineString += '\n\n';
-        pipelineString += '```' + contentLanguage;
-        pipelineString += '\n';
-        pipelineString += spaceTrim(content);
-        //                   <- TODO: [main] !!3 Escape
-        //                   <- TODO: [🧠] Some clear strategy how to spaceTrim the blocks
-        pipelineString += '\n';
-        pipelineString += '```';
+                ## ${title}
 
-        pipelineString += '\n\n';
-        pipelineString += `\`-> {${resultingParameterName}}\``; // <- TODO: [main] !!3 If the parameter here has description, add it and use taskParameterJsonToString
+                ${block(description || '')}
+
+                ${block(commands.map((command) => `- ${command}`).join('\n'))}
+
+                \`\`\`${contentLanguage}
+                ${block(spaceTrim(content))}
+                \`\`\`
+
+                \`-> {${resultingParameterName}}\`
+            `,
+        ); // <- TODO: [main] !!3 If the parameter here has description, add it and use taskParameterJsonToString
+        // <- TODO: [main] !!3 Escape
+        // <- TODO: [🧠] Some clear strategy how to spaceTrim the blocks
     }
 
     return validatePipelineString(pipelineString);

@@ -403,7 +403,16 @@ async function getRemoteFolderGitStatus(remoteFolder: string): Promise<RemoteFol
  * @param changedLines - Raw `git status --porcelain` lines
  */
 function logRemoteFolderGitChanges(changedLines: ReadonlyArray<string>): void {
-    console.info(colors.blue(`Detected changes:\n`) + changedLines.map((line) => colors.blue(`- ${line}`)).join('\n'));
+    console.info(
+        colors.blue(
+            spaceTrim(
+                (block) => `
+                    Detected changes:
+                    ${block(changedLines.map((line) => `- ${line}`).join('\n'))}
+                `,
+            ),
+        ),
+    );
 }
 
 /**

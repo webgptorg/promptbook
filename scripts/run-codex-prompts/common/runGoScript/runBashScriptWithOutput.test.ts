@@ -1,6 +1,7 @@
 import { mkdtemp, readFile, rm, stat } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
+import { spaceTrim } from 'spacetrim';
 import { $runGoScript } from './$runGoScript';
 import { $runGoScriptWithOutput } from './$runGoScriptWithOutput';
 import { buildScriptLogPath } from './buildScriptLogPath';
@@ -23,7 +24,10 @@ describe('runGoScript runtime logging', () => {
         const output = await $runGoScriptWithOutput({
             scriptPath,
             logPath,
-            scriptContent: ["printf 'runner stdout\\n'", "printf 'runner stderr\\n' >&2"].join('\n'),
+            scriptContent: spaceTrim(`
+                printf 'runner stdout\\n'
+                printf 'runner stderr\\n' >&2
+            `),
         });
 
         const log = await readFile(logPath, 'utf-8');
@@ -62,7 +66,10 @@ describe('runGoScript runtime logging', () => {
             $runGoScript({
                 scriptPath,
                 logPath,
-                scriptContent: ["printf 'test failure\\n' >&2", 'exit 2'].join('\n'),
+                scriptContent: spaceTrim(`
+                    printf 'test failure\\n' >&2
+                    exit 2
+                `),
             }),
         ).rejects.toThrow();
 

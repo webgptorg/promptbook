@@ -1,4 +1,5 @@
 import { EnvironmentMismatchError } from '../../../../src/errors/EnvironmentMismatchError';
+import { spaceTrim } from 'spacetrim';
 import { $runGoScript } from '../../common/runGoScript/$runGoScript';
 import { GitHubCopilotRunner } from './GitHubCopilotRunner';
 
@@ -15,10 +16,10 @@ describe('GitHubCopilotRunner', () => {
     it('rewrites Windows/MSYS argument-length failures into a clearer Copilot-specific error', async () => {
         ($runGoScript as jest.MockedFunction<typeof $runGoScript>).mockRejectedValue(
             new Error(
-                [
-                    '/c/Users/me/.nvm/versions/node/v22.11.0/bin/copilot: line 13: C:\\Users\\me\\.nvm\\versions\\node\\v22.11.0\\bin/node: Argument list too long',
-                    '/c/Users/me/.nvm/versions/node/v22.11.0/bin/copilot: line 13: C:\\Users\\me\\.nvm\\versions\\node\\v22.11.0\\bin/node: No error',
-                ].join('\n'),
+                spaceTrim(`
+                    /c/Users/me/.nvm/versions/node/v22.11.0/bin/copilot: line 13: C:\\Users\\me\\.nvm\\versions\\node\\v22.11.0\\bin/node: Argument list too long
+                    /c/Users/me/.nvm/versions/node/v22.11.0/bin/copilot: line 13: C:\\Users\\me\\.nvm\\versions\\node\\v22.11.0\\bin/node: No error
+                `),
             ),
         );
 

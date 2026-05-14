@@ -1,6 +1,7 @@
 import { mkdtemp, rm, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
+import { spaceTrim } from 'spacetrim';
 import { analyzeSourceFileForRefactorCandidate } from './analyzeSourceFileForRefactorCandidate';
 import { getRefactorCandidateLevelConfiguration, type RefactorCandidateLevel } from './RefactorCandidateLevel';
 
@@ -15,13 +16,12 @@ async function createTemporaryDirectory(): Promise<string> {
  * Builds a source file with many simple named functions.
  */
 function buildFunctionHeavySource(functionCount: number): string {
-    return Array.from(
-        { length: functionCount },
-        (_, index) => `
+    return Array.from({ length: functionCount }, (_, index) =>
+        spaceTrim(`
             export function helper${index + 1}(): number {
                 return ${index + 1};
             }
-        `,
+        `),
     ).join('\n');
 }
 
@@ -29,17 +29,14 @@ function buildFunctionHeavySource(functionCount: number): string {
  * Builds a source file with many simple constant lines.
  */
 function buildLineHeavySource(lineCount: number): string {
-    return Array.from(
-        { length: lineCount },
-        (_, index) => `export const value${index + 1} = ${index + 1};`,
-    ).join('\n');
+    return Array.from({ length: lineCount }, (_, index) => `export const value${index + 1} = ${index + 1};`).join('\n');
 }
 
 /**
  * Builds a source file with one function that intentionally exceeds the medium complexity threshold.
  */
 function buildComplexFunctionSource(): string {
-    return `
+    return spaceTrim(`
         export function complexDecision(value: number): number {
             let result = 0;
 
@@ -77,17 +74,13 @@ function buildComplexFunctionSource(): string {
 
             return result;
         }
-    `;
+    `);
 }
 
 /**
  * Analyzes one source file using the heuristics of the selected scan level.
  */
-async function analyzeFileAtLevel(
-    filePath: string,
-    level: RefactorCandidateLevel,
-    rootDir: string,
-) {
+async function analyzeFileAtLevel(filePath: string, level: RefactorCandidateLevel, rootDir: string) {
     return analyzeSourceFileForRefactorCandidate({
         filePath,
         heuristics: getRefactorCandidateLevelConfiguration(level),

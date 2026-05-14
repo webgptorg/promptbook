@@ -287,20 +287,22 @@ function buildPushFailureMessage(command: string, error: unknown): string {
     const hints = buildPushFailureHints(details);
     const hintsMarkdown = hints.map((hint) => `- ${hint}`).join('\n');
 
-    return spaceTrim(`
-        Failed to push coding-agent commit to the remote repository.
+    return spaceTrim(
+        (block) => `
+            Failed to push coding-agent commit to the remote repository.
 
-        Command:
-        \`${command}\`
+            Command:
+            \`${command}\`
 
-        Git output:
-        \`\`\`
-        ${details}
-        \`\`\`
+            Git output:
+            \`\`\`
+            ${block(details)}
+            \`\`\`
 
-        Actionable hints:
-        ${hintsMarkdown}
-    `);
+            Actionable hints:
+            ${block(hintsMarkdown)}
+        `,
+    );
 }
 
 /**

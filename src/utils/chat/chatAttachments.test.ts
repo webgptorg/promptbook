@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
+import { spaceTrim } from 'spacetrim';
 import type { really_any } from '../organization/really_any';
 import { appendChatAttachmentContext } from './chatAttachments/appendChatAttachmentContext';
 import { appendChatAttachmentContextWithContent } from './chatAttachments/appendChatAttachmentContextWithContent';
@@ -90,11 +91,11 @@ describe('chatAttachments helpers', () => {
                 },
             ]),
         ).toBe(
-            [
-                'Attached files:',
-                '- report.pdf (application/pdf): https://example.com/report.pdf',
-                'Use these URLs when you need to inspect the attached files before answering.',
-            ].join('\n'),
+            spaceTrim(`
+            Attached files:
+            - report.pdf (application/pdf): https://example.com/report.pdf
+            Use these URLs when you need to inspect the attached files before answering.
+        `),
         );
     });
 

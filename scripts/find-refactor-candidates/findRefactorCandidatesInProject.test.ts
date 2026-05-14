@@ -1,6 +1,7 @@
 import { mkdir, mkdtemp, rm, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
+import { spaceTrim } from 'spacetrim';
 import { findRefactorCandidatesInProject } from './findRefactorCandidatesInProject';
 import { getRefactorCandidateLevelConfiguration } from './RefactorCandidateLevel';
 import { resolveRefactorCandidateProject } from './resolveRefactorCandidateProject';
@@ -16,10 +17,7 @@ async function createTemporaryDirectory(): Promise<string> {
  * Builds a source file with many simple constant lines.
  */
 function buildLineHeavySource(lineCount: number): string {
-    return Array.from(
-        { length: lineCount },
-        (_, index) => `export const value${index + 1} = ${index + 1};`,
-    ).join('\n');
+    return Array.from({ length: lineCount }, (_, index) => `export const value${index + 1} = ${index + 1};`).join('\n');
 }
 
 describe('findRefactorCandidatesInProject', () => {
@@ -40,7 +38,10 @@ describe('findRefactorCandidatesInProject', () => {
         await mkdir(ignoredDirectoryPath, { recursive: true });
         await writeFile(
             join(projectPath, '.gitignore'),
-            ['src/generated/*', '!src/generated/keep.ts'].join('\n'),
+            spaceTrim(`
+                src/generated/*
+                !src/generated/keep.ts
+            `),
             'utf-8',
         );
         await writeFile(join(ignoredDirectoryPath, 'ignored.ts'), buildLineHeavySource(700), 'utf-8');
@@ -62,7 +63,13 @@ describe('findRefactorCandidatesInProject', () => {
         const ignoredDirectoryPath = join(projectPath, 'src', 'vendor-cache');
 
         await mkdir(ignoredDirectoryPath, { recursive: true });
-        await writeFile(join(projectPath, '.gitignore'), ['src/vendor-cache'].join('\n'), 'utf-8');
+        await writeFile(
+            join(projectPath, '.gitignore'),
+            spaceTrim(`
+                src/vendor-cache
+            `),
+            'utf-8',
+        );
         await writeFile(join(ignoredDirectoryPath, 'ignored.ts'), buildLineHeavySource(700), 'utf-8');
         await writeFile(join(projectPath, 'src', 'service.ts'), buildLineHeavySource(700), 'utf-8');
 

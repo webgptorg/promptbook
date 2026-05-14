@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { findNextTodoPrompt } from './findNextTodoPrompt';
 import { listPromptsToBeWritten } from './listPromptsToBeWritten';
 import { listRunnablePrompts } from './listRunnablePrompts';
@@ -11,25 +12,25 @@ import { summarizePrompts } from './summarizePrompts';
 function createPromptFiles() {
     const file = parsePromptFile(
         'prompts/priority-test.md',
-        [
-            '[ ] !!!!',
-            'High runnable',
-            '---',
-            '[ ] !!!',
-            'Medium runnable',
-            '---',
-            '[ ] !!',
-            'Low runnable',
-            '---',
-            '[ ] !!!',
-            '@@@ High to be written',
-            '---',
-            '[ ] !',
-            '@@@ Low to be written',
-            '---',
-            '[x] done',
-            'Finished task',
-        ].join('\n'),
+        spaceTrim(`
+            [ ] !!!!
+            High runnable
+            ---
+            [ ] !!!
+            Medium runnable
+            ---
+            [ ] !!
+            Low runnable
+            ---
+            [ ] !!!
+            @@@ High to be written
+            ---
+            [ ] !
+            @@@ Low to be written
+            ---
+            [x] done
+            Finished task
+        `),
     );
 
     return [file];
@@ -74,15 +75,15 @@ describe('priority filtering', () => {
     it('parses failed prompts and excludes them from runnable tasks', () => {
         const file = parsePromptFile(
             'prompts/failed-test.md',
-            [
-                '[!] (failed after 3 attempts) 1 minute by Gemini CLI `gemini-3-flash`',
-                'Already attempted task',
-                '',
-                '---',
-                '',
-                '[ ] !!',
-                'Runnable task',
-            ].join('\n'),
+            spaceTrim(`
+                [!] (failed after 3 attempts) 1 minute by Gemini CLI \`gemini-3-flash\`
+                Already attempted task
+
+                ---
+
+                [ ] !!
+                Runnable task
+            `),
         );
 
         const runnable = listRunnablePrompts([file], 0);
