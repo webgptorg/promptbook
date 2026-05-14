@@ -2,7 +2,7 @@ import type { ThinkingLevel } from '../../src/cli/cli-commands/coder/ThinkingLev
 import type { PromptRunnerAgentName } from '../../src/cli/cli-commands/common/promptRunnerCliOptions';
 
 /**
- * Options for `ptbk agent tick` and `ptbk agent run`.
+ * Options for `ptbk agent run-once`, `ptbk agent run-agent`, and `ptbk agent run-multiple`.
  */
 export type AgentRunOptions = {
     readonly agentName?: PromptRunnerAgentName;

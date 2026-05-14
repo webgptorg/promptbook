@@ -32,7 +32,7 @@ import { pullLatestChangesForAgentQueueIfEnabled } from './pullLatestChangesForA
 import { validateAgentRunOptions } from './validateAgentRunOptions';
 
 /**
- * Result of one `ptbk agent tick` invocation.
+ * Result of one `ptbk agent run-once` invocation.
  */
 export type AgentTickResult = {
     readonly isMessageProcessed: boolean;
@@ -236,15 +236,7 @@ function createAgentRunUiHandle(
     }
 
     const uiHandle = renderCoderRunUi(moment(), { buildFrameLines: buildAgentRunUiFrame });
-    seedAgentRunUiHandle(
-        uiHandle,
-        options,
-        runner,
-        actualRunnerModel,
-        queuedMessage,
-        queueSnapshot,
-        agentUiMetadata,
-    );
+    seedAgentRunUiHandle(uiHandle, options, runner, actualRunnerModel, queuedMessage, queueSnapshot, agentUiMetadata);
 
     return uiHandle;
 }

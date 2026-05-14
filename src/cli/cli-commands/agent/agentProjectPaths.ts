@@ -16,14 +16,14 @@ export const AGENT_BOOK_FILE_PATH = 'agent.book';
 export const AGENT_MESSAGES_DIRECTORY_PATH = 'messages';
 
 /**
- * Relative path to queued user messages consumed by `ptbk agent tick`.
+ * Relative path to queued user messages consumed by `ptbk agent run-once`.
  *
  * @private internal utility of `ptbk agent`
  */
 export const AGENT_QUEUED_MESSAGES_DIRECTORY_PATH = join(AGENT_MESSAGES_DIRECTORY_PATH, 'queued');
 
 /**
- * Relative path to answered messages written by `ptbk agent tick`.
+ * Relative path to answered messages written by `ptbk agent run-once`.
  *
  * @private internal utility of `ptbk agent`
  */

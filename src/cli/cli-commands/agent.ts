@@ -5,6 +5,7 @@ import type {
 import { spaceTrim } from 'spacetrim';
 import type { $side_effect } from '../../utils/organization/$side_effect';
 import { $initializeAgentInitCommand } from './agent/init';
+import { $initializeAgentRunMultipleCommand } from './agent/runMultiple';
 import { $initializeAgentRunCommand } from './agent/run';
 import { $initializeAgentTickCommand } from './agent/tick';
 
@@ -13,8 +14,9 @@ import { $initializeAgentTickCommand } from './agent/tick';
  *
  * The agent command provides utilities for repository-backed message queues:
  * - init: Initialize local agent queue and instruction files
- * - tick: Answer one queued message and exit
- * - run: Watch the queue and answer messages one by one
+ * - run-once (alias: tick): Answer one queued message and exit
+ * - run-agent (alias: run): Watch one queue and answer messages one by one
+ * - run-multiple: Watch direct child agent repositories in one shared session
  *
  * Note: `$` is used to indicate that this function is not a pure function - it registers a command in the CLI.
  *
@@ -28,14 +30,16 @@ export function $initializeAgentCommand(program: Program): $side_effect {
 
             Subcommands:
             - init: Initialize local agent queue and instruction files
-            - tick: Answer one queued message and exit
-            - run: Watch the queue and answer messages one by one
+            - run-once (alias: tick): Answer one queued message and exit
+            - run-agent (alias: run): Watch one queue and answer messages one by one
+            - run-multiple: Watch direct child agent repositories in one shared session
         `),
     );
 
     $initializeAgentInitCommand(agentCommand);
     $initializeAgentTickCommand(agentCommand);
     $initializeAgentRunCommand(agentCommand);
+    $initializeAgentRunMultipleCommand(agentCommand);
 
     agentCommand.action(() => {
         console.info(colors.yellow('Please specify a subcommand.'));

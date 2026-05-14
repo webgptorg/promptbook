@@ -1,3 +1,10 @@
+-   Renamed and expanded the `ptbk agent` runner command family so one process can now serve multiple local agent repositories:
+
+    -   Added canonical `ptbk agent run-once`, `ptbk agent run-agent`, and `ptbk agent run-multiple` subcommands while keeping the previous `tick` and `run` names as backward-compatible aliases.
+    -   Added `ptbk agent run-multiple` to watch all direct child agent repositories from the current directory inside one shared terminal session and route queued messages through the existing single-agent tick pipeline.
+    -   Added optional GitHub owner synchronization for multi-agent runs, cloning missing direct-child `agent-*` repositories via `PROMPTBOOK_AGENT_RUNNER_GITHUB_TOKEN` and `PROMPTBOOK_AGENT_RUNNER_GITHUB_OWNER`.
+    -   Updated generated external runner repository scripts to use the canonical `ptbk agent run-agent` command name.
+
 -   Changed external runner repository naming so Agents Server now provisions and relinks runner repos as `agent-<AGENT_ID>`:
 
     -   Removed the previous `promptbook-agent-<agent-name>-<id>` naming scheme, so created repositories no longer include the agent name or the `promptbook` prefix.
@@ -29,7 +36,7 @@
     -   Changed queued thread filenames to `YYYY-MM-DD-<CHAT_THREAD_ID>.book`, using the original `UserChat.createdAt` date so every follow-up turn in the same chat keeps the same stable dated filename.
 
 -   Added a new `Minecraft 3D 2` built-in avatar visual with proper 3D cuboid rendering and pointer-driven head turning:
-    
+
     -   Reused shared Minecraft texture helpers so both Minecraft-style visuals stay deterministic without duplicating the face / torso pixel-generation logic.
     -   Added a proper 3D projected head-and-torso renderer for the new visual, including textured visible faces, depth sorting, and directional shading.
     -   Enabled avatar pointer tracking so the Minecraft 3D 2 silhouette turns its head toward the mouse cursor like the other interactive avatar visuals.
@@ -3252,16 +3259,19 @@
     -   Added shared metadata definitions with reusable predefined option lists, so enum-like metadata such as `DEFAULT_AGENT_AVATAR_VISUAL`, `SERVER_LANGUAGE`, `SERVER_VISIBILITY`, `CHAT_FEEDBACK_MODE`, `CHAT_VISUAL_MODE`, `NAME_POOL`, `DEFAULT_VISIBILITY`, and `NEW_AGENT_WIZZARD` now render as selects instead of free-form text inputs.
     -   Reused the same option registries across the metadata page and existing server-creation flows to keep enum values centralized and DRY.
     -   Added server-side validation for predefined metadata options, so invalid enum values are rejected even when `/api/metadata` is called directly.
+
 -   Fixed `ptbk agent run` / `ptbk agent tick` with the GitHub Copilot runner on Windows/MSYS for large queued-message prompts:
 
     -   Stopped passing the full generated agent prompt as one `copilot -p "..."` shell argument, which could exceed the shell/Node argument-length limit and fail with `Argument list too long`.
     -   Switched the GitHub Copilot runner to feed prompts through standard input instead, keeping `--model`, `--reasoning-effort`, and the existing non-interactive flags unchanged.
     -   Added regression coverage for the new stdin-based invocation shape so agent-mode prompts stay safe even when the Book Language blueprint makes them much larger than coder prompts.
+
 -   Enhanced the `ptbk agent run` rich terminal UI so it now reflects queued-message workflows instead of mirroring `ptbk coder run`:
-    
+
     -   The top branding now uses compact initials derived from the local `agent.book` title, making the dashboard identify the actual agent definition rather than only the runner selected by `--agent`.
     -   The session summary now distinguishes the local agent from the execution runner and shows queue-specific totals (`finished` / `queued` / total) with a progress bar based on answered messages instead of `Task 1/1`.
     -   Added a dedicated `User message` box that shows the latest `MESSAGE @User` block 1:1 with line-preserving trimming, while keeping the live streaming output panel unchanged.
+
 -   Enhanced the `ptbk agent run` terminal dashboard so long-running agent sessions stay inside one stable rich UI:
 
     -   Kept a single persistent boxed UI alive across queued-message runs, moving idle watching and idle auto-pull activity into explicit in-frame `WAITING` / loading states instead of printing plain lines that broke the layout mid-session.

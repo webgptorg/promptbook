@@ -1,16 +1,16 @@
 import colors from 'colors';
-import { spaceTrim } from 'spacetrim';
-import { NotAllowed } from '../../../src/errors/NotAllowed';
 import { just } from '../../../src/utils/organization/just';
 import type { AgentRunOptions } from '../AgentRunOptions';
-import {
-    getQueuedAgentMessagesDirectoryLabel,
-    loadAgentMessageQueueSnapshot,
-} from './loadAgentMessageQueueSnapshot';
+import { getQueuedAgentMessagesDirectoryLabel, loadAgentMessageQueueSnapshot } from './loadAgentMessageQueueSnapshot';
 import { pullLatestChangesForAgentQueueIfEnabled } from './pullLatestChangesForAgentQueueIfEnabled';
 import { tickAgentMessages } from './tickAgentMessages';
-import { initializeAgentRunUi, updateAgentRunUiForPulling, updateAgentRunUiForWatching } from '../ui/initializeAgentRunUi';
+import {
+    initializeAgentRunUi,
+    updateAgentRunUiForPulling,
+    updateAgentRunUiForWatching,
+} from '../ui/initializeAgentRunUi';
 import { validateAgentRunOptions } from './validateAgentRunOptions';
+import { validateAgentWatchOptions } from './validateAgentWatchOptions';
 
 /**
  * Delay between idle queue checks in watch mode.
@@ -32,7 +32,7 @@ export async function runAgentMessages(
     } = {},
 ): Promise<void> {
     validateAgentRunOptions(options);
-    validateAgentWatchOptions(options);
+    validateAgentWatchOptions('ptbk agent run-agent', options);
     const projectPath = process.cwd();
     const initialQueueSnapshot = await loadAgentMessageQueueSnapshot(projectPath);
     const uiHandle = await initializeAgentRunUi(projectPath, options, initialQueueSnapshot);
@@ -59,23 +59,6 @@ export async function runAgentMessages(
             shouldContinue,
         });
     }
-}
-
-/**
- * Validates constraints specific to the never-ending watch loop.
- */
-function validateAgentWatchOptions(options: AgentRunOptions): void {
-    if (!options.noCommit || options.ignoreGitChanges) {
-        return;
-    }
-
-    throw new NotAllowed(
-        spaceTrim(`
-            Flag \`--no-commit\` requires \`--ignore-git-changes\` when used with \`ptbk agent run\`.
-
-            Without commits, answered messages remain in the working tree and the next message round would fail the clean working tree check.
-        `),
-    );
 }
 
 /**

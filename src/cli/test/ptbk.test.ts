@@ -43,14 +43,14 @@ describe('how promptbookCli works', () => {
             }),
         ).resolves.toContain('Initialize Promptbook coder configuration for current project'));
 
-    it('should expose `agent run` command', () =>
+    it('should expose `agent run-agent` command', () =>
         expect(
             $execCommand({
-                command: 'ts-node src/cli/test/ptbk.ts agent run --help',
+                command: 'ts-node src/cli/test/ptbk.ts agent run-agent --help',
                 crashOnError: false,
                 cwd: process.cwd(),
             }),
-        ).resolves.toContain('Run an agent to answer user questions'));
+        ).resolves.toContain('Watch one agent repository continuously and answer queued user questions'));
 
     it('should expose `coder initialize` alias', () =>
         expect(

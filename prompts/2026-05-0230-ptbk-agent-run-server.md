@@ -1,4 +1,4 @@
-[ ] !!
+[x] ~$0.00 36 minutes by GitHub Copilot `gpt-5.4`
 
 [✨🕐] Allow to run `ptbk agent` for multiple agents/repositories at once by one running command
 
@@ -99,3 +99,4 @@ ptbk agent run --agent github-copilot --model gpt-5.4 --thinking-level xhigh
 -   Do a proper analysis of the current functionality of `ptbk agent` and related functionality before you start implementing.
 -   You are working with [`ptbk agent`](src/cli/cli-commands/agent/run.ts)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
