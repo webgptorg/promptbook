@@ -99,6 +99,9 @@ async function waitForQueuedAgentMessage(options: {
             return autoPullTimestamp;
         }
     }
+
+    // This line is unreachable but satisfies the compiler's control flow analysis
+    return autoPullTimestamp;
 }
 
 /**
