@@ -3262,3 +3262,8 @@
     -   The top branding now uses compact initials derived from the local `agent.book` title, making the dashboard identify the actual agent definition rather than only the runner selected by `--agent`.
     -   The session summary now distinguishes the local agent from the execution runner and shows queue-specific totals (`finished` / `queued` / total) with a progress bar based on answered messages instead of `Task 1/1`.
     -   Added a dedicated `User message` box that shows the latest `MESSAGE @User` block 1:1 with line-preserving trimming, while keeping the live streaming output panel unchanged.
+-   Enhanced the `ptbk agent run` terminal dashboard so long-running agent sessions stay inside one stable rich UI:
+
+    -   Kept a single persistent boxed UI alive across queued-message runs, moving idle watching and idle auto-pull activity into explicit in-frame `WAITING` / loading states instead of printing plain lines that broke the layout mid-session.
+    -   Changed the header visual to render the local agent name in a smaller compact banner instead of large initials, while keeping the rest of the terminal frame layout intact.
+    -   Kept the queued-thread preview focused on the latest `MESSAGE @User` from the `.book` thread via `src/book-3.0/Book.ts`, and deferred the coding-agent Git identity tip until process exit so it no longer interrupts active sessions or `--no-ui` streaming output.

@@ -1,12 +1,15 @@
 import colors from 'colors';
 import { spaceTrim } from 'spacetrim';
-import { AGENT_QUEUED_MESSAGES_DIRECTORY_PATH } from '../../../src/cli/cli-commands/agent/agentProjectPaths';
 import { NotAllowed } from '../../../src/errors/NotAllowed';
 import { just } from '../../../src/utils/organization/just';
 import type { AgentRunOptions } from '../AgentRunOptions';
-import { listQueuedAgentMessages } from '../messages/listQueuedAgentMessages';
+import {
+    getQueuedAgentMessagesDirectoryLabel,
+    loadAgentMessageQueueSnapshot,
+} from './loadAgentMessageQueueSnapshot';
 import { pullLatestChangesForAgentQueueIfEnabled } from './pullLatestChangesForAgentQueueIfEnabled';
 import { tickAgentMessages } from './tickAgentMessages';
+import { initializeAgentRunUi, updateAgentRunUiForPulling, updateAgentRunUiForWatching } from '../ui/initializeAgentRunUi';
 import { validateAgentRunOptions } from './validateAgentRunOptions';
 
 /**
@@ -22,20 +25,26 @@ const AGENT_IDLE_AUTO_PULL_INTERVAL_MS = 30_000;
 /**
  * Watches the queued message directory and answers messages one by one.
  */
-export async function runAgentMessages(options: AgentRunOptions): Promise<void> {
+export async function runAgentMessages(
+    options: AgentRunOptions,
+    controls: {
+        readonly shouldContinue?: () => boolean;
+    } = {},
+): Promise<void> {
     validateAgentRunOptions(options);
     validateAgentWatchOptions(options);
     const projectPath = process.cwd();
+    const initialQueueSnapshot = await loadAgentMessageQueueSnapshot(projectPath);
+    const uiHandle = await initializeAgentRunUi(projectPath, options, initialQueueSnapshot);
     let autoPullTimestamp = options.autoPull ? Date.now() : undefined;
+    const shouldContinue = controls.shouldContinue || (() => just(true));
 
-    console.info(
-        colors.green(
-            `Watching ${AGENT_QUEUED_MESSAGES_DIRECTORY_PATH.replace(/\\/gu, '/')} for queued agent messages.`,
-        ),
-    );
+    if (!uiHandle) {
+        console.info(colors.green(`Watching ${getQueuedAgentMessagesDirectoryLabel()} for queued agent messages.`));
+    }
 
-    while (just(true)) {
-        const result = await tickAgentMessages(options, { isQuietWhenIdle: true });
+    while (shouldContinue()) {
+        const result = await tickAgentMessages(options, { isQuietWhenIdle: true, uiHandle });
         autoPullTimestamp = result.autoPullTimestamp ?? autoPullTimestamp;
 
         if (result.isMessageProcessed) {
@@ -46,6 +55,8 @@ export async function runAgentMessages(options: AgentRunOptions): Promise<void> 
             projectPath,
             options,
             autoPullTimestamp,
+            uiHandle,
+            shouldContinue,
         });
     }
 }
@@ -74,14 +85,23 @@ async function waitForQueuedAgentMessage(options: {
     readonly projectPath: string;
     readonly options: AgentRunOptions;
     readonly autoPullTimestamp: number | undefined;
+    readonly uiHandle?: Awaited<ReturnType<typeof initializeAgentRunUi>>;
+    readonly shouldContinue: () => boolean;
 }): Promise<number | undefined> {
-    const { projectPath, options: runOptions } = options;
+    const { projectPath, options: runOptions, uiHandle, shouldContinue } = options;
     let { autoPullTimestamp } = options;
+    let queueSnapshot = await loadAgentMessageQueueSnapshot(projectPath);
 
-    while (just(true)) {
+    if (uiHandle) {
+        updateAgentRunUiForWatching(uiHandle, queueSnapshot);
+    }
+
+    while (shouldContinue()) {
         await wait(AGENT_QUEUE_POLL_INTERVAL_MS);
 
-        if ((await listQueuedAgentMessages(projectPath)).length > 0) {
+        queueSnapshot = await loadAgentMessageQueueSnapshot(projectPath);
+
+        if (queueSnapshot.queuedMessages.length > 0) {
             return autoPullTimestamp;
         }
 
@@ -89,13 +109,23 @@ async function waitForQueuedAgentMessage(options: {
             continue;
         }
 
+        if (uiHandle) {
+            updateAgentRunUiForPulling(uiHandle, queueSnapshot, 'Pulling latest changes while idle');
+        }
+
         autoPullTimestamp = await pullLatestChangesForAgentQueueIfEnabled({
             projectPath,
             runOptions,
-            logMessage: 'Pulling latest changes while idle...',
+            logMessage: uiHandle ? undefined : 'Pulling latest changes while idle...',
         });
 
-        if ((await listQueuedAgentMessages(projectPath)).length > 0) {
+        queueSnapshot = await loadAgentMessageQueueSnapshot(projectPath);
+
+        if (uiHandle) {
+            updateAgentRunUiForWatching(uiHandle, queueSnapshot, 'Watching queued agent messages');
+        }
+
+        if (queueSnapshot.queuedMessages.length > 0) {
             return autoPullTimestamp;
         }
     }

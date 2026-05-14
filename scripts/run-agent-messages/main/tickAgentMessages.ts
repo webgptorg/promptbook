@@ -1,15 +1,12 @@
-import colors from 'colors';
-import { readdir } from 'fs/promises';
 import moment from 'moment';
-import { join } from 'path';
-import { AGENT_FINISHED_MESSAGES_DIRECTORY_PATH } from '../../../src/cli/cli-commands/agent/agentProjectPaths';
+import colors from 'colors';
 import {
     captureChangedFilesSnapshot,
     normalizeLineEndingsInFilesChangedSinceSnapshot,
     type ChangedFilesSnapshot,
 } from '../../run-codex-prompts/common/normalizeLineEndingsInChangedFiles';
 import { withPromptRuntimeLog } from '../../run-codex-prompts/common/runGoScript/withPromptRuntimeLog';
-import { printAgentGitIdentityTipIfNeeded } from '../../run-codex-prompts/git/agentGitIdentity';
+import { printAgentGitIdentityTipAtProcessExitIfNeeded } from '../../run-codex-prompts/git/agentGitIdentity';
 import { commitChanges } from '../../run-codex-prompts/git/commitChanges';
 import { resolvePromptRunner } from '../../run-codex-prompts/main/resolvePromptRunner';
 import type { PromptRunner } from '../../run-codex-prompts/runners/types/PromptRunner';
@@ -21,10 +18,15 @@ import type { AgentMessageFile } from '../messages/AgentMessageFile';
 import { buildAgentMessageCommitMessage } from '../messages/buildAgentMessageCommitMessage';
 import { buildAgentMessagePrompt } from '../messages/buildAgentMessagePrompt';
 import { buildAgentMessageScriptPath } from '../messages/buildAgentMessageScriptPath';
-import { listQueuedAgentMessages } from '../messages/listQueuedAgentMessages';
 import { moveAgentMessageToFinished, type FinishedAgentMessageFile } from '../messages/moveAgentMessageToFinished';
+import {
+    createAgentQueueProgressSnapshot,
+    loadAgentMessageQueueSnapshot,
+    type AgentMessageQueueSnapshot,
+} from './loadAgentMessageQueueSnapshot';
 import { buildAgentRunUiFrame } from '../ui/buildAgentRunUiFrame';
 import { loadAgentRunUiMetadata } from '../ui/loadAgentRunUiMetadata';
+import { updateAgentRunUiForPulling, updateAgentRunUiForWatching } from '../ui/initializeAgentRunUi';
 import { createCoderRunOptionsForAgent } from './createCoderRunOptionsForAgent';
 import { pullLatestChangesForAgentQueueIfEnabled } from './pullLatestChangesForAgentQueueIfEnabled';
 import { validateAgentRunOptions } from './validateAgentRunOptions';
@@ -44,14 +46,7 @@ export type AgentTickResult = {
  */
 export type TickAgentMessagesOptions = {
     readonly isQuietWhenIdle?: boolean;
-};
-
-/**
- * Queue counts and files used to render the agent-specific dashboard.
- */
-type AgentMessageQueueSnapshot = {
-    readonly queuedMessages: ReadonlyArray<AgentMessageFile>;
-    readonly finishedMessageCount: number;
+    readonly uiHandle?: CoderRunUiHandle;
 };
 
 /**
@@ -72,10 +67,18 @@ export async function tickAgentMessages(
         return { isMessageProcessed: false };
     }
 
+    if (tickOptions.uiHandle) {
+        updateAgentRunUiForPulling(
+            tickOptions.uiHandle,
+            queueSnapshot,
+            'Pulling latest changes before answering the next message',
+        );
+    }
+
     const autoPullTimestamp = await pullLatestChangesForAgentQueueIfEnabled({
         projectPath,
         runOptions: options,
-        logMessage: 'Pulling latest changes before answering the next message...',
+        logMessage: tickOptions.uiHandle ? undefined : 'Pulling latest changes before answering the next message...',
     });
 
     if (autoPullTimestamp !== undefined) {
@@ -83,6 +86,9 @@ export async function tickAgentMessages(
         queuedMessage = queueSnapshot.queuedMessages[0];
 
         if (!queuedMessage) {
+            if (tickOptions.uiHandle) {
+                updateAgentRunUiForWatching(tickOptions.uiHandle, queueSnapshot);
+            }
             announceNoQueuedMessages(tickOptions);
             return { isMessageProcessed: false, autoPullTimestamp };
         }
@@ -98,6 +104,7 @@ export async function tickAgentMessages(
         queuedMessage,
         queueSnapshot,
         agentUiMetadata,
+        tickOptions.uiHandle,
     );
 
     try {
@@ -129,8 +136,10 @@ export async function tickAgentMessages(
         uiHandle?.state.addError(error instanceof Error ? error.message : String(error));
         throw error;
     } finally {
-        uiHandle?.cleanup();
-        printAgentGitIdentityTipIfNeeded();
+        if (!tickOptions.uiHandle) {
+            uiHandle?.cleanup();
+        }
+        printAgentGitIdentityTipAtProcessExitIfNeeded();
     }
 }
 
@@ -207,12 +216,51 @@ function createAgentRunUiHandle(
     queuedMessage: AgentMessageFile,
     queueSnapshot: AgentMessageQueueSnapshot,
     agentUiMetadata: Awaited<ReturnType<typeof loadAgentRunUiMetadata>>,
+    externalUiHandle?: CoderRunUiHandle,
 ): CoderRunUiHandle | undefined {
+    if (externalUiHandle) {
+        seedAgentRunUiHandle(
+            externalUiHandle,
+            options,
+            runner,
+            actualRunnerModel,
+            queuedMessage,
+            queueSnapshot,
+            agentUiMetadata,
+        );
+        return externalUiHandle;
+    }
+
     if (options.noUi || !process.stdout.isTTY) {
         return undefined;
     }
 
     const uiHandle = renderCoderRunUi(moment(), { buildFrameLines: buildAgentRunUiFrame });
+    seedAgentRunUiHandle(
+        uiHandle,
+        options,
+        runner,
+        actualRunnerModel,
+        queuedMessage,
+        queueSnapshot,
+        agentUiMetadata,
+    );
+
+    return uiHandle;
+}
+
+/**
+ * Seeds one agent-run UI handle with the queue snapshot and current message metadata.
+ */
+function seedAgentRunUiHandle(
+    uiHandle: CoderRunUiHandle,
+    options: AgentRunOptions,
+    runner: PromptRunner,
+    actualRunnerModel: string | undefined,
+    queuedMessage: AgentMessageFile,
+    queueSnapshot: AgentMessageQueueSnapshot,
+    agentUiMetadata: Awaited<ReturnType<typeof loadAgentRunUiMetadata>>,
+): void {
     uiHandle.state.setConfig({
         agentName: runner.name,
         localAgentName: agentUiMetadata.localAgentName,
@@ -225,8 +273,6 @@ function createAgentRunUiHandle(
     uiHandle.state.setMessagePreviewLines([...agentUiMetadata.latestUserMessageLines]);
     uiHandle.state.setPhase('loading');
     uiHandle.state.setStatusMessage('Preparing message');
-
-    return uiHandle;
 }
 
 /**
@@ -269,18 +315,6 @@ function buildCommitIncludePaths(
 }
 
 /**
- * Converts agent queue counts into the prompt-style snapshot used by the shared rich UI state.
- */
-function createAgentQueueProgressSnapshot(queueSnapshot: AgentMessageQueueSnapshot) {
-    return {
-        done: queueSnapshot.finishedMessageCount,
-        forAgent: queueSnapshot.queuedMessages.length,
-        belowMinimumPriority: 0,
-        toBeWritten: 0,
-    };
-}
-
-/**
  * Normalizes line endings in files changed during the current agent round.
  */
 async function normalizeLineEndingsForAgentRound(
@@ -315,40 +349,4 @@ function announceNoQueuedMessages(options: TickAgentMessagesOptions): void {
     }
 
     console.info(colors.gray('No queued agent messages.'));
-}
-
-/**
- * Reads current queued and finished message counts for the agent dashboard.
- */
-async function loadAgentMessageQueueSnapshot(projectPath: string): Promise<AgentMessageQueueSnapshot> {
-        const [queuedMessages, finishedMessageCount] = await Promise.all([
-            listQueuedAgentMessages(projectPath),
-            countBookFiles(join(projectPath, AGENT_FINISHED_MESSAGES_DIRECTORY_PATH)),
-        ]);
-
-    return {
-        queuedMessages,
-        finishedMessageCount,
-    };
-}
-
-/**
- * Counts `.book` files inside one queue directory and treats a missing directory as empty.
- */
-async function countBookFiles(directoryPath: string): Promise<number> {
-    try {
-        const directoryEntries = await readdir(directoryPath, { withFileTypes: true });
-        return directoryEntries.filter((directoryEntry) => directoryEntry.isFile() && /\.book$/iu.test(directoryEntry.name)).length;
-    } catch (error) {
-        if (
-            error &&
-            typeof error === 'object' &&
-            'code' in error &&
-            ((error as { code?: string }).code === 'ENOENT' || (error as { code?: string }).code === 'ENOTDIR')
-        ) {
-            return 0;
-        }
-
-        throw error;
-    }
 }

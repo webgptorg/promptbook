@@ -139,7 +139,7 @@ function buildUserMessagePreviewLines(
     const rawLines =
         messagePreviewLines && messagePreviewLines.length > 0
             ? messagePreviewLines.map((messagePreviewLine) => messagePreviewLine.replace(/\t/gu, '    '))
-            : ['No `MESSAGE @User` content found in the queued message.'];
+            : ['Waiting for the next queued `MESSAGE @User`.'];
     const visibleLines = rawLines.slice(0, MAX_MESSAGE_PREVIEW_LINES).map((line) => fitPlainText(line, previewWidth));
 
     if (rawLines.length > MAX_MESSAGE_PREVIEW_LINES) {

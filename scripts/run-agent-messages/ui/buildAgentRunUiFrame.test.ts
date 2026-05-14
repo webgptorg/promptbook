@@ -64,6 +64,7 @@ describe('buildAgentRunUiFrame', () => {
         expect(output).toContain('Queue    5 total  ·  3 finished  ·  2 queued');
         expect(output).toContain('Timing   Elapsed 3m  ·  Total 5m  ·  ETA Today 10:25');
         expect(output).toContain('60% complete (3/5 finished)');
+        expect(output).toContain('GitHub Copilot Support');
         expect(output).toContain('User message');
         expect(output).toContain('Please summarize the latest PR feedback.');
         expect(output).toContain('Keep the answer concise and mention blockers.');
@@ -88,5 +89,38 @@ describe('buildAgentRunUiFrame', () => {
         );
 
         expect(longerFrame).toHaveLength(shorterFrame.length);
+    });
+
+    it('renders idle watching state inside the frame without a current prompt label', () => {
+        const output = buildAgentRunUiFrame(
+            createFrameOptions({
+                phase: 'waiting',
+                currentPromptLabel: '',
+                statusMessage: 'Watching queued agent messages',
+                detailLines: ['Watching messages/queued for queued agent messages.'],
+                messagePreviewLines: ['Waiting for the next queued `MESSAGE @User`.'],
+                progress: {
+                    totalPrompts: 0,
+                    sessionDone: 0,
+                    sessionTotal: 0,
+                    sessionRemaining: 0,
+                    currentPromptIndex: 0,
+                    skippedPrompts: 0,
+                    toBeWrittenPrompts: 0,
+                    percentage: 0,
+                    elapsedText: '12s',
+                    estimatedTotalText: '12s',
+                    estimatedLabel: 'Today 10:25',
+                    isEstimatedTotalKnown: true,
+                },
+            }),
+        )
+            .map(stripAnsi)
+            .join('\n');
+
+        expect(output).toContain('State     WAITING  Watching queued agent messages');
+        expect(output).toContain('Watching messages/queued for queued agent messages.');
+        expect(output).toContain('Waiting for the next queued `MESSAGE @User`.');
+        expect(output).not.toContain('Pulling latest changes while idle...');
     });
 });

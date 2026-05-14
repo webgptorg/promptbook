@@ -1,17 +1,6 @@
 import type { AgentRunOptions } from '../AgentRunOptions';
-import type { AgentMessageFile } from '../messages/AgentMessageFile';
-import { listQueuedAgentMessages } from '../messages/listQueuedAgentMessages';
-import { pullLatestChangesForAgentQueueIfEnabled } from './pullLatestChangesForAgentQueueIfEnabled';
 import { runAgentMessages } from './runAgentMessages';
 import { tickAgentMessages } from './tickAgentMessages';
-
-jest.mock('../messages/listQueuedAgentMessages', () => ({
-    listQueuedAgentMessages: jest.fn(),
-}));
-
-jest.mock('./pullLatestChangesForAgentQueueIfEnabled', () => ({
-    pullLatestChangesForAgentQueueIfEnabled: jest.fn(),
-}));
 
 jest.mock('./tickAgentMessages', () => ({
     tickAgentMessages: jest.fn(),
@@ -36,58 +25,40 @@ function createAgentRunOptions(overrides: Partial<AgentRunOptions> = {}): AgentR
     };
 }
 
-/**
- * Minimal queued message used by mocked queue scans.
- */
-function createQueuedMessage(): AgentMessageFile {
-    return {
-        absolutePath: 'C:\\repo\\messages\\queued\\question.book',
-        relativePath: 'messages/queued/question.book',
-        fileName: 'question.book',
-    };
-}
-
 describe('runAgentMessages', () => {
+    let consoleInfoSpy: jest.SpyInstance<void, [message?: unknown, ...optionalParams: unknown[]]>;
+
     beforeEach(() => {
-        jest.useFakeTimers();
         jest.clearAllMocks();
-        (listQueuedAgentMessages as jest.MockedFunction<typeof listQueuedAgentMessages>).mockResolvedValue([]);
-        (
-            pullLatestChangesForAgentQueueIfEnabled as jest.MockedFunction<typeof pullLatestChangesForAgentQueueIfEnabled>
-        ).mockResolvedValue(123_456);
+        consoleInfoSpy = jest.spyOn(console, 'info').mockImplementation(() => undefined);
     });
 
     afterEach(() => {
-        jest.useRealTimers();
+        jest.restoreAllMocks();
     });
 
-    it('auto-pulls periodically while idle when --auto-pull is enabled', async () => {
-        const stopError = new Error('Stop test loop');
-        const queuedMessage = createQueuedMessage();
-        let remainingEmptyQueueChecksBeforeIdlePull = 15;
+    it('prints the watch log in `--no-ui` mode and keeps idle ticks quiet', async () => {
+        (tickAgentMessages as jest.MockedFunction<typeof tickAgentMessages>).mockResolvedValue({ isMessageProcessed: false });
 
-        (tickAgentMessages as jest.MockedFunction<typeof tickAgentMessages>)
-            .mockResolvedValueOnce({ isMessageProcessed: false })
-            .mockRejectedValueOnce(stopError);
-        (listQueuedAgentMessages as jest.MockedFunction<typeof listQueuedAgentMessages>).mockImplementation(async () => {
-            if (remainingEmptyQueueChecksBeforeIdlePull > 0) {
-                remainingEmptyQueueChecksBeforeIdlePull--;
-                return [];
-            }
+        const loopStates = [true, false, false];
+        await expect(
+            runAgentMessages(createAgentRunOptions({ noUi: true }), {
+                shouldContinue: () => loopStates.shift() ?? false,
+            }),
+        ).resolves.toBeUndefined();
 
-            return [queuedMessage];
+        expect(tickAgentMessages).toHaveBeenCalledWith(expect.anything(), {
+            isQuietWhenIdle: true,
+            uiHandle: undefined,
         });
+        expect(consoleInfoSpy).toHaveBeenCalledWith(expect.stringContaining('Watching messages/queued for queued agent messages.'));
+    });
 
-        const runPromise = runAgentMessages(createAgentRunOptions({ autoPull: true }));
-        const rejectionExpectation = expect(runPromise).rejects.toBe(stopError);
-
-        await jest.advanceTimersByTimeAsync(32_000);
-
-        await rejectionExpectation;
-        expect(pullLatestChangesForAgentQueueIfEnabled).toHaveBeenCalledWith({
-            projectPath: process.cwd(),
-            runOptions: expect.objectContaining({ autoPull: true }),
-            logMessage: 'Pulling latest changes while idle...',
-        });
+    it('rejects `--no-commit` watch mode without `--ignore-git-changes`', async () => {
+        await expect(
+            runAgentMessages(createAgentRunOptions({ noCommit: true }), {
+                shouldContinue: () => false,
+            }),
+        ).rejects.toThrow('requires `--ignore-git-changes`');
     });
 });

@@ -9,7 +9,7 @@ import { ensureWorkingTreeCleanForAgentQueue } from '../git/ensureWorkingTreeCle
 export async function pullLatestChangesForAgentQueueIfEnabled(options: {
     readonly projectPath: string;
     readonly runOptions: AgentRunOptions;
-    readonly logMessage: string;
+    readonly logMessage?: string;
 }): Promise<number | undefined> {
     const { projectPath, runOptions, logMessage } = options;
 
@@ -18,7 +18,9 @@ export async function pullLatestChangesForAgentQueueIfEnabled(options: {
     }
 
     await ensureCleanQueueIfNeeded(projectPath, runOptions);
-    console.info(colors.gray(logMessage));
+    if (logMessage) {
+        console.info(colors.gray(logMessage));
+    }
     await pullLatestChanges();
 
     return Date.now();

@@ -10,7 +10,7 @@ import {
     normalizeLineEndingsInFilesChangedSinceSnapshot,
 } from '../../run-codex-prompts/common/normalizeLineEndingsInChangedFiles';
 import { withPromptRuntimeLog } from '../../run-codex-prompts/common/runGoScript/withPromptRuntimeLog';
-import { printAgentGitIdentityTipIfNeeded } from '../../run-codex-prompts/git/agentGitIdentity';
+import { printAgentGitIdentityTipAtProcessExitIfNeeded } from '../../run-codex-prompts/git/agentGitIdentity';
 import { commitChanges } from '../../run-codex-prompts/git/commitChanges';
 import { resolvePromptRunner } from '../../run-codex-prompts/main/resolvePromptRunner';
 import { runPromptWithTestFeedback } from '../../run-codex-prompts/testing/runPromptWithTestFeedback';
@@ -29,7 +29,7 @@ jest.mock('../../run-codex-prompts/common/runGoScript/withPromptRuntimeLog', () 
 }));
 
 jest.mock('../../run-codex-prompts/git/agentGitIdentity', () => ({
-    printAgentGitIdentityTipIfNeeded: jest.fn(),
+    printAgentGitIdentityTipAtProcessExitIfNeeded: jest.fn(),
 }));
 
 jest.mock('../../run-codex-prompts/git/commitChanges', () => ({
@@ -200,7 +200,7 @@ describe('tickAgentMessages', () => {
             autoPush: true,
             includePaths: ['messages/finished/question.book'],
         });
-        expect(printAgentGitIdentityTipIfNeeded).toHaveBeenCalled();
+        expect(printAgentGitIdentityTipAtProcessExitIfNeeded).toHaveBeenCalled();
     });
 
     it('includes the queued source path in the commit when the original message was tracked', async () => {

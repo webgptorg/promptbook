@@ -1,4 +1,9 @@
-import { buildAgentGitEnv, buildAgentGitSigningFlag, printAgentGitIdentityTipIfNeeded } from './agentGitIdentity';
+import {
+    buildAgentGitEnv,
+    buildAgentGitSigningFlag,
+    printAgentGitIdentityTipAtProcessExitIfNeeded,
+    printAgentGitIdentityTipIfNeeded,
+} from './agentGitIdentity';
 
 /**
  * Coding-agent environment variables covered by these tests.
@@ -83,6 +88,30 @@ describe('agentGitIdentity', () => {
         expect(String(consoleInfoSpy.mock.calls[0]![0])).toContain('CODING_AGENT_GIT_NAME');
         expect(String(consoleInfoSpy.mock.calls[0]![0])).toContain('CODING_AGENT_GIT_SIGNING_KEY');
         expect(String(consoleInfoSpy.mock.calls[0]![0])).toContain('CODING_AGENT_GPG_KEY_ID');
+    });
+
+    it('can defer the tip until process exit so long-running UIs stay clean', () => {
+        setAgentGitEnv({
+            CODING_AGENT_GIT_NAME: 'Promptbook Coding Agent',
+            CODING_AGENT_GIT_EMAIL: 'coding-agent@promptbook.studio',
+            CODING_AGENT_GIT_SIGNING_KEY: undefined,
+            CODING_AGENT_GPG_KEY_ID: undefined,
+        });
+
+        const processOnceSpy = jest.spyOn(process, 'once').mockImplementation((() => process) as typeof process.once);
+        const consoleInfoSpy = jest.spyOn(console, 'info').mockImplementation(() => undefined);
+
+        printAgentGitIdentityTipAtProcessExitIfNeeded();
+
+        expect(consoleInfoSpy).not.toHaveBeenCalled();
+        expect(processOnceSpy).toHaveBeenCalledWith('exit', expect.any(Function));
+
+        const exitHandler = processOnceSpy.mock.calls.find(([eventName]) => eventName === 'exit')?.[1] as
+            | (() => void)
+            | undefined;
+        exitHandler?.();
+
+        expect(consoleInfoSpy).toHaveBeenCalledTimes(1);
     });
 });
 

@@ -35,7 +35,7 @@ export async function loadAgentRunUiMetadata(
 /**
  * Reads the local `agent.book` title and falls back to a stable generic name when unavailable.
  */
-async function readLocalAgentName(projectPath: string): Promise<string> {
+export async function readLocalAgentName(projectPath: string): Promise<string> {
     try {
         const agentSource = await readFile(join(projectPath, AGENT_BOOK_FILE_PATH), 'utf-8');
         return parseAgentSourceWithCommitments(agentSource as string_book).agentName || 'Local Agent';

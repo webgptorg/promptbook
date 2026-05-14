@@ -27,6 +27,11 @@ const AGENT_GPG_KEY_ID_ENV = 'CODING_AGENT_GPG_KEY_ID';
 const AGENT_GIT_SIGNING_KEY_ENV_ALIASES = [AGENT_GIT_SIGNING_KEY_ENV, AGENT_GPG_KEY_ID_ENV] as const;
 
 /**
+ * Tracks whether the end-of-process Git identity tip is already registered.
+ */
+let isAgentGitIdentityExitTipRegistered = false;
+
+/**
  * Git identity details that drive commits created by the coding agent.
  */
 export type AgentGitIdentity = {
@@ -94,6 +99,21 @@ export function printAgentGitIdentityTipIfNeeded(): void {
             For cleaner commit history, set \`CODING_AGENT_GIT_NAME\`, \`CODING_AGENT_GIT_EMAIL\`, and either \`CODING_AGENT_GIT_SIGNING_KEY\` or \`CODING_AGENT_GPG_KEY_ID\`.
         `)),
     );
+}
+
+/**
+ * Defers the coding-agent Git identity tip until process shutdown so long-running UIs stay uninterrupted.
+ */
+export function printAgentGitIdentityTipAtProcessExitIfNeeded(): void {
+    if (getAgentGitIdentity() || isAgentGitIdentityExitTipRegistered) {
+        return;
+    }
+
+    isAgentGitIdentityExitTipRegistered = true;
+    process.once('exit', () => {
+        isAgentGitIdentityExitTipRegistered = false;
+        printAgentGitIdentityTipIfNeeded();
+    });
 }
 
 /**

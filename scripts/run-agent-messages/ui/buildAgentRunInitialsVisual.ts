@@ -1,95 +1,41 @@
 import colors from 'colors';
-import { centerAnsiText, padAnsiText, visibleLength } from '../../run-codex-prompts/ui/coderRunUiText';
+import { centerAnsiText, fitPlainText, padAnsiText } from '../../run-codex-prompts/ui/coderRunUiText';
 
 /**
- * Compact 3x5 block font used for agent-name initials in the terminal dashboard.
+ * Maximum inner width used by the compact agent-name banner.
  */
-const BLOCK_FONT: Record<string, readonly string[]> = {
-    A: ['███', '█ █', '███', '█ █', '█ █'],
-    B: ['██ ', '█ █', '██ ', '█ █', '██ '],
-    C: ['███', '█  ', '█  ', '█  ', '███'],
-    D: ['██ ', '█ █', '█ █', '█ █', '██ '],
-    E: ['███', '█  ', '██ ', '█  ', '███'],
-    F: ['███', '█  ', '██ ', '█  ', '█  '],
-    G: ['███', '█  ', '█ ██', '█  █', '████'],
-    H: ['█ █', '█ █', '███', '█ █', '█ █'],
-    I: ['███', ' █ ', ' █ ', ' █ ', '███'],
-    J: ['███', '  █', '  █', '█ █', '██ '],
-    K: ['█ █', '█ █', '██ ', '█ █', '█ █'],
-    L: ['█  ', '█  ', '█  ', '█  ', '███'],
-    M: ['█ █', '███', '███', '█ █', '█ █'],
-    N: ['█ █', '███', '███', '███', '█ █'],
-    O: ['███', '█ █', '█ █', '█ █', '███'],
-    P: ['███', '█ █', '███', '█  ', '█  '],
-    Q: ['███', '█ █', '█ █', '███', '  █'],
-    R: ['███', '█ █', '███', '██ ', '█ █'],
-    S: ['███', '█  ', '███', '  █', '███'],
-    T: ['███', ' █ ', ' █ ', ' █ ', ' █ '],
-    U: ['█ █', '█ █', '█ █', '█ █', '███'],
-    V: ['█ █', '█ █', '█ █', '█ █', ' █ '],
-    W: ['█ █', '█ █', '███', '███', '█ █'],
-    X: ['█ █', '█ █', ' █ ', '█ █', '█ █'],
-    Y: ['█ █', '█ █', ' █ ', ' █ ', ' █ '],
-    Z: ['███', '  █', ' █ ', '█  ', '███'],
-    0: ['███', '█ █', '█ █', '█ █', '███'],
-    1: [' ██', '  █', '  █', '  █', '███'],
-    2: ['███', '  █', '███', '█  ', '███'],
-    3: ['███', '  █', ' ██', '  █', '███'],
-    4: ['█ █', '█ █', '███', '  █', '  █'],
-    5: ['███', '█  ', '███', '  █', '███'],
-    6: ['███', '█  ', '███', '█ █', '███'],
-    7: ['███', '  █', '  █', '  █', '  █'],
-    8: ['███', '█ █', '███', '█ █', '███'],
-    9: ['███', '█ █', '███', '  █', '███'],
-};
+const MAX_BANNER_INNER_WIDTH = 42;
 
 /**
- * Fallback glyph used when the initials contain unsupported characters.
+ * Minimum inner width used by the compact agent-name banner.
  */
-const UNKNOWN_LETTER = ['███', '  █', ' ██', '   ', ' ██'] as const;
+const MIN_BANNER_INNER_WIDTH = 24;
 
 /**
- * Builds a compact centered initials banner for `ptbk agent run`.
+ * Builds a compact centered banner that shows the local agent name.
  */
 export function buildAgentRunInitialsVisual(agentName: string, totalWidth: number): readonly string[] {
-    const initials = extractAgentInitials(agentName);
-    const glyphRows = Array.from({ length: 5 }, () => '') as string[];
+    const normalizedAgentName = normalizeAgentBannerName(agentName);
+    const innerWidth = Math.max(
+        MIN_BANNER_INNER_WIDTH,
+        Math.min(MAX_BANNER_INNER_WIDTH, Math.max(normalizedAgentName.length, MIN_BANNER_INNER_WIDTH)),
+    );
+    const fittedAgentName = fitPlainText(normalizedAgentName, innerWidth);
 
-    for (const initial of initials) {
-        const glyph = BLOCK_FONT[initial] || UNKNOWN_LETTER;
-
-        for (let rowIndex = 0; rowIndex < glyph.length; rowIndex++) {
-            glyphRows[rowIndex] = `${glyphRows[rowIndex]}${glyph[rowIndex]}  `;
-        }
-    }
-
-    const trimmedGlyphRows = glyphRows.map((glyphRow) => glyphRow.trimEnd());
-    const visualWidth = trimmedGlyphRows.reduce((maxWidth, glyphRow) => Math.max(maxWidth, visibleLength(glyphRow)), 0);
-
-    return trimmedGlyphRows.map((glyphRow, rowIndex) => {
-        const coloredRow =
-            rowIndex === 2 ? colors.cyan.bold(glyphRow) : rowIndex === 0 ? colors.blue.bold(glyphRow) : colors.white.bold(glyphRow);
-
-        return centerAnsiText(padAnsiText(coloredRow, visualWidth), totalWidth);
-    });
+    return [
+        centerAnsiText(colors.gray(`╭${'─'.repeat(innerWidth + 2)}╮`), totalWidth),
+        centerAnsiText(
+            `${colors.gray('│ ')}${padAnsiText(colors.cyan.bold(fittedAgentName), innerWidth)}${colors.gray(' │')}`,
+            totalWidth,
+        ),
+        centerAnsiText(colors.gray(`╰${'─'.repeat(innerWidth + 2)}╯`), totalWidth),
+    ];
 }
 
 /**
- * Extracts readable initials from the local agent title.
+ * Normalizes one agent name into a stable single-line banner label.
  */
-function extractAgentInitials(agentName: string): readonly string[] {
-    const normalizedAlphanumericName = agentName.replace(/[^A-Za-z0-9]/gu, '').toUpperCase();
-    const words = agentName
-        .trim()
-        .split(/[^A-Za-z0-9]+/u)
-        .filter(Boolean)
-        .map((word) => word[0]!.toUpperCase());
-
-    if (words.length > 1) {
-        return words.slice(0, 3);
-    }
-
-    const fallbackLetters = normalizedAlphanumericName.slice(0, 2).split('');
-
-    return fallbackLetters.length > 0 ? fallbackLetters : ['A'];
+function normalizeAgentBannerName(agentName: string): string {
+    const normalizedAgentName = agentName.replace(/\s+/gu, ' ').trim();
+    return normalizedAgentName || 'Local Agent';
 }
