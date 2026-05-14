@@ -3,7 +3,11 @@ import OpenAI from 'openai';
 import { spaceTrim } from 'spacetrim';
 import { parseToolExecutionEnvelope } from '../../commitments/_common/toolExecutionEnvelope';
 import type { ToolCallProgressUpdate } from '../../commitments/_common/toolRuntimeContext';
-import { registerToolCallProgressListener, TOOL_PROGRESS_TOKEN_PARAMETER, unregisterToolCallProgressListener } from '../../commitments/_common/toolRuntimeContext';
+import {
+    registerToolCallProgressListener,
+    TOOL_PROGRESS_TOKEN_PARAMETER,
+    unregisterToolCallProgressListener,
+} from '../../commitments/_common/toolRuntimeContext';
 import { assertsError } from '../../errors/assertsError';
 import { NotAllowed } from '../../errors/NotAllowed';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';

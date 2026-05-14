@@ -1,7 +1,7 @@
 import colors from 'colors';
 import {
-  Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
-  Option
+    Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
+    Option,
 } from 'commander';
 import { spaceTrim } from 'spacetrim';
 import type { ThinkingLevel } from '../coder/ThinkingLevel';

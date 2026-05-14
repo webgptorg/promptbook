@@ -1,6 +1,6 @@
 import colors from 'colors';
 import type {
-  Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */
+    Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';

@@ -4,7 +4,12 @@ import { tmpdir } from 'os';
 import { join } from 'path';
 import { AGENT_CODING_FILE_PATH, getDefaultCoderAgentCodingFileContent } from './agentCodingFile';
 import { AGENTS_FILE_PATH, getDefaultCoderAgentsFileContent } from './agentsFile';
-import { getDefaultCoderProjectPromptTemplateDefinitions, getDefaultCoderPromptTemplateDefinition, getDefaultCoderPromptTemplateDefinitions, resolveCoderPromptTemplate } from './boilerplateTemplates';
+import {
+    getDefaultCoderProjectPromptTemplateDefinitions,
+    getDefaultCoderPromptTemplateDefinition,
+    getDefaultCoderPromptTemplateDefinitions,
+    resolveCoderPromptTemplate,
+} from './boilerplateTemplates';
 import { getDefaultCoderPackageJsonScripts } from './getDefaultCoderPackageJsonScripts';
 import { getDefaultCoderVscodeSettings } from './getDefaultCoderVscodeSettings';
 import { initializeCoderProjectConfiguration } from './initializeCoderProjectConfiguration';
@@ -127,7 +132,9 @@ describe('coder boilerplate templates', () => {
         expect(summary.agentCodingFileStatus).toBe('unchanged');
 
         const gitignoreContent = await readFile(join(projectPath, '.gitignore'), 'utf-8');
-        expect(normalizeLineEndings(gitignoreContent)).toBe('node_modules\n.tmp\n\n# Promptbook Coder\n/.promptbook\n.env\n');
+        expect(normalizeLineEndings(gitignoreContent)).toBe(
+            'node_modules\n.tmp\n\n# Promptbook Coder\n/.promptbook\n.env\n',
+        );
 
         expect(await readJsonFile(join(projectPath, 'package.json'))).toEqual({
             name: 'demo',

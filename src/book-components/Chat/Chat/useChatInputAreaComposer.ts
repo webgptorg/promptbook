@@ -1,13 +1,13 @@
 'use client';
 
 import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  type ChangeEvent,
-  type KeyboardEvent as ReactKeyboardEvent,
-  type MutableRefObject
+    useCallback,
+    useEffect,
+    useRef,
+    useState,
+    type ChangeEvent,
+    type KeyboardEvent as ReactKeyboardEvent,
+    type MutableRefObject,
 } from 'react';
 import { spaceTrim } from 'spacetrim';
 import type { ChatMessage } from '../types/ChatMessage';

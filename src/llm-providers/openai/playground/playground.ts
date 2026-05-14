@@ -236,7 +236,7 @@ async function playground() {
             modelName: 'gpt-5',
             temperature: 1.5,
         },
-    } /* as const */ satisfies ChatPrompt /* <- Note: [🤛] */;
+    } /* as const */ satisfies ChatPrompt; /* <- Note: [🤛] */
     const chatPromptResult = await openAiExecutionToolsWithUsage.callChatModel!(chatPrompt);
     console.info({ chatPromptResult });
     console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));

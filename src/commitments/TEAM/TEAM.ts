@@ -4,7 +4,10 @@ import { createTeamToolName } from '../../book-2.0/agent-source/createTeamToolNa
 import type { TeamTeammate } from '../../book-2.0/agent-source/parseTeamCommitment';
 import { parseTeamCommitmentContent } from '../../book-2.0/agent-source/parseTeamCommitment';
 import type { PseudoAgentKind } from '../../book-2.0/agent-source/pseudoAgentReferences';
-import { createPseudoUserTeammateLabel, resolvePseudoAgentKindFromUrl } from '../../book-2.0/agent-source/pseudoAgentReferences';
+import {
+    createPseudoUserTeammateLabel,
+    resolvePseudoAgentKindFromUrl,
+} from '../../book-2.0/agent-source/pseudoAgentReferences';
 import type { PromptResult } from '../../execution/PromptResult';
 import type { RemoteAgent } from '../../llm-providers/agent/RemoteAgent';
 import type { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
@@ -13,9 +16,17 @@ import type { ChatPrompt } from '../../types/Prompt';
 import type { string_javascript_name } from '../../types/string_person_fullname';
 import type { ToolCall } from '../../types/ToolCall';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
-import { createTeamInternalAgentAccessHeaders, TEAM_INTERNAL_AGENT_ACCESS_HEADER } from '../_common/teamInternalAgentAccess';
+import {
+    createTeamInternalAgentAccessHeaders,
+    TEAM_INTERNAL_AGENT_ACCESS_HEADER,
+} from '../_common/teamInternalAgentAccess';
 import type { ToolRuntimeContext } from '../_common/toolRuntimeContext';
-import { parseToolRuntimeContext, serializeToolRuntimeContext, TOOL_RUNTIME_CONTEXT_ARGUMENT, TOOL_RUNTIME_CONTEXT_PARAMETER } from '../_common/toolRuntimeContext';
+import {
+    parseToolRuntimeContext,
+    serializeToolRuntimeContext,
+    TOOL_RUNTIME_CONTEXT_ARGUMENT,
+    TOOL_RUNTIME_CONTEXT_PARAMETER,
+} from '../_common/toolRuntimeContext';
 
 /**
  * Tool registration entry for a teammate.

@@ -284,7 +284,7 @@ export const createGoogleExecutionTools = Object.assign(
         packageName: '@promptbook/google',
         className: 'GoogleExecutionTools',
     },
-) satisfies LlmExecutionToolsConstructor /* <- Note: [🤛] */;
+) satisfies LlmExecutionToolsConstructor; /* <- Note: [🤛] */
 
 // TODO: !!!!! Rename to `createGoogleLlmExecutionTools`, `...GoogleLlmExecutionTools`
 // TODO: [🎶] Naming "constructor" vs "creator" vs "factory"

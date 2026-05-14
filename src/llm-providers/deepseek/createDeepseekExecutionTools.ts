@@ -54,6 +54,6 @@ export const createDeepseekExecutionTools = Object.assign(
         packageName: '@promptbook/deepseek',
         className: 'DeepseekExecutionTools',
     },
-) satisfies LlmExecutionToolsConstructor /* <- Note: [🤛] */;
+) satisfies LlmExecutionToolsConstructor; /* <- Note: [🤛] */
 
 // TODO: [🎶] Naming "constructor" vs "creator" vs "factory"

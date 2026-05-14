@@ -1,5 +1,9 @@
 import { describe, expect, it } from '@jest/globals';
-import { extractUseProjectRepositoryUrlsFromCommitments, parseGitHubRepositoryReference, parseUseProjectCommitmentContent } from './projectReference';
+import {
+    extractUseProjectRepositoryUrlsFromCommitments,
+    parseGitHubRepositoryReference,
+    parseUseProjectCommitmentContent,
+} from './projectReference';
 
 describe('USE PROJECT project references', () => {
     it('parses GitHub repository references in supported formats', () => {

@@ -12,7 +12,10 @@ import { $isRunningInWebWorker } from '../../utils/environment/$isRunningInWebWo
 import { RemoteLlmExecutionTools } from '../remote/RemoteLlmExecutionTools';
 import { computeOpenAiUsage } from './computeOpenAiUsage';
 import { OpenAiCompatibleExecutionTools } from './OpenAiCompatibleExecutionTools';
-import type { OpenAiCompatibleExecutionToolsNonProxiedOptions, OpenAiCompatibleExecutionToolsOptions } from './OpenAiCompatibleExecutionToolsOptions';
+import type {
+    OpenAiCompatibleExecutionToolsNonProxiedOptions,
+    OpenAiCompatibleExecutionToolsOptions,
+} from './OpenAiCompatibleExecutionToolsOptions';
 
 /**
  * Execution Tools for calling OpenAI compatible API
@@ -63,7 +66,7 @@ export const createOpenAiCompatibleExecutionTools = Object.assign(
         packageName: '@promptbook/openai',
         className: 'OpenAiCompatibleExecutionTools',
     },
-) satisfies LlmExecutionToolsConstructor /* <- Note: [🤛] */;
+) satisfies LlmExecutionToolsConstructor; /* <- Note: [🤛] */
 
 /**
  * Execution Tools for calling ONE SPECIFIC PRECONFIGURED OpenAI compatible provider

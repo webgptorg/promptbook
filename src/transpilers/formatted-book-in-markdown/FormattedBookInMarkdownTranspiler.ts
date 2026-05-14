@@ -42,4 +42,4 @@ export const FormattedBookInMarkdownTranspiler = {
 
         return lines.join('\n');
     },
-} as const satisfies BookTranspiler /* <- Note: [🤛] */;
+} as const satisfies BookTranspiler; /* <- Note: [🤛] */

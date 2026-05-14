@@ -24,7 +24,9 @@ export class Book {
         while (lineIndex !== -1) {
             const headerLine = lines[lineIndex]!.trim();
             const nextBlockLineIndex = findNextBookBlockHeaderLineIndex(lines, lineIndex + 1);
-            const blockContent = normalizeBookBlockContent(lines.slice(lineIndex + 1, nextBlockLineIndex === -1 ? undefined : nextBlockLineIndex));
+            const blockContent = normalizeBookBlockContent(
+                lines.slice(lineIndex + 1, nextBlockLineIndex === -1 ? undefined : nextBlockLineIndex),
+            );
             const messageHeader = parseBookMessageHeader(headerLine);
 
             if (messageHeader) {
@@ -43,8 +45,7 @@ export class Book {
                 }
             }
 
-            lineIndex =
-                nextBlockLineIndex === -1 ? -1 : findNextNonEmptyLineIndex(lines, nextBlockLineIndex);
+            lineIndex = nextBlockLineIndex === -1 ? -1 : findNextNonEmptyLineIndex(lines, nextBlockLineIndex);
         }
 
         return new Book(agentName, commitments, messageBlocks);
@@ -88,10 +89,7 @@ export class Book {
 
         for (const commitment of this.commitments) {
             sections.push(
-                [
-                    [commitment.type, commitment.subject].filter(Boolean).join(' ').trim(),
-                    commitment.content.trim(),
-                ]
+                [[commitment.type, commitment.subject].filter(Boolean).join(' ').trim(), commitment.content.trim()]
                     .filter(Boolean)
                     .join('\n'),
             );
@@ -99,10 +97,7 @@ export class Book {
 
         for (const messageBlock of this.messageBlocks) {
             sections.push(
-                [
-                    `${messageBlock.marker} @${messageBlock.sender}`,
-                    messageBlock.content.trim(),
-                ]
+                [`${messageBlock.marker} @${messageBlock.sender}`, messageBlock.content.trim()]
                     .filter(Boolean)
                     .join('\n'),
             );

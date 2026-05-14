@@ -4,7 +4,13 @@ import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
 import { sectionCommandParser } from '../commands/SECTION/sectionCommandParser';
 import { getParserForCommand } from '../commands/_common/getParserForCommand';
 import { parseCommand } from '../commands/_common/parseCommand';
-import type { $PipelineJson, $TaskJson, CommandBase, PipelineHeadCommandParser, PipelineTaskCommandParser } from '../commands/_common/types/CommandParser';
+import type {
+    $PipelineJson,
+    $TaskJson,
+    CommandBase,
+    PipelineHeadCommandParser,
+    PipelineTaskCommandParser,
+} from '../commands/_common/types/CommandParser';
 import { DEFAULT_BOOK_TITLE, DEFAULT_TASK_TITLE } from '../config';
 import { ORDER_OF_PIPELINE_JSON, RESERVED_PARAMETER_NAMES } from '../constants';
 import { ParseError } from '../errors/ParseError';

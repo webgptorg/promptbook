@@ -2,7 +2,11 @@ import colors from 'colors';
 import OpenAI from 'openai';
 import { parseToolExecutionEnvelope } from '../../../commitments/_common/toolExecutionEnvelope';
 import type { ToolCallProgressUpdate } from '../../../commitments/_common/toolRuntimeContext';
-import { registerToolCallProgressListener, TOOL_PROGRESS_TOKEN_PARAMETER, unregisterToolCallProgressListener } from '../../../commitments/_common/toolRuntimeContext';
+import {
+    registerToolCallProgressListener,
+    TOOL_PROGRESS_TOKEN_PARAMETER,
+    unregisterToolCallProgressListener,
+} from '../../../commitments/_common/toolRuntimeContext';
 import { assertsError } from '../../../errors/assertsError';
 import { PipelineExecutionError } from '../../../errors/PipelineExecutionError';
 import { serializeError } from '../../../errors/utils/serializeError';

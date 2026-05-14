@@ -1,7 +1,10 @@
 import type { editor, Position } from 'monaco-editor';
 import { useEffect } from 'react';
 import { getAllCommitmentDefinitions } from '../../commitments/_common/getAllCommitmentDefinitions';
-import { formatCommitmentReplacementText, getCommitmentNoticeMetadata } from '../../commitments/_common/getCommitmentNoticeMetadata';
+import {
+    formatCommitmentReplacementText,
+    getCommitmentNoticeMetadata,
+} from '../../commitments/_common/getCommitmentNoticeMetadata';
 import { PROMPTBOOK_SYNTAX_COLORS } from '../../config';
 import { BookEditorMonacoConstants } from './BookEditorMonacoConstants';
 import { BookEditorMonacoTokenization } from './BookEditorMonacoTokenization';

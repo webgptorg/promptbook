@@ -23,8 +23,8 @@ describe('promptbookTemporaryPath', () => {
         expect(resolvePromptbookTemporaryPath('/workspace/project/', 'agent-messages', 'prompt.sh')).toBe(
             '/workspace/project/.promptbook/agent-messages/prompt.sh',
         );
-        expect(resolvePromptbookTemporaryPath('C:\\workspace\\project\\', 'agents-server', 'run-browser-artifacts')).toBe(
-            'C:\\workspace\\project/.promptbook/agents-server/run-browser-artifacts',
-        );
+        expect(
+            resolvePromptbookTemporaryPath('C:\\workspace\\project\\', 'agents-server', 'run-browser-artifacts'),
+        ).toBe('C:\\workspace\\project/.promptbook/agents-server/run-browser-artifacts');
     });
 });

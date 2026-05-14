@@ -1,11 +1,15 @@
 import colors from 'colors';
 import {
-  Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
-  Option
+    Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
+    Option,
 } from 'commander';
 import { spaceTrim } from 'spacetrim';
 import type { RefactorCandidateLevel } from '../../../../scripts/find-refactor-candidates/RefactorCandidateLevel';
-import { DEFAULT_REFACTOR_CANDIDATE_LEVEL, getRefactorCandidateLevelDescription, REFACTOR_CANDIDATE_LEVEL_VALUES } from '../../../../scripts/find-refactor-candidates/RefactorCandidateLevel';
+import {
+    DEFAULT_REFACTOR_CANDIDATE_LEVEL,
+    getRefactorCandidateLevelDescription,
+    REFACTOR_CANDIDATE_LEVEL_VALUES,
+} from '../../../../scripts/find-refactor-candidates/RefactorCandidateLevel';
 import { assertsError } from '../../../errors/assertsError';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
 import { handleActionErrors } from '../common/handleActionErrors';

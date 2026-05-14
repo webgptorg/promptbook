@@ -11,10 +11,10 @@ import { getWalletToolTitles } from './getWalletToolTitles';
 
 export { setWalletToolRuntimeAdapter } from './setWalletToolRuntimeAdapter';
 export type {
-  WalletRecordType,
-  WalletToolRecord,
-  WalletToolRuntimeAdapter,
-  WalletToolRuntimeContext
+    WalletRecordType,
+    WalletToolRecord,
+    WalletToolRuntimeAdapter,
+    WalletToolRuntimeContext,
 } from './WalletToolRuntimeAdapter';
 
 /**

@@ -9,8 +9,8 @@ describe('how `Book` works', () => {
                 book`
                     AI agent
                 `,
-             ).agentName,
-         ).toBe('AI agent'));
+            ).agentName,
+        ).toBe('AI agent'));
 
     it('should parse and stringify chat messages in one thread book', () => {
         const parsedBook = Book.parse(
