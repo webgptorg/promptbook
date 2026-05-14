@@ -54,6 +54,8 @@ function createExternalAgentRepositoryPackageJson(): string {
                 start: 'npm run agent:run',
                 'agent:run':
                     'npx ptbk agent run --agent github-copilot --model gpt-5.4 --thinking-level high --auto-pull --auto-push',
+                'agent-local:run':
+                    'ts-node  ../../promptbook/src/cli/test/ptbk.ts agent run --agent github-copilot --model gpt-5.4 --auto-pull --auto-push',
             },
         },
         null,
