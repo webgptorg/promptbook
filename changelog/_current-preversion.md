@@ -1,3 +1,8 @@
+-   Changed external runner repository naming so Agents Server now provisions and relinks runner repos as `agent-<AGENT_ID>`:
+
+    -   Removed the previous `promptbook-agent-<agent-name>-<id>` naming scheme, so created repositories no longer include the agent name or the `promptbook` prefix.
+    -   Made external repository linking converge on the canonical `agent-<AGENT_ID>` full name even for agents that were previously linked under the older naming pattern.
+
 -   Improved `ptbk agent run --auto-pull` so agent runners also keep their queue repository fresh while idle:
 
     -   Extracted the shared agent-queue auto-pull path so the same clean-tree guard and Git pull flow is reused both before answering a queued message and during idle watch periods.

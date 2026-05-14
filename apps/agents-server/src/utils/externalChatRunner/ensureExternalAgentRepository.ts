@@ -94,10 +94,13 @@ async function ensureExternalAgentRepositoryWithConfiguration(
     snapshot: ExternalAgentSourceSnapshot,
 ): Promise<ExternalAgentRepository> {
     const linkedRepositoryFullName = await loadLinkedRepositoryFullName(snapshot.agentPermanentId);
+    const expectedRepositoryFullName = `${configuration.owner}/${createExternalAgentRepositoryName(
+        snapshot.agentPermanentId,
+    )}`;
     const repository =
-        linkedRepositoryFullName !== null
+        linkedRepositoryFullName === expectedRepositoryFullName
             ? await ensureGithubRepositoryExists(configuration, linkedRepositoryFullName)
-            : await createAndLinkGithubRepository(configuration, snapshot);
+            : await ensureAndLinkGithubRepository(configuration, snapshot, expectedRepositoryFullName);
 
     await synchronizeExternalAgentRepositoryFiles(configuration, repository.fullName, snapshot);
 
@@ -129,17 +132,17 @@ async function loadLinkedRepositoryFullName(agentPermanentId: string): Promise<s
 /**
  * Creates a repository and stores the AgentExternals link.
  */
-async function createAndLinkGithubRepository(
+async function ensureAndLinkGithubRepository(
     configuration: ExternalChatRunnerGithubConfiguration,
     snapshot: ExternalAgentSourceSnapshot,
+    expectedRepositoryFullName: string,
 ): Promise<GithubRepositoryMetadata> {
-    const repositoryName = createExternalAgentRepositoryName({
-        agentName: snapshot.agentName,
-        agentPermanentId: snapshot.agentPermanentId,
-        repositoryPrefix: configuration.repositoryPrefix,
-    });
-    const expectedRepositoryFullName = `${configuration.owner}/${repositoryName}`;
     const existingRepository = await getGithubRepository(configuration, expectedRepositoryFullName);
+    const repositoryName = expectedRepositoryFullName.split('/').pop();
+    if (!repositoryName) {
+        throw new Error(`Invalid expected external repository full name "${expectedRepositoryFullName}".`);
+    }
+
     const repository = existingRepository || (await createGithubRepository(configuration, repositoryName));
 
     await linkExternalAgentRepository(snapshot, repository.fullName);
@@ -155,15 +158,21 @@ async function linkExternalAgentRepository(
     repositoryFullName: string,
 ): Promise<void> {
     const supabase = $provideSupabaseForServer();
-    const { error } = await supabase.from(await $getTableName('AgentExternals')).insert({
-        type: EXTERNAL_AGENT_REPOSITORY_TYPE,
-        hash: snapshot.agentPermanentId,
-        externalId: repositoryFullName,
-        vendor: EXTERNAL_AGENT_REPOSITORY_VENDOR,
-        note: `External chat runner repository for ${snapshot.agentName}`,
-    });
+    const { error } = await supabase.from(await $getTableName('AgentExternals')).upsert(
+        {
+            type: EXTERNAL_AGENT_REPOSITORY_TYPE,
+            hash: snapshot.agentPermanentId,
+            externalId: repositoryFullName,
+            vendor: EXTERNAL_AGENT_REPOSITORY_VENDOR,
+            note: `External chat runner repository for ${snapshot.agentName}`,
+            updatedAt: new Date().toISOString(),
+        },
+        {
+            onConflict: 'type,hash',
+        },
+    );
 
-    if (error && error.code !== '23505') {
+    if (error) {
         throw new Error(
             `Failed to link external repository "${repositoryFullName}" for agent "${snapshot.agentPermanentId}": ${error.message}`,
         );
@@ -244,18 +253,9 @@ async function synchronizeExternalAgentRepositoryFiles(
 /**
  * Creates a stable GitHub repository name for one agent.
  */
-function createExternalAgentRepositoryName(options: {
-    agentName: string;
-    agentPermanentId: string;
-    repositoryPrefix: string;
-}): string {
-    const normalizedPrefix = normalizeRepositoryNameSegment(options.repositoryPrefix) || 'promptbook-agent';
-    const normalizedAgentName = normalizeRepositoryNameSegment(options.agentName) || 'agent';
-    const normalizedPermanentId = normalizeRepositoryNameSegment(options.agentPermanentId) || 'id';
-    const suffix = normalizedPermanentId.slice(0, 12);
-    const maxAgentNameLength = Math.max(1, 100 - normalizedPrefix.length - suffix.length - 2);
-
-    return `${normalizedPrefix}-${normalizedAgentName.slice(0, maxAgentNameLength)}-${suffix}`.replace(/-+/g, '-');
+export function createExternalAgentRepositoryName(agentPermanentId: string): string {
+    const normalizedPermanentId = normalizeRepositoryNameSegment(agentPermanentId) || 'id';
+    return `agent-${normalizedPermanentId}`;
 }
 
 /**

@@ -9,7 +9,6 @@ const ORIGINAL_FETCH = global.fetch;
 const TEST_CONFIGURATION = {
     token: 'test-token',
     owner: 'promptbook',
-    repositoryPrefix: 'agent',
     repositoryVisibility: 'private' as const,
 };
 

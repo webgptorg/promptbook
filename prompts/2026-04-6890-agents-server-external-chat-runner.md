@@ -135,7 +135,7 @@ node_modules
 
 ---
 
-[ ] !!!
+[x] ~$0.00 2 hours by GitHub Copilot `gpt-5.4`
 
 [✨🕟] The repositories created from the agent should have format `agent-<AGENT_ID>`
 
@@ -147,4 +147,5 @@ node_modules
 -   We don't need to keep backwards compatibility of `ptbk agent` and the created repos. We are in the development of the new feature, which isn't deployed for any real customer yet, so we can change the existing functionality and do breaking changes if needed
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
 

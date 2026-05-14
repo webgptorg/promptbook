@@ -12,7 +12,6 @@ export type ExternalChatRunnerGithubRepositoryVisibility = 'private' | 'public' 
 export type ExternalChatRunnerGithubConfiguration = {
     token: string;
     owner: string;
-    repositoryPrefix: string;
     repositoryVisibility: ExternalChatRunnerGithubRepositoryVisibility;
 };
 
@@ -27,20 +26,9 @@ export const PROMPTBOOK_AGENT_RUNNER_GITHUB_TOKEN_ENV = 'PROMPTBOOK_AGENT_RUNNER
 export const PROMPTBOOK_AGENT_RUNNER_GITHUB_OWNER_ENV = 'PROMPTBOOK_AGENT_RUNNER_GITHUB_OWNER';
 
 /**
- * Environment variable carrying the optional runner repository name prefix.
- */
-export const PROMPTBOOK_AGENT_RUNNER_GITHUB_REPOSITORY_PREFIX_ENV =
-    'PROMPTBOOK_AGENT_RUNNER_GITHUB_REPOSITORY_PREFIX';
-
-/**
  * Environment variable carrying the optional runner repository visibility.
  */
 export const PROMPTBOOK_AGENT_RUNNER_GITHUB_VISIBILITY_ENV = 'PROMPTBOOK_AGENT_RUNNER_GITHUB_VISIBILITY';
-
-/**
- * Default repository prefix used when no custom prefix is configured.
- */
-const DEFAULT_EXTERNAL_CHAT_RUNNER_REPOSITORY_PREFIX = 'promptbook-agent-';
 
 /**
  * Default repository visibility used when no custom visibility is configured.
@@ -61,9 +49,6 @@ export function loadExternalChatRunnerGithubConfiguration(): ExternalChatRunnerG
     return {
         token,
         owner,
-        repositoryPrefix:
-            process.env[PROMPTBOOK_AGENT_RUNNER_GITHUB_REPOSITORY_PREFIX_ENV]?.trim() ||
-            DEFAULT_EXTERNAL_CHAT_RUNNER_REPOSITORY_PREFIX,
         repositoryVisibility: normalizeExternalChatRunnerGithubRepositoryVisibility(
             process.env[PROMPTBOOK_AGENT_RUNNER_GITHUB_VISIBILITY_ENV],
         ),
