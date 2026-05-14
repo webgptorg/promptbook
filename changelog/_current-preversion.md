@@ -21,6 +21,7 @@
     -   Changed `ptbk agent run` to consume `.book` files instead of markdown queue files, keep replies in the same thread file, and replace the previous finished thread snapshot on the next answered turn.
     -   Changed external runner metadata from per-message UUID files to stable per-chat thread files, so each queued/finished repo file now contains the whole thread up to the newest answer instead of splitting every turn into separate files.
     -   Fixed duplicate/triplicate external message files by claiming queued jobs before enqueue and by preventing chat-detail synchronization from enqueueing still-local queued jobs on its own.
+    -   Changed queued thread filenames to `YYYY-MM-DD-<CHAT_THREAD_ID>.book`, using the original `UserChat.createdAt` date so every follow-up turn in the same chat keeps the same stable dated filename.
 
 -   Added a new `Minecraft 3D 2` built-in avatar visual with proper 3D cuboid rendering and pointer-driven head turning:
     

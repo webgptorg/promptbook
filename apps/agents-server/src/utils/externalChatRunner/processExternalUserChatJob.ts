@@ -161,6 +161,7 @@ async function enqueueExternalUserChatJob(job: UserChatJobRecord): Promise<Proce
     const metadata = createExternalUserChatJobMetadata({
         repositoryFullName: repository.fullName,
         threadId: chat.id,
+        threadCreatedAt: chat.createdAt,
         queuedAt,
         expectedMessagesBeforeAnswer: threadMessages.length,
     });

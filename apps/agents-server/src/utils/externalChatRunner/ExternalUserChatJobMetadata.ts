@@ -25,10 +25,11 @@ export type ExternalUserChatJobMetadata = {
 export function createExternalUserChatJobMetadata(options: {
     repositoryFullName: string;
     threadId: string;
+    threadCreatedAt: string;
     queuedAt: string;
     expectedMessagesBeforeAnswer: number;
 }): ExternalUserChatJobMetadata {
-    const fileName = createExternalChatMessageFileName(options.threadId);
+    const fileName = createExternalChatMessageFileName(options.threadId, options.threadCreatedAt);
 
     return {
         version: 2,
@@ -104,12 +105,28 @@ export function withoutExternalUserChatJobMetadata(parameters: UserChatJobParame
 /**
  * Creates the external runner filename required by the git thread-message contract.
  */
-export function createExternalChatMessageFileName(threadId: string): string {
+export function createExternalChatMessageFileName(threadId: string, threadCreatedAt: string): string {
+    const createdOnDate = resolveExternalChatThreadCreatedOnDate(threadCreatedAt);
     const normalizedThreadId = threadId.trim().replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/^-+|-+$/g, '');
 
     if (normalizedThreadId.length > 0) {
-        return `${normalizedThreadId}.book`;
+        return `${createdOnDate}-${normalizedThreadId}.book`;
     }
 
-    return `${Buffer.from(threadId, 'utf8').toString('hex') || 'thread'}.book`;
+    return `${createdOnDate}-${Buffer.from(threadId, 'utf8').toString('hex') || 'thread'}.book`;
+}
+
+/**
+ * Resolves the stable `YYYY-MM-DD` prefix from the original thread creation timestamp.
+ *
+ * @private helper of `createExternalChatMessageFileName`
+ */
+function resolveExternalChatThreadCreatedOnDate(threadCreatedAt: string): string {
+    const createdOnDate = threadCreatedAt.trim().slice(0, 10);
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(createdOnDate)) {
+        return createdOnDate;
+    }
+
+    throw new Error(`Invalid chat thread creation timestamp "${threadCreatedAt}".`);
 }

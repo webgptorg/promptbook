@@ -78,6 +78,7 @@ function createExternalAgentRepositoryReadme(options: { agentName: string; agent
             - Queued messages: \`messages/queued/*.book\`
             - Finished messages: \`messages/finished/*.book\`
             - Failed messages: \`messages/failed/*.book\`
+            - Thread filename format: \`YYYY-MM-DD-<CHAT_THREAD_ID>.book\`
 
             The external runner is expected to process queued message books and move them to
             \`messages/finished\` or \`messages/failed\`.
