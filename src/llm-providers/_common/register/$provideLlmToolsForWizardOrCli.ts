@@ -1,5 +1,5 @@
 import { join } from 'path';
-import { Promisable } from 'type-fest';
+import type { Promisable } from 'type-fest';
 import { DEFAULT_EXECUTION_CACHE_DIRNAME, DEFAULT_REMOTE_SERVER_URL } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import { UnexpectedError } from '../../../errors/UnexpectedError';

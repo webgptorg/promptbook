@@ -1,4 +1,4 @@
-import { ReadonlyDeep } from 'type-fest';
+import type { ReadonlyDeep } from 'type-fest';
 import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 import type { Parameters } from '../types/Parameters';
 import type { AbstractTaskResult } from './AbstractTaskResult';

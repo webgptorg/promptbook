@@ -1,4 +1,4 @@
-import { Promisable } from 'type-fest';
+import type { Promisable } from 'type-fest';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import type { string_script } from '../../types/string_markdown';

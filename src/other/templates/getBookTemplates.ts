@@ -1,4 +1,4 @@
-import { SetRequired } from 'type-fest';
+import type { SetRequired } from 'type-fest';
 import type { string_formfactor_name } from '../../formfactors/_common/string_formfactor_name';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { NonEmptyReadonlyArray } from '../../types/NonEmptyArray';

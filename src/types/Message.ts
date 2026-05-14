@@ -1,4 +1,4 @@
-import { Arrayable } from 'type-fest';
+import type { Arrayable } from 'type-fest';
 import type { really_any } from '../utils/organization/really_any';
 import type { string_markdown } from './string_markdown';
 import type { id, string_date_iso8601 } from './string_token';

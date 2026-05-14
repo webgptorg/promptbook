@@ -1,6 +1,6 @@
 import type { Observable } from 'rxjs';
 import { Subject } from 'rxjs';
-import { PartialDeep } from 'type-fest';
+import type { PartialDeep } from 'type-fest';
 import { DEFAULT_TASK_SIMULATED_DURATION_MS } from '../config';
 import { assertsError } from '../errors/assertsError';
 import type { LlmCall } from '../types/LlmCall';

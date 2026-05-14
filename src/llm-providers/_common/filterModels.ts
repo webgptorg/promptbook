@@ -1,4 +1,4 @@
-import { Promisable } from 'type-fest';
+import type { Promisable } from 'type-fest';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
