@@ -1,6 +1,6 @@
-[-]
+[.] !!!! - Maybe already working
 
-[✨🏒] brr
+[✨🏒] The `ptbk agent` should look at `.book` files (not `.md` files)
 
 ```bash
 @@@
