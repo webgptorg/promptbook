@@ -1,3 +1,8 @@
+-   Refactored `parseTimeoutToolArgs` internals to keep `USE TIMEOUT` argument parsing behavior unchanged while making the parser easier to follow and maintain:
+
+    -   Split the previous branch-heavy `update_timeout` parsing flow into focused private helpers for target selection, per-field normalization, patch assembly, and bulk/single update validation.
+    -   Added targeted regression coverage for single-timeout and bulk `update_timeout` argument parsing so the existing normalization and validation rules stay protected during future cleanup.
+
 -   Refactored `ptbk run` internals to keep pipeline execution behavior unchanged while making the CLI command easier to follow and maintain:
 
     -   Split the previous all-in-one `src/cli/cli-commands/run.ts` flow into focused private modules for command registration, orchestration, resource preparation, input resolution, and execution/result rendering.

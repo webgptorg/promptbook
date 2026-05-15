@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from '@jest/globals';
 import { createBasicAgentModelRequirements } from '../_base/createEmptyAgentModelRequirements';
 import { parseToolExecutionEnvelope } from '../_common/toolExecutionEnvelope';
 import { TOOL_RUNTIME_CONTEXT_ARGUMENT } from '../_common/toolRuntimeContext';
+import { parseTimeoutToolArgs } from './parseTimeoutToolArgs';
 import { setTimeoutToolRuntimeAdapter } from './setTimeoutToolRuntimeAdapter';
 import type { TimeoutToolRuntimeAdapter } from './TimeoutToolRuntimeAdapter';
 import { UseTimeoutCommitmentDefinition } from './USE_TIMEOUT';
@@ -216,5 +217,49 @@ describe('UseTimeoutCommitmentDefinition', () => {
             paused: true,
             recurrenceIntervalMs: 3_600_000,
         });
+    });
+
+    it('parses single-timeout update patches with normalized editable fields', () => {
+        expect(
+            parseTimeoutToolArgs.update({
+                timeoutId: '  tmo_60000  ',
+                dueAt: '2026-03-12T13:00:00.000Z',
+                recurrenceIntervalMs: 3_600_000.9,
+                message: '  Check messages  ',
+                parameters: { source: 'test' },
+                paused: true,
+            }),
+        ).toEqual({
+            timeoutId: 'tmo_60000',
+            patch: {
+                dueAt: '2026-03-12T13:00:00.000Z',
+                recurrenceIntervalMs: 3_600_000,
+                message: 'Check messages',
+                parameters: { source: 'test' },
+                paused: true,
+            },
+        });
+    });
+
+    it('parses bulk timeout updates when only paused is provided', () => {
+        expect(
+            parseTimeoutToolArgs.update({
+                allActive: true,
+                paused: false,
+            }),
+        ).toEqual({
+            allActive: true,
+            paused: false,
+        });
+    });
+
+    it('rejects bulk timeout updates with single-timeout-only fields', () => {
+        expect(() =>
+            parseTimeoutToolArgs.update({
+                allActive: true,
+                paused: true,
+                message: 'Check messages',
+            }),
+        ).toThrow('Bulk timeout update only supports the `paused` field.');
     });
 });
