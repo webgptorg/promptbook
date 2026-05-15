@@ -1,3 +1,8 @@
+-   Refactored `parsePipeline` internals again to keep synchronous book parsing behavior unchanged while making the parser easier to navigate and maintain:
+
+    -   Split `src/conversion/parsePipeline.ts` into a small orchestration facade plus focused private modules for pipeline initialization, string normalization, markdown section parsing, head parsing, task-section parsing, parameter bookkeeping, and final postprocessing/export.
+    -   Kept shebang handling, markdown flattening, command application, implicit parameter direction inference, sync high-level abstractions, and exported pipeline JSON shape unchanged while reducing the responsibility count in the top-level file.
+
 -   Refactored `parseTimeoutToolArgs` internals to keep `USE TIMEOUT` argument parsing behavior unchanged while making the parser easier to follow and maintain:
 
     -   Split the previous branch-heavy `update_timeout` parsing flow into focused private helpers for target selection, per-field normalization, patch assembly, and bulk/single update validation.
