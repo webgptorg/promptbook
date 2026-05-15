@@ -36,25 +36,17 @@ _(not implemented yet)_ -> `ptbk agent run-multiple`
 
 ---
 
-[-]
+[ ] !!
 
-[✨🕐] qux
+[✨🕐] `ptbk agent run-multiple`should when watching clone the new repositories
 
-```bash
-@@@
-
-npm install ptbk
-
-ptbk agent init
-
-ptbk agent run --agent github-copilot --model gpt-5.4 --thinking-level xhigh
-```
-
--   @@@
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   `ptbk agent run-multiple` is running for multiple agents
+-   It can happen situaltion that new agent repository is created while `ptbk agent run-multiple` is running, in this case it should clone the new repository and start watching it without need to restart the whole `ptbk agent run-multiple` or clone it manually
+-   The agent repositories are created by Agents server
+-   For accessing the owner of the repositories to clone them, use `PROMPTBOOK_AGENT_RUNNER_GITHUB_TOKEN` and `PROMPTBOOK_AGENT_RUNNER_GITHUB_OWNER` env variables
+-   Keep in mind the DRY _(don't repeat yourself)_ principle, share as much code as possible between `ptbk agent run-once`, `ptbk agent run-agent` and `ptbk agent run-multiple`
 -   Do a proper analysis of the current functionality of `ptbk agent` and related functionality before you start implementing.
 -   You are working with [`ptbk agent`](src/cli/cli-commands/agent/run.ts)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
@@ -99,4 +91,3 @@ ptbk agent run --agent github-copilot --model gpt-5.4 --thinking-level xhigh
 -   Do a proper analysis of the current functionality of `ptbk agent` and related functionality before you start implementing.
 -   You are working with [`ptbk agent`](src/cli/cli-commands/agent/run.ts)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
