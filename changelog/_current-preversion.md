@@ -1,3 +1,8 @@
+-   Refactored `ptbk run` internals to keep pipeline execution behavior unchanged while making the CLI command easier to follow and maintain:
+
+    -   Split the previous all-in-one `src/cli/cli-commands/run.ts` flow into focused private modules for command registration, orchestration, resource preparation, input resolution, and execution/result rendering.
+    -   Kept the command options, prompts, stage logging, report saving, and exit behavior unchanged while reducing the responsibility count inside the top-level `run.ts` facade.
+
 -   Refactored `ptbk make` internals to keep collection building behavior unchanged while making the CLI command easier to follow and maintain:
 
     -   Split the previous branch-heavy `make.ts` action flow into focused helpers for CLI option normalization, execution-context setup, collection loading, validation, serialization, format rendering, and file saving.
