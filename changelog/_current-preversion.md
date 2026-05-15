@@ -1,3 +1,8 @@
+-   Refactored `useChatRatings` internals to keep chat feedback behavior unchanged while making the hook easier to follow and maintain:
+
+    -   Extracted focused helpers for message-rating keys, feedback submission preparation, success/error messaging, and transient status timeout cleanup so the main hook flow reads as a sequence of small decisions instead of one large branch-heavy callback.
+    -   Kept the public hook API and feedback/report-issue behavior intact while simplifying the success reset path and the fallback local feedback logging flow.
+
 -   Fixed the draft CLI installer so it now installs `ptbk` globally via `npm install --global ptbk`, removes legacy `/usr/bin/ptbk` wrappers that shadow the npm binary, and verifies the installed `ptbk` command instead of writing an `npx`-based shim.
 
 -   Improved `ptbk agent run-multiple` repository discovery while watching:
