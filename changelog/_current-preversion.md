@@ -1,3 +1,8 @@
+-   Refactored `ptbk make` internals to keep collection building behavior unchanged while making the CLI command easier to follow and maintain:
+
+    -   Split the previous branch-heavy `make.ts` action flow into focused helpers for CLI option normalization, execution-context setup, collection loading, validation, serialization, format rendering, and file saving.
+    -   Kept command options, output order, warnings, and exit behavior unchanged while reducing the amount of nested logic inside `$initializeMakeCommand`.
+
 -   Refactored `PromptbookAgentSeamlessIntegration` internals to keep the widget behavior unchanged while making the component easier to follow and maintain:
 
     -   Split the previous branch-heavy component into focused private hooks and helpers for open-state control, outside-interaction closing, remote-agent connection, branding resolution, status presentation, and content rendering.

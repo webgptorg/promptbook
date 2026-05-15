@@ -24,6 +24,7 @@ import { $provideFilesystemForNode } from '../../scrapers/_common/register/$prov
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
 import { $provideScriptingForNode } from '../../scrapers/_common/register/$provideScriptingForNode';
 import type { string_file_extension } from '../../types/string_sha256';
+import type { string_promptbook_server_url } from '../../types/string_promptbook_server_url';
 import { stringifyPipelineJson } from '../../utils/editable/utils/stringifyPipelineJson';
 import type { $side_effect } from '../../utils/organization/$side_effect';
 import { keepTypeImported } from '../../utils/organization/keepTypeImported';
@@ -35,6 +36,73 @@ import { handleActionErrors } from './common/handleActionErrors';
 keepTypeImported<ExecutionTools>();
 
 /**
+ * Raw Commander option bag accepted by the `make` command action.
+ */
+type MakeCommandCliOptions = {
+    readonly projectName: string;
+    readonly rootUrl?: string;
+    readonly format: false | string;
+    readonly functionName: string;
+    readonly validation: false | string;
+    readonly reload: boolean;
+    readonly interactive: boolean;
+    readonly verbose: boolean;
+    readonly provider: string;
+    readonly remoteServerUrl: string_promptbook_server_url;
+    readonly output: string;
+};
+
+/**
+ * Validated and normalized runtime options for the `make` command flow.
+ */
+type MakeCommandOptions = {
+    readonly path: string;
+    readonly projectName: string;
+    readonly rootUrl?: string;
+    readonly formats: ReadonlyArray<string>;
+    readonly functionName: string;
+    readonly validations: ReadonlyArray<string>;
+    readonly isCacheReloaded: boolean;
+    readonly isVerbose: boolean;
+    readonly output: string;
+    readonly cliOptions: MakeCommandCliOptions;
+};
+
+/**
+ * Execution dependencies created for the `make` command run.
+ */
+type MakeCommandExecutionContext = {
+    readonly llm: Awaited<ReturnType<typeof $provideLlmToolsForCli>>['llm'];
+    readonly fs: ReturnType<typeof $provideFilesystemForNode>;
+    readonly tools: ExecutionTools;
+};
+
+/**
+ * Built collection together with the pipeline urls used for follow-up validation.
+ */
+type MakeCommandCollection = {
+    readonly collection: Awaited<ReturnType<typeof createPipelineCollectionFromDirectory>>;
+    readonly pipelineUrls: ReadonlyArray<string>;
+};
+
+/**
+ * Serialized collection outputs reused by the various output writers.
+ */
+type MakeCommandArtifacts = {
+    readonly collectionJson: ReadonlyArray<PipelineJson>;
+    readonly collectionJsonString: string;
+    readonly collectionJsonItems: string;
+};
+
+/**
+ * File writer prepared for the chosen `make` command output target.
+ */
+type SaveMakeFile = (
+    extension: string_file_extension,
+    content: string | ReadonlyArray<PipelineJson>,
+) => Promise<void>;
+
+/**
  * Initializes `make` command for Promptbook CLI utilities
  *
  * Note: `$` is used to indicate that this function is not a pure function - it registers a command in the CLI
@@ -43,6 +111,15 @@ keepTypeImported<ExecutionTools>();
  */
 export function $initializeMakeCommand(program: Program): $side_effect {
     const makeCommand = program.command('make');
+
+    configureMakeCommand(makeCommand);
+    makeCommand.action(handleActionErrors((path, cliOptions) => $runMakeCommand(path, cliOptions as MakeCommandCliOptions)));
+}
+
+/**
+ * Applies the static description, aliases, arguments, and options for `ptbk make`.
+ */
+function configureMakeCommand(makeCommand: Program): void {
     makeCommand.description(
         spaceTrim(`
             Makes a new pipeline collection in given folder
@@ -101,269 +178,401 @@ export function $initializeMakeCommand(program: Program): $side_effect {
         `),
         DEFAULT_GET_PIPELINE_COLLECTION_FUNCTION_NAME,
     );
+}
 
-    makeCommand.action(
-        handleActionErrors(async (path, cliOptions) => {
-            const {
-                projectName,
-                rootUrl,
-                format,
-                functionName,
-                validation,
-                reload: isCacheReloaded,
-                verbose: isVerbose,
-                output,
-            } = cliOptions;
+/**
+ * Executes the `make` command as a sequence of explicit preparation, validation, build, and save steps.
+ */
+async function $runMakeCommand(path: string, cliOptions: MakeCommandCliOptions): Promise<$side_effect> {
+    const options = normalizeMakeCommandOptions(path, cliOptions);
+    const executionContext = await createMakeCommandExecutionContext(options);
+    const makeCommandCollection = await createMakeCommandCollection(options, executionContext.tools);
 
-            if (!isValidJavascriptName(functionName)) {
-                console.error(colors.red(`Function name "${functionName}" is not valid javascript name`));
-                return process.exit(1);
+    await validateMakeCommandCollection(makeCommandCollection, options.validations, options.isVerbose);
+
+    const artifacts = await createMakeCommandArtifacts(makeCommandCollection.collection);
+    const saveFile = createSaveMakeFile(options.path, options.output, executionContext.fs);
+
+    await saveRequestedMakeFormats(options.formats, artifacts, saveFile, options.projectName, options.functionName);
+
+    console.info(colors.green(`Collection builded successfully`));
+    if (options.isVerbose) {
+        console.info(colors.cyan(usageToHuman(executionContext.llm.getTotalUsage())));
+    }
+
+    return process.exit(0);
+}
+
+/**
+ * Validates command-line inputs and converts comma-separated options into structured runtime values.
+ */
+function normalizeMakeCommandOptions(path: string, cliOptions: MakeCommandCliOptions): MakeCommandOptions {
+    const {
+        projectName,
+        rootUrl,
+        format,
+        functionName,
+        validation,
+        reload: isCacheReloaded,
+        verbose: isVerbose,
+        output,
+    } = cliOptions;
+    const formats = parseCommaSeparatedOptionValues(format);
+    const validations = parseCommaSeparatedOptionValues(validation);
+
+    if (!isValidJavascriptName(functionName)) {
+        failMakeCommand(`Function name "${functionName}" is not valid javascript name`);
+    }
+
+    if (
+        rootUrl !== undefined &&
+        !isValidUrl(rootUrl) /* <- Note: Not using `isValidPipelineUrl` because this is root url not book url */
+    ) {
+        failMakeCommand(`Root URL ${rootUrl} is not valid URL`);
+    }
+
+    if (output !== DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME && formats.length !== 1) {
+        failMakeCommand(`You can only use one format if you specify --out-file`);
+    }
+
+    return {
+        path,
+        projectName,
+        rootUrl,
+        formats,
+        functionName,
+        validations,
+        isCacheReloaded,
+        isVerbose,
+        output,
+        cliOptions,
+    };
+}
+
+/**
+ * Creates the filesystem, LLM, scraper, and scripting tools needed for one `make` command run.
+ */
+async function createMakeCommandExecutionContext(
+    options: MakeCommandOptions,
+): Promise<MakeCommandExecutionContext> {
+    // TODO: DRY [◽]
+    const prepareAndScrapeOptions = {
+        isVerbose: options.isVerbose,
+        isCacheReloaded: options.isCacheReloaded,
+    }; /* <- TODO: ` satisfies PrepareAndScrapeOptions` */
+    const fs = $provideFilesystemForNode(prepareAndScrapeOptions);
+    const { llm } = await $provideLlmToolsForCli({
+        cliOptions: options.cliOptions,
+        ...prepareAndScrapeOptions,
+    });
+    const executables = await $provideExecutablesForNode(prepareAndScrapeOptions);
+    const tools = {
+        llm,
+        fs,
+
+        scrapers: await $provideScrapersForNode({ fs, llm, executables }, prepareAndScrapeOptions),
+        script: await $provideScriptingForNode({}),
+    } satisfies ExecutionTools;
+
+    return { llm, fs, tools };
+}
+
+/**
+ * Loads the source directory into a pipeline collection and ensures there is at least one pipeline to build.
+ */
+async function createMakeCommandCollection(
+    options: MakeCommandOptions,
+    tools: ExecutionTools,
+): Promise<MakeCommandCollection> {
+    // TODO: [🧟‍♂️][◽] DRY:
+    const collection = await createPipelineCollectionFromDirectory(options.path, tools, {
+        isVerbose: options.isVerbose,
+        rootUrl: options.rootUrl,
+        isRecursive: true,
+        isLazyLoaded: false,
+        isCrashedOnError: true,
+        // <- TODO: [🍖] Add `intermediateFilesStrategy`
+    });
+
+    const pipelineUrls = await collection.listPipelines();
+
+    if (pipelineUrls.length === 0) {
+        failMakeCommand(`No books found in "${options.path}"`);
+    }
+
+    return { collection, pipelineUrls };
+}
+
+/**
+ * Applies all requested validations to each pipeline in the collection.
+ */
+async function validateMakeCommandCollection(
+    makeCommandCollection: MakeCommandCollection,
+    validations: ReadonlyArray<string>,
+    isVerbose: boolean,
+): Promise<void> {
+    for (const validation of validations) {
+        for (const pipelineUrl of makeCommandCollection.pipelineUrls) {
+            const pipeline = await makeCommandCollection.collection.getPipelineByUrl(pipelineUrl);
+
+            if (validation === 'logic') {
+                validatePipeline(pipeline);
+
+                if (isVerbose) {
+                    console.info(colors.cyan(`Validated logic of ${pipeline.pipelineUrl}`));
+                }
             }
 
-            if (
-                rootUrl !== undefined &&
-                !isValidUrl(rootUrl) /* <- Note: Not using `isValidPipelineUrl` because this is root url not book url */
-            ) {
-                console.error(colors.red(`Root URL ${rootUrl} is not valid URL`));
-                return process.exit(1);
-            }
+            // TODO: Imports validation
+        }
+    }
+}
 
-            let formats = ((format as string | false) || '')
-                .split(',')
-                .map((_) => _.trim())
-                .filter((_) => _ !== '');
-            const validations = ((validation as string | false) || '')
-                .split(',')
-                .map((_) => _.trim())
-                .filter((_) => _ !== '');
+/**
+ * Serializes the collection into all reusable string and archive representations needed by the output writers.
+ */
+async function createMakeCommandArtifacts(
+    collection: Awaited<ReturnType<typeof createPipelineCollectionFromDirectory>>,
+): Promise<MakeCommandArtifacts> {
+    const collectionJson = await pipelineCollectionToJson(collection);
+    const collectionJsonString = stringifyPipelineJson(collectionJson).trim();
 
-            if (output !== DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME && formats.length !== 1) {
-                console.error(colors.red(`You can only use one format if you specify --out-file`));
-                return process.exit(1);
-            }
+    return {
+        collectionJson,
+        collectionJsonString,
+        collectionJsonItems: extractCollectionJsonItems(collectionJsonString),
+    };
+}
 
-            // TODO: DRY [◽]
-            const prepareAndScrapeOptions = {
-                isVerbose,
-                isCacheReloaded,
-            }; /* <- TODO: ` satisfies PrepareAndScrapeOptions` */
-            const fs = $provideFilesystemForNode(prepareAndScrapeOptions);
-            const { llm } = await $provideLlmToolsForCli({
-                cliOptions,
-                ...prepareAndScrapeOptions,
-            });
-            const executables = await $provideExecutablesForNode(prepareAndScrapeOptions);
-            const tools = {
-                llm,
-                fs,
+/**
+ * Extracts the array body from the serialized collection JSON while preserving the existing invariants.
+ */
+function extractCollectionJsonItems(collectionJsonString: string): string {
+    const firstChar = collectionJsonString.charAt(0);
 
-                scrapers: await $provideScrapersForNode({ fs, llm, executables }, prepareAndScrapeOptions),
-                script: await $provideScriptingForNode({}),
-            } satisfies ExecutionTools;
+    if (firstChar !== '[') {
+        throw new UnexpectedError(`First character of serialized collection should be "[" not "${firstChar}"`);
+    }
 
-            // TODO: [🧟‍♂️][◽] DRY:
-            const collection = await createPipelineCollectionFromDirectory(path, tools, {
-                isVerbose,
-                rootUrl,
-                isRecursive: true,
-                isLazyLoaded: false,
-                isCrashedOnError: true,
-                // <- TODO: [🍖] Add `intermediateFilesStrategy`
-            });
+    const lastChar = collectionJsonString.charAt(collectionJsonString.length - 1);
+    if (lastChar !== ']') {
+        throw new UnexpectedError(`Last character of serialized collection should be "]" not "${lastChar}"`);
+    }
 
-            const pipelinesUrls = await collection.listPipelines();
+    return spaceTrim(collectionJsonString.substring(1, collectionJsonString.length - 1));
+}
 
-            if (pipelinesUrls.length === 0) {
-                console.error(colors.red(`No books found in "${path}"`));
-                return process.exit(1);
-            }
+/**
+ * Creates the file saver that resolves output filenames and writes either archive or text outputs.
+ */
+function createSaveMakeFile(
+    path: string,
+    output: string,
+    fs: ReturnType<typeof $provideFilesystemForNode>,
+): SaveMakeFile {
+    return async (extension, content) => {
+        const filename =
+            output !== DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME
+                ? output
+                : join(path, `${DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME}.${extension}`);
 
-            for (const validation of validations) {
-                for (const pipelineUrl of pipelinesUrls) {
-                    const pipeline = await collection.getPipelineByUrl(pipelineUrl);
+        if (!output.endsWith(`.${extension}`)) {
+            console.warn(colors.yellow(`Warning: Extension of output file should be "${extension}"`));
+            // <- TODO: [🏮] Some standard way how to transform errors into warnings and how to handle non-critical fails during the tasks
+        }
 
-                    if (validation === 'logic') {
-                        validatePipeline(pipeline);
+        await mkdir(dirname(filename), { recursive: true });
 
-                        if (isVerbose) {
-                            console.info(colors.cyan(`Validated logic of ${pipeline.pipelineUrl}`));
-                        }
+        if (typeof content === 'string') {
+            await writeFile(filename, content, 'utf-8');
+        } else {
+            await saveArchive(filename, content, fs);
+        }
+
+        // Note: Log despite of verbose mode
+        console.info(colors.green(`Made ${filename.split('\\').join('/')}`));
+    };
+}
+
+/**
+ * Saves all requested output formats in the same order and with the same alias handling as before the refactor.
+ */
+async function saveRequestedMakeFormats(
+    formats: ReadonlyArray<string>,
+    artifacts: MakeCommandArtifacts,
+    saveFile: SaveMakeFile,
+    projectName: string,
+    functionName: string,
+): Promise<void> {
+    let remainingFormats = [...formats];
+
+    if (remainingFormats.includes('bookc')) {
+        remainingFormats = removeConsumedFormats(remainingFormats, ['bookc']);
+        await saveFile('bookc', artifacts.collectionJson);
+    }
+
+    if (remainingFormats.includes('json')) {
+        remainingFormats = removeConsumedFormats(remainingFormats, ['json']);
+        await saveFile('json', artifacts.collectionJsonString);
+        //                            <- TODO: Add GENERATOR_WARNING_BY_PROMPTBOOK_CLI to package.json
+    }
+
+    if (remainingFormats.includes('javascript') || remainingFormats.includes('js')) {
+        remainingFormats = removeConsumedFormats(remainingFormats, ['javascript', 'js']);
+        await saveFile(
+            'js',
+            renderJavascriptCollectionFactory(projectName, functionName, artifacts.collectionJsonItems),
+        );
+    }
+
+    if (remainingFormats.includes('typescript') || remainingFormats.includes('ts')) {
+        remainingFormats = removeConsumedFormats(remainingFormats, ['typescript', 'ts']);
+        await saveFile(
+            'ts',
+            renderTypescriptCollectionFactory(projectName, functionName, artifacts.collectionJsonItems),
+        );
+    }
+
+    if (remainingFormats.length > 0) {
+        console.warn(colors.yellow(`Format ${remainingFormats.join(' and ')} is not supported`));
+        // <- TODO: [🏮] Some standard way how to transform errors into warnings and how to handle non-critical fails during the tasks
+    }
+}
+
+/**
+ * Removes a handled format name together with all of its aliases from the remaining-format list.
+ */
+function removeConsumedFormats(
+    formats: ReadonlyArray<string>,
+    consumedFormats: ReadonlyArray<string>,
+): string[] {
+    return formats.filter((format) => !consumedFormats.includes(format));
+}
+
+/**
+ * Renders the JavaScript module wrapper for the compiled pipeline collection.
+ */
+function renderJavascriptCollectionFactory(
+    projectName: string,
+    functionName: string,
+    collectionJsonItems: string,
+): string {
+    return (
+        spaceTrim(
+            (block) => `
+                // ${block(GENERATOR_WARNING_BY_PROMPTBOOK_CLI)}
+
+                import { createPipelineCollectionFromJson } from '@promptbook/core';
+
+                /**
+                 * Pipeline collection for ${projectName}
+                 *
+                 * ${block(GENERATOR_WARNING_BY_PROMPTBOOK_CLI)}
+                 *
+                 * @generated
+                 * @private internal cache for \`${functionName}\`
+                 */
+                let pipelineCollection = null;
+
+
+                /**
+                 * Get pipeline collection for ${projectName}
+                 *
+                 * ${block(GENERATOR_WARNING_BY_PROMPTBOOK_CLI)}
+                 *
+                 * @generated
+                 * @returns {PipelineCollection} Library of promptbooks for ${projectName}
+                 */
+                export function ${functionName}(){
+                    if(pipelineCollection===null){
+                        pipelineCollection = createPipelineCollectionFromJson(
+                            ${block(collectionJsonItems)}
+                        );
                     }
 
-                    // TODO: Imports validation
+                    return pipelineCollection;
                 }
-            }
-
-            const collectionJson = await pipelineCollectionToJson(collection);
-
-            const collectionJsonString = stringifyPipelineJson(collectionJson).trim();
-            const collectionJsonItems = (() => {
-                const firstChar = collectionJsonString.charAt(0);
-
-                if (firstChar !== '[') {
-                    throw new UnexpectedError(
-                        `First character of serialized collection should be "[" not "${firstChar}"`,
-                    );
-                }
-
-                const lastChar = collectionJsonString.charAt(collectionJsonString.length - 1);
-                if (lastChar !== ']') {
-                    throw new UnexpectedError(
-                        `Last character of serialized collection should be "]" not "${lastChar}"`,
-                    );
-                }
-
-                return spaceTrim(collectionJsonString.substring(1, collectionJsonString.length - 1));
-            })();
-
-            const saveFile = async (
-                extension: string_file_extension,
-                content: string | ReadonlyArray<PipelineJson>,
-            ) => {
-                const filename =
-                    output !== DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME
-                        ? output
-                        : join(path, `${DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME}.${extension}`);
-
-                if (!output.endsWith(`.${extension}`)) {
-                    console.warn(colors.yellow(`Warning: Extension of output file should be "${extension}"`));
-                    // <- TODO: [🏮] Some standard way how to transform errors into warnings and how to handle non-critical fails during the tasks
-                }
-
-                await mkdir(dirname(filename), { recursive: true });
-
-                if (typeof content === 'string') {
-                    await writeFile(filename, content, 'utf-8');
-                } else {
-                    await saveArchive(filename, content, fs);
-                }
-
-                // Note: Log despite of verbose mode
-                console.info(colors.green(`Made ${filename.split('\\').join('/')}`));
-            };
-
-            if (formats.includes('bookc')) {
-                formats = formats.filter((format) => format !== 'bookc');
-                await saveFile('bookc', collectionJson);
-            }
-
-            if (formats.includes('json')) {
-                formats = formats.filter((format) => format !== 'json');
-                await saveFile('json', collectionJsonString);
-                //                            <- TODO: Add GENERATOR_WARNING_BY_PROMPTBOOK_CLI to package.json
-            }
-
-            if (formats.includes('javascript') || formats.includes('js')) {
-                formats = formats.filter((format) => format !== 'javascript' && format !== 'js');
-                (await saveFile(
-                    'js',
-                    spaceTrim(
-                        (block) => `
-                            // ${block(GENERATOR_WARNING_BY_PROMPTBOOK_CLI)}
-
-                            import { createPipelineCollectionFromJson } from '@promptbook/core';
-
-                            /**
-                             * Pipeline collection for ${projectName}
-                             *
-                             * ${block(GENERATOR_WARNING_BY_PROMPTBOOK_CLI)}
-                             *
-                             * @generated
-                             * @private internal cache for \`${functionName}\`
-                             */
-                            let pipelineCollection = null;
-
-
-                            /**
-                             * Get pipeline collection for ${projectName}
-                             *
-                             * ${block(GENERATOR_WARNING_BY_PROMPTBOOK_CLI)}
-                             *
-                             * @generated
-                             * @returns {PipelineCollection} Library of promptbooks for ${projectName}
-                             */
-                            export function ${functionName}(){
-                                if(pipelineCollection===null){
-                                    pipelineCollection = createPipelineCollectionFromJson(
-                                        ${block(collectionJsonItems)}
-                                    );
-                                }
-
-                                return pipelineCollection;
-                            }
-                        `,
-                    ),
-                    // <- TODO: [0] DRY Javascript and typescript
-                    // <- TODO: Prettify
-                    // <- TODO: Convert inlined \n to spaceTrim
-                    // <- Note: [🍡]
-                )) + '\n';
-            }
-
-            if (formats.includes('typescript') || formats.includes('ts')) {
-                formats = formats.filter((format) => format !== 'typescript' && format !== 'ts');
-                await saveFile(
-                    'ts',
-                    spaceTrim(
-                        (block) => `
-                            // ${block(GENERATOR_WARNING_BY_PROMPTBOOK_CLI)}
-
-                            import { createPipelineCollectionFromJson } from '@promptbook/core';
-                            import type { PipelineCollection } from '@promptbook/types';
-
-                            /**
-                             * Pipeline collection for ${projectName}
-                             *
-                             * ${block(GENERATOR_WARNING_BY_PROMPTBOOK_CLI)}
-                             *
-                             * @private internal cache for \`${functionName}\`
-                             * @generated
-                             */
-                            let pipelineCollection: null | PipelineCollection = null;
-
-
-                            /**
-                             * Get pipeline collection for ${projectName}
-                             *
-                             * ${block(GENERATOR_WARNING_BY_PROMPTBOOK_CLI)}
-                             *
-                             * @generated
-                             * @returns {PipelineCollection} Library of promptbooks for ${projectName}
-                             */
-                            export function ${functionName}(): PipelineCollection{
-                                if(pipelineCollection===null){
-
-                                    // TODO: !!6 Use book string literal notation
-                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                    pipelineCollection = (createPipelineCollectionFromJson as (..._: any) => PipelineCollection)(
-                                        ${block(collectionJsonItems)}
-                                    );
-                                }
-
-                                return pipelineCollection;
-                            }
-                        `,
-                    ) + '\n',
-                    // <- TODO: [0] DRY Javascript and typescript
-                    // <- TODO: Prettify
-                    // <- TODO: Convert inlined \n to spaceTrim
-                    // <- Note: [🍡]
-                );
-            }
-
-            if (formats.length > 0) {
-                console.warn(colors.yellow(`Format ${formats.join(' and ')} is not supported`));
-                // <- TODO: [🏮] Some standard way how to transform errors into warnings and how to handle non-critical fails during the tasks
-            }
-
-            console.info(colors.green(`Collection builded successfully`));
-            if (isVerbose) {
-                console.info(colors.cyan(usageToHuman(llm.getTotalUsage())));
-            }
-
-            return process.exit(0);
-        }),
+            `,
+        ) + '\n'
     );
+    // <- TODO: [0] DRY Javascript and typescript
+    // <- TODO: Prettify
+    // <- TODO: Convert inlined \n to spaceTrim
+    // <- Note: [🍡]
+}
+
+/**
+ * Renders the TypeScript module wrapper for the compiled pipeline collection.
+ */
+function renderTypescriptCollectionFactory(
+    projectName: string,
+    functionName: string,
+    collectionJsonItems: string,
+): string {
+    return (
+        spaceTrim(
+            (block) => `
+                // ${block(GENERATOR_WARNING_BY_PROMPTBOOK_CLI)}
+
+                import { createPipelineCollectionFromJson } from '@promptbook/core';
+                import type { PipelineCollection } from '@promptbook/types';
+
+                /**
+                 * Pipeline collection for ${projectName}
+                 *
+                 * ${block(GENERATOR_WARNING_BY_PROMPTBOOK_CLI)}
+                 *
+                 * @private internal cache for \`${functionName}\`
+                 * @generated
+                 */
+                let pipelineCollection: null | PipelineCollection = null;
+
+
+                /**
+                 * Get pipeline collection for ${projectName}
+                 *
+                 * ${block(GENERATOR_WARNING_BY_PROMPTBOOK_CLI)}
+                 *
+                 * @generated
+                 * @returns {PipelineCollection} Library of promptbooks for ${projectName}
+                 */
+                export function ${functionName}(): PipelineCollection{
+
+                    if(pipelineCollection===null){
+                        // TODO: !!6 Use book string literal notation
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        pipelineCollection = (createPipelineCollectionFromJson as (..._: any) => PipelineCollection)(
+                            ${block(collectionJsonItems)}
+                        );
+                    }
+
+                    return pipelineCollection;
+                }
+            `,
+        ) + '\n'
+    );
+    // <- TODO: [0] DRY Javascript and typescript
+    // <- TODO: Prettify
+    // <- TODO: Convert inlined \n to spaceTrim
+    // <- Note: [🍡]
+}
+
+/**
+ * Splits a comma-separated CLI option into normalized non-empty values.
+ */
+function parseCommaSeparatedOptionValues(value: false | string): ReadonlyArray<string> {
+    return (value || '')
+        .split(',')
+        .map((item) => item.trim())
+        .filter((item) => item !== '');
+}
+
+/**
+ * Reports a fatal `make` command validation or execution problem and exits with the existing error behavior.
+ */
+function failMakeCommand(message: string): never {
+    console.error(colors.red(message));
+    return process.exit(1);
 }
 
 /** Note: [🟡] Code for CLI command [make](src/cli/cli-commands/make.ts) should never be published outside of `@promptbook/cli` */
