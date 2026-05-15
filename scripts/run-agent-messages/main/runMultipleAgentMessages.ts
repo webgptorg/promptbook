@@ -8,6 +8,7 @@ import { createCoderRunOptionsForAgent } from './createCoderRunOptionsForAgent';
 import { listLocalAgentRunnerProjects, type LocalAgentRunnerProject } from './listLocalAgentRunnerProjects';
 import { loadAgentMessageQueueSnapshot } from './loadAgentMessageQueueSnapshot';
 import { synchronizeGithubAgentRunnerRepositories } from './synchronizeGithubAgentRunnerRepositories';
+import { shouldRunPeriodicTask } from './shouldRunPeriodicTask';
 import { tickAgentMessages } from './tickAgentMessages';
 import { validateAgentRunOptions } from './validateAgentRunOptions';
 import { validateAgentWatchOptions } from './validateAgentWatchOptions';
@@ -25,6 +26,11 @@ const MULTI_AGENT_QUEUE_POLL_INTERVAL_MS = 2_000;
  * Delay between GitHub owner synchronization rounds while the multi-agent runner stays active.
  */
 const MULTI_AGENT_GITHUB_SYNC_INTERVAL_MS = 30_000;
+
+/**
+ * Delay between GitHub owner synchronization rounds while no local repositories exist yet.
+ */
+const MULTI_AGENT_EMPTY_DIRECTORY_GITHUB_SYNC_INTERVAL_MS = MULTI_AGENT_QUEUE_POLL_INTERVAL_MS;
 
 /**
  * Direct child repository summary rendered in the shared multi-agent dashboard.
@@ -52,6 +58,7 @@ export async function runMultipleAgentMessages(
     const shouldContinue = controls.shouldContinue || (() => just(true));
     const uiHandle = await initializeMultipleAgentRunUi(options);
     let githubSynchronizationTimestamp: number | undefined;
+    let lastObservedProjectCount = 0;
 
     if (!uiHandle) {
         console.info(colors.green('Watching direct child agent repositories for queued messages.'));
@@ -62,9 +69,11 @@ export async function runMultipleAgentMessages(
             rootPath,
             uiHandle,
             lastSynchronizationTimestamp: githubSynchronizationTimestamp,
+            lastObservedProjectCount,
         });
 
         const projectSummaries = await loadLocalAgentRunnerProjectSummaries(rootPath);
+        lastObservedProjectCount = projectSummaries.length;
         const nextQueuedProject = projectSummaries.find((projectSummary) => projectSummary.queuedMessageCount > 0);
 
         if (!nextQueuedProject) {
@@ -120,12 +129,19 @@ async function synchronizeGithubAgentRunnerRepositoriesIfNeeded(options: {
     readonly rootPath: string;
     readonly uiHandle?: CoderRunUiHandle;
     readonly lastSynchronizationTimestamp: number | undefined;
+    readonly lastObservedProjectCount: number;
 }): Promise<number | undefined> {
-    const { rootPath, uiHandle, lastSynchronizationTimestamp } = options;
+    const { rootPath, uiHandle, lastSynchronizationTimestamp, lastObservedProjectCount } = options;
+    const synchronizationIntervalMs =
+        lastObservedProjectCount === 0
+            ? MULTI_AGENT_EMPTY_DIRECTORY_GITHUB_SYNC_INTERVAL_MS
+            : MULTI_AGENT_GITHUB_SYNC_INTERVAL_MS;
 
     if (
-        lastSynchronizationTimestamp !== undefined &&
-        Date.now() - lastSynchronizationTimestamp < MULTI_AGENT_GITHUB_SYNC_INTERVAL_MS
+        !shouldRunPeriodicTask({
+            lastRunTimestamp: lastSynchronizationTimestamp,
+            intervalMs: synchronizationIntervalMs,
+        })
     ) {
         return lastSynchronizationTimestamp;
     }

@@ -3,6 +3,7 @@ import { just } from '../../../src/utils/organization/just';
 import type { AgentRunOptions } from '../AgentRunOptions';
 import { getQueuedAgentMessagesDirectoryLabel, loadAgentMessageQueueSnapshot } from './loadAgentMessageQueueSnapshot';
 import { pullLatestChangesForAgentQueueIfEnabled } from './pullLatestChangesForAgentQueueIfEnabled';
+import { shouldRunPeriodicTask } from './shouldRunPeriodicTask';
 import { tickAgentMessages } from './tickAgentMessages';
 import {
     initializeAgentRunUi,
@@ -121,11 +122,14 @@ async function waitForQueuedAgentMessage(options: {
  * Decides whether the empty queue has been idle long enough for another auto-pull.
  */
 function shouldAutoPullWhileIdle(options: AgentRunOptions, autoPullTimestamp: number | undefined): boolean {
-    if (!options.autoPull || autoPullTimestamp === undefined) {
+    if (!options.autoPull) {
         return false;
     }
 
-    return Date.now() - autoPullTimestamp >= AGENT_IDLE_AUTO_PULL_INTERVAL_MS;
+    return shouldRunPeriodicTask({
+        lastRunTimestamp: autoPullTimestamp,
+        intervalMs: AGENT_IDLE_AUTO_PULL_INTERVAL_MS,
+    });
 }
 
 /**
