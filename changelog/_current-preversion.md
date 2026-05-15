@@ -1,3 +1,8 @@
+-   Refactored `getToolCallChipletInfo` internals to keep chat chip labels unchanged while making the utility easier to read and maintain:
+
+    -   Split the previous branch-heavy flow into focused chiplet-resolution helpers for wallet credentials, TEAM agents, time, email, memory, timeout, query, URL, and fallback labels.
+    -   Added targeted chiplet regression coverage for TEAM, email, memory, and URL chip rendering to protect the refactoring without changing external behavior.
+
 -   Refactored `useChatRatings` internals to keep chat feedback behavior unchanged while making the hook easier to follow and maintain:
 
     -   Extracted focused helpers for message-rating keys, feedback submission preparation, success/error messaging, and transient status timeout cleanup so the main hook flow reads as a sequence of small decisions instead of one large branch-heavy callback.
