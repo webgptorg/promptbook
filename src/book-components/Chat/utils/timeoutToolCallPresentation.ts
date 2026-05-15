@@ -183,6 +183,59 @@ type ResolveTimeoutToolCallPresentationOptions = {
 };
 
 /**
+ * Normalized timeout-tool result payload when the raw result is an object.
+ *
+ * @private internal timeout-chat type
+ */
+type TimeoutToolCallResultObject = Record<string, TODO_any>;
+
+/**
+ * Parsed timeout metadata collected from tool arguments and result payload.
+ *
+ * @private internal timeout-chat type
+ */
+type TimeoutToolCallCoreData = {
+    readonly action: TimeoutToolCallAction;
+    readonly status: string | null;
+    readonly milliseconds: number | null;
+    readonly timeoutId: string | null;
+    readonly message: string | null;
+    readonly dueAtDate: Date | null;
+};
+
+/**
+ * Inputs required to resolve the core timeout metadata before formatting labels.
+ *
+ * @private internal timeout-chat type
+ */
+type ResolveTimeoutToolCallCoreDataOptions = {
+    readonly toolCallName: string;
+    readonly args: Record<string, TODO_any>;
+    readonly resultObject: TimeoutToolCallResultObject | null;
+};
+
+/**
+ * Inputs required to resolve due-date labels for timeout presentation.
+ *
+ * @private internal timeout-chat type
+ */
+type ResolveTimeoutToolCallDueAtLabelsOptions = {
+    readonly dueAtDate: Date | null;
+    readonly currentDate: Date;
+    readonly locale?: string;
+};
+
+/**
+ * Inputs required to assemble the final timeout presentation payload.
+ *
+ * @private internal timeout-chat type
+ */
+type CreateTimeoutToolCallPresentationOptions = {
+    readonly timeoutToolCallCoreData: TimeoutToolCallCoreData;
+    readonly dueAtLabels: ReturnType<typeof formatToolCallDateTime> | null;
+};
+
+/**
  * Determines whether a tool name belongs to the timeout commitment.
  *
  * @private internal utility of `<Chat/>`
@@ -204,42 +257,18 @@ export function resolveTimeoutToolCallPresentation(
         return null;
     }
 
-    const resultObject =
-        resultRaw && typeof resultRaw === 'object' && !Array.isArray(resultRaw)
-            ? (resultRaw as Record<string, TODO_any>)
-            : null;
-    const defaultAction: TimeoutToolCallAction = toolCallName === 'cancel_timeout' ? 'cancel' : 'set';
-    const action =
-        resultObject?.action === 'cancel' || resultObject?.action === 'set'
-            ? (resultObject.action as TimeoutToolCallAction)
-            : defaultAction;
-    const status = typeof resultObject?.status === 'string' ? resultObject.status : null;
-    const milliseconds =
-        parsePositiveNumber(args.milliseconds) ?? parsePositiveNumber(resultObject?.milliseconds) ?? null;
-    const timeoutId = normalizeStringValue(resultObject?.timeoutId) ?? normalizeStringValue(args.timeoutId) ?? null;
-    const message = normalizeStringValue(args.message) ?? normalizeStringValue(resultObject?.message) ?? null;
-    const dueAtRaw = normalizeStringValue(resultObject?.dueAt) ?? normalizeStringValue(args.dueAt) ?? null;
-    const dueAtDate = dueAtRaw ? parseDateValue(dueAtRaw) : null;
-    const effectiveCurrentDate = options.currentDate || new Date();
-    const dueAtLabels = dueAtDate
-        ? formatToolCallDateTime(dueAtDate, { locale, currentDate: effectiveCurrentDate })
-        : null;
+    const timeoutToolCallCoreData = resolveTimeoutToolCallCoreData({
+        toolCallName,
+        args,
+        resultObject: resolveTimeoutToolCallResultObject(resultRaw),
+    });
+    const dueAtLabels = resolveTimeoutToolCallDueAtLabels({
+        dueAtDate: timeoutToolCallCoreData.dueAtDate,
+        currentDate: options.currentDate || new Date(),
+        locale,
+    });
 
-    return {
-        action,
-        status,
-        milliseconds,
-        timeoutId,
-        message,
-        dueAtDate,
-        dueAtIsoUtc: dueAtDate ? dueAtDate.toISOString() : null,
-        localTimezone: resolveLocalTimezone(),
-        compactDurationLabel: milliseconds !== null ? formatTimeoutDurationCompact(milliseconds) : null,
-        humanDurationLabel: milliseconds !== null ? formatTimeoutDurationHuman(milliseconds) : null,
-        relativeDueLabel: dueAtLabels?.relativeTimeLabel || null,
-        localDueTimeLabel: dueAtLabels?.localTimeLabel || null,
-        localDueDateLabel: dueAtLabels?.localDateLabel || null,
-    };
+    return createTimeoutToolCallPresentation({ timeoutToolCallCoreData, dueAtLabels });
 }
 
 /**
@@ -426,6 +455,148 @@ function formatTimeoutDurationHuman(milliseconds: number): string {
  */
 function formatTimeoutUnit(value: number, unit: 'day' | 'hour' | 'minute' | 'second'): string {
     return `${value} ${unit}${value === 1 ? '' : 's'}`;
+}
+
+/**
+ * Normalizes the raw timeout result payload when it is an object.
+ *
+ * @private internal timeout-chat helper
+ */
+function resolveTimeoutToolCallResultObject(resultRaw: TODO_any): TimeoutToolCallResultObject | null {
+    return resultRaw && typeof resultRaw === 'object' && !Array.isArray(resultRaw)
+        ? (resultRaw as TimeoutToolCallResultObject)
+        : null;
+}
+
+/**
+ * Resolves all timeout fields that depend only on arguments and raw result metadata.
+ *
+ * @private internal timeout-chat helper
+ */
+function resolveTimeoutToolCallCoreData(
+    options: ResolveTimeoutToolCallCoreDataOptions,
+): TimeoutToolCallCoreData {
+    const { toolCallName, args, resultObject } = options;
+
+    return {
+        action: resolveTimeoutToolCallAction(toolCallName, resultObject),
+        status: resolveTimeoutToolCallStatus(resultObject),
+        milliseconds: pickPositiveNumber(args.milliseconds, resultObject?.milliseconds),
+        timeoutId: pickNormalizedStringValue(resultObject?.timeoutId, args.timeoutId),
+        message: pickNormalizedStringValue(args.message, resultObject?.message),
+        dueAtDate: resolveTimeoutToolCallDueAtDate(args, resultObject),
+    };
+}
+
+/**
+ * Resolves the timeout action, preferring an explicit runtime result value.
+ *
+ * @private internal timeout-chat helper
+ */
+function resolveTimeoutToolCallAction(
+    toolCallName: string,
+    resultObject: TimeoutToolCallResultObject | null,
+): TimeoutToolCallAction {
+    if (resultObject?.action === 'cancel' || resultObject?.action === 'set') {
+        return resultObject.action as TimeoutToolCallAction;
+    }
+
+    return toolCallName === 'cancel_timeout' ? 'cancel' : 'set';
+}
+
+/**
+ * Resolves the timeout status from the runtime result payload.
+ *
+ * @private internal timeout-chat helper
+ */
+function resolveTimeoutToolCallStatus(resultObject: TimeoutToolCallResultObject | null): string | null {
+    return typeof resultObject?.status === 'string' ? resultObject.status : null;
+}
+
+/**
+ * Resolves the scheduled due date, preferring the runtime result over input arguments.
+ *
+ * @private internal timeout-chat helper
+ */
+function resolveTimeoutToolCallDueAtDate(
+    args: Record<string, TODO_any>,
+    resultObject: TimeoutToolCallResultObject | null,
+): Date | null {
+    const dueAtRaw = pickNormalizedStringValue(resultObject?.dueAt, args.dueAt);
+    return dueAtRaw ? parseDateValue(dueAtRaw) : null;
+}
+
+/**
+ * Resolves localized due-date labels when a valid due date exists.
+ *
+ * @private internal timeout-chat helper
+ */
+function resolveTimeoutToolCallDueAtLabels(
+    options: ResolveTimeoutToolCallDueAtLabelsOptions,
+): ReturnType<typeof formatToolCallDateTime> | null {
+    const { dueAtDate, currentDate, locale } = options;
+
+    return dueAtDate ? formatToolCallDateTime(dueAtDate, { locale, currentDate }) : null;
+}
+
+/**
+ * Creates the final timeout presentation payload with derived labels.
+ *
+ * @private internal timeout-chat helper
+ */
+function createTimeoutToolCallPresentation(
+    options: CreateTimeoutToolCallPresentationOptions,
+): TimeoutToolCallPresentation {
+    const { timeoutToolCallCoreData, dueAtLabels } = options;
+    const { action, status, milliseconds, timeoutId, message, dueAtDate } = timeoutToolCallCoreData;
+
+    return {
+        action,
+        status,
+        milliseconds,
+        timeoutId,
+        message,
+        dueAtDate,
+        dueAtIsoUtc: dueAtDate ? dueAtDate.toISOString() : null,
+        localTimezone: resolveLocalTimezone(),
+        compactDurationLabel: milliseconds !== null ? formatTimeoutDurationCompact(milliseconds) : null,
+        humanDurationLabel: milliseconds !== null ? formatTimeoutDurationHuman(milliseconds) : null,
+        relativeDueLabel: dueAtLabels?.relativeTimeLabel || null,
+        localDueTimeLabel: dueAtLabels?.localTimeLabel || null,
+        localDueDateLabel: dueAtLabels?.localDateLabel || null,
+    };
+}
+
+/**
+ * Parses the first positive finite number from a prioritized list of values.
+ *
+ * @private internal timeout-chat helper
+ */
+function pickPositiveNumber(...values: Array<TODO_any>): number | null {
+    for (const value of values) {
+        const positiveNumber = parsePositiveNumber(value);
+        if (positiveNumber !== null) {
+            return positiveNumber;
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Resolves the first non-empty trimmed string from a prioritized list of values.
+ *
+ * @private internal timeout-chat helper
+ */
+function pickNormalizedStringValue(...values: Array<TODO_any>): string | null {
+    for (const value of values) {
+        const normalizedStringValue = normalizeStringValue(value);
+        if (normalizedStringValue !== null) {
+            return normalizedStringValue;
+        }
+    }
+
+    return null;
 }
 
 /**

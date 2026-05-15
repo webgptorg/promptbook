@@ -1,3 +1,8 @@
+-   Refactored `timeoutToolCallPresentation` internals to keep timeout chat rendering unchanged while making the utility easier to follow and maintain:
+
+    -   Split the branch-heavy timeout presentation resolution into focused helpers for parsing result payloads, collecting timeout core data, formatting due-date labels, and assembling the final presentation object.
+    -   Added regression coverage for argument-based timeout fallback when the runtime result payload is not an object, preserving the existing external behavior while documenting the intended precedence rules.
+
 -   Refactored `getToolCallChipletInfo` internals to keep chat chip labels unchanged while making the utility easier to read and maintain:
 
     -   Split the previous branch-heavy flow into focused chiplet-resolution helpers for wallet credentials, TEAM agents, time, email, memory, timeout, query, URL, and fallback labels.

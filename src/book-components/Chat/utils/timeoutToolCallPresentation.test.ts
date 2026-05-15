@@ -78,4 +78,29 @@ describe('timeoutToolCallPresentation', () => {
             /^Timer: .+/,
         );
     });
+
+    it('falls back to tool arguments when the timeout result payload is not an object', () => {
+        const presentation = resolveTimeoutToolCallPresentation({
+            toolCallName: 'set_timeout',
+            args: {
+                milliseconds: '65000',
+                dueAt: '2026-03-21T14:01:05.000Z',
+                message: '  Retry later  ',
+            },
+            resultRaw: 'scheduled',
+            currentDate: new Date('2026-03-21T14:00:00.000Z'),
+        });
+
+        expect(presentation).toEqual(
+            expect.objectContaining({
+                action: 'set',
+                status: null,
+                milliseconds: 65_000,
+                message: 'Retry later',
+                dueAtIsoUtc: '2026-03-21T14:01:05.000Z',
+                compactDurationLabel: '1m 5s',
+                humanDurationLabel: '1 minute',
+            }),
+        );
+    });
 });
