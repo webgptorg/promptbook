@@ -1,3 +1,8 @@
+-   Refactored `PromptbookAgentSeamlessIntegration` internals to keep the widget behavior unchanged while making the component easier to follow and maintain:
+
+    -   Split the previous branch-heavy component into focused private hooks and helpers for open-state control, outside-interaction closing, remote-agent connection, branding resolution, status presentation, and content rendering.
+    -   Kept iframe and embedded-chat behavior unchanged while consolidating shared loading, error, and close-button rendering into smaller internal subcomponents.
+
 -   Refactored `timeoutToolCallPresentation` internals to keep timeout chat rendering unchanged while making the utility easier to follow and maintain:
 
     -   Split the branch-heavy timeout presentation resolution into focused helpers for parsing result payloads, collecting timeout core data, formatting due-date labels, and assembling the final presentation object.
