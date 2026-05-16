@@ -18,12 +18,46 @@ export const PROMPTBOOK_AGENT_RUNNER_GITHUB_OWNER_ENV = 'PROMPTBOOK_AGENT_RUNNER
 const AGENT_RUNNER_REPOSITORY_PREFIX = 'agent-';
 
 /**
+ * GitHub REST API base URL.
+ */
+const GITHUB_API_BASE_URL = 'https://api.github.com';
+
+/**
+ * GitHub REST API version used by the local agent runner synchronizer.
+ */
+const GITHUB_API_VERSION = '2022-11-28';
+
+/**
+ * Maximum number of repositories requested from GitHub in one page.
+ */
+const GITHUB_REPOSITORIES_PAGE_SIZE = 100;
+
+/**
+ * GitHub owner endpoints that can expose public owner repositories.
+ */
+const GITHUB_OWNER_ENDPOINT_TYPES = ['users', 'orgs'] as const;
+
+/**
  * GitHub repository metadata consumed by the local multi-runner sync.
  */
 type GithubAgentRepository = {
     readonly name: string;
     readonly fullName: string;
     readonly cloneUrl: string;
+};
+
+/**
+ * GitHub repository shape read from REST listing endpoints.
+ */
+type GithubRepositoryApiPayload = {
+    readonly name?: string;
+    readonly full_name?: string;
+    readonly clone_url?: string;
+    readonly archived?: boolean;
+    readonly disabled?: boolean;
+    readonly owner?: {
+        readonly login?: string;
+    };
 };
 
 /**
@@ -100,17 +134,77 @@ async function listGithubAgentRepositories(configuration: {
     readonly token: string;
     readonly owner: string;
 }): Promise<ReadonlyArray<GithubAgentRepository>> {
-    const userRepositories = await fetchGithubRepositoriesForOwnerEndpoint(configuration, 'users');
-    if (userRepositories !== null) {
-        return userRepositories;
+    const repositoriesByName = new Map<string, GithubAgentRepository>();
+    const authenticatedRepositories = await fetchGithubRepositoriesForAuthenticatedUser(configuration);
+    const ownerEndpointRepositories = await fetchGithubRepositoriesForConfiguredOwner(configuration);
+
+    for (const repository of [...authenticatedRepositories, ...(ownerEndpointRepositories || [])]) {
+        repositoriesByName.set(repository.name.toLowerCase(), repository);
     }
 
-    const organizationRepositories = await fetchGithubRepositoriesForOwnerEndpoint(configuration, 'orgs');
-    if (organizationRepositories !== null) {
-        return organizationRepositories;
+    if (repositoriesByName.size === 0 && ownerEndpointRepositories === null) {
+        throw new Error(`Failed to list GitHub repositories for "${configuration.owner}".`);
     }
 
-    throw new Error(`Failed to list GitHub repositories for "${configuration.owner}".`);
+    return [...repositoriesByName.values()].sort((firstRepository, secondRepository) =>
+        firstRepository.name.localeCompare(secondRepository.name),
+    );
+}
+
+/**
+ * Lists accessible repositories from the authenticated-user endpoint, including private repositories visible to the token.
+ */
+async function fetchGithubRepositoriesForAuthenticatedUser(configuration: {
+    readonly token: string;
+    readonly owner: string;
+}): Promise<ReadonlyArray<GithubAgentRepository>> {
+    const repositories = await fetchGithubRepositoryPages({
+        configuration,
+        path: '/user/repos',
+        queryParameters: {
+            affiliation: 'owner,collaborator,organization_member',
+            direction: 'asc',
+            sort: 'full_name',
+            visibility: 'all',
+        },
+        firstPageStatusesReturningNull: [401, 403, 404],
+        shouldIncludeRepository: (repository) => isRepositoryOwnedByConfiguredOwner(repository, configuration.owner),
+    });
+
+    return repositories || [];
+}
+
+/**
+ * Lists repositories from the configured owner endpoint for backwards-compatible public repository discovery.
+ */
+async function fetchGithubRepositoriesForConfiguredOwner(configuration: {
+    readonly token: string;
+    readonly owner: string;
+}): Promise<ReadonlyArray<GithubAgentRepository> | null> {
+    const repositoriesByName = new Map<string, GithubAgentRepository>();
+    let isOwnerEndpointFound = false;
+
+    for (const ownerType of GITHUB_OWNER_ENDPOINT_TYPES) {
+        const repositories = await fetchGithubRepositoriesForOwnerEndpoint(configuration, ownerType);
+
+        if (repositories === null) {
+            continue;
+        }
+
+        isOwnerEndpointFound = true;
+
+        for (const repository of repositories) {
+            repositoriesByName.set(repository.name.toLowerCase(), repository);
+        }
+    }
+
+    if (!isOwnerEndpointFound) {
+        return null;
+    }
+
+    return [...repositoriesByName.values()].sort((firstRepository, secondRepository) =>
+        firstRepository.name.localeCompare(secondRepository.name),
+    );
 }
 
 /**
@@ -123,43 +217,63 @@ async function fetchGithubRepositoriesForOwnerEndpoint(
     },
     ownerType: 'users' | 'orgs',
 ): Promise<ReadonlyArray<GithubAgentRepository> | null> {
+    return await fetchGithubRepositoryPages({
+        configuration,
+        path: `/${ownerType}/${encodeURIComponent(configuration.owner)}/repos`,
+        queryParameters: {
+            sort: 'full_name',
+        },
+        firstPageStatusesReturningNull: [404],
+    });
+}
+
+/**
+ * Fetches and maps paginated GitHub repository listings.
+ */
+async function fetchGithubRepositoryPages(options: {
+    readonly configuration: {
+        readonly token: string;
+        readonly owner: string;
+    };
+    readonly path: string;
+    readonly queryParameters?: Record<string, string>;
+    readonly firstPageStatusesReturningNull?: ReadonlyArray<number>;
+    readonly shouldIncludeRepository?: (repository: GithubRepositoryApiPayload) => boolean;
+}): Promise<ReadonlyArray<GithubAgentRepository> | null> {
+    const {
+        configuration,
+        path,
+        queryParameters = {},
+        firstPageStatusesReturningNull = [],
+        shouldIncludeRepository = () => true,
+    } = options;
     const repositories: GithubAgentRepository[] = [];
 
     for (let page = 1; ; page++) {
-        const response = await fetch(
-            `https://api.github.com/${ownerType}/${encodeURIComponent(
-                configuration.owner,
-            )}/repos?per_page=100&page=${page}&sort=full_name`,
-            {
-                headers: {
-                    Accept: 'application/vnd.github+json',
-                    Authorization: `Bearer ${configuration.token}`,
-                    'User-Agent': 'promptbook-agent-runner',
-                    'X-GitHub-Api-Version': '2022-11-28',
-                },
+        const response = await fetch(buildGithubRepositoryPageUrl(path, page, queryParameters), {
+            headers: {
+                Accept: 'application/vnd.github+json',
+                Authorization: `Bearer ${configuration.token}`,
+                'User-Agent': 'promptbook-agent-runner',
+                'X-GitHub-Api-Version': GITHUB_API_VERSION,
             },
-        );
+        });
 
-        if (response.status === 404 && page === 1) {
+        if (page === 1 && firstPageStatusesReturningNull.includes(response.status)) {
             return null;
         }
 
         if (!response.ok) {
             throw new Error(
-                `GitHub repository listing failed for "${configuration.owner}" (${ownerType}) with ${response.status} ${response.statusText}.`,
+                `GitHub repository listing failed for "${configuration.owner}" (${path}) with ${response.status} ${response.statusText}.`,
             );
         }
 
-        const pageRepositories = (await response.json()) as ReadonlyArray<{
-            readonly name?: string;
-            readonly full_name?: string;
-            readonly clone_url?: string;
-            readonly archived?: boolean;
-            readonly disabled?: boolean;
-        }>;
+        const pageRepositories = (await response.json()) as ReadonlyArray<GithubRepositoryApiPayload>;
         const normalizedPageRepositories = pageRepositories
             .filter(
                 (repository) =>
+                    shouldIncludeRepository(repository) &&
                     !repository.archived &&
                     !repository.disabled &&
                     typeof repository.name === 'string' &&
@@ -178,7 +292,7 @@ async function fetchGithubRepositoriesForOwnerEndpoint(
 
         repositories.push(...normalizedPageRepositories);
 
-        if (pageRepositories.length < 100) {
+        if (pageRepositories.length < GITHUB_REPOSITORIES_PAGE_SIZE) {
             break;
         }
     }
@@ -186,6 +300,37 @@ async function fetchGithubRepositoriesForOwnerEndpoint(
     return repositories.sort((firstRepository, secondRepository) =>
         firstRepository.name.localeCompare(secondRepository.name),
     );
+}
+
+/**
+ * Builds one GitHub repository listing URL with shared pagination parameters.
+ */
+function buildGithubRepositoryPageUrl(path: string, page: number, queryParameters: Record<string, string>): string {
+    const url = new URL(`${GITHUB_API_BASE_URL}${path}`);
+
+    url.searchParams.set('per_page', String(GITHUB_REPOSITORIES_PAGE_SIZE));
+    url.searchParams.set('page', String(page));
+
+    for (const [name, value] of Object.entries(queryParameters)) {
+        url.searchParams.set(name, value);
+    }
+
+    return url.toString();
+}
+
+/**
+ * Returns true when a repository belongs to the configured owner.
+ */
+function isRepositoryOwnedByConfiguredOwner(repository: GithubRepositoryApiPayload, configuredOwner: string): boolean {
+    const normalizedConfiguredOwner = configuredOwner.toLowerCase();
+    const repositoryOwner =
+        typeof repository.owner?.login === 'string' && repository.owner.login.trim().length > 0
+            ? repository.owner.login
+            : typeof repository.full_name === 'string'
+            ? repository.full_name.split('/')[0] || ''
+            : '';
+
+    return repositoryOwner.toLowerCase() === normalizedConfiguredOwner;
 }
 
 /**

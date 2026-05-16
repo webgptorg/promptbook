@@ -32,11 +32,8 @@ describe('synchronizeGithubAgentRunnerRepositories', () => {
         originalOwner = process.env[PROMPTBOOK_AGENT_RUNNER_GITHUB_OWNER_ENV];
         process.env[PROMPTBOOK_AGENT_RUNNER_GITHUB_TOKEN_ENV] = 'token-123';
         process.env[PROMPTBOOK_AGENT_RUNNER_GITHUB_OWNER_ENV] = 'promptbook';
-        global.fetch = jest.fn().mockResolvedValue({
-            ok: true,
-            status: 200,
-            statusText: 'OK',
-            json: async () => [
+        global.fetch = jest.fn().mockResolvedValue(
+            createGithubRepositoriesResponse([
                 {
                     name: 'agent-alpha',
                     full_name: 'promptbook/agent-alpha',
@@ -47,8 +44,8 @@ describe('synchronizeGithubAgentRunnerRepositories', () => {
                     full_name: 'promptbook/not-an-agent',
                     clone_url: 'https://github.com/promptbook/not-an-agent.git',
                 },
-            ],
-        } satisfies Partial<Response> as Response);
+            ]),
+        );
         ($execCommand as jest.MockedFunction<typeof $execCommand>).mockResolvedValue('');
     });
 
@@ -99,4 +96,140 @@ describe('synchronizeGithubAgentRunnerRepositories', () => {
             }),
         );
     });
+
+    it('discovers private repositories through the authenticated GitHub repository listing', async () => {
+        temporaryRootDirectory = await createTemporaryRootDirectory();
+        global.fetch = jest.fn().mockImplementation(async (input: Parameters<typeof fetch>[0]) => {
+            const url = String(input);
+
+            if (url.startsWith('https://api.github.com/user/repos')) {
+                return createGithubRepositoriesResponse([
+                    {
+                        name: 'agent-private',
+                        full_name: 'promptbook/agent-private',
+                        clone_url: 'https://github.com/promptbook/agent-private.git',
+                        private: true,
+                        owner: {
+                            login: 'promptbook',
+                        },
+                    },
+                    {
+                        name: 'agent-foreign',
+                        full_name: 'another-owner/agent-foreign',
+                        clone_url: 'https://github.com/another-owner/agent-foreign.git',
+                        private: true,
+                        owner: {
+                            login: 'another-owner',
+                        },
+                    },
+                ]);
+            }
+
+            return createGithubRepositoriesResponse([]);
+        });
+
+        const result = await synchronizeGithubAgentRunnerRepositories(temporaryRootDirectory);
+
+        expect(result.clonedRepositoryNames).toEqual(['agent-private']);
+        expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('/user/repos?'), expect.any(Object));
+        expect($execCommand).toHaveBeenCalledWith(
+            expect.objectContaining({
+                command: expect.stringContaining(
+                    'https://x-access-token:token-123@github.com/promptbook/agent-private.git',
+                ),
+            }),
+        );
+    });
+
+    it('keeps owner endpoint fallback for public repositories outside the authenticated repository list', async () => {
+        temporaryRootDirectory = await createTemporaryRootDirectory();
+        global.fetch = jest.fn().mockImplementation(async (input: Parameters<typeof fetch>[0]) => {
+            const url = String(input);
+
+            if (url.startsWith('https://api.github.com/user/repos')) {
+                return createGithubRepositoriesResponse([]);
+            }
+
+            if (url.startsWith('https://api.github.com/users/promptbook/repos')) {
+                return createGithubRepositoriesResponse([
+                    {
+                        name: 'agent-public',
+                        full_name: 'promptbook/agent-public',
+                        clone_url: 'https://github.com/promptbook/agent-public.git',
+                    },
+                ]);
+            }
+
+            return createGithubNotFoundResponse();
+        });
+
+        const result = await synchronizeGithubAgentRunnerRepositories(temporaryRootDirectory);
+
+        expect(result.clonedRepositoryNames).toEqual(['agent-public']);
+    });
+
+    it('keeps owner endpoint discovery when the authenticated listing is unavailable', async () => {
+        temporaryRootDirectory = await createTemporaryRootDirectory();
+        global.fetch = jest.fn().mockImplementation(async (input: Parameters<typeof fetch>[0]) => {
+            const url = String(input);
+
+            if (url.startsWith('https://api.github.com/user/repos')) {
+                return createGithubErrorResponse(403, 'Forbidden');
+            }
+
+            if (url.startsWith('https://api.github.com/users/promptbook/repos')) {
+                return createGithubNotFoundResponse();
+            }
+
+            if (url.startsWith('https://api.github.com/orgs/promptbook/repos')) {
+                return createGithubRepositoriesResponse([
+                    {
+                        name: 'agent-org-private',
+                        full_name: 'promptbook/agent-org-private',
+                        clone_url: 'https://github.com/promptbook/agent-org-private.git',
+                        private: true,
+                    },
+                ]);
+            }
+
+            return createGithubNotFoundResponse();
+        });
+
+        const result = await synchronizeGithubAgentRunnerRepositories(temporaryRootDirectory);
+
+        expect(result.clonedRepositoryNames).toEqual(['agent-org-private']);
+    });
 });
+
+/**
+ * Creates one mocked GitHub repository-list response.
+ */
+function createGithubRepositoriesResponse(repositories: ReadonlyArray<Record<string, unknown>>): Response {
+    return {
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        json: async () => repositories,
+    } satisfies Partial<Response> as Response;
+}
+
+/**
+ * Creates one mocked GitHub not-found response.
+ */
+function createGithubNotFoundResponse(): Response {
+    return createGithubErrorResponse(404, 'Not Found');
+}
+
+/**
+ * Creates one mocked GitHub error response.
+ */
+function createGithubErrorResponse(status: number, statusText: string): Response {
+    return {
+        ok: false,
+        status,
+        statusText,
+        json: async () => ({
+            message: statusText,
+        }),
+    } satisfies Partial<Response> as Response;
+}

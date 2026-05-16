@@ -42,6 +42,7 @@
 
 -   Improved `ptbk agent run-multiple` repository discovery while watching:
 
+    -   Switched GitHub discovery to include the authenticated `/user/repos` listing, so private `agent-*` repositories owned by `PROMPTBOOK_AGENT_RUNNER_GITHUB_OWNER` are cloned when `PROMPTBOOK_AGENT_RUNNER_GITHUB_TOKEN` can read them.
     -   Kept polling GitHub for new `agent-*` repositories while no local agent runner repositories exist yet, so a freshly created Agents Server repository now gets cloned and picked up without restarting the watcher.
     -   Reused one shared periodic-task helper across the single-agent idle auto-pull loop and the multi-agent GitHub synchronization loop to keep the watch timing logic aligned.
 
