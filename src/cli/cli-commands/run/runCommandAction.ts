@@ -82,11 +82,7 @@ export async function runCommandAction(
  * @private internal utility of `$initializeRunCommand`
  */
 function assertRunCommandArguments(pipelineSource: string | undefined, saveReport?: string): void | never {
-    if (
-        pipelineSource &&
-        pipelineSource.includes('-') &&
-        normalizeToKebabCase(pipelineSource) === pipelineSource
-    ) {
+    if (pipelineSource && pipelineSource.includes('-') && normalizeToKebabCase(pipelineSource) === pipelineSource) {
         console.error(colors.red(`""${pipelineSource}" is not a valid command or book. See 'ptbk --help'.`));
         return process.exit(1);
     }

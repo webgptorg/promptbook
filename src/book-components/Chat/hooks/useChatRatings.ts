@@ -547,7 +547,10 @@ function useChatRatingSubmission(options: UseChatRatingSubmissionOptions): () =>
  *
  * @private internal hook of `useChatRatings`
  */
-function useChatRatingModalBodyScrollLock(params: { readonly isMobile: boolean; readonly ratingModalOpen: boolean }): void {
+function useChatRatingModalBodyScrollLock(params: {
+    readonly isMobile: boolean;
+    readonly ratingModalOpen: boolean;
+}): void {
     const { isMobile, ratingModalOpen } = params;
 
     useEffect(() => {

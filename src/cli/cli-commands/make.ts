@@ -97,10 +97,7 @@ type MakeCommandArtifacts = {
 /**
  * File writer prepared for the chosen `make` command output target.
  */
-type SaveMakeFile = (
-    extension: string_file_extension,
-    content: string | ReadonlyArray<PipelineJson>,
-) => Promise<void>;
+type SaveMakeFile = (extension: string_file_extension, content: string | ReadonlyArray<PipelineJson>) => Promise<void>;
 
 /**
  * Initializes `make` command for Promptbook CLI utilities
@@ -113,7 +110,9 @@ export function $initializeMakeCommand(program: Program): $side_effect {
     const makeCommand = program.command('make');
 
     configureMakeCommand(makeCommand);
-    makeCommand.action(handleActionErrors((path, cliOptions) => $runMakeCommand(path, cliOptions as MakeCommandCliOptions)));
+    makeCommand.action(
+        handleActionErrors((path, cliOptions) => $runMakeCommand(path, cliOptions as MakeCommandCliOptions)),
+    );
 }
 
 /**
@@ -252,9 +251,7 @@ function normalizeMakeCommandOptions(path: string, cliOptions: MakeCommandCliOpt
 /**
  * Creates the filesystem, LLM, scraper, and scripting tools needed for one `make` command run.
  */
-async function createMakeCommandExecutionContext(
-    options: MakeCommandOptions,
-): Promise<MakeCommandExecutionContext> {
+async function createMakeCommandExecutionContext(options: MakeCommandOptions): Promise<MakeCommandExecutionContext> {
     // TODO: DRY [◽]
     const prepareAndScrapeOptions = {
         isVerbose: options.isVerbose,
@@ -442,10 +439,7 @@ async function saveRequestedMakeFormats(
 /**
  * Removes a handled format name together with all of its aliases from the remaining-format list.
  */
-function removeConsumedFormats(
-    formats: ReadonlyArray<string>,
-    consumedFormats: ReadonlyArray<string>,
-): string[] {
+function removeConsumedFormats(formats: ReadonlyArray<string>, consumedFormats: ReadonlyArray<string>): string[] {
     return formats.filter((format) => !consumedFormats.includes(format));
 }
 

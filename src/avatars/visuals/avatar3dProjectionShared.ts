@@ -96,7 +96,12 @@ export function rotatePointAroundX(point: Point3D, angle: number): Point3D {
  *
  * @private helper of the 3D avatar visuals
  */
-export function transformScenePoint(localPoint: Point3D, center: Point3D, rotationX: number, rotationY: number): Point3D {
+export function transformScenePoint(
+    localPoint: Point3D,
+    center: Point3D,
+    rotationX: number,
+    rotationY: number,
+): Point3D {
     const yawedPoint = rotatePointAroundY(localPoint, rotationY);
     const pitchedPoint = rotatePointAroundX(yawedPoint, rotationX);
 
@@ -146,7 +151,11 @@ export function projectScenePoint(
  *
  * @private helper of the 3D avatar visuals
  */
-export function interpolateProjectedPoint(startPoint: ProjectedPoint, endPoint: ProjectedPoint, ratio: number): ProjectedPoint {
+export function interpolateProjectedPoint(
+    startPoint: ProjectedPoint,
+    endPoint: ProjectedPoint,
+    ratio: number,
+): ProjectedPoint {
     return {
         x: startPoint.x + (endPoint.x - startPoint.x) * ratio,
         y: startPoint.y + (endPoint.y - startPoint.y) * ratio,

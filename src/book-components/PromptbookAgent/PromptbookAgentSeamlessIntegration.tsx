@@ -337,8 +337,8 @@ function createPromptbookAgentSeamlessIntegrationConnectionPresentation({
             connectionStatus === 'connected'
                 ? 'Online'
                 : connectionStatus === 'error'
-                  ? 'Connection issue'
-                  : 'Connecting',
+                ? 'Connection issue'
+                : 'Connecting',
         connectionStatusClassName: getPromptbookAgentSeamlessIntegrationStatusClassName(connectionStatus),
     };
 }
@@ -405,9 +405,7 @@ function PromptbookAgentSeamlessIntegrationLoadingState({
  *
  * @private internal subcomponent of PromptbookAgentSeamlessIntegration
  */
-function PromptbookAgentSeamlessIntegrationErrorState({
-    error,
-}: PromptbookAgentSeamlessIntegrationErrorStateProps) {
+function PromptbookAgentSeamlessIntegrationErrorState({ error }: PromptbookAgentSeamlessIntegrationErrorStateProps) {
     return (
         <div className={styles.PromptbookAgentSeamlessIntegrationError}>
             <div className={styles.PromptbookAgentSeamlessIntegrationErrorTitle}>Failed to connect to the agent</div>
@@ -473,14 +471,7 @@ function PromptbookAgentSeamlessIntegrationContent({
  * @private component of PromptbookAgentIntegration
  */
 export function PromptbookAgentSeamlessIntegration(props: PromptbookAgentSeamlessIntegrationProps) {
-    const {
-        agentUrl,
-        meta,
-        className,
-        style,
-        isFocusedOnLoad,
-        isIframeUsed = false,
-    } = props;
+    const { agentUrl, meta, className, style, isFocusedOnLoad, isIframeUsed = false } = props;
     const [headerElement, setHeaderElement] = useState<HTMLDivElement | null>(null);
     const [isIframeLoaded, setIsIframeLoaded] = useState(false);
     const rootElementRef = useRef<HTMLDivElement | null>(null);
@@ -555,16 +546,15 @@ export function PromptbookAgentSeamlessIntegration(props: PromptbookAgentSeamles
                     <img src={image} alt={`${displayName} avatar`} />
                 </div>
                 <div
-                    className={classNames(
-                        styles.PromptbookAgentSeamlessIntegrationStatus,
-                        connectionStatusClassName,
-                    )}
+                    className={classNames(styles.PromptbookAgentSeamlessIntegrationStatus, connectionStatusClassName)}
                 />
                 <div className={styles.PromptbookAgentSeamlessIntegrationText}>
                     <div className={styles.PromptbookAgentSeamlessIntegrationLabel}>Chat</div>
                     <div className={styles.PromptbookAgentSeamlessIntegrationHint}>{displayName}</div>
                 </div>
-                <span className={styles.PromptbookAgentSeamlessIntegrationScreenReaderOnly}>{connectionStatusText}</span>
+                <span className={styles.PromptbookAgentSeamlessIntegrationScreenReaderOnly}>
+                    {connectionStatusText}
+                </span>
             </button>
 
             {isOpen && (

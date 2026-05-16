@@ -85,9 +85,12 @@ export const octopus3dAvatarVisual: AvatarVisualDefinition = {
             z: mantleCenter.z - size * 0.018,
         };
         const mantleRadiusX = size * morphologyProfile.body.bodyRadiusRatio * morphologyProfile.body.horizontalStretch;
-        const mantleRadiusY = size * morphologyProfile.body.bodyRadiusRatio * morphologyProfile.body.verticalStretch * 1.1;
+        const mantleRadiusY =
+            size * morphologyProfile.body.bodyRadiusRatio * morphologyProfile.body.verticalStretch * 1.1;
         const mantleRadiusZ =
-            size * morphologyProfile.body.bodyRadiusRatio * (0.9 + (morphologyProfile.body.horizontalStretch - 1) * 0.3);
+            size *
+            morphologyProfile.body.bodyRadiusRatio *
+            (0.9 + (morphologyProfile.body.horizontalStretch - 1) * 0.3);
         const underbodyRadiusX = mantleRadiusX * (0.9 + (morphologyProfile.tentacles.rootSpreadScale - 1) * 0.08);
         const underbodyRadiusY = mantleRadiusY * (0.44 + morphologyProfile.body.lowerDropRatio * 3.1);
         const underbodyRadiusZ = mantleRadiusZ * 0.78;
@@ -157,7 +160,9 @@ export const octopus3dAvatarVisual: AvatarVisualDefinition = {
         drawOctopus3dAtmosphere(context, size, palette, sceneCenterX, sceneCenterY, interaction, timeMs);
         drawOctopus3dShadow(context, size, palette, interaction, timeMs);
 
-        for (const tentacleStroke of tentacleStrokes.filter((candidateTentacleStroke) => !candidateTentacleStroke.isFrontFacing)) {
+        for (const tentacleStroke of tentacleStrokes.filter(
+            (candidateTentacleStroke) => !candidateTentacleStroke.isFrontFacing,
+        )) {
             drawTentacleStroke(context, tentacleStroke, palette);
         }
 
@@ -167,7 +172,9 @@ export const octopus3dAvatarVisual: AvatarVisualDefinition = {
             drawSurfacePatch(context, surfacePatch);
         }
 
-        for (const tentacleStroke of tentacleStrokes.filter((candidateTentacleStroke) => candidateTentacleStroke.isFrontFacing)) {
+        for (const tentacleStroke of tentacleStrokes.filter(
+            (candidateTentacleStroke) => candidateTentacleStroke.isFrontFacing,
+        )) {
             drawTentacleStroke(context, tentacleStroke, palette);
         }
 
@@ -176,7 +183,13 @@ export const octopus3dAvatarVisual: AvatarVisualDefinition = {
             {
                 x: -faceEyeSpacing,
                 y: faceEyeYOffset,
-                z: resolveEllipsoidSurfaceDepth(mantleRadiusX, mantleRadiusY, mantleRadiusZ, -faceEyeSpacing, faceEyeYOffset),
+                z: resolveEllipsoidSurfaceDepth(
+                    mantleRadiusX,
+                    mantleRadiusY,
+                    mantleRadiusZ,
+                    -faceEyeSpacing,
+                    faceEyeYOffset,
+                ),
             },
             faceEyeRadiusX,
             faceEyeRadiusY,
@@ -197,7 +210,13 @@ export const octopus3dAvatarVisual: AvatarVisualDefinition = {
             {
                 x: faceEyeSpacing,
                 y: faceEyeYOffset,
-                z: resolveEllipsoidSurfaceDepth(mantleRadiusX, mantleRadiusY, mantleRadiusZ, faceEyeSpacing, faceEyeYOffset),
+                z: resolveEllipsoidSurfaceDepth(
+                    mantleRadiusX,
+                    mantleRadiusY,
+                    mantleRadiusZ,
+                    faceEyeSpacing,
+                    faceEyeYOffset,
+                ),
             },
             faceEyeRadiusX,
             faceEyeRadiusY,
@@ -217,7 +236,17 @@ export const octopus3dAvatarVisual: AvatarVisualDefinition = {
         drawProjectedMouth(
             context,
             [
-                { x: -mouthHalfWidth, y: mouthY, z: resolveEllipsoidSurfaceDepth(mantleRadiusX, mantleRadiusY, mantleRadiusZ, -mouthHalfWidth, mouthY) },
+                {
+                    x: -mouthHalfWidth,
+                    y: mouthY,
+                    z: resolveEllipsoidSurfaceDepth(
+                        mantleRadiusX,
+                        mantleRadiusY,
+                        mantleRadiusZ,
+                        -mouthHalfWidth,
+                        mouthY,
+                    ),
+                },
                 {
                     x: size * morphologyProfile.face.mouthCenterOffsetRatio,
                     y:
@@ -233,7 +262,17 @@ export const octopus3dAvatarVisual: AvatarVisualDefinition = {
                         mouthY,
                     ),
                 },
-                { x: mouthHalfWidth, y: mouthY, z: resolveEllipsoidSurfaceDepth(mantleRadiusX, mantleRadiusY, mantleRadiusZ, mouthHalfWidth, mouthY) },
+                {
+                    x: mouthHalfWidth,
+                    y: mouthY,
+                    z: resolveEllipsoidSurfaceDepth(
+                        mantleRadiusX,
+                        mantleRadiusY,
+                        mantleRadiusZ,
+                        mouthHalfWidth,
+                        mouthY,
+                    ),
+                },
             ],
             mantleCenter,
             headPitch,
@@ -459,7 +498,11 @@ function drawSurfacePatch(context: CanvasRenderingContext2D, surfacePatch: Octop
     if (surfacePatch.lightIntensity > 0) {
         drawProjectedQuad(context, surfacePatch.corners, `rgba(255, 255, 255, ${0.15 * surfacePatch.lightIntensity})`);
     } else if (surfacePatch.lightIntensity < 0) {
-        drawProjectedQuad(context, surfacePatch.corners, `rgba(0, 0, 0, ${0.24 * Math.abs(surfacePatch.lightIntensity)})`);
+        drawProjectedQuad(
+            context,
+            surfacePatch.corners,
+            `rgba(0, 0, 0, ${0.24 * Math.abs(surfacePatch.lightIntensity)})`,
+        );
     }
 
     context.save();
@@ -535,7 +578,9 @@ function createOctopusTentacleStrokes(options: {
             z: anchorPoint.z + Math.cos(orbitAngle) * depthReach * 0.3 + sway * size * 0.012,
         };
         const controlPointTwo: Point3D = {
-            x: anchorPoint.x + Math.sin(orbitAngle) * lateralReach * (0.82 + morphologyProfile.tentacles.swayScale * 0.12),
+            x:
+                anchorPoint.x +
+                Math.sin(orbitAngle) * lateralReach * (0.82 + morphologyProfile.tentacles.swayScale * 0.12),
             y: anchorPoint.y + flowLength * 0.66,
             z: anchorPoint.z + Math.cos(orbitAngle) * depthReach * 0.72 + sway * size * 0.02,
         };
@@ -558,7 +603,8 @@ function createOctopusTentacleStrokes(options: {
         const projectedPoints = scenePoints.map((scenePoint) =>
             projectScenePoint(scenePoint, size, sceneCenterX, sceneCenterY),
         );
-        const averageDepth = scenePoints.reduce((depthSum, scenePoint) => depthSum + scenePoint.z, 0) / scenePoints.length;
+        const averageDepth =
+            scenePoints.reduce((depthSum, scenePoint) => depthSum + scenePoint.z, 0) / scenePoints.length;
         return {
             projectedPoints,
             averageDepth,
@@ -629,8 +675,7 @@ function drawTentacleStroke(
         context.beginPath();
         context.moveTo(startPoint.x, startPoint.y);
         context.lineTo(endPoint.x, endPoint.y);
-        context.strokeStyle =
-            tentacleStroke.colorBias > 0.6 ? `${palette.secondary}f0` : `${palette.primary}f0`;
+        context.strokeStyle = tentacleStroke.colorBias > 0.6 ? `${palette.secondary}f0` : `${palette.primary}f0`;
         context.lineWidth = width;
         context.lineCap = 'round';
         context.stroke();
@@ -650,13 +695,7 @@ function drawTentacleStroke(
  *
  * @private helper of `octopus3dAvatarVisual`
  */
-function resolveEllipsoidSurfaceDepth(
-    radiusX: number,
-    radiusY: number,
-    radiusZ: number,
-    x: number,
-    y: number,
-): number {
+function resolveEllipsoidSurfaceDepth(radiusX: number, radiusY: number, radiusZ: number, x: number, y: number): number {
     const normalizedX = x / radiusX;
     const normalizedY = y / radiusY;
     const remainingDepthRatio = Math.max(0, 1 - normalizedX * normalizedX - normalizedY * normalizedY);

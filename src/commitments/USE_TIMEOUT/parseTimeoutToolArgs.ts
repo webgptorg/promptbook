@@ -321,9 +321,13 @@ function hasSingleTimeoutOnlyPatchFields(patch: ParsedUpdateTimeoutToolPatch): b
  *
  * @private internal utility of USE TIMEOUT
  */
-function parseBulkTimeoutUpdateArgs(patch: ParsedUpdateTimeoutToolPatch): Extract<ParsedUpdateTimeoutToolArgs, { allActive: true }> {
+function parseBulkTimeoutUpdateArgs(
+    patch: ParsedUpdateTimeoutToolPatch,
+): Extract<ParsedUpdateTimeoutToolArgs, { allActive: true }> {
     if (patch.paused === undefined) {
-        throw createTimeoutToolArgsError('Bulk timeout update with `allActive: true` requires `paused` to be explicitly set.');
+        throw createTimeoutToolArgsError(
+            'Bulk timeout update with `allActive: true` requires `paused` to be explicitly set.',
+        );
     }
 
     if (hasSingleTimeoutOnlyPatchFields(patch)) {
@@ -449,6 +453,8 @@ export const parseTimeoutToolArgs = {
         });
         const patch = parseTimeoutUpdatePatch(args);
 
-        return target.allActive ? parseBulkTimeoutUpdateArgs(patch) : parseSingleTimeoutUpdateArgs(target.timeoutId, patch);
+        return target.allActive
+            ? parseBulkTimeoutUpdateArgs(patch)
+            : parseSingleTimeoutUpdateArgs(target.timeoutId, patch);
     },
 };

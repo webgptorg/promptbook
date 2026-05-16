@@ -473,9 +473,7 @@ function resolveTimeoutToolCallResultObject(resultRaw: TODO_any): TimeoutToolCal
  *
  * @private internal timeout-chat helper
  */
-function resolveTimeoutToolCallCoreData(
-    options: ResolveTimeoutToolCallCoreDataOptions,
-): TimeoutToolCallCoreData {
+function resolveTimeoutToolCallCoreData(options: ResolveTimeoutToolCallCoreDataOptions): TimeoutToolCallCoreData {
     const { toolCallName, args, resultObject } = options;
 
     return {

@@ -34,7 +34,9 @@ import type { RunCommandCliOptions } from './runCommandAction';
 export async function prepareRunCommandResources(options: {
     readonly pipelineSource?: string;
     readonly cliOptions: RunCommandCliOptions;
-    readonly prepareAndScrapeOptions: Pick<PrepareAndScrapeOptions, 'isVerbose'> & { readonly isCacheReloaded: boolean };
+    readonly prepareAndScrapeOptions: Pick<PrepareAndScrapeOptions, 'isVerbose'> & {
+        readonly isCacheReloaded: boolean;
+    };
     readonly logStage: (stage: string) => void;
 }): Promise<{
     readonly pipeline: PipelineJson;
@@ -74,7 +76,9 @@ export async function prepareRunCommandResources(options: {
  */
 async function provideRunLlmTools(options: {
     readonly cliOptions: RunCommandCliOptions;
-    readonly prepareAndScrapeOptions: Pick<PrepareAndScrapeOptions, 'isVerbose'> & { readonly isCacheReloaded: boolean };
+    readonly prepareAndScrapeOptions: Pick<PrepareAndScrapeOptions, 'isVerbose'> & {
+        readonly isCacheReloaded: boolean;
+    };
     readonly fs: ReturnType<typeof $provideFilesystemForNode>;
 }): Promise<LlmExecutionTools> {
     const { cliOptions, prepareAndScrapeOptions, fs } = options;
@@ -176,7 +180,9 @@ async function resolveRunPipelineSource(pipelineSource?: string): Promise<string
  */
 async function createRunExecutionTools(options: {
     readonly cliOptions: RunCommandCliOptions;
-    readonly prepareAndScrapeOptions: Pick<PrepareAndScrapeOptions, 'isVerbose'> & { readonly isCacheReloaded: boolean };
+    readonly prepareAndScrapeOptions: Pick<PrepareAndScrapeOptions, 'isVerbose'> & {
+        readonly isCacheReloaded: boolean;
+    };
     readonly fs: ReturnType<typeof $provideFilesystemForNode>;
     readonly llm: LlmExecutionTools;
 }): Promise<ExecutionTools & Required<Pick<ExecutionTools, 'fs' | 'fetch'>>> {
@@ -205,7 +211,9 @@ async function createRunExecutionTools(options: {
 async function compileRunPipeline(options: {
     readonly tools: ExecutionTools & Required<Pick<ExecutionTools, 'fs' | 'fetch'>>;
     readonly pipelineSource: string;
-    readonly prepareAndScrapeOptions: Pick<PrepareAndScrapeOptions, 'isVerbose'> & { readonly isCacheReloaded: boolean };
+    readonly prepareAndScrapeOptions: Pick<PrepareAndScrapeOptions, 'isVerbose'> & {
+        readonly isCacheReloaded: boolean;
+    };
 }): Promise<PipelineJson> {
     const { tools, pipelineSource, prepareAndScrapeOptions } = options;
 

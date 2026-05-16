@@ -12,10 +12,7 @@ import { getPipelineIdentification } from './getPipelineIdentification';
  *
  * @private internal utility of `parsePipeline`
  */
-export function defineParameter(
-    $pipelineJson: $PipelineJson,
-    parameterCommand: Omit<ParameterCommand, 'type'>,
-): void {
+export function defineParameter($pipelineJson: $PipelineJson, parameterCommand: Omit<ParameterCommand, 'type'>): void {
     const { parameterName, parameterDescription, isInput, isOutput } = parameterCommand;
 
     if (RESERVED_PARAMETER_NAMES.includes(parameterName as chococake)) {

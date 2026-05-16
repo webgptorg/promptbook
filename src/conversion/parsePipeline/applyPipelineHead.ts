@@ -1,11 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import { getParserForCommand } from '../../commands/_common/getParserForCommand';
 import { parseCommand } from '../../commands/_common/parseCommand';
-import type {
-    $PipelineJson,
-    CommandBase,
-    PipelineHeadCommandParser,
-} from '../../commands/_common/types/CommandParser';
+import type { $PipelineJson, CommandBase, PipelineHeadCommandParser } from '../../commands/_common/types/CommandParser';
 import { ParseError } from '../../errors/ParseError';
 import { extractAllListItemsFromMarkdown } from '../../utils/markdown/extractAllListItemsFromMarkdown';
 import { defineParameter } from './defineParameter';
