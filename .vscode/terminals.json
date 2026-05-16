@@ -471,6 +471,17 @@
             "focus": true
         },
         {
+            "name": "⚡🚀 Run ptbk coder `gpt-5.5` Coding Agent (💸)(⏳)",
+            "commands": [
+                "set -a && source .env && set +a",
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --agent openai-codex --model gpt-5.5 --thinking-level xhigh --context AGENTS.md --priority 1 --test npm run test-for-ptbk-coder --no-wait"
+            ],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
             "name": "⚡🚀 Run ptbk coder `gpt-5.1-codex-mini` Coding Agent (💸)(⏳)",
             "commands": [
                 "set -a && source .env && set +a",
