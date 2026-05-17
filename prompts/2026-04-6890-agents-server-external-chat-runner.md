@@ -148,21 +148,20 @@ node_modules
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
-
-
 ---
 
 [ ] !!!
 
-[✨🕟] @@@@ The repositories created from the agent should have format `agent-<AGENT_ID>`
+[✨🕟] Agents should answer to the user immediately
 
--   Do not put agent name or "promptbook" in the name of the repository, just `agent-<AGENT_ID>`
--   For example no `promptbook-agent-generic-chatter-hks8wgs2xc5g` but `agent-hks8wgs2xc5g`
+-   New system for running the chats on the external service is by design slow, it generates great answers but it can take several minutes
+-   Split the answering into 3 steps:
+    1. When the user sends the message, it should be commited to `messages/queued` and also shown in the chat UI Immediattely that the agent is thinking (configured in metadata, already working)
+    2. Send it to the LLM model but do not do anything with the knowledge or other potentially long running operations and stream it into chat UI **<- This step you are now implementing**
+    3. When the answer is ready from the external service, show it in the chat UI
 -   Do a proper analysis of the current functionality of chat on agent server before you start implementing. And also the change which was made:
     -   [File with PRD](prompts/2026-04-6890-agents-server-external-chat-runner.md)
 -   You are working with the [Agents Server](apps/agents-server)
--   We don't need to keep backwards compatibility of `ptbk agent` and the created repos. We are in the development of the new feature, which isn't deployed for any real customer yet, so we can change the existing functionality and do breaking changes if needed
+-   You are not working with the external chat service, the `ptbk agent` utility which is running the chats on the external service, this is not scope of this task, you are just doing quicker response before the full one arrives from the external service
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
-
