@@ -157,7 +157,7 @@ Pulling latest changes while idle...
 
 [ ] !!!
 
-[✨🛠] @@@@ Enhance terminal UI of `ptbk agent run`
+[✨🛠] Enhance terminal UI of `ptbk agent run`
 
 **Now the terminal UI of `ptbk agent run` looks like:**
 
@@ -206,15 +206,15 @@ $ npx ptbk agent run-multiple --agent github-copilot --model gpt-5.4 --thinking-
 
 **But it should need some changes**
 
-1. The UI should render just one box, not skip between "Session" and "Pulling latest changes while idle" - Idle should be also a state of the UI and shown in the UI
-    - Same with "Watching messages/queued for queued agent messages."
-    - The "Tip: ..." should be shown only at the end Never in the middle of the session (or in the variant `--no-ui`)
-2. The ASCII should be the agent name and bit smaller and more good looking
-3. "User message" should show the last message from the thread not the beggining of the thread, show the message which is currently answered by the agent
-    - Parse the book files with messages via `src/book-3.0/Book.ts`
+1. Instead of showing "89 served agent repositories" show just "89 Agents"
+2. But bellow create a box with all the agent names and their status (Idle, Answering) and also show the current message which is being answered by each agent
+    - For this you will need to parse the book files with messages via `src/book-3.0/Book.ts` and finish it
+3. Multiple agents can be answering at the same time, so show all the messages which are being answered by different agents in the "User message" box, and also show which agent is answering which message
+4. "Queue", "Timing" and "Progress" does not make much sence, do instead a summary statistics about how many agents are in Idle state, how many are answering, how many messages WAS answered in total,...
 
 -   Variant `--no-ui` should work the same as before and keep working
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality of `ptbk agent` and related functionality before you start implementing.
 -   You are working with [`ptbk agent`](src/cli/cli-commands/agent/run.ts)
+-   Do not cdo changes in `ptbk coder`
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
