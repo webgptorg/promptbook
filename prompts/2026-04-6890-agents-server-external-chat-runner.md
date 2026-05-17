@@ -149,3 +149,20 @@ node_modules
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 
+
+---
+
+[ ] !!!
+
+[✨🕟] @@@@ The repositories created from the agent should have format `agent-<AGENT_ID>`
+
+-   Do not put agent name or "promptbook" in the name of the repository, just `agent-<AGENT_ID>`
+-   For example no `promptbook-agent-generic-chatter-hks8wgs2xc5g` but `agent-hks8wgs2xc5g`
+-   Do a proper analysis of the current functionality of chat on agent server before you start implementing. And also the change which was made:
+    -   [File with PRD](prompts/2026-04-6890-agents-server-external-chat-runner.md)
+-   You are working with the [Agents Server](apps/agents-server)
+-   We don't need to keep backwards compatibility of `ptbk agent` and the created repos. We are in the development of the new feature, which isn't deployed for any real customer yet, so we can change the existing functionality and do breaking changes if needed
+-   If you need to do the database migration, do it
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+

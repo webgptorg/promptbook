@@ -153,3 +153,68 @@ Pulling latest changes while idle...
 -   You are working with [`ptbk agent`](src/cli/cli-commands/agent/run.ts)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
+---
+
+[ ] !!!
+
+[✨🛠] @@@@ Enhance terminal UI of `ptbk agent run`
+
+**Now the terminal UI of `ptbk agent run` looks like:**
+
+```bash
+$ npx ptbk agent run-multiple --agent github-copilot --model gpt-5.4 --thinking-level high --auto-pull --auto-push
+
+                                ╭──────────────────────────────╮
+                                │ 89 served agent repositories │
+                                ╰──────────────────────────────╯
+
+┌ Session ─────────────────────────────────────────────────────────────────────────────────────┐
+│ State     LOADING  Checking GitHub for new agent repositories                                │
+│ Agent    89 served agent repositories                                                        │
+│ Runner   codex  ·  gpt-5.5  ·  thinking xhigh                                                │
+│ Queue    0 total  ·  0 finished  ·  0 queued                                                 │
+│ Timing   Elapsed 51s  ·  Total estimating...  ·  ETA after first completion                  │
+│ Progress ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 0% complete (0/0 finished) │
+└──────────────────────────────────────────────────────────────────────────────────────────────┘
+┌ Current task ────────────────────────────────────────────────────────────────────────────────┐
+│ Checking GitHub for new agent repositories                                                   │
+│ • Refreshing configured `agent-*` repositories from GitHub when available.                   │
+└──────────────────────────────────────────────────────────────────────────────────────────────┘
+┌ User message ────────────────────────────────────────────────────────────────────────────────┐
+│ Waiting for the next queued `MESSAGE @User`.                                                 │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+└──────────────────────────────────────────────────────────────────────────────────────────────┘
+┌ Live output ─────────────────────────────────────────────────────────────────────────────────┐
+│ No live agent output yet.                                                                    │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+└──────────────────────────────────────────────────────────────────────────────────────────────┘
+┌ Controls ────────────────────────────────────────────────────────────────────────────────────┐
+│  P  Pause   CTRL+C  Exit                                                                     │
+└──────────────────────────────────────────────────────────────────────────────────────────────┘
+
+```
+
+**But it should need some changes**
+
+1. The UI should render just one box, not skip between "Session" and "Pulling latest changes while idle" - Idle should be also a state of the UI and shown in the UI
+    - Same with "Watching messages/queued for queued agent messages."
+    - The "Tip: ..." should be shown only at the end Never in the middle of the session (or in the variant `--no-ui`)
+2. The ASCII should be the agent name and bit smaller and more good looking
+3. "User message" should show the last message from the thread not the beggining of the thread, show the message which is currently answered by the agent
+    - Parse the book files with messages via `src/book-3.0/Book.ts`
+
+-   Variant `--no-ui` should work the same as before and keep working
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality of `ptbk agent` and related functionality before you start implementing.
+-   You are working with [`ptbk agent`](src/cli/cli-commands/agent/run.ts)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
