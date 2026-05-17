@@ -3,6 +3,7 @@ import { tmpdir } from 'os';
 import { join } from 'path';
 import type { AgentRunOptions } from '../AgentRunOptions';
 import { runMultipleAgentMessages } from './runMultipleAgentMessages';
+import { pullLatestChangesForAgentQueueIfEnabled } from './pullLatestChangesForAgentQueueIfEnabled';
 import { synchronizeGithubAgentRunnerRepositories } from './synchronizeGithubAgentRunnerRepositories';
 import { tickAgentMessages } from './tickAgentMessages';
 
@@ -12,6 +13,10 @@ jest.mock('./tickAgentMessages', () => ({
 
 jest.mock('./synchronizeGithubAgentRunnerRepositories', () => ({
     synchronizeGithubAgentRunnerRepositories: jest.fn(),
+}));
+
+jest.mock('./pullLatestChangesForAgentQueueIfEnabled', () => ({
+    pullLatestChangesForAgentQueueIfEnabled: jest.fn(),
 }));
 
 /**
@@ -34,6 +39,7 @@ function createAgentRunOptions(overrides: Partial<AgentRunOptions> = {}): AgentR
         allowCredits: false,
         autoPush: false,
         autoPull: false,
+        autoClone: false,
         ...overrides,
     };
 }
@@ -58,6 +64,11 @@ describe('runMultipleAgentMessages', () => {
         (tickAgentMessages as jest.MockedFunction<typeof tickAgentMessages>).mockResolvedValue({
             isMessageProcessed: true,
         });
+        (
+            pullLatestChangesForAgentQueueIfEnabled as jest.MockedFunction<
+                typeof pullLatestChangesForAgentQueueIfEnabled
+            >
+        ).mockResolvedValue(Date.now());
     });
 
     afterEach(async () => {
@@ -91,6 +102,7 @@ describe('runMultipleAgentMessages', () => {
         });
 
         expect(tickAgentMessages).toHaveBeenCalledTimes(1);
+        expect(synchronizeGithubAgentRunnerRepositories).not.toHaveBeenCalled();
         expect(process.cwd()).toBe(temporaryRootDirectory);
         expect((tickAgentMessages as jest.MockedFunction<typeof tickAgentMessages>).mock.calls[0]?.[0]).toEqual(
             expect.objectContaining({
@@ -138,12 +150,59 @@ describe('runMultipleAgentMessages', () => {
         });
 
         const loopStates = [true, true, false];
-        await runMultipleAgentMessages(createAgentRunOptions(), {
+        await runMultipleAgentMessages(createAgentRunOptions({ autoClone: true }), {
             shouldContinue: () => loopStates.shift() ?? false,
         });
 
         expect(synchronizeGithubAgentRunnerRepositories).toHaveBeenCalledTimes(2);
         expect(tickAgentMessages).toHaveBeenCalledTimes(1);
+        expect(process.cwd()).toBe(temporaryRootDirectory);
+    });
+
+    it('periodically pulls watched child repositories and then processes newly queued work without pulling twice', async () => {
+        temporaryRootDirectory = await createTemporaryRootDirectory();
+        await mkdir(join(temporaryRootDirectory, 'agent-a', 'messages', 'queued'), { recursive: true });
+        await mkdir(join(temporaryRootDirectory, 'agent-b', 'messages', 'queued'), { recursive: true });
+        await writeFile(join(temporaryRootDirectory, 'agent-a', 'agent.book'), 'Agent A', 'utf-8');
+        await writeFile(join(temporaryRootDirectory, 'agent-b', 'agent.book'), 'Agent B', 'utf-8');
+        process.chdir(temporaryRootDirectory);
+
+        const pulledProjectPaths: string[] = [];
+        (
+            pullLatestChangesForAgentQueueIfEnabled as jest.MockedFunction<
+                typeof pullLatestChangesForAgentQueueIfEnabled
+            >
+        ).mockImplementation(async ({ projectPath }) => {
+            pulledProjectPaths.push(projectPath);
+            expect(process.cwd()).toBe(projectPath);
+
+            if (projectPath.endsWith('agent-b')) {
+                await writeFile(
+                    join(projectPath, 'messages', 'queued', 'question.book'),
+                    'MESSAGE @User\nHi\n',
+                    'utf-8',
+                );
+            }
+
+            return 123_456;
+        });
+
+        const loopStates = [true, false];
+        await runMultipleAgentMessages(createAgentRunOptions({ autoPull: true, autoPush: true }), {
+            shouldContinue: () => loopStates.shift() ?? false,
+        });
+
+        expect(pulledProjectPaths.sort()).toEqual([
+            join(temporaryRootDirectory, 'agent-a'),
+            join(temporaryRootDirectory, 'agent-b'),
+        ]);
+        expect(tickAgentMessages).toHaveBeenCalledTimes(1);
+        expect((tickAgentMessages as jest.MockedFunction<typeof tickAgentMessages>).mock.calls[0]?.[0]).toEqual(
+            expect.objectContaining({
+                autoPull: false,
+                autoPush: true,
+            }),
+        );
         expect(process.cwd()).toBe(temporaryRootDirectory);
     });
 });

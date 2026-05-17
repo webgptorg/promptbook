@@ -24,6 +24,7 @@ type InitializeAgentRunnerCommandOptions = {
     readonly aliases?: ReadonlyArray<string>;
     readonly summary: string;
     readonly featureLines: ReadonlyArray<string>;
+    readonly configureCommand?: (command: Program) => void;
     readonly loadExecutor: () => Promise<
         (runOptions: ReturnType<typeof createAgentRunOptionsFromCliOptions>) => Promise<unknown>
     >;
@@ -59,6 +60,7 @@ export function $initializeAgentRunnerCommand(
 
     addPromptRunnerSelectionOptions(command);
     addPromptRunnerExecutionOptions(command);
+    options.configureCommand?.(command);
 
     command.action(
         handleActionErrors(async (cliOptions) => {

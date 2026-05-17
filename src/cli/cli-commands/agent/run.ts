@@ -19,6 +19,7 @@ export function $initializeAgentRunCommand(program: Program): $side_effect {
         featureLines: [
             'Automatically stages and commits answered messages with agent identity',
             'Optional post-commit git push with explicit --auto-push opt-in',
+            'Optional pre-message and idle git pull with explicit --auto-pull opt-in',
             'Optional --no-ui keeps plain streaming console output for logging and debugging',
             'Supports GPG signing of commits',
             'Progress tracking and interactive controls',

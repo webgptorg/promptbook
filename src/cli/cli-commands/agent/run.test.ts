@@ -122,6 +122,25 @@ describe('agent runner commands', () => {
         );
     });
 
+    it('passes git automation options to `agent run-once`', async () => {
+        const program = new Command();
+        $initializeAgentTickCommand(program);
+
+        await program.parseAsync(
+            ['node', 'test', 'run-once', '--agent', 'github-copilot', '--auto-push', '--auto-pull'],
+            {
+                from: 'node',
+            },
+        );
+
+        expect(getTickAgentMessagesMock()).toHaveBeenCalledWith(
+            expect.objectContaining({
+                autoPush: true,
+                autoPull: true,
+            }),
+        );
+    });
+
     it('keeps the legacy `agent tick` alias working', async () => {
         const program = new Command();
         $initializeAgentTickCommand(program);
@@ -142,7 +161,18 @@ describe('agent runner commands', () => {
         $initializeAgentRunMultipleCommand(program);
 
         await program.parseAsync(
-            ['node', 'test', 'run-multiple', '--agent', 'github-copilot', '--model', 'gpt-5.4', '--auto-pull'],
+            [
+                'node',
+                'test',
+                'run-multiple',
+                '--agent',
+                'github-copilot',
+                '--model',
+                'gpt-5.4',
+                '--auto-pull',
+                '--auto-push',
+                '--auto-clone',
+            ],
             {
                 from: 'node',
             },
@@ -153,6 +183,8 @@ describe('agent runner commands', () => {
                 agentName: 'github-copilot',
                 model: 'gpt-5.4',
                 autoPull: true,
+                autoPush: true,
+                autoClone: true,
             }),
         );
     });

@@ -19,6 +19,7 @@ export function $initializeAgentTickCommand(program: Program): $side_effect {
         featureLines: [
             'Automatically stages and commits the answered message with agent identity',
             'Optional post-commit git push with explicit --auto-push opt-in',
+            'Optional pre-message git pull with explicit --auto-pull opt-in',
             'Optional --no-ui keeps plain streaming console output for logging and debugging',
             'Supports GPG signing of commits',
         ],

@@ -76,6 +76,7 @@ function createAgentRunOptions(overrides: Partial<AgentRunOptions> = {}): AgentR
         allowCredits: false,
         autoPush: false,
         autoPull: false,
+        autoClone: false,
         ...overrides,
     };
 }

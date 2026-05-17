@@ -15,4 +15,5 @@ export type AgentRunOptions = {
     readonly allowCredits: boolean;
     readonly autoPush: boolean;
     readonly autoPull: boolean;
+    readonly autoClone: boolean;
 };

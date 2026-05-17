@@ -18,9 +18,16 @@ export function $initializeAgentRunMultipleCommand(program: Program): $side_effe
         featureLines: [
             'Scans only direct subdirectories of the current working directory',
             'Reuses one terminal UI across all served agent repositories',
-            'Clones missing `agent-*` repositories from the configured GitHub owner when available',
+            'Optional --auto-clone clones missing `agent-*` repositories from the configured GitHub owner',
             'Supports the same auto-pull, auto-push, git identity, and no-UI behavior as single-agent runs',
         ],
+        configureCommand: (command) => {
+            command.option(
+                '--auto-clone',
+                'Automatically clone missing configured `agent-*` GitHub repositories while watching',
+                false,
+            );
+        },
         loadExecutor: async () => {
             const { runMultipleAgentMessages } = await import(
                 '../../../../scripts/run-agent-messages/main/runMultipleAgentMessages'
