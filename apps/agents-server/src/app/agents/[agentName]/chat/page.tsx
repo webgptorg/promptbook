@@ -1,6 +1,7 @@
 'use server';
 import type { Metadata, ResolvingMetadata } from 'next';
 import { ForbiddenPage } from '@/src/components/ForbiddenPage/ForbiddenPage';
+import { $provideServer } from '@/src/tools/$provideServer';
 import { resolveAgentAccess } from '@/src/utils/agentAccess';
 import { loadChatConfiguration } from '@/src/utils/chatConfiguration';
 import { ensureChatHistoryIdentity } from '@/src/utils/currentUserIdentity';
@@ -113,6 +114,7 @@ export default async function AgentChatPage({
     const currentUserPromise = getCurrentUser();
     const chatConfigurationPromise = loadChatConfiguration();
     const thinkingMessagesPromise = getThinkingMessages();
+    const providedServerPromise = $provideServer();
     const shareTargetPayloadPromise = shareTarget
         ? peekShareTargetPayload({
               shareTargetId: shareTarget,
@@ -131,7 +133,6 @@ export default async function AgentChatPage({
         );
     }
 
-    const agentUrl = `/agents/${encodeURIComponent(canonicalAgentId)}`;
     const speechRecognitionLanguage = resolveSpeechRecognitionLanguage({
         acceptLanguageHeader: requestHeaders.get('accept-language'),
     });
@@ -141,6 +142,7 @@ export default async function AgentChatPage({
         currentUser,
         { isFileAttachmentsEnabled, feedbackMode },
         thinkingMessages,
+        { publicUrl },
         shareTargetPayload,
     ] =
         await Promise.all([
@@ -149,8 +151,10 @@ export default async function AgentChatPage({
         currentUserPromise,
         chatConfigurationPromise,
         thinkingMessagesPromise,
+        providedServerPromise,
         shareTargetPayloadPromise,
     ]);
+    const agentUrl = new URL(`/agents/${encodeURIComponent(canonicalAgentId)}`, publicUrl).href;
     const agentDisplayName = agentProfile.meta.fullname || agentProfile.agentName || canonicalAgentId;
     const inputPlaceholder = agentProfile.meta.inputPlaceholder?.trim() || undefined;
     const initialAutoExecuteMessage = shareTargetPayload?.message || message;

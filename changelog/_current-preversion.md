@@ -116,6 +116,11 @@
     -   Kept timed-out external messages visible as failed after 5 minutes without moving the queued file, while allowing later finished files to update the chat to completed.
     -   Fixed GitHub runner repository sync races so stale contents-API SHAs are re-read and retried instead of failing the chat enqueue or agent sync with a `409 ... expected ...` conflict.
 
+-   Added immediate preliminary answers for Agents Server chats while external runner jobs are still working:
+
+    -   Started a lightweight local LLM stream after durable message enqueue and persisted its chunks into the existing incomplete assistant placeholder, keeping the external GitHub runner as the final source of truth.
+    -   Built the immediate prompt from only fast instruction commitments, excluding knowledge, memory, tools, imports, and other slow capabilities so the quick response does not block on the full agent preparation path.
+
 -   Refactored `BookEditorMonaco` internals to keep the component behavior unchanged while making the code easier to follow and maintain:
 
     -   Moved Monaco lifecycle wiring into a focused internal hook so editor mount, re-apply, focus, save-notification, and page lifecycle concerns are handled in one place.

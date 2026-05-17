@@ -150,7 +150,7 @@ node_modules
 
 ---
 
-[ ] !!!
+[x] ~$1.25 2 hours by OpenAI Codex `gpt-5.5`
 
 [✨🕟] Agents should answer to the user immediately
 
@@ -165,3 +165,4 @@ node_modules
 -   You are not working with the external chat service, the `ptbk agent` utility which is running the chats on the external service, this is not scope of this task, you are just doing quicker response before the full one arrives from the external service
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
