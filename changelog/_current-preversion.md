@@ -1,3 +1,8 @@
+-   Fixed Agents Server chat export to **Markdown** so saved transcripts keep each message body inside its own quoted block instead of letting multiline agent content spill into the surrounding document.
+
+    -   Rebuilt the shared Markdown save formatter without the indentation-sensitive template layout that could mis-shape exported chat messages.
+    -   Normalized multiline message quoting so headings, lists, and other markdown inside one chat bubble stay scoped to that bubble in exported `.md` files.
+
 -   Fixed Agents Server chat export to **HTML** so saved conversations now render as clean standalone documents with proper markdown conversion instead of the previous cluttered, partially plain-text layout.
 
     -   Reused the shared chat markdown renderer for HTML export content, so headings, lists, code blocks, tables, and `<details>` sections now export as real HTML.

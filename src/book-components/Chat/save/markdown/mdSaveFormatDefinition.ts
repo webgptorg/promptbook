@@ -1,5 +1,16 @@
-import { spaceTrim } from 'spacetrim';
 import type { ChatSaveFormatDefinition } from '../_common/ChatSaveFormatDefinition';
+
+/**
+ * Prefixes every message line so exported markdown stays scoped to one chat bubble.
+ *
+ * @private helper of `mdSaveFormatDefinition`
+ */
+function createMarkdownBlockquote(content: string): string {
+    return content
+        .split(/\r?\n/)
+        .map((line) => (line.length === 0 ? '>' : `> ${line}`))
+        .join('\n');
+}
 
 /**
  * Markdown export plugin
@@ -9,22 +20,19 @@ import type { ChatSaveFormatDefinition } from '../_common/ChatSaveFormatDefiniti
 export const mdSaveFormatDefinition = {
     formatName: 'md',
     label: 'Markdown',
-    getContent: ({ messages }) =>
-        spaceTrim(`
-            ${messages
-                .map((message) =>
-                    spaceTrim(`
-                        **${message.sender}:**
+    getContent: ({ messages, participants }) =>
+        [
+            messages
+                .map((message) => {
+                    const participant = participants.find((participant) => participant.name === message.sender);
+                    const senderLabel = participant?.fullname?.trim() || message.sender;
 
-                        > ${message.content.replace(/\n/g, '\n> ')}
-                    `),
-                )
-                .join('\n\n---\n\n')}
-
-            ---
-
-            _Exported from [Promptbook](https://ptbk.io)_
-        `),
+                    return [`**${senderLabel}:**`, '', createMarkdownBlockquote(message.content)].join('\n');
+                })
+                .join('\n\n---\n\n'),
+            '---',
+            '_Exported from [Promptbook](https://ptbk.io)_',
+        ].join('\n\n'),
     mimeType: 'text/markdown',
     fileExtension: 'md',
 } as const satisfies ChatSaveFormatDefinition;
