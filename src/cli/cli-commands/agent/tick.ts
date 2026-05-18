@@ -16,6 +16,7 @@ export function $initializeAgentTickCommand(program: Program): $side_effect {
         commandName: 'run-once',
         aliases: ['tick'],
         summary: 'Answer one queued user message in the current agent repository and then exit',
+        isExitingOnSuccess: true,
         featureLines: [
             'Automatically stages and commits the answered message with agent identity',
             'Optional post-commit git push with explicit --auto-push opt-in',

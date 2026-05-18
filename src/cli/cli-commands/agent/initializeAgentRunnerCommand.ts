@@ -24,6 +24,7 @@ type InitializeAgentRunnerCommandOptions = {
     readonly aliases?: ReadonlyArray<string>;
     readonly summary: string;
     readonly featureLines: ReadonlyArray<string>;
+    readonly isExitingOnSuccess?: boolean;
     readonly configureCommand?: (command: Program) => void;
     readonly loadExecutor: () => Promise<
         (runOptions: ReturnType<typeof createAgentRunOptionsFromCliOptions>) => Promise<unknown>
@@ -63,19 +64,24 @@ export function $initializeAgentRunnerCommand(
     options.configureCommand?.(command);
 
     command.action(
-        handleActionErrors(async (cliOptions) => {
-            const runOptions = createAgentRunOptionsFromCliOptions(cliOptions as AgentRunCliOptions);
-            const execute = await options.loadExecutor();
+        handleActionErrors(
+            async (cliOptions) => {
+                const runOptions = createAgentRunOptionsFromCliOptions(cliOptions as AgentRunCliOptions);
+                const execute = await options.loadExecutor();
 
-            try {
-                await execute(runOptions);
-            } catch (error) {
-                assertsError(error);
-                console.error(colors.bgRed(`${error.name}`));
-                console.error(colors.red(error.stack || error.message));
-                return process.exit(1);
-            }
-        }),
+                try {
+                    await execute(runOptions);
+                } catch (error) {
+                    assertsError(error);
+                    console.error(colors.bgRed(`${error.name}`));
+                    console.error(colors.red(error.stack || error.message));
+                    return process.exit(1);
+                }
+            },
+            {
+                isExitingOnSuccess: options.isExitingOnSuccess,
+            },
+        ),
     );
 }
 

@@ -89,6 +89,7 @@ describe('agent runner commands', () => {
                 autoPull: true,
             }),
         );
+        expect(processExitSpy).not.toHaveBeenCalled();
     });
 
     it('keeps the legacy `agent run` alias working', async () => {
@@ -120,6 +121,7 @@ describe('agent runner commands', () => {
                 noCommit: true,
             }),
         );
+        expect(processExitSpy).toHaveBeenCalledWith(0);
     });
 
     it('passes git automation options to `agent run-once`', async () => {
@@ -139,6 +141,7 @@ describe('agent runner commands', () => {
                 autoPull: true,
             }),
         );
+        expect(processExitSpy).toHaveBeenCalledWith(0);
     });
 
     it('keeps the legacy `agent tick` alias working', async () => {
@@ -190,5 +193,6 @@ describe('agent runner commands', () => {
                 ignore: 'John*',
             }),
         );
+        expect(processExitSpy).not.toHaveBeenCalled();
     });
 });

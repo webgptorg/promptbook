@@ -11,18 +11,32 @@ import type { TODO_any } from '../../../utils/organization/TODO_any';
 type actionCallbackFunction = Parameters<Program['action']>[0];
 
 /**
- * Wraps action to handle error console logging and exit process with error code
+ * Options controlling CLI process-exit behavior after one command action finishes.
  *
- * @param action Action to be wrapped in error handling
- * @returns Wrapped action
+ * @private internal helper type for CLI commands
+ */
+type HandleActionErrorsOptions = {
+    readonly isExitingOnSuccess?: boolean;
+};
+
+/**
+ * Wraps action to handle error console logging and exit process with error code.
  *
  * @private internal helper function for CLI commands
  */
-export function handleActionErrors(action: actionCallbackFunction): actionCallbackFunction {
+export function handleActionErrors(
+    action: actionCallbackFunction,
+    options: HandleActionErrorsOptions = {},
+): actionCallbackFunction {
+    const { isExitingOnSuccess = true } = options;
+
     return async (...args: Array<TODO_any>) => {
         try {
             await action(...args);
-            return process.exit(0);
+
+            if (isExitingOnSuccess) {
+                return process.exit(0);
+            }
         } catch (error) {
             assertsError(error);
 

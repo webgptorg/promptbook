@@ -1,3 +1,9 @@
+-   Fixed `ptbk agent` runner exit behavior so watch commands stay alive instead of forcing a successful process exit.
+
+    -   Stopped the shared `ptbk agent` command wrapper from calling `process.exit(0)` after successful `run-agent` and `run-multiple` starts, so their long-running watch loops can keep waiting for new queued messages indefinitely.
+    -   Kept `ptbk agent run-once` as the one-shot variant that still exits cleanly after one answered message.
+    -   Added regression coverage for the split success-exit behavior across the three `ptbk agent run-*` subcommands.
+
 -   Fixed Agents Server chat export to **Markdown** so saved transcripts keep each message body inside its own quoted block instead of letting multiline agent content spill into the surrounding document.
 
     -   Rebuilt the shared Markdown save formatter without the indentation-sensitive template layout that could mis-shape exported chat messages.
