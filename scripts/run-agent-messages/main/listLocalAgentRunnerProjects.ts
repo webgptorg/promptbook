@@ -1,6 +1,7 @@
 import { readdir, stat } from 'fs/promises';
 import { join } from 'path';
 import { AGENT_BOOK_FILE_PATH } from '../../../src/cli/cli-commands/agent/agentProjectPaths';
+import { partitionItemsByAgentRunnerIgnorePattern } from './partitionItemsByAgentRunnerIgnorePattern';
 
 /**
  * One local direct-child repository that looks like a Promptbook agent runner project.
@@ -13,7 +14,15 @@ export type LocalAgentRunnerProject = {
 /**
  * Lists local agent runner repositories from direct child directories of the given root.
  */
-export async function listLocalAgentRunnerProjects(rootPath: string): Promise<ReadonlyArray<LocalAgentRunnerProject>> {
+export async function listLocalAgentRunnerProjects(
+    rootPath: string,
+    options: {
+        readonly ignorePattern?: string;
+    } = {},
+): Promise<{
+    readonly projects: ReadonlyArray<LocalAgentRunnerProject>;
+    readonly ignoredProjects: ReadonlyArray<LocalAgentRunnerProject>;
+}> {
     const directoryEntries = await readdir(rootPath, { withFileTypes: true });
     const projectCandidates = directoryEntries.filter((directoryEntry) => directoryEntry.isDirectory());
     const detectedProjects = await Promise.all(
@@ -30,10 +39,19 @@ export async function listLocalAgentRunnerProjects(rootPath: string): Promise<Re
             } satisfies LocalAgentRunnerProject;
         }),
     );
-
-    return detectedProjects
+    const projects = detectedProjects
         .filter((project): project is LocalAgentRunnerProject => project !== null)
         .sort((firstProject, secondProject) => firstProject.directoryName.localeCompare(secondProject.directoryName));
+    const { includedItems, ignoredItems } = partitionItemsByAgentRunnerIgnorePattern(
+        projects,
+        ({ directoryName }) => directoryName,
+        options.ignorePattern,
+    );
+
+    return {
+        projects: includedItems,
+        ignoredProjects: ignoredItems,
+    };
 }
 
 /**

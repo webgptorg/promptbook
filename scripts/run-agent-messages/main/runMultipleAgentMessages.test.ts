@@ -1,4 +1,4 @@
-﻿import { mkdir, mkdtemp, rm, writeFile } from 'fs/promises';
+import { mkdir, mkdtemp, rm, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import type { AgentRunOptions } from '../AgentRunOptions';
@@ -28,20 +28,21 @@ const ORIGINAL_WORKING_DIRECTORY = process.cwd();
  * Creates one complete option set for multi-agent watch runs.
  */
 function createAgentRunOptions(overrides: Partial<AgentRunOptions> = {}): AgentRunOptions {
-    return {
-        agentName: 'github-copilot',
-        model: 'gpt-5.4',
+        return {
+            agentName: 'github-copilot',
+            model: 'gpt-5.4',
         noUi: true,
         thinkingLevel: undefined,
         noCommit: false,
         ignoreGitChanges: false,
         normalizeLineEndings: false,
-        allowCredits: false,
-        autoPush: false,
-        autoPull: false,
-        autoClone: false,
-        ...overrides,
-    };
+            allowCredits: false,
+            autoPush: false,
+            autoPull: false,
+            autoClone: false,
+            ignore: undefined,
+            ...overrides,
+        };
 }
 
 /**
@@ -59,6 +60,7 @@ describe('runMultipleAgentMessages', () => {
         (synchronizeGithubAgentRunnerRepositories as jest.MockedFunction<typeof synchronizeGithubAgentRunnerRepositories>)
             .mockResolvedValue({
                 clonedRepositoryNames: [],
+                ignoredRepositoryNames: [],
                 synchronizedAt: Date.now(),
             });
         (tickAgentMessages as jest.MockedFunction<typeof tickAgentMessages>).mockResolvedValue({
@@ -167,12 +169,14 @@ describe('runMultipleAgentMessages', () => {
 
                 return {
                     clonedRepositoryNames: ['agent-new'],
+                    ignoredRepositoryNames: [],
                     synchronizedAt: Date.now(),
                 };
             }
 
             return {
                 clonedRepositoryNames: [],
+                ignoredRepositoryNames: [],
                 synchronizedAt: Date.now(),
             };
         });
@@ -231,5 +235,37 @@ describe('runMultipleAgentMessages', () => {
             }),
         );
         expect(process.cwd()).toBe(temporaryRootDirectory);
+    });
+
+    it('skips ignored direct child repositories when selecting watched agents', async () => {
+        temporaryRootDirectory = await createTemporaryRootDirectory();
+        await mkdir(join(temporaryRootDirectory, 'John-agent', 'messages', 'queued'), { recursive: true });
+        await mkdir(join(temporaryRootDirectory, 'agent-b', 'messages', 'queued'), { recursive: true });
+        await writeFile(join(temporaryRootDirectory, 'John-agent', 'agent.book'), 'John Agent', 'utf-8');
+        await writeFile(join(temporaryRootDirectory, 'agent-b', 'agent.book'), 'Agent B', 'utf-8');
+        await writeFile(
+            join(temporaryRootDirectory, 'John-agent', 'messages', 'queued', 'question.book'),
+            'MESSAGE @User\nIgnored\n',
+            'utf-8',
+        );
+        await writeFile(
+            join(temporaryRootDirectory, 'agent-b', 'messages', 'queued', 'question.book'),
+            'MESSAGE @User\nWatched\n',
+            'utf-8',
+        );
+
+        process.chdir(temporaryRootDirectory);
+
+        const loopStates = [true, false];
+        await runMultipleAgentMessages(createAgentRunOptions({ ignore: 'John*' }), {
+            shouldContinue: () => loopStates.shift() ?? false,
+        });
+
+        expect(tickAgentMessages).toHaveBeenCalledTimes(1);
+        expect((tickAgentMessages as jest.MockedFunction<typeof tickAgentMessages>).mock.calls[0]?.[1]).toEqual(
+            expect.objectContaining({
+                projectPath: join(temporaryRootDirectory, 'agent-b'),
+            }),
+        );
     });
 });

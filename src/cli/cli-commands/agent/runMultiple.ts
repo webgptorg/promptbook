@@ -27,6 +27,10 @@ export function $initializeAgentRunMultipleCommand(program: Program): $side_effe
                 'Automatically clone missing configured `agent-*` GitHub repositories while watching',
                 false,
             );
+            command.option(
+                '--ignore <pattern>',
+                'Ignore watched and auto-cloned agent repositories whose repository name matches the pattern',
+            );
         },
         loadExecutor: async () => {
             const { runMultipleAgentMessages } = await import(

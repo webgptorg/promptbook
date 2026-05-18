@@ -1,4 +1,4 @@
-[ ] !
+[x] ~$0.00 41 minutes by GitHub Copilot `gpt-5.4`
 
 [✨🗜] Add `--ignore <pattern>` flag to `ptbk agent run-multiple`
 
@@ -78,3 +78,4 @@ ptbk agent run --agent github-copilot --model gpt-5.4 --thinking-level xhigh
 -   Do a proper analysis of the current functionality of `ptbk agent` and related functionality before you start implementing.
 -   You are working with [`ptbk agent`](src/cli/cli-commands/agent/run.ts)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

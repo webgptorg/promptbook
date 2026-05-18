@@ -27,6 +27,11 @@
     -   Changed idle message previews to show the gray copy `Waiting for the message`, and render one dedicated user-message box per answering agent when multiple repositories are active.
     -   Kept `--no-ui` on the legacy plain console path while removing the shared-watcher cwd bottleneck so multiple direct-child agent repositories can process queued work in the same iteration.
 
+-   Added `--ignore <pattern>` to `ptbk agent run-multiple` so one shared runner session can skip matching agent repositories:
+
+    -   Filtered both local direct-child agent repositories and GitHub auto-clone discovery through the same repository-name ignore matcher, so ignored repositories are neither watched nor cloned.
+    -   Kept ignored repositories out of the rich `Agents` box and added their count to the rich `Session` box so the shared dashboard still explains the reduced watched scope.
+
 -   Changed Agents Server agent routing to use stable agent IDs instead of human-readable agent names:
 
     -   Canonical local agent profile, chat, editor, integration, image, timeout, history, export, and website-integration routes now redirect to `/agents/<AGENT_ID>/...`.
