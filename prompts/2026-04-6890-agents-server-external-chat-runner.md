@@ -166,3 +166,22 @@ node_modules
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
+---
+
+[ ] !
+
+[✨🕟] Agents answers to the user immediately but it should be aware that this is not a final answer
+
+-   New system for running the chats on the external service is by design slow, it generates great answers but it can take several minutes
+-   Split the answering into 3 steps:
+    1. When the user sends the message, it should be commited to `messages/queued` and also shown in the chat UI Immediattely that the agent is thinking _(configured in metadata, already working)_
+    2. Send it to the LLM model but do not do anything with the knowledge or other potentially long running operations and stream it into chat UI **<- This step you are now enhancing**
+    3. When the answer is ready from the external service, show it in the chat UI
+-   The answer looks like the final answer but it shouldnt be
+-   The answer in 2. step should be clearly done as "draft" answer, change the prompt that makes the answer to tell what is going to happen but it should be clearly said that this is not a final answer, and the final answer will come in several minutes when the external service will finish the processing, and also the answer can change when the final answer will come, so do not treat this answer as a final one, but just as a draft one which can change in the future
+-   Do a proper analysis of the current functionality of chat on agent server before you start implementing. And also the change which was made:
+    -   [File with PRD](prompts/2026-04-6890-agents-server-external-chat-runner.md)
+-   You are working with the [Agents Server](apps/agents-server)
+-   You are not working with the external chat service, the `ptbk agent` utility which is running the chats on the external service, this is not scope of this task, you are just doing quicker response before the full one arrives from the external service
+-   If you need to do the database migration, do it
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
