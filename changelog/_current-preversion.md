@@ -1,3 +1,9 @@
+-   Fixed Agents Server chat export to **PDF** so saved conversations now render as clean branded documents with proper markdown formatting instead of broken plain-text dumps.
+
+    -   Reused the shared chat markdown renderer for PDF export content, so headings, lists, links, code blocks, tables, quotes, and `<details>` sections now survive the export in readable layout.
+    -   Rebuilt the PDF generator around a print-friendly Promptbook chat document with subtle branding, cleaner message cards, and per-file PDF metadata derived from existing Promptbook branding/version helpers.
+    -   Extracted shared chat-export branding and markdown utilities, and added regression coverage for both the markdown renderer and export metadata formatting.
+
 -   Fixed Agents Server chat export to **React** so chats with `undefined` metadata now download correctly instead of failing during serialization.
 
     -   Taught the shared Promptbook JavaScript serializer to emit the `undefined` literal for JSX/JavaScript exports instead of crashing on optional chat fields.

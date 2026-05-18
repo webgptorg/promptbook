@@ -1,10 +1,8 @@
 import { spaceTrim } from 'spacetrim';
 import { normalizeTo_PascalCase } from '../../../../utils/normalization/normalizeTo_PascalCase';
-import { removeMarkdownFormatting } from '../../../../utils/markdown/removeMarkdownFormatting';
-import { removeMarkdownLinks } from '../../../../utils/markdown/removeMarkdownLinks';
-import { aboutPromptbookInformation } from '../../../../utils/misc/aboutPromptbookInformation';
 import { serializeToPromptbookJavascript } from '../../../../utils/serialization/serializeToPromptbookJavascript';
 import type { ChatSaveFormatDefinition } from '../_common/ChatSaveFormatDefinition';
+import { getPromptbookExportBranding } from '../_common/getPromptbookExportBranding';
 
 /**
  * Lightweight Promptbook branding comment embedded into exported React chats.
@@ -19,34 +17,8 @@ const PROMPTBOOK_REACT_EXPORT_BRANDING_COMMENT = createPromptbookReactExportBran
  * @private Internal helper of `reactSaveFormatDefinition`.
  */
 function createPromptbookReactExportBrandingComment(): string {
-    const brandingLines = aboutPromptbookInformation({
-        isServersInfoIncluded: false,
-        isRuntimeEnvironmentInfoIncluded: false,
-    })
-        .split(/\r?\n/)
-        .map((line) => resolvePromptbookReactExportBrandingLine(line))
-        .filter((line): line is string => Boolean(line));
-
+    const brandingLines = getPromptbookExportBranding().commentLines;
     return ['/*', ...brandingLines.map((line) => ` * ${line}`), ' */'].join('\n');
-}
-
-/**
- * Converts one markdown line from `aboutPromptbookInformation()` into plain-text export branding.
- *
- * @private Internal helper of `reactSaveFormatDefinition`.
- */
-function resolvePromptbookReactExportBrandingLine(line: string): string | undefined {
-    const trimmedLine = line.trim();
-
-    if (trimmedLine.startsWith('# ')) {
-        return `Exported with ${trimmedLine.slice(2).trim()}.`;
-    }
-
-    if (!trimmedLine.startsWith('- ')) {
-        return undefined;
-    }
-
-    return removeMarkdownFormatting(removeMarkdownLinks(trimmedLine.slice(2))).trim();
 }
 
 /**

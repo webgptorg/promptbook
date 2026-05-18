@@ -52,7 +52,7 @@ cu @ 87c73c54-3c195070c5cbb22b.js?dpl=dpl_FihrVoYNERPMuaK11EbQPocTMTwe:1
 
 ---
 
-[ ] !
+[x] ~$0.00 an hour by GitHub Copilot `gpt-5.4`
 
 [✨©️] Fix the export to "PDF" of the chat in the Agents Server
 
@@ -116,4 +116,5 @@ cu @ 87c73c54-3c195070c5cbb22b.js?dpl=dpl_FihrVoYNERPMuaK11EbQPocTMTwe:1
 
 !["Save" button](prompts/screenshots/2026-05-0260-agents-server-fix-chat-exports.png)
 ![Broken export to Markdown](prompts/screenshots/2026-05-0260-agents-server-fix-chat-exports-1.png)
+
 
