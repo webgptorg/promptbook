@@ -1,7 +1,7 @@
 'use server';
 
 import { redirect } from 'next/navigation';
-import { getAgentName } from '../_utils';
+import { getAgentName, resolveCanonicalLocalAgentId } from '../_utils';
 
 /**
  * Builds legacy `/iframe` redirect target and preserves supported query parameters.
@@ -39,7 +39,8 @@ export default async function AgentIframePage({
     params: Promise<{ agentName: string }>;
     searchParams: Promise<{ message?: string; chat?: string; newChat?: string }>;
 }) {
-    const agentName = await getAgentName(params);
+    const agentIdentifier = await getAgentName(params);
+    const agentName = await resolveCanonicalLocalAgentId(agentIdentifier);
     const currentSearchParams = await searchParams;
     redirect(buildLegacyIframeRedirectPath(agentName, currentSearchParams));
 }

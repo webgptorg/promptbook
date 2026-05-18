@@ -21,6 +21,7 @@ export type ImageWithAgent = {
     agent: {
         id: number;
         agentName: string;
+        permanentId?: string | null;
     } | null;
 };
 
@@ -47,7 +48,8 @@ export async function listImages(options: {
                 *,
                 agent:agentId (
                     id,
-                    agentName
+                    agentName,
+                    permanentId
                 )
             `),
             { count: 'exact' },

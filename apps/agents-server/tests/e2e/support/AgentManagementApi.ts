@@ -36,11 +36,17 @@ type CreateTestAgentOptions = {
  */
 type ManagedAgent = {
     /**
-     * Canonical browser-route slug and user-chat API identifier.
+     * Human-readable agent name.
      *
      * @private internal utility of AgentManagementApi
      */
     readonly agentName: string;
+    /**
+     * Canonical browser-route and user-chat API identifier.
+     *
+     * @private internal utility of AgentManagementApi
+     */
+    readonly agentId: string;
     /**
      * Stable standalone chat route returned by the management API.
      *
@@ -146,19 +152,23 @@ async function createTestAgent(page: Page, apiKey: string, options: CreateTestAg
 
             const payload = (await response.json()) as {
                 agent?: {
+                    id?: string;
                     agentName?: string;
+                    permanentId?: string;
                     links?: {
                         chatUrl?: string;
                     };
                 };
             };
 
-            if (!payload.agent?.agentName || !payload.agent.links?.chatUrl) {
+            const agentId = payload.agent?.permanentId || payload.agent?.id;
+            if (!payload.agent?.agentName || !agentId || !payload.agent.links?.chatUrl) {
                 throw new Error('Test agent response did not include chat routing data.');
             }
 
             return {
                 agentName: payload.agent.agentName,
+                agentId,
                 managementChatUrl: payload.agent.links.chatUrl,
             } satisfies ManagedAgent;
         },
@@ -173,7 +183,7 @@ async function createTestAgent(page: Page, apiKey: string, options: CreateTestAg
  * Creates one durable seeded chat with stable user/agent messages.
  *
  * @param page - Current Playwright page.
- * @param agentName - Canonical agent slug.
+ * @param agentName - Canonical agent identifier.
  * @param title - First user message used as chat title.
  * @returns Newly created chat identifier.
  */

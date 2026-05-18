@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
+import { buildAgentProfileHref } from '../../../utils/agentRouting/agentRouteHrefs';
 import { FilesGalleryStatusBadge } from './FilesGalleryStatusBadge';
 import type { UseFilesGalleryState } from './useFilesGalleryState';
 
@@ -83,7 +84,12 @@ export function FilesGalleryTable({
                                 <td className="px-6 py-4">{formatFilesGalleryFileSize(file.fileSize)}</td>
                                 <td className="px-6 py-4">
                                     {file.agent ? (
-                                        <Link href={`/${file.agent.agentName}`} className="text-blue-600 hover:underline">
+                                        <Link
+                                            href={buildAgentProfileHref(
+                                                file.agent.permanentId || file.agent.agentName,
+                                            )}
+                                            className="text-blue-600 hover:underline"
+                                        >
                                             {file.agent.agentName}
                                         </Link>
                                     ) : (

@@ -14,6 +14,7 @@ import {
     type IssueTrackingAgentReferenceResolver,
 } from './AgentReferenceResolutionIssue';
 import { extractAgentReferenceTokens } from './extractAgentReferenceTokens';
+import { resolveAgentRouteIdentifier } from '../agentIdentifier';
 
 /**
  * Dependencies required to resolve local/federated compact references.
@@ -95,9 +96,8 @@ class ServerAgentReferenceResolver implements IssueTrackingAgentReferenceResolve
     public async initialize(): Promise<void> {
         const agents = await this.agentCollection.listAgents();
         for (const agent of agents) {
-            // Use agent name (not permanentId) in URL so the label derived from the path segment
-            // matches the human-readable agent name rather than a technical ID.
-            const url = this.buildLocalAgentUrl(agent.agentName);
+            const routeIdentifier = resolveAgentRouteIdentifier(agent);
+            const url = this.buildLocalAgentUrl(routeIdentifier);
             this.localNameToUrl.set(normalizeAgentName(agent.agentName), url);
             this.localNameToUrl.set(agent.agentName, url);
             if (agent.permanentId) {
@@ -109,6 +109,10 @@ class ServerAgentReferenceResolver implements IssueTrackingAgentReferenceResolve
                 personaDescription: agent.personaDescription,
             };
             this.localUrlToProfile.set(url, profile);
+
+            if (routeIdentifier !== agent.agentName) {
+                this.localUrlToProfile.set(this.buildLocalAgentUrl(agent.agentName), profile);
+            }
         }
     }
 
@@ -277,12 +281,13 @@ class ServerAgentReferenceResolver implements IssueTrackingAgentReferenceResolve
 
         const normalized = normalizeAgentName(value);
         const isBase58 = BASE58_PATTERN.test(value);
+        const localById = this.localIdToUrl.get(value);
+
+        if (localById) {
+            return localById;
+        }
 
         if (isBase58) {
-            const local = this.localIdToUrl.get(value);
-            if (local) {
-                return local;
-            }
             const remote = await this.lookupFederatedAgentById(value);
             if (remote) {
                 return remote;

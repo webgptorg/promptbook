@@ -6,11 +6,17 @@ import { ChatHistoryNavigationSupport } from './ChatHistoryNavigationSupport';
  */
 type ManagedAgentLike = {
     /**
-     * Canonical browser-route slug and user-chat API identifier.
+     * Human-readable agent name.
      *
      * @private internal utility of ChatHistoryNavigationExpectation
      */
     readonly agentName: string;
+    /**
+     * Canonical browser-route and user-chat API identifier.
+     *
+     * @private internal utility of ChatHistoryNavigationExpectation
+     */
+    readonly agentId: string;
     /**
      * Stable standalone chat route returned by the management API.
      *

@@ -53,11 +53,17 @@ type DelayNextMatchingRequestOptions = {
  */
 type ManagedAgentLike = {
     /**
-     * Canonical browser-route slug and user-chat API identifier.
+     * Human-readable agent name.
      *
      * @private internal utility of ChatHistoryNavigationSupport
      */
     readonly agentName: string;
+    /**
+     * Canonical browser-route and user-chat API identifier.
+     *
+     * @private internal utility of ChatHistoryNavigationSupport
+     */
+    readonly agentId: string;
     /**
      * Stable standalone chat route returned by the management API.
      *
@@ -84,7 +90,7 @@ function escapeForRegExp(value: string): string {
 /**
  * Builds the current browser-facing standalone chat route for one agent.
  *
- * @param agentName - Canonical browser-route slug.
+ * @param agentName - Canonical browser-route identifier.
  * @param options - Optional query parameters.
  * @returns Relative chat URL used by the browser app.
  */
@@ -117,9 +123,8 @@ function readChatIdFromUrl(url: string): string | null {
 /**
  * Checks whether one browser URL points to a selected durable chat for the target agent.
  *
- * The browser currently navigates using the agent-name route alias, while the management
- * API still returns the durable standalone link. Accepting both path shapes keeps this
- * regression focused on "chat selected" behavior instead of one specific alias.
+ * Accepting both the direct route and the management API link keeps this regression
+ * focused on "chat selected" behavior instead of one specific URL producer.
  *
  * @param url - Absolute page URL.
  * @param agent - Targeted management-agent payload.
@@ -134,7 +139,7 @@ function isSelectedDurableAgentChatUrl(url: string, agent: ManagedAgentLike): bo
     }
 
     const candidatePathnames = new Set([
-        buildAgentBrowserChatUrl(agent.agentName),
+        buildAgentBrowserChatUrl(agent.agentId),
         new URL(agent.managementChatUrl).pathname,
     ]);
 

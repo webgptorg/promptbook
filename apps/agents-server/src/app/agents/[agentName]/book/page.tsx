@@ -5,9 +5,16 @@ import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentColle
 import { getCurrentUser } from '@/src/utils/getCurrentUser';
 import { headers } from 'next/headers';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
-import { isAgentDeleted } from '../_utils';
+import { enforceCanonicalLocalAgentId, getAgentName, isAgentDeleted } from '../_utils';
 import { BookEditorWrapper } from './BookEditorWrapper';
 import { DeletedAgentBanner } from '../../../../components/DeletedAgentBanner';
+
+/**
+ * Builds canonical book editor path for one local agent id.
+ */
+function buildCanonicalAgentBookPath(canonicalAgentId: string): string {
+    return `/agents/${encodeURIComponent(canonicalAgentId)}/book`;
+}
 
 /**
  * Handles agent book page.
@@ -15,8 +22,8 @@ import { DeletedAgentBanner } from '../../../../components/DeletedAgentBanner';
 export default async function AgentBookPage({ params }: { params: Promise<{ agentName: string }> }) {
     $sideEffect(headers());
 
-    let { agentName } = await params;
-    agentName = decodeURIComponent(agentName);
+    const agentIdentifier = await getAgentName(params);
+    const agentName = await enforceCanonicalLocalAgentId(agentIdentifier, buildCanonicalAgentBookPath);
 
     const isDeleted = await isAgentDeleted(agentName);
 
@@ -33,7 +40,7 @@ export default async function AgentBookPage({ params }: { params: Promise<{ agen
     }
 
     const collection = await $provideAgentCollectionForServer();
-    const agentSource = await collection.getAgentSource(decodeURIComponent(agentName));
+    const agentSource = await collection.getAgentSource(agentName);
 
     return (
         <div className={`agents-server-viewport-width h-[calc(100dvh-60px)] relative`}>

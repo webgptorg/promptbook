@@ -441,7 +441,7 @@ function useAgentContextMenuCloneAction(actionContext: AgentContextMenuActionCon
         }
 
         onRequestClose?.();
-        router.push(`/agents/${encodeURIComponent(clonedAgent.agentName)}`);
+        router.push(`/agents/${encodeURIComponent(clonedAgent.permanentId || clonedAgent.agentName)}`);
     }, [agentIdentifier, displayName, formatText, onRequestClose, router]);
 }
 

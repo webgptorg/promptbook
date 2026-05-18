@@ -28,7 +28,7 @@ describe('createServerAgentReferenceResolver', () => {
 
         const resolved = await resolver.resolveCommitmentContent('FROM', '{Alice Cooper}');
 
-        expect(resolved).toBe('https://local.example/agents/Alice%20Cooper');
+        expect(resolved).toBe('https://local.example/agents/abc123');
         expect(consumeAgentReferenceResolutionIssues(resolver)).toEqual([]);
     });
 

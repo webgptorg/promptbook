@@ -7,10 +7,10 @@ import {
 } from './agentRouteHrefs';
 
 describe('agentRouteHrefs', () => {
-    it('builds local profile and chat hrefs from raw agent identifiers', () => {
-        expect(buildAgentProfileHref('Demo Agent')).toBe('/agents/Demo%20Agent');
-        expect(buildAgentChatHref('Demo Agent')).toBe('/agents/Demo%20Agent/chat');
-        expect(buildFreshAgentChatHref('Demo Agent')).toBe('/agents/Demo%20Agent/chat?chat=new');
+    it('builds local profile and chat hrefs from canonical agent IDs', () => {
+        expect(buildAgentProfileHref('agent-123')).toBe('/agents/agent-123');
+        expect(buildAgentChatHref('agent-123')).toBe('/agents/agent-123/chat');
+        expect(buildFreshAgentChatHref('agent-123')).toBe('/agents/agent-123/chat?chat=new');
     });
 
     it('adds the fresh-chat query to existing chat hrefs', () => {

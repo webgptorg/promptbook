@@ -11,6 +11,8 @@ import type { AgentsServerDatabase } from '../../../database/schema';
 import { $provideSupabaseForServer } from '../../../database/$provideSupabaseForServer';
 import { buildAgentFolderContext, type AgentFolderContext } from '../../../utils/agentOrganization/agentFolderContext';
 import { buildAgentNameOrIdFilter } from '@/src/utils/agentIdentifier';
+import { resolveAgentRouteTarget } from '@/src/utils/agentRouting/resolveAgentRouteTarget';
+import { notFound, redirect } from 'next/navigation';
 
 /**
  * Database agent row shape used for folder lookups.
@@ -33,6 +35,53 @@ export const AGENT_ACTIONS = ['Emails', 'Web chat', 'Read documents', 'Browser',
 export async function getAgentName(params: Promise<{ agentName: string }>) {
     const { agentName } = await params;
     return decodeURIComponent(agentName);
+}
+
+/**
+ * Resolves a decoded route agent identifier into the canonical local permanent id.
+ *
+ * Remote and pseudo-agent route targets are redirected to their canonical URLs, while
+ * unknown agents are handled as a 404.
+ *
+ * @param agentIdentifier - Decoded route agent identifier.
+ * @returns Canonical local agent permanent id.
+ */
+export async function resolveCanonicalLocalAgentId(agentIdentifier: string): Promise<string> {
+    const routeTarget = await resolveAgentRouteTarget(agentIdentifier);
+
+    if (routeTarget === null) {
+        notFound();
+    }
+
+    if (routeTarget.kind === 'remote') {
+        redirect(routeTarget.url);
+    }
+
+    if (routeTarget.kind === 'pseudo') {
+        redirect(routeTarget.canonicalUrl);
+    }
+
+    return routeTarget.canonicalAgentId;
+}
+
+/**
+ * Ensures a route is rendered only on its canonical ID-based path.
+ *
+ * @param agentIdentifier - Decoded route agent identifier.
+ * @param buildCanonicalPath - Builds the canonical path for the current subroute.
+ * @returns Canonical local agent permanent id.
+ */
+export async function enforceCanonicalLocalAgentId(
+    agentIdentifier: string,
+    buildCanonicalPath: (canonicalAgentId: string) => string,
+): Promise<string> {
+    const canonicalAgentId = await resolveCanonicalLocalAgentId(agentIdentifier);
+
+    if (agentIdentifier !== canonicalAgentId) {
+        redirect(buildCanonicalPath(canonicalAgentId));
+    }
+
+    return canonicalAgentId;
 }
 
 /**

@@ -108,26 +108,20 @@ export function AgentProfileWrapper(props: AgentProfileWrapperProps) {
      */
     const handleAgentRenamed = useCallback(
         (payload: AgentContextMenuRenamePayload) => {
-            const nextAgentName = payload.agent.agentName;
-            const usesPermanentId = Boolean(permanentId && agentName === permanentId);
+            const nextAgentIdentifier = payload.agent.permanentId || payload.agent.agentName;
 
-            if (!nextAgentName) {
+            if (!nextAgentIdentifier) {
                 return;
             }
 
-            if (usesPermanentId) {
-                router.refresh();
-                return;
-            }
-
-            if (nextAgentName !== agentName) {
-                router.replace(`/agents/${encodeURIComponent(nextAgentName)}`);
+            if (nextAgentIdentifier !== agentName) {
+                router.replace(`/agents/${encodeURIComponent(nextAgentIdentifier)}`);
                 return;
             }
 
             router.refresh();
         },
-        [agentName, permanentId, router],
+        [agentName, router],
     );
 
     return (

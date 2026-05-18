@@ -1,15 +1,13 @@
 'use server';
 
 import { ForbiddenPage } from '@/src/components/ForbiddenPage/ForbiddenPage';
-import { notFound, redirect } from 'next/navigation';
 import { $provideServer } from '@/src/tools/$provideServer';
 import { resolveAgentAccess } from '@/src/utils/agentAccess';
 import { resolveAgentAvatarImageUrl } from '../../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 import { formatAgentNamingText } from '../../../../utils/agentNaming';
 import { resolveAgentChatInputPlaceholder } from '../../../../utils/agentChatInputPlaceholder';
-import { resolveAgentRouteTarget } from '../../../../utils/agentRouting/resolveAgentRouteTarget';
 import { getAgentNaming } from '../../../../utils/getAgentNaming';
-import { getAgentName, getAgentProfile } from '../_utils';
+import { enforceCanonicalLocalAgentId, getAgentName, getAgentProfile } from '../_utils';
 import { AgentTextareaClient } from './AgentTextareaClient';
 
 /**
@@ -30,23 +28,7 @@ function buildCanonicalAgentTextareaPath(canonicalAgentId: string): string {
  */
 export default async function AgentTextareaPage({ params }: { params: Promise<{ agentName: string }> }) {
     const agentName = await getAgentName(params);
-    const routeTarget = await resolveAgentRouteTarget(agentName);
-    if (routeTarget === null) {
-        notFound();
-    }
-
-    if (routeTarget.kind === 'remote') {
-        redirect(routeTarget.url);
-    }
-
-    if (routeTarget.kind === 'pseudo') {
-        redirect(routeTarget.canonicalUrl);
-    }
-
-    const canonicalAgentId = routeTarget.canonicalAgentId;
-    if (agentName !== canonicalAgentId) {
-        redirect(buildCanonicalAgentTextareaPath(canonicalAgentId));
-    }
+    const canonicalAgentId = await enforceCanonicalLocalAgentId(agentName, buildCanonicalAgentTextareaPath);
 
     const access = await resolveAgentAccess(canonicalAgentId);
     if (!access.isAllowed) {

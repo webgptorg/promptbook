@@ -1,16 +1,17 @@
 import type { AgentBasicInformation } from '../../../../src/book-2.0/agent-source/AgentBasicInformation';
 import type { TeammateProfile, TeammateProfileResolver } from '../../../../src/book-2.0/agent-source/TeammateProfileResolver';
 import type { AgentCollection } from '../../../../src/collection/agent-collection/AgentCollection';
+import { resolveAgentRouteIdentifier } from './agentIdentifier';
 
 /**
- * Builds the agent URL path using the agent name, matching the local URL format used
- * by `ServerAgentReferenceResolver.buildLocalAgentUrl`.
+ * Builds accepted local agent URL variants for teammate profile resolution.
  */
 function buildAgentUrlVariants(agent: AgentBasicInformation, normalizedServerUrl: string): string[] {
-    const variants: string[] = [`${normalizedServerUrl}/agents/${encodeURIComponent(agent.agentName)}`];
+    const routeIdentifier = resolveAgentRouteIdentifier(agent);
+    const variants: string[] = [`${normalizedServerUrl}/agents/${encodeURIComponent(routeIdentifier)}`];
 
-    if (agent.permanentId) {
-        variants.push(`${normalizedServerUrl}/agents/${encodeURIComponent(agent.permanentId)}`);
+    if (routeIdentifier !== agent.agentName) {
+        variants.push(`${normalizedServerUrl}/agents/${encodeURIComponent(agent.agentName)}`);
     }
 
     return variants;

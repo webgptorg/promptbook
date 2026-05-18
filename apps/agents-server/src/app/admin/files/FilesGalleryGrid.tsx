@@ -1,5 +1,6 @@
 import { File, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { buildAgentProfileHref } from '../../../utils/agentRouting/agentRouteHrefs';
 import { FilesGalleryStatusBadge } from './FilesGalleryStatusBadge';
 import type { UseFilesGalleryState } from './useFilesGalleryState';
 
@@ -72,7 +73,7 @@ export function FilesGalleryGrid({
                             <div className="flex items-center justify-between gap-2 mb-1">
                                 {file.agent ? (
                                     <Link
-                                        href={`/${file.agent.agentName}`}
+                                        href={buildAgentProfileHref(file.agent.permanentId || file.agent.agentName)}
                                         className="text-xs font-medium text-blue-600 hover:underline truncate"
                                     >
                                         {file.agent.agentName}

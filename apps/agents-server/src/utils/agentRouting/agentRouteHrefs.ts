@@ -41,7 +41,7 @@ function formatParsedHref(href: string, url: URL): string {
 /**
  * Builds the canonical profile href for one local agent.
  *
- * @param agentIdentifier - Permanent id or route-safe agent name.
+ * @param agentIdentifier - Canonical permanent id.
  * @returns Canonical profile href.
  */
 export function buildAgentProfileHref(agentIdentifier: string): string {
@@ -51,7 +51,7 @@ export function buildAgentProfileHref(agentIdentifier: string): string {
 /**
  * Builds the canonical standalone chat href for one local agent.
  *
- * @param agentIdentifier - Permanent id or route-safe agent name.
+ * @param agentIdentifier - Canonical permanent id.
  * @returns Canonical chat href.
  */
 export function buildAgentChatHref(agentIdentifier: string): string {
@@ -73,7 +73,7 @@ export function appendFreshChatQuery(href: string): string {
 /**
  * Builds the local href that opens a fresh new chat with one agent.
  *
- * @param agentIdentifier - Permanent id or route-safe agent name.
+ * @param agentIdentifier - Canonical permanent id.
  * @returns Canonical fresh-chat href.
  */
 export function buildFreshAgentChatHref(agentIdentifier: string): string {

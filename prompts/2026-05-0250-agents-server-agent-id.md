@@ -1,4 +1,4 @@
-[ ] !!!!!
+[x] ~$1.70 2 hours by OpenAI Codex `gpt-5.5`
 
 [✨⬛️] Agents should be identified by ID, not their name.
 
@@ -49,3 +49,4 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

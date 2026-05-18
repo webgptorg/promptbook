@@ -1,5 +1,6 @@
 import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { buildAgentProfileHref } from '../../../utils/agentRouting/agentRouteHrefs';
 import type { ImageWithAgent } from './actions';
 import { ImagesGalleryParametersBadges } from './ImagesGalleryParametersBadges';
 import { ImagesGalleryPromptCopyButton } from './ImagesGalleryPromptCopyButton';
@@ -81,7 +82,7 @@ function ImagesGalleryGridCard({
                 <div className="flex items-center justify-between gap-2 mb-1">
                     {image.agent ? (
                         <Link
-                            href={`/${image.agent.agentName}`}
+                            href={buildAgentProfileHref(image.agent.permanentId || image.agent.agentName)}
                             className="text-xs font-medium text-blue-600 hover:underline truncate"
                         >
                             {image.agent.agentName}

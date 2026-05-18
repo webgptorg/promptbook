@@ -1,5 +1,6 @@
 import { Code, FileImage, FileText, type LucideIcon } from 'lucide-react';
 import type { AgentWithVisibility, ConnectionType } from './buildGraphData';
+import { resolveAgentRouteIdentifier } from '../../utils/agentIdentifier';
 
 /**
  * Federated server loading status shown in the graph toolbar.
@@ -141,6 +142,15 @@ function getAgentOptionLabel(agent: AgentWithVisibility): string {
 }
 
 /**
+ * Resolve the stable option value used to focus one graph agent.
+ *
+ * @private function of AgentsGraph
+ */
+function getAgentOptionIdentifier(agent: AgentWithVisibility): string {
+    return resolveAgentRouteIdentifier(agent);
+}
+
+/**
  * Build the button className shared by all download buttons.
  *
  * @private function of AgentsGraph
@@ -231,20 +241,28 @@ export function AgentsGraphToolbar(props: AgentsGraphToolbarProps) {
                         <option value="">{formatText('All Agents')}</option>
                         <optgroup label="This Server">
                             <option value={`SERVER:${normalizedPublicUrl}`}>Entire This Server</option>
-                            {agents.map((agent) => (
-                                <option key={agent.agentName} value={`${normalizedPublicUrl}|${agent.agentName}`}>
-                                    {getAgentOptionLabel(agent)}
-                                </option>
-                            ))}
+                            {agents.map((agent) => {
+                                const agentIdentifier = getAgentOptionIdentifier(agent);
+
+                                return (
+                                    <option key={agentIdentifier} value={`${normalizedPublicUrl}|${agentIdentifier}`}>
+                                        {getAgentOptionLabel(agent)}
+                                    </option>
+                                );
+                            })}
                         </optgroup>
                         {Object.entries(federatedServersStatus).map(([serverUrl, status]) => (
                             <optgroup key={serverUrl} label={formatServerGroupLabel(serverUrl, status)}>
                                 <option value={`SERVER:${serverUrl}`}>Entire Server</option>
-                                {(federatedAgentsByServer.get(serverUrl) || []).map((agent) => (
-                                    <option key={agent.agentName} value={`${serverUrl}|${agent.agentName}`}>
-                                        {getAgentOptionLabel(agent)}
-                                    </option>
-                                ))}
+                                {(federatedAgentsByServer.get(serverUrl) || []).map((agent) => {
+                                    const agentIdentifier = getAgentOptionIdentifier(agent);
+
+                                    return (
+                                        <option key={agentIdentifier} value={`${serverUrl}|${agentIdentifier}`}>
+                                            {getAgentOptionLabel(agent)}
+                                        </option>
+                                    );
+                                })}
                             </optgroup>
                         ))}
                     </select>

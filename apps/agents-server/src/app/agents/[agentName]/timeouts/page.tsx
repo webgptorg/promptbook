@@ -2,9 +2,7 @@
 
 import { ForbiddenPage } from '@/src/components/ForbiddenPage/ForbiddenPage';
 import { resolveAgentAccess } from '@/src/utils/agentAccess';
-import { notFound, redirect } from 'next/navigation';
-import { resolveAgentRouteTarget } from '@/src/utils/agentRouting/resolveAgentRouteTarget';
-import { getAgentName } from '../_utils';
+import { enforceCanonicalLocalAgentId, getAgentName } from '../_utils';
 import { AgentTimeoutsClient } from './AgentTimeoutsClient';
 
 /**
@@ -19,24 +17,7 @@ function buildCanonicalAgentTimeoutsPath(canonicalAgentId: string): string {
  */
 export default async function AgentTimeoutsPage({ params }: { params: Promise<{ agentName: string }> }) {
     const agentName = await getAgentName(params);
-    const routeTarget = await resolveAgentRouteTarget(agentName);
-
-    if (routeTarget === null) {
-        notFound();
-    }
-
-    if (routeTarget.kind === 'remote') {
-        redirect(routeTarget.url);
-    }
-
-    if (routeTarget.kind === 'pseudo') {
-        redirect(routeTarget.canonicalUrl);
-    }
-
-    const canonicalAgentId = routeTarget.canonicalAgentId;
-    if (agentName !== canonicalAgentId) {
-        redirect(buildCanonicalAgentTimeoutsPath(canonicalAgentId));
-    }
+    const canonicalAgentId = await enforceCanonicalLocalAgentId(agentName, buildCanonicalAgentTimeoutsPath);
 
     const access = await resolveAgentAccess(canonicalAgentId);
     if (!access.isAllowed) {

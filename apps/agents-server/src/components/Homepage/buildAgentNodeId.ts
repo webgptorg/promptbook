@@ -1,5 +1,6 @@
 import type { AgentWithVisibility } from './buildGraphDataTypes';
 import { normalizeServerUrl } from './normalizeServerUrl';
+import { resolveAgentRouteIdentifier } from '../../utils/agentIdentifier';
 
 /**
  * Return the canonical server URL for the agent or the fallback base.
@@ -16,7 +17,7 @@ export const getAgentServerUrl = (agent: AgentWithVisibility, fallbackServerUrl:
  */
 export const buildAgentNodeId = (agent: AgentWithVisibility, fallbackServerUrl: string): string => {
     const serverUrl = getAgentServerUrl(agent, fallbackServerUrl);
-    return `${serverUrl}/${agent.agentName}`;
+    return `${serverUrl}/${resolveAgentRouteIdentifier(agent)}`;
 };
 
 /**

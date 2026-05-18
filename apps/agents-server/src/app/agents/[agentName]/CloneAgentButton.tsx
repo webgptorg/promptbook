@@ -29,7 +29,7 @@ export function CloneAgentButton({ agentName }: CloneAgentButtonProps) {
             return;
         }
 
-        router.push(`/agents/${encodeURIComponent(clonedAgent.agentName)}`);
+        router.push(`/agents/${encodeURIComponent(clonedAgent.permanentId || clonedAgent.agentName)}`);
         router.refresh();
     };
 

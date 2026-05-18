@@ -11,7 +11,15 @@ import {
     getTranspiledAgentExportWarnings,
     type TranspiledAgentExportWarning,
 } from '../../../../utils/transpilers/getTranspiledAgentExportWarnings';
+import { enforceCanonicalLocalAgentId, getAgentName } from '../_utils';
 import { AgentCodePageClient } from './AgentCodePageClient';
+
+/**
+ * Builds canonical transpiled-code export path for one local agent id.
+ */
+function buildCanonicalAgentCodeExportPath(canonicalAgentId: string): string {
+    return `/agents/${encodeURIComponent(canonicalAgentId)}/export-as-transpiled-code`;
+}
 
 /**
  * Handles agent code page.
@@ -21,8 +29,8 @@ export default async function AgentCodePage({ params }: { params: Promise<{ agen
         return <ForbiddenPage />;
     }
 
-    const { agentName: rawAgentName } = await params;
-    const agentName = decodeURIComponent(rawAgentName);
+    const agentIdentifier = await getAgentName(params);
+    const agentName = await enforceCanonicalLocalAgentId(agentIdentifier, buildCanonicalAgentCodeExportPath);
     const { publicUrl } = await $provideServer();
     const collection = await $provideAgentCollectionForServer();
     let agentSource = '' as string_book;

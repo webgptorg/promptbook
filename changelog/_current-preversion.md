@@ -1,3 +1,9 @@
+-   Changed Agents Server agent routing to use stable agent IDs instead of human-readable agent names:
+
+    -   Canonical local agent profile, chat, editor, integration, image, timeout, history, export, and website-integration routes now redirect to `/agents/<AGENT_ID>/...`.
+    -   Updated generated links, QR/share URLs, management API links, homepage/header navigation, TEAM references, and admin gallery links to prefer permanent agent IDs while keeping legacy name routes resolvable.
+    -   Adjusted Agents Server e2e helpers and focused resolver tests to assert ID-based URLs and API paths.
+
 -   Fixed `ptbk agent` git automation for multi-agent runs:
 
     -   Added the `ptbk agent run-multiple --auto-clone` flag and gated GitHub `agent-*` repository cloning behind it.

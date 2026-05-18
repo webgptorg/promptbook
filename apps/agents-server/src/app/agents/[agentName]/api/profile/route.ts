@@ -61,13 +61,14 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
         const isVoiceCallingEnabled = metadata.IS_EXPERIMENTAL_VOICE_CALLING_ENABLED === 'true';
         const isVoiceTtsSttEnabled = metadata.IS_EXPERIMENTAL_VOICE_TTS_STT_ENABLED === 'true';
         const isMetaImageExplicit = Boolean(agentProfile.meta.image);
+        const canonicalAgentId = agentProfile.permanentId || agentName;
         const defaultAgentAvatarVisualId = resolveDefaultAgentAvatarVisualId(
             metadata[DEFAULT_AGENT_AVATAR_VISUAL_METADATA_KEY],
         );
         const agentAvatarVisualId = resolveAgentAvatarVisualId(agentProfile, defaultAgentAvatarVisualId);
         const defaultAvatarImageUrl =
             !isMetaImageExplicit && !resolvedAgentContext.isBookScopedAgent
-                ? `/agents/${encodeURIComponent(agentName)}/images/default-avatar.png`
+                ? `/agents/${encodeURIComponent(canonicalAgentId)}/images/default-avatar.png`
                 : undefined;
 
         if (defaultAvatarImageUrl) {

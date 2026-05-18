@@ -97,7 +97,7 @@ export function useAgentsListNavigationState({
     );
 
     const buildAgentUrl = useCallback(
-        (identifier: string) => `${normalizedPublicUrl}${encodeURIComponent(identifier)}`,
+        (identifier: string) => `${normalizedPublicUrl}agents/${encodeURIComponent(identifier)}`,
         [normalizedPublicUrl],
     );
     const buildAgentEmail = useCallback(

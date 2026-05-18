@@ -296,6 +296,7 @@ function createManagementMenuItems(
  * Creates the logged-in-only menu section.
  *
  * @param agentName - Current routed agent name.
+ * @param agentIdentifier - Stable route identifier for the current agent.
  * @param formatText - Agent-aware text formatter.
  * @param handleRequestVisibilityUpdate - Visibility dialog action.
  * @param integrationLink - Generated integration link metadata.
@@ -306,6 +307,7 @@ function createManagementMenuItems(
  */
 function createAdminMenuItems(
     agentName: string,
+    agentIdentifier: string,
     formatText: FormatAgentContextMenuText,
     handleRequestVisibilityUpdate: () => Promise<void>,
     integrationLink: AgentContextMenuNavigationLink,
@@ -359,13 +361,13 @@ function createAdminMenuItems(
         },
         {
             type: 'link',
-            href: `/agents/${encodeURIComponent(agentName)}/system-message`,
+            href: `/agents/${encodeURIComponent(agentIdentifier)}/system-message`,
             icon: FileTextIcon,
             label: formatText('Show System Message'),
         },
         {
             type: 'link',
-            href: `/agents/${encodeURIComponent(agentName)}/export-as-transpiled-code`,
+            href: `/agents/${encodeURIComponent(agentIdentifier)}/export-as-transpiled-code`,
             icon: DownloadIcon,
             label: formatText('Export Agent'),
         },
@@ -431,6 +433,7 @@ export function useAgentContextMenuItems(props: AgentContextMenuBaseProps): Cont
     );
     const authenticatedMenuItems = createAdminMenuItems(
         agentName,
+        agentIdentifier,
         formatText,
         handleRequestVisibilityUpdate,
         integrationLink,

@@ -20,12 +20,19 @@ import { Color } from '../../../../../../../src/utils/color/Color';
 import { withAlpha } from '../../../../../../../src/utils/color/operators/withAlpha';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
 import { CodePreview } from '../../../../../../_common/components/CodePreview/CodePreview';
-import { getAgentName, getAgentProfile } from '../_utils';
+import { enforceCanonicalLocalAgentId, getAgentName, getAgentProfile } from '../_utils';
 import { getAgentLinks } from '../agentLinks';
 import { ApiKeyIntegrationSections } from './ApiKeyIntegrationSections';
 import { CalendarIntegrationSection } from './CalendarIntegrationSection';
 import { PromptbookSdkTabs } from './PromptbookSdkTabs';
 import { WebsiteIntegrationTabs } from './WebsiteIntegrationTabs';
+
+/**
+ * Builds canonical integration path for one local agent id.
+ */
+function buildCanonicalAgentIntegrationPath(canonicalAgentId: string): string {
+    return `/agents/${encodeURIComponent(canonicalAgentId)}/integration`;
+}
 
 /**
  * Parses boolean metadata values stored as strings.
@@ -78,7 +85,8 @@ type AgentIntegrationPageProps = {
 export default async function AgentIntegrationPage({ params }: AgentIntegrationPageProps) {
     $sideEffect(headers());
 
-    const agentName = await getAgentName(params);
+    const agentIdentifier = await getAgentName(params);
+    const agentName = await enforceCanonicalLocalAgentId(agentIdentifier, buildCanonicalAgentIntegrationPath);
     const currentUser = await getCurrentUser();
     if (!currentUser) {
         return <ForbiddenPage />;

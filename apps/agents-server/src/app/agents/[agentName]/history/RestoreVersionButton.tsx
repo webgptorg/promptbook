@@ -36,7 +36,7 @@ export function RestoreVersionButton({ agentName, historyId }: RestoreVersionBut
             setIsRestoring(true);
             await restoreAgentVersion(agentName, historyId);
             router.refresh();
-            router.push(`/agents/${agentName}`);
+            router.push(`/agents/${encodeURIComponent(agentName)}`);
         } catch (error) {
             console.error('Failed to restore version:', error);
             await showAlert({

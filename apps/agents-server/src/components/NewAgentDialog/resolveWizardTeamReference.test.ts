@@ -2,17 +2,17 @@ import { describe, expect, it } from '@jest/globals';
 import { resolveWizardTeamReference } from './resolveWizardTeamReference';
 
 describe('resolveWizardTeamReference', () => {
-    it('emits compact references for local agents', () => {
+    it('emits canonical URLs for local agents', () => {
         expect(
             resolveWizardTeamReference(
                 {
                     agentName: 'Legal Reviewer',
                     serverUrl: 'https://local.example/',
-                    url: 'https://local.example/agents/Legal%20Reviewer',
+                    url: 'https://local.example/agents/legal-reviewer-123',
                 },
                 'https://local.example',
             ),
-        ).toBe('{Legal Reviewer}');
+        ).toBe('https://local.example/agents/legal-reviewer-123');
     });
 
     it('keeps absolute URLs for federated agents', () => {

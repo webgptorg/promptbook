@@ -15,8 +15,15 @@ import { headers } from 'next/headers';
 import { resolveAgentAvatarImageUrl } from '../../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
 import { keepUnused } from '../../../../../../../src/utils/organization/keepUnused';
-import { getAgentName, getAgentProfile } from '../_utils';
+import { enforceCanonicalLocalAgentId, getAgentName, getAgentProfile } from '../_utils';
 import { SystemMessageBookEditor } from './SystemMessageBookEditor';
+
+/**
+ * Builds canonical system-message path for one local agent id.
+ */
+function buildCanonicalAgentSystemMessagePath(canonicalAgentId: string): string {
+    return `/agents/${encodeURIComponent(canonicalAgentId)}/system-message`;
+}
 
 /**
  * Handles agent system message page.
@@ -29,7 +36,8 @@ export default async function AgentSystemMessagePage({ params }: { params: Promi
     }
 
     const { publicUrl } = await $provideServer();
-    const agentName = await getAgentName(params);
+    const agentIdentifier = await getAgentName(params);
+    const agentName = await enforceCanonicalLocalAgentId(agentIdentifier, buildCanonicalAgentSystemMessagePath);
 
     const collection = await $provideAgentCollectionForServer();
     const baseAgentReferenceResolver = await $provideAgentReferenceResolver();

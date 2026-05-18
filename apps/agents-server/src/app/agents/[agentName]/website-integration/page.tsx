@@ -10,7 +10,7 @@ import { headers } from 'next/headers';
 import { spaceTrim } from 'spacetrim';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
 import { just } from '../../../../../../../src/utils/organization/just';
-import { getAgentProfile } from '../_utils';
+import { enforceCanonicalLocalAgentId, getAgentName, getAgentProfile } from '../_utils';
 import { WebsiteIntegrationTabs } from '../integration/WebsiteIntegrationTabs';
 
 /**
@@ -29,6 +29,13 @@ function formatIntegrationPageComment(integrationPageUrl: string, style: 'slash'
 }
 
 /**
+ * Builds canonical website-integration path for one local agent id.
+ */
+function buildCanonicalAgentWebsiteIntegrationPath(canonicalAgentId: string): string {
+    return `/agents/${encodeURIComponent(canonicalAgentId)}/website-integration`;
+}
+
+/**
  * Renders website integration guidance for a single agent.
  *
  * @param params - Route params containing the agent name.
@@ -36,8 +43,8 @@ function formatIntegrationPageComment(integrationPageUrl: string, style: 'slash'
  */
 export default async function WebsiteIntegrationAgentPage({ params }: { params: Promise<{ agentName: string }> }) {
     $sideEffect(headers());
-    let { agentName } = await params;
-    agentName = decodeURIComponent(agentName);
+    const agentIdentifier = await getAgentName(params);
+    const agentName = await enforceCanonicalLocalAgentId(agentIdentifier, buildCanonicalAgentWebsiteIntegrationPath);
     const currentUser = await getCurrentUser();
     if (!currentUser) {
         return <ForbiddenPage />;

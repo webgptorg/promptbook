@@ -78,10 +78,10 @@ test.describe('Agents Server chat history navigation', () => {
         );
         const delayedProfileRequest = await ChatHistoryNavigationSupport.delayNextAgentProfileRequest(
             page,
-            agent.agentName,
+            agent.agentId,
         );
 
-        await page.goto(`/agents/${encodeURIComponent(agent.agentName)}`, {
+        await page.goto(`/agents/${encodeURIComponent(agent.agentId)}`, {
             waitUntil: 'domcontentloaded',
         });
         await delayedProfileRequest.waitUntilStarted;
@@ -105,11 +105,11 @@ test.describe('Agents Server chat history navigation', () => {
         const agent = await createChatHistoryTestAgent(page, 'E2E Optimistic First Message');
         const delayedMessageCreate = await ChatHistoryNavigationSupport.delayNextUserChatMessageCreateRequest(
             page,
-            agent.agentName,
+            agent.agentId,
         );
 
         await page.goto(
-            `/agents/${encodeURIComponent(agent.agentName)}?message=${encodeURIComponent('Hello from profile page')}`,
+            `/agents/${encodeURIComponent(agent.agentId)}?message=${encodeURIComponent('Hello from profile page')}`,
         );
         const optimisticMessageBubble = page
             .locator('p')
@@ -140,7 +140,7 @@ test.describe('Agents Server chat history navigation', () => {
         const agent = await createChatHistoryTestAgent(page, 'E2E Rapid Consecutive Sends');
         const delayedFirstMessageCreate = await ChatHistoryNavigationSupport.delayNextUserChatMessageCreateRequest(
             page,
-            agent.agentName,
+            agent.agentId,
         );
         const dialogMessages: Array<string> = [];
         const messageCreateStatuses: Array<number> = [];
@@ -152,14 +152,14 @@ test.describe('Agents Server chat history navigation', () => {
         page.on('response', (response) => {
             if (
                 response.request().method() === 'POST' &&
-                ChatHistoryNavigationSupport.isMatchingUserChatMessageCreateRequest(response.url(), agent.agentName)
+                ChatHistoryNavigationSupport.isMatchingUserChatMessageCreateRequest(response.url(), agent.agentId)
             ) {
                 messageCreateStatuses.push(response.status());
             }
         });
 
         await page.goto(
-            `/agents/${encodeURIComponent(agent.agentName)}?message=${encodeURIComponent('First rapid message')}`,
+            `/agents/${encodeURIComponent(agent.agentId)}?message=${encodeURIComponent('First rapid message')}`,
         );
         await delayedFirstMessageCreate.waitUntilStarted;
 
@@ -200,9 +200,9 @@ test.describe('Agents Server chat history navigation', () => {
 
     test('navigates from the profile page when opening an existing chat preview card', async ({ page }) => {
         const agent = await createChatHistoryTestAgent(page, 'E2E Profile My Chats Navigation');
-        const existingChat = await AgentManagementApi.createSeededChat(page, agent.agentName, 'Alpha seeded chat');
+        const existingChat = await AgentManagementApi.createSeededChat(page, agent.agentId, 'Alpha seeded chat');
 
-        await page.goto(`/agents/${encodeURIComponent(agent.agentName)}`);
+        await page.goto(`/agents/${encodeURIComponent(agent.agentId)}`);
         await expect(page.getByRole('link', { name: /Alpha seeded chat/i })).toBeVisible();
 
         await page.getByRole('link', { name: /Alpha seeded chat/i }).click();
@@ -225,10 +225,10 @@ test.describe('Agents Server chat history navigation', () => {
 
         const delayedQuickButtonSend = await ChatHistoryNavigationSupport.delayNextUserChatMessageCreateRequest(
             page,
-            agent.agentName,
+            agent.agentId,
         );
 
-        await page.goto(`/agents/${encodeURIComponent(agent.agentName)}`);
+        await page.goto(`/agents/${encodeURIComponent(agent.agentId)}`);
         await expect(page.getByRole('button', { name: DEFAULT_QUICK_BUTTON_LABEL })).toBeVisible();
 
         await page.getByRole('button', { name: DEFAULT_QUICK_BUTTON_LABEL }).click();
@@ -258,10 +258,10 @@ test.describe('Agents Server chat history navigation', () => {
 
         const delayedManualSend = await ChatHistoryNavigationSupport.delayNextUserChatMessageCreateRequest(
             page,
-            agent.agentName,
+            agent.agentId,
         );
 
-        await page.goto(`/agents/${encodeURIComponent(agent.agentName)}`);
+        await page.goto(`/agents/${encodeURIComponent(agent.agentId)}`);
         await expect(page.getByPlaceholder('Write a message...')).toBeVisible();
         await page.getByPlaceholder('Write a message...').fill(PROFILE_COMPOSER_MESSAGE);
         await page.locator('button[data-button-type="call-to-action"]').last().click();
@@ -290,10 +290,10 @@ test.describe('Agents Server chat history navigation', () => {
         const agent = await createChatHistoryTestAgent(page, 'E2E Chat Quick Button Send');
         const delayedMessageCreate = await ChatHistoryNavigationSupport.delayNextUserChatMessageCreateRequest(
             page,
-            agent.agentName,
+            agent.agentId,
         );
 
-        await page.goto(ChatHistoryNavigationSupport.buildAgentBrowserChatUrl(agent.agentName));
+        await page.goto(ChatHistoryNavigationSupport.buildAgentBrowserChatUrl(agent.agentId));
         await expect(page.getByRole('button', { name: DEFAULT_QUICK_BUTTON_LABEL })).toBeVisible();
         await ChatHistoryNavigationExpectation.expectSelectedDurableChatUrl(
             page,
@@ -326,11 +326,11 @@ test.describe('Agents Server chat history navigation', () => {
         page,
     }) => {
         const agent = await createChatHistoryTestAgent(page, 'E2E Chat Navigation New Chat');
-        const firstChat = await AgentManagementApi.createSeededChat(page, agent.agentName, 'Alpha seeded chat');
-        const secondChat = await AgentManagementApi.createSeededChat(page, agent.agentName, 'Bravo seeded chat');
+        const firstChat = await AgentManagementApi.createSeededChat(page, agent.agentId, 'Alpha seeded chat');
+        const secondChat = await AgentManagementApi.createSeededChat(page, agent.agentId, 'Bravo seeded chat');
 
         await page.goto(
-            ChatHistoryNavigationSupport.buildAgentBrowserChatUrl(agent.agentName, { chatId: firstChat.id }),
+            ChatHistoryNavigationSupport.buildAgentBrowserChatUrl(agent.agentId, { chatId: firstChat.id }),
         );
         const newChatLink = page.getByRole('link', { name: 'New chat' }).first();
         await expect(newChatLink).toBeVisible();
@@ -343,7 +343,7 @@ test.describe('Agents Server chat history navigation', () => {
 
         const delayedRefresh = await ChatHistoryNavigationSupport.delayNextUserChatSnapshotRequest(
             page,
-            agent.agentName,
+            agent.agentId,
             firstChat.id,
         );
 
@@ -387,11 +387,11 @@ test.describe('Agents Server chat history navigation', () => {
 
     test('creates a fresh chat when the durable route is opened directly with ?chat=new', async ({ page }) => {
         const agent = await createChatHistoryTestAgent(page, 'E2E Chat Direct New Route');
-        const firstChat = await AgentManagementApi.createSeededChat(page, agent.agentName, 'Alpha seeded chat');
-        const secondChat = await AgentManagementApi.createSeededChat(page, agent.agentName, 'Bravo seeded chat');
+        const firstChat = await AgentManagementApi.createSeededChat(page, agent.agentId, 'Alpha seeded chat');
+        const secondChat = await AgentManagementApi.createSeededChat(page, agent.agentId, 'Bravo seeded chat');
 
         await page.goto(
-            ChatHistoryNavigationSupport.buildAgentBrowserChatUrl(agent.agentName, { forceNewChat: true }),
+            ChatHistoryNavigationSupport.buildAgentBrowserChatUrl(agent.agentId, { forceNewChat: true }),
             {
                 waitUntil: 'domcontentloaded',
             },
@@ -412,19 +412,19 @@ test.describe('Agents Server chat history navigation', () => {
         page,
     }) => {
         const agent = await createChatHistoryTestAgent(page, 'E2E Chat Navigation Last Click Wins');
-        const alphaChat = await AgentManagementApi.createSeededChat(page, agent.agentName, 'Alpha history chat');
-        const bravoChat = await AgentManagementApi.createSeededChat(page, agent.agentName, 'Bravo history chat');
-        const charlieChat = await AgentManagementApi.createSeededChat(page, agent.agentName, 'Charlie history chat');
+        const alphaChat = await AgentManagementApi.createSeededChat(page, agent.agentId, 'Alpha history chat');
+        const bravoChat = await AgentManagementApi.createSeededChat(page, agent.agentId, 'Bravo history chat');
+        const charlieChat = await AgentManagementApi.createSeededChat(page, agent.agentId, 'Charlie history chat');
 
         await page.goto(
-            ChatHistoryNavigationSupport.buildAgentBrowserChatUrl(agent.agentName, { chatId: alphaChat.id }),
+            ChatHistoryNavigationSupport.buildAgentBrowserChatUrl(agent.agentId, { chatId: alphaChat.id }),
         );
         await expect(page.getByRole('button', { name: /Bravo history chat/i })).toBeVisible();
         await expect(page.getByRole('button', { name: /Charlie history chat/i })).toBeVisible();
 
         const delayedBravoNavigation = await ChatHistoryNavigationSupport.delayNextUserChatSnapshotRequest(
             page,
-            agent.agentName,
+            agent.agentId,
             bravoChat.id,
         );
 

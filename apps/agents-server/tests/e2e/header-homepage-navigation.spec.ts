@@ -86,7 +86,7 @@ test.describe('header homepage navigation', () => {
             persona: HEADER_HOMEPAGE_PERSONA,
         });
 
-        await page.goto(`/agents/${encodeURIComponent(agent.agentName)}`);
+        await page.goto(`/agents/${encodeURIComponent(agent.agentId)}`);
 
         const headerHomepageLink = page.getByRole('banner').getByRole('link', { name: HOMEPAGE_BRANDING_LINK_NAME });
         await expect(headerHomepageLink).toBeVisible();
@@ -106,7 +106,7 @@ test.describe('header homepage navigation', () => {
             persona: HEADER_HOMEPAGE_PERSONA,
         });
 
-        await page.goto(`/agents/${encodeURIComponent(agent.agentName)}`);
+        await page.goto(`/agents/${encodeURIComponent(agent.agentId)}`);
 
         const mobileNavigation = await openMobileHeaderDrawer(page);
         await mobileNavigation.getByRole('link', { name: HOMEPAGE_BRANDING_LINK_NAME }).click();

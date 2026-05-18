@@ -9,8 +9,15 @@ import { headers } from 'next/headers';
 import { resolveSpeechRecognitionLanguage } from '../../../../../../../src/utils/language/getBrowserPreferredSpeechRecognitionLanguage';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
 import { DeletedAgentBanner } from '../../../../components/DeletedAgentBanner';
-import { isAgentDeleted } from '../_utils';
+import { enforceCanonicalLocalAgentId, getAgentName, isAgentDeleted } from '../_utils';
 import { AgentBookAndChat } from './AgentBookAndChat';
+
+/**
+ * Builds canonical split book/chat path for one local agent id.
+ */
+function buildCanonicalAgentBookAndChatPath(canonicalAgentId: string): string {
+    return `/agents/${encodeURIComponent(canonicalAgentId)}/book+chat`;
+}
 
 /**
  * Handles agent book and chat page.
@@ -19,8 +26,8 @@ export default async function AgentBookAndChatPage({ params }: { params: Promise
     const requestHeaders = await headers();
     $sideEffect(requestHeaders);
 
-    let { agentName } = await params;
-    agentName = decodeURIComponent(agentName);
+    const agentIdentifier = await getAgentName(params);
+    const agentName = await enforceCanonicalLocalAgentId(agentIdentifier, buildCanonicalAgentBookAndChatPath);
 
     const isDeleted = await isAgentDeleted(agentName);
 
@@ -38,7 +45,7 @@ export default async function AgentBookAndChatPage({ params }: { params: Promise
 
     const collection = await $provideAgentCollectionForServer();
     const agentSource = await collection.getAgentSource(agentName);
-    const agentUrl = `/agents/${agentName}`;
+    const agentUrl = `/agents/${encodeURIComponent(agentName)}`;
     const thinkingMessages = await getThinkingMessages();
     const speechRecognitionLanguage = resolveSpeechRecognitionLanguage({
         acceptLanguageHeader: requestHeaders.get('accept-language'),

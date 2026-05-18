@@ -5,6 +5,7 @@ import { getCurrentUser } from '@/src/utils/getCurrentUser';
 import { getAgentNaming } from '@/src/utils/getAgentNaming';
 import { HistoryIcon } from 'lucide-react';
 import { RestoreVersionButton } from './RestoreVersionButton';
+import { enforceCanonicalLocalAgentId, getAgentName } from '../_utils';
 
 /**
  * Generates metadata for the agent history page.
@@ -19,6 +20,13 @@ export async function generateMetadata() {
 }
 
 /**
+ * Builds canonical history path for one local agent id.
+ */
+function buildCanonicalAgentHistoryPath(canonicalAgentId: string): string {
+    return `/agents/${encodeURIComponent(canonicalAgentId)}/history`;
+}
+
+/**
  * Handles agent history page.
  */
 export default async function AgentHistoryPage({ params }: { params: Promise<{ agentName: string }> }) {
@@ -26,10 +34,10 @@ export default async function AgentHistoryPage({ params }: { params: Promise<{ a
         return <ForbiddenPage />;
     }
 
-    const { agentName } = await params;
+    const agentIdentifier = await getAgentName(params);
+    const agentName = await enforceCanonicalLocalAgentId(agentIdentifier, buildCanonicalAgentHistoryPath);
     const collection = await $provideAgentCollectionForServer();
-    const agentId = await collection.getAgentPermanentId(agentName);
-    const history = await collection.listAgentHistory(agentId);
+    const history = await collection.listAgentHistory(agentName);
     const agentNaming = await getAgentNaming();
 
     return (

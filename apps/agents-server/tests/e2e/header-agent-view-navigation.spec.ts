@@ -32,19 +32,19 @@ test.describe('header agent-view navigation', () => {
             label: 'E2E Header Agent View Navigation',
             persona: HEADER_AGENT_VIEW_PERSONA,
         });
-        const escapedAgentName = escapeForRegExp(agent.agentName);
+        const escapedAgentId = escapeForRegExp(agent.agentId);
         const header = page.getByRole('banner');
 
-        await page.goto(`/agents/${encodeURIComponent(agent.agentName)}/chat`);
+        await page.goto(`/agents/${encodeURIComponent(agent.agentId)}/chat`);
 
         await header.getByRole('button', { name: 'Chat', exact: true }).click();
         await expect(page.getByRole('link', { name: 'Profile', exact: true })).toBeVisible();
         await page.getByRole('link', { name: 'Profile', exact: true }).click();
-        await expect(page).toHaveURL(new RegExp(`/agents/${escapedAgentName}$`));
+        await expect(page).toHaveURL(new RegExp(`/agents/${escapedAgentId}$`));
 
         await header.getByRole('button', { name: 'Profile', exact: true }).click();
         await expect(page.getByRole('link', { name: 'Chat', exact: true })).toBeVisible();
         await page.getByRole('link', { name: 'Chat', exact: true }).click();
-        await expect(page).toHaveURL(new RegExp(`/agents/${escapedAgentName}/chat(?:\\?|$)`));
+        await expect(page).toHaveURL(new RegExp(`/agents/${escapedAgentId}/chat(?:\\?|$)`));
     });
 });

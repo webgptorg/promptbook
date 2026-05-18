@@ -1,7 +1,7 @@
 import { string_agent_name, string_agent_permanent_id } from '@promptbook-local/types';
 import { BookOpenIcon, CodeIcon, GlobeIcon, MessageSquareIcon, NotebookPenIcon } from 'lucide-react';
 import type { ComponentType } from 'react';
-import { buildFreshAgentChatHref } from '../../../utils/agentRouting/agentRouteHrefs';
+import { buildAgentProfileHref, buildFreshAgentChatHref } from '../../../utils/agentRouting/agentRouteHrefs';
 
 /**
  * Identifier for agent-specific navigation links.
@@ -42,6 +42,8 @@ export const getAgentLinks = (
     permanentId: string_agent_permanent_id | string_agent_name,
     formatText: AgentLinkFormatter = identityFormatter,
 ): AgentLink[] => {
+    const profileHref = buildAgentProfileHref(permanentId);
+
     return [
         {
             id: 'chat',
@@ -53,21 +55,21 @@ export const getAgentLinks = (
         {
             id: 'book',
             title: formatText('Edit Book'),
-            href: `/agents/${permanentId}/book`,
+            href: `${profileHref}/book`,
             icon: NotebookPenIcon,
             description: formatText("Edit the agent's knowledge book."),
         },
         {
             id: 'integration',
             title: formatText('Integration'),
-            href: `/agents/${permanentId}/integration`,
+            href: `${profileHref}/integration`,
             icon: CodeIcon,
             description: formatText('Learn how to integrate this agent into your applications.'),
         },
         {
             id: 'website',
             title: formatText('Website Integration'),
-            href: `/agents/${permanentId}/website-integration`,
+            href: `${profileHref}/website-integration`,
             icon: GlobeIcon,
             description: formatText('Embed the agent chat widget directly into your React application.'),
         },

@@ -1,5 +1,6 @@
 import type { AgentWithVisibility } from './buildGraphDataTypes';
 import { getAgentServerUrl } from './buildAgentNodeId';
+import { resolveAgentRouteIdentifier } from '../../utils/agentIdentifier';
 
 /**
  * Normalize a target agent URL from a capability link.
@@ -33,8 +34,8 @@ export const matchesAgentUrl = (
 ): boolean => {
     const baseUrl = getAgentServerUrl(agent, fallbackServerUrl);
     const nameUrl = `${baseUrl}/agents/${agent.agentName}`;
-    const permanentUrl = agent.permanentId ? `${baseUrl}/agents/${agent.permanentId}` : null;
+    const routeUrl = `${baseUrl}/agents/${resolveAgentRouteIdentifier(agent)}`;
     const explicitUrl = (agent as AgentWithVisibility & { url?: string }).url;
 
-    return nameUrl === targetUrl || permanentUrl === targetUrl || explicitUrl === targetUrl;
+    return nameUrl === targetUrl || routeUrl === targetUrl || explicitUrl === targetUrl;
 };

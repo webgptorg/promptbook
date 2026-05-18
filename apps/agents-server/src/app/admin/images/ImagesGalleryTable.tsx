@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
+import { buildAgentProfileHref } from '../../../utils/agentRouting/agentRouteHrefs';
 import type { ImageWithAgent } from './actions';
 import { ImagesGalleryParametersBadges } from './ImagesGalleryParametersBadges';
 import { ImagesGalleryPromptCopyButton } from './ImagesGalleryPromptCopyButton';
@@ -70,7 +71,10 @@ function ImagesGalleryTableRow({ image, copiedId, handlePromptCopy }: ImagesGall
             </td>
             <td className="px-6 py-4">
                 {image.agent ? (
-                    <Link href={`/${image.agent.agentName}`} className="text-blue-600 hover:underline">
+                    <Link
+                        href={buildAgentProfileHref(image.agent.permanentId || image.agent.agentName)}
+                        className="text-blue-600 hover:underline"
+                    >
                         {image.agent.agentName}
                     </Link>
                 ) : (

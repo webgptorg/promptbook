@@ -32,6 +32,7 @@ const STORY_EXPORT_FORMATS = [
 type AgentsApiResponse = {
     agents?: Array<{
         agentName: string;
+        permanentId?: string;
         meta?: {
             fullname?: string | null;
         };
@@ -73,7 +74,7 @@ export function StoryClient() {
             const data = (await response.json()) as AgentsApiResponse;
             const mappedAgents =
                 data.agents?.map((agent) => ({
-                    agentName: agent.agentName,
+                    agentName: agent.permanentId || agent.agentName,
                     label: agent.meta?.fullname?.trim() || agent.agentName,
                 })) || [];
 

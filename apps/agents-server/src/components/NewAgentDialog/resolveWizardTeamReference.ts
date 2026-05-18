@@ -24,8 +24,8 @@ type ResolveWizardTeamReferenceAgent = {
 /**
  * Resolves the TEAM commitment value emitted when the user selects one agent card in the wizard.
  *
- * Local agents keep compact `{Agent}` references so the resulting source stays human-readable,
- * while federated agents keep their absolute URLs for unambiguous cross-server routing.
+ * Selected agents keep absolute URLs so generated TEAM references stay stable across renames
+ * and duplicate display names.
  *
  * @param agent - Selected agent card.
  * @param currentServerUrl - Canonical URL of the current Agents Server instance.
@@ -36,7 +36,7 @@ export function resolveWizardTeamReference(agent: ResolveWizardTeamReferenceAgen
     const normalizedAgentServerUrl = normalizeServerUrl(agent.serverUrl || currentServerUrl);
 
     if (normalizedAgentServerUrl === normalizedCurrentServerUrl) {
-        return normalizeTeamReferenceInput(agent.agentName);
+        return normalizeTeamReferenceInput(agent.url);
     }
 
     return agent.url;
