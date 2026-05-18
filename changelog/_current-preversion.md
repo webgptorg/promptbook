@@ -1,3 +1,9 @@
+-   Fixed Agents Server chat export to **React** so chats with `undefined` metadata now download correctly instead of failing during serialization.
+
+    -   Taught the shared Promptbook JavaScript serializer to emit the `undefined` literal for JSX/JavaScript exports instead of crashing on optional chat fields.
+    -   Added a small Promptbook branding comment with engine and Book language version information to exported React chat files.
+    -   Added regression coverage for both the generic serializer and the React chat export format.
+
 -   Enhanced the rich terminal UI for `ptbk agent run-*` and let `run-multiple` answer one queued message per watched agent in parallel:
 
     -   Changed the `Agents` panel to render a real table with colored `Idle` / `Answering` statuses plus separate `Agent name` and `URL` columns.

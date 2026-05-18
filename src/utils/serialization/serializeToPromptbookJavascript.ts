@@ -6,6 +6,8 @@ import type { TODO_any } from '../organization/TODO_any';
 
 /**
  * Type describing serialize to promptbook javascript return.
+ *
+ * @private Internal return type for `serializeToPromptbookJavascript`.
  */
 type SerializeToPromptbookJavascriptReturn = {
     /**
@@ -28,7 +30,9 @@ export function serializeToPromptbookJavascript(value: TODO_any): SerializeToPro
     let serializedValue: string_javascript;
     let imports: string_javascript[] = [];
 
-    if (value === null || value === undefined || typeof value === 'number' || typeof value === 'boolean') {
+    if (value === undefined) {
+        serializedValue = 'undefined';
+    } else if (value === null || typeof value === 'number' || typeof value === 'boolean') {
         serializedValue = JSON.stringify(value, null, 4);
     } else if (Array.isArray(value)) {
         const serializedItems = value.map((item) => serializeToPromptbookJavascript(item));
