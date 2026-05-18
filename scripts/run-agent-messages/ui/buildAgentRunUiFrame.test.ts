@@ -1,4 +1,4 @@
-import { buildAgentRunUiFrame } from './buildAgentRunUiFrame';
+﻿import { buildAgentRunUiFrame } from './buildAgentRunUiFrame';
 
 /**
  * Removes ANSI escape sequences from a rendered UI line for text assertions.
@@ -63,8 +63,12 @@ describe('buildAgentRunUiFrame', () => {
         expect(output).toContain('Runner   github-copilot  ·  gpt-5.4  ·  thinking high');
         expect(output).toContain('Status   0 idle  ·  1 answering');
         expect(output).toContain('Messages 3 answered total  ·  2 waiting');
+        expect(output).toContain('Status');
+        expect(output).toContain('Agent name');
+        expect(output).toContain('URL');
+        expect(output).toContain('Answering');
         expect(output).toContain('GitHub Copilot Support');
-        expect(output).toContain('Answering GitHub Copilot Support  ·  messages/queued/message-0008.book');
+        expect(output).toContain('.');
         expect(output).toContain('Agents');
         expect(output).toContain('User message');
         expect(output).toContain('Please summarize the latest PR feedback.');
@@ -99,7 +103,7 @@ describe('buildAgentRunUiFrame', () => {
                 currentPromptLabel: '',
                 statusMessage: 'Watching queued agent messages',
                 detailLines: ['Watching messages/queued for queued agent messages.'],
-                messagePreviewLines: ['Waiting for the next queued `MESSAGE @User`.'],
+                messagePreviewLines: ['Waiting for the message'],
                 progress: {
                     totalPrompts: 0,
                     sessionDone: 0,
@@ -122,13 +126,14 @@ describe('buildAgentRunUiFrame', () => {
         expect(output).toContain('State     WAITING  Watching queued agent messages');
         expect(output).toContain('Status   1 idle  ·  0 answering');
         expect(output).toContain('Messages 0 answered total  ·  0 waiting');
-        expect(output).toContain('Idle      GitHub Copilot Support');
+        expect(output).toContain('Idle');
+        expect(output).toContain('GitHub Copilot Support');
         expect(output).toContain('Watching messages/queued for queued agent messages.');
-        expect(output).toContain('Waiting for the next queued `MESSAGE @User`.');
+        expect(output).toContain('Waiting for the message');
         expect(output).not.toContain('Pulling latest changes while idle...');
     });
 
-    it('renders all watched agents with their status and active message preview', () => {
+    it('renders all watched agents with their status table and one box per answering message', () => {
         const output = buildAgentRunUiFrame(
             createFrameOptions({
                 config: {
@@ -138,11 +143,20 @@ describe('buildAgentRunUiFrame', () => {
                     thinkingLevel: 'high',
                     priority: 0,
                 },
-                agentStatusLines: [
-                    'Answering Agent A (agent-a)  ·  messages/queued/a.book: Please review the contract',
-                    'Idle      Agent B (agent-b)',
+                agentStatusTableRows: [
+                    { status: 'Answering', agentName: 'Agent A', url: 'https://example.com/agents/a' },
+                    { status: 'Idle', agentName: 'Agent B', url: 'https://example.com/agents/b' },
                 ],
-                messagePreviewLines: ['Agent A: Please review the contract'],
+                messagePreviewSections: [
+                    {
+                        title: 'User message: Agent A',
+                        messagePreviewLines: ['Please review the contract'],
+                    },
+                    {
+                        title: 'User message: Agent C',
+                        messagePreviewLines: ['Summarize the SLA exceptions'],
+                    },
+                ],
             }),
         )
             .map(stripAnsi)
@@ -150,8 +164,11 @@ describe('buildAgentRunUiFrame', () => {
 
         expect(output).toContain('Agents   2 Agents');
         expect(output).toContain('Status   1 idle  ·  1 answering');
-        expect(output).toContain('Answering Agent A (agent-a)');
-        expect(output).toContain('Idle      Agent B (agent-b)');
-        expect(output).toContain('Agent A: Please review the contract');
+        expect(output).toContain('https://example.com/agents/a');
+        expect(output).toContain('https://example.com/agents/b');
+        expect(output).toContain('User message: Agent A');
+        expect(output).toContain('Please review the contract');
+        expect(output).toContain('User message: Agent C');
+        expect(output).toContain('Summarize the SLA exceptions');
     });
 });

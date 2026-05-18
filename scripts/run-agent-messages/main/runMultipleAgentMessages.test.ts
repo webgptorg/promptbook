@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, rm, writeFile } from 'fs/promises';
+﻿import { mkdir, mkdtemp, rm, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import type { AgentRunOptions } from '../AgentRunOptions';
@@ -112,8 +112,36 @@ describe('runMultipleAgentMessages', () => {
         expect((tickAgentMessages as jest.MockedFunction<typeof tickAgentMessages>).mock.calls[0]?.[1]).toEqual(
             expect.objectContaining({
                 isQuietWhenIdle: true,
+                projectPath: join(temporaryRootDirectory, 'agent-b'),
             }),
         );
+    });
+
+    it('runs one queued message per direct child repository in parallel within one watch iteration', async () => {
+        temporaryRootDirectory = await createTemporaryRootDirectory();
+        await mkdir(join(temporaryRootDirectory, 'agent-a', 'messages', 'queued'), { recursive: true });
+        await mkdir(join(temporaryRootDirectory, 'agent-b', 'messages', 'queued'), { recursive: true });
+        await writeFile(join(temporaryRootDirectory, 'agent-a', 'agent.book'), 'Agent A', 'utf-8');
+        await writeFile(join(temporaryRootDirectory, 'agent-b', 'agent.book'), 'Agent B', 'utf-8');
+        await writeFile(join(temporaryRootDirectory, 'agent-a', 'messages', 'queued', 'question-a.book'), 'MESSAGE @User\nA\n', 'utf-8');
+        await writeFile(join(temporaryRootDirectory, 'agent-b', 'messages', 'queued', 'question-b.book'), 'MESSAGE @User\nB\n', 'utf-8');
+
+        process.chdir(temporaryRootDirectory);
+
+        const loopStates = [true, false];
+        await runMultipleAgentMessages(createAgentRunOptions(), {
+            shouldContinue: () => loopStates.shift() ?? false,
+        });
+
+        expect(tickAgentMessages).toHaveBeenCalledTimes(2);
+        expect(
+            (tickAgentMessages as jest.MockedFunction<typeof tickAgentMessages>).mock.calls.map(
+                (call) => call[1]?.projectPath,
+            ),
+        ).toEqual([
+            join(temporaryRootDirectory, 'agent-a'),
+            join(temporaryRootDirectory, 'agent-b'),
+        ]);
     });
 
     it('keeps synchronizing GitHub while waiting for the first local agent repository and starts watching the cloned repository', async () => {
@@ -174,7 +202,6 @@ describe('runMultipleAgentMessages', () => {
             >
         ).mockImplementation(async ({ projectPath }) => {
             pulledProjectPaths.push(projectPath);
-            expect(process.cwd()).toBe(projectPath);
 
             if (projectPath.endsWith('agent-b')) {
                 await writeFile(

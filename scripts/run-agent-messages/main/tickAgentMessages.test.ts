@@ -1,4 +1,4 @@
-import { appendFile, mkdir, mkdtemp, readFile, rm, writeFile } from 'fs/promises';
+﻿import { appendFile, mkdir, mkdtemp, readFile, rm, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { UNCERTAIN_USAGE } from '../../../src/execution/utils/usage-constants';
@@ -9,7 +9,6 @@ import {
     captureChangedFilesSnapshot,
     normalizeLineEndingsInFilesChangedSinceSnapshot,
 } from '../../run-codex-prompts/common/normalizeLineEndingsInChangedFiles';
-import { withPromptRuntimeLog } from '../../run-codex-prompts/common/runGoScript/withPromptRuntimeLog';
 import { printAgentGitIdentityTipAtProcessExitIfNeeded } from '../../run-codex-prompts/git/agentGitIdentity';
 import { commitChanges } from '../../run-codex-prompts/git/commitChanges';
 import { resolvePromptRunner } from '../../run-codex-prompts/main/resolvePromptRunner';
@@ -200,6 +199,7 @@ describe('tickAgentMessages', () => {
         expect(commitChanges).toHaveBeenCalledWith('Answering message question.book', {
             autoPush: true,
             includePaths: ['messages/finished/question.book'],
+            projectPath: temporaryProjectPath,
         });
         expect(printAgentGitIdentityTipAtProcessExitIfNeeded).toHaveBeenCalled();
     });
@@ -220,6 +220,7 @@ describe('tickAgentMessages', () => {
         expect(commitChanges).toHaveBeenCalledWith('Answering message tracked.book', {
             autoPush: false,
             includePaths: ['messages/queued/tracked.book', 'messages/finished/tracked.book'],
+            projectPath: temporaryProjectPath,
         });
     });
 

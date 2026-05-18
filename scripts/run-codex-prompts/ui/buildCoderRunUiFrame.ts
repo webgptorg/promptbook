@@ -1,4 +1,4 @@
-import colors from 'colors';
+﻿import colors from 'colors';
 import type { CoderRunPauseState } from '../common/waitForPause';
 import type { CoderRunConfig, CoderRunPhase, CoderRunProgressSnapshot } from './CoderRunUiState';
 import { buildCoderRunOctopusVisual } from './buildCoderRunOctopusVisual';
@@ -47,11 +47,30 @@ export type BuildCoderRunUiFrameOptions = {
     readonly statusMessage: string;
     readonly detailLines: readonly string[];
     readonly messagePreviewLines?: readonly string[];
+    readonly messagePreviewSections?: readonly AgentRunMessagePreviewSection[];
     readonly agentStatusLines?: readonly string[];
+    readonly agentStatusTableRows?: readonly AgentRunStatusTableRow[];
     readonly pendingEnterLabel?: string;
     readonly agentOutputLines: readonly string[];
     readonly errors: readonly string[];
     readonly progress: CoderRunProgressSnapshot;
+};
+
+/**
+ * Structured row rendered in the agent-run `Agents` table.
+ */
+export type AgentRunStatusTableRow = {
+    readonly status: 'Idle' | 'Answering';
+    readonly agentName: string;
+    readonly url: string;
+};
+
+/**
+ * Structured user-message panel rendered by the agent-run dashboard.
+ */
+export type AgentRunMessagePreviewSection = {
+    readonly title: string;
+    readonly messagePreviewLines: readonly string[];
 };
 
 /**

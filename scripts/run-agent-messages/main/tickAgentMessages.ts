@@ -1,4 +1,4 @@
-import moment from 'moment';
+﻿import moment from 'moment';
 import colors from 'colors';
 import {
     captureChangedFilesSnapshot,
@@ -13,6 +13,10 @@ import type { PromptRunner } from '../../run-codex-prompts/runners/types/PromptR
 import type { PromptStats } from '../../run-codex-prompts/prompts/types/PromptStats';
 import { runPromptWithTestFeedback } from '../../run-codex-prompts/testing/runPromptWithTestFeedback';
 import { renderCoderRunUi, type CoderRunUiHandle } from '../../run-codex-prompts/ui/renderCoderRunUi';
+import type {
+    AgentRunMessagePreviewSection,
+    AgentRunStatusTableRow,
+} from '../../run-codex-prompts/ui/buildCoderRunUiFrame';
 import type { AgentRunOptions } from '../AgentRunOptions';
 import { isGitPathTracked } from '../git/isGitPathTracked';
 import type { AgentMessageFile } from '../messages/AgentMessageFile';
@@ -47,6 +51,7 @@ export type AgentTickResult = {
  */
 export type TickAgentMessagesOptions = {
     readonly isQuietWhenIdle?: boolean;
+    readonly projectPath?: string;
     readonly uiHandle?: CoderRunUiHandle;
     readonly uiPresentation?: AgentTickUiPresentation;
 };
@@ -55,12 +60,17 @@ export type TickAgentMessagesOptions = {
  * Optional rich UI presentation overrides used by shared multi-agent sessions.
  */
 export type AgentTickUiPresentation = {
+    readonly isSharedDashboard?: boolean;
     readonly sessionAgentName?: string;
     readonly agentStatusLines?: readonly string[];
+    readonly agentStatusTableRows?: readonly AgentRunStatusTableRow[];
     readonly messagePreviewLines?: readonly string[];
+    readonly messagePreviewSections?: readonly AgentRunMessagePreviewSection[];
     readonly progressStats?: PromptStats;
     readonly completedAgentStatusLines?: readonly string[];
+    readonly completedAgentStatusTableRows?: readonly AgentRunStatusTableRow[];
     readonly completedMessagePreviewLines?: readonly string[];
+    readonly completedMessagePreviewSections?: readonly AgentRunMessagePreviewSection[];
     readonly completedProgressStats?: PromptStats;
 };
 
@@ -73,7 +83,7 @@ export async function tickAgentMessages(
 ): Promise<AgentTickResult> {
     validateAgentRunOptions(options);
 
-    const projectPath = process.cwd();
+    const projectPath = tickOptions.projectPath || process.cwd();
     let queueSnapshot = await loadAgentMessageQueueSnapshot(projectPath);
     let queuedMessage = queueSnapshot.queuedMessages[0];
 
@@ -82,7 +92,7 @@ export async function tickAgentMessages(
         return { isMessageProcessed: false };
     }
 
-    if (tickOptions.uiHandle) {
+    if (tickOptions.uiHandle && !tickOptions.uiPresentation?.isSharedDashboard) {
         updateAgentRunUiForPulling(
             tickOptions.uiHandle,
             queueSnapshot,
@@ -101,7 +111,7 @@ export async function tickAgentMessages(
         queuedMessage = queueSnapshot.queuedMessages[0];
 
         if (!queuedMessage) {
-            if (tickOptions.uiHandle) {
+            if (tickOptions.uiHandle && !tickOptions.uiPresentation?.isSharedDashboard) {
                 updateAgentRunUiForWatching(tickOptions.uiHandle, queueSnapshot);
             }
             announceNoQueuedMessages(tickOptions);
@@ -130,23 +140,32 @@ export async function tickAgentMessages(
             runner,
             queuedMessage,
             uiHandle,
+            isSharedDashboard: tickOptions.uiPresentation?.isSharedDashboard,
         });
 
-        uiHandle?.state.updateProgress(
-            tickOptions.uiPresentation?.completedProgressStats ||
-                createAgentQueueProgressSnapshot({
-                    finishedMessageCount: queueSnapshot.finishedMessageCount + 1,
-                    queuedMessages: queueSnapshot.queuedMessages.slice(1),
-                }),
-        );
-        if (tickOptions.uiPresentation?.completedAgentStatusLines) {
-            uiHandle?.state.setAgentStatusLines([...tickOptions.uiPresentation.completedAgentStatusLines]);
+        if (!tickOptions.uiPresentation?.isSharedDashboard) {
+            uiHandle?.state.updateProgress(
+                tickOptions.uiPresentation?.completedProgressStats ||
+                    createAgentQueueProgressSnapshot({
+                        finishedMessageCount: queueSnapshot.finishedMessageCount + 1,
+                        queuedMessages: queueSnapshot.queuedMessages.slice(1),
+                    }),
+            );
+            if (tickOptions.uiPresentation?.completedAgentStatusLines) {
+                uiHandle?.state.setAgentStatusLines([...tickOptions.uiPresentation.completedAgentStatusLines]);
+            }
+            if (tickOptions.uiPresentation?.completedAgentStatusTableRows) {
+                uiHandle?.state.setAgentStatusTableRows([...tickOptions.uiPresentation.completedAgentStatusTableRows]);
+            }
+            if (tickOptions.uiPresentation?.completedMessagePreviewLines) {
+                uiHandle?.state.setMessagePreviewLines([...tickOptions.uiPresentation.completedMessagePreviewLines]);
+            }
+            if (tickOptions.uiPresentation?.completedMessagePreviewSections) {
+                uiHandle?.state.setMessagePreviewSections([...tickOptions.uiPresentation.completedMessagePreviewSections]);
+            }
+            uiHandle?.state.setStatusMessage('Message answered');
+            uiHandle?.state.setPhase('done');
         }
-        if (tickOptions.uiPresentation?.completedMessagePreviewLines) {
-            uiHandle?.state.setMessagePreviewLines([...tickOptions.uiPresentation.completedMessagePreviewLines]);
-        }
-        uiHandle?.state.setStatusMessage('Message answered');
-        uiHandle?.state.setPhase('done');
 
         return {
             isMessageProcessed: true,
@@ -175,8 +194,9 @@ async function runQueuedAgentMessage(options: {
     readonly runner: PromptRunner;
     readonly queuedMessage: AgentMessageFile;
     readonly uiHandle?: CoderRunUiHandle;
+    readonly isSharedDashboard?: boolean;
 }): Promise<FinishedAgentMessageFile> {
-    const { projectPath, options: runOptions, runner, queuedMessage, uiHandle } = options;
+    const { projectPath, options: runOptions, runner, queuedMessage, uiHandle, isSharedDashboard } = options;
     const prompt = buildAgentMessagePrompt(queuedMessage.relativePath);
     const scriptPath = buildAgentMessageScriptPath(projectPath, queuedMessage);
     const roundChangedFilesSnapshot = runOptions.normalizeLineEndings
@@ -188,8 +208,10 @@ async function runQueuedAgentMessage(options: {
         console.info(colors.blue(`Processing ${queuedMessage.relativePath}`));
     }
 
-    uiHandle?.state.setPhase('running');
-    uiHandle?.state.setStatusMessage('Running');
+    if (!isSharedDashboard) {
+        uiHandle?.state.setPhase('running');
+        uiHandle?.state.setStatusMessage('Running');
+    }
     uiHandle?.startCapturingAgentOutput();
 
     try {
@@ -215,7 +237,7 @@ async function runQueuedAgentMessage(options: {
         uiHandle?.stopCapturingAgentOutput();
     }
 
-    await normalizeLineEndingsForAgentRound(runOptions, roundChangedFilesSnapshot);
+    await normalizeLineEndingsForAgentRound(projectPath, runOptions, roundChangedFilesSnapshot);
 
     const finishedMessage = await moveAgentMessageToFinished(projectPath, queuedMessage);
     await commitAnsweredMessageIfEnabled({
@@ -224,6 +246,8 @@ async function runQueuedAgentMessage(options: {
         finishedMessage,
         isQueuedMessageTracked,
         uiHandle,
+        isSharedDashboard,
+        projectPath,
     });
 
     return finishedMessage;
@@ -296,11 +320,30 @@ function seedAgentRunUiHandle(
         priority: 0,
     });
     uiHandle.state.updateProgress(uiPresentation?.progressStats || createAgentQueueProgressSnapshot(queueSnapshot));
-    uiHandle.state.setCurrentPrompt(queuedMessage.relativePath);
-    uiHandle.state.setMessagePreviewLines([
-        ...(uiPresentation?.messagePreviewLines || agentUiMetadata.latestUserMessageLines),
-    ]);
     uiHandle.state.setAgentStatusLines([...(uiPresentation?.agentStatusLines || [])]);
+
+    if (uiPresentation?.agentStatusTableRows) {
+        uiHandle.state.setAgentStatusTableRows([...uiPresentation.agentStatusTableRows]);
+    } else {
+        uiHandle.state.setAgentStatusTableRows([
+            {
+                status: 'Answering',
+                agentName: uiPresentation?.sessionAgentName || agentUiMetadata.localAgentName,
+                url: '.',
+            },
+        ]);
+    }
+
+    if (uiPresentation?.messagePreviewSections) {
+        uiHandle.state.setMessagePreviewSections([...uiPresentation.messagePreviewSections]);
+    }
+
+    if (uiPresentation?.isSharedDashboard) {
+        return;
+    }
+
+    uiHandle.state.setCurrentPrompt(queuedMessage.relativePath);
+    uiHandle.state.setMessagePreviewLines([...(uiPresentation?.messagePreviewLines || agentUiMetadata.latestUserMessageLines)]);
     uiHandle.state.setPhase('loading');
     uiHandle.state.setStatusMessage('Preparing message');
 }
@@ -314,18 +357,33 @@ async function commitAnsweredMessageIfEnabled(options: {
     readonly finishedMessage: FinishedAgentMessageFile;
     readonly isQueuedMessageTracked: boolean;
     readonly uiHandle?: CoderRunUiHandle;
+    readonly isSharedDashboard?: boolean;
+    readonly projectPath: string;
 }): Promise<void> {
-    const { options: runOptions, queuedMessage, finishedMessage, isQueuedMessageTracked, uiHandle } = options;
+    const {
+        options: runOptions,
+        queuedMessage,
+        finishedMessage,
+        isQueuedMessageTracked,
+        uiHandle,
+        isSharedDashboard,
+        projectPath,
+    } = options;
 
     if (runOptions.noCommit) {
-        uiHandle?.state.setStatusMessage('Leaving changes uncommitted');
+        if (!isSharedDashboard) {
+            uiHandle?.state.setStatusMessage('Leaving changes uncommitted');
+        }
         return;
     }
 
-    uiHandle?.state.setStatusMessage('Committing message');
+    if (!isSharedDashboard) {
+        uiHandle?.state.setStatusMessage('Committing message');
+    }
     await commitChanges(buildAgentMessageCommitMessage(queuedMessage), {
         autoPush: runOptions.autoPush,
         includePaths: buildCommitIncludePaths(queuedMessage, finishedMessage, isQueuedMessageTracked),
+        projectPath,
     });
 }
 
@@ -348,6 +406,7 @@ function buildCommitIncludePaths(
  * Normalizes line endings in files changed during the current agent round.
  */
 async function normalizeLineEndingsForAgentRound(
+    projectPath: string,
     options: AgentRunOptions,
     roundChangedFilesSnapshot?: ChangedFilesSnapshot,
 ): Promise<void> {
@@ -357,7 +416,7 @@ async function normalizeLineEndingsForAgentRound(
 
     try {
         const result = await normalizeLineEndingsInFilesChangedSinceSnapshot({
-            projectPath: process.cwd(),
+            projectPath,
             snapshot: roundChangedFilesSnapshot,
         });
 

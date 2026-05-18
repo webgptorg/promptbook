@@ -1,3 +1,9 @@
+-   Enhanced the rich terminal UI for `ptbk agent run-*` and let `run-multiple` answer one queued message per watched agent in parallel:
+
+    -   Changed the `Agents` panel to render a real table with colored `Idle` / `Answering` statuses plus separate `Agent name` and `URL` columns.
+    -   Changed idle message previews to show the gray copy `Waiting for the message`, and render one dedicated user-message box per answering agent when multiple repositories are active.
+    -   Kept `--no-ui` on the legacy plain console path while removing the shared-watcher cwd bottleneck so multiple direct-child agent repositories can process queued work in the same iteration.
+
 -   Changed Agents Server agent routing to use stable agent IDs instead of human-readable agent names:
 
     -   Canonical local agent profile, chat, editor, integration, image, timeout, history, export, and website-integration routes now redirect to `/agents/<AGENT_ID>/...`.

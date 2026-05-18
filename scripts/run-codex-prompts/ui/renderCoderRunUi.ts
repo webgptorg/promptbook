@@ -1,5 +1,5 @@
-import moment from 'moment';
-import { clearLine, cursorTo } from 'readline';
+﻿import moment from 'moment';
+import { clearLine, cursorTo, emitKeypressEvents } from 'readline';
 import { getPauseState, togglePauseState } from '../common/waitForPause';
 import { buildCoderRunUiFrame, type BuildCoderRunUiFrameOptions } from './buildCoderRunUiFrame';
 import { CoderRunUiState } from './CoderRunUiState';
@@ -24,12 +24,22 @@ const SPINNER_FRAMES = [
 ];
 
 /**
+ * Fallback terminal width used when the current terminal does not report one.
+ */
+const DEFAULT_TERMINAL_WIDTH = 80;
+
+/**
+ * Maximum terminal width supported by the boxed runner UI.
+ */
+const MAX_TERMINAL_WIDTH = 96;
+
+/**
  * Returns the usable terminal width, capped at 96.
  *
  * @private internal utility of coder run UI
  */
 function getTerminalWidth(): number {
-    return Math.min(process.stdout.columns || 80, 96);
+    return Math.min(process.stdout.columns || DEFAULT_TERMINAL_WIDTH, MAX_TERMINAL_WIDTH);
 }
 
 /**
@@ -91,35 +101,34 @@ export function renderCoderRunUi(
     const originalConsoleError = console.error;
     const originalConsoleLog = console.log;
 
-    let isCapturing = false;
+    let activeCaptureCount = 0;
     let pendingEnterResolver: (() => void) | undefined;
 
     console.info = (...args: Array<unknown>): void => {
-        if (isCapturing) {
+        if (activeCaptureCount > 0) {
             state.addAgentOutput(args.map(String).join(' '));
         }
     };
 
     console.warn = (...args: Array<unknown>): void => {
-        if (isCapturing) {
+        if (activeCaptureCount > 0) {
             state.addAgentOutput(args.map(String).join(' '));
         }
     };
 
     console.error = (...args: Array<unknown>): void => {
-        if (isCapturing) {
+        if (activeCaptureCount > 0) {
             state.addError(args.map(String).join(' '));
         }
     };
 
     console.log = (...args: Array<unknown>): void => {
-        if (isCapturing) {
+        if (activeCaptureCount > 0) {
             state.addAgentOutput(args.map(String).join(' '));
         }
     };
 
-    const readline = require('readline') as typeof import('readline');
-    readline.emitKeypressEvents(process.stdin);
+    emitKeypressEvents(process.stdin);
     if (process.stdin.isTTY) {
         process.stdin.setRawMode(true);
     }
@@ -251,7 +260,9 @@ export function renderCoderRunUi(
             statusMessage: state.statusMessage,
             detailLines: state.detailLines,
             messagePreviewLines: state.messagePreviewLines,
+            messagePreviewSections: state.messagePreviewSections,
             agentStatusLines: state.agentStatusLines,
+            agentStatusTableRows: state.agentStatusTableRows,
             pendingEnterLabel: state.pendingEnterLabel,
             agentOutputLines: state.agentOutputLines,
             errors: state.errors,
@@ -339,7 +350,7 @@ export function renderCoderRunUi(
         pendingEnterResolver = undefined;
         resolvePendingEnter?.();
 
-        isCapturing = false;
+        activeCaptureCount = 0;
         console.info = originalConsoleInfo;
         console.warn = originalConsoleWarn;
         console.error = originalConsoleError;
@@ -353,10 +364,10 @@ export function renderCoderRunUi(
     return {
         state,
         startCapturingAgentOutput(): void {
-            isCapturing = true;
+            activeCaptureCount++;
         },
         stopCapturingAgentOutput(): void {
-            isCapturing = false;
+            activeCaptureCount = Math.max(0, activeCaptureCount - 1);
         },
         waitForEnter(actionLabel: string): Promise<void> {
             if (pendingEnterResolver) {

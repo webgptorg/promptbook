@@ -1,4 +1,4 @@
-import moment from 'moment';
+﻿import moment from 'moment';
 import type { AgentRunOptions } from '../AgentRunOptions';
 import { createCoderRunOptionsForAgent } from '../main/createCoderRunOptionsForAgent';
 import {
@@ -10,6 +10,7 @@ import { resolvePromptRunner } from '../../run-codex-prompts/main/resolvePromptR
 import { renderCoderRunUi, type CoderRunUiHandle } from '../../run-codex-prompts/ui/renderCoderRunUi';
 import { buildAgentRunUiFrame } from './buildAgentRunUiFrame';
 import { readLocalAgentName } from './loadAgentRunUiMetadata';
+import { WAITING_FOR_MESSAGE_LABEL } from './agentRunUiConstants';
 
 /**
  * Creates and seeds the persistent rich terminal UI used by `ptbk agent run`.
@@ -35,6 +36,7 @@ export async function initializeAgentRunUi(
         thinkingLevel: options.thinkingLevel,
         priority: 0,
     });
+    uiHandle.state.setAgentStatusTableRows([{ status: 'Idle', agentName: localAgentName, url: '.' }]);
 
     updateAgentRunUiForWatching(uiHandle, queueSnapshot);
     return uiHandle;
@@ -53,7 +55,8 @@ export function updateAgentRunUiForWatching(
     uiHandle.state.setPhase('waiting');
     uiHandle.state.setStatusMessage(statusMessage);
     uiHandle.state.setDetailLines([`Watching ${getQueuedAgentMessagesDirectoryLabel()} for queued agent messages.`]);
-    uiHandle.state.setMessagePreviewLines(['Waiting for the next queued `MESSAGE @User`.']);
+    uiHandle.state.setMessagePreviewLines([WAITING_FOR_MESSAGE_LABEL]);
+    uiHandle.state.setMessagePreviewSections([]);
 }
 
 /**
@@ -69,6 +72,6 @@ export function updateAgentRunUiForPulling(
     uiHandle.state.setPhase('loading');
     uiHandle.state.setStatusMessage(statusMessage);
     uiHandle.state.setDetailLines([`Refreshing ${getQueuedAgentMessagesDirectoryLabel()} before checking for new work.`]);
-    uiHandle.state.setMessagePreviewLines(['Waiting for the next queued `MESSAGE @User`.']);
+    uiHandle.state.setMessagePreviewLines([WAITING_FOR_MESSAGE_LABEL]);
+    uiHandle.state.setMessagePreviewSections([]);
 }
-

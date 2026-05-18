@@ -1,4 +1,4 @@
-import { spaceTrim } from 'spacetrim';
+﻿import { spaceTrim } from 'spacetrim';
 import { listGitRemotes, readCurrentBranchName, readOptionalGitConfig, hasUpstreamBranch } from './gitBranchContext';
 import { runGitCommand } from './runGitCommand';
 
@@ -17,8 +17,7 @@ class GitPullFailedError extends Error {
 /**
  * Pulls the latest repository changes before the next prompt starts.
  */
-export async function pullLatestChanges(): Promise<void> {
-    const projectPath = process.cwd();
+export async function pullLatestChanges(projectPath = process.cwd()): Promise<void> {
 
     if (await hasUpstreamBranch(projectPath)) {
         await executeGitPullCommand('git pull --rebase', projectPath);

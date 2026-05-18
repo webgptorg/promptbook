@@ -1,4 +1,4 @@
-import { readFile } from 'fs/promises';
+﻿import { readFile } from 'fs/promises';
 import { join } from 'path';
 import { Book } from '../../../src/book-3.0/Book';
 import { parseAgentSourceWithCommitments } from '../../../src/book-2.0/agent-source/parseAgentSourceWithCommitments';
@@ -12,6 +12,14 @@ import type { AgentMessageFile } from '../messages/AgentMessageFile';
 export type AgentRunUiMetadata = {
     readonly localAgentName: string;
     readonly latestUserMessageLines: readonly string[];
+};
+
+/**
+ * Local agent identity rendered in the rich `ptbk agent run` dashboard.
+ */
+export type AgentRunUiIdentity = {
+    readonly localAgentName: string;
+    readonly localAgentUrl?: string;
 };
 
 /**
@@ -63,9 +71,20 @@ export async function loadAgentRunQueuedMessagePreview(
  * Reads the local `agent.book` title and falls back to a stable generic name when unavailable.
  */
 export async function readLocalAgentName(projectPath: string): Promise<string> {
+    return (await readLocalAgentUiIdentity(projectPath)).localAgentName;
+}
+
+/**
+ * Reads the local `agent.book` identity and falls back to stable defaults when unavailable.
+ */
+export async function readLocalAgentUiIdentity(projectPath: string): Promise<AgentRunUiIdentity> {
     try {
         const agentSource = await readFile(join(projectPath, AGENT_BOOK_FILE_PATH), 'utf-8');
-        return parseAgentSourceWithCommitments(agentSource as string_book).agentName || 'Local Agent';
+        const parsedAgentSource = parseAgentSourceWithCommitments(agentSource as string_book);
+
+        return {
+            localAgentName: parsedAgentSource.agentName || 'Local Agent',
+        };
     } catch (error) {
         if (
             error &&
@@ -73,7 +92,9 @@ export async function readLocalAgentName(projectPath: string): Promise<string> {
             'code' in error &&
             ((error as { code?: string }).code === 'ENOENT' || (error as { code?: string }).code === 'ENOTDIR')
         ) {
-            return 'Local Agent';
+            return {
+                localAgentName: 'Local Agent',
+            };
         }
 
         throw error;

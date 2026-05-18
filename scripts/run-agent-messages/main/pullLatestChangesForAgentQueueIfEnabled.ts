@@ -1,4 +1,4 @@
-import colors from 'colors';
+﻿import colors from 'colors';
 import { pullLatestChanges } from '../../run-codex-prompts/git/pullLatestChanges';
 import type { AgentRunOptions } from '../AgentRunOptions';
 import { ensureWorkingTreeCleanForAgentQueue } from '../git/ensureWorkingTreeCleanForAgentQueue';
@@ -21,7 +21,7 @@ export async function pullLatestChangesForAgentQueueIfEnabled(options: {
     if (logMessage) {
         console.info(colors.gray(logMessage));
     }
-    await pullLatestChanges();
+    await pullLatestChanges(projectPath);
 
     return Date.now();
 }

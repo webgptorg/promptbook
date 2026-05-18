@@ -1,6 +1,10 @@
-import { EventEmitter } from 'events';
+﻿import { EventEmitter } from 'events';
 import moment from 'moment';
 import { buildCoderRunProgressSnapshot, type CoderRunProgressSnapshot } from '../common/buildCoderRunProgressSnapshot';
+import type {
+    AgentRunMessagePreviewSection,
+    AgentRunStatusTableRow,
+} from './buildCoderRunUiFrame';
 import { CoderRunTimer } from '../common/CoderRunTimer';
 import type { PromptStats } from '../prompts/types/PromptStats';
 
@@ -63,7 +67,9 @@ export class CoderRunUiState extends EventEmitter {
     public maxAttempts = 3;
     public detailLines: string[] = [];
     public messagePreviewLines: string[] = [];
+    public messagePreviewSections: AgentRunMessagePreviewSection[] = [];
     public agentStatusLines: string[] = [];
+    public agentStatusTableRows: AgentRunStatusTableRow[] = [];
     public pendingEnterLabel: string | undefined;
     public agentOutputLines: string[] = [];
     public phase: CoderRunPhase = 'initializing';
@@ -134,6 +140,7 @@ export class CoderRunUiState extends EventEmitter {
         this.currentPromptLabel = label;
         this.detailLines = [];
         this.messagePreviewLines = [];
+        this.messagePreviewSections = [];
         this.pendingEnterLabel = undefined;
         this.agentOutputLines = [];
         this.currentAttempt = 1;
@@ -196,10 +203,26 @@ export class CoderRunUiState extends EventEmitter {
     }
 
     /**
+     * Replaces the structured user-message panels shown in agent-specific dashboards.
+     */
+    public setMessagePreviewSections(messagePreviewSections: AgentRunMessagePreviewSection[]): void {
+        this.messagePreviewSections = [...messagePreviewSections];
+        this.emitChange();
+    }
+
+    /**
      * Replaces agent status rows shown by agent-specific terminal frames.
      */
     public setAgentStatusLines(agentStatusLines: string[]): void {
         this.agentStatusLines = [...agentStatusLines];
+        this.emitChange();
+    }
+
+    /**
+     * Replaces structured agent status rows shown by agent-specific terminal frames.
+     */
+    public setAgentStatusTableRows(agentStatusTableRows: AgentRunStatusTableRow[]): void {
+        this.agentStatusTableRows = [...agentStatusTableRows];
         this.emitChange();
     }
 

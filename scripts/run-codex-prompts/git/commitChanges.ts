@@ -1,4 +1,4 @@
-import { mkdir, unlink, writeFile } from 'fs/promises';
+﻿import { mkdir, unlink, writeFile } from 'fs/promises';
 import { dirname, relative, resolve } from 'path';
 import { spaceTrim } from 'spacetrim';
 import { $execCommand } from '../../../src/utils/execCommand/$execCommand';
@@ -18,9 +18,10 @@ export async function commitChanges(
         autoPush?: boolean;
         includePaths?: ReadonlyArray<string>;
         excludePaths?: ReadonlyArray<string>;
+        projectPath?: string;
     },
 ): Promise<void> {
-    const projectPath = process.cwd();
+    const projectPath = options?.projectPath || process.cwd();
     const commitMessagePath = resolvePromptbookTemporaryPath(
         projectPath,
         'ptbk-coder',
