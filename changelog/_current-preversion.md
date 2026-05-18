@@ -1,3 +1,9 @@
+-   Fixed Agents Server chat export to **HTML** so saved conversations now render as clean standalone documents with proper markdown conversion instead of the previous cluttered, partially plain-text layout.
+
+    -   Reused the shared chat markdown renderer for HTML export content, so headings, lists, code blocks, tables, and `<details>` sections now export as real HTML.
+    -   Simplified the exported document to focus on the chat transcript itself, keeping Promptbook branding subtle and moving branding/version information into reusable export metadata tags and a small footer.
+    -   Added regression coverage for the standalone HTML export structure, markdown rendering, and Promptbook metadata output.
+
 -   Fixed Agents Server chat export to **PDF** so saved conversations now render as clean branded documents with proper markdown formatting instead of broken plain-text dumps.
 
     -   Reused the shared chat markdown renderer for PDF export content, so headings, lists, links, code blocks, tables, quotes, and `<details>` sections now survive the export in readable layout.
