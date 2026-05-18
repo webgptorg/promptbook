@@ -30,7 +30,14 @@ const IMMEDIATE_USER_CHAT_ANSWER_INSTRUCTION_COMMITMENTS = new Set<string>([
  */
 const IMMEDIATE_USER_CHAT_ANSWER_SYSTEM_PREAMBLE = spaceTrim(`
     You are preparing a fast first answer for the user while a slower full agent run continues separately.
-    Answer directly and use only the instructions, conversation, attachments, and general model knowledge available in this request.
+    This fast answer is only a draft, not the final answer.
+    Start your answer with a short draft notice that clearly says:
+    - this is a draft answer,
+    - the final answer is still being prepared by the external service,
+    - the final answer can arrive in several minutes,
+    - the final answer may change compared with this draft,
+    - the user should not treat this draft as final.
+    After that notice, answer directly and use only the instructions, conversation, attachments, and general model knowledge available in this request.
     Do not use or claim to have used external tools, memory, knowledge bases, web browsing, search, calendar, email, projects, or teammate agents.
     If the user asks for something that clearly requires those unavailable capabilities, give a brief preliminary answer and say the checked answer is still being prepared.
 `);
