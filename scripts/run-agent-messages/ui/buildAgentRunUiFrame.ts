@@ -4,10 +4,8 @@ import {
     buildControlPills,
     buildLabeledSessionLine,
     buildPausePresentation,
-    buildProgressBar,
     buildVisibleOutputLines,
     renderBox,
-    SESSION_LABEL_WIDTH,
     type SessionRow,
 } from '../../run-codex-prompts/ui/buildRunUiFrameShared';
 import { fitPlainText } from '../../run-codex-prompts/ui/coderRunUiText';
@@ -37,6 +35,7 @@ export function buildAgentRunUiFrame(options: BuildCoderRunUiFrameOptions): stri
     const promptStatusPrefix = isPromptActive ? `${colors.yellow(`${options.spinner} `)}` : '';
     const pausePresentation = buildPausePresentation(options.phase, options.pauseState, options.statusMessage);
     const sessionLines = buildSessionLines(options, totalWidth, pausePresentation);
+    const agentStatusLines = buildAgentStatusLines(options, totalWidth);
     const currentTaskLines = options.currentPromptLabel
         ? [
               `${promptStatusPrefix}${colors.bold.white(fitPlainText(options.currentPromptLabel, totalWidth - 8))}`,
@@ -51,6 +50,7 @@ export function buildAgentRunUiFrame(options: BuildCoderRunUiFrameOptions): stri
         ...buildAgentRunInitialsVisual(options.config.localAgentName || 'Local Agent', totalWidth),
         '',
         ...renderBox('Session', sessionLines, totalWidth, colors.yellow.bold),
+        ...renderBox('Agents', agentStatusLines, totalWidth, colors.blue.bold),
         ...renderBox('Current task', currentTaskLines, totalWidth, colors.magenta.bold),
         ...renderBox('User message', userMessageLines, totalWidth, colors.cyan.bold),
         ...renderBox('Live output', visibleOutputLines, totalWidth, colors.green.bold),
@@ -80,11 +80,13 @@ function buildSessionLines(
     pausePresentation: ReturnType<typeof buildPausePresentation>,
 ): readonly string[] {
     const bodyWidth = Math.max(10, totalWidth - 4);
-    const finishedMessages = options.progress.sessionDone;
-    const queuedMessages = options.progress.sessionRemaining;
-    const totalMessages = options.progress.sessionTotal;
     const localAgentName = options.config.localAgentName || 'Local Agent';
     const runnerParts = [options.config.agentName || 'No runner selected'];
+    const agentStatusCounts = countAgentStatuses(options);
+    const answeredMessageCount = Math.max(
+        0,
+        options.progress.totalPrompts - options.progress.sessionRemaining - options.progress.toBeWrittenPrompts,
+    );
 
     if (options.config.modelName) {
         runnerParts.push(options.config.modelName);
@@ -100,7 +102,7 @@ function buildSessionLines(
             value: `${pausePresentation.badge} ${pausePresentation.stateMessage}`,
         },
         {
-            label: 'Agent',
+            label: agentStatusCounts.totalAgents === 1 ? 'Agent' : 'Agents',
             value: localAgentName,
         },
         {
@@ -108,24 +110,73 @@ function buildSessionLines(
             value: runnerParts.join('  ·  '),
         },
         {
-            label: 'Queue',
-            value: `${totalMessages} total  ·  ${finishedMessages} finished  ·  ${queuedMessages} queued`,
+            label: 'Status',
+            value: `${agentStatusCounts.idleAgents} idle  ·  ${agentStatusCounts.answeringAgents} answering`,
         },
         {
-            label: 'Timing',
-            value: `Elapsed ${options.progress.elapsedText}  ·  Total ${options.progress.estimatedTotalText}  ·  ETA ${options.progress.estimatedLabel}`,
-        },
-        {
-            label: 'Progress',
-            value: buildProgressBar(
-                options.progress.percentage,
-                bodyWidth - SESSION_LABEL_WIDTH - 1,
-                `${options.progress.percentage}% complete (${finishedMessages}/${totalMessages || 0} finished)`,
-            ),
+            label: 'Messages',
+            value: `${answeredMessageCount} answered total  ·  ${options.progress.sessionRemaining} waiting`,
         },
     ];
 
     return sessionRows.map((sessionRow) => buildLabeledSessionLine(sessionRow.label, sessionRow.value, bodyWidth));
+}
+
+/**
+ * Builds one row per watched agent with its current status and message summary.
+ */
+function buildAgentStatusLines(options: BuildCoderRunUiFrameOptions, totalWidth: number): readonly string[] {
+    const statusWidth = Math.max(10, totalWidth - 4);
+    const rawStatusLines =
+        options.agentStatusLines && options.agentStatusLines.length > 0
+            ? options.agentStatusLines
+            : [buildSingleAgentStatusLine(options)];
+
+    return rawStatusLines.map((statusLine) => fitPlainText(statusLine.replace(/\t/gu, '    '), statusWidth));
+}
+
+/**
+ * Builds the fallback status row used by single-agent runs.
+ */
+function buildSingleAgentStatusLine(options: BuildCoderRunUiFrameOptions): string {
+    const isAnswering =
+        Boolean(options.currentPromptLabel) &&
+        (options.phase === 'loading' || options.phase === 'running' || options.phase === 'verifying');
+    const status = isAnswering ? 'Answering' : 'Idle';
+    const message = isAnswering ? `  ·  ${options.currentPromptLabel}` : '';
+
+    return `${status.padEnd(9)} ${options.config.localAgentName || 'Local Agent'}${message}`;
+}
+
+/**
+ * Counts agent statuses from explicit status rows or the single-agent fallback state.
+ */
+function countAgentStatuses(options: BuildCoderRunUiFrameOptions): {
+    readonly totalAgents: number;
+    readonly idleAgents: number;
+    readonly answeringAgents: number;
+} {
+    const statusLines =
+        options.agentStatusLines && options.agentStatusLines.length > 0
+            ? options.agentStatusLines
+            : [buildSingleAgentStatusLine(options)];
+    const totalAgents = statusLines.filter((statusLine) => isAgentStatusLine(statusLine)).length;
+    const answeringAgents = statusLines.filter((statusLine) => statusLine.trim().startsWith('Answering')).length;
+    const normalizedTotalAgents = totalAgents || (options.config.localAgentName === '0 Agents' ? 0 : 1);
+
+    return {
+        totalAgents: normalizedTotalAgents,
+        idleAgents: Math.max(0, normalizedTotalAgents - answeringAgents),
+        answeringAgents,
+    };
+}
+
+/**
+ * Returns true for status rows that describe one concrete agent.
+ */
+function isAgentStatusLine(statusLine: string): boolean {
+    const trimmedStatusLine = statusLine.trim();
+    return trimmedStatusLine.startsWith('Idle') || trimmedStatusLine.startsWith('Answering');
 }
 
 /**

@@ -61,10 +61,11 @@ describe('buildAgentRunUiFrame', () => {
 
         expect(output).toContain('Agent    GitHub Copilot Support');
         expect(output).toContain('Runner   github-copilot  ·  gpt-5.4  ·  thinking high');
-        expect(output).toContain('Queue    5 total  ·  3 finished  ·  2 queued');
-        expect(output).toContain('Timing   Elapsed 3m  ·  Total 5m  ·  ETA Today 10:25');
-        expect(output).toContain('60% complete (3/5 finished)');
+        expect(output).toContain('Status   0 idle  ·  1 answering');
+        expect(output).toContain('Messages 3 answered total  ·  2 waiting');
         expect(output).toContain('GitHub Copilot Support');
+        expect(output).toContain('Answering GitHub Copilot Support  ·  messages/queued/message-0008.book');
+        expect(output).toContain('Agents');
         expect(output).toContain('User message');
         expect(output).toContain('Please summarize the latest PR feedback.');
         expect(output).toContain('Keep the answer concise and mention blockers.');
@@ -119,8 +120,38 @@ describe('buildAgentRunUiFrame', () => {
             .join('\n');
 
         expect(output).toContain('State     WAITING  Watching queued agent messages');
+        expect(output).toContain('Status   1 idle  ·  0 answering');
+        expect(output).toContain('Messages 0 answered total  ·  0 waiting');
+        expect(output).toContain('Idle      GitHub Copilot Support');
         expect(output).toContain('Watching messages/queued for queued agent messages.');
         expect(output).toContain('Waiting for the next queued `MESSAGE @User`.');
         expect(output).not.toContain('Pulling latest changes while idle...');
+    });
+
+    it('renders all watched agents with their status and active message preview', () => {
+        const output = buildAgentRunUiFrame(
+            createFrameOptions({
+                config: {
+                    agentName: 'github-copilot',
+                    localAgentName: '2 Agents',
+                    modelName: 'gpt-5.4',
+                    thinkingLevel: 'high',
+                    priority: 0,
+                },
+                agentStatusLines: [
+                    'Answering Agent A (agent-a)  ·  messages/queued/a.book: Please review the contract',
+                    'Idle      Agent B (agent-b)',
+                ],
+                messagePreviewLines: ['Agent A: Please review the contract'],
+            }),
+        )
+            .map(stripAnsi)
+            .join('\n');
+
+        expect(output).toContain('Agents   2 Agents');
+        expect(output).toContain('Status   1 idle  ·  1 answering');
+        expect(output).toContain('Answering Agent A (agent-a)');
+        expect(output).toContain('Idle      Agent B (agent-b)');
+        expect(output).toContain('Agent A: Please review the contract');
     });
 });

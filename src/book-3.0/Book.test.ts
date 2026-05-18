@@ -76,4 +76,30 @@ describe('how `Book` works', () => {
                 isComplete: true,
             },
         ]));
+
+    it('should find the latest message by sender', () => {
+        const parsedBook = Book.parse(
+            book`
+                MESSAGE @User
+                First question
+
+                MESSAGE @Agent
+                First answer
+
+                MESSAGE @User
+                Follow-up question
+            `,
+        );
+
+        expect(parsedBook.getLatestMessageBySender('USER')).toEqual({
+            sender: 'USER',
+            content: 'Follow-up question',
+            isComplete: true,
+        });
+        expect(parsedBook.getLatestMessageBySender('AGENT')).toEqual({
+            sender: 'AGENT',
+            content: 'First answer',
+            isComplete: true,
+        });
+    });
 });

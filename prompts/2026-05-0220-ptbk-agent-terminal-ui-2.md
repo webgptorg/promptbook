@@ -155,7 +155,7 @@ Pulling latest changes while idle...
 
 ---
 
-[ ] !!!
+[x] ~$1.56 14 hours by OpenAI Codex `gpt-5.5`
 
 [✨🛠] Enhance terminal UI of `ptbk agent run`
 
@@ -218,3 +218,4 @@ $ npx ptbk agent run-multiple --agent github-copilot --model gpt-5.4 --thinking-
 -   You are working with [`ptbk agent`](src/cli/cli-commands/agent/run.ts)
 -   Do not cdo changes in `ptbk coder`
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

@@ -2,7 +2,11 @@ import { mkdir, mkdtemp, rm, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
-import { extractLatestUserMessageLines, loadAgentRunUiMetadata } from './loadAgentRunUiMetadata';
+import {
+    extractLatestUserMessageLines,
+    loadAgentRunQueuedMessagePreview,
+    loadAgentRunUiMetadata,
+} from './loadAgentRunUiMetadata';
 
 describe('loadAgentRunUiMetadata', () => {
     let temporaryProjectPath: string | undefined;
@@ -45,6 +49,44 @@ describe('loadAgentRunUiMetadata', () => {
         ).resolves.toEqual({
             localAgentName: 'Support Assistant',
             latestUserMessageLines: ['Second question', 'With context'],
+        });
+    });
+
+    it('summarizes one queued thread message for multi-agent status lines', async () => {
+        temporaryProjectPath = await mkdtemp(join(tmpdir(), 'ptbk-agent-ui-'));
+        const queuedMessagePath = join(temporaryProjectPath, 'messages', 'queued', 'message-0002.book');
+
+        await mkdir(join(temporaryProjectPath, 'messages', 'queued'), { recursive: true });
+        await writeFile(
+            queuedMessagePath,
+            spaceTrim(`
+                MESSAGE @User
+                First question
+
+                MESSAGE @Agent
+                First answer
+
+                MESSAGE @User
+                Second question
+                With context
+            `),
+            'utf-8',
+        );
+
+        await expect(
+            loadAgentRunQueuedMessagePreview({
+                absolutePath: queuedMessagePath,
+                relativePath: 'messages/queued/message-0002.book',
+                fileName: 'message-0002.book',
+            }),
+        ).resolves.toEqual({
+            queuedMessage: {
+                absolutePath: queuedMessagePath,
+                relativePath: 'messages/queued/message-0002.book',
+                fileName: 'message-0002.book',
+            },
+            latestUserMessageLines: ['Second question', 'With context'],
+            latestUserMessageSummary: 'Second question With context',
         });
     });
 });

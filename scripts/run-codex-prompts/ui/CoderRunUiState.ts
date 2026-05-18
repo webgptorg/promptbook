@@ -63,6 +63,7 @@ export class CoderRunUiState extends EventEmitter {
     public maxAttempts = 3;
     public detailLines: string[] = [];
     public messagePreviewLines: string[] = [];
+    public agentStatusLines: string[] = [];
     public pendingEnterLabel: string | undefined;
     public agentOutputLines: string[] = [];
     public phase: CoderRunPhase = 'initializing';
@@ -191,6 +192,14 @@ export class CoderRunUiState extends EventEmitter {
      */
     public setMessagePreviewLines(messagePreviewLines: string[]): void {
         this.messagePreviewLines = [...messagePreviewLines];
+        this.emitChange();
+    }
+
+    /**
+     * Replaces agent status rows shown by agent-specific terminal frames.
+     */
+    public setAgentStatusLines(agentStatusLines: string[]): void {
+        this.agentStatusLines = [...agentStatusLines];
         this.emitChange();
     }
 

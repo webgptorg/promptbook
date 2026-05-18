@@ -251,6 +251,7 @@ export function renderCoderRunUi(
             statusMessage: state.statusMessage,
             detailLines: state.detailLines,
             messagePreviewLines: state.messagePreviewLines,
+            agentStatusLines: state.agentStatusLines,
             pendingEnterLabel: state.pendingEnterLabel,
             agentOutputLines: state.agentOutputLines,
             errors: state.errors,

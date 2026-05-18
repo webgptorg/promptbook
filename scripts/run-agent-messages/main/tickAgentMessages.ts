@@ -10,6 +10,7 @@ import { printAgentGitIdentityTipAtProcessExitIfNeeded } from '../../run-codex-p
 import { commitChanges } from '../../run-codex-prompts/git/commitChanges';
 import { resolvePromptRunner } from '../../run-codex-prompts/main/resolvePromptRunner';
 import type { PromptRunner } from '../../run-codex-prompts/runners/types/PromptRunner';
+import type { PromptStats } from '../../run-codex-prompts/prompts/types/PromptStats';
 import { runPromptWithTestFeedback } from '../../run-codex-prompts/testing/runPromptWithTestFeedback';
 import { renderCoderRunUi, type CoderRunUiHandle } from '../../run-codex-prompts/ui/renderCoderRunUi';
 import type { AgentRunOptions } from '../AgentRunOptions';
@@ -47,6 +48,20 @@ export type AgentTickResult = {
 export type TickAgentMessagesOptions = {
     readonly isQuietWhenIdle?: boolean;
     readonly uiHandle?: CoderRunUiHandle;
+    readonly uiPresentation?: AgentTickUiPresentation;
+};
+
+/**
+ * Optional rich UI presentation overrides used by shared multi-agent sessions.
+ */
+export type AgentTickUiPresentation = {
+    readonly sessionAgentName?: string;
+    readonly agentStatusLines?: readonly string[];
+    readonly messagePreviewLines?: readonly string[];
+    readonly progressStats?: PromptStats;
+    readonly completedAgentStatusLines?: readonly string[];
+    readonly completedMessagePreviewLines?: readonly string[];
+    readonly completedProgressStats?: PromptStats;
 };
 
 /**
@@ -104,6 +119,7 @@ export async function tickAgentMessages(
         queuedMessage,
         queueSnapshot,
         agentUiMetadata,
+        tickOptions.uiPresentation,
         tickOptions.uiHandle,
     );
 
@@ -117,11 +133,18 @@ export async function tickAgentMessages(
         });
 
         uiHandle?.state.updateProgress(
-            createAgentQueueProgressSnapshot({
-                finishedMessageCount: queueSnapshot.finishedMessageCount + 1,
-                queuedMessages: queueSnapshot.queuedMessages.slice(1),
-            }),
+            tickOptions.uiPresentation?.completedProgressStats ||
+                createAgentQueueProgressSnapshot({
+                    finishedMessageCount: queueSnapshot.finishedMessageCount + 1,
+                    queuedMessages: queueSnapshot.queuedMessages.slice(1),
+                }),
         );
+        if (tickOptions.uiPresentation?.completedAgentStatusLines) {
+            uiHandle?.state.setAgentStatusLines([...tickOptions.uiPresentation.completedAgentStatusLines]);
+        }
+        if (tickOptions.uiPresentation?.completedMessagePreviewLines) {
+            uiHandle?.state.setMessagePreviewLines([...tickOptions.uiPresentation.completedMessagePreviewLines]);
+        }
         uiHandle?.state.setStatusMessage('Message answered');
         uiHandle?.state.setPhase('done');
 
@@ -216,6 +239,7 @@ function createAgentRunUiHandle(
     queuedMessage: AgentMessageFile,
     queueSnapshot: AgentMessageQueueSnapshot,
     agentUiMetadata: Awaited<ReturnType<typeof loadAgentRunUiMetadata>>,
+    uiPresentation: AgentTickUiPresentation | undefined,
     externalUiHandle?: CoderRunUiHandle,
 ): CoderRunUiHandle | undefined {
     if (externalUiHandle) {
@@ -227,6 +251,7 @@ function createAgentRunUiHandle(
             queuedMessage,
             queueSnapshot,
             agentUiMetadata,
+            uiPresentation,
         );
         return externalUiHandle;
     }
@@ -236,7 +261,16 @@ function createAgentRunUiHandle(
     }
 
     const uiHandle = renderCoderRunUi(moment(), { buildFrameLines: buildAgentRunUiFrame });
-    seedAgentRunUiHandle(uiHandle, options, runner, actualRunnerModel, queuedMessage, queueSnapshot, agentUiMetadata);
+    seedAgentRunUiHandle(
+        uiHandle,
+        options,
+        runner,
+        actualRunnerModel,
+        queuedMessage,
+        queueSnapshot,
+        agentUiMetadata,
+        uiPresentation,
+    );
 
     return uiHandle;
 }
@@ -252,17 +286,21 @@ function seedAgentRunUiHandle(
     queuedMessage: AgentMessageFile,
     queueSnapshot: AgentMessageQueueSnapshot,
     agentUiMetadata: Awaited<ReturnType<typeof loadAgentRunUiMetadata>>,
+    uiPresentation: AgentTickUiPresentation | undefined,
 ): void {
     uiHandle.state.setConfig({
         agentName: runner.name,
-        localAgentName: agentUiMetadata.localAgentName,
+        localAgentName: uiPresentation?.sessionAgentName || agentUiMetadata.localAgentName,
         modelName: actualRunnerModel,
         thinkingLevel: options.thinkingLevel,
         priority: 0,
     });
-    uiHandle.state.updateProgress(createAgentQueueProgressSnapshot(queueSnapshot));
+    uiHandle.state.updateProgress(uiPresentation?.progressStats || createAgentQueueProgressSnapshot(queueSnapshot));
     uiHandle.state.setCurrentPrompt(queuedMessage.relativePath);
-    uiHandle.state.setMessagePreviewLines([...agentUiMetadata.latestUserMessageLines]);
+    uiHandle.state.setMessagePreviewLines([
+        ...(uiPresentation?.messagePreviewLines || agentUiMetadata.latestUserMessageLines),
+    ]);
+    uiHandle.state.setAgentStatusLines([...(uiPresentation?.agentStatusLines || [])]);
     uiHandle.state.setPhase('loading');
     uiHandle.state.setStatusMessage('Preparing message');
 }

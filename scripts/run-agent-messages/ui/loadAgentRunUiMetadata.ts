@@ -15,6 +15,15 @@ export type AgentRunUiMetadata = {
 };
 
 /**
+ * Preview of one queued `.book` thread used by the rich terminal UI.
+ */
+export type AgentRunQueuedMessagePreview = {
+    readonly queuedMessage: AgentMessageFile;
+    readonly latestUserMessageLines: readonly string[];
+    readonly latestUserMessageSummary: string;
+};
+
+/**
  * Reads the local agent title and latest queued user message for the rich agent dashboard.
  */
 export async function loadAgentRunUiMetadata(
@@ -26,9 +35,27 @@ export async function loadAgentRunUiMetadata(
         readFile(queuedMessage.absolutePath, 'utf-8'),
     ]);
 
+    const latestUserMessageLines = extractLatestUserMessageLines(queuedMessageContent);
+
     return {
         localAgentName,
-        latestUserMessageLines: extractLatestUserMessageLines(queuedMessageContent),
+        latestUserMessageLines,
+    };
+}
+
+/**
+ * Reads and summarizes the latest queued user message from one thread book.
+ */
+export async function loadAgentRunQueuedMessagePreview(
+    queuedMessage: AgentMessageFile,
+): Promise<AgentRunQueuedMessagePreview> {
+    const queuedMessageContent = await readFile(queuedMessage.absolutePath, 'utf-8');
+    const latestUserMessageLines = extractLatestUserMessageLines(queuedMessageContent);
+
+    return {
+        queuedMessage,
+        latestUserMessageLines,
+        latestUserMessageSummary: summarizeUserMessageLines(latestUserMessageLines) || queuedMessage.relativePath,
     };
 }
 
@@ -58,12 +85,17 @@ export async function readLocalAgentName(projectPath: string): Promise<string> {
  */
 export function extractLatestUserMessageLines(messageContent: string): readonly string[] {
     const latestUserMessageContent =
-        [...Book.parse(messageContent as string_book).getMessages()]
-            .reverse()
-            .find((message) => message.sender === 'USER')?.content || messageContent;
+        Book.parse(messageContent as string_book).getLatestMessageBySender('USER')?.content || messageContent;
 
     const normalizedLatestUserMessageContent = latestUserMessageContent.trim();
     return normalizedLatestUserMessageContent.length > 0
         ? normalizedLatestUserMessageContent.split(/\r?\n/gu)
         : [];
+}
+
+/**
+ * Collapses a multiline user message into one concise status-line summary.
+ */
+function summarizeUserMessageLines(messageLines: readonly string[]): string {
+    return messageLines.join(' ').replace(/\s+/gu, ' ').trim();
 }

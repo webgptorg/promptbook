@@ -113,6 +113,23 @@ export class Book {
             isComplete: true,
         }));
     }
+
+    /**
+     * Gets the newest parsed chat message written by the given sender.
+     *
+     * @public exported from `@promptbook/core`
+     */
+    public getLatestMessageBySender(sender: string): ChatMessage | null {
+        const normalizedSender = normalizeChatMessageSender(sender);
+
+        for (const message of [...this.getMessages()].reverse()) {
+            if (message.sender === normalizedSender) {
+                return message;
+            }
+        }
+
+        return null;
+    }
 }
 
 type Commitment = {

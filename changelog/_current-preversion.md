@@ -4,6 +4,12 @@
     -   Added periodic `--auto-pull` refreshes for each watched direct-child agent repository, including repositories discovered while `run-multiple` is already running.
     -   Kept `--auto-push` flowing through each processed child repository so answered messages are pushed after their per-repository commit.
 
+-   Enhanced the rich terminal UI for `ptbk agent run-multiple`:
+
+    -   Changed the multi-agent session label from repository wording to concise counts like `89 Agents`.
+    -   Added an `Agents` panel that lists every watched agent with `Idle` / `Answering` status and the active queued message summary when one is being answered.
+    -   Replaced queue timing/progress rows with agent and message summary statistics, and made the `User message` panel show the answering agent alongside the parsed latest `MESSAGE @User` content from `.book` thread files.
+
 -   Refactored `parsePipeline` internals again to keep synchronous book parsing behavior unchanged while making the parser easier to navigate and maintain:
 
     -   Split `src/conversion/parsePipeline.ts` into a small orchestration facade plus focused private modules for pipeline initialization, string normalization, markdown section parsing, head parsing, task-section parsing, parameter bookkeeping, and final postprocessing/export.

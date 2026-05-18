@@ -3,6 +3,7 @@ import moment from 'moment';
 import { relative } from 'path';
 import { just } from '../../../src/utils/organization/just';
 import { renderCoderRunUi, type CoderRunUiHandle } from '../../run-codex-prompts/ui/renderCoderRunUi';
+import type { PromptStats } from '../../run-codex-prompts/prompts/types/PromptStats';
 import type { AgentRunOptions } from '../AgentRunOptions';
 import { createCoderRunOptionsForAgent } from './createCoderRunOptionsForAgent';
 import { listLocalAgentRunnerProjects, type LocalAgentRunnerProject } from './listLocalAgentRunnerProjects';
@@ -10,11 +11,15 @@ import { loadAgentMessageQueueSnapshot } from './loadAgentMessageQueueSnapshot';
 import { pullLatestChangesForAgentQueueIfEnabled } from './pullLatestChangesForAgentQueueIfEnabled';
 import { synchronizeGithubAgentRunnerRepositories } from './synchronizeGithubAgentRunnerRepositories';
 import { shouldRunPeriodicTask } from './shouldRunPeriodicTask';
-import { tickAgentMessages } from './tickAgentMessages';
+import { tickAgentMessages, type AgentTickUiPresentation } from './tickAgentMessages';
 import { validateAgentRunOptions } from './validateAgentRunOptions';
 import { validateAgentWatchOptions } from './validateAgentWatchOptions';
 import { withCurrentWorkingDirectory } from './withCurrentWorkingDirectory';
-import { readLocalAgentName } from '../ui/loadAgentRunUiMetadata';
+import {
+    loadAgentRunQueuedMessagePreview,
+    readLocalAgentName,
+    type AgentRunQueuedMessagePreview,
+} from '../ui/loadAgentRunUiMetadata';
 import { buildAgentRunUiFrame } from '../ui/buildAgentRunUiFrame';
 import { resolvePromptRunner } from '../../run-codex-prompts/main/resolvePromptRunner';
 
@@ -46,6 +51,7 @@ type LocalAgentRunnerProjectSummary = {
     readonly localAgentName: string;
     readonly queuedMessageCount: number;
     readonly finishedMessageCount: number;
+    readonly queuedMessagePreview?: AgentRunQueuedMessagePreview;
 };
 
 /**
@@ -88,7 +94,9 @@ export async function runMultipleAgentMessages(
             lastObservedProjectCount,
         });
 
-        let projectSummaries = await loadLocalAgentRunnerProjectSummaries(rootPath);
+        let projectSummaries = await loadLocalAgentRunnerProjectSummaries(rootPath, {
+            includeMessagePreviews: Boolean(uiHandle),
+        });
         lastObservedProjectCount = projectSummaries.length;
         const autoPullResult = await pullLatestChangesForLocalAgentRunnerProjectsIfNeeded({
             rootPath,
@@ -99,7 +107,9 @@ export async function runMultipleAgentMessages(
         });
 
         if (autoPullResult.isAnyRepositoryPulled) {
-            projectSummaries = await loadLocalAgentRunnerProjectSummaries(rootPath);
+            projectSummaries = await loadLocalAgentRunnerProjectSummaries(rootPath, {
+                includeMessagePreviews: Boolean(uiHandle),
+            });
             lastObservedProjectCount = projectSummaries.length;
         }
 
@@ -126,7 +136,17 @@ export async function runMultipleAgentMessages(
                     nextQueuedProject.project.projectPath,
                 ),
             });
-            const tickResult = await tickAgentMessages(tickRunOptions, { isQuietWhenIdle: true, uiHandle });
+            const tickResult = await tickAgentMessages(tickRunOptions, {
+                isQuietWhenIdle: true,
+                uiHandle,
+                uiPresentation: uiHandle
+                    ? buildMultiAgentTickUiPresentation({
+                          rootPath,
+                          projectSummaries,
+                          answeringProjectPaths: new Set([nextQueuedProject.project.projectPath]),
+                      })
+                    : undefined,
+            });
 
             if (tickResult.autoPullTimestamp !== undefined) {
                 autoPullTimestampsByProjectPath.set(
@@ -146,17 +166,10 @@ async function initializeMultipleAgentRunUi(options: AgentRunOptions): Promise<C
         return undefined;
     }
 
-    const sharedRunOptions = createCoderRunOptionsForAgent(options);
-    const { runner, actualRunnerModel } = resolvePromptRunner(sharedRunOptions);
     const uiHandle = renderCoderRunUi(moment(), { buildFrameLines: buildAgentRunUiFrame });
 
-    uiHandle.state.setConfig({
-        agentName: runner.name,
-        localAgentName: 'Multiple local agents',
-        modelName: actualRunnerModel,
-        thinkingLevel: options.thinkingLevel,
-        priority: 0,
-    });
+    setMultipleAgentRunUiConfig(uiHandle, options, 0);
+    uiHandle.state.setAgentStatusLines(['No direct child agent repositories detected yet.']);
 
     return uiHandle;
 }
@@ -192,6 +205,7 @@ async function synchronizeGithubAgentRunnerRepositoriesIfNeeded(options: {
     }
 
     if (uiHandle) {
+        setMultipleAgentRunUiConfig(uiHandle, runOptions, lastObservedProjectCount);
         uiHandle.state.setPhase('loading');
         uiHandle.state.setStatusMessage('Checking GitHub for new agent repositories');
         uiHandle.state.setDetailLines(['Refreshing configured `agent-*` repositories from GitHub when available.']);
@@ -243,6 +257,9 @@ async function pullLatestChangesForLocalAgentRunnerProjectsIfNeeded(options: {
     }
 
     if (uiHandle) {
+        setMultipleAgentRunUiConfig(uiHandle, runOptions, projectSummaries.length);
+        uiHandle.state.updateProgress(createMultiAgentQueueProgressSnapshot(projectSummaries));
+        uiHandle.state.setAgentStatusLines(buildMultiAgentStatusLines(rootPath, projectSummaries, new Set()));
         uiHandle.state.setPhase('loading');
         uiHandle.state.setStatusMessage('Pulling latest changes for watched repositories');
         uiHandle.state.setDetailLines(buildAutoPullDetailLines(rootPath, projectSummariesToPull));
@@ -320,6 +337,9 @@ function createAgentRunOptionsForQueuedProjectTick(options: {
  */
 async function loadLocalAgentRunnerProjectSummaries(
     rootPath: string,
+    options: {
+        readonly includeMessagePreviews: boolean;
+    },
 ): Promise<ReadonlyArray<LocalAgentRunnerProjectSummary>> {
     const projects = await listLocalAgentRunnerProjects(rootPath);
 
@@ -329,12 +349,17 @@ async function loadLocalAgentRunnerProjectSummaries(
                 readLocalAgentName(project.projectPath),
                 loadAgentMessageQueueSnapshot(project.projectPath),
             ]);
+            const queuedMessagePreview =
+                options.includeMessagePreviews && queueSnapshot.queuedMessages[0]
+                    ? await loadAgentRunQueuedMessagePreview(queueSnapshot.queuedMessages[0])
+                    : undefined;
 
             return {
                 project,
                 localAgentName,
                 queuedMessageCount: queueSnapshot.queuedMessages.length,
                 finishedMessageCount: queueSnapshot.finishedMessageCount,
+                ...(queuedMessagePreview ? { queuedMessagePreview } : {}),
             } satisfies LocalAgentRunnerProjectSummary;
         }),
     );
@@ -353,43 +378,174 @@ function updateMultipleAgentRunUiForWatching(
         return;
     }
 
+    setMultipleAgentRunUiConfig(uiHandle, options, projectSummaries.length);
+    uiHandle.state.updateProgress(createMultiAgentQueueProgressSnapshot(projectSummaries));
+    uiHandle.state.setCurrentPrompt('');
+    uiHandle.state.setPhase('waiting');
+    uiHandle.state.setStatusMessage(
+        projectSummaries.length > 0 ? `Watching ${formatAgentCount(projectSummaries.length)}` : 'Watching for Agents',
+    );
+    uiHandle.state.setDetailLines(buildMultiAgentWatchingDetailLines(rootPath, projectSummaries));
+    uiHandle.state.setAgentStatusLines(buildMultiAgentStatusLines(rootPath, projectSummaries, new Set()));
+    uiHandle.state.setMessagePreviewLines(['Waiting for the next queued `MESSAGE @User`.']);
+}
+
+/**
+ * Applies the shared runner configuration and concise agent count label.
+ */
+function setMultipleAgentRunUiConfig(uiHandle: CoderRunUiHandle, options: AgentRunOptions, agentCount: number): void {
     const sharedRunOptions = createCoderRunOptionsForAgent(options);
     const { runner, actualRunnerModel } = resolvePromptRunner(sharedRunOptions);
-    const queuedMessageCount = projectSummaries.reduce(
-        (totalQueuedMessages, projectSummary) => totalQueuedMessages + projectSummary.queuedMessageCount,
-        0,
-    );
-    const finishedMessageCount = projectSummaries.reduce(
-        (totalFinishedMessages, projectSummary) => totalFinishedMessages + projectSummary.finishedMessageCount,
-        0,
-    );
 
     uiHandle.state.setConfig({
         agentName: runner.name,
-        localAgentName: `${projectSummaries.length} served agent repositor${
-            projectSummaries.length === 1 ? 'y' : 'ies'
-        }`,
+        localAgentName: formatAgentCount(agentCount),
         modelName: actualRunnerModel,
         thinkingLevel: options.thinkingLevel,
         priority: 0,
     });
-    uiHandle.state.updateProgress({
-        done: finishedMessageCount,
-        forAgent: queuedMessageCount,
+}
+
+/**
+ * Builds the multi-agent presentation passed into one active queued-message tick.
+ */
+function buildMultiAgentTickUiPresentation(options: {
+    readonly rootPath: string;
+    readonly projectSummaries: ReadonlyArray<LocalAgentRunnerProjectSummary>;
+    readonly answeringProjectPaths: ReadonlySet<string>;
+}): AgentTickUiPresentation {
+    const { rootPath, projectSummaries, answeringProjectPaths } = options;
+
+    return {
+        sessionAgentName: formatAgentCount(projectSummaries.length),
+        agentStatusLines: buildMultiAgentStatusLines(rootPath, projectSummaries, answeringProjectPaths),
+        messagePreviewLines: buildMultiAgentUserMessageLines(projectSummaries, answeringProjectPaths),
+        progressStats: createMultiAgentQueueProgressSnapshot(projectSummaries),
+        completedAgentStatusLines: buildMultiAgentStatusLines(rootPath, projectSummaries, new Set()),
+        completedMessagePreviewLines: ['Waiting for the next queued `MESSAGE @User`.'],
+        completedProgressStats: createCompletedMultiAgentQueueProgressSnapshot(projectSummaries, answeringProjectPaths),
+    };
+}
+
+/**
+ * Converts watched project summaries into the shared progress-stat shape.
+ */
+function createMultiAgentQueueProgressSnapshot(
+    projectSummaries: ReadonlyArray<LocalAgentRunnerProjectSummary>,
+): PromptStats {
+    return {
+        done: projectSummaries.reduce(
+            (totalFinishedMessages, projectSummary) => totalFinishedMessages + projectSummary.finishedMessageCount,
+            0,
+        ),
+        forAgent: projectSummaries.reduce(
+            (totalQueuedMessages, projectSummary) => totalQueuedMessages + projectSummary.queuedMessageCount,
+            0,
+        ),
         belowMinimumPriority: 0,
         toBeWritten: 0,
+    };
+}
+
+/**
+ * Predicts the aggregate queue stats after the current active message is answered.
+ */
+function createCompletedMultiAgentQueueProgressSnapshot(
+    projectSummaries: ReadonlyArray<LocalAgentRunnerProjectSummary>,
+    answeringProjectPaths: ReadonlySet<string>,
+): PromptStats {
+    const activeAnsweringCount = projectSummaries.filter((projectSummary) =>
+        answeringProjectPaths.has(projectSummary.project.projectPath),
+    ).length;
+    const progressStats = createMultiAgentQueueProgressSnapshot(projectSummaries);
+
+    return {
+        ...progressStats,
+        done: progressStats.done + activeAnsweringCount,
+        forAgent: Math.max(0, progressStats.forAgent - activeAnsweringCount),
+    };
+}
+
+/**
+ * Builds one readable status row per watched local agent repository.
+ */
+function buildMultiAgentStatusLines(
+    rootPath: string,
+    projectSummaries: ReadonlyArray<LocalAgentRunnerProjectSummary>,
+    answeringProjectPaths: ReadonlySet<string>,
+): string[] {
+    if (projectSummaries.length === 0) {
+        return ['No direct child agent repositories detected yet.'];
+    }
+
+    return projectSummaries.map((projectSummary) => {
+        const isAnswering = answeringProjectPaths.has(projectSummary.project.projectPath);
+        const status = isAnswering ? 'Answering' : 'Idle';
+        const currentMessage = isAnswering ? formatCurrentAgentMessage(projectSummary) : '';
+
+        return `${status.padEnd(9)} ${projectSummary.localAgentName} (${formatProjectPath(
+            rootPath,
+            projectSummary.project.projectPath,
+        )})${currentMessage}`;
     });
-    uiHandle.state.setCurrentPrompt('');
-    uiHandle.state.setPhase('waiting');
-    uiHandle.state.setStatusMessage(
-        projectSummaries.length > 0
-            ? `Watching ${projectSummaries.length} direct child agent repositor${
-                  projectSummaries.length === 1 ? 'y' : 'ies'
-              }`
-            : 'Watching for direct child agent repositories',
+}
+
+/**
+ * Builds the current-message summary appended to an answering agent status row.
+ */
+function formatCurrentAgentMessage(projectSummary: LocalAgentRunnerProjectSummary): string {
+    if (!projectSummary.queuedMessagePreview) {
+        return '';
+    }
+
+    return `  ·  ${projectSummary.queuedMessagePreview.queuedMessage.relativePath}: ${
+        projectSummary.queuedMessagePreview.latestUserMessageSummary
+    }`;
+}
+
+/**
+ * Builds the user-message preview lines for all agents currently answering.
+ */
+function buildMultiAgentUserMessageLines(
+    projectSummaries: ReadonlyArray<LocalAgentRunnerProjectSummary>,
+    answeringProjectPaths: ReadonlySet<string>,
+): string[] {
+    const answeringMessageLines = projectSummaries
+        .filter((projectSummary) => answeringProjectPaths.has(projectSummary.project.projectPath))
+        .flatMap((projectSummary) => buildAnsweringAgentMessageLines(projectSummary));
+
+    return answeringMessageLines.length > 0
+        ? answeringMessageLines
+        : ['Waiting for the next queued `MESSAGE @User`.'];
+}
+
+/**
+ * Builds line-preserving message preview rows for one answering agent.
+ */
+function buildAnsweringAgentMessageLines(projectSummary: LocalAgentRunnerProjectSummary): string[] {
+    const messageLines = projectSummary.queuedMessagePreview?.latestUserMessageLines;
+
+    if (!messageLines || messageLines.length === 0) {
+        return [
+            `${projectSummary.localAgentName}: ${
+                projectSummary.queuedMessagePreview?.queuedMessage.relativePath || 'Queued message'
+            }`,
+        ];
+    }
+
+    const prefix = `${projectSummary.localAgentName}: `;
+    const continuationPrefix = ' '.repeat(prefix.length);
+
+    return messageLines.map((messageLine, lineIndex) =>
+        lineIndex === 0 ? `${prefix}${messageLine}` : `${continuationPrefix}${messageLine}`,
     );
-    uiHandle.state.setDetailLines(buildMultiAgentWatchingDetailLines(rootPath, projectSummaries));
-    uiHandle.state.setMessagePreviewLines(['Waiting for the next queued `MESSAGE @User`.']);
+}
+
+/**
+ * Formats the session-level count label used by multi-agent runs.
+ */
+function formatAgentCount(agentCount: number): string {
+    return `${agentCount} Agent${agentCount === 1 ? '' : 's'}`;
 }
 
 /**

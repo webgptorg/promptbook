@@ -47,6 +47,7 @@ export type BuildCoderRunUiFrameOptions = {
     readonly statusMessage: string;
     readonly detailLines: readonly string[];
     readonly messagePreviewLines?: readonly string[];
+    readonly agentStatusLines?: readonly string[];
     readonly pendingEnterLabel?: string;
     readonly agentOutputLines: readonly string[];
     readonly errors: readonly string[];
