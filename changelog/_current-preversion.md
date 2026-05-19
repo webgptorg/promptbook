@@ -1,3 +1,8 @@
+-   Refactored `startRemoteServer` internals to keep remote-server behavior unchanged while making the module easier to navigate and maintain:
+
+    -   Split `src/remote-server/startRemoteServer.ts` into a small public facade plus focused private modules for runtime/config bootstrapping, HTTP route registration, Socket.io request handling, execution-tools resolution, and public server-handle creation.
+    -   Kept the existing REST routes, OpenAI-compatible endpoint, Socket.io events, tool-resolution behavior, and startup/destroy lifecycle unchanged while reducing the responsibility count in the top-level file.
+
 -   Refactored `callOpenAiCompatibleChatModel` internals to keep OpenAI-compatible chat execution behavior unchanged while making the flow easier to navigate and maintain:
 
     -   Split `src/llm-providers/openai/utils/callOpenAiCompatibleChatModel.ts` into a slimmer orchestration facade plus focused private helpers for prompt/request construction, tool-call execution, and progress/result shaping.
