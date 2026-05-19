@@ -1,3 +1,8 @@
+-   Refactored `dom-stubs` internals to keep PDF.js DOM stub behavior unchanged while making the module easier to read and maintain:
+
+    -   Split `src/scrapers/pdf/lib/pdf2md/util/dom-stubs.js` into a small public facade plus focused private modules for XML encoding, DOM element serialization, document stub creation, and image stubbing.
+    -   Kept `document`, `Image`, `setStubs`, and `unsetStubs` behavior unchanged while reducing the responsibility count in the top-level file.
+
 -   Refactored `DetectHeaders` internals to keep PDF headline detection behavior unchanged while making the transformation easier to read and maintain:
 
     -   Split the previous branch-heavy `transform` flow into focused private helpers for title-page headline detection, TOC-based height reuse, height-based headline assignment, and paragraph-height headline detection.
