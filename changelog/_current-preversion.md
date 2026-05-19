@@ -1,3 +1,12 @@
+-   Changed `ptbk agent run-*` queued-message prompts to compile the local `agent.book` with `createAgentModelRequirements` and pass the generated system message to the coding runner:
+
+    -   Removed the prompt instruction that asked the coding runner to interpret raw `agent.book` / `docs/book-language-manual.md` files.
+    -   Kept local `agent.book` generation intact while embedding the compiled behavior under the runner prompt's `This is how you should behave` section.
+
+-   Fixed the standalone HTML chat export build by restoring the markdown renderer and Promptbook export branding helpers used by the HTML save format.
+
+-   Restored the default `ptbk coder` prompt template files under `prompts/templates` so the repository files stay in sync with the built-in template definitions.
+
 -   Fixed Agents Server chat export to **React** so chats with `undefined` metadata now download correctly instead of failing during serialization.
 
     -   Taught the shared Promptbook JavaScript serializer to emit the `undefined` literal for JSX/JavaScript exports instead of crashing on optional chat fields.
@@ -104,7 +113,7 @@
 
 -   Hardened `ptbk agent run` / `ptbk agent tick` for the GitHub Copilot runner on Windows/MSYS:
 
-    -   Stopped inlining the full standalone Book Language blueprint into each queued-message prompt and switched `ptbk agent` to reference the local `agent.book` and `docs/book-language-manual.md` files instead, which keeps Copilot agent prompts much smaller than before.
+    -   Stopped inlining the full standalone Book Language blueprint into each queued-message prompt and switched `ptbk agent` to compile the local `agent.book` before prompting the coding runner, which keeps Copilot agent prompts smaller than before.
     -   Added a dedicated GitHub Copilot Windows/MSYS diagnostic for `Argument list too long` launcher failures, so stale published bundles now point users to the real limitation and the updated fix path instead of surfacing the raw shell-wrapper error alone.
 
 -   Reworked external agent chat thread files so Agents Server and `ptbk agent run` now operate on shared `.book` thread documents without duplicating messages:

@@ -1,6 +1,7 @@
 ﻿import { appendFile, mkdir, mkdtemp, readFile, rm, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
+import { spaceTrim } from 'spacetrim';
 import { UNCERTAIN_USAGE } from '../../../src/execution/utils/usage-constants';
 import type { AgentRunOptions } from '../AgentRunOptions';
 import { ensureWorkingTreeCleanForAgentQueue } from '../git/ensureWorkingTreeCleanForAgentQueue';
@@ -87,6 +88,16 @@ async function createTemporaryProject(): Promise<string> {
     return mkdtemp(join(tmpdir(), 'ptbk-agent-'));
 }
 
+/**
+ * Writes the local agent source that `ptbk agent` compiles before prompting the coding runner.
+ */
+async function writeLocalAgentBook(
+    projectPath: string,
+    agentSource: string = 'Local Agent\n\nRULE Answer queued user messages.\n',
+): Promise<void> {
+    await writeFile(join(projectPath, 'agent.book'), agentSource, 'utf-8');
+}
+
 describe('tickAgentMessages', () => {
     let temporaryProjectPath: string | undefined;
     let consoleInfoSpy: jest.SpyInstance<void, [message?: unknown, ...optionalParams: unknown[]]>;
@@ -152,6 +163,7 @@ describe('tickAgentMessages', () => {
         temporaryProjectPath = await createTemporaryProject();
         process.chdir(temporaryProjectPath);
         await mkdir(join(temporaryProjectPath, 'messages', 'queued'), { recursive: true });
+        await writeLocalAgentBook(temporaryProjectPath);
         await writeFile(join(temporaryProjectPath, 'messages', 'queued', 'question.book'), 'MESSAGE @User\nHi\n', 'utf-8');
 
         (
@@ -172,6 +184,15 @@ describe('tickAgentMessages', () => {
         temporaryProjectPath = await createTemporaryProject();
         process.chdir(temporaryProjectPath);
         await mkdir(join(temporaryProjectPath, 'messages', 'queued'), { recursive: true });
+        await writeLocalAgentBook(
+            temporaryProjectPath,
+            spaceTrim(`
+                Calendar Agent
+
+                PERSONA You answer calendar questions with exact counts.
+                RULE Mention only confirmed calendar facts.
+            `),
+        );
         await writeFile(
             join(temporaryProjectPath, 'messages', 'queued', 'question.book'),
             'MESSAGE @User\nHow many events are in my calendar for this week?\n',
@@ -181,6 +202,14 @@ describe('tickAgentMessages', () => {
         (runPromptWithTestFeedback as jest.MockedFunction<typeof runPromptWithTestFeedback>).mockImplementation(
             async ({ prompt }) => {
                 expect(prompt).toContain('Read `messages/queued/question.book` and answer the most recent `MESSAGE @User`');
+                expect(prompt).toContain('**This is how you should behave:**');
+                expect(prompt).toContain('You are Calendar Agent');
+                expect(prompt).toContain('You answer calendar questions with exact counts.');
+                expect(prompt).toContain('## Rules');
+                expect(prompt).toContain('Mention only confirmed calendar facts.');
+                expect(prompt).not.toContain('Use `agent.book`');
+                expect(prompt).not.toContain('PERSONA You answer calendar questions with exact counts.');
+                expect(prompt).not.toContain('RULE Mention only confirmed calendar facts.');
                 await appendFile(
                     join(temporaryProjectPath!, 'messages', 'queued', 'question.book'),
                     '\nMESSAGE @Agent\nThere are 5 events in your calendar for this week.\n',
@@ -213,6 +242,7 @@ describe('tickAgentMessages', () => {
             'MESSAGE @User\nHi\n',
             'utf-8',
         );
+        await writeLocalAgentBook(temporaryProjectPath);
         (isGitPathTracked as jest.MockedFunction<typeof isGitPathTracked>).mockResolvedValue(true);
 
         await tickAgentMessages(createAgentRunOptions());
@@ -229,6 +259,7 @@ describe('tickAgentMessages', () => {
         process.chdir(temporaryProjectPath);
         await mkdir(join(temporaryProjectPath, 'messages', 'queued'), { recursive: true });
         await mkdir(join(temporaryProjectPath, 'messages', 'finished'), { recursive: true });
+        await writeLocalAgentBook(temporaryProjectPath);
         await writeFile(
             join(temporaryProjectPath, 'messages', 'finished', 'thread.book'),
             'MESSAGE @User\nFirst question\n\nMESSAGE @Agent\nFirst answer\n',

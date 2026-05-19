@@ -140,3 +140,10 @@
   - `lint` passed and `test-build` completed, including Next type validation and route generation.
   - Playwright then timed out with `Timed out waiting 480000ms from config.webServer` while its managed web server was still building/collecting page data.
   - The log includes existing dynamic-render and Edge-runtime warnings, plus remote agent lookup timeouts, and does not point to the external chat runner files touched in this task.
+
+## 2026-05-19
+
+- `npm test` is currently blocked during `npm run test-types` by unrelated missing-module errors in the shared chat HTML export:
+  - `src/book-components/Chat/save/html/htmlSaveFormatDefinition.ts(4,32): Cannot find module '../../utils/renderMarkdown' or its corresponding type declarations.`
+  - `src/book-components/Chat/save/html/htmlSaveFormatDefinition.ts(6,45): Cannot find module '../_common/getPromptbookExportBranding' or its corresponding type declarations.`
+  - This surfaced while validating the `ptbk agent` prompt compilation change and does not map to the touched agent-runner files.

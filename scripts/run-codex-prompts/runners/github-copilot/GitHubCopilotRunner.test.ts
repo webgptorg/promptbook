@@ -41,6 +41,6 @@ describe('GitHubCopilotRunner', () => {
                 scriptPath: 'C:\\repo\\temp\\runner.sh',
                 preserveArtifactsOnSuccess: false,
             }),
-        ).rejects.toThrow(/smaller local-manual prompt shape/);
+        ).rejects.toThrow(/compiled agent-system-message prompt shape/);
     });
 });

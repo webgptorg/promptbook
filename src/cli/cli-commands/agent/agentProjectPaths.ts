@@ -99,7 +99,7 @@ export function getDefaultBookLanguageManualContent(): string {
         CLOSED
         \`\`\`
 
-        For \`ptbk agent\`, the coding runner reads this manual and \`agent.book\`, then edits only the queued message file by appending an answer that starts with \`MESSAGE @Agent\`.
+        For \`ptbk agent\`, the CLI compiles \`agent.book\` into the coding-runner instructions, and the runner edits only the queued message file by appending an answer that starts with \`MESSAGE @Agent\`.
     `);
 }
 

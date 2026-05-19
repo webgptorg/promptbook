@@ -1,5 +1,10 @@
 ﻿import moment from 'moment';
 import colors from 'colors';
+import { readFile } from 'fs/promises';
+import { join } from 'path';
+import { createAgentModelRequirements } from '../../../src/book-2.0/agent-source/createAgentModelRequirements';
+import type { string_book } from '../../../src/book-2.0/agent-source/string_book';
+import { AGENT_BOOK_FILE_PATH } from '../../../src/cli/cli-commands/agent/agentProjectPaths';
 import {
     captureChangedFilesSnapshot,
     normalizeLineEndingsInFilesChangedSinceSnapshot,
@@ -197,7 +202,8 @@ async function runQueuedAgentMessage(options: {
     readonly isSharedDashboard?: boolean;
 }): Promise<FinishedAgentMessageFile> {
     const { projectPath, options: runOptions, runner, queuedMessage, uiHandle, isSharedDashboard } = options;
-    const prompt = buildAgentMessagePrompt(queuedMessage.relativePath);
+    const agentSystemMessage = await loadLocalAgentSystemMessage(projectPath);
+    const prompt = buildAgentMessagePrompt(queuedMessage.relativePath, agentSystemMessage);
     const scriptPath = buildAgentMessageScriptPath(projectPath, queuedMessage);
     const roundChangedFilesSnapshot = runOptions.normalizeLineEndings
         ? await captureChangedFilesSnapshot(projectPath)
@@ -251,6 +257,16 @@ async function runQueuedAgentMessage(options: {
     });
 
     return finishedMessage;
+}
+
+/**
+ * Compiles the local `agent.book` source into the system message passed to the coding runner.
+ */
+async function loadLocalAgentSystemMessage(projectPath: string): Promise<string> {
+    const agentSource = await readFile(join(projectPath, AGENT_BOOK_FILE_PATH), 'utf-8');
+    const modelRequirements = await createAgentModelRequirements(agentSource as string_book);
+
+    return modelRequirements.systemMessage;
 }
 
 /**
