@@ -1,5 +1,10 @@
+-   Refactored `AgentLlmExecutionTools` internals to keep agent-backed chat execution behavior unchanged while making the module easier to navigate and maintain:
+
+    -   Split `src/llm-providers/agent/AgentLlmExecutionTools.ts` into a smaller orchestration facade plus focused private helpers for prompt preparation, assistant-preparation progress signaling, OpenAI AgentKit dispatch/caching, and OpenAI Assistant dispatch/caching.
+    -   Kept prompt enrichment, attachment knowledge handling, backend selection, cache reuse, and final content normalization behavior unchanged while reducing the responsibility count inside the top-level file.
+
 -   Refactored `$registeredLlmToolsMessage` internals to keep LLM provider summary behavior unchanged while making the register/status flow easier to read and maintain:
-    
+
     -   Split the previous branch-heavy provider summary module into smaller private helpers for register snapshots, entry deduplication, availability/configuration state derivation, provider-line assembly, and status wording.
     -   Kept the existing `.env` reporting, relevant environment-variable listing, provider status text, and Node-only terminal color behavior unchanged while reducing the responsibility count inside the top-level function.
 
