@@ -2,7 +2,7 @@
 
 ---
 
-[ ] !!!!
+[x] ~$0.3065 40 minutes by OpenAI Codex `gpt-5.5`
 
 [✨🚪] Script `ptbk agent run-multiple` should be running indefinetly when started
 
@@ -85,3 +85,4 @@ ptbk agent run --agent github-copilot --model gpt-5.4 --thinking-level xhigh
 -   Do a proper analysis of the current functionality of `ptbk agent` and related functionality before you start implementing.
 -   You are working with [`ptbk agent`](src/cli/cli-commands/agent/run.ts)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
