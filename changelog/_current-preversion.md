@@ -880,8 +880,8 @@
 
 -   Refactored `src/llm-providers/openai/OpenAiVectorStoreHandler.ts` into smaller focused vector-store upload helpers without changing external behavior:
 
-    -   Split the branching-heavy `uploadKnowledgeSourceFilesToVectorStore` flow into dedicated upload, batch-creation, batch-id resolution, progress tracking, terminal-state, and timeout helpers so the vector-store ingestion path now reads top-down.
-    -   Kept the existing per-file upload diagnostics, file-type summary logging, OpenAI batch-id fallbacks, stall diagnostics, timeout/cancel behavior, and final batch result handling intact while reducing branching complexity.
+    -   Slimmed `OpenAiVectorStoreHandler` into a small facade and moved knowledge-source preparation plus file-batch upload/polling into the private `OpenAiVectorStoreKnowledgeSourcePreparer`, `OpenAiVectorStoreFileBatchHandler`, and `OpenAiVectorStoreFileBatchPoller` helpers.
+    -   Kept the existing per-file upload diagnostics, file-type summary logging, data-URL and remote-download handling, OpenAI batch-id fallbacks, stall diagnostics, timeout/cancel behavior, and final vector-store result handling intact while reducing branching complexity.
 
 -   Refactored `src/llm-providers/openai/OpenAiCompatibleExecutionTools.ts` into smaller focused chat and retry helpers without changing external behavior:
 
