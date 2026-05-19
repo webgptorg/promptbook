@@ -1,3 +1,8 @@
+-   Refactored `OpenAiCompatibleExecutionTools` internals to keep OpenAI-compatible provider behavior unchanged while making the module easier to navigate and maintain:
+
+    -   Split `src/llm-providers/openai/OpenAiCompatibleExecutionTools.ts` into a slimmer orchestration facade plus focused private helpers for request/client management, model catalog/default-model lookup, and non-chat prompt execution.
+    -   Kept chat execution delegation, unsupported-parameter retry behavior, rate limiting, network retry handling, and completion/embedding/image result shaping unchanged while reducing the responsibility count inside the top-level file.
+
 -   Refactored `OpenAiAgentKitExecutionTools` internals to keep AgentKit-backed execution behavior unchanged while making the module easier to navigate and maintain:
 
     -   Split `src/llm-providers/openai/OpenAiAgentKitExecutionTools.ts` into a smaller orchestration facade plus focused private helpers for AgentKit response-format mapping, multimodal input assembly, and tool-definition/tool-execution handling.
