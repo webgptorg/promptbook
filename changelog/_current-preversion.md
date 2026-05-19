@@ -1,3 +1,8 @@
+-   Refactored `callOpenAiCompatibleChatModel` internals to keep OpenAI-compatible chat execution behavior unchanged while making the flow easier to navigate and maintain:
+
+    -   Split `src/llm-providers/openai/utils/callOpenAiCompatibleChatModel.ts` into a slimmer orchestration facade plus focused private helpers for prompt/request construction, tool-call execution, and progress/result shaping.
+    -   Kept unsupported-parameter retries, attachment-aware message building, multi-turn tool calling, progress updates, and final result shaping unchanged while reducing the responsibility count inside the top-level file.
+
 -   Refactored `OpenAiCompatibleExecutionTools` internals to keep OpenAI-compatible provider behavior unchanged while making the module easier to navigate and maintain:
 
     -   Split `src/llm-providers/openai/OpenAiCompatibleExecutionTools.ts` into a slimmer orchestration facade plus focused private helpers for request/client management, model catalog/default-model lookup, and non-chat prompt execution.
