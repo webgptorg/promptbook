@@ -168,7 +168,7 @@ node_modules
 
 ---
 
-[x] ~$0.00 29 minutes by GitHub Copilot `gpt-5.4`
+[ ] !
 
 [✨🕟] Agents answers to the user immediately but it should be aware that this is not a final answer
 
@@ -185,4 +185,3 @@ node_modules
 -   You are not working with the external chat service, the `ptbk agent` utility which is running the chats on the external service, this is not scope of this task, you are just doing quicker response before the full one arrives from the external service
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
