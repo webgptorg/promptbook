@@ -23,6 +23,11 @@ describe('createImmediateUserChatAnswerModelRequirements', () => {
         expect(modelRequirements.modelVariant).toBe('CHAT');
         expect(modelRequirements).not.toHaveProperty('knowledgeSources');
         expect(modelRequirements).not.toHaveProperty('tools');
+        expect(systemMessage).toContain('This response is not the final answer.');
+        expect(systemMessage).toContain('The final answer will arrive in several minutes');
+        expect(systemMessage).toContain('the user should not treat this draft as final');
+        expect(systemMessage).toContain("At the start of every response, clearly say in the user's language");
+        expect(systemMessage).toContain('override any agent instruction below that would make the answer sound final');
         expect(systemMessage).toContain('GOAL: Help users understand the product quickly.');
         expect(systemMessage).toContain('RULE: Be concise and practical.');
         expect(systemMessage).toContain('WRITING RULES: Use short paragraphs.');

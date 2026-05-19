@@ -164,6 +164,7 @@
 
     -   Started a lightweight local LLM stream after durable message enqueue and persisted its chunks into the existing incomplete assistant placeholder, keeping the external GitHub runner as the final source of truth.
     -   Built the immediate prompt from only fast instruction commitments, excluding knowledge, memory, tools, imports, and other slow capabilities so the quick response does not block on the full agent preparation path.
+    -   Clarified the immediate-answer prompt so the streamed response must identify itself as a draft, warn that the final external-runner answer will arrive later, and explain that the final answer can change the draft.
 
 -   Refactored `BookEditorMonaco` internals to keep the component behavior unchanged while making the code easier to follow and maintain:
 
