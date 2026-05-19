@@ -1,6 +1,7 @@
 -   Fixed Agents Server chat export to **PDF** so saved conversations render markdown as formatted PDF content instead of raw markdown text:
 
     -   Reused the shared chat markdown renderer for headings, lists, links, code blocks, blockquotes, tables, details blocks, attachments, and citations in PDF exports.
+    -   Converted inline `【source】` chat citations into document-wide numbered PDF references with a compact Sources footnote list.
     -   Added simple Promptbook PDF metadata and inconspicuous page footers with engine and Book language version information from the existing Promptbook branding helper.
     -   Shared participant and timestamp export helpers between the HTML and PDF chat export formats and added PDF export regression coverage.
 

@@ -2,6 +2,9 @@ import { jsPDF } from 'jspdf';
 import { spaceTrim } from 'spacetrim';
 import type { ChatMessage } from '../../types/ChatMessage';
 import type { ChatParticipant } from '../../types/ChatParticipant';
+import { resolveCitationPreviewUrl } from '../../utils/citationHelpers';
+import { createCitationFootnoteRenderModel } from '../../utils/createCitationFootnoteRenderModel';
+import type { ParsedCitation } from '../../utils/parseCitationsFromContent';
 import { renderMarkdown } from '../../utils/renderMarkdown';
 import {
     buildChatExportParticipantMap,
@@ -141,6 +144,16 @@ const PDF_LINK_UNDERLINE_WIDTH_PT = 0.3;
 const PDF_LINK_UNDERLINE_OFFSET_PT = 1.2;
 
 /**
+ * Top margin before the document-wide PDF sources section.
+ */
+const PDF_SOURCES_SECTION_TOP_MARGIN_PT = 12;
+
+/**
+ * Minimum vertical room reserved before starting the document-wide PDF sources section.
+ */
+const PDF_SOURCES_SECTION_MIN_SPACE_PT = 48;
+
+/**
  * Maximum font size for inline code.
  */
 const PDF_INLINE_CODE_MAX_FONT_SIZE_PT = 9.2;
@@ -270,8 +283,25 @@ type PdfRenderContext = {
     readonly pageWidth: number;
     readonly pageHeight: number;
     readonly contentWidth: number;
+    readonly citationFootnotes: PdfCitationFootnoteRegistry;
     pageNumber: number;
     cursorY: number;
+};
+
+/**
+ * One numbered source collected from rendered chat message citations.
+ */
+type PdfCitationFootnote = {
+    readonly number: number;
+    readonly citation: ParsedCitation;
+};
+
+/**
+ * Document-wide citation footnotes collected while rendering messages.
+ */
+type PdfCitationFootnoteRegistry = {
+    readonly footnotes: Array<PdfCitationFootnote>;
+    readonly footnoteBySourceKey: Map<string, PdfCitationFootnote>;
 };
 
 /**
@@ -320,6 +350,10 @@ export function buildChatPdf(
         pageWidth: pdf.internal.pageSize.getWidth(),
         pageHeight: pdf.internal.pageSize.getHeight(),
         contentWidth: pdf.internal.pageSize.getWidth() - PDF_PAGE_MARGIN_PT * 2,
+        citationFootnotes: {
+            footnotes: [],
+            footnoteBySourceKey: new Map(),
+        },
         pageNumber: 1,
         cursorY: PDF_PAGE_MARGIN_PT,
     };
@@ -328,7 +362,8 @@ export function buildChatPdf(
     applyPromptbookPdfMetadata(pdf, title, branding);
     renderDocumentHeader(context, title || 'Chat');
 
-    const participantLookup = buildChatExportParticipantMap(participants || []);
+    const participantList = participants || [];
+    const participantLookup = buildChatExportParticipantMap(participantList);
 
     if (messages.length === 0) {
         writeInlineTokens(context, [{ kind: 'text', text: 'No messages were available in this chat export.', style: {} }], {
@@ -338,10 +373,11 @@ export function buildChatPdf(
         });
     } else {
         messages.forEach((message, index) => {
-            renderMessageBlock(context, message, participantLookup, index > 0);
+            renderMessageBlock(context, message, participantLookup, participantList, index > 0);
         });
     }
 
+    renderDocumentSources(context, participantList);
     drawPageFooters(context, branding);
 
     return new Uint8Array(pdf.output('arraybuffer'));
@@ -461,6 +497,7 @@ function renderMessageBlock(
     context: PdfRenderContext,
     message: ChatMessage,
     participants: ReadonlyMap<string, ChatParticipant>,
+    participantList: ReadonlyArray<ChatParticipant>,
     hasPreviousMessage: boolean,
 ): void {
     if (hasPreviousMessage) {
@@ -492,8 +529,10 @@ function renderMessageBlock(
         renderReplyContext(context, message.replyingTo, contentX, contentWidth);
     }
 
-    if (message.content.trim()) {
-        renderMarkdownContent(context, message.content, {
+    const citationRenderModel = createDocumentCitationFootnoteRenderModel(context, message);
+
+    if (citationRenderModel.content.trim()) {
+        renderMarkdownContent(context, citationRenderModel.content, {
             x: contentX,
             width: contentWidth,
         });
@@ -526,13 +565,86 @@ function renderMessageBlock(
     }
 
     renderAttachments(context, message, contentX, contentWidth);
-    renderCitations(context, message, contentX, contentWidth);
+    if (citationRenderModel.footnotes.length === 0) {
+        renderCitations(context, message, participantList, contentX, contentWidth);
+    }
 
     if (startPage === context.pageNumber) {
         setPdfStrokeColor(context.pdf, accentColor);
         context.pdf.setLineWidth(3);
         context.pdf.line(PDF_PAGE_MARGIN_PT, startY - 2, PDF_PAGE_MARGIN_PT, Math.max(startY + 20, context.cursorY - 2));
     }
+}
+
+/**
+ * Converts one message to markdown content with document-wide numbered citation references.
+ *
+ * @private Internal helper of `buildChatPdf`.
+ */
+function createDocumentCitationFootnoteRenderModel(
+    context: PdfRenderContext,
+    message: ChatMessage,
+): { readonly content: ChatMessage['content']; readonly footnotes: ReadonlyArray<PdfCitationFootnote> } {
+    const localRenderModel = createCitationFootnoteRenderModel(message);
+    const localToDocumentFootnoteNumber = new Map<number, number>();
+
+    for (const localFootnote of localRenderModel.footnotes) {
+        const documentFootnote = getOrCreateDocumentCitationFootnote(context, localFootnote.citation);
+        localToDocumentFootnoteNumber.set(localFootnote.number, documentFootnote.number);
+    }
+
+    const content = localRenderModel.content.replace(
+        /<sup data-citation-footnote="(\d+)">\d+<\/sup>/g,
+        (rawMarkup: string, localFootnoteNumber: string): string => {
+            const documentFootnoteNumber = localToDocumentFootnoteNumber.get(Number(localFootnoteNumber));
+
+            if (!documentFootnoteNumber) {
+                return rawMarkup;
+            }
+
+            return `<sup data-citation-footnote="${documentFootnoteNumber}">${documentFootnoteNumber}</sup>`;
+        },
+    ) as ChatMessage['content'];
+
+    return {
+        content,
+        footnotes: localRenderModel.footnotes.map((localFootnote) =>
+            getOrCreateDocumentCitationFootnote(context, localFootnote.citation),
+        ),
+    };
+}
+
+/**
+ * Resolves or appends one document-wide citation footnote.
+ *
+ * @private Internal helper of `buildChatPdf`.
+ */
+function getOrCreateDocumentCitationFootnote(context: PdfRenderContext, citation: ParsedCitation): PdfCitationFootnote {
+    const sourceKey = normalizeCitationSourceKey(citation.source || citation.id);
+    const existingFootnote = context.citationFootnotes.footnoteBySourceKey.get(sourceKey);
+
+    if (existingFootnote) {
+        return existingFootnote;
+    }
+
+    const footnote = {
+        number: context.citationFootnotes.footnotes.length + 1,
+        citation,
+    } satisfies PdfCitationFootnote;
+
+    context.citationFootnotes.footnotes.push(footnote);
+    context.citationFootnotes.footnoteBySourceKey.set(sourceKey, footnote);
+
+    return footnote;
+}
+
+/**
+ * Normalizes one citation source for document-wide source de-duplication.
+ *
+ * @private Internal helper of `buildChatPdf`.
+ */
+function normalizeCitationSourceKey(source: string): string {
+    return source.trim().toLowerCase();
 }
 
 /**
@@ -663,7 +775,13 @@ function renderAttachments(context: PdfRenderContext, message: ChatMessage, x: n
  *
  * @private Internal helper of `buildChatPdf`.
  */
-function renderCitations(context: PdfRenderContext, message: ChatMessage, x: number, width: number): void {
+function renderCitations(
+    context: PdfRenderContext,
+    message: ChatMessage,
+    participants: ReadonlyArray<ChatParticipant>,
+    x: number,
+    width: number,
+): void {
     if (!message.citations?.length) {
         return;
     }
@@ -673,7 +791,7 @@ function renderCitations(context: PdfRenderContext, message: ChatMessage, x: num
         'Sources',
         message.citations.map((citation) => ({
             label: `${citation.id} ${citation.source}${citation.excerpt ? ` - ${citation.excerpt}` : ''}`,
-            href: citation.url,
+            href: resolveCitationPreviewUrl(citation, participants) || undefined,
         })),
         x,
         width,
@@ -721,6 +839,73 @@ function renderSupportingList(
             },
         );
     }
+}
+
+/**
+ * Renders document-wide source footnotes collected from inline citation markers.
+ *
+ * @private Internal helper of `buildChatPdf`.
+ */
+function renderDocumentSources(context: PdfRenderContext, participants: ReadonlyArray<ChatParticipant>): void {
+    if (context.citationFootnotes.footnotes.length === 0) {
+        return;
+    }
+
+    addVerticalSpace(context, PDF_SOURCES_SECTION_TOP_MARGIN_PT);
+    setPdfStrokeColor(context.pdf, PDF_BORDER_COLOR);
+    context.pdf.setLineWidth(PDF_SUBTLE_LINE_WIDTH_PT);
+    ensureSpace(context, PDF_SOURCES_SECTION_MIN_SPACE_PT);
+    context.pdf.line(PDF_PAGE_MARGIN_PT, context.cursorY, context.pageWidth - PDF_PAGE_MARGIN_PT, context.cursorY);
+    context.cursorY += 18;
+
+    writeInlineTokens(context, [{ kind: 'text', text: 'Sources', style: { fontStyle: 'bold' } }], {
+        x: PDF_PAGE_MARGIN_PT,
+        width: context.contentWidth,
+        textStyle: {
+            fontSize: 12,
+            textColor: PDF_TEXT_COLOR,
+        },
+        lineHeight: 15,
+        marginBottom: 4,
+    });
+
+    for (const footnote of context.citationFootnotes.footnotes) {
+        const href = resolveCitationPreviewUrl(footnote.citation, participants) || undefined;
+        const label = createCitationFootnoteLabel(footnote, href);
+
+        writeInlineTokens(
+            context,
+            [
+                {
+                    kind: 'text',
+                    text: label,
+                    style: href ? { href, textColor: PDF_LINK_COLOR } : {},
+                },
+            ],
+            {
+                x: PDF_PAGE_MARGIN_PT,
+                width: context.contentWidth,
+                textStyle: { fontSize: 9, textColor: PDF_MUTED_TEXT_COLOR },
+                lineHeight: 12,
+                marginBottom: 2,
+            },
+        );
+    }
+}
+
+/**
+ * Creates a readable source label for one PDF citation footnote.
+ *
+ * @private Internal helper of `buildChatPdf`.
+ */
+function createCitationFootnoteLabel(footnote: PdfCitationFootnote, href?: string): string {
+    const source = footnote.citation.source.trim() || footnote.citation.id;
+    const sourceWithLink = href && href !== source ? `${source} - ${href}` : source;
+    const sourceWithExcerpt = footnote.citation.excerpt
+        ? `${sourceWithLink} - ${footnote.citation.excerpt}`
+        : sourceWithLink;
+
+    return `[${footnote.number}] ${sourceWithExcerpt}`;
 }
 
 /**
@@ -1291,6 +1476,20 @@ function collectInlineTokens(node: ChildNode, inheritedStyle?: Partial<PdfTextSt
 
     if (tagName === 'br') {
         return [{ kind: 'break' }];
+    }
+
+    if (tagName === 'sup' && element.hasAttribute('data-citation-footnote')) {
+        return [
+            {
+                kind: 'text',
+                text: `[${normalizeInlineText(element.textContent || '').trim()}]`,
+                style: {
+                    ...inheritedStyle,
+                    fontSize:
+                        (inheritedStyle?.fontSize || PDF_BODY_FONT_SIZE_PT) * PDF_SUPERSCRIPT_FONT_SIZE_MULTIPLIER,
+                },
+            },
+        ];
     }
 
     if (tagName === 'img') {

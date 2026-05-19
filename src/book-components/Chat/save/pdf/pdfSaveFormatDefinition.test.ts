@@ -130,4 +130,46 @@ describe('pdfSaveFormatDefinition', () => {
         expect(renderedText).not.toContain('# Summary');
         expect(renderedText).not.toContain('**Bold answer**');
     });
+
+    it('renders inline citation markers as numbered PDF source footnotes', () => {
+        const firstSourceUrl =
+            'https://ptbk.io/k/nt-084-2000-obsah-internetovych-stranek-etnh35iYn7gbtUZ2oLfKarhHKOyWHF.pdf';
+        const secondSourceUrl = 'https://ptbk.io/k/agent-guide.pdf';
+
+        pdfSaveFormatDefinition.getContent({
+            title: 'Sources demo',
+            participants: [
+                {
+                    name: 'ASSISTANT',
+                    fullname: 'Helpful Agent',
+                    color: '#2563eb',
+                },
+            ],
+            messages: [
+                {
+                    id: 'message-1',
+                    sender: 'ASSISTANT',
+                    content: `Answer cites \u3010${firstSourceUrl}\u3011 and repeats \u3010${firstSourceUrl}\u3011.`,
+                    isComplete: true,
+                },
+                {
+                    id: 'message-2',
+                    sender: 'ASSISTANT',
+                    content: `Another answer cites \u3010${secondSourceUrl}\u3011.`,
+                    isComplete: true,
+                },
+            ],
+        });
+
+        const renderedText = mockPdfState.texts.join('\n');
+
+        expect(renderedText).toContain('[1]');
+        expect(renderedText).toContain('[2]');
+        expect(renderedText).toContain('Sources');
+        expect(renderedText).toContain(firstSourceUrl);
+        expect(renderedText).toContain(secondSourceUrl);
+        expect(renderedText).not.toContain('0:0');
+        expect(renderedText).not.toContain(`\u3010${firstSourceUrl}\u3011`);
+        expect(renderedText).not.toContain(`\u3010${secondSourceUrl}\u3011`);
+    });
 });
