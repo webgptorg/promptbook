@@ -5,7 +5,7 @@
  */
 function stripAnsi(text: string): string {
     // eslint-disable-next-line no-control-regex
-    return text.replace(/\x1b\[[0-9;]*[a-zA-Z]/g, '');
+    return text.replace(/\x1b\][^\x07]*(?:\x07|\x1b\\)/g, '').replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '');
 }
 
 /**
@@ -170,5 +170,14 @@ describe('buildAgentRunUiFrame', () => {
         expect(output).toContain('Please review the contract');
         expect(output).toContain('User message: Agent C');
         expect(output).toContain('Summarize the SLA exceptions');
+    });
+
+    it('renders active temporary shell scripts in the Session box', () => {
+        const scriptPath = `${process.cwd()}\\agent-a\\.promptbook\\agent-messages\\question.sh`;
+        const lines = buildAgentRunUiFrame(createFrameOptions({ currentScriptPaths: [scriptPath] }));
+        const output = lines.map(stripAnsi).join('\n');
+
+        expect(output).toContain('Script   agent-a/.promptbook/agent-messages/question.sh');
+        expect(lines.join('\n')).toContain('file:///');
     });
 });

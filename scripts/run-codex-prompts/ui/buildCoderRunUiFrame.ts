@@ -7,6 +7,7 @@ import {
     buildLabeledSessionLine,
     buildPausePresentation,
     buildProgressBar,
+    buildScriptPathSessionRows,
     buildVisibleOutputLines,
     renderBox,
     SESSION_LABEL_WIDTH,
@@ -42,6 +43,7 @@ export type BuildCoderRunUiFrameOptions = {
     readonly config: CoderRunConfig;
     readonly phase: CoderRunPhase;
     readonly currentPromptLabel: string;
+    readonly currentScriptPaths?: readonly string[];
     readonly currentAttempt: number;
     readonly maxAttempts: number;
     readonly statusMessage: string;
@@ -172,6 +174,7 @@ function buildSessionRows(
             value: runnerParts.join('  ·  '),
         },
         ...configurationRows,
+        ...buildScriptPathSessionRows(options.currentScriptPaths || [], bodyWidth),
         {
             label: 'This run',
             value: buildThisRunSummary(options.progress),

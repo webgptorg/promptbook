@@ -1,11 +1,21 @@
+import { buildTemporaryPromptScriptPath } from '../common/runGoScript/buildTemporaryPromptScriptPath';
 import type { PromptFile } from './types/PromptFile';
 import type { PromptSection } from './types/PromptSection';
 
 /**
- * Builds the script path for a prompt section.
+ * Temporary subdirectory used for coder prompt runner shell scripts.
  */
-export function buildScriptPath(file: PromptFile, section: PromptSection): string {
-    const basePath = file.path.replace(/\.md$/i, '');
+const CODER_PROMPT_SCRIPT_DIRECTORY_NAME = 'coder-prompts';
+
+/**
+ * Builds the temporary script path for a prompt section.
+ */
+export function buildScriptPath(file: PromptFile, section: PromptSection, projectPath = process.cwd()): string {
     const suffix = file.sections.length > 1 ? `-${section.index + 1}` : '';
-    return `${basePath}${suffix}.sh`;
+    return buildTemporaryPromptScriptPath({
+        projectPath,
+        scriptDirectoryName: CODER_PROMPT_SCRIPT_DIRECTORY_NAME,
+        sourceFileName: file.name,
+        suffix,
+    });
 }

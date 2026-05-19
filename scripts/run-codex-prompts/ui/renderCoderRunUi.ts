@@ -255,6 +255,7 @@ export function renderCoderRunUi(
             config: state.config,
             phase: state.phase,
             currentPromptLabel: state.currentPromptLabel,
+            currentScriptPaths: state.currentScriptPaths,
             currentAttempt: state.currentAttempt,
             maxAttempts: state.maxAttempts,
             statusMessage: state.statusMessage,

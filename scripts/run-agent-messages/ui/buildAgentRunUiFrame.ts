@@ -7,6 +7,7 @@ import {
     buildControlPills,
     buildLabeledSessionLine,
     buildPausePresentation,
+    buildScriptPathSessionRows,
     buildVisibleOutputLines,
     renderBox,
     type SessionRow,
@@ -133,6 +134,7 @@ function buildSessionLines(
             label: 'Runner',
             value: runnerParts.join('  ·  '),
         },
+        ...buildScriptPathSessionRows(options.currentScriptPaths || [], bodyWidth),
         {
             label: 'Status',
             value: `${agentStatusCounts.idleAgents} idle  ·  ${agentStatusCounts.answeringAgents} answering`,

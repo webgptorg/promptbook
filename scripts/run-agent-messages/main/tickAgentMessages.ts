@@ -218,6 +218,9 @@ async function runQueuedAgentMessage(options: {
         uiHandle?.state.setPhase('running');
         uiHandle?.state.setStatusMessage('Running');
     }
+    if (!isSharedDashboard) {
+        uiHandle?.state.setCurrentScriptPath(scriptPath);
+    }
     uiHandle?.startCapturingAgentOutput();
 
     try {

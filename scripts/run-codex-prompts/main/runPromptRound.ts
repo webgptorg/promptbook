@@ -67,7 +67,7 @@ export async function runPromptRound({
     const scriptPath = buildScriptPath(nextPrompt.file, nextPrompt.section);
 
     await waitForRequestedPause();
-    setPromptRoundRunningState({ isRichUiEnabled, promptLabel, uiHandle });
+    setPromptRoundRunningState({ isRichUiEnabled, promptLabel, scriptPath, uiHandle });
 
     const promptExecutionStartedDate = moment();
     let attemptCount = 1;
@@ -138,12 +138,14 @@ export async function runPromptRound({
 function setPromptRoundRunningState(options: {
     isRichUiEnabled: boolean;
     promptLabel: string;
+    scriptPath: string;
     uiHandle?: CoderRunUiHandle;
 }): void {
-    const { isRichUiEnabled, promptLabel, uiHandle } = options;
+    const { isRichUiEnabled, promptLabel, scriptPath, uiHandle } = options;
 
     if (isRichUiEnabled) {
         uiHandle?.state.setCurrentPrompt(promptLabel);
+        uiHandle?.state.setCurrentScriptPath(scriptPath);
         uiHandle?.state.setPhase('running');
         uiHandle?.state.setStatusMessage('Running');
         return;

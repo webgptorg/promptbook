@@ -26,6 +26,7 @@ import {
 import { buildAgentRunUiFrame } from '../ui/buildAgentRunUiFrame';
 import { WAITING_FOR_MESSAGE_LABEL } from '../ui/agentRunUiConstants';
 import { resolvePromptRunner } from '../../run-codex-prompts/main/resolvePromptRunner';
+import { buildAgentMessageScriptPath } from '../messages/buildAgentMessageScriptPath';
 
 /**
  * Delay between multi-agent watch iterations while all queues stay empty.
@@ -432,6 +433,7 @@ function updateMultipleAgentRunUiForAnswering(
     setMultipleAgentRunUiConfig(uiHandle, options, projectSummaries.length);
     uiHandle.state.updateProgress(createMultiAgentQueueProgressSnapshot(projectSummaries));
     uiHandle.state.setCurrentPrompt('');
+    uiHandle.state.setCurrentScriptPaths(buildMultiAgentScriptPaths(projectSummaries, answeringProjectPaths));
     uiHandle.state.setPhase('running');
     uiHandle.state.setStatusMessage(
         `Answering ${activeProjectCount} queued message${activeProjectCount === 1 ? '' : 's'}`,
@@ -442,6 +444,26 @@ function updateMultipleAgentRunUiForAnswering(
     uiHandle.state.setMessagePreviewSections(
         buildMultiAgentMessagePreviewSections(projectSummaries, answeringProjectPaths),
     );
+}
+
+/**
+ * Builds active temporary runner shell script paths for the shared multi-agent dashboard.
+ */
+function buildMultiAgentScriptPaths(
+    projectSummaries: ReadonlyArray<LocalAgentRunnerProjectSummary>,
+    answeringProjectPaths: ReadonlySet<string>,
+): string[] {
+    return projectSummaries
+        .filter((projectSummary) => answeringProjectPaths.has(projectSummary.project.projectPath))
+        .map((projectSummary) =>
+            projectSummary.queuedMessagePreview
+                ? buildAgentMessageScriptPath(
+                      projectSummary.project.projectPath,
+                      projectSummary.queuedMessagePreview.queuedMessage,
+                  )
+                : undefined,
+        )
+        .filter((scriptPath): scriptPath is string => Boolean(scriptPath));
 }
 
 /**

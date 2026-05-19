@@ -305,6 +305,7 @@ async function loadPromptQueueSnapshot(options: {
     const { options: runOptions, isRichUiEnabled, progressDisplay, uiHandle } = options;
 
     if (isRichUiEnabled) {
+        uiHandle?.state.setCurrentScriptPath(undefined);
         uiHandle?.state.setPhase('loading');
         uiHandle?.state.setStatusMessage('Loading prompts...');
     }
@@ -383,6 +384,7 @@ function announceRunCompletion(
     uiHandle?: CoderRunUiHandle,
 ): void {
     uiHandle?.state.setStatusMessage(message);
+    uiHandle?.state.setCurrentScriptPath(undefined);
     uiHandle?.state.setPhase('done');
 
     if (!isRichUiEnabled) {

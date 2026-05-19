@@ -1,12 +1,5 @@
 import { buildCoderRunUiFrame, type BuildCoderRunUiFrameOptions } from './buildCoderRunUiFrame';
-
-/**
- * Removes ANSI escape sequences from a rendered UI line for text assertions.
- */
-function stripAnsi(text: string): string {
-    // eslint-disable-next-line no-control-regex
-    return text.replace(/\x1b\[[0-9;]*[a-zA-Z]/g, '');
-}
+import { stripAnsi } from './coderRunUiText';
 
 /**
  * Builds one stable frame input so individual tests only override the parts they care about.
@@ -123,5 +116,14 @@ describe('buildCoderRunUiFrame', () => {
         expect(pausedOutput).toContain('PAUSED');
         expect(pausedOutput).toContain('Paused until resumed');
         expect(pausedOutput).toContain('P  Resume');
+    });
+
+    it('renders the active temporary shell script as a clickable Session link', () => {
+        const scriptPath = `${process.cwd()}\\.promptbook\\coder-prompts\\feature.sh`;
+        const lines = buildCoderRunUiFrame(createFrameOptions({ currentScriptPaths: [scriptPath] }));
+        const output = lines.map(stripAnsi).join('\n');
+
+        expect(output).toContain('Script   .promptbook/coder-prompts/feature.sh');
+        expect(lines.join('\n')).toContain('file:///');
     });
 });

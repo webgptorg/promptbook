@@ -1,7 +1,9 @@
 import colors from 'colors';
+import { isAbsolute, relative, resolve } from 'path';
+import { pathToFileURL } from 'url';
 import type { CoderRunPauseState } from '../common/waitForPause';
 import type { CoderRunPhase } from './CoderRunUiState';
-import { fitAnsiText, padAnsiText, stripAnsi } from './coderRunUiText';
+import { fitAnsiText, fitPlainText, padAnsiText, stripAnsi } from './coderRunUiText';
 
 /**
  * Maximum number of output lines reserved for agent output in the UI.
@@ -12,6 +14,11 @@ export const MAX_VISIBLE_OUTPUT_LINES = 8;
  * Visible width reserved for aligned labels in the session box.
  */
 export const SESSION_LABEL_WIDTH = 8;
+
+/**
+ * Maximum number of temporary shell script paths rendered in the session box.
+ */
+const MAX_SCRIPT_SESSION_ROWS = 3;
 
 /**
  * One structured row rendered inside the session box.
@@ -76,6 +83,36 @@ export function renderBox(
 export function buildLabeledSessionLine(label: string, value: string, bodyWidth: number): string {
     const formattedLabel = colors.gray(label.padEnd(SESSION_LABEL_WIDTH));
     return `${formattedLabel} ${fitAnsiText(value, bodyWidth - SESSION_LABEL_WIDTH - 1)}`;
+}
+
+/**
+ * Builds session rows with clickable links to active temporary runner shell scripts.
+ */
+export function buildScriptPathSessionRows(scriptPaths: readonly string[], bodyWidth: number): readonly SessionRow[] {
+    const uniqueScriptPaths = [...new Set(scriptPaths.map((scriptPath) => scriptPath.trim()).filter(Boolean))];
+
+    if (uniqueScriptPaths.length === 0) {
+        return [];
+    }
+
+    const availableValueWidth = Math.max(10, bodyWidth - SESSION_LABEL_WIDTH - 1);
+    const visibleScriptPaths = uniqueScriptPaths.slice(0, MAX_SCRIPT_SESSION_ROWS);
+    const scriptRows = visibleScriptPaths.map((scriptPath, index) => ({
+        label: index === 0 ? (uniqueScriptPaths.length === 1 ? 'Script' : 'Scripts') : '',
+        value: buildTerminalFileLink(scriptPath, availableValueWidth),
+    }));
+
+    if (uniqueScriptPaths.length <= MAX_SCRIPT_SESSION_ROWS) {
+        return scriptRows;
+    }
+
+    return [
+        ...scriptRows,
+        {
+            label: '',
+            value: colors.gray(`...and ${uniqueScriptPaths.length - MAX_SCRIPT_SESSION_ROWS} more scripts`),
+        },
+    ];
 }
 
 /**
@@ -160,4 +197,27 @@ function buildRunningPhaseBadge(phase: CoderRunPhase): string {
         default:
             return colors.bgWhite.black(' READY ');
     }
+}
+
+/**
+ * Builds one OSC 8 terminal hyperlink to a local file.
+ */
+function buildTerminalFileLink(scriptPath: string, availableWidth: number): string {
+    const absoluteScriptPath = resolve(scriptPath);
+    const displayPath = fitPlainText(formatScriptPathForDisplay(absoluteScriptPath), availableWidth);
+    const fileUrl = pathToFileURL(absoluteScriptPath).href;
+    return `\u001B]8;;${fileUrl}\u0007${displayPath}\u001B]8;;\u0007`;
+}
+
+/**
+ * Formats paths relative to the current project when possible so the Session box stays readable.
+ */
+function formatScriptPathForDisplay(scriptPath: string): string {
+    const relativeScriptPath = relative(process.cwd(), scriptPath).replace(/\\/gu, '/');
+
+    if (relativeScriptPath && !relativeScriptPath.startsWith('..') && !isAbsolute(relativeScriptPath)) {
+        return relativeScriptPath;
+    }
+
+    return scriptPath.replace(/\\/gu, '/');
 }

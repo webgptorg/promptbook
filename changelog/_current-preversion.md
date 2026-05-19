@@ -1,3 +1,9 @@
+-   Improved `ptbk coder run` and `ptbk agent run-*` prompt script handling:
+
+    -   Moved coder runner `.sh` files from beside prompt `.md` files into the shared `.promptbook` temporary root.
+    -   Reused one temporary script-path builder across coder prompts and agent queued messages.
+    -   Added clickable temporary shell-script paths to the rich terminal Session box for active prompt runs.
+
 -   Changed `ptbk agent run-*` queued-message prompts to compile the local `agent.book` with `createAgentModelRequirements` and pass the generated system message to the coding runner:
 
     -   Removed the prompt instruction that asked the coding runner to interpret raw `agent.book` / `docs/book-language-manual.md` files.

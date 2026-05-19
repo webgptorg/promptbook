@@ -63,6 +63,7 @@ export type { CoderRunProgressSnapshot };
 export class CoderRunUiState extends EventEmitter {
     public config: CoderRunConfig = { agentName: '', priority: 0 };
     public currentPromptLabel = '';
+    public currentScriptPaths: string[] = [];
     public currentAttempt = 1;
     public maxAttempts = 3;
     public detailLines: string[] = [];
@@ -138,12 +139,29 @@ export class CoderRunUiState extends EventEmitter {
      */
     public setCurrentPrompt(label: string): void {
         this.currentPromptLabel = label;
+        this.currentScriptPaths = [];
         this.detailLines = [];
         this.messagePreviewLines = [];
         this.messagePreviewSections = [];
         this.pendingEnterLabel = undefined;
         this.agentOutputLines = [];
         this.currentAttempt = 1;
+        this.emitChange();
+    }
+
+    /**
+     * Sets the temporary shell script currently used by the active prompt.
+     */
+    public setCurrentScriptPath(scriptPath: string | undefined): void {
+        this.currentScriptPaths = scriptPath ? [scriptPath] : [];
+        this.emitChange();
+    }
+
+    /**
+     * Sets multiple temporary shell scripts used by a shared multi-agent session.
+     */
+    public setCurrentScriptPaths(scriptPaths: readonly string[]): void {
+        this.currentScriptPaths = [...scriptPaths];
         this.emitChange();
     }
 
