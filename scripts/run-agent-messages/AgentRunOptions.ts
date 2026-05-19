@@ -16,4 +16,5 @@ export type AgentRunOptions = {
     readonly autoPush: boolean;
     readonly autoPull: boolean;
     readonly autoClone: boolean;
+    readonly ignorePatterns?: readonly string[];
 };

@@ -172,6 +172,29 @@ describe('buildAgentRunUiFrame', () => {
         expect(output).toContain('Summarize the SLA exceptions');
     });
 
+    it('renders ignored multi-agent count in Session without adding rows to Agents', () => {
+        const output = buildAgentRunUiFrame(
+            createFrameOptions({
+                config: {
+                    agentName: 'github-copilot',
+                    localAgentName: '0 Agents  ·  2 ignored',
+                    modelName: 'gpt-5.4',
+                    thinkingLevel: 'high',
+                    priority: 0,
+                },
+                agentStatusLines: ['No direct child agent repositories detected yet.'],
+                agentStatusTableRows: [],
+            }),
+        )
+            .map(stripAnsi)
+            .join('\n');
+
+        expect(output).toContain('Agents   0 Agents  ·  2 ignored');
+        expect(output).toContain('No agents detected.');
+        expect(output).toContain('Status   0 idle  ·  0 answering');
+        expect(output).not.toContain('Idle      0 Agents');
+    });
+
     it('renders active temporary shell scripts in the Session box', () => {
         const scriptPath = `${process.cwd()}\\agent-a\\.promptbook\\agent-messages\\question.sh`;
         const lines = buildAgentRunUiFrame(createFrameOptions({ currentScriptPaths: [scriptPath] }));

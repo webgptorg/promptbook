@@ -1,6 +1,15 @@
 import { readdir } from 'fs/promises';
 import { join } from 'path';
+import type { string_book } from '../../../src/book-2.0/agent-source/string_book';
+import { AGENT_BOOK_FILE_PATH } from '../../../src/cli/cli-commands/agent/agentProjectPaths';
 import { $execCommand } from '../../../src/utils/execCommand/$execCommand';
+import {
+    AGENT_RUNNER_REPOSITORY_PREFIX,
+    createAgentIgnoreIdentityFromAgentSource,
+    resolveAgentIdFromRepositoryName,
+    type AgentIgnoreIdentity,
+    type AgentIgnoreMatcher,
+} from './agentIgnorePatterns';
 
 /**
  * Environment variable carrying the GitHub token used to discover and clone agent repositories.
@@ -11,11 +20,6 @@ export const PROMPTBOOK_AGENT_RUNNER_GITHUB_TOKEN_ENV = 'PROMPTBOOK_AGENT_RUNNER
  * Environment variable carrying the GitHub owner whose `agent-*` repositories should be mirrored locally.
  */
 export const PROMPTBOOK_AGENT_RUNNER_GITHUB_OWNER_ENV = 'PROMPTBOOK_AGENT_RUNNER_GITHUB_OWNER';
-
-/**
- * Prefix required for repositories managed by `ptbk agent run-multiple`.
- */
-const AGENT_RUNNER_REPOSITORY_PREFIX = 'agent-';
 
 /**
  * GitHub REST API base URL.
@@ -61,10 +65,19 @@ type GithubRepositoryApiPayload = {
 };
 
 /**
+ * GitHub contents API payload used when peeking at `agent.book` before cloning.
+ */
+type GithubFileContentApiPayload = {
+    readonly content?: string;
+    readonly encoding?: string;
+};
+
+/**
  * Result of one GitHub synchronization round.
  */
 export type GithubAgentRunnerRepositoriesSynchronizationResult = {
     readonly clonedRepositoryNames: ReadonlyArray<string>;
+    readonly ignoredRepositoryNames?: ReadonlyArray<string>;
     readonly owner?: string;
     readonly synchronizedAt?: number;
 };
@@ -91,6 +104,9 @@ export function loadAgentRunnerGithubConfiguration(): {
  */
 export async function synchronizeGithubAgentRunnerRepositories(
     rootPath: string,
+    options: {
+        readonly ignoreMatcher?: AgentIgnoreMatcher;
+    } = {},
 ): Promise<GithubAgentRunnerRepositoriesSynchronizationResult> {
     const configuration = loadAgentRunnerGithubConfiguration();
     if (!configuration) {
@@ -102,14 +118,20 @@ export async function synchronizeGithubAgentRunnerRepositories(
         listDirectChildDirectoryNames(rootPath),
     ]);
     const missingRepositories = remoteRepositories.filter((repository) => !localDirectoryNames.has(repository.name));
+    const filteredRepositories = await filterIgnoredGithubAgentRepositories(
+        configuration,
+        missingRepositories,
+        options.ignoreMatcher,
+    );
 
-    for (const repository of missingRepositories) {
+    for (const repository of filteredRepositories.repositoriesToClone) {
         await cloneGithubAgentRepository(rootPath, configuration.token, repository);
     }
 
     return {
         owner: configuration.owner,
-        clonedRepositoryNames: missingRepositories.map((repository) => repository.name),
+        clonedRepositoryNames: filteredRepositories.repositoriesToClone.map((repository) => repository.name),
+        ignoredRepositoryNames: filteredRepositories.ignoredRepositoryNames,
         synchronizedAt: Date.now(),
     };
 }
@@ -125,6 +147,115 @@ async function listDirectChildDirectoryNames(rootPath: string): Promise<Set<stri
             .filter((directoryEntry) => directoryEntry.isDirectory())
             .map((directoryEntry) => directoryEntry.name),
     );
+}
+
+/**
+ * Filters missing GitHub repositories through the same ignore matcher used for local projects.
+ */
+async function filterIgnoredGithubAgentRepositories(
+    configuration: {
+        readonly token: string;
+        readonly owner: string;
+    },
+    repositories: ReadonlyArray<GithubAgentRepository>,
+    ignoreMatcher: AgentIgnoreMatcher | undefined,
+): Promise<{
+    readonly repositoriesToClone: ReadonlyArray<GithubAgentRepository>;
+    readonly ignoredRepositoryNames: ReadonlyArray<string>;
+}> {
+    if (!ignoreMatcher?.isEnabled || repositories.length === 0) {
+        return {
+            repositoriesToClone: repositories,
+            ignoredRepositoryNames: [],
+        };
+    }
+
+    const repositoryDecisions = await Promise.all(
+        repositories.map(async (repository) => {
+            const repositoryIdentity = createGithubRepositoryIgnoreIdentity(repository);
+            const isRepositoryIgnored =
+                ignoreMatcher.isIgnored(repositoryIdentity) ||
+                ignoreMatcher.isIgnored({
+                    ...repositoryIdentity,
+                    ...(await loadGithubRepositoryAgentSourceIgnoreIdentity(configuration, repository)),
+                });
+
+            return {
+                repository,
+                isRepositoryIgnored,
+            };
+        }),
+    );
+
+    return {
+        repositoriesToClone: repositoryDecisions
+            .filter((repositoryDecision) => !repositoryDecision.isRepositoryIgnored)
+            .map((repositoryDecision) => repositoryDecision.repository),
+        ignoredRepositoryNames: repositoryDecisions
+            .filter((repositoryDecision) => repositoryDecision.isRepositoryIgnored)
+            .map((repositoryDecision) => repositoryDecision.repository.name),
+    };
+}
+
+/**
+ * Builds ignore candidates available from repository-list metadata.
+ */
+function createGithubRepositoryIgnoreIdentity(repository: GithubAgentRepository): AgentIgnoreIdentity {
+    return {
+        agentId: resolveAgentIdFromRepositoryName(repository.name),
+        repositoryName: repository.name,
+    };
+}
+
+/**
+ * Loads `agent.book` from GitHub so ignore patterns can also match agent names before clone.
+ */
+async function loadGithubRepositoryAgentSourceIgnoreIdentity(
+    configuration: {
+        readonly token: string;
+        readonly owner: string;
+    },
+    repository: GithubAgentRepository,
+): Promise<AgentIgnoreIdentity> {
+    const agentSource = await fetchGithubRepositoryAgentSource(configuration, repository);
+
+    if (!agentSource) {
+        return {};
+    }
+
+    return createAgentIgnoreIdentityFromAgentSource(agentSource);
+}
+
+/**
+ * Fetches one remote `agent.book` through GitHub's contents API.
+ */
+async function fetchGithubRepositoryAgentSource(
+    configuration: {
+        readonly token: string;
+        readonly owner: string;
+    },
+    repository: GithubAgentRepository,
+): Promise<string_book | undefined> {
+    const response = await fetch(buildGithubRepositoryContentUrl(repository.fullName, AGENT_BOOK_FILE_PATH), {
+        headers: createGithubHeaders(configuration.token),
+    });
+
+    if (response.status === 404) {
+        return undefined;
+    }
+
+    if (!response.ok) {
+        throw new Error(
+            `GitHub agent source lookup failed for "${repository.fullName}" with ${response.status} ${response.statusText}.`,
+        );
+    }
+
+    const payload = (await response.json()) as GithubFileContentApiPayload;
+    if (payload.encoding !== 'base64' || typeof payload.content !== 'string') {
+        return undefined;
+    }
+
+    return Buffer.from(payload.content.replace(/\s+/gu, ''), 'base64').toString('utf-8') as string_book;
 }
 
 /**
@@ -251,12 +382,7 @@ async function fetchGithubRepositoryPages(options: {
 
     for (let page = 1; ; page++) {
         const response = await fetch(buildGithubRepositoryPageUrl(path, page, queryParameters), {
-            headers: {
-                Accept: 'application/vnd.github+json',
-                Authorization: `Bearer ${configuration.token}`,
-                'User-Agent': 'promptbook-agent-runner',
-                'X-GitHub-Api-Version': GITHUB_API_VERSION,
-            },
+            headers: createGithubHeaders(configuration.token),
         });
 
         if (page === 1 && firstPageStatusesReturningNull.includes(response.status)) {
@@ -316,6 +442,32 @@ function buildGithubRepositoryPageUrl(path: string, page: number, queryParameter
     }
 
     return url.toString();
+}
+
+/**
+ * Builds one GitHub repository content URL for a file path.
+ */
+function buildGithubRepositoryContentUrl(repositoryFullName: string, filePath: string): string {
+    const [owner, repositoryName] = repositoryFullName.split('/');
+
+    return `${GITHUB_API_BASE_URL}/repos/${encodeURIComponent(owner || '')}/${encodeURIComponent(
+        repositoryName || '',
+    )}/contents/${filePath
+        .split('/')
+        .map((pathPart) => encodeURIComponent(pathPart))
+        .join('/')}`;
+}
+
+/**
+ * Creates shared GitHub REST headers for repository-list and content requests.
+ */
+function createGithubHeaders(token: string): Record<string, string> {
+    return {
+        Accept: 'application/vnd.github+json',
+        Authorization: `Bearer ${token}`,
+        'User-Agent': 'promptbook-agent-runner',
+        'X-GitHub-Api-Version': GITHUB_API_VERSION,
+    };
 }
 
 /**

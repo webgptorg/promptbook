@@ -1,3 +1,8 @@
+-   Added `ptbk agent run-multiple --ignore <pattern>` for skipping watched agents by case-insensitive wildcard matches:
+
+    -   Applies the ignore pattern to the agent name, normalized agent name, stable agent id, and runner repository name.
+    -   Keeps ignored agents out of the `Agents` dashboard box, includes the ignored count in the `Session` box, and skips ignored GitHub repositories before auto-clone.
+
 -   Improved `ptbk coder run` and `ptbk agent run-*` prompt script handling:
 
     -   Moved coder runner `.sh` files from beside prompt `.md` files into the shared `.promptbook` temporary root.

@@ -7,6 +7,7 @@ import {
     PROMPTBOOK_AGENT_RUNNER_GITHUB_TOKEN_ENV,
     synchronizeGithubAgentRunnerRepositories,
 } from './synchronizeGithubAgentRunnerRepositories';
+import { createAgentIgnoreMatcher } from './agentIgnorePatterns';
 
 jest.mock('../../../src/utils/execCommand/$execCommand', () => ({
     $execCommand: jest.fn(),
@@ -199,6 +200,57 @@ describe('synchronizeGithubAgentRunnerRepositories', () => {
 
         expect(result.clonedRepositoryNames).toEqual(['agent-org-private']);
     });
+
+    it('does not clone missing repositories ignored by remote agent name', async () => {
+        temporaryRootDirectory = await createTemporaryRootDirectory();
+        global.fetch = jest.fn().mockImplementation(async (input: Parameters<typeof fetch>[0]) => {
+            const url = String(input);
+
+            if (url.startsWith('https://api.github.com/user/repos')) {
+                return createGithubRepositoriesResponse([
+                    {
+                        name: 'agent-john-id',
+                        full_name: 'promptbook/agent-john-id',
+                        clone_url: 'https://github.com/promptbook/agent-john-id.git',
+                        owner: {
+                            login: 'promptbook',
+                        },
+                    },
+                    {
+                        name: 'agent-active',
+                        full_name: 'promptbook/agent-active',
+                        clone_url: 'https://github.com/promptbook/agent-active.git',
+                        owner: {
+                            login: 'promptbook',
+                        },
+                    },
+                ]);
+            }
+
+            if (url.startsWith('https://api.github.com/repos/promptbook/agent-john-id/contents/agent.book')) {
+                return createGithubFileResponse('John Smith\n');
+            }
+
+            if (url.startsWith('https://api.github.com/repos/promptbook/agent-active/contents/agent.book')) {
+                return createGithubFileResponse('Active Agent\n');
+            }
+
+            return createGithubRepositoriesResponse([]);
+        });
+
+        const result = await synchronizeGithubAgentRunnerRepositories(temporaryRootDirectory, {
+            ignoreMatcher: createAgentIgnoreMatcher(['john*']),
+        });
+
+        expect(result.clonedRepositoryNames).toEqual(['agent-active']);
+        expect(result.ignoredRepositoryNames).toEqual(['agent-john-id']);
+        expect($execCommand).toHaveBeenCalledTimes(1);
+        expect($execCommand).toHaveBeenCalledWith(
+            expect.objectContaining({
+                command: expect.stringContaining('agent-active'),
+            }),
+        );
+    });
 });
 
 /**
@@ -210,6 +262,21 @@ function createGithubRepositoriesResponse(repositories: ReadonlyArray<Record<str
         status: 200,
         statusText: 'OK',
         json: async () => repositories,
+    } satisfies Partial<Response> as Response;
+}
+
+/**
+ * Creates one mocked GitHub file-content response.
+ */
+function createGithubFileResponse(content: string): Response {
+    return {
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        json: async () => ({
+            content: Buffer.from(content, 'utf-8').toString('base64'),
+            encoding: 'base64',
+        }),
     } satisfies Partial<Response> as Response;
 }
 

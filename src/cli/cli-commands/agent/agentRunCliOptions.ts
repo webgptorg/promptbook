@@ -8,6 +8,7 @@ import { normalizePromptRunnerCliOptions } from '../common/promptRunnerCliOption
  */
 export type AgentRunCliOptions = PromptRunnerCliOptions & {
     readonly autoClone?: boolean;
+    readonly ignore?: string | readonly string[];
 };
 
 /**
@@ -17,6 +18,7 @@ export type AgentRunCliOptions = PromptRunnerCliOptions & {
  */
 export type NormalizedAgentRunCliOptions = NormalizedPromptRunnerCliOptions & {
     readonly autoClone: boolean;
+    readonly ignorePatterns: readonly string[];
 };
 
 /**
@@ -32,7 +34,19 @@ export function createAgentRunOptionsFromCliOptions(cliOptions: AgentRunCliOptio
     return {
         ...runnerOptions,
         autoClone: Boolean(cliOptions.autoClone),
+        ignorePatterns: normalizeAgentIgnorePatterns(cliOptions.ignore),
     };
+}
+
+/**
+ * Normalizes one or more `--ignore` option values into a stable pattern list.
+ *
+ * @private internal utility of `ptbk agent`
+ */
+function normalizeAgentIgnorePatterns(ignore: string | readonly string[] | undefined): readonly string[] {
+    const patterns = Array.isArray(ignore) ? ignore : ignore ? [ignore] : [];
+
+    return patterns.map((pattern) => pattern.trim()).filter((pattern) => pattern.length > 0);
 }
 
 // Note: [🟡] Code for CLI command [agent](src/cli/cli-commands/agent/agentRunCliOptions.ts) should never be published outside of `@promptbook/cli`

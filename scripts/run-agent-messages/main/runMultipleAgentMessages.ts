@@ -27,6 +27,11 @@ import { buildAgentRunUiFrame } from '../ui/buildAgentRunUiFrame';
 import { WAITING_FOR_MESSAGE_LABEL } from '../ui/agentRunUiConstants';
 import { resolvePromptRunner } from '../../run-codex-prompts/main/resolvePromptRunner';
 import { buildAgentMessageScriptPath } from '../messages/buildAgentMessageScriptPath';
+import {
+    createAgentIgnoreMatcher,
+    resolveAgentIdFromRepositoryName,
+    type AgentIgnoreMatcher,
+} from './agentIgnorePatterns';
 
 /**
  * Delay between multi-agent watch iterations while all queues stay empty.
@@ -66,6 +71,14 @@ type LocalAgentRunnerProjectSummary = {
 };
 
 /**
+ * Local watched and ignored project summaries resolved in one directory scan.
+ */
+type LocalAgentRunnerProjectSummariesResult = {
+    readonly projectSummaries: ReadonlyArray<LocalAgentRunnerProjectSummary>;
+    readonly ignoredProjectCount: number;
+};
+
+/**
  * Result of one multi-repository auto-pull round.
  */
 type MultiAgentAutoPullResult = {
@@ -88,7 +101,9 @@ export async function runMultipleAgentMessages(
     const rootPath = process.cwd();
     const shouldContinue = controls.shouldContinue || (() => just(true));
     const uiHandle = await initializeMultipleAgentRunUi(options);
+    const ignoreMatcher = createAgentIgnoreMatcher(options.ignorePatterns);
     let githubSynchronizationTimestamp: number | undefined;
+    let githubIgnoredRepositoryCount = 0;
     const autoPullTimestampsByProjectPath = new Map<string, number>();
     let lastObservedProjectCount = 0;
 
@@ -100,34 +115,45 @@ export async function runMultipleAgentMessages(
         githubSynchronizationTimestamp = await synchronizeGithubAgentRunnerRepositoriesIfNeeded({
             rootPath,
             runOptions: options,
+            ignoreMatcher,
             uiHandle,
             lastSynchronizationTimestamp: githubSynchronizationTimestamp,
+            onIgnoredRepositoryCountUpdated: (ignoredRepositoryCount) => {
+                githubIgnoredRepositoryCount = ignoredRepositoryCount;
+            },
             lastObservedProjectCount,
         });
 
-        let projectSummaries = await loadLocalAgentRunnerProjectSummaries(rootPath, {
+        let projectSummariesResult = await loadLocalAgentRunnerProjectSummaries(rootPath, {
             includeMessagePreviews: Boolean(uiHandle),
+            ignoreMatcher,
         });
+        let projectSummaries = projectSummariesResult.projectSummaries;
         lastObservedProjectCount = projectSummaries.length;
+        let ignoredAgentCount = projectSummariesResult.ignoredProjectCount + githubIgnoredRepositoryCount;
         const autoPullResult = await pullLatestChangesForLocalAgentRunnerProjectsIfNeeded({
             rootPath,
             runOptions: options,
             uiHandle,
             projectSummaries,
+            ignoredAgentCount,
             autoPullTimestampsByProjectPath,
         });
 
         if (autoPullResult.isAnyRepositoryPulled) {
-            projectSummaries = await loadLocalAgentRunnerProjectSummaries(rootPath, {
+            projectSummariesResult = await loadLocalAgentRunnerProjectSummaries(rootPath, {
                 includeMessagePreviews: Boolean(uiHandle),
+                ignoreMatcher,
             });
+            projectSummaries = projectSummariesResult.projectSummaries;
             lastObservedProjectCount = projectSummaries.length;
+            ignoredAgentCount = projectSummariesResult.ignoredProjectCount + githubIgnoredRepositoryCount;
         }
 
         const queuedProjects = projectSummaries.filter((projectSummary) => projectSummary.queuedMessageCount > 0);
 
         if (queuedProjects.length === 0) {
-            updateMultipleAgentRunUiForWatching(uiHandle, options, rootPath, projectSummaries);
+            updateMultipleAgentRunUiForWatching(uiHandle, options, rootPath, projectSummaries, ignoredAgentCount);
             await wait(MULTI_AGENT_QUEUE_POLL_INTERVAL_MS);
             continue;
         }
@@ -145,14 +171,23 @@ export async function runMultipleAgentMessages(
         const answeringProjectPaths = new Set(queuedProjects.map((queuedProject) => queuedProject.project.projectPath));
 
         if (uiHandle) {
-            updateMultipleAgentRunUiForAnswering(uiHandle, options, rootPath, projectSummaries, answeringProjectPaths);
+            updateMultipleAgentRunUiForAnswering(
+                uiHandle,
+                options,
+                rootPath,
+                projectSummaries,
+                answeringProjectPaths,
+                ignoredAgentCount,
+            );
         }
 
         const tickResults = await Promise.all(
             queuedProjects.map(async (queuedProject) => {
                 const tickRunOptions = createAgentRunOptionsForQueuedProjectTick({
                     runOptions: options,
-                    isProjectPulledInCurrentIteration: autoPullResult.pulledProjectPaths.has(queuedProject.project.projectPath),
+                    isProjectPulledInCurrentIteration: autoPullResult.pulledProjectPaths.has(
+                        queuedProject.project.projectPath,
+                    ),
                 });
                 const tickResult = await tickAgentMessages(tickRunOptions, {
                     isQuietWhenIdle: true,
@@ -163,6 +198,7 @@ export async function runMultipleAgentMessages(
                               rootPath,
                               projectSummaries,
                               answeringProjectPaths,
+                              ignoredAgentCount,
                           })
                         : undefined,
                 });
@@ -192,7 +228,7 @@ async function initializeMultipleAgentRunUi(options: AgentRunOptions): Promise<C
 
     const uiHandle = renderCoderRunUi(moment(), { buildFrameLines: buildAgentRunUiFrame });
 
-    setMultipleAgentRunUiConfig(uiHandle, options, 0);
+    setMultipleAgentRunUiConfig(uiHandle, options, 0, 0);
     uiHandle.state.setAgentStatusLines(['No direct child agent repositories detected yet.']);
     uiHandle.state.setAgentStatusTableRows([]);
     uiHandle.state.setMessagePreviewSections([]);
@@ -206,13 +242,24 @@ async function initializeMultipleAgentRunUi(options: AgentRunOptions): Promise<C
 async function synchronizeGithubAgentRunnerRepositoriesIfNeeded(options: {
     readonly rootPath: string;
     readonly runOptions: AgentRunOptions;
+    readonly ignoreMatcher: AgentIgnoreMatcher;
     readonly uiHandle?: CoderRunUiHandle;
     readonly lastSynchronizationTimestamp: number | undefined;
+    readonly onIgnoredRepositoryCountUpdated: (ignoredRepositoryCount: number) => void;
     readonly lastObservedProjectCount: number;
 }): Promise<number | undefined> {
-    const { rootPath, runOptions, uiHandle, lastSynchronizationTimestamp, lastObservedProjectCount } = options;
+    const {
+        rootPath,
+        runOptions,
+        ignoreMatcher,
+        uiHandle,
+        lastSynchronizationTimestamp,
+        onIgnoredRepositoryCountUpdated,
+        lastObservedProjectCount,
+    } = options;
 
     if (!runOptions.autoClone) {
+        onIgnoredRepositoryCountUpdated(0);
         return lastSynchronizationTimestamp;
     }
 
@@ -231,13 +278,14 @@ async function synchronizeGithubAgentRunnerRepositoriesIfNeeded(options: {
     }
 
     if (uiHandle) {
-        setMultipleAgentRunUiConfig(uiHandle, runOptions, lastObservedProjectCount);
+        setMultipleAgentRunUiConfig(uiHandle, runOptions, lastObservedProjectCount, 0);
         uiHandle.state.setPhase('loading');
         uiHandle.state.setStatusMessage('Checking GitHub for new agent repositories');
         uiHandle.state.setDetailLines(['Refreshing configured `agent-*` repositories from GitHub when available.']);
     }
 
-    const synchronizationResult = await synchronizeGithubAgentRunnerRepositories(rootPath);
+    const synchronizationResult = await synchronizeGithubAgentRunnerRepositories(rootPath, { ignoreMatcher });
+    onIgnoredRepositoryCountUpdated(synchronizationResult.ignoredRepositoryNames?.length || 0);
 
     if (!uiHandle && synchronizationResult.clonedRepositoryNames.length > 0) {
         console.info(
@@ -260,9 +308,11 @@ async function pullLatestChangesForLocalAgentRunnerProjectsIfNeeded(options: {
     readonly runOptions: AgentRunOptions;
     readonly uiHandle?: CoderRunUiHandle;
     readonly projectSummaries: ReadonlyArray<LocalAgentRunnerProjectSummary>;
+    readonly ignoredAgentCount: number;
     readonly autoPullTimestampsByProjectPath: Map<string, number>;
 }): Promise<MultiAgentAutoPullResult> {
-    const { rootPath, runOptions, uiHandle, projectSummaries, autoPullTimestampsByProjectPath } = options;
+    const { rootPath, runOptions, uiHandle, projectSummaries, ignoredAgentCount, autoPullTimestampsByProjectPath } =
+        options;
     const pulledProjectPaths = new Set<string>();
 
     if (!runOptions.autoPull || projectSummaries.length === 0) {
@@ -283,7 +333,7 @@ async function pullLatestChangesForLocalAgentRunnerProjectsIfNeeded(options: {
     }
 
     if (uiHandle) {
-        setMultipleAgentRunUiConfig(uiHandle, runOptions, projectSummaries.length);
+        setMultipleAgentRunUiConfig(uiHandle, runOptions, projectSummaries.length, ignoredAgentCount);
         uiHandle.state.updateProgress(createMultiAgentQueueProgressSnapshot(projectSummaries));
         uiHandle.state.setAgentStatusLines(buildMultiAgentStatusLines(rootPath, projectSummaries, new Set()));
         uiHandle.state.setAgentStatusTableRows(buildMultiAgentStatusTableRows(projectSummaries, new Set()));
@@ -362,16 +412,28 @@ async function loadLocalAgentRunnerProjectSummaries(
     rootPath: string,
     options: {
         readonly includeMessagePreviews: boolean;
+        readonly ignoreMatcher: AgentIgnoreMatcher;
     },
-): Promise<ReadonlyArray<LocalAgentRunnerProjectSummary>> {
+): Promise<LocalAgentRunnerProjectSummariesResult> {
     const projects = await listLocalAgentRunnerProjects(rootPath);
+    let ignoredProjectCount = 0;
 
-    return await Promise.all(
+    const projectSummaries = await Promise.all(
         projects.map(async (project) => {
-            const [{ localAgentName, localAgentUrl }, queueSnapshot] = await Promise.all([
-                readLocalAgentUiIdentity(project.projectPath),
-                loadAgentMessageQueueSnapshot(project.projectPath),
-            ]);
+            const localAgentIdentity = await readLocalAgentUiIdentity(project.projectPath);
+            const isProjectIgnored = options.ignoreMatcher.isIgnored({
+                agentName: localAgentIdentity.localAgentName,
+                normalizedAgentName: localAgentIdentity.normalizedAgentName,
+                agentId: localAgentIdentity.agentId || resolveAgentIdFromRepositoryName(project.directoryName),
+                repositoryName: project.directoryName,
+            });
+
+            if (isProjectIgnored) {
+                ignoredProjectCount++;
+                return null;
+            }
+
+            const queueSnapshot = await loadAgentMessageQueueSnapshot(project.projectPath);
             const queuedMessagePreview =
                 options.includeMessagePreviews && queueSnapshot.queuedMessages[0]
                     ? await loadAgentRunQueuedMessagePreview(queueSnapshot.queuedMessages[0])
@@ -379,14 +441,21 @@ async function loadLocalAgentRunnerProjectSummaries(
 
             return {
                 project,
-                localAgentName,
-                localAgentUrl: localAgentUrl || formatProjectPath(rootPath, project.projectPath),
+                localAgentName: localAgentIdentity.localAgentName,
+                localAgentUrl: localAgentIdentity.localAgentUrl || formatProjectPath(rootPath, project.projectPath),
                 queuedMessageCount: queueSnapshot.queuedMessages.length,
                 finishedMessageCount: queueSnapshot.finishedMessageCount,
                 ...(queuedMessagePreview ? { queuedMessagePreview } : {}),
             } satisfies LocalAgentRunnerProjectSummary;
         }),
     );
+
+    return {
+        projectSummaries: projectSummaries.filter(
+            (projectSummary): projectSummary is LocalAgentRunnerProjectSummary => projectSummary !== null,
+        ),
+        ignoredProjectCount,
+    };
 }
 
 /**
@@ -397,12 +466,13 @@ function updateMultipleAgentRunUiForWatching(
     options: AgentRunOptions,
     rootPath: string,
     projectSummaries: ReadonlyArray<LocalAgentRunnerProjectSummary>,
+    ignoredAgentCount: number,
 ): void {
     if (!uiHandle) {
         return;
     }
 
-    setMultipleAgentRunUiConfig(uiHandle, options, projectSummaries.length);
+    setMultipleAgentRunUiConfig(uiHandle, options, projectSummaries.length, ignoredAgentCount);
     uiHandle.state.updateProgress(createMultiAgentQueueProgressSnapshot(projectSummaries));
     uiHandle.state.setCurrentPrompt('');
     uiHandle.state.setPhase('waiting');
@@ -425,12 +495,13 @@ function updateMultipleAgentRunUiForAnswering(
     rootPath: string,
     projectSummaries: ReadonlyArray<LocalAgentRunnerProjectSummary>,
     answeringProjectPaths: ReadonlySet<string>,
+    ignoredAgentCount: number,
 ): void {
     const activeProjectCount = projectSummaries.filter((projectSummary) =>
         answeringProjectPaths.has(projectSummary.project.projectPath),
     ).length;
 
-    setMultipleAgentRunUiConfig(uiHandle, options, projectSummaries.length);
+    setMultipleAgentRunUiConfig(uiHandle, options, projectSummaries.length, ignoredAgentCount);
     uiHandle.state.updateProgress(createMultiAgentQueueProgressSnapshot(projectSummaries));
     uiHandle.state.setCurrentPrompt('');
     uiHandle.state.setCurrentScriptPaths(buildMultiAgentScriptPaths(projectSummaries, answeringProjectPaths));
@@ -469,13 +540,18 @@ function buildMultiAgentScriptPaths(
 /**
  * Applies the shared runner configuration and concise agent count label.
  */
-function setMultipleAgentRunUiConfig(uiHandle: CoderRunUiHandle, options: AgentRunOptions, agentCount: number): void {
+function setMultipleAgentRunUiConfig(
+    uiHandle: CoderRunUiHandle,
+    options: AgentRunOptions,
+    agentCount: number,
+    ignoredAgentCount: number,
+): void {
     const sharedRunOptions = createCoderRunOptionsForAgent(options);
     const { runner, actualRunnerModel } = resolvePromptRunner(sharedRunOptions);
 
     uiHandle.state.setConfig({
         agentName: runner.name,
-        localAgentName: formatAgentCount(agentCount),
+        localAgentName: formatAgentCount(agentCount, ignoredAgentCount),
         modelName: actualRunnerModel,
         thinkingLevel: options.thinkingLevel,
         priority: 0,
@@ -489,12 +565,13 @@ function buildMultiAgentTickUiPresentation(options: {
     readonly rootPath: string;
     readonly projectSummaries: ReadonlyArray<LocalAgentRunnerProjectSummary>;
     readonly answeringProjectPaths: ReadonlySet<string>;
+    readonly ignoredAgentCount: number;
 }): AgentTickUiPresentation {
-    const { rootPath, projectSummaries, answeringProjectPaths } = options;
+    const { rootPath, projectSummaries, answeringProjectPaths, ignoredAgentCount } = options;
 
     return {
         isSharedDashboard: true,
-        sessionAgentName: formatAgentCount(projectSummaries.length),
+        sessionAgentName: formatAgentCount(projectSummaries.length, ignoredAgentCount),
         agentStatusLines: buildMultiAgentStatusLines(rootPath, projectSummaries, answeringProjectPaths),
         agentStatusTableRows: buildMultiAgentStatusTableRows(projectSummaries, answeringProjectPaths),
         messagePreviewLines: buildMultiAgentUserMessageLines(projectSummaries, answeringProjectPaths),
@@ -676,8 +753,14 @@ function buildMultiAgentAnsweringDetailLines(
 /**
  * Formats the session-level count label used by multi-agent runs.
  */
-function formatAgentCount(agentCount: number): string {
-    return `${agentCount} Agent${agentCount === 1 ? '' : 's'}`;
+function formatAgentCount(agentCount: number, ignoredAgentCount = 0): string {
+    const agentCountLabel = `${agentCount} Agent${agentCount === 1 ? '' : 's'}`;
+
+    if (ignoredAgentCount === 0) {
+        return agentCountLabel;
+    }
+
+    return `${agentCountLabel}  ·  ${ignoredAgentCount} ignored`;
 }
 
 /**

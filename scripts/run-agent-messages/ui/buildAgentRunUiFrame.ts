@@ -201,9 +201,17 @@ function getAgentStatusTableRows(options: BuildCoderRunUiFrameOptions): readonly
     }
 
     if (options.agentStatusLines && options.agentStatusLines.length > 0) {
-        return options.agentStatusLines
+        const parsedRows = options.agentStatusLines
             .map(parseLegacyAgentStatusLine)
             .filter((row): row is AgentRunStatusTableRow => Boolean(row));
+
+        if (parsedRows.length > 0) {
+            return parsedRows;
+        }
+
+        if (parseMultiAgentSessionCount(options.config.localAgentName) !== undefined) {
+            return [];
+        }
     }
 
     return [buildSingleAgentStatusRow(options)];
@@ -255,7 +263,8 @@ function countAgentStatuses(options: BuildCoderRunUiFrameOptions): {
     readonly answeringAgents: number;
 } {
     const rows = getAgentStatusTableRows(options);
-    const normalizedTotalAgents = rows.length || (options.config.localAgentName === '0 Agents' ? 0 : 1);
+    const sessionAgentCount = parseMultiAgentSessionCount(options.config.localAgentName);
+    const normalizedTotalAgents = rows.length > 0 ? rows.length : sessionAgentCount ?? 1;
     const answeringAgents = rows.filter((row) => row.status === 'Answering').length;
 
     return {
@@ -263,6 +272,15 @@ function countAgentStatuses(options: BuildCoderRunUiFrameOptions): {
         idleAgents: Math.max(0, normalizedTotalAgents - answeringAgents),
         answeringAgents,
     };
+}
+
+/**
+ * Parses the multi-agent session label used by `ptbk agent run-multiple`.
+ */
+function parseMultiAgentSessionCount(localAgentName: string | undefined): number | undefined {
+    const match = /^(\d+) Agents?(?:\s+·\s+\d+ ignored)?$/u.exec(localAgentName || '');
+
+    return match ? Number(match[1]) : undefined;
 }
 
 /**

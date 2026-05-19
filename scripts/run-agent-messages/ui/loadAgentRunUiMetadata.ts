@@ -1,10 +1,10 @@
 ﻿import { readFile } from 'fs/promises';
 import { join } from 'path';
 import { Book } from '../../../src/book-3.0/Book';
-import { parseAgentSourceWithCommitments } from '../../../src/book-2.0/agent-source/parseAgentSourceWithCommitments';
 import type { string_book } from '../../../src/book-2.0/agent-source/string_book';
 import { AGENT_BOOK_FILE_PATH } from '../../../src/cli/cli-commands/agent/agentProjectPaths';
 import type { AgentMessageFile } from '../messages/AgentMessageFile';
+import { createAgentIgnoreIdentityFromAgentSource } from '../main/agentIgnorePatterns';
 
 /**
  * Local metadata rendered in the rich `ptbk agent run` dashboard.
@@ -19,6 +19,8 @@ export type AgentRunUiMetadata = {
  */
 export type AgentRunUiIdentity = {
     readonly localAgentName: string;
+    readonly normalizedAgentName?: string;
+    readonly agentId?: string;
     readonly localAgentUrl?: string;
 };
 
@@ -80,10 +82,12 @@ export async function readLocalAgentName(projectPath: string): Promise<string> {
 export async function readLocalAgentUiIdentity(projectPath: string): Promise<AgentRunUiIdentity> {
     try {
         const agentSource = await readFile(join(projectPath, AGENT_BOOK_FILE_PATH), 'utf-8');
-        const parsedAgentSource = parseAgentSourceWithCommitments(agentSource as string_book);
+        const agentIdentity = createAgentIgnoreIdentityFromAgentSource(agentSource as string_book);
 
         return {
-            localAgentName: parsedAgentSource.agentName || 'Local Agent',
+            localAgentName: agentIdentity.agentName || 'Local Agent',
+            normalizedAgentName: agentIdentity.normalizedAgentName,
+            agentId: agentIdentity.agentId,
         };
     } catch (error) {
         if (

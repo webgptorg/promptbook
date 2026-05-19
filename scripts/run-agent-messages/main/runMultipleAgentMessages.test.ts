@@ -144,6 +144,40 @@ describe('runMultipleAgentMessages', () => {
         ]);
     });
 
+    it('ignores local repositories by agent name, normalized agent name, and agent id', async () => {
+        temporaryRootDirectory = await createTemporaryRootDirectory();
+        const agentSourcesByDirectoryName = new Map([
+            ['agent-active', 'Active Agent'],
+            ['agent-raw-name', 'JohnSmith'],
+            ['agent-normalized-name', 'John Doe'],
+            ['agent-id', 'Ignored By Id\nMETA ID ABC123'],
+        ]);
+
+        for (const [directoryName, agentSource] of agentSourcesByDirectoryName) {
+            await mkdir(join(temporaryRootDirectory, directoryName, 'messages', 'queued'), { recursive: true });
+            await writeFile(join(temporaryRootDirectory, directoryName, 'agent.book'), agentSource, 'utf-8');
+            await writeFile(
+                join(temporaryRootDirectory, directoryName, 'messages', 'queued', 'question.book'),
+                'MESSAGE @User\nHi\n',
+                'utf-8',
+            );
+        }
+
+        process.chdir(temporaryRootDirectory);
+
+        const loopStates = [true, false];
+        await runMultipleAgentMessages(createAgentRunOptions({ ignorePatterns: ['johnsmith', 'john-doe', 'abc*'] }), {
+            shouldContinue: () => loopStates.shift() ?? false,
+        });
+
+        expect(tickAgentMessages).toHaveBeenCalledTimes(1);
+        expect((tickAgentMessages as jest.MockedFunction<typeof tickAgentMessages>).mock.calls[0]?.[1]).toEqual(
+            expect.objectContaining({
+                projectPath: join(temporaryRootDirectory, 'agent-active'),
+            }),
+        );
+    });
+
     it('keeps synchronizing GitHub while waiting for the first local agent repository and starts watching the cloned repository', async () => {
         temporaryRootDirectory = await createTemporaryRootDirectory();
         process.chdir(temporaryRootDirectory);
