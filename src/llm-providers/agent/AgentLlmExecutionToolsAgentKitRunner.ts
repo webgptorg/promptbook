@@ -4,10 +4,8 @@ import type { ChatPromptResult, CommonPromptResult } from '../../execution/Promp
 import type { Prompt } from '../../types/Prompt';
 import type { string_model_name } from '../../types/string_model_name';
 import type { string_title } from '../../types/string_title';
-import {
-    mapResponseFormatToAgentOutputType,
-    OpenAiAgentKitExecutionTools,
-} from '../openai/OpenAiAgentKitExecutionTools';
+import { OpenAiAgentKitExecutionTools } from '../openai/OpenAiAgentKitExecutionTools';
+import { OpenAiAgentKitExecutionToolsOutputTypeMapper } from '../openai/OpenAiAgentKitExecutionToolsOutputTypeMapper';
 import type { AgentLlmExecutionToolsPromptPreparer } from './AgentLlmExecutionToolsPromptPreparer';
 import { emitAgentLlmExecutionToolsAssistantPreparationProgress } from './emitAgentLlmExecutionToolsAssistantPreparationProgress';
 
@@ -99,7 +97,7 @@ export class AgentLlmExecutionToolsAgentKitRunner {
             agentKitCacheState,
         });
 
-        const responseFormatOutputType = mapResponseFormatToAgentOutputType(
+        const responseFormatOutputType = OpenAiAgentKitExecutionToolsOutputTypeMapper.mapResponseFormatToAgentOutputType(
             options.preparedChatPrompt.forwardedPrompt.modelRequirements.responseFormat,
         );
 

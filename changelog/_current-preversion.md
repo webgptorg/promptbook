@@ -1,3 +1,8 @@
+-   Refactored `OpenAiAgentKitExecutionTools` internals to keep AgentKit-backed execution behavior unchanged while making the module easier to navigate and maintain:
+
+    -   Split `src/llm-providers/openai/OpenAiAgentKitExecutionTools.ts` into a smaller orchestration facade plus focused private helpers for AgentKit response-format mapping, multimodal input assembly, and tool-definition/tool-execution handling.
+    -   Kept prepared-agent reuse, vector-store preparation, streaming progress updates, DeepSearch support, and Promptbook tool-result normalization behavior unchanged while reducing the responsibility count inside the top-level file.
+
 -   Refactored `AgentLlmExecutionTools` internals to keep agent-backed chat execution behavior unchanged while making the module easier to navigate and maintain:
 
     -   Split `src/llm-providers/agent/AgentLlmExecutionTools.ts` into a smaller orchestration facade plus focused private helpers for prompt preparation, assistant-preparation progress signaling, OpenAI AgentKit dispatch/caching, and OpenAI Assistant dispatch/caching.

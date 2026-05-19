@@ -1,533 +1,33 @@
-import type { Tool as AgentKitTool } from '@openai/agents';
-import {
-    Agent as AgentFromKit,
-    fileSearchTool,
-    run,
-    setDefaultOpenAIClient,
-    setDefaultOpenAIKey,
-    tool as agentKitTool,
-    webSearchTool,
-} from '@openai/agents';
-import OpenAI from 'openai';
-import { spaceTrim } from 'spacetrim';
-import { parseToolExecutionEnvelope } from '../../commitments/_common/toolExecutionEnvelope';
-import type { ToolCallProgressUpdate } from '../../commitments/_common/toolRuntimeContext';
-import {
-    registerToolCallProgressListener,
-    TOOL_PROGRESS_TOKEN_PARAMETER,
-    unregisterToolCallProgressListener,
-} from '../../commitments/_common/toolRuntimeContext';
-import { assertsError } from '../../errors/assertsError';
+import { Agent as AgentFromKit, run, setDefaultOpenAIClient, setDefaultOpenAIKey } from '@openai/agents';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
-import { serializeError } from '../../errors/utils/serializeError';
 import type { CallChatModelStreamOptions, LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { ScriptExecutionTools } from '../../execution/ScriptExecutionTools';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import { UNCERTAIN_USAGE } from '../../execution/utils/usage-constants';
 import type { ModelRequirements } from '../../types/ModelRequirements';
 import type { Prompt } from '../../types/Prompt';
 import type { string_markdown, string_markdown_text } from '../../types/string_markdown';
 import type { string_model_name } from '../../types/string_model_name';
-import type { string_javascript_name } from '../../types/string_person_fullname';
 import type { string_prompt } from '../../types/string_prompt';
 import type { string_title } from '../../types/string_title';
 import type { string_date_iso8601 } from '../../types/string_token';
-import type { ToolCall, ToolCallLogEntry, ToolCallState } from '../../types/ToolCall';
-import type { ChatAttachment } from '../../utils/chat/chatAttachments';
-import { normalizeChatAttachments } from '../../utils/chat/chatAttachments/normalizeChatAttachments';
+import type { ToolCall, ToolCallLogEntry } from '../../types/ToolCall';
 import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
 import type { chococake } from '../../utils/organization/really_any';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import type { OpenAiAgentKitExecutionToolsOptions } from './OpenAiAgentKitExecutionToolsOptions';
 import type { OpenAiCompatibleExecutionToolsNonProxiedOptions } from './OpenAiCompatibleExecutionToolsOptions';
+import { OpenAiAgentKitExecutionToolsInputBuilder } from './OpenAiAgentKitExecutionToolsInputBuilder';
+import { OpenAiAgentKitExecutionToolsOutputTypeMapper } from './OpenAiAgentKitExecutionToolsOutputTypeMapper';
+import { OpenAiAgentKitExecutionToolsToolBuilder } from './OpenAiAgentKitExecutionToolsToolBuilder';
 import { OpenAiVectorStoreHandler } from './OpenAiVectorStoreHandler';
-import { buildToolInvocationScript } from './utils/buildToolInvocationScript';
 
 /**
  * Constant for default agent kit model name.
  */
 const DEFAULT_AGENT_KIT_MODEL_NAME = 'gpt-5.4-mini' as string_model_name;
-
-/**
- * Default model used for nested DeepSearch tool invocations.
- */
-const DEFAULT_DEEP_SEARCH_MODEL_NAME = 'o4-mini-deep-research' as string_model_name;
-
-/**
- * Tool name used by the Book commitment-backed DeepSearch capability.
- */
-const DEEP_SEARCH_TOOL_NAME = 'deep_search' as string_javascript_name;
-
-/**
- * Creates one structured log entry for streamed tool-call updates.
- *
- * @private helper of `OpenAiAgentKitExecutionTools`
- */
-function createToolCallLogEntry(options: {
-    readonly kind: string;
-    readonly title: string;
-    readonly message: string;
-    readonly level?: ToolCallLogEntry['level'];
-    readonly payload?: unknown;
-}): ToolCallLogEntry {
-    return {
-        createdAt: $getCurrentDate(),
-        kind: options.kind,
-        level: options.level,
-        title: options.title,
-        message: options.message,
-        payload: options.payload,
-    };
-}
-
-/**
- * Appends one incremental progress update to the currently tracked tool-call snapshot.
- *
- * @private helper of `OpenAiAgentKitExecutionTools`
- */
-function applyToolCallProgressUpdate(toolCall: ToolCall, update: ToolCallProgressUpdate): ToolCall {
-    return {
-        ...toolCall,
-        state: update.state ?? 'PARTIAL',
-        logs: update.log ? [...(toolCall.logs || []), update.log] : toolCall.logs,
-    };
-}
-
-/**
- * Resolves the final lifecycle state for one AgentKit tool call after execution ends.
- *
- * @private helper of `OpenAiAgentKitExecutionTools`
- */
-function resolveFinalToolCallState(options: {
-    readonly currentState: ToolCallState | undefined;
-    readonly errors: ReadonlyArray<unknown> | undefined;
-}): ToolCallState {
-    if (options.errors && options.errors.length > 0) {
-        return 'ERROR';
-    }
-
-    if (options.currentState === 'ERROR') {
-        return 'ERROR';
-    }
-
-    return 'COMPLETE';
-}
-
-/**
- * One Promptbook tool definition normalized for AgentKit conversion.
- *
- * @private helper of `OpenAiAgentKitExecutionTools`
- */
-type AgentKitToolDefinition = NonNullable<ModelRequirements['tools']>[number];
-
-/**
- * Returns true when one tool definition represents the dedicated DeepSearch capability.
- *
- * @param toolDefinition - Tool definition from compiled model requirements.
- * @returns `true` when the tool should be backed by a nested deep-research agent.
- *
- * @private helper of `OpenAiAgentKitExecutionTools`
- */
-function isDeepSearchToolDefinition(toolDefinition: AgentKitToolDefinition): boolean {
-    return toolDefinition.name === DEEP_SEARCH_TOOL_NAME;
-}
-
-/**
- * Normalizes Promptbook JSON-schema tool parameters for AgentKit function tools.
- *
- * @param parameters - Promptbook tool parameters.
- * @returns AgentKit-compatible JSON schema or `undefined`.
- *
- * @private helper of `OpenAiAgentKitExecutionTools`
- */
-function normalizeAgentKitToolParameters(parameters: AgentKitToolDefinition['parameters'] | undefined): TODO_any {
-    if (!parameters) {
-        return undefined;
-    }
-
-    return {
-        ...parameters,
-        additionalProperties: parameters.additionalProperties ?? false,
-        required: parameters.required ?? [],
-    } as TODO_any;
-}
-
-/**
- * Creates instructions for the nested DeepSearch specialist agent.
- *
- * @param toolDescription - Model-facing description from the original tool definition.
- * @returns System instructions for the nested deep-research agent.
- *
- * @private helper of `OpenAiAgentKitExecutionTools`
- */
-function createDeepSearchAgentInstructions(toolDescription: string): string {
-    const normalizedDescription = toolDescription.trim();
-
-    return spaceTrim(
-        (block) => `
-            You are a DeepSearch specialist working as a tool for another agent.
-            Perform thorough, source-grounded public-web research based on the provided request.
-            Use web search to gather current information, compare relevant viewpoints, and synthesize a concise research brief.
-            Do not ask follow-up questions. If the request is not specific enough, state the assumptions you had to make.
-            Include citations in the research brief whenever sources were used.
-            ${block(normalizedDescription ? `Tool guidance:\n${normalizedDescription}` : '')}
-        `,
-    );
-}
-
-/**
- * Builds the nested DeepSearch prompt from structured tool arguments.
- *
- * @param rawInput - Parsed function-tool arguments provided by the outer agent.
- * @returns Prompt text passed to the nested deep-research agent.
- *
- * @private helper of `OpenAiAgentKitExecutionTools`
- */
-function buildDeepSearchToolInput(rawInput: unknown): string {
-    const input =
-        rawInput && typeof rawInput === 'object'
-            ? (rawInput as Record<string, unknown>)
-            : ({} as Record<string, unknown>);
-    const query = typeof input.query === 'string' ? input.query.trim() : '';
-    const additionalHints = Object.entries(input)
-        .filter(
-            ([key, value]) => key !== 'query' && value !== undefined && value !== null && String(value).trim() !== '',
-        )
-        .map(([key, value]) => `- ${key}: ${typeof value === 'string' ? value : JSON.stringify(value)}`);
-
-    return spaceTrim(
-        (block) => `
-            Research request:
-            ${query || JSON.stringify(input)}
-            ${block(additionalHints.length > 0 ? `Execution hints:\n${additionalHints.join('\n')}` : '')}
-        `,
-    );
-}
-
-/**
- * Creates the native Agent SDK tool used for `USE DEEPSEARCH`.
- *
- * @param toolDefinition - Promptbook tool definition for `deep_search`.
- * @returns AgentKit tool backed by a nested deep-research agent.
- *
- * @private helper of `OpenAiAgentKitExecutionTools`
- */
-function createDeepSearchAgentKitTool(toolDefinition: AgentKitToolDefinition): AgentKitTool {
-    const deepSearchAgent = new AgentFromKit({
-        name: 'DeepSearch',
-        model: DEFAULT_DEEP_SEARCH_MODEL_NAME,
-        instructions: createDeepSearchAgentInstructions(toolDefinition.description),
-        tools: [webSearchTool({ searchContextSize: 'high' })],
-    });
-
-    return deepSearchAgent.asTool({
-        toolName: toolDefinition.name,
-        toolDescription: toolDefinition.description,
-        parameters: normalizeAgentKitToolParameters(toolDefinition.parameters),
-        inputBuilder: ({ params }) => buildDeepSearchToolInput(params),
-        customOutputExtractor: (result) =>
-            typeof result.finalOutput === 'string' ? result.finalOutput : JSON.stringify(result.finalOutput ?? ''),
-    });
-}
-
-// Type definitions for AgentKit structured output
-
-/**
- * Represents the AgentKit output configuration used to match OpenAI `response_format` expectations.
- *
- * @private utility of Open AI
- */
-export type AgentOutputType = 'text' | JsonSchemaDefinition;
-
-/**
- * Type describing Json schema definition entry.
- */
-type JsonSchemaDefinitionEntry = {
-    type?: string;
-    description?: string;
-    properties?: Record<string, JsonSchemaDefinitionEntry>;
-    required?: Array<string>;
-    items?: JsonSchemaDefinitionEntry;
-    [key: string]: TODO_any;
-};
-
-/**
- * Definition of Json schema.
- */
-type JsonSchemaDefinition = {
-    type: 'json_schema';
-    name: string;
-    strict: boolean;
-    schema: {
-        type: 'object';
-        properties: Record<string, JsonSchemaDefinitionEntry>;
-        required: Array<string>;
-        additionalProperties: boolean;
-        description?: string;
-    };
-};
-
-/**
- * JSON schema inputs accepted by AgentKit normalization helpers.
- *
- * Supports both OpenAI's `{ name, strict, schema }` shape and shorthand schemas
- * where the object definition is provided directly.
- */
-type JsonSchemaDefinitionInput = {
-    name?: string;
-    strict?: boolean | null;
-    schema?: {
-        description?: string;
-        additionalProperties?: boolean;
-        properties?: Record<string, JsonSchemaDefinitionEntry>;
-        required?: Array<string>;
-    };
-    type?: string;
-    description?: string;
-    additionalProperties?: boolean;
-    properties?: Record<string, JsonSchemaDefinitionEntry>;
-    required?: Array<string>;
-};
-
-/**
- * Type describing open Ai chat response format.
- */
-type OpenAiChatResponseFormat = OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming['response_format'];
-
-/**
- * Constant for default JSON schema name.
- */
-const DEFAULT_JSON_SCHEMA_NAME = 'StructuredOutput';
-
-/**
- * File extensions considered image inputs when MIME type is missing or generic.
- *
- * @private utility of Open AI
- */
-const IMAGE_ATTACHMENT_EXTENSIONS = new Set<string>([
-    'png',
-    'jpg',
-    'jpeg',
-    'gif',
-    'webp',
-    'bmp',
-    'svg',
-    'heic',
-    'heif',
-    'avif',
-    'tif',
-    'tiff',
-]);
-
-/**
- * Returns one lowercase extension extracted from a filename/pathname.
- *
- * @private utility of Open AI
- */
-function getLowercaseFilenameExtension(filename: string): string | null {
-    const normalizedFilename = filename.trim().toLowerCase();
-    const queryStart = normalizedFilename.indexOf('?');
-    const hashStart = normalizedFilename.indexOf('#');
-    const suffixStart =
-        queryStart === -1 && hashStart === -1
-            ? normalizedFilename.length
-            : Math.min(
-                  queryStart === -1 ? normalizedFilename.length : queryStart,
-                  hashStart === -1 ? normalizedFilename.length : hashStart,
-              );
-    const pathname = normalizedFilename.slice(0, suffixStart);
-    const lastDotIndex = pathname.lastIndexOf('.');
-
-    if (lastDotIndex <= 0 || lastDotIndex === pathname.length - 1) {
-        return null;
-    }
-
-    return pathname.slice(lastDotIndex + 1);
-}
-
-/**
- * Tries to extract one extension from URL pathname.
- *
- * @private utility of Open AI
- */
-function getUrlPathnameExtension(url: string): string | null {
-    try {
-        const parsedUrl = new URL(url);
-        return getLowercaseFilenameExtension(decodeURIComponent(parsedUrl.pathname));
-    } catch {
-        return null;
-    }
-}
-
-/**
- * Checks whether one chat attachment can be sent as an image input.
- *
- * @private utility of Open AI
- */
-function isImageAttachment(attachment: ChatAttachment): boolean {
-    const normalizedType = attachment.type.trim().toLowerCase();
-    if (normalizedType.startsWith('image/')) {
-        return true;
-    }
-
-    const extension = getLowercaseFilenameExtension(attachment.name) || getUrlPathnameExtension(attachment.url);
-
-    return extension ? IMAGE_ATTACHMENT_EXTENSIONS.has(extension) : false;
-}
-
-/*
-TODO: Use or remove
-const EMPTY_JSON_SCHEMA: JsonSchemaDefinition['schema'] = {
-    type: 'object',
-    properties: {},
-    required: [],
-    additionalProperties: true,
-};
-*/
-
-/**
- * Determines whether a schema fragment includes meaningful constraints.
- */
-function hasJsonSchemaContent(schema?: {
-    description?: string;
-    additionalProperties?: boolean;
-    properties?: Record<string, JsonSchemaDefinitionEntry>;
-    required?: Array<string>;
-}): boolean {
-    if (!schema) {
-        return false;
-    }
-
-    if (typeof schema.description === 'string' && schema.description.trim() !== '') {
-        return true;
-    }
-
-    if (schema.additionalProperties !== undefined) {
-        return true;
-    }
-
-    if (schema.properties && Object.keys(schema.properties).length > 0) {
-        return true;
-    }
-
-    if (Array.isArray(schema.required) && schema.required.length > 0) {
-        return true;
-    }
-
-    return false;
-}
-
-/**
- * Normalizes inline OpenAI JSON schema payloads to the AgentKit structure.
- */
-function normalizeJsonSchemaInput(jsonSchema?: JsonSchemaDefinitionInput | null): {
-    name?: string;
-    strict?: boolean | null;
-    schema: {
-        description?: string;
-        additionalProperties?: boolean;
-        properties?: Record<string, JsonSchemaDefinitionEntry>;
-        required?: Array<string>;
-    };
-    hasSchema: boolean;
-} {
-    if (!jsonSchema || typeof jsonSchema !== 'object') {
-        return { schema: {}, hasSchema: false };
-    }
-
-    const explicitSchema = jsonSchema.schema;
-    if (explicitSchema && typeof explicitSchema === 'object') {
-        return {
-            name: jsonSchema.name,
-            strict: jsonSchema.strict,
-            schema: explicitSchema,
-            hasSchema: hasJsonSchemaContent(explicitSchema),
-        };
-    }
-
-    const inlineSchema = {
-        description: jsonSchema.description,
-        additionalProperties: jsonSchema.additionalProperties,
-        properties: jsonSchema.properties,
-        required: jsonSchema.required,
-    };
-    const hasInlineSchema =
-        hasJsonSchemaContent(inlineSchema) || (typeof jsonSchema.type === 'string' && jsonSchema.type === 'object');
-
-    return {
-        name: jsonSchema.name,
-        strict: jsonSchema.strict,
-        schema: hasInlineSchema ? inlineSchema : {},
-        hasSchema: hasInlineSchema,
-    };
-}
-
-/**
- * Builds an AgentKit-compatible JSON schema definition from the supplied payload.
- */
-function buildJsonSchemaDefinition(jsonSchema?: JsonSchemaDefinitionInput): JsonSchemaDefinition {
-    const normalizedSchema = normalizeJsonSchemaInput(jsonSchema);
-    const schema = normalizedSchema.schema ?? {};
-    const strict =
-        normalizedSchema.strict === undefined || normalizedSchema.strict === null
-            ? normalizedSchema.hasSchema
-            : Boolean(normalizedSchema.strict);
-
-    return {
-        type: 'json_schema',
-        name: normalizedSchema.name ?? DEFAULT_JSON_SCHEMA_NAME,
-        strict,
-        schema: {
-            type: 'object',
-            properties: (schema.properties ?? {}) as Record<string, JsonSchemaDefinitionEntry>,
-            required: Array.isArray(schema.required) ? schema.required : [],
-            additionalProperties:
-                schema.additionalProperties === undefined ? true : Boolean(schema.additionalProperties),
-            description: schema.description,
-        },
-    };
-}
-
-/**
- * Maps OpenAI `response_format` payloads to AgentKit output types so the runner can forward
- * structured-output preferences to OpenAI while still reusing the same AgentKit agent instance.
- *
- * @param responseFormat - The OpenAI `response_format` payload from the user request.
- * @returns An Agent output type compatible with the requested schema or `undefined` when no impact is required.
- *
- * @private utility of Open AI
- */
-export function mapResponseFormatToAgentOutputType(
-    responseFormat?: OpenAiChatResponseFormat,
-): AgentOutputType | undefined {
-    if (!responseFormat) {
-        return undefined;
-    }
-
-    if (typeof responseFormat === 'string') {
-        if (responseFormat === 'text') {
-            return 'text';
-        }
-        if (responseFormat === 'json_schema' || responseFormat === 'json_object') {
-            return buildJsonSchemaDefinition();
-        }
-        return 'text';
-    }
-
-    switch (responseFormat.type) {
-        case 'text':
-            return 'text';
-        case 'json_schema':
-            return buildJsonSchemaDefinition(responseFormat.json_schema);
-        case 'json_object':
-            return buildJsonSchemaDefinition();
-        default:
-            return undefined;
-    }
-}
 
 /**
  * Alias for OpenAI AgentKit agent to avoid naming confusion with Promptbook agents.
@@ -541,6 +41,21 @@ type OpenAiAgentKitPreparedAgent = {
     readonly agent: OpenAiAgentKitAgent;
     readonly vectorStoreId?: string;
 };
+
+/**
+ * AgentKit output type returned by the dedicated response-format mapper.
+ */
+type OpenAiAgentKitAgentOutputType = ReturnType<
+    typeof OpenAiAgentKitExecutionToolsOutputTypeMapper.mapResponseFormatToAgentOutputType
+>;
+
+/**
+ * Discriminant for type guards.
+ *
+ * @private const of `OpenAiAgentKitExecutionTools`
+ */
+const DISCRIMINANT = 'OPEN_AI_AGENT_KIT_V1';
+
 /**
  * Execution tools for OpenAI AgentKit (Agents SDK).
  *
@@ -548,9 +63,9 @@ type OpenAiAgentKitPreparedAgent = {
  */
 export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler implements LlmExecutionTools {
     private preparedAgentKitAgent: OpenAiAgentKitPreparedAgent | null = null;
-    private readonly agentKitToolResultsByCallId = new Map<string, ToolCall['result']>();
-    private readonly agentKitToolSnapshotsByCallId = new Map<string, ToolCall>();
     private readonly agentKitModelName: string_model_name;
+    private readonly inputBuilder = new OpenAiAgentKitExecutionToolsInputBuilder();
+    private readonly toolBuilder: OpenAiAgentKitExecutionToolsToolBuilder;
 
     /**
      * Creates OpenAI AgentKit execution tools.
@@ -562,6 +77,10 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
 
         super(options as OpenAiCompatibleExecutionToolsNonProxiedOptions);
         this.agentKitModelName = options.agentKitModelName ?? DEFAULT_AGENT_KIT_MODEL_NAME;
+        this.toolBuilder = new OpenAiAgentKitExecutionToolsToolBuilder({
+            options,
+            agentKitModelName: this.agentKitModelName,
+        });
     }
 
     public get title(): string_title & string_markdown_text {
@@ -599,13 +118,10 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
             }
         }
 
-        const rawPromptContent = templateParameters(content, {
-            ...parameters,
-            modelName: this.agentKitModelName,
-        });
-
-        const responseFormatOutputType = mapResponseFormatToAgentOutputType(modelRequirements.responseFormat);
-
+        const rawPromptContent = this.templatePromptContent(content, parameters);
+        const responseFormatOutputType = OpenAiAgentKitExecutionToolsOutputTypeMapper.mapResponseFormatToAgentOutputType(
+            modelRequirements.responseFormat,
+        );
         const preparedAgentKitAgent = await this.prepareAgentKitAgent({
             name: (prompt.title || 'Agent') as string_title,
             instructions: modelRequirements.systemMessage || '',
@@ -724,226 +240,6 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
     }
 
     /**
-     * Ensures the AgentKit SDK is wired to the OpenAI client and API key.
-     */
-    private async ensureAgentKitDefaults(): Promise<void> {
-        const client = await this.getClient();
-        setDefaultOpenAIClient(client as TODO_any);
-
-        const apiKey = this.agentKitOptions.apiKey;
-        if (apiKey && typeof apiKey === 'string') {
-            setDefaultOpenAIKey(apiKey);
-        }
-    }
-
-    /**
-     * Builds the tool list for AgentKit, including hosted file search when applicable.
-     */
-    private buildAgentKitTools(options: {
-        readonly tools?: ModelRequirements['tools'];
-        readonly vectorStoreId?: string;
-    }): Array<AgentKitTool> {
-        const { tools, vectorStoreId } = options;
-        const agentKitTools: Array<AgentKitTool> = [];
-
-        if (vectorStoreId) {
-            agentKitTools.push(fileSearchTool(vectorStoreId));
-        }
-
-        if (tools && tools.length > 0) {
-            let scriptTools: Array<ScriptExecutionTools> | null = null;
-
-            for (const toolDefinition of tools) {
-                if (isDeepSearchToolDefinition(toolDefinition)) {
-                    agentKitTools.push(createDeepSearchAgentKitTool(toolDefinition));
-                    continue;
-                }
-
-                scriptTools ??= this.resolveScriptTools();
-
-                agentKitTools.push(
-                    agentKitTool({
-                        name: toolDefinition.name,
-                        description: toolDefinition.description,
-                        parameters: normalizeAgentKitToolParameters(toolDefinition.parameters),
-                        strict: false,
-                        execute: async (input, runContext, details) => {
-                            const scriptTool = scriptTools![0]!;
-                            const functionName = toolDefinition.name;
-                            const calledAt = $getCurrentDate();
-                            const callId = details?.toolCall?.callId;
-                            const functionArgs = input ?? {};
-                            const executionContext =
-                                (runContext?.context as
-                                    | {
-                                          parameters?: Prompt['parameters'];
-                                          onToolProgress?: (chunk: ChatPromptResult) => void;
-                                          rawPromptContent?: string;
-                                          startedAt?: string_date_iso8601;
-                                          modelName?: string_model_name;
-                                      }
-                                    | undefined) ?? undefined;
-
-                            if (this.options.isVerbose) {
-                                console.info('[🤰]', 'Executing AgentKit tool', {
-                                    functionName,
-                                    callId,
-                                    calledAt,
-                                });
-                            }
-
-                            try {
-                                let currentToolCallSnapshot: ToolCall = {
-                                    name: functionName,
-                                    arguments: functionArgs,
-                                    result: '',
-                                    rawToolCall: details?.toolCall,
-                                    createdAt: calledAt,
-                                    state: 'PENDING',
-                                    logs: [
-                                        createToolCallLogEntry({
-                                            kind: 'request',
-                                            title: 'Request prepared',
-                                            message: `Prepared ${functionName} request.`,
-                                            payload: {
-                                                arguments: functionArgs,
-                                            },
-                                        }),
-                                    ],
-                                };
-
-                                const progressListenerToken = registerToolCallProgressListener((update) => {
-                                    currentToolCallSnapshot = applyToolCallProgressUpdate(
-                                        currentToolCallSnapshot,
-                                        update,
-                                    );
-
-                                    if (callId) {
-                                        this.agentKitToolSnapshotsByCallId.set(callId, currentToolCallSnapshot);
-                                    }
-
-                                    if (!executionContext?.onToolProgress) {
-                                        return;
-                                    }
-
-                                    executionContext.onToolProgress({
-                                        content: '' as string_markdown,
-                                        modelName: executionContext.modelName || this.agentKitModelName,
-                                        timing: {
-                                            start: executionContext.startedAt || calledAt,
-                                            complete: $getCurrentDate(),
-                                        },
-                                        usage: UNCERTAIN_USAGE,
-                                        rawPromptContent: (executionContext.rawPromptContent || '') as string_prompt,
-                                        rawRequest: null,
-                                        rawResponse: {},
-                                        toolCalls: [currentToolCallSnapshot],
-                                    });
-                                });
-
-                                let functionResponse: string;
-                                try {
-                                    functionResponse = await scriptTool.execute({
-                                        scriptLanguage: 'javascript',
-                                        script: buildToolInvocationScript({
-                                            functionName,
-                                            functionArgsExpression: JSON.stringify(functionArgs),
-                                        }),
-                                        parameters: {
-                                            ...(executionContext?.parameters ?? {}),
-                                            [TOOL_PROGRESS_TOKEN_PARAMETER]: progressListenerToken,
-                                        },
-                                    });
-                                } finally {
-                                    unregisterToolCallProgressListener(progressListenerToken);
-                                }
-
-                                return this.resolveAgentKitToolResponse(callId, functionResponse);
-                            } catch (error) {
-                                assertsError(error);
-
-                                const serializedError = serializeError(error as Error);
-                                const failedToolCall: ToolCall = {
-                                    name: functionName,
-                                    arguments: functionArgs,
-                                    result: '',
-                                    rawToolCall: details?.toolCall,
-                                    createdAt: calledAt,
-                                    state: 'ERROR',
-                                    errors: [serializedError],
-                                    logs: [
-                                        createToolCallLogEntry({
-                                            kind: 'error',
-                                            level: 'error',
-                                            title: 'Execution failed',
-                                            message: `${functionName} failed before returning a result.`,
-                                            payload: serializedError,
-                                        }),
-                                    ],
-                                };
-                                const errorMessage = spaceTrim(
-                                    (block) => `
-
-                                        The invoked tool \`${functionName}\` failed with error:
-
-                                        \`\`\`json
-                                        ${block(JSON.stringify(serializedError, null, 4))}
-                                        \`\`\`
-
-                                    `,
-                                );
-
-                                console.error('[🤰]', 'AgentKit tool execution failed', {
-                                    functionName,
-                                    callId,
-                                    error: serializedError,
-                                });
-
-                                if (callId) {
-                                    this.agentKitToolSnapshotsByCallId.set(callId, failedToolCall);
-                                }
-
-                                executionContext?.onToolProgress?.({
-                                    content: '' as string_markdown,
-                                    modelName: executionContext.modelName || this.agentKitModelName,
-                                    timing: {
-                                        start: executionContext.startedAt || calledAt,
-                                        complete: $getCurrentDate(),
-                                    },
-                                    usage: UNCERTAIN_USAGE,
-                                    rawPromptContent: (executionContext.rawPromptContent || '') as string_prompt,
-                                    rawRequest: null,
-                                    rawResponse: {},
-                                    toolCalls: [failedToolCall],
-                                });
-
-                                return errorMessage;
-                            }
-                        },
-                    }),
-                );
-            }
-        }
-
-        return agentKitTools;
-    }
-
-    /**
-     * Resolves the configured script tools for tool execution.
-     */
-    private resolveScriptTools(): Array<ScriptExecutionTools> {
-        const executionTools = (this.options as OpenAiCompatibleExecutionToolsNonProxiedOptions).executionTools;
-
-        if (!executionTools || !executionTools.script) {
-            throw new PipelineExecutionError(
-                `Model requested tools but no executionTools.script were provided in OpenAiAgentKitExecutionTools options`,
-            );
-        }
-
-        return Array.isArray(executionTools.script) ? executionTools.script : [executionTools.script];
-    }
-
-    /**
      * Runs a prepared AgentKit agent and streams results back to the caller.
      */
     public async callChatModelStreamWithPreparedAgent(options: {
@@ -951,39 +247,32 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
         readonly prompt: Prompt;
         readonly rawPromptContent?: string;
         readonly onProgress: (chunk: ChatPromptResult & { isFinished?: boolean }) => void;
-        readonly responseFormatOutputType?: AgentOutputType;
+        readonly responseFormatOutputType?: OpenAiAgentKitAgentOutputType;
         /**
          * Optional abort signal propagated from chat surfaces so stream generation can be cancelled.
          */
         readonly signal?: AbortSignal;
     }): Promise<ChatPromptResult> {
         const { openAiAgentKitAgent, prompt, onProgress } = options;
-        const rawPromptContent =
-            options.rawPromptContent ??
-            templateParameters(prompt.content, {
-                ...prompt.parameters,
-                modelName: this.agentKitModelName,
-            });
+        const rawPromptContent = options.rawPromptContent ?? this.templatePromptContent(prompt.content, prompt.parameters);
         const agentForRun =
             options.responseFormatOutputType !== undefined
                 ? openAiAgentKitAgent.clone({
                       outputType: options.responseFormatOutputType as TODO_any,
                   })
                 : openAiAgentKitAgent;
-
         const start: string_date_iso8601 = $getCurrentDate();
         let latestContent = '';
         const toolCalls: ToolCall[] = [];
         const toolCallIndexById = new Map<string, number>();
-        this.agentKitToolResultsByCallId.clear();
-        this.agentKitToolSnapshotsByCallId.clear();
 
-        const inputItems = await this.buildAgentKitInputItems(prompt, rawPromptContent);
+        this.toolBuilder.clearRunState();
+
+        const inputItems = await this.inputBuilder.buildAgentKitInputItems(prompt, rawPromptContent);
         const rawRequest: chococake = {
             agentName: agentForRun.name,
             input: inputItems,
         };
-
         const streamResult = await run(agentForRun, inputItems, {
             stream: true,
             maxTurns: 200,
@@ -997,12 +286,6 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
             signal: options.signal,
         });
 
-        /**
-         * Emits one explicit terminal stream snapshot as soon as the visible model output stream ends.
-         *
-         * This intentionally happens before `streamResult.completed` resolves because the SDK can keep
-         * post-stream bookkeeping alive after the last user-visible token has already been delivered.
-         */
         const emitFinishedStreamSnapshot = (): void => {
             onProgress({
                 content: (streamResult.finalOutput ?? latestContent) as string_markdown,
@@ -1032,87 +315,90 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
                 continue;
             }
 
-            if (event.type === 'run_item_stream_event') {
-                const rawItem = (event.item as TODO_any)?.rawItem as TODO_any | undefined;
+            if (event.type !== 'run_item_stream_event') {
+                continue;
+            }
 
-                if (event.name === 'tool_called' && rawItem?.type === 'function_call') {
-                    const toolCall: ToolCall = {
-                        name: rawItem.name,
-                        arguments: rawItem.arguments,
-                        rawToolCall: rawItem,
-                        createdAt: $getCurrentDate(),
-                        state: 'PENDING',
-                        logs: [
-                            createToolCallLogEntry({
-                                kind: 'request',
-                                title: 'Request prepared',
-                                message: `Prepared ${String(rawItem.name)} request.`,
-                                payload: {
-                                    arguments: rawItem.arguments,
-                                },
-                            }),
-                        ],
-                    };
-                    toolCallIndexById.set(rawItem.callId, toolCalls.length);
-                    toolCalls.push(toolCall);
-                    this.agentKitToolSnapshotsByCallId.set(rawItem.callId, toolCall);
+            const rawItem = (event.item as TODO_any)?.rawItem as TODO_any | undefined;
 
-                    onProgress({
-                        content: latestContent as string_markdown,
-                        modelName: this.agentKitModelName,
-                        timing: { start, complete: $getCurrentDate() },
-                        usage: UNCERTAIN_USAGE,
-                        rawPromptContent: rawPromptContent as string_prompt,
-                        rawRequest: null,
-                        rawResponse: {},
-                        toolCalls: [toolCall],
-                    });
+            if (event.name === 'tool_called' && rawItem?.type === 'function_call') {
+                const toolCall: ToolCall = {
+                    name: rawItem.name,
+                    arguments: rawItem.arguments,
+                    rawToolCall: rawItem,
+                    createdAt: $getCurrentDate(),
+                    state: 'PENDING',
+                    logs: [
+                        OpenAiAgentKitExecutionToolsToolBuilder.createToolCallLogEntry({
+                            kind: 'request',
+                            title: 'Request prepared',
+                            message: `Prepared ${String(rawItem.name)} request.`,
+                            payload: {
+                                arguments: rawItem.arguments,
+                            },
+                        }),
+                    ],
+                };
+
+                toolCallIndexById.set(rawItem.callId, toolCalls.length);
+                toolCalls.push(toolCall);
+                this.toolBuilder.storeToolSnapshot(rawItem.callId, toolCall);
+
+                onProgress({
+                    content: latestContent as string_markdown,
+                    modelName: this.agentKitModelName,
+                    timing: { start, complete: $getCurrentDate() },
+                    usage: UNCERTAIN_USAGE,
+                    rawPromptContent: rawPromptContent as string_prompt,
+                    rawRequest: null,
+                    rawResponse: {},
+                    toolCalls: [toolCall],
+                });
+                continue;
+            }
+
+            if (event.name === 'tool_output' && rawItem?.type === 'function_call_result') {
+                const index = toolCallIndexById.get(rawItem.callId);
+                const result = this.toolBuilder.resolveAgentKitToolOutputResult(rawItem.callId, rawItem.output);
+                const progressToolCall = this.toolBuilder.getToolSnapshot(rawItem.callId);
+
+                if (index === undefined) {
+                    continue;
                 }
 
-                if (event.name === 'tool_output' && rawItem?.type === 'function_call_result') {
-                    const index = toolCallIndexById.get(rawItem.callId);
-                    const result = this.resolveAgentKitToolOutputResult(rawItem.callId, rawItem.output);
-                    const progressToolCall = rawItem.callId
-                        ? this.agentKitToolSnapshotsByCallId.get(rawItem.callId)
-                        : undefined;
+                const existingToolCall = toolCalls[index]!;
+                const completedToolCall: ToolCall = {
+                    ...existingToolCall,
+                    ...(progressToolCall || {}),
+                    result,
+                    rawToolCall: rawItem,
+                    state: OpenAiAgentKitExecutionToolsToolBuilder.resolveFinalToolCallState({
+                        currentState: progressToolCall?.state ?? existingToolCall.state,
+                        errors: progressToolCall?.errors ?? existingToolCall.errors,
+                    }),
+                    logs: [
+                        ...((progressToolCall?.logs || existingToolCall.logs || []) as ReadonlyArray<ToolCallLogEntry>),
+                        OpenAiAgentKitExecutionToolsToolBuilder.createToolCallLogEntry({
+                            kind: 'result',
+                            title: 'Execution finished',
+                            message: `${existingToolCall.name} returned a result.`,
+                        }),
+                    ],
+                };
 
-                    if (index !== undefined) {
-                        const existingToolCall = toolCalls[index]!;
-                        const completedToolCall: ToolCall = {
-                            ...existingToolCall,
-                            ...(progressToolCall || {}),
-                            result,
-                            rawToolCall: rawItem,
-                            state: resolveFinalToolCallState({
-                                currentState: progressToolCall?.state ?? existingToolCall.state,
-                                errors: progressToolCall?.errors ?? existingToolCall.errors,
-                            }),
-                            logs: [
-                                ...((progressToolCall?.logs ||
-                                    existingToolCall.logs ||
-                                    []) as ReadonlyArray<ToolCallLogEntry>),
-                                createToolCallLogEntry({
-                                    kind: 'result',
-                                    title: 'Execution finished',
-                                    message: `${existingToolCall.name} returned a result.`,
-                                }),
-                            ],
-                        };
-                        toolCalls[index] = completedToolCall;
-                        this.agentKitToolSnapshotsByCallId.delete(rawItem.callId);
+                toolCalls[index] = completedToolCall;
+                this.toolBuilder.deleteToolSnapshot(rawItem.callId);
 
-                        onProgress({
-                            content: latestContent as string_markdown,
-                            modelName: this.agentKitModelName,
-                            timing: { start, complete: $getCurrentDate() },
-                            usage: UNCERTAIN_USAGE,
-                            rawPromptContent: rawPromptContent as string_prompt,
-                            rawRequest: null,
-                            rawResponse: {},
-                            toolCalls: [completedToolCall],
-                        });
-                    }
-                }
+                onProgress({
+                    content: latestContent as string_markdown,
+                    modelName: this.agentKitModelName,
+                    timing: { start, complete: $getCurrentDate() },
+                    usage: UNCERTAIN_USAGE,
+                    rawPromptContent: rawPromptContent as string_prompt,
+                    rawRequest: null,
+                    rawResponse: {},
+                    toolCalls: [completedToolCall],
+                });
             }
         }
 
@@ -1122,7 +408,6 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
         const complete: string_date_iso8601 = $getCurrentDate();
         const duration = uncertainNumber((new Date(complete).getTime() - new Date(start).getTime()) / 1000);
         const finalContent = (streamResult.finalOutput ?? latestContent) as string_markdown;
-
         const finalResult: ChatPromptResult = {
             content: finalContent,
             modelName: this.agentKitModelName,
@@ -1143,173 +428,26 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
     }
 
     /**
-     * Builds AgentKit input items from the prompt and optional thread.
+     * Ensures the AgentKit SDK is wired to the OpenAI client and API key.
      */
-    private async buildAgentKitInputItems(prompt: Prompt, rawPromptContent: string): Promise<Array<TODO_any>> {
-        const inputItems: Array<TODO_any> = [];
+    private async ensureAgentKitDefaults(): Promise<void> {
+        const client = await this.getClient();
+        setDefaultOpenAIClient(client as TODO_any);
 
-        if ('thread' in prompt && Array.isArray(prompt.thread)) {
-            for (const message of prompt.thread) {
-                const sender = (message as TODO_any).sender;
-                const content = (message as TODO_any).content ?? '';
-
-                if (sender === 'assistant' || sender === 'agent') {
-                    inputItems.push({
-                        role: 'assistant',
-                        status: 'completed',
-                        content: [{ type: 'output_text', text: content }],
-                    });
-                } else {
-                    const userThreadContent = await this.buildAgentKitUserContentWithAttachments({
-                        textContent: typeof content === 'string' ? content : String(content ?? ''),
-                        rawAttachments: (message as { attachments?: unknown }).attachments,
-                    });
-
-                    inputItems.push({
-                        role: 'user',
-                        content: userThreadContent,
-                    });
-                }
-            }
+        const apiKey = this.agentKitOptions.apiKey;
+        if (apiKey && typeof apiKey === 'string') {
+            setDefaultOpenAIKey(apiKey);
         }
-
-        const userContent = await this.buildAgentKitUserContent(prompt, rawPromptContent);
-        inputItems.push({
-            role: 'user',
-            content: userContent,
-        });
-
-        return inputItems;
     }
 
     /**
-     * Builds the user message content for AgentKit runs, including file inputs when provided.
+     * Builds the tool list for AgentKit while keeping the public facade small.
      */
-    private async buildAgentKitUserContent(prompt: Prompt, rawPromptContent: string): Promise<TODO_any> {
-        const files = 'files' in prompt && Array.isArray(prompt.files) ? prompt.files : undefined;
-        const rawAttachments = 'attachments' in prompt ? prompt.attachments : undefined;
-
-        return this.buildAgentKitUserContentWithAttachments({
-            textContent: rawPromptContent,
-            rawAttachments,
-            files,
-        });
-    }
-
-    /**
-     * Converts uploaded `File` objects into AgentKit `input_image` entries.
-     */
-    private async createAgentKitInputImageItemsFromFiles(files: ReadonlyArray<File>): Promise<Array<TODO_any>> {
-        return Promise.all(
-            files.map(async (file: File) => {
-                const arrayBuffer = await file.arrayBuffer();
-                const base64 = Buffer.from(arrayBuffer).toString('base64');
-                return {
-                    type: 'input_image',
-                    image: `data:${file.type};base64,${base64}`,
-                };
-            }),
-        );
-    }
-
-    /**
-     * Converts image chat attachments into AgentKit `input_image` entries.
-     *
-     * Note: This keeps images in the same completion request as multimodal input.
-     */
-    private createAgentKitInputImageItemsFromAttachments(rawAttachments: unknown): Array<TODO_any> {
-        return normalizeChatAttachments(rawAttachments)
-            .filter((attachment) => isImageAttachment(attachment))
-            .map((attachment) => ({
-                type: 'input_image',
-                image: attachment.url,
-            }));
-    }
-
-    /**
-     * Builds AgentKit user content that can include text, uploaded files, and image attachments.
-     */
-    private async buildAgentKitUserContentWithAttachments(options: {
-        readonly textContent: string;
-        readonly rawAttachments?: unknown;
-        readonly files?: ReadonlyArray<File>;
-    }): Promise<TODO_any> {
-        const { textContent, rawAttachments, files } = options;
-        const contentItems: Array<TODO_any> = [];
-
-        if (textContent.trim() !== '') {
-            contentItems.push({
-                type: 'input_text',
-                text: textContent,
-            });
-        }
-
-        contentItems.push(...this.createAgentKitInputImageItemsFromAttachments(rawAttachments));
-
-        if (files && files.length > 0) {
-            contentItems.push(...(await this.createAgentKitInputImageItemsFromFiles(files)));
-        }
-
-        if (contentItems.length === 0) {
-            return textContent;
-        }
-
-        if (contentItems.length === 1 && contentItems[0]?.type === 'input_text') {
-            return textContent;
-        }
-
-        return contentItems;
-    }
-
-    /**
-     * Normalizes AgentKit tool outputs into a string for Promptbook tool call results.
-     */
-    private formatAgentKitToolOutput(output: unknown): string {
-        if (typeof output === 'string') {
-            return output;
-        }
-
-        if (output && typeof output === 'object') {
-            const textOutput = output as { type?: string; text?: string };
-            if (textOutput.type === 'text' && typeof textOutput.text === 'string') {
-                return textOutput.text;
-            }
-        }
-
-        return JSON.stringify(output ?? null);
-    }
-
-    /**
-     * Resolves the assistant-visible AgentKit tool response while preserving structured tool result data.
-     */
-    private resolveAgentKitToolResponse(callId: string | undefined, functionResponse: string): string {
-        const toolExecutionEnvelope = parseToolExecutionEnvelope(functionResponse);
-
-        if (!toolExecutionEnvelope) {
-            return functionResponse;
-        }
-
-        if (callId) {
-            this.agentKitToolResultsByCallId.set(callId, toolExecutionEnvelope.toolResult);
-        }
-
-        return toolExecutionEnvelope.assistantMessage;
-    }
-
-    /**
-     * Resolves the stored Promptbook tool result for one AgentKit tool call.
-     */
-    private resolveAgentKitToolOutputResult(callId: string | undefined, output: unknown): ToolCall['result'] {
-        if (callId) {
-            const storedToolResult = this.agentKitToolResultsByCallId.get(callId);
-
-            if (storedToolResult !== undefined) {
-                this.agentKitToolResultsByCallId.delete(callId);
-                return storedToolResult;
-            }
-        }
-
-        return this.formatAgentKitToolOutput(output);
+    private buildAgentKitTools(options: {
+        readonly tools?: ModelRequirements['tools'];
+        readonly vectorStoreId?: string;
+    }) {
+        return this.toolBuilder.buildAgentKitTools(options);
     }
 
     /**
@@ -1317,6 +455,16 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
      */
     private get agentKitOptions(): OpenAiAgentKitExecutionToolsOptions {
         return this.options as OpenAiAgentKitExecutionToolsOptions;
+    }
+
+    /**
+     * Formats raw prompt content with the AgentKit model injected.
+     */
+    private templatePromptContent(content: Prompt['content'], parameters: Prompt['parameters'] | undefined): string {
+        return templateParameters(content, {
+            ...parameters,
+            modelName: this.agentKitModelName,
+        });
     }
 
     /**
@@ -1335,10 +483,3 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
         return (llmExecutionTools as OpenAiAgentKitExecutionTools).discriminant === DISCRIMINANT;
     }
 }
-
-/**
- * Discriminant for type guards.
- *
- * @private const of `OpenAiAgentKitExecutionTools`
- */
-const DISCRIMINANT = 'OPEN_AI_AGENT_KIT_V1';
