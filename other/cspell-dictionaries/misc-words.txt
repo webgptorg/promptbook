@@ -68,7 +68,6 @@ onject
 lindat
 multiplicated
 markitdown
-xmpmeta
 prebuild
 preversion
 subcollection
