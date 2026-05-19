@@ -1,3 +1,8 @@
+-   Refactored `executeAttempts` internals to keep pipeline task execution behavior unchanged while making attempt orchestration easier to follow and maintain:
+
+    -   Split `src/execution/createPipelineExecutor/40-executeAttempts.ts` into a small orchestration facade plus focused private helpers for single-attempt execution, failure aggregation, and prompt execution reporting.
+    -   Kept joker handling, per-task execution, postprocessing, retry reporting, and final error messages unchanged while reducing the responsibility count in the top-level file.
+
 -   Refactored `ExecutionTask` internals to keep task execution behavior unchanged while making task state handling and TLDR resolution easier to follow and maintain:
 
     -   Split the previous branch-heavy `tldr` getter into focused private helpers for explicit progress lookup, simulated progress fallback, subtask summarization, and message resolution.
