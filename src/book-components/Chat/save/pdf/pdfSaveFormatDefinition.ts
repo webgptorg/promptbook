@@ -8,8 +8,8 @@ import { buildChatPdf } from './buildChatPdf';
  */
 export const pdfSaveFormatDefinition = {
     formatName: 'pdf',
-    label: 'Pdf',
-    getContent: ({ messages, participants }) => buildChatPdf(messages, participants),
+    label: 'PDF',
+    getContent: ({ title, messages, participants }) => buildChatPdf(title, messages, participants),
     mimeType: 'application/pdf',
     fileExtension: 'pdf',
 } as const satisfies ChatSaveFormatDefinition;

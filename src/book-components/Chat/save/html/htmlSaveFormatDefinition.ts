@@ -3,24 +3,12 @@ import type { ChatMessage } from '../../types/ChatMessage';
 import type { ChatParticipant } from '../../types/ChatParticipant';
 import { renderMarkdown } from '../../utils/renderMarkdown';
 import type { ChatSaveFormatDefinition } from '../_common/ChatSaveFormatDefinition';
+import {
+    buildChatExportParticipantMap,
+    formatChatExportTimestamp,
+    resolveChatExportParticipantVisuals,
+} from '../_common/chatExportRendering';
 import { getPromptbookExportBranding } from '../_common/getPromptbookExportBranding';
-
-/**
- * Fallback accent colors used when a participant does not define a custom color.
- */
-const ROLE_COLOR_FALLBACKS: Record<string, string> = {
-    USER: '#0ea5e9',
-    ASSISTANT: '#2563eb',
-    SYSTEM: '#64748b',
-};
-
-/**
- * Minimal participant visuals needed by the HTML export.
- */
-type ParticipantVisuals = {
-    readonly displayName: string;
-    readonly accentColor: string;
-};
 
 /**
  * Escapes HTML-sensitive text before embedding it into the export document.
@@ -34,88 +22,6 @@ function escapeHtml(value: string | number): string {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
-}
-
-/**
- * Formats exported timestamps into a compact human-readable label.
- *
- * @private Internal helper of `htmlSaveFormatDefinition`.
- */
-function formatTimestamp(value?: string | Date): string {
-    if (!value) {
-        return '';
-    }
-
-    const date = typeof value === 'string' ? new Date(value) : value;
-    if (Number.isNaN(date.getTime())) {
-        return '';
-    }
-
-    return new Intl.DateTimeFormat('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-    }).format(date);
-}
-
-/**
- * Builds a participant lookup indexed by both raw and upper-cased names.
- *
- * @private Internal helper of `htmlSaveFormatDefinition`.
- */
-function buildParticipantMap(participants: ReadonlyArray<ChatParticipant>): ReadonlyMap<string, ChatParticipant> {
-    const participantMap = new Map<string, ChatParticipant>();
-
-    for (const participant of participants) {
-        const participantName = String(participant.name);
-        participantMap.set(participantName, participant);
-        participantMap.set(participantName.toUpperCase(), participant);
-    }
-
-    return participantMap;
-}
-
-/**
- * Normalizes participant colors so exported markup can rely on a CSS-friendly string value.
- *
- * @private Internal helper of `htmlSaveFormatDefinition`.
- */
-function normalizeParticipantColor(color: ChatParticipant['color']): string | undefined {
-    if (!color) {
-        return undefined;
-    }
-
-    if (typeof color === 'string') {
-        return color;
-    }
-
-    const colorHelper = color as { toString?: () => string };
-    if (typeof colorHelper.toString === 'function') {
-        return colorHelper.toString();
-    }
-
-    return undefined;
-}
-
-/**
- * Resolves the display label and accent color for one message sender.
- *
- * @private Internal helper of `htmlSaveFormatDefinition`.
- */
-function resolveParticipantVisuals(
-    participants: ReadonlyMap<string, ChatParticipant>,
-    sender: string,
-): ParticipantVisuals {
-    const normalizedSender = String(sender || 'SYSTEM');
-    const participant = participants.get(normalizedSender) ?? participants.get(normalizedSender.toUpperCase());
-    const upperSender = normalizedSender.toUpperCase();
-
-    return {
-        displayName: participant?.fullname?.trim() || normalizedSender,
-        accentColor: normalizeParticipantColor(participant?.color) ?? ROLE_COLOR_FALLBACKS[upperSender] ?? '#64748b',
-    };
 }
 
 /**
@@ -213,8 +119,8 @@ function buildReplyingToMarkup(message: ChatMessage): string {
 function renderMessageBlock(message: ChatMessage, participants: ReadonlyMap<string, ChatParticipant>): string {
     const sender = String(message.sender || 'SYSTEM');
     const upperSender = sender.toUpperCase();
-    const visuals = resolveParticipantVisuals(participants, sender);
-    const timestamp = formatTimestamp(message.createdAt);
+    const visuals = resolveChatExportParticipantVisuals(participants, sender);
+    const timestamp = formatChatExportTimestamp(message.createdAt);
     const durationLabel =
         typeof message.generationDurationMs === 'number' ? `${(message.generationDurationMs / 1000).toFixed(1)}s` : '';
     const messageBody = renderMarkdown(message.content);
@@ -271,8 +177,8 @@ export const htmlSaveFormatDefinition = {
     getContent: ({ title, messages, participants }) => {
         const branding = getPromptbookExportBranding();
         const safeTitle = escapeHtml(title || 'Chat');
-        const participantLookup = buildParticipantMap(participants);
-        const exportedLabel = formatTimestamp(new Date());
+        const participantLookup = buildChatExportParticipantMap(participants);
+        const exportedLabel = formatChatExportTimestamp(new Date());
         const messageMarkup =
             messages.length > 0
                 ? messages.map((message) => renderMessageBlock(message, participantLookup)).join('')

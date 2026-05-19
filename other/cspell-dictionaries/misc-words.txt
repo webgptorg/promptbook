@@ -483,3 +483,6 @@ fallbacking
 Startable
 Upsert
 Upserts
+apos
+bolditalic
+xmpmeta

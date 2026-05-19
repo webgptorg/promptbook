@@ -1,3 +1,9 @@
+-   Fixed Agents Server chat export to **PDF** so saved conversations render markdown as formatted PDF content instead of raw markdown text:
+
+    -   Reused the shared chat markdown renderer for headings, lists, links, code blocks, blockquotes, tables, details blocks, attachments, and citations in PDF exports.
+    -   Added simple Promptbook PDF metadata and inconspicuous page footers with engine and Book language version information from the existing Promptbook branding helper.
+    -   Shared participant and timestamp export helpers between the HTML and PDF chat export formats and added PDF export regression coverage.
+
 -   Added `ptbk agent run-multiple --ignore <pattern>` for skipping watched agents by case-insensitive wildcard matches:
 
     -   Applies the ignore pattern to the agent name, normalized agent name, stable agent id, and runner repository name.
