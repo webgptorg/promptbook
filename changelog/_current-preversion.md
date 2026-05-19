@@ -3434,3 +3434,7 @@
     -   Kept a single persistent boxed UI alive across queued-message runs, moving idle watching and idle auto-pull activity into explicit in-frame `WAITING` / loading states instead of printing plain lines that broke the layout mid-session.
     -   Changed the header visual to render the local agent name in a smaller compact banner instead of large initials, while keeping the rest of the terminal frame layout intact.
     -   Kept the queued-thread preview focused on the latest `MESSAGE @User` from the `.book` thread via `src/book-3.0/Book.ts`, and deferred the coding-agent Git identity tip until process exit so it no longer interrupts active sessions or `--no-ui` streaming output.
+-   Refactored `OpenAiAssistantExecutionTools` internals to keep OpenAI Assistants behavior unchanged while making the module easier to follow and maintain:
+
+    -   Split `src/llm-providers/openai/OpenAiAssistantExecutionTools.ts` into a smaller orchestration facade plus focused private helpers for prompt/thread building, tool-run execution, streaming/result reporting, and citation rewriting.
+    -   Kept assistant chat execution, tool progress streaming, hosted tool invocation, file attachment handling, assistant creation/update flows, and final Promptbook result export behavior unchanged while reducing the responsibility count inside the top-level file.
