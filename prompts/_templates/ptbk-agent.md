@@ -5,7 +5,7 @@ npm install ptbk
 
 ptbk agent init
 
-ptbk agent run --agent github-copilot --model gpt-5.4 --thinking-level xhigh
+ptbk agent run-multiple --agent openai-codex --model gpt-5.5 --thinking-level xhigh --auto-pull --auto-push --auto-clone
 ```
 
 -   @@@
