@@ -3,13 +3,15 @@ import { spaceTrim } from 'spacetrim';
 import type { ChatMessage } from '../../types/ChatMessage';
 import type { ChatParticipant } from '../../types/ChatParticipant';
 import { resolveCitationPreviewUrl } from '../../utils/citationHelpers';
-import { createCitationFootnoteRenderModel } from '../../utils/createCitationFootnoteRenderModel';
-import type { ParsedCitation } from '../../utils/parseCitationsFromContent';
 import { renderMarkdown } from '../../utils/renderMarkdown';
 import {
     buildChatExportParticipantMap,
+    createChatExportCitationFootnoteRegistry,
+    createChatExportCitationRenderModel,
+    formatChatExportCitationFootnoteLabel,
     formatChatExportTimestamp,
     resolveChatExportParticipantVisuals,
+    type ChatExportCitationFootnoteRegistry,
 } from '../_common/chatExportRendering';
 import { getPromptbookExportBranding } from '../_common/getPromptbookExportBranding';
 
@@ -283,25 +285,9 @@ type PdfRenderContext = {
     readonly pageWidth: number;
     readonly pageHeight: number;
     readonly contentWidth: number;
-    readonly citationFootnotes: PdfCitationFootnoteRegistry;
+    readonly citationFootnotes: ChatExportCitationFootnoteRegistry;
     pageNumber: number;
     cursorY: number;
-};
-
-/**
- * One numbered source collected from rendered chat message citations.
- */
-type PdfCitationFootnote = {
-    readonly number: number;
-    readonly citation: ParsedCitation;
-};
-
-/**
- * Document-wide citation footnotes collected while rendering messages.
- */
-type PdfCitationFootnoteRegistry = {
-    readonly footnotes: Array<PdfCitationFootnote>;
-    readonly footnoteBySourceKey: Map<string, PdfCitationFootnote>;
 };
 
 /**
@@ -350,10 +336,7 @@ export function buildChatPdf(
         pageWidth: pdf.internal.pageSize.getWidth(),
         pageHeight: pdf.internal.pageSize.getHeight(),
         contentWidth: pdf.internal.pageSize.getWidth() - PDF_PAGE_MARGIN_PT * 2,
-        citationFootnotes: {
-            footnotes: [],
-            footnoteBySourceKey: new Map(),
-        },
+        citationFootnotes: createChatExportCitationFootnoteRegistry(),
         pageNumber: 1,
         cursorY: PDF_PAGE_MARGIN_PT,
     };
@@ -529,7 +512,7 @@ function renderMessageBlock(
         renderReplyContext(context, message.replyingTo, contentX, contentWidth);
     }
 
-    const citationRenderModel = createDocumentCitationFootnoteRenderModel(context, message);
+    const citationRenderModel = createChatExportCitationRenderModel(context.citationFootnotes, message);
 
     if (citationRenderModel.content.trim()) {
         renderMarkdownContent(context, citationRenderModel.content, {
@@ -574,77 +557,6 @@ function renderMessageBlock(
         context.pdf.setLineWidth(3);
         context.pdf.line(PDF_PAGE_MARGIN_PT, startY - 2, PDF_PAGE_MARGIN_PT, Math.max(startY + 20, context.cursorY - 2));
     }
-}
-
-/**
- * Converts one message to markdown content with document-wide numbered citation references.
- *
- * @private Internal helper of `buildChatPdf`.
- */
-function createDocumentCitationFootnoteRenderModel(
-    context: PdfRenderContext,
-    message: ChatMessage,
-): { readonly content: ChatMessage['content']; readonly footnotes: ReadonlyArray<PdfCitationFootnote> } {
-    const localRenderModel = createCitationFootnoteRenderModel(message);
-    const localToDocumentFootnoteNumber = new Map<number, number>();
-
-    for (const localFootnote of localRenderModel.footnotes) {
-        const documentFootnote = getOrCreateDocumentCitationFootnote(context, localFootnote.citation);
-        localToDocumentFootnoteNumber.set(localFootnote.number, documentFootnote.number);
-    }
-
-    const content = localRenderModel.content.replace(
-        /<sup data-citation-footnote="(\d+)">\d+<\/sup>/g,
-        (rawMarkup: string, localFootnoteNumber: string): string => {
-            const documentFootnoteNumber = localToDocumentFootnoteNumber.get(Number(localFootnoteNumber));
-
-            if (!documentFootnoteNumber) {
-                return rawMarkup;
-            }
-
-            return `<sup data-citation-footnote="${documentFootnoteNumber}">${documentFootnoteNumber}</sup>`;
-        },
-    ) as ChatMessage['content'];
-
-    return {
-        content,
-        footnotes: localRenderModel.footnotes.map((localFootnote) =>
-            getOrCreateDocumentCitationFootnote(context, localFootnote.citation),
-        ),
-    };
-}
-
-/**
- * Resolves or appends one document-wide citation footnote.
- *
- * @private Internal helper of `buildChatPdf`.
- */
-function getOrCreateDocumentCitationFootnote(context: PdfRenderContext, citation: ParsedCitation): PdfCitationFootnote {
-    const sourceKey = normalizeCitationSourceKey(citation.source || citation.id);
-    const existingFootnote = context.citationFootnotes.footnoteBySourceKey.get(sourceKey);
-
-    if (existingFootnote) {
-        return existingFootnote;
-    }
-
-    const footnote = {
-        number: context.citationFootnotes.footnotes.length + 1,
-        citation,
-    } satisfies PdfCitationFootnote;
-
-    context.citationFootnotes.footnotes.push(footnote);
-    context.citationFootnotes.footnoteBySourceKey.set(sourceKey, footnote);
-
-    return footnote;
-}
-
-/**
- * Normalizes one citation source for document-wide source de-duplication.
- *
- * @private Internal helper of `buildChatPdf`.
- */
-function normalizeCitationSourceKey(source: string): string {
-    return source.trim().toLowerCase();
 }
 
 /**
@@ -871,7 +783,7 @@ function renderDocumentSources(context: PdfRenderContext, participants: Readonly
 
     for (const footnote of context.citationFootnotes.footnotes) {
         const href = resolveCitationPreviewUrl(footnote.citation, participants) || undefined;
-        const label = createCitationFootnoteLabel(footnote, href);
+        const label = formatChatExportCitationFootnoteLabel(footnote, href);
 
         writeInlineTokens(
             context,
@@ -891,21 +803,6 @@ function renderDocumentSources(context: PdfRenderContext, participants: Readonly
             },
         );
     }
-}
-
-/**
- * Creates a readable source label for one PDF citation footnote.
- *
- * @private Internal helper of `buildChatPdf`.
- */
-function createCitationFootnoteLabel(footnote: PdfCitationFootnote, href?: string): string {
-    const source = footnote.citation.source.trim() || footnote.citation.id;
-    const sourceWithLink = href && href !== source ? `${source} - ${href}` : source;
-    const sourceWithExcerpt = footnote.citation.excerpt
-        ? `${sourceWithLink} - ${footnote.citation.excerpt}`
-        : sourceWithLink;
-
-    return `[${footnote.number}] ${sourceWithExcerpt}`;
 }
 
 /**

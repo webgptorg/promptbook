@@ -1,14 +1,27 @@
 import { spaceTrim } from 'spacetrim';
 import type { ChatMessage } from '../../types/ChatMessage';
 import type { ChatParticipant } from '../../types/ChatParticipant';
+import { resolveCitationPreviewUrl } from '../../utils/citationHelpers';
 import { renderMarkdown } from '../../utils/renderMarkdown';
 import type { ChatSaveFormatDefinition } from '../_common/ChatSaveFormatDefinition';
 import {
     buildChatExportParticipantMap,
+    createChatExportCitationFootnoteRegistry,
+    createChatExportCitationRenderModel,
+    formatChatExportCitationFootnoteLabel,
     formatChatExportTimestamp,
     resolveChatExportParticipantVisuals,
+    type ChatExportCitationFootnoteRegistry,
+    type ChatExportCitationRenderModel,
 } from '../_common/chatExportRendering';
 import { getPromptbookExportBranding } from '../_common/getPromptbookExportBranding';
+
+/**
+ * Pattern matching rendered citation reference markup in exported message HTML.
+ *
+ * @private Internal helper of `htmlSaveFormatDefinition`.
+ */
+const CITATION_FOOTNOTE_REFERENCE_HTML_REGEX = /<sup data-citation-footnote="(\d+)">\s*\d+\s*<\/sup>/g;
 
 /**
  * Escapes HTML-sensitive text before embedding it into the export document.
@@ -94,19 +107,57 @@ function buildCitationsMarkup(message: ChatMessage): string {
 }
 
 /**
+ * Converts one markdown message body to HTML with document-wide source references.
+ *
+ * @private Internal helper of `htmlSaveFormatDefinition`.
+ */
+function renderFootnotedMarkdown(
+    message: Pick<ChatMessage, 'content' | 'citations'>,
+    citationFootnotes: ChatExportCitationFootnoteRegistry,
+): { readonly html: string; readonly renderModel: ChatExportCitationRenderModel } {
+    const renderModel = createChatExportCitationRenderModel(citationFootnotes, message);
+    const html = linkCitationFootnoteReferences(renderMarkdown(renderModel.content));
+
+    return {
+        html,
+        renderModel,
+    };
+}
+
+/**
+ * Links inline citation superscripts to the document-wide Sources section.
+ *
+ * @private Internal helper of `htmlSaveFormatDefinition`.
+ */
+function linkCitationFootnoteReferences(html: string): string {
+    return html.replace(CITATION_FOOTNOTE_REFERENCE_HTML_REGEX, (_rawMarkup: string, footnoteNumber: string) => {
+        const safeFootnoteNumber = escapeHtml(footnoteNumber);
+
+        return `<sup data-citation-footnote="${safeFootnoteNumber}"><a href="#source-${safeFootnoteNumber}">[${safeFootnoteNumber}]</a></sup>`;
+    });
+}
+
+/**
  * Renders reply context for one message while preserving markdown formatting.
  *
  * @private Internal helper of `htmlSaveFormatDefinition`.
  */
-function buildReplyingToMarkup(message: ChatMessage): string {
+function buildReplyingToMarkup(message: ChatMessage, citationFootnotes: ChatExportCitationFootnoteRegistry): string {
     if (!message.replyingTo) {
         return '';
     }
 
+    const { html } = renderFootnotedMarkdown(
+        {
+            content: message.replyingTo.content,
+        },
+        citationFootnotes,
+    );
+
     return spaceTrim(`
         <aside class="reply-context">
             <div class="reply-context-title">Replying to ${escapeHtml(message.replyingTo.sender)}</div>
-            <div class="markdown-content">${renderMarkdown(message.replyingTo.content)}</div>
+            <div class="markdown-content">${html}</div>
         </aside>
     `);
 }
@@ -116,14 +167,19 @@ function buildReplyingToMarkup(message: ChatMessage): string {
  *
  * @private Internal helper of `htmlSaveFormatDefinition`.
  */
-function renderMessageBlock(message: ChatMessage, participants: ReadonlyMap<string, ChatParticipant>): string {
+function renderMessageBlock(
+    message: ChatMessage,
+    participants: ReadonlyMap<string, ChatParticipant>,
+    citationFootnotes: ChatExportCitationFootnoteRegistry,
+): string {
     const sender = String(message.sender || 'SYSTEM');
     const upperSender = sender.toUpperCase();
     const visuals = resolveChatExportParticipantVisuals(participants, sender);
     const timestamp = formatChatExportTimestamp(message.createdAt);
     const durationLabel =
         typeof message.generationDurationMs === 'number' ? `${(message.generationDurationMs / 1000).toFixed(1)}s` : '';
-    const messageBody = renderMarkdown(message.content);
+    const replyingToMarkup = buildReplyingToMarkup(message, citationFootnotes);
+    const { html: messageBody, renderModel } = renderFootnotedMarkdown(message, citationFootnotes);
 
     return spaceTrim(`
         <article class="message-card" style="--message-accent:${escapeHtml(visuals.accentColor)};">
@@ -134,14 +190,54 @@ function renderMessageBlock(message: ChatMessage, participants: ReadonlyMap<stri
                 </div>
                 ${timestamp ? `<time class="message-time">${escapeHtml(timestamp)}</time>` : ''}
             </header>
-            ${buildReplyingToMarkup(message)}
+            ${replyingToMarkup}
             <section class="message-content markdown-content">
                 ${messageBody || '<p class="message-empty">No text provided.</p>'}
             </section>
             ${durationLabel ? `<p class="message-duration">Responded in ${escapeHtml(durationLabel)}</p>` : ''}
             ${buildAttachmentsMarkup(message)}
-            ${buildCitationsMarkup(message)}
+            ${renderModel.footnotes.length === 0 ? buildCitationsMarkup(message) : ''}
         </article>
+    `);
+}
+
+/**
+ * Renders document-wide source footnotes collected from inline citation markers.
+ *
+ * @private Internal helper of `htmlSaveFormatDefinition`.
+ */
+function buildDocumentSourcesMarkup(
+    citationFootnotes: ChatExportCitationFootnoteRegistry,
+    participants: ReadonlyArray<ChatParticipant>,
+): string {
+    if (citationFootnotes.footnotes.length === 0) {
+        return '';
+    }
+
+    return spaceTrim(`
+        <section class="document-sources" aria-label="Sources">
+            <h2 class="document-sources-title">Sources</h2>
+            <ol class="document-sources-list">
+                ${citationFootnotes.footnotes
+                    .map((footnote) => {
+                        const href = resolveCitationPreviewUrl(footnote.citation, participants) || undefined;
+                        const label = formatChatExportCitationFootnoteLabel(footnote, href);
+
+                        return spaceTrim(`
+                            <li id="source-${escapeHtml(footnote.number)}">
+                                ${
+                                    href
+                                        ? `<a href="${escapeHtml(href)}" target="_blank" rel="noopener">${escapeHtml(
+                                              label,
+                                          )}</a>`
+                                        : escapeHtml(label)
+                                }
+                            </li>
+                        `);
+                    })
+                    .join('')}
+            </ol>
+        </section>
     `);
 }
 
@@ -178,11 +274,13 @@ export const htmlSaveFormatDefinition = {
         const branding = getPromptbookExportBranding();
         const safeTitle = escapeHtml(title || 'Chat');
         const participantLookup = buildChatExportParticipantMap(participants);
+        const citationFootnotes = createChatExportCitationFootnoteRegistry();
         const exportedLabel = formatChatExportTimestamp(new Date());
         const messageMarkup =
             messages.length > 0
-                ? messages.map((message) => renderMessageBlock(message, participantLookup)).join('')
+                ? messages.map((message) => renderMessageBlock(message, participantLookup, citationFootnotes)).join('')
                 : '<div class="empty-state">No messages were available in this chat export.</div>';
+        const documentSourcesMarkup = buildDocumentSourcesMarkup(citationFootnotes, participants);
 
         return spaceTrim(`
             <!DOCTYPE html>
@@ -448,6 +546,21 @@ export const htmlSaveFormatDefinition = {
                         font-weight: 600;
                     }
 
+                    .markdown-content sup[data-citation-footnote] {
+                        margin-left: 2px;
+                        font-size: 0.78em;
+                        line-height: 0;
+                    }
+
+                    .markdown-content sup[data-citation-footnote] a {
+                        color: #0f6cbd;
+                        text-decoration: none;
+                    }
+
+                    .markdown-content sup[data-citation-footnote] a:hover {
+                        text-decoration: underline;
+                    }
+
                     .empty-state {
                         padding: 28px;
                         border: 1px dashed #cbd5e1;
@@ -455,6 +568,34 @@ export const htmlSaveFormatDefinition = {
                         text-align: center;
                         color: #64748b;
                         background: #ffffff;
+                    }
+
+                    .document-sources {
+                        margin-top: 24px;
+                        padding-top: 16px;
+                        border-top: 1px solid #e2e8f0;
+                    }
+
+                    .document-sources-title {
+                        margin: 0 0 10px;
+                        font-size: 16px;
+                        line-height: 1.25;
+                    }
+
+                    .document-sources-list {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 8px;
+                        margin: 0;
+                        padding: 0;
+                        list-style: none;
+                    }
+
+                    .document-sources-list li {
+                        color: #475569;
+                        font-size: 13px;
+                        line-height: 1.45;
+                        overflow-wrap: anywhere;
                     }
 
                     .document-footer {
@@ -491,6 +632,7 @@ export const htmlSaveFormatDefinition = {
                     <section class="message-list">
                         ${messageMarkup}
                     </section>
+                    ${documentSourcesMarkup}
                     <footer class="document-footer">
                         <strong>${escapeHtml(branding.productName)}</strong>
                         ${branding.detailLines.length > 0 ? ` - ${escapeHtml(branding.detailLines.join(' • '))}` : ''}

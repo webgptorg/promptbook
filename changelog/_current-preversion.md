@@ -1,3 +1,8 @@
+-   Fixed Agents Server chat export to **HTML** so inline `【source】` citations render as numbered source footnotes instead of raw citation markers:
+
+    -   Reused the shared chat citation-footnote model for HTML and PDF exports, keeping document-wide source numbering DRY across save formats.
+    -   Converted HTML message markdown after citation replacement, linked inline `[1]` / `[2]` references to a Sources section, and deduplicated repeated sources by URL/source label.
+
 -   Fixed Agents Server chat export to **PDF** so saved conversations render markdown as formatted PDF content instead of raw markdown text:
 
     -   Reused the shared chat markdown renderer for headings, lists, links, code blocks, blockquotes, tables, details blocks, attachments, and citations in PDF exports.
