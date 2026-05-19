@@ -1,4 +1,4 @@
-import colors from 'colors';
+﻿import colors from 'colors';
 import type {
     AgentRunStatusTableRow,
     BuildCoderRunUiFrameOptions,
@@ -129,7 +129,6 @@ function buildSessionLines(
             label: agentStatusCounts.totalAgents === 1 ? 'Agent' : 'Agents',
             value: localAgentName,
         },
-        ...buildIgnoredAgentSessionRows(options.config.ignoredAgentCount),
         {
             label: 'Runner',
             value: runnerParts.join('  ·  '),
@@ -145,22 +144,6 @@ function buildSessionLines(
     ];
 
     return sessionRows.map((sessionRow) => buildLabeledSessionLine(sessionRow.label, sessionRow.value, bodyWidth));
-}
-
-/**
- * Builds zero or one session rows describing repositories skipped by `--ignore`.
- */
-function buildIgnoredAgentSessionRows(ignoredAgentCount: number | undefined): readonly SessionRow[] {
-    if (ignoredAgentCount === undefined) {
-        return [];
-    }
-
-    return [
-        {
-            label: 'Ignored',
-            value: `${ignoredAgentCount} Agent${ignoredAgentCount === 1 ? '' : 's'} match \`--ignore\``,
-        },
-    ];
 }
 
 /**

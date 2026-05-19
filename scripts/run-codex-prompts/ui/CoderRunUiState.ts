@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events';
+﻿import { EventEmitter } from 'events';
 import moment from 'moment';
 import { buildCoderRunProgressSnapshot, type CoderRunProgressSnapshot } from '../common/buildCoderRunProgressSnapshot';
 import type {
@@ -40,7 +40,6 @@ export type CoderRunConfig = {
     readonly localAgentName?: string;
     readonly modelName?: string;
     readonly thinkingLevel?: string;
-    readonly ignoredAgentCount?: number;
     readonly context?: string;
     readonly priority: number;
     readonly testCommand?: string;

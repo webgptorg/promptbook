@@ -79,7 +79,6 @@ describe('synchronizeGithubAgentRunnerRepositories', () => {
         const result = await synchronizeGithubAgentRunnerRepositories(temporaryRootDirectory);
 
         expect(result.clonedRepositoryNames).toEqual([]);
-        expect(result.ignoredRepositoryNames).toEqual([]);
         expect($execCommand).not.toHaveBeenCalled();
     });
 
@@ -89,7 +88,6 @@ describe('synchronizeGithubAgentRunnerRepositories', () => {
         const result = await synchronizeGithubAgentRunnerRepositories(temporaryRootDirectory);
 
         expect(result.clonedRepositoryNames).toEqual(['agent-alpha']);
-        expect(result.ignoredRepositoryNames).toEqual([]);
         expect($execCommand).toHaveBeenCalledWith(
             expect.objectContaining({
                 command: expect.stringContaining('git clone --quiet'),
@@ -133,7 +131,6 @@ describe('synchronizeGithubAgentRunnerRepositories', () => {
         const result = await synchronizeGithubAgentRunnerRepositories(temporaryRootDirectory);
 
         expect(result.clonedRepositoryNames).toEqual(['agent-private']);
-        expect(result.ignoredRepositoryNames).toEqual([]);
         expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('/user/repos?'), expect.any(Object));
         expect($execCommand).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -169,7 +166,6 @@ describe('synchronizeGithubAgentRunnerRepositories', () => {
         const result = await synchronizeGithubAgentRunnerRepositories(temporaryRootDirectory);
 
         expect(result.clonedRepositoryNames).toEqual(['agent-public']);
-        expect(result.ignoredRepositoryNames).toEqual([]);
     });
 
     it('keeps owner endpoint discovery when the authenticated listing is unavailable', async () => {
@@ -202,33 +198,6 @@ describe('synchronizeGithubAgentRunnerRepositories', () => {
         const result = await synchronizeGithubAgentRunnerRepositories(temporaryRootDirectory);
 
         expect(result.clonedRepositoryNames).toEqual(['agent-org-private']);
-        expect(result.ignoredRepositoryNames).toEqual([]);
-    });
-
-    it('does not clone remote repositories whose names match the ignore pattern', async () => {
-        temporaryRootDirectory = await createTemporaryRootDirectory();
-        global.fetch = jest.fn().mockResolvedValue(
-            createGithubRepositoriesResponse([
-                {
-                    name: 'agent-John',
-                    full_name: 'promptbook/agent-John',
-                    clone_url: 'https://github.com/promptbook/agent-John.git',
-                },
-                {
-                    name: 'agent-alpha',
-                    full_name: 'promptbook/agent-alpha',
-                    clone_url: 'https://github.com/promptbook/agent-alpha.git',
-                },
-            ]),
-        );
-
-        const result = await synchronizeGithubAgentRunnerRepositories(temporaryRootDirectory, {
-            ignorePattern: 'agent-John*',
-        });
-
-        expect(result.clonedRepositoryNames).toEqual(['agent-alpha']);
-        expect(result.ignoredRepositoryNames).toEqual(['agent-John']);
-        expect($execCommand).toHaveBeenCalledTimes(1);
     });
 });
 

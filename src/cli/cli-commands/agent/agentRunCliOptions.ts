@@ -8,7 +8,6 @@ import { normalizePromptRunnerCliOptions } from '../common/promptRunnerCliOption
  */
 export type AgentRunCliOptions = PromptRunnerCliOptions & {
     readonly autoClone?: boolean;
-    readonly ignore?: string;
 };
 
 /**
@@ -18,7 +17,6 @@ export type AgentRunCliOptions = PromptRunnerCliOptions & {
  */
 export type NormalizedAgentRunCliOptions = NormalizedPromptRunnerCliOptions & {
     readonly autoClone: boolean;
-    readonly ignore?: string;
 };
 
 /**
@@ -30,12 +28,10 @@ export function createAgentRunOptionsFromCliOptions(cliOptions: AgentRunCliOptio
     const runnerOptions = normalizePromptRunnerCliOptions(cliOptions, {
         isAgentRequired: true,
     });
-    const ignore = cliOptions.ignore?.trim() || undefined;
 
     return {
         ...runnerOptions,
         autoClone: Boolean(cliOptions.autoClone),
-        ignore,
     };
 }
 

@@ -1,4 +1,4 @@
-import { buildAgentRunUiFrame } from './buildAgentRunUiFrame';
+﻿import { buildAgentRunUiFrame } from './buildAgentRunUiFrame';
 
 /**
  * Removes ANSI escape sequences from a rendered UI line for text assertions.
@@ -170,27 +170,5 @@ describe('buildAgentRunUiFrame', () => {
         expect(output).toContain('Please review the contract');
         expect(output).toContain('User message: Agent C');
         expect(output).toContain('Summarize the SLA exceptions');
-    });
-
-    it('renders the ignored-agent count inside the session box without listing ignored agents in the table', () => {
-        const output = buildAgentRunUiFrame(
-            createFrameOptions({
-                config: {
-                    agentName: 'github-copilot',
-                    localAgentName: '1 Agent',
-                    modelName: 'gpt-5.4',
-                    thinkingLevel: 'high',
-                    ignoredAgentCount: 2,
-                    priority: 0,
-                },
-                agentStatusTableRows: [{ status: 'Idle', agentName: 'Agent B', url: 'https://example.com/agents/b' }],
-            }),
-        )
-            .map(stripAnsi)
-            .join('\n');
-
-        expect(output).toContain('Ignored  2 Agents match `--ignore`');
-        expect(output).toContain('Agent B');
-        expect(output).not.toContain('John-agent');
     });
 });

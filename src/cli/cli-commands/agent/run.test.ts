@@ -175,8 +175,6 @@ describe('agent runner commands', () => {
                 '--auto-pull',
                 '--auto-push',
                 '--auto-clone',
-                '--ignore',
-                'John*',
             ],
             {
                 from: 'node',
@@ -190,7 +188,6 @@ describe('agent runner commands', () => {
                 autoPull: true,
                 autoPush: true,
                 autoClone: true,
-                ignore: 'John*',
             }),
         );
         expect(processExitSpy).not.toHaveBeenCalled();

@@ -1,13 +1,10 @@
-[x] ~$0.00 41 minutes by GitHub Copilot `gpt-5.4` - but
-
----
-
-[ ] !!!
+[ ] !!
 
 [✨🗜] Add `--ignore <pattern>` flag to `ptbk agent run-multiple`
 
 ```bash
 ptbk agent run-multiple --agent github-copilot --model gpt-5.4 --thinking-level xhigh --ignore "John*"
+ptbk agent run-multiple --agent github-copilot --model gpt-5.4 --thinking-level xhigh --ignore John*
 ```
 
 -   The `--ignore <pattern>` flag allows users to specify a pattern to ignore certain agents when running `ptbk agent run-multiple`. In the example above, any agent repository that starts with "John" will be ignored and not cloned or watched by `ptbk agent run-multiple`.

@@ -1,7 +1,6 @@
 import { readdir } from 'fs/promises';
 import { join } from 'path';
 import { $execCommand } from '../../../src/utils/execCommand/$execCommand';
-import { partitionItemsByAgentRunnerIgnorePattern } from './partitionItemsByAgentRunnerIgnorePattern';
 
 /**
  * Environment variable carrying the GitHub token used to discover and clone agent repositories.
@@ -66,7 +65,6 @@ type GithubRepositoryApiPayload = {
  */
 export type GithubAgentRunnerRepositoriesSynchronizationResult = {
     readonly clonedRepositoryNames: ReadonlyArray<string>;
-    readonly ignoredRepositoryNames: ReadonlyArray<string>;
     readonly owner?: string;
     readonly synchronizedAt?: number;
 };
@@ -93,25 +91,16 @@ export function loadAgentRunnerGithubConfiguration(): {
  */
 export async function synchronizeGithubAgentRunnerRepositories(
     rootPath: string,
-    options: {
-        readonly ignorePattern?: string;
-    } = {},
 ): Promise<GithubAgentRunnerRepositoriesSynchronizationResult> {
     const configuration = loadAgentRunnerGithubConfiguration();
     if (!configuration) {
-        return { clonedRepositoryNames: [], ignoredRepositoryNames: [] };
+        return { clonedRepositoryNames: [] };
     }
 
-    const [availableRemoteRepositories, localDirectoryNames] = await Promise.all([
+    const [remoteRepositories, localDirectoryNames] = await Promise.all([
         listGithubAgentRepositories(configuration),
         listDirectChildDirectoryNames(rootPath),
     ]);
-    const { includedItems: remoteRepositories, ignoredItems: ignoredRepositories } =
-        partitionItemsByAgentRunnerIgnorePattern(
-            availableRemoteRepositories,
-            ({ name }) => name,
-            options.ignorePattern,
-        );
     const missingRepositories = remoteRepositories.filter((repository) => !localDirectoryNames.has(repository.name));
 
     for (const repository of missingRepositories) {
@@ -121,7 +110,6 @@ export async function synchronizeGithubAgentRunnerRepositories(
     return {
         owner: configuration.owner,
         clonedRepositoryNames: missingRepositories.map((repository) => repository.name),
-        ignoredRepositoryNames: ignoredRepositories.map((repository) => repository.name),
         synchronizedAt: Date.now(),
     };
 }

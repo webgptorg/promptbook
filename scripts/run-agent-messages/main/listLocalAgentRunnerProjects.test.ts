@@ -30,41 +30,11 @@ describe('listLocalAgentRunnerProjects', () => {
 
         const result = await listLocalAgentRunnerProjects(temporaryRootDirectory);
 
-        expect(result).toEqual({
-            projects: [
-                {
-                    directoryName: 'agent-a',
-                    projectPath: join(temporaryRootDirectory, 'agent-a'),
-                },
-            ],
-            ignoredProjects: [],
-        });
-    });
-
-    it('filters ignored direct child agent repositories by repository-name pattern', async () => {
-        temporaryRootDirectory = await createTemporaryRootDirectory();
-        await mkdir(join(temporaryRootDirectory, 'John-agent'), { recursive: true });
-        await mkdir(join(temporaryRootDirectory, 'agent-a'), { recursive: true });
-        await writeFile(join(temporaryRootDirectory, 'John-agent', 'agent.book'), 'John Agent', 'utf-8');
-        await writeFile(join(temporaryRootDirectory, 'agent-a', 'agent.book'), 'Agent A', 'utf-8');
-
-        const result = await listLocalAgentRunnerProjects(temporaryRootDirectory, {
-            ignorePattern: 'John*',
-        });
-
-        expect(result).toEqual({
-            projects: [
-                {
-                    directoryName: 'agent-a',
-                    projectPath: join(temporaryRootDirectory, 'agent-a'),
-                },
-            ],
-            ignoredProjects: [
-                {
-                    directoryName: 'John-agent',
-                    projectPath: join(temporaryRootDirectory, 'John-agent'),
-                },
-            ],
-        });
+        expect(result).toEqual([
+            {
+                directoryName: 'agent-a',
+                projectPath: join(temporaryRootDirectory, 'agent-a'),
+            },
+        ]);
     });
 });
