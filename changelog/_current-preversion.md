@@ -1,3 +1,8 @@
+-   Refactored `$registeredLlmToolsMessage` internals to keep LLM provider summary behavior unchanged while making the register/status flow easier to read and maintain:
+    
+    -   Split the previous branch-heavy provider summary module into smaller private helpers for register snapshots, entry deduplication, availability/configuration state derivation, provider-line assembly, and status wording.
+    -   Kept the existing `.env` reporting, relevant environment-variable listing, provider status text, and Node-only terminal color behavior unchanged while reducing the responsibility count inside the top-level function.
+
 -   Refactored `executeAttempts` internals to keep pipeline task execution behavior unchanged while making attempt orchestration easier to follow and maintain:
 
     -   Split `src/execution/createPipelineExecutor/40-executeAttempts.ts` into a small orchestration facade plus focused private helpers for single-attempt execution, failure aggregation, and prompt execution reporting.
