@@ -1,3 +1,8 @@
+-   Refactored `validatePipeline` internals to keep pipeline validation behavior unchanged while making the validation flow easier to follow and maintain:
+
+    -   Split the previous branch-heavy `validatePipeline_InnerFunction` into focused private validation steps for metadata, structure, parameter rules, task rules, and dependency resolution.
+    -   Kept the existing parse and logic error behavior intact while reducing nested branching and isolating repeated validation decisions into small helpers.
+
 -   Refactored `pipelineJsonToString` internals to keep pipeline markdown serialization unchanged while making the converter easier to follow and maintain:
 
     -   Split `src/conversion/pipelineJsonToString.ts` into a small orchestration facade plus focused private helpers for pipeline introduction rendering, pipeline command collection, task serialization, markdown block appending, and command formatting.
