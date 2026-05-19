@@ -185,3 +185,30 @@ node_modules
 -   You are not working with the external chat service, the `ptbk agent` utility which is running the chats on the external service, this is not scope of this task, you are just doing quicker response before the full one arrives from the external service
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+**Example of 2. /preparing/ message:**
+
+```markdown
+Hledám informace o tom, jak upravit obsah stránky na webu Prahy 13.
+Může to trvat několik minut, až najdu všechny potřebné informace.
+```
+
+**Example of 3. /final/ message from external service:**
+
+```markdown
+Pokud spravujete svůj obsahový okruh na webu Prahy 13, udělejte to takto:
+
+1. Zkontrolujte svou část webu a vytipujte konkrétní neaktuální nebo chybějící údaje. Za obsah jednotlivých okruhů odpovídá určený garant a vedoucí informační kanceláře má navíc na začátku každého čtvrtletí upozornit vedoucí odborů, aby obsah zkontrolovali.【nt-084-2000-obsah-internetovych-stranek-r3eASWn0Kig20li4yEwhrbAnT6xEVo.pdf】【nt-084-2000-obsah-internetovych-stranek-dodatek-1-kzEv2vkRhFnIRfdm2lNWDVrpgbOIM7.pdf】
+2. Připravte podklady k úpravě konkrétně a úplně - nové informace i opravy dříve zveřejněných údajů. Garant má podklady předat styčnému pracovníkovi do Informační kanceláře v písemné i elektronické podobě.【nt-084-2000-obsah-internetovych-stranek-r3eASWn0Kig20li4yEwhrbAnT6xEVo.pdf】
+3. Pokud jde o údaje o vašem odboru, nahlaste i personální a organizační změny styčnému pracovníkovi do Informační kanceláře. Ten podklady shromažďuje a první pracovní den v měsíci je předává odpovědnému pracovníkovi odboru informatiky, který má změny zpracovat nejpozději do tří pracovních dnů.【nt-084-2000-obsah-internetovych-stranek-r3eASWn0Kig20li4yEwhrbAnT6xEVo.pdf】
+4. Pokud jde o zásadní změnu, nečekejte na běžný měsíční cyklus. Po schválení tajemníkem MÚ se má aktualizace provést neprodleně.【nt-084-2000-obsah-internetovych-stranek-r3eASWn0Kig20li4yEwhrbAnT6xEVo.pdf】
+5. Po zveřejnění si stránku hned zkontrolujte. Pokud je něco uveřejněno nesprávně, garant má ihned informovat styčného pracovníka v Informační kanceláři.【nt-084-2000-obsah-internetovych-stranek-r3eASWn0Kig20li4yEwhrbAnT6xEVo.pdf】
+6. Jestli potřebujete měnit strukturu nebo grafiku webu, neposílejte to jako běžnou obsahovou úpravu. Strukturu i rozšiřování okruhů schvaluje tajemník MÚ a změnu grafiky lze provést jen na jeho písemný pokyn; technicky to zajišťuje odbor informatiky.【nt-084-2000-obsah-internetovych-stranek-r3eASWn0Kig20li4yEwhrbAnT6xEVo.pdf】
+
+Nezapomeňte, že texty pro web mají být stručné, věcné a srozumitelné a mají směřovat k tomu, aby občan rychle našel řešení své potřeby.【nt-346-2020-pravidla-pro-komunikaci-g872TOometpnOrJEPVU4tmzJsD0FaL.pdf】
+
+Jako první kontakt proto zvolte **styčného pracovníka Informační kanceláře**; pokud řešíte technické nasazení, zapojte **odpovědného pracovníka odboru informatiky**. U změny struktury nebo grafiky je potřeba řešit věc přes **tajemníka MÚ**.【nt-084-2000-obsah-internetovych-stranek-r3eASWn0Kig20li4yEwhrbAnT6xEVo.pdf】
+
+[Potřebuji upravit obsah stránky](?message=Potřebuji upravit obsah stránky na webu)
+[Řeším změnu struktury nebo grafiky webu](?message=Řeším změnu struktury nebo grafiky webu)
+```
