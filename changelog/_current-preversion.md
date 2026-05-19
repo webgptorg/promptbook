@@ -1,3 +1,8 @@
+-   Refactored `makeKnowledgeSourceHandler` internals to keep scraper source-handler behavior unchanged while making the module easier to follow and maintain:
+
+    -   Split the previous branch-heavy flow into focused private helpers for URL dispatch, remote-response handling, PDF download caching, file-source validation, and inline-text handling.
+    -   Kept URL, file, and inline knowledge-source behavior unchanged while isolating optional cache filesystem fallbacks into one reusable decision helper.
+
 -   Refactored `startRemoteServer` internals to keep remote-server behavior unchanged while making the module easier to navigate and maintain:
 
     -   Split `src/remote-server/startRemoteServer.ts` into a small public facade plus focused private modules for runtime/config bootstrapping, HTTP route registration, Socket.io request handling, execution-tools resolution, and public server-handle creation.
