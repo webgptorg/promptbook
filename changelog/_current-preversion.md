@@ -1,3 +1,8 @@
+-   Refactored `pipelineJsonToString` internals to keep pipeline markdown serialization unchanged while making the converter easier to follow and maintain:
+
+    -   Split `src/conversion/pipelineJsonToString.ts` into a small orchestration facade plus focused private helpers for pipeline introduction rendering, pipeline command collection, task serialization, markdown block appending, and command formatting.
+    -   Kept legacy task-type, expectation, and output markdown behavior unchanged while adding regression coverage for the supported task kinds and preserving the current serialized wording.
+
 -   Fixed `ptbk agent` runner exit behavior so watch commands stay alive instead of forcing a successful process exit.
 
     -   Stopped the shared `ptbk agent` command wrapper from calling `process.exit(0)` after successful `run-agent` and `run-multiple` starts, so their long-running watch loops can keep waiting for new queued messages indefinitely.
