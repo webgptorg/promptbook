@@ -1,3 +1,8 @@
+-   Refactored `ExecutionTask` internals to keep task execution behavior unchanged while making task state handling and TLDR resolution easier to follow and maintain:
+
+    -   Split the previous branch-heavy `tldr` getter into focused private helpers for explicit progress lookup, simulated progress fallback, subtask summarization, and message resolution.
+    -   Simplified `src/execution/ExecutionTask.ts` around named task-state lifecycle helpers for ongoing updates, custom TLDR updates, LLM call logging, and final result settlement without changing the public task API.
+
 -   Refactored `validatePipeline` internals to keep pipeline validation behavior unchanged while making the validation flow easier to follow and maintain:
 
     -   Split the previous branch-heavy `validatePipeline_InnerFunction` into focused private validation steps for metadata, structure, parameter rules, task rules, and dependency resolution.

@@ -1,7 +1,6 @@
 import type { Observable } from 'rxjs';
 import { Subject } from 'rxjs';
 import type { PartialDeep } from 'type-fest';
-import { DEFAULT_TASK_SIMULATED_DURATION_MS } from '../config';
 import { assertsError } from '../errors/assertsError';
 import type { LlmCall } from '../types/LlmCall';
 import type { number_percent } from '../types/number_percent';
@@ -17,6 +16,7 @@ import { PROMPTBOOK_ENGINE_VERSION } from '../version';
 import type { AbstractTaskResult } from './AbstractTaskResult';
 import { assertsTaskSuccessful } from './assertsTaskSuccessful';
 import type { PipelineExecutorResult } from './PipelineExecutorResult';
+import { resolveTaskTldr } from './resolveTaskTldr';
 
 /**
  * Options for creating a new task
@@ -53,6 +53,178 @@ type CreateTaskOptions<TTaskResult extends AbstractTaskResult> = {
 };
 
 /**
+ * Shared TLDR structure used by running tasks.
+ */
+type TaskTldrInfo = {
+    readonly percent: number_percent;
+    readonly message: string;
+};
+
+/**
+ * Mutable runtime state backing one task instance.
+ */
+type TaskState<TTaskResult extends AbstractTaskResult> = {
+    title: AbstractTask<TTaskResult>['title'];
+    status: task_status;
+    updatedAt: Date;
+    readonly errors: Array<Error>;
+    readonly warnings: Array<Error>;
+    readonly llmCalls: Array<LlmCall>;
+    currentValue: PartialDeep<TTaskResult>;
+    customTldr: TaskTldrInfo | null;
+};
+
+/**
+ * Partial result update emitted while the task is still running.
+ */
+type OngoingTaskUpdate<TTaskResult extends AbstractTaskResult> = PartialDeep<TTaskResult> & {
+    /**
+     * Optional update of the task title
+     */
+    readonly title?: AbstractTask<TTaskResult>['title'];
+};
+
+/**
+ * Creates the initial mutable state for a task.
+ *
+ * @private internal helper function
+ */
+function createTaskState<TTaskResult extends AbstractTaskResult>(
+    title: AbstractTask<TTaskResult>['title'],
+    createdAt: Date,
+): TaskState<TTaskResult> {
+    return {
+        title,
+        status: 'RUNNING',
+        updatedAt: createdAt,
+        errors: [],
+        warnings: [],
+        llmCalls: [],
+        currentValue: {} as PartialDeep<TTaskResult>,
+        customTldr: null,
+    };
+}
+
+/**
+ * Creates the partial-result updater passed into the task process callback.
+ *
+ * @private internal helper function
+ */
+function createOngoingResultUpdater<TTaskResult extends AbstractTaskResult>(
+    taskState: TaskState<TTaskResult>,
+    partialResultSubject: Subject<PartialDeep<TTaskResult>>,
+) {
+    return (newOngoingResult: OngoingTaskUpdate<TTaskResult>) => {
+        if (newOngoingResult.title) {
+            taskState.title = newOngoingResult.title;
+        }
+
+        taskState.updatedAt = new Date();
+
+        Object.assign(taskState.currentValue, newOngoingResult);
+        // <- TODO: assign deep
+        partialResultSubject.next(newOngoingResult);
+    };
+}
+
+/**
+ * Creates the custom-TLDR updater passed into the task process callback.
+ *
+ * @private internal helper function
+ */
+function createTldrUpdater<TTaskResult extends AbstractTaskResult>(taskState: TaskState<TTaskResult>) {
+    return (tldrInfo: TaskTldrInfo) => {
+        taskState.customTldr = tldrInfo;
+        taskState.updatedAt = new Date();
+    };
+}
+
+/**
+ * Creates the LLM call logger passed into the task process callback.
+ *
+ * @private internal helper function
+ */
+function createLlmCallLogger<TTaskResult extends AbstractTaskResult>(taskState: TaskState<TTaskResult>) {
+    return (llmCall: LlmCall) => {
+        taskState.llmCalls.push(llmCall);
+        taskState.updatedAt = new Date();
+    };
+}
+
+/**
+ * Wires the task promise into the observable/error lifecycle.
+ *
+ * @private internal helper function
+ */
+function settleTaskPromise<TTaskResult extends AbstractTaskResult>(
+    finalResultPromise: Promise<TTaskResult>,
+    taskState: TaskState<TTaskResult>,
+    partialResultSubject: Subject<PartialDeep<TTaskResult>>,
+): void {
+    finalResultPromise
+        .catch((error) => {
+            taskState.errors.push(error);
+            partialResultSubject.error(error);
+        })
+        .then((executionResult) => {
+            if (executionResult) {
+                try {
+                    finalizeTaskResult(executionResult, taskState, partialResultSubject);
+                } catch (error) {
+                    failTaskResult(error, taskState, partialResultSubject);
+                }
+            }
+
+            partialResultSubject.complete();
+        });
+}
+
+/**
+ * Applies the final successful task result into the mutable task state.
+ *
+ * @private internal helper function
+ */
+function finalizeTaskResult<TTaskResult extends AbstractTaskResult>(
+    executionResult: TTaskResult,
+    taskState: TaskState<TTaskResult>,
+    partialResultSubject: Subject<PartialDeep<TTaskResult>>,
+): void {
+    taskState.updatedAt = new Date();
+
+    taskState.errors.push(...executionResult.errors);
+    taskState.warnings.push(...executionResult.warnings);
+    // <- TODO: [🌂] Only unique errors and warnings should be added (or filtered)
+
+    // TODO: [🧠] !! errors, warning, isSuccessful  are redundant both in `ExecutionTask` and `ExecutionTask.currentValue`
+    //            Also maybe move `ExecutionTask.currentValue.usage` -> `ExecutionTask.usage`
+    //            And delete `ExecutionTask.currentValue.preparedPipeline`
+
+    assertsTaskSuccessful(executionResult);
+    taskState.status = 'FINISHED';
+
+    taskState.currentValue = jsonStringsToJsons(executionResult) as TODO_remove_as<PartialDeep<TTaskResult>>;
+    // <- TODO: [🧠] Is this a good idea to convert JSON strins to JSONs?
+
+    partialResultSubject.next(executionResult as chococake);
+}
+
+/**
+ * Records a final-result failure after the task promise itself resolved.
+ *
+ * @private internal helper function
+ */
+function failTaskResult<TTaskResult extends AbstractTaskResult>(
+    error: unknown,
+    taskState: TaskState<TTaskResult>,
+    partialResultSubject: Subject<PartialDeep<TTaskResult>>,
+): void {
+    assertsError(error);
+    taskState.status = 'ERROR';
+    taskState.errors.push(error);
+    partialResultSubject.error(error);
+}
+
+/**
  * Helper to create a new task
  *
  * @private internal helper function
@@ -60,82 +232,25 @@ type CreateTaskOptions<TTaskResult extends AbstractTaskResult> = {
 export function createTask<TTaskResult extends AbstractTaskResult>(
     options: CreateTaskOptions<TTaskResult>,
 ): AbstractTask<TTaskResult> {
-    const { taskType, taskProcessCallback } = options;
-    let { title } = options;
+    const { taskType, title, taskProcessCallback } = options;
 
     // TODO: [🐙] DRY
     const taskId = `${taskType.toLowerCase().substring(0, 4)}-${$randomToken(
         8 /* <- TODO: To global config + Use Base58 to avoid similar char conflicts   */,
     )}`;
 
-    let status: task_status = 'RUNNING';
     const createdAt = new Date();
-    let updatedAt = createdAt;
-    const errors: Array<Error> = [];
-    const warnings: Array<Error> = [];
-    const llmCalls: Array<LlmCall> = [];
-    let currentValue = {} as PartialDeep<TTaskResult>;
-    let customTldr: { readonly percent: number_percent; readonly message: string } | null = null;
+    const taskState = createTaskState<TTaskResult>(title, createdAt);
     const partialResultSubject = new Subject<PartialDeep<TTaskResult>>();
     // <- Note: Not using `BehaviorSubject` because on error we can't access the last value
 
     const finalResultPromise = /* not await */ taskProcessCallback(
-        (newOngoingResult) => {
-            if (newOngoingResult.title) {
-                title = newOngoingResult.title;
-            }
-
-            updatedAt = new Date();
-
-            Object.assign(currentValue, newOngoingResult);
-            // <- TODO: assign deep
-            partialResultSubject.next(newOngoingResult);
-        },
-        (tldrInfo) => {
-            customTldr = tldrInfo;
-            updatedAt = new Date();
-        },
-        (llmCall) => {
-            llmCalls.push(llmCall);
-            updatedAt = new Date();
-        },
+        createOngoingResultUpdater(taskState, partialResultSubject),
+        createTldrUpdater(taskState),
+        createLlmCallLogger(taskState),
     );
 
-    finalResultPromise
-        .catch((error) => {
-            errors.push(error);
-            partialResultSubject.error(error);
-        })
-        .then((executionResult) => {
-            if (executionResult) {
-                try {
-                    updatedAt = new Date();
-
-                    errors.push(...executionResult.errors);
-                    warnings.push(...executionResult.warnings);
-                    // <- TODO: [🌂] Only unique errors and warnings should be added (or filtered)
-
-                    // TODO: [🧠] !! errors, warning, isSuccessful  are redundant both in `ExecutionTask` and `ExecutionTask.currentValue`
-                    //            Also maybe move `ExecutionTask.currentValue.usage` -> `ExecutionTask.usage`
-                    //            And delete `ExecutionTask.currentValue.preparedPipeline`
-
-                    assertsTaskSuccessful(executionResult);
-                    status = 'FINISHED';
-
-                    currentValue = jsonStringsToJsons(executionResult) as TODO_remove_as<PartialDeep<TTaskResult>>;
-                    // <- TODO: [🧠] Is this a good idea to convert JSON strins to JSONs?
-
-                    partialResultSubject.next(executionResult as chococake);
-                } catch (error) {
-                    assertsError(error);
-                    status = 'ERROR';
-                    errors.push(error);
-                    partialResultSubject.error(error);
-                }
-            }
-
-            partialResultSubject.complete();
-        });
+    settleTaskPromise(finalResultPromise, taskState, partialResultSubject);
 
     async function asPromise(options?: { readonly isCrashedOnError?: boolean }) {
         const { isCrashedOnError = true } = options || {};
@@ -156,94 +271,29 @@ export function createTask<TTaskResult extends AbstractTaskResult>(
             return PROMPTBOOK_ENGINE_VERSION;
         },
         get title() {
-            return title;
+            return taskState.title;
             // <- Note: [1] These must be getters to allow changing the value in the future
         },
         get status() {
-            return status;
+            return taskState.status;
             // <- Note: [1] --||--
         },
         get tldr() {
-            // Use custom tldr if available
-            if (customTldr) {
-                return customTldr;
-            }
-
-            // Fallback to default implementation
-            const cv: chococake = currentValue as chococake;
-
-            // If explicit percent is provided, use it
-            let percentRaw: unknown = cv?.tldr?.percent ?? cv?.usage?.percent ?? cv?.progress?.percent ?? cv?.percent;
-
-            // Simulate progress if not provided
-            if (typeof percentRaw !== 'number') {
-                // Simulate progress: evenly split across subtasks, based on elapsed time
-                const now = new Date();
-                const elapsedMs = now.getTime() - createdAt.getTime();
-                const totalMs = DEFAULT_TASK_SIMULATED_DURATION_MS;
-
-                // If subtasks are defined, split progress evenly
-                const subtaskCount = Array.isArray(cv?.subtasks) ? cv.subtasks.length : 1;
-                const completedSubtasks = Array.isArray(cv?.subtasks)
-                    ? cv.subtasks.filter((s: { done?: boolean; completed?: boolean }) => s.done || s.completed).length
-                    : 0;
-
-                // Progress from completed subtasks
-                const subtaskProgress = subtaskCount > 0 ? completedSubtasks / subtaskCount : 0;
-
-                // Progress from elapsed time for current subtask
-                const timeProgress = Math.min(elapsedMs / totalMs, 1);
-
-                // Combine: completed subtasks + time progress for current subtask
-                percentRaw = Math.min(subtaskProgress + (1 / subtaskCount) * timeProgress, 1);
-                if (status === 'FINISHED') percentRaw = 1;
-                if (status === 'ERROR') percentRaw = 0;
-            }
-
-            // Clamp to [0,1]
-            let percent = Number(percentRaw) || 0;
-            if (percent < 0) percent = 0;
-            if (percent > 1) percent = 1;
-
-            // Build a short message: prefer explicit tldr.message, then common summary/message fields, then errors/warnings, then status
-            const messageFromResult = cv?.tldr?.message ?? cv?.message ?? cv?.summary ?? cv?.statusMessage;
-            let message: string | undefined = messageFromResult;
-            if (!message) {
-                // If subtasks, show current subtask
-                if (Array.isArray(cv?.subtasks) && cv.subtasks.length > 0) {
-                    const current = cv.subtasks.find(
-                        (s: { done?: boolean; completed?: boolean; title?: string }) => !s.done && !s.completed,
-                    );
-                    if (current && current.title) {
-                        message = `Working on ${current.title}`;
-                    }
-                }
-                if (!message) {
-                    if (errors.length) {
-                        message = errors[errors.length - 1]!.message || 'Error';
-                    } else if (warnings.length) {
-                        message = warnings[warnings.length - 1]!.message || 'Warning';
-                    } else if (status === 'FINISHED') {
-                        message = 'Finished';
-                    } else if (status === 'ERROR') {
-                        message = 'Error';
-                    } else {
-                        message = 'Running';
-                    }
-                }
-            }
-
-            return {
-                percent: percent as number_percent,
-                message: message + ' (!!!fallback)',
-            };
+            return resolveTaskTldr({
+                customTldr: taskState.customTldr,
+                currentValue: taskState.currentValue as chococake,
+                status: taskState.status,
+                createdAt,
+                errors: taskState.errors,
+                warnings: taskState.warnings,
+            });
         },
         get createdAt() {
             return createdAt;
             // <- Note: [1] --||--
         },
         get updatedAt() {
-            return updatedAt;
+            return taskState.updatedAt;
             // <- Note: [1] --||--
         },
         asPromise,
@@ -251,19 +301,19 @@ export function createTask<TTaskResult extends AbstractTaskResult>(
             return partialResultSubject.asObservable();
         },
         get errors() {
-            return errors;
+            return taskState.errors;
             // <- Note: [1] --||--
         },
         get warnings() {
-            return warnings;
+            return taskState.warnings;
             // <- Note: [1] --||--
         },
         get llmCalls() {
-            return [...llmCalls, { foo: '!!! bar' } as TODO_any];
+            return [...taskState.llmCalls, { foo: '!!! bar' } as TODO_any];
             // <- Note: [1] --||--
         },
         get currentValue() {
-            return currentValue;
+            return taskState.currentValue;
             // <- Note: [1] --||--
         },
     } satisfies AbstractTask<TTaskResult>;
