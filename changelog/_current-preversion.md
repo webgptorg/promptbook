@@ -1,3 +1,8 @@
+-   Refactored `DetectHeaders` internals to keep PDF headline detection behavior unchanged while making the transformation easier to read and maintain:
+
+    -   Split the previous branch-heavy `transform` flow into focused private helpers for title-page headline detection, TOC-based height reuse, height-based headline assignment, and paragraph-height headline detection.
+    -   Kept the existing title-page, TOC-assisted, non-TOC, and uppercase paragraph-height headline heuristics unchanged while reducing the responsibility count in the top-level transformation.
+
 -   Refactored `makeKnowledgeSourceHandler` internals to keep scraper source-handler behavior unchanged while making the module easier to follow and maintain:
 
     -   Split the previous branch-heavy flow into focused private helpers for URL dispatch, remote-response handling, PDF download caching, file-source validation, and inline-text handling.
