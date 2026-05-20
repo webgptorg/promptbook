@@ -39,7 +39,7 @@ export function getDefaultCoderAgentCodingFileContent({
             2. Create or customize prompt templates in \`${formatDisplayPath(
                 PROMPTS_TEMPLATES_DIRECTORY_PATH,
             )}/\`. ${buildStarterTemplateSentence()}
-            3. Generate prompt files with \`npm run coder:generate-boilerplates\` or \`npx ptbk coder generate-boilerplates --template <template> --count <count>\`.
+            3. Generate prompt files with \`npm run coder:generate-boilerplates\` or \`ptbk coder generate-boilerplates --template <template> --count <count>\`.
             4. Replace every \`@@@\`, keep drafts as \`[-]\`, and switch prompts to \`[ ]\` when they are ready to run. Completed prompts are marked \`[x]\`.
             5. Run \`npm run coder:run\` to execute the next ready prompt with the configured coding agent.
             6. Use \`npm run coder:verify\` to archive finished prompts into \`${formatDisplayPath(
@@ -59,7 +59,7 @@ export function getDefaultCoderAgentCodingFileContent({
             -   To add a custom template, create a markdown file such as \`${formatDisplayPath(
                 PROMPTS_TEMPLATES_DIRECTORY_PATH,
             )}/backend.md\`.
-            -   To use a project template, run \`npx ptbk coder generate-boilerplates --template ${formatDisplayPath(
+            -   To use a project template, run \`ptbk coder generate-boilerplates --template ${formatDisplayPath(
                 PROMPTS_TEMPLATES_DIRECTORY_PATH,
             )}/backend.md\`.
             -   Keep shared repository rules in \`${AGENTS_FILE_PATH}\` and recurring task-family rules in template files so individual prompt files stay focused on the actual task.
@@ -72,7 +72,7 @@ export function getDefaultCoderAgentCodingFileContent({
             ## Customizing the workflow
             -   Edit \`package.json\` if you want \`npm run coder:run\` to use another coding agent, model, thinking level, context file, or wait mode.
             -   Use direct CLI commands when you need one-off flags such as \`--priority\`, \`--ignore-git-changes\`, \`--no-commit\`, \`--dry-run\`, \`--test\`, \`--allow-credits\`, or \`--auto-migrate\`.
-            -   Use \`npx ptbk coder --help\` and \`npx ptbk coder <command> --help\` for the full CLI reference.
+            -   Use \`ptbk coder --help\` and \`ptbk coder <command> --help\` for the full CLI reference.
         `,
     );
 }

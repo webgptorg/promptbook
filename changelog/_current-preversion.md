@@ -12,6 +12,7 @@
 
     -   Added `ts-node` as an explicit generated runtime dependency of `@promptbook/cli`, alongside the existing `typescript` runtime dependency.
     -   Kept the fix DRY by changing the package-generation source of truth, so regenerated published package manifests now install the CLI runtime dependency chain correctly for both direct `@promptbook/cli` installs and the `ptbk` proxy package.
+    -   Updated `ptbk coder init` helper scripts, quick-reference text, and CLI package examples to call the installed `ptbk` binary directly instead of wrapping every command in `npx`.
 
 -   Improved Agents Server profile-to-chat navigation so the standalone chat view now appears immediately when opening a chat from an agent profile:
 

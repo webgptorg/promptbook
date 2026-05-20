@@ -29,7 +29,7 @@ The package provides command-line tools for:
 You can prebuild your own Promptbook library with `ptbk make` command:
 
 ```bash
-npx ptbk make ./books --format typescript --verbose
+ptbk make ./books --format typescript --verbose
 ```
 
 This will emit `index.ts` with `getPipelineCollection` function file in `books` directory.
@@ -70,7 +70,7 @@ There is also a javascript and json format available.
 ## Prettify
 
 ```bash
-npx ptbk prettify 'promptbook/**/*.book'
+ptbk prettify 'promptbook/**/*.book'
 ```
 
 This will prettify all promptbooks in `promptbook` directory and adds Mermaid graphs to them.

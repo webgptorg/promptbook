@@ -96,9 +96,15 @@ describe('coder boilerplate templates', () => {
         const gitignoreContent = await readFile(join(projectPath, '.gitignore'), 'utf-8');
         expect(normalizeLineEndings(gitignoreContent)).toBe('# Promptbook Coder\n/.promptbook\n.env\n');
 
+        const defaultCoderPackageJsonScripts = getDefaultCoderPackageJsonScripts();
+
         expect(await readJsonFile(join(projectPath, 'package.json'))).toEqual({
-            scripts: getDefaultCoderPackageJsonScripts(),
+            scripts: defaultCoderPackageJsonScripts,
         });
+        expect(
+            Object.values(defaultCoderPackageJsonScripts).every((scriptCommand) => !scriptCommand.includes('npx ')),
+        ).toBe(true);
+        expect(normalizeLineEndings(agentCodingFileContent)).not.toContain('npx ptbk');
 
         expect(await readJsonFile(join(projectPath, '.vscode', 'settings.json'))).toEqual(
             getDefaultCoderVscodeSettings(),

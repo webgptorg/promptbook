@@ -99,10 +99,5 @@
     "typings": "./esm/src/_packages/javascript.index.d.ts",
     "peerDependencies": {
         "@promptbook/core": "0.112.0-74"
-    },
-    "dependencies": {
-        "crypto": "1.0.1",
-        "crypto-js": "4.2.0",
-        "spacetrim": "0.11.60"
     }
 }

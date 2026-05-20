@@ -648,28 +648,28 @@ npx ts-node ./src/cli/test/ptbk.ts coder verify
 
 #### Using `ptbk coder` in an external project
 
-If you want to use the workflow in another repository, install the package and invoke the `ptbk` binary. After local installation, `npx ptbk ...` is the most portable form; plain `ptbk ...` also works when your environment exposes the local binary on `PATH`.
+If you want to use the workflow in another repository, install the package and invoke the `ptbk` binary directly.
 
 ```bash
 npm install ptbk
 
 ptbk coder init
 
-npx ptbk coder generate-boilerplates
+ptbk coder generate-boilerplates
 
-npx ptbk coder generate-boilerplates --template prompts/templates/common.md
+ptbk coder generate-boilerplates --template prompts/templates/common.md
 
-npx ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --test npm run test
+ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --test npm run test
 
-npx ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --auto-push
+ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --auto-push
 
-npx ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --test npm run test --ignore-git-changes --no-wait
+ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --test npm run test --ignore-git-changes --no-wait
 
-npx ptbk coder find-refactor-candidates
+ptbk coder find-refactor-candidates
 
-npx ptbk coder find-refactor-candidates --level xhigh
+ptbk coder find-refactor-candidates --level xhigh
 
-npx ptbk coder verify
+ptbk coder verify
 ```
 
 `ptbk coder init` also bootstraps a starter `AGENTS.md`, adds `package.json` scripts for the four main coder commands, adds the shared `/.promptbook` temp ignore to `.gitignore`, and configures `.vscode/settings.json` so pasted images from `prompts/*.md` land in `prompts/screenshots/`.
