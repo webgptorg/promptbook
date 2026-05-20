@@ -15,7 +15,9 @@ import { getExecutionToolsFromIdentification } from './getExecutionToolsFromIden
 export function registerExecutionRoutes<TCustomOptions>(runtime: RemoteServerRuntime<TCustomOptions>): void {
     runtime.app.get(`/executions`, async (request, response) => {
         response.send(
-            runtime.runningExecutionTasks.map((runningExecutionTask) => exportExecutionTask(runningExecutionTask, false)),
+            runtime.runningExecutionTasks.map((runningExecutionTask) =>
+                exportExecutionTask(runningExecutionTask, false),
+            ),
             /* <- TODO: satisfies paths['/executions']['get']['responses']['200']['content']['application/json'] */
             // <- TODO: [🧠][👩🏼‍🤝‍🧑🏼] Secure this through some token
             // <- TODO: [🧠] Better and more information
@@ -162,4 +164,3 @@ function exportExecutionTask(executionTask: ExecutionTask, isDetailed: boolean) 
         ptbkNonce: 0,
     } satisfies Omit<AbstractTask<chococake>, 'asPromise' | 'asObservable' | 'currentValue' | 'errors' | 'warnings'>;
 }
-

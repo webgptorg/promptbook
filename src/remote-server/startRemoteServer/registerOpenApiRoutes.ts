@@ -36,4 +36,3 @@ export function registerOpenApiRoutes(app: express.Express): void {
         response.json(openapiJson);
     });
 }
-

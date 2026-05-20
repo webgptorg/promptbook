@@ -228,12 +228,7 @@ export class Color extends ColorValue {
      * @param blue number from 0 to 255
      * @param alpha number from 0 (transparent) to 255 (opaque)
      */
-    private constructor(
-        red: number,
-        green: number,
-        blue: number,
-        alpha: number = 255,
-    ) {
+    private constructor(red: number, green: number, blue: number, alpha: number = 255) {
         super(red, green, blue, alpha);
     }
 

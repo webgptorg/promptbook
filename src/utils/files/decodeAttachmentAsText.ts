@@ -548,10 +548,7 @@ function scoreDecodedText(
  *
  * @private function of decodeAttachmentAsText
  */
-function decodeWithEncoding(
-    bytes: Uint8Array,
-    encoding: string,
-): Omit<DecodedCandidate, 'source'> | null {
+function decodeWithEncoding(bytes: Uint8Array, encoding: string): Omit<DecodedCandidate, 'source'> | null {
     if (!isSupportedEncoding(encoding)) {
         return null;
     }
@@ -789,7 +786,9 @@ function addDecodeWarnings(
         bestCandidate.encoding === 'utf-8' &&
         bestCandidate.replacementCount > 0
     ) {
-        preparation.warnings.push('UTF-8 decoding produced replacement characters, so the extracted text may contain errors.');
+        preparation.warnings.push(
+            'UTF-8 decoding produced replacement characters, so the extracted text may contain errors.',
+        );
     }
 
     if (confidence < 0.6) {

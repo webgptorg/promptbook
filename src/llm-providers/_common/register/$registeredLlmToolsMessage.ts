@@ -442,10 +442,7 @@ function createProviderStatusMessages(
     llmToolStatus: RegisteredLlmToolStatus,
     env: AvailableEnvironmentVariables,
 ): Array<string> {
-    return [
-        createInstallationStatusMessage(llmToolStatus),
-        createConfigurationStatusMessage(llmToolStatus, env),
-    ];
+    return [createInstallationStatusMessage(llmToolStatus), createConfigurationStatusMessage(llmToolStatus, env)];
 }
 
 /**

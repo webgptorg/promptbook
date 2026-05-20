@@ -41,4 +41,3 @@ async function createListModelsSocketResponse<TCustomOptions>(
         payload: { models } satisfies PromptbookServer_ListModels_Response /* <- Note: [🤛] */,
     };
 }
-

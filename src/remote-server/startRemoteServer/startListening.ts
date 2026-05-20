@@ -19,4 +19,3 @@ export function startListening<TCustomOptions>(
         console.info(colors.gray(`Verbose mode is enabled`));
     }
 }
-

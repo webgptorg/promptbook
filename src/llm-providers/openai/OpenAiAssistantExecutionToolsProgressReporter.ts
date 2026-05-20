@@ -122,7 +122,9 @@ export class OpenAiAssistantExecutionToolsProgressReporter {
     }): Usage {
         return {
             ...UNCERTAIN_USAGE,
-            duration: uncertainNumber((new Date(options.complete).getTime() - new Date(options.start).getTime()) / 1000),
+            duration: uncertainNumber(
+                (new Date(options.complete).getTime() - new Date(options.start).getTime()) / 1000,
+            ),
         };
     }
 }

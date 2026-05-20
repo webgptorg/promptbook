@@ -117,7 +117,11 @@ function createJokerCommands(task: TaskJson): Array<string> {
  * @private internal utility of `createTaskSerialization`
  */
 function createPostprocessingCommands(task: TaskJson): Array<string> {
-    return task.postprocessingFunctionNames?.map((postprocessingFunctionName) => `POSTPROCESSING \`${postprocessingFunctionName}\``) || [];
+    return (
+        task.postprocessingFunctionNames?.map(
+            (postprocessingFunctionName) => `POSTPROCESSING \`${postprocessingFunctionName}\``,
+        ) || []
+    );
 }
 
 /**

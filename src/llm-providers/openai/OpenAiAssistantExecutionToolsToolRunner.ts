@@ -277,9 +277,13 @@ export class OpenAiAssistantExecutionToolsToolRunner {
             toolCalls: options.run.required_action!.submit_tool_outputs.tool_calls,
         });
 
-        return (await (options.client.beta.threads.runs as TODO_any).submitToolOutputs(options.run.thread_id, options.run.id, {
-            tool_outputs: toolOutputs,
-        })) as OpenAI.Beta.Threads.Run;
+        return (await (options.client.beta.threads.runs as TODO_any).submitToolOutputs(
+            options.run.thread_id,
+            options.run.id,
+            {
+                tool_outputs: toolOutputs,
+            },
+        )) as OpenAI.Beta.Threads.Run;
     }
 
     /**

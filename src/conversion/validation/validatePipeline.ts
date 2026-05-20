@@ -176,7 +176,10 @@ function validatePipelineDependencyResolution({ pipeline, pipelineIdentification
             throw createDependencyResolutionLoopLimitError(pipelineIdentification);
         }
 
-        dependencyResolutionState = resolveNextDependencyResolutionState(dependencyResolutionState, pipelineIdentification);
+        dependencyResolutionState = resolveNextDependencyResolutionState(
+            dependencyResolutionState,
+            pipelineIdentification,
+        );
     }
 }
 
@@ -200,11 +203,7 @@ function validatePipelineParameter(
  *
  * @private internal step of `validatePipeline`
  */
-function validatePipelineTask(
-    task: TaskJson,
-    definedParameters: Set<string>,
-    pipelineIdentification: string,
-): void {
+function validatePipelineTask(task: TaskJson, definedParameters: Set<string>, pipelineIdentification: string): void {
     validateTaskResultingParameter(task, definedParameters, pipelineIdentification);
     validateTaskJokers(task, pipelineIdentification);
     validateTaskExpectations(task, pipelineIdentification);
@@ -215,10 +214,7 @@ function validatePipelineTask(
  *
  * @private internal utility of `validatePipeline`
  */
-function validatePipelineUrl(
-    pipeline: Pick<PipelineJson, 'pipelineUrl'>,
-    pipelineIdentification: string,
-): void {
+function validatePipelineUrl(pipeline: Pick<PipelineJson, 'pipelineUrl'>, pipelineIdentification: string): void {
     if (pipeline.pipelineUrl === undefined || isValidPipelineUrl(pipeline.pipelineUrl)) {
         return;
     }
@@ -500,10 +496,7 @@ function hasTaskJokers(task: TaskJson): task is TaskJson & { jokerParameterNames
  * @private internal utility of `validatePipeline`
  */
 function validateTaskSupportsJokers(task: TaskJson, pipelineIdentification: string): void {
-    if (
-        task.format ||
-        task.expectations /* <- TODO: Require at least 1 -> min <- expectation to use jokers */
-    ) {
+    if (task.format || task.expectations /* <- TODO: Require at least 1 -> min <- expectation to use jokers */) {
         return;
     }
 
@@ -536,7 +529,9 @@ function validateTaskJokerDependencies(
         throw new PipelineLogicError(
             spaceTrim(
                 (block) => `
-                    Parameter \`{${joker}}\` is used for {${task.resultingParameterName}} as joker but not in \`dependentParameterNames\`
+                    Parameter \`{${joker}}\` is used for {${
+                    task.resultingParameterName
+                }} as joker but not in \`dependentParameterNames\`
 
                     ${block(pipelineIdentification)}
                 `,
@@ -595,11 +590,7 @@ function validateTaskExpectationRange(
  *
  * @private internal utility of `validatePipeline`
  */
-function validateTaskExpectationMin(
-    unit: string,
-    min: number | undefined,
-    pipelineIdentification: string,
-): void {
+function validateTaskExpectationMin(unit: string, min: number | undefined, pipelineIdentification: string): void {
     if (min === undefined || min >= 0) {
         return;
     }
@@ -621,11 +612,7 @@ function validateTaskExpectationMin(
  *
  * @private internal utility of `validatePipeline`
  */
-function validateTaskExpectationMax(
-    unit: string,
-    max: number | undefined,
-    pipelineIdentification: string,
-): void {
+function validateTaskExpectationMax(unit: string, max: number | undefined, pipelineIdentification: string): void {
     if (max === undefined || max > 0) {
         return;
     }

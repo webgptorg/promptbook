@@ -77,12 +77,15 @@ export class OpenAiCompatibleModelCatalog {
                 spaceTrim(
                     (block) =>
                         `
-                            Cannot find model in ${
-                                this.options.getTitle()
-                            } models with name "${defaultModelName}" which should be used as default.
+                            Cannot find model in ${this.options.getTitle()} models with name "${defaultModelName}" which should be used as default.
 
                             Available models:
-                            ${block(this.options.getHardcodedModels().map(({ modelName }) => `- "${modelName}"`).join('\n'))}
+                            ${block(
+                                this.options
+                                    .getHardcodedModels()
+                                    .map(({ modelName }) => `- "${modelName}"`)
+                                    .join('\n'),
+                            )}
 
                             Model "${defaultModelName}" is probably not available anymore, not installed, inaccessible or misconfigured.
 

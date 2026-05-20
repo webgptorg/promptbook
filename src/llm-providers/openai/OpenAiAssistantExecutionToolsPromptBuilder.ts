@@ -37,7 +37,9 @@ export class OpenAiAssistantExecutionToolsPromptBuilder {
     /**
      * Converts the existing prompt thread into OpenAI assistant thread messages.
      */
-    private createAssistantThreadHistoryMessages(prompt: Prompt): Array<OpenAI.Beta.ThreadCreateAndRunParams.Thread.Message> {
+    private createAssistantThreadHistoryMessages(
+        prompt: Prompt,
+    ): Array<OpenAI.Beta.ThreadCreateAndRunParams.Thread.Message> {
         if (!('thread' in prompt) || !Array.isArray(prompt.thread)) {
             return [];
         }

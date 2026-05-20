@@ -46,13 +46,15 @@ export class OpenAiCompatibleRequestManager {
      * Schedules one request through the shared limiter and retry policy.
      */
     public async executeRateLimitedRequest<T>(requestFn: () => Promise<T>): Promise<T> {
-        return this.limiter.schedule(() => this.makeRequestWithNetworkRetry(requestFn)).catch((error: Error) => {
-            assertsError(error);
-            if (this.options.isVerbose) {
-                console.info(colors.bgRed('error'), error);
-            }
-            throw error;
-        });
+        return this.limiter
+            .schedule(() => this.makeRequestWithNetworkRetry(requestFn))
+            .catch((error: Error) => {
+                assertsError(error);
+                if (this.options.isVerbose) {
+                    console.info(colors.bgRed('error'), error);
+                }
+                throw error;
+            });
     }
 
     /**

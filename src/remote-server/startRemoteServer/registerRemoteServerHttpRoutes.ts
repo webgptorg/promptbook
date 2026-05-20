@@ -24,4 +24,3 @@ export function registerRemoteServerHttpRoutes<TCustomOptions>(runtime: RemoteSe
     registerExecutionRoutes(runtime);
     registerNotFoundRoute(runtime.app);
 }
-

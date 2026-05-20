@@ -1,7 +1,12 @@
 import type OpenAI from 'openai';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { CallChatModelStreamOptions, LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult, ImagePromptResult } from '../../execution/PromptResult';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+    ImagePromptResult,
+} from '../../execution/PromptResult';
 import type { Usage } from '../../execution/Usage';
 import type { Prompt } from '../../types/Prompt';
 import type { string_markdown, string_markdown_text } from '../../types/string_markdown';

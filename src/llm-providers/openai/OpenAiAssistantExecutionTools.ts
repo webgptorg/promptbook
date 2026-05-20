@@ -434,7 +434,9 @@ export class OpenAiAssistantExecutionTools extends OpenAiVectorStoreHandler impl
     /**
      * Builds the assistant tool definition list shared by create and update flows.
      */
-    private createAssistantToolDefinitions(tools: ModelRequirements['tools']): NonNullable<OpenAI.Beta.AssistantCreateParams['tools']> {
+    private createAssistantToolDefinitions(
+        tools: ModelRequirements['tools'],
+    ): NonNullable<OpenAI.Beta.AssistantCreateParams['tools']> {
         return [
             /* TODO: [🧠] Maybe add { type: 'code_interpreter' }, */
             { type: 'file_search' },
@@ -456,7 +458,8 @@ export class OpenAiAssistantExecutionTools extends OpenAiVectorStoreHandler impl
     /**
      * Returns assistant-specific options with direct OpenAI execution helpers attached.
      */
-    private get assistantOptions(): OpenAiAssistantExecutionToolsOptions & OpenAiCompatibleExecutionToolsNonProxiedOptions {
+    private get assistantOptions(): OpenAiAssistantExecutionToolsOptions &
+        OpenAiCompatibleExecutionToolsNonProxiedOptions {
         return this.options as OpenAiAssistantExecutionToolsOptions & OpenAiCompatibleExecutionToolsNonProxiedOptions;
     }
 

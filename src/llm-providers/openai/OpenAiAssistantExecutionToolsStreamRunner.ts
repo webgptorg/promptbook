@@ -99,7 +99,9 @@ export class OpenAiAssistantExecutionToolsStreamRunner {
     /**
      * Builds the streaming assistant request payload used when no tool execution flow is needed.
      */
-    private createAssistantStreamingRequest(context: AssistantChatCallContext): OpenAI.Beta.ThreadCreateAndRunStreamParams {
+    private createAssistantStreamingRequest(
+        context: AssistantChatCallContext,
+    ): OpenAI.Beta.ThreadCreateAndRunStreamParams {
         return {
             // TODO: [👨‍👨‍👧‍👧] ...modelSettings,
             // TODO: [👨‍👨‍👧‍👧][🧠] What about system message for assistants, does it make sense - combination of OpenAI assistants with Promptbook Personas

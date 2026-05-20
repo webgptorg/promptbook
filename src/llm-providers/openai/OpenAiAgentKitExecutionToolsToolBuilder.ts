@@ -1,10 +1,5 @@
 import type { Tool as AgentKitTool } from '@openai/agents';
-import {
-    Agent as AgentFromKit,
-    fileSearchTool,
-    tool as agentKitTool,
-    webSearchTool,
-} from '@openai/agents';
+import { Agent as AgentFromKit, fileSearchTool, tool as agentKitTool, webSearchTool } from '@openai/agents';
 import { spaceTrim } from 'spacetrim';
 import { parseToolExecutionEnvelope } from '../../commitments/_common/toolExecutionEnvelope';
 import type { ToolCallProgressUpdate } from '../../commitments/_common/toolRuntimeContext';
@@ -428,7 +423,8 @@ export class OpenAiAgentKitExecutionToolsToolBuilder {
         const query = typeof input.query === 'string' ? input.query.trim() : '';
         const additionalHints = Object.entries(input)
             .filter(
-                ([key, value]) => key !== 'query' && value !== undefined && value !== null && String(value).trim() !== '',
+                ([key, value]) =>
+                    key !== 'query' && value !== undefined && value !== null && String(value).trim() !== '',
             )
             .map(([key, value]) => `- ${key}: ${typeof value === 'string' ? value : JSON.stringify(value)}`);
 

@@ -22,4 +22,3 @@ function addPoweredByHeader(request: Request, response: Response, next: NextFunc
     response.setHeader('X-Powered-By', 'Promptbook engine');
     next();
 }
-

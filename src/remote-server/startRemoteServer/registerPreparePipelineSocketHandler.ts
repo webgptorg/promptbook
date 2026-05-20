@@ -42,4 +42,3 @@ async function createPreparePipelineSocketResponse<TCustomOptions>(
         payload: { preparedPipeline } satisfies PromptbookServer_PreparePipeline_Response /* <- Note: [🤛] */,
     };
 }
-

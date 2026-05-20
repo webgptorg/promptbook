@@ -178,10 +178,7 @@ export function createChatExportCitationRenderModel(
  *
  * @private internal utility of chat save format definitions
  */
-export function formatChatExportCitationFootnoteLabel(
-    footnote: ChatExportCitationFootnote,
-    href?: string,
-): string {
+export function formatChatExportCitationFootnoteLabel(footnote: ChatExportCitationFootnote, href?: string): string {
     const source = footnote.citation.source.trim() || footnote.citation.id;
     const sourceWithLink = href && href !== source ? `${source} - ${href}` : source;
     const sourceWithExcerpt = footnote.citation.excerpt

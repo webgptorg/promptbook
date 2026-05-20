@@ -226,7 +226,12 @@ async function executeChatTurn(
 
     const responseMessage = rawResponse.choices[0].message;
     const duration = uncertainNumber((new Date(turnComplete).getTime() - new Date(turnStart).getTime()) / 1000);
-    const usage = openAiOptions.computeUsage(options.promptContent, responseMessage.content || '', rawResponse, duration);
+    const usage = openAiOptions.computeUsage(
+        options.promptContent,
+        responseMessage.content || '',
+        rawResponse,
+        duration,
+    );
 
     return {
         rawResponse,

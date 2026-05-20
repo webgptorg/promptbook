@@ -132,7 +132,9 @@ export class OpenAiCompatibleNonChatPromptCaller {
 
         try {
             const turnStart: string_date_iso8601 = $getCurrentDate();
-            const rawResponse = await this.options.executeRateLimitedRequest(() => client.completions.create(rawRequest));
+            const rawResponse = await this.options.executeRateLimitedRequest(() =>
+                client.completions.create(rawRequest),
+            );
             const turnComplete: string_date_iso8601 = $getCurrentDate();
 
             if (this.options.isVerbose) {
@@ -216,7 +218,9 @@ export class OpenAiCompatibleNonChatPromptCaller {
 
         try {
             const turnStart: string_date_iso8601 = $getCurrentDate();
-            const rawResponse = await this.options.executeRateLimitedRequest(() => client.embeddings.create(rawRequest));
+            const rawResponse = await this.options.executeRateLimitedRequest(() =>
+                client.embeddings.create(rawRequest),
+            );
             const turnComplete: string_date_iso8601 = $getCurrentDate();
 
             if (this.options.isVerbose) {
@@ -224,7 +228,9 @@ export class OpenAiCompatibleNonChatPromptCaller {
             }
 
             if (rawResponse.data.length !== 1) {
-                throw new PipelineExecutionError(`Expected exactly 1 data item in response, got ${rawResponse.data.length}`);
+                throw new PipelineExecutionError(
+                    `Expected exactly 1 data item in response, got ${rawResponse.data.length}`,
+                );
             }
 
             const resultContent = rawResponse.data[0]!.embedding;
@@ -282,8 +288,7 @@ export class OpenAiCompatibleNonChatPromptCaller {
             throw new PipelineExecutionError('Use callImageGenerationModel only for IMAGE_GENERATION variant');
         }
 
-        const modelName =
-            currentModelRequirements.modelName || this.options.getDefaultImageGenerationModel().modelName;
+        const modelName = currentModelRequirements.modelName || this.options.getDefaultImageGenerationModel().modelName;
         const modelSettings: Partial<OpenAI.Images.ImageGenerateParams> = {
             model: modelName,
             size: currentModelRequirements.size as OpenAI.Images.ImageGenerateParams['size'],
@@ -294,7 +299,8 @@ export class OpenAiCompatibleNonChatPromptCaller {
         let rawPromptContent = templateParameters(content, { ...parameters, modelName });
 
         if ('attachments' in prompt && Array.isArray(prompt.attachments) && prompt.attachments.length > 0) {
-            rawPromptContent += '\n\n' + prompt.attachments.map((attachment) => `Image attachment: ${attachment.url}`).join('\n');
+            rawPromptContent +=
+                '\n\n' + prompt.attachments.map((attachment) => `Image attachment: ${attachment.url}`).join('\n');
         }
 
         const rawRequest: OpenAI.Images.ImageGenerateParams = {
@@ -369,7 +375,11 @@ export class OpenAiCompatibleNonChatPromptCaller {
                 currentModelRequirements,
             });
 
-            return this.callImageGenerationModelWithRetry(prompt, modifiedModelRequirements, unsupportedParameterRetrier);
+            return this.callImageGenerationModelWithRetry(
+                prompt,
+                modifiedModelRequirements,
+                unsupportedParameterRetrier,
+            );
         }
     }
 }

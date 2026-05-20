@@ -75,12 +75,8 @@ describe('htmlSaveFormatDefinition', () => {
         }) as string;
 
         expect(exportedContent).toContain('<strong>Answer</strong>');
-        expect(exportedContent).toContain(
-            '<sup data-citation-footnote="1"><a href="#source-1">[1]</a></sup>',
-        );
-        expect(exportedContent).toContain(
-            '<sup data-citation-footnote="2"><a href="#source-2">[2]</a></sup>',
-        );
+        expect(exportedContent).toContain('<sup data-citation-footnote="1"><a href="#source-1">[1]</a></sup>');
+        expect(exportedContent).toContain('<sup data-citation-footnote="2"><a href="#source-2">[2]</a></sup>');
         expect(exportedContent).toContain('<section class="document-sources" aria-label="Sources">');
         expect(exportedContent).toContain(`id="source-1"`);
         expect(exportedContent).toContain(`id="source-2"`);

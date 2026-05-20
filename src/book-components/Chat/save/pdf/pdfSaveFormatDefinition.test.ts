@@ -63,16 +63,14 @@ jest.mock('jspdf', () => ({
                 mockPdfState.texts.push(...(Array.isArray(text) ? text : [text]));
             },
             output: () =>
-                new TextEncoder()
-                    .encode(
-                        [
-                            '%PDF-1.3',
-                            ...mockPdfState.texts,
-                            ...mockPdfState.metadata,
-                            JSON.stringify(mockPdfState.properties),
-                        ].join('\n'),
-                    )
-                    .buffer,
+                new TextEncoder().encode(
+                    [
+                        '%PDF-1.3',
+                        ...mockPdfState.texts,
+                        ...mockPdfState.metadata,
+                        JSON.stringify(mockPdfState.properties),
+                    ].join('\n'),
+                ).buffer,
         };
     }),
 }));

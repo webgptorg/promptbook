@@ -98,9 +98,6 @@ function executePromptWithLlm(llm: LlmExecutionTools, prompt: Prompt): Promise<P
         // <- case [🤖]:
 
         default:
-            throw new PipelineExecutionError(
-                `Unknown model variant "${prompt.modelRequirements.modelVariant}"`,
-            );
+            throw new PipelineExecutionError(`Unknown model variant "${prompt.modelRequirements.modelVariant}"`);
     }
 }
-

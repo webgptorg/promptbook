@@ -97,4 +97,3 @@ function createOpenAiCompatibleErrorResponse(error: unknown) {
         },
     };
 }
-

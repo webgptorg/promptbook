@@ -491,7 +491,11 @@ export class OpenAiVectorStoreFileBatchPoller {
             pollingState.lastProgressKey = progressKey;
         }
 
-        if (this.options.isVerbose && (statusCountsKey !== pollingState.lastCountsKey || nowMs - pollingState.lastLogAtMs >= progressLogIntervalMs)) {
+        if (
+            this.options.isVerbose &&
+            (statusCountsKey !== pollingState.lastCountsKey ||
+                nowMs - pollingState.lastLogAtMs >= progressLogIntervalMs)
+        ) {
             console.info('[🤰]', 'Vector store file batch status', {
                 vectorStoreId,
                 batchId,

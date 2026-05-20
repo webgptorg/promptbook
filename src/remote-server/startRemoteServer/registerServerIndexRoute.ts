@@ -74,7 +74,9 @@ function listRegisteredPaths(app: RemoteServerRuntime<never>['app']): ReadonlyAr
 /**
  * Renders the legacy markdown homepage with the same information as the rich UI.
  */
-async function renderMarkdownServerIndex<TCustomOptions>(runtime: RemoteServerRuntime<TCustomOptions>): Promise<string> {
+async function renderMarkdownServerIndex<TCustomOptions>(
+    runtime: RemoteServerRuntime<TCustomOptions>,
+): Promise<string> {
     const serverInfo = await createServerInfo(runtime);
 
     return await spaceTrim(
@@ -128,4 +130,3 @@ async function renderMarkdownServerIndex<TCustomOptions>(runtime: RemoteServerRu
         `,
     );
 }
-

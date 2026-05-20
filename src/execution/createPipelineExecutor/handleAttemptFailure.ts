@@ -104,9 +104,7 @@ function createFailuresSummary($failedResults: $OngoingTaskResult['$failedResult
 
                     Result:
                     ${block(
-                        failure.result === null
-                            ? 'null'
-                            : quoteMultilineText(spaceTrim(failure.result as TODO_string)),
+                        failure.result === null ? 'null' : quoteMultilineText(spaceTrim(failure.result as TODO_string)),
                     )}
                 `,
             ),

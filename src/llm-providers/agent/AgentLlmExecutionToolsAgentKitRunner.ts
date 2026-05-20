@@ -97,9 +97,10 @@ export class AgentLlmExecutionToolsAgentKitRunner {
             agentKitCacheState,
         });
 
-        const responseFormatOutputType = OpenAiAgentKitExecutionToolsOutputTypeMapper.mapResponseFormatToAgentOutputType(
-            options.preparedChatPrompt.forwardedPrompt.modelRequirements.responseFormat,
-        );
+        const responseFormatOutputType =
+            OpenAiAgentKitExecutionToolsOutputTypeMapper.mapResponseFormatToAgentOutputType(
+                options.preparedChatPrompt.forwardedPrompt.modelRequirements.responseFormat,
+            );
 
         return options.llmTools.callChatModelStreamWithPreparedAgent({
             openAiAgentKitAgent: preparedAgentKit.agent,

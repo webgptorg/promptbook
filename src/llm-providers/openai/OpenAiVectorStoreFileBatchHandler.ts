@@ -403,8 +403,7 @@ export class OpenAiVectorStoreFileBatchHandler {
         readonly logLabel: string;
     }): boolean {
         const { batch, vectorStoreId, expectedBatchId, logLabel } = options;
-        const isExpectedBatchIdValid =
-            typeof expectedBatchId === 'string' && expectedBatchId.startsWith('vsfb_');
+        const isExpectedBatchIdValid = typeof expectedBatchId === 'string' && expectedBatchId.startsWith('vsfb_');
 
         if (!isExpectedBatchIdValid) {
             console.error('[🤰]', 'Vector store file batch id looks invalid', {

@@ -13,4 +13,3 @@ export function registerNotFoundRoute(app: express.Express): void {
         response.status(404).send(`URL "${request.originalUrl}" was not found on Promptbook server.`);
     });
 }
-

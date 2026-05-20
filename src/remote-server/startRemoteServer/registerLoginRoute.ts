@@ -56,4 +56,3 @@ export function registerLoginRoute<TCustomOptions>(runtime: RemoteServerRuntime<
         }
     });
 }
-

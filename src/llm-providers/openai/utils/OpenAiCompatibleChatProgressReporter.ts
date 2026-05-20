@@ -83,10 +83,7 @@ export class OpenAiCompatibleChatProgressReporter {
     /**
      * Appends one incremental progress update to the currently tracked tool-call snapshot.
      */
-    public applyToolCallProgressUpdate(
-        toolCall: StreamedToolCall,
-        update: ToolCallProgressUpdate,
-    ): StreamedToolCall {
+    public applyToolCallProgressUpdate(toolCall: StreamedToolCall, update: ToolCallProgressUpdate): StreamedToolCall {
         return {
             ...toolCall,
             state: update.state ?? 'PARTIAL',

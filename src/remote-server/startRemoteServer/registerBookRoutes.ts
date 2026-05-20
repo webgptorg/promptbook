@@ -45,7 +45,9 @@ export function registerBookRoutes<TCustomOptions>(runtime: RemoteServerRuntime<
                     'text/markdown',
                     // <- TODO: [🧠] Make custom mime-type for books
                 )
-                .send(source.content as paths[`/books/{bookId}`]['get']['responses']['200']['content']['text/markdown']);
+                .send(
+                    source.content as paths[`/books/{bookId}`]['get']['responses']['200']['content']['text/markdown'],
+                );
         } catch (error) {
             assertsError(error);
 
@@ -66,4 +68,3 @@ function resolveBookPipelineUrl(request: Request, pipelines: ReadonlyArray<strin
     const fullUrl = request.protocol + '://' + request.get('host') + request.originalUrl;
     return pipelines.find((pipelineUrl) => pipelineUrl.endsWith(request.originalUrl)) || fullUrl;
 }
-

@@ -119,9 +119,10 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
         }
 
         const rawPromptContent = this.templatePromptContent(content, parameters);
-        const responseFormatOutputType = OpenAiAgentKitExecutionToolsOutputTypeMapper.mapResponseFormatToAgentOutputType(
-            modelRequirements.responseFormat,
-        );
+        const responseFormatOutputType =
+            OpenAiAgentKitExecutionToolsOutputTypeMapper.mapResponseFormatToAgentOutputType(
+                modelRequirements.responseFormat,
+            );
         const preparedAgentKitAgent = await this.prepareAgentKitAgent({
             name: (prompt.title || 'Agent') as string_title,
             instructions: modelRequirements.systemMessage || '',
@@ -254,7 +255,8 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
         readonly signal?: AbortSignal;
     }): Promise<ChatPromptResult> {
         const { openAiAgentKitAgent, prompt, onProgress } = options;
-        const rawPromptContent = options.rawPromptContent ?? this.templatePromptContent(prompt.content, prompt.parameters);
+        const rawPromptContent =
+            options.rawPromptContent ?? this.templatePromptContent(prompt.content, prompt.parameters);
         const agentForRun =
             options.responseFormatOutputType !== undefined
                 ? openAiAgentKitAgent.clone({

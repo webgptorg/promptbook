@@ -13,4 +13,3 @@ export type RemoteServerRuntime<TCustomOptions> = {
     readonly runningExecutionTasks: Array<ExecutionTask>;
     readonly startupDate: Date;
 };
-

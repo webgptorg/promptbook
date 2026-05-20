@@ -187,8 +187,7 @@ function normalizeMarkdownSublists(markdown: string_markdown): string_markdown {
  * @private utility of `renderMarkdown`
  */
 function createChatMarkdownConverter(options?: RenderMarkdownOptions): ShowdownConverter {
-    const citationReferenceClassName =
-        options?.citationReferenceClassName ?? DEFAULT_CITATION_REFERENCE_CLASS_NAME;
+    const citationReferenceClassName = options?.citationReferenceClassName ?? DEFAULT_CITATION_REFERENCE_CLASS_NAME;
 
     return new ShowdownConverter({
         flavor: 'github',

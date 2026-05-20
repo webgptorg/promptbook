@@ -349,11 +349,15 @@ export function buildChatPdf(
     const participantLookup = buildChatExportParticipantMap(participantList);
 
     if (messages.length === 0) {
-        writeInlineTokens(context, [{ kind: 'text', text: 'No messages were available in this chat export.', style: {} }], {
-            x: PDF_PAGE_MARGIN_PT,
-            width: context.contentWidth,
-            textStyle: { textColor: PDF_MUTED_TEXT_COLOR, fontStyle: 'italic' },
-        });
+        writeInlineTokens(
+            context,
+            [{ kind: 'text', text: 'No messages were available in this chat export.', style: {} }],
+            {
+                x: PDF_PAGE_MARGIN_PT,
+                width: context.contentWidth,
+                textStyle: { textColor: PDF_MUTED_TEXT_COLOR, fontStyle: 'italic' },
+            },
+        );
     } else {
         messages.forEach((message, index) => {
             renderMessageBlock(context, message, participantLookup, participantList, index > 0);
@@ -555,7 +559,12 @@ function renderMessageBlock(
     if (startPage === context.pageNumber) {
         setPdfStrokeColor(context.pdf, accentColor);
         context.pdf.setLineWidth(3);
-        context.pdf.line(PDF_PAGE_MARGIN_PT, startY - 2, PDF_PAGE_MARGIN_PT, Math.max(startY + 20, context.cursorY - 2));
+        context.pdf.line(
+            PDF_PAGE_MARGIN_PT,
+            startY - 2,
+            PDF_PAGE_MARGIN_PT,
+            Math.max(startY + 20, context.cursorY - 2),
+        );
     }
 }
 
@@ -941,10 +950,10 @@ function renderHeading(
         level === 1
             ? 16
             : level === 2
-              ? 14
-              : level === 3
-                ? PDF_HEADING_LEVEL_THREE_FONT_SIZE_PT
-                : PDF_HEADING_SMALL_FONT_SIZE_PT;
+            ? 14
+            : level === 3
+            ? PDF_HEADING_LEVEL_THREE_FONT_SIZE_PT
+            : PDF_HEADING_SMALL_FONT_SIZE_PT;
     addVerticalSpace(context, level <= 2 ? 4 : 2);
     writeInlineTokens(context, collectInlineChildTokens(element, options.textStyle), {
         x: options.x,
@@ -1120,7 +1129,9 @@ function renderTable(context: PdfRenderContext, table: Element, options: PdfBloc
         });
         const rowHeight = Math.max(
             PDF_CODE_LINE_HEIGHT_PT + PDF_CODE_LINE_EXTRA_SPACE_PT + 2,
-            ...cellLines.map((lines) => lines.length * PDF_TABLE_CELL_LINE_HEIGHT_PT + PDF_CODE_LINE_EXTRA_SPACE_PT + 2),
+            ...cellLines.map(
+                (lines) => lines.length * PDF_TABLE_CELL_LINE_HEIGHT_PT + PDF_CODE_LINE_EXTRA_SPACE_PT + 2,
+            ),
         );
 
         ensureSpace(context, rowHeight);

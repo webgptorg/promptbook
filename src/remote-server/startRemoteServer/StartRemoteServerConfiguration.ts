@@ -17,4 +17,3 @@ export type StartRemoteServerConfiguration<TCustomOptions> = {
     readonly login: ApplicationRemoteServerOptions<TCustomOptions>['login'] | null;
     readonly startOptions: RemoteServerOptions<TCustomOptions>;
 };
-

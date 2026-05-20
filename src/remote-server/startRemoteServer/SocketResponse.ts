@@ -7,4 +7,3 @@ export type SocketResponse<TPayload> = {
     readonly eventName: string;
     readonly payload: TPayload;
 };
-

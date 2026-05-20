@@ -103,7 +103,12 @@ function checkSerializableValue(options: CheckSerializableAsJsonOptions): void {
  * @private function of `checkSerializableAsJson`
  */
 function isSerializablePrimitive(value: really_unknown): boolean {
-    return value === null || typeof value === 'boolean' || (typeof value === 'number' && !isNaN(value)) || typeof value === 'string';
+    return (
+        value === null ||
+        typeof value === 'boolean' ||
+        (typeof value === 'number' && !isNaN(value)) ||
+        typeof value === 'string'
+    );
 }
 
 /**
