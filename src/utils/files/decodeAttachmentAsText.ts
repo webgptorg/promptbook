@@ -166,6 +166,53 @@ const SUSPICIOUS_SINGLE_BYTE_ARTIFACTS = new Set<string>([
 const FALLBACK_ENCODINGS = ['windows-1250', 'windows-1252', 'iso-8859-1'] as const;
 
 /**
+ * Source used to pick one candidate text encoding.
+ *
+ * @private type of decodeAttachmentAsText
+ */
+type CandidateEncodingSource = 'bom' | 'charset' | 'heuristic';
+
+/**
+ * One candidate text encoding to attempt.
+ *
+ * @private type of decodeAttachmentAsText
+ */
+type CandidateEncoding = {
+    readonly encoding: string;
+    readonly source: CandidateEncodingSource;
+};
+
+/**
+ * One successfully decoded text candidate with its quality metadata.
+ *
+ * @private type of decodeAttachmentAsText
+ */
+type DecodedCandidate = {
+    readonly text: string;
+    readonly encoding: string;
+    readonly score: number;
+    readonly replacementCount: number;
+    readonly controlCount: number;
+    readonly source: CandidateEncodingSource;
+};
+
+/**
+ * Shared precomputed information used while decoding one attachment.
+ *
+ * @private type of decodeAttachmentAsText
+ */
+type DecodeAttachmentPreparation = {
+    readonly warnings: Array<string>;
+    readonly charset: string | null;
+    readonly bom: ReturnType<typeof detectBom>;
+    readonly inspection: ReturnType<typeof inspectBytes>;
+    readonly truncatedBytes: Uint8Array;
+    readonly isTruncated: boolean;
+    readonly forceText: boolean;
+    readonly shouldTreatAsBinary: boolean;
+};
+
+/**
  * Converts unknown byte containers into `Uint8Array`.
  *
  * @private function of decodeAttachmentAsText
@@ -504,13 +551,7 @@ function scoreDecodedText(
 function decodeWithEncoding(
     bytes: Uint8Array,
     encoding: string,
-): {
-    readonly text: string;
-    readonly encoding: string;
-    readonly score: number;
-    readonly replacementCount: number;
-    readonly controlCount: number;
-} | null {
+): Omit<DecodedCandidate, 'source'> | null {
     if (!isSupportedEncoding(encoding)) {
         return null;
     }
@@ -533,12 +574,11 @@ function decodeWithEncoding(
  * @private function of decodeAttachmentAsText
  */
 function buildCandidateEncodings(options: {
-    readonly mimeType: string | null;
     readonly charset: string | null;
     readonly bom: ReturnType<typeof detectBom>;
     readonly inspection: ReturnType<typeof inspectBytes>;
-}): Array<{ encoding: string; source: 'bom' | 'charset' | 'heuristic' }> {
-    const candidates: Array<{ encoding: string; source: 'bom' | 'charset' | 'heuristic' }> = [];
+}): Array<CandidateEncoding> {
+    const candidates: Array<CandidateEncoding> = [];
 
     if (options.bom) {
         candidates.push({ encoding: options.bom.encoding, source: 'bom' });
@@ -571,14 +611,14 @@ function buildCandidateEncodings(options: {
 }
 
 /**
- * Best-effort decoder for uploaded or remote file bytes whose extension or encoding may be unknown.
+ * Prepares one attachment for best-effort text decoding.
  *
- * @private internal utility for shared text decoding
+ * @private function of decodeAttachmentAsText
  */
-export function decodeAttachmentAsText(
+function createDecodeAttachmentPreparation(
     input: DecodeAttachmentAsTextInput,
-    options: DecodeAttachmentAsTextOptions = {},
-): DecodeAttachmentAsTextResult {
+    options: DecodeAttachmentAsTextOptions,
+): DecodeAttachmentPreparation {
     const maxBytes = Math.max(1, Math.floor(options.maxBytes ?? DEFAULT_ATTACHMENT_TEXT_DECODE_BYTES));
     const forceText = options.forceText === true;
     const warnings: Array<string> = [];
@@ -591,6 +631,7 @@ export function decodeAttachmentAsText(
     const inspection = inspectBytes(truncatedBytes);
     const trustedTextMime = isTrustedTextMimeType(mimeType);
     const trustedBinaryMime = isTrustedBinaryMimeType(mimeType);
+    const shouldTreatAsBinary = (trustedBinaryMime || inspection.looksBinary) && !trustedTextMime;
 
     if (isTruncated) {
         warnings.push(
@@ -598,70 +639,114 @@ export function decodeAttachmentAsText(
         );
     }
 
-    const shouldTreatAsBinary = (trustedBinaryMime || inspection.looksBinary) && !trustedTextMime;
-    if (shouldTreatAsBinary && !forceText) {
-        warnings.push('File content looks binary, so text decoding was skipped.');
-
-        return {
-            text: '',
-            encodingUsed: 'binary',
-            confidence: 1,
-            warnings,
-            wasBinary: true,
-            isTruncated,
-        };
-    }
-
-    if (shouldTreatAsBinary && forceText) {
-        warnings.push('File content looks binary, but text decoding was forced with `forceText`.');
-    }
-
-    if (charset && !isSupportedEncoding(charset)) {
-        warnings.push(`Ignored unsupported declared charset \`${charset}\` and used best-effort detection instead.`);
-    }
-
-    const bytesToDecode = bom ? truncatedBytes.subarray(bom.offset) : truncatedBytes;
-    const candidates = buildCandidateEncodings({
-        mimeType,
-        charset: charset && isSupportedEncoding(charset) ? charset : null,
+    return {
+        warnings,
+        charset,
         bom,
         inspection,
-    });
+        truncatedBytes,
+        isTruncated,
+        forceText,
+        shouldTreatAsBinary,
+    };
+}
 
-    const decodedCandidates = candidates
-        .map(({ encoding, source }) => {
-            const decoded = decodeWithEncoding(bytesToDecode, encoding);
-            return decoded ? { ...decoded, source } : null;
-        })
-        .filter(
-            (
-                candidate,
-            ): candidate is {
-                readonly text: string;
-                readonly encoding: string;
-                readonly score: number;
-                readonly replacementCount: number;
-                readonly controlCount: number;
-                readonly source: 'bom' | 'charset' | 'heuristic';
-            } => candidate !== null,
-        )
-        .sort((left, right) => left.score - right.score);
-
-    const bestCandidate = decodedCandidates[0];
-    if (!bestCandidate) {
-        warnings.push('No supported text decoder was available.');
-
-        return {
-            text: '',
-            encodingUsed: 'binary',
-            confidence: 0,
-            warnings,
-            wasBinary: true,
-            isTruncated,
-        };
+/**
+ * Returns an early result when the attachment should stay classified as binary.
+ *
+ * @private function of decodeAttachmentAsText
+ */
+function createBinaryDecodeResult(preparation: DecodeAttachmentPreparation): DecodeAttachmentAsTextResult | null {
+    if (!preparation.shouldTreatAsBinary) {
+        return null;
     }
 
-    const secondBestCandidate = decodedCandidates[1];
+    if (preparation.forceText) {
+        preparation.warnings.push('File content looks binary, but text decoding was forced with `forceText`.');
+        return null;
+    }
+
+    preparation.warnings.push('File content looks binary, so text decoding was skipped.');
+
+    return {
+        text: '',
+        encodingUsed: 'binary',
+        confidence: 1,
+        warnings: preparation.warnings,
+        wasBinary: true,
+        isTruncated: preparation.isTruncated,
+    };
+}
+
+/**
+ * Warns when the declared charset cannot be used by the runtime decoder.
+ *
+ * @private function of decodeAttachmentAsText
+ */
+function addUnsupportedCharsetWarning(preparation: DecodeAttachmentPreparation): void {
+    if (preparation.charset && !isSupportedEncoding(preparation.charset)) {
+        preparation.warnings.push(
+            `Ignored unsupported declared charset \`${preparation.charset}\` and used best-effort detection instead.`,
+        );
+    }
+}
+
+/**
+ * Returns the byte slice that should actually be decoded as text.
+ *
+ * @private function of decodeAttachmentAsText
+ */
+function getBytesToDecode(preparation: DecodeAttachmentPreparation): Uint8Array {
+    return preparation.bom ? preparation.truncatedBytes.subarray(preparation.bom.offset) : preparation.truncatedBytes;
+}
+
+/**
+ * Decodes all candidate encodings and sorts the successful results by score.
+ *
+ * @private function of decodeAttachmentAsText
+ */
+function decodeAttachmentCandidates(preparation: DecodeAttachmentPreparation): Array<DecodedCandidate> {
+    return buildCandidateEncodings({
+        charset: preparation.charset && isSupportedEncoding(preparation.charset) ? preparation.charset : null,
+        bom: preparation.bom,
+        inspection: preparation.inspection,
+    })
+        .map(({ encoding, source }) => {
+            const decoded = decodeWithEncoding(getBytesToDecode(preparation), encoding);
+            return decoded ? { ...decoded, source } : null;
+        })
+        .filter((candidate): candidate is DecodedCandidate => candidate !== null)
+        .sort((left, right) => left.score - right.score);
+}
+
+/**
+ * Returns the fallback result used when no text decoder could be applied.
+ *
+ * @private function of decodeAttachmentAsText
+ */
+function createNoDecoderAvailableResult(preparation: DecodeAttachmentPreparation): DecodeAttachmentAsTextResult {
+    preparation.warnings.push('No supported text decoder was available.');
+
+    return {
+        text: '',
+        encodingUsed: 'binary',
+        confidence: 0,
+        warnings: preparation.warnings,
+        wasBinary: true,
+        isTruncated: preparation.isTruncated,
+    };
+}
+
+/**
+ * Estimates confidence for the winning decoded text candidate.
+ *
+ * @private function of decodeAttachmentAsText
+ */
+function computeDecodeConfidence(
+    bestCandidate: DecodedCandidate,
+    secondBestCandidate: DecodedCandidate | undefined,
+    preparation: DecodeAttachmentPreparation,
+): number {
     const baseConfidence =
         bestCandidate.source === 'bom'
             ? 1
@@ -675,13 +760,28 @@ export function decodeAttachmentAsText(
             ? 0.82
             : 0.62;
     const scoreMargin = secondBestCandidate ? Math.max(0, secondBestCandidate.score - bestCandidate.score) : 0.2;
-    const confidence = Math.max(
-        0.2,
-        Math.min(shouldTreatAsBinary && forceText ? 0.45 : 1, baseConfidence + Math.min(0.18, scoreMargin / 2)),
-    );
 
+    return Math.max(
+        0.2,
+        Math.min(
+            preparation.shouldTreatAsBinary && preparation.forceText ? 0.45 : 1,
+            baseConfidence + Math.min(0.18, scoreMargin / 2),
+        ),
+    );
+}
+
+/**
+ * Appends user-facing warnings derived from the chosen decoded text candidate.
+ *
+ * @private function of decodeAttachmentAsText
+ */
+function addDecodeWarnings(
+    bestCandidate: DecodedCandidate,
+    confidence: number,
+    preparation: DecodeAttachmentPreparation,
+): void {
     if (bestCandidate.source === 'heuristic' && bestCandidate.encoding !== 'utf-8') {
-        warnings.push(`Encoding was guessed as \`${bestCandidate.encoding}\`.`);
+        preparation.warnings.push(`Encoding was guessed as \`${bestCandidate.encoding}\`.`);
     }
 
     if (
@@ -689,19 +789,59 @@ export function decodeAttachmentAsText(
         bestCandidate.encoding === 'utf-8' &&
         bestCandidate.replacementCount > 0
     ) {
-        warnings.push('UTF-8 decoding produced replacement characters, so the extracted text may contain errors.');
+        preparation.warnings.push('UTF-8 decoding produced replacement characters, so the extracted text may contain errors.');
     }
 
     if (confidence < 0.6) {
-        warnings.push('Decoding confidence is low, so the extracted text may contain errors.');
+        preparation.warnings.push('Decoding confidence is low, so the extracted text may contain errors.');
     }
+}
 
+/**
+ * Creates the final decoded-text result from the chosen candidate and accumulated metadata.
+ *
+ * @private function of decodeAttachmentAsText
+ */
+function createDecodedTextResult(
+    bestCandidate: DecodedCandidate,
+    confidence: number,
+    preparation: DecodeAttachmentPreparation,
+): DecodeAttachmentAsTextResult {
     return {
-        text: isTruncated ? appendTruncatedMarker(bestCandidate.text) : bestCandidate.text,
+        text: preparation.isTruncated ? appendTruncatedMarker(bestCandidate.text) : bestCandidate.text,
         encodingUsed: bestCandidate.encoding,
         confidence,
-        warnings,
+        warnings: preparation.warnings,
         wasBinary: false,
-        isTruncated,
+        isTruncated: preparation.isTruncated,
     };
+}
+
+/**
+ * Best-effort decoder for uploaded or remote file bytes whose extension or encoding may be unknown.
+ *
+ * @private internal utility for shared text decoding
+ */
+export function decodeAttachmentAsText(
+    input: DecodeAttachmentAsTextInput,
+    options: DecodeAttachmentAsTextOptions = {},
+): DecodeAttachmentAsTextResult {
+    const preparation = createDecodeAttachmentPreparation(input, options);
+    const binaryResult = createBinaryDecodeResult(preparation);
+    if (binaryResult) {
+        return binaryResult;
+    }
+
+    addUnsupportedCharsetWarning(preparation);
+
+    const decodedCandidates = decodeAttachmentCandidates(preparation);
+    const bestCandidate = decodedCandidates[0];
+    if (!bestCandidate) {
+        return createNoDecoderAvailableResult(preparation);
+    }
+
+    const confidence = computeDecodeConfidence(bestCandidate, decodedCandidates[1], preparation);
+    addDecodeWarnings(bestCandidate, confidence, preparation);
+
+    return createDecodedTextResult(bestCandidate, confidence, preparation);
 }
