@@ -213,7 +213,7 @@ export function getPackagesMetadataForRollup() {
             packageScope: 'promptbook',
             packageBasename,
             packageFullname: `@promptbook/${packageBasename}`,
-            additionalDependencies: packageBasename === 'cli' ? ['typescript'] : [],
+            additionalDependencies: packageBasename === 'cli' ? ['typescript', 'ts-node'] : [],
         });
     }
 

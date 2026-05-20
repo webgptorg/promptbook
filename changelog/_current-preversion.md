@@ -1,3 +1,8 @@
+-   Fixed published `ptbk` / `@promptbook/cli` installation metadata so bare `ptbk` no longer depends on `npx` to work after `npm install ptbk` or `npm install -g ptbk`:
+
+    -   Added `ts-node` as an explicit generated runtime dependency of `@promptbook/cli`, alongside the existing `typescript` runtime dependency.
+    -   Kept the fix DRY by changing the package-generation source of truth, so regenerated published package manifests now install the CLI runtime dependency chain correctly for both direct `@promptbook/cli` installs and the `ptbk` proxy package.
+
 -   Improved Agents Server profile-to-chat navigation so the standalone chat view now appears immediately when opening a chat from an agent profile:
 
     -   Added one optimistic full-page chat handoff overlay on the profile route, keeping the queued first user message visible while the standalone `/agents/<AGENT_ID>/chat?...` route is still loading.

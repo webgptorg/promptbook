@@ -133,7 +133,8 @@
         "userhome": "1.0.1",
         "waitasecond": "1.11.164",
         "zod": "4.3.6",
-        "typescript": "5.2.2"
+        "typescript": "5.2.2",
+        "ts-node": "10.9.2"
     },
     "bin": {
         "promptbook": "bin/promptbook-cli.js",
