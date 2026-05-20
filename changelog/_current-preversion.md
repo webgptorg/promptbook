@@ -8,6 +8,11 @@
     -   Split the previous branch-heavy orchestration into focused helpers for decode preparation, early binary classification, candidate decoding, confidence scoring, warning generation, and final result assembly.
     -   Kept MIME-based hints, binary detection, charset handling, candidate encoding order, truncation behavior, and warning text unchanged while reducing the decision load inside the top-level function.
 
+-   Refactored `checkSerializableAsJson` internals to keep JSON-serializability checks unchanged while making the utility easier to read and maintain:
+
+    -   Split the previous branch-heavy flow into focused private helpers for primitive acceptance, array recursion, object recursion, unsupported built-in detection, and final `JSON.stringify` validation.
+    -   Kept the existing accepted values, rejected values, recursive path reporting, and rich error messages unchanged while reducing the amount of logic inside the exported function.
+
 -   Refactored `Color` internals to keep the public color API unchanged while making the implementation easier to navigate and maintain:
 
     -   Split immutable color-channel accessors and string serialization into a dedicated private `ColorValue` base class.
