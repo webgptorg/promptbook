@@ -1,4 +1,4 @@
-﻿import { spaceTrim } from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { listGitRemotes, readCurrentBranchName, readOptionalGitConfig, hasUpstreamBranch } from './gitBranchContext';
 import { runGitCommand } from './runGitCommand';
 

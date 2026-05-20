@@ -1,4 +1,4 @@
-﻿import colors from 'colors';
+import colors from 'colors';
 import { pullLatestChanges } from '../../run-codex-prompts/git/pullLatestChanges';
 import type { AgentRunOptions } from '../AgentRunOptions';
 import { ensureWorkingTreeCleanForAgentQueue } from '../git/ensureWorkingTreeCleanForAgentQueue';

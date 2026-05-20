@@ -1,4 +1,4 @@
-﻿import moment from 'moment';
+import moment from 'moment';
 import type { AgentRunOptions } from '../AgentRunOptions';
 import { createCoderRunOptionsForAgent } from '../main/createCoderRunOptionsForAgent';
 import {

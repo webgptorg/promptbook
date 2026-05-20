@@ -1,4 +1,4 @@
-﻿import { buildAgentRunUiFrame } from './buildAgentRunUiFrame';
+import { buildAgentRunUiFrame } from './buildAgentRunUiFrame';
 
 /**
  * Removes ANSI escape sequences from a rendered UI line for text assertions.

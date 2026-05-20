@@ -1,4 +1,4 @@
-﻿import colors from 'colors';
+import colors from 'colors';
 import type { CoderRunPauseState } from '../common/waitForPause';
 import type { CoderRunConfig, CoderRunPhase, CoderRunProgressSnapshot } from './CoderRunUiState';
 import { buildCoderRunOctopusVisual } from './buildCoderRunOctopusVisual';

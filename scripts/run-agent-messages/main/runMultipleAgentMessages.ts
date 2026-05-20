@@ -1,4 +1,4 @@
-﻿import colors from 'colors';
+import colors from 'colors';
 import moment from 'moment';
 import { relative } from 'path';
 import { just } from '../../../src/utils/organization/just';

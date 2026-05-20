@@ -1,4 +1,4 @@
-﻿import { appendFile, mkdir, mkdtemp, readFile, rm, writeFile } from 'fs/promises';
+import { appendFile, mkdir, mkdtemp, readFile, rm, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { spaceTrim } from 'spacetrim';

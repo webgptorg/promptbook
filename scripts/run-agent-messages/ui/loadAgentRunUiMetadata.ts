@@ -1,4 +1,4 @@
-﻿import { readFile } from 'fs/promises';
+import { readFile } from 'fs/promises';
 import { join } from 'path';
 import { Book } from '../../../src/book-3.0/Book';
 import type { string_book } from '../../../src/book-2.0/agent-source/string_book';

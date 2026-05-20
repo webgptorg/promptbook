@@ -1,4 +1,4 @@
-﻿import moment from 'moment';
+import moment from 'moment';
 import colors from 'colors';
 import { readFile } from 'fs/promises';
 import { join } from 'path';

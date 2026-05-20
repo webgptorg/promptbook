@@ -1,4 +1,4 @@
-﻿import moment from 'moment';
+import moment from 'moment';
 import { clearLine, cursorTo, emitKeypressEvents } from 'readline';
 import { getPauseState, togglePauseState } from '../common/waitForPause';
 import { buildCoderRunUiFrame, type BuildCoderRunUiFrameOptions } from './buildCoderRunUiFrame';
