@@ -17,9 +17,24 @@ export type ParsedNamedImportSpecifier = {
     readonly renderedName: string;
 
     /**
-     * Whether the import should become type-only.
+     * Whether the source import explicitly requested a type-only import.
      */
     readonly isType: boolean;
+};
+
+/**
+ * Options for rendering one repaired named import statement.
+ */
+export type RenderNamedImportStatementOptions = {
+    /**
+     * Relative module path used in the generated import statement.
+     */
+    readonly importFrom: string;
+
+    /**
+     * Parsed import specifier to render.
+     */
+    readonly importedSpecifier: ParsedNamedImportSpecifier;
 };
 
 /**
@@ -57,6 +72,20 @@ export function parseNamedImportSpecifiers(
                 isType: isTypeImport || Boolean(typeModifier),
             };
         });
+}
+
+/**
+ * Renders one repaired named import statement.
+ *
+ * Note: We only preserve explicit `type` modifiers already present in the source import.
+ * Some repository files intentionally use normal imports for type-only symbols because
+ * downstream import organization can otherwise remove them around `satisfies` / `as` usages.
+ */
+export function renderNamedImportStatement({
+    importFrom,
+    importedSpecifier,
+}: RenderNamedImportStatementOptions): string {
+    return `import ${importedSpecifier.isType ? `type ` : ``}{ ${importedSpecifier.renderedName} } from '${importFrom}';`;
 }
 
 /**

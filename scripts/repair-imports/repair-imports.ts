@@ -11,7 +11,7 @@ import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
 import { findAllProjectEntities } from '../utils/findAllProjectEntities';
 import { readAllProjectFiles } from '../utils/readAllProjectFiles';
 import { writeAllProjectFiles } from '../utils/writeAllProjectFiles';
-import { parseNamedImportSpecifiers, resolveImportEntity } from './utils/repairImportUtils';
+import { parseNamedImportSpecifiers, renderNamedImportStatement, resolveImportEntity } from './utils/repairImportUtils';
 /*
 import { findAllProjectFiles } from '../utils/findAllProjectFiles';
 import { execCommands } from '../utils/execCommand/execCommands';
@@ -162,9 +162,10 @@ async function repairImports({
                     }
 
                     validImports.push(
-                        `import ${entity.isType || importedEntity.isType ? `type ` : ``}{ ${
-                            importedEntity.renderedName
-                        } } from '${importFrom}';`,
+                        renderNamedImportStatement({
+                            importFrom,
+                            importedSpecifier: importedEntity,
+                        }),
                     );
                 }
             }

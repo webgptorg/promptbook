@@ -1,3 +1,8 @@
+-   Fixed `scripts/repair-imports/repair-imports.ts` so it no longer strips some needed imports after repair/organize runs:
+
+    -   Stopped inferring `import type` solely from the resolved exported entity kind and instead preserved the explicit import style already present in the source file.
+    -   Kept deliberate non-type imports intact for repository `satisfies` / `as` edge cases such as `BookTranspiler`, `Prompt`, `ExecutionTools`, and related marked `[🤛]` sites.
+
 -   Fixed Docker image publishing for new Promptbook releases so the published Agents Server image no longer fails its production build on the embed page:
 
     -   Moved the embed page global CSS string out of the inline `styled-jsx` expression and into a precomputed variable, matching the `styled-jsx` syntax that Next.js accepts during Docker builds.

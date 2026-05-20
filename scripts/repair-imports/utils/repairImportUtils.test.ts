@@ -1,4 +1,4 @@
-import { parseNamedImportSpecifiers, resolveImportEntity } from './repairImportUtils';
+import { parseNamedImportSpecifiers, renderNamedImportStatement, resolveImportEntity } from './repairImportUtils';
 
 describe('parseNamedImportSpecifiers', () => {
     it('parses inline type modifiers without treating them as part of the entity name', () => {
@@ -86,6 +86,34 @@ describe('resolveImportEntity', () => {
                 filename: 'C:\\repo\\src\\version.ts',
             }),
         );
+    });
+});
+
+describe('renderNamedImportStatement', () => {
+    it('preserves non-type imports when the source specifier was not explicitly marked as type-only', () => {
+        expect(
+            renderNamedImportStatement({
+                importFrom: '../_common/BookTranspiler',
+                importedSpecifier: {
+                    importedName: 'BookTranspiler',
+                    renderedName: 'BookTranspiler',
+                    isType: false,
+                },
+            }),
+        ).toBe(`import { BookTranspiler } from '../_common/BookTranspiler';`);
+    });
+
+    it('preserves explicit type-only imports', () => {
+        expect(
+            renderNamedImportStatement({
+                importFrom: './FormatCommand',
+                importedSpecifier: {
+                    importedName: 'FormatCommand',
+                    renderedName: 'FormatCommand',
+                    isType: true,
+                },
+            }),
+        ).toBe(`import type { FormatCommand } from './FormatCommand';`);
     });
 });
 
