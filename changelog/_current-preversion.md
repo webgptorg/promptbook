@@ -1,3 +1,8 @@
+-   Fixed Docker image publishing for new Promptbook releases so the published Agents Server image no longer fails its production build on the embed page:
+
+    -   Moved the embed page global CSS string out of the inline `styled-jsx` expression and into a precomputed variable, matching the `styled-jsx` syntax that Next.js accepts during Docker builds.
+    -   Kept the embed widget behavior unchanged while restoring successful `npm run build --prefix apps/agents-server` execution for the DockerHub publish workflow.
+
 -   Fixed published `ptbk` / `@promptbook/cli` installation metadata so bare `ptbk` no longer depends on `npx` to work after `npm install ptbk` or `npm install -g ptbk`:
 
     -   Added `ts-node` as an explicit generated runtime dependency of `@promptbook/cli`, alongside the existing `typescript` runtime dependency.
