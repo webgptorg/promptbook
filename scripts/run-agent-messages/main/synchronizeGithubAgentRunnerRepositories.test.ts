@@ -201,6 +201,53 @@ describe('synchronizeGithubAgentRunnerRepositories', () => {
         expect(result.clonedRepositoryNames).toEqual(['agent-org-private']);
     });
 
+    it('follows GitHub pagination link headers when listing repositories', async () => {
+        temporaryRootDirectory = await createTemporaryRootDirectory();
+        const secondPageUrl = 'https://api.github.com/user/repos?per_page=100&page=2';
+
+        global.fetch = jest.fn().mockImplementation(async (input: Parameters<typeof fetch>[0]) => {
+            const url = String(input);
+            const page = new URL(url).searchParams.get('page');
+
+            if (url.startsWith('https://api.github.com/user/repos') && page === '1') {
+                return createGithubRepositoriesResponse(
+                    [
+                        {
+                            name: 'agent-first-page',
+                            full_name: 'promptbook/agent-first-page',
+                            clone_url: 'https://github.com/promptbook/agent-first-page.git',
+                            owner: {
+                                login: 'promptbook',
+                            },
+                        },
+                    ],
+                    `<${secondPageUrl}>; rel="next"`,
+                );
+            }
+
+            if (url === secondPageUrl) {
+                return createGithubRepositoriesResponse([
+                    {
+                        name: 'agent-second-page',
+                        full_name: 'promptbook/agent-second-page',
+                        clone_url: 'https://github.com/promptbook/agent-second-page.git',
+                        owner: {
+                            login: 'promptbook',
+                        },
+                    },
+                ]);
+            }
+
+            return createGithubRepositoriesResponse([]);
+        });
+
+        const result = await synchronizeGithubAgentRunnerRepositories(temporaryRootDirectory);
+
+        expect(result.clonedRepositoryNames).toEqual(['agent-first-page', 'agent-second-page']);
+        expect(global.fetch).toHaveBeenCalledWith(secondPageUrl, expect.any(Object));
+        expect($execCommand).toHaveBeenCalledTimes(2);
+    });
+
     it('does not clone missing repositories ignored by remote agent name', async () => {
         temporaryRootDirectory = await createTemporaryRootDirectory();
         global.fetch = jest.fn().mockImplementation(async (input: Parameters<typeof fetch>[0]) => {
@@ -256,11 +303,15 @@ describe('synchronizeGithubAgentRunnerRepositories', () => {
 /**
  * Creates one mocked GitHub repository-list response.
  */
-function createGithubRepositoriesResponse(repositories: ReadonlyArray<Record<string, unknown>>): Response {
+function createGithubRepositoriesResponse(
+    repositories: ReadonlyArray<Record<string, unknown>>,
+    linkHeader?: string,
+): Response {
     return {
         ok: true,
         status: 200,
         statusText: 'OK',
+        headers: new Headers(linkHeader ? { link: linkHeader } : {}),
         json: async () => repositories,
     } satisfies Partial<Response> as Response;
 }

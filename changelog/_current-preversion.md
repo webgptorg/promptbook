@@ -1,3 +1,5 @@
+-   Fixed `ptbk agent run-multiple --auto-clone` GitHub repository discovery so it follows GitHub pagination link headers and no longer misses later `agent-*` repositories while cloning watched agent runner repositories.
+
 -   Fixed `scripts/repair-imports/repair-imports.ts` so it no longer strips some needed imports after repair/organize runs:
 
     -   Stopped inferring `import type` solely from the resolved exported entity kind and instead preserved the explicit import style already present in the source file.

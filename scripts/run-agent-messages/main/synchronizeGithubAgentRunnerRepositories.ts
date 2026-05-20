@@ -37,6 +37,11 @@ const GITHUB_API_VERSION = '2022-11-28';
 const GITHUB_REPOSITORIES_PAGE_SIZE = 100;
 
 /**
+ * GitHub status returned when repository listing through the authenticated endpoint is forbidden.
+ */
+const GITHUB_FORBIDDEN_STATUS_CODE = 403;
+
+/**
  * GitHub owner endpoints that can expose public owner repositories.
  */
 const GITHUB_OWNER_ENDPOINT_TYPES = ['users', 'orgs'] as const;
@@ -298,7 +303,7 @@ async function fetchGithubRepositoriesForAuthenticatedUser(configuration: {
             sort: 'full_name',
             visibility: 'all',
         },
-        firstPageStatusesReturningNull: [401, 403, 404],
+        firstPageStatusesReturningNull: [401, GITHUB_FORBIDDEN_STATUS_CODE, 404],
         shouldIncludeRepository: (repository) => isRepositoryOwnedByConfiguredOwner(repository, configuration.owner),
     });
 
@@ -380,8 +385,11 @@ async function fetchGithubRepositoryPages(options: {
     } = options;
     const repositories: GithubAgentRepository[] = [];
 
-    for (let page = 1; ; page++) {
-        const response = await fetch(buildGithubRepositoryPageUrl(path, page, queryParameters), {
+    let page = 1;
+    let pageUrl: string | undefined = buildGithubRepositoryPageUrl(path, page, queryParameters);
+
+    while (pageUrl) {
+        const response = await fetch(pageUrl, {
             headers: createGithubHeaders(configuration.token),
         });
 
@@ -418,14 +426,42 @@ async function fetchGithubRepositoryPages(options: {
 
         repositories.push(...normalizedPageRepositories);
 
+        const nextPageUrl = resolveNextGithubPageUrl(response);
+        if (nextPageUrl) {
+            pageUrl = nextPageUrl;
+            page++;
+            continue;
+        }
+
         if (pageRepositories.length < GITHUB_REPOSITORIES_PAGE_SIZE) {
             break;
         }
+
+        page++;
+        pageUrl = buildGithubRepositoryPageUrl(path, page, queryParameters);
     }
 
     return repositories.sort((firstRepository, secondRepository) =>
         firstRepository.name.localeCompare(secondRepository.name),
     );
+}
+
+/**
+ * Resolves the next GitHub listing page from the standard RFC 5988 link header.
+ */
+function resolveNextGithubPageUrl(response: Response): string | undefined {
+    const linkHeader = response.headers?.get('link');
+
+    if (!linkHeader) {
+        return undefined;
+    }
+
+    const nextLinkHeaderPart = linkHeader
+        .split(',')
+        .find((linkHeaderPart) => /;\s*rel="next"/iu.test(linkHeaderPart));
+    const nextPageUrlMatch = nextLinkHeaderPart?.match(/<([^>]+)>/u);
+
+    return nextPageUrlMatch?.[1];
 }
 
 /**
