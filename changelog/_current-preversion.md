@@ -1,3 +1,8 @@
+-   Improved Agents Server profile-to-chat navigation so the standalone chat view now appears immediately when opening a chat from an agent profile:
+
+    -   Added one optimistic full-page chat handoff overlay on the profile route, keeping the queued first user message visible while the standalone `/agents/<AGENT_ID>/chat?...` route is still loading.
+    -   Kept the existing durable chat bootstrap and optimistic message reconciliation on the real chat route, so the temporary profile-side shell hands off cleanly once the canonical chat page takes over.
+
 -   Refactored `decodeAttachmentAsText` internals to keep attachment text decoding behavior unchanged while making the utility easier to follow and maintain:
 
     -   Split the previous branch-heavy orchestration into focused helpers for decode preparation, early binary classification, candidate decoding, confidence scoring, warning generation, and final result assembly.

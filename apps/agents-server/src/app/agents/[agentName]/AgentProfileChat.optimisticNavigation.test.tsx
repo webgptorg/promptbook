@@ -47,6 +47,19 @@ describe('Agent profile to chat optimistic handoff', () => {
         await expectProfileMessageToSurviveHandoff('Typed hello from profile');
     });
 
+    it('renders one immediate optimistic chat overlay on the profile page while navigation is still pending', async () => {
+        AgentProfileChatOptimisticNavigationTestSupport.preparePendingNewChatBootstrap();
+
+        AgentProfileChatOptimisticNavigationTestSupport.renderProfileChat(AgentProfileChat);
+
+        fireEvent.click(screen.getByRole('button', { name: 'Typed hello from profile' }));
+
+        expect(await screen.findByTestId('optimistic-chat-overlay')).not.toBeNull();
+        expect((await screen.findByTestId('optimistic-chat-overlay-message')).textContent).toContain(
+            'Typed hello from profile',
+        );
+    });
+
     it('shows query-param auto-executed messages immediately in the targeted existing chat', async () => {
         AgentProfileChatOptimisticNavigationTestSupport.preparePendingExistingChatBootstrap();
 

@@ -30,6 +30,8 @@ import { createServerLanguageMoment } from '../../../utils/localization/createSe
 import { createDefaultSpeechRecognition } from '../../../utils/speech-to-text/createDefaultSpeechRecognition';
 import { chatFileUploadHandler } from '../../../utils/upload/createBookEditorUploadHandler';
 import { createUserChatClientMessageId, type UserChatSummary } from '../../../utils/userChatClient';
+import { buildAgentChatDestinationUrl } from './agentChatNavigationUtils';
+import { AgentChatPageLayout } from './chat/AgentChatPageLayout';
 import { setPendingProfileMessage } from './profileMessageCache';
 import { useAgentProfileChatExistingChats } from './useAgentProfileChatExistingChats';
 import { useAgentProfileChatNavigation } from './useAgentProfileChatNavigation';
@@ -104,6 +106,17 @@ type ResolveAgentProfileChatInitialMessageOptions = {
  * @private internal type of <AgentProfileChat/>
  */
 type AgentProfileChatTranslate = ReturnType<typeof useServerLanguage>['t'];
+
+/**
+ * One immediate profile-to-chat transition snapshot rendered while the standalone
+ * chat route is still loading in the background.
+ *
+ * @private internal type of <AgentProfileChat/>
+ */
+type OptimisticChatNavigationState = {
+    message?: string;
+    attachments?: ChatMessage['attachments'];
+};
 
 /**
  * Parses one profile-chat timestamp using the active Agents Server language.
@@ -230,6 +243,23 @@ function createAgentProfileChatFeedbackTranslations(t: AgentProfileChatTranslate
 }
 
 /**
+ * Returns a small attachment summary for the optimistic navigation bubble.
+ *
+ * @private internal helper of <AgentProfileChat/>
+ */
+function createOptimisticAttachmentSummary(
+    attachments: ChatMessage['attachments'] | undefined,
+    formatText: (text: string) => string,
+): string | null {
+    const attachmentCount = attachments?.length || 0;
+    if (attachmentCount === 0) {
+        return null;
+    }
+
+    return attachmentCount === 1 ? formatText('1 attachment') : formatText(`${attachmentCount} attachments`);
+}
+
+/**
  * Renders the compact chat preview on the agent profile and coordinates the full chat transition.
  *
  * @private Agents Server presentation logic.
@@ -249,6 +279,7 @@ export function AgentProfileChat({
 }: AgentProfileChatProps) {
     const router = useRouter();
     const [isCreatingAgent, setIsCreatingAgent] = useState(false);
+    const [optimisticNavigationState, setOptimisticNavigationState] = useState<OptimisticChatNavigationState | null>(null);
     const { formatText } = useAgentNaming();
     const { language, t } = useServerLanguage();
     const { chatVisualMode } = useChatVisualMode();
@@ -277,7 +308,6 @@ export function AgentProfileChat({
         isNavigatingToChat,
         startNavigatingToChat,
         navigateToDestination,
-        navigateToChat,
         resolveExistingChatHref,
         newChatHref,
     } = useAgentProfileChatNavigation({
@@ -285,6 +315,13 @@ export function AgentProfileChat({
         isHistoryEnabled,
     });
 
+    const navigateToChatDestination = useCallback(
+        (destination: string, optimisticState: OptimisticChatNavigationState) => {
+            setOptimisticNavigationState(optimisticState);
+            return navigateToDestination(destination);
+        },
+        [navigateToDestination],
+    );
     const chatParticipants = useMemo(
         () => [
             {
@@ -358,11 +395,13 @@ export function AgentProfileChat({
                 inputPlaceholder,
             });
 
-            return navigateToChat({
+            const destination = buildAgentChatDestinationUrl(chatRoute, {
                 shouldForceNewChat,
+                isHistoryEnabled,
             });
+            return navigateToChatDestination(destination, { message, attachments });
         },
-        [agentName, brandColorHex, fullname, inputPlaceholder, navigateToChat],
+        [agentName, brandColorHex, chatRoute, fullname, inputPlaceholder, isHistoryEnabled, navigateToChatDestination],
     );
     const handleCreateAgent = useCallback(
         async (bookContent: string) => {
@@ -416,67 +455,81 @@ export function AgentProfileChat({
     }
 
     return (
-        <div className="flex w-full flex-col gap-4">
-            {isPrivateModeEnabled ? (
-                <PrivateModeChatPanel formatText={formatText} brandColorHex={brandColorHex} />
-            ) : (
-                hasExistingChats && (
-                    <ExistingChatsPanel
-                        chats={existingChats}
-                        formatText={formatText}
-                        language={language}
-                        resolveChatHref={resolveExistingChatHref}
-                        onNavigateToChat={(href) => {
-                            void navigateToDestination(href);
-                        }}
-                        brandColorHex={brandColorHex}
-                    />
-                )
+        <>
+            {optimisticNavigationState && (
+                <AgentProfileChatOptimisticNavigationOverlay
+                    fullname={fullname}
+                    brandColorHex={brandColorHex}
+                    inputPlaceholder={inputPlaceholder}
+                    formatText={formatText}
+                    chats={existingChats}
+                    isHistoryEnabled={isHistoryEnabled && !isPrivateModeEnabled}
+                    message={optimisticNavigationState.message}
+                    attachments={optimisticNavigationState.attachments}
+                />
             )}
-            <div
-                className={`relative w-full h-[calc(100dvh-300px)] min-h-[350px] md:min-h-[420px] md:h-[500px] agent-chat-route-surface ${
-                    isNavigatingToChat ? 'agent-chat-profile-transitioning' : ''
-                }`}
-                aria-busy={isNavigatingToChat || undefined}
-            >
-                <div className="absolute inset-0 rounded-[32px] border border-white/30 bg-gradient-to-br from-white/80 via-white/70 to-slate-100/70 shadow-[0_25px_80px_rgba(15,23,42,0.25)] dark:border-slate-700/70 dark:from-slate-950/95 dark:via-slate-900/90 dark:to-sky-950/55 dark:shadow-[0_28px_90px_rgba(2,6,23,0.55)]" />
-                <div className="relative z-10 h-full w-full rounded-[32px] border border-white/40 bg-white/80 p-4 shadow-2xl backdrop-blur-3xl dark:border-slate-700/70 dark:bg-slate-950/78">
-                    {initialMessage === undefined ? (
-                        <ChatThreadLoadingSkeleton
-                            withComposer
-                            className="h-full w-full rounded-[28px] border border-white/40 bg-white/75 dark:border-slate-700/60 dark:bg-slate-950/70"
+            <div className="flex w-full flex-col gap-4">
+                {isPrivateModeEnabled ? (
+                    <PrivateModeChatPanel formatText={formatText} brandColorHex={brandColorHex} />
+                ) : (
+                    hasExistingChats && (
+                        <ExistingChatsPanel
+                            chats={existingChats}
+                            formatText={formatText}
+                            language={language}
+                            resolveChatHref={resolveExistingChatHref}
+                            onNavigateToChat={(href) => {
+                                void navigateToChatDestination(href, {});
+                            }}
+                            brandColorHex={brandColorHex}
                         />
-                    ) : (
-                        <Chat
-                            title={`Chat with ${fullname}`}
-                            participants={chatParticipants}
-                            chatLocale={language}
-                            timingTranslations={timingTranslations}
-                            feedbackTranslations={feedbackTranslations}
-                            messages={initialMessages}
-                            onMessage={handleMessage}
-                            onActionButton={executeQuickActionButton}
-                            onCreateAgent={handleCreateAgent}
-                            onFileUpload={areFileAttachmentsEnabled ? handleFileUpload : undefined}
-                            isSaveButtonEnabled={false}
-                            isCopyButtonEnabled={false}
-                            className="h-full w-full rounded-[28px] bg-transparent"
-                            buttonColor={brandColorHex}
-                            style={{ background: 'transparent' }}
-                            placeholderMessageContent={inputPlaceholder}
-                            speechRecognition={speechRecognition}
-                            speechRecognitionLanguage={speechRecognitionLanguage}
-                            enterBehavior={enterBehavior}
-                            resolveEnterBehavior={resolveEnterBehavior}
-                            isSpeechPlaybackEnabled={isSpeechFeaturesEnabled}
-                            visualMode={chatVisualMode}
-                            theme={promptbookTheme}
-                            layout="STANDALONE"
-                        />
-                    )}
+                    )
+                )}
+                <div
+                    className={`relative w-full h-[calc(100dvh-300px)] min-h-[350px] md:min-h-[420px] md:h-[500px] agent-chat-route-surface ${
+                        isNavigatingToChat ? 'agent-chat-profile-transitioning' : ''
+                    }`}
+                    aria-busy={isNavigatingToChat || undefined}
+                >
+                    <div className="absolute inset-0 rounded-[32px] border border-white/30 bg-gradient-to-br from-white/80 via-white/70 to-slate-100/70 shadow-[0_25px_80px_rgba(15,23,42,0.25)] dark:border-slate-700/70 dark:from-slate-950/95 dark:via-slate-900/90 dark:to-sky-950/55 dark:shadow-[0_28px_90px_rgba(2,6,23,0.55)]" />
+                    <div className="relative z-10 h-full w-full rounded-[32px] border border-white/40 bg-white/80 p-4 shadow-2xl backdrop-blur-3xl dark:border-slate-700/70 dark:bg-slate-950/78">
+                        {initialMessage === undefined ? (
+                            <ChatThreadLoadingSkeleton
+                                withComposer
+                                className="h-full w-full rounded-[28px] border border-white/40 bg-white/75 dark:border-slate-700/60 dark:bg-slate-950/70"
+                            />
+                        ) : (
+                            <Chat
+                                title={`Chat with ${fullname}`}
+                                participants={chatParticipants}
+                                chatLocale={language}
+                                timingTranslations={timingTranslations}
+                                feedbackTranslations={feedbackTranslations}
+                                messages={initialMessages}
+                                onMessage={handleMessage}
+                                onActionButton={executeQuickActionButton}
+                                onCreateAgent={handleCreateAgent}
+                                onFileUpload={areFileAttachmentsEnabled ? handleFileUpload : undefined}
+                                isSaveButtonEnabled={false}
+                                isCopyButtonEnabled={false}
+                                className="h-full w-full rounded-[28px] bg-transparent"
+                                buttonColor={brandColorHex}
+                                style={{ background: 'transparent' }}
+                                placeholderMessageContent={inputPlaceholder}
+                                speechRecognition={speechRecognition}
+                                speechRecognitionLanguage={speechRecognitionLanguage}
+                                enterBehavior={enterBehavior}
+                                resolveEnterBehavior={resolveEnterBehavior}
+                                isSpeechPlaybackEnabled={isSpeechFeaturesEnabled}
+                                visualMode={chatVisualMode}
+                                theme={promptbookTheme}
+                                layout="STANDALONE"
+                            />
+                        )}
+                    </div>
                 </div>
             </div>
-        </div>
+        </>
     );
 }
 
@@ -632,5 +685,134 @@ function ExistingChatsPanel({
                 </div>
             </div>
         </section>
+    );
+}
+
+/**
+ * Props rendered by the immediate full-page optimistic chat handoff overlay.
+ *
+ * @private internal type of <AgentProfileChat/>
+ */
+type AgentProfileChatOptimisticNavigationOverlayProps = {
+    fullname: string;
+    brandColorHex: string_color;
+    inputPlaceholder: string;
+    formatText: (text: string) => string;
+    chats: ReadonlyArray<UserChatSummary>;
+    isHistoryEnabled: boolean;
+    message?: string;
+    attachments?: ChatMessage['attachments'];
+};
+
+/**
+ * Renders a temporary full-page chat shell while the standalone chat route loads.
+ *
+ * The durable chat history bootstrap still happens on the real `/chat` route. This
+ * overlay only makes the route transition feel immediate and keeps the first user
+ * message visible until the canonical page takes over.
+ *
+ * @private Profile chat helper.
+ */
+function AgentProfileChatOptimisticNavigationOverlay({
+    fullname,
+    brandColorHex,
+    inputPlaceholder,
+    formatText,
+    chats,
+    isHistoryEnabled,
+    message,
+    attachments,
+}: AgentProfileChatOptimisticNavigationOverlayProps) {
+    const attachmentSummary = createOptimisticAttachmentSummary(attachments, formatText);
+
+    return (
+        <div
+            data-testid="optimistic-chat-overlay"
+            className="fixed inset-0 z-[90] overflow-hidden bg-slate-50/95 backdrop-blur-sm dark:bg-slate-950/95"
+        >
+            <AgentChatPageLayout
+                sidebar={
+                    isHistoryEnabled ? (
+                        <aside className="hidden h-full w-80 flex-col border-r border-slate-200/80 bg-white/85 px-4 py-5 backdrop-blur md:flex dark:border-slate-800 dark:bg-slate-950/75">
+                            <div className="mb-4 flex items-center justify-between">
+                                <div>
+                                    <p className="text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-slate-400">
+                                        {formatText('My chats')}
+                                    </p>
+                                    <p className="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">
+                                        {formatText('Opening chat')}
+                                    </p>
+                                </div>
+                                <span
+                                    className="h-2.5 w-2.5 rounded-full shadow-[0_0_0_4px_rgba(59,130,246,0.12)]"
+                                    style={{ backgroundColor: brandColorHex }}
+                                />
+                            </div>
+                            <div className="space-y-2 overflow-hidden">
+                                <div className="rounded-2xl border border-sky-200/70 bg-sky-50/80 px-4 py-3 text-sm font-semibold text-sky-700 dark:border-sky-500/30 dark:bg-sky-500/10 dark:text-sky-200">
+                                    {formatText('New chat')}
+                                </div>
+                                {chats.slice(0, PROFILE_VISIBLE_CHAT_ROWS).map((chat) => (
+                                    <div
+                                        key={chat.id}
+                                        className="rounded-2xl border border-slate-200/70 bg-white/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/70"
+                                    >
+                                        <p className="truncate text-sm font-semibold text-slate-800 dark:text-slate-100">
+                                            {chat.title || formatText('Untitled chat')}
+                                        </p>
+                                        <p className="mt-1 line-clamp-2 text-xs text-slate-500 dark:text-slate-400">
+                                            {chat.preview || formatText('Waiting for the selected conversation to load.')}
+                                        </p>
+                                    </div>
+                                ))}
+                            </div>
+                        </aside>
+                    ) : undefined
+                }
+            >
+                <section className="flex h-full min-h-0 flex-1 flex-col bg-slate-50/80 dark:bg-slate-950/70">
+                    <div className="border-b border-slate-200/80 bg-white/80 px-5 py-4 backdrop-blur dark:border-slate-800 dark:bg-slate-950/80">
+                        <p className="text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-slate-400">
+                            {formatText('Chat')}
+                        </p>
+                        <h2 className="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-100">
+                            {formatText(`Chat with ${fullname}`)}
+                        </h2>
+                    </div>
+                    <div className="flex min-h-0 flex-1 flex-col justify-end overflow-hidden p-4 md:p-6">
+                        <div className="flex-1 overflow-y-auto" />
+                        {message ? (
+                            <div className="flex justify-end">
+                                <div
+                                    data-testid="optimistic-chat-overlay-message"
+                                    className="max-w-[min(42rem,100%)] rounded-[26px] rounded-br-lg border border-sky-300/70 bg-sky-500 px-5 py-4 text-white shadow-xl shadow-sky-500/25"
+                                >
+                                    <p className="whitespace-pre-wrap break-words text-sm font-medium md:text-[0.95rem]">
+                                        {message}
+                                    </p>
+                                    {attachmentSummary && (
+                                        <p className="mt-3 text-xs font-semibold uppercase tracking-[0.25em] text-sky-100">
+                                            {attachmentSummary}
+                                        </p>
+                                    )}
+                                    <p className="mt-3 text-xs font-semibold uppercase tracking-[0.25em] text-sky-100">
+                                        {formatText('Queued')}
+                                    </p>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="rounded-3xl border border-dashed border-slate-300/80 bg-white/70 px-6 py-8 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-400">
+                                {formatText('Loading the selected conversation...')}
+                            </div>
+                        )}
+                    </div>
+                    <div className="border-t border-slate-200/80 bg-white/80 px-4 py-4 backdrop-blur dark:border-slate-800 dark:bg-slate-950/80">
+                        <div className="rounded-[28px] border border-slate-200/80 bg-white px-4 py-3 text-sm text-slate-400 shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:text-slate-500">
+                            {inputPlaceholder}
+                        </div>
+                    </div>
+                </section>
+            </AgentChatPageLayout>
+        </div>
     );
 }
