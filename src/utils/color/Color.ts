@@ -5,23 +5,13 @@ import { TODO_USE } from '../organization/TODO_USE';
 import type { WithTake } from '../take/interfaces/ITakeChain';
 import { take } from '../take/take';
 import { CSS_COLORS } from './css-colors';
-import { checkChannelValue } from './internal-utils/checkChannelValue';
+import { ColorValue } from './ColorValue';
+import { isHexColorString } from './isHexColorString';
+import type { ColorChannelSet } from './parsers/ColorChannelSet';
 import { parseHexColor } from './parsers/parseHexColor';
 import { parseHslColor } from './parsers/parseHslColor';
 import { parseRgbaColor, parseRgbColor } from './parsers/parseRgbColor';
-
-/**
- * Pattern matching hsl regex.
- */
-const HSL_REGEX_PATTERN = /^hsl\(\s*([0-9.]+)\s*,\s*([0-9.]+)%\s*,\s*([0-9.]+)%\s*\)$/;
-/**
- * Pattern matching RGB regex.
- */
-const RGB_REGEX_PATTERN = /^rgb\(\s*([0-9.%-]+)\s*,\s*([0-9.%-]+)\s*,\s*([0-9.%-]+)\s*\)$/;
-/**
- * Pattern matching rgba regex.
- */
-const RGBA_REGEX_PATTERN = /^rgba\(\s*([0-9.%-]+)\s*,\s*([0-9.%-]+)\s*,\s*([0-9.%-]+)\s*,\s*([0-9.%-]+)\s*\)$/;
+import { parseColorString } from './parseColorString';
 
 /**
  * Color object represents an RGB color with alpha channel
@@ -30,7 +20,7 @@ const RGBA_REGEX_PATTERN = /^rgba\(\s*([0-9.%-]+)\s*,\s*([0-9.%-]+)\s*,\s*([0-9.
  *
  * @public exported from `@promptbook/color`
  */
-export class Color {
+export class Color extends ColorValue {
     /**
      * Creates a new Color instance from miscellaneous formats
      * - It can receive Color instance and just return the same instance
@@ -105,23 +95,7 @@ export class Color {
      * @returns Color object
      */
     public static fromString(color: string_color): WithTake<Color> {
-        const trimmed = color.trim();
-
-        if (CSS_COLORS[trimmed as keyof typeof CSS_COLORS]) {
-            return Color.fromString(CSS_COLORS[trimmed as keyof typeof CSS_COLORS]);
-        } else if (Color.isHexColorString(trimmed)) {
-            return Color.fromHex(trimmed);
-        }
-
-        if (HSL_REGEX_PATTERN.test(trimmed)) {
-            return Color.fromHsl(trimmed as string_color);
-        } else if (RGB_REGEX_PATTERN.test(trimmed)) {
-            return Color.fromRgbString(trimmed as string_color);
-        } else if (RGBA_REGEX_PATTERN.test(trimmed)) {
-            return Color.fromRgbaString(trimmed as string_color);
-        } else {
-            throw new Error(`Can not create a new Color instance from string "${trimmed}".`);
-        }
+        return Color.fromColorChannels(parseColorString(color));
     }
 
     /**
@@ -157,8 +131,7 @@ export class Color {
      * @returns Color object
      */
     public static fromHex(hex: string_color): WithTake<Color> {
-        const { red, green, blue, alpha } = parseHexColor(hex);
-        return take(new Color(red, green, blue, alpha));
+        return Color.fromColorChannels(parseHexColor(hex));
     }
 
     /**
@@ -168,8 +141,7 @@ export class Color {
      * @returns Color object
      */
     public static fromHsl(hsl: string_color): WithTake<Color> {
-        const { red, green, blue, alpha } = parseHslColor(hsl);
-        return take(new Color(red, green, blue, alpha));
+        return Color.fromColorChannels(parseHslColor(hsl));
     }
 
     /**
@@ -179,8 +151,7 @@ export class Color {
      * @returns Color object
      */
     public static fromRgbString(rgb: string_color): WithTake<Color> {
-        const { red, green, blue, alpha } = parseRgbColor(rgb);
-        return take(new Color(red, green, blue, alpha));
+        return Color.fromColorChannels(parseRgbColor(rgb));
     }
 
     /**
@@ -190,8 +161,7 @@ export class Color {
      * @returns Color object
      */
     public static fromRgbaString(rgba: string_color): WithTake<Color> {
-        const { red, green, blue, alpha } = parseRgbaColor(rgba);
-        return take(new Color(red, green, blue, alpha));
+        return Color.fromColorChannels(parseRgbaColor(rgba));
     }
 
     /**
@@ -204,7 +174,7 @@ export class Color {
      * @returns Color object
      */
     public static fromValues(red: number, green: number, blue: number, alpha: number = 255): WithTake<Color> {
-        return take(new Color(red, green, blue, alpha));
+        return Color.fromColorChannels({ red, green, blue, alpha });
     }
 
     /**
@@ -245,10 +215,7 @@ export class Color {
      * @returns true if the value is a valid hex color string (e.g., `#009edd`, `#fff`, etc.)
      */
     public static isHexColorString(value: unknown): value is string_color {
-        return (
-            typeof value === 'string' &&
-            /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(value)
-        );
+        return isHexColorString(value);
     }
 
     /**
@@ -262,98 +229,19 @@ export class Color {
      * @param alpha number from 0 (transparent) to 255 (opaque)
      */
     private constructor(
-        public readonly red: number,
-        public readonly green: number,
-        public readonly blue: number,
-        public readonly alpha: number = 255,
+        red: number,
+        green: number,
+        blue: number,
+        alpha: number = 255,
     ) {
-        checkChannelValue('Red', red);
-        checkChannelValue('Green', green);
-        checkChannelValue('Blue', blue);
-        checkChannelValue('Alpha', alpha);
+        super(red, green, blue, alpha);
     }
 
-    /**
-     * Shortcut for `red` property
-     * Number from 0 to 255
-     * @alias red
-     */
-    public get r(): number {
-        return this.red;
+    protected createColor(red: number, green: number, blue: number, alpha: number): Color {
+        return new Color(red, green, blue, alpha);
     }
 
-    /**
-     * Shortcut for `green` property
-     * Number from 0 to 255
-     * @alias green
-     */
-    public get g(): number {
-        return this.green;
-    }
-
-    /**
-     * Shortcut for `blue` property
-     * Number from 0 to 255
-     * @alias blue
-     */
-    public get b(): number {
-        return this.blue;
-    }
-
-    /**
-     * Shortcut for `alpha` property
-     * Number from 0 (transparent) to 255 (opaque)
-     * @alias alpha
-     */
-    public get a(): number {
-        return this.alpha;
-    }
-
-    /**
-     * Shortcut for `alpha` property
-     * Number from 0 (transparent) to 255 (opaque)
-     * @alias alpha
-     */
-    public get opacity(): number {
-        return this.alpha;
-    }
-
-    /**
-     * Shortcut for 1-`alpha` property
-     */
-    public get transparency(): number {
-        return 255 - this.alpha;
-    }
-
-    public clone(): WithTake<Color> {
-        return take(new Color(this.red, this.green, this.blue, this.alpha));
-    }
-
-    public toString(): string_color {
-        return this.toHex();
-    }
-
-    public toHex(): string_color {
-        if (this.alpha === 255) {
-            return `#${this.red.toString(16).padStart(2, '0')}${this.green.toString(16).padStart(2, '0')}${this.blue
-                .toString(16)
-                .padStart(2, '0')}`;
-        } else {
-            return `#${this.red.toString(16).padStart(2, '0')}${this.green.toString(16).padStart(2, '0')}${this.blue
-                .toString(16)
-                .padStart(2, '0')}${this.alpha.toString(16).padStart(2, '0')}`;
-        }
-    }
-
-    public toRgb(): string_color {
-        if (this.alpha === 255) {
-            return `rgb(${this.red}, ${this.green}, ${this.blue})`;
-        } else {
-            return `rgba(${this.red}, ${this.green}, ${this.blue}, ${Math.round((this.alpha / 255) * 100)}%)`;
-        }
-    }
-
-    public toHsl(): string_color {
-        throw new Error(`Getting HSL is not implemented`);
+    private static fromColorChannels({ red, green, blue, alpha }: ColorChannelSet): WithTake<Color> {
+        return take(new Color(red, green, blue, alpha));
     }
 }

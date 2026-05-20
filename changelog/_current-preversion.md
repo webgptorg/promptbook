@@ -1,3 +1,8 @@
+-   Refactored `Color` internals to keep the public color API unchanged while making the implementation easier to navigate and maintain:
+
+    -   Split immutable color-channel accessors and string serialization into a dedicated private `ColorValue` base class.
+    -   Moved string-format detection and parsing selection behind a focused private `parseColorString` helper so `Color.ts` now reads as a smaller factory facade.
+
 -   Fixed Agents Server chat export to **Markdown** so inline `【source】` citations render as numbered source footnotes instead of raw citation markers:
 
     -   Reused the shared chat citation-footnote model for document-wide source numbering and deduplication.
