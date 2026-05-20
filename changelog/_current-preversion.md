@@ -1,3 +1,8 @@
+-   Fixed Agents Server chat export to **Markdown** so inline `【source】` citations render as numbered source footnotes instead of raw citation markers:
+
+    -   Reused the shared chat citation-footnote model for document-wide source numbering and deduplication.
+    -   Cleaned up the exported Markdown structure with `spaceTrim`, keeping message content readable and adding a simple Promptbook branding/version comment.
+
 -   Fixed Agents Server chat export to **HTML** so inline `【source】` citations render as numbered source footnotes instead of raw citation markers:
 
     -   Reused the shared chat citation-footnote model for HTML and PDF exports, keeping document-wide source numbering DRY across save formats.

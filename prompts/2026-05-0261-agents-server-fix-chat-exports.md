@@ -32,7 +32,7 @@
 
 ---
 
-[ ] !!
+[x] ~$0.00 an hour by OpenAI Codex `gpt-5.5`
 
 [✨©️] Fix the sources in export to "Markdown" of the chat in the Agents Server
 
@@ -47,5 +47,6 @@
 -   You are working with the [Agents Server](apps/agents-server)
 
 !["Save" button](prompts/screenshots/2026-05-0260-agents-server-fix-chat-exports.png)
+
 
 
