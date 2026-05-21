@@ -1,7 +1,8 @@
-import { mkdir, mkdtemp, rm, writeFile } from 'fs/promises';
+import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import type { AgentRunOptions } from '../AgentRunOptions';
+import { withAgentWatchErrorContext } from './handleAgentWatchError';
 import { runMultipleAgentMessages } from './runMultipleAgentMessages';
 import { pullLatestChangesForAgentQueueIfEnabled } from './pullLatestChangesForAgentQueueIfEnabled';
 import { synchronizeGithubAgentRunnerRepositories } from './synchronizeGithubAgentRunnerRepositories';
@@ -53,9 +54,11 @@ async function createTemporaryRootDirectory(): Promise<string> {
 
 describe('runMultipleAgentMessages', () => {
     let temporaryRootDirectory: string | undefined;
+    let consoleErrorSpy: jest.SpyInstance<void, [message?: unknown, ...optionalParams: unknown[]]>;
 
     beforeEach(() => {
         jest.clearAllMocks();
+        consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
         (synchronizeGithubAgentRunnerRepositories as jest.MockedFunction<typeof synchronizeGithubAgentRunnerRepositories>)
             .mockResolvedValue({
                 clonedRepositoryNames: [],
@@ -73,6 +76,7 @@ describe('runMultipleAgentMessages', () => {
 
     afterEach(async () => {
         process.chdir(ORIGINAL_WORKING_DIRECTORY);
+        consoleErrorSpy.mockRestore();
 
         if (temporaryRootDirectory) {
             await rm(temporaryRootDirectory, { recursive: true, force: true });
@@ -265,5 +269,50 @@ describe('runMultipleAgentMessages', () => {
             }),
         );
         expect(process.cwd()).toBe(temporaryRootDirectory);
+    });
+
+    it('logs one failing child repository and keeps processing the other watched agents', async () => {
+        temporaryRootDirectory = await createTemporaryRootDirectory();
+        await mkdir(join(temporaryRootDirectory, 'agent-a', 'messages', 'queued'), { recursive: true });
+        await mkdir(join(temporaryRootDirectory, 'agent-b', 'messages', 'queued'), { recursive: true });
+        await writeFile(join(temporaryRootDirectory, 'agent-a', 'agent.book'), 'Agent A', 'utf-8');
+        await writeFile(join(temporaryRootDirectory, 'agent-b', 'agent.book'), 'Agent B', 'utf-8');
+        await writeFile(join(temporaryRootDirectory, 'agent-a', 'messages', 'queued', 'question-a.book'), 'MESSAGE @User\nA\n', 'utf-8');
+        await writeFile(join(temporaryRootDirectory, 'agent-b', 'messages', 'queued', 'question-b.book'), 'MESSAGE @User\nB\n', 'utf-8');
+        await mkdir(join(temporaryRootDirectory, '.promptbook', 'agent-messages'), { recursive: true });
+        await writeFile(
+            join(temporaryRootDirectory, '.promptbook', 'agent-messages', 'question-a.log.txt'),
+            '--- raw input ---\necho failing agent\n',
+            'utf-8',
+        );
+
+        (tickAgentMessages as jest.MockedFunction<typeof tickAgentMessages>).mockImplementation(async (_options, tickOptions) => {
+            if (tickOptions?.projectPath?.endsWith('agent-a')) {
+                throw withAgentWatchErrorContext(new Error('Agent A failed'), {
+                    projectPath: tickOptions.projectPath,
+                    queuedMessageRelativePath: 'messages/queued/question-a.book',
+                    scriptPath: join(tickOptions.projectPath, '.promptbook', 'agent-messages', 'question-a.sh'),
+                    runtimeLogPath: join(temporaryRootDirectory!, '.promptbook', 'agent-messages', 'question-a.log.txt'),
+                });
+            }
+
+            return { isMessageProcessed: true };
+        });
+
+        process.chdir(temporaryRootDirectory);
+
+        const loopStates = [true, false];
+        await runMultipleAgentMessages(createAgentRunOptions(), {
+            shouldContinue: () => loopStates.shift() ?? false,
+        });
+
+        expect(tickAgentMessages).toHaveBeenCalledTimes(2);
+        const errorLogFileName = (await readdir(temporaryRootDirectory)).find((fileName) =>
+            /^ptbk-agent-error-.*\.log$/u.test(fileName),
+        );
+
+        expect(errorLogFileName).toBeDefined();
+        expect(await readFile(join(temporaryRootDirectory, errorLogFileName!), 'utf-8')).toContain('echo failing agent');
+        expect(consoleErrorSpy).toHaveBeenCalled();
     });
 });

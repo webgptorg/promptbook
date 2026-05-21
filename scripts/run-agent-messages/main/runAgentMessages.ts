@@ -12,6 +12,7 @@ import {
 } from '../ui/initializeAgentRunUi';
 import { validateAgentRunOptions } from './validateAgentRunOptions';
 import { validateAgentWatchOptions } from './validateAgentWatchOptions';
+import { handleAgentWatchError } from './handleAgentWatchError';
 
 /**
  * Delay between idle queue checks in watch mode.
@@ -35,30 +36,45 @@ export async function runAgentMessages(
     validateAgentRunOptions(options);
     validateAgentWatchOptions('ptbk agent run-agent', options);
     const projectPath = process.cwd();
-    const initialQueueSnapshot = await loadAgentMessageQueueSnapshot(projectPath);
-    const uiHandle = await initializeAgentRunUi(projectPath, options, initialQueueSnapshot);
     let autoPullTimestamp = options.autoPull ? Date.now() : undefined;
     const shouldContinue = controls.shouldContinue || (() => just(true));
-
-    if (!uiHandle) {
-        console.info(colors.green(`Watching ${getQueuedAgentMessagesDirectoryLabel()} for queued agent messages.`));
-    }
+    let isWatchSessionInitialized = false;
+    let uiHandle: Awaited<ReturnType<typeof initializeAgentRunUi>> | undefined;
 
     while (shouldContinue()) {
-        const result = await tickAgentMessages(options, { isQuietWhenIdle: true, uiHandle });
-        autoPullTimestamp = result.autoPullTimestamp ?? autoPullTimestamp;
+        try {
+            if (!isWatchSessionInitialized) {
+                const initialQueueSnapshot = await loadAgentMessageQueueSnapshot(projectPath);
+                uiHandle = await initializeAgentRunUi(projectPath, options, initialQueueSnapshot);
+                isWatchSessionInitialized = true;
 
-        if (result.isMessageProcessed) {
-            continue;
+                if (!uiHandle) {
+                    console.info(colors.green(`Watching ${getQueuedAgentMessagesDirectoryLabel()} for queued agent messages.`));
+                }
+            }
+
+            const result = await tickAgentMessages(options, { isQuietWhenIdle: true, uiHandle });
+            autoPullTimestamp = result.autoPullTimestamp ?? autoPullTimestamp;
+
+            if (result.isMessageProcessed) {
+                continue;
+            }
+
+            autoPullTimestamp = await waitForQueuedAgentMessage({
+                projectPath,
+                options,
+                autoPullTimestamp,
+                uiHandle,
+                shouldContinue,
+            });
+        } catch (error) {
+            await handleAgentWatchError({
+                commandDisplayName: 'ptbk agent run-agent',
+                logDirectoryPath: projectPath,
+                error,
+            });
+            await wait(AGENT_QUEUE_POLL_INTERVAL_MS);
         }
-
-        autoPullTimestamp = await waitForQueuedAgentMessage({
-            projectPath,
-            options,
-            autoPullTimestamp,
-            uiHandle,
-            shouldContinue,
-        });
     }
 }
 

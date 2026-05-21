@@ -10,6 +10,7 @@ import {
     normalizeLineEndingsInFilesChangedSinceSnapshot,
     type ChangedFilesSnapshot,
 } from '../../run-codex-prompts/common/normalizeLineEndingsInChangedFiles';
+import { buildScriptLogPath } from '../../run-codex-prompts/common/runGoScript/buildScriptLogPath';
 import { withPromptRuntimeLog } from '../../run-codex-prompts/common/runGoScript/withPromptRuntimeLog';
 import { printAgentGitIdentityTipAtProcessExitIfNeeded } from '../../run-codex-prompts/git/agentGitIdentity';
 import { commitChanges } from '../../run-codex-prompts/git/commitChanges';
@@ -38,6 +39,7 @@ import { buildAgentRunUiFrame } from '../ui/buildAgentRunUiFrame';
 import { loadAgentRunUiMetadata } from '../ui/loadAgentRunUiMetadata';
 import { updateAgentRunUiForPulling, updateAgentRunUiForWatching } from '../ui/initializeAgentRunUi';
 import { createCoderRunOptionsForAgent } from './createCoderRunOptionsForAgent';
+import { withAgentWatchErrorContext } from './handleAgentWatchError';
 import { pullLatestChangesForAgentQueueIfEnabled } from './pullLatestChangesForAgentQueueIfEnabled';
 import { validateAgentRunOptions } from './validateAgentRunOptions';
 
@@ -179,9 +181,13 @@ export async function tickAgentMessages(
             finishedMessage,
         };
     } catch (error) {
+        const contextualError = withAgentWatchErrorContext(error, {
+            projectPath,
+            queuedMessageRelativePath: queuedMessage.relativePath,
+        });
         uiHandle?.state.setPhase('error');
-        uiHandle?.state.addError(error instanceof Error ? error.message : String(error));
-        throw error;
+        uiHandle?.state.addError(contextualError.message);
+        throw contextualError;
     } finally {
         if (!tickOptions.uiHandle) {
             uiHandle?.cleanup();
@@ -205,6 +211,7 @@ async function runQueuedAgentMessage(options: {
     const agentSystemMessage = await loadLocalAgentSystemMessage(projectPath);
     const prompt = buildAgentMessagePrompt(queuedMessage.relativePath, agentSystemMessage);
     const scriptPath = buildAgentMessageScriptPath(projectPath, queuedMessage);
+    const runtimeLogPath = buildScriptLogPath(scriptPath);
     const roundChangedFilesSnapshot = runOptions.normalizeLineEndings
         ? await captureChangedFilesSnapshot(projectPath)
         : undefined;
@@ -224,24 +231,33 @@ async function runQueuedAgentMessage(options: {
     uiHandle?.startCapturingAgentOutput();
 
     try {
-        await withPromptRuntimeLog(
-            scriptPath,
-            async (logPath) => {
-                await runPromptWithTestFeedback({
-                    runner,
-                    prompt,
-                    scriptPath,
-                    projectPath,
-                    promptLabel: queuedMessage.relativePath,
-                    logPath,
-                    preserveArtifactsOnSuccess: false,
-                    onAttemptStarted: (attemptCount) => {
-                        uiHandle?.state.setAttempt(attemptCount);
-                    },
-                });
-            },
-            { preserveArtifactsOnSuccess: false },
-        );
+        try {
+            await withPromptRuntimeLog(
+                scriptPath,
+                async (logPath) => {
+                    await runPromptWithTestFeedback({
+                        runner,
+                        prompt,
+                        scriptPath,
+                        projectPath,
+                        promptLabel: queuedMessage.relativePath,
+                        logPath,
+                        preserveArtifactsOnSuccess: false,
+                        onAttemptStarted: (attemptCount) => {
+                            uiHandle?.state.setAttempt(attemptCount);
+                        },
+                    });
+                },
+                { preserveArtifactsOnSuccess: false },
+            );
+        } catch (error) {
+            throw withAgentWatchErrorContext(error, {
+                projectPath,
+                queuedMessageRelativePath: queuedMessage.relativePath,
+                scriptPath,
+                runtimeLogPath,
+            });
+        }
     } finally {
         uiHandle?.stopCapturingAgentOutput();
     }

@@ -32,6 +32,7 @@ import {
     resolveAgentIdFromRepositoryName,
     type AgentIgnoreMatcher,
 } from './agentIgnorePatterns';
+import { handleAgentWatchError } from './handleAgentWatchError';
 
 /**
  * Delay between multi-agent watch iterations while all queues stay empty.
@@ -100,120 +101,147 @@ export async function runMultipleAgentMessages(
 
     const rootPath = process.cwd();
     const shouldContinue = controls.shouldContinue || (() => just(true));
-    const uiHandle = await initializeMultipleAgentRunUi(options);
     const ignoreMatcher = createAgentIgnoreMatcher(options.ignorePatterns);
     let githubSynchronizationTimestamp: number | undefined;
     let githubIgnoredRepositoryCount = 0;
     const autoPullTimestampsByProjectPath = new Map<string, number>();
     let lastObservedProjectCount = 0;
-
-    if (!uiHandle) {
-        console.info(colors.green('Watching direct child agent repositories for queued messages.'));
-    }
+    let isWatchSessionInitialized = false;
+    let uiHandle: CoderRunUiHandle | undefined;
 
     while (shouldContinue()) {
-        githubSynchronizationTimestamp = await synchronizeGithubAgentRunnerRepositoriesIfNeeded({
-            rootPath,
-            runOptions: options,
-            ignoreMatcher,
-            uiHandle,
-            lastSynchronizationTimestamp: githubSynchronizationTimestamp,
-            onIgnoredRepositoryCountUpdated: (ignoredRepositoryCount) => {
-                githubIgnoredRepositoryCount = ignoredRepositoryCount;
-            },
-            lastObservedProjectCount,
-        });
+        try {
+            if (!isWatchSessionInitialized) {
+                uiHandle = await initializeMultipleAgentRunUi(options);
+                isWatchSessionInitialized = true;
 
-        let projectSummariesResult = await loadLocalAgentRunnerProjectSummaries(rootPath, {
-            includeMessagePreviews: Boolean(uiHandle),
-            ignoreMatcher,
-        });
-        let projectSummaries = projectSummariesResult.projectSummaries;
-        lastObservedProjectCount = projectSummaries.length;
-        let ignoredAgentCount = projectSummariesResult.ignoredProjectCount + githubIgnoredRepositoryCount;
-        const autoPullResult = await pullLatestChangesForLocalAgentRunnerProjectsIfNeeded({
-            rootPath,
-            runOptions: options,
-            uiHandle,
-            projectSummaries,
-            ignoredAgentCount,
-            autoPullTimestampsByProjectPath,
-        });
+                if (!uiHandle) {
+                    console.info(colors.green('Watching direct child agent repositories for queued messages.'));
+                }
+            }
 
-        if (autoPullResult.isAnyRepositoryPulled) {
-            projectSummariesResult = await loadLocalAgentRunnerProjectSummaries(rootPath, {
+            githubSynchronizationTimestamp = await synchronizeGithubAgentRunnerRepositoriesIfNeeded({
+                rootPath,
+                runOptions: options,
+                ignoreMatcher,
+                uiHandle,
+                lastSynchronizationTimestamp: githubSynchronizationTimestamp,
+                onIgnoredRepositoryCountUpdated: (ignoredRepositoryCount) => {
+                    githubIgnoredRepositoryCount = ignoredRepositoryCount;
+                },
+                lastObservedProjectCount,
+            });
+
+            let projectSummariesResult = await loadLocalAgentRunnerProjectSummaries(rootPath, {
                 includeMessagePreviews: Boolean(uiHandle),
                 ignoreMatcher,
             });
-            projectSummaries = projectSummariesResult.projectSummaries;
+            let projectSummaries = projectSummariesResult.projectSummaries;
             lastObservedProjectCount = projectSummaries.length;
-            ignoredAgentCount = projectSummariesResult.ignoredProjectCount + githubIgnoredRepositoryCount;
-        }
+            let ignoredAgentCount = projectSummariesResult.ignoredProjectCount + githubIgnoredRepositoryCount;
+            const autoPullResult = await pullLatestChangesForLocalAgentRunnerProjectsIfNeeded({
+                rootPath,
+                runOptions: options,
+                uiHandle,
+                projectSummaries,
+                ignoredAgentCount,
+                autoPullTimestampsByProjectPath,
+            });
 
-        const queuedProjects = projectSummaries.filter((projectSummary) => projectSummary.queuedMessageCount > 0);
+            if (autoPullResult.isAnyRepositoryPulled) {
+                projectSummariesResult = await loadLocalAgentRunnerProjectSummaries(rootPath, {
+                    includeMessagePreviews: Boolean(uiHandle),
+                    ignoreMatcher,
+                });
+                projectSummaries = projectSummariesResult.projectSummaries;
+                lastObservedProjectCount = projectSummaries.length;
+                ignoredAgentCount = projectSummariesResult.ignoredProjectCount + githubIgnoredRepositoryCount;
+            }
 
-        if (queuedProjects.length === 0) {
-            updateMultipleAgentRunUiForWatching(uiHandle, options, rootPath, projectSummaries, ignoredAgentCount);
-            await wait(MULTI_AGENT_QUEUE_POLL_INTERVAL_MS);
-            continue;
-        }
+            const queuedProjects = projectSummaries.filter((projectSummary) => projectSummary.queuedMessageCount > 0);
 
-        if (!uiHandle) {
-            for (const queuedProject of queuedProjects) {
-                console.info(
-                    colors.blue(
-                        `Processing ${formatProjectPath(rootPath, queuedProject.project.projectPath)} with ${queuedProject.localAgentName}.`,
-                    ),
+            if (queuedProjects.length === 0) {
+                updateMultipleAgentRunUiForWatching(uiHandle, options, rootPath, projectSummaries, ignoredAgentCount);
+                await wait(MULTI_AGENT_QUEUE_POLL_INTERVAL_MS);
+                continue;
+            }
+
+            if (!uiHandle) {
+                for (const queuedProject of queuedProjects) {
+                    console.info(
+                        colors.blue(
+                            `Processing ${formatProjectPath(rootPath, queuedProject.project.projectPath)} with ${queuedProject.localAgentName}.`,
+                        ),
+                    );
+                }
+            }
+
+            const answeringProjectPaths = new Set(queuedProjects.map((queuedProject) => queuedProject.project.projectPath));
+
+            if (uiHandle) {
+                updateMultipleAgentRunUiForAnswering(
+                    uiHandle,
+                    options,
+                    rootPath,
+                    projectSummaries,
+                    answeringProjectPaths,
+                    ignoredAgentCount,
                 );
             }
-        }
 
-        const answeringProjectPaths = new Set(queuedProjects.map((queuedProject) => queuedProject.project.projectPath));
+            const tickResults = await Promise.allSettled(
+                queuedProjects.map(async (queuedProject) => {
+                    const tickRunOptions = createAgentRunOptionsForQueuedProjectTick({
+                        runOptions: options,
+                        isProjectPulledInCurrentIteration: autoPullResult.pulledProjectPaths.has(
+                            queuedProject.project.projectPath,
+                        ),
+                    });
+                    const tickResult = await tickAgentMessages(tickRunOptions, {
+                        isQuietWhenIdle: true,
+                        projectPath: queuedProject.project.projectPath,
+                        uiHandle,
+                        uiPresentation: uiHandle
+                            ? buildMultiAgentTickUiPresentation({
+                                  rootPath,
+                                  projectSummaries,
+                                  answeringProjectPaths,
+                                  ignoredAgentCount,
+                              })
+                            : undefined,
+                    });
 
-        if (uiHandle) {
-            updateMultipleAgentRunUiForAnswering(
-                uiHandle,
-                options,
-                rootPath,
-                projectSummaries,
-                answeringProjectPaths,
-                ignoredAgentCount,
+                    return {
+                        projectPath: queuedProject.project.projectPath,
+                        tickResult,
+                    };
+                }),
             );
-        }
 
-        const tickResults = await Promise.all(
-            queuedProjects.map(async (queuedProject) => {
-                const tickRunOptions = createAgentRunOptionsForQueuedProjectTick({
-                    runOptions: options,
-                    isProjectPulledInCurrentIteration: autoPullResult.pulledProjectPaths.has(
-                        queuedProject.project.projectPath,
-                    ),
+            for (const tickResult of tickResults) {
+                if (tickResult.status === 'fulfilled') {
+                    if (tickResult.value.tickResult.autoPullTimestamp !== undefined) {
+                        autoPullTimestampsByProjectPath.set(
+                            tickResult.value.projectPath,
+                            tickResult.value.tickResult.autoPullTimestamp,
+                        );
+                    }
+                    continue;
+                }
+
+                await handleAgentWatchError({
+                    commandDisplayName: 'ptbk agent run-multiple',
+                    logDirectoryPath: rootPath,
+                    error: tickResult.reason,
                 });
-                const tickResult = await tickAgentMessages(tickRunOptions, {
-                    isQuietWhenIdle: true,
-                    projectPath: queuedProject.project.projectPath,
-                    uiHandle,
-                    uiPresentation: uiHandle
-                        ? buildMultiAgentTickUiPresentation({
-                              rootPath,
-                              projectSummaries,
-                              answeringProjectPaths,
-                              ignoredAgentCount,
-                          })
-                        : undefined,
-                });
-
-                return {
-                    projectPath: queuedProject.project.projectPath,
-                    tickResult,
-                };
-            }),
-        );
-
-        for (const { projectPath, tickResult } of tickResults) {
-            if (tickResult.autoPullTimestamp !== undefined) {
-                autoPullTimestampsByProjectPath.set(projectPath, tickResult.autoPullTimestamp);
             }
+        } catch (error) {
+            await handleAgentWatchError({
+                commandDisplayName: 'ptbk agent run-multiple',
+                logDirectoryPath: rootPath,
+                error,
+            });
+            await wait(MULTI_AGENT_QUEUE_POLL_INTERVAL_MS);
         }
     }
 }
