@@ -14,165 +14,165 @@
             - button "Switch server" [ref=e14] [cursor=pointer]:
               - img [ref=e15]
           - img [ref=e17]
-          - button "E2E Header Agent View Navigation avatar E2E Header Agent View Navigation" [ref=e21] [cursor=pointer]:
+          - button "oW9Fuu9tRpUPRE" [ref=e21] [cursor=pointer]:
             - generic [ref=e22]:
-              - generic "E2E Header Agent View Navigation avatar" [ref=e24]
-              - generic [ref=e25]: E2E Header Agent View Navigation
-            - img [ref=e26]
-          - img [ref=e28]
-          - button "Profile" [ref=e32] [cursor=pointer]:
-            - generic [ref=e33]:
-              - img [ref=e34]
-              - generic [ref=e37]: Profile
-            - img [ref=e38]
-        - generic [ref=e42]:
-          - generic [ref=e43]: Global search
-          - generic [ref=e44]:
+              - img [ref=e24]
+              - generic [ref=e26]: oW9Fuu9tRpUPRE
+            - img [ref=e27]
+          - img [ref=e29]
+          - button "Profile" [ref=e33] [cursor=pointer]:
+            - generic [ref=e34]:
+              - img [ref=e35]
+              - generic [ref=e38]: Profile
+            - img [ref=e39]
+        - generic [ref=e43]:
+          - generic [ref=e44]: Global search
+          - generic [ref=e45]:
             - img
-            - combobox "Global search" [ref=e45]
-        - generic [ref=e46]:
-          - navigation [ref=e47]:
-            - button "Documentation" [ref=e49] [cursor=pointer]:
+            - combobox "Global search" [ref=e46]
+        - generic [ref=e47]:
+          - navigation [ref=e48]:
+            - button "Documentation" [ref=e50] [cursor=pointer]:
               - text: Documentation
-              - img [ref=e50]
-            - button "System" [ref=e53] [cursor=pointer]:
+              - img [ref=e51]
+            - button "System" [ref=e54] [cursor=pointer]:
               - text: System
-              - img [ref=e54]
-          - button "Open global control panel" [ref=e57] [cursor=pointer]:
-            - img [ref=e58]
-            - generic [ref=e61]: Control panel
-          - button "A admin Admin" [ref=e64] [cursor=pointer]:
-            - generic [ref=e66]: A
-            - generic [ref=e67]:
-              - generic [ref=e68]: admin
-              - generic [ref=e69]: Admin
-            - img [ref=e70]
-    - main [ref=e72]:
-      - generic [ref=e73]:
-        - button "More options" [ref=e76] [cursor=pointer]:
-          - img [ref=e77]
-        - generic [ref=e81]:
-          - generic [ref=e83] [cursor=pointer]:
-            - generic [ref=e84]:
-              - generic [ref=e86]:
+              - img [ref=e55]
+          - button "Open global control panel" [ref=e58] [cursor=pointer]:
+            - img [ref=e59]
+            - generic [ref=e62]: Control panel
+          - button "A admin Admin" [ref=e65] [cursor=pointer]:
+            - generic [ref=e67]: A
+            - generic [ref=e68]:
+              - generic [ref=e69]: admin
+              - generic [ref=e70]: Admin
+            - img [ref=e71]
+    - main [ref=e73]:
+      - generic [ref=e74]:
+        - button "More options" [ref=e77] [cursor=pointer]:
+          - img [ref=e78]
+        - generic [ref=e82]:
+          - generic [ref=e84] [cursor=pointer]:
+            - generic [ref=e85]:
+              - generic [ref=e87]:
                 - generic "E2E Header Agent View Navigation"
-              - img [ref=e88]
-            - img [ref=e98]
-          - generic [ref=e103]:
-            - heading "E2E Header Agent View Navigation" [level=1] [ref=e104]
-            - paragraph [ref=e106]: You help with header navigation regression tests.
-            - generic [ref=e107]:
-              - 'link "{Void}" [ref=e108] [cursor=pointer]':
+              - img [ref=e89]
+            - img [ref=e99]
+          - generic [ref=e104]:
+            - heading "E2E Header Agent View Navigation" [level=1] [ref=e105]
+            - paragraph [ref=e107]: You help with header navigation regression tests.
+            - generic [ref=e108]:
+              - 'link "{Void}" [ref=e109] [cursor=pointer]':
                 - /url: /%7Bvoid%7D/chat?chat=new
-                - 'generic "{Void}" [ref=e109]':
-                  - img [ref=e110]
-                  - generic [ref=e112]: "{Void}"
-              - generic "Time" [ref=e113]:
-                - img [ref=e114]
-                - generic [ref=e117]: Time
-          - generic [ref=e119]:
-            - generic [ref=e122]:
-              - generic [ref=e123]:
-                - paragraph [ref=e124]: My chats
-                - paragraph [ref=e125]: Pick up where you left off
-              - link "New chat a minute ago No messages yet - start the conversation." [ref=e127] [cursor=pointer]:
-                - /url: /agents/ndPpzfiftNZdWz/chat?chat=m337ATLZpoQeAs
-                - generic [ref=e128]:
-                  - generic [ref=e131]: New chat
-                  - time [ref=e132]: a minute ago
-                - paragraph [ref=e133]: No messages yet - start the conversation.
-            - generic [ref=e138]:
-              - generic [ref=e143]:
-                - generic [ref=e144]:
-                  - paragraph [ref=e147]: Hello! I am E2E Header Agent View Navigation.
-                  - button "Hello" [ref=e149] [cursor=pointer]:
-                    - paragraph [ref=e151]: Hello
-                - generic "05/20/2026 4:02:11 PM" [ref=e152]:
-                  - generic [ref=e153]: 4:02 PM
-              - generic [ref=e156]:
-                - textbox "Write a message..." [active] [ref=e157]
-                - button "Attach file" [ref=e158] [cursor=pointer]:
-                  - img [ref=e159]
-                - button "Start dictation" [ref=e161] [cursor=pointer]:
-                  - img [ref=e162]
-                - button [ref=e165] [cursor=pointer]:
-                  - img [ref=e166]
-          - generic [ref=e168]:
-            - link "Edit Book" [ref=e169] [cursor=pointer]:
-              - /url: /agents/ndPpzfiftNZdWz/book
-              - img [ref=e171]
-              - generic [ref=e174]: Edit Book
-            - link "Integration" [ref=e175] [cursor=pointer]:
-              - /url: /agents/ndPpzfiftNZdWz/integration
-              - img [ref=e177]
-              - generic [ref=e180]: Integration
-    - contentinfo [ref=e181]:
-      - generic [ref=e182]:
-        - generic [ref=e183]:
-          - generic [ref=e184]:
-            - heading "Promptbook" [level=3] [ref=e185]
-            - paragraph [ref=e186]: Create persistent AI agents that turn your company's scattered knowledge into action
-          - generic [ref=e187]:
-            - heading "Product" [level=3] [ref=e188]
-            - list [ref=e189]:
-              - listitem [ref=e190]:
-                - link "Get started" [ref=e191] [cursor=pointer]:
+                - 'generic "{Void}" [ref=e110]':
+                  - img [ref=e111]
+                  - generic [ref=e113]: "{Void}"
+              - generic "Time" [ref=e114]:
+                - img [ref=e115]
+                - generic [ref=e118]: Time
+          - generic [ref=e120]:
+            - generic [ref=e123]:
+              - generic [ref=e124]:
+                - paragraph [ref=e125]: My chats
+                - paragraph [ref=e126]: Pick up where you left off
+              - link "New chat a minute ago No messages yet - start the conversation." [ref=e128] [cursor=pointer]:
+                - /url: /agents/oW9Fuu9tRpUPRE/chat?chat=wJZFDwmZA4zALY
+                - generic [ref=e129]:
+                  - generic [ref=e132]: New chat
+                  - time [ref=e133]: a minute ago
+                - paragraph [ref=e134]: No messages yet - start the conversation.
+            - generic [ref=e139]:
+              - generic [ref=e144]:
+                - generic [ref=e145]:
+                  - paragraph [ref=e148]: Hello! I am E2E Header Agent View Navigation.
+                  - button "Hello" [ref=e150] [cursor=pointer]:
+                    - paragraph [ref=e152]: Hello
+                - generic "05/21/2026 12:41:01 PM" [ref=e153]:
+                  - generic [ref=e154]: 12:41 PM
+              - generic [ref=e157]:
+                - textbox "Write a message..." [active] [ref=e158]
+                - button "Attach file" [ref=e159] [cursor=pointer]:
+                  - img [ref=e160]
+                - button "Start dictation" [ref=e162] [cursor=pointer]:
+                  - img [ref=e163]
+                - button [ref=e166] [cursor=pointer]:
+                  - img [ref=e167]
+          - generic [ref=e169]:
+            - link "Edit Book" [ref=e170] [cursor=pointer]:
+              - /url: /agents/oW9Fuu9tRpUPRE/book
+              - img [ref=e172]
+              - generic [ref=e175]: Edit Book
+            - link "Integration" [ref=e176] [cursor=pointer]:
+              - /url: /agents/oW9Fuu9tRpUPRE/integration
+              - img [ref=e178]
+              - generic [ref=e181]: Integration
+    - contentinfo [ref=e182]:
+      - generic [ref=e183]:
+        - generic [ref=e184]:
+          - generic [ref=e185]:
+            - heading "Promptbook" [level=3] [ref=e186]
+            - paragraph [ref=e187]: Create persistent AI agents that turn your company's scattered knowledge into action
+          - generic [ref=e188]:
+            - heading "Product" [level=3] [ref=e189]
+            - list [ref=e190]:
+              - listitem [ref=e191]:
+                - link "Get started" [ref=e192] [cursor=pointer]:
                   - /url: /get-started
-              - listitem [ref=e192]:
-                - link "Manifest" [ref=e193] [cursor=pointer]:
+              - listitem [ref=e193]:
+                - link "Manifest" [ref=e194] [cursor=pointer]:
                   - /url: /manifest
-              - listitem [ref=e194]:
-                - link "Documentation" [ref=e195] [cursor=pointer]:
+              - listitem [ref=e195]:
+                - link "Documentation" [ref=e196] [cursor=pointer]:
                   - /url: https://github.com/webgptorg/promptbook
-              - listitem [ref=e196]:
-                - link "Terms of Service" [ref=e197] [cursor=pointer]:
+              - listitem [ref=e197]:
+                - link "Terms of Service" [ref=e198] [cursor=pointer]:
                   - /url: /terms
-              - listitem [ref=e198]:
-                - link "Privacy Policy" [ref=e199] [cursor=pointer]:
+              - listitem [ref=e199]:
+                - link "Privacy Policy" [ref=e200] [cursor=pointer]:
                   - /url: /privacy
-          - generic [ref=e200]:
-            - heading "Company" [level=3] [ref=e201]
-            - list [ref=e202]:
-              - listitem [ref=e203]:
-                - link "AI Web, LLC" [ref=e204] [cursor=pointer]:
+          - generic [ref=e201]:
+            - heading "Company" [level=3] [ref=e202]
+            - list [ref=e203]:
+              - listitem [ref=e204]:
+                - link "AI Web, LLC" [ref=e205] [cursor=pointer]:
                   - /url: https://or-justice-cz.translate.goog/ias/ui/rejstrik-firma.vysledky?subjektId=1223693&typ=UPLNY&_x_tr_sl=cs&_x_tr_tl=en&_x_tr_hl=en-US&_x_tr_pto=wapp
-              - listitem [ref=e205]:
-                - link "About Us" [ref=e206] [cursor=pointer]:
+              - listitem [ref=e206]:
+                - link "About Us" [ref=e207] [cursor=pointer]:
                   - /url: https://ptbk.io/#about-us
-              - listitem [ref=e207]:
-                - link "Blog" [ref=e208] [cursor=pointer]:
+              - listitem [ref=e208]:
+                - link "Blog" [ref=e209] [cursor=pointer]:
                   - /url: https://ptbk.io/blog
-              - listitem [ref=e209]:
-                - link "Logos & Branding" [ref=e210] [cursor=pointer]:
+              - listitem [ref=e210]:
+                - link "Logos & Branding" [ref=e211] [cursor=pointer]:
                   - /url: /design
-          - generic [ref=e211]:
-            - heading "Connect" [level=3] [ref=e212]
-            - list [ref=e213]:
-              - listitem [ref=e214]:
-                - link "GitHub" [ref=e215] [cursor=pointer]:
+          - generic [ref=e212]:
+            - heading "Connect" [level=3] [ref=e213]
+            - list [ref=e214]:
+              - listitem [ref=e215]:
+                - link "GitHub" [ref=e216] [cursor=pointer]:
                   - /url: https://github.com/webgptorg/promptbook
-              - listitem [ref=e216]:
-                - link "LinkedIn" [ref=e217] [cursor=pointer]:
+              - listitem [ref=e217]:
+                - link "LinkedIn" [ref=e218] [cursor=pointer]:
                   - /url: https://linkedin.com/company/promptbook
-              - listitem [ref=e218]:
-                - link "Discord" [ref=e219] [cursor=pointer]:
+              - listitem [ref=e219]:
+                - link "Discord" [ref=e220] [cursor=pointer]:
                   - /url: https://discord.gg/x3QWNaa89N
-              - listitem [ref=e220]:
-                - link "More" [ref=e221] [cursor=pointer]:
+              - listitem [ref=e221]:
+                - link "More" [ref=e222] [cursor=pointer]:
                   - /url: /contact
-          - generic [ref=e222]:
-            - heading "Links" [level=3] [ref=e223]
-            - list [ref=e224]:
-              - listitem [ref=e225]:
-                - 'link "Federated: core.ptbk.io" [ref=e226] [cursor=pointer]':
+          - generic [ref=e223]:
+            - heading "Links" [level=3] [ref=e224]
+            - list [ref=e225]:
+              - listitem [ref=e226]:
+                - 'link "Federated: core.ptbk.io" [ref=e227] [cursor=pointer]':
                   - /url: https://core.ptbk.io/
-        - generic [ref=e227]:
-          - paragraph [ref=e228]:
+        - generic [ref=e228]:
+          - paragraph [ref=e229]:
             - text: © 2026 Promptbook
             - text: All rights reserved.
             - text: Made with ❤️ in the Czech Republic.
-          - paragraph [ref=e229]: Promptbook engine version 0.112.0-74
+          - paragraph [ref=e230]: Promptbook engine version 0.112.0-75
   - generic:
     - region "Notifications"
-  - alert [ref=e230]
+  - alert [ref=e231]
 ```
