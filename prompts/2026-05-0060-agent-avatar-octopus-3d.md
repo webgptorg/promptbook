@@ -11,7 +11,7 @@
 
 ---
 
-[ ] !!
+[ ] !
 
 [✨💜] Create avatar visual "Octopus 3D 2"
 
