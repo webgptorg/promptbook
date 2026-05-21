@@ -1,5 +1,9 @@
 [x] ~$0.00 24 minutes by GitHub Copilot `gpt-5.4`
 
+---
+
+[ ] !!
+
 [✨🎊] Fix the script `repair-imports.ts` - it removes some imports
 
 -   Most of the imports are fixed, but some are completely removed.
@@ -11,31 +15,58 @@
 **This is how the imports are broken after the script was run:**
 
 ```
-me@DESKTOP-2QD9KQQ MINGW64 ~/work/ai/promptbook (main)
-$ npm run test-types
-
-> promptbook@0.112.0-69 test-types
+> promptbook@0.112.0-75 test-types
 > tsc
 
-src/cli/cli-commands/start-pipelines-server.ts:122:25 - error TS2304: Cannot find name 'ExecutionTools'.
+src/book-components/Chat/save/html/htmlSaveFormatDefinition.ts:264:20 - error TS7031: Binding element 'title' implicitly has an 'any' type.
 
-122             } satisfies ExecutionTools; /* <- Note: [🤛] */
-                            ~~~~~~~~~~~~~~
+264     getContent: ({ title, messages, participants }) => {
+                       ~~~~~
 
-src/execution/createPipelineExecutor/getKnowledgeForTask.ts:71:30 - error TS2304: Cannot find name 'Prompt'.
+src/book-components/Chat/save/html/htmlSaveFormatDefinition.ts:264:27 - error TS7031: Binding element 'messages' implicitly has an 'any' type.
 
-71         } as const satisfies Prompt; /* <- Note: [🤛] */
-                                ~~~~~~
+264     getContent: ({ title, messages, participants }) => {
+                              ~~~~~~~~
 
-src/llm-providers/deepseek/createDeepseekExecutionTools.ts:56:13 - error TS2304: Cannot find name 'LlmExecutionToolsConstructor'.
+src/book-components/Chat/save/html/htmlSaveFormatDefinition.ts:264:37 - error TS7031: Binding element 'participants' implicitly has an 'any' type.
 
-56 ) satisfies LlmExecutionToolsConstructor; /* <- Note: [🤛] */
-               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+264     getContent: ({ title, messages, participants }) => {
+                                        ~~~~~~~~~~~~
 
-src/llm-providers/google/createGoogleExecutionTools.ts:286:13 - error TS2304: Cannot find name 'LlmExecutionToolsConstructor'.
+src/book-components/Chat/save/html/htmlSaveFormatDefinition.ts:272:33 - error TS7006: Parameter 'message' implicitly has an 'any' type.
 
-286 ) satisfies LlmExecutionToolsConstructor; /* <- Note: [🤛] */
-                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+272                 ? messages.map((message) => renderMessageBlock(message, participantLookup, citationFootnotes)).join('')
+                                    ~~~~~~~
+
+src/book-components/Chat/save/html/htmlSaveFormatDefinition.ts:638:22 - error TS2304: Cannot find name 'ChatSaveFormatDefinition'.
+
+638 } as const satisfies ChatSaveFormatDefinition;
+                         ~~~~~~~~~~~~~~~~~~~~~~~~
+
+src/book-components/Chat/save/markdown/mdSaveFormatDefinition.ts:103:20 - error TS7031: Binding element 'title' implicitly has an 'any' type.
+
+103     getContent: ({ title, messages, participants }) => {
+                       ~~~~~
+
+src/book-components/Chat/save/markdown/mdSaveFormatDefinition.ts:103:27 - error TS7031: Binding element 'messages' implicitly has an 'any' type.
+
+103     getContent: ({ title, messages, participants }) => {
+                              ~~~~~~~~
+
+src/book-components/Chat/save/markdown/mdSaveFormatDefinition.ts:103:37 - error TS7031: Binding element 'participants' implicitly has an 'any' type.
+
+103     getContent: ({ title, messages, participants }) => {
+                                        ~~~~~~~~~~~~
+
+src/book-components/Chat/save/markdown/mdSaveFormatDefinition.ts:110:29 - error TS7006: Parameter 'message' implicitly has an 'any' type.
+
+110                       .map((message) => renderMarkdownMessageBlock(message, participantLookup, citationFootnotes))
+                                ~~~~~~~
+
+src/book-components/Chat/save/markdown/mdSaveFormatDefinition.ts:126:22 - error TS2304: Cannot find name 'ChatSaveFormatDefinition'.
+
+126 } as const satisfies ChatSaveFormatDefinition;
+                         ~~~~~~~~~~~~~~~~~~~~~~~~
 
 src/llm-providers/ollama/OllamaExecutionTools.ts:39:21 - error TS2552: Cannot find name 'OpenAiExecutionToolsOptions'. Did you mean 'OllamaExecutionToolsOptions'?
 
@@ -57,60 +88,18 @@ src/llm-providers/openai/playground/playground.ts:269:17 - error TS2304: Cannot 
 269     } satisfies ChatPrompt;
                     ~~~~~~~~~~
 
-src/transpilers/agent-os/AgentOsTranspiler.ts:181:22 - error TS2304: Cannot find name 'BookTranspiler'.
 
-181 } as const satisfies BookTranspiler; /* <- Note: [🤛] */
-                         ~~~~~~~~~~~~~~
-
-src/transpilers/anthropic-claude-managed/AnthropicClaudeManagedTranspiler.ts:204:22 - error TS2304: Cannot find name 'BookTranspiler'.
-
-204 } as const satisfies BookTranspiler;
-                         ~~~~~~~~~~~~~~
-
-src/transpilers/anthropic-claude-sdk/AnthropicClaudeSdkTranspiler.ts:362:22 - error TS2304: Cannot find name 'BookTranspiler'.
-
-362 } as const satisfies BookTranspiler; /* <- Note: [🤛] */
-                         ~~~~~~~~~~~~~~
-
-src/transpilers/e2b/E2BTranspiler.ts:152:22 - error TS2304: Cannot find name 'BookTranspiler'.
-
-152 } as const satisfies BookTranspiler; /* <- Note: [🤛] */
-                         ~~~~~~~~~~~~~~
-
-src/transpilers/formatted-book-in-markdown/FormattedBookInMarkdownTranspiler.ts:44:22 - error TS2304: Cannot find name 'BookTranspiler'.
-
-44 } as const satisfies BookTranspiler; /* <- Note: [🤛] */
-                        ~~~~~~~~~~~~~~
-
-src/transpilers/openai-agents/OpenAiAgentsTranspiler.ts:224:22 - error TS2304: Cannot find name 'BookTranspiler'.
-
-224 } as const satisfies BookTranspiler; /* <- Note: [🤛] */
-                         ~~~~~~~~~~~~~~
-
-src/transpilers/openai-sdk/OpenAiSdkTranspiler.ts:329:22 - error TS2304: Cannot find name 'BookTranspiler'.
-
-329 } as const satisfies BookTranspiler; /* <- Note: [🤛] */
-                         ~~~~~~~~~~~~~~
-
-
-Found 15 errors in 14 files.
+Found 14 errors in 5 files.
 
 Errors  Files
-     1  src/cli/cli-commands/start-pipelines-server.ts:122
-     1  src/execution/createPipelineExecutor/getKnowledgeForTask.ts:71
-     1  src/llm-providers/deepseek/createDeepseekExecutionTools.ts:56
-     1  src/llm-providers/google/createGoogleExecutionTools.ts:286
+     5  src/book-components/Chat/save/html/htmlSaveFormatDefinition.ts:264
+     5  src/book-components/Chat/save/markdown/mdSaveFormatDefinition.ts:103
      1  src/llm-providers/ollama/OllamaExecutionTools.ts:39
      1  src/llm-providers/openai/createOpenAiCompatibleExecutionTools.ts:65
      2  src/llm-providers/openai/playground/playground.ts:239
-     1  src/transpilers/agent-os/AgentOsTranspiler.ts:181
-     1  src/transpilers/anthropic-claude-managed/AnthropicClaudeManagedTranspiler.ts:204
-     1  src/transpilers/anthropic-claude-sdk/AnthropicClaudeSdkTranspiler.ts:362
-     1  src/transpilers/e2b/E2BTranspiler.ts:152
-     1  src/transpilers/formatted-book-in-markdown/FormattedBookInMarkdownTranspiler.ts:44
-     1  src/transpilers/openai-agents/OpenAiAgentsTranspiler.ts:224
-     1  src/transpilers/openai-sdk/OpenAiSdkTranspiler.ts:329
 
+me@DESKTOP-2QD9KQQ MINGW64 ~/work/ai/promptbook (main)
+$
 ```
 
 ---
@@ -145,4 +134,3 @@ Errors  Files
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
