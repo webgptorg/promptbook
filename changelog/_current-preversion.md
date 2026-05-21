@@ -1,3 +1,8 @@
+-   Deprecated the legacy top-level `ptbk` pipeline and old-system commands while keeping them available for compatibility:
+
+    -   Added shared help notices and runtime warnings for `run`, `login`, `make`, `prettify`, `test`, `list-models`, `list-scrapers`, `start-agents-server`, and `start-pipelines-server`.
+    -   Pointed the old `ptbk start-agents-server` command at `ptbk agents-server start` and removed deprecated CLI command entries from `.vscode/terminals.json`.
+
 -   Added `ptbk agents-server start` as the self-hosted foreground entrypoint for Agents Server:
 
     -   Starts the Next.js app and local coding-agent message runners together, uses `./logs` for foreground runtime logs, and keeps per-agent runner projects in the OS temporary directory.

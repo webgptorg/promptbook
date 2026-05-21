@@ -58,7 +58,7 @@ export function $initializeStartPipelinesServerCommand(program: Program): $side_
         spaceTrim(`
             Starts a remote server to execute books
 
-            Note: You want probably to use "ptbk start-agents-server" to start agents server instead of pipelines server
+            Note: You want probably to use "ptbk agents-server start" to start agents server instead of pipelines server
         `),
     );
 

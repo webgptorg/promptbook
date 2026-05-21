@@ -20,6 +20,32 @@ import { $initializeStartAgentsServerCommand } from './cli-commands/start-agents
 import { $initializeStartPipelinesServerCommand } from './cli-commands/start-pipelines-server';
 import { $initializeTestCommand } from './cli-commands/test-command';
 import { $addGlobalOptionsToCommand } from './common/$addGlobalOptionsToCommand';
+import { $deprecateCliCommand } from './common/$deprecateCliCommand';
+
+/**
+ * Shared deprecation text for top-level CLI commands backed by the old pipeline system.
+ */
+const OLD_PIPELINE_SYSTEM_DEPRECATION_MESSAGE = 'This command is part of the old pipeline system.';
+
+/**
+ * Shared deprecation text for top-level CLI commands backed by the old pre-agent system.
+ */
+const OLD_SYSTEM_DEPRECATION_MESSAGE = 'This command is part of the old system.';
+
+/**
+ * Deprecation guidance for top-level `ptbk` commands that remain for compatibility.
+ */
+const DEPRECATED_TOP_LEVEL_COMMAND_MESSAGES: Readonly<Record<string, string>> = {
+    run: OLD_PIPELINE_SYSTEM_DEPRECATION_MESSAGE,
+    login: OLD_PIPELINE_SYSTEM_DEPRECATION_MESSAGE,
+    make: OLD_PIPELINE_SYSTEM_DEPRECATION_MESSAGE,
+    prettify: OLD_PIPELINE_SYSTEM_DEPRECATION_MESSAGE,
+    test: OLD_PIPELINE_SYSTEM_DEPRECATION_MESSAGE,
+    'list-models': OLD_SYSTEM_DEPRECATION_MESSAGE,
+    'list-scrapers': OLD_SYSTEM_DEPRECATION_MESSAGE,
+    'start-agents-server': 'Use `ptbk agents-server start` instead.',
+    'start-pipelines-server': OLD_PIPELINE_SYSTEM_DEPRECATION_MESSAGE,
+};
 
 /**
  * Runs CLI utilities of Promptbook package
@@ -71,6 +97,8 @@ export async function promptbookCli(): Promise<void> {
     $initializeAgentsServerCommand(program);
     $initializeCoderCommand(program);
 
+    $deprecateTopLevelCommands(program);
+
     // TODO: [🧠] Should it be here or not> $addGlobalOptionsToCommand(program);
     program.commands.forEach($addGlobalOptionsToCommand);
 
@@ -80,6 +108,19 @@ export async function promptbookCli(): Promise<void> {
     }
 
     program.parse(process.argv);
+}
+
+/**
+ * Adds one deprecation notice to each configured top-level legacy command.
+ */
+function $deprecateTopLevelCommands(program: commander.Command): void {
+    for (const command of program.commands) {
+        const deprecationMessage = DEPRECATED_TOP_LEVEL_COMMAND_MESSAGES[command.name()];
+
+        if (deprecationMessage !== undefined) {
+            $deprecateCliCommand(command, deprecationMessage);
+        }
+    }
 }
 
 // Note: [🟡] Code for CLI program [promptbookCli](src/cli/promptbookCli.ts) should never be published outside of `@promptbook/cli`

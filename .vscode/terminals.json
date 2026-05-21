@@ -22,19 +22,6 @@
         },
 
         {
-            "name": "✨👨‍💻 Run ptbk start-agents-server (direct = 🧸🔠 Run Agents server app)",
-            "cwd": "./apps/agents-server/",
-            "commands": [
-                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "rm -rf .next",
-                "npx tsc --noEmit && npx next build && npx next dev --port 4440"
-            ],
-            "execute": true,
-            "onlySingle": false,
-            "focus": false
-        },
-
-        {
             "name": "✨⏩ Migrate Agents server `live` (💤)",
             "cwd": "./apps/agents-server/",
             "command": "npx tsx ./src/database/migrate.ts --only=live",
@@ -56,36 +43,6 @@
             "execute": false,
             "onlySingle": false,
             "focus": false
-        },
-        {
-            "name": "👨‍💻⚫ Run CLI example (💸)",
-            "commands": [
-                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts run ./book/examples/25-simple-knowledge.book.md --provider BRING_YOUR_OWN_KEYS"
-            ],
-            "execute": true,
-            "onlySingle": true,
-            "focus": true
-        },
-        {
-            "name": "✨👨‍💻🟣 Run ptbk start-agents-server",
-            "commands": [
-                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts start-agents-server ./agents/examples --port 4440 --provider BRING_YOUR_OWN_KEYS"
-            ],
-            "execute": true,
-            "onlySingle": true,
-            "focus": true
-        },
-        {
-            "name": "👨‍💻🟣 Run ptbk start-pipelines-server",
-            "commands": [
-                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts start-pipelines-server ./src/remote-server/testing-books --url http://localhost:4460 --provider BRING_YOUR_OWN_KEYS"
-            ],
-            "execute": true,
-            "onlySingle": true,
-            "focus": true
         },
         {
             "name": "👨‍💻⚪ Run simple-script example (💸)",
@@ -340,15 +297,6 @@
             "commands": [
                 "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
                 "npx ts-node ./scripts/generate-examples-bookc/generate-examples-bookc.ts --verbose"
-            ],
-            "execute": true,
-            "onlySingle": true,
-            "focus": true
-        },
-        {
-            "name": "🏭📖 Prettify examples and add mermaid graphs -> .book.md",
-            "commands": [
-                "npx ts-node src/cli/test/ptbk.ts prettify 'examples/pipelines/**/*.book' --ignore 'examples/pipelines/errors/**/*.book'"
             ],
             "execute": true,
             "onlySingle": true,

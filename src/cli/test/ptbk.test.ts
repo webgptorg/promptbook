@@ -25,6 +25,21 @@ describe('how promptbookCli works', () => {
             }),
         ).resolves.toContain('Usage: promptbook|ptbk [options] [command]'));
 
+    it('should mark legacy top-level commands as deprecated in help', async () => {
+        const helpOutput = await $execCommand({
+            command: 'ts-node src/cli/test/ptbk.ts --help',
+            crashOnError: false,
+            cwd: process.cwd(),
+        });
+
+        expect(helpOutput).toContain('run|execute');
+        expect(helpOutput).toContain('Deprecated: This command is part of the old pipeline system.');
+        expect(helpOutput).toContain('list-models|models');
+        expect(helpOutput).toContain('Deprecated: This command is part of the old system.');
+        expect(helpOutput).toContain('start-agents-server|start');
+        expect(helpOutput).toContain('Deprecated: Use `ptbk agents-server start` instead.');
+    });
+
     it('should print the same top-level help when started without arguments', async () => {
         const [helpOutput, defaultOutput] = await Promise.all([
             $execCommand({
