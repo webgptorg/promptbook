@@ -3,7 +3,6 @@ import { computeAgentHash } from '../../../../src/book-2.0/agent-source/computeA
 import { $invalidateProvidedAgentReferenceResolverCache } from './agentReferenceResolver/$provideAgentReferenceResolver';
 import { scheduleAgentPreparation } from './agentPreparation';
 import { invalidateCachedServerAgentRuntime } from './cachedServerAgentRuntime';
-import { trySynchronizeExternalAgentRepository } from './externalChatRunner/ensureExternalAgentRepository';
 
 /**
  * Marker key used to prevent double-decoration of the same collection instance.
@@ -52,23 +51,11 @@ export function attachAgentPreparationScheduling(
 
     const originalCreateAgent = collection.createAgent.bind(collection);
     collection.createAgent = async (...args) => {
-        const [agentSource] = args;
         const createdAgent = await originalCreateAgent(...args);
         $invalidateProvidedAgentReferenceResolverCache();
         invalidateCachedServerAgentRuntime();
 
         if (createdAgent.permanentId) {
-            await trySynchronizeExternalAgentRepository({
-                agentName: createdAgent.agentName,
-                agentPermanentId: createdAgent.permanentId,
-                agentSource,
-            }).catch((error) => {
-                console.error('[external-chat-runner] Failed to synchronize created agent repository', {
-                    agentPermanentId: createdAgent.permanentId,
-                    error,
-                });
-            });
-
             await scheduleAgentPreparation({
                 tablePrefix,
                 agentPermanentId: createdAgent.permanentId,
@@ -91,19 +78,6 @@ export function attachAgentPreparationScheduling(
         invalidateCachedServerAgentRuntime();
 
         const fingerprint = computePersistedAgentFingerprint(agentSource);
-        const agents = await collection.listAgents();
-        const agent = agents.find((candidate) => candidate.permanentId === permanentId);
-
-        await trySynchronizeExternalAgentRepository({
-            agentName: agent?.agentName || permanentId,
-            agentPermanentId: permanentId,
-            agentSource,
-        }).catch((error) => {
-            console.error('[external-chat-runner] Failed to synchronize updated agent repository', {
-                agentPermanentId: permanentId,
-                error,
-            });
-        });
 
         await scheduleAgentPreparation({
             tablePrefix,

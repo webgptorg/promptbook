@@ -18,12 +18,6 @@ function resolveInternalServerUrl(): URL {
         return explicitSiteUrl;
     }
 
-    const configuredVercelDomain = resolveConfiguredVercelDomain();
-
-    if (configuredVercelDomain) {
-        return createServerPublicUrl(configuredVercelDomain);
-    }
-
     return createServerPublicUrl(`localhost:${resolveInternalServerPort()}`);
 }
 
@@ -56,36 +50,6 @@ function parseAbsoluteHttpUrl(value: string | undefined): URL | null {
     } catch {
         return null;
     }
-}
-
-/**
- * Resolves the best Vercel domain candidate available in server-side runtime env vars.
- *
- * @returns One host/domain candidate or `null` when unavailable.
- */
-function resolveConfiguredVercelDomain(): string | null {
-    const vercelDomainCandidates = [
-        process.env.VERCEL_BRANCH_URL,
-        process.env.NEXT_PUBLIC_VERCEL_BRANCH_URL,
-        process.env.VERCEL_URL,
-        process.env.NEXT_PUBLIC_VERCEL_URL,
-        process.env.VERCEL_PROJECT_PRODUCTION_URL,
-        process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL,
-    ];
-
-    for (const candidate of vercelDomainCandidates) {
-        if (typeof candidate !== 'string') {
-            continue;
-        }
-
-        const normalizedCandidate = candidate.trim();
-
-        if (normalizedCandidate) {
-            return normalizedCandidate;
-        }
-    }
-
-    return null;
 }
 
 /**

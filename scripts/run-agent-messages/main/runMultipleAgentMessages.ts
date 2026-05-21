@@ -88,13 +88,20 @@ type MultiAgentAutoPullResult = {
 };
 
 /**
+ * Optional integrations for callers that supervise the multi-agent watcher as one service.
+ */
+export type RunMultipleAgentMessagesControls = {
+    readonly shouldContinue?: () => boolean;
+    readonly watchErrorLogDirectoryPath?: string;
+    readonly onUiInitialized?: (uiHandle: CoderRunUiHandle | undefined) => void;
+};
+
+/**
  * Watches all direct child agent repositories from the current directory in one shared session.
  */
 export async function runMultipleAgentMessages(
     options: AgentRunOptions,
-    controls: {
-        readonly shouldContinue?: () => boolean;
-    } = {},
+    controls: RunMultipleAgentMessagesControls = {},
 ): Promise<void> {
     validateAgentRunOptions(options);
     validateAgentWatchOptions('ptbk agent run-multiple', options);
@@ -114,6 +121,7 @@ export async function runMultipleAgentMessages(
             if (!isWatchSessionInitialized) {
                 uiHandle = await initializeMultipleAgentRunUi(options);
                 isWatchSessionInitialized = true;
+                controls.onUiInitialized?.(uiHandle);
 
                 if (!uiHandle) {
                     console.info(colors.green('Watching direct child agent repositories for queued messages.'));
@@ -231,14 +239,14 @@ export async function runMultipleAgentMessages(
 
                 await handleAgentWatchError({
                     commandDisplayName: 'ptbk agent run-multiple',
-                    logDirectoryPath: rootPath,
+                    logDirectoryPath: controls.watchErrorLogDirectoryPath || rootPath,
                     error: tickResult.reason,
                 });
             }
         } catch (error) {
             await handleAgentWatchError({
                 commandDisplayName: 'ptbk agent run-multiple',
-                logDirectoryPath: rootPath,
+                logDirectoryPath: controls.watchErrorLogDirectoryPath || rootPath,
                 error,
             });
             await wait(MULTI_AGENT_QUEUE_POLL_INTERVAL_MS);

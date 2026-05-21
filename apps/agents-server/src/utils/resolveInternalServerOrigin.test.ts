@@ -6,12 +6,6 @@ import { resolveInternalServerOrigin } from './resolveInternalServerOrigin';
  */
 const INTERNAL_SERVER_ENV_KEYS = [
     'NEXT_PUBLIC_SITE_URL',
-    'VERCEL_BRANCH_URL',
-    'NEXT_PUBLIC_VERCEL_BRANCH_URL',
-    'VERCEL_URL',
-    'NEXT_PUBLIC_VERCEL_URL',
-    'VERCEL_PROJECT_PRODUCTION_URL',
-    'NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL',
     'PORT',
 ] as const;
 
@@ -27,16 +21,8 @@ describe('resolveInternalServerOrigin', () => {
 
     it('prefers NEXT_PUBLIC_SITE_URL when configured', () => {
         process.env.NEXT_PUBLIC_SITE_URL = 'https://agents.example.com/';
-        clearInternalServerEnv(['VERCEL_BRANCH_URL', 'NEXT_PUBLIC_VERCEL_BRANCH_URL', 'VERCEL_URL', 'NEXT_PUBLIC_VERCEL_URL']);
 
         expect(resolveInternalServerOrigin()).toBe('https://agents.example.com');
-    });
-
-    it('falls back to Vercel deployment domains when no explicit site URL is configured', () => {
-        clearInternalServerEnv(['NEXT_PUBLIC_SITE_URL']);
-        process.env.VERCEL_BRANCH_URL = 'preview-agents.vercel.app';
-
-        expect(resolveInternalServerOrigin()).toBe('https://preview-agents.vercel.app');
     });
 
     it('falls back to local http localhost when no deployment URL is configured', () => {

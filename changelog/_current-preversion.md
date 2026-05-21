@@ -1,3 +1,10 @@
+-   Added `ptbk agents-server start` as the foreground Agents Server entrypoint:
+
+    -   Starts the packaged Agents Server Next app and the local multi-agent message watcher from one command, with coding runner selection configurable by `--agent` / `PTBK_AGENT`, `--model` / `PTBK_MODEL`, and `--thinking-level` / `PTBK_THINKING_LEVEL`.
+    -   Stores database-managed agent runner folders under `.promptbook/agents-server/agents`, persists foreground Next and runner logs under `./logs`, shows the existing agent terminal dashboard by default, and keeps plain streaming output with `--no-ui`.
+    -   Replaced the active GitHub-backed chat-job bridge with local message-folder synchronization so durable Agents Server tasks remain visible in the web Task Manager while coding agents answer messages through the reused `ptbk agent` queue flow.
+    -   Removed the Vercel cron startup contract from the active internal worker routes and bundled the Agents Server app into generated CLI packages for `npm install ptbk` usage.
+
 -   Fixed `ptbk agent run-multiple --auto-clone` GitHub repository discovery so it follows GitHub pagination link headers and no longer misses later `agent-*` repositories while cloning watched agent runner repositories.
 
 -   Fixed `scripts/repair-imports/repair-imports.ts` so it no longer strips some needed imports after repair/organize runs:

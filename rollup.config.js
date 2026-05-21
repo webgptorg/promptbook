@@ -6,7 +6,7 @@ import { join } from 'path';
 import polyfillNode from 'rollup-plugin-polyfill-node';
 import postcss from 'rollup-plugin-postcss';
 import { visualizer } from 'rollup-plugin-visualizer';
-import { version } from './package.json';
+import { dependencies, version } from './package.json';
 
 // Note: Note using raw imports via `rollup-plugin-raw` - it is not maintained and has security and compatibility issues
 
@@ -213,7 +213,19 @@ export function getPackagesMetadataForRollup() {
             packageScope: 'promptbook',
             packageBasename,
             packageFullname: `@promptbook/${packageBasename}`,
-            additionalDependencies: packageBasename === 'cli' ? ['typescript', 'ts-node'] : [],
+            additionalDependencies:
+                packageBasename === 'cli'
+                    ? [
+                          'typescript',
+                          'ts-node',
+                          'next',
+                          'raw-loader',
+                          'tailwindcss',
+                          'postcss',
+                          'autoprefixer',
+                          ...Object.keys(dependencies),
+                      ]
+                    : [],
         });
     }
 

@@ -3,13 +3,12 @@
 
 import colors from 'colors';
 import commander from 'commander';
-import { mkdir, readFile } from 'fs/promises';
-import { basename, join } from 'path';
+import { cp, mkdir, readFile, rm } from 'fs/promises';
+import { basename, dirname, join } from 'path';
 import { spaceTrim } from 'spacetrim';
 import type { PackageJson } from 'type-fest';
 import { assertsError } from '../../src/errors/assertsError';
 import { $execCommand } from '../../src/utils/execCommand/$execCommand';
-import { just } from '../../src/utils/organization/just';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
 import { addDependenciesForGeneratedPackages } from './addDependenciesForGeneratedPackages';
@@ -228,28 +227,66 @@ async function postprocessGeneratedBundles(
 }
 
 /**
- * Copies the Agents Server app into the CLI package when that distribution path is re-enabled.
+ * Copies the Agents Server app and the repo-relative runtime files it imports into the CLI package.
  *
  * @private internal utility of package generation
  */
 async function maybeCopyAgentsServerAppToCliPackage(): Promise<void> {
-    if (!just(false /* <- Note: Temporarily disable the Copy agents-server app */)) {
-        return;
-    }
-
     logPackageGenerationStep(`8️⃣  Copy agents-server app to CLI package`);
 
-    const agentsServerSourcePath = './apps/agents-server';
-    const agentsServerDestPath = './packages/cli/apps/agents-server';
-
-    console.info(`Copying ${agentsServerSourcePath} to ${agentsServerDestPath}`);
-
-    await $execCommand(`rm -rf ${agentsServerDestPath}`);
-    await mkdir(agentsServerDestPath, { recursive: true });
-    await $execCommand(`cp -r ${agentsServerSourcePath}/* ${agentsServerDestPath}/ || true`);
-    await $execCommand(`rm -rf ${agentsServerDestPath}/.next`);
+    await copyAgentsServerRuntimePathToCliPackage('./apps/agents-server', './packages/cli/apps/agents-server');
+    await copyAgentsServerRuntimePathToCliPackage('./apps/_common', './packages/cli/apps/_common');
+    await copyAgentsServerRuntimePathToCliPackage('./src', './packages/cli/src');
+    await copyAgentsServerRuntimePathToCliPackage('./books', './packages/cli/books');
+    await copyAgentsServerRuntimePathToCliPackage('./servers.ts', './packages/cli/servers.ts');
+    await copyAgentsServerRuntimePathToCliPackage('./security.config.ts', './packages/cli/security.config.ts');
 
     console.info(colors.green('Agents-server app copied successfully'));
+}
+
+/**
+ * Copies one runtime path into the generated CLI package after removing stale output.
+ *
+ * @param sourcePath - Path in the monorepo runtime layout
+ * @param destinationPath - Equivalent path below `packages/cli`
+ * @private internal utility of package generation
+ */
+async function copyAgentsServerRuntimePathToCliPackage(sourcePath: string, destinationPath: string): Promise<void> {
+    console.info(`Copying ${sourcePath} to ${destinationPath}`);
+
+    await rm(destinationPath, { recursive: true, force: true });
+    await mkdir(dirname(destinationPath), { recursive: true });
+    await cp(sourcePath, destinationPath, {
+        recursive: true,
+        filter: shouldCopyAgentsServerRuntimePath,
+    });
+}
+
+/**
+ * Excludes build artifacts, private env files, and duplicate test sources from packaged runtime files.
+ *
+ * @param sourcePath - Path currently visited by `fs.cp`
+ * @returns `true` when the package copy should include the path
+ * @private internal utility of package generation
+ */
+function shouldCopyAgentsServerRuntimePath(sourcePath: string): boolean {
+    const normalizedSourcePath = sourcePath.replace(/\\/gu, '/');
+    const sourceBasename = basename(normalizedSourcePath);
+
+    if (
+        normalizedSourcePath.includes('/.next') ||
+        normalizedSourcePath.includes('/node_modules/') ||
+        normalizedSourcePath.includes('/playwright-report/') ||
+        normalizedSourcePath.includes('/test-results/')
+    ) {
+        return false;
+    }
+
+    if (sourceBasename.startsWith('.env')) {
+        return false;
+    }
+
+    return !/\.(?:spec|test)\.[jt]sx?$/iu.test(sourceBasename);
 }
 
 /**

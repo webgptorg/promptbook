@@ -22,6 +22,27 @@ export const PROMPT_RUNNER_AGENT_NAMES = [
 ] as const;
 
 /**
+ * Environment variable used as the default runner identifier when `--agent` is omitted.
+ *
+ * @private internal utility of `promptbookCli`
+ */
+export const PTBK_AGENT_ENV = 'PTBK_AGENT';
+
+/**
+ * Environment variable used as the default runner model when `--model` is omitted.
+ *
+ * @private internal utility of `promptbookCli`
+ */
+export const PTBK_MODEL_ENV = 'PTBK_MODEL';
+
+/**
+ * Environment variable used as the default runner thinking level when `--thinking-level` is omitted.
+ *
+ * @private internal utility of `promptbookCli`
+ */
+export const PTBK_THINKING_LEVEL_ENV = 'PTBK_THINKING_LEVEL';
+
+/**
  * Runner identifier supported by Promptbook CLI agent orchestration commands.
  *
  * @private internal utility of `promptbookCli`
@@ -47,6 +68,16 @@ export type PromptRunnerCliOptions = {
 };
 
 /**
+ * Commander option bag for runner selection plus terminal/runtime switches shared with server orchestration.
+ *
+ * @private internal utility of `promptbookCli`
+ */
+export type PromptRunnerSelectionCliOptions = Pick<
+    PromptRunnerCliOptions,
+    'agent' | 'model' | 'ui' | 'thinkingLevel' | 'allowCredits'
+>;
+
+/**
  * Normalized runner options used by runner-backed CLI commands.
  *
  * @private internal utility of `promptbookCli`
@@ -63,6 +94,16 @@ export type NormalizedPromptRunnerCliOptions = {
     readonly autoPush: boolean;
     readonly autoPull: boolean;
 };
+
+/**
+ * Normalized runner selection plus terminal/runtime switches shared with server orchestration.
+ *
+ * @private internal utility of `promptbookCli`
+ */
+export type NormalizedPromptRunnerSelectionCliOptions = Pick<
+    NormalizedPromptRunnerCliOptions,
+    'agentName' | 'model' | 'noUi' | 'thinkingLevel' | 'allowCredits'
+>;
 
 /**
  * Description block shared by runner-backed CLI commands.
@@ -105,16 +146,18 @@ export const PROMPT_RUNNER_MODEL_OPTION_DESCRIPTION = spaceTrim(`
  * @private internal utility of `promptbookCli`
  */
 export function addPromptRunnerSelectionOptions(command: Program): void {
-    command.option('--agent <agent-name>', PROMPT_RUNNER_AGENT_OPTION_DESCRIPTION);
-    command.option('--model <model>', PROMPT_RUNNER_MODEL_OPTION_DESCRIPTION);
+    command.addOption(
+        new Option('--agent <agent-name>', PROMPT_RUNNER_AGENT_OPTION_DESCRIPTION).env(PTBK_AGENT_ENV),
+    );
+    command.addOption(new Option('--model <model>', PROMPT_RUNNER_MODEL_OPTION_DESCRIPTION).env(PTBK_MODEL_ENV));
 }
 
 /**
- * Registers shared runner execution flags on a command.
+ * Registers shared runner terminal/runtime flags on a command.
  *
  * @private internal utility of `promptbookCli`
  */
-export function addPromptRunnerExecutionOptions(command: Program): void {
+export function addPromptRunnerRuntimeOptions(command: Program): void {
     command.option(
         '--no-ui',
         'Disable the rich terminal UI and keep plain streaming console output for logging and debugging',
@@ -123,15 +166,26 @@ export function addPromptRunnerExecutionOptions(command: Program): void {
         new Option(
             '--thinking-level <thinking-level>',
             `Set reasoning effort for supported runners (${THINKING_LEVEL_VALUES.join(', ')})`,
-        ).choices([...THINKING_LEVEL_VALUES]),
+        )
+            .choices([...THINKING_LEVEL_VALUES])
+            .env(PTBK_THINKING_LEVEL_ENV),
     );
-    command.option('--no-commit', 'Leave successful changes in the working directory instead of creating git commits');
-    command.option('--ignore-git-changes', 'Skip clean working tree check before running prompts', false);
     command.option(
         '--allow-credits',
         'Allow OpenAI Codex runner to spend credits when rate limits are exhausted',
         false,
     );
+}
+
+/**
+ * Registers shared runner execution flags on a command.
+ *
+ * @private internal utility of `promptbookCli`
+ */
+export function addPromptRunnerExecutionOptions(command: Program): void {
+    addPromptRunnerRuntimeOptions(command);
+    command.option('--no-commit', 'Leave successful changes in the working directory instead of creating git commits');
+    command.option('--ignore-git-changes', 'Skip clean working tree check before running prompts', false);
     command.option(
         '--no-normalize-line-endings',
         'Disable automatic LF normalization for files changed in each coding round',
@@ -151,17 +205,35 @@ export function normalizePromptRunnerCliOptions(
         readonly isAgentRequired: boolean;
     },
 ): NormalizedPromptRunnerCliOptions {
+    const selectionOptions = normalizePromptRunnerSelectionCliOptions(cliOptions, options);
+
+    return {
+        ...selectionOptions,
+        noCommit: !cliOptions.commit,
+        ignoreGitChanges: cliOptions.ignoreGitChanges,
+        normalizeLineEndings: cliOptions.normalizeLineEndings,
+        autoPush: cliOptions.autoPush,
+        autoPull: cliOptions.autoPull,
+    };
+}
+
+/**
+ * Converts Commander runner selection/runtime flags into the normalized runner shape.
+ *
+ * @private internal utility of `promptbookCli`
+ */
+export function normalizePromptRunnerSelectionCliOptions(
+    cliOptions: PromptRunnerSelectionCliOptions,
+    options: {
+        readonly isAgentRequired: boolean;
+    },
+): NormalizedPromptRunnerSelectionCliOptions {
     return {
         agentName: resolvePromptRunnerAgentName(cliOptions.agent, options),
         model: cliOptions.model,
         noUi: !cliOptions.ui,
         thinkingLevel: cliOptions.thinkingLevel,
-        noCommit: !cliOptions.commit,
-        ignoreGitChanges: cliOptions.ignoreGitChanges,
         allowCredits: cliOptions.allowCredits,
-        normalizeLineEndings: cliOptions.normalizeLineEndings,
-        autoPush: cliOptions.autoPush,
-        autoPull: cliOptions.autoPull,
     };
 }
 

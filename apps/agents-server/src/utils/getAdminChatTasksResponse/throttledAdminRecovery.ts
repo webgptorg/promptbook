@@ -1,6 +1,6 @@
 import { recoverExpiredRunningUserChatJobs } from '@/src/utils/userChat/recoverExpiredRunningUserChatJobs';
 import { recoverExpiredRunningUserChatTimeouts } from '@/src/utils/userChatTimeout';
-import { synchronizeExternalUserChatJobsForAdmin } from '../externalChatRunner/synchronizeExternalUserChatJobs';
+import { synchronizeLocalUserChatJobsForAdmin } from '../localChatRunner/synchronizeLocalUserChatJobs';
 
 /**
  * Minimum interval between recovery operations triggered by admin polls.
@@ -39,7 +39,7 @@ export async function throttledAdminRecovery(): Promise<void> {
 
     pendingAdminRecovery = (async () => {
         try {
-            await synchronizeExternalUserChatJobsForAdmin();
+            await synchronizeLocalUserChatJobsForAdmin();
             await recoverExpiredRunningUserChatJobs();
             await recoverExpiredRunningUserChatTimeouts();
             lastAdminRecoveryAt = Date.now();

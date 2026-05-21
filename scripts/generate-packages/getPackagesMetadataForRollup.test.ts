@@ -9,5 +9,6 @@ describe('getPackagesMetadataForRollup', () => {
 
         expect(cliPackageMetadata?.additionalDependencies).toContain('typescript');
         expect(cliPackageMetadata?.additionalDependencies).toContain('ts-node');
+        expect(cliPackageMetadata?.additionalDependencies).toContain('next');
     });
 });

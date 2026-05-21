@@ -1,4 +1,4 @@
-import { processNextExternalUserChatJob } from '@/src/utils/externalChatRunner';
+import { processNextLocalUserChatJob } from '@/src/utils/localChatRunner';
 import {
     recoverExpiredRunningUserChatJobs,
     resolveUserChatWorkerInternalToken,
@@ -50,7 +50,7 @@ async function handleUserChatJobWorkerRequest(request: Request) {
     try {
         await recoverExpiredRunningUserChatJobs();
 
-        const processedJob = await processNextExternalUserChatJob({ preferredJobId });
+        const processedJob = await processNextLocalUserChatJob({ preferredJobId });
         if (!processedJob) {
             return new Response(null, { status: 204 });
         }
@@ -74,12 +74,12 @@ async function handleUserChatJobWorkerRequest(request: Request) {
 }
 
 /**
- * Validates internal worker-token or Vercel cron authorization.
+ * Validates the internal worker token.
  *
  * @private route helper
  */
 function isAuthorizedUserChatWorkerRequest(request: Request): boolean {
-    return isAuthorizedInternalWorkerRequest(request) || isAuthorizedVercelCronRequest(request);
+    return isAuthorizedInternalWorkerRequest(request);
 }
 
 /**
@@ -90,25 +90,4 @@ function isAuthorizedUserChatWorkerRequest(request: Request): boolean {
 function isAuthorizedInternalWorkerRequest(request: Request): boolean {
     const token = request.headers.get('x-user-chat-worker-token');
     return token === resolveUserChatWorkerInternalToken();
-}
-
-/**
- * Validates the optional Vercel cron bearer token configured via `CRON_SECRET`.
- *
- * @private route helper
- */
-function isAuthorizedVercelCronRequest(request: Request): boolean {
-    const cronSecret = process.env.CRON_SECRET?.trim();
-    const userAgent = request.headers.get('user-agent') || '';
-
-    if (request.method === 'GET' && userAgent.startsWith('vercel-cron/')) {
-        return true;
-    }
-
-    if (!cronSecret) {
-        return false;
-    }
-
-    const authorization = request.headers.get('authorization');
-    return authorization === `Bearer ${cronSecret}`;
 }
