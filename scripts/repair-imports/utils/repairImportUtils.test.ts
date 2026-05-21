@@ -1,4 +1,10 @@
-import { parseNamedImportSpecifiers, renderNamedImportStatement, resolveImportEntity } from './repairImportUtils';
+import {
+    addOrganizeImportsTypeUsageWorkarounds,
+    parseNamedImportSpecifiers,
+    removeOrganizeImportsTypeUsageWorkarounds,
+    renderNamedImportStatement,
+    resolveImportEntity,
+} from './repairImportUtils';
 
 describe('parseNamedImportSpecifiers', () => {
     it('parses inline type modifiers without treating them as part of the entity name', () => {
@@ -114,6 +120,53 @@ describe('renderNamedImportStatement', () => {
                 },
             }),
         ).toBe(`import type { FormatCommand } from './FormatCommand';`);
+    });
+});
+
+describe('organize-imports type usage workarounds', () => {
+    it('keeps imported names used by satisfies and as type expressions visible to import organization', () => {
+        const fileContent = [
+            `import { RuntimeValue } from './RuntimeValue';`,
+            `import type { ChatSaveFormatDefinition } from './ChatSaveFormatDefinition';`,
+            `import { LlmExecutionToolsConstructor } from './LlmExecutionToolsConstructor';`,
+            '',
+            `const chatSaveFormatDefinition = {} satisfies ChatSaveFormatDefinition;`,
+            `const executionTools = Object.assign({}, {}) as LlmExecutionToolsConstructor;`,
+            `RuntimeValue();`,
+        ].join('\n');
+
+        const fileContentWithWorkarounds = addOrganizeImportsTypeUsageWorkarounds('example.ts', fileContent);
+
+        expect(fileContentWithWorkarounds).toContain(
+            `type __RepairImportsTypeUsage0 = ChatSaveFormatDefinition; // REPAIR_IMPORTS_ORGANIZE_TYPE_USAGE_WORKAROUND`,
+        );
+        expect(fileContentWithWorkarounds).toContain(
+            `type __RepairImportsTypeUsage1 = LlmExecutionToolsConstructor; // REPAIR_IMPORTS_ORGANIZE_TYPE_USAGE_WORKAROUND`,
+        );
+        expect(fileContentWithWorkarounds).not.toContain(
+            `type __RepairImportsTypeUsage2 = RuntimeValue; // REPAIR_IMPORTS_ORGANIZE_TYPE_USAGE_WORKAROUND`,
+        );
+    });
+
+    it('removes inserted import organization workarounds', () => {
+        const fileContent = [
+            `import type { ChatPrompt } from './Prompt';`,
+            '',
+            `const chatPrompt = {} satisfies ChatPrompt;`,
+        ].join('\n');
+        const fileContentWithWorkarounds = addOrganizeImportsTypeUsageWorkarounds('playground.ts', fileContent);
+
+        expect(removeOrganizeImportsTypeUsageWorkarounds(fileContentWithWorkarounds)).not.toContain(
+            'REPAIR_IMPORTS_ORGANIZE_TYPE_USAGE_WORKAROUND',
+        );
+    });
+
+    it('does not add a workaround for const assertions', () => {
+        const fileContent = [`import { RuntimeValue } from './RuntimeValue';`, '', `const value = RuntimeValue() as const;`].join(
+            '\n',
+        );
+
+        expect(addOrganizeImportsTypeUsageWorkarounds('example.ts', fileContent)).toBe(fileContent);
     });
 });
 

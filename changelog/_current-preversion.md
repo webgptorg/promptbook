@@ -16,6 +16,7 @@
 
     -   Stopped inferring `import type` solely from the resolved exported entity kind and instead preserved the explicit import style already present in the source file.
     -   Kept deliberate non-type imports intact for repository `satisfies` / `as` edge cases such as `BookTranspiler`, `Prompt`, `ExecutionTools`, and related marked `[🤛]` sites.
+    -   Kept imports referenced only from `satisfies` / `as` type syntax visible while the optional import organizer runs, including repaired type-only imports in changed files.
 
 -   Fixed Docker image publishing for new Promptbook releases so the published Agents Server image no longer fails its production build on the embed page:
 

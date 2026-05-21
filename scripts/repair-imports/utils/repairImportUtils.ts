@@ -1,6 +1,25 @@
 import { dirname, join, normalize } from 'path';
 import { spaceTrim } from 'spacetrim';
+import * as ts from 'typescript';
 import type { EntityMetadata } from '../../utils/findAllProjectEntities';
+
+/**
+ * Prefix for temporary type aliases that keep type-syntax imports visible during import organization.
+ */
+const ORGANIZE_IMPORTS_TYPE_USAGE_WORKAROUND_PREFIX = '__RepairImportsTypeUsage';
+
+/**
+ * Marker for temporary type aliases that must be removed after import organization.
+ */
+const ORGANIZE_IMPORTS_TYPE_USAGE_WORKAROUND_MARKER = 'REPAIR_IMPORTS_ORGANIZE_TYPE_USAGE_WORKAROUND';
+
+/**
+ * Pattern matching temporary aliases inserted before import organization.
+ */
+const ORGANIZE_IMPORTS_TYPE_USAGE_WORKAROUND_REGEX = new RegExp(
+    `^type ${ORGANIZE_IMPORTS_TYPE_USAGE_WORKAROUND_PREFIX}\\d+ = [^\\r\\n]+; // ${ORGANIZE_IMPORTS_TYPE_USAGE_WORKAROUND_MARKER}\\r?\\n?`,
+    'gm',
+);
 
 /**
  * Parsed metadata for one named import specifier.
@@ -86,6 +105,34 @@ export function renderNamedImportStatement({
     importedSpecifier,
 }: RenderNamedImportStatementOptions): string {
     return `import ${importedSpecifier.isType ? `type ` : ``}{ ${importedSpecifier.renderedName} } from '${importFrom}';`;
+}
+
+/**
+ * Adds temporary type aliases for imported names used by `satisfies` / `as` type syntax.
+ *
+ * `organize-imports-cli` currently misses some of these references and drops their imports.
+ * The aliases are removed immediately after the organize pass.
+ */
+export function addOrganizeImportsTypeUsageWorkarounds(filePath: string, fileContent: string): string {
+    const importedTypeUsageNames = findImportedTypeUsageNames(filePath, fileContent);
+
+    if (importedTypeUsageNames.length === 0) {
+        return fileContent;
+    }
+
+    const workarounds = importedTypeUsageNames.map(
+        (importedTypeUsageName, index) =>
+            `type ${ORGANIZE_IMPORTS_TYPE_USAGE_WORKAROUND_PREFIX}${index} = ${importedTypeUsageName}; // ${ORGANIZE_IMPORTS_TYPE_USAGE_WORKAROUND_MARKER}`,
+    );
+
+    return `${fileContent.trimEnd()}\n\n${workarounds.join('\n')}\n`;
+}
+
+/**
+ * Removes temporary type aliases inserted before import organization.
+ */
+export function removeOrganizeImportsTypeUsageWorkarounds(fileContent: string): string {
+    return fileContent.replace(ORGANIZE_IMPORTS_TYPE_USAGE_WORKAROUND_REGEX, '');
 }
 
 /**
@@ -203,6 +250,96 @@ function resolveRepositoryArea(path: string): 'src' | 'scripts' | undefined {
     }
 
     return undefined;
+}
+
+/**
+ * Finds imported local names referenced only in type syntax missed by `organize-imports-cli`.
+ */
+function findImportedTypeUsageNames(filePath: string, fileContent: string): ReadonlyArray<string> {
+    const sourceFile = parseTypescriptSourceFile(filePath, fileContent);
+    const importedLocalNames = findImportedLocalNames(sourceFile);
+    const importedTypeUsageNames = new Set<string>();
+
+    /**
+     * Visits nodes that can contain missed type references.
+     */
+    function visitNode(node: ts.Node): void {
+        if (ts.isAsExpression(node) || ts.isSatisfiesExpression(node) || ts.isTypeAssertionExpression(node)) {
+            collectImportedIdentifiers(node.type, importedLocalNames, importedTypeUsageNames);
+        }
+
+        ts.forEachChild(node, visitNode);
+    }
+
+    visitNode(sourceFile);
+
+    return Array.from(importedTypeUsageNames).sort();
+}
+
+/**
+ * Finds local identifiers introduced by imports in one source file.
+ */
+function findImportedLocalNames(sourceFile: ts.SourceFile): ReadonlySet<string> {
+    const importedLocalNames = new Set<string>();
+
+    for (const statement of sourceFile.statements) {
+        if (!ts.isImportDeclaration(statement) || !statement.importClause) {
+            continue;
+        }
+
+        const { importClause } = statement;
+
+        if (importClause.name) {
+            importedLocalNames.add(importClause.name.text);
+        }
+
+        if (!importClause.namedBindings) {
+            continue;
+        }
+
+        if (ts.isNamespaceImport(importClause.namedBindings)) {
+            importedLocalNames.add(importClause.namedBindings.name.text);
+            continue;
+        }
+
+        for (const importSpecifier of importClause.namedBindings.elements) {
+            importedLocalNames.add(importSpecifier.name.text);
+        }
+    }
+
+    return importedLocalNames;
+}
+
+/**
+ * Collects imported identifiers referenced inside one type node.
+ */
+function collectImportedIdentifiers(
+    node: ts.Node,
+    importedLocalNames: ReadonlySet<string>,
+    importedTypeUsageNames: Set<string>,
+): void {
+    if (ts.isIdentifier(node) && importedLocalNames.has(node.text)) {
+        importedTypeUsageNames.add(node.text);
+    }
+
+    ts.forEachChild(node, (childNode) =>
+        collectImportedIdentifiers(childNode, importedLocalNames, importedTypeUsageNames),
+    );
+}
+
+/**
+ * Parses TypeScript and TSX files with the matching script kind.
+ */
+function parseTypescriptSourceFile(filePath: string, fileContent: string): ts.SourceFile {
+    const scriptKind = filePath.endsWith('.tsx')
+        ? ts.ScriptKind.TSX
+        : filePath.endsWith('.jsx')
+        ? ts.ScriptKind.JSX
+        : filePath.endsWith('.js')
+        ? ts.ScriptKind.JS
+        : ts.ScriptKind.TS;
+
+    return ts.createSourceFile(filePath, fileContent, ts.ScriptTarget.Latest, true, scriptKind);
 }
 
 // Note: [⚫] Code for repository script [repairImportUtils](scripts/repair-imports/utils/repairImportUtils.ts) should never be published in any package
