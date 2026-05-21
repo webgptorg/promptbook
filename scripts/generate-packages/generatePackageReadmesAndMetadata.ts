@@ -363,15 +363,13 @@ function createPackageKeywords(packageFullname: string): Array<string> {
  * @private internal utility of generatePackageReadmesAndMetadata
  */
 async function writeGeneratedPackageIgnoreFiles(packageBasename: string): Promise<void> {
-    const generatedDirectoryIgnores = ['esm', 'umd', 'apps'];
-
-    if (packageBasename === 'cli') {
-        generatedDirectoryIgnores.push('books', 'security.config.ts', 'servers.ts', 'src');
-    }
-
     await writeFile(
         `./packages/${packageBasename}/.gitignore`,
-        generatedDirectoryIgnores.join('\n'),
+        spaceTrim(`
+            esm
+            umd
+            apps
+        `),
     );
     await writeFile(
         `./packages/${packageBasename}/.npmignore`,

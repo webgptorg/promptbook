@@ -13,11 +13,13 @@ COPY . .
 ENV NEXT_PUBLIC_SITE_URL=http://localhost:4440
 RUN npm run build --prefix apps/agents-server
 
+WORKDIR /usr/app/apps/agents-server
+
 ENV NODE_ENV=production
 
 EXPOSE 4440
 
-CMD ["npx", "ts-node", "./src/cli/test/ptbk.ts", "agents-server", "start"]
+CMD ["npm", "run", "start"]
 
 # TODO: [🚑] This file should be meybe in `/packages/docker/...`
 # TODO:

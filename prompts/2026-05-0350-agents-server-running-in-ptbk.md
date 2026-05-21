@@ -1,4 +1,8 @@
-[x] ~$1.14 2 hours by OpenAI Codex `gpt-5.5`
+[x] ~$1.14 2 hours by OpenAI Codex `gpt-5.5` - not working as intented
+
+---
+
+[ ] !!!!!!!!
 
 [✨✴️] Implement `ptbk agents-server start` - the single command to start the Agents Server which will
 
@@ -13,12 +17,12 @@ ptbk agents-server start --agent github-copilot --model gpt-5.4 --thinking-level
     1. `ptbk agents-server start` is the main command that runs everything, nothing else is needed to start the server, the terminal UI, the web server with API server (already implemented in `apps/agents-server`) and the coding agents with syncing which internally powers the server
     2. It internally runs the Agents server Next.js app which is already implemented in `apps/agents-server`
     3. It internally runs the coding agents which are responsible for answering the messages and running
--   The `ptbk agents-server start` should hbe running with terminal UI by default, but it can also run without terminal UI if `--no-ui`
+-   The `ptbk agents-server start` should be running with terminal UI by default (look how the UI in terminal looks for `ptbk agent run` and `ptbk coder run`), but it can also run without terminal UI if `--no-ui`
 -   Through this terminal UI, you can see what is happening inside the server, but you cannot interact with this server. You can interact with the web app.
 -   But show there important statistics, for example:
     -   the port on which the server is running
     -   the log from the coding agents and from the next app
--   CWD where the `ptbk agents-server start` is started is used to store the agent repositories _(in standard temporary folder)_, the prompts _(in standard temporary folder)_ and also the logs into the folder named `logs` in the CWD, so the logs should be stored in `./logs` folder
+-   CWD where the `ptbk agents-server start` is started is used to store the agent repositories with prompts _(in standard temporary folder in `.promptbook/agents-server/agents`)_ and also the logs into the folder named `logs` in the CWD, so the logs should be stored in `./logs` folder
 -   The `ptbk agents-server start` will be running in read-write file system, the coding runners (like Codex, Github Copilot or Claude code) will be already installed and confugured before the server starts, so the server can use them to run the agents and answer the messages
 -   Agent folders
     -   Each agent will have its own folder in the temporary directory, and the coding agents will be running inside these folders answering messages
@@ -50,4 +54,3 @@ ptbk agents-server start --agent github-copilot --model gpt-5.4 --thinking-level
 -   The agent server was run at Vercel infrastructure. You don't need to keep this backwards compatibility anymore. From now on, the agent server is going to run via the `ptbk agents-server start` command, and it will be the only way to run the server, so you can remove all the old code related to running the server at Vercel infrastructure
 -   For now the `ptbk agents-server start` runs in foreground, it can have interactive UI if `--no-ui` flag not set
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-

@@ -1,0 +1,19 @@
+{
+    "$schema": "https://openapi.vercel.sh/vercel.json",
+    "ignoreCommand": "sh ./scripts/vercel-ignore-command.sh",
+    "crons": [
+        {
+            "path": "/api/internal/user-chat-jobs/run",
+            "schedule": "*/2 * * * *"
+        },
+        {
+            "path": "/api/internal/user-chat-timeouts/run",
+            "schedule": "*/2 * * * *"
+        }
+    ],
+    "build": {
+        "env": {
+            "VERCEL_FORCE_NO_BUILD_CACHE": "1"
+        }
+    }
+}

@@ -15,9 +15,6 @@ export async function registerNodeRuntimeInstrumentation(): Promise<void> {
             createAutomaticMigrationFailureLogContext(error),
         );
     }
-
-    const { startSelfHostedAgentsServerWorkers } = await import('./utils/selfHostedAgentsServerWorkers');
-    startSelfHostedAgentsServerWorkers();
 }
 
 /**

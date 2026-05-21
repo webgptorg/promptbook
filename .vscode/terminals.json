@@ -11,10 +11,12 @@
         },
 
         {
-            "name": "✨👨‍💻 Run ptbk agents-server start",
+            "name": "✨👨‍💻 Run ptbk start-agents-server (direct = 🧸🔠 Run Agents server app)",
+            "cwd": "./apps/agents-server/",
             "commands": [
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts agents-server start --agent github-copilot --model gpt-5.4 --thinking-level xhigh"
+                "rm -rf .next",
+                "npx tsc --noEmit && npx next build && npx next dev --port 4440"
             ],
             "execute": true,
             "onlySingle": false,
@@ -38,11 +40,78 @@
             "focus": true
         },
         {
+            "name": "✨🔼 Sync Agents server Vercel domains (dry-run)",
+            "cwd": "./apps/agents-server/",
+            "command": "npx tsx ./scripts/sync-vercel-domains.ts --dry-run",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "(❗) ✨🔼 Sync Agents server Vercel domains (💤)",
+            "cwd": "./apps/agents-server/",
+            "command": "npx tsx ./scripts/sync-vercel-domains.ts",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
             "name": "✨💾 Backup Supabase Postgres (💤)",
             "command": "npx ts-node ./scripts/backup-supabase/backup-supabase.ts --output-dir other/backup --schemas public --filename-pattern %timestamp%.sql.zip",
             "execute": false,
             "onlySingle": false,
             "focus": false
+        },
+        {
+            "name": "(❗) ✨🔼 Update the preview Agents servers (live / `main` -> `preview`) (💤)",
+            "command": "git branch --force preview main && git push origin preview --force-with-lease && (cd ./apps/agents-server/ && npx tsx ./src/database/migrate.ts --only=preview)",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "(❗❗) ✨🔼 Update the production Agents servers (`preview` -> `production`) (💤)",
+            "command": "git branch --force production preview && git push origin production --force-with-lease && (cd ./apps/agents-server/ && npx tsx ./src/database/migrate.ts --only=production)",
+            "execute": false,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "(❗❗❗) ✨🔼 Update the LTS Agents servers (`production` -> `lts`) (💤)",
+            "command": "git branch --force lts production && git push origin lts --force-with-lease && (cd ./apps/agents-server/ && npx tsx ./src/database/migrate.ts --only=lts)",
+            "execute": false,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "👨‍💻⚫ Run CLI example (💸)",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/cli/test/ptbk.ts run ./book/examples/25-simple-knowledge.book.md --provider BRING_YOUR_OWN_KEYS"
+            ],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "✨👨‍💻🟣 Run ptbk start-agents-server",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/cli/test/ptbk.ts start-agents-server ./agents/examples --port 4440 --provider BRING_YOUR_OWN_KEYS"
+            ],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "👨‍💻🟣 Run ptbk start-pipelines-server",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/cli/test/ptbk.ts start-pipelines-server ./src/remote-server/testing-books --url http://localhost:4460 --provider BRING_YOUR_OWN_KEYS"
+            ],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
         },
         {
             "name": "👨‍💻⚪ Run simple-script example (💸)",

@@ -1,15 +1,3 @@
--   Deprecated the legacy top-level `ptbk` pipeline and old-system commands while keeping them available for compatibility:
-
-    -   Added shared help notices and runtime warnings for `run`, `login`, `make`, `prettify`, `test`, `list-models`, `list-scrapers`, `start-agents-server`, and `start-pipelines-server`.
-    -   Pointed the old `ptbk start-agents-server` command at `ptbk agents-server start` and removed deprecated CLI command entries from `.vscode/terminals.json`.
-
--   Added `ptbk agents-server start` as the self-hosted foreground entrypoint for Agents Server:
-
-    -   Starts the Next.js app and local coding-agent message runners together, uses `./logs` for foreground runtime logs, and keeps per-agent runner projects in the OS temporary directory.
-    -   Bridges durable Agents Server chat tasks through local message files into the existing `ptbk agent` multi-agent runner so multiple agents can answer in parallel without GitHub runner repositories.
-    -   Added `PTBK_AGENT`, `PTBK_MODEL`, `PTBK_THINKING_LEVEL`, and shared prompt-runner environment option defaults with CLI flags taking precedence, plus `PORT` / `--port` support for the server port.
-    -   Replaced the Vercel cron runtime path with in-process self-hosted worker ticks for local durable chat job and timeout processing.
-
 -   Fixed `ptbk agent run-multiple --auto-clone` GitHub repository discovery so it follows GitHub pagination link headers and no longer misses later `agent-*` repositories while cloning watched agent runner repositories.
 
 -   Fixed `scripts/repair-imports/repair-imports.ts` so it no longer strips some needed imports after repair/organize runs:

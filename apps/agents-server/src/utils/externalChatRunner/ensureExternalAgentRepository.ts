@@ -1,7 +1,6 @@
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import type { string_book } from '@promptbook-local/types';
-import { join } from 'path';
 import {
     ensureExternalChatRunnerGithubConfiguration,
     loadExternalChatRunnerGithubConfiguration,
@@ -19,11 +18,6 @@ import {
     upsertGithubFile,
 } from './GithubRepositoryClient';
 import { createExternalAgentRepositoryFiles } from './createExternalAgentRepositoryFiles';
-import { loadLocalAgentRunnerConfiguration, type LocalAgentRunnerConfiguration } from './LocalAgentRunnerConfiguration';
-import {
-    createLocalAgentRunnerFileIfMissing,
-    upsertLocalAgentRunnerFile,
-} from './LocalAgentRunnerFileClient';
 
 /**
  * Persisted agent source snapshot used to synchronize one runner repository.
@@ -75,11 +69,6 @@ export async function loadExternalAgentSourceSnapshot(agentPermanentId: string):
 export async function ensureExternalAgentRepository(
     snapshot: ExternalAgentSourceSnapshot,
 ): Promise<ExternalAgentRepository> {
-    const localConfiguration = loadLocalAgentRunnerConfiguration();
-    if (localConfiguration) {
-        return await ensureLocalAgentRunnerRepository(localConfiguration, snapshot);
-    }
-
     const configuration = ensureExternalChatRunnerGithubConfiguration();
     return await ensureExternalAgentRepositoryWithConfiguration(configuration, snapshot);
 }
@@ -88,12 +77,6 @@ export async function ensureExternalAgentRepository(
  * Best-effort repository synchronization used from non-chat source writes.
  */
 export async function trySynchronizeExternalAgentRepository(snapshot: ExternalAgentSourceSnapshot): Promise<boolean> {
-    const localConfiguration = loadLocalAgentRunnerConfiguration();
-    if (localConfiguration) {
-        await ensureLocalAgentRunnerRepository(localConfiguration, snapshot);
-        return true;
-    }
-
     const configuration = loadExternalChatRunnerGithubConfiguration();
     if (!configuration) {
         return false;
@@ -101,55 +84,6 @@ export async function trySynchronizeExternalAgentRepository(snapshot: ExternalAg
 
     await ensureExternalAgentRepositoryWithConfiguration(configuration, snapshot);
     return true;
-}
-
-/**
- * Ensures one self-hosted local runner project contains current baseline files.
- */
-async function ensureLocalAgentRunnerRepository(
-    configuration: LocalAgentRunnerConfiguration,
-    snapshot: ExternalAgentSourceSnapshot,
-): Promise<ExternalAgentRepository> {
-    const projectPath = join(
-        configuration.agentRepositoriesDirectoryPath,
-        createExternalAgentRepositoryName(snapshot.agentPermanentId),
-    );
-    const files = createExternalAgentRepositoryFiles(snapshot);
-
-    await Promise.all([
-        upsertLocalAgentRunnerFile({
-            projectPath,
-            path: 'agent.book',
-            content: files.agentBook,
-        }),
-        upsertLocalAgentRunnerFile({
-            projectPath,
-            path: '.gitignore',
-            content: files.gitignore,
-        }),
-        upsertLocalAgentRunnerFile({
-            projectPath,
-            path: 'package.json',
-            content: files.packageJson,
-        }),
-        upsertLocalAgentRunnerFile({
-            projectPath,
-            path: 'README.md',
-            content: files.readme,
-        }),
-        ...['messages/queued/.gitkeep', 'messages/finished/.gitkeep', 'messages/failed/.gitkeep'].map((path) =>
-            createLocalAgentRunnerFileIfMissing({
-                projectPath,
-                path,
-                content: '',
-            }),
-        ),
-    ]);
-
-    return {
-        fullName: projectPath,
-        defaultBranch: 'local',
-    };
 }
 
 /**

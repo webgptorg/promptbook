@@ -3,12 +3,13 @@
 
 import colors from 'colors';
 import commander from 'commander';
-import { cp, readFile, rm } from 'fs/promises';
+import { mkdir, readFile } from 'fs/promises';
 import { basename, join } from 'path';
 import { spaceTrim } from 'spacetrim';
 import type { PackageJson } from 'type-fest';
 import { assertsError } from '../../src/errors/assertsError';
 import { $execCommand } from '../../src/utils/execCommand/$execCommand';
+import { just } from '../../src/utils/organization/just';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
 import { addDependenciesForGeneratedPackages } from './addDependenciesForGeneratedPackages';
@@ -115,7 +116,7 @@ async function generatePackages({ isCommitted, isBundlerSkipped }: GeneratePacka
         packageGenerationContext.allDevelopmentDependencies,
         packageGenerationContext.mainPackageVersion,
     );
-    await copyAgentsServerAppToCliPackage();
+    await maybeCopyAgentsServerAppToCliPackage();
     await writePublishWorkflow(packageGenerationContext.packagesMetadata);
     await maybeCommitGeneratedPackages(isCommitted, packageGenerationContext.mainPackageVersion);
 }
@@ -227,80 +228,28 @@ async function postprocessGeneratedBundles(
 }
 
 /**
- * Copies the source layout needed to build the Agents Server app from the installed CLI package.
+ * Copies the Agents Server app into the CLI package when that distribution path is re-enabled.
  *
  * @private internal utility of package generation
  */
-async function copyAgentsServerAppToCliPackage(): Promise<void> {
+async function maybeCopyAgentsServerAppToCliPackage(): Promise<void> {
+    if (!just(false /* <- Note: Temporarily disable the Copy agents-server app */)) {
+        return;
+    }
+
     logPackageGenerationStep(`8️⃣  Copy agents-server app to CLI package`);
 
-    const copyTargets = [
-        {
-            sourcePath: './apps/agents-server',
-            destinationPath: './packages/cli/apps/agents-server',
-        },
-        {
-            sourcePath: './apps/_common',
-            destinationPath: './packages/cli/apps/_common',
-        },
-        {
-            sourcePath: './src',
-            destinationPath: './packages/cli/src',
-        },
-        {
-            sourcePath: './servers.ts',
-            destinationPath: './packages/cli/servers.ts',
-        },
-        {
-            sourcePath: './security.config.ts',
-            destinationPath: './packages/cli/security.config.ts',
-        },
-        {
-            sourcePath: './books',
-            destinationPath: './packages/cli/books',
-        },
-    ] as const;
+    const agentsServerSourcePath = './apps/agents-server';
+    const agentsServerDestPath = './packages/cli/apps/agents-server';
 
-    for (const { sourcePath, destinationPath } of copyTargets) {
-        console.info(`Copying ${sourcePath} to ${destinationPath}`);
+    console.info(`Copying ${agentsServerSourcePath} to ${agentsServerDestPath}`);
 
-        await rm(destinationPath, { recursive: true, force: true });
-        await cp(sourcePath, destinationPath, {
-            recursive: true,
-            filter: shouldCopyAgentsServerPackageSourcePath,
-        });
-    }
+    await $execCommand(`rm -rf ${agentsServerDestPath}`);
+    await mkdir(agentsServerDestPath, { recursive: true });
+    await $execCommand(`cp -r ${agentsServerSourcePath}/* ${agentsServerDestPath}/ || true`);
+    await $execCommand(`rm -rf ${agentsServerDestPath}/.next`);
 
     console.info(colors.green('Agents-server app copied successfully'));
-}
-
-/**
- * Filters generated and machine-local directories out of the packaged Agents Server source copy.
- *
- * @param sourcePath - Original source path visited by `cp`.
- * @returns `true` when the path should be copied into the CLI package.
- * @private internal utility of package generation
- */
-function shouldCopyAgentsServerPackageSourcePath(sourcePath: string): boolean {
-    const normalizedSourcePath = sourcePath.replace(/\\/gu, '/');
-    const sourceBasename = basename(normalizedSourcePath);
-    const ignoredPathSegments = [
-        '/.next',
-        '/.next-e2e',
-        '/.promptbook',
-        '/coverage',
-        '/node_modules',
-    ];
-
-    if (sourceBasename === '.env' || sourceBasename.startsWith('.env.')) {
-        return false;
-    }
-
-    return !ignoredPathSegments.some(
-        (ignoredPathSegment) =>
-            normalizedSourcePath.endsWith(ignoredPathSegment) ||
-            normalizedSourcePath.includes(`${ignoredPathSegment}/`),
-    );
 }
 
 /**
