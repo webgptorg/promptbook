@@ -130,15 +130,12 @@ export const octopus3d2AvatarVisual: AvatarVisualDefinition = {
             (firstSurfacePatch, secondSurfacePatch) => firstSurfacePatch.averageDepth - secondSurfacePatch.averageDepth,
         );
         const faceEyeSpacing = size * morphologyProfile.face.eyeSpacingRatio * 0.84;
-        const faceEyeYOffset =
-            -meshProfile.radiusY * 0.26 + size * morphologyProfile.face.eyeCenterYOffsetRatio * 0.64;
+        const faceEyeYOffset = -meshProfile.radiusY * 0.26 + size * morphologyProfile.face.eyeCenterYOffsetRatio * 0.64;
         const faceEyeRadiusX = size * morphologyProfile.face.eyeRadiusXRatio * 0.72;
         const faceEyeRadiusY = faceEyeRadiusX * morphologyProfile.face.eyeHeightRatio * 0.92;
         const mouthHalfWidth = size * morphologyProfile.face.mouthWidthRatio * 0.82;
         const mouthY =
-            faceEyeYOffset +
-            size * morphologyProfile.face.mouthYOffsetRatio * 0.58 +
-            meshProfile.radiusY * 0.13;
+            faceEyeYOffset + size * morphologyProfile.face.mouthYOffsetRatio * 0.58 + meshProfile.radiusY * 0.13;
 
         drawAvatarFrame(context, size, palette);
         drawOctopus3d2Atmosphere(context, size, palette, sceneCenterX, sceneCenterY, interaction, timeMs, shapePhase);
@@ -257,9 +254,7 @@ function createBlobbyOctopusMeshProfile(
                 (morphologyProfile.tentacles.rootSpreadScale - 1) * 0.09),
         radiusY:
             baseRadius *
-            (1.34 +
-                (morphologyProfile.body.verticalStretch - 1) * 0.34 +
-                morphologyProfile.body.lowerDropRatio * 1.1),
+            (1.34 + (morphologyProfile.body.verticalStretch - 1) * 0.34 + morphologyProfile.body.lowerDropRatio * 1.1),
         radiusZ: baseRadius * (0.98 + (morphologyProfile.body.horizontalStretch - 1) * 0.18),
         mantleLift: size * morphologyProfile.body.mantleLiftRatio * 0.7,
         lowerDrop: size * (0.028 + morphologyProfile.body.lowerDropRatio * 0.74),
@@ -389,10 +384,8 @@ function resolveVisibleBlobbyOctopusMeshPatches(
         const verticalProgress = (latitudeIndex + 0.5) / BLOBBY_MESH_LATITUDE_PATCH_COUNT;
 
         for (let longitudeIndex = 0; longitudeIndex < BLOBBY_MESH_LONGITUDE_PATCH_COUNT; longitudeIndex++) {
-            const startLongitude =
-                -Math.PI + (longitudeIndex / BLOBBY_MESH_LONGITUDE_PATCH_COUNT) * Math.PI * 2;
-            const endLongitude =
-                -Math.PI + ((longitudeIndex + 1) / BLOBBY_MESH_LONGITUDE_PATCH_COUNT) * Math.PI * 2;
+            const startLongitude = -Math.PI + (longitudeIndex / BLOBBY_MESH_LONGITUDE_PATCH_COUNT) * Math.PI * 2;
+            const endLongitude = -Math.PI + ((longitudeIndex + 1) / BLOBBY_MESH_LONGITUDE_PATCH_COUNT) * Math.PI * 2;
             const midLongitude = (startLongitude + endLongitude) / 2;
             const localCorners = [
                 sampleBlobbyOctopusMeshPoint(profile, startLatitude, startLongitude),
@@ -447,11 +440,7 @@ function resolveVisibleBlobbyOctopusMeshPatches(
  *
  * @private helper of `octopus3d2AvatarVisual`
  */
-function sampleBlobbyOctopusMeshPoint(
-    profile: BlobbyOctopusMeshProfile,
-    latitude: number,
-    longitude: number,
-): Point3D {
+function sampleBlobbyOctopusMeshPoint(profile: BlobbyOctopusMeshProfile, latitude: number, longitude: number): Point3D {
     const sineLatitude = Math.sin(latitude);
     const cosineLatitude = Math.cos(latitude);
     const sineLongitude = Math.sin(longitude);
