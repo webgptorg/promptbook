@@ -2,13 +2,19 @@
 
 Agents Server is the main web application where Promptbook agents live
 
+## Starting the server
+
+Run the self-hosted server through the Promptbook CLI:
+
+-   `ptbk agents-server start --agent github-copilot --model gpt-5.4 --thinking-level xhigh`
+-   The command starts the web app, the durable job workers, and local coding-agent message runners.
+-   Runtime logs are written beneath `./logs` in the directory where the command starts.
+
 ## Creating servers
 
 When creating new Agents server, search across the repository for [☁]
 
--   [☁] [Add domain to environments](https://vercel.com/pavol-hejns-projects/promptbook-agents-server/settings/environments)
 -   [☁] Add or update the server row in the global `_Server` database table
--   [☁] Run the `_Server` -> Vercel domain sync script
 -   [☁] [Add to `.env` file](./.env)
 -   [☁] Keep `SERVER_VISIBILITY=PRIVATE` by default; switch to `SERVER_VISIBILITY=PUBLIC` (or metadata `SERVER_VISIBILITY`) only when the server should be crawlable and expose sitemap entries for public agents
 -   [☁] Optional chat default can be set via metadata `CHAT_VISUAL_MODE` (`BUBBLE_MODE` / `ARTICLE_MODE`); users can still override in the Control panel

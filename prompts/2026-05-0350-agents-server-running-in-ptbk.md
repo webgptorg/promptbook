@@ -1,4 +1,4 @@
-[ ] !!!!!!!!
+[x] ~$1.14 2 hours by OpenAI Codex `gpt-5.5`
 
 [✨✴️] Implement `ptbk agents-server start` - the single command to start the Agents Server which will
 
@@ -50,3 +50,4 @@ ptbk agents-server start --agent github-copilot --model gpt-5.4 --thinking-level
 -   The agent server was run at Vercel infrastructure. You don't need to keep this backwards compatibility anymore. From now on, the agent server is going to run via the `ptbk agents-server start` command, and it will be the only way to run the server, so you can remove all the old code related to running the server at Vercel infrastructure
 -   For now the `ptbk agents-server start` runs in foreground, it can have interactive UI if `--no-ui` flag not set
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

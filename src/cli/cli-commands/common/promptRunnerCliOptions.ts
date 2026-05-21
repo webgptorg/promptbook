@@ -105,8 +105,32 @@ export const PROMPT_RUNNER_MODEL_OPTION_DESCRIPTION = spaceTrim(`
  * @private internal utility of `promptbookCli`
  */
 export function addPromptRunnerSelectionOptions(command: Program): void {
-    command.option('--agent <agent-name>', PROMPT_RUNNER_AGENT_OPTION_DESCRIPTION);
-    command.option('--model <model>', PROMPT_RUNNER_MODEL_OPTION_DESCRIPTION);
+    command.addOption(
+        new Option('--agent <agent-name>', PROMPT_RUNNER_AGENT_OPTION_DESCRIPTION).env('PTBK_AGENT'),
+    );
+    command.addOption(new Option('--model <model>', PROMPT_RUNNER_MODEL_OPTION_DESCRIPTION).env('PTBK_MODEL'));
+}
+
+/**
+ * Registers the terminal UI and thinking-level flags shared by prompt runners.
+ *
+ * @private internal utility of `promptbookCli`
+ */
+export function addPromptRunnerUiAndThinkingOptions(command: Program): void {
+    command.addOption(
+        new Option(
+            '--no-ui',
+            'Disable the rich terminal UI and keep plain streaming console output for logging and debugging',
+        ).env('PTBK_UI'),
+    );
+    command.addOption(
+        new Option(
+            '--thinking-level <thinking-level>',
+            `Set reasoning effort for supported runners (${THINKING_LEVEL_VALUES.join(', ')})`,
+        )
+            .choices([...THINKING_LEVEL_VALUES])
+            .env('PTBK_THINKING_LEVEL'),
+    );
 }
 
 /**
@@ -115,29 +139,35 @@ export function addPromptRunnerSelectionOptions(command: Program): void {
  * @private internal utility of `promptbookCli`
  */
 export function addPromptRunnerExecutionOptions(command: Program): void {
-    command.option(
-        '--no-ui',
-        'Disable the rich terminal UI and keep plain streaming console output for logging and debugging',
+    addPromptRunnerUiAndThinkingOptions(command);
+    command.addOption(
+        new Option('--no-commit', 'Leave successful changes in the working directory instead of creating git commits')
+            .env('PTBK_COMMIT'),
+    );
+    command.addOption(
+        new Option('--ignore-git-changes', 'Skip clean working tree check before running prompts')
+            .default(false)
+            .env('PTBK_IGNORE_GIT_CHANGES'),
+    );
+    command.addOption(
+        new Option('--allow-credits', 'Allow OpenAI Codex runner to spend credits when rate limits are exhausted')
+            .default(false)
+            .env('PTBK_ALLOW_CREDITS'),
     );
     command.addOption(
         new Option(
-            '--thinking-level <thinking-level>',
-            `Set reasoning effort for supported runners (${THINKING_LEVEL_VALUES.join(', ')})`,
-        ).choices([...THINKING_LEVEL_VALUES]),
+            '--no-normalize-line-endings',
+            'Disable automatic LF normalization for files changed in each coding round',
+        ).env('PTBK_NORMALIZE_LINE_ENDINGS'),
     );
-    command.option('--no-commit', 'Leave successful changes in the working directory instead of creating git commits');
-    command.option('--ignore-git-changes', 'Skip clean working tree check before running prompts', false);
-    command.option(
-        '--allow-credits',
-        'Allow OpenAI Codex runner to spend credits when rate limits are exhausted',
-        false,
+    command.addOption(
+        new Option('--auto-push', 'Automatically git push after each commit').default(false).env('PTBK_AUTO_PUSH'),
     );
-    command.option(
-        '--no-normalize-line-endings',
-        'Disable automatic LF normalization for files changed in each coding round',
+    command.addOption(
+        new Option('--auto-pull', 'Automatically git pull before the first and each subsequent prompt')
+            .default(false)
+            .env('PTBK_AUTO_PULL'),
     );
-    command.option('--auto-push', 'Automatically git push after each commit', false);
-    command.option('--auto-pull', 'Automatically git pull before the first and each subsequent prompt', false);
 }
 
 /**

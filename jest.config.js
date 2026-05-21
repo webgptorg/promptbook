@@ -4,7 +4,14 @@ module.exports = {
         '\\.ya?ml$': '<rootDir>/jest.yamlRawTransformer.js',
     },
     testRegex: '(test)\\.(jsx?|tsx?)$',
-    testPathIgnorePatterns: ['/node_modules/', '<rootDir>/\\.promptbook/', '<rootDir>/\\.tmp/'],
+    testPathIgnorePatterns: [
+        '/node_modules/',
+        '<rootDir>/\\.promptbook/',
+        '<rootDir>/\\.tmp/',
+        '<rootDir>/packages/cli/apps/',
+        '<rootDir>/packages/cli/src/',
+    ],
+    modulePathIgnorePatterns: ['<rootDir>/packages/cli/apps/', '<rootDir>/packages/cli/src/'],
     setupFilesAfterEnv: ['./jest.setup.js'],
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'yaml', 'yml', 'node'],
     moduleNameMapper: {

@@ -20,6 +20,26 @@ const PACKAGE_FULLNAMES_WITHOUT_CORE_PEER_DEPENDENCY = new Set([
 ]);
 
 /**
+ * Root development dependencies needed when the CLI package builds the copied Agents Server app.
+ *
+ * @private internal utility of addDependenciesForGeneratedPackages
+ */
+const CLI_AGENTS_SERVER_DEVELOPMENT_DEPENDENCIES = [
+    '@tailwindcss/typography',
+    'autoprefixer',
+    'eslint',
+    'eslint-config-next',
+    'lucide-react',
+    'next',
+    'playwright',
+    'postcss',
+    'raw-loader',
+    'tailwindcss',
+    'ts-node',
+    'typescript',
+] as const;
+
+/**
  * Finalizes package manifests with dependencies and executable metadata.
  *
  * @param packagesMetadata - Metadata of generated packages
@@ -47,6 +67,12 @@ export async function addDependenciesForGeneratedPackages(
             allDependencies,
             allDevelopmentDependencies,
             mainPackageVersion,
+        );
+        applyCliAgentsServerPackageDependencies(
+            packageJson,
+            packageMetadata.packageFullname,
+            allDependencies,
+            allDevelopmentDependencies,
         );
         applyGeneratedPackageBin(packageJson, packageMetadata.packageFullname);
         removeReactRuntimeDependenciesFromComponents(packageJson, packageMetadata.packageFullname);
@@ -286,6 +312,41 @@ function applyAdditionalPackageDependencies(
                 mainPackageVersion,
             ),
         );
+    }
+}
+
+/**
+ * Adds the dependency surface used by the Agents Server source copied into `@promptbook/cli`.
+ *
+ * @param packageJson - Generated package manifest.
+ * @param packageFullname - Generated package name.
+ * @param allDependencies - Root runtime dependency versions.
+ * @param allDevelopmentDependencies - Root development dependency versions.
+ * @private internal utility of addDependenciesForGeneratedPackages
+ */
+function applyCliAgentsServerPackageDependencies(
+    packageJson: PackageJson,
+    packageFullname: string,
+    allDependencies: Record<string, string>,
+    allDevelopmentDependencies: Record<string, string>,
+): void {
+    if (packageFullname !== '@promptbook/cli') {
+        return;
+    }
+
+    for (const [dependencyName, dependencyVersion] of Object.entries(allDependencies)) {
+        upsertPackageDependency(packageJson, dependencyName, dependencyVersion);
+    }
+
+    for (const [dependencyName, dependencyVersion] of Object.entries(allDevelopmentDependencies)) {
+        if (
+            dependencyName.startsWith('@types/') ||
+            CLI_AGENTS_SERVER_DEVELOPMENT_DEPENDENCIES.includes(
+                dependencyName as (typeof CLI_AGENTS_SERVER_DEVELOPMENT_DEPENDENCIES)[number],
+            )
+        ) {
+            upsertPackageDependency(packageJson, dependencyName, dependencyVersion);
+        }
     }
 }
 

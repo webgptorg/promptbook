@@ -3,12 +3,12 @@ import { runUserChatTimeoutWorkerTick } from '@/src/utils/userChatTimeout';
 import { NextResponse } from 'next/server';
 
 /**
- * Allows one timeout-worker invocation to run for the platform maximum.
+ * Allows one timeout-worker invocation to run long enough for a bounded local round.
  */
 export const maxDuration = 300;
 
 /**
- * Runs one durable timeout-worker tick for Vercel cron and internal wake-ups.
+ * Runs one durable timeout-worker tick for internal wake-ups.
  */
 export async function GET(request: Request) {
     return handleUserChatTimeoutWorkerRequest(request);
@@ -47,13 +47,13 @@ async function handleUserChatTimeoutWorkerRequest(request: Request) {
 }
 
 /**
- * Validates internal worker-token or Vercel cron authorization.
+ * Validates the shared internal worker token.
  *
  * @param request - Incoming route request.
  * @returns `true` when the request may execute the timeout worker.
  */
 function isAuthorizedUserChatTimeoutWorkerRequest(request: Request): boolean {
-    return isAuthorizedInternalWorkerRequest(request) || isAuthorizedVercelCronRequest(request);
+    return isAuthorizedInternalWorkerRequest(request);
 }
 
 /**
@@ -65,26 +65,4 @@ function isAuthorizedUserChatTimeoutWorkerRequest(request: Request): boolean {
 function isAuthorizedInternalWorkerRequest(request: Request): boolean {
     const token = request.headers.get('x-user-chat-worker-token');
     return token === resolveUserChatWorkerInternalToken();
-}
-
-/**
- * Validates the optional Vercel cron bearer token configured via `CRON_SECRET`.
- *
- * @param request - Incoming route request.
- * @returns `true` when the request carries the configured cron secret.
- */
-function isAuthorizedVercelCronRequest(request: Request): boolean {
-    const cronSecret = process.env.CRON_SECRET?.trim();
-    const userAgent = request.headers.get('user-agent') || '';
-
-    if (request.method === 'GET' && userAgent.startsWith('vercel-cron/')) {
-        return true;
-    }
-
-    if (!cronSecret) {
-        return false;
-    }
-
-    const authorization = request.headers.get('authorization');
-    return authorization === `Bearer ${cronSecret}`;
 }

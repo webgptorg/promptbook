@@ -9,12 +9,17 @@ export const EXTERNAL_AGENT_REPOSITORY_TYPE = 'AGENT_RUNNER_GIT_REPOSITORY';
 export const EXTERNAL_AGENT_REPOSITORY_VENDOR = 'github';
 
 /**
- * Provider marker stored on UserChatJob rows handled by the git-backed runner.
+ * Provider marker stored on UserChatJob rows handled by coding-agent runner folders.
  */
-export const EXTERNAL_USER_CHAT_JOB_PROVIDER = 'github-agent-runner';
+export const EXTERNAL_USER_CHAT_JOB_PROVIDER = 'coding-agent-runner';
 
 /**
- * Reserved UserChatJob.parameters key used for git-backed runner metadata.
+ * Legacy provider marker stored by the retired GitHub runner backend.
+ */
+export const LEGACY_EXTERNAL_USER_CHAT_JOB_PROVIDER = 'github-agent-runner';
+
+/**
+ * Reserved UserChatJob.parameters key used for coding-agent runner metadata.
  */
 export const EXTERNAL_USER_CHAT_JOB_PARAMETERS_KEY = '__promptbookExternalRunner';
 

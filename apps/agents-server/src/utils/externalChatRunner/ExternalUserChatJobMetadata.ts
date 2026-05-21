@@ -2,10 +2,11 @@ import type { UserChatJobParameters, UserChatJobRecord } from '../userChat/UserC
 import {
     EXTERNAL_USER_CHAT_JOB_PARAMETERS_KEY,
     EXTERNAL_USER_CHAT_JOB_PROVIDER,
+    LEGACY_EXTERNAL_USER_CHAT_JOB_PROVIDER,
 } from './externalChatRunnerConstants';
 
 /**
- * Metadata persisted with one UserChatJob after it is mirrored to GitHub.
+ * Metadata persisted with one UserChatJob after it is mirrored to a coding-agent runner folder.
  */
 export type ExternalUserChatJobMetadata = {
     version: 2;
@@ -77,7 +78,11 @@ export function getExternalUserChatJobMetadata(
  * Returns true when a job is or was managed by the external runner.
  */
 export function isExternalUserChatJob(job: Pick<UserChatJobRecord, 'provider' | 'parameters'>): boolean {
-    return getExternalUserChatJobMetadata(job) !== null || job.provider === EXTERNAL_USER_CHAT_JOB_PROVIDER;
+    return (
+        getExternalUserChatJobMetadata(job) !== null ||
+        job.provider === EXTERNAL_USER_CHAT_JOB_PROVIDER ||
+        job.provider === LEGACY_EXTERNAL_USER_CHAT_JOB_PROVIDER
+    );
 }
 
 /**

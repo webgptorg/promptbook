@@ -1,3 +1,7 @@
 esm
 umd
 apps
+books
+security.config.ts
+servers.ts
+src

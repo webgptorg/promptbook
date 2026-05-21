@@ -35,6 +35,11 @@ import {
     parseExternalChatFinishedMessageBook,
 } from './externalChatMessageBook';
 import { ensureExternalChatRunnerGithubConfiguration } from './ExternalChatRunnerConfiguration';
+import { loadLocalAgentRunnerConfiguration } from './LocalAgentRunnerConfiguration';
+import {
+    readLocalAgentRunnerFile,
+    upsertLocalAgentRunnerFile,
+} from './LocalAgentRunnerFileClient';
 
 /**
  * Result of processing one external user chat job.
@@ -165,10 +170,7 @@ async function enqueueExternalUserChatJob(job: UserChatJobRecord): Promise<Proce
         queuedAt,
         expectedMessagesBeforeAnswer: threadMessages.length,
     });
-    const configuration = ensureExternalChatRunnerGithubConfiguration();
-
-    await upsertGithubFile({
-        configuration,
+    await upsertExternalRunnerFile({
         repositoryFullName: repository.fullName,
         path: metadata.queuedPath,
         content: createExternalChatQueuedMessageBook({ messages: threadMessages }),
@@ -199,8 +201,7 @@ async function synchronizeExternalUserChatJob(
     job: UserChatJobRecord,
     metadata: ExternalUserChatJobMetadata,
 ): Promise<ProcessExternalUserChatJobResult> {
-    const configuration = ensureExternalChatRunnerGithubConfiguration();
-    const finishedFile = await readGithubFile(configuration, metadata.repositoryFullName, metadata.finishedPath);
+    const finishedFile = await readExternalRunnerFile(metadata.repositoryFullName, metadata.finishedPath);
 
     if (finishedFile) {
         const content = parseExternalChatFinishedMessageBook({
@@ -220,7 +221,7 @@ async function synchronizeExternalUserChatJob(
         }
     }
 
-    const failedFile = await readGithubFile(configuration, metadata.repositoryFullName, metadata.failedPath);
+    const failedFile = await readExternalRunnerFile(metadata.repositoryFullName, metadata.failedPath);
     if (failedFile) {
         const failureReason = parseExternalChatFailedMessageBook({
             bookContent: failedFile.content,
@@ -259,7 +260,48 @@ async function synchronizeExternalUserChatJob(
 }
 
 /**
- * Persists external-runner metadata after one chat thread has been mirrored to GitHub.
+ * Writes one queued runner file through the configured local or GitHub backend.
+ */
+async function upsertExternalRunnerFile(options: {
+    readonly repositoryFullName: string;
+    readonly path: string;
+    readonly content: string;
+    readonly message: string;
+}): Promise<void> {
+    if (loadLocalAgentRunnerConfiguration()) {
+        await upsertLocalAgentRunnerFile({
+            projectPath: options.repositoryFullName,
+            path: options.path,
+            content: options.content,
+        });
+        return;
+    }
+
+    await upsertGithubFile({
+        configuration: ensureExternalChatRunnerGithubConfiguration(),
+        repositoryFullName: options.repositoryFullName,
+        path: options.path,
+        content: options.content,
+        message: options.message,
+    });
+}
+
+/**
+ * Reads one finished or failed runner file through the configured local or GitHub backend.
+ */
+async function readExternalRunnerFile(
+    repositoryFullName: string,
+    path: string,
+): Promise<{ readonly content: string } | null> {
+    if (loadLocalAgentRunnerConfiguration()) {
+        return await readLocalAgentRunnerFile(repositoryFullName, path);
+    }
+
+    return await readGithubFile(ensureExternalChatRunnerGithubConfiguration(), repositoryFullName, path);
+}
+
+/**
+ * Persists external-runner metadata after one chat thread has been mirrored to the runner backend.
  */
 async function persistExternalUserChatJobEnqueueMetadata(
     job: UserChatJobRecord,

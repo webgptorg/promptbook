@@ -69,6 +69,15 @@ describe('how promptbookCli works', () => {
             }),
         ).resolves.toContain('Watch one agent repository continuously and answer queued user questions'));
 
+    it('should expose `agents-server start` command', () =>
+        expect(
+            $execCommand({
+                command: 'ts-node src/cli/test/ptbk.ts agents-server start --help',
+                crashOnError: false,
+                cwd: process.cwd(),
+            }),
+        ).resolves.toContain('Start the Agents Server web app and its local coding-agent message runners'));
+
     it('should expose `coder initialize` alias', () =>
         expect(
             $execCommand({
