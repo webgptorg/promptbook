@@ -1,7 +1,12 @@
 import type OpenAI from 'openai';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { CallChatModelStreamOptions, LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult, ImagePromptResult } from '../../execution/PromptResult';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+    ImagePromptResult,
+} from '../../execution/PromptResult';
 import type { Usage } from '../../execution/Usage';
 import type { Prompt } from '../../types/Prompt';
 import type { string_markdown, string_markdown_text } from '../../types/string_markdown';
@@ -9,9 +14,9 @@ import type { string_model_name } from '../../types/string_model_name';
 import type { string_title } from '../../types/string_title';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import { computeOpenAiUsage } from './computeOpenAiUsage';
-import type { OpenAiCompatibleExecutionToolsNonProxiedOptions } from './OpenAiCompatibleExecutionToolsOptions';
 import { OpenAiCompatibleModelCatalog } from './OpenAiCompatibleModelCatalog';
 import { OpenAiCompatibleNonChatPromptCaller } from './OpenAiCompatibleNonChatPromptCaller';
+import type { OpenAiCompatibleExecutionToolsNonProxiedOptions } from './OpenAiCompatibleExecutionToolsOptions';
 import { OpenAiCompatibleRequestManager } from './OpenAiCompatibleRequestManager';
 import { callOpenAiCompatibleChatModel } from './utils/callOpenAiCompatibleChatModel';
 

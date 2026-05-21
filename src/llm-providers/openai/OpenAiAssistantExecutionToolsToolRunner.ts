@@ -3,7 +3,11 @@ import OpenAI from 'openai';
 import { spaceTrim } from 'spacetrim';
 import { parseToolExecutionEnvelope } from '../../commitments/_common/toolExecutionEnvelope';
 import type { ToolCallProgressUpdate } from '../../commitments/_common/toolRuntimeContext';
-import { registerToolCallProgressListener, TOOL_PROGRESS_TOKEN_PARAMETER, unregisterToolCallProgressListener } from '../../commitments/_common/toolRuntimeContext';
+import {
+    registerToolCallProgressListener,
+    TOOL_PROGRESS_TOKEN_PARAMETER,
+    unregisterToolCallProgressListener,
+} from '../../commitments/_common/toolRuntimeContext';
 import { assertsError } from '../../errors/assertsError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { serializeError } from '../../errors/utils/serializeError';
@@ -14,9 +18,9 @@ import type { string_date_iso8601, string_token } from '../../types/string_token
 import type { ToolCallLogEntry, ToolCallState } from '../../types/ToolCall';
 import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
 import type { TODO_any } from '../../utils/organization/TODO_any';
-import { OpenAiAssistantExecutionToolsProgressReporter } from './OpenAiAssistantExecutionToolsProgressReporter';
 import { buildToolInvocationScript } from './utils/buildToolInvocationScript';
 import { mapToolsToOpenAi } from './utils/mapToolsToOpenAi';
+import { OpenAiAssistantExecutionToolsProgressReporter } from './OpenAiAssistantExecutionToolsProgressReporter';
 
 /**
  * Type describing streamed tool call.

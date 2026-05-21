@@ -1,6 +1,11 @@
 import { Subject } from 'rxjs';
 import type { LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
-import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult, ImagePromptResult } from '../../../../execution/PromptResult';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+    ImagePromptResult,
+} from '../../../../execution/PromptResult';
 import type { Usage } from '../../../../execution/Usage';
 import { addUsage } from '../../../../execution/utils/addUsage';
 import { ZERO_USAGE } from '../../../../execution/utils/usage-constants';

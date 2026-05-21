@@ -1,4 +1,7 @@
-import type { string_pipeline_url_private, string_pipeline_url_with_task_hash_private } from './string_pipeline_url_private';
+import type {
+    string_pipeline_url_private,
+    string_pipeline_url_with_task_hash_private,
+} from './string_pipeline_url_private';
 
 /**
  * Semantic helper

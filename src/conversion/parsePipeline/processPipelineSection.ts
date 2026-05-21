@@ -3,13 +3,18 @@ import type { Writable, WritableDeep } from 'type-fest';
 import { sectionCommandParser } from '../../commands/SECTION/sectionCommandParser';
 import { getParserForCommand } from '../../commands/_common/getParserForCommand';
 import { parseCommand } from '../../commands/_common/parseCommand';
-import type { $PipelineJson, $TaskJson, CommandBase, PipelineTaskCommandParser } from '../../commands/_common/types/CommandParser';
+import type {
+    $PipelineJson,
+    $TaskJson,
+    CommandBase,
+    PipelineTaskCommandParser,
+} from '../../commands/_common/types/CommandParser';
 import { DEFAULT_TASK_TITLE } from '../../config';
 import { ParseError } from '../../errors/ParseError';
 import type { ScriptTaskJson } from '../../pipeline/PipelineJson/ScriptTaskJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
-import type { ScriptLanguage } from '../../types/ScriptLanguage';
 import { SUPPORTED_SCRIPT_LANGUAGES } from '../../types/ScriptLanguage';
+import type { ScriptLanguage } from '../../types/ScriptLanguage';
 import { extractAllListItemsFromMarkdown } from '../../utils/markdown/extractAllListItemsFromMarkdown';
 import { extractOneBlockFromMarkdown } from '../../utils/markdown/extractOneBlockFromMarkdown';
 import type { MarkdownSection } from '../../utils/markdown/parseMarkdownSection';

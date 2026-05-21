@@ -6,7 +6,11 @@ import { assertsError } from '../../../../errors/assertsError';
 import { PipelineExecutionError } from '../../../../errors/PipelineExecutionError';
 import { serializeError } from '../../../../errors/utils/serializeError';
 import type { LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
-import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } from '../../../../execution/PromptResult';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+} from '../../../../execution/PromptResult';
 import { validatePromptResult } from '../../../../execution/utils/validatePromptResult';
 import { MemoryStorage } from '../../../../storage/memory/MemoryStorage';
 import type { Prompt } from '../../../../types/Prompt';

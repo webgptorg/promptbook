@@ -12,11 +12,11 @@ import type { string_token } from '../../types/string_token';
 import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import type { OpenAiAssistantExecutionToolsOptions } from './OpenAiAssistantExecutionToolsOptions';
+import type { OpenAiCompatibleExecutionToolsNonProxiedOptions } from './OpenAiCompatibleExecutionToolsOptions';
 import { OpenAiAssistantExecutionToolsProgressReporter } from './OpenAiAssistantExecutionToolsProgressReporter';
 import { OpenAiAssistantExecutionToolsPromptBuilder } from './OpenAiAssistantExecutionToolsPromptBuilder';
 import { OpenAiAssistantExecutionToolsStreamRunner } from './OpenAiAssistantExecutionToolsStreamRunner';
 import { OpenAiAssistantExecutionToolsToolRunner } from './OpenAiAssistantExecutionToolsToolRunner';
-import type { OpenAiCompatibleExecutionToolsNonProxiedOptions } from './OpenAiCompatibleExecutionToolsOptions';
 import { OpenAiVectorStoreHandler } from './OpenAiVectorStoreHandler';
 import { mapToolsToOpenAi } from './utils/mapToolsToOpenAi';
 

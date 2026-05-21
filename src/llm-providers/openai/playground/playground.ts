@@ -8,7 +8,7 @@ import colors from 'colors'; // <- TODO: [🔶] Make system to put color and sty
 import { embeddingVectorToString } from '../../../execution/embeddingVectorToString';
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import { JavascriptEvalExecutionTools } from '../../../scripting/javascript/JavascriptEvalExecutionTools';
-import type { Prompt } from '../../../types/Prompt';
+import type { ChatPrompt, Prompt } from '../../../types/Prompt';
 import { keepUnused } from '../../../utils/organization/keepUnused';
 // import { OpenAiAssistantExecutionTools } from '../OpenAiAssistantExecutionTools';
 import { join } from 'path';

@@ -2,7 +2,13 @@ import type { ChatMessage } from '../book-components/Chat/types/ChatMessage';
 import type { FormatCommand } from '../commands/FORMAT/FormatCommand';
 import type { Expectations } from '../pipeline/PipelineJson/Expectations';
 import type { LlmToolDefinition } from './LlmToolDefinition';
-import type { ChatModelRequirements, CompletionModelRequirements, EmbeddingModelRequirements, ImageGenerationModelRequirements, ModelRequirements } from './ModelRequirements';
+import type {
+    ChatModelRequirements,
+    CompletionModelRequirements,
+    EmbeddingModelRequirements,
+    ImageGenerationModelRequirements,
+    ModelRequirements,
+} from './ModelRequirements';
 import type { Parameters } from './Parameters';
 import type { string_postprocessing_function_name } from './string_person_fullname';
 import type { string_pipeline_url_with_task_hash } from './string_pipeline_url';

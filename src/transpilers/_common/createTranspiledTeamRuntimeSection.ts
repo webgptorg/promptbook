@@ -3,7 +3,12 @@ import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentMo
 import { resolvePseudoAgentKindFromUrl } from '../../book-2.0/agent-source/pseudoAgentReferences';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import type { string_javascript_name } from '../../types/string_person_fullname';
-import type { TranspiledTeamAgent, TranspiledTeamAgentModelRequirements, TranspiledTeamExport, TranspiledTeamTeammate } from './TranspiledTeamExport';
+import type {
+    TranspiledTeamAgent,
+    TranspiledTeamAgentModelRequirements,
+    TranspiledTeamExport,
+    TranspiledTeamTeammate,
+} from './TranspiledTeamExport';
 
 /**
  * Fallback URL used when transpilers are called outside Agents Server and only have the Book source.
