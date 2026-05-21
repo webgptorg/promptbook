@@ -423,6 +423,13 @@
             "focus": true
         },
         {
+            "name": "⚡🏭 Generate \"ptbk agents-server\" prompt boilerplates for Coding Agent",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --count 5 --template prompts/_templates/ptbk-agents-server.md",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
             "name": "⚡🏭 Find refactor candidates for Coding Agent",
             "command": "npx ts-node ./src/cli/test/ptbk.ts coder find-refactor-candidates",
             "execute": true,
