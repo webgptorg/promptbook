@@ -1,15 +1,3 @@
--   Fixed `ptbk agent run-agent` and `ptbk agent run-multiple` so persistent watcher sessions no longer exit after recoverable failures:
-
-    -   Kept the watch loops alive after queued-message, auto-pull, and repository-synchronization errors by logging each failure and continuing with the next polling round instead of terminating the whole process.
-    -   Added cwd-level `ptbk-agent-error-*.log` failure logs that capture error details together with the preserved raw bash input/output history from failed queued-message runner shells.
-    -   Kept `ptbk agent run-once` single-shot behavior unchanged, so it still exits after one answered message instead of becoming a persistent watcher.
-
--   Added a new `Octopus 3D 2` built-in avatar visual with a more continuous blobby 3D octopus shape:
-
-    -   Registered the new `octopus3d2` visual across the shared avatar registry, metadata-driven avatar selection, `META AVATAR`, and the utils avatar playground.
-    -   Rendered the octopus as one continuous projected mesh whose lower surface forms soft tentacle lobes instead of separate tentacle strokes, while keeping the cute `Octopus3` seeded morphology.
-    -   Shared the 3D octopus eye, mouth, surface-depth, and surface-shading helpers with `Octopus 3D` so both pointer-aware octopus visuals reuse the same projected face and shading logic.
-
 -   Fixed `ptbk agent run-multiple --auto-clone` GitHub repository discovery so it follows GitHub pagination link headers and no longer misses later `agent-*` repositories while cloning watched agent runner repositories.
 
 -   Fixed `scripts/repair-imports/repair-imports.ts` so it no longer strips some needed imports after repair/organize runs:

@@ -12,7 +12,6 @@ worktime
 formfactor
 formfactors
 blackhole
-blobby
 subtools
 subvalue
 linecol
