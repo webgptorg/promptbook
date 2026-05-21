@@ -1,12 +1,4 @@
-import type {
-    string_domain_private,
-    string_hostname_private,
-    string_host_private,
-    string_ip_address_private,
-    string_origin_private,
-    string_protocol_private,
-    string_tdl_private,
-} from './string_host_private';
+import type { string_domain_private, string_hostname_private, string_host_private, string_ip_address_private, string_origin_private, string_protocol_private, string_tdl_private } from './string_host_private';
 
 /**
  * Semantic helper

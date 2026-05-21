@@ -8,7 +8,6 @@ import type { string_name } from '../../types/string_name';
 import type { string_title } from '../../types/string_title';
 import { computeOpenAiUsage } from '../openai/computeOpenAiUsage';
 import { OpenAiCompatibleExecutionTools } from '../openai/OpenAiCompatibleExecutionTools';
-import { OpenAiExecutionToolsOptions } from '../openai/OpenAiExecutionToolsOptions';
 
 import { OLLAMA_MODELS } from './ollama-models';
 import type { OllamaExecutionToolsOptions } from './OllamaExecutionToolsOptions';

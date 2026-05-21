@@ -4,14 +4,14 @@ import { spaceTrim } from '../organization/spaceTrim';
 import { TODO_USE } from '../organization/TODO_USE';
 import type { WithTake } from '../take/interfaces/ITakeChain';
 import { take } from '../take/take';
-import { CSS_COLORS } from './css-colors';
 import { ColorValue } from './ColorValue';
+import { CSS_COLORS } from './css-colors';
 import { isHexColorString } from './isHexColorString';
+import { parseColorString } from './parseColorString';
 import type { ColorChannelSet } from './parsers/ColorChannelSet';
 import { parseHexColor } from './parsers/parseHexColor';
 import { parseHslColor } from './parsers/parseHslColor';
 import { parseRgbaColor, parseRgbColor } from './parsers/parseRgbColor';
-import { parseColorString } from './parseColorString';
 
 /**
  * Color object represents an RGB color with alpha channel

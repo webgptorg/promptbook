@@ -10,10 +10,7 @@ import { resolveToolCallState } from '../utils/resolveToolCallState';
 import { getToolCallTimestamp } from '../utils/toolCallParsing/getToolCallTimestamp';
 import { parseToolCallArguments } from '../utils/toolCallParsing/parseToolCallArguments';
 import { parseToolCallResult } from '../utils/toolCallParsing/parseToolCallResult';
-import {
-    parseWalletCredentialToolCallResult,
-    WALLET_CREDENTIAL_TOOL_CALL_NAME,
-} from '../utils/walletCredentialToolCall';
+import { parseWalletCredentialToolCallResult, WALLET_CREDENTIAL_TOOL_CALL_NAME } from '../utils/walletCredentialToolCall';
 import styles from './Chat.module.css';
 import { renderEmailToolCallDetails } from './renderEmailToolCallDetails';
 import { renderMemoryToolCallDetails } from './renderMemoryToolCallDetails';

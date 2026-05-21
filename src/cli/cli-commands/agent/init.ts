@@ -1,16 +1,10 @@
 import type {
-    Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
+  Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */
 } from 'commander';
 import { spaceTrim } from 'spacetrim';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
 import { handleActionErrors } from '../common/handleActionErrors';
-import {
-    AGENT_BOOK_FILE_PATH,
-    AGENT_BOOK_LANGUAGE_MANUAL_FILE_PATH,
-    AGENT_FINISHED_MESSAGES_DIRECTORY_PATH,
-    AGENT_KNOWLEDGE_DIRECTORY_PATH,
-    AGENT_QUEUED_MESSAGES_DIRECTORY_PATH,
-} from './agentProjectPaths';
+import { AGENT_BOOK_FILE_PATH, AGENT_BOOK_LANGUAGE_MANUAL_FILE_PATH, AGENT_FINISHED_MESSAGES_DIRECTORY_PATH, AGENT_KNOWLEDGE_DIRECTORY_PATH, AGENT_QUEUED_MESSAGES_DIRECTORY_PATH } from './agentProjectPaths';
 import { initializeAgentProjectConfiguration } from './initializeAgentProjectConfiguration';
 import { printAgentInitializationSummary } from './printAgentInitializationSummary';
 

@@ -1,10 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import {
-    getPromptbookTemporaryGitignoreRule,
-    getPromptbookTemporaryPath,
-    PROMPTBOOK_TEMPORARY_DIRECTORY,
-    resolvePromptbookTemporaryPath,
-} from './promptbookTemporaryPath';
+import { getPromptbookTemporaryGitignoreRule, getPromptbookTemporaryPath, PROMPTBOOK_TEMPORARY_DIRECTORY, resolvePromptbookTemporaryPath } from './promptbookTemporaryPath';
 
 describe('promptbookTemporaryPath', () => {
     it('builds normalized relative paths inside the shared Promptbook temporary root', () => {

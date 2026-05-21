@@ -1,10 +1,6 @@
 import { BehaviorSubject } from 'rxjs';
 import type { AvatarVisualId } from '../../avatars/types/AvatarVisualDefinition';
-import type {
-    AgentBasicInformation,
-    AgentCapability,
-    BookParameter,
-} from '../../book-2.0/agent-source/AgentBasicInformation';
+import type { AgentBasicInformation, AgentCapability, BookParameter } from '../../book-2.0/agent-source/AgentBasicInformation';
 import { computeAgentHash } from '../../book-2.0/agent-source/computeAgentHash';
 import { createDefaultAgentName } from '../../book-2.0/agent-source/createDefaultAgentName';
 import { parseAgentSource } from '../../book-2.0/agent-source/parseAgentSource';

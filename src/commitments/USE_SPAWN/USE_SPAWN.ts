@@ -1,9 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
-import {
-    createCreateAgentInputToolParametersSchema,
-    CREATE_AGENT_INPUT_SOURCE_MAX_LENGTH,
-} from '../../collection/agent-collection/CreateAgentInput';
+import { createCreateAgentInputToolParametersSchema, CREATE_AGENT_INPUT_SOURCE_MAX_LENGTH } from '../../collection/agent-collection/CreateAgentInput';
 import type { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
 import type { LlmToolDefinition } from '../../types/LlmToolDefinition';
 import type { string_javascript_name } from '../../types/string_person_fullname';

@@ -2,19 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { retainAvatarAnimationListener } from './avatarAnimationScheduler';
-import {
-    createAvatarDefinitionKey,
-    createAvatarInteractionRuntimeState,
-    createIdleAvatarInteractionState,
-    resolveAvatarPointerTarget,
-    stepAvatarInteractionRuntimeState,
-} from './avatarInteractionUtils';
-import {
-    getAvatarPointerSnapshot,
-    getAvatarPointerSnapshotVersion,
-    getAvatarViewportLayoutVersion,
-    retainAvatarPointerTracking,
-} from './avatarPointerTracking';
+import { createAvatarDefinitionKey, createAvatarInteractionRuntimeState, createIdleAvatarInteractionState, resolveAvatarPointerTarget, stepAvatarInteractionRuntimeState } from './avatarInteractionUtils';
+import { getAvatarPointerSnapshot, getAvatarPointerSnapshotVersion, getAvatarViewportLayoutVersion, retainAvatarPointerTracking } from './avatarPointerTracking';
 import { DEFAULT_AVATAR_SIZE } from './avatarRenderingUtils';
 import { observeAvatarVisibility } from './avatarVisibilityTracking';
 import { renderAvatarVisual, resolveAvatarRenderDefinition } from './renderAvatarVisual';

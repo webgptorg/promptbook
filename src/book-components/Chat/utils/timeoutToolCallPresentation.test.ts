@@ -1,10 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import {
-    buildTimeoutToolCallChipLabel,
-    buildTimeoutToolPrimarySentence,
-    buildTimeoutToolScheduleSentence,
-    resolveTimeoutToolCallPresentation,
-} from './timeoutToolCallPresentation';
+import { buildTimeoutToolCallChipLabel, buildTimeoutToolPrimarySentence, buildTimeoutToolScheduleSentence, resolveTimeoutToolCallPresentation } from './timeoutToolCallPresentation';
 
 describe('timeoutToolCallPresentation', () => {
     it('formats a friendly chip label for set_timeout based on milliseconds', () => {

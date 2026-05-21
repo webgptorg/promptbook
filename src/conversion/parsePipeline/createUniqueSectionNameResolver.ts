@@ -1,7 +1,7 @@
 import type { number_integer, number_positive } from '../../types/number_positive';
 import type { string_name } from '../../types/string_name';
-import { titleToName } from '../../utils/normalization/titleToName';
 import type { MarkdownSection } from '../../utils/markdown/parseMarkdownSection';
+import { titleToName } from '../../utils/normalization/titleToName';
 
 /**
  * Resolves a unique task name for one parsed markdown section title.

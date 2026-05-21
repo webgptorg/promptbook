@@ -1,7 +1,4 @@
-import type {
-    InlineKnowledgeSourceFile,
-    InlineKnowledgeSourceUploader,
-} from '../../../utils/knowledge/inlineKnowledgeSource';
+import type { InlineKnowledgeSourceFile, InlineKnowledgeSourceUploader } from '../../../utils/knowledge/inlineKnowledgeSource';
 import { inlineKnowledgeSourceToDataUrl } from '../../../utils/knowledge/inlineKnowledgeSource';
 import type { chococake } from '../../../utils/organization/really_any';
 import type { AgentModelRequirements } from '../AgentModelRequirements';

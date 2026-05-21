@@ -1,20 +1,16 @@
 import type OpenAI from 'openai';
 import { parseToolExecutionEnvelope } from '../../../commitments/_common/toolExecutionEnvelope';
-import {
-    registerToolCallProgressListener,
-    TOOL_PROGRESS_TOKEN_PARAMETER,
-    unregisterToolCallProgressListener,
-} from '../../../commitments/_common/toolRuntimeContext';
+import { registerToolCallProgressListener, TOOL_PROGRESS_TOKEN_PARAMETER, unregisterToolCallProgressListener } from '../../../commitments/_common/toolRuntimeContext';
 import { assertsError } from '../../../errors/assertsError';
+import { PipelineExecutionError } from '../../../errors/PipelineExecutionError';
 import { serializeError } from '../../../errors/utils/serializeError';
-import { forEachAsync } from '../../../execution/utils/forEachAsync';
 import type { ChatPromptResult } from '../../../execution/PromptResult';
 import type { Usage } from '../../../execution/Usage';
+import { forEachAsync } from '../../../execution/utils/forEachAsync';
 import type { Prompt } from '../../../types/Prompt';
 import type { string_date_iso8601 } from '../../../types/string_token';
 import { $getCurrentDate } from '../../../utils/misc/$getCurrentDate';
 import type { TODO_any } from '../../../utils/organization/TODO_any';
-import { PipelineExecutionError } from '../../../errors/PipelineExecutionError';
 import type { OpenAiCompatibleExecutionToolsNonProxiedOptions } from '../OpenAiCompatibleExecutionToolsOptions';
 import { buildToolInvocationScript } from './buildToolInvocationScript';
 import { OpenAiCompatibleChatProgressReporter } from './OpenAiCompatibleChatProgressReporter';

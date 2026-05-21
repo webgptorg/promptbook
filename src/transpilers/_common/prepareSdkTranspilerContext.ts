@@ -6,10 +6,7 @@ import type { string_book } from '../../book-2.0/agent-source/string_book';
 import { getAllCommitmentDefinitions } from '../../commitments/_common/getAllCommitmentDefinitions';
 import type { LlmToolDefinition } from '../../types/LlmToolDefinition';
 import type { BookTranspilerOptions } from './BookTranspilerOptions';
-import {
-    createTranspiledTeamAwareToolFunctions,
-    createTranspiledTeamExportForContext,
-} from './createTranspiledTeamRuntimeSection';
+import { createTranspiledTeamAwareToolFunctions, createTranspiledTeamExportForContext } from './createTranspiledTeamRuntimeSection';
 import type { TranspiledTeamExport } from './TranspiledTeamExport';
 
 /**

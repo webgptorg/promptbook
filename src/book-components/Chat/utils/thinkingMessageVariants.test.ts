@@ -1,10 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import { DEFAULT_THINKING_MESSAGES } from '../../../utils/DEFAULT_THINKING_MESSAGES';
-import {
-    getRandomThinkingMessageDelayMs,
-    getRandomThinkingMessageVariant,
-    normalizeThinkingMessageVariants,
-} from './thinkingMessageVariants';
+import { getRandomThinkingMessageDelayMs, getRandomThinkingMessageVariant, normalizeThinkingMessageVariants } from './thinkingMessageVariants';
 
 describe('thinkingMessageVariants', () => {
     it('falls back to shared defaults when variants are missing', () => {

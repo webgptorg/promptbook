@@ -24,10 +24,7 @@ import type { MessageButton } from '../utils/parseMessageButtons';
 import { parseMessageButtons } from '../utils/parseMessageButtons';
 import { resolveChatMessageReplyPreviewText } from '../utils/resolveChatMessageReplyPreviewText';
 import { resolveChatMessageReplySenderLabel } from '../utils/resolveChatMessageReplySenderLabel';
-import {
-    getLatestStreamingFeatureBoundary,
-    sanitizeStreamingMessageContent,
-} from '../utils/sanitizeStreamingMessageContent';
+import { getLatestStreamingFeatureBoundary, sanitizeStreamingMessageContent } from '../utils/sanitizeStreamingMessageContent';
 import { splitMessageContentIntoSegments } from '../utils/splitMessageContentIntoSegments';
 import styles from './Chat.module.css';
 import { chatCssClassNames } from './chatCssClassNames';

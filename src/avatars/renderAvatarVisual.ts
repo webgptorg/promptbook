@@ -1,18 +1,7 @@
 import { createIdleAvatarInteractionState } from './avatarInteractionUtils';
-import {
-    createAvatarPalette,
-    createAvatarRandomFactory,
-    normalizeAvatarDefinition,
-    prepareAvatarCanvas,
-} from './avatarRenderingUtils';
+import { createAvatarPalette, createAvatarRandomFactory, normalizeAvatarDefinition, prepareAvatarCanvas } from './avatarRenderingUtils';
 import type { AvatarDefinition } from './types/AvatarDefinition';
-import type {
-    AvatarPalette,
-    AvatarSurfaceStyle,
-    AvatarVisualDefinition,
-    AvatarVisualId,
-    RenderAvatarVisualOptions,
-} from './types/AvatarVisualDefinition';
+import type { AvatarPalette, AvatarSurfaceStyle, AvatarVisualDefinition, AvatarVisualId, RenderAvatarVisualOptions } from './types/AvatarVisualDefinition';
 import { getAvatarVisualById } from './visuals/avatarVisualRegistry';
 
 /**

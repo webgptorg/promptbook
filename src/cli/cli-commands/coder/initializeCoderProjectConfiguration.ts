@@ -1,12 +1,7 @@
 import { AGENT_CODING_FILE_PATH, getDefaultCoderAgentCodingFileContent } from './agentCodingFile';
 import { AGENTS_FILE_PATH, getDefaultCoderAgentsFileContent } from './agentsFile';
 import type { EnsuredCoderPromptTemplateFile, InitializationStatus } from './boilerplateTemplates';
-import {
-    ensureDefaultCoderPromptTemplateFiles,
-    PROMPTS_DIRECTORY_PATH,
-    PROMPTS_DONE_DIRECTORY_PATH,
-    PROMPTS_TEMPLATES_DIRECTORY_PATH,
-} from './boilerplateTemplates';
+import { ensureDefaultCoderPromptTemplateFiles, PROMPTS_DIRECTORY_PATH, PROMPTS_DONE_DIRECTORY_PATH, PROMPTS_TEMPLATES_DIRECTORY_PATH } from './boilerplateTemplates';
 import { ensureCoderEnvFile } from './ensureCoderEnvFile';
 import { ensureCoderGitignoreFile } from './ensureCoderGitignoreFile';
 import { ensureCoderMarkdownFile } from './ensureCoderMarkdownFile';

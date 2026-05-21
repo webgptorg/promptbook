@@ -1,8 +1,8 @@
 import colors from 'colors';
+import { jsonParse } from '../../../formats/json/utils/jsonParse';
 import type { PipelineJson } from '../../../pipeline/PipelineJson/PipelineJson';
 import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
 import type { string_parameter_name, string_parameter_value } from '../../../types/string_name';
-import { jsonParse } from '../../../formats/json/utils/jsonParse';
 import { normalizeToKebabCase } from '../../../utils/normalization/normalize-to-kebab-case';
 import { runInteractiveChatbot } from '../runInteractiveChatbot';
 import { prepareRunCommandResources } from './prepareRunCommandResources';

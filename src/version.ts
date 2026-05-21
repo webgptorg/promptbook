@@ -1,6 +1,6 @@
 // ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten
 
-import type { string_semantic_version } from './types/typeAliases';
+import type { string_semantic_version } from './types/string_sha256';
 
 /**
  * The version of the Book language

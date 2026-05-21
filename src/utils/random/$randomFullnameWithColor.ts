@@ -1,9 +1,4 @@
-import type {
-    string_color,
-    string_person_firstname,
-    string_person_fullname,
-    string_person_lastname,
-} from '../../types/string_person_fullname';
+import type { string_color, string_person_firstname, string_person_fullname, string_person_lastname } from '../../types/string_person_fullname';
 import { $randomItem } from './$randomItem';
 
 /**

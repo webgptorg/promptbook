@@ -1,10 +1,5 @@
 import type { TODO_any } from '../../../../utils/organization/TODO_any';
-import type {
-    RunBrowserToolAction,
-    RunBrowserToolArtifact,
-    RunBrowserToolError,
-    RunBrowserToolResult,
-} from './RunBrowserToolResult';
+import type { RunBrowserToolAction, RunBrowserToolArtifact, RunBrowserToolError, RunBrowserToolResult } from './RunBrowserToolResult';
 
 /**
  * Schema marker emitted by successful `run_browser` payloads.

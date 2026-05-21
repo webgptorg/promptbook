@@ -3,18 +3,10 @@ import type { string_javascript_name } from '../../types/string_person_fullname'
 import { decodeAttachmentAsText, DEFAULT_ATTACHMENT_TEXT_DECODE_BYTES } from '../../utils/files/decodeAttachmentAsText';
 import { extensionToMimeType } from '../../utils/files/extensionToMimeType';
 import { getFileExtension } from '../../utils/files/getFileExtension';
-import type {
-    UseProjectGitHubContentsItem,
-    UseProjectGitHubGitRefResponse,
-    UseProjectGitHubPullRequestResponse,
-    UseProjectGitHubRepositoryResponse,
-} from './callGitHubApi';
+import type { UseProjectGitHubContentsItem, UseProjectGitHubGitRefResponse, UseProjectGitHubPullRequestResponse, UseProjectGitHubRepositoryResponse } from './callGitHubApi';
 import { callGitHubApi } from './callGitHubApi';
 import { normalizeOptionalToolText, normalizeRequiredToolText } from './normalizeOptionalToolText';
-import type {
-    UseProjectToolArgsBase,
-    UseProjectToolRuntimeResolution,
-} from './resolveUseProjectToolRuntimeOrWalletCredentialResult';
+import type { UseProjectToolArgsBase, UseProjectToolRuntimeResolution } from './resolveUseProjectToolRuntimeOrWalletCredentialResult';
 import { resolveUseProjectToolRuntimeOrWalletCredentialResult } from './resolveUseProjectToolRuntimeOrWalletCredentialResult';
 import { UseProjectToolNames } from './UseProjectToolNames';
 

@@ -4,10 +4,10 @@ import { parseCommand } from '../../commands/_common/parseCommand';
 import type { $PipelineJson, CommandBase, PipelineHeadCommandParser } from '../../commands/_common/types/CommandParser';
 import { ParseError } from '../../errors/ParseError';
 import { extractAllListItemsFromMarkdown } from '../../utils/markdown/extractAllListItemsFromMarkdown';
+import type { MarkdownSection } from '../../utils/markdown/parseMarkdownSection';
 import { defineParameter } from './defineParameter';
 import { extractPipelineDescription } from './extractPipelineDescription';
 import { getPipelineIdentification } from './getPipelineIdentification';
-import type { MarkdownSection } from '../../utils/markdown/parseMarkdownSection';
 
 /**
  * Applies the pipeline head title, description, and head-level commands.
