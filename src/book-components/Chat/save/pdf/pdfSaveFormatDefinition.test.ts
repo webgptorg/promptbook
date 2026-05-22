@@ -3,87 +3,56 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../../../../version';
 import { pdfSaveFormatDefinition } from './pdfSaveFormatDefinition';
 
+/**
+ * Captured jsPDF interactions used by the PDF regression tests.
+ */
 const mockPdfState: {
-    texts: string[];
+    renderSources: string[];
     metadata: string[];
     properties: Array<Record<string, string>>;
 } = {
-    texts: [],
+    renderSources: [],
     metadata: [],
     properties: [],
 };
 
 jest.mock('jspdf', () => ({
-    jsPDF: jest.fn(() => {
-        let pageCount = 1;
-
-        return {
-            internal: {
-                pageSize: {
-                    getWidth: () => 612,
-                    getHeight: () => 792,
-                },
+    jsPDF: jest.fn(() => ({
+        internal: {
+            pageSize: {
+                getWidth: () => 612,
             },
-            setProperties: (properties: Record<string, string>) => {
-                mockPdfState.properties.push(properties);
-            },
-            addMetadata: (metadata: string) => {
-                mockPdfState.metadata.push(metadata);
-            },
-            setFont: jest.fn(),
-            setFontSize: jest.fn(),
-            setTextColor: jest.fn(),
-            setDrawColor: jest.fn(),
-            setFillColor: jest.fn(),
-            setLineWidth: jest.fn(),
-            line: jest.fn(),
-            rect: jest.fn(),
-            roundedRect: jest.fn(),
-            link: jest.fn(),
-            addPage: () => {
-                pageCount += 1;
-            },
-            setPage: jest.fn(),
-            getNumberOfPages: () => pageCount,
-            getTextWidth: (text: string) => text.length * 4.8,
-            splitTextToSize: (text: string, maxWidth: number) => {
-                const maxCharacters = Math.max(1, Math.floor(maxWidth / 4.8));
-                const lines: string[] = [];
-                let remainingText = text;
-
-                while (remainingText.length > maxCharacters) {
-                    lines.push(remainingText.slice(0, maxCharacters));
-                    remainingText = remainingText.slice(maxCharacters);
-                }
-
-                lines.push(remainingText);
-                return lines;
-            },
-            text: (text: string | string[]) => {
-                mockPdfState.texts.push(...(Array.isArray(text) ? text : [text]));
-            },
-            output: () =>
-                new TextEncoder().encode(
-                    [
-                        '%PDF-1.3',
-                        ...mockPdfState.texts,
-                        ...mockPdfState.metadata,
-                        JSON.stringify(mockPdfState.properties),
-                    ].join('\n'),
-                ).buffer,
-        };
-    }),
+        },
+        setProperties: (properties: Record<string, string>) => {
+            mockPdfState.properties.push(properties);
+        },
+        addMetadata: (metadata: string) => {
+            mockPdfState.metadata.push(metadata);
+        },
+        html: async (source: HTMLElement) => {
+            mockPdfState.renderSources.push(source.outerHTML);
+        },
+        output: () =>
+            new TextEncoder().encode(
+                [
+                    '%PDF-1.3',
+                    ...mockPdfState.renderSources,
+                    ...mockPdfState.metadata,
+                    JSON.stringify(mockPdfState.properties),
+                ].join('\n'),
+            ).buffer,
+    })),
 }));
 
 describe('pdfSaveFormatDefinition', () => {
     beforeEach(() => {
-        mockPdfState.texts = [];
+        mockPdfState.renderSources = [];
         mockPdfState.metadata = [];
         mockPdfState.properties = [];
     });
 
-    it('renders PDF chat exports with markdown and Promptbook metadata', () => {
-        const exportedContent = pdfSaveFormatDefinition.getContent({
+    it('renders the HTML chat document as PDF content with Promptbook metadata', async () => {
+        const exportedContent = (await pdfSaveFormatDefinition.getContent({
             title: 'Support demo',
             participants: [
                 {
@@ -106,9 +75,9 @@ describe('pdfSaveFormatDefinition', () => {
                     isComplete: true,
                 },
             ],
-        }) as Uint8Array;
+        })) as Uint8Array;
         const pdfText = Buffer.from(exportedContent).toString('utf-8');
-        const renderedText = mockPdfState.texts.join('\n');
+        const renderedHtml = mockPdfState.renderSources.join('\n');
         const metadataText = [...mockPdfState.metadata, JSON.stringify(mockPdfState.properties)].join('\n');
 
         expect(pdfSaveFormatDefinition.label).toBe('PDF');
@@ -117,24 +86,25 @@ describe('pdfSaveFormatDefinition', () => {
         expect(metadataText).toContain('Promptbook');
         expect(metadataText).toContain(PROMPTBOOK_ENGINE_VERSION);
         expect(metadataText).toContain(BOOK_LANGUAGE_VERSION);
-        expect(renderedText).toContain('Helpful Agent');
-        expect(renderedText).toContain('Summary');
-        expect(renderedText).toContain('First');
-        expect(renderedText).toContain('Second');
-        expect(renderedText).toContain('Bold');
-        expect(renderedText).toContain('answer');
-        expect(renderedText).toContain('inline');
-        expect(renderedText).toContain('code');
-        expect(renderedText).not.toContain('# Summary');
-        expect(renderedText).not.toContain('**Bold answer**');
+        expect(renderedHtml).toContain('<style>');
+        expect(renderedHtml).toContain('<article class="message-card"');
+        expect(renderedHtml).toContain('Helpful Agent');
+        expect(renderedHtml).toContain('<h1>Summary</h1>');
+        expect(renderedHtml).toContain('<li>First</li>');
+        expect(renderedHtml).toContain('<li>Second</li>');
+        expect(renderedHtml).toContain('<strong>Bold answer</strong>');
+        expect(renderedHtml).toContain('<code>inline code</code>');
+        expect(renderedHtml).toContain('<pre><code');
+        expect(renderedHtml).not.toContain('# Summary');
+        expect(renderedHtml).not.toContain('**Bold answer**');
     });
 
-    it('renders inline citation markers as numbered PDF source footnotes', () => {
+    it('renders inline citation markers as numbered PDF source footnotes through the HTML export', async () => {
         const firstSourceUrl =
             'https://ptbk.io/k/nt-084-2000-obsah-internetovych-stranek-etnh35iYn7gbtUZ2oLfKarhHKOyWHF.pdf';
         const secondSourceUrl = 'https://ptbk.io/k/agent-guide.pdf';
 
-        pdfSaveFormatDefinition.getContent({
+        await pdfSaveFormatDefinition.getContent({
             title: 'Sources demo',
             participants: [
                 {
@@ -159,15 +129,22 @@ describe('pdfSaveFormatDefinition', () => {
             ],
         });
 
-        const renderedText = mockPdfState.texts.join('\n');
+        const renderedHtml = mockPdfState.renderSources.join('\n');
 
-        expect(renderedText).toContain('[1]');
-        expect(renderedText).toContain('[2]');
-        expect(renderedText).toContain('Sources');
-        expect(renderedText).toContain(firstSourceUrl);
-        expect(renderedText).toContain(secondSourceUrl);
-        expect(renderedText).not.toContain('0:0');
-        expect(renderedText).not.toContain(`\u3010${firstSourceUrl}\u3011`);
-        expect(renderedText).not.toContain(`\u3010${secondSourceUrl}\u3011`);
+        expect(renderedHtml).toContain('<sup data-citation-footnote="1"><a href="#source-1">[1]</a></sup>');
+        expect(renderedHtml).toContain('<sup data-citation-footnote="2"><a href="#source-2">[2]</a></sup>');
+        expect(renderedHtml).toContain('<section class="document-sources" aria-label="Sources">');
+        expect(renderedHtml).toContain(
+            `<a href="${firstSourceUrl}" target="_blank" rel="noopener">[1] ${firstSourceUrl}</a>`,
+        );
+        expect(renderedHtml).toContain(
+            `<a href="${secondSourceUrl}" target="_blank" rel="noopener">[2] ${secondSourceUrl}</a>`,
+        );
+        expect(renderedHtml.match(/id="source-1"/g)).toHaveLength(1);
+        expect(renderedHtml).not.toContain(`\u3010${firstSourceUrl}\u3011`);
+        expect(renderedHtml).not.toContain(`\u3010${secondSourceUrl}\u3011`);
+        expect(renderedHtml).not.toContain('0:0');
     });
 });
+
+// Note: [💞] Ignore a discrepancy between file name and entity name
