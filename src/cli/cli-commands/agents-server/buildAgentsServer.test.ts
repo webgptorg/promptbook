@@ -56,9 +56,9 @@ describe('Agents Server build cache', () => {
 
     afterEach(async () => {
         await Promise.all(
-            temporaryDirectoryPaths.splice(0).map((temporaryDirectoryPath) =>
-                rm(temporaryDirectoryPath, { recursive: true, force: true }),
-            ),
+            temporaryDirectoryPaths
+                .splice(0)
+                .map((temporaryDirectoryPath) => rm(temporaryDirectoryPath, { recursive: true, force: true })),
         );
     });
 

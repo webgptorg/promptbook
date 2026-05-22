@@ -94,9 +94,7 @@ describe('ptbk agents-server init', () => {
         expect(countOccurrences(envContent, 'OPENAI_API_KEY=')).toBe(1);
 
         const gitignoreContent = normalizeLineEndings(await readFile(join(projectPath, '.gitignore'), 'utf-8'));
-        expect(gitignoreContent).toBe(
-            'node_modules\n/custom-rule\n\n# Promptbook Agents Server\n.promptbook\n.logs\n',
-        );
+        expect(gitignoreContent).toBe('node_modules\n/custom-rule\n\n# Promptbook Agents Server\n.promptbook\n.logs\n');
     });
 
     it('prints a summary from the CLI command', async () => {

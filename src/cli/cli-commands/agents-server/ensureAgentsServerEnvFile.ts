@@ -1,7 +1,4 @@
-import {
-    ensureProjectEnvFile,
-    type EnsureProjectEnvFileResult,
-} from '../common/projectInitialization';
+import { ensureProjectEnvFile, type EnsureProjectEnvFileResult } from '../common/projectInitialization';
 
 /**
  * Agents Server environment variable initialized for local startup.
@@ -71,11 +68,7 @@ function createAgentsServerEnvVariable(name: string, value: string): RequiredAge
  */
 function buildMissingEnvVariablesBlock(variables: ReadonlyArray<RequiredAgentsServerEnvVariable>): string {
     const variableBlocks = variables.map(({ documentationUrl, name, value }) =>
-        [
-            AGENTS_SERVER_ENV_CREATED_COMMENT,
-            `# Documentation: ${documentationUrl}`,
-            `${name}=${value}`,
-        ].join('\n'),
+        [AGENTS_SERVER_ENV_CREATED_COMMENT, `# Documentation: ${documentationUrl}`, `${name}=${value}`].join('\n'),
     );
 
     return ['# Promptbook Agents Server', ...variableBlocks].join('\n\n');
