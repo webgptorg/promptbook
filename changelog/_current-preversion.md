@@ -212,6 +212,12 @@
     -   Added a shared 3D projection helper used by both `Minecraft 3D 2` and `Octopus 3D`, so the proper-3D visuals reuse the same camera, projection, and vector math instead of duplicating it.
     -   Rendered the octopus as depth-sorted organic 3D meshes plus projected tentacles, and kept the expressive eyes locked to the turning head while still tracking the viewer pointer.
 
+-   Added a new `Octopus 3D 2` built-in avatar visual as a softer single-mesh evolution of `Octopus 3D`:
+
+    -   Reused the seeded `Octopus3` morphology profile together with shared projected-eye and projected-mouth helpers, so the new proper-3D octopus stays consistent with the rest of the octopus family without duplicating the face-rendering logic.
+    -   Rendered the whole octopus as one continuous blobby mesh with lower lobe waves instead of separately drawn 3D tentacles, making the silhouette feel more like a cute real octopus while staying simple.
+    -   Kept avatar pointer tracking on the full mesh and eyes so the silhouette and gaze both turn toward the mouse cursor.
+
 -   Leveraged `spaceTrim` across prompt, documentation, SQL, markdown, and code-sample builders so multiline strings can stay readable in source while trimming indentation consistently.
 
 -   Extended `spaceTrim` usage to more human-facing multiline builders across runners, timeout messages, TEAM tool descriptions, external chat books, and cache notes so nested content is indented in source without manual `'\n'` stitching.

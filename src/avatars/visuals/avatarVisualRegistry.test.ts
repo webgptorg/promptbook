@@ -12,6 +12,7 @@ describe('avatar visual registry', () => {
                 'octopus2',
                 'octopus3',
                 'octopus3d',
+                'octopus3d2',
                 'ascii-octopus',
                 'minecraft',
                 'minecraft2',
@@ -22,6 +23,7 @@ describe('avatar visual registry', () => {
         expect(new Set(visualIds).size).toBe(AVATAR_VISUALS.length);
         expect(getAvatarVisualById('ascii-octopus').title).toBe('AsciiOctopus');
         expect(getAvatarVisualById('octopus3d').title).toBe('Octopus 3D');
+        expect(getAvatarVisualById('octopus3d2').title).toBe('Octopus 3D 2');
         expect(getAvatarVisualById('minecraft2').title).toBe('Minecraft 3D 2');
         expect(getAvatarVisualById('orb').title).toBe('Orb');
     });
@@ -33,6 +35,7 @@ describe('avatar visual registry', () => {
         expect(resolveAvatarVisualId('ASCII_OCTOPUS')).toBe('ascii-octopus');
         expect(resolveAvatarVisualId('Octopus 3')).toBe('octopus3');
         expect(resolveAvatarVisualId('Octopus 3D')).toBe('octopus3d');
+        expect(resolveAvatarVisualId('Octopus 3D 2')).toBe('octopus3d2');
         expect(resolveAvatarVisualId('Minecraft 3D 2')).toBe('minecraft2');
         expect(resolveAvatarVisualId('unknown')).toBe(null);
     });
