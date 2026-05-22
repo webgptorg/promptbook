@@ -9,7 +9,8 @@ ptbk agents-server start --agent github-copilot --model gpt-5.4 --thinking-level
 ```
 
 -   The `ptbk agents-server init` should initialize the `.env` file and add necessary configuration for the Agents Server to run properly.
--   Be aware of destructive changes in `.env`, if the file already exists, it should NOT overwrite existing values but rather add missing ones or update existing ones without removing any existing configuration that might be important for the user.
+-   It should also initialize `.gitignore` to exclude `node_modules`, `.promptbook`, `.logs`
+-   Be aware of destructive changes in `.env` and `.gitignore`, if the file already exists, it should NOT overwrite existing values but rather add missing ones or update existing ones without removing any existing configuration that might be important for the user.
 -   This safety mechanism is important to prevent loss of user configuration and to ensure that the initialization process is smooth and doesn't cause issues for users who already have some configuration in place. Both for `ptbk agents-server init` and `ptbk coder init` since they both use `.env` for configuration.
 -   The created environment variables have comment above "# Created by `ptbk agents-server init` command" to make it clear which variables were created by the command and to help with maintenance and debugging in the future.
 -   For each environment variable created by the `ptbk agents-server init` command, add a comment with a link to the documentation that explains what the variable is for and how to get the value for it. This will help users understand the purpose of each variable and how to properly configure them.
