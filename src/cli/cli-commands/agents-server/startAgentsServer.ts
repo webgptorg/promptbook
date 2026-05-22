@@ -1,5 +1,5 @@
 import { spawn, type ChildProcess } from 'child_process';
-import { createHash } from 'crypto';
+import { randomBytes } from 'crypto';
 import { createWriteStream, type WriteStream } from 'fs';
 import { mkdir, stat } from 'fs/promises';
 import { join } from 'path';
@@ -43,6 +43,13 @@ const AGENTS_SERVER_LOG_DIRECTORY_NAME = 'logs';
 const PTBK_AGENTS_SERVER_AGENT_ROOT_ENV = 'PTBK_AGENTS_SERVER_AGENT_ROOT';
 
 /**
+ * Entropy size for the local-only token shared by the CLI pump and the Next app.
+ *
+ * @private internal constant of `ptbk agents-server`
+ */
+const LOCAL_USER_CHAT_WORKER_TOKEN_BYTE_LENGTH = 32;
+
+/**
  * Options required to start the foreground Agents Server service group.
  *
  * @private internal type of `ptbk agents-server`
@@ -78,6 +85,15 @@ type AgentsServerRuntimePaths = {
 type AgentsServerLogStreams = {
     readonly next: WriteStream;
     readonly runner: WriteStream;
+};
+
+/**
+ * Subprocess environment carrying the explicit local worker credential.
+ *
+ * @private internal type of `ptbk agents-server`
+ */
+type AgentsServerChildEnvironment = NodeJS.ProcessEnv & {
+    readonly PTBK_AGENTS_SERVER_USER_CHAT_WORKER_TOKEN: string;
 };
 
 /**
@@ -405,12 +421,16 @@ function forwardChildOutput(
 /**
  * Creates the subprocess environment for Next and its internal local runner bridge.
  */
-function createAgentsServerChildEnvironment(port: number_port, agentRootPath: string): NodeJS.ProcessEnv {
+function createAgentsServerChildEnvironment(port: number_port, agentRootPath: string): AgentsServerChildEnvironment {
     return {
         ...process.env,
         PORT: String(port),
         NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL || `http://localhost:${port}`,
         [PTBK_AGENTS_SERVER_AGENT_ROOT_ENV]: agentRootPath,
+        // Next loads app-local `.env` values after the CLI has prepared this bridge environment.
+        PTBK_AGENTS_SERVER_USER_CHAT_WORKER_TOKEN:
+            process.env.PTBK_AGENTS_SERVER_USER_CHAT_WORKER_TOKEN ||
+            randomBytes(LOCAL_USER_CHAT_WORKER_TOKEN_BYTE_LENGTH).toString('hex'),
     };
 }
 
@@ -438,7 +458,7 @@ function createLocalAgentRunOptions(options: StartAgentsServerOptions): AgentRun
  */
 function startUserChatJobWorkerPump(options: {
     readonly port: number_port;
-    readonly environment: NodeJS.ProcessEnv;
+    readonly environment: AgentsServerChildEnvironment;
     readonly logStreams: AgentsServerLogStreams;
     readonly state: AgentsServerSupervisorState;
 }): () => void {
@@ -468,14 +488,14 @@ function startUserChatJobWorkerPump(options: {
  */
 async function triggerUserChatJobWorkerTick(options: {
     readonly port: number_port;
-    readonly environment: NodeJS.ProcessEnv;
+    readonly environment: AgentsServerChildEnvironment;
 }): Promise<void> {
     const response = await fetch(`http://localhost:${options.port}/api/internal/user-chat-jobs/run`, {
         method: 'POST',
         cache: 'no-store',
         headers: {
             'Content-Type': 'application/json',
-            'x-user-chat-worker-token': resolveUserChatWorkerInternalToken(options.environment),
+            'x-user-chat-worker-token': options.environment.PTBK_AGENTS_SERVER_USER_CHAT_WORKER_TOKEN,
         },
         body: '{}',
     });
@@ -483,19 +503,6 @@ async function triggerUserChatJobWorkerTick(options: {
     if (!response.ok && response.status !== HTTP_NO_CONTENT_STATUS_CODE) {
         throw new Error(`Internal user chat worker returned ${response.status} ${response.statusText}.`);
     }
-}
-
-/**
- * Mirrors Agents Server worker-token derivation for internal foreground worker calls.
- */
-function resolveUserChatWorkerInternalToken(environment: NodeJS.ProcessEnv): string {
-    const entropySource =
-        environment.SUPABASE_SERVICE_ROLE_KEY ||
-        environment.ADMIN_PASSWORD ||
-        environment.NEXT_PUBLIC_SITE_URL ||
-        'promptbook-user-chat-worker';
-
-    return createHash('sha256').update(`user-chat-worker:${entropySource}`).digest('hex');
 }
 
 /**

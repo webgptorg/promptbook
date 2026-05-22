@@ -4,6 +4,10 @@ import { createHash } from 'crypto';
  * Resolves the shared internal token used to protect background worker routes.
  */
 export function resolveUserChatWorkerInternalToken(): string {
+    if (process.env.PTBK_AGENTS_SERVER_USER_CHAT_WORKER_TOKEN) {
+        return process.env.PTBK_AGENTS_SERVER_USER_CHAT_WORKER_TOKEN;
+    }
+
     const entropySource =
         process.env.SUPABASE_SERVICE_ROLE_KEY ||
         process.env.ADMIN_PASSWORD ||

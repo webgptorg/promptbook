@@ -1,4 +1,4 @@
-[ ] !!!!
+[x] ~$0.2828 41 minutes by OpenAI Codex `gpt-5.5`
 
 [✨🫖] Fix `ptbk agents-server start` "Internal user chat worker returned 401 Unauthorized. "
 
@@ -39,3 +39,4 @@ $ npx ts-node ./src/cli/test/ptbk.ts agents-server start --agent github-copilot 
 ![alt text](prompts/screenshots/2026-05-0370-ptbk-agents-server-fix-401.png)
 ![alt text](prompts/screenshots/2026-05-0370-ptbk-agents-server-fix-401-1.png)
 ![alt text](prompts/screenshots/2026-05-0370-ptbk-agents-server-fix-401-2.png)
+
