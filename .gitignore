@@ -14,3 +14,6 @@ bash.exe.stackdump
 *~lock~
 other/integration-tests/videos/.last-run.json
 other/integration-tests/videos/**/*.webm
+
+
+/logs
