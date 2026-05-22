@@ -181,6 +181,7 @@
         }
     ],
     "scripts": {
+        "start": "npx ts-node ./src/cli/test/ptbk.ts agents-server start --agent github-copilot --model gpt-5.4 --thinking-level high --port 4440",
         "test": "echo \"Note: Running from most lightweight to heaviest tests\" && npm run test-name-discrepancies && npm run test-spellcheck && npm run test-lint && npm run test-types && npm run test-books && npm run test-book-components-build && npm run test-package-generation && npm run test-unit && npm run test-app-agents-server && echo \"🎉 All tests passed!\"",
         "test-without-package-generation": "echo \"Note: Running from most lightweight to heaviest tests\" && npm run test-name-discrepancies && npm run test-spellcheck && npm run test-lint && npm run test-types && npm run test-books && npm run test-book-components-build && npm run test-unit",
         "test-without-package-generation-and-unit": "echo \"Note: Running from most lightweight to heaviest tests\" && npm run test-name-discrepancies && npm run test-spellcheck && npm run test-lint && npm run test-types && npm run test-books && npm run test-book-components-build",
