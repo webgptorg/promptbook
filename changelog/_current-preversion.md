@@ -1,3 +1,8 @@
+-   Fixed `ptbk agent run-agent` and `ptbk agent run-multiple` so both watch commands now keep serving indefinitely instead of stopping when their top-level watch routine returns or throws:
+
+    -   Added one shared persistent-watch supervisor that automatically restarts the watcher after unexpected stops and keeps `ptbk agent run-once` on its existing single-run exit behavior.
+    -   Persisted each unexpected watch stop as a cwd `ptbk-agent-error-*.log` file with the same detailed error and shell-history diagnostics used for recoverable queued-message failures before continuing to watch.
+
 -   Added `ptbk agents-server start` as the foreground Agents Server entrypoint:
 
     -   Starts the packaged Agents Server Next app and the local multi-agent message watcher from one command, with coding runner selection configurable by `--agent` / `PTBK_AGENT`, `--model` / `PTBK_MODEL`, and `--thinking-level` / `PTBK_THINKING_LEVEL`.

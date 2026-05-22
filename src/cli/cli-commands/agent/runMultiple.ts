@@ -15,7 +15,7 @@ export function $initializeAgentRunMultipleCommand(program: Program): $side_effe
     return $initializeAgentRunnerCommand(program, {
         commandName: 'run-multiple',
         summary: 'Watch all direct child agent repositories and answer messages in one shared session',
-        isExitingOnSuccess: false,
+        executionMode: 'watch',
         featureLines: [
             'Scans only direct subdirectories of the current working directory',
             'Reuses one terminal UI across all served agent repositories',

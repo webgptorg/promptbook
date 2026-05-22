@@ -24,7 +24,7 @@ type InitializeAgentRunnerCommandOptions = {
     readonly aliases?: ReadonlyArray<string>;
     readonly summary: string;
     readonly featureLines: ReadonlyArray<string>;
-    readonly isExitingOnSuccess?: boolean;
+    readonly executionMode: 'once' | 'watch';
     readonly configureCommand?: (command: Program) => void;
     readonly loadExecutor: () => Promise<
         (runOptions: ReturnType<typeof createAgentRunOptionsFromCliOptions>) => Promise<unknown>
@@ -69,6 +69,21 @@ export function $initializeAgentRunnerCommand(
                 const runOptions = createAgentRunOptionsFromCliOptions(cliOptions as AgentRunCliOptions);
                 const execute = await options.loadExecutor();
 
+                if (options.executionMode === 'watch') {
+                    const { runPersistentAgentWatch } = await import(
+                        '../../../../scripts/run-agent-messages/main/runPersistentAgentWatch'
+                    );
+
+                    await runPersistentAgentWatch({
+                        commandDisplayName: `ptbk agent ${options.commandName}`,
+                        logDirectoryPath: process.cwd(),
+                        runWatch: async () => {
+                            await execute(runOptions);
+                        },
+                    });
+                    return;
+                }
+
                 try {
                     await execute(runOptions);
                 } catch (error) {
@@ -79,7 +94,7 @@ export function $initializeAgentRunnerCommand(
                 }
             },
             {
-                isExitingOnSuccess: options.isExitingOnSuccess,
+                isExitingOnSuccess: options.executionMode === 'once',
             },
         ),
     );

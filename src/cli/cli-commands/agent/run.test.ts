@@ -1,6 +1,7 @@
 import { Command } from 'commander';
 import { runAgentMessages } from '../../../../scripts/run-agent-messages/main/runAgentMessages';
 import { runMultipleAgentMessages } from '../../../../scripts/run-agent-messages/main/runMultipleAgentMessages';
+import { runPersistentAgentWatch } from '../../../../scripts/run-agent-messages/main/runPersistentAgentWatch';
 import { tickAgentMessages } from '../../../../scripts/run-agent-messages/main/tickAgentMessages';
 import { $initializeAgentRunMultipleCommand } from './runMultiple';
 import { $initializeAgentRunCommand } from './run';
@@ -12,6 +13,10 @@ jest.mock('../../../../scripts/run-agent-messages/main/runAgentMessages', () => 
 
 jest.mock('../../../../scripts/run-agent-messages/main/runMultipleAgentMessages', () => ({
     runMultipleAgentMessages: jest.fn(),
+}));
+
+jest.mock('../../../../scripts/run-agent-messages/main/runPersistentAgentWatch', () => ({
+    runPersistentAgentWatch: jest.fn(),
 }));
 
 jest.mock('../../../../scripts/run-agent-messages/main/tickAgentMessages', () => ({
@@ -33,6 +38,13 @@ function getRunMultipleAgentMessagesMock(): jest.MockedFunction<typeof runMultip
 }
 
 /**
+ * Typed Jest mock for the shared persistent watch supervisor.
+ */
+function getRunPersistentAgentWatchMock(): jest.MockedFunction<typeof runPersistentAgentWatch> {
+    return runPersistentAgentWatch as jest.MockedFunction<typeof runPersistentAgentWatch>;
+}
+
+/**
  * Typed Jest mock for the agent tick entrypoint.
  */
 function getTickAgentMessagesMock(): jest.MockedFunction<typeof tickAgentMessages> {
@@ -46,6 +58,9 @@ describe('agent runner commands', () => {
     beforeEach(() => {
         getRunAgentMessagesMock().mockResolvedValue(undefined);
         getRunMultipleAgentMessagesMock().mockResolvedValue(undefined);
+        getRunPersistentAgentWatchMock().mockImplementation(async ({ runWatch }) => {
+            await runWatch();
+        });
         getTickAgentMessagesMock().mockResolvedValue({ isMessageProcessed: false });
         processExitSpy = jest.spyOn(process, 'exit').mockImplementation((() => undefined) as never);
         consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
@@ -89,6 +104,12 @@ describe('agent runner commands', () => {
                 autoPull: true,
             }),
         );
+        expect(getRunPersistentAgentWatchMock()).toHaveBeenCalledWith(
+            expect.objectContaining({
+                commandDisplayName: 'ptbk agent run-agent',
+                logDirectoryPath: process.cwd(),
+            }),
+        );
         expect(processExitSpy).not.toHaveBeenCalled();
     });
 
@@ -103,6 +124,11 @@ describe('agent runner commands', () => {
         expect(getRunAgentMessagesMock()).toHaveBeenCalledWith(
             expect.objectContaining({
                 agentName: 'github-copilot',
+            }),
+        );
+        expect(getRunPersistentAgentWatchMock()).toHaveBeenCalledWith(
+            expect.objectContaining({
+                commandDisplayName: 'ptbk agent run-agent',
             }),
         );
     });
@@ -191,6 +217,12 @@ describe('agent runner commands', () => {
                 autoPush: true,
                 autoClone: true,
                 ignorePatterns: ['John*'],
+            }),
+        );
+        expect(getRunPersistentAgentWatchMock()).toHaveBeenCalledWith(
+            expect.objectContaining({
+                commandDisplayName: 'ptbk agent run-multiple',
+                logDirectoryPath: process.cwd(),
             }),
         );
         expect(processExitSpy).not.toHaveBeenCalled();

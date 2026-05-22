@@ -16,7 +16,7 @@ export function $initializeAgentRunCommand(program: Program): $side_effect {
         commandName: 'run-agent',
         aliases: ['run'],
         summary: 'Watch one agent repository continuously and answer queued user questions',
-        isExitingOnSuccess: false,
+        executionMode: 'watch',
         featureLines: [
             'Automatically stages and commits answered messages with agent identity',
             'Optional post-commit git push with explicit --auto-push opt-in',
