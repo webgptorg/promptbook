@@ -2,9 +2,9 @@ import { mkdir, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
 import { ParseError } from '../../../errors/ParseError';
+import { readTextFileIfExists } from '../common/projectInitialization';
 import type { InitializationStatus } from './boilerplateTemplates';
 import { getTypescriptModule } from './getTypescriptModule';
-import { readTextFileIfExists } from './readTextFileIfExists';
 
 /**
  * Generic JSON object used for standalone coder configuration files.

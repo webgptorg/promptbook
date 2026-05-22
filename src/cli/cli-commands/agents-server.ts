@@ -4,6 +4,7 @@ import type {
 } from 'commander';
 import { spaceTrim } from 'spacetrim';
 import type { $side_effect } from '../../utils/organization/$side_effect';
+import { $initializeAgentsServerInitCommand } from './agents-server/init';
 import { $initializeAgentsServerBuildCommand, $initializeAgentsServerStartCommand } from './agents-server/run';
 
 /**
@@ -19,11 +20,13 @@ export function $initializeAgentsServerCommand(program: Program): $side_effect {
 
             Subcommands:
             - build: Build the web server for later local startup
+            - init: Initialize local web server configuration
             - start: Start the web server and local coding-agent message runners
         `),
     );
 
     $initializeAgentsServerBuildCommand(agentsServerCommand);
+    $initializeAgentsServerInitCommand(agentsServerCommand);
     $initializeAgentsServerStartCommand(agentsServerCommand);
 
     agentsServerCommand.action(() => {

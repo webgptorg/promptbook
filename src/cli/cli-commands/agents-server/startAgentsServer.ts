@@ -3,6 +3,7 @@ import { randomBytes } from 'crypto';
 import { createWriteStream, type WriteStream } from 'fs';
 import { mkdir } from 'fs/promises';
 import { join } from 'path';
+import * as dotenv from 'dotenv';
 import { spaceTrim } from 'spacetrim';
 import type { ThinkingLevel } from '../coder/ThinkingLevel';
 import type { PromptRunnerAgentName } from '../common/promptRunnerCliOptions';
@@ -34,7 +35,14 @@ const HTTP_NO_CONTENT_STATUS_CODE = 204;
  *
  * @private internal constant of `ptbk agents-server`
  */
-const AGENTS_SERVER_LOG_DIRECTORY_NAME = 'logs';
+const AGENTS_SERVER_LOG_DIRECTORY_NAME = '.logs';
+
+/**
+ * Project environment file read from the Agents Server launch directory.
+ *
+ * @private internal constant of `ptbk agents-server`
+ */
+const AGENTS_SERVER_PROJECT_ENV_FILE_NAME = '.env';
 
 /**
  * Public local agent-root environment name consumed by the Agents Server app.
@@ -119,6 +127,7 @@ type AgentsServerSupervisorState = {
  */
 export async function startAgentsServer(options: StartAgentsServerOptions): Promise<void> {
     const runtimePaths = await resolveAgentsServerRuntimePaths();
+    loadAgentsServerProjectEnvironment(runtimePaths.launchWorkingDirectory);
     await Promise.all([
         mkdir(runtimePaths.agentRootPath, { recursive: true }),
         mkdir(runtimePaths.logDirectoryPath, { recursive: true }),
@@ -198,6 +207,13 @@ export async function startAgentsServer(options: StartAgentsServerOptions): Prom
         process.off('exit', processExitHandler);
         closeAgentsServerLogStreams(logStreams);
     }
+}
+
+/**
+ * Loads launch-directory `.env` values without overriding explicit process environment.
+ */
+function loadAgentsServerProjectEnvironment(launchWorkingDirectory: string): void {
+    dotenv.config({ path: join(launchWorkingDirectory, AGENTS_SERVER_PROJECT_ENV_FILE_NAME) });
 }
 
 /**

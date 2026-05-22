@@ -1,4 +1,4 @@
-[ ] !!!
+[x] ~$0.4922 an hour by OpenAI Codex `gpt-5.5`
 
 [✨✋] Create `ptbk agents-server init` command to initialize the Agents Server configuration
 
@@ -19,3 +19,4 @@ ptbk agents-server start --agent github-copilot --model gpt-5.4 --thinking-level
 -   Do a proper analysis of the current functionality of `ptbk agents-server` and related functionality before you start implementing.
 -   You are working with [`ptbk agents-server`](src/cli/cli-commands/agents-server/run.ts)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

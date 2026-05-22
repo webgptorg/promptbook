@@ -102,6 +102,15 @@ describe('how promptbookCli works', () => {
             }),
         ).resolves.toContain('Build the Agents Server Next app for later local startup'));
 
+    it('should expose `agents-server init` command', () =>
+        expect(
+            $execCommand({
+                command: 'ts-node src/cli/test/ptbk.ts agents-server init --help',
+                crashOnError: false,
+                cwd: process.cwd(),
+            }),
+        ).resolves.toContain('Initialize Promptbook Agents Server configuration for current project'));
+
     it('should expose `coder initialize` alias', () =>
         expect(
             $execCommand({

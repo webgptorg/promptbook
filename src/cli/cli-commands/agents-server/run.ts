@@ -51,7 +51,7 @@ export function $initializeAgentsServerStartCommand(program: Program): $side_eff
 
             The current working directory stores:
             - Agent runner folders in \`.promptbook/agents-server/agents\`
-            - Foreground service logs in \`logs\`
+            - Foreground service logs in \`.logs\`
         `),
     );
 

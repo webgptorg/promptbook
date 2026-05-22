@@ -1,3 +1,7 @@
+-   Added `ptbk agents-server init` for non-destructive local Agents Server bootstrapping:
+    -   The new command appends documented `.env` placeholders for the local Supabase, OpenAI, migration, and admin-login configuration that `ptbk agents-server start` needs, and it preserves existing `.env` values on repeated init runs.
+    -   Shared additive `.env` and `.gitignore` project initialization logic with `ptbk coder init`, preventing repeated coder initialization from duplicating commented identity placeholders.
+    -   Initialized Agents Server `.gitignore` runtime exclusions for `node_modules`, `.promptbook`, and `.logs`, and made foreground Agents Server startup load the launch-directory `.env` while writing local foreground logs under `.logs`.
 -   Cached `ptbk agents-server start` production builds so unchanged Agents Server runtime sources reuse the existing Next output, added `ptbk agents-server build` for explicit prebuilds, and added `ptbk agents-server start --force-build` for intentional rebuilds.
 
 -   Fixed `ptbk agents-server start` worker authentication so the CLI user-chat pump shares one explicit local token with the spawned Next app even after that app loads its own `.env` values, removing repeated `401 Unauthorized` foreground log noise.

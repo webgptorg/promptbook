@@ -165,6 +165,20 @@ describe('coder boilerplate templates', () => {
         expect(await readFile(join(projectPath, AGENT_CODING_FILE_PATH), 'utf-8')).toBe('Custom coder guide\n');
     });
 
+    it('does not append duplicate commented coder env variables on repeated init', async () => {
+        const projectPath = await createTemporaryDirectory(temporaryDirectories);
+
+        await initializeCoderProjectConfiguration(projectPath);
+        const repeatedSummary = await initializeCoderProjectConfiguration(projectPath);
+
+        const envContent = await readFile(join(projectPath, '.env'), 'utf-8');
+        expect(repeatedSummary.envFileStatus).toBe('unchanged');
+        expect(repeatedSummary.initializedEnvVariableNames).toEqual([]);
+        expect(envContent.match(/CODING_AGENT_GIT_NAME/gu)).toHaveLength(1);
+        expect(envContent.match(/CODING_AGENT_GIT_EMAIL/gu)).toHaveLength(1);
+        expect(envContent.match(/CODING_AGENT_GIT_SIGNING_KEY/gu)).toHaveLength(1);
+    });
+
     it('resolves template files relative to the project root', async () => {
         const projectPath = await createTemporaryDirectory(temporaryDirectories);
         const relativeTemplatePath = 'foo/bar/custom.template.md';
