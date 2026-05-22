@@ -146,9 +146,7 @@ export const PROMPT_RUNNER_MODEL_OPTION_DESCRIPTION = spaceTrim(`
  * @private internal utility of `promptbookCli`
  */
 export function addPromptRunnerSelectionOptions(command: Program): void {
-    command.addOption(
-        new Option('--agent <agent-name>', PROMPT_RUNNER_AGENT_OPTION_DESCRIPTION).env(PTBK_AGENT_ENV),
-    );
+    command.addOption(new Option('--agent <agent-name>', PROMPT_RUNNER_AGENT_OPTION_DESCRIPTION).env(PTBK_AGENT_ENV));
     command.addOption(new Option('--model <model>', PROMPT_RUNNER_MODEL_OPTION_DESCRIPTION).env(PTBK_MODEL_ENV));
 }
 

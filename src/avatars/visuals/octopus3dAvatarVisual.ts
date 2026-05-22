@@ -14,11 +14,7 @@ import {
     type Point3D,
     type ProjectedPoint,
 } from './avatar3dProjectionShared';
-import {
-    drawProjectedOrganicEye,
-    drawProjectedOrganicMouth,
-    drawProjectedQuad,
-} from './octopus3dAvatarVisualShared';
+import { drawProjectedOrganicEye, drawProjectedOrganicMouth, drawProjectedQuad } from './octopus3dAvatarVisualShared';
 import { createOctopus3MorphologyProfile, type Octopus3MorphologyProfile } from './octopus3AvatarVisual';
 
 /**

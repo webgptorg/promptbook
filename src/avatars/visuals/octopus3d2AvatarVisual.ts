@@ -14,11 +14,7 @@ import {
     type Point3D,
     type ProjectedPoint,
 } from './avatar3dProjectionShared';
-import {
-    drawProjectedOrganicEye,
-    drawProjectedOrganicMouth,
-    drawProjectedQuad,
-} from './octopus3dAvatarVisualShared';
+import { drawProjectedOrganicEye, drawProjectedOrganicMouth, drawProjectedQuad } from './octopus3dAvatarVisualShared';
 import { createOctopus3MorphologyProfile, type Octopus3MorphologyProfile } from './octopus3AvatarVisual';
 
 /**
@@ -181,9 +177,17 @@ export const octopus3d2AvatarVisual: AvatarVisualDefinition = {
         drawProjectedOrganicMouth(
             context,
             [
-                sampleBlobbyOctopusSurfacePoint(surfaceOptions, mouthLatitude, mouthCenterLongitude - mouthHalfLongitude),
+                sampleBlobbyOctopusSurfacePoint(
+                    surfaceOptions,
+                    mouthLatitude,
+                    mouthCenterLongitude - mouthHalfLongitude,
+                ),
                 sampleBlobbyOctopusSurfacePoint(surfaceOptions, mouthCurveLatitude, mouthCenterLongitude),
-                sampleBlobbyOctopusSurfacePoint(surfaceOptions, mouthLatitude, mouthCenterLongitude + mouthHalfLongitude),
+                sampleBlobbyOctopusSurfacePoint(
+                    surfaceOptions,
+                    mouthLatitude,
+                    mouthCenterLongitude + mouthHalfLongitude,
+                ),
             ],
             meshCenter,
             rotationX,
@@ -386,10 +390,7 @@ function sampleBlobbyOctopusSurfacePoint(
     const skirtEnvelope = Math.pow(cosineLatitude, 0.5) * lowerBlend;
     const horizontalScale =
         1.02 +
-        skirtEnvelope *
-            (0.34 +
-                (morphologyProfile.tentacles.rootSpreadScale - 1) * 0.22 +
-                lowerLobeWave * 0.22) -
+        skirtEnvelope * (0.34 + (morphologyProfile.tentacles.rootSpreadScale - 1) * 0.22 + lowerLobeWave * 0.22) -
         upperBlend * 0.08;
     const depthScale =
         1.04 +
