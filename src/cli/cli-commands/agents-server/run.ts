@@ -16,6 +16,7 @@ import {
     normalizePromptRunnerSelectionCliOptions,
     PROMPT_RUNNER_DESCRIPTION,
 } from '../common/promptRunnerCliOptions';
+import { ensureAgentsServerBuild } from './buildAgentsServer';
 import { startAgentsServer } from './startAgentsServer';
 
 /**
@@ -32,6 +33,7 @@ const DEFAULT_AGENTS_SERVER_PORT = '4440';
  */
 type AgentsServerStartCliOptions = PromptRunnerSelectionCliOptions & {
     readonly port: string;
+    readonly forceBuild: boolean;
 };
 
 /**
@@ -60,6 +62,7 @@ export function $initializeAgentsServerStartCommand(program: Program): $side_eff
             .env('PORT')
             .default(DEFAULT_AGENTS_SERVER_PORT),
     );
+    command.option('--force-build', 'Rebuild the Agents Server Next app before startup', false);
 
     command.action(
         handleActionErrors(
@@ -78,12 +81,29 @@ export function $initializeAgentsServerStartCommand(program: Program): $side_eff
                     noUi: runnerOptions.noUi,
                     thinkingLevel: runnerOptions.thinkingLevel,
                     allowCredits: runnerOptions.allowCredits,
+                    isBuildForced: options.forceBuild,
                 });
             },
             {
                 isExitingOnSuccess: false,
             },
         ),
+    );
+}
+
+/**
+ * Initializes `agents-server build` command for Promptbook CLI utilities.
+ *
+ * @private internal function of `promptbookCli`
+ */
+export function $initializeAgentsServerBuildCommand(program: Program): $side_effect {
+    const command = program.command('build');
+    command.description('Build the Agents Server Next app for later local startup');
+    command.action(
+        handleActionErrors(async () => {
+            console.info(colors.gray('Building Promptbook Agents Server.'));
+            await ensureAgentsServerBuild({ isBuildForced: true });
+        }),
     );
 }
 

@@ -1,4 +1,4 @@
-[ ] !!!
+[x] ~$0.3469 an hour by OpenAI Codex `gpt-5.5`
 
 [✨👠] Cache the optimized production build of Agents server
 
@@ -24,3 +24,4 @@ Starting Promptbook Agents Server on port 4440.
 -   Do a proper analysis of the current functionality of `ptbk agents-server` and related functionality before you start implementing.
 -   You are working with [`ptbk agents-server`](src/cli/cli-commands/agents-server/run.ts)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

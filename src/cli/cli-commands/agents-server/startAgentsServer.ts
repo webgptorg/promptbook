@@ -1,7 +1,7 @@
 import { spawn, type ChildProcess } from 'child_process';
 import { randomBytes } from 'crypto';
 import { createWriteStream, type WriteStream } from 'fs';
-import { mkdir, stat } from 'fs/promises';
+import { mkdir } from 'fs/promises';
 import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
 import type { ThinkingLevel } from '../coder/ThinkingLevel';
@@ -13,6 +13,7 @@ import type { AgentRunOptions } from '../../../../scripts/run-agent-messages/Age
 import { runMultipleAgentMessages } from '../../../../scripts/run-agent-messages/main/runMultipleAgentMessages';
 import { withCurrentWorkingDirectory } from '../../../../scripts/run-agent-messages/main/withCurrentWorkingDirectory';
 import type { CoderRunUiHandle } from '../../../../scripts/run-codex-prompts/ui/renderCoderRunUi';
+import { ensureAgentsServerBuild, resolveAgentsServerAppPath } from './buildAgentsServer';
 
 /**
  * Local worker-pump delay while the Agents Server foreground process stays active.
@@ -61,6 +62,7 @@ export type StartAgentsServerOptions = {
     readonly noUi: boolean;
     readonly thinkingLevel?: ThinkingLevel;
     readonly allowCredits: boolean;
+    readonly isBuildForced: boolean;
 };
 
 /**
@@ -138,13 +140,25 @@ export async function startAgentsServer(options: StartAgentsServerOptions): Prom
     process.once('exit', processExitHandler);
 
     try {
-        const nextCliPath = resolveNextCliPath();
-        await runNextBuild({
-            nextCliPath,
-            runtimePaths,
-            childEnvironment,
-            logStreams,
-            state,
+        const { nextCliPath } = await ensureAgentsServerBuild({
+            appPath: runtimePaths.appPath,
+            environment: childEnvironment,
+            isBuildForced: options.isBuildForced,
+            onBuildEvent: (event) => {
+                logRunnerEvent(logStreams.runner, event);
+                forwardChildOutput(`${event}\n`, {
+                    label: 'next-build',
+                    logStream: logStreams.next,
+                    state,
+                });
+            },
+            onBuildOutput: (chunk) => {
+                forwardChildOutput(chunk, {
+                    label: 'next-build',
+                    logStream: logStreams.next,
+                    state,
+                });
+            },
         });
 
         nextServerProcess = startNextServer({
@@ -205,89 +219,6 @@ async function resolveAgentsServerRuntimePaths(): Promise<AgentsServerRuntimePat
 }
 
 /**
- * Finds the Agents Server app in a source checkout or the generated CLI package.
- */
-async function resolveAgentsServerAppPath(): Promise<string> {
-    const candidates = [
-        join(process.cwd(), 'apps', 'agents-server'),
-        join(__dirname, '..', '..', '..', '..', 'apps', 'agents-server'),
-        join(__dirname, '..', '..', 'apps', 'agents-server'),
-        join(__dirname, '..', 'apps', 'agents-server'),
-    ];
-
-    for (const candidate of candidates) {
-        if (await isAgentsServerAppPath(candidate)) {
-            return candidate;
-        }
-    }
-
-    throw new NotAllowed(
-        spaceTrim(`
-            Cannot find the bundled Agents Server app.
-
-            Checked:
-            ${candidates.map((candidate) => `- \`${candidate}\``).join('\n')}
-        `),
-    );
-}
-
-/**
- * Returns true when one folder contains the Next Agents Server app marker files.
- */
-async function isAgentsServerAppPath(candidate: string): Promise<boolean> {
-    try {
-        const [packageStats, nextConfigStats] = await Promise.all([
-            stat(join(candidate, 'package.json')),
-            stat(join(candidate, 'next.config.ts')),
-        ]);
-
-        return packageStats.isFile() && nextConfigStats.isFile();
-    } catch {
-        return false;
-    }
-}
-
-/**
- * Resolves the Next CLI module installed alongside the Promptbook CLI.
- */
-function resolveNextCliPath(): string {
-    try {
-        return require.resolve('next/dist/bin/next');
-    } catch {
-        throw new NotAllowed(
-            spaceTrim(`
-                Cannot start Agents Server because the \`next\` package is unavailable.
-
-                Reinstall \`ptbk\` so the CLI package contains the Agents Server runtime dependencies.
-            `),
-        );
-    }
-}
-
-/**
- * Runs a production Next build before the long-running local server process starts.
- */
-async function runNextBuild(options: {
-    readonly nextCliPath: string;
-    readonly runtimePaths: AgentsServerRuntimePaths;
-    readonly childEnvironment: NodeJS.ProcessEnv;
-    readonly logStreams: AgentsServerLogStreams;
-    readonly state: AgentsServerSupervisorState;
-}): Promise<void> {
-    logRunnerEvent(options.logStreams.runner, 'Building the Agents Server Next app.');
-
-    await runLoggedChildProcess({
-        label: 'next-build',
-        command: process.execPath,
-        args: [options.nextCliPath, 'build'],
-        cwd: options.runtimePaths.appPath,
-        environment: options.childEnvironment,
-        logStream: options.logStreams.next,
-        state: options.state,
-    });
-}
-
-/**
  * Starts the production Next server and wires its logs into the foreground dashboard.
  */
 function startNextServer(options: {
@@ -332,43 +263,6 @@ function startNextServer(options: {
     });
 
     return commandProcess;
-}
-
-/**
- * Runs one finite child process while preserving its logs and forwarding output to the terminal.
- */
-async function runLoggedChildProcess(options: {
-    readonly label: string;
-    readonly command: string;
-    readonly args: readonly string[];
-    readonly cwd: string;
-    readonly environment: NodeJS.ProcessEnv;
-    readonly logStream: WriteStream;
-    readonly state: AgentsServerSupervisorState;
-}): Promise<void> {
-    await new Promise<void>((resolve, reject) => {
-        const commandProcess = spawn(options.command, [...options.args], {
-            cwd: options.cwd,
-            env: options.environment,
-            stdio: ['ignore', 'pipe', 'pipe'],
-        });
-
-        bindChildOutput(commandProcess, {
-            label: options.label,
-            logStream: options.logStream,
-            state: options.state,
-        });
-
-        commandProcess.once('error', reject);
-        commandProcess.once('exit', (code) => {
-            if (code === 0) {
-                resolve();
-                return;
-            }
-
-            reject(new Error(`${options.label} exited with code ${String(code)}.`));
-        });
-    });
 }
 
 /**

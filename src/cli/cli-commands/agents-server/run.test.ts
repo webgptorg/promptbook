@@ -1,10 +1,21 @@
 import { Command } from 'commander';
+import { ensureAgentsServerBuild } from './buildAgentsServer';
 import { startAgentsServer } from './startAgentsServer';
-import { $initializeAgentsServerStartCommand } from './run';
+import { $initializeAgentsServerBuildCommand, $initializeAgentsServerStartCommand } from './run';
 
+jest.mock('./buildAgentsServer', () => ({
+    ensureAgentsServerBuild: jest.fn(),
+}));
 jest.mock('./startAgentsServer', () => ({
     startAgentsServer: jest.fn(),
 }));
+
+/**
+ * Typed Jest mock for the Agents Server build helper.
+ */
+function getEnsureAgentsServerBuildMock(): jest.MockedFunction<typeof ensureAgentsServerBuild> {
+    return ensureAgentsServerBuild as jest.MockedFunction<typeof ensureAgentsServerBuild>;
+}
 
 /**
  * Typed Jest mock for the Agents Server foreground runtime.
@@ -19,6 +30,15 @@ function getStartAgentsServerMock(): jest.MockedFunction<typeof startAgentsServe
 function createProgramWithAgentsServerStartCommand(): Command {
     const program = new Command();
     $initializeAgentsServerStartCommand(program);
+    return program;
+}
+
+/**
+ * Creates a Commander program with the `agents-server build` subcommand registered.
+ */
+function createProgramWithAgentsServerBuildCommand(): Command {
+    const program = new Command();
+    $initializeAgentsServerBuildCommand(program);
     return program;
 }
 
@@ -38,6 +58,10 @@ describe('$initializeAgentsServerStartCommand', () => {
         delete process.env.PTBK_AGENT;
         delete process.env.PTBK_MODEL;
         delete process.env.PTBK_THINKING_LEVEL;
+        getEnsureAgentsServerBuildMock().mockResolvedValue({
+            appPath: 'apps/agents-server',
+            nextCliPath: 'next',
+        });
         getStartAgentsServerMock().mockResolvedValue(undefined);
         processExitSpy = jest.spyOn(process, 'exit').mockImplementation((() => undefined) as never);
         consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
@@ -70,6 +94,7 @@ describe('$initializeAgentsServerStartCommand', () => {
             noUi: false,
             thinkingLevel: 'xhigh',
             allowCredits: false,
+            isBuildForced: false,
         });
         expect(processExitSpy).not.toHaveBeenCalled();
     });
@@ -90,6 +115,7 @@ describe('$initializeAgentsServerStartCommand', () => {
             noUi: true,
             thinkingLevel: 'high',
             allowCredits: false,
+            isBuildForced: false,
         });
     });
 
@@ -125,6 +151,52 @@ describe('$initializeAgentsServerStartCommand', () => {
                 thinkingLevel: 'xhigh',
             }),
         );
+    });
+
+    it('passes forced build startup through to the runtime', async () => {
+        const program = createProgramWithAgentsServerStartCommand();
+
+        await program.parseAsync(['node', 'test', 'start', '--agent', 'github-copilot', '--force-build'], {
+            from: 'node',
+        });
+
+        expect(getStartAgentsServerMock()).toHaveBeenCalledWith(
+            expect.objectContaining({
+                isBuildForced: true,
+            }),
+        );
+    });
+});
+
+describe('$initializeAgentsServerBuildCommand', () => {
+    let processExitSpy: jest.SpyInstance<never, [code?: string | number | null | undefined]>;
+    let consoleErrorSpy: jest.SpyInstance<void, [message?: unknown, ...optionalParams: unknown[]]>;
+    let consoleInfoSpy: jest.SpyInstance<void, [message?: unknown, ...optionalParams: unknown[]]>;
+
+    beforeEach(() => {
+        getEnsureAgentsServerBuildMock().mockResolvedValue({
+            appPath: 'apps/agents-server',
+            nextCliPath: 'next',
+        });
+        processExitSpy = jest.spyOn(process, 'exit').mockImplementation((() => undefined) as never);
+        consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+        consoleInfoSpy = jest.spyOn(console, 'info').mockImplementation(() => undefined);
+    });
+
+    afterEach(() => {
+        processExitSpy.mockRestore();
+        consoleErrorSpy.mockRestore();
+        consoleInfoSpy.mockRestore();
+        jest.clearAllMocks();
+    });
+
+    it('always forces a production build', async () => {
+        const program = createProgramWithAgentsServerBuildCommand();
+
+        await program.parseAsync(['node', 'test', 'build'], { from: 'node' });
+
+        expect(getEnsureAgentsServerBuildMock()).toHaveBeenCalledWith({ isBuildForced: true });
+        expect(processExitSpy).toHaveBeenCalledWith(0);
     });
 });
 

@@ -4,7 +4,7 @@ import type {
 } from 'commander';
 import { spaceTrim } from 'spacetrim';
 import type { $side_effect } from '../../utils/organization/$side_effect';
-import { $initializeAgentsServerStartCommand } from './agents-server/run';
+import { $initializeAgentsServerBuildCommand, $initializeAgentsServerStartCommand } from './agents-server/run';
 
 /**
  * Initializes `agents-server` command with subcommands for Promptbook CLI utilities.
@@ -18,10 +18,12 @@ export function $initializeAgentsServerCommand(program: Program): $side_effect {
             Local Agents Server runtime and coding-agent orchestration
 
             Subcommands:
+            - build: Build the web server for later local startup
             - start: Start the web server and local coding-agent message runners
         `),
     );
 
+    $initializeAgentsServerBuildCommand(agentsServerCommand);
     $initializeAgentsServerStartCommand(agentsServerCommand);
 
     agentsServerCommand.action(() => {

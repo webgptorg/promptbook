@@ -1,3 +1,5 @@
+-   Cached `ptbk agents-server start` production builds so unchanged Agents Server runtime sources reuse the existing Next output, added `ptbk agents-server build` for explicit prebuilds, and added `ptbk agents-server start --force-build` for intentional rebuilds.
+
 -   Fixed `ptbk agents-server start` worker authentication so the CLI user-chat pump shares one explicit local token with the spawned Next app even after that app loads its own `.env` values, removing repeated `401 Unauthorized` foreground log noise.
 
 -   Fixed `ptbk agent run-agent` and `ptbk agent run-multiple` so both watch commands now keep serving indefinitely instead of stopping when their top-level watch routine returns or throws:
