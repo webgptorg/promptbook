@@ -16,3 +16,17 @@
 !["Save" button](prompts/screenshots/2026-05-0260-agents-server-fix-chat-exports.png)
 ![Broken export to PDF](prompts/screenshots/2026-05-0262-agents-server-fix-chat-exports.png)
 
+---
+
+[ ] !!!
+
+[✨©️] Fix the export to "PDF" of the chat in the Agents Server
+
+-   In every chat there is a "Save" button that allows to export the chat in different formats, one of the formats is "PDF" which should be fixed
+-   PDF is exported but is broken, the characters are not rendered in correct positions, espetially the diacritics are rendered in wrong positions, so the PDF is not readable
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+
+!["Save" button](prompts/screenshots/2026-05-0260-agents-server-fix-chat-exports.png)
+![Broken export to PDF](prompts/screenshots/2026-05-0262-agents-server-fix-chat-exports-1.png)
+![Broken export to PDF](prompts/screenshots/2026-05-0262-agents-server-fix-chat-exports-2.png)
