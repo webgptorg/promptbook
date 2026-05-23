@@ -6,9 +6,7 @@ import type { $side_effect } from '../../../utils/organization/$side_effect';
 import { handleActionErrors } from '../common/handleActionErrors';
 import {
     AGENT_BOOK_FILE_PATH,
-    AGENT_BOOK_LANGUAGE_MANUAL_FILE_PATH,
     AGENT_FINISHED_MESSAGES_DIRECTORY_PATH,
-    AGENT_KNOWLEDGE_DIRECTORY_PATH,
     AGENT_QUEUED_MESSAGES_DIRECTORY_PATH,
 } from './agentProjectPaths';
 import { initializeAgentProjectConfiguration } from './initializeAgentProjectConfiguration';
@@ -31,9 +29,7 @@ export function $initializeAgentInitCommand(program: Program): $side_effect {
             Creates:
             - ${AGENT_QUEUED_MESSAGES_DIRECTORY_PATH.replace(/\\/gu, '/')}/
             - ${AGENT_FINISHED_MESSAGES_DIRECTORY_PATH.replace(/\\/gu, '/')}/
-            - ${AGENT_KNOWLEDGE_DIRECTORY_PATH}/
             - ${AGENT_BOOK_FILE_PATH}
-            - ${AGENT_BOOK_LANGUAGE_MANUAL_FILE_PATH.replace(/\\/gu, '/')}
         `),
     );
 

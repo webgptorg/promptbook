@@ -2,10 +2,7 @@ import colors from 'colors';
 import type { InitializationStatus } from '../coder/boilerplateTemplates';
 import {
     AGENT_BOOK_FILE_PATH,
-    AGENT_BOOK_LANGUAGE_MANUAL_FILE_PATH,
-    AGENT_DOCS_DIRECTORY_PATH,
     AGENT_FINISHED_MESSAGES_DIRECTORY_PATH,
-    AGENT_KNOWLEDGE_DIRECTORY_PATH,
     AGENT_MESSAGES_DIRECTORY_PATH,
     AGENT_QUEUED_MESSAGES_DIRECTORY_PATH,
 } from './agentProjectPaths';
@@ -24,10 +21,8 @@ export function printAgentInitializationSummary(summary: AgentInitializationSumm
         `${AGENT_FINISHED_MESSAGES_DIRECTORY_PATH}/`,
         summary.finishedMessagesDirectoryStatus,
     );
-    printInitializationStatusLine(`${AGENT_KNOWLEDGE_DIRECTORY_PATH}/`, summary.knowledgeDirectoryStatus);
-    printInitializationStatusLine(`${AGENT_DOCS_DIRECTORY_PATH}/`, summary.docsDirectoryStatus);
+
     printInitializationStatusLine(AGENT_BOOK_FILE_PATH, summary.agentBookFileStatus);
-    printInitializationStatusLine(AGENT_BOOK_LANGUAGE_MANUAL_FILE_PATH, summary.bookLanguageManualFileStatus);
 }
 
 /**
