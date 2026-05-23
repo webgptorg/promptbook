@@ -4,6 +4,10 @@
     -   Initialized Agents Server `.gitignore` runtime exclusions for `node_modules`, `.promptbook`, and `.logs`, and made foreground Agents Server startup load the launch-directory `.env` while writing local foreground logs under `.logs`.
 -   Cached `ptbk agents-server start` production builds so unchanged Agents Server runtime sources reuse the existing Next output, added `ptbk agents-server build` for explicit prebuilds, and added `ptbk agents-server start --force-build` for intentional rebuilds.
 
+-   Fixed Agents Server chat export to **PDF** so downloaded PDFs render chat text through the browser before embedding it into pages, preventing misplaced characters and broken Czech diacritics in saved conversations.
+
+-   Restored `ptbk agent init` bootstrapping of the local `knowledge/` folder and `docs/book-language-manual.md` file so the standalone agent initialization summary matches the expected project structure.
+
 -   Fixed `ptbk agents-server start` worker authentication so the CLI user-chat pump shares one explicit local token with the spawned Next app even after that app loads its own `.env` values, removing repeated `401 Unauthorized` foreground log noise.
 
 -   Fixed `ptbk agent run-agent` and `ptbk agent run-multiple` so both watch commands now keep serving indefinitely instead of stopping when their top-level watch routine returns or throws:

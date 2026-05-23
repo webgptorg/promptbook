@@ -9,6 +9,13 @@ import { spaceTrim } from 'spacetrim';
 export const AGENT_BOOK_FILE_PATH = 'agent.book';
 
 /**
+ * Relative path to local knowledge files initialized by `ptbk agent init`.
+ *
+ * @private internal utility of `ptbk agent`
+ */
+export const AGENT_KNOWLEDGE_DIRECTORY_PATH = 'knowledge';
+
+/**
  * Relative path to the message queue root initialized by `ptbk agent init`.
  *
  * @private internal utility of `ptbk agent`
@@ -28,6 +35,20 @@ export const AGENT_QUEUED_MESSAGES_DIRECTORY_PATH = join(AGENT_MESSAGES_DIRECTOR
  * @private internal utility of `ptbk agent`
  */
 export const AGENT_FINISHED_MESSAGES_DIRECTORY_PATH = join(AGENT_MESSAGES_DIRECTORY_PATH, 'finished');
+
+/**
+ * Relative path to generated local agent documentation initialized by `ptbk agent init`.
+ *
+ * @private internal utility of `ptbk agent`
+ */
+export const AGENT_DOCS_DIRECTORY_PATH = 'docs';
+
+/**
+ * Relative path to the local Book language manual initialized by `ptbk agent init`.
+ *
+ * @private internal utility of `ptbk agent`
+ */
+export const AGENT_BOOK_LANGUAGE_MANUAL_FILE_PATH = join(AGENT_DOCS_DIRECTORY_PATH, 'book-language-manual.md');
 
 /**
  * Returns the default local agent book content.

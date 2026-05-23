@@ -18,7 +18,7 @@
 
 ---
 
-[ ] !!!
+[x] (2 attempts) ~$0.5257 an hour by OpenAI Codex `gpt-5.5`
 
 [✨©️] Fix the export to "PDF" of the chat in the Agents Server
 
@@ -30,3 +30,4 @@
 !["Save" button](prompts/screenshots/2026-05-0260-agents-server-fix-chat-exports.png)
 ![Broken export to PDF](prompts/screenshots/2026-05-0262-agents-server-fix-chat-exports-1.png)
 ![Broken export to PDF](prompts/screenshots/2026-05-0262-agents-server-fix-chat-exports-2.png)
+

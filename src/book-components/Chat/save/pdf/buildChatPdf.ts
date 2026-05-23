@@ -1,5 +1,7 @@
+import { toCanvas } from 'html-to-image';
 import { jsPDF } from 'jspdf';
 import { spaceTrim } from 'spacetrim';
+import { UnexpectedError } from '../../../../errors/UnexpectedError';
 import type { ChatMessage } from '../../types/ChatMessage';
 import type { ChatParticipant } from '../../types/ChatParticipant';
 import { getPromptbookExportBranding } from '../_common/getPromptbookExportBranding';
@@ -13,7 +15,21 @@ import { buildChatHtml, CHAT_HTML_EXPORT_RENDER_ROOT_CLASS_NAME } from '../html/
 const PDF_HTML_RENDER_WINDOW_WIDTH_PX = 900;
 
 /**
- * HTML source prepared for jsPDF rendering.
+ * Device-independent scale used for the browser-rendered PDF page image.
+ *
+ * @private Internal helper of `buildChatPdf`.
+ */
+const PDF_HTML_RENDER_PIXEL_RATIO = 2;
+
+/**
+ * Image format used for rendered chat page slices.
+ *
+ * @private Internal helper of `buildChatPdf`.
+ */
+const PDF_PAGE_IMAGE_FORMAT = 'PNG';
+
+/**
+ * HTML source prepared for browser rendering.
  *
  * @private Internal helper of `buildChatPdf`.
  */
@@ -37,22 +53,13 @@ export async function buildChatPdf(
     const pdf = new jsPDF({
         unit: 'pt',
         format: 'letter',
+        compress: true,
     });
     const branding = getPromptbookExportBranding();
     const html = buildChatHtml(title, messages, participants);
 
     applyPromptbookPdfMetadata(pdf, title, branding);
-    await pdf.html(createChatPdfRenderSource(html), {
-        autoPaging: 'text',
-        html2canvas: {
-            backgroundColor: '#ffffff',
-            logging: false,
-            useCORS: true,
-        },
-        margin: 0,
-        width: pdf.internal.pageSize.getWidth(),
-        windowWidth: PDF_HTML_RENDER_WINDOW_WIDTH_PX,
-    });
+    await renderChatPdfPages(pdf, createChatPdfRenderSource(html));
 
     return new Uint8Array(pdf.output('arraybuffer'));
 }
@@ -73,6 +80,12 @@ function createChatPdfRenderSource(html: string): ChatPdfRenderSource {
     const renderSource = document.createElement('div');
 
     renderSource.className = CHAT_HTML_EXPORT_RENDER_ROOT_CLASS_NAME;
+    renderSource.style.position = 'fixed';
+    renderSource.style.left = `-${PDF_HTML_RENDER_WINDOW_WIDTH_PX * 2}px`;
+    renderSource.style.top = '0';
+    renderSource.style.width = `${PDF_HTML_RENDER_WINDOW_WIDTH_PX}px`;
+    renderSource.style.background = '#ffffff';
+    renderSource.style.pointerEvents = 'none';
 
     for (const style of Array.from(exportedDocument.head.querySelectorAll('style'))) {
         renderSource.appendChild(style.cloneNode(true));
@@ -83,6 +96,127 @@ function createChatPdfRenderSource(html: string): ChatPdfRenderSource {
     }
 
     return renderSource;
+}
+
+/**
+ * Renders the chat HTML with the browser text engine and places image slices into the PDF.
+ *
+ * `jsPDF.html()` maps browser text drawing into PDF text commands and currently
+ * misplaces combining accents and some Czech diacritics. Rendering through the
+ * browser first keeps text glyph positions exactly as the user sees them.
+ *
+ * @private Internal helper of `buildChatPdf`.
+ */
+async function renderChatPdfPages(pdf: jsPDF, renderSource: ChatPdfRenderSource): Promise<void> {
+    document.body.appendChild(renderSource);
+
+    try {
+        await waitForChatPdfFonts();
+        const canvas = await toCanvas(renderSource, {
+            backgroundColor: '#ffffff',
+            height: resolveChatPdfRenderHeight(renderSource),
+            pixelRatio: PDF_HTML_RENDER_PIXEL_RATIO,
+            width: PDF_HTML_RENDER_WINDOW_WIDTH_PX,
+        });
+
+        appendCanvasPagesToPdf(pdf, canvas);
+    } finally {
+        renderSource.remove();
+    }
+}
+
+/**
+ * Waits for browser fonts before capturing the chat PDF.
+ *
+ * @private Internal helper of `buildChatPdf`.
+ */
+async function waitForChatPdfFonts(): Promise<void> {
+    const fontSet = (document as Document & { fonts?: FontFaceSet }).fonts;
+
+    await fontSet?.ready.catch(() => undefined);
+}
+
+/**
+ * Resolves the full rendered chat height for image export.
+ *
+ * @private Internal helper of `buildChatPdf`.
+ */
+function resolveChatPdfRenderHeight(renderSource: ChatPdfRenderSource): number {
+    return Math.max(renderSource.scrollHeight, renderSource.offsetHeight, renderSource.clientHeight, 1);
+}
+
+/**
+ * Splits one browser-rendered chat image into PDF pages.
+ *
+ * @private Internal helper of `buildChatPdf`.
+ */
+function appendCanvasPagesToPdf(pdf: jsPDF, canvas: HTMLCanvasElement): void {
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const imageScale = pageWidth / canvas.width;
+    const pageCanvasHeight = Math.max(Math.floor(pageHeight / imageScale), 1);
+
+    for (let sourceY = 0; sourceY < canvas.height; sourceY += pageCanvasHeight) {
+        const sliceHeight = Math.min(pageCanvasHeight, canvas.height - sourceY);
+        const pageCanvas = createCanvasPageSlice(canvas, sourceY, sliceHeight);
+
+        if (sourceY > 0) {
+            pdf.addPage();
+        }
+
+        pdf.addImage(
+            pageCanvas,
+            PDF_PAGE_IMAGE_FORMAT,
+            0,
+            0,
+            pageWidth,
+            sliceHeight * imageScale,
+            undefined,
+            'FAST',
+        );
+    }
+}
+
+/**
+ * Copies a vertical slice of the rendered chat canvas into its own page canvas.
+ *
+ * @private Internal helper of `buildChatPdf`.
+ */
+function createCanvasPageSlice(
+    canvas: HTMLCanvasElement,
+    sourceY: number,
+    sliceHeight: number,
+): HTMLCanvasElement {
+    const pageCanvas = document.createElement('canvas');
+    const pageCanvasContext = pageCanvas.getContext('2d');
+
+    if (!pageCanvasContext) {
+        throw new UnexpectedError(
+            spaceTrim(`
+                Chat PDF generation could not create a canvas rendering context.
+
+                This usually means that the browser does not support 2D canvas rendering.
+            `),
+        );
+    }
+
+    pageCanvas.width = canvas.width;
+    pageCanvas.height = sliceHeight;
+    pageCanvasContext.fillStyle = '#ffffff';
+    pageCanvasContext.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+    pageCanvasContext.drawImage(
+        canvas,
+        0,
+        sourceY,
+        canvas.width,
+        sliceHeight,
+        0,
+        0,
+        canvas.width,
+        sliceHeight,
+    );
+
+    return pageCanvas;
 }
 
 /**
