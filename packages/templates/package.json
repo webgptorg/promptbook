@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/templates",
-    "version": "0.112.0-80",
+    "version": "0.112.0-81",
     "description": "Promptbook: Create persistent AI agents that turn your company's scattered knowledge into action",
     "private": false,
     "sideEffects": false,
@@ -99,6 +99,6 @@
     "types": "./esm/src/_packages/templates.index.d.ts",
     "typings": "./esm/src/_packages/templates.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.112.0-80"
+        "@promptbook/core": "0.112.0-81"
     }
 }
