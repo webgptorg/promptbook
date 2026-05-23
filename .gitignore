@@ -17,3 +17,5 @@ other/integration-tests/videos/**/*.webm
 
 
 /logs
+/.logs
+# <- TODO: !!!!! Take one of these two log folders and remove the other one. We should only have one log folder from Agents server
