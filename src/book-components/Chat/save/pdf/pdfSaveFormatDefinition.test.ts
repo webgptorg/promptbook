@@ -160,7 +160,7 @@ describe('pdfSaveFormatDefinition', () => {
                     drawImage: jest.fn(),
                     fillRect: jest.fn(),
                     fillStyle: '#ffffff',
-                }) as unknown as CanvasRenderingContext2D,
+                } as unknown as CanvasRenderingContext2D),
         );
     });
 

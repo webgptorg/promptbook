@@ -164,16 +164,7 @@ function appendCanvasPagesToPdf(pdf: jsPDF, canvas: HTMLCanvasElement): void {
             pdf.addPage();
         }
 
-        pdf.addImage(
-            pageCanvas,
-            PDF_PAGE_IMAGE_FORMAT,
-            0,
-            0,
-            pageWidth,
-            sliceHeight * imageScale,
-            undefined,
-            'FAST',
-        );
+        pdf.addImage(pageCanvas, PDF_PAGE_IMAGE_FORMAT, 0, 0, pageWidth, sliceHeight * imageScale, undefined, 'FAST');
     }
 }
 
@@ -182,11 +173,7 @@ function appendCanvasPagesToPdf(pdf: jsPDF, canvas: HTMLCanvasElement): void {
  *
  * @private Internal helper of `buildChatPdf`.
  */
-function createCanvasPageSlice(
-    canvas: HTMLCanvasElement,
-    sourceY: number,
-    sliceHeight: number,
-): HTMLCanvasElement {
+function createCanvasPageSlice(canvas: HTMLCanvasElement, sourceY: number, sliceHeight: number): HTMLCanvasElement {
     const pageCanvas = document.createElement('canvas');
     const pageCanvasContext = pageCanvas.getContext('2d');
 
@@ -204,17 +191,7 @@ function createCanvasPageSlice(
     pageCanvas.height = sliceHeight;
     pageCanvasContext.fillStyle = '#ffffff';
     pageCanvasContext.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
-    pageCanvasContext.drawImage(
-        canvas,
-        0,
-        sourceY,
-        canvas.width,
-        sliceHeight,
-        0,
-        0,
-        canvas.width,
-        sliceHeight,
-    );
+    pageCanvasContext.drawImage(canvas, 0, sourceY, canvas.width, sliceHeight, 0, 0, canvas.width, sliceHeight);
 
     return pageCanvas;
 }
