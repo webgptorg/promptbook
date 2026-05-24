@@ -1,6 +1,10 @@
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideClientSql } from '@/src/database/$provideClientSql';
+import { isAgentsServerSqliteMode } from '@/src/database/agentsServerDatabaseMode';
+import type { UserChatJobRow } from './UserChatJobRow';
 import type { UserChatJobRecord, UserChatJobStatus } from './UserChatJobRecord';
+import { mapUserChatJobRow } from './mapUserChatJobRow';
+import { provideUserChatJobTable } from './provideUserChatJobTable';
 
 /**
  * Final status values accepted when finishing one durable job.
@@ -17,6 +21,10 @@ export async function finalizeUserChatJob(options: {
     failureReason?: string | null;
     failureDetails?: string | null;
 }): Promise<UserChatJobRecord | null> {
+    if (isAgentsServerSqliteMode()) {
+        return finalizeUserChatJobViaSupabaseQuery(options);
+    }
+
     const nowIso = new Date().toISOString();
     try {
         const sql = await $provideClientSql();
@@ -72,6 +80,40 @@ export async function finalizeUserChatJob(options: {
             `Failed to finalize user chat job "${options.jobId}": ${error instanceof Error ? error.message : 'Unknown error.'}`,
         );
     }
+}
+
+/**
+ * Persists the final job state through the shared table adapter when PostgreSQL-only raw SQL is unavailable.
+ */
+async function finalizeUserChatJobViaSupabaseQuery(options: {
+    jobId: string;
+    status: FinalUserChatJobStatus;
+    provider?: string | null;
+    failureReason?: string | null;
+    failureDetails?: string | null;
+}): Promise<UserChatJobRecord | null> {
+    const nowIso = new Date().toISOString();
+    const userChatJobTable = await provideUserChatJobTable();
+    const { data, error } = await userChatJobTable
+        .update({
+            status: options.status,
+            updatedAt: nowIso,
+            completedAt: nowIso,
+            lastHeartbeatAt: nowIso,
+            leaseExpiresAt: nowIso,
+            provider: options.provider ?? null,
+            failureReason: options.failureReason ?? null,
+            failureDetails: options.failureDetails ?? null,
+        })
+        .eq('id', options.jobId)
+        .select('*')
+        .maybeSingle();
+
+    if (error) {
+        throw new Error(`Failed to finalize user chat job "${options.jobId}": ${error.message}`);
+    }
+
+    return data ? mapUserChatJobRow(data as UserChatJobRow) : null;
 }
 
 /**

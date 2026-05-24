@@ -1,6 +1,7 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { spaceTrim } from 'spacetrim';
 import { DatabaseError } from '../../../../src/errors/DatabaseError';
+import { isAgentsServerSqliteMode } from '../database/agentsServerDatabaseMode';
 
 /**
  * Supported `_Server.environment` values.
@@ -126,6 +127,10 @@ export async function listRegisteredServers(supabase: Pick<SupabaseClient, 'from
 export async function listRegisteredServersUsingServiceRole(options?: {
     readonly forceRefresh?: boolean;
 }): Promise<Array<ServerRecord>> {
+    if (isAgentsServerSqliteMode()) {
+        return [];
+    }
+
     const shouldReuseCache =
         !options?.forceRefresh &&
         cachedServerRegistry !== null &&
@@ -299,6 +304,14 @@ export function isServerEnvironment(value: string): value is ServerEnvironment {
  * @returns Shared untyped Supabase client.
  */
 export function getServerRegistryClient(): SupabaseClient {
+    if (isAgentsServerSqliteMode()) {
+        throw new DatabaseError(
+            spaceTrim(`
+                Cannot create a Supabase server-registry client while Agents Server is using SQLite.
+            `),
+        );
+    }
+
     if (cachedServerRegistryClient) {
         return cachedServerRegistryClient;
     }

@@ -48,6 +48,8 @@ describe('ptbk agents-server init', () => {
             envFileStatus: 'created',
             gitignoreFileStatus: 'created',
             initializedEnvVariableNames: [
+                'PTBK_AGENTS_SERVER_DATABASE',
+                'PTBK_AGENTS_SERVER_SQLITE_PATH',
                 'OPENAI_API_KEY',
                 'POSTGRES_URL',
                 'NEXT_PUBLIC_SUPABASE_URL',
@@ -59,7 +61,9 @@ describe('ptbk agents-server init', () => {
         });
 
         const envContent = normalizeLineEndings(await readFile(join(projectPath, '.env'), 'utf-8'));
-        expect(countOccurrences(envContent, '# Created by `ptbk agents-server init` command')).toBe(7);
+        expect(countOccurrences(envContent, '# Created by `ptbk agents-server init` command')).toBe(9);
+        expect(envContent).toContain('PTBK_AGENTS_SERVER_DATABASE=supabase');
+        expect(envContent).toContain('PTBK_AGENTS_SERVER_SQLITE_PATH=.promptbook/agents-server.sqlite');
         expect(envContent).toContain(
             '# Documentation: https://github.com/webgptorg/promptbook/blob/main/apps/agents-server/README.md#agents-server-env-openai-api-key\nOPENAI_API_KEY=',
         );

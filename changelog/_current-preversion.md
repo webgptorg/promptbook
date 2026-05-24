@@ -1,3 +1,15 @@
+-   Added standalone VPS installation support for `ptbk agents-server`:
+
+    -   Added `other/vps/install.sh`, an idempotent Ubuntu 24.04 x64 installer that installs system dependencies, Node.js 22, `ptbk`, `pm2`, the selected coding runner, configures `.env`, opens the configured port when `ufw` is active, and runs `ptbk agents-server start --agent github-copilot --model gpt-5.4 --thinking-level xhigh` under `pm2` with boot startup.
+    -   Added a local SQLite Agents Server database mode via `PTBK_AGENTS_SERVER_DATABASE=sqlite` and `PTBK_AGENTS_SERVER_SQLITE_PATH`, storing standalone data in `.promptbook/agents-server.sqlite` by default while keeping the existing Supabase mode unchanged.
+    -   Shared the server-side database access path through a Supabase-shaped local SQLite adapter and added local-mode fallbacks for PostgreSQL-only chat job and timeout mutations used by the Agents Server workers.
+
+-   Added a generated Visual Studio Code extension for Promptbook Book language syntax highlighting:
+
+    -   Generates `other/vscode-extension` from the shared Book language commitment registry and `<BookEditor/>` tokenization metadata, including commitment keywords, parameters, fenced code blocks, and TEAM/FROM/IMPORT agent references.
+    -   Added `npm run generate-vscode-extension` and `npm run test-vscode-extension-generation` so the extension stays synchronized with commitment changes.
+    -   Extended the generated publish workflow to regenerate and publish the extension to the Visual Studio Marketplace with `VSCE_PAT` during tagged releases.
+
 -   Added `ptbk agents-server init` for non-destructive local Agents Server bootstrapping:
     -   The new command appends documented `.env` placeholders for the local Supabase, OpenAI, migration, and admin-login configuration that `ptbk agents-server start` needs, and it preserves existing `.env` values on repeated init runs.
     -   Shared additive `.env` and `.gitignore` project initialization logic with `ptbk coder init`, preventing repeated coder initialization from duplicating commented identity placeholders.

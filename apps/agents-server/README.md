@@ -12,7 +12,13 @@ ptbk agents-server init
 ptbk agents-server start --agent github-copilot --model gpt-5.4 --thinking-level xhigh
 ```
 
-`ptbk agents-server init` adds missing placeholders to `.env` and local runtime exclusions to `.gitignore` without deleting existing configuration. Fill the initialized Supabase values from your project before starting the server. The Supabase project URL and API keys are available in the [Supabase project API settings](https://supabase.com/docs/guides/api/api-keys), and the PostgreSQL connection string is available from the [Supabase database connection guide](https://supabase.com/docs/guides/database/connecting-to-postgres).
+`ptbk agents-server init` adds missing placeholders to `.env` and local runtime exclusions to `.gitignore` without deleting existing configuration. Use `PTBK_AGENTS_SERVER_DATABASE=supabase` for a Supabase-backed server or `PTBK_AGENTS_SERVER_DATABASE=sqlite` for a standalone local database in `.promptbook`. When using Supabase, fill the initialized values from your project before starting the server. The Supabase project URL and API keys are available in the [Supabase project API settings](https://supabase.com/docs/guides/api/api-keys), and the PostgreSQL connection string is available from the [Supabase database connection guide](https://supabase.com/docs/guides/database/connecting-to-postgres).
+
+<a id="agents-server-env-ptbk-agents-server-database"></a>
+-   `PTBK_AGENTS_SERVER_DATABASE`: Database backend used by Agents Server. Use `supabase` for the current hosted setup or `sqlite` for a standalone local database.
+
+<a id="agents-server-env-ptbk-agents-server-sqlite-path"></a>
+-   `PTBK_AGENTS_SERVER_SQLITE_PATH`: SQLite database file used when `PTBK_AGENTS_SERVER_DATABASE=sqlite`. Defaults to `.promptbook/agents-server.sqlite` in the launch directory.
 
 <a id="agents-server-env-openai-api-key"></a>
 -   `OPENAI_API_KEY`: OpenAI API key used for Agents Server chat and agent execution. Create one in the [OpenAI API key settings](https://platform.openai.com/api-keys).

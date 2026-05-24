@@ -1,8 +1,10 @@
 import { $provideClientSql } from '@/src/database/$provideClientSql';
+import { isAgentsServerSqliteMode } from '@/src/database/agentsServerDatabaseMode';
 import type { UserChatTimeoutRecord, UserChatTimeoutRow } from '../UserChatTimeoutRecord';
 import { USER_CHAT_TIMEOUT_LEASE_DURATION_MS } from './USER_CHAT_TIMEOUT_LEASE_DURATION_MS';
 import { getUserChatTimeoutTableName } from './getUserChatTimeoutTableName';
 import { mapUserChatTimeoutRow } from './mapUserChatTimeoutRow';
+import { provideUserChatTimeoutTable } from './provideUserChatTimeoutTable';
 import { quoteIdentifier } from './quoteIdentifier';
 import { rethrowUnlessMissingUserChatTimeoutRelation } from './rethrowUnlessMissingUserChatTimeoutRelation';
 
@@ -16,6 +18,10 @@ export async function claimNextDueUserChatTimeout(
         preferredTimeoutId?: string;
     } = {},
 ): Promise<UserChatTimeoutRecord | null> {
+    if (isAgentsServerSqliteMode()) {
+        return claimNextDueUserChatTimeoutViaSupabaseQuery(options);
+    }
+
     const sql = await $provideClientSql();
     const tableIdentifier = quoteIdentifier(await getUserChatTimeoutTableName());
     const values: Array<unknown> = [USER_CHAT_TIMEOUT_LEASE_DURATION_MS];
@@ -59,4 +65,61 @@ export async function claimNextDueUserChatTimeout(
     }
 
     return claimedRows[0] ? mapUserChatTimeoutRow(claimedRows[0]) : null;
+}
+
+/**
+ * Claims a due timeout through the shared table adapter when PostgreSQL-only raw SQL is unavailable.
+ */
+async function claimNextDueUserChatTimeoutViaSupabaseQuery(
+    options: {
+        preferredTimeoutId?: string;
+    } = {},
+): Promise<UserChatTimeoutRecord | null> {
+    const userChatTimeoutTable = await provideUserChatTimeoutTable();
+    const now = new Date();
+    const nowIso = now.toISOString();
+    const leaseExpiresAt = new Date(now.getTime() + USER_CHAT_TIMEOUT_LEASE_DURATION_MS).toISOString();
+    let candidateQuery = userChatTimeoutTable
+        .select('*')
+        .eq('status', 'QUEUED')
+        .is('cancelRequestedAt', null)
+        .is('pausedAt', null)
+        .lte('dueAt', nowIso)
+        .order('dueAt', { ascending: true })
+        .order('createdAt', { ascending: true })
+        .limit(1);
+
+    if (options.preferredTimeoutId) {
+        candidateQuery = candidateQuery.eq('id', options.preferredTimeoutId);
+    }
+
+    const { data: candidates, error: candidateError } = await candidateQuery;
+    if (candidateError) {
+        throw new Error(`Failed to load due user chat timeouts: ${candidateError.message}`);
+    }
+
+    const candidate = (candidates || [])[0] as UserChatTimeoutRow | undefined;
+    if (!candidate) {
+        return null;
+    }
+
+    const { data, error } = await userChatTimeoutTable
+        .update({
+            status: 'RUNNING',
+            updatedAt: nowIso,
+            startedAt: candidate.startedAt || nowIso,
+            leaseExpiresAt,
+            attemptCount: candidate.attemptCount + 1,
+            failureReason: null,
+        })
+        .eq('id', candidate.id)
+        .eq('status', 'QUEUED')
+        .select('*')
+        .maybeSingle();
+
+    if (error) {
+        throw new Error(`Failed to claim user chat timeout "${candidate.id}": ${error.message}`);
+    }
+
+    return data ? mapUserChatTimeoutRow(data as UserChatTimeoutRow) : null;
 }

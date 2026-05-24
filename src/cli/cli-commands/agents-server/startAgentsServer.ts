@@ -66,6 +66,20 @@ const AGENTS_SERVER_PROJECT_ENV_FILE_NAME = '.env';
 const PTBK_AGENTS_SERVER_AGENT_ROOT_ENV = 'PTBK_AGENTS_SERVER_AGENT_ROOT';
 
 /**
+ * Public database mode environment name consumed by the Agents Server app.
+ *
+ * @private internal constant of `ptbk agents-server`
+ */
+const PTBK_AGENTS_SERVER_DATABASE_ENV = 'PTBK_AGENTS_SERVER_DATABASE';
+
+/**
+ * Local SQLite file environment name consumed by the Agents Server app.
+ *
+ * @private internal constant of `ptbk agents-server`
+ */
+const PTBK_AGENTS_SERVER_SQLITE_PATH_ENV = 'PTBK_AGENTS_SERVER_SQLITE_PATH';
+
+/**
  * Entropy size for the local-only token shared by the CLI pump and the Next app.
  *
  * @private internal constant of `ptbk agents-server`
@@ -350,11 +364,17 @@ function forwardChildOutput(
  * Creates the subprocess environment for Next and its internal local runner bridge.
  */
 function createAgentsServerChildEnvironment(port: number_port, agentRootPath: string): AgentsServerChildEnvironment {
+    const launchWorkingDirectory = process.cwd();
+
     return {
         ...process.env,
         PORT: String(port),
         NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL || `http://localhost:${port}`,
         [PTBK_AGENTS_SERVER_AGENT_ROOT_ENV]: agentRootPath,
+        [PTBK_AGENTS_SERVER_SQLITE_PATH_ENV]:
+            process.env[PTBK_AGENTS_SERVER_SQLITE_PATH_ENV] ||
+            join(launchWorkingDirectory, '.promptbook', 'agents-server.sqlite'),
+        [PTBK_AGENTS_SERVER_DATABASE_ENV]: process.env[PTBK_AGENTS_SERVER_DATABASE_ENV] || 'supabase',
         // Next loads app-local `.env` values after the CLI has prepared this bridge environment.
         PTBK_AGENTS_SERVER_USER_CHAT_WORKER_TOKEN:
             process.env.PTBK_AGENTS_SERVER_USER_CHAT_WORKER_TOKEN ||

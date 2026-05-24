@@ -1,6 +1,6 @@
-import { createClient } from '@supabase/supabase-js';
 import { NextRequest } from 'next/server';
 import { $getTableName } from '../database/$getTableName';
+import { $provideSupabaseForServer } from '../database/$provideSupabaseForServer';
 
 /**
  * Result of Api key validation.
@@ -56,24 +56,8 @@ export async function validateApiKey(request: NextRequest): Promise<ApiKeyValida
         };
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-    if (!supabaseUrl || !supabaseKey) {
-        console.error('Supabase configuration missing for API key validation');
-        return {
-            isValid: false,
-            error: 'Server configuration error',
-        };
-    }
-
     try {
-        const supabase = createClient(supabaseUrl, supabaseKey, {
-            auth: {
-                persistSession: false,
-                autoRefreshToken: false,
-            },
-        });
+        const supabase = $provideSupabaseForServer();
 
         const { data, error } = await supabase
             .from(await $getTableName(`ApiTokens`))

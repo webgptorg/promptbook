@@ -1,6 +1,7 @@
 import { NEXT_PUBLIC_SITE_URL, SUPABASE_TABLE_PREFIX } from '@/config';
 import { headers } from 'next/headers';
 import { cache } from 'react';
+import { isAgentsServerSqliteMode } from '../database/agentsServerDatabaseMode';
 import { resolveInternalServerOrigin } from '../utils/resolveInternalServerOrigin';
 import { createServerPublicUrl, listRegisteredServersUsingServiceRole } from '../utils/serverRegistry';
 import { resolveServerSelection } from '../utils/serverSelection';
@@ -35,6 +36,14 @@ const getCachedProvidedServer = cache(async (): Promise<ProvidedServer> => {
     const headersList = await headers();
     const requestHost = headersList.get('host');
     const xPromptbookServer = headersList.get('x-promptbook-server');
+
+    if (isAgentsServerSqliteMode()) {
+        return {
+            id: null,
+            publicUrl: resolveFallbackPublicUrl(requestHost),
+            tablePrefix: SUPABASE_TABLE_PREFIX,
+        };
+    }
 
     if (isLocalDevelopmentHost(requestHost)) {
         return {

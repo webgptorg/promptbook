@@ -1,5 +1,7 @@
 import { $isRunningInNode } from '@promptbook-local/utils';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { isAgentsServerSqliteMode } from './agentsServerDatabaseMode';
+import { $provideLocalSqliteSupabase } from './sqlite/$provideLocalSqliteSupabase';
 import { AgentsServerDatabase } from './schema';
 
 /**
@@ -24,6 +26,10 @@ export function $provideSupabaseForServer(): SupabaseClient<AgentsServerDatabase
         throw new Error(
             'Function `$provideSupabaseForServer` can not be used in browser, use `$provideSupabaseForBrowser` instead.',
         );
+    }
+
+    if (isAgentsServerSqliteMode()) {
+        return $provideLocalSqliteSupabase() as SupabaseClient<AgentsServerDatabase>;
     }
 
     if (!supabase) {
