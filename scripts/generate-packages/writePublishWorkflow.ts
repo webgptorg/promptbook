@@ -88,7 +88,7 @@ function createPublishWorkflowFileContent(packagesMetadata: ReadonlyArray<Packag
                                 run: 'npm publish --provenance --access public',
                                 env: {
                                     NODE_AUTH_TOKEN: '${{secrets.NPM_TOKEN}}',
-                                    // <- Note: To obtain `NPM_TOKEN`, go to https://www.npmjs.com/settings/hejny/tokens
+                                    // <- Note: To obtain `NPM_TOKEN`, go to https://www.npmjs.com/settings/hejny/tokens and pass it here https://github.com/webgptorg/promptbook/settings/secrets/actions/NPM_TOKEN
                                 },
                             })),
                         ],
