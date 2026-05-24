@@ -2,6 +2,7 @@
     -   The new command appends documented `.env` placeholders for the local Supabase, OpenAI, migration, and admin-login configuration that `ptbk agents-server start` needs, and it preserves existing `.env` values on repeated init runs.
     -   Shared additive `.env` and `.gitignore` project initialization logic with `ptbk coder init`, preventing repeated coder initialization from duplicating commented identity placeholders.
     -   Initialized Agents Server `.gitignore` runtime exclusions for `node_modules`, `.promptbook`, and `.logs`, and made foreground Agents Server startup load the launch-directory `.env` while writing local foreground logs under `.logs`.
+-   Fixed `ptbk agents-server start` local worker routing so localhost internal chat-job ticks no longer depend on the global `_Server` registry, and improved repeated worker failure logs with route-level error details instead of only `500 Internal Server Error`.
 -   Cached `ptbk agents-server start` production builds so unchanged Agents Server runtime sources reuse the existing Next output, added `ptbk agents-server build` for explicit prebuilds, and added `ptbk agents-server start --force-build` for intentional rebuilds.
 
 -   Fixed Agents Server chat export to **PDF** so downloaded PDFs render chat text through the browser before embedding it into pages, preventing misplaced characters and broken Czech diacritics in saved conversations.

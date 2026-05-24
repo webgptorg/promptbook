@@ -24,6 +24,20 @@ import { ensureAgentsServerBuild, resolveAgentsServerAppPath } from './buildAgen
 const USER_CHAT_JOB_WORKER_POLL_INTERVAL_MS = 2_000;
 
 /**
+ * Number of identical worker failures suppressed before logging a repeated summary.
+ *
+ * @private internal constant of `ptbk agents-server`
+ */
+const USER_CHAT_JOB_WORKER_REPEATED_ERROR_LOG_INTERVAL = 10;
+
+/**
+ * Maximum worker response body length shown in foreground diagnostics.
+ *
+ * @private internal constant of `ptbk agents-server`
+ */
+const USER_CHAT_JOB_WORKER_ERROR_BODY_MAX_LENGTH = 2_000;
+
+/**
  * HTTP status used by an idle internal worker tick with no job to process.
  *
  * @private internal constant of `ptbk agents-server`
@@ -114,6 +128,10 @@ type AgentsServerChildEnvironment = NodeJS.ProcessEnv & {
 type AgentsServerSupervisorState = {
     isContinuing: boolean;
     uiHandle?: CoderRunUiHandle;
+    lastUserChatJobWorkerError?: {
+        message: string;
+        repeatCount: number;
+    };
     nextExit?: {
         code: number | null;
         signal: NodeJS.Signals | null;
@@ -380,10 +398,16 @@ function startUserChatJobWorkerPump(options: {
 
         isTickRunning = true;
         triggerUserChatJobWorkerTick(options)
+            .then(() => {
+                clearUserChatJobWorkerError(options.state);
+            })
             .catch((error) => {
                 const message = error instanceof Error ? error.message : String(error);
-                logRunnerEvent(options.logStreams.runner, `User chat worker tick failed: ${message}`);
-                addUiError(options.state, message);
+                reportUserChatJobWorkerError({
+                    logStream: options.logStreams.runner,
+                    message,
+                    state: options.state,
+                });
             })
             .finally(() => {
                 isTickRunning = false;
@@ -411,8 +435,109 @@ async function triggerUserChatJobWorkerTick(options: {
     });
 
     if (!response.ok && response.status !== HTTP_NO_CONTENT_STATUS_CODE) {
-        throw new Error(`Internal user chat worker returned ${response.status} ${response.statusText}.`);
+        const details = await readUserChatJobWorkerErrorDetails(response);
+        throw new Error(createUserChatJobWorkerErrorMessage(response, details));
     }
+}
+
+/**
+ * Reports worker failures while suppressing identical repeated foreground noise.
+ */
+function reportUserChatJobWorkerError(options: {
+    readonly logStream: WriteStream;
+    readonly message: string;
+    readonly state: AgentsServerSupervisorState;
+}): void {
+    const previousError = options.state.lastUserChatJobWorkerError;
+
+    if (previousError?.message === options.message) {
+        const repeatCount = previousError.repeatCount + 1;
+        options.state.lastUserChatJobWorkerError = {
+            message: options.message,
+            repeatCount,
+        };
+
+        if (repeatCount % USER_CHAT_JOB_WORKER_REPEATED_ERROR_LOG_INTERVAL !== 0) {
+            return;
+        }
+
+        const repeatedMessage = `User chat worker tick is still failing after ${repeatCount} attempts: ${options.message}`;
+        logRunnerEvent(options.logStream, repeatedMessage);
+        addUiError(options.state, repeatedMessage);
+        return;
+    }
+
+    options.state.lastUserChatJobWorkerError = {
+        message: options.message,
+        repeatCount: 1,
+    };
+    logRunnerEvent(options.logStream, `User chat worker tick failed: ${options.message}`);
+    addUiError(options.state, options.message);
+}
+
+/**
+ * Resets repeated-error suppression after a successful worker tick.
+ */
+function clearUserChatJobWorkerError(state: AgentsServerSupervisorState): void {
+    state.lastUserChatJobWorkerError = undefined;
+}
+
+/**
+ * Reads a worker error payload so foreground logs show the route-level reason.
+ */
+async function readUserChatJobWorkerErrorDetails(response: Response): Promise<string | null> {
+    const body = await response.text().catch(() => '');
+    const trimmedBody = body.trim();
+
+    if (!trimmedBody) {
+        return null;
+    }
+
+    const parsedMessage = parseUserChatJobWorkerErrorMessage(trimmedBody);
+    return truncateUserChatJobWorkerErrorDetails(parsedMessage || trimmedBody);
+}
+
+/**
+ * Extracts a readable error message from the worker route JSON response.
+ */
+function parseUserChatJobWorkerErrorMessage(body: string): string | null {
+    try {
+        const parsedBody = JSON.parse(body) as {
+            error?: unknown;
+            message?: unknown;
+        };
+        const errorMessage = typeof parsedBody.error === 'string' ? parsedBody.error : undefined;
+        const fallbackMessage = typeof parsedBody.message === 'string' ? parsedBody.message : undefined;
+
+        return errorMessage || fallbackMessage || null;
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * Builds the foreground worker failure message from HTTP status and route details.
+ */
+function createUserChatJobWorkerErrorMessage(response: Response, details: string | null): string {
+    const statusText = response.statusText ? ` ${response.statusText}` : '';
+    const statusMessage = `${response.status}${statusText}`;
+
+    if (!details) {
+        return `Internal user chat worker returned ${statusMessage}.`;
+    }
+
+    return `Internal user chat worker returned ${statusMessage}: ${details}`;
+}
+
+/**
+ * Keeps foreground worker diagnostics bounded when a route returns a large payload.
+ */
+function truncateUserChatJobWorkerErrorDetails(details: string): string {
+    if (details.length <= USER_CHAT_JOB_WORKER_ERROR_BODY_MAX_LENGTH) {
+        return details;
+    }
+
+    return `${details.slice(0, USER_CHAT_JOB_WORKER_ERROR_BODY_MAX_LENGTH)}...`;
 }
 
 /**

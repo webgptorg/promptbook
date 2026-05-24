@@ -35,9 +35,18 @@ const getCachedProvidedServer = cache(async (): Promise<ProvidedServer> => {
     const headersList = await headers();
     const requestHost = headersList.get('host');
     const xPromptbookServer = headersList.get('x-promptbook-server');
+
+    if (isLocalDevelopmentHost(requestHost)) {
+        return {
+            id: null,
+            publicUrl: resolveFallbackPublicUrl(requestHost),
+            tablePrefix: SUPABASE_TABLE_PREFIX,
+        };
+    }
+
     const registeredServers = await listRegisteredServersUsingServiceRole();
 
-    if (registeredServers.length === 0 || isLocalDevelopmentHost(requestHost)) {
+    if (registeredServers.length === 0) {
         return {
             id: null,
             publicUrl: resolveFallbackPublicUrl(requestHost),
@@ -100,5 +109,14 @@ function isLocalDevelopmentHost(host: string | null): boolean {
         return false;
     }
 
-    return host.startsWith('127.0.0.1') || host.startsWith('localhost');
+    const normalizedHost = host.trim().toLowerCase();
+
+    return (
+        normalizedHost === 'localhost' ||
+        normalizedHost.startsWith('localhost:') ||
+        normalizedHost === '127.0.0.1' ||
+        normalizedHost.startsWith('127.0.0.1:') ||
+        normalizedHost === '[::1]' ||
+        normalizedHost.startsWith('[::1]:')
+    );
 }
