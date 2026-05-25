@@ -31,7 +31,6 @@
 
 [✨👽] Change `ptbk agent` to `ptbk agent-folder`
 
--   _(@@@ After VPS server is working)_
 -   You do not need to keep backwards compatibility with the old command, you just rename the command
 -   Rename both the implementation and usage across the codebase
     -   Do fulltext search for `ptbk agent` and replace it with `ptbk agent-folder` across the codebase, including documentation, comments, tests, etc.

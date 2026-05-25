@@ -1,9 +1,12 @@
 [ ] !!!!!
 
-[✨🦛] Use Git Github repository (not NPM package) when installing Agents server via auto installation script
+[✨🦛] Use GitHub repository (not NPM package) when installing Agents server via auto installation script
 
--   _(@@@ After VPS server is working)_
--   Currently when installing fresh server it installs promptbook as NPM package, instead clone the git repository from Github
+```bash
+curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/other/vps/install.sh | bash
+```
+
+-   Currently when installing fresh server it installs promptbook as NPM package, instead clone the git repository from GitHub
 -   By this change, the installation script will always use the latest version from the GitHub repository and not be dependent on the NPM package registry
 -   Do a proper analysis of the current functionality of install.sh, `ptbk agents-server` and related functionality before you start implementing.
 -   You are working with [auto installation script](vps/install.sh)
