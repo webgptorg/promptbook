@@ -3,6 +3,7 @@ import {
     resolveDatabaseMigrationConnectionStringFromEnvironment,
     runDatabaseMigrations,
 } from './runDatabaseMigrations';
+import { listEnvironmentRegisteredServers } from '../utils/serverRegistry';
 
 /**
  * Opt-out environment flag for automatic runtime migrations.
@@ -24,7 +25,13 @@ const automaticDatabaseMigrationPromiseByPrefix = new Map<string, Promise<void>>
  * @private internal startup helper for Agents Server runtime
  */
 export async function ensureAutomaticDatabaseMigrations(): Promise<void> {
-    return ensureAutomaticDatabaseMigrationsForPrefix(process.env.SUPABASE_TABLE_PREFIX || '');
+    const environmentServerPrefixes = listEnvironmentRegisteredServers().map((server) => server.tablePrefix);
+
+    if (environmentServerPrefixes.length === 0) {
+        return ensureAutomaticDatabaseMigrationsForPrefix(process.env.SUPABASE_TABLE_PREFIX || '');
+    }
+
+    await Promise.all(environmentServerPrefixes.map((prefix) => ensureAutomaticDatabaseMigrationsForPrefix(prefix)));
 }
 
 /**

@@ -115,4 +115,45 @@ describe('$provideLocalSqliteSupabase', () => {
 
         expect(error?.code).toBe('23505');
     });
+
+    it('updates rows with auto-increment primary keys', async () => {
+        const { $provideLocalSqliteSupabase } = await import('./$provideLocalSqliteSupabase');
+        const supabase = $provideLocalSqliteSupabase();
+        const now = new Date('2026-05-24T10:00:00.000Z').toISOString();
+
+        const { data: insertedAgent, error: insertError } = await supabase
+            .from('Agent')
+            .insert({
+                agentName: 'owner-assignment-regression',
+                agentHash: 'agent-hash',
+                permanentId: 'agent-permanent-id',
+                agentProfile: { agentName: 'owner-assignment-regression' },
+                agentSource: 'Owner Assignment Regression\nPERSONA You test SQLite updates.',
+                promptbookEngineVersion: 'test',
+                usage: {},
+                createdAt: now,
+            })
+            .select('id,permanentId,userId')
+            .maybeSingle();
+
+        expect(insertError).toBeNull();
+        expect(insertedAgent).toMatchObject({
+            permanentId: 'agent-permanent-id',
+            userId: null,
+        });
+
+        const { data: updatedAgent, error: updateError } = await supabase
+            .from('Agent')
+            .update({ userId: 7 })
+            .eq('permanentId', 'agent-permanent-id')
+            .select('id,permanentId,userId')
+            .maybeSingle();
+
+        expect(updateError).toBeNull();
+        expect(updatedAgent).toMatchObject({
+            id: (insertedAgent as { id: number }).id,
+            permanentId: 'agent-permanent-id',
+            userId: 7,
+        });
+    });
 });

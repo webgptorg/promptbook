@@ -37,7 +37,7 @@ export async function createMiddlewareRequestContext(request: NextRequest): Prom
     const requestIp = getRequestIp(request);
     const host = request.headers.get('host');
     const supabase = getMiddlewareSupabase();
-    const registeredServers = supabase ? await loadRegisteredServers() : [];
+    const registeredServers = supabase || process.env.SERVERS ? await loadRegisteredServers() : [];
     const { canQueryServerTables, customDomainResolution, tablePrefixForRequest } = await resolveMiddlewareServerRouting(
         {
             host,

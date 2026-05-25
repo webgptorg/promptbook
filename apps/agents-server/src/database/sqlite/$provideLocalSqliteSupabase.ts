@@ -750,11 +750,11 @@ class LocalSqliteQueryBuilder implements PromiseLike<LocalSqliteQueryResult> {
      */
     private selectMatchingRowids(): Array<number | bigint> {
         const where = this.createWhereClause();
-        const sql = `SELECT rowid FROM ${quoteIdentifier(this.tableName)} ${where.sql}`;
+        const sql = `SELECT rowid AS "__rowid" FROM ${quoteIdentifier(this.tableName)} ${where.sql}`;
         return this.database
             .prepare(sql)
             .all(...where.values)
-            .map((row) => row.rowid as number | bigint);
+            .map((row) => row.__rowid as number | bigint);
     }
 
     /**

@@ -11,6 +11,9 @@ PTBK_AGENT="${PTBK_AGENT:-github-copilot}"
 PTBK_MODEL="${PTBK_MODEL:-gpt-5.4}"
 PTBK_THINKING_LEVEL="${PTBK_THINKING_LEVEL:-xhigh}"
 PTBK_NON_INTERACTIVE="${PTBK_NON_INTERACTIVE:-0}"
+SERVERS="${SERVERS:-}"
+LETS_ENCRYPT_EMAIL="${LETS_ENCRYPT_EMAIL:-${CERTBOT_EMAIL:-}}"
+NGINX_SITE_NAME="${PTBK_NGINX_SITE_NAME:-promptbook-agents-server}"
 
 SUDO=()
 RUN_USER=""
@@ -18,6 +21,8 @@ RUN_GROUP=""
 RUN_HOME=""
 ENV_FILE=""
 GENERATED_ADMIN_PASSWORD=""
+PUBLIC_IP_ADDRESS=""
+DOMAINS=()
 
 log() {
     printf '[promptbook-vps] %s\n' "$*"
@@ -68,8 +73,95 @@ prompt_yes_no() {
     [[ "$answer" =~ ^[Yy] ]]
 }
 
+join_by_comma() {
+    local joined=""
+    local item=""
+
+    for item in "$@"; do
+        if [[ -n "$joined" ]]; then
+            joined+=","
+        fi
+        joined+="$item"
+    done
+
+    printf '%s' "$joined"
+}
+
+join_by_space() {
+    local joined=""
+    local item=""
+
+    for item in "$@"; do
+        if [[ -n "$joined" ]]; then
+            joined+=" "
+        fi
+        joined+="$item"
+    done
+
+    printf '%s' "$joined"
+}
+
 shell_quote() {
     printf "'%s'" "$(printf '%s' "$1" | sed "s/'/'\\\\''/g")"
+}
+
+normalize_domain() {
+    local raw_domain="$1"
+    local normalized_domain=""
+
+    normalized_domain="$(printf '%s' "$raw_domain" |
+        tr '[:upper:]' '[:lower:]' |
+        sed -E 's#^[[:space:]]+|[[:space:]]+$##g; s#^https?://##; s#/.*$##; s/[.]$//')"
+
+    if [[ ! "$normalized_domain" =~ ^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$ ]]; then
+        printf ''
+        return
+    fi
+
+    printf '%s' "$normalized_domain"
+}
+
+build_domain_table_prefix() {
+    local domain="$1"
+    local prefix_suffix=""
+
+    prefix_suffix="$(printf '%s' "$domain" |
+        sed -E 's/-/_dash_/g; s/[.]/_/g; s/[^A-Za-z0-9_]/_/g; s/_+/_/g; s/^_+|_+$//g')"
+
+    printf 'server_%s_' "$prefix_suffix"
+}
+
+append_domain() {
+    local raw_domain="$1"
+    local normalized_domain=""
+    local existing_domain=""
+
+    normalized_domain="$(normalize_domain "$raw_domain")"
+    if [[ -z "$normalized_domain" ]]; then
+        fail "Invalid domain '$raw_domain'. Use one or more DNS hostnames, for example example.com,www.example.com."
+    fi
+
+    for existing_domain in "${DOMAINS[@]}"; do
+        if [[ "$existing_domain" == "$normalized_domain" ]]; then
+            return
+        fi
+    done
+
+    DOMAINS+=("$normalized_domain")
+}
+
+set_domains_from_csv() {
+    local raw_domains="$1"
+    local domain=""
+
+    DOMAINS=()
+    IFS=',' read -ra requested_domains <<< "$raw_domains"
+    for domain in "${requested_domains[@]}"; do
+        if [[ -z "${domain//[[:space:]]/}" ]]; then
+            continue
+        fi
+        append_domain "$domain"
+    done
 }
 
 initialize_sudo() {
@@ -140,7 +232,10 @@ install_system_packages() {
         python3 \
         make \
         g++ \
-        openssl
+        openssl \
+        nginx \
+        certbot \
+        python3-certbot-nginx
 }
 
 is_node_version_supported() {
@@ -219,6 +314,14 @@ install_runner_dependencies() {
 
 resolve_default_public_url() {
     local ip_address=""
+    ip_address="$(resolve_public_ip_address)"
+
+    printf 'http://%s:%s' "$ip_address" "$PORT"
+}
+
+resolve_public_ip_address() {
+    local ip_address=""
+
     ip_address="$(curl -fsS --max-time 5 https://api.ipify.org 2>/dev/null || true)"
 
     if [[ -z "$ip_address" ]]; then
@@ -229,7 +332,7 @@ resolve_default_public_url() {
         ip_address="localhost"
     fi
 
-    printf 'http://%s:%s' "$ip_address" "$PORT"
+    printf '%s' "$ip_address"
 }
 
 configure_install_directory() {
@@ -276,22 +379,57 @@ has_non_empty_env_value() {
     [[ -f "$ENV_FILE" ]] && grep -Eq "^${key}=.+" "$ENV_FILE"
 }
 
+configure_domains() {
+    local default_domains="$SERVERS"
+    local requested_domains=""
+    local domain=""
+
+    if [[ -z "$default_domains" && -n "$ENV_FILE" && -f "$ENV_FILE" ]]; then
+        default_domains="$(grep -E '^SERVERS=' "$ENV_FILE" | tail -n 1 | cut -d= -f2-)"
+    fi
+
+    requested_domains="$(prompt_with_default "Custom domain(s), comma-separated" "$default_domains")"
+    set_domains_from_csv "$requested_domains"
+
+    if [[ "${#DOMAINS[@]}" -eq 0 ]]; then
+        fail "At least one custom domain is required for the production VPS installer."
+    fi
+
+    SERVERS="$(join_by_comma "${DOMAINS[@]}")"
+    PUBLIC_IP_ADDRESS="$(resolve_public_ip_address)"
+
+    log "Before SSL is issued, point these DNS records to this VPS:"
+    for domain in "${DOMAINS[@]}"; do
+        log "  $domain  A  $PUBLIC_IP_ADDRESS"
+    done
+    log "If your VPS provider gave you an IPv6 address, add matching AAAA records as well."
+
+    if ! prompt_yes_no "Have the DNS records propagated and should SSL setup continue now?" "yes"; then
+        fail "Update DNS for $SERVERS, then run this installer again."
+    fi
+}
+
 configure_environment() {
     local sqlite_path="$INSTALL_DIR/.promptbook/agents-server.sqlite"
     local default_public_url=""
     local public_site_url=""
+    local first_domain="${DOMAINS[0]}"
 
-    default_public_url="${PTBK_PUBLIC_SITE_URL:-${NEXT_PUBLIC_SITE_URL:-$(resolve_default_public_url)}}"
+    default_public_url="${PTBK_PUBLIC_SITE_URL:-${NEXT_PUBLIC_SITE_URL:-https://${first_domain}}}"
     public_site_url="$(prompt_with_default "Public Agents Server URL" "$default_public_url")"
 
     set_env_value PTBK_AGENTS_SERVER_DATABASE sqlite
     set_env_value PTBK_AGENTS_SERVER_SQLITE_PATH "$sqlite_path"
     set_env_value NEXT_PUBLIC_SITE_URL "$public_site_url"
+    set_env_value SERVERS "$SERVERS"
+    set_env_value SUPABASE_TABLE_PREFIX "$(build_domain_table_prefix "$first_domain")"
     set_env_value SUPABASE_AUTO_MIGRATE false
     set_env_value PTBK_AGENT "$PTBK_AGENT"
     set_env_value PTBK_MODEL "$PTBK_MODEL"
     set_env_value PTBK_THINKING_LEVEL "$PTBK_THINKING_LEVEL"
     set_env_value PORT "$PORT"
+    set_env_value NODE_ENV production
+    set_env_value PTBK_HOSTNAME 127.0.0.1
 
     if ! has_non_empty_env_value ADMIN_PASSWORD; then
         GENERATED_ADMIN_PASSWORD="$(openssl rand -hex 24)"
@@ -348,9 +486,107 @@ configure_firewall() {
     fi
 
     if "${SUDO[@]}" ufw status | grep -q 'Status: active'; then
-        log "Opening TCP port $PORT in ufw."
-        "${SUDO[@]}" ufw allow "${PORT}/tcp"
+        log "Opening HTTP and HTTPS in ufw for nginx."
+        if "${SUDO[@]}" ufw app list | grep -q '^  Nginx Full$'; then
+            "${SUDO[@]}" ufw allow 'Nginx Full'
+        else
+            "${SUDO[@]}" ufw allow 80/tcp
+            "${SUDO[@]}" ufw allow 443/tcp
+        fi
     fi
+}
+
+configure_nginx_reverse_proxy() {
+    local nginx_available_path="/etc/nginx/sites-available/${NGINX_SITE_NAME}"
+    local nginx_enabled_path="/etc/nginx/sites-enabled/${NGINX_SITE_NAME}"
+    local server_names=""
+
+    server_names="$(join_by_space "${DOMAINS[@]}")"
+
+    log "Configuring nginx reverse proxy for $server_names."
+    "${SUDO[@]}" tee "$nginx_available_path" >/dev/null <<EOF
+map \$http_upgrade \$promptbook_connection_upgrade {
+    default upgrade;
+    '' close;
+}
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name ${server_names};
+
+    server_tokens off;
+    client_max_body_size 100m;
+
+    location / {
+        proxy_pass http://127.0.0.1:${PORT};
+        proxy_http_version 1.1;
+        proxy_buffering off;
+        proxy_redirect off;
+
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Host \$host;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_set_header X-Promptbook-Server \$host;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection \$promptbook_connection_upgrade;
+
+        proxy_read_timeout 3600s;
+        proxy_send_timeout 3600s;
+    }
+}
+EOF
+
+    "${SUDO[@]}" ln -sfn "$nginx_available_path" "$nginx_enabled_path"
+    "${SUDO[@]}" rm -f /etc/nginx/sites-enabled/default
+    "${SUDO[@]}" nginx -t
+    "${SUDO[@]}" systemctl enable nginx >/dev/null
+    "${SUDO[@]}" systemctl restart nginx
+}
+
+warn_if_domain_dns_is_not_ready() {
+    local domain=""
+    local resolved_addresses=""
+
+    if [[ "$PUBLIC_IP_ADDRESS" == "localhost" ]]; then
+        warn "Could not detect the VPS public IP address; skipping DNS verification."
+        return
+    fi
+
+    for domain in "${DOMAINS[@]}"; do
+        resolved_addresses="$(getent ahosts "$domain" 2>/dev/null | awk '{ print $1 }' | sort -u | tr '\n' ' ' | sed -E 's/[[:space:]]+$//')"
+        if [[ -z "$resolved_addresses" ]]; then
+            warn "$domain does not resolve yet. Certbot HTTP validation will fail until DNS propagates."
+            continue
+        fi
+
+        if [[ " $resolved_addresses " != *" $PUBLIC_IP_ADDRESS "* ]]; then
+            warn "$domain resolves to [$resolved_addresses], not detected VPS IP $PUBLIC_IP_ADDRESS. Certbot may fail."
+        fi
+    done
+}
+
+configure_ssl_certificates() {
+    local certbot_arguments=(--nginx --non-interactive --agree-tos --redirect --keep-until-expiring --expand)
+    local domain=""
+
+    warn_if_domain_dns_is_not_ready
+
+    if [[ -n "$LETS_ENCRYPT_EMAIL" ]]; then
+        certbot_arguments+=(--email "$LETS_ENCRYPT_EMAIL")
+    else
+        certbot_arguments+=(--register-unsafely-without-email)
+    fi
+
+    for domain in "${DOMAINS[@]}"; do
+        certbot_arguments+=(-d "$domain")
+    done
+
+    log "Requesting Let's Encrypt SSL certificate for $SERVERS."
+    "${SUDO[@]}" certbot "${certbot_arguments[@]}"
+    "${SUDO[@]}" systemctl reload nginx
 }
 
 configure_pm2_startup() {
@@ -402,9 +638,11 @@ print_summary() {
 
     log "Agents Server is configured."
     log "URL: $public_site_url"
+    log "Domains: $SERVERS"
     log "Project directory: $INSTALL_DIR"
     log "Database: $INSTALL_DIR/.promptbook/agents-server.sqlite"
     log "pm2 process: $APP_NAME"
+    log "nginx site: /etc/nginx/sites-available/$NGINX_SITE_NAME"
 
     if [[ -n "$GENERATED_ADMIN_PASSWORD" ]]; then
         log "Generated ADMIN_PASSWORD: $GENERATED_ADMIN_PASSWORD"
@@ -414,6 +652,8 @@ print_summary() {
     log "  sudo -u $RUN_USER pm2 status"
     log "  sudo -u $RUN_USER pm2 logs $APP_NAME"
     log "  sudo -u $RUN_USER pm2 restart $APP_NAME --update-env"
+    log "  sudo nginx -t && sudo systemctl reload nginx"
+    log "  sudo certbot renew --dry-run"
 }
 
 main() {
@@ -425,18 +665,22 @@ main() {
     PTBK_MODEL="$(prompt_with_default "Runner model" "$PTBK_MODEL")"
     PTBK_THINKING_LEVEL="$(prompt_with_default "Runner thinking level" "$PTBK_THINKING_LEVEL")"
     PORT="$(prompt_with_default "Agents Server port" "$PORT")"
+    LETS_ENCRYPT_EMAIL="$(prompt_with_default "Let's Encrypt email (optional)" "$LETS_ENCRYPT_EMAIL")"
 
     install_system_packages
     install_nodejs
     install_global_npm_packages
     install_runner_dependencies
     configure_install_directory
+    configure_domains
     initialize_promptbook_project
     configure_runner_authentication
-    configure_firewall
     configure_pm2_startup
     build_agents_server
     start_agents_server
+    configure_nginx_reverse_proxy
+    configure_firewall
+    configure_ssl_certificates
     print_summary
 }
 

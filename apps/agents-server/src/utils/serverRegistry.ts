@@ -63,6 +63,16 @@ const SERVER_REGISTRY_SELECT = 'id,name,environment,domain,tablePrefix,createdAt
 const SERVER_REGISTRY_TABLE_NAME = '_Server';
 
 /**
+ * Environment variable with comma-separated standalone server domains.
+ */
+const SERVERS_ENV_NAME = 'SERVERS';
+
+/**
+ * Stable timestamp used by virtual server records derived from environment variables.
+ */
+const ENVIRONMENT_SERVER_TIMESTAMP = '1970-01-01T00:00:00.000Z';
+
+/**
  * In-memory cache TTL for repeated registry lookups inside one runtime process.
  */
 const SERVER_REGISTRY_CACHE_TTL_MS = 60_000;
@@ -127,8 +137,10 @@ export async function listRegisteredServers(supabase: Pick<SupabaseClient, 'from
 export async function listRegisteredServersUsingServiceRole(options?: {
     readonly forceRefresh?: boolean;
 }): Promise<Array<ServerRecord>> {
+    const environmentServers = listEnvironmentRegisteredServers();
+
     if (isAgentsServerSqliteMode()) {
-        return [];
+        return environmentServers;
     }
 
     const shouldReuseCache =
@@ -137,7 +149,7 @@ export async function listRegisteredServersUsingServiceRole(options?: {
         Date.now() - cachedServerRegistry.loadedAt < SERVER_REGISTRY_CACHE_TTL_MS;
 
     if (shouldReuseCache) {
-        return cachedServerRegistry!.serversPromise;
+        return mergeRegisteredServers(await cachedServerRegistry!.serversPromise, environmentServers);
     }
 
     const serversPromise = listRegisteredServers(getServerRegistryClient());
@@ -147,13 +159,42 @@ export async function listRegisteredServersUsingServiceRole(options?: {
     };
 
     try {
-        return await serversPromise;
+        return mergeRegisteredServers(await serversPromise, environmentServers);
     } catch (error) {
         if (cachedServerRegistry?.serversPromise === serversPromise) {
             cachedServerRegistry = null;
         }
         throw error;
     }
+}
+
+/**
+ * Loads virtual server records from the comma-separated `SERVERS` environment variable.
+ *
+ * @returns Server records with deterministic table prefixes derived from normalized domains.
+ */
+export function listEnvironmentRegisteredServers(): Array<ServerRecord> {
+    const rawServers = process.env[SERVERS_ENV_NAME];
+    if (!rawServers) {
+        return [];
+    }
+
+    const normalizedDomains = uniqueStrings(
+        rawServers
+            .split(',')
+            .map((server) => normalizeServerDomain(server))
+            .filter((server): server is string => Boolean(server)),
+    );
+
+    return normalizedDomains.map((domain, index) => ({
+        id: -(index + 1),
+        name: domain,
+        environment: SERVER_ENVIRONMENT.PRODUCTION,
+        domain,
+        tablePrefix: buildEnvironmentServerTablePrefix(domain),
+        createdAt: ENVIRONMENT_SERVER_TIMESTAMP,
+        updatedAt: ENVIRONMENT_SERVER_TIMESTAMP,
+    }));
 }
 
 /**
@@ -403,4 +444,77 @@ function hasHttpProtocol(value: string): boolean {
  */
 function isDefaultPortForProtocol(protocol: string, port: string): boolean {
     return (protocol === 'http:' && port === '80') || (protocol === 'https:' && port === '443');
+}
+
+/**
+ * Combines database and environment registry rows, keeping database rows authoritative.
+ *
+ * @param databaseServers - Persistent `_Server` rows.
+ * @param environmentServers - Virtual rows derived from `SERVERS`.
+ * @returns Merged rows without duplicate domains.
+ */
+function mergeRegisteredServers(
+    databaseServers: ReadonlyArray<ServerRecord>,
+    environmentServers: ReadonlyArray<ServerRecord>,
+): Array<ServerRecord> {
+    const seenDomains = new Set<string>();
+    const mergedServers = [...databaseServers];
+
+    for (const databaseServer of databaseServers) {
+        const normalizedDomain = normalizeServerDomain(databaseServer.domain);
+        if (normalizedDomain) {
+            seenDomains.add(normalizedDomain);
+        }
+    }
+
+    for (const environmentServer of environmentServers) {
+        const normalizedDomain = normalizeServerDomain(environmentServer.domain);
+        if (!normalizedDomain || seenDomains.has(normalizedDomain)) {
+            continue;
+        }
+
+        mergedServers.push(environmentServer);
+        seenDomains.add(normalizedDomain);
+    }
+
+    return mergedServers;
+}
+
+/**
+ * Builds a deterministic table prefix from a normalized domain.
+ *
+ * @param domain - Normalized server domain.
+ * @returns Prefix such as `server_www_example_com_`.
+ */
+function buildEnvironmentServerTablePrefix(domain: string): string {
+    const prefixSuffix = domain
+        .toLowerCase()
+        .replace(/-/gu, '_dash_')
+        .replace(/\./gu, '_')
+        .replace(/:/gu, '_port_')
+        .replace(/[^a-z0-9_]/gu, '_')
+        .replace(/_+/gu, '_')
+        .replace(/^_+|_+$/gu, '');
+
+    return `server_${prefixSuffix}_`;
+}
+
+/**
+ * Deduplicates non-empty strings while preserving input order.
+ *
+ * @param values - Raw string values.
+ * @returns Unique non-empty strings.
+ */
+function uniqueStrings(values: ReadonlyArray<string>): Array<string> {
+    const uniqueValues: Array<string> = [];
+
+    for (const value of values) {
+        if (!value || uniqueValues.includes(value)) {
+            continue;
+        }
+
+        uniqueValues.push(value);
+    }
+
+    return uniqueValues;
 }

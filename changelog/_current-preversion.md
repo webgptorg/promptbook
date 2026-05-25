@@ -1,3 +1,10 @@
+-   Added production custom-domain setup to the standalone VPS installer:
+
+    -   `other/vps/install.sh` now asks for one or more domains, stores them in `SERVERS`, configures nginx as the public reverse proxy, binds the Agents Server process to localhost, opens HTTP/HTTPS when `ufw` is active, and provisions Let's Encrypt certificates with certbot.
+    -   Added `SERVERS` runtime support for standalone Agents Server deployments so each configured domain resolves to its own deterministic table prefix in the shared database.
+    -   The installer now prints the DNS records that must point at the VPS before certificate issuance and summarizes nginx, certbot, pm2, and admin-login follow-up commands after installation.
+    -   Fixed local SQLite update handling for auto-increment tables so standalone management API writes, including agent ownership assignment, persist correctly.
+
 -   Fixed standalone VPS installation of `ptbk agents-server` so the first production build no longer crashes when the bundled Next app comes from the npm-installed CLI package:
 
     -   Materialized the packaged Agents Server runtime into the launch project's `.promptbook/agents-server/runtime` cache before building, keeping writable build output out of `node_modules` and preserving access to the installed dependency tree.

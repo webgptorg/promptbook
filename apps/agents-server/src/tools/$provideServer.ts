@@ -38,6 +38,33 @@ const getCachedProvidedServer = cache(async (): Promise<ProvidedServer> => {
     const xPromptbookServer = headersList.get('x-promptbook-server');
 
     if (isAgentsServerSqliteMode()) {
+        if (isLocalDevelopmentHost(requestHost)) {
+            return {
+                id: null,
+                publicUrl: resolveFallbackPublicUrl(requestHost),
+                tablePrefix: SUPABASE_TABLE_PREFIX,
+            };
+        }
+
+        const registeredServers = await listRegisteredServersUsingServiceRole();
+        if (registeredServers.length > 0) {
+            const { currentServer: resolvedSqliteServer } = resolveServerSelection({
+                host: requestHost,
+                forwardedServerHost: xPromptbookServer,
+                registeredServers,
+            });
+
+            if (!resolvedSqliteServer) {
+                throw new Error(`Server with host "${requestHost}" is not registered in SERVERS`);
+            }
+
+            return {
+                id: resolvedSqliteServer.id,
+                publicUrl: createServerPublicUrl(resolvedSqliteServer.domain),
+                tablePrefix: resolvedSqliteServer.tablePrefix,
+            };
+        }
+
         return {
             id: null,
             publicUrl: resolveFallbackPublicUrl(requestHost),

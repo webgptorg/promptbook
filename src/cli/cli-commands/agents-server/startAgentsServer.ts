@@ -84,6 +84,13 @@ const PTBK_AGENTS_SERVER_DATABASE_ENV = 'PTBK_AGENTS_SERVER_DATABASE';
 const PTBK_AGENTS_SERVER_SQLITE_PATH_ENV = 'PTBK_AGENTS_SERVER_SQLITE_PATH';
 
 /**
+ * Optional hostname used by the internal Next server.
+ *
+ * @private internal constant of `ptbk agents-server`
+ */
+const PTBK_HOSTNAME_ENV = 'PTBK_HOSTNAME';
+
+/**
  * Entropy size for the local-only token shared by the CLI pump and the Next app.
  *
  * @private internal constant of `ptbk agents-server`
@@ -292,16 +299,19 @@ function startNextServer(options: {
     readonly state: AgentsServerSupervisorState;
 }): ChildProcess {
     logRunnerEvent(options.logStreams.runner, 'Starting the Agents Server Next process.');
+    const nextArguments = [options.nextCliPath, 'start', '--port', String(options.options.port)];
+    const hostname = options.childEnvironment[PTBK_HOSTNAME_ENV]?.trim();
 
-    const commandProcess = spawn(
-        process.execPath,
-        [options.nextCliPath, 'start', '--port', String(options.options.port)],
-        {
-            cwd: options.runtimePaths.appPath,
-            env: options.childEnvironment,
-            stdio: ['ignore', 'pipe', 'pipe'],
-        },
-    );
+    if (hostname) {
+        nextArguments.push('--hostname', hostname);
+        logRunnerEvent(options.logStreams.runner, `Binding Agents Server Next process to ${hostname}.`);
+    }
+
+    const commandProcess = spawn(process.execPath, nextArguments, {
+        cwd: options.runtimePaths.appPath,
+        env: options.childEnvironment,
+        stdio: ['ignore', 'pipe', 'pipe'],
+    });
 
     bindChildOutput(commandProcess, {
         label: 'next',

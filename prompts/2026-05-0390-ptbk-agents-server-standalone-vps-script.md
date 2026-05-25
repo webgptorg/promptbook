@@ -247,7 +247,7 @@ Public Agents Server URL [http://143.244.161.204:4440]:
 
 ---
 
-[ ] !!!!!
+[x] ~$1.07 2 hours by OpenAI Codex `gpt-5.5`
 
 [✨🤬] The installation script should spawn 100% production ready server running on custom domain with production server
 
@@ -282,3 +282,4 @@ curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/mai
 -   _(@@@ After VPS server is working)_
 -   Allow to just [enter] it to auto-ghenerate random password _(current behavior)_, or input custom password if user wants to
 -   You are working with [auto installation script](vps/install.sh)
+

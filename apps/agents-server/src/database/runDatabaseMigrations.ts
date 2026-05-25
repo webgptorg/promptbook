@@ -16,6 +16,7 @@ import { listRegisteredServersFromDatabase } from './listRegisteredServersFromDa
 import { migratePrefix } from './migratePrefix';
 import { readMigrationFiles, resolveMigrationsDirectory } from './resolveMigrationsDirectory';
 import { selectPrefixesForMigration } from './selectPrefixesForMigration';
+import { listEnvironmentRegisteredServers } from '../utils/serverRegistry';
 
 /**
  * Allowed values describing who applied a migration record.
@@ -175,7 +176,10 @@ export async function resolveDatabaseMigrationRuntimeConfiguration(
     try {
         await client.connect();
 
-        const registeredServers = await listRegisteredServersFromDatabase(client);
+        const registeredServers = mergeRegisteredServers(
+            await listRegisteredServersFromDatabase(client),
+            listEnvironmentRegisteredServers(),
+        );
         const hasExplicitDefaultPrefix = process.env[SUPABASE_TABLE_PREFIX_ENV_NAME] !== undefined;
         const configuredPrefixes = uniquePrefixes([
             ...(hasExplicitDefaultPrefix
@@ -353,6 +357,32 @@ function uniquePrefixes(prefixes: ReadonlyArray<string>): Array<string> {
     }
 
     return result;
+}
+
+/**
+ * Combines database and environment registry rows, keeping database rows authoritative.
+ *
+ * @param databaseServers - Persistent `_Server` rows.
+ * @param environmentServers - Virtual rows derived from `SERVERS`.
+ * @returns Merged rows without duplicate domains.
+ */
+function mergeRegisteredServers(
+    databaseServers: ReadonlyArray<ServerRecord>,
+    environmentServers: ReadonlyArray<ServerRecord>,
+): Array<ServerRecord> {
+    const seenDomains = new Set(databaseServers.map((server) => server.domain));
+    const mergedServers = [...databaseServers];
+
+    for (const environmentServer of environmentServers) {
+        if (seenDomains.has(environmentServer.domain)) {
+            continue;
+        }
+
+        mergedServers.push(environmentServer);
+        seenDomains.add(environmentServer.domain);
+    }
+
+    return mergedServers;
 }
 
 /**
