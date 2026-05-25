@@ -27,23 +27,78 @@
 
 ---
 
-[-]
+[ ] !!!
 
-[✨🤬] brr
+[✨🤬] Installation script installs the Agents server but the server crashes during first build, fix it
 
 ```bash
-@@@
 
-npm install ptbk
+root@collboard-agents-server-x15:~# sudo curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/other/vps/install.sh | bash
 
-ptbk agents-server start --agent github-copilot --model gpt-5.4 --thinking-level xhigh
+...
+
+root@collboard-agents-server-x15:~# pm2 logs 0
+0|promptbook-agents-server  | 2026-05-25T11:44:38: [next-build] ./src/app/agents/[agentName]/AgentChatWrapper.tsx
+0|promptbook-agents-server  | 2026-05-25T11:44:38: [next-build] Module not found: Can't resolve '@common/hooks/usePromise'
+0|promptbook-agents-server  | 2026-05-25T11:44:38: [next-build] https://nextjs.org/docs/messages/module-not-found
+0|promptbook-agents-server  | 2026-05-25T11:44:38: [next-build] Import trace for requested module:
+0|promptbook-agents-server  | 2026-05-25T11:44:38: [next-build] ./src/app/agents/[agentName]/book+chat/AgentBookAndChat.tsx
+0|promptbook-agents-server  | 2026-05-25T11:44:38: [next-build] > Build failed because of webpack errors
+0|promptbook-agents-server  | 2026-05-25T11:44:38: next-build exited with code 1.
+0|promptbook-agents-server  | 2026-05-25T11:44:40: Starting Promptbook Agents Server on port 4440.
+0|promptbook-agents-server  | 2026-05-25T11:44:40: [next-build] Building the Agents Server Next app.
+0|promptbook-agents-server  | 2026-05-25T11:44:41: [next-build]    ▲ Next.js 15.4.11
+0|promptbook-agents-server  | 2026-05-25T11:44:41: [next-build]    - Experiments (use with caution):
+0|promptbook-agents-server  | 2026-05-25T11:44:41: [next-build]      ✓ externalDir
+0|promptbook-agents-server  | 2026-05-25T11:44:41: [next-build]    Creating an optimized production build ...
+0|promptbook-agents-server  | 2026-05-25T11:44:52: [next-build] Failed to compile.
+0|promptbook-agents-server  | 2026-05-25T11:44:52: [next-build] ./src/pages/_app.tsx
+0|promptbook-agents-server  | 2026-05-25T11:44:52: [next-build] Module parse failed: Unexpected token (1:12)
+0|promptbook-agents-server  | 2026-05-25T11:44:52: [next-build] You may need an appropriate loader to handle this file type, currently no loaders are configured to process this file. See https://webpack.js.org/concepts#loaders
+0|promptbook-agents-server  | 2026-05-25T11:44:52: [next-build] > import type { AppProps } from 'next/app';
+0|promptbook-agents-server  | 2026-05-25T11:44:52: [next-build] | import '../app/globals.css';
+0|promptbook-agents-server  | 2026-05-25T11:44:52: [next-build] |
+0|promptbook-agents-server  | 2026-05-25T11:44:52: [next-build] ./src/pages/_document.tsx
+0|promptbook-agents-server  | 2026-05-25T11:44:52: [next-build] Module parse failed: Unexpected token (9:8)
+0|promptbook-agents-server  | 2026-05-25T11:44:52: [next-build] You may need an appropriate loader to handle this file type, currently no loaders are configured to process this file. See https://webpack.js.org/concepts#loaders
+0|promptbook-agents-server  | 2026-05-25T11:44:52: [next-build] | export default function LegacyPagesDocument() {
+0|promptbook-agents-server  | 2026-05-25T11:44:52: [next-build] |     return (
+0|promptbook-agents-server  | 2026-05-25T11:44:52: [next-build] >         <Html lang="en">
+0|promptbook-agents-server  | 2026-05-25T11:44:52: [next-build] |             <Head />
+0|promptbook-agents-server  | 2026-05-25T11:44:52: [next-build] |             <body className={`${APPLICATION_FONT_VARIABLE_CLASS_NAME} bg-white text-gray-900 antialiased`}>
+0|promptbook-agents-server  | 2026-05-25T11:44:52: [next-build] ./src/pages/500.tsx
+0|promptbook-agents-server  | 2026-05-25T11:44:52: [next-build] Module parse failed: Unexpected token (28:8)
+0|promptbook-agents-server  | 2026-05-25T11:44:52: [next-build] You may need an appropriate loader to handle this file type, currently no loaders are configured to process this file. See https://webpack.js.org/concepts#loaders
+0|promptbook-agents-server  | 2026-05-25T11:44:52: [next-build] | export default function Custom500Page() {
+0|promptbook-agents-server  | 2026-05-25T11:44:52: [next-build] |     return (
+0|promptbook-agents-server  | 2026-05-25T11:44:52: [next-build] >         <>
+0|promptbook-agents-server  | 2026-05-25T11:44:52: [next-build] |             <Head>
+0|promptbook-agents-server  | 2026-05-25T11:44:52: [next-build] |                 <title>500 / Internal Server Error</title>
+0|promptbook-agents-server  | 2026-05-25T11:44:52: [next-build] Import trace for requested module:
+0|promptbook-agents-server  | 2026-05-25T11:44:52: [next-build] ./src/pages/500.tsx
+0|promptbook-agents-server  | 2026-05-25T11:44:52: [next-build] ./src/app/agents/[agentName]/AgentChatWrapper.tsx
+0|promptbook-agents-server  | 2026-05-25T11:44:52: [next-build] Module not found: Can't resolve '@/src/components/WalletRecordDialog/WalletRecordDialog'
+0|promptbook-agents-server  | 2026-05-25T11:44:52: [next-build] https://nextjs.org/docs/messages/module-not-found
+0|promptbook-agents-server  | 2026-05-25T11:44:52: [next-build] Import trace for requested module:
+0|promptbook-agents-server  | 2026-05-25T11:44:52: [next-build] ./src/app/agents/[agentName]/book+chat/AgentBookAndChat.tsx
+0|promptbook-agents-server  | 2026-05-25T11:44:52: [next-build] ./src/app/agents/[agentName]/AgentChatWrapper.tsx
+0|promptbook-agents-server  | 2026-05-25T11:44:52: [next-build] Module not found: Can't resolve '@common/hooks/usePromise'
+0|promptbook-agents-server  | 2026-05-25T11:44:52: [next-build] https://nextjs.org/docs/messages/module-not-found
+0|promptbook-agents-server  | 2026-05-25T11:44:52: [next-build] Import trace for requested module:
+0|promptbook-agents-server  | 2026-05-25T11:44:52: [next-build] ./src/app/agents/[agentName]/book+chat/AgentBookAndChat.tsx
+0|promptbook-agents-server  | 2026-05-25T11:44:52: [next-build] > Build failed because of webpack errors
+0|promptbook-agents-server  | 2026-05-25T11:44:52: next-build exited with code 1.
+0|promptbook-agents-server  | 2026-05-25T11:44:54: Starting Promptbook Agents Server on port 4440.
+0|promptbook-agents-server  | 2026-05-25T11:44:54: [next-build] Building the Agents Server Next app.
+0|promptbook-agents-server  | 2026-05-25T11:44:55: [next-build]    ▲ Next.js 15.4.11
+0|promptbook-agents-server  | 2026-05-25T11:44:55: [next-build]    - Experiments (use with caution):
+0|promptbook-agents-server  | 2026-05-25T11:44:55: [next-build]      ✓ externalDir
+0|promptbook-agents-server  | 2026-05-25T11:44:55: [next-build]    Creating an optimized production build ...
+...
 ```
 
--   @@@
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality of `ptbk agents-server` and related functionality before you start implementing.
--   You are working with [`ptbk agents-server`](src/cli/cli-commands/agents-server/run.ts)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
+-   Do a proper analysis of the current functionality of `ptbk agents-server` and `other/vps/install.sh` and related functionality before you start implementing.
+-   You are working with [`ptbk agents-server`](src/cli/cli-commands/agents-server/run.ts) and installation script at `other/vps/install.sh`
 
 ---
 
@@ -84,4 +139,3 @@ ptbk agents-server start --agent github-copilot --model gpt-5.4 --thinking-level
 -   Do a proper analysis of the current functionality of `ptbk agents-server` and related functionality before you start implementing.
 -   You are working with [`ptbk agents-server`](src/cli/cli-commands/agents-server/run.ts)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
