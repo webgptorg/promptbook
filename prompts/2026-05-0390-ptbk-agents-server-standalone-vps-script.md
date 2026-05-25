@@ -270,6 +270,42 @@ curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/mai
 
 ---
 
+[ ] !!!!!
+
+[✨🤬] The installation asks for Let's Encrypt email but not for the actual domains the agents server should run
+
+```bash
+root@collboard-agents-server-x15:~# sudo curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/other/vps/install.sh | bash
+
+Coding runner [github-copilot]:
+Runner model [gpt-5.4]:
+Runner thinking level [xhigh]:
+Agents Server port [4440]:
+Let's Encrypt email (optional) []: pavol@ptbk.io
+
+... (installation logs; BUT no domain(s) configuration) ...
+
+
+[promptbook-vps] Installing system packages.
+Hit:1 http://security.ubuntu.com/ubuntu noble-security InRelease
+Hit:2 http://mirrors.digitalocean.com/ubuntu noble InRelease
+Hit:3 http://mirrors.digitalocean.com/ubuntu noble-updates InRelease
+Hit:4 http://mirrors.digitalocean.com/ubuntu noble-backports InRelease
+```
+
+-   Some of the steps are implemented, but the installation script is still missing the part where it **asks for the domain(s)** and sets up the reverse proxy and SSL certificate for each domain
+-   The installation script should ask user for the domain(s) during the installation process
+-   It should install and configure `nginx` as a reverse proxy server to proxy the requests from the custom domain to the Agents server running on localhost
+-   Automatically set up SSL certificate for the custom domain using `certbot` and configure `nginx` to use it
+-   Allow to put one or more domains during the installation process, and set up SSL certificate for all of them, and configure `nginx` to proxy requests from all of them to the Agents server, leverage `SERVERS=www.domain1.com,www.domain2.com` environment variable for that
+-   All of the servers are using same Supabase/SQLite database, but tables are prefixed with the normalized domain name, so they are separated in the database, but still using same database instance, this way we can have multiple domains pointing to the same server and using the same database, but still having separate data for each domain
+-   All of this should be done automatically by the installation script, so the user just need to run the installation script and set up the proper DNS record for the custom domain, and everything else will be done by the installation script
+-   After the installation is complete, the user should be able to access the Agents server on the custom domain with SSL certificate, and the server should be running in production mode with all necessary optimizations and configurations for production use.
+-   Only possible intervention that is needed to be done externally is to set up the proper DNS record, but the installation script should show all the instructions
+-   You are working with [auto installation script](vps/install.sh)
+
+---
+
 [?] !!!
 
 [✨🤬] Ask for admin password during auto-installation
@@ -282,4 +318,3 @@ curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/mai
 -   _(@@@ After VPS server is working)_
 -   Allow to just [enter] it to auto-ghenerate random password _(current behavior)_, or input custom password if user wants to
 -   You are working with [auto installation script](vps/install.sh)
-
