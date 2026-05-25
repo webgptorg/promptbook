@@ -2,6 +2,7 @@
 
 [✨🔄] Create a VSCode extension for book language
 
+-   *(@@@ After VPS server is working)*
 -   Extension should provide syntax highlighting simmilar to `BookEditor` for the book language.
 -   Book language is defined in the `src/book-2.0` folder.
 -   Make it to `other/vscode-extension`

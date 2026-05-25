@@ -156,41 +156,129 @@ root@collboard-agents-server-x15:~# pm2 show 0
 
 ---
 
-[-]
+[ ] !!!
 
-[✨🤬] brr
+[✨🤬] Try to do login to Github Copilot (and other code runners) via non-interactive mode
 
 ```bash
-@@@
+curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/other/vps/install.sh | bash
+```
 
-npm install ptbk
+```bash
+  ╭─╮╭─╮
+  ╰─╯╰─╯  Copilot v1.0.54 uses AI.
+  █ ▘▝ █  Check for mistakes.
+   ▔▔▔▔
 
-ptbk agents-server start --agent github-copilot --model gpt-5.4 --thinking-level xhigh
+● No copilot-instructions.md found. Run /init to generate.
+
+● Tip: /feedback
+  └ Provide feedback about the CLI
+
+
+ ◎ Waiting for authorization...
+
+ Enter one-time code: 0123-9DEE at https://github.com/login/device
+
+```
+
+```
+added 3 packages in 7s
+[promptbook-vps] Configuring /opt/promptbook-agents-server.
+[promptbook-vps] Initializing Promptbook Agents Server project files.
+Public Agents Server URL [http://134.122.68.98:4440]: Open GitHub Copilot CLI now for /login and project trust setup? [yes]:
+[promptbook-vps] Starting GitHub Copilot CLI. Use /login if prompted, trust this directory, then exit Copilot to continue.
+... (waiting for user to do /login and /trust in Github Copilot CLI) ...
+[promptbook-vps] Configuring pm2 startup for user root.
+Created symlink /etc/systemd/system/multi-user.target.wants/pm2-root.service → /etc/systemd/system/pm2-root.service.
+[promptbook-vps] Building Agents Server before starting pm2.
+Building Promptbook Agents Server.
 ```
 
 -   @@@
+-   _(@@@ After VPS server is working)_
+-   User needs to manually write `/login` and `/exit`
+-   In future the `vps/install.sh` should be possible to run in completely non-interactive mode, for now just do not fall into 3rd party non-interactive terminal UIs
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality of `ptbk agents-server` and related functionality before you start implementing.
--   You are working with [`ptbk agents-server`](src/cli/cli-commands/agents-server/run.ts)
+-   You are working with [auto installation script](vps/install.sh)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
-[-]
+[ ] !!!
 
-[✨🤬] brr
+[✨🤬] Try to put all the installation questions first, then heavy installing
 
 ```bash
-@@@
+curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/other/vps/install.sh | bash
 
-npm install ptbk
+Coding runner [github-copilot]:
+Runner model [gpt-5.4]:
+Runner thinking level [xhigh]:
+Agents Server port [4440]:
+[promptbook-vps] Installing system packages.
+Hit:1 http://mirrors.digitalocean.com/ubuntu noble InRelease
+Hit:2 http://mirrors.digitalocean.com/ubuntu noble-updates InRelease
+Hit:3 http://mirrors.digitalocean.com/ubuntu noble-backports InRelease
+Hit:4 https://repos-droplet.digitalocean.com/apt/droplet-agent main InRelease
+Get:5 http://security.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+Get:6 http://security.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1191 kB]
+Get:7 http://security.ubuntu.com/ubuntu noble-security/universe Translation-en [230 kB]
+...
+```
 
-ptbk agents-server start --agent github-copilot --model gpt-5.4 --thinking-level xhigh
+... Lot of installation logs and waiting
+
+Then waiting for user again:
+
+```bash
+added 3 packages in 9s
+[promptbook-vps] Configuring /opt/promptbook-agents-server.
+[promptbook-vps] Initializing Promptbook Agents Server project files.
+Public Agents Server URL [http://143.244.161.204:4440]:
 ```
 
 -   @@@
+-   _(@@@ After VPS server is working)_
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality of `ptbk agents-server` and related functionality before you start implementing.
--   You are working with [`ptbk agents-server`](src/cli/cli-commands/agents-server/run.ts)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
+-   You are working with [auto installation script](vps/install.sh)
 
+---
+
+[ ] !!!!!
+
+[✨🤬] The installation script should spawn 100% production ready server running on custom domain with production server
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/other/vps/install.sh | bash
+```
+
+-   Now it missing custom domain setup, production ready proxy server and SSL certificate, add it to the installation script, so after running the installation script, the user will have fully working Agents server running on custom domain with SSL certificate.
+    -   The installation script should ask user for the domain during the installation process
+    -   It should install and configure `nginx` as a reverse proxy server to proxy the requests from the custom domain to the Agents server running on localhost
+    -   Automatically set up SSL certificate for the custom domain using `certbot` and configure `nginx` to use it
+    -   Allow to put one or more domains during the installation process, and set up SSL certificate for all of them, and configure `nginx` to proxy requests from all of them to the Agents server, leverage `SERVERS=www.domain1.com,www.domain2.com` environment variable for that
+    -   All of the servers are using same Supabase/SQLite database, but tables are prefixed with the normalized domain name, so they are separated in the database, but still using same database instance, this way we can have multiple domains pointing to the same server and using the same database, but still having separate data for each domain
+    -   All of this should be done automatically by the installation script, so the user just need to run the installation script and set up the proper DNS record for the custom domain, and everything else will be done by the installation script
+    -   After the installation is complete, the user should be able to access the Agents server on the custom domain with SSL certificate, and the server should be running in production mode with all necessary optimizations and configurations for production use.
+-   Only possible intervention that is needed to be done externally is to set up the proper DNS record, but the installation script should show all the instructions
+-   You are working with [auto installation script](vps/install.sh)
+
+![alt text](prompts/screenshots/2026-05-0390-ptbk-agents-server-standalone-vps-script-1.png)
+
+---
+
+[?] !!!
+
+[✨🤬] Ask for admin password during auto-installation
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/other/vps/install.sh | bash
+```
+
+-   @@@
+-   _(@@@ After VPS server is working)_
+-   Allow to just [enter] it to auto-ghenerate random password _(current behavior)_, or input custom password if user wants to
+-   You are working with [auto installation script](vps/install.sh)
