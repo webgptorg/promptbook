@@ -97,6 +97,60 @@ root@collboard-agents-server-x15:~# pm2 logs 0
 ...
 ```
 
+```bash
+root@collboard-agents-server-x15:~# pm2 show 0
+ Describing process with id 0 - name promptbook-agents-server
+┌───────────────────┬───────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ status            │ online                                                                                                │
+│ name              │ promptbook-agents-server                                                                              │
+│ namespace         │ default                                                                                               │
+│ version           │ N/A                                                                                                   │
+│ restarts          │ 133                                                                                                   │
+│ uptime            │ 3s                                                                                                    │
+│ script path       │ /usr/bin/ptbk                                                                                         │
+│ script args       │ agents-server start --agent github-copilot --model gpt-5.4 --thinking-level xhigh --port 4440 --no-ui │
+│ error log path    │ /root/.pm2/logs/promptbook-agents-server-error.log                                                    │
+│ out log path      │ /root/.pm2/logs/promptbook-agents-server-out.log                                                      │
+│ pid path          │ /root/.pm2/pids/promptbook-agents-server-0.pid                                                        │
+│ interpreter       │ /usr/bin/node                                                                                         │
+│ interpreter args  │ N/A                                                                                                   │
+│ script id         │ 0                                                                                                     │
+│ exec cwd          │ /opt/promptbook-agents-server                                                                         │
+│ exec mode         │ fork_mode                                                                                             │
+│ node.js version   │ 22.22.2                                                                                               │
+│ node env          │ N/A                                                                                                   │
+│ watch & reload    │ ✘                                                                                                     │
+│ unstable restarts │ 0                                                                                                     │
+│ created at        │ 2026-05-25T11:19:56.818Z                                                                              │
+└───────────────────┴───────────────────────────────────────────────────────────────────────────────────────────────────────┘
+ Actions available
+┌────────────────────────┐
+│ km:heapdump            │
+│ km:cpu:profiling:start │
+│ km:cpu:profiling:stop  │
+│ km:heap:sampling:start │
+│ km:heap:sampling:stop  │
+└────────────────────────┘
+ Trigger via: pm2 trigger promptbook-agents-server <action_name>
+
+ Code metrics value
+┌────────────────────────┬────────────┐
+│ Heap Size              │ 139.62 MiB │
+│ Heap Usage             │ 71.19 %    │
+│ Used Heap Size         │ 99.39 MiB  │
+│ Active requests        │ 3          │
+│ Active handles         │ 3          │
+│ Event Loop Latency     │ 747.55 ms  │
+│ Event Loop Latency p95 │ 747.55 ms  │
+└────────────────────────┴────────────┘
+ Divergent env variables from local env
+┌───────┬───────────────────────────────┐
+│ PWD   │ /opt/promptbook-agents-server │
+│ SHLVL │ 3                             │
+└───────┴───────────────────────────────┘
+
+```
+
 -   Do a proper analysis of the current functionality of `ptbk agents-server` and `other/vps/install.sh` and related functionality before you start implementing.
 -   You are working with [`ptbk agents-server`](src/cli/cli-commands/agents-server/run.ts) and installation script at `other/vps/install.sh`
 
