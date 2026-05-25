@@ -4,7 +4,7 @@
 import colors from 'colors';
 import commander from 'commander';
 import { cp, mkdir, readFile, rm } from 'fs/promises';
-import { basename, dirname, join } from 'path';
+import { basename, dirname, join, relative } from 'path';
 import { spaceTrim } from 'spacetrim';
 import type { PackageJson } from 'type-fest';
 import { assertsError } from '../../src/errors/assertsError';
@@ -39,6 +39,22 @@ if (process.cwd() !== join(__dirname, '../..')) {
     );
     process.exit(1);
 }
+
+/**
+ * Directory names excluded from the generated CLI runtime copy.
+ *
+ * @private internal constant of package generation
+ */
+const AGENTS_SERVER_RUNTIME_PACKAGE_EXCLUDED_DIRECTORY_NAMES = new Set([
+    '.git',
+    '.next',
+    '.next-e2e',
+    '.promptbook',
+    'coverage',
+    'node_modules',
+    'playwright-report',
+    'test-results',
+]);
 
 /**
  * Constant for program.
@@ -258,7 +274,7 @@ async function copyAgentsServerRuntimePathToCliPackage(sourcePath: string, desti
     await mkdir(dirname(destinationPath), { recursive: true });
     await cp(sourcePath, destinationPath, {
         recursive: true,
-        filter: shouldCopyAgentsServerRuntimePath,
+        filter: (currentSourcePath) => shouldCopyAgentsServerRuntimePath(currentSourcePath, sourcePath),
     });
 }
 
@@ -266,18 +282,19 @@ async function copyAgentsServerRuntimePathToCliPackage(sourcePath: string, desti
  * Excludes build artifacts, private env files, and duplicate test sources from packaged runtime files.
  *
  * @param sourcePath - Path currently visited by `fs.cp`
+ * @param sourceRootPath - Root path being copied
  * @returns `true` when the package copy should include the path
  * @private internal utility of package generation
  */
-function shouldCopyAgentsServerRuntimePath(sourcePath: string): boolean {
-    const normalizedSourcePath = sourcePath.replace(/\\/gu, '/');
-    const sourceBasename = basename(normalizedSourcePath);
+function shouldCopyAgentsServerRuntimePath(sourcePath: string, sourceRootPath: string): boolean {
+    const sourceRelativePath = relative(sourceRootPath, sourcePath).replace(/\\/gu, '/');
+    const sourcePathSegments = sourceRelativePath.split('/').filter(Boolean);
+    const sourceBasename = basename(sourcePath);
 
     if (
-        normalizedSourcePath.includes('/.next') ||
-        normalizedSourcePath.includes('/node_modules/') ||
-        normalizedSourcePath.includes('/playwright-report/') ||
-        normalizedSourcePath.includes('/test-results/')
+        sourcePathSegments.some((sourcePathSegment) =>
+            AGENTS_SERVER_RUNTIME_PACKAGE_EXCLUDED_DIRECTORY_NAMES.has(sourcePathSegment),
+        )
     ) {
         return false;
     }

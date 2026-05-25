@@ -17,7 +17,7 @@ import {
     PROMPT_RUNNER_DESCRIPTION,
 } from '../common/promptRunnerCliOptions';
 import { ensureAgentsServerBuild } from './buildAgentsServer';
-import { startAgentsServer } from './startAgentsServer';
+import { loadAgentsServerProjectEnvironment, startAgentsServer } from './startAgentsServer';
 
 /**
  * Default port used by `ptbk agents-server start`.
@@ -102,6 +102,7 @@ export function $initializeAgentsServerBuildCommand(program: Program): $side_eff
     command.action(
         handleActionErrors(async () => {
             console.info(colors.gray('Building Promptbook Agents Server.'));
+            loadAgentsServerProjectEnvironment(process.cwd());
             await ensureAgentsServerBuild({ isBuildForced: true });
         }),
     );

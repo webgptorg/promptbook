@@ -1,3 +1,9 @@
+-   Fixed standalone VPS installation of `ptbk agents-server` so the first production build no longer crashes when the bundled Next app comes from the npm-installed CLI package:
+
+    -   Materialized the packaged Agents Server runtime into the launch project's `.promptbook/agents-server/runtime` cache before building, keeping writable build output out of `node_modules` and preserving access to the installed dependency tree.
+    -   Added explicit Next aliases and packaged CLI dependencies needed by the Agents Server app build, including the React version used by the app.
+    -   Changed `other/vps/install.sh` to run `ptbk agents-server build` before registering the pm2 process, and made the build command load the project `.env`, so install-time build failures stop the installer instead of creating a pm2 restart loop.
+
 -   Added standalone VPS installation support for `ptbk agents-server`:
 
     -   Added `other/vps/install.sh`, an idempotent Ubuntu 24.04 x64 installer that installs system dependencies, Node.js 22, `ptbk`, `pm2`, the selected coding runner, configures `.env`, opens the configured port when `ufw` is active, and runs `ptbk agents-server start --agent github-copilot --model gpt-5.4 --thinking-level xhigh` under `pm2` with boot startup.

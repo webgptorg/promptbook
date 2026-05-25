@@ -1,7 +1,11 @@
-import { mkdir, mkdtemp, rm, writeFile } from 'fs/promises';
+import { lstat, mkdir, mkdtemp, readFile, rm, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
-import { isAgentsServerBuildCacheCurrent, writeAgentsServerBuildCache } from './buildAgentsServer';
+import {
+    isAgentsServerBuildCacheCurrent,
+    resolveAgentsServerBuildAppPath,
+    writeAgentsServerBuildCache,
+} from './buildAgentsServer';
 
 /**
  * Minimal local runtime layout used by Agents Server build-cache tests.
@@ -53,8 +57,10 @@ async function createAgentsServerBuildFixture(): Promise<AgentsServerBuildFixtur
 
 describe('Agents Server build cache', () => {
     const temporaryDirectoryPaths: Array<string> = [];
+    const originalWorkingDirectory = process.cwd();
 
     afterEach(async () => {
+        process.chdir(originalWorkingDirectory);
         await Promise.all(
             temporaryDirectoryPaths
                 .splice(0)
@@ -84,6 +90,79 @@ describe('Agents Server build cache', () => {
 
         await expect(isAgentsServerBuildCacheCurrent({ appPath: fixture.appPath })).resolves.toBe(false);
     });
+
+    it('materializes packaged app sources outside node_modules for Next builds', async () => {
+        const temporaryDirectoryPath = await mkdtemp(join(tmpdir(), 'promptbook-agents-server-packaged-'));
+        temporaryDirectoryPaths.push(temporaryDirectoryPath);
+
+        const nodeModulesPath = join(temporaryDirectoryPath, 'node_modules');
+        const sourceRuntimeRootPath = join(nodeModulesPath, '@promptbook', 'cli');
+        const sourceAppPath = join(sourceRuntimeRootPath, 'apps', 'agents-server');
+        const materializedRuntimeRootPath = join(
+            temporaryDirectoryPath,
+            '.promptbook',
+            'agents-server',
+            'runtime',
+        );
+
+        await Promise.all([
+            mkdir(join(sourceAppPath, 'src'), { recursive: true }),
+            mkdir(join(sourceAppPath, '.next'), { recursive: true }),
+            mkdir(join(sourceRuntimeRootPath, 'apps', '_common'), { recursive: true }),
+            mkdir(join(sourceRuntimeRootPath, 'books'), { recursive: true }),
+            mkdir(join(sourceRuntimeRootPath, 'src'), { recursive: true }),
+        ]);
+
+        await Promise.all([
+            writeFile(join(sourceAppPath, 'package.json'), '{"name":"promptbook-agents-server"}\n', 'utf-8'),
+            writeFile(join(sourceAppPath, 'next.config.ts'), 'export default {};\n', 'utf-8'),
+            writeFile(join(sourceAppPath, 'src', 'page.tsx'), 'Packaged page fixture\n', 'utf-8'),
+            writeFile(join(sourceAppPath, 'src', 'page.test.tsx'), 'Ignored test fixture\n', 'utf-8'),
+            writeFile(join(sourceAppPath, '.env'), 'IGNORED_ENV=1\n', 'utf-8'),
+            writeFile(join(sourceAppPath, '.next', 'BUILD_ID'), 'ignored-build-output\n', 'utf-8'),
+            writeFile(join(sourceRuntimeRootPath, 'apps', '_common', 'shared.ts'), 'Common fixture\n', 'utf-8'),
+            writeFile(join(sourceRuntimeRootPath, 'books', 'agent.book'), 'PERSONA Packaged fixture\n', 'utf-8'),
+            writeFile(join(sourceRuntimeRootPath, 'src', 'index.ts'), 'Runtime source fixture\n', 'utf-8'),
+            writeFile(join(sourceRuntimeRootPath, 'package.json'), '{"name":"@promptbook/cli"}\n', 'utf-8'),
+            writeFile(join(sourceRuntimeRootPath, 'package-lock.json'), '{"name":"@promptbook/cli"}\n', 'utf-8'),
+            writeFile(join(sourceRuntimeRootPath, 'security.config.ts'), 'Security fixture\n', 'utf-8'),
+            writeFile(join(sourceRuntimeRootPath, 'servers.ts'), 'Servers fixture\n', 'utf-8'),
+            writeFile(join(sourceRuntimeRootPath, 'tsconfig.json'), '{}\n', 'utf-8'),
+        ]);
+
+        process.chdir(temporaryDirectoryPath);
+
+        const materializedAppPath = await resolveAgentsServerBuildAppPath({
+            nodeModulesPath,
+            sourceAppPath,
+        });
+
+        await expect(readFile(join(materializedAppPath, 'src', 'page.tsx'), 'utf-8')).resolves.toBe(
+            'Packaged page fixture\n',
+        );
+        await expect(doesPathExist(join(materializedAppPath, 'src', 'page.test.tsx'))).resolves.toBe(false);
+        await expect(doesPathExist(join(materializedAppPath, '.env'))).resolves.toBe(false);
+        await expect(doesPathExist(join(materializedAppPath, '.next', 'BUILD_ID'))).resolves.toBe(false);
+
+        const nodeModulesLinkStats = await lstat(join(materializedRuntimeRootPath, 'node_modules'));
+
+        expect(materializedAppPath).toBe(join(materializedRuntimeRootPath, 'apps', 'agents-server'));
+        expect(nodeModulesLinkStats.isSymbolicLink() || nodeModulesLinkStats.isDirectory()).toBe(true);
+    });
 });
+
+/**
+ * Returns true when the path exists.
+ *
+ * @private internal utility of buildAgentsServer tests
+ */
+async function doesPathExist(path: string): Promise<boolean> {
+    try {
+        await lstat(path);
+        return true;
+    } catch {
+        return false;
+    }
+}
 
 // Note: [💞] Ignore a discrepancy between file name and entity name

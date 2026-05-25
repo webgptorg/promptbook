@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next';
+import { readdirSync } from 'fs';
 import path from 'path';
 
 /**
@@ -10,6 +11,21 @@ import path from 'path';
 const nextDistDir = process.env.NEXT_DIST_DIR || '.next';
 
 /**
+ * Dependency root passed by `ptbk agents-server` when the bundled app is copied into a project cache.
+ */
+const agentsServerNodeModulesPath = process.env.PTBK_AGENTS_SERVER_NODE_MODULES_PATH;
+
+/**
+ * Whether the CLI-owned build should skip duplicate validation already covered by repository tests.
+ */
+const isNextValidationIgnored = process.env.PTBK_AGENTS_SERVER_IGNORE_NEXT_VALIDATION === 'true';
+
+/**
+ * Exact aliases for local generated Promptbook package entrypoints.
+ */
+const promptbookLocalPackageAliases = createPromptbookLocalPackageAliases();
+
+/**
  * Map of next config.
  */
 const nextConfig: NextConfig = {
@@ -17,7 +33,13 @@ const nextConfig: NextConfig = {
     // <- TODO: [🐱‍🚀][🧠] How to properly build Next.js app, for both Vercel and Doceker?
 
     distDir: nextDistDir,
-    serverExternalPackages: ['pg', '@napi-rs/canvas'],
+    eslint: {
+        ignoreDuringBuilds: isNextValidationIgnored,
+    },
+    serverExternalPackages: ['pg', '@napi-rs/canvas', 'playwright', 'playwright-core'],
+    typescript: {
+        ignoreBuildErrors: isNextValidationIgnored,
+    },
 
     experimental: {
         externalDir: true,
@@ -29,12 +51,25 @@ const nextConfig: NextConfig = {
 
         resolveAlias: {
             '@': path.resolve(__dirname),
-            '@common': path.resolve(__dirname, '../common'),
-            '@promptbook-local': path.resolve(__dirname, '../../src/_packages'),
+            '@common': path.resolve(__dirname, '../_common'),
+            ...promptbookLocalPackageAliases,
         },
     },
 
     webpack(config, { isServer }) {
+        config.resolve.alias = {
+            ...config.resolve.alias,
+            '@': path.resolve(__dirname),
+            '@common': path.resolve(__dirname, '../_common'),
+            ...promptbookLocalPackageAliases,
+        };
+
+        if (agentsServerNodeModulesPath) {
+            config.resolve.modules = Array.from(
+                new Set([...(config.resolve.modules || ['node_modules']), agentsServerNodeModulesPath]),
+            );
+        }
+
         // Exclude Node.js-only modules from client bundle
         if (!isServer) {
             config.resolve.fallback = {
@@ -81,3 +116,23 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+
+/**
+ * Creates webpack/Turbopack aliases from imports like `@promptbook-local/core` to generated local sources.
+ */
+function createPromptbookLocalPackageAliases(): Record<string, string> {
+    const packagesIndexPath = path.resolve(__dirname, '../../src/_packages');
+
+    try {
+        return Object.fromEntries(
+            readdirSync(packagesIndexPath)
+                .filter((filename) => filename.endsWith('.index.ts'))
+                .map((filename) => [
+                    `@promptbook-local/${filename.replace(/\.index\.ts$/u, '')}`,
+                    path.resolve(packagesIndexPath, filename),
+                ]),
+        );
+    } catch {
+        return {};
+    }
+}

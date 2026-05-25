@@ -1,12 +1,13 @@
 import { Command } from 'commander';
 import { ensureAgentsServerBuild } from './buildAgentsServer';
-import { startAgentsServer } from './startAgentsServer';
+import { loadAgentsServerProjectEnvironment, startAgentsServer } from './startAgentsServer';
 import { $initializeAgentsServerBuildCommand, $initializeAgentsServerStartCommand } from './run';
 
 jest.mock('./buildAgentsServer', () => ({
     ensureAgentsServerBuild: jest.fn(),
 }));
 jest.mock('./startAgentsServer', () => ({
+    loadAgentsServerProjectEnvironment: jest.fn(),
     startAgentsServer: jest.fn(),
 }));
 
@@ -22,6 +23,13 @@ function getEnsureAgentsServerBuildMock(): jest.MockedFunction<typeof ensureAgen
  */
 function getStartAgentsServerMock(): jest.MockedFunction<typeof startAgentsServer> {
     return startAgentsServer as jest.MockedFunction<typeof startAgentsServer>;
+}
+
+/**
+ * Typed Jest mock for loading launch-directory Agents Server environment.
+ */
+function getLoadAgentsServerProjectEnvironmentMock(): jest.MockedFunction<typeof loadAgentsServerProjectEnvironment> {
+    return loadAgentsServerProjectEnvironment as jest.MockedFunction<typeof loadAgentsServerProjectEnvironment>;
 }
 
 /**
@@ -60,6 +68,7 @@ describe('$initializeAgentsServerStartCommand', () => {
         delete process.env.PTBK_THINKING_LEVEL;
         getEnsureAgentsServerBuildMock().mockResolvedValue({
             appPath: 'apps/agents-server',
+            nodeModulesPath: 'node_modules',
             nextCliPath: 'next',
         });
         getStartAgentsServerMock().mockResolvedValue(undefined);
@@ -176,6 +185,7 @@ describe('$initializeAgentsServerBuildCommand', () => {
     beforeEach(() => {
         getEnsureAgentsServerBuildMock().mockResolvedValue({
             appPath: 'apps/agents-server',
+            nodeModulesPath: 'node_modules',
             nextCliPath: 'next',
         });
         processExitSpy = jest.spyOn(process, 'exit').mockImplementation((() => undefined) as never);
@@ -195,6 +205,7 @@ describe('$initializeAgentsServerBuildCommand', () => {
 
         await program.parseAsync(['node', 'test', 'build'], { from: 'node' });
 
+        expect(getLoadAgentsServerProjectEnvironmentMock()).toHaveBeenCalledWith(process.cwd());
         expect(getEnsureAgentsServerBuildMock()).toHaveBeenCalledWith({ isBuildForced: true });
         expect(processExitSpy).toHaveBeenCalledWith(0);
     });

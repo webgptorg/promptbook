@@ -14,7 +14,11 @@ import type { AgentRunOptions } from '../../../../scripts/run-agent-messages/Age
 import { runMultipleAgentMessages } from '../../../../scripts/run-agent-messages/main/runMultipleAgentMessages';
 import { withCurrentWorkingDirectory } from '../../../../scripts/run-agent-messages/main/withCurrentWorkingDirectory';
 import type { CoderRunUiHandle } from '../../../../scripts/run-codex-prompts/ui/renderCoderRunUi';
-import { ensureAgentsServerBuild, resolveAgentsServerAppPath } from './buildAgentsServer';
+import {
+    createAgentsServerRuntimeEnvironment,
+    ensureAgentsServerBuild,
+    resolveAgentsServerAppPath,
+} from './buildAgentsServer';
 
 /**
  * Local worker-pump delay while the Agents Server foreground process stays active.
@@ -181,7 +185,7 @@ export async function startAgentsServer(options: StartAgentsServerOptions): Prom
     process.once('exit', processExitHandler);
 
     try {
-        const { nextCliPath } = await ensureAgentsServerBuild({
+        const buildArtifacts = await ensureAgentsServerBuild({
             appPath: runtimePaths.appPath,
             environment: childEnvironment,
             isBuildForced: options.isBuildForced,
@@ -201,18 +205,26 @@ export async function startAgentsServer(options: StartAgentsServerOptions): Prom
                 });
             },
         });
+        const runtimeChildEnvironment = createAgentsServerRuntimeEnvironment(
+            childEnvironment,
+            buildArtifacts.nodeModulesPath,
+        ) as AgentsServerChildEnvironment;
+        const builtRuntimePaths: AgentsServerRuntimePaths = {
+            ...runtimePaths,
+            appPath: buildArtifacts.appPath,
+        };
 
         nextServerProcess = startNextServer({
-            nextCliPath,
+            nextCliPath: buildArtifacts.nextCliPath,
             options,
-            runtimePaths,
-            childEnvironment,
+            runtimePaths: builtRuntimePaths,
+            childEnvironment: runtimeChildEnvironment,
             logStreams,
             state,
         });
         stopUserChatJobWorkerPump = startUserChatJobWorkerPump({
             port: options.port,
-            environment: childEnvironment,
+            environment: runtimeChildEnvironment,
             logStreams,
             state,
         });
@@ -243,8 +255,10 @@ export async function startAgentsServer(options: StartAgentsServerOptions): Prom
 
 /**
  * Loads launch-directory `.env` values without overriding explicit process environment.
+ *
+ * @private internal utility of `ptbk agents-server`
  */
-function loadAgentsServerProjectEnvironment(launchWorkingDirectory: string): void {
+export function loadAgentsServerProjectEnvironment(launchWorkingDirectory: string): void {
     dotenv.config({ path: join(launchWorkingDirectory, AGENTS_SERVER_PROJECT_ENV_FILE_NAME) });
 }
 

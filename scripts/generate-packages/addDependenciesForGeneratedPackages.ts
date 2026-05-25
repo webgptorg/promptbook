@@ -20,6 +20,13 @@ const PACKAGE_FULLNAMES_WITHOUT_CORE_PEER_DEPENDENCY = new Set([
 ]);
 
 /**
+ * CLI dependencies that must match the Agents Server app build toolchain from root dev dependencies.
+ *
+ * @private internal utility of addDependenciesForGeneratedPackages
+ */
+const CLI_AGENTS_SERVER_DEVELOPMENT_DEPENDENCY_NAMES = new Set(['react', 'react-dom']);
+
+/**
  * Finalizes package manifests with dependencies and executable metadata.
  *
  * @param packagesMetadata - Metadata of generated packages
@@ -43,6 +50,7 @@ export async function addDependenciesForGeneratedPackages(
         await applyDetectedBundleDependencies(packageJson, packageMetadata, allDependencies);
         applyAdditionalPackageDependencies(
             packageJson,
+            packageMetadata.packageFullname,
             packageMetadata.additionalDependencies,
             allDependencies,
             allDevelopmentDependencies,
@@ -262,6 +270,7 @@ function createDependencyReferenceNeedlesWithPrefix(prefix: string, dependencyNa
  * Adds explicitly declared package dependencies.
  *
  * @param packageJson - Generated package manifest
+ * @param packageFullname - Full package name receiving dependencies
  * @param additionalDependencies - Additional package dependencies
  * @param allDependencies - Dependency versions from the root manifest `dependencies`
  * @param allDevelopmentDependencies - Dependency versions from the root manifest `devDependencies`
@@ -270,6 +279,7 @@ function createDependencyReferenceNeedlesWithPrefix(prefix: string, dependencyNa
  */
 function applyAdditionalPackageDependencies(
     packageJson: PackageJson,
+    packageFullname: string,
     additionalDependencies: ReadonlyArray<string>,
     allDependencies: Record<string, string>,
     allDevelopmentDependencies: Record<string, string>,
@@ -284,6 +294,11 @@ function applyAdditionalPackageDependencies(
                 allDependencies,
                 allDevelopmentDependencies,
                 mainPackageVersion,
+                {
+                    isDevelopmentDependencyPreferred:
+                        packageFullname === '@promptbook/cli' &&
+                        CLI_AGENTS_SERVER_DEVELOPMENT_DEPENDENCY_NAMES.has(dependencyName),
+                },
             ),
         );
     }
@@ -296,6 +311,7 @@ function applyAdditionalPackageDependencies(
  * @param allDependencies - Dependency versions from the root manifest `dependencies`
  * @param allDevelopmentDependencies - Dependency versions from the root manifest `devDependencies`
  * @param mainPackageVersion - Shared Promptbook version
+ * @param options - Additional dependency-version resolution preferences
  * @returns Dependency version to publish
  * @private internal utility of addDependenciesForGeneratedPackages
  */
@@ -304,12 +320,17 @@ function resolveAdditionalPackageDependencyVersion(
     allDependencies: Record<string, string>,
     allDevelopmentDependencies: Record<string, string>,
     mainPackageVersion: string,
+    options: {
+        readonly isDevelopmentDependencyPreferred?: boolean;
+    } = {},
 ): string {
     if (dependencyName === 'promptbook' || dependencyName === 'ptbk' || dependencyName.startsWith('@promptbook/')) {
         return mainPackageVersion;
     }
 
-    const dependencyVersion = allDependencies[dependencyName] || allDevelopmentDependencies[dependencyName];
+    const dependencyVersion = options.isDevelopmentDependencyPreferred
+        ? allDevelopmentDependencies[dependencyName] || allDependencies[dependencyName]
+        : allDependencies[dependencyName] || allDevelopmentDependencies[dependencyName];
     if (dependencyVersion === undefined) {
         throw new Error(
             spaceTrim(`

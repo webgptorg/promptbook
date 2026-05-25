@@ -363,6 +363,11 @@ configure_pm2_startup() {
     "${SUDO[@]}" env PATH="$PATH" pm2 startup systemd -u "$RUN_USER" --hp "$RUN_HOME" >/dev/null
 }
 
+build_agents_server() {
+    log "Building Agents Server before starting pm2."
+    run_as_service_user bash -lc "cd $(shell_quote "$INSTALL_DIR") && ptbk agents-server build"
+}
+
 start_agents_server() {
     local install_dir_shell=""
     local app_name_shell=""
@@ -430,6 +435,7 @@ main() {
     configure_runner_authentication
     configure_firewall
     configure_pm2_startup
+    build_agents_server
     start_agents_server
     print_summary
 }

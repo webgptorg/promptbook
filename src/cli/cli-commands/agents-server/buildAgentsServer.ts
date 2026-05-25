@@ -1,9 +1,10 @@
 import { spawn } from 'child_process';
 import { createHash, type Hash } from 'crypto';
-import { mkdir, readFile, readdir, stat, writeFile } from 'fs/promises';
-import { basename, join, relative, resolve } from 'path';
+import { cp, lstat, mkdir, readFile, readdir, rm, stat, symlink, writeFile } from 'fs/promises';
+import { basename, delimiter, dirname, join, relative, resolve } from 'path';
 import { spaceTrim } from 'spacetrim';
 import { NotAllowed } from '../../../errors/NotAllowed';
+import { resolvePromptbookTemporaryPath } from '../../../utils/filesystem/promptbookTemporaryPath';
 
 /**
  * Version of the CLI-owned Agents Server build cache metadata.
@@ -32,6 +33,35 @@ const AGENTS_SERVER_NEXT_BUILD_ID_FILENAME = 'BUILD_ID';
  * @private internal constant of `ptbk agents-server`
  */
 const DEFAULT_AGENTS_SERVER_NEXT_DIST_DIRECTORY_NAME = '.next';
+
+/**
+ * Environment variable passed to the bundled Next app so webpack can resolve dependencies
+ * installed beside `ptbk` even when the app sources are materialized into a project cache.
+ *
+ * @private internal constant of `ptbk agents-server`
+ */
+export const PTBK_AGENTS_SERVER_NODE_MODULES_PATH_ENV = 'PTBK_AGENTS_SERVER_NODE_MODULES_PATH';
+
+/**
+ * Environment variable used only by the CLI-owned production build.
+ *
+ * @private internal constant of `ptbk agents-server`
+ */
+export const PTBK_AGENTS_SERVER_IGNORE_NEXT_VALIDATION_ENV = 'PTBK_AGENTS_SERVER_IGNORE_NEXT_VALIDATION';
+
+/**
+ * Runtime copy metadata filename stored in the project-local materialized app root.
+ *
+ * @private internal constant of `ptbk agents-server`
+ */
+const AGENTS_SERVER_MATERIALIZED_RUNTIME_CACHE_FILENAME = '.ptbk-agents-server-runtime-cache.json';
+
+/**
+ * Directory segment used for Node package installs.
+ *
+ * @private internal constant of `ptbk agents-server`
+ */
+const NODE_MODULES_DIRECTORY_NAME = 'node_modules';
 
 /**
  * Runtime paths copied into the CLI package and used by the Agents Server production build.
@@ -84,6 +114,16 @@ type AgentsServerBuildCache = {
 };
 
 /**
+ * Metadata persisted after copying the npm-packaged Agents Server runtime into the launch project.
+ *
+ * @private internal type of `ptbk agents-server`
+ */
+type AgentsServerMaterializedRuntimeCache = {
+    readonly version: typeof AGENTS_SERVER_BUILD_CACHE_VERSION;
+    readonly sourceFingerprint: string;
+};
+
+/**
  * Inputs controlling one cached Agents Server production build.
  *
  * @private internal type of `ptbk agents-server`
@@ -103,6 +143,7 @@ type EnsureAgentsServerBuildOptions = {
  */
 export type AgentsServerBuildArtifacts = {
     readonly appPath: string;
+    readonly nodeModulesPath: string;
     readonly nextCliPath: string;
 };
 
@@ -124,31 +165,38 @@ type AgentsServerBuildCacheOptions = {
 export async function ensureAgentsServerBuild(
     options: EnsureAgentsServerBuildOptions = {},
 ): Promise<AgentsServerBuildArtifacts> {
-    const appPath = options.appPath ?? (await resolveAgentsServerAppPath());
     const environment = options.environment ?? process.env;
     const nextCliPath = resolveNextCliPath();
+    const nodeModulesPath = resolveNodeModulesPath(nextCliPath);
+    const appPath = await resolveAgentsServerBuildAppPath({
+        sourceAppPath: options.appPath ?? (await resolveAgentsServerAppPath()),
+        nodeModulesPath,
+    });
+    const buildEnvironment = createAgentsServerRuntimeEnvironment(environment, nodeModulesPath, {
+        isNextValidationIgnored: isAgentsServerAppPathMaterialized(appPath),
+    });
 
     if (
         !options.isBuildForced &&
         (await isAgentsServerBuildCacheCurrent({
             appPath,
-            environment,
+            environment: buildEnvironment,
         }))
     ) {
         options.onBuildEvent?.('Using the cached Agents Server Next app build.');
-        return { appPath, nextCliPath };
+        return { appPath, nextCliPath, nodeModulesPath };
     }
 
     options.onBuildEvent?.('Building the Agents Server Next app.');
     await runNextBuild({
         appPath,
-        environment,
+        environment: buildEnvironment,
         nextCliPath,
         onBuildOutput: options.onBuildOutput,
     });
-    await writeAgentsServerBuildCache({ appPath, environment });
+    await writeAgentsServerBuildCache({ appPath, environment: buildEnvironment });
 
-    return { appPath, nextCliPath };
+    return { appPath, nextCliPath, nodeModulesPath };
 }
 
 /**
@@ -217,6 +265,233 @@ export async function resolveAgentsServerAppPath(): Promise<string> {
             Checked:
             ${candidates.map((candidate) => `- \`${candidate}\``).join('\n')}
         `),
+    );
+}
+
+/**
+ * Adds dependency-resolution environment required by the materialized Agents Server runtime.
+ *
+ * @private internal utility of `ptbk agents-server`
+ */
+export function createAgentsServerRuntimeEnvironment(
+    environment: NodeJS.ProcessEnv,
+    nodeModulesPath: string,
+    options: {
+        readonly isNextValidationIgnored?: boolean;
+    } = {},
+): NodeJS.ProcessEnv {
+    return {
+        ...environment,
+        NODE_PATH: mergeNodePath(nodeModulesPath, environment.NODE_PATH),
+        [PTBK_AGENTS_SERVER_NODE_MODULES_PATH_ENV]: nodeModulesPath,
+        ...(options.isNextValidationIgnored
+            ? {
+                  [PTBK_AGENTS_SERVER_IGNORE_NEXT_VALIDATION_ENV]: 'true',
+              }
+            : {}),
+    };
+}
+
+/**
+ * Uses the source checkout app directly, but copies npm-packaged app sources out of `node_modules`.
+ *
+ * @private internal utility of `ptbk agents-server`
+ */
+export async function resolveAgentsServerBuildAppPath(options: {
+    readonly nodeModulesPath: string;
+    readonly sourceAppPath: string;
+}): Promise<string> {
+    if (!isPathInsideNodeModules(options.sourceAppPath)) {
+        return options.sourceAppPath;
+    }
+
+    const sourceRuntimeRootPath = resolve(options.sourceAppPath, '..', '..');
+    const materializedRuntimeRootPath = resolvePromptbookTemporaryPath(process.cwd(), 'agents-server', 'runtime');
+
+    await synchronizeMaterializedAgentsServerRuntime({
+        materializedRuntimeRootPath,
+        nodeModulesPath: options.nodeModulesPath,
+        sourceAppPath: options.sourceAppPath,
+        sourceRuntimeRootPath,
+    });
+
+    return join(materializedRuntimeRootPath, 'apps', 'agents-server');
+}
+
+/**
+ * Copies the bundled runtime into the launch project when the original app lives under `node_modules`.
+ */
+async function synchronizeMaterializedAgentsServerRuntime(options: {
+    readonly materializedRuntimeRootPath: string;
+    readonly nodeModulesPath: string;
+    readonly sourceAppPath: string;
+    readonly sourceRuntimeRootPath: string;
+}): Promise<void> {
+    const sourceFingerprint = await createAgentsServerBuildSourceFingerprint(options.sourceAppPath);
+    const runtimeCache = await readAgentsServerMaterializedRuntimeCache(options.materializedRuntimeRootPath);
+    const isRuntimeCurrent =
+        runtimeCache?.version === AGENTS_SERVER_BUILD_CACHE_VERSION &&
+        runtimeCache.sourceFingerprint === sourceFingerprint &&
+        (await isAgentsServerAppPath(join(options.materializedRuntimeRootPath, 'apps', 'agents-server')));
+
+    if (!isRuntimeCurrent) {
+        await rm(options.materializedRuntimeRootPath, { recursive: true, force: true });
+        await mkdir(options.materializedRuntimeRootPath, { recursive: true });
+
+        for (const relativeInputPath of AGENTS_SERVER_BUILD_INPUT_RELATIVE_PATHS) {
+            await copyAgentsServerRuntimePath({
+                destinationPath: join(options.materializedRuntimeRootPath, relativeInputPath),
+                sourcePath: join(options.sourceRuntimeRootPath, relativeInputPath),
+            });
+        }
+
+        await assertMaterializedAgentsServerAppExists(options.materializedRuntimeRootPath);
+        await writeAgentsServerMaterializedRuntimeCache(options.materializedRuntimeRootPath, sourceFingerprint);
+    }
+
+    await ensureMaterializedRuntimeNodeModulesLink({
+        materializedRuntimeRootPath: options.materializedRuntimeRootPath,
+        nodeModulesPath: options.nodeModulesPath,
+    });
+}
+
+/**
+ * Verifies that the materialized runtime contains a usable Next app before caching it.
+ */
+async function assertMaterializedAgentsServerAppExists(materializedRuntimeRootPath: string): Promise<void> {
+    const materializedAppPath = join(materializedRuntimeRootPath, 'apps', 'agents-server');
+
+    if (await isAgentsServerAppPath(materializedAppPath)) {
+        return;
+    }
+
+    throw new NotAllowed(
+        spaceTrim(`
+            Cannot prepare the bundled Agents Server runtime.
+
+            The materialized app path is missing required files:
+            \`${materializedAppPath}\`
+        `),
+    );
+}
+
+/**
+ * Copies one source path into the materialized runtime, skipping generated or private files.
+ */
+async function copyAgentsServerRuntimePath(options: {
+    readonly destinationPath: string;
+    readonly sourcePath: string;
+}): Promise<void> {
+    let sourceStats;
+
+    try {
+        sourceStats = await stat(options.sourcePath);
+    } catch {
+        return;
+    }
+
+    await mkdir(dirname(options.destinationPath), { recursive: true });
+
+    if (sourceStats.isDirectory()) {
+        await cp(options.sourcePath, options.destinationPath, {
+            recursive: true,
+            filter: (sourcePath) => shouldCopyAgentsServerRuntimePath(sourcePath, options.sourcePath),
+        });
+        return;
+    }
+
+    if (sourceStats.isFile() && shouldCopyAgentsServerRuntimePath(options.sourcePath, dirname(options.sourcePath))) {
+        await cp(options.sourcePath, options.destinationPath);
+    }
+}
+
+/**
+ * Excludes build artifacts, dependency folders, private env files, and test sources.
+ */
+function shouldCopyAgentsServerRuntimePath(sourcePath: string, sourceRootPath: string): boolean {
+    const sourceRelativePath = relative(sourceRootPath, sourcePath).replace(/\\/gu, '/');
+    const sourcePathSegments = sourceRelativePath.split('/').filter(Boolean);
+    const sourceBasename = basename(sourcePath);
+
+    if (
+        sourcePathSegments.some((sourcePathSegment) =>
+            AGENTS_SERVER_BUILD_INPUT_EXCLUDED_DIRECTORY_NAMES.has(sourcePathSegment),
+        )
+    ) {
+        return false;
+    }
+
+    if (sourceBasename.startsWith('.env')) {
+        return false;
+    }
+
+    return !AGENTS_SERVER_BUILD_INPUT_TEST_FILE_PATTERN.test(sourceBasename);
+}
+
+/**
+ * Links the materialized runtime back to the package dependency tree used by the installed CLI.
+ */
+async function ensureMaterializedRuntimeNodeModulesLink(options: {
+    readonly materializedRuntimeRootPath: string;
+    readonly nodeModulesPath: string;
+}): Promise<void> {
+    const nodeModulesLinkPath = join(options.materializedRuntimeRootPath, NODE_MODULES_DIRECTORY_NAME);
+
+    try {
+        const existingLinkStats = await lstat(nodeModulesLinkPath);
+        await rm(nodeModulesLinkPath, {
+            force: true,
+            recursive: existingLinkStats.isDirectory() && !existingLinkStats.isSymbolicLink(),
+        });
+    } catch {
+        // The link does not exist yet.
+    }
+
+    await symlink(options.nodeModulesPath, nodeModulesLinkPath, process.platform === 'win32' ? 'junction' : 'dir');
+}
+
+/**
+ * Reads and validates materialized runtime metadata.
+ */
+async function readAgentsServerMaterializedRuntimeCache(
+    materializedRuntimeRootPath: string,
+): Promise<AgentsServerMaterializedRuntimeCache | undefined> {
+    try {
+        const serializedRuntimeCache = await readFile(
+            join(materializedRuntimeRootPath, AGENTS_SERVER_MATERIALIZED_RUNTIME_CACHE_FILENAME),
+            'utf-8',
+        );
+        const runtimeCache = JSON.parse(serializedRuntimeCache) as Partial<AgentsServerMaterializedRuntimeCache>;
+
+        if (
+            runtimeCache.version !== AGENTS_SERVER_BUILD_CACHE_VERSION ||
+            typeof runtimeCache.sourceFingerprint !== 'string'
+        ) {
+            return undefined;
+        }
+
+        return runtimeCache as AgentsServerMaterializedRuntimeCache;
+    } catch {
+        return undefined;
+    }
+}
+
+/**
+ * Persists the source fingerprint used for the materialized runtime copy.
+ */
+async function writeAgentsServerMaterializedRuntimeCache(
+    materializedRuntimeRootPath: string,
+    sourceFingerprint: string,
+): Promise<void> {
+    const runtimeCache: AgentsServerMaterializedRuntimeCache = {
+        version: AGENTS_SERVER_BUILD_CACHE_VERSION,
+        sourceFingerprint,
+    };
+
+    await writeFile(
+        join(materializedRuntimeRootPath, AGENTS_SERVER_MATERIALIZED_RUNTIME_CACHE_FILENAME),
+        `${JSON.stringify(runtimeCache, null, 4)}\n`,
+        'utf-8',
     );
 }
 
@@ -382,6 +657,53 @@ function resolveAgentsServerBuildOutputPath(options: AgentsServerBuildCacheOptio
         options.appPath,
         options.environment?.NEXT_DIST_DIR || DEFAULT_AGENTS_SERVER_NEXT_DIST_DIRECTORY_NAME,
     );
+}
+
+/**
+ * Returns true when the app path points at the project-local materialized runtime.
+ */
+function isAgentsServerAppPathMaterialized(appPath: string): boolean {
+    const normalizedAppPath = appPath.replace(/\\/gu, '/');
+    const normalizedMaterializedRuntimePath = resolvePromptbookTemporaryPath(
+        process.cwd(),
+        'agents-server',
+        'runtime',
+    ).replace(/\\/gu, '/');
+
+    return normalizedAppPath.includes(normalizedMaterializedRuntimePath);
+}
+
+/**
+ * Returns true when one path is nested below a `node_modules` segment.
+ */
+function isPathInsideNodeModules(path: string): boolean {
+    return path.split(/[\\/]+/u).includes(NODE_MODULES_DIRECTORY_NAME);
+}
+
+/**
+ * Resolves the dependency root that contains the installed Next CLI.
+ */
+function resolveNodeModulesPath(nextCliPath: string): string {
+    const normalizedNextCliPath = nextCliPath.replace(/\\/gu, '/');
+    const marker = `/${NODE_MODULES_DIRECTORY_NAME}/next/`;
+    const markerIndex = normalizedNextCliPath.lastIndexOf(marker);
+
+    if (markerIndex === -1) {
+        return resolve(nextCliPath, '..', '..', '..');
+    }
+
+    return normalizedNextCliPath.slice(0, markerIndex + marker.length - '/next/'.length);
+}
+
+/**
+ * Prepends one dependency root to `NODE_PATH` while preserving any existing value.
+ */
+function mergeNodePath(nodeModulesPath: string, nodePath: string | undefined): string {
+    if (!nodePath) {
+        return nodeModulesPath;
+    }
+
+    return `${nodeModulesPath}${delimiter}${nodePath}`;
 }
 
 /**
