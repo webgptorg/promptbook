@@ -106,6 +106,7 @@
         "crypto": "1.0.1",
         "crypto-js": "4.2.0",
         "destroyable": "0.12.145",
+        "html-to-image": "1.11.13",
         "jspdf": "4.1.0",
         "katex": "0.16.45",
         "moment": "2.30.1",
