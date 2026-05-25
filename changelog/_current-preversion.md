@@ -1,3 +1,5 @@
+-   Fixed standalone VPS installation prompts so custom domain collection and DNS instructions appear before system package and runner installation starts.
+
 -   Added production custom-domain setup to the standalone VPS installer:
 
     -   `other/vps/install.sh` now asks for one or more domains, stores them in `SERVERS`, configures nginx as the public reverse proxy, binds the Agents Server process to localhost, opens HTTP/HTTPS when `ufw` is active, and provisions Let's Encrypt certificates with certbot.

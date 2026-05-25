@@ -270,7 +270,7 @@ curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/mai
 
 ---
 
-[ ] !!!!!
+[x] $0.6387 an hour by OpenAI Codex `gpt-5.5`
 
 [✨🤬] The installation asks for Let's Encrypt email but not for the actual domains the agents server should run
 
@@ -318,3 +318,4 @@ curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/mai
 -   _(@@@ After VPS server is working)_
 -   Allow to just [enter] it to auto-ghenerate random password _(current behavior)_, or input custom password if user wants to
 -   You are working with [auto installation script](vps/install.sh)
+

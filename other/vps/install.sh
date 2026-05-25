@@ -381,11 +381,12 @@ has_non_empty_env_value() {
 
 configure_domains() {
     local default_domains="$SERVERS"
+    local existing_env_file="${ENV_FILE:-$INSTALL_DIR/.env}"
     local requested_domains=""
     local domain=""
 
-    if [[ -z "$default_domains" && -n "$ENV_FILE" && -f "$ENV_FILE" ]]; then
-        default_domains="$(grep -E '^SERVERS=' "$ENV_FILE" | tail -n 1 | cut -d= -f2-)"
+    if [[ -z "$default_domains" && -r "$existing_env_file" ]]; then
+        default_domains="$(grep -E '^SERVERS=' "$existing_env_file" | tail -n 1 | cut -d= -f2- || true)"
     fi
 
     requested_domains="$(prompt_with_default "Custom domain(s), comma-separated" "$default_domains")"
@@ -665,6 +666,7 @@ main() {
     PTBK_MODEL="$(prompt_with_default "Runner model" "$PTBK_MODEL")"
     PTBK_THINKING_LEVEL="$(prompt_with_default "Runner thinking level" "$PTBK_THINKING_LEVEL")"
     PORT="$(prompt_with_default "Agents Server port" "$PORT")"
+    configure_domains
     LETS_ENCRYPT_EMAIL="$(prompt_with_default "Let's Encrypt email (optional)" "$LETS_ENCRYPT_EMAIL")"
 
     install_system_packages
@@ -672,7 +674,6 @@ main() {
     install_global_npm_packages
     install_runner_dependencies
     configure_install_directory
-    configure_domains
     initialize_promptbook_project
     configure_runner_authentication
     configure_pm2_startup
