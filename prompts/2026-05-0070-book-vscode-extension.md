@@ -1,4 +1,4 @@
-[ ] !!!!
+[ ] !!
 
 [✨🔄] Create a VSCode extension for book language
 
