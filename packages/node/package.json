@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/node",
-    "version": "0.112.0-88",
+    "version": "0.112.0-89",
     "description": "Promptbook: Create persistent AI agents that turn your company's scattered knowledge into action",
     "private": false,
     "sideEffects": false,
@@ -97,6 +97,6 @@
     "types": "./esm/src/_packages/node.index.d.ts",
     "typings": "./esm/src/_packages/node.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.112.0-88"
+        "@promptbook/core": "0.112.0-89"
     }
 }
