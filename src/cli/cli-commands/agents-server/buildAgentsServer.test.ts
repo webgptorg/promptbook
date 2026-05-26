@@ -98,12 +98,7 @@ describe('Agents Server build cache', () => {
         const nodeModulesPath = join(temporaryDirectoryPath, 'node_modules');
         const sourceRuntimeRootPath = join(nodeModulesPath, '@promptbook', 'cli');
         const sourceAppPath = join(sourceRuntimeRootPath, 'apps', 'agents-server');
-        const materializedRuntimeRootPath = join(
-            temporaryDirectoryPath,
-            '.promptbook',
-            'agents-server',
-            'runtime',
-        );
+        const materializedRuntimeRootPath = join(temporaryDirectoryPath, '.promptbook', 'agents-server', 'runtime');
 
         await Promise.all([
             mkdir(join(sourceAppPath, 'src'), { recursive: true }),
