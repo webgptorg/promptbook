@@ -20,6 +20,7 @@ Have the DNS records propagated and should SSL setup continue now? [yes]: s21.pt
 ```
 
 -   Allow to skip all the values and configure them later through the UI if it's possible.
+-   All the options configured during the installation should be also configurable later through the wizzard on IP address when there is no domain configured, and also through the UI when logged in as super `admin`
 -   When no domain is added during the installation, the server should be still accessible on `http://<IP_ADDRESS>` and then the domain can be added later through the UI
 -   Port `4440` is just internal for proxiing, Nginx should expose port `80` from raw IP adress
 -   When accessing IP address without domain, it should show one of 3 things:
@@ -47,9 +48,15 @@ Have the DNS records propagated and should SSL setup continue now? [yes]: s21.pt
 -   By hiding environment variables in the UI I mean showing \* stars instead of the value
 -   Keep in mind the DRY _(don't repeat yourself)_ principle, especially logic between the installation script and the changes which you can do in the UI or later in the UI. For each thing, there should be just one code, which is just run from a different context one time from the installation script, and one time from the UI.
 -   Formally, the administration of the servers was calling Vercel API adding domains. This should be abandoned because we are not using Vercel anymore but VPS with Nginx and Certbot
+-   Also add "System" -> "Super Admin" -> "Logs" where super `admin` can see the logs of the server from `pm2 logs`
+-   Also add "System" -> "Super Admin" -> "Code runners" where super `admin` can log in into the code runners like Github Copilot, OpenAI Codex, Claude codem,...
+    -   This should be configurable both throught the installation script, the wizzard on IP address when there is no domain configured, and also through the UI when logged in as super `admin` in "System" -> "Super Admin" -> "Code runners"
+    -   Also share the code and logic between the installation script and the UI, so you are not repeating yourself, but just running the same code from different contexts
+    -   Eqivalent step in installation script is `Open GitHub Copilot CLI now for /login and project trust setup? [yes]:`
 -   You are working with the [Agents Server](apps/agents-server)
 -   You are working with [auto installation script](vps/install.sh)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+-   You can update the [documentation](AGENTS.md) if needed
 
 ![alt text](prompts/screenshots/2026-05-0391-ptbk-agents-server-standalone-vps-script-configuration-throught-ui-and-servers.png)
 ![alt text](prompts/screenshots/2026-05-0391-ptbk-agents-server-standalone-vps-script-configuration-throught-ui-and-servers-1.png)
