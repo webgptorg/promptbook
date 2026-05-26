@@ -1,0 +1,150 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e5]:
+        - generic [ref=e7]:
+          - generic [ref=e8]:
+            - link "Promptbook Agents Server" [ref=e9] [cursor=pointer]:
+              - /url: /
+              - img [ref=e11]
+              - generic [ref=e12]: Promptbook Agents Server
+            - button "Switch server" [ref=e14] [cursor=pointer]:
+              - img [ref=e15]
+          - img [ref=e17]
+          - button "R7yDFuLxvhvLam" [ref=e21] [cursor=pointer]:
+            - generic [ref=e22]:
+              - img [ref=e24]
+              - generic [ref=e26]: R7yDFuLxvhvLam
+            - img [ref=e27]
+          - img [ref=e29]
+          - button "Chat" [ref=e33] [cursor=pointer]:
+            - generic [ref=e34]:
+              - img [ref=e35]
+              - generic [ref=e37]: Chat
+            - img [ref=e38]
+        - generic [ref=e42]:
+          - generic [ref=e43]: Global search
+          - generic [ref=e44]:
+            - img
+            - combobox "Global search" [ref=e45]
+        - generic [ref=e46]:
+          - navigation [ref=e47]:
+            - button "Documentation" [ref=e49] [cursor=pointer]:
+              - text: Documentation
+              - img [ref=e50]
+            - button "System" [ref=e53] [cursor=pointer]:
+              - text: System
+              - img [ref=e54]
+          - button "Open global control panel" [ref=e57] [cursor=pointer]:
+            - img [ref=e58]
+            - generic [ref=e61]: Control panel
+          - button "A admin Admin" [ref=e64] [cursor=pointer]:
+            - generic [ref=e66]: A
+            - generic [ref=e67]:
+              - generic [ref=e68]: admin
+              - generic [ref=e69]: Admin
+            - img [ref=e70]
+    - main [ref=e72]:
+      - main [ref=e73]:
+        - generic [ref=e74]:
+          - complementary [ref=e75]:
+            - button "Expand sidebar" [ref=e77] [cursor=pointer]:
+              - img [ref=e78]
+            - generic [ref=e81]:
+              - link "New chat" [ref=e82] [cursor=pointer]:
+                - /url: /agents/R7yDFuLxvhvLam/chat?chat=new
+                - img [ref=e83]
+              - button "First rapid message - This is only a draft or preliminary answer, not the final answer. The final answer will arrive… (4 messages, a few seconds ago, 2 responses in progress)" [ref=e86] [cursor=pointer]:
+                - img "2 responses in progress" [ref=e88]:
+                  - img [ref=e89]
+                - generic "4 messages" [ref=e91]: "4"
+                - generic [ref=e92]:
+                  - generic [ref=e93]: First rapid message
+                  - generic [ref=e94]: This is only a draft or preliminary answer, not the final answer. The final answer will arrive…
+                - generic [ref=e95]: Running
+              - button "EXT" [ref=e97] [cursor=pointer]
+              - paragraph [ref=e98]: Chats
+          - generic [ref=e103]:
+            - generic [ref=e104]:
+              - link "New chat" [ref=e105] [cursor=pointer]:
+                - /url: /agents/R7yDFuLxvhvLam/chat?chat=new
+                - img [ref=e106]
+                - generic [ref=e108]: New chat
+              - button "Save" [ref=e110] [cursor=pointer]:
+                - img [ref=e111]
+                - generic [ref=e114]: Save
+              - button "Cancel" [ref=e115] [cursor=pointer]
+            - generic [ref=e116]:
+              - generic [ref=e117]:
+                - generic "E2E Rapid Consecutive Sends" [ref=e119]
+                - generic [ref=e120]:
+                  - generic [ref=e121]:
+                    - generic [ref=e122]:
+                      - button "Read message aloud" [ref=e123] [cursor=pointer]:
+                        - img [ref=e124]
+                      - button "Copy message" [ref=e126] [cursor=pointer]:
+                        - img [ref=e127]
+                    - paragraph [ref=e132]: Hello! I am E2E Rapid Consecutive Sends.
+                    - generic [ref=e134] [cursor=pointer]: ⭐
+                  - generic "05/26/2026 10:39:44 AM" [ref=e135]:
+                    - generic [ref=e136]: 10:39 AM
+              - generic [ref=e138]:
+                - generic [ref=e139]:
+                  - generic:
+                    - img
+                  - generic [ref=e140]:
+                    - button "Read message aloud" [ref=e141] [cursor=pointer]:
+                      - img [ref=e142]
+                    - button "Copy message" [ref=e144] [cursor=pointer]:
+                      - img [ref=e145]
+                  - paragraph [ref=e150]: First rapid message
+                  - generic [ref=e152] [cursor=pointer]: ⭐
+                - generic "05/26/2026 10:39:44 AM" [ref=e153]:
+                  - generic [ref=e154]: 10:39 AM
+                  - button "Reply to this message" [ref=e155] [cursor=pointer]:
+                    - img [ref=e156]
+                    - generic [ref=e159]: Reply
+              - generic [ref=e160]:
+                - generic "E2E Rapid Consecutive Sends" [ref=e162]
+                - generic [ref=e163]:
+                  - paragraph [ref=e167]:
+                    - text: This is only a draft or preliminary answer, not the final answer.
+                    - text: The final answer will arrive in several minutes after the external service finishes processing.
+                    - text: The final answer can change or correct this draft, so you should not treat this draft as final.
+                  - generic [ref=e169]: Running
+              - generic [ref=e171]:
+                - generic [ref=e172]:
+                  - generic:
+                    - img
+                  - generic [ref=e173]:
+                    - button "Read message aloud" [ref=e174] [cursor=pointer]:
+                      - img [ref=e175]
+                    - button "Copy message" [ref=e177] [cursor=pointer]:
+                      - img [ref=e178]
+                  - paragraph [ref=e183]: Second rapid message
+                  - generic [ref=e185] [cursor=pointer]: ⭐
+                - generic "05/26/2026 10:39:44 AM" [ref=e186]:
+                  - generic [ref=e187]: 10:39 AM
+                  - button "Reply to this message" [ref=e188] [cursor=pointer]:
+                    - img [ref=e189]
+                    - generic [ref=e192]: Reply
+              - generic [ref=e193]:
+                - generic "E2E Rapid Consecutive Sends" [ref=e195]
+                - generic [ref=e196]:
+                  - paragraph [ref=e200]: This is only a draft or preliminary answer, not the final answer. The final answer will arrive in several minutes after the external service finishes processing. The final answer can change or correct this draft, so you should not treat this draft as final.
+                  - generic [ref=e202]: Running
+            - generic [ref=e205]:
+              - textbox "Write a message..." [ref=e206]
+              - button "Attach file" [ref=e207] [cursor=pointer]:
+                - img [ref=e208]
+              - button "Start dictation" [ref=e210] [cursor=pointer]:
+                - img [ref=e211]
+              - button [active] [ref=e214] [cursor=pointer]:
+                - img [ref=e215]
+  - generic:
+    - region "Notifications"
+  - alert [ref=e217]
+```

@@ -306,16 +306,16 @@ Hit:4 http://mirrors.digitalocean.com/ubuntu noble-backports InRelease
 
 ---
 
-[?] !!!
+[ ] !!!
 
-[✨🤬] Ask for admin password during auto-installation
+[✨🤬] Ask for api keys and admin password during the installation
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/other/vps/install.sh | bash
 ```
 
--   @@@
--   _(@@@ After VPS server is working)_
--   Allow to just [enter] it to auto-ghenerate random password _(current behavior)_, or input custom password if user wants to
+-   API keys will be saved in environment variables, so the installation script should ask user for the API keys during the installation process and save them in the `.env` file
+-   Allow to just [enter] it to keep it empty _(current behavior)_, or input custom API key if user wants to
+-   The installation script should also ask for the admin password during the installation process and save it in the `.env` file as `ADMIN_PASSWORD`
+-   Allow to just [enter] it to auto-generate a random password _(current behavior)_, or input custom password if user wants to
 -   You are working with [auto installation script](vps/install.sh)
-
