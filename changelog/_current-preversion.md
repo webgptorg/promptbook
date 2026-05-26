@@ -1,3 +1,8 @@
+-   Changed the standalone VPS installer to use the Promptbook GitHub repository for `ptbk agents-server` instead of installing `ptbk` from the npm registry:
+
+    -   `other/vps/install.sh` now keeps a managed checkout of `https://github.com/webgptorg/promptbook.git`, installs its dependencies with `npm ci --include=dev`, and writes a local `ptbk` launcher used by init, build, and pm2 startup.
+    -   Kept npm package publishing and runner CLI installation unchanged; only the VPS auto-install path now avoids the Promptbook npm package dependency.
+
 -   Fixed standalone VPS installation prompts so custom domain collection and DNS instructions appear before system package and runner installation starts.
 
 -   Added production custom-domain setup to the standalone VPS installer:

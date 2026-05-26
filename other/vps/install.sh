@@ -6,7 +6,12 @@ APP_NAME="${PTBK_PM2_APP_NAME:-promptbook-agents-server}"
 INSTALL_DIR="${PTBK_INSTALL_DIR:-/opt/promptbook-agents-server}"
 NODE_MAJOR_VERSION="${NODE_MAJOR_VERSION:-22}"
 PORT="${PORT:-${PTBK_PORT:-4440}}"
-PROMPTBOOK_NPM_PACKAGE="${PROMPTBOOK_NPM_PACKAGE:-ptbk@latest}"
+PROMPTBOOK_REPOSITORY_URL="${PROMPTBOOK_REPOSITORY_URL:-https://github.com/webgptorg/promptbook.git}"
+PROMPTBOOK_REPOSITORY_REF="${PROMPTBOOK_REPOSITORY_REF:-main}"
+PROMPTBOOK_REPOSITORY_DIR="${PROMPTBOOK_REPOSITORY_DIR:-$INSTALL_DIR/repository}"
+PTBK_BIN_DIR="${PTBK_BIN_DIR:-$INSTALL_DIR/bin}"
+PTBK_COMMAND_PATH="${PTBK_COMMAND_PATH:-$PTBK_BIN_DIR/ptbk}"
+PTBK_GLOBAL_COMMAND_PATH="${PTBK_GLOBAL_COMMAND_PATH:-/usr/local/bin/ptbk}"
 PTBK_AGENT="${PTBK_AGENT:-github-copilot}"
 PTBK_MODEL="${PTBK_MODEL:-gpt-5.4}"
 PTBK_THINKING_LEVEL="${PTBK_THINKING_LEVEL:-xhigh}"
@@ -259,13 +264,59 @@ install_nodejs() {
     "${SUDO[@]}" env DEBIAN_FRONTEND=noninteractive apt-get install -y nodejs
 }
 
-install_global_npm_packages() {
-    log "Installing Promptbook CLI and pm2."
-    "${SUDO[@]}" npm install -g "$PROMPTBOOK_NPM_PACKAGE" pm2
+install_global_process_manager() {
+    log "Installing pm2."
+    "${SUDO[@]}" npm install -g pm2
 
-    if ! command -v ptbk >/dev/null 2>&1; then
-        fail "The ptbk command was not installed. Check npm global installation output above."
+    if ! command -v pm2 >/dev/null 2>&1; then
+        fail "The pm2 command was not installed. Check npm global installation output above."
     fi
+}
+
+install_promptbook_repository() {
+    log "Installing Promptbook from $PROMPTBOOK_REPOSITORY_URL ($PROMPTBOOK_REPOSITORY_REF)."
+    "${SUDO[@]}" mkdir -p "$PROMPTBOOK_REPOSITORY_DIR"
+    "${SUDO[@]}" chown -R "$RUN_USER:$RUN_GROUP" "$PROMPTBOOK_REPOSITORY_DIR"
+
+    if [[ -d "$PROMPTBOOK_REPOSITORY_DIR/.git" ]]; then
+        run_as_service_user git -C "$PROMPTBOOK_REPOSITORY_DIR" remote set-url origin "$PROMPTBOOK_REPOSITORY_URL"
+        run_as_service_user git -C "$PROMPTBOOK_REPOSITORY_DIR" fetch --depth 1 origin "$PROMPTBOOK_REPOSITORY_REF"
+        run_as_service_user git -C "$PROMPTBOOK_REPOSITORY_DIR" checkout --detach FETCH_HEAD
+    elif find "$PROMPTBOOK_REPOSITORY_DIR" -mindepth 1 -maxdepth 1 | grep -q .; then
+        fail "$PROMPTBOOK_REPOSITORY_DIR exists and is not an empty Promptbook git checkout."
+    else
+        run_as_service_user git clone --depth 1 --branch "$PROMPTBOOK_REPOSITORY_REF" "$PROMPTBOOK_REPOSITORY_URL" "$PROMPTBOOK_REPOSITORY_DIR"
+    fi
+
+    log "Installing Promptbook repository dependencies."
+    run_as_service_user bash -lc "cd $(shell_quote "$PROMPTBOOK_REPOSITORY_DIR") && npm ci --include=dev"
+}
+
+install_promptbook_cli_launcher() {
+    local global_command_directory=""
+
+    log "Writing Promptbook CLI launcher."
+    "${SUDO[@]}" mkdir -p "$PTBK_BIN_DIR"
+    "${SUDO[@]}" chown "$RUN_USER:$RUN_GROUP" "$PTBK_BIN_DIR"
+    "${SUDO[@]}" tee "$PTBK_COMMAND_PATH" >/dev/null <<EOF
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+PROMPTBOOK_REPOSITORY_DIR=$(shell_quote "$PROMPTBOOK_REPOSITORY_DIR")
+export NODE_PATH="\$PROMPTBOOK_REPOSITORY_DIR/node_modules\${NODE_PATH:+:\$NODE_PATH}"
+
+exec "\$PROMPTBOOK_REPOSITORY_DIR/node_modules/.bin/ts-node" "\$PROMPTBOOK_REPOSITORY_DIR/src/cli/test/ptbk.ts" "\$@"
+EOF
+    "${SUDO[@]}" chown "$RUN_USER:$RUN_GROUP" "$PTBK_COMMAND_PATH"
+    "${SUDO[@]}" chmod 755 "$PTBK_COMMAND_PATH"
+
+    if [[ -n "$PTBK_GLOBAL_COMMAND_PATH" ]]; then
+        global_command_directory="$(dirname "$PTBK_GLOBAL_COMMAND_PATH")"
+        "${SUDO[@]}" mkdir -p "$global_command_directory"
+        "${SUDO[@]}" ln -sfn "$PTBK_COMMAND_PATH" "$PTBK_GLOBAL_COMMAND_PATH"
+    fi
+
+    run_as_service_user "$PTBK_COMMAND_PATH" --help >/dev/null
 }
 
 install_runner_dependencies() {
@@ -446,7 +497,7 @@ configure_environment() {
 
 initialize_promptbook_project() {
     log "Initializing Promptbook Agents Server project files."
-    run_as_service_user bash -lc "cd $(shell_quote "$INSTALL_DIR") && ptbk agents-server init >/dev/null"
+    run_as_service_user bash -lc "cd $(shell_quote "$INSTALL_DIR") && $(shell_quote "$PTBK_COMMAND_PATH") agents-server init >/dev/null"
     configure_environment
 }
 
@@ -602,12 +653,13 @@ configure_pm2_startup() {
 
 build_agents_server() {
     log "Building Agents Server before starting pm2."
-    run_as_service_user bash -lc "cd $(shell_quote "$INSTALL_DIR") && ptbk agents-server build"
+    run_as_service_user bash -lc "cd $(shell_quote "$INSTALL_DIR") && $(shell_quote "$PTBK_COMMAND_PATH") agents-server build"
 }
 
 start_agents_server() {
     local install_dir_shell=""
     local app_name_shell=""
+    local ptbk_command_shell=""
     local agent_shell=""
     local model_shell=""
     local thinking_shell=""
@@ -615,6 +667,7 @@ start_agents_server() {
 
     install_dir_shell="$(shell_quote "$INSTALL_DIR")"
     app_name_shell="$(shell_quote "$APP_NAME")"
+    ptbk_command_shell="$(shell_quote "$PTBK_COMMAND_PATH")"
     agent_shell="$(shell_quote "$PTBK_AGENT")"
     model_shell="$(shell_quote "$PTBK_MODEL")"
     thinking_shell="$(shell_quote "$PTBK_THINKING_LEVEL")"
@@ -624,11 +677,11 @@ start_agents_server() {
     run_as_service_user bash -lc "
         set -e
         cd $install_dir_shell
-        PTBK_PATH=\$(command -v ptbk)
+        PTBK_PATH=$ptbk_command_shell
         if pm2 describe $app_name_shell >/dev/null 2>&1; then
             pm2 delete $app_name_shell >/dev/null
         fi
-        pm2 start \"\$PTBK_PATH\" --name $app_name_shell --time --cwd $install_dir_shell -- agents-server start --agent $agent_shell --model $model_shell --thinking-level $thinking_shell --port $port_shell --no-ui
+        pm2 start \"\$PTBK_PATH\" --interpreter bash --name $app_name_shell --time --cwd $install_dir_shell -- agents-server start --agent $agent_shell --model $model_shell --thinking-level $thinking_shell --port $port_shell --no-ui
         pm2 save
     "
 }
@@ -641,6 +694,7 @@ print_summary() {
     log "URL: $public_site_url"
     log "Domains: $SERVERS"
     log "Project directory: $INSTALL_DIR"
+    log "Repository: $PROMPTBOOK_REPOSITORY_DIR"
     log "Database: $INSTALL_DIR/.promptbook/agents-server.sqlite"
     log "pm2 process: $APP_NAME"
     log "nginx site: /etc/nginx/sites-available/$NGINX_SITE_NAME"
@@ -671,9 +725,11 @@ main() {
 
     install_system_packages
     install_nodejs
-    install_global_npm_packages
-    install_runner_dependencies
     configure_install_directory
+    install_global_process_manager
+    install_promptbook_repository
+    install_promptbook_cli_launcher
+    install_runner_dependencies
     initialize_promptbook_project
     configure_runner_authentication
     configure_pm2_startup
