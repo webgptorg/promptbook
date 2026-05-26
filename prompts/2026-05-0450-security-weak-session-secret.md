@@ -1,4 +1,4 @@
-[-]
+[ ] !
 
 [🔐] Fix weak default session signing secret in Agents Server authentication
 

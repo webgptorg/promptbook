@@ -1,4 +1,4 @@
-[-]
+[ ] !
 
 [🔐] Fix XSS in Promptbook markdown rendering and HTML export sanitization
 
