@@ -2,6 +2,11 @@
     -   Changed the command registration and implementation module paths from `src/cli/cli-commands/agent*` to `src/cli/cli-commands/agent-folder*`.
     -   Updated source comments, tests, generated runner scripts, VS Code terminal presets, prompt docs, and changelog references to use `ptbk agent-folder`.
 
+-   Added pre-install resource checks to the standalone VPS Agents Server installer:
+    -   `other/vps/install.sh` now checks for at least 8 GiB total memory and 15 GiB free disk before installation starts.
+    -   When memory is below the minimum, the installer can add only the missing swap amount, persist it through `/etc/fstab`, and apply swap performance tuning.
+    -   When disk space is below the minimum, the installer asks before continuing.
+
 -   Fixed `/admin/task-manager` in `ptbk agents-server` SQLite mode so the admin dashboard no longer crashes on the PostgreSQL-only listing query:
     -   Added a SQLite-safe task-manager listing path that reuses the shared Agents Server table adapters to load jobs, timeouts, users, and agents without requiring `POSTGRES_URL` / `DATABASE_URL`.
     -   Kept the existing PostgreSQL raw-SQL path for Supabase deployments, preserving current task-manager filtering, sorting, counters, and pagination behavior there.

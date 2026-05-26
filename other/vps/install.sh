@@ -19,6 +19,9 @@ PTBK_NON_INTERACTIVE="${PTBK_NON_INTERACTIVE:-0}"
 SERVERS="${SERVERS:-}"
 LETS_ENCRYPT_EMAIL="${LETS_ENCRYPT_EMAIL:-${CERTBOT_EMAIL:-}}"
 NGINX_SITE_NAME="${PTBK_NGINX_SITE_NAME:-promptbook-agents-server}"
+PROMPTBOOK_SWAP_FILE="${PTBK_SWAP_FILE:-/swapfile-promptbook}"
+MINIMUM_REQUIRED_MEMORY_MIB=8192
+MINIMUM_REQUIRED_DISK_MIB=15360
 
 SUDO=()
 RUN_USER=""
@@ -97,6 +100,17 @@ prompt_secret_with_default() {
     printf '%s' "${answer:-$default_value}"
 }
 
+format_mib() {
+    local value_mib="$1"
+
+    if [[ "$value_mib" -ge 1024 ]]; then
+        awk -v value_mib="$value_mib" 'BEGIN { printf "%.1f GiB", value_mib / 1024 }'
+        return
+    fi
+
+    printf '%s MiB' "$value_mib"
+}
+
 join_by_comma() {
     local joined=""
     local item=""
@@ -153,6 +167,208 @@ build_domain_table_prefix() {
         sed -E 's/-/_dash_/g; s/[.]/_/g; s/[^A-Za-z0-9_]/_/g; s/_+/_/g; s/^_+|_+$//g')"
 
     printf 'server_%s_' "$prefix_suffix"
+}
+
+resolve_existing_path() {
+    local checked_path="$1"
+
+    while [[ ! -e "$checked_path" ]]; do
+        checked_path="$(dirname "$checked_path")"
+
+        if [[ "$checked_path" == "/" ]]; then
+            break
+        fi
+    done
+
+    printf '%s' "$checked_path"
+}
+
+get_available_disk_space_mib() {
+    local checked_path="$1"
+
+    df -Pm "$checked_path" | awk 'NR == 2 { print $4 }'
+}
+
+get_filesystem_source() {
+    local checked_path="$1"
+
+    df -P "$checked_path" | awk 'NR == 2 { print $1 }'
+}
+
+get_total_memory_mib() {
+    awk '
+        /^(MemTotal|SwapTotal):/ {
+            totalMemoryKiB += $2
+        }
+        END {
+            printf "%d\n", totalMemoryKiB / 1024
+        }
+    ' /proc/meminfo
+}
+
+get_file_size_mib() {
+    local file_path="$1"
+    local file_size_bytes=0
+
+    file_size_bytes="$(stat -c %s "$file_path")"
+    printf '%d\n' $(((file_size_bytes + 1048575) / 1048576))
+}
+
+is_swap_file_active() {
+    local swap_file="$1"
+
+    swapon --show=NAME --noheadings 2>/dev/null |
+        awk -v swap_file="$swap_file" '$1 == swap_file { isActive = 1 } END { exit(isActive == 1 ? 0 : 1) }'
+}
+
+write_swap_file() {
+    local swap_file="$1"
+    local swap_file_size_mib="$2"
+
+    "${SUDO[@]}" install -o root -g root -m 600 /dev/null "$swap_file"
+
+    if command -v fallocate >/dev/null 2>&1 &&
+        "${SUDO[@]}" fallocate -l "${swap_file_size_mib}M" "$swap_file"; then
+        return
+    fi
+
+    "${SUDO[@]}" dd if=/dev/zero of="$swap_file" bs=1M count="$swap_file_size_mib" status=none
+}
+
+ensure_swap_file_is_persistent() {
+    local swap_file="$1"
+
+    if awk -v swap_file="$swap_file" '$1 == swap_file && $3 == "swap" { isConfigured = 1 } END { exit(isConfigured == 1 ? 0 : 1) }' /etc/fstab; then
+        return
+    fi
+
+    printf '%s none swap sw 0 0\n' "$swap_file" |
+        "${SUDO[@]}" tee -a /etc/fstab >/dev/null
+}
+
+configure_swap_performance() {
+    "${SUDO[@]}" tee /etc/sysctl.d/99-promptbook-swap.conf >/dev/null <<'EOF'
+# Managed by the Promptbook Agents Server installer.
+vm.swappiness=10
+vm.vfs_cache_pressure=50
+EOF
+    "${SUDO[@]}" sysctl -p /etc/sysctl.d/99-promptbook-swap.conf >/dev/null
+}
+
+add_required_swap_file() {
+    local additional_swap_mib="$1"
+    local swap_file="$PROMPTBOOK_SWAP_FILE"
+    local swap_directory=""
+    local swap_disk_check_path=""
+    local available_swap_disk_space_mib=0
+    local existing_swap_file_size_mib=0
+    local target_swap_file_size_mib="$additional_swap_mib"
+
+    swap_directory="$(dirname "$swap_file")"
+    swap_disk_check_path="$(resolve_existing_path "$swap_directory")"
+    available_swap_disk_space_mib="$(get_available_disk_space_mib "$swap_disk_check_path")"
+
+    if [[ "$available_swap_disk_space_mib" -lt "$additional_swap_mib" ]]; then
+        fail "Cannot add $(format_mib "$additional_swap_mib") of swap at $swap_file because only $(format_mib "$available_swap_disk_space_mib") is free on $swap_disk_check_path."
+    fi
+
+    if [[ -e "$swap_file" ]]; then
+        if ! is_swap_file_active "$swap_file"; then
+            fail "$swap_file already exists but is not an active swap file. Remove it manually or set PTBK_SWAP_FILE to another path."
+        fi
+
+        existing_swap_file_size_mib="$(get_file_size_mib "$swap_file")"
+        target_swap_file_size_mib=$((existing_swap_file_size_mib + additional_swap_mib))
+        log "Resizing existing swap file $swap_file to $(format_mib "$target_swap_file_size_mib")."
+        "${SUDO[@]}" swapoff "$swap_file"
+    else
+        log "Creating swap file $swap_file with $(format_mib "$additional_swap_mib")."
+    fi
+
+    if [[ ! -d "$swap_directory" ]]; then
+        "${SUDO[@]}" install -d -m 755 "$swap_directory"
+    fi
+
+    write_swap_file "$swap_file" "$target_swap_file_size_mib"
+    "${SUDO[@]}" chmod 600 "$swap_file"
+    "${SUDO[@]}" mkswap "$swap_file" >/dev/null
+    "${SUDO[@]}" swapon "$swap_file"
+    ensure_swap_file_is_persistent "$swap_file"
+    configure_swap_performance
+}
+
+confirm_minimum_disk_space() {
+    local available_disk_space_mib="$1"
+    local disk_check_path="$2"
+    local availability_description="$3"
+
+    if [[ "$available_disk_space_mib" -ge "$MINIMUM_REQUIRED_DISK_MIB" ]]; then
+        return
+    fi
+
+    warn "Only $(format_mib "$available_disk_space_mib") $availability_description on $disk_check_path. Agents Server requires at least $(format_mib "$MINIMUM_REQUIRED_DISK_MIB")."
+
+    if ! prompt_yes_no "Continue installation with low free disk space?" "no"; then
+        fail "Installation stopped because the VPS does not have enough free disk space."
+    fi
+}
+
+confirm_disk_space_after_swap() {
+    local install_disk_check_path="$1"
+    local available_disk_space_mib="$2"
+    local additional_swap_mib="$3"
+    local swap_disk_check_path=""
+    local projected_disk_space_mib="$available_disk_space_mib"
+
+    swap_disk_check_path="$(resolve_existing_path "$(dirname "$PROMPTBOOK_SWAP_FILE")")"
+
+    if [[ "$(get_filesystem_source "$install_disk_check_path")" != "$(get_filesystem_source "$swap_disk_check_path")" ]]; then
+        return
+    fi
+
+    projected_disk_space_mib=$((available_disk_space_mib - additional_swap_mib))
+    if [[ "$projected_disk_space_mib" -lt 0 ]]; then
+        projected_disk_space_mib=0
+    fi
+
+    confirm_minimum_disk_space "$projected_disk_space_mib" "$install_disk_check_path" "will remain after adding swap"
+}
+
+check_required_resources() {
+    local install_disk_check_path=""
+    local available_disk_space_mib=0
+    local total_memory_mib=0
+    local additional_swap_mib=0
+
+    log "Checking VPS resources."
+
+    install_disk_check_path="$(resolve_existing_path "$INSTALL_DIR")"
+    available_disk_space_mib="$(get_available_disk_space_mib "$install_disk_check_path")"
+    confirm_minimum_disk_space "$available_disk_space_mib" "$install_disk_check_path" "is available"
+
+    total_memory_mib="$(get_total_memory_mib)"
+
+    if [[ "$total_memory_mib" -ge "$MINIMUM_REQUIRED_MEMORY_MIB" ]]; then
+        log "Resources OK: $(format_mib "$total_memory_mib") memory and $(format_mib "$available_disk_space_mib") free disk."
+        return
+    fi
+
+    additional_swap_mib=$((MINIMUM_REQUIRED_MEMORY_MIB - total_memory_mib))
+    warn "Only $(format_mib "$total_memory_mib") total memory (RAM + swap) is available. Agents Server requires at least $(format_mib "$MINIMUM_REQUIRED_MEMORY_MIB")."
+
+    if ! prompt_yes_no "Add $(format_mib "$additional_swap_mib") of swap at $PROMPTBOOK_SWAP_FILE?" "yes"; then
+        fail "Installation stopped because the VPS does not have enough memory."
+    fi
+
+    confirm_disk_space_after_swap "$install_disk_check_path" "$available_disk_space_mib" "$additional_swap_mib"
+    add_required_swap_file "$additional_swap_mib"
+    total_memory_mib="$(get_total_memory_mib)"
+
+    if [[ "$total_memory_mib" -lt "$MINIMUM_REQUIRED_MEMORY_MIB" ]]; then
+        fail "Swap was configured, but total memory is still only $(format_mib "$total_memory_mib")."
+    fi
+
+    log "Swap configured. Total memory is now $(format_mib "$total_memory_mib")."
 }
 
 append_domain() {
@@ -800,6 +1016,7 @@ main() {
     initialize_sudo
     resolve_run_user
     check_platform
+    check_required_resources
 
     PTBK_AGENT="$(prompt_with_default "Coding runner" "$PTBK_AGENT")"
     PTBK_MODEL="$(prompt_with_default "Runner model" "$PTBK_MODEL")"
