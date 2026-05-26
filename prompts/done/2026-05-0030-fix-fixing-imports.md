@@ -339,15 +339,15 @@ $ npx ts-node ./scripts/repair-imports/repair-imports.ts --organize --organize-a
 /src/cli/$runPromptbookCli.ts (1x)
 /src/cli/cli-commands/_boilerplate.ts (3x)
 /src/cli/cli-commands/about.ts (8x)
-/src/cli/cli-commands/agent.ts (4x)
-/src/cli/cli-commands/agent/agentProjectPaths.ts
-/src/cli/cli-commands/agent/agentRunCliOptions.ts (2x)
-/src/cli/cli-commands/agent/init.ts (5x)
-/src/cli/cli-commands/agent/initializeAgentProjectConfiguration.ts (4x)
-/src/cli/cli-commands/agent/printAgentInitializationSummary.ts (3x)
-/src/cli/cli-commands/agent/run.test.ts (4x)
-/src/cli/cli-commands/agent/run.ts (5x)
-/src/cli/cli-commands/agent/tick.ts (5x)
+/src/cli/cli-commands/agent-folder.ts (4x)
+/src/cli/cli-commands/agent-folder/agentProjectPaths.ts
+/src/cli/cli-commands/agent-folder/agentRunCliOptions.ts (2x)
+/src/cli/cli-commands/agent-folder/init.ts (5x)
+/src/cli/cli-commands/agent-folder/initializeAgentProjectConfiguration.ts (4x)
+/src/cli/cli-commands/agent-folder/printAgentInitializationSummary.ts (3x)
+/src/cli/cli-commands/agent-folder/run.test.ts (4x)
+/src/cli/cli-commands/agent-folder/run.ts (5x)
+/src/cli/cli-commands/agent-folder/tick.ts (5x)
 /src/cli/cli-commands/coder.ts (7x)
 /src/cli/cli-commands/coder/agentCodingFile.ts (3x)
 /src/cli/cli-commands/coder/agentsFile.ts
@@ -4171,14 +4171,14 @@ $ npx ts-node ./scripts/repair-imports/repair-imports.ts --organize --organize-a
 📁 src/book-components/Chat/utils/getToolCallChipletInfo.ts
    • type ToolCall
 
-📁 src/cli/cli-commands/agent/run.test.ts
+📁 src/cli/cli-commands/agent-folder/run.test.ts
    • runAgentMessages
    • tickAgentMessages
 
-📁 src/cli/cli-commands/agent/run.ts
+📁 src/cli/cli-commands/agent-folder/run.ts
    • type AgentRunCliOptions
 
-📁 src/cli/cli-commands/agent/tick.ts
+📁 src/cli/cli-commands/agent-folder/tick.ts
    • type AgentRunCliOptions
 
 📁 src/cli/cli-commands/coder/find-refactor-candidates.test.ts

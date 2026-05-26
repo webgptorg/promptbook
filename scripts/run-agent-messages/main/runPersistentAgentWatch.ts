@@ -8,7 +8,7 @@ import { handleAgentWatchError } from './handleAgentWatchError';
 const AGENT_WATCH_RESTART_DELAY_MS = 2_000;
 
 /**
- * Shared supervisor options for `ptbk agent` watch commands that should never stop by themselves.
+ * Shared supervisor options for `ptbk agent-folder` watch commands that should never stop by themselves.
  */
 export type RunPersistentAgentWatchOptions = {
     readonly commandDisplayName: string;

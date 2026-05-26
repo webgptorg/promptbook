@@ -13,7 +13,7 @@ import { readLocalAgentName } from './loadAgentRunUiMetadata';
 import { WAITING_FOR_MESSAGE_LABEL } from './agentRunUiConstants';
 
 /**
- * Creates and seeds the persistent rich terminal UI used by `ptbk agent run`.
+ * Creates and seeds the persistent rich terminal UI used by `ptbk agent-folder run`.
  */
 export async function initializeAgentRunUi(
     projectPath: string,

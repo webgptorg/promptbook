@@ -4,7 +4,7 @@
 
 -   Now the chats inference are running inside the Agent server, we need to move this running to the external service which will manage the heavy lifting of running the chats and the Agents server will be only responsible for managing the agent source book, and showing the the chats in the UI, but not running the chats itself
 -   The Agent server remain as the source of the truth and main UI for managing the agents, but the agents itself will be run on the external service
--   You are now not implementing the external service, you are just connecting the Agents Server to it The Agent server is running on Vercel but the agents `ptbk agent run` will be running on some dedicated server
+-   You are now not implementing the external service, you are just connecting the Agents Server to it The Agent server is running on Vercel but the agents `ptbk agent-folder run` will be running on some dedicated server
 -   Way how to synchronize the Agents server with the external service is via git repository and pushing/pulling the changes and creating markdown
 -   For each agent there will be one git repository with this structure:
 
@@ -63,7 +63,7 @@ node_modules
 
 **README.md** - Some basic README what is the repo about
 
--   External service would be `ptbk agent run` BUT you are not implementing or doing anything with it, you are connecting the Agents Server to it and using it to run the chats instead of running them inside the Agents Server
+-   External service would be `ptbk agent-folder run` BUT you are not implementing or doing anything with it, you are connecting the Agents Server to it and using it to run the chats instead of running them inside the Agents Server
 -   Agents server responsibility isnt to run the chats but:
     1. Handle the agent source book, the source of the truth is on the agents server
     2. Synchronize this to the external git repository
@@ -108,14 +108,14 @@ node_modules
 [✨🕟] The messages should work in threads and should not be duplicated
 
 -   One file should not correspond to one `.book` file _(now each message is sepated into one file and also there is a bug that theese files are triplicated)_
--   Long threads of messages should be supported, so one file can contain multiple messages in the thread, and also the answer to the message should be in the same file, not in the separate file, both from point of view of the agent server and the `ptbk agent run` utility which is running the chats on the external service
--   The `ptbk agent` should look at `.book` files (not `.md` files)
+-   Long threads of messages should be supported, so one file can contain multiple messages in the thread, and also the answer to the message should be in the same file, not in the separate file, both from point of view of the agent server and the `ptbk agent-folder run` utility which is running the chats on the external service
+-   The `ptbk agent-folder` should look at `.book` files (not `.md` files)
 -   Parse the book files with messages via `src/book-3.0/Book.ts` and finish it
--   Do a proper analysis of the current functionality of chat on agent server and `ptbk agent` before you start implementing. And also the change which was made:
+-   Do a proper analysis of the current functionality of chat on agent server and `ptbk agent-folder` before you start implementing. And also the change which was made:
     -   [File with PRD](prompts/2026-04-6890-agents-server-external-chat-runner.md)
 -   You are working with the [Agents Server](apps/agents-server)
--   You are working with [`ptbk agent` CLI command](src/cli/cli-commands/agent/run.ts)
--   We don't need to keep backwards compatibility of `ptbk agent` and the created repos. We are in the development of the new feature, which isn't deployed for any real customer yet, so we can change the existing functionality and do breaking changes if needed
+-   You are working with [`ptbk agent-folder` CLI command](src/cli/cli-commands/agent-folder/run.ts)
+-   We don't need to keep backwards compatibility of `ptbk agent-folder` and the created repos. We are in the development of the new feature, which isn't deployed for any real customer yet, so we can change the existing functionality and do breaking changes if needed
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
@@ -129,7 +129,7 @@ node_modules
 -   Do a proper analysis of the current functionality of chat on agent server before you start implementing. And also the change which was made:
     -   [File with PRD](prompts/2026-04-6890-agents-server-external-chat-runner.md)
 -   You are working with the [Agents Server](apps/agents-server)
--   We don't need to keep backwards compatibility of `ptbk agent` and the created repos. We are in the development of the new feature, which isn't deployed for any real customer yet, so we can change the existing functionality and do breaking changes if needed
+-   We don't need to keep backwards compatibility of `ptbk agent-folder` and the created repos. We are in the development of the new feature, which isn't deployed for any real customer yet, so we can change the existing functionality and do breaking changes if needed
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
@@ -144,7 +144,7 @@ node_modules
 -   Do a proper analysis of the current functionality of chat on agent server before you start implementing. And also the change which was made:
     -   [File with PRD](prompts/2026-04-6890-agents-server-external-chat-runner.md)
 -   You are working with the [Agents Server](apps/agents-server)
--   We don't need to keep backwards compatibility of `ptbk agent` and the created repos. We are in the development of the new feature, which isn't deployed for any real customer yet, so we can change the existing functionality and do breaking changes if needed
+-   We don't need to keep backwards compatibility of `ptbk agent-folder` and the created repos. We are in the development of the new feature, which isn't deployed for any real customer yet, so we can change the existing functionality and do breaking changes if needed
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
@@ -162,7 +162,7 @@ node_modules
 -   Do a proper analysis of the current functionality of chat on agent server before you start implementing. And also the change which was made:
     -   [File with PRD](prompts/2026-04-6890-agents-server-external-chat-runner.md)
 -   You are working with the [Agents Server](apps/agents-server)
--   You are not working with the external chat service, the `ptbk agent` utility which is running the chats on the external service, this is not scope of this task, you are just doing quicker response before the full one arrives from the external service
+-   You are not working with the external chat service, the `ptbk agent-folder` utility which is running the chats on the external service, this is not scope of this task, you are just doing quicker response before the full one arrives from the external service
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
@@ -182,7 +182,7 @@ node_modules
 -   Do a proper analysis of the current functionality of chat on agent server before you start implementing. And also the change which was made:
     -   [File with PRD](prompts/2026-04-6890-agents-server-external-chat-runner.md)
 -   You are working with the [Agents Server](apps/agents-server)
--   You are not working with the external chat service, the `ptbk agent` utility which is running the chats on the external service, this is not scope of this task, you are just doing quicker response before the full one arrives from the external service
+-   You are not working with the external chat service, the `ptbk agent-folder` utility which is running the chats on the external service, this is not scope of this task, you are just doing quicker response before the full one arrives from the external service
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 

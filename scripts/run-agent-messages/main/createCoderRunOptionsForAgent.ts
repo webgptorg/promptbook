@@ -2,7 +2,7 @@ import type { RunOptions } from '../../run-codex-prompts/cli/RunOptions';
 import type { AgentRunOptions } from '../AgentRunOptions';
 
 /**
- * Converts `ptbk agent` options into the shared runner option shape.
+ * Converts `ptbk agent-folder` options into the shared runner option shape.
  */
 export function createCoderRunOptionsForAgent(options: AgentRunOptions): RunOptions {
     return {

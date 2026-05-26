@@ -14,7 +14,7 @@ import type { AgentInitializationSummary } from './initializeAgentProjectConfigu
 /**
  * Prints a readable summary of initialized local agent files.
  *
- * @private internal utility of `ptbk agent init`
+ * @private internal utility of `ptbk agent-folder init`
  */
 export function printAgentInitializationSummary(summary: AgentInitializationSummary): void {
     console.info(colors.green('Promptbook agent configuration initialized.'));
@@ -53,4 +53,4 @@ function printInitializationStatusLine(relativePath: string, status: Initializat
     console.info(colors.gray(`✔ ${relativePath.replace(/\\/gu, '/')}: ${formatInitializationStatus(status)}`));
 }
 
-// Note: [🟡] Code for CLI command [agent init](src/cli/cli-commands/agent/printAgentInitializationSummary.ts) should never be published outside of `@promptbook/cli`
+// Note: [🟡] Code for CLI command [agent init](src/cli/cli-commands/agent-folder/printAgentInitializationSummary.ts) should never be published outside of `@promptbook/cli`

@@ -2,58 +2,58 @@ import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
 
 /**
- * Relative path to the local agent source initialized by `ptbk agent init`.
+ * Relative path to the local agent source initialized by `ptbk agent-folder init`.
  *
- * @private internal utility of `ptbk agent`
+ * @private internal utility of `ptbk agent-folder`
  */
 export const AGENT_BOOK_FILE_PATH = 'agent.book';
 
 /**
- * Relative path to local knowledge files initialized by `ptbk agent init`.
+ * Relative path to local knowledge files initialized by `ptbk agent-folder init`.
  *
- * @private internal utility of `ptbk agent`
+ * @private internal utility of `ptbk agent-folder`
  */
 export const AGENT_KNOWLEDGE_DIRECTORY_PATH = 'knowledge';
 
 /**
- * Relative path to the message queue root initialized by `ptbk agent init`.
+ * Relative path to the message queue root initialized by `ptbk agent-folder init`.
  *
- * @private internal utility of `ptbk agent`
+ * @private internal utility of `ptbk agent-folder`
  */
 export const AGENT_MESSAGES_DIRECTORY_PATH = 'messages';
 
 /**
- * Relative path to queued user messages consumed by `ptbk agent run-once`.
+ * Relative path to queued user messages consumed by `ptbk agent-folder run-once`.
  *
- * @private internal utility of `ptbk agent`
+ * @private internal utility of `ptbk agent-folder`
  */
 export const AGENT_QUEUED_MESSAGES_DIRECTORY_PATH = join(AGENT_MESSAGES_DIRECTORY_PATH, 'queued');
 
 /**
- * Relative path to answered messages written by `ptbk agent run-once`.
+ * Relative path to answered messages written by `ptbk agent-folder run-once`.
  *
- * @private internal utility of `ptbk agent`
+ * @private internal utility of `ptbk agent-folder`
  */
 export const AGENT_FINISHED_MESSAGES_DIRECTORY_PATH = join(AGENT_MESSAGES_DIRECTORY_PATH, 'finished');
 
 /**
- * Relative path to generated local agent documentation initialized by `ptbk agent init`.
+ * Relative path to generated local agent documentation initialized by `ptbk agent-folder init`.
  *
- * @private internal utility of `ptbk agent`
+ * @private internal utility of `ptbk agent-folder`
  */
 export const AGENT_DOCS_DIRECTORY_PATH = 'docs';
 
 /**
- * Relative path to the local Book language manual initialized by `ptbk agent init`.
+ * Relative path to the local Book language manual initialized by `ptbk agent-folder init`.
  *
- * @private internal utility of `ptbk agent`
+ * @private internal utility of `ptbk agent-folder`
  */
 export const AGENT_BOOK_LANGUAGE_MANUAL_FILE_PATH = join(AGENT_DOCS_DIRECTORY_PATH, 'book-language-manual.md');
 
 /**
  * Returns the default local agent book content.
  *
- * @private internal utility of `ptbk agent`
+ * @private internal utility of `ptbk agent-folder`
  */
 export function getDefaultAgentBookContent(): string {
     return spaceTrim(`
@@ -71,7 +71,7 @@ export function getDefaultAgentBookContent(): string {
 /**
  * Returns the default local Book language manual content.
  *
- * @private internal utility of `ptbk agent`
+ * @private internal utility of `ptbk agent-folder`
  */
 export function getDefaultBookLanguageManualContent(): string {
     return spaceTrim(`
@@ -99,9 +99,9 @@ export function getDefaultBookLanguageManualContent(): string {
         CLOSED
         \`\`\`
 
-        For \`ptbk agent\`, the CLI compiles \`agent.book\` into the coding-runner instructions, and the runner edits only the queued message file by appending an answer that starts with \`MESSAGE @Agent\`.
+        For \`ptbk agent-folder\`, the CLI compiles \`agent.book\` into the coding-runner instructions, and the runner edits only the queued message file by appending an answer that starts with \`MESSAGE @Agent\`.
     `);
 }
 
-// Note: [🟡] Code for CLI command [agent](src/cli/cli-commands/agent/agentProjectPaths.ts) should never be published outside of `@promptbook/cli`
+// Note: [🟡] Code for CLI command [agent](src/cli/cli-commands/agent-folder/agentProjectPaths.ts) should never be published outside of `@promptbook/cli`
 // Note: [💞] Ignore a discrepancy between file name and exported helper names

@@ -12,12 +12,12 @@ npm install ptbk
 ptbk agents-server start --agent github-copilot --model gpt-5.4 --thinking-level xhigh
 ```
 
--   The `ptbk agents-server start` should internally run _(or do the same logic of leveraging coding agents for answering messages)_ `ptbk agent`
+-   The `ptbk agents-server start` should internally run _(or do the same logic of leveraging coding agents for answering messages)_ `ptbk agent-folder`
 -   The logic is as follows: 0. _(In future)_ The following steps can be wrapped in single `Dockerfile` to self-contain everything and make it easy to run the server
     1. `ptbk agents-server start` is the main command that runs everything, nothing else is needed to start the server, the terminal UI, the web server with API server (already implemented in `apps/agents-server`) and the coding agents with syncing which internally powers the server
     2. It internally runs the Agents server Next.js app which is already implemented in `apps/agents-server`
     3. It internally runs the coding agents which are responsible for answering the messages and running
--   The `ptbk agents-server start` should be running with terminal UI by default (look how the UI in terminal looks for `ptbk agent run` and `ptbk coder run`), but it can also run without terminal UI if `--no-ui`
+-   The `ptbk agents-server start` should be running with terminal UI by default (look how the UI in terminal looks for `ptbk agent-folder run` and `ptbk coder run`), but it can also run without terminal UI if `--no-ui`
 -   Through this terminal UI, you can see what is happening inside the server, but you cannot interact with this server. You can interact with the web app.
 -   But show there important statistics, for example:
     -   the port on which the server is running
@@ -26,8 +26,8 @@ ptbk agents-server start --agent github-copilot --model gpt-5.4 --thinking-level
 -   The `ptbk agents-server start` will be running in read-write file system, the coding runners (like Codex, Github Copilot or Claude code) will be already installed and confugured before the server starts, so the server can use them to run the agents and answer the messages
 -   Agent folders
     -   Each agent will have its own folder in the temporary directory, and the coding agents will be running inside these folders answering messages
-    -   But unlike `ptbk agent` do not go through the Github repositories and manage it internally, for `ptbk agent` flags `--auto-pull`, `--auto-push` and `--auto-clone` are relevant but for `ptbk agents-server start` these flags are irrelevant, the server should manage everything internally
-    -   The source of the truth of the agents is the database, repositories are just a way to run the agents via the coding agents, but the server should manage the repositories internally, the `ptbk agent` does this through external service but the `ptbk agents-server` should do this internally without need to use any external service or git, just watch the message files by the coding agent and reflect them to the Agents server UI / API.
+    -   But unlike `ptbk agent-folder` do not go through the Github repositories and manage it internally, for `ptbk agent-folder` flags `--auto-pull`, `--auto-push` and `--auto-clone` are relevant but for `ptbk agents-server start` these flags are irrelevant, the server should manage everything internally
+    -   The source of the truth of the agents is the database, repositories are just a way to run the agents via the coding agents, but the server should manage the repositories internally, the `ptbk agent-folder` does this through external service but the `ptbk agents-server` should do this internally without need to use any external service or git, just watch the message files by the coding agent and reflect them to the Agents server UI / API.
 -   The ongoing tasks should be shown both in the Terminal UI and also in the Task Manager in the Web UI.
 -   There are three configuration places:
 
@@ -43,8 +43,8 @@ ptbk agents-server start --agent github-copilot --model gpt-5.4 --thinking-level
 -   Do a proper analysis of the current functionality before you start implementing, this is an extremely big, structural, and important change, so do a huge due diligence before you start writing any code.
     -   Look at `ptbk start-agents-server` - This is the original idea of running the app via a single command, but it's not working very well.
     -   Look at the [Agents Server](apps/agents-server)
-    -   Look how the `ptbk agent` and `ptbk coder` commands are implemented
--   Keep in mind the DRY _(don't repeat yourself)_ principle, especially between `ptbk agent`, `ptbk coder` and `ptbk agents-server`
+    -   Look how the `ptbk agent-folder` and `ptbk coder` commands are implemented
+-   Keep in mind the DRY _(don't repeat yourself)_ principle, especially between `ptbk agent-folder`, `ptbk coder` and `ptbk agents-server`
 -   Keep the `ptbk start-agents-server|start` as is, it deprecated later
 -   The `ptbk agents-server start` should be the main command to start the Agents Server, when wrapped inside a docker container, it should be the only command to start the server, so it should be working perfectly and without any issues, and it should be able to run the server in a stable way for a long time without crashing or having memory leaks or other issues
 -   Responding to the answers can run in parallel for multiple agents.

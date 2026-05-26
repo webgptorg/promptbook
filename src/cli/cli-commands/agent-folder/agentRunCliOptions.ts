@@ -2,9 +2,9 @@ import type { NormalizedPromptRunnerCliOptions, PromptRunnerCliOptions } from '.
 import { normalizePromptRunnerCliOptions } from '../common/promptRunnerCliOptions';
 
 /**
- * Options passed from `ptbk agent` CLI commands to the message runner.
+ * Options passed from `ptbk agent-folder` CLI commands to the message runner.
  *
- * @private internal utility of `ptbk agent`
+ * @private internal utility of `ptbk agent-folder`
  */
 export type AgentRunCliOptions = PromptRunnerCliOptions & {
     readonly autoClone?: boolean;
@@ -12,9 +12,9 @@ export type AgentRunCliOptions = PromptRunnerCliOptions & {
 };
 
 /**
- * Normalized options passed from `ptbk agent` CLI commands to the message runner.
+ * Normalized options passed from `ptbk agent-folder` CLI commands to the message runner.
  *
- * @private internal utility of `ptbk agent`
+ * @private internal utility of `ptbk agent-folder`
  */
 export type NormalizedAgentRunCliOptions = NormalizedPromptRunnerCliOptions & {
     readonly autoClone: boolean;
@@ -24,7 +24,7 @@ export type NormalizedAgentRunCliOptions = NormalizedPromptRunnerCliOptions & {
 /**
  * Converts Commander options into the `scripts/run-agent-messages` option shape.
  *
- * @private internal utility of `ptbk agent`
+ * @private internal utility of `ptbk agent-folder`
  */
 export function createAgentRunOptionsFromCliOptions(cliOptions: AgentRunCliOptions): NormalizedAgentRunCliOptions {
     const runnerOptions = normalizePromptRunnerCliOptions(cliOptions, {
@@ -41,7 +41,7 @@ export function createAgentRunOptionsFromCliOptions(cliOptions: AgentRunCliOptio
 /**
  * Normalizes one or more `--ignore` option values into a stable pattern list.
  *
- * @private internal utility of `ptbk agent`
+ * @private internal utility of `ptbk agent-folder`
  */
 function normalizeAgentIgnorePatterns(ignore: string | readonly string[] | undefined): readonly string[] {
     const patterns = Array.isArray(ignore) ? ignore : ignore ? [ignore] : [];
@@ -49,5 +49,5 @@ function normalizeAgentIgnorePatterns(ignore: string | readonly string[] | undef
     return patterns.map((pattern) => pattern.trim()).filter((pattern) => pattern.length > 0);
 }
 
-// Note: [🟡] Code for CLI command [agent](src/cli/cli-commands/agent/agentRunCliOptions.ts) should never be published outside of `@promptbook/cli`
+// Note: [🟡] Code for CLI command [agent](src/cli/cli-commands/agent-folder/agentRunCliOptions.ts) should never be published outside of `@promptbook/cli`
 // Note: [💞] Ignore a discrepancy between file name and exported helper names

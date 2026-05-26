@@ -104,7 +104,7 @@ export async function runMultipleAgentMessages(
     controls: RunMultipleAgentMessagesControls = {},
 ): Promise<void> {
     validateAgentRunOptions(options);
-    validateAgentWatchOptions('ptbk agent run-multiple', options);
+    validateAgentWatchOptions('ptbk agent-folder run-multiple', options);
 
     const rootPath = process.cwd();
     const shouldContinue = controls.shouldContinue || (() => just(true));
@@ -238,14 +238,14 @@ export async function runMultipleAgentMessages(
                 }
 
                 await handleAgentWatchError({
-                    commandDisplayName: 'ptbk agent run-multiple',
+                    commandDisplayName: 'ptbk agent-folder run-multiple',
                     logDirectoryPath: controls.watchErrorLogDirectoryPath || rootPath,
                     error: tickResult.reason,
                 });
             }
         } catch (error) {
             await handleAgentWatchError({
-                commandDisplayName: 'ptbk agent run-multiple',
+                commandDisplayName: 'ptbk agent-folder run-multiple',
                 logDirectoryPath: controls.watchErrorLogDirectoryPath || rootPath,
                 error,
             });

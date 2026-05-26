@@ -3,7 +3,7 @@ import { join } from 'path';
 import {
     AGENT_FINISHED_MESSAGES_DIRECTORY_PATH,
     AGENT_QUEUED_MESSAGES_DIRECTORY_PATH,
-} from '../../../src/cli/cli-commands/agent/agentProjectPaths';
+} from '../../../src/cli/cli-commands/agent-folder/agentProjectPaths';
 import type { AgentMessageFile } from '../messages/AgentMessageFile';
 import { listQueuedAgentMessages } from '../messages/listQueuedAgentMessages';
 

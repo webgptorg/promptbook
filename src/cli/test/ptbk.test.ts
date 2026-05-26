@@ -3,7 +3,7 @@ import { Command as Program } from 'commander';
 import { mkdtemp, rm } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
-import { $initializeAgentInitCommand } from '../cli-commands/agent/init';
+import { $initializeAgentInitCommand } from '../cli-commands/agent-folder/init';
 import { $initializeCoderInitCommand } from '../cli-commands/coder/init';
 import { $execCommand } from '../../utils/execCommand/$execCommand';
 import { PROMPTBOOK_ENGINE_VERSION } from '../../version';
@@ -75,10 +75,10 @@ describe('how promptbookCli works', () => {
             }),
         ).resolves.toContain('Initialize Promptbook coder configuration for current project'));
 
-    it('should expose `agent run-agent` command', () =>
+    it('should expose `agent-folder run-agent` command', () =>
         expect(
             $execCommand({
-                command: 'ts-node src/cli/test/ptbk.ts agent run-agent --help',
+                command: 'ts-node src/cli/test/ptbk.ts agent-folder run-agent --help',
                 crashOnError: false,
                 cwd: process.cwd(),
             }),
@@ -150,7 +150,7 @@ describe('how promptbookCli works', () => {
         }
     });
 
-    it('should print checked standalone bootstrap summary for `agent init`', async () => {
+    it('should print checked standalone bootstrap summary for `agent-folder init`', async () => {
         const temporaryDirectory = await createTemporaryDirectory();
         const consoleInfoMock = jest.spyOn(console, 'info').mockImplementation(() => undefined);
         const processExitMock = jest.spyOn(process, 'exit').mockImplementation((() => undefined) as never);

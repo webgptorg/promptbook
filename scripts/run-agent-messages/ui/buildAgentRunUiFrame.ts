@@ -52,7 +52,7 @@ const MAX_AGENT_URL_COLUMN_WIDTH = 30;
 const AGENT_URL_COLUMN_RATIO = 0.38;
 
 /**
- * Builds the complete boxed terminal frame for the rich `ptbk agent run` UI.
+ * Builds the complete boxed terminal frame for the rich `ptbk agent-folder run` UI.
  */
 export function buildAgentRunUiFrame(options: BuildCoderRunUiFrameOptions): string[] {
     const totalWidth = Math.max(MIN_FRAME_WIDTH, Math.min(options.terminalWidth, MAX_FRAME_WIDTH));
@@ -275,7 +275,7 @@ function countAgentStatuses(options: BuildCoderRunUiFrameOptions): {
 }
 
 /**
- * Parses the multi-agent session label used by `ptbk agent run-multiple`.
+ * Parses the multi-agent session label used by `ptbk agent-folder run-multiple`.
  */
 function parseMultiAgentSessionCount(localAgentName: string | undefined): number | undefined {
     const match = /^(\d+) Agents?(?:\s+·\s+\d+ ignored)?$/u.exec(localAgentName || '');

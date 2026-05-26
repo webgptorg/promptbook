@@ -34,7 +34,7 @@ export async function runAgentMessages(
     } = {},
 ): Promise<void> {
     validateAgentRunOptions(options);
-    validateAgentWatchOptions('ptbk agent run-agent', options);
+    validateAgentWatchOptions('ptbk agent-folder run-agent', options);
     const projectPath = process.cwd();
     let autoPullTimestamp = options.autoPull ? Date.now() : undefined;
     const shouldContinue = controls.shouldContinue || (() => just(true));
@@ -69,7 +69,7 @@ export async function runAgentMessages(
             });
         } catch (error) {
             await handleAgentWatchError({
-                commandDisplayName: 'ptbk agent run-agent',
+                commandDisplayName: 'ptbk agent-folder run-agent',
                 logDirectoryPath: projectPath,
                 error,
             });

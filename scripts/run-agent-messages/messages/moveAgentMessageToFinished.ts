@@ -1,6 +1,6 @@
 import { mkdir, rename, rm, stat } from 'fs/promises';
 import { join } from 'path';
-import { AGENT_FINISHED_MESSAGES_DIRECTORY_PATH } from '../../../src/cli/cli-commands/agent/agentProjectPaths';
+import { AGENT_FINISHED_MESSAGES_DIRECTORY_PATH } from '../../../src/cli/cli-commands/agent-folder/agentProjectPaths';
 import type { AgentMessageFile } from './AgentMessageFile';
 
 /**

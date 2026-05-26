@@ -5,21 +5,21 @@
 
 [x] ~$0.00 37 minutes by GitHub Copilot `gpt-5.4`
 
-[✨🚪] Script `ptbk agent run-multiple` should never end by its own
+[✨🚪] Script `ptbk agent-folder run-multiple` should never end by its own
 
 ```bash
-$ ptbk agent run-multiple --agent openai-codex --model gpt-5.5 --thinking-level xhigh --auto-pull --auto-push --auto-clone
+$ ptbk agent-folder run-multiple --agent openai-codex --model gpt-5.5 --thinking-level xhigh --auto-pull --auto-push --auto-clone
 ```
 
 <- This command should be running indefinetly when started
 
--   The `ptbk agent run-agent` and `ptbk agent run-multiple` should be running indefinetly when started, it should not stop after some time or at idle
+-   The `ptbk agent-folder run-agent` and `ptbk agent-folder run-multiple` should be running indefinetly when started, it should not stop after some time or at idle
 -   It should be prepared to run when the message arrives, it can wait long time until the message arrives, and it should not stop or exit in the meantime
--   On the other hand `ptbk agent run-once` should stop after the message is answered, it is designed to run only once and then stop, so it should not be running indefinetly like `ptbk agent run-agent` and `ptbk agent run-multiple`
+-   On the other hand `ptbk agent-folder run-once` should stop after the message is answered, it is designed to run only once and then stop, so it should not be running indefinetly like `ptbk agent-folder run-agent` and `ptbk agent-folder run-multiple`
 -   When some error happens, it should create a log file in cwd with full bash history and error details, and then continue working, it should not stop or exit
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality of `ptbk agent` and related functionality before you start implementing.
--   You are working with [`ptbk agent`](src/cli/cli-commands/agent/run.ts)
+-   Do a proper analysis of the current functionality of `ptbk agent-folder` and related functionality before you start implementing.
+-   You are working with [`ptbk agent-folder`](src/cli/cli-commands/agent-folder/run.ts)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
@@ -33,15 +33,15 @@ $ ptbk agent run-multiple --agent openai-codex --model gpt-5.5 --thinking-level 
 
 npm install ptbk
 
-ptbk agent init
+ptbk agent-folder init
 
-ptbk agent run --agent github-copilot --model gpt-5.4 --thinking-level xhigh
+ptbk agent-folder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh
 ```
 
 -   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality of `ptbk agent` and related functionality before you start implementing.
--   You are working with [`ptbk agent`](src/cli/cli-commands/agent/run.ts)
+-   Do a proper analysis of the current functionality of `ptbk agent-folder` and related functionality before you start implementing.
+-   You are working with [`ptbk agent-folder`](src/cli/cli-commands/agent-folder/run.ts)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
@@ -55,15 +55,15 @@ ptbk agent run --agent github-copilot --model gpt-5.4 --thinking-level xhigh
 
 npm install ptbk
 
-ptbk agent init
+ptbk agent-folder init
 
-ptbk agent run --agent github-copilot --model gpt-5.4 --thinking-level xhigh
+ptbk agent-folder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh
 ```
 
 -   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality of `ptbk agent` and related functionality before you start implementing.
--   You are working with [`ptbk agent`](src/cli/cli-commands/agent/run.ts)
+-   Do a proper analysis of the current functionality of `ptbk agent-folder` and related functionality before you start implementing.
+-   You are working with [`ptbk agent-folder`](src/cli/cli-commands/agent-folder/run.ts)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
@@ -77,14 +77,14 @@ ptbk agent run --agent github-copilot --model gpt-5.4 --thinking-level xhigh
 
 npm install ptbk
 
-ptbk agent init
+ptbk agent-folder init
 
-ptbk agent run --agent github-copilot --model gpt-5.4 --thinking-level xhigh
+ptbk agent-folder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh
 ```
 
 -   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality of `ptbk agent` and related functionality before you start implementing.
--   You are working with [`ptbk agent`](src/cli/cli-commands/agent/run.ts)
+-   Do a proper analysis of the current functionality of `ptbk agent-folder` and related functionality before you start implementing.
+-   You are working with [`ptbk agent-folder`](src/cli/cli-commands/agent-folder/run.ts)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 

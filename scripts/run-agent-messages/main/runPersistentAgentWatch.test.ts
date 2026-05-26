@@ -33,7 +33,7 @@ describe('runPersistentAgentWatch', () => {
 
         await runPersistentAgentWatch(
             {
-                commandDisplayName: 'ptbk agent run-agent',
+                commandDisplayName: 'ptbk agent-folder run-agent',
                 logDirectoryPath: temporaryLogDirectoryPath,
                 runWatch: async () => {
                     runCount++;
@@ -65,7 +65,7 @@ describe('runPersistentAgentWatch', () => {
 
         await runPersistentAgentWatch(
             {
-                commandDisplayName: 'ptbk agent run-multiple',
+                commandDisplayName: 'ptbk agent-folder run-multiple',
                 logDirectoryPath: temporaryLogDirectoryPath,
                 runWatch: async () => {
                     runCount++;
@@ -84,7 +84,7 @@ describe('runPersistentAgentWatch', () => {
 
         expect(errorLogFileName).toBeDefined();
         expect(await readFile(join(temporaryLogDirectoryPath, errorLogFileName!), 'utf-8')).toContain(
-            '`ptbk agent run-multiple` stopped unexpectedly without a shutdown request.',
+            '`ptbk agent-folder run-multiple` stopped unexpectedly without a shutdown request.',
         );
     });
 
@@ -94,7 +94,7 @@ describe('runPersistentAgentWatch', () => {
 
         await runPersistentAgentWatch(
             {
-                commandDisplayName: 'ptbk agent run-agent',
+                commandDisplayName: 'ptbk agent-folder run-agent',
                 logDirectoryPath: temporaryLogDirectoryPath,
                 runWatch: async () => {
                     runCount++;

@@ -1,7 +1,7 @@
 import type { Dirent } from 'fs';
 import { readdir } from 'fs/promises';
 import { join } from 'path';
-import { AGENT_QUEUED_MESSAGES_DIRECTORY_PATH } from '../../../src/cli/cli-commands/agent/agentProjectPaths';
+import { AGENT_QUEUED_MESSAGES_DIRECTORY_PATH } from '../../../src/cli/cli-commands/agent-folder/agentProjectPaths';
 import type { AgentMessageFile } from './AgentMessageFile';
 
 /**

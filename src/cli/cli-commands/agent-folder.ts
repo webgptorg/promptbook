@@ -4,15 +4,15 @@ import type {
 } from 'commander';
 import { spaceTrim } from 'spacetrim';
 import type { $side_effect } from '../../utils/organization/$side_effect';
-import { $initializeAgentInitCommand } from './agent/init';
-import { $initializeAgentRunMultipleCommand } from './agent/runMultiple';
-import { $initializeAgentRunCommand } from './agent/run';
-import { $initializeAgentTickCommand } from './agent/tick';
+import { $initializeAgentInitCommand } from './agent-folder/init';
+import { $initializeAgentRunMultipleCommand } from './agent-folder/runMultiple';
+import { $initializeAgentRunCommand } from './agent-folder/run';
+import { $initializeAgentTickCommand } from './agent-folder/tick';
 
 /**
- * Initializes `agent` command with subcommands for Promptbook CLI utilities.
+ * Initializes `agent-folder` command with subcommands for Promptbook CLI utilities.
  *
- * The agent command provides utilities for repository-backed message queues:
+ * The agent-folder command provides utilities for repository-backed message queues:
  * - init: Initialize local agent queue and instruction files
  * - run-once (alias: tick): Answer one queued message and exit
  * - run-agent (alias: run): Watch one queue and answer messages one by one
@@ -22,9 +22,9 @@ import { $initializeAgentTickCommand } from './agent/tick';
  *
  * @private internal function of `promptbookCli`
  */
-export function $initializeAgentCommand(program: Program): $side_effect {
-    const agentCommand = program.command('agent');
-    agentCommand.description(
+export function $initializeAgentFolderCommand(program: Program): $side_effect {
+    const agentFolderCommand = program.command('agent-folder');
+    agentFolderCommand.description(
         spaceTrim(`
             Non-coding agent utilities backed by repository message files
 
@@ -36,17 +36,17 @@ export function $initializeAgentCommand(program: Program): $side_effect {
         `),
     );
 
-    $initializeAgentInitCommand(agentCommand);
-    $initializeAgentTickCommand(agentCommand);
-    $initializeAgentRunCommand(agentCommand);
-    $initializeAgentRunMultipleCommand(agentCommand);
+    $initializeAgentInitCommand(agentFolderCommand);
+    $initializeAgentTickCommand(agentFolderCommand);
+    $initializeAgentRunCommand(agentFolderCommand);
+    $initializeAgentRunMultipleCommand(agentFolderCommand);
 
-    agentCommand.action(() => {
+    agentFolderCommand.action(() => {
         console.info(colors.yellow('Please specify a subcommand.'));
         console.info('');
-        agentCommand.help();
+        agentFolderCommand.help();
     });
 }
 
-// Note: [🟡] Code for CLI command [agent](src/cli/cli-commands/agent.ts) should never be published outside of `@promptbook/cli`
+// Note: [🟡] Code for CLI command [agent-folder](src/cli/cli-commands/agent-folder.ts) should never be published outside of `@promptbook/cli`
 // Note: [💞] Ignore a discrepancy between file name and entity name

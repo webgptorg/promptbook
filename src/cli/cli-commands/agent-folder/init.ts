@@ -15,7 +15,7 @@ import { initializeAgentProjectConfiguration } from './initializeAgentProjectCon
 import { printAgentInitializationSummary } from './printAgentInitializationSummary';
 
 /**
- * Initializes `agent init` command for Promptbook CLI utilities.
+ * Initializes `agent-folder init` command for Promptbook CLI utilities.
  *
  * Note: `$` is used to indicate that this function is not a pure function - it registers a command in the CLI.
  *
@@ -45,5 +45,5 @@ export function $initializeAgentInitCommand(program: Program): $side_effect {
     );
 }
 
-// Note: [🟡] Code for CLI command [init](src/cli/cli-commands/agent/init.ts) should never be published outside of `@promptbook/cli`
+// Note: [🟡] Code for CLI command [init](src/cli/cli-commands/agent-folder/init.ts) should never be published outside of `@promptbook/cli`
 // Note: [💞] Ignore a discrepancy between file name and entity name

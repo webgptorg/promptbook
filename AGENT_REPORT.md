@@ -146,4 +146,4 @@
 - `npm test` is currently blocked during `npm run test-types` by unrelated missing-module errors in the shared chat HTML export:
   - `src/book-components/Chat/save/html/htmlSaveFormatDefinition.ts(4,32): Cannot find module '../../utils/renderMarkdown' or its corresponding type declarations.`
   - `src/book-components/Chat/save/html/htmlSaveFormatDefinition.ts(6,45): Cannot find module '../_common/getPromptbookExportBranding' or its corresponding type declarations.`
-  - This surfaced while validating the `ptbk agent` prompt compilation change and does not map to the touched agent-runner files.
+  - This surfaced while validating the `ptbk agent-folder` prompt compilation change and does not map to the touched agent-runner files.

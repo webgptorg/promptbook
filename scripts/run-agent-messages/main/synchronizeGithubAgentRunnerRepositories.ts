@@ -1,7 +1,7 @@
 import { readdir } from 'fs/promises';
 import { join } from 'path';
 import type { string_book } from '../../../src/book-2.0/agent-source/string_book';
-import { AGENT_BOOK_FILE_PATH } from '../../../src/cli/cli-commands/agent/agentProjectPaths';
+import { AGENT_BOOK_FILE_PATH } from '../../../src/cli/cli-commands/agent-folder/agentProjectPaths';
 import { $execCommand } from '../../../src/utils/execCommand/$execCommand';
 import {
     AGENT_RUNNER_REPOSITORY_PREFIX,

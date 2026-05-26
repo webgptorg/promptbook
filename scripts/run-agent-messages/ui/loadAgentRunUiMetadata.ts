@@ -2,12 +2,12 @@ import { readFile } from 'fs/promises';
 import { join } from 'path';
 import { Book } from '../../../src/book-3.0/Book';
 import type { string_book } from '../../../src/book-2.0/agent-source/string_book';
-import { AGENT_BOOK_FILE_PATH } from '../../../src/cli/cli-commands/agent/agentProjectPaths';
+import { AGENT_BOOK_FILE_PATH } from '../../../src/cli/cli-commands/agent-folder/agentProjectPaths';
 import type { AgentMessageFile } from '../messages/AgentMessageFile';
 import { createAgentIgnoreIdentityFromAgentSource } from '../main/agentIgnorePatterns';
 
 /**
- * Local metadata rendered in the rich `ptbk agent run` dashboard.
+ * Local metadata rendered in the rich `ptbk agent-folder run` dashboard.
  */
 export type AgentRunUiMetadata = {
     readonly localAgentName: string;
@@ -15,7 +15,7 @@ export type AgentRunUiMetadata = {
 };
 
 /**
- * Local agent identity rendered in the rich `ptbk agent run` dashboard.
+ * Local agent identity rendered in the rich `ptbk agent-folder run` dashboard.
  */
 export type AgentRunUiIdentity = {
     readonly localAgentName: string;

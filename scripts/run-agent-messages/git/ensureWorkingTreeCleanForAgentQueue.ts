@@ -1,5 +1,5 @@
 import { spaceTrim } from 'spacetrim';
-import { AGENT_QUEUED_MESSAGES_DIRECTORY_PATH } from '../../../src/cli/cli-commands/agent/agentProjectPaths';
+import { AGENT_QUEUED_MESSAGES_DIRECTORY_PATH } from '../../../src/cli/cli-commands/agent-folder/agentProjectPaths';
 import { NotAllowed } from '../../../src/errors/NotAllowed';
 import { $execCommand } from '../../../src/utils/execCommand/$execCommand';
 
@@ -27,7 +27,7 @@ export async function ensureWorkingTreeCleanForAgentQueue(projectPath: string): 
         spaceTrim(`
             Git working tree has changes outside of \`${normalizeGitPath(AGENT_QUEUED_MESSAGES_DIRECTORY_PATH)}/\`.
 
-            Please commit or stash unrelated changes before running \`ptbk agent\`
+            Please commit or stash unrelated changes before running \`ptbk agent-folder\`
             OR run with \`--ignore-git-changes\`.
 
             Unrelated changed files:

@@ -1,13 +1,13 @@
 [x] ~$0.00 an hour by GitHub Copilot `gpt-5.4`
 
-[✨🛅] Enhance terminal UI of `ptbk agent run`
+[✨🛅] Enhance terminal UI of `ptbk agent-folder run`
 
-**Now the terminal UI of `ptbk agent run` looks very simmilar to `ptbk coder run`:**
+**Now the terminal UI of `ptbk agent-folder run` looks very simmilar to `ptbk coder run`:**
 
 ```bash
 
 me@DESKTOP-2QD9KQQ MINGW64 ~/work/ai/promptbook-agents/agent (main)
-$ npx ptbk agent run --agent github-copilot --model gpt-5.4
+$ npx ptbk agent-folder run --agent github-copilot --model gpt-5.4
 Watching messages/queued for queued agent messages.
 
 
@@ -49,16 +49,16 @@ me@DESKTOP-2QD9KQQ MINGW64 ~/work/ai/promptbook-agents/agent (main)
 $
 ```
 
--   But it should be specific to `ptbk agent run`:
+-   But it should be specific to `ptbk agent-folder run`:
     -   The ASCII art should be (first letters) of the agent name. And I dont mean the `--agent` from the CLI flag but agent name from `agent.book` first line
     -   The Progressbar does not make sence, show total of queued and finished messages
     -   Add a box with 1:1 of user message (and trim it if it has lot of characters / lines), keep the live output
 -   There are several things called agent:
     -   Agent as the entity defined by `agent.book` and used in the Agents Server
     -   Agent which executes the chat, which is the one from `--agent` CLI flag and can be for example `github-copilot` or `openai-codex`
-    -   The name of the command group `ptbk agent`
--   Keep in mind the DRY _(don't repeat yourself)_ principle, especially try to share code between `ptbk agent run` and `ptbk coder run`
--   Do a proper analysis of the current functionality of `ptbk agent` and related functionality before you start implementing.
--   You are working with [`ptbk agent`](src/cli/cli-commands/agent/run.ts)
+    -   The name of the command group `ptbk agent-folder`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle, especially try to share code between `ptbk agent-folder run` and `ptbk coder run`
+-   Do a proper analysis of the current functionality of `ptbk agent-folder` and related functionality before you start implementing.
+-   You are working with [`ptbk agent-folder`](src/cli/cli-commands/agent-folder/run.ts)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 

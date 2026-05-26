@@ -72,7 +72,7 @@ describe('agent runner commands', () => {
         jest.clearAllMocks();
     });
 
-    it('passes shared runner options to `agent run-agent`', async () => {
+    it('passes shared runner options to `agent-folder run-agent`', async () => {
         const program = new Command();
         $initializeAgentRunCommand(program);
 
@@ -106,14 +106,14 @@ describe('agent runner commands', () => {
         );
         expect(getRunPersistentAgentWatchMock()).toHaveBeenCalledWith(
             expect.objectContaining({
-                commandDisplayName: 'ptbk agent run-agent',
+                commandDisplayName: 'ptbk agent-folder run-agent',
                 logDirectoryPath: process.cwd(),
             }),
         );
         expect(processExitSpy).not.toHaveBeenCalled();
     });
 
-    it('keeps the legacy `agent run` alias working', async () => {
+    it('keeps the legacy `agent-folder run` alias working', async () => {
         const program = new Command();
         $initializeAgentRunCommand(program);
 
@@ -128,12 +128,12 @@ describe('agent runner commands', () => {
         );
         expect(getRunPersistentAgentWatchMock()).toHaveBeenCalledWith(
             expect.objectContaining({
-                commandDisplayName: 'ptbk agent run-agent',
+                commandDisplayName: 'ptbk agent-folder run-agent',
             }),
         );
     });
 
-    it('passes shared runner options to `agent run-once`', async () => {
+    it('passes shared runner options to `agent-folder run-once`', async () => {
         const program = new Command();
         $initializeAgentTickCommand(program);
 
@@ -150,7 +150,7 @@ describe('agent runner commands', () => {
         expect(processExitSpy).toHaveBeenCalledWith(0);
     });
 
-    it('passes git automation options to `agent run-once`', async () => {
+    it('passes git automation options to `agent-folder run-once`', async () => {
         const program = new Command();
         $initializeAgentTickCommand(program);
 
@@ -170,7 +170,7 @@ describe('agent runner commands', () => {
         expect(processExitSpy).toHaveBeenCalledWith(0);
     });
 
-    it('keeps the legacy `agent tick` alias working', async () => {
+    it('keeps the legacy `agent-folder tick` alias working', async () => {
         const program = new Command();
         $initializeAgentTickCommand(program);
 
@@ -185,7 +185,7 @@ describe('agent runner commands', () => {
         );
     });
 
-    it('passes shared runner options to `agent run-multiple`', async () => {
+    it('passes shared runner options to `agent-folder run-multiple`', async () => {
         const program = new Command();
         $initializeAgentRunMultipleCommand(program);
 
@@ -221,7 +221,7 @@ describe('agent runner commands', () => {
         );
         expect(getRunPersistentAgentWatchMock()).toHaveBeenCalledWith(
             expect.objectContaining({
-                commandDisplayName: 'ptbk agent run-multiple',
+                commandDisplayName: 'ptbk agent-folder run-multiple',
                 logDirectoryPath: process.cwd(),
             }),
         );

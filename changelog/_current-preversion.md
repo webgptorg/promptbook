@@ -1,3 +1,7 @@
+-   Renamed the CLI agent queue command family from `ptbk agent` to `ptbk agent-folder`:
+    -   Changed the command registration and implementation module paths from `src/cli/cli-commands/agent*` to `src/cli/cli-commands/agent-folder*`.
+    -   Updated source comments, tests, generated runner scripts, VS Code terminal presets, prompt docs, and changelog references to use `ptbk agent-folder`.
+
 -   Added `DEFAULT_THEME` Agents Server metadata so administrators can configure the default UI theme for browsers without a saved preference:
 
     -   The new metadata defaults to `SYSTEM`, is available in the admin metadata UI, and is seeded for existing servers via a database migration.
@@ -51,23 +55,23 @@
 
 -   Fixed Agents Server chat export to **PDF** so downloaded PDFs render chat text through the browser before embedding it into pages, preventing misplaced characters and broken Czech diacritics in saved conversations.
 
--   Restored `ptbk agent init` bootstrapping of the local `knowledge/` folder and `docs/book-language-manual.md` file so the standalone agent initialization summary matches the expected project structure.
+-   Restored `ptbk agent-folder init` bootstrapping of the local `knowledge/` folder and `docs/book-language-manual.md` file so the standalone agent initialization summary matches the expected project structure.
 
 -   Fixed `ptbk agents-server start` worker authentication so the CLI user-chat pump shares one explicit local token with the spawned Next app even after that app loads its own `.env` values, removing repeated `401 Unauthorized` foreground log noise.
 
--   Fixed `ptbk agent run-agent` and `ptbk agent run-multiple` so both watch commands now keep serving indefinitely instead of stopping when their top-level watch routine returns or throws:
+-   Fixed `ptbk agent-folder run-agent` and `ptbk agent-folder run-multiple` so both watch commands now keep serving indefinitely instead of stopping when their top-level watch routine returns or throws:
 
-    -   Added one shared persistent-watch supervisor that automatically restarts the watcher after unexpected stops and keeps `ptbk agent run-once` on its existing single-run exit behavior.
+    -   Added one shared persistent-watch supervisor that automatically restarts the watcher after unexpected stops and keeps `ptbk agent-folder run-once` on its existing single-run exit behavior.
     -   Persisted each unexpected watch stop as a cwd `ptbk-agent-error-*.log` file with the same detailed error and shell-history diagnostics used for recoverable queued-message failures before continuing to watch.
 
 -   Added `ptbk agents-server start` as the foreground Agents Server entrypoint:
 
     -   Starts the packaged Agents Server Next app and the local multi-agent message watcher from one command, with coding runner selection configurable by `--agent` / `PTBK_AGENT`, `--model` / `PTBK_MODEL`, and `--thinking-level` / `PTBK_THINKING_LEVEL`.
     -   Stores database-managed agent runner folders under `.promptbook/agents-server/agents`, persists foreground Next and runner logs under `./logs`, shows the existing agent terminal dashboard by default, and keeps plain streaming output with `--no-ui`.
-    -   Replaced the active GitHub-backed chat-job bridge with local message-folder synchronization so durable Agents Server tasks remain visible in the web Task Manager while coding agents answer messages through the reused `ptbk agent` queue flow.
+    -   Replaced the active GitHub-backed chat-job bridge with local message-folder synchronization so durable Agents Server tasks remain visible in the web Task Manager while coding agents answer messages through the reused `ptbk agent-folder` queue flow.
     -   Removed the Vercel cron startup contract from the active internal worker routes and bundled the Agents Server app into generated CLI packages for `npm install ptbk` usage.
 
--   Fixed `ptbk agent run-multiple --auto-clone` GitHub repository discovery so it follows GitHub pagination link headers and no longer misses later `agent-*` repositories while cloning watched agent runner repositories.
+-   Fixed `ptbk agent-folder run-multiple --auto-clone` GitHub repository discovery so it follows GitHub pagination link headers and no longer misses later `agent-*` repositories while cloning watched agent runner repositories.
 
 -   Fixed Agents Server chat export to **PDF** so it renders the same HTML export document, markdown styling, and numbered source footnotes as the working HTML download while preserving Promptbook branding and version metadata in the PDF file.
 
@@ -125,18 +129,18 @@
     -   Added simple Promptbook PDF metadata and inconspicuous page footers with engine and Book language version information from the existing Promptbook branding helper.
     -   Shared participant and timestamp export helpers between the HTML and PDF chat export formats and added PDF export regression coverage.
 
--   Added `ptbk agent run-multiple --ignore <pattern>` for skipping watched agents by case-insensitive wildcard matches:
+-   Added `ptbk agent-folder run-multiple --ignore <pattern>` for skipping watched agents by case-insensitive wildcard matches:
 
     -   Applies the ignore pattern to the agent name, normalized agent name, stable agent id, and runner repository name.
     -   Keeps ignored agents out of the `Agents` dashboard box, includes the ignored count in the `Session` box, and skips ignored GitHub repositories before auto-clone.
 
--   Improved `ptbk coder run` and `ptbk agent run-*` prompt script handling:
+-   Improved `ptbk coder run` and `ptbk agent-folder run-*` prompt script handling:
 
     -   Moved coder runner `.sh` files from beside prompt `.md` files into the shared `.promptbook` temporary root.
     -   Reused one temporary script-path builder across coder prompts and agent queued messages.
     -   Added clickable temporary shell-script paths to the rich terminal Session box for active prompt runs.
 
--   Changed `ptbk agent run-*` queued-message prompts to compile the local `agent.book` with `createAgentModelRequirements` and pass the generated system message to the coding runner:
+-   Changed `ptbk agent-folder run-*` queued-message prompts to compile the local `agent.book` with `createAgentModelRequirements` and pass the generated system message to the coding runner:
 
     -   Removed the prompt instruction that asked the coding runner to interpret raw `agent.book` / `docs/book-language-manual.md` files.
     -   Kept local `agent.book` generation intact while embedding the compiled behavior under the runner prompt's `This is how you should behave` section.
@@ -151,7 +155,7 @@
     -   Added a small Promptbook branding comment with engine and Book language version information to exported React chat files.
     -   Added regression coverage for both the generic serializer and the React chat export format.
 
--   Enhanced the rich terminal UI for `ptbk agent run-*` and let `run-multiple` answer one queued message per watched agent in parallel:
+-   Enhanced the rich terminal UI for `ptbk agent-folder run-*` and let `run-multiple` answer one queued message per watched agent in parallel:
 
     -   Changed the `Agents` panel to render a real table with colored `Idle` / `Answering` statuses plus separate `Agent name` and `URL` columns.
     -   Changed idle message previews to show the gray copy `Waiting for the message`, and render one dedicated user-message box per answering agent when multiple repositories are active.
@@ -163,13 +167,13 @@
     -   Updated generated links, QR/share URLs, management API links, homepage/header navigation, TEAM references, and admin gallery links to prefer permanent agent IDs while keeping legacy name routes resolvable.
     -   Adjusted Agents Server e2e helpers and focused resolver tests to assert ID-based URLs and API paths.
 
--   Fixed `ptbk agent` git automation for multi-agent runs:
+-   Fixed `ptbk agent-folder` git automation for multi-agent runs:
 
-    -   Added the `ptbk agent run-multiple --auto-clone` flag and gated GitHub `agent-*` repository cloning behind it.
+    -   Added the `ptbk agent-folder run-multiple --auto-clone` flag and gated GitHub `agent-*` repository cloning behind it.
     -   Added periodic `--auto-pull` refreshes for each watched direct-child agent repository, including repositories discovered while `run-multiple` is already running.
     -   Kept `--auto-push` flowing through each processed child repository so answered messages are pushed after their per-repository commit.
 
--   Enhanced the rich terminal UI for `ptbk agent run-multiple`:
+-   Enhanced the rich terminal UI for `ptbk agent-folder run-multiple`:
 
     -   Changed the multi-agent session label from repository wording to concise counts like `89 Agents`.
     -   Added an `Agents` panel that lists every watched agent with `Idle` / `Answering` status and the active queued message summary when one is being answered.
@@ -217,7 +221,7 @@
 
 -   Fixed the draft CLI installer so it now installs `ptbk` globally via `npm install --global ptbk`, removes legacy `/usr/bin/ptbk` wrappers that shadow the npm binary, and verifies the installed `ptbk` command instead of writing an `npx`-based shim.
 
--   Improved `ptbk agent run-multiple` repository discovery while watching:
+-   Improved `ptbk agent-folder run-multiple` repository discovery while watching:
 
     -   Switched GitHub discovery to include the authenticated `/user/repos` listing, so private `agent-*` repositories owned by `PROMPTBOOK_AGENT_RUNNER_GITHUB_OWNER` are cloned when `PROMPTBOOK_AGENT_RUNNER_GITHUB_TOKEN` can read them.
     -   Kept polling GitHub for new `agent-*` repositories while no local agent runner repositories exist yet, so a freshly created Agents Server repository now gets cloned and picked up without restarting the watcher.
@@ -225,19 +229,19 @@
 
 -   Fixed bare `ptbk` CLI startup so `npx ptbk` now prints the same top-level help as `npx ptbk --help` instead of falling through to the default `run` command and crashing on a missing pipeline argument.
 
--   Renamed and expanded the `ptbk agent` runner command family so one process can now serve multiple local agent repositories:
+-   Renamed and expanded the `ptbk agent-folder` runner command family so one process can now serve multiple local agent repositories:
 
-    -   Added canonical `ptbk agent run-once`, `ptbk agent run-agent`, and `ptbk agent run-multiple` subcommands while keeping the previous `tick` and `run` names as backward-compatible aliases.
-    -   Added `ptbk agent run-multiple` to watch all direct child agent repositories from the current directory inside one shared terminal session and route queued messages through the existing single-agent tick pipeline.
+    -   Added canonical `ptbk agent-folder run-once`, `ptbk agent-folder run-agent`, and `ptbk agent-folder run-multiple` subcommands while keeping the previous `tick` and `run` names as backward-compatible aliases.
+    -   Added `ptbk agent-folder run-multiple` to watch all direct child agent repositories from the current directory inside one shared terminal session and route queued messages through the existing single-agent tick pipeline.
     -   Added optional GitHub owner synchronization for multi-agent runs, cloning missing direct-child `agent-*` repositories via `PROMPTBOOK_AGENT_RUNNER_GITHUB_TOKEN` and `PROMPTBOOK_AGENT_RUNNER_GITHUB_OWNER`.
-    -   Updated generated external runner repository scripts to use the canonical `ptbk agent run-agent` command name.
+    -   Updated generated external runner repository scripts to use the canonical `ptbk agent-folder run-agent` command name.
 
 -   Changed external runner repository naming so Agents Server now provisions and relinks runner repos as `agent-<AGENT_ID>`:
 
     -   Removed the previous `promptbook-agent-<agent-name>-<id>` naming scheme, so created repositories no longer include the agent name or the `promptbook` prefix.
     -   Made external repository linking converge on the canonical `agent-<AGENT_ID>` full name even for agents that were previously linked under the older naming pattern.
 
--   Improved `ptbk agent run --auto-pull` so agent runners also keep their queue repository fresh while idle:
+-   Improved `ptbk agent-folder run --auto-pull` so agent runners also keep their queue repository fresh while idle:
 
     -   Extracted the shared agent-queue auto-pull path so the same clean-tree guard and Git pull flow is reused both before answering a queued message and during idle watch periods.
     -   Changed the watch loop to trigger periodic pulls when the queue stays empty, letting remote queued messages show up even after all local work has been finished.
@@ -249,15 +253,15 @@
     -   Switched coder/agent script commit-message files, agent-message runner scripts, Agents Server browser user-data, and `run_browser` artifacts to subfolders inside `.promptbook`.
     -   Updated coder bootstrap gitignore/docs and external runner repository templates to ignore `/.promptbook` as the single Promptbook temp root, and taught Jest to ignore `.promptbook` when discovering tests.
 
--   Hardened `ptbk agent run` / `ptbk agent tick` for the GitHub Copilot runner on Windows/MSYS:
+-   Hardened `ptbk agent-folder run` / `ptbk agent-folder tick` for the GitHub Copilot runner on Windows/MSYS:
 
-    -   Stopped inlining the full standalone Book Language blueprint into each queued-message prompt and switched `ptbk agent` to compile the local `agent.book` before prompting the coding runner, which keeps Copilot agent prompts smaller than before.
+    -   Stopped inlining the full standalone Book Language blueprint into each queued-message prompt and switched `ptbk agent-folder` to compile the local `agent.book` before prompting the coding runner, which keeps Copilot agent prompts smaller than before.
     -   Added a dedicated GitHub Copilot Windows/MSYS diagnostic for `Argument list too long` launcher failures, so stale published bundles now point users to the real limitation and the updated fix path instead of surfacing the raw shell-wrapper error alone.
 
--   Reworked external agent chat thread files so Agents Server and `ptbk agent run` now operate on shared `.book` thread documents without duplicating messages:
+-   Reworked external agent chat thread files so Agents Server and `ptbk agent-folder run` now operate on shared `.book` thread documents without duplicating messages:
 
     -   Finished `src/book-3.0/Book.ts` so Promptbook can parse and stringify threaded `MESSAGE @User` / `MESSAGE @Agent` books and reuse them from both the CLI runner and the external chat runner integration.
-    -   Changed `ptbk agent run` to consume `.book` files instead of markdown queue files, keep replies in the same thread file, and replace the previous finished thread snapshot on the next answered turn.
+    -   Changed `ptbk agent-folder run` to consume `.book` files instead of markdown queue files, keep replies in the same thread file, and replace the previous finished thread snapshot on the next answered turn.
     -   Changed external runner metadata from per-message UUID files to stable per-chat thread files, so each queued/finished repo file now contains the whole thread up to the newest answer instead of splitting every turn into separate files.
     -   Fixed duplicate/triplicate external message files by claiming queued jobs before enqueue and by preventing chat-detail synchronization from enqueueing still-local queued jobs on its own.
     -   Changed queued thread filenames to `YYYY-MM-DD-<CHAT_THREAD_ID>.book`, using the original `UserChat.createdAt` date so every follow-up turn in the same chat keeps the same stable dated filename.
@@ -3507,19 +3511,19 @@
     -   Reused the same option registries across the metadata page and existing server-creation flows to keep enum values centralized and DRY.
     -   Added server-side validation for predefined metadata options, so invalid enum values are rejected even when `/api/metadata` is called directly.
 
--   Fixed `ptbk agent run` / `ptbk agent tick` with the GitHub Copilot runner on Windows/MSYS for large queued-message prompts:
+-   Fixed `ptbk agent-folder run` / `ptbk agent-folder tick` with the GitHub Copilot runner on Windows/MSYS for large queued-message prompts:
 
     -   Stopped passing the full generated agent prompt as one `copilot -p "..."` shell argument, which could exceed the shell/Node argument-length limit and fail with `Argument list too long`.
     -   Switched the GitHub Copilot runner to feed prompts through standard input instead, keeping `--model`, `--reasoning-effort`, and the existing non-interactive flags unchanged.
     -   Added regression coverage for the new stdin-based invocation shape so agent-mode prompts stay safe even when the Book Language blueprint makes them much larger than coder prompts.
 
--   Enhanced the `ptbk agent run` rich terminal UI so it now reflects queued-message workflows instead of mirroring `ptbk coder run`:
+-   Enhanced the `ptbk agent-folder run` rich terminal UI so it now reflects queued-message workflows instead of mirroring `ptbk coder run`:
 
     -   The top branding now uses compact initials derived from the local `agent.book` title, making the dashboard identify the actual agent definition rather than only the runner selected by `--agent`.
     -   The session summary now distinguishes the local agent from the execution runner and shows queue-specific totals (`finished` / `queued` / total) with a progress bar based on answered messages instead of `Task 1/1`.
     -   Added a dedicated `User message` box that shows the latest `MESSAGE @User` block 1:1 with line-preserving trimming, while keeping the live streaming output panel unchanged.
 
--   Enhanced the `ptbk agent run` terminal dashboard so long-running agent sessions stay inside one stable rich UI:
+-   Enhanced the `ptbk agent-folder run` terminal dashboard so long-running agent sessions stay inside one stable rich UI:
 
     -   Kept a single persistent boxed UI alive across queued-message runs, moving idle watching and idle auto-pull activity into explicit in-frame `WAITING` / loading states instead of printing plain lines that broke the layout mid-session.
     -   Changed the header visual to render the local agent name in a smaller compact banner instead of large initials, while keeping the rest of the terminal frame layout intact.

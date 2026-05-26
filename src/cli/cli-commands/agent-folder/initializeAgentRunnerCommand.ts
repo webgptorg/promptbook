@@ -15,9 +15,9 @@ import type { AgentRunCliOptions } from './agentRunCliOptions';
 import { createAgentRunOptionsFromCliOptions } from './agentRunCliOptions';
 
 /**
- * Shared command-registration options for `ptbk agent` runner subcommands.
+ * Shared command-registration options for `ptbk agent-folder` runner subcommands.
  *
- * @private internal utility of `ptbk agent`
+ * @private internal utility of `ptbk agent-folder`
  */
 type InitializeAgentRunnerCommandOptions = {
     readonly commandName: string;
@@ -32,9 +32,9 @@ type InitializeAgentRunnerCommandOptions = {
 };
 
 /**
- * Registers one runner-backed `ptbk agent` subcommand with the shared option and error handling flow.
+ * Registers one runner-backed `ptbk agent-folder` subcommand with the shared option and error handling flow.
  *
- * @private internal utility of `ptbk agent`
+ * @private internal utility of `ptbk agent-folder`
  */
 export function $initializeAgentRunnerCommand(
     program: Program,
@@ -75,7 +75,7 @@ export function $initializeAgentRunnerCommand(
                     );
 
                     await runPersistentAgentWatch({
-                        commandDisplayName: `ptbk agent ${options.commandName}`,
+                        commandDisplayName: `ptbk agent-folder ${options.commandName}`,
                         logDirectoryPath: process.cwd(),
                         runWatch: async () => {
                             await execute(runOptions);
@@ -100,5 +100,5 @@ export function $initializeAgentRunnerCommand(
     );
 }
 
-// Note: [🟡] Code for CLI command [agent](src/cli/cli-commands/agent/initializeAgentRunnerCommand.ts) should never be published outside of `@promptbook/cli`
+// Note: [🟡] Code for CLI command [agent](src/cli/cli-commands/agent-folder/initializeAgentRunnerCommand.ts) should never be published outside of `@promptbook/cli`
 // Note: [💞] Ignore a discrepancy between file name and entity name

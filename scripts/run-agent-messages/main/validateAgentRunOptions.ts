@@ -3,7 +3,7 @@ import { NotAllowed } from '../../../src/errors/NotAllowed';
 import type { AgentRunOptions } from '../AgentRunOptions';
 
 /**
- * Validates cross-flag constraints for `ptbk agent` runs.
+ * Validates cross-flag constraints for `ptbk agent-folder` runs.
  */
 export function validateAgentRunOptions(options: AgentRunOptions): void {
     if (!options.agentName) {

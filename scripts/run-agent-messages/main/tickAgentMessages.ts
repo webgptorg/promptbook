@@ -4,7 +4,7 @@ import { readFile } from 'fs/promises';
 import { join } from 'path';
 import { createAgentModelRequirements } from '../../../src/book-2.0/agent-source/createAgentModelRequirements';
 import type { string_book } from '../../../src/book-2.0/agent-source/string_book';
-import { AGENT_BOOK_FILE_PATH } from '../../../src/cli/cli-commands/agent/agentProjectPaths';
+import { AGENT_BOOK_FILE_PATH } from '../../../src/cli/cli-commands/agent-folder/agentProjectPaths';
 import {
     captureChangedFilesSnapshot,
     normalizeLineEndingsInFilesChangedSinceSnapshot,
@@ -44,7 +44,7 @@ import { pullLatestChangesForAgentQueueIfEnabled } from './pullLatestChangesForA
 import { validateAgentRunOptions } from './validateAgentRunOptions';
 
 /**
- * Result of one `ptbk agent run-once` invocation.
+ * Result of one `ptbk agent-folder run-once` invocation.
  */
 export type AgentTickResult = {
     readonly isMessageProcessed: boolean;

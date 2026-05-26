@@ -1,11 +1,11 @@
 [x] ~$0.00 2 hours by GitHub Copilot `gpt-5.4`
 
-[✨🛠] Enhance terminal UI of `ptbk agent run`
+[✨🛠] Enhance terminal UI of `ptbk agent-folder run`
 
-**Now the terminal UI of `ptbk agent run` looks like:**
+**Now the terminal UI of `ptbk agent-folder run` looks like:**
 
 ```bash
-$ npx ptbk agent run --agent github-copilot --model gpt-5.4 --thinking-level high --auto-pull --auto-push
+$ npx ptbk agent-folder run --agent github-copilot --model gpt-5.4 --thinking-level high --auto-pull --auto-push
 
 ...
 
@@ -149,20 +149,20 @@ Pulling latest changes while idle...
 
 -   Variant `--no-ui` should work the same as before and keep working
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality of `ptbk agent` and related functionality before you start implementing.
--   You are working with [`ptbk agent`](src/cli/cli-commands/agent/run.ts)
+-   Do a proper analysis of the current functionality of `ptbk agent-folder` and related functionality before you start implementing.
+-   You are working with [`ptbk agent-folder`](src/cli/cli-commands/agent-folder/run.ts)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
 [x] ~$1.56 14 hours by OpenAI Codex `gpt-5.5`
 
-[✨🛠] Enhance terminal UI of `ptbk agent run`
+[✨🛠] Enhance terminal UI of `ptbk agent-folder run`
 
-**Now the terminal UI of `ptbk agent run` looks like:**
+**Now the terminal UI of `ptbk agent-folder run` looks like:**
 
 ```bash
-$ npx ptbk agent run-multiple --agent github-copilot --model gpt-5.4 --thinking-level high --auto-pull --auto-push
+$ npx ptbk agent-folder run-multiple --agent github-copilot --model gpt-5.4 --thinking-level high --auto-pull --auto-push
 
                                 ╭──────────────────────────────╮
                                 │ 89 served agent repositories │
@@ -214,8 +214,8 @@ $ npx ptbk agent run-multiple --agent github-copilot --model gpt-5.4 --thinking-
 
 -   Variant `--no-ui` should work the same as before and keep working
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality of `ptbk agent` and related functionality before you start implementing.
--   You are working with [`ptbk agent`](src/cli/cli-commands/agent/run.ts)
+-   Do a proper analysis of the current functionality of `ptbk agent-folder` and related functionality before you start implementing.
+-   You are working with [`ptbk agent-folder`](src/cli/cli-commands/agent-folder/run.ts)
 -   Do not cdo changes in `ptbk coder`
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
@@ -223,7 +223,7 @@ $ npx ptbk agent run-multiple --agent github-copilot --model gpt-5.4 --thinking-
 
 [x] ~$0.00 an hour by GitHub Copilot `gpt-5.4`
 
-[✨🛠] Enhance terminal UI of `ptbk agent run-*`
+[✨🛠] Enhance terminal UI of `ptbk agent-folder run-*`
 
 1. In "Agents" there should be table with theese columns:
     - Status (Idle, Answering)
@@ -231,12 +231,12 @@ $ npx ptbk agent run-multiple --agent github-copilot --model gpt-5.4 --thinking-
     - URL
 2. Statuses of the agents should be also distinguished by color
 3. User message when no message is being answered should show "Waiting for the message" and should be gray
-4. If answering multiple messages at the same time (this should be possible for multiple agents when running `ptbk agent run-multiple`), show new box for each message
+4. If answering multiple messages at the same time (this should be possible for multiple agents when running `ptbk agent-folder run-multiple`), show new box for each message
 
 -   Variant `--no-ui` should work the same as before and keep working
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality of `ptbk agent` and related functionality before you start implementing.
--   You are working with [`ptbk agent`](src/cli/cli-commands/agent/run.ts)
+-   Do a proper analysis of the current functionality of `ptbk agent-folder` and related functionality before you start implementing.
+-   You are working with [`ptbk agent-folder`](src/cli/cli-commands/agent-folder/run.ts)
 -   Do not do changes in `ptbk coder`
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 

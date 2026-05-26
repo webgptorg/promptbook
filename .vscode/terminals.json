@@ -405,7 +405,7 @@
             "focus": true
         },
         {
-            "name": "⚡🏭 Generate \"ptbk agent\" prompt boilerplates for Coding Agent",
+            "name": "⚡🏭 Generate \"ptbk agent-folder\" prompt boilerplates for Coding Agent",
             "command": "npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --count 5 --template prompts/_templates/ptbk-agent.md",
             "execute": true,
             "onlySingle": true,

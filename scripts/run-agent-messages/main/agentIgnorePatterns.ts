@@ -9,7 +9,7 @@ import { normalizeAgentName } from '../../../src/book-2.0/agent-source/normalize
 export const AGENT_RUNNER_REPOSITORY_PREFIX = 'agent-';
 
 /**
- * Agent identity fields tested by `ptbk agent run-multiple --ignore`.
+ * Agent identity fields tested by `ptbk agent-folder run-multiple --ignore`.
  */
 export type AgentIgnoreIdentity = {
     readonly agentName?: string;
@@ -19,7 +19,7 @@ export type AgentIgnoreIdentity = {
 };
 
 /**
- * Case-insensitive wildcard matcher for `ptbk agent run-multiple --ignore`.
+ * Case-insensitive wildcard matcher for `ptbk agent-folder run-multiple --ignore`.
  */
 export type AgentIgnoreMatcher = {
     readonly isEnabled: boolean;

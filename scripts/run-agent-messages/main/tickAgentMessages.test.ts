@@ -89,7 +89,7 @@ async function createTemporaryProject(): Promise<string> {
 }
 
 /**
- * Writes the local agent source that `ptbk agent` compiles before prompting the coding runner.
+ * Writes the local agent source that `ptbk agent-folder` compiles before prompting the coding runner.
  */
 async function writeLocalAgentBook(
     projectPath: string,

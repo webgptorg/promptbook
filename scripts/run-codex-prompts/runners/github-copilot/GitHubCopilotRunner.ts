@@ -70,9 +70,9 @@ function normalizeGitHubCopilotRunnerError(error: unknown): Error {
                 \`\`\`
 
                 ### What to check
-                - Update to the newest \`ptbk\` package so \`ptbk agent run\` uses the compiled agent-system-message prompt shape.
+                - Update to the newest \`ptbk\` package so \`ptbk agent-folder run\` uses the compiled agent-system-message prompt shape.
                 - Keep the local agent instructions in \`agent.book\` reasonably compact.
-                - If needed, compare with the local source runner (\`ts-node src/cli/test/ptbk.ts agent run ...\`), which bypasses stale published bundles.
+                - If needed, compare with the local source runner (\`ts-node src/cli/test/ptbk.ts agent-folder run ...\`), which bypasses stale published bundles.
             `,
         ),
     );

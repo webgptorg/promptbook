@@ -1,6 +1,6 @@
 import { readdir, stat } from 'fs/promises';
 import { join } from 'path';
-import { AGENT_BOOK_FILE_PATH } from '../../../src/cli/cli-commands/agent/agentProjectPaths';
+import { AGENT_BOOK_FILE_PATH } from '../../../src/cli/cli-commands/agent-folder/agentProjectPaths';
 
 /**
  * One local direct-child repository that looks like a Promptbook agent runner project.

@@ -5,7 +5,7 @@ import type { $side_effect } from '../../../utils/organization/$side_effect';
 import { $initializeAgentRunnerCommand } from './initializeAgentRunnerCommand';
 
 /**
- * Initializes `agent run-multiple` command for Promptbook CLI utilities.
+ * Initializes `agent-folder run-multiple` command for Promptbook CLI utilities.
  *
  * Note: `$` is used to indicate that this function is not a pure function - it registers a command in the CLI.
  *
@@ -42,5 +42,5 @@ export function $initializeAgentRunMultipleCommand(program: Program): $side_effe
     });
 }
 
-// Note: [🟡] Code for CLI command [run-multiple](src/cli/cli-commands/agent/runMultiple.ts) should never be published outside of `@promptbook/cli`
+// Note: [🟡] Code for CLI command [run-multiple](src/cli/cli-commands/agent-folder/runMultiple.ts) should never be published outside of `@promptbook/cli`
 // Note: [💞] Ignore a discrepancy between file name and entity name

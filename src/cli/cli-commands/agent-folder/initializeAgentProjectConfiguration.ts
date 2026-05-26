@@ -16,7 +16,7 @@ import {
 /**
  * Result summary returned after local agent configuration initialization.
  *
- * @private internal utility of `ptbk agent init`
+ * @private internal utility of `ptbk agent-folder init`
  */
 export type AgentInitializationSummary = {
     readonly messagesDirectoryStatus: InitializationStatus;
@@ -31,7 +31,7 @@ export type AgentInitializationSummary = {
 /**
  * Creates local agent queue, knowledge, and instruction files in the current project.
  *
- * @private internal utility of `ptbk agent init`
+ * @private internal utility of `ptbk agent-folder init`
  */
 export async function initializeAgentProjectConfiguration(projectPath: string): Promise<AgentInitializationSummary> {
     const messagesDirectoryStatus = await ensureDirectory(projectPath, AGENT_MESSAGES_DIRECTORY_PATH);
@@ -61,4 +61,4 @@ export async function initializeAgentProjectConfiguration(projectPath: string): 
     };
 }
 
-// Note: [🟡] Code for CLI command [agent init](src/cli/cli-commands/agent/initializeAgentProjectConfiguration.ts) should never be published outside of `@promptbook/cli`
+// Note: [🟡] Code for CLI command [agent init](src/cli/cli-commands/agent-folder/initializeAgentProjectConfiguration.ts) should never be published outside of `@promptbook/cli`
