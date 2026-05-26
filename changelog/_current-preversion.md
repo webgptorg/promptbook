@@ -2,6 +2,10 @@
     -   Changed the command registration and implementation module paths from `src/cli/cli-commands/agent*` to `src/cli/cli-commands/agent-folder*`.
     -   Updated source comments, tests, generated runner scripts, VS Code terminal presets, prompt docs, and changelog references to use `ptbk agent-folder`.
 
+-   Fixed `/admin/task-manager` in `ptbk agents-server` SQLite mode so the admin dashboard no longer crashes on the PostgreSQL-only listing query:
+    -   Added a SQLite-safe task-manager listing path that reuses the shared Agents Server table adapters to load jobs, timeouts, users, and agents without requiring `POSTGRES_URL` / `DATABASE_URL`.
+    -   Kept the existing PostgreSQL raw-SQL path for Supabase deployments, preserving current task-manager filtering, sorting, counters, and pagination behavior there.
+
 -   Added `DEFAULT_THEME` Agents Server metadata so administrators can configure the default UI theme for browsers without a saved preference:
 
     -   The new metadata defaults to `SYSTEM`, is available in the admin metadata UI, and is seeded for existing servers via a database migration.

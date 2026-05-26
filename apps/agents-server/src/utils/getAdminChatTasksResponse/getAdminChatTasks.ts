@@ -1,8 +1,20 @@
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideClientSql } from '@/src/database/$provideClientSql';
+import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
+import { isAgentsServerSqliteMode } from '@/src/database/agentsServerDatabaseMode';
+import type { AgentsServerDatabase } from '@/src/database/schema';
 import type { AdminChatTaskCounters, AdminChatTaskRecord, AdminChatTaskView } from '../chatTasksAdmin';
-import type { ParsedAdminChatTaskQuery } from './parseAdminChatTaskQuery';
+import { provideUserChatJobTable } from '../userChat/provideUserChatJobTable';
 import type { UserChatJobStatus } from '../userChat/UserChatJobRecord';
+import { provideUserChatTimeoutTable } from '../userChatTimeout/userChatTimeoutStore/provideUserChatTimeoutTable';
+import type { ParsedAdminChatTaskQuery } from './parseAdminChatTaskQuery';
+
+/**
+ * Milliseconds in one hour.
+ *
+ * @private internal constant of `getAdminChatTasksResponse`
+ */
+const HOUR_IN_MILLISECONDS = 60 * 60 * 1000;
 
 /**
  * Raw SQL row returned by the paginated admin task query.
@@ -47,6 +59,71 @@ type AdminChatTaskCountersSqlRow = {
 };
 
 /**
+ * SQLite-backed job row used by the admin task-manager fallback.
+ *
+ * @private type of `getAdminChatTasksResponse`
+ */
+type AdminChatTaskJobRow = {
+    id: string;
+    createdAt: string;
+    queuedAt: string;
+    startedAt: string | null;
+    updatedAt: string;
+    completedAt: string | null;
+    cancelRequestedAt: string | null;
+    lastHeartbeatAt: string | null;
+    leaseExpiresAt: string | null;
+    attemptCount: number;
+    failureReason: string | null;
+    failureDetails?: string | null;
+    userId: number;
+    agentPermanentId: string;
+    chatId: string;
+    status: UserChatJobStatus;
+};
+
+/**
+ * SQLite-backed timeout row used by the admin task-manager fallback.
+ *
+ * @private type of `getAdminChatTasksResponse`
+ */
+type AdminChatTaskTimeoutRow = {
+    id: string;
+    createdAt: string;
+    queuedAt: string;
+    startedAt: string | null;
+    updatedAt: string;
+    completedAt: string | null;
+    cancelRequestedAt: string | null;
+    pausedAt: string | null;
+    leaseExpiresAt: string | null;
+    recurrenceIntervalMs: number | string | null;
+    attemptCount: number;
+    failureReason: string | null;
+    userId: number;
+    agentPermanentId: string;
+    chatId: string;
+    status: UserChatJobStatus;
+};
+
+/**
+ * Minimal user lookup row needed by the admin task-manager fallback.
+ *
+ * @private type of `getAdminChatTasksResponse`
+ */
+type AdminChatTaskUserLookupRow = Pick<AgentsServerDatabase['public']['Tables']['User']['Row'], 'id' | 'username'>;
+
+/**
+ * Minimal agent lookup row needed by the admin task-manager fallback.
+ *
+ * @private type of `getAdminChatTasksResponse`
+ */
+type AdminChatTaskAgentLookupRow = Pick<
+    AgentsServerDatabase['public']['Tables']['Agent']['Row'],
+    'permanentId' | 'agentName'
+>;
+
+/**
  * Loaded admin chat-task data before the final response envelope is assembled.
  *
  * @private type of `getAdminChatTasksResponse`
@@ -63,6 +140,52 @@ export type GetAdminChatTasksData = {
  * @private function of `getAdminChatTasksResponse`
  */
 export async function getAdminChatTasks(query: ParsedAdminChatTaskQuery): Promise<GetAdminChatTasksData> {
+    if (isAgentsServerSqliteMode()) {
+        return getAdminChatTasksViaSupabaseQuery(query);
+    }
+
+    return getAdminChatTasksViaClientSql(query);
+}
+
+/**
+ * Loads admin task-manager data through the shared Supabase-shaped adapters used by SQLite mode.
+ *
+ * @private function of `getAdminChatTasksResponse`
+ */
+async function getAdminChatTasksViaSupabaseQuery(query: ParsedAdminChatTaskQuery): Promise<GetAdminChatTasksData> {
+    const [jobRows, timeoutRows] = await Promise.all([loadAdminChatTaskJobRows(), loadAdminChatTaskTimeoutRows()]);
+    const allUserIds = [...new Set([...jobRows, ...timeoutRows].map((task) => task.userId))];
+    const allAgentPermanentIds = [
+        ...new Set([...jobRows, ...timeoutRows].map((task) => task.agentPermanentId).filter(Boolean)),
+    ];
+    const [usernamesById, agentNamesByPermanentId] = await Promise.all([
+        loadAdminChatTaskUsernames(allUserIds),
+        loadAdminChatTaskAgentNames(allAgentPermanentIds),
+    ]);
+    const allTasks = [
+        ...jobRows.map((row) => mapAdminChatTaskJobRow(row, usernamesById, agentNamesByPermanentId)),
+        ...timeoutRows.map((row) => mapAdminChatTaskTimeoutRow(row, usernamesById, agentNamesByPermanentId)),
+    ];
+    const nowTimestamp = Date.now();
+    const filteredTasks = allTasks
+        .filter((task) => matchesAdminChatTaskView(task, query, nowTimestamp))
+        .filter((task) => matchesAdminChatTaskSearch(task, query.search))
+        .sort((leftTask, rightTask) => compareAdminChatTasks(leftTask, rightTask, query.view));
+    const pageOffset = (query.page - 1) * query.pageSize;
+
+    return {
+        items: filteredTasks.slice(pageOffset, pageOffset + query.pageSize),
+        counters: createAdminChatTaskCounters(allTasks, nowTimestamp),
+        total: filteredTasks.length,
+    };
+}
+
+/**
+ * Loads admin task-manager data through the existing PostgreSQL raw SQL path.
+ *
+ * @private function of `getAdminChatTasksResponse`
+ */
+async function getAdminChatTasksViaClientSql(query: ParsedAdminChatTaskQuery): Promise<GetAdminChatTasksData> {
     const sql = await $provideClientSql();
     const userChatJobTable = quoteIdentifier(await $getTableName('UserChatJob'));
     const userChatTimeoutTable = quoteIdentifier(await resolvePrefixedTableName('UserChatTimeout'));
@@ -116,6 +239,414 @@ export async function getAdminChatTasks(query: ParsedAdminChatTaskQuery): Promis
         counters: mapAdminChatTaskCounters(counterRows[0]),
         total: resolveSqlCount(listRows[0]?.totalCount),
     };
+}
+
+/**
+ * Loads lightweight durable chat-job rows for SQLite mode.
+ *
+ * @private function of `getAdminChatTasksResponse`
+ */
+async function loadAdminChatTaskJobRows(): Promise<Array<AdminChatTaskJobRow>> {
+    const userChatJobTable = await provideUserChatJobTable();
+    const { data, error } = await userChatJobTable.select(
+        'id,createdAt,queuedAt,startedAt,updatedAt,completedAt,cancelRequestedAt,lastHeartbeatAt,leaseExpiresAt,attemptCount,failureReason,failureDetails,userId,agentPermanentId,chatId,status',
+    );
+
+    if (error) {
+        throw new Error(`Failed to list admin user chat jobs: ${error.message}`);
+    }
+
+    return (data || []) as unknown as Array<AdminChatTaskJobRow>;
+}
+
+/**
+ * Loads lightweight durable timeout rows for SQLite mode.
+ *
+ * @private function of `getAdminChatTasksResponse`
+ */
+async function loadAdminChatTaskTimeoutRows(): Promise<Array<AdminChatTaskTimeoutRow>> {
+    const userChatTimeoutTable = await provideUserChatTimeoutTable();
+    const { data, error } = await userChatTimeoutTable.select(
+        'id,createdAt,queuedAt,startedAt,updatedAt,completedAt,cancelRequestedAt,pausedAt,leaseExpiresAt,recurrenceIntervalMs,attemptCount,failureReason,userId,agentPermanentId,chatId,status',
+    );
+
+    if (error) {
+        throw new Error(`Failed to list admin user chat timeouts: ${error.message}`);
+    }
+
+    return (data || []) as unknown as Array<AdminChatTaskTimeoutRow>;
+}
+
+/**
+ * Loads usernames keyed by user id for admin task rendering and search.
+ *
+ * @private function of `getAdminChatTasksResponse`
+ */
+async function loadAdminChatTaskUsernames(userIds: ReadonlyArray<number>): Promise<Map<number, string>> {
+    if (userIds.length === 0) {
+        return new Map();
+    }
+
+    const supabase = $provideSupabaseForServer();
+    const userTable = await $getTableName('User');
+    const { data, error } = await supabase.from(userTable).select('id,username').in('id', [...new Set(userIds)]);
+
+    if (error) {
+        throw new Error(`Failed to load admin task-manager users: ${error.message}`);
+    }
+
+    return new Map(
+        ((data || []) as Array<AdminChatTaskUserLookupRow>).map((userRow) => [userRow.id, userRow.username] as const),
+    );
+}
+
+/**
+ * Loads agent names keyed by permanent id for admin task rendering and search.
+ *
+ * @private function of `getAdminChatTasksResponse`
+ */
+async function loadAdminChatTaskAgentNames(
+    agentPermanentIds: ReadonlyArray<string>,
+): Promise<Map<string, string | null>> {
+    if (agentPermanentIds.length === 0) {
+        return new Map();
+    }
+
+    const supabase = $provideSupabaseForServer();
+    const agentTable = await $getTableName('Agent');
+    const { data, error } = await supabase
+        .from(agentTable)
+        .select('permanentId,agentName')
+        .in('permanentId', [...new Set(agentPermanentIds)]);
+
+    if (error) {
+        throw new Error(`Failed to load admin task-manager agents: ${error.message}`);
+    }
+
+    return new Map(
+        ((data || []) as Array<AdminChatTaskAgentLookupRow>)
+            .filter((agentRow): agentRow is AdminChatTaskAgentLookupRow & { permanentId: string } => Boolean(agentRow.permanentId))
+            .map((agentRow) => [agentRow.permanentId, agentRow.agentName] as const),
+    );
+}
+
+/**
+ * Maps one SQLite-backed chat job into the public admin task row shape.
+ *
+ * @private function of `getAdminChatTasksResponse`
+ */
+function mapAdminChatTaskJobRow(
+    row: AdminChatTaskJobRow,
+    usernamesById: ReadonlyMap<number, string>,
+    agentNamesByPermanentId: ReadonlyMap<string, string | null>,
+): AdminChatTaskRecord {
+    return {
+        id: row.id,
+        kind: 'CHAT_COMPLETION',
+        status: row.status,
+        createdAt: row.createdAt,
+        queuedAt: row.queuedAt,
+        startedAt: row.startedAt,
+        updatedAt: row.updatedAt,
+        finishedAt: row.completedAt,
+        cancelRequestedAt: row.cancelRequestedAt,
+        pausedAt: null,
+        lastHeartbeatAt: row.lastHeartbeatAt,
+        leaseExpiresAt: row.leaseExpiresAt,
+        recurrenceIntervalMs: null,
+        priority: null,
+        attemptCount: row.attemptCount,
+        retryCount: Math.max(0, row.attemptCount - 1),
+        lastErrorSummary: row.failureReason,
+        lastErrorDetails: row.failureDetails ?? null,
+        userId: row.userId,
+        username: usernamesById.get(row.userId) ?? null,
+        agentPermanentId: row.agentPermanentId,
+        agentName: agentNamesByPermanentId.get(row.agentPermanentId) ?? null,
+        chatId: row.chatId,
+        workerId: null,
+        queueName: 'user-chat-jobs',
+    };
+}
+
+/**
+ * Maps one SQLite-backed timeout into the public admin task row shape.
+ *
+ * @private function of `getAdminChatTasksResponse`
+ */
+function mapAdminChatTaskTimeoutRow(
+    row: AdminChatTaskTimeoutRow,
+    usernamesById: ReadonlyMap<number, string>,
+    agentNamesByPermanentId: ReadonlyMap<string, string | null>,
+): AdminChatTaskRecord {
+    return {
+        id: row.id,
+        kind: 'CHAT_TIMEOUT',
+        status: row.status,
+        createdAt: row.createdAt,
+        queuedAt: row.queuedAt,
+        startedAt: row.startedAt,
+        updatedAt: row.updatedAt,
+        finishedAt: row.completedAt,
+        cancelRequestedAt: row.cancelRequestedAt,
+        pausedAt: row.pausedAt,
+        lastHeartbeatAt: null,
+        leaseExpiresAt: row.leaseExpiresAt,
+        recurrenceIntervalMs: resolveNullableSqlNumber(row.recurrenceIntervalMs),
+        priority: null,
+        attemptCount: row.attemptCount,
+        retryCount: Math.max(0, row.attemptCount - 1),
+        lastErrorSummary: row.failureReason,
+        lastErrorDetails: null,
+        userId: row.userId,
+        username: usernamesById.get(row.userId) ?? null,
+        agentPermanentId: row.agentPermanentId,
+        agentName: agentNamesByPermanentId.get(row.agentPermanentId) ?? null,
+        chatId: row.chatId,
+        workerId: null,
+        queueName: 'user-chat-timeouts',
+    };
+}
+
+/**
+ * Returns whether one task belongs in the requested admin task-manager view.
+ *
+ * @private function of `getAdminChatTasksResponse`
+ */
+function matchesAdminChatTaskView(
+    task: AdminChatTaskRecord,
+    query: ParsedAdminChatTaskQuery,
+    nowTimestamp: number,
+): boolean {
+    switch (query.view) {
+        case 'running':
+            return task.status === 'RUNNING';
+        case 'queued':
+            return task.status === 'QUEUED';
+        case 'failed':
+            return (
+                task.status === 'FAILED' &&
+                isIsoTimestampAtOrAfter(task.finishedAt, nowTimestamp - 24 * HOUR_IN_MILLISECONDS)
+            );
+        case 'all':
+            return isIsoTimestampAtOrAfter(task.updatedAt, nowTimestamp - query.timeWindowHours * HOUR_IN_MILLISECONDS);
+        case 'active':
+        default:
+            return task.status === 'QUEUED' || task.status === 'RUNNING';
+    }
+}
+
+/**
+ * Returns whether one task matches the free-text admin search input.
+ *
+ * @private function of `getAdminChatTasksResponse`
+ */
+function matchesAdminChatTaskSearch(task: AdminChatTaskRecord, search: string): boolean {
+    if (!search) {
+        return true;
+    }
+
+    if (
+        task.id === search ||
+        task.id.startsWith(search) ||
+        task.chatId === search ||
+        task.chatId.startsWith(search) ||
+        task.agentPermanentId === search ||
+        task.agentPermanentId.startsWith(search)
+    ) {
+        return true;
+    }
+
+    const normalizedSearch = search.toLowerCase();
+    if ((task.agentName || '').toLowerCase().includes(normalizedSearch)) {
+        return true;
+    }
+    if ((task.username || '').toLowerCase().includes(normalizedSearch)) {
+        return true;
+    }
+
+    return /^\d+$/.test(search) && task.userId === Number.parseInt(search, 10);
+}
+
+/**
+ * Calculates the summary counters rendered above the admin task table.
+ *
+ * @private function of `getAdminChatTasksResponse`
+ */
+function createAdminChatTaskCounters(
+    tasks: ReadonlyArray<AdminChatTaskRecord>,
+    nowTimestamp: number,
+): AdminChatTaskCounters {
+    const queuedTimestamps = tasks
+        .filter((task) => task.status === 'QUEUED')
+        .map((task) => parseIsoTimestamp(task.queuedAt))
+        .filter((timestamp): timestamp is number => timestamp !== null);
+    const oldestQueuedTimestamp =
+        queuedTimestamps.length > 0 ? Math.min(...queuedTimestamps) : null;
+
+    return {
+        runningCount: tasks.filter((task) => task.status === 'RUNNING').length,
+        queuedCount: tasks.filter((task) => task.status === 'QUEUED').length,
+        failedLast24hCount: tasks.filter(
+            (task) =>
+                task.status === 'FAILED' &&
+                isIsoTimestampAtOrAfter(task.finishedAt, nowTimestamp - 24 * HOUR_IN_MILLISECONDS),
+        ).length,
+        oldestQueuedAgeMs: oldestQueuedTimestamp === null ? null : Math.max(0, nowTimestamp - oldestQueuedTimestamp),
+    };
+}
+
+/**
+ * Compares two tasks using the same ordering semantics as the PostgreSQL dashboard query.
+ *
+ * @private function of `getAdminChatTasksResponse`
+ */
+function compareAdminChatTasks(
+    leftTask: AdminChatTaskRecord,
+    rightTask: AdminChatTaskRecord,
+    view: AdminChatTaskView,
+): number {
+    switch (view) {
+        case 'running':
+            return (
+                compareNullableIsoTimestampsDescending(leftTask.startedAt, rightTask.startedAt) ||
+                compareIsoTimestampsDescending(leftTask.createdAt, rightTask.createdAt) ||
+                compareStringsDescending(leftTask.id, rightTask.id)
+            );
+        case 'queued':
+            return (
+                compareIsoTimestampsDescending(leftTask.createdAt, rightTask.createdAt) ||
+                compareStringsDescending(leftTask.id, rightTask.id)
+            );
+        case 'failed':
+            return (
+                compareNullableIsoTimestampsDescending(leftTask.finishedAt, rightTask.finishedAt) ||
+                compareIsoTimestampsDescending(leftTask.updatedAt, rightTask.updatedAt) ||
+                compareStringsDescending(leftTask.id, rightTask.id)
+            );
+        case 'all':
+            return (
+                compareIsoTimestampsDescending(leftTask.updatedAt, rightTask.updatedAt) ||
+                compareIsoTimestampsDescending(leftTask.createdAt, rightTask.createdAt) ||
+                compareStringsDescending(leftTask.id, rightTask.id)
+            );
+        case 'active':
+        default:
+            return (
+                compareNumbersAscending(
+                    resolveAdminChatTaskActiveStatusRank(leftTask.status),
+                    resolveAdminChatTaskActiveStatusRank(rightTask.status),
+                ) ||
+                compareNullableIsoTimestampsDescending(
+                    leftTask.status === 'RUNNING' ? leftTask.startedAt : null,
+                    rightTask.status === 'RUNNING' ? rightTask.startedAt : null,
+                ) ||
+                compareNullableIsoTimestampsDescending(
+                    leftTask.status === 'QUEUED' ? leftTask.createdAt : null,
+                    rightTask.status === 'QUEUED' ? rightTask.createdAt : null,
+                ) ||
+                compareIsoTimestampsDescending(leftTask.updatedAt, rightTask.updatedAt) ||
+                compareStringsDescending(leftTask.id, rightTask.id)
+            );
+    }
+}
+
+/**
+ * Resolves the status sort bucket used by the `Active` dashboard view.
+ *
+ * @private function of `getAdminChatTasksResponse`
+ */
+function resolveAdminChatTaskActiveStatusRank(status: UserChatJobStatus): number {
+    switch (status) {
+        case 'RUNNING':
+            return 0;
+        case 'QUEUED':
+            return 1;
+        default:
+            return 2;
+    }
+}
+
+/**
+ * Returns whether one ISO timestamp is at or after the given cutoff.
+ *
+ * @private function of `getAdminChatTasksResponse`
+ */
+function isIsoTimestampAtOrAfter(timestampIso: string | null, cutoffTimestamp: number): boolean {
+    const timestamp = parseIsoTimestamp(timestampIso);
+    return timestamp !== null && timestamp >= cutoffTimestamp;
+}
+
+/**
+ * Parses one ISO timestamp into milliseconds since epoch.
+ *
+ * @private function of `getAdminChatTasksResponse`
+ */
+function parseIsoTimestamp(timestampIso: string | null): number | null {
+    if (!timestampIso) {
+        return null;
+    }
+
+    const timestamp = Date.parse(timestampIso);
+    return Number.isFinite(timestamp) ? timestamp : null;
+}
+
+/**
+ * Sorts timestamps descending while keeping `null` values last.
+ *
+ * @private function of `getAdminChatTasksResponse`
+ */
+function compareNullableIsoTimestampsDescending(leftTimestampIso: string | null, rightTimestampIso: string | null): number {
+    const leftTimestamp = parseIsoTimestamp(leftTimestampIso);
+    const rightTimestamp = parseIsoTimestamp(rightTimestampIso);
+
+    if (leftTimestamp === rightTimestamp) {
+        return 0;
+    }
+    if (leftTimestamp === null) {
+        return 1;
+    }
+    if (rightTimestamp === null) {
+        return -1;
+    }
+
+    return compareNumbersDescending(leftTimestamp, rightTimestamp);
+}
+
+/**
+ * Sorts required timestamps descending.
+ *
+ * @private function of `getAdminChatTasksResponse`
+ */
+function compareIsoTimestampsDescending(leftTimestampIso: string, rightTimestampIso: string): number {
+    return compareNullableIsoTimestampsDescending(leftTimestampIso, rightTimestampIso);
+}
+
+/**
+ * Sorts numbers ascending.
+ *
+ * @private function of `getAdminChatTasksResponse`
+ */
+function compareNumbersAscending(leftNumber: number, rightNumber: number): number {
+    return leftNumber - rightNumber;
+}
+
+/**
+ * Sorts numbers descending.
+ *
+ * @private function of `getAdminChatTasksResponse`
+ */
+function compareNumbersDescending(leftNumber: number, rightNumber: number): number {
+    return rightNumber - leftNumber;
+}
+
+/**
+ * Sorts strings descending.
+ *
+ * @private function of `getAdminChatTasksResponse`
+ */
+function compareStringsDescending(leftString: string, rightString: string): number {
+    return leftString === rightString ? 0 : leftString < rightString ? 1 : -1;
 }
 
 /**

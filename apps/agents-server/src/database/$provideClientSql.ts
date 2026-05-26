@@ -65,7 +65,7 @@ export async function $provideClientSql(): Promise<ClientSqlExecutor> {
     ): Promise<TRow> => {
         const textChunks: Array<string> = [];
         for (let index = 0; index < templateStrings.length; index++) {
-            textChunks.push(templateStrings[index]);
+            textChunks.push(templateStrings[index]!);
             if (index < templateValues.length) {
                 textChunks.push(`$${index + 1}`);
             }
