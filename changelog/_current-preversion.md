@@ -1,3 +1,10 @@
+-   Added security-audit PRDs in `prompts/` for concrete vulnerabilities found during repository review:
+    -   weak default session signing secret in Agents Server authentication;
+    -   SSRF in browser-reachable server-side URL proxy endpoints;
+    -   unauthenticated email-sending proxy behavior in `/api/send-email`;
+    -   regex-based markdown/HTML sanitization that can lead to XSS;
+    -   XSS on the Agents Server website-integration page.
+
 -   Changed the standalone VPS installer to use the Promptbook GitHub repository for `ptbk agents-server` instead of installing `ptbk` from the npm registry:
 
     -   `other/vps/install.sh` now keeps a managed checkout of `https://github.com/webgptorg/promptbook.git`, installs its dependencies with `npm ci --include=dev`, and writes a local `ptbk` launcher used by init, build, and pm2 startup.
