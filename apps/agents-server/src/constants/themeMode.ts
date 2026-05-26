@@ -18,7 +18,33 @@ export type ThemeMode = (typeof THEME_MODES)[keyof typeof THEME_MODES];
 export type ResolvedThemeMode = Exclude<ThemeMode, 'SYSTEM'>;
 
 /**
- * Default theme mode applied when no user preference has been saved yet.
+ * Metadata key controlling the default theme mode for new browser sessions.
+ */
+export const DEFAULT_THEME_METADATA_KEY = 'DEFAULT_THEME';
+
+/**
+ * Shared select options for default theme configuration.
+ */
+export const THEME_MODE_OPTIONS: ReadonlyArray<{
+    readonly value: ThemeMode;
+    readonly label: string;
+}> = [
+    {
+        value: THEME_MODES.SYSTEM,
+        label: 'System',
+    },
+    {
+        value: THEME_MODES.LIGHT,
+        label: 'Light',
+    },
+    {
+        value: THEME_MODES.DARK,
+        label: 'Dark',
+    },
+] as const;
+
+/**
+ * Built-in fallback theme mode applied when metadata/browser values are missing or invalid.
  */
 export const DEFAULT_THEME_MODE: ThemeMode = THEME_MODES.SYSTEM;
 

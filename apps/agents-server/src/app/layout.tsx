@@ -30,7 +30,11 @@ import {
     DEFAULT_AGENT_AVATAR_VISUAL_METADATA_KEY,
     resolveDefaultAgentAvatarVisualId,
 } from '../constants/defaultAgentAvatarVisual';
-import { THEME_MODE_COOKIE_NAME, resolveThemeMode } from '../constants/themeMode';
+import {
+    DEFAULT_THEME_METADATA_KEY,
+    THEME_MODE_COOKIE_NAME,
+    resolveThemeMode,
+} from '../constants/themeMode';
 import { parseChatFeedbackMode } from '../utils/chatFeedbackMode';
 import { getFederatedServers } from '../utils/getFederatedServers';
 import { isUserAdmin } from '../utils/isUserAdmin';
@@ -249,6 +253,7 @@ export default async function RootLayout({
         'IS_EXPERIMENTAL_PWA_APP_ENABLED',
         CHAT_VISUAL_MODE_METADATA_KEY,
         DEFAULT_AGENT_AVATAR_VISUAL_METADATA_KEY,
+        DEFAULT_THEME_METADATA_KEY,
         SERVER_LANGUAGE_METADATA_KEY,
         IS_SERVER_LANGUAGE_ENFORCED_METADATA_KEY,
         ...CONTROL_PANEL_OPTION_AVAILABILITY_METADATA_KEYS,
@@ -272,19 +277,20 @@ export default async function RootLayout({
         getCustomJavascriptWithIntegrations,
     );
     const cookieStorePromise = cookies();
-    const defaultThemeModePromise = Promise.all([currentUserPromise, cookieStorePromise]).then(
-        async ([currentUser, cookieStore]) => {
+    const defaultThemeModePromise = Promise.all([currentUserPromise, cookieStorePromise, layoutMetadataPromise]).then(
+        async ([currentUser, cookieStore, layoutMetadata]) => {
             const cookieThemeMode = cookieStore.get(THEME_MODE_COOKIE_NAME)?.value || null;
+            const metadataDefaultThemeMode = resolveThemeMode(layoutMetadata[DEFAULT_THEME_METADATA_KEY]);
             if (cookieThemeMode) {
                 return resolveThemeMode(cookieThemeMode);
             }
 
             if (!currentUser?.id) {
-                return resolveThemeMode(null);
+                return metadataDefaultThemeMode;
             }
 
             const storedThemeSettings = await getUserThemeModeSettingsForUser(currentUser.id);
-            return storedThemeSettings?.themeMode || resolveThemeMode(null);
+            return storedThemeSettings?.themeMode || metadataDefaultThemeMode;
         },
     );
     const federatedServersPromise = Promise.all([layoutMetadataPromise, currentUserPromise]).then(

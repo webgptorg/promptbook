@@ -13,6 +13,7 @@ import {
     DEFAULT_AGENT_AVATAR_VISUAL_METADATA_OPTIONS,
     DEFAULT_AGENT_AVATAR_VISUAL_METADATA_VALUE,
 } from '../constants/defaultAgentAvatarVisual';
+import { DEFAULT_THEME_METADATA_KEY, DEFAULT_THEME_MODE, THEME_MODE_OPTIONS } from '../constants/themeMode';
 import { DEFAULT_NAME_POOL, NAME_POOL_METADATA_KEY, NAME_POOL_OPTIONS } from '../constants/namePool';
 import { NEW_AGENT_WIZZARD_METADATA_KEY, NEW_AGENT_WIZZARD_OPTIONS } from '../constants/newAgentWizard';
 import {
@@ -335,6 +336,15 @@ export const metadataDefaults = [
         value: 'false',
         note: 'Default state for browser push notifications when a user has no saved preference. When false, users must opt in before agent replies can trigger notifications.',
         type: 'BOOLEAN',
+    },
+    {
+        key: DEFAULT_THEME_METADATA_KEY,
+        value: DEFAULT_THEME_MODE,
+        note: `Default theme mode for browsers without a saved preference. Allowed values: ${formatMetadataOptionValues(
+            THEME_MODE_OPTIONS,
+        )}.`,
+        type: 'TEXT_SINGLE_LINE',
+        options: THEME_MODE_OPTIONS,
     },
     {
         key: CHAT_VISUAL_MODE_METADATA_KEY,

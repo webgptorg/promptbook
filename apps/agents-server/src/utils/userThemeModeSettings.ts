@@ -1,5 +1,6 @@
+import { getMetadata } from '../database/getMetadata';
 import { getUserDataValue, upsertUserDataValue } from './userData';
-import { DEFAULT_THEME_MODE, resolveThemeMode, type ThemeMode } from '../constants/themeMode';
+import { DEFAULT_THEME_METADATA_KEY, resolveThemeMode, type ThemeMode } from '../constants/themeMode';
 
 /**
  * Stored theme preference payload persisted in `UserData`.
@@ -25,6 +26,13 @@ const USER_THEME_MODE_SETTINGS_VERSION = 1 as const;
  * `UserData.key` used for theme preferences.
  */
 const USER_THEME_MODE_SETTINGS_USER_DATA_KEY = 'settings:theme-mode';
+
+/**
+ * Resolves the server-level default theme mode from metadata.
+ */
+async function getDefaultThemeModeForServer(): Promise<ThemeMode> {
+    return resolveThemeMode(await getMetadata(DEFAULT_THEME_METADATA_KEY));
+}
 
 /**
  * Validates and normalizes one raw `UserData.value` theme payload.
@@ -68,7 +76,7 @@ export async function getUserThemeModeSettingsSnapshotForUser(userId: number): P
     const storedSettings = await getUserThemeModeSettingsForUser(userId);
 
     return {
-        themeMode: storedSettings?.themeMode || DEFAULT_THEME_MODE,
+        themeMode: storedSettings?.themeMode || (await getDefaultThemeModeForServer()),
     };
 }
 

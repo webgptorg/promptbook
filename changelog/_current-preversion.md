@@ -1,3 +1,8 @@
+-   Added `DEFAULT_THEME` Agents Server metadata so administrators can configure the default UI theme for browsers without a saved preference:
+
+    -   The new metadata defaults to `SYSTEM`, is available in the admin metadata UI, and is seeded for existing servers via a database migration.
+    -   Theme bootstrapping and the authenticated `/api/settings/theme` fallback now respect `DEFAULT_THEME` whenever no cookie or saved user setting exists.
+
 -   Added security-audit PRDs in `prompts/` for concrete vulnerabilities found during repository review:
     -   weak default session signing secret in Agents Server authentication;
     -   SSRF in browser-reachable server-side URL proxy endpoints;
