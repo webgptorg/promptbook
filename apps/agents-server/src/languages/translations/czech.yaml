@@ -120,6 +120,7 @@ header.logOut: Odhlásit se
 header.changePassword: Změnit heslo
 header.menuLabel: Nabídka
 header.myAccount: Můj účet
+header.superAdmin: Super administrace
 header.administration: Administrace
 header.monitoringAndUsage: Monitoring a využití
 header.integrationsAndKeys: Integrace a klíče
@@ -134,6 +135,9 @@ header.mockedChats: Ukázkové chaty
 header.viewAllUsers: Zobrazit všechny uživatele
 header.createNewUser: Vytvořit nového uživatele
 header.servers: Servery
+header.environmentVariables: Proměnné prostředí
+header.logs: Logy
+header.codeRunners: Code runnery
 header.models: Modely
 header.openApiDocumentation: Dokumentace OpenAPI
 header.apiTokens: API tokeny

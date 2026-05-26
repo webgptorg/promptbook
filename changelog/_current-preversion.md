@@ -1,3 +1,10 @@
+-   Added standalone VPS super-admin configuration screens for Agents Server:
+
+    -   The VPS installer can now continue without a custom domain, keeps the internal Agents Server on localhost, exposes raw-IP access through nginx on port 80, and skips SSL until domains are configured.
+    -   Raw-IP access now opens the super-admin server setup flow when no domains exist, redirects to HTTPS when one domain exists, and shows a domain chooser when multiple domains are configured.
+    -   Moved Servers to `System -> Super Admin`, added VPS `.env` environment variables, pm2 logs, and code-runner configuration screens, and kept secrets masked in the UI.
+    -   Reused the VPS installer script from admin actions so domain changes apply nginx/certbot/pm2 updates and code-runner changes can install/configure the selected runner from the same script path.
+
 -   Renamed the CLI agent queue command family from `ptbk agent` to `ptbk agent-folder`:
     -   Changed the command registration and implementation module paths from `src/cli/cli-commands/agent*` to `src/cli/cli-commands/agent-folder*`.
     -   Updated source comments, tests, generated runner scripts, VS Code terminal presets, prompt docs, and changelog references to use `ptbk agent-folder`.

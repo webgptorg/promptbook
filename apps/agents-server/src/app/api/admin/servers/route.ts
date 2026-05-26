@@ -1,12 +1,24 @@
 import { NextResponse } from 'next/server';
+import { isAgentsServerSqliteMode } from '../../../../database/agentsServerDatabaseMode';
 import { resolveCurrentServerRegistryContext } from '../../../../utils/currentServerRegistryContext';
+import { isUserAdmin } from '../../../../utils/isUserAdmin';
 import { isUserGlobalAdmin } from '../../../../utils/isUserGlobalAdmin';
+import {
+    createServerPublicUrl,
+    listEnvironmentRegisteredServers,
+    normalizeServerDomain,
+} from '../../../../utils/serverRegistry';
 import {
     assertGlobalAdminAccess,
     createManagedServer,
     resolveManagedServerErrorStatus,
     type CreateServerInput,
 } from '../../../../utils/serverManagement';
+import {
+    applyVpsRuntimeConfiguration,
+    listConfiguredVpsDomains,
+    updateConfiguredVpsDomains,
+} from '../../../../utils/vpsConfiguration';
 
 /**
  * Lists all registered servers together with the server resolved from the current domain.
@@ -15,12 +27,15 @@ import {
  */
 export async function GET() {
     try {
-        assertGlobalAdminAccess(await isUserGlobalAdmin());
+        if (!(await isUserAdmin())) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
 
         const context = await resolveCurrentServerRegistryContext();
         return NextResponse.json({
             servers: context.registeredServers,
             currentServerId: context.currentServer?.id ?? null,
+            canEdit: await isUserGlobalAdmin(),
         });
     } catch (error) {
         return NextResponse.json(
@@ -43,6 +58,26 @@ export async function POST(request: Request) {
         assertGlobalAdminAccess(await isUserGlobalAdmin());
 
         const body = (await request.json()) as CreateServerInput;
+        if (isAgentsServerSqliteMode()) {
+            const normalizedDomain = normalizeServerDomain(body.domain);
+            if (!normalizedDomain) {
+                return NextResponse.json({ error: 'A valid domain is required.' }, { status: 400 });
+            }
+
+            const existingDomains = await listConfiguredVpsDomains();
+            await updateConfiguredVpsDomains([...existingDomains, normalizedDomain]);
+            await applyVpsRuntimeConfiguration();
+            const createdServer = listEnvironmentRegisteredServers().find((server) => server.domain === normalizedDomain);
+
+            return NextResponse.json(
+                {
+                    server: createdServer ?? null,
+                    publicUrl: createServerPublicUrl(normalizedDomain).href,
+                },
+                { status: 201 },
+            );
+        }
+
         const result = await createManagedServer(body);
 
         if (!result.ok) {

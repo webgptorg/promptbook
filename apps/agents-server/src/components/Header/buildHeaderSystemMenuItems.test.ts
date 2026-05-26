@@ -37,6 +37,7 @@ describe('buildHeaderSystemMenuItems', () => {
         expect(items.map((item) => item.label)).toEqual([
             'translated:header.myAccount',
             'translated:header.utilities',
+            'translated:header.superAdmin',
             'translated:header.administration',
             'translated:header.monitoringAndUsage',
             'translated:header.integrationsAndKeys',
@@ -48,6 +49,9 @@ describe('buildHeaderSystemMenuItems', () => {
         expect(flatLabels).toEqual(
             expect.arrayContaining([
                 'translated:header.settings',
+                'translated:header.environmentVariables',
+                'translated:header.logs',
+                'translated:header.codeRunners',
                 'translated:header.toolLimits',
                 'translated:header.backups',
                 'translated:header.transcriptions',

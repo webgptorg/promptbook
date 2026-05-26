@@ -18,6 +18,11 @@ type ManagedServersReadResponse = {
     readonly currentServerId: number | null;
 
     /**
+     * Whether the current viewer can mutate server rows.
+     */
+    readonly canEdit: boolean;
+
+    /**
      * Optional failure message returned by the API.
      */
     readonly error?: string;

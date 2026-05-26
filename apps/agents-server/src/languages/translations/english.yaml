@@ -122,6 +122,7 @@ header.logOut: Log out
 header.changePassword: Change Password
 header.menuLabel: Menu
 header.myAccount: My Account
+header.superAdmin: Super Admin
 header.administration: Administration
 header.monitoringAndUsage: Monitoring & Usage
 header.integrationsAndKeys: Integrations & Keys
@@ -136,6 +137,9 @@ header.mockedChats: Mocked Chats
 header.viewAllUsers: View all users
 header.createNewUser: Create new user
 header.servers: Servers
+header.environmentVariables: Environment variables
+header.logs: Logs
+header.codeRunners: Code runners
 header.models: Models
 header.openApiDocumentation: OpenAPI Documentation
 header.apiTokens: API Tokens

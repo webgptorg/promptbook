@@ -41,6 +41,11 @@ const PRIMARY_BUTTON_CLASS_NAME =
  */
 type ServersRegistryTableProps = {
     /**
+     * Whether the viewer can edit server rows.
+     */
+    readonly canEdit: boolean;
+
+    /**
      * Identifier of the server resolved from the current request domain.
      */
     readonly currentServerId: number | null;
@@ -107,6 +112,7 @@ type ServersRegistryTableProps = {
  * @private function of <ServersClient/>
  */
 type ServersRegistryTableRowProps = {
+    readonly canEdit: boolean;
     readonly currentServerId: number | null;
     readonly draft: ServerDraft | undefined;
     readonly isDirty: boolean;
@@ -163,6 +169,7 @@ function ServerStatusBadge(props: { readonly label: string; readonly tone: 'blue
 function ServersRegistryTableRow(props: ServersRegistryTableRowProps) {
     const {
         currentServerId,
+        canEdit,
         draft,
         isDirty,
         isMigrating,
@@ -184,6 +191,7 @@ function ServersRegistryTableRow(props: ServersRegistryTableRowProps) {
                     value={draft?.name || ''}
                     onChange={(event) => onUpdateServerDraft(server.id, 'name', event.target.value)}
                     className={INPUT_CLASS_NAME}
+                    disabled={!canEdit}
                     aria-label={`Server name for ${server.name}`}
                 />
             </td>
@@ -194,6 +202,7 @@ function ServersRegistryTableRow(props: ServersRegistryTableRowProps) {
                         onUpdateServerDraft(server.id, 'environment', event.target.value as ManagedServerEnvironment)
                     }
                     className={INPUT_CLASS_NAME}
+                    disabled={!canEdit}
                     aria-label={`Environment for ${server.name}`}
                 >
                     {MANAGED_SERVER_ENVIRONMENT_OPTIONS.map((environment) => (
@@ -209,6 +218,7 @@ function ServersRegistryTableRow(props: ServersRegistryTableRowProps) {
                     value={draft?.domain || ''}
                     onChange={(event) => onUpdateServerDraft(server.id, 'domain', event.target.value)}
                     className={INPUT_CLASS_NAME}
+                    disabled={!canEdit}
                     aria-label={`Domain for ${server.name}`}
                 />
             </td>
@@ -218,6 +228,7 @@ function ServersRegistryTableRow(props: ServersRegistryTableRowProps) {
                     value={draft?.tablePrefix || ''}
                     onChange={(event) => onUpdateServerDraft(server.id, 'tablePrefix', event.target.value)}
                     className={`${INPUT_CLASS_NAME} font-mono`}
+                    disabled={!canEdit}
                     aria-label={`Table prefix for ${server.name}`}
                 />
             </td>
@@ -239,7 +250,7 @@ function ServersRegistryTableRow(props: ServersRegistryTableRowProps) {
                     <button
                         type="button"
                         onClick={() => void onSaveServer(server.id)}
-                        disabled={!isDirty || isSaving}
+                        disabled={!canEdit || !isDirty || isSaving}
                         className={`${PRIMARY_BUTTON_CLASS_NAME} px-2 py-1 text-xs`}
                     >
                         {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
@@ -248,7 +259,7 @@ function ServersRegistryTableRow(props: ServersRegistryTableRowProps) {
                     <button
                         type="button"
                         onClick={() => void onMigrateServer(server.id)}
-                        disabled={isMigrating}
+                        disabled={!canEdit || isMigrating}
                         className={`${SECONDARY_BUTTON_CLASS_NAME} px-2 py-1 text-xs`}
                     >
                         {isMigrating ? (
@@ -288,6 +299,7 @@ function ServersRegistryTableRow(props: ServersRegistryTableRowProps) {
 export function ServersRegistryTable(props: ServersRegistryTableProps) {
     const {
         currentServerId,
+        canEdit,
         isServerDraftDirty,
         loading,
         migratingServerId,
@@ -344,6 +356,7 @@ export function ServersRegistryTable(props: ServersRegistryTableProps) {
                                 <ServersRegistryTableRow
                                     key={server.id}
                                     currentServerId={currentServerId}
+                                    canEdit={canEdit}
                                     draft={serverDrafts[server.id]}
                                     isDirty={isServerDraftDirty(server)}
                                     isMigrating={migratingServerId === server.id}

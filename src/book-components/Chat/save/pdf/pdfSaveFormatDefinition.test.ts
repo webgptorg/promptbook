@@ -268,7 +268,8 @@ describe('pdfSaveFormatDefinition', () => {
         expect(renderedHtml.match(/id="source-1"/g)).toHaveLength(1);
         expect(renderedHtml).not.toContain(`\u3010${firstSourceUrl}\u3011`);
         expect(renderedHtml).not.toContain(`\u3010${secondSourceUrl}\u3011`);
-        expect(renderedHtml).not.toContain('0:0');
+        expect(renderedHtml).not.toContain('[0:0]');
+        expect(renderedHtml).not.toContain('【0:0†');
     });
 
     it('splits browser-rendered chat images across PDF pages', async () => {

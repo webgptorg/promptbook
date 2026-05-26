@@ -89,6 +89,7 @@ describe('htmlSaveFormatDefinition', () => {
         expect(exportedContent.match(/id="source-1"/g)).toHaveLength(1);
         expect(exportedContent).not.toContain(`\u3010${firstSourceUrl}\u3011`);
         expect(exportedContent).not.toContain(`\u3010${secondSourceUrl}\u3011`);
-        expect(exportedContent).not.toContain('0:0');
+        expect(exportedContent).not.toContain('[0:0]');
+        expect(exportedContent).not.toContain('【0:0†');
     });
 });

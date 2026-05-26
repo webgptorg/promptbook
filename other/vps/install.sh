@@ -602,7 +602,7 @@ resolve_default_public_url() {
     local ip_address=""
     ip_address="$(resolve_public_ip_address)"
 
-    printf 'http://%s:%s' "$ip_address" "$PORT"
+    printf 'http://%s' "$ip_address"
 }
 
 resolve_public_ip_address() {
@@ -738,15 +738,16 @@ configure_domains() {
         default_domains="$(grep -E '^SERVERS=' "$existing_env_file" | tail -n 1 | cut -d= -f2- || true)"
     fi
 
-    requested_domains="$(prompt_with_default "Custom domain(s), comma-separated" "$default_domains")"
+    requested_domains="$(prompt_with_default "Primary domain (optional, comma-separated for advanced use)" "$default_domains")"
     set_domains_from_csv "$requested_domains"
-
-    if [[ "${#DOMAINS[@]}" -eq 0 ]]; then
-        fail "At least one custom domain is required for the production VPS installer."
-    fi
 
     SERVERS="$(join_by_comma "${DOMAINS[@]}")"
     PUBLIC_IP_ADDRESS="$(resolve_public_ip_address)"
+
+    if [[ "${#DOMAINS[@]}" -eq 0 ]]; then
+        log "No custom domain configured. The server will be available on http://$PUBLIC_IP_ADDRESS and domains can be added later from the super admin UI."
+        return
+    fi
 
     log "Before SSL is issued, point these DNS records to this VPS:"
     for domain in "${DOMAINS[@]}"; do
@@ -763,16 +764,23 @@ configure_environment() {
     local sqlite_path="$INSTALL_DIR/.promptbook/agents-server.sqlite"
     local default_public_url=""
     local public_site_url=""
-    local first_domain="${DOMAINS[0]}"
+    local first_domain="${DOMAINS[0]:-}"
+    local table_prefix=""
 
-    default_public_url="${PTBK_PUBLIC_SITE_URL:-${NEXT_PUBLIC_SITE_URL:-https://${first_domain}}}"
+    if [[ -n "$first_domain" ]]; then
+        default_public_url="${PTBK_PUBLIC_SITE_URL:-${NEXT_PUBLIC_SITE_URL:-https://${first_domain}}}"
+        table_prefix="$(build_domain_table_prefix "$first_domain")"
+    else
+        default_public_url="${PTBK_PUBLIC_SITE_URL:-${NEXT_PUBLIC_SITE_URL:-$(resolve_default_public_url)}}"
+    fi
+
     public_site_url="$(prompt_with_default "Public Agents Server URL" "$default_public_url")"
 
     set_env_value PTBK_AGENTS_SERVER_DATABASE sqlite
     set_env_value PTBK_AGENTS_SERVER_SQLITE_PATH "$sqlite_path"
     set_env_value NEXT_PUBLIC_SITE_URL "$public_site_url"
     set_env_value SERVERS "$SERVERS"
-    set_env_value SUPABASE_TABLE_PREFIX "$(build_domain_table_prefix "$first_domain")"
+    set_env_value SUPABASE_TABLE_PREFIX "$table_prefix"
     set_env_value SUPABASE_AUTO_MIGRATE false
     set_env_value PTBK_AGENT "$PTBK_AGENT"
     set_env_value PTBK_MODEL "$PTBK_MODEL"
@@ -780,6 +788,14 @@ configure_environment() {
     set_env_value PORT "$PORT"
     set_env_value NODE_ENV production
     set_env_value PTBK_HOSTNAME 127.0.0.1
+    set_env_value PTBK_PUBLIC_IP_ADDRESS "$PUBLIC_IP_ADDRESS"
+    set_env_value PTBK_INSTALL_DIR "$INSTALL_DIR"
+    set_env_value PTBK_REPOSITORY_DIR "$PROMPTBOOK_REPOSITORY_DIR"
+    set_env_value PTBK_VPS_INSTALL_SCRIPT "$PROMPTBOOK_REPOSITORY_DIR/other/vps/install.sh"
+    set_env_value PTBK_AGENTS_SERVER_ENV_FILE "$ENV_FILE"
+    set_env_value PTBK_PM2_APP_NAME "$APP_NAME"
+    set_env_value PTBK_NGINX_SITE_NAME "$NGINX_SITE_NAME"
+    set_env_value LETS_ENCRYPT_EMAIL "$LETS_ENCRYPT_EMAIL"
     set_env_value OPENAI_API_KEY "$REQUESTED_OPENAI_API_KEY"
 
     if [[ -n "$REQUESTED_ADMIN_PASSWORD" ]]; then
@@ -814,6 +830,11 @@ configure_runner_authentication() {
 
     if ! command -v copilot >/dev/null 2>&1; then
         warn "GitHub Copilot CLI is not available, skipping interactive authentication."
+        return
+    fi
+
+    if ! is_interactive; then
+        warn "GitHub Copilot login requires an interactive VPS terminal. Run copilot as $RUN_USER and complete /login before restarting pm2."
         return
     fi
 
@@ -856,12 +877,49 @@ configure_nginx_reverse_proxy() {
 
     server_names="$(join_by_space "${DOMAINS[@]}")"
 
-    log "Configuring nginx reverse proxy for $server_names."
+    if [[ -n "$server_names" ]]; then
+        log "Configuring nginx reverse proxy for raw IP access and $server_names."
+    else
+        log "Configuring nginx reverse proxy for raw IP access."
+    fi
+
     "${SUDO[@]}" tee "$nginx_available_path" >/dev/null <<EOF
 map \$http_upgrade \$promptbook_connection_upgrade {
     default upgrade;
     '' close;
 }
+
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    server_name _;
+
+    server_tokens off;
+    client_max_body_size 100m;
+
+    location / {
+        proxy_pass http://127.0.0.1:${PORT};
+        proxy_http_version 1.1;
+        proxy_buffering off;
+        proxy_redirect off;
+
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Host \$host;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_set_header X-Promptbook-Server \$host;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection \$promptbook_connection_upgrade;
+
+        proxy_read_timeout 3600s;
+        proxy_send_timeout 3600s;
+    }
+}
+EOF
+
+    if [[ -n "$server_names" ]]; then
+        "${SUDO[@]}" tee -a "$nginx_available_path" >/dev/null <<EOF
 
 server {
     listen 80;
@@ -891,6 +949,7 @@ server {
     }
 }
 EOF
+    fi
 
     "${SUDO[@]}" ln -sfn "$nginx_available_path" "$nginx_enabled_path"
     "${SUDO[@]}" rm -f /etc/nginx/sites-enabled/default
@@ -924,6 +983,11 @@ warn_if_domain_dns_is_not_ready() {
 configure_ssl_certificates() {
     local certbot_arguments=(--nginx --non-interactive --agree-tos --redirect --keep-until-expiring --expand)
     local domain=""
+
+    if [[ "${#DOMAINS[@]}" -eq 0 ]]; then
+        log "Skipping Let's Encrypt SSL setup because no custom domains are configured."
+        return
+    fi
 
     warn_if_domain_dns_is_not_ready
 
@@ -987,13 +1051,99 @@ start_agents_server() {
     "
 }
 
+load_runtime_configuration_from_env_file() {
+    local env_value=""
+
+    ENV_FILE="$INSTALL_DIR/.env"
+    if [[ ! -r "$ENV_FILE" ]]; then
+        fail "Cannot apply VPS configuration because $ENV_FILE does not exist or is not readable."
+    fi
+
+    env_value="$(get_env_value PTBK_PM2_APP_NAME)"
+    [[ -n "$env_value" ]] && APP_NAME="$env_value"
+
+    env_value="$(get_env_value PTBK_REPOSITORY_DIR)"
+    [[ -n "$env_value" ]] && PROMPTBOOK_REPOSITORY_DIR="$env_value"
+
+    env_value="$(get_env_value PTBK_NGINX_SITE_NAME)"
+    [[ -n "$env_value" ]] && NGINX_SITE_NAME="$env_value"
+
+    env_value="$(get_env_value PORT)"
+    [[ -n "$env_value" ]] && PORT="$env_value"
+
+    env_value="$(get_env_value PTBK_AGENT)"
+    [[ -n "$env_value" ]] && PTBK_AGENT="$env_value"
+
+    env_value="$(get_env_value PTBK_MODEL)"
+    [[ -n "$env_value" ]] && PTBK_MODEL="$env_value"
+
+    env_value="$(get_env_value PTBK_THINKING_LEVEL)"
+    [[ -n "$env_value" ]] && PTBK_THINKING_LEVEL="$env_value"
+
+    env_value="$(get_env_value LETS_ENCRYPT_EMAIL)"
+    [[ -n "$env_value" ]] && LETS_ENCRYPT_EMAIL="$env_value"
+
+    SERVERS="$(get_env_value SERVERS)"
+    set_domains_from_csv "$SERVERS"
+
+    PUBLIC_IP_ADDRESS="$(get_env_value PTBK_PUBLIC_IP_ADDRESS)"
+    if [[ -z "$PUBLIC_IP_ADDRESS" ]]; then
+        PUBLIC_IP_ADDRESS="$(resolve_public_ip_address)"
+    fi
+}
+
+restart_agents_server_if_running() {
+    local app_name_shell=""
+
+    if ! command -v pm2 >/dev/null 2>&1; then
+        warn "pm2 is not available; skipping Agents Server restart."
+        return
+    fi
+
+    app_name_shell="$(shell_quote "$APP_NAME")"
+    run_as_service_user bash -lc "
+        set -e
+        if pm2 describe $app_name_shell >/dev/null 2>&1; then
+            pm2 restart $app_name_shell --update-env
+            pm2 save
+        else
+            echo 'pm2 process $APP_NAME was not found; skipping restart.'
+        fi
+    "
+}
+
+apply_vps_runtime_configuration() {
+    initialize_sudo
+    resolve_run_user
+    load_runtime_configuration_from_env_file
+    configure_nginx_reverse_proxy
+    configure_firewall
+    configure_ssl_certificates
+    restart_agents_server_if_running
+    print_summary
+}
+
+apply_code_runner_configuration() {
+    initialize_sudo
+    resolve_run_user
+    load_runtime_configuration_from_env_file
+    install_runner_dependencies
+    configure_runner_authentication
+    restart_agents_server_if_running
+    print_summary
+}
+
 print_summary() {
     local public_site_url=""
     public_site_url="$(grep -E '^NEXT_PUBLIC_SITE_URL=' "$ENV_FILE" | tail -n 1 | cut -d= -f2-)"
 
     log "Agents Server is configured."
     log "URL: $public_site_url"
-    log "Domains: $SERVERS"
+    if [[ -n "$SERVERS" ]]; then
+        log "Domains: $SERVERS"
+    else
+        log "Domains: none configured; use http://$PUBLIC_IP_ADDRESS and add domains from System -> Super Admin -> Servers."
+    fi
     log "Project directory: $INSTALL_DIR"
     log "Repository: $PROMPTBOOK_REPOSITORY_DIR"
     log "Database: $INSTALL_DIR/.promptbook/agents-server.sqlite"
@@ -1023,7 +1173,9 @@ main() {
     PTBK_THINKING_LEVEL="$(prompt_with_default "Runner thinking level" "$PTBK_THINKING_LEVEL")"
     PORT="$(prompt_with_default "Agents Server port" "$PORT")"
     configure_domains
-    LETS_ENCRYPT_EMAIL="$(prompt_with_default "Let's Encrypt email (optional)" "$LETS_ENCRYPT_EMAIL")"
+    if [[ "${#DOMAINS[@]}" -gt 0 ]]; then
+        LETS_ENCRYPT_EMAIL="$(prompt_with_default "Let's Encrypt email (optional)" "$LETS_ENCRYPT_EMAIL")"
+    fi
     prompt_api_keys_and_admin_password
 
     install_system_packages
@@ -1043,5 +1195,17 @@ main() {
     configure_ssl_certificates
     print_summary
 }
+
+if [[ "${1:-}" == "apply-domains" ]]; then
+    shift
+    apply_vps_runtime_configuration "$@"
+    exit 0
+fi
+
+if [[ "${1:-}" == "apply-runner" ]]; then
+    shift
+    apply_code_runner_configuration "$@"
+    exit 0
+fi
 
 main "$@"

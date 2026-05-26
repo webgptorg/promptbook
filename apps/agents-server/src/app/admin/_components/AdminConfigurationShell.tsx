@@ -6,7 +6,7 @@ import Link from 'next/link';
  *
  * @private admin configuration UI helper
  */
-type AdminConfigurationPage = 'metadata' | 'limits';
+type AdminConfigurationPage = 'environment' | 'metadata' | 'limits';
 
 /**
  * One shared navigation item rendered in the configuration shell.
@@ -15,15 +15,21 @@ type AdminConfigurationPage = 'metadata' | 'limits';
  */
 const ADMIN_CONFIGURATION_NAVIGATION_ITEMS: ReadonlyArray<{
     readonly id: AdminConfigurationPage;
-    readonly href: '/admin/metadata' | '/admin/limits';
+    readonly href: '/admin/environment' | '/admin/metadata' | '/admin/limits';
     readonly label: string;
     readonly description: string;
 }> = [
     {
+        id: 'environment',
+        href: '/admin/environment',
+        label: 'Environment variables',
+        description: 'VPS-wide .env values with secrets masked in the browser.',
+    },
+    {
         id: 'metadata',
         href: '/admin/metadata',
         label: 'Metadata',
-        description: 'Feature flags, text settings, and legacy compatibility keys.',
+        description: 'Domain-specific feature flags, text settings, and compatibility keys.',
     },
     {
         id: 'limits',
@@ -44,7 +50,7 @@ type AdminConfigurationShellProps = {
 };
 
 /**
- * Shared page shell used by the Metadata and Limits admin pages.
+ * Shared page shell used by the Environment variables, Metadata, and Limits admin pages.
  */
 export function AdminConfigurationShell({ activePage, children }: AdminConfigurationShellProps) {
     return (
@@ -53,11 +59,11 @@ export function AdminConfigurationShell({ activePage, children }: AdminConfigura
                 <div>
                     <h1 className="text-3xl font-light text-gray-900">Server configuration</h1>
                     <p className="mt-1 max-w-3xl text-sm text-gray-500">
-                        Manage raw metadata together with dedicated operational limits. Deprecated compatibility metadata
-                        stays visible, but active quota changes belong on the Limits page.
+                        Manage VPS-wide environment variables, domain-specific metadata, and dedicated operational
+                        limits from one configuration area.
                     </p>
                 </div>
-                <div className="grid gap-3 md:grid-cols-2">
+                <div className="grid gap-3 md:grid-cols-3">
                     {ADMIN_CONFIGURATION_NAVIGATION_ITEMS.map((item) => {
                         const isActive = item.id === activePage;
 

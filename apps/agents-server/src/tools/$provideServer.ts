@@ -55,6 +55,14 @@ const getCachedProvidedServer = cache(async (): Promise<ProvidedServer> => {
             });
 
             if (!resolvedSqliteServer) {
+                if (isIpAddressHost(requestHost)) {
+                    return {
+                        id: null,
+                        publicUrl: resolveFallbackPublicUrl(requestHost),
+                        tablePrefix: SUPABASE_TABLE_PREFIX,
+                    };
+                }
+
                 throw new Error(`Server with host "${requestHost}" is not registered in SERVERS`);
             }
 
@@ -155,4 +163,23 @@ function isLocalDevelopmentHost(host: string | null): boolean {
         normalizedHost === '[::1]' ||
         normalizedHost.startsWith('[::1]:')
     );
+}
+
+/**
+ * Checks whether the current request host is a raw IP address.
+ *
+ * @param host - Raw request host.
+ * @returns `true` when the host is IPv4 or IPv6.
+ */
+function isIpAddressHost(host: string | null): boolean {
+    if (!host) {
+        return false;
+    }
+
+    const hostname = host
+        .trim()
+        .replace(/^\[(.+)\](?::\d+)?$/u, '$1')
+        .replace(/:\d+$/u, '');
+
+    return /^\d{1,3}(?:\.\d{1,3}){3}$/u.test(hostname) || hostname.includes(':');
 }

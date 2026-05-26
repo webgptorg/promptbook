@@ -139,6 +139,11 @@ type DeleteCurrentServerConfirmationResult = {
  */
 type UseServersRegistryStateResult = {
     /**
+     * Whether the current viewer can mutate server rows.
+     */
+    readonly canEdit: boolean;
+
+    /**
      * Server resolved from the current request domain.
      */
     readonly currentServer: ManagedServerRow | null;
@@ -429,12 +434,13 @@ function useServersRegistryDraftState(servers: ReadonlyArray<ManagedServerRow>) 
  */
 function useServersRegistryReloadAction(options: {
     readonly replaceServerDrafts: (servers: ReadonlyArray<ManagedServerRow>) => void;
+    readonly setCanEdit: (canEdit: boolean) => void;
     readonly setCurrentServerId: (currentServerId: number | null) => void;
     readonly setError: (error: string | null) => void;
     readonly setLoading: (isLoading: boolean) => void;
     readonly setServers: (servers: ManagedServerRow[]) => void;
 }) {
-    const { replaceServerDrafts, setCurrentServerId, setError, setLoading, setServers } = options;
+    const { replaceServerDrafts, setCanEdit, setCurrentServerId, setError, setLoading, setServers } = options;
 
     return useCallback(async () => {
         setLoading(true);
@@ -444,13 +450,14 @@ function useServersRegistryReloadAction(options: {
             const payload = await ServersRegistryApi.fetchServers();
             setServers([...payload.servers]);
             setCurrentServerId(payload.currentServerId);
+            setCanEdit(payload.canEdit);
             replaceServerDrafts(payload.servers);
         } catch (loadError) {
             setError(resolveServersRegistryActionErrorMessage(loadError, 'Failed to load servers.'));
         } finally {
             setLoading(false);
         }
-    }, [replaceServerDrafts, setCurrentServerId, setError, setLoading, setServers]);
+    }, [replaceServerDrafts, setCanEdit, setCurrentServerId, setError, setLoading, setServers]);
 }
 
 /**
@@ -618,6 +625,7 @@ function useDeleteCurrentServerAction(options: {
  */
 export function useServersRegistryState(): UseServersRegistryStateResult {
     const [servers, setServers] = useState<ManagedServerRow[]>([]);
+    const [canEdit, setCanEdit] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [currentServerId, setCurrentServerId] = useState<number | null>(null);
@@ -635,6 +643,7 @@ export function useServersRegistryState(): UseServersRegistryStateResult {
 
     const reloadServers = useServersRegistryReloadAction({
         replaceServerDrafts,
+        setCanEdit,
         setCurrentServerId,
         setError,
         setLoading,
@@ -671,6 +680,7 @@ export function useServersRegistryState(): UseServersRegistryStateResult {
     });
 
     return {
+        canEdit,
         currentServer,
         currentServerId,
         deletingServerId,

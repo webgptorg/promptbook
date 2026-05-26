@@ -1,12 +1,12 @@
 import { ForbiddenPage } from '../../../components/ForbiddenPage/ForbiddenPage';
-import { isUserGlobalAdmin } from '../../../utils/isUserGlobalAdmin';
+import { isUserAdmin } from '../../../utils/isUserAdmin';
 import { ServersClient } from './ServersClient';
 
 /**
- * Global-admin page for managing same-instance registered servers.
+ * Admin page for viewing same-instance registered servers.
  */
 export default async function AdminServersPage() {
-    if (!(await isUserGlobalAdmin())) {
+    if (!(await isUserAdmin())) {
         return <ForbiddenPage />;
     }
 

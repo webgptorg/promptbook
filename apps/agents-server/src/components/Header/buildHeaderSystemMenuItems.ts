@@ -28,6 +28,7 @@ type HeaderTranslate = (key: ServerTranslationKey, variables?: Readonly<Record<s
 type SystemCategoryLabel =
     | 'My Account'
     | 'Utilities'
+    | 'Super Admin'
     | 'Administration'
     | 'Monitoring & Usage'
     | 'Integrations & Keys'
@@ -54,6 +55,7 @@ type BuildHeaderSystemMenuItemsOptions = {
 const SYSTEM_CATEGORY_ICON_MAP: Record<SystemCategoryLabel, LucideIcon> = {
     'My Account': UserRound,
     Utilities: Wrench,
+    'Super Admin': Settings2,
     Administration: Settings2,
     'Monitoring & Usage': BarChart3,
     'Integrations & Keys': KeyRound,
@@ -67,6 +69,7 @@ const SYSTEM_CATEGORY_ICON_MAP: Record<SystemCategoryLabel, LucideIcon> = {
 const SYSTEM_CATEGORY_TRANSLATION_KEY_MAP: Record<SystemCategoryLabel, ServerTranslationKey> = {
     'My Account': 'header.myAccount',
     Utilities: 'header.utilities',
+    'Super Admin': 'header.superAdmin',
     Administration: 'header.administration',
     'Monitoring & Usage': 'header.monitoringAndUsage',
     'Integrations & Keys': 'header.integrationsAndKeys',
@@ -187,16 +190,31 @@ export function buildHeaderSystemMenuItems({
         ];
     }
 
-    const administrationSystemItems: SubMenuItem[] = [
+    const superAdminSystemItems: SubMenuItem[] = [
+        {
+            label: translate('header.servers'),
+            href: '/admin/servers',
+            isBold: true,
+        },
+        {
+            label: translate('header.environmentVariables'),
+            href: '/admin/environment',
+        },
         ...(isGlobalAdmin
             ? [
                   {
-                      label: translate('header.servers'),
-                      href: '/admin/servers',
-                      isBold: true,
+                      label: translate('header.logs'),
+                      href: '/admin/logs',
+                  } as SubMenuItem,
+                  {
+                      label: translate('header.codeRunners'),
+                      href: '/admin/code-runners',
                   } as SubMenuItem,
               ]
             : []),
+    ];
+
+    const administrationSystemItems: SubMenuItem[] = [
         {
             label: translate('header.models'),
             href: '/admin/models',
@@ -311,6 +329,7 @@ export function buildHeaderSystemMenuItems({
     return [
         ...createSystemCategory('My Account', userAccountSystemItems, translate),
         ...createSystemCategory('Utilities', utilitiesSystemItems, translate),
+        ...createSystemCategory('Super Admin', superAdminSystemItems, translate),
         ...createSystemCategory('Administration', administrationSystemItems, translate),
         ...createSystemCategory('Monitoring & Usage', monitoringAndUsageSystemItems, translate),
         ...createSystemCategory('Integrations & Keys', integrationsAndKeysSystemItems, translate),

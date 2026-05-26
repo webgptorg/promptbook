@@ -1,4 +1,4 @@
-[ ] !!!!!
+[x] (2 attempts) ~$0.3032 an hour by OpenAI Codex `gpt-5.5`
 
 [✨🤬] Allow to configure the installed Agents server on VPS throught UI when logged in as `admin`
 
@@ -60,3 +60,4 @@ Have the DNS records propagated and should SSL setup continue now? [yes]: s21.pt
 
 ![alt text](prompts/screenshots/2026-05-0391-ptbk-agents-server-standalone-vps-script-configuration-throught-ui-and-servers.png)
 ![alt text](prompts/screenshots/2026-05-0391-ptbk-agents-server-standalone-vps-script-configuration-throught-ui-and-servers-1.png)
+

@@ -241,7 +241,11 @@ export function createServerPublicUrl(domain: string): URL {
     }
 
     const protocol =
-        normalizedDomain.startsWith('localhost') || normalizedDomain.startsWith('127.0.0.1') ? 'http' : 'https';
+        normalizedDomain.startsWith('localhost') ||
+        normalizedDomain.startsWith('127.0.0.1') ||
+        isIpAddressHost(normalizedDomain)
+            ? 'http'
+            : 'https';
     return new URL(`${protocol}://${normalizedDomain}`);
 }
 
@@ -433,6 +437,21 @@ export function normalizeServerDomain(rawDomain: string): string | null {
  */
 function hasHttpProtocol(value: string): boolean {
     return value.startsWith('http://') || value.startsWith('https://');
+}
+
+/**
+ * Checks whether a normalized host is a raw IPv4 or IPv6 address.
+ *
+ * @param host - Normalized host or host with port.
+ * @returns `true` for raw IP hosts.
+ */
+function isIpAddressHost(host: string): boolean {
+    const hostname = host
+        .trim()
+        .replace(/^\[(.+)\](?::\d+)?$/u, '$1')
+        .replace(/:\d+$/u, '');
+
+    return /^\d{1,3}(?:\.\d{1,3}){3}$/u.test(hostname) || hostname.includes(':');
 }
 
 /**
