@@ -25,6 +25,8 @@ RUN_USER=""
 RUN_GROUP=""
 RUN_HOME=""
 ENV_FILE=""
+REQUESTED_OPENAI_API_KEY=""
+REQUESTED_ADMIN_PASSWORD=""
 GENERATED_ADMIN_PASSWORD=""
 PUBLIC_IP_ADDRESS=""
 DOMAINS=()
@@ -76,6 +78,23 @@ prompt_yes_no() {
     answer="${answer:-$default_value}"
 
     [[ "$answer" =~ ^[Yy] ]]
+}
+
+prompt_secret_with_default() {
+    local label="$1"
+    local default_description="$2"
+    local default_value="$3"
+    local answer=""
+
+    if ! is_interactive; then
+        printf '%s' "$default_value"
+        return
+    fi
+
+    printf '%s [%s]: ' "$label" "$default_description" > /dev/tty
+    read -r -s answer < /dev/tty || answer=""
+    printf '\n' > /dev/tty
+    printf '%s' "${answer:-$default_value}"
 }
 
 join_by_comma() {
@@ -425,9 +444,72 @@ set_env_value() {
     rm -f "$temporary_file"
 }
 
+get_env_value() {
+    local key="$1"
+    local existing_env_file="${ENV_FILE:-$INSTALL_DIR/.env}"
+
+    if [[ ! -r "$existing_env_file" ]]; then
+        return
+    fi
+
+    awk -v key="$key" '
+        $0 ~ "^" key "=" {
+            value = substr($0, length(key) + 2)
+            isFound = 1
+        }
+        END {
+            if (isFound == 1) {
+                print value
+            }
+        }
+    ' "$existing_env_file"
+}
+
 has_non_empty_env_value() {
     local key="$1"
     [[ -f "$ENV_FILE" ]] && grep -Eq "^${key}=.+" "$ENV_FILE"
+}
+
+resolve_secret_default() {
+    local key="$1"
+    local existing_value=""
+
+    existing_value="$(get_env_value "$key")"
+
+    if [[ -n "$existing_value" ]]; then
+        printf '%s' "$existing_value"
+        return
+    fi
+
+    printf '%s' "${!key:-}"
+}
+
+prompt_api_keys_and_admin_password() {
+    local default_openai_api_key=""
+    local default_admin_password=""
+    local openai_api_key_default_description="empty"
+    local admin_password_default_description="auto-generate"
+
+    default_openai_api_key="$(resolve_secret_default OPENAI_API_KEY)"
+    default_admin_password="$(resolve_secret_default ADMIN_PASSWORD)"
+
+    if [[ -n "$default_openai_api_key" ]]; then
+        openai_api_key_default_description="keep existing"
+    fi
+
+    if [[ -n "$default_admin_password" ]]; then
+        admin_password_default_description="keep existing"
+    fi
+
+    log "Press Enter to leave the OpenAI API key empty or keep the current value."
+    REQUESTED_OPENAI_API_KEY="$(
+        prompt_secret_with_default "OpenAI API key (optional)" "$openai_api_key_default_description" "$default_openai_api_key"
+    )"
+
+    log "Press Enter to auto-generate the admin password or keep the current value."
+    REQUESTED_ADMIN_PASSWORD="$(
+        prompt_secret_with_default "Admin password" "$admin_password_default_description" "$default_admin_password"
+    )"
 }
 
 configure_domains() {
@@ -482,8 +564,11 @@ configure_environment() {
     set_env_value PORT "$PORT"
     set_env_value NODE_ENV production
     set_env_value PTBK_HOSTNAME 127.0.0.1
+    set_env_value OPENAI_API_KEY "$REQUESTED_OPENAI_API_KEY"
 
-    if ! has_non_empty_env_value ADMIN_PASSWORD; then
+    if [[ -n "$REQUESTED_ADMIN_PASSWORD" ]]; then
+        set_env_value ADMIN_PASSWORD "$REQUESTED_ADMIN_PASSWORD"
+    elif ! has_non_empty_env_value ADMIN_PASSWORD; then
         GENERATED_ADMIN_PASSWORD="$(openssl rand -hex 24)"
         set_env_value ADMIN_PASSWORD "$GENERATED_ADMIN_PASSWORD"
     fi
@@ -722,6 +807,7 @@ main() {
     PORT="$(prompt_with_default "Agents Server port" "$PORT")"
     configure_domains
     LETS_ENCRYPT_EMAIL="$(prompt_with_default "Let's Encrypt email (optional)" "$LETS_ENCRYPT_EMAIL")"
+    prompt_api_keys_and_admin_password
 
     install_system_packages
     install_nodejs

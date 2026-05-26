@@ -24,4 +24,18 @@ describe('other/vps/install.sh', () => {
         expect(installScript).toContain('--interpreter bash');
         expect(installScript).not.toContain('PTBK_PATH=\\$(command -v ptbk)');
     });
+
+    it('prompts for optional API key and admin password before installing packages', () => {
+        const mainFunction = installScript.slice(installScript.indexOf('\nmain() {'));
+
+        expect(installScript).toContain('prompt_secret_with_default "OpenAI API key (optional)"');
+        expect(installScript).toContain('prompt_secret_with_default "Admin password"');
+        expect(installScript).toContain('set_env_value OPENAI_API_KEY "$REQUESTED_OPENAI_API_KEY"');
+        expect(installScript).toContain('set_env_value ADMIN_PASSWORD "$REQUESTED_ADMIN_PASSWORD"');
+        expect(installScript).toContain('openai_api_key_default_description="empty"');
+        expect(installScript).toContain('admin_password_default_description="auto-generate"');
+        expect(mainFunction.indexOf('prompt_api_keys_and_admin_password')).toBeLessThan(
+            mainFunction.indexOf('install_system_packages'),
+        );
+    });
 });

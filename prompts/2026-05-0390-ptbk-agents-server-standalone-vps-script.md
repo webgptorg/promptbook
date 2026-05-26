@@ -306,7 +306,7 @@ Hit:4 http://mirrors.digitalocean.com/ubuntu noble-backports InRelease
 
 ---
 
-[ ] !!!
+[x] ~$0.8438 2 hours by OpenAI Codex `gpt-5.5`
 
 [✨🤬] Ask for api keys and admin password during the installation
 
@@ -319,3 +319,4 @@ curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/mai
 -   The installation script should also ask for the admin password during the installation process and save it in the `.env` file as `ADMIN_PASSWORD`
 -   Allow to just [enter] it to auto-generate a random password _(current behavior)_, or input custom password if user wants to
 -   You are working with [auto installation script](vps/install.sh)
+
