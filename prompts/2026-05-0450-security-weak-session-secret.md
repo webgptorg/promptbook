@@ -1,4 +1,4 @@
-[ ] !
+[!] ! - Ending a `coder` without a commit and dirty working dir
 
 [🔐] Fix weak default session signing secret in Agents Server authentication
 
