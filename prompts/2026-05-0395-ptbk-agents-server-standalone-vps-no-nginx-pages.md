@@ -6,7 +6,6 @@
 root@collboard-agents-server-x21:~# sudo curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/other/vps/install.sh | bash
 ```
 
--   _(@@@ wait until `2026-05-0391-ptbk-agents-server-standalone-vps-script-configuration-throught-ui-and-servers.md` is ready)_
 -   Pages like "Welcome to nginx!" or "403 Forbidden | Nginx" should not be shown when the server is called, create instead some simple custom fallback pages branded by Promptbook, which will be shown instead of the default Nginx pages
 -   Also hide headers like "Server: nginx" and instead replace them with "Server: Promptbook Agents Server" or something similar, so it is not obvious that the server is running on Nginx, and also to make it more branded by Promptbook
 -   Both for security and branding reasons, it is better to hide the fact that the server is running on Nginx, so do not show any default Nginx pages or headers, and instead show custom branded pages and headers for the Agents server
