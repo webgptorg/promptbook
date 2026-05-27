@@ -77,3 +77,40 @@ Have the DNS records propagated and should SSL setup continue now? [yes]: s21.pt
 
 ![alt text](prompts/screenshots/2026-05-0391-ptbk-agents-server-standalone-vps-script-configuration-throught-ui-and-servers-2.png)
 
+---
+
+[ ] !!!
+
+[✨🤬] The "Create new server" fails on "installHook.js:1 Failed to fetch RSC payload", fix it
+
+-   When no domain is added during the installation, the server is accessible on `http://<IP_ADDRESS>`
+-   This is needed to finish the configuration of the server, but this wizzard fails at step 3. when submitting the form: "installHook.js:1 Failed to fetch RSC payload for http://167.172.138.126/get-started. Falling back to browser navigation. TypeError: Failed to fetch"
+-   You are working with the [Agents Server](apps/agents-server)
+-   The server is initialized by [auto installation script](vps/install.sh)
+
+![alt text](prompts/screenshots/2026-05-0391-ptbk-agents-server-standalone-vps-script-configuration-throught-ui-and-servers-3.png)
+
+---
+
+[ ] !!!
+
+[✨🤬] Simplify the "Create new server" wizzard
+
+-   When no domain is added during the installation, the server is accessible on `http://<IP_ADDRESS>`
+-   This is needed to finish the configuration of the server, but this wizzard is too complicated
+-   Do theese changes:
+
+    1. Only thing shown in simple mode should be:
+
+        - Server name _(or multiple servers in advanced mode)_
+        - Domain _(or domains in advanced mode)_
+        - _(optional)_ Server icon
+        - The "dentifier / slug", "Derived table prefix" should be automatically generated from the server name
+
+    2. Environment is NOT relevant for each domain but for the entire server
+    3. "Required admin user" is already created during the auto installation script in CLI and cannot be chamged here, just show that it exists
+
+-   You are working with the [Agents Server](apps/agents-server)
+-   The server is initialized by [auto installation script](vps/install.sh)
+
+![alt text](prompts/screenshots/2026-05-0391-ptbk-agents-server-standalone-vps-script-configuration-throught-ui-and-servers-2.png)
