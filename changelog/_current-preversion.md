@@ -1,3 +1,9 @@
+-   Branded standalone VPS Nginx responses for Agents Server installs:
+
+    -   The VPS installer now replaces stock Nginx welcome files with a Promptbook fallback page and wires Nginx-generated 4xx/5xx errors to the same branded page.
+    -   Added a shared Nginx proxy snippet and branding config so raw-IP and domain server blocks reuse the same reverse-proxy settings.
+    -   Installed and configured the Nginx headers-more module so public responses use `Server: Promptbook Agents Server` instead of exposing the default Nginx server header.
+
 -   Added a super-admin raw database admin for Agents Server:
 
     -   Embedded Prisma Studio is available at `System -> Super Admin -> Database` for the environment-backed `admin` user only.

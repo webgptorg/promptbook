@@ -20,6 +20,13 @@ PTBK_NON_INTERACTIVE="${PTBK_NON_INTERACTIVE:-0}"
 SERVERS="${SERVERS:-}"
 LETS_ENCRYPT_EMAIL="${LETS_ENCRYPT_EMAIL:-${CERTBOT_EMAIL:-}}"
 NGINX_SITE_NAME="${PTBK_NGINX_SITE_NAME:-promptbook-agents-server}"
+NGINX_BRANDED_SERVER_HEADER="Promptbook Agents Server"
+NGINX_BRANDING_CONF_PATH="/etc/nginx/conf.d/promptbook-agents-server-branding.conf"
+NGINX_ERROR_SNIPPET_PATH="/etc/nginx/snippets/promptbook-agents-server-errors.conf"
+NGINX_PROXY_SNIPPET_PATH="/etc/nginx/snippets/promptbook-agents-server-proxy.conf"
+NGINX_FALLBACK_DIR="/var/www/promptbook-agents-server"
+NGINX_FALLBACK_HTML_PATH="$NGINX_FALLBACK_DIR/fallback.html"
+NGINX_FALLBACK_URI="/__promptbook_agents_server_error.html"
 PROMPTBOOK_SWAP_FILE="${PTBK_SWAP_FILE:-/swapfile-promptbook}"
 MINIMUM_REQUIRED_MEMORY_MIB=8192
 MINIMUM_REQUIRED_DISK_MIB=15360
@@ -475,6 +482,7 @@ install_system_packages() {
         g++ \
         openssl \
         nginx \
+        libnginx-mod-http-headers-more-filter \
         certbot \
         python3-certbot-nginx
 }
@@ -915,10 +923,222 @@ configure_firewall() {
     fi
 }
 
+ensure_nginx_headers_more_module_is_available() {
+    local headers_more_package="libnginx-mod-http-headers-more-filter"
+    local module_available_path=""
+    local module_enabled_path=""
+
+    if ! dpkg-query -W -f='${Status}' "$headers_more_package" 2>/dev/null | grep -q 'install ok installed'; then
+        log "Installing nginx headers-more module for branded server headers."
+        "${SUDO[@]}" env DEBIAN_FRONTEND=noninteractive apt-get update
+        "${SUDO[@]}" env DEBIAN_FRONTEND=noninteractive apt-get install -y "$headers_more_package"
+    fi
+
+    if [[ ! -d /usr/share/nginx/modules-available ]]; then
+        return
+    fi
+
+    module_available_path="$(
+        find /usr/share/nginx/modules-available -maxdepth 1 \
+            \( -name '*headers-more*' -o -name '*headers_more*' \) |
+            head -n 1
+    )"
+
+    if [[ -z "$module_available_path" ]]; then
+        return
+    fi
+
+    "${SUDO[@]}" install -d -m 755 /etc/nginx/modules-enabled
+    module_enabled_path="/etc/nginx/modules-enabled/50-$(basename "$module_available_path")"
+    if [[ ! -e "$module_enabled_path" ]]; then
+        "${SUDO[@]}" ln -s "$module_available_path" "$module_enabled_path"
+    fi
+}
+
+write_nginx_fallback_page() {
+    "${SUDO[@]}" install -d -m 755 "$NGINX_FALLBACK_DIR"
+    "${SUDO[@]}" tee "$NGINX_FALLBACK_HTML_PATH" >/dev/null <<'EOF'
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Promptbook Agents Server</title>
+    <style>
+        :root {
+            color-scheme: light dark;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: #f7f7f5;
+            color: #202124;
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            display: grid;
+            place-items: center;
+            background:
+                linear-gradient(135deg, rgba(26, 115, 232, 0.08), transparent 42%),
+                linear-gradient(315deg, rgba(52, 168, 83, 0.10), transparent 38%),
+                #f7f7f5;
+        }
+
+        main {
+            width: min(92vw, 520px);
+            padding: 40px;
+            border: 1px solid rgba(32, 33, 36, 0.14);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.86);
+            box-shadow: 0 24px 60px rgba(32, 33, 36, 0.10);
+        }
+
+        .brand {
+            margin: 0 0 18px;
+            color: #1a73e8;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin: 0 0 12px;
+            font-size: 40px;
+            line-height: 1;
+            letter-spacing: 0;
+        }
+
+        p {
+            margin: 0;
+            color: #4f565f;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                background: #111318;
+                color: #f4f7fb;
+            }
+
+            body {
+                background:
+                    linear-gradient(135deg, rgba(138, 180, 248, 0.12), transparent 42%),
+                    linear-gradient(315deg, rgba(129, 201, 149, 0.10), transparent 38%),
+                    #111318;
+            }
+
+            main {
+                border-color: rgba(244, 247, 251, 0.14);
+                background: rgba(25, 28, 33, 0.88);
+                box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+            }
+
+            .brand {
+                color: #8ab4f8;
+            }
+
+            p {
+                color: #c7ccd4;
+            }
+        }
+
+        @media (max-width: 480px) {
+            main {
+                padding: 28px;
+            }
+
+            h1 {
+                font-size: 32px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <p class="brand">Promptbook Agents Server</p>
+        <h1>Server is getting ready</h1>
+        <p>This Promptbook Agents Server is installed, but the application is not available from this route right now.</p>
+    </main>
+</body>
+</html>
+EOF
+    "${SUDO[@]}" chmod 644 "$NGINX_FALLBACK_HTML_PATH"
+}
+
+install_branded_default_nginx_pages() {
+    local default_page_path=""
+
+    "${SUDO[@]}" install -d -m 755 /var/www/html
+
+    for default_page_path in /var/www/html/index.html /var/www/html/index.nginx-debian.html; do
+        if [[ -e "$default_page_path" ]] && ! grep -Eiq 'welcome to nginx|nginx' "$default_page_path"; then
+            continue
+        fi
+
+        "${SUDO[@]}" install -m 644 "$NGINX_FALLBACK_HTML_PATH" "$default_page_path"
+    done
+}
+
+write_nginx_branding_configuration() {
+    "${SUDO[@]}" tee "$NGINX_BRANDING_CONF_PATH" >/dev/null <<EOF
+# Managed by the Promptbook Agents Server installer.
+server_tokens off;
+more_set_headers "Server: ${NGINX_BRANDED_SERVER_HEADER}";
+EOF
+}
+
+write_nginx_error_snippet() {
+    "${SUDO[@]}" tee "$NGINX_ERROR_SNIPPET_PATH" >/dev/null <<EOF
+# Managed by the Promptbook Agents Server installer.
+error_page 400 401 403 404 405 408 410 411 413 414 415 416 421 429 494 495 496 497 500 501 502 503 504 ${NGINX_FALLBACK_URI};
+
+location = ${NGINX_FALLBACK_URI} {
+    default_type text/html;
+    add_header Cache-Control "no-store" always;
+    alias ${NGINX_FALLBACK_HTML_PATH};
+}
+EOF
+}
+
+write_nginx_proxy_snippet() {
+    "${SUDO[@]}" tee "$NGINX_PROXY_SNIPPET_PATH" >/dev/null <<EOF
+# Managed by the Promptbook Agents Server installer.
+proxy_pass http://127.0.0.1:${PORT};
+proxy_http_version 1.1;
+proxy_buffering off;
+proxy_redirect off;
+proxy_hide_header Server;
+
+proxy_set_header Host \$host;
+proxy_set_header X-Real-IP \$remote_addr;
+proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+proxy_set_header X-Forwarded-Host \$host;
+proxy_set_header X-Forwarded-Proto \$scheme;
+proxy_set_header X-Promptbook-Server \$host;
+proxy_set_header Upgrade \$http_upgrade;
+proxy_set_header Connection \$promptbook_connection_upgrade;
+
+proxy_read_timeout 3600s;
+proxy_send_timeout 3600s;
+EOF
+}
+
+configure_nginx_branding() {
+    ensure_nginx_headers_more_module_is_available
+    write_nginx_fallback_page
+    install_branded_default_nginx_pages
+    write_nginx_branding_configuration
+    write_nginx_error_snippet
+    write_nginx_proxy_snippet
+}
+
 configure_nginx_reverse_proxy() {
     local nginx_available_path="/etc/nginx/sites-available/${NGINX_SITE_NAME}"
     local nginx_enabled_path="/etc/nginx/sites-enabled/${NGINX_SITE_NAME}"
     local server_names=""
+
+    configure_nginx_branding
 
     server_names="$(join_by_space "${DOMAINS[@]}")"
 
@@ -939,26 +1159,11 @@ server {
     listen [::]:80 default_server;
     server_name _;
 
-    server_tokens off;
     client_max_body_size 100m;
+    include ${NGINX_ERROR_SNIPPET_PATH};
 
     location / {
-        proxy_pass http://127.0.0.1:${PORT};
-        proxy_http_version 1.1;
-        proxy_buffering off;
-        proxy_redirect off;
-
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Host \$host;
-        proxy_set_header X-Forwarded-Proto \$scheme;
-        proxy_set_header X-Promptbook-Server \$host;
-        proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection \$promptbook_connection_upgrade;
-
-        proxy_read_timeout 3600s;
-        proxy_send_timeout 3600s;
+        include ${NGINX_PROXY_SNIPPET_PATH};
     }
 }
 EOF
@@ -971,26 +1176,11 @@ server {
     listen [::]:80;
     server_name ${server_names};
 
-    server_tokens off;
     client_max_body_size 100m;
+    include ${NGINX_ERROR_SNIPPET_PATH};
 
     location / {
-        proxy_pass http://127.0.0.1:${PORT};
-        proxy_http_version 1.1;
-        proxy_buffering off;
-        proxy_redirect off;
-
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Host \$host;
-        proxy_set_header X-Forwarded-Proto \$scheme;
-        proxy_set_header X-Promptbook-Server \$host;
-        proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection \$promptbook_connection_upgrade;
-
-        proxy_read_timeout 3600s;
-        proxy_send_timeout 3600s;
+        include ${NGINX_PROXY_SNIPPET_PATH};
     }
 }
 EOF
