@@ -311,9 +311,7 @@ function normalizeSanitizedUrlValue(value: string): string {
         .filter((character) => {
             const characterCode = character.charCodeAt(0);
 
-            return (
-                characterCode > MAX_ASCII_CONTROL_CHARACTER_CODE && characterCode !== ASCII_DELETE_CHARACTER_CODE
-            );
+            return characterCode > MAX_ASCII_CONTROL_CHARACTER_CODE && characterCode !== ASCII_DELETE_CHARACTER_CODE;
         })
         .join('');
 }
