@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/openai",
-    "version": "0.112.0-95",
+    "version": "0.112.0-96",
     "description": "Promptbook: Create persistent AI agents that turn your company's scattered knowledge into action",
     "private": false,
     "sideEffects": false,
@@ -106,6 +106,6 @@
     "types": "./esm/src/_packages/openai.index.d.ts",
     "typings": "./esm/src/_packages/openai.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.112.0-95"
+        "@promptbook/core": "0.112.0-96"
     }
 }
