@@ -1,5 +1,6 @@
 import { $isRunningInNode } from '@promptbook-local/utils';
 import { Pool } from 'pg';
+import { resolvePostgresConnectionString } from './resolvePostgresConnectionString';
 
 /**
  * SQL tagged-template executor used by server routes and utilities.
@@ -48,13 +49,8 @@ export async function $provideClientSql(): Promise<ClientSqlExecutor> {
     }
 
     if (!clientPool) {
-        const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL;
-        if (!connectionString) {
-            throw new Error('Environment variable `POSTGRES_URL` or `DATABASE_URL` must be defined.');
-        }
-
         clientPool = new Pool({
-            connectionString,
+            connectionString: resolvePostgresConnectionString(),
             ssl: { rejectUnauthorized: false },
         });
     }

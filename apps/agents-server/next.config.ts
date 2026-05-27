@@ -36,7 +36,14 @@ const nextConfig: NextConfig = {
     eslint: {
         ignoreDuringBuilds: isNextValidationIgnored,
     },
-    serverExternalPackages: ['pg', '@napi-rs/canvas', 'playwright', 'playwright-core'],
+    serverExternalPackages: [
+        'pg',
+        'better-sqlite3',
+        '@prisma/studio-core',
+        '@napi-rs/canvas',
+        'playwright',
+        'playwright-core',
+    ],
     typescript: {
         ignoreBuildErrors: isNextValidationIgnored,
     },

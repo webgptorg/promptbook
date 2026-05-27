@@ -5,6 +5,7 @@ set -Eeuo pipefail
 APP_NAME="${PTBK_PM2_APP_NAME:-promptbook-agents-server}"
 INSTALL_DIR="${PTBK_INSTALL_DIR:-/opt/promptbook-agents-server}"
 NODE_MAJOR_VERSION="${NODE_MAJOR_VERSION:-22}"
+NODE_MINIMUM_VERSION="${NODE_MINIMUM_VERSION:-}"
 PORT="${PORT:-${PTBK_PORT:-4440}}"
 PROMPTBOOK_REPOSITORY_URL="${PROMPTBOOK_REPOSITORY_URL:-https://github.com/webgptorg/promptbook.git}"
 PROMPTBOOK_REPOSITORY_REF="${PROMPTBOOK_REPOSITORY_REF:-main}"
@@ -479,17 +480,61 @@ install_system_packages() {
 }
 
 is_node_version_supported() {
+    local minimum_version=""
+    minimum_version="$(resolve_node_minimum_version)"
+
     command -v node >/dev/null 2>&1 &&
-        node -e "const major = Number(process.versions.node.split('.')[0]); process.exit(major >= Number(process.env.NODE_MAJOR_VERSION || 22) ? 0 : 1)" >/dev/null 2>&1
+        NODE_MINIMUM_VERSION="$minimum_version" node -e '
+            const currentParts = process.versions.node.split(".").map(Number);
+            const minimumParts = (process.env.NODE_MINIMUM_VERSION || "22.12.0").split(".").map(Number);
+            const maxLength = Math.max(currentParts.length, minimumParts.length);
+
+            for (let index = 0; index < maxLength; index++) {
+                const currentPart = currentParts[index] || 0;
+                const minimumPart = minimumParts[index] || 0;
+
+                if (currentPart > minimumPart) {
+                    process.exit(0);
+                }
+
+                if (currentPart < minimumPart) {
+                    process.exit(1);
+                }
+            }
+
+            process.exit(0);
+        ' >/dev/null 2>&1
+}
+
+resolve_node_minimum_version() {
+    if [[ -n "$NODE_MINIMUM_VERSION" ]]; then
+        printf '%s' "$NODE_MINIMUM_VERSION"
+        return
+    fi
+
+    case "$NODE_MAJOR_VERSION" in
+        20)
+            printf '20.19.0'
+            ;;
+        22)
+            printf '22.12.0'
+            ;;
+        *)
+            printf '%s.0.0' "$NODE_MAJOR_VERSION"
+            ;;
+    esac
 }
 
 install_nodejs() {
+    local minimum_version=""
+    minimum_version="$(resolve_node_minimum_version)"
+
     if is_node_version_supported && command -v npm >/dev/null 2>&1; then
         log "Node.js $(node --version) is already installed."
         return
     fi
 
-    log "Installing Node.js ${NODE_MAJOR_VERSION}.x from NodeSource."
+    log "Installing Node.js ${NODE_MAJOR_VERSION}.x from NodeSource (minimum ${minimum_version})."
     "${SUDO[@]}" install -d -m 0755 /etc/apt/keyrings
     curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key |
         "${SUDO[@]}" gpg --dearmor --yes -o /etc/apt/keyrings/nodesource.gpg

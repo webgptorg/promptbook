@@ -46,6 +46,7 @@ import {
     CONTROL_PANEL_OPTION_AVAILABILITY_METADATA_KEYS,
     getControlPanelOptionAvailability,
 } from '../utils/getControlPanelOptionAvailability';
+import '@prisma/studio-core/ui/index.css';
 import './globals.css';
 
 /**

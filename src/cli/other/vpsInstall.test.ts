@@ -38,4 +38,11 @@ describe('other/vps/install.sh', () => {
             mainFunction.indexOf('install_system_packages'),
         );
     });
+
+    it('requires a Node.js patch level compatible with Embedded Prisma Studio', () => {
+        expect(installScript).toContain('resolve_node_minimum_version()');
+        expect(installScript).toContain("printf '22.12.0'");
+        expect(installScript).toContain("printf '20.19.0'");
+        expect(installScript).toContain('NODE_MINIMUM_VERSION="$minimum_version" node -e');
+    });
 });

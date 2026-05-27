@@ -138,6 +138,7 @@ header.viewAllUsers: View all users
 header.createNewUser: Create new user
 header.servers: Servers
 header.environmentVariables: Environment variables
+header.database: Database
 header.logs: Logs
 header.codeRunners: Code runners
 header.models: Models

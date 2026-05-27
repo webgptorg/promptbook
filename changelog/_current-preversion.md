@@ -1,3 +1,9 @@
+-   Added a super-admin raw database admin for Agents Server:
+
+    -   Embedded Prisma Studio is available at `System -> Super Admin -> Database` for the environment-backed `admin` user only.
+    -   The Studio endpoint executes against the active Agents Server database backend, supporting both standalone SQLite and Supabase/PostgreSQL deployments while showing the actual prefixed database tables.
+    -   The standalone VPS installer now rejects older Node.js patch levels that do not satisfy the embedded Studio runtime requirements.
+
 -   Fixed Promptbook markdown rendering and HTML export sanitization so chat content no longer relies on regex-based XSS filtering:
     -   Replaced the duplicated markdown HTML cleanup logic with one shared DOMPurify-based sanitizer using an explicit allowlist for supported markdown, details blocks, citations, task lists, and KaTeX output.
     -   Routed `<MarkdownContent/>` through the shared renderer used by HTML export paths, removing the separate vulnerable sanitization implementation.

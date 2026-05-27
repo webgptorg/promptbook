@@ -203,6 +203,10 @@ export function buildHeaderSystemMenuItems({
         ...(isGlobalAdmin
             ? [
                   {
+                      label: translate('header.database'),
+                      href: '/admin/database',
+                  } as SubMenuItem,
+                  {
                       label: translate('header.logs'),
                       href: '/admin/logs',
                   } as SubMenuItem,

@@ -28,6 +28,8 @@ const APP_E2E_ENV = {
     ADMIN_PASSWORD: 'e2e-admin-password',
     NEXT_DIST_DIR: '.next-e2e',
     NEXT_PUBLIC_SITE_URL: APP_URL,
+    PTBK_AGENTS_SERVER_DATABASE: 'supabase',
+    PTBK_AGENTS_SERVER_SQLITE_PATH: '',
     SUPABASE_TABLE_PREFIX: '',
     POSTGRES_URL: '',
     DATABASE_URL: '',

@@ -1,8 +1,10 @@
-import { existsSync, mkdirSync } from 'fs';
-import { dirname } from 'path';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { TODO_any } from '@promptbook-local/types';
-import { resolveAgentsServerSqliteDatabasePath } from './resolveAgentsServerSqliteDatabasePath';
+import {
+    $provideAgentsServerSqliteDatabase,
+    $resetAgentsServerSqliteDatabaseForTests,
+    type AgentsServerSqliteDatabase,
+} from './$provideAgentsServerSqliteDatabase';
 
 /**
  * Minimal query result shape consumed by Agents Server Supabase call sites.
@@ -61,33 +63,6 @@ type LocalSqliteSelectOptions = {
  */
 type LocalSqliteUpsertOptions = {
     readonly onConflict?: string;
-};
-
-/**
- * Shape of the `better-sqlite3` module constructor loaded at runtime.
- */
-type BetterSqliteConstructor = new (path: string) => BetterSqliteDatabase;
-
-/**
- * Minimal `better-sqlite3` database surface used by this adapter.
- */
-type BetterSqliteDatabase = {
-    readonly pragma: (source: string) => unknown;
-    readonly exec: (source: string) => void;
-    readonly prepare: (source: string) => BetterSqliteStatement;
-    readonly close?: () => void;
-};
-
-/**
- * Minimal `better-sqlite3` prepared statement surface used by this adapter.
- */
-type BetterSqliteStatement = {
-    readonly all: (...values: ReadonlyArray<unknown>) => Array<Record<string, unknown>>;
-    readonly get: (...values: ReadonlyArray<unknown>) => Record<string, unknown> | undefined;
-    readonly run: (...values: ReadonlyArray<unknown>) => {
-        readonly changes: number;
-        readonly lastInsertRowid: number | bigint;
-    };
 };
 
 /**
@@ -171,11 +146,6 @@ const DEFAULT_UPSERT_CONFLICT_COLUMNS_BY_TABLE = new Map<string, ReadonlyArray<s
 ]);
 
 /**
- * Cached SQLite database connection.
- */
-let sqliteDatabase: BetterSqliteDatabase | null = null;
-
-/**
  * Cached Supabase-shaped local client.
  */
 let localSqliteSupabase: SupabaseClient | null = null;
@@ -188,7 +158,7 @@ export function $provideLocalSqliteSupabase(): SupabaseClient {
         return localSqliteSupabase;
     }
 
-    localSqliteSupabase = new LocalSqliteSupabaseClient(getSqliteDatabase()) as unknown as SupabaseClient;
+    localSqliteSupabase = new LocalSqliteSupabaseClient($provideAgentsServerSqliteDatabase()) as unknown as SupabaseClient;
     return localSqliteSupabase;
 }
 
@@ -196,40 +166,15 @@ export function $provideLocalSqliteSupabase(): SupabaseClient {
  * Closes the cached SQLite connection and resets adapter state for isolated tests.
  */
 export function $resetLocalSqliteSupabaseForTests(): void {
-    sqliteDatabase?.close?.();
-    sqliteDatabase = null;
+    $resetAgentsServerSqliteDatabaseForTests();
     localSqliteSupabase = null;
-}
-
-/**
- * Opens and initializes the shared local SQLite database.
- */
-function getSqliteDatabase(): BetterSqliteDatabase {
-    if (sqliteDatabase) {
-        return sqliteDatabase;
-    }
-
-    const databasePath = resolveAgentsServerSqliteDatabasePath();
-    const databaseDirectory = dirname(databasePath);
-
-    if (!existsSync(databaseDirectory)) {
-        mkdirSync(databaseDirectory, { recursive: true });
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const BetterSqlite = require('better-sqlite3') as BetterSqliteConstructor;
-    sqliteDatabase = new BetterSqlite(databasePath);
-    sqliteDatabase.pragma('journal_mode = WAL');
-    sqliteDatabase.pragma('foreign_keys = ON');
-
-    return sqliteDatabase;
 }
 
 /**
  * Supabase-shaped client with only the table query surface used by Agents Server.
  */
 class LocalSqliteSupabaseClient {
-    public constructor(private readonly database: BetterSqliteDatabase) {}
+    public constructor(private readonly database: AgentsServerSqliteDatabase) {}
 
     /**
      * Starts a query for one SQLite table.
@@ -244,7 +189,7 @@ class LocalSqliteSupabaseClient {
  */
 class LocalSqliteTable {
     public constructor(
-        private readonly database: BetterSqliteDatabase,
+        private readonly database: AgentsServerSqliteDatabase,
         private readonly tableName: string,
     ) {}
 
@@ -304,7 +249,7 @@ class LocalSqliteQueryBuilder implements PromiseLike<LocalSqliteQueryResult> {
     private isReturningSelection = false;
 
     public constructor(
-        private readonly database: BetterSqliteDatabase,
+        private readonly database: AgentsServerSqliteDatabase,
         private readonly tableName: string,
     ) {}
 
@@ -851,7 +796,11 @@ type ParsedPostgrestFilter = {
 /**
  * Ensures a table and all required columns exist.
  */
-function ensureTable(database: BetterSqliteDatabase, tableName: string, requiredColumns: ReadonlyArray<string>): void {
+function ensureTable(
+    database: AgentsServerSqliteDatabase,
+    tableName: string,
+    requiredColumns: ReadonlyArray<string>,
+): void {
     const tableBaseName = resolveTableBaseName(tableName);
     const primaryKey = TEXT_PRIMARY_KEY_TABLES.has(tableBaseName)
         ? '"id" TEXT PRIMARY KEY'
@@ -886,7 +835,7 @@ function ensureTable(database: BetterSqliteDatabase, tableName: string, required
 /**
  * Creates known unique indexes after required columns exist.
  */
-function ensureUniqueIndexes(database: BetterSqliteDatabase, tableName: string, tableBaseName: string): void {
+function ensureUniqueIndexes(database: AgentsServerSqliteDatabase, tableName: string, tableBaseName: string): void {
     const uniqueIndexes = UNIQUE_INDEX_COLUMNS_BY_TABLE.get(tableBaseName) || [];
 
     for (const columns of uniqueIndexes) {
@@ -900,7 +849,7 @@ function ensureUniqueIndexes(database: BetterSqliteDatabase, tableName: string, 
  * Inserts one row into the table.
  */
 function insertRow(
-    database: BetterSqliteDatabase,
+    database: AgentsServerSqliteDatabase,
     tableName: string,
     row: Record<string, unknown>,
 ): { readonly lastInsertRowid: number | bigint } {
@@ -921,7 +870,7 @@ function insertRow(
  * Updates one row by SQLite rowid.
  */
 function updateRowid(
-    database: BetterSqliteDatabase,
+    database: AgentsServerSqliteDatabase,
     tableName: string,
     rowid: number | bigint,
     row: Record<string, unknown>,
@@ -940,7 +889,7 @@ function updateRowid(
  * Finds the rowid matching an upsert conflict target.
  */
 function findConflictRowid(
-    database: BetterSqliteDatabase,
+    database: AgentsServerSqliteDatabase,
     tableName: string,
     row: Record<string, unknown>,
     conflictColumns: ReadonlyArray<string>,
@@ -960,7 +909,7 @@ function findConflictRowid(
  * Selects rows by rowids for a mutation returning clause.
  */
 function selectRowsByRowids(
-    database: BetterSqliteDatabase,
+    database: AgentsServerSqliteDatabase,
     tableName: string,
     rowids: ReadonlyArray<number | bigint>,
     selectedColumns: ReadonlyArray<string>,
