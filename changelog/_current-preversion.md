@@ -1,3 +1,8 @@
+-   Fixed standalone VPS Agents Server login on raw-IP bootstrap access so the session cookie is no longer blocked before a domain is configured:
+
+    -   `apps/agents-server` now keeps the auth cookie `Secure` on normal domain/HTTPS traffic, but relaxes it only for `http://<PTBK_PUBLIC_IP_ADDRESS>` requests while `SERVERS` is still empty.
+    -   Added regression coverage for the raw-IP bootstrap case and the existing domain/HTTPS case so the login behavior stays scoped to the installer flow.
+
 -   Added standalone VPS super-admin configuration screens for Agents Server:
 
     -   The VPS installer can now continue without a custom domain, keeps the internal Agents Server on localhost, exposes raw-IP access through nginx on port 80, and skips SSL until domains are configured.

@@ -63,7 +63,7 @@ Have the DNS records propagated and should SSL setup continue now? [yes]: s21.pt
 
 ---
 
-[ ] !
+[x] (2 attempts) ~$0.00 an hour by GitHub Copilot `gpt-5.4`
 
 [✨🤬] When accessing the server from IP address without domain to finish the configuration, it cannot login because of error in setting a cookie
 
@@ -76,3 +76,4 @@ Have the DNS records propagated and should SSL setup continue now? [yes]: s21.pt
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ![alt text](prompts/screenshots/2026-05-0391-ptbk-agents-server-standalone-vps-script-configuration-throught-ui-and-servers-2.png)
+

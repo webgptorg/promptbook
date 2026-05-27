@@ -1,5 +1,5 @@
 import { createHmac } from 'crypto';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { cache } from 'react';
 
 /**
@@ -28,6 +28,36 @@ export type SessionUser = {
      * Whether the session belongs to the environment-backed super-admin.
      */
     readonly isGlobalAdmin?: boolean;
+};
+
+/**
+ * Request details used to decide whether the auth cookie may require HTTPS.
+ */
+export type SessionCookieSecurityContext = {
+    /**
+     * Current deployment mode.
+     */
+    readonly isProduction: boolean;
+    /**
+     * Raw `Host` header.
+     */
+    readonly host: string | null;
+    /**
+     * Raw forwarded host header emitted by the reverse proxy.
+     */
+    readonly forwardedHost: string | null;
+    /**
+     * Raw forwarded protocol header emitted by the reverse proxy.
+     */
+    readonly forwardedProto: string | null;
+    /**
+     * Comma-separated configured domain list from `SERVERS`.
+     */
+    readonly configuredServers: string | null | undefined;
+    /**
+     * Known standalone VPS public IP address.
+     */
+    readonly publicIpAddress: string | null | undefined;
 };
 
 /**
@@ -78,16 +108,53 @@ export function parseSessionToken(token: string | null | undefined): SessionUser
 }
 
 /**
+ * Decides whether the session cookie should keep the `Secure` flag for the current request.
+ *
+ * This keeps production-domain logins protected by HTTPS while allowing the standalone
+ * VPS bootstrap flow to authenticate over `http://<IP_ADDRESS>` before any domain exists.
+ *
+ * @param context - Request and deployment details used for the decision.
+ * @returns `true` when the cookie should require HTTPS.
+ */
+export function shouldUseSecureSessionCookieForRequest(context: SessionCookieSecurityContext): boolean {
+    if (!context.isProduction) {
+        return false;
+    }
+
+    if (parseConfiguredServers(context.configuredServers).length > 0) {
+        return true;
+    }
+
+    const requestHost = normalizeHost(context.forwardedHost ?? context.host);
+    if (!requestHost || !isIpAddressHost(requestHost)) {
+        return true;
+    }
+
+    const forwardedProtocol = (context.forwardedProto || '').split(',')[0]?.trim().toLowerCase() || '';
+    if (forwardedProtocol === 'https') {
+        return true;
+    }
+
+    const configuredPublicIpAddress = normalizeHost(context.publicIpAddress || '');
+    if (configuredPublicIpAddress && requestHost !== configuredPublicIpAddress) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
  * Persists the provided session payload into the signed session cookie.
  *
  * @param user - Session payload to store.
  */
 export async function setSession(user: SessionUser) {
     const token = serializeSessionToken(user);
+    const secure = await shouldUseSecureSessionCookie();
 
     (await cookies()).set(SESSION_COOKIE_NAME, token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure,
         path: '/',
         maxAge: 60 * 60 * 24 * 365 * 2, // 2 years
     });
@@ -119,4 +186,58 @@ const getCachedSession = cache(async (): Promise<SessionUser | null> => {
  */
 export async function getSession(): Promise<SessionUser | null> {
     return getCachedSession();
+}
+
+/**
+ * Resolves the runtime cookie security decision from the current request headers.
+ *
+ * @returns `true` when the session cookie should keep the `Secure` flag.
+ */
+async function shouldUseSecureSessionCookie(): Promise<boolean> {
+    const headerStore = await headers();
+
+    return shouldUseSecureSessionCookieForRequest({
+        isProduction: process.env.NODE_ENV === 'production',
+        host: headerStore.get('host'),
+        forwardedHost: headerStore.get('x-forwarded-host'),
+        forwardedProto: headerStore.get('x-forwarded-proto'),
+        configuredServers: process.env.SERVERS,
+        publicIpAddress: process.env.PTBK_PUBLIC_IP_ADDRESS,
+    });
+}
+
+/**
+ * Parses the configured `SERVERS` CSV into non-empty entries.
+ *
+ * @param configuredServers - Raw environment value.
+ * @returns Normalized list of configured domains.
+ */
+function parseConfiguredServers(configuredServers: string | null | undefined): Array<string> {
+    return (configuredServers || '')
+        .split(',')
+        .map((server) => server.trim())
+        .filter(Boolean);
+}
+
+/**
+ * Checks whether a host string points to a raw IPv4 or IPv6 address.
+ *
+ * @param host - Host header or hostname.
+ * @returns `true` when the host is a raw IP address.
+ */
+function isIpAddressHost(host: string): boolean {
+    return /^\d{1,3}(?:\.\d{1,3}){3}$/u.test(host) || host.includes(':');
+}
+
+/**
+ * Removes ports and IPv6 brackets from host-like strings.
+ *
+ * @param host - Raw host header value.
+ * @returns Normalized bare hostname or IP address.
+ */
+function normalizeHost(host: string | null | undefined): string {
+    return (host || '')
+        .trim()
+        .replace(/^\[(.+)\](?::\d+)?$/u, '$1')
+        .replace(/:\d+$/u, '');
 }
