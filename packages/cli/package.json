@@ -136,6 +136,7 @@
         "crypto": "1.0.1",
         "crypto-js": "4.2.0",
         "destroyable": "0.12.145",
+        "dompurify": "3.4.6",
         "dotenv": "16.3.2",
         "express": "4.21.2",
         "express-openapi-validator": "5.4.9",

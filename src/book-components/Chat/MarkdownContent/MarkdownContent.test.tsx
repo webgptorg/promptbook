@@ -70,4 +70,24 @@ describe('MarkdownContent details rendering', () => {
         expect(codeBlock.textContent).toContain('const value = 1;');
         expect(codeBlock.getAttribute('data-language')).toBe('ts');
     });
+
+    it('sanitizes rendered HTML before inserting it into the DOM', () => {
+        const { container } = render(
+            <MarkdownContent
+                content={[
+                    '<img src="https://example.com/safe.png" onerror=\'alert(1)\' alt="Safe image">',
+                    '<a href="jav&#x61;script:alert(1)">Bad link</a>',
+                    '<svg><g onload=alert(1)></g></svg>',
+                ].join('\n\n')}
+            />,
+        );
+
+        const image = container.querySelector('img');
+        const link = screen.getByText('Bad link');
+
+        expect(image?.getAttribute('src')).toBe('https://example.com/safe.png');
+        expect(image?.getAttribute('onerror')).toBeNull();
+        expect(link.getAttribute('href')).toBeNull();
+        expect(container.querySelector('svg')).toBeNull();
+    });
 });

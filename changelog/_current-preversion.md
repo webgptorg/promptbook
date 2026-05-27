@@ -1,3 +1,8 @@
+-   Fixed Promptbook markdown rendering and HTML export sanitization so chat content no longer relies on regex-based XSS filtering:
+    -   Replaced the duplicated markdown HTML cleanup logic with one shared DOMPurify-based sanitizer using an explicit allowlist for supported markdown, details blocks, citations, task lists, and KaTeX output.
+    -   Routed `<MarkdownContent/>` through the shared renderer used by HTML export paths, removing the separate vulnerable sanitization implementation.
+    -   Added regression coverage for raw HTML payloads, dangerous attributes, encoded `javascript:` / `data:` URLs, raw SVG payloads, and standalone HTML export rendering.
+
 -   Fixed standalone VPS Agents Server login on raw-IP bootstrap access so the session cookie is no longer blocked before a domain is configured:
 
     -   `apps/agents-server` now keeps the auth cookie `Secure` on normal domain/HTTPS traffic, but relaxes it only for `http://<PTBK_PUBLIC_IP_ADDRESS>` requests while `SERVERS` is still empty.

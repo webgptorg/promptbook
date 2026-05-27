@@ -1,3 +1,9 @@
+import createDOMPurify, {
+    type Config as DomPurifyConfig,
+    type DOMPurify as DomPurifyInstance,
+    type UponSanitizeAttributeHookEvent as DomPurifyUponSanitizeAttributeHookEvent,
+    type WindowLike as DomPurifyWindowLike,
+} from 'dompurify';
 import katex from 'katex';
 import { Converter as ShowdownConverter } from 'showdown';
 import type { string_html, string_markdown } from '../../../types/string_markdown';
@@ -18,6 +24,182 @@ const KATEX_STYLESHEET_ID = 'katex-css';
  * CDN stylesheet loaded lazily when markdown contains KaTeX markup in the browser.
  */
 const KATEX_STYLESHEET_URL = 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css';
+
+/**
+ * Explicit allowlist of HTML tags that may survive markdown rendering.
+ *
+ * @private utility of `renderMarkdown`
+ */
+const MARKDOWN_SANITIZER_ALLOWED_TAGS = [
+    'a',
+    'annotation',
+    'b',
+    'blockquote',
+    'br',
+    'code',
+    'del',
+    'details',
+    'div',
+    'em',
+    'h1',
+    'h2',
+    'h3',
+    'h4',
+    'h5',
+    'h6',
+    'hr',
+    'i',
+    'img',
+    'input',
+    'li',
+    'math',
+    'menclose',
+    'mfrac',
+    'mi',
+    'mn',
+    'mo',
+    'mover',
+    'mpadded',
+    'mphantom',
+    'mroot',
+    'mrow',
+    'msqrt',
+    'mspace',
+    'msub',
+    'msubsup',
+    'msup',
+    'mstyle',
+    'mtable',
+    'mtd',
+    'mtext',
+    'mtr',
+    'munder',
+    'munderover',
+    'ol',
+    'p',
+    'pre',
+    's',
+    'semantics',
+    'span',
+    'strong',
+    'sub',
+    'summary',
+    'sup',
+    'table',
+    'tbody',
+    'td',
+    'tfoot',
+    'th',
+    'thead',
+    'tr',
+    'u',
+    'ul',
+] as const;
+
+/**
+ * Explicit allowlist of HTML attributes that may survive markdown rendering.
+ *
+ * @private utility of `renderMarkdown`
+ */
+const MARKDOWN_SANITIZER_ALLOWED_ATTRIBUTES = [
+    'alt',
+    'aria-hidden',
+    'checked',
+    'class',
+    'colspan',
+    'data-citation-footnote',
+    'data-chat-progress-marker',
+    'disabled',
+    'encoding',
+    'height',
+    'href',
+    'id',
+    'open',
+    'rel',
+    'rowspan',
+    'src',
+    'start',
+    'stretchy',
+    'style',
+    'target',
+    'title',
+    'type',
+    'width',
+    'xmlns',
+] as const;
+
+/**
+ * Attributes that may contain external URLs and therefore need protocol validation.
+ *
+ * @private utility of `renderMarkdown`
+ */
+const MARKDOWN_SANITIZER_URL_ATTRIBUTES = ['href', 'src'] as const;
+
+/**
+ * URL protocols that remain allowed after markdown sanitization.
+ *
+ * @private utility of `renderMarkdown`
+ */
+const MARKDOWN_SANITIZER_ALLOWED_PROTOCOLS = new Set(['http', 'https', 'mailto', 'tel']);
+
+/**
+ * Internal `data-*` attributes that Promptbook injects into rendered markdown and must survive sanitization.
+ *
+ * @private utility of `renderMarkdown`
+ */
+const MARKDOWN_SANITIZER_ALLOWED_DATA_ATTRIBUTES = new Set(['data-citation-footnote', 'data-chat-progress-marker']);
+
+/**
+ * Highest ASCII control character code that should be stripped from sanitized URLs.
+ *
+ * @private utility of `renderMarkdown`
+ */
+const MAX_ASCII_CONTROL_CHARACTER_CODE = 32;
+
+/**
+ * ASCII delete character code that should be stripped from sanitized URLs.
+ *
+ * @private utility of `renderMarkdown`
+ */
+const ASCII_DELETE_CHARACTER_CODE = 127;
+
+/**
+ * DOMPurify configuration used for markdown rendering and export sanitization.
+ *
+ * @private utility of `renderMarkdown`
+ */
+const MARKDOWN_SANITIZER_CONFIG: DomPurifyConfig = {
+    ALLOWED_TAGS: [...MARKDOWN_SANITIZER_ALLOWED_TAGS],
+    ALLOWED_ATTR: [...MARKDOWN_SANITIZER_ALLOWED_ATTRIBUTES],
+    ALLOW_ARIA_ATTR: true,
+    ALLOW_DATA_ATTR: false,
+    USE_PROFILES: {
+        html: true,
+        mathMl: true,
+        svg: false,
+    },
+};
+
+/**
+ * Shared browser-side DOMPurify instance.
+ *
+ * @private utility of `renderMarkdown`
+ */
+let browserMarkdownSanitizer: DomPurifyInstance | null = null;
+
+/**
+ * Shared server-side DOMPurify instance.
+ *
+ * @private utility of `renderMarkdown`
+ */
+let serverMarkdownSanitizer: DomPurifyInstance | null = null;
+
+/**
+ * Shared JSDOM window backing the server-side DOMPurify instance.
+ *
+ * @private utility of `renderMarkdown`
+ */
+let serverMarkdownSanitizerWindow: DomPurifyWindowLike | null = null;
 
 /**
  * Pattern matching CODE FENCE.
@@ -118,6 +300,144 @@ type MaskedDetailsBlocksResult = {
     masked: string_markdown;
     restore: (value: string_html) => string_html;
 };
+
+/**
+ * Removes whitespace and control characters that can obscure a URL protocol.
+ *
+ * @private utility of `renderMarkdown`
+ */
+function normalizeSanitizedUrlValue(value: string): string {
+    return Array.from(value.trim())
+        .filter((character) => {
+            const characterCode = character.charCodeAt(0);
+
+            return (
+                characterCode > MAX_ASCII_CONTROL_CHARACTER_CODE && characterCode !== ASCII_DELETE_CHARACTER_CODE
+            );
+        })
+        .join('');
+}
+
+/**
+ * Returns whether a sanitized URL attribute still uses an allowed protocol.
+ *
+ * @private utility of `renderMarkdown`
+ */
+function isAllowedSanitizedUrl(value: string): boolean {
+    const normalizedValue = normalizeSanitizedUrlValue(value);
+
+    if (normalizedValue === '') {
+        return true;
+    }
+
+    if (
+        normalizedValue.startsWith('#') ||
+        normalizedValue.startsWith('/') ||
+        normalizedValue.startsWith('./') ||
+        normalizedValue.startsWith('../') ||
+        normalizedValue.startsWith('?') ||
+        normalizedValue.startsWith('//')
+    ) {
+        return true;
+    }
+
+    const schemeMatch = normalizedValue.match(/^([a-z][a-z0-9+.-]*):/i);
+    if (!schemeMatch) {
+        return true;
+    }
+
+    return MARKDOWN_SANITIZER_ALLOWED_PROTOCOLS.has(schemeMatch[1]!.toLowerCase());
+}
+
+/**
+ * Applies the shared post-attribute sanitization rules to a DOMPurify instance.
+ *
+ * @private utility of `renderMarkdown`
+ */
+function registerMarkdownSanitizerHooks(markdownSanitizer: DomPurifyInstance): void {
+    markdownSanitizer.addHook(
+        'uponSanitizeAttribute',
+        (_currentNode: Element, hookEvent: DomPurifyUponSanitizeAttributeHookEvent) => {
+            if (MARKDOWN_SANITIZER_ALLOWED_DATA_ATTRIBUTES.has(hookEvent.attrName)) {
+                hookEvent.forceKeepAttr = true;
+            }
+        },
+    );
+
+    markdownSanitizer.addHook('afterSanitizeAttributes', (currentNode: Node) => {
+        if (!currentNode || currentNode.nodeType !== 1) {
+            return;
+        }
+
+        const currentElement = currentNode as Element;
+
+        for (const attributeName of MARKDOWN_SANITIZER_URL_ATTRIBUTES) {
+            const attributeValue = currentElement.getAttribute(attributeName);
+
+            if (attributeValue && !isAllowedSanitizedUrl(attributeValue)) {
+                currentElement.removeAttribute(attributeName);
+            }
+        }
+
+        if (currentElement.tagName === 'A' && currentElement.getAttribute('target') === '_blank') {
+            currentElement.setAttribute('rel', 'noopener noreferrer');
+        }
+    });
+}
+
+/**
+ * Creates a DOMPurify instance configured for Promptbook markdown output.
+ *
+ * @private utility of `renderMarkdown`
+ */
+function createMarkdownSanitizer(sanitizerWindow: DomPurifyWindowLike): DomPurifyInstance {
+    const markdownSanitizer = createDOMPurify(sanitizerWindow);
+
+    registerMarkdownSanitizerHooks(markdownSanitizer);
+
+    return markdownSanitizer;
+}
+
+/**
+ * Lazily creates the JSDOM window used by server-side markdown sanitization.
+ *
+ * @private utility of `renderMarkdown`
+ */
+function getServerMarkdownSanitizerWindow(): DomPurifyWindowLike {
+    if (!serverMarkdownSanitizerWindow) {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const { JSDOM } = require('jsdom') as typeof import('jsdom');
+        serverMarkdownSanitizerWindow = new JSDOM('').window as unknown as DomPurifyWindowLike;
+    }
+
+    return serverMarkdownSanitizerWindow;
+}
+
+/**
+ * Returns the shared DOMPurify instance appropriate for the current runtime.
+ *
+ * @private utility of `renderMarkdown`
+ */
+function getMarkdownSanitizer(): DomPurifyInstance {
+    if (typeof window !== 'undefined') {
+        browserMarkdownSanitizer ??= createMarkdownSanitizer(window as unknown as DomPurifyWindowLike);
+
+        return browserMarkdownSanitizer;
+    }
+
+    serverMarkdownSanitizer ??= createMarkdownSanitizer(getServerMarkdownSanitizerWindow());
+
+    return serverMarkdownSanitizer;
+}
+
+/**
+ * Sanitizes rendered markdown HTML with the shared Promptbook allowlist.
+ *
+ * @private utility of `renderMarkdown`
+ */
+function sanitizeRenderedMarkdownHtml(html: string_html): string_html {
+    return getMarkdownSanitizer().sanitize(html, MARKDOWN_SANITIZER_CONFIG) as string_html;
+}
 
 /**
  * Normalizes markdown sublists so they render correctly under ordered list items.
@@ -447,14 +767,9 @@ export function renderMarkdown(markdown: string_markdown, options?: RenderMarkdo
         registerKatexStylesheet(html);
 
         const restoredHtml = restoreDetails(html);
-        const sanitizedHtml = restoredHtml
-            .replace(/<\s*(script|style|iframe|object|embed)[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi, '')
-            .replace(/\s+on\w+="[^"]*"/gi, '')
-            .replace(/\s+javascript:/gi, '')
-            .replace(/\s+data:/gi, '')
-            .replace(/\s+vbscript:/gi, '');
+        const sanitizedHtml = sanitizeRenderedMarkdownHtml(restoredHtml);
 
-        return sanitizedHtml as string_html;
+        return sanitizedHtml;
     } catch (error) {
         console.error('Error rendering markdown:', error);
         return escapeHtml(markdown);

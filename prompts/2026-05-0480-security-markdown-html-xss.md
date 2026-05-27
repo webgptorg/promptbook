@@ -1,4 +1,4 @@
-[ ] !
+[x] ~$0.00 an hour by GitHub Copilot `gpt-5.4`
 
 [🔐] Fix XSS in Promptbook markdown rendering and HTML export sanitization
 
@@ -11,3 +11,4 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Promptbook Engine](src)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

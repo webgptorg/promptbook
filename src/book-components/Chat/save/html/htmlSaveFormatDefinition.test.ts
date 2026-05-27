@@ -92,4 +92,38 @@ describe('htmlSaveFormatDefinition', () => {
         expect(exportedContent).not.toContain('[0:0]');
         expect(exportedContent).not.toContain('【0:0†');
     });
+
+    it('sanitizes rendered markdown inside standalone HTML exports', () => {
+        const exportedContent = htmlSaveFormatDefinition.getContent({
+            title: 'Sanitized export',
+            participants: [
+                {
+                    name: 'ASSISTANT',
+                    fullname: 'Helpful Agent',
+                    color: '#2563eb',
+                },
+            ],
+            messages: [
+                {
+                    id: 'message-1',
+                    sender: 'ASSISTANT',
+                    content: [
+                        '<details open ontoggle=alert(1)><summary>Safe summary</summary>Safe body</details>',
+                        '<img src="https://example.com/safe.png" onerror=\'alert(1)\' alt="Safe image">',
+                        '<a href="jav&#x61;script:alert(1)">Bad link</a>',
+                        '<svg><g onload=alert(1)></g></svg>',
+                    ].join('\n\n'),
+                    isComplete: true,
+                },
+            ],
+        }) as string;
+
+        expect(exportedContent).toContain('<summary>Safe summary</summary>');
+        expect(exportedContent).toContain('<img src="https://example.com/safe.png" alt="Safe image">');
+        expect(exportedContent).toContain('<a>Bad link</a>');
+        expect(exportedContent).not.toContain('ontoggle');
+        expect(exportedContent).not.toContain('onerror');
+        expect(exportedContent).not.toContain('javascript:');
+        expect(exportedContent).not.toContain('<svg');
+    });
 });
