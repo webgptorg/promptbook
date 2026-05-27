@@ -66,7 +66,7 @@ export async function POST(request: Request) {
 
             const existingDomains = await listConfiguredVpsDomains();
             await updateConfiguredVpsDomains([...existingDomains, normalizedDomain]);
-            await applyVpsRuntimeConfiguration();
+            await applyVpsRuntimeConfiguration({ isProcessRestartEnabled: false });
             const createdServer = listEnvironmentRegisteredServers().find((server) => server.domain === normalizedDomain);
 
             return NextResponse.json(

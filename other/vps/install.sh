@@ -17,6 +17,7 @@ PTBK_AGENT="${PTBK_AGENT:-github-copilot}"
 PTBK_MODEL="${PTBK_MODEL:-gpt-5.4}"
 PTBK_THINKING_LEVEL="${PTBK_THINKING_LEVEL:-xhigh}"
 PTBK_NON_INTERACTIVE="${PTBK_NON_INTERACTIVE:-0}"
+PTBK_SKIP_PM2_RESTART="${PTBK_SKIP_PM2_RESTART:-0}"
 SERVERS="${SERVERS:-}"
 LETS_ENCRYPT_EMAIL="${LETS_ENCRYPT_EMAIL:-${CERTBOT_EMAIL:-}}"
 NGINX_SITE_NAME="${PTBK_NGINX_SITE_NAME:-promptbook-agents-server}"
@@ -1190,6 +1191,15 @@ EOF
     "${SUDO[@]}" rm -f /etc/nginx/sites-enabled/default
     "${SUDO[@]}" nginx -t
     "${SUDO[@]}" systemctl enable nginx >/dev/null
+    reload_or_restart_nginx
+}
+
+reload_or_restart_nginx() {
+    if "${SUDO[@]}" systemctl is-active --quiet nginx; then
+        "${SUDO[@]}" systemctl reload nginx
+        return
+    fi
+
     "${SUDO[@]}" systemctl restart nginx
 }
 
@@ -1329,6 +1339,11 @@ load_runtime_configuration_from_env_file() {
 
 restart_agents_server_if_running() {
     local app_name_shell=""
+
+    if [[ "$PTBK_SKIP_PM2_RESTART" == "1" ]]; then
+        log "Skipping Agents Server pm2 restart because PTBK_SKIP_PM2_RESTART=1."
+        return
+    fi
 
     if ! command -v pm2 >/dev/null 2>&1; then
         warn "pm2 is not available; skipping Agents Server restart."

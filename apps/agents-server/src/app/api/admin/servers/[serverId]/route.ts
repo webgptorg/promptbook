@@ -126,7 +126,7 @@ async function updateStandaloneVpsServerDomain(serverId: number, rawDomain: stri
     const domains = await listConfiguredVpsDomains();
     const nextDomains = domains.map((domain, index) => (index === serverIndex ? normalizedDomain : domain));
     await updateConfiguredVpsDomains(nextDomains);
-    await applyVpsRuntimeConfiguration();
+    await applyVpsRuntimeConfiguration({ isProcessRestartEnabled: false });
 
     const updatedServer = listEnvironmentRegisteredServers().find((server) => server.domain === normalizedDomain);
     if (!updatedServer) {
@@ -150,5 +150,5 @@ async function deleteStandaloneVpsServerDomain(serverId: number): Promise<void> 
 
     const domains = await listConfiguredVpsDomains();
     await updateConfiguredVpsDomains(domains.filter((_domain, index) => index !== serverIndex));
-    await applyVpsRuntimeConfiguration();
+    await applyVpsRuntimeConfiguration({ isProcessRestartEnabled: false });
 }

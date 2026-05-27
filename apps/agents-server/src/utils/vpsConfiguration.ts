@@ -88,6 +88,16 @@ export type VpsCommandResult = {
 };
 
 /**
+ * Runtime-installer execution options used by VPS admin actions.
+ */
+type RunVpsInstallerCommandOptions = {
+    /**
+     * Whether the installer may restart the running Agents Server process.
+     */
+    readonly isProcessRestartEnabled?: boolean;
+};
+
+/**
  * Parsed `.env` line representation used to preserve comments and ordering.
  */
 type ParsedEnvLine =
@@ -225,8 +235,14 @@ export async function updateConfiguredVpsDomains(
  *
  * @returns Command output or a skipped reason when not running on a Linux VPS.
  */
-export async function applyVpsRuntimeConfiguration(): Promise<VpsCommandResult> {
-    return runVpsInstallerCommand('apply-domains', 'VPS runtime configuration can only be applied on Linux.');
+export async function applyVpsRuntimeConfiguration(
+    options?: RunVpsInstallerCommandOptions,
+): Promise<VpsCommandResult> {
+    return runVpsInstallerCommand(
+        'apply-domains',
+        'VPS runtime configuration can only be applied on Linux.',
+        options,
+    );
 }
 
 /**
@@ -270,7 +286,11 @@ export async function readVpsPm2Logs(lineCount = 200): Promise<VpsCommandResult>
  * @param unavailableOutput - Message returned on non-Linux platforms.
  * @returns Command output or unavailable reason.
  */
-async function runVpsInstallerCommand(command: string, unavailableOutput: string): Promise<VpsCommandResult> {
+async function runVpsInstallerCommand(
+    command: string,
+    unavailableOutput: string,
+    options?: RunVpsInstallerCommandOptions,
+): Promise<VpsCommandResult> {
     if (process.platform !== 'linux') {
         return {
             isAvailable: false,
@@ -288,10 +308,7 @@ async function runVpsInstallerCommand(command: string, unavailableOutput: string
 
     try {
         const { stdout, stderr } = await execFileAsync('bash', [scriptPath, command], {
-            env: {
-                ...process.env,
-                PTBK_NON_INTERACTIVE: '1',
-            },
+            env: createVpsInstallerCommandEnvironment(options),
             maxBuffer: 1024 * 1024,
         });
 
@@ -314,6 +331,24 @@ async function runVpsInstallerCommand(command: string, unavailableOutput: string
             `),
         );
     }
+}
+
+/**
+ * Creates the environment passed to the shared VPS installer script.
+ *
+ * @param options - Installer execution options.
+ * @returns Child-process environment.
+ *
+ * @private internal helper of `vpsConfiguration`
+ */
+export function createVpsInstallerCommandEnvironment(
+    options?: RunVpsInstallerCommandOptions,
+): NodeJS.ProcessEnv {
+    return {
+        ...process.env,
+        PTBK_NON_INTERACTIVE: '1',
+        ...(options?.isProcessRestartEnabled === false ? { PTBK_SKIP_PM2_RESTART: '1' } : {}),
+    };
 }
 
 /**
@@ -477,7 +512,12 @@ function parseEnvLines(content: string): Array<ParsedEnvLine> {
             return { type: 'raw', raw };
         }
 
-        const [, key, rawValue = ''] = match;
+        const key = match[1];
+        const rawValue = match[2] ?? '';
+        if (!key) {
+            return { type: 'raw', raw };
+        }
+
         return {
             type: 'entry',
             raw,

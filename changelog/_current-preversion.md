@@ -4,6 +4,11 @@
     -   Added a shared Nginx proxy snippet and branding config so raw-IP and domain server blocks reuse the same reverse-proxy settings.
     -   Installed and configured the Nginx headers-more module so public responses use `Server: Promptbook Agents Server` instead of exposing the default Nginx server header.
 
+-   Fixed standalone VPS `Create new server` from raw-IP bootstrap access:
+
+    -   Server creation, domain edits, and domain deletion now apply Nginx/certbot changes without restarting the running Agents Server pm2 process inside the active admin API request, preventing the browser `fetch` from being aborted.
+    -   The VPS installer now reloads an already-running Nginx process instead of hard-restarting it during domain reconfiguration, preserving active proxied requests.
+
 -   Added a super-admin raw database admin for Agents Server:
 
     -   Embedded Prisma Studio is available at `System -> Super Admin -> Database` for the environment-backed `admin` user only.
