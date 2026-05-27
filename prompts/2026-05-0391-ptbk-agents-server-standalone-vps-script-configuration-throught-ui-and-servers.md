@@ -61,3 +61,18 @@ Have the DNS records propagated and should SSL setup continue now? [yes]: s21.pt
 ![alt text](prompts/screenshots/2026-05-0391-ptbk-agents-server-standalone-vps-script-configuration-throught-ui-and-servers.png)
 ![alt text](prompts/screenshots/2026-05-0391-ptbk-agents-server-standalone-vps-script-configuration-throught-ui-and-servers-1.png)
 
+---
+
+[ ] !
+
+[✨🤬] When accessing the server from IP address without domain to finish the configuration, it cannot login because of error in setting a cookie
+
+-   When no domain is added during the installation, the server is accessible on `http://<IP_ADDRESS>`
+-   This is needed to finish the configuration of the server, but when trying to log in, it fails on setting the cookie
+-   But you cannot login because of `This attempt to set a cookie via a Set-Cookie was blocked because it had the "Secure" attribute`
+-   Keep the security when accessing the server from domain, do the changes only when accessing the server from IP address without domain
+-   You are working with the [Agents Server](apps/agents-server)
+-   You are working with [auto installation script](vps/install.sh)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![alt text](prompts/screenshots/2026-05-0391-ptbk-agents-server-standalone-vps-script-configuration-throught-ui-and-servers-2.png)
