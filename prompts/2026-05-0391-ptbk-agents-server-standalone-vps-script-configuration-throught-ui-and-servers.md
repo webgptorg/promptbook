@@ -115,3 +115,54 @@ Have the DNS records propagated and should SSL setup continue now? [yes]: s21.pt
 
 ![alt text](prompts/screenshots/2026-05-0391-ptbk-agents-server-standalone-vps-script-configuration-throught-ui-and-servers-2.png)
 
+---
+
+[ ] !!!
+
+[✨🤬] The "Create new server" fails on `apply-domains`, fix it
+
+```log
+Server creation failed
+
+                Failed to run VPS installer command `apply-domains`.
+
+                [promptbook-vps] Configuring nginx reverse proxy for raw IP access and s22.ptbk.io.
+[promptbook-vps] Requesting Let's Encrypt SSL certificate for s22.ptbk.io.
+Requesting a certificate for s22.ptbk.io
+
+Certbot failed to authenticate some domains (authenticator: nginx). The Certificate Authority reported these problems:
+  Domain: s22.ptbk.io
+  Type:   connection
+  Detail: 84.246.166.18: Fetching http://s22.ptbk.io/.well-known/acme-challenge/RT_MT2yfyNIs-kk61_LoQ3w-xyJC8mcz6x5wtaGAy1g: Timeout during connect (likely firewall problem)
+
+Hint: The Certificate Authority failed to verify the temporary nginx configuration changes made by Certbot. Ensure the listed domains point to this nginx server and that it is accessible from the internet.
+
+
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+Synchronizing state of nginx.service with SysV service script with /usr/lib/systemd/systemd-sysv-install.
+Executing: /usr/lib/systemd/systemd-sysv-install enable nginx
+[promptbook-vps] Warning: s22.ptbk.io resolves to [84.246.166.18], not detected VPS IP 167.172.138.126. Certbot may fail.
+Saving debug log to /var/log/letsencrypt/letsencrypt.log
+Some challenges have failed.
+Ask for help or search for solutions at https://community.letsencrypt.org. See the logfile /var/log/letsencrypt/letsencrypt.log or re-run Certbot with -v for more details.
+
+Command failed: bash /opt/promptbook-agents-server/repository/other/vps/install.sh apply-domains
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+Synchronizing state of nginx.service with SysV service script with /usr/lib/systemd/systemd-sysv-install.
+Executing: /usr/lib/systemd/systemd-sysv-install enable nginx
+[promptbook-vps] Warning: s22.ptbk.io resolves to [84.246.166.18], not detected VPS IP 167.172.138.126. Certbot may fail.
+Saving debug log to /var/log/letsencrypt/letsencrypt.log
+Some challenges have failed.
+Ask for help or search for solutions at https://community.letsencrypt.org. See the logfile /var/log/letsencrypt/letsencrypt.log or re-run Certbot with -v for more details.
+
+If the issue persists, contact support@ptbk.io with the error details.
+```
+
+-   When no domain is added during the installation, the server is accessible on `http://<IP_ADDRESS>`
+-   This is needed to finish the configuration of the server, but this wizzard fails
+-   You are working with the [Agents Server](apps/agents-server)
+-   The server is initialized by [auto installation script](vps/install.sh)
+
+![alt text](prompts/screenshots/2026-05-0391-ptbk-agents-server-standalone-vps-script-configuration-throught-ui-and-servers-4.png)
