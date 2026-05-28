@@ -6,7 +6,6 @@
 root@collboard-agents-server-x21:~# sudo curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/other/vps/install.sh | bash
 ```
 
--   _(@@@ wait until `2026-05-0392-ptbk-agents-server-standalone-vps-database-admin.md` is ready)_
 -   Now the Agents server only supports SQLite and Supabase as the database, add support for PostgreSQL as well
 -   When installing Agents server through auto installation script `install.sh`, allow to pick between SQLite and PostgreSQL as the database for the Agents server, by default use PostgreSQL, but if the user prefers to use SQLite, allow them to choose it during the installation process and configure the Agents server to use SQLite instead of PostgreSQL
 -   Auto installation script should automatically install and configure PostgreSQL on the server if the user chooses to use PostgreSQL as the database for the Agents server, and also create a new database and user for the Agents server, and configure the Agents server to connect to the PostgreSQL database using the created user and database

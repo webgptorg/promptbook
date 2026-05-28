@@ -6,7 +6,6 @@
 root@collboard-agents-server-x21:~# sudo curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/other/vps/install.sh | bash
 ```
 
--   _(@@@ wait until `2026-05-0391-ptbk-agents-server-standalone-vps-script-configuration-throught-ui-and-servers.md` is ready)_
 -   Use the git repository of the Promptbook to implement the self-update functionality
 -   The update is always done against 4 different environmets:
     1. Live environment, which is the `main` branch of the repository
