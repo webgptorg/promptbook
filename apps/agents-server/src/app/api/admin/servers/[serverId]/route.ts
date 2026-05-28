@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { isAgentsServerSqliteMode } from '../../../../../database/agentsServerDatabaseMode';
+import { isAgentsServerStandaloneMode } from '../../../../../database/agentsServerDatabaseMode';
 import { resolveCurrentServerRegistryContext } from '../../../../../utils/currentServerRegistryContext';
 import { isUserGlobalAdmin } from '../../../../../utils/isUserGlobalAdmin';
 import {
@@ -37,7 +37,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ serve
         const body = (await request.json()) as Omit<UpdateServerInput, 'id'>;
         const parsedServerId = parseManagedServerId(serverId);
 
-        if (isAgentsServerSqliteMode()) {
+        if (isAgentsServerStandaloneMode()) {
             const updatedServer = await updateStandaloneVpsServerDomain(parsedServerId, body.domain);
             await applyStandaloneVpsServerMetadata({
                 tablePrefix: updatedServer.tablePrefix,
@@ -76,7 +76,7 @@ export async function DELETE(_request: Request, context: { params: Promise<{ ser
         const { serverId } = await context.params;
         const parsedServerId = parseManagedServerId(serverId);
 
-        if (isAgentsServerSqliteMode()) {
+        if (isAgentsServerStandaloneMode()) {
             await deleteStandaloneVpsServerDomain(parsedServerId);
             return NextResponse.json({
                 success: true,

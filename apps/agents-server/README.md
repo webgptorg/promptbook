@@ -12,10 +12,10 @@ ptbk agents-server init
 ptbk agents-server start --agent github-copilot --model gpt-5.4 --thinking-level xhigh
 ```
 
-`ptbk agents-server init` adds missing placeholders to `.env` and local runtime exclusions to `.gitignore` without deleting existing configuration. Use `PTBK_AGENTS_SERVER_DATABASE=supabase` for a Supabase-backed server or `PTBK_AGENTS_SERVER_DATABASE=sqlite` for a standalone local database in `.promptbook`. When using Supabase, fill the initialized values from your project before starting the server. The Supabase project URL and API keys are available in the [Supabase project API settings](https://supabase.com/docs/guides/api/api-keys), and the PostgreSQL connection string is available from the [Supabase database connection guide](https://supabase.com/docs/guides/database/connecting-to-postgres).
+`ptbk agents-server init` adds missing placeholders to `.env` and local runtime exclusions to `.gitignore` without deleting existing configuration. Use `PTBK_AGENTS_SERVER_DATABASE=supabase` for a Supabase-backed server, `PTBK_AGENTS_SERVER_DATABASE=postgres` for a standalone/self-hosted PostgreSQL server, or `PTBK_AGENTS_SERVER_DATABASE=sqlite` for a standalone local database in `.promptbook`. When using Supabase, fill the initialized values from your project before starting the server. When using direct PostgreSQL, fill `POSTGRES_URL` (or `DATABASE_URL`) with a connection string for your own PostgreSQL database.
 
 <a id="agents-server-env-ptbk-agents-server-database"></a>
--   `PTBK_AGENTS_SERVER_DATABASE`: Database backend used by Agents Server. Use `supabase` for the current hosted setup or `sqlite` for a standalone local database.
+-   `PTBK_AGENTS_SERVER_DATABASE`: Database backend used by Agents Server. Use `supabase` for a Supabase-backed deployment, `postgres` for a standalone/self-hosted PostgreSQL deployment, or `sqlite` for a standalone local database.
 
 <a id="agents-server-env-ptbk-agents-server-sqlite-path"></a>
 -   `PTBK_AGENTS_SERVER_SQLITE_PATH`: SQLite database file used when `PTBK_AGENTS_SERVER_DATABASE=sqlite`. Defaults to `.promptbook/agents-server.sqlite` in the launch directory.
@@ -24,16 +24,16 @@ ptbk agents-server start --agent github-copilot --model gpt-5.4 --thinking-level
 -   `OPENAI_API_KEY`: OpenAI API key used for Agents Server chat and agent execution. Create one in the [OpenAI API key settings](https://platform.openai.com/api-keys).
 
 <a id="agents-server-env-postgres-url"></a>
--   `POSTGRES_URL`: PostgreSQL connection string used by Agents Server SQL access and migrations. Copy a connection string from your Supabase database connection settings.
+-   `POSTGRES_URL`: PostgreSQL connection string used by Agents Server SQL access and migrations. This is required for direct `postgres` mode and can also point at a Supabase PostgreSQL database.
 
 <a id="agents-server-env-next-public-supabase-url"></a>
--   `NEXT_PUBLIC_SUPABASE_URL`: Public Supabase project URL used by Agents Server clients. Copy the project URL from your Supabase project API settings.
+-   `NEXT_PUBLIC_SUPABASE_URL`: Public Supabase project URL used by Agents Server clients in `supabase` mode. Copy the project URL from your Supabase project API settings.
 
 <a id="agents-server-env-next-public-supabase-anon-key"></a>
--   `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Public Supabase API key used by browser-side Supabase access. Copy the publishable or legacy anon key from your Supabase project API settings.
+-   `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Public Supabase API key used by browser-side Supabase access in `supabase` mode. Copy the publishable or legacy anon key from your Supabase project API settings.
 
 <a id="agents-server-env-supabase-service-role-key"></a>
--   `SUPABASE_SERVICE_ROLE_KEY`: Server-only Supabase key used by trusted Agents Server routes. Copy the service-role or secret key from your Supabase project API settings and keep it private.
+-   `SUPABASE_SERVICE_ROLE_KEY`: Server-only Supabase key used by trusted Agents Server routes in `supabase` mode. Copy the service-role or secret key from your Supabase project API settings and keep it private.
 
 <a id="agents-server-env-supabase-auto-migrate"></a>
 -   `SUPABASE_AUTO_MIGRATE`: Leave this as `true` for local startup so Agents Server creates and updates the database schema automatically.
