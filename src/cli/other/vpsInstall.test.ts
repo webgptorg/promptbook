@@ -48,7 +48,9 @@ describe('other/vps/install.sh', () => {
 
     it('keeps raw-IP bootstrap access when domain SSL issuance fails during apply-domains', () => {
         expect(installScript).toContain('if ! "${SUDO[@]}" certbot "${certbot_arguments[@]}"; then');
-        expect(installScript).toContain('Keeping the current public URL unchanged so raw-IP bootstrap access remains available.');
+        expect(installScript).toContain(
+            'Keeping the current public URL unchanged so raw-IP bootstrap access remains available.',
+        );
         expect(installScript).toContain('set_env_value NEXT_PUBLIC_SITE_URL "https://${first_domain}"');
     });
 });
