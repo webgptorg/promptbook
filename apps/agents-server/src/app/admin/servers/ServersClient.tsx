@@ -35,6 +35,7 @@ export function ServersClient() {
         deletingServerId,
         error,
         hasDirtyServerDrafts,
+        isStandaloneVps,
         isServerDraftDirty,
         loading,
         migrateServer,
@@ -122,6 +123,7 @@ export function ServersClient() {
                     <ServersRegistryTable
                         currentServerId={currentServerId}
                         canEdit={canEdit}
+                        isStandaloneVps={isStandaloneVps}
                         loading={loading}
                         migratingServerId={migratingServerId}
                         navigatingServerId={navigatingServerId}
@@ -139,27 +141,17 @@ export function ServersClient() {
 
             {canEdit ? (
                 <CreateServerDialog
-                    addAdditionalUser={createServerWizard.addAdditionalUser}
-                    derivedWizardTablePrefix={createServerWizard.derivedWizardTablePrefix}
                     handleCreateServer={createServerWizard.handleCreateServer}
                     handleIconUpload={createServerWizard.handleIconUpload}
-                    handleWizardBack={createServerWizard.handleWizardBack}
-                    handleWizardNext={createServerWizard.handleWizardNext}
-                    handleWizardStepSelection={createServerWizard.handleWizardStepSelection}
                     iconInputRef={createServerWizard.iconInputRef}
                     isCreatingServer={createServerWizard.isCreatingServer}
                     isOpen={createServerWizard.isDialogOpen}
                     isUploadingIcon={createServerWizard.isUploadingIcon}
-                    removeAdditionalUser={createServerWizard.removeAdditionalUser}
                     requestClose={createServerWizard.requestClose}
                     resetWizard={createServerWizard.resetWizard}
-                    updateAdditionalUser={createServerWizard.updateAdditionalUser}
-                    updateAdminUser={createServerWizard.updateAdminUser}
-                    updateInitialSetting={createServerWizard.updateInitialSetting}
                     updateWizardField={createServerWizard.updateWizardField}
                     wizardError={createServerWizard.wizardError}
                     wizardState={createServerWizard.wizardState}
-                    wizardStep={createServerWizard.wizardStep}
                 />
             ) : null}
 

@@ -202,13 +202,25 @@ export async function listConfiguredVpsDomains(): Promise<Array<string>> {
 }
 
 /**
+ * Options used when updating the standalone VPS domain list.
+ */
+type UpdateConfiguredVpsDomainsOptions = {
+    /**
+     * Optional server-level table prefix to persist together with the domain list.
+     */
+    readonly tablePrefix?: string | null;
+};
+
+/**
  * Replaces the standalone VPS domain list in `.env`.
  *
  * @param domains - Domains to store in `SERVERS`.
+ * @param options - Optional server-level settings to persist.
  * @returns Safe environment snapshot after writing.
  */
 export async function updateConfiguredVpsDomains(
     domains: ReadonlyArray<string>,
+    options?: UpdateConfiguredVpsDomainsOptions,
 ): Promise<Awaited<ReturnType<typeof listVpsEnvironmentVariables>>> {
     const normalizedDomains = normalizeDomains(domains);
     const primaryDomain = normalizedDomains[0] ?? '';
@@ -218,13 +230,15 @@ export async function updateConfiguredVpsDomains(
 
     if (primaryDomain) {
         updates.NEXT_PUBLIC_SITE_URL = `https://${primaryDomain}`;
-        updates.SUPABASE_TABLE_PREFIX = buildDomainTablePrefix(primaryDomain);
     } else {
         const publicIpAddress = process.env.PTBK_PUBLIC_IP_ADDRESS?.trim();
         updates.NEXT_PUBLIC_SITE_URL = publicIpAddress
             ? `http://${publicIpAddress}`
             : '';
-        updates.SUPABASE_TABLE_PREFIX = '';
+    }
+
+    if (options && Object.prototype.hasOwnProperty.call(options, 'tablePrefix')) {
+        updates.SUPABASE_TABLE_PREFIX = options.tablePrefix?.trim() || '';
     }
 
     return updateVpsEnvironmentVariables(updates);

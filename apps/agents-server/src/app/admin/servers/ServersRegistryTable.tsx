@@ -56,6 +56,11 @@ type ServersRegistryTableProps = {
     readonly loading: boolean;
 
     /**
+     * Whether rows are standalone VPS domains instead of database `_Server` records.
+     */
+    readonly isStandaloneVps: boolean;
+
+    /**
      * Server id currently running migrations.
      */
     readonly migratingServerId: number | null;
@@ -116,6 +121,7 @@ type ServersRegistryTableRowProps = {
     readonly currentServerId: number | null;
     readonly draft: ServerDraft | undefined;
     readonly isDirty: boolean;
+    readonly isStandaloneVps: boolean;
     readonly isMigrating: boolean;
     readonly isNavigating: boolean;
     readonly isSaving: boolean;
@@ -172,6 +178,7 @@ function ServersRegistryTableRow(props: ServersRegistryTableRowProps) {
         canEdit,
         draft,
         isDirty,
+        isStandaloneVps,
         isMigrating,
         isNavigating,
         isSaving,
@@ -195,23 +202,29 @@ function ServersRegistryTableRow(props: ServersRegistryTableRowProps) {
                     aria-label={`Server name for ${server.name}`}
                 />
             </td>
-            <td className="px-4 py-3 align-top">
-                <select
-                    value={draft?.environment || server.environment}
-                    onChange={(event) =>
-                        onUpdateServerDraft(server.id, 'environment', event.target.value as ManagedServerEnvironment)
-                    }
-                    className={INPUT_CLASS_NAME}
-                    disabled={!canEdit}
-                    aria-label={`Environment for ${server.name}`}
-                >
-                    {MANAGED_SERVER_ENVIRONMENT_OPTIONS.map((environment) => (
-                        <option key={environment} value={environment}>
-                            {environment}
-                        </option>
-                    ))}
-                </select>
-            </td>
+            {!isStandaloneVps ? (
+                <td className="px-4 py-3 align-top">
+                    <select
+                        value={draft?.environment || server.environment}
+                        onChange={(event) =>
+                            onUpdateServerDraft(
+                                server.id,
+                                'environment',
+                                event.target.value as ManagedServerEnvironment,
+                            )
+                        }
+                        className={INPUT_CLASS_NAME}
+                        disabled={!canEdit}
+                        aria-label={`Environment for ${server.name}`}
+                    >
+                        {MANAGED_SERVER_ENVIRONMENT_OPTIONS.map((environment) => (
+                            <option key={environment} value={environment}>
+                                {environment}
+                            </option>
+                        ))}
+                    </select>
+                </td>
+            ) : null}
             <td className="px-4 py-3 align-top">
                 <input
                     type="text"
@@ -222,16 +235,18 @@ function ServersRegistryTableRow(props: ServersRegistryTableRowProps) {
                     aria-label={`Domain for ${server.name}`}
                 />
             </td>
-            <td className="px-4 py-3 align-top">
-                <input
-                    type="text"
-                    value={draft?.tablePrefix || ''}
-                    onChange={(event) => onUpdateServerDraft(server.id, 'tablePrefix', event.target.value)}
-                    className={`${INPUT_CLASS_NAME} font-mono`}
-                    disabled={!canEdit}
-                    aria-label={`Table prefix for ${server.name}`}
-                />
-            </td>
+            {!isStandaloneVps ? (
+                <td className="px-4 py-3 align-top">
+                    <input
+                        type="text"
+                        value={draft?.tablePrefix || ''}
+                        onChange={(event) => onUpdateServerDraft(server.id, 'tablePrefix', event.target.value)}
+                        className={`${INPUT_CLASS_NAME} font-mono`}
+                        disabled={!canEdit}
+                        aria-label={`Table prefix for ${server.name}`}
+                    />
+                </td>
+            ) : null}
             <td className="px-4 py-3 align-top">
                 <div className="flex flex-wrap gap-2">
                     {isCurrent ? <ServerStatusBadge label="Current" tone="green" /> : null}
@@ -300,6 +315,7 @@ export function ServersRegistryTable(props: ServersRegistryTableProps) {
     const {
         currentServerId,
         canEdit,
+        isStandaloneVps,
         isServerDraftDirty,
         loading,
         migratingServerId,
@@ -329,22 +345,37 @@ export function ServersRegistryTable(props: ServersRegistryTableProps) {
             ) : (
                 <div className="mt-4 overflow-x-auto rounded-xl border border-gray-200">
                     <table className="min-w-full table-fixed divide-y divide-gray-200 text-sm">
-                        <colgroup>
-                            <col className="w-[16rem]" />
-                            <col className="w-[10rem]" />
-                            <col className="w-[18rem]" />
-                            <col className="w-[13rem]" />
-                            <col className="w-[10rem]" />
-                            <col className="w-[11rem]" />
-                            <col className="w-[11rem]" />
-                            <col className="w-[12rem]" />
-                        </colgroup>
+                        {isStandaloneVps ? (
+                            <colgroup>
+                                <col className="w-[16rem]" />
+                                <col className="w-[18rem]" />
+                                <col className="w-[10rem]" />
+                                <col className="w-[11rem]" />
+                                <col className="w-[11rem]" />
+                                <col className="w-[12rem]" />
+                            </colgroup>
+                        ) : (
+                            <colgroup>
+                                <col className="w-[16rem]" />
+                                <col className="w-[10rem]" />
+                                <col className="w-[18rem]" />
+                                <col className="w-[13rem]" />
+                                <col className="w-[10rem]" />
+                                <col className="w-[11rem]" />
+                                <col className="w-[11rem]" />
+                                <col className="w-[12rem]" />
+                            </colgroup>
+                        )}
                         <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
                             <tr>
                                 <th className="px-4 py-3 text-left font-semibold">Name</th>
-                                <th className="px-4 py-3 text-left font-semibold">Environment</th>
+                                {!isStandaloneVps ? (
+                                    <th className="px-4 py-3 text-left font-semibold">Environment</th>
+                                ) : null}
                                 <th className="px-4 py-3 text-left font-semibold">Domain</th>
-                                <th className="px-4 py-3 text-left font-semibold">Table prefix</th>
+                                {!isStandaloneVps ? (
+                                    <th className="px-4 py-3 text-left font-semibold">Table prefix</th>
+                                ) : null}
                                 <th className="px-4 py-3 text-left font-semibold">Status</th>
                                 <th className="px-4 py-3 text-left font-semibold">Created</th>
                                 <th className="px-4 py-3 text-left font-semibold">Updated</th>
@@ -359,6 +390,7 @@ export function ServersRegistryTable(props: ServersRegistryTableProps) {
                                     canEdit={canEdit}
                                     draft={serverDrafts[server.id]}
                                     isDirty={isServerDraftDirty(server)}
+                                    isStandaloneVps={isStandaloneVps}
                                     isMigrating={migratingServerId === server.id}
                                     isNavigating={navigatingServerId === server.id}
                                     isSaving={savingServerId === server.id}

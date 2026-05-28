@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
+import { spaceTrim } from 'spacetrim';
+import { DatabaseError } from '../../../../../../../src/errors/DatabaseError';
 import { isAgentsServerSqliteMode } from '../../../../database/agentsServerDatabaseMode';
 import { resolveCurrentServerRegistryContext } from '../../../../utils/currentServerRegistryContext';
 import { isUserAdmin } from '../../../../utils/isUserAdmin';
 import { isUserGlobalAdmin } from '../../../../utils/isUserGlobalAdmin';
+import { buildServerTablePrefix } from '../../../../utils/buildServerTablePrefix';
 import {
     createServerPublicUrl,
     listEnvironmentRegisteredServers,
@@ -14,6 +17,11 @@ import {
     resolveManagedServerErrorStatus,
     type CreateServerInput,
 } from '../../../../utils/serverManagement';
+import { ManagedServerInputNormalizer } from '../../../../utils/serverManagement/ManagedServerInputNormalizer';
+import {
+    applyStandaloneVpsServerMetadata,
+    resolveStandaloneVpsServerDisplayName,
+} from '../../../../utils/serverManagement/standaloneVpsServerMetadata';
 import {
     applyVpsRuntimeConfiguration,
     listConfiguredVpsDomains,
@@ -32,10 +40,20 @@ export async function GET() {
         }
 
         const context = await resolveCurrentServerRegistryContext();
+        const servers = isAgentsServerSqliteMode()
+            ? await Promise.all(
+                  context.registeredServers.map(async (server) => ({
+                      ...server,
+                      name: await resolveStandaloneVpsServerDisplayName(server),
+                  })),
+              )
+            : context.registeredServers;
+
         return NextResponse.json({
-            servers: context.registeredServers,
+            servers,
             currentServerId: context.currentServer?.id ?? null,
             canEdit: await isUserGlobalAdmin(),
+            isStandaloneVps: isAgentsServerSqliteMode(),
         });
     } catch (error) {
         return NextResponse.json(
@@ -57,17 +75,25 @@ export async function POST(request: Request) {
     try {
         assertGlobalAdminAccess(await isUserGlobalAdmin());
 
-        const body = (await request.json()) as CreateServerInput;
+        const body = withEnvironmentAdminUser((await request.json()) as CreateServerInput);
         if (isAgentsServerSqliteMode()) {
             const normalizedDomain = normalizeServerDomain(body.domain);
             if (!normalizedDomain) {
                 return NextResponse.json({ error: 'A valid domain is required.' }, { status: 400 });
             }
+            const tablePrefix = normalizeStandaloneVpsCreateServerTablePrefix(body);
 
             const existingDomains = await listConfiguredVpsDomains();
-            await updateConfiguredVpsDomains([...existingDomains, normalizedDomain]);
+            await updateConfiguredVpsDomains([...existingDomains, normalizedDomain], { tablePrefix });
             await applyVpsRuntimeConfiguration({ isProcessRestartEnabled: false });
             const createdServer = listEnvironmentRegisteredServers().find((server) => server.domain === normalizedDomain);
+            if (createdServer) {
+                await applyStandaloneVpsServerMetadata({
+                    tablePrefix: createdServer.tablePrefix,
+                    name: body.name,
+                    iconUrl: body.iconUrl,
+                });
+            }
 
             return NextResponse.json(
                 {
@@ -106,4 +132,49 @@ export async function POST(request: Request) {
             { status: resolveManagedServerErrorStatus(error) },
         );
     }
+}
+
+/**
+ * Uses the installer-managed environment admin when the browser no longer collects admin credentials.
+ *
+ * @param input - Raw create-server payload.
+ * @returns Payload compatible with the existing managed-server bootstrap flow.
+ */
+function withEnvironmentAdminUser(input: CreateServerInput): CreateServerInput {
+    const adminPassword = process.env.ADMIN_PASSWORD || input.adminUser?.password || '';
+    const adminUsername = input.adminUser?.username?.trim() || 'admin';
+
+    return {
+        ...input,
+        adminUser: {
+            username: adminUsername,
+            password: adminPassword,
+            isAdmin: true,
+        },
+        additionalUsers: input.additionalUsers || [],
+    };
+}
+
+/**
+ * Validates the generated server table prefix used by standalone VPS setup.
+ *
+ * @param input - Create-server payload with generated identifier and table prefix.
+ * @returns Validated server-level table prefix.
+ */
+function normalizeStandaloneVpsCreateServerTablePrefix(input: CreateServerInput): string {
+    const identifier = ManagedServerInputNormalizer.normalizeServerIdentifier(input.identifier);
+    const tablePrefix = ManagedServerInputNormalizer.validateServerTablePrefix(input.tablePrefix);
+    const expectedTablePrefix = buildServerTablePrefix(identifier);
+
+    if (tablePrefix !== expectedTablePrefix) {
+        throw new DatabaseError(
+            spaceTrim(`
+                Table prefix \`${tablePrefix}\` does not match generated server identifier \`${identifier}\`.
+
+                Expected \`${expectedTablePrefix}\`.
+            `),
+        );
+    }
+
+    return tablePrefix;
 }

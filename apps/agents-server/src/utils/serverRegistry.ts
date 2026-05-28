@@ -171,13 +171,14 @@ export async function listRegisteredServersUsingServiceRole(options?: {
 /**
  * Loads virtual server records from the comma-separated `SERVERS` environment variable.
  *
- * @returns Server records with deterministic table prefixes derived from normalized domains.
+ * @returns Server records with deterministic table prefixes from the configured server prefix or normalized domains.
  */
 export function listEnvironmentRegisteredServers(): Array<ServerRecord> {
     const rawServers = process.env[SERVERS_ENV_NAME];
     if (!rawServers) {
         return [];
     }
+    const configuredTablePrefix = process.env.SUPABASE_TABLE_PREFIX?.trim() || '';
 
     const normalizedDomains = uniqueStrings(
         rawServers
@@ -191,7 +192,7 @@ export function listEnvironmentRegisteredServers(): Array<ServerRecord> {
         name: domain,
         environment: SERVER_ENVIRONMENT.PRODUCTION,
         domain,
-        tablePrefix: buildEnvironmentServerTablePrefix(domain),
+        tablePrefix: configuredTablePrefix || buildEnvironmentServerTablePrefix(domain),
         createdAt: ENVIRONMENT_SERVER_TIMESTAMP,
         updatedAt: ENVIRONMENT_SERVER_TIMESTAMP,
     }));

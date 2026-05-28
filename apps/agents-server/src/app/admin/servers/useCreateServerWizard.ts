@@ -88,7 +88,7 @@ export type CreateServerWizardState = {
     name: string;
 
     /**
-     * Safe slug used to derive the table prefix.
+     * Safe slug derived from the server name.
      */
     identifier: string;
 
@@ -108,7 +108,7 @@ export type CreateServerWizardState = {
     iconUrl: string;
 
     /**
-     * Mandatory first admin account.
+     * Installer-managed admin account.
      */
     adminUser: {
         username: string;
@@ -154,102 +154,11 @@ export type CreateServerWizardError = {
  * @private function of <ServersClient/>
  */
 export type UpdateCreateServerWizardField = <
-    TFieldName extends keyof Pick<
-        CreateServerWizardState,
-        'name' | 'identifier' | 'environment' | 'domain' | 'iconUrl'
-    >,
+    TFieldName extends keyof Pick<CreateServerWizardState, 'name' | 'domain' | 'iconUrl'>,
 >(
     fieldName: TFieldName,
     value: CreateServerWizardState[TFieldName],
 ) => void;
-
-/**
- * Admin-user updater shared with the dialog component.
- *
- * @private function of <ServersClient/>
- */
-export type UpdateCreateServerAdminField = <TFieldName extends keyof CreateServerWizardState['adminUser']>(
-    fieldName: TFieldName,
-    value: CreateServerWizardState['adminUser'][TFieldName],
-) => void;
-
-/**
- * Initial-settings updater shared with the dialog component.
- *
- * @private function of <ServersClient/>
- */
-export type UpdateCreateServerInitialSetting = <TFieldName extends keyof CreateServerWizardState['initialSettings']>(
-    fieldName: TFieldName,
-    value: CreateServerWizardState['initialSettings'][TFieldName],
-) => void;
-
-/**
- * Additional-user updater shared with the dialog component.
- *
- * @private function of <ServersClient/>
- */
-export type UpdateCreateServerAdditionalUser = <TFieldName extends keyof WizardUser>(
-    index: number,
-    fieldName: TFieldName,
-    value: WizardUser[TFieldName],
-) => void;
-
-/**
- * Step labels shown in the create-server wizard.
- *
- * @private function of <ServersClient/>
- */
-export const CREATE_SERVER_WIZARD_STEPS = [
-    {
-        title: 'Profile',
-        description: 'Name, identifier, environment, domain, and branding.',
-    },
-    {
-        title: 'Users',
-        description: 'Bootstrap admin credentials and optional extra users.',
-    },
-    {
-        title: 'Settings',
-        description: 'Language, homepage message, and initial feature flags.',
-    },
-] as const;
-
-/**
- * Boolean settings rendered as checkbox cards in the final wizard step.
- *
- * @private function of <ServersClient/>
- */
-type CreateServerBooleanFeatureFlagKey = keyof Pick<
-    CreateServerInitialSettings,
-    'isFileAttachmentsEnabled' | 'isExperimentalPwaAppEnabled' | 'isFooterShown'
->;
-
-/**
- * Boolean feature flags exposed in the create-server wizard.
- *
- * @private function of <ServersClient/>
- */
-export const CREATE_SERVER_BOOLEAN_FEATURE_FLAGS: ReadonlyArray<{
-    readonly key: CreateServerBooleanFeatureFlagKey;
-    readonly title: string;
-    readonly description: string;
-}> = [
-    {
-        key: 'isFileAttachmentsEnabled',
-        title: 'File attachments enabled',
-        description: 'Allow chat attachments on the new server.',
-    },
-    {
-        key: 'isExperimentalPwaAppEnabled',
-        title: 'PWA install enabled',
-        description: 'Expose the experimental install-as-app option.',
-    },
-    {
-        key: 'isFooterShown',
-        title: 'Footer shown',
-        description: 'Render the shared footer on public pages.',
-    },
-] as const;
 
 /**
  * Hook options used to coordinate post-create refresh behavior.
@@ -270,16 +179,6 @@ type UseCreateServerWizardOptions = {
  */
 type UseCreateServerWizardResult = {
     /**
-     * Adds a new extra bootstrap user row.
-     */
-    readonly addAdditionalUser: () => void;
-
-    /**
-     * Derived table-prefix preview for the current identifier.
-     */
-    readonly derivedWizardTablePrefix: string;
-
-    /**
      * Persists the wizard as a new registered server.
      */
     readonly handleCreateServer: () => Promise<void>;
@@ -288,21 +187,6 @@ type UseCreateServerWizardResult = {
      * Uploads a server icon and stores the resulting URL.
      */
     readonly handleIconUpload: (event: ChangeEvent<HTMLInputElement>) => Promise<void>;
-
-    /**
-     * Moves the wizard one step backward.
-     */
-    readonly handleWizardBack: () => void;
-
-    /**
-     * Moves the wizard one step forward after validating the current step.
-     */
-    readonly handleWizardNext: () => Promise<void>;
-
-    /**
-     * Navigates to the requested wizard step with step validation.
-     */
-    readonly handleWizardStepSelection: (nextStep: number) => Promise<void>;
 
     /**
      * Hidden file input used for icon uploads.
@@ -335,11 +219,6 @@ type UseCreateServerWizardResult = {
     readonly openDialog: () => void;
 
     /**
-     * Removes one extra bootstrap user row.
-     */
-    readonly removeAdditionalUser: (index: number) => void;
-
-    /**
      * Closes the dialog while respecting the dirty-state guard.
      */
     readonly requestClose: () => void;
@@ -348,21 +227,6 @@ type UseCreateServerWizardResult = {
      * Resets the dialog state to its initial values.
      */
     readonly resetWizard: () => void;
-
-    /**
-     * Updates one extra bootstrap user row.
-     */
-    readonly updateAdditionalUser: UpdateCreateServerAdditionalUser;
-
-    /**
-     * Updates the required admin-user fields.
-     */
-    readonly updateAdminUser: UpdateCreateServerAdminField;
-
-    /**
-     * Updates one initial setting field.
-     */
-    readonly updateInitialSetting: UpdateCreateServerInitialSetting;
 
     /**
      * Updates one top-level wizard field.
@@ -378,25 +242,7 @@ type UseCreateServerWizardResult = {
      * Current create-server form state.
      */
     readonly wizardState: CreateServerWizardState;
-
-    /**
-     * Current wizard step index.
-     */
-    readonly wizardStep: number;
 };
-
-/**
- * Creates an empty extra-user row for the create-server wizard.
- *
- * @returns Fresh extra-user draft.
- */
-function createEmptyWizardUser(): WizardUser {
-    return {
-        username: '',
-        password: '',
-        isAdmin: false,
-    };
-}
 
 /**
  * Creates the initial create-server wizard state.
@@ -407,7 +253,7 @@ function createInitialWizardState(): CreateServerWizardState {
     return {
         name: '',
         identifier: '',
-        environment: 'PREVIEW',
+        environment: 'PRODUCTION',
         domain: '',
         iconUrl: '',
         adminUser: {
@@ -424,6 +270,22 @@ function createInitialWizardState(): CreateServerWizardState {
             isFooterShown: true,
         },
     };
+}
+
+/**
+ * Derives a URL-safe server identifier from the visible server name.
+ *
+ * @param name - Raw server name.
+ * @returns Lowercase hyphenated identifier.
+ */
+function createServerIdentifierFromName(name: string): string {
+    return name
+        .normalize('NFKD')
+        .replace(/[\u0300-\u036f]/gu, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/gu, '-')
+        .replace(/^-+|-+$/gu, '')
+        .replace(/-+/gu, '-');
 }
 
 /**
@@ -446,60 +308,24 @@ function deriveWizardTablePrefix(identifier: string): string {
 }
 
 /**
- * Validates the create-server wizard up to the requested step.
+ * Validates the simplified create-server wizard.
  *
  * @param wizardState - Current wizard form data.
- * @param derivedTablePrefix - Derived prefix preview for the current identifier.
- * @param upToStep - Highest wizard step that must be valid.
+ * @param derivedTablePrefix - Derived prefix preview for the generated identifier.
  * @returns User-facing validation message or `null` when valid.
  */
 function getCreateServerWizardValidationMessage(
     wizardState: CreateServerWizardState,
     derivedTablePrefix: string,
-    upToStep: number,
 ): string | null {
-    if (upToStep >= 0) {
-        if (wizardState.name.trim() === '') {
-            return 'Server name is required.';
-        }
-        if (wizardState.identifier.trim() === '') {
-            return 'Server identifier is required.';
-        }
-        if (!derivedTablePrefix) {
-            return 'Server identifier must contain only lowercase letters, numbers, and hyphens.';
-        }
-        if (wizardState.domain.trim() === '') {
-            return 'Server domain is required.';
-        }
+    if (wizardState.name.trim() === '') {
+        return 'Server name is required.';
     }
-
-    if (upToStep >= 1) {
-        if (wizardState.adminUser.username.trim() === '') {
-            return 'Admin username is required.';
-        }
-        if (wizardState.adminUser.password === '') {
-            return 'Admin password is required.';
-        }
-
-        const seenUsernames = new Set<string>([wizardState.adminUser.username.trim().toLowerCase()]);
-        for (const [index, user] of wizardState.additionalUsers.entries()) {
-            if (user.username.trim() === '') {
-                return `Additional user ${index + 1} must have a username.`;
-            }
-            if (user.password === '') {
-                return `Additional user ${index + 1} must have a password.`;
-            }
-
-            const normalizedUsername = user.username.trim().toLowerCase();
-            if (seenUsernames.has(normalizedUsername)) {
-                return `Username "${user.username.trim()}" is duplicated in the bootstrap users list.`;
-            }
-            seenUsernames.add(normalizedUsername);
-        }
+    if (wizardState.identifier.trim() === '' || !derivedTablePrefix) {
+        return 'Server name must contain at least one letter or number.';
     }
-
-    if (upToStep >= 2 && wizardState.initialSettings.language.trim() === '') {
-        return 'Initial language is required.';
+    if (wizardState.domain.trim() === '') {
+        return 'Server domain is required.';
     }
 
     return null;
@@ -509,40 +335,21 @@ function getCreateServerWizardValidationMessage(
  * Returns whether the create-server wizard contains unsaved values.
  *
  * @param wizardState - Current wizard form state.
- * @returns `true` when any wizard field differs from its initial value.
+ * @returns `true` when any visible wizard field differs from its initial value.
  */
 function hasCreateServerWizardChanges(wizardState: CreateServerWizardState): boolean {
     const initialWizardState = createInitialWizardState();
 
-    if (
+    return (
         wizardState.name !== initialWizardState.name ||
         wizardState.identifier !== initialWizardState.identifier ||
-        wizardState.environment !== initialWizardState.environment ||
         wizardState.domain !== initialWizardState.domain ||
-        wizardState.iconUrl !== initialWizardState.iconUrl ||
-        wizardState.adminUser.username !== initialWizardState.adminUser.username ||
-        wizardState.adminUser.password !== initialWizardState.adminUser.password ||
-        wizardState.initialSettings.language !== initialWizardState.initialSettings.language ||
-        wizardState.initialSettings.homepageMessage !== initialWizardState.initialSettings.homepageMessage ||
-        wizardState.initialSettings.feedbackMode !== initialWizardState.initialSettings.feedbackMode ||
-        wizardState.initialSettings.isFileAttachmentsEnabled !==
-            initialWizardState.initialSettings.isFileAttachmentsEnabled ||
-        wizardState.initialSettings.isExperimentalPwaAppEnabled !==
-            initialWizardState.initialSettings.isExperimentalPwaAppEnabled ||
-        wizardState.initialSettings.isFooterShown !== initialWizardState.initialSettings.isFooterShown
-    ) {
-        return true;
-    }
-
-    if (wizardState.additionalUsers.length !== initialWizardState.additionalUsers.length) {
-        return true;
-    }
-
-    return wizardState.additionalUsers.some((user) => user.username !== '' || user.password !== '' || user.isAdmin);
+        wizardState.iconUrl !== initialWizardState.iconUrl
+    );
 }
 
 /**
- * Encapsulates the multi-step create-server dialog state and side effects.
+ * Encapsulates the simplified create-server dialog state and side effects.
  *
  * @param options - Hook options.
  * @returns Dialog state, derived values, and event handlers.
@@ -552,7 +359,6 @@ function hasCreateServerWizardChanges(wizardState: CreateServerWizardState): boo
 export function useCreateServerWizard(options: UseCreateServerWizardOptions): UseCreateServerWizardResult {
     const { onServerCreated } = options;
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [wizardStep, setWizardStep] = useState(0);
     const [wizardState, setWizardState] = useState<CreateServerWizardState>(createInitialWizardState);
     const [isCreatingServer, setIsCreatingServer] = useState(false);
     const [wizardError, setWizardError] = useState<CreateServerWizardError | null>(null);
@@ -566,7 +372,6 @@ export function useCreateServerWizard(options: UseCreateServerWizardOptions): Us
     const isDirty = useMemo(() => hasCreateServerWizardChanges(wizardState), [wizardState]);
 
     const resetWizard = useCallback(() => {
-        setWizardStep(0);
         setWizardState(createInitialWizardState());
         setWizardError(null);
 
@@ -593,53 +398,20 @@ export function useCreateServerWizard(options: UseCreateServerWizardOptions): Us
     }, [resetWizard]);
 
     const updateWizardField = useCallback<UpdateCreateServerWizardField>((fieldName, value) => {
-        setWizardState((previous) => ({
-            ...previous,
-            [fieldName]: value,
-        }));
-    }, []);
+        setWizardState((previous) => {
+            if (fieldName === 'name') {
+                return {
+                    ...previous,
+                    name: value,
+                    identifier: createServerIdentifierFromName(value),
+                };
+            }
 
-    const updateAdminUser = useCallback<UpdateCreateServerAdminField>((fieldName, value) => {
-        setWizardState((previous) => ({
-            ...previous,
-            adminUser: {
-                ...previous.adminUser,
+            return {
+                ...previous,
                 [fieldName]: value,
-            },
-        }));
-    }, []);
-
-    const updateInitialSetting = useCallback<UpdateCreateServerInitialSetting>((fieldName, value) => {
-        setWizardState((previous) => ({
-            ...previous,
-            initialSettings: {
-                ...previous.initialSettings,
-                [fieldName]: value,
-            },
-        }));
-    }, []);
-
-    const updateAdditionalUser = useCallback<UpdateCreateServerAdditionalUser>((index, fieldName, value) => {
-        setWizardState((previous) => ({
-            ...previous,
-            additionalUsers: previous.additionalUsers.map((user, userIndex) =>
-                userIndex === index ? { ...user, [fieldName]: value } : user,
-            ),
-        }));
-    }, []);
-
-    const addAdditionalUser = useCallback(() => {
-        setWizardState((previous) => ({
-            ...previous,
-            additionalUsers: [...previous.additionalUsers, createEmptyWizardUser()],
-        }));
-    }, []);
-
-    const removeAdditionalUser = useCallback((index: number) => {
-        setWizardState((previous) => ({
-            ...previous,
-            additionalUsers: previous.additionalUsers.filter((_, userIndex) => userIndex !== index),
-        }));
+            };
+        });
     }, []);
 
     const handleIconUpload = useCallback(
@@ -686,11 +458,7 @@ export function useCreateServerWizard(options: UseCreateServerWizardOptions): Us
     );
 
     const handleCreateServer = useCallback(async () => {
-        const validationMessage = getCreateServerWizardValidationMessage(
-            wizardState,
-            derivedWizardTablePrefix,
-            CREATE_SERVER_WIZARD_STEPS.length - 1,
-        );
+        const validationMessage = getCreateServerWizardValidationMessage(wizardState, derivedWizardTablePrefix);
         if (validationMessage) {
             await showAlert({
                 title: 'Create server',
@@ -739,75 +507,19 @@ export function useCreateServerWizard(options: UseCreateServerWizardOptions): Us
         }
     }, [closeDialog, derivedWizardTablePrefix, onServerCreated, wizardState]);
 
-    const handleWizardBack = useCallback(() => {
-        setWizardStep((previous) => Math.max(0, previous - 1));
-    }, []);
-
-    const handleWizardNext = useCallback(async () => {
-        const validationMessage = getCreateServerWizardValidationMessage(
-            wizardState,
-            derivedWizardTablePrefix,
-            wizardStep,
-        );
-        if (validationMessage) {
-            await showAlert({
-                title: 'Create server',
-                message: validationMessage,
-            }).catch(() => undefined);
-            return;
-        }
-
-        setWizardStep((previous) => Math.min(CREATE_SERVER_WIZARD_STEPS.length - 1, previous + 1));
-    }, [derivedWizardTablePrefix, wizardState, wizardStep]);
-
-    const handleWizardStepSelection = useCallback(
-        async (nextStep: number) => {
-            if (nextStep <= wizardStep) {
-                setWizardStep(nextStep);
-                return;
-            }
-
-            const validationMessage = getCreateServerWizardValidationMessage(
-                wizardState,
-                derivedWizardTablePrefix,
-                wizardStep,
-            );
-            if (validationMessage) {
-                await showAlert({
-                    title: 'Create server',
-                    message: validationMessage,
-                }).catch(() => undefined);
-                return;
-            }
-
-            setWizardStep(nextStep);
-        },
-        [derivedWizardTablePrefix, wizardState, wizardStep],
-    );
-
     return {
-        addAdditionalUser,
-        derivedWizardTablePrefix,
         handleCreateServer,
         handleIconUpload,
-        handleWizardBack,
-        handleWizardNext,
-        handleWizardStepSelection,
         iconInputRef,
         isCreatingServer,
         isDialogOpen,
         isDirty,
         isUploadingIcon,
         openDialog,
-        removeAdditionalUser,
         requestClose,
         resetWizard,
-        updateAdditionalUser,
-        updateAdminUser,
-        updateInitialSetting,
         updateWizardField,
         wizardError,
         wizardState,
-        wizardStep,
     };
 }

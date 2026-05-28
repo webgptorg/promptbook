@@ -23,6 +23,11 @@ type ManagedServersReadResponse = {
     readonly canEdit: boolean;
 
     /**
+     * Whether the registry is backed by standalone VPS `SERVERS` configuration.
+     */
+    readonly isStandaloneVps?: boolean;
+
+    /**
      * Optional failure message returned by the API.
      */
     readonly error?: string;

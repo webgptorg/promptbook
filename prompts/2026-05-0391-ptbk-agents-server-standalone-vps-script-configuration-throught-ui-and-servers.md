@@ -92,7 +92,7 @@ Have the DNS records propagated and should SSL setup continue now? [yes]: s21.pt
 
 ---
 
-[ ] !!!
+[x] - Manually commited
 
 [✨🤬] Simplify the "Create new server" wizzard
 

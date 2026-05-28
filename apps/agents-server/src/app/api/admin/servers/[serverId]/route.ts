@@ -15,6 +15,7 @@ import {
     updateManagedServer,
     type UpdateServerInput,
 } from '../../../../../utils/serverManagement';
+import { applyStandaloneVpsServerMetadata } from '../../../../../utils/serverManagement/standaloneVpsServerMetadata';
 import {
     applyVpsRuntimeConfiguration,
     listConfiguredVpsDomains,
@@ -38,6 +39,10 @@ export async function PATCH(request: Request, context: { params: Promise<{ serve
 
         if (isAgentsServerSqliteMode()) {
             const updatedServer = await updateStandaloneVpsServerDomain(parsedServerId, body.domain);
+            await applyStandaloneVpsServerMetadata({
+                tablePrefix: updatedServer.tablePrefix,
+                name: body.name,
+            });
             return NextResponse.json({ server: updatedServer });
         }
 

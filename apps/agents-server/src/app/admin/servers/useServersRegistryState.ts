@@ -179,6 +179,11 @@ type UseServersRegistryStateResult = {
     readonly loading: boolean;
 
     /**
+     * Whether the registry rows are virtual standalone VPS domains.
+     */
+    readonly isStandaloneVps: boolean;
+
+    /**
      * Server id currently running migrations.
      */
     readonly migratingServerId: number | null;
@@ -433,6 +438,7 @@ function useServersRegistryDraftState(servers: ReadonlyArray<ManagedServerRow>) 
  * @private function of useServersRegistryState
  */
 function useServersRegistryReloadAction(options: {
+    readonly setIsStandaloneVps: (isStandaloneVps: boolean) => void;
     readonly replaceServerDrafts: (servers: ReadonlyArray<ManagedServerRow>) => void;
     readonly setCanEdit: (canEdit: boolean) => void;
     readonly setCurrentServerId: (currentServerId: number | null) => void;
@@ -440,7 +446,15 @@ function useServersRegistryReloadAction(options: {
     readonly setLoading: (isLoading: boolean) => void;
     readonly setServers: (servers: ManagedServerRow[]) => void;
 }) {
-    const { replaceServerDrafts, setCanEdit, setCurrentServerId, setError, setLoading, setServers } = options;
+    const {
+        replaceServerDrafts,
+        setCanEdit,
+        setCurrentServerId,
+        setError,
+        setIsStandaloneVps,
+        setLoading,
+        setServers,
+    } = options;
 
     return useCallback(async () => {
         setLoading(true);
@@ -451,13 +465,14 @@ function useServersRegistryReloadAction(options: {
             setServers([...payload.servers]);
             setCurrentServerId(payload.currentServerId);
             setCanEdit(payload.canEdit);
+            setIsStandaloneVps(payload.isStandaloneVps === true);
             replaceServerDrafts(payload.servers);
         } catch (loadError) {
             setError(resolveServersRegistryActionErrorMessage(loadError, 'Failed to load servers.'));
         } finally {
             setLoading(false);
         }
-    }, [replaceServerDrafts, setCanEdit, setCurrentServerId, setError, setLoading, setServers]);
+    }, [replaceServerDrafts, setCanEdit, setCurrentServerId, setError, setIsStandaloneVps, setLoading, setServers]);
 }
 
 /**
@@ -626,6 +641,7 @@ function useDeleteCurrentServerAction(options: {
 export function useServersRegistryState(): UseServersRegistryStateResult {
     const [servers, setServers] = useState<ManagedServerRow[]>([]);
     const [canEdit, setCanEdit] = useState(false);
+    const [isStandaloneVps, setIsStandaloneVps] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [currentServerId, setCurrentServerId] = useState<number | null>(null);
@@ -646,6 +662,7 @@ export function useServersRegistryState(): UseServersRegistryStateResult {
         setCanEdit,
         setCurrentServerId,
         setError,
+        setIsStandaloneVps,
         setLoading,
         setServers,
     });
@@ -688,6 +705,7 @@ export function useServersRegistryState(): UseServersRegistryStateResult {
         error,
         hasDirtyServerDrafts,
         isServerDraftDirty,
+        isStandaloneVps,
         loading,
         migrateServer,
         migratingServerId,

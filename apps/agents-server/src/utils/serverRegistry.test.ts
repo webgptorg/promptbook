@@ -1,13 +1,16 @@
 import { listEnvironmentRegisteredServers } from './serverRegistry';
 
 const ORIGINAL_SERVERS = process.env.SERVERS;
+const ORIGINAL_SUPABASE_TABLE_PREFIX = process.env.SUPABASE_TABLE_PREFIX;
 
 describe('listEnvironmentRegisteredServers', () => {
     afterEach(() => {
         restoreEnvironmentVariable('SERVERS', ORIGINAL_SERVERS);
+        restoreEnvironmentVariable('SUPABASE_TABLE_PREFIX', ORIGINAL_SUPABASE_TABLE_PREFIX);
     });
 
     it('creates deterministic production server records from SERVERS', () => {
+        delete process.env.SUPABASE_TABLE_PREFIX;
         setEnvironmentVariable('SERVERS', 'https://www.example.com, support.example-site.com, www.example.com');
 
         expect(listEnvironmentRegisteredServers()).toEqual([
@@ -32,7 +35,18 @@ describe('listEnvironmentRegisteredServers', () => {
         ]);
     });
 
+    it('uses the configured standalone VPS table prefix for all SERVERS domains', () => {
+        setEnvironmentVariable('SERVERS', 'www.example.com, support.example.com');
+        setEnvironmentVariable('SUPABASE_TABLE_PREFIX', 'server_AcmeSupport_');
+
+        expect(listEnvironmentRegisteredServers().map((server) => server.tablePrefix)).toEqual([
+            'server_AcmeSupport_',
+            'server_AcmeSupport_',
+        ]);
+    });
+
     it('ignores invalid and empty SERVERS entries', () => {
+        delete process.env.SUPABASE_TABLE_PREFIX;
         setEnvironmentVariable('SERVERS', 'example.com, not a domain, , https://valid.example.com/path');
 
         expect(listEnvironmentRegisteredServers().map((server) => server.domain)).toEqual([
@@ -48,7 +62,7 @@ describe('listEnvironmentRegisteredServers', () => {
  * @param envName - Environment variable name.
  * @param value - Original value before the test changed it.
  */
-function restoreEnvironmentVariable(envName: 'SERVERS', value: string | undefined): void {
+function restoreEnvironmentVariable(envName: 'SERVERS' | 'SUPABASE_TABLE_PREFIX', value: string | undefined): void {
     if (value === undefined) {
         delete process.env[envName];
         return;
@@ -63,6 +77,6 @@ function restoreEnvironmentVariable(envName: 'SERVERS', value: string | undefine
  * @param envName - Environment variable name.
  * @param value - Value to assign for the current test.
  */
-function setEnvironmentVariable(envName: 'SERVERS', value: string): void {
+function setEnvironmentVariable(envName: 'SERVERS' | 'SUPABASE_TABLE_PREFIX', value: string): void {
     Reflect.set(process.env, envName, value);
 }

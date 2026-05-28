@@ -1,3 +1,9 @@
+-   Simplified standalone VPS Agents Server server creation:
+
+    -   Reduced the "Create new server" dialog to server name, domain, optional icon, and an installer-managed admin notice.
+    -   Generated the server identifier and table prefix from the visible server name instead of asking admins to edit them manually.
+    -   Hid per-domain environment/table-prefix controls for standalone VPS domain rows and stores the visible server name in metadata.
+
 -   Branded standalone VPS Nginx responses for Agents Server installs:
 
     -   The VPS installer now replaces stock Nginx welcome files with a Promptbook fallback page and wires Nginx-generated 4xx/5xx errors to the same branded page.
