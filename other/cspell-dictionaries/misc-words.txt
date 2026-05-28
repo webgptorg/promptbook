@@ -130,6 +130,7 @@ since
 choises
 choise
 lagacy
+certbot
 eventsource
 chatbots
 whay

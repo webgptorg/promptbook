@@ -117,7 +117,7 @@ Have the DNS records propagated and should SSL setup continue now? [yes]: s21.pt
 
 ---
 
-[ ] !!!
+[x] (2 attempts) ~$0.00 2 hours by GitHub Copilot `gpt-5.4`
 
 [✨🤬] The "Create new server" fails on `apply-domains`, fix it
 
@@ -166,3 +166,4 @@ If the issue persists, contact support@ptbk.io with the error details.
 -   The server is initialized by [auto installation script](vps/install.sh)
 
 ![alt text](prompts/screenshots/2026-05-0391-ptbk-agents-server-standalone-vps-script-configuration-throught-ui-and-servers-4.png)
+

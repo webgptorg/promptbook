@@ -9,6 +9,7 @@ describe('shouldUseSecureSessionCookieForRequest', () => {
                 host: '203.0.113.42',
                 forwardedHost: null,
                 forwardedProto: 'http',
+                nextPublicSiteUrl: 'http://203.0.113.42',
                 configuredServers: '',
                 publicIpAddress: '203.0.113.42',
             }),
@@ -22,10 +23,25 @@ describe('shouldUseSecureSessionCookieForRequest', () => {
                 host: 'agents.example.com',
                 forwardedHost: null,
                 forwardedProto: 'https',
+                nextPublicSiteUrl: 'https://agents.example.com',
                 configuredServers: 'agents.example.com',
                 publicIpAddress: '203.0.113.42',
             }),
         ).toBe(true);
+    });
+
+    it('allows non-secure cookies while standalone VPS raw-IP bootstrap stays active', () => {
+        expect(
+            shouldUseSecureSessionCookieForRequest({
+                isProduction: true,
+                host: '203.0.113.42',
+                forwardedHost: null,
+                forwardedProto: 'http',
+                nextPublicSiteUrl: 'http://203.0.113.42',
+                configuredServers: 'agents.example.com',
+                publicIpAddress: '203.0.113.42',
+            }),
+        ).toBe(false);
     });
 
     it('keeps secure cookies when raw-IP access is not the configured standalone VPS address', () => {
@@ -35,6 +51,7 @@ describe('shouldUseSecureSessionCookieForRequest', () => {
                 host: '198.51.100.10',
                 forwardedHost: null,
                 forwardedProto: 'http',
+                nextPublicSiteUrl: 'http://203.0.113.42',
                 configuredServers: '',
                 publicIpAddress: '203.0.113.42',
             }),
@@ -48,6 +65,7 @@ describe('shouldUseSecureSessionCookieForRequest', () => {
                 host: 'agents.example.com',
                 forwardedHost: null,
                 forwardedProto: 'https',
+                nextPublicSiteUrl: 'https://agents.example.com',
                 configuredServers: 'agents.example.com',
                 publicIpAddress: '203.0.113.42',
             }),

@@ -89,7 +89,8 @@ const config = defineConfig({
             },
         },
         {
-            command: 'npm run prebuild && next build && npm run start',
+            command:
+                'npm run prebuild && node -r ./scripts/ignore-kill-eperm.js ../../node_modules/next/dist/bin/next build && npm run start',
             cwd: __dirname,
             url: APP_URL,
             reuseExistingServer: false,

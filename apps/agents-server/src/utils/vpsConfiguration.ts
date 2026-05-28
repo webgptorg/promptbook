@@ -6,6 +6,7 @@ import { promisify } from 'util';
 import { spaceTrim } from 'spacetrim';
 import { NotAllowed } from '../../../../src/errors/NotAllowed';
 import { normalizeServerDomain } from './serverRegistry';
+import { isStandaloneVpsRawIpBootstrapActive } from './standaloneVpsRawIpBootstrap';
 
 const execFileAsync = promisify(execFile);
 
@@ -224,14 +225,21 @@ export async function updateConfiguredVpsDomains(
 ): Promise<Awaited<ReturnType<typeof listVpsEnvironmentVariables>>> {
     const normalizedDomains = normalizeDomains(domains);
     const primaryDomain = normalizedDomains[0] ?? '';
+    const envValues = await readVpsEnvironmentMap(resolveVpsEnvironmentFilePath());
+    const currentPublicSiteUrl = envValues.get('NEXT_PUBLIC_SITE_URL') ?? process.env.NEXT_PUBLIC_SITE_URL ?? '';
+    const publicIpAddress = envValues.get('PTBK_PUBLIC_IP_ADDRESS') ?? process.env.PTBK_PUBLIC_IP_ADDRESS ?? '';
     const updates: Record<string, string> = {
         SERVERS: normalizedDomains.join(','),
     };
 
     if (primaryDomain) {
-        updates.NEXT_PUBLIC_SITE_URL = `https://${primaryDomain}`;
+        updates.NEXT_PUBLIC_SITE_URL = isStandaloneVpsRawIpBootstrapActive({
+            nextPublicSiteUrl: currentPublicSiteUrl,
+            publicIpAddress,
+        })
+            ? currentPublicSiteUrl
+            : `https://${primaryDomain}`;
     } else {
-        const publicIpAddress = process.env.PTBK_PUBLIC_IP_ADDRESS?.trim();
         updates.NEXT_PUBLIC_SITE_URL = publicIpAddress
             ? `http://${publicIpAddress}`
             : '';

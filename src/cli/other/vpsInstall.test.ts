@@ -45,4 +45,10 @@ describe('other/vps/install.sh', () => {
         expect(installScript).toContain("printf '20.19.0'");
         expect(installScript).toContain('NODE_MINIMUM_VERSION="$minimum_version" node -e');
     });
+
+    it('keeps raw-IP bootstrap access when domain SSL issuance fails during apply-domains', () => {
+        expect(installScript).toContain('if ! "${SUDO[@]}" certbot "${certbot_arguments[@]}"; then');
+        expect(installScript).toContain('Keeping the current public URL unchanged so raw-IP bootstrap access remains available.');
+        expect(installScript).toContain('set_env_value NEXT_PUBLIC_SITE_URL "https://${first_domain}"');
+    });
 });

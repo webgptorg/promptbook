@@ -1,3 +1,8 @@
+-   Fixed standalone VPS `Create new server` when `apply-domains` cannot finish Let's Encrypt validation yet:
+
+    -   Adding the first domain from raw-IP bootstrap mode now keeps `NEXT_PUBLIC_SITE_URL` on the VPS IP until domain activation succeeds, so login and admin access over `http://<IP_ADDRESS>` keep working.
+    -   `other/vps/install.sh apply-domains` now treats Certbot validation failures as a warning, keeps the current public URL unchanged, and switches to the first configured domain only after certificate issuance succeeds.
+
 -   Simplified standalone VPS Agents Server server creation:
 
     -   Reduced the "Create new server" dialog to server name, domain, optional icon, and an installer-managed admin notice.

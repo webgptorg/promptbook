@@ -1228,6 +1228,7 @@ warn_if_domain_dns_is_not_ready() {
 configure_ssl_certificates() {
     local certbot_arguments=(--nginx --non-interactive --agree-tos --redirect --keep-until-expiring --expand)
     local domain=""
+    local first_domain="${DOMAINS[0]:-}"
 
     if [[ "${#DOMAINS[@]}" -eq 0 ]]; then
         log "Skipping Let's Encrypt SSL setup because no custom domains are configured."
@@ -1247,7 +1248,16 @@ configure_ssl_certificates() {
     done
 
     log "Requesting Let's Encrypt SSL certificate for $SERVERS."
-    "${SUDO[@]}" certbot "${certbot_arguments[@]}"
+    if ! "${SUDO[@]}" certbot "${certbot_arguments[@]}"; then
+        warn "Let's Encrypt certificate request failed for $SERVERS. Keeping the current public URL unchanged so raw-IP bootstrap access remains available."
+        warn "Fix DNS and firewall access for these domains, then rerun: bash $PROMPTBOOK_REPOSITORY_DIR/other/vps/install.sh apply-domains"
+        return
+    fi
+
+    if [[ -n "$first_domain" ]]; then
+        set_env_value NEXT_PUBLIC_SITE_URL "https://${first_domain}"
+    fi
+
     "${SUDO[@]}" systemctl reload nginx
 }
 

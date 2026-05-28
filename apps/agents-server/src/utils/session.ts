@@ -1,6 +1,7 @@
 import { createHmac } from 'crypto';
 import { cookies, headers } from 'next/headers';
 import { cache } from 'react';
+import { isStandaloneVpsRawIpBootstrapActive } from './standaloneVpsRawIpBootstrap';
 
 /**
  * Cookie name used to store the signed user session.
@@ -50,6 +51,10 @@ export type SessionCookieSecurityContext = {
      * Raw forwarded protocol header emitted by the reverse proxy.
      */
     readonly forwardedProto: string | null;
+    /**
+     * Canonical public site URL from `NEXT_PUBLIC_SITE_URL`.
+     */
+    readonly nextPublicSiteUrl: string | null | undefined;
     /**
      * Comma-separated configured domain list from `SERVERS`.
      */
@@ -121,7 +126,13 @@ export function shouldUseSecureSessionCookieForRequest(context: SessionCookieSec
         return false;
     }
 
-    if (parseConfiguredServers(context.configuredServers).length > 0) {
+    if (
+        parseConfiguredServers(context.configuredServers).length > 0 &&
+        !isStandaloneVpsRawIpBootstrapActive({
+            nextPublicSiteUrl: context.nextPublicSiteUrl,
+            publicIpAddress: context.publicIpAddress,
+        })
+    ) {
         return true;
     }
 
@@ -201,6 +212,7 @@ async function shouldUseSecureSessionCookie(): Promise<boolean> {
         host: headerStore.get('host'),
         forwardedHost: headerStore.get('x-forwarded-host'),
         forwardedProto: headerStore.get('x-forwarded-proto'),
+        nextPublicSiteUrl: process.env.NEXT_PUBLIC_SITE_URL,
         configuredServers: process.env.SERVERS,
         publicIpAddress: process.env.PTBK_PUBLIC_IP_ADDRESS,
     });

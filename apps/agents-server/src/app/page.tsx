@@ -13,6 +13,7 @@ import {
     resolveRegisteredServerByHost,
     type ServerRecord,
 } from '../utils/serverRegistry';
+import { isStandaloneVpsRawIpBootstrapActive } from '../utils/standaloneVpsRawIpBootstrap';
 import { getHomePageAgents } from './_data/getHomePageAgents';
 
 /**
@@ -75,6 +76,15 @@ async function resolveIpAddressRouting(host: string | null): Promise<'LOGIN' | '
 
     if (registeredServers.length === 0) {
         return (await isUserGlobalAdmin()) ? 'CONFIGURE' : 'LOGIN';
+    }
+
+    if (
+        isStandaloneVpsRawIpBootstrapActive({
+            nextPublicSiteUrl: process.env.NEXT_PUBLIC_SITE_URL,
+            publicIpAddress: process.env.PTBK_PUBLIC_IP_ADDRESS,
+        })
+    ) {
+        return null;
     }
 
     if (registeredServers.length === 1) {
