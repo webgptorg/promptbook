@@ -150,7 +150,7 @@ export class DocumentScraper implements Converter, Scraper {
             */
         } satisfies ScraperSourceHandler;
 
-        const knowledge = this.markdownScraper.scrape(markdownSource);
+        const knowledge = await this.markdownScraper.scrape(markdownSource);
 
         await cacheFilehandler.destroy();
 

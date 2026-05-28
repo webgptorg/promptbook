@@ -1,3 +1,8 @@
+-   Fixed document scraper unit-test flakiness caused by early intermediate-file cleanup:
+
+    -   `DocumentScraper` and `LegacyDocumentScraper` now await the nested scraper work before deleting temporary converted files.
+    -   This keeps `.docx`, `.odt`, `.doc`, and `.rtf` scraping deterministic under slower or more heavily loaded test runs.
+
 -   Fixed standalone VPS `Create new server` when `apply-domains` cannot finish Let's Encrypt validation yet:
 
     -   Adding the first domain from raw-IP bootstrap mode now keeps `NEXT_PUBLIC_SITE_URL` on the VPS IP until domain activation succeeds, so login and admin access over `http://<IP_ADDRESS>` keep working.

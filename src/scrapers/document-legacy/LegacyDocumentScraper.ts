@@ -190,7 +190,7 @@ export class LegacyDocumentScraper implements Converter, Scraper {
             */
         } satisfies ScraperSourceHandler;
 
-        const knowledge = this.documentScraper.scrape(markdownSource);
+        const knowledge = await this.documentScraper.scrape(markdownSource);
 
         await cacheFilehandler.destroy();
 
