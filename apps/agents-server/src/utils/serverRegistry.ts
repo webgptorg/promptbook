@@ -1,7 +1,7 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { spaceTrim } from 'spacetrim';
 import { DatabaseError } from '../../../../src/errors/DatabaseError';
-import { isAgentsServerStandaloneMode } from '../database/agentsServerDatabaseMode';
+import { isAgentsServerSqliteMode } from '../database/agentsServerDatabaseMode';
 
 /**
  * Supported `_Server.environment` values.
@@ -139,7 +139,7 @@ export async function listRegisteredServersUsingServiceRole(options?: {
 }): Promise<Array<ServerRecord>> {
     const environmentServers = listEnvironmentRegisteredServers();
 
-    if (isAgentsServerStandaloneMode()) {
+    if (isAgentsServerSqliteMode()) {
         return environmentServers;
     }
 
@@ -350,10 +350,10 @@ export function isServerEnvironment(value: string): value is ServerEnvironment {
  * @returns Shared untyped Supabase client.
  */
 export function getServerRegistryClient(): SupabaseClient {
-    if (isAgentsServerStandaloneMode()) {
+    if (isAgentsServerSqliteMode()) {
         throw new DatabaseError(
             spaceTrim(`
-                Cannot create a Supabase server-registry client while Agents Server is using a standalone database backend.
+                Cannot create a Supabase server-registry client while Agents Server is using SQLite.
             `),
         );
     }
