@@ -1,7 +1,7 @@
 import type { StudioBFFSqlLintDetails, StudioBFFSqlLintResult } from '@prisma/studio-core/data/bff';
-import { Pool, type PoolClient } from 'pg';
+import type { Pool, PoolClient } from 'pg';
+import { $providePostgresPool } from './$providePostgresPool';
 import { isAgentsServerSqliteMode } from './agentsServerDatabaseMode';
-import { resolvePostgresConnectionString } from './resolvePostgresConnectionString';
 import {
     $provideAgentsServerSqliteDatabase,
     type AgentsServerSqliteDatabase,
@@ -32,11 +32,6 @@ export type DatabaseAdminExecutor = {
 };
 
 /**
- * Shared PostgreSQL pool for Embedded Prisma Studio requests.
- */
-let databaseAdminPostgresPool: Pool | null = null;
-
-/**
  * Provides a raw SQL executor for the configured Agents Server database backend.
  *
  * @returns Database admin executor for the active database mode.
@@ -53,7 +48,7 @@ export function $provideDatabaseAdminExecutor(): DatabaseAdminExecutor {
  * @returns PostgreSQL-backed database admin executor.
  */
 function $providePostgresDatabaseAdminExecutor(): DatabaseAdminExecutor {
-    const pool = $provideDatabaseAdminPostgresPool();
+    const pool = $providePostgresPool();
 
     return {
         execute: (query) => executePostgresDatabaseAdminQuery(pool, query),
@@ -80,22 +75,6 @@ function $provideSqliteDatabaseAdminExecutor(): DatabaseAdminExecutor {
             ),
         lintSql: (details) => Promise.resolve({ diagnostics: [], schemaVersion: details.schemaVersion }),
     };
-}
-
-/**
- * Provides the shared PostgreSQL connection pool for raw database admin access.
- *
- * @returns Shared PostgreSQL pool.
- */
-function $provideDatabaseAdminPostgresPool(): Pool {
-    if (!databaseAdminPostgresPool) {
-        databaseAdminPostgresPool = new Pool({
-            connectionString: resolvePostgresConnectionString(),
-            ssl: { rejectUnauthorized: false },
-        });
-    }
-
-    return databaseAdminPostgresPool;
 }
 
 /**

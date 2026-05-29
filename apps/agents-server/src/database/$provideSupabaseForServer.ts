@@ -1,8 +1,11 @@
+import { createRequire } from 'module';
 import { $isRunningInNode } from '@promptbook-local/utils';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { isAgentsServerSqliteMode } from './agentsServerDatabaseMode';
+import { isAgentsServerPostgresMode, isAgentsServerSqliteMode } from './agentsServerDatabaseMode';
 import { $provideLocalSqliteSupabase } from './sqlite/$provideLocalSqliteSupabase';
 import { AgentsServerDatabase } from './schema';
+
+const requirePostgresSupabase = createRequire(__filename);
 
 /**
  * Internal cache for `$provideSupabaseForServer`
@@ -30,6 +33,13 @@ export function $provideSupabaseForServer(): SupabaseClient<AgentsServerDatabase
 
     if (isAgentsServerSqliteMode()) {
         return $provideLocalSqliteSupabase() as SupabaseClient<AgentsServerDatabase>;
+    }
+
+    if (isAgentsServerPostgresMode()) {
+        const { $provideLocalPostgresSupabase } = requirePostgresSupabase(
+            './postgres/$provideLocalPostgresSupabase',
+        ) as typeof import('./postgres/$provideLocalPostgresSupabase');
+        return $provideLocalPostgresSupabase() as SupabaseClient<AgentsServerDatabase>;
     }
 
     if (!supabase) {

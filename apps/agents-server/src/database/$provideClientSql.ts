@@ -1,6 +1,5 @@
 import { $isRunningInNode } from '@promptbook-local/utils';
-import { Pool } from 'pg';
-import { resolvePostgresConnectionString } from './resolvePostgresConnectionString';
+import { $providePostgresPool } from './$providePostgresPool';
 
 /**
  * SQL tagged-template executor used by server routes and utilities.
@@ -32,13 +31,6 @@ export type ClientSqlExecutor = ClientSql & {
 };
 
 /**
- * Shared PostgreSQL pool reused across all requests in the server process.
- *
- * @private internal singleton of Agents Server database layer
- */
-let clientPool: Pool | undefined;
-
-/**
  * Provides SQL tagged-template client for server-side PostgreSQL access.
  *
  * @private exported from Agents Server database utils
@@ -48,12 +40,7 @@ export async function $provideClientSql(): Promise<ClientSqlExecutor> {
         throw new Error('Function `$provideClientSql` can only be used in Node.js runtime.');
     }
 
-    if (!clientPool) {
-        clientPool = new Pool({
-            connectionString: resolvePostgresConnectionString(),
-            ssl: { rejectUnauthorized: false },
-        });
-    }
+    const clientPool = $providePostgresPool();
 
     const executeTemplate = async <TRow = Array<Record<string, unknown>>>(
         templateStrings: TemplateStringsArray,
@@ -68,7 +55,7 @@ export async function $provideClientSql(): Promise<ClientSqlExecutor> {
         }
 
         const text = textChunks.join('');
-        const result = await clientPool!.query(text, [...templateValues]);
+        const result = await clientPool.query(text, [...templateValues]);
         return result.rows as TRow;
     };
 
@@ -76,7 +63,7 @@ export async function $provideClientSql(): Promise<ClientSqlExecutor> {
         text: string,
         values: ReadonlyArray<unknown> = [],
     ): Promise<TRow> => {
-        const result = await clientPool!.query(text, [...values]);
+        const result = await clientPool.query(text, [...values]);
         return result.rows as TRow;
     };
 

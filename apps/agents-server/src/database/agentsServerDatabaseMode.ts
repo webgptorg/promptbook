@@ -11,7 +11,7 @@ export const AGENTS_SERVER_SQLITE_PATH_ENV_NAME = 'PTBK_AGENTS_SERVER_SQLITE_PAT
 /**
  * Supported Agents Server database backends.
  */
-export type AgentsServerDatabaseMode = 'supabase' | 'sqlite';
+export type AgentsServerDatabaseMode = 'supabase' | 'sqlite' | 'postgres';
 
 /**
  * Resolves the configured Agents Server database backend.
@@ -23,6 +23,10 @@ export function resolveAgentsServerDatabaseMode(): AgentsServerDatabaseMode {
         return 'sqlite';
     }
 
+    if (rawMode === 'postgres' || rawMode === 'postgresql') {
+        return 'postgres';
+    }
+
     return 'supabase';
 }
 
@@ -31,4 +35,19 @@ export function resolveAgentsServerDatabaseMode(): AgentsServerDatabaseMode {
  */
 export function isAgentsServerSqliteMode(): boolean {
     return resolveAgentsServerDatabaseMode() === 'sqlite';
+}
+
+/**
+ * Returns whether the Agents Server is using the standalone PostgreSQL backend.
+ */
+export function isAgentsServerPostgresMode(): boolean {
+    return resolveAgentsServerDatabaseMode() === 'postgres';
+}
+
+/**
+ * Returns whether the Agents Server is using a standalone local database backend.
+ */
+export function isAgentsServerStandaloneMode(): boolean {
+    const databaseMode = resolveAgentsServerDatabaseMode();
+    return databaseMode === 'sqlite' || databaseMode === 'postgres';
 }

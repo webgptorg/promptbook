@@ -26,7 +26,7 @@ const AGENTS_SERVER_ENV_DOCUMENTATION_BASE_URL =
 const AGENTS_SERVER_ENV_CREATED_COMMENT = '# Created by `ptbk agents-server init` command';
 
 /**
- * Variables required for a local Agents Server backed by Supabase or standalone SQLite.
+ * Variables required for a local Agents Server backed by Supabase, standalone PostgreSQL, or standalone SQLite.
  */
 const REQUIRED_AGENTS_SERVER_ENV_VARIABLES: ReadonlyArray<RequiredAgentsServerEnvVariable> = [
     createAgentsServerEnvVariable('PTBK_AGENTS_SERVER_DATABASE', 'supabase'),
