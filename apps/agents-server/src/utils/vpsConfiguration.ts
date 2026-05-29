@@ -16,37 +16,52 @@ const execFileAsync = promisify(execFile);
 export const HIDDEN_ENVIRONMENT_VALUE = '********';
 
 /**
- * Environment variable names that can be managed from the standalone VPS UI.
+ * One standalone VPS environment-variable definition.
  */
-export const VPS_ENVIRONMENT_VARIABLE_KEYS = [
-    'SERVERS',
-    'NEXT_PUBLIC_SITE_URL',
-    'ADMIN_PASSWORD',
-    'OPENAI_API_KEY',
-    'PTBK_AGENT',
-    'PTBK_MODEL',
-    'PTBK_THINKING_LEVEL',
-    'PORT',
-    'PTBK_HOSTNAME',
-    'PTBK_PUBLIC_IP_ADDRESS',
-    'PTBK_PM2_APP_NAME',
-    'PTBK_NGINX_SITE_NAME',
-    'LETS_ENCRYPT_EMAIL',
-    'PTBK_AGENTS_SERVER_DATABASE',
-    'PTBK_AGENTS_SERVER_SQLITE_PATH',
-    'SUPABASE_TABLE_PREFIX',
-    'SUPABASE_AUTO_MIGRATE',
-    'COPILOT_GITHUB_TOKEN',
-    'GH_TOKEN',
-    'ANTHROPIC_CLAUDE_API_KEY',
-    'GOOGLE_GENERATIVE_AI_API_KEY',
-    'AZUREOPENAI_API_KEY',
+type VpsEnvironmentVariableDefinition = {
+    readonly key: string;
+    readonly isEditable: boolean;
+};
+
+/**
+ * Environment variable definitions visible in the standalone VPS UI.
+ */
+export const VPS_ENVIRONMENT_VARIABLE_DEFINITIONS = [
+    { key: 'SERVERS', isEditable: true },
+    { key: 'NEXT_PUBLIC_SITE_URL', isEditable: true },
+    { key: 'ADMIN_PASSWORD', isEditable: true },
+    { key: 'OPENAI_API_KEY', isEditable: true },
+    { key: 'PTBK_AGENT', isEditable: true },
+    { key: 'PTBK_MODEL', isEditable: true },
+    { key: 'PTBK_THINKING_LEVEL', isEditable: true },
+    { key: 'PORT', isEditable: true },
+    { key: 'PTBK_HOSTNAME', isEditable: true },
+    { key: 'PTBK_PUBLIC_IP_ADDRESS', isEditable: true },
+    { key: 'PTBK_PM2_APP_NAME', isEditable: true },
+    { key: 'PTBK_NGINX_SITE_NAME', isEditable: true },
+    { key: 'LETS_ENCRYPT_EMAIL', isEditable: true },
+    { key: 'PTBK_AGENTS_SERVER_DATABASE', isEditable: false },
+    { key: 'PTBK_AGENTS_SERVER_SQLITE_PATH', isEditable: false },
+    { key: 'POSTGRES_HOST', isEditable: false },
+    { key: 'POSTGRES_PORT', isEditable: false },
+    { key: 'POSTGRES_DATABASE', isEditable: false },
+    { key: 'POSTGRES_USER', isEditable: false },
+    { key: 'POSTGRES_PASSWORD', isEditable: false },
+    { key: 'POSTGRES_URL', isEditable: false },
+    { key: 'DATABASE_URL', isEditable: false },
+    { key: 'SUPABASE_TABLE_PREFIX', isEditable: true },
+    { key: 'SUPABASE_AUTO_MIGRATE', isEditable: true },
+    { key: 'COPILOT_GITHUB_TOKEN', isEditable: true },
+    { key: 'GH_TOKEN', isEditable: true },
+    { key: 'ANTHROPIC_CLAUDE_API_KEY', isEditable: true },
+    { key: 'GOOGLE_GENERATIVE_AI_API_KEY', isEditable: true },
+    { key: 'AZUREOPENAI_API_KEY', isEditable: true },
 ] as const;
 
 /**
- * Editable environment variable key supported by the standalone VPS UI.
+ * Environment variable key supported by the standalone VPS UI.
  */
-export type VpsEnvironmentVariableKey = (typeof VPS_ENVIRONMENT_VARIABLE_KEYS)[number];
+export type VpsEnvironmentVariableKey = (typeof VPS_ENVIRONMENT_VARIABLE_DEFINITIONS)[number]['key'];
 
 /**
  * One environment variable row safe to send to the browser.
@@ -66,6 +81,11 @@ export type VpsEnvironmentVariableRecord = {
      * Whether the real stored value is sensitive and hidden.
      */
     readonly isSensitive: boolean;
+
+    /**
+     * Whether the variable can be edited through the admin UI.
+     */
+    readonly isEditable: boolean;
 
     /**
      * Whether the variable exists in the `.env` file or current process.
@@ -151,13 +171,14 @@ export async function listVpsEnvironmentVariables(): Promise<{
 
     return {
         envFilePath,
-        variables: VPS_ENVIRONMENT_VARIABLE_KEYS.map((key) => {
+        variables: VPS_ENVIRONMENT_VARIABLE_DEFINITIONS.map(({ key, isEditable }) => {
             const rawValue = envValues.get(key) ?? process.env[key] ?? '';
             const isSensitive = isSensitiveEnvironmentVariable(key);
             return {
                 key,
                 value: isSensitive && rawValue ? HIDDEN_ENVIRONMENT_VALUE : rawValue,
                 isSensitive,
+                isEditable,
                 isDefined: rawValue !== '',
             };
         }),
@@ -380,7 +401,11 @@ export function createVpsInstallerCommandEnvironment(
  * @returns `true` when the value is sensitive.
  */
 export function isSensitiveEnvironmentVariable(key: string): boolean {
-    return /(?:PASSWORD|SECRET|TOKEN|API_KEY|PRIVATE_KEY|CREDENTIAL)/iu.test(key);
+    return (
+        /(?:PASSWORD|SECRET|TOKEN|API_KEY|PRIVATE_KEY|CREDENTIAL)/iu.test(key) ||
+        key === 'POSTGRES_URL' ||
+        key === 'DATABASE_URL'
+    );
 }
 
 /**
@@ -462,10 +487,19 @@ function normalizeVpsEnvironmentUpdates(updates: Readonly<Record<string, string>
     const normalizedUpdates = new Map<string, string>();
 
     for (const [rawKey, rawValue] of Object.entries(updates)) {
-        if (!isVpsEnvironmentVariableKey(rawKey)) {
+        const environmentVariableDefinition = getVpsEnvironmentVariableDefinition(rawKey);
+        if (!environmentVariableDefinition) {
             throw new NotAllowed(
                 spaceTrim(`
                     Environment variable \`${rawKey}\` is not editable through the Agents Server UI.
+                `),
+            );
+        }
+
+        if (!environmentVariableDefinition.isEditable) {
+            throw new NotAllowed(
+                spaceTrim(`
+                    Environment variable \`${rawKey}\` is managed by the VPS installer and can not be edited through the Agents Server UI.
                 `),
             );
         }
@@ -486,13 +520,13 @@ function normalizeVpsEnvironmentUpdates(updates: Readonly<Record<string, string>
 }
 
 /**
- * Checks whether a raw key is supported by the VPS UI.
+ * Resolves one supported VPS environment-variable definition by key.
  *
  * @param key - Candidate environment variable key.
- * @returns `true` when supported.
+ * @returns Matching definition or `undefined`.
  */
-function isVpsEnvironmentVariableKey(key: string): key is VpsEnvironmentVariableKey {
-    return VPS_ENVIRONMENT_VARIABLE_KEYS.includes(key as VpsEnvironmentVariableKey);
+function getVpsEnvironmentVariableDefinition(key: string): VpsEnvironmentVariableDefinition | undefined {
+    return VPS_ENVIRONMENT_VARIABLE_DEFINITIONS.find((definition) => definition.key === key);
 }
 
 /**

@@ -1,3 +1,9 @@
+-   Added direct PostgreSQL support for standalone Agents Server deployments:
+
+    -   `apps/agents-server` now accepts `PTBK_AGENTS_SERVER_DATABASE=postgres`, routes the server-side Supabase-shaped data access through a direct PostgreSQL adapter, and keeps Embedded Prisma Studio working for SQLite, PostgreSQL, and Supabase backends.
+    -   Automatic SQL migrations now skip cleanly in SQLite mode, and the super-admin VPS environment screen shows installer-managed database settings as read-only instead of allowing database backend changes from the UI.
+    -   `other/vps/install.sh` now defaults new standalone installs to PostgreSQL, can switch to SQLite on request, installs/configures local PostgreSQL automatically, creates a dedicated database/user with a generated strong password, stores the resulting database settings in `.env`, and prints the PostgreSQL credentials in the install summary.
+
 -   Fixed document scraper unit-test flakiness caused by early intermediate-file cleanup:
 
     -   `DocumentScraper` and `LegacyDocumentScraper` now await the nested scraper work before deleting temporary converted files.

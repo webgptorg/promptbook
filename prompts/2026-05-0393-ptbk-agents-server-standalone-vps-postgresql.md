@@ -1,4 +1,4 @@
-[ ] !!!
+[x] failed after an hour by GitHub Copilot `gpt-5.4` but seems working
 
 [✨🤬] Add support for PostgreSQL in Agents server
 
@@ -16,3 +16,4 @@ root@collboard-agents-server-x21:~# sudo curl -fsSL https://raw.githubuserconten
 -   You are working with the [Agents Server](apps/agents-server)
 -   You are working with [auto installation script](vps/install.sh)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

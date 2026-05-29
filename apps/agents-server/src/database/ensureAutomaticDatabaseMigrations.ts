@@ -3,6 +3,7 @@ import {
     resolveDatabaseMigrationConnectionStringFromEnvironment,
     runDatabaseMigrations,
 } from './runDatabaseMigrations';
+import { isAgentsServerSqliteMode } from './agentsServerDatabaseMode';
 import { listEnvironmentRegisteredServers } from '../utils/serverRegistry';
 
 /**
@@ -74,6 +75,10 @@ function createAutomaticDatabaseMigrationPromise(prefix: string): Promise<void> 
  */
 async function runAutomaticDatabaseMigrationsForPrefix(prefix: string): Promise<boolean> {
     if (shouldSkipAutomaticDatabaseMigrations()) {
+        return true;
+    }
+
+    if (isAgentsServerSqliteMode()) {
         return true;
     }
 

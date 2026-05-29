@@ -1,7 +1,12 @@
 import { mkdtemp, readFile, rm, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
-import { createVpsInstallerCommandEnvironment, updateConfiguredVpsDomains } from './vpsConfiguration';
+import {
+    createVpsInstallerCommandEnvironment,
+    listVpsEnvironmentVariables,
+    updateConfiguredVpsDomains,
+    updateVpsEnvironmentVariables,
+} from './vpsConfiguration';
 
 /**
  * Original restart-skip flag restored after each environment-mutating test.
@@ -63,6 +68,60 @@ describe('vpsConfiguration', () => {
 
             expect(nextEnvFileContent).toContain('SERVERS=agents.example.com');
             expect(nextEnvFileContent).toContain('NEXT_PUBLIC_SITE_URL=http://203.0.113.42');
+        } finally {
+            await rm(tempDirectory, { recursive: true, force: true });
+        }
+    });
+
+    it('shows installer-managed database variables as read-only and masks the PostgreSQL URL', async () => {
+        const tempDirectory = await mkdtemp(join(tmpdir(), 'promptbook-vps-configuration-'));
+        const envFilePath = join(tempDirectory, '.env');
+
+        try {
+            await writeFile(
+                envFilePath,
+                [
+                    'PTBK_AGENTS_SERVER_DATABASE=postgres',
+                    'POSTGRES_URL=postgresql://promptbook:s3cr3t@example.test:5432/promptbook',
+                ].join('\n'),
+                'utf-8',
+            );
+
+            process.env.PTBK_AGENTS_SERVER_ENV_FILE = envFilePath;
+
+            const snapshot = await listVpsEnvironmentVariables();
+            const databaseModeRecord = snapshot.variables.find((variable) => variable.key === 'PTBK_AGENTS_SERVER_DATABASE');
+            const postgresUrlRecord = snapshot.variables.find((variable) => variable.key === 'POSTGRES_URL');
+
+            expect(databaseModeRecord).toMatchObject({
+                value: 'postgres',
+                isEditable: false,
+                isDefined: true,
+            });
+            expect(postgresUrlRecord).toMatchObject({
+                value: '********',
+                isEditable: false,
+                isSensitive: true,
+                isDefined: true,
+            });
+        } finally {
+            await rm(tempDirectory, { recursive: true, force: true });
+        }
+    });
+
+    it('rejects read-only database variables coming from the admin UI', async () => {
+        const tempDirectory = await mkdtemp(join(tmpdir(), 'promptbook-vps-configuration-'));
+        const envFilePath = join(tempDirectory, '.env');
+
+        try {
+            await writeFile(envFilePath, '', 'utf-8');
+            process.env.PTBK_AGENTS_SERVER_ENV_FILE = envFilePath;
+
+            await expect(
+                updateVpsEnvironmentVariables({
+                    PTBK_AGENTS_SERVER_DATABASE: 'sqlite',
+                }),
+            ).rejects.toThrow('managed by the VPS installer');
         } finally {
             await rm(tempDirectory, { recursive: true, force: true });
         }
