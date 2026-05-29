@@ -136,6 +136,7 @@ header.viewAllUsers: Zobrazit všechny uživatele
 header.createNewUser: Vytvořit nového uživatele
 header.servers: Servery
 header.environmentVariables: Proměnné prostředí
+header.update: Aktualizace
 header.database: Databáze
 header.logs: Logy
 header.codeRunners: Code runnery

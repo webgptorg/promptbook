@@ -1,4 +1,4 @@
-[ ] !!!!!
+[x] ~$0.00 2 hours by GitHub Copilot `gpt-5.4`
 
 [✨⬆] Add build in self-update into Agents server for super `admin`
 
@@ -24,3 +24,4 @@ root@collboard-agents-server-x21:~# sudo curl -fsSL https://raw.githubuserconten
 -   The server is initialized by [auto installation script](vps/install.sh)
 -   You are working with [auto installation script](vps/install.sh)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

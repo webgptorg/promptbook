@@ -3,6 +3,7 @@ import {
     Code2,
     Globe2,
     KeyRound,
+    RefreshCw,
     Settings2,
     UserRound,
     Wrench,
@@ -202,6 +203,11 @@ export function buildHeaderSystemMenuItems({
         },
         ...(isGlobalAdmin
             ? [
+                  {
+                      label: translate('header.update'),
+                      href: '/admin/update',
+                      icon: RefreshCw,
+                  } as SubMenuItem,
                   {
                       label: translate('header.database'),
                       href: '/admin/database',

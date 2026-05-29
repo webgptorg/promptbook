@@ -50,6 +50,7 @@ describe('buildHeaderSystemMenuItems', () => {
             expect.arrayContaining([
                 'translated:header.settings',
                 'translated:header.environmentVariables',
+                'translated:header.update',
                 'translated:header.database',
                 'translated:header.logs',
                 'translated:header.codeRunners',
@@ -61,7 +62,7 @@ describe('buildHeaderSystemMenuItems', () => {
         );
     });
 
-    it('shows the raw database admin link only to the super admin', () => {
+    it('shows the raw super-admin maintenance links only to the super admin', () => {
         const translate = (key: ServerTranslationKey) => `translated:${key}`;
         const normalAdminItems = buildHeaderSystemMenuItems({
             translate,
@@ -81,6 +82,7 @@ describe('buildHeaderSystemMenuItems', () => {
         });
 
         expect(collectStringLabels(normalAdminItems)).not.toContain('translated:header.database');
+        expect(collectStringLabels(normalAdminItems)).not.toContain('translated:header.update');
         expect(userItems.map((item) => item.label)).not.toContain('translated:header.superAdmin');
     });
 });

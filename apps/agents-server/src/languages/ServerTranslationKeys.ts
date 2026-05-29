@@ -142,6 +142,7 @@ export const SERVER_TRANSLATION_KEYS = [
     'header.createNewUser',
     'header.servers',
     'header.environmentVariables',
+    'header.update',
     'header.database',
     'header.logs',
     'header.codeRunners',

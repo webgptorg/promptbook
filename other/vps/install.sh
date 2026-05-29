@@ -8,7 +8,7 @@ NODE_MAJOR_VERSION="${NODE_MAJOR_VERSION:-22}"
 NODE_MINIMUM_VERSION="${NODE_MINIMUM_VERSION:-}"
 PORT="${PORT:-${PTBK_PORT:-4440}}"
 PROMPTBOOK_REPOSITORY_URL="${PROMPTBOOK_REPOSITORY_URL:-https://github.com/webgptorg/promptbook.git}"
-PROMPTBOOK_REPOSITORY_REF="${PROMPTBOOK_REPOSITORY_REF:-main}"
+PROMPTBOOK_REPOSITORY_REF="${PROMPTBOOK_REPOSITORY_REF:-production}"
 PROMPTBOOK_REPOSITORY_DIR="${PROMPTBOOK_REPOSITORY_DIR:-$INSTALL_DIR/repository}"
 PTBK_BIN_DIR="${PTBK_BIN_DIR:-$INSTALL_DIR/bin}"
 PTBK_COMMAND_PATH="${PTBK_COMMAND_PATH:-$PTBK_BIN_DIR/ptbk}"
@@ -32,6 +32,9 @@ PROMPTBOOK_SWAP_FILE="${PTBK_SWAP_FILE:-/swapfile-promptbook}"
 MINIMUM_REQUIRED_MEMORY_MIB=8192
 MINIMUM_REQUIRED_DISK_MIB=15360
 PM2_HOURLY_RESTART_CRON='0 * * * *'
+PTBK_SELF_UPDATE_STATUS_FILE="${PTBK_SELF_UPDATE_STATUS_FILE:-$INSTALL_DIR/.promptbook/self-update/self-update.status}"
+PTBK_SELF_UPDATE_LOG_FILE="${PTBK_SELF_UPDATE_LOG_FILE:-$INSTALL_DIR/.promptbook/self-update/self-update.log}"
+SELF_UPDATE_STARTED_AT=""
 
 SUDO=()
 RUN_USER=""
@@ -108,6 +111,100 @@ prompt_secret_with_default() {
     read -r -s answer < /dev/tty || answer=""
     printf '\n' > /dev/tty
     printf '%s' "${answer:-$default_value}"
+}
+
+normalize_promptbook_repository_ref() {
+    local raw_ref="${1:-}"
+    local normalized_ref=""
+
+    normalized_ref="$(printf '%s' "$raw_ref" | tr '[:upper:]' '[:lower:]' | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')"
+
+    case "$normalized_ref" in
+        '' | production)
+            printf 'production'
+            ;;
+        main | live)
+            printf 'main'
+            ;;
+        preview)
+            printf 'preview'
+            ;;
+        lts)
+            printf 'lts'
+            ;;
+        *)
+            fail "Unsupported Promptbook environment '$raw_ref'. Use one of: production, main, preview, LTS."
+            ;;
+    esac
+}
+
+resolve_promptbook_environment_label() {
+    local repository_ref=""
+    repository_ref="$(normalize_promptbook_repository_ref "$1")"
+
+    case "$repository_ref" in
+        production)
+            printf 'Production'
+            ;;
+        main)
+            printf 'Live'
+            ;;
+        preview)
+            printf 'Preview'
+            ;;
+        lts)
+            printf 'LTS'
+            ;;
+    esac
+}
+
+encode_status_field() {
+    printf '%s' "$1" | base64 | tr -d '\n'
+}
+
+write_self_update_status_file() {
+    local status="$1"
+    local target_ref="$2"
+    local current_step="$3"
+    local error_message="${4:-}"
+    local current_commit="${5:-}"
+    local target_commit="${6:-}"
+    local finished_at="${7:-}"
+    local pid_value="${8:-$$}"
+    local current_step_b64=""
+    local error_message_b64=""
+
+    current_step_b64="$(encode_status_field "$current_step")"
+    error_message_b64="$(encode_status_field "$error_message")"
+
+    "${SUDO[@]}" mkdir -p "$(dirname "$PTBK_SELF_UPDATE_STATUS_FILE")"
+    "${SUDO[@]}" tee "$PTBK_SELF_UPDATE_STATUS_FILE" >/dev/null <<EOF
+STATUS=$status
+PID=$pid_value
+TARGET_REF=$target_ref
+CURRENT_STEP_B64=$current_step_b64
+ERROR_MESSAGE_B64=$error_message_b64
+STARTED_AT=$SELF_UPDATE_STARTED_AT
+FINISHED_AT=$finished_at
+CURRENT_COMMIT=$current_commit
+TARGET_COMMIT=$target_commit
+LOG_FILE=$PTBK_SELF_UPDATE_LOG_FILE
+EOF
+}
+
+read_repository_commit_sha() {
+    if [[ ! -d "$PROMPTBOOK_REPOSITORY_DIR/.git" ]]; then
+        printf ''
+        return
+    fi
+
+    run_as_service_user git -C "$PROMPTBOOK_REPOSITORY_DIR" rev-parse HEAD 2>/dev/null || true
+}
+
+read_remote_repository_commit_sha() {
+    local target_ref=""
+    target_ref="$(normalize_promptbook_repository_ref "$1")"
+    run_as_service_user git -C "$PROMPTBOOK_REPOSITORY_DIR" ls-remote origin "refs/heads/$target_ref" 2>/dev/null | awk 'NR == 1 { print $1 }'
 }
 
 format_mib() {
@@ -887,6 +984,7 @@ configure_environment() {
     set_env_value PTBK_PUBLIC_IP_ADDRESS "$PUBLIC_IP_ADDRESS"
     set_env_value PTBK_INSTALL_DIR "$INSTALL_DIR"
     set_env_value PTBK_REPOSITORY_DIR "$PROMPTBOOK_REPOSITORY_DIR"
+    set_env_value PROMPTBOOK_REPOSITORY_REF "$PROMPTBOOK_REPOSITORY_REF"
     set_env_value PTBK_VPS_INSTALL_SCRIPT "$PROMPTBOOK_REPOSITORY_DIR/other/vps/install.sh"
     set_env_value PTBK_AGENTS_SERVER_ENV_FILE "$ENV_FILE"
     set_env_value PTBK_PM2_APP_NAME "$APP_NAME"
@@ -1357,6 +1455,11 @@ build_agents_server() {
     run_as_service_user bash -lc "cd $(shell_quote "$INSTALL_DIR") && $(shell_quote "$PTBK_COMMAND_PATH") agents-server build"
 }
 
+run_agents_server_database_migrations() {
+    log "Running Agents Server database migrations."
+    run_as_service_user bash -lc "cd $(shell_quote "$PROMPTBOOK_REPOSITORY_DIR") && npx --yes tsx ./apps/agents-server/src/database/migrate.ts"
+}
+
 start_agents_server() {
     local install_dir_shell=""
     local app_name_shell=""
@@ -1400,6 +1503,9 @@ load_runtime_configuration_from_env_file() {
 
     env_value="$(get_env_value PTBK_REPOSITORY_DIR)"
     [[ -n "$env_value" ]] && PROMPTBOOK_REPOSITORY_DIR="$env_value"
+
+    env_value="$(get_env_value PROMPTBOOK_REPOSITORY_REF)"
+    [[ -n "$env_value" ]] && PROMPTBOOK_REPOSITORY_REF="$(normalize_promptbook_repository_ref "$env_value")"
 
     env_value="$(get_env_value PTBK_NGINX_SITE_NAME)"
     [[ -n "$env_value" ]] && NGINX_SITE_NAME="$env_value"
@@ -1474,6 +1580,83 @@ apply_code_runner_configuration() {
     print_summary
 }
 
+self_update_agents_server() {
+    local target_ref=""
+    local current_commit=""
+    local target_commit=""
+    local finished_at=""
+
+    initialize_sudo
+    resolve_run_user
+    load_runtime_configuration_from_env_file
+
+    target_ref="$PROMPTBOOK_REPOSITORY_REF"
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --branch)
+                shift
+                [[ $# -gt 0 ]] || fail "Missing value for --branch."
+                target_ref="$1"
+                ;;
+            --branch=*)
+                target_ref="${1#--branch=}"
+                ;;
+            *)
+                fail "Unknown self-update option '$1'."
+                ;;
+        esac
+        shift
+    done
+
+    PROMPTBOOK_REPOSITORY_REF="$(normalize_promptbook_repository_ref "$target_ref")"
+    SELF_UPDATE_STARTED_AT="$(date --utc --iso-8601=seconds)"
+
+    current_commit="$(read_repository_commit_sha)"
+    write_self_update_status_file \
+        "running" \
+        "$PROMPTBOOK_REPOSITORY_REF" \
+        "Preparing standalone VPS self-update for $(resolve_promptbook_environment_label "$PROMPTBOOK_REPOSITORY_REF") ($PROMPTBOOK_REPOSITORY_REF)." \
+        "" \
+        "$current_commit" \
+        "" \
+        "" \
+        "$$"
+
+    trap '
+        local exit_code=$?
+        if [[ "$exit_code" -ne 0 ]]; then
+            finished_at="$(date --utc --iso-8601=seconds)"
+            write_self_update_status_file "failed" "$PROMPTBOOK_REPOSITORY_REF" "Self-update failed." "The standalone VPS self-update exited with status $exit_code. Review the installer log for details." "$current_commit" "$target_commit" "$finished_at" "$$"
+        fi
+        exit "$exit_code"
+    ' EXIT
+
+    target_commit="$(read_remote_repository_commit_sha "$PROMPTBOOK_REPOSITORY_REF")"
+    write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Downloading the latest Promptbook repository checkout." "" "$current_commit" "$target_commit" "" "$$"
+    install_promptbook_repository
+
+    current_commit="$(read_repository_commit_sha)"
+    write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Refreshing the Promptbook CLI launcher." "" "$current_commit" "$target_commit" "" "$$"
+    install_promptbook_cli_launcher
+
+    write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Running Agents Server database migrations." "" "$current_commit" "$target_commit" "" "$$"
+    run_agents_server_database_migrations
+
+    write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Rebuilding the Agents Server." "" "$current_commit" "$target_commit" "" "$$"
+    build_agents_server
+
+    ENV_FILE="$INSTALL_DIR/.env"
+    set_env_value PROMPTBOOK_REPOSITORY_REF "$PROMPTBOOK_REPOSITORY_REF"
+    set_env_value PTBK_VPS_INSTALL_SCRIPT "$PROMPTBOOK_REPOSITORY_DIR/other/vps/install.sh"
+
+    write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Restarting the Agents Server with pm2." "" "$current_commit" "$target_commit" "" "$$"
+    restart_agents_server_if_running
+
+    finished_at="$(date --utc --iso-8601=seconds)"
+    write_self_update_status_file "succeeded" "$PROMPTBOOK_REPOSITORY_REF" "Standalone VPS self-update finished successfully." "" "$current_commit" "$target_commit" "$finished_at" ""
+    trap - EXIT
+}
+
 print_summary() {
     local public_site_url=""
     public_site_url="$(grep -E '^NEXT_PUBLIC_SITE_URL=' "$ENV_FILE" | tail -n 1 | cut -d= -f2-)"
@@ -1487,6 +1670,7 @@ print_summary() {
     fi
     log "Project directory: $INSTALL_DIR"
     log "Repository: $PROMPTBOOK_REPOSITORY_DIR"
+    log "Environment: $(resolve_promptbook_environment_label "$PROMPTBOOK_REPOSITORY_REF") ($PROMPTBOOK_REPOSITORY_REF)"
     log "Database: $INSTALL_DIR/.promptbook/agents-server.sqlite"
     log "pm2 process: $APP_NAME"
     log "pm2 hourly restart: $PM2_HOURLY_RESTART_CRON"
@@ -1513,6 +1697,7 @@ main() {
     PTBK_AGENT="$(prompt_with_default "Coding runner" "$PTBK_AGENT")"
     PTBK_MODEL="$(prompt_with_default "Runner model" "$PTBK_MODEL")"
     PTBK_THINKING_LEVEL="$(prompt_with_default "Runner thinking level" "$PTBK_THINKING_LEVEL")"
+    PROMPTBOOK_REPOSITORY_REF="$(normalize_promptbook_repository_ref "$(prompt_with_default "Deployment environment (production/main/preview/LTS)" "$PROMPTBOOK_REPOSITORY_REF")")"
     PORT="$(prompt_with_default "Agents Server port" "$PORT")"
     configure_domains
     if [[ "${#DOMAINS[@]}" -gt 0 ]]; then
@@ -1553,6 +1738,12 @@ fi
 if [[ "${1:-}" == "authenticate-runner" ]]; then
     shift
     authenticate_code_runner "$@"
+    exit 0
+fi
+
+if [[ "${1:-}" == "self-update" ]]; then
+    shift
+    self_update_agents_server "$@"
     exit 0
 fi
 
