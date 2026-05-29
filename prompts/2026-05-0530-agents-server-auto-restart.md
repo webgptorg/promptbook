@@ -1,6 +1,12 @@
-[-]
+[ ] !!
 
 [✨🦿] qux
+
+**This is how the Agents server is installed:**
+
+```bash
+root@collboard-agents-server-x21:~# sudo curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/other/vps/install.sh | bash
+```
 
 -   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
