@@ -1,3 +1,8 @@
+-   Added hourly pm2 auto-restarts to standalone VPS Agents Server installs:
+
+    -   `other/vps/install.sh` now starts the Agents Server pm2 process with `--cron-restart '0 * * * *'`, so new standalone installs automatically restart the service once per hour.
+    -   The installer summary now prints the configured pm2 hourly-restart schedule alongside the managed process name.
+
 -   Added standalone VPS code-runner authentication to `System -> Super Admin -> Code runners`:
 
     -   Super-admins can now launch the saved runner CLI directly from `/admin/code-runners`, watch its authentication output live in the browser, and send interactive terminal input without SSHing into the VPS.

@@ -31,6 +31,7 @@ NGINX_FALLBACK_URI="/__promptbook_agents_server_error.html"
 PROMPTBOOK_SWAP_FILE="${PTBK_SWAP_FILE:-/swapfile-promptbook}"
 MINIMUM_REQUIRED_MEMORY_MIB=8192
 MINIMUM_REQUIRED_DISK_MIB=15360
+PM2_HOURLY_RESTART_CRON='0 * * * *'
 
 SUDO=()
 RUN_USER=""
@@ -1381,7 +1382,7 @@ start_agents_server() {
         if pm2 describe $app_name_shell >/dev/null 2>&1; then
             pm2 delete $app_name_shell >/dev/null
         fi
-        pm2 start \"\$PTBK_PATH\" --interpreter bash --name $app_name_shell --time --cwd $install_dir_shell -- agents-server start --agent $agent_shell --model $model_shell --thinking-level $thinking_shell --port $port_shell --no-ui
+        pm2 start \"\$PTBK_PATH\" --interpreter bash --name $app_name_shell --time --cron-restart $(shell_quote "$PM2_HOURLY_RESTART_CRON") --cwd $install_dir_shell -- agents-server start --agent $agent_shell --model $model_shell --thinking-level $thinking_shell --port $port_shell --no-ui
         pm2 save
     "
 }
@@ -1488,6 +1489,7 @@ print_summary() {
     log "Repository: $PROMPTBOOK_REPOSITORY_DIR"
     log "Database: $INSTALL_DIR/.promptbook/agents-server.sqlite"
     log "pm2 process: $APP_NAME"
+    log "pm2 hourly restart: $PM2_HOURLY_RESTART_CRON"
     log "nginx site: /etc/nginx/sites-available/$NGINX_SITE_NAME"
 
     if [[ -n "$GENERATED_ADMIN_PASSWORD" ]]; then
