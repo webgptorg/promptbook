@@ -1,3 +1,8 @@
+-   Added Shibboleth authentication diagnostics to the Agents Server:
+
+    -   The middleware, login/logout API routes, and session cookie lifecycle now emit sanitized pm2 log entries whenever a request carries Shibboleth-style identity headers.
+    -   Logs include only the detected header names plus short stable fingerprints of values, so operators can trace the SSO flow on standalone VPS installs without exposing raw personal data in server logs.
+
 -   Added branch-aware standalone VPS self-update to `System -> Super Admin -> Update`:
 
     -   Super `admin` users can now see the current deployment environment, compare the deployed Promptbook commit with the latest commit on the tracked branch, and trigger a one-click detached self-update directly from the Agents Server UI.
