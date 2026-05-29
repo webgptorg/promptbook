@@ -1,3 +1,8 @@
+-   Added standalone VPS DNS diagnostics to `System -> Super Admin -> Servers`:
+
+    -   The servers registry now verifies whether each configured domain resolves to the current VPS public IP and marks rows with DNS issues directly in the table.
+    -   Affected rows now show copyable DNS setup instructions, including the expected record values, the currently resolved addresses, and quick links to common DNS-provider guides.
+
 -   Fixed document scraper unit-test flakiness caused by early intermediate-file cleanup:
 
     -   `DocumentScraper` and `LegacyDocumentScraper` now await the nested scraper work before deleting temporary converted files.

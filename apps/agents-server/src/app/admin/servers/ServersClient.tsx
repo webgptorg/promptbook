@@ -2,7 +2,7 @@
 
 import { Plus } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { Card } from '../../../components/Homepage/Card';
 import { Section } from '../../../components/Homepage/Section';
 import { useUnsavedChangesGuard } from '../../../components/utils/useUnsavedChangesGuard';
@@ -53,6 +53,10 @@ export function ServersClient() {
         onServerCreated: reloadServers,
     });
     const hasUnsavedChanges = hasDirtyServerDrafts || (createServerWizard.isDialogOpen && createServerWizard.isDirty);
+    const serversWithDnsIssues = useMemo(
+        () => servers.filter((server) => server.dnsDiagnostic && server.dnsDiagnostic.status !== 'verified'),
+        [servers],
+    );
     const { confirmBeforeNavigation, allowNextNavigation } = useUnsavedChangesGuard({
         hasUnsavedChanges,
         preventInAppNavigation: true,
@@ -115,6 +119,22 @@ export function ServersClient() {
             {error ? (
                 <Card className="border-red-200 bg-red-50 hover:border-red-200 hover:shadow-md">
                     <p className="text-sm text-red-700">{error}</p>
+                </Card>
+            ) : null}
+
+            {isStandaloneVps && serversWithDnsIssues.length > 0 ? (
+                <Card className="border-amber-200 bg-amber-50 hover:border-amber-200 hover:shadow-md">
+                    <div className="space-y-2 text-sm text-amber-900">
+                        <p className="font-semibold">
+                            DNS setup is incomplete for {serversWithDnsIssues.length}{' '}
+                            {serversWithDnsIssues.length === 1 ? 'domain' : 'domains'}.
+                        </p>
+                        <p>
+                            Automatic nginx and SSL setup already ran, but these domains do not resolve to this VPS yet.
+                            Review the DNS instructions in the affected server rows below, update the records at your DNS
+                            provider, and refresh this page after propagation.
+                        </p>
+                    </div>
                 </Card>
             ) : null}
 

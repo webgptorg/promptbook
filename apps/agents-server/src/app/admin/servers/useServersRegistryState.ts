@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { showAlert, showConfirm, showPrompt } from '../../../components/AsyncDialogs/asyncDialogs';
+import type { ManagedServerDnsDiagnostic } from './ServersRegistryDnsTypes';
 import { ServersRegistryApi } from './ServersRegistryApi';
 
 /**
@@ -63,6 +64,11 @@ export type ManagedServerRow = {
      * Last update timestamp.
      */
     readonly updatedAt: string;
+
+    /**
+     * Optional standalone-VPS DNS verification details for the domain.
+     */
+    readonly dnsDiagnostic?: ManagedServerDnsDiagnostic | null;
 };
 
 /**

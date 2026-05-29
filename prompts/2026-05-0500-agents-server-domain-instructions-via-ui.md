@@ -1,4 +1,4 @@
-[ ] !!!!!!!
+[x] (2 attempts) ~$0.00 an hour by GitHub Copilot `gpt-5.4`
 
 [✨🈺] Show when the DNS isn't set up properly and instructions on how to set it up properly.
 
@@ -11,3 +11,4 @@
 ```bash
 root@collboard-agents-server-x21:~# sudo curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/other/vps/install.sh | bash
 ```
+

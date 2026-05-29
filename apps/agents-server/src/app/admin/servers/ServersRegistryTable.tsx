@@ -1,5 +1,6 @@
 'use client';
 
+import { Fragment } from 'react';
 import { ArrowRightLeft, Loader2, RefreshCcw, Save } from 'lucide-react';
 import moment from 'moment';
 import {
@@ -189,117 +190,213 @@ function ServersRegistryTableRow(props: ServersRegistryTableRowProps) {
         server,
     } = props;
     const isCurrent = server.id === currentServerId;
+    const dnsDiagnostic = server.dnsDiagnostic || null;
+    const hasDnsIssue = Boolean(dnsDiagnostic && dnsDiagnostic.status !== 'verified');
+    const columnCount = isStandaloneVps ? 6 : 8;
 
     return (
-        <tr className={isCurrent ? 'bg-blue-50/40' : 'hover:bg-gray-50'}>
-            <td className="px-4 py-3 align-top">
-                <input
-                    type="text"
-                    value={draft?.name || ''}
-                    onChange={(event) => onUpdateServerDraft(server.id, 'name', event.target.value)}
-                    className={INPUT_CLASS_NAME}
-                    disabled={!canEdit}
-                    aria-label={`Server name for ${server.name}`}
-                />
-            </td>
-            {!isStandaloneVps ? (
-                <td className="px-4 py-3 align-top">
-                    <select
-                        value={draft?.environment || server.environment}
-                        onChange={(event) =>
-                            onUpdateServerDraft(
-                                server.id,
-                                'environment',
-                                event.target.value as ManagedServerEnvironment,
-                            )
-                        }
-                        className={INPUT_CLASS_NAME}
-                        disabled={!canEdit}
-                        aria-label={`Environment for ${server.name}`}
-                    >
-                        {MANAGED_SERVER_ENVIRONMENT_OPTIONS.map((environment) => (
-                            <option key={environment} value={environment}>
-                                {environment}
-                            </option>
-                        ))}
-                    </select>
-                </td>
-            ) : null}
-            <td className="px-4 py-3 align-top">
-                <input
-                    type="text"
-                    value={draft?.domain || ''}
-                    onChange={(event) => onUpdateServerDraft(server.id, 'domain', event.target.value)}
-                    className={INPUT_CLASS_NAME}
-                    disabled={!canEdit}
-                    aria-label={`Domain for ${server.name}`}
-                />
-            </td>
-            {!isStandaloneVps ? (
+        <>
+            <tr className={isCurrent ? 'bg-blue-50/40' : 'hover:bg-gray-50'}>
                 <td className="px-4 py-3 align-top">
                     <input
                         type="text"
-                        value={draft?.tablePrefix || ''}
-                        onChange={(event) => onUpdateServerDraft(server.id, 'tablePrefix', event.target.value)}
-                        className={`${INPUT_CLASS_NAME} font-mono`}
+                        value={draft?.name || ''}
+                        onChange={(event) => onUpdateServerDraft(server.id, 'name', event.target.value)}
+                        className={INPUT_CLASS_NAME}
                         disabled={!canEdit}
-                        aria-label={`Table prefix for ${server.name}`}
+                        aria-label={`Server name for ${server.name}`}
                     />
                 </td>
+                {!isStandaloneVps ? (
+                    <td className="px-4 py-3 align-top">
+                        <select
+                            value={draft?.environment || server.environment}
+                            onChange={(event) =>
+                                onUpdateServerDraft(
+                                    server.id,
+                                    'environment',
+                                    event.target.value as ManagedServerEnvironment,
+                                )
+                            }
+                            className={INPUT_CLASS_NAME}
+                            disabled={!canEdit}
+                            aria-label={`Environment for ${server.name}`}
+                        >
+                            {MANAGED_SERVER_ENVIRONMENT_OPTIONS.map((environment) => (
+                                <option key={environment} value={environment}>
+                                    {environment}
+                                </option>
+                            ))}
+                        </select>
+                    </td>
+                ) : null}
+                <td className="px-4 py-3 align-top">
+                    <input
+                        type="text"
+                        value={draft?.domain || ''}
+                        onChange={(event) => onUpdateServerDraft(server.id, 'domain', event.target.value)}
+                        className={INPUT_CLASS_NAME}
+                        disabled={!canEdit}
+                        aria-label={`Domain for ${server.name}`}
+                    />
+                </td>
+                {!isStandaloneVps ? (
+                    <td className="px-4 py-3 align-top">
+                        <input
+                            type="text"
+                            value={draft?.tablePrefix || ''}
+                            onChange={(event) => onUpdateServerDraft(server.id, 'tablePrefix', event.target.value)}
+                            className={`${INPUT_CLASS_NAME} font-mono`}
+                            disabled={!canEdit}
+                            aria-label={`Table prefix for ${server.name}`}
+                        />
+                    </td>
+                ) : null}
+                <td className="px-4 py-3 align-top">
+                    <div className="flex flex-wrap gap-2">
+                        {isCurrent ? <ServerStatusBadge label="Current" tone="green" /> : null}
+                        {isDirty ? <ServerStatusBadge label="Unsaved" tone="blue" /> : null}
+                        {dnsDiagnostic?.status === 'verified' ? (
+                            <ServerStatusBadge label="DNS ready" tone="green" />
+                        ) : null}
+                        {hasDnsIssue ? <ServerStatusBadge label="DNS issue" tone="amber" /> : null}
+                        {!isCurrent && !isDirty && !dnsDiagnostic ? <span className="text-xs text-gray-400">-</span> : null}
+                    </div>
+                </td>
+                <td className="px-4 py-3 align-top text-xs text-gray-600">
+                    <span className="whitespace-nowrap font-mono">{formatDateTime(server.createdAt)}</span>
+                </td>
+                <td className="px-4 py-3 align-top text-xs text-gray-600">
+                    <span className="whitespace-nowrap font-mono">{formatDateTime(server.updatedAt)}</span>
+                </td>
+                <td className="px-4 py-3 align-top">
+                    <div className="flex flex-wrap justify-end gap-2">
+                        <button
+                            type="button"
+                            onClick={() => void onSaveServer(server.id)}
+                            disabled={!canEdit || !isDirty || isSaving}
+                            className={`${PRIMARY_BUTTON_CLASS_NAME} px-2 py-1 text-xs`}
+                        >
+                            {isSaving ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                                <Save className="h-3.5 w-3.5" />
+                            )}
+                            Save
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => void onMigrateServer(server.id)}
+                            disabled={!canEdit || isMigrating}
+                            className={`${SECONDARY_BUTTON_CLASS_NAME} px-2 py-1 text-xs`}
+                        >
+                            {isMigrating ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                                <RefreshCcw className="h-3.5 w-3.5" />
+                            )}
+                            Migrate
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => void onSwitchServer(server)}
+                            disabled={isNavigating}
+                            className={`${SECONDARY_BUTTON_CLASS_NAME} px-2 py-1 text-xs`}
+                        >
+                            {isNavigating ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                                <ArrowRightLeft className="h-3.5 w-3.5" />
+                            )}
+                            Switch
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            {hasDnsIssue ? (
+                <tr className="bg-amber-50/70">
+                    <td colSpan={columnCount} className="px-4 py-4">
+                        <div className="space-y-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-900">
+                            <div className="space-y-1">
+                            <p className="font-semibold">
+                                DNS setup needs attention for <span className="font-mono">{server.domain}</span>
+                            </p>
+                            <p>{dnsDiagnostic?.summary}</p>
+                                {dnsDiagnostic?.resolvedAddresses.length ? (
+                                    <p className="text-xs text-amber-800">
+                                        Currently resolves to:{' '}
+                                        <span className="font-mono">{dnsDiagnostic.resolvedAddresses.join(', ')}</span>
+                                    </p>
+                                ) : null}
+                            </div>
+
+                            {dnsDiagnostic?.expectedRecords.length ? (
+                                <div className="overflow-x-auto rounded-lg border border-amber-200 bg-white">
+                                    <table className="min-w-full divide-y divide-amber-100 text-xs">
+                                        <thead className="bg-amber-100/60 text-amber-900">
+                                            <tr>
+                                                <th className="px-3 py-2 text-left font-semibold">Type</th>
+                                                <th className="px-3 py-2 text-left font-semibold">Name</th>
+                                                <th className="px-3 py-2 text-left font-semibold">Value</th>
+                                                <th className="px-3 py-2 text-left font-semibold">When to use</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-amber-100">
+                                            {dnsDiagnostic.expectedRecords.map((record) => (
+                                                <tr key={`${record.type}-${record.name}-${record.value}`}>
+                                                    <td className="px-3 py-2 font-mono font-semibold text-amber-900">
+                                                        {record.type}
+                                                    </td>
+                                                    <td className="px-3 py-2 font-mono text-slate-800">
+                                                        {record.name}
+                                                    </td>
+                                                    <td className="px-3 py-2 font-mono text-slate-800">
+                                                        {record.value}
+                                                    </td>
+                                                    <td className="px-3 py-2 text-amber-900">
+                                                        {record.note || 'Required.'}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ) : null}
+
+                            <div className="space-y-2">
+                                <p className="font-medium">How to fix it</p>
+                                <ol className="list-decimal space-y-1 pl-5 text-amber-900">
+                                    <li>Open your DNS provider for this domain.</li>
+                                    <li>
+                                        Add one of the records above for{' '}
+                                        <span className="font-mono">{server.domain}</span>.
+                                    </li>
+                                    <li>Remove conflicting A, AAAA, or CNAME records for the same hostname.</li>
+                                    <li>Wait for DNS propagation, then refresh this page.</li>
+                                </ol>
+                            </div>
+
+                            <div className="space-y-2">
+                                <p className="font-medium">Provider guides</p>
+                                <div className="flex flex-wrap gap-3 text-xs">
+                                    {dnsDiagnostic?.providerGuides.map((guide) => (
+                                        <a
+                                            key={guide.href}
+                                            href={guide.href}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="font-semibold text-amber-700 underline decoration-amber-400 underline-offset-2 hover:text-amber-900"
+                                        >
+                                            {guide.label}
+                                        </a>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
             ) : null}
-            <td className="px-4 py-3 align-top">
-                <div className="flex flex-wrap gap-2">
-                    {isCurrent ? <ServerStatusBadge label="Current" tone="green" /> : null}
-                    {isDirty ? <ServerStatusBadge label="Unsaved" tone="blue" /> : null}
-                    {!isCurrent && !isDirty ? <span className="text-xs text-gray-400">-</span> : null}
-                </div>
-            </td>
-            <td className="px-4 py-3 align-top text-xs text-gray-600">
-                <span className="whitespace-nowrap font-mono">{formatDateTime(server.createdAt)}</span>
-            </td>
-            <td className="px-4 py-3 align-top text-xs text-gray-600">
-                <span className="whitespace-nowrap font-mono">{formatDateTime(server.updatedAt)}</span>
-            </td>
-            <td className="px-4 py-3 align-top">
-                <div className="flex flex-wrap justify-end gap-2">
-                    <button
-                        type="button"
-                        onClick={() => void onSaveServer(server.id)}
-                        disabled={!canEdit || !isDirty || isSaving}
-                        className={`${PRIMARY_BUTTON_CLASS_NAME} px-2 py-1 text-xs`}
-                    >
-                        {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
-                        Save
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => void onMigrateServer(server.id)}
-                        disabled={!canEdit || isMigrating}
-                        className={`${SECONDARY_BUTTON_CLASS_NAME} px-2 py-1 text-xs`}
-                    >
-                        {isMigrating ? (
-                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        ) : (
-                            <RefreshCcw className="h-3.5 w-3.5" />
-                        )}
-                        Migrate
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => void onSwitchServer(server)}
-                        disabled={isNavigating}
-                        className={`${SECONDARY_BUTTON_CLASS_NAME} px-2 py-1 text-xs`}
-                    >
-                        {isNavigating ? (
-                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        ) : (
-                            <ArrowRightLeft className="h-3.5 w-3.5" />
-                        )}
-                        Switch
-                    </button>
-                </div>
-            </td>
-        </tr>
+        </>
     );
 }
 
@@ -384,22 +481,23 @@ export function ServersRegistryTable(props: ServersRegistryTableProps) {
                         </thead>
                         <tbody className="divide-y divide-gray-200 bg-white">
                             {servers.map((server) => (
-                                <ServersRegistryTableRow
-                                    key={server.id}
-                                    currentServerId={currentServerId}
-                                    canEdit={canEdit}
-                                    draft={serverDrafts[server.id]}
-                                    isDirty={isServerDraftDirty(server)}
-                                    isStandaloneVps={isStandaloneVps}
-                                    isMigrating={migratingServerId === server.id}
-                                    isNavigating={navigatingServerId === server.id}
-                                    isSaving={savingServerId === server.id}
-                                    onMigrateServer={onMigrateServer}
-                                    onSaveServer={onSaveServer}
-                                    onSwitchServer={onSwitchServer}
-                                    onUpdateServerDraft={onUpdateServerDraft}
-                                    server={server}
-                                />
+                                <Fragment key={server.id}>
+                                    <ServersRegistryTableRow
+                                        currentServerId={currentServerId}
+                                        canEdit={canEdit}
+                                        draft={serverDrafts[server.id]}
+                                        isDirty={isServerDraftDirty(server)}
+                                        isStandaloneVps={isStandaloneVps}
+                                        isMigrating={migratingServerId === server.id}
+                                        isNavigating={navigatingServerId === server.id}
+                                        isSaving={savingServerId === server.id}
+                                        onMigrateServer={onMigrateServer}
+                                        onSaveServer={onSaveServer}
+                                        onSwitchServer={onSwitchServer}
+                                        onUpdateServerDraft={onUpdateServerDraft}
+                                        server={server}
+                                    />
+                                </Fragment>
                             ))}
                         </tbody>
                     </table>

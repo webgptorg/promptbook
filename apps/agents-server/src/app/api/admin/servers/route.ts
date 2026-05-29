@@ -22,6 +22,7 @@ import {
     applyStandaloneVpsServerMetadata,
     resolveStandaloneVpsServerDisplayName,
 } from '../../../../utils/serverManagement/standaloneVpsServerMetadata';
+import { createStandaloneVpsDomainDnsDiagnostic } from '../../../../utils/standaloneVpsDnsDiagnostics';
 import {
     applyVpsRuntimeConfiguration,
     listConfiguredVpsDomains,
@@ -41,12 +42,7 @@ export async function GET() {
 
         const context = await resolveCurrentServerRegistryContext();
         const servers = isAgentsServerSqliteMode()
-            ? await Promise.all(
-                  context.registeredServers.map(async (server) => ({
-                      ...server,
-                      name: await resolveStandaloneVpsServerDisplayName(server),
-                  })),
-              )
+            ? await createStandaloneVpsServersResponse(context.registeredServers)
             : context.registeredServers;
 
         return NextResponse.json({
@@ -63,6 +59,30 @@ export async function GET() {
             { status: resolveManagedServerErrorStatus(error) },
         );
     }
+}
+
+/**
+ * Enriches standalone VPS server rows with display metadata and DNS diagnostics.
+ *
+ * @param servers - Virtual standalone server rows.
+ * @returns Browser-safe server rows with DNS setup guidance.
+ */
+async function createStandaloneVpsServersResponse(
+    servers: Awaited<ReturnType<typeof resolveCurrentServerRegistryContext>>['registeredServers'],
+) {
+    const primaryDomain = servers[0]?.domain ?? null;
+
+    return Promise.all(
+        servers.map(async (server) => ({
+            ...server,
+            name: await resolveStandaloneVpsServerDisplayName(server),
+            dnsDiagnostic: await createStandaloneVpsDomainDnsDiagnostic({
+                domain: server.domain,
+                publicIpAddress: process.env.PTBK_PUBLIC_IP_ADDRESS,
+                fallbackCnameTargetDomain: primaryDomain && primaryDomain !== server.domain ? primaryDomain : null,
+            }),
+        })),
+    );
 }
 
 /**
