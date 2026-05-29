@@ -1,8 +1,5 @@
 import { ForbiddenPage } from '../../../components/ForbiddenPage/ForbiddenPage';
-import {
-    formatAgentsServerDatabaseModeLabel,
-    resolveAgentsServerDatabaseMode,
-} from '../../../database/agentsServerDatabaseMode';
+import { resolveAgentsServerDatabaseMode } from '../../../database/agentsServerDatabaseMode';
 import { isUserGlobalAdmin } from '../../../utils/isUserGlobalAdmin';
 import { DatabaseAdminClient } from './DatabaseAdminClient';
 
@@ -15,7 +12,7 @@ export default async function DatabaseAdminPage() {
     }
 
     const databaseMode = resolveAgentsServerDatabaseMode();
-    const databaseModeLabel = formatAgentsServerDatabaseModeLabel(databaseMode);
+    const databaseModeLabel = databaseMode === 'sqlite' ? 'SQLite' : 'Supabase';
 
     return (
         <div className="flex h-[calc(100vh-60px)] flex-col overflow-hidden bg-white text-gray-900 dark:bg-gray-950 dark:text-gray-100">

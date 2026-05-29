@@ -1,7 +1,6 @@
 import { $isRunningInNode } from '@promptbook-local/utils';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { isAgentsServerPostgresMode, isAgentsServerSqliteMode } from './agentsServerDatabaseMode';
-import { $provideLocalPostgresSupabase } from './postgres/$provideLocalPostgresSupabase';
+import { isAgentsServerSqliteMode } from './agentsServerDatabaseMode';
 import { $provideLocalSqliteSupabase } from './sqlite/$provideLocalSqliteSupabase';
 import { AgentsServerDatabase } from './schema';
 
@@ -31,10 +30,6 @@ export function $provideSupabaseForServer(): SupabaseClient<AgentsServerDatabase
 
     if (isAgentsServerSqliteMode()) {
         return $provideLocalSqliteSupabase() as SupabaseClient<AgentsServerDatabase>;
-    }
-
-    if (isAgentsServerPostgresMode()) {
-        return $provideLocalPostgresSupabase() as SupabaseClient<AgentsServerDatabase>;
     }
 
     if (!supabase) {

@@ -12,10 +12,10 @@ ptbk agents-server init
 ptbk agents-server start --agent github-copilot --model gpt-5.4 --thinking-level xhigh
 ```
 
-`ptbk agents-server init` adds missing placeholders to `.env` and local runtime exclusions to `.gitignore` without deleting existing configuration. Use `PTBK_AGENTS_SERVER_DATABASE=supabase` for a Supabase-backed server, `PTBK_AGENTS_SERVER_DATABASE=postgres` for a directly connected PostgreSQL server, or `PTBK_AGENTS_SERVER_DATABASE=sqlite` for a standalone local database in `.promptbook`. When using Supabase, fill the initialized Supabase URL/API keys before starting the server. When using direct PostgreSQL, fill `POSTGRES_URL` (or `DATABASE_URL`) with your server connection string.
+`ptbk agents-server init` adds missing placeholders to `.env` and local runtime exclusions to `.gitignore` without deleting existing configuration. Use `PTBK_AGENTS_SERVER_DATABASE=supabase` for a Supabase-backed server or `PTBK_AGENTS_SERVER_DATABASE=sqlite` for a standalone local database in `.promptbook`. When using Supabase, fill the initialized values from your project before starting the server. The Supabase project URL and API keys are available in the [Supabase project API settings](https://supabase.com/docs/guides/api/api-keys), and the PostgreSQL connection string is available from the [Supabase database connection guide](https://supabase.com/docs/guides/database/connecting-to-postgres).
 
 <a id="agents-server-env-ptbk-agents-server-database"></a>
--   `PTBK_AGENTS_SERVER_DATABASE`: Database backend used by Agents Server. Use `supabase` for hosted Supabase, `postgres` for direct PostgreSQL access, or `sqlite` for a standalone local database.
+-   `PTBK_AGENTS_SERVER_DATABASE`: Database backend used by Agents Server. Use `supabase` for the current hosted setup or `sqlite` for a standalone local database.
 
 <a id="agents-server-env-ptbk-agents-server-sqlite-path"></a>
 -   `PTBK_AGENTS_SERVER_SQLITE_PATH`: SQLite database file used when `PTBK_AGENTS_SERVER_DATABASE=sqlite`. Defaults to `.promptbook/agents-server.sqlite` in the launch directory.
@@ -24,7 +24,7 @@ ptbk agents-server start --agent github-copilot --model gpt-5.4 --thinking-level
 -   `OPENAI_API_KEY`: OpenAI API key used for Agents Server chat and agent execution. Create one in the [OpenAI API key settings](https://platform.openai.com/api-keys).
 
 <a id="agents-server-env-postgres-url"></a>
--   `POSTGRES_URL`: PostgreSQL connection string used by Agents Server SQL access and migrations. This works for both direct PostgreSQL deployments and Supabase PostgreSQL connections.
+-   `POSTGRES_URL`: PostgreSQL connection string used by Agents Server SQL access and migrations. Copy a connection string from your Supabase database connection settings.
 
 <a id="agents-server-env-next-public-supabase-url"></a>
 -   `NEXT_PUBLIC_SUPABASE_URL`: Public Supabase project URL used by Agents Server clients. Copy the project URL from your Supabase project API settings.

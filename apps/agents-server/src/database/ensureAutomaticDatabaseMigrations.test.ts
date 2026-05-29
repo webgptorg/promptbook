@@ -28,7 +28,6 @@ const ORIGINAL_NODE_ENV = process.env.NODE_ENV;
 const ORIGINAL_JEST_WORKER_ID = process.env.JEST_WORKER_ID;
 const ORIGINAL_NEXT_PHASE = process.env.NEXT_PHASE;
 const ORIGINAL_SUPABASE_AUTO_MIGRATE = process.env.SUPABASE_AUTO_MIGRATE;
-const ORIGINAL_PTBK_AGENTS_SERVER_DATABASE = process.env.PTBK_AGENTS_SERVER_DATABASE;
 
 describe('ensureAutomaticDatabaseMigrationsForPrefix', () => {
     beforeEach(() => {
@@ -39,7 +38,6 @@ describe('ensureAutomaticDatabaseMigrationsForPrefix', () => {
         delete process.env.JEST_WORKER_ID;
         delete process.env.NEXT_PHASE;
         delete process.env.SUPABASE_AUTO_MIGRATE;
-        delete process.env.PTBK_AGENTS_SERVER_DATABASE;
 
         mockResolveDatabaseMigrationConnectionStringFromEnvironment.mockReturnValue('postgres://example.test/db');
     });
@@ -50,7 +48,6 @@ describe('ensureAutomaticDatabaseMigrationsForPrefix', () => {
         restoreEnvironmentVariable('JEST_WORKER_ID', ORIGINAL_JEST_WORKER_ID);
         restoreEnvironmentVariable('NEXT_PHASE', ORIGINAL_NEXT_PHASE);
         restoreEnvironmentVariable('SUPABASE_AUTO_MIGRATE', ORIGINAL_SUPABASE_AUTO_MIGRATE);
-        restoreEnvironmentVariable('PTBK_AGENTS_SERVER_DATABASE', ORIGINAL_PTBK_AGENTS_SERVER_DATABASE);
     });
 
     it('shares one in-flight automatic migration attempt per prefix', async () => {
@@ -117,17 +114,6 @@ describe('ensureAutomaticDatabaseMigrationsForPrefix', () => {
             expect.stringContaining('already checking database migrations for prefix "server_Test_"'),
         );
     });
-
-    it('skips automatic migrations entirely in SQLite mode', async () => {
-        setEnvironmentVariable('PTBK_AGENTS_SERVER_DATABASE', 'sqlite');
-
-        const { ensureAutomaticDatabaseMigrationsForPrefix } = await import('./ensureAutomaticDatabaseMigrations');
-
-        await expect(ensureAutomaticDatabaseMigrationsForPrefix('server_Test_')).resolves.toBeUndefined();
-
-        expect(mockResolveDatabaseMigrationConnectionStringFromEnvironment).not.toHaveBeenCalled();
-        expect(mockRunDatabaseMigrations).not.toHaveBeenCalled();
-    });
 });
 
 /**
@@ -137,7 +123,7 @@ describe('ensureAutomaticDatabaseMigrationsForPrefix', () => {
  * @param value - Original value before the test changed it.
  */
 function restoreEnvironmentVariable(
-    envName: 'NODE_ENV' | 'JEST_WORKER_ID' | 'NEXT_PHASE' | 'SUPABASE_AUTO_MIGRATE' | 'PTBK_AGENTS_SERVER_DATABASE',
+    envName: 'NODE_ENV' | 'JEST_WORKER_ID' | 'NEXT_PHASE' | 'SUPABASE_AUTO_MIGRATE',
     value: string | undefined,
 ): void {
     if (value === undefined) {
@@ -155,7 +141,7 @@ function restoreEnvironmentVariable(
  * @param value - Value to assign for the current test.
  */
 function setEnvironmentVariable(
-    envName: 'NODE_ENV' | 'JEST_WORKER_ID' | 'NEXT_PHASE' | 'SUPABASE_AUTO_MIGRATE' | 'PTBK_AGENTS_SERVER_DATABASE',
+    envName: 'NODE_ENV' | 'JEST_WORKER_ID' | 'NEXT_PHASE' | 'SUPABASE_AUTO_MIGRATE',
     value: string,
 ): void {
     Reflect.set(process.env, envName, value);

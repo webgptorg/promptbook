@@ -11,7 +11,6 @@ type EnvironmentVariableRecord = {
     readonly key: string;
     readonly value: string;
     readonly isSensitive: boolean;
-    readonly isEditable: boolean;
     readonly isDefined: boolean;
 };
 
@@ -55,10 +54,7 @@ export function EnvironmentVariablesClient() {
     const [applyOutput, setApplyOutput] = useState<string | null>(null);
 
     const hasChanges = useMemo(
-        () =>
-            variables.some(
-                (variable) => variable.isEditable && draftValues[variable.key] !== variable.value,
-            ),
+        () => variables.some((variable) => draftValues[variable.key] !== variable.value),
         [draftValues, variables],
     );
 
@@ -109,11 +105,7 @@ export function EnvironmentVariablesClient() {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    variables: Object.fromEntries(
-                        variables
-                            .filter((variable) => variable.isEditable)
-                            .map((variable) => [variable.key, draftValues[variable.key] ?? '']),
-                    ),
+                    variables: draftValues,
                     applyRuntimeConfiguration,
                 }),
             });
@@ -148,7 +140,6 @@ export function EnvironmentVariablesClient() {
                         Sensitive values are always masked. To change a secret, type a new value; leaving the stars in
                         place keeps the current secret.
                     </p>
-                    <p>Database backend variables are installer-managed and remain read-only in this UI.</p>
                     {envFilePath ? <p className="font-mono text-xs text-slate-500">{envFilePath}</p> : null}
                 </div>
             </Card>
@@ -211,7 +202,7 @@ export function EnvironmentVariablesClient() {
                                                             [variable.key]: event.target.value,
                                                         }))
                                                     }
-                                                    disabled={!canEdit || !variable.isEditable || isSaving}
+                                                    disabled={!canEdit || isSaving}
                                                     className={`${INPUT_CLASS_NAME} ${
                                                         variable.isSensitive ? 'pr-10 tracking-wider' : ''
                                                     }`}
@@ -230,11 +221,7 @@ export function EnvironmentVariablesClient() {
                                                         : 'border-slate-200 bg-slate-50 text-slate-500'
                                                 }`}
                                             >
-                                                {!variable.isEditable
-                                                    ? 'Read-only'
-                                                    : variable.isDefined
-                                                    ? 'Configured'
-                                                    : 'Empty'}
+                                                {variable.isDefined ? 'Configured' : 'Empty'}
                                             </span>
                                         </td>
                                     </tr>
