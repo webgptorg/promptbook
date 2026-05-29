@@ -652,6 +652,47 @@ install_runner_dependencies() {
     esac
 }
 
+resolve_runner_authentication_command() {
+    case "$PTBK_AGENT" in
+        github-copilot)
+            printf 'copilot'
+            ;;
+        openai-codex)
+            printf 'codex'
+            ;;
+        claude-code)
+            printf 'claude'
+            ;;
+        opencode)
+            printf 'opencode'
+            ;;
+        gemini)
+            printf 'gemini'
+            ;;
+        *)
+            printf ''
+            ;;
+    esac
+}
+
+run_runner_authentication_command() {
+    local authentication_command=""
+
+    authentication_command="$(resolve_runner_authentication_command)"
+    if [[ -z "$authentication_command" ]]; then
+        warn "No interactive authentication command is defined for runner '$PTBK_AGENT'."
+        return 0
+    fi
+
+    if command -v script >/dev/null 2>&1; then
+        run_as_service_user bash -lc "cd $(shell_quote "$INSTALL_DIR") && exec script -qfec $(shell_quote "$authentication_command") /dev/null"
+        return
+    fi
+
+    warn "The 'script' command is not available, starting the runner CLI without a pseudo-terminal."
+    run_as_service_user bash -lc "cd $(shell_quote "$INSTALL_DIR") && exec $authentication_command"
+}
+
 resolve_default_public_url() {
     local ip_address=""
     ip_address="$(resolve_public_ip_address)"
@@ -873,39 +914,78 @@ initialize_promptbook_project() {
 }
 
 configure_runner_authentication() {
-    if [[ "$PTBK_AGENT" != "github-copilot" ]]; then
+    local authentication_command=""
+    local authentication_binary=""
+
+    authentication_command="$(resolve_runner_authentication_command)"
+    if [[ -z "$authentication_command" ]]; then
         return
     fi
 
-    if [[ -n "${COPILOT_GITHUB_TOKEN:-}" || -n "${GH_TOKEN:-}" ]]; then
+    if [[ "$PTBK_AGENT" == "github-copilot" ]] && [[ -n "${COPILOT_GITHUB_TOKEN:-}" || -n "${GH_TOKEN:-}" ]]; then
         log "GitHub Copilot token environment variable detected and stored in $ENV_FILE."
         return
     fi
 
-    if ! command -v copilot >/dev/null 2>&1; then
-        warn "GitHub Copilot CLI is not available, skipping interactive authentication."
+    authentication_binary="${authentication_command%% *}"
+    if ! command -v "$authentication_binary" >/dev/null 2>&1; then
+        warn "Runner CLI '$authentication_binary' is not available, skipping interactive authentication."
         return
     fi
 
     if ! is_interactive; then
-        warn "GitHub Copilot login requires an interactive VPS terminal. Run copilot as $RUN_USER and complete /login before restarting pm2."
+        warn "Runner authentication requires an interactive VPS terminal. Run $authentication_command as $RUN_USER inside $INSTALL_DIR and complete any login or project-trust steps before restarting pm2."
         return
     fi
 
-    if ! prompt_yes_no "Open GitHub Copilot CLI now for /login and project trust setup?" "yes"; then
-        warn "Skipping Copilot login. The runner must be authenticated before it can answer chats."
+    if ! prompt_yes_no "Open the $PTBK_AGENT CLI now for authentication?" "yes"; then
+        warn "Skipping runner authentication. The runner must be authenticated before it can answer chats."
         return
     fi
 
-    log "Starting GitHub Copilot CLI. Use /login if prompted, trust this directory, then exit Copilot to continue."
+    log "Starting the $PTBK_AGENT CLI. Complete any login or project-trust prompts, then exit the runner CLI to continue."
     set +e
-    run_as_service_user bash -lc "cd $(shell_quote "$INSTALL_DIR") && copilot" < /dev/tty > /dev/tty
-    local copilot_exit_code=$?
+    run_runner_authentication_command < /dev/tty > /dev/tty
+    local runner_exit_code=$?
     set -e
 
-    if [[ "$copilot_exit_code" -ne 0 ]]; then
-        warn "Copilot exited with status $copilot_exit_code. The server will still start, but the runner may need authentication."
+    if [[ "$runner_exit_code" -ne 0 ]]; then
+        warn "The $PTBK_AGENT CLI exited with status $runner_exit_code. The server will still start, but the runner may need authentication."
     fi
+}
+
+authenticate_code_runner() {
+    local authentication_command=""
+    local authentication_binary=""
+    local runner_exit_code=0
+
+    initialize_sudo
+    resolve_run_user
+    load_runtime_configuration_from_env_file
+
+    authentication_command="$(resolve_runner_authentication_command)"
+    if [[ -z "$authentication_command" ]]; then
+        fail "No interactive authentication command is defined for runner '$PTBK_AGENT'."
+    fi
+
+    authentication_binary="${authentication_command%% *}"
+    if ! command -v "$authentication_binary" >/dev/null 2>&1; then
+        fail "Runner CLI '$authentication_binary' is not available. Apply the runner configuration first so the CLI gets installed."
+    fi
+
+    log "Starting interactive authentication for runner '$PTBK_AGENT' in $INSTALL_DIR."
+    log "Complete any login or project-trust prompts in the browser terminal and exit the runner CLI when finished."
+
+    set +e
+    run_runner_authentication_command
+    runner_exit_code=$?
+    set -e
+
+    if [[ "$runner_exit_code" -ne 0 ]]; then
+        fail "Runner authentication command exited with status $runner_exit_code."
+    fi
+
+    log "Runner authentication command finished."
 }
 
 configure_firewall() {
@@ -1465,6 +1545,12 @@ fi
 if [[ "${1:-}" == "apply-runner" ]]; then
     shift
     apply_code_runner_configuration "$@"
+    exit 0
+fi
+
+if [[ "${1:-}" == "authenticate-runner" ]]; then
+    shift
+    authenticate_code_runner "$@"
     exit 0
 fi
 

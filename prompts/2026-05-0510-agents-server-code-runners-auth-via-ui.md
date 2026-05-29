@@ -1,4 +1,4 @@
-[ ] !!!!!!
+[x] ~$0.00 an hour by GitHub Copilot `gpt-5.4`
 
 [✨🐈] Allow to authenticate to all code runners via the UI
 
@@ -55,3 +55,4 @@ root@collboard-agents-server-x21:~# sudo curl -fsSL https://raw.githubuserconten
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

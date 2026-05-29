@@ -93,6 +93,11 @@ export type VpsCommandResult = {
  */
 type RunVpsInstallerCommandOptions = {
     /**
+     * Whether the installer should disable interactive prompts.
+     */
+    readonly isNonInteractiveModeEnabled?: boolean;
+
+    /**
      * Whether the installer may restart the running Agents Server process.
      */
     readonly isProcessRestartEnabled?: boolean;
@@ -366,11 +371,18 @@ async function runVpsInstallerCommand(
 export function createVpsInstallerCommandEnvironment(
     options?: RunVpsInstallerCommandOptions,
 ): NodeJS.ProcessEnv {
-    return {
+    const environment: NodeJS.ProcessEnv = {
         ...process.env,
-        PTBK_NON_INTERACTIVE: '1',
         ...(options?.isProcessRestartEnabled === false ? { PTBK_SKIP_PM2_RESTART: '1' } : {}),
     };
+
+    if (options?.isNonInteractiveModeEnabled === false) {
+        delete environment.PTBK_NON_INTERACTIVE;
+    } else {
+        environment.PTBK_NON_INTERACTIVE = '1';
+    }
+
+    return environment;
 }
 
 /**
@@ -590,7 +602,7 @@ async function readOptionalTextFile(filePath: string): Promise<string> {
  *
  * @returns Script path or `null` when unavailable.
  */
-async function resolveVpsInstallerScriptPath(): Promise<string | null> {
+export async function resolveVpsInstallerScriptPath(): Promise<string | null> {
     const candidates = [
         process.env.PTBK_VPS_INSTALL_SCRIPT?.trim(),
         process.env.PTBK_REPOSITORY_DIR ? join(process.env.PTBK_REPOSITORY_DIR, 'other/vps/install.sh') : '',

@@ -7,6 +7,7 @@ import { createVpsInstallerCommandEnvironment, updateConfiguredVpsDomains } from
  * Original restart-skip flag restored after each environment-mutating test.
  */
 const ORIGINAL_PTBK_SKIP_PM2_RESTART = process.env.PTBK_SKIP_PM2_RESTART;
+const ORIGINAL_PTBK_NON_INTERACTIVE = process.env.PTBK_NON_INTERACTIVE;
 const ORIGINAL_PTBK_AGENTS_SERVER_ENV_FILE = process.env.PTBK_AGENTS_SERVER_ENV_FILE;
 const ORIGINAL_NEXT_PUBLIC_SITE_URL = process.env.NEXT_PUBLIC_SITE_URL;
 const ORIGINAL_PTBK_PUBLIC_IP_ADDRESS = process.env.PTBK_PUBLIC_IP_ADDRESS;
@@ -19,6 +20,7 @@ describe('vpsConfiguration', () => {
             process.env.PTBK_SKIP_PM2_RESTART = ORIGINAL_PTBK_SKIP_PM2_RESTART;
         }
 
+        restoreEnvironmentVariable('PTBK_NON_INTERACTIVE', ORIGINAL_PTBK_NON_INTERACTIVE);
         restoreEnvironmentVariable('PTBK_AGENTS_SERVER_ENV_FILE', ORIGINAL_PTBK_AGENTS_SERVER_ENV_FILE);
         restoreEnvironmentVariable('NEXT_PUBLIC_SITE_URL', ORIGINAL_NEXT_PUBLIC_SITE_URL);
         restoreEnvironmentVariable('PTBK_PUBLIC_IP_ADDRESS', ORIGINAL_PTBK_PUBLIC_IP_ADDRESS);
@@ -40,6 +42,14 @@ describe('vpsConfiguration', () => {
 
         expect(environment.PTBK_NON_INTERACTIVE).toBe('1');
         expect(environment.PTBK_SKIP_PM2_RESTART).toBeUndefined();
+    });
+
+    it('allows interactive installer commands to clear the non-interactive flag', () => {
+        process.env.PTBK_NON_INTERACTIVE = '1';
+
+        const environment = createVpsInstallerCommandEnvironment({ isNonInteractiveModeEnabled: false });
+
+        expect(environment.PTBK_NON_INTERACTIVE).toBeUndefined();
     });
 
     it('keeps the raw-IP site URL while adding the first domain during standalone VPS bootstrap', async () => {

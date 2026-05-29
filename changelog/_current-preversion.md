@@ -1,3 +1,9 @@
+-   Added standalone VPS code-runner authentication to `System -> Super Admin -> Code runners`:
+
+    -   Super-admins can now launch the saved runner CLI directly from `/admin/code-runners`, watch its authentication output live in the browser, and send interactive terminal input without SSHing into the VPS.
+    -   The Agents Server now keeps an in-process streamed authentication session for the active runner and reuses the shared standalone VPS installer entrypoint for the same server-side authentication command path.
+    -   `other/vps/install.sh` now exposes an `authenticate-runner` subcommand and supports interactive authentication flows for the configured runner CLIs through a pseudo-terminal wrapper.
+
 -   Added standalone VPS DNS diagnostics to `System -> Super Admin -> Servers`:
 
     -   The servers registry now verifies whether each configured domain resolves to the current VPS public IP and marks rows with DNS issues directly in the table.
