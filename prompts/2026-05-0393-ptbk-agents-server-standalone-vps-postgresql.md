@@ -1,4 +1,4 @@
-[ ] !!!
+[.] - Can not be done without problems, `gpt-5.4`
 
 [✨🤬] Add support for PostgreSQL in Agents server
 
