@@ -4,7 +4,7 @@ import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
 import { assertsError } from '../../errors/assertsError';
 import { compilePipeline } from '../compilePipeline';
-import { importPipelineWithoutPreparation } from './_importPipeline';
+import { importPipelineWithoutPreparation } from './_importPipeline.test';
 import { validatePipeline } from './validatePipeline';
 
 describe('validatePipeline with valid examples', () => {

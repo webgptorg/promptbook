@@ -4,7 +4,7 @@ import { join } from 'path';
 import { ParseError } from '../../errors/ParseError';
 import { assertsError } from '../../errors/assertsError';
 import { compilePipeline } from '../compilePipeline';
-import { importPipelineWithoutPreparation } from './_importPipeline';
+import { importPipelineWithoutPreparation } from './_importPipeline.test';
 import { validatePipeline } from './validatePipeline';
 
 describe('validatePipeline with parse errors', () => {

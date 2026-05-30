@@ -84,5 +84,8 @@ ex_port async function importPipelineJsonAsString(path: `${string}.bookc`): Prom
 }
 */
 
-// Note: [⚫] Code for private pipeline import shim [_importPipeline](src/conversion/validation/_importPipeline.ts) should never be published in any package
+// Note: [⚫] Code for private pipeline import shim [_importPipeline](src/conversion/validation/_importPipeline.test.ts) should never be published in any package
 // Note: [💞] Ignore a discrepancy between file name and entity name
+
+// Note: This file is a test helper, not a test suite. The .test.ts suffix keeps it out of the published CLI package.
+test.todo('This file exports test helpers — see the .test.ts files that import from it');
