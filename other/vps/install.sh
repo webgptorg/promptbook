@@ -791,6 +791,16 @@ run_runner_authentication_command() {
     run_as_service_user bash -lc "cd $(shell_quote "$INSTALL_DIR") && exec $authentication_command"
 }
 
+run_server_cli_shell_command() {
+    if command -v script >/dev/null 2>&1; then
+        run_as_service_user bash -lc "cd $(shell_quote "$INSTALL_DIR") && exec script -qfec bash /dev/null"
+        return
+    fi
+
+    warn "The 'script' command is not available, starting the shell without a pseudo-terminal."
+    run_as_service_user bash -lc "cd $(shell_quote "$INSTALL_DIR") && exec bash -i"
+}
+
 resolve_default_public_url() {
     local ip_address=""
     ip_address="$(resolve_public_ip_address)"
@@ -1085,6 +1095,28 @@ authenticate_code_runner() {
     fi
 
     log "Runner authentication command finished."
+}
+
+open_server_cli_shell() {
+    local shell_exit_code=0
+
+    initialize_sudo
+    resolve_run_user
+    load_runtime_configuration_from_env_file
+
+    log "Starting raw CLI access in $INSTALL_DIR for user $RUN_USER."
+    log "Every command runs with the same permissions as the Agents Server service user."
+
+    set +e
+    run_server_cli_shell_command
+    shell_exit_code=$?
+    set -e
+
+    if [[ "$shell_exit_code" -ne 0 ]]; then
+        fail "CLI access shell exited with status $shell_exit_code."
+    fi
+
+    log "CLI access shell finished."
 }
 
 configure_firewall() {
@@ -1738,6 +1770,12 @@ fi
 if [[ "${1:-}" == "authenticate-runner" ]]; then
     shift
     authenticate_code_runner "$@"
+    exit 0
+fi
+
+if [[ "${1:-}" == "cli-shell" ]]; then
+    shift
+    open_server_cli_shell "$@"
     exit 0
 fi
 

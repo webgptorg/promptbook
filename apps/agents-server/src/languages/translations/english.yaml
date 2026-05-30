@@ -142,6 +142,7 @@ header.update: Update
 header.database: Database
 header.logs: Logs
 header.codeRunners: Code runners
+header.cliAccess: CLI Access
 header.models: Models
 header.openApiDocumentation: OpenAPI Documentation
 header.apiTokens: API Tokens

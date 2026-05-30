@@ -1,4 +1,4 @@
-[ ] !!!
+[x] ~$0.00 an hour by GitHub Copilot `gpt-5.4`
 
 [✨🤬] Add build in access to the servers CLI console as admin into Agents server for super `admin`
 
@@ -19,3 +19,4 @@
 ```bash
 root@collboard-agents-server-x21:~# sudo curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/other/vps/install.sh | bash
 ```
+

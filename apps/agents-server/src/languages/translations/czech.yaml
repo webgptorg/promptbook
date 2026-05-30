@@ -140,6 +140,7 @@ header.update: Aktualizace
 header.database: Databáze
 header.logs: Logy
 header.codeRunners: Code runnery
+header.cliAccess: CLI přístup
 header.models: Modely
 header.openApiDocumentation: Dokumentace OpenAPI
 header.apiTokens: API tokeny

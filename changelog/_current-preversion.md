@@ -3,6 +3,12 @@
     -   The middleware, login/logout API routes, and session cookie lifecycle now emit sanitized pm2 log entries whenever a request carries Shibboleth-style identity headers.
     -   Logs include only the detected header names plus short stable fingerprints of values, so operators can trace the SSO flow on standalone VPS installs without exposing raw personal data in server logs.
 
+-   Added standalone VPS raw CLI access to `System -> Super Admin -> CLI Access`:
+
+    -   Super `admin` users can now open one live browser terminal that starts in the managed install directory and runs unrestricted shell commands with the same OS permissions as the Agents Server process.
+    -   Normal admins no longer see the new `CLI Access` item, and normal users still do not see the `Super Admin` section at all.
+    -   `other/vps/install.sh` now exposes a `cli-shell` subcommand so the browser terminal reuses the managed standalone installation context instead of requiring SSH.
+
 -   Added branch-aware standalone VPS self-update to `System -> Super Admin -> Update`:
 
     -   Super `admin` users can now see the current deployment environment, compare the deployed Promptbook commit with the latest commit on the tracked branch, and trigger a one-click detached self-update directly from the Agents Server UI.

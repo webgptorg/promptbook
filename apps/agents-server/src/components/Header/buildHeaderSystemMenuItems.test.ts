@@ -54,6 +54,7 @@ describe('buildHeaderSystemMenuItems', () => {
                 'translated:header.database',
                 'translated:header.logs',
                 'translated:header.codeRunners',
+                'translated:header.cliAccess',
                 'translated:header.toolLimits',
                 'translated:header.backups',
                 'translated:header.transcriptions',
@@ -83,6 +84,7 @@ describe('buildHeaderSystemMenuItems', () => {
 
         expect(collectStringLabels(normalAdminItems)).not.toContain('translated:header.database');
         expect(collectStringLabels(normalAdminItems)).not.toContain('translated:header.update');
+        expect(collectStringLabels(normalAdminItems)).not.toContain('translated:header.cliAccess');
         expect(userItems.map((item) => item.label)).not.toContain('translated:header.superAdmin');
     });
 });

@@ -220,6 +220,10 @@ export function buildHeaderSystemMenuItems({
                       label: translate('header.codeRunners'),
                       href: '/admin/code-runners',
                   } as SubMenuItem,
+                  {
+                      label: translate('header.cliAccess'),
+                      href: '/admin/cli-access',
+                  } as SubMenuItem,
               ]
             : []),
     ];

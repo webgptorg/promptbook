@@ -2,20 +2,19 @@ import { NextResponse } from 'next/server';
 import { isUserGlobalAdmin } from '@/src/utils/isUserGlobalAdmin';
 import { createInteractiveTerminalEventStream } from '@/src/utils/createInteractiveTerminalEventStream';
 import {
-    getCodeRunnerAuthenticationSession,
-    getLatestCodeRunnerAuthenticationSession,
-    startCodeRunnerAuthenticationSession,
-    stopCodeRunnerAuthenticationSession,
-    subscribeToCodeRunnerAuthenticationSession,
-    writeCodeRunnerAuthenticationSessionInput,
-} from '@/src/utils/codeRunnerAuthentication';
-import { readConfiguredCodeRunner } from '@/src/utils/codeRunnerConfiguration';
+    getLatestServerCliAccessSession,
+    getServerCliAccessSession,
+    startServerCliAccessSession,
+    stopServerCliAccessSession,
+    subscribeToServerCliAccessSession,
+    writeServerCliAccessSessionInput,
+} from '@/src/utils/serverCliAccess';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 /**
- * Loads the latest authentication session for the saved runner or streams a specific session.
+ * Loads the latest CLI access session or streams a specific terminal session.
  */
 export async function GET(request: Request) {
     if (!(await isUserGlobalAdmin())) {
@@ -29,36 +28,35 @@ export async function GET(request: Request) {
 
         if (isStreamRequested) {
             if (!sessionId) {
-                return NextResponse.json({ error: 'Authentication session id is required.' }, { status: 400 });
+                return NextResponse.json({ error: 'CLI access session id is required.' }, { status: 400 });
             }
 
-            const session = getCodeRunnerAuthenticationSession(sessionId);
+            const session = getServerCliAccessSession(sessionId);
             if (!session) {
-                return NextResponse.json({ error: 'Authentication session was not found.' }, { status: 404 });
+                return NextResponse.json({ error: 'CLI access session was not found.' }, { status: 404 });
             }
 
             return createInteractiveTerminalEventStream(
                 request,
                 sessionId,
                 session,
-                subscribeToCodeRunnerAuthenticationSession,
+                subscribeToServerCliAccessSession,
             );
         }
 
-        const { agent } = await readConfiguredCodeRunner();
         return NextResponse.json({
-            session: getLatestCodeRunnerAuthenticationSession(agent),
+            session: getLatestServerCliAccessSession(),
         });
     } catch (error) {
         return NextResponse.json(
-            { error: error instanceof Error ? error.message : 'Failed to load the authentication session.' },
+            { error: error instanceof Error ? error.message : 'Failed to load the CLI access session.' },
             { status: 500 },
         );
     }
 }
 
 /**
- * Starts a new browser-driven authentication terminal for the saved runner.
+ * Starts or reconnects to the raw server shell exposed in the browser.
  */
 export async function POST() {
     if (!(await isUserGlobalAdmin())) {
@@ -66,20 +64,19 @@ export async function POST() {
     }
 
     try {
-        const { agent } = await readConfiguredCodeRunner();
         return NextResponse.json({
-            session: await startCodeRunnerAuthenticationSession(agent),
+            session: await startServerCliAccessSession(),
         });
     } catch (error) {
         return NextResponse.json(
-            { error: error instanceof Error ? error.message : 'Failed to start the authentication session.' },
+            { error: error instanceof Error ? error.message : 'Failed to start the CLI access session.' },
             { status: 500 },
         );
     }
 }
 
 /**
- * Sends terminal input to a running authentication session.
+ * Sends raw input to the running CLI access shell.
  */
 export async function PATCH(request: Request) {
     if (!(await isUserGlobalAdmin())) {
@@ -95,22 +92,22 @@ export async function PATCH(request: Request) {
             | null;
 
         if (!body?.sessionId || typeof body.input !== 'string') {
-            return NextResponse.json({ error: 'Authentication session input is required.' }, { status: 400 });
+            return NextResponse.json({ error: 'CLI access session input is required.' }, { status: 400 });
         }
 
         return NextResponse.json({
-            session: writeCodeRunnerAuthenticationSessionInput(body.sessionId, body.input),
+            session: writeServerCliAccessSessionInput(body.sessionId, body.input),
         });
     } catch (error) {
         return NextResponse.json(
-            { error: error instanceof Error ? error.message : 'Failed to send authentication input.' },
+            { error: error instanceof Error ? error.message : 'Failed to send CLI access input.' },
             { status: 500 },
         );
     }
 }
 
 /**
- * Stops one authentication terminal from the admin UI.
+ * Stops one running CLI access shell session.
  */
 export async function DELETE(request: Request) {
     if (!(await isUserGlobalAdmin())) {
@@ -125,15 +122,15 @@ export async function DELETE(request: Request) {
             | null;
 
         if (!body?.sessionId) {
-            return NextResponse.json({ error: 'Authentication session id is required.' }, { status: 400 });
+            return NextResponse.json({ error: 'CLI access session id is required.' }, { status: 400 });
         }
 
         return NextResponse.json({
-            session: stopCodeRunnerAuthenticationSession(body.sessionId),
+            session: stopServerCliAccessSession(body.sessionId),
         });
     } catch (error) {
         return NextResponse.json(
-            { error: error instanceof Error ? error.message : 'Failed to stop the authentication session.' },
+            { error: error instanceof Error ? error.message : 'Failed to stop the CLI access session.' },
             { status: 500 },
         );
     }

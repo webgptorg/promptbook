@@ -1,11 +1,14 @@
-import { spawn, type ChildProcessWithoutNullStreams } from 'child_process';
-import { randomUUID } from 'crypto';
-import { EventEmitter } from 'events';
-import { spaceTrim } from 'spacetrim';
 import { createVpsInstallerCommandEnvironment, resolveVpsInstallerScriptPath } from './vpsConfiguration';
-
-const MAX_SESSION_OUTPUT_LENGTH = 200_000;
-const SESSION_RETENTION_MILLISECONDS = 30 * 60 * 1000;
+import {
+    getInteractiveTerminalSession,
+    getLatestInteractiveTerminalSession,
+    startInteractiveTerminalSession,
+    stopInteractiveTerminalSession,
+    subscribeToInteractiveTerminalSession,
+    type InteractiveTerminalSessionSnapshot,
+    type InteractiveTerminalSessionSubscriber,
+    writeInteractiveTerminalSessionInput,
+} from './interactiveTerminalSession';
 
 /**
  * Serializable snapshot of one interactive code-runner authentication session.
@@ -53,62 +56,18 @@ export type CodeRunnerAuthenticationSessionSnapshot = {
 };
 
 /**
- * Output event emitted while the authentication terminal is running.
- */
-type CodeRunnerAuthenticationOutputEvent = {
-    readonly type: 'output';
-    readonly chunk: string;
-};
-
-/**
- * Exit event emitted when the authentication terminal finishes.
- */
-type CodeRunnerAuthenticationExitEvent = {
-    readonly type: 'exit';
-    readonly snapshot: CodeRunnerAuthenticationSessionSnapshot;
-};
-
-/**
- * Internal mutable session state stored in-process.
- */
-type CodeRunnerAuthenticationSession = {
-    readonly id: string;
-    readonly agent: string;
-    readonly process: ChildProcessWithoutNullStreams;
-    readonly events: EventEmitter<{
-        output: [CodeRunnerAuthenticationOutputEvent];
-        exit: [CodeRunnerAuthenticationExitEvent];
-    }>;
-    readonly startedAt: Date;
-    cleanupTimeout: NodeJS.Timeout | null;
-    output: string;
-    isRunning: boolean;
-    finishedAt: Date | null;
-    exitCode: number | null;
-    signal: NodeJS.Signals | null;
-};
-
-/**
- * Shared in-memory state reused across requests in the standalone server process.
- */
-type CodeRunnerAuthenticationState = {
-    readonly sessionsById: Map<string, CodeRunnerAuthenticationSession>;
-    readonly latestSessionIdByAgent: Map<string, string>;
-};
-
-/**
  * Browser stream callbacks used by one subscribed UI client.
  */
 export type CodeRunnerAuthenticationSessionSubscriber = {
     /**
      * Called whenever new terminal output arrives.
      */
-    readonly onOutput: (event: CodeRunnerAuthenticationOutputEvent) => void;
+    readonly onOutput: (event: Parameters<InteractiveTerminalSessionSubscriber['onOutput']>[0]) => void;
 
     /**
      * Called once the session exits.
      */
-    readonly onExit: (event: CodeRunnerAuthenticationExitEvent) => void;
+    readonly onExit: (event: { readonly type: 'exit'; readonly snapshot: CodeRunnerAuthenticationSessionSnapshot }) => void;
 };
 
 /**
@@ -120,64 +79,28 @@ export type CodeRunnerAuthenticationSessionSubscriber = {
 export async function startCodeRunnerAuthenticationSession(
     agent: string,
 ): Promise<CodeRunnerAuthenticationSessionSnapshot> {
-    const existingSession = getLatestCodeRunnerAuthenticationSession(agent);
-    if (existingSession?.isRunning) {
-        return existingSession;
-    }
-
-    if (process.platform !== 'linux') {
-        throw new Error('Interactive code-runner authentication is available only on the Linux VPS runtime.');
-    }
-
     const scriptPath = await resolveVpsInstallerScriptPath();
     if (!scriptPath) {
         throw new Error('The VPS installer script could not be found on this server.');
     }
 
-    const sessionId = randomUUID();
-    const childProcess = spawn('bash', [scriptPath, 'authenticate-runner'], {
-        env: createVpsInstallerCommandEnvironment({
-            isNonInteractiveModeEnabled: false,
-            isProcessRestartEnabled: false,
+    return toRequiredCodeRunnerAuthenticationSessionSnapshot(
+        startInteractiveTerminalSession({
+            sessionKey: buildCodeRunnerAuthenticationSessionKey(agent),
+            title: `${agent} authentication`,
+            command: 'bash',
+            arguments: [scriptPath, 'authenticate-runner'],
+            env: createVpsInstallerCommandEnvironment({
+                isNonInteractiveModeEnabled: false,
+                isProcessRestartEnabled: false,
+            }),
+            metadata: {
+                agent,
+            },
+            unavailableErrorMessage: 'Interactive code-runner authentication is available only on the Linux VPS runtime.',
         }),
-        stdio: ['pipe', 'pipe', 'pipe'],
-    });
-
-    const session: CodeRunnerAuthenticationSession = {
-        id: sessionId,
         agent,
-        process: childProcess,
-        events: new EventEmitter(),
-        startedAt: new Date(),
-        cleanupTimeout: null,
-        output: '',
-        isRunning: true,
-        finishedAt: null,
-        exitCode: null,
-        signal: null,
-    };
-
-    const state = getCodeRunnerAuthenticationState();
-    state.sessionsById.set(sessionId, session);
-    state.latestSessionIdByAgent.set(agent, sessionId);
-
-    childProcess.stdout.setEncoding('utf-8');
-    childProcess.stderr.setEncoding('utf-8');
-    childProcess.stdout.on('data', (chunk: string) => appendCodeRunnerAuthenticationOutput(session, chunk));
-    childProcess.stderr.on('data', (chunk: string) => appendCodeRunnerAuthenticationOutput(session, chunk));
-    childProcess.on('close', (exitCode, signal) => finalizeCodeRunnerAuthenticationSession(session, exitCode, signal));
-    childProcess.on('error', (error) => {
-        appendCodeRunnerAuthenticationOutput(
-            session,
-            spaceTrim(`
-                Failed to start the code-runner authentication process.
-
-                ${error.message}
-            `) + '\n',
-        );
-    });
-
-    return createCodeRunnerAuthenticationSessionSnapshot(session);
+    );
 }
 
 /**
@@ -189,12 +112,10 @@ export async function startCodeRunnerAuthenticationSession(
 export function getLatestCodeRunnerAuthenticationSession(
     agent: string,
 ): CodeRunnerAuthenticationSessionSnapshot | null {
-    const sessionId = getCodeRunnerAuthenticationState().latestSessionIdByAgent.get(agent);
-    if (!sessionId) {
-        return null;
-    }
-
-    return getCodeRunnerAuthenticationSession(sessionId);
+    return toCodeRunnerAuthenticationSessionSnapshot(
+        getLatestInteractiveTerminalSession(buildCodeRunnerAuthenticationSessionKey(agent)),
+        agent,
+    );
 }
 
 /**
@@ -206,8 +127,7 @@ export function getLatestCodeRunnerAuthenticationSession(
 export function getCodeRunnerAuthenticationSession(
     sessionId: string,
 ): CodeRunnerAuthenticationSessionSnapshot | null {
-    const session = getCodeRunnerAuthenticationState().sessionsById.get(sessionId);
-    return session ? createCodeRunnerAuthenticationSessionSnapshot(session) : null;
+    return toCodeRunnerAuthenticationSessionSnapshot(getInteractiveTerminalSession(sessionId));
 }
 
 /**
@@ -221,18 +141,14 @@ export function subscribeToCodeRunnerAuthenticationSession(
     sessionId: string,
     subscriber: CodeRunnerAuthenticationSessionSubscriber,
 ): (() => void) | null {
-    const session = getCodeRunnerAuthenticationState().sessionsById.get(sessionId);
-    if (!session) {
-        return null;
-    }
-
-    session.events.on('output', subscriber.onOutput);
-    session.events.on('exit', subscriber.onExit);
-
-    return () => {
-        session.events.off('output', subscriber.onOutput);
-        session.events.off('exit', subscriber.onExit);
-    };
+    return subscribeToInteractiveTerminalSession(sessionId, {
+        onOutput: subscriber.onOutput,
+        onExit: ({ snapshot }) =>
+            subscriber.onExit({
+                type: 'exit',
+                snapshot: toRequiredCodeRunnerAuthenticationSessionSnapshot(snapshot),
+            }),
+    });
 }
 
 /**
@@ -246,14 +162,7 @@ export function writeCodeRunnerAuthenticationSessionInput(
     sessionId: string,
     input: string,
 ): CodeRunnerAuthenticationSessionSnapshot {
-    const session = getRequiredCodeRunnerAuthenticationSession(sessionId);
-
-    if (!session.isRunning) {
-        throw new Error('The authentication session has already finished.');
-    }
-
-    session.process.stdin.write(input);
-    return createCodeRunnerAuthenticationSessionSnapshot(session);
+    return toRequiredCodeRunnerAuthenticationSessionSnapshot(writeInteractiveTerminalSessionInput(sessionId, input));
 }
 
 /**
@@ -265,130 +174,61 @@ export function writeCodeRunnerAuthenticationSessionInput(
 export function stopCodeRunnerAuthenticationSession(
     sessionId: string,
 ): CodeRunnerAuthenticationSessionSnapshot {
-    const session = getRequiredCodeRunnerAuthenticationSession(sessionId);
-
-    if (session.isRunning) {
-        session.process.kill('SIGTERM');
-    }
-
-    return createCodeRunnerAuthenticationSessionSnapshot(session);
+    return toRequiredCodeRunnerAuthenticationSessionSnapshot(stopInteractiveTerminalSession(sessionId));
 }
 
 /**
- * Returns the mutable singleton state for authentication sessions.
+ * Builds the stable logical session key for one runner authentication terminal.
  *
- * @returns Shared in-memory session state.
+ * @param agent - Runner identifier.
+ * @returns Stable session key.
  */
-function getCodeRunnerAuthenticationState(): CodeRunnerAuthenticationState {
-    const globalState = globalThis as typeof globalThis & {
-        __promptbookCodeRunnerAuthenticationState?: CodeRunnerAuthenticationState;
-    };
-
-    if (!globalState.__promptbookCodeRunnerAuthenticationState) {
-        globalState.__promptbookCodeRunnerAuthenticationState = {
-            sessionsById: new Map(),
-            latestSessionIdByAgent: new Map(),
-        };
-    }
-
-    return globalState.__promptbookCodeRunnerAuthenticationState;
+function buildCodeRunnerAuthenticationSessionKey(agent: string): string {
+    return `code-runner-authentication:${agent}`;
 }
 
 /**
- * Appends terminal output while keeping the buffer size bounded.
+ * Converts one generic terminal snapshot into the runner-specific browser shape.
  *
- * @param session - Active authentication session.
- * @param rawChunk - Terminal chunk from stdout or stderr.
+ * @param session - Generic terminal snapshot.
+ * @param fallbackAgent - Agent name used when older sessions miss metadata.
+ * @returns Runner-specific snapshot or `null`.
  */
-function appendCodeRunnerAuthenticationOutput(
-    session: CodeRunnerAuthenticationSession,
-    rawChunk: string | Buffer,
-): void {
-    const chunk = normalizeCodeRunnerAuthenticationOutput(rawChunk.toString());
-    if (!chunk) {
-        return;
-    }
-
-    session.output = (session.output + chunk).slice(-MAX_SESSION_OUTPUT_LENGTH);
-    session.events.emit('output', {
-        type: 'output',
-        chunk,
-    });
-}
-
-/**
- * Normalizes streamed terminal output for browser rendering.
- *
- * @param output - Raw process output chunk.
- * @returns UI-friendly terminal text.
- */
-function normalizeCodeRunnerAuthenticationOutput(output: string): string {
-    return output.replace(/\r\n/gu, '\n').replace(/\r/gu, '\n');
-}
-
-/**
- * Marks one authentication session as finished and schedules retention cleanup.
- *
- * @param session - Finished authentication session.
- * @param exitCode - Process exit code.
- * @param signal - Process signal.
- */
-function finalizeCodeRunnerAuthenticationSession(
-    session: CodeRunnerAuthenticationSession,
-    exitCode: number | null,
-    signal: NodeJS.Signals | null,
-): void {
-    session.isRunning = false;
-    session.finishedAt = new Date();
-    session.exitCode = exitCode;
-    session.signal = signal;
-
-    session.events.emit('exit', {
-        type: 'exit',
-        snapshot: createCodeRunnerAuthenticationSessionSnapshot(session),
-    });
-
-    if (session.cleanupTimeout) {
-        clearTimeout(session.cleanupTimeout);
-    }
-
-    session.cleanupTimeout = setTimeout(() => {
-        getCodeRunnerAuthenticationState().sessionsById.delete(session.id);
-    }, SESSION_RETENTION_MILLISECONDS);
-}
-
-/**
- * Reads one required mutable session and throws when missing.
- *
- * @param sessionId - Session identifier.
- * @returns Mutable session state.
- */
-function getRequiredCodeRunnerAuthenticationSession(sessionId: string): CodeRunnerAuthenticationSession {
-    const session = getCodeRunnerAuthenticationState().sessionsById.get(sessionId);
+function toCodeRunnerAuthenticationSessionSnapshot(
+    session: InteractiveTerminalSessionSnapshot | null,
+    fallbackAgent = '',
+): CodeRunnerAuthenticationSessionSnapshot | null {
     if (!session) {
-        throw new Error('Authentication session was not found.');
+        return null;
     }
 
-    return session;
-}
-
-/**
- * Converts mutable session state into a browser-safe snapshot.
- *
- * @param session - Mutable in-memory session.
- * @returns Serializable session snapshot.
- */
-function createCodeRunnerAuthenticationSessionSnapshot(
-    session: CodeRunnerAuthenticationSession,
-): CodeRunnerAuthenticationSessionSnapshot {
     return {
         id: session.id,
-        agent: session.agent,
+        agent: session.metadata.agent || fallbackAgent,
         isRunning: session.isRunning,
         output: session.output,
-        startedAt: session.startedAt.toISOString(),
-        finishedAt: session.finishedAt ? session.finishedAt.toISOString() : null,
+        startedAt: session.startedAt,
+        finishedAt: session.finishedAt,
         exitCode: session.exitCode,
         signal: session.signal,
     };
+}
+
+/**
+ * Converts one generic terminal snapshot into a required runner-specific snapshot.
+ *
+ * @param session - Generic terminal snapshot.
+ * @returns Runner-specific snapshot.
+ */
+function toRequiredCodeRunnerAuthenticationSessionSnapshot(
+    session: InteractiveTerminalSessionSnapshot | null,
+    fallbackAgent = '',
+): CodeRunnerAuthenticationSessionSnapshot {
+    const mappedSession = toCodeRunnerAuthenticationSessionSnapshot(session, fallbackAgent);
+
+    if (!mappedSession) {
+        throw new Error('Authentication session was not found.');
+    }
+
+    return mappedSession;
 }
