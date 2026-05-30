@@ -44,13 +44,6 @@ ENV_FILE=""
 REQUESTED_OPENAI_API_KEY=""
 REQUESTED_ADMIN_PASSWORD=""
 GENERATED_ADMIN_PASSWORD=""
-AGENTS_SERVER_DATABASE_MODE="${PTBK_AGENTS_SERVER_DATABASE:-postgres}"
-POSTGRES_HOST="localhost"
-POSTGRES_PORT="5432"
-POSTGRES_DATABASE="promptbook_agents_server"
-POSTGRES_USERNAME="promptbook_agents_server"
-POSTGRES_PASSWORD=""
-GENERATED_POSTGRES_PASSWORD=""
 PUBLIC_IP_ADDRESS=""
 DOMAINS=()
 
@@ -118,76 +111,6 @@ prompt_secret_with_default() {
     read -r -s answer < /dev/tty || answer=""
     printf '\n' > /dev/tty
     printf '%s' "${answer:-$default_value}"
-}
-
-prompt_choice_with_default() {
-    local label="$1"
-    local default_value="$2"
-    local answer=""
-
-    if ! is_interactive; then
-        printf '%s' "$default_value"
-        return
-    fi
-
-    printf '%s [%s]: ' "$label" "$default_value" > /dev/tty
-    read -r answer < /dev/tty || answer=""
-    printf '%s' "${answer:-$default_value}"
-}
-
-resolve_environment_default() {
-    local key="$1"
-    local default_value="${2:-}"
-    local existing_value=""
-
-    existing_value="$(get_env_value "$key")"
-    if [[ -n "$existing_value" ]]; then
-        printf '%s' "$existing_value"
-        return
-    fi
-
-    if [[ -n "${!key:-}" ]]; then
-        printf '%s' "${!key}"
-        return
-    fi
-
-    printf '%s' "$default_value"
-}
-
-normalize_database_mode() {
-    local raw_mode="${1:-}"
-    local normalized_mode=""
-
-    normalized_mode="$(printf '%s' "$raw_mode" | tr '[:upper:]' '[:lower:]' | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')"
-
-    case "$normalized_mode" in
-        '' | postgres | postgresql)
-            printf 'postgres'
-            ;;
-        sqlite | local)
-            printf 'sqlite'
-            ;;
-        *)
-            fail "Unsupported Agents Server database '$raw_mode'. Use one of: postgres, sqlite."
-            ;;
-    esac
-}
-
-validate_postgres_identifier() {
-    local label="$1"
-    local value="$2"
-
-    if [[ ! "$value" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
-        fail "$label must use only letters, numbers, and underscores, and must not start with a number."
-    fi
-}
-
-url_encode() {
-    python3 -c 'import sys, urllib.parse; print(urllib.parse.quote(sys.argv[1], safe=""))' "$1"
-}
-
-sql_escape_literal() {
-    printf '%s' "$1" | sed "s/'/''/g"
 }
 
 normalize_promptbook_repository_ref() {
@@ -663,45 +586,6 @@ install_system_packages() {
         python3-certbot-nginx
 }
 
-install_postgresql_if_needed() {
-    if [[ "$AGENTS_SERVER_DATABASE_MODE" != "postgres" ]]; then
-        return
-    fi
-
-    log "Installing PostgreSQL."
-    "${SUDO[@]}" env DEBIAN_FRONTEND=noninteractive apt-get install -y postgresql postgresql-contrib
-    "${SUDO[@]}" systemctl enable --now postgresql
-}
-
-configure_postgresql_database() {
-    local database_exists=""
-    local escaped_postgres_password=""
-
-    if [[ "$AGENTS_SERVER_DATABASE_MODE" != "postgres" ]]; then
-        return
-    fi
-
-    log "Configuring PostgreSQL database and user."
-    "${SUDO[@]}" systemctl enable --now postgresql
-    escaped_postgres_password="$(sql_escape_literal "$POSTGRES_PASSWORD")"
-    "${SUDO[@]}" -u postgres psql postgres -v ON_ERROR_STOP=1 -c "DO \$\$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = '$POSTGRES_USERNAME') THEN
-        CREATE ROLE \"$POSTGRES_USERNAME\" LOGIN PASSWORD '$escaped_postgres_password';
-    ELSE
-        ALTER ROLE \"$POSTGRES_USERNAME\" WITH LOGIN PASSWORD '$escaped_postgres_password';
-    END IF;
-END
-\$\$;"
-
-    database_exists="$("${SUDO[@]}" -u postgres psql postgres -tAc "SELECT 1 FROM pg_database WHERE datname = '$POSTGRES_DATABASE'" | tr -d '[:space:]')"
-    if [[ "$database_exists" != "1" ]]; then
-        "${SUDO[@]}" -u postgres psql postgres -v ON_ERROR_STOP=1 -c "CREATE DATABASE \"$POSTGRES_DATABASE\" OWNER \"$POSTGRES_USERNAME\";"
-    else
-        "${SUDO[@]}" -u postgres psql postgres -v ON_ERROR_STOP=1 -c "ALTER DATABASE \"$POSTGRES_DATABASE\" OWNER TO \"$POSTGRES_USERNAME\";"
-    fi
-}
-
 is_node_version_supported() {
     local minimum_version=""
     minimum_version="$(resolve_node_minimum_version)"
@@ -1037,54 +921,6 @@ prompt_api_keys_and_admin_password() {
     )"
 }
 
-prompt_database_configuration() {
-    local database_mode_default=""
-    local postgres_host_default=""
-    local postgres_port_default=""
-    local postgres_database_default=""
-    local postgres_username_default=""
-    local postgres_password_default=""
-    local postgres_password_default_description="auto-generate"
-
-    database_mode_default="$(normalize_database_mode "$(resolve_environment_default PTBK_AGENTS_SERVER_DATABASE postgres)")"
-    AGENTS_SERVER_DATABASE_MODE="$(normalize_database_mode "$(prompt_choice_with_default "Agents Server database (postgres/sqlite)" "$database_mode_default")")"
-
-    if [[ "$AGENTS_SERVER_DATABASE_MODE" != "postgres" ]]; then
-        POSTGRES_PASSWORD=""
-        GENERATED_POSTGRES_PASSWORD=""
-        return
-    fi
-
-    postgres_host_default="$(resolve_environment_default PTBK_AGENTS_SERVER_POSTGRES_HOST "$POSTGRES_HOST")"
-    postgres_port_default="$(resolve_environment_default PTBK_AGENTS_SERVER_POSTGRES_PORT "$POSTGRES_PORT")"
-    postgres_database_default="$(resolve_environment_default PTBK_AGENTS_SERVER_POSTGRES_DATABASE "$POSTGRES_DATABASE")"
-    postgres_username_default="$(resolve_environment_default PTBK_AGENTS_SERVER_POSTGRES_USER "$POSTGRES_USERNAME")"
-    postgres_password_default="$(resolve_environment_default PTBK_AGENTS_SERVER_POSTGRES_PASSWORD "")"
-
-    if [[ -z "$postgres_password_default" ]]; then
-        postgres_password_default="$(openssl rand -hex 24)"
-        GENERATED_POSTGRES_PASSWORD="$postgres_password_default"
-    else
-        postgres_password_default_description="keep existing"
-    fi
-
-    log "Press Enter to use the default standalone PostgreSQL configuration."
-    POSTGRES_HOST="$(prompt_with_default "PostgreSQL host" "$postgres_host_default")"
-    POSTGRES_PORT="$(prompt_with_default "PostgreSQL port" "$postgres_port_default")"
-    POSTGRES_DATABASE="$(prompt_with_default "PostgreSQL database name" "$postgres_database_default")"
-    POSTGRES_USERNAME="$(prompt_with_default "PostgreSQL username" "$postgres_username_default")"
-    POSTGRES_PASSWORD="$(
-        prompt_secret_with_default "PostgreSQL password" "$postgres_password_default_description" "$postgres_password_default"
-    )"
-
-    [[ -z "$POSTGRES_PASSWORD" ]] && fail "PostgreSQL password must not be empty."
-    [[ "$POSTGRES_HOST" != "localhost" && "$POSTGRES_HOST" != "127.0.0.1" ]] &&
-        fail "Standalone VPS PostgreSQL host must be localhost or 127.0.0.1."
-    [[ ! "$POSTGRES_PORT" =~ ^[0-9]+$ ]] && fail "PostgreSQL port must be numeric."
-    validate_postgres_identifier "PostgreSQL database name" "$POSTGRES_DATABASE"
-    validate_postgres_identifier "PostgreSQL username" "$POSTGRES_USERNAME"
-}
-
 configure_domains() {
     local default_domains="$SERVERS"
     local existing_env_file="${ENV_FILE:-$INSTALL_DIR/.env}"
@@ -1123,7 +959,6 @@ configure_environment() {
     local public_site_url=""
     local first_domain="${DOMAINS[0]:-}"
     local table_prefix=""
-    local postgres_connection_string=""
 
     if [[ -n "$first_domain" ]]; then
         default_public_url="${PTBK_PUBLIC_SITE_URL:-${NEXT_PUBLIC_SITE_URL:-https://${first_domain}}}"
@@ -1134,35 +969,12 @@ configure_environment() {
 
     public_site_url="$(prompt_with_default "Public Agents Server URL" "$default_public_url")"
 
-    set_env_value PTBK_AGENTS_SERVER_DATABASE "$AGENTS_SERVER_DATABASE_MODE"
-    if [[ "$AGENTS_SERVER_DATABASE_MODE" == "sqlite" ]]; then
-        set_env_value PTBK_AGENTS_SERVER_SQLITE_PATH "$sqlite_path"
-        set_env_value PTBK_AGENTS_SERVER_POSTGRES_HOST ""
-        set_env_value PTBK_AGENTS_SERVER_POSTGRES_PORT ""
-        set_env_value PTBK_AGENTS_SERVER_POSTGRES_DATABASE ""
-        set_env_value PTBK_AGENTS_SERVER_POSTGRES_USER ""
-        set_env_value PTBK_AGENTS_SERVER_POSTGRES_PASSWORD ""
-        set_env_value POSTGRES_URL ""
-        set_env_value DATABASE_URL ""
-        set_env_value SUPABASE_AUTO_MIGRATE false
-    else
-        postgres_connection_string="postgresql://$(url_encode "$POSTGRES_USERNAME"):$(url_encode "$POSTGRES_PASSWORD")@$(url_encode "$POSTGRES_HOST"):${POSTGRES_PORT}/$(url_encode "$POSTGRES_DATABASE")"
-        set_env_value PTBK_AGENTS_SERVER_SQLITE_PATH ""
-        set_env_value PTBK_AGENTS_SERVER_POSTGRES_HOST "$POSTGRES_HOST"
-        set_env_value PTBK_AGENTS_SERVER_POSTGRES_PORT "$POSTGRES_PORT"
-        set_env_value PTBK_AGENTS_SERVER_POSTGRES_DATABASE "$POSTGRES_DATABASE"
-        set_env_value PTBK_AGENTS_SERVER_POSTGRES_USER "$POSTGRES_USERNAME"
-        set_env_value PTBK_AGENTS_SERVER_POSTGRES_PASSWORD "$POSTGRES_PASSWORD"
-        set_env_value POSTGRES_URL "$postgres_connection_string"
-        set_env_value DATABASE_URL "$postgres_connection_string"
-        set_env_value SUPABASE_AUTO_MIGRATE true
-    fi
+    set_env_value PTBK_AGENTS_SERVER_DATABASE sqlite
+    set_env_value PTBK_AGENTS_SERVER_SQLITE_PATH "$sqlite_path"
     set_env_value NEXT_PUBLIC_SITE_URL "$public_site_url"
     set_env_value SERVERS "$SERVERS"
     set_env_value SUPABASE_TABLE_PREFIX "$table_prefix"
-    set_env_value NEXT_PUBLIC_SUPABASE_URL ""
-    set_env_value NEXT_PUBLIC_SUPABASE_ANON_KEY ""
-    set_env_value SUPABASE_SERVICE_ROLE_KEY ""
+    set_env_value SUPABASE_AUTO_MIGRATE false
     set_env_value PTBK_AGENT "$PTBK_AGENT"
     set_env_value PTBK_MODEL "$PTBK_MODEL"
     set_env_value PTBK_THINKING_LEVEL "$PTBK_THINKING_LEVEL"
@@ -1645,7 +1457,7 @@ build_agents_server() {
 
 run_agents_server_database_migrations() {
     log "Running Agents Server database migrations."
-    run_as_service_user bash -lc "set -a && source $(shell_quote "$ENV_FILE") && set +a && cd $(shell_quote "$PROMPTBOOK_REPOSITORY_DIR") && npx --yes tsx ./apps/agents-server/src/database/migrate.ts"
+    run_as_service_user bash -lc "cd $(shell_quote "$PROMPTBOOK_REPOSITORY_DIR") && npx --yes tsx ./apps/agents-server/src/database/migrate.ts"
 }
 
 start_agents_server() {
@@ -1712,24 +1524,6 @@ load_runtime_configuration_from_env_file() {
 
     env_value="$(get_env_value LETS_ENCRYPT_EMAIL)"
     [[ -n "$env_value" ]] && LETS_ENCRYPT_EMAIL="$env_value"
-
-    env_value="$(get_env_value PTBK_AGENTS_SERVER_DATABASE)"
-    [[ -n "$env_value" ]] && AGENTS_SERVER_DATABASE_MODE="$(normalize_database_mode "$env_value")"
-
-    env_value="$(get_env_value PTBK_AGENTS_SERVER_POSTGRES_HOST)"
-    [[ -n "$env_value" ]] && POSTGRES_HOST="$env_value"
-
-    env_value="$(get_env_value PTBK_AGENTS_SERVER_POSTGRES_PORT)"
-    [[ -n "$env_value" ]] && POSTGRES_PORT="$env_value"
-
-    env_value="$(get_env_value PTBK_AGENTS_SERVER_POSTGRES_DATABASE)"
-    [[ -n "$env_value" ]] && POSTGRES_DATABASE="$env_value"
-
-    env_value="$(get_env_value PTBK_AGENTS_SERVER_POSTGRES_USER)"
-    [[ -n "$env_value" ]] && POSTGRES_USERNAME="$env_value"
-
-    env_value="$(get_env_value PTBK_AGENTS_SERVER_POSTGRES_PASSWORD)"
-    [[ -n "$env_value" ]] && POSTGRES_PASSWORD="$env_value"
 
     SERVERS="$(get_env_value SERVERS)"
     set_domains_from_csv "$SERVERS"
@@ -1864,14 +1658,7 @@ self_update_agents_server() {
 }
 
 print_summary() {
-    local database_mode=""
     local public_site_url=""
-    local configured_postgres_host=""
-    local configured_postgres_port=""
-    local configured_postgres_database=""
-    local configured_postgres_username=""
-
-    database_mode="$(grep -E '^PTBK_AGENTS_SERVER_DATABASE=' "$ENV_FILE" | tail -n 1 | cut -d= -f2-)"
     public_site_url="$(grep -E '^NEXT_PUBLIC_SITE_URL=' "$ENV_FILE" | tail -n 1 | cut -d= -f2-)"
 
     log "Agents Server is configured."
@@ -1884,22 +1671,10 @@ print_summary() {
     log "Project directory: $INSTALL_DIR"
     log "Repository: $PROMPTBOOK_REPOSITORY_DIR"
     log "Environment: $(resolve_promptbook_environment_label "$PROMPTBOOK_REPOSITORY_REF") ($PROMPTBOOK_REPOSITORY_REF)"
-    if [[ "$database_mode" == "postgres" ]]; then
-        configured_postgres_host="$(grep -E '^PTBK_AGENTS_SERVER_POSTGRES_HOST=' "$ENV_FILE" | tail -n 1 | cut -d= -f2-)"
-        configured_postgres_port="$(grep -E '^PTBK_AGENTS_SERVER_POSTGRES_PORT=' "$ENV_FILE" | tail -n 1 | cut -d= -f2-)"
-        configured_postgres_database="$(grep -E '^PTBK_AGENTS_SERVER_POSTGRES_DATABASE=' "$ENV_FILE" | tail -n 1 | cut -d= -f2-)"
-        configured_postgres_username="$(grep -E '^PTBK_AGENTS_SERVER_POSTGRES_USER=' "$ENV_FILE" | tail -n 1 | cut -d= -f2-)"
-        log "Database: PostgreSQL ($configured_postgres_database on $configured_postgres_host:$configured_postgres_port as $configured_postgres_username)"
-    else
-        log "Database: SQLite ($INSTALL_DIR/.promptbook/agents-server.sqlite)"
-    fi
+    log "Database: $INSTALL_DIR/.promptbook/agents-server.sqlite"
     log "pm2 process: $APP_NAME"
     log "pm2 hourly restart: $PM2_HOURLY_RESTART_CRON"
     log "nginx site: /etc/nginx/sites-available/$NGINX_SITE_NAME"
-
-    if [[ "$database_mode" == "postgres" ]]; then
-        log "PostgreSQL password: $POSTGRES_PASSWORD"
-    fi
 
     if [[ -n "$GENERATED_ADMIN_PASSWORD" ]]; then
         log "Generated ADMIN_PASSWORD: $GENERATED_ADMIN_PASSWORD"
@@ -1928,22 +1703,18 @@ main() {
     if [[ "${#DOMAINS[@]}" -gt 0 ]]; then
         LETS_ENCRYPT_EMAIL="$(prompt_with_default "Let's Encrypt email (optional)" "$LETS_ENCRYPT_EMAIL")"
     fi
-    prompt_database_configuration
     prompt_api_keys_and_admin_password
 
     install_system_packages
-    install_postgresql_if_needed
     install_nodejs
     configure_install_directory
     install_global_process_manager
     install_promptbook_repository
     install_promptbook_cli_launcher
     install_runner_dependencies
-    configure_postgresql_database
     initialize_promptbook_project
     configure_runner_authentication
     configure_pm2_startup
-    run_agents_server_database_migrations
     build_agents_server
     start_agents_server
     configure_nginx_reverse_proxy

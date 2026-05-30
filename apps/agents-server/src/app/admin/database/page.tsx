@@ -12,8 +12,7 @@ export default async function DatabaseAdminPage() {
     }
 
     const databaseMode = resolveAgentsServerDatabaseMode();
-    const databaseModeLabel =
-        databaseMode === 'sqlite' ? 'SQLite' : databaseMode === 'postgres' ? 'PostgreSQL' : 'Supabase';
+    const databaseModeLabel = databaseMode === 'sqlite' ? 'SQLite' : 'Supabase';
 
     return (
         <div className="flex h-[calc(100vh-60px)] flex-col overflow-hidden bg-white text-gray-900 dark:bg-gray-950 dark:text-gray-100">

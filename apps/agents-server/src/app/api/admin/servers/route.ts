@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { spaceTrim } from 'spacetrim';
 import { DatabaseError } from '../../../../../../../src/errors/DatabaseError';
-import { isAgentsServerStandaloneMode } from '../../../../database/agentsServerDatabaseMode';
+import { isAgentsServerSqliteMode } from '../../../../database/agentsServerDatabaseMode';
 import { resolveCurrentServerRegistryContext } from '../../../../utils/currentServerRegistryContext';
 import { isUserAdmin } from '../../../../utils/isUserAdmin';
 import { isUserGlobalAdmin } from '../../../../utils/isUserGlobalAdmin';
@@ -41,7 +41,7 @@ export async function GET() {
         }
 
         const context = await resolveCurrentServerRegistryContext();
-        const servers = isAgentsServerStandaloneMode()
+        const servers = isAgentsServerSqliteMode()
             ? await createStandaloneVpsServersResponse(context.registeredServers)
             : context.registeredServers;
 
@@ -49,7 +49,7 @@ export async function GET() {
             servers,
             currentServerId: context.currentServer?.id ?? null,
             canEdit: await isUserGlobalAdmin(),
-            isStandaloneVps: isAgentsServerStandaloneMode(),
+            isStandaloneVps: isAgentsServerSqliteMode(),
         });
     } catch (error) {
         return NextResponse.json(
@@ -96,7 +96,7 @@ export async function POST(request: Request) {
         assertGlobalAdminAccess(await isUserGlobalAdmin());
 
         const body = withEnvironmentAdminUser((await request.json()) as CreateServerInput);
-        if (isAgentsServerStandaloneMode()) {
+        if (isAgentsServerSqliteMode()) {
             const normalizedDomain = normalizeServerDomain(body.domain);
             if (!normalizedDomain) {
                 return NextResponse.json({ error: 'A valid domain is required.' }, { status: 400 });

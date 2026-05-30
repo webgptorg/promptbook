@@ -1,9 +1,3 @@
--   Added standalone PostgreSQL support to Agents Server and the VPS installer:
-
-    -   `apps/agents-server` now accepts `PTBK_AGENTS_SERVER_DATABASE=postgres`, uses a local PostgreSQL-backed Supabase-shaped adapter for server-side table access, and keeps Embedded Prisma Studio working for SQLite, PostgreSQL, and Supabase deployments.
-    -   Standalone PostgreSQL now follows the same local-VPS server-management flow as SQLite for server routing and domain management, while Supabase keeps the hosted multi-server flow.
-    -   `other/vps/install.sh` now asks whether to use PostgreSQL or SQLite, defaults to PostgreSQL, installs and configures PostgreSQL automatically, creates a dedicated database and user, stores the generated connection details in `.env`, and prints the PostgreSQL password in the installation summary.
-
 -   Added Shibboleth authentication diagnostics to the Agents Server:
 
     -   The middleware, login/logout API routes, and session cookie lifecycle now emit sanitized pm2 log entries whenever a request carries Shibboleth-style identity headers.
