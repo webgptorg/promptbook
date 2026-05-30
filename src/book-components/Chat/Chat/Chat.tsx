@@ -107,6 +107,7 @@ export function Chat(props: ChatProps) {
         extraActions,
         actionsContainer,
         saveFormats,
+        saveFormatHandlers,
         isSaveButtonEnabled = true,
         isCopyButtonEnabled = true,
         buttonColor: buttonColorRaw,
@@ -315,6 +316,7 @@ export function Chat(props: ChatProps) {
                         onUseTemplate={onUseTemplate}
                         extraActions={extraActions}
                         saveFormats={saveFormats}
+                        saveFormatHandlers={saveFormatHandlers}
                         isSaveButtonEnabled={isSaveButtonEnabled}
                         shouldFadeActions={shouldFadeActions}
                         shouldDisableActions={shouldDisableActions}

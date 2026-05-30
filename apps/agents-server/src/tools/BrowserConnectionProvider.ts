@@ -410,7 +410,7 @@ export class BrowserConnectionProvider {
         await mkdir(userDataDir, { recursive: true });
 
         const launchOptions: NonNullable<Parameters<typeof chromium.launchPersistentContext>[1]> = {
-            headless: false,
+            headless: true,
             args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
         };
 

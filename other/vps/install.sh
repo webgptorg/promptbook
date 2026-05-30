@@ -679,6 +679,12 @@ install_promptbook_repository() {
     run_as_service_user bash -lc "cd $(shell_quote "$PROMPTBOOK_REPOSITORY_DIR") && npm ci --include=dev"
 }
 
+install_agents_server_browser_dependencies() {
+    log "Installing Chromium and Playwright system dependencies for Agents Server browser features."
+    "${SUDO[@]}" bash -lc "cd $(shell_quote "$PROMPTBOOK_REPOSITORY_DIR") && npx playwright install-deps chromium"
+    run_as_service_user bash -lc "cd $(shell_quote "$PROMPTBOOK_REPOSITORY_DIR") && npx playwright install chromium"
+}
+
 install_promptbook_cli_launcher() {
     local global_command_directory=""
 
@@ -1742,6 +1748,7 @@ main() {
     configure_install_directory
     install_global_process_manager
     install_promptbook_repository
+    install_agents_server_browser_dependencies
     install_promptbook_cli_launcher
     install_runner_dependencies
     initialize_promptbook_project

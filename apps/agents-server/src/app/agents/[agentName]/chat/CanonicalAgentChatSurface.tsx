@@ -3,14 +3,17 @@
 import { Chat } from '@promptbook-local/components';
 import { useCallback, useMemo, type CSSProperties, type ReactNode } from 'react';
 import type { ChatParticipant } from '../../../../../../../src/book-components/Chat/types/ChatParticipant';
+import type { ChatSaveFormatHandlerOptions } from '../../../../../../../src/book-components/Chat/save/_common/ChatSaveFormatHandler';
 import { useAgentBackground } from '../../../../components/AgentProfile/useAgentBackground';
 import { useChatEnterBehaviorPreferences } from '../../../../components/ChatEnterBehavior/ChatEnterBehaviorPreferencesProvider';
+import { notifyError } from '../../../../components/Notifications/notifications';
 import { useChatVisualMode } from '../../../../components/ChatVisualMode/ChatVisualModeProvider';
 import { useServerLanguage } from '../../../../components/ServerLanguage/ServerLanguageProvider';
 import { ChatThreadLoadingSkeleton } from '../../../../components/Skeleton/ChatThreadLoadingSkeleton';
 import { useSoundSystem } from '../../../../components/SoundSystemProvider/SoundSystemProvider';
 import { usePromptbookTheme } from '../../../../components/ThemeMode/usePromptbookTheme';
 import { createDefaultChatEffects } from '../../../../utils/chat/createDefaultChatEffects';
+import { downloadChatPdfFromServer } from '../../../../utils/chatExport/downloadChatPdfFromServer';
 import { executeQuickActionButton } from '../../../../utils/chat/executeQuickActionButton';
 import {
     isChatFeedbackEnabled,
@@ -175,6 +178,26 @@ export function CanonicalAgentChatSurface({
             </button>
         );
     }, [cancellableJob, isReadOnly, onCancelActiveJob, translateText]);
+    const handlePdfSaveFormat = useCallback(
+        async ({ title, messages, participants }: ChatSaveFormatHandlerOptions) => {
+            try {
+                await downloadChatPdfFromServer({
+                    title,
+                    messages,
+                    participants,
+                });
+            } catch (error) {
+                notifyError(error instanceof Error ? error.message : 'Failed to export chat as PDF.');
+            }
+        },
+        [],
+    );
+    const saveFormatHandlers = useMemo(
+        () => ({
+            pdf: handlePdfSaveFormat,
+        }),
+        [handlePdfSaveFormat],
+    );
     const extraActionNodes = useMemo(
         () => (
             <>
@@ -235,6 +258,7 @@ export function CanonicalAgentChatSurface({
             elevenLabsVoiceId={state.elevenLabsVoiceId}
             teamAgentProfiles={state.teamAgentProfiles}
             extraActions={extraActionNodes}
+            saveFormatHandlers={saveFormatHandlers}
             theme={promptbookTheme}
         >
             {isReadOnly && frozenChatBannerLabel && (

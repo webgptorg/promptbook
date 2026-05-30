@@ -1,3 +1,9 @@
+-   Fixed Agents Server chat export to **PDF** so downloads are rendered server-side through Playwright/Chromium instead of the broken browser-only PDF builder:
+
+    -   Standalone agent chat now overrides the PDF save format with a server request that renders the same standalone HTML export document to PDF on the server before downloading it.
+    -   Added a reusable Agents Server HTML-to-PDF helper built on the shared server browser provider and switched local Chromium launches to headless mode so server-side PDF printing works reliably.
+    -   `other/vps/install.sh` now installs Playwright Chromium plus its Linux browser dependencies during standalone VPS setup, including the font and rendering packages required for future browser-based server features.
+
 -   Added Shibboleth authentication diagnostics to the Agents Server:
 
     -   The middleware, login/logout API routes, and session cookie lifecycle now emit sanitized pm2 log entries whenever a request carries Shibboleth-style identity headers.

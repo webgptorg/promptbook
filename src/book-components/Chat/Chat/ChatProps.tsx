@@ -12,6 +12,7 @@ import type { AgentChipData } from '../AgentChip/AgentChip';
 import type { string_chat_format_name } from '../save/_common/string_chat_format_name';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
+import type { ChatSaveFormatHandlerMap } from '../save/_common/ChatSaveFormatHandler';
 
 /**
  * Response data returned by the optional `onFeedback` handler.
@@ -727,6 +728,12 @@ export type ChatProps = {
      * @default * All supported formats (see `string_chat_format_name` type)
      */
     readonly saveFormats?: Array<string_chat_format_name>;
+
+    /**
+     * Optional host-provided handlers that replace the default browser download flow
+     * for selected save formats.
+     */
+    readonly saveFormatHandlers?: ChatSaveFormatHandlerMap;
 
     /**
      * Is the writing textarea automatically focused?

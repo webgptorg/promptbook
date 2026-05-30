@@ -1,14 +1,15 @@
 /** @jest-environment jsdom */
 
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, jest } from '@jest/globals';
 import { $getCurrentDate } from '../../../utils/misc/$getCurrentDate';
 import type { ChatMessage } from '../types/ChatMessage';
 
 jest.mock('../save/_common/getChatSaveFormatDefinitions', () => ({
-    getChatSaveFormatDefinitions: () => [],
+    getChatSaveFormatDefinitions: jest.fn(() => []),
 }));
 
+import { getChatSaveFormatDefinitions } from '../save/_common/getChatSaveFormatDefinitions';
 import { ChatActionsBar } from './ChatActionsBar';
 
 /**
@@ -24,7 +25,59 @@ const FIXTURE_MESSAGES: ReadonlyArray<ChatMessage> = [
     },
 ];
 
+/**
+ * Typed access to the mocked save-format registry.
+ */
+const getChatSaveFormatDefinitionsMock = getChatSaveFormatDefinitions as jest.MockedFunction<
+    typeof getChatSaveFormatDefinitions
+>;
+
 describe('ChatActionsBar', () => {
+    it('delegates handled save formats to the host application override', async () => {
+        const actionsRef = {
+            current: null as HTMLDivElement | null,
+        };
+        const handlePdfDownload = jest.fn(async () => undefined);
+
+        getChatSaveFormatDefinitionsMock.mockReturnValue([
+            {
+                formatName: 'pdf',
+                label: 'PDF',
+                mimeType: 'application/pdf',
+                fileExtension: 'pdf',
+                getContent: jest.fn(async () => 'unused'),
+            },
+        ]);
+
+        render(
+            <ChatActionsBar
+                actionsRef={actionsRef}
+                messages={FIXTURE_MESSAGES}
+                participants={[]}
+                title="Action bar test"
+                saveFormats={['pdf']}
+                saveFormatHandlers={{ pdf: handlePdfDownload }}
+                isSaveButtonEnabled={true}
+                shouldFadeActions={false}
+                shouldDisableActions={false}
+                onButtonClick={(handler) => () => {
+                    handler?.({} as never);
+                }}
+            />,
+        );
+
+        fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+        fireEvent.click(screen.getByRole('button', { name: 'PDF' }));
+
+        await waitFor(() =>
+            expect(handlePdfDownload).toHaveBeenCalledWith({
+                title: 'Action bar test',
+                messages: FIXTURE_MESSAGES,
+                participants: [],
+            }),
+        );
+    });
+
     it('renders the "New chat" control as a link when a destination href is provided', () => {
         const actionsRef = {
             current: null as HTMLDivElement | null,

@@ -3,11 +3,12 @@
 import { useCallback, useEffect, useState, type MouseEvent, type MutableRefObject, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import type { Promisable } from 'type-fest';
-import { normalizeToKebabCase } from '../../../utils/normalization/normalize-to-kebab-case';
 import { classNames } from '../../_common/react-utils/classNames';
 import { ResetIcon } from '../../icons/ResetIcon';
 import { SaveIcon } from '../../icons/SaveIcon';
 import { TemplateIcon } from '../../icons/TemplateIcon';
+import type { ChatSaveFormatHandlerMap } from '../save/_common/ChatSaveFormatHandler';
+import { createChatExportFilename } from '../save/_common/createChatExportFilename';
 import { getChatSaveFormatDefinitions } from '../save/_common/getChatSaveFormatDefinitions';
 import type { string_chat_format_name } from '../save/_common/string_chat_format_name';
 import type { ChatMessage } from '../types/ChatMessage';
@@ -38,6 +39,7 @@ export type ChatActionsBarProps = {
     onUseTemplate?: () => void;
     extraActions?: ReactNode;
     saveFormats?: Array<string_chat_format_name>;
+    saveFormatHandlers?: ChatSaveFormatHandlerMap;
     isSaveButtonEnabled: boolean;
     shouldFadeActions: boolean;
     /**
@@ -71,6 +73,7 @@ export function ChatActionsBar(props: ChatActionsBarProps) {
         onUseTemplate,
         extraActions,
         saveFormats,
+        saveFormatHandlers,
         isSaveButtonEnabled,
         shouldFadeActions,
         shouldDisableActions,
@@ -98,23 +101,28 @@ export function ChatActionsBar(props: ChatActionsBarProps) {
 
     const handleDownload = useCallback(
         async (format: string_chat_format_name) => {
+            const customSaveFormatHandler = saveFormatHandlers?.[format];
+            if (customSaveFormatHandler) {
+                await customSaveFormatHandler({
+                    title,
+                    messages,
+                    participants,
+                });
+                setShowSaveMenu(false);
+                return;
+            }
+
             const formatDefinition = getChatSaveFormatDefinitions([format])[0];
             if (!formatDefinition) {
                 return;
             }
-
-            const date = new Date();
-            const dateName = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date
-                .getDate()
-                .toString()
-                .padStart(2, '0')}`;
 
             const content = await formatDefinition.getContent({ title, messages, participants });
             const blob = new Blob([content], { type: formatDefinition.mimeType });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `${normalizeToKebabCase(title)}-${dateName}.${formatDefinition.fileExtension}`;
+            link.download = createChatExportFilename(title, formatDefinition.fileExtension);
             document.body.appendChild(link);
             link.click();
             setTimeout(() => {
@@ -123,7 +131,7 @@ export function ChatActionsBar(props: ChatActionsBarProps) {
             }, 100);
             setShowSaveMenu(false);
         },
-        [messages, participants, title],
+        [messages, participants, saveFormatHandlers, title],
     );
 
     const firstMessageFromUser = messages[0]?.sender === 'USER';
