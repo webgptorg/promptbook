@@ -2,7 +2,6 @@ import { createHmac } from 'crypto';
 import { cookies, headers } from 'next/headers';
 import { cache } from 'react';
 import { isStandaloneVpsRawIpBootstrapActive } from './standaloneVpsRawIpBootstrap';
-import { writeShibbolethAuthenticationLog } from './shibboleth/writeShibbolethAuthenticationLog';
 
 /**
  * Cookie name used to store the signed user session.
@@ -162,17 +161,9 @@ export function shouldUseSecureSessionCookieForRequest(context: SessionCookieSec
  */
 export async function setSession(user: SessionUser) {
     const token = serializeSessionToken(user);
-    const headerStore = await headers();
-    const cookieStore = await cookies();
-    const secure = shouldUseSecureSessionCookieForHeaders(headerStore);
+    const secure = await shouldUseSecureSessionCookie();
 
-    writeShibbolethAuthenticationLog(headerStore, {
-        event: 'session-set',
-        hasSessionCookie: cookieStore.has(SESSION_COOKIE_NAME),
-        isSecureSessionCookie: secure,
-    });
-
-    cookieStore.set(SESSION_COOKIE_NAME, token, {
+    (await cookies()).set(SESSION_COOKIE_NAME, token, {
         httpOnly: true,
         secure,
         path: '/',
@@ -184,17 +175,9 @@ export async function setSession(user: SessionUser) {
  * Clears the current authenticated session cookie.
  */
 export async function clearSession() {
-    const headerStore = await headers();
-    const cookieStore = await cookies();
-
-    writeShibbolethAuthenticationLog(headerStore, {
-        event: 'session-cleared',
-        hasSessionCookie: cookieStore.has(SESSION_COOKIE_NAME),
-    });
-
-    cookieStore.delete(SESSION_COOKIE_NAME);
+    (await cookies()).delete(SESSION_COOKIE_NAME);
     // Also clear legacy adminToken
-    cookieStore.delete('adminToken');
+    (await cookies()).delete('adminToken');
 }
 
 /**
@@ -217,12 +200,13 @@ export async function getSession(): Promise<SessionUser | null> {
 }
 
 /**
- * Resolves the runtime cookie security decision from one request header snapshot.
+ * Resolves the runtime cookie security decision from the current request headers.
  *
- * @param headerStore - Request headers from the active request.
  * @returns `true` when the session cookie should keep the `Secure` flag.
  */
-function shouldUseSecureSessionCookieForHeaders(headerStore: Pick<Headers, 'get'>): boolean {
+async function shouldUseSecureSessionCookie(): Promise<boolean> {
+    const headerStore = await headers();
+
     return shouldUseSecureSessionCookieForRequest({
         isProduction: process.env.NODE_ENV === 'production',
         host: headerStore.get('host'),

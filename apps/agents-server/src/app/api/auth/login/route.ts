@@ -1,6 +1,5 @@
 import { authenticateUser } from '../../../../utils/authenticateUser';
 import { setSession } from '../../../../utils/session';
-import { writeShibbolethAuthenticationLog } from '../../../../utils/shibboleth/writeShibbolethAuthenticationLog';
 import { NextResponse } from 'next/server';
 
 /**
@@ -8,13 +7,6 @@ import { NextResponse } from 'next/server';
  */
 export async function POST(request: Request) {
     try {
-        writeShibbolethAuthenticationLog(request.headers, {
-            event: 'login-route-request',
-            pathname: '/api/auth/login',
-            method: request.method,
-            hasSessionCookie: (request.headers.get('cookie') || '').includes('sessionToken='),
-        });
-
         const body = await request.json();
         const { username, password } = body;
 
