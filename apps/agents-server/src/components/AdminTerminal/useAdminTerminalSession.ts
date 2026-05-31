@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 /**
  * Minimal terminal-session shape used by the shared admin terminal hook.
@@ -100,6 +100,11 @@ type UseAdminTerminalSessionOptions = {
      * Error message shown when the process exits with a non-zero code.
      */
     readonly finishErrorMessage: string;
+
+    /**
+     * Whether the hook should start a session after the initial load finds none.
+     */
+    readonly isAutoStartEnabled?: boolean;
 };
 
 /**
@@ -112,13 +117,13 @@ export function useAdminTerminalSession<TSession extends AdminTerminalSession>(
     options: UseAdminTerminalSessionOptions,
 ) {
     const [session, setSession] = useState<TSession | null>(null);
-    const [input, setInput] = useState('');
     const [isLoadingSession, setIsLoadingSession] = useState(true);
     const [isStarting, setIsStarting] = useState(false);
     const [isSending, setIsSending] = useState(false);
     const [isStopping, setIsStopping] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
+    const hasAutoStartedReference = useRef(false);
 
     /**
      * Loads the latest session snapshot for the current terminal.
@@ -307,6 +312,15 @@ export function useAdminTerminalSession<TSession extends AdminTerminalSession>(
         }
     }, [options.basePath, options.stopErrorMessage, session]);
 
+    useEffect(() => {
+        if (!options.isAutoStartEnabled || hasAutoStartedReference.current || isLoadingSession || session) {
+            return;
+        }
+
+        hasAutoStartedReference.current = true;
+        void startSession();
+    }, [isLoadingSession, options.isAutoStartEnabled, session, startSession]);
+
     /**
      * Clears any terminal status messages shown above the panel.
      */
@@ -317,8 +331,6 @@ export function useAdminTerminalSession<TSession extends AdminTerminalSession>(
 
     return {
         session,
-        input,
-        setInput,
         isLoadingSession,
         isStarting,
         isSending,

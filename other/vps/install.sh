@@ -575,6 +575,7 @@ install_system_packages() {
         curl \
         git \
         gnupg \
+        util-linux \
         build-essential \
         python3 \
         make \

@@ -1,3 +1,10 @@
+-   Replaced the Agents Server admin terminal rendering with `@xterm/xterm`:
+
+    -   `/admin/cli-access` and `/admin/code-runners` now share an xterm-based interactive terminal surface so keyboard input, ANSI colors, cursor movement, and runner login flows render like a normal terminal.
+    -   Super-admin CLI access now connects automatically when no previous shell session exists.
+    -   `/admin/logs` now uses the same read-only xterm renderer for pm2 output.
+    -   The shared server-side terminal stream now preserves raw terminal control sequences, and the standalone VPS installer explicitly installs `util-linux` for the pseudo-terminal `script` command used by browser terminal sessions.
+
 -   Added metadata-backed Shibboleth authentication for the Agents Server:
 
     -   `AUTHENTICATION_METHODS` now controls enabled login methods, with `PASSWORD` as the default and `SHIBBOLETH` inactive until explicitly added.

@@ -188,7 +188,12 @@ export function startInteractiveTerminalSession(
     const sessionId = randomUUID();
     const childProcess = spawn(options.command, [...(options.arguments || [])], {
         cwd: options.cwd,
-        env: options.env,
+        env: {
+            ...process.env,
+            TERM: 'xterm-256color',
+            COLORTERM: 'truecolor',
+            ...options.env,
+        },
         stdio: ['pipe', 'pipe', 'pipe'],
     });
 
@@ -359,13 +364,13 @@ function appendInteractiveTerminalOutput(session: InteractiveTerminalSession, ra
 }
 
 /**
- * Normalizes streamed terminal output for browser rendering.
+ * Preserves streamed terminal output for the xterm browser renderer.
  *
  * @param output - Raw process output chunk.
- * @returns UI-friendly terminal text.
+ * @returns Raw terminal text with ANSI control sequences intact.
  */
 function normalizeInteractiveTerminalOutput(output: string): string {
-    return output.replace(/\r\n/gu, '\n').replace(/\r/gu, '\n');
+    return output;
 }
 
 /**

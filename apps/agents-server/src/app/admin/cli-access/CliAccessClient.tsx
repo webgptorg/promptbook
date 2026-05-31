@@ -33,6 +33,7 @@ export function CliAccessClient() {
         startSuccessMessage: 'CLI access terminal started.',
         finishSuccessMessage: 'CLI access session finished.',
         finishErrorMessage: 'CLI access session ended with an error.',
+        isAutoStartEnabled: true,
     });
 
     return (
@@ -74,8 +75,6 @@ export function CliAccessClient() {
                 description="Start one shared shell session in the managed installation directory, run any command you need, and stop the session when you are done."
                 hint={`Shell: ${terminal.session?.shell || 'bash'}${terminal.session?.workingDirectory ? ` • Working directory: ${terminal.session.workingDirectory}` : ''}`}
                 session={terminal.session}
-                input={terminal.input}
-                onInputChange={terminal.setInput}
                 onStart={() => void terminal.startSession()}
                 onStop={() => void terminal.stopSession()}
                 onSend={(input) => void terminal.sendInput(input)}
@@ -88,7 +87,6 @@ export function CliAccessClient() {
                 stopLabel="Stop session"
                 outputLabel="Live shell output"
                 outputEmptyState="No shell output yet. Start the CLI session to see the live server console here."
-                inputPlaceholder="Type any shell command, for example pm2 status, git pull, npm run build, or bash scripts"
                 quickActions={[
                     { label: 'Send Enter', input: '\n' },
                     { label: 'Send Ctrl+C', input: '\u0003' },

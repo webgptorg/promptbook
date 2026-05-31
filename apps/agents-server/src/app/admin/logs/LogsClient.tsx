@@ -2,6 +2,7 @@
 
 import { Loader2, RefreshCcw } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { AdminXtermTerminal } from '../../../components/AdminTerminal/AdminXtermTerminal';
 
 /**
  * API payload returned by the pm2 logs endpoint.
@@ -70,9 +71,14 @@ export function LogsClient() {
                 </div>
             )}
 
-            <pre className="min-h-[28rem] overflow-auto rounded-xl border border-slate-800 bg-slate-950 p-4 text-xs leading-5 text-slate-100 shadow-sm">
-                {isLoading && !logs ? 'Loading logs...' : logs}
-            </pre>
+            <AdminXtermTerminal
+                terminalId="pm2-logs"
+                output={logs}
+                emptyState={isLoading && !logs ? 'Loading logs...' : 'No log output returned.'}
+                isReadOnly
+                isPlainTextOutput
+                ariaLabel="Recent pm2 logs"
+            />
         </div>
     );
 }

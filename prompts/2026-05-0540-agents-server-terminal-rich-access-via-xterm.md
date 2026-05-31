@@ -1,4 +1,4 @@
-[ ] !!!!
+[x] ~$0.7578 an hour by OpenAI Codex `gpt-5.5`
 
 [✨⛏] Use `@xterm/xterm` for terminal rendering in Agents Server
 
@@ -24,3 +24,4 @@
 ```bash
 root@collboard-agents-server-x21:~# sudo curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/other/vps/install.sh | bash
 ```
+

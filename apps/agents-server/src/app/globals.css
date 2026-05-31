@@ -1,6 +1,7 @@
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
+@import '@xterm/xterm/css/xterm.css';
 
 /**
  * OpenMoji black and white CSS

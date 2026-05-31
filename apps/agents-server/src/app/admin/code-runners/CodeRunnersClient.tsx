@@ -3,6 +3,7 @@
 import { Loader2, Save, ServerCog } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { AdminTerminalCard } from '../../../components/AdminTerminal/AdminTerminalCard';
+import { AdminXtermTerminal } from '../../../components/AdminTerminal/AdminXtermTerminal';
 import { useAdminTerminalSession } from '../../../components/AdminTerminal/useAdminTerminalSession';
 import { Card } from '../../../components/Homepage/Card';
 
@@ -93,8 +94,6 @@ export function CodeRunnersClient() {
     });
     const {
         session: authenticationSession,
-        input: authenticationInput,
-        setInput: setAuthenticationInput,
         isStarting: isStartingAuthentication,
         isSending: isSendingAuthenticationInput,
         isStopping: isStoppingAuthentication,
@@ -279,9 +278,15 @@ export function CodeRunnersClient() {
             </Card>
 
             {applyOutput ? (
-                <pre className="max-h-72 overflow-auto rounded-xl border border-slate-200 bg-slate-950 p-4 text-xs text-slate-100">
-                    {applyOutput}
-                </pre>
+                <AdminXtermTerminal
+                    terminalId="code-runner-apply-output"
+                    output={applyOutput}
+                    emptyState="No apply output returned."
+                    isReadOnly
+                    isPlainTextOutput
+                    heightClassName="h-72"
+                    ariaLabel="Code-runner apply output"
+                />
             ) : null}
 
             <AdminTerminalCard
@@ -289,8 +294,6 @@ export function CodeRunnersClient() {
                 description="Save runner changes first if you want to authenticate a different CLI, then start the saved-runner terminal here instead of SSHing into the VPS."
                 hint={authenticationHint}
                 session={authenticationSession}
-                input={authenticationInput}
-                onInputChange={setAuthenticationInput}
                 onStart={() => void startAuthenticationSession()}
                 onStop={() => void stopAuthenticationSession()}
                 onSend={(input) => void sendAuthenticationInput(input)}
@@ -303,12 +306,17 @@ export function CodeRunnersClient() {
                 stopLabel="Stop terminal"
                 outputLabel="Live authentication terminal"
                 outputEmptyState="No authentication session output yet. Start the saved-runner terminal to see the live authentication log here."
-                inputPlaceholder="Type a terminal command such as /login and send it to the running runner CLI"
                 quickActions={[{ label: 'Send Enter', input: '\n' }]}
             >
-                <pre className="max-h-64 overflow-auto rounded-xl border border-slate-200 bg-slate-950 p-4 text-xs text-slate-100">
-                    {status || 'Runner status was not available.'}
-                </pre>
+                <AdminXtermTerminal
+                    terminalId="code-runner-status"
+                    output={status || 'Runner status was not available.'}
+                    emptyState="Runner status was not available."
+                    isReadOnly
+                    isPlainTextOutput
+                    heightClassName="h-64"
+                    ariaLabel="Runner status"
+                />
             </AdminTerminalCard>
         </div>
     );

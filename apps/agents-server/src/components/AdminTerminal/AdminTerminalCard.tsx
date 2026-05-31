@@ -1,10 +1,10 @@
 'use client';
 
-import { Loader2, Play, Send, SquareTerminal } from 'lucide-react';
+import { Loader2, Play, SquareTerminal } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { useEffect, useRef } from 'react';
 import { Card } from '../Homepage/Card';
 import type { AdminTerminalSession } from './useAdminTerminalSession';
+import { AdminXtermTerminal } from './AdminXtermTerminal';
 
 /**
  * One quick terminal action rendered next to the input box.
@@ -44,16 +44,6 @@ type AdminTerminalCardProps<TSession extends AdminTerminalSession> = {
      * Active or latest terminal session snapshot.
      */
     readonly session: TSession | null;
-
-    /**
-     * Controlled terminal input value.
-     */
-    readonly input: string;
-
-    /**
-     * Updates the controlled terminal input.
-     */
-    readonly onInputChange: (value: string) => void;
 
     /**
      * Starts or reconnects to the terminal session.
@@ -116,11 +106,6 @@ type AdminTerminalCardProps<TSession extends AdminTerminalSession> = {
     readonly outputEmptyState: string;
 
     /**
-     * Placeholder used by the terminal input control.
-     */
-    readonly inputPlaceholder: string;
-
-    /**
      * Optional shortcut buttons that send raw terminal input.
      */
     readonly quickActions?: ReadonlyArray<AdminTerminalQuickAction>;
@@ -131,9 +116,6 @@ type AdminTerminalCardProps<TSession extends AdminTerminalSession> = {
     readonly children?: ReactNode;
 };
 
-const INPUT_CLASS_NAME =
-    'w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-50 disabled:text-gray-500';
-
 /**
  * Shared terminal card used by super-admin pages that expose interactive browser terminals.
  */
@@ -142,8 +124,6 @@ export function AdminTerminalCard<TSession extends AdminTerminalSession>({
     description,
     hint,
     session,
-    input,
-    onInputChange,
     onStart,
     onStop,
     onSend,
@@ -156,20 +136,9 @@ export function AdminTerminalCard<TSession extends AdminTerminalSession>({
     stopLabel,
     outputLabel,
     outputEmptyState,
-    inputPlaceholder,
     quickActions = [],
     children,
 }: AdminTerminalCardProps<TSession>) {
-    const outputReference = useRef<HTMLPreElement | null>(null);
-
-    useEffect(() => {
-        if (!outputReference.current) {
-            return;
-        }
-
-        outputReference.current.scrollTop = outputReference.current.scrollHeight;
-    }, [session?.output]);
-
     return (
         <Card className="hover:border-gray-200 hover:shadow-md">
             <div className="space-y-4">
@@ -221,45 +190,18 @@ export function AdminTerminalCard<TSession extends AdminTerminalSession>({
                             <span className="text-xs text-slate-500">No session started yet.</span>
                         )}
                     </div>
-                    <pre
-                        ref={outputReference}
-                        className="max-h-96 overflow-auto rounded-xl border border-slate-200 bg-slate-950 p-4 text-xs text-slate-100"
-                    >
-                        {session?.output || outputEmptyState}
-                    </pre>
+                    <AdminXtermTerminal
+                        terminalId={session?.id || `${title}:empty`}
+                        output={session?.output || ''}
+                        emptyState={outputEmptyState}
+                        isRunning={Boolean(session?.isRunning)}
+                        ariaLabel={outputLabel}
+                        onData={onSend}
+                    />
                 </div>
 
-                <form
-                    className="flex flex-col gap-3 md:flex-row"
-                    onSubmit={(event) => {
-                        event.preventDefault();
-
-                        if (!input.trim()) {
-                            return;
-                        }
-
-                        const formattedInput = input.endsWith('\n') ? input : `${input}\n`;
-                        onSend(formattedInput);
-                        onInputChange('');
-                    }}
-                >
-                    <input
-                        type="text"
-                        value={input}
-                        onChange={(event) => onInputChange(event.target.value)}
-                        disabled={!session?.isRunning || isSending}
-                        placeholder={inputPlaceholder}
-                        className={INPUT_CLASS_NAME}
-                    />
+                {quickActions.length > 0 ? (
                     <div className="flex flex-wrap gap-3">
-                        <button
-                            type="submit"
-                            disabled={!session?.isRunning || isSending || input.trim() === ''}
-                            className="inline-flex items-center justify-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                            {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                            Send
-                        </button>
                         {quickActions.map((quickAction) => (
                             <button
                                 key={`${quickAction.label}:${quickAction.input}`}
@@ -268,11 +210,12 @@ export function AdminTerminalCard<TSession extends AdminTerminalSession>({
                                 disabled={!session?.isRunning || isSending}
                                 className="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
                             >
+                                {isSending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                                 {quickAction.label}
                             </button>
                         ))}
                     </div>
-                </form>
+                ) : null}
             </div>
         </Card>
     );
