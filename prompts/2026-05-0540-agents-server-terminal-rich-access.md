@@ -1,49 +1,24 @@
-[ ] !!!!!!!!!!!!!!!!!!!!!!!!
+[ ] !!!!
 
-[✨⛏] brr
+[✨⛏] Use `@xterm/xterm` for terminal rendering in Agents Server
 
--   @@@
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
+-   Now there is custom solution for terminal rendering in Agents Server, but it is not very good and has some issues, so we are going to replace it with `@xterm/xterm`, which is a popular and well-maintained terminal emulator library for the web, it provides a lot of features and is very customizable, so we can use it to create a better terminal experience for the users of the Agents Server
+-   Use it in:
+    -   `/admin/cli-access`
+    -   `/admin/code-runners`
+-   There is a build in access to the servers terminal as admin into Agents server for super `admin`
+-   When you are logged in as super `admin` you are automatically connected to the terminal logged in
+-   There are 3 levels of permissions for the users in the Agents server:
+    -   Super `admin` - can access the terminal
+    -   Normal `admin` - cannot access the terminal and even does not see the "CLI Access" menu item
+    -   Normal user - cannot access the terminal and even does not see the "Super Admin" menu
+-   Keep in mind the DRY _(don't repeat yourself)_ principle, there should be a single component for the terminal rendering and backend logic that can be reused in different parts of the Agents Server UI
 -   You are working with the [Agents Server](apps/agents-server)
--   If you need to do the database migration, do it
+-   You are working with [auto installation script](vps/install.sh)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
----
+**This is how the Agents server is installed:**
 
-[-]
-
-[✨⛏] brr
-
--   @@@
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
--   You are working with the [Agents Server](apps/agents-server)
--   If you need to do the database migration, do it
--   Add the changes into the [changelog](changelog/_current-preversion.md)
-
----
-
-[-]
-
-[✨⛏] brr
-
--   @@@
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
--   You are working with the [Agents Server](apps/agents-server)
--   If you need to do the database migration, do it
--   Add the changes into the [changelog](changelog/_current-preversion.md)
-
----
-
-[-]
-
-[✨⛏] brr
-
--   @@@
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
--   You are working with the [Agents Server](apps/agents-server)
--   If you need to do the database migration, do it
--   Add the changes into the [changelog](changelog/_current-preversion.md)
+```bash
+root@collboard-agents-server-x21:~# sudo curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/other/vps/install.sh | bash
+```
