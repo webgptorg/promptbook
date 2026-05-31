@@ -1,3 +1,8 @@
+-   Fixed standalone VPS installation from the current `main` installer:
+
+    -   `other/vps/install.sh` now defaults the managed Promptbook repository checkout to `main`, matching the branch that contains the standalone `ptbk agents-server` command used by the installer.
+    -   Added an early CLI capability check so explicitly choosing an older branch without `ptbk agents-server init` stops with a clear installer error instead of the misleading `"agents-server" is not a valid command or book` message.
+
 -   Fixed Agents Server chat export to **PDF** so downloads are rendered server-side through Playwright/Chromium instead of the broken browser-only PDF builder:
 
     -   Standalone agent chat now overrides the PDF save format with a server request that renders the same standalone HTML export document to PDF on the server before downloading it.
@@ -18,8 +23,8 @@
 -   Added branch-aware standalone VPS self-update to `System -> Super Admin -> Update`:
 
     -   Super `admin` users can now see the current deployment environment, compare the deployed Promptbook commit with the latest commit on the tracked branch, and trigger a one-click detached self-update directly from the Agents Server UI.
-    -   The new update flow supports `production` by default plus the `main` (Live), `preview`, and `lts` (LTS) branches, persists update progress/logs across the pm2 restart, and hides the Update menu item from normal admins and normal users.
-    -   `other/vps/install.sh` now asks which environment to install, defaults to `production`, persists `PROMPTBOOK_REPOSITORY_REF`, and exposes a `self-update` subcommand that refreshes the repository, installs dependencies, runs migrations, rebuilds the Agents Server, and restarts pm2.
+    -   The new update flow supports `main` by default plus the `production`, `preview`, and `lts` (LTS) branches, persists update progress/logs across the pm2 restart, and hides the Update menu item from normal admins and normal users.
+    -   `other/vps/install.sh` now asks which environment to install, defaults to `main`, persists `PROMPTBOOK_REPOSITORY_REF`, and exposes a `self-update` subcommand that refreshes the repository, installs dependencies, runs migrations, rebuilds the Agents Server, and restarts pm2.
 
 -   Added hourly pm2 auto-restarts to standalone VPS Agents Server installs:
 

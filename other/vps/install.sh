@@ -8,7 +8,7 @@ NODE_MAJOR_VERSION="${NODE_MAJOR_VERSION:-22}"
 NODE_MINIMUM_VERSION="${NODE_MINIMUM_VERSION:-}"
 PORT="${PORT:-${PTBK_PORT:-4440}}"
 PROMPTBOOK_REPOSITORY_URL="${PROMPTBOOK_REPOSITORY_URL:-https://github.com/webgptorg/promptbook.git}"
-PROMPTBOOK_REPOSITORY_REF="${PROMPTBOOK_REPOSITORY_REF:-production}"
+PROMPTBOOK_REPOSITORY_REF="${PROMPTBOOK_REPOSITORY_REF:-main}"
 PROMPTBOOK_REPOSITORY_DIR="${PROMPTBOOK_REPOSITORY_DIR:-$INSTALL_DIR/repository}"
 PTBK_BIN_DIR="${PTBK_BIN_DIR:-$INSTALL_DIR/bin}"
 PTBK_COMMAND_PATH="${PTBK_COMMAND_PATH:-$PTBK_BIN_DIR/ptbk}"
@@ -710,6 +710,15 @@ EOF
     fi
 
     run_as_service_user "$PTBK_COMMAND_PATH" --help >/dev/null
+    verify_promptbook_cli_supports_agents_server
+}
+
+verify_promptbook_cli_supports_agents_server() {
+    if run_as_service_user "$PTBK_COMMAND_PATH" agents-server init --help >/dev/null 2>&1; then
+        return
+    fi
+
+    fail "The Promptbook repository branch '$PROMPTBOOK_REPOSITORY_REF' does not provide 'ptbk agents-server init'. Choose main or another branch that includes standalone Agents Server support."
 }
 
 install_runner_dependencies() {
