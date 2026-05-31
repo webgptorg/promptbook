@@ -206,47 +206,6 @@ Building Promptbook Agents Server.
 
 ---
 
-[ ] !!!
-
-[✨🤬] Try to put all the installation questions first, then heavy installing
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/other/vps/install.sh | bash
-
-Coding runner [github-copilot]:
-Runner model [gpt-5.4]:
-Runner thinking level [xhigh]:
-Agents Server port [4440]:
-[promptbook-vps] Installing system packages.
-Hit:1 http://mirrors.digitalocean.com/ubuntu noble InRelease
-Hit:2 http://mirrors.digitalocean.com/ubuntu noble-updates InRelease
-Hit:3 http://mirrors.digitalocean.com/ubuntu noble-backports InRelease
-Hit:4 https://repos-droplet.digitalocean.com/apt/droplet-agent main InRelease
-Get:5 http://security.ubuntu.com/ubuntu noble-security InRelease [126 kB]
-Get:6 http://security.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1191 kB]
-Get:7 http://security.ubuntu.com/ubuntu noble-security/universe Translation-en [230 kB]
-...
-```
-
-... Lot of installation logs and waiting
-
-Then waiting for user again:
-
-```bash
-added 3 packages in 9s
-[promptbook-vps] Configuring /opt/promptbook-agents-server.
-[promptbook-vps] Initializing Promptbook Agents Server project files.
-Public Agents Server URL [http://143.244.161.204:4440]:
-```
-
--   @@@
--   _(@@@ After VPS server is working)_
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality of `ptbk agents-server` and related functionality before you start implementing.
--   You are working with [auto installation script](vps/install.sh)
-
----
-
 [x] ~$1.07 2 hours by OpenAI Codex `gpt-5.5`
 
 [✨🤬] The installation script should spawn 100% production ready server running on custom domain with production server
