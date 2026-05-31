@@ -192,6 +192,8 @@ login.passwordLabel: Heslo
 login.passwordPlaceholder: Zadejte heslo
 login.loggingIn: Přihlašuji…
 login.loginAction: Přihlásit se
+login.shibbolethAction: Pokračovat přes {provider}
+login.methodDivider: nebo
 login.forgottenPassword: Zapomněli jste heslo?
 login.registerNewUser: Zaregistrovat nového uživatele
 login.errorOccurred: Došlo k chybě

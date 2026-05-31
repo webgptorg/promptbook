@@ -198,6 +198,8 @@ export const SERVER_TRANSLATION_KEYS = [
     'login.passwordPlaceholder',
     'login.loggingIn',
     'login.loginAction',
+    'login.shibbolethAction',
+    'login.methodDivider',
     'login.forgottenPassword',
     'login.registerNewUser',
     'login.errorOccurred',

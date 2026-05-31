@@ -1,3 +1,9 @@
+-   Added metadata-backed Shibboleth authentication for the Agents Server:
+
+    -   `AUTHENTICATION_METHODS` now controls enabled login methods, with `PASSWORD` as the default and `SHIBBOLETH` inactive until explicitly added.
+    -   Added Shibboleth SP metadata, login redirect, ACS/session creation routes, and structured server logs for the login flow without logging raw SAML responses.
+    -   Added Shibboleth metadata entries for IdP metadata/certificates, EntityID, ACS URL, username attribute, automatic user creation, and login button label.
+
 -   Added branch-aware standalone VPS self-update to `System -> Super Admin -> Update`:
 
     -   Super `admin` users can now see the current deployment environment, compare the deployed Promptbook commit with the latest commit on the tracked branch, and trigger a one-click detached self-update directly from the Agents Server UI.
