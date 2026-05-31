@@ -15,16 +15,19 @@
 
 ---
 
-[-]
+[ ] !!!
 
-[✨🟡] foo
+[✨🟡] Fix export to PDF from chat, now it fails on "Failed to export chat as PDF."
 
--   @@@
+-   Now the PDF export of chat fails with 500 `/api/chat/export/pdf` `{"error":"Failed to export chat as PDF."}`
+-   Use headless browser to render the PDF on the server side, from html
+-   Use playwright and chrome
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
--   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![alt text](prompts/screenshots/2026-05-0550-agents-server-fix-pdf-chat-export.png)
 
 ---
 
@@ -51,4 +54,3 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
