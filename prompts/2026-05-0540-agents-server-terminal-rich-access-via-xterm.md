@@ -6,6 +6,7 @@
 -   Use it in:
     -   `/admin/cli-access`
     -   `/admin/code-runners`
+    -   `/admin/logs` _(just read only access to the terminal, without the ability to run commands)_
 -   There is a build in access to the servers terminal as admin into Agents server for super `admin`
 -   When you are logged in as super `admin` you are automatically connected to the terminal logged in
 -   Terminal must support interactivity, colors, and all the features that `@xterm/xterm` provides, so users can interact with the terminal in same way as they would interact with a normal terminal from vscode
