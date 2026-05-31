@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/ollama",
-    "version": "0.112.0-100",
+    "version": "0.112.0-101",
     "description": "Promptbook: Create persistent AI agents that turn your company's scattered knowledge into action",
     "private": false,
     "sideEffects": false,
@@ -98,7 +98,7 @@
     "types": "./esm/src/_packages/ollama.index.d.ts",
     "typings": "./esm/src/_packages/ollama.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.112.0-100"
+        "@promptbook/core": "0.112.0-101"
     },
     "dependencies": {
         "bottleneck": "2.19.5",
