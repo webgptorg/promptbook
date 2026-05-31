@@ -1,3 +1,8 @@
+-   Fixed Agents Server chat PDF export:
+
+    -   `/api/chat/export/pdf` now renders the standalone chat HTML with a short-lived headless Playwright Chromium browser and closes it after the PDF is generated.
+    -   Server-side Chromium launch options now omit `executablePath` when system Chrome is unavailable, allowing Playwright's installed browser to be used instead of failing with `executablePath: expected string, got object`.
+
 -   Replaced the Agents Server admin terminal rendering with `@xterm/xterm`:
 
     -   `/admin/cli-access` and `/admin/code-runners` now share an xterm-based interactive terminal surface so keyboard input, ANSI colors, cursor movement, and runner login flows render like a normal terminal.

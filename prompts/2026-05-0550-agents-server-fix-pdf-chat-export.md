@@ -15,7 +15,7 @@
 
 ---
 
-[ ] !!!
+[x] ~$0.3879 an hour by OpenAI Codex `gpt-5.5` - commiting manually
 
 [✨🟡] Fix export to PDF from chat, now it fails on "Failed to export chat as PDF."
 
@@ -54,3 +54,4 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

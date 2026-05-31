@@ -1,8 +1,8 @@
 import { mkdir } from 'fs/promises';
 import { BrowserContext, chromium } from 'playwright';
-import { locateChrome } from '../../../../src/executables/browsers/locateChrome';
 import { resolvePromptbookTemporaryPath } from '../../../../src/utils/filesystem/promptbookTemporaryPath';
 import { REMOTE_BROWSER_URL } from '../../config';
+import { createServerChromiumLaunchOptions } from './createServerChromiumLaunchOptions';
 import { retryWithBackoff } from '../utils/retryWithBackoff';
 import {
     extractNetworkErrorCode,
@@ -409,24 +409,7 @@ export class BrowserConnectionProvider {
         const userDataDir = `${DEFAULT_BROWSER_USER_DATA_DIR}/run-browser`;
         await mkdir(userDataDir, { recursive: true });
 
-        const launchOptions: NonNullable<Parameters<typeof chromium.launchPersistentContext>[1]> = {
-            headless: true,
-            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
-        };
-
-        try {
-            const chromePath = await locateChrome();
-            launchOptions.executablePath = chromePath!;
-        } catch (error) {
-            if (this.isVerbose) {
-                console.warn(
-                    '[BrowserConnectionProvider] Could not locate system Chrome; using Playwright bundled Chromium',
-                    {
-                        error: error instanceof Error ? error.message : String(error),
-                    },
-                );
-            }
-        }
+        const launchOptions = await createServerChromiumLaunchOptions();
 
         return await chromium.launchPersistentContext(userDataDir, launchOptions);
     }

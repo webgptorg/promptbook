@@ -1,4 +1,5 @@
-import { $provideBrowserForServer } from '@/src/tools/$provideBrowserForServer';
+import { createServerChromiumLaunchOptions } from '@/src/tools/createServerChromiumLaunchOptions';
+import { chromium } from 'playwright';
 
 /**
  * Browser viewport used while rendering standalone HTML exports to PDF.
@@ -9,29 +10,34 @@ const CHAT_EXPORT_PDF_VIEWPORT = {
 } as const;
 
 /**
- * Prints standalone HTML into a PDF using the shared server-side Chromium instance.
+ * Prints standalone HTML into a PDF using a short-lived headless Chromium instance.
  *
  * @param html - Fully rendered standalone HTML document.
  * @returns PDF bytes ready for an HTTP response.
  */
 export async function renderHtmlToPdfOnServer(html: string): Promise<Buffer> {
-    const browserContext = await $provideBrowserForServer();
-    const page = await browserContext.newPage();
+    const browser = await chromium.launch(await createServerChromiumLaunchOptions());
 
     try {
-        await page.setViewportSize(CHAT_EXPORT_PDF_VIEWPORT);
-        await page.emulateMedia({ media: 'print' });
-        await page.setContent(html, { waitUntil: 'load' });
-        await page.evaluate(async () => {
-            await document.fonts?.ready;
-        });
+        const page = await browser.newPage();
 
-        return await page.pdf({
-            format: 'Letter',
-            printBackground: true,
-            preferCSSPageSize: true,
-        });
+        try {
+            await page.setViewportSize(CHAT_EXPORT_PDF_VIEWPORT);
+            await page.emulateMedia({ media: 'print' });
+            await page.setContent(html, { waitUntil: 'load' });
+            await page.evaluate(async () => {
+                await document.fonts?.ready;
+            });
+
+            return await page.pdf({
+                format: 'Letter',
+                printBackground: true,
+                preferCSSPageSize: true,
+            });
+        } finally {
+            await page.close();
+        }
     } finally {
-        await page.close();
+        await browser.close();
     }
 }
