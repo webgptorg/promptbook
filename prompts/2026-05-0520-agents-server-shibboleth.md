@@ -2,6 +2,8 @@
 
 [✨🐡] Add logging of Shibboleth authentication process in the Agents Server
 
+-   Activating Shibboleth authentication (and in future other login methods) in the Agents Server should be done via metadata configuration
+-   By default, the Shibboleth authentication is not active
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
