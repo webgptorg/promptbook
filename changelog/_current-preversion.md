@@ -1,3 +1,8 @@
+-   Fixed standalone VPS installer prompt ordering:
+
+    -   `other/vps/install.sh` now asks for the public Agents Server URL and runner authentication preference before system package installation, repository dependency installation, and the production build start.
+    -   Low-memory swap creation is now deferred until after all installation questions have been answered.
+
 -   Fixed Agents Server chat PDF export:
 
     -   `/api/chat/export/pdf` now renders the standalone chat HTML with a short-lived headless Playwright Chromium browser and closes it after the PDF is generated.

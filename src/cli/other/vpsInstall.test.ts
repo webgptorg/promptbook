@@ -44,6 +44,32 @@ describe('other/vps/install.sh', () => {
         );
     });
 
+    it('collects remaining installation choices before package installation starts', () => {
+        const mainFunction = installScript.slice(installScript.indexOf('\nmain() {'));
+        const configureEnvironmentFunction = installScript.slice(
+            installScript.indexOf('\nconfigure_environment() {'),
+            installScript.indexOf('\ninitialize_promptbook_project() {'),
+        );
+
+        expect(installScript).toContain('REQUESTED_PUBLIC_SITE_URL');
+        expect(installScript).toContain('prompt_with_default "Public Agents Server URL"');
+        expect(installScript).toContain('prompt_yes_no "Open the $PTBK_AGENT CLI for authentication when dependencies are ready?"');
+        expect(configureEnvironmentFunction).toContain('local public_site_url="$REQUESTED_PUBLIC_SITE_URL"');
+        expect(configureEnvironmentFunction).not.toContain('prompt_with_default "Public Agents Server URL"');
+        expect(mainFunction.indexOf('prompt_public_site_url')).toBeLessThan(
+            mainFunction.indexOf('install_system_packages'),
+        );
+        expect(mainFunction.indexOf('prompt_runner_authentication_preference')).toBeLessThan(
+            mainFunction.indexOf('install_system_packages'),
+        );
+        expect(mainFunction.indexOf('configure_required_resources')).toBeGreaterThan(
+            mainFunction.indexOf('prompt_runner_authentication_preference'),
+        );
+        expect(mainFunction.indexOf('configure_required_resources')).toBeLessThan(
+            mainFunction.indexOf('install_system_packages'),
+        );
+    });
+
     it('requires a Node.js patch level compatible with Embedded Prisma Studio', () => {
         expect(installScript).toContain('resolve_node_minimum_version()');
         expect(installScript).toContain("printf '22.12.0'");

@@ -43,6 +43,9 @@ RUN_HOME=""
 ENV_FILE=""
 REQUESTED_OPENAI_API_KEY=""
 REQUESTED_ADMIN_PASSWORD=""
+REQUESTED_PUBLIC_SITE_URL=""
+REQUESTED_ADDITIONAL_SWAP_MIB=0
+IS_RUNNER_AUTHENTICATION_REQUESTED=""
 GENERATED_ADMIN_PASSWORD=""
 PUBLIC_IP_ADDRESS=""
 DOMAINS=()
@@ -447,6 +450,8 @@ check_required_resources() {
     local total_memory_mib=0
     local additional_swap_mib=0
 
+    REQUESTED_ADDITIONAL_SWAP_MIB=0
+
     log "Checking VPS resources."
 
     install_disk_check_path="$(resolve_existing_path "$INSTALL_DIR")"
@@ -468,7 +473,18 @@ check_required_resources() {
     fi
 
     confirm_disk_space_after_swap "$install_disk_check_path" "$available_disk_space_mib" "$additional_swap_mib"
-    add_required_swap_file "$additional_swap_mib"
+    REQUESTED_ADDITIONAL_SWAP_MIB="$additional_swap_mib"
+    log "Swap will be configured after installation questions are answered."
+}
+
+configure_required_resources() {
+    local total_memory_mib=0
+
+    if [[ "$REQUESTED_ADDITIONAL_SWAP_MIB" -eq 0 ]]; then
+        return
+    fi
+
+    add_required_swap_file "$REQUESTED_ADDITIONAL_SWAP_MIB"
     total_memory_mib="$(get_total_memory_mib)"
 
     if [[ "$total_memory_mib" -lt "$MINIMUM_REQUIRED_MEMORY_MIB" ]]; then
@@ -789,6 +805,33 @@ resolve_runner_authentication_command() {
     esac
 }
 
+prompt_runner_authentication_preference() {
+    local authentication_command=""
+
+    IS_RUNNER_AUTHENTICATION_REQUESTED=""
+
+    authentication_command="$(resolve_runner_authentication_command)"
+    if [[ -z "$authentication_command" ]]; then
+        return
+    fi
+
+    if [[ "$PTBK_AGENT" == "github-copilot" ]] && [[ -n "${COPILOT_GITHUB_TOKEN:-}" || -n "${GH_TOKEN:-}" ]]; then
+        IS_RUNNER_AUTHENTICATION_REQUESTED=0
+        return
+    fi
+
+    if ! is_interactive; then
+        IS_RUNNER_AUTHENTICATION_REQUESTED=0
+        return
+    fi
+
+    if prompt_yes_no "Open the $PTBK_AGENT CLI for authentication when dependencies are ready?" "yes"; then
+        IS_RUNNER_AUTHENTICATION_REQUESTED=1
+    else
+        IS_RUNNER_AUTHENTICATION_REQUESTED=0
+    fi
+}
+
 run_runner_authentication_command() {
     local authentication_command=""
 
@@ -819,7 +862,11 @@ run_server_cli_shell_command() {
 
 resolve_default_public_url() {
     local ip_address=""
-    ip_address="$(resolve_public_ip_address)"
+    ip_address="${PUBLIC_IP_ADDRESS:-}"
+
+    if [[ -z "$ip_address" ]]; then
+        ip_address="$(resolve_public_ip_address)"
+    fi
 
     printf 'http://%s' "$ip_address"
 }
@@ -838,6 +885,19 @@ resolve_public_ip_address() {
     fi
 
     printf '%s' "$ip_address"
+}
+
+resolve_default_public_site_url() {
+    local first_domain="${DOMAINS[0]:-}"
+    local default_public_url=""
+
+    if [[ -n "$first_domain" ]]; then
+        default_public_url="${PTBK_PUBLIC_SITE_URL:-${NEXT_PUBLIC_SITE_URL:-https://${first_domain}}}"
+    else
+        default_public_url="${PTBK_PUBLIC_SITE_URL:-${NEXT_PUBLIC_SITE_URL:-$(resolve_default_public_url)}}"
+    fi
+
+    printf '%s' "$default_public_url"
 }
 
 configure_install_directory() {
@@ -947,6 +1007,13 @@ prompt_api_keys_and_admin_password() {
     )"
 }
 
+prompt_public_site_url() {
+    local default_public_url=""
+
+    default_public_url="$(resolve_default_public_site_url)"
+    REQUESTED_PUBLIC_SITE_URL="$(prompt_with_default "Public Agents Server URL" "$default_public_url")"
+}
+
 configure_domains() {
     local default_domains="$SERVERS"
     local existing_env_file="${ENV_FILE:-$INSTALL_DIR/.env}"
@@ -981,19 +1048,17 @@ configure_domains() {
 
 configure_environment() {
     local sqlite_path="$INSTALL_DIR/.promptbook/agents-server.sqlite"
-    local default_public_url=""
-    local public_site_url=""
+    local public_site_url="$REQUESTED_PUBLIC_SITE_URL"
     local first_domain="${DOMAINS[0]:-}"
     local table_prefix=""
 
     if [[ -n "$first_domain" ]]; then
-        default_public_url="${PTBK_PUBLIC_SITE_URL:-${NEXT_PUBLIC_SITE_URL:-https://${first_domain}}}"
         table_prefix="$(build_domain_table_prefix "$first_domain")"
-    else
-        default_public_url="${PTBK_PUBLIC_SITE_URL:-${NEXT_PUBLIC_SITE_URL:-$(resolve_default_public_url)}}"
     fi
 
-    public_site_url="$(prompt_with_default "Public Agents Server URL" "$default_public_url")"
+    if [[ -z "$public_site_url" ]]; then
+        public_site_url="$(resolve_default_public_site_url)"
+    fi
 
     set_env_value PTBK_AGENTS_SERVER_DATABASE sqlite
     set_env_value PTBK_AGENTS_SERVER_SQLITE_PATH "$sqlite_path"
@@ -1041,6 +1106,7 @@ initialize_promptbook_project() {
 configure_runner_authentication() {
     local authentication_command=""
     local authentication_binary=""
+    local is_runner_authentication_requested="$IS_RUNNER_AUTHENTICATION_REQUESTED"
 
     authentication_command="$(resolve_runner_authentication_command)"
     if [[ -z "$authentication_command" ]]; then
@@ -1063,7 +1129,15 @@ configure_runner_authentication() {
         return
     fi
 
-    if ! prompt_yes_no "Open the $PTBK_AGENT CLI now for authentication?" "yes"; then
+    if [[ -z "$is_runner_authentication_requested" ]]; then
+        if prompt_yes_no "Open the $PTBK_AGENT CLI now for authentication?" "yes"; then
+            is_runner_authentication_requested=1
+        else
+            is_runner_authentication_requested=0
+        fi
+    fi
+
+    if [[ "$is_runner_authentication_requested" != "1" ]]; then
         warn "Skipping runner authentication. The runner must be authenticated before it can answer chats."
         return
     fi
@@ -1751,8 +1825,11 @@ main() {
     if [[ "${#DOMAINS[@]}" -gt 0 ]]; then
         LETS_ENCRYPT_EMAIL="$(prompt_with_default "Let's Encrypt email (optional)" "$LETS_ENCRYPT_EMAIL")"
     fi
+    prompt_public_site_url
     prompt_api_keys_and_admin_password
+    prompt_runner_authentication_preference
 
+    configure_required_resources
     install_system_packages
     install_nodejs
     configure_install_directory
