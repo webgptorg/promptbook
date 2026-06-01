@@ -264,7 +264,9 @@ export function useAdminTerminalSession<TSession extends AdminTerminalSession>(
                 }
 
                 if (payload.session) {
-                    setSession(payload.session);
+                    setSession((currentSession) =>
+                        mergeAdminTerminalSessionSnapshot(currentSession, payload.session as TSession),
+                    );
                 }
             } catch (error) {
                 setErrorMessage(error instanceof Error ? error.message : options.sendErrorMessage);
@@ -344,5 +346,31 @@ export function useAdminTerminalSession<TSession extends AdminTerminalSession>(
         startSession,
         sendInput,
         stopSession,
+    };
+}
+
+/**
+ * Merges a terminal API snapshot without letting a stale write acknowledgement hide newer SSE output.
+ *
+ * @private internal utility of `useAdminTerminalSession`
+ */
+export function mergeAdminTerminalSessionSnapshot<TSession extends AdminTerminalSession>(
+    currentSession: TSession | null,
+    nextSession: TSession,
+): TSession {
+    if (!currentSession || currentSession.id !== nextSession.id) {
+        return nextSession;
+    }
+
+    const isStaleSessionOutput =
+        currentSession.output.length > nextSession.output.length && currentSession.output.startsWith(nextSession.output);
+
+    if (!isStaleSessionOutput) {
+        return nextSession;
+    }
+
+    return {
+        ...nextSession,
+        output: currentSession.output,
     };
 }
