@@ -16,3 +16,23 @@ root@collboard-agents-server-x21:~# sudo curl -fsSL https://raw.githubuserconten
 
 ![alt text](prompts/screenshots/2026-05-0395-ptbk-agents-server-standalone-vps-no-nginx-pages.png)
 
+---
+
+[ ] !!
+
+[✨🤬] Add branding to fallback pages
+
+```bash
+root@collboard-agents-server-x21:~# sudo curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/other/vps/install.sh | bash
+```
+
+-   The fallback pages that shows Nginx when the Agents server not running
+-   Theese pages should be branded by Promptbook, so they should have some simple design and branding elements of Promptbook
+-   Look on https://www.ptbk.io/ and the Agents server how the Promptbook branding looks like and try to use some similar design elements and colors in the fallback pages, so it is more consistent with the overall branding of Promptbook
+-   Theese pages are in the light theme
+-   You are doing theese changes on level of Nginx and installed VPS server not the Agents server app in Next.js
+-   Keep in mind the DRY _(don't repeat yourself)_ principle
+-   You are working with [auto installation script](vps/install.sh)
+-   You are NOT working with the [Agents Server](apps/agents-server)
+
+![Fallback page witgout branding](prompts/screenshots/2026-05-0395-ptbk-agents-server-standalone-vps-no-nginx-pages-1.png)
