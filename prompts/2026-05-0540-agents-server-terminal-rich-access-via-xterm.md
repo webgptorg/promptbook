@@ -31,5 +31,5 @@ root@collboard-agents-server-x21:~# sudo curl -fsSL https://raw.githubuserconten
 
 [✨⛏] Terminal in Agents Server lags one character behind, fix it
 
--   Problem is in `/admin/cli-access`
+-   Problem is in `/admin/cli-access` and `/admin/code-runners`
 -   You are working with the [Agents Server](apps/agents-server)
