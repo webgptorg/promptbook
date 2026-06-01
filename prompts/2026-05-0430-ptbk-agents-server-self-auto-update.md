@@ -27,7 +27,7 @@ root@collboard-agents-server-x21:~# sudo curl -fsSL https://raw.githubuserconten
 
 ---
 
-[ ] !!!!
+[x] ~$0.4956 an hour by OpenAI Codex `gpt-5.5`
 
 [✨⬆] Agents server has ability to self-update, but it is failing, fix it
 
@@ -310,3 +310,4 @@ DatabaseError: POSTGRES_URL or DATABASE_URL is not defined.
 Node.js v22.22.2
 /opt/promptbook-agents-server/repository/other/vps/install.sh: line 2: local: can only be used in a function
 ```
+

@@ -35,6 +35,8 @@ PM2_HOURLY_RESTART_CRON='0 * * * *'
 PTBK_SELF_UPDATE_STATUS_FILE="${PTBK_SELF_UPDATE_STATUS_FILE:-$INSTALL_DIR/.promptbook/self-update/self-update.status}"
 PTBK_SELF_UPDATE_LOG_FILE="${PTBK_SELF_UPDATE_LOG_FILE:-$INSTALL_DIR/.promptbook/self-update/self-update.log}"
 SELF_UPDATE_STARTED_AT=""
+SELF_UPDATE_CURRENT_COMMIT=""
+SELF_UPDATE_TARGET_COMMIT=""
 
 SUDO=()
 RUN_USER=""
@@ -193,6 +195,18 @@ CURRENT_COMMIT=$current_commit
 TARGET_COMMIT=$target_commit
 LOG_FILE=$PTBK_SELF_UPDATE_LOG_FILE
 EOF
+}
+
+write_failed_self_update_status_on_exit() {
+    local exit_code=$?
+    local finished_at=""
+
+    if [[ "$exit_code" -ne 0 ]]; then
+        finished_at="$(date --utc --iso-8601=seconds)"
+        write_self_update_status_file "failed" "$PROMPTBOOK_REPOSITORY_REF" "Self-update failed." "The standalone VPS self-update exited with status $exit_code. Review the installer log for details." "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "$finished_at" "$$"
+    fi
+
+    exit "$exit_code"
 }
 
 read_repository_commit_sha() {
@@ -1578,8 +1592,21 @@ build_agents_server() {
 }
 
 run_agents_server_database_migrations() {
+    local database_mode=""
+    local env_file_shell=""
+    local repository_dir_shell=""
+
+    database_mode="$(get_env_value PTBK_AGENTS_SERVER_DATABASE | tr '[:upper:]' '[:lower:]')"
+    if [[ "$database_mode" == "sqlite" || "$database_mode" == "local" ]]; then
+        log "Skipping PostgreSQL database migrations because Agents Server is configured for local SQLite."
+        return
+    fi
+
+    env_file_shell="$(shell_quote "$ENV_FILE")"
+    repository_dir_shell="$(shell_quote "$PROMPTBOOK_REPOSITORY_DIR")"
+
     log "Running Agents Server database migrations."
-    run_as_service_user bash -lc "cd $(shell_quote "$PROMPTBOOK_REPOSITORY_DIR") && npx --yes tsx ./apps/agents-server/src/database/migrate.ts"
+    run_as_service_user bash -lc "cd $repository_dir_shell && PTBK_AGENTS_SERVER_ENV_FILE=$env_file_shell npx --yes tsx ./apps/agents-server/src/database/migrate.ts"
 }
 
 start_agents_server() {
@@ -1656,6 +1683,31 @@ load_runtime_configuration_from_env_file() {
     fi
 }
 
+rerun_self_update_from_stable_script() {
+    if [[ "${PTBK_SELF_UPDATE_SCRIPT_COPY:-0}" == "1" ]]; then
+        return
+    fi
+
+    local source_script="${BASH_SOURCE[0]}"
+    local runtime_script="$INSTALL_DIR/.promptbook/self-update/install.sh"
+
+    if [[ "$source_script" == "$runtime_script" ]]; then
+        return
+    fi
+
+    if [[ ! -r "$source_script" ]]; then
+        warn "Cannot copy self-update script from $source_script. Continuing in place."
+        return
+    fi
+
+    "${SUDO[@]}" mkdir -p "$(dirname "$runtime_script")"
+    "${SUDO[@]}" install -m 700 "$source_script" "$runtime_script"
+    "${SUDO[@]}" chown "$RUN_USER:$RUN_GROUP" "$runtime_script" 2>/dev/null || true
+
+    log "Continuing self-update from $runtime_script so the repository checkout can be refreshed safely."
+    PTBK_SELF_UPDATE_SCRIPT_COPY=1 exec bash "$runtime_script" self-update "$@"
+}
+
 restart_agents_server_if_running() {
     local app_name_shell=""
 
@@ -1704,13 +1756,12 @@ apply_code_runner_configuration() {
 
 self_update_agents_server() {
     local target_ref=""
-    local current_commit=""
-    local target_commit=""
     local finished_at=""
 
     initialize_sudo
     resolve_run_user
     load_runtime_configuration_from_env_file
+    rerun_self_update_from_stable_script "$@"
 
     target_ref="$PROMPTBOOK_REPOSITORY_REF"
     while [[ $# -gt 0 ]]; do
@@ -1733,49 +1784,42 @@ self_update_agents_server() {
     PROMPTBOOK_REPOSITORY_REF="$(normalize_promptbook_repository_ref "$target_ref")"
     SELF_UPDATE_STARTED_AT="$(date --utc --iso-8601=seconds)"
 
-    current_commit="$(read_repository_commit_sha)"
+    SELF_UPDATE_CURRENT_COMMIT="$(read_repository_commit_sha)"
     write_self_update_status_file \
         "running" \
         "$PROMPTBOOK_REPOSITORY_REF" \
         "Preparing standalone VPS self-update for $(resolve_promptbook_environment_label "$PROMPTBOOK_REPOSITORY_REF") ($PROMPTBOOK_REPOSITORY_REF)." \
         "" \
-        "$current_commit" \
+        "$SELF_UPDATE_CURRENT_COMMIT" \
         "" \
         "" \
         "$$"
 
-    trap '
-        local exit_code=$?
-        if [[ "$exit_code" -ne 0 ]]; then
-            finished_at="$(date --utc --iso-8601=seconds)"
-            write_self_update_status_file "failed" "$PROMPTBOOK_REPOSITORY_REF" "Self-update failed." "The standalone VPS self-update exited with status $exit_code. Review the installer log for details." "$current_commit" "$target_commit" "$finished_at" "$$"
-        fi
-        exit "$exit_code"
-    ' EXIT
+    trap write_failed_self_update_status_on_exit EXIT
 
-    target_commit="$(read_remote_repository_commit_sha "$PROMPTBOOK_REPOSITORY_REF")"
-    write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Downloading the latest Promptbook repository checkout." "" "$current_commit" "$target_commit" "" "$$"
+    SELF_UPDATE_TARGET_COMMIT="$(read_remote_repository_commit_sha "$PROMPTBOOK_REPOSITORY_REF")"
+    write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Downloading the latest Promptbook repository checkout." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "" "$$"
     install_promptbook_repository
 
-    current_commit="$(read_repository_commit_sha)"
-    write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Refreshing the Promptbook CLI launcher." "" "$current_commit" "$target_commit" "" "$$"
+    SELF_UPDATE_CURRENT_COMMIT="$(read_repository_commit_sha)"
+    write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Refreshing the Promptbook CLI launcher." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "" "$$"
     install_promptbook_cli_launcher
 
-    write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Running Agents Server database migrations." "" "$current_commit" "$target_commit" "" "$$"
+    write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Running Agents Server database migrations." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "" "$$"
     run_agents_server_database_migrations
 
-    write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Rebuilding the Agents Server." "" "$current_commit" "$target_commit" "" "$$"
+    write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Rebuilding the Agents Server." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "" "$$"
     build_agents_server
 
     ENV_FILE="$INSTALL_DIR/.env"
     set_env_value PROMPTBOOK_REPOSITORY_REF "$PROMPTBOOK_REPOSITORY_REF"
     set_env_value PTBK_VPS_INSTALL_SCRIPT "$PROMPTBOOK_REPOSITORY_DIR/other/vps/install.sh"
 
-    write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Restarting the Agents Server with pm2." "" "$current_commit" "$target_commit" "" "$$"
+    write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Restarting the Agents Server with pm2." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "" "$$"
     restart_agents_server_if_running
 
     finished_at="$(date --utc --iso-8601=seconds)"
-    write_self_update_status_file "succeeded" "$PROMPTBOOK_REPOSITORY_REF" "Standalone VPS self-update finished successfully." "" "$current_commit" "$target_commit" "$finished_at" ""
+    write_self_update_status_file "succeeded" "$PROMPTBOOK_REPOSITORY_REF" "Standalone VPS self-update finished successfully." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "$finished_at" ""
     trap - EXIT
 }
 

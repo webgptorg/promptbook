@@ -86,4 +86,23 @@ describe('other/vps/install.sh', () => {
         );
         expect(installScript).toContain('set_env_value NEXT_PUBLIC_SITE_URL "https://${first_domain}"');
     });
+
+    it('runs standalone self-update from a stable script copy', () => {
+        expect(installScript).toContain('rerun_self_update_from_stable_script "$@"');
+        expect(installScript).toContain(
+            'PTBK_SELF_UPDATE_SCRIPT_COPY=1 exec bash "$runtime_script" self-update "$@"',
+        );
+        expect(installScript).toContain('trap write_failed_self_update_status_on_exit EXIT');
+        expect(installScript).not.toContain("trap '\n        local exit_code=$?");
+    });
+
+    it('loads installed environment for self-update migrations and skips SQLite', () => {
+        expect(installScript).toContain('database_mode="$(get_env_value PTBK_AGENTS_SERVER_DATABASE | tr');
+        expect(installScript).toContain(
+            'Skipping PostgreSQL database migrations because Agents Server is configured for local SQLite.',
+        );
+        expect(installScript).toContain(
+            'PTBK_AGENTS_SERVER_ENV_FILE=$env_file_shell npx --yes tsx ./apps/agents-server/src/database/migrate.ts',
+        );
+    });
 });

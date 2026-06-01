@@ -5,14 +5,25 @@ import {
     resolveDatabaseMigrationRuntimeConfiguration,
     runDatabaseMigrations,
 } from './runDatabaseMigrations';
+import { isAgentsServerSqliteMode } from './agentsServerDatabaseMode';
 
-dotenv.config();
+/**
+ * Environment variable pointing to the installed Agents Server `.env` file.
+ */
+const AGENTS_SERVER_ENV_FILE_ENV_NAME = 'PTBK_AGENTS_SERVER_ENV_FILE';
+
+loadDatabaseMigrationEnvironment();
 
 /**
  * Runs manual migration command from CLI arguments.
  */
 async function migrate(): Promise<void> {
     console.info(colors.bgBlue('🚀 Starting database migration'));
+
+    if (isAgentsServerSqliteMode()) {
+        console.info(colors.yellow('⏭️ Skipping PostgreSQL migrations because Agents Server uses local SQLite.'));
+        return;
+    }
 
     const runtimeConfiguration = await resolveDatabaseMigrationRuntimeConfiguration(console);
     if (!runtimeConfiguration) {
@@ -44,6 +55,24 @@ async function migrate(): Promise<void> {
         }
         process.exit(1);
     }
+}
+
+/**
+ * Loads database migration environment variables.
+ *
+ * Self-update runs the migration command from the repository checkout, while
+ * the deployed Agents Server `.env` lives in the installation directory.
+ */
+function loadDatabaseMigrationEnvironment(): void {
+    const explicitEnvFilePath = process.env[AGENTS_SERVER_ENV_FILE_ENV_NAME]?.trim();
+    if (explicitEnvFilePath) {
+        const explicitLoadResult = dotenv.config({ path: explicitEnvFilePath });
+        if (!explicitLoadResult.error) {
+            return;
+        }
+    }
+
+    dotenv.config();
 }
 
 /**

@@ -99,12 +99,5 @@
     "typings": "./esm/src/_packages/ollama.index.d.ts",
     "peerDependencies": {
         "@promptbook/core": "0.112.0-101"
-    },
-    "dependencies": {
-        "bottleneck": "2.19.5",
-        "colors": "1.4.0",
-        "crypto": "1.0.1",
-        "openai": "6.18.0",
-        "spacetrim": "0.11.60"
     }
 }

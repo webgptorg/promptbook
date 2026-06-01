@@ -9,6 +9,7 @@
     -   Super `admin` users can now see the current deployment environment, compare the deployed Promptbook commit with the latest commit on the tracked branch, and trigger a one-click detached self-update directly from the Agents Server UI.
     -   The new update flow supports `main` by default plus the `production`, `preview`, and `lts` (LTS) branches, persists update progress/logs across the pm2 restart, and hides the Update menu item from normal admins and normal users.
     -   `other/vps/install.sh` now asks which environment to install, defaults to `main`, persists `PROMPTBOOK_REPOSITORY_REF`, and exposes a `self-update` subcommand that refreshes the repository, installs dependencies, runs migrations, rebuilds the Agents Server, and restarts pm2.
+    -   Fixed the self-update path so it runs from a stable script copy while refreshing the repository, loads the installed `.env` for migration commands, skips PostgreSQL migrations for SQLite-backed VPS installs, and records failures without tripping over the shell EXIT trap.
 
 -   Added hourly pm2 auto-restarts to standalone VPS Agents Server installs:
 
