@@ -7,6 +7,7 @@ import type { AgentNaming } from '../../utils/agentNaming';
 import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../../utils/agentOrganization/types';
 import type { ChatFeedbackMode } from '../../utils/chatFeedbackMode';
 import type { UserInfo } from '../../utils/getCurrentUser';
+import type { ShibbolethAuthenticationMenuStatus } from '../../constants/shibbolethAuth';
 import { AgentNamingProvider } from '../AgentNaming/AgentNamingContext';
 import { DefaultAgentAvatarVisualProvider } from '../AgentAvatar/DefaultAgentAvatarVisualProvider';
 import { LegacyUiAutoTranslator } from '../AgentNaming/LegacyUiAutoTranslator';
@@ -49,6 +50,10 @@ type LayoutWrapperProps = {
     isExperimental: boolean;
     feedbackMode: ChatFeedbackMode;
     /**
+     * Shibboleth authentication status used by the header menu.
+     */
+    readonly shibbolethAuthenticationStatus: ShibbolethAuthenticationMenuStatus;
+    /**
      * Indicates if the install-as-app option should be shown in agent menus.
      */
     readonly isExperimentalPwaAppEnabled: boolean;
@@ -88,6 +93,7 @@ export function LayoutWrapper({
     federatedServers,
     isExperimental,
     feedbackMode,
+    shibbolethAuthenticationStatus,
     isExperimentalPwaAppEnabled,
     controlPanelOptionAvailability,
     defaultIsSoundsOn,
@@ -152,7 +158,9 @@ export function LayoutWrapper({
                                                                     }}
                                                                 >
                                                                     {shouldRenderMinimalShell ? (
-                                                                        <main className={minimalMainClassName}>{children}</main>
+                                                                        <main className={minimalMainClassName}>
+                                                                            {children}
+                                                                        </main>
                                                                     ) : (
                                                                         <div className="agents-server-app-shell flex flex-col">
                                                                             <Header
@@ -166,6 +174,9 @@ export function LayoutWrapper({
                                                                                 federatedServers={federatedServers}
                                                                                 isExperimental={isExperimental}
                                                                                 feedbackMode={feedbackMode}
+                                                                                shibbolethAuthenticationStatus={
+                                                                                    shibbolethAuthenticationStatus
+                                                                                }
                                                                             />
                                                                             <main className={mainClassName}>
                                                                                 <HomepageOptimisticNavigation

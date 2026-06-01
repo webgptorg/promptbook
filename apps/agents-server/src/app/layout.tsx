@@ -46,6 +46,10 @@ import {
     CONTROL_PANEL_OPTION_AVAILABILITY_METADATA_KEYS,
     getControlPanelOptionAvailability,
 } from '../utils/getControlPanelOptionAvailability';
+import {
+    SHIBBOLETH_AUTHENTICATION_METADATA_KEYS,
+    resolveShibbolethAuthenticationMenuStatus,
+} from '../constants/shibbolethAuth';
 import '@prisma/studio-core/ui/index.css';
 import './globals.css';
 
@@ -257,6 +261,7 @@ export default async function RootLayout({
         DEFAULT_THEME_METADATA_KEY,
         SERVER_LANGUAGE_METADATA_KEY,
         IS_SERVER_LANGUAGE_ENFORCED_METADATA_KEY,
+        ...SHIBBOLETH_AUTHENTICATION_METADATA_KEYS,
         ...CONTROL_PANEL_OPTION_AVAILABILITY_METADATA_KEYS,
     ]);
     const currentUserPromise = getCurrentUser();
@@ -380,6 +385,7 @@ export default async function RootLayout({
         metadata: layoutMetadata,
         isPushNotificationsConfigured: Boolean(webPushPublicKey),
     });
+    const shibbolethAuthenticationStatus = resolveShibbolethAuthenticationMenuStatus(layoutMetadata);
     const themeModeBootstrapScript = createThemeModeBootstrapScript(defaultThemeMode);
 
     return (
@@ -414,6 +420,7 @@ export default async function RootLayout({
                     defaultIsNotificationsOn={defaultIsNotificationsOn}
                     isExperimental={isExperimental}
                     feedbackMode={feedbackMode}
+                    shibbolethAuthenticationStatus={shibbolethAuthenticationStatus}
                     isExperimentalPwaAppEnabled={isExperimentalPwaAppEnabled}
                     controlPanelOptionAvailability={controlPanelOptionAvailability}
                     defaultServerLanguage={serverLanguage}

@@ -86,19 +86,14 @@ const JSON_COLUMNS_BY_TABLE = new Map<string, ReadonlySet<string>>([
     ['ShareTargetPayload', new Set(['attachments'])],
     ['CalendarConnection', new Set(['scopes'])],
     ['CalendarActivity', new Set(['details'])],
+    ['ShibbolethUserIdentity', new Set(['rawAttributes'])],
+    ['ShibbolethAuthenticationAttempt', new Set(['rawAttributes'])],
 ]);
 
 /**
  * Boolean columns stored as integers by SQLite and restored as booleans.
  */
-const BOOLEAN_COLUMNS = new Set([
-    'isAdmin',
-    'isRevoked',
-    'isGlobal',
-    'isUserScoped',
-    'isSuccessful',
-    'isChatFocused',
-]);
+const BOOLEAN_COLUMNS = new Set(['isAdmin', 'isRevoked', 'isGlobal', 'isUserScoped', 'isSuccessful', 'isChatFocused']);
 
 /**
  * Tables whose primary key is provided as text rather than generated numerically.
@@ -122,6 +117,7 @@ const UNIQUE_INDEX_COLUMNS_BY_TABLE = new Map<string, ReadonlyArray<ReadonlyArra
     ['AgentExternals', [['type', 'hash']]],
     ['VectorStoreKnowledgeSourceHashes', [['source']]],
     ['User', [['username']]],
+    ['ShibbolethUserIdentity', [['userId'], ['email'], ['nameId']]],
     ['UserChatJob', [['chatId', 'clientMessageId']]],
     ['LlmCache', [['hash']]],
     ['OpenAiAssistantCache', [['agentHash']]],
@@ -158,7 +154,9 @@ export function $provideLocalSqliteSupabase(): SupabaseClient {
         return localSqliteSupabase;
     }
 
-    localSqliteSupabase = new LocalSqliteSupabaseClient($provideAgentsServerSqliteDatabase()) as unknown as SupabaseClient;
+    localSqliteSupabase = new LocalSqliteSupabaseClient(
+        $provideAgentsServerSqliteDatabase(),
+    ) as unknown as SupabaseClient;
     return localSqliteSupabase;
 }
 
@@ -188,10 +186,7 @@ class LocalSqliteSupabaseClient {
  * Supabase-shaped table entry point. Every operation starts a fresh query builder.
  */
 class LocalSqliteTable {
-    public constructor(
-        private readonly database: AgentsServerSqliteDatabase,
-        private readonly tableName: string,
-    ) {}
+    public constructor(private readonly database: AgentsServerSqliteDatabase, private readonly tableName: string) {}
 
     /**
      * Starts a select query.
@@ -248,10 +243,7 @@ class LocalSqliteQueryBuilder implements PromiseLike<LocalSqliteQueryResult> {
     private signal: AbortSignal | null = null;
     private isReturningSelection = false;
 
-    public constructor(
-        private readonly database: AgentsServerSqliteDatabase,
-        private readonly tableName: string,
-    ) {}
+    public constructor(private readonly database: AgentsServerSqliteDatabase, private readonly tableName: string) {}
 
     /**
      * Configures selected columns or mutation return columns.
@@ -569,10 +561,16 @@ class LocalSqliteQueryBuilder implements PromiseLike<LocalSqliteQueryResult> {
 
         if (rowids.length > 0 && updateColumns.length > 0) {
             const assignments = updateColumns.map((column) => `${quoteIdentifier(column)} = ?`).join(', ');
-            const values = updateColumns.map((column) => serializeValue(this.tableName, column, this.mutationValues[column]));
+            const values = updateColumns.map((column) =>
+                serializeValue(this.tableName, column, this.mutationValues[column]),
+            );
             const rowidPlaceholders = rowids.map(() => '?').join(', ');
             this.database
-                .prepare(`UPDATE ${quoteIdentifier(this.tableName)} SET ${assignments} WHERE rowid IN (${rowidPlaceholders})`)
+                .prepare(
+                    `UPDATE ${quoteIdentifier(
+                        this.tableName,
+                    )} SET ${assignments} WHERE rowid IN (${rowidPlaceholders})`,
+                )
                 .run(...values, ...rowids);
         }
 
@@ -591,7 +589,9 @@ class LocalSqliteQueryBuilder implements PromiseLike<LocalSqliteQueryResult> {
         const rowids = this.selectMatchingRowids();
         if (rowids.length > 0) {
             const rowidPlaceholders = rowids.map(() => '?').join(', ');
-            this.database.prepare(`DELETE FROM ${quoteIdentifier(this.tableName)} WHERE rowid IN (${rowidPlaceholders})`).run(...rowids);
+            this.database
+                .prepare(`DELETE FROM ${quoteIdentifier(this.tableName)} WHERE rowid IN (${rowidPlaceholders})`)
+                .run(...rowids);
         }
 
         return this.createMutationResponse([]);
@@ -608,7 +608,10 @@ class LocalSqliteQueryBuilder implements PromiseLike<LocalSqliteQueryResult> {
         for (const rawRow of this.mutationRows) {
             const row = withInsertDefaults(tableBaseName, rawRow);
             ensureTable(this.database, this.tableName, [...Object.keys(row), ...conflictColumns]);
-            const existingRowid = conflictColumns.length > 0 ? findConflictRowid(this.database, this.tableName, row, conflictColumns) : null;
+            const existingRowid =
+                conflictColumns.length > 0
+                    ? findConflictRowid(this.database, this.tableName, row, conflictColumns)
+                    : null;
 
             if (existingRowid !== null) {
                 updateRowid(this.database, this.tableName, existingRowid, row);
@@ -634,7 +637,12 @@ class LocalSqliteQueryBuilder implements PromiseLike<LocalSqliteQueryResult> {
             };
         }
 
-        const data = selectRowsByRowids(this.database, this.tableName, rowids, parseSelectedColumns(this.selectedColumns));
+        const data = selectRowsByRowids(
+            this.database,
+            this.tableName,
+            rowids,
+            parseSelectedColumns(this.selectedColumns),
+        );
         return this.finalizeDataResponse(data, null);
     }
 
@@ -824,7 +832,9 @@ function ensureTable(
         }
 
         database.exec(
-            `ALTER TABLE ${quoteIdentifier(tableName)} ADD COLUMN ${quoteIdentifier(column)} ${resolveSqliteColumnType(column)}`,
+            `ALTER TABLE ${quoteIdentifier(tableName)} ADD COLUMN ${quoteIdentifier(column)} ${resolveSqliteColumnType(
+                column,
+            )}`,
         );
         existingColumns.add(column);
     }
@@ -841,7 +851,11 @@ function ensureUniqueIndexes(database: AgentsServerSqliteDatabase, tableName: st
     for (const columns of uniqueIndexes) {
         const indexName = `idx_${sanitizeSqlIdentifier(tableName)}_${columns.join('_')}_unique`;
         const columnSql = columns.map(quoteIdentifier).join(', ');
-        database.exec(`CREATE UNIQUE INDEX IF NOT EXISTS ${quoteIdentifier(indexName)} ON ${quoteIdentifier(tableName)} (${columnSql})`);
+        database.exec(
+            `CREATE UNIQUE INDEX IF NOT EXISTS ${quoteIdentifier(indexName)} ON ${quoteIdentifier(
+                tableName,
+            )} (${columnSql})`,
+        );
     }
 }
 
@@ -861,7 +875,9 @@ function insertRow(
 
     const placeholders = columns.map(() => '?').join(', ');
     const values = columns.map((column) => serializeValue(tableName, column, row[column]));
-    const sql = `INSERT INTO ${quoteIdentifier(tableName)} (${columns.map(quoteIdentifier).join(', ')}) VALUES (${placeholders})`;
+    const sql = `INSERT INTO ${quoteIdentifier(tableName)} (${columns
+        .map(quoteIdentifier)
+        .join(', ')}) VALUES (${placeholders})`;
 
     return database.prepare(sql).run(...values);
 }
@@ -900,7 +916,9 @@ function findConflictRowid(
 
     const conditions = conflictColumns.map((column) => `${quoteIdentifier(column)} = ?`).join(' AND ');
     const values = conflictColumns.map((column) => serializeValue(tableName, column, row[column]));
-    const result = database.prepare(`SELECT rowid FROM ${quoteIdentifier(tableName)} WHERE ${conditions} LIMIT 1`).get(...values);
+    const result = database
+        .prepare(`SELECT rowid FROM ${quoteIdentifier(tableName)} WHERE ${conditions} LIMIT 1`)
+        .get(...values);
 
     return result ? (result.rowid as number | bigint) : null;
 }
@@ -922,7 +940,9 @@ function selectRowsByRowids(
     const placeholders = rowids.map(() => '?').join(', ');
     const rows = database
         .prepare(
-            `SELECT ${createSelectExpression(selectedColumns)} FROM ${quoteIdentifier(tableName)} WHERE rowid IN (${placeholders})`,
+            `SELECT ${createSelectExpression(selectedColumns)} FROM ${quoteIdentifier(
+                tableName,
+            )} WHERE rowid IN (${placeholders})`,
         )
         .all(...rowids);
 
@@ -941,17 +961,25 @@ function createFilterCondition(
 
     switch (filter.operator) {
         case 'eq':
-            return value === null ? { sql: `${column} IS NULL`, values: [] } : { sql: `${column} = ?`, values: [value] };
+            return value === null
+                ? { sql: `${column} IS NULL`, values: [] }
+                : { sql: `${column} = ?`, values: [value] };
         case 'neq':
             return value === null
                 ? { sql: `${column} IS NOT NULL`, values: [] }
                 : { sql: `${column} <> ?`, values: [value] };
         case 'is':
-            return filter.value === null ? { sql: `${column} IS NULL`, values: [] } : { sql: `${column} IS ?`, values: [value] };
+            return filter.value === null
+                ? { sql: `${column} IS NULL`, values: [] }
+                : { sql: `${column} IS ?`, values: [value] };
         case 'not-is':
-            return filter.value === null ? { sql: `${column} IS NOT NULL`, values: [] } : { sql: `${column} IS NOT ?`, values: [value] };
+            return filter.value === null
+                ? { sql: `${column} IS NOT NULL`, values: [] }
+                : { sql: `${column} IS NOT ?`, values: [value] };
         case 'in': {
-            const values = Array.isArray(filter.value) ? filter.value.map((item) => serializeValue(tableName, filter.column, item)) : [];
+            const values = Array.isArray(filter.value)
+                ? filter.value.map((item) => serializeValue(tableName, filter.column, item))
+                : [];
             if (values.length === 0) {
                 return { sql: '0 = 1', values: [] };
             }
@@ -1190,6 +1218,30 @@ function withInsertDefaults(tableBaseName: string, row: Record<string, unknown>)
         case 'User':
             result.isAdmin ??= false;
             result.profileImageUrl ??= null;
+            result.email ??= null;
+            result.displayName ??= null;
+            result.authenticationProvider ??= 'LOCAL';
+            break;
+        case 'ShibbolethUserIdentity':
+            result.displayName ??= null;
+            result.nameId ??= null;
+            result.nameIdFormat ??= null;
+            result.unstructuredName ??= null;
+            result.eduPersonPrincipalName ??= null;
+            result.rawAttributes ??= null;
+            result.lastLoggedInAt ??= null;
+            result.loginCount ??= 0;
+            break;
+        case 'ShibbolethAuthenticationAttempt':
+            result.userId ??= null;
+            result.email ??= null;
+            result.displayName ??= null;
+            result.nameId ??= null;
+            result.relayState ??= null;
+            result.ip ??= null;
+            result.userAgent ??= null;
+            result.errorMessage ??= null;
+            result.rawAttributes ??= null;
             break;
         case 'UserChat':
             result.messages ??= [];
@@ -1342,10 +1394,7 @@ function resolveUniqueIndexColumns(tableBaseName: string): Array<string> {
 /**
  * Resolves upsert conflict columns.
  */
-function resolveUpsertConflictColumns(
-    tableBaseName: string,
-    options: LocalSqliteUpsertOptions,
-): ReadonlyArray<string> {
+function resolveUpsertConflictColumns(tableBaseName: string, options: LocalSqliteUpsertOptions): ReadonlyArray<string> {
     if (options.onConflict) {
         return options.onConflict
             .split(',')
@@ -1367,7 +1416,10 @@ function normalizeSqliteError(error: unknown): LocalSqliteError {
             : undefined;
 
     return {
-        code: sqliteCode === 'SQLITE_CONSTRAINT_UNIQUE' || sqliteCode === 'SQLITE_CONSTRAINT_PRIMARYKEY' ? '23505' : sqliteCode,
+        code:
+            sqliteCode === 'SQLITE_CONSTRAINT_UNIQUE' || sqliteCode === 'SQLITE_CONSTRAINT_PRIMARYKEY'
+                ? '23505'
+                : sqliteCode,
         message,
     };
 }

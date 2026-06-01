@@ -16,7 +16,7 @@ export async function GET() {
         const supabase = $provideSupabaseForServer();
         const { data: users, error } = await supabase
             .from(await $getTableName('User'))
-            .select('id, username, createdAt, updatedAt, isAdmin')
+            .select('*')
             .order('username');
 
         if (error) {
@@ -58,18 +58,18 @@ export async function POST(request: Request) {
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
             })
-            .select('id, username, createdAt, updatedAt, isAdmin')
+            .select('*')
             .single();
 
         if (error) {
-            if (error.code === '23505') { // unique_violation
-                 return NextResponse.json({ error: 'Username already exists' }, { status: 409 });
+            if (error.code === '23505') {
+                // unique_violation
+                return NextResponse.json({ error: 'Username already exists' }, { status: 409 });
             }
             throw error;
         }
 
         return NextResponse.json(newUser);
-
     } catch (error) {
         console.error('Create user error:', error);
         const passwordValidationMessage = getPasswordValidationMessage(error);

@@ -34,7 +34,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ us
             .from(await $getTableName('User'))
             .update(updates)
             .eq('username', usernameParam)
-            .select('id, username, createdAt, updatedAt, isAdmin')
+            .select('*')
             .single();
 
         if (error) {

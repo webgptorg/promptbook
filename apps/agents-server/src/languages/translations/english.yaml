@@ -124,6 +124,7 @@ header.menuLabel: Menu
 header.myAccount: My Account
 header.superAdmin: Super Admin
 header.administration: Administration
+header.loginMethods: Login Methods
 header.monitoringAndUsage: Monitoring & Usage
 header.integrationsAndKeys: Integrations & Keys
 header.developerDebug: Developer / Debug
@@ -164,6 +165,7 @@ header.errorSimulation: Error simulation
 header.imagesGallery: Images gallery
 header.files: Files
 header.users: Users
+header.shibboleth: Shibboleth
 header.versionInfo: Version info
 header.experiments: Experiments
 header.story: Story
@@ -194,6 +196,8 @@ login.passwordLabel: Password
 login.passwordPlaceholder: Enter your password
 login.loggingIn: Logging in...
 login.loginAction: Log in
+login.shibbolethLoginAction: Continue with Shibboleth
+login.shibbolethNotConfigured: Shibboleth login is active but needs administrator setup.
 login.forgottenPassword: Forgotten password?
 login.registerNewUser: Register new user
 login.errorOccurred: An error occurred

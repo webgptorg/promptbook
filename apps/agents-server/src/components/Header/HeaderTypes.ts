@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../../utils/agentOrganization/types';
 import type { ChatFeedbackMode } from '../../utils/chatFeedbackMode';
 import type { UserInfo } from '../../utils/getCurrentUser';
+import type { ShibbolethAuthenticationMenuStatus } from '../../constants/shibbolethAuth';
 import type { SubMenuItem } from './SubMenuItem';
 
 /**
@@ -57,6 +58,11 @@ export type HeaderProps = {
      * Determines which chat feedback mode is active.
      */
     feedbackMode?: ChatFeedbackMode;
+
+    /**
+     * Shibboleth authentication status used to show login-method menu entries and warnings.
+     */
+    shibbolethAuthenticationStatus?: ShibbolethAuthenticationMenuStatus;
 };
 
 /**

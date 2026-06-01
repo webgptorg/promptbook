@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { FormEvent, useState } from 'react';
 import { Card } from '../Homepage/Card';
 import { Section } from '../Homepage/Section';
@@ -69,10 +70,25 @@ export function UsersList({ allowCreate = true }: UsersListProps) {
                         <div className="flex justify-between items-start">
                             <div>
                                 <h3 className="text-xl font-semibold text-gray-900">{user.username}</h3>
-                                {user.isAdmin && (
-                                    <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded mt-1">
-                                        {t('users.adminRole')}
-                                    </span>
+                                <div className="mt-1 flex flex-wrap gap-2">
+                                    {user.isAdmin && (
+                                        <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                                            {t('users.adminRole')}
+                                        </span>
+                                    )}
+                                    {user.authenticationProvider?.includes('SHIBBOLETH') && (
+                                        <Link
+                                            href="/admin/login-methods/shibboleth"
+                                            className="inline-block bg-emerald-100 text-emerald-800 text-xs px-2 py-1 rounded hover:bg-emerald-200"
+                                        >
+                                            Shibboleth
+                                        </Link>
+                                    )}
+                                </div>
+                                {(user.displayName || user.email) && (
+                                    <p className="text-gray-600 text-sm mt-2">
+                                        {[user.displayName, user.email].filter(Boolean).join(' / ')}
+                                    </p>
                                 )}
                                 <p className="text-gray-500 text-sm mt-2">
                                     {t('users.createdLabel')}: {new Date(user.createdAt).toLocaleDateString()}

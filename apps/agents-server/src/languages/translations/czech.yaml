@@ -122,6 +122,7 @@ header.menuLabel: Nabídka
 header.myAccount: Můj účet
 header.superAdmin: Super administrace
 header.administration: Administrace
+header.loginMethods: Metody přihlášení
 header.monitoringAndUsage: Monitoring a využití
 header.integrationsAndKeys: Integrace a klíče
 header.developerDebug: Vývoj a ladění
@@ -162,6 +163,7 @@ header.errorSimulation: Simulace chyb
 header.imagesGallery: Galerie obrázků
 header.files: Soubory
 header.users: Uživatelé
+header.shibboleth: Shibboleth
 header.versionInfo: Informace o verzi
 header.experiments: Experimenty
 header.story: Příběh
@@ -192,6 +194,8 @@ login.passwordLabel: Heslo
 login.passwordPlaceholder: Zadejte heslo
 login.loggingIn: Přihlašuji…
 login.loginAction: Přihlásit se
+login.shibbolethLoginAction: Pokračovat přes Shibboleth
+login.shibbolethNotConfigured: Přihlášení přes Shibboleth je aktivní, ale vyžaduje nastavení správcem.
 login.forgottenPassword: Zapomněli jste heslo?
 login.registerNewUser: Zaregistrovat nového uživatele
 login.errorOccurred: Došlo k chybě

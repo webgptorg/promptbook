@@ -1,3 +1,9 @@
+-   Added Shibboleth authentication logging and dashboard to the Agents Server:
+
+    -   Shibboleth login is controlled by `IS_SHIBBOLETH_AUTH_ACTIVE`, defaults off, and appears alongside username/password login when active.
+    -   Added SAML Service Provider metadata, login, and ACS endpoints plus audit logging for Shibboleth authentication attempts.
+    -   Added `System -> Login Methods -> Shibboleth` with setup instructions, configuration warnings, recent attempts, linked Shibboleth users, and links back to `/admin/users`.
+
 -   Added branch-aware standalone VPS self-update to `System -> Super Admin -> Update`:
 
     -   Super `admin` users can now see the current deployment environment, compare the deployed Promptbook commit with the latest commit on the tracked branch, and trigger a one-click detached self-update directly from the Agents Server UI.
@@ -54,6 +60,7 @@
     -   The standalone VPS installer now rejects older Node.js patch levels that do not satisfy the embedded Studio runtime requirements.
 
 -   Fixed Promptbook markdown rendering and HTML export sanitization so chat content no longer relies on regex-based XSS filtering:
+
     -   Replaced the duplicated markdown HTML cleanup logic with one shared DOMPurify-based sanitizer using an explicit allowlist for supported markdown, details blocks, citations, task lists, and KaTeX output.
     -   Routed `<MarkdownContent/>` through the shared renderer used by HTML export paths, removing the separate vulnerable sanitization implementation.
     -   Added regression coverage for raw HTML payloads, dangerous attributes, encoded `javascript:` / `data:` URLs, raw SVG payloads, and standalone HTML export rendering.
@@ -71,15 +78,18 @@
     -   Reused the VPS installer script from admin actions so domain changes apply nginx/certbot/pm2 updates and code-runner changes can install/configure the selected runner from the same script path.
 
 -   Renamed the CLI agent queue command family from `ptbk agent` to `ptbk agent-folder`:
+
     -   Changed the command registration and implementation module paths from `src/cli/cli-commands/agent*` to `src/cli/cli-commands/agent-folder*`.
     -   Updated source comments, tests, generated runner scripts, VS Code terminal presets, prompt docs, and changelog references to use `ptbk agent-folder`.
 
 -   Added pre-install resource checks to the standalone VPS Agents Server installer:
+
     -   `other/vps/install.sh` now checks for at least 8 GiB total memory and 15 GiB free disk before installation starts.
     -   When memory is below the minimum, the installer can add only the missing swap amount, persist it through `/etc/fstab`, and apply swap performance tuning.
     -   When disk space is below the minimum, the installer asks before continuing.
 
 -   Fixed `/admin/task-manager` in `ptbk agents-server` SQLite mode so the admin dashboard no longer crashes on the PostgreSQL-only listing query:
+
     -   Added a SQLite-safe task-manager listing path that reuses the shared Agents Server table adapters to load jobs, timeouts, users, and agents without requiring `POSTGRES_URL` / `DATABASE_URL`.
     -   Kept the existing PostgreSQL raw-SQL path for Supabase deployments, preserving current task-manager filtering, sorting, counters, and pagination behavior there.
 
@@ -89,6 +99,7 @@
     -   Theme bootstrapping and the authenticated `/api/settings/theme` fallback now respect `DEFAULT_THEME` whenever no cookie or saved user setting exists.
 
 -   Added security-audit PRDs in `prompts/` for concrete vulnerabilities found during repository review:
+
     -   weak default session signing secret in Agents Server authentication;
     -   SSRF in browser-reachable server-side URL proxy endpoints;
     -   unauthenticated email-sending proxy behavior in `/api/send-email`;
@@ -3611,6 +3622,7 @@
     -   Kept a single persistent boxed UI alive across queued-message runs, moving idle watching and idle auto-pull activity into explicit in-frame `WAITING` / loading states instead of printing plain lines that broke the layout mid-session.
     -   Changed the header visual to render the local agent name in a smaller compact banner instead of large initials, while keeping the rest of the terminal frame layout intact.
     -   Kept the queued-thread preview focused on the latest `MESSAGE @User` from the `.book` thread via `src/book-3.0/Book.ts`, and deferred the coding-agent Git identity tip until process exit so it no longer interrupts active sessions or `--no-ui` streaming output.
+
 -   Refactored `OpenAiAssistantExecutionTools` internals to keep OpenAI Assistants behavior unchanged while making the module easier to follow and maintain:
 
     -   Split `src/llm-providers/openai/OpenAiAssistantExecutionTools.ts` into a smaller orchestration facade plus focused private helpers for prompt/thread building, tool-run execution, streaming/result reporting, and citation rewriting.

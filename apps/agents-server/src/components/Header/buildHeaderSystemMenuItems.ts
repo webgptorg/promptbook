@@ -5,11 +5,15 @@ import {
     KeyRound,
     RefreshCw,
     Settings2,
+    ShieldCheck,
+    TriangleAlert,
     UserRound,
     Wrench,
     type LucideIcon,
 } from 'lucide-react';
+import { createElement } from 'react';
 import type { ServerTranslationKey } from '../../languages/ServerTranslationKeys';
+import type { ShibbolethAuthenticationMenuStatus } from '../../constants/shibbolethAuth';
 import type { ChatFeedbackMode } from '../../utils/chatFeedbackMode';
 import type { UserInfo } from '../../utils/getCurrentUser';
 import type { SubMenuItem } from './SubMenuItem';
@@ -31,6 +35,7 @@ type SystemCategoryLabel =
     | 'Utilities'
     | 'Super Admin'
     | 'Administration'
+    | 'Login Methods'
     | 'Monitoring & Usage'
     | 'Integrations & Keys'
     | 'Developer / Debug'
@@ -48,6 +53,7 @@ type BuildHeaderSystemMenuItemsOptions = {
     readonly isGlobalAdmin: boolean;
     readonly isExperimental: boolean;
     readonly feedbackMode: ChatFeedbackMode;
+    readonly shibbolethAuthenticationStatus?: ShibbolethAuthenticationMenuStatus;
 };
 
 /**
@@ -58,6 +64,7 @@ const SYSTEM_CATEGORY_ICON_MAP: Record<SystemCategoryLabel, LucideIcon> = {
     Utilities: Wrench,
     'Super Admin': Settings2,
     Administration: Settings2,
+    'Login Methods': KeyRound,
     'Monitoring & Usage': BarChart3,
     'Integrations & Keys': KeyRound,
     'Developer / Debug': Code2,
@@ -72,6 +79,7 @@ const SYSTEM_CATEGORY_TRANSLATION_KEY_MAP: Record<SystemCategoryLabel, ServerTra
     Utilities: 'header.utilities',
     'Super Admin': 'header.superAdmin',
     Administration: 'header.administration',
+    'Login Methods': 'header.loginMethods',
     'Monitoring & Usage': 'header.monitoringAndUsage',
     'Integrations & Keys': 'header.integrationsAndKeys',
     'Developer / Debug': 'header.developerDebug',
@@ -96,12 +104,28 @@ function applyFallbackSubMenuIcon(
 }
 
 /**
+ * Decorates a menu label with the warning indicator used for misconfigured login methods.
+ */
+function createWarningMenuLabel(label: string) {
+    return createElement(
+        'span',
+        { className: 'inline-flex items-center gap-2' },
+        label,
+        createElement(TriangleAlert, {
+            className: 'h-4 w-4 text-amber-500',
+            'aria-label': 'Warning',
+        }),
+    );
+}
+
+/**
  * Creates one category entry inside the System dropdown when there are items to show.
  */
 function createSystemCategory(
     label: SystemCategoryLabel,
     items: ReadonlyArray<SubMenuItem>,
     translate: HeaderTranslate,
+    isWarningShown = false,
 ): SubMenuItem[] {
     if (items.length === 0) {
         return [];
@@ -110,7 +134,9 @@ function createSystemCategory(
     const categoryIcon = SYSTEM_CATEGORY_ICON_MAP[label];
     return [
         {
-            label: translate(SYSTEM_CATEGORY_TRANSLATION_KEY_MAP[label]),
+            label: isWarningShown
+                ? createWarningMenuLabel(translate(SYSTEM_CATEGORY_TRANSLATION_KEY_MAP[label]))
+                : translate(SYSTEM_CATEGORY_TRANSLATION_KEY_MAP[label]),
             icon: categoryIcon,
             items: applyFallbackSubMenuIcon(items, categoryIcon),
         },
@@ -129,6 +155,7 @@ export function buildHeaderSystemMenuItems({
     isGlobalAdmin,
     isExperimental,
     feedbackMode,
+    shibbolethAuthenticationStatus,
 }: BuildHeaderSystemMenuItemsOptions): SubMenuItem[] {
     const userAccountSystemItems: SubMenuItem[] = [
         {
@@ -274,6 +301,23 @@ export function buildHeaderSystemMenuItems({
         },
     ];
 
+    const isShibbolethConfigurationWarningShown = Boolean(
+        shibbolethAuthenticationStatus?.isActive && !shibbolethAuthenticationStatus.isConfigured,
+    );
+    const loginMethodsSystemItems: SubMenuItem[] = shibbolethAuthenticationStatus?.isActive
+        ? [
+              {
+                  label: isShibbolethConfigurationWarningShown
+                      ? createWarningMenuLabel(translate('header.shibboleth'))
+                      : translate('header.shibboleth'),
+                  href: isShibbolethConfigurationWarningShown
+                      ? '/admin/login-methods/shibboleth#setup-instructions'
+                      : '/admin/login-methods/shibboleth',
+                  icon: ShieldCheck,
+              },
+          ]
+        : [];
+
     const monitoringAndUsageSystemItems: SubMenuItem[] = [
         {
             label: translate('header.usageAnalytics'),
@@ -345,6 +389,12 @@ export function buildHeaderSystemMenuItems({
         ...createSystemCategory('Utilities', utilitiesSystemItems, translate),
         ...createSystemCategory('Super Admin', superAdminSystemItems, translate),
         ...createSystemCategory('Administration', administrationSystemItems, translate),
+        ...createSystemCategory(
+            'Login Methods',
+            loginMethodsSystemItems,
+            translate,
+            isShibbolethConfigurationWarningShown,
+        ),
         ...createSystemCategory('Monitoring & Usage', monitoringAndUsageSystemItems, translate),
         ...createSystemCategory('Integrations & Keys', integrationsAndKeysSystemItems, translate),
         ...createSystemCategory('Developer / Debug', developerDebugSystemItems, translate),

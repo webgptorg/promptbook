@@ -86,33 +86,40 @@ export function UserDetailClient({ userId }: UserDetailClientProps) {
                                     {t('users.adminRole')}
                                 </span>
                             )}
+                            {user.authenticationProvider?.includes('SHIBBOLETH') && (
+                                <Link
+                                    href="/admin/login-methods/shibboleth"
+                                    className="ml-2 inline-block bg-emerald-100 text-emerald-800 text-xs px-2 py-1 rounded mt-1 hover:bg-emerald-200"
+                                >
+                                    Shibboleth
+                                </Link>
+                            )}
                             <p className="text-gray-500 text-sm mt-2">
                                 {t('users.idLabel')}: {user.id}
                             </p>
+                            {user.displayName && (
+                                <p className="text-gray-500 text-sm mt-1">Display name: {user.displayName}</p>
+                            )}
+                            {user.email && <p className="text-gray-500 text-sm mt-1">Email: {user.email}</p>}
+                            {user.authenticationProvider && (
+                                <p className="text-gray-500 text-sm mt-1">
+                                    Authentication: {user.authenticationProvider}
+                                </p>
+                            )}
                             <p className="text-gray-500 text-sm mt-1">
                                 {t('users.createdAtLabel')}:{' '}
-                                {user.createdAt
-                                    ? new Date(user.createdAt).toLocaleString()
-                                    : t('users.unknownValue')}
+                                {user.createdAt ? new Date(user.createdAt).toLocaleString() : t('users.unknownValue')}
                             </p>
                             <p className="text-gray-500 text-sm mt-1">
                                 {t('users.lastUpdatedLabel')}:{' '}
-                                {user.updatedAt
-                                    ? new Date(user.updatedAt).toLocaleString()
-                                    : t('users.unknownValue')}
+                                {user.updatedAt ? new Date(user.updatedAt).toLocaleString() : t('users.unknownValue')}
                             </p>
                         </div>
                         <div className="space-x-2">
-                            <button
-                                onClick={handleToggleAdmin}
-                                className="text-sm text-blue-600 hover:text-blue-800"
-                            >
+                            <button onClick={handleToggleAdmin} className="text-sm text-blue-600 hover:text-blue-800">
                                 {user.isAdmin ? t('users.removeAdmin') : t('users.makeAdmin')}
                             </button>
-                            <button
-                                onClick={handleDelete}
-                                className="text-sm text-red-600 hover:text-red-800"
-                            >
+                            <button onClick={handleDelete} className="text-sm text-red-600 hover:text-red-800">
                                 {t('users.deleteUserAction')}
                             </button>
                         </div>

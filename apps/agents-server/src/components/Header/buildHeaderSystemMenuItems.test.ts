@@ -87,4 +87,36 @@ describe('buildHeaderSystemMenuItems', () => {
         expect(collectStringLabels(normalAdminItems)).not.toContain('translated:header.cliAccess');
         expect(userItems.map((item) => item.label)).not.toContain('translated:header.superAdmin');
     });
+
+    it('adds Shibboleth under login methods only when Shibboleth authentication is active', () => {
+        const translate = (key: ServerTranslationKey) => `translated:${key}`;
+        const inactiveItems = buildHeaderSystemMenuItems({
+            translate,
+            currentUser: FIXTURE_USER,
+            isAdmin: true,
+            isGlobalAdmin: false,
+            isExperimental: false,
+            feedbackMode: 'stars',
+            shibbolethAuthenticationStatus: {
+                isActive: false,
+                isConfigured: false,
+            },
+        });
+        const activeItems = buildHeaderSystemMenuItems({
+            translate,
+            currentUser: FIXTURE_USER,
+            isAdmin: true,
+            isGlobalAdmin: false,
+            isExperimental: false,
+            feedbackMode: 'stars',
+            shibbolethAuthenticationStatus: {
+                isActive: true,
+                isConfigured: true,
+            },
+        });
+
+        expect(collectStringLabels(inactiveItems)).not.toContain('translated:header.shibboleth');
+        expect(activeItems.map((item) => item.label)).toContain('translated:header.loginMethods');
+        expect(collectStringLabels(activeItems)).toContain('translated:header.shibboleth');
+    });
 });

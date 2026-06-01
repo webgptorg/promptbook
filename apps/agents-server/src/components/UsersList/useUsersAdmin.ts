@@ -8,6 +8,9 @@ import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
 export type AdminUser = {
     id: number;
     username: string;
+    email?: string | null;
+    displayName?: string | null;
+    authenticationProvider?: string | null;
     createdAt: string;
     updatedAt: string;
     isAdmin: boolean;

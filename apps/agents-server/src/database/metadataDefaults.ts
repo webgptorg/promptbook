@@ -7,7 +7,11 @@ import {
     FEDERATED_AGENT_IMPORT_RETRY_DELAY_MS_METADATA_KEY,
 } from '../constants/federatedAgentImport';
 import { MetadataType } from '../constants/metadataTypes';
-import { CHAT_VISUAL_MODE_OPTIONS, CHAT_VISUAL_MODE_METADATA_KEY, DEFAULT_CHAT_VISUAL_MODE } from '../constants/chatVisualMode';
+import {
+    CHAT_VISUAL_MODE_OPTIONS,
+    CHAT_VISUAL_MODE_METADATA_KEY,
+    DEFAULT_CHAT_VISUAL_MODE,
+} from '../constants/chatVisualMode';
 import {
     DEFAULT_AGENT_AVATAR_VISUAL_METADATA_KEY,
     DEFAULT_AGENT_AVATAR_VISUAL_METADATA_OPTIONS,
@@ -16,6 +20,18 @@ import {
 import { DEFAULT_THEME_METADATA_KEY, DEFAULT_THEME_MODE, THEME_MODE_OPTIONS } from '../constants/themeMode';
 import { DEFAULT_NAME_POOL, NAME_POOL_METADATA_KEY, NAME_POOL_OPTIONS } from '../constants/namePool';
 import { NEW_AGENT_WIZZARD_METADATA_KEY, NEW_AGENT_WIZZARD_OPTIONS } from '../constants/newAgentWizard';
+import {
+    DEFAULT_SHIBBOLETH_DISPLAY_NAME_ATTRIBUTE_NAMES,
+    DEFAULT_SHIBBOLETH_EMAIL_ATTRIBUTE_NAMES,
+    DEFAULT_SHIBBOLETH_UNSTRUCTURED_NAME_ATTRIBUTE_NAMES,
+    IS_SHIBBOLETH_AUTH_ACTIVE_METADATA_KEY,
+    SHIBBOLETH_DISPLAY_NAME_ATTRIBUTE_NAMES_METADATA_KEY,
+    SHIBBOLETH_EMAIL_ATTRIBUTE_NAMES_METADATA_KEY,
+    SHIBBOLETH_IDENTITY_PROVIDER_METADATA_URL_METADATA_KEY,
+    SHIBBOLETH_IDENTITY_PROVIDER_METADATA_XML_METADATA_KEY,
+    SHIBBOLETH_SERVICE_PROVIDER_ENTITY_ID_METADATA_KEY,
+    SHIBBOLETH_UNSTRUCTURED_NAME_ATTRIBUTE_NAMES_METADATA_KEY,
+} from '../constants/shibbolethAuth';
 import {
     DEFAULT_SERVER_LIMIT_VALUES,
     MAX_FILE_UPLOAD_SIZE_MB_METADATA_KEY,
@@ -114,7 +130,9 @@ export const metadataDefaults = [
     {
         key: SERVER_LANGUAGE_METADATA_KEY,
         value: 'en',
-        note: `Default language of the server UI. Available values: ${formatMetadataOptionValues(SERVER_LANGUAGE_OPTIONS)}.`,
+        note: `Default language of the server UI. Available values: ${formatMetadataOptionValues(
+            SERVER_LANGUAGE_OPTIONS,
+        )}.`,
         type: 'TEXT_SINGLE_LINE',
         options: SERVER_LANGUAGE_OPTIONS,
     },
@@ -138,6 +156,48 @@ export const metadataDefaults = [
         )}. PRIVATE blocks sitemap and indexing; PUBLIC enables indexing for PUBLIC agents.`,
         type: 'TEXT_SINGLE_LINE',
         options: SERVER_VISIBILITY_OPTIONS,
+    },
+    {
+        key: IS_SHIBBOLETH_AUTH_ACTIVE_METADATA_KEY,
+        value: 'false',
+        note: 'Enable Shibboleth authentication alongside standard username/password login.',
+        type: 'BOOLEAN',
+    },
+    {
+        key: SHIBBOLETH_IDENTITY_PROVIDER_METADATA_URL_METADATA_KEY,
+        value: '',
+        note: 'URL of the Shibboleth Identity Provider metadata XML. For Silesian University this is https://idp-cro.slu.cz/idp/shibboleth.',
+        type: 'TEXT_SINGLE_LINE',
+    },
+    {
+        key: SHIBBOLETH_IDENTITY_PROVIDER_METADATA_XML_METADATA_KEY,
+        value: '',
+        note: 'Optional pasted Shibboleth Identity Provider metadata XML. Used instead of SHIBBOLETH_IDP_METADATA_URL when filled.',
+        type: 'TEXT',
+    },
+    {
+        key: SHIBBOLETH_SERVICE_PROVIDER_ENTITY_ID_METADATA_KEY,
+        value: '',
+        note: 'Optional Service Provider entity ID override. When empty, Agents Server uses the generated Shibboleth metadata endpoint URL.',
+        type: 'TEXT_SINGLE_LINE',
+    },
+    {
+        key: SHIBBOLETH_EMAIL_ATTRIBUTE_NAMES_METADATA_KEY,
+        value: DEFAULT_SHIBBOLETH_EMAIL_ATTRIBUTE_NAMES,
+        note: 'Space-separated SAML attribute names accepted as the user email during Shibboleth login.',
+        type: 'TEXT_SINGLE_LINE',
+    },
+    {
+        key: SHIBBOLETH_DISPLAY_NAME_ATTRIBUTE_NAMES_METADATA_KEY,
+        value: DEFAULT_SHIBBOLETH_DISPLAY_NAME_ATTRIBUTE_NAMES,
+        note: 'Space-separated SAML attribute names accepted as the user display name during Shibboleth login.',
+        type: 'TEXT_SINGLE_LINE',
+    },
+    {
+        key: SHIBBOLETH_UNSTRUCTURED_NAME_ATTRIBUTE_NAMES_METADATA_KEY,
+        value: DEFAULT_SHIBBOLETH_UNSTRUCTURED_NAME_ATTRIBUTE_NAMES,
+        note: 'Space-separated SAML attribute names accepted as the institutional identifier during Shibboleth login.',
+        type: 'TEXT_SINGLE_LINE',
     },
     {
         key: 'AGENT_NAMING',
@@ -415,7 +475,9 @@ export const metadataDefaults = [
     {
         key: NEW_AGENT_WIZZARD_METADATA_KEY,
         value: 'BOILERPLATE',
-        note: `Controls the "new agent" flow. Allowed values: ${formatMetadataOptionValues(NEW_AGENT_WIZZARD_OPTIONS)}.`,
+        note: `Controls the "new agent" flow. Allowed values: ${formatMetadataOptionValues(
+            NEW_AGENT_WIZZARD_OPTIONS,
+        )}.`,
         type: 'TEXT_SINGLE_LINE',
         options: NEW_AGENT_WIZZARD_OPTIONS,
     },
@@ -517,5 +579,7 @@ export function validateMetadataValue(key: string, value: string): string | null
         return null;
     }
 
-    return `Unsupported value for \`${key}\`. Allowed values: ${formatMetadataOptionValues(metadataDefinition.options)}.`;
+    return `Unsupported value for \`${key}\`. Allowed values: ${formatMetadataOptionValues(
+        metadataDefinition.options,
+    )}.`;
 }

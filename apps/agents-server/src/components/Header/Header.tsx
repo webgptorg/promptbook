@@ -2,7 +2,7 @@
 
 import { logoutAction } from '@/src/app/actions';
 import { PROMPTBOOK_COLOR } from '@promptbook-local/core';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, TriangleAlert } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useCallback, useMemo, useState } from 'react';
 import { HamburgerMenu } from '../../../../../src/book-components/_common/HamburgerMenu/HamburgerMenu';
@@ -56,6 +56,7 @@ export function Header(props: HeaderProps) {
         federatedServers,
         isExperimental = false,
         feedbackMode = 'stars',
+        shibbolethAuthenticationStatus,
     } = props;
 
     const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
@@ -248,6 +249,9 @@ export function Header(props: HeaderProps) {
     );
 
     const hasMenuAccess = Boolean(currentUser || isAdmin);
+    const isShibbolethConfigurationWarningShown = Boolean(
+        shibbolethAuthenticationStatus?.isActive && !shibbolethAuthenticationStatus.isConfigured,
+    );
     const systemMenuEntries = useMemo(
         () =>
             buildHeaderSystemMenuItems({
@@ -257,8 +261,21 @@ export function Header(props: HeaderProps) {
                 isGlobalAdmin,
                 isExperimental,
                 feedbackMode,
+                shibbolethAuthenticationStatus,
             }),
-        [currentUser, feedbackMode, isAdmin, isExperimental, isGlobalAdmin, t],
+        [currentUser, feedbackMode, isAdmin, isExperimental, isGlobalAdmin, shibbolethAuthenticationStatus, t],
+    );
+    const systemLabel = useMemo(
+        () =>
+            isShibbolethConfigurationWarningShown ? (
+                <span className="inline-flex items-center gap-2">
+                    {t('header.systemMenuLabel')}
+                    <TriangleAlert className="h-4 w-4 text-amber-500" aria-label="Warning" />
+                </span>
+            ) : (
+                t('header.systemMenuLabel')
+            ),
+        [isShibbolethConfigurationWarningShown, t],
     );
     const menuItems = useMemo(
         () =>
@@ -274,7 +291,7 @@ export function Header(props: HeaderProps) {
                 setIsMobileDocsOpen,
                 setIsMobileSystemOpen,
                 setIsSystemOpen,
-                systemLabel: t('header.systemMenuLabel'),
+                systemLabel,
                 systemMenuEntries,
             }),
         [
@@ -288,6 +305,7 @@ export function Header(props: HeaderProps) {
             setIsMobileDocsOpen,
             setIsMobileSystemOpen,
             setIsSystemOpen,
+            systemLabel,
             systemMenuEntries,
             t,
         ],
@@ -389,7 +407,9 @@ export function Header(props: HeaderProps) {
                                         key={index}
                                         onClick={item.onClick}
                                         className={`rounded-md p-2 text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100 ${
-                                            item.isActive ? 'bg-gray-100 text-gray-900 dark:bg-slate-800 dark:text-slate-100' : ''
+                                            item.isActive
+                                                ? 'bg-gray-100 text-gray-900 dark:bg-slate-800 dark:text-slate-100'
+                                                : ''
                                         }`}
                                         title={item.name}
                                     >
