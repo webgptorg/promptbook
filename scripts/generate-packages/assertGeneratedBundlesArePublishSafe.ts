@@ -139,7 +139,18 @@ function assertBundleFileDoesNotContainNeverPublishMarker(bundleFileName: string
     throw new Error(
         spaceTrim(
             (block) => `
-                Things marked with [⚫] should never be never released in the bundle
+                Things marked with [⚫] should never be released in any bundle
+
+                **Steps to fix the issue:**
+
+                1) Look why the marker [⚫] is released in the bundle to NPM
+                2) Analyze the import chain which leads to usage in the released bundle
+                3) Fix the issue:
+                    A) If the code is indeed not meant to be published, fix the consuming code
+                    B) If the code is accidentally marked as non-publishable, remove the [⚫] marker from the source code
+
+                Note: Purpose of this mechanism is to prevent accidental leaks of code that is not meant to be published in NPM packages.
+                This can include code that is only meant for internal use within the repository, code that is meant to run only in development environments, or any other code that should not be part of the public API of the packages.
 
                 ${bundleFileName}
                 ${block(findMarkerLine(bundleFileContent, '[⚫]'))}
@@ -192,7 +203,26 @@ function assertBundleFileDoesNotContainCliOnlyMarkerOutsideCli(
     throw new Error(
         spaceTrim(
             (block) => `
-                Things marked with [🟡] should never be never released out of @promptbook/cli
+                Things marked with [🟡] should never be released out of @promptbook/cli
+
+                **Steps to fix the issue:**
+
+                1) Look why the marker [🟡] is in the released \`@promptbook/cli\` bundle
+                2) Analyze the import chain which leads to usage outside of the CLI package
+                3) Fix the issue:
+                    A) If the code is indeed CLI-only, fix the consuming code
+                    B) If the code has some CLI-only parts but is not fully CLI-only, consider splitting it into separate files and marking only the truly CLI-only code with [🟡]
+                    C) If the code is accidentally marked as CLI-only, remove the [🟡] marker from the source code
+
+                Note: Purpose of this mechanism is to prevent accidental leaks of CLI-only code into packages that could be imported into another environments
+                For example, if we accidentally import terminal calling into a package that is not marked as CLI-only, it could cause runtime errors or security issues
+                There are equivalent checks for Node-only and Browser-only code leaking
+
+                **Regardless of the specific fix, make sure to:**
+
+                -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+                -   Do a proper analysis of the current functionality before you start refactoring and fixing the issue.
+                -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
                 ${bundleFileName}
                 ${block(findMarkerLine(bundleFileContent, '[🟡]'))}
@@ -221,9 +251,28 @@ function assertBundleFileDoesNotContainNodeOnlyMarkerOutsideNodePackages(
     throw new Error(
         spaceTrim(
             (block) => `
-                Things marked with [🟢] should never be never released in packages that could be imported into browser environment
+                Things marked with [🟢] should never be never released outside node environment
 
                 But found in package \`${packageFullname}\`
+
+                **Steps to fix the issue:**
+
+                1) Look why the marker [🟢] is in the released into the bundle that can end up in the browser
+                2) Analyze the import chain which leads to usage outside of the non-node package
+                3) Fix the issue:
+                    A) If the code is indeed node-only, fix the consuming code
+                    B) If the code has some node-only parts but is not fully node-only, consider splitting it into separate files and marking only the truly node-only code with [🟢]
+                    C) If the code is accidentally marked as node-only, remove the [🟢] marker from the source code
+
+                Note: Purpose of this mechanism is to prevent accidental leaks of node-only code into packages that could be imported into browser environments
+                For example, if we accidentally import \`process\` into a package that is not marked as node-only, it could cause runtime errors when someone tries to use that package in a browser environment
+                There are equivalent checks for browser-only code leaking into node-importable packages
+
+                **Regardless of the specific fix, make sure to:**
+
+                -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+                -   Do a proper analysis of the current functionality before you start refactoring and fixing the issue.
+                -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
                 Analyze the issue in the bundle file:
                 ${block(bundleFileName)}
@@ -255,6 +304,25 @@ function assertBundleFileDoesNotContainBrowserOnlyMarkerOutsideBrowserPackages(
         spaceTrim(
             (block) => `
                 Things marked with [🔵] should never be never released out of @promptbook/browser
+
+                **Steps to fix the issue:**
+
+                1) Look why the marker [🔵] is in the released \`@promptbook/browser\` bundle
+                2) Analyze the import chain which leads to usage outside of the browser package
+                3) Fix the issue:
+                    A) If the code is indeed browser-only, fix the consuming code
+                    B) If the code has some browser-only parts but is not fully browser-only, consider splitting it into separate files and marking only the truly browser-only code with [🔵]
+                    C) If the code is accidentally marked as browser-only, remove the [🔵] marker from the source code
+
+                Note: Purpose of this mechanism is to prevent accidental leaks of browser-only code into packages that could be imported into Node environments
+                For example, if we accidentally import \`window\` into a package that is not marked as browser-only, it could cause runtime errors when someone tries to use that package in Node environment
+                There are equivalent checks for Node-only code leaking into browser-importable packages
+
+                **Regardless of the specific fix, make sure to:**
+
+                -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+                -   Do a proper analysis of the current functionality before you start refactoring and fixing the issue.
+                -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
                 ${bundleFileName}
                 ${block(findMarkerLine(bundleFileContent, '[🔵]'))}
