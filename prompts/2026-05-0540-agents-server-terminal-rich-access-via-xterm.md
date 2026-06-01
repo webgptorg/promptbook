@@ -33,3 +33,13 @@ root@collboard-agents-server-x21:~# sudo curl -fsSL https://raw.githubuserconten
 
 -   Problem is in `/admin/cli-access` and `/admin/code-runners`
 -   You are working with the [Agents Server](apps/agents-server)
+
+---
+
+[ ] !!!
+
+[✨⛏] Use `xterm` in `/admin/update`
+
+-   it is already used in `/admin/cli-access` and `/admin/code-runners`
+-   You are working with the [Agents Server](apps/agents-server)
+-   Keep in mind the DRY _(don't repeat yourself)_ principle, there should be a single component for the terminal rendering and backend logic that can be reused in different parts of the Agents Server

@@ -1,9 +1,8 @@
 [ ]
 
-[✨🐭] Pausing in between stages
+[✨🐭] Implement Pausing in between stages in `ptbk coder`
 
 ```bash
-me@DESKTOP-2QD9KQQ MINGW64 ~/work/ai/promptbook (main)
 $ npx ts-node ./src/cli/test/ptbk.ts coder run --agent openai-codex --model gpt-5.5 --thinking-level xhigh --context AGENTS.md --priority 2 --test npm run test-for-ptbk-coder --no-wait && npx ts-node ./src/cli/test/ptbk.ts coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --test npm run test-for-ptbk-coder --no-wait --priority 1 && npm version prerelease && npx ts-node ./src/cli/test/ptbk.ts coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --test npm run test-for-ptbk-coder --no-wait && ./scripts/lines-to-lf.sh && npx ts-node ./scripts/prettify-all/prettify-all.ts --ignore-git-changes --commit && npm run test && npx ts-node ./scripts/generate-packages/generate-packages.ts
 
                                ▄▄▄▄ ▄▄▄▄▄▄ ▄▄▄▄  ▄▄ ▄▄   ▄▄  ▄▄▄
@@ -42,73 +41,8 @@ $ npx ts-node ./src/cli/test/ptbk.ts coder run --agent openai-codex --model gpt-
 
 ```
 
--   @@@
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
--   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
-
----
-
-[-]
-
-[✨🐭] foo
-
-```bash
-@@@
-
-npm install ptbk
-
-ptbk coder init
-
-ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md
-```
-
--   @@@
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
--   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
-
----
-
-[-]
-
-[✨🐭] foo
-
-```bash
-@@@
-
-npm install ptbk
-
-ptbk coder init
-
-ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md
-```
-
--   @@@
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
--   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
-
----
-
-[-]
-
-[✨🐭] foo
-
-```bash
-@@@
-
-npm install ptbk
-
-ptbk coder init
-
-ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md
-```
-
--   @@@
+-   Now the pausing works only between each prompts, try to do it as granular as possible, so it is possible to pause in between stages of the same prompt or even in between each callings of the model
+-   This should work for any agent runner, model, thinking level,...
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
