@@ -6,7 +6,6 @@ import { revalidatePath } from 'next/cache';
 import { string_agent_permanent_id } from '../../../../src/types/typeAliases';
 import { DEFAULT_NAME_POOL, NAME_POOL_METADATA_KEY, parseNamePool } from '../constants/namePool';
 import { NEW_AGENT_WIZZARD_METADATA_KEY, parseNewAgentWizardMode } from '../constants/newAgentWizard';
-import { AUTHENTICATION_METHODS_METADATA_KEY, isAuthenticationMethodEnabled } from '../constants/authenticationMethods';
 import { getMetadata } from '../database/getMetadata';
 import { $provideAgentCollectionForServer } from '../tools/$provideAgentCollectionForServer';
 import { type AgentVisibility, parseAgentVisibility } from '../utils/agentVisibility';
@@ -105,11 +104,6 @@ export async function loginAction(formData: FormData) {
     const password = formData.get('password') as string;
 
     console.info(`Login attempt for user: ${username}`);
-
-    if (!isAuthenticationMethodEnabled(await getMetadata(AUTHENTICATION_METHODS_METADATA_KEY), 'PASSWORD')) {
-        console.info('Password login rejected because PASSWORD authentication is disabled in metadata.');
-        return { success: false, message: 'Password login is disabled on this server.' };
-    }
 
     const user = await authenticateUser(username, password);
 

@@ -1,11 +1,6 @@
 import { authenticateUser } from '../../../../utils/authenticateUser';
 import { setSession } from '../../../../utils/session';
 import { NextResponse } from 'next/server';
-import {
-    AUTHENTICATION_METHODS_METADATA_KEY,
-    isAuthenticationMethodEnabled,
-} from '../../../../constants/authenticationMethods';
-import { getMetadata } from '../../../../database/getMetadata';
 
 /**
  * Handles post.
@@ -17,11 +12,6 @@ export async function POST(request: Request) {
 
         if (!username || !password) {
             return NextResponse.json({ error: 'Username and password are required' }, { status: 400 });
-        }
-
-        if (!isAuthenticationMethodEnabled(await getMetadata(AUTHENTICATION_METHODS_METADATA_KEY), 'PASSWORD')) {
-            console.info('Password login rejected because PASSWORD authentication is disabled in metadata.');
-            return NextResponse.json({ error: 'Password login is disabled on this server' }, { status: 403 });
         }
 
         const user = await authenticateUser(username, password);

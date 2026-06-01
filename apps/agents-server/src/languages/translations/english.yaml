@@ -194,8 +194,6 @@ login.passwordLabel: Password
 login.passwordPlaceholder: Enter your password
 login.loggingIn: Logging in...
 login.loginAction: Log in
-login.shibbolethAction: Continue with {provider}
-login.methodDivider: or
 login.forgottenPassword: Forgotten password?
 login.registerNewUser: Register new user
 login.errorOccurred: An error occurred

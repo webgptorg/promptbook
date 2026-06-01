@@ -3,20 +3,11 @@ import { CORE_AGENTS_SERVER } from '../../../../servers';
 import { DEFAULT_THINKING_MESSAGES } from '../../../../src/utils/DEFAULT_THINKING_MESSAGES';
 import { ANALYTICS_METADATA_KEYS, getAnalyticsMetadataDefinition } from '../constants/analyticsMetadata';
 import {
-    AUTHENTICATION_METHOD_VALUES,
-    AUTHENTICATION_METHODS_METADATA_KEY,
-    DEFAULT_AUTHENTICATION_METHODS_METADATA_VALUE,
-} from '../constants/authenticationMethods';
-import {
     DEFAULT_FEDERATED_AGENT_IMPORT_RETRY_DELAY_MS,
     FEDERATED_AGENT_IMPORT_RETRY_DELAY_MS_METADATA_KEY,
 } from '../constants/federatedAgentImport';
 import { MetadataType } from '../constants/metadataTypes';
-import {
-    CHAT_VISUAL_MODE_OPTIONS,
-    CHAT_VISUAL_MODE_METADATA_KEY,
-    DEFAULT_CHAT_VISUAL_MODE,
-} from '../constants/chatVisualMode';
+import { CHAT_VISUAL_MODE_OPTIONS, CHAT_VISUAL_MODE_METADATA_KEY, DEFAULT_CHAT_VISUAL_MODE } from '../constants/chatVisualMode';
 import {
     DEFAULT_AGENT_AVATAR_VISUAL_METADATA_KEY,
     DEFAULT_AGENT_AVATAR_VISUAL_METADATA_OPTIONS,
@@ -30,19 +21,6 @@ import {
     MAX_FILE_UPLOAD_SIZE_MB_METADATA_KEY,
     SERVER_LIMIT_KEYS,
 } from '../constants/serverLimits';
-import {
-    DEFAULT_SHIBBOLETH_PROVIDER_LABEL,
-    DEFAULT_SHIBBOLETH_USERNAME_ATTRIBUTE,
-    SHIBBOLETH_AUTO_CREATE_USERS_METADATA_KEY,
-    SHIBBOLETH_CALLBACK_URL_METADATA_KEY,
-    SHIBBOLETH_ENTITY_ID_METADATA_KEY,
-    SHIBBOLETH_IDP_CERTIFICATE_METADATA_KEY,
-    SHIBBOLETH_IDP_ENTRYPOINT_METADATA_KEY,
-    SHIBBOLETH_IDP_ISSUER_METADATA_KEY,
-    SHIBBOLETH_IDP_METADATA_URL_METADATA_KEY,
-    SHIBBOLETH_PROVIDER_LABEL_METADATA_KEY,
-    SHIBBOLETH_USERNAME_ATTRIBUTE_METADATA_KEY,
-} from '../constants/shibbolethAuthentication';
 import { DEFAULT_TOOL_USAGE_LIMITS, TOOL_USAGE_LIMITS_METADATA_KEY } from '../constants/toolUsageLimits';
 import {
     IS_SERVER_LANGUAGE_ENFORCED_METADATA_KEY,
@@ -136,9 +114,7 @@ export const metadataDefaults = [
     {
         key: SERVER_LANGUAGE_METADATA_KEY,
         value: 'en',
-        note: `Default language of the server UI. Available values: ${formatMetadataOptionValues(
-            SERVER_LANGUAGE_OPTIONS,
-        )}.`,
+        note: `Default language of the server UI. Available values: ${formatMetadataOptionValues(SERVER_LANGUAGE_OPTIONS)}.`,
         type: 'TEXT_SINGLE_LINE',
         options: SERVER_LANGUAGE_OPTIONS,
     },
@@ -428,68 +404,6 @@ export const metadataDefaults = [
         type: 'TEXT_SINGLE_LINE',
     },
     {
-        key: AUTHENTICATION_METHODS_METADATA_KEY,
-        value: DEFAULT_AUTHENTICATION_METHODS_METADATA_VALUE,
-        note: `Comma-separated login methods enabled on this server. Available values: ${AUTHENTICATION_METHOD_VALUES.join(
-            ', ',
-        )}. Shibboleth is inactive unless SHIBBOLETH is included here.`,
-        type: 'TEXT_SINGLE_LINE',
-    },
-    {
-        key: SHIBBOLETH_IDP_METADATA_URL_METADATA_KEY,
-        value: '',
-        note: 'URL of the Shibboleth Identity Provider metadata XML. When set, the IdP SSO URL and signing certificates are loaded from this document.',
-        type: 'TEXT_SINGLE_LINE',
-    },
-    {
-        key: SHIBBOLETH_IDP_ENTRYPOINT_METADATA_KEY,
-        value: '',
-        note: 'Fallback Shibboleth Identity Provider SSO URL used when it cannot be loaded from metadata.',
-        type: 'TEXT_SINGLE_LINE',
-    },
-    {
-        key: SHIBBOLETH_IDP_CERTIFICATE_METADATA_KEY,
-        value: '',
-        note: 'Fallback Shibboleth IdP signing certificate in PEM or base64 form. Multiple certificates can be separated by blank lines.',
-        type: 'TEXT',
-    },
-    {
-        key: SHIBBOLETH_IDP_ISSUER_METADATA_KEY,
-        value: '',
-        note: 'Optional expected Shibboleth IdP entity ID. Leave empty to use the entityID from IdP metadata.',
-        type: 'TEXT_SINGLE_LINE',
-    },
-    {
-        key: SHIBBOLETH_ENTITY_ID_METADATA_KEY,
-        value: '',
-        note: 'Optional SAML Service Provider EntityID. Leave empty to use this server public URL plus /api/auth/shibboleth/metadata.',
-        type: 'TEXT_SINGLE_LINE',
-    },
-    {
-        key: SHIBBOLETH_CALLBACK_URL_METADATA_KEY,
-        value: '',
-        note: 'Optional SAML Assertion Consumer Service URL. Leave empty to use this server public URL plus /api/auth/shibboleth/acs.',
-        type: 'TEXT_SINGLE_LINE',
-    },
-    {
-        key: SHIBBOLETH_USERNAME_ATTRIBUTE_METADATA_KEY,
-        value: DEFAULT_SHIBBOLETH_USERNAME_ATTRIBUTE,
-        note: 'SAML attribute used as the Agents Server username. For Silesian University this is usually mail or unstructuredName.',
-        type: 'TEXT_SINGLE_LINE',
-    },
-    {
-        key: SHIBBOLETH_AUTO_CREATE_USERS_METADATA_KEY,
-        value: 'true',
-        note: 'Create a non-admin Agents Server user automatically after a valid Shibboleth login when no matching username exists.',
-        type: 'BOOLEAN',
-    },
-    {
-        key: SHIBBOLETH_PROVIDER_LABEL_METADATA_KEY,
-        value: DEFAULT_SHIBBOLETH_PROVIDER_LABEL,
-        note: 'User-facing label for the Shibboleth login button.',
-        type: 'TEXT_SINGLE_LINE',
-    },
-    {
         key: DEFAULT_VISIBILITY_METADATA_KEY,
         value: 'UNLISTED',
         note: `Default visibility for new agents. Allowed values: ${formatMetadataOptionValues(
@@ -501,9 +415,7 @@ export const metadataDefaults = [
     {
         key: NEW_AGENT_WIZZARD_METADATA_KEY,
         value: 'BOILERPLATE',
-        note: `Controls the "new agent" flow. Allowed values: ${formatMetadataOptionValues(
-            NEW_AGENT_WIZZARD_OPTIONS,
-        )}.`,
+        note: `Controls the "new agent" flow. Allowed values: ${formatMetadataOptionValues(NEW_AGENT_WIZZARD_OPTIONS)}.`,
         type: 'TEXT_SINGLE_LINE',
         options: NEW_AGENT_WIZZARD_OPTIONS,
     },
@@ -605,7 +517,5 @@ export function validateMetadataValue(key: string, value: string): string | null
         return null;
     }
 
-    return `Unsupported value for \`${key}\`. Allowed values: ${formatMetadataOptionValues(
-        metadataDefinition.options,
-    )}.`;
+    return `Unsupported value for \`${key}\`. Allowed values: ${formatMetadataOptionValues(metadataDefinition.options)}.`;
 }

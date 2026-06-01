@@ -1,9 +1,21 @@
-[x] ~$0.8811 an hour by OpenAI Codex `gpt-5.5`
+[ ] !!!!!
 
 [✨🐡] Add logging of Shibboleth authentication process in the Agents Server
 
--   Activating Shibboleth authentication (and in future other login methods) in the Agents Server should be done via metadata configuration
+-   Activating Shibboleth authentication (and in future other login methods) in the Agents Server should be done via metadata configuration `IS_SHIBBOLETH_AUTH_ACTIVE`
 -   By default, the Shibboleth authentication is not active
+-   When the Shibboleth authentication is active, it should live alongside the standard username/password authentication, so the users can choose which method they want to use to log in
+-   When the shibboleth authentication is active, in the menu should appear "System" -> "Login Methods" -> "Shibboleth" there should be a dashboard with the Shibboleth authentication
+-   In the dashboard There should be:
+    -   Setup instructions for the Shibboleth authentication for admin
+        -   If the Shibboleth authentication is active BUT not configured correctly, there should be a warning notification alongside the menu item (in all levels + in the dashboard) that the Shibboleth authentication is active but not configured correctly, and there should be a link to the setup instructions in the notification, so the admin can easily find out how to set it up correctly
+    -   log of all the authentication attempts via Shibboleth
+    -   All others information related to the Shibboleth authentication
+    -   All the users that registered / logged in via Shibboleth and their details (like email, display name, etc.)
+-   When Shibboleth authentication is NOT active, the "System" -> "Login Methods" -> "Shibboleth" should not be in the menu
+-   For each shibboleth user create a user in the database with the same email and display name as the one provided by the Shibboleth authentication, so it is possible to manage the shibboleth users from the same place as the normal users in the Agents Server, theese users are linked and can be passwordless, so they can only log in via Shibboleth, but they are still users in the database and can be managed from the same place as the normal users
+-   Theese users are also visible through `/admin/users`
+-   Interlink `/admin/users` and the Shibboleth dashboard, look how metadata and limits are interlinked
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
@@ -17,6 +29,8 @@ root@collboard-agents-server-x21:~# sudo curl -fsSL https://raw.githubuserconten
 ```
 
 **This is the context of what you need to do:**
+
+-   Find additional documentation and instructions on the internet
 
 ```mail
 >
@@ -149,4 +163,3 @@ V případě jakýchkoliv technických dotazů mě neváhejte kontaktovat přím
 S pozdravem,
 [Citovaný text byl skryt]
 ```
-
