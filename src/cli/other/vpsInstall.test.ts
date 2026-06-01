@@ -22,7 +22,7 @@ describe('other/vps/install.sh', () => {
         expect(installScript).toContain('node_modules/.bin/ts-node');
         expect(installScript).toContain('verify_promptbook_cli_supports_agents_server');
         expect(installScript).toContain(
-            'does not provide \'ptbk agents-server init\'. Choose main or another branch that includes standalone Agents Server support.',
+            "does not provide 'ptbk agents-server init'. Choose main or another branch that includes standalone Agents Server support.",
         );
         expect(installScript).toContain('PTBK_PATH=$ptbk_command_shell');
         expect(installScript).toContain('pm2 start \\"\\$PTBK_PATH\\"');
@@ -53,7 +53,9 @@ describe('other/vps/install.sh', () => {
 
         expect(installScript).toContain('REQUESTED_PUBLIC_SITE_URL');
         expect(installScript).toContain('prompt_with_default "Public Agents Server URL"');
-        expect(installScript).toContain('prompt_yes_no "Open the $PTBK_AGENT CLI for authentication when dependencies are ready?"');
+        expect(installScript).toContain(
+            'prompt_yes_no "Open the $PTBK_AGENT CLI for authentication when dependencies are ready?"',
+        );
         expect(configureEnvironmentFunction).toContain('local public_site_url="$REQUESTED_PUBLIC_SITE_URL"');
         expect(configureEnvironmentFunction).not.toContain('prompt_with_default "Public Agents Server URL"');
         expect(mainFunction.indexOf('prompt_public_site_url')).toBeLessThan(
