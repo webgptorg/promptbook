@@ -1,6 +1,3 @@
-import { NextResponse } from 'next/server';
-import { isUserGlobalAdmin } from '@/src/utils/isUserGlobalAdmin';
-import { createInteractiveTerminalEventStream } from '@/src/utils/createInteractiveTerminalEventStream';
 import {
     getCodeRunnerAuthenticationSession,
     getLatestCodeRunnerAuthenticationSession,
@@ -9,132 +6,43 @@ import {
     subscribeToCodeRunnerAuthenticationSession,
     writeCodeRunnerAuthenticationSessionInput,
 } from '@/src/utils/codeRunnerAuthentication';
+import { createAdminTerminalRouteHandlers } from '@/src/utils/createAdminTerminalRouteHandlers';
 import { readConfiguredCodeRunner } from '@/src/utils/codeRunnerConfiguration';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 /**
- * Loads the latest authentication session for the saved runner or streams a specific session.
+ * Shared route handlers for the code-runner authentication terminal.
  */
-export async function GET(request: Request) {
-    if (!(await isUserGlobalAdmin())) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+const authenticationTerminalRouteHandlers = createAdminTerminalRouteHandlers(
+    {
+        async getLatestSession() {
+            const { agent } = await readConfiguredCodeRunner();
+            return getLatestCodeRunnerAuthenticationSession(agent);
+        },
+        getSession: getCodeRunnerAuthenticationSession,
+        async startSession() {
+            const { agent } = await readConfiguredCodeRunner();
+            return startCodeRunnerAuthenticationSession(agent);
+        },
+        writeSessionInput: writeCodeRunnerAuthenticationSessionInput,
+        stopSession: stopCodeRunnerAuthenticationSession,
+        subscribeToSession: subscribeToCodeRunnerAuthenticationSession,
+    },
+    {
+        loadErrorMessage: 'Failed to load the authentication session.',
+        missingStreamSessionIdMessage: 'Authentication session id is required.',
+        sessionNotFoundMessage: 'Authentication session was not found.',
+        startErrorMessage: 'Failed to start the authentication session.',
+        missingInputMessage: 'Authentication session input is required.',
+        sendErrorMessage: 'Failed to send authentication input.',
+        missingStopSessionIdMessage: 'Authentication session id is required.',
+        stopErrorMessage: 'Failed to stop the authentication session.',
+    },
+);
 
-    try {
-        const { searchParams } = new URL(request.url);
-        const sessionId = searchParams.get('sessionId')?.trim() || '';
-        const isStreamRequested = searchParams.get('stream') === '1';
-
-        if (isStreamRequested) {
-            if (!sessionId) {
-                return NextResponse.json({ error: 'Authentication session id is required.' }, { status: 400 });
-            }
-
-            const session = getCodeRunnerAuthenticationSession(sessionId);
-            if (!session) {
-                return NextResponse.json({ error: 'Authentication session was not found.' }, { status: 404 });
-            }
-
-            return createInteractiveTerminalEventStream(
-                request,
-                sessionId,
-                session,
-                subscribeToCodeRunnerAuthenticationSession,
-            );
-        }
-
-        const { agent } = await readConfiguredCodeRunner();
-        return NextResponse.json({
-            session: getLatestCodeRunnerAuthenticationSession(agent),
-        });
-    } catch (error) {
-        return NextResponse.json(
-            { error: error instanceof Error ? error.message : 'Failed to load the authentication session.' },
-            { status: 500 },
-        );
-    }
-}
-
-/**
- * Starts a new browser-driven authentication terminal for the saved runner.
- */
-export async function POST() {
-    if (!(await isUserGlobalAdmin())) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    try {
-        const { agent } = await readConfiguredCodeRunner();
-        return NextResponse.json({
-            session: await startCodeRunnerAuthenticationSession(agent),
-        });
-    } catch (error) {
-        return NextResponse.json(
-            { error: error instanceof Error ? error.message : 'Failed to start the authentication session.' },
-            { status: 500 },
-        );
-    }
-}
-
-/**
- * Sends terminal input to a running authentication session.
- */
-export async function PATCH(request: Request) {
-    if (!(await isUserGlobalAdmin())) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    try {
-        const body = (await request.json().catch(() => null)) as
-            | {
-                  readonly sessionId?: string;
-                  readonly input?: string;
-              }
-            | null;
-
-        if (!body?.sessionId || typeof body.input !== 'string') {
-            return NextResponse.json({ error: 'Authentication session input is required.' }, { status: 400 });
-        }
-
-        return NextResponse.json({
-            session: writeCodeRunnerAuthenticationSessionInput(body.sessionId, body.input),
-        });
-    } catch (error) {
-        return NextResponse.json(
-            { error: error instanceof Error ? error.message : 'Failed to send authentication input.' },
-            { status: 500 },
-        );
-    }
-}
-
-/**
- * Stops one authentication terminal from the admin UI.
- */
-export async function DELETE(request: Request) {
-    if (!(await isUserGlobalAdmin())) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    try {
-        const body = (await request.json().catch(() => null)) as
-            | {
-                  readonly sessionId?: string;
-              }
-            | null;
-
-        if (!body?.sessionId) {
-            return NextResponse.json({ error: 'Authentication session id is required.' }, { status: 400 });
-        }
-
-        return NextResponse.json({
-            session: stopCodeRunnerAuthenticationSession(body.sessionId),
-        });
-    } catch (error) {
-        return NextResponse.json(
-            { error: error instanceof Error ? error.message : 'Failed to stop the authentication session.' },
-            { status: 500 },
-        );
-    }
-}
+export const GET = authenticationTerminalRouteHandlers.GET;
+export const POST = authenticationTerminalRouteHandlers.POST;
+export const PATCH = authenticationTerminalRouteHandlers.PATCH;
+export const DELETE = authenticationTerminalRouteHandlers.DELETE;

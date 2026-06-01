@@ -2,6 +2,7 @@
 
 import { CheckCircle2, Download, Loader2, RefreshCcw, Rocket, Server, TriangleAlert } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { AdminXtermTerminal } from '../../../components/AdminTerminal/AdminXtermTerminal';
 import { Card } from '../../../components/Homepage/Card';
 
 /**
@@ -121,6 +122,9 @@ export function UpdateClient() {
     const isEnvironmentSwitchRequired =
         Boolean(selectedEnvironment) && selectedEnvironment?.id !== overview?.currentEnvironment.id;
     const isUpdateRunning = overview?.job.status === 'running';
+    const updateTerminalId = `standalone-vps-update:${overview?.job.startedAt || overview?.job.finishedAt || overview?.job.status || 'loading'}`;
+    const updateTerminalEmptyState =
+        isLoading && !overview ? 'Loading update log...' : 'No persisted update log output yet.';
 
     /**
      * Starts one detached update run for the selected environment.
@@ -406,9 +410,14 @@ export function UpdateClient() {
                             <span className="ml-2 font-mono text-slate-700">{overview.job.logFilePath}</span>
                         </div>
                     )}
-                    <pre className="max-h-[28rem] overflow-auto rounded-xl border border-slate-200 bg-slate-950 p-4 text-xs text-slate-100">
-                        {overview?.job.logTail || 'No persisted update log output yet.'}
-                    </pre>
+                    <AdminXtermTerminal
+                        terminalId={updateTerminalId}
+                        output={overview?.job.logTail || ''}
+                        emptyState={updateTerminalEmptyState}
+                        isReadOnly
+                        isPlainTextOutput
+                        ariaLabel="Standalone VPS update log"
+                    />
                 </div>
             </Card>
         </div>
