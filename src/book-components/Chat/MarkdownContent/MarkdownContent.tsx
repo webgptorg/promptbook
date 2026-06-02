@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useEffect, useMemo, useRef } from 'react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import type { string_markdown } from '../../../types/string_markdown';
 import { classNames } from '../../_common/react-utils/classNames';
@@ -23,7 +23,36 @@ type MarkdownContentProps = {
 
     className?: string;
     onCreateAgent?: (bookContent: string) => void;
+    theme?: 'LIGHT' | 'DARK';
 };
+
+/**
+ * Visual theme consumed by nested code-block renderers.
+ *
+ * @private utility of `MarkdownContent` component
+ */
+type MarkdownContentTheme = NonNullable<MarkdownContentProps['theme']>;
+
+/**
+ * Resolves the active document theme when a host application does not pass an explicit theme.
+ *
+ * @private utility of `MarkdownContent` component
+ */
+function resolveMarkdownContentTheme(explicitTheme?: MarkdownContentTheme): MarkdownContentTheme {
+    if (explicitTheme) {
+        return explicitTheme;
+    }
+
+    if (typeof document !== 'undefined') {
+        const resolvedTheme = document.documentElement.dataset.themeResolved;
+
+        if (resolvedTheme === 'dark' || document.documentElement.classList.contains('dark')) {
+            return 'DARK';
+        }
+    }
+
+    return 'LIGHT';
+}
 
 /**
  * Returns a stable key for a `<details>` element based on its `<summary>` text.
@@ -85,7 +114,7 @@ function resolveClickedDetailsElement(target: EventTarget | null, container: HTM
  * @public exported from `@promptbook/components`
  */
 export const MarkdownContent = memo(function MarkdownContent(props: MarkdownContentProps) {
-    const { content, className, onCreateAgent } = props;
+    const { content, className, onCreateAgent, theme } = props;
     const htmlContent = useMemo(
         () =>
             renderMarkdown(content, {
@@ -93,12 +122,37 @@ export const MarkdownContent = memo(function MarkdownContent(props: MarkdownCont
             }),
         [content],
     );
+    const [resolvedTheme, setResolvedTheme] = useState<MarkdownContentTheme>(() =>
+        resolveMarkdownContentTheme(theme),
+    );
     const containerRef = useRef<HTMLDivElement>(null);
     const rootsRef = useRef<Root[]>([]);
     /** Tracks which `<details>` elements (by summary key) are currently open */
     const openDetailsKeysRef = useRef<Set<string>>(new Set());
     const onCreateAgentRef = useRef(onCreateAgent);
     onCreateAgentRef.current = onCreateAgent;
+
+    useEffect(() => {
+        if (theme) {
+            setResolvedTheme(theme);
+            return;
+        }
+
+        const updateTheme = () => setResolvedTheme(resolveMarkdownContentTheme());
+        updateTheme();
+
+        if (typeof document === 'undefined' || typeof MutationObserver === 'undefined') {
+            return;
+        }
+
+        const observer = new MutationObserver(updateTheme);
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['class', 'data-theme-resolved'],
+        });
+
+        return () => observer.disconnect();
+    }, [theme]);
 
     useEffect(() => {
         // Cleanup previous roots
@@ -191,7 +245,14 @@ export const MarkdownContent = memo(function MarkdownContent(props: MarkdownCont
 
             // Render CodeBlock
             const root = createRoot(mountPoint);
-            root.render(<CodeBlock code={code} language={language} onCreateAgent={onCreateAgentRef.current} />);
+            root.render(
+                <CodeBlock
+                    code={code}
+                    language={language}
+                    onCreateAgent={onCreateAgentRef.current}
+                    theme={resolvedTheme}
+                />,
+            );
             rootsRef.current.push(root);
         });
 
@@ -203,7 +264,7 @@ export const MarkdownContent = memo(function MarkdownContent(props: MarkdownCont
             rootsRef.current.forEach((root) => root.unmount());
             rootsRef.current = [];
         };
-    }, [htmlContent]);
+    }, [htmlContent, resolvedTheme]);
 
     return (
         <div

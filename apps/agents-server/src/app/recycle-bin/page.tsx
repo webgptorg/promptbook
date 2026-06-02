@@ -22,7 +22,7 @@ export default async function RecycleBinPage() {
     const canRestore = Boolean(currentUser);
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900">
             <div className="container mx-auto px-4 py-16">
                 <header className="flex items-center gap-4 mb-8">
                     <div className="bg-red-100 p-3 rounded-full">

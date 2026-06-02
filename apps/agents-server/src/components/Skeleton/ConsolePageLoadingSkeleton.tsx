@@ -44,7 +44,7 @@ export function ConsolePageLoadingSkeleton({
     const normalizedPanelHeights = panelHeights.length > 0 ? panelHeights : DEFAULT_PANEL_HEIGHTS;
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900">
             <div
                 className={`mx-auto w-full px-4 py-8 sm:px-6 sm:py-10 ${maxWidthClassName}`}
                 role="status"

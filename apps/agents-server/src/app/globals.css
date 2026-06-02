@@ -640,6 +640,26 @@ html.dark .agent-chat-route-surface .agent-chat-sidebar-toggle.agent-chat-solid-
     box-shadow: 0 20px 38px rgba(2, 6, 23, 0.6), inset 1px 0 0 rgba(191, 219, 254, 0.18);
 }
 
+html.dark .agent-chat-sidebar-item-active {
+    border-color: rgba(125, 211, 252, 0.52) !important;
+    background: linear-gradient(145deg, rgba(8, 47, 73, 0.88), rgba(15, 23, 42, 0.96)) !important;
+    color: #e0f2fe !important;
+    box-shadow: 0 14px 30px rgba(2, 6, 23, 0.4), inset 0 0 0 1px rgba(125, 211, 252, 0.16) !important;
+}
+
+html.dark .agent-chat-sidebar-item-active .agent-chat-sidebar-item-preview-card {
+    border-color: rgba(125, 211, 252, 0.34) !important;
+    background: rgba(15, 23, 42, 0.82) !important;
+}
+
+html.dark .agent-chat-sidebar-item-active .agent-chat-sidebar-item-title {
+    color: #f8fafc !important;
+}
+
+html.dark .agent-chat-sidebar-item-active .agent-chat-sidebar-item-preview {
+    color: #bae6fd !important;
+}
+
 .agent-chat-route-surface .chat-scrollToBottom.chat-scrollToBottom + [role='status'] {
     top: auto;
     right: auto;
@@ -807,6 +827,36 @@ html.dark .bg-slate-100\/80 {
     background-color: #111827 !important;
 }
 
+html.dark .bg-gray-200,
+html.dark .bg-slate-200 {
+    background-color: rgba(30, 41, 59, 0.92) !important;
+}
+
+html.dark .bg-gray-300,
+html.dark .bg-slate-300 {
+    background-color: rgba(51, 65, 85, 0.94) !important;
+}
+
+html.dark .bg-blue-50,
+html.dark .bg-blue-100 {
+    background-color: rgba(30, 64, 175, 0.24) !important;
+}
+
+html.dark .bg-amber-50,
+html.dark .bg-amber-100 {
+    background-color: rgba(120, 53, 15, 0.28) !important;
+}
+
+html.dark .bg-red-50,
+html.dark .bg-red-100 {
+    background-color: rgba(127, 29, 29, 0.3) !important;
+}
+
+html.dark .bg-emerald-50,
+html.dark .bg-emerald-100 {
+    background-color: rgba(6, 78, 59, 0.28) !important;
+}
+
 html.dark .border-gray-100,
 html.dark .border-gray-200,
 html.dark .border-slate-100,
@@ -844,9 +894,34 @@ html.dark .text-slate-400 {
     color: #64748b !important;
 }
 
+html.dark .text-blue-600,
+html.dark .text-blue-700,
+html.dark .hover\:text-blue-700:hover {
+    color: #93c5fd !important;
+}
+
+html.dark .text-amber-700,
+html.dark .text-amber-800,
+html.dark .text-amber-900 {
+    color: #fcd34d !important;
+}
+
+html.dark .text-red-600,
+html.dark .text-red-700,
+html.dark .text-red-800,
+html.dark .text-red-900 {
+    color: #fca5a5 !important;
+}
+
+html.dark .text-emerald-600,
+html.dark .text-emerald-700 {
+    color: #86efac !important;
+}
+
 html.dark .hover\:bg-white:hover,
 html.dark .hover\:bg-gray-50:hover,
 html.dark .hover\:bg-gray-100:hover,
+html.dark .hover\:bg-gray-300:hover,
 html.dark .hover\:bg-slate-50:hover,
 html.dark .hover\:bg-slate-100:hover {
     background-color: #0f172a !important;
@@ -862,6 +937,31 @@ html.dark .hover\:border-gray-300:hover,
 html.dark .hover\:border-slate-300:hover,
 html.dark .hover\:border-slate-400:hover {
     border-color: rgba(125, 211, 252, 0.45) !important;
+}
+
+html.dark input:not([type='checkbox']):not([type='radio']):not([type='range']),
+html.dark textarea,
+html.dark select {
+    background-color: #0f172a;
+    color: #e2e8f0;
+    border-color: rgba(71, 85, 105, 0.92);
+}
+
+html.dark input:not([type='checkbox']):not([type='radio']):not([type='range'])::placeholder,
+html.dark textarea::placeholder {
+    color: #94a3b8;
+}
+
+html.dark input:not([type='checkbox']):not([type='radio']):not([type='range']):disabled,
+html.dark textarea:disabled,
+html.dark select:disabled {
+    background-color: #111827;
+    color: #64748b;
+}
+
+html.dark option {
+    background-color: #0f172a;
+    color: #e2e8f0;
 }
 
 html.dark .prose {

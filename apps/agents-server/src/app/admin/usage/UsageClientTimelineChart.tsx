@@ -81,7 +81,7 @@ export function UsageClientTimelineChart(props: UsageClientTimelineChartProps) {
 
     return (
         <div>
-            <div className="w-full overflow-x-auto rounded-lg border border-gray-100 bg-gradient-to-br from-slate-50 via-white to-blue-50 p-2">
+            <div className="w-full overflow-x-auto rounded-lg border border-gray-100 bg-gradient-to-br from-slate-50 via-white to-blue-50 p-2 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900">
                 <svg
                     width="100%"
                     viewBox={`0 0 ${chartGeometry.width} ${chartGeometry.height}`}

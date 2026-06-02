@@ -17,7 +17,7 @@ import {
  * @private function of <ServersClient/>
  */
 const INPUT_CLASS_NAME =
-    'w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200';
+    'w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100 dark:focus:border-sky-400 dark:focus:ring-sky-500/30';
 
 /**
  * Shared secondary button styling used by the registry table.
@@ -25,7 +25,7 @@ const INPUT_CLASS_NAME =
  * @private function of <ServersClient/>
  */
 const SECONDARY_BUTTON_CLASS_NAME =
-    'inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60';
+    'inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100 dark:hover:bg-slate-800';
 
 /**
  * Shared primary button styling used by the registry table.
@@ -196,7 +196,7 @@ function ServersRegistryTableRow(props: ServersRegistryTableRowProps) {
 
     return (
         <>
-            <tr className={isCurrent ? 'bg-blue-50/40' : 'hover:bg-gray-50'}>
+            <tr className={isCurrent ? 'bg-blue-50/40 dark:bg-sky-950/45' : 'hover:bg-gray-50 dark:hover:bg-slate-900/80'}>
                 <td className="px-4 py-3 align-top">
                     <input
                         type="text"

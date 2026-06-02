@@ -34,18 +34,18 @@ export function Footer(props: FooterProps) {
     const { t } = useServerLanguage();
 
     return (
-        <footer className="border-t bg-white">
+        <footer className="border-t border-gray-200 bg-white dark:border-slate-700 dark:bg-slate-950">
             <div className="container mx-auto px-6 py-12">
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
                     {/* Company Info */}
                     <div className="space-y-4">
-                        <h3 className="font-bold">{NAME}</h3>
+                        <h3 className="font-bold text-gray-900 dark:text-slate-100">{NAME}</h3>
                         <p className="text-sm text-muted-foreground text-gray-500">{CLAIM}</p>
                     </div>
 
                     {/* Products */}
                     <div className="space-y-4">
-                        <h3 className="font-bold">{t('footer.productSectionTitle')}</h3>
+                        <h3 className="font-bold text-gray-900 dark:text-slate-100">{t('footer.productSectionTitle')}</h3>
                         <ul className="space-y-2 text-sm">
                             <li>
                                 <HeadlessLink href="/get-started" className="text-gray-500 hover:text-gray-900">
@@ -80,7 +80,7 @@ export function Footer(props: FooterProps) {
 
                     {/* Company */}
                     <div className="space-y-4">
-                        <h3 className="font-bold">{t('footer.companySectionTitle')}</h3>
+                        <h3 className="font-bold text-gray-900 dark:text-slate-100">{t('footer.companySectionTitle')}</h3>
                         <ul className="space-y-2 text-sm">
                             <li>
                                 <a
@@ -110,7 +110,7 @@ export function Footer(props: FooterProps) {
 
                     {/* Social */}
                     <div className="space-y-4">
-                        <h3 className="font-bold">{t('footer.connectSectionTitle')}</h3>
+                        <h3 className="font-bold text-gray-900 dark:text-slate-100">{t('footer.connectSectionTitle')}</h3>
                         <ul className="space-y-2 text-sm">
                             <li>
                                 <a
@@ -144,7 +144,7 @@ export function Footer(props: FooterProps) {
                     {/* Extra Links from Metadata */}
                     {extraLinks.length > 0 && (
                         <div className="space-y-4">
-                            <h3 className="font-bold">{t('footer.linksSectionTitle')}</h3>
+                            <h3 className="font-bold text-gray-900 dark:text-slate-100">{t('footer.linksSectionTitle')}</h3>
                             <ul className="space-y-2 text-sm">
                                 {extraLinks.map((link, index) => (
                                     <li key={index}>
@@ -163,7 +163,7 @@ export function Footer(props: FooterProps) {
                     )}
                 </div>
 
-                <div className="border-t mt-8 pt-8 text-center text-sm text-gray-500">
+                <div className="border-t border-gray-200 mt-8 pt-8 text-center text-sm text-gray-500 dark:border-slate-700 dark:text-slate-400">
                     <p>
                         &copy; {new Date().getFullYear()} Promptbook
                         <br />

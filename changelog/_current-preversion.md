@@ -1,3 +1,5 @@
+-   Finished Agents Server dark-mode polish across route shells, loading skeletons, documentation pages, chat-sidebar selection states, form controls, footer surfaces, and markdown/book code previews while keeping light-mode styling unchanged.
+
 -   Fixed Agents Server agent profile avatars so tall profile cards keep their frame while explicit images and live avatar canvases render with contained aspect ratio instead of being cropped or stretched.
 
 -   Fixed standalone VPS Nginx fallback pages to match Promptbook light branding:

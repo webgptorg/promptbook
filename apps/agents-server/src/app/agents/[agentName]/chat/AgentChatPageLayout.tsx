@@ -24,11 +24,11 @@ export function AgentChatPageLayout({
     children,
 }: AgentChatPageLayoutProps) {
     if (isHeadlessMode) {
-        return <div className="flex h-full min-h-0 w-full overflow-hidden bg-slate-50/80">{children}</div>;
+        return <div className="flex h-full min-h-0 w-full overflow-hidden bg-slate-50/80 dark:bg-slate-950">{children}</div>;
     }
 
     return (
-        <div className="flex h-full min-h-0 w-full overflow-hidden bg-slate-50/80">
+        <div className="flex h-full min-h-0 w-full overflow-hidden bg-slate-50/80 dark:bg-slate-950">
             {sidebar}
             <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">{children}</section>
         </div>

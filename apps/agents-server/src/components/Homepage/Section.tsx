@@ -51,7 +51,9 @@ export function Section({
 }: SectionProps) {
     return (
         <section className={`mt-16 first:mt-4 mb-4 ${sectionClassName || ''}`.trim()}>
-            <h2 className={`text-3xl text-gray-900 mb-6 font-light ${titleClassName || ''}`.trim()}>{title}</h2>
+            <h2 className={`text-3xl text-gray-900 mb-6 font-light dark:text-slate-100 ${titleClassName || ''}`.trim()}>
+                {title}
+            </h2>
             <div className={gridClassName}>{children}</div>
         </section>
     );

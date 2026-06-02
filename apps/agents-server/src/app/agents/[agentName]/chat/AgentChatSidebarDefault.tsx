@@ -183,7 +183,7 @@ function AgentChatSidebarDefaultCollapsedRow({
             onClick={() => onChatSelect(item.id)}
             className={`group relative flex w-full min-w-0 flex-col items-center gap-1 rounded-2xl border px-1.5 py-2 transition focus-visible:outline focus-visible:outline-blue-400 focus-visible:outline-offset-2 ${
                 item.isActive
-                    ? 'border-blue-300 bg-blue-50 text-blue-700 shadow-sm dark:border-blue-500/40 dark:bg-blue-500/12 dark:text-blue-100'
+                    ? 'agent-chat-sidebar-item-active border-blue-300 bg-blue-50 text-blue-700 shadow-sm dark:border-blue-500/40 dark:bg-blue-500/12 dark:text-blue-100'
                     : 'border-transparent bg-slate-100/80 text-slate-700 hover:border-slate-300 hover:bg-slate-100 dark:bg-slate-900/88 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-900'
             } ${item.isEmpty && !item.isActive ? 'opacity-40' : ''}`}
             aria-label={item.content.accessibilityLabel}
@@ -206,14 +206,16 @@ function AgentChatSidebarDefaultCollapsedRow({
                 {item.content.messagesCount}
             </span>
             <div
-                className={`aspect-square w-full overflow-hidden rounded-xl border px-1.5 py-1.5 text-left ${
+                className={`agent-chat-sidebar-item-preview-card aspect-square w-full overflow-hidden rounded-xl border px-1.5 py-1.5 text-left ${
                     item.isActive
                         ? 'border-blue-300 bg-white/90 text-blue-700 dark:border-blue-500/40 dark:bg-slate-950/82 dark:text-blue-100'
                         : 'border-slate-200 bg-white/90 text-slate-600 dark:border-slate-700 dark:bg-slate-950/78 dark:text-slate-300'
                 }`}
             >
-                <div className="max-w-full truncate text-[10px] font-semibold leading-none">{item.content.title}</div>
-                <div className="mt-1 max-w-full truncate text-[9px] leading-tight text-slate-500 dark:text-slate-400">
+                <div className="agent-chat-sidebar-item-title max-w-full truncate text-[10px] font-semibold leading-none">
+                    {item.content.title}
+                </div>
+                <div className="agent-chat-sidebar-item-preview mt-1 max-w-full truncate text-[9px] leading-tight text-slate-500 dark:text-slate-400">
                     {item.content.preview}
                 </div>
             </div>
@@ -241,7 +243,7 @@ function AgentChatSidebarDefaultExpandedRow({
         <div
             className={`group relative rounded-xl border ${
                 item.isActive
-                    ? 'border-blue-300 bg-blue-50 shadow-sm dark:border-blue-500/40 dark:bg-blue-500/12'
+                    ? 'agent-chat-sidebar-item-active border-blue-300 bg-blue-50 shadow-sm dark:border-blue-500/40 dark:bg-blue-500/12'
                     : 'border-transparent hover:border-slate-200 hover:bg-slate-100/80 dark:hover:border-slate-700 dark:hover:bg-slate-900/88'
             } ${item.isEmpty && !item.isActive ? 'opacity-40' : ''}`}
         >
@@ -256,7 +258,7 @@ function AgentChatSidebarDefaultExpandedRow({
                 title={item.content.accessibilityLabel}
             >
                 <div className="flex items-center gap-2">
-                    <div className="min-w-0 flex-1 truncate text-sm font-medium text-slate-800 dark:text-slate-100">
+                    <div className="agent-chat-sidebar-item-title min-w-0 flex-1 truncate text-sm font-medium text-slate-800 dark:text-slate-100">
                         {item.content.title}
                     </div>
                     {item.content.sourceChipLabel && (
@@ -265,7 +267,9 @@ function AgentChatSidebarDefaultExpandedRow({
                         </span>
                     )}
                 </div>
-                <div className="mt-1 truncate text-xs text-slate-500 dark:text-slate-400">{item.content.preview}</div>
+                <div className="agent-chat-sidebar-item-preview mt-1 truncate text-xs text-slate-500 dark:text-slate-400">
+                    {item.content.preview}
+                </div>
                 <div className="mt-2 flex items-center justify-between gap-2">
                     <div className={`truncate text-[11px] ${statusClassName}`}>
                         {item.content.activityIndicator.compactLabel || item.content.lastActivity}
