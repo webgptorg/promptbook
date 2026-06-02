@@ -28,7 +28,7 @@ export class VercelBlobStorage implements IIFilesStorageWithCdn {
 
     public getItemUrl(key: string): URL {
         const path = this.config.pathPrefix ? `${this.config.pathPrefix}/${key}` : key;
-        return new URL(path, this.cdnPublicUrl);
+        return new URL(path, ensureTrailingSlash(this.cdnPublicUrl));
     }
 
     public async getItem(key: string): Promise<IFile | null> {
@@ -71,4 +71,18 @@ export class VercelBlobStorage implements IIFilesStorageWithCdn {
             // Note: We rely on Vercel Blob for compression
         });
     }
+}
+
+/**
+ * Ensures URL path resolution appends relative keys instead of replacing the last segment.
+ *
+ * @private utility of `VercelBlobStorage`
+ */
+function ensureTrailingSlash(url: URL): URL {
+    const nextUrl = new URL(url.href);
+    if (!nextUrl.pathname.endsWith('/')) {
+        nextUrl.pathname = `${nextUrl.pathname}/`;
+    }
+
+    return nextUrl;
 }

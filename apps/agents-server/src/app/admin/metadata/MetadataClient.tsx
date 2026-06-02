@@ -1,6 +1,5 @@
 'use client';
 
-import { upload } from '@vercel/blob/client';
 import { FileTextIcon, HashIcon, ImageIcon, ListIcon, ShieldIcon, ToggleLeftIcon, TypeIcon, Upload } from 'lucide-react';
 import Link from 'next/link';
 import { Fragment, useEffect, useRef, useState } from 'react';
@@ -8,6 +7,7 @@ import { showConfirm } from '../../../components/AsyncDialogs/asyncDialogs';
 import { getMetadataDefinition, metadataDefaults, type MetadataDefinition } from '../../../database/metadataDefaults';
 import { getSafeCdnPath } from '../../../utils/cdn/utils/getSafeCdnPath';
 import { normalizeUploadFilename } from '../../../utils/normalization/normalizeUploadFilename';
+import { createShortCdnUrl, uploadFileToCdn } from '../../../utils/upload/uploadFileToCdn';
 import { getDeprecatedLimitMetadataDefinition, type DeprecatedLimitMetadataDefinition } from '../../../constants/serverLimits';
 
 /**
@@ -509,23 +509,15 @@ export function MetadataClient() {
                 : `user/files/${normalizedFilename}`;
             const safeUploadPath = getSafeCdnPath({ pathname: uploadPath });
 
-            const blob = await upload(safeUploadPath, file, {
-                access: 'public',
-                handleUploadUrl: '/api/upload',
-                clientPayload: JSON.stringify({
-                    purpose: formState.key || 'METADATA_IMAGE',
-                    contentType: file.type,
-                }),
+            const blob = await uploadFileToCdn({
+                pathname: safeUploadPath,
+                file,
+                purpose: formState.key || 'METADATA_IMAGE',
+                contentType: file.type,
             });
 
             const fileUrl = blob.url;
-
-            const LONG_URL = `${process.env.NEXT_PUBLIC_CDN_PUBLIC_URL!}/${process.env
-                .NEXT_PUBLIC_CDN_PATH_PREFIX!}/user/files/`;
-            const SHORT_URL = `https://ptbk.io/k/`;
-            // <- TODO: [🌍] Unite this logic in one place
-
-            const shortFileUrl = fileUrl.split(LONG_URL).join(SHORT_URL);
+            const shortFileUrl = createShortCdnUrl(fileUrl, uploadPath) || fileUrl;
             setFormState((prev) => ({ ...prev, value: shortFileUrl }));
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to upload image');

@@ -3,11 +3,12 @@ import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForSer
 import type { Json } from '@/src/database/schema';
 import { FILE_SECURITY_CHECKERS } from '@/src/file-security-checkers';
 import { $provideServer } from '@/src/tools/$provideServer';
+import { $provideUntrackedCdnForServer } from '@/src/tools/$provideCdnForServer';
+import { getSafeCdnPath } from '@/src/utils/cdn/utils/getSafeCdnPath';
 import { getUserFileCdnKey } from '@/src/utils/cdn/utils/getUserFileCdnKey';
 import { validateMimeType } from '@/src/utils/validators/validateMimeType';
 import { normalizeChatAttachments } from '@promptbook-local/core';
 import type { TODO_any } from '@promptbook-local/types';
-import { put } from '@vercel/blob';
 import { after } from 'next/server';
 import { spaceTrim } from 'spacetrim';
 import { DatabaseError } from '../../../../src/errors/DatabaseError';
@@ -230,13 +231,16 @@ async function createShareTargetAttachment(file: File, maxFileUploadBytes: numbe
     }
 
     const mimeType = resolveShareTargetMimeType(file.type);
-    const blobPath = getUserFileCdnKey(buffer, normalizedFilename);
-    const uploadedBlob = await put(blobPath, buffer, {
-        access: 'public',
-        addRandomSuffix: false,
-        allowOverwrite: true,
-        contentType: mimeType,
-        token: process.env.VERCEL_BLOB_READ_WRITE_TOKEN!,
+    const cdn = $provideUntrackedCdnForServer();
+    const blobPath = getSafeCdnPath({
+        pathname: getUserFileCdnKey(buffer, normalizedFilename),
+        pathPrefix: cdn.pathPrefix,
+    });
+    await cdn.setItem(blobPath, {
+        type: mimeType,
+        data: buffer,
+        purpose: SHARE_TARGET_FILE_PURPOSE,
+        fileSize: buffer.byteLength,
     }).catch((error) => {
         throw new DatabaseError(
             spaceTrim(`
@@ -246,18 +250,19 @@ async function createShareTargetAttachment(file: File, maxFileUploadBytes: numbe
             `),
         );
     });
+    const storageUrl = cdn.getItemUrl(blobPath).href;
     const fileRecordId = await insertShareTargetFileRecord({
         fileName: normalizedFilename,
         fileSize: buffer.byteLength,
         fileType: mimeType,
-        storageUrl: uploadedBlob.url,
+        storageUrl,
     });
 
     if (fileRecordId !== null) {
         after(() =>
             populateShareTargetFileSecurityResult({
                 fileId: fileRecordId,
-                storageUrl: uploadedBlob.url,
+                storageUrl,
             }).catch((error) => {
                 console.error('[share-target] Failed to finalize file security result', error);
             }),
@@ -267,7 +272,7 @@ async function createShareTargetAttachment(file: File, maxFileUploadBytes: numbe
     return {
         name: normalizedFilename,
         type: mimeType,
-        url: uploadedBlob.url,
+        url: storageUrl,
     };
 }
 

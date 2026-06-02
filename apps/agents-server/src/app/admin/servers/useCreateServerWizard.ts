@@ -1,6 +1,5 @@
 'use client';
 
-import { upload } from '@vercel/blob/client';
 import { useCallback, useMemo, useRef, useState, type ChangeEvent, type RefObject } from 'react';
 import { showAlert } from '../../../components/AsyncDialogs/asyncDialogs';
 import { useDirtyModalGuard } from '../../../components/utils/useDirtyModalGuard';
@@ -8,6 +7,7 @@ import { buildServerTablePrefix } from '../../../utils/buildServerTablePrefix';
 import type { ChatFeedbackMode } from '../../../utils/chatFeedbackMode';
 import { getSafeCdnPath } from '../../../utils/cdn/utils/getSafeCdnPath';
 import { normalizeUploadFilename } from '../../../utils/normalization/normalizeUploadFilename';
+import { uploadFileToCdn } from '../../../utils/upload/uploadFileToCdn';
 import type { ManagedServerEnvironment } from './useServersRegistryState';
 
 /**
@@ -431,13 +431,11 @@ export function useCreateServerWizard(options: UseCreateServerWizardOptions): Us
                     ? `${pathPrefix}/user/files/${normalizedFilename}`
                     : `user/files/${normalizedFilename}`;
 
-                const blob = await upload(getSafeCdnPath({ pathname: uploadPath }), file, {
-                    access: 'public',
-                    handleUploadUrl: '/api/upload',
-                    clientPayload: JSON.stringify({
-                        purpose: 'SERVER_ICON',
-                        contentType: file.type,
-                    }),
+                const blob = await uploadFileToCdn({
+                    pathname: getSafeCdnPath({ pathname: uploadPath }),
+                    file,
+                    purpose: 'SERVER_ICON',
+                    contentType: file.type,
                 });
 
                 updateWizardField('iconUrl', blob.url);

@@ -1,7 +1,5 @@
-import { GetObjectCommand, PutObjectCommand, PutObjectCommandInput, S3Client } from '@aws-sdk/client-s3';
-import { NotYetImplementedError } from '@promptbook-local/core';
+import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, PutObjectCommandInput, S3Client } from '@aws-sdk/client-s3';
 import { gzip, ungzip } from 'node-gzip';
-import { TODO_USE } from '../../../../../../src/utils/organization/TODO_USE';
 import { validateMimeType } from '../../validators/validateMimeType';
 import type { IFile, IIFilesStorageWithCdn } from '../interfaces/IFilesStorage';
 
@@ -16,6 +14,9 @@ type IDigitalOceanSpacesConfig = {
     readonly secretAccessKey: string;
     readonly cdnPublicUrl: URL;
     readonly gzip: boolean;
+    readonly region?: string;
+    readonly isPathStyleEndpoint?: boolean;
+    readonly isPublicReadAclEnabled?: boolean;
 
     // TODO: [⛳️] Probbably prefix should be in this config not on the consumer side
 };
@@ -28,12 +29,17 @@ export class DigitalOceanSpaces implements IIFilesStorageWithCdn {
         return this.config.cdnPublicUrl;
     }
 
+    public get pathPrefix() {
+        return this.config.pathPrefix;
+    }
+
     private s3: S3Client;
 
     public constructor(private readonly config: IDigitalOceanSpacesConfig) {
         this.s3 = new S3Client({
-            region: 'auto',
-            endpoint: 'https://' + config.endpoint,
+            region: config.region || 'auto',
+            endpoint: normalizeS3Endpoint(config.endpoint),
+            forcePathStyle: config.isPathStyleEndpoint,
             credentials: {
                 accessKeyId: config.accessKeyId,
                 secretAccessKey: config.secretAccessKey,
@@ -42,13 +48,13 @@ export class DigitalOceanSpaces implements IIFilesStorageWithCdn {
     }
 
     public getItemUrl(key: string): URL {
-        return new URL(this.config.pathPrefix + '/' + key, this.cdnPublicUrl);
+        return new URL(createStorageKey(this.config.pathPrefix, key), ensureTrailingSlash(this.cdnPublicUrl));
     }
 
     public async getItem(key: string): Promise<IFile | null> {
         const parameters = {
             Bucket: this.config.bucket,
-            Key: this.config.pathPrefix + '/' + key,
+            Key: createStorageKey(this.config.pathPrefix, key),
         };
 
         try {
@@ -77,8 +83,12 @@ export class DigitalOceanSpaces implements IIFilesStorageWithCdn {
     }
 
     public async removeItem(key: string): Promise<void> {
-        TODO_USE(key);
-        throw new NotYetImplementedError(`DigitalOceanSpaces.removeItem is not implemented yet`);
+        await this.s3.send(
+            new DeleteObjectCommand({
+                Bucket: this.config.bucket,
+                Key: createStorageKey(this.config.pathPrefix, key),
+            }),
+        );
     }
 
     public async setItem(key: string, file: IFile): Promise<void> {
@@ -104,12 +114,11 @@ export class DigitalOceanSpaces implements IIFilesStorageWithCdn {
         const uploadResult = await this.s3.send(
             new PutObjectCommand({
                 Bucket: this.config.bucket,
-                Key: this.config.pathPrefix + '/' + key,
+                Key: createStorageKey(this.config.pathPrefix, key),
                 ContentType: processedFile.type,
                 ...putObjectRequestAdditional,
                 Body: processedFile.data,
-                // TODO: Public read access / just private to extending class
-                ACL: 'public-read',
+                ...(this.config.isPublicReadAclEnabled ? { ACL: 'public-read' } : {}),
             }),
         );
 
@@ -117,6 +126,45 @@ export class DigitalOceanSpaces implements IIFilesStorageWithCdn {
             throw new Error(`Upload result does not contain ETag`);
         }
     }
+}
+
+/**
+ * Normalizes an S3 endpoint into a URL string accepted by the AWS SDK.
+ *
+ * @private utility of `DigitalOceanSpaces`
+ */
+function normalizeS3Endpoint(endpoint: string): string {
+    if (/^https?:\/\//i.test(endpoint)) {
+        return endpoint;
+    }
+
+    return `https://${endpoint}`;
+}
+
+/**
+ * Ensures URL path resolution appends relative keys instead of replacing the last segment.
+ *
+ * @private utility of `DigitalOceanSpaces`
+ */
+function ensureTrailingSlash(url: URL): URL {
+    const nextUrl = new URL(url.href);
+    if (!nextUrl.pathname.endsWith('/')) {
+        nextUrl.pathname = `${nextUrl.pathname}/`;
+    }
+
+    return nextUrl;
+}
+
+/**
+ * Creates a provider object key from the optional configured path prefix and logical key.
+ *
+ * @private utility of `DigitalOceanSpaces`
+ */
+function createStorageKey(pathPrefix: string | undefined, key: string): string {
+    const normalizedPrefix = (pathPrefix || '').replace(/^\/+|\/+$/g, '');
+    const normalizedKey = key.replace(/^\/+/g, '');
+
+    return normalizedPrefix ? `${normalizedPrefix}/${normalizedKey}` : normalizedKey;
 }
 
 // TODO: Implement Read-only mode
