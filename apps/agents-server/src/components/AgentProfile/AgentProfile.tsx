@@ -177,9 +177,9 @@ export function AgentProfile(props: AgentProfileProps) {
                                     <AgentProfileImage
                                         src={resolvedAgentAvatar.imageUrl}
                                         alt={fullname}
-                                        className="w-full h-full object-cover"
+                                        className="w-full h-full"
+                                        imageClassName="agent-avatar-pixelated w-full h-full object-contain"
                                         style={{
-                                            objectFit: 'cover',
                                             backgroundImage: `url(${colorToDataUrl(brandColorLightHex)})`,
                                         }}
                                     />
@@ -196,7 +196,7 @@ export function AgentProfile(props: AgentProfileProps) {
                                                 surface="transparent"
                                                 size={420}
                                                 alt={fullname}
-                                                className="h-full w-full pointer-events-none select-none"
+                                                className="!h-full !w-full pointer-events-none select-none"
                                                 style={{
                                                     width: '100%',
                                                     height: '100%',

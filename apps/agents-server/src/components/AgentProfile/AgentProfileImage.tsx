@@ -8,13 +8,19 @@ type AgentProfileImageProps = {
     readonly src: string;
     readonly alt: string;
     readonly className?: string;
+    readonly imageClassName?: string;
     readonly style?: React.CSSProperties;
 };
 
 /**
+ * Default image sizing used by compact profile-image surfaces.
+ */
+const DEFAULT_AGENT_PROFILE_IMAGE_CLASS_NAME = 'agent-avatar-pixelated w-full h-full object-cover';
+
+/**
  * Handles agent profile image.
  */
-export function AgentProfileImage({ src, alt, className, style }: AgentProfileImageProps) {
+export function AgentProfileImage({ src, alt, className, imageClassName, style }: AgentProfileImageProps) {
     const [imageSrc, setImageSrc] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
@@ -99,7 +105,7 @@ export function AgentProfileImage({ src, alt, className, style }: AgentProfileIm
                 <img
                     src={imageSrc}
                     alt={alt}
-                    className="agent-avatar-pixelated w-full h-full object-cover"
+                    className={imageClassName || DEFAULT_AGENT_PROFILE_IMAGE_CLASS_NAME}
                     // We don't pass style here because it is applied to container
                 />
             )}

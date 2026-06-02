@@ -11,6 +11,11 @@ import { resolveAgentAvatar } from '../../../../../src/utils/agents/resolveAgent
  */
 const mockAgentAvatar = jest.fn();
 
+/**
+ * Captures the props forwarded into the explicit profile image renderer.
+ */
+const mockAgentProfileImage = jest.fn();
+
 jest.mock('../../../../../src/utils/agents/resolveAgentAvatarImageUrl', () => ({
     resolveAgentAvatar: jest.fn(),
 }));
@@ -20,6 +25,14 @@ jest.mock('../AgentAvatar/AgentAvatar', () => ({
         mockAgentAvatar(props);
 
         return <div data-testid="agent-avatar" />;
+    },
+}));
+
+jest.mock('./AgentProfileImage', () => ({
+    AgentProfileImage: (props: Record<string, unknown>) => {
+        mockAgentProfileImage(props);
+
+        return <div data-testid="agent-profile-image" />;
     },
 }));
 
@@ -121,8 +134,8 @@ describe('AgentProfile', () => {
         expect(mockAgentAvatar).toHaveBeenCalledTimes(1);
         expect(renderedAvatarProps.alt).toBe('Octavia');
         expect(renderedAvatarProps.size).toBe(420);
-        expect(renderedAvatarProps.className).toContain('h-full');
-        expect(renderedAvatarProps.className).toContain('w-full');
+        expect(renderedAvatarProps.className).toContain('!h-full');
+        expect(renderedAvatarProps.className).toContain('!w-full');
         expect(renderedAvatarProps.className).toContain('pointer-events-none');
         expect(renderedAvatarProps.className).toContain('select-none');
         expect(renderedAvatarProps.style.width).toBe('100%');
@@ -130,5 +143,37 @@ describe('AgentProfile', () => {
         expect(renderedAvatarProps.style.maxWidth).toBe('100%');
         expect(renderedAvatarProps.style.maxHeight).toBe('100%');
         expect(renderedAvatarProps.style.filter).toContain('drop-shadow');
+    });
+
+    it('contains explicit profile images inside the existing tall profile card', () => {
+        const resolveAgentAvatarMock = resolveAgentAvatar as jest.MockedFunction<typeof resolveAgentAvatar>;
+
+        resolveAgentAvatarMock.mockReturnValue({
+            type: 'image',
+            imageUrl: 'https://example.com/octavia-wide.png',
+        } as ReturnType<typeof resolveAgentAvatar>);
+
+        render(
+            <AgentProfile
+                agent={TEST_AGENT}
+                permanentId={'agent-octavia' as string_agent_permanent_id}
+                publicUrl={'https://example.com' as string_url}
+            />,
+        );
+
+        const renderedImageProps = mockAgentProfileImage.mock.calls[0]?.[0] as {
+            className: string;
+            imageClassName: string;
+            style: Record<string, string>;
+        };
+
+        expect(mockAgentProfileImage).toHaveBeenCalledTimes(1);
+        expect(renderedImageProps.className).toContain('w-full');
+        expect(renderedImageProps.className).toContain('h-full');
+        expect(renderedImageProps.className).not.toContain('object-cover');
+        expect(renderedImageProps.imageClassName).toContain('agent-avatar-pixelated');
+        expect(renderedImageProps.imageClassName).toContain('object-contain');
+        expect(renderedImageProps.imageClassName).not.toContain('object-cover');
+        expect(renderedImageProps.style.backgroundImage).toContain('data:');
     });
 });

@@ -1,3 +1,5 @@
+-   Fixed Agents Server agent profile avatars so tall profile cards keep their frame while explicit images and live avatar canvases render with contained aspect ratio instead of being cropped or stretched.
+
 -   Fixed standalone VPS Nginx fallback pages to match Promptbook light branding:
 
     -   `other/vps/install.sh` now writes a light-only Promptbook-styled fallback page with a wordmark, status pills, and an inline chat preview instead of the previous dark-mode card.
