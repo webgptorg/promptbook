@@ -41,6 +41,12 @@ ptbk agents-server start --agent github-copilot --model gpt-5.4 --thinking-level
 <a id="agents-server-env-admin-password"></a>
 -   `ADMIN_PASSWORD`: Password for the built-in `admin` login on a self-hosted Agents Server. Choose a private value before using the admin UI.
 
+<a id="agents-server-env-next-public-cdn-storage-provider"></a>
+-   `NEXT_PUBLIC_CDN_STORAGE_PROVIDER`: File storage provider for uploads. Use `s3` for S3-compatible storage such as the VPS installer's self-contained MinIO service or external S3, and `vercel` for Vercel Blob.
+
+<a id="agents-server-env-s3-cdn"></a>
+-   `CDN_BUCKET`, `CDN_ENDPOINT`, `CDN_ACCESS_KEY_ID`, `CDN_SECRET_ACCESS_KEY`, `NEXT_PUBLIC_CDN_PUBLIC_URL`, and `NEXT_PUBLIC_CDN_PATH_PREFIX`: S3-compatible upload configuration used when `NEXT_PUBLIC_CDN_STORAGE_PROVIDER=s3`.
+
 ## Creating servers
 
 When creating new Agents server, search across the repository for [☁]

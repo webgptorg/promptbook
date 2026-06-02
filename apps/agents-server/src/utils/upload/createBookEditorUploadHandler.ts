@@ -2,6 +2,7 @@
 
 import { upload } from '@vercel/blob/client';
 import type { number_percent, string_knowledge_source_content } from '@promptbook-local/types';
+import { isServerRoutedCdnUploadProvider, resolveCdnStorageProvider } from '../cdn/resolveCdnStorageProvider';
 import { getSafeCdnPath } from '../cdn/utils/getSafeCdnPath';
 import { normalizeUploadFilename } from '../normalization/normalizeUploadFilename';
 
@@ -76,6 +77,109 @@ type SharedUploadHandlerConfig = {
 const DEFAULT_SHORT_URL_PREFIX = 'https://ptbk.io/k/';
 
 /**
+ * Response returned by the server-routed upload API.
+ *
+ * @private used by chat and book editors.
+ */
+type ServerRoutedUploadResponse = {
+    url: string;
+};
+
+/**
+ * Uploads a file through `/api/upload` for S3-compatible storage providers.
+ *
+ * @private used by chat and book editors.
+ */
+function uploadFileThroughServer(options: {
+    safeUploadPath: string;
+    file: File;
+    purpose: string;
+    abortSignal?: AbortSignal;
+    onProgress?: FileUploadProgressCallback;
+}): Promise<ServerRoutedUploadResponse> {
+    const { safeUploadPath, file, purpose, abortSignal, onProgress } = options;
+    const formData = new FormData();
+    formData.set('file', file);
+    formData.set('pathname', safeUploadPath);
+    formData.set('purpose', purpose);
+    formData.set('contentType', file.type || 'application/octet-stream');
+
+    return new Promise((resolve, reject) => {
+        const request = new XMLHttpRequest();
+
+        /**
+         * Removes abort listeners once the upload finishes.
+         */
+        const cleanup = () => {
+            abortSignal?.removeEventListener('abort', handleAbort);
+        };
+
+        /**
+         * Aborts the active XHR upload when the caller aborts.
+         */
+        const handleAbort = () => {
+            request.abort();
+            cleanup();
+            reject(new DOMException('Upload aborted.', 'AbortError'));
+        };
+
+        request.upload.addEventListener('progress', (event) => {
+            if (!event.lengthComputable) {
+                return;
+            }
+
+            onProgress?.((event.loaded / event.total) as number_percent, {
+                loadedBytes: event.loaded,
+                totalBytes: event.total,
+            });
+        });
+
+        request.addEventListener('load', () => {
+            cleanup();
+
+            if (request.status < 200 || request.status >= 300) {
+                reject(new Error(`Upload failed with HTTP ${request.status}: ${request.responseText}`));
+                return;
+            }
+
+            try {
+                const parsedResponse = JSON.parse(request.responseText) as Partial<ServerRoutedUploadResponse>;
+                if (typeof parsedResponse.url !== 'string' || parsedResponse.url.trim() === '') {
+                    reject(new Error('Upload response did not contain a file URL.'));
+                    return;
+                }
+
+                onProgress?.(1 as number_percent, {
+                    loadedBytes: file.size,
+                    totalBytes: file.size,
+                });
+                resolve({ url: parsedResponse.url });
+            } catch (error) {
+                reject(error);
+            }
+        });
+
+        request.addEventListener('error', () => {
+            cleanup();
+            reject(new Error('Upload failed before the server responded.'));
+        });
+
+        request.addEventListener('abort', () => {
+            cleanup();
+        });
+
+        if (abortSignal?.aborted) {
+            handleAbort();
+            return;
+        }
+
+        abortSignal?.addEventListener('abort', handleAbort);
+        request.open('POST', '/api/upload');
+        request.send(formData);
+    });
+}
+
+/**
  * Upload handler that normalizes the filename, uploads via `/api/upload`, and optionally returns a short URL.
  *
  * @private
@@ -92,30 +196,44 @@ export function createFileUploadHandler<ReturnType extends string = string>(
 
     return async (file, optionsOrOnProgress) => {
         const { onProgress, abortSignal } = normalizeUploadOptions(optionsOrOnProgress);
+        const provider = resolveCdnStorageProvider();
+        const isServerRoutedUploadEnabled = isServerRoutedCdnUploadProvider(provider);
         const pathPrefix = process.env.NEXT_PUBLIC_CDN_PATH_PREFIX || '';
         const normalizedFilename = normalizeUploadFilename(file.name);
-        const uploadPath = pathBuilder(normalizedFilename, pathPrefix);
-        const safeUploadPath = getSafeCdnPath({ pathname: uploadPath });
-
-        const blob = await upload(safeUploadPath, file, {
-            access: 'public',
-            handleUploadUrl: '/api/upload',
-            clientPayload: JSON.stringify({
-                purpose,
-                contentType: file.type || 'application/octet-stream',
-            }),
-            abortSignal,
-            onUploadProgress: (progressEvent) => {
-                onProgress?.(progressEvent.percentage / 100, {
-                    loadedBytes: progressEvent.loaded,
-                    totalBytes: progressEvent.total,
-                });
-            },
+        const publicUploadPath = pathBuilder(normalizedFilename, pathPrefix);
+        const storageUploadPath = pathBuilder(normalizedFilename, isServerRoutedUploadEnabled ? '' : pathPrefix);
+        const safeUploadPath = getSafeCdnPath({
+            pathname: storageUploadPath,
+            pathPrefix: isServerRoutedUploadEnabled ? pathPrefix : undefined,
         });
 
+        const blob = isServerRoutedUploadEnabled
+            ? await uploadFileThroughServer({
+                  safeUploadPath,
+                  file,
+                  purpose,
+                  abortSignal,
+                  onProgress,
+              })
+            : await upload(safeUploadPath, file, {
+                  access: 'public',
+                  handleUploadUrl: '/api/upload',
+                  clientPayload: JSON.stringify({
+                      purpose,
+                      contentType: file.type || 'application/octet-stream',
+                  }),
+                  abortSignal,
+                  onUploadProgress: (progressEvent) => {
+                      onProgress?.(progressEvent.percentage / 100, {
+                          loadedBytes: progressEvent.loaded,
+                          totalBytes: progressEvent.total,
+                      });
+                  },
+              });
+
         if (returnShortUrl && process.env.NEXT_PUBLIC_CDN_PUBLIC_URL) {
-            const slashIndex = uploadPath.lastIndexOf('/');
-            const directoryPath = slashIndex === -1 ? '' : `${uploadPath.slice(0, slashIndex + 1)}`;
+            const slashIndex = publicUploadPath.lastIndexOf('/');
+            const directoryPath = slashIndex === -1 ? '' : `${publicUploadPath.slice(0, slashIndex + 1)}`;
             const longUrlPrefix = `${process.env.NEXT_PUBLIC_CDN_PUBLIC_URL}/${directoryPath}`;
             const shortUrl = blob.url.split(longUrlPrefix).join(shortUrlPrefix);
             return shortUrl as ReturnType;

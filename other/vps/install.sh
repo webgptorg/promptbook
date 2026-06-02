@@ -25,6 +25,7 @@ NGINX_BRANDED_SERVER_HEADER="Promptbook Agents Server"
 NGINX_BRANDING_CONF_PATH="/etc/nginx/conf.d/promptbook-agents-server-branding.conf"
 NGINX_ERROR_SNIPPET_PATH="/etc/nginx/snippets/promptbook-agents-server-errors.conf"
 NGINX_PROXY_SNIPPET_PATH="/etc/nginx/snippets/promptbook-agents-server-proxy.conf"
+NGINX_STORAGE_SNIPPET_PATH="/etc/nginx/snippets/promptbook-agents-server-storage.conf"
 NGINX_FALLBACK_DIR="/var/www/promptbook-agents-server"
 NGINX_FALLBACK_HTML_PATH="$NGINX_FALLBACK_DIR/fallback.html"
 NGINX_FALLBACK_URI="/__promptbook_agents_server_error.html"
@@ -32,6 +33,19 @@ PROMPTBOOK_SWAP_FILE="${PTBK_SWAP_FILE:-/swapfile-promptbook}"
 MINIMUM_REQUIRED_MEMORY_MIB=8192
 MINIMUM_REQUIRED_DISK_MIB=15360
 PM2_HOURLY_RESTART_CRON='0 * * * *'
+MINIO_BIN_PATH="${PTBK_MINIO_BIN_PATH:-/usr/local/bin/minio}"
+MINIO_CLIENT_BIN_PATH="${PTBK_MINIO_CLIENT_BIN_PATH:-/usr/local/bin/mc}"
+MINIO_DOWNLOAD_URL="${PTBK_MINIO_DOWNLOAD_URL:-https://dl.min.io/server/minio/release/linux-amd64/minio}"
+MINIO_CLIENT_DOWNLOAD_URL="${PTBK_MINIO_CLIENT_DOWNLOAD_URL:-https://dl.min.io/client/mc/release/linux-amd64/mc}"
+MINIO_SERVICE_NAME="${PTBK_MINIO_SERVICE_NAME:-promptbook-minio}"
+MINIO_ENV_FILE_PATH="/etc/default/${MINIO_SERVICE_NAME}"
+MINIO_DATA_DIR="${PTBK_MINIO_DATA_DIR:-$INSTALL_DIR/.promptbook/minio}"
+MINIO_BUCKET="${PTBK_MINIO_BUCKET:-promptbook-files}"
+MINIO_PATH_PREFIX="${PTBK_MINIO_PATH_PREFIX:-agents-server}"
+MINIO_PUBLIC_PATH="${PTBK_MINIO_PUBLIC_PATH:-/storage}"
+MINIO_INTERNAL_ENDPOINT="${PTBK_MINIO_INTERNAL_ENDPOINT:-http://127.0.0.1:9000}"
+MINIO_ADDRESS="${PTBK_MINIO_ADDRESS:-127.0.0.1:9000}"
+MINIO_CONSOLE_ADDRESS="${PTBK_MINIO_CONSOLE_ADDRESS:-127.0.0.1:9001}"
 PTBK_SELF_UPDATE_STATUS_FILE="${PTBK_SELF_UPDATE_STATUS_FILE:-$INSTALL_DIR/.promptbook/self-update/self-update.status}"
 PTBK_SELF_UPDATE_LOG_FILE="${PTBK_SELF_UPDATE_LOG_FILE:-$INSTALL_DIR/.promptbook/self-update/self-update.log}"
 SELF_UPDATE_STARTED_AT=""
@@ -46,6 +60,16 @@ ENV_FILE=""
 REQUESTED_OPENAI_API_KEY=""
 REQUESTED_ADMIN_PASSWORD=""
 REQUESTED_PUBLIC_SITE_URL=""
+REQUESTED_FILE_STORAGE_MODE=""
+REQUESTED_CDN_BUCKET=""
+REQUESTED_CDN_ENDPOINT=""
+REQUESTED_CDN_REGION=""
+REQUESTED_CDN_ACCESS_KEY_ID=""
+REQUESTED_CDN_SECRET_ACCESS_KEY=""
+REQUESTED_CDN_PUBLIC_URL=""
+REQUESTED_CDN_PATH_PREFIX=""
+REQUESTED_CDN_FORCE_PATH_STYLE=""
+REQUESTED_CDN_ENABLE_PUBLIC_READ_ACL=""
 REQUESTED_ADDITIONAL_SWAP_MIB=0
 IS_RUNNER_AUTHENTICATION_REQUESTED=""
 GENERATED_ADMIN_PASSWORD=""
@@ -993,6 +1017,210 @@ resolve_secret_default() {
     printf '%s' "${!key:-}"
 }
 
+resolve_env_default() {
+    local key="$1"
+    local fallback_value="$2"
+    local existing_value=""
+
+    existing_value="$(get_env_value "$key")"
+
+    if [[ -n "$existing_value" ]]; then
+        printf '%s' "$existing_value"
+        return
+    fi
+
+    printf '%s' "${!key:-$fallback_value}"
+}
+
+normalize_file_storage_mode() {
+    local raw_mode="${1:-}"
+    local normalized_mode=""
+
+    normalized_mode="$(printf '%s' "$raw_mode" | tr '[:upper:]' '[:lower:]' | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')"
+
+    case "$normalized_mode" in
+        '' | self-contained | self-contained-s3 | local | local-s3 | minio)
+            printf 'self-contained-s3'
+            ;;
+        external | external-s3 | s3)
+            printf 'external-s3'
+            ;;
+        vercel | vercel-blob)
+            printf 'vercel-blob'
+            ;;
+        *)
+            fail "Unsupported file storage mode '$raw_mode'. Use self-contained-s3 or external-s3."
+            ;;
+    esac
+}
+
+resolve_file_storage_mode_default() {
+    local existing_mode=""
+    local existing_provider=""
+    local is_self_contained_s3_enabled=""
+
+    existing_mode="$(get_env_value PTBK_FILE_STORAGE_MODE)"
+    if [[ -n "$existing_mode" ]]; then
+        normalize_file_storage_mode "$existing_mode"
+        return
+    fi
+
+    existing_provider="$(get_env_value NEXT_PUBLIC_CDN_STORAGE_PROVIDER)"
+    if [[ -z "$existing_provider" ]]; then
+        existing_provider="${NEXT_PUBLIC_CDN_STORAGE_PROVIDER:-}"
+    fi
+
+    is_self_contained_s3_enabled="$(get_env_value PTBK_SELF_CONTAINED_S3_ENABLED)"
+    if [[ "$is_self_contained_s3_enabled" == "1" ]]; then
+        printf 'self-contained-s3'
+        return
+    fi
+
+    case "$(printf '%s' "$existing_provider" | tr '[:upper:]' '[:lower:]')" in
+        s3 | minio | external-s3 | self-contained-s3)
+            printf 'external-s3'
+            ;;
+        vercel | vercel-blob)
+            printf 'vercel-blob'
+            ;;
+        *)
+            printf 'self-contained-s3'
+            ;;
+    esac
+}
+
+resolve_self_contained_s3_public_url() {
+    local public_site_url="$1"
+    local normalized_public_site_url=""
+    local normalized_storage_path=""
+
+    if [[ -z "$public_site_url" ]]; then
+        public_site_url="$(resolve_default_public_site_url)"
+    fi
+
+    normalized_public_site_url="${public_site_url%/}"
+    normalized_storage_path="/${MINIO_PUBLIC_PATH#/}"
+    normalized_storage_path="${normalized_storage_path%/}"
+
+    printf '%s%s' "$normalized_public_site_url" "$normalized_storage_path"
+}
+
+prompt_required_with_default() {
+    local label="$1"
+    local default_value="$2"
+    local answer=""
+
+    answer="$(prompt_with_default "$label" "$default_value")"
+    if [[ -z "${answer//[[:space:]]/}" ]]; then
+        fail "$label is required."
+    fi
+
+    printf '%s' "$answer"
+}
+
+prompt_secret_required_with_default() {
+    local label="$1"
+    local default_description="$2"
+    local default_value="$3"
+    local answer=""
+
+    answer="$(prompt_secret_with_default "$label" "$default_description" "$default_value")"
+    if [[ -z "$answer" ]]; then
+        fail "$label is required."
+    fi
+
+    printf '%s' "$answer"
+}
+
+boolean_to_yes_no() {
+    local value="$1"
+
+    case "$(printf '%s' "$value" | tr '[:upper:]' '[:lower:]')" in
+        1 | true | yes | y)
+            printf 'yes'
+            ;;
+        *)
+            printf 'no'
+            ;;
+    esac
+}
+
+prompt_file_storage_configuration() {
+    local default_mode=""
+    local default_bucket=""
+    local default_endpoint=""
+    local default_region=""
+    local default_public_url=""
+    local default_path_prefix=""
+    local default_access_key_id=""
+    local default_secret_access_key=""
+    local default_force_path_style=""
+    local default_public_read_acl=""
+    local access_key_default_description="required"
+    local secret_key_default_description="required"
+
+    default_mode="$(resolve_file_storage_mode_default)"
+    log "Press Enter to use self-contained S3 storage managed by this installer."
+    REQUESTED_FILE_STORAGE_MODE="$(normalize_file_storage_mode "$(prompt_with_default "File storage (self-contained-s3/external-s3)" "$default_mode")")"
+
+    case "$REQUESTED_FILE_STORAGE_MODE" in
+        self-contained-s3)
+            REQUESTED_CDN_BUCKET="$(resolve_env_default CDN_BUCKET "$MINIO_BUCKET")"
+            REQUESTED_CDN_ENDPOINT="$MINIO_INTERNAL_ENDPOINT"
+            REQUESTED_CDN_REGION="$(resolve_env_default CDN_REGION auto)"
+            REQUESTED_CDN_PUBLIC_URL="$(resolve_env_default NEXT_PUBLIC_CDN_PUBLIC_URL "$(resolve_self_contained_s3_public_url "$REQUESTED_PUBLIC_SITE_URL")")"
+            REQUESTED_CDN_PATH_PREFIX="$(resolve_env_default NEXT_PUBLIC_CDN_PATH_PREFIX "$MINIO_PATH_PREFIX")"
+            REQUESTED_CDN_ACCESS_KEY_ID="$(resolve_secret_default CDN_ACCESS_KEY_ID)"
+            REQUESTED_CDN_SECRET_ACCESS_KEY="$(resolve_secret_default CDN_SECRET_ACCESS_KEY)"
+            REQUESTED_CDN_FORCE_PATH_STYLE=true
+            REQUESTED_CDN_ENABLE_PUBLIC_READ_ACL=false
+            ;;
+        external-s3)
+            default_bucket="$(resolve_env_default CDN_BUCKET "")"
+            default_endpoint="$(resolve_env_default CDN_ENDPOINT "")"
+            default_region="$(resolve_env_default CDN_REGION auto)"
+            default_public_url="$(resolve_env_default NEXT_PUBLIC_CDN_PUBLIC_URL "")"
+            default_path_prefix="$(resolve_env_default NEXT_PUBLIC_CDN_PATH_PREFIX "$MINIO_PATH_PREFIX")"
+            default_access_key_id="$(resolve_secret_default CDN_ACCESS_KEY_ID)"
+            default_secret_access_key="$(resolve_secret_default CDN_SECRET_ACCESS_KEY)"
+            default_force_path_style="$(boolean_to_yes_no "$(resolve_env_default CDN_FORCE_PATH_STYLE false)")"
+            default_public_read_acl="$(boolean_to_yes_no "$(resolve_env_default CDN_ENABLE_PUBLIC_READ_ACL true)")"
+
+            if [[ -n "$default_access_key_id" ]]; then
+                access_key_default_description="keep existing"
+            fi
+
+            if [[ -n "$default_secret_access_key" ]]; then
+                secret_key_default_description="keep existing"
+            fi
+
+            REQUESTED_CDN_ENDPOINT="$(prompt_required_with_default "External S3 endpoint" "$default_endpoint")"
+            REQUESTED_CDN_BUCKET="$(prompt_required_with_default "External S3 bucket" "$default_bucket")"
+            REQUESTED_CDN_PUBLIC_URL="$(prompt_required_with_default "External S3 public URL" "$default_public_url")"
+            REQUESTED_CDN_PATH_PREFIX="$(prompt_with_default "External S3 path prefix" "$default_path_prefix")"
+            REQUESTED_CDN_REGION="$(prompt_with_default "External S3 region" "$default_region")"
+            REQUESTED_CDN_ACCESS_KEY_ID="$(prompt_secret_required_with_default "External S3 access key" "$access_key_default_description" "$default_access_key_id")"
+            REQUESTED_CDN_SECRET_ACCESS_KEY="$(prompt_secret_required_with_default "External S3 secret key" "$secret_key_default_description" "$default_secret_access_key")"
+
+            if prompt_yes_no "Use path-style S3 requests?" "$default_force_path_style"; then
+                REQUESTED_CDN_FORCE_PATH_STYLE=true
+            else
+                REQUESTED_CDN_FORCE_PATH_STYLE=false
+            fi
+
+            if prompt_yes_no "Send public-read ACL on upload?" "$default_public_read_acl"; then
+                REQUESTED_CDN_ENABLE_PUBLIC_READ_ACL=true
+            else
+                REQUESTED_CDN_ENABLE_PUBLIC_READ_ACL=false
+            fi
+            ;;
+        vercel-blob)
+            REQUESTED_CDN_PUBLIC_URL="$(resolve_env_default NEXT_PUBLIC_CDN_PUBLIC_URL "")"
+            REQUESTED_CDN_PATH_PREFIX="$(resolve_env_default NEXT_PUBLIC_CDN_PATH_PREFIX "$MINIO_PATH_PREFIX")"
+            ;;
+    esac
+}
+
 prompt_api_keys_and_admin_password() {
     local default_openai_api_key=""
     local default_admin_password=""
@@ -1060,6 +1288,68 @@ configure_domains() {
     fi
 }
 
+configure_storage_environment() {
+    local public_site_url="$1"
+    local access_key_id="$REQUESTED_CDN_ACCESS_KEY_ID"
+    local secret_access_key="$REQUESTED_CDN_SECRET_ACCESS_KEY"
+
+    case "$REQUESTED_FILE_STORAGE_MODE" in
+        self-contained-s3)
+            if [[ -z "$access_key_id" ]]; then
+                access_key_id="promptbook$(openssl rand -hex 8)"
+            fi
+
+            if [[ -z "$secret_access_key" ]]; then
+                secret_access_key="$(openssl rand -hex 32)"
+            fi
+
+            if [[ -z "$REQUESTED_CDN_PUBLIC_URL" ]]; then
+                REQUESTED_CDN_PUBLIC_URL="$(resolve_self_contained_s3_public_url "$public_site_url")"
+            fi
+
+            set_env_value PTBK_FILE_STORAGE_MODE self-contained-s3
+            set_env_value PTBK_SELF_CONTAINED_S3_ENABLED 1
+            set_env_value NEXT_PUBLIC_CDN_STORAGE_PROVIDER s3
+            set_env_value CDN_BUCKET "$REQUESTED_CDN_BUCKET"
+            set_env_value CDN_ENDPOINT "$REQUESTED_CDN_ENDPOINT"
+            set_env_value CDN_REGION "$REQUESTED_CDN_REGION"
+            set_env_value CDN_ACCESS_KEY_ID "$access_key_id"
+            set_env_value CDN_SECRET_ACCESS_KEY "$secret_access_key"
+            set_env_value NEXT_PUBLIC_CDN_PUBLIC_URL "$REQUESTED_CDN_PUBLIC_URL"
+            set_env_value NEXT_PUBLIC_CDN_PATH_PREFIX "$REQUESTED_CDN_PATH_PREFIX"
+            set_env_value CDN_FORCE_PATH_STYLE true
+            set_env_value CDN_ENABLE_PUBLIC_READ_ACL false
+            set_env_value CDN_GZIP true
+            set_env_value PTBK_MINIO_DATA_DIR "$MINIO_DATA_DIR"
+            set_env_value PTBK_MINIO_SERVICE_NAME "$MINIO_SERVICE_NAME"
+            set_env_value PTBK_MINIO_PUBLIC_PATH "$MINIO_PUBLIC_PATH"
+            set_env_value PTBK_MINIO_INTERNAL_ENDPOINT "$MINIO_INTERNAL_ENDPOINT"
+            ;;
+        external-s3)
+            set_env_value PTBK_FILE_STORAGE_MODE external-s3
+            set_env_value PTBK_SELF_CONTAINED_S3_ENABLED 0
+            set_env_value NEXT_PUBLIC_CDN_STORAGE_PROVIDER s3
+            set_env_value CDN_BUCKET "$REQUESTED_CDN_BUCKET"
+            set_env_value CDN_ENDPOINT "$REQUESTED_CDN_ENDPOINT"
+            set_env_value CDN_REGION "$REQUESTED_CDN_REGION"
+            set_env_value CDN_ACCESS_KEY_ID "$REQUESTED_CDN_ACCESS_KEY_ID"
+            set_env_value CDN_SECRET_ACCESS_KEY "$REQUESTED_CDN_SECRET_ACCESS_KEY"
+            set_env_value NEXT_PUBLIC_CDN_PUBLIC_URL "$REQUESTED_CDN_PUBLIC_URL"
+            set_env_value NEXT_PUBLIC_CDN_PATH_PREFIX "$REQUESTED_CDN_PATH_PREFIX"
+            set_env_value CDN_FORCE_PATH_STYLE "$REQUESTED_CDN_FORCE_PATH_STYLE"
+            set_env_value CDN_ENABLE_PUBLIC_READ_ACL "$REQUESTED_CDN_ENABLE_PUBLIC_READ_ACL"
+            set_env_value CDN_GZIP true
+            ;;
+        vercel-blob)
+            set_env_value PTBK_FILE_STORAGE_MODE vercel-blob
+            set_env_value PTBK_SELF_CONTAINED_S3_ENABLED 0
+            set_env_value NEXT_PUBLIC_CDN_STORAGE_PROVIDER vercel
+            set_env_value NEXT_PUBLIC_CDN_PUBLIC_URL "$REQUESTED_CDN_PUBLIC_URL"
+            set_env_value NEXT_PUBLIC_CDN_PATH_PREFIX "$REQUESTED_CDN_PATH_PREFIX"
+            ;;
+    esac
+}
+
 configure_environment() {
     local sqlite_path="$INSTALL_DIR/.promptbook/agents-server.sqlite"
     local public_site_url="$REQUESTED_PUBLIC_SITE_URL"
@@ -1096,6 +1386,7 @@ configure_environment() {
     set_env_value PTBK_NGINX_SITE_NAME "$NGINX_SITE_NAME"
     set_env_value LETS_ENCRYPT_EMAIL "$LETS_ENCRYPT_EMAIL"
     set_env_value OPENAI_API_KEY "$REQUESTED_OPENAI_API_KEY"
+    configure_storage_environment "$public_site_url"
 
     if [[ -n "$REQUESTED_ADMIN_PASSWORD" ]]; then
         set_env_value ADMIN_PASSWORD "$REQUESTED_ADMIN_PASSWORD"
@@ -1115,6 +1406,118 @@ initialize_promptbook_project() {
     log "Initializing Promptbook Agents Server project files."
     run_as_service_user bash -lc "cd $(shell_quote "$INSTALL_DIR") && $(shell_quote "$PTBK_COMMAND_PATH") agents-server init >/dev/null"
     configure_environment
+}
+
+is_self_contained_s3_enabled() {
+    [[ "$(get_env_value PTBK_SELF_CONTAINED_S3_ENABLED)" == "1" ]]
+}
+
+install_binary_from_url() {
+    local download_url="$1"
+    local target_path="$2"
+    local temporary_file=""
+
+    temporary_file="$(mktemp)"
+    curl -fsSL "$download_url" -o "$temporary_file"
+    "${SUDO[@]}" install -m 755 "$temporary_file" "$target_path"
+    rm -f "$temporary_file"
+}
+
+install_minio_binaries() {
+    log "Installing MinIO server and client."
+    install_binary_from_url "$MINIO_DOWNLOAD_URL" "$MINIO_BIN_PATH"
+    install_binary_from_url "$MINIO_CLIENT_DOWNLOAD_URL" "$MINIO_CLIENT_BIN_PATH"
+}
+
+write_minio_environment_file() {
+    local access_key_id=""
+    local secret_access_key=""
+
+    access_key_id="$(get_env_value CDN_ACCESS_KEY_ID)"
+    secret_access_key="$(get_env_value CDN_SECRET_ACCESS_KEY)"
+
+    "${SUDO[@]}" tee "$MINIO_ENV_FILE_PATH" >/dev/null <<EOF
+# Managed by the Promptbook Agents Server installer.
+MINIO_ROOT_USER=${access_key_id}
+MINIO_ROOT_PASSWORD=${secret_access_key}
+MINIO_VOLUMES="${MINIO_DATA_DIR}"
+MINIO_OPTS="--address ${MINIO_ADDRESS} --console-address ${MINIO_CONSOLE_ADDRESS}"
+EOF
+    "${SUDO[@]}" chmod 600 "$MINIO_ENV_FILE_PATH"
+}
+
+write_minio_systemd_service() {
+    "${SUDO[@]}" tee "/etc/systemd/system/${MINIO_SERVICE_NAME}.service" >/dev/null <<EOF
+# Managed by the Promptbook Agents Server installer.
+[Unit]
+Description=Promptbook self-contained S3 storage
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=${RUN_USER}
+Group=${RUN_GROUP}
+EnvironmentFile=${MINIO_ENV_FILE_PATH}
+ExecStart=${MINIO_BIN_PATH} server \$MINIO_OPTS \$MINIO_VOLUMES
+Restart=always
+RestartSec=5
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
+EOF
+}
+
+wait_for_minio() {
+    local health_url="${MINIO_INTERNAL_ENDPOINT%/}/minio/health/ready"
+    local attempt=0
+
+    for attempt in $(seq 1 30); do
+        if curl -fsS --max-time 2 "$health_url" >/dev/null 2>&1; then
+            return
+        fi
+        sleep 1
+    done
+
+    "${SUDO[@]}" systemctl status "$MINIO_SERVICE_NAME" --no-pager || true
+    fail "MinIO did not become ready at $health_url."
+}
+
+configure_minio_bucket() {
+    local bucket=""
+    local access_key_id=""
+    local secret_access_key=""
+    local minio_alias="promptbook-local"
+    local mc_config_directory=""
+
+    bucket="$(get_env_value CDN_BUCKET)"
+    access_key_id="$(get_env_value CDN_ACCESS_KEY_ID)"
+    secret_access_key="$(get_env_value CDN_SECRET_ACCESS_KEY)"
+    mc_config_directory="$(mktemp -d)"
+
+    env MC_CONFIG_DIR="$mc_config_directory" "$MINIO_CLIENT_BIN_PATH" alias set "$minio_alias" "$MINIO_INTERNAL_ENDPOINT" "$access_key_id" "$secret_access_key" >/dev/null
+    env MC_CONFIG_DIR="$mc_config_directory" "$MINIO_CLIENT_BIN_PATH" mb --ignore-existing "$minio_alias/$bucket" >/dev/null
+    env MC_CONFIG_DIR="$mc_config_directory" "$MINIO_CLIENT_BIN_PATH" anonymous set download "$minio_alias/$bucket" >/dev/null
+
+    rm -rf "$mc_config_directory"
+}
+
+configure_self_contained_s3_storage() {
+    if ! is_self_contained_s3_enabled; then
+        log "Skipping self-contained S3 setup because external file storage is configured."
+        return
+    fi
+
+    log "Configuring self-contained S3 storage."
+    "${SUDO[@]}" install -d -m 750 -o "$RUN_USER" -g "$RUN_GROUP" "$MINIO_DATA_DIR"
+    install_minio_binaries
+    write_minio_environment_file
+    write_minio_systemd_service
+    "${SUDO[@]}" systemctl daemon-reload
+    "${SUDO[@]}" systemctl enable "$MINIO_SERVICE_NAME" >/dev/null
+    "${SUDO[@]}" systemctl restart "$MINIO_SERVICE_NAME"
+    wait_for_minio
+    configure_minio_bucket
 }
 
 configure_runner_authentication() {
@@ -1440,6 +1843,52 @@ proxy_send_timeout 3600s;
 EOF
 }
 
+normalize_minio_public_location_path() {
+    local raw_path="$MINIO_PUBLIC_PATH"
+    raw_path="/${raw_path#/}"
+    raw_path="${raw_path%/}/"
+
+    printf '%s' "$raw_path"
+}
+
+write_nginx_storage_snippet() {
+    local bucket=""
+    local endpoint=""
+    local location_path=""
+
+    if ! is_self_contained_s3_enabled; then
+        "${SUDO[@]}" tee "$NGINX_STORAGE_SNIPPET_PATH" >/dev/null <<'EOF'
+# Managed by the Promptbook Agents Server installer.
+# Self-contained S3 storage is not enabled for this installation.
+EOF
+        return
+    fi
+
+    bucket="$(get_env_value CDN_BUCKET)"
+    endpoint="$(get_env_value CDN_ENDPOINT)"
+    location_path="$(normalize_minio_public_location_path)"
+
+    "${SUDO[@]}" tee "$NGINX_STORAGE_SNIPPET_PATH" >/dev/null <<EOF
+# Managed by the Promptbook Agents Server installer.
+location ${location_path} {
+    proxy_pass ${endpoint%/}/${bucket}/;
+    proxy_http_version 1.1;
+    proxy_buffering off;
+    proxy_redirect off;
+    proxy_hide_header Server;
+
+    proxy_set_header Host 127.0.0.1:9000;
+    proxy_set_header X-Real-IP \$remote_addr;
+    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Host \$host;
+    proxy_set_header X-Forwarded-Proto \$scheme;
+
+    proxy_read_timeout 3600s;
+    proxy_send_timeout 3600s;
+}
+EOF
+}
+
 configure_nginx_branding() {
     ensure_nginx_headers_more_module_is_available
     write_nginx_fallback_page
@@ -1447,6 +1896,7 @@ configure_nginx_branding() {
     write_nginx_branding_configuration
     write_nginx_error_snippet
     write_nginx_proxy_snippet
+    write_nginx_storage_snippet
 }
 
 configure_nginx_reverse_proxy() {
@@ -1477,6 +1927,7 @@ server {
 
     client_max_body_size 100m;
     include ${NGINX_ERROR_SNIPPET_PATH};
+    include ${NGINX_STORAGE_SNIPPET_PATH};
 
     location / {
         include ${NGINX_PROXY_SNIPPET_PATH};
@@ -1494,6 +1945,7 @@ server {
 
     client_max_body_size 100m;
     include ${NGINX_ERROR_SNIPPET_PATH};
+    include ${NGINX_STORAGE_SNIPPET_PATH};
 
     location / {
         include ${NGINX_PROXY_SNIPPET_PATH};
@@ -1571,6 +2023,9 @@ configure_ssl_certificates() {
 
     if [[ -n "$first_domain" ]]; then
         set_env_value NEXT_PUBLIC_SITE_URL "https://${first_domain}"
+        if is_self_contained_s3_enabled; then
+            set_env_value NEXT_PUBLIC_CDN_PUBLIC_URL "$(resolve_self_contained_s3_public_url "https://${first_domain}")"
+        fi
     fi
 
     "${SUDO[@]}" systemctl reload nginx
@@ -1673,6 +2128,21 @@ load_runtime_configuration_from_env_file() {
 
     env_value="$(get_env_value LETS_ENCRYPT_EMAIL)"
     [[ -n "$env_value" ]] && LETS_ENCRYPT_EMAIL="$env_value"
+
+    env_value="$(get_env_value PTBK_MINIO_DATA_DIR)"
+    [[ -n "$env_value" ]] && MINIO_DATA_DIR="$env_value"
+
+    env_value="$(get_env_value PTBK_MINIO_SERVICE_NAME)"
+    if [[ -n "$env_value" ]]; then
+        MINIO_SERVICE_NAME="$env_value"
+        MINIO_ENV_FILE_PATH="/etc/default/${MINIO_SERVICE_NAME}"
+    fi
+
+    env_value="$(get_env_value PTBK_MINIO_PUBLIC_PATH)"
+    [[ -n "$env_value" ]] && MINIO_PUBLIC_PATH="$env_value"
+
+    env_value="$(get_env_value PTBK_MINIO_INTERNAL_ENDPOINT)"
+    [[ -n "$env_value" ]] && MINIO_INTERNAL_ENDPOINT="$env_value"
 
     SERVERS="$(get_env_value SERVERS)"
     set_domains_from_csv "$SERVERS"
@@ -1838,6 +2308,11 @@ print_summary() {
     log "Repository: $PROMPTBOOK_REPOSITORY_DIR"
     log "Environment: $(resolve_promptbook_environment_label "$PROMPTBOOK_REPOSITORY_REF") ($PROMPTBOOK_REPOSITORY_REF)"
     log "Database: $INSTALL_DIR/.promptbook/agents-server.sqlite"
+    if is_self_contained_s3_enabled; then
+        log "File storage: self-contained S3 (MinIO bucket $(get_env_value CDN_BUCKET), public path ${MINIO_PUBLIC_PATH})"
+    else
+        log "File storage: $(get_env_value PTBK_FILE_STORAGE_MODE)"
+    fi
     log "pm2 process: $APP_NAME"
     log "pm2 hourly restart: $PM2_HOURLY_RESTART_CRON"
     log "nginx site: /etc/nginx/sites-available/$NGINX_SITE_NAME"
@@ -1870,6 +2345,7 @@ main() {
         LETS_ENCRYPT_EMAIL="$(prompt_with_default "Let's Encrypt email (optional)" "$LETS_ENCRYPT_EMAIL")"
     fi
     prompt_public_site_url
+    prompt_file_storage_configuration
     prompt_api_keys_and_admin_password
     prompt_runner_authentication_preference
 
@@ -1883,6 +2359,7 @@ main() {
     install_promptbook_cli_launcher
     install_runner_dependencies
     initialize_promptbook_project
+    configure_self_contained_s3_storage
     configure_runner_authentication
     configure_pm2_startup
     build_agents_server

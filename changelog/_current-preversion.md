@@ -1,3 +1,9 @@
+-   Added self-contained S3 file storage for standalone VPS Agents Server installs:
+
+    -   `other/vps/install.sh` now asks whether to use installer-managed self-contained S3 storage or external S3, defaults to self-contained storage, installs MinIO, creates the bucket, configures nginx `/storage/` public access, and writes the matching CDN environment variables automatically.
+    -   Agents Server uploads now support S3-backed server-routed uploads while keeping the existing Vercel Blob path available for hosted deployments.
+    -   Android share-target uploads and server-side CDN writes now reuse the same provider abstraction, so file storage is configured from one CDN provider selection.
+
 -   Added Shibboleth authentication logging and dashboard to the Agents Server:
 
     -   Shibboleth login is controlled by `IS_SHIBBOLETH_AUTH_ACTIVE`, defaults off, and appears alongside username/password login when active.
