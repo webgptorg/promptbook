@@ -1683,101 +1683,326 @@ write_nginx_fallback_page() {
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Promptbook Agents Server</title>
+    <!-- Managed by the Promptbook Agents Server installer. -->
     <style>
         :root {
-            color-scheme: light dark;
-            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            background: #f7f7f5;
-            color: #202124;
+            color-scheme: light;
+            --brand-blue: #1d4ed8;
+            --brand-cyan: #0891b2;
+            --brand-green: #14b8a6;
+            --ink: #0f172a;
+            --muted: #64748b;
+            --soft: #f8fafc;
+            --surface: #ffffff;
+            --border: #dbe4ee;
+            --shadow: 0 28px 80px rgba(15, 23, 42, 0.14);
+            font-family: Poppins, Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: var(--soft);
+            color: var(--ink);
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
         }
 
         body {
             min-height: 100vh;
             margin: 0;
-            display: grid;
-            place-items: center;
             background:
-                linear-gradient(135deg, rgba(26, 115, 232, 0.08), transparent 42%),
-                linear-gradient(315deg, rgba(52, 168, 83, 0.10), transparent 38%),
-                #f7f7f5;
+                linear-gradient(90deg, rgba(8, 145, 178, 0.06) 1px, transparent 1px),
+                linear-gradient(180deg, rgba(8, 145, 178, 0.05) 1px, transparent 1px),
+                linear-gradient(135deg, #eff6ff 0%, #ffffff 48%, #eef2ff 100%);
+            background-size: 96px 96px, 96px 96px, auto;
         }
 
-        main {
-            width: min(92vw, 520px);
-            padding: 40px;
-            border: 1px solid rgba(32, 33, 36, 0.14);
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.86);
-            box-shadow: 0 24px 60px rgba(32, 33, 36, 0.10);
+        .fallback-shell {
+            width: min(1120px, calc(100vw - 48px));
+            min-height: 100vh;
+            margin: 0 auto;
+            padding: 72px 0;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(320px, 460px);
+            gap: 64px;
+            align-items: center;
         }
 
-        .brand {
-            margin: 0 0 18px;
-            color: #1a73e8;
-            font-size: 14px;
+        .brand-link {
+            width: fit-content;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--ink);
+            font-size: 22px;
+            text-decoration: none;
+        }
+
+        .brand-link strong {
+            font-weight: 800;
+        }
+
+        .brand-mark {
+            width: 38px;
+            height: 38px;
+            flex: 0 0 auto;
+            display: block;
+            border-radius: 10px;
+            box-shadow: 0 14px 28px rgba(8, 145, 178, 0.24);
+        }
+
+        .eyebrow {
+            margin: 72px 0 18px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid rgba(8, 145, 178, 0.16);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.74);
+            padding: 9px 14px;
+            color: var(--muted);
+            font-size: 13px;
             font-weight: 700;
             letter-spacing: 0;
             text-transform: uppercase;
         }
 
+        .status-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 999px;
+            background: var(--brand-green);
+            box-shadow: 0 0 0 5px rgba(20, 184, 166, 0.14);
+        }
+
         h1 {
-            margin: 0 0 12px;
-            font-size: 40px;
-            line-height: 1;
+            max-width: 600px;
+            margin: 0;
+            font-size: 48px;
+            line-height: 1.04;
+            font-weight: 800;
             letter-spacing: 0;
         }
 
         p {
             margin: 0;
-            color: #4f565f;
-            font-size: 16px;
-            line-height: 1.6;
+            color: var(--muted);
+            font-size: 17px;
+            line-height: 1.7;
         }
 
-        @media (prefers-color-scheme: dark) {
-            :root {
-                background: #111318;
-                color: #f4f7fb;
-            }
-
-            body {
-                background:
-                    linear-gradient(135deg, rgba(138, 180, 248, 0.12), transparent 42%),
-                    linear-gradient(315deg, rgba(129, 201, 149, 0.10), transparent 38%),
-                    #111318;
-            }
-
-            main {
-                border-color: rgba(244, 247, 251, 0.14);
-                background: rgba(25, 28, 33, 0.88);
-                box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
-            }
-
-            .brand {
-                color: #8ab4f8;
-            }
-
-            p {
-                color: #c7ccd4;
-            }
+        .description {
+            max-width: 590px;
+            margin-top: 20px;
         }
 
-        @media (max-width: 480px) {
-            main {
-                padding: 28px;
+        .status-row {
+            margin-top: 32px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .status-pill {
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.74);
+            padding: 10px 14px;
+            color: #334155;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .preview {
+            border: 1px solid rgba(219, 228, 238, 0.96);
+            border-radius: 8px;
+            overflow: hidden;
+            background: var(--surface);
+            box-shadow: var(--shadow);
+        }
+
+        .window-bar {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            border-bottom: 1px solid #e5edf5;
+            background: linear-gradient(180deg, #f8fafc, #f1f5f9);
+            padding: 16px 20px;
+        }
+
+        .window-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+        }
+
+        .window-dot:nth-child(1) {
+            background: #fb7185;
+        }
+
+        .window-dot:nth-child(2) {
+            background: #facc15;
+        }
+
+        .window-dot:nth-child(3) {
+            background: #22c55e;
+        }
+
+        .window-title {
+            margin-left: 8px;
+            color: #475569;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .conversation {
+            min-height: 350px;
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            background:
+                linear-gradient(180deg, rgba(248, 250, 252, 0.82), rgba(255, 255, 255, 0.94)),
+                var(--surface);
+        }
+
+        .message {
+            max-width: 82%;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 14px 16px;
+            color: #334155;
+            font-size: 14px;
+            line-height: 1.55;
+        }
+
+        .message.user {
+            align-self: flex-end;
+            border-color: rgba(8, 145, 178, 0.22);
+            background: linear-gradient(135deg, var(--brand-cyan), var(--brand-blue));
+            color: #ffffff;
+        }
+
+        .message.agent {
+            align-self: flex-start;
+            background: #ffffff;
+        }
+
+        .input-preview {
+            margin-top: auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            background: #ffffff;
+            padding: 10px 10px 10px 18px;
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        .send-button {
+            width: 34px;
+            height: 34px;
+            flex: 0 0 auto;
+            border-radius: 999px;
+            display: grid;
+            place-items: center;
+            background: var(--brand-cyan);
+            color: #ffffff;
+        }
+
+        @media (max-width: 860px) {
+            .fallback-shell {
+                grid-template-columns: 1fr;
+                gap: 36px;
+                padding: 40px 0;
+            }
+
+            .eyebrow {
+                margin-top: 48px;
             }
 
             h1 {
-                font-size: 32px;
+                font-size: 40px;
+            }
+        }
+
+        @media (max-width: 520px) {
+            .fallback-shell {
+                width: min(100vw - 28px, 1120px);
+            }
+
+            .brand-link {
+                font-size: 20px;
+            }
+
+            h1 {
+                font-size: 34px;
+            }
+
+            p {
+                font-size: 16px;
+            }
+
+            .conversation {
+                min-height: 300px;
+                padding: 20px;
+            }
+
+            .message {
+                max-width: 100%;
             }
         }
     </style>
 </head>
 <body>
-    <main>
-        <p class="brand">Promptbook Agents Server</p>
-        <h1>Server is getting ready</h1>
-        <p>This Promptbook Agents Server is installed, but the application is not available from this route right now.</p>
+    <main class="fallback-shell" aria-labelledby="fallback-title">
+        <section>
+            <a class="brand-link" href="https://www.ptbk.io/" aria-label="Promptbook homepage">
+                <svg class="brand-mark" viewBox="0 0 38 38" role="img" aria-hidden="true">
+                    <defs>
+                        <linearGradient id="promptbook-mark-gradient" x1="4" y1="5" x2="34" y2="34">
+                            <stop stop-color="#79eafd" />
+                            <stop offset="0.52" stop-color="#0891b2" />
+                            <stop offset="1" stop-color="#1d4ed8" />
+                        </linearGradient>
+                    </defs>
+                    <rect width="38" height="38" rx="10" fill="url(#promptbook-mark-gradient)" />
+                    <path d="M11 10.5h7.5c4.9 0 8.5 3.4 8.5 8.1s-3.6 8.2-8.5 8.2H11V10.5Z" fill="#ffffff" opacity="0.96" />
+                    <path d="M15 14.3h3.6c2.5 0 4.2 1.7 4.2 4.3s-1.7 4.4-4.2 4.4H15v-8.7Z" fill="#0891b2" />
+                </svg>
+                <span>Prompt<strong>book</strong></span>
+            </a>
+            <p class="eyebrow"><span class="status-dot" aria-hidden="true"></span>Agents Server fallback</p>
+            <h1 id="fallback-title">Server is getting ready</h1>
+            <p class="description">Promptbook is installed and Nginx is online. The Agents Server application is not available from this route right now.</p>
+            <div class="status-row" aria-label="Current status">
+                <span class="status-pill">Nginx online</span>
+                <span class="status-pill">Agents Server unavailable</span>
+            </div>
+        </section>
+        <section class="preview" aria-label="Promptbook chat preview">
+            <div class="window-bar">
+                <span class="window-dot" aria-hidden="true"></span>
+                <span class="window-dot" aria-hidden="true"></span>
+                <span class="window-dot" aria-hidden="true"></span>
+                <span class="window-title">Promptbook - Assistant</span>
+            </div>
+            <div class="conversation">
+                <div class="message user">Is the Agents Server ready?</div>
+                <div class="message agent">Nginx is responding. The application process needs a moment before this route can load.</div>
+                <div class="input-preview">
+                    <span>Type a question...</span>
+                    <span class="send-button" aria-hidden="true">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M3 8h9M8 4l4 4-4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </span>
+                </div>
+            </div>
+        </section>
     </main>
 </body>
 </html>
@@ -1791,7 +2016,7 @@ install_branded_default_nginx_pages() {
     "${SUDO[@]}" install -d -m 755 /var/www/html
 
     for default_page_path in /var/www/html/index.html /var/www/html/index.nginx-debian.html; do
-        if [[ -e "$default_page_path" ]] && ! grep -Eiq 'welcome to nginx|nginx' "$default_page_path"; then
+        if [[ -e "$default_page_path" ]] && ! grep -Eiq 'welcome to nginx|nginx|Promptbook Agents Server' "$default_page_path"; then
             continue
         fi
 

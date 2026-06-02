@@ -18,7 +18,7 @@ root@collboard-agents-server-x21:~# sudo curl -fsSL https://raw.githubuserconten
 
 ---
 
-[ ] !!
+[x] ~$0.6931 40 minutes by OpenAI Codex `gpt-5.5`
 
 [✨🤬] Add branding to fallback pages
 
@@ -36,3 +36,4 @@ root@collboard-agents-server-x21:~# sudo curl -fsSL https://raw.githubuserconten
 -   You are NOT working with the [Agents Server](apps/agents-server)
 
 ![Fallback page witgout branding](prompts/screenshots/2026-05-0395-ptbk-agents-server-standalone-vps-no-nginx-pages-1.png)
+

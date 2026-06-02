@@ -105,4 +105,17 @@ describe('other/vps/install.sh', () => {
             'PTBK_AGENTS_SERVER_ENV_FILE=$env_file_shell npx --yes tsx ./apps/agents-server/src/database/migrate.ts',
         );
     });
+
+    it('installs a light Promptbook-branded Nginx fallback page', () => {
+        expect(installScript).toContain('color-scheme: light;');
+        expect(installScript).toContain('Promptbook is installed and Nginx is online.');
+        expect(installScript).toContain('Promptbook chat preview');
+        expect(installScript).toContain('Managed by the Promptbook Agents Server installer.');
+        expect(installScript).not.toContain('@media (prefers-color-scheme: dark)');
+    });
+
+    it('refreshes previously installed Promptbook Nginx welcome pages', () => {
+        expect(installScript).toContain("grep -Eiq 'welcome to nginx|nginx|Promptbook Agents Server'");
+        expect(installScript).toContain('"$NGINX_FALLBACK_HTML_PATH" "$default_page_path"');
+    });
 });

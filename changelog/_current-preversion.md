@@ -1,3 +1,8 @@
+-   Fixed standalone VPS Nginx fallback pages to match Promptbook light branding:
+
+    -   `other/vps/install.sh` now writes a light-only Promptbook-styled fallback page with a wordmark, status pills, and an inline chat preview instead of the previous dark-mode card.
+    -   Re-running the installer now refreshes previously installed Promptbook-branded Nginx welcome files, while still preserving unrelated custom pages.
+
 -   Added self-contained S3 file storage for standalone VPS Agents Server installs:
 
     -   `other/vps/install.sh` now asks whether to use installer-managed self-contained S3 storage or external S3, defaults to self-contained storage, installs MinIO, creates the bucket, configures nginx `/storage/` public access, and writes the matching CDN environment variables automatically.
