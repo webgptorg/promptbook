@@ -1,17 +1,11 @@
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabase } from '@/src/database/$provideSupabase';
-import { $provideUntrackedCdnForServer } from '@/src/tools/$provideCdnForServer';
-import { getSafeCdnPath } from '@/src/utils/cdn/utils/getSafeCdnPath';
 import { serializeError } from '@promptbook-local/utils';
 import type { PostgrestSingleResponse, SupabaseClient } from '@supabase/supabase-js';
 import { handleUpload, type HandleUploadBody } from '@vercel/blob/client';
 import { NextRequest, NextResponse } from 'next/server';
 import { assertsError } from '../../../../../../src/errors/assertsError';
-import { DatabaseError } from '../../../../../../src/errors/DatabaseError';
-import { LimitReachedError } from '../../../../../../src/errors/LimitReachedError';
-import { NotAllowed } from '../../../../../../src/errors/NotAllowed';
 import { getUserIdFromRequest } from '../../../../src/utils/getUserIdFromRequest';
-import { spaceTrim } from 'spacetrim';
 import type { AgentsServerDatabase } from '../../../database/schema';
 import { FILE_SECURITY_CHECKERS } from '../../../file-security-checkers';
 import { getMaxFileUploadSizeBytes } from '../../../utils/serverLimits';
@@ -126,206 +120,10 @@ function resolveUploadClientPayload(clientPayload: string | null | undefined): {
 }
 
 /**
- * Result shape returned by the S3-backed upload route.
- *
- * @private
- */
-type UploadedCdnFileResponse = {
-    url: string;
-    pathname: string;
-    contentType: string;
-};
-
-/**
- * Database type for stored file security checker output.
- *
- * @private
- */
-type FileSecurityResultForDatabase = AgentsServerDatabase['public']['Tables']['File']['Update']['securityResult'];
-
-/**
- * Checks whether the incoming request is a server-mediated multipart upload.
- *
- * @private
- */
-function isMultipartUploadRequest(request: NextRequest): boolean {
-    return (request.headers.get('content-type') || '').toLowerCase().startsWith('multipart/form-data');
-}
-
-/**
- * Reads one string field from multipart form data.
- *
- * @private
- */
-function getFormDataString(formData: FormData, key: string): string | null {
-    const value = formData.get(key);
-    return typeof value === 'string' ? value : null;
-}
-
-/**
- * Resolves one uploaded file from multipart form data.
- *
- * @private
- */
-function getUploadedFileFromFormData(formData: FormData): File {
-    const file = formData.get('file');
-    if (!(file instanceof File)) {
-        throw new NotAllowed(
-            spaceTrim(`
-                Missing upload field \`file\`.
-
-                The upload request must include exactly one file in multipart form data.
-            `),
-        );
-    }
-
-    return file;
-}
-
-/**
- * Removes the public CDN path prefix before a key is passed to provider-backed storage.
- *
- * @private
- */
-function stripCdnPathPrefix(pathname: string, pathPrefix: string): string {
-    const normalizedPathname = pathname.replace(/^\/+/g, '');
-    const normalizedPathPrefix = pathPrefix.replace(/^\/+|\/+$/g, '');
-
-    if (!normalizedPathPrefix) {
-        return normalizedPathname;
-    }
-
-    if (normalizedPathname === normalizedPathPrefix) {
-        return '';
-    }
-
-    if (normalizedPathname.startsWith(`${normalizedPathPrefix}/`)) {
-        return normalizedPathname.slice(normalizedPathPrefix.length + 1);
-    }
-
-    return normalizedPathname;
-}
-
-/**
- * Runs configured security checks for a publicly reachable uploaded file.
- *
- * @private
- */
-async function runFileSecurityChecks(fileUrl: string): Promise<FileSecurityResultForDatabase> {
-    const securityResults: Record<string, unknown> = {};
-
-    for (const checkerId in FILE_SECURITY_CHECKERS) {
-        try {
-            const checker = FILE_SECURITY_CHECKERS[checkerId]!;
-            console.info(`🛡️ Checking file security with ${checker.title} (${fileUrl})...`);
-            const result = await checker.checkFile(fileUrl);
-            securityResults[checkerId] = result;
-            console.info(`🛡️ Security check result from ${checker.title}:`, result.status);
-        } catch (error) {
-            console.error(`🛡️ Security check failed for ${checkerId}:`, error);
-            securityResults[checkerId] = {
-                isSafe: false,
-                status: 'ERROR',
-                confidence: 0,
-                message: error instanceof Error ? error.message : String(error),
-            };
-        }
-    }
-
-    return securityResults as FileSecurityResultForDatabase;
-}
-
-/**
- * Handles server-mediated uploads for S3-compatible CDN storage.
- *
- * @private
- */
-async function handleS3BackedUpload(request: NextRequest): Promise<NextResponse<UploadedCdnFileResponse>> {
-    const userId = await getUserIdFromRequest(request);
-    const supabase: SupabaseClient<AgentsServerDatabase> = $provideSupabase();
-    const formData = await request.formData();
-    const file = getUploadedFileFromFormData(formData);
-    const rawPathname = getFormDataString(formData, 'pathname');
-
-    if (!rawPathname) {
-        throw new NotAllowed(
-            spaceTrim(`
-                Missing upload field \`pathname\`.
-
-                The upload request must include the target CDN path.
-            `),
-        );
-    }
-
-    const { purpose, contentType } = resolveUploadClientPayload(getFormDataString(formData, 'clientPayload'));
-    const maxFileSize = await getMaxFileUploadSizeBytes();
-
-    if (file.size > maxFileSize) {
-        throw new LimitReachedError(
-            spaceTrim(`
-                Uploaded file \`${file.name}\` exceeds the configured upload limit.
-
-                Maximum supported size: **${maxFileSize} bytes**
-            `),
-        );
-    }
-
-    const pathPrefix = process.env.NEXT_PUBLIC_CDN_PATH_PREFIX || '';
-    const cdnKey = getSafeCdnPath({
-        pathname: stripCdnPathPrefix(rawPathname, pathPrefix),
-        pathPrefix,
-    });
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const cdn = $provideUntrackedCdnForServer();
-
-    await cdn.setItem(cdnKey, {
-        type: contentType,
-        data: buffer,
-        userId: userId || undefined,
-        purpose,
-        fileSize: buffer.byteLength,
-    });
-
-    const storageUrl = cdn.getItemUrl(cdnKey).href;
-    const securityResult = await runFileSecurityChecks(storageUrl);
-    const { error: insertError } = await supabase.from(await $getTableName('File')).insert({
-        userId: userId || null,
-        fileName: cdnKey,
-        fileSize: buffer.byteLength,
-        fileType: contentType,
-        storageUrl,
-        shortUrl: null,
-        purpose,
-        status: 'COMPLETED',
-        securityResult,
-    });
-
-    if (insertError) {
-        throw new DatabaseError(
-            spaceTrim(`
-                Failed to track uploaded file \`${cdnKey}\`.
-
-                ${insertError.message}
-            `),
-        );
-    }
-
-    return NextResponse.json({
-        url: storageUrl,
-        pathname: cdnKey,
-        contentType,
-    });
-}
-
-/**
  * Handles post.
  */
 export async function POST(request: NextRequest) {
     try {
-        if (isMultipartUploadRequest(request)) {
-            return await handleS3BackedUpload(request);
-        }
-
         const body = (await request.json()) as HandleUploadBody;
         const userId = await getUserIdFromRequest(request);
         const supabase: SupabaseClient<AgentsServerDatabase> = $provideSupabase();
@@ -410,7 +208,27 @@ export async function POST(request: NextRequest) {
                     // Create fresh supabase client for this webhook context
                     const supabase = $provideSupabase();
 
-                    const securityResult = await runFileSecurityChecks(blob.url);
+                    // Security checks
+                    const securityResults: Record<string, unknown> = {};
+                    const securityResultForDatabase =
+                        securityResults as AgentsServerDatabase['public']['Tables']['File']['Update']['securityResult'];
+                    for (const checkerId in FILE_SECURITY_CHECKERS) {
+                        try {
+                            const checker = FILE_SECURITY_CHECKERS[checkerId]!;
+                            console.info(`🛡️ Checking file security with ${checker.title} (${blob.url})...`);
+                            const result = await checker.checkFile(blob.url);
+                            securityResults[checkerId] = result;
+                            console.info(`🛡️ Security check result from ${checker.title}:`, result.status);
+                        } catch (error) {
+                            console.error(`🛡️ Security check failed for ${checkerId}:`, error);
+                            securityResults[checkerId] = {
+                                isSafe: false,
+                                status: 'ERROR',
+                                confidence: 0,
+                                message: error instanceof Error ? error.message : String(error),
+                            };
+                        }
+                    }
 
                     if (fileId) {
                         // Update the existing record by ID
@@ -424,7 +242,7 @@ export async function POST(request: NextRequest) {
                                 // <- TODO: !!!! Split between storageUrl and shortUrl
                                 purpose: tokenPurpose,
                                 status: 'COMPLETED',
-                                securityResult,
+                                securityResult: securityResultForDatabase,
                             })
                             .eq('id', fileId);
 
@@ -442,7 +260,7 @@ export async function POST(request: NextRequest) {
                                 fileType: blob.contentType,
                                 storageUrl: blob.url,
                                 status: 'COMPLETED',
-                                securityResult,
+                                securityResult: securityResultForDatabase,
                             })
                             .eq('fileName', uploadPath)
                             .eq('status', 'UPLOADING');

@@ -1,9 +1,9 @@
 'use client';
 
+import { upload } from '@vercel/blob/client';
 import type { number_percent, string_knowledge_source_content } from '@promptbook-local/types';
 import { getSafeCdnPath } from '../cdn/utils/getSafeCdnPath';
 import { normalizeUploadFilename } from '../normalization/normalizeUploadFilename';
-import { createShortCdnUrl, uploadFileToCdn } from './uploadFileToCdn';
 
 /**
  * Progress callback invoked during file uploads.
@@ -67,7 +67,13 @@ type SharedUploadHandlerConfig = {
     purpose?: string;
     pathBuilder?: UploadPathBuilder;
     returnShortUrl?: boolean;
+    shortUrlPrefix?: string;
 };
+
+/**
+ * Prefix for default short URL.
+ */
+const DEFAULT_SHORT_URL_PREFIX = 'https://ptbk.io/k/';
 
 /**
  * Upload handler that normalizes the filename, uploads via `/api/upload`, and optionally returns a short URL.
@@ -81,6 +87,7 @@ export function createFileUploadHandler<ReturnType extends string = string>(
         purpose = 'GENERIC_UPLOAD',
         pathBuilder = buildDefaultUserFilePath,
         returnShortUrl = false,
+        shortUrlPrefix = DEFAULT_SHORT_URL_PREFIX,
     } = config;
 
     return async (file, optionsOrOnProgress) => {
@@ -90,20 +97,28 @@ export function createFileUploadHandler<ReturnType extends string = string>(
         const uploadPath = pathBuilder(normalizedFilename, pathPrefix);
         const safeUploadPath = getSafeCdnPath({ pathname: uploadPath });
 
-        const blob = await uploadFileToCdn({
-            pathname: safeUploadPath,
-            file,
-            purpose,
-            contentType: file.type || 'application/octet-stream',
+        const blob = await upload(safeUploadPath, file, {
+            access: 'public',
+            handleUploadUrl: '/api/upload',
+            clientPayload: JSON.stringify({
+                purpose,
+                contentType: file.type || 'application/octet-stream',
+            }),
             abortSignal,
-            onProgress,
+            onUploadProgress: (progressEvent) => {
+                onProgress?.(progressEvent.percentage / 100, {
+                    loadedBytes: progressEvent.loaded,
+                    totalBytes: progressEvent.total,
+                });
+            },
         });
 
-        if (returnShortUrl) {
-            const shortUrl = createShortCdnUrl(blob.url, uploadPath);
-            if (shortUrl) {
-                return shortUrl as ReturnType;
-            }
+        if (returnShortUrl && process.env.NEXT_PUBLIC_CDN_PUBLIC_URL) {
+            const slashIndex = uploadPath.lastIndexOf('/');
+            const directoryPath = slashIndex === -1 ? '' : `${uploadPath.slice(0, slashIndex + 1)}`;
+            const longUrlPrefix = `${process.env.NEXT_PUBLIC_CDN_PUBLIC_URL}/${directoryPath}`;
+            const shortUrl = blob.url.split(longUrlPrefix).join(shortUrlPrefix);
+            return shortUrl as ReturnType;
         }
 
         return blob.url as ReturnType;
@@ -142,6 +157,7 @@ export function createBookEditorUploadHandler(
     const handler = createFileUploadHandler<string_knowledge_source_content>({
         purpose,
         returnShortUrl: true,
+        shortUrlPrefix: DEFAULT_SHORT_URL_PREFIX,
     });
 
     return async (file, optionsOrOnProgress) => handler(file, optionsOrOnProgress);
