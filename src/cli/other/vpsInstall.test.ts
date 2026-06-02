@@ -87,6 +87,27 @@ describe('other/vps/install.sh', () => {
         expect(installScript).toContain('set_env_value NEXT_PUBLIC_SITE_URL "https://${first_domain}"');
     });
 
+    it('waits for apt and dpkg locks before package installation commands', () => {
+        const browserDependenciesFunction = installScript.slice(
+            installScript.indexOf('\ninstall_agents_server_browser_dependencies() {'),
+            installScript.indexOf('\ninstall_promptbook_cli_launcher() {'),
+        );
+
+        expect(installScript).toContain('APT_LOCK_PATHS=(');
+        expect(installScript).toContain('/var/lib/dpkg/lock-frontend');
+        expect(installScript).toContain('wait_for_apt_locks()');
+        expect(installScript).toContain('Another package manager is using apt/dpkg');
+        expect(installScript).toContain('run_apt_get()');
+        expect(installScript).toContain('apt-get -o "DPkg::Lock::Timeout=${APT_LOCK_TIMEOUT_SECONDS}" "$@"');
+        expect(installScript).toContain('run_apt_get update');
+        expect(installScript).toContain('run_apt_get install -y');
+        expect(browserDependenciesFunction.indexOf('wait_for_apt_locks')).toBeLessThan(
+            browserDependenciesFunction.indexOf('npx playwright install-deps chromium'),
+        );
+        expect(installScript).not.toContain('env DEBIAN_FRONTEND=noninteractive apt-get update');
+        expect(installScript).not.toContain('env DEBIAN_FRONTEND=noninteractive apt-get install');
+    });
+
     it('runs standalone self-update from a stable script copy', () => {
         expect(installScript).toContain('rerun_self_update_from_stable_script "$@"');
         expect(installScript).toContain(

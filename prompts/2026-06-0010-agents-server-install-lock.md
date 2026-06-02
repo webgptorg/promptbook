@@ -1,4 +1,4 @@
-[ ] !!
+[x] by OpenAI Codex `gpt-5.5` but commited manually
 
 [✨🧀] Sometimes when installing the Agents server via `install.sh` it fails on `dpkg frontend lock`, wait for the lock release and not fail
 
