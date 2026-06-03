@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/deepseek",
-    "version": "0.112.0-102",
+    "version": "0.112.0-103",
     "description": "Promptbook: Create persistent AI agents that turn your company's scattered knowledge into action",
     "private": false,
     "sideEffects": false,
@@ -96,7 +96,7 @@
     "types": "./esm/src/_packages/deepseek.index.d.ts",
     "typings": "./esm/src/_packages/deepseek.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.112.0-102"
+        "@promptbook/core": "0.112.0-103"
     },
     "dependencies": {
         "@ai-sdk/deepseek": "0.1.17",
