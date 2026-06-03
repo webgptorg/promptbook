@@ -311,3 +311,28 @@ Node.js v22.22.2
 /opt/promptbook-agents-server/repository/other/vps/install.sh: line 2: local: can only be used in a function
 ```
 
+---
+
+[ ] !!!
+
+[✨⬆] Agents server has ability to self-update, but it should install new version in the new folder and remove the old one, so there is no downtime during the update process
+
+-   The update process should be as smooth as possible, it should update the code, install the dependencies, run the migrations, restart the server,... all with one click and without any issues, so the user just clicks one button and the server is updated to the latest version without any problems
+-   When installing the server or updating, the clonned repository should be in the folder named by the commit hash
+-   Remove the old repository after the new one is installed and working
+-   Run it as new process on `pm2` and after it is working, stop the old process and remove it from `pm2`, so there is no downtime during the update process
+-   The clonned code should be located in `/opt/promptbook-agents-server/bin/<commit-hash>`
+-   When the commit has the tag, the folder should be named by the tag, so it is easier to identify which version is running, for example `/opt/promptbook-agents-server/bin/v1.0.0` but when there is no tag, it should be named by the commit hash, for example `/opt/promptbook-agents-server/bin/68589d9`
+-   The server data should be located in `/opt/promptbook-agents-server/data/s3` and `/opt/promptbook-agents-server/data/database`
+-   Effectively it should be same as running the installation script again, but it should be done from the UI and with one click and keeping the existing configuration and data
+-   Keep in mind the DRY _(don't repeat yourself)_ principle, if possible share code between the install.sh and updating scripts
+-   The server is initialized by [auto installation script](vps/install.sh)
+-   You are working with [Agents Server](apps/agents-server) initially installed by [auto installation script](vps/install.sh)
+-   Auto update is aviable on `/admin/update` for super `admin`
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+**This is how the Agents server is installed:**
+
+```bash
+root@collboard-agents-server-x21:~# sudo curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/other/vps/install.sh | bash
+```
