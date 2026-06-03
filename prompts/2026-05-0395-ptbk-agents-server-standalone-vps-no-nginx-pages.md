@@ -37,3 +37,20 @@ root@collboard-agents-server-x21:~# sudo curl -fsSL https://raw.githubuserconten
 
 ![Fallback page witgout branding](prompts/screenshots/2026-05-0395-ptbk-agents-server-standalone-vps-no-nginx-pages-1.png)
 
+
+---
+
+[ ] !
+
+[✨🤬] Add proper Promptbook to fallback pages
+
+-   The fallback pages that shows Nginx when the Agents server not running
+-   Theese pages should be branded by Promptbook, but now they arent showning actual logo of the promptbook
+-   Also remove "Agents Server fallback" text
+-   You are doing theese changes on level of Nginx and installed VPS server not the Agents server app in Next.js
+-   Keep in mind the DRY _(don't repeat yourself)_ principle
+-   You are working with [auto installation script](vps/install.sh)
+-   You are NOT working with the [Agents Server](apps/agents-server)
+
+
+![alt text](prompts/screenshots/2026-05-0395-ptbk-agents-server-standalone-vps-no-nginx-pages-2.png)
