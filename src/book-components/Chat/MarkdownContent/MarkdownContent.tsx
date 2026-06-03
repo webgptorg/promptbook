@@ -122,9 +122,7 @@ export const MarkdownContent = memo(function MarkdownContent(props: MarkdownCont
             }),
         [content],
     );
-    const [resolvedTheme, setResolvedTheme] = useState<MarkdownContentTheme>(() =>
-        resolveMarkdownContentTheme(theme),
-    );
+    const [resolvedTheme, setResolvedTheme] = useState<MarkdownContentTheme>(() => resolveMarkdownContentTheme(theme));
     const containerRef = useRef<HTMLDivElement>(null);
     const rootsRef = useRef<Root[]>([]);
     /** Tracks which `<details>` elements (by summary key) are currently open */

@@ -110,9 +110,7 @@ describe('other/vps/install.sh', () => {
 
     it('runs standalone self-update from a stable script copy', () => {
         expect(installScript).toContain('rerun_self_update_from_stable_script "$@"');
-        expect(installScript).toContain(
-            'PTBK_SELF_UPDATE_SCRIPT_COPY=1 exec bash "$runtime_script" self-update "$@"',
-        );
+        expect(installScript).toContain('PTBK_SELF_UPDATE_SCRIPT_COPY=1 exec bash "$runtime_script" self-update "$@"');
         expect(installScript).toContain('trap write_failed_self_update_status_on_exit EXIT');
         expect(installScript).not.toContain("trap '\n        local exit_code=$?");
     });
