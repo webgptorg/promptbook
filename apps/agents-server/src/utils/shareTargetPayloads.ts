@@ -2,12 +2,12 @@ import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import type { Json } from '@/src/database/schema';
 import { FILE_SECURITY_CHECKERS } from '@/src/file-security-checkers';
+import { $provideCdnForServer } from '@/src/tools/$provideCdnForServer';
 import { $provideServer } from '@/src/tools/$provideServer';
 import { getUserFileCdnKey } from '@/src/utils/cdn/utils/getUserFileCdnKey';
 import { validateMimeType } from '@/src/utils/validators/validateMimeType';
 import { normalizeChatAttachments } from '@promptbook-local/core';
 import type { TODO_any } from '@promptbook-local/types';
-import { put } from '@vercel/blob';
 import { after } from 'next/server';
 import { spaceTrim } from 'spacetrim';
 import { DatabaseError } from '../../../../src/errors/DatabaseError';
@@ -231,12 +231,14 @@ async function createShareTargetAttachment(file: File, maxFileUploadBytes: numbe
 
     const mimeType = resolveShareTargetMimeType(file.type);
     const blobPath = getUserFileCdnKey(buffer, normalizedFilename);
-    const uploadedBlob = await put(blobPath, buffer, {
-        access: 'public',
-        addRandomSuffix: false,
-        allowOverwrite: true,
-        contentType: mimeType,
-        token: process.env.VERCEL_BLOB_READ_WRITE_TOKEN!,
+    const cdn = $provideCdnForServer();
+    const storageUrl = cdn.getItemUrl(blobPath).href;
+
+    await cdn.setItem(blobPath, {
+        type: mimeType,
+        data: buffer,
+        purpose: SHARE_TARGET_FILE_PURPOSE,
+        fileSize: buffer.byteLength,
     }).catch((error) => {
         throw new DatabaseError(
             spaceTrim(`
@@ -246,75 +248,26 @@ async function createShareTargetAttachment(file: File, maxFileUploadBytes: numbe
             `),
         );
     });
-    const fileRecordId = await insertShareTargetFileRecord({
-        fileName: normalizedFilename,
-        fileSize: buffer.byteLength,
-        fileType: mimeType,
-        storageUrl: uploadedBlob.url,
-    });
 
-    if (fileRecordId !== null) {
-        after(() =>
-            populateShareTargetFileSecurityResult({
-                fileId: fileRecordId,
-                storageUrl: uploadedBlob.url,
-            }).catch((error) => {
-                console.error('[share-target] Failed to finalize file security result', error);
-            }),
-        );
-    }
+    after(() =>
+        populateShareTargetFileSecurityResult({
+            storageUrl,
+        }).catch((error) => {
+            console.error('[share-target] Failed to finalize file security result', error);
+        }),
+    );
 
     return {
         name: normalizedFilename,
         type: mimeType,
-        url: uploadedBlob.url,
+        url: storageUrl,
     };
-}
-
-/**
- * Inserts one admin-visible file row for a shared attachment.
- */
-async function insertShareTargetFileRecord(options: {
-    fileName: string;
-    fileSize: number;
-    fileType: string;
-    storageUrl: string;
-}): Promise<number | null> {
-    try {
-        const supabase = $provideSupabaseForServer() as TODO_any;
-        const fileTableName = await $getTableName('File');
-        const { data, error } = await supabase
-            .from(fileTableName)
-            .insert({
-                fileName: options.fileName,
-                fileSize: options.fileSize,
-                fileType: options.fileType,
-                storageUrl: options.storageUrl,
-                shortUrl: null,
-                purpose: SHARE_TARGET_FILE_PURPOSE,
-                status: 'COMPLETED',
-                agentId: null,
-                securityResult: null,
-            })
-            .select('id')
-            .maybeSingle();
-
-        if (error) {
-            console.error('[share-target] Failed to store uploaded file metadata', error);
-            return null;
-        }
-
-        return typeof data?.id === 'number' ? data.id : null;
-    } catch (error) {
-        console.error('[share-target] Failed to insert shared file metadata', error);
-        return null;
-    }
 }
 
 /**
  * Populates best-effort file-security results after the share redirect has already returned.
  */
-async function populateShareTargetFileSecurityResult(options: { fileId: number; storageUrl: string }): Promise<void> {
+async function populateShareTargetFileSecurityResult(options: { storageUrl: string }): Promise<void> {
     const securityResult: Record<string, unknown> = {};
 
     for (const checkerId of Object.keys(FILE_SECURITY_CHECKERS)) {
@@ -342,7 +295,7 @@ async function populateShareTargetFileSecurityResult(options: { fileId: number; 
         .update({
             securityResult,
         })
-        .eq('id', options.fileId);
+        .eq('storageUrl', options.storageUrl);
 
     if (error) {
         throw new DatabaseError(

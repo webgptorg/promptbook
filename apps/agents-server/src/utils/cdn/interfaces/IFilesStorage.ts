@@ -25,6 +25,11 @@ export type IFile = {
      * Note: This is optional, if not provided, the size of the buffer is used
      */
     fileSize?: number;
+
+    /**
+     * Optional file security result collected before the file is tracked.
+     */
+    securityResult?: Record<string, unknown>;
 };
 
 /**

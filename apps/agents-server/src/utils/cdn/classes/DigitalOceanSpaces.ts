@@ -16,6 +16,8 @@ type IDigitalOceanSpacesConfig = {
     readonly secretAccessKey: string;
     readonly cdnPublicUrl: URL;
     readonly gzip: boolean;
+    readonly forcePathStyle?: boolean;
+    readonly region?: string;
 
     // TODO: [⛳️] Probbably prefix should be in this config not on the consumer side
 };
@@ -32,8 +34,9 @@ export class DigitalOceanSpaces implements IIFilesStorageWithCdn {
 
     public constructor(private readonly config: IDigitalOceanSpacesConfig) {
         this.s3 = new S3Client({
-            region: 'auto',
-            endpoint: 'https://' + config.endpoint,
+            region: config.region || 'auto',
+            endpoint: normalizeS3Endpoint(config.endpoint),
+            forcePathStyle: config.forcePathStyle,
             credentials: {
                 accessKeyId: config.accessKeyId,
                 secretAccessKey: config.secretAccessKey,
@@ -117,6 +120,19 @@ export class DigitalOceanSpaces implements IIFilesStorageWithCdn {
             throw new Error(`Upload result does not contain ETag`);
         }
     }
+}
+
+/**
+ * Normalizes endpoint values from legacy host-only configuration and full S3 URLs.
+ *
+ * @private helper of `DigitalOceanSpaces`
+ */
+function normalizeS3Endpoint(endpoint: string): string {
+    if (/^https?:\/\//i.test(endpoint)) {
+        return endpoint;
+    }
+
+    return `https://${endpoint}`;
 }
 
 // TODO: Implement Read-only mode

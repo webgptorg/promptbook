@@ -1,22 +1,20 @@
 'use client';
 
-import { upload } from '@vercel/blob/client';
-import type { number_percent, string_knowledge_source_content } from '@promptbook-local/types';
+import type { string_knowledge_source_content } from '@promptbook-local/types';
 import { getSafeCdnPath } from '../cdn/utils/getSafeCdnPath';
 import { normalizeUploadFilename } from '../normalization/normalizeUploadFilename';
+import {
+    buildDefaultUserFileUploadPath,
+    uploadFileToServer,
+    type FileUploadProgressCallback,
+} from './uploadFileToServer';
 
 /**
  * Progress callback invoked during file uploads.
  *
  * @private used by chat and book editors.
  */
-export type FileUploadProgressCallback = (
-    progress: number_percent,
-    stats?: {
-        loadedBytes: number;
-        totalBytes: number;
-    },
-) => void;
+export type { FileUploadProgressCallback };
 
 /**
  * Optional upload configuration such as progress reporting or cancellation.
@@ -55,8 +53,8 @@ type UploadPathBuilder = (normalizedFilename: string, pathPrefix: string) => str
 /**
  * Constant for build default user file path.
  */
-const buildDefaultUserFilePath: UploadPathBuilder = (normalizedFilename, pathPrefix) =>
-    pathPrefix ? `${pathPrefix}/user/files/${normalizedFilename}` : `user/files/${normalizedFilename}`;
+const buildDefaultUserFilePath: UploadPathBuilder = (normalizedFilename) =>
+    buildDefaultUserFileUploadPath(normalizedFilename);
 
 /**
  * Configuration of the shared upload handler.
@@ -95,33 +93,26 @@ export function createFileUploadHandler<ReturnType extends string = string>(
         const pathPrefix = process.env.NEXT_PUBLIC_CDN_PATH_PREFIX || '';
         const normalizedFilename = normalizeUploadFilename(file.name);
         const uploadPath = pathBuilder(normalizedFilename, pathPrefix);
-        const safeUploadPath = getSafeCdnPath({ pathname: uploadPath });
+        const safeUploadPath = getSafeCdnPath({ pathname: uploadPath, pathPrefix });
 
-        const blob = await upload(safeUploadPath, file, {
-            access: 'public',
-            handleUploadUrl: '/api/upload',
-            clientPayload: JSON.stringify({
-                purpose,
-                contentType: file.type || 'application/octet-stream',
-            }),
+        const uploadResult = await uploadFileToServer({
+            file,
+            pathname: safeUploadPath,
+            purpose,
+            contentType: file.type || 'application/octet-stream',
             abortSignal,
-            onUploadProgress: (progressEvent) => {
-                onProgress?.(progressEvent.percentage / 100, {
-                    loadedBytes: progressEvent.loaded,
-                    totalBytes: progressEvent.total,
-                });
-            },
+            onProgress,
         });
 
         if (returnShortUrl && process.env.NEXT_PUBLIC_CDN_PUBLIC_URL) {
             const slashIndex = uploadPath.lastIndexOf('/');
             const directoryPath = slashIndex === -1 ? '' : `${uploadPath.slice(0, slashIndex + 1)}`;
             const longUrlPrefix = `${process.env.NEXT_PUBLIC_CDN_PUBLIC_URL}/${directoryPath}`;
-            const shortUrl = blob.url.split(longUrlPrefix).join(shortUrlPrefix);
+            const shortUrl = uploadResult.url.split(longUrlPrefix).join(shortUrlPrefix);
             return shortUrl as ReturnType;
         }
 
-        return blob.url as ReturnType;
+        return uploadResult.url as ReturnType;
     };
 }
 

@@ -1,8 +1,8 @@
-import { upload } from '@vercel/blob/client';
 import { useCallback, useRef, useState, type ChangeEvent } from 'react';
 import { showAlert } from '../../../components/AsyncDialogs/asyncDialogs';
 import { getSafeCdnPath } from '../../../utils/cdn/utils/getSafeCdnPath';
 import { normalizeUploadFilename } from '../../../utils/normalization/normalizeUploadFilename';
+import { uploadFileToServer } from '../../../utils/upload/uploadFileToServer';
 import type { UseImageGeneratorTestState } from './useImageGeneratorTestState';
 
 /**
@@ -36,17 +36,22 @@ async function uploadImageAttachment(
     file: File,
 ): Promise<UseImageGeneratorTestState['prompts'][number]['attachments'][number]> {
     const normalizedFilename = normalizeUploadFilename(file.name);
-    const uploadPath = getSafeCdnPath({ pathname: normalizedFilename });
-    const blob = await upload(uploadPath, file, {
-        access: 'public',
-        handleUploadUrl: '/api/upload',
+    const uploadPath = getSafeCdnPath({
+        pathname: normalizedFilename,
+        pathPrefix: process.env.NEXT_PUBLIC_CDN_PATH_PREFIX,
+    });
+    const uploadResult = await uploadFileToServer({
+        file,
+        pathname: uploadPath,
+        purpose: 'IMAGE_GENERATOR_TEST_ATTACHMENT',
+        contentType: file.type,
     });
 
     return {
         id: createAttachmentIdentifier(),
         name: file.name,
         type: file.type,
-        url: blob.url,
+        url: uploadResult.url,
     };
 }
 

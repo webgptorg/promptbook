@@ -1,6 +1,5 @@
 'use client';
 
-import { upload } from '@vercel/blob/client';
 import { FileTextIcon, HashIcon, ImageIcon, ListIcon, ShieldIcon, ToggleLeftIcon, TypeIcon, Upload } from 'lucide-react';
 import Link from 'next/link';
 import { Fragment, useEffect, useRef, useState } from 'react';
@@ -8,6 +7,7 @@ import { showConfirm } from '../../../components/AsyncDialogs/asyncDialogs';
 import { getMetadataDefinition, metadataDefaults, type MetadataDefinition } from '../../../database/metadataDefaults';
 import { getSafeCdnPath } from '../../../utils/cdn/utils/getSafeCdnPath';
 import { normalizeUploadFilename } from '../../../utils/normalization/normalizeUploadFilename';
+import { buildDefaultUserFileUploadPath, uploadFileToServer } from '../../../utils/upload/uploadFileToServer';
 import { getDeprecatedLimitMetadataDefinition, type DeprecatedLimitMetadataDefinition } from '../../../constants/serverLimits';
 
 /**
@@ -502,23 +502,21 @@ export function MetadataClient() {
         try {
             setUploading(true);
 
-            const pathPrefix = process.env.NEXT_PUBLIC_CDN_PATH_PREFIX || '';
             const normalizedFilename = normalizeUploadFilename(file.name);
-            const uploadPath = pathPrefix
-                ? `${pathPrefix}/user/files/${normalizedFilename}`
-                : `user/files/${normalizedFilename}`;
-            const safeUploadPath = getSafeCdnPath({ pathname: uploadPath });
-
-            const blob = await upload(safeUploadPath, file, {
-                access: 'public',
-                handleUploadUrl: '/api/upload',
-                clientPayload: JSON.stringify({
-                    purpose: formState.key || 'METADATA_IMAGE',
-                    contentType: file.type,
-                }),
+            const uploadPath = buildDefaultUserFileUploadPath(normalizedFilename);
+            const safeUploadPath = getSafeCdnPath({
+                pathname: uploadPath,
+                pathPrefix: process.env.NEXT_PUBLIC_CDN_PATH_PREFIX,
             });
 
-            const fileUrl = blob.url;
+            const uploadResult = await uploadFileToServer({
+                file,
+                pathname: safeUploadPath,
+                purpose: formState.key || 'METADATA_IMAGE',
+                contentType: file.type,
+            });
+
+            const fileUrl = uploadResult.url;
 
             const LONG_URL = `${process.env.NEXT_PUBLIC_CDN_PUBLIC_URL!}/${process.env
                 .NEXT_PUBLIC_CDN_PATH_PREFIX!}/user/files/`;

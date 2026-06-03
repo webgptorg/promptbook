@@ -7,6 +7,12 @@ INSTALL_DIR="${PTBK_INSTALL_DIR:-/opt/promptbook-agents-server}"
 NODE_MAJOR_VERSION="${NODE_MAJOR_VERSION:-22}"
 NODE_MINIMUM_VERSION="${NODE_MINIMUM_VERSION:-}"
 PORT="${PORT:-${PTBK_PORT:-4440}}"
+PTBK_FILE_STORAGE_MODE="${PTBK_FILE_STORAGE_MODE:-self-contained-s3}"
+PTBK_SELF_CONTAINED_S3_DIRECTORY="${PTBK_SELF_CONTAINED_S3_DIRECTORY:-/var/lib/promptbook-agents-server/s3}"
+PTBK_SELF_CONTAINED_S3_PORT="${PTBK_SELF_CONTAINED_S3_PORT:-10000}"
+PTBK_SELF_CONTAINED_S3_SERVICE_NAME="${PTBK_SELF_CONTAINED_S3_SERVICE_NAME:-promptbook-versitygw}"
+PTBK_SELF_CONTAINED_S3_BUCKET="${PTBK_SELF_CONTAINED_S3_BUCKET:-promptbook-files}"
+PTBK_CDN_PATH_PREFIX="${PTBK_CDN_PATH_PREFIX:-ptbk-agents}"
 PROMPTBOOK_REPOSITORY_URL="${PROMPTBOOK_REPOSITORY_URL:-https://github.com/webgptorg/promptbook.git}"
 PROMPTBOOK_REPOSITORY_REF="${PROMPTBOOK_REPOSITORY_REF:-main}"
 PROMPTBOOK_REPOSITORY_DIR="${PROMPTBOOK_REPOSITORY_DIR:-$INSTALL_DIR/repository}"
@@ -32,6 +38,14 @@ PROMPTBOOK_SWAP_FILE="${PTBK_SWAP_FILE:-/swapfile-promptbook}"
 MINIMUM_REQUIRED_MEMORY_MIB=8192
 MINIMUM_REQUIRED_DISK_MIB=15360
 PM2_HOURLY_RESTART_CRON='0 * * * *'
+APT_LOCK_TIMEOUT_SECONDS="${PTBK_APT_LOCK_TIMEOUT_SECONDS:-600}"
+APT_LOCK_POLL_INTERVAL_SECONDS="${PTBK_APT_LOCK_POLL_INTERVAL_SECONDS:-5}"
+APT_LOCK_PATHS=(
+    /var/lib/dpkg/lock-frontend
+    /var/lib/dpkg/lock
+    /var/lib/apt/lists/lock
+    /var/cache/apt/archives/lock
+)
 PTBK_SELF_UPDATE_STATUS_FILE="${PTBK_SELF_UPDATE_STATUS_FILE:-$INSTALL_DIR/.promptbook/self-update/self-update.status}"
 PTBK_SELF_UPDATE_LOG_FILE="${PTBK_SELF_UPDATE_LOG_FILE:-$INSTALL_DIR/.promptbook/self-update/self-update.log}"
 SELF_UPDATE_STARTED_AT=""
@@ -46,6 +60,15 @@ ENV_FILE=""
 REQUESTED_OPENAI_API_KEY=""
 REQUESTED_ADMIN_PASSWORD=""
 REQUESTED_PUBLIC_SITE_URL=""
+REQUESTED_FILE_STORAGE_MODE="$PTBK_FILE_STORAGE_MODE"
+REQUESTED_SELF_CONTAINED_S3_DIRECTORY="$PTBK_SELF_CONTAINED_S3_DIRECTORY"
+REQUESTED_CDN_BUCKET="$PTBK_SELF_CONTAINED_S3_BUCKET"
+REQUESTED_CDN_PATH_PREFIX="$PTBK_CDN_PATH_PREFIX"
+REQUESTED_CDN_ENDPOINT="${CDN_ENDPOINT:-}"
+REQUESTED_CDN_ACCESS_KEY_ID="${CDN_ACCESS_KEY_ID:-}"
+REQUESTED_CDN_SECRET_ACCESS_KEY="${CDN_SECRET_ACCESS_KEY:-}"
+REQUESTED_CDN_PUBLIC_URL="${NEXT_PUBLIC_CDN_PUBLIC_URL:-}"
+REQUESTED_CDN_FORCE_PATH_STYLE="${CDN_FORCE_PATH_STYLE:-false}"
 REQUESTED_ADDITIONAL_SWAP_MIB=0
 IS_RUNNER_AUTHENTICATION_REQUESTED=""
 GENERATED_ADMIN_PASSWORD=""
@@ -161,6 +184,29 @@ resolve_promptbook_environment_label() {
             printf 'LTS'
             ;;
     esac
+}
+
+normalize_file_storage_mode() {
+    local raw_mode="${1:-}"
+    local normalized_mode=""
+
+    normalized_mode="$(printf '%s' "$raw_mode" | tr '[:upper:]' '[:lower:]' | sed -E 's/^[[:space:]]+|[[:space:]]+$//g; s/_/-/g')"
+
+    case "$normalized_mode" in
+        '' | self-contained | self-contained-s3 | bundled | bundled-s3 | local | local-s3 | versitygw)
+            printf 'self-contained-s3'
+            ;;
+        external | external-s3 | s3)
+            printf 'external-s3'
+            ;;
+        *)
+            fail "Unsupported file storage mode '$raw_mode'. Use self-contained-s3 or external-s3."
+            ;;
+    esac
+}
+
+is_self_contained_s3_storage_enabled() {
+    [[ "$(normalize_file_storage_mode "$REQUESTED_FILE_STORAGE_MODE")" == "self-contained-s3" ]]
 }
 
 encode_status_field() {
@@ -670,6 +716,7 @@ install_system_packages() {
         git \
         gnupg \
         util-linux \
+        tar \
         build-essential \
         python3 \
         make \
@@ -679,6 +726,119 @@ install_system_packages() {
         libnginx-mod-http-headers-more-filter \
         certbot \
         python3-certbot-nginx
+}
+
+resolve_versitygw_release_asset_suffix() {
+    local architecture=""
+
+    architecture="$(uname -m)"
+    case "$architecture" in
+        x86_64 | amd64)
+            printf '_Linux_x86_64.tar.gz'
+            ;;
+        aarch64 | arm64)
+            printf '_Linux_arm64.tar.gz'
+            ;;
+        *)
+            fail "Unsupported VersityGW architecture $architecture."
+            ;;
+    esac
+}
+
+resolve_latest_versitygw_download_url() {
+    local asset_suffix=""
+    asset_suffix="$(resolve_versitygw_release_asset_suffix)"
+
+    curl -fsSL https://api.github.com/repos/versity/versitygw/releases/latest |
+        awk -v asset_suffix="$asset_suffix" -F'"' '
+            $2 == "browser_download_url" && $4 ~ asset_suffix "$" {
+                print $4
+                exit
+            }
+        '
+}
+
+install_versitygw_binary() {
+    local download_url=""
+    local temporary_directory=""
+    local binary_path=""
+
+    if command -v versitygw >/dev/null 2>&1; then
+        log "VersityGW is already installed."
+        return
+    fi
+
+    download_url="$(resolve_latest_versitygw_download_url)"
+    if [[ -z "$download_url" ]]; then
+        fail "Could not resolve the latest VersityGW Linux release download URL."
+    fi
+
+    log "Installing VersityGW from $download_url."
+    temporary_directory="$(mktemp -d)"
+    curl -fsSL "$download_url" -o "$temporary_directory/versitygw.tar.gz"
+    tar -xzf "$temporary_directory/versitygw.tar.gz" -C "$temporary_directory"
+    binary_path="$(find "$temporary_directory" -type f -name versitygw | head -n 1)"
+
+    if [[ -z "$binary_path" ]]; then
+        rm -rf "$temporary_directory"
+        fail "Downloaded VersityGW archive did not contain a versitygw binary."
+    fi
+
+    "${SUDO[@]}" install -o root -g root -m 755 "$binary_path" /usr/local/bin/versitygw
+    rm -rf "$temporary_directory"
+}
+
+configure_self_contained_s3_storage() {
+    local storage_directory="$REQUESTED_SELF_CONTAINED_S3_DIRECTORY"
+    local data_directory="$storage_directory/data"
+    local iam_directory="$storage_directory/iam"
+    local versioning_directory="$storage_directory/versions"
+    local service_environment_file="/etc/default/${PTBK_SELF_CONTAINED_S3_SERVICE_NAME}"
+    local service_file="/etc/systemd/system/${PTBK_SELF_CONTAINED_S3_SERVICE_NAME}.service"
+
+    if ! is_self_contained_s3_storage_enabled; then
+        return
+    fi
+
+    install_versitygw_binary
+
+    log "Configuring self-contained S3 storage in $storage_directory."
+    "${SUDO[@]}" install -d -o "$RUN_USER" -g "$RUN_GROUP" -m 750 "$storage_directory" "$data_directory" "$iam_directory" "$versioning_directory"
+    "${SUDO[@]}" install -d -o "$RUN_USER" -g "$RUN_GROUP" -m 750 "$data_directory/$REQUESTED_CDN_BUCKET"
+
+    "${SUDO[@]}" tee "$service_environment_file" >/dev/null <<EOF
+ROOT_ACCESS_KEY=$REQUESTED_CDN_ACCESS_KEY_ID
+ROOT_SECRET_KEY=$REQUESTED_CDN_SECRET_ACCESS_KEY
+EOF
+    "${SUDO[@]}" chown root:root "$service_environment_file"
+    "${SUDO[@]}" chmod 600 "$service_environment_file"
+
+    "${SUDO[@]}" tee "$service_file" >/dev/null <<EOF
+[Unit]
+Description=Promptbook self-contained S3 storage (VersityGW)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=$RUN_USER
+Group=$RUN_GROUP
+EnvironmentFile=$service_environment_file
+ExecStart=/usr/local/bin/versitygw --port :$PTBK_SELF_CONTAINED_S3_PORT --iam-dir $iam_directory posix --versioning-dir $versioning_directory $data_directory
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ReadWritePaths=$storage_directory
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+    "${SUDO[@]}" systemctl daemon-reload
+    "${SUDO[@]}" systemctl enable "$PTBK_SELF_CONTAINED_S3_SERVICE_NAME" >/dev/null
+    "${SUDO[@]}" systemctl restart "$PTBK_SELF_CONTAINED_S3_SERVICE_NAME"
 }
 
 is_node_version_supported() {
@@ -1093,6 +1253,98 @@ prompt_public_site_url() {
     REQUESTED_PUBLIC_SITE_URL="$(prompt_with_default "Public Agents Server URL" "$default_public_url")"
 }
 
+trim_trailing_slashes() {
+    printf '%s' "$1" | sed -E 's#/+$##'
+}
+
+resolve_self_contained_s3_public_url() {
+    local public_site_url="$1"
+    local bucket="$2"
+    local normalized_public_site_url=""
+
+    normalized_public_site_url="$(trim_trailing_slashes "$public_site_url")"
+    printf '%s/s3/%s/' "$normalized_public_site_url" "$bucket"
+}
+
+resolve_file_storage_default() {
+    local key="$1"
+    local fallback="$2"
+    local existing_value=""
+
+    existing_value="$(get_env_value "$key")"
+    if [[ -n "$existing_value" ]]; then
+        printf '%s' "$existing_value"
+        return
+    fi
+
+    printf '%s' "$fallback"
+}
+
+resolve_boolean_default_label() {
+    local raw_value="$1"
+
+    if [[ "$raw_value" =~ ^([Tt][Rr][Uu][Ee]|1|[Yy][Ee][Ss]|[Yy])$ ]]; then
+        printf 'yes'
+        return
+    fi
+
+    printf 'no'
+}
+
+prompt_file_storage() {
+    local existing_mode=""
+    local default_mode=""
+    local default_directory=""
+    local default_bucket=""
+    local default_path_prefix=""
+    local default_endpoint=""
+    local default_access_key_id=""
+    local default_secret_access_key=""
+    local default_public_url=""
+    local default_force_path_style=""
+
+    existing_mode="$(get_env_value PTBK_FILE_STORAGE_MODE)"
+    default_mode="$(normalize_file_storage_mode "${existing_mode:-$PTBK_FILE_STORAGE_MODE}")"
+
+    if prompt_yes_no "Use self-contained S3 file storage with VersityGW?" "$([[ "$default_mode" == "self-contained-s3" ]] && printf 'yes' || printf 'no')"; then
+        REQUESTED_FILE_STORAGE_MODE="self-contained-s3"
+        default_directory="$(resolve_file_storage_default PTBK_SELF_CONTAINED_S3_DIRECTORY "$PTBK_SELF_CONTAINED_S3_DIRECTORY")"
+        default_bucket="$(resolve_file_storage_default CDN_BUCKET "$PTBK_SELF_CONTAINED_S3_BUCKET")"
+        default_path_prefix="$(resolve_file_storage_default NEXT_PUBLIC_CDN_PATH_PREFIX "$PTBK_CDN_PATH_PREFIX")"
+
+        REQUESTED_SELF_CONTAINED_S3_DIRECTORY="$(prompt_with_default "Self-contained S3 files directory" "$default_directory")"
+        REQUESTED_CDN_BUCKET="$(prompt_with_default "Self-contained S3 bucket" "$default_bucket")"
+        REQUESTED_CDN_PATH_PREFIX="$(prompt_with_default "S3 path prefix" "$default_path_prefix")"
+        REQUESTED_CDN_ENDPOINT="http://127.0.0.1:${PTBK_SELF_CONTAINED_S3_PORT}"
+        REQUESTED_CDN_PUBLIC_URL="$(resolve_self_contained_s3_public_url "$REQUESTED_PUBLIC_SITE_URL" "$REQUESTED_CDN_BUCKET")"
+        REQUESTED_CDN_FORCE_PATH_STYLE="true"
+        return
+    fi
+
+    REQUESTED_FILE_STORAGE_MODE="external-s3"
+    default_bucket="$(resolve_file_storage_default CDN_BUCKET "$PTBK_SELF_CONTAINED_S3_BUCKET")"
+    default_path_prefix="$(resolve_file_storage_default NEXT_PUBLIC_CDN_PATH_PREFIX "$PTBK_CDN_PATH_PREFIX")"
+    default_endpoint="$(resolve_file_storage_default CDN_ENDPOINT "$REQUESTED_CDN_ENDPOINT")"
+    default_access_key_id="$(resolve_file_storage_default CDN_ACCESS_KEY_ID "$REQUESTED_CDN_ACCESS_KEY_ID")"
+    default_secret_access_key="$(resolve_file_storage_default CDN_SECRET_ACCESS_KEY "$REQUESTED_CDN_SECRET_ACCESS_KEY")"
+    default_public_url="$(resolve_file_storage_default NEXT_PUBLIC_CDN_PUBLIC_URL "$REQUESTED_CDN_PUBLIC_URL")"
+    default_force_path_style="$(resolve_boolean_default_label "$(resolve_file_storage_default CDN_FORCE_PATH_STYLE "$REQUESTED_CDN_FORCE_PATH_STYLE")")"
+
+    REQUESTED_CDN_BUCKET="$(prompt_with_default "External S3 bucket" "$default_bucket")"
+    REQUESTED_CDN_PATH_PREFIX="$(prompt_with_default "S3 path prefix" "$default_path_prefix")"
+    REQUESTED_CDN_ENDPOINT="$(prompt_with_default "External S3 endpoint" "$default_endpoint")"
+    REQUESTED_CDN_ACCESS_KEY_ID="$(prompt_with_default "External S3 access key ID" "$default_access_key_id")"
+    REQUESTED_CDN_SECRET_ACCESS_KEY="$(
+        prompt_secret_with_default "External S3 secret access key" "$([[ -n "$default_secret_access_key" ]] && printf 'keep existing' || printf 'empty')" "$default_secret_access_key"
+    )"
+    REQUESTED_CDN_PUBLIC_URL="$(prompt_with_default "External S3 public URL" "$default_public_url")"
+    if prompt_yes_no "Use S3 path-style requests for external storage?" "$default_force_path_style"; then
+        REQUESTED_CDN_FORCE_PATH_STYLE="true"
+    else
+        REQUESTED_CDN_FORCE_PATH_STYLE="false"
+    fi
+}
+
 configure_domains() {
     local default_domains="$SERVERS"
     local existing_env_file="${ENV_FILE:-$INSTALL_DIR/.env}"
@@ -1125,6 +1377,53 @@ configure_domains() {
     fi
 }
 
+generate_self_contained_s3_secret_access_key() {
+    local existing_secret=""
+
+    existing_secret="$(get_env_value CDN_SECRET_ACCESS_KEY)"
+    if [[ -n "$existing_secret" ]]; then
+        printf '%s' "$existing_secret"
+        return
+    fi
+
+    openssl rand -hex 32
+}
+
+validate_file_storage_configuration() {
+    REQUESTED_FILE_STORAGE_MODE="$(normalize_file_storage_mode "$REQUESTED_FILE_STORAGE_MODE")"
+
+    if [[ -z "$REQUESTED_CDN_BUCKET" ]]; then
+        fail "S3 bucket is required for file storage."
+    fi
+
+    if [[ -z "$REQUESTED_CDN_PATH_PREFIX" ]]; then
+        fail "S3 path prefix is required for file storage."
+    fi
+
+    if [[ "$REQUESTED_FILE_STORAGE_MODE" == "self-contained-s3" ]]; then
+        if [[ -z "$REQUESTED_SELF_CONTAINED_S3_DIRECTORY" ]]; then
+            fail "Self-contained S3 files directory is required."
+        fi
+
+        REQUESTED_CDN_ENDPOINT="http://127.0.0.1:${PTBK_SELF_CONTAINED_S3_PORT}"
+        REQUESTED_CDN_FORCE_PATH_STYLE="true"
+        if [[ -z "$REQUESTED_CDN_ACCESS_KEY_ID" ]]; then
+            REQUESTED_CDN_ACCESS_KEY_ID="promptbook"
+        fi
+        if [[ -z "$REQUESTED_CDN_SECRET_ACCESS_KEY" ]]; then
+            REQUESTED_CDN_SECRET_ACCESS_KEY="$(generate_self_contained_s3_secret_access_key)"
+        fi
+        if [[ -z "$REQUESTED_CDN_PUBLIC_URL" ]]; then
+            REQUESTED_CDN_PUBLIC_URL="$(resolve_self_contained_s3_public_url "$REQUESTED_PUBLIC_SITE_URL" "$REQUESTED_CDN_BUCKET")"
+        fi
+        return
+    fi
+
+    if [[ -z "$REQUESTED_CDN_ENDPOINT" || -z "$REQUESTED_CDN_ACCESS_KEY_ID" || -z "$REQUESTED_CDN_SECRET_ACCESS_KEY" || -z "$REQUESTED_CDN_PUBLIC_URL" ]]; then
+        fail "External S3 storage requires bucket, endpoint, access key ID, secret access key, and public URL."
+    fi
+}
+
 configure_environment() {
     local sqlite_path="$INSTALL_DIR/.promptbook/agents-server.sqlite"
     local public_site_url="$REQUESTED_PUBLIC_SITE_URL"
@@ -1138,6 +1437,8 @@ configure_environment() {
     if [[ -z "$public_site_url" ]]; then
         public_site_url="$(resolve_default_public_site_url)"
     fi
+
+    validate_file_storage_configuration
 
     set_env_value PTBK_AGENTS_SERVER_DATABASE sqlite
     set_env_value PTBK_AGENTS_SERVER_SQLITE_PATH "$sqlite_path"
@@ -1161,6 +1462,18 @@ configure_environment() {
     set_env_value PTBK_NGINX_SITE_NAME "$NGINX_SITE_NAME"
     set_env_value LETS_ENCRYPT_EMAIL "$LETS_ENCRYPT_EMAIL"
     set_env_value OPENAI_API_KEY "$REQUESTED_OPENAI_API_KEY"
+    set_env_value PTBK_FILE_STORAGE_MODE "$REQUESTED_FILE_STORAGE_MODE"
+    set_env_value PTBK_SELF_CONTAINED_S3_DIRECTORY "$REQUESTED_SELF_CONTAINED_S3_DIRECTORY"
+    set_env_value PTBK_SELF_CONTAINED_S3_PORT "$PTBK_SELF_CONTAINED_S3_PORT"
+    set_env_value PTBK_SELF_CONTAINED_S3_SERVICE_NAME "$PTBK_SELF_CONTAINED_S3_SERVICE_NAME"
+    set_env_value CDN_BUCKET "$REQUESTED_CDN_BUCKET"
+    set_env_value NEXT_PUBLIC_CDN_PATH_PREFIX "$REQUESTED_CDN_PATH_PREFIX"
+    set_env_value CDN_ENDPOINT "$REQUESTED_CDN_ENDPOINT"
+    set_env_value CDN_REGION auto
+    set_env_value CDN_FORCE_PATH_STYLE "$REQUESTED_CDN_FORCE_PATH_STYLE"
+    set_env_value CDN_ACCESS_KEY_ID "$REQUESTED_CDN_ACCESS_KEY_ID"
+    set_env_value CDN_SECRET_ACCESS_KEY "$REQUESTED_CDN_SECRET_ACCESS_KEY"
+    set_env_value NEXT_PUBLIC_CDN_PUBLIC_URL "$REQUESTED_CDN_PUBLIC_URL"
 
     if [[ -n "$REQUESTED_ADMIN_PASSWORD" ]]; then
         set_env_value ADMIN_PASSWORD "$REQUESTED_ADMIN_PASSWORD"
@@ -1730,6 +2043,31 @@ proxy_send_timeout 3600s;
 EOF
 }
 
+build_nginx_self_contained_s3_location_block() {
+    if ! is_self_contained_s3_storage_enabled; then
+        return
+    fi
+
+    cat <<EOF
+    location /s3/ {
+        proxy_pass http://127.0.0.1:${PTBK_SELF_CONTAINED_S3_PORT}/;
+        proxy_http_version 1.1;
+        proxy_buffering off;
+        proxy_redirect off;
+        proxy_hide_header Server;
+
+        proxy_set_header Host 127.0.0.1:${PTBK_SELF_CONTAINED_S3_PORT};
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Host \$host;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+
+        proxy_read_timeout 3600s;
+        proxy_send_timeout 3600s;
+    }
+EOF
+}
+
 configure_nginx_branding() {
     ensure_nginx_headers_more_module_is_available
     write_nginx_fallback_page
@@ -1743,10 +2081,12 @@ configure_nginx_reverse_proxy() {
     local nginx_available_path="/etc/nginx/sites-available/${NGINX_SITE_NAME}"
     local nginx_enabled_path="/etc/nginx/sites-enabled/${NGINX_SITE_NAME}"
     local server_names=""
+    local s3_location_block=""
 
     configure_nginx_branding
 
     server_names="$(join_by_space "${DOMAINS[@]}")"
+    s3_location_block="$(build_nginx_self_contained_s3_location_block)"
 
     if [[ -n "$server_names" ]]; then
         log "Configuring nginx reverse proxy for raw IP access and $server_names."
@@ -1768,6 +2108,8 @@ server {
     client_max_body_size 100m;
     include ${NGINX_ERROR_SNIPPET_PATH};
 
+${s3_location_block}
+
     location / {
         include ${NGINX_PROXY_SNIPPET_PATH};
     }
@@ -1784,6 +2126,8 @@ server {
 
     client_max_body_size 100m;
     include ${NGINX_ERROR_SNIPPET_PATH};
+
+${s3_location_block}
 
     location / {
         include ${NGINX_PROXY_SNIPPET_PATH};
@@ -1861,6 +2205,11 @@ configure_ssl_certificates() {
 
     if [[ -n "$first_domain" ]]; then
         set_env_value NEXT_PUBLIC_SITE_URL "https://${first_domain}"
+        local configured_storage_mode=""
+        configured_storage_mode="$(get_env_value PTBK_FILE_STORAGE_MODE)"
+        if [[ -n "$configured_storage_mode" && "$(normalize_file_storage_mode "$configured_storage_mode")" == "self-contained-s3" ]]; then
+            set_env_value NEXT_PUBLIC_CDN_PUBLIC_URL "$(resolve_self_contained_s3_public_url "https://${first_domain}" "$(get_env_value CDN_BUCKET)")"
+        fi
     fi
 
     "${SUDO[@]}" systemctl reload nginx
@@ -1964,6 +2313,39 @@ load_runtime_configuration_from_env_file() {
     env_value="$(get_env_value LETS_ENCRYPT_EMAIL)"
     [[ -n "$env_value" ]] && LETS_ENCRYPT_EMAIL="$env_value"
 
+    env_value="$(get_env_value PTBK_FILE_STORAGE_MODE)"
+    [[ -n "$env_value" ]] && REQUESTED_FILE_STORAGE_MODE="$(normalize_file_storage_mode "$env_value")"
+
+    env_value="$(get_env_value PTBK_SELF_CONTAINED_S3_DIRECTORY)"
+    [[ -n "$env_value" ]] && REQUESTED_SELF_CONTAINED_S3_DIRECTORY="$env_value"
+
+    env_value="$(get_env_value PTBK_SELF_CONTAINED_S3_PORT)"
+    [[ -n "$env_value" ]] && PTBK_SELF_CONTAINED_S3_PORT="$env_value"
+
+    env_value="$(get_env_value PTBK_SELF_CONTAINED_S3_SERVICE_NAME)"
+    [[ -n "$env_value" ]] && PTBK_SELF_CONTAINED_S3_SERVICE_NAME="$env_value"
+
+    env_value="$(get_env_value CDN_BUCKET)"
+    [[ -n "$env_value" ]] && REQUESTED_CDN_BUCKET="$env_value"
+
+    env_value="$(get_env_value NEXT_PUBLIC_CDN_PATH_PREFIX)"
+    [[ -n "$env_value" ]] && REQUESTED_CDN_PATH_PREFIX="$env_value"
+
+    env_value="$(get_env_value CDN_ENDPOINT)"
+    [[ -n "$env_value" ]] && REQUESTED_CDN_ENDPOINT="$env_value"
+
+    env_value="$(get_env_value CDN_ACCESS_KEY_ID)"
+    [[ -n "$env_value" ]] && REQUESTED_CDN_ACCESS_KEY_ID="$env_value"
+
+    env_value="$(get_env_value CDN_SECRET_ACCESS_KEY)"
+    [[ -n "$env_value" ]] && REQUESTED_CDN_SECRET_ACCESS_KEY="$env_value"
+
+    env_value="$(get_env_value NEXT_PUBLIC_CDN_PUBLIC_URL)"
+    [[ -n "$env_value" ]] && REQUESTED_CDN_PUBLIC_URL="$env_value"
+
+    env_value="$(get_env_value CDN_FORCE_PATH_STYLE)"
+    [[ -n "$env_value" ]] && REQUESTED_CDN_FORCE_PATH_STYLE="$env_value"
+
     SERVERS="$(get_env_value SERVERS)"
     set_domains_from_csv "$SERVERS"
 
@@ -2027,6 +2409,7 @@ apply_vps_runtime_configuration() {
     initialize_sudo
     resolve_run_user
     load_runtime_configuration_from_env_file
+    configure_self_contained_s3_storage
     configure_nginx_reverse_proxy
     configure_firewall
     configure_ssl_certificates
@@ -2128,6 +2511,11 @@ print_summary() {
     log "Repository: $PROMPTBOOK_REPOSITORY_DIR"
     log "Environment: $(resolve_promptbook_environment_label "$PROMPTBOOK_REPOSITORY_REF") ($PROMPTBOOK_REPOSITORY_REF)"
     log "Database: $INSTALL_DIR/.promptbook/agents-server.sqlite"
+    log "File storage: $(normalize_file_storage_mode "$REQUESTED_FILE_STORAGE_MODE")"
+    if is_self_contained_s3_storage_enabled; then
+        log "Self-contained S3 directory: $REQUESTED_SELF_CONTAINED_S3_DIRECTORY"
+        log "Self-contained S3 service: $PTBK_SELF_CONTAINED_S3_SERVICE_NAME"
+    fi
     log "pm2 process: $APP_NAME"
     log "pm2 hourly restart: $PM2_HOURLY_RESTART_CRON"
     log "nginx site: /etc/nginx/sites-available/$NGINX_SITE_NAME"
@@ -2160,6 +2548,7 @@ main() {
         LETS_ENCRYPT_EMAIL="$(prompt_with_default "Let's Encrypt email (optional)" "$LETS_ENCRYPT_EMAIL")"
     fi
     prompt_public_site_url
+    prompt_file_storage
     prompt_api_keys_and_admin_password
     prompt_runner_authentication_preference
 
@@ -2173,6 +2562,7 @@ main() {
     install_promptbook_cli_launcher
     install_runner_dependencies
     initialize_promptbook_project
+    configure_self_contained_s3_storage
     configure_runner_authentication
     configure_pm2_startup
     build_agents_server

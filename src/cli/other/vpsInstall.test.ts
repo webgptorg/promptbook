@@ -108,6 +108,26 @@ describe('other/vps/install.sh', () => {
         expect(installScript).not.toContain('env DEBIAN_FRONTEND=noninteractive apt-get install');
     });
 
+    it('defaults standalone VPS file storage to self-contained VersityGW S3', () => {
+        const mainFunction = installScript.slice(installScript.indexOf('\nmain() {'));
+
+        expect(installScript).toContain('PTBK_FILE_STORAGE_MODE="${PTBK_FILE_STORAGE_MODE:-self-contained-s3}"');
+        expect(installScript).toContain(
+            'PTBK_SELF_CONTAINED_S3_DIRECTORY="${PTBK_SELF_CONTAINED_S3_DIRECTORY:-/var/lib/promptbook-agents-server/s3}"',
+        );
+        expect(installScript).toContain('prompt_yes_no "Use self-contained S3 file storage with VersityGW?"');
+        expect(installScript).toContain('configure_self_contained_s3_storage()');
+        expect(installScript).toContain('https://api.github.com/repos/versity/versitygw/releases/latest');
+        expect(installScript).toContain('ExecStart=/usr/local/bin/versitygw');
+        expect(installScript).toContain('set_env_value CDN_ENDPOINT "$REQUESTED_CDN_ENDPOINT"');
+        expect(installScript).toContain('set_env_value NEXT_PUBLIC_CDN_PUBLIC_URL "$REQUESTED_CDN_PUBLIC_URL"');
+        expect(installScript).toContain('location /s3/');
+        expect(mainFunction.indexOf('prompt_file_storage')).toBeLessThan(mainFunction.indexOf('install_system_packages'));
+        expect(mainFunction.indexOf('configure_self_contained_s3_storage')).toBeGreaterThan(
+            mainFunction.indexOf('initialize_promptbook_project'),
+        );
+    });
+
     it('runs standalone self-update from a stable script copy', () => {
         expect(installScript).toContain('rerun_self_update_from_stable_script "$@"');
         expect(installScript).toContain('PTBK_SELF_UPDATE_SCRIPT_COPY=1 exec bash "$runtime_script" self-update "$@"');

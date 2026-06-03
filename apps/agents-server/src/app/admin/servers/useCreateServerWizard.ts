@@ -1,6 +1,5 @@
 'use client';
 
-import { upload } from '@vercel/blob/client';
 import { useCallback, useMemo, useRef, useState, type ChangeEvent, type RefObject } from 'react';
 import { showAlert } from '../../../components/AsyncDialogs/asyncDialogs';
 import { useDirtyModalGuard } from '../../../components/utils/useDirtyModalGuard';
@@ -8,6 +7,7 @@ import { buildServerTablePrefix } from '../../../utils/buildServerTablePrefix';
 import type { ChatFeedbackMode } from '../../../utils/chatFeedbackMode';
 import { getSafeCdnPath } from '../../../utils/cdn/utils/getSafeCdnPath';
 import { normalizeUploadFilename } from '../../../utils/normalization/normalizeUploadFilename';
+import { buildDefaultUserFileUploadPath, uploadFileToServer } from '../../../utils/upload/uploadFileToServer';
 import type { ManagedServerEnvironment } from './useServersRegistryState';
 
 /**
@@ -425,22 +425,21 @@ export function useCreateServerWizard(options: UseCreateServerWizardOptions): Us
                 setIsUploadingIcon(true);
                 setWizardError(null);
 
-                const pathPrefix = process.env.NEXT_PUBLIC_CDN_PATH_PREFIX || '';
                 const normalizedFilename = normalizeUploadFilename(file.name);
-                const uploadPath = pathPrefix
-                    ? `${pathPrefix}/user/files/${normalizedFilename}`
-                    : `user/files/${normalizedFilename}`;
-
-                const blob = await upload(getSafeCdnPath({ pathname: uploadPath }), file, {
-                    access: 'public',
-                    handleUploadUrl: '/api/upload',
-                    clientPayload: JSON.stringify({
-                        purpose: 'SERVER_ICON',
-                        contentType: file.type,
-                    }),
+                const uploadPath = buildDefaultUserFileUploadPath(normalizedFilename);
+                const safeUploadPath = getSafeCdnPath({
+                    pathname: uploadPath,
+                    pathPrefix: process.env.NEXT_PUBLIC_CDN_PATH_PREFIX,
                 });
 
-                updateWizardField('iconUrl', blob.url);
+                const uploadResult = await uploadFileToServer({
+                    file,
+                    pathname: safeUploadPath,
+                    purpose: 'SERVER_ICON',
+                    contentType: file.type,
+                });
+
+                updateWizardField('iconUrl', uploadResult.url);
             } catch (uploadError) {
                 setWizardError({
                     message: uploadError instanceof Error ? uploadError.message : 'Failed to upload the server icon.',
