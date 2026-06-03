@@ -88,6 +88,12 @@ describe('renderHtmlToPdfOnServer', () => {
         expect(evaluateMock).toHaveBeenCalledTimes(1);
         expect(pdfMock).toHaveBeenCalledWith({
             format: 'Letter',
+            margin: {
+                top: '0.5in',
+                right: '0.5in',
+                bottom: '0.5in',
+                left: '0.5in',
+            },
             printBackground: true,
             preferCSSPageSize: true,
         });

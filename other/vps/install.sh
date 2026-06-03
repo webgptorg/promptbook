@@ -33,6 +33,14 @@ PROMPTBOOK_SWAP_FILE="${PTBK_SWAP_FILE:-/swapfile-promptbook}"
 MINIMUM_REQUIRED_MEMORY_MIB=8192
 MINIMUM_REQUIRED_DISK_MIB=15360
 PM2_HOURLY_RESTART_CRON='0 * * * *'
+APT_LOCK_TIMEOUT_SECONDS="${APT_LOCK_TIMEOUT_SECONDS:-600}"
+APT_LOCK_POLL_INTERVAL_SECONDS="${APT_LOCK_POLL_INTERVAL_SECONDS:-5}"
+APT_LOCK_PATHS=(
+    /var/lib/dpkg/lock-frontend
+    /var/lib/dpkg/lock
+    /var/cache/apt/archives/lock
+    /var/lib/apt/lists/lock
+)
 MINIO_BIN_PATH="${PTBK_MINIO_BIN_PATH:-/usr/local/bin/minio}"
 MINIO_CLIENT_BIN_PATH="${PTBK_MINIO_CLIENT_BIN_PATH:-/usr/local/bin/mc}"
 MINIO_DOWNLOAD_URL="${PTBK_MINIO_DOWNLOAD_URL:-https://dl.min.io/server/minio/release/linux-amd64/minio}"
@@ -289,6 +297,70 @@ join_by_space() {
 
 shell_quote() {
     printf "'%s'" "$(printf '%s' "$1" | sed "s/'/'\\\\''/g")"
+}
+
+is_apt_lock_path_locked() {
+    local lock_path="$1"
+    local lock_inode=""
+
+    if [[ ! -e "$lock_path" || ! -r /proc/locks ]]; then
+        return 1
+    fi
+
+    lock_inode="$(stat -Lc '%i' "$lock_path" 2>/dev/null || true)"
+    if [[ -z "$lock_inode" ]]; then
+        return 1
+    fi
+
+    awk -v lock_inode="$lock_inode" '
+        {
+            split($6, device_and_inode, ":")
+            if (device_and_inode[length(device_and_inode)] == lock_inode) {
+                is_locked = 1
+            }
+        }
+        END {
+            exit is_locked ? 0 : 1
+        }
+    ' /proc/locks >/dev/null 2>&1
+}
+
+wait_for_apt_locks() {
+    local lock_path=""
+    local started_at=""
+    local current_time=""
+    local elapsed_seconds=0
+    local is_wait_message_logged=0
+
+    started_at="$(date +%s)"
+
+    while true; do
+        for lock_path in "${APT_LOCK_PATHS[@]}"; do
+            if is_apt_lock_path_locked "$lock_path"; then
+                current_time="$(date +%s)"
+                elapsed_seconds=$((current_time - started_at))
+
+                if [[ "$elapsed_seconds" -ge "$APT_LOCK_TIMEOUT_SECONDS" ]]; then
+                    fail "Another package manager is using apt/dpkg locks and did not finish within ${APT_LOCK_TIMEOUT_SECONDS} seconds. Wait for the other process to finish and run the installer again."
+                fi
+
+                if [[ "$is_wait_message_logged" != "1" ]]; then
+                    log "Another package manager is using apt/dpkg. Waiting up to ${APT_LOCK_TIMEOUT_SECONDS} seconds for the locks to clear."
+                    is_wait_message_logged=1
+                fi
+
+                sleep "$APT_LOCK_POLL_INTERVAL_SECONDS"
+                continue 2
+            fi
+        done
+
+        return
+    done
+}
+
+run_apt_get() {
+    wait_for_apt_locks
+    DEBIAN_FRONTEND=noninteractive "${SUDO[@]}" apt-get -o "DPkg::Lock::Timeout=${APT_LOCK_TIMEOUT_SECONDS}" "$@"
 }
 
 normalize_domain() {
@@ -623,8 +695,8 @@ check_platform() {
 
 install_system_packages() {
     log "Installing system packages."
-    "${SUDO[@]}" env DEBIAN_FRONTEND=noninteractive apt-get update
-    "${SUDO[@]}" env DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    run_apt_get update
+    run_apt_get install -y \
         ca-certificates \
         curl \
         git \
@@ -702,8 +774,8 @@ install_nodejs() {
         "${SUDO[@]}" gpg --dearmor --yes -o /etc/apt/keyrings/nodesource.gpg
     echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_${NODE_MAJOR_VERSION}.x nodistro main" |
         "${SUDO[@]}" tee /etc/apt/sources.list.d/nodesource.list >/dev/null
-    "${SUDO[@]}" env DEBIAN_FRONTEND=noninteractive apt-get update
-    "${SUDO[@]}" env DEBIAN_FRONTEND=noninteractive apt-get install -y nodejs
+    run_apt_get update
+    run_apt_get install -y nodejs
 }
 
 install_global_process_manager() {
@@ -736,6 +808,7 @@ install_promptbook_repository() {
 
 install_agents_server_browser_dependencies() {
     log "Installing Chromium and Playwright system dependencies for Agents Server browser features."
+    wait_for_apt_locks
     "${SUDO[@]}" bash -lc "cd $(shell_quote "$PROMPTBOOK_REPOSITORY_DIR") && npx playwright install-deps chromium"
     run_as_service_user bash -lc "cd $(shell_quote "$PROMPTBOOK_REPOSITORY_DIR") && npx playwright install chromium"
 }
@@ -1649,8 +1722,8 @@ ensure_nginx_headers_more_module_is_available() {
 
     if ! dpkg-query -W -f='${Status}' "$headers_more_package" 2>/dev/null | grep -q 'install ok installed'; then
         log "Installing nginx headers-more module for branded server headers."
-        "${SUDO[@]}" env DEBIAN_FRONTEND=noninteractive apt-get update
-        "${SUDO[@]}" env DEBIAN_FRONTEND=noninteractive apt-get install -y "$headers_more_package"
+        run_apt_get update
+        run_apt_get install -y "$headers_more_package"
     fi
 
     if [[ ! -d /usr/share/nginx/modules-available ]]; then

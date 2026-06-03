@@ -10,6 +10,16 @@ const CHAT_EXPORT_PDF_VIEWPORT = {
 } as const;
 
 /**
+ * Page margins applied to every exported PDF page.
+ */
+const CHAT_EXPORT_PDF_MARGIN = {
+    top: '0.5in',
+    right: '0.5in',
+    bottom: '0.5in',
+    left: '0.5in',
+} as const;
+
+/**
  * Prints standalone HTML into a PDF using a short-lived headless Chromium instance.
  *
  * @param html - Fully rendered standalone HTML document.
@@ -31,6 +41,7 @@ export async function renderHtmlToPdfOnServer(html: string): Promise<Buffer> {
 
             return await page.pdf({
                 format: 'Letter',
+                margin: CHAT_EXPORT_PDF_MARGIN,
                 printBackground: true,
                 preferCSSPageSize: true,
             });

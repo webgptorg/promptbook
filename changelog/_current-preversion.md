@@ -1,3 +1,7 @@
+-   Added page margins to Agents Server chat PDF exports so downloaded conversations keep consistent whitespace around each page instead of printing edge-to-edge.
+
+-   Fixed Agents Server Windows test-build cleanup so homepage prerender no longer leaves a temporary `next start` process on port `4440` that can block later builds.
+
 -   Fixed standalone VPS Agents Server installs so apt/dpkg package-manager locks from unattended upgrades are waited out with a clear status message instead of failing immediately.
 
 -   Finished Agents Server dark-mode polish across route shells, loading skeletons, documentation pages, chat-sidebar selection states, form controls, footer surfaces, and markdown/book code previews while keeping light-mode styling unchanged.

@@ -46,6 +46,10 @@ const WAIT_TIMEOUT_MS = 15000;
  */
 const HOME_REQUEST_TIMEOUT_MS = 30000;
 /**
+ * Timeout for stopping the temporary production server before escalating cleanup.
+ */
+const STOP_SERVER_TIMEOUT_MS = 10000;
+/**
  * When enabled, homepage prerender failures abort the whole build.
  */
 const IS_STRICT_PRERENDER_ENABLED = process.env.PRERENDER_HOMEPAGE_STRICT === 'true';
@@ -137,6 +141,65 @@ function waitForServerReady(serverProcess) {
 }
 
 /**
+ * Waits briefly for the temporary production server to exit after cleanup starts.
+ *
+ * @param serverProcess - Spawned `next start` child process.
+ * @param gracefulExit - Promise resolved by the child `exit` event.
+ * @returns Whether the child exited within the timeout window.
+ */
+async function waitForServerStop(serverProcess, gracefulExit) {
+    if (serverProcess.exitCode !== null || serverProcess.signalCode !== null) {
+        return true;
+    }
+
+    return await Promise.race([
+        gracefulExit.then(() => true),
+        new Promise((resolve) => setTimeout(() => resolve(false), STOP_SERVER_TIMEOUT_MS)),
+    ]);
+}
+
+/**
+ * Force-stops the temporary production server when normal shutdown does not finish in time.
+ *
+ * Windows can leave `next start` alive after an `EPERM` kill attempt, so use `taskkill`
+ * against the exact PID before giving up on cleanup.
+ *
+ * @param serverProcess - Spawned `next start` child process.
+ */
+async function forceStopServer(serverProcess) {
+    if (serverProcess.exitCode !== null || serverProcess.signalCode !== null) {
+        return;
+    }
+
+    if (process.platform !== 'win32') {
+        try {
+            serverProcess.kill('SIGKILL');
+        } catch (error) {
+            if (!isIgnorableStopServerError(error)) {
+                throw error;
+            }
+        }
+        return;
+    }
+
+    await new Promise((resolve, reject) => {
+        const taskKillProcess = spawn('taskkill', ['/PID', String(serverProcess.pid), '/T', '/F'], {
+            stdio: 'ignore',
+        });
+
+        taskKillProcess.on('error', reject);
+        taskKillProcess.on('exit', (code) => {
+            if (code === 0 || serverProcess.exitCode !== null || serverProcess.signalCode !== null) {
+                resolve();
+                return;
+            }
+
+            reject(new Error(`Failed to stop temporary production server process ${serverProcess.pid} with taskkill.`));
+        });
+    });
+}
+
+/**
  * Runs the production server for the built app, captures `/`, and keeps the HTML.
  */
 async function prerenderHomePage() {
@@ -196,7 +259,19 @@ async function prerenderHomePage() {
     } finally {
         detachStopServerHandlers();
         stopServer();
-        await gracefulExit;
+
+        if (!(await waitForServerStop(serverProcess, gracefulExit))) {
+            console.warn(
+                `Timed out waiting ${STOP_SERVER_TIMEOUT_MS}ms for the temporary production server to stop. Trying a forceful shutdown.`,
+            );
+            await forceStopServer(serverProcess);
+
+            if (!(await waitForServerStop(serverProcess, gracefulExit))) {
+                console.warn(
+                    `Timed out waiting ${STOP_SERVER_TIMEOUT_MS}ms for the temporary production server after forceful shutdown.`,
+                );
+            }
+        }
     }
 }
 

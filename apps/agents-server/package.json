@@ -7,7 +7,7 @@
         "dev": "next dev -p 4440",
         "test": "npm run lint && npm run test-build && npm run test-e2e",
         "test-e2e": "playwright test",
-        "pretest-build": "npx kill-port 4021",
+        "pretest-build": "npx kill-port 4021 4440 || exit 0",
         "test-build": "node -r ./scripts/ignore-kill-eperm.js ../../node_modules/next/dist/bin/next build && node ./scripts/prerender-homepage.js",
         "build": "node -r ./scripts/ignore-kill-eperm.js ../../node_modules/next/dist/bin/next build && node ./scripts/prerender-homepage.js",
         "start": "next start -p 4440",
