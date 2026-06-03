@@ -33,22 +33,24 @@ export class TrackedFilesStorage implements IIFilesStorageWithCdn {
     }
 
     public async setItem(key: string, file: IFile): Promise<void> {
+
         await this.inner.setItem(key, file);
 
         try {
             const { userId, purpose } = file;
-            const storageUrl = this.getItemUrl(key).href;
+            const cdnUrl = this.getItemUrl(key).href;
 
+     
             await this.supabase.from(await $getTableName('File')).insert({
                 userId: userId || null,
                 fileName: key,
                 fileSize: file.fileSize ?? file.data.length,
                 fileType: file.type,
-                storageUrl,
-                shortUrl: null,
+                cdnUrl,
                 purpose: purpose || 'UNKNOWN',
-                status: 'COMPLETED',
             });
+
+           
         } catch (error) {
             console.error('Failed to track upload:', error);
         }

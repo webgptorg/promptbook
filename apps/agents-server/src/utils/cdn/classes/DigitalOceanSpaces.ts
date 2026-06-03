@@ -12,44 +12,13 @@ type IDigitalOceanSpacesConfig = {
     readonly bucket: string;
     readonly pathPrefix: string;
     readonly endpoint: string;
-    readonly region?: string;
     readonly accessKeyId: string;
     readonly secretAccessKey: string;
     readonly cdnPublicUrl: URL;
     readonly gzip: boolean;
-    readonly forcePathStyle?: boolean;
-    readonly isPublicReadAclEnabled?: boolean;
 
     // TODO: [⛳️] Probbably prefix should be in this config not on the consumer side
 };
-
-/**
- * Resolves the S3 endpoint URL, preserving explicit `http` endpoints for local MinIO.
- *
- * @private internal helper for DigitalOceanSpaces.
- */
-function resolveS3Endpoint(endpoint: string): string {
-    if (/^https?:\/\//i.test(endpoint)) {
-        return endpoint;
-    }
-
-    return `https://${endpoint}`;
-}
-
-/**
- * Returns a URL object whose pathname ends with `/`.
- *
- * @private internal helper for DigitalOceanSpaces.
- */
-function ensureTrailingSlashUrl(url: URL): URL {
-    const normalizedUrl = new URL(url.href);
-
-    if (!normalizedUrl.pathname.endsWith('/')) {
-        normalizedUrl.pathname = `${normalizedUrl.pathname}/`;
-    }
-
-    return normalizedUrl;
-}
 
 /**
  * Class implementing digital ocean spaces.
@@ -63,9 +32,8 @@ export class DigitalOceanSpaces implements IIFilesStorageWithCdn {
 
     public constructor(private readonly config: IDigitalOceanSpacesConfig) {
         this.s3 = new S3Client({
-            region: config.region || 'auto',
-            endpoint: resolveS3Endpoint(config.endpoint),
-            forcePathStyle: config.forcePathStyle,
+            region: 'auto',
+            endpoint: 'https://' + config.endpoint,
             credentials: {
                 accessKeyId: config.accessKeyId,
                 secretAccessKey: config.secretAccessKey,
@@ -74,13 +42,13 @@ export class DigitalOceanSpaces implements IIFilesStorageWithCdn {
     }
 
     public getItemUrl(key: string): URL {
-        return new URL(this.getStorageKey(key), ensureTrailingSlashUrl(this.cdnPublicUrl));
+        return new URL(this.config.pathPrefix + '/' + key, this.cdnPublicUrl);
     }
 
     public async getItem(key: string): Promise<IFile | null> {
         const parameters = {
             Bucket: this.config.bucket,
-            Key: this.getStorageKey(key),
+            Key: this.config.pathPrefix + '/' + key,
         };
 
         try {
@@ -136,34 +104,18 @@ export class DigitalOceanSpaces implements IIFilesStorageWithCdn {
         const uploadResult = await this.s3.send(
             new PutObjectCommand({
                 Bucket: this.config.bucket,
-                Key: this.getStorageKey(key),
+                Key: this.config.pathPrefix + '/' + key,
                 ContentType: processedFile.type,
                 ...putObjectRequestAdditional,
                 Body: processedFile.data,
                 // TODO: Public read access / just private to extending class
-                ...(this.config.isPublicReadAclEnabled === false ? {} : { ACL: 'public-read' }),
+                ACL: 'public-read',
             }),
         );
 
         if (!uploadResult.ETag) {
             throw new Error(`Upload result does not contain ETag`);
         }
-    }
-
-    /**
-     * Builds the final object key used in the S3 bucket.
-     *
-     * @private internal helper for DigitalOceanSpaces.
-     */
-    private getStorageKey(key: string): string {
-        const normalizedKey = key.replace(/^\/+/g, '');
-        const normalizedPathPrefix = this.config.pathPrefix.replace(/^\/+|\/+$/g, '');
-
-        if (!normalizedPathPrefix) {
-            return normalizedKey;
-        }
-
-        return `${normalizedPathPrefix}/${normalizedKey}`;
     }
 }
 

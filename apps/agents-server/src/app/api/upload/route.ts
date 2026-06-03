@@ -1,15 +1,10 @@
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabase } from '@/src/database/$provideSupabase';
-import { $provideUntrackedCdnForServer } from '@/src/tools/$provideCdnForServer';
-import { getSafeCdnPath } from '@/src/utils/cdn/utils/getSafeCdnPath';
 import { serializeError } from '@promptbook-local/utils';
 import type { PostgrestSingleResponse, SupabaseClient } from '@supabase/supabase-js';
 import { handleUpload, type HandleUploadBody } from '@vercel/blob/client';
 import { NextRequest, NextResponse } from 'next/server';
 import { assertsError } from '../../../../../../src/errors/assertsError';
-import { DatabaseError } from '../../../../../../src/errors/DatabaseError';
-import { LimitReachedError } from '../../../../../../src/errors/LimitReachedError';
-import { NotAllowed } from '../../../../../../src/errors/NotAllowed';
 import { getUserIdFromRequest } from '../../../../src/utils/getUserIdFromRequest';
 import type { AgentsServerDatabase } from '../../../database/schema';
 import { FILE_SECURITY_CHECKERS } from '../../../file-security-checkers';
@@ -52,41 +47,6 @@ const DEFAULT_UPLOAD_CONTENT_TYPE = 'application/octet-stream';
  * @private
  */
 const MIME_TYPE_PATTERN = /^[a-z0-9!#$&^_.+-]+\/[a-z0-9!#$&^_.+-]+$/i;
-
-/**
- * Form-data field containing the uploaded file for S3-backed server uploads.
- *
- * @private
- */
-const SERVER_ROUTED_UPLOAD_FILE_FIELD = 'file';
-
-/**
- * Form-data field containing the requested CDN object key for S3-backed server uploads.
- *
- * @private
- */
-const SERVER_ROUTED_UPLOAD_PATHNAME_FIELD = 'pathname';
-
-/**
- * Form-data field containing upload purpose for S3-backed server uploads.
- *
- * @private
- */
-const SERVER_ROUTED_UPLOAD_PURPOSE_FIELD = 'purpose';
-
-/**
- * Form-data field containing content type for S3-backed server uploads.
- *
- * @private
- */
-const SERVER_ROUTED_UPLOAD_CONTENT_TYPE_FIELD = 'contentType';
-
-/**
- * Multipart content type prefix used by server-routed S3 uploads.
- *
- * @private
- */
-const MULTIPART_FORM_DATA_CONTENT_TYPE = 'multipart/form-data';
 
 /**
  * Safely parses a JSON string into an object; returns empty object on invalid payload.
@@ -160,199 +120,10 @@ function resolveUploadClientPayload(clientPayload: string | null | undefined): {
 }
 
 /**
- * Checks whether the upload request uses the server-routed multipart protocol.
- *
- * @private
- */
-function isServerRoutedUploadRequest(request: NextRequest): boolean {
-    return (request.headers.get('content-type') || '').toLowerCase().includes(MULTIPART_FORM_DATA_CONTENT_TYPE);
-}
-
-/**
- * Reads a string field from multipart form data.
- *
- * @private
- */
-function getFormDataString(formData: FormData, fieldName: string): string | null {
-    const value = formData.get(fieldName);
-
-    return typeof value === 'string' ? value : null;
-}
-
-/**
- * Normalizes a client-provided CDN pathname into a relative object key.
- *
- * @private
- */
-function normalizeServerUploadPathname(value: unknown, fallbackFilename: string): string {
-    const rawPathname = typeof value === 'string' ? value : fallbackFilename;
-    const normalizedPathname = rawPathname
-        .trim()
-        .replace(/\\/g, '/')
-        .replace(/^\/+/g, '')
-        .replace(/\/+/g, '/');
-
-    if (!normalizedPathname || normalizedPathname.split('/').includes('..')) {
-        throw new NotAllowed('Upload pathname must be a safe relative CDN path.');
-    }
-
-    return getSafeCdnPath({ pathname: normalizedPathname });
-}
-
-/**
- * Runs configured file-security checks for an uploaded public URL.
- *
- * @private
- */
-async function checkUploadedFileSecurity(storageUrl: string): Promise<Record<string, unknown>> {
-    const securityResults: Record<string, unknown> = {};
-
-    for (const checkerId in FILE_SECURITY_CHECKERS) {
-        try {
-            const checker = FILE_SECURITY_CHECKERS[checkerId]!;
-            console.info(`🛡️ Checking file security with ${checker.title} (${storageUrl})...`);
-            const result = await checker.checkFile(storageUrl);
-            securityResults[checkerId] = result;
-            console.info(`🛡️ Security check result from ${checker.title}:`, result.status);
-        } catch (error) {
-            console.error(`🛡️ Security check failed for ${checkerId}:`, error);
-            securityResults[checkerId] = {
-                isSafe: false,
-                status: 'ERROR',
-                confidence: 0,
-                message: error instanceof Error ? error.message : String(error),
-            };
-        }
-    }
-
-    return securityResults;
-}
-
-/**
- * Inserts a completed file row for a server-routed upload.
- *
- * @private
- */
-async function insertCompletedUploadFileRecord(options: {
-    supabase: SupabaseClient<AgentsServerDatabase>;
-    userId: number | null;
-    fileName: string;
-    fileSize: number;
-    fileType: string;
-    storageUrl: string;
-    purpose: string;
-    securityResult: AgentsServerDatabase['public']['Tables']['File']['Insert']['securityResult'];
-}): Promise<number | null> {
-    const {
-        supabase,
-        userId,
-        fileName,
-        fileSize,
-        fileType,
-        storageUrl,
-        purpose,
-        securityResult,
-    } = options;
-    const { data, error }: PostgrestSingleResponse<Pick<AgentsServerDatabase['public']['Tables']['File']['Row'], 'id'>> =
-        await supabase
-            .from(await $getTableName('File'))
-            .insert({
-                userId,
-                fileName,
-                fileSize,
-                fileType,
-                storageUrl,
-                shortUrl: null,
-                purpose,
-                status: 'COMPLETED',
-                securityResult,
-            })
-            .select('id')
-            .single();
-
-    if (error) {
-        throw new DatabaseError(`Failed to create completed file record: ${error.message}`);
-    }
-
-    return data?.id ?? null;
-}
-
-/**
- * Handles direct multipart uploads for S3-compatible storage backends.
- *
- * @private
- */
-async function handleServerRoutedUpload(request: NextRequest): Promise<NextResponse> {
-    const formData = await request.formData();
-    const uploadFile = formData.get(SERVER_ROUTED_UPLOAD_FILE_FIELD);
-
-    if (!(uploadFile instanceof File)) {
-        throw new NotAllowed('Upload request must contain a file.');
-    }
-
-    const userId = await getUserIdFromRequest(request);
-    const purpose = normalizeUploadPurpose(getFormDataString(formData, SERVER_ROUTED_UPLOAD_PURPOSE_FIELD));
-    const contentType = normalizeUploadContentType(
-        getFormDataString(formData, SERVER_ROUTED_UPLOAD_CONTENT_TYPE_FIELD) || uploadFile.type,
-    );
-    const pathname = normalizeServerUploadPathname(
-        getFormDataString(formData, SERVER_ROUTED_UPLOAD_PATHNAME_FIELD),
-        uploadFile.name,
-    );
-    const maxFileSize = await getMaxFileUploadSizeBytes();
-
-    if (uploadFile.size > maxFileSize) {
-        throw new LimitReachedError(`Uploaded file exceeds the configured maximum size of ${maxFileSize} bytes.`);
-    }
-
-    const buffer = Buffer.from(await uploadFile.arrayBuffer());
-    if (buffer.byteLength > maxFileSize) {
-        throw new LimitReachedError(`Uploaded file exceeds the configured maximum size of ${maxFileSize} bytes.`);
-    }
-
-    const cdn = $provideUntrackedCdnForServer();
-    await cdn.setItem(pathname, {
-        type: contentType,
-        data: buffer,
-        userId: userId || undefined,
-        purpose,
-        fileSize: buffer.byteLength,
-    });
-
-    const storageUrl = cdn.getItemUrl(pathname).href;
-    const securityResults = await checkUploadedFileSecurity(storageUrl);
-    const securityResultForDatabase =
-        securityResults as AgentsServerDatabase['public']['Tables']['File']['Insert']['securityResult'];
-    const supabase: SupabaseClient<AgentsServerDatabase> = $provideSupabase();
-    const fileId = await insertCompletedUploadFileRecord({
-        supabase,
-        userId: userId || null,
-        fileName: pathname,
-        fileSize: buffer.byteLength,
-        fileType: contentType,
-        storageUrl,
-        purpose,
-        securityResult: securityResultForDatabase,
-    });
-
-    return NextResponse.json({
-        url: storageUrl,
-        pathname,
-        fileId,
-        contentType,
-        size: buffer.byteLength,
-    });
-}
-
-/**
  * Handles post.
  */
 export async function POST(request: NextRequest) {
     try {
-        if (isServerRoutedUploadRequest(request)) {
-            return await handleServerRoutedUpload(request);
-        }
-
         const body = (await request.json()) as HandleUploadBody;
         const userId = await getUserIdFromRequest(request);
         const supabase: SupabaseClient<AgentsServerDatabase> = $provideSupabase();
@@ -438,9 +209,26 @@ export async function POST(request: NextRequest) {
                     const supabase = $provideSupabase();
 
                     // Security checks
-                    const securityResults = await checkUploadedFileSecurity(blob.url);
+                    const securityResults: Record<string, unknown> = {};
                     const securityResultForDatabase =
                         securityResults as AgentsServerDatabase['public']['Tables']['File']['Update']['securityResult'];
+                    for (const checkerId in FILE_SECURITY_CHECKERS) {
+                        try {
+                            const checker = FILE_SECURITY_CHECKERS[checkerId]!;
+                            console.info(`🛡️ Checking file security with ${checker.title} (${blob.url})...`);
+                            const result = await checker.checkFile(blob.url);
+                            securityResults[checkerId] = result;
+                            console.info(`🛡️ Security check result from ${checker.title}:`, result.status);
+                        } catch (error) {
+                            console.error(`🛡️ Security check failed for ${checkerId}:`, error);
+                            securityResults[checkerId] = {
+                                isSafe: false,
+                                status: 'ERROR',
+                                confidence: 0,
+                                message: error instanceof Error ? error.message : String(error),
+                            };
+                        }
+                    }
 
                     if (fileId) {
                         // Update the existing record by ID
