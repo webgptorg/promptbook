@@ -55,4 +55,13 @@ root@collboard-agents-server-x21:~# sudo curl -fsSL https://raw.githubuserconten
 }
 ```
 
+```json
+{
+    "name": "AuthorizationHeaderMalformed",
+    "message": "The authorization header is malformed; the region \"auto\" is wrong; expecting \"us-east-1\"",
+    "stack": "AuthorizationHeaderMalformed: The authorization header is malformed; the region \"auto\" is wrong; expecting \"us-east-1\"\n    at ProtocolLib.getErrorSchemaOrThrowBaseException (/opt/promptbook-agents-server/repository/node_modules/@aws-sdk/core/dist-cjs/submodules/protocols/index.js:69:67)\n    at AwsRestXmlProtocol.handleError (/opt/promptbook-agents-server/repository/node_modules/@aws-sdk/core/dist-cjs/submodules/protocols/index.js:1610:65)\n    at AwsRestXmlProtocol.deserializeResponse (/opt/promptbook-agents-server/repository/node_modules/@smithy/core/dist-cjs/submodules/protocols/index.js:309:24)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async /opt/promptbook-agents-server/repository/node_modules/@smithy/core/dist-cjs/submodules/schema/index.js:26:24\n    at async /opt/promptbook-agents-server/repository/node_modules/@aws-sdk/middleware-sdk-s3/dist-cjs/index.js:386:20\n    at async /opt/promptbook-agents-server/repository/node_modules/@smithy/middleware-retry/dist-cjs/index.js:254:46\n    at async /opt/promptbook-agents-server/repository/node_modules/@aws-sdk/middleware-flexible-checksums/dist-cjs/index.js:247:20\n    at async /opt/promptbook-agents-server/repository/node_modules/@aws-sdk/middleware-sdk-s3/dist-cjs/index.js:63:28\n    at async /opt/promptbook-agents-server/repository/node_modules/@aws-sdk/middleware-sdk-s3/dist-cjs/index.js:90:20"
+}
+```
+
 ![alt text](prompts/screenshots/2026-06-0000-agents-server-self-contained-s3-2.png)
+![alt text](prompts/screenshots/2026-06-0000-agents-server-self-contained-s3-3.png)
