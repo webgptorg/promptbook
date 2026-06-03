@@ -58,7 +58,12 @@ export function buildAgentRunUiFrame(options: BuildCoderRunUiFrameOptions): stri
     const totalWidth = Math.max(MIN_FRAME_WIDTH, Math.min(options.terminalWidth, MAX_FRAME_WIDTH));
     const isPromptActive = options.phase === 'running' || options.phase === 'verifying' || options.phase === 'loading';
     const promptStatusPrefix = isPromptActive ? `${colors.yellow(`${options.spinner} `)}` : '';
-    const pausePresentation = buildPausePresentation(options.phase, options.pauseState, options.statusMessage);
+    const pausePresentation = buildPausePresentation(
+        options.phase,
+        options.pauseState,
+        options.pauseTargetLabel,
+        options.statusMessage,
+    );
     const sessionLines = buildSessionLines(options, totalWidth, pausePresentation);
     const agentStatusLines = buildAgentStatusTableLines(options, totalWidth);
     const currentTaskLines = options.currentPromptLabel

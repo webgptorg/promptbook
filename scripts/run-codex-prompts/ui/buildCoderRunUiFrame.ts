@@ -40,6 +40,7 @@ export type BuildCoderRunUiFrameOptions = {
     readonly animationFrame: number;
     readonly spinner: string;
     readonly pauseState: CoderRunPauseState;
+    readonly pauseTargetLabel: string;
     readonly config: CoderRunConfig;
     readonly phase: CoderRunPhase;
     readonly currentPromptLabel: string;
@@ -85,7 +86,12 @@ export function buildCoderRunUiFrame(options: BuildCoderRunUiFrameOptions): stri
     const octopusAnimationFrame = isCoderRunUiAutoRefreshing(options.phase, options.pauseState)
         ? options.animationFrame
         : 0;
-    const pausePresentation = buildPausePresentation(options.phase, options.pauseState, options.statusMessage);
+    const pausePresentation = buildPausePresentation(
+        options.phase,
+        options.pauseState,
+        options.pauseTargetLabel,
+        options.statusMessage,
+    );
     const sessionLines = buildSessionLines(options, totalWidth, pausePresentation);
 
     const currentTaskLines = options.currentPromptLabel

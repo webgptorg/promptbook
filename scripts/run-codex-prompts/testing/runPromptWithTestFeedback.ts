@@ -1,6 +1,7 @@
 import colors from 'colors';
 import { spaceTrim } from '../../../src/utils/organization/spaceTrim';
 import { appendCoderContext } from '../common/appendCoderContext';
+import type { WaitForCoderRunPauseCheckpoint } from '../common/CoderRunPauseCheckpoint';
 import { formatUnknownErrorDetails } from '../common/formatUnknownErrorDetails';
 import type { PromptRunOptions } from '../runners/types/PromptRunOptions';
 import type { PromptRunResult } from '../runners/types/PromptRunResult';
@@ -16,6 +17,11 @@ const MAX_PROMPT_TEST_ATTEMPTS = 3;
  * Maximum amount of verification output sent back to the coding agent as retry feedback.
  */
 const MAX_TEST_FEEDBACK_OUTPUT_CHARS = 12_000;
+
+/**
+ * File extension used by generated shell scripts.
+ */
+const SHELL_SCRIPT_EXTENSION = '.sh';
 
 /**
  * Options for running one prompt with optional verification feedback retries.
@@ -45,6 +51,7 @@ export async function runPromptWithTestFeedback(
 
     if (!normalizedTestCommand) {
         options.onAttemptStarted?.(1);
+        await waitForPromptAttemptPauseCheckpoint(options.waitForPauseCheckpoint, options.runner.name, 1);
 
         const result = await options.runner.runPrompt({
             prompt: options.prompt,
@@ -52,6 +59,7 @@ export async function runPromptWithTestFeedback(
             projectPath: options.projectPath,
             logPath: options.logPath,
             preserveArtifactsOnSuccess: options.preserveArtifactsOnSuccess,
+            waitForPauseCheckpoint: options.waitForPauseCheckpoint,
         });
 
         return { ...result, attemptCount: 1 };
@@ -62,6 +70,7 @@ export async function runPromptWithTestFeedback(
 
     for (let attemptCount = 1; attemptCount <= MAX_PROMPT_TEST_ATTEMPTS; attemptCount++) {
         options.onAttemptStarted?.(attemptCount);
+        await waitForPromptAttemptPauseCheckpoint(options.waitForPauseCheckpoint, options.runner.name, attemptCount);
 
         const result = await options.runner.runPrompt({
             prompt: promptForCurrentAttempt,
@@ -69,8 +78,10 @@ export async function runPromptWithTestFeedback(
             projectPath: options.projectPath,
             logPath: options.logPath,
             preserveArtifactsOnSuccess: options.preserveArtifactsOnSuccess,
+            waitForPauseCheckpoint: options.waitForPauseCheckpoint,
         });
 
+        await waitForVerificationPauseCheckpoint(options.waitForPauseCheckpoint, normalizedTestCommand, attemptCount);
         console.info(colors.gray(`Running verification command after attempt #${attemptCount}: ${normalizedTestCommand}`));
 
         try {
@@ -120,6 +131,57 @@ export async function runPromptWithTestFeedback(
     }
 
     throw new Error('Unexpected prompt verification state.');
+}
+
+/**
+ * Waits for a pause checkpoint immediately before one model attempt begins.
+ */
+async function waitForPromptAttemptPauseCheckpoint(
+    waitForPauseCheckpoint: WaitForCoderRunPauseCheckpoint | undefined,
+    runnerName: string,
+    attemptCount: number,
+): Promise<void> {
+    await waitForPauseCheckpoint?.({
+        checkpointLabel: buildPromptAttemptPauseLabel(runnerName, attemptCount),
+        phase: 'running',
+        statusMessage: buildPromptAttemptStatusMessage(runnerName, attemptCount),
+    });
+}
+
+/**
+ * Waits for a pause checkpoint immediately before one verification command begins.
+ */
+async function waitForVerificationPauseCheckpoint(
+    waitForPauseCheckpoint: WaitForCoderRunPauseCheckpoint | undefined,
+    testCommand: string,
+    attemptCount: number,
+): Promise<void> {
+    await waitForPauseCheckpoint?.({
+        checkpointLabel: buildVerificationPauseLabel(attemptCount),
+        phase: 'verifying',
+        statusMessage: `Running verification after attempt #${attemptCount}: ${testCommand}`,
+    });
+}
+
+/**
+ * Builds the human-readable pause label used before one runner attempt begins.
+ */
+function buildPromptAttemptPauseLabel(runnerName: string, attemptCount: number): string {
+    return `calling ${runnerName} (attempt ${attemptCount})`;
+}
+
+/**
+ * Builds the status line shown while one runner attempt is about to start.
+ */
+function buildPromptAttemptStatusMessage(runnerName: string, attemptCount: number): string {
+    return `Calling ${runnerName} (attempt ${attemptCount})`;
+}
+
+/**
+ * Builds the human-readable pause label used before one verification command begins.
+ */
+function buildVerificationPauseLabel(attemptCount: number): string {
+    return `running verification after attempt #${attemptCount}`;
 }
 
 /**
@@ -199,8 +261,8 @@ function limitVerificationOutputForFeedback(verificationOutput: string): string 
  * Derives a dedicated temp-script path for verification commands.
  */
 function buildPromptTestScriptPath(scriptPath: string): string {
-    if (scriptPath.toLowerCase().endsWith('.sh')) {
-        return `${scriptPath.slice(0, -3)}.test.sh`;
+    if (scriptPath.toLowerCase().endsWith(SHELL_SCRIPT_EXTENSION)) {
+        return `${scriptPath.slice(0, -SHELL_SCRIPT_EXTENSION.length)}.test.sh`;
     }
 
     return `${scriptPath}.test.sh`;

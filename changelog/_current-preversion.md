@@ -1,3 +1,9 @@
+-   Made `ptbk coder run` pausing more granular:
+
+    -   The `P` hotkey can now stop between prompt-internal stages such as loading, working-tree checks, prompt bookkeeping, commits, and testing-server auto-migration instead of waiting only for the next prompt.
+    -   Prompt attempts now honor pause checkpoints before each model call and before each verification command, and the OpenAI Codex runner also re-checks pause requests while waiting out rate-limit retries.
+    -   The rich terminal UI now shows the next pause target instead of always saying it will pause before the next task.
+
 -   Added page margins to Agents Server chat PDF exports so downloaded conversations keep consistent whitespace around each page instead of printing edge-to-edge.
 
 -   Fixed Agents Server Windows test-build cleanup so homepage prerender no longer leaves a temporary `next start` process on port `4440` that can block later builds.

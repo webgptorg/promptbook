@@ -2,6 +2,11 @@ import colors from 'colors';
 import * as readline from 'readline';
 
 /**
+ * Default label used before the next pause checkpoint is known.
+ */
+const DEFAULT_PAUSE_TARGET_LABEL = 'the next task';
+
+/**
  * Pause lifecycle of `ptbk coder run`.
  */
 export type CoderRunPauseState = 'RUNNING' | 'PAUSING' | 'PAUSED';
@@ -17,10 +22,22 @@ export type CoderRunPauseToggleResult = 'REQUESTED_PAUSE' | 'CANCELLED_PAUSE' | 
 let pauseState: CoderRunPauseState = 'RUNNING';
 
 /**
+ * Label of the next checkpoint where the requested pause will take effect.
+ */
+let pauseTargetLabel = DEFAULT_PAUSE_TARGET_LABEL;
+
+/**
  * Stores one new pause state in the shared runner controller.
  */
 function setPauseState(nextPauseState: CoderRunPauseState): void {
     pauseState = nextPauseState;
+}
+
+/**
+ * Stores one new pause target label in the shared runner controller.
+ */
+function setPauseTargetLabel(nextPauseTargetLabel: string): void {
+    pauseTargetLabel = nextPauseTargetLabel.trim() || DEFAULT_PAUSE_TARGET_LABEL;
 }
 
 /**
@@ -34,10 +51,12 @@ export function togglePauseState(): CoderRunPauseToggleResult {
 
     if (pauseState === 'PAUSING') {
         setPauseState('RUNNING');
+        resetPauseTargetLabel();
         return 'CANCELLED_PAUSE';
     }
 
     setPauseState('RUNNING');
+    resetPauseTargetLabel();
     return 'RESUMED';
 }
 
@@ -86,7 +105,10 @@ export async function checkPause(options?: {
         setPauseState('PAUSED');
 
         if (!options?.silent) {
-            console.log(colors.bgWhite.black('Paused') + colors.gray(' (Press "p" to resume)'));
+            console.log(
+                colors.bgWhite.black(`Paused before ${getPauseTargetLabel()}`) +
+                    colors.gray(' (Press "p" to resume)'),
+            );
         }
 
         options?.onPaused?.();
@@ -111,6 +133,27 @@ export function getPauseState(): CoderRunPauseState {
 }
 
 /**
+ * Returns the label of the next checkpoint where pausing will take effect.
+ */
+export function getPauseTargetLabel(): string {
+    return pauseTargetLabel;
+}
+
+/**
+ * Updates the label of the next pause checkpoint.
+ */
+export function announcePauseTargetLabel(nextPauseTargetLabel: string): void {
+    setPauseTargetLabel(nextPauseTargetLabel);
+}
+
+/**
+ * Restores the default generic pause target label.
+ */
+export function resetPauseTargetLabel(): void {
+    setPauseTargetLabel(DEFAULT_PAUSE_TARGET_LABEL);
+}
+
+/**
  * Requests a pause from an external controller (e.g. the Ink UI).
  */
 export function requestPause(): void {
@@ -124,4 +167,5 @@ export function requestPause(): void {
  */
 export function requestResume(): void {
     setPauseState('RUNNING');
+    resetPauseTargetLabel();
 }

@@ -7,9 +7,18 @@ import { NotAllowed } from '../../../src/errors/NotAllowed';
 import { just } from '../../../src/utils/organization/just';
 import type { RunOptions } from '../cli/RunOptions';
 import { parseRunOptions } from '../cli/parseRunOptions';
+import type {
+    CoderRunPauseCheckpointOptions,
+    WaitForCoderRunPauseCheckpoint,
+} from '../common/CoderRunPauseCheckpoint';
 import { CliProgressDisplay } from '../common/cliProgressDisplay';
 import { resolveCoderContext } from '../common/resolveCoderContext';
-import { checkPause, listenForPause } from '../common/waitForPause';
+import {
+    announcePauseTargetLabel,
+    checkPause,
+    listenForPause,
+    resetPauseTargetLabel,
+} from '../common/waitForPause';
 import { printAgentGitIdentityTipIfNeeded } from '../git/agentGitIdentity';
 import { ensureWorkingTreeClean } from '../git/ensureWorkingTreeClean';
 import { pullLatestChanges } from '../git/pullLatestChanges';
@@ -77,13 +86,23 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
         let hasWaitedForStart = false;
 
         while (just(true)) {
-            await waitForRequestedPause();
+            if (options.autoPull && !options.dryRun) {
+                await waitForRequestedPause({
+                    checkpointLabel: 'pulling the latest repository changes',
+                    phase: 'loading',
+                    statusMessage: 'Pulling latest changes...',
+                });
+            }
             await pullLatestChangesIfEnabled({
                 options,
                 isRichUiEnabled,
-                uiHandle,
             });
 
+            await waitForRequestedPause({
+                checkpointLabel: 'loading prompts',
+                phase: 'loading',
+                statusMessage: 'Loading prompts...',
+            });
             const promptQueueSnapshot = await loadPromptQueueSnapshot({
                 options,
                 isRichUiEnabled,
@@ -117,6 +136,11 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
             });
 
             if (!options.ignoreGitChanges) {
+                await waitForRequestedPause({
+                    checkpointLabel: 'checking the git working tree',
+                    phase: 'loading',
+                    statusMessage: 'Checking the working tree...',
+                });
                 await ensureWorkingTreeClean();
             }
 
@@ -177,16 +201,12 @@ function validateRunCodexPromptOptions(options: RunOptions): void {
 async function pullLatestChangesIfEnabled(options: {
     options: RunOptions;
     isRichUiEnabled: boolean;
-    uiHandle?: CoderRunUiHandle;
 }): Promise<void> {
-    const { options: runOptions, isRichUiEnabled, uiHandle } = options;
+    const { options: runOptions, isRichUiEnabled } = options;
 
     if (!runOptions.autoPull || runOptions.dryRun) {
         return;
     }
-
-    uiHandle?.state.setPhase('loading');
-    uiHandle?.state.setStatusMessage('Pulling latest changes...');
 
     if (!isRichUiEnabled) {
         console.info(colors.gray('Pulling latest changes before the next prompt...'));
@@ -225,25 +245,31 @@ function createPauseWaiter(options: {
     isRichUiEnabled: boolean;
     progressDisplay?: CliProgressDisplay;
     uiHandle?: CoderRunUiHandle;
-}): () => Promise<void> {
+}): WaitForCoderRunPauseCheckpoint {
     const { isRichUiEnabled, progressDisplay, uiHandle } = options;
 
-    return async (): Promise<void> => {
+    return async (checkpoint: CoderRunPauseCheckpointOptions): Promise<void> => {
+        uiHandle?.state.setPhase(checkpoint.phase);
+        uiHandle?.state.setStatusMessage(checkpoint.statusMessage);
+        announcePauseTargetLabel(checkpoint.checkpointLabel);
+
         await checkPause({
             silent: isRichUiEnabled,
             onPaused: () => {
                 progressDisplay?.pauseTimer();
                 uiHandle?.state.pauseTimer();
                 uiHandle?.state.setPhase('paused');
-                uiHandle?.state.setStatusMessage('Paused');
+                uiHandle?.state.setStatusMessage(`Paused before ${checkpoint.checkpointLabel}`);
             },
             onResumed: () => {
                 progressDisplay?.resumeTimer();
                 uiHandle?.state.resumeTimer();
-                uiHandle?.state.setPhase('loading');
-                uiHandle?.state.setStatusMessage('Resuming...');
+                uiHandle?.state.setPhase(checkpoint.phase);
+                uiHandle?.state.setStatusMessage(checkpoint.statusMessage);
             },
         });
+
+        resetPauseTargetLabel();
     };
 }
 
@@ -303,12 +329,7 @@ async function loadPromptQueueSnapshot(options: {
     uiHandle?: CoderRunUiHandle;
 }): Promise<PromptQueueSnapshot> {
     const { options: runOptions, isRichUiEnabled, progressDisplay, uiHandle } = options;
-
-    if (isRichUiEnabled) {
-        uiHandle?.state.setCurrentScriptPath(undefined);
-        uiHandle?.state.setPhase('loading');
-        uiHandle?.state.setStatusMessage('Loading prompts...');
-    }
+    uiHandle?.state.setCurrentScriptPath(undefined);
 
     const promptFiles = await loadPromptFiles(PROMPTS_DIR);
     const stats = summarizePrompts(promptFiles, runOptions.priority);

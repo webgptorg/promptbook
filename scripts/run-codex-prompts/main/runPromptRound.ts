@@ -8,6 +8,7 @@ import {
 import { formatCommitMessageForDisplay } from '../common/formatCommitMessageForDisplay';
 import { printCommitMessage } from '../common/printCommitMessage';
 import { appendCoderContext } from '../common/appendCoderContext';
+import type { WaitForCoderRunPauseCheckpoint } from '../common/CoderRunPauseCheckpoint';
 import { withPromptRuntimeLog } from '../common/runGoScript/withPromptRuntimeLog';
 import { waitForEnter } from '../common/waitForEnter';
 import type { CliProgressDisplay } from '../common/cliProgressDisplay';
@@ -42,7 +43,7 @@ type RunPromptRoundOptions = {
     isRichUiEnabled: boolean;
     progressDisplay?: CliProgressDisplay;
     uiHandle?: CoderRunUiHandle;
-    waitForRequestedPause(): Promise<void>;
+    waitForRequestedPause: WaitForCoderRunPauseCheckpoint;
 };
 
 /**
@@ -66,8 +67,12 @@ export async function runPromptRound({
     const codexPrompt = appendCoderContext(buildCodexPrompt(nextPrompt.file, nextPrompt.section), resolvedCoderContext);
     const scriptPath = buildScriptPath(nextPrompt.file, nextPrompt.section);
 
-    await waitForRequestedPause();
     setPromptRoundRunningState({ isRichUiEnabled, promptLabel, scriptPath, uiHandle });
+    await waitForRequestedPause({
+        checkpointLabel: 'preparing the current prompt execution',
+        phase: 'running',
+        statusMessage: 'Preparing prompt execution',
+    });
 
     const promptExecutionStartedDate = moment();
     let attemptCount = 1;
@@ -93,11 +98,8 @@ export async function runPromptRound({
                     onAttemptStarted: (nextAttemptCount) => {
                         attemptCount = nextAttemptCount;
                         uiHandle?.state.setAttempt(nextAttemptCount);
-                        if (nextAttemptCount > 1) {
-                            uiHandle?.state.setStatusMessage(`Retrying (attempt ${nextAttemptCount})`);
-                            uiHandle?.state.setPhase('verifying');
-                        }
                     },
+                    waitForPauseCheckpoint: waitForRequestedPause,
                 });
 
                 await finalizeSuccessfulPromptRound({
@@ -112,6 +114,7 @@ export async function runPromptRound({
                     isRichUiEnabled,
                     progressDisplay,
                     uiHandle,
+                    waitForRequestedPause,
                 });
             } catch (error) {
                 await finalizeFailedPromptRound({
@@ -123,6 +126,7 @@ export async function runPromptRound({
                     options,
                     roundChangedFilesSnapshot,
                     uiHandle,
+                    waitForRequestedPause,
                 });
 
                 throw error;
@@ -172,6 +176,7 @@ async function finalizeSuccessfulPromptRound(options: {
     isRichUiEnabled: boolean;
     progressDisplay?: CliProgressDisplay;
     uiHandle?: CoderRunUiHandle;
+    waitForRequestedPause: WaitForCoderRunPauseCheckpoint;
 }): Promise<void> {
     const {
         options: runOptions,
@@ -185,10 +190,15 @@ async function finalizeSuccessfulPromptRound(options: {
         isRichUiEnabled,
         progressDisplay,
         uiHandle,
+        waitForRequestedPause,
     } = options;
 
     uiHandle?.stopCapturingAgentOutput();
-    uiHandle?.state.setStatusMessage(runOptions.noCommit ? 'Leaving changes uncommitted' : 'Committing changes');
+    await waitForRequestedPause({
+        checkpointLabel: 'recording the successful prompt result',
+        phase: 'running',
+        statusMessage: 'Recording prompt result',
+    });
 
     markPromptDone(
         nextPrompt.file,
@@ -210,13 +220,27 @@ async function finalizeSuccessfulPromptRound(options: {
             progressDisplay,
             uiHandle,
         });
+        await waitForRequestedPause({
+            checkpointLabel: 'committing the successful changes',
+            phase: 'running',
+            statusMessage: 'Committing changes',
+        });
         await commitChanges(commitMessage, {
             autoPush: runOptions.autoPush,
             // Keep the live runtime log out of default commits because it is deleted after a successful round.
             excludePaths: runOptions.preserveLogs ? undefined : [logPath],
         });
+    } else {
+        uiHandle?.state.setStatusMessage('Leaving changes uncommitted');
     }
 
+    if (runOptions.autoMigrate) {
+        await waitForRequestedPause({
+            checkpointLabel: 'running testing-server auto-migration',
+            phase: 'running',
+            statusMessage: 'Running testing-server auto-migration',
+        });
+    }
     await runPostPromptAutoMigrationIfEnabled(runOptions);
 }
 
@@ -235,6 +259,7 @@ async function finalizeFailedPromptRound(options: {
     options: RunOptions;
     roundChangedFilesSnapshot?: ChangedFilesSnapshot;
     uiHandle?: CoderRunUiHandle;
+    waitForRequestedPause: WaitForCoderRunPauseCheckpoint;
 }): Promise<void> {
     const {
         nextPrompt,
@@ -245,11 +270,17 @@ async function finalizeFailedPromptRound(options: {
         options: runOptions,
         roundChangedFilesSnapshot,
         uiHandle,
+        waitForRequestedPause,
     } = options;
 
     uiHandle?.stopCapturingAgentOutput();
     uiHandle?.state.setPhase('error');
     uiHandle?.state.addError(error instanceof Error ? error.message : String(error));
+    await waitForRequestedPause({
+        checkpointLabel: 'recording the prompt failure',
+        phase: 'error',
+        statusMessage: 'Recording prompt failure',
+    });
 
     markPromptFailed(
         nextPrompt.file,
@@ -302,6 +333,8 @@ async function waitForCommitConfirmationIfNeeded(options: {
 
     progressDisplay?.resumeTimer();
     uiHandle?.state.resumeTimer();
+    uiHandle?.state.setPhase('running');
+    uiHandle?.state.setStatusMessage('Committing changes');
 }
 
 /**

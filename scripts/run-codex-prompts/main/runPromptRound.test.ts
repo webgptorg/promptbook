@@ -1,6 +1,7 @@
 import { UNCERTAIN_USAGE } from '../../../src/execution/utils/usage-constants';
 import type { RunOptions } from '../cli/RunOptions';
 import { appendCoderContext } from '../common/appendCoderContext';
+import type { WaitForCoderRunPauseCheckpoint } from '../common/CoderRunPauseCheckpoint';
 import { captureChangedFilesSnapshot, normalizeLineEndingsInFilesChangedSinceSnapshot } from '../common/normalizeLineEndingsInChangedFiles';
 import { withPromptRuntimeLog } from '../common/runGoScript/withPromptRuntimeLog';
 import { waitForEnter } from '../common/waitForEnter';
@@ -161,6 +162,10 @@ describe('runPromptRound', () => {
             name: 'GitHub Copilot',
             runPrompt: jest.fn(),
         };
+        const waitForRequestedPause = jest.fn<
+            ReturnType<WaitForCoderRunPauseCheckpoint>,
+            Parameters<WaitForCoderRunPauseCheckpoint>
+        >(async () => undefined);
 
         await runPromptRound({
             options: createRunOptions({
@@ -178,18 +183,79 @@ describe('runPromptRound', () => {
             isRichUiEnabled: false,
             progressDisplay: undefined,
             uiHandle: undefined,
-            waitForRequestedPause: async () => undefined,
+            waitForRequestedPause,
         });
 
         expect(buildCodexPrompt).toHaveBeenCalled();
         expect(buildCommitMessage).toHaveBeenCalled();
         expect(buildScriptPath).toHaveBeenCalled();
-        expect(runPromptWithTestFeedback).toHaveBeenCalled();
+        expect(runPromptWithTestFeedback).toHaveBeenCalledWith(
+            expect.objectContaining({
+                waitForPauseCheckpoint: waitForRequestedPause,
+            }),
+        );
         expect(markPromptDone).toHaveBeenCalled();
         expect(writePromptFile).toHaveBeenCalled();
         expect(commitChanges).not.toHaveBeenCalled();
         expect(waitForEnter).not.toHaveBeenCalled();
         expect(markPromptFailed).not.toHaveBeenCalled();
         expect(writePromptErrorLog).not.toHaveBeenCalled();
+        expect(waitForRequestedPause).toHaveBeenCalledWith({
+            checkpointLabel: 'preparing the current prompt execution',
+            phase: 'running',
+            statusMessage: 'Preparing prompt execution',
+        });
+        expect(waitForRequestedPause).toHaveBeenCalledWith({
+            checkpointLabel: 'recording the successful prompt result',
+            phase: 'running',
+            statusMessage: 'Recording prompt result',
+        });
+    });
+
+    it('waits for pause checkpoints before committing and auto-migrating a successful round', async () => {
+        const runner: PromptRunner = {
+            name: 'GitHub Copilot',
+            runPrompt: jest.fn(),
+        };
+        const waitForRequestedPause = jest.fn<
+            ReturnType<WaitForCoderRunPauseCheckpoint>,
+            Parameters<WaitForCoderRunPauseCheckpoint>
+        >(async () => undefined);
+
+        await runPromptRound({
+            options: createRunOptions({
+                noCommit: false,
+                waitForUser: false,
+                autoMigrate: true,
+            }),
+            runner,
+            runnerMetadata: {
+                runnerName: 'github-copilot',
+                modelName: 'gpt-5.4',
+            },
+            nextPrompt: createPromptSelection(),
+            promptLabel: 'example.md#1',
+            resolvedCoderContext: undefined,
+            isRichUiEnabled: false,
+            progressDisplay: undefined,
+            uiHandle: undefined,
+            waitForRequestedPause,
+        });
+
+        expect(commitChanges).toHaveBeenCalledWith('feat: example', {
+            autoPush: false,
+            excludePaths: ['C:\\temp\\runtime.log'],
+        });
+        expect(runAutoMigrateTestingServers).toHaveBeenCalled();
+        expect(waitForRequestedPause).toHaveBeenCalledWith({
+            checkpointLabel: 'committing the successful changes',
+            phase: 'running',
+            statusMessage: 'Committing changes',
+        });
+        expect(waitForRequestedPause).toHaveBeenCalledWith({
+            checkpointLabel: 'running testing-server auto-migration',
+            phase: 'running',
+            statusMessage: 'Running testing-server auto-migration',
+        });
     });
 });

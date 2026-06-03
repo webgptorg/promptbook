@@ -17,6 +17,7 @@ function createFrameOptions(overrides: Partial<Parameters<typeof buildAgentRunUi
         animationFrame: 0,
         spinner: '⠋',
         pauseState: 'RUNNING' as const,
+        pauseTargetLabel: 'the next task',
         config: {
             agentName: 'github-copilot',
             localAgentName: 'GitHub Copilot Support',

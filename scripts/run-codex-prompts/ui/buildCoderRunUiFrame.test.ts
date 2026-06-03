@@ -12,6 +12,7 @@ function createFrameOptions(
         animationFrame: 0,
         spinner: '⠋',
         pauseState: 'RUNNING',
+        pauseTargetLabel: 'the next task',
         config: {
             agentName: 'GitHub Copilot',
             modelName: 'gpt-5.4',
@@ -114,8 +115,22 @@ describe('buildCoderRunUiFrame', () => {
         expect(pausingOutput).toContain('P  Cancel pause');
 
         expect(pausedOutput).toContain('PAUSED');
-        expect(pausedOutput).toContain('Paused until resumed');
+        expect(pausedOutput).toContain('Paused before the next task');
         expect(pausedOutput).toContain('P  Resume');
+    });
+
+    it('renders the upcoming pause target when pausing inside one prompt stage', () => {
+        const output = buildCoderRunUiFrame(
+            createFrameOptions({
+                phase: 'verifying',
+                pauseState: 'PAUSING',
+                pauseTargetLabel: 'running verification after attempt #2',
+            }),
+        )
+            .map(stripAnsi)
+            .join('\n');
+
+        expect(output).toContain('Pausing before running verification after attempt #2');
     });
 
     it('renders the active temporary shell script as a clickable Session link', () => {

@@ -121,12 +121,13 @@ export function buildScriptPathSessionRows(scriptPaths: readonly string[], bodyW
 export function buildPausePresentation(
     phase: CoderRunPhase,
     pauseState: CoderRunPauseState,
+    pauseTargetLabel: string,
     statusMessage: string,
 ): PausePresentation {
     if (pauseState === 'PAUSING') {
         return {
             badge: colors.bgYellow.black(' PAUSING '),
-            stateMessage: 'Pausing before the next task',
+            stateMessage: `Pausing before ${pauseTargetLabel}`,
             pauseControl: colors.bgMagenta.white(' P ') + colors.white(' Cancel pause'),
         };
     }
@@ -134,7 +135,7 @@ export function buildPausePresentation(
     if (pauseState === 'PAUSED') {
         return {
             badge: colors.bgWhite.black(' PAUSED '),
-            stateMessage: 'Paused until resumed',
+            stateMessage: `Paused before ${pauseTargetLabel}`,
             pauseControl: colors.bgGreen.black(' P ') + colors.white(' Resume'),
         };
     }

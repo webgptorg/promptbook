@@ -25,6 +25,16 @@ const CODEX_COMPLETION_LINE = /^\s*tokens used\b/i;
 const CODEX_COMPLETION_IDLE_MS = 60 * 1000;
 
 /**
+ * Number of seconds in one hour.
+ */
+const SECONDS_PER_HOUR = 60 * 60;
+
+/**
+ * Poll interval used while waiting for the next rate-limit retry so pause requests can be honored promptly.
+ */
+const RATE_LIMIT_BACKOFF_POLL_MS = 1000;
+
+/**
  * Maximum delay between retries while rate-limited.
  */
 const RATE_LIMIT_BACKOFF_MAX_MS = 30 * 60 * 1000;
@@ -46,8 +56,8 @@ async function waitFor(delayMs: number): Promise<void> {
  */
 function formatDelay(delayMs: number): string {
     const totalSeconds = Math.max(0, Math.round(delayMs / 1000));
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const hours = Math.floor(totalSeconds / SECONDS_PER_HOUR);
+    const minutes = Math.floor((totalSeconds % SECONDS_PER_HOUR) / 60);
     const seconds = totalSeconds % 60;
 
     const parts: string[] = [];
@@ -103,8 +113,15 @@ export class OpenAiCodexRunner implements PromptRunner {
             allowCredits: this.options.allowCredits,
             codexCommand: this.options.codexCommand,
         });
+        for (let retryIndex = 0; ; retryIndex++) {
+            if (retryIndex > 0) {
+                await options.waitForPauseCheckpoint?.({
+                    checkpointLabel: 'retrying the OpenAI Codex model call after rate limit',
+                    phase: 'running',
+                    statusMessage: 'Retrying OpenAI Codex after rate limit',
+                });
+            }
 
-        while (true) {
             try {
                 const output = await $runGoScriptUntilMarkerIdle({
                     scriptPath: options.scriptPath,
@@ -140,8 +157,29 @@ export class OpenAiCodexRunner implements PromptRunner {
                     ),
                 );
 
-                await waitFor(delayMs);
+                await waitForRetryDelay(delayMs, options);
             }
         }
+    }
+}
+
+/**
+ * Waits for the next Codex retry while polling for requested pause checkpoints.
+ */
+async function waitForRetryDelay(delayMs: number, options: PromptRunOptions): Promise<void> {
+    let remainingDelayMs = delayMs;
+
+    while (remainingDelayMs > 0) {
+        const remainingDelayLabel = formatDelay(remainingDelayMs);
+
+        await options.waitForPauseCheckpoint?.({
+            checkpointLabel: 'the next OpenAI Codex retry after rate limit',
+            phase: 'running',
+            statusMessage: `Waiting ${remainingDelayLabel} before retrying OpenAI Codex`,
+        });
+
+        const currentDelayMs = Math.min(RATE_LIMIT_BACKOFF_POLL_MS, remainingDelayMs);
+        await waitFor(currentDelayMs);
+        remainingDelayMs -= currentDelayMs;
     }
 }
