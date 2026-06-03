@@ -53,8 +53,9 @@ export const config = {
          * - favicon.ico (favicon file)
          * - robots.txt (should not block on middleware DB lookups)
          * - public folder
+         * - api/health (standalone VPS readiness probe)
          * - api/internal (worker/cron routes are authorized separately)
          */
-        '/((?!_next/static|_next/image|favicon.ico|logo-|fonts/|robots.txt|api/internal).*)',
+        '/((?!_next/static|_next/image|favicon.ico|logo-|fonts/|robots.txt|api/health|api/internal).*)',
     ],
 };

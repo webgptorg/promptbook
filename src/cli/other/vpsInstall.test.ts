@@ -9,9 +9,11 @@ describe('other/vps/install.sh', () => {
             'PROMPTBOOK_REPOSITORY_URL="${PROMPTBOOK_REPOSITORY_URL:-https://github.com/webgptorg/promptbook.git}"',
         );
         expect(installScript).toContain('PROMPTBOOK_REPOSITORY_REF="${PROMPTBOOK_REPOSITORY_REF:-main}"');
+        expect(installScript).toContain('PTBK_RELEASES_DIR="${PTBK_RELEASES_DIR:-$PTBK_BIN_DIR}"');
         expect(installScript).toContain(
-            'git clone --depth 1 --branch "$PROMPTBOOK_REPOSITORY_REF" "$PROMPTBOOK_REPOSITORY_URL" "$PROMPTBOOK_REPOSITORY_DIR"',
+            'git clone --depth 1 --branch "$PROMPTBOOK_REPOSITORY_REF" "$PROMPTBOOK_REPOSITORY_URL" "$staging_repository_dir"',
         );
+        expect(installScript).toContain('resolve_repository_directory_for_commit "$target_commit_sha"');
         expect(installScript).toContain('npm ci --include=dev');
         expect(installScript).not.toContain('PROMPTBOOK_NPM_PACKAGE');
         expect(installScript).not.toContain('npm install -g "$PROMPTBOOK_NPM_PACKAGE"');
@@ -113,8 +115,9 @@ describe('other/vps/install.sh', () => {
 
         expect(installScript).toContain('PTBK_FILE_STORAGE_MODE="${PTBK_FILE_STORAGE_MODE:-self-contained-s3}"');
         expect(installScript).toContain(
-            'PTBK_SELF_CONTAINED_S3_DIRECTORY="${PTBK_SELF_CONTAINED_S3_DIRECTORY:-/var/lib/promptbook-agents-server/s3}"',
+            'PTBK_SELF_CONTAINED_S3_DIRECTORY="${PTBK_SELF_CONTAINED_S3_DIRECTORY:-$PTBK_DATA_DIR/s3}"',
         );
+        expect(installScript).toContain('local sqlite_path="$PTBK_DATABASE_DIR/agents-server.sqlite"');
         expect(installScript).toContain('prompt_yes_no "Use self-contained S3 file storage with VersityGW?"');
         expect(installScript).toContain('configure_self_contained_s3_storage()');
         expect(installScript).toContain('https://api.github.com/repos/versity/versitygw/releases/latest');
@@ -132,6 +135,11 @@ describe('other/vps/install.sh', () => {
         expect(installScript).toContain('rerun_self_update_from_stable_script "$@"');
         expect(installScript).toContain('PTBK_SELF_UPDATE_SCRIPT_COPY=1 exec bash "$runtime_script" self-update "$@"');
         expect(installScript).toContain('trap write_failed_self_update_status_on_exit EXIT');
+        expect(installScript).toContain('start_pm2_agents_server_process "$replacement_app_name" "$replacement_port"');
+        expect(installScript).toContain('wait_for_agents_server_health "$replacement_app_name" "$replacement_port"');
+        expect(installScript).toContain('switch_nginx_to_agents_server_port "$replacement_port"');
+        expect(installScript).toContain('stop_pm2_process_if_running "$old_app_name"');
+        expect(installScript).toContain('remove_promptbook_repository_directory_if_safe "$old_repository_dir" "$PROMPTBOOK_REPOSITORY_DIR"');
         expect(installScript).not.toContain("trap '\n        local exit_code=$?");
     });
 

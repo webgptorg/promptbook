@@ -8,17 +8,23 @@ NODE_MAJOR_VERSION="${NODE_MAJOR_VERSION:-22}"
 NODE_MINIMUM_VERSION="${NODE_MINIMUM_VERSION:-}"
 PORT="${PORT:-${PTBK_PORT:-4440}}"
 PTBK_FILE_STORAGE_MODE="${PTBK_FILE_STORAGE_MODE:-self-contained-s3}"
-PTBK_SELF_CONTAINED_S3_DIRECTORY="${PTBK_SELF_CONTAINED_S3_DIRECTORY:-/var/lib/promptbook-agents-server/s3}"
+PTBK_DATA_DIR="${PTBK_DATA_DIR:-$INSTALL_DIR/data}"
+PTBK_DATABASE_DIR="${PTBK_DATABASE_DIR:-$PTBK_DATA_DIR/database}"
+PTBK_SELF_CONTAINED_S3_DIRECTORY="${PTBK_SELF_CONTAINED_S3_DIRECTORY:-$PTBK_DATA_DIR/s3}"
 PTBK_SELF_CONTAINED_S3_PORT="${PTBK_SELF_CONTAINED_S3_PORT:-10000}"
 PTBK_SELF_CONTAINED_S3_SERVICE_NAME="${PTBK_SELF_CONTAINED_S3_SERVICE_NAME:-promptbook-versitygw}"
 PTBK_SELF_CONTAINED_S3_BUCKET="${PTBK_SELF_CONTAINED_S3_BUCKET:-promptbook-files}"
 PTBK_CDN_PATH_PREFIX="${PTBK_CDN_PATH_PREFIX:-ptbk-agents}"
 PROMPTBOOK_REPOSITORY_URL="${PROMPTBOOK_REPOSITORY_URL:-https://github.com/webgptorg/promptbook.git}"
 PROMPTBOOK_REPOSITORY_REF="${PROMPTBOOK_REPOSITORY_REF:-main}"
-PROMPTBOOK_REPOSITORY_DIR="${PROMPTBOOK_REPOSITORY_DIR:-$INSTALL_DIR/repository}"
 PTBK_BIN_DIR="${PTBK_BIN_DIR:-$INSTALL_DIR/bin}"
+PTBK_RELEASES_DIR="${PTBK_RELEASES_DIR:-$PTBK_BIN_DIR}"
+PROMPTBOOK_REPOSITORY_DIR="${PROMPTBOOK_REPOSITORY_DIR:-}"
+PROMPTBOOK_LEGACY_REPOSITORY_DIR="${PROMPTBOOK_LEGACY_REPOSITORY_DIR:-$INSTALL_DIR/repository}"
+PROMPTBOOK_REPOSITORY_RELEASE_NAME=""
 PTBK_COMMAND_PATH="${PTBK_COMMAND_PATH:-$PTBK_BIN_DIR/ptbk}"
 PTBK_GLOBAL_COMMAND_PATH="${PTBK_GLOBAL_COMMAND_PATH:-/usr/local/bin/ptbk}"
+PTBK_PM2_BASE_APP_NAME="${PTBK_PM2_BASE_APP_NAME:-$APP_NAME}"
 PTBK_AGENT="${PTBK_AGENT:-github-copilot}"
 PTBK_MODEL="${PTBK_MODEL:-gpt-5.4}"
 PTBK_THINKING_LEVEL="${PTBK_THINKING_LEVEL:-xhigh}"
@@ -256,18 +262,71 @@ write_failed_self_update_status_on_exit() {
 }
 
 read_repository_commit_sha() {
-    if [[ ! -d "$PROMPTBOOK_REPOSITORY_DIR/.git" ]]; then
+    local repository_dir="${1:-$PROMPTBOOK_REPOSITORY_DIR}"
+
+    if [[ -z "$repository_dir" || ! -d "$repository_dir/.git" ]]; then
         printf ''
         return
     fi
 
-    run_as_service_user git -C "$PROMPTBOOK_REPOSITORY_DIR" rev-parse HEAD 2>/dev/null || true
+    run_as_service_user git -C "$repository_dir" rev-parse HEAD 2>/dev/null || true
 }
 
 read_remote_repository_commit_sha() {
     local target_ref=""
     target_ref="$(normalize_promptbook_repository_ref "$1")"
-    run_as_service_user git -C "$PROMPTBOOK_REPOSITORY_DIR" ls-remote origin "refs/heads/$target_ref" 2>/dev/null | awk 'NR == 1 { print $1 }'
+    run_as_service_user git ls-remote "$PROMPTBOOK_REPOSITORY_URL" "refs/heads/$target_ref" 2>/dev/null | awk 'NR == 1 { print $1 }'
+}
+
+read_remote_repository_tag_for_commit() {
+    local commit_sha="$1"
+
+    if [[ -z "$commit_sha" ]]; then
+        return
+    fi
+
+    run_as_service_user git ls-remote --tags "$PROMPTBOOK_REPOSITORY_URL" 2>/dev/null |
+        awk -v commit_sha="$commit_sha" '
+            $1 == commit_sha {
+                tag = $2
+                sub("^refs/tags/", "", tag)
+                sub("\\^\\{\\}$", "", tag)
+                if (tag != "") {
+                    print tag
+                }
+            }
+        ' |
+        sort -Vr |
+        head -n 1
+}
+
+sanitize_repository_release_name() {
+    local raw_release_name="$1"
+    local fallback_commit_sha="$2"
+
+    if [[ "$raw_release_name" =~ ^[A-Za-z0-9._-]+$ ]]; then
+        printf '%s' "$raw_release_name"
+        return
+    fi
+
+    printf '%s' "${fallback_commit_sha:0:7}"
+}
+
+resolve_repository_release_name() {
+    local commit_sha="$1"
+    local tag_name=""
+
+    tag_name="$(read_remote_repository_tag_for_commit "$commit_sha")"
+    sanitize_repository_release_name "${tag_name:-${commit_sha:0:7}}" "$commit_sha"
+}
+
+resolve_repository_directory_for_commit() {
+    local commit_sha="$1"
+    local release_name=""
+
+    release_name="$(resolve_repository_release_name "$commit_sha")"
+    PROMPTBOOK_REPOSITORY_RELEASE_NAME="$release_name"
+    printf '%s/%s' "$PTBK_RELEASES_DIR" "$release_name"
 }
 
 format_mib() {
@@ -915,23 +974,94 @@ install_global_process_manager() {
     fi
 }
 
-install_promptbook_repository() {
-    log "Installing Promptbook from $PROMPTBOOK_REPOSITORY_URL ($PROMPTBOOK_REPOSITORY_REF)."
-    "${SUDO[@]}" mkdir -p "$PROMPTBOOK_REPOSITORY_DIR"
-    "${SUDO[@]}" chown -R "$RUN_USER:$RUN_GROUP" "$PROMPTBOOK_REPOSITORY_DIR"
+is_path_inside_directory() {
+    local checked_path="$1"
+    local parent_path="$2"
+    local resolved_checked_path=""
+    local resolved_parent_path=""
 
-    if [[ -d "$PROMPTBOOK_REPOSITORY_DIR/.git" ]]; then
-        run_as_service_user git -C "$PROMPTBOOK_REPOSITORY_DIR" remote set-url origin "$PROMPTBOOK_REPOSITORY_URL"
-        run_as_service_user git -C "$PROMPTBOOK_REPOSITORY_DIR" fetch --depth 1 origin "$PROMPTBOOK_REPOSITORY_REF"
-        run_as_service_user git -C "$PROMPTBOOK_REPOSITORY_DIR" checkout --detach FETCH_HEAD
-    elif find "$PROMPTBOOK_REPOSITORY_DIR" -mindepth 1 -maxdepth 1 | grep -q .; then
-        fail "$PROMPTBOOK_REPOSITORY_DIR exists and is not an empty Promptbook git checkout."
-    else
-        run_as_service_user git clone --depth 1 --branch "$PROMPTBOOK_REPOSITORY_REF" "$PROMPTBOOK_REPOSITORY_URL" "$PROMPTBOOK_REPOSITORY_DIR"
+    resolved_checked_path="$(realpath -m "$checked_path")"
+    resolved_parent_path="$(realpath -m "$parent_path")"
+
+    [[ "$resolved_checked_path" == "$resolved_parent_path"/* ]]
+}
+
+remove_promptbook_repository_directory_if_safe() {
+    local repository_dir="$1"
+    local current_repository_dir="${2:-$PROMPTBOOK_REPOSITORY_DIR}"
+    local resolved_repository_dir=""
+    local resolved_current_repository_dir=""
+    local resolved_legacy_repository_dir=""
+
+    if [[ -z "$repository_dir" || ! -e "$repository_dir" ]]; then
+        return
     fi
 
+    resolved_repository_dir="$(realpath -m "$repository_dir")"
+    resolved_current_repository_dir="$(realpath -m "$current_repository_dir")"
+    resolved_legacy_repository_dir="$(realpath -m "$PROMPTBOOK_LEGACY_REPOSITORY_DIR")"
+
+    if [[ "$resolved_repository_dir" == "$resolved_current_repository_dir" ]]; then
+        return
+    fi
+
+    if [[ "$resolved_repository_dir" == "/" || "$resolved_repository_dir" == "$(realpath -m "$INSTALL_DIR")" ]]; then
+        fail "Refusing to remove unsafe Promptbook repository path '$repository_dir'."
+    fi
+
+    if [[ "$resolved_repository_dir" != "$resolved_legacy_repository_dir" ]] && ! is_path_inside_directory "$resolved_repository_dir" "$PTBK_RELEASES_DIR"; then
+        fail "Refusing to remove Promptbook repository path outside $PTBK_RELEASES_DIR: $repository_dir."
+    fi
+
+    log "Removing old Promptbook repository $resolved_repository_dir."
+    "${SUDO[@]}" rm -rf -- "$resolved_repository_dir"
+}
+
+install_promptbook_repository() {
+    local target_commit_sha=""
+    local target_repository_dir=""
+    local staging_repository_dir=""
+    local existing_commit_sha=""
+
+    target_commit_sha="$(read_remote_repository_commit_sha "$PROMPTBOOK_REPOSITORY_REF")"
+    if [[ -z "$target_commit_sha" ]]; then
+        fail "Could not resolve the latest commit for Promptbook branch '$PROMPTBOOK_REPOSITORY_REF'."
+    fi
+
+    target_repository_dir="$(resolve_repository_directory_for_commit "$target_commit_sha")"
+    staging_repository_dir="$PTBK_RELEASES_DIR/.install-${PROMPTBOOK_REPOSITORY_RELEASE_NAME}-$$"
+
+    log "Installing Promptbook from $PROMPTBOOK_REPOSITORY_URL ($PROMPTBOOK_REPOSITORY_REF) into $target_repository_dir."
+    "${SUDO[@]}" mkdir -p "$PTBK_RELEASES_DIR"
+    "${SUDO[@]}" chown -R "$RUN_USER:$RUN_GROUP" "$PTBK_RELEASES_DIR"
+
+    if [[ -d "$target_repository_dir/.git" ]]; then
+        existing_commit_sha="$(read_repository_commit_sha "$target_repository_dir")"
+        if [[ "$existing_commit_sha" != "$target_commit_sha" ]]; then
+            fail "$target_repository_dir already contains commit $existing_commit_sha, expected $target_commit_sha."
+        fi
+
+        PROMPTBOOK_REPOSITORY_DIR="$target_repository_dir"
+        log "Promptbook checkout $PROMPTBOOK_REPOSITORY_RELEASE_NAME already exists; refreshing dependencies."
+        run_as_service_user bash -lc "cd $(shell_quote "$PROMPTBOOK_REPOSITORY_DIR") && npm ci --include=dev"
+        return
+    fi
+
+    if [[ -e "$target_repository_dir" ]] && find "$target_repository_dir" -mindepth 1 -maxdepth 1 | grep -q .; then
+        fail "$target_repository_dir exists and is not an empty Promptbook git checkout."
+    fi
+
+    remove_promptbook_repository_directory_if_safe "$staging_repository_dir" "$target_repository_dir"
+    run_as_service_user git clone --depth 1 --branch "$PROMPTBOOK_REPOSITORY_REF" "$PROMPTBOOK_REPOSITORY_URL" "$staging_repository_dir"
+    run_as_service_user git -C "$staging_repository_dir" checkout --detach "$target_commit_sha"
+
     log "Installing Promptbook repository dependencies."
-    run_as_service_user bash -lc "cd $(shell_quote "$PROMPTBOOK_REPOSITORY_DIR") && npm ci --include=dev"
+    run_as_service_user bash -lc "cd $(shell_quote "$staging_repository_dir") && npm ci --include=dev"
+    if [[ -d "$target_repository_dir" ]]; then
+        run_as_service_user rmdir "$target_repository_dir"
+    fi
+    run_as_service_user mv "$staging_repository_dir" "$target_repository_dir"
+    PROMPTBOOK_REPOSITORY_DIR="$target_repository_dir"
 }
 
 install_agents_server_browser_dependencies() {
@@ -1141,7 +1271,7 @@ resolve_default_public_site_url() {
 
 configure_install_directory() {
     log "Configuring $INSTALL_DIR."
-    "${SUDO[@]}" mkdir -p "$INSTALL_DIR/.promptbook" "$INSTALL_DIR/.logs"
+    "${SUDO[@]}" mkdir -p "$INSTALL_DIR/.promptbook" "$INSTALL_DIR/.logs" "$PTBK_RELEASES_DIR" "$PTBK_DATABASE_DIR"
     "${SUDO[@]}" chown -R "$RUN_USER:$RUN_GROUP" "$INSTALL_DIR"
 
     ENV_FILE="$INSTALL_DIR/.env"
@@ -1425,7 +1555,7 @@ validate_file_storage_configuration() {
 }
 
 configure_environment() {
-    local sqlite_path="$INSTALL_DIR/.promptbook/agents-server.sqlite"
+    local sqlite_path="$PTBK_DATABASE_DIR/agents-server.sqlite"
     local public_site_url="$REQUESTED_PUBLIC_SITE_URL"
     local first_domain="${DOMAINS[0]:-}"
     local table_prefix=""
@@ -1454,10 +1584,14 @@ configure_environment() {
     set_env_value PTBK_HOSTNAME 127.0.0.1
     set_env_value PTBK_PUBLIC_IP_ADDRESS "$PUBLIC_IP_ADDRESS"
     set_env_value PTBK_INSTALL_DIR "$INSTALL_DIR"
+    set_env_value PTBK_DATA_DIR "$PTBK_DATA_DIR"
+    set_env_value PTBK_DATABASE_DIR "$PTBK_DATABASE_DIR"
+    set_env_value PTBK_RELEASES_DIR "$PTBK_RELEASES_DIR"
     set_env_value PTBK_REPOSITORY_DIR "$PROMPTBOOK_REPOSITORY_DIR"
     set_env_value PROMPTBOOK_REPOSITORY_REF "$PROMPTBOOK_REPOSITORY_REF"
     set_env_value PTBK_VPS_INSTALL_SCRIPT "$PROMPTBOOK_REPOSITORY_DIR/other/vps/install.sh"
     set_env_value PTBK_AGENTS_SERVER_ENV_FILE "$ENV_FILE"
+    set_env_value PTBK_PM2_BASE_APP_NAME "$PTBK_PM2_BASE_APP_NAME"
     set_env_value PTBK_PM2_APP_NAME "$APP_NAME"
     set_env_value PTBK_NGINX_SITE_NAME "$NGINX_SITE_NAME"
     set_env_value LETS_ENCRYPT_EMAIL "$LETS_ENCRYPT_EMAIL"
@@ -2248,34 +2382,162 @@ run_agents_server_database_migrations() {
     run_as_service_user bash -lc "cd $repository_dir_shell && PTBK_AGENTS_SERVER_ENV_FILE=$env_file_shell npx --yes tsx ./apps/agents-server/src/database/migrate.ts"
 }
 
-start_agents_server() {
+start_pm2_agents_server_process() {
+    local process_name="$1"
+    local process_port="$2"
     local install_dir_shell=""
-    local app_name_shell=""
+    local process_name_shell=""
+    local process_port_shell=""
     local ptbk_command_shell=""
+    local repository_dir_shell=""
+    local install_script_shell=""
+    local env_file_shell=""
+    local base_app_name_shell=""
+    local data_dir_shell=""
+    local database_dir_shell=""
+    local releases_dir_shell=""
     local agent_shell=""
     local model_shell=""
     local thinking_shell=""
-    local port_shell=""
 
     install_dir_shell="$(shell_quote "$INSTALL_DIR")"
-    app_name_shell="$(shell_quote "$APP_NAME")"
+    process_name_shell="$(shell_quote "$process_name")"
+    process_port_shell="$(shell_quote "$process_port")"
     ptbk_command_shell="$(shell_quote "$PTBK_COMMAND_PATH")"
+    repository_dir_shell="$(shell_quote "$PROMPTBOOK_REPOSITORY_DIR")"
+    install_script_shell="$(shell_quote "$PROMPTBOOK_REPOSITORY_DIR/other/vps/install.sh")"
+    env_file_shell="$(shell_quote "$ENV_FILE")"
+    base_app_name_shell="$(shell_quote "$PTBK_PM2_BASE_APP_NAME")"
+    data_dir_shell="$(shell_quote "$PTBK_DATA_DIR")"
+    database_dir_shell="$(shell_quote "$PTBK_DATABASE_DIR")"
+    releases_dir_shell="$(shell_quote "$PTBK_RELEASES_DIR")"
     agent_shell="$(shell_quote "$PTBK_AGENT")"
     model_shell="$(shell_quote "$PTBK_MODEL")"
     thinking_shell="$(shell_quote "$PTBK_THINKING_LEVEL")"
-    port_shell="$(shell_quote "$PORT")"
 
-    log "Starting Agents Server with pm2."
+    log "Starting Agents Server pm2 process $process_name on port $process_port."
     run_as_service_user bash -lc "
         set -e
         cd $install_dir_shell
         PTBK_PATH=$ptbk_command_shell
-        if pm2 describe $app_name_shell >/dev/null 2>&1; then
-            pm2 delete $app_name_shell >/dev/null
+        if pm2 describe $process_name_shell >/dev/null 2>&1; then
+            pm2 delete $process_name_shell >/dev/null
         fi
-        pm2 start \"\$PTBK_PATH\" --interpreter bash --name $app_name_shell --time --cron-restart $(shell_quote "$PM2_HOURLY_RESTART_CRON") --cwd $install_dir_shell -- agents-server start --agent $agent_shell --model $model_shell --thinking-level $thinking_shell --port $port_shell --no-ui
+        PTBK_INSTALL_DIR=$install_dir_shell \
+        PTBK_DATA_DIR=$data_dir_shell \
+        PTBK_DATABASE_DIR=$database_dir_shell \
+        PTBK_RELEASES_DIR=$releases_dir_shell \
+        PTBK_REPOSITORY_DIR=$repository_dir_shell \
+        PTBK_VPS_INSTALL_SCRIPT=$install_script_shell \
+        PTBK_AGENTS_SERVER_ENV_FILE=$env_file_shell \
+        PTBK_PM2_APP_NAME=$process_name_shell \
+        PTBK_PM2_BASE_APP_NAME=$base_app_name_shell \
+        PORT=$process_port_shell \
+        pm2 start \"\$PTBK_PATH\" --interpreter bash --name $process_name_shell --time --cron-restart $(shell_quote "$PM2_HOURLY_RESTART_CRON") --cwd $install_dir_shell -- agents-server start --agent $agent_shell --model $model_shell --thinking-level $thinking_shell --port $process_port_shell --no-ui
         pm2 save
     "
+}
+
+is_tcp_port_available() {
+    local checked_port="$1"
+
+    if ! command -v node >/dev/null 2>&1; then
+        fail "Node.js is required to find a free Agents Server port."
+    fi
+
+    node -e '
+        const net = require("net");
+        const port = Number(process.argv[1]);
+        const server = net.createServer();
+        const timeout = setTimeout(() => process.exit(1), 3000);
+        server.once("error", () => {
+            clearTimeout(timeout);
+            process.exit(1);
+        });
+        server.listen(port, "127.0.0.1", () => {
+            clearTimeout(timeout);
+            server.close(() => process.exit(0));
+        });
+    ' "$checked_port" >/dev/null 2>&1
+}
+
+resolve_next_agents_server_port() {
+    local base_port="$1"
+    local offset=1
+    local candidate_port=0
+
+    while [[ "$offset" -le 100 ]]; do
+        candidate_port=$((base_port + offset))
+        if is_tcp_port_available "$candidate_port"; then
+            printf '%s' "$candidate_port"
+            return
+        fi
+        offset=$((offset + 1))
+    done
+
+    fail "Could not find a free local port near $base_port for the replacement Agents Server process."
+}
+
+wait_for_agents_server_health() {
+    local process_name="$1"
+    local process_port="$2"
+    local health_url="http://127.0.0.1:${process_port}/api/health"
+    local deadline=$((SECONDS + 180))
+
+    log "Waiting for $process_name to become healthy at $health_url."
+    while [[ "$SECONDS" -lt "$deadline" ]]; do
+        if curl -fsS --max-time 5 "$health_url" >/dev/null 2>&1; then
+            log "$process_name is healthy."
+            return
+        fi
+
+        sleep 2
+    done
+
+    warn "Recent pm2 logs for $process_name:"
+    run_as_service_user pm2 logs "$process_name" --nostream --lines 80 || true
+    fail "Agents Server process $process_name did not become healthy within 180 seconds."
+}
+
+switch_nginx_to_agents_server_port() {
+    local next_port="$1"
+
+    PORT="$next_port"
+    log "Switching nginx to Agents Server port $PORT."
+    write_nginx_proxy_snippet
+    "${SUDO[@]}" nginx -t
+    reload_or_restart_nginx
+}
+
+stop_pm2_process_if_running() {
+    local process_name="$1"
+
+    if [[ -z "$process_name" ]]; then
+        return
+    fi
+
+    run_as_service_user bash -lc "
+        set -e
+        if pm2 describe $(shell_quote "$process_name") >/dev/null 2>&1; then
+            pm2 delete $(shell_quote "$process_name") >/dev/null
+            pm2 save
+        fi
+    "
+}
+
+resolve_pm2_release_app_name() {
+    local release_name="${PROMPTBOOK_REPOSITORY_RELEASE_NAME:-}"
+
+    if [[ -z "$release_name" ]]; then
+        release_name="$(sanitize_repository_release_name "$(basename "$PROMPTBOOK_REPOSITORY_DIR")" "$(read_repository_commit_sha)")"
+    fi
+
+    printf '%s-%s' "$PTBK_PM2_BASE_APP_NAME" "$release_name"
+}
+
+start_agents_server() {
+    start_pm2_agents_server_process "$APP_NAME" "$PORT"
+    wait_for_agents_server_health "$APP_NAME" "$PORT"
 }
 
 load_runtime_configuration_from_env_file() {
@@ -2289,8 +2551,24 @@ load_runtime_configuration_from_env_file() {
     env_value="$(get_env_value PTBK_PM2_APP_NAME)"
     [[ -n "$env_value" ]] && APP_NAME="$env_value"
 
+    env_value="$(get_env_value PTBK_PM2_BASE_APP_NAME)"
+    [[ -n "$env_value" ]] && PTBK_PM2_BASE_APP_NAME="$env_value"
+
+    env_value="$(get_env_value PTBK_DATA_DIR)"
+    [[ -n "$env_value" ]] && PTBK_DATA_DIR="$env_value"
+
+    env_value="$(get_env_value PTBK_DATABASE_DIR)"
+    [[ -n "$env_value" ]] && PTBK_DATABASE_DIR="$env_value"
+
+    env_value="$(get_env_value PTBK_RELEASES_DIR)"
+    [[ -n "$env_value" ]] && PTBK_RELEASES_DIR="$env_value"
+
     env_value="$(get_env_value PTBK_REPOSITORY_DIR)"
-    [[ -n "$env_value" ]] && PROMPTBOOK_REPOSITORY_DIR="$env_value"
+    if [[ -n "$env_value" ]]; then
+        PROMPTBOOK_REPOSITORY_DIR="$env_value"
+    elif [[ -d "$PROMPTBOOK_LEGACY_REPOSITORY_DIR/.git" ]]; then
+        PROMPTBOOK_REPOSITORY_DIR="$PROMPTBOOK_LEGACY_REPOSITORY_DIR"
+    fi
 
     env_value="$(get_env_value PROMPTBOOK_REPOSITORY_REF)"
     [[ -n "$env_value" ]] && PROMPTBOOK_REPOSITORY_REF="$(normalize_promptbook_repository_ref "$env_value")"
@@ -2430,6 +2708,11 @@ apply_code_runner_configuration() {
 self_update_agents_server() {
     local target_ref=""
     local finished_at=""
+    local old_repository_dir=""
+    local old_app_name=""
+    local old_port=""
+    local replacement_app_name=""
+    local replacement_port=""
 
     initialize_sudo
     resolve_run_user
@@ -2456,8 +2739,11 @@ self_update_agents_server() {
 
     PROMPTBOOK_REPOSITORY_REF="$(normalize_promptbook_repository_ref "$target_ref")"
     SELF_UPDATE_STARTED_AT="$(date --utc --iso-8601=seconds)"
+    old_repository_dir="$PROMPTBOOK_REPOSITORY_DIR"
+    old_app_name="$APP_NAME"
+    old_port="$PORT"
 
-    SELF_UPDATE_CURRENT_COMMIT="$(read_repository_commit_sha)"
+    SELF_UPDATE_CURRENT_COMMIT="$(read_repository_commit_sha "$old_repository_dir")"
     write_self_update_status_file \
         "running" \
         "$PROMPTBOOK_REPOSITORY_REF" \
@@ -2471,7 +2757,7 @@ self_update_agents_server() {
     trap write_failed_self_update_status_on_exit EXIT
 
     SELF_UPDATE_TARGET_COMMIT="$(read_remote_repository_commit_sha "$PROMPTBOOK_REPOSITORY_REF")"
-    write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Downloading the latest Promptbook repository checkout." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "" "$$"
+    write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Installing the latest Promptbook checkout into a versioned release directory." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "" "$$"
     install_promptbook_repository
 
     SELF_UPDATE_CURRENT_COMMIT="$(read_repository_commit_sha)"
@@ -2484,12 +2770,41 @@ self_update_agents_server() {
     write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Rebuilding the Agents Server." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "" "$$"
     build_agents_server
 
+    if [[ "$(realpath -m "$old_repository_dir")" == "$(realpath -m "$PROMPTBOOK_REPOSITORY_DIR")" ]]; then
+        ENV_FILE="$INSTALL_DIR/.env"
+        set_env_value PROMPTBOOK_REPOSITORY_REF "$PROMPTBOOK_REPOSITORY_REF"
+        set_env_value PTBK_REPOSITORY_DIR "$PROMPTBOOK_REPOSITORY_DIR"
+        set_env_value PTBK_VPS_INSTALL_SCRIPT "$PROMPTBOOK_REPOSITORY_DIR/other/vps/install.sh"
+        finished_at="$(date --utc --iso-8601=seconds)"
+        write_self_update_status_file "succeeded" "$PROMPTBOOK_REPOSITORY_REF" "Standalone VPS self-update finished; the requested release was already installed." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "$finished_at" ""
+        trap - EXIT
+        return
+    fi
+
+    replacement_app_name="$(resolve_pm2_release_app_name)"
+    replacement_port="$(resolve_next_agents_server_port "$old_port")"
+
+    write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Starting the replacement Agents Server pm2 process on port $replacement_port." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "" "$$"
+    start_pm2_agents_server_process "$replacement_app_name" "$replacement_port"
+    wait_for_agents_server_health "$replacement_app_name" "$replacement_port"
+
+    write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Switching nginx to the healthy replacement process." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "" "$$"
+    switch_nginx_to_agents_server_port "$replacement_port"
+
     ENV_FILE="$INSTALL_DIR/.env"
+    set_env_value PORT "$replacement_port"
+    set_env_value PTBK_RELEASES_DIR "$PTBK_RELEASES_DIR"
+    set_env_value PTBK_REPOSITORY_DIR "$PROMPTBOOK_REPOSITORY_DIR"
     set_env_value PROMPTBOOK_REPOSITORY_REF "$PROMPTBOOK_REPOSITORY_REF"
     set_env_value PTBK_VPS_INSTALL_SCRIPT "$PROMPTBOOK_REPOSITORY_DIR/other/vps/install.sh"
+    set_env_value PTBK_PM2_BASE_APP_NAME "$PTBK_PM2_BASE_APP_NAME"
+    set_env_value PTBK_PM2_APP_NAME "$replacement_app_name"
 
-    write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Restarting the Agents Server with pm2." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "" "$$"
-    restart_agents_server_if_running
+    write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Removing the previous pm2 process and repository checkout." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "" "$$"
+    if [[ "$old_app_name" != "$replacement_app_name" ]]; then
+        stop_pm2_process_if_running "$old_app_name"
+    fi
+    remove_promptbook_repository_directory_if_safe "$old_repository_dir" "$PROMPTBOOK_REPOSITORY_DIR"
 
     finished_at="$(date --utc --iso-8601=seconds)"
     write_self_update_status_file "succeeded" "$PROMPTBOOK_REPOSITORY_REF" "Standalone VPS self-update finished successfully." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "$finished_at" ""
@@ -2510,7 +2825,7 @@ print_summary() {
     log "Project directory: $INSTALL_DIR"
     log "Repository: $PROMPTBOOK_REPOSITORY_DIR"
     log "Environment: $(resolve_promptbook_environment_label "$PROMPTBOOK_REPOSITORY_REF") ($PROMPTBOOK_REPOSITORY_REF)"
-    log "Database: $INSTALL_DIR/.promptbook/agents-server.sqlite"
+    log "Database: $(get_env_value PTBK_AGENTS_SERVER_SQLITE_PATH)"
     log "File storage: $(normalize_file_storage_mode "$REQUESTED_FILE_STORAGE_MODE")"
     if is_self_contained_s3_storage_enabled; then
         log "Self-contained S3 directory: $REQUESTED_SELF_CONTAINED_S3_DIRECTORY"

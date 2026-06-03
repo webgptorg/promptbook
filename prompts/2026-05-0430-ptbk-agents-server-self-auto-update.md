@@ -313,7 +313,7 @@ Node.js v22.22.2
 
 ---
 
-[ ] !!!
+[x] ~$0.5204 an hour by OpenAI Codex `gpt-5.5`
 
 [✨⬆] Agents server has ability to self-update, but it should install new version in the new folder and remove the old one, so there is no downtime during the update process
 
@@ -336,3 +336,4 @@ Node.js v22.22.2
 ```bash
 root@collboard-agents-server-x21:~# sudo curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/other/vps/install.sh | bash
 ```
+
