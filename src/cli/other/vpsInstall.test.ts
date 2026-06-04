@@ -79,7 +79,9 @@ describe('other/vps/install.sh', () => {
 
         expect(installScript).toContain('PTBK_INSTALL_DEFAULT_AGENTS="${PTBK_INSTALL_DEFAULT_AGENTS:-yes}"');
         expect(installScript).toContain('prompt_yes_no "Install default Agents Server agents?"');
-        expect(installScript).toContain('set_env_value PTBK_INSTALL_DEFAULT_AGENTS "$REQUESTED_INSTALL_DEFAULT_AGENTS"');
+        expect(installScript).toContain(
+            'set_env_value PTBK_INSTALL_DEFAULT_AGENTS "$REQUESTED_INSTALL_DEFAULT_AGENTS"',
+        );
         expect(installScript).toContain('local default_agents_dir="$PROMPTBOOK_REPOSITORY_DIR/agents/default"');
         expect(installScript).toContain('PTBK_DEFAULT_AGENTS_DIR=$default_agents_dir_shell');
         expect(installScript).toContain(
@@ -147,7 +149,9 @@ describe('other/vps/install.sh', () => {
         expect(installScript).toContain('set_env_value CDN_ENDPOINT "$REQUESTED_CDN_ENDPOINT"');
         expect(installScript).toContain('set_env_value NEXT_PUBLIC_CDN_PUBLIC_URL "$REQUESTED_CDN_PUBLIC_URL"');
         expect(installScript).toContain('location /s3/');
-        expect(mainFunction.indexOf('prompt_file_storage')).toBeLessThan(mainFunction.indexOf('install_system_packages'));
+        expect(mainFunction.indexOf('prompt_file_storage')).toBeLessThan(
+            mainFunction.indexOf('install_system_packages'),
+        );
         expect(mainFunction.indexOf('configure_self_contained_s3_storage')).toBeGreaterThan(
             mainFunction.indexOf('initialize_promptbook_project'),
         );
@@ -161,7 +165,9 @@ describe('other/vps/install.sh', () => {
         expect(installScript).toContain('wait_for_agents_server_health "$replacement_app_name" "$replacement_port"');
         expect(installScript).toContain('switch_nginx_to_agents_server_port "$replacement_port"');
         expect(installScript).toContain('stop_pm2_process_if_running "$old_app_name"');
-        expect(installScript).toContain('remove_promptbook_repository_directory_if_safe "$old_repository_dir" "$PROMPTBOOK_REPOSITORY_DIR"');
+        expect(installScript).toContain(
+            'remove_promptbook_repository_directory_if_safe "$old_repository_dir" "$PROMPTBOOK_REPOSITORY_DIR"',
+        );
         expect(installScript).not.toContain("trap '\n        local exit_code=$?");
     });
 

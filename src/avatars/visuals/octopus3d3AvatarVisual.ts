@@ -153,11 +153,7 @@ export const octopus3d3AvatarVisual: AvatarVisualDefinition = {
         });
         const eyeLatitude = clampNumber(morphologyProfile.face.eyeCenterYOffsetRatio * 4.2 - 0.03, -0.22, 0.08);
         const eyeLongitude = clampNumber(morphologyProfile.face.eyeSpacingRatio * 3.1, 0.18, 0.32);
-        const mouthLatitude = clampNumber(
-            eyeLatitude + 0.2 + morphologyProfile.face.mouthYOffsetRatio,
-            0.08,
-            0.34,
-        );
+        const mouthLatitude = clampNumber(eyeLatitude + 0.2 + morphologyProfile.face.mouthYOffsetRatio, 0.08, 0.34);
         const mouthCenterLongitude = clampNumber(morphologyProfile.face.mouthCenterOffsetRatio * 5.6, -0.08, 0.08);
         const mouthHalfLongitude = clampNumber(eyeLongitude * 0.78, 0.15, 0.28);
         const mouthCurveLatitude = clampNumber(
@@ -377,15 +373,17 @@ function drawContinuousOctopusShadow(
  *
  * @private helper of `octopus3d3AvatarVisual`
  */
-function resolveVisibleContinuousOctopusPatches(options: ContinuousOctopusSurfaceOptions & {
-    readonly center: Point3D;
-    readonly rotationX: number;
-    readonly rotationY: number;
-    readonly sceneCenterX: number;
-    readonly sceneCenterY: number;
-    readonly size: number;
-    readonly palette: AvatarPalette;
-}): Array<ContinuousOctopusSurfacePatch> {
+function resolveVisibleContinuousOctopusPatches(
+    options: ContinuousOctopusSurfaceOptions & {
+        readonly center: Point3D;
+        readonly rotationX: number;
+        readonly rotationY: number;
+        readonly sceneCenterX: number;
+        readonly sceneCenterY: number;
+        readonly size: number;
+        readonly palette: AvatarPalette;
+    },
+): Array<ContinuousOctopusSurfacePatch> {
     const { center, rotationX, rotationY, sceneCenterX, sceneCenterY, size, palette } = options;
     const latitudePatchCount = 16;
     const longitudePatchCount = 40;
@@ -469,8 +467,7 @@ function sampleContinuousOctopusSurfacePoint(
     const tipBlend = smoothStep(0.68, 1, verticalProgress);
     const tentacleInfluence = resolveContinuousTentacleInfluence(options, longitude);
     const centerPull = resolveSignedAngularDistance(longitude, tentacleInfluence.centerLongitude);
-    const effectiveLongitude =
-        longitude + centerPull * lowerBlend * tentacleInfluence.core * (0.24 + tipBlend * 0.2);
+    const effectiveLongitude = longitude + centerPull * lowerBlend * tentacleInfluence.core * (0.24 + tipBlend * 0.2);
     const lowerLobeWave = resolveContinuousLobeWave(options, longitude);
     const mantleRipple =
         Math.sin(
@@ -498,10 +495,7 @@ function sampleContinuousOctopusSurfacePoint(
         lowerBlend * tentacleInfluence.core * (0.1 + tentacleInfluence.depthScale * 0.06) -
         Math.max(0, -Math.cos(effectiveLongitude)) * 0.05;
     const tentacleTubeRadius =
-        lowerBlend *
-        tentacleInfluence.core *
-        (0.11 + tipBlend * 0.06 + tentacleInfluence.widthScale * 0.025) *
-        radiusX;
+        lowerBlend * tentacleInfluence.core * (0.11 + tipBlend * 0.06 + tentacleInfluence.widthScale * 0.025) * radiusX;
     const planarRadiusX = cosineLatitude * radiusX * horizontalScale + tentacleTubeRadius;
     const planarRadiusZ = cosineLatitude * radiusZ * depthScale + tentacleTubeRadius * 0.72;
     const lowerDrop =
@@ -514,9 +508,7 @@ function sampleContinuousOctopusSurfacePoint(
                     (morphologyProfile.tentacles.flowLengthScale - 1) * 0.08));
 
     return {
-        x:
-            Math.sin(effectiveLongitude) * planarRadiusX +
-            tentacleWave * radiusX * (0.052 + tipBlend * 0.05),
+        x: Math.sin(effectiveLongitude) * planarRadiusX + tentacleWave * radiusX * (0.052 + tipBlend * 0.05),
         y:
             Math.sin(latitude) * radiusY * (1 + upperBlend * 0.12) -
             upperBlend * radiusY * 0.1 +
@@ -603,9 +595,14 @@ function resolveContinuousLobeWave(options: ContinuousOctopusSurfaceOptions, lon
     const { morphologyProfile, animationPhase, timeMs } = options;
 
     return (
-        Math.cos(longitude * OCTOPUS_TENTACLE_COUNT + animationPhase + timeMs / (980 + morphologyProfile.body.lobeCount * 18)) +
-        1
-    ) / 2;
+        (Math.cos(
+            longitude * OCTOPUS_TENTACLE_COUNT +
+                animationPhase +
+                timeMs / (980 + morphologyProfile.body.lobeCount * 18),
+        ) +
+            1) /
+        2
+    );
 }
 
 /**
@@ -722,8 +719,7 @@ function drawProjectedSurfaceCurrents(options: {
             const progress = sampleIndex / 7;
             const latitude = -0.46 + progress * 0.74;
             const longitude =
-                baseLongitude +
-                Math.sin(timeMs / 1160 + animationPhase + currentIndex * 0.7 + progress * 2) * 0.035;
+                baseLongitude + Math.sin(timeMs / 1160 + animationPhase + currentIndex * 0.7 + progress * 2) * 0.035;
             const scenePoint = transformScenePoint(
                 sampleContinuousOctopusSurfacePoint(surfaceOptions, latitude, longitude),
                 center,
@@ -858,7 +854,10 @@ function drawProjectedSurfaceSpot(options: {
         size * 0.018,
     );
     const verticalRadius = clampNumber(
-        Math.hypot(projectedVerticalPoint.x - projectedCenterPoint.x, projectedVerticalPoint.y - projectedCenterPoint.y) *
+        Math.hypot(
+            projectedVerticalPoint.x - projectedCenterPoint.x,
+            projectedVerticalPoint.y - projectedCenterPoint.y,
+        ) *
             radiusScale *
             0.52,
         size * 0.0024,
