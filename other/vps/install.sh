@@ -43,6 +43,7 @@ NGINX_PROXY_SNIPPET_PATH="/etc/nginx/snippets/promptbook-agents-server-proxy.con
 NGINX_FALLBACK_DIR="/var/www/promptbook-agents-server"
 NGINX_FALLBACK_HTML_PATH="$NGINX_FALLBACK_DIR/fallback.html"
 NGINX_FALLBACK_URI="/__promptbook_agents_server_error.html"
+PROMPTBOOK_NGINX_FALLBACK_LOGO_RELATIVE_PATH="design/logo-blue-transparent-128.png"
 PROMPTBOOK_SWAP_FILE="${PTBK_SWAP_FILE:-/swapfile-promptbook}"
 MINIMUM_REQUIRED_MEMORY_MIB=8192
 MINIMUM_REQUIRED_DISK_MIB=15360
@@ -222,6 +223,22 @@ is_self_contained_s3_storage_enabled() {
 
 encode_status_field() {
     printf '%s' "$1" | base64 | tr -d '\n'
+}
+
+build_promptbook_nginx_fallback_logo_data_uri() {
+    local promptbook_logo_path=""
+
+    if [[ -z "$PROMPTBOOK_REPOSITORY_DIR" ]]; then
+        fail "Cannot build the nginx fallback logo before the Promptbook repository directory is available."
+    fi
+
+    promptbook_logo_path="$PROMPTBOOK_REPOSITORY_DIR/$PROMPTBOOK_NGINX_FALLBACK_LOGO_RELATIVE_PATH"
+
+    if [[ ! -f "$promptbook_logo_path" ]]; then
+        fail "Promptbook logo asset was not found at $promptbook_logo_path."
+    fi
+
+    printf 'data:image/png;base64,%s' "$(base64 < "$promptbook_logo_path" | tr -d '\n')"
 }
 
 write_self_update_status_file() {
@@ -1842,8 +1859,12 @@ ensure_nginx_headers_more_module_is_available() {
 }
 
 write_nginx_fallback_page() {
+    local promptbook_logo_data_uri=""
+
+    promptbook_logo_data_uri="$(build_promptbook_nginx_fallback_logo_data_uri)"
+
     "${SUDO[@]}" install -d -m 755 "$NGINX_FALLBACK_DIR"
-    "${SUDO[@]}" tee "$NGINX_FALLBACK_HTML_PATH" >/dev/null <<'EOF'
+    "${SUDO[@]}" tee "$NGINX_FALLBACK_HTML_PATH" >/dev/null <<EOF
 <!doctype html>
 <html lang="en">
 <head>
@@ -1856,7 +1877,6 @@ write_nginx_fallback_page() {
             color-scheme: light;
             --brand-blue: #1d4ed8;
             --brand-cyan: #0891b2;
-            --brand-green: #14b8a6;
             --ink: #0f172a;
             --muted: #64748b;
             --soft: #f8fafc;
@@ -1910,41 +1930,17 @@ write_nginx_fallback_page() {
         }
 
         .brand-mark {
-            width: 38px;
-            height: 38px;
+            width: 52px;
+            height: 52px;
             flex: 0 0 auto;
             display: block;
-            border-radius: 10px;
-            box-shadow: 0 14px 28px rgba(8, 145, 178, 0.24);
-        }
-
-        .eyebrow {
-            margin: 72px 0 18px;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            border: 1px solid rgba(8, 145, 178, 0.16);
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.74);
-            padding: 9px 14px;
-            color: var(--muted);
-            font-size: 13px;
-            font-weight: 700;
-            letter-spacing: 0;
-            text-transform: uppercase;
-        }
-
-        .status-dot {
-            width: 9px;
-            height: 9px;
-            border-radius: 999px;
-            background: var(--brand-green);
-            box-shadow: 0 0 0 5px rgba(20, 184, 166, 0.14);
+            object-fit: contain;
+            filter: drop-shadow(0 14px 28px rgba(8, 145, 178, 0.24));
         }
 
         h1 {
             max-width: 600px;
-            margin: 0;
+            margin: 56px 0 0;
             font-size: 48px;
             line-height: 1.04;
             font-weight: 800;
@@ -2087,11 +2083,8 @@ write_nginx_fallback_page() {
                 padding: 40px 0;
             }
 
-            .eyebrow {
-                margin-top: 48px;
-            }
-
             h1 {
+                margin-top: 40px;
                 font-size: 40px;
             }
         }
@@ -2128,21 +2121,9 @@ write_nginx_fallback_page() {
     <main class="fallback-shell" aria-labelledby="fallback-title">
         <section>
             <a class="brand-link" href="https://www.ptbk.io/" aria-label="Promptbook homepage">
-                <svg class="brand-mark" viewBox="0 0 38 38" role="img" aria-hidden="true">
-                    <defs>
-                        <linearGradient id="promptbook-mark-gradient" x1="4" y1="5" x2="34" y2="34">
-                            <stop stop-color="#79eafd" />
-                            <stop offset="0.52" stop-color="#0891b2" />
-                            <stop offset="1" stop-color="#1d4ed8" />
-                        </linearGradient>
-                    </defs>
-                    <rect width="38" height="38" rx="10" fill="url(#promptbook-mark-gradient)" />
-                    <path d="M11 10.5h7.5c4.9 0 8.5 3.4 8.5 8.1s-3.6 8.2-8.5 8.2H11V10.5Z" fill="#ffffff" opacity="0.96" />
-                    <path d="M15 14.3h3.6c2.5 0 4.2 1.7 4.2 4.3s-1.7 4.4-4.2 4.4H15v-8.7Z" fill="#0891b2" />
-                </svg>
+                <img class="brand-mark" src="${promptbook_logo_data_uri}" alt="">
                 <span>Prompt<strong>book</strong></span>
             </a>
-            <p class="eyebrow"><span class="status-dot" aria-hidden="true"></span>Agents Server fallback</p>
             <h1 id="fallback-title">Server is getting ready</h1>
             <p class="description">Promptbook is installed and Nginx is online. The Agents Server application is not available from this route right now.</p>
             <div class="status-row" aria-label="Current status">

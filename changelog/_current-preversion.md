@@ -1,3 +1,8 @@
+-   Fixed standalone VPS nginx fallback branding for Agents Server installs:
+
+    -   `other/vps/install.sh` now embeds the real Promptbook logo directly into the nginx-served fallback HTML, so the branded page does not depend on the Next.js app or extra static-file routing.
+    -   Removed the `Agents Server fallback` label from the branded nginx fallback page while keeping the existing install-time nginx fallback flow unchanged.
+
 -   Added a new default `Octopus 3D 3` built-in avatar visual:
 
     -   Added a more blobby continuous 3D octopus mesh with seeded waving tentacle lobes, projected sucker highlights, richer shading, and the same cursor-aware head and eye turning used by the other interactive avatar visuals.
