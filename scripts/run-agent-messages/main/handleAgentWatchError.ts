@@ -84,7 +84,9 @@ export async function handleAgentWatchError(options: {
     } catch (logWriteError) {
         console.error(
             colors.yellow(
-                `Failed to write recoverable watcher failure log to ${errorLogPath}: ${formatUnknownErrorDetails(logWriteError)}`,
+                `Failed to write recoverable watcher failure log to ${errorLogPath}: ${formatUnknownErrorDetails(
+                    logWriteError,
+                )}`,
             ),
         );
         console.error(colors.yellow('Continuing to watch without a persisted failure log.'));
@@ -109,7 +111,7 @@ async function readRuntimeLogIfAvailable(runtimeLogPath: string | undefined): Pr
 /**
  * Recovers previously attached watch-loop context from an error-like value.
  */
-function getAgentWatchErrorContext(error: unknown): AgentWatchErrorContext | undefined {
+export function getAgentWatchErrorContext(error: unknown): AgentWatchErrorContext | undefined {
     if (!(error instanceof Error)) {
         return undefined;
     }
@@ -123,4 +125,3 @@ function getAgentWatchErrorContext(error: unknown): AgentWatchErrorContext | und
 function normalizeAgentWatchError(error: unknown): Error {
     return error instanceof Error ? error : new Error(formatUnknownErrorDetails(error));
 }
-

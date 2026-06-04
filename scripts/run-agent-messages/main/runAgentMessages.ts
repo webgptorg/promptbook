@@ -13,6 +13,7 @@ import {
 import { validateAgentRunOptions } from './validateAgentRunOptions';
 import { validateAgentWatchOptions } from './validateAgentWatchOptions';
 import { handleAgentWatchError } from './handleAgentWatchError';
+import { AgentMessageFailureTracker } from './AgentMessageFailureTracker';
 
 /**
  * Delay between idle queue checks in watch mode.
@@ -31,6 +32,7 @@ export async function runAgentMessages(
     options: AgentRunOptions,
     controls: {
         readonly shouldContinue?: () => boolean;
+        readonly queuePollIntervalMs?: number;
     } = {},
 ): Promise<void> {
     validateAgentRunOptions(options);
@@ -38,8 +40,12 @@ export async function runAgentMessages(
     const projectPath = process.cwd();
     let autoPullTimestamp = options.autoPull ? Date.now() : undefined;
     const shouldContinue = controls.shouldContinue || (() => just(true));
+    const queuePollIntervalMs = controls.queuePollIntervalMs ?? AGENT_QUEUE_POLL_INTERVAL_MS;
     let isWatchSessionInitialized = false;
     let uiHandle: Awaited<ReturnType<typeof initializeAgentRunUi>> | undefined;
+    const messageFailureTracker = new AgentMessageFailureTracker({
+        maxMessageProcessingFailures: options.maxMessageProcessingFailures,
+    });
 
     while (shouldContinue()) {
         try {
@@ -49,7 +55,9 @@ export async function runAgentMessages(
                 isWatchSessionInitialized = true;
 
                 if (!uiHandle) {
-                    console.info(colors.green(`Watching ${getQueuedAgentMessagesDirectoryLabel()} for queued agent messages.`));
+                    console.info(
+                        colors.green(`Watching ${getQueuedAgentMessagesDirectoryLabel()} for queued agent messages.`),
+                    );
                 }
             }
 
@@ -57,6 +65,7 @@ export async function runAgentMessages(
             autoPullTimestamp = result.autoPullTimestamp ?? autoPullTimestamp;
 
             if (result.isMessageProcessed) {
+                messageFailureTracker.clearMessageFailure(projectPath, result.queuedMessage);
                 continue;
             }
 
@@ -66,6 +75,7 @@ export async function runAgentMessages(
                 autoPullTimestamp,
                 uiHandle,
                 shouldContinue,
+                queuePollIntervalMs,
             });
         } catch (error) {
             await handleAgentWatchError({
@@ -73,7 +83,8 @@ export async function runAgentMessages(
                 logDirectoryPath: projectPath,
                 error,
             });
-            await wait(AGENT_QUEUE_POLL_INTERVAL_MS);
+            await messageFailureTracker.recordFailure(error);
+            await wait(queuePollIntervalMs);
         }
     }
 }
@@ -87,8 +98,9 @@ async function waitForQueuedAgentMessage(options: {
     readonly autoPullTimestamp: number | undefined;
     readonly uiHandle?: Awaited<ReturnType<typeof initializeAgentRunUi>>;
     readonly shouldContinue: () => boolean;
+    readonly queuePollIntervalMs: number;
 }): Promise<number | undefined> {
-    const { projectPath, options: runOptions, uiHandle, shouldContinue } = options;
+    const { projectPath, options: runOptions, uiHandle, shouldContinue, queuePollIntervalMs } = options;
     let { autoPullTimestamp } = options;
     let queueSnapshot = await loadAgentMessageQueueSnapshot(projectPath);
 
@@ -97,7 +109,7 @@ async function waitForQueuedAgentMessage(options: {
     }
 
     while (shouldContinue()) {
-        await wait(AGENT_QUEUE_POLL_INTERVAL_MS);
+        await wait(queuePollIntervalMs);
 
         queueSnapshot = await loadAgentMessageQueueSnapshot(projectPath);
 

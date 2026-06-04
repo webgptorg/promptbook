@@ -40,6 +40,15 @@ export type SpawnAgentLimits = {
 };
 
 /**
+ * Dedicated subset consumed by the local coding-agent runner.
+ *
+ * @private internal Agents Server type
+ */
+export type LocalAgentRunnerLimits = {
+    readonly maxFailedAttempts: number;
+};
+
+/**
  * Row shape loaded from the dedicated `ServerLimit` table.
  *
  * @private internal Agents Server type
@@ -251,6 +260,20 @@ export async function getSpawnAgentLimits(): Promise<SpawnAgentLimits> {
 }
 
 /**
+ * Loads the local coding-agent runner retry limits.
+ *
+ * @returns Dedicated local agent runner limits.
+ *
+ * @private internal Agents Server helper
+ */
+export async function getLocalAgentRunnerLimits(): Promise<LocalAgentRunnerLimits> {
+    const limits = await getServerLimits();
+    return {
+        maxFailedAttempts: limits[SERVER_LIMIT_KEYS.LOCAL_AGENT_RUNNER_MAX_FAILED_ATTEMPTS],
+    };
+}
+
+/**
  * Normalizes one arbitrary key/value object into the supported dedicated server-limit payload.
  *
  * @param rawValue - Unknown raw limits payload.
@@ -277,7 +300,9 @@ export function normalizeServerLimitValues(rawValue: Record<string, unknown>): S
  */
 async function loadLegacyServerLimits(): Promise<Partial<Record<ServerLimitKey, unknown>>> {
     const metadata = await getMetadataMap(DEPRECATED_LIMIT_METADATA_KEYS);
-    const normalizedToolUsageLimits = normalizeToolUsageLimits(parseJsonValue(metadata[TOOL_USAGE_LIMITS_METADATA_KEY]));
+    const normalizedToolUsageLimits = normalizeToolUsageLimits(
+        parseJsonValue(metadata[TOOL_USAGE_LIMITS_METADATA_KEY]),
+    );
 
     return {
         [SERVER_LIMIT_KEYS.TIMEOUT_MAX_ACTIVE_PER_CHAT]: normalizedToolUsageLimits.timeout.maxActivePerChat,

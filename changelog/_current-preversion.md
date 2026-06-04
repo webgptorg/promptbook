@@ -1,3 +1,8 @@
+-   Fixed Agents Server local agent runner retries so a repeatedly failing queued chat message is moved to `messages/failed` after the configurable local-runner failed-attempt limit instead of being retried forever.
+
+    -   Added the local runner retry cap to the dedicated limits page (the old `/admin/tool-limits` redirect still lands there), defaulting to 3 failed attempts.
+    -   The failed message now includes a visible `@Agent` failure note with the last runner error so the chat shows why retries stopped.
+
 -   Fixed CLI package generation so the embedded Agents Server runtime no longer copies unused browser-only package entrypoints/helpers, and the publish-safety check runs after the runtime copy has been refreshed.
 
 -   Added bundled default agents to standalone VPS Agents Server installs:

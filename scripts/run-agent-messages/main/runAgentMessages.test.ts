@@ -54,7 +54,9 @@ describe('runAgentMessages', () => {
     });
 
     it('prints the watch log in `--no-ui` mode and keeps idle ticks quiet', async () => {
-        (tickAgentMessages as jest.MockedFunction<typeof tickAgentMessages>).mockResolvedValue({ isMessageProcessed: false });
+        (tickAgentMessages as jest.MockedFunction<typeof tickAgentMessages>).mockResolvedValue({
+            isMessageProcessed: false,
+        });
 
         const loopStates = [true, false, false];
         await expect(
@@ -67,7 +69,9 @@ describe('runAgentMessages', () => {
             isQuietWhenIdle: true,
             uiHandle: undefined,
         });
-        expect(consoleInfoSpy).toHaveBeenCalledWith(expect.stringContaining('Watching messages/queued for queued agent messages.'));
+        expect(consoleInfoSpy).toHaveBeenCalledWith(
+            expect.stringContaining('Watching messages/queued for queued agent messages.'),
+        );
     });
 
     it('rejects `--no-commit` watch mode without `--ignore-git-changes`', async () => {
@@ -114,5 +118,45 @@ describe('runAgentMessages', () => {
         expect(errorLogFileName).toBeDefined();
         expect(await readFile(join(temporaryProjectPath, errorLogFileName!), 'utf-8')).toContain('echo hello');
         expect(consoleErrorSpy).toHaveBeenCalled();
+    });
+
+    it('moves a queued message to failed after the configured number of runner failures', async () => {
+        temporaryProjectPath = await mkdtemp(join(tmpdir(), 'ptbk-agent-watch-'));
+        process.chdir(temporaryProjectPath);
+        await mkdir(join(temporaryProjectPath, 'messages', 'queued'), { recursive: true });
+        await writeFile(
+            join(temporaryProjectPath, 'messages', 'queued', 'question.book'),
+            'MESSAGE @User\nHi\n',
+            'utf-8',
+        );
+
+        (tickAgentMessages as jest.MockedFunction<typeof tickAgentMessages>).mockImplementation(async () => {
+            throw withAgentWatchErrorContext(new Error('Runner quota exceeded'), {
+                projectPath: temporaryProjectPath,
+                queuedMessageRelativePath: 'messages/queued/question.book',
+            });
+        });
+
+        const loopStates = [true, true, true, false];
+        const watchPromise = runAgentMessages(
+            createAgentRunOptions({
+                noUi: true,
+                maxMessageProcessingFailures: 3,
+            }),
+            {
+                shouldContinue: () => loopStates.shift() ?? false,
+                queuePollIntervalMs: 0,
+            },
+        );
+        await watchPromise;
+
+        expect(tickAgentMessages).toHaveBeenCalledTimes(3);
+        expect(await readdir(join(temporaryProjectPath, 'messages', 'queued'))).toEqual([]);
+        const failedMessage = await readFile(
+            join(temporaryProjectPath, 'messages', 'failed', 'question.book'),
+            'utf-8',
+        );
+        expect(failedMessage).toContain('Local agent runner failed after 3 attempt(s) and stopped retrying.');
+        expect(failedMessage).toContain('Runner quota exceeded');
     });
 });

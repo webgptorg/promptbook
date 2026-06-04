@@ -33,6 +33,13 @@ export const DEFAULT_SPAWN_AGENT_RATE_LIMIT_MAX = 5;
 export const DEFAULT_SPAWN_AGENT_RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
 
 /**
+ * Default maximum number of failed local runner attempts before a queued message is moved to `messages/failed`.
+ *
+ * @private shared Agents Server constant
+ */
+export const DEFAULT_LOCAL_AGENT_RUNNER_MAX_FAILED_ATTEMPTS = 3;
+
+/**
  * Stable keys used by the dedicated server-limits table.
  *
  * @private shared Agents Server constant
@@ -45,6 +52,7 @@ export const SERVER_LIMIT_KEYS = {
     SPAWN_AGENT_MAX_DEPTH: 'SPAWN_AGENT_MAX_DEPTH',
     SPAWN_AGENT_RATE_LIMIT_MAX: 'SPAWN_AGENT_RATE_LIMIT_MAX',
     SPAWN_AGENT_RATE_LIMIT_WINDOW_MS: 'SPAWN_AGENT_RATE_LIMIT_WINDOW_MS',
+    LOCAL_AGENT_RUNNER_MAX_FAILED_ATTEMPTS: 'LOCAL_AGENT_RUNNER_MAX_FAILED_ATTEMPTS',
 } as const;
 
 /**
@@ -68,7 +76,7 @@ export type ServerLimitUnit = 'count' | 'MB' | 'ms';
  */
 export type ServerLimitDefinition = {
     readonly key: ServerLimitKey;
-    readonly category: 'Timeout tools' | 'Files' | 'Federation' | 'Agent spawning';
+    readonly category: 'Timeout tools' | 'Files' | 'Federation' | 'Agent spawning' | 'Local agent runner';
     readonly title: string;
     readonly description: string;
     readonly unit: ServerLimitUnit;
@@ -143,7 +151,8 @@ export const SERVER_LIMIT_DEFINITIONS = [
         key: SERVER_LIMIT_KEYS.SPAWN_AGENT_RATE_LIMIT_MAX,
         category: 'Agent spawning',
         title: 'Max spawned agents per window',
-        description: 'Limits how many persistent agents one actor can create through `spawn_agent` inside one rate-limit window.',
+        description:
+            'Limits how many persistent agents one actor can create through `spawn_agent` inside one rate-limit window.',
         unit: 'count',
         defaultValue: DEFAULT_SPAWN_AGENT_RATE_LIMIT_MAX,
         minimumValue: 1,
@@ -159,6 +168,17 @@ export const SERVER_LIMIT_DEFINITIONS = [
         defaultValue: DEFAULT_SPAWN_AGENT_RATE_LIMIT_WINDOW_MS,
         minimumValue: 1_000,
         step: 1_000,
+        legacyMetadataKeys: [],
+    },
+    {
+        key: SERVER_LIMIT_KEYS.LOCAL_AGENT_RUNNER_MAX_FAILED_ATTEMPTS,
+        category: 'Local agent runner',
+        title: 'Max failed message attempts',
+        description: 'Stops the local coding-agent watcher from retrying the same queued chat message forever.',
+        unit: 'count',
+        defaultValue: DEFAULT_LOCAL_AGENT_RUNNER_MAX_FAILED_ATTEMPTS,
+        minimumValue: 1,
+        step: 1,
         legacyMetadataKeys: [],
     },
 ] satisfies ReadonlyArray<ServerLimitDefinition>;

@@ -59,11 +59,14 @@ describe('runMultipleAgentMessages', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
-        (synchronizeGithubAgentRunnerRepositories as jest.MockedFunction<typeof synchronizeGithubAgentRunnerRepositories>)
-            .mockResolvedValue({
-                clonedRepositoryNames: [],
-                synchronizedAt: Date.now(),
-            });
+        (
+            synchronizeGithubAgentRunnerRepositories as jest.MockedFunction<
+                typeof synchronizeGithubAgentRunnerRepositories
+            >
+        ).mockResolvedValue({
+            clonedRepositoryNames: [],
+            synchronizedAt: Date.now(),
+        });
         (tickAgentMessages as jest.MockedFunction<typeof tickAgentMessages>).mockResolvedValue({
             isMessageProcessed: true,
         });
@@ -127,8 +130,16 @@ describe('runMultipleAgentMessages', () => {
         await mkdir(join(temporaryRootDirectory, 'agent-b', 'messages', 'queued'), { recursive: true });
         await writeFile(join(temporaryRootDirectory, 'agent-a', 'agent.book'), 'Agent A', 'utf-8');
         await writeFile(join(temporaryRootDirectory, 'agent-b', 'agent.book'), 'Agent B', 'utf-8');
-        await writeFile(join(temporaryRootDirectory, 'agent-a', 'messages', 'queued', 'question-a.book'), 'MESSAGE @User\nA\n', 'utf-8');
-        await writeFile(join(temporaryRootDirectory, 'agent-b', 'messages', 'queued', 'question-b.book'), 'MESSAGE @User\nB\n', 'utf-8');
+        await writeFile(
+            join(temporaryRootDirectory, 'agent-a', 'messages', 'queued', 'question-a.book'),
+            'MESSAGE @User\nA\n',
+            'utf-8',
+        );
+        await writeFile(
+            join(temporaryRootDirectory, 'agent-b', 'messages', 'queued', 'question-b.book'),
+            'MESSAGE @User\nB\n',
+            'utf-8',
+        );
 
         process.chdir(temporaryRootDirectory);
 
@@ -142,10 +153,7 @@ describe('runMultipleAgentMessages', () => {
             (tickAgentMessages as jest.MockedFunction<typeof tickAgentMessages>).mock.calls.map(
                 (call) => call[1]?.projectPath,
             ),
-        ).toEqual([
-            join(temporaryRootDirectory, 'agent-a'),
-            join(temporaryRootDirectory, 'agent-b'),
-        ]);
+        ).toEqual([join(temporaryRootDirectory, 'agent-a'), join(temporaryRootDirectory, 'agent-b')]);
     });
 
     it('ignores local repositories by agent name, normalized agent name, and agent id', async () => {
@@ -277,8 +285,16 @@ describe('runMultipleAgentMessages', () => {
         await mkdir(join(temporaryRootDirectory, 'agent-b', 'messages', 'queued'), { recursive: true });
         await writeFile(join(temporaryRootDirectory, 'agent-a', 'agent.book'), 'Agent A', 'utf-8');
         await writeFile(join(temporaryRootDirectory, 'agent-b', 'agent.book'), 'Agent B', 'utf-8');
-        await writeFile(join(temporaryRootDirectory, 'agent-a', 'messages', 'queued', 'question-a.book'), 'MESSAGE @User\nA\n', 'utf-8');
-        await writeFile(join(temporaryRootDirectory, 'agent-b', 'messages', 'queued', 'question-b.book'), 'MESSAGE @User\nB\n', 'utf-8');
+        await writeFile(
+            join(temporaryRootDirectory, 'agent-a', 'messages', 'queued', 'question-a.book'),
+            'MESSAGE @User\nA\n',
+            'utf-8',
+        );
+        await writeFile(
+            join(temporaryRootDirectory, 'agent-b', 'messages', 'queued', 'question-b.book'),
+            'MESSAGE @User\nB\n',
+            'utf-8',
+        );
         await mkdir(join(temporaryRootDirectory, '.promptbook', 'agent-messages'), { recursive: true });
         await writeFile(
             join(temporaryRootDirectory, '.promptbook', 'agent-messages', 'question-a.log.txt'),
@@ -286,18 +302,25 @@ describe('runMultipleAgentMessages', () => {
             'utf-8',
         );
 
-        (tickAgentMessages as jest.MockedFunction<typeof tickAgentMessages>).mockImplementation(async (_options, tickOptions) => {
-            if (tickOptions?.projectPath?.endsWith('agent-a')) {
-                throw withAgentWatchErrorContext(new Error('Agent A failed'), {
-                    projectPath: tickOptions.projectPath,
-                    queuedMessageRelativePath: 'messages/queued/question-a.book',
-                    scriptPath: join(tickOptions.projectPath, '.promptbook', 'agent-messages', 'question-a.sh'),
-                    runtimeLogPath: join(temporaryRootDirectory!, '.promptbook', 'agent-messages', 'question-a.log.txt'),
-                });
-            }
+        (tickAgentMessages as jest.MockedFunction<typeof tickAgentMessages>).mockImplementation(
+            async (_options, tickOptions) => {
+                if (tickOptions?.projectPath?.endsWith('agent-a')) {
+                    throw withAgentWatchErrorContext(new Error('Agent A failed'), {
+                        projectPath: tickOptions.projectPath,
+                        queuedMessageRelativePath: 'messages/queued/question-a.book',
+                        scriptPath: join(tickOptions.projectPath, '.promptbook', 'agent-messages', 'question-a.sh'),
+                        runtimeLogPath: join(
+                            temporaryRootDirectory!,
+                            '.promptbook',
+                            'agent-messages',
+                            'question-a.log.txt',
+                        ),
+                    });
+                }
 
-            return { isMessageProcessed: true };
-        });
+                return { isMessageProcessed: true };
+            },
+        );
 
         process.chdir(temporaryRootDirectory);
 
@@ -312,7 +335,39 @@ describe('runMultipleAgentMessages', () => {
         );
 
         expect(errorLogFileName).toBeDefined();
-        expect(await readFile(join(temporaryRootDirectory, errorLogFileName!), 'utf-8')).toContain('echo failing agent');
+        expect(await readFile(join(temporaryRootDirectory, errorLogFileName!), 'utf-8')).toContain(
+            'echo failing agent',
+        );
         expect(consoleErrorSpy).toHaveBeenCalled();
+    });
+
+    it('moves a repeatedly failing child message to failed after the configured retry cap', async () => {
+        temporaryRootDirectory = await createTemporaryRootDirectory();
+        const agentProjectPath = join(temporaryRootDirectory, 'agent-a');
+        await mkdir(join(agentProjectPath, 'messages', 'queued'), { recursive: true });
+        await writeFile(join(agentProjectPath, 'agent.book'), 'Agent A', 'utf-8');
+        await writeFile(join(agentProjectPath, 'messages', 'queued', 'question.book'), 'MESSAGE @User\nA\n', 'utf-8');
+
+        (tickAgentMessages as jest.MockedFunction<typeof tickAgentMessages>).mockImplementation(
+            async (_options, tickOptions) => {
+                throw withAgentWatchErrorContext(new Error('No authentication information found.'), {
+                    projectPath: tickOptions?.projectPath,
+                    queuedMessageRelativePath: 'messages/queued/question.book',
+                });
+            },
+        );
+
+        process.chdir(temporaryRootDirectory);
+
+        const loopStates = [true, true, false];
+        await runMultipleAgentMessages(createAgentRunOptions({ maxMessageProcessingFailures: 2 }), {
+            shouldContinue: () => loopStates.shift() ?? false,
+        });
+
+        expect(tickAgentMessages).toHaveBeenCalledTimes(2);
+        expect(await readdir(join(agentProjectPath, 'messages', 'queued'))).toEqual([]);
+        const failedMessage = await readFile(join(agentProjectPath, 'messages', 'failed', 'question.book'), 'utf-8');
+        expect(failedMessage).toContain('Local agent runner failed after 2 attempt(s) and stopped retrying.');
+        expect(failedMessage).toContain('No authentication information found.');
     });
 });

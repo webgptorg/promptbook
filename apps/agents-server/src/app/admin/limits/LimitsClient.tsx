@@ -25,17 +25,14 @@ const LIMIT_INPUT_CLASS_NAME =
  *
  * @private client-side admin limits constant
  */
-const LIMIT_DEFINITIONS_BY_CATEGORY = SERVER_LIMIT_DEFINITIONS.reduce(
-    (categories, definition) => {
-        if (!categories[definition.category]) {
-            categories[definition.category] = [];
-        }
+const LIMIT_DEFINITIONS_BY_CATEGORY = SERVER_LIMIT_DEFINITIONS.reduce((categories, definition) => {
+    if (!categories[definition.category]) {
+        categories[definition.category] = [];
+    }
 
-        categories[definition.category]!.push(definition);
-        return categories;
-    },
-    {} as Record<ServerLimitDefinition['category'], Array<ServerLimitDefinition>>,
-);
+    categories[definition.category]!.push(definition);
+    return categories;
+}, {} as Record<ServerLimitDefinition['category'], Array<ServerLimitDefinition>>);
 
 /**
  * Dedicated admin page for configuring runtime server limits.
@@ -152,8 +149,8 @@ export function LimitsClient() {
                     </p>
                     <p>
                         Missing dedicated rows automatically fall back to the legacy metadata values and then to the
-                        repository defaults, so existing installations keep their current behavior until limits are saved
-                        here.
+                        repository defaults, so existing installations keep their current behavior until limits are
+                        saved here.
                     </p>
                 </div>
             </Card>
@@ -172,6 +169,8 @@ export function LimitsClient() {
                                     'Limits used while retrying federated server agent-book imports.'}
                                 {category === 'Agent spawning' &&
                                     'Limits protecting the persistent `spawn_agent` tool from accidental or abusive overuse.'}
+                                {category === 'Local agent runner' &&
+                                    'Limits controlling local coding-agent retries for durable chat messages.'}
                             </p>
                         </div>
 

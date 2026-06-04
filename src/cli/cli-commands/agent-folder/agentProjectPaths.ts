@@ -37,6 +37,13 @@ export const AGENT_QUEUED_MESSAGES_DIRECTORY_PATH = join(AGENT_MESSAGES_DIRECTOR
 export const AGENT_FINISHED_MESSAGES_DIRECTORY_PATH = join(AGENT_MESSAGES_DIRECTORY_PATH, 'finished');
 
 /**
+ * Relative path to messages that the agent runner stopped retrying.
+ *
+ * @private internal utility of `ptbk agent-folder`
+ */
+export const AGENT_FAILED_MESSAGES_DIRECTORY_PATH = join(AGENT_MESSAGES_DIRECTORY_PATH, 'failed');
+
+/**
  * Relative path to generated local agent documentation initialized by `ptbk agent-folder init`.
  *
  * @private internal utility of `ptbk agent-folder`

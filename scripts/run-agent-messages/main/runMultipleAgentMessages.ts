@@ -33,6 +33,7 @@ import {
     type AgentIgnoreMatcher,
 } from './agentIgnorePatterns';
 import { handleAgentWatchError } from './handleAgentWatchError';
+import { AgentMessageFailureTracker } from './AgentMessageFailureTracker';
 
 /**
  * Delay between multi-agent watch iterations while all queues stay empty.
@@ -115,6 +116,9 @@ export async function runMultipleAgentMessages(
     let lastObservedProjectCount = 0;
     let isWatchSessionInitialized = false;
     let uiHandle: CoderRunUiHandle | undefined;
+    const messageFailureTracker = new AgentMessageFailureTracker({
+        maxMessageProcessingFailures: options.maxMessageProcessingFailures,
+    });
 
     while (shouldContinue()) {
         try {
@@ -178,13 +182,17 @@ export async function runMultipleAgentMessages(
                 for (const queuedProject of queuedProjects) {
                     console.info(
                         colors.blue(
-                            `Processing ${formatProjectPath(rootPath, queuedProject.project.projectPath)} with ${queuedProject.localAgentName}.`,
+                            `Processing ${formatProjectPath(rootPath, queuedProject.project.projectPath)} with ${
+                                queuedProject.localAgentName
+                            }.`,
                         ),
                     );
                 }
             }
 
-            const answeringProjectPaths = new Set(queuedProjects.map((queuedProject) => queuedProject.project.projectPath));
+            const answeringProjectPaths = new Set(
+                queuedProjects.map((queuedProject) => queuedProject.project.projectPath),
+            );
 
             if (uiHandle) {
                 updateMultipleAgentRunUiForAnswering(
@@ -234,6 +242,12 @@ export async function runMultipleAgentMessages(
                             tickResult.value.tickResult.autoPullTimestamp,
                         );
                     }
+                    if (tickResult.value.tickResult.isMessageProcessed) {
+                        messageFailureTracker.clearMessageFailure(
+                            tickResult.value.projectPath,
+                            tickResult.value.tickResult.queuedMessage,
+                        );
+                    }
                     continue;
                 }
 
@@ -242,6 +256,7 @@ export async function runMultipleAgentMessages(
                     logDirectoryPath: controls.watchErrorLogDirectoryPath || rootPath,
                     error: tickResult.reason,
                 });
+                await messageFailureTracker.recordFailure(tickResult.reason);
             }
         } catch (error) {
             await handleAgentWatchError({
@@ -249,6 +264,7 @@ export async function runMultipleAgentMessages(
                 logDirectoryPath: controls.watchErrorLogDirectoryPath || rootPath,
                 error,
             });
+            await messageFailureTracker.recordFailure(error);
             await wait(MULTI_AGENT_QUEUE_POLL_INTERVAL_MS);
         }
     }
@@ -391,7 +407,9 @@ async function pullLatestChangesForLocalAgentRunnerProjectsIfNeeded(options: {
         const autoPullTimestamp = await pullLatestChangesForAgentQueueIfEnabled({
             projectPath,
             runOptions,
-            logMessage: uiHandle ? undefined : `Pulling latest changes in ${formatProjectPath(rootPath, projectPath)}...`,
+            logMessage: uiHandle
+                ? undefined
+                : `Pulling latest changes in ${formatProjectPath(rootPath, projectPath)}...`,
         });
 
         if (autoPullTimestamp !== undefined) {
@@ -545,7 +563,9 @@ function updateMultipleAgentRunUiForAnswering(
     uiHandle.state.setStatusMessage(
         `Answering ${activeProjectCount} queued message${activeProjectCount === 1 ? '' : 's'}`,
     );
-    uiHandle.state.setDetailLines(buildMultiAgentAnsweringDetailLines(rootPath, projectSummaries, answeringProjectPaths));
+    uiHandle.state.setDetailLines(
+        buildMultiAgentAnsweringDetailLines(rootPath, projectSummaries, answeringProjectPaths),
+    );
     uiHandle.state.setAgentStatusLines(buildMultiAgentStatusLines(rootPath, projectSummaries, answeringProjectPaths));
     uiHandle.state.setAgentStatusTableRows(buildMultiAgentStatusTableRows(projectSummaries, answeringProjectPaths));
     uiHandle.state.setMessagePreviewSections(
@@ -706,9 +726,7 @@ function formatCurrentAgentMessage(projectSummary: LocalAgentRunnerProjectSummar
         return '';
     }
 
-    return `  ·  ${projectSummary.queuedMessagePreview.queuedMessage.relativePath}: ${
-        projectSummary.queuedMessagePreview.latestUserMessageSummary
-    }`;
+    return `  ·  ${projectSummary.queuedMessagePreview.queuedMessage.relativePath}: ${projectSummary.queuedMessagePreview.latestUserMessageSummary}`;
 }
 
 /**
@@ -722,9 +740,7 @@ function buildMultiAgentUserMessageLines(
         .filter((projectSummary) => answeringProjectPaths.has(projectSummary.project.projectPath))
         .flatMap((projectSummary) => buildAnsweringAgentMessageLines(projectSummary));
 
-    return answeringMessageLines.length > 0
-        ? answeringMessageLines
-        : [WAITING_FOR_MESSAGE_LABEL];
+    return answeringMessageLines.length > 0 ? answeringMessageLines : [WAITING_FOR_MESSAGE_LABEL];
 }
 
 /**
@@ -738,10 +754,9 @@ function buildMultiAgentMessagePreviewSections(
         .filter((projectSummary) => answeringProjectPaths.has(projectSummary.project.projectPath))
         .map((projectSummary) => ({
             title: `User message: ${projectSummary.localAgentName}`,
-            messagePreviewLines:
-                projectSummary.queuedMessagePreview?.latestUserMessageLines.length
-                    ? projectSummary.queuedMessagePreview.latestUserMessageLines
-                    : [projectSummary.queuedMessagePreview?.queuedMessage.relativePath || WAITING_FOR_MESSAGE_LABEL],
+            messagePreviewLines: projectSummary.queuedMessagePreview?.latestUserMessageLines.length
+                ? projectSummary.queuedMessagePreview.latestUserMessageLines
+                : [projectSummary.queuedMessagePreview?.queuedMessage.relativePath || WAITING_FOR_MESSAGE_LABEL],
         }));
 }
 

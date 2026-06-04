@@ -19,6 +19,7 @@ import {
     ensureAgentsServerBuild,
     resolveAgentsServerAppPath,
 } from './buildAgentsServer';
+import { DEFAULT_LOCAL_AGENT_RUNNER_MAX_FAILED_ATTEMPTS } from '../../../../apps/agents-server/src/constants/serverLimits';
 
 /**
  * Local worker-pump delay while the Agents Server foreground process stays active.
@@ -40,6 +41,20 @@ const USER_CHAT_JOB_WORKER_REPEATED_ERROR_LOG_INTERVAL = 10;
  * @private internal constant of `ptbk agents-server`
  */
 const USER_CHAT_JOB_WORKER_ERROR_BODY_MAX_LENGTH = 2_000;
+
+/**
+ * Delay between foreground CLI attempts to load internal Agents Server limits during startup.
+ *
+ * @private internal constant of `ptbk agents-server`
+ */
+const INTERNAL_SERVER_LIMITS_RETRY_DELAY_MS = 1_000;
+
+/**
+ * Maximum time spent waiting for the internal limits route before startup fails.
+ *
+ * @private internal constant of `ptbk agents-server`
+ */
+const INTERNAL_SERVER_LIMITS_STARTUP_TIMEOUT_MS = 60_000;
 
 /**
  * HTTP status used by an idle internal worker tick with no job to process.
@@ -164,6 +179,15 @@ type AgentsServerSupervisorState = {
 };
 
 /**
+ * Local runner limits loaded from the running Agents Server app.
+ *
+ * @private internal type of `ptbk agents-server`
+ */
+type LocalAgentRunnerLimits = {
+    readonly maxFailedAttempts: number;
+};
+
+/**
  * Starts the Agents Server web app and local coding-agent queue workers in the foreground.
  *
  * @private internal utility of `ptbk agents-server`
@@ -229,6 +253,12 @@ export async function startAgentsServer(options: StartAgentsServerOptions): Prom
             logStreams,
             state,
         });
+        const localAgentRunnerLimits = await waitForLocalAgentRunnerLimits({
+            port: options.port,
+            environment: runtimeChildEnvironment,
+            logStreams,
+            state,
+        });
         stopUserChatJobWorkerPump = startUserChatJobWorkerPump({
             port: options.port,
             environment: runtimeChildEnvironment,
@@ -237,7 +267,7 @@ export async function startAgentsServer(options: StartAgentsServerOptions): Prom
         });
 
         await withCurrentWorkingDirectory(runtimePaths.agentRootPath, async () => {
-            await runMultipleAgentMessages(createLocalAgentRunOptions(options), {
+            await runMultipleAgentMessages(createLocalAgentRunOptions(options, localAgentRunnerLimits), {
                 shouldContinue: () => state.isContinuing,
                 watchErrorLogDirectoryPath: runtimePaths.logDirectoryPath,
                 onUiInitialized: (uiHandle) => {
@@ -409,7 +439,10 @@ function createAgentsServerChildEnvironment(port: number_port, agentRootPath: st
 /**
  * Creates local no-git agent runner options for folders managed by the Agents Server database.
  */
-function createLocalAgentRunOptions(options: StartAgentsServerOptions): AgentRunOptions {
+function createLocalAgentRunOptions(
+    options: StartAgentsServerOptions,
+    localAgentRunnerLimits: LocalAgentRunnerLimits,
+): AgentRunOptions {
     return {
         agentName: options.agentName,
         model: options.model,
@@ -422,7 +455,88 @@ function createLocalAgentRunOptions(options: StartAgentsServerOptions): AgentRun
         autoPush: false,
         autoPull: false,
         autoClone: false,
+        maxMessageProcessingFailures: localAgentRunnerLimits.maxFailedAttempts,
     };
+}
+
+/**
+ * Waits until the internal Next route can return current local runner limits.
+ */
+async function waitForLocalAgentRunnerLimits(options: {
+    readonly port: number_port;
+    readonly environment: AgentsServerChildEnvironment;
+    readonly logStreams: AgentsServerLogStreams;
+    readonly state: AgentsServerSupervisorState;
+}): Promise<LocalAgentRunnerLimits> {
+    const startedAt = Date.now();
+    let lastError: unknown;
+
+    while (options.state.isContinuing && Date.now() - startedAt < INTERNAL_SERVER_LIMITS_STARTUP_TIMEOUT_MS) {
+        try {
+            const limits = await fetchLocalAgentRunnerLimits(options);
+            logRunnerEvent(
+                options.logStreams.runner,
+                `Local agent runner max failed attempts: ${limits.maxFailedAttempts}.`,
+            );
+            return limits;
+        } catch (error) {
+            lastError = error;
+            await wait(INTERNAL_SERVER_LIMITS_RETRY_DELAY_MS);
+        }
+    }
+
+    if (!options.state.isContinuing) {
+        return {
+            maxFailedAttempts: DEFAULT_LOCAL_AGENT_RUNNER_MAX_FAILED_ATTEMPTS,
+        };
+    }
+
+    throw new NotAllowed(
+        spaceTrim(`
+            Failed to load local agent runner limits from the Agents Server.
+
+            ${lastError instanceof Error ? lastError.message : String(lastError)}
+        `),
+    );
+}
+
+/**
+ * Loads local runner limits through the token-protected internal Agents Server route.
+ */
+async function fetchLocalAgentRunnerLimits(options: {
+    readonly port: number_port;
+    readonly environment: AgentsServerChildEnvironment;
+}): Promise<LocalAgentRunnerLimits> {
+    const response = await fetch(`http://localhost:${options.port}/api/internal/agent-runner-limits`, {
+        method: 'GET',
+        cache: 'no-store',
+        headers: {
+            'x-user-chat-worker-token': options.environment.PTBK_AGENTS_SERVER_USER_CHAT_WORKER_TOKEN,
+        },
+    });
+
+    if (!response.ok) {
+        const details = await readUserChatJobWorkerErrorDetails(response);
+        throw new Error(createInternalRouteErrorMessage('agent runner limits', response, details));
+    }
+
+    const payload = (await response.json()) as Partial<LocalAgentRunnerLimits>;
+    return {
+        maxFailedAttempts: normalizeLocalAgentRunnerMaxFailedAttempts(payload.maxFailedAttempts),
+    };
+}
+
+/**
+ * Normalizes the local runner retry cap returned by the internal server route.
+ */
+function normalizeLocalAgentRunnerMaxFailedAttempts(rawValue: unknown): number {
+    const parsedValue = Number(rawValue);
+
+    if (!Number.isFinite(parsedValue) || parsedValue <= 0) {
+        return DEFAULT_LOCAL_AGENT_RUNNER_MAX_FAILED_ATTEMPTS;
+    }
+
+    return Math.floor(parsedValue);
 }
 
 /**
@@ -563,14 +677,21 @@ function parseUserChatJobWorkerErrorMessage(body: string): string | null {
  * Builds the foreground worker failure message from HTTP status and route details.
  */
 function createUserChatJobWorkerErrorMessage(response: Response, details: string | null): string {
+    return createInternalRouteErrorMessage('user chat worker', response, details);
+}
+
+/**
+ * Builds a foreground failure message for one internal Agents Server route.
+ */
+function createInternalRouteErrorMessage(routeLabel: string, response: Response, details: string | null): string {
     const statusText = response.statusText ? ` ${response.statusText}` : '';
     const statusMessage = `${response.status}${statusText}`;
 
     if (!details) {
-        return `Internal user chat worker returned ${statusMessage}.`;
+        return `Internal ${routeLabel} route returned ${statusMessage}.`;
     }
 
-    return `Internal user chat worker returned ${statusMessage}: ${details}`;
+    return `Internal ${routeLabel} route returned ${statusMessage}: ${details}`;
 }
 
 /**
@@ -650,6 +771,13 @@ function stopChildProcess(commandProcess: ChildProcess | undefined): void {
     }
 
     commandProcess.kill();
+}
+
+/**
+ * Waits for the given delay.
+ */
+async function wait(delayMs: number): Promise<void> {
+    await new Promise((resolve) => setTimeout(resolve, delayMs));
 }
 
 // Note: [🟡] Code for CLI runtime [startAgentsServer](src/cli/cli-commands/agents-server/startAgentsServer.ts) should never be published outside of `@promptbook/cli`

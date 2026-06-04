@@ -17,4 +17,5 @@ export type AgentRunOptions = {
     readonly autoPull: boolean;
     readonly autoClone: boolean;
     readonly ignorePatterns?: readonly string[];
+    readonly maxMessageProcessingFailures?: number;
 };
