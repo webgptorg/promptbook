@@ -76,8 +76,10 @@ installHook.js:1 File upload failed for file.docx: Error: File upload failed wit
 
 [✨→] Fix self-contained S3 storage for domains
 
--   @@@
+-   One installed VPS droplet can have multiple domains / servers installed on it, each server should serve the files for its own domain, so if there are 2 servers installed on the same droplet, each server should serve the files for its own domain, not through the IP address of the droplet
+-   Before the first server / domain is created it is possible to access the admin dashboard through the IP address of the droplet, but it should not be possible to upload the files because we dont know yet for which domain the files should be served, add this information to the areas where the files are normally uploaded, so the user knows that they need to create the first server / domain before they can upload the files, and also add some message to the user that they need to create the first server / domain before they can upload the files, so it is more clear for the user what they need to do
 -   Not `http://167.172.138.126/s3/promptbook-files/ptbk-agents/user/files/praha-13.txt` but `https://s22.ptbk.io/s3/promptbook-files/ptbk-agents/user/files/praha-13.txt`
+-   Uploaded files for each server must appear in Files gallery `/admin/files`
 
 ![alt text](prompts/screenshots/2026-06-0000-agents-server-self-contained-s3-4.png)
 ![alt text](prompts/screenshots/2026-06-0000-agents-server-self-contained-s3-5.png)
