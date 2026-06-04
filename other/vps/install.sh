@@ -14,6 +14,8 @@ PTBK_SELF_CONTAINED_S3_DIRECTORY="${PTBK_SELF_CONTAINED_S3_DIRECTORY:-$PTBK_DATA
 PTBK_SELF_CONTAINED_S3_PORT="${PTBK_SELF_CONTAINED_S3_PORT:-10000}"
 PTBK_SELF_CONTAINED_S3_SERVICE_NAME="${PTBK_SELF_CONTAINED_S3_SERVICE_NAME:-promptbook-versitygw}"
 PTBK_SELF_CONTAINED_S3_BUCKET="${PTBK_SELF_CONTAINED_S3_BUCKET:-promptbook-files}"
+PTBK_SELF_CONTAINED_S3_REGION="${PTBK_SELF_CONTAINED_S3_REGION:-us-east-1}"
+PTBK_EXTERNAL_S3_REGION="${PTBK_EXTERNAL_S3_REGION:-auto}"
 PTBK_CDN_PATH_PREFIX="${PTBK_CDN_PATH_PREFIX:-ptbk-agents}"
 PROMPTBOOK_REPOSITORY_URL="${PROMPTBOOK_REPOSITORY_URL:-https://github.com/webgptorg/promptbook.git}"
 PROMPTBOOK_REPOSITORY_REF="${PROMPTBOOK_REPOSITORY_REF:-main}"
@@ -71,6 +73,7 @@ REQUESTED_SELF_CONTAINED_S3_DIRECTORY="$PTBK_SELF_CONTAINED_S3_DIRECTORY"
 REQUESTED_CDN_BUCKET="$PTBK_SELF_CONTAINED_S3_BUCKET"
 REQUESTED_CDN_PATH_PREFIX="$PTBK_CDN_PATH_PREFIX"
 REQUESTED_CDN_ENDPOINT="${CDN_ENDPOINT:-}"
+REQUESTED_CDN_REGION="${CDN_REGION:-}"
 REQUESTED_CDN_ACCESS_KEY_ID="${CDN_ACCESS_KEY_ID:-}"
 REQUESTED_CDN_SECRET_ACCESS_KEY="${CDN_SECRET_ACCESS_KEY:-}"
 REQUESTED_CDN_PUBLIC_URL="${NEXT_PUBLIC_CDN_PUBLIC_URL:-}"
@@ -1428,6 +1431,7 @@ prompt_file_storage() {
     local default_bucket=""
     local default_path_prefix=""
     local default_endpoint=""
+    local default_region=""
     local default_access_key_id=""
     local default_secret_access_key=""
     local default_public_url=""
@@ -1446,6 +1450,7 @@ prompt_file_storage() {
         REQUESTED_CDN_BUCKET="$(prompt_with_default "Self-contained S3 bucket" "$default_bucket")"
         REQUESTED_CDN_PATH_PREFIX="$(prompt_with_default "S3 path prefix" "$default_path_prefix")"
         REQUESTED_CDN_ENDPOINT="http://127.0.0.1:${PTBK_SELF_CONTAINED_S3_PORT}"
+        REQUESTED_CDN_REGION="$PTBK_SELF_CONTAINED_S3_REGION"
         REQUESTED_CDN_PUBLIC_URL="$(resolve_self_contained_s3_public_url "$REQUESTED_PUBLIC_SITE_URL" "$REQUESTED_CDN_BUCKET")"
         REQUESTED_CDN_FORCE_PATH_STYLE="true"
         return
@@ -1455,6 +1460,7 @@ prompt_file_storage() {
     default_bucket="$(resolve_file_storage_default CDN_BUCKET "$PTBK_SELF_CONTAINED_S3_BUCKET")"
     default_path_prefix="$(resolve_file_storage_default NEXT_PUBLIC_CDN_PATH_PREFIX "$PTBK_CDN_PATH_PREFIX")"
     default_endpoint="$(resolve_file_storage_default CDN_ENDPOINT "$REQUESTED_CDN_ENDPOINT")"
+    default_region="$(resolve_file_storage_default CDN_REGION "$PTBK_EXTERNAL_S3_REGION")"
     default_access_key_id="$(resolve_file_storage_default CDN_ACCESS_KEY_ID "$REQUESTED_CDN_ACCESS_KEY_ID")"
     default_secret_access_key="$(resolve_file_storage_default CDN_SECRET_ACCESS_KEY "$REQUESTED_CDN_SECRET_ACCESS_KEY")"
     default_public_url="$(resolve_file_storage_default NEXT_PUBLIC_CDN_PUBLIC_URL "$REQUESTED_CDN_PUBLIC_URL")"
@@ -1463,6 +1469,7 @@ prompt_file_storage() {
     REQUESTED_CDN_BUCKET="$(prompt_with_default "External S3 bucket" "$default_bucket")"
     REQUESTED_CDN_PATH_PREFIX="$(prompt_with_default "S3 path prefix" "$default_path_prefix")"
     REQUESTED_CDN_ENDPOINT="$(prompt_with_default "External S3 endpoint" "$default_endpoint")"
+    REQUESTED_CDN_REGION="$(prompt_with_default "External S3 region (use auto for Cloudflare R2)" "$default_region")"
     REQUESTED_CDN_ACCESS_KEY_ID="$(prompt_with_default "External S3 access key ID" "$default_access_key_id")"
     REQUESTED_CDN_SECRET_ACCESS_KEY="$(
         prompt_secret_with_default "External S3 secret access key" "$([[ -n "$default_secret_access_key" ]] && printf 'keep existing' || printf 'empty')" "$default_secret_access_key"
@@ -1536,6 +1543,7 @@ validate_file_storage_configuration() {
         fi
 
         REQUESTED_CDN_ENDPOINT="http://127.0.0.1:${PTBK_SELF_CONTAINED_S3_PORT}"
+        REQUESTED_CDN_REGION="$PTBK_SELF_CONTAINED_S3_REGION"
         REQUESTED_CDN_FORCE_PATH_STYLE="true"
         if [[ -z "$REQUESTED_CDN_ACCESS_KEY_ID" ]]; then
             REQUESTED_CDN_ACCESS_KEY_ID="promptbook"
@@ -1547,6 +1555,10 @@ validate_file_storage_configuration() {
             REQUESTED_CDN_PUBLIC_URL="$(resolve_self_contained_s3_public_url "$REQUESTED_PUBLIC_SITE_URL" "$REQUESTED_CDN_BUCKET")"
         fi
         return
+    fi
+
+    if [[ -z "$REQUESTED_CDN_REGION" ]]; then
+        REQUESTED_CDN_REGION="$PTBK_EXTERNAL_S3_REGION"
     fi
 
     if [[ -z "$REQUESTED_CDN_ENDPOINT" || -z "$REQUESTED_CDN_ACCESS_KEY_ID" || -z "$REQUESTED_CDN_SECRET_ACCESS_KEY" || -z "$REQUESTED_CDN_PUBLIC_URL" ]]; then
@@ -1600,10 +1612,11 @@ configure_environment() {
     set_env_value PTBK_SELF_CONTAINED_S3_DIRECTORY "$REQUESTED_SELF_CONTAINED_S3_DIRECTORY"
     set_env_value PTBK_SELF_CONTAINED_S3_PORT "$PTBK_SELF_CONTAINED_S3_PORT"
     set_env_value PTBK_SELF_CONTAINED_S3_SERVICE_NAME "$PTBK_SELF_CONTAINED_S3_SERVICE_NAME"
+    set_env_value PTBK_SELF_CONTAINED_S3_REGION "$PTBK_SELF_CONTAINED_S3_REGION"
     set_env_value CDN_BUCKET "$REQUESTED_CDN_BUCKET"
     set_env_value NEXT_PUBLIC_CDN_PATH_PREFIX "$REQUESTED_CDN_PATH_PREFIX"
     set_env_value CDN_ENDPOINT "$REQUESTED_CDN_ENDPOINT"
-    set_env_value CDN_REGION auto
+    set_env_value CDN_REGION "$REQUESTED_CDN_REGION"
     set_env_value CDN_FORCE_PATH_STYLE "$REQUESTED_CDN_FORCE_PATH_STYLE"
     set_env_value CDN_ACCESS_KEY_ID "$REQUESTED_CDN_ACCESS_KEY_ID"
     set_env_value CDN_SECRET_ACCESS_KEY "$REQUESTED_CDN_SECRET_ACCESS_KEY"
@@ -2603,6 +2616,9 @@ load_runtime_configuration_from_env_file() {
     env_value="$(get_env_value PTBK_SELF_CONTAINED_S3_SERVICE_NAME)"
     [[ -n "$env_value" ]] && PTBK_SELF_CONTAINED_S3_SERVICE_NAME="$env_value"
 
+    env_value="$(get_env_value PTBK_SELF_CONTAINED_S3_REGION)"
+    [[ -n "$env_value" ]] && PTBK_SELF_CONTAINED_S3_REGION="$env_value"
+
     env_value="$(get_env_value CDN_BUCKET)"
     [[ -n "$env_value" ]] && REQUESTED_CDN_BUCKET="$env_value"
 
@@ -2611,6 +2627,9 @@ load_runtime_configuration_from_env_file() {
 
     env_value="$(get_env_value CDN_ENDPOINT)"
     [[ -n "$env_value" ]] && REQUESTED_CDN_ENDPOINT="$env_value"
+
+    env_value="$(get_env_value CDN_REGION)"
+    [[ -n "$env_value" ]] && REQUESTED_CDN_REGION="$env_value"
 
     env_value="$(get_env_value CDN_ACCESS_KEY_ID)"
     [[ -n "$env_value" ]] && REQUESTED_CDN_ACCESS_KEY_ID="$env_value"

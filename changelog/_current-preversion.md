@@ -10,6 +10,7 @@
 
     -   `other/vps/install.sh` now defaults to a bundled VersityGW S3-compatible service, asks whether to use bundled or external S3 storage, and stores bundled files in `/opt/promptbook-agents-server/data/s3` unless another directory is selected.
     -   The installer configures the same `CDN_*` and `NEXT_PUBLIC_CDN_*` environment variables for bundled and external S3, so the Agents Server continues to use one storage API and can switch storage backends without changing app code.
+    -   Fixed bundled VersityGW uploads by writing `CDN_REGION=us-east-1` for self-contained S3, while keeping the S3 region configurable for external storage providers such as AWS-compatible object stores and Cloudflare R2.
     -   Browser uploads now post through the Agents Server upload endpoint and the shared CDN provider instead of depending on the Vercel Blob browser protocol, while Vercel Blob remains available as a server-side fallback when S3 is not configured.
 
 -   Added branch-aware standalone VPS self-update to `System -> Super Admin -> Update`:

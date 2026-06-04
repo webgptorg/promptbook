@@ -5,6 +5,20 @@ import { VercelBlobStorage } from '../utils/cdn/classes/VercelBlobStorage';
 import { IIFilesStorageWithCdn } from '../utils/cdn/interfaces/IFilesStorage';
 
 /**
+ * Region expected by the bundled VersityGW S3-compatible storage.
+ *
+ * @private internal default for `$provideCdnForServer`
+ */
+const SELF_CONTAINED_S3_DEFAULT_REGION = 'us-east-1';
+
+/**
+ * Legacy fallback used by Cloudflare R2-style external S3 configuration.
+ *
+ * @private internal default for `$provideCdnForServer`
+ */
+const EXTERNAL_S3_DEFAULT_REGION = 'auto';
+
+/**
  * Cache of CDN instance
  *
  * @private internal cache for `$provideCdnForServer`
@@ -40,7 +54,7 @@ function createCdnStorageForServer(): IIFilesStorageWithCdn {
             cdnPublicUrl: new URL(process.env.NEXT_PUBLIC_CDN_PUBLIC_URL!),
             gzip: true,
             forcePathStyle: process.env.CDN_FORCE_PATH_STYLE === 'true',
-            region: process.env.CDN_REGION || 'auto',
+            region: resolveS3CompatibleStorageRegion(),
         });
     }
 
@@ -57,7 +71,7 @@ function createCdnStorageForServer(): IIFilesStorageWithCdn {
  * @private helper of `$provideCdnForServer`
  */
 function isS3CompatibleStorageSelected(): boolean {
-    const storageMode = (process.env.PTBK_FILE_STORAGE_MODE || process.env.CDN_PROVIDER || '').toLowerCase();
+    const storageMode = getS3CompatibleStorageMode();
     const isS3StorageMode =
         storageMode === 's3' || storageMode === 'external-s3' || storageMode === 'self-contained-s3';
 
@@ -66,6 +80,33 @@ function isS3CompatibleStorageSelected(): boolean {
     }
 
     return !process.env.VERCEL_BLOB_READ_WRITE_TOKEN && hasS3CompatibleStorageConfiguration();
+}
+
+/**
+ * Resolves the configured S3-compatible storage mode.
+ *
+ * @private helper of `$provideCdnForServer`
+ */
+function getS3CompatibleStorageMode(): string {
+    return (process.env.PTBK_FILE_STORAGE_MODE || process.env.CDN_PROVIDER || '').toLowerCase();
+}
+
+/**
+ * Resolves the S3 signing region used by AWS SDK requests.
+ *
+ * @private helper of `$provideCdnForServer`
+ */
+function resolveS3CompatibleStorageRegion(): string {
+    const configuredRegion = process.env.CDN_REGION?.trim();
+    if (configuredRegion) {
+        return configuredRegion;
+    }
+
+    if (getS3CompatibleStorageMode() === 'self-contained-s3') {
+        return SELF_CONTAINED_S3_DEFAULT_REGION;
+    }
+
+    return EXTERNAL_S3_DEFAULT_REGION;
 }
 
 /**
