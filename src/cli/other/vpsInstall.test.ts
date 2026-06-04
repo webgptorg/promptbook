@@ -74,6 +74,30 @@ describe('other/vps/install.sh', () => {
         );
     });
 
+    it('asks for bundled default agents and seeds them after project initialization', () => {
+        const mainFunction = installScript.slice(installScript.indexOf('\nmain() {'));
+        const installDefaultAgentsFunction = installScript.slice(
+            installScript.indexOf('\ninstall_default_agents() {'),
+            installScript.indexOf('\nconfigure_runner_authentication() {'),
+        );
+
+        expect(installScript).toContain('PTBK_INSTALL_DEFAULT_AGENTS="${PTBK_INSTALL_DEFAULT_AGENTS:-yes}"');
+        expect(installScript).toContain('prompt_yes_no "Install bundled default agents?"');
+        expect(installScript).toContain('set_env_value PTBK_INSTALL_DEFAULT_AGENTS "$REQUESTED_INSTALL_DEFAULT_AGENTS"');
+        expect(installDefaultAgentsFunction).toContain('if [[ "$REQUESTED_INSTALL_DEFAULT_AGENTS" != "yes" ]]');
+        expect(installDefaultAgentsFunction).toContain(
+            'PTBK_DEFAULT_AGENTS_DIR=$default_agents_dir_shell npx --yes tsx ./apps/agents-server/src/database/seedDefaultAgents.ts',
+        );
+        expect(installDefaultAgentsFunction).toContain('$PROMPTBOOK_REPOSITORY_DIR/agents/default');
+        expect(mainFunction.indexOf('prompt_default_agents_installation')).toBeLessThan(
+            mainFunction.indexOf('install_system_packages'),
+        );
+        expect(mainFunction.indexOf('install_default_agents')).toBeGreaterThan(
+            mainFunction.indexOf('initialize_promptbook_project'),
+        );
+        expect(mainFunction.indexOf('install_default_agents')).toBeLessThan(mainFunction.indexOf('build_agents_server'));
+    });
+
     it('requires a Node.js patch level compatible with Embedded Prisma Studio', () => {
         expect(installScript).toContain('resolve_node_minimum_version()');
         expect(installScript).toContain("printf '22.12.0'");

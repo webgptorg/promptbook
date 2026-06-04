@@ -30,6 +30,7 @@ PTBK_PM2_BASE_APP_NAME="${PTBK_PM2_BASE_APP_NAME:-$APP_NAME}"
 PTBK_AGENT="${PTBK_AGENT:-github-copilot}"
 PTBK_MODEL="${PTBK_MODEL:-gpt-5.4}"
 PTBK_THINKING_LEVEL="${PTBK_THINKING_LEVEL:-xhigh}"
+PTBK_INSTALL_DEFAULT_AGENTS="${PTBK_INSTALL_DEFAULT_AGENTS:-yes}"
 PTBK_NON_INTERACTIVE="${PTBK_NON_INTERACTIVE:-0}"
 PTBK_SKIP_PM2_RESTART="${PTBK_SKIP_PM2_RESTART:-0}"
 SERVERS="${SERVERS:-}"
@@ -80,6 +81,7 @@ REQUESTED_CDN_SECRET_ACCESS_KEY="${CDN_SECRET_ACCESS_KEY:-}"
 REQUESTED_CDN_PUBLIC_URL="${NEXT_PUBLIC_CDN_PUBLIC_URL:-}"
 REQUESTED_CDN_FORCE_PATH_STYLE="${CDN_FORCE_PATH_STYLE:-false}"
 REQUESTED_ADDITIONAL_SWAP_MIB=0
+REQUESTED_INSTALL_DEFAULT_AGENTS="yes"
 IS_RUNNER_AUTHENTICATION_REQUESTED=""
 GENERATED_ADMIN_PASSWORD=""
 PUBLIC_IP_ADDRESS=""
@@ -1441,6 +1443,29 @@ resolve_boolean_default_label() {
     printf 'no'
 }
 
+resolve_default_agents_installation_default() {
+    local existing_value=""
+
+    existing_value="$(get_env_value PTBK_INSTALL_DEFAULT_AGENTS)"
+    if [[ -n "$existing_value" ]]; then
+        resolve_boolean_default_label "$existing_value"
+        return
+    fi
+
+    resolve_boolean_default_label "$PTBK_INSTALL_DEFAULT_AGENTS"
+}
+
+prompt_default_agents_installation() {
+    local default_installation_value=""
+
+    default_installation_value="$(resolve_default_agents_installation_default)"
+    if prompt_yes_no "Install bundled default agents?" "$default_installation_value"; then
+        REQUESTED_INSTALL_DEFAULT_AGENTS="yes"
+    else
+        REQUESTED_INSTALL_DEFAULT_AGENTS="no"
+    fi
+}
+
 prompt_file_storage() {
     local existing_mode=""
     local default_mode=""
@@ -1608,6 +1633,7 @@ configure_environment() {
     set_env_value PTBK_AGENT "$PTBK_AGENT"
     set_env_value PTBK_MODEL "$PTBK_MODEL"
     set_env_value PTBK_THINKING_LEVEL "$PTBK_THINKING_LEVEL"
+    set_env_value PTBK_INSTALL_DEFAULT_AGENTS "$REQUESTED_INSTALL_DEFAULT_AGENTS"
     set_env_value PORT "$PORT"
     set_env_value NODE_ENV production
     set_env_value PTBK_HOSTNAME 127.0.0.1
@@ -1657,6 +1683,24 @@ initialize_promptbook_project() {
     log "Initializing Promptbook Agents Server project files."
     run_as_service_user bash -lc "cd $(shell_quote "$INSTALL_DIR") && $(shell_quote "$PTBK_COMMAND_PATH") agents-server init >/dev/null"
     configure_environment
+}
+
+install_default_agents() {
+    local env_file_shell=""
+    local repository_dir_shell=""
+    local default_agents_dir_shell=""
+
+    if [[ "$REQUESTED_INSTALL_DEFAULT_AGENTS" != "yes" ]]; then
+        log "Skipping bundled default agents by installer choice."
+        return
+    fi
+
+    env_file_shell="$(shell_quote "$ENV_FILE")"
+    repository_dir_shell="$(shell_quote "$PROMPTBOOK_REPOSITORY_DIR")"
+    default_agents_dir_shell="$(shell_quote "$PROMPTBOOK_REPOSITORY_DIR/agents/default")"
+
+    log "Installing bundled default agents when the server has no agents yet."
+    run_as_service_user bash -lc "cd $repository_dir_shell && PTBK_AGENTS_SERVER_ENV_FILE=$env_file_shell PTBK_DEFAULT_AGENTS_DIR=$default_agents_dir_shell npx --yes tsx ./apps/agents-server/src/database/seedDefaultAgents.ts"
 }
 
 configure_runner_authentication() {
@@ -2865,6 +2909,7 @@ main() {
     prompt_public_site_url
     prompt_file_storage
     prompt_api_keys_and_admin_password
+    prompt_default_agents_installation
     prompt_runner_authentication_preference
 
     configure_required_resources
@@ -2877,6 +2922,7 @@ main() {
     install_promptbook_cli_launcher
     install_runner_dependencies
     initialize_promptbook_project
+    install_default_agents
     configure_self_contained_s3_storage
     configure_runner_authentication
     configure_pm2_startup

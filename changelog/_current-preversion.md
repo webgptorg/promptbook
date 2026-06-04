@@ -1,5 +1,10 @@
 -   Fixed CLI package generation so the embedded Agents Server runtime no longer copies unused browser-only package entrypoints/helpers, and the publish-safety check runs after the runtime copy has been refreshed.
 
+-   Added bundled default agents to standalone VPS Agents Server installs:
+
+    -   `other/vps/install.sh` now asks whether to install bundled default agents, defaults to yes, and seeds `agents/default/*.book` into an empty standalone server.
+    -   Re-running the installer skips default-agent creation when the server already has agents.
+
 -   Fixed Agents Server agent profile avatars so built-in animated visuals stay centered in a square stage inside the tall profile card instead of stretching to fill the card.
 
 -   Added Shibboleth authentication logging and dashboard to the Agents Server:
