@@ -94,6 +94,20 @@ describe('ensureBookEditorMonacoLanguage', () => {
         expect(second.spies.registerLanguage).toHaveBeenCalledTimes(1);
     });
 
+    it('keeps the Monaco Book theme light even when the host application theme is dark', () => {
+        const { monaco, spies } = createMonacoLanguageMock();
+
+        ensureBookEditorMonacoLanguage(monaco, 'DARK');
+
+        const themeConfig = spies.defineTheme.mock.calls[0]?.[1] as {
+            readonly base: string;
+            readonly colors: Record<string, string>;
+        };
+
+        expect(themeConfig.base).toBe('vs');
+        expect(themeConfig.colors).not.toHaveProperty('editor.background');
+    });
+
     it('registers NOTE/TODO commitment tokenization states and dedicated theme rules', () => {
         const { monaco, spies } = createMonacoLanguageMock();
 

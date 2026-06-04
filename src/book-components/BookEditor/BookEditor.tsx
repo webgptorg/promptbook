@@ -17,6 +17,8 @@ import type { HoistedMenuItem } from '../_common/MenuHoisting/MenuHoistingContex
 import { classNames } from '../_common/react-utils/classNames';
 import styles from './BookEditor.module.css';
 import { BookEditorMonaco } from './BookEditorMonaco';
+import type { BookEditorTheme } from './BookEditorTheme';
+import { BOOK_EDITOR_RENDER_THEME, resolveBookEditorRenderTheme } from './BookEditorTheme';
 
 /**
  * Monaco diagnostic shown inside `BookEditor`.
@@ -123,14 +125,14 @@ export type BookEditorProps = {
     readonly style?: CSSProperties;
 
     /**
-     * Resolved visual theme used for the editor wrapper and Monaco instance.
+     * Resolved host application theme.
      *
-     * Host applications should pass the final light/dark theme instead of relying on
-     * browser media-query inference inside `<BookEditor/>`.
+     * `<BookEditor/>` accepts this for integration compatibility, but the notebook
+     * editor itself is intentionally rendered as light paper in every app theme.
      *
      * @default 'LIGHT'
      */
-    readonly theme?: 'LIGHT' | 'DARK';
+    readonly theme?: BookEditorTheme;
 
     /**
      * Height of the `BookEditor` component
@@ -288,7 +290,7 @@ export function BookEditor(props: BookEditorProps) {
         agentSource,
         className,
         style,
-        theme = 'LIGHT',
+        theme: hostTheme = BOOK_EDITOR_RENDER_THEME,
         zoom = 1,
         value,
         onChange,
@@ -309,6 +311,7 @@ export function BookEditor(props: BookEditorProps) {
     } = props;
 
     const [isFullscreen, setIsFullscreen] = useState(false);
+    const renderedTheme = resolveBookEditorRenderTheme(hostTheme);
 
     /**
      * Toggles fullscreen mode for the editor.
@@ -320,7 +323,7 @@ export function BookEditor(props: BookEditorProps) {
     const editorContent = (
         <div
             data-book-component="BookEditor"
-            data-book-editor-theme={theme.toLowerCase()}
+            data-book-editor-theme={renderedTheme.toLowerCase()}
             className={classNames(
                 styles.BookEditor,
                 isVerbose && styles.isVerbose,
@@ -365,7 +368,7 @@ export function BookEditor(props: BookEditorProps) {
                 zoom={zoom}
                 monacoModelPath={monacoModelPath}
                 hoistedMenuItems={hoistedMenuItems}
-                theme={theme}
+                theme={renderedTheme}
             />
         </div>
     );

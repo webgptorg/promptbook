@@ -1,16 +1,12 @@
 import type { editor } from 'monaco-editor';
 import { useCallback, useEffect, useState } from 'react';
+import type { BookEditorTheme } from './BookEditorTheme';
 import { ensureBookEditorMonacoLanguage, ensureBookEditorMonacoLanguageForEditor } from './useBookEditorMonacoLanguage';
 
 /**
  * Type describing monaco editor.
  */
 type MonacoEditor = typeof import('monaco-editor');
-
-/**
- * Resolved visual theme supported by the Book editor.
- */
-type BookEditorTheme = 'LIGHT' | 'DARK';
 
 /**
  * Props for use book editor monaco lifecycle.

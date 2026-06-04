@@ -1,3 +1,5 @@
+-   Fixed the Book editor in Agents Server dark mode so the notebook editor surface stays light even when the surrounding UI uses the dark theme.
+
 -   Fixed Agents Server local agent runner retries so a repeatedly failing queued chat message is moved to `messages/failed` after the configurable local-runner failed-attempt limit instead of being retried forever.
 
     -   Added the local runner retry cap to the dedicated limits page (the old `/admin/tool-limits` redirect still lands there), defaulting to 3 failed attempts.

@@ -8,18 +8,13 @@ import {
 import { PROMPTBOOK_SYNTAX_COLORS } from '../../config';
 import { BookEditorMonacoConstants } from './BookEditorMonacoConstants';
 import { BookEditorMonacoTokenization } from './BookEditorMonacoTokenization';
+import type { BookEditorTheme } from './BookEditorTheme';
+import { BOOK_EDITOR_RENDER_THEME, resolveBookEditorRenderTheme } from './BookEditorTheme';
 
 /**
  * Type describing monaco editor.
  */
 type MonacoEditor = typeof import('monaco-editor');
-
-/**
- * Resolved visual theme supported by the Book editor.
- *
- * @private function of BookEditorMonaco
- */
-type BookEditorTheme = 'LIGHT' | 'DARK';
 
 /**
  * Props for use book editor monaco language.
@@ -286,12 +281,13 @@ function createNoteLikeBodyRules(
  *
  * @private function of BookEditorMonaco
  */
-export function ensureBookEditorMonacoLanguage(monaco: MonacoEditor, theme: BookEditorTheme = 'LIGHT'): void {
+export function ensureBookEditorMonacoLanguage(monaco: MonacoEditor, theme: BookEditorTheme = BOOK_EDITOR_RENDER_THEME): void {
+    const renderedTheme = resolveBookEditorRenderTheme(theme);
     const monacoWithLanguageState = monaco as MonacoEditorWithBookEditorLanguageState;
     if (monacoWithLanguageState[BOOK_EDITOR_LANGUAGE_INITIALIZED_FLAG]) {
-        if (monacoWithLanguageState[BOOK_EDITOR_THEME_MODE_FLAG] !== theme) {
-            applyBookEditorMonacoTheme(monaco, theme);
-            monacoWithLanguageState[BOOK_EDITOR_THEME_MODE_FLAG] = theme;
+        if (monacoWithLanguageState[BOOK_EDITOR_THEME_MODE_FLAG] !== renderedTheme) {
+            applyBookEditorMonacoTheme(monaco, renderedTheme);
+            monacoWithLanguageState[BOOK_EDITOR_THEME_MODE_FLAG] = renderedTheme;
             return;
         }
 
@@ -300,7 +296,7 @@ export function ensureBookEditorMonacoLanguage(monaco: MonacoEditor, theme: Book
     }
 
     monacoWithLanguageState[BOOK_EDITOR_LANGUAGE_INITIALIZED_FLAG] = true;
-    monacoWithLanguageState[BOOK_EDITOR_THEME_MODE_FLAG] = theme;
+    monacoWithLanguageState[BOOK_EDITOR_THEME_MODE_FLAG] = renderedTheme;
 
     monaco.languages.register({ id: BookEditorMonacoConstants.BOOK_LANGUAGE_ID });
 
@@ -437,7 +433,7 @@ export function ensureBookEditorMonacoLanguage(monaco: MonacoEditor, theme: Book
         },
     });
 
-    applyBookEditorMonacoTheme(monaco, theme);
+    applyBookEditorMonacoTheme(monaco, renderedTheme);
 }
 
 /**
@@ -462,8 +458,9 @@ type EnsureBookEditorMonacoLanguageForEditorProps = {
  * @private function of BookEditorMonaco
  */
 export function ensureBookEditorMonacoLanguageForEditor(props: EnsureBookEditorMonacoLanguageForEditorProps): void {
-    const { monaco, monacoEditor, theme = 'LIGHT' } = props;
-    ensureBookEditorMonacoLanguage(monaco, theme);
+    const { monaco, monacoEditor, theme = BOOK_EDITOR_RENDER_THEME } = props;
+    const renderedTheme = resolveBookEditorRenderTheme(theme);
+    ensureBookEditorMonacoLanguage(monaco, renderedTheme);
 
     const model = monacoEditor.getModel();
     if (!model) {

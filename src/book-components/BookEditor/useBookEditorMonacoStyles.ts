@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { PROMPTBOOK_SYNTAX_COLORS } from '../../config';
+import type { BookEditorTheme } from './BookEditorTheme';
 
 /**
  * Relative Y offset multiplier for aligning line background with Monaco rendering.
@@ -17,7 +18,7 @@ type UseBookEditorMonacoStylesProps = {
     readonly scaledContentPaddingLeft: number;
     readonly scaledVerticalLineLeft: number;
     readonly zoomLevel: number;
-    readonly theme: 'LIGHT' | 'DARK';
+    readonly theme: BookEditorTheme;
 };
 
 /**

@@ -12,6 +12,7 @@ import type { BookEditorProps } from './BookEditor';
 import styles from './BookEditor.module.css';
 import { BookEditorActionbar } from './BookEditorActionbar';
 import { BookEditorMonacoConstants } from './BookEditorMonacoConstants';
+import { BOOK_EDITOR_RENDER_THEME, resolveBookEditorRenderTheme } from './BookEditorTheme';
 import { createDeprecatedCommitmentDiagnostics } from './createDeprecatedCommitmentDiagnostics';
 import { useBookEditorMonacoDecorations } from './useBookEditorMonacoDecorations';
 import { useBookEditorMonacoDiagnostics } from './useBookEditorMonacoDiagnostics';
@@ -204,7 +205,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
         onChange,
         diagnostics,
         isReadonly,
-        theme = 'LIGHT',
+        theme: hostTheme = BOOK_EDITOR_RENDER_THEME,
         translations,
         onFileUpload,
         isUploadButtonShown,
@@ -219,6 +220,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
         hoistedMenuItems,
     } = props;
 
+    const theme = resolveBookEditorRenderTheme(hostTheme);
     const zoomLevel = zoom;
     const { scaledLineHeight, scaledContentPaddingLeft, scaledVerticalLineLeft, scaledFontSize, scaledScrollbarSize } =
         createBookEditorMonacoScale(zoomLevel);
