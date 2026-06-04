@@ -53,7 +53,7 @@ export const DEFAULT_AGENT_AVATAR_VISUAL_METADATA_VALUES = DEFAULT_AGENT_AVATAR_
 export const DEFAULT_AGENT_AVATAR_VISUAL_METADATA_VALUE =
     DEFAULT_AGENT_AVATAR_VISUAL_METADATA_OPTIONS.find(
         ({ visualId }) => visualId === SHARED_DEFAULT_AGENT_AVATAR_VISUAL_ID,
-    )?.metadataValue || 'OCTOPUS3';
+    )?.metadataValue || 'OCTOPUS3D3';
 
 /**
  * Resolves one raw metadata value to a supported built-in avatar visual id.

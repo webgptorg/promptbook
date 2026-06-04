@@ -1,3 +1,9 @@
+-   Added a new default `Octopus 3D 3` built-in avatar visual:
+
+    -   Added a more blobby continuous 3D octopus mesh with seeded waving tentacle lobes, projected sucker highlights, richer shading, and the same cursor-aware head and eye turning used by the other interactive avatar visuals.
+    -   Registered `octopus3d3` across the shared avatar registry, `META AVATAR` resolution, Agents Server default-avatar metadata, and the avatar playground.
+    -   Switched the shared `DEFAULT_AGENT_AVATAR_VISUAL` fallback to `Octopus 3D 3` and added a migration for existing metadata rows that still use the previous `OCTOPUS3` default, while preserving other selected visuals.
+
 -   Added default Agents Server seeding to the standalone VPS installer:
 
     -   `other/vps/install.sh` now asks whether to install the repository `agents/default/*.book` agents, defaults to yes, and persists the choice in the install `.env`.

@@ -20,6 +20,12 @@ describe('avatar playground URL state', () => {
         expect(avatarPlaygroundState.visualId).toBe('octopus3d');
     });
 
+    it('should accept octopus3d3 as a supported built-in visual', () => {
+        const avatarPlaygroundState = parseAvatarPlaygroundState(new URLSearchParams('visual=octopus3d3'));
+
+        expect(avatarPlaygroundState.visualId).toBe('octopus3d3');
+    });
+
     it('should accept fractal as a supported built-in visual', () => {
         const avatarPlaygroundState = parseAvatarPlaygroundState(new URLSearchParams('visual=fractal'));
 

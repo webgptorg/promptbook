@@ -22,14 +22,15 @@ describe('default agent avatar visual metadata', () => {
     });
 
     it('resolves explicit metadata values to the matching built-in visual id', () => {
+        expect(resolveDefaultAgentAvatarVisualId('OCTOPUS3D3')).toBe('octopus3d3');
         expect(resolveDefaultAgentAvatarVisualId('OCTOPUS3')).toBe('octopus3');
         expect(resolveDefaultAgentAvatarVisualId('ASCII_OCTOPUS')).toBe('ascii-octopus');
         expect(resolveDefaultAgentAvatarVisualId('ascii octopus')).toBe('ascii-octopus');
         expect(resolveDefaultAgentAvatarVisualId('pixel-art')).toBe('pixel-art');
     });
 
-    it('falls back to octopus3 for missing or invalid metadata values', () => {
-        expect(resolveDefaultAgentAvatarVisualId('unknown')).toBe('octopus3');
-        expect(resolveDefaultAgentAvatarVisualId(null)).toBe('octopus3');
+    it('falls back to octopus3d3 for missing or invalid metadata values', () => {
+        expect(resolveDefaultAgentAvatarVisualId('unknown')).toBe('octopus3d3');
+        expect(resolveDefaultAgentAvatarVisualId(null)).toBe('octopus3d3');
     });
 });

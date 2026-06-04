@@ -26,7 +26,7 @@ describe('resolveAgentAvatar', () => {
         });
     });
 
-    it('returns the Octopus3 avatar visual and parsed META COLOR palette when no explicit image is set', () => {
+    it('returns the default avatar visual and parsed META COLOR palette when no explicit image is set', () => {
         const resolvedAgentAvatar = resolveAgentAvatar({
             agent: {
                 agentName: 'Assistant',
