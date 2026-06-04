@@ -70,3 +70,24 @@ installHook.js:1 File upload failed for file.docx: Error: File upload failed wit
 ![alt text](prompts/screenshots/2026-06-0000-agents-server-self-contained-s3-2.png)
 ![alt text](prompts/screenshots/2026-06-0000-agents-server-self-contained-s3-3.png)
 
+---
+
+[ ] !
+
+[✨→] Fix self-contained S3 storage for domains
+
+-   @@@
+-   Not `http://167.172.138.126/s3/promptbook-files/ptbk-agents/user/files/praha-13.txt` but `https://s22.ptbk.io/s3/promptbook-files/ptbk-agents/user/files/praha-13.txt`
+
+![alt text](prompts/screenshots/2026-06-0000-agents-server-self-contained-s3-4.png)
+![alt text](prompts/screenshots/2026-06-0000-agents-server-self-contained-s3-5.png)
+
+---
+
+[ ] !
+
+[✨→] Secure the uploaded files
+
+-   @@@
+-   Each file on the public URL must contain seacret id in the URL, look how the external S3 storage works, the public URL contains the secret id, so it is not possible to access the files without the secret id, so do the same for the self-contained S3 storage, so it is more secure and consistent with the external S3 storage
+-   This seacret id should be generated for each uploaded file because the seacret to access the file is the URL
