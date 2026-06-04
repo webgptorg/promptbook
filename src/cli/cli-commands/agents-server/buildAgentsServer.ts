@@ -97,11 +97,40 @@ const AGENTS_SERVER_BUILD_INPUT_EXCLUDED_DIRECTORY_NAMES = new Set([
 ]);
 
 /**
+ * Runtime source files excluded from the packaged Agents Server copy.
+ *
+ * @private internal constant of `ptbk agents-server`
+ */
+const AGENTS_SERVER_BUILD_INPUT_EXCLUDED_SOURCE_PATHS = new Set([
+    'src/_packages/browser.index.ts',
+    'src/_packages/browser.readme.md',
+    'src/llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground.ts',
+    'src/llm-providers/_common/utils/assertUniqueModels.ts',
+]);
+
+/**
+ * Runtime source folders excluded from the packaged Agents Server copy.
+ *
+ * @private internal constant of `ptbk agents-server`
+ */
+const AGENTS_SERVER_BUILD_INPUT_EXCLUDED_SOURCE_PATH_PREFIXES = [
+    'src/dialogs/simple-prompt',
+    'src/storage/local-storage',
+] as const;
+
+/**
  * Test files copied out of packaged runtime input paths because Next does not build them.
  *
  * @private internal constant of `ptbk agents-server`
  */
-const AGENTS_SERVER_BUILD_INPUT_TEST_FILE_PATTERN = /\.(?:spec|test)\.[jt]sx?$/iu;
+const AGENTS_SERVER_BUILD_INPUT_TEST_FILE_PATTERN = /\.(?:spec|test)(?:\.|$)/iu;
+
+/**
+ * Type-only compile check files copied out of packaged runtime input paths.
+ *
+ * @private internal constant of `ptbk agents-server`
+ */
+const AGENTS_SERVER_BUILD_INPUT_TEST_TYPE_FILE_PATTERN = /\.test-type\.[jt]sx?$/iu;
 
 /**
  * Metadata persisted after one successful Agents Server production build.
@@ -410,6 +439,7 @@ async function copyAgentsServerRuntimePath(options: {
  */
 function shouldCopyAgentsServerRuntimePath(sourcePath: string, sourceRootPath: string): boolean {
     const sourceRelativePath = relative(sourceRootPath, sourcePath).replace(/\\/gu, '/');
+    const sourceRuntimeRelativePath = normalizeRuntimeSourceRelativePath(sourcePath, sourceRootPath);
     const sourcePathSegments = sourceRelativePath.split('/').filter(Boolean);
     const sourceBasename = basename(sourcePath);
 
@@ -421,11 +451,58 @@ function shouldCopyAgentsServerRuntimePath(sourcePath: string, sourceRootPath: s
         return false;
     }
 
+    if (sourcePathSegments.includes('playground')) {
+        return false;
+    }
+
+    if (isExcludedAgentsServerRuntimeSourcePath(sourceRuntimeRelativePath)) {
+        return false;
+    }
+
     if (sourceBasename.startsWith('.env')) {
         return false;
     }
 
-    return !AGENTS_SERVER_BUILD_INPUT_TEST_FILE_PATTERN.test(sourceBasename);
+    return (
+        !AGENTS_SERVER_BUILD_INPUT_TEST_FILE_PATTERN.test(sourceBasename) &&
+        !AGENTS_SERVER_BUILD_INPUT_TEST_TYPE_FILE_PATTERN.test(sourceBasename)
+    );
+}
+
+/**
+ * Normalizes a copied runtime path to the shape used inside the packaged runtime root.
+ */
+function normalizeRuntimeSourceRelativePath(sourcePath: string, sourceRootPath: string): string {
+    const sourceRelativePath = relative(sourceRootPath, sourcePath).replace(/\\/gu, '/');
+    const sourceRootBasename = basename(sourceRootPath);
+
+    if (!sourceRelativePath) {
+        return sourceRootBasename;
+    }
+
+    return `${sourceRootBasename}/${sourceRelativePath}`;
+}
+
+/**
+ * Checks whether one normalized runtime path is equal to or nested below another path.
+ */
+function isRuntimePathWithin(sourceRuntimeRelativePath: string, excludedSourcePathPrefix: string): boolean {
+    return (
+        sourceRuntimeRelativePath === excludedSourcePathPrefix ||
+        sourceRuntimeRelativePath.startsWith(`${excludedSourcePathPrefix}/`)
+    );
+}
+
+/**
+ * Returns true for runtime source files and folders that are not needed by the Agents Server build.
+ */
+function isExcludedAgentsServerRuntimeSourcePath(sourceRuntimeRelativePath: string): boolean {
+    return (
+        AGENTS_SERVER_BUILD_INPUT_EXCLUDED_SOURCE_PATHS.has(sourceRuntimeRelativePath) ||
+        AGENTS_SERVER_BUILD_INPUT_EXCLUDED_SOURCE_PATH_PREFIXES.some((excludedSourcePathPrefix) =>
+            isRuntimePathWithin(sourceRuntimeRelativePath, excludedSourcePathPrefix),
+        )
+    );
 }
 
 /**
@@ -595,6 +672,10 @@ async function addAgentsServerBuildInputToFingerprint(
         readonly runtimeRootPath: string;
     },
 ): Promise<void> {
+    if (isExcludedAgentsServerBuildInputPath(options.inputPath, options.runtimeRootPath)) {
+        return;
+    }
+
     let inputStats;
 
     try {
@@ -605,10 +686,6 @@ async function addAgentsServerBuildInputToFingerprint(
     }
 
     if (inputStats.isFile()) {
-        if (isExcludedAgentsServerBuildInputFile(options.inputPath)) {
-            return;
-        }
-
         fingerprint.update(`file:${normalizeBuildInputPath(options.runtimeRootPath, options.inputPath)}\n`);
         fingerprint.update(await readFile(options.inputPath));
         fingerprint.update('\n');
@@ -636,10 +713,33 @@ async function addAgentsServerBuildInputToFingerprint(
 }
 
 /**
- * Returns true for non-build test files inside shared runtime source paths.
+ * Returns true for non-build files and folders inside shared runtime source paths.
  */
-function isExcludedAgentsServerBuildInputFile(inputPath: string): boolean {
-    return AGENTS_SERVER_BUILD_INPUT_TEST_FILE_PATTERN.test(basename(inputPath));
+function isExcludedAgentsServerBuildInputPath(inputPath: string, runtimeRootPath: string): boolean {
+    const inputRelativePath = normalizeBuildInputPath(runtimeRootPath, inputPath);
+    const inputPathSegments = inputRelativePath.split('/').filter(Boolean);
+    const inputBasename = basename(inputPath);
+
+    if (
+        inputPathSegments.some((inputPathSegment) =>
+            AGENTS_SERVER_BUILD_INPUT_EXCLUDED_DIRECTORY_NAMES.has(inputPathSegment),
+        )
+    ) {
+        return true;
+    }
+
+    if (inputPathSegments.includes('playground')) {
+        return true;
+    }
+
+    if (isExcludedAgentsServerRuntimeSourcePath(inputRelativePath)) {
+        return true;
+    }
+
+    return (
+        AGENTS_SERVER_BUILD_INPUT_TEST_FILE_PATTERN.test(inputBasename) ||
+        AGENTS_SERVER_BUILD_INPUT_TEST_TYPE_FILE_PATTERN.test(inputBasename)
+    );
 }
 
 /**

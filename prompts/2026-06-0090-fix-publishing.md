@@ -1,4 +1,4 @@
-[ ] !!!!!!
+[x] ~$0.9212 an hour by OpenAI Codex `gpt-5.5`
 
 [✨🐕] Fix package publishing
 
@@ -25,3 +25,4 @@ There are equivalent checks for Node-only code leaking into browser-importable p
 ./packages/cli/src/dialogs/simple-prompt/SimplePromptInterfaceTools.ts
 In line 51:
 // Note: [🔵] Code for browser dialog helper [SimplePromptInterfaceTools](src/dialogs/simple-prompt/SimplePromptInterfaceTools.ts) should never be published outside of `@promptbook/browser`
+

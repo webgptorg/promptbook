@@ -30,6 +30,18 @@ const NODE_ONLY_PACKAGE_FULLNAMES = new Set([
 const BROWSER_ONLY_PACKAGE_FULLNAMES = new Set(['@promptbook/browser', '@promptbook/components']);
 
 /**
+ * Browser-only helpers intentionally included in the CLI package only for the embedded Next client runtime.
+ *
+ * @private internal utility of assertGeneratedBundlesArePublishSafe
+ */
+const CLI_AGENTS_SERVER_BROWSER_RUNTIME_FILE_NAMES = new Set([
+    'packages/cli/src/speech-recognition/BrowserSpeechRecognition.ts',
+    'packages/cli/src/utils/files/$induceBookDownload.ts',
+    'packages/cli/src/utils/files/$induceFileDownload.ts',
+    'packages/cli/src/utils/files/ObjectUrl.ts',
+]);
+
+/**
  * Verifies that generated bundle contents do not leak non-publishable code markers.
  *
  * @param packagesMetadata - Metadata of generated packages
@@ -40,7 +52,7 @@ export async function assertGeneratedBundlesArePublishSafe(
     packagesMetadata: ReadonlyArray<PackageMetadata>,
     isBundlerSkipped: boolean,
 ): Promise<void> {
-    logPackageGenerationStep(`6️⃣  Test that nothing what should not be published is published`);
+    logPackageGenerationStep(`8️⃣  Test that nothing what should not be published is published`);
 
     if (isBundlerSkipped) {
         console.info(colors.yellow(`Skipping the bundler, skipping the tests for bundle content`));
@@ -98,6 +110,36 @@ function shouldSkipBundleContentCheck(bundleFileName: string): boolean {
 }
 
 /**
+ * Normalizes generated package paths so marker exceptions are stable across platforms.
+ *
+ * @param bundleFileName - Generated bundle file path
+ * @returns Normalized file path with POSIX separators and no leading `./`
+ * @private internal utility of assertGeneratedBundlesArePublishSafe
+ */
+function normalizeBundleFileName(bundleFileName: string): string {
+    return bundleFileName.replace(/\\/gu, '/').replace(/^\.\//u, '');
+}
+
+/**
+ * Checks whether a browser-only marker belongs to the embedded Agents Server browser runtime.
+ *
+ * @param packageFullname - Full package name
+ * @param bundleFileName - Generated bundle file path
+ * @returns Whether the browser-only marker is allowed at this path
+ * @private internal utility of assertGeneratedBundlesArePublishSafe
+ */
+function isBrowserOnlyMarkerAllowedInCliAgentsServerRuntime(
+    packageFullname: string,
+    bundleFileName: string,
+): boolean {
+    if (packageFullname !== '@promptbook/cli') {
+        return false;
+    }
+
+    return CLI_AGENTS_SERVER_BROWSER_RUNTIME_FILE_NAMES.has(normalizeBundleFileName(bundleFileName));
+}
+
+/**
  * Finds the first occurrence of a marker in file content and returns formatted line information.
  *
  * @param fileContent - The content of the file to search
@@ -109,9 +151,11 @@ function findMarkerLine(fileContent: string, marker: string): string {
     const lines = fileContent.split(/\r?\n/);
 
     for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
-        if (lines[lineIndex].includes(marker)) {
+        const line = lines[lineIndex];
+
+        if (line?.includes(marker)) {
             const lineNumber = lineIndex + 1;
-            const lineContent = lines[lineIndex].trim();
+            const lineContent = line.trim();
 
             return spaceTrim(`
 
@@ -296,7 +340,11 @@ function assertBundleFileDoesNotContainBrowserOnlyMarkerOutsideBrowserPackages(
     bundleFileName: string,
     bundleFileContent: string,
 ): void {
-    if (BROWSER_ONLY_PACKAGE_FULLNAMES.has(packageFullname) || !bundleFileContent.includes('[🔵]')) {
+    if (
+        BROWSER_ONLY_PACKAGE_FULLNAMES.has(packageFullname) ||
+        isBrowserOnlyMarkerAllowedInCliAgentsServerRuntime(packageFullname, bundleFileName) ||
+        !bundleFileContent.includes('[🔵]')
+    ) {
         return;
     }
 

@@ -40,7 +40,7 @@ export async function addDependenciesForGeneratedPackages(
     allDevelopmentDependencies: Record<string, string>,
     mainPackageVersion: string,
 ): Promise<void> {
-    logPackageGenerationStep(`7️⃣  Add dependencies for each package`);
+    logPackageGenerationStep(`6️⃣  Add dependencies for each package`);
 
     for (const packageMetadata of packagesMetadata) {
         const packageJson = await readGeneratedPackageJson(packageMetadata.packageBasename);

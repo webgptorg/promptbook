@@ -1,3 +1,5 @@
+-   Fixed CLI package generation so the embedded Agents Server runtime no longer copies unused browser-only package entrypoints/helpers, and the publish-safety check runs after the runtime copy has been refreshed.
+
 -   Fixed Agents Server agent profile avatars so built-in animated visuals stay centered in a square stage inside the tall profile card instead of stretching to fill the card.
 
 -   Added Shibboleth authentication logging and dashboard to the Agents Server:
