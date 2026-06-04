@@ -56,15 +56,21 @@ type PseudoAgentRouteTarget = {
 export type AgentRouteTarget = LocalAgentRouteTarget | RemoteAgentRouteTarget | PseudoAgentRouteTarget;
 
 /**
- * Resolves any incoming `/agents/:agentId` token into a canonical target URL.
+ * Resolves any incoming `/agents/:agentId` token into a canonical target URL without memoization.
  *
  * Supported inputs include plain IDs/names, `@name`, `{name}`, `{id}`, and absolute `/agents/...` URLs.
  * Pseudo-agent tokens such as `{User}`, `{Void}`, or `{Null}` resolve to dedicated documentation pages.
  *
  * @param rawReference - Raw decoded route parameter value.
+ * @param options - Optional cache-bypass controls used by create-agent flows.
  * @returns Canonical local/remote route target or `null` when the reference cannot be resolved.
  */
-const getCachedAgentRouteTarget = cache(async (rawReference: string): Promise<AgentRouteTarget | null> => {
+async function resolveAgentRouteTargetUncached(
+    rawReference: string,
+    options?: {
+        readonly forceRefresh?: boolean;
+    },
+): Promise<AgentRouteTarget | null> {
     const parsedBookScopedAgentIdentifier = parseBookScopedAgentIdentifier(rawReference);
     if (parsedBookScopedAgentIdentifier) {
         const { publicUrl } = await $provideServer();
@@ -96,7 +102,7 @@ const getCachedAgentRouteTarget = cache(async (rawReference: string): Promise<Ag
         };
     }
 
-    const resolver = await $provideAgentReferenceResolver();
+    const resolver = await $provideAgentReferenceResolver({ forceRefresh: options?.forceRefresh });
     let resolvedUrlValue: string;
 
     try {
@@ -137,15 +143,32 @@ const getCachedAgentRouteTarget = cache(async (rawReference: string): Promise<Ag
         canonicalAgentId,
         canonicalUrl: `${localServerUrl}${AGENT_PATH_PREFIX}${encodeURIComponent(canonicalAgentId)}`,
     };
+}
+
+/**
+ * Memoized route-target resolver used for normal page rendering.
+ */
+const getCachedAgentRouteTarget = cache(async (rawReference: string): Promise<AgentRouteTarget | null> => {
+    return resolveAgentRouteTargetUncached(rawReference);
 });
 
 /**
  * Resolves any incoming `/agents/:agentId` token into a canonical target URL.
  *
  * @param rawReference - Raw decoded route parameter value.
+ * @param options - Optional cache-bypass controls used by create-agent flows.
  * @returns Canonical local/remote route target or `null` when the reference cannot be resolved.
  */
-export async function resolveAgentRouteTarget(rawReference: string): Promise<AgentRouteTarget | null> {
+export async function resolveAgentRouteTarget(
+    rawReference: string,
+    options?: {
+        readonly forceRefresh?: boolean;
+    },
+): Promise<AgentRouteTarget | null> {
+    if (options?.forceRefresh) {
+        return resolveAgentRouteTargetUncached(rawReference, options);
+    }
+
     return getCachedAgentRouteTarget(rawReference);
 }
 

@@ -4,7 +4,6 @@ import { usePromise } from '@common/hooks/usePromise';
 import { Chat } from '@promptbook-local/components';
 import { RemoteAgent } from '@promptbook-local/core';
 import { string_book, type ChatMessage } from '@promptbook-local/types';
-import { useRouter } from 'next/navigation';
 import { useCallback, useMemo, useState, type MouseEvent as ReactMouseEvent } from 'react';
 import { spaceTrim } from 'spacetrim';
 import { string_agent_url, string_color } from '../../../../../../src/types/typeAliases';
@@ -24,6 +23,7 @@ import { useServerLanguage } from '../../../components/ServerLanguage/ServerLang
 import { ChatThreadLoadingSkeleton } from '../../../components/Skeleton/ChatThreadLoadingSkeleton';
 import { usePromptbookTheme } from '../../../components/ThemeMode/usePromptbookTheme';
 import type { ServerLanguageCode } from '../../../languages/ServerLanguageRegistry';
+import { buildFreshAgentChatHref } from '../../../utils/agentRouting/agentRouteHrefs';
 import { executeQuickActionButton } from '../../../utils/chat/executeQuickActionButton';
 import { resolveChatMessageValidationIssue } from '../../../utils/chat/validateChatMessageContent';
 import { createServerLanguageMoment } from '../../../utils/localization/createServerLanguageMoment';
@@ -277,7 +277,6 @@ export function AgentProfileChat({
     isHistoryEnabled = false,
     areFileAttachmentsEnabled = true,
 }: AgentProfileChatProps) {
-    const router = useRouter();
     const [isCreatingAgent, setIsCreatingAgent] = useState(false);
     const [optimisticNavigationState, setOptimisticNavigationState] = useState<OptimisticChatNavigationState | null>(null);
     const { formatText } = useAgentNaming();
@@ -409,7 +408,7 @@ export function AgentProfileChat({
             try {
                 const { permanentId } = await $createAgentFromBookAction(bookContent as string_book);
                 if (permanentId) {
-                    router.push(`/agents/${permanentId}`);
+                    window.location.assign(buildFreshAgentChatHref(permanentId));
                 }
             } catch (error) {
                 console.error('Failed to create agent:', error);
@@ -421,7 +420,7 @@ export function AgentProfileChat({
                 setIsCreatingAgent(false);
             }
         },
-        [formatText, router],
+        [formatText],
     );
     const handleFileUpload = useCallback(async (file: File) => chatFileUploadHandler(file), []);
     const fallbackInitialMessage = useMemo(() => {

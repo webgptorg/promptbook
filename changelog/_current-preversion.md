@@ -1,3 +1,8 @@
+-   Fixed Agents Server new-agent redirects so newly created agents open their chat route immediately without a transient not-found page:
+
+    -   The shared create-agent UI now navigates straight to the new agent chat route instead of the profile route, matching the homepage creation flow users expect.
+    -   New-agent creation now waits for the new route to resolve, revalidates cached organization/layout data right after persistence, and hard-navigates to the new chat page so the agent is available immediately without a manual browser refresh.
+
 -   Fixed standalone VPS nginx fallback branding for Agents Server installs:
 
     -   `other/vps/install.sh` now embeds the real Promptbook logo directly into the nginx-served fallback HTML, so the branded page does not depend on the Next.js app or extra static-file routing.

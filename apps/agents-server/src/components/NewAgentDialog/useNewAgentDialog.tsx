@@ -3,7 +3,9 @@
 import type { string_book } from '@promptbook-local/types';
 import type { ReactElement } from 'react';
 import { useCallback, useState } from 'react';
+import { appendHeadlessParam, useIsHeadless } from '../_utils/headlessParam';
 import type { AgentVisibility } from '../../utils/agentVisibility';
+import { buildFreshAgentChatHref } from '../../utils/agentRouting/agentRouteHrefs';
 import {
     $createAgentFromBookAction,
     $generateAgentBoilerplateAction,
@@ -51,9 +53,9 @@ type CreatedAgentPayload = {
  */
 type UseNewAgentDialogOptions = {
     /**
-     * Called after a new agent is created successfully.
+     * Optional callback invoked after the new agent payload is prepared and before navigation starts.
      */
-    readonly onCreated: (agent: CreatedAgentPayload) => Promise<void> | void;
+    readonly onCreated?: (agent: CreatedAgentPayload) => Promise<void> | void;
     /**
      * Optional callback invoked when creating an agent fails.
      */
@@ -121,16 +123,47 @@ function extractAgentNameFromBoilerplate(boilerplate: string_book): string {
 }
 
 /**
+ * Creates the navigation payload returned after one agent is persisted.
+ *
+ * @param agentName - Persisted display name of the agent.
+ * @param permanentId - Canonical immutable identifier of the agent.
+ * @returns Shared created-agent payload used by all creation surfaces.
+ */
+function createCreatedAgentPayload(agentName: string, permanentId: string): CreatedAgentPayload {
+    return {
+        agentName,
+        permanentId,
+        targetPath: buildFreshAgentChatHref(permanentId),
+    };
+}
+
+/**
  * Provides a shared "create new agent" workflow with boilerplate loading and a book-editing dialog.
  */
 export function useNewAgentDialog(options: UseNewAgentDialogOptions): UseNewAgentDialogResult {
     const { onCreated, onCreateFailed, onPrepareFailed } = options;
+    const isHeadless = useIsHeadless();
     const [isPreparingDialog, setIsPreparingDialog] = useState(false);
     const [dialogState, setDialogState] = useState<NewAgentDialogState | null>(null);
 
     const closeNewAgentDialog = useCallback(() => {
         setDialogState(null);
     }, []);
+
+    /**
+     * Finalizes one successful creation by hard-navigating to the new chat route.
+     *
+     * The App Router can transiently keep the just-created dynamic route in a stale not-found
+     * state, so new-agent creation intentionally uses a full navigation once the route is ready.
+     */
+    const handleCreatedAgent = useCallback(
+        async (agent: CreatedAgentPayload) => {
+            await onCreated?.(agent);
+            setDialogState(null);
+            window.location.assign(appendHeadlessParam(agent.targetPath, isHeadless));
+        },
+        [isHeadless, onCreated],
+    );
 
     const openNewAgentDialog = useCallback(
         async (openOptions?: OpenNewAgentDialogOptions) => {
@@ -200,17 +233,12 @@ export function useNewAgentDialog(options: UseNewAgentDialogOptions): UseNewAgen
                     surface: 'editor',
                     folderId: dialogState.targetFolderId,
                 });
-                await onCreated({
-                    agentName,
-                    permanentId,
-                    targetPath: `/agents/${encodeURIComponent(permanentId)}`,
-                });
-                setDialogState(null);
+                await handleCreatedAgent(createCreatedAgentPayload(agentName, permanentId));
             } catch (error) {
                 await onCreateFailed?.(error);
             }
         },
-        [dialogState, onCreateFailed, onCreated],
+        [dialogState, handleCreatedAgent, onCreateFailed],
     );
 
     const handleCreateFromWizard = useCallback(
@@ -232,17 +260,12 @@ export function useNewAgentDialog(options: UseNewAgentDialogOptions): UseNewAgen
                     knowledgeCount: request.knowledgeCount,
                 });
 
-                await onCreated({
-                    agentName,
-                    permanentId,
-                    targetPath: `/agents/${encodeURIComponent(permanentId)}`,
-                });
-                setDialogState(null);
+                await handleCreatedAgent(createCreatedAgentPayload(agentName, permanentId));
             } catch (error) {
                 await onCreateFailed?.(error);
             }
         },
-        [dialogState, onCreateFailed, onCreated],
+        [dialogState, handleCreatedAgent, onCreateFailed],
     );
 
     const handleOpenEditorFromWizard = useCallback((request: NewAgentWizardOpenEditorRequest) => {

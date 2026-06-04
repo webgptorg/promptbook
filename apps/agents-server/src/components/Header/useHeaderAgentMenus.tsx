@@ -44,7 +44,6 @@ type UseHeaderAgentMenusOptions = {
     readonly isAdmin: boolean;
     readonly isAuthenticated: boolean;
     readonly isInstalled: boolean;
-    readonly navigateToHref: (href: string) => void;
     readonly namingPlural: string;
     readonly namingSingular: string;
     readonly onAgentRenamed: (payload: AgentContextMenuRenamePayload) => void;
@@ -160,7 +159,6 @@ export function useHeaderAgentMenus({
     isAdmin,
     isAuthenticated,
     isInstalled,
-    navigateToHref,
     namingPlural,
     namingSingular,
     onAgentRenamed,
@@ -214,9 +212,6 @@ export function useHeaderAgentMenus({
         openNewAgentDialog,
         dialog: newAgentDialog,
     } = useNewAgentDialog({
-        onCreated: ({ targetPath }) => {
-            navigateToHref(targetPath);
-        },
         onCreateFailed: async (error) => {
             await showNewAgentFailure('Failed to create agent:', error, namingSingular, translate);
         },

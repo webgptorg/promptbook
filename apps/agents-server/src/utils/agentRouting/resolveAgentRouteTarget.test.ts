@@ -18,6 +18,20 @@ const mockAgentCollection = {
     ]),
 };
 
+/**
+ * Mocked agent-reference resolver provider used by route-target tests.
+ */
+const mockProvideAgentReferenceResolver = jest.fn(
+    async (options?: {
+        readonly forceRefresh?: boolean;
+    }) => {
+        void options;
+        return {
+            resolveCommitmentContent: jest.fn(async () => '{Lawyer}'),
+        };
+    },
+);
+
 jest.mock('../../tools/$provideServer', () => ({
     $provideServer: jest.fn(async () => ({ publicUrl: PUBLIC_URL })),
 }));
@@ -27,9 +41,7 @@ jest.mock('../../tools/$provideAgentCollectionForServer', () => ({
 }));
 
 jest.mock('../agentReferenceResolver/$provideAgentReferenceResolver', () => ({
-    $provideAgentReferenceResolver: jest.fn(async () => ({
-        resolveCommitmentContent: jest.fn(async () => '{Lawyer}'),
-    })),
+    $provideAgentReferenceResolver: (options?: { forceRefresh?: boolean }) => mockProvideAgentReferenceResolver(options),
 }));
 
 jest.mock('../agentReferenceResolver/AgentReferenceResolutionIssue', () => ({
@@ -78,5 +90,11 @@ describe('resolveAgentRouteTarget', () => {
             canonicalAgentId: 'user',
             canonicalUrl: 'https://local.example/agents/user',
         });
+    });
+
+    it('forces a fresh resolver lookup when requested', async () => {
+        await resolveAgentRouteTarget('Lawyer', { forceRefresh: true });
+
+        expect(mockProvideAgentReferenceResolver).toHaveBeenCalledWith({ forceRefresh: true });
     });
 });

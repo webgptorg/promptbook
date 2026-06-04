@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { FileCard } from '../components/Homepage/FileCard';
 import { useAgentNaming } from '../components/AgentNaming/AgentNamingContext';
 import { showAlert } from '../components/AsyncDialogs/asyncDialogs';
@@ -21,15 +20,11 @@ type AddAgentButtonProps = {
  * Renders the add-agent card and creation dialog workflow.
  */
 export function AddAgentButton({ currentFolderId }: AddAgentButtonProps) {
-    const router = useRouter();
     const { formatText } = useAgentNaming();
     const { t } = useServerLanguage();
     const addButtonLabel = formatText(t('agentCreation.addButtonLabel'));
 
     const { isPreparingDialog, openNewAgentDialog, dialog } = useNewAgentDialog({
-        onCreated: ({ targetPath }) => {
-            router.push(targetPath);
-        },
         onCreateFailed: async (error) => {
             console.error('Failed to create agent:', error);
             await showAlert({

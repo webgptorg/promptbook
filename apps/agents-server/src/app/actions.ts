@@ -8,12 +8,25 @@ import { DEFAULT_NAME_POOL, NAME_POOL_METADATA_KEY, parseNamePool } from '../con
 import { NEW_AGENT_WIZZARD_METADATA_KEY, parseNewAgentWizardMode } from '../constants/newAgentWizard';
 import { getMetadata } from '../database/getMetadata';
 import { $provideAgentCollectionForServer } from '../tools/$provideAgentCollectionForServer';
+import { invalidateCachedActiveOrganizationSnapshots } from '../utils/agentOrganization/loadAgentOrganizationState';
+import { resolveAgentRouteTarget } from '../utils/agentRouting/resolveAgentRouteTarget';
+import { buildAgentChatHref, buildAgentProfileHref } from '../utils/agentRouting/agentRouteHrefs';
 import { type AgentVisibility, parseAgentVisibility } from '../utils/agentVisibility';
 import { authenticateUser } from '../utils/authenticateUser';
 import { createAgentWithDefaultVisibility } from '../utils/createAgentWithDefaultVisibility';
 import { resolveCurrentUserIdentity } from '../utils/currentUserIdentity';
 import { isUserAdmin } from '../utils/isUserAdmin';
 import { clearSession, setSession } from '../utils/session';
+
+/**
+ * Maximum attempts used to confirm a freshly created agent route resolves before navigation starts.
+ */
+const CREATED_AGENT_ROUTE_READY_ATTEMPTS = 20;
+
+/**
+ * Delay between created-agent route-resolution retries.
+ */
+const CREATED_AGENT_ROUTE_READY_DELAY_MS = 100;
 
 /**
  * Creates a new agent from the generated boilerplate template.
@@ -34,6 +47,8 @@ export async function $createAgentAction(): Promise<{ agentName: string_agent_na
     const { agentName, permanentId } = await createAgentWithDefaultVisibility(collection, agentSource, {
         userId: currentUserIdentity?.userId,
     });
+    revalidateCreatedAgentPaths(permanentId);
+    await waitForCreatedAgentRoute(permanentId);
 
     return { agentName, permanentId };
 }
@@ -64,6 +79,39 @@ export async function $getNewAgentCreationSettingsAction(): Promise<{
 }
 
 /**
+ * Clears cached organization snapshots and route payloads after a new agent is created.
+ *
+ * @param permanentId - Canonical identifier of the newly created agent.
+ */
+function revalidateCreatedAgentPaths(permanentId: string_agent_permanent_id): void {
+    invalidateCachedActiveOrganizationSnapshots();
+    revalidatePath('/', 'layout');
+    revalidatePath('/');
+    revalidatePath('/agents');
+    revalidatePath('/dashboard');
+    revalidatePath(buildAgentProfileHref(permanentId));
+    revalidatePath(buildAgentChatHref(permanentId));
+}
+
+/**
+ * Waits until the new agent can be resolved by the same routing helper the chat page uses.
+ *
+ * @param permanentId - Canonical identifier of the newly created agent.
+ */
+async function waitForCreatedAgentRoute(permanentId: string_agent_permanent_id): Promise<void> {
+    for (let attempt = 0; attempt < CREATED_AGENT_ROUTE_READY_ATTEMPTS; attempt++) {
+        const routeTarget = await resolveAgentRouteTarget(permanentId, { forceRefresh: true });
+        if (routeTarget?.kind === 'local' && routeTarget.canonicalAgentId === permanentId) {
+            return;
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, CREATED_AGENT_ROUTE_READY_DELAY_MS));
+    }
+
+    throw new Error(`Created agent "${permanentId}" could not be resolved for routing immediately after creation.`);
+}
+
+/**
  * Creates a new agent using provided book content.
  *
  * @param bookContent - Agent source content to store.
@@ -89,6 +137,8 @@ export async function $createAgentFromBookAction(
         visibility: visibility ?? undefined,
         userId: currentUserIdentity?.userId,
     });
+    revalidateCreatedAgentPaths(permanentId);
+    await waitForCreatedAgentRoute(permanentId);
 
     return { agentName, permanentId };
 }

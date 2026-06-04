@@ -9,7 +9,6 @@ import { HamburgerMenu } from '../../../../../src/book-components/_common/Hambur
 import { useMenuHoisting } from '../../../../../src/book-components/_common/MenuHoisting/MenuHoistingContext';
 import { just } from '../../../../../src/utils/organization/just';
 import { getVisibleCommitmentDefinitions } from '../../utils/getVisibleCommitmentDefinitions';
-import { pushWithHeadless, useIsHeadless } from '../_utils/headlessParam';
 import { useInstallPromptState, type AgentContextMenuRenamePayload } from '../AgentContextMenu/AgentContextMenu';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 import { QrCodeModal } from '../AgentProfile/QrCodeModal';
@@ -58,11 +57,9 @@ export function Header(props: HeaderProps) {
         feedbackMode = 'stars',
         shibbolethAuthenticationStatus,
     } = props;
-
     const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
     const router = useRouter();
     const pathname = usePathname();
-    const isHeadless = useIsHeadless();
     const menuHoisting = useMenuHoisting();
     const mobileMenuHoisting = useMobileMenuHoisting();
     const { naming } = useAgentNaming();
@@ -72,13 +69,6 @@ export function Header(props: HeaderProps) {
     const documentationDropdownItems = useMemo(
         () => buildDocumentationDropdownItems(visibleDocumentationCommitments, t),
         [t, visibleDocumentationCommitments],
-    );
-
-    const fallbackNavigateToHref = useCallback(
-        (href: string) => {
-            pushWithHeadless(router, href, isHeadless);
-        },
-        [isHeadless, router],
     );
     const hoistedMobileMenuItems = mobileMenuHoisting?.menuItems || EMPTY_HOISTED_MOBILE_MENU_ITEMS;
     const {
@@ -201,7 +191,6 @@ export function Header(props: HeaderProps) {
         isAdmin,
         isAuthenticated: Boolean(currentUser),
         isInstalled,
-        navigateToHref: fallbackNavigateToHref,
         namingPlural: naming.plural,
         namingSingular: naming.singular,
         onAgentRenamed: handleAgentRenamedFromHeader,
