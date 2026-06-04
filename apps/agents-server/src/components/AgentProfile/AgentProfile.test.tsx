@@ -114,11 +114,11 @@ describe('AgentProfile', () => {
         const visualShell = visualStage?.parentElement;
 
         expect(visualStage).not.toBeNull();
-        expect(visualStage?.className).toContain('max-h-[80%]');
-        expect(visualStage?.className).toContain('max-w-[80%]');
+        expect(visualStage?.className).toContain('aspect-square');
+        expect(visualStage?.className).toContain('w-[80%]');
+        expect(visualStage?.className).not.toContain('h-full');
         expect(visualStage?.className).toContain('items-center');
         expect(visualStage?.className).toContain('justify-center');
-        expect(visualStage?.style.aspectRatio).toBe('1 / 1');
 
         expect(visualShell).not.toBeNull();
         expect(visualShell?.className).toContain('items-center');

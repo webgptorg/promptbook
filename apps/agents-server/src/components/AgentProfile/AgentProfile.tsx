@@ -186,10 +186,7 @@ export function AgentProfile(props: AgentProfileProps) {
                                 ) : (
                                     <div className="flex h-full w-full items-center justify-center overflow-hidden p-4 md:p-8">
                                         {/* Keep built-in visuals inside a centered square stage so different avatar renderers fit the tall profile card consistently. */}
-                                        <div
-                                            className="flex h-full w-full max-h-[80%] max-w-[80%] items-center justify-center"
-                                            style={{ aspectRatio: '1 / 1' }}
-                                        >
+                                        <div className="flex aspect-square w-[80%] items-center justify-center">
                                             <AgentAvatar
                                                 agent={agent}
                                                 baseUrl={publicUrl}

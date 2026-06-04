@@ -1,3 +1,5 @@
+-   Fixed Agents Server agent profile avatars so built-in animated visuals stay centered in a square stage inside the tall profile card instead of stretching to fill the card.
+
 -   Added Shibboleth authentication logging and dashboard to the Agents Server:
 
     -   Shibboleth login is controlled by `IS_SHIBBOLETH_AUTH_ACTIVE`, defaults off, and appears alongside username/password login when active.
