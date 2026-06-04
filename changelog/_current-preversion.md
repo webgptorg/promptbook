@@ -1,3 +1,8 @@
+-   Added default Agents Server seeding to the standalone VPS installer:
+
+    -   `other/vps/install.sh` now asks whether to install the repository `agents/default/*.book` agents, defaults to yes, and persists the choice in the install `.env`.
+    -   The installer creates the selected default agents before the first server startup and skips already-active agents with matching parsed names on reruns.
+
 -   Fixed Agents Server agent profile avatars so built-in animated visuals stay centered in a square stage inside the tall profile card instead of stretching to fill the card.
 
 -   Added Shibboleth authentication logging and dashboard to the Agents Server:

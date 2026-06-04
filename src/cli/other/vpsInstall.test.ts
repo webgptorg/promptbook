@@ -74,6 +74,28 @@ describe('other/vps/install.sh', () => {
         );
     });
 
+    it('asks whether to install default Agents Server agents and seeds them before startup', () => {
+        const mainFunction = installScript.slice(installScript.indexOf('\nmain() {'));
+
+        expect(installScript).toContain('PTBK_INSTALL_DEFAULT_AGENTS="${PTBK_INSTALL_DEFAULT_AGENTS:-yes}"');
+        expect(installScript).toContain('prompt_yes_no "Install default Agents Server agents?"');
+        expect(installScript).toContain('set_env_value PTBK_INSTALL_DEFAULT_AGENTS "$REQUESTED_INSTALL_DEFAULT_AGENTS"');
+        expect(installScript).toContain('local default_agents_dir="$PROMPTBOOK_REPOSITORY_DIR/agents/default"');
+        expect(installScript).toContain('PTBK_DEFAULT_AGENTS_DIR=$default_agents_dir_shell');
+        expect(installScript).toContain(
+            'npx --yes tsx ./apps/agents-server/src/utils/defaultAgents/installDefaultAgents.ts',
+        );
+        expect(mainFunction.indexOf('prompt_default_agents_install')).toBeLessThan(
+            mainFunction.indexOf('install_system_packages'),
+        );
+        expect(mainFunction.indexOf('install_default_agents')).toBeGreaterThan(
+            mainFunction.indexOf('initialize_promptbook_project'),
+        );
+        expect(mainFunction.indexOf('install_default_agents')).toBeLessThan(
+            mainFunction.indexOf('build_agents_server'),
+        );
+    });
+
     it('requires a Node.js patch level compatible with Embedded Prisma Studio', () => {
         expect(installScript).toContain('resolve_node_minimum_version()');
         expect(installScript).toContain("printf '22.12.0'");

@@ -32,6 +32,7 @@ PTBK_MODEL="${PTBK_MODEL:-gpt-5.4}"
 PTBK_THINKING_LEVEL="${PTBK_THINKING_LEVEL:-xhigh}"
 PTBK_NON_INTERACTIVE="${PTBK_NON_INTERACTIVE:-0}"
 PTBK_SKIP_PM2_RESTART="${PTBK_SKIP_PM2_RESTART:-0}"
+PTBK_INSTALL_DEFAULT_AGENTS="${PTBK_INSTALL_DEFAULT_AGENTS:-yes}"
 SERVERS="${SERVERS:-}"
 LETS_ENCRYPT_EMAIL="${LETS_ENCRYPT_EMAIL:-${CERTBOT_EMAIL:-}}"
 NGINX_SITE_NAME="${PTBK_NGINX_SITE_NAME:-promptbook-agents-server}"
@@ -78,6 +79,7 @@ REQUESTED_CDN_ACCESS_KEY_ID="${CDN_ACCESS_KEY_ID:-}"
 REQUESTED_CDN_SECRET_ACCESS_KEY="${CDN_SECRET_ACCESS_KEY:-}"
 REQUESTED_CDN_PUBLIC_URL="${NEXT_PUBLIC_CDN_PUBLIC_URL:-}"
 REQUESTED_CDN_FORCE_PATH_STYLE="${CDN_FORCE_PATH_STYLE:-false}"
+REQUESTED_INSTALL_DEFAULT_AGENTS="$PTBK_INSTALL_DEFAULT_AGENTS"
 REQUESTED_ADDITIONAL_SWAP_MIB=0
 IS_RUNNER_AUTHENTICATION_REQUESTED=""
 GENERATED_ADMIN_PASSWORD=""
@@ -1482,6 +1484,25 @@ prompt_file_storage() {
     fi
 }
 
+resolve_default_agents_install_default() {
+    local existing_value=""
+
+    existing_value="$(get_env_value PTBK_INSTALL_DEFAULT_AGENTS)"
+    resolve_boolean_default_label "${existing_value:-$PTBK_INSTALL_DEFAULT_AGENTS}"
+}
+
+prompt_default_agents_install() {
+    if prompt_yes_no "Install default Agents Server agents?" "$(resolve_default_agents_install_default)"; then
+        REQUESTED_INSTALL_DEFAULT_AGENTS="yes"
+    else
+        REQUESTED_INSTALL_DEFAULT_AGENTS="no"
+    fi
+}
+
+is_default_agents_install_requested() {
+    [[ "$(resolve_boolean_default_label "$REQUESTED_INSTALL_DEFAULT_AGENTS")" == "yes" ]]
+}
+
 configure_domains() {
     local default_domains="$SERVERS"
     local existing_env_file="${ENV_FILE:-$INSTALL_DIR/.env}"
@@ -1606,6 +1627,7 @@ configure_environment() {
     set_env_value PTBK_PM2_BASE_APP_NAME "$PTBK_PM2_BASE_APP_NAME"
     set_env_value PTBK_PM2_APP_NAME "$APP_NAME"
     set_env_value PTBK_NGINX_SITE_NAME "$NGINX_SITE_NAME"
+    set_env_value PTBK_INSTALL_DEFAULT_AGENTS "$REQUESTED_INSTALL_DEFAULT_AGENTS"
     set_env_value LETS_ENCRYPT_EMAIL "$LETS_ENCRYPT_EMAIL"
     set_env_value OPENAI_API_KEY "$REQUESTED_OPENAI_API_KEY"
     set_env_value PTBK_FILE_STORAGE_MODE "$REQUESTED_FILE_STORAGE_MODE"
@@ -1640,6 +1662,29 @@ initialize_promptbook_project() {
     log "Initializing Promptbook Agents Server project files."
     run_as_service_user bash -lc "cd $(shell_quote "$INSTALL_DIR") && $(shell_quote "$PTBK_COMMAND_PATH") agents-server init >/dev/null"
     configure_environment
+}
+
+install_default_agents() {
+    local default_agents_dir="$PROMPTBOOK_REPOSITORY_DIR/agents/default"
+    local env_file_shell=""
+    local repository_dir_shell=""
+    local default_agents_dir_shell=""
+
+    if ! is_default_agents_install_requested; then
+        log "Skipping default Agents Server agents."
+        return
+    fi
+
+    if [[ ! -d "$default_agents_dir" ]]; then
+        fail "Default agents directory $default_agents_dir was not found in the Promptbook repository checkout."
+    fi
+
+    env_file_shell="$(shell_quote "$ENV_FILE")"
+    repository_dir_shell="$(shell_quote "$PROMPTBOOK_REPOSITORY_DIR")"
+    default_agents_dir_shell="$(shell_quote "$default_agents_dir")"
+
+    log "Installing default Agents Server agents from $default_agents_dir."
+    run_as_service_user bash -lc "cd $repository_dir_shell && PTBK_AGENTS_SERVER_ENV_FILE=$env_file_shell PTBK_DEFAULT_AGENTS_DIR=$default_agents_dir_shell npx --yes tsx ./apps/agents-server/src/utils/defaultAgents/installDefaultAgents.ts"
 }
 
 configure_runner_authentication() {
@@ -2883,6 +2928,7 @@ main() {
     fi
     prompt_public_site_url
     prompt_file_storage
+    prompt_default_agents_install
     prompt_api_keys_and_admin_password
     prompt_runner_authentication_preference
 
@@ -2896,6 +2942,7 @@ main() {
     install_promptbook_cli_launcher
     install_runner_dependencies
     initialize_promptbook_project
+    install_default_agents
     configure_self_contained_s3_storage
     configure_runner_authentication
     configure_pm2_startup
