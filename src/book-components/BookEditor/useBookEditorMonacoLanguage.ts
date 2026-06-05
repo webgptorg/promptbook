@@ -281,7 +281,10 @@ function createNoteLikeBodyRules(
  *
  * @private function of BookEditorMonaco
  */
-export function ensureBookEditorMonacoLanguage(monaco: MonacoEditor, theme: BookEditorTheme = BOOK_EDITOR_RENDER_THEME): void {
+export function ensureBookEditorMonacoLanguage(
+    monaco: MonacoEditor,
+    theme: BookEditorTheme = BOOK_EDITOR_RENDER_THEME,
+): void {
     const renderedTheme = resolveBookEditorRenderTheme(theme);
     const monacoWithLanguageState = monaco as MonacoEditorWithBookEditorLanguageState;
     if (monacoWithLanguageState[BOOK_EDITOR_LANGUAGE_INITIALIZED_FLAG]) {
