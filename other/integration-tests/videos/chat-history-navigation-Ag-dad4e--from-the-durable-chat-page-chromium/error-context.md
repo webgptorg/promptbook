@@ -1,0 +1,114 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e5]:
+        - generic [ref=e7]:
+          - generic [ref=e8]:
+            - link "Promptbook Agents Server" [ref=e9] [cursor=pointer]:
+              - /url: /
+              - img [ref=e11]
+              - generic [ref=e12]: Promptbook Agents Server
+            - button "Switch server" [ref=e14] [cursor=pointer]:
+              - img [ref=e15]
+          - img [ref=e17]
+          - button "VtwGh45wRHH7Bx" [ref=e21] [cursor=pointer]:
+            - generic [ref=e22]:
+              - img [ref=e24]
+              - generic [ref=e26]: VtwGh45wRHH7Bx
+            - img [ref=e27]
+          - img [ref=e29]
+          - button "Chat" [ref=e33] [cursor=pointer]:
+            - generic [ref=e34]:
+              - img [ref=e35]
+              - generic [ref=e37]: Chat
+            - img [ref=e38]
+        - generic [ref=e42]:
+          - generic [ref=e43]: Global search
+          - generic [ref=e44]:
+            - img
+            - combobox "Global search" [ref=e45]
+        - generic [ref=e46]:
+          - navigation [ref=e47]:
+            - button "Documentation" [ref=e49] [cursor=pointer]:
+              - text: Documentation
+              - img [ref=e50]
+            - button "System" [ref=e53] [cursor=pointer]:
+              - text: System
+              - img [ref=e54]
+          - button "Open global control panel" [ref=e57] [cursor=pointer]:
+            - img [ref=e58]
+            - generic [ref=e61]: Control panel
+          - generic [ref=e63]:
+            - button "A admin Admin" [expanded] [ref=e64] [cursor=pointer]:
+              - generic [ref=e66]: A
+              - generic [ref=e67]:
+                - generic [ref=e68]: admin
+                - generic [ref=e69]: Admin
+              - img [ref=e70]
+            - generic [ref=e72]:
+              - generic [ref=e73]:
+                - paragraph [ref=e74]: admin
+                - paragraph [ref=e75]: Admin
+              - button "Change Password" [ref=e76] [cursor=pointer]:
+                - img [ref=e77]
+                - text: Change Password
+              - button "Log out" [ref=e80] [cursor=pointer]:
+                - img [ref=e81]
+                - text: Log out
+    - main [ref=e84]:
+      - main [ref=e85]:
+        - generic [ref=e86]:
+          - complementary [ref=e87]:
+            - button "Expand sidebar" [ref=e89] [cursor=pointer]:
+              - img [ref=e90]
+            - generic [ref=e93]:
+              - link "New chat" [ref=e94] [cursor=pointer]:
+                - /url: /agents/VtwGh45wRHH7Bx/chat?chat=new
+                - img [ref=e95]
+              - button "New chat (0 messages, a minute ago)" [ref=e98] [cursor=pointer]:
+                - generic "0 messages" [ref=e100]: "0"
+                - generic [ref=e101]:
+                  - generic [ref=e102]: New chat
+                  - generic [ref=e103]: No messages yet
+                - generic [ref=e104]: a minute ago
+              - generic [ref=e105]:
+                - button "Hide empty chats" [ref=e106] [cursor=pointer]:
+                  - img [ref=e107]
+                - button "EXT" [ref=e112] [cursor=pointer]
+              - paragraph [ref=e113]: Chats
+          - generic [ref=e118]:
+            - generic [ref=e120]:
+              - link "New chat" [ref=e121] [cursor=pointer]:
+                - /url: /agents/VtwGh45wRHH7Bx/chat?chat=new
+                - img [ref=e122]
+                - generic [ref=e124]: New chat
+              - button "Save" [ref=e126] [cursor=pointer]:
+                - img [ref=e127]
+                - generic [ref=e130]: Save
+            - generic [ref=e132]:
+              - generic "E2E Chat Quick Button Send" [ref=e134]
+              - generic [ref=e136]:
+                - generic [ref=e137]:
+                  - button "Read message aloud" [ref=e138] [cursor=pointer]:
+                    - img [ref=e139]
+                  - button "Copy message" [ref=e141] [cursor=pointer]:
+                    - img [ref=e142]
+                - paragraph [ref=e147]: Hello! I am E2E Chat Quick Button Send.
+                - button "Hello" [ref=e149] [cursor=pointer]:
+                  - paragraph [ref=e151]: Hello
+                - generic [ref=e153] [cursor=pointer]: ⭐
+            - generic [ref=e156]:
+              - textbox "Write a message..." [active] [ref=e157]
+              - button "Attach file" [ref=e158] [cursor=pointer]:
+                - img [ref=e159]
+              - button "Start dictation" [ref=e161] [cursor=pointer]:
+                - img [ref=e162]
+              - button [ref=e165] [cursor=pointer]:
+                - img [ref=e166]
+  - generic:
+    - region "Notifications"
+  - alert [ref=e168]
+```
