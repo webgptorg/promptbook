@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/wizard",
-    "version": "0.112.0-104",
+    "version": "0.112.0-105",
     "description": "Promptbook: Create persistent AI agents that turn your company's scattered knowledge into action",
     "private": false,
     "sideEffects": false,
@@ -99,6 +99,6 @@
     "types": "./esm/src/_packages/wizard.index.d.ts",
     "typings": "./esm/src/_packages/wizard.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.112.0-104"
+        "@promptbook/core": "0.112.0-105"
     }
 }
