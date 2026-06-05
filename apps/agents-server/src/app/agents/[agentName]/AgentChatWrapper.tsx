@@ -11,6 +11,8 @@ import { useAgentBackground } from '../../../components/AgentProfile/useAgentBac
 import { useChatEnterBehaviorPreferences } from '../../../components/ChatEnterBehavior/ChatEnterBehaviorPreferencesProvider';
 import { ChatErrorDialog } from '../../../components/ChatErrorDialog';
 import { useChatVisualMode } from '../../../components/ChatVisualMode/ChatVisualModeProvider';
+import { FileUploadUnavailableNotice } from '../../../components/FileUploadAvailability/FileUploadUnavailableNotice';
+import { useFileUploadAvailability } from '../../../components/FileUploadAvailability/FileUploadAvailabilityContext';
 import { usePrivateModePreferences } from '../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
 import { useSelfLearningPreferences } from '../../../components/SelfLearningPreferences/SelfLearningPreferencesProvider';
 import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
@@ -110,6 +112,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
 
     const shouldEnableFeedback = isChatFeedbackEnabled(feedbackMode);
     const { backgroundImage, brandColorHex, brandColorLightHex, brandColorDarkHex } = useAgentBackground(brandColor);
+    const fileUploadAvailability = useFileUploadAvailability();
     const allowFileAttachments = areFileAttachmentsEnabled ?? true;
 
     const chatBackgroundStyle: CSSProperties & Record<string, string> = {
@@ -427,7 +430,9 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
             }}
             feedbackMode={toChatComponentFeedbackMode(feedbackMode)}
             onFeedback={shouldEnableFeedback ? handleFeedback : undefined}
-            onFileUpload={allowFileAttachments ? handleFileUpload : undefined}
+            onFileUpload={
+                allowFileAttachments && fileUploadAvailability.isUploadAvailable ? handleFileUpload : undefined
+            }
             onError={handleError}
             defaultMessage={defaultMessage}
             autoExecuteMessage={effectiveAutoExecuteMessage}
@@ -453,7 +458,11 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
             onReset={onStartNewChat}
             resetMode={onStartNewChat ? 'delegate' : undefined}
             teamAgentProfiles={teamAgentProfiles}
-        />
+        >
+            {allowFileAttachments && !fileUploadAvailability.isUploadAvailable && (
+                <FileUploadUnavailableNotice className="mx-4 mt-4" />
+            )}
+        </AgentChat>
     );
 
     return (

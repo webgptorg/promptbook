@@ -4,6 +4,7 @@ import { FileTextIcon, HashIcon, ImageIcon, ListIcon, ShieldIcon, ToggleLeftIcon
 import Link from 'next/link';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { showConfirm } from '../../../components/AsyncDialogs/asyncDialogs';
+import { useFileUploadAvailability } from '../../../components/FileUploadAvailability/FileUploadAvailabilityContext';
 import { getMetadataDefinition, metadataDefaults, type MetadataDefinition } from '../../../database/metadataDefaults';
 import { getSafeCdnPath } from '../../../utils/cdn/utils/getSafeCdnPath';
 import { normalizeUploadFilename } from '../../../utils/normalization/normalizeUploadFilename';
@@ -99,6 +100,8 @@ type MetadataValueFieldProps = {
     value: string;
     onValueChange: (value: string) => void;
     isUploading: boolean;
+    isUploadAvailable: boolean;
+    uploadUnavailableMessage: string | null;
     fileInputRef: React.RefObject<HTMLInputElement | null>;
     onFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => Promise<void> | void;
     fieldId: string;
@@ -117,6 +120,8 @@ const MetadataValueField = ({
     value,
     onValueChange,
     isUploading,
+    isUploadAvailable,
+    uploadUnavailableMessage,
     fileInputRef,
     onFileUpload,
     fieldId,
@@ -166,17 +171,27 @@ const MetadataValueField = ({
                         className={METADATA_INPUT_CLASS_NAME}
                         placeholder="Image URL..."
                     />
-                    <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={onFileUpload} />
+                    <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        ref={fileInputRef}
+                        onChange={onFileUpload}
+                        disabled={!isUploadAvailable}
+                    />
                     <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        disabled={isUploading}
+                        disabled={isUploading || !isUploadAvailable}
                         className="bg-gray-100 text-gray-700 px-3 py-2 rounded-md border border-gray-300 hover:bg-gray-200 flex items-center space-x-2 min-w-max"
                     >
                         <Upload className="w-4 h-4" />
                         <span>{isUploading ? 'Uploading...' : 'Upload Image'}</span>
                     </button>
                 </div>
+                {!isUploadAvailable && uploadUnavailableMessage && (
+                    <p className="text-sm text-amber-700">{uploadUnavailableMessage}</p>
+                )}
                 {value && (
                     <div className="mt-2 p-2 border border-gray-200 rounded-md bg-gray-50 inline-block">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -326,6 +341,7 @@ function mergeMetadataWithDefaults(data: MetadataEntry[]): MetadataEntry[] {
  * @private @@@
  */
 export function MetadataClient() {
+    const fileUploadAvailability = useFileUploadAvailability();
     const [metadata, setMetadata] = useState<MetadataEntry[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -499,6 +515,14 @@ export function MetadataClient() {
         const file = event.target.files?.[0];
         if (!file) return;
 
+        if (!fileUploadAvailability.isUploadAvailable) {
+            setError(fileUploadAvailability.message || 'File uploads are not available for this server.');
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
+            return;
+        }
+
         try {
             setUploading(true);
 
@@ -599,6 +623,8 @@ export function MetadataClient() {
                             value={addFormState.value}
                             onValueChange={(value) => setAddFormState((prev) => ({ ...prev, value }))}
                             isUploading={isAddUploading}
+                            isUploadAvailable={fileUploadAvailability.isUploadAvailable}
+                            uploadUnavailableMessage={fileUploadAvailability.message}
                             fileInputRef={addFileInputRef}
                             onFileUpload={handleAddFileUpload}
                         />
@@ -767,6 +793,12 @@ export function MetadataClient() {
                                                                         setEditingFormState((prev) => ({ ...prev, value }))
                                                                     }
                                                                     isUploading={isEditUploading}
+                                                                    isUploadAvailable={
+                                                                        fileUploadAvailability.isUploadAvailable
+                                                                    }
+                                                                    uploadUnavailableMessage={
+                                                                        fileUploadAvailability.message
+                                                                    }
                                                                     fileInputRef={editFileInputRef}
                                                                     onFileUpload={handleEditFileUpload}
                                                                 />

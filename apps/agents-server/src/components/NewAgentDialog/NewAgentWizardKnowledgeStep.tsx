@@ -1,5 +1,7 @@
 import { Upload } from 'lucide-react';
 import type { ChangeEvent, Dispatch, KeyboardEvent, RefObject, SetStateAction } from 'react';
+import { FileUploadUnavailableNotice } from '../FileUploadAvailability/FileUploadUnavailableNotice';
+import { useFileUploadAvailability } from '../FileUploadAvailability/FileUploadAvailabilityContext';
 import { NewAgentWizardClassNames } from './NewAgentWizardClassNames';
 import type { NewAgentWizardState } from './NewAgentWizardState';
 import type { NewAgentWizardTranslate } from './NewAgentWizardTranslate';
@@ -58,6 +60,7 @@ type NewAgentWizardKnowledgeStepProps = {
  * @private internal component of <NewAgentWizard/>.
  */
 export function NewAgentWizardKnowledgeStep(props: NewAgentWizardKnowledgeStepProps) {
+    const fileUploadAvailability = useFileUploadAvailability();
     const {
         state,
         setState,
@@ -80,18 +83,21 @@ export function NewAgentWizardKnowledgeStep(props: NewAgentWizardKnowledgeStepPr
                     <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
+                        disabled={!fileUploadAvailability.isUploadAvailable}
                         className={NewAgentWizardClassNames.primaryButton}
                     >
                         <Upload className="h-4 w-4" />
                         {t('agentCreation.wizard.uploadAction')}
                     </button>
                 </div>
+                {!fileUploadAvailability.isUploadAvailable && <FileUploadUnavailableNotice className="mt-3" />}
                 <input
                     ref={fileInputRef}
                     type="file"
                     multiple
                     className="hidden"
                     onChange={handleKnowledgeFileSelection}
+                    disabled={!fileUploadAvailability.isUploadAvailable}
                 />
             </div>
 

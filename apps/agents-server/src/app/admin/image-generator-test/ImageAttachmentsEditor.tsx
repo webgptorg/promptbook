@@ -1,5 +1,7 @@
 import { useCallback, useRef, useState, type ChangeEvent } from 'react';
 import { showAlert } from '../../../components/AsyncDialogs/asyncDialogs';
+import { FileUploadUnavailableNotice } from '../../../components/FileUploadAvailability/FileUploadUnavailableNotice';
+import { useFileUploadAvailability } from '../../../components/FileUploadAvailability/FileUploadAvailabilityContext';
 import { getSafeCdnPath } from '../../../utils/cdn/utils/getSafeCdnPath';
 import { normalizeUploadFilename } from '../../../utils/normalization/normalizeUploadFilename';
 import { uploadFileToServer } from '../../../utils/upload/uploadFileToServer';
@@ -128,6 +130,7 @@ function CloseIcon({ size = 24, color = 'currentColor' }: IconProps) {
  */
 export function ImageAttachmentsEditor({ attachments, onChange, disabled }: ImageAttachmentsEditorProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const fileUploadAvailability = useFileUploadAvailability();
     const [isUploading, setIsUploading] = useState(false);
 
     const handleFileUpload = useCallback(
@@ -135,6 +138,18 @@ export function ImageAttachmentsEditor({ attachments, onChange, disabled }: Imag
             const selectedFiles = event.target.files;
 
             if (!selectedFiles || selectedFiles.length === 0) {
+                return;
+            }
+
+            if (!fileUploadAvailability.isUploadAvailable) {
+                await showAlert({
+                    title: 'Upload unavailable',
+                    message: fileUploadAvailability.message || 'File uploads are not available for this server.',
+                }).catch(() => undefined);
+
+                if (fileInputRef.current) {
+                    fileInputRef.current.value = '';
+                }
                 return;
             }
 
@@ -158,7 +173,7 @@ export function ImageAttachmentsEditor({ attachments, onChange, disabled }: Imag
                 }
             }
         },
-        [attachments, onChange],
+        [attachments, fileUploadAvailability, onChange],
     );
 
     const handleRemoveAttachment = useCallback(
@@ -202,11 +217,11 @@ export function ImageAttachmentsEditor({ attachments, onChange, disabled }: Imag
                     accept="image/*"
                     multiple
                     className="hidden"
-                    disabled={disabled || isUploading}
+                    disabled={disabled || isUploading || !fileUploadAvailability.isUploadAvailable}
                 />
                 <button
                     onClick={() => fileInputRef.current?.click()}
-                    disabled={disabled || isUploading}
+                    disabled={disabled || isUploading || !fileUploadAvailability.isUploadAvailable}
                     className="text-xs flex items-center gap-1 px-2 py-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50"
                     type="button"
                 >
@@ -214,6 +229,7 @@ export function ImageAttachmentsEditor({ attachments, onChange, disabled }: Imag
                     {isUploading ? 'Uploading...' : 'Add Image'}
                 </button>
             </div>
+            {!disabled && !fileUploadAvailability.isUploadAvailable && <FileUploadUnavailableNotice />}
         </div>
     );
 }

@@ -16,6 +16,7 @@ import {
     SERVER_LANGUAGE_METADATA_KEY,
 } from '../languages/ServerLanguageRegistry';
 import { $provideServer } from '../tools/$provideServer';
+import { isSelfContainedS3StorageSelected } from '../tools/$provideCdnForServer';
 import { loadAgentOrganizationState } from '../utils/agentOrganization/loadAgentOrganizationState';
 import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../utils/agentOrganization/types';
 import { getAgentNaming } from '../utils/getAgentNaming';
@@ -50,6 +51,7 @@ import {
     SHIBBOLETH_AUTHENTICATION_METADATA_KEYS,
     resolveShibbolethAuthenticationMenuStatus,
 } from '../constants/shibbolethAuth';
+import { resolveFileUploadAvailability } from '../utils/upload/fileUploadAvailability';
 import '@prisma/studio-core/ui/index.css';
 import './globals.css';
 
@@ -267,6 +269,7 @@ export default async function RootLayout({
     const currentUserPromise = getCurrentUser();
     const isAdminPromise = isUserAdmin();
     const isGlobalAdminPromise = isUserGlobalAdmin();
+    const providedServerPromise = $provideServer();
     const serverVisibilityPromise = getServerVisibility();
     const agentNamingPromise = getAgentNaming();
     const organizationStatePromise = isAdminPromise.then((isAdmin) =>
@@ -274,6 +277,13 @@ export default async function RootLayout({
     );
     const chatPreferencesPromise = getDefaultChatPreferences();
     const defaultIsNotificationsOnPromise = getDefaultIsNotificationsOn();
+    const fileUploadAvailabilityPromise = providedServerPromise.then((providedServer) =>
+        resolveFileUploadAvailability({
+            serverId: providedServer.id,
+            serverPublicUrl: providedServer.publicUrl,
+            isSelfContainedS3StorageSelected: isSelfContainedS3StorageSelected(),
+        }),
+    );
     const customStylesheetCssPromise = resolveOptionalLayoutText(
         'custom stylesheet CSS',
         getAggregatedCustomStylesheetCss,
@@ -340,6 +350,7 @@ export default async function RootLayout({
         federatedServers,
         footerLinks,
         serverVisibility,
+        fileUploadAvailability,
     ] = await Promise.all([
         isAdminPromise,
         isGlobalAdminPromise,
@@ -356,6 +367,7 @@ export default async function RootLayout({
         federatedServersPromise,
         footerLinksPromise,
         serverVisibilityPromise,
+        fileUploadAvailabilityPromise,
     ]);
 
     const serverName = layoutMetadata.SERVER_NAME || 'Promptbook Agents Server';
@@ -429,6 +441,7 @@ export default async function RootLayout({
                     defaultChatVisualMode={defaultChatVisualMode}
                     defaultAgentAvatarVisualId={defaultAgentAvatarVisualId}
                     webPushPublicKey={webPushPublicKey}
+                    fileUploadAvailability={fileUploadAvailability}
                 >
                     {children}
                 </LayoutWrapper>

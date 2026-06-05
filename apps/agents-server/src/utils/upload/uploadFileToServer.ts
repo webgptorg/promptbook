@@ -42,12 +42,54 @@ export type ServerFileUploadResult = {
 };
 
 /**
+ * Error response shape accepted from the upload endpoint.
+ *
+ * @private used by `uploadFileToServer`
+ */
+type ServerFileUploadErrorResponse = {
+    error?: string | { message?: string };
+    message?: string;
+};
+
+/**
  * Builds the default CDN key used for user-uploaded files.
  *
  * @private shared by browser upload surfaces.
  */
 export function buildDefaultUserFileUploadPath(normalizedFilename: string): string {
     return `user/files/${normalizedFilename}`;
+}
+
+/**
+ * Resolves the most useful error message from an upload response body.
+ *
+ * @param responseBody - Parsed JSON response body.
+ * @param status - HTTP status code.
+ * @returns Error message for the rejected upload promise.
+ * @private helper of `uploadFileToServer`
+ */
+function resolveUploadErrorMessage(
+    responseBody: (Partial<ServerFileUploadResult> & ServerFileUploadErrorResponse) | null,
+    status: number,
+): string {
+    if (typeof responseBody?.error === 'string' && responseBody.error) {
+        return responseBody.error;
+    }
+
+    if (
+        typeof responseBody?.error === 'object' &&
+        responseBody.error !== null &&
+        typeof responseBody.error.message === 'string' &&
+        responseBody.error.message
+    ) {
+        return responseBody.error.message;
+    }
+
+    if (typeof responseBody?.message === 'string' && responseBody.message) {
+        return responseBody.message;
+    }
+
+    return `File upload failed with HTTP ${status}.`;
 }
 
 /**
@@ -82,7 +124,9 @@ export function uploadFileToServer(options: ServerFileUploadOptions): Promise<Se
         };
 
         request.onload = () => {
-            const responseBody = request.response as Partial<ServerFileUploadResult> & { error?: string } | null;
+            const responseBody = request.response as
+                | (Partial<ServerFileUploadResult> & ServerFileUploadErrorResponse)
+                | null;
 
             if (request.status >= 200 && request.status < 300 && responseBody?.url) {
                 options.onProgress?.(1 as number_percent, {
@@ -94,7 +138,7 @@ export function uploadFileToServer(options: ServerFileUploadOptions): Promise<Se
                 return;
             }
 
-            reject(new Error(responseBody?.error || `File upload failed with HTTP ${request.status}.`));
+            reject(new Error(resolveUploadErrorMessage(responseBody, request.status)));
         };
 
         request.onerror = () => reject(new Error('File upload failed.'));

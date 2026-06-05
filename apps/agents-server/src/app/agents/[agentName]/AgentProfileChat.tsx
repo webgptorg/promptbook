@@ -16,6 +16,8 @@ import { showAlert } from '../../../components/AsyncDialogs/asyncDialogs';
 import { useChatEnterBehaviorPreferences } from '../../../components/ChatEnterBehavior/ChatEnterBehaviorPreferencesProvider';
 import { useChatVisualMode } from '../../../components/ChatVisualMode/ChatVisualModeProvider';
 import { DeletedAgentBanner } from '../../../components/DeletedAgentBanner';
+import { FileUploadUnavailableNotice } from '../../../components/FileUploadAvailability/FileUploadUnavailableNotice';
+import { useFileUploadAvailability } from '../../../components/FileUploadAvailability/FileUploadAvailabilityContext';
 import { createMyChatsMobileMenuItem } from '../../../components/Header/createMyChatsMobileMenuItem';
 import { useHoistedMobileMenuItems } from '../../../components/Header/MobileMenuHoistingContext';
 import { usePrivateModePreferences } from '../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
@@ -283,6 +285,7 @@ export function AgentProfileChat({
     const { language, t } = useServerLanguage();
     const { chatVisualMode } = useChatVisualMode();
     const { enterBehavior, resolveEnterBehavior } = useChatEnterBehaviorPreferences();
+    const fileUploadAvailability = useFileUploadAvailability();
     const { isPrivateModeEnabled } = usePrivateModePreferences();
     const { promptbookTheme } = usePromptbookTheme();
 
@@ -484,6 +487,9 @@ export function AgentProfileChat({
                         />
                     )
                 )}
+                {areFileAttachmentsEnabled && !fileUploadAvailability.isUploadAvailable && (
+                    <FileUploadUnavailableNotice />
+                )}
                 <div
                     className={`relative w-full h-[calc(100dvh-300px)] min-h-[350px] md:min-h-[420px] md:h-[500px] agent-chat-route-surface ${
                         isNavigatingToChat ? 'agent-chat-profile-transitioning' : ''
@@ -508,7 +514,11 @@ export function AgentProfileChat({
                                 onMessage={handleMessage}
                                 onActionButton={executeQuickActionButton}
                                 onCreateAgent={handleCreateAgent}
-                                onFileUpload={areFileAttachmentsEnabled ? handleFileUpload : undefined}
+                                onFileUpload={
+                                    areFileAttachmentsEnabled && fileUploadAvailability.isUploadAvailable
+                                        ? handleFileUpload
+                                        : undefined
+                                }
                                 isSaveButtonEnabled={false}
                                 isCopyButtonEnabled={false}
                                 className="h-full w-full rounded-[28px] bg-transparent"

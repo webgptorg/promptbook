@@ -5,8 +5,9 @@ import type { LlmExecutionTools } from '../../../../../../../src/execution/LlmEx
 import { getSingleLlmExecutionTools } from '../../../../../../../src/llm-providers/_multiple/getSingleLlmExecutionTools';
 import type { ImageGenerationModelRequirements } from '../../../../../../../src/types/ModelRequirements';
 import { string_url } from '../../../../../../../src/types/typeAliases';
-import { $provideCdnForServer } from '../../../../tools/$provideCdnForServer';
+import { $provideCdnForServer, resolveCdnPublicUrlForServer } from '../../../../tools/$provideCdnForServer';
 import { $provideExecutionToolsForServer } from '../../../../tools/$provideExecutionToolsForServer';
+import { $provideServer } from '../../../../tools/$provideServer';
 import { getGeneratedImageCdnKey } from '../../../../utils/cdn/utils/getGeneratedImageCdnKey';
 import { ensureGeneratedImage } from '../../../../utils/imageGeneration/ensureGeneratedImage';
 import { filenameToPrompt } from '../../../../utils/normalization/filenameToPrompt';
@@ -47,6 +48,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
         const prompt = filenameToPrompt(filename);
         const executionTools = await $provideExecutionToolsForServer();
+        const providedServer = await $provideServer();
         const llmTools = getSingleLlmExecutionTools(executionTools.llm) as LlmExecutionTools;
 
         if (!llmTools.callImageGenerationModel) {
@@ -89,7 +91,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
                 const imageBuffer = await imageResponse.arrayBuffer();
                 const buffer = Buffer.from(imageBuffer);
 
-                const cdn = $provideCdnForServer();
+                const cdn = $provideCdnForServer({
+                    cdnPublicUrl: resolveCdnPublicUrlForServer(providedServer.publicUrl),
+                });
                 const cdnKey = getGeneratedImageCdnKey({ filename, pathPrefix: cdn.pathPrefix });
                 await cdn.setItem(cdnKey, {
                     type: 'image/png',

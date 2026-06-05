@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useRef, useState, type ChangeEvent, type RefObject } from 'react';
 import { showAlert } from '../../../components/AsyncDialogs/asyncDialogs';
+import { useFileUploadAvailability } from '../../../components/FileUploadAvailability/FileUploadAvailabilityContext';
 import { useDirtyModalGuard } from '../../../components/utils/useDirtyModalGuard';
 import { buildServerTablePrefix } from '../../../utils/buildServerTablePrefix';
 import type { ChatFeedbackMode } from '../../../utils/chatFeedbackMode';
@@ -358,6 +359,7 @@ function hasCreateServerWizardChanges(wizardState: CreateServerWizardState): boo
  */
 export function useCreateServerWizard(options: UseCreateServerWizardOptions): UseCreateServerWizardResult {
     const { onServerCreated } = options;
+    const fileUploadAvailability = useFileUploadAvailability();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [wizardState, setWizardState] = useState<CreateServerWizardState>(createInitialWizardState);
     const [isCreatingServer, setIsCreatingServer] = useState(false);
@@ -421,6 +423,16 @@ export function useCreateServerWizard(options: UseCreateServerWizardOptions): Us
                 return;
             }
 
+            if (!fileUploadAvailability.isUploadAvailable) {
+                setWizardError({
+                    message: fileUploadAvailability.message || 'File uploads are not available for this server.',
+                    sqlDump: null,
+                    sqlFilename: null,
+                });
+                event.target.value = '';
+                return;
+            }
+
             try {
                 setIsUploadingIcon(true);
                 setWizardError(null);
@@ -453,7 +465,7 @@ export function useCreateServerWizard(options: UseCreateServerWizardOptions): Us
                 }
             }
         },
-        [updateWizardField],
+        [fileUploadAvailability, updateWizardField],
     );
 
     const handleCreateServer = useCallback(async () => {

@@ -3,6 +3,8 @@
 import { BookEditor } from '@promptbook-local/components';
 import type { string_book } from '@promptbook-local/types';
 import { bookEditorUploadHandler } from '../../../../utils/upload/createBookEditorUploadHandler';
+import { FileUploadUnavailableNotice } from '../../../../components/FileUploadAvailability/FileUploadUnavailableNotice';
+import { useFileUploadAvailability } from '../../../../components/FileUploadAvailability/FileUploadAvailabilityContext';
 import { SaveFailureNotice } from '../../../../components/SaveFailureNotice/SaveFailureNotice';
 import { usePromptbookTheme } from '../../../../components/ThemeMode/usePromptbookTheme';
 import { BookEditorHistoryPanel } from './BookEditorHistoryPanel';
@@ -24,6 +26,7 @@ type BookEditorWrapperProps = {
  */
 export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorWrapperProps) {
     const { promptbookTheme } = usePromptbookTheme();
+    const fileUploadAvailability = useFileUploadAvailability();
     const {
         agentSource,
         monacoModelPath,
@@ -48,6 +51,7 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
                     onRetry={retrySaveNow}
                 />
             )}
+            {!fileUploadAvailability.isUploadAvailable && <FileUploadUnavailableNotice className="mb-3" />}
 
             <div className="flex min-h-0 flex-1 gap-4">
                 <div className="flex min-h-0 min-w-0 flex-1 gap-6">
@@ -59,7 +63,9 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
                             value={agentSource}
                             monacoModelPath={monacoModelPath}
                             onChange={handleChange}
-                            onFileUpload={bookEditorUploadHandler}
+                            onFileUpload={
+                                fileUploadAvailability.isUploadAvailable ? bookEditorUploadHandler : undefined
+                            }
                             diagnostics={diagnostics}
                             hoistedMenuItems={hoistedMenuItems}
                             theme={promptbookTheme}

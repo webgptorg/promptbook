@@ -2,6 +2,8 @@
 
 import { Loader2, Plus, Upload, X } from 'lucide-react';
 import type { ChangeEvent, RefObject } from 'react';
+import { FileUploadUnavailableNotice } from '../../../components/FileUploadAvailability/FileUploadUnavailableNotice';
+import { useFileUploadAvailability } from '../../../components/FileUploadAvailability/FileUploadAvailabilityContext';
 import { Dialog } from '../../../components/Portal/Dialog';
 import {
     type CreateServerWizardError,
@@ -125,6 +127,7 @@ function CreateServerForm(props: {
     readonly wizardState: CreateServerWizardState;
 }) {
     const { handleIconUpload, iconInputRef, isUploadingIcon, updateWizardField, wizardState } = props;
+    const fileUploadAvailability = useFileUploadAvailability();
 
     return (
         <div className="space-y-5">
@@ -175,17 +178,19 @@ function CreateServerForm(props: {
                         accept="image/*"
                         className="hidden"
                         onChange={handleIconUpload}
+                        disabled={!fileUploadAvailability.isUploadAvailable}
                     />
                     <button
                         type="button"
                         onClick={() => iconInputRef.current?.click()}
-                        disabled={isUploadingIcon}
+                        disabled={isUploadingIcon || !fileUploadAvailability.isUploadAvailable}
                         className={SECONDARY_BUTTON_CLASS_NAME}
                     >
                         {isUploadingIcon ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
                         Upload
                     </button>
                 </div>
+                {!fileUploadAvailability.isUploadAvailable && <FileUploadUnavailableNotice className="mt-3" />}
                 {wizardState.iconUrl ? (
                     <div className="mt-3 inline-flex rounded-lg border border-gray-200 bg-gray-50 p-3">
                         {/* eslint-disable-next-line @next/next/no-img-element */}

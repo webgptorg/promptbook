@@ -6,6 +6,8 @@ import { useCallback, useState } from 'react';
 import { BookEditor } from '../../../../../src/book-components/BookEditor/BookEditor';
 import { bookEditorUploadHandler } from '../../utils/upload/createBookEditorUploadHandler';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
+import { FileUploadUnavailableNotice } from '../FileUploadAvailability/FileUploadUnavailableNotice';
+import { useFileUploadAvailability } from '../FileUploadAvailability/FileUploadAvailabilityContext';
 import { Dialog } from '../Portal/Dialog';
 import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
 import { usePromptbookTheme } from '../ThemeMode/usePromptbookTheme';
@@ -29,6 +31,7 @@ export function NewAgentDialog(props: NewAgentDialogProps) {
     const [isCreating, setIsCreating] = useState(false);
     const { formatText } = useAgentNaming();
     const { t } = useServerLanguage();
+    const fileUploadAvailability = useFileUploadAvailability();
     const { promptbookTheme } = usePromptbookTheme();
     const { requestClose } = useDirtyModalGuard({
         hasUnsavedChanges: agentSource !== initialAgentSource,
@@ -79,9 +82,10 @@ export function NewAgentDialog(props: NewAgentDialogProps) {
             </div>
 
             <div
-                className="relative flex-1 overflow-hidden bg-slate-50/60 p-4 dark:bg-slate-950/55" /* [✨🧬] onDragEnter={() => setIsInteracted(true)} */
+                className="relative flex flex-1 flex-col overflow-hidden bg-slate-50/60 p-4 dark:bg-slate-950/55" /* [✨🧬] onDragEnter={() => setIsInteracted(true)} */
             >
-                <div className="h-full overflow-hidden rounded-2xl border border-slate-200/80 shadow-inner dark:border-slate-800/80">
+                {!fileUploadAvailability.isUploadAvailable && <FileUploadUnavailableNotice className="mb-3" />}
+                <div className="min-h-0 flex-1 overflow-hidden rounded-2xl border border-slate-200/80 shadow-inner dark:border-slate-800/80">
                     <BookEditor
                         className="h-full w-full"
                         agentSource={agentSource}
@@ -92,7 +96,7 @@ export function NewAgentDialog(props: NewAgentDialogProps) {
                         height="100%"
                         isBorderRadiusDisabled
                         isVerbose={false}
-                        onFileUpload={bookEditorUploadHandler}
+                        onFileUpload={fileUploadAvailability.isUploadAvailable ? bookEditorUploadHandler : undefined}
                         theme={promptbookTheme}
                     />
                 </div>

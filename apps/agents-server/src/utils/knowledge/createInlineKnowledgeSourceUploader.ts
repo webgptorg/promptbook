@@ -1,8 +1,15 @@
-import { $provideCdnForServer } from '@/src/tools/$provideCdnForServer';
+import {
+    $provideCdnForServer,
+    isSelfContainedS3StorageSelected,
+    resolveCdnPublicUrlForServer,
+} from '@/src/tools/$provideCdnForServer';
+import { $provideServer } from '@/src/tools/$provideServer';
+import { NotAllowed } from '../../../../../src/errors/NotAllowed';
 import { InlineKnowledgeSourceUploader } from '../../../../../src/utils/knowledge/inlineKnowledgeSource';
 import type { string_knowledge_source_link } from '../../../../../src/types/typeAliases';
 import { getSafeCdnPath } from '../cdn/utils/getSafeCdnPath';
 import { getUserFileCdnKey } from '../cdn/utils/getUserFileCdnKey';
+import { resolveFileUploadAvailability } from '../upload/fileUploadAvailability';
 
 /**
  * Options for create inline knowledge uploader.
@@ -23,18 +30,30 @@ const uploadCache = new Map<string, Promise<string_knowledge_source_link>>();
 export function createInlineKnowledgeSourceUploader(
     options: CreateInlineKnowledgeUploaderOptions = {},
 ): InlineKnowledgeSourceUploader {
-    const cdn = $provideCdnForServer();
     const { purpose = 'KNOWLEDGE', userId } = options;
 
     return async (source) => {
+        const providedServer = await $provideServer();
+        const fileUploadAvailability = resolveFileUploadAvailability({
+            serverId: providedServer.id,
+            serverPublicUrl: providedServer.publicUrl,
+            isSelfContainedS3StorageSelected: isSelfContainedS3StorageSelected(),
+        });
+        if (!fileUploadAvailability.isUploadAvailable) {
+            throw new NotAllowed(fileUploadAvailability.message || 'File uploads are not available for this server.');
+        }
+
+        const cdnPublicUrl = resolveCdnPublicUrlForServer(providedServer.publicUrl);
+        const cdn = $provideCdnForServer({ cdnPublicUrl });
         const rawKey = getUserFileCdnKey(source.buffer, source.filename);
         const safeKey = getSafeCdnPath({
             pathname: rawKey,
             pathPrefix: process.env.NEXT_PUBLIC_CDN_PATH_PREFIX,
         });
+        const uploadCacheKey = `${providedServer.tablePrefix}:${cdnPublicUrl.href}:${safeKey}`;
 
-        if (uploadCache.has(safeKey)) {
-            return uploadCache.get(safeKey)!;
+        if (uploadCache.has(uploadCacheKey)) {
+            return uploadCache.get(uploadCacheKey)!;
         }
 
         const promise: Promise<string_knowledge_source_link> = (async () => {
@@ -48,7 +67,7 @@ export function createInlineKnowledgeSourceUploader(
             return cdn.getItemUrl(safeKey).href;
         })();
 
-        uploadCache.set(safeKey, promise);
+        uploadCache.set(uploadCacheKey, promise);
         return promise;
     };
 }

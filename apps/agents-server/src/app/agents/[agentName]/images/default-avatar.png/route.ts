@@ -4,8 +4,9 @@ import {
     resolveDefaultAgentAvatarVisualId,
 } from '@/src/constants/defaultAgentAvatarVisual';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
-import { $provideCdnForServer } from '@/src/tools/$provideCdnForServer';
+import { $provideCdnForServer, resolveCdnPublicUrlForServer } from '@/src/tools/$provideCdnForServer';
 import { $provideExecutionToolsForServer } from '@/src/tools/$provideExecutionToolsForServer';
+import { $provideServer } from '@/src/tools/$provideServer';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import { resolveServerAgentContext } from '@/src/utils/resolveServerAgentContext';
 import { computeHash, serializeError } from '@promptbook-local/utils';
@@ -71,6 +72,7 @@ async function renderGeneratedDefaultAvatar(
     agentProfile: Awaited<ReturnType<typeof resolveAgentProfileForDefaultAvatar>>,
 ) {
     const prompt = getAgentDefaultAvatarPrompt(agentProfile);
+    const providedServer = await $provideServer();
 
     // Use hash of the prompt as cache key - this ensures regeneration when prompt changes
     const promptHash = computeHash(prompt);
@@ -112,7 +114,9 @@ async function renderGeneratedDefaultAvatar(
 
             const imageBuffer = await imageResponse.arrayBuffer();
             const buffer = Buffer.from(imageBuffer);
-            const cdn = $provideCdnForServer();
+            const cdn = $provideCdnForServer({
+                cdnPublicUrl: resolveCdnPublicUrlForServer(providedServer.publicUrl),
+            });
             const cdnKey = getGeneratedImageCdnKey({
                 filename: internalFilename,
                 pathPrefix: cdn.pathPrefix,

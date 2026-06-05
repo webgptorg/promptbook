@@ -9,6 +9,7 @@ import {
     type KeyboardEvent,
     type SetStateAction,
 } from 'react';
+import { useFileUploadAvailability } from '../FileUploadAvailability/FileUploadAvailabilityContext';
 import { simplifyKnowledgeLabel } from '../../utils/knowledge/simplifyKnowledgeLabel';
 import { bookEditorUploadHandler } from '../../utils/upload/createBookEditorUploadHandler';
 import {
@@ -144,6 +145,7 @@ function updateKnowledgeItem(
  */
 export function useNewAgentWizardKnowledgeState(options: UseNewAgentWizardKnowledgeStateOptions) {
     const { state, setState, setStep, knowledgeStepIndex, t } = options;
+    const fileUploadAvailability = useFileUploadAvailability();
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const dragDepthRef = useRef(0);
     const [knowledgeFeedback, setKnowledgeFeedback] = useState<string | null>(null);
@@ -157,6 +159,11 @@ export function useNewAgentWizardKnowledgeState(options: UseNewAgentWizardKnowle
      */
     function queueKnowledgeFiles(files: ReadonlyArray<File>): void {
         if (files.length === 0) {
+            return;
+        }
+
+        if (!fileUploadAvailability.isUploadAvailable) {
+            setKnowledgeFeedback(fileUploadAvailability.message || t('agentCreation.wizard.uploadFailed'));
             return;
         }
 
@@ -297,7 +304,7 @@ export function useNewAgentWizardKnowledgeState(options: UseNewAgentWizardKnowle
         }
 
         event.preventDefault();
-        event.dataTransfer.dropEffect = 'copy';
+        event.dataTransfer.dropEffect = fileUploadAvailability.isUploadAvailable ? 'copy' : 'none';
         setIsDragOverDialog(true);
     }
 

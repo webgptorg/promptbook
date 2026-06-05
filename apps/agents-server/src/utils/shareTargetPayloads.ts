@@ -2,9 +2,14 @@ import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import type { Json } from '@/src/database/schema';
 import { FILE_SECURITY_CHECKERS } from '@/src/file-security-checkers';
-import { $provideCdnForServer } from '@/src/tools/$provideCdnForServer';
+import {
+    $provideCdnForServer,
+    isSelfContainedS3StorageSelected,
+    resolveCdnPublicUrlForServer,
+} from '@/src/tools/$provideCdnForServer';
 import { $provideServer } from '@/src/tools/$provideServer';
 import { getUserFileCdnKey } from '@/src/utils/cdn/utils/getUserFileCdnKey';
+import { resolveFileUploadAvailability } from '@/src/utils/upload/fileUploadAvailability';
 import { validateMimeType } from '@/src/utils/validators/validateMimeType';
 import { normalizeChatAttachments } from '@promptbook-local/core';
 import type { TODO_any } from '@promptbook-local/types';
@@ -231,7 +236,20 @@ async function createShareTargetAttachment(file: File, maxFileUploadBytes: numbe
 
     const mimeType = resolveShareTargetMimeType(file.type);
     const blobPath = getUserFileCdnKey(buffer, normalizedFilename);
-    const cdn = $provideCdnForServer();
+    const providedServer = await $provideServer();
+    const fileUploadAvailability = resolveFileUploadAvailability({
+        serverId: providedServer.id,
+        serverPublicUrl: providedServer.publicUrl,
+        isSelfContainedS3StorageSelected: isSelfContainedS3StorageSelected(),
+    });
+
+    if (!fileUploadAvailability.isUploadAvailable) {
+        throw new NotAllowed(fileUploadAvailability.message || 'File uploads are not available for this server.');
+    }
+
+    const cdn = $provideCdnForServer({
+        cdnPublicUrl: resolveCdnPublicUrlForServer(providedServer.publicUrl),
+    });
     const storageUrl = cdn.getItemUrl(blobPath).href;
 
     await cdn.setItem(blobPath, {

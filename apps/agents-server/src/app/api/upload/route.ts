@@ -3,15 +3,22 @@ import { NextRequest, NextResponse } from 'next/server';
 import { spaceTrim } from 'spacetrim';
 import { assertsError } from '../../../../../../src/errors/assertsError';
 import { LimitReachedError } from '../../../../../../src/errors/LimitReachedError';
+import { NotAllowed } from '../../../../../../src/errors/NotAllowed';
 import { UnexpectedError } from '../../../../../../src/errors/UnexpectedError';
 import { $getTableName } from '../../../database/$getTableName';
 import { $provideSupabase } from '../../../database/$provideSupabase';
 import type { AgentsServerDatabase } from '../../../database/schema';
-import { $provideCdnForServer } from '../../../tools/$provideCdnForServer';
+import {
+    $provideCdnForServer,
+    isSelfContainedS3StorageSelected,
+    resolveCdnPublicUrlForServer,
+} from '../../../tools/$provideCdnForServer';
+import { $provideServer } from '../../../tools/$provideServer';
 import { getSafeCdnPath } from '../../../utils/cdn/utils/getSafeCdnPath';
 import { FILE_SECURITY_CHECKERS } from '../../../file-security-checkers';
 import { getUserIdFromRequest } from '../../../utils/getUserIdFromRequest';
 import { getMaxFileUploadSizeBytes } from '../../../utils/serverLimits';
+import { resolveFileUploadAvailability } from '../../../utils/upload/fileUploadAvailability';
 import { validateMimeType } from '../../../utils/validators/validateMimeType';
 
 /**
@@ -46,6 +53,13 @@ type ParsedUploadRequest = {
     purpose: string;
     contentType: string;
 };
+
+/**
+ * Server context returned by `$provideServer`.
+ *
+ * @private
+ */
+type ProvidedServer = Awaited<ReturnType<typeof $provideServer>>;
 
 /**
  * Normalizes upload purpose to a non-empty string.
@@ -183,10 +197,32 @@ async function updateUploadedFileSecurityResult(
 }
 
 /**
+ * Ensures the current server/domain can accept file uploads.
+ *
+ * @param providedServer - Current server routing context.
+ * @throws `NotAllowed` when uploads would be published without a server domain.
+ * @private
+ */
+function assertFileUploadAvailable(providedServer: ProvidedServer): void {
+    const fileUploadAvailability = resolveFileUploadAvailability({
+        serverId: providedServer.id,
+        serverPublicUrl: providedServer.publicUrl,
+        isSelfContainedS3StorageSelected: isSelfContainedS3StorageSelected(),
+    });
+
+    if (!fileUploadAvailability.isUploadAvailable) {
+        throw new NotAllowed(fileUploadAvailability.message || 'File uploads are not available for this server.');
+    }
+}
+
+/**
  * Handles file upload requests.
  */
 export async function POST(request: NextRequest) {
     try {
+        const providedServer = await $provideServer();
+        assertFileUploadAvailable(providedServer);
+
         const { file, pathname, purpose, contentType } = await parseUploadRequest(request);
         const fileBuffer = Buffer.from(await file.arrayBuffer());
         const maxFileSize = await getMaxFileUploadSizeBytes();
@@ -201,7 +237,9 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const cdn = $provideCdnForServer();
+        const cdn = $provideCdnForServer({
+            cdnPublicUrl: resolveCdnPublicUrlForServer(providedServer.publicUrl),
+        });
         const storageUrl = cdn.getItemUrl(pathname).href;
         const userId = await getUserIdFromRequest(request);
 
@@ -227,17 +265,15 @@ export async function POST(request: NextRequest) {
 
         console.error('Upload failed:', error);
 
-        return new Response(
-            JSON.stringify(
-                serializeError(error),
-                // <- TODO: [🐱‍🚀] Rename `serializeError` to `errorToJson`
-                null,
-                4,
-                // <- TODO: [🐱‍🚀] Allow to configure pretty print for agent server
-            ),
+        const serializedError = serializeError(error);
+
+        return NextResponse.json(
             {
-                status: 400, // <- TODO: [🐱‍🚀] Make `errorToHttpStatusCode`
-                headers: { 'Content-Type': 'application/json' },
+                ...serializedError,
+                error: serializedError.message,
+            },
+            {
+                status: error instanceof NotAllowed ? 403 : 400, // <- TODO: [🐱‍🚀] Make `errorToHttpStatusCode`
             },
         );
     }

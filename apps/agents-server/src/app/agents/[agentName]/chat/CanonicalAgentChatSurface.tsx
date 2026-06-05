@@ -8,6 +8,8 @@ import { useAgentBackground } from '../../../../components/AgentProfile/useAgent
 import { useChatEnterBehaviorPreferences } from '../../../../components/ChatEnterBehavior/ChatEnterBehaviorPreferencesProvider';
 import { notifyError } from '../../../../components/Notifications/notifications';
 import { useChatVisualMode } from '../../../../components/ChatVisualMode/ChatVisualModeProvider';
+import { FileUploadUnavailableNotice } from '../../../../components/FileUploadAvailability/FileUploadUnavailableNotice';
+import { useFileUploadAvailability } from '../../../../components/FileUploadAvailability/FileUploadAvailabilityContext';
 import { useServerLanguage } from '../../../../components/ServerLanguage/ServerLanguageProvider';
 import { ChatThreadLoadingSkeleton } from '../../../../components/Skeleton/ChatThreadLoadingSkeleton';
 import { useSoundSystem } from '../../../../components/SoundSystemProvider/SoundSystemProvider';
@@ -145,6 +147,7 @@ export function CanonicalAgentChatSurface({
     const cancellableJob = useMemo(() => resolveCancellableJob(activeJobs), [activeJobs]);
     const { chatVisualMode } = useChatVisualMode();
     const { enterBehavior, resolveEnterBehavior } = useChatEnterBehaviorPreferences();
+    const fileUploadAvailability = useFileUploadAvailability();
     const { soundSystem } = useSoundSystem();
     const { promptbookTheme } = usePromptbookTheme();
     const effectConfigs = useMemo(() => createDefaultChatEffects(), []);
@@ -240,7 +243,11 @@ export function CanonicalAgentChatSurface({
             newChatButtonHref={isReadOnly ? undefined : newChatButtonHref}
             feedbackMode={toChatComponentFeedbackMode(feedbackMode)}
             onFeedback={!isReadOnly && feedbackEnabled ? state.onFeedback : undefined}
-            onFileUpload={!isReadOnly && areFileAttachmentsEnabled ? handleFileUpload : undefined}
+            onFileUpload={
+                !isReadOnly && areFileAttachmentsEnabled && fileUploadAvailability.isUploadAvailable
+                    ? handleFileUpload
+                    : undefined
+            }
             participants={participants}
             chatLocale={language}
             timingTranslations={translations.timingTranslations}
@@ -261,6 +268,9 @@ export function CanonicalAgentChatSurface({
             saveFormatHandlers={saveFormatHandlers}
             theme={promptbookTheme}
         >
+            {!isReadOnly && areFileAttachmentsEnabled && !fileUploadAvailability.isUploadAvailable && (
+                <FileUploadUnavailableNotice className="mx-4 mt-4" />
+            )}
             {isReadOnly && frozenChatBannerLabel && (
                 <div className="mx-4 mt-4 rounded-2xl border border-amber-200 bg-amber-50/95 px-4 py-3 text-sm font-medium text-amber-900 shadow-sm dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
                     {translateText('chat.frozenBannerLabel', { source: frozenChatBannerLabel })}

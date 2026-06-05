@@ -16,6 +16,7 @@ import { ChatVisualModeProvider } from '../ChatVisualMode/ChatVisualModeProvider
 import { ClientVersionMismatchListener } from '../ClientVersion/ClientVersionMismatchListener';
 import { ChatEnterBehaviorPreferencesProvider } from '../ChatEnterBehavior/ChatEnterBehaviorPreferencesProvider';
 import { HomepageOptimisticNavigation } from '../Homepage/HomepageOptimisticNavigation';
+import { FileUploadAvailabilityProvider } from '../FileUploadAvailability/FileUploadAvailabilityContext';
 import { Footer, type FooterLink } from '../Footer/Footer';
 import { Header } from '../Header/Header';
 import { MobileMenuHoistingProvider } from '../Header/MobileMenuHoistingContext';
@@ -30,6 +31,7 @@ import { SoundSystemProvider } from '../SoundSystemProvider/SoundSystemProvider'
 import { ThemeModeProvider } from '../ThemeMode/ThemeModeProvider';
 import { ViewportHeightController } from '../ViewportHeightController/ViewportHeightController';
 import type { ControlPanelOptionAvailability } from '../../utils/getControlPanelOptionAvailability';
+import type { FileUploadAvailability } from '../../utils/upload/fileUploadAvailability';
 
 /**
  * Props for layout wrapper.
@@ -73,6 +75,10 @@ type LayoutWrapperProps = {
     defaultChatVisualMode: string;
     defaultAgentAvatarVisualId: AvatarVisualId;
     webPushPublicKey: string | null;
+    /**
+     * Current file upload availability for the active server/domain.
+     */
+    fileUploadAvailability: FileUploadAvailability;
 };
 
 /**
@@ -105,6 +111,7 @@ export function LayoutWrapper({
     defaultChatVisualMode,
     defaultAgentAvatarVisualId,
     webPushPublicKey,
+    fileUploadAvailability,
 }: LayoutWrapperProps) {
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -127,83 +134,85 @@ export function LayoutWrapper({
             defaultLanguage={defaultServerLanguage}
             isServerLanguageEnforced={isServerLanguageEnforced}
         >
-            <DefaultAgentAvatarVisualProvider defaultAgentAvatarVisualId={defaultAgentAvatarVisualId}>
-                <ThemeModeProvider defaultThemeMode={defaultThemeMode}>
-                    <ChatVisualModeProvider defaultChatVisualMode={defaultChatVisualMode}>
-                        <AsyncDialogsProvider>
-                            <AgentNamingProvider naming={agentNaming}>
-                                <LegacyUiAutoTranslator />
-                                <PrivateModePreferencesProvider>
-                                    <SelfLearningPreferencesProvider>
-                                        <SoundSystemProvider
-                                            initialIsSoundsOn={defaultIsSoundsOn}
-                                            initialIsVibrationOn={defaultIsVibrationOn}
-                                        >
-                                            <NotificationsProvider>
-                                                <BrowserPushNotificationsProvider
-                                                    defaultEnabled={defaultIsNotificationsOn}
-                                                    pushPublicKey={webPushPublicKey}
-                                                    isMetadataAvailable={controlPanelOptionAvailability.notifications}
-                                                >
-                                                    <ChatEnterBehaviorPreferencesProvider>
-                                                        <ClientVersionMismatchListener />
-                                                        <ViewportHeightController />
-                                                        <NavigationProgressBar />
-                                                        <MenuHoistingProvider>
-                                                            <MobileMenuHoistingProvider>
-                                                                <MetadataFlagsProvider
-                                                                    value={{
-                                                                        isExperimentalPwaAppEnabled,
-                                                                        controlPanelOptionAvailability,
-                                                                    }}
-                                                                >
-                                                                    {shouldRenderMinimalShell ? (
-                                                                        <main className={minimalMainClassName}>
-                                                                            {children}
-                                                                        </main>
-                                                                    ) : (
-                                                                        <div className="agents-server-app-shell flex flex-col">
-                                                                            <Header
-                                                                                isAdmin={isAdmin}
-                                                                                isGlobalAdmin={isGlobalAdmin}
-                                                                                currentUser={currentUser}
-                                                                                serverName={serverName}
-                                                                                serverLogoUrl={serverLogoUrl}
-                                                                                agents={agents}
-                                                                                agentFolders={agentFolders}
-                                                                                federatedServers={federatedServers}
-                                                                                isExperimental={isExperimental}
-                                                                                feedbackMode={feedbackMode}
-                                                                                shibbolethAuthenticationStatus={
-                                                                                    shibbolethAuthenticationStatus
-                                                                                }
-                                                                            />
-                                                                            <main className={mainClassName}>
-                                                                                <HomepageOptimisticNavigation
-                                                                                    pathname={pathname}
-                                                                                >
-                                                                                    {children}
-                                                                                </HomepageOptimisticNavigation>
+            <FileUploadAvailabilityProvider value={fileUploadAvailability}>
+                <DefaultAgentAvatarVisualProvider defaultAgentAvatarVisualId={defaultAgentAvatarVisualId}>
+                    <ThemeModeProvider defaultThemeMode={defaultThemeMode}>
+                        <ChatVisualModeProvider defaultChatVisualMode={defaultChatVisualMode}>
+                            <AsyncDialogsProvider>
+                                <AgentNamingProvider naming={agentNaming}>
+                                    <LegacyUiAutoTranslator />
+                                    <PrivateModePreferencesProvider>
+                                        <SelfLearningPreferencesProvider>
+                                            <SoundSystemProvider
+                                                initialIsSoundsOn={defaultIsSoundsOn}
+                                                initialIsVibrationOn={defaultIsVibrationOn}
+                                            >
+                                                <NotificationsProvider>
+                                                    <BrowserPushNotificationsProvider
+                                                        defaultEnabled={defaultIsNotificationsOn}
+                                                        pushPublicKey={webPushPublicKey}
+                                                        isMetadataAvailable={controlPanelOptionAvailability.notifications}
+                                                    >
+                                                        <ChatEnterBehaviorPreferencesProvider>
+                                                            <ClientVersionMismatchListener />
+                                                            <ViewportHeightController />
+                                                            <NavigationProgressBar />
+                                                            <MenuHoistingProvider>
+                                                                <MobileMenuHoistingProvider>
+                                                                    <MetadataFlagsProvider
+                                                                        value={{
+                                                                            isExperimentalPwaAppEnabled,
+                                                                            controlPanelOptionAvailability,
+                                                                        }}
+                                                                    >
+                                                                        {shouldRenderMinimalShell ? (
+                                                                            <main className={minimalMainClassName}>
+                                                                                {children}
                                                                             </main>
-                                                                            {isFooterShown && !isFooterHiddenOnPage && (
-                                                                                <Footer extraLinks={footerLinks} />
-                                                                            )}
-                                                                        </div>
-                                                                    )}
-                                                                </MetadataFlagsProvider>
-                                                            </MobileMenuHoistingProvider>
-                                                        </MenuHoistingProvider>
-                                                    </ChatEnterBehaviorPreferencesProvider>
-                                                </BrowserPushNotificationsProvider>
-                                            </NotificationsProvider>
-                                        </SoundSystemProvider>
-                                    </SelfLearningPreferencesProvider>
-                                </PrivateModePreferencesProvider>
-                            </AgentNamingProvider>
-                        </AsyncDialogsProvider>
-                    </ChatVisualModeProvider>
-                </ThemeModeProvider>
-            </DefaultAgentAvatarVisualProvider>
+                                                                        ) : (
+                                                                            <div className="agents-server-app-shell flex flex-col">
+                                                                                <Header
+                                                                                    isAdmin={isAdmin}
+                                                                                    isGlobalAdmin={isGlobalAdmin}
+                                                                                    currentUser={currentUser}
+                                                                                    serverName={serverName}
+                                                                                    serverLogoUrl={serverLogoUrl}
+                                                                                    agents={agents}
+                                                                                    agentFolders={agentFolders}
+                                                                                    federatedServers={federatedServers}
+                                                                                    isExperimental={isExperimental}
+                                                                                    feedbackMode={feedbackMode}
+                                                                                    shibbolethAuthenticationStatus={
+                                                                                        shibbolethAuthenticationStatus
+                                                                                    }
+                                                                                />
+                                                                                <main className={mainClassName}>
+                                                                                    <HomepageOptimisticNavigation
+                                                                                        pathname={pathname}
+                                                                                    >
+                                                                                        {children}
+                                                                                    </HomepageOptimisticNavigation>
+                                                                                </main>
+                                                                                {isFooterShown && !isFooterHiddenOnPage && (
+                                                                                    <Footer extraLinks={footerLinks} />
+                                                                                )}
+                                                                            </div>
+                                                                        )}
+                                                                    </MetadataFlagsProvider>
+                                                                </MobileMenuHoistingProvider>
+                                                            </MenuHoistingProvider>
+                                                        </ChatEnterBehaviorPreferencesProvider>
+                                                    </BrowserPushNotificationsProvider>
+                                                </NotificationsProvider>
+                                            </SoundSystemProvider>
+                                        </SelfLearningPreferencesProvider>
+                                    </PrivateModePreferencesProvider>
+                                </AgentNamingProvider>
+                            </AsyncDialogsProvider>
+                        </ChatVisualModeProvider>
+                    </ThemeModeProvider>
+                </DefaultAgentAvatarVisualProvider>
+            </FileUploadAvailabilityProvider>
         </ServerLanguageProvider>
     );
 }
