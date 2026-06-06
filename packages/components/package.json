@@ -89,13 +89,5 @@
     },
     "overrides": {
         "zod": "$zod"
-    },
-    "main": "./umd/index.umd.js",
-    "module": "./esm/index.es.js",
-    "types": "./esm/src/_packages/components.index.d.ts",
-    "typings": "./esm/src/_packages/components.index.d.ts",
-    "peerDependencies": {
-        "react": ">=17.0.0",
-        "react-dom": ">=17.0.0"
     }
 }
