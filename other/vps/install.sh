@@ -101,7 +101,18 @@ fail() {
 }
 
 is_interactive() {
-    [[ "$PTBK_NON_INTERACTIVE" != "1" && -r /dev/tty && -w /dev/tty ]]
+    ! is_non_interactive_mode_enabled && [[ -r /dev/tty && -w /dev/tty ]]
+}
+
+is_non_interactive_mode_enabled() {
+    case "${PTBK_NON_INTERACTIVE,,}" in
+        1 | true | yes | y)
+            return 0
+            ;;
+        *)
+            return 1
+            ;;
+    esac
 }
 
 prompt_with_default() {
@@ -739,7 +750,11 @@ initialize_sudo() {
     fi
 
     log "sudo is required to install system packages, Node.js, global npm tools, and the pm2 boot service."
-    sudo -v
+    if is_interactive; then
+        sudo -v
+    else
+        sudo -n -v || fail "Non-interactive installation requires root, passwordless sudo, or a cached sudo session."
+    fi
     SUDO=(sudo)
 }
 
@@ -1751,6 +1766,17 @@ configure_runner_authentication() {
     if [[ "$runner_exit_code" -ne 0 ]]; then
         warn "The $PTBK_AGENT CLI exited with status $runner_exit_code. The server will still start, but the runner may need authentication."
     fi
+}
+
+configure_code_runner_for_initial_installation() {
+    if ! is_interactive; then
+        log "Skipping code-runner CLI installation and authentication in non-interactive mode."
+        log "Configure the runner later from System -> Super Admin -> Code runners or by running: bash $PROMPTBOOK_REPOSITORY_DIR/other/vps/install.sh apply-runner"
+        return
+    fi
+
+    install_runner_dependencies
+    configure_runner_authentication
 }
 
 authenticate_code_runner() {
@@ -2920,11 +2946,10 @@ main() {
     install_promptbook_repository
     install_agents_server_browser_dependencies
     install_promptbook_cli_launcher
-    install_runner_dependencies
     initialize_promptbook_project
     install_default_agents
     configure_self_contained_s3_storage
-    configure_runner_authentication
+    configure_code_runner_for_initial_installation
     configure_pm2_startup
     build_agents_server
     start_agents_server
@@ -2933,6 +2958,18 @@ main() {
     configure_ssl_certificates
     print_summary
 }
+
+while [[ "$#" -gt 0 ]]; do
+    case "$1" in
+        --non-interactive)
+            PTBK_NON_INTERACTIVE=1
+            shift
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
 
 if [[ "${1:-}" == "apply-domains" ]]; then
     shift
