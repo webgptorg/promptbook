@@ -1,3 +1,5 @@
+-   Updated the standalone VPS Agents Server installer to ask for an optional Sentry DSN and persist it as `SENTRY_DSN`, so browser application error reports can be forwarded to Sentry immediately after installation.
+
 -   Added `--non-interactive` support to the standalone VPS Agents Server installer so automated installs take default answers, avoid prompt-based sudo validation, and skip initial code-runner CLI installation/authentication until it is configured later from the UI or SSH.
 
 -   Fixed standalone VPS Agents Server domains backed by SQLite so numeric-looking metadata values, including `SERVER_NAME`, are read as strings instead of crashing the layout header with `split is not a function`.

@@ -32,15 +32,25 @@ describe('other/vps/install.sh', () => {
         expect(installScript).not.toContain('PTBK_PATH=\\$(command -v ptbk)');
     });
 
-    it('prompts for optional API key and admin password before installing packages', () => {
+    it('prompts for optional API keys, optional Sentry DSN, and admin password before installing packages', () => {
         const mainFunction = installScript.slice(installScript.indexOf('\nmain() {'));
 
         expect(installScript).toContain('prompt_secret_with_default "OpenAI API key (optional)"');
+        expect(installScript).toContain('prompt_secret_with_default "Sentry DSN (optional)"');
         expect(installScript).toContain('prompt_secret_with_default "Admin password"');
         expect(installScript).toContain('set_env_value OPENAI_API_KEY "$REQUESTED_OPENAI_API_KEY"');
+        expect(installScript).toContain('set_env_value SENTRY_DSN "$REQUESTED_SENTRY_DSN"');
         expect(installScript).toContain('set_env_value ADMIN_PASSWORD "$REQUESTED_ADMIN_PASSWORD"');
-        expect(installScript).toContain('openai_api_key_default_description="empty"');
-        expect(installScript).toContain('admin_password_default_description="auto-generate"');
+        expect(installScript).toContain('default_sentry_dsn="$(resolve_secret_default SENTRY_DSN NEXT_PUBLIC_SENTRY_DSN)"');
+        expect(installScript).toContain(
+            'openai_api_key_default_description="$(resolve_secret_default_description "$default_openai_api_key" "empty")"',
+        );
+        expect(installScript).toContain(
+            'sentry_dsn_default_description="$(resolve_secret_default_description "$default_sentry_dsn" "empty")"',
+        );
+        expect(installScript).toContain(
+            'admin_password_default_description="$(resolve_secret_default_description "$default_admin_password" "auto-generate")"',
+        );
         expect(mainFunction.indexOf('prompt_api_keys_and_admin_password')).toBeLessThan(
             mainFunction.indexOf('install_system_packages'),
         );

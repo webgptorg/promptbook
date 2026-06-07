@@ -68,6 +68,7 @@ RUN_GROUP=""
 RUN_HOME=""
 ENV_FILE=""
 REQUESTED_OPENAI_API_KEY=""
+REQUESTED_SENTRY_DSN=""
 REQUESTED_ADMIN_PASSWORD=""
 REQUESTED_PUBLIC_SITE_URL=""
 REQUESTED_FILE_STORAGE_MODE="$PTBK_FILE_STORAGE_MODE"
@@ -1372,39 +1373,61 @@ has_non_empty_env_value() {
 }
 
 resolve_secret_default() {
-    local key="$1"
+    local key=""
     local existing_value=""
 
-    existing_value="$(get_env_value "$key")"
+    for key in "$@"; do
+        existing_value="$(get_env_value "$key")"
 
-    if [[ -n "$existing_value" ]]; then
-        printf '%s' "$existing_value"
+        if [[ -n "$existing_value" ]]; then
+            printf '%s' "$existing_value"
+            return
+        fi
+
+        existing_value="${!key:-}"
+        if [[ -n "$existing_value" ]]; then
+            printf '%s' "$existing_value"
+            return
+        fi
+    done
+}
+
+resolve_secret_default_description() {
+    local default_value="$1"
+    local empty_description="$2"
+
+    if [[ -n "$default_value" ]]; then
+        printf 'keep existing'
         return
     fi
 
-    printf '%s' "${!key:-}"
+    printf '%s' "$empty_description"
 }
 
 prompt_api_keys_and_admin_password() {
     local default_openai_api_key=""
+    local default_sentry_dsn=""
     local default_admin_password=""
     local openai_api_key_default_description="empty"
+    local sentry_dsn_default_description="empty"
     local admin_password_default_description="auto-generate"
 
     default_openai_api_key="$(resolve_secret_default OPENAI_API_KEY)"
+    default_sentry_dsn="$(resolve_secret_default SENTRY_DSN NEXT_PUBLIC_SENTRY_DSN)"
     default_admin_password="$(resolve_secret_default ADMIN_PASSWORD)"
 
-    if [[ -n "$default_openai_api_key" ]]; then
-        openai_api_key_default_description="keep existing"
-    fi
-
-    if [[ -n "$default_admin_password" ]]; then
-        admin_password_default_description="keep existing"
-    fi
+    openai_api_key_default_description="$(resolve_secret_default_description "$default_openai_api_key" "empty")"
+    sentry_dsn_default_description="$(resolve_secret_default_description "$default_sentry_dsn" "empty")"
+    admin_password_default_description="$(resolve_secret_default_description "$default_admin_password" "auto-generate")"
 
     log "Press Enter to leave the OpenAI API key empty or keep the current value."
     REQUESTED_OPENAI_API_KEY="$(
         prompt_secret_with_default "OpenAI API key (optional)" "$openai_api_key_default_description" "$default_openai_api_key"
+    )"
+
+    log "Press Enter to leave the Sentry DSN empty or keep the current value."
+    REQUESTED_SENTRY_DSN="$(
+        prompt_secret_with_default "Sentry DSN (optional)" "$sentry_dsn_default_description" "$default_sentry_dsn"
     )"
 
     log "Press Enter to auto-generate the admin password or keep the current value."
@@ -1666,6 +1689,7 @@ configure_environment() {
     set_env_value PTBK_NGINX_SITE_NAME "$NGINX_SITE_NAME"
     set_env_value LETS_ENCRYPT_EMAIL "$LETS_ENCRYPT_EMAIL"
     set_env_value OPENAI_API_KEY "$REQUESTED_OPENAI_API_KEY"
+    set_env_value SENTRY_DSN "$REQUESTED_SENTRY_DSN"
     set_env_value PTBK_FILE_STORAGE_MODE "$REQUESTED_FILE_STORAGE_MODE"
     set_env_value PTBK_SELF_CONTAINED_S3_DIRECTORY "$REQUESTED_SELF_CONTAINED_S3_DIRECTORY"
     set_env_value PTBK_SELF_CONTAINED_S3_PORT "$PTBK_SELF_CONTAINED_S3_PORT"
