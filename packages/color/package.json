@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/color",
-    "version": "0.112.0-106",
+    "version": "0.112.0-107",
     "description": "Promptbook: Create persistent AI agents that turn your company's scattered knowledge into action",
     "private": false,
     "sideEffects": false,
@@ -95,7 +95,7 @@
     "types": "./esm/src/_packages/color.index.d.ts",
     "typings": "./esm/src/_packages/color.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.112.0-106"
+        "@promptbook/core": "0.112.0-107"
     },
     "dependencies": {
         "spacetrim": "0.11.60"
