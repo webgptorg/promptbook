@@ -32,6 +32,7 @@ PTBK_MODEL="${PTBK_MODEL:-gpt-5.4}"
 PTBK_THINKING_LEVEL="${PTBK_THINKING_LEVEL:-xhigh}"
 PTBK_INSTALL_DEFAULT_AGENTS="${PTBK_INSTALL_DEFAULT_AGENTS:-yes}"
 PTBK_NON_INTERACTIVE="${PTBK_NON_INTERACTIVE:-0}"
+PTBK_CONFIRM_FRESH_VPS="${PTBK_CONFIRM_FRESH_VPS:-0}"
 PTBK_SKIP_PM2_RESTART="${PTBK_SKIP_PM2_RESTART:-0}"
 SERVERS="${SERVERS:-}"
 LETS_ENCRYPT_EMAIL="${LETS_ENCRYPT_EMAIL:-${CERTBOT_EMAIL:-}}"
@@ -105,8 +106,10 @@ is_interactive() {
     ! is_non_interactive_mode_enabled && [[ -r /dev/tty && -w /dev/tty ]]
 }
 
-is_non_interactive_mode_enabled() {
-    case "${PTBK_NON_INTERACTIVE,,}" in
+is_truthy_value() {
+    local raw_value="${1:-}"
+
+    case "${raw_value,,}" in
         1 | true | yes | y)
             return 0
             ;;
@@ -114,6 +117,14 @@ is_non_interactive_mode_enabled() {
             return 1
             ;;
     esac
+}
+
+is_non_interactive_mode_enabled() {
+    is_truthy_value "$PTBK_NON_INTERACTIVE"
+}
+
+is_fresh_vps_installation_confirmation_enabled() {
+    is_truthy_value "$PTBK_CONFIRM_FRESH_VPS"
 }
 
 prompt_with_default() {
@@ -163,6 +174,24 @@ prompt_secret_with_default() {
     read -r -s answer < /dev/tty || answer=""
     printf '\n' > /dev/tty
     printf '%s' "${answer:-$default_value}"
+}
+
+confirm_fresh_vps_installation() {
+    warn "This installer is meant for a fresh VPS with no existing Promptbook data or server configuration to preserve."
+    warn "Running it on a non-fresh VPS can overwrite existing data or configuration and cause data loss or service disruption."
+
+    if is_fresh_vps_installation_confirmation_enabled; then
+        log "Fresh VPS installation was explicitly confirmed through PTBK_CONFIRM_FRESH_VPS."
+        return
+    fi
+
+    if is_non_interactive_mode_enabled; then
+        fail "Standalone VPS installation requires explicit confirmation in non-interactive mode. Re-run with PTBK_CONFIRM_FRESH_VPS=yes only on a fresh VPS without data or configuration to preserve."
+    fi
+
+    if ! prompt_yes_no "Continue installation only if this is a fresh VPS without existing data or configuration to preserve?" "no"; then
+        fail "Installation stopped because fresh VPS confirmation was not granted."
+    fi
 }
 
 normalize_promptbook_repository_ref() {
@@ -2945,6 +2974,7 @@ main() {
     initialize_sudo
     resolve_run_user
     check_platform
+    confirm_fresh_vps_installation
     check_required_resources
 
     PTBK_AGENT="$(prompt_with_default "Coding runner" "$PTBK_AGENT")"

@@ -1,4 +1,4 @@
-[ ] !
+[x] $1.11 an hour by OpenAI Codex `gpt-5.4`
 
 [✨🏅] The VPS installations script is meant for fresh VPS, require confirmation
 
@@ -13,3 +13,4 @@
 ```bash
 root@collboard-agents-server-x21:~# sudo curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/other/vps/install.sh | bash
 ```
+

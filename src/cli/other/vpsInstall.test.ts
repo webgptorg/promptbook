@@ -84,6 +84,26 @@ describe('other/vps/install.sh', () => {
         );
     });
 
+    it('requires explicit confirmation that the VPS is fresh before the main installation continues', () => {
+        const mainFunction = installScript.slice(installScript.indexOf('\nmain() {'));
+
+        expect(installScript).toContain('PTBK_CONFIRM_FRESH_VPS="${PTBK_CONFIRM_FRESH_VPS:-0}"');
+        expect(installScript).toContain('is_truthy_value()');
+        expect(installScript).toContain('is_fresh_vps_installation_confirmation_enabled()');
+        expect(installScript).toContain(
+            'Fresh VPS installation was explicitly confirmed through PTBK_CONFIRM_FRESH_VPS.',
+        );
+        expect(installScript).toContain(
+            'Standalone VPS installation requires explicit confirmation in non-interactive mode.',
+        );
+        expect(installScript).toContain(
+            'prompt_yes_no "Continue installation only if this is a fresh VPS without existing data or configuration to preserve?" "no"',
+        );
+        expect(mainFunction.indexOf('confirm_fresh_vps_installation')).toBeLessThan(
+            mainFunction.indexOf('check_required_resources'),
+        );
+    });
+
     it('defaults standalone VPS coding runner to OpenAI Codex while keeping GitHub Copilot available', () => {
         const runnerDependenciesFunction = installScript.slice(
             installScript.indexOf('\ninstall_runner_dependencies() {'),
