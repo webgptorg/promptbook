@@ -8,7 +8,8 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server) installed on VPS
 
-![alt text](prompts/screenshots/2026-06-0110-agents-server-fix-a-split.png)
+![working on IP adress of the server](prompts/screenshots/2026-06-0110-agents-server-fix-a-split-1.png)
+![failing with 500 on domain](prompts/screenshots/2026-06-0110-agents-server-fix-a-split.png)
 
 **This is how the Agents server is installed:**
 
