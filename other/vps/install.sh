@@ -1687,7 +1687,7 @@ initialize_promptbook_project() {
 
 install_default_agents() {
     local env_file_shell=""
-    local repository_dir_shell=""
+    local agents_server_dir_shell=""
     local default_agents_dir_shell=""
 
     if [[ "$REQUESTED_INSTALL_DEFAULT_AGENTS" != "yes" ]]; then
@@ -1696,11 +1696,11 @@ install_default_agents() {
     fi
 
     env_file_shell="$(shell_quote "$ENV_FILE")"
-    repository_dir_shell="$(shell_quote "$PROMPTBOOK_REPOSITORY_DIR")"
+    agents_server_dir_shell="$(shell_quote "$PROMPTBOOK_REPOSITORY_DIR/apps/agents-server")"
     default_agents_dir_shell="$(shell_quote "$PROMPTBOOK_REPOSITORY_DIR/agents/default")"
 
     log "Installing bundled default agents when the server has no agents yet."
-    run_as_service_user bash -lc "cd $repository_dir_shell && PTBK_AGENTS_SERVER_ENV_FILE=$env_file_shell PTBK_DEFAULT_AGENTS_DIR=$default_agents_dir_shell npx --yes tsx ./apps/agents-server/src/database/seedDefaultAgents.ts"
+    run_as_service_user bash -lc "cd $agents_server_dir_shell && PTBK_AGENTS_SERVER_ENV_FILE=$env_file_shell PTBK_DEFAULT_AGENTS_DIR=$default_agents_dir_shell npx --yes tsx ./src/database/seedDefaultAgents.ts"
 }
 
 configure_runner_authentication() {
@@ -2405,7 +2405,7 @@ build_agents_server() {
 run_agents_server_database_migrations() {
     local database_mode=""
     local env_file_shell=""
-    local repository_dir_shell=""
+    local agents_server_dir_shell=""
 
     database_mode="$(get_env_value PTBK_AGENTS_SERVER_DATABASE | tr '[:upper:]' '[:lower:]')"
     if [[ "$database_mode" == "sqlite" || "$database_mode" == "local" ]]; then
@@ -2414,10 +2414,10 @@ run_agents_server_database_migrations() {
     fi
 
     env_file_shell="$(shell_quote "$ENV_FILE")"
-    repository_dir_shell="$(shell_quote "$PROMPTBOOK_REPOSITORY_DIR")"
+    agents_server_dir_shell="$(shell_quote "$PROMPTBOOK_REPOSITORY_DIR/apps/agents-server")"
 
     log "Running Agents Server database migrations."
-    run_as_service_user bash -lc "cd $repository_dir_shell && PTBK_AGENTS_SERVER_ENV_FILE=$env_file_shell npx --yes tsx ./apps/agents-server/src/database/migrate.ts"
+    run_as_service_user bash -lc "cd $agents_server_dir_shell && PTBK_AGENTS_SERVER_ENV_FILE=$env_file_shell npx --yes tsx ./src/database/migrate.ts"
 }
 
 start_pm2_agents_server_process() {

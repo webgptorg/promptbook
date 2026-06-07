@@ -88,7 +88,7 @@ describe('other/vps/install.sh', () => {
         );
         expect(installDefaultAgentsFunction).toContain('if [[ "$REQUESTED_INSTALL_DEFAULT_AGENTS" != "yes" ]]');
         expect(installDefaultAgentsFunction).toContain(
-            'PTBK_DEFAULT_AGENTS_DIR=$default_agents_dir_shell npx --yes tsx ./apps/agents-server/src/database/seedDefaultAgents.ts',
+            'cd $agents_server_dir_shell && PTBK_AGENTS_SERVER_ENV_FILE=$env_file_shell PTBK_DEFAULT_AGENTS_DIR=$default_agents_dir_shell npx --yes tsx ./src/database/seedDefaultAgents.ts',
         );
         expect(installDefaultAgentsFunction).toContain('$PROMPTBOOK_REPOSITORY_DIR/agents/default');
         expect(mainFunction.indexOf('prompt_default_agents_installation')).toBeLessThan(
@@ -181,7 +181,7 @@ describe('other/vps/install.sh', () => {
             'Skipping PostgreSQL database migrations because Agents Server is configured for local SQLite.',
         );
         expect(installScript).toContain(
-            'PTBK_AGENTS_SERVER_ENV_FILE=$env_file_shell npx --yes tsx ./apps/agents-server/src/database/migrate.ts',
+            'cd $agents_server_dir_shell && PTBK_AGENTS_SERVER_ENV_FILE=$env_file_shell npx --yes tsx ./src/database/migrate.ts',
         );
     });
 

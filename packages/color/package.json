@@ -89,5 +89,15 @@
     },
     "overrides": {
         "zod": "$zod"
+    },
+    "main": "./umd/index.umd.js",
+    "module": "./esm/index.es.js",
+    "types": "./esm/src/_packages/color.index.d.ts",
+    "typings": "./esm/src/_packages/color.index.d.ts",
+    "peerDependencies": {
+        "@promptbook/core": "0.112.0-106"
+    },
+    "dependencies": {
+        "spacetrim": "0.11.60"
     }
 }

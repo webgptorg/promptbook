@@ -90,5 +90,12 @@
     },
     "overrides": {
         "zod": "$zod"
+    },
+    "main": "./umd/index.umd.js",
+    "module": "./esm/index.es.js",
+    "types": "./esm/src/_packages/deepseek.index.d.ts",
+    "typings": "./esm/src/_packages/deepseek.index.d.ts",
+    "peerDependencies": {
+        "@promptbook/core": "0.112.0-106"
     }
 }
