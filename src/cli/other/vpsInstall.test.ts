@@ -74,6 +74,18 @@ describe('other/vps/install.sh', () => {
         );
     });
 
+    it('defaults standalone VPS coding runner to OpenAI Codex while keeping GitHub Copilot available', () => {
+        const runnerDependenciesFunction = installScript.slice(
+            installScript.indexOf('\ninstall_runner_dependencies() {'),
+            installScript.indexOf('\nresolve_runner_authentication_command() {'),
+        );
+
+        expect(installScript).toContain('PTBK_AGENT="${PTBK_AGENT:-openai-codex}"');
+        expect(installScript).toContain('PTBK_AGENT="$(prompt_with_default "Coding runner" "$PTBK_AGENT")"');
+        expect(runnerDependenciesFunction).toContain('github-copilot)');
+        expect(runnerDependenciesFunction).toContain('openai-codex)');
+    });
+
     it('asks for bundled default agents and seeds them after project initialization', () => {
         const mainFunction = installScript.slice(installScript.indexOf('\nmain() {'));
         const installDefaultAgentsFunction = installScript.slice(

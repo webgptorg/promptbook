@@ -1,3 +1,5 @@
+-   Changed standalone VPS Agents Server installs to default the coding runner to OpenAI Codex while keeping GitHub Copilot and the other runner choices available.
+
 -   Fixed standalone VPS Agents Server installation so default-agent seeding and self-update migrations run from `apps/agents-server`, allowing `tsx` to resolve the app-local `@promptbook-local/*` aliases.
 
 -   Fixed the Book editor in Agents Server dark mode so the notebook editor surface stays light even when the surrounding UI uses the dark theme.
