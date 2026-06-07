@@ -861,6 +861,21 @@
             "focus": true
         },
         {
+            "name": "🌎 SSH to s20.ptbk.io",
+            "command": "ssh root@s20.ptbk.io",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🌎 SSH to s22.ptbk.io",
+            "command": "ssh root@s22.ptbk.io",
+            "execute": true,
+            "onlySingle": false,
+            "focus": false
+        },
+
+        {
             "name": "🔼🆚 Use current version of Promptbook in all Projects / install ptbk (⏳)",
             "command": "npm run use-packages",
             "execute": true,
