@@ -1892,8 +1892,6 @@
 
 -   Fixed flaky Agents Server E2E startup on Windows by isolating Playwright's Next.js build output into `.next-e2e`, avoiding `.next/trace` file-lock collisions with other local Next.js processes that could leave the test server unavailable.
 
--   Fixed Jest TypeScript path resolution for `@promptbook-local/*` imports by correcting the `paths` pattern in `tsconfig.jest.json` from the invalid regex-style `$1.index` to the correct TypeScript glob syntax `*.index`, resolving `TS2307: Cannot find module '@promptbook-local/utils'` errors in test runs.
-
 -   Fixed Jest test suite compilation for `*.yaml?raw` Vite-style imports used in Agents Server language packs:
 
     -   Added `apps/agents-server/src` to `tsconfig.jest.json` `include` so the existing `yaml-raw.d.ts` type declaration is picked up by ts-jest, resolving `TS2307: Cannot find module '*.yaml?raw'`.
