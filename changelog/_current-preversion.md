@@ -1,3 +1,5 @@
+-   Fixed standalone VPS Agents Server domains backed by SQLite so numeric-looking metadata values, including `SERVER_NAME`, are read as strings instead of crashing the layout header with `split is not a function`.
+
 -   Changed standalone VPS Agents Server installs to default the coding runner to OpenAI Codex while keeping GitHub Copilot and the other runner choices available.
 
 -   Fixed standalone VPS Agents Server installation so default-agent seeding and self-update migrations run from `apps/agents-server`, allowing `tsx` to resolve the app-local `@promptbook-local/*` aliases.

@@ -156,4 +156,38 @@ describe('$provideLocalSqliteSupabase', () => {
             userId: 7,
         });
     });
+
+    it('returns metadata values as strings from older numeric-affinity SQLite tables', async () => {
+        const { $provideAgentsServerSqliteDatabase } = await import('./$provideAgentsServerSqliteDatabase');
+        const database = $provideAgentsServerSqliteDatabase();
+        database.exec(
+            [
+                'CREATE TABLE "server_S22_Metadata" (',
+                '"id" INTEGER PRIMARY KEY AUTOINCREMENT,',
+                '"key" TEXT NOT NULL,',
+                '"value" INTEGER NOT NULL,',
+                '"note" TEXT NULL',
+                ')',
+            ].join(' '),
+        );
+        database
+            .prepare('INSERT INTO "server_S22_Metadata" ("key", "value", "note") VALUES (?, ?, ?)')
+            .run('SERVER_NAME', '22', null);
+
+        const { $provideLocalSqliteSupabase } = await import('./$provideLocalSqliteSupabase');
+        const supabase = $provideLocalSqliteSupabase();
+        const { data, error } = await supabase
+            .from('server_S22_Metadata')
+            .select('key,value,note')
+            .eq('key', 'SERVER_NAME')
+            .maybeSingle();
+
+        expect(error).toBeNull();
+        expect(data).toMatchObject({
+            key: 'SERVER_NAME',
+            value: '22',
+            note: null,
+        });
+        expect(typeof (data as { value: unknown } | null)?.value).toBe('string');
+    });
 });

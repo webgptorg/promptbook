@@ -91,6 +91,17 @@ const JSON_COLUMNS_BY_TABLE = new Map<string, ReadonlySet<string>>([
 ]);
 
 /**
+ * Columns that must always be surfaced as strings even when an older SQLite
+ * table was created with numeric affinity.
+ */
+const TEXT_COLUMNS_BY_TABLE = new Map<string, ReadonlySet<string>>([['Metadata', new Set(['key', 'value', 'note'])]]);
+
+/**
+ * Table-specific integer columns whose names would otherwise be ambiguous.
+ */
+const INTEGER_COLUMNS_BY_TABLE = new Map<string, ReadonlySet<string>>([['ServerLimit', new Set(['value'])]]);
+
+/**
  * Boolean columns stored as integers by SQLite and restored as booleans.
  */
 const BOOLEAN_COLUMNS = new Set(['isAdmin', 'isRevoked', 'isGlobal', 'isUserScoped', 'isSuccessful', 'isChatFocused']);
@@ -833,6 +844,7 @@ function ensureTable(
 
         database.exec(
             `ALTER TABLE ${quoteIdentifier(tableName)} ADD COLUMN ${quoteIdentifier(column)} ${resolveSqliteColumnType(
+                tableBaseName,
                 column,
             )}`,
         );
@@ -1294,6 +1306,9 @@ function serializeValue(tableName: string, column: string, value: unknown): unkn
     if (value === null) {
         return null;
     }
+    if (isTextColumn(tableName, column)) {
+        return String(value);
+    }
     if (isJsonColumn(tableName, column)) {
         return typeof value === 'string' ? value : JSON.stringify(value);
     }
@@ -1312,6 +1327,8 @@ function deserializeRow(tableName: string, row: Record<string, unknown>): Record
     for (const [column, value] of Object.entries(row)) {
         if (value === null || value === undefined) {
             result[column] = null;
+        } else if (isTextColumn(tableName, column)) {
+            result[column] = String(value);
         } else if (isJsonColumn(tableName, column) && typeof value === 'string') {
             result[column] = parseJsonValue(value);
         } else if (BOOLEAN_COLUMNS.has(column)) {
@@ -1339,14 +1356,48 @@ function parseJsonValue(value: string): unknown {
  * Resolves whether a column is JSON for a specific table.
  */
 function isJsonColumn(tableName: string, column: string): boolean {
-    return JSON_COLUMNS_BY_TABLE.get(resolveTableBaseName(tableName))?.has(column) || false;
+    return isJsonColumnForTableBaseName(resolveTableBaseName(tableName), column);
+}
+
+/**
+ * Resolves whether a column is JSON for a specific table base name.
+ */
+function isJsonColumnForTableBaseName(tableBaseName: string, column: string): boolean {
+    return JSON_COLUMNS_BY_TABLE.get(tableBaseName)?.has(column) || false;
+}
+
+/**
+ * Resolves whether a column should be forced to a string for a specific table.
+ */
+function isTextColumn(tableName: string, column: string): boolean {
+    return isTextColumnForTableBaseName(resolveTableBaseName(tableName), column);
+}
+
+/**
+ * Resolves whether a column should be forced to a string for a specific table base name.
+ */
+function isTextColumnForTableBaseName(tableBaseName: string, column: string): boolean {
+    return TEXT_COLUMNS_BY_TABLE.get(tableBaseName)?.has(column) || false;
+}
+
+/**
+ * Resolves whether a column is known to be numeric for a specific table base name.
+ */
+function isIntegerColumnForTableBaseName(tableBaseName: string, column: string): boolean {
+    return INTEGER_COLUMNS_BY_TABLE.get(tableBaseName)?.has(column) || false;
 }
 
 /**
  * Resolves SQLite column affinity for dynamically added columns.
  */
-function resolveSqliteColumnType(column: string): string {
+function resolveSqliteColumnType(tableBaseName: string, column: string): string {
+    if (isTextColumnForTableBaseName(tableBaseName, column) || isJsonColumnForTableBaseName(tableBaseName, column)) {
+        return 'TEXT';
+    }
     if (BOOLEAN_COLUMNS.has(column)) {
+        return 'INTEGER';
+    }
+    if (isIntegerColumnForTableBaseName(tableBaseName, column)) {
         return 'INTEGER';
     }
     if (
@@ -1357,8 +1408,7 @@ function resolveSqliteColumnType(column: string): string {
         column.endsWith('Bytes') ||
         column === 'sortOrder' ||
         column === 'attemptCount' ||
-        column === 'runCount' ||
-        column === 'value'
+        column === 'runCount'
     ) {
         return 'INTEGER';
     }
