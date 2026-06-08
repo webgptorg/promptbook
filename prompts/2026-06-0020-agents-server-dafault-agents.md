@@ -2,7 +2,7 @@
 
 ---
 
-[ ]
+[ ] !!!
 
 [✨🌗] When creating new Agents server via install script it should contain default agents
 
