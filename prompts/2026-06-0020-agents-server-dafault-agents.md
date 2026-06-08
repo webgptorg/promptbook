@@ -2,7 +2,7 @@
 
 ---
 
-[ ] !!!
+[x] ~$0.3218 42 minutes by OpenAI Codex `gpt-5.5`
 
 [✨🌗] When creating new Agents server via install script it should contain default agents
 
@@ -35,3 +35,4 @@
 ```bash
 root@collboard-agents-server-x21:~# sudo curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/other/vps/install.sh | bash
 ```
+
