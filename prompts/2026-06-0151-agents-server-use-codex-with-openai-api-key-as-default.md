@@ -1,18 +1,12 @@
 [ ] !!!
 
-[✨🐄] foo
+[✨🐄] Use openai-coder with api key as configured agent runner
 
--   @@@
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
--   You are working with the [Agents Server](apps/agents-server)
--   If you need to do the database migration, do it
--   Add the changes into the [changelog](changelog/_current-preversion.md)
-
+-   If the user enters the OpenAI API key during the installation process, then the openai-coder runner should be configured with that API key
+-   All of the runners should be available, just the default behavior should be that if the user enters the OpenAI API key during the installation process, then the openai-coder runner should be configured with that API key instead of asking in interactive mode to setup the login
 
 **This is how the Agents server is installed:**
 
 ```bash
 root@collboard-agents-server-x21:~# sudo curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/other/vps/install.sh | bash
 ```
-
