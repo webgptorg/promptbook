@@ -1,20 +1,20 @@
-[ ] !!!!!
+[ ] !
 
-[✨🦃] Optimize the Agents server app
+[✨🤠] Into (`terminals.json`)[.vscode/terminals.json] add script for propper local development of Agents server
 
--   The agents server app is working but its vary slow and unresponsive, every page and agent takes a lot of time to load
--   You can look at https://s22.ptbk.io/ or ssh to s22.ptbk.io to see the error
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Now there is just "✨👨‍💻 Run ptbk agents-server start"
+    -   But it lacks hotreloading and runs in next production mode, which is not good for local development and debugging
+-   The locally run server should run via `ptbk agents-server dev` command, which will run the server in development mode with hotreloading and all the necessary environment variables for local development and debugging
+-   This will just wrap the `next dev` in a same things as `ptbk agents-server start`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle, share the code between the start and dev scripts as much as possible
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
--   Do not change the functionality, just optimize the performance and make it faster and more responsive
--   The primary focus is on the agents and chatting not the administration pages and installation process, so the optimization should be focused on the agents and chatting pages and functionality, but if you see any other areas that can be optimized, you can optimize them as well
 
 ---
 
 [-]
 
-[✨🦃] bar
+[✨🤠] brr
 
 -   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
@@ -27,7 +27,7 @@
 
 [-]
 
-[✨🦃] bar
+[✨🤠] brr
 
 -   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
@@ -40,7 +40,7 @@
 
 [-]
 
-[✨🦃] bar
+[✨🤠] brr
 
 -   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
