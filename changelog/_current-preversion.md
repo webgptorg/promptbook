@@ -35,6 +35,7 @@
 
     -   `other/vps/install.sh` now asks whether to install bundled default agents, defaults to yes, and seeds `agents/default/*.book` into an empty standalone server.
     -   Re-running the installer skips default-agent creation when the server already has agents.
+    -   Fixed installer database scripts so the installed `.env` overrides ambient `PTBK_*` variables, preventing default-agent seeding from writing to a different SQLite database than the running server.
 
 -   Fixed Agents Server agent profile avatars so built-in animated visuals stay centered in a square stage inside the tall profile card instead of stretching to fill the card.
 

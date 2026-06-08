@@ -1,17 +1,10 @@
-import * as dotenv from 'dotenv';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { AgentCollectionInSupabase } from '../../../../src/collection/agent-collection/constructors/agent-collection-in-supabase/AgentCollectionInSupabase';
 import type { AgentsDatabaseSchema } from '../../../../src/collection/agent-collection/constructors/agent-collection-in-supabase/AgentsDatabaseSchema';
 import { $provideSupabaseForServer } from './$provideSupabaseForServer';
 import { DEFAULT_AGENT_VISIBILITY } from '../utils/agentVisibility';
 import { loadDefaultAgentBooks } from '../utils/defaultAgents/loadDefaultAgentBooks';
-
-/**
- * Environment variable pointing to the installed Agents Server `.env` file.
- *
- * @private utility of standalone default-agent seeding
- */
-const AGENTS_SERVER_ENV_FILE_ENV_NAME = 'PTBK_AGENTS_SERVER_ENV_FILE';
+import { loadAgentsServerEnvFile } from './loadAgentsServerEnvFile';
 
 /**
  * Environment variable with an explicit default-agent source directory.
@@ -179,29 +172,12 @@ function resolveAgentsDatabaseSupabaseClient(): SupabaseClient<AgentsDatabaseSch
 }
 
 /**
- * Loads the installed Agents Server environment before seeding.
- *
- * @private utility of standalone default-agent seeding
- */
-function loadSeedDefaultAgentsEnvironment(): void {
-    const explicitEnvFilePath = process.env[AGENTS_SERVER_ENV_FILE_ENV_NAME]?.trim();
-    if (explicitEnvFilePath) {
-        const explicitLoadResult = dotenv.config({ path: explicitEnvFilePath });
-        if (!explicitLoadResult.error) {
-            return;
-        }
-    }
-
-    dotenv.config();
-}
-
-/**
  * Runs the standalone default-agent seed command.
  *
  * @private utility of standalone default-agent seeding
  */
 async function runSeedDefaultAgentsCommand(): Promise<void> {
-    loadSeedDefaultAgentsEnvironment();
+    loadAgentsServerEnvFile();
     const result = await seedDefaultAgents();
 
     if (result.createdCount > 0) {
