@@ -8,10 +8,15 @@ import type { CodexScriptOptions } from './CodexScriptOptions';
 const DEFAULT_CODEX_THINKING_LEVEL = 'xhigh';
 
 /**
+ * Base delimiter used for passing large prompts through stdin.
+ */
+const CODEX_PROMPT_DELIMITER = 'CODEX_PROMPT';
+
+/**
  * Builds the shell script that runs Codex with the prompt and coding context.
  */
 export function buildCodexScript(options: CodexScriptOptions): string {
-    const delimiter = 'CODEX_PROMPT';
+    const delimiter = resolveShellHereDocumentDelimiter(CODEX_PROMPT_DELIMITER, options.prompt);
     const projectPath = toPosixPath(options.projectPath);
     const loginMethodConfig = options.allowCredits
         ? 'CODEX_LOGIN_METHOD_ARGUMENTS=()'
@@ -22,37 +27,57 @@ export function buildCodexScript(options: CodexScriptOptions): string {
               fi
           `);
     const thinkingLevel = options.thinkingLevel ?? DEFAULT_CODEX_THINKING_LEVEL;
-    const modelReasoningEffortConfig = `  -c model_reasoning_effort="${thinkingLevel}" \\`;
+    const lines = [
+        'if [ -f .env ]; then',
+        'set -a',
+        'source .env',
+        'set +a',
+        'fi',
+        '',
+        loginMethodConfig,
+        '',
+        'if [ "${PTBK_OPENAI_CODEX_USE_API_KEY:-0}" != "1" ] || [ -z "${OPENAI_API_KEY:-}" ]; then',
+        'unset OPENAI_API_KEY',
+        'unset OPENAI_BASE_URL',
+        'fi',
+        '',
+        `${options.codexCommand} \\`,
+        '    "${CODEX_LOGIN_METHOD_ARGUMENTS[@]}" \\',
+        `    -c model_reasoning_effort="${thinkingLevel}" \\`,
+        `    --ask-for-approval ${options.askForApproval} \\`,
+        `    exec --model ${options.model} \\`,
+        '    --local-provider none \\',
+        `    --sandbox ${options.sandbox} \\`,
+        `    -C ${projectPath} \\`,
+        '    --skip-git-repo-check \\',
+        `    <<'${delimiter}'`,
+        '',
+        options.prompt,
+        '',
+        delimiter,
+    ];
 
-    return spaceTrim(
-        (block) => `
+    return lines.join('\n');
+}
 
-            if [ -f .env ]; then
-            set -a
-            source .env
-            set +a
-            fi
+/**
+ * Resolves a here-document delimiter that cannot be confused with a line inside the prompt.
+ */
+function resolveShellHereDocumentDelimiter(baseDelimiter: string, content: string): string {
+    let delimiter = baseDelimiter;
+    let delimiterSuffix = 0;
 
-            ${loginMethodConfig}
+    while (isShellHereDocumentDelimiterPresent(content, delimiter)) {
+        delimiterSuffix += 1;
+        delimiter = `${baseDelimiter}_${delimiterSuffix}`;
+    }
 
-            if [ "\${PTBK_OPENAI_CODEX_USE_API_KEY:-0}" != "1" ] || [ -z "\${OPENAI_API_KEY:-}" ]; then
-            unset OPENAI_API_KEY
-            unset OPENAI_BASE_URL
-            fi
+    return delimiter;
+}
 
-            ${options.codexCommand} \\
-                "\${CODEX_LOGIN_METHOD_ARGUMENTS[@]}" \\
-                ${modelReasoningEffortConfig}
-                --ask-for-approval ${options.askForApproval} \\
-                exec --model ${options.model} \\
-                --local-provider none \\
-                --sandbox ${options.sandbox} \\
-                -C ${projectPath} \\
-                <<'${delimiter}'
-
-            ${block(options.prompt)}
-
-            ${delimiter}
-        `,
-    );
+/**
+ * Checks whether a prompt already contains one exact here-document closing delimiter line.
+ */
+function isShellHereDocumentDelimiterPresent(content: string, delimiter: string): boolean {
+    return content.replace(/\r\n/gu, '\n').split('\n').some((line) => line === delimiter);
 }

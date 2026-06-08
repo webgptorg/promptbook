@@ -2,7 +2,7 @@
 
 ---
 
-[ ] !!
+[x] ~$0.3120 38 minutes by OpenAI Codex `gpt-5.5`
 
 [✨🐄] Use openai-coder with api key as configured agent runner
 
@@ -49,3 +49,4 @@ This is the fail when server is set by OpenAI API key:
 ```
 
 ![alt text](prompts/screenshots/2026-06-0151-agents-server-use-codex-with-openai-api-key-as-default.png)
+
