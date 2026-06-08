@@ -39,6 +39,9 @@ describe('other/vps/install.sh', () => {
         expect(installScript).toContain('prompt_secret_with_default "Sentry DSN (optional)"');
         expect(installScript).toContain('prompt_secret_with_default "Admin password"');
         expect(installScript).toContain('set_env_value OPENAI_API_KEY "$REQUESTED_OPENAI_API_KEY"');
+        expect(installScript).toContain(
+            'set_env_value PTBK_OPENAI_CODEX_USE_API_KEY "$(resolve_openai_codex_api_key_usage)"',
+        );
         expect(installScript).toContain('set_env_value SENTRY_DSN "$REQUESTED_SENTRY_DSN"');
         expect(installScript).toContain('set_env_value ADMIN_PASSWORD "$REQUESTED_ADMIN_PASSWORD"');
         expect(installScript).toContain('default_sentry_dsn="$(resolve_secret_default SENTRY_DSN NEXT_PUBLIC_SENTRY_DSN)"');
@@ -114,6 +117,32 @@ describe('other/vps/install.sh', () => {
         expect(installScript).toContain('PTBK_AGENT="$(prompt_with_default "Coding runner" "$PTBK_AGENT")"');
         expect(runnerDependenciesFunction).toContain('github-copilot)');
         expect(runnerDependenciesFunction).toContain('openai-codex)');
+    });
+
+    it('uses the configured OpenAI API key for OpenAI Codex runner authentication', () => {
+        const runnerAuthenticationPreferenceFunction = installScript.slice(
+            installScript.indexOf('\nprompt_runner_authentication_preference() {'),
+            installScript.indexOf('\nrun_runner_authentication_command() {'),
+        );
+        const runnerAuthenticationFunction = installScript.slice(
+            installScript.indexOf('\nconfigure_runner_authentication() {'),
+            installScript.indexOf('\nconfigure_code_runner_for_initial_installation() {'),
+        );
+
+        expect(installScript).toContain('PTBK_OPENAI_CODEX_USE_API_KEY="${PTBK_OPENAI_CODEX_USE_API_KEY:-0}"');
+        expect(installScript).toContain('resolve_openai_codex_api_key_usage()');
+        expect(installScript).toContain('is_openai_codex_api_key_runner_configured()');
+        expect(runnerAuthenticationPreferenceFunction).toContain(
+            'if is_openai_codex_api_key_runner_configured; then',
+        );
+        expect(runnerAuthenticationPreferenceFunction).toContain('IS_RUNNER_AUTHENTICATION_REQUESTED=0');
+        expect(runnerAuthenticationFunction).toContain('set_env_value PTBK_OPENAI_CODEX_USE_API_KEY 1');
+        expect(runnerAuthenticationFunction).toContain(
+            'OpenAI API key detected; the OpenAI Codex runner will use OPENAI_API_KEY without interactive CLI authentication.',
+        );
+        expect(runnerAuthenticationFunction.indexOf('if is_openai_codex_api_key_runner_configured; then')).toBeLessThan(
+            runnerAuthenticationFunction.indexOf('if ! is_interactive; then'),
+        );
     });
 
     it('asks for bundled default agents and seeds them after project initialization', () => {

@@ -3,6 +3,8 @@
     -   `other/vps/install.sh` now warns that it is meant only for fresh VPS machines, asks for confirmation with a safe default of `no`, and stops when that confirmation is declined.
     -   Non-interactive installs must now opt in explicitly with `PTBK_CONFIRM_FRESH_VPS=yes`, preventing automation from silently running on an already-configured server.
 
+-   Changed standalone VPS Agents Server installs so an entered `OPENAI_API_KEY` configures the default OpenAI Codex code runner for API-key authentication and skips the initial interactive Codex login prompt.
+
 -   Updated the standalone VPS Agents Server installer to ask for an optional Sentry DSN and persist it as `SENTRY_DSN`, so browser application error reports can be forwarded to Sentry immediately after installation.
 
 -   Added `--non-interactive` support to the standalone VPS Agents Server installer so automated installs take default answers, avoid prompt-based sudo validation, and skip initial code-runner CLI installation/authentication until it is configured later from the UI or SSH.

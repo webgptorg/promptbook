@@ -1,4 +1,4 @@
-[ ] !!!
+[x] ~$0.00 an hour by OpenAI Codex `gpt-5.5`
 
 [✨🐄] Use openai-coder with api key as configured agent runner
 
@@ -10,3 +10,4 @@
 ```bash
 root@collboard-agents-server-x21:~# sudo curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/other/vps/install.sh | bash
 ```
+

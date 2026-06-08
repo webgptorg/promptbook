@@ -30,6 +30,7 @@ PTBK_PM2_BASE_APP_NAME="${PTBK_PM2_BASE_APP_NAME:-$APP_NAME}"
 PTBK_AGENT="${PTBK_AGENT:-openai-codex}"
 PTBK_MODEL="${PTBK_MODEL:-gpt-5.4}"
 PTBK_THINKING_LEVEL="${PTBK_THINKING_LEVEL:-xhigh}"
+PTBK_OPENAI_CODEX_USE_API_KEY="${PTBK_OPENAI_CODEX_USE_API_KEY:-0}"
 PTBK_INSTALL_DEFAULT_AGENTS="${PTBK_INSTALL_DEFAULT_AGENTS:-yes}"
 PTBK_NON_INTERACTIVE="${PTBK_NON_INTERACTIVE:-0}"
 PTBK_CONFIRM_FRESH_VPS="${PTBK_CONFIRM_FRESH_VPS:-0}"
@@ -1256,6 +1257,11 @@ prompt_runner_authentication_preference() {
         return
     fi
 
+    if is_openai_codex_api_key_runner_configured; then
+        IS_RUNNER_AUTHENTICATION_REQUESTED=0
+        return
+    fi
+
     if ! is_interactive; then
         IS_RUNNER_AUTHENTICATION_REQUESTED=0
         return
@@ -1399,6 +1405,29 @@ get_env_value() {
 has_non_empty_env_value() {
     local key="$1"
     [[ -f "$ENV_FILE" ]] && grep -Eq "^${key}=.+" "$ENV_FILE"
+}
+
+resolve_openai_codex_api_key_usage() {
+    local openai_api_key="${REQUESTED_OPENAI_API_KEY:-}"
+
+    if [[ -z "$openai_api_key" ]]; then
+        openai_api_key="$(get_env_value OPENAI_API_KEY)"
+    fi
+
+    if [[ -z "$openai_api_key" ]]; then
+        openai_api_key="${OPENAI_API_KEY:-}"
+    fi
+
+    if [[ -n "$openai_api_key" ]]; then
+        printf '1'
+        return
+    fi
+
+    printf '0'
+}
+
+is_openai_codex_api_key_runner_configured() {
+    [[ "$PTBK_AGENT" == "openai-codex" ]] && [[ "$(resolve_openai_codex_api_key_usage)" == "1" ]]
 }
 
 resolve_secret_default() {
@@ -1718,6 +1747,7 @@ configure_environment() {
     set_env_value PTBK_NGINX_SITE_NAME "$NGINX_SITE_NAME"
     set_env_value LETS_ENCRYPT_EMAIL "$LETS_ENCRYPT_EMAIL"
     set_env_value OPENAI_API_KEY "$REQUESTED_OPENAI_API_KEY"
+    set_env_value PTBK_OPENAI_CODEX_USE_API_KEY "$(resolve_openai_codex_api_key_usage)"
     set_env_value SENTRY_DSN "$REQUESTED_SENTRY_DSN"
     set_env_value PTBK_FILE_STORAGE_MODE "$REQUESTED_FILE_STORAGE_MODE"
     set_env_value PTBK_SELF_CONTAINED_S3_DIRECTORY "$REQUESTED_SELF_CONTAINED_S3_DIRECTORY"
@@ -1783,6 +1813,12 @@ configure_runner_authentication() {
 
     if [[ "$PTBK_AGENT" == "github-copilot" ]] && [[ -n "${COPILOT_GITHUB_TOKEN:-}" || -n "${GH_TOKEN:-}" ]]; then
         log "GitHub Copilot token environment variable detected and stored in $ENV_FILE."
+        return
+    fi
+
+    if is_openai_codex_api_key_runner_configured; then
+        set_env_value PTBK_OPENAI_CODEX_USE_API_KEY 1
+        log "OpenAI API key detected; the OpenAI Codex runner will use OPENAI_API_KEY without interactive CLI authentication."
         return
     fi
 
