@@ -432,6 +432,11 @@
     min-width: 0;
     min-height: 0;
     z-index: 300;
+    pointer-events: none;
+}
+
+.chatMainFlow .chatChildren > * {
+    pointer-events: auto;
 }
 
 /* Chat messages area */
