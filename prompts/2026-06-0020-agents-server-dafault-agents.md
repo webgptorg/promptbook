@@ -1,8 +1,9 @@
 [x] ~$0.5664 an hour by OpenAI Codex `gpt-5.5`
+[x] ~$0.3218 42 minutes by OpenAI Codex `gpt-5.5`
 
 ---
 
-[x] ~$0.3218 42 minutes by OpenAI Codex `gpt-5.5`
+[ ] !!
 
 [✨🌗] When creating new Agents server via install script it should contain default agents
 
@@ -21,7 +22,8 @@
         -   social-media-manager.book
         -   spravce-kalendare.book
         -   webmaster.book
--   During the installation process, ask the user if they want to install the default agents, if they choose yes, then the agents from `agents/default` should be installed and created in the Agents server, so the user can start using them immediately after the installation is complete, if they choose no, then no agents should be created and the user can create their own agents from scratch or import them later
+-   This seems to be implemented already, but it is **not working and despite** confirmation during the installation process, the default agents are not created and available in the server after the installation is complete
+-   During the installation process, ask the user if they want to install the default agents, if they choose yes, then the agents from `agents/default` should be installed and created in the Agents server, so the user can start using them immediately after the installation is complete, if they choose no, then no agents should be created and the user can create their own agents from scratch or import them later _(this is working)_
 -   By default the default agents are created
 -   When updating a server that already has agents, the default agents should not be created again
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
@@ -35,4 +37,3 @@
 ```bash
 root@collboard-agents-server-x21:~# sudo curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/other/vps/install.sh | bash
 ```
-
