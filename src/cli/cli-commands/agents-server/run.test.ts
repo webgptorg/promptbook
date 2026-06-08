@@ -1,7 +1,11 @@
 import { Command } from 'commander';
 import { ensureAgentsServerBuild } from './buildAgentsServer';
 import { loadAgentsServerProjectEnvironment, startAgentsServer } from './startAgentsServer';
-import { $initializeAgentsServerBuildCommand, $initializeAgentsServerStartCommand } from './run';
+import {
+    $initializeAgentsServerBuildCommand,
+    $initializeAgentsServerDevCommand,
+    $initializeAgentsServerStartCommand,
+} from './run';
 
 jest.mock('./buildAgentsServer', () => ({
     ensureAgentsServerBuild: jest.fn(),
@@ -42,6 +46,15 @@ function createProgramWithAgentsServerStartCommand(): Command {
 }
 
 /**
+ * Creates a Commander program with the `agents-server dev` subcommand registered.
+ */
+function createProgramWithAgentsServerDevCommand(): Command {
+    const program = new Command();
+    $initializeAgentsServerDevCommand(program);
+    return program;
+}
+
+/**
  * Creates a Commander program with the `agents-server build` subcommand registered.
  */
 function createProgramWithAgentsServerBuildCommand(): Command {
@@ -70,6 +83,7 @@ describe('$initializeAgentsServerStartCommand', () => {
             appPath: 'apps/agents-server',
             nodeModulesPath: 'node_modules',
             nextCliPath: 'next',
+            isAppPathMaterialized: false,
         });
         getStartAgentsServerMock().mockResolvedValue(undefined);
         processExitSpy = jest.spyOn(process, 'exit').mockImplementation((() => undefined) as never);
@@ -103,6 +117,7 @@ describe('$initializeAgentsServerStartCommand', () => {
             noUi: false,
             thinkingLevel: 'xhigh',
             allowCredits: false,
+            nextRuntimeMode: 'start',
             isBuildForced: false,
         });
         expect(processExitSpy).not.toHaveBeenCalled();
@@ -124,6 +139,7 @@ describe('$initializeAgentsServerStartCommand', () => {
             noUi: true,
             thinkingLevel: 'high',
             allowCredits: false,
+            nextRuntimeMode: 'start',
             isBuildForced: false,
         });
     });
@@ -158,6 +174,7 @@ describe('$initializeAgentsServerStartCommand', () => {
                 agentName: 'github-copilot',
                 model: 'gpt-5.4',
                 thinkingLevel: 'xhigh',
+                nextRuntimeMode: 'start',
             }),
         );
     });
@@ -177,6 +194,47 @@ describe('$initializeAgentsServerStartCommand', () => {
     });
 });
 
+describe('$initializeAgentsServerDevCommand', () => {
+    let processExitSpy: jest.SpyInstance<never, [code?: string | number | null | undefined]>;
+    let consoleErrorSpy: jest.SpyInstance<void, [message?: unknown, ...optionalParams: unknown[]]>;
+    let consoleInfoSpy: jest.SpyInstance<void, [message?: unknown, ...optionalParams: unknown[]]>;
+
+    beforeEach(() => {
+        getStartAgentsServerMock().mockResolvedValue(undefined);
+        processExitSpy = jest.spyOn(process, 'exit').mockImplementation((() => undefined) as never);
+        consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+        consoleInfoSpy = jest.spyOn(console, 'info').mockImplementation(() => undefined);
+    });
+
+    afterEach(() => {
+        processExitSpy.mockRestore();
+        consoleErrorSpy.mockRestore();
+        consoleInfoSpy.mockRestore();
+        jest.clearAllMocks();
+    });
+
+    it('starts in development mode with hot reloading runtime options', async () => {
+        const program = createProgramWithAgentsServerDevCommand();
+
+        await program.parseAsync(
+            ['node', 'test', 'dev', '--agent', 'github-copilot', '--model', 'gpt-5.4', '--thinking-level', 'xhigh'],
+            { from: 'node' },
+        );
+
+        expect(getStartAgentsServerMock()).toHaveBeenCalledWith({
+            port: 4440,
+            agentName: 'github-copilot',
+            model: 'gpt-5.4',
+            noUi: false,
+            thinkingLevel: 'xhigh',
+            allowCredits: false,
+            nextRuntimeMode: 'dev',
+            isBuildForced: false,
+        });
+        expect(processExitSpy).not.toHaveBeenCalled();
+    });
+});
+
 describe('$initializeAgentsServerBuildCommand', () => {
     let processExitSpy: jest.SpyInstance<never, [code?: string | number | null | undefined]>;
     let consoleErrorSpy: jest.SpyInstance<void, [message?: unknown, ...optionalParams: unknown[]]>;
@@ -187,6 +245,7 @@ describe('$initializeAgentsServerBuildCommand', () => {
             appPath: 'apps/agents-server',
             nodeModulesPath: 'node_modules',
             nextCliPath: 'next',
+            isAppPathMaterialized: false,
         });
         processExitSpy = jest.spyOn(process, 'exit').mockImplementation((() => undefined) as never);
         consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);

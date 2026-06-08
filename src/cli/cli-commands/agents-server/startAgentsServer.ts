@@ -17,6 +17,8 @@ import type { CoderRunUiHandle } from '../../../../scripts/run-codex-prompts/ui/
 import {
     createAgentsServerRuntimeEnvironment,
     ensureAgentsServerBuild,
+    prepareAgentsServerRuntime,
+    type PreparedAgentsServerRuntime,
     resolveAgentsServerAppPath,
 } from './buildAgentsServer';
 import { DEFAULT_LOCAL_AGENT_RUNNER_MAX_FAILED_ATTEMPTS } from '../../../../apps/agents-server/src/constants/serverLimits';
@@ -113,6 +115,13 @@ const PTBK_HOSTNAME_ENV = 'PTBK_HOSTNAME';
 const LOCAL_USER_CHAT_WORKER_TOKEN_BYTE_LENGTH = 32;
 
 /**
+ * Next runtime mode supported by the local Agents Server foreground launcher.
+ *
+ * @private internal type of `ptbk agents-server`
+ */
+export type AgentsServerNextRuntimeMode = 'start' | 'dev';
+
+/**
  * Options required to start the foreground Agents Server service group.
  *
  * @private internal type of `ptbk agents-server`
@@ -124,6 +133,7 @@ export type StartAgentsServerOptions = {
     readonly noUi: boolean;
     readonly thinkingLevel?: ThinkingLevel;
     readonly allowCredits: boolean;
+    readonly nextRuntimeMode: AgentsServerNextRuntimeMode;
     readonly isBuildForced: boolean;
 };
 
@@ -179,6 +189,17 @@ type AgentsServerSupervisorState = {
 };
 
 /**
+ * Prepared Next runtime and child environment used by one foreground launch.
+ *
+ * @private internal type of `ptbk agents-server`
+ */
+type PreparedAgentsServerLaunch = {
+    readonly runtimeArtifacts: PreparedAgentsServerRuntime;
+    readonly runtimeChildEnvironment: AgentsServerChildEnvironment;
+    readonly runtimePaths: AgentsServerRuntimePaths;
+};
+
+/**
  * Local runner limits loaded from the running Agents Server app.
  *
  * @private internal type of `ptbk agents-server`
@@ -216,52 +237,31 @@ export async function startAgentsServer(options: StartAgentsServerOptions): Prom
     process.once('exit', processExitHandler);
 
     try {
-        const buildArtifacts = await ensureAgentsServerBuild({
-            appPath: runtimePaths.appPath,
-            environment: childEnvironment,
-            isBuildForced: options.isBuildForced,
-            onBuildEvent: (event) => {
-                logRunnerEvent(logStreams.runner, event);
-                forwardChildOutput(`${event}\n`, {
-                    label: 'next-build',
-                    logStream: logStreams.next,
-                    state,
-                });
-            },
-            onBuildOutput: (chunk) => {
-                forwardChildOutput(chunk, {
-                    label: 'next-build',
-                    logStream: logStreams.next,
-                    state,
-                });
-            },
-        });
-        const runtimeChildEnvironment = createAgentsServerRuntimeEnvironment(
+        const preparedLaunch = await prepareAgentsServerLaunch({
             childEnvironment,
-            buildArtifacts.nodeModulesPath,
-        ) as AgentsServerChildEnvironment;
-        const builtRuntimePaths: AgentsServerRuntimePaths = {
-            ...runtimePaths,
-            appPath: buildArtifacts.appPath,
-        };
+            logStreams,
+            options,
+            runtimePaths,
+            state,
+        });
 
         nextServerProcess = startNextServer({
-            nextCliPath: buildArtifacts.nextCliPath,
+            nextCliPath: preparedLaunch.runtimeArtifacts.nextCliPath,
             options,
-            runtimePaths: builtRuntimePaths,
-            childEnvironment: runtimeChildEnvironment,
+            runtimePaths: preparedLaunch.runtimePaths,
+            childEnvironment: preparedLaunch.runtimeChildEnvironment,
             logStreams,
             state,
         });
         const localAgentRunnerLimits = await waitForLocalAgentRunnerLimits({
             port: options.port,
-            environment: runtimeChildEnvironment,
+            environment: preparedLaunch.runtimeChildEnvironment,
             logStreams,
             state,
         });
         stopUserChatJobWorkerPump = startUserChatJobWorkerPump({
             port: options.port,
-            environment: runtimeChildEnvironment,
+            environment: preparedLaunch.runtimeChildEnvironment,
             logStreams,
             state,
         });
@@ -288,6 +288,70 @@ export async function startAgentsServer(options: StartAgentsServerOptions): Prom
         process.off('exit', processExitHandler);
         closeAgentsServerLogStreams(logStreams);
     }
+}
+
+/**
+ * Prepares the shared Next runtime for either production start or hot-reloading development mode.
+ */
+async function prepareAgentsServerLaunch(options: {
+    readonly childEnvironment: AgentsServerChildEnvironment;
+    readonly logStreams: AgentsServerLogStreams;
+    readonly options: StartAgentsServerOptions;
+    readonly runtimePaths: AgentsServerRuntimePaths;
+    readonly state: AgentsServerSupervisorState;
+}): Promise<PreparedAgentsServerLaunch> {
+    const runtimeArtifacts =
+        options.options.nextRuntimeMode === 'start'
+            ? await ensureAgentsServerBuild({
+                  appPath: options.runtimePaths.appPath,
+                  environment: options.childEnvironment,
+                  isBuildForced: options.options.isBuildForced,
+                  onBuildEvent: (event) => {
+                      logRunnerEvent(options.logStreams.runner, event);
+                      forwardChildOutput(`${event}\n`, {
+                          label: 'next-build',
+                          logStream: options.logStreams.next,
+                          state: options.state,
+                      });
+                  },
+                  onBuildOutput: (chunk) => {
+                      forwardChildOutput(chunk, {
+                          label: 'next-build',
+                          logStream: options.logStreams.next,
+                          state: options.state,
+                      });
+                  },
+              })
+            : await prepareAgentsServerDevelopmentRuntime(options.runtimePaths.appPath, options.logStreams.runner);
+
+    return {
+        runtimeArtifacts,
+        runtimeChildEnvironment: createAgentsServerRuntimeEnvironment(
+            options.childEnvironment,
+            runtimeArtifacts.nodeModulesPath,
+            {
+                isNextValidationIgnored: runtimeArtifacts.isAppPathMaterialized,
+            },
+        ) as AgentsServerChildEnvironment,
+        runtimePaths: {
+            ...options.runtimePaths,
+            appPath: runtimeArtifacts.appPath,
+        },
+    };
+}
+
+/**
+ * Resolves the hot-reloading Next runtime without running the production build step.
+ */
+async function prepareAgentsServerDevelopmentRuntime(
+    appPath: string,
+    runnerLogStream: WriteStream,
+): Promise<PreparedAgentsServerRuntime> {
+    logRunnerEvent(runnerLogStream, 'Preparing the Agents Server Next development runtime.');
+
+    return prepareAgentsServerRuntime({
+        appPath,
+    });
 }
 
 /**
@@ -318,7 +382,7 @@ async function resolveAgentsServerRuntimePaths(): Promise<AgentsServerRuntimePat
 }
 
 /**
- * Starts the production Next server and wires its logs into the foreground dashboard.
+ * Starts the configured Next server mode and wires its logs into the foreground dashboard.
  */
 function startNextServer(options: {
     readonly nextCliPath: string;
@@ -328,8 +392,13 @@ function startNextServer(options: {
     readonly logStreams: AgentsServerLogStreams;
     readonly state: AgentsServerSupervisorState;
 }): ChildProcess {
-    logRunnerEvent(options.logStreams.runner, 'Starting the Agents Server Next process.');
-    const nextArguments = [options.nextCliPath, 'start', '--port', String(options.options.port)];
+    const nextRuntimeModeLabel = describeAgentsServerNextRuntimeMode(options.options.nextRuntimeMode);
+
+    logRunnerEvent(
+        options.logStreams.runner,
+        `Starting the Agents Server Next process in ${nextRuntimeModeLabel} mode.`,
+    );
+    const nextArguments = [options.nextCliPath, options.options.nextRuntimeMode, '--port', String(options.options.port)];
     const hostname = options.childEnvironment[PTBK_HOSTNAME_ENV]?.trim();
 
     if (hostname) {
@@ -365,6 +434,13 @@ function startNextServer(options: {
     });
 
     return commandProcess;
+}
+
+/**
+ * Converts one Next runtime mode into a readable label for logs.
+ */
+function describeAgentsServerNextRuntimeMode(nextRuntimeMode: AgentsServerNextRuntimeMode): string {
+    return nextRuntimeMode === 'dev' ? 'development' : 'production';
 }
 
 /**

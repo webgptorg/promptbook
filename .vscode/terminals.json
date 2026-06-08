@@ -11,10 +11,10 @@
         },
 
         {
-            "name": "✨👨‍💻 Run ptbk agents-server start",
+            "name": "✨👨‍💻 Run ptbk agents-server dev",
             "commands": [
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts agents-server start --agent github-copilot --model gpt-5.4 --thinking-level xhigh --port 4440"
+                "npx ts-node ./src/cli/test/ptbk.ts agents-server dev --agent github-copilot --model gpt-5.4 --thinking-level xhigh --port 4440"
             ],
             "execute": true,
             "onlySingle": false,

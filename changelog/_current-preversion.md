@@ -1,3 +1,7 @@
+-   Added `ptbk agents-server dev` for local Agents Server development, reusing the same environment and local coding-agent runner setup as `ptbk agents-server start` while running Next.js in hot-reloading development mode.
+
+    -   Updated [.vscode/terminals.json](.vscode/terminals.json) so the default local Agents Server terminal preset runs `ptbk agents-server dev` instead of the production-style `start` command.
+
 -   Optimized Agents Server agent and chat navigation responsiveness:
 
     -   Local agent routes now resolve common permanent-id/name lookups with a targeted database query before initializing the full agent reference resolver.

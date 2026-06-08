@@ -177,6 +177,15 @@ export type AgentsServerBuildArtifacts = {
 };
 
 /**
+ * Runtime paths resolved for Agents Server commands before choosing build or dev execution.
+ *
+ * @private internal type of `ptbk agents-server`
+ */
+export type PreparedAgentsServerRuntime = AgentsServerBuildArtifacts & {
+    readonly isAppPathMaterialized: boolean;
+};
+
+/**
  * Input paths required to validate or update the cached Agents Server build.
  *
  * @private internal type of `ptbk agents-server`
@@ -193,39 +202,64 @@ type AgentsServerBuildCacheOptions = {
  */
 export async function ensureAgentsServerBuild(
     options: EnsureAgentsServerBuildOptions = {},
-): Promise<AgentsServerBuildArtifacts> {
+): Promise<PreparedAgentsServerRuntime> {
     const environment = options.environment ?? process.env;
+    const preparedRuntime = await prepareAgentsServerRuntime({
+        appPath: options.appPath,
+    });
+    const buildEnvironment = createAgentsServerRuntimeEnvironment(environment, preparedRuntime.nodeModulesPath, {
+        isNextValidationIgnored: preparedRuntime.isAppPathMaterialized,
+    });
+
+    if (
+        !options.isBuildForced &&
+        (await isAgentsServerBuildCacheCurrent({
+            appPath: preparedRuntime.appPath,
+            environment: buildEnvironment,
+        }))
+    ) {
+        options.onBuildEvent?.('Using the cached Agents Server Next app build.');
+        return preparedRuntime;
+    }
+
+    options.onBuildEvent?.('Building the Agents Server Next app.');
+    await runNextBuild({
+        appPath: preparedRuntime.appPath,
+        environment: buildEnvironment,
+        nextCliPath: preparedRuntime.nextCliPath,
+        onBuildOutput: options.onBuildOutput,
+    });
+    await writeAgentsServerBuildCache({
+        appPath: preparedRuntime.appPath,
+        environment: buildEnvironment,
+    });
+
+    return preparedRuntime;
+}
+
+/**
+ * Resolves the runtime app and dependency paths shared by Agents Server start and dev commands.
+ *
+ * @private internal utility of `ptbk agents-server`
+ */
+export async function prepareAgentsServerRuntime(
+    options: {
+        readonly appPath?: string;
+    } = {},
+): Promise<PreparedAgentsServerRuntime> {
     const nextCliPath = resolveNextCliPath();
     const nodeModulesPath = resolveNodeModulesPath(nextCliPath);
     const appPath = await resolveAgentsServerBuildAppPath({
         sourceAppPath: options.appPath ?? (await resolveAgentsServerAppPath()),
         nodeModulesPath,
     });
-    const buildEnvironment = createAgentsServerRuntimeEnvironment(environment, nodeModulesPath, {
-        isNextValidationIgnored: isAgentsServerAppPathMaterialized(appPath),
-    });
 
-    if (
-        !options.isBuildForced &&
-        (await isAgentsServerBuildCacheCurrent({
-            appPath,
-            environment: buildEnvironment,
-        }))
-    ) {
-        options.onBuildEvent?.('Using the cached Agents Server Next app build.');
-        return { appPath, nextCliPath, nodeModulesPath };
-    }
-
-    options.onBuildEvent?.('Building the Agents Server Next app.');
-    await runNextBuild({
+    return {
         appPath,
-        environment: buildEnvironment,
         nextCliPath,
-        onBuildOutput: options.onBuildOutput,
-    });
-    await writeAgentsServerBuildCache({ appPath, environment: buildEnvironment });
-
-    return { appPath, nextCliPath, nodeModulesPath };
+        nodeModulesPath,
+        isAppPathMaterialized: isAgentsServerAppPathMaterialized(appPath),
+    };
 }
 
 /**

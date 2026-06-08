@@ -5,7 +5,11 @@ import type {
 import { spaceTrim } from 'spacetrim';
 import type { $side_effect } from '../../utils/organization/$side_effect';
 import { $initializeAgentsServerInitCommand } from './agents-server/init';
-import { $initializeAgentsServerBuildCommand, $initializeAgentsServerStartCommand } from './agents-server/run';
+import {
+    $initializeAgentsServerBuildCommand,
+    $initializeAgentsServerDevCommand,
+    $initializeAgentsServerStartCommand,
+} from './agents-server/run';
 
 /**
  * Initializes `agents-server` command with subcommands for Promptbook CLI utilities.
@@ -20,12 +24,14 @@ export function $initializeAgentsServerCommand(program: Program): $side_effect {
 
             Subcommands:
             - build: Build the web server for later local startup
+            - dev: Start the web server in development mode with hot reloading
             - init: Initialize local web server configuration
             - start: Start the web server and local coding-agent message runners
         `),
     );
 
     $initializeAgentsServerBuildCommand(agentsServerCommand);
+    $initializeAgentsServerDevCommand(agentsServerCommand);
     $initializeAgentsServerInitCommand(agentsServerCommand);
     $initializeAgentsServerStartCommand(agentsServerCommand);
 
