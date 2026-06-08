@@ -44,7 +44,9 @@ describe('other/vps/install.sh', () => {
         );
         expect(installScript).toContain('set_env_value SENTRY_DSN "$REQUESTED_SENTRY_DSN"');
         expect(installScript).toContain('set_env_value ADMIN_PASSWORD "$REQUESTED_ADMIN_PASSWORD"');
-        expect(installScript).toContain('default_sentry_dsn="$(resolve_secret_default SENTRY_DSN NEXT_PUBLIC_SENTRY_DSN)"');
+        expect(installScript).toContain(
+            'default_sentry_dsn="$(resolve_secret_default SENTRY_DSN NEXT_PUBLIC_SENTRY_DSN)"',
+        );
         expect(installScript).toContain(
             'openai_api_key_default_description="$(resolve_secret_default_description "$default_openai_api_key" "empty")"',
         );
@@ -132,9 +134,7 @@ describe('other/vps/install.sh', () => {
         expect(installScript).toContain('PTBK_OPENAI_CODEX_USE_API_KEY="${PTBK_OPENAI_CODEX_USE_API_KEY:-0}"');
         expect(installScript).toContain('resolve_openai_codex_api_key_usage()');
         expect(installScript).toContain('is_openai_codex_api_key_runner_configured()');
-        expect(runnerAuthenticationPreferenceFunction).toContain(
-            'if is_openai_codex_api_key_runner_configured; then',
-        );
+        expect(runnerAuthenticationPreferenceFunction).toContain('if is_openai_codex_api_key_runner_configured; then');
         expect(runnerAuthenticationPreferenceFunction).toContain('IS_RUNNER_AUTHENTICATION_REQUESTED=0');
         expect(runnerAuthenticationFunction).toContain('set_env_value PTBK_OPENAI_CODEX_USE_API_KEY 1');
         expect(runnerAuthenticationFunction).toContain(
