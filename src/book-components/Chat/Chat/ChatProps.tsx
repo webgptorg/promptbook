@@ -9,10 +9,10 @@ import type { string_href } from '../../../types/string_href';
 import type { string_color } from '../../../types/string_person_fullname';
 import { Color } from '../../../utils/color/Color';
 import type { AgentChipData } from '../AgentChip/AgentChip';
+import type { ChatSaveFormatHandlerMap } from '../save/_common/ChatSaveFormatHandler';
 import type { string_chat_format_name } from '../save/_common/string_chat_format_name';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
-import type { ChatSaveFormatHandlerMap } from '../save/_common/ChatSaveFormatHandler';
 
 /**
  * Response data returned by the optional `onFeedback` handler.
@@ -660,11 +660,7 @@ export type ChatProps = {
      */
     readonly tasksProgress?: Array<{ id: string; name: string; progress?: number }>; // Simplified task progress type
 
-    /**
-     * Content to be shown inside the chat bar in head
-     * If not provided, the chat bar will not be rendered
-     */
-    readonly children?: ReactNode;
+
 
     /**
      * Extra action buttons/elements rendered in the actions toolbar

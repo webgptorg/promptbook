@@ -4,8 +4,8 @@
 
 import { useCallback, useMemo, type MouseEvent } from 'react';
 import { Color } from '../../../utils/color/Color';
-import { SolidArrowButton } from '../../icons/SolidArrowButton';
 import { classNames } from '../../_common/react-utils/classNames';
+import { SolidArrowButton } from '../../icons/SolidArrowButton';
 import { ChatEffectsSystem } from '../effects/ChatEffectsSystem';
 import type { ChatEffectConfig } from '../effects/types/ChatEffectConfig';
 import { useChatCompleteNotification } from '../hooks/useChatCompleteNotification';
@@ -95,7 +95,6 @@ export function Chat(props: ChatProps) {
         defaultMessage,
         enterBehavior,
         resolveEnterBehavior,
-        children,
         className,
         style,
         isAiTextHumanizedAndPromptbookified = true,
@@ -269,8 +268,6 @@ export function Chat(props: ChatProps) {
                         chatCssClassNames.chatMainFlow,
                     )}
                 >
-                    {children && <div className={classNames(styles.chatChildren)}>{children}</div>}
-
                     {shouldShowScrollToBottom && (
                         <div className={styles.scrollToBottomContainer}>
                             <div className={styles.scrollToBottomWrapper}>
