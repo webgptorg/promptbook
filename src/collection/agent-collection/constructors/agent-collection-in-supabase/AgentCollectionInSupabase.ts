@@ -50,6 +50,19 @@ function normalizeHistoryVersionName(versionName: string | null | undefined): st
 }
 
 /**
+ * Builds a Supabase `.or()` filter for agent name or permanent id lookups.
+ *
+ * @param agentNameOrPermanentId - Agent name or stable permanent identifier to match.
+ * @returns `.or()` filter string safe to pass to Supabase.
+ *
+ * @private internal helper of `AgentCollectionInSupabase`
+ */
+function buildAgentNameOrPermanentIdFilter(agentNameOrPermanentId: string): string {
+    const encodedAgentIdentifier = encodeURIComponent(agentNameOrPermanentId);
+    return `agentName.eq.${encodedAgentIdentifier},permanentId.eq.${encodedAgentIdentifier}`;
+}
+
+/**
  * One saved Agent history row without the full source payload.
  */
 type AgentHistoryMetadata = {
@@ -68,6 +81,16 @@ type AgentHistoryMetadata = {
 type AgentHistorySnapshot = AgentHistoryMetadata & {
     readonly agentSource: string;
 };
+
+/**
+ * Minimal database row used to build public agent information.
+ *
+ * @private internal type of `AgentCollectionInSupabase`
+ */
+type AgentBasicInformationRow = Pick<
+    AgentsDatabaseSchema['public']['Tables']['Agent']['Row'],
+    'agentName' | 'agentProfile' | 'permanentId'
+>;
 
 /**
  * Agent collection stored in a Supabase table.
@@ -127,24 +150,78 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
             console.info(`Found ${selectResult.data.length} agents in directory`);
         }
 
-        return selectResult.data.map(({ agentName, agentProfile, permanentId }) => {
-            if (isVerbose && (agentProfile as AgentBasicInformation).agentName !== agentName) {
-                console.warn(
-                    spaceTrim(`
+        return selectResult.data.map((row) => this.mapAgentBasicInformationRow(row, isVerbose));
+    }
+
+    /**
+     * Finds one active agent profile by its human-readable name or permanent id.
+     *
+     * This keeps route-level lookups from loading the whole agent collection when only
+     * one canonical route identifier is needed.
+     *
+     * @param agentNameOrPermanentId - Agent name or stable permanent identifier.
+     * @returns Matching active agent profile or `null` when not found.
+     *
+     * @public exported from `@promptbook/core`
+     */
+    public async findAgentBasicInformation(
+        agentNameOrPermanentId: string_agent_name | string_agent_permanent_id,
+    ): Promise<AgentBasicInformation | null> {
+        const { isVerbose = DEFAULT_IS_VERBOSE } = this.options || {};
+        const selectResult = await this.supabaseClient
+            .from(this.getTableName('Agent'))
+            .select('agentName,agentProfile,permanentId')
+            .or(buildAgentNameOrPermanentIdFilter(agentNameOrPermanentId))
+            .is('deletedAt', null)
+            .order('createdAt', { ascending: true })
+            .limit(1);
+
+        if (selectResult.error) {
+            throw new DatabaseError(
+                spaceTrim(
+                    (block) => `
+
+                        Error fetching agent "${agentNameOrPermanentId}" from Supabase:
+
+                        ${block(selectResult.error.message)}
+                    `,
+                ),
+            );
+        }
+
+        const row = selectResult.data?.[0];
+        return row ? this.mapAgentBasicInformationRow(row, isVerbose) : null;
+    }
+
+    /**
+     * Converts one database row into public agent information.
+     *
+     * @param row - Database row carrying the persisted profile snapshot.
+     * @param isVerbose - Whether profile-name mismatches should be logged.
+     * @returns Agent profile with canonical database name and permanent id.
+     *
+     * @private internal helper of `AgentCollectionInSupabase`
+     */
+    private mapAgentBasicInformationRow(
+        { agentName, agentProfile, permanentId }: AgentBasicInformationRow,
+        isVerbose: boolean,
+    ): AgentBasicInformation {
+        if (isVerbose && (agentProfile as AgentBasicInformation).agentName !== agentName) {
+            console.warn(
+                spaceTrim(`
                         Agent name mismatch for agent "${agentName}". Using name from database.
 
                         agentName: "${agentName}"
                         agentProfile.agentName: "${(agentProfile as AgentBasicInformation).agentName}"
                     `),
-                );
-            }
+            );
+        }
 
-            return {
-                ...(agentProfile as AgentBasicInformation),
-                agentName,
-                permanentId: permanentId || (agentProfile as AgentBasicInformation).permanentId,
-            };
-        });
+        return {
+            ...(agentProfile as AgentBasicInformation),
+            agentName,
+            permanentId: permanentId || (agentProfile as AgentBasicInformation).permanentId,
+        };
     }
 
     /**
@@ -156,7 +233,7 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
         const selectResult = await this.supabaseClient
             .from(this.getTableName('Agent'))
             .select('permanentId')
-            .or(`agentName.eq.${agentNameOrPermanentId},permanentId.eq.${agentNameOrPermanentId}`)
+            .or(buildAgentNameOrPermanentIdFilter(agentNameOrPermanentId))
             .order('createdAt', { ascending: true }) // Pick oldest if multiple match by name
             .limit(1);
 
@@ -175,7 +252,7 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
         const selectResult = await this.supabaseClient
             .from(this.getTableName('Agent'))
             .select('agentSource')
-            .or(`agentName.eq.${agentNameOrPermanentId},permanentId.eq.${agentNameOrPermanentId}`)
+            .or(buildAgentNameOrPermanentIdFilter(agentNameOrPermanentId))
             .is('deletedAt', null)
             .order('createdAt', { ascending: true }) // Pick oldest if multiple match by name
             .limit(1);

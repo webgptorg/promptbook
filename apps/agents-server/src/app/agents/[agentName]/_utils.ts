@@ -5,7 +5,7 @@ import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolv
 import {
     parseBookScopedAgentIdentifier,
 } from '@/src/utils/agentReferenceResolver/bookScopedAgentReferences';
-import { resolveServerAgentContext } from '@/src/utils/resolveServerAgentContext';
+import { resolveCachedServerAgentContext } from '@/src/utils/cachedServerAgentRuntime';
 import { cache } from 'react';
 import type { AgentsServerDatabase } from '../../../database/schema';
 import { $provideSupabaseForServer } from '../../../database/$provideSupabaseForServer';
@@ -91,10 +91,12 @@ export async function enforceCanonicalLocalAgentId(
  * @returns Resolved agent profile with visibility.
  */
 const getCachedAgentProfile = cache(async (agentName: string) => {
-    const collection = await $provideAgentCollectionForServer();
-    const { publicUrl } = await $provideServer();
-    const baseAgentReferenceResolver = await $provideAgentReferenceResolver();
-    const resolvedAgentContext = await resolveServerAgentContext({
+    const [collection, { publicUrl }, baseAgentReferenceResolver] = await Promise.all([
+        $provideAgentCollectionForServer(),
+        $provideServer(),
+        $provideAgentReferenceResolver(),
+    ]);
+    const resolvedAgentContext = await resolveCachedServerAgentContext({
         collection,
         agentIdentifier: agentName,
         localServerUrl: publicUrl.href,

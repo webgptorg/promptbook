@@ -271,21 +271,7 @@ async function resolveLocalAgentRouteTarget(
     localServerUrl: string,
 ): Promise<AgentRouteTarget | null> {
     const collection = await $provideAgentCollectionForServer();
-    const agents = await collection.listAgents();
-    const normalizedReference = normalizeAgentName(reference);
-
-    const agentMatch = agents.find((agent: { agentName: string; permanentId?: string }) => {
-        if (agent.agentName === reference || agent.permanentId === reference) {
-            return true;
-        }
-
-        const normalizedAgentName = normalizeAgentName(agent.agentName);
-        if (normalizedAgentName === normalizedReference) {
-            return true;
-        }
-
-        return false;
-    });
+    const agentMatch = await findLocalAgentRouteMatch(collection, reference);
 
     if (!agentMatch) {
         return null;
@@ -298,4 +284,39 @@ async function resolveLocalAgentRouteTarget(
         canonicalAgentId,
         canonicalUrl: `${localServerUrl}${AGENT_PATH_PREFIX}${encodeURIComponent(canonicalAgentId)}`,
     };
+}
+
+/**
+ * Finds a local agent route match without loading the whole collection when possible.
+ *
+ * @param collection - Agents collection backing local routes.
+ * @param reference - Normalized route/reference text.
+ * @returns Matching local agent profile or `null`.
+ */
+async function findLocalAgentRouteMatch(
+    collection: Awaited<ReturnType<typeof $provideAgentCollectionForServer>>,
+    reference: string,
+): Promise<{ agentName: string; permanentId?: string | null } | null> {
+    const directMatch = await collection.findAgentBasicInformation(reference);
+    if (directMatch) {
+        return directMatch;
+    }
+
+    const agents = await collection.listAgents();
+    const normalizedReference = normalizeAgentName(reference);
+
+    return (
+        agents.find((agent: { agentName: string; permanentId?: string | null }) => {
+            if (agent.agentName === reference || agent.permanentId === reference) {
+                return true;
+            }
+
+            const normalizedAgentName = normalizeAgentName(agent.agentName);
+            if (normalizedAgentName === normalizedReference) {
+                return true;
+            }
+
+            return false;
+        }) || null
+    );
 }

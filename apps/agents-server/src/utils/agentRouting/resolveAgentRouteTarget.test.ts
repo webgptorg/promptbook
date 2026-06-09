@@ -10,6 +10,10 @@ const PUBLIC_URL = new URL('https://local.example/');
  * Map of mock agent collection.
  */
 const mockAgentCollection = {
+    findAgentBasicInformation: jest.fn(async () => ({
+        agentName: 'Lawyer',
+        permanentId: 'lawyer-123',
+    })),
     listAgents: jest.fn(async () => [
         {
             agentName: 'Lawyer',
@@ -68,6 +72,8 @@ describe('resolveAgentRouteTarget', () => {
             canonicalAgentId: 'lawyer-123',
             canonicalUrl: 'https://local.example/agents/lawyer-123',
         });
+        expect(mockAgentCollection.findAgentBasicInformation).toHaveBeenCalledWith('Lawyer');
+        expect(mockAgentCollection.listAgents).not.toHaveBeenCalled();
     });
 
     it('keeps synthetic in-book route identifiers as canonical local routes', async () => {

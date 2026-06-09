@@ -1,3 +1,5 @@
+-   Optimized Agents Server agent/profile routing so normal page loads reuse cached resolved agent runtime data and route fallback lookups fetch one matching agent instead of listing the whole collection.
+
 -   Changed the standalone VPS Agents Server installer to require fresh-VPS confirmation before installation proceeds:
 
     -   `other/vps/install.sh` now warns that it is meant only for fresh VPS machines, asks for confirmation with a safe default of `no`, and stops when that confirmation is declined.
