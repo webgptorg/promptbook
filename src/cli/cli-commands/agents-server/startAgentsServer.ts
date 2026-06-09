@@ -398,7 +398,12 @@ function startNextServer(options: {
         options.logStreams.runner,
         `Starting the Agents Server Next process in ${nextRuntimeModeLabel} mode.`,
     );
-    const nextArguments = [options.nextCliPath, options.options.nextRuntimeMode, '--port', String(options.options.port)];
+    const nextArguments = [
+        options.nextCliPath,
+        options.options.nextRuntimeMode,
+        '--port',
+        String(options.options.port),
+    ];
     const hostname = options.childEnvironment[PTBK_HOSTNAME_ENV]?.trim();
 
     if (hostname) {
