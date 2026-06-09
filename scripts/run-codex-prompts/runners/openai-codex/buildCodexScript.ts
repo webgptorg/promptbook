@@ -18,17 +18,19 @@ const CODEX_PROMPT_DELIMITER = 'CODEX_PROMPT';
 export function buildCodexScript(options: CodexScriptOptions): string {
     const delimiter = resolveShellHereDocumentDelimiter(CODEX_PROMPT_DELIMITER, options.prompt);
     const projectPath = toPosixPath(options.projectPath);
-    const loginMethodConfig = options.allowCredits
-        ? 'CODEX_LOGIN_METHOD_ARGUMENTS=()'
-        : spaceTrim(`
-              CODEX_LOGIN_METHOD_ARGUMENTS=(-c forced_login_method=chatgpt)
-              if [ "\${PTBK_OPENAI_CODEX_USE_API_KEY:-0}" = "1" ] && [ -n "\${OPENAI_API_KEY:-}" ]; then
-                  CODEX_LOGIN_METHOD_ARGUMENTS=()
-              fi
-          `);
+    const loginMethodConfig = spaceTrim(`
+        ${options.allowCredits ? 'CODEX_LOGIN_METHOD_ARGUMENTS=()' : 'CODEX_LOGIN_METHOD_ARGUMENTS=(-c forced_login_method=chatgpt)'}
+        if [ "\${PTBK_OPENAI_CODEX_USE_API_KEY:-0}" = "1" ] && [ -n "\${OPENAI_API_KEY:-}" ]; then
+            CODEX_LOGIN_METHOD_ARGUMENTS=(-c forced_login_method=api)
+        fi
+    `);
     const thinkingLevel = options.thinkingLevel ?? DEFAULT_CODEX_THINKING_LEVEL;
     const lines = [
-        'if [ -f .env ]; then',
+        'if [ -n "${PTBK_AGENTS_SERVER_ENV_FILE:-}" ] && [ -f "${PTBK_AGENTS_SERVER_ENV_FILE}" ]; then',
+        'set -a',
+        'source "${PTBK_AGENTS_SERVER_ENV_FILE}"',
+        'set +a',
+        'elif [ -f .env ]; then',
         'set -a',
         'source .env',
         'set +a',

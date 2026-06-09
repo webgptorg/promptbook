@@ -7,6 +7,7 @@
 
 -   Changed standalone VPS Agents Server installs so an entered `OPENAI_API_KEY` configures the default OpenAI Codex code runner for API-key authentication and skips the initial interactive Codex login prompt.
 
+    -   Fixed the OpenAI Codex runner shell to source the installed Agents Server `.env` through `PTBK_AGENTS_SERVER_ENV_FILE` and pass `forced_login_method=api` when `PTBK_OPENAI_CODEX_USE_API_KEY=1`, preventing Codex from starting without the configured API key in local message runners.
     -   Fixed the generated OpenAI Codex runner shell so Agents Server message folders can run outside a Git repository and prompt text cannot accidentally terminate the heredoc used to pass the prompt to Codex.
 
 -   Updated the standalone VPS Agents Server installer to ask for an optional Sentry DSN and persist it as `SENTRY_DSN`, so browser application error reports can be forwarded to Sentry immediately after installation.
