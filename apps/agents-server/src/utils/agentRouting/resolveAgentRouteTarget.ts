@@ -1,15 +1,11 @@
 import { $provideServer } from '../../tools/$provideServer';
 import { $provideAgentCollectionForServer } from '../../tools/$provideAgentCollectionForServer';
-import { $getTableName } from '../../database/$getTableName';
-import { $provideSupabaseForServer } from '../../database/$provideSupabaseForServer';
 import { $provideAgentReferenceResolver } from '../agentReferenceResolver/$provideAgentReferenceResolver';
 import { consumeAgentReferenceResolutionIssues } from '../agentReferenceResolver/AgentReferenceResolutionIssue';
 import { parseBookScopedAgentIdentifier } from '../agentReferenceResolver/bookScopedAgentReferences';
-import { buildAgentNameOrIdFilter } from '../agentIdentifier';
 import { resolvePseudoAgentDescriptor } from '../pseudoAgents';
 import { normalizeAgentName } from '../../../../../src/_packages/core.index';
 import type { PseudoAgentKind } from '../../../../../src/book-2.0/agent-source/pseudoAgentReferences';
-import type { AgentsServerDatabase } from '../../database/schema';
 import { cache } from 'react';
 
 /**
@@ -53,14 +49,6 @@ type PseudoAgentRouteTarget = {
     canonicalAgentId: string;
     canonicalUrl: string;
 };
-
-/**
- * Minimal database row needed to resolve one local route target.
- */
-type LocalAgentRouteRow = Pick<
-    AgentsServerDatabase['public']['Tables']['Agent']['Row'],
-    'agentName' | 'permanentId'
->;
 
 /**
  * Target returned for an incoming `/agents/:agentId` route value.
@@ -112,11 +100,6 @@ async function resolveAgentRouteTargetUncached(
             canonicalAgentId,
             canonicalUrl: `${localServerUrl}${AGENT_PATH_PREFIX}${encodeURIComponent(canonicalAgentId)}`,
         };
-    }
-
-    const directLocalRouteTarget = await resolveLocalAgentRouteTargetFromDatabase(normalizedReference, localServerUrl);
-    if (directLocalRouteTarget) {
-        return directLocalRouteTarget;
     }
 
     const resolver = await $provideAgentReferenceResolver({ forceRefresh: options?.forceRefresh });
@@ -309,45 +292,6 @@ async function resolveLocalAgentRouteTarget(
     }
 
     const canonicalAgentId = agentMatch.permanentId || agentMatch.agentName;
-
-    return {
-        kind: 'local',
-        canonicalAgentId,
-        canonicalUrl: `${localServerUrl}${AGENT_PATH_PREFIX}${encodeURIComponent(canonicalAgentId)}`,
-    };
-}
-
-/**
- * Resolves the common local route case with a targeted indexed database lookup.
- *
- * The reference resolver has to initialize the full local/federated lookup map.
- * Most page requests already carry a permanent id or exact local name, so checking
- * the Agent table first keeps normal navigation from loading every agent profile.
- *
- * @param reference - Normalized route reference.
- * @param localServerUrl - Normalized URL of the current Agents Server instance.
- * @returns Local route target or `null` when the reference is not a local agent.
- */
-async function resolveLocalAgentRouteTargetFromDatabase(
-    reference: string,
-    localServerUrl: string,
-): Promise<AgentRouteTarget | null> {
-    const supabase = $provideSupabaseForServer();
-    const agentTable = await $getTableName('Agent');
-    const result = await supabase
-        .from(agentTable)
-        .select('agentName, permanentId')
-        .or(buildAgentNameOrIdFilter(reference))
-        .is('deletedAt', null)
-        .order('createdAt', { ascending: true })
-        .limit(1);
-
-    if (result.error || !result.data || result.data.length === 0) {
-        return null;
-    }
-
-    const agent = result.data[0] as LocalAgentRouteRow;
-    const canonicalAgentId = agent.permanentId || agent.agentName;
 
     return {
         kind: 'local',

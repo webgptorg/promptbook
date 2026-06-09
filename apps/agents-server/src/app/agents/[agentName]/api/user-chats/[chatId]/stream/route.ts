@@ -1,11 +1,6 @@
 import { CHAT_STREAM_KEEP_ALIVE_INTERVAL_MS } from '@/src/constants/streaming';
 import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
-import {
-    createUserChatDetailPayload,
-    getUserChat,
-    getUserChatRevision,
-    isFrozenUserChatSource,
-} from '@/src/utils/userChat';
+import { createUserChatDetailPayload, getUserChat, isFrozenUserChatSource } from '@/src/utils/userChat';
 import type { ChatMessage } from '@promptbook-local/types';
 import { NextResponse } from 'next/server';
 import { resolveUserChatScope } from '../../resolveUserChatScope';
@@ -36,11 +31,6 @@ type UserChatStreamFrame =
     | {
           type: 'keepalive';
       };
-
-/**
- * Lightweight revision shape returned by `getUserChatRevision`.
- */
-type UserChatRevision = Awaited<ReturnType<typeof getUserChatRevision>>;
 
 /**
  * Streams canonical chat snapshots for one scoped user chat so multiple viewers can observe the same background turn.
@@ -83,7 +73,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
         async start(controller) {
             let isStreamClosed = false;
             let lastSnapshotSignature: string | null = null;
-            let lastRevisionSignature: string | null = null;
             let keepAliveInterval: ReturnType<typeof setInterval> | null = null;
 
             /**
@@ -149,24 +138,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
 
                 const payload = await createUserChatDetailPayload(currentChat);
                 const nextSignature = createUserChatDetailSignature(payload);
-                lastRevisionSignature = createUserChatRevisionSignature({
-                    id: payload.chat.id,
-                    updatedAt: payload.chat.updatedAt,
-                    draftMessage: payload.draftMessage,
-                    source: payload.chat.source,
-                    activeJobs: payload.activeJobs.map((job) => ({
-                        id: job.id,
-                        status: job.status,
-                        cancelRequestedAt: job.cancelRequestedAt,
-                    })),
-                    activeTimeouts: payload.activeTimeouts.map((timeout) => ({
-                        id: timeout.id,
-                        status: timeout.status,
-                        message: timeout.message,
-                        dueAt: timeout.dueAt,
-                        cancelRequestedAt: timeout.cancelRequestedAt,
-                    })),
-                });
 
                 if (nextSignature !== lastSnapshotSignature) {
                     lastSnapshotSignature = nextSignature;
@@ -176,32 +147,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
                 }
 
                 return !isFrozenUserChatSource(payload.chat.source) && payload.activeJobs.length > 0;
-            };
-
-            /**
-             * Emits a full snapshot only when an idle chat revision changed.
-             *
-             * @private route helper
-             */
-            const emitLatestSnapshotWhenRevisionChanged = async (): Promise<boolean> => {
-                const currentRevision = await getUserChatRevision({
-                    userId: scopeResult.scope.userId,
-                    viewerIsAdmin: scopeResult.scope.viewerIsAdmin,
-                    agentPermanentId: scopeResult.scope.agentPermanentId,
-                    chatId,
-                });
-
-                if (!currentRevision) {
-                    closeStream();
-                    return false;
-                }
-
-                const nextRevisionSignature = createUserChatRevisionSignature(currentRevision);
-                if (nextRevisionSignature === lastRevisionSignature) {
-                    return false;
-                }
-
-                return emitLatestSnapshot();
             };
 
             /**
@@ -220,11 +165,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
             keepAliveInterval.unref?.();
 
             try {
-                let shouldUseFullPolling = await emitLatestSnapshot();
+                let hasActiveJobs = await emitLatestSnapshot();
 
                 while (!isStreamClosed && !request.signal.aborted) {
                     await waitForNextUserChatStreamPoll(
-                        shouldUseFullPolling
+                        hasActiveJobs
                             ? ACTIVE_USER_CHAT_STREAM_POLL_INTERVAL_MS
                             : IDLE_USER_CHAT_STREAM_POLL_INTERVAL_MS,
                         request.signal,
@@ -234,9 +179,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
                         break;
                     }
 
-                    shouldUseFullPolling = shouldUseFullPolling
-                        ? await emitLatestSnapshot()
-                        : await emitLatestSnapshotWhenRevisionChanged();
+                    hasActiveJobs = await emitLatestSnapshot();
                 }
             } catch (error) {
                 if (!isStreamClosed && !request.signal.aborted) {
@@ -268,30 +211,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
 }
 
 /**
- * Builds a compact signature for idle stream revision checks.
- */
-function createUserChatRevisionSignature(revision: NonNullable<UserChatRevision>): string {
-    return JSON.stringify({
-        id: revision.id,
-        updatedAt: revision.updatedAt,
-        draftMessage: revision.draftMessage || '',
-        source: revision.source,
-        activeJobs: revision.activeJobs.map((job) => ({
-            id: job.id,
-            status: job.status,
-            cancelRequestedAt: job.cancelRequestedAt,
-        })),
-        activeTimeouts: revision.activeTimeouts.map((timeout) => ({
-            id: timeout.id,
-            status: timeout.status,
-            message: timeout.message || '',
-            dueAt: timeout.dueAt,
-            cancelRequestedAt: timeout.cancelRequestedAt,
-        })),
-    });
-}
-
-/**
  * Builds a stable signature for the user-visible parts of a canonical chat snapshot.
  */
 function createUserChatDetailSignature(payload: Awaited<ReturnType<typeof createUserChatDetailPayload>>): string {
@@ -308,7 +227,6 @@ function createUserChatDetailSignature(payload: Awaited<ReturnType<typeof create
         activeTimeouts: payload.activeTimeouts.map((timeout) => ({
             id: timeout.id,
             status: timeout.status,
-            message: timeout.message || '',
             dueAt: timeout.dueAt,
             cancelRequestedAt: timeout.cancelRequestedAt,
         })),

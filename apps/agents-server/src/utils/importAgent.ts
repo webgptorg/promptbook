@@ -40,16 +40,6 @@ type ImportedAgentCacheRecord = {
     readonly source: string_book;
 
     /**
-     * Fetch implementation that produced this cached record.
-     */
-    readonly fetchImplementation: typeof fetch;
-
-    /**
-     * Timestamp when the source was last fetched successfully.
-     */
-    readonly cachedAt: number;
-
-    /**
      * Last observed ETag returned by the remote `/api/book` endpoint.
      */
     readonly etag: string | null;
@@ -64,22 +54,6 @@ type ImportedAgentCacheRecord = {
  * Successful remote imports cached by canonical agent identifier.
  */
 const IMPORTED_AGENT_CACHE = new Map<string, ImportedAgentCacheRecord>();
-
-/**
- * Freshness window for successful imported agent books.
- *
- * This avoids a remote revalidation round trip on every server render while
- * still allowing federated/default parent updates to appear shortly after.
- */
-const IMPORTED_AGENT_CACHE_FRESH_TTL_MS = 60_000;
-
-/**
- * Upper bound for fetching one imported agent book.
- *
- * Imported agents are used while rendering agent profiles and lists, so one slow
- * federated/default parent must not block the entire Agents Server page render.
- */
-const IMPORTED_AGENT_BOOK_FETCH_TIMEOUT_MS = 3_000;
 
 /**
  * In-flight remote imports deduplicated by canonical agent identifier.
@@ -125,26 +99,6 @@ function createImportCacheKey(
     agentIdentification: string_agent_name | string_agent_permanent_id | string_agent_url,
 ): string {
     return agentIdentification.replace(/\/+$/g, '');
-}
-
-/**
- * Returns `true` when a cached imported agent can be reused without revalidation.
- *
- * @param cachedImport - Cached successful import record.
- * @returns Whether the cached import is still fresh enough for immediate reuse.
- */
-function isImportedAgentCacheFresh(cachedImport: ImportedAgentCacheRecord): boolean {
-    return Date.now() - cachedImport.cachedAt < IMPORTED_AGENT_CACHE_FRESH_TTL_MS;
-}
-
-/**
- * Returns `true` when the current fetch implementation can safely reuse the cached import.
- *
- * @param cachedImport - Cached successful import record.
- * @returns Whether the cache was produced by the active fetch implementation.
- */
-function isImportedAgentCacheCompatible(cachedImport: ImportedAgentCacheRecord): boolean {
-    return cachedImport.fetchImplementation === globalThis.fetch;
 }
 
 /**
@@ -199,14 +153,7 @@ export async function importAgent(
         inheritancePath: options?.inheritancePath,
     } satisfies ImportAgentOptions;
     const cacheKey = createImportCacheKey(agentIdentification);
-    const storedCachedImport = IMPORTED_AGENT_CACHE.get(cacheKey);
-    const cachedImport =
-        storedCachedImport && isImportedAgentCacheCompatible(storedCachedImport) ? storedCachedImport : undefined;
-
-    if (cachedImport && isImportedAgentCacheFresh(cachedImport)) {
-        return cachedImport.source;
-    }
-
+    const cachedImport = IMPORTED_AGENT_CACHE.get(cacheKey);
     const existingRequest = PENDING_IMPORTED_AGENT_REQUESTS.get(cacheKey);
     if (existingRequest) {
         return existingRequest;
@@ -228,7 +175,6 @@ export async function importAgent(
             const response: Response = await fetch(agentBookUrl, {
                 cache: 'no-store',
                 headers,
-                signal: AbortSignal.timeout(IMPORTED_AGENT_BOOK_FETCH_TIMEOUT_MS),
             });
 
             if (response.status === 304 && cachedImport) {
@@ -256,8 +202,6 @@ export async function importAgent(
             const source = await readImportedAgentSource(agentIdentification, response);
             IMPORTED_AGENT_CACHE.set(cacheKey, {
                 source,
-                fetchImplementation: globalThis.fetch,
-                cachedAt: Date.now(),
                 etag: response.headers.get('etag'),
                 lastModified: response.headers.get('last-modified'),
             });

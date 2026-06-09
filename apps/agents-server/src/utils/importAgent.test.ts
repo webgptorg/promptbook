@@ -51,39 +51,6 @@ describe('how `importAgent` works', () => {
         );
     });
 
-    it('should reuse freshly cached remote agent books without revalidating on every render', async () => {
-        const fetchMock = jest.fn(async (input: RequestInfo | URL) => {
-            const url = String(input);
-
-            if (url !== 'https://core-test.ptbk.io/agents/test-cache/api/book?recursionLevel=1') {
-                throw new Error(`Unexpected fetch URL: ${url}`);
-            }
-
-            return new Response(
-                book`
-                    Test Cache
-
-                    FROM VOID
-                    NONCE 1
-                    CLOSED
-
-
-                `,
-                {
-                    status: 200,
-                    headers: { 'content-type': 'text/plain', etag: '"test-cache"' },
-                },
-            );
-        });
-
-        global.fetch = fetchMock as typeof fetch;
-
-        await importAgent('https://core-test.ptbk.io/agents/test-cache');
-        await importAgent('https://core-test.ptbk.io/agents/test-cache');
-
-        expect(fetchMock).toHaveBeenCalledTimes(1);
-    });
-
     it('should fail fetching a non-existent agent', async () => {
         global.fetch = jest.fn(async (input: RequestInfo | URL) => {
             const url = String(input);
