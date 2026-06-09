@@ -20,6 +20,16 @@
             "onlySingle": false,
             "focus": false
         },
+        {
+            "name": "✨👨‍💻 Run ptbk agents-server start",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/cli/test/ptbk.ts agents-server dev --agent github-copilot --model gpt-5.4 --thinking-level xhigh --port 4440"
+            ],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
 
         {
             "name": "✨⏩ Migrate Agents server `live` (💤)",
