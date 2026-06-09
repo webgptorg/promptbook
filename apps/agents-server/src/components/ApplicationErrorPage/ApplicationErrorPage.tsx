@@ -14,8 +14,10 @@ import {
     createApplicationErrorHeadline,
     createApplicationErrorReportPayload,
     describeApplicationError,
+    isApplicationErrorRecoverableByHardRefresh,
     resolveApplicationErrorVariant,
 } from '../../utils/errorReporting/applicationErrorHandling';
+import { refreshApplicationDocument } from '../../utils/errorReporting/refreshApplicationDocument';
 import { ErrorPageButtonAction, ErrorPageLinkAction } from '../ErrorPage/ErrorPage';
 import { InternalServerErrorPage } from '../InternalServerErrorPage/InternalServerErrorPage';
 
@@ -27,7 +29,7 @@ import { InternalServerErrorPage } from '../InternalServerErrorPage/InternalServ
 const troubleshootingSteps = [
     {
         title: 'Refresh the route',
-        detail: 'Try "Try again" so the last navigation runs with fresh cookies, network state, and session data.',
+        detail: 'Use the primary action so the page can retry with fresh cookies, network state, and build assets.',
     },
     {
         title: 'Share the digest',
@@ -45,6 +47,20 @@ const troubleshootingSteps = [
  * @private
  */
 const REPORT_ACTION_FEEDBACK_DURATION_MS = 2500;
+
+/**
+ * Delay before one recoverable stale-asset error triggers an automatic full-document refresh.
+ *
+ * @private
+ */
+const APPLICATION_ERROR_AUTO_REFRESH_DELAY_MS = 1500;
+
+/**
+ * Prefix used for session-scoped stale-asset refresh guards.
+ *
+ * @private
+ */
+const APPLICATION_ERROR_AUTO_REFRESH_STORAGE_KEY_PREFIX = 'promptbook.application-error-hard-refresh';
 
 /**
  * Writes plain text to the user clipboard.
@@ -83,16 +99,24 @@ function downloadMarkdownReport(reportMarkdown: string, filename: string): void 
 }
 
 /**
+ * Builds the session-storage key used to ensure one stale-asset error only auto-refreshes once per URL and digest.
+ *
+ * @param pageUrl - Browser URL where the error happened.
+ * @param digest - Deterministic digest rendered for the error.
+ * @returns Stable session-storage key for the current recoverable error.
+ *
+ * @private
+ */
+function createApplicationErrorAutoRefreshStorageKey(pageUrl: string, digest: string): string {
+    return `${APPLICATION_ERROR_AUTO_REFRESH_STORAGE_KEY_PREFIX}:${pageUrl}:${digest}`;
+}
+
+/**
  * Props accepted by shared action controls used across error variants.
  *
  * @private
  */
 type ApplicationErrorActionsProps = {
-    /**
-     * Callback that retries the failed route transition.
-     */
-    reset: () => void;
-
     /**
      * Digest value displayed for operator correlation.
      */
@@ -107,6 +131,16 @@ type ApplicationErrorActionsProps = {
      * Default filename used by the markdown save action.
      */
     reportFilename: string;
+
+    /**
+     * Primary action label rendered on the left-most action button.
+     */
+    primaryActionLabel: string;
+
+    /**
+     * Callback used by the left-most primary action button.
+     */
+    onPrimaryAction: () => void;
 };
 
 /**
@@ -117,10 +151,11 @@ type ApplicationErrorActionsProps = {
  * @private
  */
 function ApplicationErrorActions({
-    reset,
     digest,
     reportMarkdown,
     reportFilename,
+    primaryActionLabel,
+    onPrimaryAction,
 }: ApplicationErrorActionsProps) {
     const [reportFeedback, setReportFeedback] = useState<string | null>(null);
     const reportFeedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -179,9 +214,7 @@ function ApplicationErrorActions({
     return (
         <div className="flex flex-col items-center gap-3">
             <div className="flex flex-wrap justify-center gap-3">
-                <ErrorPageButtonAction onClick={() => reset()}>
-                    Try again
-                </ErrorPageButtonAction>
+                <ErrorPageButtonAction onClick={onPrimaryAction}>{primaryActionLabel}</ErrorPageButtonAction>
                 <ErrorPageLinkAction href="/" tone="secondary">
                     Go to homepage
                 </ErrorPageLinkAction>
@@ -246,9 +279,24 @@ type ApplicationErrorViewProps = {
     size?: 'default' | 'wide';
 
     /**
+     * Primary action label rendered on the left-most action button.
+     */
+    primaryActionLabel: string;
+
+    /**
+     * Callback used by the left-most primary action button.
+     */
+    onPrimaryAction: () => void;
+
+    /**
      * Optional supplementary content rendered beneath shared actions.
      */
     supplementaryContent?: ReactNode;
+
+    /**
+     * Optional recovery note rendered between the actions and supplementary content.
+     */
+    recoveryNotice?: ReactNode;
 };
 
 /**
@@ -264,18 +312,22 @@ function ApplicationErrorView({
     digest,
     reportMarkdown,
     reportFilename,
-    reset,
     size = 'default',
+    primaryActionLabel,
+    onPrimaryAction,
+    recoveryNotice,
     supplementaryContent,
 }: ApplicationErrorViewProps) {
     return (
         <InternalServerErrorPage headline={headline} description={description} size={size}>
             <ApplicationErrorActions
-                reset={reset}
                 digest={digest}
                 reportMarkdown={reportMarkdown}
                 reportFilename={reportFilename}
+                primaryActionLabel={primaryActionLabel}
+                onPrimaryAction={onPrimaryAction}
             />
+            {recoveryNotice}
             {supplementaryContent}
         </InternalServerErrorPage>
     );
@@ -374,9 +426,11 @@ export function ApplicationErrorPage({ error, reset }: ApplicationErrorPageProps
     );
     const digest = createApplicationErrorDigest(error);
     const serverName = process.env.NEXT_PUBLIC_SERVER_NAME ?? DEFAULT_APPLICATION_ERROR_SERVER_NAME;
+    const isRecoverableByHardRefresh = isApplicationErrorRecoverableByHardRefresh(error);
     const headline = createApplicationErrorHeadline(serverName);
     const description = describeApplicationError(error, serverName);
     const [pageUrl, setPageUrl] = useState<string | undefined>(undefined);
+    const [hasAutomaticRefreshAlreadyBeenAttempted, setHasAutomaticRefreshAlreadyBeenAttempted] = useState(false);
     const reportPayload = useMemo(
         () => createApplicationErrorReportPayload(error, digest, serverName, variant, pageUrl),
         [digest, error, pageUrl, serverName, variant],
@@ -391,6 +445,35 @@ export function ApplicationErrorPage({ error, reset }: ApplicationErrorPageProps
     useEffect(() => {
         setPageUrl(window.location.href);
     }, []);
+
+    useEffect(() => {
+        if (!pageUrl || !isRecoverableByHardRefresh) {
+            setHasAutomaticRefreshAlreadyBeenAttempted(false);
+            return undefined;
+        }
+
+        const storageKey = createApplicationErrorAutoRefreshStorageKey(pageUrl, digest);
+
+        try {
+            const hasStoredRefreshAttempt = window.sessionStorage.getItem(storageKey) === 'done';
+            if (hasStoredRefreshAttempt) {
+                setHasAutomaticRefreshAlreadyBeenAttempted(true);
+                return undefined;
+            }
+
+            window.sessionStorage.setItem(storageKey, 'done');
+        } catch {
+            // Some browser privacy modes may block session storage; the one-shot reload remains best-effort.
+        }
+
+        const timeout = window.setTimeout(() => {
+            refreshApplicationDocument();
+        }, APPLICATION_ERROR_AUTO_REFRESH_DELAY_MS);
+
+        return () => {
+            window.clearTimeout(timeout);
+        };
+    }, [digest, isRecoverableByHardRefresh, pageUrl]);
 
     useEffect(() => {
         if (!pageUrl) {
@@ -408,6 +491,23 @@ export function ApplicationErrorPage({ error, reset }: ApplicationErrorPageProps
         });
     }, [error, pageUrl, reportPayload]);
 
+    const primaryActionLabel = isRecoverableByHardRefresh ? 'Refresh now' : 'Try again';
+    const handlePrimaryAction = () => {
+        if (isRecoverableByHardRefresh) {
+            refreshApplicationDocument();
+            return;
+        }
+
+        reset();
+    };
+    const recoveryNotice = isRecoverableByHardRefresh ? (
+        <p className="mt-6 text-center text-sm text-gray-600">
+            {hasAutomaticRefreshAlreadyBeenAttempted
+                ? 'Automatic refresh already ran once. If the newest assets still do not load, use "Refresh now" or share the digest with your administrator.'
+                : 'Refreshing this page automatically once so the latest application files can be loaded.'}
+        </p>
+    ) : undefined;
+
     if (variant === 'simple') {
         return (
             <SimpleApplicationErrorView
@@ -417,6 +517,9 @@ export function ApplicationErrorPage({ error, reset }: ApplicationErrorPageProps
                 reportMarkdown={reportMarkdown}
                 reportFilename={reportFilename}
                 reset={reset}
+                recoveryNotice={recoveryNotice}
+                primaryActionLabel={primaryActionLabel}
+                onPrimaryAction={handlePrimaryAction}
             />
         );
     }
@@ -429,6 +532,9 @@ export function ApplicationErrorPage({ error, reset }: ApplicationErrorPageProps
             reportMarkdown={reportMarkdown}
             reportFilename={reportFilename}
             reset={reset}
+            recoveryNotice={recoveryNotice}
+            primaryActionLabel={primaryActionLabel}
+            onPrimaryAction={handlePrimaryAction}
         />
     );
 }

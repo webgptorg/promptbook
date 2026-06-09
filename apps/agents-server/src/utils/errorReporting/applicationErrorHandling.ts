@@ -81,6 +81,21 @@ const EDGE_DASH_PATTERN = /^-+|-+$/g;
 const CODE_FENCE_PATTERN = /```/g;
 
 /**
+ * Regex matching webpack/Next.js chunk-load failures caused by stale or missing build assets.
+ */
+const CHUNK_LOAD_ERROR_MESSAGE_PATTERN = /loading (css )?chunk .* failed/i;
+
+/**
+ * Regex matching browsers that fail while fetching one dynamically imported module.
+ */
+const DYNAMIC_IMPORT_FETCH_ERROR_MESSAGE_PATTERN = /failed to fetch dynamically imported module/i;
+
+/**
+ * Regex matching Next.js-managed build asset URLs.
+ */
+const NEXT_BUILD_ASSET_PATH_PATTERN = /\/_next\/static\/(?:chunks|css)\//i;
+
+/**
  * Shape sent from the app error boundary to server-side Sentry forwarding.
  */
 export type ApplicationErrorReportPayload = {
@@ -163,6 +178,32 @@ export function createApplicationErrorDigest(error: ApplicationBoundaryError | n
 }
 
 /**
+ * Detects client-side build-asset errors that are commonly fixed by reloading the document once.
+ *
+ * @param error - Captured boundary exception.
+ * @returns True when the current document should be hard-refreshed instead of only retrying React navigation.
+ */
+export function isApplicationErrorRecoverableByHardRefresh(error: ApplicationBoundaryError | null): boolean {
+    const errorName = error?.name?.trim() || '';
+    const errorMessage = error?.message?.trim() || '';
+    const errorStack = error?.stack?.trim() || '';
+    const errorDetails = `${errorName}\n${errorMessage}\n${errorStack}`;
+
+    if (errorName === 'ChunkLoadError') {
+        return true;
+    }
+
+    if (CHUNK_LOAD_ERROR_MESSAGE_PATTERN.test(errorDetails)) {
+        return true;
+    }
+
+    return (
+        DYNAMIC_IMPORT_FETCH_ERROR_MESSAGE_PATTERN.test(errorDetails) &&
+        NEXT_BUILD_ASSET_PATH_PATTERN.test(errorDetails)
+    );
+}
+
+/**
  * Formats descriptive text shown beneath the application error headline.
  *
  * @param error - Captured boundary exception.
@@ -170,6 +211,10 @@ export function createApplicationErrorDigest(error: ApplicationBoundaryError | n
  * @returns Friendly summary of what happened.
  */
 export function describeApplicationError(error: ApplicationBoundaryError | null, serverName: string): string {
+    if (isApplicationErrorRecoverableByHardRefresh(error)) {
+        return `The browser could not load the latest application files for ${serverName}. Refreshing the page usually resolves this after a deployment or stale cached shell.`;
+    }
+
     if (error?.message) {
         return `${error.message.trim()} - the server for ${serverName} logged this failure.`;
     }

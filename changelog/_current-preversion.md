@@ -1,3 +1,5 @@
+-   Fixed Agents Server stale frontend chunk-load failures so `_next/static` asset timeouts now trigger a one-time hard refresh with refresh-focused recovery UI instead of stranding users on the generic application error page after a deployment.
+
 -   Optimized Agents Server agent/profile routing so normal page loads reuse cached resolved agent runtime data and route fallback lookups fetch one matching agent instead of listing the whole collection.
 
 -   Changed the standalone VPS Agents Server installer to require fresh-VPS confirmation before installation proceeds:
