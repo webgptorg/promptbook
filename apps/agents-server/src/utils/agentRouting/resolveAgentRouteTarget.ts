@@ -1,15 +1,11 @@
 import { $provideServer } from '../../tools/$provideServer';
 import { $provideAgentCollectionForServer } from '../../tools/$provideAgentCollectionForServer';
-import { $getTableName } from '../../database/$getTableName';
-import { $provideSupabaseForServer } from '../../database/$provideSupabaseForServer';
 import { $provideAgentReferenceResolver } from '../agentReferenceResolver/$provideAgentReferenceResolver';
 import { consumeAgentReferenceResolutionIssues } from '../agentReferenceResolver/AgentReferenceResolutionIssue';
 import { parseBookScopedAgentIdentifier } from '../agentReferenceResolver/bookScopedAgentReferences';
-import { buildAgentNameOrIdFilter } from '../agentIdentifier';
 import { resolvePseudoAgentDescriptor } from '../pseudoAgents';
 import { normalizeAgentName } from '../../../../../src/_packages/core.index';
 import type { PseudoAgentKind } from '../../../../../src/book-2.0/agent-source/pseudoAgentReferences';
-import type { AgentsServerDatabase } from '../../database/schema';
 import { cache } from 'react';
 
 /**
@@ -53,14 +49,6 @@ type PseudoAgentRouteTarget = {
     canonicalAgentId: string;
     canonicalUrl: string;
 };
-
-/**
- * Minimal database row needed to resolve one local route target.
- */
-type LocalAgentRouteRow = Pick<
-    AgentsServerDatabase['public']['Tables']['Agent']['Row'],
-    'agentName' | 'permanentId'
->;
 
 /**
  * Target returned for an incoming `/agents/:agentId` route value.
@@ -112,11 +100,6 @@ async function resolveAgentRouteTargetUncached(
             canonicalAgentId,
             canonicalUrl: `${localServerUrl}${AGENT_PATH_PREFIX}${encodeURIComponent(canonicalAgentId)}`,
         };
-    }
-
-    const directLocalRouteTarget = await resolveLocalAgentRouteTargetFromDatabase(normalizedReference, localServerUrl);
-    if (directLocalRouteTarget) {
-        return directLocalRouteTarget;
     }
 
     const resolver = await $provideAgentReferenceResolver({ forceRefresh: options?.forceRefresh });

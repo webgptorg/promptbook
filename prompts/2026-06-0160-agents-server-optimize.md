@@ -1,5 +1,4 @@
 [x] ~$0.8523 2 hours by OpenAI Codex `gpt-5.5`
-[x] (2 attempts) ~$0.3059 3 hours by OpenAI Codex `gpt-5.5`
 
 [✨🦃] Optimize the Agents server app
 
@@ -49,3 +48,4 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
