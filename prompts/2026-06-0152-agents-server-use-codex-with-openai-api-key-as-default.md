@@ -1,4 +1,4 @@
-[ ] !
+[x] $2.06 an hour by OpenAI Codex `gpt-5.4`
 
 [✨🐄] When `openai-codex` picked during the installation and also entered api key, it should be enouugh to work, but it fails, fix it
 
@@ -58,3 +58,4 @@ OpenAI API key (optional) [keep existing]: <- The correct api key was set
 ![alt text](prompts/screenshots/2026-06-0152-agents-server-use-codex-with-openai-api-key-as-default.png)
 ![alt text](prompts/screenshots/2026-06-0152-agents-server-use-codex-with-openai-api-key-as-default-1.png)
 ![alt text](prompts/screenshots/2026-06-0152-agents-server-use-codex-with-openai-api-key-as-default-2.png)
+

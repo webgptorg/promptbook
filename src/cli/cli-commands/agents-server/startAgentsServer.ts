@@ -80,6 +80,13 @@ const AGENTS_SERVER_LOG_DIRECTORY_NAME = '.logs';
 const AGENTS_SERVER_PROJECT_ENV_FILE_NAME = '.env';
 
 /**
+ * Explicit installed Agents Server env-file path provided by the standalone VPS installer.
+ *
+ * @private internal constant of `ptbk agents-server`
+ */
+const PTBK_AGENTS_SERVER_ENV_FILE_ENV = 'PTBK_AGENTS_SERVER_ENV_FILE';
+
+/**
  * Public local agent-root environment name consumed by the Agents Server app.
  *
  * @private internal constant of `ptbk agents-server`
@@ -355,11 +362,20 @@ async function prepareAgentsServerDevelopmentRuntime(
 }
 
 /**
- * Loads launch-directory `.env` values without overriding explicit process environment.
+ * Loads Agents Server environment values, preferring the explicit installed env file when the standalone VPS
+ * installer provided one.
  *
  * @private internal utility of `ptbk agents-server`
  */
 export function loadAgentsServerProjectEnvironment(launchWorkingDirectory: string): void {
+    const explicitEnvFilePath = process.env[PTBK_AGENTS_SERVER_ENV_FILE_ENV]?.trim();
+    if (explicitEnvFilePath) {
+        const explicitLoadResult = dotenv.config({ path: explicitEnvFilePath, override: true });
+        if (!explicitLoadResult.error) {
+            return;
+        }
+    }
+
     dotenv.config({ path: join(launchWorkingDirectory, AGENTS_SERVER_PROJECT_ENV_FILE_NAME) });
 }
 

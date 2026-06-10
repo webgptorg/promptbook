@@ -1,3 +1,5 @@
+-   Fixed standalone VPS Agents Server OpenAI Codex startup so the CLI bootstrap now honors `PTBK_AGENTS_SERVER_ENV_FILE` as the authoritative installed `.env`, letting install-time `OPENAI_API_KEY` / `PTBK_OPENAI_CODEX_USE_API_KEY` values override stale inherited process variables and reach the local Codex runner immediately after installation.
+
 -   Fixed Agents Server stale frontend chunk-load failures so `_next/static` asset timeouts now trigger a one-time hard refresh with refresh-focused recovery UI instead of stranding users on the generic application error page after a deployment.
 
 -   Optimized Agents Server agent/profile routing so normal page loads reuse cached resolved agent runtime data and route fallback lookups fetch one matching agent instead of listing the whole collection.
