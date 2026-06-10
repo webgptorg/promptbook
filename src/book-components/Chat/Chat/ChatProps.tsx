@@ -660,8 +660,6 @@ export type ChatProps = {
      */
     readonly tasksProgress?: Array<{ id: string; name: string; progress?: number }>; // Simplified task progress type
 
-
-
     /**
      * Extra action buttons/elements rendered in the actions toolbar
      * (next to reset / template buttons). Keeps consumers DRY when
