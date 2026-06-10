@@ -1,10 +1,12 @@
 [x] $2.06 an hour by OpenAI Codex `gpt-5.4`
 
-[✨🐄] When `openai-codex` picked during the installation and also entered api key, it should be enouugh to work, but it fails, fix it
+---
 
--   This is already mid-way implemented, but it is not working, when the user enters the OpenAI API key during the installation process, then the `openai-codex` runner should be configured with that API key, so the user can start using it immediately after the installation is complete without the need to setup the login in interactive mode, and also without the need to create a new agent and configure it to use openai-codex runner with that API key, this will make the onboarding experience much better and smoother for the users, and also will allow them to start using the openai-codex runner with their OpenAI API key right after the installation is complete, so they can start experimenting with it and creating their own agents based on it
--   If the user enters the OpenAI API key during the installation process, then the openai-codex runner should be configured with that API key
--   You can ssh to s23.ptbk.io to see the error
+[ ] !
+
+[✨🐄] When `openai-codex` picked during the installation and also entered api key, it should be enough to work, but it fails, fix it
+
+-   When the user enters the OpenAI API key during the installation process, then the `openai-codex` runner should be configured with that API key, so the user can start using it immediately after the installation is complete without the need to setup the login in interactive mode by logging in into ChatGPT account
 
 **This is how the Agents server is installed:**
 
@@ -24,6 +26,10 @@ Agents Server port [4440]:
 OpenAI API key (optional) [keep existing]: <- The correct api key was set
 ...
 ```
+
+-   The `openai-codex` coding runner was picked
+-   The correct OpenAI API key was set during the installation process
+-   It should work immediately after the installation is complete
 
 **This is the fail when server is using `openai-codex` with correct OpenAI API key:**
 
@@ -58,4 +64,3 @@ OpenAI API key (optional) [keep existing]: <- The correct api key was set
 ![alt text](prompts/screenshots/2026-06-0152-agents-server-use-codex-with-openai-api-key-as-default.png)
 ![alt text](prompts/screenshots/2026-06-0152-agents-server-use-codex-with-openai-api-key-as-default-1.png)
 ![alt text](prompts/screenshots/2026-06-0152-agents-server-use-codex-with-openai-api-key-as-default-2.png)
-
