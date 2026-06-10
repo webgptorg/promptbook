@@ -1,6 +1,13 @@
--   Fixed Agents Server stale frontend chunk-load failures so `_next/static` asset timeouts now trigger a one-time hard refresh with refresh-focused recovery UI instead of stranding users on the generic application error page after a deployment.
+-   Added `ptbk agents-server dev` for local Agents Server development, reusing the same environment and local coding-agent runner setup as `ptbk agents-server start` while running Next.js in hot-reloading development mode.
 
--   Optimized Agents Server agent/profile routing so normal page loads reuse cached resolved agent runtime data and route fallback lookups fetch one matching agent instead of listing the whole collection.
+    -   Updated [.vscode/terminals.json](.vscode/terminals.json) so the default local Agents Server terminal preset runs `ptbk agents-server dev` instead of the production-style `start` command.
+
+-   Optimized Agents Server agent and chat navigation responsiveness:
+
+    -   Local agent routes now resolve common permanent-id/name lookups with a targeted database query before initializing the full agent reference resolver.
+    -   Imported/federated parent agent books now reuse fresh in-memory results and have a bounded fetch timeout so one slow remote/default parent cannot stall repeated page rendering.
+    -   Idle chat streams now check lightweight chat revision metadata before hydrating full chat snapshots, reducing repeated database and message processing work while chats are unchanged.
+    -   Empty chat overlay slots no longer intercept clicks on message quick buttons while still allowing actual overlay notices to remain interactive.
 
 -   Changed the standalone VPS Agents Server installer to require fresh-VPS confirmation before installation proceeds:
 

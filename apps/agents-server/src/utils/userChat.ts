@@ -13,6 +13,7 @@ export { getUserChat } from './userChat/getUserChat';
 export { getUserChatJob } from './userChat/getUserChatJob';
 export { getUserChatJobById } from './userChat/getUserChatJobById';
 export { getUserChatJobByClientMessageId } from './userChat/getUserChatJobByClientMessageId';
+export { getUserChatRevision } from './userChat/getUserChatRevision';
 export { heartbeatUserChatJob } from './userChat/heartbeatUserChatJob';
 export { listExpiredRunningUserChatJobs } from './userChat/listExpiredRunningUserChatJobs';
 export { listUserChats, listUserChatSummarySeeds } from './userChat/listUserChats';

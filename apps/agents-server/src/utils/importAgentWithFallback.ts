@@ -20,6 +20,10 @@ type FailedImportedAgentFallbackCacheRecord = {
      */
     readonly fallbackSource: string_book;
     /**
+     * Fetch implementation that produced this failed-import fallback.
+     */
+    readonly fetchImplementation: typeof fetch;
+    /**
      * Cache expiration timestamp in epoch milliseconds.
      */
     readonly expiresAt: number;
@@ -122,6 +126,11 @@ function readCachedFailedImportedAgentFallback(cacheKey: string): string_book | 
         return null;
     }
 
+    if (cachedFallback.fetchImplementation !== globalThis.fetch) {
+        cachedFailedImportedAgentFallbackByKey.delete(cacheKey);
+        return null;
+    }
+
     return cachedFallback.fallbackSource;
 }
 
@@ -134,6 +143,7 @@ function readCachedFailedImportedAgentFallback(cacheKey: string): string_book | 
 function writeCachedFailedImportedAgentFallback(cacheKey: string, fallbackSource: string_book): void {
     cachedFailedImportedAgentFallbackByKey.set(cacheKey, {
         fallbackSource,
+        fetchImplementation: globalThis.fetch,
         expiresAt: Date.now() + FAILED_IMPORTED_AGENT_FALLBACK_CACHE_TTL_MS,
     });
 }
