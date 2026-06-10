@@ -10,6 +10,9 @@ export async function register(): Promise<void> {
     }
 
     try {
+        const { registerServerErrorSentryLogging } = await import('./utils/errorReporting/registerServerErrorSentryLogging');
+        registerServerErrorSentryLogging();
+
         const { registerNodeRuntimeInstrumentation } = await import('./instrumentation-node');
         await registerNodeRuntimeInstrumentation();
     } catch (error) {

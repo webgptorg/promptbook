@@ -1,4 +1,4 @@
-[ ] !
+[x] ~$0.5414 an hour by OpenAI Codex `gpt-5.4`
 
 [✨⚠] Log errors from the Agents Server to Sentry
 
@@ -12,3 +12,4 @@
 ![alt text](prompts/screenshots/2026-06-0220-agents-server-log-errors-to-sentry-1.png)
 ![alt text](prompts/screenshots/2026-06-0220-agents-server-log-errors-to-sentry-2.png)
 ![No errors in Sentry](prompts/screenshots/2026-06-0220-agents-server-log-errors-to-sentry-3.png)
+
