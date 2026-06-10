@@ -1,4 +1,4 @@
-[ ]
+[ ] !
 
 [✨🐄] When `openai-codex` picked during the installation and also entered api key, it should be enouugh to work, but it fails, fix it
 
