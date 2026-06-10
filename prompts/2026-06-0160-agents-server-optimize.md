@@ -1,5 +1,9 @@
 [x] ~$0.8523 2 hours by OpenAI Codex `gpt-5.5`
 
+---
+
+[ ] !!
+
 [✨🦃] Optimize the Agents server app
 
 -   The agents server app is working but its vary slow and unresponsive, every page and agent takes a lot of time to load
@@ -48,4 +52,3 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
