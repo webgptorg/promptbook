@@ -38,3 +38,18 @@
 root@collboard-agents-server-x21:~# sudo curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/other/vps/install.sh | bash
 ```
 
+---
+
+[ ] !!
+
+[✨🌗] When creating new Agents server via `/admin/servers`
+
+-   When the server is created via admin it should contain palette of default agents, so the user can start using the server and testing it immediately after the server creation without the need to create agents from scratch or import them, this will make the onboarding experience much better and smoother for the users, and also will allow them to see how the agents work and what they can do right after the installation, so they can start experimenting with them and creating their own agents based on the default ones
+-   This is already implemented when creating server via the bash install script, but it is not implemented when creating server via the admin page, so it should be implemented in both places, and the code should be shared between these two implementations as much as possible
+-   The default agents should be sourced from folder `agents/default` in this repository, each `*.book` file should correspond to agent.
+-   In the "Create new server" allow to check "Install default agents" checkbox, which will install the default agents from `agents/default` folder, so the user can start using them immediately after the server is created, if they choose not to check it, then no agents should be created and the user can create their own agents from scratch or import them later, by default the checkbox should be checked, so the default agents are created by default
+-   Keep in mind the DRY _(don't repeat yourself)_ principle, especially if you are implementing both the installation script and the admin server creation, try to reuse as much code as possible between these two implementations, so you don't have to maintain two separate implementations of the same functionality, and also to ensure that the default agents are created in the same way and with the same data in both cases, so there are no discrepancies between the two implementations
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+
+![alt text](prompts/screenshots/2026-06-0020-agents-server-dafault-agents.png)
