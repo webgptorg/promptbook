@@ -41,7 +41,11 @@ describe('loadAgentsServerProjectEnvironment', () => {
         const temporaryDirectory = await mkdtemp(join(tmpdir(), 'promptbook-agents-server-start-'));
 
         try {
-            await writeFile(join(temporaryDirectory, '.env'), 'OPENAI_API_KEY=launch-directory-openai-api-key\n', 'utf-8');
+            await writeFile(
+                join(temporaryDirectory, '.env'),
+                'OPENAI_API_KEY=launch-directory-openai-api-key\n',
+                'utf-8',
+            );
             delete process.env.PTBK_AGENTS_SERVER_ENV_FILE;
             process.env.OPENAI_API_KEY = 'already-configured-openai-api-key';
 
