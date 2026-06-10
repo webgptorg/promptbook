@@ -7,7 +7,7 @@
 [✨🦃] Optimize the Agents server app
 
 -   The agents server app is working but its vary slow and unresponsive, every page and agent takes a lot of time to load
--   You can look at https://s22.ptbk.io/ or ssh to s22.ptbk.io to see the error
+-   You can look at https://s23.ptbk.io/ or ssh to s23.ptbk.io to see the error
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
