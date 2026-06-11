@@ -1,20 +1,12 @@
 import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../../../../../src/version';
+import {
+    createSentrySdkTags,
+    resolveSentrySdkCommitHash,
+    resolveSentrySdkEnvironment,
+    resolveSentrySdkRelease,
+    resolveSentrySdkRepositoryBranch,
+} from './sentrySdkConfig';
 import type { SentryStorePayload } from './sentryStore';
-
-/**
- * Release name used for Agents Server Sentry events.
- */
-const AGENTS_SERVER_SENTRY_RELEASE_NAME = 'promptbook-agents-server';
-
-/**
- * Fallback text used in Sentry tags when a value is not configured.
- */
-const UNKNOWN_SENTRY_CONTEXT_VALUE = 'unknown';
-
-/**
- * Maximum length kept for Sentry tag values.
- */
-const MAX_SENTRY_TAG_VALUE_LENGTH = 200;
 
 /**
  * Shared deployment and runtime context added to every Agents Server Sentry event.
@@ -71,33 +63,20 @@ export function enrichSentryStorePayloadWithAgentsServerContext(payload: SentryS
  * Creates a current Agents Server diagnostic context matching the admin About page metadata.
  *
  * @returns Common Sentry context for one event.
+ *
+ * @private internal helper for Agents Server Sentry reporting
  */
-function createAgentsServerSentryContext(): AgentsServerSentryContext {
-    const deploymentEnvironment = resolveSentryEnvironment();
+export function createAgentsServerSentryContext(): AgentsServerSentryContext {
+    const deploymentEnvironment = resolveSentrySdkEnvironment();
     const appPackageVersion = normalizeOptionalString(process.env.npm_package_version) ?? PROMPTBOOK_ENGINE_VERSION;
-    const commitHash = resolveCommitHash();
-    const repositoryBranch = resolveRepositoryBranch();
+    const commitHash = resolveSentrySdkCommitHash();
+    const repositoryBranch = resolveSentrySdkRepositoryBranch();
     const memoryUsage = process.memoryUsage();
 
     return {
-        release: createSentryReleaseName(appPackageVersion, commitHash),
+        release: resolveSentrySdkRelease(),
         environment: deploymentEnvironment,
-        tags: createSentryTags({
-            promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
-            bookLanguageVersion: BOOK_LANGUAGE_VERSION,
-            appPackageVersion,
-            commitHash,
-            repositoryBranch,
-            deploymentEnvironment,
-            vercelEnvironment: getFirstNonEmptyString(process.env.NEXT_PUBLIC_VERCEL_ENV, process.env.VERCEL_ENV),
-            targetEnvironment: getFirstNonEmptyString(
-                process.env.NEXT_PUBLIC_VERCEL_TARGET_ENV,
-                process.env.VERCEL_TARGET_ENV,
-            ),
-            nextRuntime: process.env.NEXT_RUNTIME,
-            nodeEnvironment: process.env.NODE_ENV,
-            vercelRegion: process.env.VERCEL_REGION,
-        }),
+        tags: createSentrySdkTags(),
         extra: {
             agentsServer: {
                 versions: {
@@ -187,95 +166,6 @@ function createAgentsServerSentryContext(): AgentsServerSentryContext {
             },
         },
     };
-}
-
-/**
- * Resolves the most specific deployment environment name available.
- *
- * @returns Environment name suitable for Sentry.
- */
-function resolveSentryEnvironment(): string {
-    return (
-        getFirstNonEmptyString(
-            process.env.SENTRY_ENVIRONMENT,
-            process.env.NEXT_PUBLIC_VERCEL_TARGET_ENV,
-            process.env.VERCEL_TARGET_ENV,
-            process.env.NEXT_PUBLIC_VERCEL_ENV,
-            process.env.VERCEL_ENV,
-            process.env.PROMPTBOOK_REPOSITORY_REF,
-            process.env.NODE_ENV,
-        ) ?? UNKNOWN_SENTRY_CONTEXT_VALUE
-    );
-}
-
-/**
- * Resolves the current deployment commit hash from common hosting environment variables.
- *
- * @returns Commit hash or null when unavailable.
- */
-function resolveCommitHash(): string | null {
-    return getFirstNonEmptyString(
-        process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA,
-        process.env.VERCEL_GIT_COMMIT_SHA,
-        process.env.PROMPTBOOK_COMMIT_SHA,
-        process.env.GIT_COMMIT_SHA,
-        process.env.COMMIT_SHA,
-        process.env.SOURCE_VERSION,
-    );
-}
-
-/**
- * Resolves the current repository branch or deployment ref.
- *
- * @returns Repository branch/ref or null when unavailable.
- */
-function resolveRepositoryBranch(): string | null {
-    return getFirstNonEmptyString(
-        process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF,
-        process.env.VERCEL_GIT_COMMIT_REF,
-        process.env.PROMPTBOOK_REPOSITORY_REF,
-        process.env.GIT_BRANCH,
-        process.env.BRANCH_NAME,
-    );
-}
-
-/**
- * Creates a Sentry release identifier from version and optional commit.
- *
- * @param appPackageVersion - Agents Server package version or Promptbook version fallback.
- * @param commitHash - Current deployment commit hash.
- * @returns Sentry release name.
- */
-function createSentryReleaseName(appPackageVersion: string, commitHash: string | null): string {
-    if (!commitHash) {
-        return `${AGENTS_SERVER_SENTRY_RELEASE_NAME}@${appPackageVersion}`;
-    }
-
-    return `${AGENTS_SERVER_SENTRY_RELEASE_NAME}@${appPackageVersion}+${commitHash}`;
-}
-
-/**
- * Creates Sentry tag values, preserving missing values as explicit `unknown` markers.
- *
- * @param values - Raw tag values.
- * @returns Sanitized Sentry tags.
- */
-function createSentryTags(values: Record<string, string | null | undefined>): Record<string, string> {
-    return Object.fromEntries(
-        Object.entries(values).map(([key, value]) => [key, sanitizeSentryTagValue(value)]),
-    ) as Record<string, string>;
-}
-
-/**
- * Normalizes one value for use as a Sentry tag.
- *
- * @param value - Optional tag value.
- * @returns Non-empty bounded tag value.
- */
-function sanitizeSentryTagValue(value: string | null | undefined): string {
-    const normalizedValue = normalizeOptionalString(value) ?? UNKNOWN_SENTRY_CONTEXT_VALUE;
-
-    return normalizedValue.replace(/\s+/gu, ' ').slice(0, MAX_SENTRY_TAG_VALUE_LENGTH);
 }
 
 /**

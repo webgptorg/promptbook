@@ -1,3 +1,5 @@
+-   Added the official Sentry Next.js SDK to Agents Server so server, edge, client, request, navigation, and `console.error` failures are reported with SDK-managed stack traces and performance tracing.
+
 -   Added shared Agents Server Sentry diagnostics so server-side `console.error` reports and browser application error reports include Promptbook/book versions, release, commit hash, deployment environment, git metadata, runtime details, and memory context.
 
 -   Optimized Agents Server page and chat responsiveness by caching repeated server metadata/custom asset reads across requests and using a direct SQLite chat-summary query for sidebar history instead of loading full chat message payloads.

@@ -1,3 +1,5 @@
+import * as Sentry from '@sentry/nextjs';
+
 /**
  * Registers startup hooks for the Agents Server runtime.
  *
@@ -5,11 +7,18 @@
  * @private internal startup hook for Agents Server runtime
  */
 export async function register(): Promise<void> {
+    if (process.env.NEXT_RUNTIME === 'edge') {
+        await import('./sentry.edge.config');
+        return;
+    }
+
     if (process.env.NEXT_RUNTIME !== 'nodejs') {
         return;
     }
 
     try {
+        await import('./sentry.server.config');
+
         const { registerServerErrorSentryLogging } = await import('./utils/errorReporting/registerServerErrorSentryLogging');
         registerServerErrorSentryLogging();
 
@@ -25,3 +34,10 @@ export async function register(): Promise<void> {
         });
     }
 }
+
+/**
+ * Reports request errors from the Next.js app router to Sentry.
+ *
+ * @private Sentry hook for Next.js request instrumentation
+ */
+export const onRequestError = Sentry.captureRequestError;

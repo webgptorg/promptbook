@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/nextjs';
 import type { ApplicationErrorReportPayload } from './applicationErrorHandling';
 import { enrichSentryStorePayloadWithAgentsServerContext } from './agentsServerSentryContext';
 import {
@@ -54,5 +55,39 @@ function createSentryStorePayload(report: ApplicationErrorReportPayload): Sentry
  * @param report - Structured browser report payload.
  */
 export async function sendApplicationErrorReportToSentry(report: ApplicationErrorReportPayload): Promise<void> {
-    await sendSentryStorePayload(createSentryStorePayload(report), resolveRequiredSentryDsn());
+    const sentryPayload = createSentryStorePayload(report);
+
+    if (Sentry.getClient()) {
+        Sentry.captureException(createApplicationErrorSdkException(report, sentryPayload), {
+            level: sentryPayload.level,
+            tags: sentryPayload.tags,
+            extra: sentryPayload.extra,
+        });
+        await Sentry.flush(2000);
+        return;
+    }
+
+    await sendSentryStorePayload(sentryPayload, resolveRequiredSentryDsn());
+}
+
+/**
+ * Rebuilds an `Error` object from a browser application report so the SDK can parse stack frames.
+ *
+ * @param report - Browser-generated application error report.
+ * @param sentryPayload - Structured Sentry payload created from the report.
+ * @returns Error object with the original browser stack when available.
+ */
+function createApplicationErrorSdkException(
+    report: ApplicationErrorReportPayload,
+    sentryPayload: SentryStorePayload,
+): Error {
+    const error = new Error(sentryPayload.message);
+
+    error.name = report.errorName || 'Error';
+
+    if (report.errorStack?.trim()) {
+        error.stack = report.errorStack;
+    }
+
+    return error;
 }

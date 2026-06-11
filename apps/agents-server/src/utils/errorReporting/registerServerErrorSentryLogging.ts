@@ -1,5 +1,7 @@
 import { inspect } from 'node:util';
+import * as Sentry from '@sentry/nextjs';
 import { DEFAULT_APPLICATION_ERROR_SERVER_NAME } from './applicationErrorHandling';
+import { createAgentsServerSentryContext } from './agentsServerSentryContext';
 import { enrichSentryStorePayloadWithAgentsServerContext } from './agentsServerSentryContext';
 import {
     createSentryTimestamp,
@@ -82,12 +84,16 @@ export function registerServerErrorSentryLogging(): void {
     console.error = (...consoleArguments: unknown[]): void => {
         loggingState.originalConsoleError?.(...consoleArguments);
 
+        const sentryPayload = createServerErrorSentryStorePayload(consoleArguments);
+
+        if (captureServerErrorWithSentrySdk(sentryPayload)) {
+            return;
+        }
+
         const sentryDsn = resolveOptionalSentryDsn();
         if (!sentryDsn) {
             return;
         }
-
-        const sentryPayload = createServerErrorSentryStorePayload(consoleArguments);
 
         // Never log reporting failures through `console.error`, otherwise a broken Sentry configuration would recurse.
         void sendSentryStorePayload(sentryPayload, sentryDsn).catch(() => undefined);
@@ -170,6 +176,54 @@ function createServerErrorSentryStorePayload(consoleArguments: readonly unknown[
             errorStack: loggedError?.stack ?? null,
         },
     });
+}
+
+/**
+ * Captures a server-side console error through the official Sentry SDK when it is initialized.
+ *
+ * @param sentryPayload - Structured event payload created from the original `console.error` call.
+ * @returns True when the SDK accepted the event.
+ */
+function captureServerErrorWithSentrySdk(sentryPayload: SentryStorePayload): boolean {
+    if (!Sentry.getClient()) {
+        return false;
+    }
+
+    const agentsServerContext = createAgentsServerSentryContext();
+
+    Sentry.captureException(createServerErrorSdkException(sentryPayload), {
+        level: sentryPayload.level,
+        tags: {
+            ...agentsServerContext.tags,
+            ...sentryPayload.tags,
+        },
+        extra: {
+            ...agentsServerContext.extra,
+            ...sentryPayload.extra,
+        },
+    });
+
+    return true;
+}
+
+/**
+ * Rebuilds an `Error` object from the structured Sentry payload so the SDK can parse stack frames.
+ *
+ * @param sentryPayload - Structured event payload created from the original `console.error` call.
+ * @returns Error object with the original stack when one was logged.
+ */
+function createServerErrorSdkException(sentryPayload: SentryStorePayload): Error {
+    const error = new Error(sentryPayload.message);
+    const exceptionValue = sentryPayload.exception?.values.at(0);
+    const errorStack = sentryPayload.extra?.errorStack;
+
+    error.name = exceptionValue?.type ?? 'Error';
+
+    if (typeof errorStack === 'string' && errorStack.trim()) {
+        error.stack = errorStack;
+    }
+
+    return error;
 }
 
 /**

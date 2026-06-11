@@ -27,7 +27,7 @@
 
 ---
 
-[ ] !!
+[x] ~$0.6502 2 hours by OpenAI Codex `gpt-5.5`
 
 [✨⚠] Log error trace to sentry
 
@@ -78,4 +78,5 @@ If you're using version `7.57.x` or below, you'll need to have our [tracing feat
 ## Verify
 
 Verify that performance monitoring is working correctly with our [automatic instrumentation](https://docs.sentry.io/platforms/javascript/guides/nextjs/tracing/instrumentation/automatic-instrumentation/) by simply using your NextJS application.
+
 

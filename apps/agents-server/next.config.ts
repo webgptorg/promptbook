@@ -1,6 +1,8 @@
+import { withSentryConfig } from '@sentry/nextjs';
 import type { NextConfig } from 'next';
 import { readdirSync } from 'fs';
 import path from 'path';
+import { SENTRY_ORGANIZATION, SENTRY_PROJECT } from './src/utils/errorReporting/sentrySdkConfig';
 
 /**
  * Next.js build output directory.
@@ -19,6 +21,11 @@ const agentsServerNodeModulesPath = process.env.PTBK_AGENTS_SERVER_NODE_MODULES_
  * Whether the CLI-owned build should skip duplicate validation already covered by repository tests.
  */
 const isNextValidationIgnored = process.env.PTBK_AGENTS_SERVER_IGNORE_NEXT_VALIDATION === 'true';
+
+/**
+ * Whether Sentry source maps can be uploaded during production builds.
+ */
+const IS_SENTRY_SOURCE_MAP_UPLOAD_ENABLED = Boolean(process.env.SENTRY_AUTH_TOKEN);
 
 /**
  * Exact aliases for local generated Promptbook package entrypoints.
@@ -122,7 +129,19 @@ const nextConfig: NextConfig = {
     },
 };
 
-export default nextConfig;
+export default withSentryConfig(nextConfig, {
+    org: SENTRY_ORGANIZATION,
+    project: SENTRY_PROJECT,
+    silent: true,
+    sourcemaps: {
+        disable: !IS_SENTRY_SOURCE_MAP_UPLOAD_ENABLED,
+    },
+    webpack: {
+        treeshake: {
+            removeDebugLogging: true,
+        },
+    },
+});
 
 /**
  * Creates webpack/Turbopack aliases from imports like `@promptbook-local/core` to generated local sources.

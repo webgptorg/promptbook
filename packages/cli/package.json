@@ -154,6 +154,7 @@
         "@playwright/test": "^1.58.2",
         "@prisma/studio-core": "0.27.3",
         "@sendgrid/mail": "8.1.6",
+        "@sentry/nextjs": "^10.57.0",
         "@types/formidable": "3.4.7",
         "@types/mailparser": "3.4.6",
         "@types/swagger-ui-react": "5.18.0",
