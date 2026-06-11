@@ -20,8 +20,11 @@ export function buildCodexScript(options: CodexScriptOptions): string {
     const projectPath = toPosixPath(options.projectPath);
     const loginMethodConfig = spaceTrim(`
         ${options.allowCredits ? 'CODEX_LOGIN_METHOD_ARGUMENTS=()' : 'CODEX_LOGIN_METHOD_ARGUMENTS=(-c forced_login_method=chatgpt)'}
+        unset CODEX_API_KEY
         if [ "\${PTBK_OPENAI_CODEX_USE_API_KEY:-0}" = "1" ] && [ -n "\${OPENAI_API_KEY:-}" ]; then
             CODEX_LOGIN_METHOD_ARGUMENTS=(-c forced_login_method=api)
+            CODEX_API_KEY="\${OPENAI_API_KEY}"
+            export CODEX_API_KEY
         fi
     `);
     const thinkingLevel = options.thinkingLevel ?? DEFAULT_CODEX_THINKING_LEVEL;

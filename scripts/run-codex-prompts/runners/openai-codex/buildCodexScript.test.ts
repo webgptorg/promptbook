@@ -54,6 +54,9 @@ describe('buildCodexScript', () => {
         expect(script).toContain('elif [ -f .env ]; then');
         expect(script).toContain('if [ "${PTBK_OPENAI_CODEX_USE_API_KEY:-0}" = "1" ]');
         expect(script).toContain('CODEX_LOGIN_METHOD_ARGUMENTS=(-c forced_login_method=api)');
+        expect(script).toContain('unset CODEX_API_KEY');
+        expect(script).toContain('CODEX_API_KEY="${OPENAI_API_KEY}"');
+        expect(script).toContain('export CODEX_API_KEY');
         expect(script).toContain('if [ "${PTBK_OPENAI_CODEX_USE_API_KEY:-0}" != "1" ]');
         expect(script).toContain('unset OPENAI_API_KEY');
         expect(script).toContain('unset OPENAI_BASE_URL');
