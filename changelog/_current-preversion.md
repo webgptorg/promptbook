@@ -1,8 +1,3 @@
--   Fixed standalone VPS Agents Server OpenAI Codex startup so entering `OPENAI_API_KEY` during installation is enough to authenticate local chat runs immediately after install.
-
-    -   Agents Server CLI startup now prefers the explicit installed `.env` file from `PTBK_AGENTS_SERVER_ENV_FILE` before falling back to the working-directory `.env`.
-    -   The OpenAI Codex runner shell now reuses any available `OPENAI_API_KEY` by default unless `PTBK_OPENAI_CODEX_USE_API_KEY` explicitly disables API-key mode, preventing missing-auth local runner failures after installation.
-
 -   Optimized Agents Server page and chat responsiveness by caching repeated server metadata/custom asset reads across requests and using a direct SQLite chat-summary query for sidebar history instead of loading full chat message payloads.
 
 -   Added optional default-agent installation to Agents Server server creation from `/admin/servers`, with the checkbox enabled by default and backed by the same bundled `agents/default/*.book` sources used by the standalone VPS installer.

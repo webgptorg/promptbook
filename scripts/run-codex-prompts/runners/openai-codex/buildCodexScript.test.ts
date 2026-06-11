@@ -36,7 +36,7 @@ describe('buildCodexScript', () => {
         expect(script).not.toContain('-c model_reasoning_effort="xhigh"');
     });
 
-    it('auto-detects OpenAI API key authentication when an API key is available', () => {
+    it('keeps OpenAI API key authentication only when the VPS installer enabled it', () => {
         const script = buildCodexScript({
             prompt: 'Hello from test prompt',
             projectPath: '/project/path',
@@ -52,10 +52,9 @@ describe('buildCodexScript', () => {
         );
         expect(script).toContain('source "${PTBK_AGENTS_SERVER_ENV_FILE}"');
         expect(script).toContain('elif [ -f .env ]; then');
-        expect(script).toContain('CODEX_USE_API_KEY="${PTBK_OPENAI_CODEX_USE_API_KEY:-}"');
-        expect(script).toContain('if [ -z "$CODEX_USE_API_KEY" ] && [ -n "${OPENAI_API_KEY:-}" ]; then');
+        expect(script).toContain('if [ "${PTBK_OPENAI_CODEX_USE_API_KEY:-0}" = "1" ]');
         expect(script).toContain('CODEX_LOGIN_METHOD_ARGUMENTS=(-c forced_login_method=api)');
-        expect(script).toContain('if [ "${CODEX_USE_API_KEY:-0}" != "1" ]');
+        expect(script).toContain('if [ "${PTBK_OPENAI_CODEX_USE_API_KEY:-0}" != "1" ]');
         expect(script).toContain('unset OPENAI_API_KEY');
         expect(script).toContain('unset OPENAI_BASE_URL');
     });
