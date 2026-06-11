@@ -1,3 +1,5 @@
+-   Fixed standalone VPS Agents Server self-updates so Next.js `/_next/static` files are preserved across release handoffs, allowing open browser tabs to load previous hashed chunks instead of hitting `ChunkLoadError` after a rollout.
+
 -   Added the official Sentry Next.js SDK to Agents Server so server, edge, client, request, navigation, and `console.error` failures are reported with SDK-managed stack traces and performance tracing.
 
 -   Added shared Agents Server Sentry diagnostics so server-side `console.error` reports and browser application error reports include Promptbook/book versions, release, commit hash, deployment environment, git metadata, runtime details, and memory context.

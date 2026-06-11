@@ -45,6 +45,7 @@ NGINX_PROXY_SNIPPET_PATH="/etc/nginx/snippets/promptbook-agents-server-proxy.con
 NGINX_FALLBACK_DIR="/var/www/promptbook-agents-server"
 NGINX_FALLBACK_HTML_PATH="$NGINX_FALLBACK_DIR/fallback.html"
 NGINX_FALLBACK_URI="/__promptbook_agents_server_error.html"
+PTBK_SHARED_NEXT_STATIC_ROOT="${PTBK_SHARED_NEXT_STATIC_ROOT:-$INSTALL_DIR/.promptbook/next-static}"
 PROMPTBOOK_NGINX_FALLBACK_LOGO_RELATIVE_PATH="design/logo-blue-transparent-128.png"
 PROMPTBOOK_SWAP_FILE="${PTBK_SWAP_FILE:-/swapfile-promptbook}"
 MINIMUM_REQUIRED_MEMORY_MIB=8192
@@ -1344,7 +1345,12 @@ resolve_default_public_site_url() {
 
 configure_install_directory() {
     log "Configuring $INSTALL_DIR."
-    "${SUDO[@]}" mkdir -p "$INSTALL_DIR/.promptbook" "$INSTALL_DIR/.logs" "$PTBK_RELEASES_DIR" "$PTBK_DATABASE_DIR"
+    "${SUDO[@]}" mkdir -p \
+        "$INSTALL_DIR/.promptbook" \
+        "$INSTALL_DIR/.logs" \
+        "$PTBK_RELEASES_DIR" \
+        "$PTBK_DATABASE_DIR" \
+        "$PTBK_SHARED_NEXT_STATIC_ROOT/_next/static"
     "${SUDO[@]}" chown -R "$RUN_USER:$RUN_GROUP" "$INSTALL_DIR"
 
     ENV_FILE="$INSTALL_DIR/.env"
@@ -1738,6 +1744,7 @@ configure_environment() {
     set_env_value PTBK_DATA_DIR "$PTBK_DATA_DIR"
     set_env_value PTBK_DATABASE_DIR "$PTBK_DATABASE_DIR"
     set_env_value PTBK_RELEASES_DIR "$PTBK_RELEASES_DIR"
+    set_env_value PTBK_SHARED_NEXT_STATIC_ROOT "$PTBK_SHARED_NEXT_STATIC_ROOT"
     set_env_value PTBK_REPOSITORY_DIR "$PROMPTBOOK_REPOSITORY_DIR"
     set_env_value PROMPTBOOK_REPOSITORY_REF "$PROMPTBOOK_REPOSITORY_REF"
     set_env_value PTBK_VPS_INSTALL_SCRIPT "$PROMPTBOOK_REPOSITORY_DIR/other/vps/install.sh"
@@ -2355,6 +2362,20 @@ build_nginx_self_contained_s3_location_block() {
 EOF
 }
 
+build_nginx_next_static_location_block() {
+    cat <<EOF
+    location ^~ /_next/static/ {
+        root ${PTBK_SHARED_NEXT_STATIC_ROOT};
+        add_header Cache-Control "public, max-age=31536000, immutable" always;
+        try_files \$uri @promptbook_agents_server_next_static;
+    }
+
+    location @promptbook_agents_server_next_static {
+        include ${NGINX_PROXY_SNIPPET_PATH};
+    }
+EOF
+}
+
 configure_nginx_branding() {
     ensure_nginx_headers_more_module_is_available
     write_nginx_fallback_page
@@ -2368,11 +2389,13 @@ configure_nginx_reverse_proxy() {
     local nginx_available_path="/etc/nginx/sites-available/${NGINX_SITE_NAME}"
     local nginx_enabled_path="/etc/nginx/sites-enabled/${NGINX_SITE_NAME}"
     local server_names=""
+    local next_static_location_block=""
     local s3_location_block=""
 
     configure_nginx_branding
 
     server_names="$(join_by_space "${DOMAINS[@]}")"
+    next_static_location_block="$(build_nginx_next_static_location_block)"
     s3_location_block="$(build_nginx_self_contained_s3_location_block)"
 
     if [[ -n "$server_names" ]]; then
@@ -2395,6 +2418,7 @@ server {
     client_max_body_size 100m;
     include ${NGINX_ERROR_SNIPPET_PATH};
 
+${next_static_location_block}
 ${s3_location_block}
 
     location / {
@@ -2414,6 +2438,7 @@ server {
     client_max_body_size 100m;
     include ${NGINX_ERROR_SNIPPET_PATH};
 
+${next_static_location_block}
 ${s3_location_block}
 
     location / {
@@ -2515,6 +2540,38 @@ configure_pm2_startup() {
 build_agents_server() {
     log "Building Agents Server before starting pm2."
     run_as_service_user bash -lc "cd $(shell_quote "$INSTALL_DIR") && $(shell_quote "$PTBK_COMMAND_PATH") agents-server build"
+    publish_agents_server_next_static_assets
+}
+
+publish_agents_server_next_static_assets() {
+    publish_agents_server_next_static_assets_from_repository "$PROMPTBOOK_REPOSITORY_DIR" 1
+}
+
+publish_agents_server_next_static_assets_from_repository() {
+    local repository_dir="$1"
+    local is_mirroring_to_source="${2:-0}"
+    local source_static_dir="$repository_dir/apps/agents-server/.next/static"
+    local target_static_dir="$PTBK_SHARED_NEXT_STATIC_ROOT/_next/static"
+    local target_static_dir_shell=""
+    local source_static_dir_shell=""
+
+    if [[ ! -d "$source_static_dir" ]]; then
+        warn "Agents Server Next static assets were not found at $source_static_dir; nginx will proxy static chunks to Next."
+        return
+    fi
+
+    log "Publishing Agents Server Next static assets to $target_static_dir."
+    "${SUDO[@]}" mkdir -p "$target_static_dir"
+    "${SUDO[@]}" chown -R "$RUN_USER:$RUN_GROUP" "$PTBK_SHARED_NEXT_STATIC_ROOT"
+
+    source_static_dir_shell="$(shell_quote "$source_static_dir")"
+    target_static_dir_shell="$(shell_quote "$target_static_dir")"
+    run_as_service_user bash -lc "mkdir -p $target_static_dir_shell && cp -a $source_static_dir_shell/. $target_static_dir_shell/"
+
+    if [[ "$is_mirroring_to_source" == "1" ]]; then
+        # Mirror accumulated old chunks back into this build so the active Next process can serve stale open tabs.
+        run_as_service_user bash -lc "cp -a $target_static_dir_shell/. $source_static_dir_shell/"
+    fi
 }
 
 run_agents_server_database_migrations() {
@@ -2716,6 +2773,9 @@ load_runtime_configuration_from_env_file() {
     env_value="$(get_env_value PTBK_RELEASES_DIR)"
     [[ -n "$env_value" ]] && PTBK_RELEASES_DIR="$env_value"
 
+    env_value="$(get_env_value PTBK_SHARED_NEXT_STATIC_ROOT)"
+    [[ -n "$env_value" ]] && PTBK_SHARED_NEXT_STATIC_ROOT="$env_value"
+
     env_value="$(get_env_value PTBK_REPOSITORY_DIR)"
     if [[ -n "$env_value" ]]; then
         PROMPTBOOK_REPOSITORY_DIR="$env_value"
@@ -2915,6 +2975,9 @@ self_update_agents_server() {
 
     trap write_failed_self_update_status_on_exit EXIT
 
+    write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Preserving currently served Agents Server static assets." "" "$SELF_UPDATE_CURRENT_COMMIT" "" "" "$$"
+    publish_agents_server_next_static_assets_from_repository "$old_repository_dir" 0
+
     SELF_UPDATE_TARGET_COMMIT="$(read_remote_repository_commit_sha "$PROMPTBOOK_REPOSITORY_REF")"
     write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Installing the latest Promptbook checkout into a versioned release directory." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "" "$$"
     install_promptbook_repository
@@ -2932,6 +2995,7 @@ self_update_agents_server() {
     if [[ "$(realpath -m "$old_repository_dir")" == "$(realpath -m "$PROMPTBOOK_REPOSITORY_DIR")" ]]; then
         ENV_FILE="$INSTALL_DIR/.env"
         set_env_value PROMPTBOOK_REPOSITORY_REF "$PROMPTBOOK_REPOSITORY_REF"
+        set_env_value PTBK_SHARED_NEXT_STATIC_ROOT "$PTBK_SHARED_NEXT_STATIC_ROOT"
         set_env_value PTBK_REPOSITORY_DIR "$PROMPTBOOK_REPOSITORY_DIR"
         set_env_value PTBK_VPS_INSTALL_SCRIPT "$PROMPTBOOK_REPOSITORY_DIR/other/vps/install.sh"
         finished_at="$(date --utc --iso-8601=seconds)"
@@ -2953,6 +3017,7 @@ self_update_agents_server() {
     ENV_FILE="$INSTALL_DIR/.env"
     set_env_value PORT "$replacement_port"
     set_env_value PTBK_RELEASES_DIR "$PTBK_RELEASES_DIR"
+    set_env_value PTBK_SHARED_NEXT_STATIC_ROOT "$PTBK_SHARED_NEXT_STATIC_ROOT"
     set_env_value PTBK_REPOSITORY_DIR "$PROMPTBOOK_REPOSITORY_DIR"
     set_env_value PROMPTBOOK_REPOSITORY_REF "$PROMPTBOOK_REPOSITORY_REF"
     set_env_value PTBK_VPS_INSTALL_SCRIPT "$PROMPTBOOK_REPOSITORY_DIR/other/vps/install.sh"

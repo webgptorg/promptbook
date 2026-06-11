@@ -246,6 +246,34 @@ describe('other/vps/install.sh', () => {
         expect(installScript).not.toContain("trap '\n        local exit_code=$?");
     });
 
+    it('preserves Next static assets across standalone self-updates', () => {
+        const selfUpdateFunction = installScript.slice(
+            installScript.indexOf('\nself_update_agents_server() {'),
+            installScript.indexOf('\nprint_summary() {'),
+        );
+
+        expect(installScript).toContain(
+            'PTBK_SHARED_NEXT_STATIC_ROOT="${PTBK_SHARED_NEXT_STATIC_ROOT:-$INSTALL_DIR/.promptbook/next-static}"',
+        );
+        expect(installScript).toContain('set_env_value PTBK_SHARED_NEXT_STATIC_ROOT "$PTBK_SHARED_NEXT_STATIC_ROOT"');
+        expect(installScript).toContain(
+            'publish_agents_server_next_static_assets_from_repository "$PROMPTBOOK_REPOSITORY_DIR" 1',
+        );
+        expect(installScript).toContain(
+            'publish_agents_server_next_static_assets_from_repository "$old_repository_dir" 0',
+        );
+        expect(installScript).toContain('location ^~ /_next/static/');
+        expect(installScript).toContain('root ${PTBK_SHARED_NEXT_STATIC_ROOT};');
+        expect(installScript).toContain('try_files \\$uri @promptbook_agents_server_next_static;');
+        expect(installScript).toContain('cp -a $target_static_dir_shell/. $source_static_dir_shell/');
+        expect(selfUpdateFunction.indexOf('publish_agents_server_next_static_assets_from_repository "$old_repository_dir" 0')).toBeLessThan(
+            selfUpdateFunction.indexOf('install_promptbook_repository'),
+        );
+        expect(selfUpdateFunction.indexOf('build_agents_server')).toBeLessThan(
+            selfUpdateFunction.indexOf('start_pm2_agents_server_process "$replacement_app_name" "$replacement_port"'),
+        );
+    });
+
     it('loads installed environment for self-update migrations and skips SQLite', () => {
         expect(installScript).toContain('database_mode="$(get_env_value PTBK_AGENTS_SERVER_DATABASE | tr');
         expect(installScript).toContain(
