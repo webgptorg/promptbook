@@ -51,6 +51,7 @@ describe('seedServerDefaultAgents', () => {
                 iconUrl: null,
                 users: [],
                 metadataEntries: [],
+                isDefaultAgentsInstalled: true,
             },
             sqlRecorder,
         );
@@ -63,6 +64,7 @@ describe('seedServerDefaultAgents', () => {
 
         expect(firstAgentInsertParameters[0]).toBe('alpha-agent');
         expect(firstAgentInsertParameters[10]).toBe(0);
+        expect(firstAgentInsertParameters[11]).toBe('UNLISTED');
         expect(firstHistoryInsertParameters[1]).toBe('alpha-agent');
         expect(firstHistoryInsertParameters[2]).toBe(firstAgentInsertParameters[3]);
         expect(secondAgentInsertParameters[0]).toBe('zeta-agent');

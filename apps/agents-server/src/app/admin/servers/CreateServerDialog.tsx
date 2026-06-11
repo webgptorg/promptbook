@@ -204,6 +204,22 @@ function CreateServerForm(props: {
             </div>
 
             <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600">
+                <label htmlFor="create-server-default-agents" className="flex items-start gap-3">
+                    <input
+                        id="create-server-default-agents"
+                        type="checkbox"
+                        checked={wizardState.isDefaultAgentsInstalled}
+                        onChange={(event) => updateWizardField('isDefaultAgentsInstalled', event.target.checked)}
+                        className="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span>
+                        <span className="block font-semibold text-gray-900">Install default agents</span>
+                        <span className="mt-1 block">Create bundled starter agents from agents/default.</span>
+                    </span>
+                </label>
+            </div>
+
+            <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600">
                 <p className="font-semibold text-gray-900">Admin user exists</p>
                 <p className="mt-1">
                     The installer-created <span className="font-mono">admin</span> user is used for this server.

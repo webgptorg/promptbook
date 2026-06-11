@@ -1,5 +1,6 @@
 import { createAgentPersistenceRecords } from '../../../../../../src/collection/agent-collection/constructors/agent-collection-in-supabase/createAgentPersistenceRecords';
 import type { Client } from 'pg';
+import { DEFAULT_AGENT_VISIBILITY } from '../../agentVisibility';
 import { loadDefaultAgentBooks } from '../../defaultAgents/loadDefaultAgentBooks';
 import { createInsertStatement, quoteIdentifier, type SqlRecorder } from './createSqlRecorder';
 import type { NormalizedCreateServerInput } from './normalizeCreateServerInput';
@@ -28,7 +29,7 @@ export async function seedServerDefaultAgents(
         const createdAt = new Date().toISOString();
         const { agentInsertRecord, agentHistoryInsertRecord } = createAgentPersistenceRecords(
             defaultAgentBook,
-            { sortOrder: index },
+            { sortOrder: index, visibility: DEFAULT_AGENT_VISIBILITY },
             createdAt,
         );
 
@@ -45,9 +46,10 @@ export async function seedServerDefaultAgents(
                     "promptbookEngineVersion",
                     "usage",
                     "folderId",
-                    "sortOrder"
+                    "sortOrder",
+                    "visibility"
                 )
-                VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, $9::jsonb, $10, $11)
+                VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, $9::jsonb, $10, $11, $12)
             `,
             [
                 agentInsertRecord.agentName,
@@ -61,6 +63,7 @@ export async function seedServerDefaultAgents(
                 JSON.stringify(agentInsertRecord.usage),
                 agentInsertRecord.folderId ?? null,
                 agentInsertRecord.sortOrder ?? index,
+                agentInsertRecord.visibility ?? DEFAULT_AGENT_VISIBILITY,
             ],
         );
         sqlRecorder.addStatement(
@@ -70,6 +73,7 @@ export async function seedServerDefaultAgents(
                 usage: JSON.stringify(agentInsertRecord.usage),
                 folderId: agentInsertRecord.folderId ?? null,
                 sortOrder: agentInsertRecord.sortOrder ?? index,
+                visibility: agentInsertRecord.visibility ?? DEFAULT_AGENT_VISIBILITY,
             }),
         );
 

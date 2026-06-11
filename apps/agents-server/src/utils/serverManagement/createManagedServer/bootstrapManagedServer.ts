@@ -47,7 +47,9 @@ export async function bootstrapManagedServer(input: NormalizedCreateServerInput)
         await applyManagedServerMigrations(client, input, sqlRecorder, migrationLogger);
         await seedServerUsers(client, input, sqlRecorder);
         await seedServerMetadata(client, input, sqlRecorder);
-        await seedServerDefaultAgents(client, input, sqlRecorder);
+        if (input.isDefaultAgentsInstalled) {
+            await seedServerDefaultAgents(client, input, sqlRecorder);
+        }
 
         await client.query('COMMIT');
         sqlRecorder.addStatement('COMMIT');

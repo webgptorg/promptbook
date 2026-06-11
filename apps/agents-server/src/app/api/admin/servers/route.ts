@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { spaceTrim } from 'spacetrim';
 import { DatabaseError } from '../../../../../../../src/errors/DatabaseError';
 import { isAgentsServerSqliteMode } from '../../../../database/agentsServerDatabaseMode';
+import { seedDefaultAgents } from '../../../../database/seedDefaultAgents';
 import { resolveCurrentServerRegistryContext } from '../../../../utils/currentServerRegistryContext';
 import { isUserAdmin } from '../../../../utils/isUserAdmin';
 import { isUserGlobalAdmin } from '../../../../utils/isUserGlobalAdmin';
@@ -97,6 +98,7 @@ export async function POST(request: Request) {
 
         const body = withEnvironmentAdminUser((await request.json()) as CreateServerInput);
         if (isAgentsServerSqliteMode()) {
+            const isDefaultAgentsInstalled = body.isDefaultAgentsInstalled !== false;
             const normalizedDomain = normalizeServerDomain(body.domain);
             if (!normalizedDomain) {
                 return NextResponse.json({ error: 'A valid domain is required.' }, { status: 400 });
@@ -113,6 +115,9 @@ export async function POST(request: Request) {
                     name: body.name,
                     iconUrl: body.iconUrl,
                 });
+            }
+            if (isDefaultAgentsInstalled) {
+                await seedDefaultAgents({ tablePrefix });
             }
 
             return NextResponse.json(

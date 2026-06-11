@@ -109,6 +109,11 @@ export type CreateServerInput = {
     readonly additionalUsers?: ReadonlyArray<ServerSeedUserInput>;
 
     /**
+     * Whether bundled default agents from `agents/default` should be created during bootstrap.
+     */
+    readonly isDefaultAgentsInstalled?: boolean;
+
+    /**
      * Initial metadata values for the new server.
      */
     readonly initialSettings: CreateServerInitialSettings;

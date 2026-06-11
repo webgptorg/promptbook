@@ -122,6 +122,11 @@ export type CreateServerWizardState = {
     additionalUsers: WizardUser[];
 
     /**
+     * Whether bundled default agents should be installed during server creation.
+     */
+    isDefaultAgentsInstalled: boolean;
+
+    /**
      * Initial metadata values.
      */
     initialSettings: CreateServerInitialSettings;
@@ -155,7 +160,10 @@ export type CreateServerWizardError = {
  * @private function of <ServersClient/>
  */
 export type UpdateCreateServerWizardField = <
-    TFieldName extends keyof Pick<CreateServerWizardState, 'name' | 'domain' | 'iconUrl'>,
+    TFieldName extends keyof Pick<
+        CreateServerWizardState,
+        'name' | 'domain' | 'iconUrl' | 'isDefaultAgentsInstalled'
+    >,
 >(
     fieldName: TFieldName,
     value: CreateServerWizardState[TFieldName],
@@ -262,6 +270,7 @@ function createInitialWizardState(): CreateServerWizardState {
             password: '',
         },
         additionalUsers: [],
+        isDefaultAgentsInstalled: true,
         initialSettings: {
             language: 'en',
             homepageMessage: '',
@@ -345,7 +354,8 @@ function hasCreateServerWizardChanges(wizardState: CreateServerWizardState): boo
         wizardState.name !== initialWizardState.name ||
         wizardState.identifier !== initialWizardState.identifier ||
         wizardState.domain !== initialWizardState.domain ||
-        wizardState.iconUrl !== initialWizardState.iconUrl
+        wizardState.iconUrl !== initialWizardState.iconUrl ||
+        wizardState.isDefaultAgentsInstalled !== initialWizardState.isDefaultAgentsInstalled
     );
 }
 
@@ -402,16 +412,32 @@ export function useCreateServerWizard(options: UseCreateServerWizardOptions): Us
     const updateWizardField = useCallback<UpdateCreateServerWizardField>((fieldName, value) => {
         setWizardState((previous) => {
             if (fieldName === 'name') {
+                const name = value as CreateServerWizardState['name'];
+
                 return {
                     ...previous,
-                    name: value,
-                    identifier: createServerIdentifierFromName(value),
+                    name,
+                    identifier: createServerIdentifierFromName(name),
+                };
+            }
+
+            if (fieldName === 'domain') {
+                return {
+                    ...previous,
+                    domain: value as CreateServerWizardState['domain'],
+                };
+            }
+
+            if (fieldName === 'iconUrl') {
+                return {
+                    ...previous,
+                    iconUrl: value as CreateServerWizardState['iconUrl'],
                 };
             }
 
             return {
                 ...previous,
-                [fieldName]: value,
+                isDefaultAgentsInstalled: value as CreateServerWizardState['isDefaultAgentsInstalled'],
             };
         });
     }, []);

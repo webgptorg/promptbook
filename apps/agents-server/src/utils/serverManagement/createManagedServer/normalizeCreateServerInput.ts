@@ -51,6 +51,11 @@ export type NormalizedCreateServerInput = {
      * Initial metadata rows inserted during bootstrap.
      */
     readonly metadataEntries: ReadonlyArray<ServerMetadataSeedEntry>;
+
+    /**
+     * Whether bundled default agents from `agents/default` should be created during bootstrap.
+     */
+    readonly isDefaultAgentsInstalled: boolean;
 };
 
 /**
@@ -103,5 +108,6 @@ export function normalizeCreateServerInput(input: CreateServerInput): Normalized
             iconUrl,
             initialSettings: input.initialSettings,
         }),
+        isDefaultAgentsInstalled: input.isDefaultAgentsInstalled !== false,
     };
 }
