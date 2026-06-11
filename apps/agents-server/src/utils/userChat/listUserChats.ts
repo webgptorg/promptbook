@@ -1,5 +1,7 @@
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideClientSql } from '@/src/database/$provideClientSql';
+import { isAgentsServerSqliteMode } from '@/src/database/agentsServerDatabaseMode';
+import { $provideAgentsServerSqliteDatabase } from '@/src/database/sqlite/$provideAgentsServerSqliteDatabase';
 import type { ListUserChatsOptions, UserChatRecord } from './UserChatRecord';
 import type { UserChatSource } from './UserChatSource';
 import type { UserChatRow } from './UserChatRow';
@@ -29,6 +31,13 @@ const POSTGRES_UNDEFINED_COLUMN_ERROR_CODE = '42703';
  */
 const CLIENT_SQL_MISSING_CONNECTION_MESSAGE_FRAGMENT =
     'Environment variable `POSTGRES_URL` or `DATABASE_URL` must be defined.';
+
+/**
+ * SQLite expression that safely exposes chat messages as a JSON array.
+ *
+ * @private function of `userChat`
+ */
+const SQLITE_CHAT_MESSAGES_JSON_EXPRESSION = `CASE WHEN json_valid(chat."messages") THEN chat."messages" ELSE '[]' END`;
 
 /**
  * Lists all user chats for one agent ordered by last activity.
@@ -69,6 +78,10 @@ export async function listUserChats(options: ListUserChatsOptions): Promise<Arra
  * @private function of `userChat`
  */
 export async function listUserChatSummarySeeds(options: ListUserChatsOptions): Promise<Array<UserChatSummarySeed>> {
+    if (isAgentsServerSqliteMode()) {
+        return listUserChatSummarySeedsViaSqlite(options);
+    }
+
     if (!isDirectSqlConnectionConfigured()) {
         return listUserChatSummarySeedsViaSupabase(options);
     }
@@ -144,6 +157,92 @@ export async function listUserChatSummarySeeds(options: ListUserChatsOptions): P
         return summaryRows.map(mapUserChatSummarySeedSqlRow);
     } catch (error) {
         if (!isUserChatSummarySeedSqlFallbackError(error)) {
+            throw error;
+        }
+
+        return listUserChatSummarySeedsViaSupabase(options);
+    }
+}
+
+/**
+ * Lists lightweight chat-summary seeds through direct SQLite JSON queries.
+ *
+ * @private function of `userChat`
+ */
+async function listUserChatSummarySeedsViaSqlite(options: ListUserChatsOptions): Promise<Array<UserChatSummarySeed>> {
+    const userChatTableName = quoteIdentifier(await $getTableName('UserChat'));
+    const shouldLoadExternalChats = options.viewerIsAdmin && options.includeExternalChats;
+    const whereClause = shouldLoadExternalChats
+        ? `
+            chat."agentPermanentId" = ?
+            AND (chat."source" <> ? OR chat."userId" = ?)
+        `
+        : `
+            chat."userId" = ?
+            AND chat."agentPermanentId" = ?
+            AND chat."source" = ?
+        `;
+    const queryValues = shouldLoadExternalChats
+        ? [options.agentPermanentId, USER_CHAT_SOURCES.WEB_UI, options.userId]
+        : [options.userId, options.agentPermanentId, USER_CHAT_SOURCES.WEB_UI];
+
+    try {
+        const database = $provideAgentsServerSqliteDatabase();
+        const summaryRows = database
+            .prepare(
+                `
+                    SELECT
+                        chat."id",
+                        chat."createdAt",
+                        chat."updatedAt",
+                        chat."lastMessageAt",
+                        chat."title",
+                        chat."source",
+                        COALESCE(json_array_length(${SQLITE_CHAT_MESSAGES_JSON_EXPRESSION}), 0) AS "messagesCount",
+                        COALESCE(
+                            (
+                                SELECT CAST(json_extract(message.value, '$.content') AS TEXT)
+                                FROM json_each(${SQLITE_CHAT_MESSAGES_JSON_EXPRESSION}) AS message
+                                WHERE UPPER(CAST(COALESCE(json_extract(message.value, '$.sender'), '') AS TEXT)) = 'USER'
+                                ORDER BY CAST(message.key AS INTEGER) ASC
+                                LIMIT 1
+                            ),
+                            ''
+                        ) AS "firstUserMessageContent",
+                        COALESCE(
+                            (
+                                SELECT CAST(json_extract(message.value, '$.content') AS TEXT)
+                                FROM json_each(${SQLITE_CHAT_MESSAGES_JSON_EXPRESSION}) AS message
+                                WHERE LENGTH(TRIM(CAST(COALESCE(json_extract(message.value, '$.content'), '') AS TEXT))) > 0
+                                ORDER BY CAST(message.key AS INTEGER) DESC
+                                LIMIT 1
+                            ),
+                            ''
+                        ) AS "lastPreviewMessageContent",
+                        COALESCE(
+                            (
+                                SELECT COUNT(*)
+                                FROM json_each(${SQLITE_CHAT_MESSAGES_JSON_EXPRESSION}) AS message
+                                WHERE
+                                    UPPER(CAST(COALESCE(json_extract(message.value, '$.sender'), '') AS TEXT)) IN ('AGENT', 'MODEL')
+                                    AND (
+                                        json_extract(message.value, '$.isComplete') = 0
+                                        OR LOWER(CAST(COALESCE(json_extract(message.value, '$.isComplete'), '') AS TEXT)) = 'false'
+                                        OR LOWER(CAST(COALESCE(json_extract(message.value, '$.lifecycleState'), '') AS TEXT)) IN ('queued', 'running')
+                                    )
+                            ),
+                            0
+                        ) AS "pendingAssistantMessageCount"
+                    FROM ${userChatTableName} AS chat
+                    WHERE ${whereClause}
+                    ORDER BY chat."lastMessageAt" IS NULL ASC, chat."lastMessageAt" DESC, chat."updatedAt" DESC
+                `,
+            )
+            .all(...queryValues) as Array<UserChatSummarySeedSqlRow>;
+
+        return summaryRows.map(mapUserChatSummarySeedSqlRow);
+    } catch (error) {
+        if (!isUserChatSummarySeedSqliteFallbackError(error)) {
             throw error;
         }
 
@@ -258,6 +357,16 @@ function isUserChatSummarySeedSqlFallbackError(error: unknown): boolean {
     }
 
     return /relation .* does not exist|column .* does not exist/i.test(errorMessage);
+}
+
+/**
+ * Returns true when SQLite summary optimization should gracefully fallback to Supabase-shaped reads.
+ *
+ * @private function of `userChat`
+ */
+function isUserChatSummarySeedSqliteFallbackError(error: unknown): boolean {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return /no such table|no such column|no such function: json_|malformed JSON/i.test(errorMessage);
 }
 
 /**

@@ -11,6 +11,45 @@ import { cache } from 'react';
 const metadataDefaultsMap = new Map<string, string>(metadataDefaults.map((metadata) => [metadata.key, metadata.value]));
 
 /**
+ * Process-level cache lifetime for metadata reads.
+ *
+ * @private Internal helper for metadata lookups in `apps/agents-server`.
+ */
+const METADATA_CACHE_TTL_MS = 30_000;
+
+/**
+ * Cached metadata table payload keyed by the resolved table name.
+ *
+ * @private Internal helper for metadata lookups in `apps/agents-server`.
+ */
+const cachedMetadataValuesByTableName = new Map<
+    string,
+    {
+        readonly loadedAt: number;
+        readonly valuesPromise: Promise<Map<string, string | null>>;
+    }
+>();
+
+/**
+ * Metadata row shape loaded by the lightweight metadata select.
+ *
+ * @private Internal helper for metadata lookups in `apps/agents-server`.
+ */
+type MetadataValueRow = {
+    readonly key: string;
+    readonly value: string | null;
+};
+
+/**
+ * Clears process-level metadata cache after admin metadata writes.
+ *
+ * @public exported from `apps/agents-server`
+ */
+export function invalidateMetadataCache(): void {
+    cachedMetadataValuesByTableName.clear();
+}
+
+/**
  * Loads the full metadata table once per request so callers can cheaply project subsets.
  *
  * @returns Map of metadata keys to stored values.
@@ -18,17 +57,59 @@ const metadataDefaultsMap = new Map<string, string>(metadataDefaults.map((metada
  * @private Internal helper for batched metadata lookups in `apps/agents-server`.
  */
 const loadAllMetadataValues = cache(async (): Promise<Map<string, string | null>> => {
-    const supabase = $provideSupabase();
     const table = await $getTableName('Metadata');
+    return loadCachedMetadataValues(table);
+});
+
+/**
+ * Loads metadata values using a short process-level cache shared by consecutive requests.
+ *
+ * @param table - Resolved metadata table name.
+ * @returns Metadata values keyed by metadata key.
+ *
+ * @private Internal helper for metadata lookups in `apps/agents-server`.
+ */
+async function loadCachedMetadataValues(table: string): Promise<Map<string, string | null>> {
+    const cachedMetadataValues = cachedMetadataValuesByTableName.get(table);
+    if (cachedMetadataValues && Date.now() - cachedMetadataValues.loadedAt < METADATA_CACHE_TTL_MS) {
+        return cachedMetadataValues.valuesPromise;
+    }
+
+    const valuesPromise = loadMetadataValuesFromDatabase(table);
+    cachedMetadataValuesByTableName.set(table, {
+        loadedAt: Date.now(),
+        valuesPromise,
+    });
+
+    try {
+        return await valuesPromise;
+    } catch (error) {
+        if (cachedMetadataValuesByTableName.get(table)?.valuesPromise === valuesPromise) {
+            cachedMetadataValuesByTableName.delete(table);
+        }
+        throw error;
+    }
+}
+
+/**
+ * Reads all persisted metadata values from the database.
+ *
+ * @param table - Resolved metadata table name.
+ * @returns Metadata values keyed by metadata key.
+ *
+ * @private Internal helper for metadata lookups in `apps/agents-server`.
+ */
+async function loadMetadataValuesFromDatabase(table: string): Promise<Map<string, string | null>> {
+    const supabase = $provideSupabase();
     const { data } = await supabase.from(table).select('key, value');
 
     const loadedMap = new Map<string, string | null>();
-    for (const row of data ?? []) {
+    for (const row of (data ?? []) as Array<MetadataValueRow>) {
         loadedMap.set(row.key, row.value);
     }
 
     return loadedMap;
-});
+}
 
 /**
  * Get metadata value by key

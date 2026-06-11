@@ -15,6 +15,13 @@ export const MAX_CUSTOM_JAVASCRIPT_LENGTH = 100_000;
 const CUSTOM_JAVASCRIPT_TABLE_BASENAME = 'CustomJavascript';
 
 /**
+ * Process-level cache lifetime for custom JavaScript rows.
+ *
+ * @private
+ */
+const CUSTOM_JAVASCRIPT_CACHE_TTL_MS = 30_000;
+
+/**
  * Stored `CustomJavascript` row shape.
  *
  * @private
@@ -91,6 +98,28 @@ type DynamicSupabaseClient = {
 };
 
 /**
+ * Cached custom JavaScript rows keyed by the resolved table name.
+ *
+ * @private
+ */
+const cachedCustomJavascriptByTableName = new Map<
+    string,
+    {
+        readonly loadedAt: number;
+        readonly rowsPromise: Promise<CustomJavascriptRow[]>;
+    }
+>();
+
+/**
+ * Clears process-level custom JavaScript cache after admin writes.
+ *
+ * @private
+ */
+export function invalidateCustomJavascriptCache(): void {
+    cachedCustomJavascriptByTableName.clear();
+}
+
+/**
  * Resolves the prefixed table name for `CustomJavascript`.
  *
  * @private
@@ -137,8 +166,37 @@ function getCustomJavascriptClient() {
  */
 export async function getCustomJavascriptFiles(): Promise<CustomJavascriptRow[]> {
     const table = await getCustomJavascriptTableName();
-    const supabase = getCustomJavascriptClient();
+    const cachedJavascript = cachedCustomJavascriptByTableName.get(table);
+    if (cachedJavascript && Date.now() - cachedJavascript.loadedAt < CUSTOM_JAVASCRIPT_CACHE_TTL_MS) {
+        return cachedJavascript.rowsPromise;
+    }
 
+    const rowsPromise = loadCustomJavascriptFilesFromDatabase(table);
+    cachedCustomJavascriptByTableName.set(table, {
+        loadedAt: Date.now(),
+        rowsPromise,
+    });
+
+    try {
+        return await rowsPromise;
+    } catch (error) {
+        if (cachedCustomJavascriptByTableName.get(table)?.rowsPromise === rowsPromise) {
+            cachedCustomJavascriptByTableName.delete(table);
+        }
+        throw error;
+    }
+}
+
+/**
+ * Reads custom JavaScript rows from the database.
+ *
+ * @param table - Resolved CustomJavascript table name.
+ * @returns Stored JavaScript rows.
+ *
+ * @private
+ */
+async function loadCustomJavascriptFilesFromDatabase(table: string): Promise<CustomJavascriptRow[]> {
+    const supabase = getCustomJavascriptClient();
     const { data, error } = await supabase.from(table).select('*').order('scope', { ascending: true });
 
     if (error) {
@@ -234,6 +292,7 @@ export async function saveCustomJavascriptFile({
         throw new Error(`Failed to save custom JavaScript: ${error.message || String(error)}`);
     }
 
+    invalidateCustomJavascriptCache();
     return data as CustomJavascriptRow;
 }
 
@@ -255,4 +314,6 @@ export async function deleteCustomJavascriptFile(id: number): Promise<void> {
 
         throw new Error(`Failed to delete custom JavaScript: ${error.message || String(error)}`);
     }
+
+    invalidateCustomJavascriptCache();
 }

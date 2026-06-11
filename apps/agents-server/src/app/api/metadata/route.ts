@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { keepUnused } from '../../../../../../src/utils/organization/keepUnused';
 import { $getTableName } from '../../../database/$getTableName';
 import { $provideSupabase } from '../../../database/$provideSupabase';
+import { invalidateMetadataCache } from '../../../database/getMetadata';
 import { validateMetadataValue } from '../../../database/metadataDefaults';
 import { isUserAdmin } from '../../../utils/isUserAdmin';
 
@@ -121,6 +122,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    invalidateMetadataCache();
     return NextResponse.json(data);
 }
 
@@ -152,6 +154,7 @@ export async function PUT(request: NextRequest) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    invalidateMetadataCache();
     return NextResponse.json(data);
 }
 
@@ -179,5 +182,6 @@ export async function DELETE(request: NextRequest) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    invalidateMetadataCache();
     return NextResponse.json({ success: true });
 }

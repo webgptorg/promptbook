@@ -1,3 +1,5 @@
+-   Optimized Agents Server page and chat responsiveness by caching repeated server metadata/custom asset reads across requests and using a direct SQLite chat-summary query for sidebar history instead of loading full chat message payloads.
+
 -   Added optional default-agent installation to Agents Server server creation from `/admin/servers`, with the checkbox enabled by default and backed by the same bundled `agents/default/*.book` sources used by the standalone VPS installer.
 
 -   Fixed Agents Server stale frontend chunk-load failures so `_next/static` asset timeouts now trigger a one-time hard refresh with refresh-focused recovery UI instead of stranding users on the generic application error page after a deployment.
