@@ -20,7 +20,11 @@ export function buildCodexScript(options: CodexScriptOptions): string {
     const projectPath = toPosixPath(options.projectPath);
     const loginMethodConfig = spaceTrim(`
         ${options.allowCredits ? 'CODEX_LOGIN_METHOD_ARGUMENTS=()' : 'CODEX_LOGIN_METHOD_ARGUMENTS=(-c forced_login_method=chatgpt)'}
-        if [ "\${PTBK_OPENAI_CODEX_USE_API_KEY:-0}" = "1" ] && [ -n "\${OPENAI_API_KEY:-}" ]; then
+        CODEX_USE_API_KEY="\${PTBK_OPENAI_CODEX_USE_API_KEY:-}"
+        if [ -z "\$CODEX_USE_API_KEY" ] && [ -n "\${OPENAI_API_KEY:-}" ]; then
+            CODEX_USE_API_KEY=1
+        fi
+        if [ "\$CODEX_USE_API_KEY" = "1" ] && [ -n "\${OPENAI_API_KEY:-}" ]; then
             CODEX_LOGIN_METHOD_ARGUMENTS=(-c forced_login_method=api)
         fi
     `);
@@ -38,7 +42,7 @@ export function buildCodexScript(options: CodexScriptOptions): string {
         '',
         loginMethodConfig,
         '',
-        'if [ "${PTBK_OPENAI_CODEX_USE_API_KEY:-0}" != "1" ] || [ -z "${OPENAI_API_KEY:-}" ]; then',
+        'if [ "${CODEX_USE_API_KEY:-0}" != "1" ] || [ -z "${OPENAI_API_KEY:-}" ]; then',
         'unset OPENAI_API_KEY',
         'unset OPENAI_BASE_URL',
         'fi',

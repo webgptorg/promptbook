@@ -108,6 +108,13 @@ const PTBK_AGENTS_SERVER_SQLITE_PATH_ENV = 'PTBK_AGENTS_SERVER_SQLITE_PATH';
 const PTBK_HOSTNAME_ENV = 'PTBK_HOSTNAME';
 
 /**
+ * Explicit installed `.env` file passed by standalone VPS pm2/runtime launchers.
+ *
+ * @private internal constant of `ptbk agents-server`
+ */
+const PTBK_AGENTS_SERVER_ENV_FILE_ENV = 'PTBK_AGENTS_SERVER_ENV_FILE';
+
+/**
  * Entropy size for the local-only token shared by the CLI pump and the Next app.
  *
  * @private internal constant of `ptbk agents-server`
@@ -355,11 +362,20 @@ async function prepareAgentsServerDevelopmentRuntime(
 }
 
 /**
- * Loads launch-directory `.env` values without overriding explicit process environment.
+ * Loads Agents Server runtime environment from the installed `.env` file when explicitly configured and falls back
+ * to the launch-directory `.env`.
  *
  * @private internal utility of `ptbk agents-server`
  */
 export function loadAgentsServerProjectEnvironment(launchWorkingDirectory: string): void {
+    const explicitEnvFilePath = process.env[PTBK_AGENTS_SERVER_ENV_FILE_ENV]?.trim();
+    if (explicitEnvFilePath) {
+        const explicitLoadResult = dotenv.config({ path: explicitEnvFilePath, override: true });
+        if (!explicitLoadResult.error) {
+            return;
+        }
+    }
+
     dotenv.config({ path: join(launchWorkingDirectory, AGENTS_SERVER_PROJECT_ENV_FILE_NAME) });
 }
 
