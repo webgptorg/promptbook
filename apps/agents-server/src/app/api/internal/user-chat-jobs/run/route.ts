@@ -57,7 +57,7 @@ async function handleUserChatJobWorkerRequest(request: Request) {
 
         after(() =>
             triggerUserChatJobWorker({ origin }).catch((error) =>
-                console.error('[user-chat-job] requeue failed', error),
+                console.warn('[user-chat-job] requeue failed', error),
             ),
         );
 

@@ -1,3 +1,5 @@
+-   Fixed Agents Server durable chat-worker self-requeue handling so transient internal `fetch failed` / `ECONNRESET` wake-up failures are retried briefly and then logged as warnings instead of high-priority Sentry server errors.
+
 -   Fixed standalone VPS Agents Server self-updates so Next.js `/_next/static` files are preserved across release handoffs, allowing open browser tabs to load previous hashed chunks instead of hitting `ChunkLoadError` after a rollout.
 
 -   Added the official Sentry Next.js SDK to Agents Server so server, edge, client, request, navigation, and `console.error` failures are reported with SDK-managed stack traces and performance tracing.
