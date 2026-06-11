@@ -884,7 +884,13 @@
             "onlySingle": false,
             "focus": false
         },
-
+        {
+            "name": "🌎 SSH to s24.ptbk.io",
+            "command": "ssh root@s24.ptbk.io",
+            "execute": true,
+            "onlySingle": false,
+            "focus": false
+        },
         {
             "name": "🔼🆚 Use current version of Promptbook in all Projects / install ptbk (⏳)",
             "command": "npm run use-packages",
