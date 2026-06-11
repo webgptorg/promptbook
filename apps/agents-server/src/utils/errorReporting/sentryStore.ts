@@ -53,6 +53,16 @@ export type SentryStorePayload = {
     message: string;
 
     /**
+     * Sentry release identifier.
+     */
+    release?: string;
+
+    /**
+     * Deployment environment such as production, preview, or staging.
+     */
+    environment?: string;
+
+    /**
      * Server/deployment name.
      */
     server_name: string;

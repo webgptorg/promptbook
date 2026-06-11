@@ -1,4 +1,5 @@
 import type { ApplicationErrorReportPayload } from './applicationErrorHandling';
+import { enrichSentryStorePayloadWithAgentsServerContext } from './agentsServerSentryContext';
 import {
     createSentryTimestamp,
     resolveRequiredSentryDsn,
@@ -18,7 +19,7 @@ const SENTRY_APPLICATION_ERROR_LOGGER = 'agents-server.application-error';
  * @returns Sentry store payload.
  */
 function createSentryStorePayload(report: ApplicationErrorReportPayload): SentryStorePayload {
-    return {
+    return enrichSentryStorePayloadWithAgentsServerContext({
         platform: 'javascript',
         level: 'error',
         logger: SENTRY_APPLICATION_ERROR_LOGGER,
@@ -44,7 +45,7 @@ function createSentryStorePayload(report: ApplicationErrorReportPayload): Sentry
             pageUrl: report.pageUrl ?? null,
             reportedAt: report.reportedAt,
         },
-    };
+    });
 }
 
 /**

@@ -1,5 +1,6 @@
 import { inspect } from 'node:util';
 import { DEFAULT_APPLICATION_ERROR_SERVER_NAME } from './applicationErrorHandling';
+import { enrichSentryStorePayloadWithAgentsServerContext } from './agentsServerSentryContext';
 import {
     createSentryTimestamp,
     resolveOptionalSentryDsn,
@@ -144,7 +145,7 @@ function getServerErrorSentryLoggingState(): ServerErrorSentryLoggingState {
 function createServerErrorSentryStorePayload(consoleArguments: readonly unknown[]): SentryStorePayload {
     const loggedError = findLoggedErrorInfo(consoleArguments);
 
-    return {
+    return enrichSentryStorePayloadWithAgentsServerContext({
         platform: 'javascript',
         level: 'error',
         logger: SENTRY_SERVER_ERROR_LOGGER,
@@ -153,8 +154,6 @@ function createServerErrorSentryStorePayload(consoleArguments: readonly unknown[
         server_name: process.env.NEXT_PUBLIC_SERVER_NAME ?? DEFAULT_APPLICATION_ERROR_SERVER_NAME,
         tags: {
             source: 'agents-server.console-error',
-            nextRuntime: process.env.NEXT_RUNTIME ?? 'nodejs',
-            nodeEnv: process.env.NODE_ENV ?? 'unknown',
         },
         exception: loggedError
             ? {
@@ -169,11 +168,8 @@ function createServerErrorSentryStorePayload(consoleArguments: readonly unknown[
         extra: {
             consoleArguments: consoleArguments.map(serializeConsoleArgument),
             errorStack: loggedError?.stack ?? null,
-            vercelEnv: process.env.VERCEL_ENV ?? null,
-            vercelRegion: process.env.VERCEL_REGION ?? null,
-            vercelUrl: process.env.VERCEL_URL ?? null,
         },
-    };
+    });
 }
 
 /**

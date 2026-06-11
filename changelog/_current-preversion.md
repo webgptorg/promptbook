@@ -1,3 +1,5 @@
+-   Added shared Agents Server Sentry diagnostics so server-side `console.error` reports and browser application error reports include Promptbook/book versions, release, commit hash, deployment environment, git metadata, runtime details, and memory context.
+
 -   Optimized Agents Server page and chat responsiveness by caching repeated server metadata/custom asset reads across requests and using a direct SQLite chat-summary query for sidebar history instead of loading full chat message payloads.
 
 -   Added optional default-agent installation to Agents Server server creation from `/admin/servers`, with the checkbox enabled by default and backed by the same bundled `agents/default/*.book` sources used by the standalone VPS installer.
