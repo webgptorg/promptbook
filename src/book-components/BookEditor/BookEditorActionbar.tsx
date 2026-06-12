@@ -7,7 +7,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 // TODO: [🧠] Is there a better way to get the version?
 import { DEFAULT_BOOK, validateBook } from '../../book-2.0/agent-source/string_book';
 import { $induceBookDownload } from '../../utils/files/$induceBookDownload';
-import { AboutPromptbookInformation } from '../../utils/misc/xAboutPromptbookInformation';
 import { AboutIcon } from '../icons/AboutIcon';
 import { AttachmentIcon } from '../icons/AttachmentIcon';
 import { CameraIcon } from '../icons/CameraIcon';
@@ -18,6 +17,7 @@ import { Dropdown } from '../_common/Dropdown/Dropdown';
 import type { HoistedMenuItem } from '../_common/MenuHoisting/MenuHoistingContext';
 import { useMenuHoisting } from '../_common/MenuHoisting/MenuHoistingContext';
 import { Modal } from '../_common/Modal/Modal';
+import { BookEditorAboutPromptbookInformation } from './BookEditorAboutPromptbookInformation';
 import styles from './BookEditor.module.css';
 
 /**
@@ -157,7 +157,7 @@ export function BookEditorActionbar(props: BookEditorActionbarProps) {
                             setIsAboutModalOpen(false);
                         }}
                     >
-                        <AboutPromptbookInformation />
+                        <BookEditorAboutPromptbookInformation />
                     </Modal>
                 )}
             </>
@@ -183,7 +183,7 @@ export function BookEditorActionbar(props: BookEditorActionbarProps) {
                         setIsAboutModalOpen(false);
                     }}
                 >
-                    <AboutPromptbookInformation />
+                    <BookEditorAboutPromptbookInformation />
                 </Modal>
             )}
         </div>

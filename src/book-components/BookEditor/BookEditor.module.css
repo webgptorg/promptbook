@@ -348,6 +348,67 @@
     color: #b91c1c;
 }
 
+.aboutPromptbookInformation {
+    max-width: 680px;
+    color: #111827;
+    font-family: var(--font-poppins, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.aboutPromptbookInformation > :first-child {
+    margin-top: 0;
+}
+
+.aboutPromptbookInformation > :last-child {
+    margin-bottom: 0;
+}
+
+.aboutPromptbookInformation h1,
+.aboutPromptbookInformation h2 {
+    color: #0f172a;
+    font-weight: 650;
+    line-height: 1.25;
+}
+
+.aboutPromptbookInformation h1 {
+    margin: 0 0 0.75rem;
+    font-size: 1.5rem;
+}
+
+.aboutPromptbookInformation h2 {
+    margin: 1.35rem 0 0.55rem;
+    font-size: 1.15rem;
+}
+
+.aboutPromptbookInformation p {
+    margin: 0 0 0.9rem;
+}
+
+.aboutPromptbookInformation ul,
+.aboutPromptbookInformation ol {
+    display: grid;
+    gap: 0.35rem;
+    margin: 0.55rem 0 1rem;
+    padding-left: 1.35rem;
+}
+
+.aboutPromptbookInformation a {
+    color: #2563eb;
+    text-decoration: underline;
+    text-underline-offset: 0.16em;
+}
+
+.aboutPromptbookInformation code {
+    padding: 0.12em 0.34em;
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    border-radius: 6px;
+    background: rgba(15, 23, 42, 0.06);
+    color: #111827;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+    font-size: 0.9em;
+}
+
 @keyframes fadeOut {
     0% {
         opacity: 0;
