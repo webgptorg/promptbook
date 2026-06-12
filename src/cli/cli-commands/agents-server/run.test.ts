@@ -106,17 +106,7 @@ describe('$initializeAgentsServerStartCommand', () => {
         const program = createProgramWithAgentsServerStartCommand();
 
         await program.parseAsync(
-            [
-                'node',
-                'test',
-                'start',
-                '--harness',
-                'github-copilot',
-                '--model',
-                'gpt-5.4',
-                '--thinking-level',
-                'xhigh',
-            ],
+            ['node', 'test', 'start', '--harness', 'github-copilot', '--model', 'gpt-5.4', '--thinking-level', 'xhigh'],
             { from: 'node' },
         );
 
@@ -227,17 +217,7 @@ describe('$initializeAgentsServerDevCommand', () => {
         const program = createProgramWithAgentsServerDevCommand();
 
         await program.parseAsync(
-            [
-                'node',
-                'test',
-                'dev',
-                '--harness',
-                'github-copilot',
-                '--model',
-                'gpt-5.4',
-                '--thinking-level',
-                'xhigh',
-            ],
+            ['node', 'test', 'dev', '--harness', 'github-copilot', '--model', 'gpt-5.4', '--thinking-level', 'xhigh'],
             { from: 'node' },
         );
 

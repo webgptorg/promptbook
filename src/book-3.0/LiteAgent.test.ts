@@ -72,11 +72,7 @@ describe('LiteAgent', () => {
                 },
             }),
         );
-        expect(mockRun).toHaveBeenCalledWith(
-            expect.anything(),
-            expect.stringContaining('Hello'),
-            undefined,
-        );
+        expect(mockRun).toHaveBeenCalledWith(expect.anything(), expect.stringContaining('Hello'), undefined);
         expect(mockRun.mock.calls[0]![1]).toContain('Important background');
         expect(mockRun.mock.calls[0]![1]).toContain('Answer in one sentence.');
     });

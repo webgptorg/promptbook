@@ -1,4 +1,10 @@
-import { Agent as AgentFromKit, fileSearchTool, run, setDefaultOpenAIClient, setDefaultOpenAIKey } from '@openai/agents';
+import {
+    Agent as AgentFromKit,
+    fileSearchTool,
+    run,
+    setDefaultOpenAIClient,
+    setDefaultOpenAIKey,
+} from '@openai/agents';
 import { readFile } from 'fs/promises';
 import { basename, resolve } from 'path';
 import { fileURLToPath } from 'url';
@@ -108,11 +114,7 @@ export class LiteAgent {
 
         const result = await run(
             preparedAgent.agent,
-            createLiteAgentPromptText(
-                normalizedMessage,
-                options.context,
-                preparedAgent.modelRequirements.promptSuffix,
-            ),
+            createLiteAgentPromptText(normalizedMessage, options.context, preparedAgent.modelRequirements.promptSuffix),
             options.signal ? { signal: options.signal } : undefined,
         );
 
@@ -187,9 +189,10 @@ export class LiteAgent {
                       agentKitModelName: resolvedModelName,
                   })
                 : null;
-        const agentTools = toolBuilder?.buildAgentKitTools({
-            tools: modelRequirements.tools ? [...modelRequirements.tools] : undefined,
-        }) || [];
+        const agentTools =
+            toolBuilder?.buildAgentKitTools({
+                tools: modelRequirements.tools ? [...modelRequirements.tools] : undefined,
+            }) || [];
         const normalizedKnowledgeSources = await normalizeLiteAgentKnowledgeSources(
             modelRequirements.knowledgeSources || [],
             resolvedSource.sourceDirectoryPath,
@@ -427,7 +430,9 @@ async function convertLiteAgentLocalKnowledgeSourceToDataUrl(
     const fileName = basename(absolutePath);
     const mimeType = resolveLiteAgentKnowledgeSourceMimeType(fileName);
 
-    return `data:${mimeType};name=${encodeURIComponent(fileName)};base64,${fileContent.toString('base64')}` as string_knowledge_source_link;
+    return `data:${mimeType};name=${encodeURIComponent(fileName)};base64,${fileContent.toString(
+        'base64',
+    )}` as string_knowledge_source_link;
 }
 
 /**
