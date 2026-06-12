@@ -1,4 +1,4 @@
-[ ] !
+[x] $3.86 2 hours by OpenAI Codex `gpt-5.4`
 
 [✨🪤] Create a `CliAgent` and `LiteAgent` objects in `src/book-3.0`
 
@@ -50,3 +50,4 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

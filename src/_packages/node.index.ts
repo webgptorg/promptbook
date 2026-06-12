@@ -2,6 +2,16 @@
 // `@promptbook/node`
 
 import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
+import type { BookNodeAgentSource } from '../book-3.0/BookNodeAgentSource';
+import type { BookNodeAgentSourceOptions } from '../book-3.0/BookNodeAgentSource';
+import type { CliAgentHarness } from '../book-3.0/CliAgent';
+import type { CliAgentThinkingLevel } from '../book-3.0/CliAgent';
+import type { CliAgentRunOptions } from '../book-3.0/CliAgent';
+import type { CliAgentOptions } from '../book-3.0/CliAgent';
+import { CliAgent } from '../book-3.0/CliAgent';
+import type { LiteAgentOptions } from '../book-3.0/LiteAgent';
+import type { LiteAgentRunOptions } from '../book-3.0/LiteAgent';
+import { LiteAgent } from '../book-3.0/LiteAgent';
 import { createPipelineCollectionFromDirectory } from '../collection/pipeline-collection/constructors/createPipelineCollectionFromDirectory';
 import { getAllCommitmentsToolFunctionsForNode } from '../commitments/_common/getAllCommitmentsToolFunctionsForNode';
 import { $provideExecutablesForNode } from '../executables/$provideExecutablesForNode';
@@ -21,6 +31,16 @@ export { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION };
 
 
 // Note: Entities of the `@promptbook/node`
+export type { BookNodeAgentSource };
+export type { BookNodeAgentSourceOptions };
+export type { CliAgentHarness };
+export type { CliAgentThinkingLevel };
+export type { CliAgentRunOptions };
+export type { CliAgentOptions };
+export { CliAgent };
+export type { LiteAgentOptions };
+export type { LiteAgentRunOptions };
+export { LiteAgent };
 export { createPipelineCollectionFromDirectory };
 export { getAllCommitmentsToolFunctionsForNode };
 export { $provideExecutablesForNode };

@@ -1,3 +1,8 @@
+-   Added `CliAgent` and `LiteAgent` to `@promptbook/node` for running Book agents directly from Node.js:
+
+    -   `CliAgent` wraps `ptbk agent exec` through the existing Node command-execution utility, including in-memory Book source support by materializing temporary `.book` files when needed.
+    -   `LiteAgent` runs compiled Book agents through the OpenAI Agents SDK, reusing Promptbook system messages, prompt suffixes, tool definitions, and hosted knowledge support in a lighter in-process runtime.
+
 -   Added `ptbk agent chat` and `ptbk agent exec` for running a local `.book` agent directly from the CLI through the shared harness selection flags, including optional `--context` support and Promptbook-owned `.promptbook` scratch workspaces.
 
 -   Changed Promptbook CLI runner selection from `--agent` / `PTBK_AGENT` to `--harness` / `PTBK_HARNESS` across `ptbk coder run`, `ptbk agent-folder`, `ptbk agents-server start/dev`, standalone VPS runner setup, default scripts, and documentation.
