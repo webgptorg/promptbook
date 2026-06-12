@@ -8,7 +8,7 @@ import type { AgentRunOptions } from '../AgentRunOptions';
 export function validateAgentRunOptions(options: AgentRunOptions): void {
     if (!options.agentName) {
         throw new NotAllowed(
-            'You must choose an agent using --agent <openai-codex|github-copilot|cline|claude-code|opencode|gemini>.',
+            'You must choose a harness using --harness <openai-codex|github-copilot|cline|claude-code|opencode|gemini>.',
         );
     }
 

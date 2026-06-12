@@ -20,14 +20,14 @@ const DEFAULT_CODEX_MODEL = 'gpt-5.2-codex';
 const CLINE_MODEL = 'gemini:gemini-3-flash-preview';
 
 /**
- * Type describing runner agent name.
+ * Type describing runner harness name.
  */
-type RunnerAgentName = NonNullable<RunOptions['agentName']>;
+type RunnerHarnessName = NonNullable<RunOptions['agentName']>;
 
 /**
  * Map of runner labels.
  */
-const RUNNER_LABELS: Record<RunnerAgentName, string> = {
+const RUNNER_LABELS: Record<RunnerHarnessName, string> = {
     'openai-codex': 'OpenAI Codex',
     'github-copilot': 'GitHub Copilot',
     cline: 'Cline',
@@ -62,7 +62,7 @@ export function resolvePromptRunner(options: RunOptions): PromptRunnerResolution
     const agentName = options.agentName;
 
     if (!agentName) {
-        throw new Error('Missing --agent in non-dry run mode');
+        throw new Error('Missing --harness in non-dry run mode');
     }
 
     if (agentName === 'openai-codex') {
@@ -104,7 +104,7 @@ export function resolvePromptRunner(options: RunOptions): PromptRunnerResolution
         return createGeminiRunnerResolution(options);
     }
 
-    throw new Error(`Unknown agent: ${agentName}`);
+    throw new Error(`Unknown harness: ${agentName}`);
 }
 
 /**
@@ -116,7 +116,7 @@ function createOpenAiCodexRunnerResolution(options: RunOptions): PromptRunnerRes
         providedModel: options.model,
         defaultModel: DEFAULT_CODEX_MODEL,
         availableModels: OPENAI_MODELS.filter((model) => model.modelVariant === 'CHAT').map((model) => model.modelName),
-        exampleUsages: ['--agent openai-codex --model gpt-5.2-codex', '--agent openai-codex --model default'],
+        exampleUsages: ['--harness openai-codex --model gpt-5.2-codex', '--harness openai-codex --model default'],
     });
     const runner = new OpenAiCodexRunner({
         codexCommand: 'codex',
@@ -144,7 +144,7 @@ function createGeminiRunnerResolution(options: RunOptions): PromptRunnerResoluti
         agentName: 'gemini',
         providedModel: options.model,
         defaultModel: DEFAULT_GEMINI_MODEL,
-        exampleUsages: [`--agent gemini --model ${DEFAULT_GEMINI_MODEL}`, '--agent gemini --model default'],
+        exampleUsages: [`--harness gemini --model ${DEFAULT_GEMINI_MODEL}`, '--harness gemini --model default'],
     });
 
     return createRunnerResolution(
@@ -225,7 +225,7 @@ function exitForMissingModel(
     availableModels: ReadonlyArray<string> | undefined,
     exampleUsages: ReadonlyArray<string>,
 ): never {
-    console.error(colors.red(`Error: --model is required when using --agent ${agentName}`));
+    console.error(colors.red(`Error: --model is required when using --harness ${agentName}`));
     console.error('');
 
     if (availableModels && availableModels.length > 0) {

@@ -6,7 +6,7 @@ import { join } from 'path';
 import * as dotenv from 'dotenv';
 import { spaceTrim } from 'spacetrim';
 import type { ThinkingLevel } from '../coder/ThinkingLevel';
-import type { PromptRunnerAgentName } from '../common/promptRunnerCliOptions';
+import type { PromptRunnerHarnessName } from '../common/promptRunnerCliOptions';
 import { NotAllowed } from '../../../errors/NotAllowed';
 import type { number_port } from '../../../types/number_positive';
 import { resolvePromptbookTemporaryPath } from '../../../utils/filesystem/promptbookTemporaryPath';
@@ -128,7 +128,7 @@ export type AgentsServerNextRuntimeMode = 'start' | 'dev';
  */
 export type StartAgentsServerOptions = {
     readonly port: number_port;
-    readonly agentName: PromptRunnerAgentName;
+    readonly agentName: PromptRunnerHarnessName;
     readonly model?: string;
     readonly noUi: boolean;
     readonly thinkingLevel?: ThinkingLevel;

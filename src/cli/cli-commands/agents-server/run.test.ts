@@ -69,14 +69,14 @@ describe('$initializeAgentsServerStartCommand', () => {
     let consoleInfoSpy: jest.SpyInstance<void, [message?: unknown, ...optionalParams: unknown[]]>;
     const originalEnvironment = {
         PORT: process.env.PORT,
-        PTBK_AGENT: process.env.PTBK_AGENT,
+        PTBK_HARNESS: process.env.PTBK_HARNESS,
         PTBK_MODEL: process.env.PTBK_MODEL,
         PTBK_THINKING_LEVEL: process.env.PTBK_THINKING_LEVEL,
     };
 
     beforeEach(() => {
         delete process.env.PORT;
-        delete process.env.PTBK_AGENT;
+        delete process.env.PTBK_HARNESS;
         delete process.env.PTBK_MODEL;
         delete process.env.PTBK_THINKING_LEVEL;
         getEnsureAgentsServerBuildMock().mockResolvedValue({
@@ -93,7 +93,7 @@ describe('$initializeAgentsServerStartCommand', () => {
 
     afterEach(() => {
         restoreEnvironmentVariable('PORT', originalEnvironment.PORT);
-        restoreEnvironmentVariable('PTBK_AGENT', originalEnvironment.PTBK_AGENT);
+        restoreEnvironmentVariable('PTBK_HARNESS', originalEnvironment.PTBK_HARNESS);
         restoreEnvironmentVariable('PTBK_MODEL', originalEnvironment.PTBK_MODEL);
         restoreEnvironmentVariable('PTBK_THINKING_LEVEL', originalEnvironment.PTBK_THINKING_LEVEL);
         processExitSpy.mockRestore();
@@ -106,7 +106,17 @@ describe('$initializeAgentsServerStartCommand', () => {
         const program = createProgramWithAgentsServerStartCommand();
 
         await program.parseAsync(
-            ['node', 'test', 'start', '--agent', 'github-copilot', '--model', 'gpt-5.4', '--thinking-level', 'xhigh'],
+            [
+                'node',
+                'test',
+                'start',
+                '--harness',
+                'github-copilot',
+                '--model',
+                'gpt-5.4',
+                '--thinking-level',
+                'xhigh',
+            ],
             { from: 'node' },
         );
 
@@ -125,7 +135,7 @@ describe('$initializeAgentsServerStartCommand', () => {
 
     it('uses PTBK and PORT environment defaults when flags are omitted', async () => {
         process.env.PORT = '4555';
-        process.env.PTBK_AGENT = 'openai-codex';
+        process.env.PTBK_HARNESS = 'openai-codex';
         process.env.PTBK_MODEL = 'gpt-5.4';
         process.env.PTBK_THINKING_LEVEL = 'high';
         const program = createProgramWithAgentsServerStartCommand();
@@ -146,7 +156,7 @@ describe('$initializeAgentsServerStartCommand', () => {
 
     it('lets CLI flags override PTBK and PORT environment defaults', async () => {
         process.env.PORT = '4555';
-        process.env.PTBK_AGENT = 'openai-codex';
+        process.env.PTBK_HARNESS = 'openai-codex';
         process.env.PTBK_MODEL = 'gpt-5.2-codex';
         process.env.PTBK_THINKING_LEVEL = 'low';
         const program = createProgramWithAgentsServerStartCommand();
@@ -158,7 +168,7 @@ describe('$initializeAgentsServerStartCommand', () => {
                 'start',
                 '--port',
                 '4666',
-                '--agent',
+                '--harness',
                 'github-copilot',
                 '--model',
                 'gpt-5.4',
@@ -182,7 +192,7 @@ describe('$initializeAgentsServerStartCommand', () => {
     it('passes forced build startup through to the runtime', async () => {
         const program = createProgramWithAgentsServerStartCommand();
 
-        await program.parseAsync(['node', 'test', 'start', '--agent', 'github-copilot', '--force-build'], {
+        await program.parseAsync(['node', 'test', 'start', '--harness', 'github-copilot', '--force-build'], {
             from: 'node',
         });
 
@@ -217,7 +227,17 @@ describe('$initializeAgentsServerDevCommand', () => {
         const program = createProgramWithAgentsServerDevCommand();
 
         await program.parseAsync(
-            ['node', 'test', 'dev', '--agent', 'github-copilot', '--model', 'gpt-5.4', '--thinking-level', 'xhigh'],
+            [
+                'node',
+                'test',
+                'dev',
+                '--harness',
+                'github-copilot',
+                '--model',
+                'gpt-5.4',
+                '--thinking-level',
+                'xhigh',
+            ],
             { from: 'node' },
         );
 

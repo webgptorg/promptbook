@@ -5,7 +5,7 @@ npm install ptbk
 
 ptbk coder init
 
-ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md
+ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md
 ```
 
 -   @@@

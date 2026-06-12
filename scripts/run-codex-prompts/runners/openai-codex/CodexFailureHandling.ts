@@ -61,7 +61,7 @@ export function buildCreditsDisallowedError(details: string): NotAllowed {
                 \`--allow-credits\`
 
                 Example:
-                \`ptbk coder run --agent openai-codex --model gpt-5.2-codex --allow-credits\`
+                \`ptbk coder run --harness openai-codex --model gpt-5.2-codex --allow-credits\`
 
                 Codex details:
                 ${block(limitErrorDetails(details))}

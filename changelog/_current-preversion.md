@@ -1,3 +1,5 @@
+-   Changed Promptbook CLI runner selection from `--agent` / `PTBK_AGENT` to `--harness` / `PTBK_HARNESS` across `ptbk coder run`, `ptbk agent-folder`, `ptbk agents-server start/dev`, standalone VPS runner setup, default scripts, and documentation.
+
 -   Fixed Agents Server durable chat-worker self-requeue handling so transient internal `fetch failed` / `ECONNRESET` wake-up failures are retried briefly and then logged as warnings instead of high-priority Sentry server errors.
 
 -   Fixed standalone VPS Agents Server self-updates so Next.js `/_next/static` files are preserved across release handoffs, allowing open browser tabs to load previous hashed chunks instead of hitting `ChunkLoadError` after a rollout.
@@ -195,7 +197,7 @@
 
 -   Added standalone VPS installation support for `ptbk agents-server`:
 
-    -   Added `other/vps/install.sh`, an idempotent Ubuntu 24.04 x64 installer that installs system dependencies, Node.js 22, `ptbk`, `pm2`, the selected coding runner, configures `.env`, opens the configured port when `ufw` is active, and runs `ptbk agents-server start --agent github-copilot --model gpt-5.4 --thinking-level xhigh` under `pm2` with boot startup.
+    -   Added `other/vps/install.sh`, an idempotent Ubuntu 24.04 x64 installer that installs system dependencies, Node.js 22, `ptbk`, `pm2`, the selected coding runner, configures `.env`, opens the configured port when `ufw` is active, and runs `ptbk agents-server start --harness github-copilot --model gpt-5.4 --thinking-level xhigh` under `pm2` with boot startup.
     -   Added a local SQLite Agents Server database mode via `PTBK_AGENTS_SERVER_DATABASE=sqlite` and `PTBK_AGENTS_SERVER_SQLITE_PATH`, storing standalone data in `.promptbook/agents-server.sqlite` by default while keeping the existing Supabase mode unchanged.
     -   Shared the server-side database access path through a Supabase-shaped local SQLite adapter and added local-mode fallbacks for PostgreSQL-only chat job and timeout mutations used by the Agents Server workers.
 
@@ -225,7 +227,7 @@
 
 -   Added `ptbk agents-server start` as the foreground Agents Server entrypoint:
 
-    -   Starts the packaged Agents Server Next app and the local multi-agent message watcher from one command, with coding runner selection configurable by `--agent` / `PTBK_AGENT`, `--model` / `PTBK_MODEL`, and `--thinking-level` / `PTBK_THINKING_LEVEL`.
+    -   Starts the packaged Agents Server Next app and the local multi-agent message watcher from one command, with coding runner selection configurable by `--harness` / `PTBK_HARNESS`, `--model` / `PTBK_MODEL`, and `--thinking-level` / `PTBK_THINKING_LEVEL`.
     -   Stores database-managed agent runner folders under `.promptbook/agents-server/agents`, persists foreground Next and runner logs under `./logs`, shows the existing agent terminal dashboard by default, and keeps plain streaming output with `--no-ui`.
     -   Replaced the active GitHub-backed chat-job bridge with local message-folder synchronization so durable Agents Server tasks remain visible in the web Task Manager while coding agents answer messages through the reused `ptbk agent-folder` queue flow.
     -   Removed the Vercel cron startup contract from the active internal worker routes and bundled the Agents Server app into generated CLI packages for `npm install ptbk` usage.
@@ -2965,7 +2967,7 @@
 -   Implemented `USE POPUP` commitment: agents can now request to open a popup window with a specific website (e.g. for social media sharing), including a specialized `open_popup` tool, parser support, and a dedicated modal view in Agents Server chat that allows users to manually open the requested URL when the agent is running server-side.
 -   Implemented file security checks for uploaded files in Agents Server: added an abstract `FileSecurityChecker` interface with VirusTotal as the first provider, integrated it into the file upload completion webhook, and added a `securityResult` field to the `File` table to track scan results (status, confidence, malicious/suspicious counts, and full report links).
 -   Allowed duplicate agent names in Agents Server: agents can now share the same name (derived from the first line of the source), with name-collision diagnostics (red underlining) warning when a name is already used; name-based resolution now always picks the oldest agent so subsequent ones remain referencable by their permanent ID, and internal foreign keys (`ChatHistory`, `ChatFeedback`) were migrated from `agentName` to `permanentId` to support non-unique names.
--   Updated `scripts/run-codex-prompts` Gemini runner so `--agent gemini` now requires explicit `--model <name>` (with `--model default` support), matching OpenAI Codex model-selection behavior and wiring the selected model through execution metadata.
+-   Updated `scripts/run-codex-prompts` Gemini runner so `--harness gemini` now requires explicit `--model <name>` (with `--model default` support), matching OpenAI Codex model-selection behavior and wiring the selected model through execution metadata.
 -   Ensured `scripts/run-codex-prompts` commits always run as the configurable coding agent identity (configured via `CODING_AGENT_GIT_NAME`, `CODING_AGENT_GIT_EMAIL`, and `CODING_AGENT_GIT_SIGNING_KEY`) so commits are authored and GPG-signed by the agent instead of the primary user.
 -   Updated `ptbk coder run` / `scripts/run-codex-prompts` Git identity fallback so missing coding-agent identity variables no longer fail the run: when `CODING_AGENT_GIT_NAME`, `CODING_AGENT_GIT_EMAIL`, and signing-key environment variables are not fully configured, commits now fall back to the default Git config and the CLI prints a cyan post-run tip recommending `CODING_AGENT_GIT_NAME`, `CODING_AGENT_GIT_EMAIL`, and either `CODING_AGENT_GIT_SIGNING_KEY` or `CODING_AGENT_GPG_KEY_ID` for cleaner commit history.
 -   Improved self-learning JSON-mode context so when OpenAI-compatible `response_format` uses `json_schema`, the latest agent answer is now preserved as a formatted `json` code block (including pretty-print when valid JSON), helping teacher-based learning keep structured-output interactions clear.
@@ -3058,7 +3060,7 @@
 -   Stopped `STREAM_KEEP_ALIVE` heartbeats from ever reaching `<Chat/>` by filtering them inside `RemoteAgent` so keep-alive pings stay hidden while preserving the underlying connection health signals.
 -   Ensured the Agents Server chat reset option now just opens a new chat instead of re-inserting the failed message, so the “Reset” button clears the conversation without duplicating the input.
 -   Updated Agents Server `/admin/api-tokens` token rows to use the shared `<SecretInput/>` control, so API tokens are masked by default and can be toggled visible/hidden with the eye icon while keeping copy-to-clipboard inline.
--   Added `--priority <minimum-priority>` to `scripts/run-codex-prompts` so coding tasks can be filtered by priority threshold (default `0` keeps current behavior), and updated runner stats to show skipped runnable tasks as `Priority <N` while preserving `--agent`/`--model` behavior.
+-   Added `--priority <minimum-priority>` to `scripts/run-codex-prompts` so coding tasks can be filtered by priority threshold (default `0` keeps current behavior), and updated runner stats to show skipped runnable tasks as `Priority <N` while preserving `--harness`/`--model` behavior.
 -   Fixed `USE IMAGE GENERATOR` to follow notation-only behavior: agents are now instructed to output `![alt](?image-prompt=...)` placeholders (instead of calling a generation tool), while the UI keeps generating images from that notation.
 -   Refactored Agents Server image generation cache/lock flow into a shared `ensureGeneratedImage` utility and reused it in both `/api/images/[filename]` and default-agent-avatar generation, so lock waiting, stale-lock cleanup, and cache-first behavior are DRY and consistent.
 -   Fixed Agents Server chat action button fading so `New chat` / `Save` are no longer stuck dimmed: overlap detection now checks the real message content block instead of the full-width message row, keeping fade only when buttons truly cover message content.
@@ -3297,7 +3299,7 @@
 -   Implemented `TEMPLATE` commitment to enforce specific message structure or response templates for agent responses.
 -   Added nonce test files at the repository root for coding agent verification.
 -   Added a script to run prompt files through OpenAI Codex with prompt status tracking and git commits.
--   Added support for Gemini CLI to the coding agent script with the `--agent gemini` flag, allowing non-interactive prompt execution and automated git commits.
+-   Added support for Gemini CLI to the coding agent script with the `--harness gemini` flag, allowing non-interactive prompt execution and automated git commits.
 -   Added interactive waits between codex prompt tasks with a `--no-wait` override flag.
 -   Added `--ignore-git-changes` flag to the coding agent runner to skip the clean working tree check.
 -   Added per-prompt start summaries with a confirmation wait before each prompt runs (unless `--no-wait`).
@@ -3431,8 +3433,8 @@
 -   Added ESLint rule `no-magic-numbers` to the entire project (root and `agents-server`), configured to allow common semantically distinct numbers like -1, 0, 1, 2, 10, 60, 100, 1000.
 -   Added prompt prioritization to the Codex prompt runner, honoring `[ ] !`, `[ ] !!`, `[ ] !!!` and grouping upcoming tasks by priority.
 -   Filtered Codex prompt runner upcoming tasks to exclude prompts that still need authoring (`@@@`).
--   Added Cline CLI as a second agent runner in the coding agent script with `--agent <openai-codex|cline>` flag.
--   Added Claude code as a third agent runner in the coding agent script with `--agent <openai-codex|cline|claude-code>` flag.
+-   Added Cline CLI as a second agent runner in the coding agent script with `--harness <openai-codex|cline>` flag.
+-   Added Claude code as a third agent runner in the coding agent script with `--harness <openai-codex|cline|claude-code>` flag.
 -   Standardized runners of coding agent script to use temporary script files for robust prompt execution.
 -   Reorganized the coding agent prompt runner script into runner-specific folders and shared utilities without behavior changes.
 -   Implemented interactive chat animations triggered by emojis in agent messages:
@@ -3676,7 +3678,7 @@
 
 -   Enhanced the `ptbk agent-folder run` rich terminal UI so it now reflects queued-message workflows instead of mirroring `ptbk coder run`:
 
-    -   The top branding now uses compact initials derived from the local `agent.book` title, making the dashboard identify the actual agent definition rather than only the runner selected by `--agent`.
+    -   The top branding now uses compact initials derived from the local `agent.book` title, making the dashboard identify the actual agent definition rather than only the runner selected by `--harness`.
     -   The session summary now distinguishes the local agent from the execution runner and shows queue-specific totals (`finished` / `queued` / total) with a progress bar based on answered messages instead of `Task 1/1`.
     -   Added a dedicated `User message` box that shows the latest `MESSAGE @User` block 1:1 with line-preserving trimming, while keeping the live streaming output panel unchanged.
 

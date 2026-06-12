@@ -24,7 +24,7 @@ describe('parseRunOptions', () => {
     });
 
     it('defaults priority to zero when the flag is not provided', () => {
-        const options = parseRunOptions(['--agent', 'gemini']);
+        const options = parseRunOptions(['--harness', 'gemini']);
 
         expect(options).toMatchObject({
             dryRun: false,
@@ -43,7 +43,7 @@ describe('parseRunOptions', () => {
     });
 
     it('parses GitHub Copilot as a supported runner', () => {
-        const options = parseRunOptions(['--agent', 'github-copilot', '--model', 'gpt-5.4']);
+        const options = parseRunOptions(['--harness', 'github-copilot', '--model', 'gpt-5.4']);
 
         expect(options).toMatchObject({
             dryRun: false,
@@ -62,7 +62,7 @@ describe('parseRunOptions', () => {
         });
     });
 
-    it('allows running without --agent in dry-run mode', () => {
+    it('allows running without --harness in dry-run mode', () => {
         const options = parseRunOptions(['--dry-run']);
 
         expect(options).toMatchObject({
@@ -83,7 +83,7 @@ describe('parseRunOptions', () => {
 
     it('parses priority and keeps other flags intact', () => {
         const options = parseRunOptions([
-            '--agent',
+            '--harness',
             'openai-codex',
             '--model',
             'gpt-5.2-codex',
@@ -115,7 +115,7 @@ describe('parseRunOptions', () => {
     });
 
     it('leaves changes uncommitted only when --no-commit is provided', () => {
-        const options = parseRunOptions(['--agent', 'github-copilot', '--no-commit']);
+        const options = parseRunOptions(['--harness', 'github-copilot', '--no-commit']);
 
         expect(options).toMatchObject({
             dryRun: false,
@@ -129,7 +129,7 @@ describe('parseRunOptions', () => {
     });
 
     it('parses inline context instructions', () => {
-        const options = parseRunOptions(['--agent', 'gemini', '--context', 'Follow AGENTS instructions']);
+        const options = parseRunOptions(['--harness', 'gemini', '--context', 'Follow AGENTS instructions']);
 
         expect(options).toMatchObject({
             dryRun: false,
@@ -145,7 +145,7 @@ describe('parseRunOptions', () => {
 
     it('parses an unquoted verification command and stops at the next top-level flag', () => {
         const options = parseRunOptions([
-            '--agent',
+            '--harness',
             'github-copilot',
             '--test',
             'npm',
@@ -167,7 +167,7 @@ describe('parseRunOptions', () => {
     });
 
     it('parses thinking level for supported runners', () => {
-        const options = parseRunOptions(['--agent', 'github-copilot', '--thinking-level', 'xhigh']);
+        const options = parseRunOptions(['--harness', 'github-copilot', '--thinking-level', 'xhigh']);
 
         expect(options).toMatchObject({
             dryRun: false,
@@ -201,7 +201,7 @@ describe('parseRunOptions', () => {
     });
 
     it('enables automatic git push only when --auto-push is provided', () => {
-        const options = parseRunOptions(['--agent', 'github-copilot', '--auto-push']);
+        const options = parseRunOptions(['--harness', 'github-copilot', '--auto-push']);
 
         expect(options).toMatchObject({
             dryRun: false,
@@ -214,7 +214,7 @@ describe('parseRunOptions', () => {
     });
 
     it('enables automatic git pull only when --auto-pull is provided', () => {
-        const options = parseRunOptions(['--agent', 'github-copilot', '--auto-pull']);
+        const options = parseRunOptions(['--harness', 'github-copilot', '--auto-pull']);
 
         expect(options).toMatchObject({
             dryRun: false,
@@ -227,7 +227,7 @@ describe('parseRunOptions', () => {
     });
 
     it('preserves temp prompt artifacts only when --preserve-logs is provided', () => {
-        const options = parseRunOptions(['--agent', 'github-copilot', '--preserve-logs']);
+        const options = parseRunOptions(['--harness', 'github-copilot', '--preserve-logs']);
 
         expect(options).toMatchObject({
             dryRun: false,
@@ -240,7 +240,7 @@ describe('parseRunOptions', () => {
     });
 
     it('disables the terminal UI only when --no-ui is provided', () => {
-        const options = parseRunOptions(['--agent', 'github-copilot', '--no-ui']);
+        const options = parseRunOptions(['--harness', 'github-copilot', '--no-ui']);
 
         expect(options).toMatchObject({
             dryRun: false,
@@ -253,7 +253,7 @@ describe('parseRunOptions', () => {
     });
 
     it('allows disabling automatic line-ending normalization', () => {
-        const options = parseRunOptions(['--agent', 'gemini', '--no-normalize-line-endings']);
+        const options = parseRunOptions(['--harness', 'gemini', '--no-normalize-line-endings']);
 
         expect(options).toMatchObject({
             dryRun: false,
@@ -270,7 +270,7 @@ describe('parseRunOptions', () => {
     });
 
     it('enables credit spending when --allow-credits is provided', () => {
-        const options = parseRunOptions(['--agent', 'openai-codex', '--allow-credits']);
+        const options = parseRunOptions(['--harness', 'openai-codex', '--allow-credits']);
 
         expect(options).toMatchObject({
             dryRun: false,
@@ -286,7 +286,7 @@ describe('parseRunOptions', () => {
     });
 
     it('enables automatic testing-server migrations when --auto-migrate is provided', () => {
-        const options = parseRunOptions(['--agent', 'openai-codex', '--auto-migrate']);
+        const options = parseRunOptions(['--harness', 'openai-codex', '--auto-migrate']);
 
         expect(options).toMatchObject({
             dryRun: false,
@@ -302,7 +302,7 @@ describe('parseRunOptions', () => {
 
     it('allows destructive migration override when explicitly requested', () => {
         const options = parseRunOptions([
-            '--agent',
+            '--harness',
             'openai-codex',
             '--auto-migrate',
             '--allow-destructive-auto-migrate',
@@ -321,22 +321,22 @@ describe('parseRunOptions', () => {
     });
 
     it('rejects invalid priority values', () => {
-        expect(() => parseRunOptions(['--agent', 'gemini', '--priority', 'invalid'])).toThrow('process.exit');
+        expect(() => parseRunOptions(['--harness', 'gemini', '--priority', 'invalid'])).toThrow('process.exit');
         expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 
     it('rejects missing priority value', () => {
-        expect(() => parseRunOptions(['--agent', 'gemini', '--priority'])).toThrow('process.exit');
+        expect(() => parseRunOptions(['--harness', 'gemini', '--priority'])).toThrow('process.exit');
         expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 
     it('rejects missing verification commands', () => {
-        expect(() => parseRunOptions(['--agent', 'github-copilot', '--test'])).toThrow('process.exit');
+        expect(() => parseRunOptions(['--harness', 'github-copilot', '--test'])).toThrow('process.exit');
         expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 
     it('rejects invalid thinking level values', () => {
-        expect(() => parseRunOptions(['--agent', 'openai-codex', '--thinking-level', 'extreme'])).toThrow(
+        expect(() => parseRunOptions(['--harness', 'openai-codex', '--thinking-level', 'extreme'])).toThrow(
             'process.exit',
         );
         expect(processExitSpy).toHaveBeenCalledWith(1);

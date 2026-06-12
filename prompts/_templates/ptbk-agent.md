@@ -5,7 +5,7 @@ npm install ptbk
 
 ptbk agent-folder init
 
-ptbk agent-folder run-multiple --agent openai-codex --model gpt-5.5 --thinking-level xhigh --auto-pull --auto-push --auto-clone
+ptbk agent-folder run-multiple --harness openai-codex --model gpt-5.5 --thinking-level xhigh --auto-pull --auto-push --auto-clone
 ```
 
 -   @@@

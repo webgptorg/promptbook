@@ -686,11 +686,11 @@ npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --template prompt
 
 npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --template prompts/templates/agents-server.md
 
-npx ts-node ./src/cli/test/ptbk.ts coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md
+npx ts-node ./src/cli/test/ptbk.ts coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md
 
-npx ts-node ./src/cli/test/ptbk.ts coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --auto-push
+npx ts-node ./src/cli/test/ptbk.ts coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --auto-push
 
-npx ts-node ./src/cli/test/ptbk.ts coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --ignore-git-changes --no-wait
+npx ts-node ./src/cli/test/ptbk.ts coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --ignore-git-changes --no-wait
 
 npx ts-node ./src/cli/test/ptbk.ts coder find-refactor-candidates
 
@@ -712,11 +712,11 @@ ptbk coder generate-boilerplates
 
 ptbk coder generate-boilerplates --template prompts/templates/common.md
 
-ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --test npm run test
+ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --test npm run test
 
-ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --auto-push
+ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --auto-push
 
-ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --test npm run test --ignore-git-changes --no-wait
+ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --test npm run test --ignore-git-changes --no-wait
 
 ptbk coder find-refactor-candidates
 
@@ -741,7 +741,7 @@ ptbk coder verify
 
 | Flag                       | Purpose                                                                                            |
 | -------------------------- | -------------------------------------------------------------------------------------------------- |
-| `--agent <name>`           | Selects the coding backend.                                                                        |
+| `--harness <name>`         | Selects the coding harness.                                                                        |
 | `--model <model>`          | Chooses the runner model; required for `openai-codex` and `gemini`, optional for `github-copilot`. |
 | `--context <text-or-file>` | Appends extra instructions inline or from a file like `AGENTS.md`.                                 |
 | `--test <command>`         | Runs a verification command after each prompt attempt and feeds failing output back for retries.   |

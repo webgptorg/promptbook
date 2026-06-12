@@ -81,7 +81,7 @@ describe('agent runner commands', () => {
                 'node',
                 'test',
                 'run-agent',
-                '--agent',
+                '--harness',
                 'github-copilot',
                 '--model',
                 'gpt-5.4',
@@ -117,7 +117,7 @@ describe('agent runner commands', () => {
         const program = new Command();
         $initializeAgentRunCommand(program);
 
-        await program.parseAsync(['node', 'test', 'run', '--agent', 'github-copilot'], {
+        await program.parseAsync(['node', 'test', 'run', '--harness', 'github-copilot'], {
             from: 'node',
         });
 
@@ -137,7 +137,7 @@ describe('agent runner commands', () => {
         const program = new Command();
         $initializeAgentTickCommand(program);
 
-        await program.parseAsync(['node', 'test', 'run-once', '--agent', 'github-copilot', '--no-commit'], {
+        await program.parseAsync(['node', 'test', 'run-once', '--harness', 'github-copilot', '--no-commit'], {
             from: 'node',
         });
 
@@ -155,7 +155,7 @@ describe('agent runner commands', () => {
         $initializeAgentTickCommand(program);
 
         await program.parseAsync(
-            ['node', 'test', 'run-once', '--agent', 'github-copilot', '--auto-push', '--auto-pull'],
+            ['node', 'test', 'run-once', '--harness', 'github-copilot', '--auto-push', '--auto-pull'],
             {
                 from: 'node',
             },
@@ -174,7 +174,7 @@ describe('agent runner commands', () => {
         const program = new Command();
         $initializeAgentTickCommand(program);
 
-        await program.parseAsync(['node', 'test', 'tick', '--agent', 'github-copilot'], {
+        await program.parseAsync(['node', 'test', 'tick', '--harness', 'github-copilot'], {
             from: 'node',
         });
 
@@ -194,7 +194,7 @@ describe('agent runner commands', () => {
                 'node',
                 'test',
                 'run-multiple',
-                '--agent',
+                '--harness',
                 'github-copilot',
                 '--model',
                 'gpt-5.4',

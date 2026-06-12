@@ -27,7 +27,7 @@ PROMPTBOOK_REPOSITORY_RELEASE_NAME=""
 PTBK_COMMAND_PATH="${PTBK_COMMAND_PATH:-$PTBK_BIN_DIR/ptbk}"
 PTBK_GLOBAL_COMMAND_PATH="${PTBK_GLOBAL_COMMAND_PATH:-/usr/local/bin/ptbk}"
 PTBK_PM2_BASE_APP_NAME="${PTBK_PM2_BASE_APP_NAME:-$APP_NAME}"
-PTBK_AGENT="${PTBK_AGENT:-openai-codex}"
+PTBK_HARNESS="${PTBK_HARNESS:-${PTBK_AGENT:-openai-codex}}"
 PTBK_MODEL="${PTBK_MODEL:-gpt-5.4}"
 PTBK_THINKING_LEVEL="${PTBK_THINKING_LEVEL:-xhigh}"
 PTBK_OPENAI_CODEX_USE_API_KEY="${PTBK_OPENAI_CODEX_USE_API_KEY:-0}"
@@ -1177,7 +1177,7 @@ verify_promptbook_cli_supports_agents_server() {
 }
 
 install_runner_dependencies() {
-    case "$PTBK_AGENT" in
+    case "$PTBK_HARNESS" in
         github-copilot)
             if command -v copilot >/dev/null 2>&1; then
                 log "GitHub Copilot CLI is already installed."
@@ -1215,13 +1215,13 @@ install_runner_dependencies() {
             "${SUDO[@]}" npm install -g @google/gemini-cli
             ;;
         *)
-            warn "No automatic dependency installer is defined for runner '$PTBK_AGENT'. Make sure its CLI is available on PATH."
+            warn "No automatic dependency installer is defined for runner '$PTBK_HARNESS'. Make sure its CLI is available on PATH."
             ;;
     esac
 }
 
 resolve_runner_authentication_command() {
-    case "$PTBK_AGENT" in
+    case "$PTBK_HARNESS" in
         github-copilot)
             printf 'copilot'
             ;;
@@ -1253,7 +1253,7 @@ prompt_runner_authentication_preference() {
         return
     fi
 
-    if [[ "$PTBK_AGENT" == "github-copilot" ]] && [[ -n "${COPILOT_GITHUB_TOKEN:-}" || -n "${GH_TOKEN:-}" ]]; then
+    if [[ "$PTBK_HARNESS" == "github-copilot" ]] && [[ -n "${COPILOT_GITHUB_TOKEN:-}" || -n "${GH_TOKEN:-}" ]]; then
         IS_RUNNER_AUTHENTICATION_REQUESTED=0
         return
     fi
@@ -1268,7 +1268,7 @@ prompt_runner_authentication_preference() {
         return
     fi
 
-    if prompt_yes_no "Open the $PTBK_AGENT CLI for authentication when dependencies are ready?" "yes"; then
+    if prompt_yes_no "Open the $PTBK_HARNESS CLI for authentication when dependencies are ready?" "yes"; then
         IS_RUNNER_AUTHENTICATION_REQUESTED=1
     else
         IS_RUNNER_AUTHENTICATION_REQUESTED=0
@@ -1280,7 +1280,7 @@ run_runner_authentication_command() {
 
     authentication_command="$(resolve_runner_authentication_command)"
     if [[ -z "$authentication_command" ]]; then
-        warn "No interactive authentication command is defined for runner '$PTBK_AGENT'."
+        warn "No interactive authentication command is defined for runner '$PTBK_HARNESS'."
         return 0
     fi
 
@@ -1433,7 +1433,7 @@ resolve_openai_codex_api_key_usage() {
 }
 
 is_openai_codex_api_key_runner_configured() {
-    [[ "$PTBK_AGENT" == "openai-codex" ]] && [[ "$(resolve_openai_codex_api_key_usage)" == "1" ]]
+    [[ "$PTBK_HARNESS" == "openai-codex" ]] && [[ "$(resolve_openai_codex_api_key_usage)" == "1" ]]
 }
 
 resolve_secret_default() {
@@ -1732,7 +1732,7 @@ configure_environment() {
     set_env_value SERVERS "$SERVERS"
     set_env_value SUPABASE_TABLE_PREFIX "$table_prefix"
     set_env_value SUPABASE_AUTO_MIGRATE false
-    set_env_value PTBK_AGENT "$PTBK_AGENT"
+    set_env_value PTBK_HARNESS "$PTBK_HARNESS"
     set_env_value PTBK_MODEL "$PTBK_MODEL"
     set_env_value PTBK_THINKING_LEVEL "$PTBK_THINKING_LEVEL"
     set_env_value PTBK_INSTALL_DEFAULT_AGENTS "$REQUESTED_INSTALL_DEFAULT_AGENTS"
@@ -1818,7 +1818,7 @@ configure_runner_authentication() {
         return
     fi
 
-    if [[ "$PTBK_AGENT" == "github-copilot" ]] && [[ -n "${COPILOT_GITHUB_TOKEN:-}" || -n "${GH_TOKEN:-}" ]]; then
+    if [[ "$PTBK_HARNESS" == "github-copilot" ]] && [[ -n "${COPILOT_GITHUB_TOKEN:-}" || -n "${GH_TOKEN:-}" ]]; then
         log "GitHub Copilot token environment variable detected and stored in $ENV_FILE."
         return
     fi
@@ -1841,7 +1841,7 @@ configure_runner_authentication() {
     fi
 
     if [[ -z "$is_runner_authentication_requested" ]]; then
-        if prompt_yes_no "Open the $PTBK_AGENT CLI now for authentication?" "yes"; then
+        if prompt_yes_no "Open the $PTBK_HARNESS CLI now for authentication?" "yes"; then
             is_runner_authentication_requested=1
         else
             is_runner_authentication_requested=0
@@ -1853,14 +1853,14 @@ configure_runner_authentication() {
         return
     fi
 
-    log "Starting the $PTBK_AGENT CLI. Complete any login or project-trust prompts, then exit the runner CLI to continue."
+    log "Starting the $PTBK_HARNESS CLI. Complete any login or project-trust prompts, then exit the runner CLI to continue."
     set +e
     run_runner_authentication_command < /dev/tty > /dev/tty
     local runner_exit_code=$?
     set -e
 
     if [[ "$runner_exit_code" -ne 0 ]]; then
-        warn "The $PTBK_AGENT CLI exited with status $runner_exit_code. The server will still start, but the runner may need authentication."
+        warn "The $PTBK_HARNESS CLI exited with status $runner_exit_code. The server will still start, but the runner may need authentication."
     fi
 }
 
@@ -1886,7 +1886,7 @@ authenticate_code_runner() {
 
     authentication_command="$(resolve_runner_authentication_command)"
     if [[ -z "$authentication_command" ]]; then
-        fail "No interactive authentication command is defined for runner '$PTBK_AGENT'."
+        fail "No interactive authentication command is defined for runner '$PTBK_HARNESS'."
     fi
 
     authentication_binary="${authentication_command%% *}"
@@ -1894,7 +1894,7 @@ authenticate_code_runner() {
         fail "Runner CLI '$authentication_binary' is not available. Apply the runner configuration first so the CLI gets installed."
     fi
 
-    log "Starting interactive authentication for runner '$PTBK_AGENT' in $INSTALL_DIR."
+    log "Starting interactive authentication for runner '$PTBK_HARNESS' in $INSTALL_DIR."
     log "Complete any login or project-trust prompts in the browser terminal and exit the runner CLI when finished."
 
     set +e
@@ -2621,7 +2621,7 @@ start_pm2_agents_server_process() {
     data_dir_shell="$(shell_quote "$PTBK_DATA_DIR")"
     database_dir_shell="$(shell_quote "$PTBK_DATABASE_DIR")"
     releases_dir_shell="$(shell_quote "$PTBK_RELEASES_DIR")"
-    agent_shell="$(shell_quote "$PTBK_AGENT")"
+    harness_shell="$(shell_quote "$PTBK_HARNESS")"
     model_shell="$(shell_quote "$PTBK_MODEL")"
     thinking_shell="$(shell_quote "$PTBK_THINKING_LEVEL")"
 
@@ -2643,7 +2643,7 @@ start_pm2_agents_server_process() {
         PTBK_PM2_APP_NAME=$process_name_shell \
         PTBK_PM2_BASE_APP_NAME=$base_app_name_shell \
         PORT=$process_port_shell \
-        pm2 start \"\$PTBK_PATH\" --interpreter bash --name $process_name_shell --time --cron-restart $(shell_quote "$PM2_HOURLY_RESTART_CRON") --cwd $install_dir_shell -- agents-server start --agent $agent_shell --model $model_shell --thinking-level $thinking_shell --port $process_port_shell --no-ui
+        pm2 start \"\$PTBK_PATH\" --interpreter bash --name $process_name_shell --time --cron-restart $(shell_quote "$PM2_HOURLY_RESTART_CRON") --cwd $install_dir_shell -- agents-server start --harness $harness_shell --model $model_shell --thinking-level $thinking_shell --port $process_port_shell --no-ui
         pm2 save
     "
 }
@@ -2792,8 +2792,13 @@ load_runtime_configuration_from_env_file() {
     env_value="$(get_env_value PORT)"
     [[ -n "$env_value" ]] && PORT="$env_value"
 
-    env_value="$(get_env_value PTBK_AGENT)"
-    [[ -n "$env_value" ]] && PTBK_AGENT="$env_value"
+    env_value="$(get_env_value PTBK_HARNESS)"
+    [[ -n "$env_value" ]] && PTBK_HARNESS="$env_value"
+
+    if [[ -z "$env_value" ]]; then
+        env_value="$(get_env_value PTBK_AGENT)"
+        [[ -n "$env_value" ]] && PTBK_HARNESS="$env_value"
+    fi
 
     env_value="$(get_env_value PTBK_MODEL)"
     [[ -n "$env_value" ]] && PTBK_MODEL="$env_value"
@@ -3078,7 +3083,7 @@ main() {
     confirm_fresh_vps_installation
     check_required_resources
 
-    PTBK_AGENT="$(prompt_with_default "Coding runner" "$PTBK_AGENT")"
+    PTBK_HARNESS="$(prompt_with_default "Coding runner" "$PTBK_HARNESS")"
     PTBK_MODEL="$(prompt_with_default "Runner model" "$PTBK_MODEL")"
     PTBK_THINKING_LEVEL="$(prompt_with_default "Runner thinking level" "$PTBK_THINKING_LEVEL")"
     PROMPTBOOK_REPOSITORY_REF="$(normalize_promptbook_repository_ref "$(prompt_with_default "Deployment environment (production/main/preview/LTS)" "$PROMPTBOOK_REPOSITORY_REF")")"

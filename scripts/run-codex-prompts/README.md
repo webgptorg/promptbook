@@ -8,23 +8,23 @@
 
 ```bash
 # External usage (when promptbook is installed globally)
-ptbk coder run --agent openai-codex --model gpt-5.2-codex
+ptbk coder run --harness openai-codex --model gpt-5.2-codex
 
 # Internal usage (within Promptbook repository)
-npx ts-node ./src/cli/test/ptbk.ts coder run --agent openai-codex --model gpt-5.2-codex
+npx ts-node ./src/cli/test/ptbk.ts coder run --harness openai-codex --model gpt-5.2-codex
 ```
 
 ### Direct execution (legacy):
 
 ```bash
-npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent openai-codex --model gpt-5.2-codex
+npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --harness openai-codex --model gpt-5.2-codex
 ```
 
 ### Available options:
 
 ```bash
 --dry-run                     # Print unwritten prompts without executing
---agent <agent-name>          # Select runner: openai-codex, github-copilot, cline, claude-code, opencode, gemini (required for non-dry-run)
+--harness <harness-name>        # Select runner: openai-codex, github-copilot, cline, claude-code, opencode, gemini (required for non-dry-run)
 --model <model>               # Model to use (required for openai-codex and gemini, optional for github-copilot and opencode)
 --context <context-or-file>   # Append extra instructions inline or load them from a file in the current project
 --no-ui                       # Disable the rich terminal UI and stream plain console output instead
@@ -39,7 +39,7 @@ npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent openai-code
 --no-normalize-line-endings   # Disable per-round CRLF -> LF normalization for changed files
 ```
 
-For `--agent openai-codex`, credits are opt-in. If Codex reports that credits are required and `--allow-credits` is not set, the runner fails fast with a rerun hint.
+For `--harness openai-codex`, credits are opt-in. If Codex reports that credits are required and `--allow-credits` is not set, the runner fails fast with a rerun hint.
 
 ### Examples:
 
@@ -48,37 +48,37 @@ For `--agent openai-codex`, credits are opt-in. If Codex reports that credits ar
 ptbk coder run --dry-run
 
 # Run with OpenAI Codex
-ptbk coder run --agent openai-codex --model gpt-5.2-codex
+ptbk coder run --harness openai-codex --model gpt-5.2-codex
 
 # Run with project instructions loaded from AGENTS.md
-ptbk coder run --agent openai-codex --model gpt-5.2-codex --context AGENTS.md
+ptbk coder run --harness openai-codex --model gpt-5.2-codex --context AGENTS.md
 
 # Run with one-off inline instructions
-ptbk coder run --agent openai-codex --model gpt-5.2-codex --context "Focus only on src/cli"
+ptbk coder run --harness openai-codex --model gpt-5.2-codex --context "Focus only on src/cli"
 
 # Run with OpenAI Codex and explicitly allow credit spending
-ptbk coder run --agent openai-codex --model gpt-5.2-codex --allow-credits
+ptbk coder run --harness openai-codex --model gpt-5.2-codex --allow-credits
 
 # Run with explicit post-commit git pushing
-ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --auto-push
+ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --auto-push
 
 # Run with GitHub Copilot
-ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --no-wait
+ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --no-wait
 
 # Run with plain streaming output for logging/debugging
-ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --no-ui
+ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --no-ui
 
 # Run with Gemini
-ptbk coder run --agent gemini --model gemini-3-flash-preview --no-wait
+ptbk coder run --harness gemini --model gemini-3-flash-preview --no-wait
 
 # Run with Claude Code
-ptbk coder run --agent claude-code --no-wait
+ptbk coder run --harness claude-code --no-wait
 
 # Run with priority filter
-ptbk coder run --agent openai-codex --model gpt-5.2-codex --priority 1
+ptbk coder run --harness openai-codex --model gpt-5.2-codex --priority 1
 
 # Run with automatic testing-server migrations after each prompt
-ptbk coder run --agent openai-codex --model gpt-5.2-codex --auto-migrate
+ptbk coder run --harness openai-codex --model gpt-5.2-codex --auto-migrate
 ```
 
 ## Agent identity configuration

@@ -2,8 +2,8 @@ import colors from 'colors';
 import type { ThinkingLevel } from '../../../src/cli/cli-commands/coder/ThinkingLevel';
 import { THINKING_LEVEL_VALUES, parseThinkingLevel } from '../../../src/cli/cli-commands/coder/ThinkingLevel';
 import {
-    PROMPT_RUNNER_AGENT_NAMES,
-    type PromptRunnerAgentName,
+    PROMPT_RUNNER_HARNESS_NAMES,
+    type PromptRunnerHarnessName,
 } from '../../../src/cli/cli-commands/common/promptRunnerCliOptions';
 import type { RunOptions } from './RunOptions';
 
@@ -11,14 +11,14 @@ import type { RunOptions } from './RunOptions';
  * CLI usage text for this script.
  */
 const USAGE =
-    'Usage: run-codex-prompts [--dry-run] [--agent <agent-name>] [--model <model>] [--context <context-or-file>] [--test <test-command...>] [--preserve-logs] [--no-ui] [--thinking-level <thinking-level>] [--priority <minimum-priority>] [--allow-credits] [--auto-migrate] [--allow-destructive-auto-migrate] [--no-wait] [--no-commit] [--ignore-git-changes] [--no-normalize-line-endings] [--auto-push] [--auto-pull]';
+    'Usage: run-codex-prompts [--dry-run] [--harness <harness-name>] [--model <model>] [--context <context-or-file>] [--test <test-command...>] [--preserve-logs] [--no-ui] [--thinking-level <thinking-level>] [--priority <minimum-priority>] [--allow-credits] [--auto-migrate] [--allow-destructive-auto-migrate] [--no-wait] [--no-commit] [--ignore-git-changes] [--no-normalize-line-endings] [--auto-push] [--auto-pull]';
 
 /**
  * Top-level flags supported by this command.
  */
 const KNOWN_OPTION_FLAGS = new Set([
     '--dry-run',
-    '--agent',
+    '--harness',
     '--model',
     '--context',
     '--test',
@@ -41,14 +41,14 @@ const KNOWN_OPTION_FLAGS = new Set([
  * Parses CLI arguments into runner options.
  */
 export function parseRunOptions(args: string[]): RunOptions {
-    let agentName: PromptRunnerAgentName | undefined = undefined;
+    let agentName: PromptRunnerHarnessName | undefined = undefined;
     const dryRun = args.includes('--dry-run');
 
-    const agentValue = readOptionValue(args, '--agent');
-    if (agentValue) {
-        const value = agentValue;
-        if (PROMPT_RUNNER_AGENT_NAMES.includes(value as PromptRunnerAgentName)) {
-            agentName = value as PromptRunnerAgentName;
+    const harnessValue = readOptionValue(args, '--harness');
+    if (harnessValue) {
+        const value = harnessValue;
+        if (PROMPT_RUNNER_HARNESS_NAMES.includes(value as PromptRunnerHarnessName)) {
+            agentName = value as PromptRunnerHarnessName;
         }
     }
 
@@ -90,7 +90,7 @@ export function parseRunOptions(args: string[]): RunOptions {
 
     if (!agentName && !dryRun) {
         exitWithUsageError(
-            'You must choose an agent using --agent <openai-codex|github-copilot|cline|claude-code|opencode|gemini>',
+            'You must choose a harness using --harness <openai-codex|github-copilot|cline|claude-code|opencode|gemini>',
         );
     }
 

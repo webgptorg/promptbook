@@ -71,7 +71,7 @@ describe('other/vps/install.sh', () => {
         expect(installScript).toContain('REQUESTED_PUBLIC_SITE_URL');
         expect(installScript).toContain('prompt_with_default "Public Agents Server URL"');
         expect(installScript).toContain(
-            'prompt_yes_no "Open the $PTBK_AGENT CLI for authentication when dependencies are ready?"',
+            'prompt_yes_no "Open the $PTBK_HARNESS CLI for authentication when dependencies are ready?"',
         );
         expect(configureEnvironmentFunction).toContain('local public_site_url="$REQUESTED_PUBLIC_SITE_URL"');
         expect(configureEnvironmentFunction).not.toContain('prompt_with_default "Public Agents Server URL"');
@@ -115,8 +115,8 @@ describe('other/vps/install.sh', () => {
             installScript.indexOf('\nresolve_runner_authentication_command() {'),
         );
 
-        expect(installScript).toContain('PTBK_AGENT="${PTBK_AGENT:-openai-codex}"');
-        expect(installScript).toContain('PTBK_AGENT="$(prompt_with_default "Coding runner" "$PTBK_AGENT")"');
+        expect(installScript).toContain('PTBK_HARNESS="${PTBK_HARNESS:-${PTBK_AGENT:-openai-codex}}"');
+        expect(installScript).toContain('PTBK_HARNESS="$(prompt_with_default "Coding runner" "$PTBK_HARNESS")"');
         expect(runnerDependenciesFunction).toContain('github-copilot)');
         expect(runnerDependenciesFunction).toContain('openai-codex)');
     });

@@ -37,7 +37,7 @@ export async function readConfiguredCodeRunner(): Promise<ConfiguredCodeRunner> 
     >;
 
     return {
-        agent: environmentByKey.PTBK_AGENT || process.env.PTBK_AGENT || 'github-copilot',
+        agent: environmentByKey.PTBK_HARNESS || process.env.PTBK_HARNESS || process.env.PTBK_AGENT || 'github-copilot',
         model: environmentByKey.PTBK_MODEL || process.env.PTBK_MODEL || 'gpt-5.4',
         thinkingLevel: environmentByKey.PTBK_THINKING_LEVEL || process.env.PTBK_THINKING_LEVEL || 'xhigh',
     };

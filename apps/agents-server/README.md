@@ -9,7 +9,7 @@ The installed CLI can initialize a local Agents Server project before it starts 
 ```bash
 npm install ptbk
 ptbk agents-server init
-ptbk agents-server start --agent github-copilot --model gpt-5.4 --thinking-level xhigh
+ptbk agents-server start --harness github-copilot --model gpt-5.4 --thinking-level xhigh
 ```
 
 `ptbk agents-server init` adds missing placeholders to `.env` and local runtime exclusions to `.gitignore` without deleting existing configuration. Use `PTBK_AGENTS_SERVER_DATABASE=supabase` for a Supabase-backed server or `PTBK_AGENTS_SERVER_DATABASE=sqlite` for a standalone local database in `.promptbook`. When using Supabase, fill the initialized values from your project before starting the server. The Supabase project URL and API keys are available in the [Supabase project API settings](https://supabase.com/docs/guides/api/api-keys), and the PostgreSQL connection string is available from the [Supabase database connection guide](https://supabase.com/docs/guides/database/connecting-to-postgres).

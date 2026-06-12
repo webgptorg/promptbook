@@ -1,11 +1,11 @@
 import type { ThinkingLevel } from '../../src/cli/cli-commands/coder/ThinkingLevel';
-import type { PromptRunnerAgentName } from '../../src/cli/cli-commands/common/promptRunnerCliOptions';
+import type { PromptRunnerHarnessName } from '../../src/cli/cli-commands/common/promptRunnerCliOptions';
 
 /**
  * Options for `ptbk agent-folder run-once`, `ptbk agent-folder run-agent`, and `ptbk agent-folder run-multiple`.
  */
 export type AgentRunOptions = {
-    readonly agentName?: PromptRunnerAgentName;
+    readonly agentName?: PromptRunnerHarnessName;
     readonly model?: string;
     readonly noUi: boolean;
     readonly thinkingLevel?: ThinkingLevel;

@@ -52,7 +52,7 @@ export async function PATCH(request: Request) {
         }
 
         await updateVpsEnvironmentVariables({
-            PTBK_AGENT: body.agent || '',
+            PTBK_HARNESS: body.agent || '',
             PTBK_MODEL: body.model || '',
             PTBK_THINKING_LEVEL: body.thinkingLevel || '',
         });

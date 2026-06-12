@@ -12,7 +12,7 @@ import { THINKING_LEVEL_VALUES } from '../coder/ThinkingLevel';
  *
  * @private internal utility of `promptbookCli`
  */
-export const PROMPT_RUNNER_AGENT_NAMES = [
+export const PROMPT_RUNNER_HARNESS_NAMES = [
     'openai-codex',
     'github-copilot',
     'cline',
@@ -22,11 +22,11 @@ export const PROMPT_RUNNER_AGENT_NAMES = [
 ] as const;
 
 /**
- * Environment variable used as the default runner identifier when `--agent` is omitted.
+ * Environment variable used as the default runner identifier when `--harness` is omitted.
  *
  * @private internal utility of `promptbookCli`
  */
-export const PTBK_AGENT_ENV = 'PTBK_AGENT';
+export const PTBK_HARNESS_ENV = 'PTBK_HARNESS';
 
 /**
  * Environment variable used as the default runner model when `--model` is omitted.
@@ -47,7 +47,7 @@ export const PTBK_THINKING_LEVEL_ENV = 'PTBK_THINKING_LEVEL';
  *
  * @private internal utility of `promptbookCli`
  */
-export type PromptRunnerAgentName = (typeof PROMPT_RUNNER_AGENT_NAMES)[number];
+export type PromptRunnerHarnessName = (typeof PROMPT_RUNNER_HARNESS_NAMES)[number];
 
 /**
  * Commander option bag for shared runner flags.
@@ -55,7 +55,7 @@ export type PromptRunnerAgentName = (typeof PROMPT_RUNNER_AGENT_NAMES)[number];
  * @private internal utility of `promptbookCli`
  */
 export type PromptRunnerCliOptions = {
-    readonly agent?: string;
+    readonly harness?: string;
     readonly model?: string;
     readonly ui: boolean;
     readonly thinkingLevel?: ThinkingLevel;
@@ -74,7 +74,7 @@ export type PromptRunnerCliOptions = {
  */
 export type PromptRunnerSelectionCliOptions = Pick<
     PromptRunnerCliOptions,
-    'agent' | 'model' | 'ui' | 'thinkingLevel' | 'allowCredits'
+    'harness' | 'model' | 'ui' | 'thinkingLevel' | 'allowCredits'
 >;
 
 /**
@@ -83,7 +83,7 @@ export type PromptRunnerSelectionCliOptions = Pick<
  * @private internal utility of `promptbookCli`
  */
 export type NormalizedPromptRunnerCliOptions = {
-    readonly agentName?: PromptRunnerAgentName;
+    readonly agentName?: PromptRunnerHarnessName;
     readonly model?: string;
     readonly noUi: boolean;
     readonly thinkingLevel?: ThinkingLevel;
@@ -121,11 +121,11 @@ export const PROMPT_RUNNER_DESCRIPTION = spaceTrim(`
 `);
 
 /**
- * Commander description for the `--agent` option.
+ * Commander description for the `--harness` option.
  *
  * @private internal utility of `promptbookCli`
  */
-export const PROMPT_RUNNER_AGENT_OPTION_DESCRIPTION =
+export const PROMPT_RUNNER_HARNESS_OPTION_DESCRIPTION =
     'Select runner: openai-codex, github-copilot, cline, claude-code, opencode, gemini (required for non-dry-run)';
 
 /**
@@ -146,7 +146,9 @@ export const PROMPT_RUNNER_MODEL_OPTION_DESCRIPTION = spaceTrim(`
  * @private internal utility of `promptbookCli`
  */
 export function addPromptRunnerSelectionOptions(command: Program): void {
-    command.addOption(new Option('--agent <agent-name>', PROMPT_RUNNER_AGENT_OPTION_DESCRIPTION).env(PTBK_AGENT_ENV));
+    command.addOption(
+        new Option('--harness <harness-name>', PROMPT_RUNNER_HARNESS_OPTION_DESCRIPTION).env(PTBK_HARNESS_ENV),
+    );
     command.addOption(new Option('--model <model>', PROMPT_RUNNER_MODEL_OPTION_DESCRIPTION).env(PTBK_MODEL_ENV));
 }
 
@@ -227,7 +229,7 @@ export function normalizePromptRunnerSelectionCliOptions(
     },
 ): NormalizedPromptRunnerSelectionCliOptions {
     return {
-        agentName: resolvePromptRunnerAgentName(cliOptions.agent, options),
+        agentName: resolvePromptRunnerHarnessName(cliOptions.harness, options),
         model: cliOptions.model,
         noUi: !cliOptions.ui,
         thinkingLevel: cliOptions.thinkingLevel,
@@ -236,38 +238,40 @@ export function normalizePromptRunnerSelectionCliOptions(
 }
 
 /**
- * Parses and validates one runner agent name.
+ * Parses and validates one runner harness name.
  */
-function resolvePromptRunnerAgentName(
-    agent: string | undefined,
+function resolvePromptRunnerHarnessName(
+    harness: string | undefined,
     options: {
         readonly isAgentRequired: boolean;
     },
-): PromptRunnerAgentName | undefined {
-    if (!agent) {
+): PromptRunnerHarnessName | undefined {
+    if (!harness) {
         if (!options.isAgentRequired) {
             return undefined;
         }
 
         throw new Error(
             colors.red(
-                'You must choose an agent using --agent <openai-codex|github-copilot|cline|claude-code|opencode|gemini>',
+                'You must choose a harness using --harness <openai-codex|github-copilot|cline|claude-code|opencode|gemini>',
             ),
         );
     }
 
-    if (isPromptRunnerAgentName(agent)) {
-        return agent;
+    if (isPromptRunnerHarnessName(harness)) {
+        return harness;
     }
 
-    throw new Error(colors.red(`Invalid agent "${agent}". Must be one of: ${PROMPT_RUNNER_AGENT_NAMES.join(', ')}`));
+    throw new Error(
+        colors.red(`Invalid harness "${harness}". Must be one of: ${PROMPT_RUNNER_HARNESS_NAMES.join(', ')}`),
+    );
 }
 
 /**
- * Checks whether a string is one supported runner agent name.
+ * Checks whether a string is one supported runner harness name.
  */
-function isPromptRunnerAgentName(agent: string): agent is PromptRunnerAgentName {
-    return PROMPT_RUNNER_AGENT_NAMES.includes(agent as PromptRunnerAgentName);
+function isPromptRunnerHarnessName(harness: string): harness is PromptRunnerHarnessName {
+    return PROMPT_RUNNER_HARNESS_NAMES.includes(harness as PromptRunnerHarnessName);
 }
 
 // Note: [🟡] Code for CLI runner options [promptRunnerCliOptions](src/cli/cli-commands/common/promptRunnerCliOptions.ts) should never be published outside of `@promptbook/cli`
