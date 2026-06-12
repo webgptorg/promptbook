@@ -6,6 +6,7 @@ import { EnvironmentMismatchError } from '../errors/EnvironmentMismatchError';
 import { $isRunningInNode } from '../utils/environment/$isRunningInNode';
 import { PROMPTBOOK_ENGINE_VERSION } from '../version';
 import { $initializeAboutCommand } from './cli-commands/about';
+import { $initializeAgentCommand } from './cli-commands/agent';
 import { $initializeAgentFolderCommand } from './cli-commands/agent-folder';
 import { $initializeAgentsServerCommand } from './cli-commands/agents-server';
 import { $initializeCoderCommand } from './cli-commands/coder';
@@ -93,6 +94,7 @@ export async function promptbookCli(): Promise<void> {
     $initializeListScrapersCommand(program);
     $initializeStartAgentsServerCommand(program);
     $initializeStartPipelinesServerCommand(program);
+    $initializeAgentCommand(program);
     $initializeAgentFolderCommand(program);
     $initializeAgentsServerCommand(program);
     $initializeCoderCommand(program);

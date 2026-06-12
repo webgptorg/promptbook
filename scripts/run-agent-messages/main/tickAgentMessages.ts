@@ -2,7 +2,6 @@ import moment from 'moment';
 import colors from 'colors';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
-import { createAgentModelRequirements } from '../../../src/book-2.0/agent-source/createAgentModelRequirements';
 import type { string_book } from '../../../src/book-2.0/agent-source/string_book';
 import { AGENT_BOOK_FILE_PATH } from '../../../src/cli/cli-commands/agent-folder/agentProjectPaths';
 import {
@@ -29,6 +28,7 @@ import type { AgentMessageFile } from '../messages/AgentMessageFile';
 import { buildAgentMessageCommitMessage } from '../messages/buildAgentMessageCommitMessage';
 import { buildAgentMessagePrompt } from '../messages/buildAgentMessagePrompt';
 import { buildAgentMessageScriptPath } from '../messages/buildAgentMessageScriptPath';
+import { createAgentRunnerSystemMessage } from '../messages/createAgentRunnerSystemMessage';
 import { moveAgentMessageToFinished, type FinishedAgentMessageFile } from '../messages/moveAgentMessageToFinished';
 import {
     createAgentQueueProgressSnapshot,
@@ -283,9 +283,7 @@ async function runQueuedAgentMessage(options: {
  */
 async function loadLocalAgentSystemMessage(projectPath: string): Promise<string> {
     const agentSource = await readFile(join(projectPath, AGENT_BOOK_FILE_PATH), 'utf-8');
-    const modelRequirements = await createAgentModelRequirements(agentSource as string_book);
-
-    return modelRequirements.systemMessage;
+    return createAgentRunnerSystemMessage(agentSource as string_book);
 }
 
 /**

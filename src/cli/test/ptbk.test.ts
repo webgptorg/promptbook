@@ -84,6 +84,24 @@ describe('how promptbookCli works', () => {
             }),
         ).resolves.toContain('Watch one agent repository continuously and answer queued user questions'));
 
+    it('should expose `agent chat` command', () =>
+        expect(
+            $execCommand({
+                command: 'ts-node src/cli/test/ptbk.ts agent chat --help',
+                crashOnError: false,
+                cwd: process.cwd(),
+            }),
+        ).resolves.toContain('Run an interactive CLI chat with one Promptbook agent book'));
+
+    it('should expose `agent exec` command', () =>
+        expect(
+            $execCommand({
+                command: 'ts-node src/cli/test/ptbk.ts agent exec --help',
+                crashOnError: false,
+                cwd: process.cwd(),
+            }),
+        ).resolves.toContain('Run one non-interactive message with a Promptbook agent book and print the answer'));
+
     it('should expose `agents-server start` command', () =>
         expect(
             $execCommand({

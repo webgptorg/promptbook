@@ -1,3 +1,5 @@
+-   Added `ptbk agent chat` and `ptbk agent exec` for running a local `.book` agent directly from the CLI through the shared harness selection flags, including optional `--context` support and Promptbook-owned `.promptbook` scratch workspaces.
+
 -   Changed Promptbook CLI runner selection from `--agent` / `PTBK_AGENT` to `--harness` / `PTBK_HARNESS` across `ptbk coder run`, `ptbk agent-folder`, `ptbk agents-server start/dev`, standalone VPS runner setup, default scripts, and documentation.
 
 -   Fixed Agents Server durable chat-worker self-requeue handling so transient internal `fetch failed` / `ECONNRESET` wake-up failures are retried briefly and then logged as warnings instead of high-priority Sentry server errors.
