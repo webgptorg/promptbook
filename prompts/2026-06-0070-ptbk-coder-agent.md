@@ -40,6 +40,46 @@ ptbk agent chat --agent ./agents/default/generic-chatter.book --harness openai-c
 
 ---
 
+[ ] !!
+
+[✨⛷] `ptbk agent chat` and `ptbk agent exec` should output only a chat / response, not any other logs or messages
+
+```bash
+ptbk agent chat --agent ./agents/default/generic-chatter.book --harness openai-codex --model gpt-5.4 --thinking-level xhigh
+```
+
+Log the harness logs only when `--verbose` is passed, otherwise only the chat itself should be printed to the console:
+
+```bash
+ptbk agent chat --agent ./agents/default/generic-chatter.book --harness openai-codex --model gpt-5.4 --thinking-level xhigh --verbose
+```
+
+**Now it logs things like:**
+
+"OpenAI Codex credit spending is disabled"
+
+```bash
+me@DESKTOP-2QD9KQQ MINGW64 ~/work/promptbook-experiments-and-landing-pages/agents-server (main)
+$  npx ts-node ./promptbook/src/cli/test/ptbk.ts agent chat --agent agents/book-expert.book --harness openai-codex --model gpt-5.5 --thinking-level low --context AGENTS.md
+√ User message ... Hello
+OpenAI Codex credit spending is disabled. Use `--allow-credits` to explicitly opt in.
+
+Agent:
+Ahoj! Jak ti mohu pomoci s jazykem Book?
+? User message »
+```
+
+```
+[90mOpenAI Codex credit spending is disabled. Use `--allow-credits` to explicitly opt in.[39m
+
+Ahoj! Jak ti mohu pomoci?
+```
+
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality of `ptbk agent` and related functionality before you start implementing.
+
+---
+
 [-]
 
 [✨⛷] baz
@@ -81,4 +121,3 @@ ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --c
 -   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
