@@ -21,25 +21,22 @@ ptbk agent exec --agent ./agents/default/generic-chatter.book --harness openai-c
 
 ---
 
-[-]
+[ ] !
 
-[✨⛷] baz
+[✨⛷] `ptbk agent chat` should output only a chat, not any other logs or messages
 
 ```bash
-@@@
-
-npm install ptbk
-
-ptbk coder init
-
-ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md
+ptbk agent chat --agent ./agents/default/generic-chatter.book --harness openai-codex --model gpt-5.4 --thinking-level xhigh
 ```
 
--   @@@
+Log the harness logs only when `--verbose` is passed, otherwise only the chat itself should be printed to the console:
+
+```bash
+ptbk agent chat --agent ./agents/default/generic-chatter.book --harness openai-codex --model gpt-5.4 --thinking-level xhigh --verbose
+```
+
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
--   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
+-   Do a proper analysis of the current functionality of `ptbk agent` and related functionality before you start implementing.
 
 ---
 
@@ -84,4 +81,3 @@ ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --c
 -   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
