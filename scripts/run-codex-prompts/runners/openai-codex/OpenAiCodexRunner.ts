@@ -129,6 +129,7 @@ export class OpenAiCodexRunner implements PromptRunner {
                     completionLineMatcher: CODEX_COMPLETION_LINE,
                     idleTimeoutMs: CODEX_COMPLETION_IDLE_MS,
                     logPath: options.logPath,
+                    shouldPrintLiveOutput: options.shouldPrintLiveOutput,
                     preserveArtifactsOnSuccess: options.preserveArtifactsOnSuccess,
                 });
 
@@ -151,11 +152,13 @@ export class OpenAiCodexRunner implements PromptRunner {
                 const retryIndex = this.rateLimitBackoff.retryCount;
                 const summary = extractFailureSummary(details);
 
-                console.warn(
-                    colors.yellow(
-                        `[codex] Rate limit/quota detected (${summary}). Retry #${retryIndex} in ${formatDelay(delayMs)} at ${retryAt}.`,
-                    ),
-                );
+                if (options.shouldPrintLiveOutput ?? true) {
+                    console.warn(
+                        colors.yellow(
+                            `[codex] Rate limit/quota detected (${summary}). Retry #${retryIndex} in ${formatDelay(delayMs)} at ${retryAt}.`,
+                        ),
+                    );
+                }
 
                 await waitForRetryDelay(delayMs, options);
             }

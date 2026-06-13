@@ -21,7 +21,9 @@ export async function runAgentChat(options: AgentCliRunOptions): Promise<void> {
     });
     const messages: AgentCliHistoryMessage[] = [];
 
-    console.info(colors.gray('Type "exit" or "quit" to end the chat.'));
+    if (options.isVerbose) {
+        console.info(colors.gray('Type "exit" or "quit" to end the chat.'));
+    }
 
     while (true) {
         const response = await prompts({

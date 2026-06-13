@@ -5,6 +5,7 @@ import {
     appendScriptExecutionLogStart,
     buildLoggedBashExecution,
 } from './scriptExecutionLog';
+import { printLiveScriptChunk } from './printLiveScriptChunk';
 import { toPosixPath } from './toPosixPath';
 
 /**
@@ -44,6 +45,7 @@ function buildCommandFailureMessage(scriptPathPosix: string, code: number | null
 export async function runScriptUntilMarkerIdle(options: RunScriptUntilMarkerIdleOptions): Promise<string> {
     const { scriptPath, completionLineMatcher, idleTimeoutMs } = options;
     const scriptPathPosix = toPosixPath(scriptPath);
+    const shouldPrintLiveOutput = options.shouldPrintLiveOutput ?? true;
     await appendScriptExecutionLogStart(options);
     const bashExecution = buildLoggedBashExecution(scriptPath, options.logPath);
 
@@ -134,13 +136,7 @@ export async function runScriptUntilMarkerIdle(options: RunScriptUntilMarkerIdle
          */
         const handleChunk = (chunk: string, source: 'stdout' | 'stderr'): void => {
             fullOutput += chunk;
-            if (source === 'stderr') {
-                if (chunk.trim()) {
-                    console.warn(chunk);
-                }
-            } else {
-                console.info(chunk);
-            }
+            printLiveScriptChunk(chunk, source, shouldPrintLiveOutput);
 
             if (source === 'stdout') {
                 stdoutBuffer += chunk;

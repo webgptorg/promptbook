@@ -3,6 +3,7 @@ import { tmpdir } from 'os';
 import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
 import { $runGoScript } from './$runGoScript';
+import { $runGoScriptUntilMarkerIdle } from './$runGoScriptUntilMarkerIdle';
 import { $runGoScriptWithOutput } from './$runGoScriptWithOutput';
 import { buildScriptLogPath } from './buildScriptLogPath';
 
@@ -79,5 +80,39 @@ describe('runGoScript runtime logging', () => {
         expect(log).toContain('test failure');
         expect(log).toContain('Status: failed');
         await expect(readFile(scriptPath, 'utf-8')).resolves.toContain("printf 'test failure\\n' >&2");
+    });
+
+    it('can suppress live stdout and stderr while still capturing output and runtime logs', async () => {
+        const scriptPath = join(temporaryDirectoryPath, 'prompt-quiet.sh');
+        const logPath = buildScriptLogPath(scriptPath);
+        const consoleInfoSpy = jest.spyOn(console, 'info').mockImplementation(() => undefined);
+        const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+        try {
+            const output = await $runGoScriptUntilMarkerIdle({
+                scriptPath,
+                logPath,
+                shouldPrintLiveOutput: false,
+                completionLineMatcher: /^tokens used$/u,
+                idleTimeoutMs: 50,
+                scriptContent: spaceTrim(`
+                    printf 'runner stdout\\n'
+                    printf 'runner stderr\\n' >&2
+                    printf 'tokens used\\n'
+                `),
+            });
+
+            const log = await readFile(logPath, 'utf-8');
+
+            expect(output).toContain('runner stdout');
+            expect(output).toContain('runner stderr');
+            expect(log).toContain('runner stdout');
+            expect(log).toContain('runner stderr');
+            expect(consoleInfoSpy).not.toHaveBeenCalled();
+            expect(consoleWarnSpy).not.toHaveBeenCalled();
+        } finally {
+            consoleInfoSpy.mockRestore();
+            consoleWarnSpy.mockRestore();
+        }
     });
 });

@@ -6,6 +6,7 @@ import {
     appendScriptExecutionLogStart,
     buildLoggedBashExecution,
 } from './scriptExecutionLog';
+import { printLiveScriptChunk } from './printLiveScriptChunk';
 import { toPosixPath } from './toPosixPath';
 
 /**
@@ -15,6 +16,7 @@ export async function runBashScriptWithOutput(options: RunGoScriptOptions): Prom
     await appendScriptExecutionLogStart(options);
     const bashExecution = buildLoggedBashExecution(options.scriptPath, options.logPath);
     const scriptPathPosix = toPosixPath(options.scriptPath);
+    const shouldPrintLiveOutput = options.shouldPrintLiveOutput ?? true;
 
     return await new Promise<string>((resolve, reject) => {
         const commandProcess = spawn('bash', bashExecution.args, {
@@ -65,15 +67,13 @@ export async function runBashScriptWithOutput(options: RunGoScriptOptions): Prom
         commandProcess.stdout.on('data', (stdout) => {
             const chunk = stdout.toString();
             output += chunk;
-            console.info(chunk);
+            printLiveScriptChunk(chunk, 'stdout', shouldPrintLiveOutput);
         });
 
         commandProcess.stderr.on('data', (stderr) => {
             const chunk = stderr.toString();
             output += chunk;
-            if (chunk.trim()) {
-                console.warn(chunk);
-            }
+            printLiveScriptChunk(chunk, 'stderr', shouldPrintLiveOutput);
         });
 
         /**

@@ -40,9 +40,9 @@ export function $initializeAgentExecCommand(program: Program): $side_effect {
     command.option('--context <context-or-file>', 'Append extra context either inline or from a file path');
 
     command.action(
-        handleActionErrors(async (cliOptions) => {
+        handleActionErrors(async (cliOptions, commandProgram) => {
             const options = cliOptions as AgentCommandCliOptions;
-            const runnerOptions = normalizeAgentCommandRunnerOptions(options);
+            const runnerOptions = normalizeAgentCommandRunnerOptions(options, commandProgram as Program);
             const { runAgentExec } = await import('../../../../scripts/run-agent-chat/runAgentExec');
 
             await runAgentExec({

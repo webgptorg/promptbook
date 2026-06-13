@@ -48,7 +48,7 @@ describe('agent chat and exec commands', () => {
     });
 
     it('passes agent book, context, and runner options to `agent chat`', async () => {
-        const program = new Command();
+        const program = createAgentTestProgram();
         $initializeAgentChatCommand(program);
 
         await program.parseAsync(
@@ -76,6 +76,7 @@ describe('agent chat and exec commands', () => {
             currentWorkingDirectory: process.cwd(),
             agentName: 'openai-codex',
             model: 'gpt-5.4',
+            isVerbose: false,
             noUi: false,
             thinkingLevel: 'xhigh',
             allowCredits: false,
@@ -84,7 +85,7 @@ describe('agent chat and exec commands', () => {
     });
 
     it('passes message and runner options to `agent exec`', async () => {
-        const program = new Command();
+        const program = createAgentTestProgram();
         $initializeAgentExecCommand(program);
 
         await program.parseAsync(
@@ -113,10 +114,39 @@ describe('agent chat and exec commands', () => {
             currentWorkingDirectory: process.cwd(),
             agentName: 'github-copilot',
             model: 'gpt-5.4',
+            isVerbose: false,
             noUi: true,
             thinkingLevel: undefined,
             allowCredits: true,
         });
+        expect(processExitSpy).toHaveBeenCalledWith(0);
+    });
+
+    it('forwards the inherited global `--verbose` flag to local agent chat runs', async () => {
+        const program = createAgentTestProgram();
+        $initializeAgentChatCommand(program);
+
+        await program.parseAsync(
+            [
+                'node',
+                'test',
+                'chat',
+                '--agent',
+                './agents/default/generic-chatter.book',
+                '--harness',
+                'openai-codex',
+                '--model',
+                'gpt-5.4',
+                '--verbose',
+            ],
+            { from: 'node' },
+        );
+
+        expect(getRunAgentChatMock()).toHaveBeenCalledWith(
+            expect.objectContaining({
+                isVerbose: true,
+            }),
+        );
         expect(processExitSpy).toHaveBeenCalledWith(0);
     });
 });
@@ -131,4 +161,13 @@ function restoreEnvironmentVariable(name: string, value: string | undefined): vo
     }
 
     process.env[name] = value;
+}
+
+/**
+ * Creates one bare test command that matches the inherited global verbose option used by nested CLI commands.
+ */
+function createAgentTestProgram(): Command {
+    const program = new Command();
+    program.option('-v, --verbose', 'Log more details', false);
+    return program;
 }

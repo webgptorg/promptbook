@@ -1,3 +1,6 @@
+import type {
+    Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
+} from 'commander';
 import { NotAllowed } from '../../../errors/NotAllowed';
 import type {
     NormalizedPromptRunnerSelectionCliOptions,
@@ -17,16 +20,29 @@ export type AgentCommandCliOptions = PromptRunnerSelectionCliOptions & {
 };
 
 /**
+ * Normalized shared options used by local `ptbk agent` subcommands.
+ *
+ * @private internal utility of `ptbk agent`
+ */
+export type NormalizedAgentCommandRunnerOptions = NormalizedPromptRunnerSelectionCliOptions & {
+    readonly isVerbose: boolean;
+};
+
+/**
  * Normalizes shared runner flags for local agent subcommands.
  *
  * @private internal utility of `ptbk agent`
  */
 export function normalizeAgentCommandRunnerOptions(
     cliOptions: AgentCommandCliOptions,
-): NormalizedPromptRunnerSelectionCliOptions {
-    return normalizePromptRunnerSelectionCliOptions(cliOptions, {
-        isAgentRequired: true,
-    });
+    command: Program,
+): NormalizedAgentCommandRunnerOptions {
+    return {
+        ...normalizePromptRunnerSelectionCliOptions(cliOptions, {
+            isAgentRequired: true,
+        }),
+        isVerbose: resolveCommandVerboseOption(command),
+    };
 }
 
 // Note: [🟡] Code for CLI command options [agent](src/cli/cli-commands/agent/agentCliOptions.ts) should never be published outside of `@promptbook/cli`
@@ -60,4 +76,17 @@ export function resolveRequiredAgentMessage(cliOptions: AgentCommandCliOptions):
     }
 
     return message;
+}
+
+/**
+ * Resolves the inherited `--verbose` flag from the current Commander command chain.
+ *
+ * @private internal utility of `ptbk agent`
+ */
+function resolveCommandVerboseOption(command: Program): boolean {
+    const globalOptions = command.optsWithGlobals() as {
+        readonly verbose?: boolean;
+    };
+
+    return globalOptions.verbose ?? false;
 }

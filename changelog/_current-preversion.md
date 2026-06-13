@@ -1,3 +1,5 @@
+-   Changed `ptbk agent chat` and `ptbk agent exec` console output so local harness stdout/stderr and the chat exit hint stay hidden by default and appear only with `--verbose`, leaving normal runs focused on the chat conversation or final answer.
+
 -   Fixed Agents Server Sentry error-report tests so they assert the current Promptbook and Book version constants instead of stale hard-coded prerelease values.
 
 -   Added `CliAgent` and `LiteAgent` to `@promptbook/node` for running Book agents directly from Node.js:

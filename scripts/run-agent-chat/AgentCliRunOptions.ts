@@ -8,6 +8,7 @@ import type { PromptRunnerHarnessName } from '../../src/cli/cli-commands/common/
 export type AgentCliRunnerOptions = {
     readonly agentName?: PromptRunnerHarnessName;
     readonly model?: string;
+    readonly isVerbose: boolean;
     readonly noUi: boolean;
     readonly thinkingLevel?: ThinkingLevel;
     readonly allowCredits: boolean;
@@ -28,4 +29,3 @@ export type AgentCliRunOptions = AgentCliRunnerOptions & {
     readonly context?: string;
     readonly currentWorkingDirectory?: string;
 };
-

@@ -18,6 +18,11 @@ export type RunGoScriptOptions = {
     logPath?: string;
 
     /**
+     * Mirrors live shell stdout/stderr to the terminal while the script is running.
+     */
+    shouldPrintLiveOutput?: boolean;
+
+    /**
      * Keeps temporary prompt artifacts after successful execution instead of deleting them immediately.
      */
     preserveArtifactsOnSuccess?: boolean;

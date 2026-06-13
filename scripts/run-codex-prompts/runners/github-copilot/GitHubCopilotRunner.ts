@@ -35,6 +35,7 @@ export class GitHubCopilotRunner implements PromptRunner {
                 scriptPath: options.scriptPath,
                 scriptContent,
                 logPath: options.logPath,
+                shouldPrintLiveOutput: options.shouldPrintLiveOutput,
                 preserveArtifactsOnSuccess: options.preserveArtifactsOnSuccess,
             });
         } catch (error) {

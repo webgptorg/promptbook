@@ -92,6 +92,7 @@ export async function executeAgentChatTurn(options: ExecuteAgentChatTurnOptions)
                 scriptPath,
                 projectPath: workspacePath,
                 logPath,
+                shouldPrintLiveOutput: options.isVerbose,
                 preserveArtifactsOnSuccess: false,
             });
         },
@@ -294,4 +295,3 @@ function normalizeAgentSource(agentSource: string): string {
 function normalizeRelativePath(relativePath: string): string {
     return relativePath.replace(/\\/gu, '/');
 }
-

@@ -8,6 +8,7 @@ export type PromptRunOptions = {
     scriptPath: string;
     projectPath: string;
     logPath?: string;
+    shouldPrintLiveOutput?: boolean;
     preserveArtifactsOnSuccess?: boolean;
     waitForPauseCheckpoint?: WaitForCoderRunPauseCheckpoint;
 };

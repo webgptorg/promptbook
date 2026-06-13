@@ -70,6 +70,7 @@ describe('executeAgentChatTurn', () => {
             context: 'Calendar snapshot: five events.',
             agentName: 'github-copilot',
             model: 'gpt-5.4',
+            isVerbose: false,
             noUi: true,
             thinkingLevel: 'xhigh',
             allowCredits: false,
@@ -104,6 +105,11 @@ describe('executeAgentChatTurn', () => {
                 ignoreGitChanges: true,
             }),
         );
+        expect(runner.runPrompt).toHaveBeenCalledWith(
+            expect.objectContaining({
+                shouldPrintLiveOutput: false,
+            }),
+        );
     });
 
     it('keeps previous conversation messages in the temporary thread book', async () => {
@@ -115,6 +121,7 @@ describe('executeAgentChatTurn', () => {
             agentPath: './support.book',
             agentName: 'github-copilot',
             model: 'gpt-5.4',
+            isVerbose: false,
             noUi: true,
             allowCredits: false,
             messages: [
