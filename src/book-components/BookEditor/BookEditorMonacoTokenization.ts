@@ -1,7 +1,3 @@
-import type { string_book } from '../../book-2.0/agent-source/string_book';
-import { parseAgentSourceWithCommitments } from '../../book-2.0/agent-source/parseAgentSourceWithCommitments';
-import type { BookCommitment } from '../../commitments/_base/BookCommitment';
-
 /**
  * Regex source for absolute URL references inside TEAM/FROM/IMPORT commitments.
  *
@@ -28,12 +24,41 @@ const AGENT_REFERENCE_BRACED_PATTERN = '\\{[^{}\\r\\n]+\\}';
  *
  * @private function of BookEditorMonaco
  */
-const AGENT_REFERENCE_COMMITMENT_TYPES: ReadonlySet<BookCommitment> = new Set<BookCommitment>([
+const AGENT_REFERENCE_COMMITMENT_TYPES = ['FROM', 'IMPORT', 'IMPORTS', 'TEAM'] as const;
+
+/**
+ * Commitment types known to the browser editor tokenizer.
+ *
+ * @private function of BookEditorMonaco
+ */
+const BOOK_EDITOR_COMMITMENT_TYPES = [
+    'PERSONA',
+    'KNOWLEDGE',
+    'TASK',
+    'PROMPT',
+    'EXPECT',
+    'FORMAT',
+    'MODEL',
+    'SAMPLE',
     'FROM',
     'IMPORT',
     'IMPORTS',
     'TEAM',
-]);
+    'TODO',
+    'NOTE',
+    'NOTES',
+    'NONCE',
+] as const;
+
+/**
+ * Regex pattern to match horizontal lines.
+ *
+ * @private function of BookEditorMonaco
+ */
+const HORIZONTAL_LINE_PATTERN = /^[\s]*[-_*][\s]*[-_*][\s]*[-_*][\s]*[-_*]*[\s]*$/;
+
+const BOOK_EDITOR_COMMITMENT_LINE_REGEX = createCommitmentLineRegex(BOOK_EDITOR_COMMITMENT_TYPES);
+const AGENT_REFERENCE_COMMITMENT_LINE_REGEX = createCommitmentLineRegex(AGENT_REFERENCE_COMMITMENT_TYPES);
 
 /**
  * Range descriptor for one commitment block in source coordinates.
@@ -249,29 +274,72 @@ function collectAgentReferenceCommitmentLineRanges(
     content: string,
     sourceLines: ReadonlyArray<string>,
 ): Array<CommitmentLineRange> {
-    const parsed = parseAgentSourceWithCommitments(content as string_book);
     const ranges: Array<CommitmentLineRange> = [];
+    let activeRangeStartLineNumber: number | null = null;
+    let isInsideCodeBlock = false;
+    const startLineIndex = findBookBodyStartLineIndex(sourceLines);
 
-    for (let index = 0; index < parsed.commitments.length; index++) {
-        const commitment = parsed.commitments[index];
-        if (!commitment || !AGENT_REFERENCE_COMMITMENT_TYPES.has(commitment.type)) {
+    for (let lineIndex = startLineIndex; lineIndex < sourceLines.length; lineIndex++) {
+        const line = sourceLines[lineIndex] || '';
+        const trimmedLine = line.trim();
+
+        if (trimmedLine.startsWith('```')) {
+            isInsideCodeBlock = !isInsideCodeBlock;
             continue;
         }
 
-        const nextCommitmentStartLine = parsed.commitments[index + 1]?.lineNumber ?? sourceLines.length + 1;
-        const endLineNumber = Math.min(nextCommitmentStartLine - 1, sourceLines.length);
-
-        if (commitment.lineNumber > endLineNumber) {
+        if (isInsideCodeBlock) {
             continue;
         }
 
+        if (HORIZONTAL_LINE_PATTERN.test(line)) {
+            if (activeRangeStartLineNumber !== null) {
+                ranges.push({
+                    startLineNumber: activeRangeStartLineNumber,
+                    endLineNumber: lineIndex,
+                });
+                activeRangeStartLineNumber = null;
+            }
+            continue;
+        }
+
+        if (!BOOK_EDITOR_COMMITMENT_LINE_REGEX.test(trimmedLine)) {
+            continue;
+        }
+
+        if (activeRangeStartLineNumber !== null) {
+            ranges.push({
+                startLineNumber: activeRangeStartLineNumber,
+                endLineNumber: lineIndex,
+            });
+        }
+
+        activeRangeStartLineNumber = AGENT_REFERENCE_COMMITMENT_LINE_REGEX.test(trimmedLine) ? lineIndex + 1 : null;
+    }
+
+    if (activeRangeStartLineNumber !== null) {
         ranges.push({
-            startLineNumber: commitment.lineNumber,
-            endLineNumber,
+            startLineNumber: activeRangeStartLineNumber,
+            endLineNumber: sourceLines.length,
         });
     }
 
     return ranges;
+}
+
+function createCommitmentLineRegex(commitmentTypes: ReadonlyArray<string>): RegExp {
+    const commitmentPattern = [...commitmentTypes]
+        .sort((a, b) => b.length - a.length)
+        .map((type) => type.replace(/\s+/, '\\s+'))
+        .join('|');
+
+    return new RegExp(`^\\s*(${commitmentPattern})(?=\\s|$)`, 'i');
+}
+
+function findBookBodyStartLineIndex(sourceLines: ReadonlyArray<string>): number {
+    const titleLineIndex = sourceLines.findIndex((line) => line.trim().length > 0);
+
+    return titleLineIndex === -1 ? 0 : titleLineIndex + 1;
 }
 
 /**
