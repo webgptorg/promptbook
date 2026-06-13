@@ -1,11 +1,6 @@
 import type { editor, Position } from 'monaco-editor';
 import { useEffect } from 'react';
-import { getAllCommitmentDefinitions } from '../../commitments/_common/getAllCommitmentDefinitions';
-import {
-    formatCommitmentReplacementText,
-    getCommitmentNoticeMetadata,
-} from '../../commitments/_common/getCommitmentNoticeMetadata';
-import { PROMPTBOOK_SYNTAX_COLORS } from '../../config';
+import { PROMPTBOOK_SYNTAX_COLORS } from './BookEditorBrowserConfig';
 import { BookEditorMonacoConstants } from './BookEditorMonacoConstants';
 import { BookEditorMonacoTokenization } from './BookEditorMonacoTokenization';
 import type { BookEditorTheme } from './BookEditorTheme';
@@ -303,23 +298,23 @@ export function ensureBookEditorMonacoLanguage(
 
     monaco.languages.register({ id: BookEditorMonacoConstants.BOOK_LANGUAGE_ID });
 
-    const commitmentDefinitions = getAllCommitmentDefinitions();
-    const commitmentTypes = [...new Set(commitmentDefinitions.map(({ type }) => type))];
-    const commitmentDefinitionByType = new Map(
-        commitmentDefinitions.map((definition) => [definition.type, definition]),
-    );
-    const completionCommitmentTypes = [...commitmentTypes].sort((leftType, rightType) => {
-        const leftDefinition = commitmentDefinitionByType.get(leftType);
-        const rightDefinition = commitmentDefinitionByType.get(rightType);
-        const leftRank = leftDefinition?.isUnfinished ? 1 : 0;
-        const rightRank = rightDefinition?.isUnfinished ? 1 : 0;
-
-        if (leftRank !== rightRank) {
-            return leftRank - rightRank;
-        }
-
-        return commitmentTypes.indexOf(leftType) - commitmentTypes.indexOf(rightType);
-    });
+    const commitmentTypes = [
+        'PERSONA',
+        'KNOWLEDGE',
+        'TASK',
+        'PROMPT',
+        'EXPECT',
+        'FORMAT',
+        'MODEL',
+        'SAMPLE',
+        'FROM',
+        'IMPORT',
+        'IMPORTS',
+        'TEAM',
+        ...TODO_COMMITMENT_TYPES,
+        ...NOTE_COMMITMENT_TYPES,
+    ];
+    const completionCommitmentTypes = [...commitmentTypes];
     const noteLikeCommitmentTypeSet = new Set<string>([...TODO_COMMITMENT_TYPES, ...NOTE_COMMITMENT_TYPES]);
     const noteLikeCommitmentStates = createNoteLikeCommitmentStates(commitmentTypes);
     const executableCommitmentTypes = commitmentTypes.filter(
@@ -390,29 +385,17 @@ export function ensureBookEditorMonacoLanguage(
                 endColumn: word.endColumn,
             };
 
-            const suggestions = completionCommitmentTypes.map((type, index) => {
-                const definition = commitmentDefinitionByType.get(type);
-                const notice = definition ? getCommitmentNoticeMetadata(definition) : null;
-                const completionDocumentation = notice
-                    ? `${notice.detailLabel}. ${notice.message}${
-                          notice.kind === 'deprecated'
-                              ? formatCommitmentReplacementText(definition?.deprecation?.replacedBy)
-                              : ''
-                      }`
-                    : definition?.description || 'Commitment';
-
-                return {
-                    label: type,
-                    kind: monaco.languages.CompletionItemKind.Keyword,
-                    insertText: type,
-                    range,
-                    sortText: index.toString().padStart(4, '0'),
-                    detail: notice?.detailLabel || 'Commitment',
-                    documentation: {
-                        value: completionDocumentation,
-                    },
-                };
-            });
+            const suggestions = completionCommitmentTypes.map((type, index) => ({
+                label: type,
+                kind: monaco.languages.CompletionItemKind.Keyword,
+                insertText: type,
+                range,
+                sortText: index.toString().padStart(4, '0'),
+                detail: 'Commitment',
+                documentation: {
+                    value: 'Book commitment',
+                },
+            }));
 
             return { suggestions };
         },
