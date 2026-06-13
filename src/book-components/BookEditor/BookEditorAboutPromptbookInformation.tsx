@@ -1,7 +1,9 @@
+import { PUBLIC_AGENTS_SERVERS } from '../../../servers';
+import { CLAIM, IS_COST_PREVENTED, NAME } from '../../config';
 import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../../version';
 import { $detectRuntimeEnvironment } from '../../utils/environment/$detectRuntimeEnvironment';
 import type { AboutPromptbookInformationOptions } from '../../utils/misc/aboutPromptbookInformation';
-import { CLAIM, IS_COST_PREVENTED, NAME, PUBLIC_AGENTS_SERVERS } from './BookEditorBrowserConfig';
+import { valueToString } from '../../utils/parameters/valueToString';
 import styles from './BookEditor.module.css';
 
 /**
@@ -61,7 +63,7 @@ export function BookEditorAboutPromptbookInformation(props: AboutPromptbookInfor
                     <ul>
                         {Object.entries(runtimeEnvironmentInfo).map(([key, value]) => (
                             <li key={key}>
-                                <strong>{key}:</strong> {String(value)}
+                                <strong>{key}:</strong> {valueToString(value)}
                             </li>
                         ))}
                     </ul>
