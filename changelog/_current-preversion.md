@@ -1,3 +1,5 @@
+-   Fixed Agents Server Sentry error-report tests so they assert the current Promptbook and Book version constants instead of stale hard-coded prerelease values.
+
 -   Added `CliAgent` and `LiteAgent` to `@promptbook/node` for running Book agents directly from Node.js:
 
     -   `CliAgent` wraps `ptbk agent exec` through the existing Node command-execution utility, including in-memory Book source support by materializing temporary `.book` files when needed.

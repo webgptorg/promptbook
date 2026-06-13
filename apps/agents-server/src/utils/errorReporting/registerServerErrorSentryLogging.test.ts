@@ -1,4 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+
+import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../../../../../src/version';
 import {
     $resetServerErrorSentryLoggingForTests,
     registerServerErrorSentryLogging,
@@ -100,8 +102,8 @@ describe('registerServerErrorSentryLogging', () => {
             server_name: 'Promptbook Test Server',
             tags: {
                 source: 'agents-server.console-error',
-                promptbookEngineVersion: '0.112.0-112',
-                bookLanguageVersion: '2.0.0',
+                promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
+                bookLanguageVersion: BOOK_LANGUAGE_VERSION,
                 appPackageVersion: '0.112.0-test',
                 commitHash: 'abcdef123456',
                 repositoryBranch: 'feature/sentry-details',
@@ -124,8 +126,8 @@ describe('registerServerErrorSentryLogging', () => {
                 errorStack: 'TimeoutError: Job timed out',
                 agentsServer: {
                     versions: expect.objectContaining({
-                        promptbookEngineVersion: '0.112.0-112',
-                        bookLanguageVersion: '2.0.0',
+                        promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
+                        bookLanguageVersion: BOOK_LANGUAGE_VERSION,
                         appPackageVersion: '0.112.0-test',
                     }),
                     deployment: expect.objectContaining({

@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
+import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../../../../../src/version';
 import type { ApplicationErrorReportPayload } from './applicationErrorHandling';
 import { sendApplicationErrorReportToSentry } from './sendApplicationErrorReportToSentry';
 
@@ -75,8 +76,8 @@ describe('sendApplicationErrorReportToSentry', () => {
                 source: 'next-app-error-boundary',
                 digest: 'digest-123',
                 variant: 'advanced',
-                promptbookEngineVersion: '0.112.0-112',
-                bookLanguageVersion: '2.0.0',
+                promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
+                bookLanguageVersion: BOOK_LANGUAGE_VERSION,
                 appPackageVersion: '0.112.0-test',
                 commitHash: 'fedcba654321',
                 repositoryBranch: 'preview',
@@ -102,8 +103,8 @@ describe('sendApplicationErrorReportToSentry', () => {
                 reportedAt: '2026-06-11T10:00:00.000Z',
                 agentsServer: {
                     versions: expect.objectContaining({
-                        promptbookEngineVersion: '0.112.0-112',
-                        bookLanguageVersion: '2.0.0',
+                        promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
+                        bookLanguageVersion: BOOK_LANGUAGE_VERSION,
                         appPackageVersion: '0.112.0-test',
                     }),
                     deployment: expect.objectContaining({
