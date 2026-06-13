@@ -44,7 +44,7 @@ type RunImmediateUserChatAnswerOptions = {
 };
 
 /**
- * Runs a fast local LLM answer into the incomplete assistant placeholder while the external runner is still working.
+ * Runs a fast local LLM pre-answer into the incomplete assistant placeholder while the external runner is still working.
  */
 export async function runImmediateUserChatAnswer(
     job: UserChatJobRecord,

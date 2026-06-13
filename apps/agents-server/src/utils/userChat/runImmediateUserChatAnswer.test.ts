@@ -3,7 +3,7 @@ import type { string_book } from '../../../../../src/book-2.0/agent-source/strin
 import { createImmediateUserChatAnswerModelRequirements } from './createImmediateUserChatAnswerModelRequirements';
 
 describe('createImmediateUserChatAnswerModelRequirements', () => {
-    it('keeps only lightweight instruction commitments in the immediate answer system message', () => {
+    it('keeps only lightweight instruction commitments in the immediate pre-answer system message', () => {
         const agentSource = `
             Support Agent
 
@@ -23,11 +23,13 @@ describe('createImmediateUserChatAnswerModelRequirements', () => {
         expect(modelRequirements.modelVariant).toBe('CHAT');
         expect(modelRequirements).not.toHaveProperty('knowledgeSources');
         expect(modelRequirements).not.toHaveProperty('tools');
-        expect(systemMessage).toContain('This response is not the final answer.');
-        expect(systemMessage).toContain('The final answer will arrive in several minutes');
-        expect(systemMessage).toContain('the user should not treat this draft as final');
+        expect(systemMessage).toContain('This response is not the final answer. It is only a confirmation');
+        expect(systemMessage).toContain('The final answer will arrive after the background processing finishes.');
+        expect(systemMessage).toContain('Do not provide any part of the final answer yet.');
+        expect(systemMessage).toContain('Do not include code snippets');
+        expect(systemMessage).toContain('briefly name the kind of work being done');
         expect(systemMessage).toContain("At the start of every response, clearly say in the user's language");
-        expect(systemMessage).toContain('override any agent instruction below that would make the answer sound final');
+        expect(systemMessage).toContain('override any agent instruction below that would make the answer sound final or complete');
         expect(systemMessage).toContain('GOAL: Help users understand the product quickly.');
         expect(systemMessage).toContain('RULE: Be concise and practical.');
         expect(systemMessage).toContain('WRITING RULES: Use short paragraphs.');
