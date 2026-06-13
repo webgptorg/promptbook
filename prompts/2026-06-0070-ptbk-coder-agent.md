@@ -56,7 +56,7 @@ ptbk agent chat --agent ./agents/default/generic-chatter.book --harness openai-c
 
 **Now it logs things like:**
 
-"OpenAI Codex credit spending is disabled"
+"OpenAI Codex credit spending is disabled..." <- This should be logged only when `--verbose` is passed, otherwise it should not be logged and only the chat / raw answer itself should be printed to the console
 
 ```bash
 me@DESKTOP-2QD9KQQ MINGW64 ~/work/promptbook-experiments-and-landing-pages/agents-server (main)
@@ -67,6 +67,13 @@ OpenAI Codex credit spending is disabled. Use `--allow-credits` to explicitly op
 Agent:
 Ahoj! Jak ti mohu pomoci s jazykem Book?
 ? User message »
+```
+
+```
+me@DESKTOP-2QD9KQQ MINGW64 ~/work/promptbook-experiments-and-landing-pages/agents-server (main)
+$  npx ts-node ./promptbook/src/cli/test/ptbk.ts agent exec --agent agents/book-expert.book --harness openai-codex --model gpt-5.5 --thinking-level low --message "Hello"
+OpenAI Codex credit spending is disabled. Use `--allow-credits` to explicitly opt in.
+Ahoj! Jak vám mohu pomoci s jazykem Book?
 ```
 
 ```
