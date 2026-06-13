@@ -23,13 +23,6 @@ const USER_CHAT_STREAM_RECONNECT_DELAY_MS = 1_500;
 const DISCONNECTED_CHAT_REFRESH_INTERVAL_MS = 4_000;
 
 /**
- * Periodic sidebar/list refresh cadence while the active chat stream is healthy.
- *
- * @private function of useAgentChatHistoryClientState
- */
-const CHAT_LIST_REFRESH_INTERVAL_MS = 20_000;
-
-/**
  * Inputs required to register side effects for durable chat-history synchronization.
  *
  * @private function of useAgentChatHistoryClientState
@@ -504,7 +497,7 @@ function keepActiveChatStreamConnected(params: {
 }
 
 /**
- * Refreshes the selected chat periodically and on tab visibility/focus changes.
+ * Refreshes the selected chat on disconnect polling and on tab visibility/focus changes.
  *
  * @private function of useAgentChatHistoryClientState
  */
@@ -529,9 +522,6 @@ function registerActiveChatRefreshPolling(params: {
         return undefined;
     }
 
-    const pollIntervalMs = isActiveChatStreamConnected
-        ? CHAT_LIST_REFRESH_INTERVAL_MS
-        : DISCONNECTED_CHAT_REFRESH_INTERVAL_MS;
     const runRefresh = () => {
         if (typeof document !== 'undefined' && document.hidden) {
             return;
@@ -540,7 +530,9 @@ function registerActiveChatRefreshPolling(params: {
         void refreshActiveChat({ preserveDirtyDraft: true });
     };
 
-    const interval = window.setInterval(runRefresh, pollIntervalMs);
+    const interval = isActiveChatStreamConnected
+        ? null
+        : window.setInterval(runRefresh, DISCONNECTED_CHAT_REFRESH_INTERVAL_MS);
     const handleVisibilityChange = () => {
         if (typeof document !== 'undefined' && !document.hidden) {
             runRefresh();
@@ -554,7 +546,9 @@ function registerActiveChatRefreshPolling(params: {
     window.addEventListener('focus', handleFocus);
 
     return () => {
-        window.clearInterval(interval);
+        if (interval !== null) {
+            window.clearInterval(interval);
+        }
         document.removeEventListener('visibilitychange', handleVisibilityChange);
         window.removeEventListener('focus', handleFocus);
     };

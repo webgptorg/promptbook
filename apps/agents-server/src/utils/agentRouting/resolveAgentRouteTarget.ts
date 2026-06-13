@@ -102,6 +102,13 @@ async function resolveAgentRouteTargetUncached(
         };
     }
 
+    if (!options?.forceRefresh) {
+        const fastLocalRouteTarget = await resolveFastLocalAgentRouteTarget(normalizedReference, localServerUrl);
+        if (fastLocalRouteTarget) {
+            return fastLocalRouteTarget;
+        }
+    }
+
     const resolver = await $provideAgentReferenceResolver({ forceRefresh: options?.forceRefresh });
     let resolvedUrlValue: string;
 
@@ -137,6 +144,37 @@ async function resolveAgentRouteTargetUncached(
             url: resolvedAgentUrl.toString(),
         };
     }
+
+    return {
+        kind: 'local',
+        canonicalAgentId,
+        canonicalUrl: `${localServerUrl}${AGENT_PATH_PREFIX}${encodeURIComponent(canonicalAgentId)}`,
+    };
+}
+
+/**
+ * Resolves the common local-agent case without constructing the heavier shared reference resolver.
+ *
+ * Normal page and chat routes almost always target one local agent by its stored name or permanent id.
+ * Handling that case up front keeps route resolution cheap while still falling back to the full TEAM/federation
+ * resolver for aliases, remote agents, and fuzzy matches.
+ *
+ * @param reference - Normalized route/reference text.
+ * @param localServerUrl - Normalized URL of the current Agents Server instance.
+ * @returns Local route target or `null` when a direct lookup does not match.
+ */
+async function resolveFastLocalAgentRouteTarget(
+    reference: string,
+    localServerUrl: string,
+): Promise<AgentRouteTarget | null> {
+    const collection = await $provideAgentCollectionForServer();
+    const directMatch = await collection.findAgentBasicInformation(reference);
+
+    if (!directMatch) {
+        return null;
+    }
+
+    const canonicalAgentId = directMatch.permanentId || directMatch.agentName;
 
     return {
         kind: 'local',

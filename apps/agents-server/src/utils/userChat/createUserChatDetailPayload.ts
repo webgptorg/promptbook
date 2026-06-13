@@ -1,5 +1,6 @@
 import type { UserChatRecord } from './UserChatRecord';
 import { synchronizeLocalUserChatJobsForChat } from '../localChatRunner/synchronizeLocalUserChatJobs';
+import { hasPotentiallyPendingAssistantMessages } from './hasPotentiallyPendingAssistantMessages';
 import { createUserChatTimeoutActivity } from '../userChatTimeout/createUserChatTimeoutActivity';
 import { listUserChatTimeouts } from '../userChatTimeout/userChatTimeoutStore';
 import { createUserChatSummary } from './createUserChatSummary';
@@ -18,31 +19,45 @@ export async function createUserChatDetailPayload(chat: UserChatRecord): Promise
     activeTimeouts: Awaited<ReturnType<typeof listUserChatTimeouts>>;
 }> {
     let currentChat = chat;
-    const hasSynchronizedLocalJobs = await synchronizeLocalUserChatJobsForChat(currentChat);
-
-    if (hasSynchronizedLocalJobs) {
-        const refreshedChat = await getUserChat({
-            userId: currentChat.userId,
-            agentPermanentId: currentChat.agentPermanentId,
-            chatId: currentChat.id,
-        });
-
-        if (refreshedChat) {
-            currentChat = refreshedChat;
-        }
-    }
-
     let activeJobs = await listUserChatJobs({
         userId: currentChat.userId,
         agentPermanentId: currentChat.agentPermanentId,
         chatId: currentChat.id,
         onlyActive: true,
     });
+    const shouldInspectJobState =
+        activeJobs.length > 0 || hasPotentiallyPendingAssistantMessages(currentChat.messages);
 
-    const hasReconciledJobs = await reconcileUserChatActiveJobs({
-        chat: currentChat,
-        activeJobs,
-    });
+    if (shouldInspectJobState) {
+        const hasSynchronizedLocalJobs = await synchronizeLocalUserChatJobsForChat(currentChat);
+
+        if (hasSynchronizedLocalJobs) {
+            const refreshedChat = await getUserChat({
+                userId: currentChat.userId,
+                agentPermanentId: currentChat.agentPermanentId,
+                chatId: currentChat.id,
+            });
+
+            if (refreshedChat) {
+                currentChat = refreshedChat;
+            }
+
+            activeJobs = await listUserChatJobs({
+                userId: currentChat.userId,
+                agentPermanentId: currentChat.agentPermanentId,
+                chatId: currentChat.id,
+                onlyActive: true,
+            });
+        }
+    }
+
+    const hasReconciledJobs =
+        activeJobs.length > 0
+            ? await reconcileUserChatActiveJobs({
+                  chat: currentChat,
+                  activeJobs,
+              })
+            : false;
 
     if (hasReconciledJobs) {
         const refreshedChat = await getUserChat({

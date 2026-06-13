@@ -1,3 +1,5 @@
+-   Optimized Agents Server agent/chat responsiveness by short-circuiting common local agent-route resolution, avoiding redundant active-chat refresh fetches while the live stream is healthy, reducing settled-chat reconciliation work during chat detail loads, and adding active chat job/timeout indexes for the hottest polling queries.
+
 -   Changed `ptbk agent chat` and `ptbk agent exec` console output so local harness stdout/stderr and the chat exit hint stay hidden by default and appear only with `--verbose`, leaving normal runs focused on the chat conversation or final answer.
 
 -   Fixed Agents Server Sentry error-report tests so they assert the current Promptbook and Book version constants instead of stale hard-coded prerelease values.

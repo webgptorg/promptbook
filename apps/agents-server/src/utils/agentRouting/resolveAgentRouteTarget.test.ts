@@ -74,6 +74,7 @@ describe('resolveAgentRouteTarget', () => {
         });
         expect(mockAgentCollection.findAgentBasicInformation).toHaveBeenCalledWith('Lawyer');
         expect(mockAgentCollection.listAgents).not.toHaveBeenCalled();
+        expect(mockProvideAgentReferenceResolver).not.toHaveBeenCalled();
     });
 
     it('keeps synthetic in-book route identifiers as canonical local routes', async () => {

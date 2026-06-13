@@ -1,7 +1,13 @@
 import { CHAT_STREAM_KEEP_ALIVE_INTERVAL_MS } from '@/src/constants/streaming';
 import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
-import { createUserChatDetailPayload, getUserChat, isFrozenUserChatSource } from '@/src/utils/userChat';
-import type { ChatMessage } from '@promptbook-local/types';
+import {
+    createUserChatDetailPayload,
+    getUserChat,
+    isFrozenUserChatSource,
+    listUserChatJobs,
+} from '@/src/utils/userChat';
+import { hasPotentiallyPendingAssistantMessages } from '@/src/utils/userChat/hasPotentiallyPendingAssistantMessages';
+import { listUserChatTimeouts } from '@/src/utils/userChatTimeout/userChatTimeoutStore';
 import { NextResponse } from 'next/server';
 import { resolveUserChatScope } from '../../resolveUserChatScope';
 
@@ -136,17 +142,17 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
                     return false;
                 }
 
-                const payload = await createUserChatDetailPayload(currentChat);
-                const nextSignature = createUserChatDetailSignature(payload);
+                const livePollState = await loadLiveUserChatPollingState(currentChat);
 
-                if (nextSignature !== lastSnapshotSignature) {
-                    lastSnapshotSignature = nextSignature;
+                if (livePollState.signature !== lastSnapshotSignature) {
+                    const payload = await createUserChatDetailPayload(currentChat);
+                    lastSnapshotSignature = createUserChatPollingSignatureFromDetailPayload(payload);
                     if (!enqueueFrame({ type: 'snapshot', payload })) {
                         return false;
                     }
                 }
 
-                return !isFrozenUserChatSource(payload.chat.source) && payload.activeJobs.length > 0;
+                return !isFrozenUserChatSource(currentChat.source) && livePollState.hasActiveJobs;
             };
 
             /**
@@ -211,69 +217,92 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
 }
 
 /**
- * Builds a stable signature for the user-visible parts of a canonical chat snapshot.
+ * Minimal live poll state used to avoid rebuilding the full chat payload when nothing visible changed.
  */
-function createUserChatDetailSignature(payload: Awaited<ReturnType<typeof createUserChatDetailPayload>>): string {
-    return JSON.stringify({
-        chatId: payload.chat.id,
-        updatedAt: payload.chat.updatedAt,
-        draftMessage: payload.draftMessage || '',
-        messages: payload.messages.map(createUserChatMessageSignature),
-        activeJobs: payload.activeJobs.map((job) => ({
-            id: job.id,
-            status: job.status,
-            cancelRequestedAt: job.cancelRequestedAt,
-        })),
-        activeTimeouts: payload.activeTimeouts.map((timeout) => ({
-            id: timeout.id,
-            status: timeout.status,
-            dueAt: timeout.dueAt,
-            cancelRequestedAt: timeout.cancelRequestedAt,
-        })),
-    });
-}
+type LiveUserChatPollState = {
+    signature: string;
+    hasActiveJobs: boolean;
+};
 
 /**
- * Builds one compact stable signature for a user-visible chat message.
+ * Loads the lightweight state needed to decide whether the active chat payload changed.
+ *
+ * The expensive detail payload does job reconciliation, local-runner synchronization, and full
+ * transcript serialization. Polling first with the persisted timestamps + active resource state
+ * keeps long-lived chat streams cheap when the conversation is idle.
+ *
+ * @param chat - Current scoped chat record.
+ * @returns Poll signature plus whether the chat should keep using the active-job cadence.
  */
-function createUserChatMessageSignature(
-    message: Awaited<ReturnType<typeof createUserChatDetailPayload>>['messages'][number],
-): Record<string, unknown> {
+async function loadLiveUserChatPollingState(chat: NonNullable<Awaited<ReturnType<typeof getUserChat>>>): Promise<LiveUserChatPollState> {
+    const shouldInspectActiveJobs = hasPotentiallyPendingAssistantMessages(chat.messages);
+    const [activeJobs, activeTimeouts] = await Promise.all([
+        shouldInspectActiveJobs
+            ? listUserChatJobs({
+                  userId: chat.userId,
+                  agentPermanentId: chat.agentPermanentId,
+                  chatId: chat.id,
+                  onlyActive: true,
+              })
+            : Promise.resolve([]),
+        listUserChatTimeouts({
+            userId: chat.userId,
+            agentPermanentId: chat.agentPermanentId,
+            chatId: chat.id,
+            onlyActive: true,
+        }),
+    ]);
+
     return {
-        id: message.id ?? null,
-        sender: message.sender,
-        isComplete: message.isComplete,
-        lifecycleState: message.lifecycleState ?? null,
-        lifecycleError: message.lifecycleError ?? null,
-        contentLength: message.content.length,
-        contentHash: createStableTextDigest(message.content),
-        replyingTo: message.replyingTo ? JSON.stringify(message.replyingTo) : null,
-        progressCard: message.progressCard ? JSON.stringify(message.progressCard) : null,
-        ongoingToolCalls: createToolCallsSignature(message.ongoingToolCalls),
-        completedToolCalls: createToolCallsSignature(message.completedToolCalls),
-        toolCalls: createToolCallsSignature(message.toolCalls),
+        signature: createUserChatPollingSignature({
+            chatUpdatedAt: chat.updatedAt,
+            draftMessage: chat.draftMessage,
+            activeJobs,
+            activeTimeouts,
+        }),
+        hasActiveJobs: activeJobs.length > 0,
     };
 }
 
 /**
- * Creates one compact stable digest for message text without pulling in heavier hashing helpers.
+ * Builds the polling signature for a fully hydrated detail payload.
  */
-function createStableTextDigest(value: string): string {
-    let hash = 2_166_136_261;
-
-    for (let index = 0; index < value.length; index++) {
-        hash ^= value.charCodeAt(index);
-        hash = Math.imul(hash, 16_777_619);
-    }
-
-    return (hash >>> 0).toString(16);
+function createUserChatPollingSignatureFromDetailPayload(
+    payload: Awaited<ReturnType<typeof createUserChatDetailPayload>>,
+): string {
+    return createUserChatPollingSignature({
+        chatUpdatedAt: payload.chat.updatedAt,
+        draftMessage: payload.draftMessage,
+        activeJobs: payload.activeJobs,
+        activeTimeouts: payload.activeTimeouts,
+    });
 }
 
 /**
- * Serializes optional tool-call arrays for snapshot signature comparisons.
+ * Builds a stable signature for the user-visible state that changes stream snapshots.
  */
-function createToolCallsSignature(toolCalls: ChatMessage['toolCalls']): string | null {
-    return toolCalls && toolCalls.length > 0 ? JSON.stringify(toolCalls) : null;
+function createUserChatPollingSignature(options: {
+    chatUpdatedAt: string;
+    draftMessage: string | null;
+    activeJobs: ReadonlyArray<Awaited<ReturnType<typeof createUserChatDetailPayload>>['activeJobs'][number]>;
+    activeTimeouts: ReadonlyArray<Awaited<ReturnType<typeof createUserChatDetailPayload>>['activeTimeouts'][number]>;
+}): string {
+    return JSON.stringify({
+        updatedAt: options.chatUpdatedAt,
+        draftMessage: options.draftMessage || '',
+        activeJobs: options.activeJobs.map((job) => ({
+            id: job.id,
+            status: job.status,
+            cancelRequestedAt: job.cancelRequestedAt,
+        })),
+        activeTimeouts: options.activeTimeouts.map((timeout) => ({
+            id: timeout.id,
+            status: timeout.status,
+            dueAt: timeout.dueAt,
+            cancelRequestedAt: timeout.cancelRequestedAt,
+            pausedAt: timeout.pausedAt,
+        })),
+    });
 }
 
 /**
