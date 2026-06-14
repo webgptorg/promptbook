@@ -14,16 +14,16 @@
 
 ---
 
-[-]
+[ ] !!
 
-[✨🪤] bar
+[✨🪤] `CliAgent` and `LiteAgent` should not rely on calling CLI but directly use what the cli commands does
 
--   @@@
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Now it executes the CLI command `ptbk`
+-   This adds unnecessary overhead
+-   Look at `DEFAULT_CLI_AGENT_COMMAND` - this shouldnt be there
+-   The `ptbk` command should not be used, instead use the same code that is used in the CLI command, but directly in the code, without calling the CLI command, this will make it more efficient and faster
+-   Keep in mind the DRY _(don't repeat yourself)_ principle, share the code between the CLI command and the `CliAgent` as much as possible, but without calling the CLI command
 -   Do a proper analysis of the current functionality before you start implementing.
--   You are working with the [Agents Server](apps/agents-server)
--   If you need to do the database migration, do it
--   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
@@ -50,4 +50,3 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
