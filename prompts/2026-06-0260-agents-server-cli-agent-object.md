@@ -14,7 +14,7 @@
 
 ---
 
-[ ] !!
+[x] $1.41 34 minutes by Claude Code
 
 [✨🪤] `CliAgent` and `LiteAgent` should not rely on calling CLI but directly use what the cli commands does
 
@@ -50,3 +50,4 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

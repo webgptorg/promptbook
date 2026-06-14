@@ -1,3 +1,5 @@
+-   Optimized `CliAgent` to call the agent execution pipeline directly instead of spawning a `ptbk agent exec` child process, removing the intermediate CLI overhead while sharing the same `executeAgentChatTurn` logic used by the CLI command.
+
 -   Changed Agents Server chat pre-answers so the immediate placeholder response now focuses on confirming the job is being handled and avoids partial deliverables such as draft code or likely final-answer content.
 
 -   Optimized Agents Server agent/chat responsiveness by short-circuiting common local agent-route resolution, avoiding redundant active-chat refresh fetches while the live stream is healthy, reducing settled-chat reconciliation work during chat detail loads, and adding active chat job/timeout indexes for the hottest polling queries.

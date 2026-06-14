@@ -1,8 +1,8 @@
 import { mkdir, writeFile } from 'fs/promises';
 import { dirname } from 'path';
+import { executeAgentChatTurn } from '../../scripts/run-agent-chat/executeAgentChatTurn';
 import { NotAllowed } from '../errors/NotAllowed';
 import { resolvePromptbookTemporaryPath } from '../utils/filesystem/promptbookTemporaryPath';
-import { $execCommand } from '../utils/execCommand/$execCommand';
 import type { BookNodeAgentSourceOptions, ResolvedBookNodeAgentSource } from './BookNodeAgentSource';
 import { resolveBookNodeAgentSource } from './BookNodeAgentSource';
 
@@ -41,22 +41,7 @@ export type CliAgentRunOptions = {
  *
  * @public exported from `@promptbook/node`
  */
-export type CliAgentOptions = BookNodeAgentSourceOptions &
-    CliAgentRunOptions & {
-        /**
-         * Executable used for the wrapper command.
-         *
-         * @default ptbk
-         */
-        readonly command?: string;
-    };
-
-/**
- * Default executable used by `CliAgent`.
- *
- * @private internal constant of `CliAgent`
- */
-const DEFAULT_CLI_AGENT_COMMAND = 'ptbk';
+export type CliAgentOptions = BookNodeAgentSourceOptions & CliAgentRunOptions;
 
 /**
  * Default non-interactive mode used by `CliAgent`.
@@ -66,10 +51,10 @@ const DEFAULT_CLI_AGENT_COMMAND = 'ptbk';
 const DEFAULT_CLI_AGENT_IS_NO_UI = true;
 
 /**
- * Lightweight JavaScript wrapper around `ptbk agent exec`.
+ * Lightweight JavaScript wrapper around the Promptbook agent execution pipeline.
  *
- * It uses the same CLI harnesses as Promptbook's agent command, making it the most faithful
- * way to run a local Book agent from Node.js when you want the CLI execution flow.
+ * It uses the same harnesses and execution path as `ptbk agent exec`, running the runner
+ * in-process instead of spawning a separate CLI process.
  *
  * @public exported from `@promptbook/node`
  */
@@ -79,11 +64,11 @@ export class CliAgent {
     public constructor(private readonly options: CliAgentOptions) {}
 
     /**
-     * Runs one non-interactive agent turn through `ptbk agent exec`.
+     * Runs one non-interactive agent turn through the selected harness.
      *
      * @param message - User message sent to the agent.
-     * @param options - Optional per-run CLI overrides.
-     * @returns Raw stdout emitted by the CLI command.
+     * @param options - Optional per-run overrides.
+     * @returns Final agent answer.
      */
     public async run(message: string, options: CliAgentRunOptions = {}): Promise<string> {
         const normalizedMessage = message.trim();
@@ -96,27 +81,24 @@ export class CliAgent {
         const agentPath = await this.resolveExecutableAgentPath(resolvedSource);
         const mergedOptions = mergeCliAgentRunOptions(this.options, options);
 
-        return $execCommand({
-            command: this.options.command || DEFAULT_CLI_AGENT_COMMAND,
-            args: createCliAgentExecArguments({
-                agentPath,
-                allowCredits: mergedOptions.allowCredits ?? false,
-                context: mergedOptions.context,
-                harness: mergedOptions.harness,
-                message: normalizedMessage,
-                model: mergedOptions.model,
-                noUi: mergedOptions.noUi ?? DEFAULT_CLI_AGENT_IS_NO_UI,
-                thinkingLevel: mergedOptions.thinkingLevel,
-            }),
-            cwd: resolvedSource.currentWorkingDirectory,
-            crashOnError: true,
-            timeout: Infinity,
+        const result = await executeAgentChatTurn({
+            agentPath,
+            messages: [{ sender: 'USER', content: normalizedMessage }],
+            agentName: mergedOptions.harness,
+            model: mergedOptions.model,
+            noUi: mergedOptions.noUi ?? DEFAULT_CLI_AGENT_IS_NO_UI,
+            thinkingLevel: mergedOptions.thinkingLevel,
+            allowCredits: mergedOptions.allowCredits ?? false,
             isVerbose: false,
+            context: mergedOptions.context,
+            currentWorkingDirectory: resolvedSource.currentWorkingDirectory,
         });
+
+        return result.answer;
     }
 
     /**
-     * Resolves the agent path passed to the CLI, materializing one temporary `.book` file when needed.
+     * Resolves the agent path passed to the runner, materializing one temporary `.book` file when needed.
      *
      * @private internal utility of `CliAgent`
      */
@@ -137,7 +119,7 @@ export class CliAgent {
 }
 
 /**
- * Merges constructor defaults with per-run CLI overrides.
+ * Merges constructor defaults with per-run overrides.
  *
  * @private internal utility of `CliAgent`
  */
@@ -150,50 +132,6 @@ function mergeCliAgentRunOptions(defaults: CliAgentRunOptions, overrides: CliAge
         noUi: overrides.noUi ?? defaults.noUi,
         thinkingLevel: overrides.thinkingLevel ?? defaults.thinkingLevel,
     };
-}
-
-/**
- * Builds CLI arguments for `ptbk agent exec`.
- *
- * @private internal utility of `CliAgent`
- */
-function createCliAgentExecArguments(options: {
-    readonly agentPath: string;
-    readonly allowCredits: boolean;
-    readonly context?: string;
-    readonly harness?: CliAgentHarness;
-    readonly message: string;
-    readonly model?: string;
-    readonly noUi: boolean;
-    readonly thinkingLevel?: CliAgentThinkingLevel;
-}): Array<string> {
-    const argumentsList = ['agent', 'exec', '--agent', options.agentPath, '--message', options.message];
-
-    if (options.harness) {
-        argumentsList.push('--harness', options.harness);
-    }
-
-    if (options.model) {
-        argumentsList.push('--model', options.model);
-    }
-
-    if (options.noUi) {
-        argumentsList.push('--no-ui');
-    }
-
-    if (options.thinkingLevel) {
-        argumentsList.push('--thinking-level', options.thinkingLevel);
-    }
-
-    if (options.allowCredits) {
-        argumentsList.push('--allow-credits');
-    }
-
-    if (options.context?.trim()) {
-        argumentsList.push('--context', options.context.trim());
-    }
-
-    return argumentsList;
 }
 
 /**
@@ -214,7 +152,7 @@ function createCliAgentTemporaryBookPath(resolvedSource: ResolvedBookNodeAgentSo
 }
 
 /**
- * Keeps in-memory Book source readable when persisted for the CLI wrapper.
+ * Keeps in-memory Book source readable when persisted for the runner.
  *
  * @private internal utility of `CliAgent`
  */

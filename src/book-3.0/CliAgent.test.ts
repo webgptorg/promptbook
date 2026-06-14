@@ -3,15 +3,16 @@ import { mkdtemp, readFile, rm, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import type { Mock } from 'jest-mock';
+import type { AgentChatTurnResult } from '../../scripts/run-agent-chat/executeAgentChatTurn';
 import { book } from '../pipeline/book-notation';
 import { Book } from './Book';
 
-jest.mock('../utils/execCommand/$execCommand', () => ({
-    $execCommand: jest.fn(),
+jest.mock('../../scripts/run-agent-chat/executeAgentChatTurn', () => ({
+    executeAgentChatTurn: jest.fn(),
 }));
 
-const { $execCommand } = jest.requireMock('../utils/execCommand/$execCommand') as {
-    $execCommand: Mock<(options: unknown) => Promise<string>>;
+const { executeAgentChatTurn } = jest.requireMock('../../scripts/run-agent-chat/executeAgentChatTurn') as {
+    executeAgentChatTurn: Mock<(options: unknown) => Promise<AgentChatTurnResult>>;
 };
 
 describe('CliAgent', () => {
@@ -24,7 +25,12 @@ describe('CliAgent', () => {
 
     beforeEach(async () => {
         temporaryDirectoryPath = await mkdtemp(join(tmpdir(), 'promptbook-cli-agent-'));
-        $execCommand.mockResolvedValue('Agent answer');
+        executeAgentChatTurn.mockResolvedValue({
+            answer: 'Agent answer',
+            workspacePath: temporaryDirectoryPath,
+            messageFilePath: join(temporaryDirectoryPath, 'thread.book'),
+            agentPath: join(temporaryDirectoryPath, 'agent.book'),
+        });
     });
 
     afterAll(async () => {
@@ -36,7 +42,7 @@ describe('CliAgent', () => {
         await rm(temporaryDirectoryPath, { recursive: true, force: true });
     });
 
-    it('wraps `ptbk agent exec` for an existing agent path', async () => {
+    it('calls executeAgentChatTurn directly for an existing agent path', async () => {
         const agentBookPath = join(temporaryDirectoryPath, 'agent.book');
         await writeFile(agentBookPath, 'Path Agent\n', 'utf-8');
         const cliAgent = new CliAgent({
@@ -46,34 +52,25 @@ describe('CliAgent', () => {
             model: 'gpt-5.4',
         });
 
-        await cliAgent.run('Hello there', {
+        const answer = await cliAgent.run('Hello there', {
             allowCredits: true,
             context: 'Background note',
         });
 
-        expect($execCommand).toHaveBeenCalledWith({
-            command: 'ptbk',
-            args: [
-                'agent',
-                'exec',
-                '--agent',
-                agentBookPath,
-                '--message',
-                'Hello there',
-                '--harness',
-                'openai-codex',
-                '--model',
-                'gpt-5.4',
-                '--no-ui',
-                '--allow-credits',
-                '--context',
-                'Background note',
-            ],
-            cwd: temporaryDirectoryPath,
-            crashOnError: true,
-            timeout: Infinity,
-            isVerbose: false,
-        });
+        expect(answer).toBe('Agent answer');
+        expect(executeAgentChatTurn).toHaveBeenCalledWith(
+            expect.objectContaining({
+                agentPath: agentBookPath,
+                messages: [{ sender: 'USER', content: 'Hello there' }],
+                agentName: 'openai-codex',
+                model: 'gpt-5.4',
+                noUi: true,
+                allowCredits: true,
+                context: 'Background note',
+                isVerbose: false,
+                currentWorkingDirectory: temporaryDirectoryPath,
+            }),
+        );
     });
 
     it('materializes one temporary `.book` file for in-memory Book source', async () => {
@@ -90,10 +87,10 @@ describe('CliAgent', () => {
 
         await cliAgent.run('Summarize this');
 
-        const execOptions = $execCommand.mock.calls[0]![0] as {
-            args: Array<string>;
+        const callOptions = executeAgentChatTurn.mock.calls[0]![0] as {
+            agentPath: string;
         };
-        const temporaryAgentPath = execOptions.args[3]!;
+        const temporaryAgentPath = callOptions.agentPath;
         const persistedBookSource = await readFile(temporaryAgentPath, 'utf-8');
 
         expect(temporaryAgentPath).toContain('.promptbook');
