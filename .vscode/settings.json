@@ -20,7 +20,7 @@
     },
     "grammarly.domain": "technical",
     "markdown.copyFiles.destination": {
-        "prompts/*md": "./prompts/screenshots/${documentBaseName}.png"
+        "prompts/*md": "./screenshots/${documentBaseName}.png"
     },
     "explorer.copyRelativePathSeparator": "/",
     "chat.agent.enabled": true,
