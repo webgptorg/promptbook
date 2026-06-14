@@ -1,4 +1,4 @@
-import { unparse } from 'papaparse';
+import papaparse from 'papaparse';
 import { spaceTrim } from 'spacetrim';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
@@ -102,11 +102,11 @@ export const CsvFormatParser: FormatParser<
                             i > index ? { ...row, [outputParameterName]: PENDING_VALUE_PLACEHOLDER } : row,
                         );
                         */
-                        await onProgress(unparse(mappedData, { ...settings, ...MANDATORY_CSV_SETTINGS }));
+                        await onProgress(papaparse.unparse(mappedData, { ...settings, ...MANDATORY_CSV_SETTINGS }));
                     }
                 }
 
-                return unparse(mappedData, { ...settings, ...MANDATORY_CSV_SETTINGS });
+                return papaparse.unparse(mappedData, { ...settings, ...MANDATORY_CSV_SETTINGS });
             },
         },
         {
@@ -149,7 +149,7 @@ export const CsvFormatParser: FormatParser<
                     }),
                 );
 
-                return unparse(mappedData, { ...settings, ...MANDATORY_CSV_SETTINGS });
+                return papaparse.unparse(mappedData, { ...settings, ...MANDATORY_CSV_SETTINGS });
             },
         },
     ],

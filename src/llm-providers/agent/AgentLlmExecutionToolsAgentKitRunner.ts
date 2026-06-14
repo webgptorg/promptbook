@@ -1,4 +1,4 @@
-import { SHA256 as sha256 } from 'crypto-js';
+import CryptoJS from 'crypto-js';
 import type { CallChatModelStreamOptions } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult, CommonPromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
@@ -29,7 +29,7 @@ type AgentKitCacheState = {
  * Computes one stable hash from a JSON-serializable value.
  */
 function computeJsonHash(value: unknown): string {
-    return sha256(JSON.stringify(value)).toString();
+    return CryptoJS.SHA256(JSON.stringify(value)).toString();
 }
 
 /**
