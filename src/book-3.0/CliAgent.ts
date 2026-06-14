@@ -1,8 +1,8 @@
 import { mkdir, writeFile } from 'fs/promises';
 import { dirname } from 'path';
 import { NotAllowed } from '../errors/NotAllowed';
-import { resolvePromptbookTemporaryPath } from '../utils/filesystem/promptbookTemporaryPath';
 import { $execCommand } from '../utils/execCommand/$execCommand';
+import { resolvePromptbookTemporaryPath } from '../utils/filesystem/promptbookTemporaryPath';
 import type { BookNodeAgentSourceOptions, ResolvedBookNodeAgentSource } from './BookNodeAgentSource';
 import { resolveBookNodeAgentSource } from './BookNodeAgentSource';
 
@@ -56,7 +56,7 @@ export type CliAgentOptions = BookNodeAgentSourceOptions &
  *
  * @private internal constant of `CliAgent`
  */
-const DEFAULT_CLI_AGENT_COMMAND = 'ptbk';
+const DEFAULT_CLI_AGENT_COMMAND = 'npx ts-node ./promptbook/src/cli/test/ptbk.ts';
 
 /**
  * Default non-interactive mode used by `CliAgent`.
