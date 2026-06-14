@@ -1,4 +1,4 @@
-import { SHA256 as sha256 } from 'crypto-js';
+import CryptoJS from 'crypto-js';
 import hexEncoder from 'crypto-js/enc-hex';
 import { mkdir, rm } from 'fs/promises';
 import { dirname, join } from 'path';
@@ -45,7 +45,7 @@ export async function getScraperIntermediateSource(
     const { rootDirname, cacheDirname, intermediateFilesStrategy, extension, isVerbose } = options;
 
     // TODO: [👬] DRY
-    const hash = sha256(
+    const hash = CryptoJS.SHA256(
         //    <- TODO: [🥬] Encapsulate sha256 to some private utility function
         hexEncoder.parse(
             sourceFilename || url || 'untitled',

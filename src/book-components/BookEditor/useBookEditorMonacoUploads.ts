@@ -3,7 +3,7 @@ import { type MutableRefObject, useCallback, useEffect, useMemo, useRef, useStat
 import type { Promisable } from 'type-fest';
 import { BookEditable } from '../../book-2.0/agent-source/BookEditable';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
-import { DEFAULT_MAX_CONCURRENT_UPLOADS } from '../../config';
+import { DEFAULT_MAX_CONCURRENT_UPLOADS } from './BookEditorBrowserConfig';
 import { BookEditorMonacoConstants } from './BookEditorMonacoConstants';
 import { BookEditorMonacoFormatting } from './BookEditorMonacoFormatting';
 

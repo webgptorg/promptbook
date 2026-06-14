@@ -6,7 +6,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 // Note: Do not import from `../../package.json` because it would be included in the bundle
 // TODO: [🧠] Is there a better way to get the version?
 import { DEFAULT_BOOK, validateBook } from '../../book-2.0/agent-source/string_book';
-import { $induceBookDownload } from '../../utils/files/$induceBookDownload';
 import { AboutIcon } from '../icons/AboutIcon';
 import { AttachmentIcon } from '../icons/AttachmentIcon';
 import { CameraIcon } from '../icons/CameraIcon';
@@ -36,6 +35,35 @@ type BookEditorActionbarProps = {
     isFullscreen?: boolean;
     hoistedMenuItems?: ReadonlyArray<HoistedMenuItem>;
 };
+
+function induceBookDownloadInBrowser(book: string): void {
+    const filename = `${normalizeBookDownloadName(extractBookTitle(book) || 'AI Avatar')}.book`;
+    const objectUrl = URL.createObjectURL(new Blob([book], { type: 'application/json' }));
+    const link = window.document.createElement('a');
+
+    link.href = objectUrl;
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(objectUrl);
+}
+
+function extractBookTitle(book: string): string | null {
+    return book
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .find(Boolean) || null;
+}
+
+function normalizeBookDownloadName(value: string): string {
+    return (
+        value
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^\dA-Za-z]+/g, '-')
+            .replace(/^-+|-+$/g, '')
+            .toLowerCase() || 'ai-avatar'
+    );
+}
 
 /**
  * Handles book editor actionbar.
@@ -67,7 +95,7 @@ export function BookEditorActionbar(props: BookEditorActionbarProps) {
 
     const handleDownload = useCallback(() => {
         const book = validateBook(valueRef.current || DEFAULT_BOOK);
-        /* not await */ $induceBookDownload(book);
+        induceBookDownloadInBrowser(book);
     }, []);
 
     const actions = useMemo(() => {

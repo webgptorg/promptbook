@@ -1,4 +1,4 @@
-import { SHA256 as sha256 } from 'crypto-js';
+import CryptoJS from 'crypto-js';
 
 /**
  * Header used for same-server TEAM calls that may access private teammate agents.
@@ -44,7 +44,7 @@ export function resolveTeamInternalAgentAccessToken(): string | null {
         return null;
     }
 
-    return sha256(`promptbook-team-agent-access:${secret}`).toString();
+    return CryptoJS.SHA256(`promptbook-team-agent-access:${secret}`).toString();
 }
 
 /**

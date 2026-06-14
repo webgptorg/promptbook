@@ -5,7 +5,8 @@ import createDOMPurify, {
     type WindowLike as DomPurifyWindowLike,
 } from 'dompurify';
 import katex from 'katex';
-import { Converter as ShowdownConverter } from 'showdown';
+import type { Converter as ShowdownConverter } from 'showdown';
+import showdown from 'showdown';
 import type { string_html, string_markdown } from '../../../types/string_markdown';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';
 import { createCitationMarkerRegex, parseCitationMarker } from './parseCitationMarker';
@@ -507,7 +508,7 @@ function normalizeMarkdownSublists(markdown: string_markdown): string_markdown {
 function createChatMarkdownConverter(options?: RenderMarkdownOptions): ShowdownConverter {
     const citationReferenceClassName = options?.citationReferenceClassName ?? DEFAULT_CITATION_REFERENCE_CLASS_NAME;
 
-    return new ShowdownConverter({
+    return new showdown.Converter({
         flavor: 'github',
         tables: true,
         strikethrough: true,

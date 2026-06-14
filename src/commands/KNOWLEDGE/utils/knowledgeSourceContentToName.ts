@@ -1,4 +1,4 @@
-import { SHA256 as sha256 } from 'crypto-js';
+import CryptoJS from 'crypto-js';
 import hexEncoder from 'crypto-js/enc-hex';
 import type { string_knowledge_source_content } from '../../../types/string_knowledge_source_content';
 import type { string_name } from '../../../types/string_name';
@@ -10,7 +10,7 @@ import { normalizeToKebabCase } from '../../../utils/normalization/normalize-to-
  * @public exported from `@promptbook/editable`
  */
 export function knowledgeSourceContentToName(knowledgeSourceContent: string_knowledge_source_content): string_name {
-    const hash = sha256(hexEncoder.parse(JSON.stringify(knowledgeSourceContent)))
+    const hash = CryptoJS.SHA256(hexEncoder.parse(JSON.stringify(knowledgeSourceContent)))
         //    <- TODO: [🥬] Encapsulate sha256 to some private utility function
         .toString(/* hex */)
         .substring(0, 20);

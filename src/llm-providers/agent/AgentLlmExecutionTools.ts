@@ -1,4 +1,4 @@
-import { SHA256 as sha256 } from 'crypto-js';
+import CryptoJS from 'crypto-js';
 import hexEncoder from 'crypto-js/enc-hex';
 import type { Promisable } from 'type-fest';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
@@ -230,7 +230,7 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
      * Returns a virtual model name representing the agent behavior.
      */
     public get modelName(): string_model_name {
-        const hash = sha256(hexEncoder.parse(this.options.agentSource)).toString(/* hex */);
+        const hash = CryptoJS.SHA256(hexEncoder.parse(this.options.agentSource)).toString(/* hex */);
         const agentId = hash.substring(0, 10);
 
         return (normalizeToKebabCase(this.title) + '-' + agentId) as string_model_name;

@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { PROMPTBOOK_SYNTAX_COLORS } from '../../config';
+import { PROMPTBOOK_SYNTAX_COLORS } from './BookEditorBrowserConfig';
 import type { BookEditorTheme } from './BookEditorTheme';
 
 /**

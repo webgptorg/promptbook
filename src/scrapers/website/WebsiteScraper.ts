@@ -6,7 +6,7 @@ import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
 // import PipelineCollection from '../../../books/books';
 import { Readability } from '@mozilla/readability';
 import { JSDOM } from 'jsdom';
-import { Converter as ShowdownConverter } from 'showdown';
+import type { Converter as ShowdownConverter } from 'showdown';
 import { DEFAULT_INTERMEDIATE_FILES_STRATEGY, DEFAULT_IS_VERBOSE, DEFAULT_SCRAPE_CACHE_DIRNAME } from '../../config';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
