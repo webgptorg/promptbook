@@ -119,7 +119,29 @@ export async function findAllProjectEntities({
     let isDuplicateNameFound = false;
     const reportedEntityNames = new Set<string>();
     for (const entity of entitities) {
-            const duplicates = entitities.filter((existingEntity) => existingEntity.name === entity.name && existingEntity.filename !== entity.filename);
+            const duplicates = entitities.filter((existingEntity) => {
+                if (existingEntity.name !== entity.name || existingEntity.filename === entity.filename) {
+                    return false;
+                }
+
+                // Note: Allow `.browser.ts` files to override their `.ts` counterpart with the same entity name.
+                //       This is a deliberate platform-override pattern used when the browser needs a
+                //       lighter stub instead of the full Node.js implementation.
+                const browserVariant = entity.filename.endsWith('.browser.ts')
+                    ? entity.filename
+                    : existingEntity.filename.endsWith('.browser.ts')
+                      ? existingEntity.filename
+                      : null;
+                if (browserVariant !== null) {
+                    const nodeVariant = browserVariant.replace(/\.browser\.ts$/, '.ts');
+                    const otherFilename = browserVariant === entity.filename ? existingEntity.filename : entity.filename;
+                    if (otherFilename === nodeVariant) {
+                        return false;
+                    }
+                }
+
+                return true;
+            });
 
         if (duplicates.length > 0) {
             isDuplicateNameFound = true;

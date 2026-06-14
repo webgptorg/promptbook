@@ -47,6 +47,11 @@ export type RunOptions = {
      */
     allowCredits: boolean;
     /**
+     * When true, log harness-level messages in addition to the final answer.
+     * When false or omitted, only the final answer is printed.
+     */
+    isVerbose?: boolean;
+    /**
      * Enables automatic migration of testing servers after each successfully completed prompt.
      */
     autoMigrate: boolean;

@@ -233,6 +233,7 @@ function createPromptRunnerOptions(options: AgentCliRunOptions): RunOptions {
         ignoreGitChanges: true,
         normalizeLineEndings: false,
         allowCredits: options.allowCredits,
+        isVerbose: options.isVerbose,
         autoMigrate: false,
         allowDestructiveAutoMigrate: false,
         autoPush: false,

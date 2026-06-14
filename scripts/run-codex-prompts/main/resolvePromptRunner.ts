@@ -127,7 +127,7 @@ function createOpenAiCodexRunnerResolution(options: RunOptions): PromptRunnerRes
         allowCredits: options.allowCredits,
     });
 
-    if (!options.allowCredits) {
+    if (!options.allowCredits && options.isVerbose === true) {
         console.info(
             colors.gray('OpenAI Codex credit spending is disabled. Use `--allow-credits` to explicitly opt in.'),
         );

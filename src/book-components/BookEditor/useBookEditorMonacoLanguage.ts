@@ -299,6 +299,8 @@ export function ensureBookEditorMonacoLanguage(
     monaco.languages.register({ id: BookEditorMonacoConstants.BOOK_LANGUAGE_ID });
 
     const commitmentTypes = [
+        'GOAL',
+        'RULE',
         'PERSONA',
         'KNOWLEDGE',
         'TASK',
@@ -313,6 +315,7 @@ export function ensureBookEditorMonacoLanguage(
         'TEAM',
         ...TODO_COMMITMENT_TYPES,
         ...NOTE_COMMITMENT_TYPES,
+        'REMOVE',
     ];
     const completionCommitmentTypes = [...commitmentTypes];
     const noteLikeCommitmentTypeSet = new Set<string>([...TODO_COMMITMENT_TYPES, ...NOTE_COMMITMENT_TYPES]);

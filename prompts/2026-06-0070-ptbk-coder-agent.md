@@ -40,7 +40,7 @@ ptbk agent chat --agent ./agents/default/generic-chatter.book --harness openai-c
 
 ---
 
-[ ] !!
+[x] (2 attempts) $5.79 2 hours by Claude Code
 
 [✨⛷] `ptbk agent chat` and `ptbk agent exec` should output only a chat / response, not any other logs or messages
 
@@ -128,3 +128,4 @@ ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --c
 -   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

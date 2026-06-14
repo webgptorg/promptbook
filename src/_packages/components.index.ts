@@ -17,6 +17,7 @@ import type { BookEditorUploadProgressCallback } from '../book-components/BookEd
 import type { BookEditorUploadOptions } from '../book-components/BookEditor/BookEditor';
 import type { BookEditorProps } from '../book-components/BookEditor/BookEditor';
 import { BookEditor } from '../book-components/BookEditor/BookEditor';
+import { BookEditorForClient } from '../book-components/BookEditor/BookEditorForClient';
 import { AgentChat } from '../book-components/Chat/AgentChat/AgentChat';
 import type { AgentChatProps } from '../book-components/Chat/AgentChat/AgentChatProps';
 import { Chat } from '../book-components/Chat/Chat/Chat';
@@ -106,6 +107,7 @@ export type { BookEditorUploadProgressCallback };
 export type { BookEditorUploadOptions };
 export type { BookEditorProps };
 export { BookEditor };
+export { BookEditorForClient };
 export { AgentChat };
 export type { AgentChatProps };
 export { Chat };
