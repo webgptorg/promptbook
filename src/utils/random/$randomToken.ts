@@ -12,7 +12,7 @@ import type { string_token } from '../../types/string_token';
  * @private internal helper function
  */
 export function $randomToken(randomness: number): string_token {
-     return CryptoJS.lib.WordArray.random(randomness).toString(CryptoJS.enc.Hex);
+    return CryptoJS.lib.WordArray.random(randomness).toString(CryptoJS.enc.Hex);
 }
 
 // TODO: [🤶] Maybe export through `@promptbook/utils` or `@promptbook/random` package

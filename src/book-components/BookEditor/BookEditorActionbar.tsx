@@ -48,10 +48,12 @@ function induceBookDownloadInBrowser(book: string): void {
 }
 
 function extractBookTitle(book: string): string | null {
-    return book
-        .split(/\r?\n/)
-        .map((line) => line.trim())
-        .find(Boolean) || null;
+    return (
+        book
+            .split(/\r?\n/)
+            .map((line) => line.trim())
+            .find(Boolean) || null
+    );
 }
 
 function normalizeBookDownloadName(value: string): string {
