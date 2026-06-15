@@ -1,3 +1,7 @@
+-   Fixed entity scanner false positive in `agentProjectPaths.ts` where the comment `// Re-export shared agent folder path constants...` caused the regex to match `export shared agent` and flag a missing `@private`/`@public` annotation; removed the misleading comment.
+
+-   Fixed `@promptbook/node` bundle so CLI-only `[🟡]` path constants no longer leak into the package: extracted shared agent-folder path constants (`AGENT_BOOK_FILE_PATH`, `AGENT_MESSAGES_DIRECTORY_PATH`, `AGENT_QUEUED_MESSAGES_DIRECTORY_PATH`, `AGENT_FINISHED_MESSAGES_DIRECTORY_PATH`, `AGENT_FAILED_MESSAGES_DIRECTORY_PATH`) into `src/book-3.0/agentFolderPaths.ts`, updated `agentProjectPaths.ts` to import and re-export from there, and updated `executeAgentChatTurn.ts` to import from the new shared file instead of the CLI-only one. Added `[💞]` ignore note to `agentFolderPaths.ts` to suppress the file-name/entity-name discrepancy check.
+
 -   Optimized `CliAgent` to call the agent execution pipeline directly instead of spawning a `ptbk agent exec` child process, removing the intermediate CLI overhead while sharing the same `executeAgentChatTurn` logic used by the CLI command.
 
 -   Changed Agents Server chat pre-answers so the immediate placeholder response now focuses on confirming the job is being handled and avoids partial deliverables such as draft code or likely final-answer content.

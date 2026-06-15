@@ -2,6 +2,11 @@
 // `@promptbook/node`
 
 import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
+import { AGENT_BOOK_FILE_PATH } from '../book-3.0/agentFolderPaths';
+import { AGENT_MESSAGES_DIRECTORY_PATH } from '../book-3.0/agentFolderPaths';
+import { AGENT_QUEUED_MESSAGES_DIRECTORY_PATH } from '../book-3.0/agentFolderPaths';
+import { AGENT_FINISHED_MESSAGES_DIRECTORY_PATH } from '../book-3.0/agentFolderPaths';
+import { AGENT_FAILED_MESSAGES_DIRECTORY_PATH } from '../book-3.0/agentFolderPaths';
 import type { BookNodeAgentSource } from '../book-3.0/BookNodeAgentSource';
 import type { BookNodeAgentSourceOptions } from '../book-3.0/BookNodeAgentSource';
 import type { CliAgentHarness } from '../book-3.0/CliAgent';
@@ -31,6 +36,11 @@ export { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION };
 
 
 // Note: Entities of the `@promptbook/node`
+export { AGENT_BOOK_FILE_PATH };
+export { AGENT_MESSAGES_DIRECTORY_PATH };
+export { AGENT_QUEUED_MESSAGES_DIRECTORY_PATH };
+export { AGENT_FINISHED_MESSAGES_DIRECTORY_PATH };
+export { AGENT_FAILED_MESSAGES_DIRECTORY_PATH };
 export type { BookNodeAgentSource };
 export type { BookNodeAgentSourceOptions };
 export type { CliAgentHarness };

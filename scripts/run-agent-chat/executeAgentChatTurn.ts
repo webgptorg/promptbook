@@ -5,7 +5,7 @@ import type { string_book } from '../../src/book-2.0/agent-source/string_book';
 import {
     AGENT_BOOK_FILE_PATH,
     AGENT_QUEUED_MESSAGES_DIRECTORY_PATH,
-} from '../../src/cli/cli-commands/agent-folder/agentProjectPaths';
+} from '../../src/book-3.0/agentFolderPaths';
 import { NotAllowed } from '../../src/errors/NotAllowed';
 import { NotFoundError } from '../../src/errors/NotFoundError';
 import { resolvePromptbookTemporaryPath } from '../../src/utils/filesystem/promptbookTemporaryPath';
