@@ -31,6 +31,11 @@ export type RunOptions = {
     thinkingLevel?: ThinkingLevel;
     waitForUser: boolean;
     /**
+     * Milliseconds to wait between prompt rounds to avoid hitting rate limits of the harness.
+     * Zero means no waiting between rounds.
+     */
+    waitBetweenPrompts: number;
+    /**
      * Leave successful round changes in the git working tree instead of creating an agent commit.
      */
     noCommit: boolean;

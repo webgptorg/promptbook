@@ -229,6 +229,7 @@ function createPromptRunnerOptions(options: AgentCliRunOptions): RunOptions {
         noUi: options.noUi,
         thinkingLevel: options.thinkingLevel,
         waitForUser: false,
+        waitBetweenPrompts: 0,
         noCommit: true,
         ignoreGitChanges: true,
         normalizeLineEndings: false,

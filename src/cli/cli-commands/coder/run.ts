@@ -11,6 +11,7 @@ import {
     normalizePromptRunnerCliOptions,
     PROMPT_RUNNER_DESCRIPTION,
 } from '../common/promptRunnerCliOptions';
+import { parseDuration } from '../../../../scripts/run-codex-prompts/common/parseDuration';
 
 /**
  * Initializes `coder run` command for Promptbook CLI utilities
@@ -57,7 +58,17 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
     );
     addPromptRunnerExecutionOptions(command);
     command.option('--priority <minimum-priority>', 'Filter prompts by minimum priority level', parseIntOption, 0);
-    command.option('--no-wait', 'Skip user prompts between processing');
+    command.option(
+        '--wait [duration]',
+        spaceTrim(`
+            Wait between prompt rounds.
+            Without a value (default): waits for user confirmation before each prompt (interactive mode).
+            With a duration like 1h, 30m, 5s: waits that long between prompts to avoid hitting rate limits of the harness.
+        `),
+        true,
+    );
+    // Note: --no-wait disables the default interactive wait-for-user behaviour
+    command.option('--no-wait', 'Skip all waiting between prompts and run non-interactively');
     command.option(
         '--auto-migrate',
         'Run testing-server database migrations automatically after each successfully processed prompt',
@@ -76,7 +87,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                     readonly test?: string | string[];
                     readonly preserveLogs: boolean;
                     readonly priority: number;
-                    readonly wait: boolean;
+                    readonly wait: boolean | string;
                     readonly autoMigrate: boolean;
                     readonly allowDestructiveAutoMigrate: boolean;
                 } & PromptRunnerCliOptions;
@@ -86,10 +97,24 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 isAgentRequired: !dryRun,
             });
 
+            // [1] Parse the --wait option:
+            //   true (default or --wait without value): wait for user confirmation
+            //   false (--no-wait): no waiting at all
+            //   string (--wait 1h): wait that long between prompt rounds
+            let waitForUser = false;
+            let waitBetweenPrompts = 0;
+
+            if (wait === true) {
+                waitForUser = true;
+            } else if (typeof wait === 'string' && wait !== '') {
+                waitBetweenPrompts = parseDuration(wait);
+            }
+
             // Convert commander options to RunOptions format
             const runOptions = {
                 dryRun,
-                waitForUser: wait,
+                waitForUser,
+                waitBetweenPrompts,
                 noCommit: runnerOptions.noCommit,
                 ignoreGitChanges: runnerOptions.ignoreGitChanges,
                 agentName: runnerOptions.agentName,

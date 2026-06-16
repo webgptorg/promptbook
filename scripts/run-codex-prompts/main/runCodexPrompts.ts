@@ -12,6 +12,7 @@ import type {
     WaitForCoderRunPauseCheckpoint,
 } from '../common/CoderRunPauseCheckpoint';
 import { CliProgressDisplay } from '../common/cliProgressDisplay';
+import { formatDurationMs } from '../common/parseDuration';
 import { resolveCoderContext } from '../common/resolveCoderContext';
 import {
     announcePauseTargetLabel,
@@ -84,6 +85,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
 
         let hasShownUpcomingTasks = false;
         let hasWaitedForStart = false;
+        let hasRunAtLeastOneRound = false;
 
         while (just(true)) {
             if (options.autoPull && !options.dryRun) {
@@ -124,6 +126,17 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
 
             const nextPrompt = promptQueueSnapshot.nextPrompt!;
             const promptLabel = buildPromptLabelForDisplay(nextPrompt.file, nextPrompt.section);
+
+            // Wait between prompt rounds (skipped for the first round)
+            if (hasRunAtLeastOneRound) {
+                await waitBetweenPromptRoundsIfNeeded({
+                    options,
+                    isRichUiEnabled,
+                    progressDisplay,
+                    uiHandle,
+                });
+            }
+            hasRunAtLeastOneRound = true;
 
             hasWaitedForStart = await waitForPromptConfirmationIfNeeded({
                 options,
@@ -451,6 +464,52 @@ async function waitForPromptConfirmationIfNeeded(options: {
     progressDisplay?.resumeTimer();
     uiHandle?.state.resumeTimer();
     return true;
+}
+
+/**
+ * Countdown update interval for the between-rounds wait display.
+ */
+const WAIT_COUNTDOWN_UPDATE_INTERVAL_MS = 30_000;
+
+/**
+ * Waits the configured time between prompt rounds to avoid hitting harness rate limits.
+ * Does nothing when `waitBetweenPrompts` is zero.
+ */
+async function waitBetweenPromptRoundsIfNeeded(options: {
+    options: RunOptions;
+    isRichUiEnabled: boolean;
+    progressDisplay?: CliProgressDisplay;
+    uiHandle?: CoderRunUiHandle;
+}): Promise<void> {
+    const { options: runOptions, isRichUiEnabled, progressDisplay, uiHandle } = options;
+    const { waitBetweenPrompts } = runOptions;
+
+    if (waitBetweenPrompts <= 0) {
+        return;
+    }
+
+    progressDisplay?.pauseTimer();
+    uiHandle?.state.pauseTimer();
+    uiHandle?.state.setPhase('waiting');
+
+    let remaining = waitBetweenPrompts;
+
+    while (remaining > 0) {
+        const statusMessage = `Waiting ${formatDurationMs(remaining)} before next prompt to avoid rate limits...`;
+
+        if (!isRichUiEnabled) {
+            console.info(colors.gray(statusMessage));
+        } else {
+            uiHandle?.state.setStatusMessage(statusMessage);
+        }
+
+        const sleepMs = Math.min(WAIT_COUNTDOWN_UPDATE_INTERVAL_MS, remaining);
+        await new Promise<void>((resolve) => setTimeout(resolve, sleepMs));
+        remaining -= sleepMs;
+    }
+
+    progressDisplay?.resumeTimer();
+    uiHandle?.state.resumeTimer();
 }
 
 /**

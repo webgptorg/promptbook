@@ -5,13 +5,14 @@ import {
     PROMPT_RUNNER_HARNESS_NAMES,
     type PromptRunnerHarnessName,
 } from '../../../src/cli/cli-commands/common/promptRunnerCliOptions';
+import { parseDuration } from '../common/parseDuration';
 import type { RunOptions } from './RunOptions';
 
 /**
  * CLI usage text for this script.
  */
 const USAGE =
-    'Usage: run-codex-prompts [--dry-run] [--harness <harness-name>] [--model <model>] [--context <context-or-file>] [--test <test-command...>] [--preserve-logs] [--no-ui] [--thinking-level <thinking-level>] [--priority <minimum-priority>] [--allow-credits] [--auto-migrate] [--allow-destructive-auto-migrate] [--no-wait] [--no-commit] [--ignore-git-changes] [--no-normalize-line-endings] [--auto-push] [--auto-pull]';
+    'Usage: run-codex-prompts [--dry-run] [--harness <harness-name>] [--model <model>] [--context <context-or-file>] [--test <test-command...>] [--preserve-logs] [--no-ui] [--thinking-level <thinking-level>] [--priority <minimum-priority>] [--allow-credits] [--auto-migrate] [--allow-destructive-auto-migrate] [--wait [duration]] [--no-wait] [--no-commit] [--ignore-git-changes] [--no-normalize-line-endings] [--auto-push] [--auto-pull]';
 
 /**
  * Top-level flags supported by this command.
@@ -29,6 +30,7 @@ const KNOWN_OPTION_FLAGS = new Set([
     '--allow-credits',
     '--auto-migrate',
     '--allow-destructive-auto-migrate',
+    '--wait',
     '--no-wait',
     '--no-commit',
     '--ignore-git-changes',
@@ -70,6 +72,22 @@ export function parseRunOptions(args: string[]): RunOptions {
     const allowDestructiveAutoMigrate = args.includes('--allow-destructive-auto-migrate');
     const autoPush = args.includes('--auto-push');
     const autoPull = args.includes('--auto-pull');
+    // [1] Parse --wait [duration]:
+    //   absent or --no-wait: no waiting
+    //   --wait (no value): wait for user confirmation
+    //   --wait 1h: wait 1h between prompt rounds to avoid rate limits
+    const waitOptionalValue = readOptionalOptionValue(args, '--wait');
+    let waitForUser = false;
+    let waitBetweenPrompts = 0;
+
+    if (waitOptionalValue === null) {
+        // --wait present without a duration value: interactive mode
+        waitForUser = true;
+    } else if (waitOptionalValue !== undefined) {
+        // --wait <duration>: time-based wait between rounds
+        waitBetweenPrompts = parseDuration(waitOptionalValue);
+    }
+    // --no-wait (or no flag): both waitForUser and waitBetweenPrompts remain false/0
     let thinkingLevel: ThinkingLevel | undefined;
 
     if (hasTestCommandFlag && testCommand === undefined) {
@@ -96,7 +114,8 @@ export function parseRunOptions(args: string[]): RunOptions {
 
     return {
         dryRun,
-        waitForUser: !args.includes('--no-wait'),
+        waitForUser,
+        waitBetweenPrompts,
         noCommit,
         ignoreGitChanges,
         normalizeLineEndings,
@@ -114,6 +133,24 @@ export function parseRunOptions(args: string[]): RunOptions {
         thinkingLevel,
         priority,
     };
+}
+
+/**
+ * Reads an optional value for a flag that may appear with or without a following value.
+ *
+ * Returns `undefined` when the flag is absent, `null` when the flag is present but has no value
+ * (the next token is another flag or the end of args), and the value string otherwise.
+ */
+function readOptionalOptionValue(args: string[], flag: string): string | null | undefined {
+    if (!args.includes(flag)) {
+        return undefined;
+    }
+    const index = args.indexOf(flag);
+    const nextArg = args[index + 1];
+    if (nextArg === undefined || nextArg.startsWith('-')) {
+        return null;
+    }
+    return nextArg;
 }
 
 /**

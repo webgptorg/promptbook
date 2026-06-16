@@ -1,4 +1,4 @@
-[ ] !!!
+[x] (3 attempts) $0.3147 an hour by Claude Code
 
 [✨🔝] Add `--wait` flag to `ptbk coder run`
 
@@ -84,3 +84,4 @@ ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh -
 -   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

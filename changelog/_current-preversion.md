@@ -1,3 +1,9 @@
+-   Added `--wait [duration]` flag to `ptbk coder run` for controlling the delay between prompt rounds:
+
+    -   `--wait 1h` (or `--wait 30m`, `--wait 5s`, combinations like `--wait 1h30m`) waits the specified duration between rounds to avoid hitting harness rate limits. The first prompt executes immediately; the wait is inserted only before subsequent rounds.
+    -   `--wait` without a value retains the existing interactive behavior — waits for user confirmation before each prompt.
+    -   No flag (or `--no-wait`) means no waiting, which is now the default. `--no-wait` is kept for backward compatibility.
+
 -   Fixed `CliAgent` failing with `Missing --harness in non-dry run mode` when no `harness` is provided: `CliAgent` now falls back to the `PTBK_HARNESS` environment variable, mirroring `ptbk agent exec` behavior. Similarly falls back to `PTBK_MODEL` and `PTBK_THINKING_LEVEL` env vars. Extracted shared env-var constants (`PTBK_HARNESS_ENV`, `PTBK_MODEL_ENV`, `PTBK_THINKING_LEVEL_ENV`), harness names (`CLI_AGENT_HARNESS_NAMES`), and thinking-level values (`CLI_AGENT_THINKING_LEVEL_VALUES`) into the new `src/book-3.0/cliAgentEnv.ts` so CLI and library share a single source of truth. Fixed a pre-existing TypeScript error in `BookNodeAgentSource.ts` where `normalizeBookNodeAgentSource` did not accept the plain `string` allowed by its `book` option type.
 
 -   Fixed entity scanner false positive in `agentProjectPaths.ts` where the comment `// Re-export shared agent folder path constants...` caused the regex to match `export shared agent` and flag a missing `@private`/`@public` annotation; removed the misleading comment.

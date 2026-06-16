@@ -13,6 +13,7 @@ export function createCoderRunOptionsForAgent(options: AgentRunOptions): RunOpti
         noUi: options.noUi,
         thinkingLevel: options.thinkingLevel,
         waitForUser: false,
+        waitBetweenPrompts: 0,
         noCommit: options.noCommit,
         ignoreGitChanges: options.ignoreGitChanges,
         normalizeLineEndings: options.normalizeLineEndings,

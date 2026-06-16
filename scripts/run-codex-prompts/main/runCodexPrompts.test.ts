@@ -58,6 +58,7 @@ function createRunOptions(overrides: Partial<RunOptions> = {}): RunOptions {
         noUi: true,
         thinkingLevel: undefined,
         waitForUser: true,
+        waitBetweenPrompts: 0,
         noCommit: false,
         ignoreGitChanges: false,
         normalizeLineEndings: true,

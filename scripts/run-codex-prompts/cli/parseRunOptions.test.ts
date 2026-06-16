@@ -320,6 +320,60 @@ describe('parseRunOptions', () => {
         });
     });
 
+    it('defaults to no waiting when neither --wait nor --no-wait is provided', () => {
+        const options = parseRunOptions(['--harness', 'gemini']);
+
+        expect(options).toMatchObject({
+            waitForUser: false,
+            waitBetweenPrompts: 0,
+        });
+    });
+
+    it('enables user-confirmation wait when --wait is provided without a duration', () => {
+        const options = parseRunOptions(['--harness', 'gemini', '--wait']);
+
+        expect(options).toMatchObject({
+            waitForUser: true,
+            waitBetweenPrompts: 0,
+        });
+    });
+
+    it('sets time-based wait when --wait is provided with a duration in hours', () => {
+        const options = parseRunOptions(['--harness', 'github-copilot', '--wait', '1h']);
+
+        expect(options).toMatchObject({
+            waitForUser: false,
+            waitBetweenPrompts: 3_600_000,
+        });
+    });
+
+    it('sets time-based wait when --wait is provided with a duration in minutes', () => {
+        const options = parseRunOptions(['--harness', 'github-copilot', '--wait', '30m']);
+
+        expect(options).toMatchObject({
+            waitForUser: false,
+            waitBetweenPrompts: 1_800_000,
+        });
+    });
+
+    it('sets time-based wait when --wait is provided with a combined duration', () => {
+        const options = parseRunOptions(['--harness', 'github-copilot', '--wait', '1h30m']);
+
+        expect(options).toMatchObject({
+            waitForUser: false,
+            waitBetweenPrompts: 5_400_000,
+        });
+    });
+
+    it('disables all waiting when --no-wait is provided', () => {
+        const options = parseRunOptions(['--harness', 'gemini', '--no-wait']);
+
+        expect(options).toMatchObject({
+            waitForUser: false,
+            waitBetweenPrompts: 0,
+        });
+    });
+
     it('rejects invalid priority values', () => {
         expect(() => parseRunOptions(['--harness', 'gemini', '--priority', 'invalid'])).toThrow('process.exit');
         expect(processExitSpy).toHaveBeenCalledWith(1);
