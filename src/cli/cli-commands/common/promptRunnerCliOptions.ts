@@ -6,41 +6,21 @@ import {
 import { spaceTrim } from 'spacetrim';
 import type { ThinkingLevel } from '../coder/ThinkingLevel';
 import { THINKING_LEVEL_VALUES } from '../coder/ThinkingLevel';
+import {
+    CLI_AGENT_HARNESS_NAMES,
+    PTBK_HARNESS_ENV,
+    PTBK_MODEL_ENV,
+    PTBK_THINKING_LEVEL_ENV,
+} from '../../../book-3.0/cliAgentEnv';
+
+export { PTBK_HARNESS_ENV, PTBK_MODEL_ENV, PTBK_THINKING_LEVEL_ENV };
 
 /**
  * Runner identifiers supported by Promptbook CLI agent orchestration commands.
  *
  * @private internal utility of `promptbookCli`
  */
-export const PROMPT_RUNNER_HARNESS_NAMES = [
-    'openai-codex',
-    'github-copilot',
-    'cline',
-    'claude-code',
-    'opencode',
-    'gemini',
-] as const;
-
-/**
- * Environment variable used as the default runner identifier when `--harness` is omitted.
- *
- * @private internal utility of `promptbookCli`
- */
-export const PTBK_HARNESS_ENV = 'PTBK_HARNESS';
-
-/**
- * Environment variable used as the default runner model when `--model` is omitted.
- *
- * @private internal utility of `promptbookCli`
- */
-export const PTBK_MODEL_ENV = 'PTBK_MODEL';
-
-/**
- * Environment variable used as the default runner thinking level when `--thinking-level` is omitted.
- *
- * @private internal utility of `promptbookCli`
- */
-export const PTBK_THINKING_LEVEL_ENV = 'PTBK_THINKING_LEVEL';
+export const PROMPT_RUNNER_HARNESS_NAMES = CLI_AGENT_HARNESS_NAMES;
 
 /**
  * Runner identifier supported by Promptbook CLI agent orchestration commands.

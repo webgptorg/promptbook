@@ -3,22 +3,30 @@ import { dirname } from 'path';
 import { executeAgentChatTurn } from '../../scripts/run-agent-chat/executeAgentChatTurn';
 import { NotAllowed } from '../errors/NotAllowed';
 import { resolvePromptbookTemporaryPath } from '../utils/filesystem/promptbookTemporaryPath';
+import { spaceTrim } from '../utils/organization/spaceTrim';
 import type { BookNodeAgentSourceOptions, ResolvedBookNodeAgentSource } from './BookNodeAgentSource';
 import { resolveBookNodeAgentSource } from './BookNodeAgentSource';
+import {
+    CLI_AGENT_HARNESS_NAMES,
+    CLI_AGENT_THINKING_LEVEL_VALUES,
+    PTBK_HARNESS_ENV,
+    PTBK_MODEL_ENV,
+    PTBK_THINKING_LEVEL_ENV,
+} from './cliAgentEnv';
 
 /**
  * CLI harness names supported by `ptbk agent exec`.
  *
  * @public exported from `@promptbook/node`
  */
-export type CliAgentHarness = 'openai-codex' | 'github-copilot' | 'cline' | 'claude-code' | 'opencode' | 'gemini';
+export type CliAgentHarness = (typeof CLI_AGENT_HARNESS_NAMES)[number];
 
 /**
  * Thinking levels supported by CLI coding harnesses.
  *
  * @public exported from `@promptbook/node`
  */
-export type CliAgentThinkingLevel = 'low' | 'medium' | 'high' | 'xhigh';
+export type CliAgentThinkingLevel = (typeof CLI_AGENT_THINKING_LEVEL_VALUES)[number];
 
 /**
  * Per-run CLI options exposed by `CliAgent`.
@@ -56,6 +64,9 @@ const DEFAULT_CLI_AGENT_IS_NO_UI = true;
  * It uses the same harnesses and execution path as `ptbk agent exec`, running the runner
  * in-process instead of spawning a separate CLI process.
  *
+ * When no `harness` is provided in the constructor or per-run options, `CliAgent` falls back
+ * to the `PTBK_HARNESS` environment variable, mirroring `ptbk agent exec` behavior.
+ *
  * @public exported from `@promptbook/node`
  */
 export class CliAgent {
@@ -81,13 +92,28 @@ export class CliAgent {
         const agentPath = await this.resolveExecutableAgentPath(resolvedSource);
         const mergedOptions = mergeCliAgentRunOptions(this.options, options);
 
+        const harness = mergedOptions.harness ?? resolveCliAgentHarnessFromEnv();
+
+        if (!harness) {
+            throw new NotAllowed(
+                spaceTrim(`
+                    No harness specified for \`CliAgent\`. Pass \`harness\` in the constructor options or per-run options,
+                    or set the \`${PTBK_HARNESS_ENV}\` environment variable.
+
+                    Available harnesses: ${CLI_AGENT_HARNESS_NAMES.join(', ')}
+
+                    Example: \`PTBK_HARNESS=claude-code\`
+                `),
+            );
+        }
+
         const result = await executeAgentChatTurn({
             agentPath,
             messages: [{ sender: 'USER', content: normalizedMessage }],
-            agentName: mergedOptions.harness,
-            model: mergedOptions.model,
+            agentName: harness,
+            model: mergedOptions.model ?? process.env[PTBK_MODEL_ENV],
             noUi: mergedOptions.noUi ?? DEFAULT_CLI_AGENT_IS_NO_UI,
-            thinkingLevel: mergedOptions.thinkingLevel,
+            thinkingLevel: mergedOptions.thinkingLevel ?? resolveCliAgentThinkingLevelFromEnv(),
             allowCredits: mergedOptions.allowCredits ?? false,
             isVerbose: false,
             context: mergedOptions.context,
@@ -132,6 +158,56 @@ function mergeCliAgentRunOptions(defaults: CliAgentRunOptions, overrides: CliAge
         noUi: overrides.noUi ?? defaults.noUi,
         thinkingLevel: overrides.thinkingLevel ?? defaults.thinkingLevel,
     };
+}
+
+/**
+ * Reads and validates the harness name from the `PTBK_HARNESS` environment variable.
+ *
+ * @private internal utility of `CliAgent`
+ */
+function resolveCliAgentHarnessFromEnv(): CliAgentHarness | undefined {
+    const envValue = process.env[PTBK_HARNESS_ENV];
+
+    if (!envValue) {
+        return undefined;
+    }
+
+    if (!(CLI_AGENT_HARNESS_NAMES as ReadonlyArray<string>).includes(envValue)) {
+        throw new NotAllowed(
+            spaceTrim(`
+                Invalid value for \`${PTBK_HARNESS_ENV}\` environment variable: \`${envValue}\`
+
+                Must be one of: ${CLI_AGENT_HARNESS_NAMES.join(', ')}
+            `),
+        );
+    }
+
+    return envValue as CliAgentHarness;
+}
+
+/**
+ * Reads and validates the thinking level from the `PTBK_THINKING_LEVEL` environment variable.
+ *
+ * @private internal utility of `CliAgent`
+ */
+function resolveCliAgentThinkingLevelFromEnv(): CliAgentThinkingLevel | undefined {
+    const envValue = process.env[PTBK_THINKING_LEVEL_ENV];
+
+    if (!envValue) {
+        return undefined;
+    }
+
+    if (!(CLI_AGENT_THINKING_LEVEL_VALUES as ReadonlyArray<string>).includes(envValue)) {
+        throw new NotAllowed(
+            spaceTrim(`
+                Invalid value for \`${PTBK_THINKING_LEVEL_ENV}\` environment variable: \`${envValue}\`
+
+                Must be one of: ${CLI_AGENT_THINKING_LEVEL_VALUES.join(', ')}
+            `),
+        );
+    }
+
+    return envValue as CliAgentThinkingLevel;
 }
 
 /**

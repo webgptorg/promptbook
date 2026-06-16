@@ -39,7 +39,9 @@ describe('CliAgent', () => {
 
     afterEach(async () => {
         jest.clearAllMocks();
-        await rm(temporaryDirectoryPath, { recursive: true, force: true });
+        if (temporaryDirectoryPath) {
+            await rm(temporaryDirectoryPath, { recursive: true, force: true });
+        }
     });
 
     it('calls executeAgentChatTurn directly for an existing agent path', async () => {
@@ -83,6 +85,7 @@ describe('CliAgent', () => {
                 `,
             ),
             currentWorkingDirectory: temporaryDirectoryPath,
+            harness: 'claude-code',
         });
 
         await cliAgent.run('Summarize this');

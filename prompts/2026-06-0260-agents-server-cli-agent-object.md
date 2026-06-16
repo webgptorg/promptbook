@@ -27,7 +27,7 @@
 
 ---
 
-[ ] !!
+[x] $4.48 2 hours by Claude Code
 
 [✨🪤] `CliAgent` must just work
 
@@ -68,3 +68,4 @@ const response = await agent.run(
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

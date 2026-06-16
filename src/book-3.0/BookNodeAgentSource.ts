@@ -92,7 +92,7 @@ export async function resolveBookNodeAgentSource(
  *
  * @private internal utility of `resolveBookNodeAgentSource`
  */
-function normalizeBookNodeAgentSource(book: BookNodeAgentSource): string_book {
+function normalizeBookNodeAgentSource(book: string | BookNodeAgentSource): string_book {
     if (book instanceof Book) {
         return book.stringify();
     }
