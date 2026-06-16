@@ -23,7 +23,7 @@ export type BookNodeAgentSource = Book | string_book;
  */
 export type BookNodeAgentSourceOptions = {
     readonly agentPath?: string;
-    readonly book?: BookNodeAgentSource;
+    readonly book?: string | BookNodeAgentSource;
     readonly currentWorkingDirectory?: string;
 };
 
