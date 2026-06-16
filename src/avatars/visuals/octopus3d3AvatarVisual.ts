@@ -94,6 +94,63 @@ const LIGHT_DIRECTION: Point3D = normalizeVector3({
 const OCTOPUS_TENTACLE_COUNT = 8;
 
 /**
+ * Per-avatar stable state derived once from the seeded random factory and reused across frames.
+ *
+ * These values depend only on the avatar definition (name + hash + colors) and never change
+ * while the avatar is mounted, so computing them once and caching eliminates the largest
+ * allocation/computation spike in the hot render path.
+ *
+ * @private helper of `octopus3d3AvatarVisual`
+ */
+type Octopus3d3StableState = {
+    readonly morphologyProfile: Octopus3MorphologyProfile;
+    readonly animationPhase: number;
+    readonly leftEyePhaseOffset: number;
+    readonly rightEyePhaseOffset: number;
+    readonly tentacleProfiles: ReadonlyArray<ContinuousOctopusTentacleProfile>;
+};
+
+/**
+ * Cache keyed by the `createRandom` factory reference, which is stable for the lifetime of one
+ * mounted `<Avatar/>` component (created inside `resolveAvatarRenderDefinition` and held in a
+ * React `useMemo`).  Using a `WeakMap` ensures the entry is collected when the component unmounts.
+ *
+ * @private helper of `octopus3d3AvatarVisual`
+ */
+const stableStateCache = new WeakMap<(salt: string) => () => number, Octopus3d3StableState>();
+
+/**
+ * Returns the stable per-avatar state, computing it on first access and returning the cached
+ * result on every subsequent call within the same `<Avatar/>` mount.
+ *
+ * @private helper of `octopus3d3AvatarVisual`
+ */
+function getOctopus3d3StableState(createRandom: (salt: string) => () => number): Octopus3d3StableState {
+    const cached = stableStateCache.get(createRandom);
+
+    if (cached !== undefined) {
+        return cached;
+    }
+
+    const morphologyProfile = createOctopus3MorphologyProfile(createRandom);
+    const animationRandom = createRandom('octopus3d3-animation-profile');
+    const eyeRandom = createRandom('octopus3d3-eye-profile');
+    const leftEyePhaseOffset = eyeRandom() * 0.7;
+    const rightEyePhaseOffset = eyeRandom() * 0.7;
+    const state: Octopus3d3StableState = {
+        morphologyProfile,
+        animationPhase: animationRandom() * Math.PI * 2,
+        leftEyePhaseOffset,
+        rightEyePhaseOffset,
+        tentacleProfiles: createContinuousTentacleProfiles(createRandom, morphologyProfile),
+    };
+
+    stableStateCache.set(createRandom, state);
+
+    return state;
+}
+
+/**
  * Octopus 3D 3 avatar visual.
  *
  * @private built-in avatar visual
@@ -106,11 +163,8 @@ export const octopus3d3AvatarVisual: AvatarVisualDefinition = {
     isAnimated: true,
     supportsPointerTracking: true,
     render({ context, size, palette, createRandom, timeMs, interaction }) {
-        const morphologyProfile = createOctopus3MorphologyProfile(createRandom);
-        const animationRandom = createRandom('octopus3d3-animation-profile');
-        const eyeRandom = createRandom('octopus3d3-eye-profile');
-        const animationPhase = animationRandom() * Math.PI * 2;
-        const tentacleProfiles = createContinuousTentacleProfiles(createRandom, morphologyProfile);
+        const { morphologyProfile, animationPhase, leftEyePhaseOffset, rightEyePhaseOffset, tentacleProfiles } =
+            getOctopus3d3StableState(createRandom);
         const sceneCenterX = size * 0.5;
         const sceneCenterY = size * 0.535;
         const bob = Math.sin(timeMs / 960 + animationPhase) * size * 0.012;
@@ -213,7 +267,7 @@ export const octopus3d3AvatarVisual: AvatarVisualDefinition = {
             size,
             palette,
             timeMs,
-            animationPhase + eyeRandom() * 0.7,
+            animationPhase + leftEyePhaseOffset,
             interaction,
             morphologyProfile.face.eyeStyle,
         );
@@ -230,7 +284,7 @@ export const octopus3d3AvatarVisual: AvatarVisualDefinition = {
             size,
             palette,
             timeMs,
-            animationPhase + 0.85 + eyeRandom() * 0.7,
+            animationPhase + 0.85 + rightEyePhaseOffset,
             interaction,
             morphologyProfile.face.eyeStyle,
         );
@@ -338,6 +392,9 @@ function drawContinuousOctopusAtmosphere(
 /**
  * Draws the soft lower shadow that anchors the octopus in the avatar frame.
  *
+ * Uses a scaled radial gradient instead of `context.filter = 'blur()'` to approximate the
+ * blurry ellipse without triggering a costly software rasterization pass on every frame.
+ *
  * @private helper of `octopus3d3AvatarVisual`
  */
 function drawContinuousOctopusShadow(
@@ -351,19 +408,25 @@ function drawContinuousOctopusShadow(
     timeMs: number,
     morphologyProfile: Octopus3MorphologyProfile,
 ): void {
+    const cx = size * 0.5 + interaction.gazeX * size * 0.045;
+    const cy = size * 0.9 + Math.sin(timeMs / 980) * size * 0.007;
+    const rx = size * (0.19 + morphologyProfile.tentacles.rootSpreadScale * 0.022 + interaction.intensity * 0.02);
+    const ry = size * 0.06;
+
+    // Scale the context so that drawing a circle produces the correct ellipse aspect ratio,
+    // then fill with a radial gradient that approximates the blurry edge without context.filter.
     context.save();
-    context.fillStyle = `${palette.shadow}66`;
-    context.filter = `blur(${size * 0.025}px)`;
+    context.translate(cx, cy);
+    context.scale(1, ry / rx);
+    const blurRadius = rx * 1.4;
+    const shadowGradient = context.createRadialGradient(0, 0, 0, 0, 0, blurRadius);
+    shadowGradient.addColorStop(0, `${palette.shadow}7a`);
+    shadowGradient.addColorStop(0.45, `${palette.shadow}44`);
+    shadowGradient.addColorStop(0.8, `${palette.shadow}1a`);
+    shadowGradient.addColorStop(1, `${palette.shadow}00`);
+    context.fillStyle = shadowGradient;
     context.beginPath();
-    context.ellipse(
-        size * 0.5 + interaction.gazeX * size * 0.045,
-        size * 0.9 + Math.sin(timeMs / 980) * size * 0.007,
-        size * (0.19 + morphologyProfile.tentacles.rootSpreadScale * 0.022 + interaction.intensity * 0.02),
-        size * 0.06,
-        0,
-        0,
-        Math.PI * 2,
-    );
+    context.arc(0, 0, blurRadius, 0, Math.PI * 2);
     context.fill();
     context.restore();
 }

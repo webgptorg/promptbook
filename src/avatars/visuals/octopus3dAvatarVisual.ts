@@ -56,6 +56,53 @@ const LIGHT_DIRECTION: Point3D = normalizeVector3({
 });
 
 /**
+ * Per-avatar stable state derived once from the seeded random factory and reused across frames.
+ *
+ * @private helper of `octopus3dAvatarVisual`
+ */
+type Octopus3dStableState = {
+    readonly morphologyProfile: Octopus3MorphologyProfile;
+    readonly animationPhase: number;
+    readonly leftEyePhaseOffset: number;
+    readonly rightEyePhaseOffset: number;
+};
+
+/**
+ * Cache keyed by the `createRandom` factory reference (stable per mounted `<Avatar/>`).
+ *
+ * @private helper of `octopus3dAvatarVisual`
+ */
+const octopus3dStableStateCache = new WeakMap<(salt: string) => () => number, Octopus3dStableState>();
+
+/**
+ * Returns the stable per-avatar state, computing it on first access and caching for subsequent frames.
+ *
+ * @private helper of `octopus3dAvatarVisual`
+ */
+function getOctopus3dStableState(createRandom: (salt: string) => () => number): Octopus3dStableState {
+    const cached = octopus3dStableStateCache.get(createRandom);
+
+    if (cached !== undefined) {
+        return cached;
+    }
+
+    const animationRandom = createRandom('octopus3d-animation-profile');
+    const eyeRandom = createRandom('octopus3d-eye-profile');
+    const leftEyePhaseOffset = eyeRandom() * 0.6;
+    const rightEyePhaseOffset = eyeRandom() * 0.6;
+    const state: Octopus3dStableState = {
+        morphologyProfile: createOctopus3MorphologyProfile(createRandom),
+        animationPhase: animationRandom() * Math.PI * 2,
+        leftEyePhaseOffset,
+        rightEyePhaseOffset,
+    };
+
+    octopus3dStableStateCache.set(createRandom, state);
+
+    return state;
+}
+
+/**
  * Proper 3D Octopus visual built from projected organic meshes and tentacles.
  *
  * @private built-in avatar visual
@@ -67,10 +114,8 @@ export const octopus3dAvatarVisual: AvatarVisualDefinition = {
     isAnimated: true,
     supportsPointerTracking: true,
     render({ context, size, palette, createRandom, timeMs, interaction }) {
-        const morphologyProfile = createOctopus3MorphologyProfile(createRandom);
-        const animationRandom = createRandom('octopus3d-animation-profile');
-        const eyeRandom = createRandom('octopus3d-eye-profile');
-        const animationPhase = animationRandom() * Math.PI * 2;
+        const { morphologyProfile, animationPhase, leftEyePhaseOffset, rightEyePhaseOffset } =
+            getOctopus3dStableState(createRandom);
         const sceneCenterX = size * 0.5;
         const sceneCenterY = size * 0.56;
         const bob = Math.sin(timeMs / 920 + animationPhase) * size * 0.014;
@@ -201,7 +246,7 @@ export const octopus3dAvatarVisual: AvatarVisualDefinition = {
             size,
             palette,
             timeMs,
-            animationPhase + eyeRandom() * 0.6,
+            animationPhase + leftEyePhaseOffset,
             interaction,
             morphologyProfile.face.eyeStyle,
         );
@@ -228,7 +273,7 @@ export const octopus3dAvatarVisual: AvatarVisualDefinition = {
             size,
             palette,
             timeMs,
-            animationPhase + 0.7 + eyeRandom() * 0.6,
+            animationPhase + 0.7 + rightEyePhaseOffset,
             interaction,
             morphologyProfile.face.eyeStyle,
         );
@@ -334,6 +379,9 @@ function drawOctopus3dAtmosphere(
 /**
  * Draws the soft ground shadow below the octopus.
  *
+ * Uses a scaled radial gradient instead of `context.filter = 'blur()'` to approximate the
+ * blurry ellipse without triggering a costly software rasterization pass on every frame.
+ *
  * @private helper of `octopus3dAvatarVisual`
  */
 function drawOctopus3dShadow(
@@ -346,19 +394,23 @@ function drawOctopus3dShadow(
     },
     timeMs: number,
 ): void {
+    const cx = size * 0.5 + interaction.gazeX * size * 0.04;
+    const cy = size * 0.87 + Math.sin(timeMs / 920) * size * 0.008;
+    const rx = size * (0.18 + interaction.intensity * 0.02);
+    const ry = size * 0.06;
+
     context.save();
-    context.fillStyle = `${palette.shadow}66`;
-    context.filter = `blur(${size * 0.022}px)`;
+    context.translate(cx, cy);
+    context.scale(1, ry / rx);
+    const blurRadius = rx * 1.4;
+    const shadowGradient = context.createRadialGradient(0, 0, 0, 0, 0, blurRadius);
+    shadowGradient.addColorStop(0, `${palette.shadow}7a`);
+    shadowGradient.addColorStop(0.45, `${palette.shadow}44`);
+    shadowGradient.addColorStop(0.8, `${palette.shadow}1a`);
+    shadowGradient.addColorStop(1, `${palette.shadow}00`);
+    context.fillStyle = shadowGradient;
     context.beginPath();
-    context.ellipse(
-        size * 0.5 + interaction.gazeX * size * 0.04,
-        size * 0.87 + Math.sin(timeMs / 920) * size * 0.008,
-        size * (0.18 + interaction.intensity * 0.02),
-        size * 0.06,
-        0,
-        0,
-        Math.PI * 2,
-    );
+    context.arc(0, 0, blurRadius, 0, Math.PI * 2);
     context.fill();
     context.restore();
 }

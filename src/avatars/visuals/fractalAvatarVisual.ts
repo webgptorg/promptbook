@@ -290,7 +290,7 @@ function drawDragonCurveLayer(
         layerIndex: number;
     },
 ): void {
-    const { size, primaryColor, secondaryColor, tertiaryColor, shadowColor, strokeWidth, timeMs, layerIndex } = options;
+    const { primaryColor, secondaryColor, tertiaryColor, shadowColor, strokeWidth, timeMs, layerIndex } = options;
     const firstPoint = points[0]!;
     const lastPoint = points[points.length - 1]!;
     const ribbonGradient = context.createLinearGradient(firstPoint.x, firstPoint.y, lastPoint.x, lastPoint.y);
@@ -298,14 +298,15 @@ function drawDragonCurveLayer(
     ribbonGradient.addColorStop(0.5, `${secondaryColor}e6`);
     ribbonGradient.addColorStop(1, `${tertiaryColor}f2`);
 
+    // Approximate the blurred shadow stroke with a wider semi-transparent stroke instead of
+    // context.filter blur, which triggers a costly software rasterization pass every frame.
     context.save();
     context.beginPath();
     tracePolyline(context, points);
-    context.strokeStyle = `${shadowColor}82`;
-    context.lineWidth = strokeWidth * 1.8;
+    context.strokeStyle = `${shadowColor}48`;
+    context.lineWidth = strokeWidth * 4.5;
     context.lineJoin = 'round';
     context.lineCap = 'round';
-    context.filter = `blur(${size * 0.022}px)`;
     context.stroke();
     context.restore();
 

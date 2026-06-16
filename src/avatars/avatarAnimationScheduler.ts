@@ -8,6 +8,24 @@
 type AvatarAnimationListener = (now: number) => void;
 
 /**
+ * Target frames per second for the shared avatar animation loop.
+ *
+ * Animated octopus visuals change slowly enough that 24 fps is indistinguishable
+ * from 60 fps in practice, while cutting rendering work by ~60% when multiple
+ * avatars are on screen simultaneously.
+ *
+ * @private utility of the avatar rendering system
+ */
+const AVATAR_TARGET_FPS = 24;
+
+/**
+ * Minimum elapsed time in milliseconds required between avatar render passes.
+ *
+ * @private utility of the avatar rendering system
+ */
+const AVATAR_TARGET_FRAME_INTERVAL_MS = 1000 / AVATAR_TARGET_FPS;
+
+/**
  * Next registration id used by the shared avatar animation scheduler.
  *
  * @private utility of the avatar rendering system
@@ -27,6 +45,15 @@ const avatarAnimationListeners = new Map<number, AvatarAnimationListener>();
  * @private utility of the avatar rendering system
  */
 let avatarAnimationFrameId: number | null = null;
+
+/**
+ * Timestamp of the most recently rendered avatar frame.
+ *
+ * Used to throttle callbacks to `AVATAR_TARGET_FRAME_INTERVAL_MS`.
+ *
+ * @private utility of the avatar rendering system
+ */
+let lastAvatarFrameTime = 0;
 
 /**
  * Registers one avatar animation callback in the shared animation loop.
@@ -68,8 +95,12 @@ function ensureAvatarAnimationLoop(): void {
     const runFrame = (now: number) => {
         avatarAnimationFrameId = null;
 
-        for (const avatarAnimationListener of [...avatarAnimationListeners.values()]) {
-            avatarAnimationListener(now);
+        if (now - lastAvatarFrameTime >= AVATAR_TARGET_FRAME_INTERVAL_MS) {
+            lastAvatarFrameTime = now;
+
+            for (const avatarAnimationListener of [...avatarAnimationListeners.values()]) {
+                avatarAnimationListener(now);
+            }
         }
 
         ensureAvatarAnimationLoop();

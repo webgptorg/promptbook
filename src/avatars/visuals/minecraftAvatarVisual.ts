@@ -45,13 +45,27 @@ export const minecraftAvatarVisual: AvatarVisualDefinition = {
         context.fillStyle = spotlight;
         context.fillRect(0, 0, size, size);
 
-        context.save();
-        context.fillStyle = 'rgba(0, 0, 0, 0.22)';
-        context.filter = `blur(${size * 0.018}px)`;
-        context.beginPath();
-        context.ellipse(size * 0.5, size * 0.86, size * 0.2, size * 0.06, 0, 0, Math.PI * 2);
-        context.fill();
-        context.restore();
+        {
+            // Radial gradient approximates the blurry ellipse shadow without context.filter blur.
+            const cx = size * 0.5;
+            const cy = size * 0.86;
+            const rx = size * 0.2;
+            const ry = size * 0.06;
+            const blurRadius = rx * 1.4;
+            const shadowGradient = context.createRadialGradient(0, 0, 0, 0, 0, blurRadius);
+            shadowGradient.addColorStop(0, 'rgba(0,0,0,0.28)');
+            shadowGradient.addColorStop(0.45, 'rgba(0,0,0,0.14)');
+            shadowGradient.addColorStop(0.8, 'rgba(0,0,0,0.05)');
+            shadowGradient.addColorStop(1, 'rgba(0,0,0,0)');
+            context.save();
+            context.translate(cx, cy);
+            context.scale(1, ry / rx);
+            context.fillStyle = shadowGradient;
+            context.beginPath();
+            context.arc(0, 0, blurRadius, 0, Math.PI * 2);
+            context.fill();
+            context.restore();
+        }
 
         drawVoxelCuboid(context, {
             x: bodyX,

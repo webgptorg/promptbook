@@ -218,19 +218,24 @@ function drawMinecraftShadow(
     },
     timeMs: number,
 ): void {
+    const cx = size * 0.5 + interaction.gazeX * size * 0.03;
+    const cy = size * 0.85 + Math.sin(timeMs / 880) * size * 0.01;
+    const rx = size * (0.16 + interaction.intensity * 0.015);
+    const ry = size * 0.055;
+
+    // Radial gradient approximates the blurry ellipse shadow without context.filter blur.
     context.save();
-    context.fillStyle = `${palette.shadow}66`;
-    context.filter = `blur(${size * 0.02}px)`;
+    context.translate(cx, cy);
+    context.scale(1, ry / rx);
+    const blurRadius = rx * 1.4;
+    const shadowGradient = context.createRadialGradient(0, 0, 0, 0, 0, blurRadius);
+    shadowGradient.addColorStop(0, `${palette.shadow}7a`);
+    shadowGradient.addColorStop(0.45, `${palette.shadow}44`);
+    shadowGradient.addColorStop(0.8, `${palette.shadow}1a`);
+    shadowGradient.addColorStop(1, `${palette.shadow}00`);
+    context.fillStyle = shadowGradient;
     context.beginPath();
-    context.ellipse(
-        size * 0.5 + interaction.gazeX * size * 0.03,
-        size * 0.85 + Math.sin(timeMs / 880) * size * 0.01,
-        size * (0.16 + interaction.intensity * 0.015),
-        size * 0.055,
-        0,
-        0,
-        Math.PI * 2,
-    );
+    context.arc(0, 0, blurRadius, 0, Math.PI * 2);
     context.fill();
     context.restore();
 }

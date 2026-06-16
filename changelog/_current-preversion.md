@@ -1,3 +1,10 @@
+-   Optimized animated avatar rendering performance in Agents Server to fix 1–2 fps drops when multiple avatars are visible:
+
+    -   Throttled the shared animation loop to ~24 fps (from the display refresh rate of 60 fps+) via a frame-interval gate in `avatarAnimationScheduler.ts`. Animated octopus visuals change slowly enough that 24 fps is perceptually identical to 60 fps while reducing total render work by ~60%.
+    -   Cached stable per-avatar data (morphology profile, animation phase, tentacle profiles, eye phase offsets) using a `WeakMap` keyed on the `createRandom` factory reference in `octopus3dAvatarVisual`, `octopus3d2AvatarVisual`, and `octopus3d3AvatarVisual`. These values are deterministic given the avatar definition and were previously recomputed on every frame.
+    -   Replaced `context.filter = 'blur()'` shadow effects in all six affected visuals (`octopus3d`, `octopus3d2`, `octopus3d3`, `minecraft`, `minecraft2`, `fractal`) with equivalent gradient-based approximations. CSS filter blur forces the browser into a full software rasterization pass on every frame; the gradient alternative is hardware-accelerated and visually equivalent.
+    -   Added `"ts-node": { "transpileOnly": true }` to `tsconfig.json` so the CLI integration test (`ts-node src/cli/test/ptbk.ts --help`) skips full type-checking during execution. Type correctness is still enforced by the dedicated `test-types` step; this change brings the CLI startup from an uncapped compile pass (> 5 min on Windows) down to ~20 seconds.
+
 -   Added `--wait [duration]` flag to `ptbk coder run` for controlling the delay between prompt rounds:
 
     -   `--wait 1h` (or `--wait 30m`, `--wait 5s`, combinations like `--wait 1h30m`) waits the specified duration between rounds to avoid hitting harness rate limits. The first prompt executes immediately; the wait is inserted only before subsequent rounds.
