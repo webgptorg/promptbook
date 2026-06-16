@@ -58,14 +58,20 @@ const response = await agent.run(
 
 ---
 
-[-]
+[ ] !
 
-[✨🪤] bar
+[✨🪤] Both `CliAgent` and `LiteAgent` should have `isVerbose` option
 
--   @@@
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
+```typescript
+const agent = new CliAgent({
+    agentPath: 'agents/draft-expert.book',
+    harness: 'openai-codex',
+    model: 'gpt-5.4',
+    thinkingLevel: 'high',
+    isVerbose: true,
+});
+```
+
+-   The return should be the same, just print the logs to the console, but still return the same response
+-   Keep in mind the DRY _(don't repeat yourself)_ principle, share the code between the CLI command and the `CliAgent` and `--verbose` option as much as possible, but without calling the CLI command
 -   Do a proper analysis of the current functionality before you start implementing.
--   You are working with the [Agents Server](apps/agents-server)
--   If you need to do the database migration, do it
--   Add the changes into the [changelog](changelog/_current-preversion.md)
-
