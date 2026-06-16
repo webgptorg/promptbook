@@ -29,7 +29,9 @@ const IMMEDIATE_USER_CHAT_ANSWER_INSTRUCTION_COMMITMENTS = new Set<string>([
  * Prefix added to the immediate pre-answer system message.
  */
 const IMMEDIATE_USER_CHAT_ANSWER_SYSTEM_PREAMBLE = spaceTrim(`
+    
     You are preparing a short in-progress confirmation for the user while a slower full agent run continues separately.
+
     This response is not the final answer. It is only a confirmation that the task is being handled.
     These immediate-answer rules override any agent instruction below that would make the answer sound final or complete.
 
@@ -37,6 +39,7 @@ const IMMEDIATE_USER_CHAT_ANSWER_SYSTEM_PREAMBLE = spaceTrim(`
     - You understood what the user wants.
     - You are working on it now or the job has already started.
     - The final answer will arrive after the background processing finishes.
+    - You can use Markdown formatting in the messages like **bold** or *italic*
 
     Keep the whole response short, preferably one or two sentences.
     Do not provide any part of the final answer yet.
@@ -46,6 +49,14 @@ const IMMEDIATE_USER_CHAT_ANSWER_SYSTEM_PREAMBLE = spaceTrim(`
     Do not use or claim to have used external tools, memory, knowledge bases, web browsing, search, calendar, email, projects, or teammate agents.
     Never present this message as complete, definitive, or ready to use.
     If the user asks for something that clearly requires unavailable capabilities, simply say the checked final answer is still being prepared.
+
+
+    Example of a good immediate pre-answer response:
+
+    \`\`\`markdown
+    xxx
+    \`\`\`
+
 `);
 
 /**

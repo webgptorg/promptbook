@@ -168,10 +168,7 @@ function resolveAgentChatSidebarExpandedStatusClassName(activityKind: AgentChatS
  *
  * @private function of AgentChatSidebar
  */
-function AgentChatSidebarDefaultCollapsedRow({
-    item,
-    onChatSelect,
-}: AgentChatSidebarDefaultCollapsedRowProps) {
+function AgentChatSidebarDefaultCollapsedRow({ item, onChatSelect }: AgentChatSidebarDefaultCollapsedRowProps) {
     const statusClassName = resolveAgentChatSidebarCollapsedStatusClassName(
         item.content.activityIndicator.kind,
         item.isActive,
@@ -444,7 +441,9 @@ function AgentChatSidebarDefaultCollapsedSection({
             ) : (
                 <div className="flex min-h-0 w-full flex-1 flex-col gap-2 overflow-y-auto scrollbar-hidden">
                     {sidebarItems.length === 0 ? (
-                        <p className="px-1 text-center text-[11px] text-slate-500 dark:text-slate-400">{emptyStateText}</p>
+                        <p className="px-1 text-center text-[11px] text-slate-500 dark:text-slate-400">
+                            {emptyStateText}
+                        </p>
                     ) : (
                         sidebarItems.map((item) => (
                             <AgentChatSidebarDefaultCollapsedRow
@@ -600,7 +599,7 @@ export function AgentChatSidebarDefault({
                     </div>
                 </div>
 
-                <div className="agent-chat-sidebar-toggle-slot pointer-events-none absolute inset-y-0 right-0 z-10 hidden translate-x-1/2 items-center justify-center md:flex">
+                <div className="agent-chat-sidebar-toggle-slot pointer-events-none absolute inset-y-0 right-0 z-10 hidden translate-x-1 items-center justify-center md:flex">
                     <SolidArrowButton
                         direction={isCollapsed ? 'right' : 'left'}
                         onClick={onToggleCollapse}

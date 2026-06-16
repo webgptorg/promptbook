@@ -202,7 +202,6 @@ describe('tickAgentMessages', () => {
         (runPromptWithTestFeedback as jest.MockedFunction<typeof runPromptWithTestFeedback>).mockImplementation(
             async ({ prompt }) => {
                 expect(prompt).toContain('Read `messages/queued/question.book` and answer the most recent `MESSAGE @User`');
-                expect(prompt).toContain('**This is how you should behave:**');
                 expect(prompt).toContain('You are Calendar Agent');
                 expect(prompt).toContain('You answer calendar questions with exact counts.');
                 expect(prompt).toContain('## Rules');

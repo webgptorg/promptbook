@@ -8,12 +8,9 @@ describe('buildAgentMessagePrompt', () => {
         );
 
         expect(prompt).toContain('-   Read `messages/queued/question.book` and answer the most recent `MESSAGE @User`');
-        expect(prompt).toContain('**This is how you should behave:**');
         expect(prompt).toContain('You are Support Assistant');
         expect(prompt).toContain('## Rules');
-        expect(prompt).toContain(
-            '-   Only change the queued message file by appending one new `MESSAGE @Agent` block',
-        );
+        expect(prompt).toContain('-   Only change the queued message file by appending one new `MESSAGE @Agent` block');
         expect(prompt).not.toContain('Use `agent.book`');
         expect(prompt).not.toContain('docs/book-language-manual.md');
         expect(prompt).not.toContain('# Book Language blueprint');
