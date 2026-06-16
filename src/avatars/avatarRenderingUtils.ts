@@ -330,6 +330,49 @@ export function prepareAvatarCanvas(
 }
 
 /**
+ * Draws a soft elliptical shadow using layered semi-transparent ellipses.
+ *
+ * This replaces `context.filter = blur(...)` which forces a slow software-rendering path
+ * and tanks framerate when multiple animated avatars are visible simultaneously.
+ *
+ * @param context Canvas 2D context.
+ * @param cx Center X coordinate.
+ * @param cy Center Y coordinate.
+ * @param rx Horizontal radius of the core ellipse.
+ * @param ry Vertical radius of the core ellipse.
+ * @param color Base shadow color as a 6-digit hex string (e.g. `#1a2b3c`).
+ *
+ * @private utility of the avatar rendering system
+ */
+export function drawSoftShadowEllipse(
+    context: CanvasRenderingContext2D,
+    cx: number,
+    cy: number,
+    rx: number,
+    ry: number,
+    color: string,
+): void {
+    context.save();
+
+    context.beginPath();
+    context.ellipse(cx, cy, rx * 1.9, ry * 1.9, 0, 0, Math.PI * 2);
+    context.fillStyle = `${color}0f`;
+    context.fill();
+
+    context.beginPath();
+    context.ellipse(cx, cy, rx * 1.3, ry * 1.3, 0, 0, Math.PI * 2);
+    context.fillStyle = `${color}29`;
+    context.fill();
+
+    context.beginPath();
+    context.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+    context.fillStyle = `${color}52`;
+    context.fill();
+
+    context.restore();
+}
+
+/**
  * Picks one deterministic element from a non-empty collection.
  *
  * @param items Candidate items.
