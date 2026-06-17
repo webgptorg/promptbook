@@ -1,6 +1,7 @@
 import type { Json } from '@/src/database/schema';
 import { mkdir, readFile, rm, writeFile } from 'fs/promises';
 import { join } from 'path';
+import { parseAgentSource } from '../../../../../src/book-2.0/agent-source/parseAgentSource';
 import { createUserChatJobFailureDetails } from '../userChat/createUserChatJobFailureDetails';
 import { claimNextQueuedUserChatJob } from '../userChat/claimNextQueuedUserChatJob';
 import { finalizeUserChatJob } from '../userChat/finalizeUserChatJob';
@@ -145,13 +146,22 @@ async function enqueueLocalUserChatJob(job: UserChatJobRecord): Promise<ProcessL
         return { didMutate: false, outcome: 'waiting' };
     }
 
-    const threadMessages = [...previousThreadMessages, userMessage]
-        .filter((message) => message.isComplete !== false)
-        .filter((message) => message.sender === 'USER' || message.sender === 'AGENT')
-        .map((message) => ({
-            sender: String(message.sender),
-            content: message.content,
-        }));
+    const agentInitialMessage = previousThreadMessages.length === 0
+        ? parseAgentSource(agentSourceSnapshot.agentSource).initialMessage
+        : null;
+    const initialAgentThreadMessages = agentInitialMessage
+        ? [{ sender: 'AGENT' as const, content: agentInitialMessage }]
+        : [];
+
+    const threadMessages = [
+        ...initialAgentThreadMessages,
+        ...[...previousThreadMessages, userMessage]
+            .filter((message) => message.isComplete !== false)
+            .filter((message) => message.sender === 'USER' || message.sender === 'AGENT'),
+    ].map((message) => ({
+        sender: String(message.sender),
+        content: message.content,
+    }));
 
     const agentFolder = await ensureLocalAgentFolder(agentSourceSnapshot);
     const queuedAt = new Date().toISOString();
