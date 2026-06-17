@@ -39,6 +39,7 @@ export type CliAgentRunOptions = {
     readonly allowCredits?: boolean;
     readonly context?: string;
     readonly harness?: CliAgentHarness;
+    readonly isVerbose?: boolean;
     readonly model?: string;
     readonly noUi?: boolean;
     readonly thinkingLevel?: CliAgentThinkingLevel;
@@ -115,7 +116,7 @@ export class CliAgent {
             noUi: mergedOptions.noUi ?? DEFAULT_CLI_AGENT_IS_NO_UI,
             thinkingLevel: mergedOptions.thinkingLevel ?? resolveCliAgentThinkingLevelFromEnv(),
             allowCredits: mergedOptions.allowCredits ?? false,
-            isVerbose: false,
+            isVerbose: mergedOptions.isVerbose ?? false,
             context: mergedOptions.context,
             currentWorkingDirectory: resolvedSource.currentWorkingDirectory,
         });
@@ -154,6 +155,7 @@ function mergeCliAgentRunOptions(defaults: CliAgentRunOptions, overrides: CliAge
         allowCredits: overrides.allowCredits ?? defaults.allowCredits,
         context: overrides.context ?? defaults.context,
         harness: overrides.harness ?? defaults.harness,
+        isVerbose: overrides.isVerbose ?? defaults.isVerbose,
         model: overrides.model ?? defaults.model,
         noUi: overrides.noUi ?? defaults.noUi,
         thinkingLevel: overrides.thinkingLevel ?? defaults.thinkingLevel,

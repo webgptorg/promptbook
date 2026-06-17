@@ -58,7 +58,7 @@ const response = await agent.run(
 
 ---
 
-[ ] !
+[x] $0.5477 an hour by Claude Code
 
 [✨🪤] Both `CliAgent` and `LiteAgent` should have `isVerbose` option
 
@@ -75,3 +75,4 @@ const agent = new CliAgent({
 -   The return should be the same, just print the logs to the console, but still return the same response
 -   Keep in mind the DRY _(don't repeat yourself)_ principle, share the code between the CLI command and the `CliAgent` and `--verbose` option as much as possible, but without calling the CLI command
 -   Do a proper analysis of the current functionality before you start implementing.
+
