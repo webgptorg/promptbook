@@ -77,6 +77,40 @@ describe('how `Book` works', () => {
             },
         ]));
 
+    it('should not treat a line starting with a single uppercase letter as a commitment header', () => {
+        const parsedBook = Book.parse(
+            book`
+                MESSAGE @User
+                What is the procedure?
+
+                MESSAGE @Agent
+                Short answer
+                The procedure requires approval in advance.
+
+                V části „Requirements" je uvedeno, že:
+                - item one
+                - item two
+
+                Next step
+                Check that approval was granted.
+            `,
+        );
+
+        expect(parsedBook.getMessages()).toEqual([
+            {
+                sender: 'USER',
+                content: 'What is the procedure?',
+                isComplete: true,
+            },
+            {
+                sender: 'AGENT',
+                content:
+                    'Short answer\nThe procedure requires approval in advance.\n\nV části „Requirements" je uvedeno, že:\n- item one\n- item two\n\nNext step\nCheck that approval was granted.',
+                isComplete: true,
+            },
+        ]);
+    });
+
     it('should find the latest message by sender', () => {
         const parsedBook = Book.parse(
             book`

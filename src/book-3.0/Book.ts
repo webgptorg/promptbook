@@ -215,7 +215,9 @@ function parseBookMessageHeader(line: string): Pick<BookMessageBlock, 'marker' |
  * @private internal utility of `Book`
  */
 function parseCommitmentHeader(line: string): Commitment | null {
-    const match = /^([A-Z][A-Z0-9]*(?: [A-Z0-9]+)*)(?:\s+(.*))?$/u.exec(line);
+    // Require at least 2 characters in the first keyword word to avoid treating common
+    // single-letter words (e.g. "V" in Czech, "I" or "A" in English) as commitment headers.
+    const match = /^([A-Z][A-Z0-9]+(?: [A-Z0-9]+)*)(?:\s+(.*))?$/u.exec(line);
     if (!match) {
         return null;
     }

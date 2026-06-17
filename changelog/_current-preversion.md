@@ -1,3 +1,5 @@
+-   Fixed Agents Server chat messages being silently cropped when the agent response contained a line starting with a single uppercase ASCII letter followed by lowercase text (e.g. "V části..." in Czech). `Book.parse` was incorrectly treating such lines as commitment headers due to an overly permissive regex in `parseCommitmentHeader`. The fix tightens the regex to require at least two characters in the first keyword word, which prevents common natural-language words like "V" (Czech for "in") or "A" / "I" in English from being mistaken for commitment markers.
+
 -   Changed Agents Server chat tray ordering from last-activity time to creation time so chats stay in their chronological position and browsing an older chat no longer moves it to the top of the list.
 
 -   Optimized animated avatar rendering performance in Agents Server to fix 1–2 fps drops when multiple avatars are visible:
