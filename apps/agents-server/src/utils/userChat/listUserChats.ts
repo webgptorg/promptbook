@@ -40,7 +40,7 @@ const CLIENT_SQL_MISSING_CONNECTION_MESSAGE_FRAGMENT =
 const SQLITE_CHAT_MESSAGES_JSON_EXPRESSION = `CASE WHEN json_valid(chat."messages") THEN chat."messages" ELSE '[]' END`;
 
 /**
- * Lists all user chats for one agent ordered by last activity.
+ * Lists all user chats for one agent ordered by creation time (newest first).
  */
 export async function listUserChats(options: ListUserChatsOptions): Promise<Array<UserChatRecord>> {
     const { userId, viewerIsAdmin, agentPermanentId, includeExternalChats = false } = options;
@@ -53,9 +53,7 @@ export async function listUserChats(options: ListUserChatsOptions): Promise<Arra
               .eq('userId', userId)
               .eq('agentPermanentId', agentPermanentId)
               .eq('source', USER_CHAT_SOURCES.WEB_UI);
-    const { data, error } = await query
-        .order('lastMessageAt', { ascending: false, nullsFirst: false })
-        .order('updatedAt', { ascending: false });
+    const { data, error } = await query.order('createdAt', { ascending: false });
 
     if (error) {
         throw new Error(`Failed to list user chats: ${error.message}`);
@@ -73,7 +71,7 @@ export async function listUserChats(options: ListUserChatsOptions): Promise<Arra
 }
 
 /**
- * Lists lightweight chat-summary seeds without loading full `messages` JSON payloads.
+ * Lists lightweight chat-summary seeds without loading full `messages` JSON payloads, ordered by creation time (newest first).
  *
  * @private function of `userChat`
  */
@@ -149,7 +147,7 @@ export async function listUserChatSummarySeeds(options: ListUserChatsOptions): P
                     ) AS "pendingAssistantMessageCount"
                 FROM ${userChatTableName}
                 WHERE ${whereClause}
-                ORDER BY "lastMessageAt" DESC NULLS LAST, "updatedAt" DESC
+                ORDER BY "createdAt" DESC
             `,
             queryValues,
         );
@@ -235,7 +233,7 @@ async function listUserChatSummarySeedsViaSqlite(options: ListUserChatsOptions):
                         ) AS "pendingAssistantMessageCount"
                     FROM ${userChatTableName} AS chat
                     WHERE ${whereClause}
-                    ORDER BY chat."lastMessageAt" IS NULL ASC, chat."lastMessageAt" DESC, chat."updatedAt" DESC
+                    ORDER BY chat."createdAt" DESC
                 `,
             )
             .all(...queryValues) as Array<UserChatSummarySeedSqlRow>;

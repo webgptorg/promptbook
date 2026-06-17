@@ -1,3 +1,5 @@
+-   Changed Agents Server chat tray ordering from last-activity time to creation time so chats stay in their chronological position and browsing an older chat no longer moves it to the top of the list.
+
 -   Optimized animated avatar rendering performance in Agents Server to fix 1–2 fps drops when multiple avatars are visible:
 
     -   Throttled the shared animation loop to ~24 fps (from the display refresh rate of 60 fps+) via a frame-interval gate in `avatarAnimationScheduler.ts`. Animated octopus visuals change slowly enough that 24 fps is perceptually identical to 60 fps while reducing total render work by ~60%.
