@@ -28,6 +28,7 @@ export const RESERVED_PATHS: readonly string[] = [
     "recycle-bin",
     "restricted",
     "robots.txt",
+    "s3",
     "search",
     "security.txt",
     "sitemap.xml",
