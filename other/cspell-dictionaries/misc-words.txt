@@ -506,3 +506,6 @@ bolditalic
 xmpmeta
 Versity
 versitygw
+SAMEORIGIN
+sameorigin
+domcontentloaded

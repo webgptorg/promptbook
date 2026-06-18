@@ -1,3 +1,5 @@
+-   Fixed citation source previews in Agents Server chat failing silently when the target page blocks iframe embedding via `X-Frame-Options` (e.g. `DENY`, `SAMEORIGIN`). The chat modal now checks embeddability server-side before rendering and falls back to a server-taken screenshot with an "Open in new tab" link when the page cannot be framed.
+
 -   Optimized Agents Server database layer to prevent the server from becoming unresponsive under load:
 
     -   Added `connectionTimeoutMillis` (15 s) to the shared PostgreSQL connection pool so queries fail fast when all connections are busy instead of queuing indefinitely — the root cause of the server becoming completely unresponsive after a period of high traffic.

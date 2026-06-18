@@ -8,6 +8,7 @@ import type { ChatParticipant } from '../types/ChatParticipant';
 import { getCitationLabel, isPlainTextCitation, resolveCitationPreviewUrl } from '../utils/citationHelpers';
 import type { ParsedCitation } from '../utils/parseCitationsFromContent';
 import styles from './Chat.module.css';
+import { CitationIframePreview } from './CitationIframePreview';
 import type { ChatSoundSystem } from './ChatProps';
 
 /**
@@ -84,9 +85,8 @@ export function ChatCitationModal(props: ChatCitationModalProps) {
                                         }}
                                     />
                                 ) : (
-                                    <iframe
+                                    <CitationIframePreview
                                         src={previewUrl ?? citation.source}
-                                        className={styles.citationIframe}
                                         title={`Preview of ${label}`}
                                     />
                                 )}

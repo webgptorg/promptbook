@@ -1,4 +1,4 @@
-[ ]
+[x] (2 attempts) $0.3598 39 minutes by Claude Code
 
 [✨🏣] When showing a source in chat the source page isnt controlled by us and can have disallowed showing in iframe, fix it
 
@@ -10,3 +10,4 @@
 -   You are working with the [Agents Server](apps/agents-server)
 
 ![alt text](screenshots/2026-06-0340-agents-server-iframe-security.png)
+
