@@ -1,6 +1,6 @@
 'use client';
 
-import React, { ReactNode, useState } from 'react';
+import React, { type ReactNode, useState } from 'react';
 import { HamburgerMenu } from '../HamburgerMenu/HamburgerMenu';
 import { classNames } from '../react-utils/classNames';
 import styles from './Dropdown.module.css';

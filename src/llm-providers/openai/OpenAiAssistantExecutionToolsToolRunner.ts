@@ -436,7 +436,7 @@ export class OpenAiAssistantExecutionToolsToolRunner {
 
         return Array.isArray(this.options.scriptExecutionTools)
             ? this.options.scriptExecutionTools
-            : [this.options.scriptExecutionTools];
+            : [this.options.scriptExecutionTools as ScriptExecutionTools];
     }
 
     /**

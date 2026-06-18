@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { BookEditorProps } from './BookEditor';
+import type { BookEditorProps } from './BookEditor';
 
 type BookEditorComponent = typeof import('./BookEditor').BookEditor;
 

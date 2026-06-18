@@ -2,7 +2,7 @@
 // <- Note: [👲] 'use client' is enforced by Next.js when building the https://book-components.ptbk.io/ but in ideal case,
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
-import { CSSProperties, useState } from 'react';
+import { type CSSProperties, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { Promisable } from 'type-fest';
 import type { string_book } from '../../book-2.0/agent-source/string_book';

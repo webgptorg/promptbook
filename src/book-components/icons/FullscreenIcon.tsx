@@ -1,4 +1,4 @@
-import { JSX } from 'react';
+import type { JSX } from 'react';
 
 /**
  * Renders an icon that represents the fullscreen action

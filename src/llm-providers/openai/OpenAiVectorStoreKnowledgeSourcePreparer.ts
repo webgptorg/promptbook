@@ -134,7 +134,7 @@ export class OpenAiVectorStoreKnowledgeSourcePreparer {
             }
 
             return {
-                file: new File([parsed.buffer], parsed.filename, {
+                file: new File([new Uint8Array(parsed.buffer)], parsed.filename, {
                     type: parsed.mimeType,
                 }),
                 sizeBytes: parsed.buffer.length,

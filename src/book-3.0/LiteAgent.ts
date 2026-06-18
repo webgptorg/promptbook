@@ -305,7 +305,7 @@ async function resolveLiteAgentScriptExecutionTools(
     if (options.scriptExecutionTools) {
         return Array.isArray(options.scriptExecutionTools)
             ? options.scriptExecutionTools
-            : [options.scriptExecutionTools];
+            : [options.scriptExecutionTools as ScriptExecutionTools];
     }
 
     return $provideScriptingForNode({

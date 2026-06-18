@@ -23,7 +23,7 @@ import { removeDiacritics as _removeDiacritics } from '../../utils/normalization
 import { removeEmojis as _removeEmojis } from '../../utils/normalization/removeEmojis';
 import { removeQuotes as _removeQuotes } from '../../utils/normalization/removeQuotes';
 import { unwrapResult as _unwrapResult } from '../../utils/normalization/unwrapResult';
-import { TODO_any } from '../../utils/organization/TODO_any';
+import type { TODO_any } from '../../utils/organization/TODO_any';
 import { $preserve } from '../../utils/organization/preserve';
 import type { JavascriptExecutionToolsOptions } from './JavascriptExecutionToolsOptions';
 
