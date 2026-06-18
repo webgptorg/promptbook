@@ -35,6 +35,17 @@ const AGENTS_SERVER_NEXT_BUILD_ID_FILENAME = 'BUILD_ID';
 const DEFAULT_AGENTS_SERVER_NEXT_DIST_DIRECTORY_NAME = '.next';
 
 /**
+ * Node.js heap size limit (in MiB) injected into `NODE_OPTIONS` for the Next.js production build.
+ *
+ * Next.js webpack peaks at ~1.9 GiB on a fresh install; the Node.js default cap is ~1.7 GiB,
+ * which causes an OOM crash on first-run VPS installations where swap is the primary resource.
+ * Raising the limit lets the build complete on the first attempt.
+ *
+ * @private internal constant of `ptbk agents-server`
+ */
+const AGENTS_SERVER_BUILD_MAX_OLD_SPACE_MIB = 4096;
+
+/**
  * Environment variable passed to the bundled Next app so webpack can resolve dependencies
  * installed beside `ptbk` even when the app sources are materialized into a project cache.
  *
@@ -618,7 +629,13 @@ async function runNextBuild(options: {
     await new Promise<void>((resolveBuild, rejectBuild) => {
         const buildProcess = spawn(process.execPath, [options.nextCliPath, 'build'], {
             cwd: options.appPath,
-            env: options.environment,
+            env: {
+                ...options.environment,
+                NODE_OPTIONS: mergeNodeOptionsWithHeapSize(
+                    options.environment.NODE_OPTIONS,
+                    AGENTS_SERVER_BUILD_MAX_OLD_SPACE_MIB,
+                ),
+            },
             stdio: ['ignore', 'pipe', 'pipe'],
         });
 
@@ -639,6 +656,19 @@ async function runNextBuild(options: {
             rejectBuild(new Error(`next-build exited with code ${String(code)}.`));
         });
     });
+}
+
+/**
+ * Prepends `--max-old-space-size=<mib>` to `NODE_OPTIONS` unless the caller already set one.
+ */
+function mergeNodeOptionsWithHeapSize(existingNodeOptions: string | undefined, maxOldSpaceMib: number): string {
+    if (existingNodeOptions !== undefined && /--max-old-space-size[= ]/u.test(existingNodeOptions)) {
+        return existingNodeOptions;
+    }
+
+    const heapFlag = `--max-old-space-size=${maxOldSpaceMib}`;
+
+    return existingNodeOptions ? `${heapFlag} ${existingNodeOptions}` : heapFlag;
 }
 
 /**
