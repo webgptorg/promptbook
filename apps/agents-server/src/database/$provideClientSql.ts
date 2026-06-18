@@ -32,6 +32,33 @@ export type ClientSqlExecutor = ClientSql & {
 };
 
 /**
+ * Maximum number of PostgreSQL connections in the shared pool.
+ *
+ * Configurable via `DATABASE_POOL_MAX` environment variable.
+ * Defaults to 20 which comfortably handles concurrent chat-stream polling loads.
+ *
+ * @private internal constant of Agents Server database layer
+ */
+const DATABASE_POOL_MAX = Math.max(1, parseInt(process.env.DATABASE_POOL_MAX || '20', 10));
+
+/**
+ * Milliseconds to wait for a free pool connection before failing.
+ *
+ * Without a timeout the default `pg` behaviour is to queue requests indefinitely,
+ * which causes the server to become unresponsive under pool exhaustion.
+ *
+ * @private internal constant of Agents Server database layer
+ */
+const POOL_CONNECTION_TIMEOUT_MS = 15_000;
+
+/**
+ * Milliseconds an idle client stays in the pool before being closed.
+ *
+ * @private internal constant of Agents Server database layer
+ */
+const POOL_IDLE_TIMEOUT_MS = 30_000;
+
+/**
  * Shared PostgreSQL pool reused across all requests in the server process.
  *
  * @private internal singleton of Agents Server database layer
@@ -52,6 +79,16 @@ export async function $provideClientSql(): Promise<ClientSqlExecutor> {
         clientPool = new Pool({
             connectionString: resolvePostgresConnectionString(),
             ssl: { rejectUnauthorized: false },
+            max: DATABASE_POOL_MAX,
+            idleTimeoutMillis: POOL_IDLE_TIMEOUT_MS,
+            connectionTimeoutMillis: POOL_CONNECTION_TIMEOUT_MS,
+            allowExitOnIdle: true,
+        });
+
+        // Prevent unhandled errors from crashing the pool or the process.
+        // Individual query errors are still thrown at the call site.
+        clientPool.on('error', (error) => {
+            console.error('[database] Unexpected error on idle PostgreSQL client:', error);
         });
     }
 

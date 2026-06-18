@@ -16,7 +16,7 @@
 
 ---
 
-[ ]
+[x] $2.32 40 minutes by Claude Code
 
 [✨🦃] Optimize the Agents server app
 
@@ -52,3 +52,4 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

@@ -1,3 +1,11 @@
+-   Optimized Agents Server database layer to prevent the server from becoming unresponsive under load:
+
+    -   Added `connectionTimeoutMillis` (15 s) to the shared PostgreSQL connection pool so queries fail fast when all connections are busy instead of queuing indefinitely — the root cause of the server becoming completely unresponsive after a period of high traffic.
+    -   Increased the default pool size from 10 to 20 connections (configurable via `DATABASE_POOL_MAX` environment variable) to handle more concurrent chat-stream polling and atomic-SQL operations without exhausting the pool.
+    -   Added `idleTimeoutMillis` (30 s) and `allowExitOnIdle` so unused connections are closed promptly, keeping memory and socket usage low.
+    -   Added a pool `error` event handler so unexpected errors on idle clients are logged instead of propagating as unhandled exceptions that can corrupt the pool state.
+    -   Added a 30-second hard timeout to every Supabase HTTP request via a custom `fetch` wrapper on the server-side Supabase client. Without this, a slow or temporarily unreachable PostgREST endpoint would cause Supabase queries to hang indefinitely, holding Node.js event-loop resources and contributing to the gradual unresponsiveness over time.
+
 -   Added `isVerbose` option to `CliAgent` so callers can enable the same harness-level console output that `ptbk agent exec --verbose` produces without spawning the CLI. `LiteAgent` already supported `isVerbose`; both classes now expose the option consistently.
 
 -   Fixed Agents Server chat runner not including the agent's initial message (defined via `INITIAL MESSAGE` commitment) in the queued book file when a user sends their first message. The local and external chat runners now prepend the agent's initial message as the opening `MESSAGE @Agent` block so the agent runner sees the full conversation context from the start.
