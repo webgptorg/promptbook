@@ -14,8 +14,8 @@ import type { string_css_value } from '../../types/string_markdown';
 import { countLines } from '../../utils/expectation-counters/countLines';
 import type { HoistedMenuItem } from '../_common/MenuHoisting/MenuHoistingContext';
 import { classNames } from '../_common/react-utils/classNames';
-import { DEFAULT_IS_VERBOSE } from './BookEditorBrowserConfig';
 import styles from './BookEditor.module.css';
+import { DEFAULT_IS_VERBOSE } from './BookEditorBrowserConfig';
 import { BookEditorMonaco } from './BookEditorMonaco';
 import type { BookEditorTheme } from './BookEditorTheme';
 import { BOOK_EDITOR_RENDER_THEME, resolveBookEditorRenderTheme } from './BookEditorTheme';
@@ -300,11 +300,11 @@ export function BookEditor(props: BookEditorProps) {
         isBorderRadiusDisabled = false,
         isReadonly = false,
         translations,
-        isUploadButtonShown = true,
+        isUploadButtonShown = false,
         isCameraButtonShown,
-        isDownloadButtonShown = true,
-        isAboutButtonShown = true,
-        isFullscreenButtonShown = true,
+        isDownloadButtonShown = false,
+        isAboutButtonShown = false,
+        isFullscreenButtonShown = false,
         sync,
         monacoModelPath,
         hoistedMenuItems,
