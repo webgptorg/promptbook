@@ -45,7 +45,7 @@ export function getDefaultCoderAgentCodingFileContent({
             6. Use \`npm run coder:verify\` to archive finished prompts into \`${formatDisplayPath(
                 PROMPTS_DONE_DIRECTORY_PATH,
             )}/\` and append repair follow-up prompts when more work is needed.
-            7. Use \`npm run coder:find-refactor-candidates\` when you want Promptbook to suggest refactor prompts automatically.
+            7. Use \`ptbk coder find-refactor-candidates\` when you want Promptbook to suggest refactor prompts automatically.
 
             ## Templates
             -   Project-owned templates created by \`ptbk coder init\`: ${formatInlineCodeList(
