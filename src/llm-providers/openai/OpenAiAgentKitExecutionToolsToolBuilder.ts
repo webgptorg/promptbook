@@ -449,7 +449,9 @@ export class OpenAiAgentKitExecutionToolsToolBuilder {
             );
         }
 
-        return Array.isArray(executionTools.script) ? executionTools.script : [executionTools.script as ScriptExecutionTools];
+        return Array.isArray(executionTools.script)
+            ? executionTools.script
+            : [executionTools.script as ScriptExecutionTools];
     }
 
     /**

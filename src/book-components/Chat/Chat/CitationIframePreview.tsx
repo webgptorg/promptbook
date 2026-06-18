@@ -67,12 +67,7 @@ export function CitationIframePreview({ src, title }: CitationIframePreviewProps
                     alt={`Screenshot of ${title}`}
                     className={styles.citationScreenshotImage}
                 />
-                <a
-                    href={src}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={styles.citationScreenshotLink}
-                >
+                <a href={src} target="_blank" rel="noopener noreferrer" className={styles.citationScreenshotLink}>
                     Open in new tab ↗
                 </a>
             </div>
