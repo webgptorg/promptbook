@@ -15,6 +15,7 @@ import {
 } from '../../../tools/$provideCdnForServer';
 import { $provideServer } from '../../../tools/$provideServer';
 import { getSafeCdnPath } from '../../../utils/cdn/utils/getSafeCdnPath';
+import { getUserFileCdnKey } from '../../../utils/cdn/utils/getUserFileCdnKey';
 import { FILE_SECURITY_CHECKERS } from '../../../file-security-checkers';
 import { getUserIdFromRequest } from '../../../utils/getUserIdFromRequest';
 import { getMaxFileUploadSizeBytes } from '../../../utils/serverLimits';
@@ -223,7 +224,7 @@ export async function POST(request: NextRequest) {
         const providedServer = await $provideServer();
         assertFileUploadAvailable(providedServer);
 
-        const { file, pathname, purpose, contentType } = await parseUploadRequest(request);
+        const { file, purpose, contentType } = await parseUploadRequest(request);
         const fileBuffer = Buffer.from(await file.arrayBuffer());
         const maxFileSize = await getMaxFileUploadSizeBytes();
 
@@ -236,6 +237,14 @@ export async function POST(request: NextRequest) {
                 `),
             );
         }
+
+        // [✨🏣] Compute a content-addressed CDN key so the public URL contains
+        // the file hash and does not expose the internal S3 bucket or path prefix.
+        const rawKey = getUserFileCdnKey(fileBuffer, file.name);
+        const pathname = getSafeCdnPath({
+            pathname: rawKey,
+            pathPrefix: process.env.NEXT_PUBLIC_CDN_PATH_PREFIX,
+        });
 
         const cdn = $provideCdnForServer({
             cdnPublicUrl: resolveCdnPublicUrlForServer(providedServer.publicUrl),

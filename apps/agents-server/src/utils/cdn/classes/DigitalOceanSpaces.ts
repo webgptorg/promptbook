@@ -19,6 +19,16 @@ type IDigitalOceanSpacesConfig = {
     readonly forcePathStyle?: boolean;
     readonly region?: string;
 
+    /**
+     * When set, `getItemUrl` generates `new URL(key, publicCdnBaseUrl)` for
+     * hash-based CDN keys instead of the default formula that prepends the
+     * `pathPrefix`. This allows self-contained S3 to expose an unguessable URL
+     * that hides the internal bucket name and path prefix.
+     *
+     * [✨🏣] Used by self-contained S3 to serve files via the Next.js hash route.
+     */
+    readonly publicCdnBaseUrl?: URL;
+
     // TODO: [⛳️] Probbably prefix should be in this config not on the consumer side
 };
 
@@ -27,7 +37,7 @@ type IDigitalOceanSpacesConfig = {
  */
 export class DigitalOceanSpaces implements IIFilesStorageWithCdn {
     public get cdnPublicUrl() {
-        return this.config.cdnPublicUrl;
+        return this.config.publicCdnBaseUrl ?? this.config.cdnPublicUrl;
     }
 
     private s3: S3Client;
@@ -45,7 +55,13 @@ export class DigitalOceanSpaces implements IIFilesStorageWithCdn {
     }
 
     public getItemUrl(key: string): URL {
-        return new URL(this.config.pathPrefix + '/' + key, this.cdnPublicUrl);
+        // [✨🏣] For hash-based keys, omit the pathPrefix from the public URL so
+        // the internal S3 structure (bucket, prefix, upload directory) is hidden.
+        if (this.config.publicCdnBaseUrl && isHashBasedCdnKey(key)) {
+            return new URL(key, this.config.publicCdnBaseUrl);
+        }
+
+        return new URL(this.config.pathPrefix + '/' + key, this.config.cdnPublicUrl);
     }
 
     public async getItem(key: string): Promise<IFile | null> {
@@ -120,6 +136,18 @@ export class DigitalOceanSpaces implements IIFilesStorageWithCdn {
             throw new Error(`Upload result does not contain ETag`);
         }
     }
+}
+
+/**
+ * Returns `true` when `key` matches the hash-based CDN key format produced by
+ * `getUserFileCdnKey`: `{hex}/{hex}/{sha256-64-chars}/{filename}`.
+ *
+ * [✨🏣] Used by `getItemUrl` to decide whether to strip the internal path prefix.
+ *
+ * @private helper of `DigitalOceanSpaces`
+ */
+function isHashBasedCdnKey(key: string): boolean {
+    return /^[0-9a-f]\/[0-9a-f]\/[0-9a-f]{64}\//.test(key);
 }
 
 /**

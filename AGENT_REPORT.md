@@ -141,6 +141,14 @@
   - Playwright then timed out with `Timed out waiting 480000ms from config.webServer` while its managed web server was still building/collecting page data.
   - The log includes existing dynamic-render and Edge-runtime warnings, plus remote agent lookup timeouts, and does not point to the external chat runner files touched in this task.
 
+## 2026-06-18
+
+- The short-URL conversion for knowledge sources uploaded via the Book Editor's drag-and-drop uploader (`createBookEditorUploadHandler`) is silently broken by the hash-based URL change:
+  - `createBookEditorUploadHandler` tries to produce a short `https://ptbk.io/k/…` URL by stripping the CDN prefix from the upload result URL using `uploadResult.url.split(longUrlPrefix).join(shortUrlPrefix)`.
+  - After this change, the upload result URL is `https://…/s3/{hash[0]}/{hash[1]}/{hash}/{filename}` which no longer starts with `NEXT_PUBLIC_CDN_PUBLIC_URL + directoryPath`, so the split/replace produces no match and the full hash URL is returned unchanged instead of the short URL.
+  - Functionality is not broken (the returned URL resolves to the file correctly), but knowledge source references stored in agent books will use the full CDN URL instead of the intended short alias.
+  - Fix: update `createBookEditorUploadHandler` (or a new `buildShortUrlFromHashUrl` helper) to derive the short URL from the new hash-based URL pattern when the old prefix pattern does not match.
+
 ## 2026-05-19
 
 - `npm test` is currently blocked during `npm run test-types` by unrelated missing-module errors in the shared chat HTML export:

@@ -2343,6 +2343,13 @@ build_nginx_self_contained_s3_location_block() {
     fi
 
     cat <<EOF
+    # [✨🏣] Hash-based file URLs (format: /s3/{hex}/{hex}/{sha256-64-chars}/{filename})
+    # are served by Next.js which proxies to VersityGW internally, so the internal
+    # bucket name and path prefix are never exposed in the public URL.
+    location ~ ^/s3/[0-9a-f]/[0-9a-f]/[0-9a-f]{64}/ {
+        include ${NGINX_PROXY_SNIPPET_PATH};
+    }
+
     location /s3/ {
         proxy_pass http://127.0.0.1:${PTBK_SELF_CONTAINED_S3_PORT}/;
         proxy_http_version 1.1;

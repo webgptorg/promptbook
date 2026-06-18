@@ -1,4 +1,4 @@
-[ ]
+[x] $3.59 an hour by Claude Code
 
 [✨😂] Images uploades to internal S3 must be publicly accessible but with unguessable URL
 
@@ -17,3 +17,4 @@ The internal S3 is picked
 ```bash
 root@collboard-agents-server-x21:~# sudo curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/other/vps/install.sh | bash
 ```
+

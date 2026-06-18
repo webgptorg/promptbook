@@ -74,6 +74,13 @@ function createCdnStorageForServer(cdnPublicUrl: URL): IIFilesStorageWithCdn {
             gzip: true,
             forcePathStyle: process.env.CDN_FORCE_PATH_STYLE === 'true',
             region: resolveS3CompatibleStorageRegion(),
+            // [✨🏣] For self-contained S3: hash-based CDN keys get a public URL that
+            // omits the internal bucket and pathPrefix so users can't infer the storage
+            // structure. The `/s3/` segment is preserved so nginx routes those requests
+            // to the Next.js hash-file route instead of directly to VersityGW.
+            publicCdnBaseUrl: isSelfContainedS3StorageSelected()
+                ? resolveHashBasedPublicCdnBaseUrl(cdnPublicUrl)
+                : undefined,
         });
     }
 
@@ -82,6 +89,23 @@ function createCdnStorageForServer(cdnPublicUrl: URL): IIFilesStorageWithCdn {
         pathPrefix: process.env.NEXT_PUBLIC_CDN_PATH_PREFIX || '',
         cdnPublicUrl,
     });
+}
+
+/**
+ * Derives the public base URL used for hash-based file URLs on self-contained S3.
+ *
+ * Strips the bucket segment from the configured CDN URL so that the public URL
+ * exposes only the `/s3/` prefix — the internal bucket name and path prefix
+ * remain hidden from users.
+ *
+ * Example: `https://s24.ptbk.io/s3/promptbook-files/` → `https://s24.ptbk.io/s3/`
+ *
+ * [✨🏣] Companion to `isHashBasedCdnKey` in `DigitalOceanSpaces`.
+ *
+ * @private helper of `createCdnStorageForServer`
+ */
+function resolveHashBasedPublicCdnBaseUrl(cdnPublicUrl: URL): URL {
+    return new URL('/s3/', cdnPublicUrl);
 }
 
 /**

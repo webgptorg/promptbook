@@ -1,3 +1,5 @@
+-   Changed Agents Server file upload URLs for self-contained S3 to hide the internal bucket name, path prefix, and directory structure. Files are now stored under a content-addressed key (`{hash[0]}/{hash[1]}/{sha256}/{filename}`) and served through a new Next.js proxy route (`/s3/{hex}/{hex}/{hash}/{filename}`) so the public URL is unguessable and reveals no internal storage details. Old-style URLs (e.g. `/s3/promptbook-files/ptbk-agents/user/files/…`) remain accessible for backwards compatibility.
+
 -   Fixed citation source previews in Agents Server chat failing silently when the target page blocks iframe embedding via `X-Frame-Options` (e.g. `DENY`, `SAMEORIGIN`). The chat modal now checks embeddability server-side before rendering and falls back to a server-taken screenshot with an "Open in new tab" link when the page cannot be framed.
 
 -   Optimized Agents Server database layer to prevent the server from becoming unresponsive under load:
