@@ -599,7 +599,10 @@ export function AgentChatSidebarDefault({
                     </div>
                 </div>
 
-                <div className="agent-chat-sidebar-toggle-slot pointer-events-none absolute inset-y-0 right-0 z-10 hidden translate-x-1 items-center justify-center md:flex">
+                <div
+                    className="agent-chat-sidebar-toggle-slot pointer-events-none absolute inset-y-0 right-0 z-10 hidden items-center justify-center md:flex"
+                    style={{ transform: 'translateX(100%)' }}
+                >
                     <SolidArrowButton
                         direction={isCollapsed ? 'right' : 'left'}
                         onClick={onToggleCollapse}
