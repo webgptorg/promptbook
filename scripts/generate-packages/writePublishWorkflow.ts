@@ -94,6 +94,53 @@ function createPublishWorkflowFileContent(packagesMetadata: ReadonlyArray<Packag
                         ],
                     },
                     // TODO: Maybe share build steps between `publish-npm` and `publish-docker`
+                    'publish-vscode': {
+                        name: 'Publish VSCode Extension to Marketplace',
+                        needs: 'publish-npm',
+                        'runs-on': 'ubuntu-latest',
+                        'timeout-minutes': 30,
+                        steps: [
+                            {
+                                name: '🔽 Checkout',
+                                uses: 'actions/checkout@v4',
+                            },
+                            {
+                                name: '🔽 Setup Node.js',
+                                uses: 'actions/setup-node@v4',
+                                with: {
+                                    'node-version': 22,
+                                },
+                            },
+                            {
+                                name: '🔽 Install root dependencies',
+                                run: 'npm ci',
+                            },
+                            {
+                                name: '🔽 Clone book submodule',
+                                run: 'git submodule update --init --recursive',
+                            },
+                            {
+                                name: '🏭 Generate VSCode grammar and snippets',
+                                run: 'npm run generate-vscode-grammar',
+                            },
+                            {
+                                name: '🔽 Install VSCode extension dependencies',
+                                'working-directory': './apps/vscode-extension',
+                                run: 'npm ci',
+                            },
+                            {
+                                name: '🏭 Compile VSCode extension',
+                                'working-directory': './apps/vscode-extension',
+                                run: 'npm run compile',
+                            },
+                            {
+                                name: '🔼 Publish VSCode extension',
+                                'working-directory': './apps/vscode-extension',
+                                run: 'npx vsce publish --pat ${{ secrets.VSCE_PAT }}',
+                                // <- Note: To obtain `VSCE_PAT`, go to https://marketplace.visualstudio.com/ and create a token, then add it at https://github.com/webgptorg/promptbook/settings/secrets/actions
+                            },
+                        ],
+                    },
                     'publish-docker': {
                         name: 'Publish Docker image to DockerHub',
                         needs: 'publish-npm',

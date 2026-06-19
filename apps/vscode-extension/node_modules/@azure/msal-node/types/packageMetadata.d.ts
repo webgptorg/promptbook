@@ -1,0 +1,3 @@
+export declare const name = "@azure/msal-node";
+export declare const version = "5.2.5";
+//# sourceMappingURL=packageMetadata.d.ts.map

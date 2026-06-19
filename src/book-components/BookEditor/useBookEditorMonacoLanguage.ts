@@ -1,10 +1,13 @@
 import type { editor, Position } from 'monaco-editor';
 import { useEffect } from 'react';
 import { PROMPTBOOK_SYNTAX_COLORS } from './BookEditorBrowserConfig';
+import { AGENT_REFERENCE_COMMITMENT_TYPES, NOTE_COMMITMENT_TYPES, TODO_COMMITMENT_TYPES } from './BookEditorCommitmentConstants';
 import { BookEditorMonacoConstants } from './BookEditorMonacoConstants';
 import { BookEditorMonacoTokenization } from './BookEditorMonacoTokenization';
 import type { BookEditorTheme } from './BookEditorTheme';
 import { BOOK_EDITOR_RENDER_THEME, resolveBookEditorRenderTheme } from './BookEditorTheme';
+
+export { NOTE_COMMITMENT_TYPES, TODO_COMMITMENT_TYPES, AGENT_REFERENCE_COMMITMENT_TYPES };
 
 /**
  * Type describing monaco editor.
@@ -19,19 +22,6 @@ type UseBookEditorMonacoLanguageProps = {
     readonly theme: BookEditorTheme;
 };
 
-/**
- * Commitment type treated as high-visibility TODO annotation.
- *
- * @private function of BookEditorMonaco
- */
-const TODO_COMMITMENT_TYPES = ['TODO'] as const;
-
-/**
- * Commitment types treated as low-visibility notes/comments.
- *
- * @private function of BookEditorMonaco
- */
-const NOTE_COMMITMENT_TYPES = ['NOTE', 'NOTES', 'NONCE'] as const;
 
 /**
  * Monaco tokenizer rule tuple.
@@ -305,7 +295,9 @@ export function ensureBookEditorMonacoLanguage(
     ];
     const noteLikeCommitmentStates = createNoteLikeCommitmentStates();
     const commitmentRegex = BookEditorMonacoTokenization.DYNAMIC_COMMITMENT_REGEX;
-    const agentReferenceCommitmentRegex = /^\s*(FROM|IMPORT|IMPORTS|TEAM)(?=\s|$)/;
+    const agentReferenceCommitmentRegex = new RegExp(
+        `^\\s*(${[...AGENT_REFERENCE_COMMITMENT_TYPES].join('|')})(?=\\s|$)`,
+    );
     const commitmentTransitionRules = createCommitmentTransitionRules(
         noteLikeCommitmentStates,
         agentReferenceCommitmentRegex,

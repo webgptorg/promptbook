@@ -1,4 +1,4 @@
-[ ]
+[x] (2 attempts) $0.1586 an hour by Claude Code
 
 [✨🔄] Create a VSCode extension for book language
 
@@ -11,3 +11,4 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle, try to reuse as much code as possible (for example with <BookEditor/>). When you are generating some code, mark the generated code in standard way as it is in the repository, so it can be easily identified in the future.
 -   Look at `C:/Users/me/work/ai/book-extension/` - this is the old version of the extension, it can be used as a reference but do not copy-paste code from it, just use it as a reference for the functionality and automatic deployment to the marketplace, but the code should be implemented from scratch and should be properly integrated with the rest of the repository and use existing components and functions from the repository when possible.
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

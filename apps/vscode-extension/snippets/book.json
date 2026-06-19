@@ -1,0 +1,418 @@
+{
+    "$comment": "⚠️ WARNING: This code has been generated so that any manual changes will be overwritten",
+    "PERSONA": {
+        "prefix": "PERSONA",
+        "body": "PERSONA ${1:persona}",
+        "description": "👤 Deprecated legacy profile commitment. Prefer `GOAL` for agent profile text and inheritance-safe rewrites."
+    },
+    "PERSONAE": {
+        "prefix": "PERSONAE",
+        "body": "PERSONAE ${1:personae}",
+        "description": "👤 Deprecated legacy profile commitment. Prefer `GOAL` for agent profile text and inheritance-safe rewrites."
+    },
+    "KNOWLEDGE": {
+        "prefix": "KNOWLEDGE",
+        "body": "KNOWLEDGE ${1:knowledge}",
+        "description": "🧠 Add domain **knowledge** via direct text or external sources (RAG)."
+    },
+    "MEMORY": {
+        "prefix": "MEMORY",
+        "body": "MEMORY ${1:memory}",
+        "description": "🧠 Remember past interactions and user **preferences** for personalized responses."
+    },
+    "MEMORIES": {
+        "prefix": "MEMORIES",
+        "body": "MEMORIES ${1:memories}",
+        "description": "🧠 Remember past interactions and user **preferences** for personalized responses."
+    },
+    "STYLE": {
+        "prefix": "STYLE",
+        "body": "STYLE ${1:style}",
+        "description": "🖋️ Deprecated legacy writing-style commitment. Prefer `WRITING RULES` for new books."
+    },
+    "STYLES": {
+        "prefix": "STYLES",
+        "body": "STYLES ${1:styles}",
+        "description": "🖋️ Deprecated legacy writing-style commitment. Prefer `WRITING RULES` for new books."
+    },
+    "RULE": {
+        "prefix": "RULE",
+        "body": "RULE ${1:rule}",
+        "description": "⚖️ Add behavioral rules the agent must follow."
+    },
+    "RULES": {
+        "prefix": "RULES",
+        "body": "RULES ${1:rules}",
+        "description": "⚖️ Add behavioral rules the agent must follow."
+    },
+    "LANGUAGE": {
+        "prefix": "LANGUAGE",
+        "body": "LANGUAGE ${1:language}",
+        "description": "🌐 Specifies the language(s) the agent should use."
+    },
+    "LANGUAGES": {
+        "prefix": "LANGUAGES",
+        "body": "LANGUAGES ${1:languages}",
+        "description": "🌐 Specifies the language(s) the agent should use."
+    },
+    "WRITING SAMPLE": {
+        "prefix": "WRITING SAMPLE",
+        "body": "WRITING SAMPLE ${1:writing sample}",
+        "description": "🗣️ Provide explicit sample-only text that demonstrates the desired voice."
+    },
+    "WRITING RULES": {
+        "prefix": "WRITING RULES",
+        "body": "WRITING RULES ${1:writing rules}",
+        "description": "📝 Add writing-only constraints such as tone, length, formatting, or emoji usage."
+    },
+    "SAMPLE": {
+        "prefix": "SAMPLE",
+        "body": "SAMPLE ${1:sample}",
+        "description": "🗣️ Deprecated legacy alias for `WRITING SAMPLE`."
+    },
+    "EXAMPLE": {
+        "prefix": "EXAMPLE",
+        "body": "EXAMPLE ${1:example}",
+        "description": "🗣️ Deprecated legacy alias for `WRITING SAMPLE`."
+    },
+    "FORMAT": {
+        "prefix": "FORMAT",
+        "body": "FORMAT ${1:format}",
+        "description": "📜 Deprecated legacy formatting commitment. Prefer `WRITING SAMPLE` and `WRITING RULES` for new books."
+    },
+    "FORMATS": {
+        "prefix": "FORMATS",
+        "body": "FORMATS ${1:formats}",
+        "description": "📜 Deprecated legacy formatting commitment. Prefer `WRITING SAMPLE` and `WRITING RULES` for new books."
+    },
+    "TEMPLATE": {
+        "prefix": "TEMPLATE",
+        "body": "TEMPLATE ${1:template}",
+        "description": "📋 Deprecated legacy template commitment. Prefer `WRITING SAMPLE` and `WRITING RULES` for new books."
+    },
+    "TEMPLATES": {
+        "prefix": "TEMPLATES",
+        "body": "TEMPLATES ${1:templates}",
+        "description": "📋 Deprecated legacy template commitment. Prefer `WRITING SAMPLE` and `WRITING RULES` for new books."
+    },
+    "FROM": {
+        "prefix": "FROM",
+        "body": "FROM ${1:from}",
+        "description": "🧬 Inherit agent source from another agent."
+    },
+    "IMPORT": {
+        "prefix": "IMPORT",
+        "body": "IMPORT ${1:import}",
+        "description": "📥 Import content from another agent or a generic text file."
+    },
+    "IMPORTS": {
+        "prefix": "IMPORTS",
+        "body": "IMPORTS ${1:imports}",
+        "description": "📥 Import content from another agent or a generic text file."
+    },
+    "MODEL": {
+        "prefix": "MODEL",
+        "body": "MODEL ${1:model}",
+        "description": "⚙️ Low-level commitment for explicit model selection and technical parameters. Use carefully."
+    },
+    "MODELS": {
+        "prefix": "MODELS",
+        "body": "MODELS ${1:models}",
+        "description": "⚙️ Low-level commitment for explicit model selection and technical parameters. Use carefully."
+    },
+    "ACTION": {
+        "prefix": "ACTION",
+        "body": "ACTION ${1:action}",
+        "description": "⚡ Deprecated legacy capability commitment. Prefer concrete `USE*` commitments."
+    },
+    "ACTIONS": {
+        "prefix": "ACTIONS",
+        "body": "ACTIONS ${1:actions}",
+        "description": "⚡ Deprecated legacy capability commitment. Prefer concrete `USE*` commitments."
+    },
+    "COMPONENT": {
+        "prefix": "COMPONENT",
+        "body": "COMPONENT ${1:component}",
+        "description": "🧩 Define a UI component that the agent can render in the chat."
+    },
+    "META AVATAR": {
+        "prefix": "META AVATAR",
+        "body": "META AVATAR ${1:meta avatar}",
+        "description": "👤 Set the agent's built-in avatar visual."
+    },
+    "META IMAGE": {
+        "prefix": "META IMAGE",
+        "body": "META IMAGE ${1:meta image}",
+        "description": "🖼️ Set the agent's profile image URL."
+    },
+    "META COLOR": {
+        "prefix": "META COLOR",
+        "body": "META COLOR ${1:meta color}",
+        "description": "🎨 Set the agent's accent color or gradient."
+    },
+    "META FONT": {
+        "prefix": "META FONT",
+        "body": "META FONT ${1:meta font}",
+        "description": "🔤 Set the agent's font."
+    },
+    "META LINK": {
+        "prefix": "META LINK",
+        "body": "META LINK ${1:meta link}",
+        "description": "🔗 Provide profile/source links for the person the agent models."
+    },
+    "META DOMAIN": {
+        "prefix": "META DOMAIN",
+        "body": "META DOMAIN ${1:meta domain}",
+        "description": "🌐 Set the agent's canonical domain/host."
+    },
+    "META DISCLAIMER": {
+        "prefix": "META DISCLAIMER",
+        "body": "META DISCLAIMER ${1:meta disclaimer}",
+        "description": "⚠️ Set markdown disclaimer text that users must agree with before chat."
+    },
+    "META INPUT PLACEHOLDER": {
+        "prefix": "META INPUT PLACEHOLDER",
+        "body": "META INPUT PLACEHOLDER ${1:meta input placeholder}",
+        "description": "⌨️ Set custom placeholder text shown in the chat input."
+    },
+    "META": {
+        "prefix": "META",
+        "body": "META ${1:meta}",
+        "description": "ℹ️ Set meta-information about the agent (IMAGE, LINK, TITLE, DESCRIPTION, etc.)."
+    },
+    "META VOICE": {
+        "prefix": "META VOICE",
+        "body": "META VOICE ${1:meta voice}",
+        "description": "🎙️ Select the ElevenLabs voice ID used for this agent."
+    },
+    "NOTE": {
+        "prefix": "NOTE",
+        "body": "NOTE ${1:note}",
+        "description": "📝 Add developer-facing notes without changing behavior or output."
+    },
+    "NOTES": {
+        "prefix": "NOTES",
+        "body": "NOTES ${1:notes}",
+        "description": "📝 Add developer-facing notes without changing behavior or output."
+    },
+    "COMMENT": {
+        "prefix": "COMMENT",
+        "body": "COMMENT ${1:comment}",
+        "description": "📝 Add developer-facing notes without changing behavior or output."
+    },
+    "NONCE": {
+        "prefix": "NONCE",
+        "body": "NONCE ${1:nonce}",
+        "description": "📝 Add developer-facing notes without changing behavior or output."
+    },
+    "TODO": {
+        "prefix": "TODO",
+        "body": "TODO ${1:todo}",
+        "description": "📝 Add developer-facing notes without changing behavior or output."
+    },
+    "GOAL": {
+        "prefix": "GOAL",
+        "body": "GOAL ${1:goal}",
+        "description": "🎯 Define the effective agent **goal**; when multiple goals exist, only the last one stays effective."
+    },
+    "GOALS": {
+        "prefix": "GOALS",
+        "body": "GOALS ${1:goals}",
+        "description": "🎯 Define the effective agent **goal**; when multiple goals exist, only the last one stays effective."
+    },
+    "INITIAL MESSAGE": {
+        "prefix": "INITIAL MESSAGE",
+        "body": "INITIAL MESSAGE ${1:initial message}",
+        "description": "👋 Defines the **initial message** shown to the user when the chat starts."
+    },
+    "USER MESSAGE": {
+        "prefix": "USER MESSAGE",
+        "body": "USER MESSAGE ${1:user message}",
+        "description": "🧑 Defines a **message from the user** in the conversation history."
+    },
+    "INTERNAL MESSAGE": {
+        "prefix": "INTERNAL MESSAGE",
+        "body": "INTERNAL MESSAGE ${1:internal message}",
+        "description": "🧩 Defines an **internal trace message** (tool calls/thinking metadata) in conversation history."
+    },
+    "AGENT MESSAGE": {
+        "prefix": "AGENT MESSAGE",
+        "body": "AGENT MESSAGE ${1:agent message}",
+        "description": "🤖 Defines a **message from the agent** in the conversation history."
+    },
+    "MESSAGE SUFFIX": {
+        "prefix": "MESSAGE SUFFIX",
+        "body": "MESSAGE SUFFIX ${1:message suffix}",
+        "description": "🏷️ Set a hardcoded suffix appended to every assistant response."
+    },
+    "MESSAGE": {
+        "prefix": "MESSAGE",
+        "body": "MESSAGE ${1:message}",
+        "description": "💬 Include actual **messages** the AI assistant has sent during conversation history."
+    },
+    "MESSAGES": {
+        "prefix": "MESSAGES",
+        "body": "MESSAGES ${1:messages}",
+        "description": "💬 Include actual **messages** the AI assistant has sent during conversation history."
+    },
+    "WALLET": {
+        "prefix": "WALLET",
+        "body": "WALLET ${1:wallet}",
+        "description": "👛 Enable persistent private credential storage (tokens, logins, cookies) scoped per agent or globally."
+    },
+    "WALLETS": {
+        "prefix": "WALLETS",
+        "body": "WALLETS ${1:wallets}",
+        "description": "👛 Enable persistent private credential storage (tokens, logins, cookies) scoped per agent or globally."
+    },
+    "SCENARIO": {
+        "prefix": "SCENARIO",
+        "body": "SCENARIO ${1:scenario}",
+        "description": "🎭 Define specific **situations** or contexts for AI responses, with later scenarios having higher priority."
+    },
+    "SCENARIOS": {
+        "prefix": "SCENARIOS",
+        "body": "SCENARIOS ${1:scenarios}",
+        "description": "🎭 Define specific **situations** or contexts for AI responses, with later scenarios having higher priority."
+    },
+    "DELETE": {
+        "prefix": "DELETE",
+        "body": "DELETE ${1:delete}",
+        "description": "🗑️ Unfinished low-level commitment for removing or disregarding information. Use carefully."
+    },
+    "CANCEL": {
+        "prefix": "CANCEL",
+        "body": "CANCEL ${1:cancel}",
+        "description": "🗑️ Unfinished low-level commitment for removing or disregarding information. Use carefully."
+    },
+    "DISCARD": {
+        "prefix": "DISCARD",
+        "body": "DISCARD ${1:discard}",
+        "description": "🗑️ Unfinished low-level commitment for removing or disregarding information. Use carefully."
+    },
+    "REMOVE": {
+        "prefix": "REMOVE",
+        "body": "REMOVE ${1:remove}",
+        "description": "🗑️ Unfinished low-level commitment for removing or disregarding information. Use carefully."
+    },
+    "DICTIONARY": {
+        "prefix": "DICTIONARY",
+        "body": "DICTIONARY ${1:dictionary}",
+        "description": "📚 Define terms and their meanings for consistent terminology usage."
+    },
+    "OPEN": {
+        "prefix": "OPEN",
+        "body": "OPEN ${1:open}",
+        "description": "🔓 Allow the agent to be modified by conversation (default) and optionally guide the teacher."
+    },
+    "CLOSED": {
+        "prefix": "CLOSED",
+        "body": "CLOSED ${1:closed}",
+        "description": "🔒 Prevent the agent from being modified by conversation."
+    },
+    "TEAM": {
+        "prefix": "TEAM",
+        "body": "TEAM ${1:team}",
+        "description": "👥 Enable the agent to consult teammate agents via dedicated tools."
+    },
+    "USE BROWSER": {
+        "prefix": "USE BROWSER",
+        "body": "USE BROWSER ${1:use browser}",
+        "description": "🌐 Enable the agent to use browser tools for accessing internet information."
+    },
+    "USE DEEPSEARCH": {
+        "prefix": "USE DEEPSEARCH",
+        "body": "USE DEEPSEARCH ${1:use deepsearch}",
+        "description": "🔬 Enable the agent to use DeepSearch for more thorough internet research."
+    },
+    "USE SEARCH ENGINE": {
+        "prefix": "USE SEARCH ENGINE",
+        "body": "USE SEARCH ENGINE ${1:use search engine}",
+        "description": "🔍 Enable the agent to use a search engine tool for accessing internet information."
+    },
+    "USE SPAWN": {
+        "prefix": "USE SPAWN",
+        "body": "USE SPAWN ${1:use spawn}",
+        "description": "🧬 Enable the agent to create persistent child agents via Agents Server create-agent flow."
+    },
+    "USE TIMEOUT": {
+        "prefix": "USE TIMEOUT",
+        "body": "USE TIMEOUT ${1:use timeout}",
+        "description": "⏱️ Enable timeout wake-ups plus scoped timeout listing, updates, and cancellation across chats."
+    },
+    "USE TIME": {
+        "prefix": "USE TIME",
+        "body": "USE TIME ${1:use time}",
+        "description": "🕒 Enable the agent to determine the current date and time."
+    },
+    "USE USER LOCATION": {
+        "prefix": "USE USER LOCATION",
+        "body": "USE USER LOCATION ${1:use user location}",
+        "description": "📍 Enable the agent to determine the user location when browser permission is granted."
+    },
+    "USE CALENDAR": {
+        "prefix": "USE CALENDAR",
+        "body": "USE CALENDAR ${1:use calendar}",
+        "description": "📅 Enable calendar tools for reading and managing events through Google Calendar."
+    },
+    "USE EMAIL": {
+        "prefix": "USE EMAIL",
+        "body": "USE EMAIL ${1:use email}",
+        "description": "📧 Enable outbound email sending through a wallet-backed SMTP configuration."
+    },
+    "USE POPUP": {
+        "prefix": "USE POPUP",
+        "body": "USE POPUP ${1:use popup}",
+        "description": "🪟 Enable the agent to open a popup window with a specific website."
+    },
+    "USE IMAGE GENERATOR": {
+        "prefix": "USE IMAGE GENERATOR",
+        "body": "USE IMAGE GENERATOR ${1:use image generator}",
+        "description": "🖼️ Enable the agent to output markdown image placeholders that the UI turns into generated images."
+    },
+    "USE MCP": {
+        "prefix": "USE MCP",
+        "body": "USE MCP ${1:use mcp}",
+        "description": "🔌 Connects the agent to an external MCP server for additional capabilities."
+    },
+    "USE PRIVACY": {
+        "prefix": "USE PRIVACY",
+        "body": "USE PRIVACY ${1:use privacy}",
+        "description": "🔒 Enable the agent to request turning private mode on for sensitive conversations."
+    },
+    "USE PROJECT": {
+        "prefix": "USE PROJECT",
+        "body": "USE PROJECT ${1:use project}",
+        "description": "🧑‍💻 Enable GitHub project tools for reading/editing repository files and creating pull requests."
+    },
+    "EXPECT": {
+        "prefix": "EXPECT",
+        "body": "EXPECT ${1:expect}",
+        "description": "🚧 Placeholder commitment that appends content verbatim to the system message."
+    },
+    "BEHAVIOUR": {
+        "prefix": "BEHAVIOUR",
+        "body": "BEHAVIOUR ${1:behaviour}",
+        "description": "🚧 Placeholder commitment that appends content verbatim to the system message."
+    },
+    "BEHAVIOURS": {
+        "prefix": "BEHAVIOURS",
+        "body": "BEHAVIOURS ${1:behaviours}",
+        "description": "🚧 Placeholder commitment that appends content verbatim to the system message."
+    },
+    "AVOID": {
+        "prefix": "AVOID",
+        "body": "AVOID ${1:avoid}",
+        "description": "🚧 Placeholder commitment that appends content verbatim to the system message."
+    },
+    "AVOIDANCE": {
+        "prefix": "AVOIDANCE",
+        "body": "AVOIDANCE ${1:avoidance}",
+        "description": "🚧 Placeholder commitment that appends content verbatim to the system message."
+    },
+    "CONTEXT": {
+        "prefix": "CONTEXT",
+        "body": "CONTEXT ${1:context}",
+        "description": "🚧 Placeholder commitment that appends content verbatim to the system message."
+    }
+}
