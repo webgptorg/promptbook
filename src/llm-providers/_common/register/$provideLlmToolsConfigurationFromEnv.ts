@@ -13,7 +13,7 @@ import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
  *
  * It looks for environment variables:
  * - `process.env.OPENAI_API_KEY`
- * - `process.env.ANTHROPIC_CLAUDE_API_KEY`
+ * - `process.env.ANTHROPIC_API_KEY` (or the deprecated `process.env.ANTHROPIC_CLAUDE_API_KEY`)
  * - ...
  *
  * @see Environment variables documentation or .env file for required variables.
