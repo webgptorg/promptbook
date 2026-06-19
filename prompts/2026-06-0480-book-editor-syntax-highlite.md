@@ -1,4 +1,4 @@
-[ ] !
+[x] $1.10 an hour by Claude Code
 
 [✨🔆] The book editor should not have hardcoded commitments but highlite anything UPPERCASE on new line
 
@@ -28,3 +28,4 @@ COMMITMENT CONTAINING MULTIPLE WORDS But from here on, it is the content of the 
 -   You are working with the [`<BookEditor/>` component](src/book-components/BookEditor/BookEditor.tsx)
 
 ![alt text](screenshots/2026-06-0480-book-editor-syntax-highlite.png)
+

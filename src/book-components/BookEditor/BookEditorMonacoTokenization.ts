@@ -27,28 +27,15 @@ const AGENT_REFERENCE_BRACED_PATTERN = '\\{[^{}\\r\\n]+\\}';
 const AGENT_REFERENCE_COMMITMENT_TYPES = ['FROM', 'IMPORT', 'IMPORTS', 'TEAM'] as const;
 
 /**
- * Commitment types known to the browser editor tokenizer.
+ * Regex matching any line that starts with one or more all-uppercase words (minimum 2 characters each).
+ * Used to detect commitment line boundaries without a hardcoded list of commitment types.
+ *
+ * Single-letter uppercase words (e.g. "V", "A") are excluded to avoid false positives with
+ * natural-language sentences that start with a short uppercase word.
  *
  * @private function of BookEditorMonaco
  */
-const BOOK_EDITOR_COMMITMENT_TYPES = [
-    'PERSONA',
-    'KNOWLEDGE',
-    'TASK',
-    'PROMPT',
-    'EXPECT',
-    'FORMAT',
-    'MODEL',
-    'SAMPLE',
-    'FROM',
-    'IMPORT',
-    'IMPORTS',
-    'TEAM',
-    'TODO',
-    'NOTE',
-    'NOTES',
-    'NONCE',
-] as const;
+const DYNAMIC_COMMITMENT_REGEX = /^\s*[A-Z][A-Z0-9]+(?:\s+[A-Z][A-Z0-9]+)*(?=\s|$)/;
 
 /**
  * Regex pattern to match horizontal lines.
@@ -57,7 +44,7 @@ const BOOK_EDITOR_COMMITMENT_TYPES = [
  */
 const HORIZONTAL_LINE_PATTERN = /^[\s]*[-_*][\s]*[-_*][\s]*[-_*][\s]*[-_*]*[\s]*$/;
 
-const BOOK_EDITOR_COMMITMENT_LINE_REGEX = createCommitmentLineRegex(BOOK_EDITOR_COMMITMENT_TYPES);
+const BOOK_EDITOR_COMMITMENT_LINE_REGEX = DYNAMIC_COMMITMENT_REGEX;
 const AGENT_REFERENCE_COMMITMENT_LINE_REGEX = createCommitmentLineRegex(AGENT_REFERENCE_COMMITMENT_TYPES);
 
 /**
@@ -348,6 +335,7 @@ function findBookBodyStartLineIndex(sourceLines: ReadonlyArray<string>): number 
  * @private function of BookEditorMonaco
  */
 export const BookEditorMonacoTokenization = {
+    DYNAMIC_COMMITMENT_REGEX,
     AGENT_URL_REFERENCE_REGEX,
     AGENT_REFERENCE_TOKEN_REGEX,
     AGENT_REFERENCE_BRACED_REGEX,

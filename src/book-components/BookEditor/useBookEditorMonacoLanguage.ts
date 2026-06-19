@@ -204,32 +204,18 @@ function createCommitmentRegex(commitmentTypes: ReadonlyArray<string>): RegExp {
 }
 
 /**
- * Creates regex-token-state triples for note-like commitment groups available in this runtime.
+ * Creates regex-token-state triples for note-like commitment groups (TODO/NOTE/NOTES/NONCE).
  *
- * @param commitmentTypes - All known commitment types.
  * @returns Tokenization metadata for TODO/NOTE-like commitment groups.
  *
  * @private function of BookEditorMonaco
  */
-function createNoteLikeCommitmentStates(commitmentTypes: ReadonlyArray<string>): Array<NoteLikeCommitmentState> {
-    const commitmentTypeSet = new Set(commitmentTypes.map((type) => type.toUpperCase()));
-
-    return NOTE_LIKE_COMMITMENT_GROUPS.flatMap((group) => {
-        const matchingCommitmentTypes = group.commitmentTypes.filter((type) =>
-            commitmentTypeSet.has(type.toUpperCase()),
-        );
-        if (matchingCommitmentTypes.length === 0) {
-            return [];
-        }
-
-        return [
-            {
-                regex: createCommitmentRegex(matchingCommitmentTypes),
-                token: group.token,
-                state: group.state,
-            } satisfies NoteLikeCommitmentState,
-        ];
-    });
+function createNoteLikeCommitmentStates(): Array<NoteLikeCommitmentState> {
+    return NOTE_LIKE_COMMITMENT_GROUPS.map((group) => ({
+        regex: createCommitmentRegex([...group.commitmentTypes]),
+        token: group.token,
+        state: group.state,
+    }));
 }
 
 /**
@@ -298,7 +284,7 @@ export function ensureBookEditorMonacoLanguage(
 
     monaco.languages.register({ id: BookEditorMonacoConstants.BOOK_LANGUAGE_ID });
 
-    const commitmentTypes = [
+    const completionCommitmentTypes = [
         'GOAL',
         'RULE',
         'PERSONA',
@@ -317,13 +303,8 @@ export function ensureBookEditorMonacoLanguage(
         ...NOTE_COMMITMENT_TYPES,
         'REMOVE',
     ];
-    const completionCommitmentTypes = [...commitmentTypes];
-    const noteLikeCommitmentTypeSet = new Set<string>([...TODO_COMMITMENT_TYPES, ...NOTE_COMMITMENT_TYPES]);
-    const noteLikeCommitmentStates = createNoteLikeCommitmentStates(commitmentTypes);
-    const executableCommitmentTypes = commitmentTypes.filter(
-        (type) => !noteLikeCommitmentTypeSet.has(type.toUpperCase()),
-    );
-    const commitmentRegex = createCommitmentRegex(executableCommitmentTypes);
+    const noteLikeCommitmentStates = createNoteLikeCommitmentStates();
+    const commitmentRegex = BookEditorMonacoTokenization.DYNAMIC_COMMITMENT_REGEX;
     const agentReferenceCommitmentRegex = /^\s*(FROM|IMPORT|IMPORTS|TEAM)(?=\s|$)/;
     const commitmentTransitionRules = createCommitmentTransitionRules(
         noteLikeCommitmentStates,
@@ -359,7 +340,6 @@ export function ensureBookEditorMonacoLanguage(
     const todoCommitmentBodyRules: any = createNoteLikeBodyRules('todo-commitment', commitmentTransitionRules);
 
     monaco.languages.setMonarchTokensProvider(BookEditorMonacoConstants.BOOK_LANGUAGE_ID, {
-        ignoreCase: true,
         tokenizer: {
             root: [
                 [/^\s*$/, 'empty'],
