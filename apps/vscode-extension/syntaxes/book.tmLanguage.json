@@ -1,0 +1,568 @@
+{
+    "comment": "⚠️ WARNING: This code has been generated so that any manual changes will be overwritten",
+    "--generated-from": "scripts/generate-vscode-grammar/generate-vscode-grammar.ts",
+    "--generated-source": "src/commitments/index.ts COMMITMENT_REGISTRY",
+    "name": "Book Markdown",
+    "scopeName": "text.book",
+    "fileTypes": [
+        "book",
+        "ptbk"
+    ],
+    "patterns": [
+        {
+            "include": "#blocks"
+        }
+    ],
+    "repository": {
+        "blocks": {
+            "patterns": [
+                {
+                    "include": "#headers"
+                },
+                {
+                    "include": "#comments"
+                },
+                {
+                    "include": "#codeblocks"
+                },
+                {
+                    "include": "#blockquotes"
+                },
+                {
+                    "include": "#tables"
+                },
+                {
+                    "include": "#commitments"
+                },
+                {
+                    "include": "#lists"
+                },
+                {
+                    "include": "#inline"
+                }
+            ]
+        },
+        "commitments": {
+            "patterns": [
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:META\\s+INPUT\\s+PLACEHOLDER)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:USE\\s+IMAGE\\s+GENERATOR)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:USE\\s+SEARCH\\s+ENGINE|USE\\s+SEARCH)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:USE\\s+USER\\s+LOCATION|USER\\s+LOCATION)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:INTERNAL\\s+MESSAGE)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:INITIAL\\s+MESSAGE)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:META\\s+DISCLAIMER)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:MESSAGE\\s+SUFFIX)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:USE\\s+DEEPSEARCH)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:WRITING\\s+SAMPLE)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:AGENT\\s+MESSAGE)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:WRITING\\s+RULES)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:USE\\s+CALENDAR|CALENDAR)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:USER\\s+MESSAGE)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:META\\s+AVATAR)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:META\\s+DOMAIN|DOMAIN)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:USE\\s+BROWSER|BROWSER)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:USE\\s+PRIVACY|PRIVACY)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:USE\\s+PROJECT|PROJECT)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:USE\\s+TIMEOUT)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:BEHAVIOURS)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:DICTIONARY)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:META\\s+COLOR|COLOR)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:META\\s+IMAGE|IMAGE)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:META\\s+VOICE|VOICE)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:AVOIDANCE)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:BEHAVIOUR)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:COMPONENT)\\b"
+                },
+                {
+                    "name": "keyword.control.commitment.book",
+                    "match": "^\\s*(?:KNOWLEDGE)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:LANGUAGES)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:META\\s+FONT|FONT)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:META\\s+LINK)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:SCENARIOS)\\b"
+                },
+                {
+                    "name": "invalid.deprecated.commitment.book",
+                    "match": "^\\s*(?:TEMPLATES)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:USE\\s+EMAIL|EMAIL|MAIL)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:USE\\s+POPUP|POPUP)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:USE\\s+SPAWN|SPAWN)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:LANGUAGE)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:MEMORIES)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:MESSAGES)\\b"
+                },
+                {
+                    "name": "invalid.deprecated.commitment.book",
+                    "match": "^\\s*(?:PERSONAE)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:SCENARIO)\\b"
+                },
+                {
+                    "name": "invalid.deprecated.commitment.book",
+                    "match": "^\\s*(?:TEMPLATE)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:USE\\s+TIME|CURRENT\\s+TIME|TIME|DATE)\\b"
+                },
+                {
+                    "name": "invalid.deprecated.commitment.book",
+                    "match": "^\\s*(?:ACTIONS)\\b"
+                },
+                {
+                    "name": "comment.line.commitment.book",
+                    "match": "^\\s*(?:COMMENT)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:CONTEXT)\\b"
+                },
+                {
+                    "name": "keyword.control.delete.commitment.book",
+                    "match": "^\\s*(?:DISCARD)\\b"
+                },
+                {
+                    "name": "invalid.deprecated.commitment.book",
+                    "match": "^\\s*(?:EXAMPLE)\\b"
+                },
+                {
+                    "name": "invalid.deprecated.commitment.book",
+                    "match": "^\\s*(?:FORMATS)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:IMPORTS)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:MESSAGE)\\b"
+                },
+                {
+                    "name": "invalid.deprecated.commitment.book",
+                    "match": "^\\s*(?:PERSONA)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:USE\\s+MCP|MCP)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:WALLETS)\\b"
+                },
+                {
+                    "name": "invalid.deprecated.commitment.book",
+                    "match": "^\\s*(?:ACTION)\\b"
+                },
+                {
+                    "name": "keyword.control.delete.commitment.book",
+                    "match": "^\\s*(?:CANCEL)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:CLOSED)\\b"
+                },
+                {
+                    "name": "keyword.control.delete.commitment.book",
+                    "match": "^\\s*(?:DELETE)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:EXPECT)\\b"
+                },
+                {
+                    "name": "invalid.deprecated.commitment.book",
+                    "match": "^\\s*(?:FORMAT)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:IMPORT)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:MEMORY)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:MODELS)\\b"
+                },
+                {
+                    "name": "keyword.control.delete.commitment.book",
+                    "match": "^\\s*(?:REMOVE)\\b"
+                },
+                {
+                    "name": "invalid.deprecated.commitment.book",
+                    "match": "^\\s*(?:SAMPLE)\\b"
+                },
+                {
+                    "name": "invalid.deprecated.commitment.book",
+                    "match": "^\\s*(?:STYLES)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:WALLET)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:AVOID)\\b"
+                },
+                {
+                    "name": "keyword.control.commitment.book",
+                    "match": "^\\s*(?:GOALS)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:MODEL)\\b"
+                },
+                {
+                    "name": "comment.line.commitment.book",
+                    "match": "^\\s*(?:NONCE)\\b"
+                },
+                {
+                    "name": "comment.line.commitment.book",
+                    "match": "^\\s*(?:NOTES)\\b"
+                },
+                {
+                    "name": "keyword.control.commitment.book",
+                    "match": "^\\s*(?:RULES)\\b"
+                },
+                {
+                    "name": "invalid.deprecated.commitment.book",
+                    "match": "^\\s*(?:STYLE)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:FROM)\\b"
+                },
+                {
+                    "name": "keyword.control.commitment.book",
+                    "match": "^\\s*(?:GOAL)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:META)\\b"
+                },
+                {
+                    "name": "comment.line.commitment.book",
+                    "match": "^\\s*(?:NOTE)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:OPEN)\\b"
+                },
+                {
+                    "name": "keyword.control.commitment.book",
+                    "match": "^\\s*(?:RULE)\\b"
+                },
+                {
+                    "name": "keyword.control.commitment.book",
+                    "match": "^\\s*(?:TEAM)\\b"
+                },
+                {
+                    "name": "comment.line.commitment.book",
+                    "match": "^\\s*(?:TODO)\\b"
+                }
+            ]
+        },
+        "headers": {
+            "patterns": [
+                {
+                    "name": "heading.1.book",
+                    "match": "^(#{1})\\s+(.*)$",
+                    "captures": {
+                        "1": {
+                            "name": "punctuation.definition.heading.book"
+                        },
+                        "2": {
+                            "name": "entity.name.section.book"
+                        }
+                    }
+                },
+                {
+                    "name": "heading.2.book",
+                    "match": "^(#{2,})\\s+(.*)$",
+                    "captures": {
+                        "1": {
+                            "name": "punctuation.definition.heading.book"
+                        },
+                        "2": {
+                            "name": "entity.name.section.book"
+                        }
+                    }
+                }
+            ]
+        },
+        "inline": {
+            "patterns": [
+                {
+                    "name": "markup.bold.book",
+                    "match": "\\*\\*([^*]+)\\*\\*",
+                    "captures": {
+                        "1": {
+                            "name": "markup.bold.book"
+                        }
+                    }
+                },
+                {
+                    "name": "markup.italic.book",
+                    "match": "\\*([^*]+)\\*",
+                    "captures": {
+                        "1": {
+                            "name": "markup.italic.book"
+                        }
+                    }
+                },
+                {
+                    "name": "markup.inline.raw.string.book",
+                    "match": "`([^`]+)`",
+                    "captures": {
+                        "1": {
+                            "name": "markup.inline.raw.string.book"
+                        }
+                    }
+                },
+                {
+                    "name": "markup.underline.link.book",
+                    "match": "\\[([^\\]]+)\\]\\(([^)]+)\\)",
+                    "captures": {
+                        "1": {
+                            "name": "string.other.link.title.book"
+                        },
+                        "2": {
+                            "name": "markup.underline.link.book"
+                        }
+                    }
+                },
+                {
+                    "name": "variable.parameter.book",
+                    "match": "\\{([^}]+)\\}",
+                    "captures": {
+                        "1": {
+                            "name": "variable.parameter.book"
+                        }
+                    }
+                },
+                {
+                    "name": "entity.name.agent-reference.book",
+                    "match": "(?<=\\s|^)@([A-Za-z][A-Za-z0-9 _-]*)",
+                    "captures": {
+                        "1": {
+                            "name": "entity.name.agent-reference.book"
+                        }
+                    }
+                }
+            ]
+        },
+        "lists": {
+            "patterns": [
+                {
+                    "name": "markup.list.unnumbered.book",
+                    "match": "^\\s*([-*+])\\s+(.*)$",
+                    "captures": {
+                        "1": {
+                            "name": "punctuation.definition.list.book"
+                        },
+                        "2": {
+                            "name": "markup.list.item.book"
+                        }
+                    }
+                },
+                {
+                    "name": "markup.list.numbered.book",
+                    "match": "^\\s*(\\d+[.)])\\s+(.*)$",
+                    "captures": {
+                        "1": {
+                            "name": "punctuation.definition.list.book"
+                        },
+                        "2": {
+                            "name": "markup.list.item.book"
+                        }
+                    }
+                }
+            ]
+        },
+        "blockquotes": {
+            "name": "markup.quote.book",
+            "begin": "^\\s*>\\s*",
+            "end": "$",
+            "patterns": [
+                {
+                    "include": "#inline"
+                }
+            ]
+        },
+        "codeblocks": {
+            "name": "markup.fenced_code.block.book",
+            "begin": "^\\s*(`{3,}|~{3,})(\\w*).*$",
+            "end": "^\\s*\\1\\s*$",
+            "beginCaptures": {
+                "1": {
+                    "name": "punctuation.definition.fenced_code.begin.book"
+                },
+                "2": {
+                    "name": "entity.name.scope.book"
+                }
+            },
+            "endCaptures": {
+                "0": {
+                    "name": "punctuation.definition.fenced_code.end.book"
+                }
+            },
+            "patterns": [
+                {
+                    "include": "source.js"
+                }
+            ]
+        },
+        "tables": {
+            "patterns": [
+                {
+                    "name": "markup.table.book",
+                    "match": "^\\|(.+)\\|$",
+                    "captures": {
+                        "1": {
+                            "patterns": [
+                                {
+                                    "match": "[^|]+",
+                                    "name": "markup.table.cell.book"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "markup.table.delimiter.book",
+                    "match": "^\\|\\s*([-:]+[-| :]*?)\\s*\\|$"
+                }
+            ]
+        },
+        "comments": {
+            "patterns": [
+                {
+                    "name": "comment.block.book",
+                    "begin": "<!--",
+                    "end": "-->",
+                    "patterns": [
+                        {
+                            "include": "#inline"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}
