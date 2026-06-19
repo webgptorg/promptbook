@@ -7,10 +7,12 @@ const AGENT_REFERENCE_URL_PATTERN = 'https?:\\/\\/[^\\s{}]+';
 
 /**
  * Regex source for compact `@id` references.
+ * The negative lookbehind `(?<!\S)` ensures the `@` is preceded only by whitespace or is at the
+ * start of the string, so email addresses like `team@foo.bar` are not treated as agent references.
  *
  * @private function of BookEditorMonaco
  */
-const AGENT_REFERENCE_AT_PATTERN = '@[A-Za-z0-9_-]+';
+const AGENT_REFERENCE_AT_PATTERN = '(?<!\\S)@[A-Za-z0-9_-]+';
 
 /**
  * Regex source for braced references (`{Agent}`, `{Agent Name}`, `{https://...}`).
@@ -190,13 +192,6 @@ const extractAgentReferenceMatches = (content: string): Array<AgentReferenceMatc
                 }
 
                 const absoluteIndex = lineStartOffset + indexInLine;
-
-                if (token.startsWith('@') && absoluteIndex > 0) {
-                    const previousChar = content[absoluteIndex - 1] || '';
-                    if (/[A-Za-z0-9_.-]/.test(previousChar)) {
-                        continue;
-                    }
-                }
 
                 const value = extractAgentReferenceValue(token);
                 const url = resolveAgentReferenceToUrl(value);

@@ -39,6 +39,18 @@ CLOSED`;
         expect(matches.map(({ value }) => value)).toEqual(['x']);
     });
 
+    it('does not treat email addresses as agent references', () => {
+        const source = `Noah Brown
+
+TEAM @Paul and {Erik Smith} with email team@foo.bar
+
+CLOSED`;
+
+        const matches = BookEditorMonacoTokenization.extractAgentReferenceMatches(source);
+
+        expect(matches.map(({ value }) => value)).toEqual(['Paul', 'Erik Smith']);
+    });
+
     it('ignores reference-looking tokens inside code blocks of TEAM commitment', () => {
         const source = `Noah Brown
 

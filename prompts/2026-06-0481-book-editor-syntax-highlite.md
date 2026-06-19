@@ -1,4 +1,4 @@
-[ ] !
+[x] $0.6043 28 minutes by Claude Code
 
 [✨🔆] The referenced agents in the syntax highlite should not highlite `team@foo.bar`
 
@@ -19,3 +19,4 @@ TEAM @Paul and {Erik Smith} with email team@foo.bar
 -   You are working with the [`<BookEditor/>` component](src/book-components/BookEditor/BookEditor.tsx)
 
 ![alt text](screenshots/2026-06-0481-book-editor-syntax-highlite.png)
+
