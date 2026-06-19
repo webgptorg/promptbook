@@ -1,7 +1,3 @@
-import { AGENT_REFERENCE_COMMITMENT_TYPES } from './BookEditorCommitmentConstants';
-
-export { AGENT_REFERENCE_COMMITMENT_TYPES };
-
 /**
  * Regex source for absolute URL references inside TEAM/FROM/IMPORT commitments.
  *
@@ -24,6 +20,13 @@ const AGENT_REFERENCE_AT_PATTERN = '(?<!\\S)@[A-Za-z0-9_-]+';
  * @private function of BookEditorMonaco
  */
 const AGENT_REFERENCE_BRACED_PATTERN = '\\{[^{}\\r\\n]+\\}';
+
+/**
+ * Commitment types where compact agent references are supported.
+ *
+ * @private function of BookEditorMonaco
+ */
+const AGENT_REFERENCE_COMMITMENT_TYPES = ['FROM', 'IMPORT', 'IMPORTS', 'TEAM'] as const;
 
 /**
  * Regex matching any line that starts with one or more all-uppercase words (minimum 2 characters each).

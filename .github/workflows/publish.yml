@@ -210,33 +210,6 @@ jobs:
               run: npm publish --provenance --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-    publish-vscode:
-        name: Publish VSCode Extension to Marketplace
-        needs: publish-npm
-        runs-on: ubuntu-latest
-        timeout-minutes: 30
-        steps:
-            - name: 🔽 Checkout
-              uses: actions/checkout@v4
-            - name: 🔽 Setup Node.js
-              uses: actions/setup-node@v4
-              with:
-                  node-version: 22
-            - name: 🔽 Install root dependencies
-              run: npm ci
-            - name: 🔽 Clone book submodule
-              run: git submodule update --init --recursive
-            - name: 🏭 Generate VSCode grammar and snippets
-              run: npm run generate-vscode-grammar
-            - name: 🔽 Install VSCode extension dependencies
-              working-directory: ./apps/vscode-extension
-              run: npm ci
-            - name: 🏭 Compile VSCode extension
-              working-directory: ./apps/vscode-extension
-              run: npm run compile
-            - name: 🔼 Publish VSCode extension
-              working-directory: ./apps/vscode-extension
-              run: npx vsce publish --pat ${{ secrets.VSCE_PAT }}
     publish-docker:
         name: Publish Docker image to DockerHub
         needs: publish-npm
