@@ -2346,7 +2346,7 @@ build_nginx_self_contained_s3_location_block() {
     # [✨🏣] Hash-based file URLs (format: /s3/{hex}/{hex}/{sha256-64-chars}/{filename})
     # are served by Next.js which proxies to VersityGW internally, so the internal
     # bucket name and path prefix are never exposed in the public URL.
-    location ~ ^/s3/[0-9a-f]/[0-9a-f]/[0-9a-f]{64}/ {
+    location ~ "^/s3/[0-9a-f]/[0-9a-f]/[0-9a-f]{64}/" {
         include ${NGINX_PROXY_SNIPPET_PATH};
     }
 
@@ -2457,7 +2457,7 @@ EOF
 
     "${SUDO[@]}" ln -sfn "$nginx_available_path" "$nginx_enabled_path"
     "${SUDO[@]}" rm -f /etc/nginx/sites-enabled/default
-    "${SUDO[@]}" nginx -t
+    test_nginx_config
     "${SUDO[@]}" systemctl enable nginx >/dev/null
     reload_or_restart_nginx
 }
@@ -2469,6 +2469,12 @@ reload_or_restart_nginx() {
     fi
 
     "${SUDO[@]}" systemctl restart nginx
+}
+
+test_nginx_config() {
+    if ! "${SUDO[@]}" nginx -t; then
+        fail "nginx configuration test failed (see error above). Fix the configuration and run: sudo nginx -t && sudo systemctl reload nginx"
+    fi
 }
 
 warn_if_domain_dns_is_not_ready() {
@@ -2722,7 +2728,7 @@ switch_nginx_to_agents_server_port() {
     PORT="$next_port"
     log "Switching nginx to Agents Server port $PORT."
     write_nginx_proxy_snippet
-    "${SUDO[@]}" nginx -t
+    test_nginx_config
     reload_or_restart_nginx
 }
 
