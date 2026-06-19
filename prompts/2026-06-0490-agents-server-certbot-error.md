@@ -1,8 +1,9 @@
 [ ]
 
-[✨𓀚] When the certbot fails, show it
+[✨𓀚] When the installation fails, show it
 
--   Now when the certbot fails, it shows nothing just https on the installed server isnt working, and the user has no idea what happened
+-   Now when the installation fails, it shows nothing just https on the installed server isnt working, and the user has no idea what happened
+-   I am suspecting that the certbot fails to get the certificate, but we need to see the logs to be sure
 -   Look at `prompts/2026-06-0490-agents-server-certbot-error.log`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
