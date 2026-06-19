@@ -1,0 +1,55 @@
+{
+    "name": "book-editor-macos",
+    "version": "0.1.0",
+    "description": "macOS desktop editor for .book files — powered by Promptbook BookEditor component",
+    "private": true,
+    "main": "dist/main/main.js",
+    "scripts": {
+        "dev:renderer": "vite --config vite.config.ts --port 5174",
+        "dev:main": "tsc -p tsconfig.node.json",
+        "build:renderer": "vite build --config vite.config.ts",
+        "build:main": "tsc -p tsconfig.node.json",
+        "build": "npm run build:renderer && npm run build:main",
+        "package": "npm run build && electron-builder"
+    },
+    "build": {
+        "appId": "io.ptbk.book-editor",
+        "productName": "Book Editor",
+        "mac": {
+            "target": "dmg",
+            "category": "public.app-category.developer-tools",
+            "fileAssociations": [
+                {
+                    "ext": "book",
+                    "name": "Book Language File",
+                    "role": "Editor"
+                },
+                {
+                    "ext": "book.md",
+                    "name": "Book Language File",
+                    "role": "Editor"
+                }
+            ]
+        },
+        "files": ["dist/**/*"],
+        "directories": {
+            "output": "release"
+        }
+    },
+    "devDependencies": {
+        "@vitejs/plugin-react": "4.5.2",
+        "@types/node": "20.17.0",
+        "@types/react": "18.2.0",
+        "@types/react-dom": "18.2.0",
+        "electron": "34.0.0",
+        "electron-builder": "25.1.8",
+        "typescript": "5.2.2",
+        "vite": "6.3.5"
+    },
+    "dependencies": {
+        "@monaco-editor/react": "4.7.0",
+        "monaco-editor": "0.54.0",
+        "react": "18.2.0",
+        "react-dom": "18.2.0"
+    }
+}

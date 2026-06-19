@@ -1,4 +1,4 @@
-[ ]
+[x] $2.48 40 minutes by Claude Code
 
 [✨✏️] Create a simple app for MacOS that allows to edit the `.book` files
 
@@ -8,3 +8,4 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   Use the [`<BookEditor/>` component](src/book-components/BookEditor/BookEditor.tsx)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

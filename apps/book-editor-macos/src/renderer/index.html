@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <!--
+            CSP notes:
+            - `unsafe-eval` is required by Monaco Editor for its JIT compiler
+            - `blob:` worker-src is required by Monaco Editor's web workers
+            - CDN sources are needed when Monaco loads workers from jsdelivr (default mode)
+        -->
+        <meta
+            http-equiv="Content-Security-Policy"
+            content="default-src 'self' 'unsafe-inline' data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://cdn.jsdelivr.net; worker-src 'self' blob:; img-src 'self' data: blob: https:; font-src 'self' data:;"
+        />
+        <title>Book Editor</title>
+    </head>
+    <body>
+        <div id="root"></div>
+        <script type="module" src="./main.tsx"></script>
+    </body>
+</html>
