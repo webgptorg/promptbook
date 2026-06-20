@@ -1,3 +1,5 @@
+-   `ptbk coder init` now automatically generates 5 prompt boilerplate files after setting up the project configuration.
+
 -   Added `ptbk coder server` command that runs the same prompt-processing logic as `ptbk coder run` but keeps the process alive and serves a kanban web UI on a configurable port (default `4441`):
 
     -   The server polls for new prompt files every 5 seconds instead of exiting when all prompts are done or none are ready, making it suitable as a long-running background service.

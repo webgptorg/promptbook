@@ -8,6 +8,7 @@ import { AGENT_CODING_FILE_PATH } from './agentCodingFile';
 import { AGENTS_FILE_PATH } from './agentsFile';
 import { getDefaultCoderProjectPromptTemplateDefinitions } from './boilerplateTemplates';
 import { formatDisplayPath } from './formatDisplayPath';
+import { generatePromptBoilerplate } from './generate-boilerplates';
 import { initializeCoderProjectConfiguration } from './initializeCoderProjectConfiguration';
 import { printInitializationSummary } from './printInitializationSummary';
 
@@ -48,8 +49,10 @@ export function $initializeCoderInitCommand(program: Program): $side_effect {
 
     command.action(
         handleActionErrors(async () => {
-            const summary = await initializeCoderProjectConfiguration(process.cwd());
+            const projectPath = process.cwd();
+            const summary = await initializeCoderProjectConfiguration(projectPath);
             printInitializationSummary(summary);
+            await generatePromptBoilerplate({ projectPath, filesCount: 5 });
         }),
     );
 }
