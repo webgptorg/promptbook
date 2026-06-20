@@ -12,7 +12,6 @@ import {
     getUserChatJobByClientMessageId,
     isFrozenUserChatSource,
     resolveUserChatReplyReference,
-    runImmediateUserChatAnswer,
     triggerUserChatJobWorker,
 } from '@/src/utils/userChat';
 import { UserChatReplyValidationError } from '@/src/utils/userChat/UserChatReplyValidationError';
@@ -171,16 +170,10 @@ export async function POST(
 
         after(() => {
             const origin = new URL(request.url).origin;
-            return Promise.all([
-                triggerUserChatJobWorker({
-                    origin,
-                    preferredJobId: enqueuedTurn.job.id,
-                }).catch((error) => console.error('[user-chat] Failed to trigger durable worker', error)),
-                runImmediateUserChatAnswer(enqueuedTurn.job, {
-                    agentSource: resolvedAgentContext.resolvedAgentSource,
-                    resolvedAgentName: resolvedAgentContext.resolvedAgentName,
-                }).catch((error) => console.error('[user-chat] Failed to start immediate chat answer', error)),
-            ]).then(() => undefined);
+            return triggerUserChatJobWorker({
+                origin,
+                preferredJobId: enqueuedTurn.job.id,
+            }).catch((error) => console.error('[user-chat] Failed to trigger durable worker', error));
         });
 
         return NextResponse.json(

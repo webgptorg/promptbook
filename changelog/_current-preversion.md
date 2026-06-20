@@ -49,6 +49,8 @@
 
 -   Changed Agents Server chat pre-answers so the immediate placeholder response now focuses on confirming the job is being handled and avoids partial deliverables such as draft code or likely final-answer content.
 
+-   Removed the immediate pre-answer placeholder in Agents Server durable chat. Instead of generating a fake LLM response while the real agent runs, the chat now shows real agent progress via the `agent_progress` tool and the thinking spinner. This eliminates misleading "I'm working on it" messages and surfaces only genuine progress reported by the running agent.
+
 -   Optimized Agents Server agent/chat responsiveness by short-circuiting common local agent-route resolution, avoiding redundant active-chat refresh fetches while the live stream is healthy, reducing settled-chat reconciliation work during chat detail loads, and adding active chat job/timeout indexes for the hottest polling queries.
 
 -   Changed `ptbk agent chat` and `ptbk agent exec` console output so local harness stdout/stderr and the chat exit hint stay hidden by default and appear only with `--verbose`, leaving normal runs focused on the chat conversation or final answer.
