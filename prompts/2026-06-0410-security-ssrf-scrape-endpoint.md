@@ -1,4 +1,4 @@
-[-]
+[ ]
 
 [🔐] Fix SSRF vulnerability in unauthenticated `/api/scrape` endpoint of Agents Server
 

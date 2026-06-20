@@ -1,4 +1,4 @@
-[-]
+[ ]
 
 [🔐] Fix session signing key reusing `ADMIN_PASSWORD` with insecure hardcoded fallback in Agents Server
 

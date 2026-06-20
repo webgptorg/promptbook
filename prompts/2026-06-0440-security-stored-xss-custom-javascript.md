@@ -1,4 +1,4 @@
-[-]
+[ ]
 
 [🔐] Fix stored XSS vulnerability in Custom JavaScript admin feature of Agents Server
 

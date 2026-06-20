@@ -1,4 +1,4 @@
-[-]
+[ ]
 
 [🔐] Fix timing attack vulnerability in admin password comparison of Agents Server
 
