@@ -99,19 +99,29 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
 
     command.action(
         handleActionErrors(async (cliOptions) => {
-            const { port: rawPort, dryRun, agent, context, test, preserveLogs, priority, wait, autoMigrate, allowDestructiveAutoMigrate } =
-                cliOptions as {
-                    readonly port: string;
-                    readonly dryRun: boolean;
-                    readonly agent?: string;
-                    readonly context?: string;
-                    readonly test?: string | string[];
-                    readonly preserveLogs: boolean;
-                    readonly priority: number;
-                    readonly wait: boolean | string;
-                    readonly autoMigrate: boolean;
-                    readonly allowDestructiveAutoMigrate: boolean;
-                } & PromptRunnerCliOptions;
+            const {
+                port: rawPort,
+                dryRun,
+                agent,
+                context,
+                test,
+                preserveLogs,
+                priority,
+                wait,
+                autoMigrate,
+                allowDestructiveAutoMigrate,
+            } = cliOptions as {
+                readonly port: string;
+                readonly dryRun: boolean;
+                readonly agent?: string;
+                readonly context?: string;
+                readonly test?: string | string[];
+                readonly preserveLogs: boolean;
+                readonly priority: number;
+                readonly wait: boolean | string;
+                readonly autoMigrate: boolean;
+                readonly allowDestructiveAutoMigrate: boolean;
+            } & PromptRunnerCliOptions;
 
             const port = parseCoderServerPort(rawPort);
             const testCommand = normalizeCommandOptionValue(test);

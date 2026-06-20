@@ -84,18 +84,27 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
 
     command.action(
         handleActionErrors(async (cliOptions) => {
-            const { dryRun, agent, context, test, preserveLogs, priority, wait, autoMigrate, allowDestructiveAutoMigrate } =
-                cliOptions as {
-                    readonly dryRun: boolean;
-                    readonly agent?: string;
-                    readonly context?: string;
-                    readonly test?: string | string[];
-                    readonly preserveLogs: boolean;
-                    readonly priority: number;
-                    readonly wait: boolean | string;
-                    readonly autoMigrate: boolean;
-                    readonly allowDestructiveAutoMigrate: boolean;
-                } & PromptRunnerCliOptions;
+            const {
+                dryRun,
+                agent,
+                context,
+                test,
+                preserveLogs,
+                priority,
+                wait,
+                autoMigrate,
+                allowDestructiveAutoMigrate,
+            } = cliOptions as {
+                readonly dryRun: boolean;
+                readonly agent?: string;
+                readonly context?: string;
+                readonly test?: string | string[];
+                readonly preserveLogs: boolean;
+                readonly priority: number;
+                readonly wait: boolean | string;
+                readonly autoMigrate: boolean;
+                readonly allowDestructiveAutoMigrate: boolean;
+            } & PromptRunnerCliOptions;
 
             const testCommand = normalizeCommandOptionValue(test);
             const runnerOptions = normalizePromptRunnerCliOptions(cliOptions as PromptRunnerCliOptions, {

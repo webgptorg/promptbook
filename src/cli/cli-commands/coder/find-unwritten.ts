@@ -13,9 +13,7 @@ import { handleActionErrors } from '../common/handleActionErrors';
  */
 export function $initializeCoderFindUnwrittenCommand(program: Program): $side_effect {
     const command = program.command('find-unwritten');
-    command.description(
-        'List all prompt sections that still need to be authored (contain @@@ placeholder)',
-    );
+    command.description('List all prompt sections that still need to be authored (contain @@@ placeholder)');
     command.option('--priority <minimum-priority>', 'Filter prompts by minimum priority level', parseIntOption, 0);
 
     command.action(
