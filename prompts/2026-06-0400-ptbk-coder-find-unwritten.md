@@ -1,4 +1,4 @@
-[ ]
+[x] $0.7465 29 minutes by Claude Code
 
 [✨😪] Create command `ptbk coder find-unwritten`
 
@@ -10,3 +10,4 @@ ptbk coder find-unwritten
 -   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

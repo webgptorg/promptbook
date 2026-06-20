@@ -6,6 +6,7 @@ import { spaceTrim } from 'spacetrim';
 import type { $side_effect } from '../../utils/organization/$side_effect';
 import { $initializeCoderFindFreshEmojiTagCommand } from './coder/find-fresh-emoji-tags';
 import { $initializeCoderFindRefactorCandidatesCommand } from './coder/find-refactor-candidates';
+import { $initializeCoderFindUnwrittenCommand } from './coder/find-unwritten';
 import { $initializeCoderGenerateBoilerplatesCommand } from './coder/generate-boilerplates';
 import { $initializeCoderInitCommand } from './coder/init';
 import { $initializeCoderRunCommand } from './coder/run';
@@ -37,6 +38,7 @@ export function $initializeCoderCommand(program: Program): $side_effect {
             - init: Initialize coder configuration in current project
             - generate-boilerplates: Generate prompt boilerplate files
             - find-refactor-candidates: Find files that need refactoring
+            - find-unwritten: List prompt sections that still need to be authored
             - run: Run coding prompts with AI agents
             - server: Start a long-running coder server with a kanban web UI
             - verify: Verify completed prompts
@@ -48,6 +50,7 @@ export function $initializeCoderCommand(program: Program): $side_effect {
     $initializeCoderInitCommand(coderCommand);
     $initializeCoderGenerateBoilerplatesCommand(coderCommand);
     $initializeCoderFindRefactorCandidatesCommand(coderCommand);
+    $initializeCoderFindUnwrittenCommand(coderCommand);
     $initializeCoderRunCommand(coderCommand);
     $initializeCoderServerCommand(coderCommand);
     $initializeCoderVerifyCommand(coderCommand);

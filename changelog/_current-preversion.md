@@ -1,3 +1,9 @@
+-   Added `ptbk coder find-unwritten` command that lists all prompt sections whose body still contains the `@@@` authoring placeholder:
+
+    -   Prints a summary line (done / for agent / to be written counts) followed by a numbered list of unwritten prompts with their file path, line number, and first summary line.
+    -   Accepts `--priority <n>` to apply the same minimum-priority filter used by `ptbk coder run`.
+    -   Reuses the existing `listPromptsToBeWritten` / `printPromptsToBeWritten` utilities so the detection logic stays in one place.
+
 -   Added `--agent <agent-book-path>` option to `ptbk coder run` and `ptbk coder server`:
 
     -   Accepts a path to a `.book` file (relative to the current working directory) whose compiled system message is prepended to each coding prompt before the task text.
