@@ -13,6 +13,7 @@ import type {
 } from '../common/CoderRunPauseCheckpoint';
 import { CliProgressDisplay } from '../common/cliProgressDisplay';
 import { formatDurationMs } from '../common/parseDuration';
+import { resolveAgentSystemMessage } from '../common/resolveAgentSystemMessage';
 import { resolveCoderContext } from '../common/resolveCoderContext';
 import {
     announcePauseTargetLabel,
@@ -73,6 +74,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
 
     try {
         const resolvedCoderContext = await resolveCoderContext(options.context, process.cwd());
+        const resolvedAgentSystemMessage = await resolveAgentSystemMessage(options.agent, process.cwd());
 
         if (await runDryRunIfRequested(options)) {
             return;
@@ -170,6 +172,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                 nextPrompt,
                 promptLabel,
                 resolvedCoderContext,
+                resolvedAgentSystemMessage,
                 isRichUiEnabled,
                 progressDisplay,
                 uiHandle,

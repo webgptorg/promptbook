@@ -75,6 +75,11 @@ export type RunOptions = {
     agentName?: PromptRunnerHarnessName;
     model?: string;
     /**
+     * Optional path to an agent `.book` file whose compiled system message is prepended to each codex prompt.
+     * Supports the same path resolution as `--context`: relative to the current working directory.
+     */
+    agent?: string;
+    /**
      * Minimum prompt priority required for processing.
      */
     priority: number;

@@ -40,6 +40,7 @@ type RunPromptRoundOptions = {
     nextPrompt: PromptSelection;
     promptLabel: string;
     resolvedCoderContext?: string;
+    resolvedAgentSystemMessage?: string;
     isRichUiEnabled: boolean;
     progressDisplay?: CliProgressDisplay;
     uiHandle?: CoderRunUiHandle;
@@ -58,13 +59,19 @@ export async function runPromptRound({
     nextPrompt,
     promptLabel,
     resolvedCoderContext,
+    resolvedAgentSystemMessage,
     isRichUiEnabled,
     progressDisplay,
     uiHandle,
     waitForRequestedPause,
 }: RunPromptRoundOptions): Promise<void> {
     const commitMessage = buildCommitMessage(nextPrompt.file, nextPrompt.section);
-    const codexPrompt = appendCoderContext(buildCodexPrompt(nextPrompt.file, nextPrompt.section), resolvedCoderContext);
+    const taskPrompt = buildCodexPrompt(nextPrompt.file, nextPrompt.section);
+    // Prepend agent system message before the task so the harness sees agent instructions first
+    const promptWithAgent = resolvedAgentSystemMessage
+        ? `${resolvedAgentSystemMessage.trim()}\n\n${taskPrompt}`
+        : taskPrompt;
+    const codexPrompt = appendCoderContext(promptWithAgent, resolvedCoderContext);
     const scriptPath = buildScriptPath(nextPrompt.file, nextPrompt.section);
 
     setPromptRoundRunningState({ isRichUiEnabled, promptLabel, scriptPath, uiHandle });

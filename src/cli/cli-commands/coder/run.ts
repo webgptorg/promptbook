@@ -44,6 +44,10 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
     command.option('--dry-run', 'Print unwritten prompts without executing', false);
     addPromptRunnerSelectionOptions(command);
     command.option(
+        '--agent <agent-book-path>',
+        'Path to a .book file whose compiled system message is prepended to each coding prompt',
+    );
+    command.option(
         '--context <context-or-file>',
         'Append extra instructions either inline or from a file path relative to the current project',
     );
@@ -80,9 +84,10 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
 
     command.action(
         handleActionErrors(async (cliOptions) => {
-            const { dryRun, context, test, preserveLogs, priority, wait, autoMigrate, allowDestructiveAutoMigrate } =
+            const { dryRun, agent, context, test, preserveLogs, priority, wait, autoMigrate, allowDestructiveAutoMigrate } =
                 cliOptions as {
                     readonly dryRun: boolean;
+                    readonly agent?: string;
                     readonly context?: string;
                     readonly test?: string | string[];
                     readonly preserveLogs: boolean;
@@ -119,6 +124,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 ignoreGitChanges: runnerOptions.ignoreGitChanges,
                 agentName: runnerOptions.agentName,
                 model: runnerOptions.model,
+                agent,
                 context,
                 testCommand,
                 preserveLogs,

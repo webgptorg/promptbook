@@ -1,3 +1,9 @@
+-   Added `--agent <agent-book-path>` option to `ptbk coder run` and `ptbk coder server`:
+
+    -   Accepts a path to a `.book` file (relative to the current working directory) whose compiled system message is prepended to each coding prompt before the task text.
+    -   Can be combined with `--context`: the agent system message is inserted first, followed by the task prompt, and finally the context — so the harness sees agent instructions → task → additional context.
+    -   Example: `ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --agent agents/coding-expert.book`
+
 -   `ptbk coder init` now automatically generates 5 prompt boilerplate files after setting up the project configuration.
 
 -   Added `ptbk coder server` command that runs the same prompt-processing logic as `ptbk coder run` but keeps the process alive and serves a kanban web UI on a configurable port (default `4441`):
