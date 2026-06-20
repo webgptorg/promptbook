@@ -530,5 +530,5 @@ export const CODER_SERVER_HTML = `<!DOCTYPE html>
 </body>
 </html>`;
 
-// Note: [⚫] Code in this file should never be published in any package
+// Note: [🟡] Code for CLI command [coder server](scripts/run-codex-prompts/server/coderServerHtml.ts) should never be published outside of `@promptbook/cli`
 // Note: Keep in sync with apps/coder-server/index.html

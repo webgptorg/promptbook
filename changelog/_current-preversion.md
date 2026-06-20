@@ -1,3 +1,5 @@
+-   Fixed package publishing for `@promptbook/cli` by marking the `ptbk coder server` HTTP/UI helpers as CLI-only instead of never-publishable, matching the existing CLI command import chain.
+
 -   Added `ptbk coder find-unwritten` command that lists all prompt sections whose body still contains the `@@@` authoring placeholder:
 
     -   Prints a summary line (done / for agent / to be written counts) followed by a numbered list of unwritten prompts with their file path, line number, and first summary line.

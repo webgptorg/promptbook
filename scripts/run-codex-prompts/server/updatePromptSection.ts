@@ -58,4 +58,4 @@ export async function updatePromptSection(
     await writeFile(filePath, updatedContent, 'utf-8');
 }
 
-// Note: [⚫] Code in this file should never be published in any package
+// Note: [🟡] Code for CLI command [coder server](scripts/run-codex-prompts/server/updatePromptSection.ts) should never be published outside of `@promptbook/cli`

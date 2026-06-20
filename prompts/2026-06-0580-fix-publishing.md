@@ -1,4 +1,4 @@
-[ ] !!!
+[x] ~$0.2402 an hour by OpenAI Codex `gpt-5.5`
 
 [✨🥈] Fix publishing
 
@@ -81,3 +81,4 @@ In line 71886:
     at async assertGeneratedBundlesArePublishSafe (/home/runner/work/promptbook/promptbook/scripts/generate-packages/assertGeneratedBundlesArePublishSafe.ts:63:9)
     at async generatePackages (/home/runner/work/promptbook/promptbook/scripts/generate-packages/generate-packages.ts:170:5)
 ```
+

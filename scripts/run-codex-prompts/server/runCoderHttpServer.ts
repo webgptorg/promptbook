@@ -211,4 +211,4 @@ function jsonHeaders(): Record<string, string> {
     };
 }
 
-// Note: [⚫] Code in this file should never be published in any package
+// Note: [🟡] Code for CLI command [coder server](scripts/run-codex-prompts/server/runCoderHttpServer.ts) should never be published outside of `@promptbook/cli`
