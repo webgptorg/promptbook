@@ -120,7 +120,13 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                 isRichUiEnabled,
             });
 
-            if (finishWhenNoPromptIsAvailable(promptQueueSnapshot, isRichUiEnabled, uiHandle)) {
+            if (!promptQueueSnapshot.nextPrompt) {
+                if (options.keepAlive) {
+                    announceKeepAliveStatus(promptQueueSnapshot, isRichUiEnabled, uiHandle);
+                    await new Promise<void>((resolve) => setTimeout(resolve, KEEP_ALIVE_POLL_INTERVAL_MS));
+                    continue;
+                }
+                finishWhenNoPromptIsAvailable(promptQueueSnapshot, isRichUiEnabled, uiHandle);
                 return;
             }
 
@@ -409,6 +415,27 @@ function finishWhenNoPromptIsAvailable(
 }
 
 /**
+ * Updates the UI status message while waiting for new prompts in keepAlive server mode.
+ */
+function announceKeepAliveStatus(
+    promptQueueSnapshot: PromptQueueSnapshot,
+    isRichUiEnabled: boolean,
+    uiHandle?: CoderRunUiHandle,
+): void {
+    const message =
+        promptQueueSnapshot.stats.toBeWritten > 0
+            ? 'No prompts ready for agent. Watching for changes...'
+            : 'All prompts are done. Watching for changes...';
+
+    uiHandle?.state.setStatusMessage(message);
+    uiHandle?.state.setPhase('waiting');
+
+    if (!isRichUiEnabled) {
+        console.info(colors.gray(message));
+    }
+}
+
+/**
  * Updates UI state and plain-console output for the terminal completion message.
  */
 function announceRunCompletion(
@@ -470,6 +497,11 @@ async function waitForPromptConfirmationIfNeeded(options: {
  * Countdown update interval for the between-rounds wait display.
  */
 const WAIT_COUNTDOWN_UPDATE_INTERVAL_MS = 30_000;
+
+/**
+ * Polling interval when in keepAlive server mode and no runnable prompts are available.
+ */
+const KEEP_ALIVE_POLL_INTERVAL_MS = 5_000;
 
 /**
  * Waits the configured time between prompt rounds to avoid hitting harness rate limits.

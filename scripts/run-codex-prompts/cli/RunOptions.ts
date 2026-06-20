@@ -78,4 +78,9 @@ export type RunOptions = {
      * Minimum prompt priority required for processing.
      */
     priority: number;
+    /**
+     * When true, the run loop continues watching for new prompts instead of exiting when none are available.
+     * Used by `ptbk coder server` to keep the process alive as a server.
+     */
+    keepAlive?: boolean;
 };

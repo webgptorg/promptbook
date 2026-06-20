@@ -1,3 +1,13 @@
+-   Added `ptbk coder server` command that runs the same prompt-processing logic as `ptbk coder run` but keeps the process alive and serves a kanban web UI on a configurable port (default `4441`):
+
+    -   The server polls for new prompt files every 5 seconds instead of exiting when all prompts are done or none are ready, making it suitable as a long-running background service.
+    -   A kanban board at `http://localhost:4441` shows all prompt sections grouped into four columns: **To Do**, **Not Ready**, **Done**, and **Failed**.
+    -   Each card is clickable and opens a Trello-style edit modal where the prompt text can be modified and saved back to the source file immediately.
+    -   A **Play / Pause** button in the browser header is kept in sync with the CLI pause state; clicking it calls the same `requestPause` / `requestResume` functions used by the `p` key in the terminal.
+    -   The HTTP server exposes a small REST API: `GET /api/prompts`, `GET /api/status`, `POST /api/pause`, `POST /api/resume`, and `PUT /api/prompts/update`.
+    -   All options from `ptbk coder run` are supported (`--harness`, `--model`, `--thinking-level`, `--context`, `--test`, `--wait`, `--priority`, `--no-commit`, etc.) plus a new `--port` option (or `PTBK_CODER_SERVER_PORT` env var).
+    -   The frontend source lives in `apps/coder-server/index.html` and is served inline by the Node.js HTTP server (no build step required).
+
 -   Added a VSCode extension (`apps/vscode-extension`) for the Book language that provides syntax highlighting for `.book` and `.ptbk` files. The TextMate grammar (`syntaxes/book.tmLanguage.json`) is dynamically generated from `COMMITMENT_REGISTRY` by running `npm run generate-vscode-grammar`, ensuring the extension always reflects the current set of commitment keywords. Automated publishing to the Visual Studio Code Marketplace is wired into the existing `.github/workflows/publish.yml` release workflow via a new `publish-vscode-extension` job that generates the grammar, syncs the extension version from the root `package.json`, and publishes with `vsce`.
 
 -   Fixed `<BookEditor/>` syntax highlighting incorrectly highlighting the local part of email addresses (e.g. `team@foo.bar`) as agent references. `@`-style references now require whitespace or start-of-line before the `@` sign, so only `@Paul` (with preceding whitespace) is highlighted, not `team@foo.bar`. Removed a now-redundant manual preceding-character check that duplicated this logic.

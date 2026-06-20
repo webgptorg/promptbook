@@ -9,6 +9,7 @@ import { $initializeCoderFindRefactorCandidatesCommand } from './coder/find-refa
 import { $initializeCoderGenerateBoilerplatesCommand } from './coder/generate-boilerplates';
 import { $initializeCoderInitCommand } from './coder/init';
 import { $initializeCoderRunCommand } from './coder/run';
+import { $initializeCoderServerCommand } from './coder/server';
 import { $initializeCoderVerifyCommand } from './coder/verify';
 
 /**
@@ -37,6 +38,7 @@ export function $initializeCoderCommand(program: Program): $side_effect {
             - generate-boilerplates: Generate prompt boilerplate files
             - find-refactor-candidates: Find files that need refactoring
             - run: Run coding prompts with AI agents
+            - server: Start a long-running coder server with a kanban web UI
             - verify: Verify completed prompts
             - find-fresh-emoji-tags: Find unused emoji tags
         `),
@@ -47,6 +49,7 @@ export function $initializeCoderCommand(program: Program): $side_effect {
     $initializeCoderGenerateBoilerplatesCommand(coderCommand);
     $initializeCoderFindRefactorCandidatesCommand(coderCommand);
     $initializeCoderRunCommand(coderCommand);
+    $initializeCoderServerCommand(coderCommand);
     $initializeCoderVerifyCommand(coderCommand);
     $initializeCoderFindFreshEmojiTagCommand(coderCommand);
 
