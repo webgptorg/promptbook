@@ -1,6 +1,6 @@
 [-]
 
-[✨😎] baz
+[✨🪲] qux
 
 ```bash
 @@@
@@ -22,7 +22,7 @@ ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh -
 
 [-]
 
-[✨😎] baz
+[✨🪲] qux
 
 ```bash
 @@@
@@ -44,7 +44,7 @@ ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh -
 
 [-]
 
-[✨😎] baz
+[✨🪲] qux
 
 ```bash
 @@@
@@ -66,7 +66,7 @@ ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh -
 
 [-]
 
-[✨😎] baz
+[✨🪲] qux
 
 ```bash
 @@@
