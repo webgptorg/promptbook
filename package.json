@@ -226,6 +226,7 @@
         "_TODO-3": "<- TODO: Detect if the worktree is clean before running patch-dependencies-commit",
         "use-packages": "ts-node ./scripts/use-packages/use-packages.ts",
         "build:book-editor-macos": "node ./scripts/book-editor-macos/build-book-editor-macos.js",
+        "build:vscode-extension": "node ./scripts/vscode-extension/build-vscode-extension.js",
         "components-playground": "cd ./apps/book-components/ && npm run dev",
         "_TODO-1": "<- TODO: Remove all unused scripts",
         "_TODO-2": "<- TODO: [⛎] Automatically sync commands to generate-packages.ts",
