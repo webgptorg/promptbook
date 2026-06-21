@@ -12,3 +12,15 @@
 -   Look at `C:/Users/me/work/ai/book-extension/` - this is the old version of the extension, it can be used as a reference but do not copy-paste code from it, just use it as a reference for the functionality and automatic deployment to the marketplace, but the code should be implemented from scratch and should be properly integrated with the rest of the repository and use existing components and functions from the repository when possible.
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
+---
+
+[ ] !
+
+[✨🔄] Add script(s) to automate the build and publishing of the VSCode extension
+
+-   In `apps/vscode-extension` there is a simple VSCode extension that provides syntax highlighting for the book language
+-   Add the publishing of this extension into `package.json` script as `build:vscode-extension` and link it to [`terminals.json`](.vscode/terminals.json)
+-   Also create a Github Action workflow to build and publish the extension on every version release
+-   If there is some things which I need to do as a user, create [file with the instructions](agents-messages/2026-06-0501-book-vscode-extension.message.md)
+-   Do a proper analysis of the current functionality before you start implementing.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle
