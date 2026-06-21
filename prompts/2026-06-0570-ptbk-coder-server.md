@@ -40,6 +40,7 @@ ptbk coder server --harness github-copilot --model gpt-5.4 --thinking-level xhig
     6. Done, for prompts which are done by any agent session server
     7. Errors recently, for prompts which are done with error by this agent session server
     8. Errors, for prompts which are done with error by any agent session server
+-   Also in the web UI show the real progress of the agent from terminal
 -   Keep in mind the DRY _(don't repeat yourself)_ principle
 -   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
