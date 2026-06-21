@@ -4,7 +4,7 @@
 const DEFAULT_CODER_PACKAGE_JSON_SCRIPTS = {
     'coder:generate-boilerplates': 'ptbk coder generate-boilerplates --template ./prompts/templates/common.md',
     'coder:run':
-        'ptbk coder run --harness openai-codex --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --no-wait',
+        'ptbk coder run --harness openai-codex --model gpt-5.4 --thinking-level xhigh --agent agents/developer.book --context AGENTS.md --no-wait',
     // 'coder:find-refactor-candidates': 'ptbk coder find-refactor-candidates',
     'coder:verify': 'ptbk coder verify',
 } as const satisfies Readonly<Record<string, string>>;

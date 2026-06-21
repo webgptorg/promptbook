@@ -166,6 +166,8 @@ describe('how promptbookCli works', () => {
             expect(output).toContain('Promptbook coder configuration initialized.');
             expect(output).toContain('✔ prompts/: created');
             expect(output).toContain('✔ prompts/templates/common.md: created');
+            expect(output).toContain('✔ agents/: created');
+            expect(output).toContain('✔ agents/developer.book: created');
             expect(output).toContain('✔ AGENTS.md: created');
             expect(output).toContain('✔ AGENT_CODING.md: created');
             expect(output).toContain('✔ package.json: created');

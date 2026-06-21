@@ -10,6 +10,10 @@ import {
     getDefaultCoderPromptTemplateDefinitions,
     resolveCoderPromptTemplate,
 } from './boilerplateTemplates';
+import {
+    CODER_DEVELOPER_AGENT_FILE_PATH,
+    DEFAULT_CODER_DEVELOPER_AGENT_SOURCE_FILE_PATH,
+} from './ensureCoderDeveloperAgentFile';
 import { getDefaultCoderPackageJsonScripts } from './getDefaultCoderPackageJsonScripts';
 import { getDefaultCoderVscodeSettings } from './getDefaultCoderVscodeSettings';
 import { initializeCoderProjectConfiguration } from './initializeCoderProjectConfiguration';
@@ -61,6 +65,8 @@ describe('coder boilerplate templates', () => {
         const summary = await initializeCoderProjectConfiguration(projectPath);
 
         expect(summary.promptsTemplatesDirectoryStatus).toBe('created');
+        expect(summary.agentsDirectoryStatus).toBe('created');
+        expect(summary.developerAgentFileStatus).toBe('created');
         expect(summary.agentsFileStatus).toBe('created');
         expect(summary.agentCodingFileStatus).toBe('created');
         expect(summary.gitignoreFileStatus).toBe('created');
@@ -78,6 +84,13 @@ describe('coder boilerplate templates', () => {
             const content = await readFile(join(projectPath, definition.relativeFilePath), 'utf-8');
             expect(normalizeLineEndings(content).trim()).toBe(definition.content);
         }
+
+        const developerAgentContent = await readFile(join(projectPath, CODER_DEVELOPER_AGENT_FILE_PATH), 'utf-8');
+        const sourceDeveloperAgentContent = await readFile(
+            join(process.cwd(), DEFAULT_CODER_DEVELOPER_AGENT_SOURCE_FILE_PATH),
+            'utf-8',
+        );
+        expect(normalizeLineEndings(developerAgentContent)).toBe(normalizeLineEndings(sourceDeveloperAgentContent));
 
         const agentsFileContent = await readFile(join(projectPath, AGENTS_FILE_PATH), 'utf-8');
         expect(normalizeLineEndings(agentsFileContent).trim()).toBe(getDefaultCoderAgentsFileContent());
@@ -98,6 +111,7 @@ describe('coder boilerplate templates', () => {
 
         const defaultCoderPackageJsonScripts = getDefaultCoderPackageJsonScripts();
 
+        expect(defaultCoderPackageJsonScripts['coder:run']).toContain('--agent agents/developer.book');
         expect(await readJsonFile(join(projectPath, 'package.json'))).toEqual({
             scripts: defaultCoderPackageJsonScripts,
         });
@@ -121,6 +135,8 @@ describe('coder boilerplate templates', () => {
             'utf-8',
         );
         await writeFile(join(projectPath, AGENTS_FILE_PATH), 'Custom instructions\n', 'utf-8');
+        await mkdir(join(projectPath, 'agents'), { recursive: true });
+        await writeFile(join(projectPath, CODER_DEVELOPER_AGENT_FILE_PATH), 'Custom developer agent\n', 'utf-8');
         await writeFile(join(projectPath, AGENT_CODING_FILE_PATH), 'Custom coder guide\n', 'utf-8');
         await mkdir(join(projectPath, '.vscode'), { recursive: true });
         await writeFile(
@@ -134,6 +150,7 @@ describe('coder boilerplate templates', () => {
         expect(summary.gitignoreFileStatus).toBe('updated');
         expect(summary.packageJsonFileStatus).toBe('updated');
         expect(summary.vscodeSettingsFileStatus).toBe('updated');
+        expect(summary.developerAgentFileStatus).toBe('unchanged');
         expect(summary.agentsFileStatus).toBe('unchanged');
         expect(summary.agentCodingFileStatus).toBe('unchanged');
 
@@ -162,6 +179,9 @@ describe('coder boilerplate templates', () => {
         });
 
         expect(await readFile(join(projectPath, AGENTS_FILE_PATH), 'utf-8')).toBe('Custom instructions\n');
+        expect(await readFile(join(projectPath, CODER_DEVELOPER_AGENT_FILE_PATH), 'utf-8')).toBe(
+            'Custom developer agent\n',
+        );
         expect(await readFile(join(projectPath, AGENT_CODING_FILE_PATH), 'utf-8')).toBe('Custom coder guide\n');
     });
 

@@ -1,6 +1,7 @@
 esm
 umd
 apps
+agents
 books
 security.config.ts
 servers.ts

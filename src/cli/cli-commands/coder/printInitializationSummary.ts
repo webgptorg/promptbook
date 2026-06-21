@@ -2,6 +2,7 @@ import colors from 'colors';
 import { AGENT_CODING_FILE_PATH } from './agentCodingFile';
 import { AGENTS_FILE_PATH } from './agentsFile';
 import type { InitializationStatus } from './boilerplateTemplates';
+import { CODER_DEVELOPER_AGENT_FILE_PATH } from './ensureCoderDeveloperAgentFile';
 import { formatDisplayPath } from './formatDisplayPath';
 import type { CoderInitializationSummary } from './initializeCoderProjectConfiguration';
 
@@ -23,6 +24,8 @@ export function printInitializationSummary(summary: CoderInitializationSummary):
         );
     }
 
+    printInitializationStatusLine('agents/', summary.agentsDirectoryStatus);
+    printInitializationStatusLine(CODER_DEVELOPER_AGENT_FILE_PATH, summary.developerAgentFileStatus);
     printInitializationStatusLine(AGENTS_FILE_PATH, summary.agentsFileStatus);
     printInitializationStatusLine(AGENT_CODING_FILE_PATH, summary.agentCodingFileStatus);
     printInitializationStatusLine('.env', summary.envFileStatus);

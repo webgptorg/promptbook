@@ -1,3 +1,5 @@
+-   Changed `ptbk coder init` to copy the bundled `agents/default/developer.book` into initialized projects as `agents/developer.book`, and updated the generated `coder:run` npm script to pass it via `--agent agents/developer.book`.
+
 -   Added automated packaging and release publishing for the Book Editor macOS app:
 
     -   Added `npm run build:book-editor-macos`, which installs `apps/book-editor-macos` dependencies, syncs the packaged app version from the root package version during packaging, and builds DMG assets with Electron Builder.

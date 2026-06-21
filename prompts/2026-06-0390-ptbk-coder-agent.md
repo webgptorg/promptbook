@@ -14,8 +14,9 @@ ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh -
 
 ---
 
-[ ]
+[x] ~$0.6762 2 hours by OpenAI Codex `gpt-5.5`
 
 [✨😇] The `ptbk coder init` should create a agent and in the script use `--agent`
 
 -   It should copy agent from here (the Promptbook) `agents/default/developer.book` into the project where `ptbk coder init` is run into `agents/developer.book` and use it in the script with `--agent agents/developer.book` flag
+

@@ -7,6 +7,7 @@ import { handleActionErrors } from '../common/handleActionErrors';
 import { AGENT_CODING_FILE_PATH } from './agentCodingFile';
 import { AGENTS_FILE_PATH } from './agentsFile';
 import { getDefaultCoderProjectPromptTemplateDefinitions } from './boilerplateTemplates';
+import { CODER_DEVELOPER_AGENT_FILE_PATH } from './ensureCoderDeveloperAgentFile';
 import { formatDisplayPath } from './formatDisplayPath';
 import { generatePromptBoilerplate } from './generate-boilerplates';
 import { initializeCoderProjectConfiguration } from './initializeCoderProjectConfiguration';
@@ -34,6 +35,7 @@ export function $initializeCoderInitCommand(program: Program): $side_effect {
             - prompts/
             - prompts/done/
             ${listDefaultCoderProjectPromptTemplateDisplayPaths()}
+            - ${CODER_DEVELOPER_AGENT_FILE_PATH}
             - ${AGENTS_FILE_PATH}
             - ${AGENT_CODING_FILE_PATH}
             - .gitignore

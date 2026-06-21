@@ -366,7 +366,7 @@ async function writeGeneratedPackageIgnoreFiles(packageBasename: string): Promis
     const gitIgnoredPaths = ['esm', 'umd', 'apps'];
 
     if (packageBasename === 'cli') {
-        gitIgnoredPaths.push('books', 'security.config.ts', 'servers.ts', 'src');
+        gitIgnoredPaths.push('agents', 'books', 'security.config.ts', 'servers.ts', 'src');
     }
 
     await writeFile(

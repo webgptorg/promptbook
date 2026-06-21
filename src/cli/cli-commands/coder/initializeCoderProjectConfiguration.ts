@@ -8,6 +8,10 @@ import {
     PROMPTS_TEMPLATES_DIRECTORY_PATH,
 } from './boilerplateTemplates';
 import { ensureCoderEnvFile } from './ensureCoderEnvFile';
+import {
+    CODER_AGENTS_DIRECTORY_PATH,
+    ensureCoderDeveloperAgentFile,
+} from './ensureCoderDeveloperAgentFile';
 import { ensureCoderGitignoreFile } from './ensureCoderGitignoreFile';
 import { ensureCoderMarkdownFile } from './ensureCoderMarkdownFile';
 import { ensureCoderPackageJsonFile } from './ensureCoderPackageJsonFile';
@@ -25,6 +29,8 @@ export type CoderInitializationSummary = {
     readonly promptsDoneDirectoryStatus: InitializationStatus;
     readonly promptsTemplatesDirectoryStatus: InitializationStatus;
     readonly promptTemplateFileStatuses: ReadonlyArray<EnsuredCoderPromptTemplateFile>;
+    readonly agentsDirectoryStatus: InitializationStatus;
+    readonly developerAgentFileStatus: InitializationStatus;
     readonly agentsFileStatus: InitializationStatus;
     readonly agentCodingFileStatus: InitializationStatus;
     readonly envFileStatus: InitializationStatus;
@@ -44,6 +50,8 @@ export async function initializeCoderProjectConfiguration(projectPath: string): 
     const promptsDoneDirectoryStatus = await ensureDirectory(projectPath, PROMPTS_DONE_DIRECTORY_PATH);
     const promptsTemplatesDirectoryStatus = await ensureDirectory(projectPath, PROMPTS_TEMPLATES_DIRECTORY_PATH);
     const promptTemplateFileStatuses = await ensureDefaultCoderPromptTemplateFiles(projectPath);
+    const agentsDirectoryStatus = await ensureDirectory(projectPath, CODER_AGENTS_DIRECTORY_PATH);
+    const developerAgentFileStatus = await ensureCoderDeveloperAgentFile(projectPath);
     const agentsFileStatus = await ensureCoderMarkdownFile(
         projectPath,
         AGENTS_FILE_PATH,
@@ -66,6 +74,8 @@ export async function initializeCoderProjectConfiguration(projectPath: string): 
         promptsDoneDirectoryStatus,
         promptsTemplatesDirectoryStatus,
         promptTemplateFileStatuses,
+        agentsDirectoryStatus,
+        developerAgentFileStatus,
         agentsFileStatus,
         agentCodingFileStatus,
         envFileStatus,

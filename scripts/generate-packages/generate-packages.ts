@@ -167,6 +167,10 @@ async function generatePackages({ isCommitted, isBundlerSkipped }: GeneratePacka
         packageGenerationContext.mainPackageVersion,
     );
     await maybeCopyAgentsServerAppToCliPackage();
+    await copyCliRuntimePathToCliPackage(
+        './agents/default/developer.book',
+        './packages/cli/agents/default/developer.book',
+    );
     await assertGeneratedBundlesArePublishSafe(packageGenerationContext.packagesMetadata, isBundlerSkipped);
     await writePublishWorkflow(packageGenerationContext.packagesMetadata);
     await maybeCommitGeneratedPackages(isCommitted, packageGenerationContext.mainPackageVersion);
@@ -294,6 +298,21 @@ async function maybeCopyAgentsServerAppToCliPackage(): Promise<void> {
     await copyAgentsServerRuntimePathToCliPackage('./security.config.ts', './packages/cli/security.config.ts');
 
     console.info(colors.green('Agents-server app copied successfully'));
+}
+
+/**
+ * Copies one non-bundled runtime asset into the generated CLI package after removing stale output.
+ *
+ * @param sourcePath - Path in the monorepo runtime layout
+ * @param destinationPath - Equivalent path below `packages/cli`
+ * @private internal utility of package generation
+ */
+async function copyCliRuntimePathToCliPackage(sourcePath: string, destinationPath: string): Promise<void> {
+    console.info(`Copying ${sourcePath} to ${destinationPath}`);
+
+    await rm(destinationPath, { recursive: true, force: true });
+    await mkdir(dirname(destinationPath), { recursive: true });
+    await cp(sourcePath, destinationPath, { recursive: true });
 }
 
 /**
