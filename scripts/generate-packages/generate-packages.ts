@@ -427,7 +427,10 @@ async function maybeCommitGeneratedPackages(isCommitted: boolean, mainPackageVer
         return;
     }
 
-    await commit(['src/_packages', 'packages', '.github'], `📦 Generating packages \`${mainPackageVersion}\``);
+    await commit(
+        ['src/_packages', 'packages', './.github/workflows/publish.yml'],
+        `📦 Generating packages \`${mainPackageVersion}\``,
+    );
 }
 
 // Note: [⚫] Code for repository script [generate-packages](scripts/generate-packages/generate-packages.ts) should never be published in any package

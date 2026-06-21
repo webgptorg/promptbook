@@ -1,10 +1,14 @@
 -   Changed `ptbk coder init` to copy the bundled `agents/default/developer.book` into initialized projects as `agents/developer.book`, and updated the generated `coder:run` npm script to pass it via `--agent agents/developer.book`.
 
--   Added automated packaging and release publishing for the Book Editor macOS app:
+-   Added local packaging support for the Book Editor macOS app:
 
     -   Added `npm run build:book-editor-macos`, which installs `apps/book-editor-macos` dependencies, syncs the packaged app version from the root package version during packaging, and builds DMG assets with Electron Builder.
-    -   Added a `publish-book-editor-macos` GitHub Actions workflow that runs on `v*` release tags and uploads generated macOS app assets to the matching GitHub Release.
-    -   Added the command to `.vscode/terminals.json` and documented remaining maintainer steps for signing/notarization in `agents-messages/2026-06-0500-agents-server-macos-book-editor.message.md`.
+    -   Added the command to `.vscode/terminals.json` and documented remaining maintainer steps for signing/notarization and future release automation in `agents-messages/2026-06-0500-agents-server-macos-book-editor.message.md`.
+
+-   Fixed release preparation with GitHub Personal Access Tokens that do not have the `workflow` scope:
+
+    -   Removed the new standalone Book Editor macOS and VSCode extension workflow files from the generated release changes so normal version pushes no longer try to create `.github/workflows/*` files.
+    -   Narrowed `generate-packages --commit` to stage only the generated `.github/workflows/publish.yml` file instead of the whole `.github` directory, preventing unrelated workflow files from being swept into package-generation commits.
 
 -   Replaced Agents Server chat's temporary in-progress pre-answer with durable real-time progress cards. New queued and running assistant placeholders now show actual job state and observed tool-call progress, preserve explicit `agent_progress` updates from the model, and no longer launch the separate generated confirmation response after a user sends a message.
 
@@ -41,7 +45,7 @@
     -   All options from `ptbk coder run` are supported (`--harness`, `--model`, `--thinking-level`, `--context`, `--test`, `--wait`, `--priority`, `--no-commit`, etc.) plus a new `--port` option (or `PTBK_CODER_SERVER_PORT` env var).
     -   The frontend source lives in `apps/coder-server/index.html` and is served inline by the Node.js HTTP server (no build step required).
 
--   Added a VSCode extension (`apps/vscode-extension`) for the Book language that provides syntax highlighting for `.book` and `.ptbk` files. The TextMate grammar (`syntaxes/book.tmLanguage.json`) is dynamically generated from `COMMITMENT_REGISTRY` by running `npm run generate-vscode-grammar`, ensuring the extension always reflects the current set of commitment keywords. Automated publishing to the Visual Studio Code Marketplace is wired through `npm run build:vscode-extension` and `.github/workflows/publish-vscode-extension.yml`, which generate the grammar, sync a Marketplace-safe extension version from the root `package.json`, publish with `vsce`, and upload the VSIX to the matching GitHub Release.
+-   Added a VSCode extension (`apps/vscode-extension`) for the Book language that provides syntax highlighting for `.book` and `.ptbk` files. The TextMate grammar (`syntaxes/book.tmLanguage.json`) is dynamically generated from `COMMITMENT_REGISTRY` by running `npm run generate-vscode-grammar`, ensuring the extension always reflects the current set of commitment keywords. Publishing to the Visual Studio Code Marketplace is available through `npm run build:vscode-extension -- --publish`, which generates the grammar, syncs a Marketplace-safe extension version from the root `package.json`, publishes with `vsce`, and creates the VSIX artifact.
 
 -   Fixed `<BookEditor/>` syntax highlighting incorrectly highlighting the local part of email addresses (e.g. `team@foo.bar`) as agent references. `@`-style references now require whitespace or start-of-line before the `@` sign, so only `@Paul` (with preceding whitespace) is highlighted, not `team@foo.bar`. Removed a now-redundant manual preceding-character check that duplicated this logic.
 
