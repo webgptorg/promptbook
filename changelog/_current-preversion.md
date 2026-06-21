@@ -1,3 +1,5 @@
+-   Fixed timing attack vulnerability in Agents Server admin password verification: all three comparison sites (`isUserGlobalAdmin`, `getCurrentUser`, `authenticateUser`) now use a shared `isAdminPasswordEqual` utility that calls Node.js's `timingSafeEqual` (from the `crypto` module) instead of JavaScript's `===` operator, preventing character-by-character password inference via response-time measurement.
+
 -   Fixed SSRF vulnerability in the Agents Server `/api/scrape` endpoint:
 
     -   The endpoint now requires authentication — unauthenticated requests receive a `401 Unauthorized` response.

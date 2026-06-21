@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { cache } from 'react';
+import { isAdminPasswordEqual } from './isAdminPasswordEqual';
 import { getSession } from './session';
 
 /**
@@ -18,7 +19,8 @@ const getCachedIsUserGlobalAdmin = cache(async (): Promise<boolean> => {
     }
 
     const cookieStore = await cookies();
-    return cookieStore.get('adminToken')?.value === process.env.ADMIN_PASSWORD;
+    const adminToken = cookieStore.get('adminToken')?.value;
+    return adminToken !== undefined && isAdminPasswordEqual(adminToken);
 });
 
 /**

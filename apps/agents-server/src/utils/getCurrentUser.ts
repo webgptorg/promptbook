@@ -3,6 +3,7 @@ import { cache } from 'react';
 import { $getTableName } from '../database/$getTableName';
 import { $provideSupabaseForServer } from '../database/$provideSupabaseForServer';
 import type { AgentsServerDatabase } from '../database/schema';
+import { isAdminPasswordEqual } from './isAdminPasswordEqual';
 import { getSession } from './session';
 
 /**
@@ -75,7 +76,7 @@ const getCachedCurrentUser = cache(async (): Promise<UserInfo | null> => {
     if (process.env.ADMIN_PASSWORD) {
         const cookieStore = await cookies();
         const adminToken = cookieStore.get('adminToken');
-        if (adminToken?.value === process.env.ADMIN_PASSWORD) {
+        if (adminToken?.value !== undefined && isAdminPasswordEqual(adminToken.value)) {
             return {
                 username: 'admin',
                 isAdmin: true,

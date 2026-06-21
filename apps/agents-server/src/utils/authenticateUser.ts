@@ -2,6 +2,7 @@ import { $getTableName } from '../database/$getTableName';
 import { $provideSupabaseForServer } from '../database/$provideSupabaseForServer';
 import { AgentsServerDatabase } from '../database/schema';
 import { verifyPassword } from './auth';
+import { isAdminPasswordEqual } from './isAdminPasswordEqual';
 
 /**
  * Type describing authenticated user.
@@ -17,7 +18,7 @@ export type AuthenticatedUser = {
  */
 export async function authenticateUser(username: string, password: string): Promise<AuthenticatedUser | null> {
     // 1. Check if it's the environment admin
-    if (username === 'admin' && process.env.ADMIN_PASSWORD && password === process.env.ADMIN_PASSWORD) {
+    if (username === 'admin' && isAdminPasswordEqual(password)) {
         return { username: 'admin', isAdmin: true, isGlobalAdmin: true };
     }
 
