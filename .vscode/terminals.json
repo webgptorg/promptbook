@@ -444,7 +444,7 @@
         },
         {
             "name": "⚡🔎 Find unwritten prompts",
-            "command": "npx ts-node ./src/cli/test/ptbk.ts coder run --dry-run",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder find-unwritten",
             "execute": true,
             "onlySingle": false,
             "focus": false
