@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/remote-client",
-    "version": "0.112.0-123",
+    "version": "0.112.0-120",
     "description": "Promptbook: Create persistent AI agents that turn your company's scattered knowledge into action",
     "private": false,
     "sideEffects": false,
@@ -104,6 +104,12 @@
     "types": "./esm/src/_packages/remote-client.index.d.ts",
     "typings": "./esm/src/_packages/remote-client.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.112.0-123"
+        "@promptbook/core": "0.112.0-120"
+    },
+    "dependencies": {
+        "crypto-js": "4.2.0",
+        "papaparse": "5.4.1",
+        "socket.io-client": "4.7.5",
+        "spacetrim": "0.11.60"
     }
 }
