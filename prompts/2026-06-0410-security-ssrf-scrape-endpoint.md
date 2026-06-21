@@ -1,4 +1,4 @@
-[ ]
+[x] $0.5652 an hour by Claude Code
 
 [🔐] Fix SSRF vulnerability in unauthenticated `/api/scrape` endpoint of Agents Server
 
@@ -9,3 +9,4 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

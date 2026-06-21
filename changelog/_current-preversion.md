@@ -1,3 +1,8 @@
+-   Fixed SSRF vulnerability in the Agents Server `/api/scrape` endpoint:
+
+    -   The endpoint now requires authentication — unauthenticated requests receive a `401 Unauthorized` response.
+    -   Added URL validation via a new `assertSafeUrl` utility that rejects non-HTTP(S) schemes and destination hostnames that resolve to private/internal IP ranges (RFC 1918: `10.x`, `172.16–31.x`, `192.168.x`; loopback `127.x`; link-local / cloud-metadata `169.254.x`; shared address space `100.64.x`; IPv6 ULA, link-local, and loopback). Blocked requests receive a `400 Bad Request` response.
+
 -   Fixed package publishing for `@promptbook/cli` by marking the `ptbk coder server` HTTP/UI helpers as CLI-only instead of never-publishable, matching the existing CLI command import chain.
 
 -   Added `ptbk coder find-unwritten` command that lists all prompt sections whose body still contains the `@@@` authoring placeholder:
