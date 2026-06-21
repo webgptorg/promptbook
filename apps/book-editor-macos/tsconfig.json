@@ -13,7 +13,7 @@
         "resolveJsonModule": true,
         "isolatedModules": true,
         "paths": {
-            "@promptbook-local/components": ["../../src/_packages/components.index.ts"],
+            "@promptbook-local/components": ["../../src/book-components/BookEditor/BookEditor.tsx"],
             "@promptbook-local/types": ["../../src/_packages/types.index.ts"]
         }
     },

@@ -10,11 +10,12 @@
         "build:renderer": "vite build --config vite.config.ts",
         "build:main": "tsc -p tsconfig.node.json",
         "build": "npm run build:renderer && npm run build:main",
-        "package": "npm run build && electron-builder"
+        "package": "npm run build && electron-builder --mac dmg --x64 --arm64"
     },
     "build": {
         "appId": "io.ptbk.book-editor",
         "productName": "Book Editor",
+        "artifactName": "Promptbook-Book-Editor-${version}-${arch}.${ext}",
         "mac": {
             "target": "dmg",
             "category": "public.app-category.developer-tools",

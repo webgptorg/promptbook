@@ -1,3 +1,9 @@
+-   Added automated packaging and release publishing for the Book Editor macOS app:
+
+    -   Added `npm run build:book-editor-macos`, which installs `apps/book-editor-macos` dependencies, syncs the packaged app version from the root package version during packaging, and builds DMG assets with Electron Builder.
+    -   Added a `publish-book-editor-macos` GitHub Actions workflow that runs on `v*` release tags and uploads generated macOS app assets to the matching GitHub Release.
+    -   Added the command to `.vscode/terminals.json` and documented remaining maintainer steps for signing/notarization in `agents-messages/2026-06-0500-agents-server-macos-book-editor.message.md`.
+
 -   Replaced Agents Server chat's temporary in-progress pre-answer with durable real-time progress cards. New queued and running assistant placeholders now show actual job state and observed tool-call progress, preserve explicit `agent_progress` updates from the model, and no longer launch the separate generated confirmation response after a user sends a message.
 
 -   Fixed timing attack vulnerability in Agents Server admin password verification: all three comparison sites (`isUserGlobalAdmin`, `getCurrentUser`, `authenticateUser`) now use a shared `isAdminPasswordEqual` utility that calls Node.js's `timingSafeEqual` (from the `crypto` module) instead of JavaScript's `===` operator, preventing character-by-character password inference via response-time measurement.

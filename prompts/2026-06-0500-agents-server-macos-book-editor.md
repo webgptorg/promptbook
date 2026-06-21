@@ -11,7 +11,7 @@
 
 ---
 
-[ ] !
+[x] ~$0.00 an hour by OpenAI Codex `gpt-5.5`
 
 [✨✏️] Add script(s) to automate the build and publishing of the MacOS app
 
@@ -21,3 +21,4 @@
 -   If there is some things which I need to do as a user, create [file with the instructions](agents-messages/2026-06-0500-agents-server-macos-book-editor.message.md)
 -   Do a proper analysis of the current functionality before you start implementing.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle
+

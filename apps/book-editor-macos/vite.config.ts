@@ -12,7 +12,7 @@ export default defineConfig({
     resolve: {
         alias: {
             // [🔁] Map the local package aliases used throughout the repo to their source files
-            '@promptbook-local/components': path.resolve(__dirname, '../../src/_packages/components.index.ts'),
+            '@promptbook-local/components': path.resolve(__dirname, '../../src/book-components/BookEditor/BookEditor.tsx'),
             '@promptbook-local/types': path.resolve(__dirname, '../../src/_packages/types.index.ts'),
         },
     },

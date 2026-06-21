@@ -167,6 +167,13 @@
             "focus": true
         },
         {
+            "name": "🏭🍎 Build Book Editor macOS app (💤)(⏳)",
+            "command": "npm run build:book-editor-macos",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
             "name": "🧸🔠 Run Playground web app",
             "cwd": "./apps/playground/",
             "commands": ["unset OPENAI_API_KEY && unset OPENAI_BASE_URL", "npm run dev"],
