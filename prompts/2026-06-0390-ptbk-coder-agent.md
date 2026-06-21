@@ -3,7 +3,7 @@
 [✨😇] Allow to specify an agent for `ptbk coder run`
 
 ```bash
-ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --agent agents/coding-expert.book
+ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --agent agents/coding-expert.book
 ```
 
 -   It is possible to specify all of the `--context` and `--agent`, both will be used for creating the prompt for the agent
@@ -12,3 +12,10 @@ ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh -
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
+---
+
+[ ]
+
+[✨😇] The `ptbk coder init` should create a agent and in the script use `--agent`
+
+-   It should copy agent from here (the Promptbook) `agents/default/developer.book` into the project where `ptbk coder init` is run into `agents/developer.book` and use it in the script with `--agent agents/developer.book` flag

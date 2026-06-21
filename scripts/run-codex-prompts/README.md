@@ -51,7 +51,7 @@ ptbk coder run --dry-run
 ptbk coder run --harness openai-codex --model gpt-5.2-codex
 
 # Run with project instructions loaded from AGENTS.md
-ptbk coder run --harness openai-codex --model gpt-5.2-codex --context AGENTS.md
+ptbk coder run --harness openai-codex --model gpt-5.2-codex --agent agents/coding/developer.book --context AGENTS.md
 
 # Run with one-off inline instructions
 ptbk coder run --harness openai-codex --model gpt-5.2-codex --context "Focus only on src/cli"
@@ -60,13 +60,13 @@ ptbk coder run --harness openai-codex --model gpt-5.2-codex --context "Focus onl
 ptbk coder run --harness openai-codex --model gpt-5.2-codex --allow-credits
 
 # Run with explicit post-commit git pushing
-ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --auto-push
+ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --auto-push
 
 # Run with GitHub Copilot
 ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --no-wait
 
 # Run with plain streaming output for logging/debugging
-ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --no-ui
+ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --no-ui
 
 # Run with Gemini
 ptbk coder run --harness gemini --model gemini-3-flash-preview --no-wait
