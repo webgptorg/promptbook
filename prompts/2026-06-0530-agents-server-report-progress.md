@@ -1,4 +1,4 @@
-[ ] !!
+[x] ~$0.00 2 hours by OpenAI Codex `gpt-5.5`
 
 [✨🖖] Do not show some bullshit temporary message but real progress of the agent
 
@@ -7,3 +7,4 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

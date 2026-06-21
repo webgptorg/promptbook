@@ -1,3 +1,5 @@
+-   Replaced Agents Server chat's temporary in-progress pre-answer with durable real-time progress cards. New queued and running assistant placeholders now show actual job state and observed tool-call progress, preserve explicit `agent_progress` updates from the model, and no longer launch the separate generated confirmation response after a user sends a message.
+
 -   Fixed timing attack vulnerability in Agents Server admin password verification: all three comparison sites (`isUserGlobalAdmin`, `getCurrentUser`, `authenticateUser`) now use a shared `isAdminPasswordEqual` utility that calls Node.js's `timingSafeEqual` (from the `crypto` module) instead of JavaScript's `===` operator, preventing character-by-character password inference via response-time measurement.
 
 -   Fixed SSRF vulnerability in the Agents Server `/api/scrape` endpoint:

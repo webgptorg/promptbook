@@ -4,6 +4,7 @@ import type { ChatPromptResult } from '../../../../../src/execution/PromptResult
 import { mergeToolCalls } from '../../../../../src/utils/toolCalls/mergeToolCalls';
 import { persistUserChatJobTerminalState } from './persistUserChatJobTerminalState';
 import { updateUserChatAssistantMessage } from './updateUserChatAssistantMessage';
+import { createRunningUserChatProgressCard } from './userChatProgressCard';
 import { USER_CHAT_JOB_ASSISTANT_MESSAGE_PERSIST_INTERVAL_MS } from './userChatJobRuntimeConstants';
 import type { UserChatJobRecord } from './UserChatJobRecord';
 
@@ -43,6 +44,14 @@ export function createRunUserChatJobPersistenceController(options: {
     let lastPersistedAssistantSnapshotSignature: string | null = null;
     let hasPendingAssistantMessageUpdate = false;
     let assistantMessageUpdateTimeout: ReturnType<typeof setTimeout> | null = null;
+
+    /**
+     * Creates a typed ISO timestamp for progress-card updates.
+     *
+     * @private function of `createRunUserChatJobPersistenceController`
+     */
+    const createProgressUpdatedAt = (): NonNullable<ChatMessage['progressCard']>['updatedAt'] =>
+        new Date().toISOString() as NonNullable<ChatMessage['progressCard']>['updatedAt'];
 
     /**
      * Queues one assistant-message mutation behind any earlier persistence work.
@@ -132,6 +141,12 @@ export function createRunUserChatJobPersistenceController(options: {
                 lifecycleState: 'running',
                 lifecycleError: undefined,
                 isComplete: false,
+                progressCard: createRunningUserChatProgressCard({
+                    currentProgressCard: message.progressCard,
+                    content: latestContent,
+                    toolCalls: latestToolCalls,
+                    updatedAt: createProgressUpdatedAt(),
+                }),
                 prompt: options.createPromptSnapshot({
                     toolCalls: latestToolCalls,
                 }),
@@ -186,6 +201,12 @@ export function createRunUserChatJobPersistenceController(options: {
                     lifecycleState: 'running',
                     lifecycleError: undefined,
                     isComplete: false,
+                    progressCard: createRunningUserChatProgressCard({
+                        currentProgressCard: message.progressCard,
+                        content: latestContent,
+                        toolCalls: latestToolCalls,
+                        updatedAt: createProgressUpdatedAt(),
+                    }),
                     availableTools: options.availableTools,
                     prompt: options.createPromptSnapshot(),
                 }),

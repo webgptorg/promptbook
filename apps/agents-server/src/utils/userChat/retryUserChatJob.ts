@@ -1,11 +1,13 @@
 import type { UserChatJobRecord } from './UserChatJobRecord';
 import type { UserChatJobRow } from './UserChatJobRow';
 import type { Json } from '@/src/database/schema';
+import type { ChatMessage } from '@promptbook-local/types';
 import { withoutLocalUserChatJobMetadata } from '../localChatRunner/LocalUserChatJobMetadata';
 import { getUserChatJobById } from './getUserChatJobById';
 import { mapUserChatJobRow } from './mapUserChatJobRow';
 import { provideUserChatJobTable } from './provideUserChatJobTable';
 import { updateUserChatAssistantMessage } from './updateUserChatAssistantMessage';
+import { createQueuedUserChatProgressCard } from './userChatProgressCard';
 
 /**
  * Requeues one failed durable chat job and resets its assistant placeholder.
@@ -23,6 +25,7 @@ export async function retryUserChatJob(jobId: string): Promise<UserChatJobRecord
     }
 
     const nowIso = new Date().toISOString();
+    const progressUpdatedAt = nowIso as NonNullable<ChatMessage['progressCard']>['updatedAt'];
     const userChatJobTable = await provideUserChatJobTable();
     const { data, error } = await userChatJobTable
         .update({
@@ -67,6 +70,7 @@ export async function retryUserChatJob(jobId: string): Promise<UserChatJobRecord
             completedToolCalls: undefined,
             prompt: undefined,
             generationDurationMs: undefined,
+            progressCard: createQueuedUserChatProgressCard(progressUpdatedAt),
         }),
     });
 

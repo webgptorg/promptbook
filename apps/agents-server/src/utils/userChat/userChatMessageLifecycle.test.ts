@@ -52,6 +52,22 @@ describe('userChatMessageLifecycle', () => {
             jobId: 'job-1',
             lifecycleState: 'queued',
             isComplete: false,
+            progressCard: {
+                title: 'Agent Progress',
+                now: 'Your message is queued for the agent runner.',
+                items: [
+                    {
+                        id: 'user-chat-job-progress-queued',
+                        text: 'Request added to the chat queue',
+                        status: 'completed',
+                    },
+                    {
+                        id: 'user-chat-job-progress-waiting-for-runner',
+                        text: 'Waiting for an available agent runner',
+                        status: 'pending',
+                    },
+                ],
+            },
         });
     });
 
