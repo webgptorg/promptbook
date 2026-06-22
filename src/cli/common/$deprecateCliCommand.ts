@@ -1,5 +1,6 @@
 import colors from 'colors';
 import { Command } from 'commander';
+import { spaceTrim } from 'spacetrim';
 import type { $side_effect } from '../../utils/organization/$side_effect';
 
 /**
@@ -8,7 +9,15 @@ import type { $side_effect } from '../../utils/organization/$side_effect';
  * @private utility of CLI
  */
 export function $deprecateCliCommand(command: Command, deprecationMessage: string): $side_effect {
-    command.description(`${command.description()}\n\nDeprecated: ${deprecationMessage}`);
+    command.description(
+        spaceTrim(
+            (block) => `
+                ${block(command.description())}
+
+                Deprecated: ${block(deprecationMessage)}
+            `,
+        ),
+    );
     command.hook('preAction', () => {
         console.warn(colors.yellow(createDeprecatedCliCommandWarning(command, deprecationMessage)));
     });

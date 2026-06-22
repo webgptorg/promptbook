@@ -4,6 +4,7 @@
 import colors from 'colors';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
+import { spaceTrim } from 'spacetrim';
 import { COMMITMENT_REGISTRY } from '../../src/commitments/index';
 import { GENERATOR_WARNING } from '../../src/config';
 import { assertsError } from '../../src/errors/assertsError';
@@ -11,13 +12,13 @@ import { assertsError } from '../../src/errors/assertsError';
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(
         colors.red(
-            [
-                `CWD must be root of the project`,
-                ``,
-                `Script: generate-vscode-grammar.ts`,
-                `Current CWD: ${process.cwd()}`,
-                `Expected CWD: ${join(__dirname, '../..')}`,
-            ].join('\n'),
+            spaceTrim(`
+                CWD must be root of the project
+
+                Script: generate-vscode-grammar.ts
+                Current CWD: ${process.cwd()}
+                Expected CWD: ${join(__dirname, '../..')}
+            `),
         ),
     );
     process.exit(1);

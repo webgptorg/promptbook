@@ -69,7 +69,13 @@ function removeLeadingTopLevelHeading(markdown: string): string {
  * @private internal utility of `createStandaloneBookLanguageMarkdown`
  */
 function renderDocumentationSection(title: string, documentation: string): string {
-    return `#### ${title}\n\n${removeLeadingTopLevelHeading(documentation)}`;
+    return spaceTrim(
+        (block) => `
+            #### ${title}
+
+            ${block(removeLeadingTopLevelHeading(documentation))}
+        `,
+    );
 }
 
 /**

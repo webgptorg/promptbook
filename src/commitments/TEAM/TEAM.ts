@@ -448,7 +448,18 @@ function buildTeammateMetadata(entry: TeamToolEntry): TeamToolResult['teammate']
  * Builds the teammate request text, optionally including context.
  */
 function buildTeammateRequest(message: string, context?: string): string {
-    return context ? `${message}\n\nContext:\n${context}` : message;
+    if (!context) {
+        return message;
+    }
+
+    return spaceTrim(
+        (block) => `
+            ${block(message)}
+
+            Context:
+            ${block(context)}
+        `,
+    );
 }
 
 /**

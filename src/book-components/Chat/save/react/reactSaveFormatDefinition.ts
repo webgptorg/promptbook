@@ -19,7 +19,13 @@ const PROMPTBOOK_REACT_EXPORT_BRANDING_COMMENT = createPromptbookReactExportBran
 function createPromptbookReactExportBrandingComment(): string {
     const branding = getPromptbookExportBranding();
 
-    return ['/*', ...branding.commentLines.map((line) => ` * ${line}`), ' */'].join('\n');
+    return spaceTrim(
+        (block) => `
+            /*
+            ${block(branding.commentLines.map((line) => ` * ${line}`).join('\n'))}
+             */
+        `,
+    );
 }
 
 /**

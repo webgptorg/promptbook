@@ -1,4 +1,5 @@
 import { createAgentModelRequirements, parseAgentSource } from '@promptbook-local/core';
+import { spaceTrim } from 'spacetrim';
 import type { AgentReferenceResolver } from '../../../../../src/book-2.0/agent-source/AgentReferenceResolver';
 import { resolvePseudoAgentKindFromUrl } from '../../../../../src/book-2.0/agent-source/pseudoAgentReferences';
 import type { string_book } from '../../../../../src/book-2.0/agent-source/string_book';
@@ -140,15 +141,9 @@ async function createTranspiledTeamAgentFromSource(options: {
     readonly agentReferenceResolver: AgentReferenceResolver;
     readonly isRootAgent: boolean;
 }): Promise<TranspiledTeamAgent> {
-    const modelRequirements = await createAgentModelRequirements(
-        options.agentSource,
-        undefined,
-        undefined,
-        undefined,
-        {
-            agentReferenceResolver: options.agentReferenceResolver,
-        },
-    );
+    const modelRequirements = await createAgentModelRequirements(options.agentSource, undefined, undefined, undefined, {
+        agentReferenceResolver: options.agentReferenceResolver,
+    });
     const parsedAgentSource = parseAgentSource(options.agentSource);
     const agentName = parsedAgentSource.agentName || options.agentUrl;
 
@@ -174,7 +169,12 @@ function createPseudoTranspiledTeamAgent(teammate: TranspiledTeamTeammate): Tran
         pseudoAgentKind === 'USER'
             ? 'This pseudo-agent represents the human user. Ask for exactly one reply from the user.'
             : 'This pseudo-agent represents silence and intentionally does not answer.';
-    const agentSource = `${teammate.label}\n\nNOTE Built-in ${pseudoAgentKind || 'pseudo'} TEAM pseudo-agent.\nCLOSED`;
+    const agentSource = spaceTrim(`
+        ${teammate.label}
+
+        NOTE Built-in ${pseudoAgentKind || 'pseudo'} TEAM pseudo-agent.
+        CLOSED
+    `);
 
     return {
         url: teammate.url,

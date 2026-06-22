@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { decodeAttachmentAsText, DEFAULT_ATTACHMENT_TEXT_DECODE_BYTES } from '../../files/decodeAttachmentAsText';
 import { readResponseBytes } from '../../files/readResponseBytes';
 import { isUrlOnPrivateNetwork } from '../../validators/url/isUrlOnPrivateNetwork';
@@ -34,7 +35,13 @@ function truncateAttachmentInlineText(
     }
 
     return {
-        content: `${content.slice(0, Math.max(0, maxCharacters))}\n\n[...truncated...]`,
+        content: spaceTrim(
+            (block) => `
+                ${block(content.slice(0, Math.max(0, maxCharacters)))}
+
+                [...truncated...]
+            `,
+        ),
         isTruncated: true,
     };
 }

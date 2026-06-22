@@ -1,4 +1,5 @@
 import { spawn } from 'child_process';
+import { spaceTrim } from 'spacetrim';
 import type { RunScriptUntilMarkerIdleOptions } from './RunScriptUntilMarkerIdleOptions';
 import {
     appendScriptExecutionLogFinish,
@@ -22,7 +23,13 @@ function createOutputSnippet(output: string): string {
         return normalized;
     }
 
-    return `${normalized.slice(0, OUTPUT_SNIPPET_MAX_CHARS)}\n\n...[truncated]`;
+    return spaceTrim(
+        (block) => `
+            ${block(normalized.slice(0, OUTPUT_SNIPPET_MAX_CHARS))}
+
+            ...[truncated]
+        `,
+    );
 }
 
 /**
@@ -35,7 +42,13 @@ function buildCommandFailureMessage(scriptPathPosix: string, code: number | null
         return `Command "bash ${scriptPathPosix}" exited with code ${code ?? 'unknown'}`;
     }
 
-    return `Command "bash ${scriptPathPosix}" exited with code ${code ?? 'unknown'}\n\n${outputSnippet}`;
+    return spaceTrim(
+        (block) => `
+            Command "bash ${scriptPathPosix}" exited with code ${code ?? 'unknown'}
+
+            ${block(outputSnippet)}
+        `,
+    );
 }
 
 /**
@@ -163,7 +176,9 @@ export async function runScriptUntilMarkerIdle(options: RunScriptUntilMarkerIdle
          */
         const handleExit = (code: number | null): void => {
             const failure =
-                code === 0 || markerSeen ? undefined : new Error(buildCommandFailureMessage(scriptPathPosix, code, fullOutput));
+                code === 0 || markerSeen
+                    ? undefined
+                    : new Error(buildCommandFailureMessage(scriptPathPosix, code, fullOutput));
             const status = failure ? `failed with exit code ${code ?? 'unknown'}` : 'succeeded';
 
             settleWithLog(status, () => {
@@ -184,8 +199,16 @@ export async function runScriptUntilMarkerIdle(options: RunScriptUntilMarkerIdle
         });
         commandProcess.on('error', (error) => {
             const outputSnippet = createOutputSnippet(fullOutput);
-            const details = outputSnippet ? `\n\n${outputSnippet}` : '';
-            const failure = new Error(`Command "bash ${scriptPathPosix}" failed: ${error.message}${details}`);
+            const failureMessage = outputSnippet
+                ? spaceTrim(
+                      (block) => `
+                          Command "bash ${scriptPathPosix}" failed: ${error.message}
+
+                          ${block(outputSnippet)}
+                      `,
+                  )
+                : `Command "bash ${scriptPathPosix}" failed: ${error.message}`;
+            const failure = new Error(failureMessage);
             settleWithLog('failed before completion', () => reject(failure), failure);
         });
     });

@@ -460,7 +460,13 @@ function truncateAttachmentToolContent(content: string, warnings: string[]): str
     }
 
     warnings.push(`Returned content was truncated to ${MAX_ATTACHED_FILE_OUTPUT_CHARACTERS} characters.`);
-    return `${content.slice(0, MAX_ATTACHED_FILE_OUTPUT_CHARACTERS)}\n\n[...truncated...]`;
+    return spaceTrim(
+        (block) => `
+            ${block(content.slice(0, MAX_ATTACHED_FILE_OUTPUT_CHARACTERS))}
+
+            [...truncated...]
+        `,
+    );
 }
 
 /**
@@ -583,9 +589,7 @@ function normalizeBoundedInteger(
     }
 
     if (parsed < min || parsed > max) {
-        throw new LimitReachedError(
-            `Tool argument \`${fieldName}\` must be between \`${min}\` and \`${max}\`.`,
-        );
+        throw new LimitReachedError(`Tool argument \`${fieldName}\` must be between \`${min}\` and \`${max}\`.`);
     }
 
     return parsed;

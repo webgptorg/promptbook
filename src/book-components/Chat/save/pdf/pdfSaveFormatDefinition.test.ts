@@ -1,5 +1,6 @@
 /** @jest-environment jsdom */
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { spaceTrim } from 'spacetrim';
 import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../../../../version';
 import { pdfSaveFormatDefinition } from './pdfSaveFormatDefinition';
 
@@ -187,7 +188,18 @@ describe('pdfSaveFormatDefinition', () => {
                 {
                     id: 'message-1',
                     sender: 'ASSISTANT',
-                    content: `# Summary\n\n- First\n- Second\n\n**${DIACRITIC_CHAT_TEXT}** with \`inline code\`.\n\n\`\`\`ts\nconsole.log("hello");\n\`\`\``,
+                    content: spaceTrim(`
+                        # Summary
+
+                        - First
+                        - Second
+
+                        **${DIACRITIC_CHAT_TEXT}** with \`inline code\`.
+
+                        \`\`\`ts
+                        console.log("hello");
+                        \`\`\`
+                    `),
                     isComplete: true,
                 },
             ],

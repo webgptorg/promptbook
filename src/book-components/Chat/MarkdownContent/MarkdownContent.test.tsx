@@ -2,6 +2,7 @@
 
 import { describe, expect, it } from '@jest/globals';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { spaceTrim } from 'spacetrim';
 
 jest.mock('../CodeBlock/CodeBlock', () => ({
     CodeBlock: ({ code, language }: { code: string; language?: string }) => (
@@ -53,9 +54,17 @@ describe('MarkdownContent details rendering', () => {
     it('renders markdown inside details blocks', async () => {
         const { container } = render(
             <MarkdownContent
-                content={
-                    '<details open><summary>Tool response</summary>\n- First item\n- Second item\n\n```ts\nconst value = 1;\n```\n\n[Read docs](https://example.com)</details>'
-                }
+                content={spaceTrim(`
+                    <details open><summary>Tool response</summary>
+                    - First item
+                    - Second item
+
+                    \`\`\`ts
+                    const value = 1;
+                    \`\`\`
+
+                    [Read docs](https://example.com)</details>
+                `)}
             />,
         );
 
@@ -74,11 +83,13 @@ describe('MarkdownContent details rendering', () => {
     it('sanitizes rendered HTML before inserting it into the DOM', () => {
         const { container } = render(
             <MarkdownContent
-                content={[
-                    '<img src="https://example.com/safe.png" onerror=\'alert(1)\' alt="Safe image">',
-                    '<a href="jav&#x61;script:alert(1)">Bad link</a>',
-                    '<svg><g onload=alert(1)></g></svg>',
-                ].join('\n\n')}
+                content={spaceTrim(`
+                    <img src="https://example.com/safe.png" onerror='alert(1)' alt="Safe image">
+
+                    <a href="jav&#x61;script:alert(1)">Bad link</a>
+
+                    <svg><g onload=alert(1)></g></svg>
+                `)}
             />,
         );
 

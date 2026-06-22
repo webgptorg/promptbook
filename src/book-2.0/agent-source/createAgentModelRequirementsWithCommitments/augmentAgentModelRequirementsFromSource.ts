@@ -282,12 +282,28 @@ function collectExampleInteractionLines(
     const initialMessage = parseResult.commitments.find((commitment) => commitment.type === 'INITIAL MESSAGE')?.content;
 
     if (initialMessage) {
-        examples.push(`**Agent:**\n${initialMessage}`);
+        examples.push(
+            spaceTrim(
+                (block) => `
+                    **Agent:**
+                    ${block(initialMessage)}
+                `,
+            ),
+        );
     }
 
     if (samples && samples.length > 0) {
         for (const sample of samples) {
-            examples.push(`**User:** ${sample.question}\n\n**Agent:**\n${sample.answer}`);
+            examples.push(
+                spaceTrim(
+                    (block) => `
+                        **User:** ${block(String(sample.question))}
+
+                        **Agent:**
+                        ${block(sample.answer)}
+                    `,
+                ),
+            );
         }
     }
 

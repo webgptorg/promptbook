@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { mimeTypeToExtension } from '../utils/files/mimeTypeToExtension';
 import type { FileImportPlugin } from './FileImportPlugin';
 
@@ -23,6 +24,12 @@ export const TextFileImportPlugin: FileImportPlugin = {
         const extension = mimeTypeToExtension(mimeType);
         const codeBlockType = extension || 'txt';
 
-        return `\`\`\`${codeBlockType}\n${content}\n\`\`\``;
+        return spaceTrim(
+            (block) => `
+                \`\`\`${codeBlockType}
+                ${block(content)}
+                \`\`\`
+            `,
+        );
     },
 };

@@ -70,8 +70,13 @@ export class LanguageCommitmentDefinition extends BaseCommitmentDefinition<'LANG
             return requirements;
         }
 
-        // Add language as a bullet under a ## Language section
-        const languageSection = `## Language\n\n-   Your language is ${trimmedContent}`;
+        const languageSection = spaceTrim(
+            (block) => `
+                ## Language
+
+                -   Your language is ${block(trimmedContent)}
+            `,
+        );
 
         return this.appendToSystemMessage(requirements, languageSection, '\n\n');
     }

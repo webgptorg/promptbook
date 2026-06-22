@@ -101,8 +101,13 @@ export class GoalCommitmentDefinition extends BaseCommitmentDefinition<'GOAL' | 
             return requirements;
         }
 
-        // Add goal as a proper h2 section to the system message
-        const goalSection = `## Goal\n\n${trimmedContent}`;
+        const goalSection = spaceTrim(
+            (block) => `
+                ## Goal
+
+                ${block(trimmedContent)}
+            `,
+        );
         const requirementsWithGoal = this.appendToSystemMessage(requirements, goalSection, '\n\n');
 
         return this.appendToPromptSuffix(requirementsWithGoal, trimmedContent);

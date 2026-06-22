@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { ensureProjectEnvFile, type EnsureProjectEnvFileResult } from '../common/projectInitialization';
 
 /**
@@ -70,10 +71,20 @@ function createAgentsServerEnvVariable(name: string, value: string): RequiredAge
  */
 function buildMissingEnvVariablesBlock(variables: ReadonlyArray<RequiredAgentsServerEnvVariable>): string {
     const variableBlocks = variables.map(({ documentationUrl, name, value }) =>
-        [AGENTS_SERVER_ENV_CREATED_COMMENT, `# Documentation: ${documentationUrl}`, `${name}=${value}`].join('\n'),
+        spaceTrim(`
+            ${AGENTS_SERVER_ENV_CREATED_COMMENT}
+            # Documentation: ${documentationUrl}
+            ${name}=${value}
+        `),
     );
 
-    return ['# Promptbook Agents Server', ...variableBlocks].join('\n\n');
+    return spaceTrim(
+        (block) => `
+            # Promptbook Agents Server
+
+            ${block(variableBlocks.join('\n\n'))}
+        `,
+    );
 }
 
 // Note: [🟡] Code for Agents Server environment bootstrapping [ensureAgentsServerEnvFile](src/cli/cli-commands/agents-server/ensureAgentsServerEnvFile.ts) should never be published outside of `@promptbook/cli`

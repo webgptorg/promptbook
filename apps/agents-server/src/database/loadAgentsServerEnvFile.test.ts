@@ -1,6 +1,7 @@
 import { mkdtempSync, rmSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
+import { spaceTrim } from 'spacetrim';
 import { AGENTS_SERVER_ENV_FILE_ENV_NAME, loadAgentsServerEnvFile } from './loadAgentsServerEnvFile';
 
 /**
@@ -26,11 +27,11 @@ describe('loadAgentsServerEnvFile', () => {
 
         writeFileSync(
             envFilePath,
-            [
-                'PTBK_AGENTS_SERVER_DATABASE=sqlite',
-                `PTBK_AGENTS_SERVER_SQLITE_PATH=${expectedSqlitePath}`,
-                'SUPABASE_TABLE_PREFIX=server_Installed_',
-            ].join('\n'),
+            spaceTrim(`
+                PTBK_AGENTS_SERVER_DATABASE=sqlite
+                PTBK_AGENTS_SERVER_SQLITE_PATH=${expectedSqlitePath}
+                SUPABASE_TABLE_PREFIX=server_Installed_
+            `),
             'utf-8',
         );
 

@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../../../../version';
 import { htmlSaveFormatDefinition } from './htmlSaveFormatDefinition';
 
@@ -21,8 +22,22 @@ describe('htmlSaveFormatDefinition', () => {
                 {
                     id: 'message-1',
                     sender: 'ASSISTANT',
-                    content:
-                        '# Summary\n\n- First\n- Second\n\n```ts\nconsole.log("hello");\n```\n\n<details><summary>More</summary>\n\n**Nested** body\n\n</details>',
+                    content: spaceTrim(`
+                        # Summary
+
+                        - First
+                        - Second
+
+                        \`\`\`ts
+                        console.log("hello");
+                        \`\`\`
+
+                        <details><summary>More</summary>
+
+                        **Nested** body
+
+                        </details>
+                    `),
                     isComplete: true,
                 },
             ],
@@ -107,12 +122,15 @@ describe('htmlSaveFormatDefinition', () => {
                 {
                     id: 'message-1',
                     sender: 'ASSISTANT',
-                    content: [
-                        '<details open ontoggle=alert(1)><summary>Safe summary</summary>Safe body</details>',
-                        '<img src="https://example.com/safe.png" onerror=\'alert(1)\' alt="Safe image">',
-                        '<a href="jav&#x61;script:alert(1)">Bad link</a>',
-                        '<svg><g onload=alert(1)></g></svg>',
-                    ].join('\n\n'),
+                    content: spaceTrim(`
+                        <details open ontoggle=alert(1)><summary>Safe summary</summary>Safe body</details>
+
+                        <img src="https://example.com/safe.png" onerror='alert(1)' alt="Safe image">
+
+                        <a href="jav&#x61;script:alert(1)">Bad link</a>
+
+                        <svg><g onload=alert(1)></g></svg>
+                    `),
                     isComplete: true,
                 },
             ],

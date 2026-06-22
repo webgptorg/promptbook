@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { createAgentModelRequirements } from '../../../src/book-2.0/agent-source/createAgentModelRequirements';
 import type { AgentModelRequirements } from '../../../src/book-2.0/agent-source/AgentModelRequirements';
 import type { string_book } from '../../../src/book-2.0/agent-source/string_book';
@@ -13,13 +14,19 @@ export async function createAgentRunnerSystemMessage(agentSource: string_book): 
  * Formats prepared model requirements for a text-only CLI harness prompt.
  */
 export function formatAgentModelRequirementsForRunner(modelRequirements: AgentModelRequirements): string {
+    const promptSuffix = modelRequirements.promptSuffix.trim();
+
     return [
         modelRequirements.systemMessage.trim(),
-        modelRequirements.promptSuffix.trim()
-            ? `## Prompt suffix\n${modelRequirements.promptSuffix.trim()}`
+        promptSuffix
+            ? spaceTrim(
+                  (block) => `
+                      ## Prompt suffix
+                      ${block(promptSuffix)}
+                  `,
+              )
             : '',
     ]
         .filter(Boolean)
         .join('\n\n');
 }
-

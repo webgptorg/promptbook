@@ -1,17 +1,18 @@
 import { describe, expect, it } from '@jest/globals';
+import { spaceTrim } from 'spacetrim';
 import { renderMarkdown } from './renderMarkdown';
 
 describe('renderMarkdown sanitization', () => {
     it('removes raw active HTML while preserving supported details markup', () => {
         const html = renderMarkdown(
-            [
-                '<script>alert(1)</script>',
-                '<style>body{display:none;}</style>',
-                '<details open ontoggle=alert(1)>',
-                '<summary>Debug</summary>',
-                '<img src="https://example.com/safe.png" onerror=\'alert(1)\' alt="Safe image">',
-                '</details>',
-            ].join('\n'),
+            spaceTrim(`
+                <script>alert(1)</script>
+                <style>body{display:none;}</style>
+                <details open ontoggle=alert(1)>
+                <summary>Debug</summary>
+                <img src="https://example.com/safe.png" onerror='alert(1)' alt="Safe image">
+                </details>
+            `),
         ) as string;
 
         expect(html).toContain('<details');
@@ -25,12 +26,15 @@ describe('renderMarkdown sanitization', () => {
 
     it('removes dangerous URL payloads and disallowed raw SVG markup', () => {
         const html = renderMarkdown(
-            [
-                '[Safe link](https://example.com/docs)',
-                '<a href="jav&#x61;script:alert(1)">Bad link</a>',
-                '<img src="data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==" alt="Bad image">',
-                '<svg><g onload=alert(1)></g></svg>',
-            ].join('\n\n'),
+            spaceTrim(`
+                [Safe link](https://example.com/docs)
+
+                <a href="jav&#x61;script:alert(1)">Bad link</a>
+
+                <img src="data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==" alt="Bad image">
+
+                <svg><g onload=alert(1)></g></svg>
+            `),
         ) as string;
 
         expect(html).toContain('href="https://example.com/docs"');

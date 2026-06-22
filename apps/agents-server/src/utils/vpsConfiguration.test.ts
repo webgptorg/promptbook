@@ -1,6 +1,7 @@
 import { mkdtemp, readFile, rm, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
+import { spaceTrim } from 'spacetrim';
 import { createVpsInstallerCommandEnvironment, updateConfiguredVpsDomains } from './vpsConfiguration';
 
 /**
@@ -59,7 +60,10 @@ describe('vpsConfiguration', () => {
         try {
             await writeFile(
                 envFilePath,
-                ['NEXT_PUBLIC_SITE_URL=http://203.0.113.42', 'PTBK_PUBLIC_IP_ADDRESS=203.0.113.42'].join('\n'),
+                spaceTrim(`
+                    NEXT_PUBLIC_SITE_URL=http://203.0.113.42
+                    PTBK_PUBLIC_IP_ADDRESS=203.0.113.42
+                `),
                 'utf-8',
             );
 

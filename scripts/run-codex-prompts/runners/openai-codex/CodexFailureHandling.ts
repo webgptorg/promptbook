@@ -90,7 +90,13 @@ export function limitErrorDetails(details: string, maxChars = 4000): string {
         return normalized;
     }
 
-    return `${normalized.slice(0, maxChars)}\n\n...[truncated]`;
+    return spaceTrim(
+        (block) => `
+            ${block(normalized.slice(0, maxChars))}
+
+            ...[truncated]
+        `,
+    );
 }
 
 /**

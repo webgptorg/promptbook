@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import type { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
 import type { string_javascript_name } from '../../types/string_person_fullname';
 import { decodeAttachmentAsText, DEFAULT_ATTACHMENT_TEXT_DECODE_BYTES } from '../../utils/files/decodeAttachmentAsText';
@@ -197,7 +198,13 @@ export function createUseProjectToolFunctions(): Record<string_javascript_name, 
                 const lineRangedContent = applyOptionalLineRange(decodedContent, args.startLine, args.endLine);
                 const wasCharacterTruncated = lineRangedContent.length > MAX_PROJECT_FILE_CONTENT_CHARACTERS;
                 const contentToReturn = wasCharacterTruncated
-                    ? `${lineRangedContent.slice(0, MAX_PROJECT_FILE_CONTENT_CHARACTERS)}\n\n[...truncated...]`
+                    ? spaceTrim(
+                          (block) => `
+                              ${block(lineRangedContent.slice(0, MAX_PROJECT_FILE_CONTENT_CHARACTERS))}
+
+                              [...truncated...]
+                          `,
+                      )
                     : lineRangedContent;
 
                 const wasTruncated = decoded.isTruncated || wasCharacterTruncated;

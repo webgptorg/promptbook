@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import {
     addOrganizeImportsTypeUsageWorkarounds,
     parseNamedImportSpecifiers,
@@ -67,7 +68,8 @@ describe('resolveImportEntity', () => {
     it('prefers entities from src when a src barrel import collides with a script export of the same name', () => {
         expect(
             resolveImportEntity({
-                currentFilePath: 'C:\\repo\\src\\book-2.0\\book-language-documentation\\createStandaloneBookLanguageMarkdown.ts',
+                currentFilePath:
+                    'C:\\repo\\src\\book-2.0\\book-language-documentation\\createStandaloneBookLanguageMarkdown.ts',
                 currentImportPath: '../../_packages/core.index',
                 importedName: 'BOOK_LANGUAGE_VERSION',
                 allEntities: [
@@ -125,15 +127,15 @@ describe('renderNamedImportStatement', () => {
 
 describe('organize-imports type usage workarounds', () => {
     it('keeps imported names used by satisfies and as type expressions visible to import organization', () => {
-        const fileContent = [
-            `import { RuntimeValue } from './RuntimeValue';`,
-            `import type { ChatSaveFormatDefinition } from './ChatSaveFormatDefinition';`,
-            `import { LlmExecutionToolsConstructor } from './LlmExecutionToolsConstructor';`,
-            '',
-            `const chatSaveFormatDefinition = {} satisfies ChatSaveFormatDefinition;`,
-            `const executionTools = Object.assign({}, {}) as LlmExecutionToolsConstructor;`,
-            `RuntimeValue();`,
-        ].join('\n');
+        const fileContent = spaceTrim(`
+            import { RuntimeValue } from './RuntimeValue';
+            import type { ChatSaveFormatDefinition } from './ChatSaveFormatDefinition';
+            import { LlmExecutionToolsConstructor } from './LlmExecutionToolsConstructor';
+
+            const chatSaveFormatDefinition = {} satisfies ChatSaveFormatDefinition;
+            const executionTools = Object.assign({}, {}) as LlmExecutionToolsConstructor;
+            RuntimeValue();
+        `);
 
         const fileContentWithWorkarounds = addOrganizeImportsTypeUsageWorkarounds('example.ts', fileContent);
 
@@ -149,11 +151,11 @@ describe('organize-imports type usage workarounds', () => {
     });
 
     it('removes inserted import organization workarounds', () => {
-        const fileContent = [
-            `import type { ChatPrompt } from './Prompt';`,
-            '',
-            `const chatPrompt = {} satisfies ChatPrompt;`,
-        ].join('\n');
+        const fileContent = spaceTrim(`
+            import type { ChatPrompt } from './Prompt';
+
+            const chatPrompt = {} satisfies ChatPrompt;
+        `);
         const fileContentWithWorkarounds = addOrganizeImportsTypeUsageWorkarounds('playground.ts', fileContent);
 
         expect(removeOrganizeImportsTypeUsageWorkarounds(fileContentWithWorkarounds)).not.toContain(
@@ -162,9 +164,11 @@ describe('organize-imports type usage workarounds', () => {
     });
 
     it('does not add a workaround for const assertions', () => {
-        const fileContent = [`import { RuntimeValue } from './RuntimeValue';`, '', `const value = RuntimeValue() as const;`].join(
-            '\n',
-        );
+        const fileContent = spaceTrim(`
+            import { RuntimeValue } from './RuntimeValue';
+
+            const value = RuntimeValue() as const;
+        `);
 
         expect(addOrganizeImportsTypeUsageWorkarounds('example.ts', fileContent)).toBe(fileContent);
     });

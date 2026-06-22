@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { decodeJsonUnicodeEscapesInMarkdownText } from './decodeJsonUnicodeEscapesInMarkdownText';
 
 describe('decodeJsonUnicodeEscapesInMarkdownText', () => {
@@ -18,26 +19,26 @@ describe('decodeJsonUnicodeEscapesInMarkdownText', () => {
     it('does not decode escapes inside inline code or fenced code blocks', () => {
         expect(
             decodeJsonUnicodeEscapesInMarkdownText(
-                [
-                    'Text\\u00e9 outside and `code\\u00e9 inside`.',
-                    '',
-                    '```json',
-                    '{ "value": "code\\u00e9 inside" }',
-                    '```',
-                    '',
-                    'More\\u00e9 outside.',
-                ].join('\n'),
+                spaceTrim(`
+                    Text\\u00e9 outside and \`code\\u00e9 inside\`.
+
+                    \`\`\`json
+                    { "value": "code\\u00e9 inside" }
+                    \`\`\`
+
+                    More\\u00e9 outside.
+                `),
             ),
         ).toBe(
-            [
-                'Text\u00e9 outside and `code\\u00e9 inside`.',
-                '',
-                '```json',
-                '{ "value": "code\\u00e9 inside" }',
-                '```',
-                '',
-                'More\u00e9 outside.',
-            ].join('\n'),
+            spaceTrim(`
+                Text\u00e9 outside and \`code\\u00e9 inside\`.
+
+                \`\`\`json
+                { "value": "code\\u00e9 inside" }
+                \`\`\`
+
+                More\u00e9 outside.
+            `),
         );
     });
 });

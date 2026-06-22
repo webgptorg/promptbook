@@ -1,5 +1,6 @@
 import colors from 'colors';
 import moment from 'moment';
+import { spaceTrim } from 'spacetrim';
 import type { RunOptions } from '../cli/RunOptions';
 import { appendCoderContext } from '../common/appendCoderContext';
 import type { CliProgressDisplay } from '../common/cliProgressDisplay';
@@ -69,7 +70,15 @@ export async function runPromptRound({
     const taskPrompt = buildCodexPrompt(nextPrompt.file, nextPrompt.section);
     // Prepend agent system message before the task so the harness sees agent instructions first
     const promptWithAgent = resolvedAgentSystemMessage
-        ? `${resolvedAgentSystemMessage.trim()}\n\n## Your Task\n\n${taskPrompt}`
+        ? spaceTrim(
+              (block) => `
+                  ${block(resolvedAgentSystemMessage.trim())}
+
+                  ## Your Task
+
+                  ${block(taskPrompt)}
+              `,
+          )
         : taskPrompt;
     const codexPrompt = appendCoderContext(promptWithAgent, resolvedCoderContext);
     const scriptPath = buildScriptPath(nextPrompt.file, nextPrompt.section);

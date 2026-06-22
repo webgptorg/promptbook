@@ -589,7 +589,12 @@ function colorizeAvailableProviderMessage(
  * @private internal function of `$registeredLlmToolsMessage`
  */
 function createUsedEnvMessage(): string {
-    return $usedEnvFilename === null ? `Unknown \`.env\` file` : `Used \`.env\` file:\n${$usedEnvFilename}`;
+    return $usedEnvFilename === null
+        ? `Unknown \`.env\` file`
+        : spaceTrim(`
+              Used \`.env\` file:
+              ${$usedEnvFilename}
+          `);
 }
 
 // TODO: [®] DRY Register logic

@@ -1,3 +1,5 @@
+-   Refactored multiline prompt, markdown, fixture, and generated-content string builders to use `spaceTrim` with `block` for nested multiline values.
+
 -   Added the Agents Server `NEW_AGENT_WIZARD` metadata option `MANGO_WIZARD` (`manGo wizard`) as the new default create-agent flow:
 
     -   Imported the fullscreen, closable manGo onboarding wizard UI into the new-agent dialog while keeping it backed by the existing Agents Server create-agent action.
