@@ -303,6 +303,11 @@ export type ChatMessage = Omit<Message<id>, 'direction' | 'recipients' | 'thread
         url?: string;
 
         /**
+         * Optional human-readable source title.
+         */
+        title?: string;
+
+        /**
          * Optional preview/excerpt from the source
          */
         excerpt?: string;

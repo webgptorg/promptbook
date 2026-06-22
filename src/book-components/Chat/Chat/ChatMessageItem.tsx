@@ -18,6 +18,7 @@ import { SourceChip } from '../SourceChip/SourceChip';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
 import { createCitationFootnoteRenderModel } from '../utils/createCitationFootnoteRenderModel';
+import { resolveCitationPreviewUrl } from '../utils/citationHelpers';
 import { getChatMessageTimingDisplay } from '../utils/getChatMessageTimingDisplay';
 import type { ParsedCitation } from '../utils/parseCitationsFromContent';
 import type { MessageButton } from '../utils/parseMessageButtons';
@@ -78,6 +79,10 @@ type ChatMessageItemProps = Pick<
      * Optional localized labels used by timestamp metadata.
      */
     timingTranslations?: ChatProps['timingTranslations'];
+    /**
+     * Optional resolver for turning technical citation sources into page/document titles.
+     */
+    resolveCitationLabel?: ChatProps['resolveCitationLabel'];
     /**
      * Optional moment locale used to format message timestamps.
      */
@@ -248,6 +253,7 @@ export const ChatMessageItem = memo(
             feedbackMode = 'stars',
             feedbackTranslations,
             timingTranslations,
+            resolveCitationLabel,
             chatLocale,
             onCopy,
             onCreateAgent,
@@ -339,6 +345,14 @@ export const ChatMessageItem = memo(
                     citations: message.citations,
                 }),
             [message.citations, sanitizedContentWithoutButtons],
+        );
+        const enrichCitationForRendering = useCallback(
+            (citation: ParsedCitation): ParsedCitation => {
+                const previewUrl = resolveCitationPreviewUrl(citation, participants ?? []);
+
+                return previewUrl && !citation.url ? { ...citation, url: previewUrl } : citation;
+            },
+            [participants],
         );
         const contentSegments = useMemo(
             () => splitMessageContentIntoSegments(citationFootnoteRenderModel.content),
@@ -951,8 +965,9 @@ export const ChatMessageItem = memo(
                                     >
                                         <span className={styles.citationFootnoteNumber}>{footnote.number}</span>
                                         <SourceChip
-                                            citation={footnote.citation}
+                                            citation={enrichCitationForRendering(footnote.citation)}
                                             onClick={onCitationClick}
+                                            resolveCitationLabel={resolveCitationLabel}
                                             isCitationIdVisible={false}
                                         />
                                     </div>
@@ -964,9 +979,10 @@ export const ChatMessageItem = memo(
                                 {transitiveCitations.map((citation, index) => (
                                     <SourceChip
                                         key={`team-source-${citation.source}-${index}`}
-                                        citation={citation}
+                                        citation={enrichCitationForRendering(citation)}
                                         suffix={`by ${citation.origin.label}`}
                                         onClick={onCitationClick}
+                                        resolveCitationLabel={resolveCitationLabel}
                                     />
                                 ))}
                             </div>
@@ -1175,6 +1191,10 @@ export const ChatMessageItem = memo(
         }
 
         if (prev.feedbackTranslations !== next.feedbackTranslations) {
+            return false;
+        }
+
+        if (prev.resolveCitationLabel !== next.resolveCitationLabel) {
             return false;
         }
 

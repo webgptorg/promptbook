@@ -8,6 +8,7 @@ import { CloseIcon } from '../../icons/CloseIcon';
 import type { AgentChipData } from '../AgentChip/AgentChip';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
+import type { CitationLabelResolver } from '../types/CitationLabelResolver';
 import styles from './Chat.module.css';
 import { ChatToolCallModalContent } from './ChatToolCallModalContent';
 import { useChatToolCallModalState } from './useChatToolCallModalState';
@@ -29,6 +30,7 @@ export type ChatToolCallModalProps = {
     toolCallIdentity?: string | null;
     onClose: () => void;
     toolTitles?: Record<string, string>;
+    resolveCitationLabel?: CitationLabelResolver;
     agentParticipant?: ChatParticipant;
     buttonColor: WithTake<Color>;
     /**
@@ -77,6 +79,7 @@ export function ChatToolCallModal(props: ChatToolCallModalProps) {
         toolCallIdentity,
         onClose,
         toolTitles,
+        resolveCitationLabel,
         agentParticipant,
         buttonColor,
         teamAgentProfiles,
@@ -157,6 +160,7 @@ export function ChatToolCallModal(props: ChatToolCallModalProps) {
                     onClearSelectedTeamToolCall={clearSelectedTeamToolCall}
                     teamProfiles={teamProfiles}
                     toolTitles={toolTitles}
+                    resolveCitationLabel={resolveCitationLabel}
                     agentParticipant={agentParticipant}
                     buttonColor={buttonColor}
                     locale={locale}

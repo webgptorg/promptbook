@@ -3,6 +3,7 @@ import { Color } from '../../../utils/color/Color';
 import type { WithTake } from '../../../utils/take/interfaces/ITakeChain';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
+import type { CitationLabelResolver } from '../types/CitationLabelResolver';
 import type { TeamToolCallSummary, TransitiveToolCall } from '../utils/collectTeamToolCallSummary';
 import type { AgentProfileData } from '../utils/loadAgentProfile';
 import type { TeamToolResult } from '../utils/toolCallParsing/TeamToolResult';
@@ -32,6 +33,7 @@ type ChatToolCallModalContentProps = {
     readonly isAdvancedView: boolean;
     readonly locale?: string;
     readonly mode: 'LIGHT' | 'DARK';
+    readonly resolveCitationLabel?: CitationLabelResolver;
     readonly onClearSelectedTeamToolCall: () => void;
     readonly onRequestAdvancedView: () => void;
     readonly onSelectTeamToolCall: (toolCall: TransitiveToolCall) => void;
@@ -58,6 +60,7 @@ export function ChatToolCallModalContent({
     isAdvancedView,
     locale,
     mode,
+    resolveCitationLabel,
     onClearSelectedTeamToolCall,
     onRequestAdvancedView,
     onSelectTeamToolCall,
@@ -89,6 +92,7 @@ export function ChatToolCallModalContent({
                 onClearSelectedTeamToolCall={onClearSelectedTeamToolCall}
                 teamProfiles={teamProfiles}
                 toolTitles={toolTitles}
+                resolveCitationLabel={resolveCitationLabel}
                 agentParticipant={agentParticipant}
                 buttonColor={buttonColor}
             />

@@ -1,6 +1,8 @@
 'use client';
 
-import { getCitationLabel, isCitationUrl, isPlainTextCitation } from '../utils/citationHelpers';
+import { useResolvedCitationLabel } from '../hooks/useResolvedCitationLabel';
+import type { CitationLabelResolver } from '../types/CitationLabelResolver';
+import { isCitationUrl, isPlainTextCitation } from '../utils/citationHelpers';
 import type { ParsedCitation } from '../utils/parseCitationsFromContent';
 import styles from './SourceChip.module.css';
 
@@ -27,6 +29,10 @@ export type SourceChipProps = {
      */
     suffix?: string;
     /**
+     * Optional resolver for richer citation labels.
+     */
+    resolveCitationLabel?: CitationLabelResolver;
+    /**
      * Controls whether the technical citation id is shown inside the chip label.
      */
     isCitationIdVisible?: boolean;
@@ -49,7 +55,14 @@ export type SourceChipProps = {
  *
  * @private utility of `ChatMessageItem` component
  */
-export function SourceChip({ citation, onClick, className, suffix, isCitationIdVisible = true }: SourceChipProps) {
+export function SourceChip({
+    citation,
+    onClick,
+    className,
+    suffix,
+    resolveCitationLabel,
+    isCitationIdVisible = true,
+}: SourceChipProps) {
     const handleClick = (event: React.MouseEvent) => {
         event.stopPropagation();
         if (onClick) {
@@ -59,7 +72,8 @@ export function SourceChip({ citation, onClick, className, suffix, isCitationIdV
 
     // Keep source chips concise and human-readable for CDN-backed knowledge files.
     const normalizedSource = citation.source.trim();
-    const displayName = getCitationLabel(citation);
+    const displayName = useResolvedCitationLabel(citation, resolveCitationLabel);
+    const title = displayName === citation.source ? citation.source : `${displayName}\n${citation.source}`;
 
     // Get file extension for icon
     const fileExtension = (normalizedSource || citation.source).split('.').pop()?.toLowerCase() || 'file';
@@ -70,10 +84,10 @@ export function SourceChip({ citation, onClick, className, suffix, isCitationIdV
         : getFileIcon(fileExtension);
 
     return (
-        <button className={`${styles.sourceChip} ${className || ''}`} onClick={handleClick} title={citation.source}>
+        <button className={`${styles.sourceChip} ${className || ''}`} onClick={handleClick} title={title}>
             <span className={styles.icon}>{icon}</span>
             <span className={styles.label}>
-                {displayName}
+                <span className={styles.labelText}>{displayName}</span>
                 {isCitationIdVisible && <span className={styles.citationId}> [{citation.id}]</span>}
             </span>
             {suffix && <span className={styles.suffix}>{suffix}</span>}

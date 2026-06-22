@@ -5,7 +5,9 @@ import { DownloadIcon } from '../../icons/DownloadIcon';
 import { classNames } from '../../_common/react-utils/classNames';
 import { MarkdownContent } from '../MarkdownContent/MarkdownContent';
 import type { ChatParticipant } from '../types/ChatParticipant';
-import { getCitationLabel, isPlainTextCitation, resolveCitationPreviewUrl } from '../utils/citationHelpers';
+import type { CitationLabelResolver } from '../types/CitationLabelResolver';
+import { useResolvedCitationLabel } from '../hooks/useResolvedCitationLabel';
+import { isPlainTextCitation, resolveCitationPreviewUrl } from '../utils/citationHelpers';
 import type { ParsedCitation } from '../utils/parseCitationsFromContent';
 import styles from './Chat.module.css';
 import { CitationIframePreview } from './CitationIframePreview';
@@ -20,8 +22,19 @@ export type ChatCitationModalProps = {
     isOpen: boolean;
     citation: ParsedCitation | null;
     participants: ReadonlyArray<ChatParticipant>;
+    resolveCitationLabel?: CitationLabelResolver;
     soundSystem?: ChatSoundSystem;
     onClose: () => void;
+};
+
+/**
+ * Empty citation used to keep modal hooks unconditional while the modal is closed.
+ *
+ * @private component constant of `<ChatCitationModal/>`
+ */
+const EMPTY_MODAL_CITATION: ParsedCitation = {
+    id: '',
+    source: '',
 };
 
 /**
@@ -30,7 +43,9 @@ export type ChatCitationModalProps = {
  * @private component of `<Chat/>`
  */
 export function ChatCitationModal(props: ChatCitationModalProps) {
-    const { isOpen, citation, participants, soundSystem, onClose } = props;
+    const { isOpen, citation, participants, resolveCitationLabel, soundSystem, onClose } = props;
+    const resolvedCitation = citation || EMPTY_MODAL_CITATION;
+    const label = useResolvedCitationLabel(resolvedCitation, resolveCitationLabel);
 
     if (!isOpen || !citation) {
         return null;
@@ -43,7 +58,6 @@ export function ChatCitationModal(props: ChatCitationModalProps) {
     const previewSegment = previewBase.split('/').pop() || previewBase;
     const extension = previewSegment.split('.').pop()?.toLowerCase();
     const isImage = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(extension || '');
-    const label = getCitationLabel(citation);
     const isTextCitation = isPlainTextCitation(citation);
     const hasTextPreview = !isValidUrl && (citation.excerpt || isTextCitation);
     const textPreviewContent = isTextCitation ? citation.source : citation.excerpt ?? '';

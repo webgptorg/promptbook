@@ -1,6 +1,11 @@
 import { describe, expect, it } from '@jest/globals';
 import type { ChatParticipant } from '../types/ChatParticipant';
-import { getCitationLabel, isPlainTextCitation, resolveCitationPreviewUrl } from './citationHelpers';
+import {
+    createReadableCitationSourceLabel,
+    getCitationLabel,
+    isPlainTextCitation,
+    resolveCitationPreviewUrl,
+} from './citationHelpers';
 import type { ParsedCitation } from './parseCitationsFromContent';
 
 describe('citation helper heuristics', () => {
@@ -41,6 +46,23 @@ describe('citation helper heuristics', () => {
         expect(getCitationLabel({ id: '0:3', source: 'LongTokenWithoutSpacesButLongerThanThirtyCharacters' })).toBe(
             'LongTokenWithoutSpacesButLonge…',
         );
+    });
+
+    it('prefers structured citation titles over source-derived labels', () => {
+        expect(
+            getCitationLabel({
+                id: '0:4',
+                source: 'https://example.com/documents/annual-report-2020.pdf',
+                title: 'Annual Report 2020',
+            }),
+        ).toBe('Annual Report 2020');
+    });
+
+    it('creates readable fallback labels from URLs and filenames', () => {
+        expect(createReadableCitationSourceLabel('https://example.com/documents/annual_report_2020.pdf')).toBe(
+            'annual report 2020',
+        );
+        expect(createReadableCitationSourceLabel('https://www.example.com/')).toBe('example.com');
     });
 
     it('prefers the explicit url, then literal url, then knowledge sources for modal previews', () => {

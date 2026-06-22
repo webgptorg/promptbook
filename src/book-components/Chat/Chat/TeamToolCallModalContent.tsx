@@ -8,6 +8,7 @@ import { FAST_FLOW } from '../MockedChat/constants';
 import { MockedChat } from '../MockedChat/MockedChat';
 import { SourceChip } from '../SourceChip/SourceChip';
 import type { ChatParticipant } from '../types/ChatParticipant';
+import type { CitationLabelResolver } from '../types/CitationLabelResolver';
 import type { TeamToolCallSummary, TransitiveToolCall } from '../utils/collectTeamToolCallSummary';
 import { buildToolCallChipText, getToolCallChipletInfo } from '../utils/getToolCallChipletInfo';
 import type { AgentProfileData } from '../utils/loadAgentProfile';
@@ -59,6 +60,7 @@ type TeamToolCallModalContentOptions = {
     onClearSelectedTeamToolCall: () => void;
     teamProfiles: Record<string, AgentProfileData>;
     toolTitles?: Record<string, string>;
+    resolveCitationLabel?: CitationLabelResolver;
     agentParticipant?: ChatParticipant;
     buttonColor: WithTake<Color>;
 };
@@ -408,8 +410,11 @@ function TeamToolCallActionsGroup(props: {
  *
  * @private component of ChatToolCallModal
  */
-function TeamToolCallSourcesGroup(props: { readonly teamCitations: TeamToolCallSummary['citations'] }) {
-    const { teamCitations } = props;
+function TeamToolCallSourcesGroup(props: {
+    readonly teamCitations: TeamToolCallSummary['citations'];
+    readonly resolveCitationLabel?: CitationLabelResolver;
+}) {
+    const { teamCitations, resolveCitationLabel } = props;
 
     if (teamCitations.length === 0) {
         return null;
@@ -424,6 +429,7 @@ function TeamToolCallSourcesGroup(props: { readonly teamCitations: TeamToolCallS
                         key={`team-source-${citation.source}-${index}`}
                         citation={citation}
                         suffix={`by ${citation.origin.label}`}
+                        resolveCitationLabel={resolveCitationLabel}
                     />
                 ))}
             </div>
@@ -483,6 +489,7 @@ function TeamToolCallSummarySection(props: {
     readonly selectedTeamToolCall: TransitiveToolCall | null;
     readonly teamToolCallSummary: TeamToolCallSummary;
     readonly toolTitles?: Record<string, string>;
+    readonly resolveCitationLabel?: CitationLabelResolver;
 }) {
     const {
         agentParticipant,
@@ -492,6 +499,7 @@ function TeamToolCallSummarySection(props: {
         selectedTeamToolCall,
         teamToolCallSummary,
         toolTitles,
+        resolveCitationLabel,
     } = props;
     const hasSummaryContent = teamToolCallSummary.toolCalls.length > 0 || teamToolCallSummary.citations.length > 0;
 
@@ -506,7 +514,10 @@ function TeamToolCallSummarySection(props: {
                 onSelectTeamToolCall={onSelectTeamToolCall}
                 toolTitles={toolTitles}
             />
-            <TeamToolCallSourcesGroup teamCitations={teamToolCallSummary.citations} />
+            <TeamToolCallSourcesGroup
+                teamCitations={teamToolCallSummary.citations}
+                resolveCitationLabel={resolveCitationLabel}
+            />
             <TeamToolCallDetailsPanel
                 selectedTeamToolCall={selectedTeamToolCall}
                 onClearSelectedTeamToolCall={onClearSelectedTeamToolCall}
@@ -533,6 +544,7 @@ export function TeamToolCallModalContent(options: TeamToolCallModalContentOption
         onClearSelectedTeamToolCall,
         teamProfiles,
         toolTitles,
+        resolveCitationLabel,
         agentParticipant,
         buttonColor,
     } = options;
@@ -561,6 +573,7 @@ export function TeamToolCallModalContent(options: TeamToolCallModalContentOption
                     onSelectTeamToolCall={onSelectTeamToolCall}
                     onClearSelectedTeamToolCall={onClearSelectedTeamToolCall}
                     toolTitles={toolTitles}
+                    resolveCitationLabel={resolveCitationLabel}
                     agentParticipant={agentParticipant}
                     buttonColor={buttonColor}
                 />

@@ -58,6 +58,7 @@ import type { ChatProgressCard } from '../book-components/Chat/types/ChatMessage
 import type { ChatMessageReplyingTo } from '../book-components/Chat/types/ChatMessage';
 import type { ChatMessage } from '../book-components/Chat/types/ChatMessage';
 import type { ChatParticipant } from '../book-components/Chat/types/ChatParticipant';
+import type { CitationLabelResolver } from '../book-components/Chat/types/CitationLabelResolver';
 import type { ParsedCitation } from '../book-components/Chat/utils/parseCitationsFromContent';
 import type { MessageButton } from '../book-components/Chat/utils/parseMessageButtons';
 import type { TeamToolResult } from '../book-components/Chat/utils/toolCallParsing/TeamToolResult';
@@ -501,6 +502,7 @@ export type { ChatProgressCard };
 export type { ChatMessageReplyingTo };
 export type { ChatMessage };
 export type { ChatParticipant };
+export type { CitationLabelResolver };
 export type { ParsedCitation };
 export type { MessageButton };
 export type { TeamToolResult };

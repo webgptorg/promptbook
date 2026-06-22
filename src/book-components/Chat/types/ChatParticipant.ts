@@ -57,7 +57,7 @@ export type ChatParticipant = {
      * Knowledge sources (documents, URLs) used by the agent
      * Used for resolving document citations when the agent references sources
      */
-    knowledgeSources?: Array<{ url: string; filename: string }>;
+    knowledgeSources?: ReadonlyArray<{ url: string; filename: string }>;
 };
 
 // TODO: [🕛] Unite `AgentBasicInformation`, `ChatParticipant`, `LlmExecutionTools` +  `LlmToolsMetadata`

@@ -19,12 +19,20 @@ const FILE_EXTENSION_REGEX = /\.([a-z0-9]{1,10})$/i;
  * Pattern matching punctuation that should be trimmed from citation tails.
  */
 const TRAILING_PUNCTUATION_REGEX = /[.,;:!?)+\]]+$/;
+/**
+ * Pattern matching filename separators that should become spaces in source labels.
+ */
+const FILENAME_SEPARATOR_REGEX = /[-_]+/g;
+/**
+ * Pattern matching consecutive whitespace in display labels.
+ */
+const WHITESPACE_REGEX = /\s+/g;
 
 /**
  * Collapses consecutive whitespace into single spaces.
  */
 function collapseWhitespace(value: string): string {
-    return value.replace(/\s+/g, ' ');
+    return value.replace(WHITESPACE_REGEX, ' ');
 }
 
 /**
@@ -105,6 +113,11 @@ export function isPlainTextCitation(citation: ParsedCitation): boolean {
  * @private utility of `<Chat/>` citation rendering
  */
 export function getCitationLabel(citation: ParsedCitation): string {
+    const title = normalizeCitationDisplayLabel(citation.title);
+    if (title) {
+        return title;
+    }
+
     const trimmed = trimToNormalized(citation.source);
     if (!trimmed) {
         return citation.source;
@@ -119,7 +132,7 @@ export function getCitationLabel(citation: ParsedCitation): string {
         return collapsed.slice(0, TEXT_LABEL_LENGTH) + LABEL_ELLIPSIS;
     }
 
-    return simplifyKnowledgeLabel(trimmed);
+    return createReadableCitationSourceLabel(trimmed);
 }
 
 /**
@@ -141,6 +154,81 @@ export function resolveCitationPreviewUrl(
     const knowledgeUrl = resolveCitationUrl(trimmed, participants);
 
     return explicitUrl || literalUrl || knowledgeUrl || null;
+}
+
+/**
+ * Creates a readable fallback label from a citation source when no title metadata is available.
+ *
+ * @param source - Raw citation source value.
+ * @returns Human-friendly source label.
+ *
+ * @private utility of `<Chat/>` citation rendering
+ */
+export function createReadableCitationSourceLabel(source: string): string {
+    const trimmed = trimToNormalized(source);
+    if (!trimmed) {
+        return source;
+    }
+
+    const parsedUrl = parseCitationUrl(trimmed);
+    const filenameCandidate = parsedUrl
+        ? getUrlLabelCandidate(parsedUrl) || parsedUrl.hostname.replace(/^www\./i, '')
+        : simplifyKnowledgeLabel(trimmed);
+
+    return normalizeCitationDisplayLabel(filenameCandidate) || simplifyKnowledgeLabel(trimmed);
+}
+
+/**
+ * Normalizes a citation label candidate for display.
+ *
+ * @param label - Raw candidate label.
+ * @returns Cleaned label or `null` when empty.
+ *
+ * @private utility of `<Chat/>` citation rendering
+ */
+function normalizeCitationDisplayLabel(label: string | undefined): string | null {
+    const normalized = collapseWhitespace((label || '').replace(FILENAME_SEPARATOR_REGEX, ' ')).trim();
+
+    return normalized || null;
+}
+
+/**
+ * Parses one HTTP(S) citation URL, returning null for non-URL values.
+ *
+ * @param value - Candidate URL value.
+ * @returns Parsed URL or null.
+ *
+ * @private utility of `<Chat/>` citation rendering
+ */
+function parseCitationUrl(value: string): URL | null {
+    try {
+        const url = new URL(value);
+        return url.protocol === 'http:' || url.protocol === 'https:' ? url : null;
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * Extracts a readable candidate from a URL path.
+ *
+ * @param url - Parsed citation URL.
+ * @returns URL path label candidate or null.
+ *
+ * @private utility of `<Chat/>` citation rendering
+ */
+function getUrlLabelCandidate(url: URL): string | null {
+    const pathSegments = url.pathname.split('/').filter(Boolean);
+    const lastPathSegment = pathSegments[pathSegments.length - 1];
+    if (!lastPathSegment) {
+        return null;
+    }
+
+    try {
+        return simplifyKnowledgeLabel(decodeURIComponent(lastPathSegment));
+    } catch {
+        return simplifyKnowledgeLabel(lastPathSegment);
+    }
 }
 
 // TODO: [💞] Spread into multiple files

@@ -61,6 +61,23 @@ type CanonicalAgentChatFeedback = {
 };
 
 /**
+ * Knowledge source metadata passed from the remote agent profile into Chat participants.
+ *
+ * @private type of CanonicalAgentChatPanel
+ */
+type CanonicalAgentKnowledgeSource = {
+    /**
+     * Fetchable source URL.
+     */
+    readonly url: string;
+
+    /**
+     * Filename used by model citations.
+     */
+    readonly filename: string;
+};
+
+/**
  * Inputs required to orchestrate the canonical durable-chat panel state.
  *
  * @private function of CanonicalAgentChatPanel
@@ -109,6 +126,7 @@ export type CanonicalAgentChatPanelState = {
         readonly agentAvatarSrc: string | null;
         readonly agentAvatarVisualId: AvatarVisualId | null;
         readonly agentDisplayName: string;
+        readonly agentKnowledgeSources: ReadonlyArray<CanonicalAgentKnowledgeSource>;
         readonly elevenLabsVoiceId: string | undefined;
         readonly initialMessage: string | undefined;
         readonly isSpeechPlaybackEnabled: boolean;
@@ -343,6 +361,7 @@ export function useCanonicalAgentChatPanelState(
     });
 
     const agentDisplayName = useMemo(() => resolveAgentDisplayName(agent, agentName), [agent, agentName]);
+    const agentKnowledgeSources = useMemo(() => resolveAgentKnowledgeSources(agent), [agent]);
     const resolvedAgentAvatar = useMemo(
         () => resolveResolvedAgentAvatar(agent, agentName, agentUrl),
         [agent, agentName, agentUrl],
@@ -400,11 +419,11 @@ export function useCanonicalAgentChatPanelState(
 
     return {
         surface: {
-            agentAvatarDefinition:
-                resolvedAgentAvatar?.type === 'visual' ? resolvedAgentAvatar.avatarDefinition : null,
+            agentAvatarDefinition: resolvedAgentAvatar?.type === 'visual' ? resolvedAgentAvatar.avatarDefinition : null,
             agentAvatarSrc: resolvedAgentAvatar?.type === 'image' ? resolvedAgentAvatar.imageUrl : null,
             agentAvatarVisualId: resolvedAgentAvatar?.type === 'visual' ? resolvedAgentAvatar.visualId : null,
             agentDisplayName,
+            agentKnowledgeSources,
             elevenLabsVoiceId: agent?.meta.voice,
             initialMessage,
             isSpeechPlaybackEnabled: agent?.isVoiceTtsSttEnabled ?? false,
@@ -658,15 +677,47 @@ function resolveAgentDisplayName(agent: RemoteAgent | null | undefined, agentNam
 }
 
 /**
+ * Resolves valid knowledge sources exposed by the remote agent profile.
+ *
+ * @param agent - Connected remote agent.
+ * @returns Knowledge sources usable by the shared Chat citation URL resolver.
+ *
+ * @private function of CanonicalAgentChatPanel
+ */
+function resolveAgentKnowledgeSources(
+    agent: RemoteAgent | null | undefined,
+): ReadonlyArray<CanonicalAgentKnowledgeSource> {
+    const knowledgeSources = (agent as { knowledgeSources?: unknown } | null | undefined)?.knowledgeSources;
+    if (!Array.isArray(knowledgeSources)) {
+        return [];
+    }
+
+    return knowledgeSources.filter(isCanonicalAgentKnowledgeSource);
+}
+
+/**
+ * Checks whether one remote profile value is a usable knowledge source.
+ *
+ * @param value - Candidate knowledge source.
+ * @returns True when the candidate has URL and filename strings.
+ *
+ * @private function of CanonicalAgentChatPanel
+ */
+function isCanonicalAgentKnowledgeSource(value: unknown): value is CanonicalAgentKnowledgeSource {
+    return (
+        typeof value === 'object' &&
+        value !== null &&
+        typeof (value as CanonicalAgentKnowledgeSource).url === 'string' &&
+        typeof (value as CanonicalAgentKnowledgeSource).filename === 'string'
+    );
+}
+
+/**
  * Resolves the avatar shown for the agent participant in the chat thread.
  *
  * @private function of CanonicalAgentChatPanel
  */
-function resolveResolvedAgentAvatar(
-    agent: RemoteAgent | null | undefined,
-    agentName: string,
-    agentUrl: string,
-) {
+function resolveResolvedAgentAvatar(agent: RemoteAgent | null | undefined, agentName: string, agentUrl: string) {
     return resolveAgentAvatar({
         agent: {
             agentName: agent?.agentName || agentName,

@@ -1,4 +1,4 @@
-[ ] !
+[x] by OpenAI Codex `gpt-5.5` *(commited manually)*
 
 [✨♐️] When showing the sources in the chat, show them in a nicer way
 

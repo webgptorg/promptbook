@@ -21,6 +21,11 @@ export type ParsedCitation = {
     url?: string;
 
     /**
+     * Optional human-readable source title.
+     */
+    title?: string;
+
+    /**
      * Optional preview/excerpt from the source
      */
     excerpt?: string;
@@ -100,6 +105,7 @@ export function dedupeCitationsBySource(citations: ReadonlyArray<ParsedCitation>
             id: existing.id,
             source: existing.source,
             url: existing.url || citation.url,
+            title: existing.title || citation.title,
             excerpt: existing.excerpt || citation.excerpt,
         };
     }

@@ -39,6 +39,10 @@ export type ChatMessageListProps = {
      */
     timingTranslations?: ChatProps['timingTranslations'];
     /**
+     * Optional resolver for turning technical citation sources into page/document titles.
+     */
+    resolveCitationLabel?: ChatProps['resolveCitationLabel'];
+    /**
      * Optional moment locale used to format message timestamps.
      */
     chatLocale?: ChatProps['chatLocale'];
@@ -87,6 +91,7 @@ export function ChatMessageList(props: ChatMessageListProps) {
         feedbackMode,
         feedbackTranslations,
         timingTranslations,
+        resolveCitationLabel,
         chatLocale,
         onCopy,
         onMessage,
@@ -156,6 +161,7 @@ export function ChatMessageList(props: ChatMessageListProps) {
                         feedbackMode={feedbackMode}
                         feedbackTranslations={feedbackTranslations}
                         timingTranslations={timingTranslations}
+                        resolveCitationLabel={resolveCitationLabel}
                         chatLocale={chatLocale}
                         onCopy={onCopy}
                         onCreateAgent={onCreateAgent}

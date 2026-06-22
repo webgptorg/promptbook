@@ -12,6 +12,7 @@ import type { AgentChipData } from '../AgentChip/AgentChip';
 import type { string_chat_format_name } from '../save/_common/string_chat_format_name';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
+import type { CitationLabelResolver } from '../types/CitationLabelResolver';
 import type { ChatSaveFormatHandlerMap } from '../save/_common/ChatSaveFormatHandler';
 
 /**
@@ -829,6 +830,11 @@ export type ChatProps = {
      * Optional localized labels used by timestamp metadata shown under messages.
      */
     readonly timingTranslations?: ChatTimingTranslations;
+
+    /**
+     * Optional resolver for turning technical citation sources into page/document titles.
+     */
+    readonly resolveCitationLabel?: CitationLabelResolver;
 
     /**
      * Optional localized labels for general Chat UI elements such as button labels,

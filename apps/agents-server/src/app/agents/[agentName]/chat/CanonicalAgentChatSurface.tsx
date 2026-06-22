@@ -15,8 +15,9 @@ import { ChatThreadLoadingSkeleton } from '../../../../components/Skeleton/ChatT
 import { useSoundSystem } from '../../../../components/SoundSystemProvider/SoundSystemProvider';
 import { usePromptbookTheme } from '../../../../components/ThemeMode/usePromptbookTheme';
 import { createDefaultChatEffects } from '../../../../utils/chat/createDefaultChatEffects';
-import { downloadChatPdfFromServer } from '../../../../utils/chatExport/downloadChatPdfFromServer';
 import { executeQuickActionButton } from '../../../../utils/chat/executeQuickActionButton';
+import { resolveAgentsServerCitationLabel } from '../../../../utils/chat/resolveAgentsServerCitationLabel';
+import { downloadChatPdfFromServer } from '../../../../utils/chatExport/downloadChatPdfFromServer';
 import {
     isChatFeedbackEnabled,
     toChatComponentFeedbackMode,
@@ -127,6 +128,7 @@ export function CanonicalAgentChatSurface({
                 agentAvatarSrc: state.agentAvatarSrc,
                 agentAvatarVisualId: state.agentAvatarVisualId,
                 agentDisplayName: state.agentDisplayName,
+                agentKnowledgeSources: state.agentKnowledgeSources,
                 brandColorHex,
             }),
         [
@@ -135,6 +137,7 @@ export function CanonicalAgentChatSurface({
             state.agentAvatarSrc,
             state.agentAvatarVisualId,
             state.agentDisplayName,
+            state.agentKnowledgeSources,
         ],
     );
     const { language, t: translateText } = useServerLanguage();
@@ -181,20 +184,17 @@ export function CanonicalAgentChatSurface({
             </button>
         );
     }, [cancellableJob, isReadOnly, onCancelActiveJob, translateText]);
-    const handlePdfSaveFormat = useCallback(
-        async ({ title, messages, participants }: ChatSaveFormatHandlerOptions) => {
-            try {
-                await downloadChatPdfFromServer({
-                    title,
-                    messages,
-                    participants,
-                });
-            } catch (error) {
-                notifyError(error instanceof Error ? error.message : 'Failed to export chat as PDF.');
-            }
-        },
-        [],
-    );
+    const handlePdfSaveFormat = useCallback(async ({ title, messages, participants }: ChatSaveFormatHandlerOptions) => {
+        try {
+            await downloadChatPdfFromServer({
+                title,
+                messages,
+                participants,
+            });
+        } catch (error) {
+            notifyError(error instanceof Error ? error.message : 'Failed to export chat as PDF.');
+        }
+    }, []);
     const saveFormatHandlers = useMemo(
         () => ({
             pdf: handlePdfSaveFormat,
@@ -266,6 +266,7 @@ export function CanonicalAgentChatSurface({
             teamAgentProfiles={state.teamAgentProfiles}
             extraActions={extraActionNodes}
             saveFormatHandlers={saveFormatHandlers}
+            resolveCitationLabel={resolveAgentsServerCitationLabel}
             theme={promptbookTheme}
         >
             {!isReadOnly && areFileAttachmentsEnabled && !fileUploadAvailability.isUploadAvailable && (
@@ -322,12 +323,14 @@ function createCanonicalAgentChatParticipants({
     agentAvatarDefinition,
     agentAvatarSrc,
     agentAvatarVisualId,
+    agentKnowledgeSources,
     brandColorHex,
 }: {
     agentDisplayName: string;
     agentAvatarDefinition: CanonicalAgentChatPanelState['surface']['agentAvatarDefinition'];
     agentAvatarSrc: CanonicalAgentChatPanelState['surface']['agentAvatarSrc'];
     agentAvatarVisualId: CanonicalAgentChatPanelState['surface']['agentAvatarVisualId'];
+    agentKnowledgeSources: CanonicalAgentChatPanelState['surface']['agentKnowledgeSources'];
     brandColorHex: string;
 }): ReadonlyArray<ChatParticipant> {
     return [
@@ -339,6 +342,7 @@ function createCanonicalAgentChatParticipants({
             avatarVisualId: agentAvatarVisualId || undefined,
             color: brandColorHex,
             isMe: false,
+            knowledgeSources: agentKnowledgeSources,
         },
         {
             name: 'USER',

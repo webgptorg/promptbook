@@ -21,6 +21,7 @@ import { useSoundSystem } from '../../../components/SoundSystemProvider/SoundSys
 import { fetchCalendarOAuthStatus, type CalendarOAuthStatusResponse } from '../../../utils/calendarOAuthClient';
 import { createDefaultChatEffects } from '../../../utils/chat/createDefaultChatEffects';
 import { executeQuickActionButton } from '../../../utils/chat/executeQuickActionButton';
+import { resolveAgentsServerCitationLabel } from '../../../utils/chat/resolveAgentsServerCitationLabel';
 import {
     isChatFeedbackEnabled,
     toChatComponentFeedbackMode,
@@ -458,6 +459,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
             onReset={onStartNewChat}
             resetMode={onStartNewChat ? 'delegate' : undefined}
             teamAgentProfiles={teamAgentProfiles}
+            resolveCitationLabel={resolveAgentsServerCitationLabel}
         >
             {allowFileAttachments && !fileUploadAvailability.isUploadAvailable && (
                 <FileUploadUnavailableNotice className="mx-4 mt-4" />

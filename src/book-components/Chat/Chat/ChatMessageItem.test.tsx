@@ -110,9 +110,11 @@ describe('ChatMessageItem citation footnotes', () => {
         expect(container.textContent).not.toContain('[0:0]');
         expect(container.textContent).not.toContain('[8:13]');
         expect(container.querySelectorAll('sup[data-citation-footnote="1"]')).toHaveLength(2);
-        expect(screen.getAllByTitle('document123.doc')).toHaveLength(1);
-        expect(screen.getByTitle('document123.doc').textContent).not.toContain('[0:0]');
-        expect(screen.getByTitle('document123.doc').textContent).not.toContain('[8:13]');
+        const sourceChips = screen.getAllByTitle((title) => title.includes('document123.doc'));
+        expect(sourceChips).toHaveLength(1);
+        expect(sourceChips[0]!.textContent).toContain('document123');
+        expect(sourceChips[0]!.textContent).not.toContain('[0:0]');
+        expect(sourceChips[0]!.textContent).not.toContain('[8:13]');
     });
 });
 

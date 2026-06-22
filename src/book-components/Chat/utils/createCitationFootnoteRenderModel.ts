@@ -191,6 +191,7 @@ function normalizeParsedCitation(citation: ParsedCitation): ParsedCitation {
         id: citation.id.trim(),
         source: citation.source.trim(),
         url: citation.url?.trim() || undefined,
+        title: citation.title?.trim() || undefined,
         excerpt: citation.excerpt?.trim() || undefined,
     };
 }
@@ -209,6 +210,7 @@ function mergeParsedCitations(currentCitation: ParsedCitation, incomingCitation:
         id: currentCitation.id || incomingCitation.id,
         source: resolvePreferredCitationSource(currentCitation, incomingCitation),
         url: currentCitation.url || incomingCitation.url,
+        title: currentCitation.title || incomingCitation.title,
         excerpt: currentCitation.excerpt || incomingCitation.excerpt,
     } satisfies ParsedCitation;
 
@@ -216,6 +218,7 @@ function mergeParsedCitations(currentCitation: ParsedCitation, incomingCitation:
         mergedCitation.id === currentCitation.id &&
         mergedCitation.source === currentCitation.source &&
         mergedCitation.url === currentCitation.url &&
+        mergedCitation.title === currentCitation.title &&
         mergedCitation.excerpt === currentCitation.excerpt
     ) {
         return currentCitation;

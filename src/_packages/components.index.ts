@@ -71,6 +71,7 @@ import type { ChatProgressCard } from '../book-components/Chat/types/ChatMessage
 import type { ChatMessageReplyingTo } from '../book-components/Chat/types/ChatMessage';
 import type { ChatMessage } from '../book-components/Chat/types/ChatMessage';
 import type { ChatParticipant } from '../book-components/Chat/types/ChatParticipant';
+import type { CitationLabelResolver } from '../book-components/Chat/types/CitationLabelResolver';
 import type { MessageButton } from '../book-components/Chat/utils/parseMessageButtons';
 import { parseMessageButtons } from '../book-components/Chat/utils/parseMessageButtons';
 import { ArrowIcon } from '../book-components/icons/ArrowIcon';
@@ -161,6 +162,7 @@ export type { ChatProgressCard };
 export type { ChatMessageReplyingTo };
 export type { ChatMessage };
 export type { ChatParticipant };
+export type { CitationLabelResolver };
 export type { MessageButton };
 export { parseMessageButtons };
 export { ArrowIcon };

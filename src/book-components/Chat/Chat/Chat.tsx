@@ -88,6 +88,7 @@ export function Chat(props: ChatProps) {
         feedbackMode = 'stars',
         feedbackTranslations,
         timingTranslations,
+        resolveCitationLabel,
         onFileUpload,
         chatLocale,
         speechRecognition,
@@ -337,6 +338,7 @@ export function Chat(props: ChatProps) {
                         feedbackMode={feedbackMode}
                         feedbackTranslations={feedbackTranslations}
                         timingTranslations={timingTranslations}
+                        resolveCitationLabel={resolveCitationLabel}
                         chatLocale={chatLocale}
                         onCopy={handleCopy}
                         onMessage={onMessage}
@@ -404,6 +406,7 @@ export function Chat(props: ChatProps) {
                 toolCallIdentity={selectedToolCallIdentity}
                 onClose={closeToolCallModal}
                 toolTitles={toolTitles}
+                resolveCitationLabel={resolveCitationLabel}
                 agentParticipant={agentParticipant}
                 buttonColor={buttonColor}
                 teamAgentProfiles={teamAgentProfiles}
@@ -417,6 +420,7 @@ export function Chat(props: ChatProps) {
                 isOpen={citationModalOpen}
                 citation={selectedCitation}
                 participants={participants}
+                resolveCitationLabel={resolveCitationLabel}
                 soundSystem={soundSystem}
                 onClose={closeCitationModal}
             />
