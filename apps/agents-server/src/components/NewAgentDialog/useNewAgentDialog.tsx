@@ -3,6 +3,7 @@
 import type { string_book } from '@promptbook-local/types';
 import type { ReactElement } from 'react';
 import { useCallback, useState } from 'react';
+import { NotAllowed } from '../../../../../src/errors/NotAllowed';
 import { appendHeadlessParam, useIsHeadless } from '../_utils/headlessParam';
 import type { AgentVisibility } from '../../utils/agentVisibility';
 import { buildFreshAgentChatHref } from '../../utils/agentRouting/agentRouteHrefs';
@@ -18,6 +19,10 @@ import type {
     NewAgentWizardOpenEditorRequest,
 } from './NewAgentWizard';
 import { NewAgentWizard } from './NewAgentWizard';
+import {
+    ManGoNewAgentWizard,
+    type ManGoNewAgentWizardCreateRequest,
+} from './ManGoNewAgentWizard/ManGoNewAgentWizard';
 import { trackNewAgentCreationEvent } from './trackNewAgentCreationEvent';
 
 /**
@@ -105,6 +110,12 @@ type NewAgentDialogState =
           readonly defaultVisibility: AgentVisibility;
           readonly initialAgentName?: string;
           readonly targetFolderId: number | null | undefined;
+      }
+    | {
+          readonly surface: 'mango-wizard';
+          readonly mode: NewAgentWizardMode;
+          readonly defaultVisibility: AgentVisibility;
+          readonly targetFolderId: number | null | undefined;
       };
 
 /**
@@ -175,6 +186,21 @@ export function useNewAgentDialog(options: UseNewAgentDialogOptions): UseNewAgen
                     mode: settings.mode,
                     folderId: openOptions?.folderId,
                 });
+
+                if (settings.mode === 'MANGO_WIZARD') {
+                    setDialogState({
+                        surface: 'mango-wizard',
+                        mode: settings.mode,
+                        defaultVisibility: settings.defaultVisibility,
+                        targetFolderId: openOptions?.folderId,
+                    });
+                    trackNewAgentCreationEvent('new_agent_wizard_shown', {
+                        mode: settings.mode,
+                        surface: 'mango-wizard',
+                        folderId: openOptions?.folderId,
+                    });
+                    return;
+                }
 
                 if (settings.mode === 'WIZARD') {
                     let initialAgentName = '';
@@ -268,6 +294,47 @@ export function useNewAgentDialog(options: UseNewAgentDialogOptions): UseNewAgen
         [dialogState, handleCreatedAgent, onCreateFailed],
     );
 
+    const handleCreateFromManGoWizard = useCallback(
+        async (request: ManGoNewAgentWizardCreateRequest) => {
+            if (!dialogState || dialogState.surface !== 'mango-wizard') {
+                throw new NotAllowed('The manGo wizard is not currently open.');
+            }
+
+            try {
+                const { agentName, permanentId } = await $createAgentFromBookAction(
+                    request.agentSource,
+                    dialogState.targetFolderId,
+                    request.visibility,
+                );
+                const createdAgent = createCreatedAgentPayload(agentName, permanentId);
+                trackNewAgentCreationEvent('new_agent_created', {
+                    mode: dialogState.mode,
+                    surface: 'mango-wizard',
+                    folderId: dialogState.targetFolderId,
+                    knowledgeCount: request.knowledgeCount,
+                });
+                await onCreated?.(createdAgent);
+
+                return {
+                    permanentId,
+                    targetPath: createdAgent.targetPath,
+                };
+            } catch (error) {
+                await onCreateFailed?.(error);
+                throw error;
+            }
+        },
+        [dialogState, onCreateFailed, onCreated],
+    );
+
+    const handleOpenCreatedManGoAgent = useCallback(
+        (targetPath: string) => {
+            setDialogState(null);
+            window.location.assign(appendHeadlessParam(targetPath, isHeadless));
+        },
+        [isHeadless],
+    );
+
     const handleOpenEditorFromWizard = useCallback((request: NewAgentWizardOpenEditorRequest) => {
         setDialogState((currentDialogState) => {
             if (!currentDialogState || currentDialogState.surface !== 'wizard') {
@@ -304,6 +371,15 @@ export function useNewAgentDialog(options: UseNewAgentDialogOptions): UseNewAgen
                     onClose={closeNewAgentDialog}
                     onCreate={handleCreateFromWizard}
                     onOpenEditor={handleOpenEditorFromWizard}
+                />
+            ) : dialogState?.surface === 'mango-wizard' ? (
+                <ManGoNewAgentWizard
+                    mode={dialogState.mode}
+                    defaultVisibility={dialogState.defaultVisibility}
+                    folderId={dialogState.targetFolderId}
+                    onClose={closeNewAgentDialog}
+                    onCreate={handleCreateFromManGoWizard}
+                    onOpenCreatedAgent={handleOpenCreatedManGoAgent}
                 />
             ) : null,
     };

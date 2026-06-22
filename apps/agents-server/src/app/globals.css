@@ -2,6 +2,66 @@
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
 @import '@xterm/xterm/css/xterm.css';
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+/**
+ * Scoped design tokens for the imported manGo onboarding wizard.
+ */
+[data-onboarding-ui] {
+    --ob-font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --ob-font-display: 'Outfit', 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --ob-brand-blue: #7aebff;
+    --ob-brand-blue-dark: #30a8bd;
+    --ob-brand-green: #7affeb;
+    --ob-brand-green-dark: #30bda8;
+    --ob-ink: #111827;
+    --ob-mist: #f3f4f6;
+    --ob-accent-50: #ecfdff;
+    --ob-accent-100: #d2f8ff;
+    --ob-accent-200: #a8f1fd;
+    --ob-accent-300: #7aebff;
+    --ob-accent-400: #43d3e6;
+    --ob-accent-500: #30a8bd;
+    --ob-accent-600: #2491a4;
+    --ob-accent-700: #1d7686;
+    --ob-accent-800: #1a5e6b;
+    --ob-accent-900: #164a55;
+    --ob-shadow-xs: 0 1px 2px 0 rgb(17 24 39 / 0.04);
+    --ob-shadow-sm: 0 1px 2px 0 rgb(17 24 39 / 0.05), 0 1px 3px 0 rgb(17 24 39 / 0.05);
+    --ob-shadow-md: 0 2px 4px -1px rgb(17 24 39 / 0.05), 0 4px 12px -2px rgb(17 24 39 / 0.08);
+    --ob-shadow-lg: 0 4px 8px -2px rgb(17 24 39 / 0.06), 0 12px 28px -6px rgb(17 24 39 / 0.12);
+    --ob-shadow-accent: 0 1px 2px 0 rgb(48 168 189 / 0.2), 0 6px 16px -4px rgb(48 168 189 / 0.32);
+    --ob-grad-primary: linear-gradient(135deg, var(--ob-brand-blue) 0%, var(--ob-brand-green) 100%);
+    --ob-grad-ink: linear-gradient(160deg, #1b2435 0%, #111827 55%, #0b0f19 100%);
+    --ob-ring: rgb(48 168 189 / 0.5);
+    font-family: var(--ob-font-sans);
+}
+
+[data-onboarding-ui] .ob-display {
+    font-family: var(--ob-font-display);
+    letter-spacing: 0;
+}
+
+@keyframes ob-rise {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+[data-onboarding-ui] .ob-animate-rise {
+    animation: ob-rise 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    [data-onboarding-ui] .ob-animate-rise {
+        animation: none;
+    }
+}
 
 /**
  * OpenMoji black and white CSS
@@ -1035,6 +1095,24 @@ html.dark [data-chat-modal='rating'][data-chat-theme='dark'] textarea {
 html.dark [data-chat-modal='rating'][data-chat-theme='dark'] button,
 html.dark [data-chat-modal='tool-call'][data-chat-theme='dark'] button {
     color: inherit;
+}
+
+html.dark [data-onboarding-ui] .bg-white,
+html.dark [data-onboarding-ui] .bg-white\/80 {
+    background-color: #ffffff !important;
+}
+
+html.dark [data-onboarding-ui] input:not([type='checkbox']):not([type='radio']):not([type='range']),
+html.dark [data-onboarding-ui] textarea,
+html.dark [data-onboarding-ui] select {
+    background-color: #ffffff;
+    color: #18181b;
+    border-color: #d4d4d8;
+}
+
+html.dark [data-onboarding-ui] input:not([type='checkbox']):not([type='radio']):not([type='range'])::placeholder,
+html.dark [data-onboarding-ui] textarea::placeholder {
+    color: #a1a1aa;
 }
 
 /* Print styles */

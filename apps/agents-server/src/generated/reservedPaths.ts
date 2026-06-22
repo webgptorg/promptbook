@@ -25,6 +25,8 @@ export const RESERVED_PATHS: readonly string[] = [
     "manifest.webmanifest",
     "openapi.json",
     "pixel-agents-assets",
+    "promptbook-logo-blue.png",
+    "promptbook-logo-white.png",
     "recycle-bin",
     "restricted",
     "robots.txt",

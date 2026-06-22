@@ -1,3 +1,8 @@
+-   Added the Agents Server `NEW_AGENT_WIZARD` metadata option `MANGO_WIZARD` (`manGo wizard`) as the new default create-agent flow:
+
+    -   Imported the fullscreen, closable manGo onboarding wizard UI into the new-agent dialog while keeping it backed by the existing Agents Server create-agent action.
+    -   Connected the wizard's book, knowledge upload, test preview, and completion steps to local Agents Server services instead of the external experiment endpoints.
+
 -   Enhanced `ptbk coder server` UI and prompt editing workflow:
 
     -   Added a clickable server URL to the shared `ptbk coder` terminal session UI when running in server mode.

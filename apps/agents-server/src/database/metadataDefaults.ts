@@ -20,6 +20,7 @@ import {
 import { DEFAULT_THEME_METADATA_KEY, DEFAULT_THEME_MODE, THEME_MODE_OPTIONS } from '../constants/themeMode';
 import { DEFAULT_NAME_POOL, NAME_POOL_METADATA_KEY, NAME_POOL_OPTIONS } from '../constants/namePool';
 import {
+    DEFAULT_NEW_AGENT_WIZARD_MODE,
     LEGACY_NEW_AGENT_WIZARD_METADATA_KEY,
     NEW_AGENT_WIZARD_METADATA_KEY,
     NEW_AGENT_WIZARD_OPTIONS,
@@ -483,7 +484,7 @@ export const metadataDefaults: ReadonlyArray<MetadataDefinition> = [
     },
     {
         key: NEW_AGENT_WIZARD_METADATA_KEY,
-        value: 'BOILERPLATE',
+        value: DEFAULT_NEW_AGENT_WIZARD_MODE,
         note: `Controls the "new agent" flow. Allowed values: ${formatMetadataOptionValues(
             NEW_AGENT_WIZARD_OPTIONS,
         )}.`,

@@ -1,4 +1,4 @@
-[ ] !
+[x] ~$1.80 3 hours by OpenAI Codex `gpt-5.5`
 
 [✨☄️] Add a metadata option to `NEW_AGENT_WIZARD` to create a agent
 
@@ -11,3 +11,4 @@
 -   It should be default value of the metadata
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
