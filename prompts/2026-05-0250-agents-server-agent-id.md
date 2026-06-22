@@ -13,7 +13,7 @@
 
 ---
 
-[ ]
+[x] $8.36 40 minutes by Claude Code
 
 [✨⬛️] It should never happen that Agent id is shown in the UI, it should be only used in the code and urls, but never shown to the user
 
@@ -49,3 +49,4 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

@@ -1,3 +1,5 @@
+-   Fixed Agents Server breadcrumb leaking the agent's permanent id when the active agent was not part of the loaded organization list (typical for anonymous users or any non-admin browsing a private agent). The Header now reads a new `ActiveAgentBreadcrumbContext` populated by the `/agents/[agentName]` route layout, so the breadcrumb always shows the agent's human-readable name. When the agent cannot be resolved at all, the breadcrumb falls back to a generic translated label instead of the raw URL identifier.
+
 -   Refactored multiline prompt, markdown, fixture, and generated-content string builders to use `spaceTrim` with `block` for nested multiline values.
 
 -   Added the Agents Server `NEW_AGENT_WIZARD` metadata option `MANGO_WIZARD` (`manGo wizard`) as the new default create-agent flow:

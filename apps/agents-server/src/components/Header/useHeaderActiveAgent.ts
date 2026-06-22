@@ -5,6 +5,7 @@ import { buildAgentFolderContext, type AgentFolderContext } from '../../utils/ag
 import type { AgentOrganizationAgent } from '../../utils/agentOrganization/types';
 import { buildAgentProfileHref, buildFreshAgentChatHref } from '../../utils/agentRouting/agentRouteHrefs';
 import type { ServerTranslationKey } from '../../languages/ServerTranslationKeys';
+import { useActiveAgentBreadcrumbInfo, type ActiveAgentBreadcrumbInfo } from './ActiveAgentBreadcrumbContext';
 import type { HeaderAgentMenuFolder } from './AgentMenuStructure';
 import { buildAgentMenuStructure } from './buildAgentMenuStructure';
 import { createAgentViewLabel } from './createAgentViewLabel';
@@ -137,11 +138,17 @@ function createActiveAgentHref(activeAgentNavigationId: string | null): string {
 /**
  * Resolves the breadcrumb label shown for the active agent.
  *
+ * The agent's identifier (its `agentName` or `permanentId`) must never leak into the breadcrumb
+ * because the URL form is opaque to the user. When the agent cannot be resolved from the loaded
+ * organization list (typical for anonymous users browsing a public agent), the Header falls back
+ * to the breadcrumb info registered by the agent page; if that is also missing, a generic label
+ * is shown instead of the raw identifier.
+ *
  * @private function of Header
  */
 function createActiveAgentLabel(
     activeAgent: AgentOrganizationAgent | null,
-    activeAgentIdentifier: string | null,
+    activeAgentBreadcrumbInfo: ActiveAgentBreadcrumbInfo | null,
     agentFolderById: Map<number, HeaderAgentMenuFolder>,
     namingPlural: string,
     translate: HeaderTranslate,
@@ -150,7 +157,11 @@ function createActiveAgentLabel(
         return createAgentHierarchyLabel(activeAgent, agentFolderById);
     }
 
-    return activeAgentIdentifier || translate('header.agentsLabelFallback', { agentsPlural: namingPlural });
+    if (activeAgentBreadcrumbInfo) {
+        return activeAgentBreadcrumbInfo.meta?.fullname || activeAgentBreadcrumbInfo.agentName;
+    }
+
+    return translate('header.agentsLabelFallback', { agentsPlural: namingPlural });
 }
 
 /**
@@ -218,11 +229,12 @@ export function useHeaderActiveAgent({
         () => resolveActiveAgent(activeAgentNavigation, agentByIdentifier),
         [activeAgentNavigation, agentByIdentifier],
     );
+    const activeAgentBreadcrumbInfo = useActiveAgentBreadcrumbInfo();
     const activeAgentNavigationId = resolveActiveAgentNavigationId(activeAgent, activeAgentNavigation.agentIdentifier);
     const activeAgentHref = createActiveAgentHref(activeAgentNavigationId);
     const activeAgentLabel = createActiveAgentLabel(
         activeAgent,
-        activeAgentNavigation.agentIdentifier,
+        activeAgentBreadcrumbInfo,
         agentFolderById,
         namingPlural,
         translate,
@@ -239,10 +251,17 @@ export function useHeaderActiveAgent({
         [activeAgentMenuAgent.folderId, activeAgentMenuAgent.visibility, agentFolderById],
     );
     const { origin, hostname } = readWindowLocationState();
-    const activeAgentAvatarUrl = useMemo(
-        () => (activeAgent ? resolveAgentAvatarImageUrl({ agent: activeAgent }) : null),
-        [activeAgent],
-    );
+    const activeAgentAvatarUrl = useMemo(() => {
+        if (activeAgent) {
+            return resolveAgentAvatarImageUrl({ agent: activeAgent });
+        }
+
+        if (activeAgentBreadcrumbInfo) {
+            return resolveAgentAvatarImageUrl({ agent: activeAgentBreadcrumbInfo });
+        }
+
+        return null;
+    }, [activeAgent, activeAgentBreadcrumbInfo]);
 
     return {
         activeAgent,

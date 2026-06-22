@@ -18,6 +18,7 @@ import { ChatEnterBehaviorPreferencesProvider } from '../ChatEnterBehavior/ChatE
 import { HomepageOptimisticNavigation } from '../Homepage/HomepageOptimisticNavigation';
 import { FileUploadAvailabilityProvider } from '../FileUploadAvailability/FileUploadAvailabilityContext';
 import { Footer, type FooterLink } from '../Footer/Footer';
+import { ActiveAgentBreadcrumbProvider } from '../Header/ActiveAgentBreadcrumbContext';
 import { Header } from '../Header/Header';
 import { MobileMenuHoistingProvider } from '../Header/MobileMenuHoistingContext';
 import { MetadataFlagsProvider } from '../MetadataFlags/MetadataFlagsContext';
@@ -165,39 +166,41 @@ export function LayoutWrapper({
                                                                             controlPanelOptionAvailability,
                                                                         }}
                                                                     >
-                                                                        {shouldRenderMinimalShell ? (
-                                                                            <main className={minimalMainClassName}>
-                                                                                {children}
-                                                                            </main>
-                                                                        ) : (
-                                                                            <div className="agents-server-app-shell flex flex-col">
-                                                                                <Header
-                                                                                    isAdmin={isAdmin}
-                                                                                    isGlobalAdmin={isGlobalAdmin}
-                                                                                    currentUser={currentUser}
-                                                                                    serverName={serverName}
-                                                                                    serverLogoUrl={serverLogoUrl}
-                                                                                    agents={agents}
-                                                                                    agentFolders={agentFolders}
-                                                                                    federatedServers={federatedServers}
-                                                                                    isExperimental={isExperimental}
-                                                                                    feedbackMode={feedbackMode}
-                                                                                    shibbolethAuthenticationStatus={
-                                                                                        shibbolethAuthenticationStatus
-                                                                                    }
-                                                                                />
-                                                                                <main className={mainClassName}>
-                                                                                    <HomepageOptimisticNavigation
-                                                                                        pathname={pathname}
-                                                                                    >
-                                                                                        {children}
-                                                                                    </HomepageOptimisticNavigation>
+                                                                        <ActiveAgentBreadcrumbProvider>
+                                                                            {shouldRenderMinimalShell ? (
+                                                                                <main className={minimalMainClassName}>
+                                                                                    {children}
                                                                                 </main>
-                                                                                {isFooterShown && !isFooterHiddenOnPage && (
-                                                                                    <Footer extraLinks={footerLinks} />
-                                                                                )}
-                                                                            </div>
-                                                                        )}
+                                                                            ) : (
+                                                                                <div className="agents-server-app-shell flex flex-col">
+                                                                                    <Header
+                                                                                        isAdmin={isAdmin}
+                                                                                        isGlobalAdmin={isGlobalAdmin}
+                                                                                        currentUser={currentUser}
+                                                                                        serverName={serverName}
+                                                                                        serverLogoUrl={serverLogoUrl}
+                                                                                        agents={agents}
+                                                                                        agentFolders={agentFolders}
+                                                                                        federatedServers={federatedServers}
+                                                                                        isExperimental={isExperimental}
+                                                                                        feedbackMode={feedbackMode}
+                                                                                        shibbolethAuthenticationStatus={
+                                                                                            shibbolethAuthenticationStatus
+                                                                                        }
+                                                                                    />
+                                                                                    <main className={mainClassName}>
+                                                                                        <HomepageOptimisticNavigation
+                                                                                            pathname={pathname}
+                                                                                        >
+                                                                                            {children}
+                                                                                        </HomepageOptimisticNavigation>
+                                                                                    </main>
+                                                                                    {isFooterShown && !isFooterHiddenOnPage && (
+                                                                                        <Footer extraLinks={footerLinks} />
+                                                                                    )}
+                                                                                </div>
+                                                                            )}
+                                                                        </ActiveAgentBreadcrumbProvider>
                                                                     </MetadataFlagsProvider>
                                                                 </MobileMenuHoistingProvider>
                                                             </MenuHoistingProvider>
