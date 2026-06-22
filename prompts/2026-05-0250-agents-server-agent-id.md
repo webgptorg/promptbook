@@ -13,16 +13,16 @@
 
 ---
 
-[-]
+[ ]
 
-[✨⬛️] foo
+[✨⬛️] It should never happen that Agent id is shown in the UI, it should be only used in the code and urls, but never shown to the user
 
--   @@@
+-   Agents are identified by their ID in the code and urls, but in the UI they should be always shown by their name, so that the user can easily understand which agent is which, and also it will be more user-friendly and easier to use
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
--   If you need to do the database migration, do it
--   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![alt text](screenshots/2026-05-0250-agents-server-agent-id.png)
 
 ---
 
@@ -49,4 +49,3 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-

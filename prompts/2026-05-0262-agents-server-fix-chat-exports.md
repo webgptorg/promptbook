@@ -31,3 +31,21 @@
 ![Broken export to PDF](prompts/screenshots/2026-05-0262-agents-server-fix-chat-exports-1.png)
 ![Broken export to PDF](prompts/screenshots/2026-05-0262-agents-server-fix-chat-exports-2.png)
 
+---
+
+[ ]
+
+[✨©️] Make the export to html / PDF look better
+
+-   In every chat there is a "Save" button that allows to export the chat in different formats, one of the formats is "PDF" which should be fixed
+-   html is export look shitty
+-   pdf is based on html, so it looks shitty too
+-   The quick buttons should not be in the export, only the messages should be exported
+-   The UI should look similar to the chat in the Agents Server, but it should be optimized for printing and reading
+-   Keep in mind the DRY _(don't repeat yourself)_ principle, try to reuse the existing components for web and export
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+
+![Chat in web](screenshots/2026-05-0262-agents-server-fix-chat-exports.png)
+![Ugly exported HTML](screenshots/2026-05-0262-agents-server-fix-chat-exports-2.png)
+![Ugly exported PDF](screenshots/2026-05-0262-agents-server-fix-chat-exports-1.png)
