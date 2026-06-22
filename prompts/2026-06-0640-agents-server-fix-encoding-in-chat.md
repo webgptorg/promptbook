@@ -1,4 +1,4 @@
-[ ] !
+[x] ~$0.6080 an hour by OpenAI Codex `gpt-5.5`
 
 [✨🏴] In the chat there are shown chars as "dohledateln\u00fdch zdroj\u"
 
@@ -18,3 +18,4 @@ Do roku 2013: podle vlastn\u00edho profesn\u00edho profilu m\u00e1 Pavol Hejn\u0
 -   You are working with the [Agents Server](apps/agents-server)
 
 ![alt text](screenshots/2026-06-0640-agents-server-fix-encoding-in-chat.png)
+

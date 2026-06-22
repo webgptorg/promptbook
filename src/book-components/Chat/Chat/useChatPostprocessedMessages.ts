@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { humanizeAiText } from '../../../utils/markdown/humanizeAiText';
 import { promptbookifyAiText } from '../../../utils/markdown/promptbookifyAiText';
 import type { ChatMessage } from '../types/ChatMessage';
+import { decodeJsonUnicodeEscapesInMarkdownText } from '../utils/decodeJsonUnicodeEscapesInMarkdownText';
 import { extractCitationsFromMessage } from '../utils/parseCitationsFromContent';
 
 /**
@@ -29,15 +30,25 @@ function postprocessChatMessage(message: ChatMessage): ChatMessage {
     const normalizedReplyingTo = messageWithCitations.replyingTo
         ? {
               ...messageWithCitations.replyingTo,
-              content: promptbookifyAiText(humanizeAiText(messageWithCitations.replyingTo.content)),
+              content: postprocessChatMessageContent(messageWithCitations.replyingTo.content),
           }
         : undefined;
 
     return {
         ...messageWithCitations,
-        content: promptbookifyAiText(humanizeAiText(messageWithCitations.content)),
+        content: postprocessChatMessageContent(messageWithCitations.content),
         ...(normalizedReplyingTo ? { replyingTo: normalizedReplyingTo } : {}),
     };
+}
+
+/**
+ * Applies markdown-safe text normalization to one chat message content value.
+ *
+ * @private utility of `useChatPostprocessedMessages`
+ */
+function postprocessChatMessageContent(content: ChatMessage['content']): ChatMessage['content'] {
+    const decodedContent = decodeJsonUnicodeEscapesInMarkdownText(content);
+    return promptbookifyAiText(humanizeAiText(decodedContent));
 }
 
 /**
