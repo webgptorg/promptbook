@@ -523,7 +523,7 @@
             "commands": [
                 "set -a && source .env && set +a",
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts coder server --harness claude-code --model claude-4.8-opus --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder --no-wait"
+                "npx ts-node ./src/cli/test/ptbk.ts coder server --harness claude-code --model claude-4.8-opus --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder --no-wait --wait 30m"
             ],
             "execute": true,
             "onlySingle": true,
