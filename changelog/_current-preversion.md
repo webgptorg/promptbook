@@ -1,9 +1,3 @@
--   Improved Agents Server chat source citations: source chips now prefer page/document titles resolved from metadata, fall back to readable filenames or hostnames, and truncate long labels cleanly instead of showing raw URL fragments.
-
--   Fixed Agents Server chat rendering JSON-escaped Unicode sequences such as `\u00fd` and `\u016f` as visible text. Chat message postprocessing now decodes non-ASCII JSON Unicode escapes in prose while preserving inline code and fenced code blocks, so Czech and other non-ASCII replies render with their real characters.
-
--   Added a `manGo wizard` option to the Agents Server `NEW_AGENT_WIZARD` metadata setting. The new flow adapts the external onboarding wizard into the existing new-agent dialog, reuses the current validated book-source builder and upload pipeline, and creates agents through the same folder-aware creation path as the existing editor and wizard modes.
-
 -   Fixed Agents Server self-update reporting a false failure after a successful VPS restart. The update overview now treats a stale background process as successful when the running server is already on the recorded target branch and target commit, and the update page suppresses transient restart polling errors while still showing real job failures.
 
 -   Fixed remaining misspelled wizard naming across Agents Server metadata constants, generated new-agent notes, repository documentation, and related prompt/document filenames.

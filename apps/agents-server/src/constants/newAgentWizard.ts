@@ -11,7 +11,7 @@ export const LEGACY_NEW_AGENT_WIZARD_METADATA_KEY = ['NEW_AGENT_', 'WIZ', 'ZARD'
 /**
  * Supported new-agent creation experiences.
  */
-export const NEW_AGENT_WIZARD_VALUES = ['BOILERPLATE', 'WIZARD', 'MANGO_WIZARD'] as const;
+export const NEW_AGENT_WIZARD_VALUES = ['BOILERPLATE', 'WIZARD'] as const;
 
 /**
  * Canonical union of supported new-agent creation experiences.
@@ -32,10 +32,6 @@ export const NEW_AGENT_WIZARD_OPTIONS: ReadonlyArray<{
     {
         value: 'WIZARD',
         label: 'Wizard',
-    },
-    {
-        value: 'MANGO_WIZARD',
-        label: 'manGo wizard',
     },
 ] as const;
 
@@ -69,9 +65,6 @@ export function parseNewAgentWizardMode(
         return fallback;
     }
 
-    const normalized = value
-        .trim()
-        .toUpperCase()
-        .replace(/[\s-]+/g, '_');
+    const normalized = value.trim().toUpperCase();
     return isNewAgentWizardMode(normalized) ? normalized : fallback;
 }

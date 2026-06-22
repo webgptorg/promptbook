@@ -91,10 +91,6 @@ export type CreateNewAgentWizardSourceOptions = {
      * Knowledge sources uploaded or pasted in the wizard.
      */
     readonly knowledgeItems: ReadonlyArray<NewAgentWizardKnowledgeItem>;
-    /**
-     * Human-readable flow label written into the traceability `NOTE`.
-     */
-    readonly traceLabel?: string;
 };
 
 /**
@@ -204,9 +200,8 @@ export function createNewAgentWizardSource(options: CreateNewAgentWizardSourceOp
     const capabilityCommitments = options.capabilityCommitments.filter(
         (
             commitment,
-        ): commitment is NewAgentWizardCapabilityCommitmentEntry & {
-            readonly keyword: NewAgentWizardCapabilityCommitment;
-        } => NEW_AGENT_WIZARD_KNOWN_CAPABILITY_COMMITMENTS.has(commitment.keyword),
+        ): commitment is NewAgentWizardCapabilityCommitmentEntry & { readonly keyword: NewAgentWizardCapabilityCommitment } =>
+            NEW_AGENT_WIZARD_KNOWN_CAPABILITY_COMMITMENTS.has(commitment.keyword),
     );
     const writingStyleTraits = options.writingStyleTraits.map(normalizeSingleLine).filter(Boolean);
     const writingRules = options.writingRules.map((rule) => spaceTrim(rule)).filter(Boolean);
@@ -217,9 +212,8 @@ export function createNewAgentWizardSource(options: CreateNewAgentWizardSourceOp
             source: spaceTrim(item.source),
         }))
         .filter((item) => item.label !== '' && item.source !== '');
-    const traceLabel = normalizeSingleLine(options.traceLabel) || 'NEW_AGENT_WIZARD flow';
     const noteLines = [
-        `NOTE This agent was created via the ${traceLabel}`,
+        'NOTE This agent was created via the NEW_AGENT_WIZARD flow',
         `- Goal: ${summarizedGoal || 'Guided default goal'}`,
         `- Personality: ${formatSummaryList(personaTraits, 'Default guided persona')}`,
         `- Learning: ${options.isOpenToLearning ? 'Open to learning' : 'Fixed after creation'}`,

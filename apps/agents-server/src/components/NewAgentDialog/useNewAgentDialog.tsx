@@ -12,9 +12,11 @@ import {
     $getNewAgentCreationSettingsAction,
 } from '../../app/actions';
 import type { NewAgentWizardMode } from '../../constants/newAgentWizard';
-import { ManGoNewAgentWizard } from './ManGoNewAgentWizard';
 import { NewAgentDialog } from './NewAgentDialog';
-import type { NewAgentWizardCreateRequest, NewAgentWizardOpenEditorRequest } from './NewAgentWizard';
+import type {
+    NewAgentWizardCreateRequest,
+    NewAgentWizardOpenEditorRequest,
+} from './NewAgentWizard';
 import { NewAgentWizard } from './NewAgentWizard';
 import { trackNewAgentCreationEvent } from './trackNewAgentCreationEvent';
 
@@ -103,13 +105,6 @@ type NewAgentDialogState =
           readonly defaultVisibility: AgentVisibility;
           readonly initialAgentName?: string;
           readonly targetFolderId: number | null | undefined;
-      }
-    | {
-          readonly surface: 'mangoWizard';
-          readonly mode: NewAgentWizardMode;
-          readonly defaultVisibility: AgentVisibility;
-          readonly initialAgentName?: string;
-          readonly targetFolderId: number | null | undefined;
       };
 
 /**
@@ -181,7 +176,7 @@ export function useNewAgentDialog(options: UseNewAgentDialogOptions): UseNewAgen
                     folderId: openOptions?.folderId,
                 });
 
-                if (settings.mode === 'WIZARD' || settings.mode === 'MANGO_WIZARD') {
+                if (settings.mode === 'WIZARD') {
                     let initialAgentName = '';
                     try {
                         const boilerplate = await $generateAgentBoilerplateAction();
@@ -191,7 +186,7 @@ export function useNewAgentDialog(options: UseNewAgentDialogOptions): UseNewAgen
                     }
 
                     setDialogState({
-                        surface: settings.mode === 'MANGO_WIZARD' ? 'mangoWizard' : 'wizard',
+                        surface: 'wizard',
                         mode: settings.mode,
                         defaultVisibility: settings.defaultVisibility,
                         initialAgentName,
@@ -199,7 +194,7 @@ export function useNewAgentDialog(options: UseNewAgentDialogOptions): UseNewAgen
                     });
                     trackNewAgentCreationEvent('new_agent_wizard_shown', {
                         mode: settings.mode,
-                        surface: settings.mode === 'MANGO_WIZARD' ? 'mango-wizard' : 'wizard',
+                        surface: 'wizard',
                         folderId: openOptions?.folderId,
                     });
                     return;
@@ -248,7 +243,7 @@ export function useNewAgentDialog(options: UseNewAgentDialogOptions): UseNewAgen
 
     const handleCreateFromWizard = useCallback(
         async (request: NewAgentWizardCreateRequest) => {
-            if (!dialogState || (dialogState.surface !== 'wizard' && dialogState.surface !== 'mangoWizard')) {
+            if (!dialogState || dialogState.surface !== 'wizard') {
                 return;
             }
 
@@ -260,7 +255,7 @@ export function useNewAgentDialog(options: UseNewAgentDialogOptions): UseNewAgen
                 );
                 trackNewAgentCreationEvent('new_agent_created', {
                     mode: dialogState.mode,
-                    surface: dialogState.surface === 'mangoWizard' ? 'mango-wizard' : 'wizard',
+                    surface: 'wizard',
                     folderId: dialogState.targetFolderId,
                     knowledgeCount: request.knowledgeCount,
                 });
@@ -275,10 +270,7 @@ export function useNewAgentDialog(options: UseNewAgentDialogOptions): UseNewAgen
 
     const handleOpenEditorFromWizard = useCallback((request: NewAgentWizardOpenEditorRequest) => {
         setDialogState((currentDialogState) => {
-            if (
-                !currentDialogState ||
-                (currentDialogState.surface !== 'wizard' && currentDialogState.surface !== 'mangoWizard')
-            ) {
+            if (!currentDialogState || currentDialogState.surface !== 'wizard') {
                 return currentDialogState;
             }
 
@@ -305,16 +297,6 @@ export function useNewAgentDialog(options: UseNewAgentDialogOptions): UseNewAgen
                 />
             ) : dialogState?.surface === 'wizard' ? (
                 <NewAgentWizard
-                    mode={dialogState.mode}
-                    defaultVisibility={dialogState.defaultVisibility}
-                    initialAgentName={dialogState.initialAgentName}
-                    folderId={dialogState.targetFolderId}
-                    onClose={closeNewAgentDialog}
-                    onCreate={handleCreateFromWizard}
-                    onOpenEditor={handleOpenEditorFromWizard}
-                />
-            ) : dialogState?.surface === 'mangoWizard' ? (
-                <ManGoNewAgentWizard
                     mode={dialogState.mode}
                     defaultVisibility={dialogState.defaultVisibility}
                     initialAgentName={dialogState.initialAgentName}

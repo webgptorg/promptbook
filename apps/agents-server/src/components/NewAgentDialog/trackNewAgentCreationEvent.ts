@@ -21,7 +21,7 @@ export type TrackNewAgentCreationEventOptions = {
     /**
      * Concrete surface the user interacted with.
      */
-    readonly surface?: 'editor' | 'wizard' | 'mango-wizard';
+    readonly surface?: 'editor' | 'wizard';
     /**
      * Folder scope where the flow started.
      */
