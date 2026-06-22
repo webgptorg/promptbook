@@ -1,4 +1,4 @@
--   Fixed misspelled wizard naming across Agents Server metadata constants, generated new-agent notes, repository documentation, and related prompt/document filenames.
+-   Fixed remaining misspelled wizard naming across Agents Server metadata constants, generated new-agent notes, repository documentation, and related prompt/document filenames.
 
 -   Changed `ptbk coder init` to copy the bundled `agents/default/developer.book` into initialized projects as `agents/developer.book`, and updated the generated `coder:run` npm script to pass it via `--agent agents/developer.book`.
 
