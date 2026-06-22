@@ -1,4 +1,4 @@
-[ ] !
+[x] ~$0.5155 an hour by OpenAI Codex `gpt-5.5`
 
 [✨☄️] Add a metadata option to `NEW_AGENT_WIZARD` to create a agent
 
@@ -9,3 +9,4 @@
 -   Do a proper analysis of the current functionality of `NEW_AGENT_WIZARD`, wizards and extarnal repository before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

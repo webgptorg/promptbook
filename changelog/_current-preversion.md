@@ -1,3 +1,5 @@
+-   Added a `manGo wizard` option to the Agents Server `NEW_AGENT_WIZARD` metadata setting. The new flow adapts the external onboarding wizard into the existing new-agent dialog, reuses the current validated book-source builder and upload pipeline, and creates agents through the same folder-aware creation path as the existing editor and wizard modes.
+
 -   Fixed Agents Server self-update reporting a false failure after a successful VPS restart. The update overview now treats a stale background process as successful when the running server is already on the recorded target branch and target commit, and the update page suppresses transient restart polling errors while still showing real job failures.
 
 -   Fixed remaining misspelled wizard naming across Agents Server metadata constants, generated new-agent notes, repository documentation, and related prompt/document filenames.
