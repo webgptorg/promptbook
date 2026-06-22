@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import {
-    DEFAULT_NEW_AGENT_WIZZARD_MODE,
+    DEFAULT_NEW_AGENT_WIZARD_MODE,
     isNewAgentWizardMode,
     parseNewAgentWizardMode,
 } from './newAgentWizard';
@@ -18,7 +18,7 @@ describe('newAgentWizard', () => {
     });
 
     it('falls back safely for invalid values', () => {
-        expect(parseNewAgentWizardMode('templates')).toBe(DEFAULT_NEW_AGENT_WIZZARD_MODE);
+        expect(parseNewAgentWizardMode('templates')).toBe(DEFAULT_NEW_AGENT_WIZARD_MODE);
         expect(parseNewAgentWizardMode(null, 'WIZARD')).toBe('WIZARD');
     });
 });

@@ -40,7 +40,7 @@ describe('createNewAgentWizardSource', () => {
             ],
         });
 
-        expect(agentSource).toContain('NOTE This agent was created via the NEW_AGENT_WIZZARD flow');
+        expect(agentSource).toContain('NOTE This agent was created via the NEW_AGENT_WIZARD flow');
         expect(agentSource).toContain('- Goal: Help users cook with confidence using practical kitchen advice.');
         expect(agentSource).toContain('- Personality: helpful, analytical, strong at practical kitchen advice');
         expect(agentSource).toContain('- Learning: Open to learning');

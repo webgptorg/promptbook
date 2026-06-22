@@ -213,7 +213,7 @@ export function createNewAgentWizardSource(options: CreateNewAgentWizardSourceOp
         }))
         .filter((item) => item.label !== '' && item.source !== '');
     const noteLines = [
-        'NOTE This agent was created via the NEW_AGENT_WIZZARD flow',
+        'NOTE This agent was created via the NEW_AGENT_WIZARD flow',
         `- Goal: ${summarizedGoal || 'Guided default goal'}`,
         `- Personality: ${formatSummaryList(personaTraits, 'Default guided persona')}`,
         `- Learning: ${options.isOpenToLearning ? 'Open to learning' : 'Fixed after creation'}`,

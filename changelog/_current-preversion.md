@@ -1,3 +1,5 @@
+-   Fixed misspelled wizard naming across Agents Server metadata constants, generated new-agent notes, repository documentation, and related prompt/document filenames.
+
 -   Changed `ptbk coder init` to copy the bundled `agents/default/developer.book` into initialized projects as `agents/developer.book`, and updated the generated `coder:run` npm script to pass it via `--agent agents/developer.book`.
 
 -   Improved `ptbk coder server` UI and prompt handling:
@@ -2277,7 +2279,7 @@
 
 -   Added Agents Server crawling/indexing visibility policy with server-level `SERVER_VISIBILITY` (`PRIVATE` by default, optional `SERVER_VISIBILITY` env override), dynamic `robots.txt`, visibility-gated/paginated `sitemap.xml`, visibility-aware agent metadata and `X-Robots-Tag` headers, plus admin metadata UI support for explicit private/public server visibility switching.
 
--   Added a metadata-controlled `NEW_AGENT_WIZZARD` A/B path for Agents Server new-agent creation, preserving the current boilerplate book-editor flow by default while enabling a guided multi-step wizard that collects high-level agent details, uploads knowledge through the same ingestion pipeline, synthesizes the hidden book source with a traceability `NOTE`, reuses the existing create-agent endpoint in the background, supports an advanced switch back to the raw editor, and emits client-side funnel analytics for assignment, wizard completion, creation, and post-create editor opens.
+-   Added a metadata-controlled `NEW_AGENT_WIZARD` A/B path for Agents Server new-agent creation, preserving the current boilerplate book-editor flow by default while enabling a guided multi-step wizard that collects high-level agent details, uploads knowledge through the same ingestion pipeline, synthesizes the hidden book source with a traceability `NOTE`, reuses the existing create-agent endpoint in the background, supports an advanced switch back to the raw editor, and emits client-side funnel analytics for assignment, wizard completion, creation, and post-create editor opens.
 
 -   Fixed chat-map server startup crashes by lazily loading Leaflet inside the client-only GeoJSON map effect, so admin chat-feedback and other chat surfaces no longer evaluate browser-only map code while the Next.js server bundle is being loaded.
 
@@ -3786,7 +3788,7 @@
 
 -   Fixed Agents Server metadata enum handling so predefined metadata keys no longer accept arbitrary strings in `/admin/metadata`:
 
-    -   Added shared metadata definitions with reusable predefined option lists, so enum-like metadata such as `DEFAULT_AGENT_AVATAR_VISUAL`, `SERVER_LANGUAGE`, `SERVER_VISIBILITY`, `CHAT_FEEDBACK_MODE`, `CHAT_VISUAL_MODE`, `NAME_POOL`, `DEFAULT_VISIBILITY`, and `NEW_AGENT_WIZZARD` now render as selects instead of free-form text inputs.
+    -   Added shared metadata definitions with reusable predefined option lists, so enum-like metadata such as `DEFAULT_AGENT_AVATAR_VISUAL`, `SERVER_LANGUAGE`, `SERVER_VISIBILITY`, `CHAT_FEEDBACK_MODE`, `CHAT_VISUAL_MODE`, `NAME_POOL`, `DEFAULT_VISIBILITY`, and `NEW_AGENT_WIZARD` now render as selects instead of free-form text inputs.
     -   Reused the same option registries across the metadata page and existing server-creation flows to keep enum values centralized and DRY.
     -   Added server-side validation for predefined metadata options, so invalid enum values are rejected even when `/api/metadata` is called directly.
 

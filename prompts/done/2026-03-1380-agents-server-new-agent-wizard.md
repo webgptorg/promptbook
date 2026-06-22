@@ -1,10 +1,10 @@
 [x] ~$0.00 an hour by OpenAI Codex `gpt-5.4`
 
-[🧙‍♀️📋] `NEW_AGENT_WIZZARD`
+[🧙‍♀️📋] `NEW_AGENT_WIZARD`
 
 Provide an alternate "New agent" creation experience to A/B test against the current book-editor-first flow. Add a metadata item as toggle that controls whether creating an agent opens the boilerplate book editor (current behavior) or a guided form-wizard that collects high-level agent details and creates the book & agent in the background.
 
--   `NEW_AGENT_WIZZARD` should have:
+-   `NEW_AGENT_WIZARD` should have:
 
     -   `BOILERPLATE` (default): current flow, clicking "New agent" opens book editor with boilerplate source.
     -   `WIZARD`: new flow, clicking "New agent" opens a multi-step
@@ -36,7 +36,7 @@ Provide an alternate "New agent" creation experience to A/B test against the cur
 ```book
 AI Developer
 
-NOTE This agent was created via the NEW_AGENT_WIZZARD flow
+NOTE This agent was created via the NEW_AGENT_WIZARD flow
 - Personality: Helpful, concise, professional
 - Rules: Do not provide medical advice, do not share personal data
 - Knowledge: Uploaded 3 files about cooking recipes (file1.pdf, file2.docx, file3.txt)
@@ -55,7 +55,7 @@ CLOSED
 -   Frontend changes (high-level):
 
     -   New component: NewAgentWizard
-    -   Wizzard is primarily a frontend component that will bake the agent source based on user inputs on the frontend and the backend will receive same agent source as if it came from the book editor, so we can reuse the same api endpoints.
+    -   Wizard is primarily a frontend component that will bake the agent source based on user inputs on the frontend and the backend will receive same agent source as if it came from the book editor, so we can reuse the same api endpoints.
 
 -   You are working with the [Agents Server](apps/agents-server)
 
@@ -63,7 +63,7 @@ CLOSED
 
 [x] ~$0.00 26 minutes by OpenAI Codex `gpt-5.3-codex`
 
-[🧙‍♀️📋] Enhance the new agent wizzard
+[🧙‍♀️📋] Enhance the new agent wizard
 
 0. **All pages**
 
@@ -115,7 +115,7 @@ CLOSED
 
 [x] ~$0.00 36 minutes by OpenAI Codex `gpt-5.4`
 
-[🧙‍♀️📋] Enhance the new agent wizzard
+[🧙‍♀️📋] Enhance the new agent wizard
 
 -   In Page 1 - Allow to specify `GOAL`
 -   In Page 2 - Persona, list all the capabilities, look on all `USE` commitments and also allow to check `Open to learning` which adds `OPEN` / `CLOSED` commitment, also each persona trait preset should have icon, also list more persona presets

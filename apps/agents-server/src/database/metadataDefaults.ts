@@ -19,7 +19,11 @@ import {
 } from '../constants/defaultAgentAvatarVisual';
 import { DEFAULT_THEME_METADATA_KEY, DEFAULT_THEME_MODE, THEME_MODE_OPTIONS } from '../constants/themeMode';
 import { DEFAULT_NAME_POOL, NAME_POOL_METADATA_KEY, NAME_POOL_OPTIONS } from '../constants/namePool';
-import { NEW_AGENT_WIZZARD_METADATA_KEY, NEW_AGENT_WIZZARD_OPTIONS } from '../constants/newAgentWizard';
+import {
+    LEGACY_NEW_AGENT_WIZARD_METADATA_KEY,
+    NEW_AGENT_WIZARD_METADATA_KEY,
+    NEW_AGENT_WIZARD_OPTIONS,
+} from '../constants/newAgentWizard';
 import {
     DEFAULT_SHIBBOLETH_DISPLAY_NAME_ATTRIBUTE_NAMES,
     DEFAULT_SHIBBOLETH_EMAIL_ATTRIBUTE_NAMES,
@@ -90,6 +94,11 @@ export type MetadataDefinition = {
      * Optional predefined values rendered as a select instead of a free-form input.
      */
     readonly options?: ReadonlyArray<MetadataDefinitionOption>;
+
+    /**
+     * Optional previous keys that should be read when the canonical key is absent.
+     */
+    readonly legacyKeys?: ReadonlyArray<string>;
 };
 
 /**
@@ -120,7 +129,7 @@ const analyticsMetadataDefaults = ANALYTICS_METADATA_KEYS.map((key) => {
 /**
  * Constant for metadata defaults.
  */
-export const metadataDefaults = [
+export const metadataDefaults: ReadonlyArray<MetadataDefinition> = [
     {
         key: 'SERVER_NAME',
         value: 'Promptbook Agents Server',
@@ -473,13 +482,14 @@ export const metadataDefaults = [
         options: AGENT_VISIBILITY_OPTIONS,
     },
     {
-        key: NEW_AGENT_WIZZARD_METADATA_KEY,
+        key: NEW_AGENT_WIZARD_METADATA_KEY,
         value: 'BOILERPLATE',
         note: `Controls the "new agent" flow. Allowed values: ${formatMetadataOptionValues(
-            NEW_AGENT_WIZZARD_OPTIONS,
+            NEW_AGENT_WIZARD_OPTIONS,
         )}.`,
         type: 'TEXT_SINGLE_LINE',
-        options: NEW_AGENT_WIZZARD_OPTIONS,
+        options: NEW_AGENT_WIZARD_OPTIONS,
+        legacyKeys: [LEGACY_NEW_AGENT_WIZARD_METADATA_KEY],
     },
     {
         key: 'MANAGEMENT_API_CORS_ORIGINS',
@@ -536,7 +546,7 @@ export const metadataDefaults = [
         type: 'TEXT_SINGLE_LINE',
     },
     ...analyticsMetadataDefaults,
-] as const satisfies ReadonlyArray<MetadataDefinition>;
+];
 
 /**
  * Lookup map for metadata definitions by key.

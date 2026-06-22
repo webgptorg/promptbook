@@ -11,6 +11,17 @@ import { cache } from 'react';
 const metadataDefaultsMap = new Map<string, string>(metadataDefaults.map((metadata) => [metadata.key, metadata.value]));
 
 /**
+ * Precomputed map of legacy metadata keys keyed by canonical metadata key.
+ *
+ * @private Internal helper for metadata lookups in `apps/agents-server`.
+ */
+const metadataLegacyKeysMap = new Map<string, ReadonlyArray<string>>(
+    metadataDefaults
+        .filter((metadata) => metadata.legacyKeys && metadata.legacyKeys.length > 0)
+        .map((metadata): [string, ReadonlyArray<string>] => [metadata.key, metadata.legacyKeys ?? []]),
+);
+
+/**
  * Process-level cache lifetime for metadata reads.
  *
  * @private Internal helper for metadata lookups in `apps/agents-server`.
@@ -146,8 +157,33 @@ export async function getMetadataMap(keys: readonly string[]): Promise<Record<st
 
     const metadataRecord: Record<string, string | null> = {};
     for (const key of uniqueKeys) {
-        metadataRecord[key] = loadedMap.get(key) ?? metadataDefaultsMap.get(key) ?? null;
+        metadataRecord[key] = resolveMetadataValue(key, loadedMap);
     }
 
     return metadataRecord;
+}
+
+/**
+ * Resolves one metadata value from canonical rows, legacy rows, or default definitions.
+ *
+ * @param key - Canonical metadata key requested by the caller.
+ * @param loadedMap - Persisted metadata values keyed by database row key.
+ * @returns Stored, legacy, default, or `null` metadata value.
+ *
+ * @private Internal helper for metadata lookups in `apps/agents-server`.
+ */
+function resolveMetadataValue(key: string, loadedMap: ReadonlyMap<string, string | null>): string | null {
+    const storedValue = loadedMap.get(key);
+    if (storedValue !== undefined && storedValue !== null) {
+        return storedValue;
+    }
+
+    for (const legacyKey of metadataLegacyKeysMap.get(key) ?? []) {
+        const legacyValue = loadedMap.get(legacyKey);
+        if (legacyValue !== undefined && legacyValue !== null) {
+            return legacyValue;
+        }
+    }
+
+    return metadataDefaultsMap.get(key) ?? null;
 }

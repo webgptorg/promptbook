@@ -5,7 +5,11 @@ import {
     DEFAULT_AGENT_AVATAR_VISUAL_METADATA_OPTIONS,
 } from '../constants/defaultAgentAvatarVisual';
 import { NAME_POOL_METADATA_KEY, NAME_POOL_OPTIONS } from '../constants/namePool';
-import { NEW_AGENT_WIZZARD_METADATA_KEY, NEW_AGENT_WIZZARD_OPTIONS } from '../constants/newAgentWizard';
+import {
+    LEGACY_NEW_AGENT_WIZARD_METADATA_KEY,
+    NEW_AGENT_WIZARD_METADATA_KEY,
+    NEW_AGENT_WIZARD_OPTIONS,
+} from '../constants/newAgentWizard';
 import { DEFAULT_THEME_METADATA_KEY, THEME_MODE_OPTIONS } from '../constants/themeMode';
 import { SERVER_LANGUAGE_OPTIONS, SERVER_LANGUAGE_METADATA_KEY } from '../languages/ServerLanguageRegistry';
 import { DEFAULT_VISIBILITY_METADATA_KEY, AGENT_VISIBILITY_OPTIONS } from '../utils/agentVisibility';
@@ -22,7 +26,10 @@ describe('metadata defaults enum options', () => {
         expect(getMetadataDefinition(DEFAULT_THEME_METADATA_KEY)?.options).toEqual(THEME_MODE_OPTIONS);
         expect(getMetadataDefinition(NAME_POOL_METADATA_KEY)?.options).toEqual(NAME_POOL_OPTIONS);
         expect(getMetadataDefinition(DEFAULT_VISIBILITY_METADATA_KEY)?.options).toEqual(AGENT_VISIBILITY_OPTIONS);
-        expect(getMetadataDefinition(NEW_AGENT_WIZZARD_METADATA_KEY)?.options).toEqual(NEW_AGENT_WIZZARD_OPTIONS);
+        expect(getMetadataDefinition(NEW_AGENT_WIZARD_METADATA_KEY)?.options).toEqual(NEW_AGENT_WIZARD_OPTIONS);
+        expect(getMetadataDefinition(NEW_AGENT_WIZARD_METADATA_KEY)?.legacyKeys).toEqual([
+            LEGACY_NEW_AGENT_WIZARD_METADATA_KEY,
+        ]);
         expect(getMetadataDefinition(DEFAULT_AGENT_AVATAR_VISUAL_METADATA_KEY)?.options).toEqual(
             DEFAULT_AGENT_AVATAR_VISUAL_METADATA_OPTIONS.map(({ metadataValue, title }) => ({
                 value: metadataValue,

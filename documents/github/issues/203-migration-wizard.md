@@ -1,6 +1,6 @@
             <!--⚠️ WARNING: This code has been generated so that any manual changes will be overwritten-->
 
-            # Migration wizzard
+            # Migration wizard
 
             - Author: [hejny](https://github.com/hejny)
             - Created at: 2/8/2025, 4:24:03 PM
@@ -8,7 +8,7 @@
             - Labels:
             - Issue: #203
 
-            Maybe make some migration wizzard
+            Maybe make some migration wizard
 
             For example:
 

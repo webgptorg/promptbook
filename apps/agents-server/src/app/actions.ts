@@ -5,7 +5,7 @@ import { string_agent_name, string_book } from '@promptbook-local/types';
 import { revalidatePath } from 'next/cache';
 import { string_agent_permanent_id } from '../../../../src/types/typeAliases';
 import { DEFAULT_NAME_POOL, NAME_POOL_METADATA_KEY, parseNamePool } from '../constants/namePool';
-import { NEW_AGENT_WIZZARD_METADATA_KEY, parseNewAgentWizardMode } from '../constants/newAgentWizard';
+import { NEW_AGENT_WIZARD_METADATA_KEY, parseNewAgentWizardMode } from '../constants/newAgentWizard';
 import { getMetadata } from '../database/getMetadata';
 import { $provideAgentCollectionForServer } from '../tools/$provideAgentCollectionForServer';
 import { invalidateCachedActiveOrganizationSnapshots } from '../utils/agentOrganization/loadAgentOrganizationState';
@@ -73,7 +73,7 @@ export async function $getNewAgentCreationSettingsAction(): Promise<{
     defaultVisibility: AgentVisibility;
 }> {
     return {
-        mode: parseNewAgentWizardMode(await getMetadata(NEW_AGENT_WIZZARD_METADATA_KEY)),
+        mode: parseNewAgentWizardMode(await getMetadata(NEW_AGENT_WIZARD_METADATA_KEY)),
         defaultVisibility: parseAgentVisibility(await getMetadata('DEFAULT_VISIBILITY')),
     };
 }

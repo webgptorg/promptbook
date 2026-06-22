@@ -20,11 +20,11 @@ Have the DNS records propagated and should SSL setup continue now? [yes]: s21.pt
 ```
 
 -   Allow to skip all the values and configure them later through the UI if it's possible.
--   All the options configured during the installation should be also configurable later through the wizzard on IP address when there is no domain configured, and also through the UI when logged in as super `admin`
+-   All the options configured during the installation should be also configurable later through the wizard on IP address when there is no domain configured, and also through the UI when logged in as super `admin`
 -   When no domain is added during the installation, the server should be still accessible on `http://<IP_ADDRESS>` and then the domain can be added later through the UI
 -   Port `4440` is just internal for proxiing, Nginx should expose port `80` from raw IP adress
 -   When accessing IP address without domain, it should show one of 3 things:
-    -   If there is no domain configured, it should show a login where only super `admin` can log in, and after logging in it should go through the wizzard of configuration of the server, reuse the components, logic and the code from the installation script, and UI
+    -   If there is no domain configured, it should show a login where only super `admin` can log in, and after logging in it should go through the wizard of configuration of the server, reuse the components, logic and the code from the installation script, and UI
         -   Prefer configuring single domain during the installation, adding multiple domains should be advanced option
     -   If there is one domain configured, it should redirect to that domain to `https`
     -   If there are multiple domains configured, it should show a simple page where you can choose to which domain you want to go
@@ -50,7 +50,7 @@ Have the DNS records propagated and should SSL setup continue now? [yes]: s21.pt
 -   Formally, the administration of the servers was calling Vercel API adding domains. This should be abandoned because we are not using Vercel anymore but VPS with Nginx and Certbot
 -   Also add "System" -> "Super Admin" -> "Logs" where super `admin` can see the logs of the server from `pm2 logs`
 -   Also add "System" -> "Super Admin" -> "Code runners" where super `admin` can log in into the code runners like Github Copilot, OpenAI Codex, Claude codem,...
-    -   This should be configurable both throught the installation script, the wizzard on IP address when there is no domain configured, and also through the UI when logged in as super `admin` in "System" -> "Super Admin" -> "Code runners"
+    -   This should be configurable both throught the installation script, the wizard on IP address when there is no domain configured, and also through the UI when logged in as super `admin` in "System" -> "Super Admin" -> "Code runners"
     -   Also share the code and logic between the installation script and the UI, so you are not repeating yourself, but just running the same code from different contexts
     -   Eqivalent step in installation script is `Open GitHub Copilot CLI now for /login and project trust setup? [yes]:`
 -   You are working with the [Agents Server](apps/agents-server)
@@ -84,7 +84,7 @@ Have the DNS records propagated and should SSL setup continue now? [yes]: s21.pt
 [✨🤬] The "Create new server" fails on "installHook.js:1 Failed to fetch RSC payload", fix it
 
 -   When no domain is added during the installation, the server is accessible on `http://<IP_ADDRESS>`
--   This is needed to finish the configuration of the server, but this wizzard fails at step 3. when submitting the form: "installHook.js:1 Failed to fetch RSC payload for http://167.172.138.126/get-started. Falling back to browser navigation. TypeError: Failed to fetch"
+-   This is needed to finish the configuration of the server, but this wizard fails at step 3. when submitting the form: "installHook.js:1 Failed to fetch RSC payload for http://167.172.138.126/get-started. Falling back to browser navigation. TypeError: Failed to fetch"
 -   You are working with the [Agents Server](apps/agents-server)
 -   The server is initialized by [auto installation script](vps/install.sh)
 
@@ -94,10 +94,10 @@ Have the DNS records propagated and should SSL setup continue now? [yes]: s21.pt
 
 [x] - Manually commited
 
-[✨🤬] Simplify the "Create new server" wizzard
+[✨🤬] Simplify the "Create new server" wizard
 
 -   When no domain is added during the installation, the server is accessible on `http://<IP_ADDRESS>`
--   This is needed to finish the configuration of the server, but this wizzard is too complicated
+-   This is needed to finish the configuration of the server, but this wizard is too complicated
 -   Do theese changes:
 
     1. Only thing shown in simple mode should be:
@@ -161,7 +161,7 @@ If the issue persists, contact support@ptbk.io with the error details.
 ```
 
 -   When no domain is added during the installation, the server is accessible on `http://<IP_ADDRESS>`
--   This is needed to finish the configuration of the server, but this wizzard fails
+-   This is needed to finish the configuration of the server, but this wizard fails
 -   You are working with the [Agents Server](apps/agents-server)
 -   The server is initialized by [auto installation script](vps/install.sh)
 

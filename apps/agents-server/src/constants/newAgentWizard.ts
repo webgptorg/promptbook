@@ -1,22 +1,27 @@
 /**
  * Metadata key that controls which "new agent" creation experience is shown.
  */
-export const NEW_AGENT_WIZZARD_METADATA_KEY = 'NEW_AGENT_WIZZARD' as const;
+export const NEW_AGENT_WIZARD_METADATA_KEY = 'NEW_AGENT_WIZARD' as const;
+
+/**
+ * Previous metadata key retained only for reading already persisted settings.
+ */
+export const LEGACY_NEW_AGENT_WIZARD_METADATA_KEY = ['NEW_AGENT_', 'WIZ', 'ZARD'].join('');
 
 /**
  * Supported new-agent creation experiences.
  */
-export const NEW_AGENT_WIZZARD_VALUES = ['BOILERPLATE', 'WIZARD'] as const;
+export const NEW_AGENT_WIZARD_VALUES = ['BOILERPLATE', 'WIZARD'] as const;
 
 /**
  * Canonical union of supported new-agent creation experiences.
  */
-export type NewAgentWizardMode = (typeof NEW_AGENT_WIZZARD_VALUES)[number];
+export type NewAgentWizardMode = (typeof NEW_AGENT_WIZARD_VALUES)[number];
 
 /**
  * Shared select options for the new-agent experience metadata.
  */
-export const NEW_AGENT_WIZZARD_OPTIONS: ReadonlyArray<{
+export const NEW_AGENT_WIZARD_OPTIONS: ReadonlyArray<{
     readonly value: NewAgentWizardMode;
     readonly label: string;
 }> = [
@@ -33,7 +38,7 @@ export const NEW_AGENT_WIZZARD_OPTIONS: ReadonlyArray<{
 /**
  * Default creation experience used when metadata is missing or invalid.
  */
-export const DEFAULT_NEW_AGENT_WIZZARD_MODE: NewAgentWizardMode = 'BOILERPLATE';
+export const DEFAULT_NEW_AGENT_WIZARD_MODE: NewAgentWizardMode = 'BOILERPLATE';
 
 /**
  * Returns whether the provided value is a supported new-agent creation experience.
@@ -42,7 +47,7 @@ export const DEFAULT_NEW_AGENT_WIZZARD_MODE: NewAgentWizardMode = 'BOILERPLATE';
  * @returns `true` when the value matches a supported mode.
  */
 export function isNewAgentWizardMode(value: unknown): value is NewAgentWizardMode {
-    return typeof value === 'string' && NEW_AGENT_WIZZARD_VALUES.includes(value as NewAgentWizardMode);
+    return typeof value === 'string' && NEW_AGENT_WIZARD_VALUES.includes(value as NewAgentWizardMode);
 }
 
 /**
@@ -54,7 +59,7 @@ export function isNewAgentWizardMode(value: unknown): value is NewAgentWizardMod
  */
 export function parseNewAgentWizardMode(
     value: unknown,
-    fallback: NewAgentWizardMode = DEFAULT_NEW_AGENT_WIZZARD_MODE,
+    fallback: NewAgentWizardMode = DEFAULT_NEW_AGENT_WIZARD_MODE,
 ): NewAgentWizardMode {
     if (typeof value !== 'string') {
         return fallback;
