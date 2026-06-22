@@ -1,18 +1,18 @@
 import colors from 'colors';
 import moment from 'moment';
+import type { RunOptions } from '../cli/RunOptions';
+import { appendCoderContext } from '../common/appendCoderContext';
+import type { CliProgressDisplay } from '../common/cliProgressDisplay';
+import type { WaitForCoderRunPauseCheckpoint } from '../common/CoderRunPauseCheckpoint';
+import { formatCommitMessageForDisplay } from '../common/formatCommitMessageForDisplay';
 import {
     captureChangedFilesSnapshot,
     normalizeLineEndingsInFilesChangedSinceSnapshot,
     type ChangedFilesSnapshot,
 } from '../common/normalizeLineEndingsInChangedFiles';
-import { formatCommitMessageForDisplay } from '../common/formatCommitMessageForDisplay';
 import { printCommitMessage } from '../common/printCommitMessage';
-import { appendCoderContext } from '../common/appendCoderContext';
-import type { WaitForCoderRunPauseCheckpoint } from '../common/CoderRunPauseCheckpoint';
 import { withPromptRuntimeLog } from '../common/runGoScript/withPromptRuntimeLog';
 import { waitForEnter } from '../common/waitForEnter';
-import type { CliProgressDisplay } from '../common/cliProgressDisplay';
-import type { RunOptions } from '../cli/RunOptions';
 import { commitChanges } from '../git/commitChanges';
 import { runAutoMigrateTestingServers } from '../migrations/runAutoMigrateTestingServers';
 import { buildCodexPrompt } from '../prompts/buildCodexPrompt';
@@ -69,7 +69,7 @@ export async function runPromptRound({
     const taskPrompt = buildCodexPrompt(nextPrompt.file, nextPrompt.section);
     // Prepend agent system message before the task so the harness sees agent instructions first
     const promptWithAgent = resolvedAgentSystemMessage
-        ? `${resolvedAgentSystemMessage.trim()}\n\n${taskPrompt}`
+        ? `${resolvedAgentSystemMessage.trim()}\n\n## Your Task\n\n${taskPrompt}`
         : taskPrompt;
     const codexPrompt = appendCoderContext(promptWithAgent, resolvedCoderContext);
     const scriptPath = buildScriptPath(nextPrompt.file, nextPrompt.section);
