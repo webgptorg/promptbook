@@ -32,11 +32,11 @@
         },
 
         {
-            "name": "✨⏩ Migrate Agents server `live` (💤)",
+            "name": "(old) ✨⏩ Migrate Agents server `live` (💤)",
             "cwd": "./apps/agents-server/",
             "command": "npx tsx ./src/database/migrate.ts --only=live",
             "execute": false,
-            "onlySingle": false,
+            "onlySingle": true,
             "focus": false
         },
         {
@@ -56,19 +56,40 @@
             "focus": true
         },
         {
-            "name": "(❗) ✨🔼 Sync Agents server Vercel domains (💤)",
+            "name": "(old)(❗) ✨🔼 Sync Agents server Vercel domains (💤)",
             "cwd": "./apps/agents-server/",
             "command": "npx tsx ./scripts/sync-vercel-domains.ts",
             "execute": false,
-            "onlySingle": false,
+            "onlySingle": true,
             "focus": false
         },
         {
-            "name": "✨💾 Backup Supabase Postgres (💤)",
+            "name": "(old) ✨💾 Backup Supabase Postgres (💤)",
             "command": "npx ts-node ./scripts/backup-supabase/backup-supabase.ts --output-dir other/backup --schemas public --filename-pattern %timestamp%.sql.zip",
             "execute": false,
-            "onlySingle": false,
+            "onlySingle": true,
             "focus": false
+        },
+        {
+            "name": "(old)(❗) ✨🔼 Update the preview Agents servers (live / `main` -> `preview`) (💤)",
+            "command": "git branch --force preview main && git push origin preview --force-with-lease && (cd ./apps/agents-server/ && npx tsx ./src/database/migrate.ts --only=preview)",
+            "execute": false,
+            "onlySingle": true,
+            "focus": false
+        },
+        {
+            "name": "(old)(❗❗) ✨🔼 Update the production Agents servers (`preview` -> `production`) (💤)",
+            "command": "git branch --force production preview && git push origin production --force-with-lease && (cd ./apps/agents-server/ && npx tsx ./src/database/migrate.ts --only=production)",
+            "execute": false,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "(old)(❗❗❗) ✨🔼 Update the LTS Agents servers (`production` -> `lts`) (💤)",
+            "command": "git branch --force lts production && git push origin lts --force-with-lease && (cd ./apps/agents-server/ && npx tsx ./src/database/migrate.ts --only=lts)",
+            "execute": false,
+            "onlySingle": true,
+            "focus": true
         },
         {
             "name": "(❗) ✨🔼 Update the preview Agents servers (live / `main` -> `preview`) (💤)",
@@ -480,7 +501,7 @@
             "commands": [
                 "set -a && source .env && set +a",
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness openai-codex --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --priority 1 --test npm run test-for-ptbk-coder --no-wait"
+                "npx ts-node ./src/cli/test/ptbk.ts coder server --harness openai-codex --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --priority 1 --test npm run test-for-ptbk-coder --no-wait"
             ],
             "execute": true,
             "onlySingle": true,
@@ -491,7 +512,7 @@
             "commands": [
                 "set -a && source .env && set +a",
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness openai-codex --model gpt-5.5 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --priority 1 --test npm run test-for-ptbk-coder --no-wait"
+                "npx ts-node ./src/cli/test/ptbk.ts coder server --harness openai-codex --model gpt-5.5 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --priority 1 --test npm run test-for-ptbk-coder --no-wait"
             ],
             "execute": true,
             "onlySingle": true,
@@ -502,35 +523,13 @@
             "commands": [
                 "set -a && source .env && set +a",
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code --model claude-4.8-opus --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder --no-wait"
+                "npx ts-node ./src/cli/test/ptbk.ts coder server --harness claude-code --model claude-4.8-opus --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder --no-wait"
             ],
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
-        {
-            "name": "*(not working)* ⚡🚀 Run ptbk coder `promptbook-coder` Coding Agent (💸)(⏳)",
-            "commands": [
-                "set -a && source .env && set +a",
-                "export OPENAI_API_KEY=$PROMPTBOOK_AGENTS_SERVER_API_KEY && export OPENAI_BASE_URL=https://pavol-hejny.ptbk.io/agents/NFR94UDUAHzmAX/api/openai/v1",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness openai-codex --model agent:NFR94UDUAHzmAX --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder"
-            ],
-            "execute": true,
-            "onlySingle": true,
-            "focus": true
-        },
-        {
-            "name": "*(not working)* ⚡🚀 Run ptbk coder `gpt-5.1-codex-mini` via OpenAI API Coding Agent (💸)(⏳)",
 
-            "commands": [
-                "set -a && source .env && set +a",
-                "export OPENAI_BASE_URL=https://api.openai.com/v1",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness openai-codex --model gpt-5.1-codex-mini --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder"
-            ],
-            "execute": true,
-            "onlySingle": true,
-            "focus": true
-        },
         {
             "name": "⚡✔ Verify prompts done by Coding Agent (💤)",
             "command": "npx ts-node ./src/cli/test/ptbk.ts coder verify --reverse --ignore Refactor",
