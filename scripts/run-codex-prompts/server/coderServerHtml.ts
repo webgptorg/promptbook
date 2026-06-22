@@ -15,38 +15,37 @@ export const CODER_SERVER_HTML = `<!DOCTYPE html>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #f4f5f7;
-      color: #172b4d;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f6f7f9;
+      color: #1f2933;
       min-height: 100vh;
     }
 
     header {
-      background: #0052cc;
+      background: #22313f;
       color: white;
-      padding: 12px 20px;
+      padding: 12px 18px;
       display: flex;
       align-items: center;
       gap: 12px;
       position: sticky;
       top: 0;
       z-index: 10;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      box-shadow: 0 2px 10px rgba(15,23,42,0.22);
     }
-    header h1 { font-size: 17px; font-weight: 700; flex-shrink: 0; }
+    header h1 { font-size: 17px; font-weight: 700; flex-shrink: 0; letter-spacing: 0; }
 
     .status-badge {
       padding: 3px 10px;
-      border-radius: 12px;
+      border-radius: 999px;
       font-size: 11px;
       font-weight: 700;
-      letter-spacing: 0.5px;
       text-transform: uppercase;
       flex-shrink: 0;
     }
-    .status-RUNNING  { background: #00875a; color: white; }
-    .status-PAUSING  { background: #ff8b00; color: white; }
-    .status-PAUSED   { background: #bf2600; color: white; }
+    .status-RUNNING { background: #0b875b; color: white; }
+    .status-PAUSING { background: #d97904; color: white; }
+    .status-PAUSED { background: #b42318; color: white; }
 
     #pause-label {
       font-size: 12px;
@@ -59,57 +58,122 @@ export const CODER_SERVER_HTML = `<!DOCTYPE html>
     }
 
     .btn {
-      padding: 6px 14px;
-      border: none;
+      padding: 6px 12px;
+      border: 0;
       border-radius: 4px;
       cursor: pointer;
       font-size: 13px;
-      font-weight: 600;
-      transition: opacity 0.15s;
+      font-weight: 700;
+      transition: background 0.15s, opacity 0.15s;
       flex-shrink: 0;
     }
-    .btn:hover { opacity: 0.85; }
-    .btn-pause  { background: #ffc400; color: #172b4d; }
-    .btn-resume { background: #00875a; color: white; }
+    .btn:disabled { opacity: 0.55; cursor: default; }
+    .btn-pause { background: #ffd166; color: #1f2933; }
+    .btn-resume { background: #0b875b; color: white; }
+    .btn-save { background: #2563eb; color: white; }
+    .btn-cancel { background: #edf0f4; color: #1f2933; }
+
+    .run-strip {
+      background: white;
+      border-bottom: 1px solid #d8dee8;
+      padding: 12px 18px;
+      display: grid;
+      grid-template-columns: minmax(220px, 1.2fr) minmax(240px, 1fr) minmax(260px, 1.4fr);
+      gap: 14px;
+      align-items: center;
+    }
+    .run-title {
+      font-size: 14px;
+      font-weight: 700;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .run-subtitle,
+    .run-current,
+    .run-output {
+      color: #64748b;
+      font-size: 12px;
+      line-height: 1.45;
+      overflow: hidden;
+    }
+    .run-current,
+    .run-output {
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+    }
+    .progress-shell {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+    }
+    .progress-track {
+      height: 10px;
+      background: #e4e9f0;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      display: block;
+      height: 100%;
+      width: 0;
+      background: linear-gradient(90deg, #0b875b, #2563eb);
+      transition: width 0.2s;
+    }
+    .progress-label {
+      color: #475569;
+      font-size: 12px;
+      font-weight: 700;
+      min-width: 72px;
+      text-align: right;
+    }
 
     .board {
       display: flex;
       gap: 14px;
       padding: 16px;
       overflow-x: auto;
-      min-height: calc(100vh - 52px);
+      min-height: calc(100vh - 119px);
       align-items: flex-start;
     }
 
     .column {
-      background: #ebecf0;
-      border-radius: 8px;
+      background: #e9edf3;
+      border-top: 4px solid #94a3b8;
+      border-radius: 6px;
       padding: 10px;
       min-width: 250px;
       width: 270px;
       flex-shrink: 0;
     }
+    .column-backlog { border-top-color: #64748b; }
+    .column-low-priority { border-top-color: #d97904; }
+    .column-todo { border-top-color: #2563eb; }
+    .column-in-progress { border-top-color: #7c3aed; }
+    .column-done { border-top-color: #0b875b; }
+    .column-errors { border-top-color: #b42318; }
+    .column-finished { border-top-color: #0891b2; }
 
     .column-header {
       font-size: 12px;
-      font-weight: 700;
+      font-weight: 800;
       text-transform: uppercase;
-      letter-spacing: 0.6px;
-      color: #5e6c84;
+      color: #475569;
       margin-bottom: 10px;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 8px;
     }
-
     .column-count {
-      background: #dfe1e6;
-      border-radius: 10px;
-      padding: 1px 7px;
+      background: rgba(255,255,255,0.72);
+      border-radius: 999px;
+      padding: 2px 8px;
       font-size: 11px;
-      color: #5e6c84;
+      color: #475569;
     }
-
     .column-cards { min-height: 40px; }
 
     .card {
@@ -117,57 +181,61 @@ export const CODER_SERVER_HTML = `<!DOCTYPE html>
       border-radius: 6px;
       padding: 10px 12px;
       margin-bottom: 8px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      box-shadow: 0 1px 3px rgba(15,23,42,0.12);
       cursor: pointer;
-      transition: box-shadow 0.15s, transform 0.1s;
-      border-left: 3px solid transparent;
+      border-left: 3px solid #94a3b8;
     }
-    .card:hover {
-      box-shadow: 0 4px 10px rgba(0,0,0,0.14);
-      transform: translateY(-1px);
-    }
-    .card-todo      { border-left-color: #0052cc; }
-    .card-not-ready { border-left-color: #8993a4; }
-    .card-done      { border-left-color: #00875a; }
-    .card-failed    { border-left-color: #bf2600; }
+    .card:hover { box-shadow: 0 4px 12px rgba(15,23,42,0.16); }
+    .card-backlog { border-left-color: #64748b; }
+    .card-low-priority { border-left-color: #d97904; }
+    .card-todo { border-left-color: #2563eb; }
+    .card-in-progress { border-left-color: #7c3aed; }
+    .card-done { border-left-color: #0b875b; }
+    .card-errors { border-left-color: #b42318; }
+    .card-finished { border-left-color: #0891b2; }
 
     .card-file {
       font-size: 10px;
-      color: #8993a4;
-      margin-bottom: 5px;
-      font-weight: 500;
+      color: #7b8794;
+      margin-bottom: 6px;
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
-
     .card-summary {
       font-size: 13px;
-      line-height: 1.5;
-      color: #172b4d;
+      line-height: 1.45;
+      color: #1f2933;
       word-break: break-word;
       white-space: pre-wrap;
-      max-height: 78px;
+      max-height: 76px;
       overflow: hidden;
       display: -webkit-box;
       -webkit-line-clamp: 4;
       -webkit-box-orient: vertical;
     }
-
-    .card-priority {
-      margin-top: 6px;
-      color: #ff8b00;
-      font-size: 11px;
-      font-weight: 700;
+    .card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 8px;
     }
-
-    .card-edit-hint {
+    .card-tag {
+      border-radius: 999px;
+      padding: 2px 7px;
       font-size: 10px;
-      color: #c1c7d0;
-      margin-top: 6px;
-      display: none;
+      font-weight: 800;
+      line-height: 1.35;
     }
-    .card:hover .card-edit-hint { display: block; }
+    .tag-not-ready { background: #e2e8f0; color: #475569; }
+    .tag-unwritten { background: #fff4cc; color: #8a5a00; }
+    .tag-implementing { background: #ede9fe; color: #5b21b6; }
+    .tag-verifying { background: #fae8ff; color: #86198f; }
+    .tag-priority { background: #ffedd5; color: #9a3412; }
 
     .empty-column {
-      color: #b3bac5;
+      color: #94a3b8;
       font-size: 12px;
       padding: 10px 4px;
       text-align: center;
@@ -176,29 +244,23 @@ export const CODER_SERVER_HTML = `<!DOCTYPE html>
     .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(9,30,66,0.54);
+      background: rgba(15,23,42,0.58);
       display: flex;
       align-items: flex-start;
       justify-content: center;
-      padding: 60px 16px 16px;
+      padding: 56px 16px 16px;
       z-index: 100;
-      animation: fadeIn 0.1s ease;
     }
     .modal-overlay.hidden { display: none; }
-
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
     .modal {
       background: white;
       border-radius: 8px;
       width: 100%;
-      max-width: 620px;
-      padding: 20px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
-      animation: slideIn 0.15s ease;
+      max-width: 720px;
+      padding: 18px;
+      box-shadow: 0 14px 40px rgba(15,23,42,0.28);
     }
-    @keyframes slideIn { from { transform: translateY(-8px); opacity: 0; } to { transform: none; opacity: 1; } }
-
     .modal-header {
       display: flex;
       align-items: flex-start;
@@ -206,62 +268,59 @@ export const CODER_SERVER_HTML = `<!DOCTYPE html>
       margin-bottom: 14px;
       gap: 12px;
     }
-
     .modal-meta { flex: 1; min-width: 0; }
-    .modal-file { font-size: 11px; color: #8993a4; margin-bottom: 4px; }
-    .modal-section-label { font-size: 13px; font-weight: 600; color: #172b4d; }
-
+    .modal-file {
+      font-size: 11px;
+      color: #7b8794;
+      margin-bottom: 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .modal-section-label { font-size: 14px; font-weight: 700; color: #1f2933; }
     .modal-status {
       font-size: 11px;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 10px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 999px;
       text-transform: uppercase;
-      letter-spacing: 0.4px;
       flex-shrink: 0;
     }
-    .status-todo      { background: #deebff; color: #0052cc; }
-    .status-not-ready { background: #f4f5f7; color: #5e6c84; }
-    .status-done      { background: #e3fcef; color: #006644; }
-    .status-failed    { background: #ffebe6; color: #bf2600; }
-
+    .status-backlog { background: #e2e8f0; color: #475569; }
+    .status-low-priority { background: #ffedd5; color: #9a3412; }
+    .status-todo { background: #dbeafe; color: #1d4ed8; }
+    .status-in-progress { background: #ede9fe; color: #5b21b6; }
+    .status-done { background: #dcfce7; color: #166534; }
+    .status-errors { background: #fee2e2; color: #991b1b; }
+    .status-finished { background: #cffafe; color: #155e75; }
     .modal-close {
-      background: none;
-      border: none;
-      color: #8993a4;
+      background: transparent;
+      border: 0;
+      color: #64748b;
       cursor: pointer;
-      font-size: 18px;
+      font-size: 20px;
       padding: 0 4px;
       line-height: 1;
-      flex-shrink: 0;
     }
-    .modal-close:hover { color: #172b4d; }
+    .modal-close:hover { color: #1f2933; }
 
     textarea {
       width: 100%;
-      min-height: 220px;
-      font-family: 'SFMono-Regular', 'Consolas', 'Courier New', monospace;
+      min-height: 300px;
+      font-family: "SFMono-Regular", Consolas, "Courier New", monospace;
       font-size: 13px;
-      border: 2px solid #dfe1e6;
+      border: 2px solid #d8dee8;
       border-radius: 4px;
       padding: 10px 12px;
       resize: vertical;
-      line-height: 1.65;
-      color: #172b4d;
-      transition: border-color 0.15s;
+      line-height: 1.6;
+      color: #1f2933;
     }
     textarea:focus {
       outline: none;
-      border-color: #0052cc;
-      box-shadow: 0 0 0 3px rgba(0,82,204,0.12);
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
     }
-
-    .modal-hint {
-      font-size: 11px;
-      color: #8993a4;
-      margin-top: 6px;
-    }
-
     .modal-actions {
       display: flex;
       gap: 8px;
@@ -269,67 +328,50 @@ export const CODER_SERVER_HTML = `<!DOCTYPE html>
       justify-content: flex-end;
     }
 
-    .btn-save   { background: #0052cc; color: white; }
-    .btn-cancel { background: #f4f5f7; color: #172b4d; }
-    .btn-cancel:hover { background: #ebecf0; opacity: 1; }
-
     .error-banner {
-      background: #ffebe6;
-      border-bottom: 2px solid #bf2600;
-      color: #bf2600;
-      padding: 8px 20px;
+      background: #fee2e2;
+      border-bottom: 2px solid #b42318;
+      color: #991b1b;
+      padding: 8px 18px;
       font-size: 13px;
-      font-weight: 500;
+      font-weight: 700;
     }
     .error-banner.hidden { display: none; }
+
+    @media (max-width: 860px) {
+      header { flex-wrap: wrap; }
+      #pause-label { order: 4; flex-basis: 100%; }
+      .run-strip { grid-template-columns: 1fr; }
+      .board { min-height: calc(100vh - 212px); }
+    }
   </style>
 </head>
 <body>
-
   <div id="error-banner" class="error-banner hidden"></div>
 
   <header>
-    <h1>&#128295; Ptbk Coder Server</h1>
+    <h1>Ptbk Coder Server</h1>
     <span id="status-badge" class="status-badge status-RUNNING">RUNNING</span>
     <span id="pause-label"></span>
-    <button id="toggle-btn" class="btn btn-pause">&#9646;&#9646; Pause</button>
+    <button id="toggle-btn" class="btn btn-pause">Pause</button>
   </header>
 
-  <div class="board">
-    <div class="column">
-      <div class="column-header">
-        To Do
-        <span class="column-count" id="count-todo">0</span>
-      </div>
-      <div class="column-cards" id="cards-todo">
-        <div class="empty-column">Loading&hellip;</div>
-      </div>
+  <section class="run-strip">
+    <div>
+      <div class="run-title" id="run-title">Initializing...</div>
+      <div class="run-subtitle" id="run-subtitle">Loading runner state</div>
     </div>
+    <div class="progress-shell">
+      <div class="progress-track"><span class="progress-fill" id="progress-fill"></span></div>
+      <div class="progress-label" id="progress-label">0%</div>
+    </div>
+    <div>
+      <div class="run-current" id="run-current">No active prompt</div>
+      <div class="run-output" id="run-output"></div>
+    </div>
+  </section>
 
-    <div class="column">
-      <div class="column-header">
-        Not Ready
-        <span class="column-count" id="count-not-ready">0</span>
-      </div>
-      <div class="column-cards" id="cards-not-ready"></div>
-    </div>
-
-    <div class="column">
-      <div class="column-header">
-        Done
-        <span class="column-count" id="count-done">0</span>
-      </div>
-      <div class="column-cards" id="cards-done"></div>
-    </div>
-
-    <div class="column">
-      <div class="column-header">
-        Failed
-        <span class="column-count" id="count-failed">0</span>
-      </div>
-      <div class="column-cards" id="cards-failed"></div>
-    </div>
-  </div>
+  <div class="board" id="board"></div>
 
   <div class="modal-overlay hidden" id="modal-overlay">
     <div class="modal">
@@ -339,196 +381,317 @@ export const CODER_SERVER_HTML = `<!DOCTYPE html>
           <div class="modal-section-label" id="modal-section-label"></div>
         </div>
         <span class="modal-status" id="modal-status-badge"></span>
-        <button class="modal-close" onclick="closeModal()" title="Close (Esc)">&#x2715;</button>
+        <button class="modal-close" id="modal-close" title="Close">&times;</button>
       </div>
 
-      <textarea id="modal-content" placeholder="Prompt content&hellip;"></textarea>
-      <div class="modal-hint">Tip: press Ctrl+Enter to save, Esc to cancel.</div>
+      <textarea id="modal-content" placeholder="Prompt content"></textarea>
 
       <div class="modal-actions">
-        <button class="btn btn-cancel" onclick="closeModal()">Cancel</button>
-        <button class="btn btn-save" onclick="saveModal()">Save</button>
+        <button class="btn btn-cancel" id="cancel-button">Cancel</button>
+        <button class="btn btn-save" id="save-button">Save</button>
       </div>
     </div>
   </div>
 
   <script>
-    'use strict';
+    "use strict";
+
+    const BOARD_COLUMNS = [
+      { id: "backlog", title: "Backlog" },
+      { id: "low-priority", title: "Low priority" },
+      { id: "todo", title: "To do" },
+      { id: "in-progress", title: "In progress" },
+      { id: "done", title: "Done" },
+      { id: "errors", title: "Errors" },
+      { id: "finished", title: "Finished" },
+    ];
 
     let modalState = null;
-    let lastPauseState = 'RUNNING';
+    let lastPauseState = "RUNNING";
 
-    function showError(msg) {
-      const banner = document.getElementById('error-banner');
-      banner.textContent = '\\u26a0 ' + msg;
-      banner.classList.remove('hidden');
-      clearTimeout(banner._timer);
-      banner._timer = setTimeout(() => banner.classList.add('hidden'), 6000);
+    function getColumnTitle(columnId) {
+      const column = BOARD_COLUMNS.find((columnCandidate) => columnCandidate.id === columnId);
+      return column ? column.title : columnId;
     }
 
-    function escapeHtml(str) {
-      const d = document.createElement('div');
-      d.textContent = String(str);
-      return d.innerHTML;
+    function showError(message) {
+      const banner = document.getElementById("error-banner");
+      banner.textContent = message;
+      banner.classList.remove("hidden");
+      clearTimeout(banner.timer);
+      banner.timer = setTimeout(() => banner.classList.add("hidden"), 6000);
+    }
+
+    function escapeHtml(value) {
+      const element = document.createElement("div");
+      element.textContent = String(value);
+      return element.innerHTML;
+    }
+
+    function renderBoardSkeleton() {
+      const board = document.getElementById("board");
+      board.innerHTML = "";
+
+      for (const column of BOARD_COLUMNS) {
+        const columnElement = document.createElement("section");
+        columnElement.className = "column column-" + column.id;
+        columnElement.innerHTML =
+          '<div class="column-header">' +
+            '<span>' + escapeHtml(column.title) + '</span>' +
+            '<span class="column-count" id="count-' + column.id + '">0</span>' +
+          '</div>' +
+          '<div class="column-cards" id="cards-' + column.id + '">' +
+            '<div class="empty-column">Loading</div>' +
+          '</div>';
+        board.appendChild(columnElement);
+      }
     }
 
     async function fetchStatus() {
       try {
-        const res = await fetch('/api/status');
-        if (!res.ok) { showError('Status API error: ' + res.status); return; }
-        const data = await res.json();
-
-        lastPauseState = data.pauseState;
-
-        const badge = document.getElementById('status-badge');
-        badge.textContent = data.pauseState;
-        badge.className = 'status-badge status-' + data.pauseState;
-
-        const btn   = document.getElementById('toggle-btn');
-        const label = document.getElementById('pause-label');
-
-        if (data.pauseState === 'RUNNING') {
-          btn.textContent = '\\u23f8 Pause';
-          btn.className   = 'btn btn-pause';
-          label.textContent = '';
-        } else if (data.pauseState === 'PAUSING') {
-          btn.textContent = '\\u23f5 Resume';
-          btn.className   = 'btn btn-resume';
-          label.textContent = 'Pausing before: ' + (data.pauseTargetLabel || '\\u2026');
-        } else {
-          btn.textContent = '\\u23f5 Resume';
-          btn.className   = 'btn btn-resume';
-          label.textContent = 'Paused before: ' + (data.pauseTargetLabel || '\\u2026');
+        const response = await fetch("/api/status");
+        if (!response.ok) {
+          showError("Status API error: " + response.status);
+          return;
         }
-      } catch (e) {
-        showError('Could not reach coder server: ' + e.message);
+
+        const status = await response.json();
+        renderPauseState(status);
+        renderRunState(status.runState);
+      } catch (error) {
+        showError("Could not reach coder server: " + error.message);
       }
+    }
+
+    function renderPauseState(status) {
+      lastPauseState = status.pauseState;
+
+      const badge = document.getElementById("status-badge");
+      badge.textContent = status.pauseState;
+      badge.className = "status-badge status-" + status.pauseState;
+
+      const toggleButton = document.getElementById("toggle-btn");
+      const pauseLabel = document.getElementById("pause-label");
+
+      if (status.pauseState === "RUNNING") {
+        toggleButton.textContent = "Pause";
+        toggleButton.className = "btn btn-pause";
+        pauseLabel.textContent = "";
+        return;
+      }
+
+      toggleButton.textContent = "Resume";
+      toggleButton.className = "btn btn-resume";
+      pauseLabel.textContent =
+        (status.pauseState === "PAUSING" ? "Pausing before: " : "Paused before: ") +
+        (status.pauseTargetLabel || "next checkpoint");
+    }
+
+    function renderRunState(runState) {
+      if (!runState) {
+        document.getElementById("run-title").textContent = "Waiting for runner state";
+        document.getElementById("run-subtitle").textContent = "";
+        return;
+      }
+
+      const progress = runState.progress || {};
+      const percentage = Number(progress.percentage || 0);
+      const runnerParts = [runState.config.agentName, runState.config.modelName, runState.config.thinkingLevel]
+        .filter(Boolean);
+
+      document.getElementById("run-title").textContent = runState.statusMessage || runState.phase;
+      document.getElementById("run-subtitle").textContent = runnerParts.join(" / ");
+      document.getElementById("progress-fill").style.width = Math.max(0, Math.min(100, percentage)) + "%";
+      document.getElementById("progress-label").textContent =
+        percentage + "% " + (progress.sessionDone || 0) + "/" + (progress.sessionTotal || 0);
+      document.getElementById("run-current").textContent = runState.currentPromptLabel
+        ? runState.currentPromptLabel + " - attempt " + runState.currentAttempt + "/" + runState.maxAttempts
+        : "No active prompt";
+
+      renderRunOutput(runState);
+    }
+
+    function renderRunOutput(runState) {
+      const statusLines = (runState.agentStatusTableRows || []).map((row) =>
+        row.status + " - " + row.agentName + (row.url ? " - " + row.url : "")
+      );
+      const outputLines = [
+        ...(runState.agentStatusLines || []),
+        ...statusLines,
+        ...(runState.agentOutputLines || []),
+        ...(runState.errors || []).map((errorLine) => "Error: " + errorLine),
+      ].slice(-3);
+
+      document.getElementById("run-output").textContent = outputLines.join("\\n");
     }
 
     async function fetchPrompts() {
       try {
-        const res = await fetch('/api/prompts');
-        if (!res.ok) { showError('Prompts API error: ' + res.status); return; }
-        renderBoard(await res.json());
-      } catch (e) {
-        showError('Could not load prompts: ' + e.message);
+        const response = await fetch("/api/prompts");
+        if (!response.ok) {
+          showError("Prompts API error: " + response.status);
+          return;
+        }
+
+        renderBoard(await response.json());
+      } catch (error) {
+        showError("Could not load prompts: " + error.message);
       }
     }
 
     function renderBoard(promptFiles) {
-      const columns = { 'todo': [], 'not-ready': [], 'done': [], 'failed': [] };
+      const columns = Object.fromEntries(BOARD_COLUMNS.map((column) => [column.id, []]));
 
       for (const file of promptFiles) {
         for (const section of file.sections) {
-          const col = columns[section.status];
-          if (col) col.push({ file, section });
+          if (columns[section.column]) {
+            columns[section.column].push({ file, section });
+          }
         }
       }
 
-      for (const [status, cards] of Object.entries(columns)) {
-        const container = document.getElementById('cards-' + status);
-        const countEl   = document.getElementById('count-' + status);
-        if (!container) continue;
-
-        countEl.textContent = cards.length;
-        container.innerHTML = '';
-
-        if (cards.length === 0) {
-          container.innerHTML = '<div class="empty-column">Empty</div>';
-          continue;
-        }
-
-        for (const { file, section } of cards) {
-          const card = document.createElement('div');
-          card.className = 'card card-' + section.status;
-          card.innerHTML =
-            '<div class="card-file">' + escapeHtml(file.fileName) + ' &bull; #' + (section.index + 1) + '</div>' +
-            '<div class="card-summary">' + escapeHtml(section.summary) + '</div>' +
-            (section.priority > 0
-              ? '<div class="card-priority">' + '!'.repeat(section.priority) + ' priority ' + section.priority + '</div>'
-              : '') +
-            '<div class="card-edit-hint">Click to edit</div>';
-          card.onclick = () => openModal(file, section);
-          container.appendChild(card);
-        }
+      for (const column of BOARD_COLUMNS) {
+        renderColumn(column.id, columns[column.id]);
       }
+    }
+
+    function renderColumn(columnId, cards) {
+      const container = document.getElementById("cards-" + columnId);
+      const countElement = document.getElementById("count-" + columnId);
+
+      countElement.textContent = cards.length;
+      container.innerHTML = "";
+
+      if (cards.length === 0) {
+        container.innerHTML = '<div class="empty-column">Empty</div>';
+        return;
+      }
+
+      for (const cardData of cards) {
+        container.appendChild(createPromptCard(cardData.file, cardData.section));
+      }
+    }
+
+    function createPromptCard(file, section) {
+      const card = document.createElement("article");
+      card.className = "card card-" + section.column;
+      card.innerHTML =
+        '<div class="card-file">' + escapeHtml(file.relativeFilePath || file.fileName) + " #" + (section.index + 1) + '</div>' +
+        '<div class="card-summary">' + escapeHtml(section.summary) + '</div>' +
+        renderTags(section);
+      card.onclick = () => openModal(file, section);
+      return card;
+    }
+
+    function renderTags(section) {
+      const tags = [...(section.tags || [])];
+      if (section.priority > 0) {
+        tags.push({ id: "priority", label: "P" + section.priority });
+      }
+
+      if (tags.length === 0) {
+        return "";
+      }
+
+      return '<div class="card-tags">' + tags.map((tag) =>
+        '<span class="card-tag tag-' + escapeHtml(tag.id) + '">' + escapeHtml(tag.label) + '</span>'
+      ).join("") + '</div>';
     }
 
     function openModal(file, section) {
       modalState = { filePath: file.filePath, sectionIndex: section.index };
 
-      document.getElementById('modal-file').textContent          = file.fileName;
-      document.getElementById('modal-section-label').textContent = 'Section ' + (section.index + 1);
+      document.getElementById("modal-file").textContent = file.relativeFilePath || file.fileName;
+      document.getElementById("modal-section-label").textContent = "Section " + (section.index + 1);
 
-      const badge = document.getElementById('modal-status-badge');
-      badge.textContent = section.status.replace('-', '\\u2011');
-      badge.className   = 'modal-status status-' + section.status;
+      const statusBadge = document.getElementById("modal-status-badge");
+      statusBadge.textContent = getColumnTitle(section.column);
+      statusBadge.className = "modal-status status-" + section.column;
 
-      document.getElementById('modal-content').value = section.content;
-      document.getElementById('modal-overlay').classList.remove('hidden');
-      setTimeout(() => document.getElementById('modal-content').focus(), 50);
+      document.getElementById("modal-content").value = section.content;
+      document.getElementById("modal-overlay").classList.remove("hidden");
+      setTimeout(() => document.getElementById("modal-content").focus(), 50);
     }
 
     function closeModal() {
-      document.getElementById('modal-overlay').classList.add('hidden');
+      document.getElementById("modal-overlay").classList.add("hidden");
       modalState = null;
     }
 
     async function saveModal() {
-      if (!modalState) return;
+      if (!modalState) {
+        return;
+      }
 
-      const content = document.getElementById('modal-content').value;
-      const saveBtn = document.querySelector('.btn-save');
-      saveBtn.disabled    = true;
-      saveBtn.textContent = 'Saving\\u2026';
+      const content = document.getElementById("modal-content").value;
+      const saveButton = document.getElementById("save-button");
+      saveButton.disabled = true;
+      saveButton.textContent = "Saving...";
 
       try {
-        const res = await fetch('/api/prompts/update', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+        const response = await fetch("/api/prompts/update", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            filePath:     modalState.filePath,
+            filePath: modalState.filePath,
             sectionIndex: modalState.sectionIndex,
             content,
           }),
         });
-        if (!res.ok) throw new Error('HTTP ' + res.status);
+
+        if (!response.ok) {
+          throw new Error("HTTP " + response.status);
+        }
+
         closeModal();
-        fetchPrompts();
-      } catch (e) {
-        showError('Save failed: ' + e.message);
+        await fetchPrompts();
+      } catch (error) {
+        showError("Save failed: " + error.message);
       } finally {
-        saveBtn.disabled    = false;
-        saveBtn.textContent = 'Save';
+        saveButton.disabled = false;
+        saveButton.textContent = "Save";
       }
     }
 
-    document.getElementById('toggle-btn').onclick = async () => {
+    document.getElementById("toggle-btn").onclick = async () => {
       try {
-        const endpoint = lastPauseState === 'RUNNING' ? '/api/pause' : '/api/resume';
-        await fetch(endpoint, { method: 'POST' });
+        const endpoint = lastPauseState === "RUNNING" ? "/api/pause" : "/api/resume";
+        await fetch(endpoint, { method: "POST" });
         await fetchStatus();
-      } catch (e) {
-        showError('Toggle failed: ' + e.message);
+      } catch (error) {
+        showError("Toggle failed: " + error.message);
       }
     };
 
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') { closeModal(); return; }
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { saveModal(); return; }
+    document.getElementById("modal-close").onclick = closeModal;
+    document.getElementById("cancel-button").onclick = closeModal;
+    document.getElementById("save-button").onclick = saveModal;
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        closeModal();
+        return;
+      }
+      if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+        saveModal();
+      }
     });
 
-    document.getElementById('modal-overlay').addEventListener('click', (e) => {
-      if (e.target === document.getElementById('modal-overlay')) closeModal();
+    document.getElementById("modal-overlay").addEventListener("click", (event) => {
+      if (event.target === document.getElementById("modal-overlay")) {
+        closeModal();
+      }
     });
 
+    renderBoardSkeleton();
     fetchStatus();
     fetchPrompts();
-    setInterval(fetchStatus,  2000);
+    setInterval(fetchStatus, 2000);
     setInterval(fetchPrompts, 5000);
   </script>
 </body>
-</html>`;
+</html>
+`;
 
 // Note: [🟡] Code for CLI command [coder server](scripts/run-codex-prompts/server/coderServerHtml.ts) should never be published outside of `@promptbook/cli`
 // Note: Keep in sync with apps/coder-server/index.html

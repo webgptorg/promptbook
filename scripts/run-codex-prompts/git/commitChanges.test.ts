@@ -144,6 +144,29 @@ describe('commitChanges', () => {
         expect(calledCommands).not.toContain('git add .');
     });
 
+    it('can restrict the commit itself to selected paths', async () => {
+        temporaryProjectPath = await createTemporaryGitProject();
+        process.chdir(temporaryProjectPath);
+
+        const execMock = getExecCommandMock();
+        execMock.mockImplementation(async () => okResult());
+
+        await commitChanges('test commit', {
+            includePaths: ['prompts/example.md'],
+            onlyPaths: ['prompts/example.md'],
+        });
+
+        const calledCommands = getCalledCommands(execMock);
+        expect(calledCommands).toContain('git add --all -- "prompts/example.md"');
+        expect(calledCommands).toEqual(
+            expect.arrayContaining([
+                expect.stringMatching(
+                    /^git commit --gpg-sign="test" --file ".*\.promptbook\/ptbk-coder\/commit-messages\/COMMIT_MESSAGE_\d+\.txt" -- "prompts\/example\.md"$/,
+                ),
+            ]),
+        );
+    });
+
     it('pushes to upstream branch after commit when there are outgoing commits', async () => {
         const execMock = getExecCommandMock();
         execMock.mockImplementation(async (options) => {

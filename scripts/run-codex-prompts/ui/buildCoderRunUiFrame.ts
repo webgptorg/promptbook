@@ -8,6 +8,7 @@ import {
     buildPausePresentation,
     buildProgressBar,
     buildScriptPathSessionRows,
+    buildTerminalUrlLink,
     buildVisibleOutputLines,
     renderBox,
     SESSION_LABEL_WIDTH,
@@ -167,6 +168,12 @@ function buildSessionRows(
 
     const configurationRows = [
         ...buildOptionalSessionRow('Context', options.config.context),
+        ...buildOptionalSessionRow(
+            'Server',
+            options.config.serverUrl
+                ? buildTerminalUrlLink(options.config.serverUrl, bodyWidth - SESSION_LABEL_WIDTH - 1)
+                : undefined,
+        ),
         ...buildOptionalSessionRow('Test', options.config.testCommand),
     ];
 

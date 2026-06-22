@@ -81,9 +81,10 @@ export function renderCoderRunUi(
     startTime: moment.Moment,
     options: {
         readonly buildFrameLines?: (options: BuildCoderRunUiFrameOptions) => string[];
+        readonly state?: CoderRunUiState;
     } = {},
 ): CoderRunUiHandle {
-    const state = new CoderRunUiState(startTime);
+    const state = options.state ?? new CoderRunUiState(startTime);
     const buildFrameLinesFromState = options.buildFrameLines || buildCoderRunUiFrame;
 
     if (!process.stdout.isTTY) {

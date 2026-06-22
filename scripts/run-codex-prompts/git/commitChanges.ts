@@ -10,13 +10,15 @@ import { runGitCommand } from './runGitCommand';
 /**
  * Commits staged changes with the provided message using the dedicated coding-agent identity when configured,
  * otherwise falls back to the default Git configuration. Remote pushing is opt-in via `options.autoPush`,
- * `options.includePaths` can restrict staging, and `options.excludePaths` can keep temporary artifacts out of the created commit.
+ * `options.includePaths` can restrict staging, `options.onlyPaths` can restrict the commit pathspec,
+ * and `options.excludePaths` can keep temporary artifacts out of the created commit.
  */
 export async function commitChanges(
     message: string,
     options?: {
         autoPush?: boolean;
         includePaths?: ReadonlyArray<string>;
+        onlyPaths?: ReadonlyArray<string>;
         excludePaths?: ReadonlyArray<string>;
         projectPath?: string;
     },
@@ -37,7 +39,7 @@ export async function commitChanges(
         await stageCommitChanges(projectPath, agentEnv, options?.includePaths, options?.excludePaths);
 
         await runGitCommand({
-            command: buildGitCommitCommand(commitMessagePath, signingFlag),
+            command: buildGitCommitCommand(commitMessagePath, signingFlag, options?.onlyPaths),
             cwd: projectPath,
             env: agentEnv,
         });
@@ -269,7 +271,11 @@ async function executeGitPushCommand(
 /**
  * Builds the `git commit` command with an optional signing flag.
  */
-function buildGitCommitCommand(commitMessagePath: string, signingFlag?: string): string {
+function buildGitCommitCommand(
+    commitMessagePath: string,
+    signingFlag?: string,
+    onlyPaths?: ReadonlyArray<string>,
+): string {
     const commandParts = ['git commit'];
 
     if (signingFlag) {
@@ -277,6 +283,11 @@ function buildGitCommitCommand(commitMessagePath: string, signingFlag?: string):
     }
 
     commandParts.push(`--file "${commitMessagePath}"`);
+
+    if (onlyPaths && onlyPaths.length > 0) {
+        commandParts.push('--', ...onlyPaths.map(quoteShellPath));
+    }
+
     return commandParts.join(' ');
 }
 

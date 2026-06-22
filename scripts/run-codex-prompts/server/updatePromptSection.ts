@@ -1,4 +1,6 @@
 import { readFile, writeFile } from 'fs/promises';
+import { spaceTrim } from 'spacetrim';
+import { NotFoundError } from '../../../src/errors/NotFoundError';
 import { parsePromptFile } from '../prompts/parsePromptFile';
 
 /**
@@ -13,13 +15,20 @@ export async function updatePromptSection(
     filePath: string,
     sectionIndex: number,
     newContent: string,
-): Promise<void> {
+): Promise<boolean> {
     const rawContent = await readFile(filePath, 'utf-8');
     const promptFile = parsePromptFile(filePath, rawContent);
-    const section = promptFile.sections.find((s) => s.index === sectionIndex);
+    const section = promptFile.sections.find((sectionCandidate) => sectionCandidate.index === sectionIndex);
 
     if (!section) {
-        throw new Error(`Section ${sectionIndex} not found in file: ${filePath}`);
+        throw new NotFoundError(
+            spaceTrim(`
+                Prompt section \`${sectionIndex}\` was not found.
+
+                File:
+                \`${filePath}\`
+            `),
+        );
     }
 
     // Lines before the status line (usually empty lines at section start)
@@ -55,7 +64,13 @@ export async function updatePromptSection(
 
     const updatedContent =
         updatedLines.join(promptFile.eol) + (promptFile.hasFinalEol ? promptFile.eol : '');
+
+    if (updatedContent === rawContent) {
+        return false;
+    }
+
     await writeFile(filePath, updatedContent, 'utf-8');
+    return true;
 }
 
 // Note: [🟡] Code for CLI command [coder server](scripts/run-codex-prompts/server/updatePromptSection.ts) should never be published outside of `@promptbook/cli`

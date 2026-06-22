@@ -41,6 +41,7 @@ export type CoderRunConfig = {
     readonly modelName?: string;
     readonly thinkingLevel?: string;
     readonly context?: string;
+    readonly serverUrl?: string;
     readonly priority: number;
     readonly testCommand?: string;
 };

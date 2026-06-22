@@ -116,6 +116,14 @@ export function buildScriptPathSessionRows(scriptPaths: readonly string[], bodyW
 }
 
 /**
+ * Builds one OSC 8 terminal hyperlink to an HTTP URL.
+ */
+export function buildTerminalUrlLink(url: string, availableWidth: number): string {
+    const displayUrl = fitPlainText(url, availableWidth);
+    return `\u001B]8;;${url}\u0007${displayUrl}\u001B]8;;\u0007`;
+}
+
+/**
  * Builds the colored phase badge shown in the session box.
  */
 export function buildPausePresentation(

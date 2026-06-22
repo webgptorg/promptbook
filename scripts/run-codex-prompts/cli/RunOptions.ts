@@ -1,5 +1,6 @@
 import type { ThinkingLevel } from '../../../src/cli/cli-commands/coder/ThinkingLevel';
 import type { PromptRunnerHarnessName } from '../../../src/cli/cli-commands/common/promptRunnerCliOptions';
+import type { CoderRunUiState } from '../ui/CoderRunUiState';
 
 /**
  * CLI options for running the prompt runner.
@@ -83,6 +84,14 @@ export type RunOptions = {
      * Minimum prompt priority required for processing.
      */
     priority: number;
+    /**
+     * Optional HTTP server URL shown in the rich terminal UI for `ptbk coder server`.
+     */
+    serverUrl?: string;
+    /**
+     * Optional shared run-state object used by `ptbk coder server` to expose terminal progress over HTTP.
+     */
+    uiState?: CoderRunUiState;
     /**
      * When true, the run loop continues watching for new prompts instead of exiting when none are available.
      * Used by `ptbk coder server` to keep the process alive as a server.

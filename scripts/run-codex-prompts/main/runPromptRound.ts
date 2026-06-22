@@ -154,11 +154,12 @@ function setPromptRoundRunningState(options: {
 }): void {
     const { isRichUiEnabled, promptLabel, scriptPath, uiHandle } = options;
 
+    uiHandle?.state.setCurrentPrompt(promptLabel);
+    uiHandle?.state.setCurrentScriptPath(scriptPath);
+    uiHandle?.state.setPhase('running');
+    uiHandle?.state.setStatusMessage('Running');
+
     if (isRichUiEnabled) {
-        uiHandle?.state.setCurrentPrompt(promptLabel);
-        uiHandle?.state.setCurrentScriptPath(scriptPath);
-        uiHandle?.state.setPhase('running');
-        uiHandle?.state.setStatusMessage('Running');
         return;
     }
 

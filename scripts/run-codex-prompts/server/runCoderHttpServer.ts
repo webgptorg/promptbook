@@ -1,13 +1,16 @@
 import colors from 'colors';
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'http';
-import { join } from 'path';
+import { isAbsolute, join, relative, resolve } from 'path';
 import { spaceTrim } from 'spacetrim';
 import { NotAllowed } from '../../../src/errors/NotAllowed';
 import type { number_port } from '../../../src/types/number_positive';
-import { buildCodexPrompt } from '../prompts/buildCodexPrompt';
-import { buildPromptSummary } from '../prompts/buildPromptSummary';
+import { commitChanges } from '../git/commitChanges';
 import { loadPromptFiles } from '../prompts/loadPromptFiles';
+import type { PromptFile } from '../prompts/types/PromptFile';
+import type { CoderRunUiState } from '../ui/CoderRunUiState';
 import { getPauseState, getPauseTargetLabel, requestPause, requestResume } from '../common/waitForPause';
+import { buildCoderServerPromptFileResponses, type CoderServerPromptFileResponse } from './buildCoderServerPromptResponse';
+import { buildCoderServerRunState } from './buildCoderServerRunState';
 import { updatePromptSection } from './updatePromptSection';
 import { CODER_SERVER_HTML } from './coderServerHtml';
 
@@ -19,12 +22,31 @@ import { CODER_SERVER_HTML } from './coderServerHtml';
 const PROMPTS_DIRECTORY_NAME = 'prompts';
 
 /**
+ * Directory containing human-verified prompt files, relative to `prompts/`.
+ *
+ * @private internal constant of `ptbk coder server`
+ */
+const FINISHED_PROMPTS_DIRECTORY_NAME = 'done';
+
+/**
  * Handle returned by the running coder HTTP server.
  *
  * @private internal type of `ptbk coder server`
  */
 export type CoderHttpServerHandle = {
     close: () => void;
+};
+
+/**
+ * Options for the coder HTTP server.
+ *
+ * @private internal type of `ptbk coder server`
+ */
+export type StartCoderHttpServerOptions = {
+    readonly port: number_port;
+    readonly minimumPriority: number;
+    readonly serverUrl: string;
+    readonly uiState?: CoderRunUiState;
 };
 
 /**
@@ -40,26 +62,31 @@ export type CoderHttpServerHandle = {
  *
  * @private internal utility of `ptbk coder server`
  */
-export function startCoderHttpServer(port: number_port): CoderHttpServerHandle {
+export function startCoderHttpServer(options: StartCoderHttpServerOptions): CoderHttpServerHandle {
+    const { port, minimumPriority, serverUrl, uiState } = options;
     const promptsDir = join(process.cwd(), PROMPTS_DIRECTORY_NAME);
 
-    const server: Server = createServer(async (req: IncomingMessage, res: ServerResponse) => {
+    const server: Server = createServer(async (request: IncomingMessage, response: ServerResponse) => {
         try {
-            await handleRequest(req, res, promptsDir);
+            await handleRequest(request, response, {
+                promptsDir,
+                minimumPriority,
+                uiState,
+            });
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
             console.error(colors.red(`Coder server request error: ${message}`));
-            if (!res.headersSent) {
-                res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
+            if (!response.headersSent) {
+                response.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
             }
-            res.end('Internal server error');
+            response.end('Internal server error');
         }
     });
 
     server.listen(port, () => {
         console.info(
             spaceTrim(`
-                Coder server running at ${colors.cyan(`http://localhost:${port}`)}
+                Coder server running at ${colors.cyan(serverUrl)}
                 Open the URL above in your browser to see the kanban board.
                 Press ${colors.bold('p')} to pause / resume the agent runner.
             `),
@@ -77,30 +104,36 @@ export function startCoderHttpServer(port: number_port): CoderHttpServerHandle {
  * Routes one HTTP request to the appropriate handler.
  */
 async function handleRequest(
-    req: IncomingMessage,
-    res: ServerResponse,
-    promptsDir: string,
+    request: IncomingMessage,
+    response: ServerResponse,
+    options: {
+        readonly promptsDir: string;
+        readonly minimumPriority: number;
+        readonly uiState?: CoderRunUiState;
+    },
 ): Promise<void> {
-    const urlPath = new URL(req.url || '/', `http://localhost`).pathname;
-    const method = (req.method || 'GET').toUpperCase();
+    const { promptsDir, minimumPriority, uiState } = options;
+    const urlPath = new URL(request.url || '/', `http://localhost`).pathname;
+    const method = (request.method || 'GET').toUpperCase();
 
     // Serve the kanban UI
     if (urlPath === '/' && method === 'GET') {
-        res.writeHead(200, {
+        response.writeHead(200, {
             'Content-Type': 'text/html; charset=utf-8',
             'Cache-Control': 'no-cache',
         });
-        res.end(CODER_SERVER_HTML);
+        response.end(CODER_SERVER_HTML);
         return;
     }
 
     // GET /api/status
     if (urlPath === '/api/status' && method === 'GET') {
-        res.writeHead(200, jsonHeaders());
-        res.end(
+        response.writeHead(200, jsonHeaders());
+        response.end(
             JSON.stringify({
                 pauseState: getPauseState(),
                 pauseTargetLabel: getPauseTargetLabel(),
+                runState: uiState ? buildCoderServerRunState(uiState) : undefined,
             }),
         );
         return;
@@ -108,31 +141,35 @@ async function handleRequest(
 
     // GET /api/prompts
     if (urlPath === '/api/prompts' && method === 'GET') {
-        const promptData = await loadPromptsForApi(promptsDir);
-        res.writeHead(200, jsonHeaders());
-        res.end(JSON.stringify(promptData));
+        const promptData = await loadPromptsForApi({
+            promptsDir,
+            minimumPriority,
+            uiState,
+        });
+        response.writeHead(200, jsonHeaders());
+        response.end(JSON.stringify(promptData));
         return;
     }
 
     // POST /api/pause
     if (urlPath === '/api/pause' && method === 'POST') {
         requestPause();
-        res.writeHead(200, jsonHeaders());
-        res.end(JSON.stringify({ pauseState: getPauseState() }));
+        response.writeHead(200, jsonHeaders());
+        response.end(JSON.stringify({ pauseState: getPauseState() }));
         return;
     }
 
     // POST /api/resume
     if (urlPath === '/api/resume' && method === 'POST') {
         requestResume();
-        res.writeHead(200, jsonHeaders());
-        res.end(JSON.stringify({ pauseState: getPauseState() }));
+        response.writeHead(200, jsonHeaders());
+        response.end(JSON.stringify({ pauseState: getPauseState() }));
         return;
     }
 
     // PUT /api/prompts/update
     if (urlPath === '/api/prompts/update' && method === 'PUT') {
-        const body = await readRequestBody(req);
+        const body = await readRequestBody(request);
         const parsed = JSON.parse(body) as Partial<{
             filePath: string;
             sectionIndex: number;
@@ -153,51 +190,104 @@ async function handleRequest(
             );
         }
 
-        await updatePromptSection(parsed.filePath, parsed.sectionIndex, parsed.content);
-        res.writeHead(200, jsonHeaders());
-        res.end(JSON.stringify({ success: true }));
+        const promptFilePath = resolveEditablePromptFilePath(parsed.filePath, promptsDir);
+        const isUpdated = await updatePromptSection(promptFilePath, parsed.sectionIndex, parsed.content);
+
+        if (isUpdated) {
+            await commitPromptEdit(promptFilePath, parsed.sectionIndex);
+        }
+
+        response.writeHead(200, jsonHeaders());
+        response.end(JSON.stringify({ success: true, committed: isUpdated }));
         return;
     }
 
-    res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
-    res.end('Not found');
+    response.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+    response.end('Not found');
 }
 
 /**
  * Loads all prompt files and converts them to the API response shape.
  */
-async function loadPromptsForApi(promptsDir: string): Promise<object[]> {
+async function loadPromptsForApi(options: {
+    readonly promptsDir: string;
+    readonly minimumPriority: number;
+    readonly uiState?: CoderRunUiState;
+}): Promise<CoderServerPromptFileResponse[]> {
+    const { promptsDir, minimumPriority, uiState } = options;
+    const promptFiles = await loadPromptFilesSafely(promptsDir);
+    const finishedPromptFiles = await loadPromptFilesSafely(join(promptsDir, FINISHED_PROMPTS_DIRECTORY_NAME));
+
+    return buildCoderServerPromptFileResponses({
+        promptFiles,
+        finishedPromptFiles,
+        minimumPriority,
+        uiState,
+    });
+}
+
+/**
+ * Loads prompt files from a directory that may not exist yet.
+ */
+async function loadPromptFilesSafely(promptsDir: string): Promise<PromptFile[]> {
     try {
-        const promptFiles = await loadPromptFiles(promptsDir);
-        return promptFiles.map((file) => ({
-            filePath: file.path,
-            fileName: file.name,
-            sections: file.sections.map((section) => ({
-                index: section.index,
-                status: section.status,
-                priority: section.priority,
-                summary: buildPromptSummary(file, section),
-                content: buildCodexPrompt(file, section),
-            })),
-        }));
+        return await loadPromptFiles(promptsDir);
     } catch (error) {
-        // Prompts directory may not exist yet; return empty list
         if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
             return [];
         }
+
         throw error;
     }
 }
 
 /**
+ * Resolves and validates one editable prompt file path received from the browser.
+ */
+function resolveEditablePromptFilePath(filePath: string, promptsDir: string): string {
+    const promptFilePath = resolve(filePath);
+    const promptsDirectoryPath = resolve(promptsDir);
+    const relativePromptFilePath = relative(promptsDirectoryPath, promptFilePath);
+    const isOutsidePromptsDirectory =
+        relativePromptFilePath === '' ||
+        relativePromptFilePath.startsWith('..') ||
+        isAbsolute(relativePromptFilePath);
+
+    if (isOutsidePromptsDirectory || !promptFilePath.toLowerCase().endsWith('.md')) {
+        throw new NotAllowed(
+            spaceTrim(`
+                Prompt file edits are limited to Markdown files inside \`${promptsDirectoryPath}\`.
+
+                Requested file:
+                \`${filePath}\`
+            `),
+        );
+    }
+
+    return promptFilePath;
+}
+
+/**
+ * Commits a browser prompt edit to Git without sweeping unrelated staged files into the commit.
+ */
+async function commitPromptEdit(promptFilePath: string, sectionIndex: number): Promise<void> {
+    const relativePromptFilePath = relative(process.cwd(), promptFilePath).replace(/\\/gu, '/');
+
+    await commitChanges(`Edit coder prompt ${relativePromptFilePath}#${sectionIndex + 1}`, {
+        includePaths: [relativePromptFilePath],
+        onlyPaths: [relativePromptFilePath],
+    });
+}
+
+/**
  * Reads the full request body as a UTF-8 string.
  */
-function readRequestBody(req: IncomingMessage): Promise<string> {
+function readRequestBody(request: IncomingMessage): Promise<string> {
     return new Promise<string>((resolve, reject) => {
         const chunks: Buffer[] = [];
-        req.on('data', (chunk: Buffer) => chunks.push(chunk));
-        req.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
-        req.on('error', reject);
+        request.on('data', (chunk: Buffer) => chunks.push(chunk));
+        request.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
+        request.on('error', reject);
     });
 }
 

@@ -1,3 +1,11 @@
+-   Enhanced `ptbk coder server` UI and prompt editing workflow:
+
+    -   Added a clickable server URL to the shared `ptbk coder` terminal session UI when running in server mode.
+    -   Reworked the browser board into **Backlog**, **Low priority**, **To do**, **In progress**, **Done**, **Errors**, and **Finished** columns, including backlog reason tags for `[-]` and `@@@` prompts and active-run tags for **Implementing** / **Verifying**.
+    -   Removed browser drag/drop behavior from the board surface and kept cards as read/edit-only prompt markdown entries.
+    -   Exposed the live terminal runner state to the browser so the web UI shows the same current prompt, phase, output, and progress data as the terminal.
+    -   Browser prompt edits now update the backend markdown file and immediately create a Git commit scoped to the edited prompt file.
+
 -   Changed `ptbk coder init` to copy the bundled `agents/default/developer.book` into initialized projects as `agents/developer.book`, and updated the generated `coder:run` npm script to pass it via `--agent agents/developer.book`.
 
 -   Added local packaging support for the Book Editor macOS app:

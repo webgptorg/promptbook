@@ -251,7 +251,12 @@ function createRunDisplays(
     const isRichUiEnabled = !options.dryRun && !options.noUi && Boolean(process.stdout.isTTY);
     const progressDisplay =
         options.dryRun || options.noUi || isRichUiEnabled ? undefined : new CliProgressDisplay(runStartDate, options.priority);
-    const uiHandle = isRichUiEnabled ? renderCoderRunUi(runStartDate) : undefined;
+    const uiHandle =
+        isRichUiEnabled || options.uiState
+            ? renderCoderRunUi(runStartDate, {
+                  state: options.uiState,
+              })
+            : undefined;
 
     return {
         isRichUiEnabled,
@@ -334,6 +339,7 @@ function initializeRunUi(
         modelName: actualRunnerModel,
         thinkingLevel: options.thinkingLevel,
         context: options.context,
+        serverUrl: options.serverUrl,
         priority: options.priority,
         testCommand: options.testCommand,
     });
