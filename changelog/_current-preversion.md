@@ -1,4 +1,16 @@
--   Replaced the Agents Server chat's temporary fast-LLM pre-answer with **real agent progress**. After a user sends a message the assistant placeholder now shows a structured progress card driven by the actual durable job state: queued → thinking → tool-by-tool actions → writing the answer. Tool calls are rendered with user-friendly action phrases (for example `web_search` becomes "Searching the web") and each tool's latest log line is surfaced as the active "now" status so users can follow what the agent is doing in real time. Explicit `agent_progress` updates authored by the model are still preserved and never overwritten by the runner, and the fake `runImmediateUserChatAnswer` is no longer launched after a user sends a message.
+-   Changed `ptbk coder init` to copy the bundled `agents/default/developer.book` into initialized projects as `agents/developer.book`, and updated the generated `coder:run` npm script to pass it via `--agent agents/developer.book`.
+
+-   Added local packaging support for the Book Editor macOS app:
+
+    -   Added `npm run build:book-editor-macos`, which installs `apps/book-editor-macos` dependencies, syncs the packaged app version from the root package version during packaging, and builds DMG assets with Electron Builder.
+    -   Added the command to `.vscode/terminals.json` and documented remaining maintainer steps for signing/notarization and future release automation in `agents-messages/2026-06-0500-agents-server-macos-book-editor.message.md`.
+
+-   Fixed release preparation with GitHub Personal Access Tokens that do not have the `workflow` scope:
+
+    -   Removed the new standalone Book Editor macOS and VSCode extension workflow files from the generated release changes so normal version pushes no longer try to create `.github/workflows/*` files.
+    -   Narrowed `generate-packages --commit` to stage only the generated `.github/workflows/publish.yml` file instead of the whole `.github` directory, preventing unrelated workflow files from being swept into package-generation commits.
+
+-   Replaced Agents Server chat's temporary in-progress pre-answer with durable real-time progress cards. New queued and running assistant placeholders now show actual job state and observed tool-call progress, preserve explicit `agent_progress` updates from the model, and no longer launch the separate generated confirmation response after a user sends a message.
 
 -   Fixed timing attack vulnerability in Agents Server admin password verification: all three comparison sites (`isUserGlobalAdmin`, `getCurrentUser`, `authenticateUser`) now use a shared `isAdminPasswordEqual` utility that calls Node.js's `timingSafeEqual` (from the `crypto` module) instead of JavaScript's `===` operator, preventing character-by-character password inference via response-time measurement.
 

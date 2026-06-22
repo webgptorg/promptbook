@@ -25,30 +25,4 @@ describe('CoderRunUiState', () => {
         expect(progress.estimatedLabel).not.toBe('after first completion');
         expect(progress.isEstimatedTotalKnown).toBe(true);
     });
-
-    it('returns a serializable snapshot for the coder server web UI', () => {
-        const state = new CoderRunUiState(moment());
-
-        state.setConfig({
-            agentName: 'GitHub Copilot',
-            priority: 2,
-            serverUrl: 'http://localhost:4441',
-        });
-        state.setCurrentPrompt('prompts/task.md#1');
-        state.setPhase('verifying');
-        state.setStatusMessage('Running verification');
-        state.addAgentOutput('npm test');
-
-        expect(state.getSnapshot()).toMatchObject({
-            config: {
-                agentName: 'GitHub Copilot',
-                priority: 2,
-                serverUrl: 'http://localhost:4441',
-            },
-            currentPromptLabel: 'prompts/task.md#1',
-            phase: 'verifying',
-            statusMessage: 'Running verification',
-            agentOutputLines: ['npm test'],
-        });
-    });
 });

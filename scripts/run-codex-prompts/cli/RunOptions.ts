@@ -1,6 +1,5 @@
 import type { ThinkingLevel } from '../../../src/cli/cli-commands/coder/ThinkingLevel';
 import type { PromptRunnerHarnessName } from '../../../src/cli/cli-commands/common/promptRunnerCliOptions';
-import type { CoderRunUiSnapshot } from '../ui/CoderRunUiState';
 
 /**
  * CLI options for running the prompt runner.
@@ -89,12 +88,4 @@ export type RunOptions = {
      * Used by `ptbk coder server` to keep the process alive as a server.
      */
     keepAlive?: boolean;
-    /**
-     * Optional URL to show in the shared rich terminal UI when `ptbk coder server` is active.
-     */
-    serverUrl?: string;
-    /**
-     * Optional observer for the current runner UI state, used by `ptbk coder server` to expose live terminal progress.
-     */
-    onUiSnapshotChange?: (snapshot: CoderRunUiSnapshot) => void;
 };

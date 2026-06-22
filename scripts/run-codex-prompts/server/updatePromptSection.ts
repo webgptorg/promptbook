@@ -2,19 +2,10 @@ import { readFile, writeFile } from 'fs/promises';
 import { parsePromptFile } from '../prompts/parsePromptFile';
 
 /**
- * Result of overwriting one prompt section from the coder server UI.
- *
- * @private internal type of `ptbk coder server`
- */
-export type UpdatePromptSectionResult = {
-    readonly changed: boolean;
-};
-
-/**
  * Overwrites the body of one prompt section with new content, preserving the status line.
  *
  * The `newContent` string is the prompt text without the status marker.
- * The status line (`[ ]`, `[x]`, `[!]`, `[.]`, `[-]`) is kept intact.
+ * The status line (`[ ]`, `[x]`, `[!]`, `[-]`) is kept intact.
  *
  * @private internal utility of `ptbk coder server`
  */
@@ -22,7 +13,7 @@ export async function updatePromptSection(
     filePath: string,
     sectionIndex: number,
     newContent: string,
-): Promise<UpdatePromptSectionResult> {
+): Promise<void> {
     const rawContent = await readFile(filePath, 'utf-8');
     const promptFile = parsePromptFile(filePath, rawContent);
     const section = promptFile.sections.find((s) => s.index === sectionIndex);
@@ -64,13 +55,7 @@ export async function updatePromptSection(
 
     const updatedContent =
         updatedLines.join(promptFile.eol) + (promptFile.hasFinalEol ? promptFile.eol : '');
-
-    if (updatedContent === rawContent) {
-        return { changed: false };
-    }
-
     await writeFile(filePath, updatedContent, 'utf-8');
-    return { changed: true };
 }
 
 // Note: [🟡] Code for CLI command [coder server](scripts/run-codex-prompts/server/updatePromptSection.ts) should never be published outside of `@promptbook/cli`

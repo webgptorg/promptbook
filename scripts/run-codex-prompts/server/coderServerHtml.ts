@@ -15,290 +15,159 @@ export const CODER_SERVER_HTML = `<!DOCTYPE html>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: #f4f6f8;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f4f5f7;
       color: #172b4d;
       min-height: 100vh;
     }
 
     header {
-      background: #123c69;
-      color: #fff;
-      padding: 12px 18px;
+      background: #0052cc;
+      color: white;
+      padding: 12px 20px;
       display: flex;
       align-items: center;
       gap: 12px;
       position: sticky;
       top: 0;
-      z-index: 20;
-      box-shadow: 0 2px 8px rgba(23, 43, 77, 0.18);
+      z-index: 10;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     }
-    header h1 {
-      font-size: 17px;
-      line-height: 1.2;
-      font-weight: 700;
-      flex-shrink: 0;
-    }
-
-    .server-link {
-      color: #d8ecff;
-      font-size: 12px;
-      text-decoration: none;
-      border-bottom: 1px solid rgba(216, 236, 255, 0.5);
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
-    .server-link:hover { color: #fff; border-bottom-color: #fff; }
+    header h1 { font-size: 17px; font-weight: 700; flex-shrink: 0; }
 
     .status-badge {
       padding: 3px 10px;
-      border-radius: 999px;
+      border-radius: 12px;
       font-size: 11px;
       font-weight: 700;
       letter-spacing: 0.5px;
       text-transform: uppercase;
       flex-shrink: 0;
     }
-    .status-RUNNING { background: #0f7b62; color: #fff; }
-    .status-PAUSING { background: #b35a00; color: #fff; }
-    .status-PAUSED { background: #9b1c31; color: #fff; }
+    .status-RUNNING  { background: #00875a; color: white; }
+    .status-PAUSING  { background: #ff8b00; color: white; }
+    .status-PAUSED   { background: #bf2600; color: white; }
 
     #pause-label {
       font-size: 12px;
-      color: rgba(255,255,255,0.78);
+      color: rgba(255,255,255,0.75);
       flex: 1;
-      min-width: 120px;
+      min-width: 0;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
 
     .btn {
-      padding: 7px 13px;
+      padding: 6px 14px;
       border: none;
       border-radius: 4px;
       cursor: pointer;
       font-size: 13px;
-      font-weight: 700;
-      transition: background 0.15s, opacity 0.15s;
+      font-weight: 600;
+      transition: opacity 0.15s;
       flex-shrink: 0;
     }
-    .btn:disabled { cursor: wait; opacity: 0.65; }
-    .btn-pause { background: #f6c85f; color: #172b4d; }
-    .btn-pause:hover { background: #eeb946; }
-    .btn-resume { background: #0f7b62; color: #fff; }
-    .btn-resume:hover { background: #0b6b55; }
-
-    .progress-panel {
-      background: #fff;
-      border-bottom: 1px solid #d8dee8;
-      padding: 12px 18px;
-      display: grid;
-      grid-template-columns: minmax(240px, 1.5fr) minmax(280px, 2fr) minmax(180px, 1fr);
-      gap: 14px;
-      align-items: start;
-    }
-    .progress-group { min-width: 0; }
-    .progress-label {
-      color: #6b778c;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.4px;
-      margin-bottom: 5px;
-      text-transform: uppercase;
-    }
-    .progress-main {
-      color: #172b4d;
-      font-size: 13px;
-      font-weight: 700;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .progress-sub {
-      color: #5e6c84;
-      font-size: 12px;
-      line-height: 1.45;
-      margin-top: 3px;
-      min-height: 18px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .phase-pill {
-      display: inline-flex;
-      align-items: center;
-      min-height: 20px;
-      padding: 2px 8px;
-      border-radius: 999px;
-      background: #e6effc;
-      color: #1f5aa6;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-      margin-right: 6px;
-    }
-    .phase-running, .phase-verifying { background: #fff1cf; color: #8a5a00; }
-    .phase-error { background: #ffe3df; color: #a32112; }
-    .phase-done { background: #def7ec; color: #0f6848; }
-
-    .progress-track {
-      height: 8px;
-      border-radius: 999px;
-      background: #dfe7f1;
-      overflow: hidden;
-      margin-top: 7px;
-    }
-    .progress-fill {
-      height: 100%;
-      width: 0%;
-      background: #1f5aa6;
-      transition: width 0.2s ease;
-    }
-    .live-output {
-      color: #344563;
-      font-family: "SFMono-Regular", Consolas, "Courier New", monospace;
-      font-size: 11px;
-      line-height: 1.45;
-      max-height: 48px;
-      overflow: hidden;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
+    .btn:hover { opacity: 0.85; }
+    .btn-pause  { background: #ffc400; color: #172b4d; }
+    .btn-resume { background: #00875a; color: white; }
 
     .board {
       display: flex;
-      gap: 12px;
-      padding: 14px;
+      gap: 14px;
+      padding: 16px;
       overflow-x: auto;
-      min-height: calc(100vh - 154px);
+      min-height: calc(100vh - 52px);
       align-items: flex-start;
     }
 
     .column {
-      background: #e9edf3;
-      border: 1px solid #d8dee8;
+      background: #ebecf0;
       border-radius: 8px;
       padding: 10px;
-      min-width: 245px;
-      width: 265px;
+      min-width: 250px;
+      width: 270px;
       flex-shrink: 0;
     }
 
     .column-header {
       font-size: 12px;
-      font-weight: 800;
+      font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.45px;
-      color: #42526e;
+      letter-spacing: 0.6px;
+      color: #5e6c84;
       margin-bottom: 10px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 8px;
     }
 
     .column-count {
-      background: #d3dae6;
-      border-radius: 999px;
-      min-width: 24px;
-      text-align: center;
-      padding: 2px 7px;
+      background: #dfe1e6;
+      border-radius: 10px;
+      padding: 1px 7px;
       font-size: 11px;
-      color: #42526e;
+      color: #5e6c84;
     }
 
     .column-cards { min-height: 40px; }
 
     .card {
-      background: #fff;
+      background: white;
       border-radius: 6px;
-      padding: 10px 11px;
+      padding: 10px 12px;
       margin-bottom: 8px;
-      box-shadow: 0 1px 3px rgba(23, 43, 77, 0.1);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
       cursor: pointer;
       transition: box-shadow 0.15s, transform 0.1s;
-      border-left: 3px solid #b3bac5;
+      border-left: 3px solid transparent;
     }
     .card:hover {
-      box-shadow: 0 4px 10px rgba(23, 43, 77, 0.16);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.14);
       transform: translateY(-1px);
     }
-    .card-backlog { border-left-color: #7a869a; }
-    .card-low-priority { border-left-color: #b35a00; }
-    .card-todo { border-left-color: #1f5aa6; }
-    .card-in-progress { border-left-color: #be6f00; }
-    .card-done { border-left-color: #0f7b62; }
-    .card-errors { border-left-color: #a32112; }
-    .card-finished { border-left-color: #5e4db2; }
+    .card-todo      { border-left-color: #0052cc; }
+    .card-not-ready { border-left-color: #8993a4; }
+    .card-done      { border-left-color: #00875a; }
+    .card-failed    { border-left-color: #bf2600; }
 
     .card-file {
       font-size: 10px;
-      color: #7a869a;
+      color: #8993a4;
       margin-bottom: 5px;
-      font-weight: 600;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      font-weight: 500;
     }
 
     .card-summary {
       font-size: 13px;
-      line-height: 1.45;
+      line-height: 1.5;
       color: #172b4d;
       word-break: break-word;
       white-space: pre-wrap;
-      max-height: 74px;
+      max-height: 78px;
       overflow: hidden;
       display: -webkit-box;
       -webkit-line-clamp: 4;
       -webkit-box-orient: vertical;
     }
 
-    .card-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 5px;
-      margin-top: 7px;
-    }
-    .tag {
-      display: inline-flex;
-      align-items: center;
-      min-height: 19px;
-      border-radius: 999px;
-      padding: 2px 7px;
-      font-size: 10px;
-      line-height: 1;
-      font-weight: 800;
-      letter-spacing: 0.2px;
-      text-transform: uppercase;
-      background: #eef2f7;
-      color: #42526e;
-    }
-    .tag-info { background: #deebff; color: #1f5aa6; }
-    .tag-warning { background: #fff1cf; color: #8a5a00; }
-    .tag-success { background: #def7ec; color: #0f6848; }
-    .tag-danger { background: #ffe3df; color: #a32112; }
-    .tag-active { background: #ffe8c2; color: #9c5c00; }
-
     .card-priority {
-      margin-top: 7px;
-      color: #8a5a00;
+      margin-top: 6px;
+      color: #ff8b00;
       font-size: 11px;
-      font-weight: 800;
+      font-weight: 700;
     }
 
     .card-edit-hint {
       font-size: 10px;
-      color: #a5adba;
-      margin-top: 7px;
+      color: #c1c7d0;
+      margin-top: 6px;
       display: none;
     }
     .card:hover .card-edit-hint { display: block; }
 
     .empty-column {
-      color: #97a0af;
+      color: #b3bac5;
       font-size: 12px;
       padding: 10px 4px;
       text-align: center;
@@ -316,15 +185,16 @@ export const CODER_SERVER_HTML = `<!DOCTYPE html>
       animation: fadeIn 0.1s ease;
     }
     .modal-overlay.hidden { display: none; }
+
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
     .modal {
-      background: #fff;
+      background: white;
       border-radius: 8px;
       width: 100%;
-      max-width: 720px;
+      max-width: 620px;
       padding: 20px;
-      box-shadow: 0 8px 32px rgba(23, 43, 77, 0.28);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
       animation: slideIn 0.15s ease;
     }
     @keyframes slideIn { from { transform: translateY(-8px); opacity: 0; } to { transform: none; opacity: 1; } }
@@ -338,32 +208,27 @@ export const CODER_SERVER_HTML = `<!DOCTYPE html>
     }
 
     .modal-meta { flex: 1; min-width: 0; }
-    .modal-file { font-size: 11px; color: #7a869a; margin-bottom: 4px; }
-    .modal-section-label { font-size: 13px; font-weight: 700; color: #172b4d; }
+    .modal-file { font-size: 11px; color: #8993a4; margin-bottom: 4px; }
+    .modal-section-label { font-size: 13px; font-weight: 600; color: #172b4d; }
 
     .modal-status {
       font-size: 11px;
-      font-weight: 800;
-      padding: 3px 9px;
-      border-radius: 999px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 10px;
       text-transform: uppercase;
       letter-spacing: 0.4px;
       flex-shrink: 0;
-      background: #eef2f7;
-      color: #42526e;
     }
-    .status-backlog { background: #eef2f7; color: #42526e; }
-    .status-low-priority { background: #fff1cf; color: #8a5a00; }
-    .status-todo { background: #deebff; color: #1f5aa6; }
-    .status-in-progress { background: #ffe8c2; color: #9c5c00; }
-    .status-done { background: #def7ec; color: #0f6848; }
-    .status-errors { background: #ffe3df; color: #a32112; }
-    .status-finished { background: #ebe7ff; color: #4f3c9d; }
+    .status-todo      { background: #deebff; color: #0052cc; }
+    .status-not-ready { background: #f4f5f7; color: #5e6c84; }
+    .status-done      { background: #e3fcef; color: #006644; }
+    .status-failed    { background: #ffebe6; color: #bf2600; }
 
     .modal-close {
       background: none;
       border: none;
-      color: #7a869a;
+      color: #8993a4;
       cursor: pointer;
       font-size: 18px;
       padding: 0 4px;
@@ -374,26 +239,26 @@ export const CODER_SERVER_HTML = `<!DOCTYPE html>
 
     textarea {
       width: 100%;
-      min-height: 280px;
-      font-family: "SFMono-Regular", Consolas, "Courier New", monospace;
+      min-height: 220px;
+      font-family: 'SFMono-Regular', 'Consolas', 'Courier New', monospace;
       font-size: 13px;
-      border: 2px solid #d8dee8;
+      border: 2px solid #dfe1e6;
       border-radius: 4px;
       padding: 10px 12px;
       resize: vertical;
-      line-height: 1.6;
+      line-height: 1.65;
       color: #172b4d;
-      transition: border-color 0.15s, box-shadow 0.15s;
+      transition: border-color 0.15s;
     }
     textarea:focus {
       outline: none;
-      border-color: #1f5aa6;
-      box-shadow: 0 0 0 3px rgba(31, 90, 166, 0.12);
+      border-color: #0052cc;
+      box-shadow: 0 0 0 3px rgba(0,82,204,0.12);
     }
 
     .modal-hint {
       font-size: 11px;
-      color: #7a869a;
+      color: #8993a4;
       margin-top: 6px;
     }
 
@@ -404,62 +269,67 @@ export const CODER_SERVER_HTML = `<!DOCTYPE html>
       justify-content: flex-end;
     }
 
-    .btn-save { background: #1f5aa6; color: #fff; }
-    .btn-save:hover { background: #174a8d; }
-    .btn-cancel { background: #eef2f7; color: #172b4d; }
-    .btn-cancel:hover { background: #dfe7f1; }
+    .btn-save   { background: #0052cc; color: white; }
+    .btn-cancel { background: #f4f5f7; color: #172b4d; }
+    .btn-cancel:hover { background: #ebecf0; opacity: 1; }
 
-    .banner {
-      border-bottom: 2px solid #a32112;
-      padding: 8px 18px;
+    .error-banner {
+      background: #ffebe6;
+      border-bottom: 2px solid #bf2600;
+      color: #bf2600;
+      padding: 8px 20px;
       font-size: 13px;
-      font-weight: 600;
+      font-weight: 500;
     }
-    .banner-error { background: #ffe3df; color: #a32112; }
-    .banner.hidden { display: none; }
-
-    @media (max-width: 840px) {
-      header { flex-wrap: wrap; }
-      #pause-label { order: 5; flex-basis: 100%; }
-      .progress-panel { grid-template-columns: 1fr; }
-      .board { min-height: calc(100vh - 260px); }
-    }
+    .error-banner.hidden { display: none; }
   </style>
 </head>
 <body>
 
-  <div id="error-banner" class="banner banner-error hidden"></div>
+  <div id="error-banner" class="error-banner hidden"></div>
 
   <header>
-    <h1>Ptbk Coder Server</h1>
-    <a id="server-link" class="server-link" href="/" target="_blank" rel="noreferrer">http://localhost</a>
+    <h1>&#128295; Ptbk Coder Server</h1>
     <span id="status-badge" class="status-badge status-RUNNING">RUNNING</span>
     <span id="pause-label"></span>
-    <button id="toggle-btn" class="btn btn-pause">Pause</button>
+    <button id="toggle-btn" class="btn btn-pause">&#9646;&#9646; Pause</button>
   </header>
 
-  <section class="progress-panel" aria-label="Agent progress">
-    <div class="progress-group">
-      <div class="progress-label">Current task</div>
-      <div id="progress-task" class="progress-main">Waiting for runner state...</div>
-      <div id="progress-detail" class="progress-sub"></div>
-    </div>
-    <div class="progress-group">
-      <div class="progress-label">Progress</div>
-      <div id="progress-state" class="progress-main">
-        <span id="phase-pill" class="phase-pill">Starting</span>
-        <span id="progress-status">Initializing...</span>
+  <div class="board">
+    <div class="column">
+      <div class="column-header">
+        To Do
+        <span class="column-count" id="count-todo">0</span>
       </div>
-      <div class="progress-track" aria-hidden="true"><div id="progress-fill" class="progress-fill"></div></div>
-      <div id="progress-meta" class="progress-sub"></div>
+      <div class="column-cards" id="cards-todo">
+        <div class="empty-column">Loading&hellip;</div>
+      </div>
     </div>
-    <div class="progress-group">
-      <div class="progress-label">Live output</div>
-      <div id="live-output" class="live-output">No output yet.</div>
-    </div>
-  </section>
 
-  <main class="board" id="board" aria-label="Prompt board"></main>
+    <div class="column">
+      <div class="column-header">
+        Not Ready
+        <span class="column-count" id="count-not-ready">0</span>
+      </div>
+      <div class="column-cards" id="cards-not-ready"></div>
+    </div>
+
+    <div class="column">
+      <div class="column-header">
+        Done
+        <span class="column-count" id="count-done">0</span>
+      </div>
+      <div class="column-cards" id="cards-done"></div>
+    </div>
+
+    <div class="column">
+      <div class="column-header">
+        Failed
+        <span class="column-count" id="count-failed">0</span>
+      </div>
+      <div class="column-cards" id="cards-failed"></div>
+    </div>
+  </div>
 
   <div class="modal-overlay hidden" id="modal-overlay">
     <div class="modal">
@@ -472,8 +342,8 @@ export const CODER_SERVER_HTML = `<!DOCTYPE html>
         <button class="modal-close" onclick="closeModal()" title="Close (Esc)">&#x2715;</button>
       </div>
 
-      <textarea id="modal-content" placeholder="Prompt content..."></textarea>
-      <div class="modal-hint">Ctrl+Enter saves and commits this prompt file. Esc closes the editor.</div>
+      <textarea id="modal-content" placeholder="Prompt content&hellip;"></textarea>
+      <div class="modal-hint">Tip: press Ctrl+Enter to save, Esc to cancel.</div>
 
       <div class="modal-actions">
         <button class="btn btn-cancel" onclick="closeModal()">Cancel</button>
@@ -485,131 +355,53 @@ export const CODER_SERVER_HTML = `<!DOCTYPE html>
   <script>
     'use strict';
 
-    const BOARD_COLUMNS = [
-      { id: 'backlog', title: 'Backlog' },
-      { id: 'low-priority', title: 'Low priority' },
-      { id: 'todo', title: 'To do' },
-      { id: 'in-progress', title: 'In progress' },
-      { id: 'done', title: 'Done' },
-      { id: 'errors', title: 'Errors' },
-      { id: 'finished', title: 'Finished' },
-    ];
-
     let modalState = null;
     let lastPauseState = 'RUNNING';
 
-    function initializeBoard() {
-      const board = document.getElementById('board');
-      board.innerHTML = '';
-
-      for (const column of BOARD_COLUMNS) {
-        const columnEl = document.createElement('section');
-        columnEl.className = 'column';
-        columnEl.innerHTML =
-          '<div class="column-header">' +
-            '<span>' + escapeHtml(column.title) + '</span>' +
-            '<span class="column-count" id="count-' + column.id + '">0</span>' +
-          '</div>' +
-          '<div class="column-cards" id="cards-' + column.id + '">' +
-            '<div class="empty-column">Loading...</div>' +
-          '</div>';
-        board.appendChild(columnEl);
-      }
-    }
-
-    function showError(message) {
+    function showError(msg) {
       const banner = document.getElementById('error-banner');
-      banner.textContent = '! ' + message;
+      banner.textContent = '\\u26a0 ' + msg;
       banner.classList.remove('hidden');
       clearTimeout(banner._timer);
       banner._timer = setTimeout(() => banner.classList.add('hidden'), 6000);
     }
 
-    function escapeHtml(value) {
+    function escapeHtml(str) {
       const d = document.createElement('div');
-      d.textContent = String(value);
+      d.textContent = String(str);
       return d.innerHTML;
-    }
-
-    function formatStatusLabel(value) {
-      return String(value || '').split('-').map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(' ');
     }
 
     async function fetchStatus() {
       try {
         const res = await fetch('/api/status');
         if (!res.ok) { showError('Status API error: ' + res.status); return; }
-        renderStatus(await res.json());
-      } catch (error) {
-        showError('Could not reach coder server: ' + error.message);
-      }
-    }
+        const data = await res.json();
 
-    function renderStatus(data) {
-      lastPauseState = data.pauseState;
+        lastPauseState = data.pauseState;
 
-      const badge = document.getElementById('status-badge');
-      badge.textContent = data.pauseState;
-      badge.className = 'status-badge status-' + data.pauseState;
+        const badge = document.getElementById('status-badge');
+        badge.textContent = data.pauseState;
+        badge.className = 'status-badge status-' + data.pauseState;
 
-      const btn = document.getElementById('toggle-btn');
-      const label = document.getElementById('pause-label');
+        const btn   = document.getElementById('toggle-btn');
+        const label = document.getElementById('pause-label');
 
-      if (data.pauseState === 'RUNNING') {
-        btn.textContent = 'Pause';
-        btn.className = 'btn btn-pause';
-        label.textContent = '';
-      } else if (data.pauseState === 'PAUSING') {
-        btn.textContent = 'Resume';
-        btn.className = 'btn btn-resume';
-        label.textContent = 'Pausing before: ' + (data.pauseTargetLabel || '...');
-      } else {
-        btn.textContent = 'Resume';
-        btn.className = 'btn btn-resume';
-        label.textContent = 'Paused before: ' + (data.pauseTargetLabel || '...');
-      }
-
-      renderRunProgress(data.run);
-    }
-
-    function renderRunProgress(run) {
-      const phase = run && run.phase ? run.phase : 'initializing';
-      const progress = run && run.progress ? run.progress : null;
-      const phasePill = document.getElementById('phase-pill');
-      const progressStatus = document.getElementById('progress-status');
-      const progressTask = document.getElementById('progress-task');
-      const progressDetail = document.getElementById('progress-detail');
-      const progressMeta = document.getElementById('progress-meta');
-      const progressFill = document.getElementById('progress-fill');
-      const liveOutput = document.getElementById('live-output');
-
-      phasePill.textContent = formatStatusLabel(phase);
-      phasePill.className = 'phase-pill phase-' + phase;
-      progressStatus.textContent = run && run.statusMessage ? run.statusMessage : 'Waiting for runner state...';
-      progressTask.textContent = run && run.currentPromptLabel ? run.currentPromptLabel : 'No active prompt';
-      progressDetail.textContent = run && run.detailLines && run.detailLines.length > 0 ? run.detailLines.join(' | ') : '';
-
-      if (progress) {
-        progressFill.style.width = Math.max(0, Math.min(100, progress.percentage)) + '%';
-        progressMeta.textContent =
-          'Task ' + progress.currentPromptIndex + '/' + progress.sessionTotal +
-          ' | Done ' + progress.sessionDone +
-          ' | Remaining ' + progress.sessionRemaining +
-          ' | Elapsed ' + progress.elapsedText +
-          ' | ETA ' + progress.estimatedLabel;
-      } else {
-        progressFill.style.width = '0%';
-        progressMeta.textContent = '';
-      }
-
-      const outputLines = run && run.agentOutputLines ? run.agentOutputLines : [];
-      const errorLines = run && run.errors ? run.errors : [];
-      if (errorLines.length > 0) {
-        liveOutput.textContent = errorLines.slice(-3).join('\n');
-      } else if (outputLines.length > 0) {
-        liveOutput.textContent = outputLines.slice(-3).join('\n');
-      } else {
-        liveOutput.textContent = 'No output yet.';
+        if (data.pauseState === 'RUNNING') {
+          btn.textContent = '\\u23f8 Pause';
+          btn.className   = 'btn btn-pause';
+          label.textContent = '';
+        } else if (data.pauseState === 'PAUSING') {
+          btn.textContent = '\\u23f5 Resume';
+          btn.className   = 'btn btn-resume';
+          label.textContent = 'Pausing before: ' + (data.pauseTargetLabel || '\\u2026');
+        } else {
+          btn.textContent = '\\u23f5 Resume';
+          btn.className   = 'btn btn-resume';
+          label.textContent = 'Paused before: ' + (data.pauseTargetLabel || '\\u2026');
+        }
+      } catch (e) {
+        showError('Could not reach coder server: ' + e.message);
       }
     }
 
@@ -618,26 +410,26 @@ export const CODER_SERVER_HTML = `<!DOCTYPE html>
         const res = await fetch('/api/prompts');
         if (!res.ok) { showError('Prompts API error: ' + res.status); return; }
         renderBoard(await res.json());
-      } catch (error) {
-        showError('Could not load prompts: ' + error.message);
+      } catch (e) {
+        showError('Could not load prompts: ' + e.message);
       }
     }
 
     function renderBoard(promptFiles) {
-      const columns = {};
-      for (const column of BOARD_COLUMNS) columns[column.id] = [];
+      const columns = { 'todo': [], 'not-ready': [], 'done': [], 'failed': [] };
 
       for (const file of promptFiles) {
         for (const section of file.sections) {
-          const boardStatus = section.boardStatus || section.status;
-          if (columns[boardStatus]) columns[boardStatus].push({ file, section });
+          const col = columns[section.status];
+          if (col) col.push({ file, section });
         }
       }
 
-      for (const column of BOARD_COLUMNS) {
-        const cards = columns[column.id];
-        const container = document.getElementById('cards-' + column.id);
-        const countEl = document.getElementById('count-' + column.id);
+      for (const [status, cards] of Object.entries(columns)) {
+        const container = document.getElementById('cards-' + status);
+        const countEl   = document.getElementById('count-' + status);
+        if (!container) continue;
+
         countEl.textContent = cards.length;
         container.innerHTML = '';
 
@@ -646,45 +438,31 @@ export const CODER_SERVER_HTML = `<!DOCTYPE html>
           continue;
         }
 
-        for (const item of cards) {
-          container.appendChild(renderCard(item.file, item.section));
+        for (const { file, section } of cards) {
+          const card = document.createElement('div');
+          card.className = 'card card-' + section.status;
+          card.innerHTML =
+            '<div class="card-file">' + escapeHtml(file.fileName) + ' &bull; #' + (section.index + 1) + '</div>' +
+            '<div class="card-summary">' + escapeHtml(section.summary) + '</div>' +
+            (section.priority > 0
+              ? '<div class="card-priority">' + '!'.repeat(section.priority) + ' priority ' + section.priority + '</div>'
+              : '') +
+            '<div class="card-edit-hint">Click to edit</div>';
+          card.onclick = () => openModal(file, section);
+          container.appendChild(card);
         }
       }
     }
 
-    function renderCard(file, section) {
-      const boardStatus = section.boardStatus || section.status;
-      const card = document.createElement('article');
-      card.className = 'card card-' + boardStatus;
-      card.innerHTML =
-        '<div class="card-file">' + escapeHtml(file.fileName) + ' | #' + (section.index + 1) + '</div>' +
-        '<div class="card-summary">' + escapeHtml(section.summary) + '</div>' +
-        renderTags(section.tags || []) +
-        (section.priority > 0
-          ? '<div class="card-priority">' + '!'.repeat(section.priority) + ' priority ' + section.priority + '</div>'
-          : '') +
-        '<div class="card-edit-hint">Click to edit markdown</div>';
-      card.onclick = () => openModal(file, section);
-      return card;
-    }
-
-    function renderTags(tags) {
-      if (!tags.length) return '';
-      return '<div class="card-tags">' + tags.map((tag) =>
-        '<span class="tag tag-' + escapeHtml(tag.tone || 'neutral') + '">' + escapeHtml(tag.label) + '</span>'
-      ).join('') + '</div>';
-    }
-
     function openModal(file, section) {
-      const boardStatus = section.boardStatus || section.status;
       modalState = { filePath: file.filePath, sectionIndex: section.index };
 
-      document.getElementById('modal-file').textContent = file.fileName;
+      document.getElementById('modal-file').textContent          = file.fileName;
       document.getElementById('modal-section-label').textContent = 'Section ' + (section.index + 1);
 
       const badge = document.getElementById('modal-status-badge');
-      badge.textContent = formatStatusLabel(boardStatus);
-      badge.className = 'modal-status status-' + boardStatus;
+      badge.textContent = section.status.replace('-', '\\u2011');
+      badge.className   = 'modal-status status-' + section.status;
 
       document.getElementById('modal-content').value = section.content;
       document.getElementById('modal-overlay').classList.remove('hidden');
@@ -701,31 +479,26 @@ export const CODER_SERVER_HTML = `<!DOCTYPE html>
 
       const content = document.getElementById('modal-content').value;
       const saveBtn = document.querySelector('.btn-save');
-      saveBtn.disabled = true;
-      saveBtn.textContent = 'Saving...';
+      saveBtn.disabled    = true;
+      saveBtn.textContent = 'Saving\\u2026';
 
       try {
         const res = await fetch('/api/prompts/update', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            filePath: modalState.filePath,
+            filePath:     modalState.filePath,
             sectionIndex: modalState.sectionIndex,
             content,
           }),
         });
-
-        if (!res.ok) {
-          const details = await res.text();
-          throw new Error('HTTP ' + res.status + (details ? ': ' + details : ''));
-        }
-
+        if (!res.ok) throw new Error('HTTP ' + res.status);
         closeModal();
-        await fetchPrompts();
-      } catch (error) {
-        showError('Save failed: ' + error.message);
+        fetchPrompts();
+      } catch (e) {
+        showError('Save failed: ' + e.message);
       } finally {
-        saveBtn.disabled = false;
+        saveBtn.disabled    = false;
         saveBtn.textContent = 'Save';
       }
     }
@@ -735,32 +508,27 @@ export const CODER_SERVER_HTML = `<!DOCTYPE html>
         const endpoint = lastPauseState === 'RUNNING' ? '/api/pause' : '/api/resume';
         await fetch(endpoint, { method: 'POST' });
         await fetchStatus();
-      } catch (error) {
-        showError('Toggle failed: ' + error.message);
+      } catch (e) {
+        showError('Toggle failed: ' + e.message);
       }
     };
 
-    document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape') { closeModal(); return; }
-      if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') { saveModal(); }
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') { closeModal(); return; }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { saveModal(); return; }
     });
 
-    document.getElementById('modal-overlay').addEventListener('click', (event) => {
-      if (event.target === document.getElementById('modal-overlay')) closeModal();
+    document.getElementById('modal-overlay').addEventListener('click', (e) => {
+      if (e.target === document.getElementById('modal-overlay')) closeModal();
     });
 
-    document.getElementById('server-link').href = window.location.origin;
-    document.getElementById('server-link').textContent = window.location.origin;
-
-    initializeBoard();
     fetchStatus();
     fetchPrompts();
-    setInterval(fetchStatus, 1500);
-    setInterval(fetchPrompts, 2500);
+    setInterval(fetchStatus,  2000);
+    setInterval(fetchPrompts, 5000);
   </script>
 </body>
-</html>
-`;
+</html>`;
 
 // Note: [🟡] Code for CLI command [coder server](scripts/run-codex-prompts/server/coderServerHtml.ts) should never be published outside of `@promptbook/cli`
 // Note: Keep in sync with apps/coder-server/index.html
