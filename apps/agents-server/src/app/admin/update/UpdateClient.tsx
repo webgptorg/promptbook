@@ -67,32 +67,44 @@ export function UpdateClient() {
     /**
      * Loads the latest self-update overview from the server.
      */
-    const loadOverview = useCallback(async (options?: { readonly isSilent?: boolean }): Promise<void> => {
-        try {
-            if (!options?.isSilent) {
-                setIsLoading(true);
-            }
-            setErrorMessage(null);
+    const loadOverview = useCallback(
+        async (options?: { readonly isSilent?: boolean; readonly isRestartExpected?: boolean }): Promise<void> => {
+            try {
+                if (!options?.isSilent) {
+                    setIsLoading(true);
+                }
+                setErrorMessage(null);
 
-            const response = await fetch('/api/admin/update', { cache: 'no-store' });
-            const payload = (await response.json()) as UpdateOverview;
+                const response = await fetch('/api/admin/update', { cache: 'no-store' });
+                const payload = (await response.json()) as UpdateOverview;
 
-            if (!response.ok) {
-                throw new Error(payload.error || 'Failed to load the update overview.');
-            }
+                if (!response.ok) {
+                    throw new Error(payload.error || 'Failed to load the update overview.');
+                }
 
-            setOverview(payload);
-            setSelectedEnvironmentId((currentSelectedEnvironmentId) =>
-                currentSelectedEnvironmentId || payload.currentEnvironment.id,
-            );
-        } catch (error) {
-            setErrorMessage(error instanceof Error ? error.message : 'Failed to load the update overview.');
-        } finally {
-            if (!options?.isSilent) {
-                setIsLoading(false);
+                setOverview(payload);
+                setSelectedEnvironmentId(
+                    (currentSelectedEnvironmentId) => currentSelectedEnvironmentId || payload.currentEnvironment.id,
+                );
+                if (payload.job.status === 'succeeded') {
+                    setSuccessMessage(getUpdateJobSuccessMessage(payload.job));
+                } else if (payload.job.status === 'failed') {
+                    setSuccessMessage(null);
+                }
+            } catch (error) {
+                if (options?.isRestartExpected) {
+                    return;
+                }
+
+                setErrorMessage(error instanceof Error ? error.message : 'Failed to load the update overview.');
+            } finally {
+                if (!options?.isSilent) {
+                    setIsLoading(false);
+                }
             }
-        }
-    }, []);
+        },
+        [],
+    );
 
     useEffect(() => {
         void loadOverview();
@@ -104,7 +116,7 @@ export function UpdateClient() {
         }
 
         const interval = window.setInterval(() => {
-            void loadOverview({ isSilent: true });
+            void loadOverview({ isSilent: true, isRestartExpected: true });
         }, 4000);
 
         return () => {
@@ -365,10 +377,10 @@ export function UpdateClient() {
                                 overview?.job.status === 'running'
                                     ? 'border-blue-200 bg-blue-50 text-blue-700'
                                     : overview?.job.status === 'failed'
-                                      ? 'border-rose-200 bg-rose-50 text-rose-700'
-                                      : overview?.job.status === 'succeeded'
-                                        ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                                        : 'border-slate-200 bg-slate-50 text-slate-500'
+                                    ? 'border-rose-200 bg-rose-50 text-rose-700'
+                                    : overview?.job.status === 'succeeded'
+                                    ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                                    : 'border-slate-200 bg-slate-50 text-slate-500'
                             }`}
                         >
                             {overview?.job.status || 'idle'}
@@ -394,14 +406,14 @@ export function UpdateClient() {
                         </div>
                     </dl>
 
-                    {overview?.job.errorMessage && (
-                        <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-                            {overview.job.errorMessage}
+                    {overview?.job.status === 'succeeded' && (
+                        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                            {getUpdateJobSuccessMessage(overview.job)}
                         </div>
                     )}
-                    {overview?.job.isStale && (
-                        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                            The previous background update process stopped unexpectedly. You can start the update again.
+                    {overview?.job.status === 'failed' && (
+                        <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                            {getUpdateJobFailureMessage(overview.job)}
                         </div>
                     )}
                     {overview?.job.logFilePath && (
@@ -422,6 +434,26 @@ export function UpdateClient() {
             </Card>
         </div>
     );
+}
+
+/**
+ * Builds the success message for a finished standalone VPS update.
+ *
+ * @param job - Completed update job snapshot.
+ * @returns Human-readable success message.
+ */
+function getUpdateJobSuccessMessage(job: UpdateJobSnapshot): string {
+    return job.currentStep || 'Standalone VPS update finished successfully.';
+}
+
+/**
+ * Builds the failure message for a failed standalone VPS update.
+ *
+ * @param job - Failed update job snapshot.
+ * @returns Human-readable failure message.
+ */
+function getUpdateJobFailureMessage(job: UpdateJobSnapshot): string {
+    return job.errorMessage || 'The standalone VPS update failed. Review the installer log for details.';
 }
 
 /**

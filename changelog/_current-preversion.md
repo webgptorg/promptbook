@@ -1,3 +1,5 @@
+-   Fixed Agents Server self-update reporting a false failure after a successful VPS restart. The update overview now treats a stale background process as successful when the running server is already on the recorded target branch and target commit, and the update page suppresses transient restart polling errors while still showing real job failures.
+
 -   Fixed remaining misspelled wizard naming across Agents Server metadata constants, generated new-agent notes, repository documentation, and related prompt/document filenames.
 
 -   Changed `ptbk coder init` to copy the bundled `agents/default/developer.book` into initialized projects as `agents/developer.book`, and updated the generated `coder:run` npm script to pass it via `--agent agents/developer.book`.

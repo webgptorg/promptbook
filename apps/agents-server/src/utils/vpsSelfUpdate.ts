@@ -5,9 +5,25 @@ import { dirname, resolve } from 'path';
 import { promisify } from 'util';
 import { NotAllowed } from '../../../../src/errors/NotAllowed';
 import { spaceTrim } from 'spacetrim';
-import { createVpsInstallerCommandEnvironment, resolveVpsEnvironmentFilePath, resolveVpsInstallerScriptPath } from './vpsConfiguration';
+import {
+    createVpsInstallerCommandEnvironment,
+    resolveVpsEnvironmentFilePath,
+    resolveVpsInstallerScriptPath,
+} from './vpsConfiguration';
 
 const execFileAsync = promisify(execFile);
+
+/**
+ * Fallback error used when a running self-update process disappears without writing a terminal status.
+ */
+const VPS_SELF_UPDATE_STALE_ERROR_MESSAGE =
+    'The previous background update process stopped unexpectedly before writing its final status.';
+
+/**
+ * Success step shown when the server proves a stale-looking job completed across a process restart.
+ */
+const VPS_SELF_UPDATE_RESTART_SUCCESS_STEP =
+    'Standalone VPS self-update finished successfully after restarting the server.';
 
 /**
  * Supported standalone VPS update environments.
@@ -167,6 +183,20 @@ export type VpsSelfUpdateOverview = {
 };
 
 /**
+ * Repository state used to resolve a persisted self-update job for the browser overview.
+ */
+export type VpsSelfUpdateJobOverviewContext = {
+    /**
+     * Environment currently configured in the running Agents Server.
+     */
+    readonly currentEnvironment: VpsSelfUpdateEnvironmentOption;
+    /**
+     * Current local repository commit observed by the running server.
+     */
+    readonly currentCommitSha: string | null;
+};
+
+/**
  * Starts one detached VPS self-update run for the selected environment.
  *
  * The actual update is executed by `other/vps/install.sh self-update`, while this
@@ -306,6 +336,10 @@ export async function readVpsSelfUpdateOverview(): Promise<VpsSelfUpdateOverview
         runGitInRepository(repositoryDirectory, ['log', '-1', '--format=%s']),
         readRemoteCommitSha(repositoryDirectory, currentEnvironment.branch),
     ]);
+    const resolvedJob = resolveVpsSelfUpdateJobForOverview(job, {
+        currentEnvironment,
+        currentCommitSha,
+    });
 
     return {
         isAvailable: Boolean(currentCommitSha),
@@ -318,8 +352,48 @@ export async function readVpsSelfUpdateOverview(): Promise<VpsSelfUpdateOverview
         currentCommitMessage,
         latestRemoteCommitSha,
         latestRemoteCommitShortSha: abbreviateCommitSha(latestRemoteCommitSha),
-        isUpdateAvailable: Boolean(currentCommitSha && latestRemoteCommitSha && currentCommitSha !== latestRemoteCommitSha),
-        job,
+        isUpdateAvailable: Boolean(
+            currentCommitSha && latestRemoteCommitSha && currentCommitSha !== latestRemoteCommitSha,
+        ),
+        job: resolvedJob,
+    };
+}
+
+/**
+ * Converts the persisted shell status into the status that should be shown in the admin overview.
+ *
+ * A successful self-update may restart the old Agents Server process before the browser sees the final
+ * `STATUS=succeeded` write. In that case the stale PID alone is not enough to call the update failed:
+ * if the running server is already on the recorded target branch and target commit, the update succeeded.
+ *
+ * @param job - Persisted self-update job snapshot.
+ * @param context - Current repository state observed by the running server.
+ * @returns Job snapshot resolved for browser display.
+ */
+export function resolveVpsSelfUpdateJobForOverview(
+    job: VpsSelfUpdateJobSnapshot,
+    context: VpsSelfUpdateJobOverviewContext,
+): VpsSelfUpdateJobSnapshot {
+    const isRestartedSuccessfulUpdate =
+        job.status === 'failed' &&
+        job.isStale &&
+        (!job.errorMessage || job.errorMessage === VPS_SELF_UPDATE_STALE_ERROR_MESSAGE) &&
+        job.targetBranch === context.currentEnvironment.branch &&
+        job.targetCommitSha !== null &&
+        context.currentCommitSha !== null &&
+        job.targetCommitSha === context.currentCommitSha;
+
+    if (!isRestartedSuccessfulUpdate) {
+        return job;
+    }
+
+    return {
+        ...job,
+        status: 'succeeded',
+        currentStep: VPS_SELF_UPDATE_RESTART_SUCCESS_STEP,
+        currentCommitSha: context.currentCommitSha,
+        errorMessage: null,
+        isStale: false,
     };
 }
 
@@ -410,10 +484,7 @@ async function readPersistedVpsSelfUpdateJob(): Promise<VpsSelfUpdateJobSnapshot
         currentStep,
         currentCommitSha: statusEntries.get('CURRENT_COMMIT') || null,
         targetCommitSha: statusEntries.get('TARGET_COMMIT') || null,
-        errorMessage:
-            isStale && !errorMessage
-                ? 'The previous background update process stopped unexpectedly before writing its final status.'
-                : errorMessage,
+        errorMessage: isStale && !errorMessage ? VPS_SELF_UPDATE_STALE_ERROR_MESSAGE : errorMessage,
         startedAt: statusEntries.get('STARTED_AT') || null,
         finishedAt: statusEntries.get('FINISHED_AT') || null,
         isStale,
@@ -513,7 +584,9 @@ async function readConfiguredVpsEnvironmentValue(key: string): Promise<string | 
  */
 async function resolveManagedPromptbookRepositoryDirectory(): Promise<string | null> {
     const configuredDirectory =
-        (await readConfiguredVpsEnvironmentValue('PTBK_REPOSITORY_DIR')) || process.env.PTBK_REPOSITORY_DIR?.trim() || '';
+        (await readConfiguredVpsEnvironmentValue('PTBK_REPOSITORY_DIR')) ||
+        process.env.PTBK_REPOSITORY_DIR?.trim() ||
+        '';
 
     if (configuredDirectory) {
         return resolve(configuredDirectory);

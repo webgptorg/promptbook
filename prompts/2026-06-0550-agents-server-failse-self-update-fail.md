@@ -1,4 +1,4 @@
-[ ] !
+[x] ~$0.6559 an hour by OpenAI Codex `gpt-5.5`
 
 [✨🧐] The self-update of the Agents server works propperly but it shows error
 
@@ -11,3 +11,4 @@
 -   You are working with the [Agents Server](apps/agents-server)
 
 ![alt text](screenshots/2026-06-0550-agents-server-failse-self-update-fail.png)
+
