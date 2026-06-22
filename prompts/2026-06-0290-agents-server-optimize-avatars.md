@@ -1,5 +1,9 @@
 [x] (2 attempts) $1.56 2 hours by Claude Code
 
+---
+
+[ ]
+
 [✨🔱] Optimize animated avatars
 
 -   Now the animated avatars are very slow in the browser, and the performance is very bad
@@ -8,4 +12,3 @@
 -   You are working with the [Agents Server](apps/agents-server)
 
 ![alt text](screenshots/2026-06-0290-agents-server-optimize-avatars.png)
-
