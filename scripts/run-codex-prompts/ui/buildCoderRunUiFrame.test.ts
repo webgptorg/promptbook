@@ -60,6 +60,7 @@ describe('buildCoderRunUiFrame', () => {
         expect(output).not.toContain('┌ Brand');
         expect(output).toContain('GitHub Copilot  ·  gpt-5.4  ·  thinking xhigh');
         expect(output).toContain('Context  AGENTS.md');
+        expect(output).not.toContain('Server   http://localhost:4441');
         expect(output).toContain('Test     npm test');
         expect(output).toContain('This run Task 3/5  ·  2 done  ·  3 left');
         expect(output).toContain('Backlog  Repo 18 total  ·  12 prompts below priority');
@@ -69,6 +70,21 @@ describe('buildCoderRunUiFrame', () => {
         expect(output).toContain('Current task');
         expect(output).toContain('ENTER  Start');
         expect(output).toContain('P  Pause');
+    });
+
+    it('renders the coder server browser URL when server mode provides one', () => {
+        const output = buildCoderRunUiFrame(
+            createFrameOptions({
+                config: {
+                    ...createFrameOptions().config,
+                    serverUrl: 'http://localhost:4441',
+                },
+            }),
+        )
+            .map(stripAnsi)
+            .join('\n');
+
+        expect(output).toContain('Server   http://localhost:4441');
     });
 
     it('keeps the frame height stable while live output grows', () => {

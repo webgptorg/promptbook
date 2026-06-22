@@ -167,6 +167,7 @@ function buildSessionRows(
 
     const configurationRows = [
         ...buildOptionalSessionRow('Context', options.config.context),
+        ...buildOptionalSessionRow('Server', options.config.serverUrl),
         ...buildOptionalSessionRow('Test', options.config.testCommand),
     ];
 

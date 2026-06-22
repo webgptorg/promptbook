@@ -21,7 +21,7 @@ ptbk coder server --harness github-copilot --model gpt-5.4 --thinking-level xhig
 
 ---
 
-[ ] !!!!!!!!!!!!!!!!
+[x] ~$1.43 2 hours by OpenAI Codex `gpt-5.5`
 
 [✨🕤] Modify UI in `ptbk coder server`
 
@@ -75,3 +75,4 @@ ptbk coder server --harness github-copilot --model gpt-5.4 --thinking-level xhig
 -   Do a proper analysis of the current functionality of `ptbk coder server` and related functionality before you start implementing.
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

@@ -41,6 +41,7 @@ export type CoderRunConfig = {
     readonly modelName?: string;
     readonly thinkingLevel?: string;
     readonly context?: string;
+    readonly serverUrl?: string;
     readonly priority: number;
     readonly testCommand?: string;
 };
@@ -51,6 +52,30 @@ export type CoderRunConfig = {
  * @private internal type of coder run UI
  */
 export type { CoderRunProgressSnapshot };
+
+/**
+ * JSON-serializable snapshot of the current coder run terminal UI state.
+ *
+ * @private internal type of coder run UI
+ */
+export type CoderRunUiSnapshot = {
+    readonly config: CoderRunConfig;
+    readonly currentPromptLabel: string;
+    readonly currentScriptPaths: readonly string[];
+    readonly currentAttempt: number;
+    readonly maxAttempts: number;
+    readonly detailLines: readonly string[];
+    readonly messagePreviewLines: readonly string[];
+    readonly messagePreviewSections: readonly AgentRunMessagePreviewSection[];
+    readonly agentStatusLines: readonly string[];
+    readonly agentStatusTableRows: readonly AgentRunStatusTableRow[];
+    readonly pendingEnterLabel?: string;
+    readonly agentOutputLines: readonly string[];
+    readonly phase: CoderRunPhase;
+    readonly statusMessage: string;
+    readonly errors: readonly string[];
+    readonly progress: CoderRunProgressSnapshot;
+};
 
 /**
  * Reactive state manager for the coder run terminal UI.
@@ -132,6 +157,30 @@ export class CoderRunUiState extends EventEmitter {
             this.timer.getElapsedDuration(),
             this.initialDone ?? this.stats.done,
         );
+    }
+
+    /**
+     * Returns a JSON-serializable snapshot suitable for the coder server web API.
+     */
+    public getSnapshot(): CoderRunUiSnapshot {
+        return {
+            config: this.config,
+            currentPromptLabel: this.currentPromptLabel,
+            currentScriptPaths: [...this.currentScriptPaths],
+            currentAttempt: this.currentAttempt,
+            maxAttempts: this.maxAttempts,
+            detailLines: [...this.detailLines],
+            messagePreviewLines: [...this.messagePreviewLines],
+            messagePreviewSections: [...this.messagePreviewSections],
+            agentStatusLines: [...this.agentStatusLines],
+            agentStatusTableRows: [...this.agentStatusTableRows],
+            pendingEnterLabel: this.pendingEnterLabel,
+            agentOutputLines: [...this.agentOutputLines],
+            phase: this.phase,
+            statusMessage: this.statusMessage,
+            errors: [...this.errors],
+            progress: this.getProgress(),
+        };
     }
 
     /**

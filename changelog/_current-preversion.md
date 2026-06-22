@@ -1,5 +1,14 @@
 -   Changed `ptbk coder init` to copy the bundled `agents/default/developer.book` into initialized projects as `agents/developer.book`, and updated the generated `coder:run` npm script to pass it via `--agent agents/developer.book`.
 
+-   Improved `ptbk coder server` UI and prompt handling:
+
+    -   The shared terminal UI now shows the browser URL for `ptbk coder server` runs, while `ptbk coder run` keeps the existing terminal frame without a server link.
+    -   The web board now uses seven backend-classified columns: **Backlog**, **Low priority**, **To do**, **In progress**, **Done**, **Errors**, and **Finished**.
+    -   Backlog cards show whether they are blocked by `[-]`, `@@@`, or both; in-progress cards show **Implementing** or **Verifying** from the live runner phase.
+    -   The web UI now shows the same live runner progress/status data used by the terminal UI and remains view/edit only, with no drag-and-drop card movement.
+    -   Saving a prompt from the browser updates the prompt markdown file and immediately creates a focused git commit for that prompt file.
+    -   The prompt parser now treats `[.]` as a manually finished prompt marker for the new **Finished** column.
+
 -   Added local packaging support for the Book Editor macOS app:
 
     -   Added `npm run build:book-editor-macos`, which installs `apps/book-editor-macos` dependencies, syncs the packaged app version from the root package version during packaging, and builds DMG assets with Electron Builder.

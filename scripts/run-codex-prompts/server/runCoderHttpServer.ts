@@ -1,6 +1,6 @@
 import colors from 'colors';
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'http';
-import { join } from 'path';
+import { isAbsolute, join, relative, resolve } from 'path';
 import { spaceTrim } from 'spacetrim';
 import { NotAllowed } from '../../../src/errors/NotAllowed';
 import type { number_port } from '../../../src/types/number_positive';
@@ -8,6 +8,9 @@ import { buildCodexPrompt } from '../prompts/buildCodexPrompt';
 import { buildPromptSummary } from '../prompts/buildPromptSummary';
 import { loadPromptFiles } from '../prompts/loadPromptFiles';
 import { getPauseState, getPauseTargetLabel, requestPause, requestResume } from '../common/waitForPause';
+import { commitChanges } from '../git/commitChanges';
+import type { CoderRunUiSnapshot } from '../ui/CoderRunUiState';
+import { classifyPromptSectionForCoderBoard } from './classifyPromptSectionForCoderBoard';
 import { updatePromptSection } from './updatePromptSection';
 import { CODER_SERVER_HTML } from './coderServerHtml';
 
@@ -28,6 +31,18 @@ export type CoderHttpServerHandle = {
 };
 
 /**
+ * Runtime inputs used by the coder HTTP server.
+ *
+ * @private internal type of `ptbk coder server`
+ */
+export type CoderHttpServerOptions = {
+    readonly autoPushPromptEdits: boolean;
+    readonly getUiSnapshot: () => CoderRunUiSnapshot | undefined;
+    readonly minimumPriority: number;
+    readonly serverUrl: string;
+};
+
+/**
  * Starts the lightweight HTTP server that serves the coder kanban UI and REST API.
  *
  * API endpoints:
@@ -40,12 +55,12 @@ export type CoderHttpServerHandle = {
  *
  * @private internal utility of `ptbk coder server`
  */
-export function startCoderHttpServer(port: number_port): CoderHttpServerHandle {
+export function startCoderHttpServer(port: number_port, options: CoderHttpServerOptions): CoderHttpServerHandle {
     const promptsDir = join(process.cwd(), PROMPTS_DIRECTORY_NAME);
 
     const server: Server = createServer(async (req: IncomingMessage, res: ServerResponse) => {
         try {
-            await handleRequest(req, res, promptsDir);
+            await handleRequest(req, res, promptsDir, options);
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
             console.error(colors.red(`Coder server request error: ${message}`));
@@ -59,7 +74,7 @@ export function startCoderHttpServer(port: number_port): CoderHttpServerHandle {
     server.listen(port, () => {
         console.info(
             spaceTrim(`
-                Coder server running at ${colors.cyan(`http://localhost:${port}`)}
+                Coder server running at ${colors.cyan(options.serverUrl)}
                 Open the URL above in your browser to see the kanban board.
                 Press ${colors.bold('p')} to pause / resume the agent runner.
             `),
@@ -80,6 +95,7 @@ async function handleRequest(
     req: IncomingMessage,
     res: ServerResponse,
     promptsDir: string,
+    options: CoderHttpServerOptions,
 ): Promise<void> {
     const urlPath = new URL(req.url || '/', `http://localhost`).pathname;
     const method = (req.method || 'GET').toUpperCase();
@@ -101,6 +117,7 @@ async function handleRequest(
             JSON.stringify({
                 pauseState: getPauseState(),
                 pauseTargetLabel: getPauseTargetLabel(),
+                run: options.getUiSnapshot(),
             }),
         );
         return;
@@ -108,7 +125,11 @@ async function handleRequest(
 
     // GET /api/prompts
     if (urlPath === '/api/prompts' && method === 'GET') {
-        const promptData = await loadPromptsForApi(promptsDir);
+        const promptData = await loadPromptsForApi({
+            activeSnapshot: options.getUiSnapshot(),
+            minimumPriority: options.minimumPriority,
+            promptsDir,
+        });
         res.writeHead(200, jsonHeaders());
         res.end(JSON.stringify(promptData));
         return;
@@ -153,9 +174,19 @@ async function handleRequest(
             );
         }
 
-        await updatePromptSection(parsed.filePath, parsed.sectionIndex, parsed.content);
+        assertPromptFilePathInsidePromptsDirectory(parsed.filePath, promptsDir);
+        const updateResult = await updatePromptSection(parsed.filePath, parsed.sectionIndex, parsed.content);
+
+        if (updateResult.changed) {
+            await commitPromptSectionEdit({
+                autoPush: options.autoPushPromptEdits,
+                filePath: parsed.filePath,
+                sectionIndex: parsed.sectionIndex,
+            });
+        }
+
         res.writeHead(200, jsonHeaders());
-        res.end(JSON.stringify({ success: true }));
+        res.end(JSON.stringify({ success: true, changed: updateResult.changed, committed: updateResult.changed }));
         return;
     }
 
@@ -166,19 +197,42 @@ async function handleRequest(
 /**
  * Loads all prompt files and converts them to the API response shape.
  */
-async function loadPromptsForApi(promptsDir: string): Promise<object[]> {
+async function loadPromptsForApi(options: {
+    readonly activeSnapshot: CoderRunUiSnapshot | undefined;
+    readonly minimumPriority: number;
+    readonly promptsDir: string;
+}): Promise<object[]> {
     try {
-        const promptFiles = await loadPromptFiles(promptsDir);
+        const promptFiles = await loadPromptFiles(options.promptsDir);
+        const activePrompt =
+            options.activeSnapshot?.currentPromptLabel
+                ? {
+                      currentPromptLabel: options.activeSnapshot.currentPromptLabel,
+                      phase: options.activeSnapshot.phase,
+                  }
+                : undefined;
+
         return promptFiles.map((file) => ({
             filePath: file.path,
             fileName: file.name,
-            sections: file.sections.map((section) => ({
-                index: section.index,
-                status: section.status,
-                priority: section.priority,
-                summary: buildPromptSummary(file, section),
-                content: buildCodexPrompt(file, section),
-            })),
+            sections: file.sections.map((section) => {
+                const boardClassification = classifyPromptSectionForCoderBoard({
+                    activePrompt,
+                    file,
+                    minimumPriority: options.minimumPriority,
+                    section,
+                });
+
+                return {
+                    index: section.index,
+                    status: section.status,
+                    boardStatus: boardClassification.boardStatus,
+                    tags: boardClassification.tags,
+                    priority: section.priority,
+                    summary: buildPromptSummary(file, section),
+                    content: buildCodexPrompt(file, section),
+                };
+            }),
         }));
     } catch (error) {
         // Prompts directory may not exist yet; return empty list
@@ -187,6 +241,57 @@ async function loadPromptsForApi(promptsDir: string): Promise<object[]> {
         }
         throw error;
     }
+}
+
+/**
+ * Guards prompt edits so browser requests cannot write outside the prompts directory.
+ */
+function assertPromptFilePathInsidePromptsDirectory(filePath: string, promptsDir: string): void {
+    const promptFilePath = resolve(filePath);
+    const promptsDirectoryPath = resolve(promptsDir);
+    const relativePromptPath = relative(promptsDirectoryPath, promptFilePath);
+
+    if (
+        relativePromptPath === '' ||
+        relativePromptPath.startsWith('..') ||
+        isAbsolute(relativePromptPath) ||
+        !promptFilePath.toLowerCase().endsWith('.md')
+    ) {
+        throw new NotAllowed(
+            spaceTrim(`
+                Invalid prompt file path: \`${filePath}\`.
+
+                Prompt edits must target Markdown files inside \`${promptsDir}\`.
+            `),
+        );
+    }
+}
+
+/**
+ * Commits one browser-edited prompt section using the shared coding-agent git helper.
+ */
+async function commitPromptSectionEdit(options: {
+    readonly autoPush: boolean;
+    readonly filePath: string;
+    readonly sectionIndex: number;
+}): Promise<void> {
+    const relativeFilePath = relative(process.cwd(), options.filePath).replace(/\\/gu, '/');
+
+    await commitChanges(buildPromptSectionEditCommitMessage(relativeFilePath, options.sectionIndex), {
+        autoPush: options.autoPush,
+        includePaths: [relativeFilePath],
+    });
+}
+
+/**
+ * Builds a focused commit message for one browser edit.
+ */
+function buildPromptSectionEditCommitMessage(relativeFilePath: string, sectionIndex: number): string {
+    return spaceTrim(`
+        docs: update coder prompt
+
+        Edited ${relativeFilePath} section #${sectionIndex + 1} from ptbk coder server.
+    `);
 }
 
 /**

@@ -37,6 +37,7 @@ import type { PromptFile } from '../prompts/types/PromptFile';
 import type { PromptSelection } from '../prompts/types/PromptSelection';
 import type { PromptStats } from '../prompts/types/PromptStats';
 import { waitForPromptStart } from '../prompts/waitForPromptStart';
+import { CoderRunUiState } from '../ui/CoderRunUiState';
 import { renderCoderRunUi, type CoderRunUiHandle } from '../ui/renderCoderRunUi';
 import { resolvePromptRunner } from './resolvePromptRunner';
 import { runPromptRound } from './runPromptRound';
@@ -251,7 +252,28 @@ function createRunDisplays(
     const isRichUiEnabled = !options.dryRun && !options.noUi && Boolean(process.stdout.isTTY);
     const progressDisplay =
         options.dryRun || options.noUi || isRichUiEnabled ? undefined : new CliProgressDisplay(runStartDate, options.priority);
-    const uiHandle = isRichUiEnabled ? renderCoderRunUi(runStartDate) : undefined;
+    let uiHandle = isRichUiEnabled
+        ? renderCoderRunUi(runStartDate)
+        : options.onUiSnapshotChange
+          ? createHeadlessCoderRunUi(runStartDate)
+          : undefined;
+
+    if (uiHandle && options.onUiSnapshotChange) {
+        const publishSnapshot = (): void => {
+            options.onUiSnapshotChange?.(uiHandle!.state.getSnapshot());
+        };
+        const cleanupUiHandle = uiHandle.cleanup;
+
+        uiHandle.state.on('change', publishSnapshot);
+        uiHandle = {
+            ...uiHandle,
+            cleanup(): void {
+                uiHandle!.state.off('change', publishSnapshot);
+                cleanupUiHandle();
+            },
+        };
+        publishSnapshot();
+    }
 
     return {
         isRichUiEnabled,
@@ -334,6 +356,7 @@ function initializeRunUi(
         modelName: actualRunnerModel,
         thinkingLevel: options.thinkingLevel,
         context: options.context,
+        serverUrl: options.serverUrl,
         priority: options.priority,
         testCommand: options.testCommand,
     });
@@ -545,6 +568,19 @@ async function waitBetweenPromptRoundsIfNeeded(options: {
 
     progressDisplay?.resumeTimer();
     uiHandle?.state.resumeTimer();
+}
+
+/**
+ * Creates a non-rendering UI handle so server mode can expose the same state over HTTP.
+ */
+function createHeadlessCoderRunUi(startTime: moment.Moment): CoderRunUiHandle {
+    return {
+        state: new CoderRunUiState(startTime),
+        startCapturingAgentOutput: () => undefined,
+        stopCapturingAgentOutput: () => undefined,
+        waitForEnter: async () => undefined,
+        cleanup: () => undefined,
+    };
 }
 
 /**

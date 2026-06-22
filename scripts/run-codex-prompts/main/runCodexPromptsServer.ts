@@ -2,6 +2,7 @@ import colors from 'colors';
 import type { number_port } from '../../../src/types/number_positive';
 import type { RunOptions } from '../cli/RunOptions';
 import { startCoderHttpServer } from '../server/runCoderHttpServer';
+import type { CoderRunUiSnapshot } from '../ui/CoderRunUiState';
 import { runCodexPrompts } from './runCodexPrompts';
 
 /**
@@ -31,8 +32,15 @@ export type CoderServerRunOptions = RunOptions & {
  */
 export async function runCodexPromptsServer(options: CoderServerRunOptions): Promise<void> {
     const { port, ...runOptions } = options;
+    const serverUrl = `http://localhost:${port}`;
+    let latestUiSnapshot: CoderRunUiSnapshot | undefined;
 
-    const serverHandle = startCoderHttpServer(port);
+    const serverHandle = startCoderHttpServer(port, {
+        autoPushPromptEdits: runOptions.autoPush,
+        getUiSnapshot: () => latestUiSnapshot,
+        minimumPriority: runOptions.priority,
+        serverUrl,
+    });
 
     console.info(colors.gray('Starting prompt runner in server (keep-alive) mode…'));
 
@@ -40,6 +48,10 @@ export async function runCodexPromptsServer(options: CoderServerRunOptions): Pro
         await runCodexPrompts({
             ...runOptions,
             keepAlive: true,
+            onUiSnapshotChange: (snapshot) => {
+                latestUiSnapshot = snapshot;
+            },
+            serverUrl,
         });
     } finally {
         serverHandle.close();
