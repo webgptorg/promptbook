@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/markitdown",
-    "version": "0.112.0-120",
+    "version": "0.112.0-126",
     "description": "Promptbook: Create persistent AI agents that turn your company's scattered knowledge into action",
     "private": false,
     "sideEffects": false,
@@ -95,14 +95,6 @@
     "types": "./esm/src/_packages/markitdown.index.d.ts",
     "typings": "./esm/src/_packages/markitdown.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.112.0-120"
-    },
-    "dependencies": {
-        "crypto-js": "4.2.0",
-        "markitdown-ts": "0.0.10",
-        "papaparse": "5.4.1",
-        "rxjs": "7.8.2",
-        "spacetrim": "0.11.60",
-        "waitasecond": "1.11.164"
+        "@promptbook/core": "0.112.0-126"
     }
 }
