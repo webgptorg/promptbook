@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/fake-llm",
-    "version": "0.112.0-126",
+    "version": "0.112.0-120",
     "description": "Promptbook: Create persistent AI agents that turn your company's scattered knowledge into action",
     "private": false,
     "sideEffects": false,
@@ -100,6 +100,12 @@
     "types": "./esm/src/_packages/fake-llm.index.d.ts",
     "typings": "./esm/src/_packages/fake-llm.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.112.0-126"
+        "@promptbook/core": "0.112.0-120"
+    },
+    "dependencies": {
+        "crypto-js": "4.2.0",
+        "lorem-ipsum": "2.0.8",
+        "spacetrim": "0.11.60",
+        "waitasecond": "1.11.164"
     }
 }
