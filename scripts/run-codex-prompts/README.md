@@ -34,7 +34,8 @@ npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --harness openai-co
 --auto-push                  # Push each successful commit to the configured remote
 --auto-migrate                # Run testing-server DB migrations after each successful prompt
 --allow-destructive-auto-migrate # Override destructive SQL heuristic guard in auto-migrate mode
---no-wait                     # Skip user prompts between processing
+--no-auto                     # Wait for user confirmation before each prompt instead of running automatically
+--wait <duration>             # Wait this long between prompt rounds to avoid rate limits (e.g. 1h, 30m, 5s)
 --ignore-git-changes          # Skip clean working tree check before running prompts
 --no-normalize-line-endings   # Disable per-round CRLF -> LF normalization for changed files
 ```
@@ -63,16 +64,16 @@ ptbk coder run --harness openai-codex --model gpt-5.2-codex --allow-credits
 ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --auto-push
 
 # Run with GitHub Copilot
-ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --no-wait
+ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh
 
 # Run with plain streaming output for logging/debugging
 ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --no-ui
 
 # Run with Gemini
-ptbk coder run --harness gemini --model gemini-3-flash-preview --no-wait
+ptbk coder run --harness gemini --model gemini-3-flash-preview
 
 # Run with Claude Code
-ptbk coder run --harness claude-code --no-wait
+ptbk coder run --harness claude-code
 
 # Run with priority filter
 ptbk coder run --harness openai-codex --model gpt-5.2-codex --priority 1

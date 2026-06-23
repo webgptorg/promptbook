@@ -468,7 +468,7 @@ Prompts marked with `[-]` are not ready yet, prompts containing `@@@` are treate
 -   **Multi-runner execution:** `openai-codex`, `github-copilot`, `cline`, `claude-code`, `opencode`, `gemini`
 -   **Context injection:** `--agent agents/coding/developer.book --context AGENTS.md` or inline extra instructions
 -   **Reasoning control:** `--thinking-level low|medium|high|xhigh` for supported runners
--   **Interactive or unattended runs:** default wait mode, or `--no-wait` for batch execution
+-   **Unattended or interactive runs:** default auto mode, or `--no-auto` to wait for user confirmation before each prompt
 -   **Git safety:** clean working tree check by default, optional `--ignore-git-changes`
 -   **Opt-in remote pushes:** commits stay local unless you explicitly pass `--auto-push`
 -   **Prompt triage:** `--priority` to process only more important tasks first
@@ -490,7 +490,7 @@ npx ts-node ./src/cli/test/ptbk.ts coder run --harness github-copilot --model gp
 
 npx ts-node ./src/cli/test/ptbk.ts coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --auto-push
 
-npx ts-node ./src/cli/test/ptbk.ts coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --ignore-git-changes --no-wait
+npx ts-node ./src/cli/test/ptbk.ts coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --ignore-git-changes
 
 npx ts-node ./src/cli/test/ptbk.ts coder find-refactor-candidates
 
@@ -516,7 +516,7 @@ ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh -
 
 ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --auto-push
 
-ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --test npm run test --ignore-git-changes --no-wait
+ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --test npm run test --ignore-git-changes
 
 ptbk coder find-refactor-candidates
 
@@ -546,7 +546,7 @@ ptbk coder verify
 | `--context <text-or-file>` | Appends extra instructions inline or from a file like `AGENTS.md`.                                 |
 | `--test <command>`         | Runs a verification command after each prompt attempt and feeds failing output back for retries.   |
 | `--thinking-level <level>` | Sets reasoning effort for supported runners.                                                       |
-| `--no-wait`                | Skips interactive pauses between prompts for unattended execution.                                 |
+| `--no-auto`                | Waits for user confirmation before each prompt instead of running automatically through the queue. |
 | `--ignore-git-changes`     | Disables the clean-working-tree guard.                                                             |
 | `--priority <n>`           | Runs only prompts at or above the given priority.                                                  |
 | `--dry-run`                | Prints which prompts are ready instead of executing them.                                          |
@@ -559,7 +559,7 @@ ptbk coder verify
 1. Initialize once with `ptbk coder init`.
 2. Customize `prompts/templates/*.md` if needed, then create or write prompt files in `prompts/`.
 3. Customize the starter `AGENTS.md` with repository-specific instructions, then pass `--agent agents/coding/developer.book --context AGENTS.md`.
-4. Run one prompt at a time interactively, or use `--no-wait` for unattended batches.
+4. Run unattended batches by default, or pass `--no-auto` to confirm each prompt interactively.
 5. Finish with `ptbk coder verify` so resolved prompts are archived and broken ones get explicit repair follow-ups.
 
 

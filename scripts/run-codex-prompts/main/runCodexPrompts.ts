@@ -199,7 +199,7 @@ function validateRunCodexPromptOptions(options: RunOptions): void {
     if (options.noCommit && !options.waitForUser && !options.ignoreGitChanges) {
         throw new NotAllowed(
             spaceTrim(`
-                Flag \`--no-commit\` requires \`--ignore-git-changes\` when combined with \`--no-wait\`.
+                Flag \`--no-commit\` requires \`--ignore-git-changes\` when running in auto mode (the default; pass \`--no-auto\` for interactive confirmation).
 
                 Without commits, the next prompt round would fail the clean working tree check.
             `),

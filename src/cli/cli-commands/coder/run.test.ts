@@ -38,7 +38,7 @@ describe('$initializeCoderRunCommand', () => {
         jest.clearAllMocks();
     });
 
-    it('passes waitForUser as true when --no-wait is omitted', async () => {
+    it('passes waitForUser as false when --no-auto is omitted', async () => {
         const program = createProgramWithRunCommand();
 
         await program.parseAsync(['node', 'test', 'run', '--dry-run'], { from: 'node' });
@@ -46,20 +46,20 @@ describe('$initializeCoderRunCommand', () => {
         expect(getRunCodexPromptsMock()).toHaveBeenCalledWith(
             expect.objectContaining({
                 dryRun: true,
-                waitForUser: true,
+                waitForUser: false,
             }),
         );
     });
 
-    it('passes waitForUser as false when --no-wait is provided', async () => {
+    it('passes waitForUser as true when --no-auto is provided', async () => {
         const program = createProgramWithRunCommand();
 
-        await program.parseAsync(['node', 'test', 'run', '--dry-run', '--no-wait'], { from: 'node' });
+        await program.parseAsync(['node', 'test', 'run', '--dry-run', '--no-auto'], { from: 'node' });
 
         expect(getRunCodexPromptsMock()).toHaveBeenCalledWith(
             expect.objectContaining({
                 dryRun: true,
-                waitForUser: false,
+                waitForUser: true,
             }),
         );
     });

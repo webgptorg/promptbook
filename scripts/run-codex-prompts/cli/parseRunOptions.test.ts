@@ -91,7 +91,6 @@ describe('parseRunOptions', () => {
             'AGENTS.md',
             '--priority',
             '3',
-            '--no-wait',
             '--ignore-git-changes',
         ]);
 
@@ -151,7 +150,7 @@ describe('parseRunOptions', () => {
             'npm',
             'run',
             'test',
-            '--no-wait',
+            '--no-auto',
         ]);
 
         expect(options).toMatchObject({
@@ -162,7 +161,7 @@ describe('parseRunOptions', () => {
             preserveLogs: false,
             noUi: false,
             testCommand: 'npm run test',
-            waitForUser: false,
+            waitForUser: true,
         });
     });
 
@@ -182,11 +181,11 @@ describe('parseRunOptions', () => {
     });
 
     it('parses --dry-run with other flags', () => {
-        const options = parseRunOptions(['--dry-run', '--priority', '2', '--no-wait']);
+        const options = parseRunOptions(['--dry-run', '--priority', '2', '--no-auto']);
 
         expect(options).toMatchObject({
             dryRun: true,
-            waitForUser: false,
+            waitForUser: true,
             priority: 2,
             noCommit: false,
             autoPush: false,
@@ -320,7 +319,7 @@ describe('parseRunOptions', () => {
         });
     });
 
-    it('defaults to no waiting when neither --wait nor --no-wait is provided', () => {
+    it('defaults to no waiting when neither --wait nor --no-auto is provided', () => {
         const options = parseRunOptions(['--harness', 'gemini']);
 
         expect(options).toMatchObject({
@@ -329,13 +328,18 @@ describe('parseRunOptions', () => {
         });
     });
 
-    it('enables user-confirmation wait when --wait is provided without a duration', () => {
-        const options = parseRunOptions(['--harness', 'gemini', '--wait']);
+    it('enables user-confirmation wait when --no-auto is provided', () => {
+        const options = parseRunOptions(['--harness', 'gemini', '--no-auto']);
 
         expect(options).toMatchObject({
             waitForUser: true,
             waitBetweenPrompts: 0,
         });
+    });
+
+    it('rejects --wait when no duration value is provided', () => {
+        expect(() => parseRunOptions(['--harness', 'gemini', '--wait'])).toThrow('process.exit');
+        expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 
     it('sets time-based wait when --wait is provided with a duration in hours', () => {
@@ -365,12 +369,12 @@ describe('parseRunOptions', () => {
         });
     });
 
-    it('disables all waiting when --no-wait is provided', () => {
-        const options = parseRunOptions(['--harness', 'gemini', '--no-wait']);
+    it('combines --no-auto with time-based --wait between rounds', () => {
+        const options = parseRunOptions(['--harness', 'github-copilot', '--no-auto', '--wait', '30m']);
 
         expect(options).toMatchObject({
-            waitForUser: false,
-            waitBetweenPrompts: 0,
+            waitForUser: true,
+            waitBetweenPrompts: 1_800_000,
         });
     });
 

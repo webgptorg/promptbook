@@ -79,15 +79,16 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
     addPromptRunnerExecutionOptions(command);
     command.option('--priority <minimum-priority>', 'Filter prompts by minimum priority level', parseIntOption, 0);
     command.option(
-        '--wait [duration]',
+        '--wait <duration>',
         spaceTrim(`
-            Wait between prompt rounds.
-            Without a value (default): waits for user confirmation before each prompt (interactive mode).
-            With a duration like 1h, 30m, 5s: waits that long between prompts to avoid hitting rate limits of the harness.
+            Wait this long between prompt rounds to avoid hitting rate limits of the harness.
+            Accepts durations like 1h, 30m, 5s.
         `),
-        true,
     );
-    command.option('--no-wait', 'Skip all waiting between prompts and run non-interactively');
+    command.option(
+        '--no-auto',
+        'Wait for user confirmation before each prompt instead of running automatically through the queue',
+    );
     command.option(
         '--auto-migrate',
         'Run testing-server database migrations automatically after each successfully processed prompt',
@@ -108,6 +109,7 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
                 preserveLogs,
                 priority,
                 wait,
+                auto,
                 autoMigrate,
                 allowDestructiveAutoMigrate,
             } = cliOptions as {
@@ -118,7 +120,8 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
                 readonly test?: string | string[];
                 readonly preserveLogs: boolean;
                 readonly priority: number;
-                readonly wait: boolean | string;
+                readonly wait?: string;
+                readonly auto: boolean;
                 readonly autoMigrate: boolean;
                 readonly allowDestructiveAutoMigrate: boolean;
             } & PromptRunnerCliOptions;
@@ -129,15 +132,9 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
                 isAgentRequired: !dryRun,
             });
 
-            // [1] Parse the --wait option (same logic as `coder run`)
-            let waitForUser = false;
-            let waitBetweenPrompts = 0;
-
-            if (wait === true) {
-                waitForUser = true;
-            } else if (typeof wait === 'string' && wait !== '') {
-                waitBetweenPrompts = parseDuration(wait);
-            }
+            // [1] Parse the --wait and --no-auto options (same logic as `coder run`)
+            const waitForUser = !auto;
+            const waitBetweenPrompts = typeof wait === 'string' && wait !== '' ? parseDuration(wait) : 0;
 
             const runOptions = {
                 port,

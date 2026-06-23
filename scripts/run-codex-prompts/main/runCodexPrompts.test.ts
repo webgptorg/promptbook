@@ -124,7 +124,7 @@ describe('runCodexPrompts', () => {
         (runPromptRound as jest.MockedFunction<typeof runPromptRound>).mockResolvedValue(undefined);
     });
 
-    it('rejects --no-commit together with --no-wait unless --ignore-git-changes is also enabled', async () => {
+    it('rejects --no-commit in auto mode unless --ignore-git-changes is also enabled', async () => {
         await expect(
             runCodexPrompts(
                 createRunOptions({
