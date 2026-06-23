@@ -54,6 +54,15 @@ ptbk coder server --harness github-copilot --model gpt-5.4 --thinking-level xhig
 
 [✨🕤] Modify UI in `ptbk coder server`
 
+- @@@
+- Add number order / priority tag to the cards to show the explicit and implicit priority of the prompt
+
+---
+
+[ ] !!
+
+[✨🕤] Modify UI in `ptbk coder server`
+
 ```bash
 ptbk coder server --harness github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --port 4441
 ```
