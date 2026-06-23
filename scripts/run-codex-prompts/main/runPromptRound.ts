@@ -13,6 +13,7 @@ import {
 } from '../common/normalizeLineEndingsInChangedFiles';
 import { printCommitMessage } from '../common/printCommitMessage';
 import { withPromptRuntimeLog } from '../common/runGoScript/withPromptRuntimeLog';
+import { sleepWithCountdown } from '../common/sleepWithCountdown';
 import { waitForEnter } from '../common/waitForEnter';
 import { commitChanges } from '../git/commitChanges';
 import { runAutoMigrateTestingServers } from '../migrations/runAutoMigrateTestingServers';
@@ -27,6 +28,14 @@ import { writePromptFile } from '../prompts/writePromptFile';
 import type { PromptRunner } from '../runners/types/PromptRunner';
 import { runPromptWithTestFeedback } from '../testing/runPromptWithTestFeedback';
 import type { CoderRunUiHandle } from '../ui/renderCoderRunUi';
+
+/**
+ * Maximum number of retry attempts performed after a prompt round throws an error.
+ * After this many retries the round is finalized as failed.
+ *
+ * @private internal constant of `runPromptRound`
+ */
+const MAX_RETRY_ATTEMPTS_AFTER_ERROR = 3;
 
 /**
  * Input required to execute one prompt-processing round.
@@ -99,57 +108,136 @@ export async function runPromptRound({
     await withPromptRuntimeLog(
         scriptPath,
         async (logPath) => {
-            try {
-                uiHandle?.startCapturingAgentOutput();
+            let lastError: unknown;
 
-                const result = await runPromptWithTestFeedback({
-                    runner,
-                    prompt: codexPrompt,
-                    scriptPath,
-                    projectPath: process.cwd(),
-                    promptLabel,
-                    testCommand: options.testCommand,
-                    preserveArtifactsOnSuccess: options.preserveLogs,
-                    logPath,
-                    onAttemptStarted: (nextAttemptCount) => {
-                        attemptCount = nextAttemptCount;
-                        uiHandle?.state.setAttempt(nextAttemptCount);
-                    },
-                    waitForPauseCheckpoint: waitForRequestedPause,
-                });
+            for (let errorRetryAttempt = 0; errorRetryAttempt <= MAX_RETRY_ATTEMPTS_AFTER_ERROR; errorRetryAttempt++) {
+                try {
+                    uiHandle?.startCapturingAgentOutput();
 
-                await finalizeSuccessfulPromptRound({
-                    options,
-                    nextPrompt,
-                    runnerMetadata,
-                    promptExecutionStartedDate,
-                    result,
-                    commitMessage,
-                    logPath,
-                    roundChangedFilesSnapshot,
-                    isRichUiEnabled,
-                    progressDisplay,
-                    uiHandle,
-                    waitForRequestedPause,
-                });
-            } catch (error) {
-                await finalizeFailedPromptRound({
-                    nextPrompt,
-                    runnerMetadata,
-                    promptExecutionStartedDate,
-                    attemptCount,
-                    error,
-                    options,
-                    roundChangedFilesSnapshot,
-                    uiHandle,
-                    waitForRequestedPause,
-                });
+                    const result = await runPromptWithTestFeedback({
+                        runner,
+                        prompt: codexPrompt,
+                        scriptPath,
+                        projectPath: process.cwd(),
+                        promptLabel,
+                        testCommand: options.testCommand,
+                        preserveArtifactsOnSuccess: options.preserveLogs,
+                        logPath,
+                        onAttemptStarted: (nextAttemptCount) => {
+                            attemptCount = nextAttemptCount;
+                            uiHandle?.state.setAttempt(nextAttemptCount);
+                        },
+                        waitForPauseCheckpoint: waitForRequestedPause,
+                    });
 
-                throw error;
+                    await finalizeSuccessfulPromptRound({
+                        options,
+                        nextPrompt,
+                        runnerMetadata,
+                        promptExecutionStartedDate,
+                        result,
+                        commitMessage,
+                        logPath,
+                        roundChangedFilesSnapshot,
+                        isRichUiEnabled,
+                        progressDisplay,
+                        uiHandle,
+                        waitForRequestedPause,
+                    });
+                    return;
+                } catch (error) {
+                    uiHandle?.stopCapturingAgentOutput();
+                    lastError = error;
+
+                    if (errorRetryAttempt >= MAX_RETRY_ATTEMPTS_AFTER_ERROR) {
+                        break;
+                    }
+
+                    await waitAfterErrorBeforeRetry({
+                        options,
+                        error,
+                        attemptedRetries: errorRetryAttempt + 1,
+                        isRichUiEnabled,
+                        progressDisplay,
+                        uiHandle,
+                        waitForRequestedPause,
+                    });
+                }
             }
+
+            await finalizeFailedPromptRound({
+                nextPrompt,
+                runnerMetadata,
+                promptExecutionStartedDate,
+                attemptCount,
+                error: lastError,
+                options,
+                roundChangedFilesSnapshot,
+                uiHandle,
+                waitForRequestedPause,
+            });
+
+            throw lastError;
         },
         { preserveArtifactsOnSuccess: options.preserveLogs },
     );
+}
+
+/**
+ * Sleeps `options.waitAfterError` while keeping the rich UI and plain console in sync, then resets state for the retry.
+ */
+async function waitAfterErrorBeforeRetry(options: {
+    options: RunOptions;
+    error: unknown;
+    attemptedRetries: number;
+    isRichUiEnabled: boolean;
+    progressDisplay?: CliProgressDisplay;
+    uiHandle?: CoderRunUiHandle;
+    waitForRequestedPause: WaitForCoderRunPauseCheckpoint;
+}): Promise<void> {
+    const {
+        options: runOptions,
+        error,
+        attemptedRetries,
+        isRichUiEnabled,
+        progressDisplay,
+        uiHandle,
+        waitForRequestedPause,
+    } = options;
+
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
+    uiHandle?.state.addError(errorMessage);
+    uiHandle?.state.setPhase('waiting');
+
+    if (!isRichUiEnabled) {
+        console.warn(
+            colors.yellow(
+                `Prompt round failed (retry ${attemptedRetries}/${MAX_RETRY_ATTEMPTS_AFTER_ERROR}): ${errorMessage}`,
+            ),
+        );
+    }
+
+    await waitForRequestedPause({
+        checkpointLabel: 'waiting after error before retrying the prompt',
+        phase: 'waiting',
+        statusMessage: `Waiting before retry ${attemptedRetries}/${MAX_RETRY_ATTEMPTS_AFTER_ERROR} after error`,
+    });
+
+    progressDisplay?.pauseTimer();
+    uiHandle?.state.pauseTimer();
+
+    await sleepWithCountdown({
+        durationMs: runOptions.waitAfterError,
+        waitKind: 'after-error',
+        isRichUiEnabled,
+        uiHandle,
+    });
+
+    progressDisplay?.resumeTimer();
+    uiHandle?.state.resumeTimer();
+    uiHandle?.state.setPhase('running');
+    uiHandle?.state.setStatusMessage(`Retrying prompt (retry ${attemptedRetries}/${MAX_RETRY_ATTEMPTS_AFTER_ERROR})`);
 }
 
 /**

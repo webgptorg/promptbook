@@ -12,8 +12,8 @@ import type {
     WaitForCoderRunPauseCheckpoint,
 } from '../common/CoderRunPauseCheckpoint';
 import { CliProgressDisplay } from '../common/cliProgressDisplay';
-import { formatDurationMs } from '../common/parseDuration';
 import { resolveAgentSystemMessage } from '../common/resolveAgentSystemMessage';
+import { sleepWithCountdown } from '../common/sleepWithCountdown';
 import { resolveCoderContext } from '../common/resolveCoderContext';
 import {
     announcePauseTargetLabel,
@@ -87,7 +87,8 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
 
         let hasShownUpcomingTasks = false;
         let hasWaitedForStart = false;
-        let hasRunAtLeastOneRound = false;
+        let previousRoundStartTime: number | undefined;
+        let previousRoundEndTime: number | undefined;
 
         while (just(true)) {
             if (options.autoPull && !options.dryRun) {
@@ -136,15 +137,16 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
             const promptLabel = buildPromptLabelForDisplay(nextPrompt.file, nextPrompt.section);
 
             // Wait between prompt rounds (skipped for the first round)
-            if (hasRunAtLeastOneRound) {
+            if (previousRoundStartTime !== undefined && previousRoundEndTime !== undefined) {
                 await waitBetweenPromptRoundsIfNeeded({
                     options,
+                    previousRoundStartTime,
+                    previousRoundEndTime,
                     isRichUiEnabled,
                     progressDisplay,
                     uiHandle,
                 });
             }
-            hasRunAtLeastOneRound = true;
 
             hasWaitedForStart = await waitForPromptConfirmationIfNeeded({
                 options,
@@ -165,6 +167,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                 await ensureWorkingTreeClean();
             }
 
+            const currentRoundStartTime = Date.now();
             await runPromptRound({
                 options,
                 runner,
@@ -178,6 +181,8 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                 uiHandle,
                 waitForRequestedPause,
             });
+            previousRoundStartTime = currentRoundStartTime;
+            previousRoundEndTime = Date.now();
         }
     } finally {
         cleanupRunDisplays(progressDisplay, uiHandle, options);
@@ -503,29 +508,49 @@ async function waitForPromptConfirmationIfNeeded(options: {
 }
 
 /**
- * Countdown update interval for the between-rounds wait display.
- */
-const WAIT_COUNTDOWN_UPDATE_INTERVAL_MS = 30_000;
-
-/**
  * Polling interval when in keepAlive server mode and no runnable prompts are available.
  */
 const KEEP_ALIVE_POLL_INTERVAL_MS = 5_000;
 
 /**
- * Waits the configured time between prompt rounds to avoid hitting harness rate limits.
- * Does nothing when `waitBetweenPrompts` is zero.
+ * Waits between prompt rounds according to `--wait-between-prompts` (paced from the previous round's start)
+ * and `--wait-after-prompt` (measured from the previous round's end).
+ * Both phases are shown separately in the UI so the user can see which type of wait is active.
  */
 async function waitBetweenPromptRoundsIfNeeded(options: {
     options: RunOptions;
+    previousRoundStartTime: number;
+    previousRoundEndTime: number;
     isRichUiEnabled: boolean;
     progressDisplay?: CliProgressDisplay;
     uiHandle?: CoderRunUiHandle;
 }): Promise<void> {
-    const { options: runOptions, isRichUiEnabled, progressDisplay, uiHandle } = options;
-    const { waitBetweenPrompts } = runOptions;
+    const {
+        options: runOptions,
+        previousRoundStartTime,
+        previousRoundEndTime,
+        isRichUiEnabled,
+        progressDisplay,
+        uiHandle,
+    } = options;
+    const { waitAfterPrompt, waitBetweenPrompts } = runOptions;
 
-    if (waitBetweenPrompts <= 0) {
+    if (waitAfterPrompt <= 0 && waitBetweenPrompts <= 0) {
+        return;
+    }
+
+    const now = Date.now();
+    const waitBetweenPromptsEndTime = previousRoundStartTime + waitBetweenPrompts;
+    const waitAfterPromptEndTime = previousRoundEndTime + waitAfterPrompt;
+
+    // Phase 1: pace from start of previous prompt (`--wait-between-prompts`)
+    const phase1Duration = Math.max(0, waitBetweenPromptsEndTime - now);
+
+    // Phase 2: rest from end of previous prompt (`--wait-after-prompt`)
+    const phase2StartTime = Math.max(now, waitBetweenPromptsEndTime);
+    const phase2Duration = Math.max(0, waitAfterPromptEndTime - phase2StartTime);
+
+    if (phase1Duration <= 0 && phase2Duration <= 0) {
         return;
     }
 
@@ -533,20 +558,22 @@ async function waitBetweenPromptRoundsIfNeeded(options: {
     uiHandle?.state.pauseTimer();
     uiHandle?.state.setPhase('waiting');
 
-    let remaining = waitBetweenPrompts;
+    if (phase1Duration > 0) {
+        await sleepWithCountdown({
+            durationMs: phase1Duration,
+            waitKind: 'between-prompts',
+            isRichUiEnabled,
+            uiHandle,
+        });
+    }
 
-    while (remaining > 0) {
-        const statusMessage = `Waiting ${formatDurationMs(remaining)} before next prompt to avoid rate limits...`;
-
-        if (!isRichUiEnabled) {
-            console.info(colors.gray(statusMessage));
-        } else {
-            uiHandle?.state.setStatusMessage(statusMessage);
-        }
-
-        const sleepMs = Math.min(WAIT_COUNTDOWN_UPDATE_INTERVAL_MS, remaining);
-        await new Promise<void>((resolve) => setTimeout(resolve, sleepMs));
-        remaining -= sleepMs;
+    if (phase2Duration > 0) {
+        await sleepWithCountdown({
+            durationMs: phase2Duration,
+            waitKind: 'after-prompt',
+            isRichUiEnabled,
+            uiHandle,
+        });
     }
 
     progressDisplay?.resumeTimer();

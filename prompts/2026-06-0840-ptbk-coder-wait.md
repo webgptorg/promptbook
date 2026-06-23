@@ -1,4 +1,4 @@
-[ ] !!!!
+[x] (2 attempts) $0.6990 an hour by Claude Code
 
 [✨🐷] Break up the `--wait` to `--wait-after-prompt`, `--wait-between-prompts` and `--wait-after-error`
 
@@ -39,3 +39,4 @@ Task 1    | Task 2     | Task 3
 1. Task 1 takes 2h, then wait next 2h to match both `--wait-between-prompts 4h` and `--wait-after-prompt 2h` before starting Task 2
 2. Task 2 takes 3h, then wait next 1h to match `--wait-between-prompts 4h` and 1h to match `--wait-after-prompt 2h` before starting Task 3
 3. Task 3 takes 6h, then wait next 2h to match `--wait-after-prompt 2h` before starting Task 4
+

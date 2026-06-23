@@ -15,7 +15,7 @@ import {
     normalizePromptRunnerCliOptions,
     PROMPT_RUNNER_DESCRIPTION,
 } from '../common/promptRunnerCliOptions';
-import { parseDuration } from '../../../../scripts/run-codex-prompts/common/parseDuration';
+import { DEFAULT_WAIT_AFTER_ERROR_MS, parseOptionalWaitDuration } from './waitOptions';
 
 /**
  * Default port used by `ptbk coder server`.
@@ -79,10 +79,25 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
     addPromptRunnerExecutionOptions(command);
     command.option('--priority <minimum-priority>', 'Filter prompts by minimum priority level', parseIntOption, 0);
     command.option(
-        '--wait <duration>',
+        '--wait-after-prompt <duration>',
         spaceTrim(`
-            Wait this long between prompt rounds to avoid hitting rate limits of the harness.
-            Accepts durations like 1h, 30m, 5s.
+            Wait this long after each prompt has been implemented, verified and committed before starting the next prompt.
+            Accepts durations like 1h, 30m, 5s. Defaults to 0 (no wait).
+        `),
+    );
+    command.option(
+        '--wait-between-prompts <duration>',
+        spaceTrim(`
+            Pace prompts so that each next prompt starts at least this long after the previous one began.
+            If the previous prompt already took longer than this, the next prompt starts immediately.
+            Accepts durations like 1h, 30m, 5s. Defaults to 0 (no pacing).
+        `),
+    );
+    command.option(
+        '--wait-after-error <duration>',
+        spaceTrim(`
+            Wait this long before retrying a prompt after an error occurs (up to 3 retries before giving up).
+            Accepts durations like 1h, 30m, 5s. Defaults to 10m.
         `),
     );
     command.option(
@@ -108,7 +123,9 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
                 test,
                 preserveLogs,
                 priority,
-                wait,
+                waitAfterPrompt: waitAfterPromptValue,
+                waitBetweenPrompts: waitBetweenPromptsValue,
+                waitAfterError: waitAfterErrorValue,
                 auto,
                 autoMigrate,
                 allowDestructiveAutoMigrate,
@@ -120,7 +137,9 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
                 readonly test?: string | string[];
                 readonly preserveLogs: boolean;
                 readonly priority: number;
-                readonly wait?: string;
+                readonly waitAfterPrompt?: string;
+                readonly waitBetweenPrompts?: string;
+                readonly waitAfterError?: string;
                 readonly auto: boolean;
                 readonly autoMigrate: boolean;
                 readonly allowDestructiveAutoMigrate: boolean;
@@ -132,15 +151,19 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
                 isAgentRequired: !dryRun,
             });
 
-            // [1] Parse the --wait and --no-auto options (same logic as `coder run`)
+            // [1] Parse the wait options and --no-auto (same logic as `coder run`)
             const waitForUser = !auto;
-            const waitBetweenPrompts = typeof wait === 'string' && wait !== '' ? parseDuration(wait) : 0;
+            const waitAfterPrompt = parseOptionalWaitDuration(waitAfterPromptValue, 0);
+            const waitBetweenPrompts = parseOptionalWaitDuration(waitBetweenPromptsValue, 0);
+            const waitAfterError = parseOptionalWaitDuration(waitAfterErrorValue, DEFAULT_WAIT_AFTER_ERROR_MS);
 
             const runOptions = {
                 port,
                 dryRun,
                 waitForUser,
+                waitAfterPrompt,
                 waitBetweenPrompts,
+                waitAfterError,
                 noCommit: runnerOptions.noCommit,
                 ignoreGitChanges: runnerOptions.ignoreGitChanges,
                 agentName: runnerOptions.agentName,

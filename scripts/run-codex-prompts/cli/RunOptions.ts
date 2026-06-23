@@ -32,10 +32,20 @@ export type RunOptions = {
     thinkingLevel?: ThinkingLevel;
     waitForUser: boolean;
     /**
-     * Milliseconds to wait between prompt rounds to avoid hitting rate limits of the harness.
-     * Zero means no waiting between rounds.
+     * Milliseconds to wait after one prompt has been implemented, verified and committed before the next prompt starts.
+     * Zero means no waiting after a prompt.
+     */
+    waitAfterPrompt: number;
+    /**
+     * Milliseconds to wait between the start of one prompt and the start of the next prompt, regardless of how long the task itself takes.
+     * If the task takes longer than this value, the next prompt starts immediately. Zero means no per-cycle pacing.
      */
     waitBetweenPrompts: number;
+    /**
+     * Milliseconds to wait before retrying a prompt after an error occurs.
+     * Zero means retry immediately.
+     */
+    waitAfterError: number;
     /**
      * Leave successful round changes in the git working tree instead of creating an agent commit.
      */

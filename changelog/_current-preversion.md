@@ -1,3 +1,11 @@
+-   Split `--wait` into three distinct wait flags for `ptbk coder run` and `ptbk coder server`, and added per-prompt retries with their own wait between attempts:
+
+    -   Replaced `--wait <duration>` with `--wait-after-prompt <duration>`, which waits the given time after a prompt has been implemented, verified and committed before starting the next prompt (default `0`).
+    -   Added `--wait-between-prompts <duration>` to pace the runner from the start of one prompt to the start of the next, regardless of how long the task itself takes; if the task is already longer than this value the next prompt starts immediately (default `0`).
+    -   Added `--wait-after-error <duration>` to pause before retrying a prompt that throws, with up to **3 retries** before the round is finalized as failed (default `10m`).
+    -   Surfaced the current wait kind in both the rich terminal UI and the `coder server` web UI status message (`between prompts` / `after previous prompt` / `before retrying after error`).
+    -   Updated the legacy `scripts/run-codex-prompts/cli/parseRunOptions.ts` arg parser, the `ptbk coder run` / `ptbk coder server` help text, and the `scripts/run-codex-prompts/README.md` reference to the new flags.
+
 -   Changed `ptbk coder run` and `ptbk coder server` to run automatically through the prompt queue by default, replacing the previous `--no-wait` flag with a new `--no-auto` flag for opt-in interactive confirmation:
 
     -   The default behavior now matches what previously required `--no-wait`: the runner picks up each ready prompt and processes it without pausing for user confirmation.

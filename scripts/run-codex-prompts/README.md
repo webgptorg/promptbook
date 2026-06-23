@@ -35,7 +35,9 @@ npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --harness openai-co
 --auto-migrate                # Run testing-server DB migrations after each successful prompt
 --allow-destructive-auto-migrate # Override destructive SQL heuristic guard in auto-migrate mode
 --no-auto                     # Wait for user confirmation before each prompt instead of running automatically
---wait <duration>             # Wait this long between prompt rounds to avoid rate limits (e.g. 1h, 30m, 5s)
+--wait-after-prompt <duration>    # Wait this long after each prompt finishes before starting the next prompt (default 0)
+--wait-between-prompts <duration> # Pace prompts so each next prompt starts at least this long after the previous start (default 0)
+--wait-after-error <duration>     # Wait this long before retrying after an error (up to 3 retries, default 10m)
 --ignore-git-changes          # Skip clean working tree check before running prompts
 --no-normalize-line-endings   # Disable per-round CRLF -> LF normalization for changed files
 ```

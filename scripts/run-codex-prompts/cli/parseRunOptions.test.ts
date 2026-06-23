@@ -319,12 +319,14 @@ describe('parseRunOptions', () => {
         });
     });
 
-    it('defaults to no waiting when neither --wait nor --no-auto is provided', () => {
+    it('defaults to no per-prompt waiting and 10 minutes wait-after-error when no wait flags are provided', () => {
         const options = parseRunOptions(['--harness', 'gemini']);
 
         expect(options).toMatchObject({
             waitForUser: false,
+            waitAfterPrompt: 0,
             waitBetweenPrompts: 0,
+            waitAfterError: 600_000,
         });
     });
 
@@ -333,48 +335,78 @@ describe('parseRunOptions', () => {
 
         expect(options).toMatchObject({
             waitForUser: true,
+            waitAfterPrompt: 0,
             waitBetweenPrompts: 0,
+            waitAfterError: 600_000,
         });
     });
 
-    it('rejects --wait when no duration value is provided', () => {
-        expect(() => parseRunOptions(['--harness', 'gemini', '--wait'])).toThrow('process.exit');
+    it('rejects --wait-after-prompt when no duration value is provided', () => {
+        expect(() => parseRunOptions(['--harness', 'gemini', '--wait-after-prompt'])).toThrow('process.exit');
         expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 
-    it('sets time-based wait when --wait is provided with a duration in hours', () => {
-        const options = parseRunOptions(['--harness', 'github-copilot', '--wait', '1h']);
+    it('rejects --wait-between-prompts when no duration value is provided', () => {
+        expect(() => parseRunOptions(['--harness', 'gemini', '--wait-between-prompts'])).toThrow('process.exit');
+        expect(processExitSpy).toHaveBeenCalledWith(1);
+    });
+
+    it('rejects --wait-after-error when no duration value is provided', () => {
+        expect(() => parseRunOptions(['--harness', 'gemini', '--wait-after-error'])).toThrow('process.exit');
+        expect(processExitSpy).toHaveBeenCalledWith(1);
+    });
+
+    it('sets time-based wait when --wait-after-prompt is provided with a duration in hours', () => {
+        const options = parseRunOptions(['--harness', 'github-copilot', '--wait-after-prompt', '1h']);
 
         expect(options).toMatchObject({
             waitForUser: false,
-            waitBetweenPrompts: 3_600_000,
+            waitAfterPrompt: 3_600_000,
+            waitBetweenPrompts: 0,
+            waitAfterError: 600_000,
         });
     });
 
-    it('sets time-based wait when --wait is provided with a duration in minutes', () => {
-        const options = parseRunOptions(['--harness', 'github-copilot', '--wait', '30m']);
+    it('sets time-based wait when --wait-between-prompts is provided with a duration in minutes', () => {
+        const options = parseRunOptions(['--harness', 'github-copilot', '--wait-between-prompts', '30m']);
 
         expect(options).toMatchObject({
             waitForUser: false,
+            waitAfterPrompt: 0,
             waitBetweenPrompts: 1_800_000,
+            waitAfterError: 600_000,
         });
     });
 
-    it('sets time-based wait when --wait is provided with a combined duration', () => {
-        const options = parseRunOptions(['--harness', 'github-copilot', '--wait', '1h30m']);
+    it('sets time-based wait when --wait-after-error is provided with a combined duration', () => {
+        const options = parseRunOptions(['--harness', 'github-copilot', '--wait-after-error', '1h30m']);
 
         expect(options).toMatchObject({
             waitForUser: false,
-            waitBetweenPrompts: 5_400_000,
+            waitAfterPrompt: 0,
+            waitBetweenPrompts: 0,
+            waitAfterError: 5_400_000,
         });
     });
 
-    it('combines --no-auto with time-based --wait between rounds', () => {
-        const options = parseRunOptions(['--harness', 'github-copilot', '--no-auto', '--wait', '30m']);
+    it('combines --no-auto with time-based wait flags', () => {
+        const options = parseRunOptions([
+            '--harness',
+            'github-copilot',
+            '--no-auto',
+            '--wait-after-prompt',
+            '5s',
+            '--wait-between-prompts',
+            '30m',
+            '--wait-after-error',
+            '10m',
+        ]);
 
         expect(options).toMatchObject({
             waitForUser: true,
+            waitAfterPrompt: 5_000,
             waitBetweenPrompts: 1_800_000,
+            waitAfterError: 600_000,
         });
     });
 

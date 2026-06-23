@@ -9,10 +9,15 @@ import { parseDuration } from '../common/parseDuration';
 import type { RunOptions } from './RunOptions';
 
 /**
+ * Default wait duration applied before retrying a failed prompt round.
+ */
+const DEFAULT_WAIT_AFTER_ERROR_MS = 10 * 60 * 1000;
+
+/**
  * CLI usage text for this script.
  */
 const USAGE =
-    'Usage: run-codex-prompts [--dry-run] [--harness <harness-name>] [--model <model>] [--context <context-or-file>] [--test <test-command...>] [--preserve-logs] [--no-ui] [--thinking-level <thinking-level>] [--priority <minimum-priority>] [--allow-credits] [--auto-migrate] [--allow-destructive-auto-migrate] [--wait <duration>] [--no-auto] [--no-commit] [--ignore-git-changes] [--no-normalize-line-endings] [--auto-push] [--auto-pull]';
+    'Usage: run-codex-prompts [--dry-run] [--harness <harness-name>] [--model <model>] [--context <context-or-file>] [--test <test-command...>] [--preserve-logs] [--no-ui] [--thinking-level <thinking-level>] [--priority <minimum-priority>] [--allow-credits] [--auto-migrate] [--allow-destructive-auto-migrate] [--wait-after-prompt <duration>] [--wait-between-prompts <duration>] [--wait-after-error <duration>] [--no-auto] [--no-commit] [--ignore-git-changes] [--no-normalize-line-endings] [--auto-push] [--auto-pull]';
 
 /**
  * Top-level flags supported by this command.
@@ -30,7 +35,9 @@ const KNOWN_OPTION_FLAGS = new Set([
     '--allow-credits',
     '--auto-migrate',
     '--allow-destructive-auto-migrate',
-    '--wait',
+    '--wait-after-prompt',
+    '--wait-between-prompts',
+    '--wait-after-error',
     '--no-auto',
     '--no-commit',
     '--ignore-git-changes',
@@ -77,16 +84,9 @@ export function parseRunOptions(args: string[]): RunOptions {
     //   --no-auto: wait for user confirmation before each prompt (interactive mode)
     //   --wait 1h: wait 1h between prompt rounds to avoid rate limits
     const waitForUser = args.includes('--no-auto');
-    let waitBetweenPrompts = 0;
-    const hasWaitFlag = args.includes('--wait');
-    const waitValue = readOptionValue(args, '--wait');
-
-    if (hasWaitFlag) {
-        if (waitValue === undefined || waitValue.startsWith('-')) {
-            exitWithUsageError('Missing value for --wait. Use a duration like 1h, 30m, 5s.');
-        }
-        waitBetweenPrompts = parseDuration(waitValue as string);
-    }
+    const waitAfterPrompt = parseWaitOption(args, '--wait-after-prompt', 0);
+    const waitBetweenPrompts = parseWaitOption(args, '--wait-between-prompts', 0);
+    const waitAfterError = parseWaitOption(args, '--wait-after-error', DEFAULT_WAIT_AFTER_ERROR_MS);
     let thinkingLevel: ThinkingLevel | undefined;
 
     if (hasTestCommandFlag && testCommand === undefined) {
@@ -114,7 +114,9 @@ export function parseRunOptions(args: string[]): RunOptions {
     return {
         dryRun,
         waitForUser,
+        waitAfterPrompt,
         waitBetweenPrompts,
+        waitAfterError,
         noCommit,
         ignoreGitChanges,
         normalizeLineEndings,
@@ -132,6 +134,22 @@ export function parseRunOptions(args: string[]): RunOptions {
         thinkingLevel,
         priority,
     };
+}
+
+/**
+ * Reads a duration-typed CLI flag, applying the provided default when the flag is absent.
+ */
+function parseWaitOption(args: string[], flag: string, defaultMs: number): number {
+    if (!args.includes(flag)) {
+        return defaultMs;
+    }
+
+    const value = readOptionValue(args, flag);
+    if (value === undefined || value.startsWith('-')) {
+        exitWithUsageError(`Missing value for ${flag}. Use a duration like 1h, 30m, 5s.`);
+    }
+
+    return parseDuration(value as string);
 }
 
 /**
