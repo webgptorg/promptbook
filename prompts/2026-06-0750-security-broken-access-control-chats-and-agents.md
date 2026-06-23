@@ -1,4 +1,4 @@
-[ ]
+[-]
 
 [🔐] Fix broken access control on chat history, chat feedback and agent CRUD routes of Agents Server
 

@@ -1,4 +1,4 @@
-[ ]
+[-]
 
 [🔐] Fix timing-unsafe `===` / `!==` comparisons for secrets and tokens in Agents Server
 

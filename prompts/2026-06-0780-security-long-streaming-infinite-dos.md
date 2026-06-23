@@ -1,4 +1,4 @@
-[ ]
+[-]
 
 [🔐] Fix unauthenticated infinite-stream DoS in `/api/long-streaming` of Agents Server
 
