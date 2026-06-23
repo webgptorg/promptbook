@@ -1,6 +1,8 @@
-import { createHmac } from 'crypto';
+import { createHmac, randomBytes } from 'crypto';
 import { cookies, headers } from 'next/headers';
 import { cache } from 'react';
+import { spaceTrim } from 'spacetrim';
+import { EnvironmentMismatchError } from '../../../../src/errors/EnvironmentMismatchError';
 import { isStandaloneVpsRawIpBootstrapActive } from './standaloneVpsRawIpBootstrap';
 
 /**
@@ -9,9 +11,64 @@ import { isStandaloneVpsRawIpBootstrapActive } from './standaloneVpsRawIpBootstr
 export const SESSION_COOKIE_NAME = 'sessionToken';
 
 /**
- * Secret key used for signing session payloads.
+ * Cached HMAC signing key resolved from `SESSION_SECRET` on first use.
+ *
+ * Computed lazily so module imports never fail eagerly at build time and the
+ * environment can still be configured before the first authenticated request.
  */
-const SECRET_KEY = process.env.ADMIN_PASSWORD || 'default-secret-key-change-me';
+let resolvedSessionSigningKey: string | null = null;
+
+/**
+ * Resolves the HMAC signing key used for session payloads.
+ *
+ * In production, `SESSION_SECRET` must be configured explicitly — falling back
+ * to any shared credential (in particular `ADMIN_PASSWORD`) or a hardcoded
+ * literal would let anyone who learns that value forge session tokens for any
+ * user (including `admin`). Outside production, a per-process random key is
+ * generated on first use so local development works without configuration
+ * while still rejecting the unsafe hardcoded default.
+ *
+ * @returns HMAC signing key.
+ * @throws {EnvironmentMismatchError} When `SESSION_SECRET` is missing in production.
+ */
+function getSessionSigningKey(): string {
+    if (resolvedSessionSigningKey !== null) {
+        return resolvedSessionSigningKey;
+    }
+
+    const configuredSecret = process.env.SESSION_SECRET?.trim();
+    if (configuredSecret) {
+        resolvedSessionSigningKey = configuredSecret;
+        return resolvedSessionSigningKey;
+    }
+
+    if (process.env.NODE_ENV === 'production') {
+        throw new EnvironmentMismatchError(
+            spaceTrim(`
+                Missing required \`SESSION_SECRET\` environment variable in production.
+
+                The Agents Server signs session cookies with HMAC-SHA256 keyed by
+                \`SESSION_SECRET\`. Reusing \`ADMIN_PASSWORD\` or a hardcoded fallback
+                would let anyone who learns that value forge session tokens for any
+                user (including \`admin\`).
+
+                **Fix:** set \`SESSION_SECRET\` to a long random string (for example
+                the output of \`openssl rand -hex 32\`) in the deployment environment
+                and restart the server.
+            `),
+        );
+    }
+
+    resolvedSessionSigningKey = randomBytes(32).toString('hex');
+    console.warn(
+        spaceTrim(`
+            \`SESSION_SECRET\` is not configured — generated a random per-process
+            signing key for this non-production run. Existing session cookies will
+            be invalidated on every restart until \`SESSION_SECRET\` is set.
+        `),
+    );
+    return resolvedSessionSigningKey;
+}
 
 /**
  * Signed session payload persisted in the authentication cookie.
@@ -73,7 +130,7 @@ export type SessionCookieSecurityContext = {
  */
 export function serializeSessionToken(user: SessionUser): string {
     const payload = JSON.stringify(user);
-    const signature = createHmac('sha256', SECRET_KEY).update(payload).digest('hex');
+    const signature = createHmac('sha256', getSessionSigningKey()).update(payload).digest('hex');
     return `${Buffer.from(payload).toString('base64')}.${signature}`;
 }
 
@@ -94,7 +151,7 @@ export function parseSessionToken(token: string | null | undefined): SessionUser
     }
 
     const payload = Buffer.from(payloadBase64, 'base64').toString('utf-8');
-    const expectedSignature = createHmac('sha256', SECRET_KEY).update(payload).digest('hex');
+    const expectedSignature = createHmac('sha256', getSessionSigningKey()).update(payload).digest('hex');
 
     if (signature !== expectedSignature) {
         return null;

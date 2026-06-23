@@ -41,6 +41,9 @@ ptbk agents-server start --harness github-copilot --model gpt-5.4 --thinking-lev
 <a id="agents-server-env-admin-password"></a>
 -   `ADMIN_PASSWORD`: Password for the built-in `admin` login on a self-hosted Agents Server. Choose a private value before using the admin UI.
 
+<a id="agents-server-env-session-secret"></a>
+-   `SESSION_SECRET`: HMAC signing key used to sign the session cookie. Must be set explicitly in production — the server refuses to start session signing when missing instead of falling back to a hardcoded default. Use a long random string, for example the output of `openssl rand -hex 32`. Keep it separate from `ADMIN_PASSWORD` so a leak of either credential cannot forge the other.
+
 ## Creating servers
 
 When creating new Agents server, search across the repository for [☁]

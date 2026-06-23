@@ -1,3 +1,10 @@
+-   Fixed Agents Server session signing key reusing `ADMIN_PASSWORD` with an insecure hardcoded fallback. The session HMAC key in `apps/agents-server/src/utils/session.ts` previously defaulted to the literal string `'default-secret-key-change-me'` when `ADMIN_PASSWORD` was not set, which let anyone who read the source code forge valid session tokens for any user including `admin`. Even when configured, reusing `ADMIN_PASSWORD` as the signing key meant that a leak of either credential would compromise the other.
+
+    -   Introduced a dedicated `SESSION_SECRET` environment variable for the session HMAC signing key, decoupling it from `ADMIN_PASSWORD`.
+    -   In production, the session module now throws a clear `EnvironmentMismatchError` (with a `spaceTrim`-formatted message and `openssl rand -hex 32` guidance) when `SESSION_SECRET` is missing instead of silently using a hardcoded fallback.
+    -   Outside production, a random per-process key is generated on first use and a warning is logged, so local development still works without configuration but never falls back to a publicly known value.
+    -   Documented `SESSION_SECRET` in `apps/agents-server/README.md` and `.env.example`, added it to the VPS-editable `VPS_ENVIRONMENT_VARIABLE_KEYS` list so the value is masked in the admin UI, and configured the Playwright e2e environment with a distinct `SESSION_SECRET` separate from `ADMIN_PASSWORD`.
+
 -   Ordered the Agents Server chat sidebar tray by latest activity time so the currently selected chat stays in its chronological position instead of being hoisted to the top, making it easier to see where an older chat sits in the history while it is open.
 
 -   Redesigned the standalone HTML chat export (and the server-rendered PDF that is generated from it) so the exported transcript matches the look of the in-browser chat while staying optimized for reading and printing:

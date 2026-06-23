@@ -26,6 +26,7 @@ const APP_URL = `http://127.0.0.1:${APP_PORT}`;
  */
 const APP_E2E_ENV = {
     ADMIN_PASSWORD: 'e2e-admin-password',
+    SESSION_SECRET: 'e2e-session-secret-must-differ-from-admin-password',
     NEXT_DIST_DIR: '.next-e2e',
     NEXT_PUBLIC_SITE_URL: APP_URL,
     PTBK_AGENTS_SERVER_DATABASE: 'supabase',
