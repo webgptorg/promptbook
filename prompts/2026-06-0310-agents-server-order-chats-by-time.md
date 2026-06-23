@@ -2,7 +2,7 @@
 
 ---
 
-[ ]
+[x] $4.28 22 minutes by Claude Code
 
 [✨📍] Order chats in my chats tray bu time
 
@@ -13,3 +13,4 @@
 -   You are working with the [Agents Server](apps/agents-server)
 
 ![alt text](screenshots/2026-06-0310-agents-server-order-chats-by-time.png)
+

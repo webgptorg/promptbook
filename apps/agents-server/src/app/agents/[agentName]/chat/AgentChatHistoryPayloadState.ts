@@ -34,6 +34,7 @@ export const AgentChatHistoryPayloadState = {
     applySnapshotStateUpdate,
     clearActiveChatRuntimeState,
     replaceChatInList,
+    sortUserChatSummariesByTimeDescending,
 };
 
 /**
@@ -175,7 +176,7 @@ function applySnapshotStateUpdate(params: {
     } = params;
 
     const reason = options.reason || 'snapshot-update';
-    setChats(snapshot.chats);
+    setChats(sortUserChatSummariesByTimeDescending(snapshot.chats));
     if (!snapshot.activeChatId) {
         if (options.allowSelectionAdoption !== true) {
             logChatSelection('selection_skip_snapshot_missing_active_chat', {
@@ -616,11 +617,44 @@ function applyResolvedChatPayload(params: {
 }
 
 /**
- * Moves one chat summary to the top of the sidebar list.
+ * Inserts or updates one chat summary in the sidebar list while keeping the list ordered
+ * by latest activity time (newest first), so the currently selected chat stays in its
+ * chronological position instead of being hoisted to the top.
  *
  * @private function of useAgentChatHistoryClientState
  */
 function replaceChatInList(chats: ReadonlyArray<UserChatSummary>, targetChat: UserChatSummary): Array<UserChatSummary> {
-    const remainingChats = chats.filter((chat) => chat.id !== targetChat.id);
-    return [targetChat, ...remainingChats];
+    const hasExistingEntry = chats.some((chat) => chat.id === targetChat.id);
+    const updatedChats = hasExistingEntry
+        ? chats.map((chat) => (chat.id === targetChat.id ? targetChat : chat))
+        : [...chats, targetChat];
+    return sortUserChatSummariesByTimeDescending(updatedChats);
+}
+
+/**
+ * Resolves the timestamp used to order one chat summary in the sidebar tray.
+ *
+ * Prefers the latest message timestamp, falls back to the chat's last update time, and finally
+ * to its creation time. This mirrors the timestamp displayed next to each chat row.
+ *
+ * @private function of useAgentChatHistoryClientState
+ */
+function resolveUserChatSummaryOrderTime(chat: UserChatSummary): number {
+    const timestamp = chat.lastMessageAt || chat.updatedAt || chat.createdAt;
+    const parsedTime = new Date(timestamp).getTime();
+    return Number.isFinite(parsedTime) ? parsedTime : 0;
+}
+
+/**
+ * Returns one new array of chat summaries sorted by latest activity time, newest first.
+ *
+ * @private function of useAgentChatHistoryClientState
+ */
+function sortUserChatSummariesByTimeDescending(
+    chats: ReadonlyArray<UserChatSummary>,
+): Array<UserChatSummary> {
+    return [...chats].sort(
+        (leftChat, rightChat) =>
+            resolveUserChatSummaryOrderTime(rightChat) - resolveUserChatSummaryOrderTime(leftChat),
+    );
 }

@@ -1,3 +1,5 @@
+-   Ordered the Agents Server chat sidebar tray by latest activity time so the currently selected chat stays in its chronological position instead of being hoisted to the top, making it easier to see where an older chat sits in the history while it is open.
+
 -   Redesigned the standalone HTML chat export (and the server-rendered PDF that is generated from it) so the exported transcript matches the look of the in-browser chat while staying optimized for reading and printing:
 
     -   Switched the message layout from generic cards to chat bubbles with avatars, where messages from the current user align to the right and agent replies align to the left, mirroring the live Agents Server chat experience.

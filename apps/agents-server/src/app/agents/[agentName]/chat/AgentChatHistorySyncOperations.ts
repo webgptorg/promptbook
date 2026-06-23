@@ -90,7 +90,10 @@ async function createBootstrapChatFromSnapshot(params: {
                   currentInitialOptimisticChatBootstrap.optimisticChatId,
                   createdChat.chat,
               )
-            : [createdChat.chat, ...snapshot.chats.filter((chat) => chat.id !== createdChat.chat.id)],
+            : AgentChatHistoryPayloadState.sortUserChatSummariesByTimeDescending([
+                  createdChat.chat,
+                  ...snapshot.chats.filter((chat) => chat.id !== createdChat.chat.id),
+              ]),
     );
 }
 
