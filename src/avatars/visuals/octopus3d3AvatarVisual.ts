@@ -432,7 +432,27 @@ function drawContinuousOctopusShadow(
 }
 
 /**
+ * Number of latitude segments used by the continuous Octopus 3D 3 mesh.
+ *
+ * @private helper of `octopus3d3AvatarVisual`
+ */
+const LATITUDE_PATCH_COUNT = 16;
+
+/**
+ * Number of longitude segments used by the continuous Octopus 3D 3 mesh.
+ *
+ * @private helper of `octopus3d3AvatarVisual`
+ */
+const LONGITUDE_PATCH_COUNT = 40;
+
+/**
  * Resolves visible projected patches for the continuous octopus mesh.
+ *
+ * Within a single frame, mesh corner samples and longitude-only computations (tentacle
+ * influence and lobe wave) are quantized to the patch grid and computed once each rather
+ * than re-evaluated for every patch corner — the patch loop alone calls `sampleContinuousOctopusSurfacePoint`
+ * for `latitudePatchCount * longitudePatchCount * 4` corners without caching, and each call
+ * triggers an inner 8-iteration `Math.exp` loop, which dominates the per-frame cost.
  *
  * @private helper of `octopus3d3AvatarVisual`
  */
@@ -448,29 +468,84 @@ function resolveVisibleContinuousOctopusPatches(
     },
 ): Array<ContinuousOctopusSurfacePatch> {
     const { center, rotationX, rotationY, sceneCenterX, sceneCenterY, size, palette } = options;
-    const latitudePatchCount = 16;
-    const longitudePatchCount = 40;
+    const latitudePatchCount = LATITUDE_PATCH_COUNT;
+    const longitudePatchCount = LONGITUDE_PATCH_COUNT;
     const surfacePatches: Array<ContinuousOctopusSurfacePatch> = [];
+    const latitudeBoundaries = new Float64Array(latitudePatchCount + 1);
+    const longitudeBoundaries = new Float64Array(longitudePatchCount + 1);
+
+    for (let boundaryIndex = 0; boundaryIndex <= latitudePatchCount; boundaryIndex++) {
+        latitudeBoundaries[boundaryIndex] = -Math.PI / 2 + (boundaryIndex / latitudePatchCount) * Math.PI;
+    }
+
+    for (let boundaryIndex = 0; boundaryIndex <= longitudePatchCount; boundaryIndex++) {
+        longitudeBoundaries[boundaryIndex] = -Math.PI + (boundaryIndex / longitudePatchCount) * Math.PI * 2;
+    }
+
+    const cachedTentacleInfluencesByCornerLongitude = new Array<ContinuousOctopusTentacleInfluence>(
+        longitudePatchCount + 1,
+    );
+    const cachedLobeWavesByCornerLongitude = new Float64Array(longitudePatchCount + 1);
+    const cachedTentacleInfluencesByPatchCenterLongitude = new Array<ContinuousOctopusTentacleInfluence>(
+        longitudePatchCount,
+    );
+    const cachedLobeWavesByPatchCenterLongitude = new Float64Array(longitudePatchCount);
+    const cachedCosByPatchCenterLongitude = new Float64Array(longitudePatchCount);
+
+    for (let boundaryIndex = 0; boundaryIndex <= longitudePatchCount; boundaryIndex++) {
+        const cornerLongitude = longitudeBoundaries[boundaryIndex]!;
+        cachedTentacleInfluencesByCornerLongitude[boundaryIndex] = resolveContinuousTentacleInfluence(
+            options,
+            cornerLongitude,
+        );
+        cachedLobeWavesByCornerLongitude[boundaryIndex] = resolveContinuousLobeWave(options, cornerLongitude);
+    }
+
+    for (let longitudeIndex = 0; longitudeIndex < longitudePatchCount; longitudeIndex++) {
+        const patchCenterLongitude = (longitudeBoundaries[longitudeIndex]! + longitudeBoundaries[longitudeIndex + 1]!) / 2;
+        cachedTentacleInfluencesByPatchCenterLongitude[longitudeIndex] = resolveContinuousTentacleInfluence(
+            options,
+            patchCenterLongitude,
+        );
+        cachedLobeWavesByPatchCenterLongitude[longitudeIndex] = resolveContinuousLobeWave(options, patchCenterLongitude);
+        cachedCosByPatchCenterLongitude[longitudeIndex] = Math.max(0, Math.cos(patchCenterLongitude));
+    }
+
+    const cornerCount = (latitudePatchCount + 1) * (longitudePatchCount + 1);
+    const transformedCornerSamples = new Array<Point3D>(cornerCount);
+
+    for (let latitudeBoundaryIndex = 0; latitudeBoundaryIndex <= latitudePatchCount; latitudeBoundaryIndex++) {
+        const cornerLatitude = latitudeBoundaries[latitudeBoundaryIndex]!;
+
+        for (let longitudeBoundaryIndex = 0; longitudeBoundaryIndex <= longitudePatchCount; longitudeBoundaryIndex++) {
+            const cornerLongitude = longitudeBoundaries[longitudeBoundaryIndex]!;
+            const cornerIndex = latitudeBoundaryIndex * (longitudePatchCount + 1) + longitudeBoundaryIndex;
+            const cornerSample = sampleContinuousOctopusSurfacePointWithLongitudeCache(
+                options,
+                cornerLatitude,
+                cornerLongitude,
+                cachedTentacleInfluencesByCornerLongitude[longitudeBoundaryIndex]!,
+                cachedLobeWavesByCornerLongitude[longitudeBoundaryIndex]!,
+            );
+            transformedCornerSamples[cornerIndex] = transformScenePoint(cornerSample, center, rotationX, rotationY);
+        }
+    }
 
     for (let latitudeIndex = 0; latitudeIndex < latitudePatchCount; latitudeIndex++) {
-        const startLatitude = -Math.PI / 2 + (latitudeIndex / latitudePatchCount) * Math.PI;
-        const endLatitude = -Math.PI / 2 + ((latitudeIndex + 1) / latitudePatchCount) * Math.PI;
+        const startLatitude = latitudeBoundaries[latitudeIndex]!;
+        const endLatitude = latitudeBoundaries[latitudeIndex + 1]!;
         const centerLatitude = (startLatitude + endLatitude) / 2;
         const verticalProgress = (Math.sin(centerLatitude) + 1) / 2;
+        const startCornerRowOffset = latitudeIndex * (longitudePatchCount + 1);
+        const endCornerRowOffset = (latitudeIndex + 1) * (longitudePatchCount + 1);
 
         for (let longitudeIndex = 0; longitudeIndex < longitudePatchCount; longitudeIndex++) {
-            const startLongitude = -Math.PI + (longitudeIndex / longitudePatchCount) * Math.PI * 2;
-            const endLongitude = -Math.PI + ((longitudeIndex + 1) / longitudePatchCount) * Math.PI * 2;
-            const centerLongitude = (startLongitude + endLongitude) / 2;
-            const localCorners = [
-                sampleContinuousOctopusSurfacePoint(options, startLatitude, startLongitude),
-                sampleContinuousOctopusSurfacePoint(options, startLatitude, endLongitude),
-                sampleContinuousOctopusSurfacePoint(options, endLatitude, endLongitude),
-                sampleContinuousOctopusSurfacePoint(options, endLatitude, startLongitude),
-            ] as const;
-            const transformedCorners = localCorners.map((localCorner) =>
-                transformScenePoint(localCorner, center, rotationX, rotationY),
-            ) as [Point3D, Point3D, Point3D, Point3D];
+            const transformedCorners: [Point3D, Point3D, Point3D, Point3D] = [
+                transformedCornerSamples[startCornerRowOffset + longitudeIndex]!,
+                transformedCornerSamples[startCornerRowOffset + longitudeIndex + 1]!,
+                transformedCornerSamples[endCornerRowOffset + longitudeIndex + 1]!,
+                transformedCornerSamples[endCornerRowOffset + longitudeIndex]!,
+            ];
             const surfaceNormal = normalizeVector3(
                 crossProduct3D(
                     subtractPoint3D(transformedCorners[1], transformedCorners[0]),
@@ -482,24 +557,28 @@ function resolveVisibleContinuousOctopusPatches(
                 continue;
             }
 
-            const projectedCorners = transformedCorners.map((transformedCorner) =>
-                projectScenePoint(transformedCorner, size, sceneCenterX, sceneCenterY),
-            ) as [ProjectedPoint, ProjectedPoint, ProjectedPoint, ProjectedPoint];
-            const tentacleInfluence = resolveContinuousTentacleInfluence(options, centerLongitude);
-            const lowerLobeWave = resolveContinuousLobeWave(options, centerLongitude);
+            const projectedCorners: [ProjectedPoint, ProjectedPoint, ProjectedPoint, ProjectedPoint] = [
+                projectScenePoint(transformedCorners[0], size, sceneCenterX, sceneCenterY),
+                projectScenePoint(transformedCorners[1], size, sceneCenterX, sceneCenterY),
+                projectScenePoint(transformedCorners[2], size, sceneCenterX, sceneCenterY),
+                projectScenePoint(transformedCorners[3], size, sceneCenterX, sceneCenterY),
+            ];
 
             surfacePatches.push({
                 corners: projectedCorners,
                 averageDepth:
-                    transformedCorners.reduce((depthSum, transformedCorner) => depthSum + transformedCorner.z, 0) /
-                    transformedCorners.length,
+                    (transformedCorners[0].z +
+                        transformedCorners[1].z +
+                        transformedCorners[2].z +
+                        transformedCorners[3].z) /
+                    4,
                 lightIntensity: clampNumber(dotProduct3D(surfaceNormal, LIGHT_DIRECTION), -1, 1),
                 fillStyle: resolveContinuousSurfacePatchFillStyle(
                     palette,
                     verticalProgress,
-                    Math.max(0, Math.cos(centerLongitude)),
-                    tentacleInfluence.core,
-                    lowerLobeWave,
+                    cachedCosByPatchCenterLongitude[longitudeIndex]!,
+                    cachedTentacleInfluencesByPatchCenterLongitude[longitudeIndex]!.core,
+                    cachedLobeWavesByPatchCenterLongitude[longitudeIndex]!,
                 ),
                 outlineColor: verticalProgress < 0.54 ? `${palette.highlight}69` : `${palette.shadow}78`,
             });
@@ -522,16 +601,40 @@ function sampleContinuousOctopusSurfacePoint(
     latitude: number,
     longitude: number,
 ): Point3D {
+    return sampleContinuousOctopusSurfacePointWithLongitudeCache(
+        options,
+        latitude,
+        longitude,
+        resolveContinuousTentacleInfluence(options, longitude),
+        resolveContinuousLobeWave(options, longitude),
+    );
+}
+
+/**
+ * Samples one point on the continuous Octopus 3D 3 surface using precomputed longitude-only
+ * values to skip the per-call `Math.exp` tentacle-influence loop and the lobe-wave trig call.
+ *
+ * The patch loop quantizes the mesh into a fixed `(latitudePatchCount + 1) * (longitudePatchCount + 1)`
+ * corner grid, so the same longitude is reused across every latitude row and each
+ * tentacle/lobe value can be computed once per frame instead of `latitudePatchCount * 4` times.
+ *
+ * @private helper of `octopus3d3AvatarVisual`
+ */
+function sampleContinuousOctopusSurfacePointWithLongitudeCache(
+    options: ContinuousOctopusSurfaceOptions,
+    latitude: number,
+    longitude: number,
+    tentacleInfluence: ContinuousOctopusTentacleInfluence,
+    lowerLobeWave: number,
+): Point3D {
     const { radiusX, radiusY, radiusZ, morphologyProfile, timeMs, animationPhase } = options;
     const cosineLatitude = Math.max(0, Math.cos(latitude));
     const verticalProgress = (Math.sin(latitude) + 1) / 2;
     const upperBlend = Math.pow(1 - verticalProgress, 1.28);
     const lowerBlend = smoothStep(0.38, 1, verticalProgress);
     const tipBlend = smoothStep(0.68, 1, verticalProgress);
-    const tentacleInfluence = resolveContinuousTentacleInfluence(options, longitude);
     const centerPull = resolveSignedAngularDistance(longitude, tentacleInfluence.centerLongitude);
     const effectiveLongitude = longitude + centerPull * lowerBlend * tentacleInfluence.core * (0.24 + tipBlend * 0.2);
-    const lowerLobeWave = resolveContinuousLobeWave(options, longitude);
     const mantleRipple =
         Math.sin(
             longitude * morphologyProfile.body.lobeCount +

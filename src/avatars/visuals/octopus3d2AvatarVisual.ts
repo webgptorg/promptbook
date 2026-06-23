@@ -332,7 +332,27 @@ function drawBlobbyOctopusShadow(
 }
 
 /**
+ * Number of latitude segments used by the single blobby octopus mesh.
+ *
+ * @private helper of `octopus3d2AvatarVisual`
+ */
+const LATITUDE_PATCH_COUNT = 12;
+
+/**
+ * Number of longitude segments used by the single blobby octopus mesh.
+ *
+ * @private helper of `octopus3d2AvatarVisual`
+ */
+const LONGITUDE_PATCH_COUNT = 24;
+
+/**
  * Resolves all visible projected patches for the single blobby octopus mesh.
+ *
+ * Within a single frame, mesh corner samples and longitude-only lobe-wave values are
+ * quantized to the patch grid and computed once each rather than re-evaluated for every
+ * patch corner — the patch loop alone would call `sampleBlobbyOctopusSurfacePoint`
+ * `latitudePatchCount * longitudePatchCount * 4` times without caching, even though most
+ * corners are shared between neighboring patches.
  *
  * @private helper of `octopus3d2AvatarVisual`
  */
@@ -363,29 +383,68 @@ function resolveVisibleBlobbyOctopusPatches(options: {
         animationPhase,
         timeMs,
     } = options;
-    const latitudePatchCount = 12;
-    const longitudePatchCount = 24;
+    const latitudePatchCount = LATITUDE_PATCH_COUNT;
+    const longitudePatchCount = LONGITUDE_PATCH_COUNT;
     const surfacePatches: Array<BlobbyOctopusSurfacePatch> = [];
+    const latitudeBoundaries = new Float64Array(latitudePatchCount + 1);
+    const longitudeBoundaries = new Float64Array(longitudePatchCount + 1);
+
+    for (let boundaryIndex = 0; boundaryIndex <= latitudePatchCount; boundaryIndex++) {
+        latitudeBoundaries[boundaryIndex] = -Math.PI / 2 + (boundaryIndex / latitudePatchCount) * Math.PI;
+    }
+
+    for (let boundaryIndex = 0; boundaryIndex <= longitudePatchCount; boundaryIndex++) {
+        longitudeBoundaries[boundaryIndex] = -Math.PI + (boundaryIndex / longitudePatchCount) * Math.PI * 2;
+    }
+
+    const cachedLobeWavesByCornerLongitude = new Float64Array(longitudePatchCount + 1);
+
+    for (let boundaryIndex = 0; boundaryIndex <= longitudePatchCount; boundaryIndex++) {
+        cachedLobeWavesByCornerLongitude[boundaryIndex] = resolveLowerLobeWave(
+            longitudeBoundaries[boundaryIndex]!,
+            morphologyProfile,
+            animationPhase,
+            timeMs,
+        );
+    }
+
+    const cornerCount = (latitudePatchCount + 1) * (longitudePatchCount + 1);
+    const transformedCornerSamples = new Array<Point3D>(cornerCount);
+
+    for (let latitudeBoundaryIndex = 0; latitudeBoundaryIndex <= latitudePatchCount; latitudeBoundaryIndex++) {
+        const cornerLatitude = latitudeBoundaries[latitudeBoundaryIndex]!;
+
+        for (let longitudeBoundaryIndex = 0; longitudeBoundaryIndex <= longitudePatchCount; longitudeBoundaryIndex++) {
+            const cornerLongitude = longitudeBoundaries[longitudeBoundaryIndex]!;
+            const cornerIndex = latitudeBoundaryIndex * (longitudePatchCount + 1) + longitudeBoundaryIndex;
+            const cornerSample = sampleBlobbyOctopusSurfacePointWithLongitudeCache(
+                options,
+                cornerLatitude,
+                cornerLongitude,
+                cachedLobeWavesByCornerLongitude[longitudeBoundaryIndex]!,
+            );
+            transformedCornerSamples[cornerIndex] = transformScenePoint(cornerSample, center, rotationX, rotationY);
+        }
+    }
 
     for (let latitudeIndex = 0; latitudeIndex < latitudePatchCount; latitudeIndex++) {
-        const startLatitude = -Math.PI / 2 + (latitudeIndex / latitudePatchCount) * Math.PI;
-        const endLatitude = -Math.PI / 2 + ((latitudeIndex + 1) / latitudePatchCount) * Math.PI;
+        const startLatitude = latitudeBoundaries[latitudeIndex]!;
+        const endLatitude = latitudeBoundaries[latitudeIndex + 1]!;
         const centerLatitude = (startLatitude + endLatitude) / 2;
         const verticalProgress = (Math.sin(centerLatitude) + 1) / 2;
+        const startCornerRowOffset = latitudeIndex * (longitudePatchCount + 1);
+        const endCornerRowOffset = (latitudeIndex + 1) * (longitudePatchCount + 1);
 
         for (let longitudeIndex = 0; longitudeIndex < longitudePatchCount; longitudeIndex++) {
-            const startLongitude = -Math.PI + (longitudeIndex / longitudePatchCount) * Math.PI * 2;
-            const endLongitude = -Math.PI + ((longitudeIndex + 1) / longitudePatchCount) * Math.PI * 2;
+            const startLongitude = longitudeBoundaries[longitudeIndex]!;
+            const endLongitude = longitudeBoundaries[longitudeIndex + 1]!;
             const centerLongitude = (startLongitude + endLongitude) / 2;
-            const localCorners = [
-                sampleBlobbyOctopusSurfacePoint(options, startLatitude, startLongitude),
-                sampleBlobbyOctopusSurfacePoint(options, startLatitude, endLongitude),
-                sampleBlobbyOctopusSurfacePoint(options, endLatitude, endLongitude),
-                sampleBlobbyOctopusSurfacePoint(options, endLatitude, startLongitude),
-            ] as const;
-            const transformedCorners = localCorners.map((localCorner) =>
-                transformScenePoint(localCorner, center, rotationX, rotationY),
-            ) as [Point3D, Point3D, Point3D, Point3D];
+            const transformedCorners: [Point3D, Point3D, Point3D, Point3D] = [
+                transformedCornerSamples[startCornerRowOffset + longitudeIndex]!,
+                transformedCornerSamples[startCornerRowOffset + longitudeIndex + 1]!,
+                transformedCornerSamples[endCornerRowOffset + longitudeIndex + 1]!,
+                transformedCornerSamples[endCornerRowOffset + longitudeIndex]!,
+            ];
             const surfaceNormal = normalizeVector3(
                 crossProduct3D(
                     subtractPoint3D(transformedCorners[1], transformedCorners[0]),
@@ -397,14 +456,20 @@ function resolveVisibleBlobbyOctopusPatches(options: {
                 continue;
             }
 
-            const projectedCorners = transformedCorners.map((transformedCorner) =>
-                projectScenePoint(transformedCorner, size, sceneCenterX, sceneCenterY),
-            ) as [ProjectedPoint, ProjectedPoint, ProjectedPoint, ProjectedPoint];
+            const projectedCorners: [ProjectedPoint, ProjectedPoint, ProjectedPoint, ProjectedPoint] = [
+                projectScenePoint(transformedCorners[0], size, sceneCenterX, sceneCenterY),
+                projectScenePoint(transformedCorners[1], size, sceneCenterX, sceneCenterY),
+                projectScenePoint(transformedCorners[2], size, sceneCenterX, sceneCenterY),
+                projectScenePoint(transformedCorners[3], size, sceneCenterX, sceneCenterY),
+            ];
             surfacePatches.push({
                 corners: projectedCorners,
                 averageDepth:
-                    transformedCorners.reduce((depthSum, transformedCorner) => depthSum + transformedCorner.z, 0) /
-                    transformedCorners.length,
+                    (transformedCorners[0].z +
+                        transformedCorners[1].z +
+                        transformedCorners[2].z +
+                        transformedCorners[3].z) /
+                    4,
                 lightIntensity: clampNumber(dotProduct3D(surfaceNormal, LIGHT_DIRECTION), -1, 1),
                 fillStyle: resolveBlobbySurfacePatchFillStyle(
                     palette,
@@ -433,12 +498,32 @@ function sampleBlobbyOctopusSurfacePoint(
     latitude: number,
     longitude: number,
 ): Point3D {
+    const { morphologyProfile, animationPhase, timeMs } = options;
+    return sampleBlobbyOctopusSurfacePointWithLongitudeCache(
+        options,
+        latitude,
+        longitude,
+        resolveLowerLobeWave(longitude, morphologyProfile, animationPhase, timeMs),
+    );
+}
+
+/**
+ * Samples one point on the continuous Octopus 3D 2 surface using a precomputed lower-lobe wave
+ * to skip the per-call trig evaluation for `latitudePatchCount + 1` longitude-shared corners.
+ *
+ * @private helper of `octopus3d2AvatarVisual`
+ */
+function sampleBlobbyOctopusSurfacePointWithLongitudeCache(
+    options: BlobbyOctopusSurfaceOptions,
+    latitude: number,
+    longitude: number,
+    lowerLobeWave: number,
+): Point3D {
     const { radiusX, radiusY, radiusZ, morphologyProfile, timeMs, animationPhase } = options;
     const cosineLatitude = Math.max(0, Math.cos(latitude));
     const verticalProgress = (Math.sin(latitude) + 1) / 2;
     const upperBlend = Math.pow(1 - verticalProgress, 1.2);
     const lowerBlend = Math.pow(verticalProgress, 1.42);
-    const lowerLobeWave = resolveLowerLobeWave(longitude, morphologyProfile, animationPhase, timeMs);
     const skirtEnvelope = Math.pow(cosineLatitude, 0.5) * lowerBlend;
     const horizontalScale =
         1.02 +
