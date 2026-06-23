@@ -1,3 +1,10 @@
+-   Redesigned the standalone HTML chat export (and the server-rendered PDF that is generated from it) so the exported transcript matches the look of the in-browser chat while staying optimized for reading and printing:
+
+    -   Switched the message layout from generic cards to chat bubbles with avatars, where messages from the current user align to the right and agent replies align to the left, mirroring the live Agents Server chat experience.
+    -   Stripped quick action and quick message buttons (`[Label](?message=...)` / `[Label](?action=...)`) from the exported content so static recipients only see the actual conversation, and skipped messages that would render empty after the buttons are removed.
+    -   Added print-specific styles (`@page` margins, page-break-avoiding bubbles, white background, larger print font size) so the same HTML produces a clean PDF via the existing `renderHtmlToPdfOnServer` Playwright pipeline without any layout changes per format.
+    -   Reused the existing `parseMessageButtons`, `renderMarkdown`, citation footnote, and participant-resolution helpers instead of duplicating chat-rendering logic in the export.
+
 -   Fixed Agents Server breadcrumb leaking the agent's permanent id when the active agent was not part of the loaded organization list (typical for anonymous users or any non-admin browsing a private agent). The Header now reads a new `ActiveAgentBreadcrumbContext` populated by the `/agents/[agentName]` route layout, so the breadcrumb always shows the agent's human-readable name. When the agent cannot be resolved at all, the breadcrumb falls back to a generic translated label instead of the raw URL identifier.
 
 -   Refactored multiline prompt, markdown, fixture, and generated-content string builders to use `spaceTrim` with `block` for nested multiline values.

@@ -2,6 +2,7 @@ import { spaceTrim } from 'spacetrim';
 import type { ChatMessage } from '../../types/ChatMessage';
 import type { ChatParticipant } from '../../types/ChatParticipant';
 import { resolveCitationPreviewUrl } from '../../utils/citationHelpers';
+import { parseMessageButtons } from '../../utils/parseMessageButtons';
 import { renderMarkdown } from '../../utils/renderMarkdown';
 import type { ChatSaveFormatDefinition } from '../_common/ChatSaveFormatDefinition';
 import {
@@ -31,6 +32,13 @@ const CITATION_FOOTNOTE_REFERENCE_HTML_REGEX = /<sup data-citation-footnote="(\d
 export const CHAT_HTML_EXPORT_RENDER_ROOT_CLASS_NAME = 'chat-html-export-render-root';
 
 /**
+ * Roles whose messages are aligned to the right side of the exported transcript.
+ *
+ * @private Internal helper of `htmlSaveFormatDefinition`.
+ */
+const RIGHT_ALIGNED_SENDER_ROLES = new Set(['USER']);
+
+/**
  * Escapes HTML-sensitive text before embedding it into the export document.
  *
  * @private Internal helper of `htmlSaveFormatDefinition`.
@@ -42,6 +50,43 @@ function escapeHtml(value: string | number): string {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
+}
+
+/**
+ * Returns the first uppercase character of a display name, used for the fallback avatar glyph.
+ *
+ * @private Internal helper of `htmlSaveFormatDefinition`.
+ */
+function getAvatarInitial(displayName: string): string {
+    const trimmedName = displayName.trim();
+    if (!trimmedName) {
+        return '?';
+    }
+
+    return Array.from(trimmedName)[0]!.toUpperCase();
+}
+
+/**
+ * Renders the avatar bubble shown next to one exported message.
+ *
+ * @private Internal helper of `htmlSaveFormatDefinition`.
+ */
+function buildAvatarMarkup(participant: ChatParticipant | undefined, displayName: string, accentColor: string): string {
+    const avatarStyle = `background-color:${escapeHtml(accentColor)};`;
+
+    if (participant?.avatarSrc) {
+        return spaceTrim(`
+            <div class="message-avatar" aria-hidden="true" style="${avatarStyle}">
+                <img src="${escapeHtml(participant.avatarSrc)}" alt="" loading="lazy" />
+            </div>
+        `);
+    }
+
+    return spaceTrim(`
+        <div class="message-avatar message-avatar--initial" aria-hidden="true" style="${avatarStyle}">
+            <span>${escapeHtml(getAvatarInitial(displayName))}</span>
+        </div>
+    `);
 }
 
 /**
@@ -114,6 +159,17 @@ function buildCitationsMarkup(message: ChatMessage): string {
 }
 
 /**
+ * Removes quick action and quick message buttons from the markdown body before rendering.
+ *
+ * Quick buttons are interactive UI affordances and have no meaning inside a static export.
+ *
+ * @private Internal helper of `htmlSaveFormatDefinition`.
+ */
+function stripQuickButtonsFromContent(content: ChatMessage['content']): ChatMessage['content'] {
+    return parseMessageButtons(content).contentWithoutButtons as ChatMessage['content'];
+}
+
+/**
  * Converts one markdown message body to HTML with document-wide source references.
  *
  * @private Internal helper of `htmlSaveFormatDefinition`.
@@ -122,7 +178,10 @@ function renderFootnotedMarkdown(
     message: Pick<ChatMessage, 'content' | 'citations'>,
     citationFootnotes: ChatExportCitationFootnoteRegistry,
 ): { readonly html: string; readonly renderModel: ChatExportCitationRenderModel } {
-    const renderModel = createChatExportCitationRenderModel(citationFootnotes, message);
+    const renderModel = createChatExportCitationRenderModel(citationFootnotes, {
+        ...message,
+        content: stripQuickButtonsFromContent(message.content),
+    });
     const html = linkCitationFootnoteReferences(renderMarkdown(renderModel.content));
 
     return {
@@ -170,7 +229,49 @@ function buildReplyingToMarkup(message: ChatMessage, citationFootnotes: ChatExpo
 }
 
 /**
- * Renders one message card for the standalone HTML export.
+ * Determines whether a message bubble should sit on the right side of the transcript.
+ *
+ * @private Internal helper of `htmlSaveFormatDefinition`.
+ */
+function isRightAlignedMessage(participant: ChatParticipant | undefined, sender: string): boolean {
+    if (participant?.isMe === true) {
+        return true;
+    }
+
+    return RIGHT_ALIGNED_SENDER_ROLES.has(sender.toUpperCase());
+}
+
+/**
+ * Detects whether a message would render with no body, attachments, or supporting metadata after sanitization.
+ *
+ * Such messages exist only to carry quick buttons in the live chat UI and add no value to a printed transcript.
+ *
+ * @private Internal helper of `htmlSaveFormatDefinition`.
+ */
+function isMessageEmptyForExport(message: ChatMessage): boolean {
+    const trimmedContent = stripQuickButtonsFromContent(message.content).trim();
+
+    if (trimmedContent.length > 0) {
+        return false;
+    }
+
+    if (message.attachments && message.attachments.length > 0) {
+        return false;
+    }
+
+    if (message.citations && message.citations.length > 0) {
+        return false;
+    }
+
+    if (message.replyingTo) {
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * Renders one message bubble for the standalone HTML export.
  *
  * @private Internal helper of `htmlSaveFormatDefinition`.
  */
@@ -180,30 +281,35 @@ function renderMessageBlock(
     citationFootnotes: ChatExportCitationFootnoteRegistry,
 ): string {
     const sender = String(message.sender || 'SYSTEM');
-    const upperSender = sender.toUpperCase();
+    const participant = participants.get(sender) ?? participants.get(sender.toUpperCase());
     const visuals = resolveChatExportParticipantVisuals(participants, sender);
     const timestamp = formatChatExportTimestamp(message.createdAt);
     const durationLabel =
         typeof message.generationDurationMs === 'number' ? `${(message.generationDurationMs / 1000).toFixed(1)}s` : '';
     const replyingToMarkup = buildReplyingToMarkup(message, citationFootnotes);
     const { html: messageBody, renderModel } = renderFootnotedMarkdown(message, citationFootnotes);
+    const isRightAligned = isRightAlignedMessage(participant, sender);
+    const avatarMarkup = buildAvatarMarkup(participant, visuals.displayName, visuals.accentColor);
+    const alignmentClass = isRightAligned ? 'message--mine' : 'message--theirs';
 
     return spaceTrim(`
-        <article class="message-card" style="--message-accent:${escapeHtml(visuals.accentColor)};">
-            <header class="message-header">
-                <div class="message-header-main">
+        <article class="message ${alignmentClass}" style="--message-accent:${escapeHtml(visuals.accentColor)};">
+            ${avatarMarkup}
+            <div class="message-body">
+                <header class="message-meta">
                     <span class="message-sender">${escapeHtml(visuals.displayName)}</span>
-                    <span class="message-role">${escapeHtml(upperSender)}</span>
+                    ${timestamp ? `<time class="message-time">${escapeHtml(timestamp)}</time>` : ''}
+                </header>
+                <div class="message-bubble">
+                    ${replyingToMarkup}
+                    <div class="message-content markdown-content">
+                        ${messageBody || '<p class="message-empty">No text provided.</p>'}
+                    </div>
                 </div>
-                ${timestamp ? `<time class="message-time">${escapeHtml(timestamp)}</time>` : ''}
-            </header>
-            ${replyingToMarkup}
-            <section class="message-content markdown-content">
-                ${messageBody || '<p class="message-empty">No text provided.</p>'}
-            </section>
-            ${durationLabel ? `<p class="message-duration">Responded in ${escapeHtml(durationLabel)}</p>` : ''}
-            ${buildAttachmentsMarkup(message)}
-            ${renderModel.footnotes.length === 0 ? buildCitationsMarkup(message) : ''}
+                ${durationLabel ? `<p class="message-footnote">Responded in ${escapeHtml(durationLabel)}</p>` : ''}
+                ${buildAttachmentsMarkup(message)}
+                ${renderModel.footnotes.length === 0 ? buildCitationsMarkup(message) : ''}
+            </div>
         </article>
     `);
 }
@@ -284,9 +390,12 @@ export function buildChatHtml(
     const participantLookup = buildChatExportParticipantMap(participants);
     const citationFootnotes = createChatExportCitationFootnoteRegistry();
     const exportedLabel = formatChatExportTimestamp(new Date());
+    const messagesForExport = messages.filter((message) => !isMessageEmptyForExport(message));
     const messageMarkup =
-        messages.length > 0
-            ? messages.map((message) => renderMessageBlock(message, participantLookup, citationFootnotes)).join('')
+        messagesForExport.length > 0
+            ? messagesForExport
+                  .map((message) => renderMessageBlock(message, participantLookup, citationFootnotes))
+                  .join('')
             : '<div class="empty-state">No messages were available in this chat export.</div>';
     const documentSourcesMarkup = buildDocumentSourcesMarkup(citationFootnotes, participants);
 
@@ -301,6 +410,17 @@ export function buildChatHtml(
             <style>
                 :root {
                     color-scheme: light;
+                    --chat-export-background: #f4f6fb;
+                    --chat-export-surface: #ffffff;
+                    --chat-export-text: #0f172a;
+                    --chat-export-muted: #64748b;
+                    --chat-export-soft-border: #e2e8f0;
+                    --chat-export-bubble-theirs-bg: #ffffff;
+                    --chat-export-bubble-theirs-text: #0f172a;
+                    --chat-export-bubble-theirs-border: #e2e8f0;
+                    --chat-export-bubble-mine-bg: #115EB6;
+                    --chat-export-bubble-mine-text: #ffffff;
+                    --chat-export-link: #0f6cbd;
                 }
 
                 * {
@@ -310,25 +430,27 @@ export function buildChatHtml(
                 body,
                 .${CHAT_HTML_EXPORT_RENDER_ROOT_CLASS_NAME} {
                     margin: 0;
-                    background: #f8fafc;
-                    color: #0f172a;
-                    font-family: Inter, "Segoe UI", Arial, sans-serif;
+                    background: var(--chat-export-background);
+                    color: var(--chat-export-text);
+                    font-family: Inter, "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+                    font-size: 15px;
+                    line-height: 1.55;
                 }
 
                 a {
-                    color: #0f6cbd;
+                    color: var(--chat-export-link);
                 }
 
                 .document {
-                    max-width: 860px;
+                    max-width: 820px;
                     margin: 0 auto;
-                    padding: 32px 20px 48px;
+                    padding: 40px 24px 56px;
                 }
 
                 .document-header {
-                    margin-bottom: 24px;
-                    padding-bottom: 16px;
-                    border-bottom: 1px solid #e2e8f0;
+                    margin-bottom: 28px;
+                    padding-bottom: 18px;
+                    border-bottom: 1px solid var(--chat-export-soft-border);
                 }
 
                 .document-eyebrow {
@@ -336,7 +458,7 @@ export function buildChatHtml(
                     font-size: 11px;
                     letter-spacing: 0.14em;
                     text-transform: uppercase;
-                    color: #64748b;
+                    color: var(--chat-export-muted);
                 }
 
                 .document-title {
@@ -347,89 +469,174 @@ export function buildChatHtml(
 
                 .document-meta {
                     margin: 10px 0 0;
-                    color: #475569;
-                    font-size: 14px;
+                    color: var(--chat-export-muted);
+                    font-size: 13px;
                 }
 
                 .message-list {
                     display: flex;
                     flex-direction: column;
-                    gap: 16px;
+                    gap: 22px;
                 }
 
-                .message-card {
-                    background: #ffffff;
-                    border: 1px solid #dbe4f0;
-                    border-left-width: 4px;
-                    border-left-color: var(--message-accent, #64748b);
-                    border-radius: 14px;
-                    padding: 16px 18px;
-                }
-
-                .message-header {
+                .message {
                     display: flex;
-                    justify-content: space-between;
                     align-items: flex-start;
                     gap: 12px;
-                    margin-bottom: 12px;
                 }
 
-                .message-header-main {
+                .message--mine {
+                    flex-direction: row-reverse;
+                }
+
+                .message-avatar {
+                    flex-shrink: 0;
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 50%;
+                    overflow: hidden;
+                    background-color: var(--message-accent, #64748b);
+                    color: #ffffff;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+
+                .message-avatar img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    display: block;
+                }
+
+                .message-avatar--initial span {
+                    font-size: 16px;
+                    font-weight: 600;
+                    line-height: 1;
+                }
+
+                .message-body {
+                    flex: 1 1 auto;
+                    min-width: 0;
+                    max-width: 78%;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 6px;
+                }
+
+                .message--mine .message-body {
+                    align-items: flex-end;
+                }
+
+                .message-meta {
                     display: flex;
                     flex-wrap: wrap;
-                    align-items: center;
+                    align-items: baseline;
                     gap: 8px;
+                    padding: 0 4px;
+                }
+
+                .message--mine .message-meta {
+                    justify-content: flex-end;
                 }
 
                 .message-sender {
-                    font-size: 16px;
+                    font-size: 13px;
                     font-weight: 600;
-                    color: var(--message-accent, #0f172a);
+                    color: var(--message-accent, var(--chat-export-text));
                 }
 
-                .message-role {
+                .message--mine .message-sender {
+                    color: var(--chat-export-text);
+                }
+
+                .message-time {
                     font-size: 11px;
-                    letter-spacing: 0.12em;
-                    text-transform: uppercase;
-                    color: #64748b;
+                    color: var(--chat-export-muted);
                 }
 
-                .message-time,
-                .message-duration {
-                    font-size: 12px;
-                    color: #64748b;
+                .message-bubble {
+                    padding: 14px 16px;
+                    border-radius: 16px;
+                    background: var(--chat-export-bubble-theirs-bg);
+                    color: var(--chat-export-bubble-theirs-text);
+                    border: 1px solid var(--chat-export-bubble-theirs-border);
+                    border-top-left-radius: 4px;
+                    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+                    max-width: 100%;
+                    overflow-wrap: anywhere;
                 }
 
-                .message-duration {
-                    margin: 12px 0 0;
+                .message--mine .message-bubble {
+                    background: var(--chat-export-bubble-mine-bg);
+                    color: var(--chat-export-bubble-mine-text);
+                    border-color: transparent;
+                    border-top-left-radius: 16px;
+                    border-top-right-radius: 4px;
+                }
+
+                .message--mine .message-bubble a {
+                    color: #d4e8ff;
+                }
+
+                .message--mine .message-bubble code {
+                    background: rgba(255, 255, 255, 0.18);
+                    color: inherit;
+                }
+
+                .message--mine .message-bubble pre {
+                    background: rgba(15, 23, 42, 0.35);
+                    color: #f8fafc;
+                }
+
+                .message--mine .message-bubble blockquote {
+                    color: rgba(255, 255, 255, 0.85);
+                    border-color: rgba(255, 255, 255, 0.5);
+                }
+
+                .message-footnote {
+                    margin: 2px 4px 0;
+                    font-size: 11px;
+                    color: var(--chat-export-muted);
                 }
 
                 .message-empty {
-                    color: #64748b;
+                    color: var(--chat-export-muted);
                     font-style: italic;
+                    margin: 0;
                 }
 
                 .reply-context {
-                    margin-bottom: 14px;
-                    padding: 12px 14px;
+                    margin: 0 0 10px;
+                    padding: 8px 12px;
                     border-radius: 10px;
-                    border: 1px solid #e2e8f0;
-                    background: #f8fafc;
+                    border-left: 3px solid var(--message-accent, #cbd5e1);
+                    background: rgba(15, 23, 42, 0.04);
+                }
+
+                .message--mine .reply-context {
+                    background: rgba(255, 255, 255, 0.18);
+                    border-left-color: rgba(255, 255, 255, 0.7);
                 }
 
                 .reply-context-title,
                 .message-supporting-title {
-                    margin-bottom: 8px;
+                    margin-bottom: 6px;
                     font-size: 11px;
-                    letter-spacing: 0.12em;
+                    letter-spacing: 0.1em;
                     text-transform: uppercase;
-                    color: #64748b;
+                    color: var(--chat-export-muted);
+                }
+
+                .message--mine .reply-context-title {
+                    color: rgba(255, 255, 255, 0.8);
                 }
 
                 .message-supporting-list {
-                    margin-top: 14px;
-                    padding-top: 12px;
-                    border-top: 1px solid #e2e8f0;
+                    margin-top: 10px;
+                    padding: 10px 14px;
+                    border-radius: 10px;
+                    background: rgba(15, 23, 42, 0.03);
                 }
 
                 .message-supporting-list ul {
@@ -439,18 +646,14 @@ export function buildChatHtml(
 
                 .message-supporting-meta {
                     margin-right: 6px;
-                    color: #64748b;
+                    color: var(--chat-export-muted);
                     font-size: 12px;
                 }
 
                 .message-supporting-excerpt {
-                    margin-top: 6px;
+                    margin-top: 4px;
                     color: #475569;
-                }
-
-                .markdown-content {
-                    font-size: 15px;
-                    line-height: 1.65;
+                    font-size: 13px;
                 }
 
                 .markdown-content > *:first-child {
@@ -478,7 +681,7 @@ export function buildChatHtml(
                 .markdown-content pre,
                 .markdown-content table,
                 .markdown-content details {
-                    margin: 0 0 14px;
+                    margin: 0 0 12px;
                 }
 
                 .markdown-content ul,
@@ -488,7 +691,7 @@ export function buildChatHtml(
 
                 .markdown-content code {
                     font-family: ui-monospace, "SFMono-Regular", monospace;
-                    background: #f1f5f9;
+                    background: rgba(15, 23, 42, 0.06);
                     border-radius: 4px;
                     padding: 1px 5px;
                     font-size: 0.94em;
@@ -540,7 +743,7 @@ export function buildChatHtml(
 
                 .markdown-content details {
                     padding: 12px 14px;
-                    border: 1px solid #e2e8f0;
+                    border: 1px solid var(--chat-export-soft-border);
                     border-radius: 10px;
                     background: #f8fafc;
                 }
@@ -562,7 +765,7 @@ export function buildChatHtml(
                 }
 
                 .markdown-content sup[data-citation-footnote] a {
-                    color: #0f6cbd;
+                    color: inherit;
                     text-decoration: none;
                 }
 
@@ -575,14 +778,14 @@ export function buildChatHtml(
                     border: 1px dashed #cbd5e1;
                     border-radius: 14px;
                     text-align: center;
-                    color: #64748b;
-                    background: #ffffff;
+                    color: var(--chat-export-muted);
+                    background: var(--chat-export-surface);
                 }
 
                 .document-sources {
-                    margin-top: 24px;
-                    padding-top: 16px;
-                    border-top: 1px solid #e2e8f0;
+                    margin-top: 32px;
+                    padding-top: 18px;
+                    border-top: 1px solid var(--chat-export-soft-border);
                 }
 
                 .document-sources-title {
@@ -608,25 +811,49 @@ export function buildChatHtml(
                 }
 
                 .document-footer {
-                    margin-top: 24px;
+                    margin-top: 28px;
                     padding-top: 16px;
-                    border-top: 1px solid #e2e8f0;
-                    color: #64748b;
+                    border-top: 1px solid var(--chat-export-soft-border);
+                    color: var(--chat-export-muted);
                     font-size: 12px;
+                    text-align: center;
                 }
 
                 .document-footer strong {
                     color: #475569;
                 }
 
+                @page {
+                    size: Letter;
+                    margin: 0.5in;
+                }
+
                 @media print {
-                    body {
+                    body,
+                    .${CHAT_HTML_EXPORT_RENDER_ROOT_CLASS_NAME} {
                         background: #ffffff;
+                        font-size: 12pt;
                     }
 
                     .document {
                         max-width: none;
                         padding: 0;
+                    }
+
+                    .message {
+                        page-break-inside: avoid;
+                        break-inside: avoid;
+                    }
+
+                    .message-bubble {
+                        box-shadow: none;
+                    }
+
+                    .markdown-content pre,
+                    .message-supporting-list,
+                    .reply-context {
+                        page-break-inside: avoid;
+                        break-inside: avoid;
                     }
                 }
             </style>

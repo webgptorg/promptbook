@@ -33,7 +33,7 @@
 
 ---
 
-[ ]
+[x] $4.67 25 minutes by Claude Code
 
 [✨©️] Make the export to html / PDF look better
 
@@ -49,3 +49,4 @@
 ![Chat in web](screenshots/2026-05-0262-agents-server-fix-chat-exports.png)
 ![Ugly exported HTML](screenshots/2026-05-0262-agents-server-fix-chat-exports-2.png)
 ![Ugly exported PDF](screenshots/2026-05-0262-agents-server-fix-chat-exports-1.png)
+

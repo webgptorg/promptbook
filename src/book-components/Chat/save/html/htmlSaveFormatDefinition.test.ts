@@ -108,6 +108,108 @@ describe('htmlSaveFormatDefinition', () => {
         expect(exportedContent).not.toContain('【0:0†');
     });
 
+    it('strips quick message and action buttons from exported HTML message bodies', () => {
+        const exportedContent = htmlSaveFormatDefinition.getContent({
+            title: 'Buttons demo',
+            participants: [
+                {
+                    name: 'ASSISTANT',
+                    fullname: 'Helpful Agent',
+                    color: '#2563eb',
+                },
+            ],
+            messages: [
+                {
+                    id: 'message-1',
+                    sender: 'ASSISTANT',
+                    content: spaceTrim(`
+                        How can I help you today?
+
+                        [Show me a demo](?message=Show%20me%20a%20demo)
+                        [Run quick action](?action=doSomething)
+                    `),
+                    isComplete: true,
+                },
+            ],
+        }) as string;
+
+        expect(exportedContent).toContain('How can I help you today?');
+        expect(exportedContent).not.toContain('?message=');
+        expect(exportedContent).not.toContain('?action=');
+        expect(exportedContent).not.toContain('Show me a demo');
+        expect(exportedContent).not.toContain('Run quick action');
+    });
+
+    it('omits messages that would render empty after stripping quick buttons', () => {
+        const exportedContent = htmlSaveFormatDefinition.getContent({
+            title: 'Quick buttons only demo',
+            participants: [
+                {
+                    name: 'ASSISTANT',
+                    fullname: 'Helpful Agent',
+                    color: '#2563eb',
+                },
+            ],
+            messages: [
+                {
+                    id: 'message-1',
+                    sender: 'ASSISTANT',
+                    content: 'Welcome!',
+                    isComplete: true,
+                },
+                {
+                    id: 'message-2',
+                    sender: 'ASSISTANT',
+                    content: '[Continue](?message=Continue)',
+                    isComplete: true,
+                },
+            ],
+        }) as string;
+
+        expect(exportedContent).toContain('Welcome!');
+        expect(exportedContent.match(/<article class="message /g)).toHaveLength(1);
+    });
+
+    it('aligns user messages to the right and agent messages to the left in the chat bubble layout', () => {
+        const exportedContent = htmlSaveFormatDefinition.getContent({
+            title: 'Bubble layout demo',
+            participants: [
+                {
+                    name: 'USER',
+                    fullname: 'Pat Doe',
+                    color: '#0ea5e9',
+                    isMe: true,
+                },
+                {
+                    name: 'ASSISTANT',
+                    fullname: 'Helpful Agent',
+                    color: '#2563eb',
+                },
+            ],
+            messages: [
+                {
+                    id: 'message-1',
+                    sender: 'USER',
+                    content: 'Hello',
+                    isComplete: true,
+                },
+                {
+                    id: 'message-2',
+                    sender: 'ASSISTANT',
+                    content: 'Hi there!',
+                    isComplete: true,
+                },
+            ],
+        }) as string;
+
+        expect(exportedContent).toContain('<article class="message message--mine"');
+        expect(exportedContent).toContain('<article class="message message--theirs"');
+        expect(exportedContent).toContain('class="message-bubble"');
+        expect(exportedContent).toContain('class="message-avatar message-avatar--initial"');
+        expect(exportedContent).toContain('<span>P</span>');
+        expect(exportedContent).toContain('<span>H</span>');
+    });
+
     it('sanitizes rendered markdown inside standalone HTML exports', () => {
         const exportedContent = htmlSaveFormatDefinition.getContent({
             title: 'Sanitized export',

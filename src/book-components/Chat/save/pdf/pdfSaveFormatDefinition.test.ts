@@ -215,7 +215,7 @@ describe('pdfSaveFormatDefinition', () => {
         expect(metadataText).toContain(PROMPTBOOK_ENGINE_VERSION);
         expect(metadataText).toContain(BOOK_LANGUAGE_VERSION);
         expect(renderedHtml).toContain('<style>');
-        expect(renderedHtml).toContain('<article class="message-card"');
+        expect(renderedHtml).toContain('<article class="message message--theirs"');
         expect(renderedHtml).toContain('Helpful Agent');
         expect(renderedHtml).toContain('<h1>Summary</h1>');
         expect(renderedHtml).toContain('<li>First</li>');
