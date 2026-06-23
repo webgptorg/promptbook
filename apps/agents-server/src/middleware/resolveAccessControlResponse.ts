@@ -19,6 +19,7 @@ export async function resolveAccessControlResponse(options: {
     readonly request: NextRequest;
     readonly isAccessRestricted: boolean;
     readonly applyResponseHeaders: ApplyResponseHeaders;
+    readonly requestHeaders: Headers;
 }): Promise<NextResponse | null> {
     if (options.request.method === 'OPTIONS') {
         return createOptionsResponse();
@@ -31,7 +32,7 @@ export async function resolveAccessControlResponse(options: {
     const path = options.request.nextUrl.pathname;
 
     if (isAllowedPathWhileRestricted(path)) {
-        const response = NextResponse.next();
+        const response = NextResponse.next({ request: { headers: options.requestHeaders } });
         await options.applyResponseHeaders(response);
         return response;
     }
@@ -39,7 +40,7 @@ export async function resolveAccessControlResponse(options: {
     if (options.request.headers.get('accept')?.includes('text/html')) {
         const restrictedUrl = options.request.nextUrl.clone();
         restrictedUrl.pathname = '/restricted';
-        const response = NextResponse.rewrite(restrictedUrl);
+        const response = NextResponse.rewrite(restrictedUrl, { request: { headers: options.requestHeaders } });
         await options.applyResponseHeaders(response);
         return response;
     }

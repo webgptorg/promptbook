@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { applyVisibilityHeaders } from './middleware/applyVisibilityHeaders';
+import {
+    applyContentSecurityPolicyHeader,
+    applyContentSecurityPolicyToRequestHeaders,
+    generateContentSecurityPolicyNonce,
+} from './middleware/contentSecurityPolicy';
 import { createMiddlewareRequestContext } from './middleware/createMiddlewareRequestContext';
 import { resolveAccessControlResponse } from './middleware/resolveAccessControlResponse';
 import { resolveMiddlewareResponse } from './middleware/resolveMiddlewareResponse';
@@ -12,8 +17,15 @@ import { resolveMiddlewareResponse } from './middleware/resolveMiddlewareRespons
  * @returns Middleware response.
  */
 export async function middleware(request: NextRequest): Promise<NextResponse> {
+    // Note: A fresh, single-use nonce is issued per request so that only inline scripts explicitly
+    //       rendered by the server (theme bootstrap, custom JavaScript, analytics) are allowed to run.
+    const contentSecurityPolicyNonce = generateContentSecurityPolicyNonce();
+    const requestHeaders = new Headers(request.headers);
+    applyContentSecurityPolicyToRequestHeaders(requestHeaders, contentSecurityPolicyNonce);
+
     const middlewareRequestContext = await createMiddlewareRequestContext(request);
     const applyResponseHeaders = async (response: NextResponse): Promise<void> => {
+        applyContentSecurityPolicyHeader(response, contentSecurityPolicyNonce);
         await applyVisibilityHeaders({
             canQueryServerTables: middlewareRequestContext.canQueryServerTables,
             request,
@@ -27,6 +39,7 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
         applyResponseHeaders,
         isAccessRestricted: middlewareRequestContext.isAccessRestricted,
         request,
+        requestHeaders,
     });
 
     if (accessControlResponse) {
@@ -38,6 +51,7 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
         customDomainResolution: middlewareRequestContext.customDomainResolution,
         isEmbeddingAllowed: middlewareRequestContext.isEmbeddingAllowed,
         request,
+        requestHeaders,
     });
 }
 

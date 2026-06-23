@@ -23,6 +23,7 @@ export async function resolveMiddlewareResponse(options: {
     readonly customDomainResolution: CustomDomainResolution | null;
     readonly isEmbeddingAllowed: boolean;
     readonly applyResponseHeaders: ApplyResponseHeaders;
+    readonly requestHeaders: Headers;
 }): Promise<NextResponse> {
     const rootAgentRedirectResponse = createRootAgentRedirectResponse(options.request);
     if (rootAgentRedirectResponse) {
@@ -33,15 +34,18 @@ export async function resolveMiddlewareResponse(options: {
     const customDomainRewriteResponse = createCustomDomainRewriteResponse(
         options.request,
         options.customDomainResolution,
+        options.requestHeaders,
     );
     if (customDomainRewriteResponse) {
         await options.applyResponseHeaders(customDomainRewriteResponse);
         return customDomainRewriteResponse;
     }
 
-    const response = NextResponse.next();
-    applyEmbeddingHeader(response, options.request.nextUrl, options.isEmbeddingAllowed);
+    const response = NextResponse.next({ request: { headers: options.requestHeaders } });
+    // Note: The base Content Security Policy is applied first so the embedding header can append its
+    //       own `frame-ancestors` directive without dropping the strict `script-src` policy.
     await options.applyResponseHeaders(response);
+    applyEmbeddingHeader(response, options.request.nextUrl, options.isEmbeddingAllowed);
     return response;
 }
 
@@ -78,6 +82,7 @@ function createRootAgentRedirectResponse(request: NextRequest): NextResponse | n
  *
  * @param request - Incoming middleware request.
  * @param customDomainResolution - Resolved custom-domain mapping.
+ * @param requestHeaders - Forwarded request headers already carrying the per-request CSP nonce.
  * @returns Rewrite response, or `null` when no custom-domain mapping exists.
  *
  * @private function of resolveMiddlewareResponse
@@ -85,6 +90,7 @@ function createRootAgentRedirectResponse(request: NextRequest): NextResponse | n
 function createCustomDomainRewriteResponse(
     request: NextRequest,
     customDomainResolution: CustomDomainResolution | null,
+    requestHeaders: Headers,
 ): NextResponse | null {
     if (!customDomainResolution) {
         return null;
@@ -93,7 +99,6 @@ function createCustomDomainRewriteResponse(
     const rewriteUrl = request.nextUrl.clone();
     rewriteUrl.pathname = `/${customDomainResolution.agentName}`;
 
-    const requestHeaders = new Headers(request.headers);
     requestHeaders.set('x-promptbook-server', customDomainResolution.server.domain);
 
     return NextResponse.rewrite(rewriteUrl, {

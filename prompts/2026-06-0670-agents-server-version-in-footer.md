@@ -1,4 +1,4 @@
-[ ]
+[ ] !!
 
 [✨𓀃] In the footer of agents server there should be unique emoji heard in "Made with ❤️ in Europe"
 
