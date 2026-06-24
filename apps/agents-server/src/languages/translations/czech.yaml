@@ -380,7 +380,7 @@ footer.logosAndBranding: Loga a vizuální identita
 footer.connectSectionTitle: Spojte se s námi
 footer.linksSectionTitle: Odkazy
 footer.allRightsReserved: Všechna práva vyhrazena.
-footer.madeInCzechRepublic: Vytvořeno s ❤️ v České republice.
+footer.madeInCzechRepublic: Vytvořeno s {emoji} v České republice.
 footer.engineVersion: Verze jádra Promptbooku
 forbidden.title: 403 Zakázáno
 forbidden.message: Nemáte oprávnění k přístupu na tuto stránku.

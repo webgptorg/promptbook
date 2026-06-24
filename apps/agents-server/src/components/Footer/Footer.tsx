@@ -1,9 +1,10 @@
 'use client';
 
-import { NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF } from '@/config';
+import { NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF, NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA } from '@/config';
 import { CLAIM, NAME, PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/core';
 import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
 import { HeadlessLink } from '../_utils/headlessParam';
+import { getCommitFooterEmoji } from './getCommitFooterEmoji';
 
 /**
  * Title/url pair used to extend the footer via metadata.
@@ -169,7 +170,7 @@ export function Footer(props: FooterProps) {
                         <br />
                         {t('footer.allRightsReserved')}
                         <br />
-                        {t('footer.madeInCzechRepublic')}
+                        {t('footer.madeInCzechRepublic', { emoji: getCommitFooterEmoji(NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA) })}
                         {/* <- TODO: !!!!!!!! Put here Prague outline */}
                     </p>
                     <p className="mt-2 text-xs text-gray-400">

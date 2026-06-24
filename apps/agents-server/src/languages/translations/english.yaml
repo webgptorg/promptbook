@@ -384,7 +384,7 @@ footer.logosAndBranding: Logos & Branding
 footer.connectSectionTitle: Connect
 footer.linksSectionTitle: Links
 footer.allRightsReserved: All rights reserved.
-footer.madeInCzechRepublic: Made with ❤️ in Europe
+footer.madeInCzechRepublic: Made with {emoji} in Europe
 footer.engineVersion: Promptbook engine version
 forbidden.title: 403 Forbidden
 forbidden.message: You do not have permission to access this page.
