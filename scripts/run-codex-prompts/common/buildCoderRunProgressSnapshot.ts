@@ -22,11 +22,16 @@ export type CoderRunProgressSnapshot = {
 
 /**
  * Builds a session-scoped progress snapshot from prompt stats and elapsed active time.
+ *
+ * When the current session has not finished any prompt yet but a `cachedAveragePromptDurationMs` is
+ * provided (loaded from the per-config estimate cache stored in the temp folder), the snapshot uses
+ * that historical average to project the remaining work instead of waiting for the first completion.
  */
 export function buildCoderRunProgressSnapshot(
     stats: PromptStats,
     elapsedDuration: moment.Duration,
     initialDone: number,
+    cachedAveragePromptDurationMs?: number,
 ): CoderRunProgressSnapshot {
     const totalPrompts = stats.done + stats.forAgent + stats.toBeWritten;
     const sessionDone = Math.max(0, stats.done - initialDone);
@@ -35,14 +40,26 @@ export function buildCoderRunProgressSnapshot(
     const currentPromptIndex = sessionTotal > 0 ? Math.min(sessionDone + 1, sessionTotal) : 0;
     const percentage = sessionTotal > 0 ? Math.round((sessionDone / sessionTotal) * 100) : 0;
     const elapsedText = formatDurationBrief(elapsedDuration);
+    const elapsedMs = elapsedDuration.asMilliseconds();
 
     let estimatedTotalText = 'estimating...';
     let estimatedLabel = 'after first completion';
     let isEstimatedTotalKnown = false;
+    let estimatedTotalMs: number | undefined;
 
     if (sessionTotal > 0 && sessionDone > 0) {
-        const estimatedTotalMs = (elapsedDuration.asMilliseconds() * sessionTotal) / sessionDone;
-        const estimatedRemainingMs = Math.max(0, estimatedTotalMs - elapsedDuration.asMilliseconds());
+        estimatedTotalMs = (elapsedMs * sessionTotal) / sessionDone;
+    } else if (
+        sessionTotal > 0 &&
+        cachedAveragePromptDurationMs !== undefined &&
+        cachedAveragePromptDurationMs > 0
+    ) {
+        const projectedRemainingMs = sessionRemaining * cachedAveragePromptDurationMs;
+        estimatedTotalMs = elapsedMs + projectedRemainingMs;
+    }
+
+    if (estimatedTotalMs !== undefined) {
+        const estimatedRemainingMs = Math.max(0, estimatedTotalMs - elapsedMs);
         const estimatedTotalDuration = moment.duration(estimatedTotalMs);
         const estimatedCompletion = moment().add(estimatedRemainingMs, 'milliseconds');
 

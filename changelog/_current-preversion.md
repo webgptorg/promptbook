@@ -1,3 +1,11 @@
+-   Improved the completion-time estimate shown by `ptbk coder run` and `ptbk coder server`:
+
+    -   The estimated completion clock time is now rendered in **24-hour format** (for example `17:30` instead of `5:30`) by switching the calendar specs in `scripts/run-codex-prompts/common/progressFormatting.ts` from `h:mm` to `HH:mm` so estimates are unambiguous between AM and PM.
+    -   Added a per-configuration estimate cache stored in the OS temp folder (`<tmpdir>/ptbk-coder-estimates/<harness>__<model>__<thinking-level>.json`) so the runner can show a meaningful estimate **immediately, before the first prompt of the new session completes**, by using the running average of historical prompt durations.
+    -   Each `--harness` / `--model` / `--thinking-level` combination is stored in its own cache file, so estimates from different runner configurations are never mixed up.
+    -   The cache is updated after every successful prompt round in `scripts/run-codex-prompts/main/runPromptRound.ts`, and is loaded at startup in `scripts/run-codex-prompts/main/runCodexPrompts.ts` and threaded through both `CliProgressDisplay` and `CoderRunUiState` via the existing `buildCoderRunProgressSnapshot` helper. Cache failures are swallowed and never break the current run.
+    -   Added unit tests in `scripts/run-codex-prompts/common/coderRunEstimateCache.test.ts` and an extra case in `buildCoderRunProgressSnapshot.test.ts` covering the new cached-estimate path.
+
 -   Expanded the Agents Server **standalone VPS self-update** super-admin page (`/admin/update`) with deeper deployment-drift insight and an arbitrary-ref custom target:
 
     -   The current-deployment card now also shows how many commits and how much time the deployed checkout is behind the latest remote commit (e.g. "3 commits · 2 days behind"). Author timestamps are localized with `moment.js` using the active UI language via `createServerLanguageMoment`, so "2 days ago"-style labels follow the operator's chosen interface language.

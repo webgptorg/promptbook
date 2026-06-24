@@ -12,6 +12,7 @@ import type {
     WaitForCoderRunPauseCheckpoint,
 } from '../common/CoderRunPauseCheckpoint';
 import { CliProgressDisplay } from '../common/cliProgressDisplay';
+import { loadCachedAveragePromptDurationMs } from '../common/coderRunEstimateCache';
 import { resolveAgentSystemMessage } from '../common/resolveAgentSystemMessage';
 import { sleepWithCountdown } from '../common/sleepWithCountdown';
 import { resolveCoderContext } from '../common/resolveCoderContext';
@@ -84,6 +85,12 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
         console.info(colors.green(`Running prompts with ${runner.name}`));
 
         initializeRunUi(uiHandle, runner.name, actualRunnerModel, options);
+        await seedCachedAveragePromptDuration({
+            options,
+            actualRunnerModel,
+            progressDisplay,
+            uiHandle,
+        });
 
         let hasShownUpcomingTasks = false;
         let hasWaitedForStart = false;
@@ -578,6 +585,36 @@ async function waitBetweenPromptRoundsIfNeeded(options: {
 
     progressDisplay?.resumeTimer();
     uiHandle?.state.resumeTimer();
+}
+
+/**
+ * Loads the cached average prompt duration for the current runner configuration and seeds both
+ * progress displays with it so estimates are shown immediately, even before the first prompt of
+ * the current session completes.
+ */
+async function seedCachedAveragePromptDuration(options: {
+    options: RunOptions;
+    actualRunnerModel: string | undefined;
+    progressDisplay?: CliProgressDisplay;
+    uiHandle?: CoderRunUiHandle;
+}): Promise<void> {
+    const { options: runOptions, actualRunnerModel, progressDisplay, uiHandle } = options;
+    if (!runOptions.agentName) {
+        return;
+    }
+
+    const cachedAveragePromptDurationMs = await loadCachedAveragePromptDurationMs({
+        harness: runOptions.agentName,
+        model: actualRunnerModel ?? runOptions.model,
+        thinkingLevel: runOptions.thinkingLevel,
+    });
+
+    if (cachedAveragePromptDurationMs === undefined) {
+        return;
+    }
+
+    progressDisplay?.setCachedAveragePromptDurationMs(cachedAveragePromptDurationMs);
+    uiHandle?.state.setCachedAveragePromptDurationMs(cachedAveragePromptDurationMs);
 }
 
 /**

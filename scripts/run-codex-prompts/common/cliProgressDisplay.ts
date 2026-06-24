@@ -31,6 +31,7 @@ export class CliProgressDisplay {
     private readonly timer: CoderRunTimer;
     private isHeaderReserved = false;
     private interval: NodeJS.Timeout | undefined;
+    private cachedAveragePromptDurationMs: number | undefined;
 
     /**
      * Creates a new display that uses the provided start time when computing estimates.
@@ -48,6 +49,16 @@ export class CliProgressDisplay {
         this.reserveHeaderLine();
         this.render();
         this.interval = setInterval(() => this.render(), PROGRESS_REFRESH_INTERVAL_MS);
+    }
+
+    /**
+     * Sets the cached average prompt duration (in milliseconds) loaded from the temp-folder estimate cache.
+     *
+     * Used to project completion estimates before the first prompt of the current session finishes.
+     */
+    public setCachedAveragePromptDurationMs(cachedAveragePromptDurationMs: number | undefined): void {
+        this.cachedAveragePromptDurationMs = cachedAveragePromptDurationMs;
+        this.render();
     }
 
     /**
@@ -135,6 +146,7 @@ export class CliProgressDisplay {
             this.stats,
             this.timer.getElapsedDuration(),
             this.initialDone ?? this.stats.done,
+            this.cachedAveragePromptDurationMs,
         );
         const columns = Math.max(40, process.stdout.columns ?? 80);
         const workingLine =

@@ -81,6 +81,7 @@ export class CoderRunUiState extends EventEmitter {
     private stats: PromptStats = { done: 0, forAgent: 0, belowMinimumPriority: 0, toBeWritten: 0 };
     private readonly timer: CoderRunTimer;
     private initialDone: number | undefined;
+    private cachedAveragePromptDurationMs: number | undefined;
 
     public constructor(startTime: moment.Moment) {
         super();
@@ -125,6 +126,16 @@ export class CoderRunUiState extends EventEmitter {
     }
 
     /**
+     * Sets the cached average prompt duration (in milliseconds) loaded from the temp-folder estimate cache.
+     *
+     * Used to project completion estimates before the first prompt of the current session finishes.
+     */
+    public setCachedAveragePromptDurationMs(cachedAveragePromptDurationMs: number | undefined): void {
+        this.cachedAveragePromptDurationMs = cachedAveragePromptDurationMs;
+        this.emitChange();
+    }
+
+    /**
      * Computes a progress snapshot on demand so elapsed time ticks with periodic re-renders.
      */
     public getProgress(): CoderRunProgressSnapshot {
@@ -132,6 +143,7 @@ export class CoderRunUiState extends EventEmitter {
             this.stats,
             this.timer.getElapsedDuration(),
             this.initialDone ?? this.stats.done,
+            this.cachedAveragePromptDurationMs,
         );
     }
 

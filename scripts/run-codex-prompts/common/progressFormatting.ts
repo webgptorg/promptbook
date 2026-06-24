@@ -2,14 +2,16 @@ import moment from 'moment';
 
 /**
  * Calendar formats used when displaying the estimated completion time.
+ *
+ * Uses 24-hour format (`HH:mm`) so estimates are unambiguous (for example `17:30` instead of `5:30`).
  */
 export const ESTIMATED_DONE_CALENDAR_FORMATS = {
-    sameDay: '[Today] h:mm',
-    nextDay: '[Tomorrow] h:mm',
-    nextWeek: 'dddd h:mm',
-    lastDay: '[Yesterday] h:mm',
-    lastWeek: 'dddd h:mm',
-    sameElse: 'MMM D h:mm',
+    sameDay: '[Today] HH:mm',
+    nextDay: '[Tomorrow] HH:mm',
+    nextWeek: 'dddd HH:mm',
+    lastDay: '[Yesterday] HH:mm',
+    lastWeek: 'dddd HH:mm',
+    sameElse: 'MMM D HH:mm',
 } satisfies moment.CalendarSpec;
 
 /**

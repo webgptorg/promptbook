@@ -4,6 +4,7 @@ import { spaceTrim } from 'spacetrim';
 import type { RunOptions } from '../cli/RunOptions';
 import { appendCoderContext } from '../common/appendCoderContext';
 import type { CliProgressDisplay } from '../common/cliProgressDisplay';
+import { recordPromptDurationSample } from '../common/coderRunEstimateCache';
 import type { WaitForCoderRunPauseCheckpoint } from '../common/CoderRunPauseCheckpoint';
 import { formatCommitMessageForDisplay } from '../common/formatCommitMessageForDisplay';
 import {
@@ -316,6 +317,11 @@ async function finalizeSuccessfulPromptRound(options: {
     );
     await writePromptFile(nextPrompt.file);
     await normalizeLineEndingsForCurrentRound(runOptions, roundChangedFilesSnapshot);
+    await recordPromptDurationInEstimateCache({
+        options: runOptions,
+        runnerMetadata,
+        promptExecutionStartedDate,
+    });
 
     if (!runOptions.noCommit) {
         await waitForCommitConfirmationIfNeeded({
@@ -463,6 +469,35 @@ async function runPostPromptAutoMigrationIfEnabled(options: RunOptions): Promise
         allowDestructiveAutoMigrate: options.allowDestructiveAutoMigrate,
         logger: console,
     });
+}
+
+/**
+ * Persists the duration of one successful prompt round into the per-config estimate cache so the
+ * next `ptbk coder run` / `ptbk coder server` invocation can show a meaningful completion estimate
+ * before its own first prompt has finished.
+ */
+async function recordPromptDurationInEstimateCache(options: {
+    options: RunOptions;
+    runnerMetadata: {
+        runnerName: string;
+        modelName?: string;
+    };
+    promptExecutionStartedDate: moment.Moment;
+}): Promise<void> {
+    const { options: runOptions, runnerMetadata, promptExecutionStartedDate } = options;
+    if (!runOptions.agentName) {
+        return;
+    }
+
+    const promptDurationMs = moment().diff(promptExecutionStartedDate);
+    await recordPromptDurationSample(
+        {
+            harness: runOptions.agentName,
+            model: runnerMetadata.modelName ?? runOptions.model,
+            thinkingLevel: runOptions.thinkingLevel,
+        },
+        promptDurationMs,
+    );
 }
 
 /**
