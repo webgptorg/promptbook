@@ -338,9 +338,49 @@ read_repository_commit_sha() {
 }
 
 read_remote_repository_commit_sha() {
+    local raw_ref="$1"
     local target_ref=""
-    target_ref="$(normalize_promptbook_repository_ref "$1")"
-    run_as_service_user git ls-remote "$PROMPTBOOK_REPOSITORY_URL" "refs/heads/$target_ref" 2>/dev/null | awk 'NR == 1 { print $1 }'
+    local resolved_sha=""
+
+    # A 40-char hex string is already a full commit SHA; treat short SHAs as commit hashes too.
+    if [[ "$raw_ref" =~ ^[0-9a-fA-F]{7,40}$ ]]; then
+        printf '%s' "$raw_ref"
+        return
+    fi
+
+    target_ref="$(normalize_promptbook_repository_ref_safe "$raw_ref")"
+    resolved_sha="$(run_as_service_user git ls-remote "$PROMPTBOOK_REPOSITORY_URL" "refs/heads/$target_ref" 2>/dev/null | awk 'NR == 1 { print $1 }')"
+    if [[ -z "$resolved_sha" ]]; then
+        resolved_sha="$(run_as_service_user git ls-remote "$PROMPTBOOK_REPOSITORY_URL" "refs/tags/$target_ref" 2>/dev/null | awk 'NR == 1 { print $1 }')"
+    fi
+
+    printf '%s' "$resolved_sha"
+}
+
+# Like normalize_promptbook_repository_ref but returns the raw ref unchanged when it is not one of the
+# four predefined environments. Used for self-update targets that may point at arbitrary commits or tags.
+normalize_promptbook_repository_ref_safe() {
+    local raw_ref="${1:-}"
+    local normalized_ref=""
+
+    normalized_ref="$(printf '%s' "$raw_ref" | tr '[:upper:]' '[:lower:]' | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')"
+    case "$normalized_ref" in
+        '' | production)
+            printf 'production'
+            ;;
+        main | live)
+            printf 'main'
+            ;;
+        preview)
+            printf 'preview'
+            ;;
+        lts)
+            printf 'lts'
+            ;;
+        *)
+            printf '%s' "$raw_ref"
+            ;;
+    esac
 }
 
 read_remote_repository_tag_for_commit() {
@@ -1121,7 +1161,13 @@ install_promptbook_repository() {
     fi
 
     remove_promptbook_repository_directory_if_safe "$staging_repository_dir" "$target_repository_dir"
-    run_as_service_user git clone --depth 1 --branch "$PROMPTBOOK_REPOSITORY_REF" "$PROMPTBOOK_REPOSITORY_URL" "$staging_repository_dir"
+    # Try a shallow branch clone first; fall back to a full clone + detached checkout when the ref is a
+    # commit SHA or arbitrary tag that --branch cannot resolve directly.
+    if ! run_as_service_user git clone --depth 1 --branch "$PROMPTBOOK_REPOSITORY_REF" "$PROMPTBOOK_REPOSITORY_URL" "$staging_repository_dir" 2>/dev/null; then
+        log "Branch-based shallow clone failed; cloning full history to check out arbitrary ref $PROMPTBOOK_REPOSITORY_REF."
+        rm -rf -- "$staging_repository_dir"
+        run_as_service_user git clone "$PROMPTBOOK_REPOSITORY_URL" "$staging_repository_dir"
+    fi
     run_as_service_user git -C "$staging_repository_dir" checkout --detach "$target_commit_sha"
 
     log "Installing Promptbook repository dependencies."
@@ -2799,6 +2845,9 @@ load_runtime_configuration_from_env_file() {
     env_value="$(get_env_value PROMPTBOOK_REPOSITORY_REF)"
     [[ -n "$env_value" ]] && PROMPTBOOK_REPOSITORY_REF="$(normalize_promptbook_repository_ref "$env_value")"
 
+    env_value="$(get_env_value PROMPTBOOK_REPOSITORY_URL)"
+    [[ -n "$env_value" ]] && PROMPTBOOK_REPOSITORY_URL="$env_value"
+
     env_value="$(get_env_value PTBK_NGINX_SITE_NAME)"
     [[ -n "$env_value" ]] && NGINX_SITE_NAME="$env_value"
 
@@ -2944,6 +2993,7 @@ apply_code_runner_configuration() {
 
 self_update_agents_server() {
     local target_ref=""
+    local is_custom_ref=0
     local finished_at=""
     local old_repository_dir=""
     local old_app_name=""
@@ -2963,9 +3013,21 @@ self_update_agents_server() {
                 shift
                 [[ $# -gt 0 ]] || fail "Missing value for --branch."
                 target_ref="$1"
+                is_custom_ref=0
                 ;;
             --branch=*)
                 target_ref="${1#--branch=}"
+                is_custom_ref=0
+                ;;
+            --ref)
+                shift
+                [[ $# -gt 0 ]] || fail "Missing value for --ref."
+                target_ref="$1"
+                is_custom_ref=1
+                ;;
+            --ref=*)
+                target_ref="${1#--ref=}"
+                is_custom_ref=1
                 ;;
             *)
                 fail "Unknown self-update option '$1'."
@@ -2974,7 +3036,11 @@ self_update_agents_server() {
         shift
     done
 
-    PROMPTBOOK_REPOSITORY_REF="$(normalize_promptbook_repository_ref "$target_ref")"
+    if [[ "$is_custom_ref" -eq 1 ]]; then
+        PROMPTBOOK_REPOSITORY_REF="$target_ref"
+    else
+        PROMPTBOOK_REPOSITORY_REF="$(normalize_promptbook_repository_ref "$target_ref")"
+    fi
     SELF_UPDATE_STARTED_AT="$(date --utc --iso-8601=seconds)"
     old_repository_dir="$PROMPTBOOK_REPOSITORY_DIR"
     old_app_name="$APP_NAME"

@@ -1,4 +1,4 @@
-[ ] !
+[x] $8.25 36 minutes by Claude Code
 
 [✨🧐] The self-update of the Agents server should show more info
 
@@ -17,3 +17,4 @@
 -   You are working with the [Agents Server](apps/agents-server)
 
 ![alt text](screenshots/2026-06-0550-agents-server-failse-self-update-fail.png)
+

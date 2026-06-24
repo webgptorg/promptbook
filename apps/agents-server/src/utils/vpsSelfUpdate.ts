@@ -26,32 +26,55 @@ const VPS_SELF_UPDATE_RESTART_SUCCESS_STEP =
     'Standalone VPS self-update finished successfully after restarting the server.';
 
 /**
+ * Default upstream repository URL used when no custom origin is configured.
+ */
+export const VPS_SELF_UPDATE_DEFAULT_ORIGIN_REPOSITORY_URL = 'https://github.com/webgptorg/promptbook.git';
+
+/**
+ * Identifier of the synthetic environment that allows targeting an arbitrary git ref.
+ */
+export const VPS_SELF_UPDATE_CUSTOM_ENVIRONMENT_ID = 'custom' as const;
+
+/**
  * Supported standalone VPS update environments.
+ *
+ * Order matters: it is the order presented to the super-admin in the UI.
  */
 export const VPS_SELF_UPDATE_ENVIRONMENTS = [
-    {
-        id: 'production',
-        branch: 'production',
-        label: 'Production',
-        description: 'Recommended stable deployment branch for standalone servers.',
-    },
     {
         id: 'main',
         branch: 'main',
         label: 'Live',
         description: 'Tracks the latest commit from the main development branch.',
+        isCustom: false,
     },
     {
         id: 'preview',
         branch: 'preview',
         label: 'Preview',
         description: 'Follows the preview branch before changes reach production.',
+        isCustom: false,
+    },
+    {
+        id: 'production',
+        branch: 'production',
+        label: 'Production',
+        description: 'Recommended stable deployment branch for standalone servers.',
+        isCustom: false,
     },
     {
         id: 'lts',
         branch: 'lts',
         label: 'LTS',
         description: 'Keeps the server on the long-term-support branch.',
+        isCustom: false,
+    },
+    {
+        id: VPS_SELF_UPDATE_CUSTOM_ENVIRONMENT_ID,
+        branch: '',
+        label: 'Custom',
+        description: 'Pick an arbitrary commit, tag, or branch — advanced and potentially unstable.',
+        isCustom: true,
     },
 ] as const;
 
@@ -165,6 +188,10 @@ export type VpsSelfUpdateOverview = {
      */
     readonly currentCommitMessage: string | null;
     /**
+     * Author timestamp of the currently deployed commit in ISO format.
+     */
+    readonly currentCommitDate: string | null;
+    /**
      * Latest remote commit on the selected branch.
      */
     readonly latestRemoteCommitSha: string | null;
@@ -173,9 +200,29 @@ export type VpsSelfUpdateOverview = {
      */
     readonly latestRemoteCommitShortSha: string | null;
     /**
+     * Author timestamp of the latest remote commit in ISO format.
+     */
+    readonly latestRemoteCommitDate: string | null;
+    /**
+     * Number of commits the deployed checkout is behind the latest remote commit, or `null` when unknown.
+     */
+    readonly commitsBehindCount: number | null;
+    /**
      * Whether the remote branch contains a newer commit than the deployed checkout.
      */
     readonly isUpdateAvailable: boolean;
+    /**
+     * Configured upstream repository URL (defaults to `webgptorg/promptbook`).
+     */
+    readonly originRepositoryUrl: string;
+    /**
+     * Whether the configured origin matches the default upstream repository.
+     */
+    readonly isOriginRepositoryDefault: boolean;
+    /**
+     * Default upstream repository URL.
+     */
+    readonly defaultOriginRepositoryUrl: string;
     /**
      * Latest persisted update-job state.
      */
@@ -197,16 +244,34 @@ export type VpsSelfUpdateJobOverviewContext = {
 };
 
 /**
+ * Request payload accepted by {@link startVpsSelfUpdate}.
+ */
+export type VpsSelfUpdateStartRequest = {
+    /**
+     * Predefined environment id (e.g. `production`) or `custom` to target an arbitrary ref.
+     */
+    readonly environmentId: string;
+    /**
+     * Optional arbitrary commit hash, tag, or branch used when `environmentId === 'custom'`.
+     */
+    readonly customRef?: string | null;
+    /**
+     * Optional override of the upstream repository URL (must be a `https://` git URL).
+     */
+    readonly originRepositoryUrl?: string | null;
+};
+
+/**
  * Starts one detached VPS self-update run for the selected environment.
  *
  * The actual update is executed by `other/vps/install.sh self-update`, while this
  * helper writes the initial persisted state and detaches the background process so
  * the triggering HTTP request can finish before pm2 restarts the server.
  *
- * @param targetEnvironmentId - Deployment environment selected by the super admin.
+ * @param request - Update request payload.
  * @returns Fresh overview including the running background job.
  */
-export async function startVpsSelfUpdate(targetEnvironmentId: string): Promise<VpsSelfUpdateOverview> {
+export async function startVpsSelfUpdate(request: VpsSelfUpdateStartRequest): Promise<VpsSelfUpdateOverview> {
     if (process.platform !== 'linux') {
         throw new NotAllowed(
             spaceTrim(`
@@ -215,7 +280,26 @@ export async function startVpsSelfUpdate(targetEnvironmentId: string): Promise<V
         );
     }
 
-    const targetEnvironment = resolveVpsSelfUpdateEnvironment(targetEnvironmentId);
+    const targetEnvironment = resolveVpsSelfUpdateEnvironment(request.environmentId);
+    const isCustomEnvironment = targetEnvironment.isCustom;
+    const targetRef = isCustomEnvironment ? normalizeArbitraryRef(request.customRef) : targetEnvironment.branch;
+
+    if (isCustomEnvironment && !targetRef) {
+        throw new NotAllowed(
+            spaceTrim(`
+                A custom self-update requires a non-empty target ref (commit hash, tag, or branch).
+            `),
+        );
+    }
+
+    const requestedOriginUrl = normalizeOriginRepositoryUrl(request.originRepositoryUrl);
+    if (requestedOriginUrl !== null) {
+        await persistVpsSelfUpdateOriginRepositoryUrl(requestedOriginUrl);
+    }
+
+    const originRepositoryUrl =
+        requestedOriginUrl || (await readConfiguredVpsSelfUpdateOriginRepositoryUrl());
+
     const currentJob = await readPersistedVpsSelfUpdateJob();
     if (currentJob.status === 'running' && !currentJob.isStale) {
         throw new NotAllowed(
@@ -237,21 +321,26 @@ export async function startVpsSelfUpdate(targetEnvironmentId: string): Promise<V
     const logHandle = await open(logFilePath, 'a');
 
     try {
-        const child = spawn('bash', [scriptPath, 'self-update', '--branch', targetEnvironment.branch], {
+        const installerArgs = isCustomEnvironment
+            ? [scriptPath, 'self-update', '--ref', targetRef]
+            : [scriptPath, 'self-update', '--branch', targetRef];
+
+        const child = spawn('bash', installerArgs, {
             detached: true,
             stdio: ['ignore', logHandle.fd, logHandle.fd],
             env: {
                 ...createVpsInstallerCommandEnvironment(),
                 PTBK_SELF_UPDATE_STATUS_FILE: statusFilePath,
                 PTBK_SELF_UPDATE_LOG_FILE: logFilePath,
-                PTBK_TARGET_REPOSITORY_REF: targetEnvironment.branch,
+                PTBK_TARGET_REPOSITORY_REF: targetRef,
+                PROMPTBOOK_REPOSITORY_URL: originRepositoryUrl,
             },
         });
 
         await writeVpsSelfUpdateStatusFile({
             STATUS: 'running',
             PID: String(child.pid ?? ''),
-            TARGET_REF: targetEnvironment.branch,
+            TARGET_REF: targetRef,
             CURRENT_STEP_B64: encodeStatusField('Queued standalone VPS self-update.'),
             ERROR_MESSAGE_B64: '',
             STARTED_AT: startedAt,
@@ -270,6 +359,58 @@ export async function startVpsSelfUpdate(targetEnvironmentId: string): Promise<V
 }
 
 /**
+ * Normalizes one free-form arbitrary git ref entered by the super admin.
+ *
+ * @param value - Raw user-provided ref.
+ * @returns Trimmed ref or empty string when invalid.
+ */
+function normalizeArbitraryRef(value: string | null | undefined): string {
+    const trimmedValue = value?.trim() || '';
+    if (!trimmedValue) {
+        return '';
+    }
+
+    if (!/^[A-Za-z0-9._/-]+$/u.test(trimmedValue)) {
+        throw new NotAllowed(
+            spaceTrim(`
+                The provided git ref \`${trimmedValue}\` contains unsupported characters.
+
+                **Only letters, digits, dots, underscores, slashes, and dashes are allowed.**
+            `),
+        );
+    }
+
+    return trimmedValue;
+}
+
+/**
+ * Validates a user-provided upstream repository URL.
+ *
+ * @param value - Raw URL string.
+ * @returns Normalized URL or `null` when the user did not request an override.
+ */
+function normalizeOriginRepositoryUrl(value: string | null | undefined): string | null {
+    if (value === null || value === undefined) {
+        return null;
+    }
+
+    const trimmedValue = value.trim();
+    if (!trimmedValue) {
+        return null;
+    }
+
+    if (!/^https:\/\/[\w.-]+\/[\w./-]+(?:\.git)?$/u.test(trimmedValue)) {
+        throw new NotAllowed(
+            spaceTrim(`
+                The upstream repository URL \`${trimmedValue}\` is not a valid public **https** git URL.
+            `),
+        );
+    }
+
+    return trimmedValue;
+}
+
+/**
  * Reads the current standalone VPS self-update overview.
  *
  * @returns Browser-safe update summary for the super-admin UI.
@@ -279,63 +420,51 @@ export async function readVpsSelfUpdateOverview(): Promise<VpsSelfUpdateOverview
     const repositoryDirectory = await resolveManagedPromptbookRepositoryDirectory();
     const scriptPath = await resolveVpsInstallerScriptPath();
     const job = await readPersistedVpsSelfUpdateJob();
+    const originRepositoryUrl = await readConfiguredVpsSelfUpdateOriginRepositoryUrl();
 
     if (process.platform !== 'linux') {
-        return {
-            isAvailable: false,
-            unavailableReason: 'Self-update is available only on the standalone Linux VPS deployment.',
-            environments: VPS_SELF_UPDATE_ENVIRONMENTS,
+        return createUnavailableOverview({
             currentEnvironment,
             repositoryDirectory,
-            currentCommitSha: null,
-            currentCommitShortSha: null,
-            currentCommitMessage: null,
-            latestRemoteCommitSha: null,
-            latestRemoteCommitShortSha: null,
-            isUpdateAvailable: false,
             job,
-        };
+            originRepositoryUrl,
+            unavailableReason: 'Self-update is available only on the standalone Linux VPS deployment.',
+        });
     }
 
     if (!scriptPath) {
-        return {
-            isAvailable: false,
-            unavailableReason: 'The shared VPS installer script could not be found on this server.',
-            environments: VPS_SELF_UPDATE_ENVIRONMENTS,
+        return createUnavailableOverview({
             currentEnvironment,
             repositoryDirectory,
-            currentCommitSha: null,
-            currentCommitShortSha: null,
-            currentCommitMessage: null,
-            latestRemoteCommitSha: null,
-            latestRemoteCommitShortSha: null,
-            isUpdateAvailable: false,
             job,
-        };
+            originRepositoryUrl,
+            unavailableReason: 'The shared VPS installer script could not be found on this server.',
+        });
     }
 
     if (!repositoryDirectory) {
-        return {
-            isAvailable: false,
-            unavailableReason: 'The managed Promptbook repository directory is not configured on this server.',
-            environments: VPS_SELF_UPDATE_ENVIRONMENTS,
+        return createUnavailableOverview({
             currentEnvironment,
             repositoryDirectory: null,
-            currentCommitSha: null,
-            currentCommitShortSha: null,
-            currentCommitMessage: null,
-            latestRemoteCommitSha: null,
-            latestRemoteCommitShortSha: null,
-            isUpdateAvailable: false,
             job,
-        };
+            originRepositoryUrl,
+            unavailableReason: 'The managed Promptbook repository directory is not configured on this server.',
+        });
     }
 
-    const [currentCommitSha, currentCommitMessage, latestRemoteCommitSha] = await Promise.all([
+    const [currentCommitSha, currentCommitMessage, currentCommitDate, latestRemoteCommitSha] = await Promise.all([
         runGitInRepository(repositoryDirectory, ['rev-parse', 'HEAD']),
         runGitInRepository(repositoryDirectory, ['log', '-1', '--format=%s']),
-        readRemoteCommitSha(repositoryDirectory, currentEnvironment.branch),
+        runGitInRepository(repositoryDirectory, ['log', '-1', '--format=%aI']),
+        readRemoteCommitSha(repositoryDirectory, currentEnvironment.branch, originRepositoryUrl),
     ]);
+    const latestRemoteCommitDate = latestRemoteCommitSha
+        ? await readCommitDateFromRepository(repositoryDirectory, latestRemoteCommitSha)
+        : null;
+    const commitsBehindCount =
+        currentCommitSha && latestRemoteCommitSha
+            ? await countCommitsBetween(repositoryDirectory, currentCommitSha, latestRemoteCommitSha)
+            : null;
     const resolvedJob = resolveVpsSelfUpdateJobForOverview(job, {
         currentEnvironment,
         currentCommitSha,
@@ -350,12 +479,322 @@ export async function readVpsSelfUpdateOverview(): Promise<VpsSelfUpdateOverview
         currentCommitSha,
         currentCommitShortSha: abbreviateCommitSha(currentCommitSha),
         currentCommitMessage,
+        currentCommitDate,
         latestRemoteCommitSha,
         latestRemoteCommitShortSha: abbreviateCommitSha(latestRemoteCommitSha),
+        latestRemoteCommitDate,
+        commitsBehindCount,
         isUpdateAvailable: Boolean(
             currentCommitSha && latestRemoteCommitSha && currentCommitSha !== latestRemoteCommitSha,
         ),
+        originRepositoryUrl,
+        isOriginRepositoryDefault: originRepositoryUrl === VPS_SELF_UPDATE_DEFAULT_ORIGIN_REPOSITORY_URL,
+        defaultOriginRepositoryUrl: VPS_SELF_UPDATE_DEFAULT_ORIGIN_REPOSITORY_URL,
         job: resolvedJob,
+    };
+}
+
+/**
+ * Browser-safe summary of one commit that the super admin can pick from the custom-target picker.
+ */
+export type VpsSelfUpdateCandidateCommit = {
+    /**
+     * Full commit hash.
+     */
+    readonly commitSha: string;
+    /**
+     * Short commit hash (first 7 chars).
+     */
+    readonly shortCommitSha: string;
+    /**
+     * Single-line commit subject.
+     */
+    readonly subject: string;
+    /**
+     * Author name.
+     */
+    readonly authorName: string;
+    /**
+     * Author email.
+     */
+    readonly authorEmail: string;
+    /**
+     * Author timestamp in ISO format.
+     */
+    readonly authoredAt: string;
+    /**
+     * Branches that point at this commit (origin-prefixed names stripped).
+     */
+    readonly branches: ReadonlyArray<string>;
+    /**
+     * Tags that point at this commit.
+     */
+    readonly tags: ReadonlyArray<string>;
+    /**
+     * Whether at least one tag points at the commit (used to flag stable releases).
+     */
+    readonly isReleaseTag: boolean;
+};
+
+/**
+ * Filter applied to the candidate-commit listing.
+ */
+export type VpsSelfUpdateCandidateCommitsFilter = {
+    /**
+     * Free-text search across subject, author name, hash, branch and tag names.
+     */
+    readonly searchText?: string | null;
+    /**
+     * Restrict to commits authored on or after this ISO date.
+     */
+    readonly authoredAfter?: string | null;
+    /**
+     * Restrict to commits authored on or before this ISO date.
+     */
+    readonly authoredBefore?: string | null;
+    /**
+     * Hard limit on returned commits (default 200).
+     */
+    readonly limit?: number | null;
+};
+
+/**
+ * Hard ceiling for the candidate-commit listing to avoid streaming the entire repository to the browser.
+ */
+const VPS_SELF_UPDATE_MAX_CANDIDATE_COMMITS = 500;
+
+/**
+ * Field separator used between commit fields in the `git log` machine output.
+ */
+const GIT_LOG_FIELD_SEPARATOR = '\x1f';
+
+/**
+ * Lists commits from the managed repository for the custom-target picker.
+ *
+ * Fetches the latest refs from the configured upstream first so the picker can include
+ * recent commits that have not been deployed yet, then resolves branches/tags per commit.
+ *
+ * @param filter - Filter applied to the result.
+ * @returns Browser-safe commit list.
+ */
+export async function listVpsSelfUpdateCandidateCommits(
+    filter: VpsSelfUpdateCandidateCommitsFilter = {},
+): Promise<ReadonlyArray<VpsSelfUpdateCandidateCommit>> {
+    if (process.platform !== 'linux') {
+        return [];
+    }
+
+    const repositoryDirectory = await resolveManagedPromptbookRepositoryDirectory();
+    if (!repositoryDirectory) {
+        return [];
+    }
+
+    const originRepositoryUrl = await readConfiguredVpsSelfUpdateOriginRepositoryUrl();
+    await runGitInRepository(repositoryDirectory, [
+        'fetch',
+        '--no-tags',
+        '--prune',
+        '--depth=200',
+        originRepositoryUrl,
+        '+refs/heads/*:refs/remotes/origin/*',
+    ]);
+    await runGitInRepository(repositoryDirectory, [
+        'fetch',
+        '--tags',
+        '--force',
+        originRepositoryUrl,
+        '+refs/tags/*:refs/tags/*',
+    ]);
+
+    const limit = clampCandidateCommitLimit(filter.limit);
+    const logArgs = [
+        'log',
+        `--max-count=${VPS_SELF_UPDATE_MAX_CANDIDATE_COMMITS}`,
+        '--all',
+        `--format=%H${GIT_LOG_FIELD_SEPARATOR}%aI${GIT_LOG_FIELD_SEPARATOR}%an${GIT_LOG_FIELD_SEPARATOR}%ae${GIT_LOG_FIELD_SEPARATOR}%s`,
+    ];
+
+    if (filter.authoredAfter) {
+        logArgs.push(`--since=${filter.authoredAfter}`);
+    }
+    if (filter.authoredBefore) {
+        logArgs.push(`--until=${filter.authoredBefore}`);
+    }
+
+    const logOutput = await runGitInRepository(repositoryDirectory, logArgs);
+    if (!logOutput) {
+        return [];
+    }
+
+    const branchesByCommit = await readRefsByCommit(repositoryDirectory, 'refs/remotes/origin');
+    const tagsByCommit = await readRefsByCommit(repositoryDirectory, 'refs/tags');
+    const searchText = filter.searchText?.trim().toLowerCase() || '';
+
+    const commits: Array<VpsSelfUpdateCandidateCommit> = [];
+    for (const line of logOutput.split('\n')) {
+        if (!line) {
+            continue;
+        }
+
+        const fields = line.split(GIT_LOG_FIELD_SEPARATOR);
+        const commitSha = fields[0] ?? '';
+        if (!commitSha) {
+            continue;
+        }
+
+        const authoredAt = fields[1] ?? '';
+        const authorName = fields[2] ?? '';
+        const authorEmail = fields[3] ?? '';
+        const subject = fields.slice(4).join(GIT_LOG_FIELD_SEPARATOR);
+        const branches = branchesByCommit.get(commitSha) ?? [];
+        const tags = tagsByCommit.get(commitSha) ?? [];
+
+        if (searchText && !matchesCandidateCommitSearchText(searchText, commitSha, subject, authorName, branches, tags)) {
+            continue;
+        }
+
+        commits.push({
+            commitSha,
+            shortCommitSha: commitSha.slice(0, 7),
+            subject,
+            authorName,
+            authorEmail,
+            authoredAt,
+            branches,
+            tags,
+            isReleaseTag: tags.length > 0,
+        });
+
+        if (commits.length >= limit) {
+            break;
+        }
+    }
+
+    return commits;
+}
+
+/**
+ * Clamps an external limit value to the safe candidate-commit range.
+ *
+ * @param value - Raw user-provided limit.
+ * @returns Clamped value.
+ */
+function clampCandidateCommitLimit(value: number | null | undefined): number {
+    const defaultLimit = 200;
+    if (value === null || value === undefined || !Number.isFinite(value)) {
+        return defaultLimit;
+    }
+
+    return Math.max(1, Math.min(VPS_SELF_UPDATE_MAX_CANDIDATE_COMMITS, Math.floor(value)));
+}
+
+/**
+ * Returns `true` when one commit matches the free-text filter applied to the picker.
+ *
+ * @param searchText - Lower-cased search text.
+ * @param commitSha - Full commit hash.
+ * @param subject - Commit subject.
+ * @param authorName - Author display name.
+ * @param branches - Branches pointing at the commit.
+ * @param tags - Tags pointing at the commit.
+ * @returns `true` when the commit should be included.
+ */
+function matchesCandidateCommitSearchText(
+    searchText: string,
+    commitSha: string,
+    subject: string,
+    authorName: string,
+    branches: ReadonlyArray<string>,
+    tags: ReadonlyArray<string>,
+): boolean {
+    if (commitSha.toLowerCase().startsWith(searchText)) {
+        return true;
+    }
+
+    if (subject.toLowerCase().includes(searchText)) {
+        return true;
+    }
+
+    if (authorName.toLowerCase().includes(searchText)) {
+        return true;
+    }
+
+    if (branches.some((branch) => branch.toLowerCase().includes(searchText))) {
+        return true;
+    }
+
+    return tags.some((tag) => tag.toLowerCase().includes(searchText));
+}
+
+/**
+ * Reads refs grouped by commit hash so the picker can annotate each commit with its branches/tags.
+ *
+ * @param repositoryDirectory - Repository checkout path.
+ * @param refPrefix - Ref namespace passed to `git for-each-ref` (e.g. `refs/tags`).
+ * @returns Map keyed by commit hash.
+ */
+async function readRefsByCommit(
+    repositoryDirectory: string,
+    refPrefix: string,
+): Promise<Map<string, Array<string>>> {
+    const output = await runGitInRepository(repositoryDirectory, [
+        'for-each-ref',
+        '--format=%(objectname)\x1f%(refname:short)',
+        refPrefix,
+    ]);
+    const refsByCommit = new Map<string, Array<string>>();
+
+    if (!output) {
+        return refsByCommit;
+    }
+
+    for (const line of output.split('\n')) {
+        const [commitSha, refName] = line.split('\x1f');
+        if (!commitSha || !refName) {
+            continue;
+        }
+
+        const cleanRefName = refName.replace(/^origin\//u, '');
+        const list = refsByCommit.get(commitSha) ?? [];
+        list.push(cleanRefName);
+        refsByCommit.set(commitSha, list);
+    }
+
+    return refsByCommit;
+}
+
+/**
+ * Builds the placeholder overview used when self-update is unavailable on the host.
+ *
+ * @param context - Fields shared across every unavailable-overview branch.
+ * @returns Browser-safe placeholder overview.
+ */
+function createUnavailableOverview(context: {
+    readonly currentEnvironment: VpsSelfUpdateEnvironmentOption;
+    readonly repositoryDirectory: string | null;
+    readonly job: VpsSelfUpdateJobSnapshot;
+    readonly originRepositoryUrl: string;
+    readonly unavailableReason: string;
+}): VpsSelfUpdateOverview {
+    return {
+        isAvailable: false,
+        unavailableReason: context.unavailableReason,
+        environments: VPS_SELF_UPDATE_ENVIRONMENTS,
+        currentEnvironment: context.currentEnvironment,
+        repositoryDirectory: context.repositoryDirectory,
+        currentCommitSha: null,
+        currentCommitShortSha: null,
+        currentCommitMessage: null,
+        currentCommitDate: null,
+        latestRemoteCommitSha: null,
+        latestRemoteCommitShortSha: null,
+        latestRemoteCommitDate: null,
+        commitsBehindCount: null,
+        isUpdateAvailable: false,
+        originRepositoryUrl: context.originRepositoryUrl,
+        isOriginRepositoryDefault: context.originRepositoryUrl === VPS_SELF_UPDATE_DEFAULT_ORIGIN_REPOSITORY_URL,
+        defaultOriginRepositoryUrl: VPS_SELF_UPDATE_DEFAULT_ORIGIN_REPOSITORY_URL,
+        job: context.job,
     };
 }
 
@@ -400,6 +839,8 @@ export function resolveVpsSelfUpdateJobForOverview(
 /**
  * Resolves one environment id or branch name to the canonical environment object.
  *
+ * Unknown values fall back to the production environment to preserve the historical default.
+ *
  * @param value - Raw environment id, branch name, or label.
  * @returns Canonical environment metadata.
  */
@@ -407,9 +848,39 @@ export function resolveVpsSelfUpdateEnvironment(value: string | null | undefined
     const normalizedValue = value?.trim().toLowerCase() || 'production';
     return (
         VPS_SELF_UPDATE_ENVIRONMENTS.find(
-            (environment) => environment.id === normalizedValue || environment.branch === normalizedValue,
-        ) ?? VPS_SELF_UPDATE_ENVIRONMENTS[0]
+            (environment) =>
+                !environment.isCustom &&
+                (environment.id === normalizedValue || environment.branch === normalizedValue),
+        ) ?? getDefaultVpsSelfUpdateEnvironment()
     );
+}
+
+/**
+ * Returns the canonical production environment used as the default fallback.
+ *
+ * @returns Production environment option.
+ */
+export function getDefaultVpsSelfUpdateEnvironment(): VpsSelfUpdateEnvironmentOption {
+    const productionEnvironment = VPS_SELF_UPDATE_ENVIRONMENTS.find((environment) => environment.id === 'production');
+    if (!productionEnvironment) {
+        throw new Error('Production environment is missing from VPS_SELF_UPDATE_ENVIRONMENTS.');
+    }
+    return productionEnvironment;
+}
+
+/**
+ * Returns the canonical custom environment option.
+ *
+ * @returns Custom environment metadata.
+ */
+export function getCustomVpsSelfUpdateEnvironment(): VpsSelfUpdateEnvironmentOption {
+    const customEnvironment = VPS_SELF_UPDATE_ENVIRONMENTS.find(
+        (environment) => environment.id === VPS_SELF_UPDATE_CUSTOM_ENVIRONMENT_ID,
+    );
+    if (!customEnvironment) {
+        throw new Error('Custom environment is missing from VPS_SELF_UPDATE_ENVIRONMENTS.');
+    }
+    return customEnvironment;
 }
 
 /**
@@ -448,6 +919,50 @@ export function encodeStatusField(value: string): string {
 async function readCurrentVpsSelfUpdateEnvironment(): Promise<VpsSelfUpdateEnvironmentOption> {
     const configuredBranch = await readConfiguredVpsEnvironmentValue('PROMPTBOOK_REPOSITORY_REF');
     return resolveVpsSelfUpdateEnvironment(configuredBranch);
+}
+
+/**
+ * Reads the configured upstream repository URL from `.env` (falling back to the default upstream).
+ *
+ * @returns Configured upstream URL.
+ */
+async function readConfiguredVpsSelfUpdateOriginRepositoryUrl(): Promise<string> {
+    const configuredUrl = await readConfiguredVpsEnvironmentValue('PROMPTBOOK_REPOSITORY_URL');
+    return configuredUrl?.trim() || VPS_SELF_UPDATE_DEFAULT_ORIGIN_REPOSITORY_URL;
+}
+
+/**
+ * Persists the configured upstream repository URL into the standalone VPS `.env` file.
+ *
+ * Setting the value to the default upstream URL removes any previous override so that the
+ * installer falls back to the bundled default the next time it runs.
+ *
+ * @param originRepositoryUrl - Normalized upstream URL.
+ */
+async function persistVpsSelfUpdateOriginRepositoryUrl(originRepositoryUrl: string): Promise<void> {
+    const envFilePath = resolveVpsEnvironmentFilePath();
+    let existingContent = '';
+    try {
+        existingContent = await readFile(envFilePath, 'utf-8');
+    } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+            throw error;
+        }
+    }
+
+    const lines = existingContent.split(/\r?\n/u);
+    const keyPattern = /^\s*(?:export\s+)?PROMPTBOOK_REPOSITORY_URL=/u;
+    const isDefaultUpstream = originRepositoryUrl === VPS_SELF_UPDATE_DEFAULT_ORIGIN_REPOSITORY_URL;
+    const filteredLines = lines.filter((line) => !keyPattern.test(line));
+
+    if (!isDefaultUpstream) {
+        filteredLines.push(`PROMPTBOOK_REPOSITORY_URL=${originRepositoryUrl}`);
+    }
+
+    const nextContent = `${filteredLines.join('\n').replace(/\n+$/u, '')}\n`;
+    await mkdir(dirname(envFilePath), { recursive: true });
+    await writeFile(envFilePath, nextContent, { encoding: 'utf-8', mode: 0o600 });
+    process.env.PROMPTBOOK_REPOSITORY_URL = isDefaultUpstream ? '' : originRepositoryUrl;
 }
 
 /**
@@ -624,11 +1139,70 @@ async function runGitInRepository(repositoryDirectory: string, args: ReadonlyArr
  *
  * @param repositoryDirectory - Repository checkout path.
  * @param branch - Target branch.
+ * @param originRepositoryUrl - Configured upstream repository URL.
  * @returns Remote commit sha or `null`.
  */
-async function readRemoteCommitSha(repositoryDirectory: string, branch: string): Promise<string | null> {
-    const output = await runGitInRepository(repositoryDirectory, ['ls-remote', 'origin', `refs/heads/${branch}`]);
+async function readRemoteCommitSha(
+    repositoryDirectory: string,
+    branch: string,
+    originRepositoryUrl: string,
+): Promise<string | null> {
+    if (!branch) {
+        return null;
+    }
+
+    const output = await runGitInRepository(repositoryDirectory, [
+        'ls-remote',
+        originRepositoryUrl,
+        `refs/heads/${branch}`,
+    ]);
     return output?.split(/\s+/u)[0] || null;
+}
+
+/**
+ * Reads the author timestamp of a known commit from the local repository.
+ *
+ * @param repositoryDirectory - Repository checkout path.
+ * @param commitSha - Commit hash to look up.
+ * @returns ISO timestamp or `null` when the commit is unknown locally.
+ */
+async function readCommitDateFromRepository(
+    repositoryDirectory: string,
+    commitSha: string,
+): Promise<string | null> {
+    return runGitInRepository(repositoryDirectory, ['log', '-1', '--format=%aI', commitSha]);
+}
+
+/**
+ * Counts how many commits separate two commits in the local repository.
+ *
+ * Returns `null` when either commit cannot be resolved (typical for a shallow clone that has not been deepened yet).
+ *
+ * @param repositoryDirectory - Repository checkout path.
+ * @param fromCommitSha - Older commit hash.
+ * @param toCommitSha - Newer commit hash.
+ * @returns Commit count or `null`.
+ */
+async function countCommitsBetween(
+    repositoryDirectory: string,
+    fromCommitSha: string,
+    toCommitSha: string,
+): Promise<number | null> {
+    if (fromCommitSha === toCommitSha) {
+        return 0;
+    }
+
+    const output = await runGitInRepository(repositoryDirectory, [
+        'rev-list',
+        '--count',
+        `${fromCommitSha}..${toCommitSha}`,
+    ]);
+    if (output === null) {
+        return null;
+    }
+
+    const parsedCount = Number.parseInt(output, 10);
+    return Number.isFinite(parsedCount) ? parsedCount : null;
 }
 
 /**

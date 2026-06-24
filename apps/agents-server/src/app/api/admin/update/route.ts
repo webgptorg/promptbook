@@ -24,7 +24,7 @@ export async function GET() {
 }
 
 /**
- * Starts a detached standalone VPS self-update for the selected environment.
+ * Starts a detached standalone VPS self-update for the selected environment or arbitrary ref.
  */
 export async function POST(request: Request) {
     if (!(await isUserGlobalAdmin())) {
@@ -35,6 +35,8 @@ export async function POST(request: Request) {
         const body = (await request.json().catch(() => null)) as
             | {
                   readonly environment?: string;
+                  readonly customRef?: string | null;
+                  readonly originRepositoryUrl?: string | null;
               }
             | null;
 
@@ -42,7 +44,13 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Update environment is required.' }, { status: 400 });
         }
 
-        return NextResponse.json(await startVpsSelfUpdate(body.environment), { status: 202 });
+        const overview = await startVpsSelfUpdate({
+            environmentId: body.environment,
+            customRef: body.customRef ?? null,
+            originRepositoryUrl: body.originRepositoryUrl ?? null,
+        });
+
+        return NextResponse.json(overview, { status: 202 });
     } catch (error) {
         return NextResponse.json(
             { error: error instanceof Error ? error.message : 'Failed to start the update.' },

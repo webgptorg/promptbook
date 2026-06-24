@@ -1,9 +1,24 @@
 'use client';
 
-import { CheckCircle2, Download, Loader2, RefreshCcw, Rocket, Server, TriangleAlert } from 'lucide-react';
+import {
+    CheckCircle2,
+    ChevronDown,
+    ChevronUp,
+    Download,
+    Loader2,
+    RefreshCcw,
+    Rocket,
+    Server,
+    Settings2,
+    TriangleAlert,
+} from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AdminXtermTerminal } from '../../../components/AdminTerminal/AdminXtermTerminal';
 import { Card } from '../../../components/Homepage/Card';
+import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
+import type { ServerLanguageCode } from '../../../languages/ServerLanguageRegistry';
+import { createServerLanguageMoment } from '../../../utils/localization/createServerLanguageMoment';
+import { CustomCommitPicker, type CustomCommitPickerCandidate } from './CustomCommitPicker';
 
 /**
  * Browser-safe environment option returned by the update API.
@@ -13,6 +28,7 @@ type UpdateEnvironmentOption = {
     readonly branch: string;
     readonly label: string;
     readonly description: string;
+    readonly isCustom: boolean;
 };
 
 /**
@@ -46,9 +62,15 @@ type UpdateOverview = {
     readonly currentCommitSha: string | null;
     readonly currentCommitShortSha: string | null;
     readonly currentCommitMessage: string | null;
+    readonly currentCommitDate: string | null;
     readonly latestRemoteCommitSha: string | null;
     readonly latestRemoteCommitShortSha: string | null;
+    readonly latestRemoteCommitDate: string | null;
+    readonly commitsBehindCount: number | null;
     readonly isUpdateAvailable: boolean;
+    readonly originRepositoryUrl: string;
+    readonly isOriginRepositoryDefault: boolean;
+    readonly defaultOriginRepositoryUrl: string;
     readonly job: UpdateJobSnapshot;
     readonly error?: string;
 };
@@ -57,16 +79,18 @@ type UpdateOverview = {
  * Client UI for standalone VPS branch-aware self-updates.
  */
 export function UpdateClient() {
+    const { language } = useServerLanguage();
     const [overview, setOverview] = useState<UpdateOverview | null>(null);
     const [selectedEnvironmentId, setSelectedEnvironmentId] = useState<string>('');
+    const [customRef, setCustomRef] = useState<string>('');
+    const [customCandidate, setCustomCandidate] = useState<CustomCommitPickerCandidate | null>(null);
+    const [originRepositoryUrlOverride, setOriginRepositoryUrlOverride] = useState<string>('');
+    const [isAdvancedExpanded, setIsAdvancedExpanded] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState(true);
     const [isStartingUpdate, setIsStartingUpdate] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-    /**
-     * Loads the latest self-update overview from the server.
-     */
     const loadOverview = useCallback(
         async (options?: { readonly isSilent?: boolean; readonly isRestartExpected?: boolean }): Promise<void> => {
             try {
@@ -86,6 +110,7 @@ export function UpdateClient() {
                 setSelectedEnvironmentId(
                     (currentSelectedEnvironmentId) => currentSelectedEnvironmentId || payload.currentEnvironment.id,
                 );
+                setOriginRepositoryUrlOverride((currentValue) => currentValue || payload.originRepositoryUrl);
                 if (payload.job.status === 'succeeded') {
                     setSuccessMessage(getUpdateJobSuccessMessage(payload.job));
                 } else if (payload.job.status === 'failed') {
@@ -131,16 +156,18 @@ export function UpdateClient() {
             null,
         [overview, selectedEnvironmentId],
     );
+    const isCustomEnvironmentSelected = selectedEnvironment?.isCustom === true;
     const isEnvironmentSwitchRequired =
         Boolean(selectedEnvironment) && selectedEnvironment?.id !== overview?.currentEnvironment.id;
     const isUpdateRunning = overview?.job.status === 'running';
     const updateTerminalId = `standalone-vps-update:${overview?.job.startedAt || overview?.job.finishedAt || overview?.job.status || 'loading'}`;
     const updateTerminalEmptyState =
         isLoading && !overview ? 'Loading update log...' : 'No persisted update log output yet.';
+    const isCustomRefRelease = isCustomEnvironmentSelected ? customCandidate?.isReleaseTag === true : true;
+    const isCustomRefMissing = isCustomEnvironmentSelected && !customRef.trim();
+    const isOriginOverrideChanged =
+        overview !== null && originRepositoryUrlOverride.trim() !== overview.originRepositoryUrl;
 
-    /**
-     * Starts one detached update run for the selected environment.
-     */
     async function startUpdate(): Promise<void> {
         if (!selectedEnvironment) {
             return;
@@ -158,6 +185,8 @@ export function UpdateClient() {
                 },
                 body: JSON.stringify({
                     environment: selectedEnvironment.id,
+                    customRef: isCustomEnvironmentSelected ? customRef.trim() : null,
+                    originRepositoryUrl: isOriginOverrideChanged ? originRepositoryUrlOverride.trim() : null,
                 }),
             });
             const payload = (await response.json()) as UpdateOverview;
@@ -168,9 +197,11 @@ export function UpdateClient() {
 
             setOverview(payload);
             setSuccessMessage(
-                isEnvironmentSwitchRequired
-                    ? `Switched to ${selectedEnvironment.label} and started the standalone VPS update.`
-                    : 'Standalone VPS update started.',
+                isCustomEnvironmentSelected
+                    ? `Started the standalone VPS update to custom ref ${customRef.trim()}.`
+                    : isEnvironmentSwitchRequired
+                      ? `Switched to ${selectedEnvironment.label} and started the standalone VPS update.`
+                      : 'Standalone VPS update started.',
             );
         } catch (error) {
             setErrorMessage(error instanceof Error ? error.message : 'Failed to start the update.');
@@ -185,8 +216,8 @@ export function UpdateClient() {
                 <div>
                     <h1 className="text-3xl font-light text-gray-900">Update</h1>
                     <p className="mt-1 max-w-3xl text-sm text-gray-500">
-                        Switch the standalone VPS between Production, Live, Preview, and LTS, and update the managed
-                        Promptbook checkout with one click.
+                        Switch the standalone VPS between Live, Preview, Production, LTS, or a custom ref, and update
+                        the managed Promptbook checkout with one click.
                     </p>
                 </div>
 
@@ -220,77 +251,7 @@ export function UpdateClient() {
 
             <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
                 <Card className="hover:border-gray-200 hover:shadow-md">
-                    <div className="space-y-4">
-                        <div className="flex items-start gap-3">
-                            <Server className="mt-0.5 h-5 w-5 text-blue-600" />
-                            <div>
-                                <h2 className="text-lg font-semibold text-slate-900">Current deployment</h2>
-                                <p className="mt-1 text-sm text-slate-500">
-                                    The server currently tracks the <span className="font-medium">{overview?.currentEnvironment.label || 'Production'}</span>{' '}
-                                    environment on branch <span className="font-mono">{overview?.currentEnvironment.branch || 'production'}</span>.
-                                </p>
-                            </div>
-                        </div>
-
-                        <dl className="grid gap-4 text-sm text-slate-600 sm:grid-cols-2">
-                            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-                                <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Branch</dt>
-                                <dd className="mt-1 font-mono text-slate-900">
-                                    {overview?.currentEnvironment.branch || 'production'}
-                                </dd>
-                            </div>
-                            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-                                <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                                    Deployed commit
-                                </dt>
-                                <dd className="mt-1 font-mono text-slate-900">
-                                    {overview?.currentCommitShortSha || 'Unknown'}
-                                </dd>
-                            </div>
-                            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-                                <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                                    Latest remote commit
-                                </dt>
-                                <dd className="mt-1 font-mono text-slate-900">
-                                    {overview?.latestRemoteCommitShortSha || 'Unknown'}
-                                </dd>
-                            </div>
-                            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-                                <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                                    Update availability
-                                </dt>
-                                <dd className="mt-1 flex items-center gap-2 text-slate-900">
-                                    {overview?.isUpdateAvailable ? (
-                                        <>
-                                            <TriangleAlert className="h-4 w-4 text-amber-500" />
-                                            New commit available
-                                        </>
-                                    ) : (
-                                        <>
-                                            <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                                            Up to date
-                                        </>
-                                    )}
-                                </dd>
-                            </div>
-                        </dl>
-
-                        {overview?.currentCommitMessage && (
-                            <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
-                                <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                                    Current commit message
-                                </div>
-                                <div className="mt-1 text-slate-900">{overview.currentCommitMessage}</div>
-                            </div>
-                        )}
-
-                        {overview?.repositoryDirectory && (
-                            <div className="text-xs text-slate-500">
-                                Managed repository:
-                                <span className="ml-2 font-mono text-slate-700">{overview.repositoryDirectory}</span>
-                            </div>
-                        )}
-                    </div>
+                    <CurrentDeploymentCard overview={overview} language={language} />
                 </Card>
 
                 <Card className="hover:border-gray-200 hover:shadow-md">
@@ -328,12 +289,47 @@ export function UpdateClient() {
                                                 </span>
                                             )}
                                         </div>
-                                        <div className="mt-1 font-mono text-xs">{environment.branch}</div>
+                                        {environment.branch && (
+                                            <div className="mt-1 font-mono text-xs">{environment.branch}</div>
+                                        )}
                                         <div className="mt-2 text-sm opacity-80">{environment.description}</div>
                                     </button>
                                 );
                             })}
                         </div>
+
+                        {isCustomEnvironmentSelected && overview?.isAvailable && (
+                            <div className="space-y-3 rounded-xl border border-blue-200 bg-blue-50/40 p-4">
+                                <CustomCommitPicker
+                                    language={language}
+                                    selectedRef={customRef}
+                                    onSelectRef={(nextRef, matchedCandidate) => {
+                                        setCustomRef(nextRef);
+                                        setCustomCandidate(matchedCandidate);
+                                    }}
+                                    isDisabled={isUpdateRunning || isStartingUpdate}
+                                />
+
+                                {customRef.trim() && !isCustomRefRelease && (
+                                    <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                                        <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" />
+                                        <div>
+                                            <strong>Heads up:</strong> the selected ref is not a release tag, so it may
+                                            be unstable and was not validated by the regular release pipeline.
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        <AdvancedOriginRepositoryPanel
+                            originRepositoryUrlOverride={originRepositoryUrlOverride}
+                            onChange={setOriginRepositoryUrlOverride}
+                            overview={overview}
+                            isExpanded={isAdvancedExpanded}
+                            onToggleExpanded={() => setIsAdvancedExpanded((current) => !current)}
+                            isDisabled={isUpdateRunning || isStartingUpdate}
+                        />
 
                         <button
                             type="button"
@@ -343,20 +339,28 @@ export function UpdateClient() {
                                 !selectedEnvironment ||
                                 isUpdateRunning ||
                                 isStartingUpdate ||
-                                (!isEnvironmentSwitchRequired && !overview?.isUpdateAvailable)
+                                isCustomRefMissing ||
+                                (!isCustomEnvironmentSelected &&
+                                    !isEnvironmentSwitchRequired &&
+                                    !overview?.isUpdateAvailable &&
+                                    !isOriginOverrideChanged)
                             }
                             className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
                         >
                             {isStartingUpdate || isUpdateRunning ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : isCustomEnvironmentSelected ? (
+                                <Rocket className="h-4 w-4" />
                             ) : isEnvironmentSwitchRequired ? (
                                 <Rocket className="h-4 w-4" />
                             ) : (
                                 <Download className="h-4 w-4" />
                             )}
-                            {isEnvironmentSwitchRequired
-                                ? `Switch to ${selectedEnvironment?.label || 'selected environment'} and update`
-                                : 'Update to latest commit'}
+                            {isCustomEnvironmentSelected
+                                ? `Update to ${customRef.trim() || 'custom ref'}`
+                                : isEnvironmentSwitchRequired
+                                  ? `Switch to ${selectedEnvironment?.label || 'selected environment'} and update`
+                                  : 'Update to latest commit'}
                         </button>
                     </div>
                 </Card>
@@ -377,10 +381,10 @@ export function UpdateClient() {
                                 overview?.job.status === 'running'
                                     ? 'border-blue-200 bg-blue-50 text-blue-700'
                                     : overview?.job.status === 'failed'
-                                    ? 'border-rose-200 bg-rose-50 text-rose-700'
-                                    : overview?.job.status === 'succeeded'
-                                    ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                                    : 'border-slate-200 bg-slate-50 text-slate-500'
+                                      ? 'border-rose-200 bg-rose-50 text-rose-700'
+                                      : overview?.job.status === 'succeeded'
+                                        ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                                        : 'border-slate-200 bg-slate-50 text-slate-500'
                             }`}
                         >
                             {overview?.job.status || 'idle'}
@@ -390,7 +394,9 @@ export function UpdateClient() {
                     <dl className="grid gap-4 text-sm text-slate-600 md:grid-cols-2 xl:grid-cols-4">
                         <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
                             <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Target</dt>
-                            <dd className="mt-1 text-slate-900">{overview?.job.targetEnvironment.label || 'Production'}</dd>
+                            <dd className="mt-1 text-slate-900">
+                                {overview?.job.targetEnvironment.label || 'Production'}
+                            </dd>
                         </div>
                         <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
                             <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Step</dt>
@@ -398,11 +404,15 @@ export function UpdateClient() {
                         </div>
                         <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
                             <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Started</dt>
-                            <dd className="mt-1 text-slate-900">{formatTimestamp(overview?.job.startedAt)}</dd>
+                            <dd className="mt-1 text-slate-900">
+                                {formatHumanReadableTimestamp(overview?.job.startedAt, language)}
+                            </dd>
                         </div>
                         <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
                             <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Finished</dt>
-                            <dd className="mt-1 text-slate-900">{formatTimestamp(overview?.job.finishedAt)}</dd>
+                            <dd className="mt-1 text-slate-900">
+                                {formatHumanReadableTimestamp(overview?.job.finishedAt, language)}
+                            </dd>
                         </div>
                     </dl>
 
@@ -437,6 +447,197 @@ export function UpdateClient() {
 }
 
 /**
+ * Current-deployment metrics card, including the new commits-behind and time-behind info.
+ *
+ * @private internal component of `<UpdateClient/>`
+ */
+function CurrentDeploymentCard({
+    overview,
+    language,
+}: {
+    readonly overview: UpdateOverview | null;
+    readonly language: ServerLanguageCode;
+}) {
+    const currentCommitDateLabel = formatHumanReadableTimestamp(overview?.currentCommitDate ?? null, language);
+    const latestRemoteCommitDateLabel = formatHumanReadableTimestamp(
+        overview?.latestRemoteCommitDate ?? null,
+        language,
+    );
+    const driftLabel = useMemo(
+        () => buildDeploymentDriftLabel(overview, language),
+        [overview, language],
+    );
+
+    return (
+        <div className="space-y-4">
+            <div className="flex items-start gap-3">
+                <Server className="mt-0.5 h-5 w-5 text-blue-600" />
+                <div>
+                    <h2 className="text-lg font-semibold text-slate-900">Current deployment</h2>
+                    <p className="mt-1 text-sm text-slate-500">
+                        The server currently tracks the{' '}
+                        <span className="font-medium">
+                            {overview?.currentEnvironment.label || 'Production'}
+                        </span>{' '}
+                        environment on branch{' '}
+                        <span className="font-mono">{overview?.currentEnvironment.branch || 'production'}</span>.
+                    </p>
+                </div>
+            </div>
+
+            <dl className="grid gap-4 text-sm text-slate-600 sm:grid-cols-2">
+                <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                    <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Branch</dt>
+                    <dd className="mt-1 font-mono text-slate-900">
+                        {overview?.currentEnvironment.branch || 'production'}
+                    </dd>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                    <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Deployed commit</dt>
+                    <dd className="mt-1 font-mono text-slate-900">{overview?.currentCommitShortSha || 'Unknown'}</dd>
+                    <div className="mt-1 text-xs text-slate-500">{currentCommitDateLabel}</div>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                    <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        Latest remote commit
+                    </dt>
+                    <dd className="mt-1 font-mono text-slate-900">
+                        {overview?.latestRemoteCommitShortSha || 'Unknown'}
+                    </dd>
+                    <div className="mt-1 text-xs text-slate-500">{latestRemoteCommitDateLabel}</div>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                    <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        Update availability
+                    </dt>
+                    <dd className="mt-1 flex items-center gap-2 text-slate-900">
+                        {overview?.isUpdateAvailable ? (
+                            <>
+                                <TriangleAlert className="h-4 w-4 text-amber-500" />
+                                {driftLabel}
+                            </>
+                        ) : (
+                            <>
+                                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                                Up to date
+                            </>
+                        )}
+                    </dd>
+                </div>
+            </dl>
+
+            {overview?.currentCommitMessage && (
+                <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
+                    <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        Current commit message
+                    </div>
+                    <div className="mt-1 text-slate-900">{overview.currentCommitMessage}</div>
+                </div>
+            )}
+
+            {overview?.repositoryDirectory && (
+                <div className="text-xs text-slate-500">
+                    Managed repository:
+                    <span className="ml-2 font-mono text-slate-700">{overview.repositoryDirectory}</span>
+                </div>
+            )}
+        </div>
+    );
+}
+
+/**
+ * Collapsible advanced panel for overriding the upstream repository URL.
+ *
+ * @private internal component of `<UpdateClient/>`
+ */
+function AdvancedOriginRepositoryPanel({
+    originRepositoryUrlOverride,
+    onChange,
+    overview,
+    isExpanded,
+    onToggleExpanded,
+    isDisabled,
+}: {
+    readonly originRepositoryUrlOverride: string;
+    readonly onChange: (nextValue: string) => void;
+    readonly overview: UpdateOverview | null;
+    readonly isExpanded: boolean;
+    readonly onToggleExpanded: () => void;
+    readonly isDisabled: boolean;
+}) {
+    return (
+        <div className="rounded-xl border border-slate-200 bg-white">
+            <button
+                type="button"
+                onClick={onToggleExpanded}
+                className="flex w-full items-center justify-between gap-3 px-4 py-3 text-sm font-semibold text-slate-700"
+            >
+                <span className="inline-flex items-center gap-2">
+                    <Settings2 className="h-4 w-4" />
+                    Advanced
+                </span>
+                {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </button>
+            {isExpanded && (
+                <div className="space-y-3 border-t border-slate-100 px-4 py-3 text-sm text-slate-600">
+                    <label className="block">
+                        <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                            Upstream repository URL
+                        </span>
+                        <input
+                            type="url"
+                            value={originRepositoryUrlOverride}
+                            onChange={(event) => onChange(event.target.value)}
+                            disabled={isDisabled}
+                            placeholder={overview?.defaultOriginRepositoryUrl || ''}
+                            className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 font-mono text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+                        />
+                    </label>
+                    <p className="text-xs text-slate-500">
+                        Defaults to <span className="font-mono">{overview?.defaultOriginRepositoryUrl}</span>. Only
+                        change this if you self-host a fork of the original Promptbook repository — the new value is
+                        persisted in the standalone VPS <code>.env</code>.
+                    </p>
+                    {overview && !overview.isOriginRepositoryDefault && (
+                        <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                            <strong>Custom origin active:</strong> updates currently pull from{' '}
+                            <span className="font-mono">{overview.originRepositoryUrl}</span>.
+                        </div>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+}
+
+/**
+ * Builds the "behind by …" label combining commits-behind and time-behind info.
+ *
+ * @param overview - Current overview snapshot.
+ * @param language - Active UI language for moment localization.
+ * @returns Human-readable label or fallback text.
+ */
+function buildDeploymentDriftLabel(overview: UpdateOverview | null, language: ServerLanguageCode): string {
+    if (!overview) {
+        return 'New commit available';
+    }
+
+    const commitsBehindLabel =
+        overview.commitsBehindCount !== null && overview.commitsBehindCount > 0
+            ? `${overview.commitsBehindCount} commit${overview.commitsBehindCount === 1 ? '' : 's'} behind`
+            : 'New commit available';
+
+    if (!overview.currentCommitDate || !overview.latestRemoteCommitDate) {
+        return commitsBehindLabel;
+    }
+
+    const currentMoment = createServerLanguageMoment(overview.currentCommitDate, language);
+    const latestMoment = createServerLanguageMoment(overview.latestRemoteCommitDate, language);
+    const timeBehindLabel = currentMoment.from(latestMoment, true);
+    return `${commitsBehindLabel} · ${timeBehindLabel} behind`;
+}
+
+/**
  * Builds the success message for a finished standalone VPS update.
  *
  * @param job - Completed update job snapshot.
@@ -457,20 +658,21 @@ function getUpdateJobFailureMessage(job: UpdateJobSnapshot): string {
 }
 
 /**
- * Formats optional timestamps for the status cards.
+ * Formats optional timestamps for the status cards using `moment.js` with the active UI language.
  *
  * @param value - ISO timestamp or `null`.
- * @returns Human-friendly timestamp or fallback text.
+ * @param language - Active UI language code.
+ * @returns Localized human-friendly timestamp or fallback text.
  */
-function formatTimestamp(value: string | null | undefined): string {
+function formatHumanReadableTimestamp(value: string | null | undefined, language: ServerLanguageCode): string {
     if (!value) {
         return 'Not available';
     }
 
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) {
+    const localizedMoment = createServerLanguageMoment(value, language);
+    if (!localizedMoment.isValid()) {
         return value;
     }
 
-    return `${date.toLocaleString()} (${value})`;
+    return `${localizedMoment.fromNow()} (${localizedMoment.format('L LT')})`;
 }

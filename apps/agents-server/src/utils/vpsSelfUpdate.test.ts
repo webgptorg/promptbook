@@ -1,14 +1,14 @@
 import { describe, expect, it } from '@jest/globals';
 import {
+    getDefaultVpsSelfUpdateEnvironment,
     resolveVpsSelfUpdateJobForOverview,
-    VPS_SELF_UPDATE_ENVIRONMENTS,
     type VpsSelfUpdateJobSnapshot,
 } from './vpsSelfUpdate';
 
 /**
  * Canonical production environment option used by self-update resolver tests.
  */
-const PRODUCTION_ENVIRONMENT = VPS_SELF_UPDATE_ENVIRONMENTS[0];
+const PRODUCTION_ENVIRONMENT = getDefaultVpsSelfUpdateEnvironment();
 
 describe('resolveVpsSelfUpdateJobForOverview', () => {
     it('treats a stale update job as succeeded when the target commit is already deployed', () => {
