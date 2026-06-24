@@ -1,9 +1,11 @@
+import { CLI_AGENT_THINKING_LEVEL_VALUES } from '../../../book-3.0/cliAgentEnv';
+
 /**
  * Supported thinking-level CLI values for coding-agent runners with configurable reasoning effort.
  *
  * @private internal shared utility of `ptbk coder run`
  */
-export const THINKING_LEVEL_VALUES = ['low', 'medium', 'high', 'xhigh'] as const;
+export const THINKING_LEVEL_VALUES = CLI_AGENT_THINKING_LEVEL_VALUES;
 
 /**
  * Supported reasoning effort values for coding-agent runners with configurable thinking levels.

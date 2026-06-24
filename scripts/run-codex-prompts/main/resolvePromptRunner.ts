@@ -87,7 +87,12 @@ export function resolvePromptRunner(options: RunOptions): PromptRunnerResolution
     }
 
     if (agentName === 'claude-code') {
-        return createRunnerResolution(options, new ClaudeCodeRunner());
+        return createRunnerResolution(
+            options,
+            new ClaudeCodeRunner({
+                thinkingLevel: options.thinkingLevel,
+            }),
+        );
     }
 
     if (agentName === 'opencode') {

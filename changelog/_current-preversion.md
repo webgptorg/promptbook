@@ -1,3 +1,9 @@
+-   Added `--thinking-level` support for `ptbk coder run` and `ptbk coder server` when using `--harness claude-code`:
+
+    -   Promptbook now forwards the selected thinking level to Claude Code as `--effort`, matching Claude Code's reasoning-effort CLI flag.
+    -   Added `max` to the shared thinking-level values so Claude Code runs can use `--thinking-level max`.
+    -   Updated the VS Code terminal coder presets to pass `--thinking-level max` to the Claude Code runner.
+
 -   Improved the completion-time estimate shown by `ptbk coder run` and `ptbk coder server`:
 
     -   The estimated completion clock time is now rendered in **24-hour format** (for example `17:30` instead of `5:30`) by switching the calendar specs in `scripts/run-codex-prompts/common/progressFormatting.ts` from `h:mm` to `HH:mm` so estimates are unambiguous between AM and PM.

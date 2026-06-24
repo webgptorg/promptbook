@@ -166,16 +166,16 @@ describe('parseRunOptions', () => {
     });
 
     it('parses thinking level for supported runners', () => {
-        const options = parseRunOptions(['--harness', 'github-copilot', '--thinking-level', 'xhigh']);
+        const options = parseRunOptions(['--harness', 'claude-code', '--thinking-level', 'max']);
 
         expect(options).toMatchObject({
             dryRun: false,
-            agentName: 'github-copilot',
+            agentName: 'claude-code',
             autoPush: false,
             autoPull: false,
             preserveLogs: false,
             noUi: false,
-            thinkingLevel: 'xhigh',
+            thinkingLevel: 'max',
             normalizeLineEndings: true,
         });
     });

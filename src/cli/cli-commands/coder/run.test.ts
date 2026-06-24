@@ -145,12 +145,12 @@ describe('$initializeCoderRunCommand', () => {
     it('passes thinkingLevel through when provided', async () => {
         const program = createProgramWithRunCommand();
 
-        await program.parseAsync(['node', 'test', 'run', '--dry-run', '--thinking-level', 'xhigh'], { from: 'node' });
+        await program.parseAsync(['node', 'test', 'run', '--dry-run', '--thinking-level', 'max'], { from: 'node' });
 
         expect(getRunCodexPromptsMock()).toHaveBeenCalledWith(
             expect.objectContaining({
                 dryRun: true,
-                thinkingLevel: 'xhigh',
+                thinkingLevel: 'max',
             }),
         );
     });

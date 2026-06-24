@@ -19,7 +19,7 @@ export const CLI_AGENT_HARNESS_NAMES = [
  *
  * @public exported from `@promptbook/node`
  */
-export const CLI_AGENT_THINKING_LEVEL_VALUES = ['low', 'medium', 'high', 'xhigh'] as const;
+export const CLI_AGENT_THINKING_LEVEL_VALUES = ['low', 'medium', 'high', 'xhigh', 'max'] as const;
 
 /**
  * Environment variable used as the default runner identifier when `--harness` is omitted or not set in `CliAgent`.

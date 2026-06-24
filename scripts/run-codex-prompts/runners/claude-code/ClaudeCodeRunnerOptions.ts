@@ -1,10 +1,9 @@
 import type { ThinkingLevel } from '../../../../src/cli/cli-commands/coder/ThinkingLevel';
 
 /**
- * Options for building the Claude Code shell script.
+ * Options for the Claude Code runner.
  */
-export type ClaudeScriptOptions = {
-    prompt: string;
+export type ClaudeCodeRunnerOptions = {
     /**
      * Optional reasoning effort override forwarded to Claude Code CLI as `--effort`.
      */

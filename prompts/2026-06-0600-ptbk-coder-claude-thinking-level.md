@@ -1,4 +1,4 @@
-[ ] !
+[x] ~$0.4692 an hour by OpenAI Codex `gpt-5.5`
 
 [✨🐩] Allow to pass `--thinking-level` to the `ptbk` cli commands when using `--harness claude-code`
 
@@ -19,3 +19,4 @@ ptbk coder server --harness claude-code --model claude-opus-4.8 --thinking-level
 -   Look at [terminals.json](.vscode/terminals.json) and update the usage of the coder
 
 ![alt text](screenshots/2026-06-0600-ptbk-coder-claude-thinking-level.png)
+
