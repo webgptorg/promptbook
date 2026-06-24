@@ -1,3 +1,5 @@
+-   Fixed `npm run build:book-editor-macos` failing on Windows with `spawnSync npm.cmd EINVAL` by passing `shell: process.platform === 'win32'` to `execFileSync` in `scripts/book-editor-macos/build-book-editor-macos.js`, matching the existing pattern in `scripts/vscode-extension/build-vscode-extension.js`. The change is required because newer Node.js versions (CVE-2024-27980) refuse to spawn `.cmd` shims without a shell on Windows.
+
 -   Updated Agents Server date displays to use localized human-readable `moment.js` labels:
 
     -   Added a shared `formatServerLanguageHumanReadableDate` utility so client and server-rendered UI can show labels like `2 days ago` using the active Agents Server language.

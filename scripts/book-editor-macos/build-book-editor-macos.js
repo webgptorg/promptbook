@@ -52,12 +52,16 @@ const appPackageJson = JSON.parse(originalAppPackageJson);
 /**
  * Runs an npm command in the macOS Book Editor app directory.
  *
+ * Windows resolves npm through `.cmd` shims, which need shell execution when
+ * spawned from this repository script on some Node versions.
+ *
  * @param {ReadonlyArray<string>} args - npm CLI arguments
  * @returns {void}
  */
 function runAppNpm(args) {
     execFileSync(npmExecutable, args, {
         cwd: bookEditorMacosRoot,
+        shell: process.platform === 'win32',
         stdio: 'inherit',
     });
 }
