@@ -5,6 +5,9 @@ import { $getTableName } from '../../../../database/$getTableName';
 import { $provideSupabaseForServer } from '../../../../database/$provideSupabaseForServer';
 import { ForbiddenPage } from '../../../../components/ForbiddenPage/ForbiddenPage';
 import { isUserAdmin } from '../../../../utils/isUserAdmin';
+import type { ServerLanguageCode } from '../../../../languages/ServerLanguageRegistry';
+import { formatServerLanguageHumanReadableDate } from '../../../../utils/localization/formatServerLanguageHumanReadableDate';
+import { getRequestServerLanguage } from '../../../../utils/localization/getRequestServerLanguage';
 import {
     getShibbolethAuthenticationAttemptTableName,
     getShibbolethUserIdentityTableName,
@@ -112,12 +115,8 @@ async function loadShibbolethIdentitiesWithUsers(): Promise<{
 /**
  * Formats an optional date-time value for the dashboard.
  */
-function formatDashboardDateTime(value: string | null | undefined): string {
-    if (!value) {
-        return 'Never';
-    }
-
-    return new Date(value).toLocaleString();
+function formatDashboardDateTime(value: string | null | undefined, language: ServerLanguageCode): string {
+    return formatServerLanguageHumanReadableDate(value, language, { fallbackLabel: 'Never' });
 }
 
 /**
@@ -131,13 +130,14 @@ export default async function ShibbolethLoginMethodPage() {
     }
 
     const requestUrl = await getDashboardRequestUrl();
-    const [configuration, attempts, identitiesWithUsers] = await Promise.all([
+    const [configuration, attempts, identitiesWithUsers, language] = await Promise.all([
         resolveShibbolethAuthenticationConfiguration({
             requestUrl,
             isIdentityProviderMetadataValidationEnabled: true,
         }),
         loadShibbolethAuthenticationAttempts(),
         loadShibbolethIdentitiesWithUsers(),
+        getRequestServerLanguage(),
     ]);
     const isWarningShown = configuration.isActive && !configuration.isConfigured;
 
@@ -286,7 +286,7 @@ export default async function ShibbolethLoginMethodPage() {
                                 attempts.map((attempt) => (
                                     <tr key={attempt.id}>
                                         <td className="whitespace-nowrap py-2 pr-4 text-gray-700">
-                                            {formatDashboardDateTime(attempt.createdAt)}
+                                            {formatDashboardDateTime(attempt.createdAt, language)}
                                         </td>
                                         <td className="py-2 pr-4 font-medium text-gray-900">{attempt.status}</td>
                                         <td className="py-2 pr-4 text-gray-700">{attempt.stage}</td>
@@ -350,7 +350,7 @@ export default async function ShibbolethLoginMethodPage() {
                                             </td>
                                             <td className="py-2 pr-4 text-gray-700">{identity.loginCount}</td>
                                             <td className="whitespace-nowrap py-2 pr-4 text-gray-700">
-                                                {formatDashboardDateTime(identity.lastLoggedInAt)}
+                                                {formatDashboardDateTime(identity.lastLoggedInAt, language)}
                                             </td>
                                         </tr>
                                     );

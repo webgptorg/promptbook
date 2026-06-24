@@ -6,6 +6,7 @@ import { Card } from '../Homepage/Card';
 import { Section } from '../Homepage/Section';
 import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
 import { SecretInput } from '@/src/components/SecretInput/SecretInput';
+import { formatServerLanguageHumanReadableDate } from '@/src/utils/localization/formatServerLanguageHumanReadableDate';
 import { useUsersAdmin } from './useUsersAdmin';
 
 /**
@@ -26,7 +27,7 @@ type UsersListProps = {
  */
 export function UsersList({ allowCreate = true }: UsersListProps) {
     const { users, loading, error, createUser, deleteUser, toggleAdmin } = useUsersAdmin();
-    const { t } = useServerLanguage();
+    const { language, t } = useServerLanguage();
 
     const [newUsername, setNewUsername] = useState('');
     const [newPassword, setNewPassword] = useState('');
@@ -91,7 +92,8 @@ export function UsersList({ allowCreate = true }: UsersListProps) {
                                     </p>
                                 )}
                                 <p className="text-gray-500 text-sm mt-2">
-                                    {t('users.createdLabel')}: {new Date(user.createdAt).toLocaleDateString()}
+                                    {t('users.createdLabel')}:{' '}
+                                    {formatServerLanguageHumanReadableDate(user.createdAt, language)}
                                 </p>
                             </div>
                             <div className="space-x-2">

@@ -1,6 +1,9 @@
 import type { string_book } from '@promptbook-local/types';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { showAlert, showConfirm, showPrompt } from '@/src/components/AsyncDialogs/asyncDialogs';
+import { useServerLanguage } from '@/src/components/ServerLanguage/ServerLanguageProvider';
+import type { ServerLanguageCode } from '@/src/languages/ServerLanguageRegistry';
+import { formatServerLanguageHumanReadableDate } from '@/src/utils/localization/formatServerLanguageHumanReadableDate';
 import type { BookEditorHistoryVersionItem } from './BookEditorHistoryPanel';
 import { resolveBookEditorApiErrorMessage } from './resolveBookEditorApiErrorMessage';
 
@@ -340,6 +343,7 @@ function resolveSelectedHistoryId<HistoryItem extends { readonly id: number }>(
  */
 function buildHistoryVersionItems(
     historyEntries: ReadonlyArray<AgentHistoryEntry>,
+    language: ServerLanguageCode,
 ): Array<BookEditorHistoryVersionItem> {
     const totalVersions = historyEntries.length;
 
@@ -347,7 +351,9 @@ function buildHistoryVersionItems(
         id: entry.id,
         versionName: normalizeHistoryVersionName(entry.versionName),
         versionLabel: `Version ${totalVersions - index}`,
-        createdAtLabel: new Date(entry.createdAt).toLocaleString(),
+        createdAtLabel: formatServerLanguageHumanReadableDate(entry.createdAt, language, {
+            isExactDateIncluded: true,
+        }),
         hash: entry.agentHash,
         hashPreview: entry.agentHash.slice(0, 8),
         source: entry.agentSource,
@@ -800,6 +806,7 @@ export function useBookEditorHistory({
     replaceWithRestoredSource,
     requestDiagnostics,
 }: UseBookEditorHistoryProps) {
+    const { language } = useServerLanguage();
     const [isHistoryOpen, setIsHistoryOpen] = useState(false);
     const [historyNameQuery, setHistoryNameQuery] = useState('');
     const [isNamedHistoryOnly, setIsNamedHistoryOnly] = useState(false);
@@ -840,7 +847,7 @@ export function useBookEditorHistory({
      *
      * @private function of useBookEditorHistory
      */
-    const historyVersions = useMemo(() => buildHistoryVersionItems(historyEntries), [historyEntries]);
+    const historyVersions = useMemo(() => buildHistoryVersionItems(historyEntries, language), [historyEntries, language]);
 
     /**
      * Filtered history items matching the current panel controls.

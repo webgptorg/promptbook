@@ -3,6 +3,8 @@ import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentColle
 import { formatAgentNamingText } from '@/src/utils/agentNaming';
 import { getCurrentUser } from '@/src/utils/getCurrentUser';
 import { getAgentNaming } from '@/src/utils/getAgentNaming';
+import { formatServerLanguageHumanReadableDate } from '@/src/utils/localization/formatServerLanguageHumanReadableDate';
+import { getRequestServerLanguage } from '@/src/utils/localization/getRequestServerLanguage';
 import { HistoryIcon } from 'lucide-react';
 import { RestoreVersionButton } from './RestoreVersionButton';
 import { enforceCanonicalLocalAgentId, getAgentName } from '../_utils';
@@ -39,6 +41,7 @@ export default async function AgentHistoryPage({ params }: { params: Promise<{ a
     const collection = await $provideAgentCollectionForServer();
     const history = await collection.listAgentHistory(agentName);
     const agentNaming = await getAgentNaming();
+    const language = await getRequestServerLanguage();
 
     return (
         <div className="container mx-auto p-6 max-w-4xl">
@@ -69,7 +72,9 @@ export default async function AgentHistoryPage({ params }: { params: Promise<{ a
                                 <div className="flex justify-between items-start mb-2">
                                     <div>
                                         <time className="block mb-1 text-sm font-normal leading-none text-gray-400">
-                                            {new Date(item.createdAt).toLocaleString()}
+                                            {formatServerLanguageHumanReadableDate(item.createdAt, language, {
+                                                isExactDateIncluded: true,
+                                            })}
                                         </time>
                                         <h3 className="text-lg font-semibold text-gray-900">
                                             {item.versionName || `Version ${history.length - index}`}

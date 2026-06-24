@@ -1,3 +1,5 @@
+import type { ServerLanguageCode } from '../../../languages/ServerLanguageRegistry';
+import { formatServerLanguageHumanReadableDate } from '../../../utils/localization/formatServerLanguageHumanReadableDate';
 import type { CustomJavascriptFileState } from './CustomJavascriptFileState';
 
 /**
@@ -6,6 +8,7 @@ import type { CustomJavascriptFileState } from './CustomJavascriptFileState';
  * @private function of CustomJsClient
  */
 type CustomJsFilesPanelProps = {
+    readonly language: ServerLanguageCode;
     readonly files: ReadonlyArray<CustomJavascriptFileState>;
     readonly selectedFileLocalId: string;
     readonly onAddNewFile: () => void;
@@ -18,6 +21,7 @@ type CustomJsFilesPanelProps = {
  * @private function of CustomJsClient
  */
 export function CustomJsFilesPanel({
+    language,
     files,
     selectedFileLocalId,
     onAddNewFile,
@@ -59,7 +63,9 @@ export function CustomJsFilesPanel({
                         >
                             <div className="text-sm font-medium text-gray-900">{file.scope || 'Untitled script'}</div>
                             <div className="text-xs text-gray-500">
-                                {file.updatedAt ? `Saved ${new Date(file.updatedAt).toLocaleString()}` : 'Not saved yet'}
+                                {file.updatedAt
+                                    ? `Saved ${formatServerLanguageHumanReadableDate(file.updatedAt, language)}`
+                                    : 'Not saved yet'}
                             </div>
                         </button>
                     );

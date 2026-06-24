@@ -1,21 +1,21 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
 import { Card } from '../../../components/Homepage/Card';
+import type { ServerLanguageCode } from '../../../languages/ServerLanguageRegistry';
 import {
     $fetchMessages,
     type MessageRow,
     type MessageSendAttemptRow,
 } from '../../../utils/messagesAdmin';
+import { formatServerLanguageHumanReadableDate } from '../../../utils/localization/formatServerLanguageHumanReadableDate';
 
 /**
  * Formats date.
  */
-function formatDate(dateString: string | null | undefined): string {
-    if (!dateString) return '-';
-    const date = new Date(dateString);
-    if (Number.isNaN(date.getTime())) return dateString;
-    return date.toLocaleString();
+function formatDate(dateString: string | null | undefined, language: ServerLanguageCode): string {
+    return formatServerLanguageHumanReadableDate(dateString, language, { fallbackLabel: '-' });
 }
 
 /**
@@ -44,6 +44,7 @@ function getStatusBadge(attempts: MessageSendAttemptRow[] | undefined) {
  * Handles messages client.
  */
 export function MessagesClient() {
+    const { language } = useServerLanguage();
     const [items, setItems] = useState<MessageRow[]>([]);
     const [total, setTotal] = useState(0);
     const [page, setPage] = useState(1);
@@ -270,7 +271,7 @@ export function MessagesClient() {
                                 {items.map((row) => (
                                     <tr key={row.id}>
                                         <td className="whitespace-nowrap px-4 py-3 text-gray-700">
-                                            {formatDate(row.createdAt)}
+                                            {formatDate(row.createdAt, language)}
                                         </td>
                                         <td className="whitespace-nowrap px-4 py-3 text-gray-700">
                                             {row.channel}

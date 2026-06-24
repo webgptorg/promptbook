@@ -1,5 +1,6 @@
 'use client';
 
+import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
 import { CustomJsAnalyticsPanel } from './CustomJsAnalyticsPanel';
 import { CustomJsEditorPanel } from './CustomJsEditorPanel';
 import { CustomJsFilesPanel } from './CustomJsFilesPanel';
@@ -11,6 +12,7 @@ import { useCustomJsClientState } from './useCustomJsClientState';
  * @private route component of CustomJsPage
  */
 export function CustomJsClient() {
+    const { language } = useServerLanguage();
     const {
         addNewFile,
         analyticsHasChanges,
@@ -74,6 +76,7 @@ export function CustomJsClient() {
 
             <div className="grid gap-4 lg:grid-cols-[260px_1fr]">
                 <CustomJsFilesPanel
+                    language={language}
                     files={files}
                     selectedFileLocalId={currentFile?.localId ?? ''}
                     onAddNewFile={addNewFile}
@@ -81,6 +84,7 @@ export function CustomJsClient() {
                 />
 
                 <CustomJsEditorPanel
+                    language={language}
                     currentFile={currentFile}
                     remainingCharacters={remainingCharacters}
                     maxLength={maxLength}

@@ -1,3 +1,8 @@
+-   Updated Agents Server date displays to use localized human-readable `moment.js` labels:
+
+    -   Added a shared `formatServerLanguageHumanReadableDate` utility so client and server-rendered UI can show labels like `2 days ago` using the active Agents Server language.
+    -   Replaced raw browser-local date rendering across admin/system tables, chat/history views, galleries, update/task dashboards, API-token panels, and integration activity lists.
+
 -   Added `--thinking-level` support for `ptbk coder run` and `ptbk coder server` when using `--harness claude-code`:
 
     -   Promptbook now forwards the selected thinking level to Claude Code as `--effort`, matching Claude Code's reasoning-effort CLI flag.

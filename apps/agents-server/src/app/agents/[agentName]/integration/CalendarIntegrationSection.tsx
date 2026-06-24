@@ -1,7 +1,10 @@
 'use client';
 
 import { showConfirm } from '@/src/components/AsyncDialogs/asyncDialogs';
+import { useServerLanguage } from '@/src/components/ServerLanguage/ServerLanguageProvider';
+import type { ServerLanguageCode } from '@/src/languages/ServerLanguageRegistry';
 import { buildCalendarOAuthConnectUrl } from '@/src/utils/calendarOAuthClient';
+import { formatServerLanguageHumanReadableDate } from '@/src/utils/localization/formatServerLanguageHumanReadableDate';
 import { Calendar, Link2, RefreshCw, Unlink } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
@@ -71,6 +74,7 @@ type CalendarIntegrationSectionProps = {
  * Renders connected-calendar settings for one agent, including re-auth/disconnect and activity timeline.
  */
 export function CalendarIntegrationSection({ agentName, agentPermanentId }: CalendarIntegrationSectionProps) {
+    const { language } = useServerLanguage();
     const {
         activeConnections,
         disconnectConnection,
@@ -124,7 +128,7 @@ export function CalendarIntegrationSection({ agentName, agentPermanentId }: Cale
                         onDisconnect={(connection) => void disconnectConnection(connection)}
                     />
 
-                    <CalendarActivitySection activity={payload?.activity || []} />
+                    <CalendarActivitySection activity={payload?.activity || []} language={language} />
                 </>
             )}
         </div>
@@ -497,7 +501,13 @@ function CalendarConnectionCard({
 /**
  * Renders the recent calendar activity section.
  */
-function CalendarActivitySection({ activity }: { activity: ReadonlyArray<CalendarActivityItem> }) {
+function CalendarActivitySection({
+    activity,
+    language,
+}: {
+    activity: ReadonlyArray<CalendarActivityItem>;
+    language: ServerLanguageCode;
+}) {
     return (
         <div className="mt-6 space-y-3">
             <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-700">Recent activity</h3>
@@ -506,7 +516,7 @@ function CalendarActivitySection({ activity }: { activity: ReadonlyArray<Calenda
             ) : (
                 <div className="space-y-2">
                     {activity.map((item) => (
-                        <CalendarActivityCard key={item.id} activity={item} />
+                        <CalendarActivityCard key={item.id} activity={item} language={language} />
                     ))}
                 </div>
             )}
@@ -517,7 +527,13 @@ function CalendarActivitySection({ activity }: { activity: ReadonlyArray<Calenda
 /**
  * Renders one recent calendar activity row.
  */
-function CalendarActivityCard({ activity }: { activity: CalendarActivityItem }) {
+function CalendarActivityCard({
+    activity,
+    language,
+}: {
+    activity: CalendarActivityItem;
+    language: ServerLanguageCode;
+}) {
     return (
         <div className="rounded-lg border border-blue-100 bg-white/90 px-3 py-2">
             <div className="flex flex-wrap items-center gap-2 text-xs">
@@ -529,7 +545,9 @@ function CalendarActivityCard({ activity }: { activity: CalendarActivityItem }) 
                 >
                     {activity.status}
                 </span>
-                <span className="text-gray-500">{new Date(activity.createdAt).toLocaleString()}</span>
+                <span className="text-gray-500">
+                    {formatServerLanguageHumanReadableDate(activity.createdAt, language)}
+                </span>
             </div>
             {activity.calendarUrl && (
                 <p className="mt-1 text-[11px] text-gray-600 break-all font-mono">{activity.calendarUrl}</p>

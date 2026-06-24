@@ -28,7 +28,7 @@ import type { ServerLanguageCode } from '../../../languages/ServerLanguageRegist
 import { buildFreshAgentChatHref } from '../../../utils/agentRouting/agentRouteHrefs';
 import { executeQuickActionButton } from '../../../utils/chat/executeQuickActionButton';
 import { resolveChatMessageValidationIssue } from '../../../utils/chat/validateChatMessageContent';
-import { createServerLanguageMoment } from '../../../utils/localization/createServerLanguageMoment';
+import { formatServerLanguageHumanReadableDate } from '../../../utils/localization/formatServerLanguageHumanReadableDate';
 import { createDefaultSpeechRecognition } from '../../../utils/speech-to-text/createDefaultSpeechRecognition';
 import { chatFileUploadHandler } from '../../../utils/upload/createBookEditorUploadHandler';
 import { createUserChatClientMessageId, type UserChatSummary } from '../../../utils/userChatClient';
@@ -119,21 +119,6 @@ type OptimisticChatNavigationState = {
     message?: string;
     attachments?: ChatMessage['attachments'];
 };
-
-/**
- * Parses one profile-chat timestamp using the active Agents Server language.
- *
- * @param timestamp - ISO string describing the chat update time.
- * @param language - Active Agents Server language code.
- * @returns Localized moment instance or `null` when the timestamp is invalid.
- */
-function resolveProfileChatTimestampMoment(
-    timestamp: string,
-    language: ServerLanguageCode,
-): ReturnType<typeof createServerLanguageMoment> | null {
-    const parsed = createServerLanguageMoment(timestamp, language);
-    return parsed.isValid() ? parsed : null;
-}
 
 /**
  * Returns true when a message has non-whitespace content.
@@ -643,9 +628,10 @@ function ExistingChatsPanel({
                 </div>
                 <div className="mt-4 space-y-3 overflow-y-auto pr-1" style={{ maxHeight: `${scrollViewportHeight}px` }}>
                     {chats.map((chat) => {
-                        const updatedAtMoment = resolveProfileChatTimestampMoment(chat.updatedAt, language);
-                        const fullTimeLabel = updatedAtMoment ? updatedAtMoment.format('L LT') : chat.updatedAt;
-                        const timeLabel = updatedAtMoment ? updatedAtMoment.fromNow() || fullTimeLabel : chat.updatedAt;
+                        const fullTimeLabel = formatServerLanguageHumanReadableDate(chat.updatedAt, language, {
+                            isExactDateIncluded: true,
+                        });
+                        const timeLabel = formatServerLanguageHumanReadableDate(chat.updatedAt, language);
                         const title = chat.title || formatText('Untitled chat');
                         const previewText = hasMessageContent(chat.preview)
                             ? chat.preview
@@ -678,7 +664,7 @@ function ExistingChatsPanel({
                                         </span>
                                     </div>
                                     <time
-                                        dateTime={updatedAtMoment ? updatedAtMoment.toISOString() : chat.updatedAt}
+                                        dateTime={chat.updatedAt}
                                         title={fullTimeLabel}
                                         className="text-[0.65rem] font-semibold text-slate-400 dark:text-slate-500"
                                     >

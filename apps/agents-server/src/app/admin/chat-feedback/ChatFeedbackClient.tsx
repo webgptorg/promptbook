@@ -1,6 +1,7 @@
 'use client';
 
 import { useAgentNaming } from '../../../components/AgentNaming/AgentNamingContext';
+import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
 import { ChatFeedbackFiltersCard } from './ChatFeedbackFiltersCard';
 import { ChatFeedbackTable } from './ChatFeedbackTable';
 import { ChatFeedbackThreadDialog } from './ChatFeedbackThreadDialog';
@@ -21,6 +22,7 @@ type ChatFeedbackClientProps = {
  */
 export function ChatFeedbackClient({ initialAgentName }: ChatFeedbackClientProps) {
     const { formatText } = useAgentNaming();
+    const { language } = useServerLanguage();
     const chatFeedbackState = useChatFeedbackState({ initialAgentName, formatText });
 
     return (
@@ -68,6 +70,7 @@ export function ChatFeedbackClient({ initialAgentName }: ChatFeedbackClientProps
 
             <ChatFeedbackTable
                 formatText={formatText}
+                language={language}
                 items={chatFeedbackState.items}
                 total={chatFeedbackState.total}
                 loading={chatFeedbackState.loading}

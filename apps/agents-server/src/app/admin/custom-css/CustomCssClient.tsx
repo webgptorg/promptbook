@@ -1,5 +1,6 @@
 'use client';
 
+import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
 import { CustomCssEditorPanel } from './CustomCssEditorPanel';
 import { CustomCssFilesPanel } from './CustomCssFilesPanel';
 import { CustomCssSelectorsPanel } from './CustomCssSelectorsPanel';
@@ -11,6 +12,7 @@ import { useCustomCssClientState } from './useCustomCssClientState';
  * @private route component of CustomCssPage
  */
 export function CustomCssClient() {
+    const { language } = useServerLanguage();
     const {
         addNewFile,
         currentFile,
@@ -60,6 +62,7 @@ export function CustomCssClient() {
                 <section className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
                     <div className="grid gap-4 lg:grid-cols-[260px_1fr]">
                         <CustomCssFilesPanel
+                            language={language}
                             files={files}
                             selectedFileLocalId={currentFile?.localId ?? ''}
                             onAddNewFile={addNewFile}
@@ -67,6 +70,7 @@ export function CustomCssClient() {
                         />
 
                         <CustomCssEditorPanel
+                            language={language}
                             currentFile={currentFile}
                             remainingCharacters={remainingCharacters}
                             maxLength={maxLength}

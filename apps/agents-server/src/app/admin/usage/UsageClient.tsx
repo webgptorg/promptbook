@@ -2,6 +2,7 @@
 
 import { useAgentNaming } from '@/src/components/AgentNaming/AgentNamingContext';
 import { Card } from '@/src/components/Homepage/Card';
+import { useServerLanguage } from '@/src/components/ServerLanguage/ServerLanguageProvider';
 import {
     type UsageActorType,
     type UsageAgentOption,
@@ -35,7 +36,8 @@ type UsageClientProps = {
  */
 export function UsageClient(props: UsageClientProps) {
     const { formatText } = useAgentNaming();
-    const usageClientState = useUsageClientState(props);
+    const { language } = useServerLanguage();
+    const usageClientState = useUsageClientState(props, language);
 
     return (
         <div className="container mx-auto px-4 py-8 space-y-6">
@@ -86,7 +88,7 @@ export function UsageClient(props: UsageClientProps) {
             ) : null}
 
             {!usageClientState.loading && usageClientState.data && (
-                <UsageClientAnalyticsPanels data={usageClientState.data} metric={usageClientState.metric} />
+                <UsageClientAnalyticsPanels data={usageClientState.data} language={language} metric={usageClientState.metric} />
             )}
         </div>
     );

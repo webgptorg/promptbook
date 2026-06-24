@@ -1,6 +1,8 @@
 'use client';
 
 import type { UserWalletRecord } from '@/src/utils/userWallet';
+import type { ServerLanguageCode } from '@/src/languages/ServerLanguageRegistry';
+import { formatServerLanguageHumanReadableDate } from '@/src/utils/localization/formatServerLanguageHumanReadableDate';
 import type { UserWalletAgentOption } from './UserWalletAgentOption';
 import { formatWalletJsonSchemaForTextarea, type EditingUserWalletDraft, type UpdateUserWalletDraft } from './UserWalletDraft';
 import { UserWalletRecordFormFields } from './UserWalletRecordFormFields';
@@ -11,6 +13,7 @@ import { UserWalletRecordValue } from './UserWalletRecordValue';
  */
 type UserWalletRecordsTableProps = {
     agents: ReadonlyArray<UserWalletAgentOption>;
+    language: ServerLanguageCode;
     editingDraft: EditingUserWalletDraft | null;
     isEditingSmtpRecord: boolean;
     isLoading: boolean;
@@ -31,6 +34,7 @@ type UserWalletRecordsTableProps = {
  */
 export function UserWalletRecordsTable({
     agents,
+    language,
     editingDraft,
     isEditingSmtpRecord,
     isLoading,
@@ -118,7 +122,7 @@ export function UserWalletRecordsTable({
                                         )}
                                     </td>
                                     <td className="px-4 py-3 text-xs text-gray-500">
-                                        {new Date(record.updatedAt).toLocaleString()}
+                                        {formatServerLanguageHumanReadableDate(record.updatedAt, language)}
                                     </td>
                                     <td className="px-4 py-3 text-right text-sm">
                                         {isEditing ? (

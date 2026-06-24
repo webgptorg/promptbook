@@ -1,4 +1,5 @@
 import { Card } from '@/src/components/Homepage/Card';
+import type { ServerLanguageCode } from '@/src/languages/ServerLanguageRegistry';
 import type { UsageAnalyticsResponse, UsageMetricMode } from '@/src/utils/usageAdmin';
 import type { ReactNode } from 'react';
 import { useMemo } from 'react';
@@ -10,6 +11,7 @@ import { UsageClientTimelineChart } from './UsageClientTimelineChart';
  */
 type UsageClientAnalyticsPanelsProps = {
     data: UsageAnalyticsResponse;
+    language: ServerLanguageCode;
     metric: UsageMetricMode;
 };
 
@@ -19,7 +21,7 @@ type UsageClientAnalyticsPanelsProps = {
  * @private function of UsageClient
  */
 export function UsageClientAnalyticsPanels(props: UsageClientAnalyticsPanelsProps) {
-    const { data, metric } = props;
+    const { data, language, metric } = props;
 
     const summaryItems = useMemo(() => {
         const primaryMetricLabel = UsageClientFormatting.usageMetricLabel(metric);
@@ -62,7 +64,7 @@ export function UsageClientAnalyticsPanels(props: UsageClientAnalyticsPanelsProp
                         {UsageClientFormatting.usageMetricDescription(metric)} in the selected timeframe.
                     </p>
                 </div>
-                <UsageClientTimelineChart points={data.timeline} metric={metric} />
+                <UsageClientTimelineChart language={language} points={data.timeline} metric={metric} />
             </Card>
 
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -164,7 +166,7 @@ export function UsageClientAnalyticsPanels(props: UsageClientAnalyticsPanelsProp
                                 metric,
                                 UsageClientFormatting.resolveMetricValue(item, metric),
                             ),
-                            UsageClientFormatting.formatDateTime(item.lastSeen),
+                            UsageClientFormatting.formatDateTime(item.lastSeen, language),
                         ])}
                     />
                 </Card>
@@ -182,7 +184,7 @@ export function UsageClientAnalyticsPanels(props: UsageClientAnalyticsPanelsProp
                                 metric,
                                 UsageClientFormatting.resolveMetricValue(item, metric),
                             ),
-                            UsageClientFormatting.formatDateTime(item.lastSeen),
+                            UsageClientFormatting.formatDateTime(item.lastSeen, language),
                         ])}
                     />
                 </Card>

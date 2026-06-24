@@ -18,6 +18,7 @@ import { Card } from '../../../components/Homepage/Card';
 import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
 import type { ServerLanguageCode } from '../../../languages/ServerLanguageRegistry';
 import { createServerLanguageMoment } from '../../../utils/localization/createServerLanguageMoment';
+import { formatServerLanguageHumanReadableDate } from '../../../utils/localization/formatServerLanguageHumanReadableDate';
 import { CustomCommitPicker, type CustomCommitPickerCandidate } from './CustomCommitPicker';
 
 /**
@@ -665,14 +666,8 @@ function getUpdateJobFailureMessage(job: UpdateJobSnapshot): string {
  * @returns Localized human-friendly timestamp or fallback text.
  */
 function formatHumanReadableTimestamp(value: string | null | undefined, language: ServerLanguageCode): string {
-    if (!value) {
-        return 'Not available';
-    }
-
-    const localizedMoment = createServerLanguageMoment(value, language);
-    if (!localizedMoment.isValid()) {
-        return value;
-    }
-
-    return `${localizedMoment.fromNow()} (${localizedMoment.format('L LT')})`;
+    return formatServerLanguageHumanReadableDate(value, language, {
+        fallbackLabel: 'Not available',
+        isExactDateIncluded: true,
+    });
 }

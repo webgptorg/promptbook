@@ -1,3 +1,4 @@
+import type { ServerLanguageCode } from '@/src/languages/ServerLanguageRegistry';
 import type { useAgentTimeoutsClientState } from './useAgentTimeoutsClientState';
 import { AgentTimeoutsTableRow } from './AgentTimeoutsTableRow';
 
@@ -8,6 +9,7 @@ import { AgentTimeoutsTableRow } from './AgentTimeoutsTableRow';
  */
 type AgentTimeoutsTableCardProps = {
     agentName: string;
+    language: ServerLanguageCode;
     state: ReturnType<typeof useAgentTimeoutsClientState>;
 };
 
@@ -16,7 +18,7 @@ type AgentTimeoutsTableCardProps = {
  *
  * @private function of AgentTimeoutsClient
  */
-export function AgentTimeoutsTableCard({ agentName, state }: AgentTimeoutsTableCardProps) {
+export function AgentTimeoutsTableCard({ agentName, language, state }: AgentTimeoutsTableCardProps) {
     return (
         <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
             {state.isLoading ? (
@@ -42,6 +44,7 @@ export function AgentTimeoutsTableCard({ agentName, state }: AgentTimeoutsTableC
                                 <AgentTimeoutsTableRow
                                     key={timeout.timeoutId}
                                     agentName={agentName}
+                                    language={language}
                                     state={state}
                                     timeout={timeout}
                                 />

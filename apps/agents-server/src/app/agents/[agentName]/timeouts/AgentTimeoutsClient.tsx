@@ -1,5 +1,6 @@
 'use client';
 
+import { useServerLanguage } from '@/src/components/ServerLanguage/ServerLanguageProvider';
 import { AgentTimeoutsEditDialog } from './AgentTimeoutsEditDialog';
 import { AgentTimeoutsFiltersCard } from './AgentTimeoutsFiltersCard';
 import { AgentTimeoutsHeader } from './AgentTimeoutsHeader';
@@ -20,13 +21,14 @@ type AgentTimeoutsClientProps = {
  * @private route component of AgentTimeoutsPage
  */
 export function AgentTimeoutsClient({ agentName }: AgentTimeoutsClientProps) {
+    const { language } = useServerLanguage();
     const state = useAgentTimeoutsClientState({ agentName });
 
     return (
         <div className="container mx-auto mt-20 space-y-6 px-4 py-8">
             <AgentTimeoutsHeader state={state} />
             <AgentTimeoutsSummaryMetrics state={state} />
-            <AgentTimeoutsFiltersCard state={state} />
+            <AgentTimeoutsFiltersCard language={language} state={state} />
 
             {state.errorMessage ? (
                 <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
@@ -34,7 +36,7 @@ export function AgentTimeoutsClient({ agentName }: AgentTimeoutsClientProps) {
                 </div>
             ) : null}
 
-            <AgentTimeoutsTableCard agentName={agentName} state={state} />
+            <AgentTimeoutsTableCard agentName={agentName} language={language} state={state} />
             <AgentTimeoutsEditDialog state={state} />
         </div>
     );

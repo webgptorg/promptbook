@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import type { ServerLanguageCode } from '@/src/languages/ServerLanguageRegistry';
+import { formatServerLanguageHumanReadableDate } from '@/src/utils/localization/formatServerLanguageHumanReadableDate';
 import type { UseMockedChatsEditorState } from './useMockedChatsEditorState';
 
 /**
@@ -8,6 +10,7 @@ type MockedChatsEditorSidebarProps = Pick<
     UseMockedChatsEditorState,
     'savedChats' | 'selectedChatId' | 'createNewDraft' | 'selectSavedChat'
 > & {
+    language: ServerLanguageCode;
     buildViewerHref: (mockedChatId: string) => string;
 };
 
@@ -16,13 +19,8 @@ type MockedChatsEditorSidebarProps = Pick<
  *
  * @private function of <MockedChatsEditorClient/>
  */
-function formatMockedChatUpdatedAt(updatedAt: string): string {
-    const date = new Date(updatedAt);
-    if (Number.isNaN(date.getTime())) {
-        return 'just now';
-    }
-
-    return date.toLocaleString();
+function formatMockedChatUpdatedAt(updatedAt: string, language: ServerLanguageCode): string {
+    return formatServerLanguageHumanReadableDate(updatedAt, language, { fallbackLabel: 'just now' });
 }
 
 /**
@@ -31,6 +29,7 @@ function formatMockedChatUpdatedAt(updatedAt: string): string {
  * @private function of <MockedChatsEditorClient/>
  */
 export function MockedChatsEditorSidebar({
+    language,
     savedChats,
     selectedChatId,
     createNewDraft,
@@ -74,7 +73,7 @@ export function MockedChatsEditorSidebar({
                                         <div className="min-w-0">
                                             <p className="truncate text-sm font-semibold text-slate-900">{chat.name}</p>
                                             <p className="mt-1 text-xs text-slate-500">
-                                                Updated {formatMockedChatUpdatedAt(chat.updatedAt)}
+                                                Updated {formatMockedChatUpdatedAt(chat.updatedAt, language)}
                                             </p>
                                         </div>
                                         <Link

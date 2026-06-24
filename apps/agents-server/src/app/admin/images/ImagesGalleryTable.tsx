@@ -1,6 +1,8 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
+import type { ServerLanguageCode } from '../../../languages/ServerLanguageRegistry';
 import { buildAgentProfileHref } from '../../../utils/agentRouting/agentRouteHrefs';
+import { formatServerLanguageHumanReadableDate } from '../../../utils/localization/formatServerLanguageHumanReadableDate';
 import type { ImageWithAgent } from './actions';
 import { ImagesGalleryParametersBadges } from './ImagesGalleryParametersBadges';
 import { ImagesGalleryPromptCopyButton } from './ImagesGalleryPromptCopyButton';
@@ -18,6 +20,11 @@ type ImagesGalleryTableProps = Pick<
      * Active text formatter for agent naming.
      */
     readonly formatText: (text: string) => string;
+
+    /**
+     * Active UI language used for date formatting.
+     */
+    readonly language: ServerLanguageCode;
 };
 
 /**
@@ -28,19 +35,17 @@ type ImagesGalleryTableRowProps = Pick<UseImagesGalleryState, 'copiedId' | 'hand
      * Image rendered in this table row.
      */
     readonly image: ImageWithAgent;
-};
 
-/**
- * Formats one created-at value for the table view.
- */
-function formatImagesGalleryCreatedAt(createdAt: string): string {
-    return new Date(createdAt).toLocaleString();
-}
+    /**
+     * Active UI language used for date formatting.
+     */
+    readonly language: ServerLanguageCode;
+};
 
 /**
  * Renders one image row inside the gallery table.
  */
-function ImagesGalleryTableRow({ image, copiedId, handlePromptCopy }: ImagesGalleryTableRowProps) {
+function ImagesGalleryTableRow({ image, language, copiedId, handlePromptCopy }: ImagesGalleryTableRowProps) {
     return (
         <tr className="bg-white border-b hover:bg-gray-50">
             <td className="px-6 py-4">
@@ -94,7 +99,9 @@ function ImagesGalleryTableRow({ image, copiedId, handlePromptCopy }: ImagesGall
                     <span className="text-gray-400">-</span>
                 )}
             </td>
-            <td className="px-6 py-4 whitespace-nowrap">{formatImagesGalleryCreatedAt(image.createdAt)}</td>
+            <td className="px-6 py-4 whitespace-nowrap">
+                {formatServerLanguageHumanReadableDate(image.createdAt, language)}
+            </td>
         </tr>
     );
 }
@@ -106,6 +113,7 @@ function ImagesGalleryTableRow({ image, copiedId, handlePromptCopy }: ImagesGall
  */
 export function ImagesGalleryTable({
     formatText,
+    language,
     images,
     total,
     isLoading,
@@ -137,6 +145,7 @@ export function ImagesGalleryTable({
                             <ImagesGalleryTableRow
                                 key={image.id}
                                 image={image}
+                                language={language}
                                 copiedId={copiedId}
                                 handlePromptCopy={handlePromptCopy}
                             />

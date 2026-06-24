@@ -1,3 +1,5 @@
+import type { ServerLanguageCode } from '@/src/languages/ServerLanguageRegistry';
+import { formatServerLanguageHumanReadableDate } from '@/src/utils/localization/formatServerLanguageHumanReadableDate';
 import type { useAgentTimeoutsClientState } from './useAgentTimeoutsClientState';
 
 /**
@@ -6,6 +8,7 @@ import type { useAgentTimeoutsClientState } from './useAgentTimeoutsClientState'
  * @private function of AgentTimeoutsClient
  */
 type AgentTimeoutsFiltersCardProps = {
+    language: ServerLanguageCode;
     state: ReturnType<typeof useAgentTimeoutsClientState>;
 };
 
@@ -36,8 +39,10 @@ const TIMEOUT_MANAGER_FILTER_OPTIONS: ReadonlyArray<TimeoutManagerFilterOption> 
  *
  * @private function of AgentTimeoutsFiltersCard
  */
-function resolveLastRefreshedLabel(generatedAt: string | null): string {
-    return generatedAt ? `Last refreshed ${new Date(generatedAt).toLocaleString()}` : 'Waiting for first refresh...';
+function resolveLastRefreshedLabel(generatedAt: string | null, language: ServerLanguageCode): string {
+    return generatedAt
+        ? `Last refreshed ${formatServerLanguageHumanReadableDate(generatedAt, language)}`
+        : 'Waiting for first refresh...';
 }
 
 /**
@@ -45,7 +50,7 @@ function resolveLastRefreshedLabel(generatedAt: string | null): string {
  *
  * @private function of AgentTimeoutsClient
  */
-export function AgentTimeoutsFiltersCard({ state }: AgentTimeoutsFiltersCardProps) {
+export function AgentTimeoutsFiltersCard({ language, state }: AgentTimeoutsFiltersCardProps) {
     return (
         <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
             <div className="flex flex-wrap gap-2">
@@ -64,7 +69,7 @@ export function AgentTimeoutsFiltersCard({ state }: AgentTimeoutsFiltersCardProp
                     </button>
                 ))}
             </div>
-            <div className="mt-3 text-xs text-gray-500">{resolveLastRefreshedLabel(state.generatedAt)}</div>
+            <div className="mt-3 text-xs text-gray-500">{resolveLastRefreshedLabel(state.generatedAt, language)}</div>
         </div>
     );
 }

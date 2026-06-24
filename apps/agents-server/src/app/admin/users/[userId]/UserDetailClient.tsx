@@ -7,6 +7,7 @@ import { Card } from '../../../../components/Homepage/Card';
 import { Section } from '../../../../components/Homepage/Section';
 import { useServerLanguage } from '../../../../components/ServerLanguage/ServerLanguageProvider';
 import { useUsersAdmin } from '../../../../components/UsersList/useUsersAdmin';
+import { formatServerLanguageHumanReadableDate } from '../../../../utils/localization/formatServerLanguageHumanReadableDate';
 
 /**
  * Props for user detail client.
@@ -26,7 +27,7 @@ type UserDetailClientProps = {
  */
 export function UserDetailClient({ userId }: UserDetailClientProps) {
     const router = useRouter();
-    const { t } = useServerLanguage();
+    const { language, t } = useServerLanguage();
     const { users, loading, error, deleteUser, toggleAdmin } = useUsersAdmin();
 
     const user = useMemo(
@@ -108,11 +109,15 @@ export function UserDetailClient({ userId }: UserDetailClientProps) {
                             )}
                             <p className="text-gray-500 text-sm mt-1">
                                 {t('users.createdAtLabel')}:{' '}
-                                {user.createdAt ? new Date(user.createdAt).toLocaleString() : t('users.unknownValue')}
+                                {formatServerLanguageHumanReadableDate(user.createdAt, language, {
+                                    fallbackLabel: t('users.unknownValue'),
+                                })}
                             </p>
                             <p className="text-gray-500 text-sm mt-1">
                                 {t('users.lastUpdatedLabel')}:{' '}
-                                {user.updatedAt ? new Date(user.updatedAt).toLocaleString() : t('users.unknownValue')}
+                                {formatServerLanguageHumanReadableDate(user.updatedAt, language, {
+                                    fallbackLabel: t('users.unknownValue'),
+                                })}
                             </p>
                         </div>
                         <div className="space-x-2">

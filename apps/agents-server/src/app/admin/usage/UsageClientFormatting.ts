@@ -4,6 +4,8 @@ import type {
     UsageCallType,
     UsageMetricMode,
 } from '@/src/utils/usageAdmin';
+import type { ServerLanguageCode } from '@/src/languages/ServerLanguageRegistry';
+import { formatServerLanguageHumanReadableDate } from '@/src/utils/localization/formatServerLanguageHumanReadableDate';
 
 /**
  * Source shape with metric values used across usage widgets.
@@ -90,20 +92,12 @@ export const UsageClientFormatting = {
         return usageCompactFormatter.format(value);
     },
 
-    formatDateTime(iso: string): string {
-        const date = new Date(iso);
-        if (Number.isNaN(date.getTime())) {
-            return iso;
-        }
-        return date.toLocaleString();
+    formatDateTime(iso: string, language: ServerLanguageCode): string {
+        return formatServerLanguageHumanReadableDate(iso, language);
     },
 
-    formatShortDate(iso: string): string {
-        const date = new Date(iso);
-        if (Number.isNaN(date.getTime())) {
-            return iso;
-        }
-        return date.toLocaleDateString();
+    formatShortDate(iso: string, language: ServerLanguageCode): string {
+        return formatServerLanguageHumanReadableDate(iso, language);
     },
 
     isIsoDateInputValue(value: string): boolean {

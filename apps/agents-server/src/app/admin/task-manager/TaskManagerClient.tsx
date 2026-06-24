@@ -1,6 +1,7 @@
 'use client';
 
 import { Card } from '../../../components/Homepage/Card';
+import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
 import { TaskManagerFiltersCard } from './TaskManagerFiltersCard';
 import { TaskManagerSummaryMetrics } from './TaskManagerSummaryMetrics';
 import { TaskManagerTasksCard } from './TaskManagerTasksCard';
@@ -12,7 +13,8 @@ import { useTaskManagerState } from './useTaskManagerState';
  * @private route component of AdminTaskManagerPage
  */
 export function TaskManagerClient() {
-    const taskManagerState = useTaskManagerState();
+    const { language } = useServerLanguage();
+    const taskManagerState = useTaskManagerState(language);
 
     return (
         <div className="container mx-auto space-y-6 px-4 py-8">
@@ -53,7 +55,7 @@ export function TaskManagerClient() {
                 </Card>
             ) : null}
 
-            <TaskManagerTasksCard state={taskManagerState} />
+            <TaskManagerTasksCard language={language} state={taskManagerState} />
         </div>
     );
 }

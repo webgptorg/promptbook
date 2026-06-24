@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useServerLanguage } from '@/src/components/ServerLanguage/ServerLanguageProvider';
 import type { MockedChatPreset } from '@/src/utils/mockedChatsSchema';
 import { MockedChatsEditorForm } from './MockedChatsEditorForm';
 import { MockedChatsEditorSidebar } from './MockedChatsEditorSidebar';
@@ -17,6 +18,7 @@ type MockedChatsEditorClientProps = {
  * Mocked chat editor under `System -> Utilities`.
  */
 export function MockedChatsEditorClient({ initialMockedChats }: MockedChatsEditorClientProps) {
+    const { language } = useServerLanguage();
     const mockedChatsEditorState = useMockedChatsEditorState({ initialMockedChats });
     const viewerHref = useMemo(
         () => buildMockedChatViewerHref(mockedChatsEditorState.draftChat.id),
@@ -47,6 +49,7 @@ export function MockedChatsEditorClient({ initialMockedChats }: MockedChatsEdito
 
                 <div className="grid gap-6 lg:grid-cols-[340px_minmax(0,1fr)]">
                     <MockedChatsEditorSidebar
+                        language={language}
                         savedChats={mockedChatsEditorState.savedChats}
                         selectedChatId={mockedChatsEditorState.selectedChatId}
                         createNewDraft={mockedChatsEditorState.createNewDraft}

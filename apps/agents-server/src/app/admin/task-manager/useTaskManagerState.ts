@@ -9,6 +9,8 @@ import {
     type AdminChatTaskRecord,
     type AdminChatTaskView,
 } from '@/src/utils/chatTasksAdmin';
+import type { ServerLanguageCode } from '@/src/languages/ServerLanguageRegistry';
+import { formatServerLanguageHumanReadableDate } from '@/src/utils/localization/formatServerLanguageHumanReadableDate';
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 
 /**
@@ -86,13 +88,8 @@ function parseSelectedNumber(value: string, fallback: number): number {
  *
  * @private function of TaskManagerClient
  */
-function formatDateTime(value: string | null): string {
-    if (!value) {
-        return '-';
-    }
-
-    const parsed = new Date(value);
-    return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleString();
+function formatDateTime(value: string | null, language: ServerLanguageCode): string {
+    return formatServerLanguageHumanReadableDate(value, language, { fallbackLabel: '-' });
 }
 
 /**
@@ -244,7 +241,7 @@ function resolveTaskLoadErrorMessage(loadError: unknown): string {
  *
  * @private function of TaskManagerClient
  */
-export function useTaskManagerState(): UseTaskManagerStateResult {
+export function useTaskManagerState(language: ServerLanguageCode): UseTaskManagerStateResult {
     const [view, setView] = useState<AdminChatTaskView>('active');
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(50);
@@ -405,7 +402,7 @@ export function useTaskManagerState(): UseTaskManagerStateResult {
         isPreviousPageDisabled: page <= 1,
         isRefreshing,
         lastRefreshedLabel: generatedAt
-            ? `Last refreshed ${formatDateTime(generatedAt)}`
+            ? `Last refreshed ${formatDateTime(generatedAt, language)}`
             : 'Waiting for first refresh…',
         oldestQueuedAgeLabel: counters ? formatDuration(counters.oldestQueuedAgeMs) : '...',
         page,

@@ -1,3 +1,4 @@
+import type { ServerLanguageCode } from '@/src/languages/ServerLanguageRegistry';
 import type { UsageAnalyticsResponse, UsageMetricMode } from '@/src/utils/usageAdmin';
 import { useMemo } from 'react';
 import { UsageClientFormatting } from './UsageClientFormatting';
@@ -24,6 +25,7 @@ type UsageClientTimelinePoint = {
  * Props for `<UsageClientTimelineChart/>`.
  */
 type UsageClientTimelineChartProps = {
+    language: ServerLanguageCode;
     points: UsageAnalyticsResponse['timeline'];
     metric: UsageMetricMode;
 };
@@ -34,7 +36,7 @@ type UsageClientTimelineChartProps = {
  * @private function of UsageClient
  */
 export function UsageClientTimelineChart(props: UsageClientTimelineChartProps) {
-    const { points, metric } = props;
+    const { language, points, metric } = props;
 
     const chartGeometry = useMemo(() => {
         const paddedWidth = TIMELINE_WIDTH;
@@ -73,11 +75,12 @@ export function UsageClientTimelineChart(props: UsageClientTimelineChartProps) {
 
     const linePath = toLinePath(chartGeometry.coordinates);
     const areaPath = toAreaPath(chartGeometry.coordinates, chartGeometry.height - chartGeometry.paddingY);
-    const firstLabel = UsageClientFormatting.formatShortDate(points[0].bucketStart);
+    const firstLabel = UsageClientFormatting.formatShortDate(points[0].bucketStart, language);
     const middleLabel = UsageClientFormatting.formatShortDate(
         points[Math.floor(points.length / 2)]?.bucketStart || points[0].bucketStart,
+        language,
     );
-    const lastLabel = UsageClientFormatting.formatShortDate(points[points.length - 1].bucketStart);
+    const lastLabel = UsageClientFormatting.formatShortDate(points[points.length - 1].bucketStart, language);
 
     return (
         <div>

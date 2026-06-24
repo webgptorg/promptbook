@@ -1,6 +1,7 @@
 'use client';
 
 import { useAgentNaming } from '../../../components/AgentNaming/AgentNamingContext';
+import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
 import { FilesGalleryGrid } from './FilesGalleryGrid';
 import { FilesGalleryTable } from './FilesGalleryTable';
 import { FilesGalleryViewModeToggle } from './FilesGalleryViewModeToggle';
@@ -11,6 +12,7 @@ import { useFilesGalleryState } from './useFilesGalleryState';
  */
 export function FilesGalleryClient() {
     const { formatText } = useAgentNaming();
+    const { language } = useServerLanguage();
     const filesGalleryState = useFilesGalleryState();
 
     return (
@@ -26,6 +28,7 @@ export function FilesGalleryClient() {
             {filesGalleryState.viewMode === 'TABLE' ? (
                 <FilesGalleryTable
                     formatText={formatText}
+                    language={language}
                     files={filesGalleryState.files}
                     total={filesGalleryState.total}
                     isLoading={filesGalleryState.isLoading}
@@ -36,6 +39,7 @@ export function FilesGalleryClient() {
             ) : (
                 <FilesGalleryGrid
                     formatText={formatText}
+                    language={language}
                     files={filesGalleryState.files}
                     isLoading={filesGalleryState.isLoading}
                     hasMore={filesGalleryState.hasMore}

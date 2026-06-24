@@ -3,7 +3,7 @@
 import { Loader2, RefreshCcw, Search, Tag } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ServerLanguageCode } from '../../../languages/ServerLanguageRegistry';
-import { createServerLanguageMoment } from '../../../utils/localization/createServerLanguageMoment';
+import { formatServerLanguageHumanReadableDate } from '../../../utils/localization/formatServerLanguageHumanReadableDate';
 
 /**
  * One commit candidate returned from the custom-target picker API.
@@ -195,7 +195,13 @@ export function CustomCommitPicker({ language, selectedRef, onSelectRef, isDisab
                     <ul className="divide-y divide-slate-100">
                         {candidates.map((candidate) => {
                             const isSelected = candidate === matchingCandidate;
-                            const authoredAtMoment = createServerLanguageMoment(candidate.authoredAt, language);
+                            const authoredAtLabel = formatServerLanguageHumanReadableDate(
+                                candidate.authoredAt,
+                                language,
+                                {
+                                    isExactDateIncluded: true,
+                                },
+                            );
 
                             return (
                                 <li key={candidate.commitSha}>
@@ -238,8 +244,7 @@ export function CustomCommitPicker({ language, selectedRef, onSelectRef, isDisab
                                         </div>
                                         <div className="mt-1 truncate text-sm text-slate-900">{candidate.subject}</div>
                                         <div className="mt-0.5 text-xs text-slate-500">
-                                            {candidate.authorName} — {authoredAtMoment.fromNow()} (
-                                            {authoredAtMoment.format('L LT')})
+                                            {candidate.authorName} - {authoredAtLabel}
                                         </div>
                                     </button>
                                 </li>

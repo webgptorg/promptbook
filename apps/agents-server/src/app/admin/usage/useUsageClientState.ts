@@ -8,6 +8,7 @@ import {
     type UsageMetricMode,
     type UsageTimeframePreset,
 } from '@/src/utils/usageAdmin';
+import type { ServerLanguageCode } from '@/src/languages/ServerLanguageRegistry';
 import { usePathname, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { UsageClientFormatting } from './UsageClientFormatting';
@@ -142,13 +143,17 @@ function resolveUsageClientSelectedScopeLabel(
 /**
  * Resolves the human-readable timeframe range chip label.
  */
-function resolveUsageClientTimeframeRangeLabel(data: UsageAnalyticsResponse | null): string | null {
+function resolveUsageClientTimeframeRangeLabel(
+    data: UsageAnalyticsResponse | null,
+    language: ServerLanguageCode,
+): string | null {
     if (!data) {
         return null;
     }
 
-    return `${UsageClientFormatting.formatDateTime(data.timeframe.from)} - ${UsageClientFormatting.formatDateTime(
+    return `${UsageClientFormatting.formatDateTime(data.timeframe.from, language)} - ${UsageClientFormatting.formatDateTime(
         data.timeframe.to,
+        language,
     )}`;
 }
 
@@ -164,7 +169,10 @@ function resolveUsageClientAnalyticsErrorMessage(fetchError: unknown): string {
  *
  * @private function of <UsageClient/>
  */
-export function useUsageClientState(props: UseUsageClientStateProps): UseUsageClientStateResult {
+export function useUsageClientState(
+    props: UseUsageClientStateProps,
+    language: ServerLanguageCode,
+): UseUsageClientStateResult {
     const { agents, folders } = props;
     const router = useRouter();
     const pathname = usePathname();
@@ -271,7 +279,7 @@ export function useUsageClientState(props: UseUsageClientStateProps): UseUsageCl
         [agentName, agents, folderId, folders],
     );
 
-    const timeframeRangeLabel = useMemo(() => resolveUsageClientTimeframeRangeLabel(data), [data]);
+    const timeframeRangeLabel = useMemo(() => resolveUsageClientTimeframeRangeLabel(data, language), [data, language]);
 
     const handleAgentNameChange = useCallback((value: string) => {
         setAgentName(value);

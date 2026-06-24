@@ -1,4 +1,6 @@
 import { Card } from '../../../components/Homepage/Card';
+import type { ServerLanguageCode } from '../../../languages/ServerLanguageRegistry';
+import { formatServerLanguageHumanReadableDate } from '../../../utils/localization/formatServerLanguageHumanReadableDate';
 import type { UseChatFeedbackState } from './useChatFeedbackState';
 
 /**
@@ -25,18 +27,18 @@ type ChatFeedbackTableProps = Pick<
      * Active text formatter for agent naming.
      */
     formatText: (text: string) => string;
+
+    /**
+     * Active UI language used for date formatting.
+     */
+    language: ServerLanguageCode;
 };
 
 /**
  * Formats date.
  */
-function formatDate(dateString: string | null | undefined): string {
-    if (!dateString) return '-';
-
-    const date = new Date(dateString);
-    if (Number.isNaN(date.getTime())) return dateString;
-
-    return date.toLocaleString();
+function formatDate(dateString: string | null | undefined, language: ServerLanguageCode): string {
+    return formatServerLanguageHumanReadableDate(dateString, language, { fallbackLabel: '-' });
 }
 
 /**
@@ -71,6 +73,7 @@ function ChatFeedbackPreviewCell({ value }: { value: unknown }) {
  */
 export function ChatFeedbackTable({
     formatText,
+    language,
     items,
     total,
     loading,
@@ -136,7 +139,9 @@ export function ChatFeedbackTable({
                         <tbody className="divide-y divide-gray-200 bg-white">
                             {items.map((row) => (
                                 <tr key={row.id}>
-                                    <td className="whitespace-nowrap px-4 py-3 text-gray-700">{formatDate(row.createdAt)}</td>
+                                    <td className="whitespace-nowrap px-4 py-3 text-gray-700">
+                                        {formatDate(row.createdAt, language)}
+                                    </td>
                                     <td className="whitespace-nowrap px-4 py-3 text-gray-700">{row.agentName}</td>
                                     <td className="whitespace-nowrap px-4 py-3 text-gray-700">{row.rating || '-'}</td>
                                     <td className="max-w-xs px-4 py-3 text-gray-700">

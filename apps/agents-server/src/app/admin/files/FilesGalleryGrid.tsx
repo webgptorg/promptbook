@@ -1,6 +1,8 @@
 import { File, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import type { ServerLanguageCode } from '../../../languages/ServerLanguageRegistry';
 import { buildAgentProfileHref } from '../../../utils/agentRouting/agentRouteHrefs';
+import { formatServerLanguageHumanReadableDate } from '../../../utils/localization/formatServerLanguageHumanReadableDate';
 import { FilesGalleryStatusBadge } from './FilesGalleryStatusBadge';
 import type { UseFilesGalleryState } from './useFilesGalleryState';
 
@@ -12,6 +14,11 @@ type FilesGalleryGridProps = Pick<UseFilesGalleryState, 'files' | 'isLoading' | 
      * Active text formatter for agent naming.
      */
     readonly formatText: (text: string) => string;
+
+    /**
+     * Active UI language used for date formatting.
+     */
+    readonly language: ServerLanguageCode;
 };
 
 /**
@@ -22,22 +29,13 @@ function formatFilesGalleryCompactFileSize(fileSize: number): string {
 }
 
 /**
- * Formats one created-at value for the compact grid view.
- */
-function formatFilesGalleryCompactCreatedAt(createdAt: string): string {
-    return new Date(createdAt).toLocaleDateString(undefined, {
-        month: 'short',
-        day: 'numeric',
-    });
-}
-
-/**
  * Renders the grid view of the files gallery, including infinite-scroll feedback.
  *
  * @private function of <FilesGalleryClient/>
  */
 export function FilesGalleryGrid({
     formatText,
+    language,
     files,
     isLoading,
     hasMore,
@@ -82,7 +80,7 @@ export function FilesGalleryGrid({
                                     <span className="text-xs text-gray-400">{formatText('No agent')}</span>
                                 )}
                                 <span className="text-[10px] text-gray-400 whitespace-nowrap">
-                                    {formatFilesGalleryCompactCreatedAt(file.createdAt)}
+                                    {formatServerLanguageHumanReadableDate(file.createdAt, language)}
                                 </span>
                             </div>
                             <p className="text-xs text-gray-600 truncate" title={file.fileName}>

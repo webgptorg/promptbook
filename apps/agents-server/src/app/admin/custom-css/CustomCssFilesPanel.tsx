@@ -1,3 +1,5 @@
+import type { ServerLanguageCode } from '../../../languages/ServerLanguageRegistry';
+import { formatServerLanguageHumanReadableDate } from '../../../utils/localization/formatServerLanguageHumanReadableDate';
 import type { CustomStylesheetFileState } from './CustomStylesheetFileState';
 
 /**
@@ -6,6 +8,7 @@ import type { CustomStylesheetFileState } from './CustomStylesheetFileState';
  * @private function of CustomCssClient
  */
 type CustomCssFilesPanelProps = {
+    readonly language: ServerLanguageCode;
     readonly files: ReadonlyArray<CustomStylesheetFileState>;
     readonly selectedFileLocalId: string;
     readonly onAddNewFile: () => void;
@@ -18,6 +21,7 @@ type CustomCssFilesPanelProps = {
  * @private function of CustomCssClient
  */
 export function CustomCssFilesPanel({
+    language,
     files,
     selectedFileLocalId,
     onAddNewFile,
@@ -59,7 +63,9 @@ export function CustomCssFilesPanel({
                         >
                             <div className="text-sm font-medium text-gray-900">{file.scope || 'Untitled stylesheet'}</div>
                             <div className="text-xs text-gray-500">
-                                {file.updatedAt ? `Saved ${new Date(file.updatedAt).toLocaleString()}` : 'Not saved yet'}
+                                {file.updatedAt
+                                    ? `Saved ${formatServerLanguageHumanReadableDate(file.updatedAt, language)}`
+                                    : 'Not saved yet'}
                             </div>
                         </button>
                     );

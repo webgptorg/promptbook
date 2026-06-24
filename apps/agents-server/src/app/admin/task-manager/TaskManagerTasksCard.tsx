@@ -1,3 +1,4 @@
+import type { ServerLanguageCode } from '@/src/languages/ServerLanguageRegistry';
 import type { useTaskManagerState } from './useTaskManagerState';
 import { Card } from '../../../components/Homepage/Card';
 import { TaskManagerTaskRow } from './TaskManagerTaskRow';
@@ -8,6 +9,7 @@ import { TaskManagerTaskRow } from './TaskManagerTaskRow';
  * @private function of TaskManagerClient
  */
 type TaskManagerTasksCardProps = {
+    language: ServerLanguageCode;
     state: ReturnType<typeof useTaskManagerState>;
 };
 
@@ -41,7 +43,7 @@ function resolveEmptyStateMessage(view: ReturnType<typeof useTaskManagerState>['
  *
  * @private function of TaskManagerClient
  */
-export function TaskManagerTasksCard({ state }: TaskManagerTasksCardProps) {
+export function TaskManagerTasksCard({ language, state }: TaskManagerTasksCardProps) {
     const firstVisibleTaskIndex = Math.min((state.page - 1) * state.pageSize + 1, state.total);
     const lastVisibleTaskIndex = Math.min(state.page * state.pageSize, state.total);
 
@@ -82,6 +84,7 @@ export function TaskManagerTasksCard({ state }: TaskManagerTasksCardProps) {
                                 <TaskManagerTaskRow
                                     key={task.id}
                                     task={task}
+                                    language={language}
                                     busyAction={state.busyAction}
                                     busyTaskId={state.busyTaskId}
                                     onRunTaskAction={state.runTaskAction}

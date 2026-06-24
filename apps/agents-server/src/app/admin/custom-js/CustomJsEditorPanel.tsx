@@ -3,6 +3,8 @@
 import type { ChangeEvent } from 'react';
 import { MonacoEditorWithShadowDom } from '../../../components/_utils/MonacoEditorWithShadowDom';
 import { usePromptbookTheme } from '../../../components/ThemeMode/usePromptbookTheme';
+import type { ServerLanguageCode } from '../../../languages/ServerLanguageRegistry';
+import { formatServerLanguageHumanReadableDate } from '../../../utils/localization/formatServerLanguageHumanReadableDate';
 import {
     CUSTOM_RESOURCE_INPUT_CLASS_NAME,
     CUSTOM_RESOURCE_PRIMARY_BUTTON_CLASS_NAME,
@@ -16,6 +18,7 @@ import type { CustomJavascriptFileState } from './CustomJavascriptFileState';
  * @private function of CustomJsClient
  */
 type CustomJsEditorPanelProps = {
+    readonly language: ServerLanguageCode;
     readonly currentFile: CustomJavascriptFileState | null;
     readonly remainingCharacters: number;
     readonly maxLength: number;
@@ -38,6 +41,7 @@ type CustomJsEditorPanelProps = {
  * @private function of CustomJsClient
  */
 export function CustomJsEditorPanel({
+    language,
     currentFile,
     remainingCharacters,
     maxLength,
@@ -60,7 +64,9 @@ export function CustomJsEditorPanel({
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-slate-100">Script editor</h2>
                 {currentFile?.updatedAt && (
-                    <div className="text-xs text-gray-500 dark:text-slate-400">Last saved: {new Date(currentFile.updatedAt).toLocaleString()}</div>
+                    <div className="text-xs text-gray-500 dark:text-slate-400">
+                        Last saved: {formatServerLanguageHumanReadableDate(currentFile.updatedAt, language)}
+                    </div>
                 )}
             </div>
 

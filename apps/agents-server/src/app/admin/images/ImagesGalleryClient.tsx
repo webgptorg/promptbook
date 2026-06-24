@@ -1,6 +1,7 @@
 'use client';
 
 import { useAgentNaming } from '../../../components/AgentNaming/AgentNamingContext';
+import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
 import { ImagesGalleryGrid } from './ImagesGalleryGrid';
 import { ImagesGalleryTable } from './ImagesGalleryTable';
 import { ImagesGalleryViewModeToggle } from './ImagesGalleryViewModeToggle';
@@ -11,6 +12,7 @@ import { useImagesGalleryState } from './useImagesGalleryState';
  */
 export function ImagesGalleryClient() {
     const { formatText } = useAgentNaming();
+    const { language } = useServerLanguage();
     const imagesGalleryState = useImagesGalleryState();
 
     return (
@@ -26,6 +28,7 @@ export function ImagesGalleryClient() {
             {imagesGalleryState.viewMode === 'TABLE' ? (
                 <ImagesGalleryTable
                     formatText={formatText}
+                    language={language}
                     images={imagesGalleryState.images}
                     total={imagesGalleryState.total}
                     isLoading={imagesGalleryState.isLoading}
@@ -38,6 +41,7 @@ export function ImagesGalleryClient() {
             ) : (
                 <ImagesGalleryGrid
                     formatText={formatText}
+                    language={language}
                     images={imagesGalleryState.images}
                     isLoading={imagesGalleryState.isLoading}
                     hasMore={imagesGalleryState.hasMore}

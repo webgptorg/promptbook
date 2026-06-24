@@ -2,7 +2,9 @@
 
 import { Fragment } from 'react';
 import { ArrowRightLeft, Loader2, RefreshCcw, Save } from 'lucide-react';
-import moment from 'moment';
+import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
+import type { ServerLanguageCode } from '../../../languages/ServerLanguageRegistry';
+import { formatServerLanguageHumanReadableDate } from '../../../utils/localization/formatServerLanguageHumanReadableDate';
 import {
     MANAGED_SERVER_ENVIRONMENT_OPTIONS,
     type ManagedServerEnvironment,
@@ -130,6 +132,7 @@ type ServersRegistryTableRowProps = {
     readonly onSaveServer: (serverId: number) => Promise<void>;
     readonly onSwitchServer: (server: ManagedServerRow) => Promise<void>;
     readonly onUpdateServerDraft: UpdateServerDraft;
+    readonly language: ServerLanguageCode;
     readonly server: ManagedServerRow;
 };
 
@@ -139,13 +142,8 @@ type ServersRegistryTableRowProps = {
  * @param value - ISO timestamp.
  * @returns Human-readable local timestamp.
  */
-function formatDateTime(value: string): string {
-    if (!value) {
-        return 'N/A';
-    }
-
-    const timestamp = moment(value);
-    return timestamp.isValid() ? timestamp.format('YYYY-MM-DD HH:mm:ss') : 'N/A';
+function formatDateTime(value: string, language: ServerLanguageCode): string {
+    return formatServerLanguageHumanReadableDate(value, language);
 }
 
 /**
@@ -187,6 +185,7 @@ function ServersRegistryTableRow(props: ServersRegistryTableRowProps) {
         onSaveServer,
         onSwitchServer,
         onUpdateServerDraft,
+        language,
         server,
     } = props;
     const isCurrent = server.id === currentServerId;
@@ -264,10 +263,10 @@ function ServersRegistryTableRow(props: ServersRegistryTableRowProps) {
                     </div>
                 </td>
                 <td className="px-4 py-3 align-top text-xs text-gray-600">
-                    <span className="whitespace-nowrap font-mono">{formatDateTime(server.createdAt)}</span>
+                    <span className="whitespace-nowrap font-mono">{formatDateTime(server.createdAt, language)}</span>
                 </td>
                 <td className="px-4 py-3 align-top text-xs text-gray-600">
-                    <span className="whitespace-nowrap font-mono">{formatDateTime(server.updatedAt)}</span>
+                    <span className="whitespace-nowrap font-mono">{formatDateTime(server.updatedAt, language)}</span>
                 </td>
                 <td className="px-4 py-3 align-top">
                     <div className="flex flex-wrap justify-end gap-2">
@@ -409,6 +408,7 @@ function ServersRegistryTableRow(props: ServersRegistryTableRowProps) {
  * @private helper component of <ServersClient/>
  */
 export function ServersRegistryTable(props: ServersRegistryTableProps) {
+    const { language } = useServerLanguage();
     const {
         currentServerId,
         canEdit,
@@ -495,6 +495,7 @@ export function ServersRegistryTable(props: ServersRegistryTableProps) {
                                         onSaveServer={onSaveServer}
                                         onSwitchServer={onSwitchServer}
                                         onUpdateServerDraft={onUpdateServerDraft}
+                                        language={language}
                                         server={server}
                                     />
                                 </Fragment>

@@ -4,7 +4,6 @@
 export const dynamic = 'force-dynamic';
 
 import { getSingleLlmExecutionTools } from '@promptbook-local/core';
-import moment from 'moment';
 import { headers } from 'next/headers';
 import { AboutPromptbookInformation } from '../../../../../src/utils/misc/xAboutPromptbookInformation';
 import { HomepagePrimarySections } from '../../components/Homepage/HomepagePrimarySections';
@@ -17,20 +16,9 @@ import { getLongRunningTask } from '../../deamons/longRunningTask';
 import { $provideExecutionToolsForServer } from '../../tools/$provideExecutionToolsForServer';
 import { $provideServer } from '../../tools/$provideServer';
 import { isUserAdmin } from '../../utils/isUserAdmin';
+import { formatServerLanguageHumanReadableDate } from '../../utils/localization/formatServerLanguageHumanReadableDate';
+import { getRequestServerLanguage } from '../../utils/localization/getRequestServerLanguage';
 import { getHomePageAgents } from '../_data/getHomePageAgents';
-
-// Add calendar formats that include seconds
-/**
- * Map of calendar with seconds.
- */
-const calendarWithSeconds = {
-    sameDay: '[Today at] LTS',
-    nextDay: '[Tomorrow at] LTS',
-    nextWeek: 'dddd [at] LTS',
-    lastDay: '[Yesterday at] LTS',
-    lastWeek: '[Last] dddd [at] LTS',
-    sameElse: 'L [at] LTS',
-};
 
 /**
  * Renders the legacy dashboard with system and admin details.
@@ -40,6 +28,7 @@ export default async function DashboardPage() {
     const { publicUrl } = server;
     const isAdmin = await isUserAdmin(); /* <- TODO: [??] Here should be user permissions */
     const { agents, folders, homepageMessage, currentUser } = await getHomePageAgents();
+    const language = await getRequestServerLanguage();
 
     const longRunningTask = getLongRunningTask();
 
@@ -92,10 +81,16 @@ export default async function DashboardPage() {
                         <TechInfoCard title={`Long running task ${longRunningTask.taskId}`}>
                             <p className="text-gray-600">Tick: {longRunningTask.tick}</p>
                             <p className="text-gray-600">
-                                Created At: {moment(longRunningTask.createdAt).calendar(undefined, calendarWithSeconds)}
+                                Created At:{' '}
+                                {formatServerLanguageHumanReadableDate(longRunningTask.createdAt, language, {
+                                    isExactDateIncluded: true,
+                                })}
                             </p>
                             <p className="text-gray-600">
-                                Updated At: {moment(longRunningTask.updatedAt).calendar(undefined, calendarWithSeconds)}
+                                Updated At:{' '}
+                                {formatServerLanguageHumanReadableDate(longRunningTask.updatedAt, language, {
+                                    isExactDateIncluded: true,
+                                })}
                             </p>
                         </TechInfoCard>
 

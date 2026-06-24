@@ -2,6 +2,7 @@
 
 import { MockedChat } from '@promptbook-local/components';
 import { useAgentNaming } from '../../../components/AgentNaming/AgentNamingContext';
+import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
 import { ChatHistoryFiltersCard } from './ChatHistoryFiltersCard';
 import { ChatHistoryPagination } from './ChatHistoryPagination';
 import { ChatHistoryTable } from './ChatHistoryTable';
@@ -22,6 +23,7 @@ type ChatHistoryClientProps = {
  */
 export function ChatHistoryClient({ initialAgentName }: ChatHistoryClientProps) {
     const { formatText } = useAgentNaming();
+    const { language } = useServerLanguage();
     const chatHistoryState = useChatHistoryState({ initialAgentName, formatText });
 
     return (
@@ -116,6 +118,7 @@ export function ChatHistoryClient({ initialAgentName }: ChatHistoryClientProps) 
             ) : (
                 <ChatHistoryTable
                     formatText={formatText}
+                    language={language}
                     items={chatHistoryState.items}
                     total={chatHistoryState.total}
                     loading={chatHistoryState.loading}

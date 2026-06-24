@@ -9,9 +9,8 @@ import { usePrivateModePreferences } from '../../../../components/PrivateModePre
 import { useBrowserPushNotifications } from '../../../../components/PushNotifications/BrowserPushNotificationsProvider';
 import { useServerLanguage } from '../../../../components/ServerLanguage/ServerLanguageProvider';
 import { useActiveBrowserTab } from '../../../../hooks/useActiveBrowserTab';
-import type { ServerLanguageCode } from '../../../../languages/ServerLanguageRegistry';
 import type { ChatFeedbackMode } from '../../../../utils/chatFeedbackMode';
-import { createServerLanguageMoment } from '../../../../utils/localization/createServerLanguageMoment';
+import { formatServerLanguageHumanReadableDate } from '../../../../utils/localization/formatServerLanguageHumanReadableDate';
 import { consumeShareTargetPayloadFromBrowser } from '../../../../utils/shareTargetClient';
 import type { UserChatJob, UserChatSummary, UserChatTimeout } from '../../../../utils/userChatClient';
 import { FORCE_NEW_CHAT_QUERY_VALUE } from '../agentChatNavigationUtils';
@@ -309,7 +308,7 @@ export function useAgentChatHistoryClientState(
     useHoistedMobileMenuItems(hoistedMobileMenuItems);
 
     const formatChatTimestamp = useCallback(
-        (timestamp: string): string => formatRelativeChatTimestamp(timestamp, language),
+        (timestamp: string): string => formatServerLanguageHumanReadableDate(timestamp, language),
         [language],
     );
 
@@ -358,16 +357,4 @@ function hasAutoExecutePayload(
     attachments: ChatMessage['attachments'] | undefined,
 ): boolean {
     return Boolean(message) || Boolean(attachments?.length);
-}
-
-/**
- * Formats one chat timestamp into relative text using the active server language.
- */
-function formatRelativeChatTimestamp(timestamp: string, language: ServerLanguageCode): string {
-    const parsed = createServerLanguageMoment(timestamp, language);
-    if (!parsed.isValid()) {
-        return timestamp;
-    }
-
-    return parsed.fromNow();
 }

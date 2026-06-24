@@ -2,9 +2,11 @@
 
 import { Copy, Plus, Trash } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
 import { SecretInput } from '../../../components/SecretInput/SecretInput';
 import { showConfirm } from '../../../components/AsyncDialogs/asyncDialogs';
 import { ApiTokenEntry, createApiToken, deleteApiToken, fetchApiTokens } from '../../../utils/apiTokensClient';
+import { formatServerLanguageHumanReadableDate } from '../../../utils/localization/formatServerLanguageHumanReadableDate';
 
 /**
  * Props for rendering a single API token in a masked input.
@@ -44,6 +46,7 @@ function TokenSecretField({ token, onCopy }: TokenSecretFieldProps) {
  * Renders the admin API token management UI.
  */
 export function ApiTokensClient() {
+    const { language } = useServerLanguage();
     const [tokens, setTokens] = useState<ApiTokenEntry[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -182,7 +185,7 @@ export function ApiTokensClient() {
                                     </td>
                                     <td className="px-6 py-4 text-sm text-gray-500">{entry.note || '-'}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {new Date(entry.createdAt).toLocaleDateString()}
+                                        {formatServerLanguageHumanReadableDate(entry.createdAt, language)}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <button

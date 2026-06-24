@@ -1,6 +1,7 @@
 'use client';
 
 import { WalletRecordDialog } from '@/src/components/WalletRecordDialog/WalletRecordDialog';
+import { useServerLanguage } from '@/src/components/ServerLanguage/ServerLanguageProvider';
 import type { GithubAppStatusResponse } from '@/src/utils/githubAppClient';
 import { UserWalletCreateCard } from './UserWalletCreateCard';
 import type { UserWalletAgentOption } from './UserWalletAgentOption';
@@ -34,6 +35,7 @@ function resolveGithubAppStatusDescription(status: GithubAppStatusResponse | nul
  */
 export function UserWalletClient(props: UserWalletClientProps) {
     const { agents } = props;
+    const { language } = useServerLanguage();
     const state = useUserWalletClientState({ agents });
 
     return (
@@ -118,6 +120,7 @@ export function UserWalletClient(props: UserWalletClientProps) {
 
             <UserWalletRecordsTable
                 agents={agents}
+                language={language}
                 editingDraft={state.editingDraft}
                 isEditingSmtpRecord={state.isEditingSmtpRecord}
                 isLoading={state.loading}

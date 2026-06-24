@@ -1,4 +1,6 @@
 import type { AdminChatTaskRecord } from '@/src/utils/chatTasksAdmin';
+import type { ServerLanguageCode } from '@/src/languages/ServerLanguageRegistry';
+import { formatServerLanguageHumanReadableDate } from '@/src/utils/localization/formatServerLanguageHumanReadableDate';
 import type { useTaskManagerState } from './useTaskManagerState';
 
 /**
@@ -9,6 +11,7 @@ import type { useTaskManagerState } from './useTaskManagerState';
 type TaskManagerTaskRowProps = {
     busyAction: ReturnType<typeof useTaskManagerState>['busyAction'];
     busyTaskId: ReturnType<typeof useTaskManagerState>['busyTaskId'];
+    language: ServerLanguageCode;
     onRunTaskAction: ReturnType<typeof useTaskManagerState>['runTaskAction'];
     stuckThresholdMinutes: ReturnType<typeof useTaskManagerState>['stuckThresholdMinutes'];
     task: AdminChatTaskRecord;
@@ -135,13 +138,8 @@ function formatTaskKind(kind: AdminChatTaskRecord['kind']): string {
  *
  * @private function of TaskManagerTaskRow
  */
-function formatDateTime(value: string | null): string {
-    if (!value) {
-        return '-';
-    }
-
-    const parsed = new Date(value);
-    return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleString();
+function formatDateTime(value: string | null, language: ServerLanguageCode): string {
+    return formatServerLanguageHumanReadableDate(value, language, { fallbackLabel: '-' });
 }
 
 /**
@@ -306,6 +304,7 @@ function TaskManagerTaskActions({ busyAction, isBusy, onRunTaskAction, task }: T
 export function TaskManagerTaskRow({
     busyAction,
     busyTaskId,
+    language,
     onRunTaskAction,
     stuckThresholdMinutes,
     task,
@@ -341,7 +340,7 @@ export function TaskManagerTaskRow({
                         <div className="font-medium text-orange-700">Cancellation requested</div>
                     ) : null}
                     {task.pausedAt ? (
-                        <div className="font-medium text-orange-700">Paused {formatDateTime(task.pausedAt)}</div>
+                        <div className="font-medium text-orange-700">Paused {formatDateTime(task.pausedAt, language)}</div>
                     ) : null}
                 </div>
             </td>
@@ -367,10 +366,10 @@ export function TaskManagerTaskRow({
             <td className="px-4 py-3 align-top">
                 <TaskInfoBlock
                     rows={[
-                        { label: 'Created', value: formatDateTime(task.createdAt) },
-                        { label: 'Started', value: formatDateTime(task.startedAt) },
-                        { label: 'Updated', value: formatDateTime(task.updatedAt) },
-                        { label: 'Finished', value: formatDateTime(task.finishedAt) },
+                        { label: 'Created', value: formatDateTime(task.createdAt, language) },
+                        { label: 'Started', value: formatDateTime(task.startedAt, language) },
+                        { label: 'Updated', value: formatDateTime(task.updatedAt, language) },
+                        { label: 'Finished', value: formatDateTime(task.finishedAt, language) },
                     ]}
                 />
             </td>
@@ -381,7 +380,7 @@ export function TaskManagerTaskRow({
                         { label: 'Queue age', value: formatDuration(getQueueAgeMs(task)) },
                         { label: 'Runtime', value: formatDuration(getRuntimeDurationMs(task)) },
                         { label: 'Total', value: formatDuration(getTotalDurationMs(task)) },
-                        { label: 'Heartbeat', value: formatDateTime(task.lastHeartbeatAt) },
+                        { label: 'Heartbeat', value: formatDateTime(task.lastHeartbeatAt, language) },
                     ]}
                 />
             </td>
@@ -391,8 +390,8 @@ export function TaskManagerTaskRow({
                     rows={[
                         { label: 'Queue', value: task.queueName || '-' },
                         { label: 'Worker', value: task.workerId || '-' },
-                        { label: 'Lease expires', value: formatDateTime(task.leaseExpiresAt) },
-                        { label: 'Paused at', value: formatDateTime(task.pausedAt) },
+                        { label: 'Lease expires', value: formatDateTime(task.leaseExpiresAt, language) },
+                        { label: 'Paused at', value: formatDateTime(task.pausedAt, language) },
                     ]}
                 />
             </td>

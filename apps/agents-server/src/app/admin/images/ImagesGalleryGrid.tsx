@@ -1,6 +1,8 @@
 import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import type { ServerLanguageCode } from '../../../languages/ServerLanguageRegistry';
 import { buildAgentProfileHref } from '../../../utils/agentRouting/agentRouteHrefs';
+import { formatServerLanguageHumanReadableDate } from '../../../utils/localization/formatServerLanguageHumanReadableDate';
 import type { ImageWithAgent } from './actions';
 import { ImagesGalleryParametersBadges } from './ImagesGalleryParametersBadges';
 import { ImagesGalleryPromptCopyButton } from './ImagesGalleryPromptCopyButton';
@@ -18,6 +20,11 @@ type ImagesGalleryGridProps = Pick<
      * Active text formatter for agent naming.
      */
     readonly formatText: (text: string) => string;
+
+    /**
+     * Active UI language used for date formatting.
+     */
+    readonly language: ServerLanguageCode;
 };
 
 /**
@@ -33,17 +40,12 @@ type ImagesGalleryGridCardProps = Pick<UseImagesGalleryState, 'copiedId' | 'hand
      * Active text formatter for agent naming.
      */
     readonly formatText: (text: string) => string;
-};
 
-/**
- * Formats one created-at value for the compact grid view.
- */
-function formatImagesGalleryCompactCreatedAt(createdAt: string): string {
-    return new Date(createdAt).toLocaleDateString(undefined, {
-        month: 'short',
-        day: 'numeric',
-    });
-}
+    /**
+     * Active UI language used for date formatting.
+     */
+    readonly language: ServerLanguageCode;
+};
 
 /**
  * Renders one image card inside the gallery grid.
@@ -51,6 +53,7 @@ function formatImagesGalleryCompactCreatedAt(createdAt: string): string {
 function ImagesGalleryGridCard({
     image,
     formatText,
+    language,
     copiedId,
     handlePromptCopy,
 }: ImagesGalleryGridCardProps) {
@@ -91,7 +94,7 @@ function ImagesGalleryGridCard({
                         <span className="text-xs text-gray-400">{formatText('No agent')}</span>
                     )}
                     <span className="text-[10px] text-gray-400 whitespace-nowrap">
-                        {formatImagesGalleryCompactCreatedAt(image.createdAt)}
+                        {formatServerLanguageHumanReadableDate(image.createdAt, language)}
                     </span>
                 </div>
                 <div className="relative group/prompt">
@@ -119,6 +122,7 @@ function ImagesGalleryGridCard({
  */
 export function ImagesGalleryGrid({
     formatText,
+    language,
     images,
     isLoading,
     hasMore,
@@ -134,6 +138,7 @@ export function ImagesGalleryGrid({
                         key={image.id}
                         image={image}
                         formatText={formatText}
+                        language={language}
                         copiedId={copiedId}
                         handlePromptCopy={handlePromptCopy}
                     />

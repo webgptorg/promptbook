@@ -1,4 +1,6 @@
 import type { UserChatTimeout } from '@/src/utils/userChatClient';
+import type { ServerLanguageCode } from '@/src/languages/ServerLanguageRegistry';
+import { formatServerLanguageHumanReadableDate } from '@/src/utils/localization/formatServerLanguageHumanReadableDate';
 import Link from 'next/link';
 import type { useAgentTimeoutsClientState } from './useAgentTimeoutsClientState';
 
@@ -9,6 +11,7 @@ import type { useAgentTimeoutsClientState } from './useAgentTimeoutsClientState'
  */
 type AgentTimeoutsTableRowProps = {
     agentName: string;
+    language: ServerLanguageCode;
     state: ReturnType<typeof useAgentTimeoutsClientState>;
     timeout: UserChatTimeout;
 };
@@ -141,7 +144,7 @@ function truncateText(value: string, maxLength: number): string {
  *
  * @private function of AgentTimeoutsClient
  */
-export function AgentTimeoutsTableRow({ agentName, state, timeout }: AgentTimeoutsTableRowProps) {
+export function AgentTimeoutsTableRow({ agentName, language, state, timeout }: AgentTimeoutsTableRowProps) {
     const isBusy = state.busyTimeoutId === timeout.timeoutId;
     const isPaused = isTimeoutPaused(timeout);
     const isEditable = isTimeoutEditable(timeout);
@@ -152,7 +155,9 @@ export function AgentTimeoutsTableRow({ agentName, state, timeout }: AgentTimeou
         <tr>
             <td className="px-4 py-3 align-top">
                 <div className="font-mono text-[11px] font-semibold text-gray-900">{timeout.timeoutId}</div>
-                <div className="mt-1 text-[11px] text-gray-500">Updated {new Date(timeout.updatedAt).toLocaleString()}</div>
+                <div className="mt-1 text-[11px] text-gray-500">
+                    Updated {formatServerLanguageHumanReadableDate(timeout.updatedAt, language)}
+                </div>
             </td>
             <td className="px-4 py-3 align-top">
                 <Link
@@ -167,7 +172,9 @@ export function AgentTimeoutsTableRow({ agentName, state, timeout }: AgentTimeou
                     {statusPresentation.label}
                 </span>
             </td>
-            <td className="px-4 py-3 align-top">{new Date(timeout.dueAt).toLocaleString()}</td>
+            <td className="px-4 py-3 align-top">
+                {formatServerLanguageHumanReadableDate(timeout.dueAt, language, { isExactDateIncluded: true })}
+            </td>
             <td className="px-4 py-3 align-top">
                 {timeout.recurrenceIntervalMs ? `Every ${formatDuration(timeout.recurrenceIntervalMs)}` : 'One-shot'}
             </td>

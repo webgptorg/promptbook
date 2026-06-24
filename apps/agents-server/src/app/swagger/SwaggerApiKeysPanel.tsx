@@ -3,9 +3,11 @@
 import Link from 'next/link';
 import { Plus } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useServerLanguage } from '@/src/components/ServerLanguage/ServerLanguageProvider';
 import { SecretInput } from '@/src/components/SecretInput/SecretInput';
 import type { ApiTokenEntry } from '@/src/utils/apiTokensClient';
 import { createApiToken, fetchApiTokens } from '@/src/utils/apiTokensClient';
+import { formatServerLanguageHumanReadableDate } from '@/src/utils/localization/formatServerLanguageHumanReadableDate';
 
 /**
  * Props for the compact Swagger API-key panel.
@@ -21,6 +23,7 @@ type SwaggerApiKeysPanelProps = {
  * Compact API-key panel shown above Swagger UI.
  */
 export function SwaggerApiKeysPanel({ isAdmin }: SwaggerApiKeysPanelProps) {
+    const { language } = useServerLanguage();
     const [tokens, setTokens] = useState<ApiTokenEntry[]>([]);
     const [isLoading, setIsLoading] = useState(isAdmin);
     const [isCreating, setIsCreating] = useState(false);
@@ -110,7 +113,7 @@ export function SwaggerApiKeysPanel({ isAdmin }: SwaggerApiKeysPanelProps) {
                                                 {token.note || `API key #${token.id}`}
                                             </span>
                                             <span className="text-xs text-slate-400">
-                                                {new Date(token.createdAt).toLocaleString()}
+                                                {formatServerLanguageHumanReadableDate(token.createdAt, language)}
                                             </span>
                                         </div>
                                         <SecretInput value={token.token} readOnly aria-label={`API key ${token.id}`} />

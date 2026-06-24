@@ -1,6 +1,8 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
+import type { ServerLanguageCode } from '../../../languages/ServerLanguageRegistry';
 import { buildAgentProfileHref } from '../../../utils/agentRouting/agentRouteHrefs';
+import { formatServerLanguageHumanReadableDate } from '../../../utils/localization/formatServerLanguageHumanReadableDate';
 import { FilesGalleryStatusBadge } from './FilesGalleryStatusBadge';
 import type { UseFilesGalleryState } from './useFilesGalleryState';
 
@@ -15,6 +17,11 @@ type FilesGalleryTableProps = Pick<
      * Active text formatter for agent naming.
      */
     readonly formatText: (text: string) => string;
+
+    /**
+     * Active UI language used for date formatting.
+     */
+    readonly language: ServerLanguageCode;
 };
 
 /**
@@ -25,19 +32,13 @@ function formatFilesGalleryFileSize(fileSize: number): string {
 }
 
 /**
- * Formats one created-at value for the table view.
- */
-function formatFilesGalleryCreatedAt(createdAt: string): string {
-    return new Date(createdAt).toLocaleString();
-}
-
-/**
  * Renders the table view of the files gallery, including pagination.
  *
  * @private function of <FilesGalleryClient/>
  */
 export function FilesGalleryTable({
     formatText,
+    language,
     files,
     total,
     isLoading,
@@ -105,7 +106,7 @@ export function FilesGalleryTable({
                                     <FilesGalleryStatusBadge status={file.status} />
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
-                                    {formatFilesGalleryCreatedAt(file.createdAt)}
+                                    {formatServerLanguageHumanReadableDate(file.createdAt, language)}
                                 </td>
                             </tr>
                         ))}
