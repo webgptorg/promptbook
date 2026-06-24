@@ -97,5 +97,11 @@
     "typings": "./esm/src/_packages/deepseek.index.d.ts",
     "peerDependencies": {
         "@promptbook/core": "0.112.0-131"
+    },
+    "dependencies": {
+        "@ai-sdk/deepseek": "0.1.17",
+        "colors": "1.4.0",
+        "crypto-js": "4.2.0",
+        "spacetrim": "0.11.60"
     }
 }

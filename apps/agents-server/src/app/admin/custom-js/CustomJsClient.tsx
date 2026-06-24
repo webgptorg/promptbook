@@ -53,6 +53,13 @@ export function CustomJsClient() {
                 Scripts entered here are concatenated and injected on every Agents Server page. Use them to add helpers,
                 integrations, or instrumentation, but keep them lean since runtime errors can impact the UI.
             </p>
+            <p className="text-sm text-gray-600 mb-6">
+                Scripts run inside a strict Content Security Policy: they are loaded via a per-request{' '}
+                <code>nonce</code> on the inline <code>&lt;script&gt;</code> tag, and any extra scripts they create at
+                runtime inherit that trust via <code>script-src &apos;strict-dynamic&apos;</code>. Closing{' '}
+                <code>&lt;/script&gt;</code> sequences are no longer rewritten — write valid JavaScript and avoid raw
+                HTML payloads here.
+            </p>
 
             {error && (
                 <div className="mb-4 rounded-md border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">

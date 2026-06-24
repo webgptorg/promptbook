@@ -3,7 +3,8 @@ import { LayoutWrapper } from '@/src/components/LayoutWrapper/LayoutWrapper';
 import { createThemeModeBootstrapScript } from '@/src/components/ThemeMode/createThemeModeBootstrapScript';
 import { APPLICATION_FONT_VARIABLE_CLASS_NAME } from '@/src/utils/applicationFonts';
 import type { Metadata } from 'next';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
+import { CONTENT_SECURITY_POLICY_NONCE_REQUEST_HEADER } from '../middleware/contentSecurityPolicy';
 import { getCustomJavascriptWithIntegrations } from '../database/customJavascript';
 import { getAggregatedCustomStylesheetCss } from '../database/customStylesheet';
 import { getMetadataMap } from '../database/getMetadata';
@@ -293,6 +294,7 @@ export default async function RootLayout({
         getCustomJavascriptWithIntegrations,
     );
     const cookieStorePromise = cookies();
+    const requestHeadersPromise = headers();
     const defaultThemeModePromise = Promise.all([currentUserPromise, cookieStorePromise, layoutMetadataPromise]).then(
         async ([currentUser, cookieStore, layoutMetadata]) => {
             const cookieThemeMode = cookieStore.get(THEME_MODE_COOKIE_NAME)?.value || null;
@@ -346,6 +348,7 @@ export default async function RootLayout({
         customStylesheetCss,
         customJavascript,
         cookieStore,
+        requestHeaders,
         defaultThemeMode,
         federatedServers,
         footerLinks,
@@ -363,6 +366,7 @@ export default async function RootLayout({
         customStylesheetCssPromise,
         customJavascriptPromise,
         cookieStorePromise,
+        requestHeadersPromise,
         defaultThemeModePromise,
         federatedServersPromise,
         footerLinksPromise,
@@ -379,7 +383,10 @@ export default async function RootLayout({
     const feedbackMode = parseChatFeedbackMode(layoutMetadata.CHAT_FEEDBACK_MODE, layoutMetadata.IS_FEEDBACK_ENABLED);
     const isExperimentalPwaAppEnabled = (layoutMetadata.IS_EXPERIMENTAL_PWA_APP_ENABLED ?? 'true') === 'true';
     const isPublicServer = isPublicServerVisibility(serverVisibility);
-    const safeCustomJavascript = customJavascript.replace(/<\/script>/gi, '<\\/script>');
+    // Note: The custom JavaScript is executed only when the browser sees the matching
+    //       `script-src 'nonce-...'` directive that the middleware sets per request, so a
+    //       fragile string-level sanitization is intentionally not applied here.
+    const contentSecurityPolicyNonce = requestHeaders.get(CONTENT_SECURITY_POLICY_NONCE_REQUEST_HEADER) ?? undefined;
     const webPushPublicKey = process.env.NEXT_PUBLIC_WEB_PUSH_PUBLIC_KEY?.trim() || null;
     const chatVisualModeCookie = cookieStore.get(CHAT_VISUAL_MODE_COOKIE_NAME)?.value || null;
     const cookieLanguage = cookieStore.get(SERVER_LANGUAGE_COOKIE_NAME)?.value || null;
@@ -412,6 +419,7 @@ export default async function RootLayout({
             <body className={`${APPLICATION_FONT_VARIABLE_CLASS_NAME} bg-background text-foreground antialiased`}>
                 <script
                     id="agents-server-theme-mode"
+                    nonce={contentSecurityPolicyNonce}
                     dangerouslySetInnerHTML={{ __html: themeModeBootstrapScript }}
                 />
                 {customStylesheetCss && <style id="agents-server-custom-css">{customStylesheetCss}</style>}
@@ -448,7 +456,8 @@ export default async function RootLayout({
                 {customJavascript && (
                     <script
                         id="agents-server-custom-js"
-                        dangerouslySetInnerHTML={{ __html: safeCustomJavascript }}
+                        nonce={contentSecurityPolicyNonce}
+                        dangerouslySetInnerHTML={{ __html: customJavascript }}
                     />
                 )}
                 {/* Global portal root for modals/popups */}

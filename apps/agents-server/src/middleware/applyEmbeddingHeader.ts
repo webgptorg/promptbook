@@ -21,13 +21,15 @@ export function applyEmbeddingHeader(response: NextResponse, url: URL, isAllowed
         return;
     }
 
+    // Note: The base strict CSP (script-src with nonce) is preserved by appending a separate
+    //       Content-Security-Policy header that only carries the `frame-ancestors` directive.
     if (isAllowed) {
-        response.headers.set('Content-Security-Policy', 'frame-ancestors https: http:');
+        response.headers.append('Content-Security-Policy', 'frame-ancestors https: http:');
         response.headers.delete('X-Frame-Options');
         return;
     }
 
-    response.headers.set('Content-Security-Policy', "frame-ancestors 'none'");
+    response.headers.append('Content-Security-Policy', "frame-ancestors 'none'");
     response.headers.set('X-Frame-Options', 'DENY');
 }
 
