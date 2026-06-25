@@ -37,9 +37,17 @@ export default async function HomePage() {
     }
 
     const [{ publicUrl }, isAdmin, { agents, folders, homepageMessage, currentUser }] = await Promise.all([
+        // Note: Server identity intentionally fails loud (see layout.tsx) — the public URL must be correct.
         $provideServer(),
-        isUserAdmin(), /* <- TODO: [??] Here should be user permissions */
-        getHomePageAgents(),
+        // Note: Identity/content loaders degrade gracefully so a transient backend blip renders an empty
+        //       homepage instead of a hard 500. Admin defaults to `false` (fail-closed, never fail-open).
+        resolveOptionalHomePageValue('admin status', isUserAdmin, false),
+        resolveOptionalHomePageValue('homepage agents', getHomePageAgents, {
+            agents: [],
+            folders: [],
+            currentUser: null,
+            homepageMessage: null,
+        }),
     ]);
 
     return (
@@ -56,6 +64,31 @@ export default async function HomePage() {
             </div>
         </div>
     );
+}
+
+/**
+ * Loads one optional homepage value, degrading to a safe fallback instead of throwing.
+ *
+ * Keeps a transient backend failure (e.g. a momentary metadata/database read error) from turning the
+ * homepage into a hard 500. The underlying error is logged so the server console and Sentry still
+ * capture it for diagnosis.
+ *
+ * @param label - Human-readable value label for logging.
+ * @param loader - Async loader returning the value.
+ * @param fallback - Value used when loading fails.
+ * @returns Loaded value or the fallback when loading fails.
+ */
+async function resolveOptionalHomePageValue<TValue>(
+    label: string,
+    loader: () => Promise<TValue>,
+    fallback: TValue,
+): Promise<TValue> {
+    try {
+        return await loader();
+    } catch (error) {
+        console.error(`Failed to load ${label}`, error);
+        return fallback;
+    }
 }
 
 /**

@@ -21,6 +21,7 @@ import { isSelfContainedS3StorageSelected } from '../tools/$provideCdnForServer'
 import { loadAgentOrganizationState } from '../utils/agentOrganization/loadAgentOrganizationState';
 import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../utils/agentOrganization/types';
 import { getAgentNaming } from '../utils/getAgentNaming';
+import { DEFAULT_AGENT_NAMING } from '../utils/agentNaming';
 import { getCurrentUser } from '../utils/getCurrentUser';
 import { getDefaultChatPreferences } from '../utils/chatPreferences';
 import {
@@ -43,7 +44,7 @@ import { isUserAdmin } from '../utils/isUserAdmin';
 import { isUserGlobalAdmin } from '../utils/isUserGlobalAdmin';
 import { getUserThemeModeSettingsForUser } from '../utils/userThemeModeSettings';
 import { getDefaultIsNotificationsOn } from '../utils/userPushNotificationSettings';
-import { isPublicServerVisibility } from '../utils/serverVisibility';
+import { DEFAULT_SERVER_VISIBILITY, isPublicServerVisibility } from '../utils/serverVisibility';
 import {
     CONTROL_PANEL_OPTION_AVAILABILITY_METADATA_KEYS,
     getControlPanelOptionAvailability,
@@ -52,7 +53,7 @@ import {
     SHIBBOLETH_AUTHENTICATION_METADATA_KEYS,
     resolveShibbolethAuthenticationMenuStatus,
 } from '../constants/shibbolethAuth';
-import { resolveFileUploadAvailability } from '../utils/upload/fileUploadAvailability';
+import { AVAILABLE_FILE_UPLOAD, resolveFileUploadAvailability } from '../utils/upload/fileUploadAvailability';
 import '@prisma/studio-core/ui/index.css';
 import './globals.css';
 
@@ -164,6 +165,32 @@ async function getLayoutFederatedServers(options: {
 }
 
 /**
+ * Loads one optional layout value while keeping the shell resilient to non-critical backend failures.
+ *
+ * A failed loader is logged (so the server console and Sentry still capture the underlying error and
+ * its digest) and replaced with a safe fallback, instead of throwing and turning every page — including
+ * the homepage — into a hard 500 when a single dependency (e.g. a transient metadata/database read)
+ * is momentarily unavailable.
+ *
+ * @param label - Human-readable asset label for logging.
+ * @param loader - Async loader returning the value.
+ * @param fallback - Value used when loading fails.
+ * @returns Loaded value or the fallback when loading fails.
+ */
+async function resolveOptionalLayoutValue<TValue>(
+    label: string,
+    loader: () => Promise<TValue>,
+    fallback: TValue,
+): Promise<TValue> {
+    try {
+        return await loader();
+    } catch (error) {
+        console.error(`Failed to load ${label}`, error);
+        return fallback;
+    }
+}
+
+/**
  * Resolves optional layout text assets while keeping the shell resilient to non-critical failures.
  *
  * @param label - Human-readable asset label for logging.
@@ -171,12 +198,7 @@ async function getLayoutFederatedServers(options: {
  * @returns Loaded text or an empty string when loading fails.
  */
 async function resolveOptionalLayoutText(label: string, loader: () => Promise<string>): Promise<string> {
-    try {
-        return await loader();
-    } catch (error) {
-        console.error(`Failed to load ${label}`, error);
-        return '';
-    }
+    return resolveOptionalLayoutValue(label, loader, '');
 }
 
 /**
@@ -185,8 +207,12 @@ async function resolveOptionalLayoutText(label: string, loader: () => Promise<st
 export async function generateMetadata(): Promise<Metadata> {
     const [{ publicUrl }, metadata, serverVisibility] = await Promise.all([
         $provideServer(),
-        getMetadataMap(['SERVER_NAME', 'SERVER_DESCRIPTION', 'SERVER_FAVICON_URL']),
-        getServerVisibility(),
+        resolveOptionalLayoutValue(
+            'server metadata for page metadata',
+            () => getMetadataMap(['SERVER_NAME', 'SERVER_DESCRIPTION', 'SERVER_FAVICON_URL']),
+            {} as Record<string, string | null>,
+        ),
+        resolveOptionalLayoutValue('server visibility for page metadata', getServerVisibility, DEFAULT_SERVER_VISIBILITY),
     ]);
     const isPublicServer = isPublicServerVisibility(serverVisibility);
     const serverName = metadata.SERVER_NAME || 'Promptbook Agents Server';
@@ -249,41 +275,70 @@ export default async function RootLayout({
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    const layoutMetadataPromise = getMetadataMap([
-        'SERVER_NAME',
-        'SERVER_LOGO_URL',
-        'IS_FOOTER_SHOWN',
-        'FOOTER_LINKS',
-        'SHOW_FEDERATED_SERVERS_PUBLICLY',
-        'IS_EXPERIMENTAL_APP',
-        'CHAT_FEEDBACK_MODE',
-        'IS_FEEDBACK_ENABLED',
-        'IS_EXPERIMENTAL_PWA_APP_ENABLED',
-        CHAT_VISUAL_MODE_METADATA_KEY,
-        DEFAULT_AGENT_AVATAR_VISUAL_METADATA_KEY,
-        DEFAULT_THEME_METADATA_KEY,
-        SERVER_LANGUAGE_METADATA_KEY,
-        IS_SERVER_LANGUAGE_ENFORCED_METADATA_KEY,
-        ...SHIBBOLETH_AUTHENTICATION_METADATA_KEYS,
-        ...CONTROL_PANEL_OPTION_AVAILABILITY_METADATA_KEYS,
-    ]);
-    const currentUserPromise = getCurrentUser();
-    const isAdminPromise = isUserAdmin();
-    const isGlobalAdminPromise = isUserGlobalAdmin();
-    const providedServerPromise = $provideServer();
-    const serverVisibilityPromise = getServerVisibility();
-    const agentNamingPromise = getAgentNaming();
-    const organizationStatePromise = isAdminPromise.then((isAdmin) =>
-        isAdmin ? loadAgentOrganizationState({ status: 'ACTIVE', includePrivate: true }) : null,
+    const layoutMetadataPromise = resolveOptionalLayoutValue(
+        'server metadata',
+        () =>
+            getMetadataMap([
+                'SERVER_NAME',
+                'SERVER_LOGO_URL',
+                'IS_FOOTER_SHOWN',
+                'FOOTER_LINKS',
+                'SHOW_FEDERATED_SERVERS_PUBLICLY',
+                'IS_EXPERIMENTAL_APP',
+                'CHAT_FEEDBACK_MODE',
+                'IS_FEEDBACK_ENABLED',
+                'IS_EXPERIMENTAL_PWA_APP_ENABLED',
+                CHAT_VISUAL_MODE_METADATA_KEY,
+                DEFAULT_AGENT_AVATAR_VISUAL_METADATA_KEY,
+                DEFAULT_THEME_METADATA_KEY,
+                SERVER_LANGUAGE_METADATA_KEY,
+                IS_SERVER_LANGUAGE_ENFORCED_METADATA_KEY,
+                ...SHIBBOLETH_AUTHENTICATION_METADATA_KEYS,
+                ...CONTROL_PANEL_OPTION_AVAILABILITY_METADATA_KEYS,
+            ]),
+        {} as Record<string, string | null>,
     );
-    const chatPreferencesPromise = getDefaultChatPreferences();
-    const defaultIsNotificationsOnPromise = getDefaultIsNotificationsOn();
-    const fileUploadAvailabilityPromise = providedServerPromise.then((providedServer) =>
-        resolveFileUploadAvailability({
-            serverId: providedServer.id,
-            serverPublicUrl: providedServer.publicUrl,
-            isSelfContainedS3StorageSelected: isSelfContainedS3StorageSelected(),
-        }),
+    const currentUserPromise = resolveOptionalLayoutValue('current user', getCurrentUser, null);
+    const isAdminPromise = resolveOptionalLayoutValue('admin status', isUserAdmin, false);
+    const isGlobalAdminPromise = resolveOptionalLayoutValue('global admin status', isUserGlobalAdmin, false);
+    // Note: Server identity intentionally fails loud — a fabricated fallback server here could resolve
+    //       the wrong table prefix and serve another tenant's data, which is worse than a 500.
+    const providedServerPromise = $provideServer();
+    const serverVisibilityPromise = resolveOptionalLayoutValue(
+        'server visibility',
+        getServerVisibility,
+        DEFAULT_SERVER_VISIBILITY,
+    );
+    const agentNamingPromise = resolveOptionalLayoutValue('agent naming', getAgentNaming, DEFAULT_AGENT_NAMING);
+    const organizationStatePromise = isAdminPromise.then((isAdmin) =>
+        isAdmin
+            ? resolveOptionalLayoutValue<Awaited<ReturnType<typeof loadAgentOrganizationState>> | null>(
+                  'agent organization state',
+                  () => loadAgentOrganizationState({ status: 'ACTIVE', includePrivate: true }),
+                  null,
+              )
+            : null,
+    );
+    const chatPreferencesPromise = resolveOptionalLayoutValue('chat preferences', getDefaultChatPreferences, {
+        defaultIsSoundsOn: false,
+        defaultIsVibrationOn: true,
+    });
+    const defaultIsNotificationsOnPromise = resolveOptionalLayoutValue(
+        'notification defaults',
+        getDefaultIsNotificationsOn,
+        false,
+    );
+    const fileUploadAvailabilityPromise = resolveOptionalLayoutValue(
+        'file upload availability',
+        () =>
+            providedServerPromise.then((providedServer) =>
+                resolveFileUploadAvailability({
+                    serverId: providedServer.id,
+                    serverPublicUrl: providedServer.publicUrl,
+                    isSelfContainedS3StorageSelected: isSelfContainedS3StorageSelected(),
+                }),
+            ),
+        AVAILABLE_FILE_UPLOAD,
     );
     const customStylesheetCssPromise = resolveOptionalLayoutText(
         'custom stylesheet CSS',
@@ -307,7 +362,12 @@ export default async function RootLayout({
                 return metadataDefaultThemeMode;
             }
 
-            const storedThemeSettings = await getUserThemeModeSettingsForUser(currentUser.id);
+            const currentUserId = currentUser.id;
+            const storedThemeSettings = await resolveOptionalLayoutValue(
+                'user theme mode settings',
+                () => getUserThemeModeSettingsForUser(currentUserId),
+                null,
+            );
             return storedThemeSettings?.themeMode || metadataDefaultThemeMode;
         },
     );
