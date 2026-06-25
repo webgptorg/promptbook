@@ -1,4 +1,4 @@
-import { processNextLocalUserChatJob } from '@/src/utils/localChatRunner';
+import { processNextLocalUserChatJob, type ProcessLocalUserChatJobResult } from '@/src/utils/localChatRunner';
 import {
     recoverExpiredRunningUserChatJobs,
     resolveUserChatWorkerInternalToken,
@@ -51,7 +51,7 @@ async function handleUserChatJobWorkerRequest(request: Request) {
         await recoverExpiredRunningUserChatJobs();
 
         const processedJob = await processNextLocalUserChatJob({ preferredJobId });
-        if (!processedJob) {
+        if (!processedJob || !shouldRequeueUserChatJobWorker(processedJob)) {
             return new Response(null, { status: 204 });
         }
 
@@ -71,6 +71,18 @@ async function handleUserChatJobWorkerRequest(request: Request) {
             { status: 500 },
         );
     }
+}
+
+/**
+ * Decides whether one worker outcome should immediately schedule another worker tick.
+ *
+ * Mutating outcomes may have exposed more queued work, while non-mutating `waiting`
+ * outcomes need the foreground fallback poll instead of a tight self-requeue loop.
+ *
+ * @private route helper
+ */
+function shouldRequeueUserChatJobWorker(processedJob: ProcessLocalUserChatJobResult): boolean {
+    return processedJob.didMutate;
 }
 
 /**

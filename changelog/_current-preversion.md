@@ -1,3 +1,8 @@
+-   Fixed Agents Server local chat worker spinning through `/api/internal/user-chat-jobs/run` while a local runner job was still waiting for output:
+
+    -   The internal worker route now self-requeues only after a mutating worker outcome, so `waiting` jobs return `204` and rely on the fallback poll instead of creating a request-latency loop.
+    -   Increased the foreground `ptbk agents-server` fallback worker poll interval from 2 seconds to 10 seconds to reduce idle development-server churn while keeping missed local-runner updates bounded.
+
 -   Fixed `npm run build:book-editor-macos` failing on Windows with `spawnSync npm.cmd EINVAL` by passing `shell: process.platform === 'win32'` to `execFileSync` in `scripts/book-editor-macos/build-book-editor-macos.js`, matching the existing pattern in `scripts/vscode-extension/build-vscode-extension.js`. The change is required because newer Node.js versions (CVE-2024-27980) refuse to spawn `.cmd` shims without a shell on Windows.
 
 -   Fixed fresh standalone VPS Agents Server installs returning 500 responses after startup because `other/vps/install.sh` did not populate the production-required `SESSION_SECRET` value. The installer now preserves an existing managed or exported `SESSION_SECRET`, otherwise generates a dedicated random 32-byte hex secret in `.env` during environment configuration.

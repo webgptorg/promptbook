@@ -28,7 +28,7 @@ import { DEFAULT_LOCAL_AGENT_RUNNER_MAX_FAILED_ATTEMPTS } from '../../../../apps
  *
  * @private internal constant of `ptbk agents-server`
  */
-const USER_CHAT_JOB_WORKER_POLL_INTERVAL_MS = 2_000;
+const USER_CHAT_JOB_WORKER_POLL_INTERVAL_MS = 10_000;
 
 /**
  * Number of identical worker failures suppressed before logging a repeated summary.

@@ -98,6 +98,19 @@ describe('POST /api/internal/user-chat-jobs/run', () => {
         expect(consoleErrorSpy).not.toHaveBeenCalled();
     });
 
+    it('does not immediately requeue while the local chat runner is still waiting', async () => {
+        processNextLocalUserChatJobMock.mockResolvedValueOnce({
+            didMutate: false,
+            outcome: 'waiting',
+        });
+
+        const response = await POST(createAuthorizedWorkerRequest());
+
+        expect(response.status).toBe(204);
+        expect(after).not.toHaveBeenCalled();
+        expect(triggerUserChatJobWorkerMock).not.toHaveBeenCalled();
+    });
+
     it('still reports worker execution failures as server errors', async () => {
         const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
         const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
