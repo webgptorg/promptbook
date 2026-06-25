@@ -22,13 +22,11 @@ export function createAgentProgressTools(
         {
             name: AGENT_PROGRESS_TOOL_NAME,
             description: spaceTrim(`
-                Publish real-time progress to the user while you work on a response.
+                Update to user while you work on a response.
 
-                - Use this for concrete progress, not placeholder reassurance.
-                - Call it before any chunk of work that may take more than a few seconds.
-                - Update it when you start a step, call or finish a tool, learn a result, or decide the next step.
-                - Include what you are doing now, visible actions/results, and what you will do next.
-                - Keep updates concise and user-facing; do not expose hidden chain-of-thought.
+                - Use this to communicate only concise progress updates visible to the user.
+                - Include what you are doing now, and what you will do next.
+                - Be informative and make update before any chunk of work that might take more than a few seconds.
             `),
             parameters: {
                 type: 'object',
