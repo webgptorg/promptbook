@@ -44,6 +44,7 @@ describe('other/vps/install.sh', () => {
         );
         expect(installScript).toContain('set_env_value SENTRY_DSN "$REQUESTED_SENTRY_DSN"');
         expect(installScript).toContain('set_env_value ADMIN_PASSWORD "$REQUESTED_ADMIN_PASSWORD"');
+        expect(installScript).toContain('ensure_secret_env_value SESSION_SECRET 32');
         expect(installScript).toContain(
             'default_sentry_dsn="$(resolve_secret_default SENTRY_DSN NEXT_PUBLIC_SENTRY_DSN)"',
         );

@@ -1,5 +1,7 @@
 -   Fixed `npm run build:book-editor-macos` failing on Windows with `spawnSync npm.cmd EINVAL` by passing `shell: process.platform === 'win32'` to `execFileSync` in `scripts/book-editor-macos/build-book-editor-macos.js`, matching the existing pattern in `scripts/vscode-extension/build-vscode-extension.js`. The change is required because newer Node.js versions (CVE-2024-27980) refuse to spawn `.cmd` shims without a shell on Windows.
 
+-   Fixed fresh standalone VPS Agents Server installs returning 500 responses after startup because `other/vps/install.sh` did not populate the production-required `SESSION_SECRET` value. The installer now preserves an existing managed or exported `SESSION_SECRET`, otherwise generates a dedicated random 32-byte hex secret in `.env` during environment configuration.
+
 -   Updated Agents Server date displays to use localized human-readable `moment.js` labels:
 
     -   Added a shared `formatServerLanguageHumanReadableDate` utility so client and server-rendered UI can show labels like `2 days ago` using the active Agents Server language.

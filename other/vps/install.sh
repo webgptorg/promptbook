@@ -1459,6 +1459,23 @@ has_non_empty_env_value() {
     [[ -f "$ENV_FILE" ]] && grep -Eq "^${key}=.+" "$ENV_FILE"
 }
 
+ensure_secret_env_value() {
+    local key="$1"
+    local random_hex_byte_count="$2"
+    local environment_value="${!key:-}"
+
+    if has_non_empty_env_value "$key"; then
+        return
+    fi
+
+    if [[ -n "$environment_value" ]]; then
+        set_env_value "$key" "$environment_value"
+        return
+    fi
+
+    set_env_value "$key" "$(openssl rand -hex "$random_hex_byte_count")"
+}
+
 resolve_openai_codex_api_key_usage() {
     local openai_api_key="${REQUESTED_OPENAI_API_KEY:-}"
 
@@ -1822,6 +1839,8 @@ configure_environment() {
         GENERATED_ADMIN_PASSWORD="$(openssl rand -hex 24)"
         set_env_value ADMIN_PASSWORD "$GENERATED_ADMIN_PASSWORD"
     fi
+
+    ensure_secret_env_value SESSION_SECRET 32
 
     if [[ -n "${COPILOT_GITHUB_TOKEN:-}" ]]; then
         set_env_value COPILOT_GITHUB_TOKEN "$COPILOT_GITHUB_TOKEN"
