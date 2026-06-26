@@ -1,4 +1,4 @@
-[-]
+[ ]
 
 [🔐] Fix internal worker token and team access token reusing `ADMIN_PASSWORD` (and using a hardcoded fallback) in Agents Server
 

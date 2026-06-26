@@ -1,4 +1,4 @@
-[-]
+[ ]
 
 [🔐] Fix unauthenticated Playwright PDF rendering in `/api/chat/export/pdf` of Agents Server
 

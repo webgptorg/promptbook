@@ -1,4 +1,4 @@
-[-]
+[ ]
 
 [🔐] Fix missing signature verification on SendGrid Inbound Parse webhook of Agents Server
 

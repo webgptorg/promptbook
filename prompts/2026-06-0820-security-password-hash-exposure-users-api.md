@@ -1,4 +1,4 @@
-[-]
+[ ]
 
 [🔐] Fix `passwordHash` exposure in `/api/users` admin endpoint of Agents Server
 

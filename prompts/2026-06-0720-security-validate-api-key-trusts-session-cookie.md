@@ -1,4 +1,4 @@
-[-]
+[ ]
 
 [🔐] Fix authentication bypass in `validateApiKey` that trusts any `sessionToken` cookie value of Agents Server
 
