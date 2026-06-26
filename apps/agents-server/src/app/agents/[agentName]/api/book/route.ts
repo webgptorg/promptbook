@@ -1,5 +1,6 @@
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
+import { invalidateCachedActiveOrganizationSnapshots } from '@/src/utils/agentOrganization/loadAgentOrganizationState';
 import {
     parseBookScopedAgentIdentifier,
     resolveBookScopedAgentContext,
@@ -172,6 +173,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ agen
 
         const agentId = await collection.getAgentPermanentId(agentName);
         await collection.updateAgentSource(agentId, agentSource, { versionName });
+        invalidateCachedActiveOrganizationSnapshots();
         // <- TODO: [🐱‍🚀] Properly type as string_book
 
         return new Response(

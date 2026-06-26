@@ -66,6 +66,14 @@ type LocalSqliteUpsertOptions = {
 };
 
 /**
+ * Read index definition for hot SQLite queries.
+ */
+type LocalSqliteReadIndex = {
+    readonly name: string;
+    readonly columns: ReadonlyArray<string>;
+};
+
+/**
  * Columns whose values are persisted as JSON text in local SQLite.
  */
 const JSON_COLUMNS_BY_TABLE = new Map<string, ReadonlySet<string>>([
@@ -142,6 +150,51 @@ const UNIQUE_INDEX_COLUMNS_BY_TABLE = new Map<string, ReadonlyArray<ReadonlyArra
 ]);
 
 /**
+ * Non-unique indexes for frequent standalone VPS reads.
+ */
+const READ_INDEXES_BY_TABLE = new Map<string, ReadonlyArray<LocalSqliteReadIndex>>([
+    [
+        'Agent',
+        [
+            { name: 'agentName_lookup', columns: ['agentName'] },
+            { name: 'active_directory', columns: ['deletedAt', 'sortOrder', 'agentName'] },
+            { name: 'public_active_directory', columns: ['visibility', 'deletedAt', 'sortOrder', 'agentName'] },
+        ],
+    ],
+    [
+        'AgentFolder',
+        [{ name: 'active_directory', columns: ['deletedAt', 'parentId', 'sortOrder', 'name'] }],
+    ],
+    [
+        'UserChat',
+        [
+            { name: 'user_agent_source_createdAt', columns: ['userId', 'agentPermanentId', 'source', 'createdAt'] },
+            { name: 'agent_source_user_createdAt', columns: ['agentPermanentId', 'source', 'userId', 'createdAt'] },
+        ],
+    ],
+    [
+        'UserChatJob',
+        [
+            { name: 'ready_queue', columns: ['status', 'cancelRequestedAt', 'queuedAt', 'createdAt'] },
+            { name: 'active_chat_scope', columns: ['chatId', 'userId', 'agentPermanentId', 'status', 'createdAt'] },
+            { name: 'agent_chat_status', columns: ['agentPermanentId', 'chatId', 'status'] },
+            { name: 'running_lease', columns: ['status', 'leaseExpiresAt'] },
+        ],
+    ],
+    [
+        'UserChatTimeout',
+        [
+            { name: 'ready_due', columns: ['status', 'cancelRequestedAt', 'pausedAt', 'dueAt', 'createdAt'] },
+            {
+                name: 'active_chat_scope',
+                columns: ['chatId', 'userId', 'agentPermanentId', 'status', 'pausedAt', 'dueAt', 'createdAt'],
+            },
+            { name: 'running_lease', columns: ['status', 'leaseExpiresAt'] },
+        ],
+    ],
+]);
+
+/**
  * Known unique conflict columns used when `.upsert` omits `onConflict`.
  */
 const DEFAULT_UPSERT_CONFLICT_COLUMNS_BY_TABLE = new Map<string, ReadonlyArray<string>>([
@@ -177,6 +230,20 @@ export function $provideLocalSqliteSupabase(): SupabaseClient {
 export function $resetLocalSqliteSupabaseForTests(): void {
     $resetAgentsServerSqliteDatabaseForTests();
     localSqliteSupabase = null;
+}
+
+/**
+ * Ensures read indexes for a table that is queried through direct SQLite SQL.
+ *
+ * @param tableName - Actual table name, including any server prefix.
+ *
+ * @private internal SQLite utility of Agents Server
+ */
+export function ensureLocalSqliteTableReadIndexes(tableName: string): void {
+    const database = $provideAgentsServerSqliteDatabase();
+    const tableBaseName = resolveTableBaseName(tableName);
+
+    ensureTable(database, tableName, resolveReadIndexColumns(tableBaseName));
 }
 
 /**
@@ -836,8 +903,9 @@ function ensureTable(
     const columnsToEnsure = uniqueStrings([...requiredColumns, ...resolveUniqueIndexColumns(tableBaseName)]).filter(
         (column) => column !== '*' && column !== 'id',
     );
+    const columnsToEnsureWithIndexes = uniqueStrings([...columnsToEnsure, ...resolveReadIndexColumns(tableBaseName)]);
 
-    for (const column of columnsToEnsure) {
+    for (const column of columnsToEnsureWithIndexes) {
         if (existingColumns.has(column)) {
             continue;
         }
@@ -852,6 +920,7 @@ function ensureTable(
     }
 
     ensureUniqueIndexes(database, tableName, tableBaseName);
+    ensureReadIndexes(database, tableName, tableBaseName);
 }
 
 /**
@@ -867,6 +936,21 @@ function ensureUniqueIndexes(database: AgentsServerSqliteDatabase, tableName: st
             `CREATE UNIQUE INDEX IF NOT EXISTS ${quoteIdentifier(indexName)} ON ${quoteIdentifier(
                 tableName,
             )} (${columnSql})`,
+        );
+    }
+}
+
+/**
+ * Creates known read indexes after required columns exist.
+ */
+function ensureReadIndexes(database: AgentsServerSqliteDatabase, tableName: string, tableBaseName: string): void {
+    const readIndexes = READ_INDEXES_BY_TABLE.get(tableBaseName) || [];
+
+    for (const readIndex of readIndexes) {
+        const indexName = `index_${sanitizeSqlIdentifier(tableName)}_${sanitizeSqlIdentifier(readIndex.name)}`;
+        const columnSql = readIndex.columns.map(quoteIdentifier).join(', ');
+        database.exec(
+            `CREATE INDEX IF NOT EXISTS ${quoteIdentifier(indexName)} ON ${quoteIdentifier(tableName)} (${columnSql})`,
         );
     }
 }
@@ -1439,6 +1523,13 @@ function resolveTableBaseName(tableName: string): string {
  */
 function resolveUniqueIndexColumns(tableBaseName: string): Array<string> {
     return (UNIQUE_INDEX_COLUMNS_BY_TABLE.get(tableBaseName) || []).flatMap((columns) => [...columns]);
+}
+
+/**
+ * Resolves columns participating in known read indexes.
+ */
+function resolveReadIndexColumns(tableBaseName: string): Array<string> {
+    return (READ_INDEXES_BY_TABLE.get(tableBaseName) || []).flatMap((readIndex) => [...readIndex.columns]);
 }
 
 /**

@@ -4,6 +4,7 @@ import { restoreAgentAndFolders } from '@/src/utils/agentOrganization/restoreAge
 import { revalidatePath } from 'next/cache';
 import { isUserAdmin } from '../../utils/isUserAdmin';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
+import { invalidateCachedActiveOrganizationSnapshots } from '@/src/utils/agentOrganization/loadAgentOrganizationState';
 
 /**
  * Restores a deleted agent from the recycle bin.
@@ -16,6 +17,7 @@ export async function restoreDeletedAgent(agentName: string) {
     }
 
     await restoreAgentAndFolders(agentName);
+    invalidateCachedActiveOrganizationSnapshots();
 
     revalidatePath('/recycle-bin');
     revalidatePath(`/agents/${agentName}`);
@@ -35,6 +37,7 @@ export async function deleteAgent(agentName: string) {
     const collection = await $provideAgentCollectionForServer();
 
     await collection.deleteAgent(agentName);
+    invalidateCachedActiveOrganizationSnapshots();
 
     revalidatePath('/recycle-bin');
     revalidatePath(`/agents/${agentName}`);

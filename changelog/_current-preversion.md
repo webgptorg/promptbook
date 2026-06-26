@@ -1,3 +1,9 @@
+-   Optimized Agents Server directory and chat-sidebar reads for standalone VPS and Supabase deployments:
+
+    -   Added SQLite read indexes for active agent/folder directory scans, chat sidebar lists, and active chat job/timeout polling used by the homepage, agent navigation, and chat pages.
+    -   Added matching PostgreSQL indexes for active agent/folder directory reads and creation-time chat sidebar ordering.
+    -   Invalidated cached active organization snapshots after agent source, visibility, create, delete, and restore mutations so optimized homepage/menu data refreshes immediately.
+
 -   Fixed timing attack vulnerability in Agents Server admin password verification: all three comparison sites (`isUserGlobalAdmin`, `getCurrentUser`, `authenticateUser`) now use a shared `isAdminPasswordEqual` utility that calls Node.js's `timingSafeEqual` (from the `crypto` module) instead of JavaScript's `===` operator, preventing character-by-character password inference via response-time measurement.
 
 -   Changed Agents Server durable chat progress so new agent responses show structured real progress from the queued and preparation phases instead of a synthetic immediate pre-answer:

@@ -2,6 +2,7 @@ import { $getTableName } from '@/src/database/$getTableName';
 import { $provideClientSql } from '@/src/database/$provideClientSql';
 import { isAgentsServerSqliteMode } from '@/src/database/agentsServerDatabaseMode';
 import { $provideAgentsServerSqliteDatabase } from '@/src/database/sqlite/$provideAgentsServerSqliteDatabase';
+import { ensureLocalSqliteTableReadIndexes } from '@/src/database/sqlite/$provideLocalSqliteSupabase';
 import type { ListUserChatsOptions, UserChatRecord } from './UserChatRecord';
 import type { UserChatSource } from './UserChatSource';
 import type { UserChatRow } from './UserChatRow';
@@ -168,7 +169,10 @@ export async function listUserChatSummarySeeds(options: ListUserChatsOptions): P
  * @private function of `userChat`
  */
 async function listUserChatSummarySeedsViaSqlite(options: ListUserChatsOptions): Promise<Array<UserChatSummarySeed>> {
-    const userChatTableName = quoteIdentifier(await $getTableName('UserChat'));
+    const rawUserChatTableName = await $getTableName('UserChat');
+    ensureLocalSqliteTableReadIndexes(rawUserChatTableName);
+
+    const userChatTableName = quoteIdentifier(rawUserChatTableName);
     const shouldLoadExternalChats = options.viewerIsAdmin && options.includeExternalChats;
     const whereClause = shouldLoadExternalChats
         ? `

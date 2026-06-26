@@ -190,4 +190,33 @@ describe('$provideLocalSqliteSupabase', () => {
         });
         expect(typeof (data as { value: unknown } | null)?.value).toBe('string');
     });
+
+    it('creates read indexes for frequent standalone server queries', async () => {
+        const { $provideAgentsServerSqliteDatabase } = await import('./$provideAgentsServerSqliteDatabase');
+        const { ensureLocalSqliteTableReadIndexes } = await import('./$provideLocalSqliteSupabase');
+        const database = $provideAgentsServerSqliteDatabase();
+
+        database.exec('CREATE TABLE "standalone_UserChat" ("id" TEXT PRIMARY KEY)');
+
+        ensureLocalSqliteTableReadIndexes('standalone_UserChat');
+
+        const userChatColumns = database
+            .prepare('PRAGMA table_info("standalone_UserChat")')
+            .all()
+            .map((row) => String(row.name));
+        const userChatIndexes = database
+            .prepare('PRAGMA index_list("standalone_UserChat")')
+            .all()
+            .map((row) => String(row.name));
+
+        expect(userChatColumns).toEqual(
+            expect.arrayContaining(['userId', 'agentPermanentId', 'source', 'createdAt']),
+        );
+        expect(userChatIndexes).toEqual(
+            expect.arrayContaining([
+                'index_standalone_UserChat_user_agent_source_createdAt',
+                'index_standalone_UserChat_agent_source_user_createdAt',
+            ]),
+        );
+    });
 });

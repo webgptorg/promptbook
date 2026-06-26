@@ -4,6 +4,7 @@ import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentColle
 import { $provideServer } from '@/src/tools/$provideServer';
 import { findOwnedFolderById, findOwnedAgentByIdentifier } from '@/src/utils/agentOwnership';
 import { createAgentWithDefaultVisibility } from '@/src/utils/createAgentWithDefaultVisibility';
+import { invalidateCachedActiveOrganizationSnapshots } from '@/src/utils/agentOrganization/loadAgentOrganizationState';
 import {
     searchOwnedAgents,
     getNextOwnedAgentSortOrder,
@@ -141,6 +142,7 @@ export async function POST(request: NextRequest) {
             sortOrder,
             userId: identityResult.identity.userId,
         });
+        invalidateCachedActiveOrganizationSnapshots();
         const persistedRow = await findOwnedAgentByIdentifier(identityResult.identity.userId, createdAgent.permanentId);
 
         if (!persistedRow) {

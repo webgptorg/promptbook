@@ -12,6 +12,7 @@ import { NextResponse } from 'next/server';
 import { buildAgentNameOrIdFilter } from '@/src/utils/agentIdentifier';
 import { getCurrentUser } from '@/src/utils/getCurrentUser';
 import { resolveServerAgentContext } from '@/src/utils/resolveServerAgentContext';
+import { invalidateCachedActiveOrganizationSnapshots } from '@/src/utils/agentOrganization/loadAgentOrganizationState';
 
 /**
  * Handles patch.
@@ -45,6 +46,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ ag
                 localServerUrl: new URL(request.url).origin,
                 fallbackResolver: baseAgentReferenceResolver,
             });
+            invalidateCachedActiveOrganizationSnapshots();
 
             return NextResponse.json({
                 success: true,
@@ -74,6 +76,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ ag
             return NextResponse.json({ success: false, error: updateResult.error.message }, { status: 500 });
         }
 
+        invalidateCachedActiveOrganizationSnapshots();
+
         return NextResponse.json({ success: true });
     } catch (error) {
         return NextResponse.json(
@@ -97,6 +101,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ a
 
         const agentId = await collection.getAgentPermanentId(agentName);
         await collection.deleteAgent(agentId);
+        invalidateCachedActiveOrganizationSnapshots();
         return NextResponse.json({ success: true });
     } catch (error) {
         return NextResponse.json(

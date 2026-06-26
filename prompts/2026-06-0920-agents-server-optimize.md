@@ -1,4 +1,4 @@
-[ ] !!!
+[x] ~$0.00 an hour by OpenAI Codex `gpt-5.5`
 
 [✨🌽] Optimize the Agents server app
 
@@ -16,3 +16,4 @@
 ```bash
 sudo curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/other/vps/install.sh | bash
 ```
+

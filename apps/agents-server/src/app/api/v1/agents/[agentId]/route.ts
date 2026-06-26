@@ -6,6 +6,7 @@ import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideServer } from '@/src/tools/$provideServer';
+import { invalidateCachedActiveOrganizationSnapshots } from '@/src/utils/agentOrganization/loadAgentOrganizationState';
 import { findOwnedAgentByIdentifier, findOwnedFolderById, type OwnedAgentRow } from '@/src/utils/agentOwnership';
 import {
     getNextOwnedAgentSortOrder,
@@ -155,6 +156,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
             return metadataUpdateResponse;
         }
 
+        invalidateCachedActiveOrganizationSnapshots();
+
         return createUpdatedOwnedAgentResponse(request, identityResult.identity.userId, existingAgent);
     } catch (error) {
         return mapOwnedAgentLookupErrorToResponse(request, error);
@@ -192,6 +195,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
         const collection = await $provideAgentCollectionForServer();
         await collection.deleteAgent(existingAgent.permanentId || existingAgent.agentName);
+        invalidateCachedActiveOrganizationSnapshots();
 
         return createManagementApiJsonResponse(request, { success: true });
     } catch (error) {
