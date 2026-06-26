@@ -7,12 +7,23 @@ import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentColle
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import { renameAgentSource } from '@/src/utils/renameAgentSource';
 import { isAgentVisibility, type AgentVisibility } from '@/src/utils/agentVisibility';
-import { TODO_any } from '@promptbook-local/types';
+import { TODO_any, type string_book } from '@promptbook-local/types';
 import { NextResponse } from 'next/server';
-import { buildAgentNameOrIdFilter } from '@/src/utils/agentIdentifier';
+import { findAgentForCallerWriteAccess } from '@/src/utils/findAgentForCallerWriteAccess';
 import { getCurrentUser } from '@/src/utils/getCurrentUser';
 import { resolveServerAgentContext } from '@/src/utils/resolveServerAgentContext';
 import { invalidateCachedActiveOrganizationSnapshots } from '@/src/utils/agentOrganization/loadAgentOrganizationState';
+import type { OwnedAgentRow } from '@/src/utils/agentOwnership';
+
+/**
+ * Resolves the stable identifier used when calling the agent collection.
+ *
+ * @param agent - Persisted agent row.
+ * @returns Permanent id when available, otherwise the legacy agent name.
+ */
+function getAgentCollectionIdentifier(agent: OwnedAgentRow): string {
+    return agent.permanentId || agent.agentName;
+}
 
 /**
  * Handles patch.
@@ -25,6 +36,11 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ ag
             return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
         }
 
+        const targetAgent = await findAgentForCallerWriteAccess(agentName);
+        if (!targetAgent || targetAgent.deletedAt) {
+            return NextResponse.json({ success: false, error: 'Agent not found' }, { status: 404 });
+        }
+
         const body = (await request.json()) as { visibility?: AgentVisibility; name?: string };
 
         if (typeof body.name === 'string') {
@@ -34,9 +50,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ ag
             }
 
             const collection = await $provideAgentCollectionForServer();
-            const agentId = await collection.getAgentPermanentId(agentName);
-            const agentSource = await collection.getAgentSource(agentId);
-            const nextAgentSource = renameAgentSource(agentSource, trimmedName);
+            const agentId = getAgentCollectionIdentifier(targetAgent);
+            const nextAgentSource = renameAgentSource(targetAgent.agentSource as string_book, trimmedName);
 
             await collection.updateAgentSource(agentId, nextAgentSource);
             const baseAgentReferenceResolver = await $provideAgentReferenceResolver();
@@ -69,7 +84,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ ag
             .from(await $getTableName(`Agent`))
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             .update({ visibility } as any)
-            .or(buildAgentNameOrIdFilter(agentName))
+            .eq('id', targetAgent.id)
             .is('deletedAt', null);
 
         if (updateResult.error) {
@@ -92,15 +107,19 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ ag
  */
 export async function DELETE(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     const { agentName } = await params;
-    const collection = await $provideAgentCollectionForServer();
 
     try {
         if (!(await getCurrentUser())) {
             return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
         }
 
-        const agentId = await collection.getAgentPermanentId(agentName);
-        await collection.deleteAgent(agentId);
+        const targetAgent = await findAgentForCallerWriteAccess(agentName);
+        if (!targetAgent || targetAgent.deletedAt) {
+            return NextResponse.json({ success: false, error: 'Agent not found' }, { status: 404 });
+        }
+
+        const collection = await $provideAgentCollectionForServer();
+        await collection.deleteAgent(getAgentCollectionIdentifier(targetAgent));
         invalidateCachedActiveOrganizationSnapshots();
         return NextResponse.json({ success: true });
     } catch (error) {

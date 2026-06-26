@@ -300,6 +300,7 @@ function createManagementMenuItems(
  * @param formatText - Agent-aware text formatter.
  * @param handleRequestVisibilityUpdate - Visibility dialog action.
  * @param integrationLink - Generated integration link metadata.
+ * @param isAdmin - Whether the current user is an administrator (gates admin-only links).
  * @param isAuthenticated - Whether the current user is logged in.
  * @param shouldShowVisibilityAction - Whether visibility editing is available.
  * @param usageAnalyticsHref - Usage analytics URL for the current agent.
@@ -311,6 +312,7 @@ function createAdminMenuItems(
     formatText: FormatAgentContextMenuText,
     handleRequestVisibilityUpdate: () => Promise<void>,
     integrationLink: AgentContextMenuNavigationLink,
+    isAdmin: boolean,
     isAuthenticated: boolean,
     shouldShowVisibilityAction: boolean,
     usageAnalyticsHref: string,
@@ -333,26 +335,31 @@ function createAdminMenuItems(
         );
     }
 
+    if (isAdmin) {
+        menuItems.push(
+            {
+                type: 'link',
+                href: `/admin/chat-history?agentName=${encodeURIComponent(agentName)}`,
+                icon: MessageSquareIcon,
+                label: formatText('Chat History'),
+            },
+            {
+                type: 'link',
+                href: usageAnalyticsHref,
+                icon: BarChart3Icon,
+                label: formatText('Usage Analytics'),
+            },
+            {
+                type: 'link',
+                href: `/admin/chat-feedback?agentName=${encodeURIComponent(agentName)}`,
+                icon: MessageCircleQuestionIcon,
+                label: formatText('Chat Feedback'),
+            },
+            createDividerItem(),
+        );
+    }
+
     menuItems.push(
-        {
-            type: 'link',
-            href: `/admin/chat-history?agentName=${encodeURIComponent(agentName)}`,
-            icon: MessageSquareIcon,
-            label: formatText('Chat History'),
-        },
-        {
-            type: 'link',
-            href: usageAnalyticsHref,
-            icon: BarChart3Icon,
-            label: formatText('Usage Analytics'),
-        },
-        {
-            type: 'link',
-            href: `/admin/chat-feedback?agentName=${encodeURIComponent(agentName)}`,
-            icon: MessageCircleQuestionIcon,
-            label: formatText('Chat Feedback'),
-        },
-        createDividerItem(),
         {
             type: 'link',
             href: integrationLink.href,
@@ -437,6 +444,7 @@ export function useAgentContextMenuItems(props: AgentContextMenuBaseProps): Cont
         formatText,
         handleRequestVisibilityUpdate,
         integrationLink,
+        isAdmin,
         isAuthenticated,
         shouldShowVisibilityAction,
         usageAnalyticsHref,

@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { $getTableName } from '../../../../database/$getTableName';
 import { $provideSupabase } from '../../../../database/$provideSupabase';
-import { getCurrentUser } from '../../../../utils/getCurrentUser';
+import { isUserAdmin } from '../../../../utils/isUserAdmin';
 
 /**
  * Delete a single chat history entry by ID.
  */
 export async function DELETE(request: NextRequest, context: { params: Promise<{ id: string }> }) {
-    if (!(await getCurrentUser())) {
+    if (!(await isUserAdmin())) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
