@@ -8,7 +8,10 @@ import {
     resolvePlaceholderImageUrl,
     resolveProfileImageUrl,
 } from '../../../../../../src/book-components/Chat/utils/loadAgentProfile';
+import { assertsError } from '../../../../../../src/errors/assertsError';
 import { isValidAgentUrl } from '../../../../../../src/utils/validators/url/isValidAgentUrl';
+import { assertSafeUrl } from '../../../utils/assertSafeUrl';
+import { getCurrentUser } from '../../../utils/getCurrentUser';
 
 /**
  * Response for team agent profile.
@@ -88,13 +91,30 @@ async function fetchAgentProfile(agentUrl: string, localServerUrl: string): Prom
  *
  * The client uses this to render tool call chips without relying on direct cross-origin requests
  * to the teammate agent.
+ *
+ * Requires authentication to prevent unauthenticated SSRF abuse and exfiltration of the
+ * internal team access token. The destination URL is validated against private/internal
+ * IP ranges before any outbound request is made.
  */
 export async function GET(request: Request) {
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const requestUrl = new URL(request.url);
     const agentUrl = requestUrl.searchParams.get('url');
 
     if (!agentUrl || !isValidAgentUrl(agentUrl)) {
         return NextResponse.json({ error: 'Invalid agent URL' }, { status: 400 });
+    }
+
+    // Guard against SSRF: reject private/internal IPs and non-HTTP(S) schemes
+    try {
+        assertSafeUrl(agentUrl);
+    } catch (error) {
+        assertsError(error);
+        return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
     const normalizedUrl = agentUrl.replace(/\/$/, '');

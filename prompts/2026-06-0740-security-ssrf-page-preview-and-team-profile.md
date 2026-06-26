@@ -1,4 +1,4 @@
-[ ]
+[x] $3.40 28 minutes by Claude Code
 
 [🔐] Fix SSRF in `/api/page-preview/*` and `/api/team-agent-profile` endpoints of Agents Server
 
@@ -11,3 +11,4 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle — reuse the existing `assertSafeUrl` helper.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

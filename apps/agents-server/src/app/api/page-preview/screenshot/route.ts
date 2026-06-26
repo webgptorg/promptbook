@@ -3,6 +3,8 @@ import { serializeError } from '@promptbook-local/utils';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { assertsError } from '../../../../../../../src/errors/assertsError';
+import { assertSafeUrl } from '../../../../utils/assertSafeUrl';
+import { getCurrentUser } from '../../../../utils/getCurrentUser';
 
 /**
  * Takes a screenshot of the given URL using a headless browser.
@@ -11,23 +13,28 @@ import { assertsError } from '../../../../../../../src/errors/assertsError';
  * - `url` — the fully-qualified HTTP(S) URL to screenshot
  *
  * Returns a PNG image.
+ *
+ * Requires authentication to prevent unauthenticated SSRF abuse.
+ * The destination URL is validated against private/internal IP ranges before fetching.
  */
 export async function GET(request: NextRequest): Promise<NextResponse> {
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const url = request.nextUrl.searchParams.get('url');
 
     if (!url) {
         return NextResponse.json({ error: 'Missing required query parameter: url' }, { status: 400 });
     }
 
-    let parsedUrl: URL;
+    // Guard against SSRF: reject private/internal IPs and non-HTTP(S) schemes
     try {
-        parsedUrl = new URL(url);
-    } catch {
-        return NextResponse.json({ error: 'Invalid URL' }, { status: 400 });
-    }
-
-    if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
-        return NextResponse.json({ error: 'Only http and https URLs are supported' }, { status: 400 });
+        assertSafeUrl(url);
+    } catch (error) {
+        assertsError(error);
+        return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
     try {

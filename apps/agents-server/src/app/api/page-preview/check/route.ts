@@ -1,6 +1,8 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { assertsError } from '../../../../../../../src/errors/assertsError';
+import { assertSafeUrl } from '../../../../utils/assertSafeUrl';
+import { getCurrentUser } from '../../../../utils/getCurrentUser';
 import { checkIfUrlCanBeEmbedded } from '../../../../utils/iframe/checkIfUrlCanBeEmbedded';
 
 /**
@@ -11,12 +13,28 @@ import { checkIfUrlCanBeEmbedded } from '../../../../utils/iframe/checkIfUrlCanB
  * - `url` — the fully-qualified HTTP(S) URL to check
  *
  * Returns `{ canEmbed: boolean }`.
+ *
+ * Requires authentication to prevent unauthenticated SSRF abuse.
+ * The destination URL is validated against private/internal IP ranges before fetching.
  */
 export async function GET(request: NextRequest): Promise<NextResponse> {
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const url = request.nextUrl.searchParams.get('url');
 
     if (!url) {
         return NextResponse.json({ error: 'Missing required query parameter: url' }, { status: 400 });
+    }
+
+    // Guard against SSRF: reject private/internal IPs and non-HTTP(S) schemes
+    try {
+        assertSafeUrl(url);
+    } catch (error) {
+        assertsError(error);
+        return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
     try {
