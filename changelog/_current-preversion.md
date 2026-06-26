@@ -1,3 +1,5 @@
+-   Fixed authentication bypass in Agents Server `validateApiKey`: the helper previously treated the presence of any `sessionToken` cookie as proof of a valid browser session, so any client could forge `Cookie: sessionToken=anything` and gain unauthenticated access to every endpoint behind `validateApiKey` (including the OpenAI-compatible chat-completion routes that consume server-side API credits). The helper now parses the cookie value with the existing `parseSessionToken` HMAC-signature verifier and only accepts the request when the signature matches, restoring the original intent of the browser-session shortcut without trusting attacker-supplied cookies.
+
 -   Optimized Agents Server directory and chat-sidebar reads for standalone VPS and Supabase deployments:
 
     -   Added SQLite read indexes for active agent/folder directory scans, chat sidebar lists, and active chat job/timeout polling used by the homepage, agent navigation, and chat pages.

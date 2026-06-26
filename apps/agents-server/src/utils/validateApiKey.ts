@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { $getTableName } from '../database/$getTableName';
 import { $provideSupabaseForServer } from '../database/$provideSupabaseForServer';
+import { parseSessionToken, SESSION_COOKIE_NAME } from './session';
 
 /**
  * Result of Api key validation.
@@ -21,10 +22,13 @@ export type ApiKeyValidationResult = {
 export async function validateApiKey(request: NextRequest): Promise<ApiKeyValidationResult> {
     const authHeader = request.headers.get('authorization');
 
-    // If no auth header, check if user has a session cookie (logged in via web)
+    // If no auth header, check if user has a valid signed session cookie (logged in via web).
+    // The cookie value must pass HMAC-signature verification — merely sending a `sessionToken`
+    // cookie with arbitrary content must NOT authenticate the request.
     if (!authHeader) {
-        const hasSession = request.cookies.has('sessionToken');
-        if (hasSession) {
+        const sessionToken = request.cookies.get(SESSION_COOKIE_NAME)?.value;
+        const session = parseSessionToken(sessionToken);
+        if (session !== null) {
             return { isValid: true };
         }
         return {
