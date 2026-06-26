@@ -1,4 +1,4 @@
-[ ]
+[x] $6.35 31 minutes by Claude Code
 
 [🔐] Fix unauthenticated abuse of server-side paid AI APIs in Agents Server
 
@@ -17,3 +17,4 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle — extract a shared auth/rate-limit guard rather than duplicating the same checks five times.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

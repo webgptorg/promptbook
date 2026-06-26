@@ -1,5 +1,6 @@
 import { serializeError, computeHash } from '@promptbook-local/utils';
 import { NextRequest, NextResponse } from 'next/server';
+import { spaceTrim } from 'spacetrim';
 import { assertsError } from '../../../../../../../src/errors/assertsError';
 import type { LlmExecutionTools } from '../../../../../../../src/execution/LlmExecutionTools';
 import { getSingleLlmExecutionTools } from '../../../../../../../src/llm-providers/_multiple/getSingleLlmExecutionTools';
@@ -11,6 +12,50 @@ import { $provideServer } from '../../../../tools/$provideServer';
 import { getGeneratedImageCdnKey } from '../../../../utils/cdn/utils/getGeneratedImageCdnKey';
 import { ensureGeneratedImage } from '../../../../utils/imageGeneration/ensureGeneratedImage';
 import { filenameToPrompt } from '../../../../utils/normalization/filenameToPrompt';
+import { guardPaidApiRequest } from '../../../../utils/paidApiRequestGuard';
+
+/**
+ * Allowlist of image generation models that may be requested by the caller.
+ *
+ * Image generation is one of the most expensive paid AI operations, so we
+ * reject any unknown model id before forwarding to the upstream provider.
+ */
+const ALLOWED_IMAGE_GENERATION_MODELS = new Set<string>([
+    'dall-e-3',
+    'dall-e-2',
+    'gpt-image-1',
+    'gemini-3-pro-image-preview',
+    'gemini-2.0-flash-preview-image-generation',
+]);
+
+/**
+ * Allowlist of image sizes accepted from the caller.
+ *
+ * Larger sizes cost more on every supported provider, so callers must pick a
+ * value from this fixed list instead of supplying arbitrary `${number}x${number}`
+ * strings.
+ */
+const ALLOWED_IMAGE_GENERATION_SIZES = new Set<NonNullable<ImageGenerationModelRequirements['size']>>([
+    '1024x1024',
+    '1792x1024',
+    '1024x1792',
+]);
+
+/**
+ * Allowlist of image quality values accepted from the caller.
+ */
+const ALLOWED_IMAGE_GENERATION_QUALITIES = new Set<NonNullable<ImageGenerationModelRequirements['quality']>>([
+    'standard',
+    'hd',
+]);
+
+/**
+ * Allowlist of image style values accepted from the caller.
+ */
+const ALLOWED_IMAGE_GENERATION_STYLES = new Set<NonNullable<ImageGenerationModelRequirements['style']>>([
+    'vivid',
+    'natural',
+]);
 
 /**
  * Chooses default image model from current provider metadata.
@@ -35,6 +80,63 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
         if (!filename) {
             return NextResponse.json({ error: 'Filename is required' }, { status: 400 });
+        }
+
+        const guard = await guardPaidApiRequest(request, 'IMAGE_GENERATION');
+        if (!guard.ok) {
+            return guard.response;
+        }
+
+        if (modelName !== null && !ALLOWED_IMAGE_GENERATION_MODELS.has(modelName)) {
+            return NextResponse.json(
+                {
+                    error: spaceTrim(`
+                        Requested image generation \`modelName\` is not allowed.
+
+                        **Allowed models:** ${Array.from(ALLOWED_IMAGE_GENERATION_MODELS).join(', ')}
+                    `),
+                },
+                { status: 400 },
+            );
+        }
+
+        if (size !== null && !ALLOWED_IMAGE_GENERATION_SIZES.has(size as never)) {
+            return NextResponse.json(
+                {
+                    error: spaceTrim(`
+                        Requested image \`size\` is not allowed.
+
+                        **Allowed sizes:** ${Array.from(ALLOWED_IMAGE_GENERATION_SIZES).join(', ')}
+                    `),
+                },
+                { status: 400 },
+            );
+        }
+
+        if (quality !== null && !ALLOWED_IMAGE_GENERATION_QUALITIES.has(quality as never)) {
+            return NextResponse.json(
+                {
+                    error: spaceTrim(`
+                        Requested image \`quality\` is not allowed.
+
+                        **Allowed values:** ${Array.from(ALLOWED_IMAGE_GENERATION_QUALITIES).join(', ')}
+                    `),
+                },
+                { status: 400 },
+            );
+        }
+
+        if (style !== null && !ALLOWED_IMAGE_GENERATION_STYLES.has(style as never)) {
+            return NextResponse.json(
+                {
+                    error: spaceTrim(`
+                        Requested image \`style\` is not allowed.
+
+                        **Allowed values:** ${Array.from(ALLOWED_IMAGE_GENERATION_STYLES).join(', ')}
+                    `),
+                },
+                { status: 400 },
+            );
         }
 
         let attachments: unknown[] | undefined;

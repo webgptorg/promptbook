@@ -1,5 +1,8 @@
+import { NextRequest } from 'next/server';
+import { spaceTrim } from 'spacetrim';
 import { respondIfClientVersionIsOutdated } from '../../../../utils/clientVersionGuard';
 import { getMetadata } from '@/src/database/getMetadata';
+import { guardPaidApiRequest } from '@/src/utils/paidApiRequestGuard';
 import { textToSpeechText } from '../../../../utils/textToSpeechText';
 
 /**
@@ -38,6 +41,19 @@ const ELEVEN_LABS_API_KEY = process.env.ELEVEN_LABS_API_KEY;
 const MAX_ELEVEN_LABS_TEXT_LENGTH = 4500;
 
 /**
+ * Pattern matching valid ElevenLabs voice identifiers.
+ *
+ * ElevenLabs voice IDs are 20-character alphanumeric strings (e.g.
+ * `21m00Tcm4TlvDq8ikWAM`). Validating with a strict allowlist prevents an
+ * attacker from injecting arbitrary path segments into the upstream URL
+ * (which is built by string interpolation below) and stops requests for
+ * unknown ids that would still bill our ElevenLabs account.
+ *
+ * @private
+ */
+const ELEVEN_LABS_VOICE_ID_PATTERN = /^[A-Za-z0-9]{15,40}$/u;
+
+/**
  * Handles the OPTIONS request from the chat for CORS / preflight.
  *
  * @private
@@ -59,7 +75,7 @@ export function OPTIONS() {
  *
  * @private
  */
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
     const versionMismatchResponse = respondIfClientVersionIsOutdated(request, 'json');
     if (versionMismatchResponse) {
         return versionMismatchResponse;
@@ -87,10 +103,31 @@ export async function POST(request: Request) {
         );
     }
 
+    const guard = await guardPaidApiRequest(request, 'TEXT_TO_SPEECH');
+    if (!guard.ok) {
+        return guard.response;
+    }
+
     const payload = (await request.json().catch(() => null)) as { text?: string; voiceId?: string } | null;
     const rawText = (payload?.text?.toString() ?? '').trim();
     const requestedVoiceId = payload?.voiceId?.toString().trim();
-    const voiceIdToUse = requestedVoiceId || ELEVEN_LABS_VOICE_ID;
+    const voiceIdToUse = resolveValidatedVoiceId(requestedVoiceId);
+
+    if (voiceIdToUse === null) {
+        return new Response(
+            JSON.stringify({
+                error: spaceTrim(`
+                    Invalid \`voiceId\`.
+
+                    ElevenLabs voice ids must be 15–40 alphanumeric characters.
+                `),
+            }),
+            {
+                status: 400,
+                headers: { 'Content-Type': 'application/json' },
+            },
+        );
+    }
 
     if (!rawText) {
         return new Response(
@@ -148,4 +185,25 @@ export async function POST(request: Request) {
             'Access-Control-Allow-Origin': '*',
         },
     });
+}
+
+/**
+ * Validates the caller-supplied voice id and falls back to the configured default.
+ *
+ * Returns `null` if the caller provided a voice id that does not match the
+ * ElevenLabs format. The default value comes from a trusted environment
+ * variable, so it is forwarded as-is without re-validation.
+ *
+ * @private internal helper of `POST /api/elevenlabs/tts`
+ */
+function resolveValidatedVoiceId(requestedVoiceId: string | undefined): string | null {
+    if (!requestedVoiceId) {
+        return ELEVEN_LABS_VOICE_ID;
+    }
+
+    if (!ELEVEN_LABS_VOICE_ID_PATTERN.test(requestedVoiceId)) {
+        return null;
+    }
+
+    return requestedVoiceId;
 }
