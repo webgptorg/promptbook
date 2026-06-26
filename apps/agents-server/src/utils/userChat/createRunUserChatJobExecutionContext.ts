@@ -27,6 +27,7 @@ import type { ChatMessage, ChatPrompt, LlmToolDefinition, ToolCall } from '@prom
 import { resolveTeamInternalAgentAccessToken } from '../../../../../src/commitments/_common/teamInternalAgentAccess';
 import type { ChatPromptResult } from '../../../../../src/execution/PromptResult';
 import { createUserChatMessagePrompt } from './createUserChatMessagePrompt';
+import type { UserChatProgressPhase } from './userChatProgressCard';
 import type { UserChatJobRecord } from './UserChatJobRecord';
 
 /**
@@ -54,6 +55,11 @@ type RunUserChatJobPromptSnapshotFactory = (
 ) => NonNullable<ChatMessage['prompt']>;
 
 /**
+ * Reports one user-facing durable chat progress phase.
+ */
+type RunUserChatJobProgressReporter = (phase: UserChatProgressPhase) => Promise<void>;
+
+/**
  * Prepares the full agent/runtime context required to execute one durable user chat job.
  *
  * @private function of `runUserChatJob`
@@ -67,12 +73,18 @@ export async function createRunUserChatJobExecutionContext(options: {
     userMessageAttachments: ChatMessage['attachments'];
     thread: NonNullable<ChatPrompt['thread']>;
     promptContent: ChatPrompt['content'];
+    reportProgress?: RunUserChatJobProgressReporter;
 }) {
+    await options.reportProgress?.('reading_context');
+
     const [localServerUrl, collection, baseAgentReferenceResolver] = await Promise.all([
         resolveCurrentOrInternalServerOrigin(),
         $provideAgentCollectionForServer(),
         $provideAgentReferenceResolver(),
     ]);
+
+    await options.reportProgress?.('preparing_agent');
+
     const resolvedAgentContext = await resolveCachedServerAgentContext({
         collection,
         agentIdentifier: options.job.agentPermanentId,
@@ -91,6 +103,9 @@ export async function createRunUserChatJobExecutionContext(options: {
     const projectRepositories = extractProjectRepositoriesFromAgentSource(agentSource);
     const calendarConnections = extractUseCalendarConnectionsFromAgentSource(agentSource);
     const useEmailConfiguration = extractUseEmailConfigurationFromAgentSource(agentSource);
+
+    await options.reportProgress?.('checking_capabilities');
+
     const { projectGithubToken, calendarGoogleAccessToken, emailSmtpCredential } =
         await resolveRunUserChatJobCredentials({
             userId: options.job.userId,
@@ -163,6 +178,8 @@ export async function createRunUserChatJobExecutionContext(options: {
             preparationWaitResult,
         });
     }
+
+    await options.reportProgress?.('starting_response');
 
     const agentKitResult = await agentKitCacheManager.getOrCreateAgentKitAgent(
         agentSource,

@@ -52,6 +52,17 @@ describe('userChatMessageLifecycle', () => {
             jobId: 'job-1',
             lifecycleState: 'queued',
             isComplete: false,
+            progressCard: {
+                title: 'Working on your request',
+                now: 'Your message is queued and the agent will pick it up shortly.',
+                items: expect.arrayContaining([
+                    expect.objectContaining({
+                        id: 'receive-message',
+                        status: 'pending',
+                    }),
+                ]),
+                isVisible: true,
+            },
         });
     });
 

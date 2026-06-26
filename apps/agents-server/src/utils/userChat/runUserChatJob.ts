@@ -20,7 +20,9 @@ import { finalizeUserChatJob } from './finalizeUserChatJob';
 import { getUserChat } from './getUserChat';
 import { heartbeatUserChatJob } from './heartbeatUserChatJob';
 import { persistUserChatJobTerminalState } from './persistUserChatJobTerminalState';
+import { persistUserChatJobProgressCard } from './persistUserChatJobProgressCard';
 import type { UserChatJobRecord } from './UserChatJobRecord';
+import type { UserChatProgressPhase } from './userChatProgressCard';
 import { createReplyAwareUserChatPromptContent, createReplyAwareUserChatPromptMessage } from './userChatReplies';
 import { resolvePromptThreadBeforeUserMessage } from './userChatMessageLifecycle';
 import { isUserChatNotFoundScopeError } from './UserChatScopeError';
@@ -107,6 +109,7 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<RunUserCha
         const executionContext = await createRunUserChatJobExecutionContext({
             job,
             ...startContext,
+            reportProgress: createRunUserChatJobProgressReporter(job),
         });
 
         return await executeRunUserChatJob({
@@ -120,6 +123,32 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<RunUserCha
         heartbeatController.stop();
         await heartbeatController.whenIdle().catch(() => undefined);
     }
+}
+
+/**
+ * Creates a non-critical progress reporter for one durable chat job.
+ *
+ * @private function of `runUserChatJob`
+ */
+function createRunUserChatJobProgressReporter(
+    job: Pick<UserChatJobRecord, 'userId' | 'agentPermanentId' | 'chatId' | 'assistantMessageId' | 'id'>,
+): (phase: UserChatProgressPhase) => Promise<void> {
+    return async (phase) => {
+        await persistUserChatJobProgressCard({
+            userId: job.userId,
+            agentPermanentId: job.agentPermanentId,
+            chatId: job.chatId,
+            assistantMessageId: job.assistantMessageId,
+            phase,
+        }).catch((error) => {
+            console.warn('[user-chat-job] progress_update_failed', {
+                chatId: job.chatId,
+                jobId: job.id,
+                phase,
+                error,
+            });
+        });
+    };
 }
 
 /**

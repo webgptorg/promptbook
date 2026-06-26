@@ -1,4 +1,5 @@
 import type { ChatMessage } from '../../../../../src/_packages/types.index';
+import { createUserChatProgressCard } from './userChatProgressCard';
 
 /**
  * Lifecycle states rendered on canonical server-owned chat messages.
@@ -45,6 +46,7 @@ export function createQueuedUserChatAssistantMessage(options: {
         isComplete: false,
         lifecycleState: 'queued',
         jobId: options.jobId,
+        progressCard: createUserChatProgressCard('queued'),
     };
 }
 

@@ -1,5 +1,11 @@
 -   Fixed timing attack vulnerability in Agents Server admin password verification: all three comparison sites (`isUserGlobalAdmin`, `getCurrentUser`, `authenticateUser`) now use a shared `isAdminPasswordEqual` utility that calls Node.js's `timingSafeEqual` (from the `crypto` module) instead of JavaScript's `===` operator, preventing character-by-character password inference via response-time measurement.
 
+-   Changed Agents Server durable chat progress so new agent responses show structured real progress from the queued and preparation phases instead of a synthetic immediate pre-answer:
+
+    -   Queued assistant placeholders now render a progress card with current step, next step, and checklist state.
+    -   The durable chat worker updates that card while it reads context, prepares the agent, checks available tools/inputs, and starts the response.
+    -   The `agent_progress` tool instructions now ask the real agent to report concise user-facing decisions, actions, and results without exposing hidden chain-of-thought or raw technical details.
+
 -   Fixed SSRF vulnerability in the Agents Server `/api/scrape` endpoint:
 
     -   The endpoint now requires authentication — unauthenticated requests receive a `401 Unauthorized` response.

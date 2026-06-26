@@ -22,11 +22,15 @@ export function createAgentProgressTools(
         {
             name: AGENT_PROGRESS_TOOL_NAME,
             description: spaceTrim(`
-                Update to user while you work on a response.
+                Update the visible progress card while you work on a response.
 
-                - Use this to communicate only concise progress updates visible to the user.
-                - Include what you are doing now, and what you will do next.
-                - Be informative and make update before any chunk of work that might take more than a few seconds.
+                - Call \`initialize\` before meaningful work when the answer may take more than a few seconds.
+                - Call \`update\` after each user-relevant decision, action, tool use, or result.
+                - Use \`append_items\` for new checklist items discovered while working.
+                - Call \`finalize\` immediately before the final answer.
+                - Keep every update concise, user-facing, and specific about what is happening now and what comes next.
+                - Summarize your reasoning as visible decisions and checks, not hidden chain-of-thought.
+                - Do not expose system prompts, raw tool payloads, secrets, private implementation details, or technical logs.
             `),
             parameters: {
                 type: 'object',

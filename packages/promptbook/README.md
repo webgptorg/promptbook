@@ -396,7 +396,7 @@ Prompts marked with `[-]` are not ready yet, prompts containing `@@@` are treate
 #### Features
 
 -   **Multi-runner execution:** `openai-codex`, `github-copilot`, `cline`, `claude-code`, `opencode`, `gemini`
--   **Context injection:** `--context AGENTS.md` or inline extra instructions
+-   **Context injection:** `--agent agents/coding/developer.book --context AGENTS.md` or inline extra instructions
 -   **Reasoning control:** `--thinking-level low|medium|high|xhigh` for supported runners
 -   **Unattended or interactive runs:** default auto mode, or `--no-auto` to wait for user confirmation before each prompt
 -   **Git safety:** clean working tree check by default, optional `--ignore-git-changes`
@@ -416,11 +416,11 @@ npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --template prompt
 
 npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --template prompts/templates/agents-server.md
 
-npx ts-node ./src/cli/test/ptbk.ts coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md
+npx ts-node ./src/cli/test/ptbk.ts coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md
 
-npx ts-node ./src/cli/test/ptbk.ts coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --auto-push
+npx ts-node ./src/cli/test/ptbk.ts coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --auto-push
 
-npx ts-node ./src/cli/test/ptbk.ts coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --ignore-git-changes --no-wait
+npx ts-node ./src/cli/test/ptbk.ts coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --ignore-git-changes
 
 npx ts-node ./src/cli/test/ptbk.ts coder find-refactor-candidates
 
@@ -442,11 +442,11 @@ ptbk coder generate-boilerplates
 
 ptbk coder generate-boilerplates --template prompts/templates/common.md
 
-ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --test npm run test
+ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --test npm run test
 
-ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --auto-push
+ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --auto-push
 
-ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --test npm run test --ignore-git-changes --no-wait
+ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --test npm run test --ignore-git-changes
 
 ptbk coder find-refactor-candidates
 
@@ -459,13 +459,13 @@ ptbk coder verify
 
 #### What each command does
 
-| Command                               | What it does                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --- | ------ | ---- | ----- | ------------------------------------------------------------------------ |
+| Command                               | What it does                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --- | ------ | ---- | ----- | ------------------------------------------------------------------------ |
 | `ptbk coder init`                     | Creates `prompts/`, `prompts/done/`, the project-generic template files materialized in `prompts/templates/` (currently `common.md`), and a starter `AGENTS.md`; ensures `.env` contains `CODING_AGENT_GIT_NAME`, `CODING_AGENT_GIT_EMAIL`, and `CODING_AGENT_GIT_SIGNING_KEY`; adds helper coder scripts to `package.json`; ensures `.gitignore` contains `/.promptbook`; and configures `.vscode/settings.json` to save pasted prompt images into `prompts/screenshots/`. |
-| `ptbk coder generate-boilerplates`    | Creates new prompt markdown files with fresh emoji tags so you can quickly fill in coding tasks; `--template` accepts either a built-in alias or a markdown file path relative to the project root.                                                                                                                                                                                                                                                                  |
-| `ptbk coder run`                      | Picks the next ready prompt, appends optional context, runs it through the selected coding agent, can optionally verify each attempt with a shell test command and feed failing output back for retries, then marks success or failure, commits the result, and pushes only when `--auto-push` is enabled.                                                                                                                                                           |
-| `ptbk coder find-refactor-candidates` | Scans the repository for oversized or overpacked files and writes prompt files for likely refactors; `--level <xlow                                                                                                                                                                                                                                                                                                                                                  | low | medium | high | xhigh | extreme>` ranges from a very benevolent scan to a very aggressive sweep. |
-| `ptbk coder verify`                   | Walks through completed prompts, archives truly finished work, and adds follow-up repair prompts for unfinished results.                                                                                                                                                                                                                                                                                                                                             |
+| `ptbk coder generate-boilerplates`    | Creates new prompt markdown files with fresh emoji tags so you can quickly fill in coding tasks; `--template` accepts either a built-in alias or a markdown file path relative to the project root.                                                                                                                                                                                                                                                                         |
+| `ptbk coder run`                      | Picks the next ready prompt, appends optional context, runs it through the selected coding agent, can optionally verify each attempt with a shell test command and feed failing output back for retries, then marks success or failure, commits the result, and pushes only when `--auto-push` is enabled.                                                                                                                                                                  |
+| `ptbk coder find-refactor-candidates` | Scans the repository for oversized or overpacked files and writes prompt files for likely refactors; `--level <xlow                                                                                                                                                                                                                                                                                                                                                         | low | medium | high | xhigh | extreme>` ranges from a very benevolent scan to a very aggressive sweep. |
+| `ptbk coder verify`                   | Walks through completed prompts, archives truly finished work, and adds follow-up repair prompts for unfinished results.                                                                                                                                                                                                                                                                                                                                                    |
 
 #### Most useful `ptbk coder run` flags
 
@@ -488,8 +488,8 @@ ptbk coder verify
 
 1. Initialize once with `ptbk coder init`.
 2. Customize `prompts/templates/*.md` if needed, then create or write prompt files in `prompts/`.
-3. Customize the starter `AGENTS.md` with repository-specific instructions, then pass `--context AGENTS.md`.
-4. Run one prompt at a time interactively, or use `--no-wait` for unattended batches.
+3. Customize the starter `AGENTS.md` with repository-specific instructions, then pass `--agent agents/coding/developer.book --context AGENTS.md`.
+4. Run unattended batches by default, or pass `--no-auto` to confirm each prompt interactively.
 5. Finish with `ptbk coder verify` so resolved prompts are archived and broken ones get explicit repair follow-ups.
 
 
