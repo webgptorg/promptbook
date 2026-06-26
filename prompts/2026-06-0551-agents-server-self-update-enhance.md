@@ -18,3 +18,16 @@
 
 ![alt text](screenshots/2026-06-0550-agents-server-failse-self-update-fail.png)
 
+---
+
+[ ]
+
+[✨🧐] The self-update of the Agents server should show more info
+
+-   On `/admin/update` of Agents server you can trigger the self-update of the server
+-   Show information how many commits behind and and how much time behind the server is from the latest version
+-   On all commits show commit subject, hash and date
+-   Show also how many commits and time are we behind the current version,
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
