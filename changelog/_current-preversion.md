@@ -1,3 +1,12 @@
+-   Replaced the remote Promptbook Core Agents Server with a bundled local `.core` folder so each Agents Server can run without any external dependency on `core.ptbk.io`:
+
+    -   Removed the `CORE_AGENTS_SERVER` constant from `servers.ts` along with the `CORE_SERVER` and `IS_CORE_SERVER_HIDDEN` metadata defaults; new servers no longer point at a special core federated server and federated servers are now all equal.
+    -   Added a new bundled `.core/` subfolder under `agents/default/` containing the well-known `adam.book` and `teacher.book` (plus other built-in core agents). Default-agent seeding now also seeds these books into a database `.core` folder via the new shared `seedCoreAgents` helper (reused by both the standalone `seedDefaultAgents` runtime path and the managed-server bootstrap transaction through the new `seedServerCoreAgents` companion).
+    -   On every server start (and after every default-agent install), the seeder auto-creates the `.core` folder when missing and inserts any well-known core agent (Adam, Teacher, …) that is not already present, regardless of the visibility set on the bundled book — so Adam is always available as the implicit ancestor for every agent.
+    -   `getWellKnownAgentUrl` now returns the URL of the local well-known agent on the current Agents Server origin (`/agents/adam`, `/agents/teacher`, …) instead of resolving the deprecated `CORE_SERVER` metadata, so `FROM {Adam}`, the Teacher remote agent, and custom-domain Adam fallback all stay inside the current server.
+    -   Removed the now-obsolete `defaultFederatedAgents` background sync (`scheduleDefaultFederatedAgentsSync`, `synchronizeDefaultFederatedAgents`, `fetchCoreOrganizationPayload`, …) that copied default boilerplate agents from `CORE_SERVER` into every new server; the local `.core` seeder fully replaces it.
+    -   `getFederatedServers` no longer special-cases a hidden core server; it just returns the user-configured `FEDERATED_SERVERS` list (empty by default), and the `excludeHiddenCoreServer` option was dropped from its three call sites (homepage layout, federated agents API, federated search provider).
+
 -   Added Agents Server agents import/export on the agents listing:
 
     -   Admins can download `{server-name}.agents.zip`, containing `.book` files directly in the agents folder structure so importing it into a fresh server recreates the agents and folders.

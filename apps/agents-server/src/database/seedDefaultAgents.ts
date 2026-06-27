@@ -5,6 +5,7 @@ import { $provideSupabaseForServer } from './$provideSupabaseForServer';
 import { DEFAULT_AGENT_VISIBILITY } from '../utils/agentVisibility';
 import { loadDefaultAgentBooks } from '../utils/defaultAgents/loadDefaultAgentBooks';
 import { loadAgentsServerEnvFile } from './loadAgentsServerEnvFile';
+import { seedCoreAgents } from './seedCoreAgents';
 
 /**
  * Environment variable with an explicit default-agent source directory.
@@ -93,6 +94,36 @@ export async function seedDefaultAgents(options: SeedDefaultAgentsOptions = {}):
     const logger = options.logger ?? console;
     const tablePrefix = options.tablePrefix ?? process.env[SUPABASE_TABLE_PREFIX_ENV_NAME] ?? '';
     const collection = new AgentCollectionInSupabase(resolveAgentsDatabaseSupabaseClient(), { tablePrefix });
+    const defaultAgentDirectory = options.defaultAgentDirectory ?? process.env[DEFAULT_AGENTS_DIRECTORY_ENV_NAME];
+
+    const result = await seedDefaultAgentBooks(collection, { defaultAgentDirectory, logger });
+
+    await seedCoreAgents({
+        defaultAgentDirectory,
+        tablePrefix,
+        logger,
+    });
+
+    return result;
+}
+
+/**
+ * Inserts the bundled top-level default agent books when the server is empty.
+ *
+ * @param collection - Agent collection bound to the current table prefix.
+ * @param options - Seeding context shared with `seedDefaultAgents`.
+ * @returns Seed summary for default agents only (core agents are tracked separately).
+ *
+ * @private utility of standalone default-agent seeding
+ */
+async function seedDefaultAgentBooks(
+    collection: AgentCollectionInSupabase,
+    options: {
+        readonly defaultAgentDirectory: string | undefined;
+        readonly logger: SeedDefaultAgentsLogger;
+    },
+): Promise<SeedDefaultAgentsResult> {
+    const { defaultAgentDirectory, logger } = options;
     const existingAgentCount = await countExistingAgents(collection);
 
     if (existingAgentCount > 0) {
@@ -111,7 +142,7 @@ export async function seedDefaultAgents(options: SeedDefaultAgentsOptions = {}):
     }
 
     const defaultAgentBooks = await loadDefaultAgentBooks({
-        defaultAgentDirectory: options.defaultAgentDirectory ?? process.env[DEFAULT_AGENTS_DIRECTORY_ENV_NAME],
+        defaultAgentDirectory,
     });
 
     if (defaultAgentBooks.length === 0) {

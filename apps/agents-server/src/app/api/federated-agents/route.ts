@@ -24,7 +24,7 @@ export async function GET() {
             });
         }
 
-        const federatedServers = await getFederatedServers({ excludeHiddenCoreServer: true });
+        const federatedServers = await getFederatedServers();
 
         return NextResponse.json({
             federatedServers,

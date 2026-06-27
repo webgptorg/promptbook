@@ -149,7 +149,7 @@ async function getLayoutFederatedServers(options: {
     }
 
     try {
-        const federatedServerUrls = await getFederatedServers({ excludeHiddenCoreServer: true });
+        const federatedServerUrls = await getFederatedServers();
         return Promise.all(
             federatedServerUrls.map(async (url) => ({
                 title: `Federated: ${new URL(url).hostname}`,

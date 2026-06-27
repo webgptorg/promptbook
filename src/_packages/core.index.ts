@@ -224,7 +224,6 @@ import { normalizeChatAttachments } from '../utils/chat/chatAttachments/normaliz
 import { resolveChatAttachmentContents } from '../utils/chat/chatAttachments/resolveChatAttachmentContents';
 import { aboutPromptbookInformation } from '../utils/misc/aboutPromptbookInformation';
 import { $generateBookBoilerplate } from '../utils/random/$generateBookBoilerplate';
-import { CORE_AGENTS_SERVER } from '../../servers';
 import { CORE_AGENTS_SERVER_WELL_KNOWN_AGENT_NAMES } from '../../servers';
 import { PUBLIC_AGENTS_SERVERS } from '../../servers';
 
@@ -456,6 +455,5 @@ export { normalizeChatAttachments };
 export { resolveChatAttachmentContents };
 export { aboutPromptbookInformation };
 export { $generateBookBoilerplate };
-export { CORE_AGENTS_SERVER };
 export { CORE_AGENTS_SERVER_WELL_KNOWN_AGENT_NAMES };
 export { PUBLIC_AGENTS_SERVERS };

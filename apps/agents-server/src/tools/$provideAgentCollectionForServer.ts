@@ -36,7 +36,7 @@ export async function $provideAgentCollectionForServer(): Promise<AgentCollectio
     */
 
     const supabase = $provideSupabaseForServer();
-    const { publicUrl, tablePrefix } = await $provideServer();
+    const { tablePrefix } = await $provideServer();
     const cachedAgentCollection = agentCollectionsByTablePrefix.get(tablePrefix);
 
     if (cachedAgentCollection) {
@@ -50,16 +50,9 @@ export async function $provideAgentCollectionForServer(): Promise<AgentCollectio
 
     agentCollectionsByTablePrefix.set(tablePrefix, providedCollection);
 
-    const [{ attachAgentPreparationScheduling }, { scheduleDefaultFederatedAgentsSync }] = await Promise.all([
-        import('../utils/attachAgentPreparationScheduling'),
-        import('../utils/defaultFederatedAgents/scheduleDefaultFederatedAgentsSync'),
-    ]);
+    const { attachAgentPreparationScheduling } = await import('../utils/attachAgentPreparationScheduling');
 
     attachAgentPreparationScheduling(providedCollection, { tablePrefix });
-    scheduleDefaultFederatedAgentsSync({
-        tablePrefix,
-        localServerUrl: publicUrl.href,
-    });
 
     return providedCollection;
 }

@@ -1,5 +1,3 @@
-import { spaceTrim } from 'spacetrim';
-import { CORE_AGENTS_SERVER } from '../../../../servers';
 import { DEFAULT_THINKING_MESSAGES } from '../../../../src/utils/DEFAULT_THINKING_MESSAGES';
 import { ANALYTICS_METADATA_KEYS, getAnalyticsMetadataDefinition } from '../constants/analyticsMetadata';
 import {
@@ -262,25 +260,6 @@ export const metadataDefaults: ReadonlyArray<MetadataDefinition> = [
         value: '',
         note: 'Comma separated list of allowed IPs or CIDR ranges. If set, only clients from these IPs are allowed to access the server.',
         type: 'IP_RANGE',
-    },
-    {
-        key: 'CORE_SERVER',
-        value: CORE_AGENTS_SERVER.url,
-        note: spaceTrim(`
-                Core Promptbook server URL used for agents that are used for common tasks, these agents are called well known agents:
-
-                On the core server, the following well known agents should be hosted: 
-                - \`adam\`: The default ancestor agent for new agents
-                - \`teacher\`: Agent that knows book syntax and can help with self-learning
-            
-            `),
-        type: 'TEXT',
-    },
-    {
-        key: 'IS_CORE_SERVER_HIDDEN',
-        value: 'false',
-        note: 'Hide the core federated server from homepage, navbar, search, and footer links while keeping it available for references when true.',
-        type: 'BOOLEAN',
     },
     // <- TODO: [🆎] Allow to set well-known agent names via Metadata
 

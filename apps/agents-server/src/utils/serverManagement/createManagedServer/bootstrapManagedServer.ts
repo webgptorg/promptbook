@@ -5,7 +5,6 @@ import {
     acquireMigrationExecutionLock,
     releaseMigrationExecutionLock,
 } from '../../../database/acquireMigrationExecutionLock';
-import { scheduleDefaultFederatedAgentsSync } from '../../defaultFederatedAgents/scheduleDefaultFederatedAgentsSync';
 import { createServerPublicUrl, invalidateRegisteredServersCache } from '../../serverRegistry';
 import type { CreateServerResult } from '../createManagedServer';
 import { resolveManagedServerConnectionString } from '../resolveManagedServerConnectionString';
@@ -14,6 +13,7 @@ import { createFailedServerResult } from './createFailedServerResult';
 import { createSqlRecorder } from './createSqlRecorder';
 import { insertManagedServerRegistryRow } from './insertManagedServerRegistryRow';
 import type { NormalizedCreateServerInput } from './normalizeCreateServerInput';
+import { seedServerCoreAgents } from './seedServerCoreAgents';
 import { seedServerDefaultAgents } from './seedServerDefaultAgents';
 import { seedServerMetadata } from './seedServerMetadata';
 import { seedServerUsers } from './seedServerUsers';
@@ -50,15 +50,12 @@ export async function bootstrapManagedServer(input: NormalizedCreateServerInput)
         if (input.isDefaultAgentsInstalled) {
             await seedServerDefaultAgents(client, input, sqlRecorder);
         }
+        await seedServerCoreAgents(client, input, sqlRecorder);
 
         await client.query('COMMIT');
         sqlRecorder.addStatement('COMMIT');
 
         invalidateRegisteredServersCache();
-        scheduleDefaultFederatedAgentsSync({
-            tablePrefix: server.tablePrefix,
-            localServerUrl: createServerPublicUrl(server.domain).href,
-        });
 
         return {
             ok: true,

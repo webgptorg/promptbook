@@ -30,7 +30,7 @@ export function createFederatedAgentsSearchProvider(): ServerSearchProvider {
 
             let federatedServers: string[] = [];
             try {
-                federatedServers = await getFederatedServers({ excludeHiddenCoreServer: true });
+                federatedServers = await getFederatedServers();
             } catch (error) {
                 console.error('[search] Failed to load federated servers:', error);
                 return [];

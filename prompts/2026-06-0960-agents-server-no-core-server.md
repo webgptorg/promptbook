@@ -1,4 +1,4 @@
-[ ] !!!!
+[x] $15.13 an hour by Claude Code
 
 [✨🥲] Cancel the core server and create `.core` folder instad
 
@@ -27,3 +27,4 @@
 [✨🥲] Listing of the `.core` should look special
 
 - This is relevant for all folders starting with `.` and not only for `.core` folder
+
