@@ -1,3 +1,11 @@
+-   Changed the Agents Server durable chat progress card so each preparation phase shows the **real runtime state** that has actually been resolved so far, instead of a fixed scripted blurb that was identical for every chat turn:
+
+    -   `createUserChatProgressCard` now accepts a `UserChatProgressContext` object and composes the `now`/`next` markdown from real signals — resolved agent name, attachment count, configured tool count and friendly tool labels (e.g. `web browser`, `web search`, `email sending`), knowledge-source count, calendar/email/project integrations, the resolved LLM provider title, and whether the AgentKit runtime came from the in-process cache.
+    -   `createRunUserChatJobExecutionContext` builds that context incrementally as the worker resolves new information and forwards it through `reportProgress` at every phase, so the user sees, for example, **"Loading the instructions and configured commitments for agent Cooking Coach (2 knowledge sources)"** instead of the previous static **"Preparing the agent instructions and context needed for this request."**
+    -   The `starting_response` update is now emitted **after** the AgentKit cache lookup completes, so the progress text can name the actual provider (e.g. **"Calling the language model via OpenAI"**) and call out whether the agent had to be prepared fresh.
+    -   Added a small `resolveUserChatProgressToolHighlights` helper that maps technical commitment tool identifiers (`web_search`, `useBrowser`, `send_email`, …) to short user-facing labels and excludes the internal `agent_progress` / `assistant_preparation` tools that should never appear as user-relevant capabilities.
+    -   Updated the queued-message lifecycle copy to reflect the actual queueing state (**"Your message is waiting in the queue for the next available worker to pick it up."**) and updated `userChatMessageLifecycle.test.ts` accordingly.
+
 -   Added a new `Octopus 3D 4` built-in avatar visual as a smoother, blobbier continuation of `Octopus 3D 3`, and promoted it to the new shared `DEFAULT_AGENT_AVATAR_VISUAL`:
 
     -   Reused the seeded `Octopus3` morphology profile together with the shared projected-eye and projected-mouth helpers so the new proper-3D octopus stays consistent with the rest of the octopus family without duplicating face-rendering logic.

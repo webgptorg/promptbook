@@ -22,7 +22,7 @@ import { heartbeatUserChatJob } from './heartbeatUserChatJob';
 import { persistUserChatJobTerminalState } from './persistUserChatJobTerminalState';
 import { persistUserChatJobProgressCard } from './persistUserChatJobProgressCard';
 import type { UserChatJobRecord } from './UserChatJobRecord';
-import type { UserChatProgressPhase } from './userChatProgressCard';
+import type { UserChatProgressContext, UserChatProgressPhase } from './userChatProgressCard';
 import { createReplyAwareUserChatPromptContent, createReplyAwareUserChatPromptMessage } from './userChatReplies';
 import { resolvePromptThreadBeforeUserMessage } from './userChatMessageLifecycle';
 import { isUserChatNotFoundScopeError } from './UserChatScopeError';
@@ -132,14 +132,15 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<RunUserCha
  */
 function createRunUserChatJobProgressReporter(
     job: Pick<UserChatJobRecord, 'userId' | 'agentPermanentId' | 'chatId' | 'assistantMessageId' | 'id'>,
-): (phase: UserChatProgressPhase) => Promise<void> {
-    return async (phase) => {
+): (phase: UserChatProgressPhase, context?: UserChatProgressContext) => Promise<void> {
+    return async (phase, context) => {
         await persistUserChatJobProgressCard({
             userId: job.userId,
             agentPermanentId: job.agentPermanentId,
             chatId: job.chatId,
             assistantMessageId: job.assistantMessageId,
             phase,
+            context,
         }).catch((error) => {
             console.warn('[user-chat-job] progress_update_failed', {
                 chatId: job.chatId,
