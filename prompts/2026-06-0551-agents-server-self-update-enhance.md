@@ -20,7 +20,7 @@
 
 ---
 
-[ ]
+[ ] !
 
 [✨🧐] The self-update of the Agents server should show more info
 
@@ -28,6 +28,11 @@
 -   Show information how many commits behind and and how much time behind the server is from the latest version
 -   On all commits show commit subject, hash and date
 -   Show also how many commits and time are we behind the current version,
+-   Also when there is error, allow to copy or download the log file, so that it can be sent to the developers for debugging
+    -   Look at othere places in the agents server where there is possible to download / copy the log file of the error
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
+
+![self-update](screenshots/2026-06-0551-agents-server-self-update-enhance-1.png)
+![errored self update](screenshots/2026-06-0551-agents-server-self-update-enhance.png)
