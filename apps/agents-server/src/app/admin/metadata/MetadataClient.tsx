@@ -1,15 +1,26 @@
 'use client';
 
-import { FileTextIcon, HashIcon, ImageIcon, ListIcon, ShieldIcon, ToggleLeftIcon, TypeIcon, Upload } from 'lucide-react';
+import {
+    DownloadIcon,
+    FileTextIcon,
+    HashIcon,
+    ImageIcon,
+    ListIcon,
+    ShieldIcon,
+    ToggleLeftIcon,
+    TypeIcon,
+    UploadIcon,
+} from 'lucide-react';
 import Link from 'next/link';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { showConfirm } from '../../../components/AsyncDialogs/asyncDialogs';
 import { useFileUploadAvailability } from '../../../components/FileUploadAvailability/FileUploadAvailabilityContext';
+import { getDeprecatedLimitMetadataDefinition, type DeprecatedLimitMetadataDefinition } from '../../../constants/serverLimits';
 import { getMetadataDefinition, metadataDefaults, type MetadataDefinition } from '../../../database/metadataDefaults';
 import { getSafeCdnPath } from '../../../utils/cdn/utils/getSafeCdnPath';
+import { downloadBlob, parseFilenameFromContentDisposition } from '../../../utils/download/browserFileDownload';
 import { normalizeUploadFilename } from '../../../utils/normalization/normalizeUploadFilename';
 import { buildDefaultUserFileUploadPath, uploadFileToServer } from '../../../utils/upload/uploadFileToServer';
-import { getDeprecatedLimitMetadataDefinition, type DeprecatedLimitMetadataDefinition } from '../../../constants/serverLimits';
 
 /**
  * Type describing metadata entry.
@@ -24,6 +35,47 @@ type MetadataEntry = {
     isDefault?: boolean;
     definition?: MetadataDefinition;
     deprecatedLimitMetadata?: DeprecatedLimitMetadataDefinition | null;
+};
+
+/**
+ * Endpoint serving standalone metadata JSON exports.
+ *
+ * @private
+ */
+const METADATA_EXPORT_ENDPOINT = '/api/metadata/export';
+
+/**
+ * Endpoint accepting standalone metadata JSON imports.
+ *
+ * @private
+ */
+const METADATA_IMPORT_ENDPOINT = '/api/metadata/import';
+
+/**
+ * Fallback filename used when the export route omits a `Content-Disposition` filename.
+ *
+ * @private
+ */
+const DEFAULT_METADATA_EXPORT_FILENAME = 'promptbook-agents-server.metadata.json';
+
+/**
+ * Minimal API error payload returned by metadata transfer routes.
+ *
+ * @private
+ */
+type MetadataTransferErrorPayload = {
+    error?: string;
+    message?: string;
+};
+
+/**
+ * Import summary returned by the metadata import route.
+ *
+ * @private
+ */
+type MetadataImportSummary = {
+    importedCount?: number;
+    resetCount?: number;
 };
 
 /**
@@ -69,6 +121,30 @@ const createEmptyFormState = (): MetadataFormState => ({
     value: '',
     note: '',
 });
+
+/**
+ * Reads a user-facing error message from a failed metadata transfer response.
+ *
+ * @param response - Failed HTTP response.
+ * @param fallbackMessage - Message used when the response body is not useful JSON.
+ * @returns Error message for the admin UI.
+ *
+ * @private
+ */
+async function resolveMetadataTransferErrorMessage(response: Response, fallbackMessage: string): Promise<string> {
+    try {
+        const payload = (await response.json()) as MetadataTransferErrorPayload;
+        const message = payload.message || payload.error;
+
+        if (message && message.trim().length > 0) {
+            return message.trim();
+        }
+    } catch {
+        // Keep fallback when the failed response is not JSON.
+    }
+
+    return fallbackMessage;
+}
 
 /**
  * Validates whether the provided string is an IPv4, IPv6, or CIDR range.
@@ -185,7 +261,7 @@ const MetadataValueField = ({
                         disabled={isUploading || !isUploadAvailable}
                         className="bg-gray-100 text-gray-700 px-3 py-2 rounded-md border border-gray-300 hover:bg-gray-200 flex items-center space-x-2 min-w-max"
                     >
-                        <Upload className="w-4 h-4" />
+                        <UploadIcon className="w-4 h-4" />
                         <span>{isUploading ? 'Uploading...' : 'Upload Image'}</span>
                     </button>
                 </div>
@@ -345,13 +421,18 @@ export function MetadataClient() {
     const [metadata, setMetadata] = useState<MetadataEntry[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const [editingKey, setEditingKey] = useState<string | null>(null);
     const [isAddUploading, setIsAddUploading] = useState(false);
     const [isEditUploading, setIsEditUploading] = useState(false);
+    const [isExportingMetadata, setIsExportingMetadata] = useState(false);
+    const [isImportingMetadata, setIsImportingMetadata] = useState(false);
     const addFileInputRef = useRef<HTMLInputElement | null>(null);
     const editFileInputRef = useRef<HTMLInputElement | null>(null);
+    const importFileInputRef = useRef<HTMLInputElement | null>(null);
     const [addFormState, setAddFormState] = useState<MetadataFormState>(createEmptyFormState);
     const [editingFormState, setEditingFormState] = useState<MetadataFormState>(createEmptyFormState);
+    const isMetadataTransferBusy = isExportingMetadata || isImportingMetadata;
 
     const fetchMetadata = async () => {
         try {
@@ -365,8 +446,8 @@ export function MetadataClient() {
             const mergedData = mergeMetadataWithDefaults(data);
 
             setMetadata(mergedData);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'An error occurred');
+        } catch (error) {
+            setError(error instanceof Error ? error.message : 'An error occurred');
         } finally {
             setLoading(false);
         }
@@ -394,16 +475,123 @@ export function MetadataClient() {
         }
     };
 
+    /**
+     * Downloads the current metadata configuration as standalone JSON.
+     *
+     * @private
+     */
+    const handleExportMetadata = async () => {
+        if (isMetadataTransferBusy) {
+            return;
+        }
+
+        setError(null);
+        setSuccessMessage(null);
+        setIsExportingMetadata(true);
+
+        try {
+            const response = await fetch(METADATA_EXPORT_ENDPOINT, { method: 'GET' });
+
+            if (!response.ok) {
+                setError(await resolveMetadataTransferErrorMessage(response, 'Failed to export metadata.'));
+                return;
+            }
+
+            const filename =
+                parseFilenameFromContentDisposition(response.headers.get('Content-Disposition')) ||
+                DEFAULT_METADATA_EXPORT_FILENAME;
+
+            downloadBlob(await response.blob(), filename);
+            setSuccessMessage('Metadata export downloaded.');
+        } catch (error) {
+            setError(error instanceof Error ? error.message : 'Metadata export failed.');
+        } finally {
+            setIsExportingMetadata(false);
+        }
+    };
+
+    /**
+     * Opens the native file picker for metadata imports.
+     *
+     * @private
+     */
+    const handleImportMetadataClick = () => {
+        if (isMetadataTransferBusy) {
+            return;
+        }
+
+        importFileInputRef.current?.click();
+    };
+
+    /**
+     * Imports selected standalone metadata JSON and refreshes the table.
+     *
+     * @private
+     */
+    const handleImportMetadataFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file || isMetadataTransferBusy) {
+            return;
+        }
+
+        const isConfirmed = await showConfirm({
+            title: 'Import metadata',
+            message: 'Import metadata from this JSON file? Existing built-in metadata not present in the file will be reset to defaults.',
+            confirmLabel: 'Import metadata',
+            cancelLabel: 'Cancel',
+        }).catch(() => false);
+
+        if (!isConfirmed) {
+            if (importFileInputRef.current) {
+                importFileInputRef.current.value = '';
+            }
+            return;
+        }
+
+        setError(null);
+        setSuccessMessage(null);
+        setIsImportingMetadata(true);
+
+        try {
+            const response = await fetch(METADATA_IMPORT_ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: await file.text(),
+            });
+
+            if (!response.ok) {
+                setError(await resolveMetadataTransferErrorMessage(response, 'Failed to import metadata.'));
+                return;
+            }
+
+            const importSummary = (await response.json()) as MetadataImportSummary;
+            await fetchMetadata();
+            setSuccessMessage(
+                `Imported ${importSummary.importedCount ?? 0} metadata entries and reset ${
+                    importSummary.resetCount ?? 0
+                } built-in defaults.`,
+            );
+        } catch (error) {
+            setError(error instanceof Error ? error.message : 'Metadata import failed.');
+        } finally {
+            setIsImportingMetadata(false);
+            if (importFileInputRef.current) {
+                importFileInputRef.current.value = '';
+            }
+        }
+    };
+
     const handleAddSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
+        setSuccessMessage(null);
 
         try {
             await saveMetadata('POST', addFormState);
             setAddFormState(createEmptyFormState());
             fetchMetadata();
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'An error occurred');
+        } catch (error) {
+            setError(error instanceof Error ? error.message : 'An error occurred');
         }
     };
 
@@ -411,6 +599,7 @@ export function MetadataClient() {
         e.preventDefault();
         if (editingKey === null) return;
         setError(null);
+        setSuccessMessage(null);
 
         try {
             const isPersistedEntry = metadata.some((entry) => entry.key === editingKey && !entry.isDefault);
@@ -418,8 +607,8 @@ export function MetadataClient() {
             await saveMetadata(method, editingFormState);
             handleCancel();
             fetchMetadata();
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'An error occurred');
+        } catch (error) {
+            setError(error instanceof Error ? error.message : 'An error occurred');
         }
     };
 
@@ -433,15 +622,16 @@ export function MetadataClient() {
     };
 
     const handleDelete = async (key: string) => {
-        const confirmed = await showConfirm({
+        const isConfirmed = await showConfirm({
             title: 'Delete metadata',
             message: 'Are you sure you want to delete this metadata?',
             confirmLabel: 'Delete metadata',
             cancelLabel: 'Cancel',
         }).catch(() => false);
-        if (!confirmed) return;
+        if (!isConfirmed) return;
 
         try {
+            setSuccessMessage(null);
             const response = await fetch(`/api/metadata?key=${encodeURIComponent(key)}`, {
                 method: 'DELETE',
             });
@@ -452,8 +642,8 @@ export function MetadataClient() {
             }
 
             fetchMetadata();
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'An error occurred');
+        } catch (error) {
+            setError(error instanceof Error ? error.message : 'An error occurred');
         }
     };
 
@@ -549,8 +739,8 @@ export function MetadataClient() {
 
             const shortFileUrl = fileUrl.split(LONG_URL).join(SHORT_URL);
             setFormState((prev) => ({ ...prev, value: shortFileUrl }));
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to upload image');
+        } catch (error) {
+            setError(error instanceof Error ? error.message : 'Failed to upload image');
         } finally {
             setUploading(false);
             if (fileInputRef.current) {
@@ -586,6 +776,47 @@ export function MetadataClient() {
             {error && (
                 <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">{error}</div>
             )}
+            {successMessage && (
+                <div className="bg-green-100 border border-green-300 text-green-800 px-4 py-3 rounded mb-6">
+                    {successMessage}
+                </div>
+            )}
+
+            <div className="bg-white shadow rounded-lg p-6">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <h2 className="text-xl font-semibold">Import / Export Metadata</h2>
+                    </div>
+                    <div className="flex flex-wrap gap-3">
+                        <button
+                            type="button"
+                            onClick={() => void handleExportMetadata()}
+                            disabled={isMetadataTransferBusy}
+                            className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                            <DownloadIcon className="h-4 w-4" />
+                            <span>{isExportingMetadata ? 'Exporting...' : 'Export Metadata'}</span>
+                        </button>
+                        <input
+                            type="file"
+                            accept="application/json,.json"
+                            className="hidden"
+                            ref={importFileInputRef}
+                            onChange={(event) => void handleImportMetadataFileChange(event)}
+                            disabled={isMetadataTransferBusy}
+                        />
+                        <button
+                            type="button"
+                            onClick={handleImportMetadataClick}
+                            disabled={isMetadataTransferBusy}
+                            className="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-gray-100 px-4 py-2 text-sm font-medium text-gray-800 transition-colors hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                            <UploadIcon className="h-4 w-4" />
+                            <span>{isImportingMetadata ? 'Importing...' : 'Import Metadata'}</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
 
             <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-800">
                 Deprecated limit-backed metadata stays visible here for backward compatibility. Update operational

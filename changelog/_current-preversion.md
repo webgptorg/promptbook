@@ -1,3 +1,8 @@
+-   Added standalone metadata import/export to the Agents Server `/admin/metadata` page:
+
+    -   Admins can now download a `{server-name}.metadata.json` file containing the Promptbook version and only metadata values/notes that differ from built-in defaults.
+    -   Admins can import that JSON into another server; omitted built-in metadata fields resolve to current defaults, so exporting a configured server and importing into a fresh server recreates the metadata configuration without bundling full server data.
+
 -   Enhanced the Agents Server `/admin/update` super-admin page so it shows richer context before, during, and after a standalone VPS self-update — making it easier to decide when to update and to debug a failed update:
 
     -   `readVpsSelfUpdateOverview` now also returns a `pendingCommits` list (subject, short/full commit hash, author timestamp) for the commits between the currently deployed checkout and the latest commit on the configured branch, capped at 100 entries so a long-stale server still responds quickly. A new `<PendingCommitsCard/>` renders that list together with the existing `X commits behind · Y time behind` drift summary, so the admin can review exactly what is about to be installed.

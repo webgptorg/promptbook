@@ -1,4 +1,4 @@
-[ ] !!!
+[x] ~$0.5028 an hour by OpenAI Codex `gpt-5.5`
 
 [✨🐺] Allow to import and export the metadata of the server
 
