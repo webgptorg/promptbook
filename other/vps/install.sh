@@ -2617,7 +2617,12 @@ configure_pm2_startup() {
 
 build_agents_server() {
     log "Building Agents Server before starting pm2."
-    run_as_service_user bash -lc "cd $(shell_quote "$INSTALL_DIR") && $(shell_quote "$PTBK_COMMAND_PATH") agents-server build"
+    # Note: PTBK_AGENTS_SERVER_IGNORE_NEXT_VALIDATION skips the Next.js lint + TypeScript
+    #       validation step during the production VPS build because it is already enforced
+    #       by repository CI. Running it again on the VPS regularly OOM-killed the build
+    #       process during `Linting and checking validity of types ...`, leaving the
+    #       self-update stuck with `next-build exited with code null.`
+    run_as_service_user bash -lc "cd $(shell_quote "$INSTALL_DIR") && PTBK_AGENTS_SERVER_IGNORE_NEXT_VALIDATION=true $(shell_quote "$PTBK_COMMAND_PATH") agents-server build"
     publish_agents_server_next_static_assets
 }
 
