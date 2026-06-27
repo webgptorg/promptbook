@@ -1,3 +1,8 @@
+-   Added Agents Server agents import/export on the agents listing:
+
+    -   Admins can download `{server-name}.agents.zip`, containing `.book` files directly in the agents folder structure so importing it into a fresh server recreates the agents and folders.
+    -   Admins can import dropped or selected `.book` files and ZIP archives; ZIP folder structure is embedded under the currently open folder, non-book ZIP entries trigger a proceed warning and are ignored, same-book duplicates are skipped, and different-book duplicate names ask whether to import duplicates or skip conflicts.
+
 -   Added standalone metadata import/export to the Agents Server `/admin/metadata` page:
 
     -   Admins can now download a `{server-name}.metadata.json` file containing the Promptbook version and only metadata values/notes that differ from built-in defaults.

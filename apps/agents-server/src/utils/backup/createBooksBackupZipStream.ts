@@ -129,7 +129,9 @@ export async function appendBooksBackupEntriesToZip(zip: JSZip, archiveRootPath:
     const resolveFolderPath = createFolderPathResolver(folders, folderSegmentById);
 
     // Keep the root directory explicit even when there are no agents.
-    zip.folder(archiveRootPath);
+    if (archiveRootPath) {
+        zip.folder(archiveRootPath);
+    }
 
     const relativeFilePaths = new Set<string>();
     const folderPathByAgentId = new Map<number, string>();
@@ -152,8 +154,19 @@ export async function appendBooksBackupEntriesToZip(zip: JSZip, archiveRootPath:
         const folderSegments = resolveFolderPath(agent.folderId ?? null);
         const initialBookFilename = createInitialBookFilename(agent);
         const relativePath = createUniqueBookRelativePath(relativeFilePaths, folderSegments, initialBookFilename, agent.id);
-        zip.file(`${archiveRootPath}/${relativePath}`, agent.agentSource || '');
+        zip.file(createArchivePath(archiveRootPath, relativePath), agent.agentSource || '');
     }
+}
+
+/**
+ * Joins an optional archive root with one relative path.
+ *
+ * @param archiveRootPath - Optional ZIP folder root.
+ * @param relativePath - Book path relative to the selected root.
+ * @returns ZIP-safe path without a leading slash.
+ */
+function createArchivePath(archiveRootPath: string, relativePath: string): string {
+    return archiveRootPath ? `${archiveRootPath}/${relativePath}` : relativePath;
 }
 
 /**

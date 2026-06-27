@@ -1,6 +1,16 @@
 'use client';
 
-import { Building2, FolderPlusIcon, Gamepad2, Grid, Map, Network, type LucideIcon } from 'lucide-react';
+import {
+    Building2,
+    DownloadIcon,
+    FolderPlusIcon,
+    Gamepad2,
+    Grid,
+    Map,
+    Network,
+    UploadIcon,
+    type LucideIcon,
+} from 'lucide-react';
 import type { AgentOrganizationFolder } from '../../utils/agentOrganization/types';
 import type { HomeViewMode } from './homeViewMode';
 import { BreadcrumbDropTarget } from './BreadcrumbDropTarget';
@@ -56,6 +66,18 @@ type AgentsListHeaderProps = {
      */
     readonly headingTitle: string;
     /**
+     * Whether agents import/export controls are available.
+     */
+    readonly isAdmin: boolean;
+    /**
+     * Downloads an agents export.
+     */
+    readonly onExportAgents: () => void;
+    /**
+     * Opens the agents import file picker.
+     */
+    readonly onImportAgents: () => void;
+    /**
      * Opens the create-folder dialog.
      */
     readonly onCreateFolder: () => void;
@@ -71,6 +93,14 @@ type AgentsListHeaderProps = {
      * Currently active homepage view mode.
      */
     readonly viewMode: HomeViewMode;
+    /**
+     * Whether agents export is currently running.
+     */
+    readonly isAgentsExporting: boolean;
+    /**
+     * Whether agents import is currently running.
+     */
+    readonly isAgentsImporting: boolean;
 };
 
 /**
@@ -100,7 +130,12 @@ export function AgentsListHeader({
     breadcrumbFolders,
     canOrganize,
     headingTitle,
+    isAdmin,
+    isAgentsExporting,
+    isAgentsImporting,
     onCreateFolder,
+    onExportAgents,
+    onImportAgents,
     onNavigateToFolder,
     onSetViewMode,
     viewMode,
@@ -138,6 +173,30 @@ export function AgentsListHeader({
                     )}
                 </div>
                 <div className="flex items-center gap-2">
+                    {isListView && isAdmin && (
+                        <>
+                            <button
+                                type="button"
+                                onClick={onExportAgents}
+                                disabled={isAgentsExporting || isAgentsImporting}
+                                className="flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition-colors text-sm disabled:cursor-not-allowed disabled:opacity-60"
+                                title="Export agents"
+                            >
+                                <DownloadIcon className="w-4 h-4" />
+                                {isAgentsExporting ? 'Exporting...' : 'Export'}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={onImportAgents}
+                                disabled={isAgentsExporting || isAgentsImporting}
+                                className="flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition-colors text-sm disabled:cursor-not-allowed disabled:opacity-60"
+                                title="Import agents"
+                            >
+                                <UploadIcon className="w-4 h-4" />
+                                {isAgentsImporting ? 'Importing...' : 'Import'}
+                            </button>
+                        </>
+                    )}
                     {isListView && canOrganize && (
                         <button
                             type="button"

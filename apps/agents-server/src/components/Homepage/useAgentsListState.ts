@@ -15,6 +15,7 @@ import {
 } from './useAgentsListDragState';
 import { useAgentsListFolderPathRecovery } from './useAgentsListFolderPathRecovery';
 import { useAgentsListFolderState } from './useAgentsListFolderState';
+import { useAgentsListImportExportState } from './useAgentsListImportExportState';
 import { useAgentsListNavigationState } from './useAgentsListNavigationState';
 import { useAgentsListOrganizationActions } from './useAgentsListOrganizationActions';
 import { useAgentsListOverlayDetailsState } from './useAgentsListOverlayDetailsState';
@@ -166,6 +167,10 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
         setFolders,
         synchronizeAfterMutation,
     });
+    const importExportState = useAgentsListImportExportState({
+        currentFolderId,
+        synchronizeAfterMutation,
+    });
     const agentState = useAgentsListAgentState({
         agents,
         formatText,
@@ -255,6 +260,13 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
         handleDragEnd: dragState.handleDragEnd,
         handleDragOver: dragState.handleDragOver,
         handleDragStart: dragState.handleDragStart,
+        handleAgentsExport: importExportState.handleAgentsExport,
+        handleAgentsFileDragEnter: importExportState.handleAgentsFileDragEnter,
+        handleAgentsFileDragLeave: importExportState.handleAgentsFileDragLeave,
+        handleAgentsFileDragOver: importExportState.handleAgentsFileDragOver,
+        handleAgentsFileDrop: importExportState.handleAgentsFileDrop,
+        handleAgentsImportClick: importExportState.handleAgentsImportClick,
+        handleAgentsImportFileChange: importExportState.handleAgentsImportFileChange,
         handleFolderContextMenu: overlayState.handleFolderContextMenu,
         handleRenameFolder: folderState.handleRenameFolder,
         handleRequestAgentVisibilityChange: agentState.handleRequestAgentVisibilityChange,
@@ -262,6 +274,10 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
         handleShowQrCode: overlayState.handleShowQrCode,
         handleSubmitFolderEdit: folderState.handleSubmitFolderEdit,
         headingTitle,
+        importFileInputRef: importExportState.importFileInputRef,
+        isAgentsExporting: importExportState.isAgentsExporting,
+        isAgentsImportDragActive: importExportState.isAgentsImportDragActive,
+        isAgentsImporting: importExportState.isAgentsImporting,
         isFolderEditSubmitting: folderState.isFolderEditSubmitting,
         navigateToFolder,
         mazeAgents,

@@ -6,6 +6,7 @@ import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../../util
 import { AgentsListDialogs } from './AgentsListDialogs';
 import { AgentsListHeader } from './AgentsListHeader';
 import { AgentsListViewContent } from './AgentsListViewContent';
+import { AGENTS_IMPORT_FILE_INPUT_ACCEPT } from './useAgentsListImportExportState';
 import type { AgentWithVisibility } from './useFederatedAgents';
 import { useAgentsListState } from './useAgentsListState';
 
@@ -72,14 +73,43 @@ export function AgentsList(props: AgentsListProps) {
         isAdmin && contextMenuFolder ? () => state.handleRequestFolderVisibilityUpdate(contextMenuFolder.id) : undefined;
 
     return (
-        <section className="mt-16 first:mt-4 mb-4">
+        <section
+            className={`relative mt-16 first:mt-4 mb-4 ${
+                state.isAgentsImportDragActive ? 'rounded-xl ring-2 ring-blue-400 ring-offset-4' : ''
+            }`}
+            onDragEnter={isAdmin ? state.handleAgentsFileDragEnter : undefined}
+            onDragLeave={isAdmin ? state.handleAgentsFileDragLeave : undefined}
+            onDragOver={isAdmin ? state.handleAgentsFileDragOver : undefined}
+            onDrop={isAdmin ? state.handleAgentsFileDrop : undefined}
+        >
+            {isAdmin && (
+                <input
+                    ref={state.importFileInputRef}
+                    type="file"
+                    multiple
+                    accept={AGENTS_IMPORT_FILE_INPUT_ACCEPT}
+                    className="hidden"
+                    onChange={(event) => void state.handleAgentsImportFileChange(event)}
+                    disabled={state.isAgentsImporting}
+                />
+            )}
+            {isAdmin && state.isAgentsImportDragActive && (
+                <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center rounded-xl border-2 border-dashed border-blue-400 bg-blue-50/85 text-sm font-medium text-blue-800 shadow-sm">
+                    Drop books or ZIP archives to import agents
+                </div>
+            )}
             <AgentsListHeader
                 agentCount={state.agentCount}
                 allAgentsLabel={state.allAgentsLabel}
                 breadcrumbFolders={state.breadcrumbFolders}
                 canOrganize={canOrganize}
                 headingTitle={state.headingTitle}
+                isAdmin={isAdmin}
+                isAgentsExporting={state.isAgentsExporting}
+                isAgentsImporting={state.isAgentsImporting}
                 onCreateFolder={state.handleCreateFolder}
+                onExportAgents={() => void state.handleAgentsExport()}
+                onImportAgents={state.handleAgentsImportClick}
                 onNavigateToFolder={state.navigateToFolder}
                 onSetViewMode={state.setViewMode}
                 viewMode={state.viewMode}
