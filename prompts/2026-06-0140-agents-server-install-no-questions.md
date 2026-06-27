@@ -29,7 +29,6 @@ sudo curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/head
 
 [✨〰️] The installation of the Agents Server on VPS should be able to run without asking any questions
 
--   @@@@@
 -   Mode without questions is needed for the automated installation of the Agents server on VPS, which is part of the deployment process.
 -   Including that I understand that the installation script should be run on fresh server by `--yes-i-understand-that-script-should-be-run-on-fresh-server` option
 -   It should take all the default values and install the server without asking any questions.
@@ -39,6 +38,9 @@ sudo curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/head
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+
+Also at the README make the interactive and non-interactive example, here are the options for noninteractive example:
 
 **Domain:**
 s24.ptbk.io
@@ -61,5 +63,5 @@ sudo curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/head
 **But it should also support non-interactive installation:**
 
 ```bash
-sudo curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/other/vps/install.sh | bash -s -- --non-interactive --yes-i-understand-that-script-should-be-run-on-fresh-server
+sudo curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/other/vps/install.sh | bash -s -- --non-interactive --yes-i-understand-that-script-should-be-run-on-fresh-server ...
 ```
