@@ -208,6 +208,10 @@ export type VpsSelfUpdateOverview = {
      */
     readonly commitsBehindCount: number | null;
     /**
+     * Commits that the deployed checkout is behind the latest remote commit (newest first).
+     */
+    readonly pendingCommits: ReadonlyArray<VpsSelfUpdatePendingCommit>;
+    /**
      * Whether the remote branch contains a newer commit than the deployed checkout.
      */
     readonly isUpdateAvailable: boolean;
@@ -465,6 +469,10 @@ export async function readVpsSelfUpdateOverview(): Promise<VpsSelfUpdateOverview
         currentCommitSha && latestRemoteCommitSha
             ? await countCommitsBetween(repositoryDirectory, currentCommitSha, latestRemoteCommitSha)
             : null;
+    const pendingCommits =
+        currentCommitSha && latestRemoteCommitSha
+            ? await listCommitsBetween(repositoryDirectory, currentCommitSha, latestRemoteCommitSha)
+            : [];
     const resolvedJob = resolveVpsSelfUpdateJobForOverview(job, {
         currentEnvironment,
         currentCommitSha,
@@ -484,6 +492,7 @@ export async function readVpsSelfUpdateOverview(): Promise<VpsSelfUpdateOverview
         latestRemoteCommitShortSha: abbreviateCommitSha(latestRemoteCommitSha),
         latestRemoteCommitDate,
         commitsBehindCount,
+        pendingCommits,
         isUpdateAvailable: Boolean(
             currentCommitSha && latestRemoteCommitSha && currentCommitSha !== latestRemoteCommitSha,
         ),
@@ -493,6 +502,33 @@ export async function readVpsSelfUpdateOverview(): Promise<VpsSelfUpdateOverview
         job: resolvedJob,
     };
 }
+
+/**
+ * Browser-safe summary of one commit that the deployed checkout is behind the latest remote commit.
+ */
+export type VpsSelfUpdatePendingCommit = {
+    /**
+     * Full commit hash.
+     */
+    readonly commitSha: string;
+    /**
+     * Short commit hash (first 7 chars).
+     */
+    readonly shortCommitSha: string;
+    /**
+     * Single-line commit subject.
+     */
+    readonly subject: string;
+    /**
+     * Author timestamp in ISO format or `null` when unknown.
+     */
+    readonly authoredAt: string | null;
+};
+
+/**
+ * Hard ceiling for the pending-commits listing returned in the overview to avoid huge payloads on a long-stale server.
+ */
+const VPS_SELF_UPDATE_MAX_PENDING_COMMITS = 100;
 
 /**
  * Browser-safe summary of one commit that the super admin can pick from the custom-target picker.
@@ -790,6 +826,7 @@ function createUnavailableOverview(context: {
         latestRemoteCommitShortSha: null,
         latestRemoteCommitDate: null,
         commitsBehindCount: null,
+        pendingCommits: [],
         isUpdateAvailable: false,
         originRepositoryUrl: context.originRepositoryUrl,
         isOriginRepositoryDefault: context.originRepositoryUrl === VPS_SELF_UPDATE_DEFAULT_ORIGIN_REPOSITORY_URL,
@@ -1203,6 +1240,79 @@ async function countCommitsBetween(
 
     const parsedCount = Number.parseInt(output, 10);
     return Number.isFinite(parsedCount) ? parsedCount : null;
+}
+
+/**
+ * Lists commits that separate two commits in the local repository so the admin UI can show subject/hash/date for each one.
+ *
+ * Returns an empty list when either commit cannot be resolved (typical for a shallow clone that has not been deepened yet)
+ * or when both commits are identical.
+ *
+ * @param repositoryDirectory - Repository checkout path.
+ * @param fromCommitSha - Older commit hash (deployed commit).
+ * @param toCommitSha - Newer commit hash (latest remote commit).
+ * @returns Browser-safe pending-commit list (newest first).
+ */
+async function listCommitsBetween(
+    repositoryDirectory: string,
+    fromCommitSha: string,
+    toCommitSha: string,
+): Promise<ReadonlyArray<VpsSelfUpdatePendingCommit>> {
+    if (fromCommitSha === toCommitSha) {
+        return [];
+    }
+
+    const output = await runGitInRepository(repositoryDirectory, [
+        'log',
+        `--max-count=${VPS_SELF_UPDATE_MAX_PENDING_COMMITS}`,
+        `--format=%H${GIT_LOG_FIELD_SEPARATOR}%aI${GIT_LOG_FIELD_SEPARATOR}%s`,
+        `${fromCommitSha}..${toCommitSha}`,
+    ]);
+    if (!output) {
+        return [];
+    }
+
+    const pendingCommits: Array<VpsSelfUpdatePendingCommit> = [];
+    for (const line of output.split('\n')) {
+        if (!line) {
+            continue;
+        }
+
+        const fields = line.split(GIT_LOG_FIELD_SEPARATOR);
+        const commitSha = fields[0] ?? '';
+        if (!commitSha) {
+            continue;
+        }
+
+        const authoredAt = fields[1] || null;
+        const subject = fields.slice(2).join(GIT_LOG_FIELD_SEPARATOR);
+
+        pendingCommits.push({
+            commitSha,
+            shortCommitSha: commitSha.slice(0, 7),
+            subject,
+            authoredAt,
+        });
+    }
+
+    return pendingCommits;
+}
+
+/**
+ * Reads the full persisted standalone VPS self-update log so the super admin can copy/download it for debugging.
+ *
+ * @returns Log file content or `null` when the file does not exist yet.
+ */
+export async function readVpsSelfUpdateLogFileContent(): Promise<string | null> {
+    const logFilePath = resolveVpsSelfUpdateLogFilePath();
+    try {
+        return await readFile(logFilePath, 'utf-8');
+    } catch (error) {
+        if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+            return null;
+        }
+        throw error;
+    }
 }
 
 /**

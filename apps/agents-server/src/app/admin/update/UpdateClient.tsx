@@ -4,7 +4,10 @@ import {
     CheckCircle2,
     ChevronDown,
     ChevronUp,
+    ClipboardCopy,
     Download,
+    FileDown,
+    GitCommit,
     Loader2,
     RefreshCcw,
     Rocket,
@@ -12,11 +15,12 @@ import {
     Settings2,
     TriangleAlert,
 } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AdminXtermTerminal } from '../../../components/AdminTerminal/AdminXtermTerminal';
 import { Card } from '../../../components/Homepage/Card';
 import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
 import type { ServerLanguageCode } from '../../../languages/ServerLanguageRegistry';
+import { downloadBlob, parseFilenameFromContentDisposition } from '../../../utils/download/browserFileDownload';
 import { createServerLanguageMoment } from '../../../utils/localization/createServerLanguageMoment';
 import { formatServerLanguageHumanReadableDate } from '../../../utils/localization/formatServerLanguageHumanReadableDate';
 import { CustomCommitPicker, type CustomCommitPickerCandidate } from './CustomCommitPicker';
@@ -52,6 +56,16 @@ type UpdateJobSnapshot = {
 };
 
 /**
+ * Browser-safe summary of one commit between the deployed checkout and the latest remote commit.
+ */
+type UpdatePendingCommit = {
+    readonly commitSha: string;
+    readonly shortCommitSha: string;
+    readonly subject: string;
+    readonly authoredAt: string | null;
+};
+
+/**
  * Browser-safe self-update overview returned by the super-admin API.
  */
 type UpdateOverview = {
@@ -68,6 +82,7 @@ type UpdateOverview = {
     readonly latestRemoteCommitShortSha: string | null;
     readonly latestRemoteCommitDate: string | null;
     readonly commitsBehindCount: number | null;
+    readonly pendingCommits: ReadonlyArray<UpdatePendingCommit>;
     readonly isUpdateAvailable: boolean;
     readonly originRepositoryUrl: string;
     readonly isOriginRepositoryDefault: boolean;
@@ -75,6 +90,16 @@ type UpdateOverview = {
     readonly job: UpdateJobSnapshot;
     readonly error?: string;
 };
+
+/**
+ * Duration (ms) of the transient "Copied!" / "Saved!" feedback shown next to log action buttons.
+ */
+const UPDATE_LOG_ACTION_FEEDBACK_DURATION_MS = 2500;
+
+/**
+ * Default download filename used when the server does not provide one via `Content-Disposition`.
+ */
+const DEFAULT_UPDATE_LOG_DOWNLOAD_FILENAME = 'self-update.log';
 
 /**
  * Client UI for standalone VPS branch-aware self-updates.
@@ -433,6 +458,7 @@ export function UpdateClient() {
                             <span className="ml-2 font-mono text-slate-700">{overview.job.logFilePath}</span>
                         </div>
                     )}
+                    {overview?.job.status === 'failed' && <UpdateJobLogActions />}
                     <AdminXtermTerminal
                         terminalId={updateTerminalId}
                         output={overview?.job.logTail || ''}
@@ -443,6 +469,8 @@ export function UpdateClient() {
                     />
                 </div>
             </Card>
+
+            <PendingCommitsCard overview={overview} language={language} />
         </div>
     );
 }
@@ -547,6 +575,192 @@ function CurrentDeploymentCard({
 }
 
 /**
+ * Lists the commits between the deployed checkout and the latest remote commit so the super admin can review what
+ * exactly is about to be installed before triggering the self-update.
+ *
+ * @private internal component of `<UpdateClient/>`
+ */
+function PendingCommitsCard({
+    overview,
+    language,
+}: {
+    readonly overview: UpdateOverview | null;
+    readonly language: ServerLanguageCode;
+}) {
+    if (!overview || overview.pendingCommits.length === 0) {
+        return null;
+    }
+
+    const commitsBehindLabel =
+        overview.commitsBehindCount !== null && overview.commitsBehindCount > 0
+            ? `${overview.commitsBehindCount} commit${overview.commitsBehindCount === 1 ? '' : 's'} behind`
+            : `${overview.pendingCommits.length} commit${overview.pendingCommits.length === 1 ? '' : 's'} pending`;
+    const timeBehindLabel = buildDeploymentTimeBehindLabel(overview, language);
+
+    return (
+        <Card className="hover:border-gray-200 hover:shadow-md">
+            <div className="space-y-4">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="flex items-start gap-3">
+                        <GitCommit className="mt-0.5 h-5 w-5 text-amber-500" />
+                        <div>
+                            <h2 className="text-lg font-semibold text-slate-900">Pending commits</h2>
+                            <p className="mt-1 text-sm text-slate-500">
+                                Commits between the currently deployed checkout and the latest commit on{' '}
+                                <span className="font-mono">{overview.currentEnvironment.branch}</span>.
+                            </p>
+                        </div>
+                    </div>
+                    <div className="text-xs font-semibold uppercase tracking-wide text-slate-500 sm:text-right">
+                        <div>{commitsBehindLabel}</div>
+                        {timeBehindLabel && <div className="mt-1 normal-case text-slate-400">{timeBehindLabel}</div>}
+                    </div>
+                </div>
+
+                <ul className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white">
+                    {overview.pendingCommits.map((pendingCommit) => (
+                        <li key={pendingCommit.commitSha} className="px-4 py-3">
+                            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                                <span className="font-mono text-xs text-slate-500">
+                                    {pendingCommit.shortCommitSha}
+                                </span>
+                                <span className="text-sm text-slate-900">{pendingCommit.subject}</span>
+                            </div>
+                            <div className="mt-1 text-xs text-slate-500">
+                                {formatHumanReadableTimestamp(pendingCommit.authoredAt, language)}
+                            </div>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        </Card>
+    );
+}
+
+/**
+ * Renders the copy / download actions for the persisted standalone VPS self-update log file.
+ *
+ * Shown when the latest update job failed so the super admin can quickly share the full log with the developers.
+ *
+ * @private internal component of `<UpdateClient/>`
+ */
+function UpdateJobLogActions() {
+    const [actionFeedback, setActionFeedback] = useState<string | null>(null);
+    const [actionErrorMessage, setActionErrorMessage] = useState<string | null>(null);
+    const [isCopying, setIsCopying] = useState(false);
+    const [isDownloading, setIsDownloading] = useState(false);
+    const feedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    useEffect(() => {
+        return () => {
+            if (feedbackTimeoutRef.current !== null) {
+                clearTimeout(feedbackTimeoutRef.current);
+                feedbackTimeoutRef.current = null;
+            }
+        };
+    }, []);
+
+    function showActionFeedback(feedbackMessage: string): void {
+        if (feedbackTimeoutRef.current !== null) {
+            clearTimeout(feedbackTimeoutRef.current);
+        }
+        setActionFeedback(feedbackMessage);
+        setActionErrorMessage(null);
+        feedbackTimeoutRef.current = setTimeout(() => {
+            setActionFeedback(null);
+            feedbackTimeoutRef.current = null;
+        }, UPDATE_LOG_ACTION_FEEDBACK_DURATION_MS);
+    }
+
+    async function fetchUpdateLogResponse(): Promise<Response> {
+        const response = await fetch('/api/admin/update/log', { cache: 'no-store' });
+        if (!response.ok) {
+            const errorPayload = (await response.json().catch(() => null)) as { readonly error?: string } | null;
+            throw new Error(errorPayload?.error || 'Failed to load the self-update log file.');
+        }
+        return response;
+    }
+
+    async function handleCopyLog(): Promise<void> {
+        if (isCopying || isDownloading) {
+            return;
+        }
+
+        try {
+            setIsCopying(true);
+            setActionErrorMessage(null);
+            if (!navigator.clipboard?.writeText) {
+                throw new Error('The browser clipboard API is unavailable in this context.');
+            }
+            const response = await fetchUpdateLogResponse();
+            const logContent = await response.text();
+            await navigator.clipboard.writeText(logContent);
+            showActionFeedback('Self-update log copied to clipboard.');
+        } catch (error) {
+            setActionErrorMessage(error instanceof Error ? error.message : 'Failed to copy the self-update log.');
+        } finally {
+            setIsCopying(false);
+        }
+    }
+
+    async function handleDownloadLog(): Promise<void> {
+        if (isCopying || isDownloading) {
+            return;
+        }
+
+        try {
+            setIsDownloading(true);
+            setActionErrorMessage(null);
+            const response = await fetchUpdateLogResponse();
+            const logFilename =
+                parseFilenameFromContentDisposition(response.headers.get('Content-Disposition')) ||
+                DEFAULT_UPDATE_LOG_DOWNLOAD_FILENAME;
+            const logBlob = await response.blob();
+            downloadBlob(logBlob, logFilename);
+            showActionFeedback(`Saved self-update log as ${logFilename}.`);
+        } catch (error) {
+            setActionErrorMessage(error instanceof Error ? error.message : 'Failed to download the self-update log.');
+        } finally {
+            setIsDownloading(false);
+        }
+    }
+
+    return (
+        <div className="flex flex-wrap items-center gap-3 rounded-xl border border-rose-200 bg-rose-50/40 px-4 py-3 text-sm text-rose-700">
+            <span className="font-medium">Share the log with the developers:</span>
+            <button
+                type="button"
+                onClick={() => void handleCopyLog()}
+                disabled={isCopying || isDownloading}
+                className="inline-flex items-center gap-2 rounded-md border border-rose-200 bg-white px-3 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+                {isCopying ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ClipboardCopy className="h-3.5 w-3.5" />}
+                Copy log
+            </button>
+            <button
+                type="button"
+                onClick={() => void handleDownloadLog()}
+                disabled={isCopying || isDownloading}
+                className="inline-flex items-center gap-2 rounded-md border border-rose-200 bg-white px-3 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+                {isDownloading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileDown className="h-3.5 w-3.5" />}
+                Download log
+            </button>
+            {actionFeedback && (
+                <span className="text-xs text-rose-600" role="status" aria-live="polite">
+                    {actionFeedback}
+                </span>
+            )}
+            {actionErrorMessage && (
+                <span className="text-xs text-rose-700" role="alert">
+                    {actionErrorMessage}
+                </span>
+            )}
+        </div>
+    );
+}
+
+/**
  * Collapsible advanced panel for overriding the upstream repository URL.
  *
  * @private internal component of `<UpdateClient/>`
@@ -628,14 +842,33 @@ function buildDeploymentDriftLabel(overview: UpdateOverview | null, language: Se
             ? `${overview.commitsBehindCount} commit${overview.commitsBehindCount === 1 ? '' : 's'} behind`
             : 'New commit available';
 
-    if (!overview.currentCommitDate || !overview.latestRemoteCommitDate) {
+    const timeBehindLabel = buildDeploymentTimeBehindLabel(overview, language);
+    if (!timeBehindLabel) {
         return commitsBehindLabel;
+    }
+
+    return `${commitsBehindLabel} · ${timeBehindLabel}`;
+}
+
+/**
+ * Builds the localized time-behind portion of the deployment drift label (e.g. `3 days behind`).
+ *
+ * @param overview - Current overview snapshot.
+ * @param language - Active UI language for moment localization.
+ * @returns Time-behind label or empty string when either side of the comparison is missing.
+ */
+function buildDeploymentTimeBehindLabel(overview: UpdateOverview | null, language: ServerLanguageCode): string {
+    if (!overview?.currentCommitDate || !overview.latestRemoteCommitDate) {
+        return '';
     }
 
     const currentMoment = createServerLanguageMoment(overview.currentCommitDate, language);
     const latestMoment = createServerLanguageMoment(overview.latestRemoteCommitDate, language);
-    const timeBehindLabel = currentMoment.from(latestMoment, true);
-    return `${commitsBehindLabel} · ${timeBehindLabel} behind`;
+    if (!currentMoment.isValid() || !latestMoment.isValid()) {
+        return '';
+    }
+
+    return `${currentMoment.from(latestMoment, true)} behind`;
 }
 
 /**
