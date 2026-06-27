@@ -8,6 +8,7 @@ import { octopus3AvatarVisual } from './octopus3AvatarVisual';
 import { octopus3dAvatarVisual } from './octopus3dAvatarVisual';
 import { octopus3d2AvatarVisual } from './octopus3d2AvatarVisual';
 import { octopus3d3AvatarVisual } from './octopus3d3AvatarVisual';
+import { octopus3d4AvatarVisual } from './octopus3d4AvatarVisual';
 import { octopusAvatarVisual } from './octopusAvatarVisual';
 import { orbAvatarVisual } from './orbAvatarVisual';
 import { pixelArtAvatarVisual } from './pixelArtAvatarVisual';
@@ -27,6 +28,7 @@ export const AVATAR_VISUALS: ReadonlyArray<AvatarVisualDefinition> = [
     octopus3dAvatarVisual,
     octopus3d2AvatarVisual,
     octopus3d3AvatarVisual,
+    octopus3d4AvatarVisual,
     asciiOctopusAvatarVisual,
     minecraftAvatarVisual,
     minecraft2AvatarVisual,
