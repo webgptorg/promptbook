@@ -7,6 +7,7 @@ import { getUserChat } from '../userChat/getUserChat';
 import { getUserChatJobById } from '../userChat/getUserChatJobById';
 import { persistUserChatJobTerminalState } from '../userChat/persistUserChatJobTerminalState';
 import { provideUserChatJobTable } from '../userChat/provideUserChatJobTable';
+import { createUserChatRunnerProgressCard } from '../userChat/createUserChatRunnerProgressCard';
 import { updateUserChatAssistantMessage } from '../userChat/updateUserChatAssistantMessage';
 import type { UserChatJobRecord } from '../userChat/UserChatJobRecord';
 import type { UserChatJobRow } from '../userChat/UserChatJobRow';
@@ -196,6 +197,10 @@ async function enqueueExternalUserChatJob(job: UserChatJobRecord): Promise<Proce
             isComplete: false,
             lifecycleState: 'running',
             lifecycleError: undefined,
+            progressCard: createUserChatRunnerProgressCard({
+                runnerKind: 'external',
+                phase: 'queued_for_runner',
+            }),
         }),
     });
 

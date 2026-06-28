@@ -1,5 +1,4 @@
 import type { ToolCall } from '../../../types/ToolCall';
-import { ASSISTANT_PREPARATION_TOOL_CALL_NAME } from '../../../types/ToolCall';
 import { resolveToolCallIdempotencyKey } from '../../../utils/toolCalls/resolveToolCallIdempotencyKey';
 import type { AgentChipData } from '../AgentChip/AgentChip';
 import type { ChatMessage } from '../types/ChatMessage';
@@ -8,6 +7,7 @@ import { collectTeamToolCallSummary } from '../utils/collectTeamToolCallSummary'
 import { isTeamToolName } from '../utils/createTeamToolNameFromUrl';
 import type { ToolCallChipletInfo } from '../utils/getToolCallChipletInfo';
 import { buildToolCallChipText, getToolCallChipletInfo } from '../utils/getToolCallChipletInfo';
+import { isVisibleChatToolCall } from '../utils/isVisibleChatToolCall';
 import { resolveToolCallState } from '../utils/resolveToolCallState';
 import { createDeduplicatedWalletCredentialToolCalls } from '../utils/walletCredentialToolCall';
 import type { ChatProps } from './ChatProps';
@@ -122,13 +122,6 @@ export function createChatMessageToolCallRenderModel(
 }
 
 /**
- * Tool calls that should stay available in message data but never render as chips under the message.
- *
- * @private internal helper of `<ChatMessageItem/>`
- */
-const HIDDEN_TOOL_CALL_CHIP_NAMES = new Set([ASSISTANT_PREPARATION_TOOL_CALL_NAME, 'agent_progress']);
-
-/**
  * Ongoing tool call entry used for grouping.
  *
  * @private internal helper of `<ChatMessageItem/>`
@@ -141,7 +134,7 @@ type OngoingToolCall = NonNullable<ChatMessage['ongoingToolCalls']>[number];
  * @private internal helper of `<ChatMessageItem/>`
  */
 function shouldRenderToolCallChip(toolCall: ToolCall): boolean {
-    return !HIDDEN_TOOL_CALL_CHIP_NAMES.has(toolCall.name);
+    return isVisibleChatToolCall(toolCall);
 }
 
 /**

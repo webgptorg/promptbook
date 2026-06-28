@@ -2,6 +2,7 @@ import { prepareToolCallsForStreaming } from '@/src/utils/toolCallStreaming';
 import type { ChatMessage, LlmToolDefinition, ToolCall } from '@promptbook-local/types';
 import type { ChatPromptResult } from '../../../../../src/execution/PromptResult';
 import { mergeToolCalls } from '../../../../../src/utils/toolCalls/mergeToolCalls';
+import { createUserChatHarnessProgressCard } from './createUserChatHarnessProgressCard';
 import { persistUserChatJobTerminalState } from './persistUserChatJobTerminalState';
 import { updateUserChatAssistantMessage } from './updateUserChatAssistantMessage';
 import { USER_CHAT_JOB_ASSISTANT_MESSAGE_PERSIST_INTERVAL_MS } from './userChatJobRuntimeConstants';
@@ -125,17 +126,22 @@ export function createRunUserChatJobPersistenceController(options: {
         }
 
         queueAssistantMessageUpdate(
-            (message) => ({
-                ...message,
-                content: latestContent,
-                ongoingToolCalls: latestToolCalls,
-                lifecycleState: 'running',
-                lifecycleError: undefined,
-                isComplete: false,
-                prompt: options.createPromptSnapshot({
-                    toolCalls: latestToolCalls,
-                }),
-            }),
+            (message) => {
+                const harnessProgressCard = createUserChatHarnessProgressCard(latestToolCalls);
+
+                return {
+                    ...message,
+                    content: latestContent,
+                    ongoingToolCalls: latestToolCalls,
+                    lifecycleState: 'running',
+                    lifecycleError: undefined,
+                    isComplete: false,
+                    progressCard: harnessProgressCard ?? message.progressCard,
+                    prompt: options.createPromptSnapshot({
+                        toolCalls: latestToolCalls,
+                    }),
+                };
+            },
             {
                 snapshotSignature,
             },

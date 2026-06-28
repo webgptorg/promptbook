@@ -52,18 +52,8 @@ describe('userChatMessageLifecycle', () => {
             jobId: 'job-1',
             lifecycleState: 'queued',
             isComplete: false,
-            progressCard: {
-                title: 'Working on your request',
-                now: 'Your message is waiting in the queue for the next available worker to pick it up.',
-                items: expect.arrayContaining([
-                    expect.objectContaining({
-                        id: 'receive-message',
-                        status: 'pending',
-                    }),
-                ]),
-                isVisible: true,
-            },
         });
+        expect(assistantMessage.progressCard).toBeUndefined();
     });
 
     it('should resolve the prompt thread that existed before a queued user turn', () => {
