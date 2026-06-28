@@ -3,6 +3,7 @@ import { cookies, headers } from 'next/headers';
 import { cache } from 'react';
 import { spaceTrim } from 'spacetrim';
 import { EnvironmentMismatchError } from '../../../../src/errors/EnvironmentMismatchError';
+import { isTimingSafeEqualString } from '../../../../src/utils/isTimingSafeEqualString';
 import { isStandaloneVpsRawIpBootstrapActive } from './standaloneVpsRawIpBootstrap';
 
 /**
@@ -153,7 +154,7 @@ export function parseSessionToken(token: string | null | undefined): SessionUser
     const payload = Buffer.from(payloadBase64, 'base64').toString('utf-8');
     const expectedSignature = createHmac('sha256', getSessionSigningKey()).update(payload).digest('hex');
 
-    if (signature !== expectedSignature) {
+    if (!isTimingSafeEqualString(signature, expectedSignature)) {
         return null;
     }
 

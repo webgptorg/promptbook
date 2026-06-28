@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { isTimingSafeEqualString } from '../../../../../../../src/utils/isTimingSafeEqualString';
 import { resolveUserChatWorkerInternalToken } from '@/src/utils/userChat';
 import { getLocalAgentRunnerLimits } from '@/src/utils/serverLimits';
 
@@ -47,5 +48,5 @@ async function handleAgentRunnerLimitsRequest(request: Request) {
  */
 function isAuthorizedInternalWorkerRequest(request: Request): boolean {
     const token = request.headers.get('x-user-chat-worker-token');
-    return token === resolveUserChatWorkerInternalToken();
+    return isTimingSafeEqualString(token, resolveUserChatWorkerInternalToken());
 }

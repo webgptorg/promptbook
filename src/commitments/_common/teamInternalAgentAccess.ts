@@ -1,4 +1,5 @@
 import CryptoJS from 'crypto-js';
+import { isTimingSafeEqualString } from '../../utils/isTimingSafeEqualString';
 
 /**
  * Header used for same-server TEAM calls that may access private teammate agents.
@@ -79,7 +80,7 @@ export function isTeamInternalAgentAccessToken(value: string | null | undefined)
     const expectedToken = resolveTeamInternalAgentAccessToken();
     const providedToken = normalizeSecret(value);
 
-    return Boolean(expectedToken && providedToken && providedToken === expectedToken);
+    return Boolean(expectedToken && providedToken && isTimingSafeEqualString(providedToken, expectedToken));
 }
 
 /**

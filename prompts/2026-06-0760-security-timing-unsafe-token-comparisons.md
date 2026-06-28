@@ -1,4 +1,4 @@
-[ ]
+[x] $3.34 29 minutes by Claude Code
 
 [🔐] Fix timing-unsafe `===` / `!==` comparisons for secrets and tokens in Agents Server
 
@@ -14,3 +14,4 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle — there should be one shared timing-safe string-compare utility.
 -   You are working with the [Promptbook Engine](src) and the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

@@ -5,6 +5,7 @@ import {
     triggerUserChatJobWorker,
 } from '@/src/utils/userChat';
 import { after, NextResponse } from 'next/server';
+import { isTimingSafeEqualString } from '../../../../../../../../src/utils/isTimingSafeEqualString';
 
 /**
  * Allows one worker invocation to run for the platform maximum.
@@ -101,5 +102,5 @@ function isAuthorizedUserChatWorkerRequest(request: Request): boolean {
  */
 function isAuthorizedInternalWorkerRequest(request: Request): boolean {
     const token = request.headers.get('x-user-chat-worker-token');
-    return token === resolveUserChatWorkerInternalToken();
+    return isTimingSafeEqualString(token, resolveUserChatWorkerInternalToken());
 }
