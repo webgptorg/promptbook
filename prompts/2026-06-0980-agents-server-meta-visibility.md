@@ -1,6 +1,6 @@
 [ ] !!!
 
-[✨⏱] Create new commitment `META VISIBILITY` 
+[✨⏱] Create new commitment `META VISIBILITY`
 
 -   @@@@@@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.

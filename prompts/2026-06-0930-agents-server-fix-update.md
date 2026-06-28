@@ -12,4 +12,3 @@
 -   If you need to do the database migration, do it
 
 ![alt text](screenshots/2026-06-0930-agents-server-fix-update.png)
-
