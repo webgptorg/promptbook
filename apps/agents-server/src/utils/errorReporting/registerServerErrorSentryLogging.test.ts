@@ -8,6 +8,7 @@ import {
 
 const ORIGINAL_CONSOLE_ERROR = console.error;
 const ORIGINAL_SENTRY_DSN = process.env.SENTRY_DSN;
+const ORIGINAL_NEXT_PUBLIC_SENTRY_DSN = process.env.NEXT_PUBLIC_SENTRY_DSN;
 const ORIGINAL_SENTRY_ENVIRONMENT = process.env.SENTRY_ENVIRONMENT;
 const ORIGINAL_NEXT_PUBLIC_SERVER_NAME = process.env.NEXT_PUBLIC_SERVER_NAME;
 const ORIGINAL_NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF;
@@ -45,6 +46,7 @@ describe('registerServerErrorSentryLogging', () => {
         console.error = ORIGINAL_CONSOLE_ERROR;
         globalThis.fetch = ORIGINAL_FETCH;
         restoreEnvironmentVariable('SENTRY_DSN', ORIGINAL_SENTRY_DSN);
+        restoreEnvironmentVariable('NEXT_PUBLIC_SENTRY_DSN', ORIGINAL_NEXT_PUBLIC_SENTRY_DSN);
         restoreEnvironmentVariable('SENTRY_ENVIRONMENT', ORIGINAL_SENTRY_ENVIRONMENT);
         restoreEnvironmentVariable('NEXT_PUBLIC_SERVER_NAME', ORIGINAL_NEXT_PUBLIC_SERVER_NAME);
         restoreEnvironmentVariable('NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF', ORIGINAL_NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF);
@@ -179,6 +181,7 @@ describe('registerServerErrorSentryLogging', () => {
 
     it('keeps logging locally when Sentry is not configured', async () => {
         delete process.env.SENTRY_DSN;
+        delete process.env.NEXT_PUBLIC_SENTRY_DSN;
         const fetchMock = jest.fn(async () => {
             throw new Error('Fetch should not run when Sentry DSN is missing.');
         }) as jest.MockedFunction<typeof fetch>;
@@ -224,6 +227,7 @@ function createSuccessfulFetchMock(): jest.MockedFunction<typeof fetch> {
 function restoreEnvironmentVariable(
     envName:
         | 'SENTRY_DSN'
+        | 'NEXT_PUBLIC_SENTRY_DSN'
         | 'SENTRY_ENVIRONMENT'
         | 'NEXT_PUBLIC_SERVER_NAME'
         | 'NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF'

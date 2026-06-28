@@ -7,7 +7,6 @@ import type { string_book } from '../../../../src/book-2.0/agent-source/string_b
 import { DatabaseError } from '../../../../src/errors/DatabaseError';
 import { CORE_AGENT_DIRECTORY_NAME, loadCoreAgentBooks } from '../utils/defaultAgents/loadDefaultAgentBooks';
 import { DEFAULT_AGENT_VISIBILITY } from '../utils/agentVisibility';
-import { $getTableName } from './$getTableName';
 import { $provideSupabaseForServer } from './$provideSupabaseForServer';
 
 /**
@@ -87,8 +86,8 @@ export async function seedCoreAgents(options: SeedCoreAgentsOptions = {}): Promi
         return { coreFolderId: null, createdAgentNames: [] };
     }
 
-    const coreFolderId = await ensureCoreFolderExists();
-    const existingAgentNames = await loadExistingActiveAgentNames();
+    const coreFolderId = await ensureCoreFolderExists(tablePrefix);
+    const existingAgentNames = await loadExistingActiveAgentNames(tablePrefix);
     const createdAgentNames: Array<string> = [];
 
     for (const [index, coreAgentBook] of coreAgentBooks.entries()) {
@@ -125,13 +124,14 @@ function parseCoreAgentName(coreAgentBook: string_book): string {
 /**
  * Reads the set of active agent names already persisted on the current server.
  *
+ * @param tablePrefix - Table prefix for the server namespace being seeded.
  * @returns Set of active agent names indexed for quick lookups.
  *
  * @private utility of `.core` folder seeding
  */
-async function loadExistingActiveAgentNames(): Promise<Set<string>> {
+async function loadExistingActiveAgentNames(tablePrefix: string): Promise<Set<string>> {
     const supabase = $provideSupabaseForServer();
-    const agentTableName = await $getTableName('Agent');
+    const agentTableName = `${tablePrefix}Agent` as 'Agent';
     const selectResult = await supabase
         .from(agentTableName)
         .select('agentName')
@@ -159,13 +159,14 @@ async function loadExistingActiveAgentNames(): Promise<Set<string>> {
 /**
  * Ensures the `.core` folder exists at the root and returns its identifier.
  *
+ * @param tablePrefix - Table prefix for the server namespace being seeded.
  * @returns Persisted `.core` folder identifier.
  *
  * @private utility of `.core` folder seeding
  */
-async function ensureCoreFolderExists(): Promise<number> {
+async function ensureCoreFolderExists(tablePrefix: string): Promise<number> {
     const supabase = $provideSupabaseForServer();
-    const folderTableName = await $getTableName('AgentFolder');
+    const folderTableName = `${tablePrefix}AgentFolder` as 'AgentFolder';
 
     const existingFolderResult = await supabase
         .from(folderTableName)
