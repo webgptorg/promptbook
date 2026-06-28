@@ -28,15 +28,28 @@ const FILENAME_SLUG_SEPARATOR_PATTERN = /[^a-z0-9]+/g;
 const FILENAME_SLUG_EDGE_SEPARATOR_PATTERN = /^-+|-+$/g;
 
 /**
+ * Options for agents-only ZIP exports.
+ */
+export type CreateAgentsExportZipStreamOptions = {
+    /**
+     * Optional folder id used as the export root.
+     */
+    readonly folderId?: number;
+};
+
+/**
  * Builds a ZIP stream containing only agent books organized by folder structure.
  *
+ * @param options - Optional folder scope for the export.
  * @returns Download filename and stream payload.
  */
-export async function createAgentsExportZipStream(): Promise<BooksBackupZipStream> {
+export async function createAgentsExportZipStream(
+    options: CreateAgentsExportZipStreamOptions = {},
+): Promise<BooksBackupZipStream> {
     const serverName = await getMetadata(SERVER_NAME_METADATA_KEY);
     const zip = new JSZip();
 
-    await appendBooksBackupEntriesToZip(zip, '');
+    await appendBooksBackupEntriesToZip(zip, '', { rootFolderId: options.folderId });
 
     const stream = zip.generateNodeStream({
         streamFiles: true,

@@ -4,7 +4,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { useSortable } from '@dnd-kit/sortable';
 import type { string_url } from '@promptbook-local/types';
 import type { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
-import type { CSSProperties, MouseEvent } from 'react';
+import type { CSSProperties, DragEvent, MouseEvent } from 'react';
 import type { AgentOrganizationFolder } from '../../utils/agentOrganization/types';
 import { FolderCard } from './FolderCard';
 import { buildCardDragProps, DragHandle } from './DragHandle';
@@ -62,6 +62,10 @@ export type SortableFolderCardProps = {
      */
     readonly onContextMenu?: (event: MouseEvent<HTMLDivElement>, folder: AgentOrganizationFolder) => void;
     /**
+     * File-drop handler for importing agents directly into this folder.
+     */
+    readonly onFileDrop?: (event: DragEvent<HTMLDivElement>, folderId: number) => void;
+    /**
      * Accessible label displayed for the drag handle.
      */
     readonly dragHandleLabel: string;
@@ -88,6 +92,7 @@ export function SortableFolderCard({
     onRename,
     onDelete,
     onContextMenu,
+    onFileDrop,
     dragHandleLabel,
     allowFullCardDrag,
 }: SortableFolderCardProps) {
@@ -125,6 +130,7 @@ export function SortableFolderCard({
             className={`relative ${canOrganize ? 'select-none' : ''} ${isDragging ? 'opacity-0' : ''} ${dropClasses}`}
             {...dragProps}
             onContextMenu={(event) => onContextMenu?.(event, folder)}
+            onDrop={(event) => onFileDrop?.(event, folder.id)}
         >
             <FolderCard
                 folderName={folder.name}

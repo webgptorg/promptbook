@@ -1,7 +1,7 @@
 'use client';
 
 import JSZip from 'jszip';
-import { useCallback, useRef, useState, type ChangeEvent, type DragEvent, type RefObject } from 'react';
+import { useCallback, useRef, useState, type DragEvent } from 'react';
 import { downloadBlob, parseFilenameFromContentDisposition } from '../../utils/download/browserFileDownload';
 import { showAlert, showConfirm, showPrompt } from '../AsyncDialogs/asyncDialogs';
 
@@ -34,11 +34,6 @@ const TARGET_FOLDER_ID_FORM_FIELD = 'targetFolderId';
  * Form field used for duplicate conflict handling.
  */
 const CONFLICT_RESOLUTION_FORM_FIELD = 'conflictResolution';
-
-/**
- * File input accept list for agents imports.
- */
-export const AGENTS_IMPORT_FILE_INPUT_ACCEPT = '.book,.zip,application/zip,application/x-zip-compressed';
 
 /**
  * Maximum number of warning or conflict paths shown in dialogs.
@@ -116,14 +111,12 @@ type UseAgentsListImportExportStateOptions = {
  * Hook state and handlers for Agents list import/export behavior.
  */
 type UseAgentsListImportExportStateResult = {
-    readonly importFileInputRef: RefObject<HTMLInputElement | null>;
     readonly handleAgentsExport: () => Promise<void>;
-    readonly handleAgentsImportClick: () => void;
-    readonly handleAgentsImportFileChange: (event: ChangeEvent<HTMLInputElement>) => Promise<void>;
     readonly handleAgentsFileDragEnter: (event: DragEvent<HTMLElement>) => void;
     readonly handleAgentsFileDragLeave: (event: DragEvent<HTMLElement>) => void;
     readonly handleAgentsFileDragOver: (event: DragEvent<HTMLElement>) => void;
     readonly handleAgentsFileDrop: (event: DragEvent<HTMLElement>) => Promise<void>;
+    readonly handleAgentsFileDropIntoFolder: (event: DragEvent<HTMLElement>, folderId: number) => Promise<void>;
     readonly isAgentsExporting: boolean;
     readonly isAgentsImportDragActive: boolean;
     readonly isAgentsImporting: boolean;
@@ -141,7 +134,6 @@ export function useAgentsListImportExportState({
     currentFolderId,
     synchronizeAfterMutation,
 }: UseAgentsListImportExportStateOptions): UseAgentsListImportExportStateResult {
-    const importFileInputRef = useRef<HTMLInputElement | null>(null);
     const dragDepthRef = useRef(0);
     const [isAgentsExporting, setIsAgentsExporting] = useState(false);
     const [isAgentsImporting, setIsAgentsImporting] = useState(false);
@@ -155,9 +147,9 @@ export function useAgentsListImportExportState({
         setIsAgentsExporting(true);
 
         try {
-            const response = await fetch(AGENTS_EXPORT_ENDPOINT, { method: 'GET' });
+            const response = await fetch(createAgentsExportEndpoint(currentFolderId), { method: 'GET' });
             if (!response.ok) {
-                throw new Error(await resolveAgentsTransferErrorMessage(response, 'Failed to export agents.'));
+                throw new Error(await resolveAgentsTransferErrorMessage(response, 'Failed to download agents.'));
             }
 
             const filename =
@@ -167,16 +159,16 @@ export function useAgentsListImportExportState({
             downloadBlob(await response.blob(), filename);
         } catch (error) {
             await showAlert({
-                title: 'Export failed',
-                message: error instanceof Error ? error.message : 'Failed to export agents.',
+                title: 'Download failed',
+                message: error instanceof Error ? error.message : 'Failed to download agents.',
             }).catch(() => undefined);
         } finally {
             setIsAgentsExporting(false);
         }
-    }, [isAgentsExporting]);
+    }, [currentFolderId, isAgentsExporting]);
 
     const importAgentsFiles = useCallback(
-        async (files: ReadonlyArray<File>) => {
+        async (files: ReadonlyArray<File>, targetFolderId: number | null) => {
             if (isAgentsImporting || files.length === 0) {
                 return;
             }
@@ -191,7 +183,7 @@ export function useAgentsListImportExportState({
             try {
                 const initialResponse = await uploadAgentsImportFiles({
                     files,
-                    targetFolderId: currentFolderId,
+                    targetFolderId,
                     conflictResolution: 'ASK',
                 });
 
@@ -204,7 +196,7 @@ export function useAgentsListImportExportState({
 
                     const resolvedResponse = await uploadAgentsImportFiles({
                         files,
-                        targetFolderId: currentFolderId,
+                        targetFolderId,
                         conflictResolution,
                     });
                     await handleAgentsImportResponse(resolvedResponse, synchronizeAfterMutation);
@@ -221,27 +213,7 @@ export function useAgentsListImportExportState({
                 setIsAgentsImporting(false);
             }
         },
-        [currentFolderId, isAgentsImporting, synchronizeAfterMutation],
-    );
-
-    const handleAgentsImportClick = useCallback(() => {
-        if (isAgentsImporting) {
-            return;
-        }
-
-        importFileInputRef.current?.click();
-    }, [isAgentsImporting]);
-
-    const handleAgentsImportFileChange = useCallback(
-        async (event: ChangeEvent<HTMLInputElement>) => {
-            const files = Array.from(event.target.files || []);
-            await importAgentsFiles(files);
-
-            if (importFileInputRef.current) {
-                importFileInputRef.current.value = '';
-            }
-        },
-        [importAgentsFiles],
+        [isAgentsImporting, synchronizeAfterMutation],
     );
 
     const handleAgentsFileDragEnter = useCallback((event: DragEvent<HTMLElement>) => {
@@ -284,24 +256,54 @@ export function useAgentsListImportExportState({
             dragDepthRef.current = 0;
             setIsAgentsImportDragActive(false);
 
-            await importAgentsFiles(Array.from(event.dataTransfer.files || []));
+            await importAgentsFiles(Array.from(event.dataTransfer.files || []), currentFolderId);
+        },
+        [currentFolderId, importAgentsFiles],
+    );
+
+    const handleAgentsFileDropIntoFolder = useCallback(
+        async (event: DragEvent<HTMLElement>, folderId: number) => {
+            if (!isFileDragEvent(event)) {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+            dragDepthRef.current = 0;
+            setIsAgentsImportDragActive(false);
+
+            await importAgentsFiles(Array.from(event.dataTransfer.files || []), folderId);
         },
         [importAgentsFiles],
     );
 
     return {
-        importFileInputRef,
         handleAgentsExport,
-        handleAgentsImportClick,
-        handleAgentsImportFileChange,
         handleAgentsFileDragEnter,
         handleAgentsFileDragLeave,
         handleAgentsFileDragOver,
         handleAgentsFileDrop,
+        handleAgentsFileDropIntoFolder,
         isAgentsExporting,
         isAgentsImportDragActive,
         isAgentsImporting,
     };
+}
+
+/**
+ * Builds the agents ZIP download endpoint for the current folder scope.
+ *
+ * @param folderId - Current folder id, or `null` for the full-server export.
+ * @returns Export endpoint URL.
+ */
+function createAgentsExportEndpoint(folderId: number | null): string {
+    if (folderId === null) {
+        return AGENTS_EXPORT_ENDPOINT;
+    }
+
+    const searchParams = new URLSearchParams({ folderId: String(folderId) });
+
+    return `${AGENTS_EXPORT_ENDPOINT}?${searchParams.toString()}`;
 }
 
 /**

@@ -1,7 +1,9 @@
+import { ParseError } from '@promptbook-local/core';
 import JSZip from 'jszip';
 import { $getTableName } from '../../database/$getTableName';
 import { $provideSupabaseForServer } from '../../database/$provideSupabaseForServer';
 import type { AgentsServerDatabase } from '../../database/schema';
+import { buildFolderTree, collectDescendantFolderIds } from '../agentOrganization/folderTree';
 import { sanitizeBackupPathSegment } from './sanitizeBackupPathSegment';
 
 /**
@@ -97,6 +99,18 @@ export type BooksBackupZipStream = {
 };
 
 /**
+ * Options for appending book entries into an existing ZIP archive.
+ */
+export type AppendBooksBackupEntriesToZipOptions = {
+    /**
+     * Optional folder id used as the export root.
+     *
+     * When provided, only agents from this folder and its descendants are exported, with paths relative to this folder.
+     */
+    readonly rootFolderId?: number;
+};
+
+/**
  * Appends all exported books into a target ZIP folder while preserving the Agents Server folder tree.
  *
  * Uses canonical persisted `Agent.agentSource` values and resolves folder/file collisions
@@ -104,8 +118,13 @@ export type BooksBackupZipStream = {
  *
  * @param zip - ZIP archive being assembled.
  * @param archiveRootPath - ZIP folder path where books should be written.
+ * @param options - Optional folder scope for the exported books.
  */
-export async function appendBooksBackupEntriesToZip(zip: JSZip, archiveRootPath: string): Promise<void> {
+export async function appendBooksBackupEntriesToZip(
+    zip: JSZip,
+    archiveRootPath: string,
+    options: AppendBooksBackupEntriesToZipOptions = {},
+): Promise<void> {
     const supabase = $provideSupabaseForServer();
     const agentTable = await $getTableName('Agent');
     const folderTable = await $getTableName('AgentFolder');
@@ -125,8 +144,11 @@ export async function appendBooksBackupEntriesToZip(zip: JSZip, archiveRootPath:
 
     const agents = (agentsResult.data || []) as BackupAgentRow[];
     const folders = (foldersResult.data || []) as BackupFolderRow[];
+    const agentsForExport =
+        options.rootFolderId === undefined ? agents : filterAgentsByRootFolder(agents, folders, options.rootFolderId);
     const folderSegmentById = buildFolderSegmentById(folders);
     const resolveFolderPath = createFolderPathResolver(folders, folderSegmentById);
+    const resolveArchiveFolderPath = createArchiveFolderPathResolver(resolveFolderPath, options.rootFolderId);
 
     // Keep the root directory explicit even when there are no agents.
     if (archiveRootPath) {
@@ -136,12 +158,12 @@ export async function appendBooksBackupEntriesToZip(zip: JSZip, archiveRootPath:
     const relativeFilePaths = new Set<string>();
     const folderPathByAgentId = new Map<number, string>();
 
-    for (const agent of agents) {
-        const folderPath = resolveFolderPath(agent.folderId ?? null).join('/');
+    for (const agent of agentsForExport) {
+        const folderPath = resolveArchiveFolderPath(agent.folderId ?? null).join('/');
         folderPathByAgentId.set(agent.id, folderPath);
     }
 
-    const sortedAgents = [...agents].sort((left, right) =>
+    const sortedAgents = [...agentsForExport].sort((left, right) =>
         compareAgents(
             left,
             right,
@@ -151,7 +173,7 @@ export async function appendBooksBackupEntriesToZip(zip: JSZip, archiveRootPath:
     );
 
     for (const agent of sortedAgents) {
-        const folderSegments = resolveFolderPath(agent.folderId ?? null);
+        const folderSegments = resolveArchiveFolderPath(agent.folderId ?? null);
         const initialBookFilename = createInitialBookFilename(agent);
         const relativePath = createUniqueBookRelativePath(relativeFilePaths, folderSegments, initialBookFilename, agent.id);
         zip.file(createArchivePath(archiveRootPath, relativePath), agent.agentSource || '');
@@ -167,6 +189,55 @@ export async function appendBooksBackupEntriesToZip(zip: JSZip, archiveRootPath:
  */
 function createArchivePath(archiveRootPath: string, relativePath: string): string {
     return archiveRootPath ? `${archiveRootPath}/${relativePath}` : relativePath;
+}
+
+/**
+ * Filters agents to a selected folder subtree.
+ *
+ * @param agents - All loaded agent rows.
+ * @param folders - All loaded folder rows.
+ * @param rootFolderId - Folder id selected as the export root.
+ * @returns Agents assigned to the root folder or its descendant folders.
+ */
+function filterAgentsByRootFolder(
+    agents: ReadonlyArray<BackupAgentRow>,
+    folders: ReadonlyArray<BackupFolderRow>,
+    rootFolderId: number,
+): BackupAgentRow[] {
+    const { folderById, childrenByParentId } = buildFolderTree([...folders]);
+    if (!folderById.has(rootFolderId)) {
+        throw new ParseError(`Folder \`${rootFolderId}\` was not found.`);
+    }
+
+    const scopedFolderIds = new Set(collectDescendantFolderIds(rootFolderId, childrenByParentId));
+
+    return agents.filter((agent) => agent.folderId !== null && scopedFolderIds.has(agent.folderId));
+}
+
+/**
+ * Creates a path resolver for full exports or folder-relative exports.
+ *
+ * @param resolveFolderPath - Full folder-path resolver.
+ * @param rootFolderId - Optional folder id selected as the export root.
+ * @returns Folder-path resolver for archive entry paths.
+ */
+function createArchiveFolderPathResolver(
+    resolveFolderPath: (folderId: number | null) => string[],
+    rootFolderId: number | undefined,
+): (folderId: number | null) => string[] {
+    if (rootFolderId === undefined) {
+        return resolveFolderPath;
+    }
+
+    const rootFolderPath = resolveFolderPath(rootFolderId);
+
+    return (folderId: number | null): string[] => {
+        if (folderId === null) {
+            return [];
+        }
+
+        return resolveFolderPath(folderId).slice(rootFolderPath.length);
+    };
 }
 
 /**

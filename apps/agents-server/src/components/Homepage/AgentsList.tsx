@@ -6,7 +6,6 @@ import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../../util
 import { AgentsListDialogs } from './AgentsListDialogs';
 import { AgentsListHeader } from './AgentsListHeader';
 import { AgentsListViewContent } from './AgentsListViewContent';
-import { AGENTS_IMPORT_FILE_INPUT_ACCEPT } from './useAgentsListImportExportState';
 import type { AgentWithVisibility } from './useFederatedAgents';
 import { useAgentsListState } from './useAgentsListState';
 
@@ -82,17 +81,6 @@ export function AgentsList(props: AgentsListProps) {
             onDragOver={isAdmin ? state.handleAgentsFileDragOver : undefined}
             onDrop={isAdmin ? state.handleAgentsFileDrop : undefined}
         >
-            {isAdmin && (
-                <input
-                    ref={state.importFileInputRef}
-                    type="file"
-                    multiple
-                    accept={AGENTS_IMPORT_FILE_INPUT_ACCEPT}
-                    className="hidden"
-                    onChange={(event) => void state.handleAgentsImportFileChange(event)}
-                    disabled={state.isAgentsImporting}
-                />
-            )}
             {isAdmin && state.isAgentsImportDragActive && (
                 <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center rounded-xl border-2 border-dashed border-blue-400 bg-blue-50/85 text-sm font-medium text-blue-800 shadow-sm">
                     Drop books or ZIP archives to import agents
@@ -109,7 +97,6 @@ export function AgentsList(props: AgentsListProps) {
                 isAgentsImporting={state.isAgentsImporting}
                 onCreateFolder={state.handleCreateFolder}
                 onExportAgents={() => void state.handleAgentsExport()}
-                onImportAgents={state.handleAgentsImportClick}
                 onNavigateToFolder={state.navigateToFolder}
                 onSetViewMode={state.setViewMode}
                 viewMode={state.viewMode}
@@ -138,6 +125,7 @@ export function AgentsList(props: AgentsListProps) {
                 handleDragEnd={state.handleDragEnd}
                 handleDragOver={state.handleDragOver}
                 handleDragStart={state.handleDragStart}
+                handleAgentsFileDropIntoFolder={state.handleAgentsFileDropIntoFolder}
                 handleFolderContextMenu={state.handleFolderContextMenu}
                 handleRenameFolder={state.handleRenameFolder}
                 handleRequestAgentVisibilityChange={state.handleRequestAgentVisibilityChange}

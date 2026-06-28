@@ -102,6 +102,10 @@ type AgentsListListViewProps = {
      */
     readonly handleDragStart: ComponentProps<typeof DndContext>['onDragStart'];
     /**
+     * Imports dropped book files or ZIP archives directly into one folder.
+     */
+    readonly handleAgentsFileDropIntoFolder: SortableFolderCardProps['onFileDrop'];
+    /**
      * Handles folder context-menu requests.
      */
     readonly handleFolderContextMenu: SortableFolderCardProps['onContextMenu'];
@@ -193,6 +197,7 @@ export function AgentsListListView({
     handleDragEnd,
     handleDragOver,
     handleDragStart,
+    handleAgentsFileDropIntoFolder,
     handleFolderContextMenu,
     handleRenameFolder,
     handleRequestAgentVisibilityChange,
@@ -239,6 +244,7 @@ export function AgentsListListView({
                             onRename={canOrganize ? () => handleRenameFolder(folder.id) : undefined}
                             onDelete={canOrganize ? () => handleDeleteFolder(folder.id) : undefined}
                             onContextMenu={handleFolderContextMenu}
+                            onFileDrop={isAdmin ? handleAgentsFileDropIntoFolder : undefined}
                             dragHandleLabel={dragFolderLabel}
                             allowFullCardDrag={allowFullCardDrag}
                         />

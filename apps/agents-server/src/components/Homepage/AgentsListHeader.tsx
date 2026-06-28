@@ -8,7 +8,6 @@ import {
     Grid,
     Map,
     Network,
-    UploadIcon,
     type LucideIcon,
 } from 'lucide-react';
 import type { AgentOrganizationFolder } from '../../utils/agentOrganization/types';
@@ -70,13 +69,9 @@ type AgentsListHeaderProps = {
      */
     readonly isAdmin: boolean;
     /**
-     * Downloads an agents export.
+     * Downloads an agents archive.
      */
     readonly onExportAgents: () => void;
-    /**
-     * Opens the agents import file picker.
-     */
-    readonly onImportAgents: () => void;
     /**
      * Opens the create-folder dialog.
      */
@@ -135,7 +130,6 @@ export function AgentsListHeader({
     isAgentsImporting,
     onCreateFolder,
     onExportAgents,
-    onImportAgents,
     onNavigateToFolder,
     onSetViewMode,
     viewMode,
@@ -180,20 +174,10 @@ export function AgentsListHeader({
                                 onClick={onExportAgents}
                                 disabled={isAgentsExporting || isAgentsImporting}
                                 className="flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition-colors text-sm disabled:cursor-not-allowed disabled:opacity-60"
-                                title="Export agents"
+                                title="Download agents"
                             >
                                 <DownloadIcon className="w-4 h-4" />
-                                {isAgentsExporting ? 'Exporting...' : 'Export'}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={onImportAgents}
-                                disabled={isAgentsExporting || isAgentsImporting}
-                                className="flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition-colors text-sm disabled:cursor-not-allowed disabled:opacity-60"
-                                title="Import agents"
-                            >
-                                <UploadIcon className="w-4 h-4" />
-                                {isAgentsImporting ? 'Importing...' : 'Import'}
+                                {isAgentsExporting ? 'Downloading...' : 'Download'}
                             </button>
                         </>
                     )}

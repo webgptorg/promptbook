@@ -22,7 +22,7 @@
 
 ---
 
-[ ] !
+[x] ~$0.4584 2 hours by OpenAI Codex `gpt-5.5`
 
 [✨🚕] Modify import / export of the agents
 
@@ -33,3 +33,4 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server) with agent lising
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
