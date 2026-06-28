@@ -13,10 +13,19 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { Fragment, useEffect, useRef, useState } from 'react';
+import { spaceTrim } from 'spacetrim';
 import { showConfirm } from '../../../components/AsyncDialogs/asyncDialogs';
 import { useFileUploadAvailability } from '../../../components/FileUploadAvailability/FileUploadAvailabilityContext';
-import { getDeprecatedLimitMetadataDefinition, type DeprecatedLimitMetadataDefinition } from '../../../constants/serverLimits';
-import { getMetadataDefinition, metadataDefaults, type MetadataDefinition } from '../../../database/metadataDefaults';
+import {
+    getDeprecatedLimitMetadataDefinition,
+    type DeprecatedLimitMetadataDefinition,
+} from '../../../constants/serverLimits';
+import {
+    getMetadataDefinition,
+    metadataDefaults,
+    validateMetadataValue,
+    type MetadataDefinition,
+} from '../../../database/metadataDefaults';
 import { getSafeCdnPath } from '../../../utils/cdn/utils/getSafeCdnPath';
 import { downloadBlob, parseFilenameFromContentDisposition } from '../../../utils/download/browserFileDownload';
 import { normalizeUploadFilename } from '../../../utils/normalization/normalizeUploadFilename';
@@ -79,6 +88,62 @@ type MetadataImportSummary = {
 };
 
 /**
+ * One metadata entry from a standalone metadata import JSON file.
+ *
+ * @private
+ */
+type MetadataImportEntry = {
+    /**
+     * Metadata key.
+     */
+    readonly key: string;
+
+    /**
+     * Metadata value, omitted when the exported value matched the built-in default.
+     */
+    readonly value?: string;
+
+    /**
+     * Metadata note, omitted when the exported note matched the built-in default.
+     */
+    readonly note?: string | null;
+};
+
+/**
+ * Standalone metadata import payload parsed in the browser before upload.
+ *
+ * @private
+ */
+type MetadataImportPayload = {
+    /**
+     * Promptbook version that generated the import file.
+     */
+    readonly promptbookVersion: string;
+
+    /**
+     * Metadata entries included in the import file.
+     */
+    readonly metadata: ReadonlyArray<MetadataImportEntry>;
+};
+
+/**
+ * Result of browser-side metadata import parsing.
+ *
+ * @private
+ */
+type MetadataImportPayloadParseResult = {
+    /**
+     * Parsed payload when the import file is usable.
+     */
+    readonly payload: MetadataImportPayload | null;
+
+    /**
+     * User-facing error message when parsing failed.
+     */
+    readonly errorMessage: string | null;
+};
+
+/**
  * Shared class names for single-line metadata inputs.
  *
  * @private
@@ -92,6 +157,34 @@ const METADATA_INPUT_CLASS_NAME =
  * @private
  */
 const METADATA_TEXTAREA_CLASS_NAME = `${METADATA_INPUT_CLASS_NAME} min-h-[100px]`;
+
+/**
+ * Endpoint used by the interactive import flow after the admin selected individual entries.
+ *
+ * @private
+ */
+const METADATA_IMPORT_WITHOUT_DEFAULT_RESET_ENDPOINT = `${METADATA_IMPORT_ENDPOINT}?isDefaultResetSkipped=true`;
+
+/**
+ * Maximum value preview length inside one metadata import choice dialog.
+ *
+ * @private
+ */
+const METADATA_IMPORT_VALUE_PREVIEW_MAX_LENGTH = 180;
+
+/**
+ * Label used when a metadata value is intentionally empty.
+ *
+ * @private
+ */
+const METADATA_IMPORT_EMPTY_VALUE_LABEL = '(empty)';
+
+/**
+ * Label used when a metadata key is not currently persisted.
+ *
+ * @private
+ */
+const METADATA_IMPORT_MISSING_VALUE_LABEL = '(not set)';
 
 /**
  * Normalizes metadata keys so they are safe to use as HTML id suffixes.
@@ -144,6 +237,271 @@ async function resolveMetadataTransferErrorMessage(response: Response, fallbackM
     }
 
     return fallbackMessage;
+}
+
+/**
+ * Parses one metadata import JSON file for browser-side per-entry selection.
+ *
+ * @param fileContent - Raw JSON file content.
+ * @returns Parsed payload or user-facing error message.
+ *
+ * @private
+ */
+function parseMetadataImportPayloadForSelection(fileContent: string): MetadataImportPayloadParseResult {
+    try {
+        return normalizeMetadataImportPayloadForSelection(JSON.parse(fileContent));
+    } catch {
+        return {
+            payload: null,
+            errorMessage: 'Metadata import must be valid JSON.',
+        };
+    }
+}
+
+/**
+ * Normalizes parsed metadata import JSON enough to ask the admin about each entry.
+ *
+ * @param payload - Parsed JSON import payload.
+ * @returns Parsed payload or user-facing error message.
+ *
+ * @private
+ */
+function normalizeMetadataImportPayloadForSelection(payload: unknown): MetadataImportPayloadParseResult {
+    if (!payload || typeof payload !== 'object') {
+        return {
+            payload: null,
+            errorMessage: 'Metadata import must be a JSON object.',
+        };
+    }
+
+    const payloadRecord = payload as Record<string, unknown>;
+
+    if (typeof payloadRecord.promptbookVersion !== 'string' || payloadRecord.promptbookVersion.trim() === '') {
+        return {
+            payload: null,
+            errorMessage: 'Metadata import is missing `promptbookVersion`.',
+        };
+    }
+
+    if (!Array.isArray(payloadRecord.metadata)) {
+        return {
+            payload: null,
+            errorMessage: 'Metadata import must contain a `metadata` array.',
+        };
+    }
+
+    const importedMetadataKeys = new Set<string>();
+    const metadataEntries: Array<MetadataImportEntry> = [];
+
+    for (const [index, rawMetadataEntry] of payloadRecord.metadata.entries()) {
+        const normalizedMetadataEntry = normalizeMetadataImportEntryForSelection(
+            rawMetadataEntry,
+            index,
+            importedMetadataKeys,
+        );
+
+        if (typeof normalizedMetadataEntry === 'string') {
+            return {
+                payload: null,
+                errorMessage: normalizedMetadataEntry,
+            };
+        }
+
+        metadataEntries.push(normalizedMetadataEntry);
+    }
+
+    return {
+        payload: {
+            promptbookVersion: payloadRecord.promptbookVersion,
+            metadata: metadataEntries,
+        },
+        errorMessage: null,
+    };
+}
+
+/**
+ * Normalizes one metadata import entry for browser-side selection.
+ *
+ * @param rawMetadataEntry - Untrusted entry from the import JSON.
+ * @param index - Zero-based entry index for error messages.
+ * @param importedMetadataKeys - Mutable set used to reject duplicate keys.
+ * @returns Normalized entry or user-facing error message.
+ *
+ * @private
+ */
+function normalizeMetadataImportEntryForSelection(
+    rawMetadataEntry: unknown,
+    index: number,
+    importedMetadataKeys: Set<string>,
+): MetadataImportEntry | string {
+    if (!rawMetadataEntry || typeof rawMetadataEntry !== 'object') {
+        return `Metadata entry #${index + 1} must be an object.`;
+    }
+
+    const rawMetadataEntryRecord = rawMetadataEntry as Record<string, unknown>;
+    const rawKey = rawMetadataEntryRecord.key;
+    if (typeof rawKey !== 'string' || rawKey.trim() === '') {
+        return `Metadata entry #${index + 1} is missing a non-empty \`key\`.`;
+    }
+
+    const key = rawKey.trim();
+    const isDuplicateKey = importedMetadataKeys.has(key);
+    if (isDuplicateKey) {
+        return `Metadata import contains duplicate key \`${key}\`.`;
+    }
+    importedMetadataKeys.add(key);
+
+    const metadataDefinition = getMetadataDefinition(key);
+    const isValueProvided = Object.prototype.hasOwnProperty.call(rawMetadataEntryRecord, 'value');
+    const isNoteProvided = Object.prototype.hasOwnProperty.call(rawMetadataEntryRecord, 'note');
+
+    if (isValueProvided && typeof rawMetadataEntryRecord.value !== 'string') {
+        return `Metadata entry \`${key}\` has invalid \`value\`; expected a string.`;
+    }
+
+    if (isNoteProvided && typeof rawMetadataEntryRecord.note !== 'string' && rawMetadataEntryRecord.note !== null) {
+        return `Metadata entry \`${key}\` has invalid \`note\`; expected a string or null.`;
+    }
+
+    if (!isValueProvided && !metadataDefinition) {
+        return spaceTrim(`
+            Metadata entry \`${key}\` is missing \`value\`.
+
+            Only built-in metadata keys can omit default values.
+        `);
+    }
+
+    const value = isValueProvided ? (rawMetadataEntryRecord.value as string) : metadataDefinition!.value;
+    const validationError = validateMetadataValue(key, value);
+
+    if (validationError) {
+        return validationError;
+    }
+
+    const metadataEntry: MetadataImportEntry = {
+        key,
+    };
+
+    if (isValueProvided) {
+        (metadataEntry as { value: string }).value = rawMetadataEntryRecord.value as string;
+    }
+
+    if (isNoteProvided) {
+        (metadataEntry as { note: string | null }).note = rawMetadataEntryRecord.note as string | null;
+    }
+
+    return metadataEntry;
+}
+
+/**
+ * Resolves the effective imported metadata value after omitted built-in defaults are applied.
+ *
+ * @param importEntry - Metadata import entry.
+ * @returns Effective imported value.
+ *
+ * @private
+ */
+function resolveImportedMetadataValue(importEntry: MetadataImportEntry): string {
+    const isValueProvided = Object.prototype.hasOwnProperty.call(importEntry, 'value');
+
+    if (isValueProvided) {
+        return importEntry.value!;
+    }
+
+    return getMetadataDefinition(importEntry.key)?.value ?? '';
+}
+
+/**
+ * Resolves the effective imported metadata note after omitted built-in defaults are applied.
+ *
+ * @param importEntry - Metadata import entry.
+ * @returns Effective imported note.
+ *
+ * @private
+ */
+function resolveImportedMetadataNote(importEntry: MetadataImportEntry): string | null {
+    const isNoteProvided = Object.prototype.hasOwnProperty.call(importEntry, 'note');
+
+    if (isNoteProvided) {
+        return importEntry.note!;
+    }
+
+    return getMetadataDefinition(importEntry.key)?.note ?? null;
+}
+
+/**
+ * Formats one metadata value for compact import choice dialogs.
+ *
+ * @param value - Raw value or note.
+ * @returns Single-line preview for the dialog body.
+ *
+ * @private
+ */
+function formatMetadataImportDialogValue(value: string | null | undefined): string {
+    if (value === null || value === undefined) {
+        return METADATA_IMPORT_EMPTY_VALUE_LABEL;
+    }
+
+    const normalizedValue = value.replace(/\s+/g, ' ').trim();
+
+    if (normalizedValue === '') {
+        return METADATA_IMPORT_EMPTY_VALUE_LABEL;
+    }
+
+    if (normalizedValue.length <= METADATA_IMPORT_VALUE_PREVIEW_MAX_LENGTH) {
+        return normalizedValue;
+    }
+
+    return `${normalizedValue.slice(0, METADATA_IMPORT_VALUE_PREVIEW_MAX_LENGTH)}...`;
+}
+
+/**
+ * Asks the admin which imported metadata entries should replace current values.
+ *
+ * @param importPayload - Parsed metadata import payload.
+ * @param currentMetadataEntries - Metadata entries currently displayed in the admin table.
+ * @returns Filtered import payload containing only selected entries.
+ *
+ * @private
+ */
+async function createSelectedMetadataImportPayload(
+    importPayload: MetadataImportPayload,
+    currentMetadataEntries: ReadonlyArray<MetadataEntry>,
+): Promise<MetadataImportPayload> {
+    const currentMetadataByKey = new Map<string, MetadataEntry>(
+        currentMetadataEntries.map((metadataEntry) => [metadataEntry.key, metadataEntry]),
+    );
+    const selectedMetadataEntries: Array<MetadataImportEntry> = [];
+
+    for (const importEntry of importPayload.metadata) {
+        const currentMetadataEntry = currentMetadataByKey.get(importEntry.key);
+        const currentValue = currentMetadataEntry?.value ?? METADATA_IMPORT_MISSING_VALUE_LABEL;
+        const currentNote = currentMetadataEntry?.note ?? null;
+        const importedValue = resolveImportedMetadataValue(importEntry);
+        const importedNote = resolveImportedMetadataNote(importEntry);
+        const isImportedSelected = await showConfirm({
+            title: `Import ${importEntry.key}`,
+            message: spaceTrim(`
+                Choose metadata for \`${importEntry.key}\`.
+
+                Current value: ${formatMetadataImportDialogValue(currentValue)}
+                Imported value: ${formatMetadataImportDialogValue(importedValue)}
+                Current note: ${formatMetadataImportDialogValue(currentNote)}
+                Imported note: ${formatMetadataImportDialogValue(importedNote)}
+            `),
+            confirmLabel: 'Use imported',
+            cancelLabel: 'Keep current',
+        }).catch(() => false);
+
+        if (isImportedSelected) {
+            selectedMetadataEntries.push(importEntry);
+        }
+    }
+
+    return {
+        promptbookVersion: importPayload.promptbookVersion,
+        metadata: selectedMetadataEntries,
+    };
 }
 
 /**
@@ -380,16 +738,16 @@ function mergeMetadataWithDefaults(data: MetadataEntry[]): MetadataEntry[] {
 
     // First prefer existing (non-default) metadata coming from the database
     for (const entry of data) {
-            const existing = byKey.get(entry.key);
-            if (!existing || existing.isDefault) {
-                const definition = getMetadataDefinition(entry.key);
-                byKey.set(entry.key, {
-                    ...entry,
-                    definition,
-                    deprecatedLimitMetadata: getDeprecatedLimitMetadataDefinition(entry.key),
-                });
-            }
+        const existing = byKey.get(entry.key);
+        if (!existing || existing.isDefault) {
+            const definition = getMetadataDefinition(entry.key);
+            byKey.set(entry.key, {
+                ...entry,
+                definition,
+                deprecatedLimitMetadata: getDeprecatedLimitMetadataDefinition(entry.key),
+            });
         }
+    }
 
     // Then add defaults only for keys that are missing
     for (const def of metadataDefaults) {
@@ -534,29 +892,32 @@ export function MetadataClient() {
             return;
         }
 
-        const isConfirmed = await showConfirm({
-            title: 'Import metadata',
-            message: 'Import metadata from this JSON file? Existing built-in metadata not present in the file will be reset to defaults.',
-            confirmLabel: 'Import metadata',
-            cancelLabel: 'Cancel',
-        }).catch(() => false);
-
-        if (!isConfirmed) {
-            if (importFileInputRef.current) {
-                importFileInputRef.current.value = '';
-            }
-            return;
-        }
-
         setError(null);
         setSuccessMessage(null);
         setIsImportingMetadata(true);
 
         try {
-            const response = await fetch(METADATA_IMPORT_ENDPOINT, {
+            const parsedImportPayload = parseMetadataImportPayloadForSelection(await file.text());
+
+            if (parsedImportPayload.errorMessage || !parsedImportPayload.payload) {
+                setError(parsedImportPayload.errorMessage || 'Metadata import failed.');
+                return;
+            }
+
+            const selectedImportPayload = await createSelectedMetadataImportPayload(
+                parsedImportPayload.payload,
+                metadata,
+            );
+
+            if (selectedImportPayload.metadata.length === 0) {
+                setSuccessMessage('Metadata import skipped; all imported entries kept current.');
+                return;
+            }
+
+            const response = await fetch(METADATA_IMPORT_WITHOUT_DEFAULT_RESET_ENDPOINT, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: await file.text(),
+                body: JSON.stringify(selectedImportPayload),
             });
 
             if (!response.ok) {
@@ -675,7 +1036,6 @@ export function MetadataClient() {
                 return <TypeIcon className="w-4 h-4" />;
         }
     };
-
 
     /**
      * Parameters required to upload an image and store the resulting URL in a metadata form.
@@ -1017,11 +1377,16 @@ export function MetadataClient() {
                                                                     Value
                                                                 </label>
                                                                 <MetadataValueField
-                                                                    definition={getMetadataDefinition(editingFormState.key)}
+                                                                    definition={getMetadataDefinition(
+                                                                        editingFormState.key,
+                                                                    )}
                                                                     fieldId={editValueFieldId}
                                                                     value={editingFormState.value}
                                                                     onValueChange={(value) =>
-                                                                        setEditingFormState((prev) => ({ ...prev, value }))
+                                                                        setEditingFormState((prev) => ({
+                                                                            ...prev,
+                                                                            value,
+                                                                        }))
                                                                     }
                                                                     isUploading={isEditUploading}
                                                                     isUploadAvailable={

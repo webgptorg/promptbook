@@ -31,10 +31,11 @@ value: "...",
 
 ---
 
-[ ] !
+[x] ~$0.00 2 hours by OpenAI Codex `gpt-5.5`
 
 [✨🐺] When importing metadata, ask if you want to keep out or imported key, ask for each metadata value
 
 -   On page `/admin/metadata` there is button to import the metadata from JSON file
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

@@ -28,7 +28,8 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-        const importSummary = await importMetadataConfigurationPayload(payload);
+        const isDefaultResetSkipped = request.nextUrl.searchParams.get('isDefaultResetSkipped') === 'true';
+        const importSummary = await importMetadataConfigurationPayload(payload, { isDefaultResetSkipped });
         return NextResponse.json(importSummary);
     } catch (error) {
         if (error instanceof ParseError) {

@@ -104,6 +104,16 @@ export type MetadataConfigurationImportPlan = {
 };
 
 /**
+ * Options controlling standalone metadata import behavior.
+ */
+export type MetadataConfigurationImportPlanOptions = {
+    /**
+     * When true, built-in metadata keys missing from the import payload keep their current persisted value.
+     */
+    readonly isDefaultResetSkipped?: boolean;
+};
+
+/**
  * Summary returned after importing metadata.
  */
 export type MetadataConfigurationImportSummary = {
@@ -152,18 +162,23 @@ export async function createMetadataConfigurationExport(): Promise<MetadataConfi
  * Imports standalone metadata JSON into the current server database.
  *
  * @param payload - Parsed JSON import payload.
+ * @param options - Import behavior options.
  * @returns Import summary for the UI.
  */
 export async function importMetadataConfigurationPayload(
     payload: unknown,
+    options: MetadataConfigurationImportPlanOptions = {},
 ): Promise<MetadataConfigurationImportSummary> {
-    const importPlan = createMetadataConfigurationImportPlan(payload);
+    const importPlan = createMetadataConfigurationImportPlan(payload, options);
     const supabase = $provideSupabaseForServer();
     const tableName = await $getTableName('Metadata');
     const nowIso = new Date().toISOString();
 
     if (importPlan.defaultKeysToReset.length > 0) {
-        const { error } = await supabase.from(tableName).delete().in('key', [...importPlan.defaultKeysToReset]);
+        const { error } = await supabase
+            .from(tableName)
+            .delete()
+            .in('key', [...importPlan.defaultKeysToReset]);
 
         if (error) {
             throw new DatabaseError(
@@ -247,9 +262,13 @@ export function createMetadataConfigurationExportFilename(serverName: string | n
  * Validates and normalizes a standalone metadata import payload.
  *
  * @param payload - Parsed JSON import payload.
+ * @param options - Import behavior options.
  * @returns Import plan ready for persistence.
  */
-export function createMetadataConfigurationImportPlan(payload: unknown): MetadataConfigurationImportPlan {
+export function createMetadataConfigurationImportPlan(
+    payload: unknown,
+    options: MetadataConfigurationImportPlanOptions = {},
+): MetadataConfigurationImportPlan {
     if (!payload || typeof payload !== 'object') {
         throw new ParseError('Metadata import must be a JSON object.');
     }
@@ -268,10 +287,12 @@ export function createMetadataConfigurationImportPlan(payload: unknown): Metadat
     const rowsToUpsert = payloadRecord.metadata.map((rawMetadataEntry, index) =>
         normalizeMetadataConfigurationImportEntry(rawMetadataEntry, index, importedMetadataKeys),
     );
-    const defaultKeysToReset = metadataDefaults
-        .map((metadataDefinition) => metadataDefinition.key)
-        .filter((metadataKey) => !importedMetadataKeys.has(metadataKey))
-        .sort((leftKey, rightKey) => leftKey.localeCompare(rightKey));
+    const defaultKeysToReset = options.isDefaultResetSkipped
+        ? []
+        : metadataDefaults
+              .map((metadataDefinition) => metadataDefinition.key)
+              .filter((metadataKey) => !importedMetadataKeys.has(metadataKey))
+              .sort((leftKey, rightKey) => leftKey.localeCompare(rightKey));
 
     return {
         rowsToUpsert: rowsToUpsert.sort((leftRow, rightRow) => leftRow.key.localeCompare(rightRow.key)),
@@ -377,11 +398,7 @@ function normalizeMetadataConfigurationImportEntry(
         throw new ParseError(`Metadata entry \`${key}\` has invalid \`value\`; expected a string.`);
     }
 
-    if (
-        isNoteProvided &&
-        typeof rawMetadataEntryRecord.note !== 'string' &&
-        rawMetadataEntryRecord.note !== null
-    ) {
+    if (isNoteProvided && typeof rawMetadataEntryRecord.note !== 'string' && rawMetadataEntryRecord.note !== null) {
         throw new ParseError(`Metadata entry \`${key}\` has invalid \`note\`; expected a string or null.`);
     }
 
@@ -396,9 +413,7 @@ function normalizeMetadataConfigurationImportEntry(
     }
 
     const value = isValueProvided ? (rawMetadataEntryRecord.value as string) : metadataDefinition!.value;
-    const note = isNoteProvided
-        ? (rawMetadataEntryRecord.note as string | null)
-        : metadataDefinition?.note ?? null;
+    const note = isNoteProvided ? (rawMetadataEntryRecord.note as string | null) : metadataDefinition?.note ?? null;
     const validationError = validateMetadataValue(key, value);
 
     if (validationError) {
@@ -420,7 +435,8 @@ function normalizeMetadataConfigurationImportEntry(
  */
 function resolveServerNameFromMetadataRows(metadataRows: ReadonlyArray<MetadataConfigurationRow>): string {
     const metadataRow = metadataRows.find((candidateRow) => candidateRow.key === SERVER_NAME_METADATA_KEY);
-    const defaultServerName = getMetadataDefinition(SERVER_NAME_METADATA_KEY)?.value ?? DEFAULT_METADATA_EXPORT_FILENAME_STEM;
+    const defaultServerName =
+        getMetadataDefinition(SERVER_NAME_METADATA_KEY)?.value ?? DEFAULT_METADATA_EXPORT_FILENAME_STEM;
 
     return metadataRow?.value.trim() || defaultServerName;
 }

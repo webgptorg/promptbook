@@ -47,6 +47,7 @@
 
     -   Admins can now download a `{server-name}.metadata.json` file containing the Promptbook version and only metadata values/notes that differ from built-in defaults.
     -   Admins can import that JSON into another server; omitted built-in metadata fields resolve to current defaults, so exporting a configured server and importing into a fresh server recreates the metadata configuration without bundling full server data.
+    -   Metadata imports from `/admin/metadata` now ask admins for each imported metadata key whether to keep the current value or use the imported value, and skipped entries preserve the current server configuration instead of resetting omitted built-in defaults.
 
 -   Enhanced the Agents Server `/admin/update` super-admin page so it shows richer context before, during, and after a standalone VPS self-update — making it easier to decide when to update and to debug a failed update:
 

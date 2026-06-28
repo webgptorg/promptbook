@@ -107,6 +107,30 @@ describe('metadataConfigurationTransfer', () => {
         expect(importPlan.defaultKeysToReset).not.toContain('SERVER_NAME');
     });
 
+    it('can import selected metadata without resetting omitted defaults', () => {
+        const importPlan = createMetadataConfigurationImportPlan(
+            {
+                promptbookVersion: '0.0.0-test',
+                metadata: [
+                    {
+                        key: 'SERVER_NAME',
+                        value: 'Imported Promptbook',
+                    },
+                ],
+            },
+            { isDefaultResetSkipped: true },
+        );
+
+        expect(importPlan.rowsToUpsert).toEqual([
+            {
+                key: 'SERVER_NAME',
+                value: 'Imported Promptbook',
+                note: getMetadataDefinition('SERVER_NAME')!.note,
+            },
+        ]);
+        expect(importPlan.defaultKeysToReset).toEqual([]);
+    });
+
     it('rejects invalid enum metadata values during import', () => {
         expect(() =>
             createMetadataConfigurationImportPlan({
