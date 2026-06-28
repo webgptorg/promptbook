@@ -31,15 +31,20 @@ export type TeamInternalAgentAccessHeadersOptions = {
 /**
  * Resolves the internal token used by same-server TEAM calls.
  *
- * @returns Hashed token, or `null` when the server does not have a private secret.
+ * `PROMPTBOOK_TEAM_AGENT_ACCESS_TOKEN` must be a dedicated secret — falling
+ * back to `ADMIN_PASSWORD`, `SUPABASE_SERVICE_ROLE_KEY`, or any other shared
+ * credential would let a leak of one secret compromise both authentication
+ * boundaries (admin login and same-server teammate-agent access). When the
+ * dedicated variable is missing, this function returns `null` so the calling
+ * server fails closed — same-server TEAM access is disabled and no header is
+ * sent — instead of silently authorizing requests with the wrong secret.
+ *
+ * @returns Hashed token, or `null` when the dedicated secret is not configured.
  *
  * @private internal Agents Server access wiring
  */
 export function resolveTeamInternalAgentAccessToken(): string | null {
-    const secret =
-        normalizeSecret(readEnvironmentVariable('PROMPTBOOK_TEAM_AGENT_ACCESS_TOKEN')) ||
-        normalizeSecret(readEnvironmentVariable('SUPABASE_SERVICE_ROLE_KEY')) ||
-        normalizeSecret(readEnvironmentVariable('ADMIN_PASSWORD'));
+    const secret = normalizeSecret(readEnvironmentVariable('PROMPTBOOK_TEAM_AGENT_ACCESS_TOKEN'));
 
     if (!secret) {
         return null;

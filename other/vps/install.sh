@@ -1847,6 +1847,8 @@ configure_environment() {
     fi
 
     ensure_secret_env_value SESSION_SECRET 32
+    ensure_secret_env_value PTBK_AGENTS_SERVER_USER_CHAT_WORKER_TOKEN 32
+    ensure_secret_env_value PROMPTBOOK_TEAM_AGENT_ACCESS_TOKEN 32
 
     if [[ -n "${COPILOT_GITHUB_TOKEN:-}" ]]; then
         set_env_value COPILOT_GITHUB_TOKEN "$COPILOT_GITHUB_TOKEN"

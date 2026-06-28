@@ -39,6 +39,8 @@ const REQUIRED_AGENTS_SERVER_ENV_VARIABLES: ReadonlyArray<RequiredAgentsServerEn
     createAgentsServerEnvVariable('SUPABASE_SERVICE_ROLE_KEY', ''),
     createAgentsServerEnvVariable('SUPABASE_AUTO_MIGRATE', 'true'),
     createAgentsServerEnvVariable('ADMIN_PASSWORD', ''),
+    createAgentsServerEnvVariable('PTBK_AGENTS_SERVER_USER_CHAT_WORKER_TOKEN', ''),
+    createAgentsServerEnvVariable('PROMPTBOOK_TEAM_AGENT_ACCESS_TOKEN', ''),
 ];
 
 /**

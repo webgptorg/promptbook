@@ -44,6 +44,12 @@ ptbk agents-server start --harness github-copilot --model gpt-5.4 --thinking-lev
 <a id="agents-server-env-session-secret"></a>
 -   `SESSION_SECRET`: HMAC signing key used to sign the session cookie. Must be set explicitly in production — the server refuses to start session signing when missing instead of falling back to a hardcoded default. Use a long random string, for example the output of `openssl rand -hex 32`. Keep it separate from `ADMIN_PASSWORD` so a leak of either credential cannot forge the other.
 
+<a id="agents-server-env-ptbk-agents-server-user-chat-worker-token"></a>
+-   `PTBK_AGENTS_SERVER_USER_CHAT_WORKER_TOKEN`: Shared internal token used to authorize background worker routes (`/api/internal/user-chat-jobs/run`, `/api/internal/user-chat-timeouts/run`, and `/api/internal/agent-runner-limits`). Must be set explicitly in production — the server refuses to resolve the worker token when missing instead of falling back to `ADMIN_PASSWORD`, `SUPABASE_SERVICE_ROLE_KEY`, or a hardcoded constant. Use a long random string, for example the output of `openssl rand -hex 32`. The CLI launcher (`ptbk agents-server start`) generates a per-process value automatically when the variable is empty so local development works without configuration.
+
+<a id="agents-server-env-promptbook-team-agent-access-token"></a>
+-   `PROMPTBOOK_TEAM_AGENT_ACCESS_TOKEN`: Dedicated secret used by same-server `TEAM` calls to authorize access to private teammate agents. Must be a dedicated random string — falling back to `ADMIN_PASSWORD` or `SUPABASE_SERVICE_ROLE_KEY` would let a leak of one credential compromise both authentication boundaries. When not configured, same-server team access stays disabled (the integration fails closed) so leaving the variable empty is safe but disables the feature. Use a long random string, for example the output of `openssl rand -hex 32`.
+
 ## Creating servers
 
 When creating new Agents server, search across the repository for [☁]

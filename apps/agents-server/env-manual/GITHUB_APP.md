@@ -32,7 +32,7 @@ GitHub App configuration now lives in **Metadata** so you can customize it per s
     - **GITHUB_APP_ID** – numeric GitHub App ID from the app settings.
     - **GITHUB_APP_SLUG** – slug used in `https://github.com/apps/<slug>`.
     - **GITHUB_APP_PRIVATE_KEY** – PEM-encoded private key. Replace literal newlines with `\n` when editing through the UI and keep the `BEGIN/END` markers.
-    - **GITHUB_APP_STATE_SECRET** (optional, recommended) – random string used to sign OAuth/connect state. If unset, `ADMIN_PASSWORD` will be used as a fallback.
+    - **GITHUB_APP_STATE_SECRET** (optional, recommended) – random string used to sign OAuth/connect state.
 
 The values stored in Metadata override any legacy `.env` entries and can differ per server host.
 

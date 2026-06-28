@@ -57,11 +57,13 @@ describe('ptbk agents-server init', () => {
                 'SUPABASE_SERVICE_ROLE_KEY',
                 'SUPABASE_AUTO_MIGRATE',
                 'ADMIN_PASSWORD',
+                'PTBK_AGENTS_SERVER_USER_CHAT_WORKER_TOKEN',
+                'PROMPTBOOK_TEAM_AGENT_ACCESS_TOKEN',
             ],
         });
 
         const envContent = normalizeLineEndings(await readFile(join(projectPath, '.env'), 'utf-8'));
-        expect(countOccurrences(envContent, '# Created by `ptbk agents-server init` command')).toBe(9);
+        expect(countOccurrences(envContent, '# Created by `ptbk agents-server init` command')).toBe(11);
         expect(envContent).toContain('PTBK_AGENTS_SERVER_DATABASE=supabase');
         expect(envContent).toContain('PTBK_AGENTS_SERVER_SQLITE_PATH=.promptbook/agents-server.sqlite');
         expect(envContent).toContain(
