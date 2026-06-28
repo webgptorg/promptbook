@@ -76,174 +76,65 @@ export type UserChatProgressContext = {
 };
 
 /**
- * Default title used by durable chat progress cards.
- */
-const USER_CHAT_PROGRESS_TITLE = 'Working on your request';
-
-/**
- * Ordered progress item identifiers shared across all durable chat phases.
- */
-const USER_CHAT_PROGRESS_ITEM_IDS = {
-    RECEIVE_MESSAGE: 'receive-message',
-    PREPARE_AGENT: 'prepare-agent',
-    CHECK_CAPABILITIES: 'check-capabilities',
-    CREATE_RESPONSE: 'create-response',
-} as const;
-
-/**
- * Static checklist mapping for one durable chat phase.
- */
-type UserChatProgressPhaseChecklist = {
-    readonly completedItemIds: ReadonlySet<string>;
-};
-
-/**
- * Static checklist progression shared across all durable chat phases.
- */
-const USER_CHAT_PROGRESS_PHASE_CHECKLISTS: Record<UserChatProgressPhase, UserChatProgressPhaseChecklist> = {
-    queued: { completedItemIds: new Set([]) },
-    reading_context: { completedItemIds: new Set([USER_CHAT_PROGRESS_ITEM_IDS.RECEIVE_MESSAGE]) },
-    preparing_agent: {
-        completedItemIds: new Set([
-            USER_CHAT_PROGRESS_ITEM_IDS.RECEIVE_MESSAGE,
-            USER_CHAT_PROGRESS_ITEM_IDS.PREPARE_AGENT,
-        ]),
-    },
-    checking_capabilities: {
-        completedItemIds: new Set([
-            USER_CHAT_PROGRESS_ITEM_IDS.RECEIVE_MESSAGE,
-            USER_CHAT_PROGRESS_ITEM_IDS.PREPARE_AGENT,
-            USER_CHAT_PROGRESS_ITEM_IDS.CHECK_CAPABILITIES,
-        ]),
-    },
-    starting_response: {
-        completedItemIds: new Set([
-            USER_CHAT_PROGRESS_ITEM_IDS.RECEIVE_MESSAGE,
-            USER_CHAT_PROGRESS_ITEM_IDS.PREPARE_AGENT,
-            USER_CHAT_PROGRESS_ITEM_IDS.CHECK_CAPABILITIES,
-        ]),
-    },
-};
-
-/**
- * Base progress items shown for durable chat jobs before model-specific progress arrives.
- */
-const USER_CHAT_PROGRESS_ITEMS: ReadonlyArray<{
-    readonly id: string;
-    readonly text: string;
-}> = [
-    {
-        id: USER_CHAT_PROGRESS_ITEM_IDS.RECEIVE_MESSAGE,
-        text: 'Read the user request',
-    },
-    {
-        id: USER_CHAT_PROGRESS_ITEM_IDS.PREPARE_AGENT,
-        text: 'Prepare the agent context',
-    },
-    {
-        id: USER_CHAT_PROGRESS_ITEM_IDS.CHECK_CAPABILITIES,
-        text: 'Check available tools and inputs',
-    },
-    {
-        id: USER_CHAT_PROGRESS_ITEM_IDS.CREATE_RESPONSE,
-        text: 'Create the response',
-    },
-];
-
-/**
  * Creates one user-facing durable chat progress card for the current job phase.
  *
- * The optional `context` carries already-resolved runtime details (agent name, provider,
- * tool count, attachment count, integrations) so the rendered `now`/`next` text reflects
- * what the worker is actually doing on this turn instead of a generic scripted summary.
+ * The card carries one short, real-time status line for the lifecycle phase the worker is
+ * actually in right now. The optional `context` is used to enrich that single line with
+ * the agent name, provider, attachment count, or active integrations as soon as each piece
+ * is resolved by the worker, so the user sees what the harness is doing at this moment
+ * instead of a verbose scripted checklist of upcoming steps.
  */
 export function createUserChatProgressCard(
     phase: UserChatProgressPhase,
     context?: UserChatProgressContext,
 ): NonNullable<ChatMessage['progressCard']> {
-    const checklist = USER_CHAT_PROGRESS_PHASE_CHECKLISTS[phase];
-    const { now, next } = composeUserChatProgressPhaseText(phase, context);
-
     return {
-        title: USER_CHAT_PROGRESS_TITLE,
-        now,
-        next,
-        items: USER_CHAT_PROGRESS_ITEMS.map((item) => ({
-            ...item,
-            status: checklist.completedItemIds.has(item.id) ? 'completed' : 'pending',
-        })),
+        now: composeUserChatProgressPhaseNow(phase, context),
+        items: [],
         updatedAt: new Date().toISOString() as NonNullable<ChatMessage['progressCard']>['updatedAt'],
         isVisible: true,
     };
 }
 
 /**
- * Composes the dynamic `now`/`next` markdown shown for one durable chat phase.
+ * Composes the short live status line shown for one durable chat phase.
  *
  * @private internal helper of `createUserChatProgressCard`
  */
-function composeUserChatProgressPhaseText(
+function composeUserChatProgressPhaseNow(
     phase: UserChatProgressPhase,
     context: UserChatProgressContext | undefined,
-): { now: string; next: string } {
+): string {
     const agentLabel = describeAgent(context);
 
     switch (phase) {
         case 'queued':
-            return {
-                now: spaceTrim(`
-                    Your message is waiting in the queue for the next available worker to pick it up.
-                `),
-                next: spaceTrim(`
-                    Read the conversation and load ${agentLabel}.
-                `),
-            };
+            return spaceTrim(`
+                Waiting for a worker to pick up your message...
+            `);
         case 'reading_context': {
             const attachmentHint = describeAttachmentHint(context);
-            return {
-                now: spaceTrim(`
-                    Reading your latest message${attachmentHint} together with the earlier conversation thread.
-                `),
-                next: spaceTrim(`
-                    Resolve ${agentLabel} and load its instructions, persona, and rules.
-                `),
-            };
+            return spaceTrim(`
+                Reading your message${attachmentHint}...
+            `);
         }
-        case 'preparing_agent': {
-            const knowledgeHint = describeKnowledgeHint(context);
-            return {
-                now: spaceTrim(`
-                    Loading the instructions and configured commitments for ${agentLabel}${knowledgeHint}.
-                `),
-                next: spaceTrim(`
-                    Check which tools, integrations, and attachments are usable for this turn.
-                `),
-            };
-        }
+        case 'preparing_agent':
+            return spaceTrim(`
+                Loading ${agentLabel}...
+            `);
         case 'checking_capabilities': {
             const capabilitiesText = describeCapabilities(context);
-            return {
-                now: spaceTrim(`
-                    Verifying that ${agentLabel} can use ${capabilitiesText} for this answer.
-                `),
-                next: spaceTrim(`
-                    Connect to the language model and start streaming the response.
-                `),
-            };
+            return spaceTrim(`
+                Checking ${capabilitiesText}...
+            `);
         }
         case 'starting_response': {
             const providerHint = describeProviderHint(context);
-            const cacheHint = context?.isAgentKitCached === false
-                ? ' Fresh runtime is being prepared because no cached agent was available.'
-                : '';
-            return {
-                now: spaceTrim(`
-                    Calling the language model${providerHint} and waiting for the first tokens.${cacheHint}
-                `),
-                next: spaceTrim(`
-                    Stream the response and update this panel with each user-relevant decision, action, or result.
-                `),
-            };
+            const cacheHint =
+                context?.isAgentKitCached === false ? ' (preparing a fresh runtime)' : '';
+            return spaceTrim(`
+                Calling the language model${providerHint}${cacheHint}...
+            `);
         }
     }
 }
@@ -251,7 +142,7 @@ function composeUserChatProgressPhaseText(
 /**
  * Returns the user-facing label for the active agent based on available context.
  *
- * @private internal helper of `composeUserChatProgressPhaseText`
+ * @private internal helper of `composeUserChatProgressPhaseNow`
  */
 function describeAgent(context: UserChatProgressContext | undefined): string {
     if (context?.agentName) {
@@ -268,7 +159,7 @@ function describeAgent(context: UserChatProgressContext | undefined): string {
 /**
  * Returns a fragment describing attachment count when one or more attachments are present.
  *
- * @private internal helper of `composeUserChatProgressPhaseText`
+ * @private internal helper of `composeUserChatProgressPhaseNow`
  */
 function describeAttachmentHint(context: UserChatProgressContext | undefined): string {
     const count = context?.attachmentCount ?? 0;
@@ -280,23 +171,9 @@ function describeAttachmentHint(context: UserChatProgressContext | undefined): s
 }
 
 /**
- * Returns a fragment describing knowledge sources when one or more are configured.
- *
- * @private internal helper of `composeUserChatProgressPhaseText`
- */
-function describeKnowledgeHint(context: UserChatProgressContext | undefined): string {
-    const count = context?.knowledgeSourceCount ?? 0;
-    if (count <= 0) {
-        return '';
-    }
-
-    return count === 1 ? ' (1 knowledge source)' : ` (${count} knowledge sources)`;
-}
-
-/**
  * Returns a fragment describing the LLM provider when already known.
  *
- * @private internal helper of `composeUserChatProgressPhaseText`
+ * @private internal helper of `composeUserChatProgressPhaseNow`
  */
 function describeProviderHint(context: UserChatProgressContext | undefined): string {
     if (!context?.provider) {
@@ -309,7 +186,7 @@ function describeProviderHint(context: UserChatProgressContext | undefined): str
 /**
  * Builds the markdown fragment describing tools, knowledge, attachments, and integrations.
  *
- * @private internal helper of `composeUserChatProgressPhaseText`
+ * @private internal helper of `composeUserChatProgressPhaseNow`
  */
 function describeCapabilities(context: UserChatProgressContext | undefined): string {
     if (!context) {
