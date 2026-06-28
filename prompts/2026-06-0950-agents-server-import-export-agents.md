@@ -19,3 +19,17 @@
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ![alt text](screenshots/2026-06-0950-agents-server-import-export-agents.png)
+
+---
+
+[ ] !
+
+[✨🚕] Modify import / export of the agents
+
+-   Remove the "import" button _(you can drag/drop so no need for the button)_ and rename "export" to "download"
+-   If the user drops zip file inside a folder, put agents inside this folder
+-   If user exports from folder, export only the agents from this folder, not all the agents of the server
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server) with agent lising
+-   Add the changes into the [changelog](changelog/_current-preversion.md)

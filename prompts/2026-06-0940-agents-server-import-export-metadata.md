@@ -28,3 +28,13 @@ value: "...",
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ![alt text](screenshots/2026-06-0940-agents-server-import-export-metadata.png)
+
+---
+
+[ ] !
+
+[✨🐺] When importing metadata, ask if you want to keep out or imported key, ask for each metadata value
+
+-   On page `/admin/metadata` there is button to import the metadata from JSON file
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
