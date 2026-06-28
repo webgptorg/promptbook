@@ -1,4 +1,4 @@
-[ ]
+[x] (2 attempts) $3.12 2 hours by Claude Code
 
 [🔐] Fix unauthenticated infinite-stream DoS in `/api/long-streaming` of Agents Server
 
@@ -8,3 +8,4 @@
 -   Do a proper analysis of the current functionality before you start implementing — search the Agents Server frontend for any caller of `/api/long-streaming` to confirm it is not exercised by a real feature.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
