@@ -18,7 +18,7 @@
 
 ---
 
-[x] $4.56 27 minutes by Claude Code
+[ ] !!
 
 [✨🖖] Do not show some bullshit temporary message but real progress of the agent
 
@@ -29,8 +29,11 @@
 -   But do not expose the technical details that are not relevant for the user
 -   It should be shown in a user-friendly way, so that the user can easily understand it and follow it
 -   For example ChatGPT shows the thinking process of the agent in a very user-friendly way, with clear steps and explanations, but it does not show the technical details of how the agent is working under the hood
+-   Show the progress as follows:
+    1. Randomly cycle through THINKING_MESSAGES
+    2. Then show live output of the harness, not the technical details, just the output of the harness, like "Running action X", "Action X completed", "Running action Y", "Action Y completed", etc.
+    3. Finally, show the final answer
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-

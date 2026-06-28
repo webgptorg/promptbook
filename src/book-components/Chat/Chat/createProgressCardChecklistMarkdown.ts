@@ -69,11 +69,6 @@ export function isProgressCardVisible(
 /**
  * Maps one structured progress-card payload to ordered markdown sections.
  *
- * When the card carries only one live `now` status (no title, no items, no `next`), the
- * status is rendered as a single italic line without the verbose `What I'm Doing Now:`
- * label so the user sees one real-time activity at a time. Cards populated by the
- * `agent_progress` tool with structured items keep their full checklist layout.
- *
  * @param progressCard Structured progress card payload.
  * @returns Ordered markdown sections ready for rendering.
  *
@@ -84,6 +79,14 @@ function createProgressCardMarkdownSections(progressCard: NonNullable<ChatMessag
     const normalizedTitle = progressCard.title?.trim();
     const normalizedNow = progressCard.now?.trim();
     const normalizedNext = progressCard.next?.trim();
+
+    if (normalizedTitle) {
+        markdownSections.push(`**${normalizedTitle}**`);
+    }
+
+    if (normalizedNow) {
+        markdownSections.push(`**${PROGRESS_NOW_LABEL}:** ${normalizedNow}`);
+    }
 
     const itemLines: Array<string> = [];
 
@@ -98,18 +101,6 @@ function createProgressCardMarkdownSections(progressCard: NonNullable<ChatMessag
                 text: normalizedItemText,
                 status: item.status === 'completed' ? 'completed' : 'pending',
             }),
-        );
-    }
-
-    const isLiveStatusOnly = Boolean(normalizedNow && !normalizedTitle && itemLines.length === 0 && !normalizedNext);
-
-    if (normalizedTitle) {
-        markdownSections.push(`**${normalizedTitle}**`);
-    }
-
-    if (normalizedNow) {
-        markdownSections.push(
-            isLiveStatusOnly ? `_${normalizedNow}_` : `**${PROGRESS_NOW_LABEL}:** ${normalizedNow}`,
         );
     }
 
