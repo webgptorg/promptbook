@@ -147,6 +147,10 @@ describe('other/vps/install.sh', () => {
             installScript.indexOf('\nconfigure_runner_authentication() {'),
             installScript.indexOf('\nconfigure_code_runner_for_initial_installation() {'),
         );
+        const codeRunnerInitialInstallationFunction = installScript.slice(
+            installScript.indexOf('\nconfigure_code_runner_for_initial_installation() {'),
+            installScript.indexOf('\nauthenticate_code_runner() {'),
+        );
 
         expect(installScript).toContain('PTBK_OPENAI_CODEX_USE_API_KEY="${PTBK_OPENAI_CODEX_USE_API_KEY:-0}"');
         expect(installScript).toContain('resolve_openai_codex_api_key_usage()');
@@ -159,6 +163,14 @@ describe('other/vps/install.sh', () => {
         );
         expect(runnerAuthenticationFunction.indexOf('if is_openai_codex_api_key_runner_configured; then')).toBeLessThan(
             runnerAuthenticationFunction.indexOf('if ! is_interactive; then'),
+        );
+        expect(codeRunnerInitialInstallationFunction).toContain('if is_openai_codex_api_key_runner_configured; then');
+        expect(codeRunnerInitialInstallationFunction).toContain('install_runner_dependencies');
+        expect(codeRunnerInitialInstallationFunction).toContain('configure_runner_authentication');
+        expect(codeRunnerInitialInstallationFunction.indexOf('install_runner_dependencies')).toBeLessThan(
+            codeRunnerInitialInstallationFunction.indexOf(
+                'Skipping code-runner CLI installation and authentication in non-interactive mode.',
+            ),
         );
     });
 

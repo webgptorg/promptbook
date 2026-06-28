@@ -1939,6 +1939,13 @@ configure_runner_authentication() {
 
 configure_code_runner_for_initial_installation() {
     if ! is_interactive; then
+        if is_openai_codex_api_key_runner_configured; then
+            log "Installing and configuring OpenAI Codex CLI for non-interactive OPENAI_API_KEY authentication."
+            install_runner_dependencies
+            configure_runner_authentication
+            return
+        fi
+
         log "Skipping code-runner CLI installation and authentication in non-interactive mode."
         log "Configure the runner later from System -> Super Admin -> Code runners or by running: bash $PROMPTBOOK_REPOSITORY_DIR/other/vps/install.sh apply-runner"
         return

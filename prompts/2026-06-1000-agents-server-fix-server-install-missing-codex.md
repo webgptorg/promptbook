@@ -1,4 +1,4 @@
-[ ] !!!!
+[x] ~$0.2660 an hour by OpenAI Codex `gpt-5.5`
 
 [✨⌚️] Fix the installed server failing on "Local agent runner failed after 3 attempt(s) and stopped retrying. Fix the runner or API configuration before trying again. The maximum failed-attempt limit is currently 3. Last runner error: ``` Error: Command "bash …"
 
@@ -98,3 +98,4 @@
 0|promptbook-agents-server  | 2026-06-28T16:47:56: [next]     at async k (.next/server/chunks/5006.js:58:2741) {
 0|promptbook-agents-server  | 2026-06-28T16:47:56: [next]   id: undefined
 ```
+
