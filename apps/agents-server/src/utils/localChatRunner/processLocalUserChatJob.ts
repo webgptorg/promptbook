@@ -223,7 +223,7 @@ async function synchronizeLocalUserChatJob(
     }
 
     const failedFileContent = await readOptionalTextFile(join(agentDirectoryPath, metadata.failedPath));
-    if (failedFileContent !== null) {
+    if (failedFileContent !== null && job.status !== 'FAILED') {
         const failureReason = parseLocalChatFailedMessageBook({
             bookContent: failedFileContent,
             expectedMessagesBeforeAnswer: metadata.expectedMessagesBeforeAnswer,

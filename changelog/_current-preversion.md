@@ -1,3 +1,5 @@
+-   Fixed Agents Server `/api/internal/user-chat-jobs/run` looping back-to-back forever when an old `FAILED` local chat job still had its `failed` message-folder book on disk. `synchronizeLocalUserChatJob` was re-marking such jobs as `FAILED` on every tick, which set `didMutate: true` and caused the worker route's `after()` self-requeue to fire immediately. The failed-file branch now mirrors the existing timeout-branch guard (`job.status !== 'FAILED'`), so already-failed jobs short-circuit to `waiting` instead of being re-persisted, and the route stops requeueing itself.
+
 -   Extended standalone VPS Agents Server non-interactive installation:
 
     -   Added the explicit `--yes-i-understand-that-script-should-be-run-on-fresh-server` installer option alongside `PTBK_CONFIRM_FRESH_VPS=yes`, so automated installs can acknowledge the fresh-server requirement without an interactive prompt.
