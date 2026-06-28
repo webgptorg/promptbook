@@ -51,6 +51,26 @@ Other deployment options like Docker are still available later in this README, b
 
 -->
 
+### Standalone VPS
+
+Run the standalone VPS installer only on a fresh server. Interactive mode asks for the installation values:
+
+```bash
+sudo curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/other/vps/install.sh | bash
+```
+
+Non-interactive mode takes defaults from command-line options and skips initial code-runner CLI setup, which can be configured later from the UI or SSH:
+
+```bash
+sudo curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/other/vps/install.sh | bash -s -- \
+    --non-interactive \
+    --yes-i-understand-that-script-should-be-run-on-fresh-server \
+    --domain s24.ptbk.io \
+    --openai-api-key sk-proj-abcdef \
+    --sentry-dsn https://abc@def.ingest.de.sentry.io/123 \
+    --admin-password xxx
+```
+
 <!--
 TODO: [🥗][🧠] Maybe do table of contents in both `book` and `promptbook`
 

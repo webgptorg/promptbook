@@ -183,12 +183,12 @@ confirm_fresh_vps_installation() {
     warn "Running it on a non-fresh VPS can overwrite existing data or configuration and cause data loss or service disruption."
 
     if is_fresh_vps_installation_confirmation_enabled; then
-        log "Fresh VPS installation was explicitly confirmed through PTBK_CONFIRM_FRESH_VPS."
+        log "Fresh VPS installation was explicitly confirmed."
         return
     fi
 
     if is_non_interactive_mode_enabled; then
-        fail "Standalone VPS installation requires explicit confirmation in non-interactive mode. Re-run with PTBK_CONFIRM_FRESH_VPS=yes only on a fresh VPS without data or configuration to preserve."
+        fail "Standalone VPS installation requires explicit confirmation in non-interactive mode. Re-run with --yes-i-understand-that-script-should-be-run-on-fresh-server or PTBK_CONFIRM_FRESH_VPS=yes only on a fresh VPS without data or configuration to preserve."
     fi
 
     if ! prompt_yes_no "Continue installation only if this is a fresh VPS without existing data or configuration to preserve?" "no"; then
@@ -1547,17 +1547,23 @@ prompt_api_keys_and_admin_password() {
     sentry_dsn_default_description="$(resolve_secret_default_description "$default_sentry_dsn" "empty")"
     admin_password_default_description="$(resolve_secret_default_description "$default_admin_password" "auto-generate")"
 
-    log "Press Enter to leave the OpenAI API key empty or keep the current value."
+    if is_interactive; then
+        log "Press Enter to leave the OpenAI API key empty or keep the current value."
+    fi
     REQUESTED_OPENAI_API_KEY="$(
         prompt_secret_with_default "OpenAI API key (optional)" "$openai_api_key_default_description" "$default_openai_api_key"
     )"
 
-    log "Press Enter to leave the Sentry DSN empty or keep the current value."
+    if is_interactive; then
+        log "Press Enter to leave the Sentry DSN empty or keep the current value."
+    fi
     REQUESTED_SENTRY_DSN="$(
         prompt_secret_with_default "Sentry DSN (optional)" "$sentry_dsn_default_description" "$default_sentry_dsn"
     )"
 
-    log "Press Enter to auto-generate the admin password or keep the current value."
+    if is_interactive; then
+        log "Press Enter to auto-generate the admin password or keep the current value."
+    fi
     REQUESTED_ADMIN_PASSWORD="$(
         prompt_secret_with_default "Admin password" "$admin_password_default_description" "$default_admin_password"
     )"
@@ -3226,6 +3232,46 @@ while [[ "$#" -gt 0 ]]; do
     case "$1" in
         --non-interactive)
             PTBK_NON_INTERACTIVE=1
+            shift
+            ;;
+        --yes-i-understand-that-script-should-be-run-on-fresh-server)
+            PTBK_CONFIRM_FRESH_VPS=1
+            shift
+            ;;
+        --domain | --domains)
+            [[ "$#" -ge 2 ]] || fail "Missing value for $1."
+            SERVERS="$2"
+            shift 2
+            ;;
+        --domain=* | --domains=*)
+            SERVERS="${1#*=}"
+            shift
+            ;;
+        --openai-api-key)
+            [[ "$#" -ge 2 ]] || fail "Missing value for --openai-api-key."
+            OPENAI_API_KEY="$2"
+            shift 2
+            ;;
+        --openai-api-key=*)
+            OPENAI_API_KEY="${1#*=}"
+            shift
+            ;;
+        --sentry-dsn)
+            [[ "$#" -ge 2 ]] || fail "Missing value for --sentry-dsn."
+            SENTRY_DSN="$2"
+            shift 2
+            ;;
+        --sentry-dsn=*)
+            SENTRY_DSN="${1#*=}"
+            shift
+            ;;
+        --admin-password)
+            [[ "$#" -ge 2 ]] || fail "Missing value for --admin-password."
+            ADMIN_PASSWORD="$2"
+            shift 2
+            ;;
+        --admin-password=*)
+            ADMIN_PASSWORD="${1#*=}"
             shift
             ;;
         *)

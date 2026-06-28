@@ -1,3 +1,9 @@
+-   Extended standalone VPS Agents Server non-interactive installation:
+
+    -   Added the explicit `--yes-i-understand-that-script-should-be-run-on-fresh-server` installer option alongside `PTBK_CONFIRM_FRESH_VPS=yes`, so automated installs can acknowledge the fresh-server requirement without an interactive prompt.
+    -   Added installer options for the common automated values (`--domain`, `--openai-api-key`, `--sentry-dsn`, and `--admin-password`) while reusing the same defaults and environment variables as the interactive prompts.
+    -   Documented interactive and non-interactive standalone VPS installation examples in the README, including the non-interactive code-runner skip behavior.
+
 -   Replaced the remote Promptbook Core Agents Server with a bundled local `.core` folder so each Agents Server can run without any external dependency on `core.ptbk.io`:
 
     -   Removed the `CORE_AGENTS_SERVER` constant from `servers.ts` along with the `CORE_SERVER` and `IS_CORE_SERVER_HIDDEN` metadata defaults; new servers no longer point at a special core federated server and federated servers are now all equal.

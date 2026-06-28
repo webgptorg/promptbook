@@ -96,18 +96,32 @@ describe('other/vps/install.sh', () => {
         expect(installScript).toContain('PTBK_CONFIRM_FRESH_VPS="${PTBK_CONFIRM_FRESH_VPS:-0}"');
         expect(installScript).toContain('is_truthy_value()');
         expect(installScript).toContain('is_fresh_vps_installation_confirmation_enabled()');
-        expect(installScript).toContain(
-            'Fresh VPS installation was explicitly confirmed through PTBK_CONFIRM_FRESH_VPS.',
-        );
+        expect(installScript).toContain('Fresh VPS installation was explicitly confirmed.');
         expect(installScript).toContain(
             'Standalone VPS installation requires explicit confirmation in non-interactive mode.',
         );
+        expect(installScript).toContain('--yes-i-understand-that-script-should-be-run-on-fresh-server');
         expect(installScript).toContain(
             'prompt_yes_no "Continue installation only if this is a fresh VPS without existing data or configuration to preserve?" "no"',
         );
         expect(mainFunction.indexOf('confirm_fresh_vps_installation')).toBeLessThan(
             mainFunction.indexOf('check_required_resources'),
         );
+    });
+
+    it('accepts command-line values for non-interactive VPS installation', () => {
+        expect(installScript).toContain('--domain | --domains)');
+        expect(installScript).toContain('SERVERS="$2"');
+        expect(installScript).toContain('--domain=* | --domains=*)');
+        expect(installScript).toContain('SERVERS="${1#*=}"');
+        expect(installScript).toContain('--openai-api-key)');
+        expect(installScript).toContain('OPENAI_API_KEY="$2"');
+        expect(installScript).toContain('--openai-api-key=*)');
+        expect(installScript).toContain('OPENAI_API_KEY="${1#*=}"');
+        expect(installScript).toContain('--sentry-dsn)');
+        expect(installScript).toContain('SENTRY_DSN="$2"');
+        expect(installScript).toContain('--admin-password)');
+        expect(installScript).toContain('ADMIN_PASSWORD="$2"');
     });
 
     it('defaults standalone VPS coding runner to OpenAI Codex while keeping GitHub Copilot available', () => {

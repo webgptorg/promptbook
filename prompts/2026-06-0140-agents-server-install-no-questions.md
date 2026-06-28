@@ -25,7 +25,7 @@ sudo curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/head
 
 ---
 
-[ ] !
+[x] ~$0.4059 an hour by OpenAI Codex `gpt-5.5`
 
 [✨〰️] The installation of the Agents Server on VPS should be able to run without asking any questions
 
@@ -65,3 +65,4 @@ sudo curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/head
 ```bash
 sudo curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/other/vps/install.sh | bash -s -- --non-interactive --yes-i-understand-that-script-should-be-run-on-fresh-server ...
 ```
+
