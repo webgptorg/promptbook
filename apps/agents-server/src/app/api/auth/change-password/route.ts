@@ -1,14 +1,22 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { $getTableName } from '../../../../database/$getTableName';
 import { $provideSupabaseForServer } from '../../../../database/$provideSupabaseForServer';
 import { AgentsServerDatabase } from '../../../../database/schema';
 import { getPasswordValidationMessage, hashPassword, verifyPassword } from '../../../../utils/auth';
+import {
+    AUTHENTICATION_ATTEMPT_PURPOSES,
+    checkAuthenticationAttemptRateLimit,
+    createAuthenticationAttemptRateLimitResponse,
+    recordAuthenticationAttempt,
+    recordRateLimitedAuthenticationAttempt,
+    resolveAuthenticationAttemptRequestIp,
+} from '../../../../utils/authenticationAttemptRateLimit';
 import { getCurrentUser } from '../../../../utils/getCurrentUser';
 
 /**
  * Handles post.
  */
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
     try {
         const user = await getCurrentUser();
         if (!user) {
@@ -18,7 +26,12 @@ export async function POST(request: Request) {
         const body = await request.json();
         const { currentPassword, newPassword } = body;
 
-        if (!currentPassword || !newPassword) {
+        if (
+            typeof currentPassword !== 'string' ||
+            typeof newPassword !== 'string' ||
+            !currentPassword ||
+            !newPassword
+        ) {
             return NextResponse.json({ error: 'Missing password fields' }, { status: 400 });
         }
 
@@ -32,6 +45,23 @@ export async function POST(request: Request) {
                 },
                 { status: 403 },
             );
+        }
+
+        const requestIp = resolveAuthenticationAttemptRequestIp(request);
+        const rateLimitDecision = checkAuthenticationAttemptRateLimit({
+            requestIp,
+            username: user.username,
+        });
+
+        if (!rateLimitDecision.isAllowed) {
+            recordRateLimitedAuthenticationAttempt({
+                requestIp,
+                username: user.username,
+                purpose: AUTHENTICATION_ATTEMPT_PURPOSES.CHANGE_PASSWORD,
+                rejection: rateLimitDecision,
+            });
+
+            return createAuthenticationAttemptRateLimitResponse(rateLimitDecision);
         }
 
         const supabase = $provideSupabaseForServer();
@@ -49,6 +79,13 @@ export async function POST(request: Request) {
 
         // Verify current password
         const isValid = await verifyPassword(currentPassword, userRow.passwordHash);
+        recordAuthenticationAttempt({
+            requestIp,
+            username: user.username,
+            purpose: AUTHENTICATION_ATTEMPT_PURPOSES.CHANGE_PASSWORD,
+            isSuccessful: isValid,
+        });
+
         if (!isValid) {
             return NextResponse.json({ error: 'Invalid current password' }, { status: 401 });
         }

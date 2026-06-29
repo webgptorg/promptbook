@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.6499 an hour by OpenAI Codex `gpt-5.5`
 
 [🔐] Fix missing rate-limiting and lockout on `/api/auth/login` of Agents Server
 
@@ -16,3 +16,4 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle and the SOLID principles.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
