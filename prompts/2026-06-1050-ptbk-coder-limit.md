@@ -1,4 +1,4 @@
-[ ] !!!!!!!!!!!
+[x] $1.44 23 minutes by Claude Code
 
 [✨🦝] Add `--limit` option to `ptbk coder run`
 
@@ -13,3 +13,4 @@ ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh -
 -   Look at [the dev scripts in `terminals.json`](.vscode/terminals.json) and add script for zig-zag between Codex and Claude using `--limit 1` option
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
