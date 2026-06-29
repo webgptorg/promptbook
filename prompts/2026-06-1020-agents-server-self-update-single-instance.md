@@ -1,4 +1,4 @@
-[ ] !!!
+[x] (2 attempts) $2.44 an hour by Claude Code
 
 [✨😘] Only one instance of `promptbook-agents-server` should run
 
@@ -26,3 +26,4 @@ root@collboard-agents-server-x24:~#
 ```
 
 ![alt text](screenshots/2026-06-1020-agents-server-self-update-single-instance.png)
+

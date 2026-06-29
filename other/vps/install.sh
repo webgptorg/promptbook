@@ -64,6 +64,10 @@ PTBK_SELF_UPDATE_LOG_FILE="${PTBK_SELF_UPDATE_LOG_FILE:-$INSTALL_DIR/.promptbook
 SELF_UPDATE_STARTED_AT=""
 SELF_UPDATE_CURRENT_COMMIT=""
 SELF_UPDATE_TARGET_COMMIT=""
+# pm2 instance that should remain after `self_update_agents_server` exits, even on
+# failure. Tracks the blue/green progression (old → replacement after nginx switch)
+# so the failure trap can converge pm2 to a single running Agents Server instance.
+SELF_UPDATE_ACTIVE_APP_NAME=""
 
 SUDO=()
 RUN_USER=""
@@ -321,6 +325,11 @@ write_failed_self_update_status_on_exit() {
     if [[ "$exit_code" -ne 0 ]]; then
         finished_at="$(date --utc --iso-8601=seconds)"
         write_self_update_status_file "failed" "$PROMPTBOOK_REPOSITORY_REF" "Self-update failed." "The standalone VPS self-update exited with status $exit_code. Review the installer log for details." "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "$finished_at" "$$"
+        # Converge pm2 to a single running Agents Server instance even on a
+        # failed self-update so that a later `pm2 resurrect` after VPS reboot
+        # restores exactly one process. SELF_UPDATE_ACTIVE_APP_NAME tracks
+        # whichever blue/green side currently serves traffic.
+        cleanup_orphan_agents_server_pm2_processes "${SELF_UPDATE_ACTIVE_APP_NAME:-$APP_NAME}" || true
     fi
 
     exit "$exit_code"
@@ -2833,6 +2842,54 @@ stop_pm2_process_if_running() {
     "
 }
 
+# Removes every pm2 process whose name equals "$PTBK_PM2_BASE_APP_NAME" or starts
+# with "$PTBK_PM2_BASE_APP_NAME-", except for the optional "keep" instance.
+#
+# Blue/green self-updates can leave behind orphaned Agents Server pm2 processes
+# when an earlier run failed (or was killed) between starting the replacement
+# instance and deleting the previous one. Those orphans keep restarting via
+# pm2's exponential backoff and consume memory + CPU for nothing. This helper
+# converges pm2 to a single Agents Server instance after each self-update and
+# persists the saved process list so `pm2 resurrect` (run by the systemd unit
+# installed by `pm2 startup`) restores exactly one process after VPS reboot.
+cleanup_orphan_agents_server_pm2_processes() {
+    local keep_app_name="${1:-}"
+    local base_app_name_shell=""
+    local keep_app_name_shell=""
+
+    if ! command -v pm2 >/dev/null 2>&1; then
+        return
+    fi
+
+    base_app_name_shell="$(shell_quote "$PTBK_PM2_BASE_APP_NAME")"
+    keep_app_name_shell="$(shell_quote "$keep_app_name")"
+    run_as_service_user bash -lc "
+        set -e
+        base_app_name=$base_app_name_shell
+        keep_app_name=$keep_app_name_shell
+        process_names=\$(pm2 jlist 2>/dev/null | node -e 'try { const list = JSON.parse(require(\"fs\").readFileSync(0, \"utf8\")); for (const proc of (Array.isArray(list) ? list : [])) { if (proc && typeof proc.name === \"string\") { console.log(proc.name); } } } catch (error) {}' 2>/dev/null || true)
+        if [[ -z \"\$process_names\" ]]; then
+            exit 0
+        fi
+        has_changes=0
+        while IFS= read -r process_name; do
+            [[ -z \"\$process_name\" ]] && continue
+            case \"\$process_name\" in
+                \"\$base_app_name\"|\"\$base_app_name\"-*) ;;
+                *) continue ;;
+            esac
+            if [[ -n \"\$keep_app_name\" && \"\$process_name\" == \"\$keep_app_name\" ]]; then
+                continue
+            fi
+            pm2 delete \"\$process_name\" >/dev/null 2>&1 || true
+            has_changes=1
+        done <<< \"\$process_names\"
+        if [[ \"\$has_changes\" == \"1\" ]]; then
+            pm2 save >/dev/null 2>&1 || true
+        fi
+    "
+}
+
 resolve_pm2_release_app_name() {
     local release_name="${PROMPTBOOK_REPOSITORY_RELEASE_NAME:-}"
 
@@ -3045,6 +3102,12 @@ self_update_agents_server() {
     load_runtime_configuration_from_env_file
     rerun_self_update_from_stable_script "$@"
 
+    # Sweep orphan pm2 processes left behind by a previous failed self-update
+    # before doing anything else; the active instance comes from `.env` so we
+    # never touch the one currently serving traffic.
+    SELF_UPDATE_ACTIVE_APP_NAME="$APP_NAME"
+    cleanup_orphan_agents_server_pm2_processes "$APP_NAME"
+
     target_ref="$PROMPTBOOK_REPOSITORY_REF"
     while [[ $# -gt 0 ]]; do
         case "$1" in
@@ -3121,6 +3184,7 @@ self_update_agents_server() {
         set_env_value PTBK_SHARED_NEXT_STATIC_ROOT "$PTBK_SHARED_NEXT_STATIC_ROOT"
         set_env_value PTBK_REPOSITORY_DIR "$PROMPTBOOK_REPOSITORY_DIR"
         set_env_value PTBK_VPS_INSTALL_SCRIPT "$PROMPTBOOK_REPOSITORY_DIR/other/vps/install.sh"
+        cleanup_orphan_agents_server_pm2_processes "$APP_NAME"
         finished_at="$(date --utc --iso-8601=seconds)"
         write_self_update_status_file "succeeded" "$PROMPTBOOK_REPOSITORY_REF" "Standalone VPS self-update finished; the requested release was already installed." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "$finished_at" ""
         trap - EXIT
@@ -3136,6 +3200,9 @@ self_update_agents_server() {
 
     write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Switching nginx to the healthy replacement process." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "" "$$"
     switch_nginx_to_agents_server_port "$replacement_port"
+    # nginx now serves traffic from the replacement, so a failure from here on
+    # must keep the replacement and remove every other Agents Server instance.
+    SELF_UPDATE_ACTIVE_APP_NAME="$replacement_app_name"
 
     ENV_FILE="$INSTALL_DIR/.env"
     set_env_value PORT "$replacement_port"
@@ -3147,10 +3214,11 @@ self_update_agents_server() {
     set_env_value PTBK_PM2_BASE_APP_NAME "$PTBK_PM2_BASE_APP_NAME"
     set_env_value PTBK_PM2_APP_NAME "$replacement_app_name"
 
-    write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Removing the previous pm2 process and repository checkout." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "" "$$"
+    write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Removing previous Agents Server pm2 processes and old repository checkout." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "" "$$"
     if [[ "$old_app_name" != "$replacement_app_name" ]]; then
         stop_pm2_process_if_running "$old_app_name"
     fi
+    cleanup_orphan_agents_server_pm2_processes "$replacement_app_name"
     remove_promptbook_repository_directory_if_safe "$old_repository_dir" "$PROMPTBOOK_REPOSITORY_DIR"
 
     finished_at="$(date --utc --iso-8601=seconds)"
