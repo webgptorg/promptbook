@@ -507,6 +507,12 @@
                 "npx ts-node ./src/cli/test/ptbk.ts coder run --harness openai-codex --model gpt-5.5         --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --limit 1 --test npm run test-for-ptbk-coder",
                 "npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code  --model claude-4.8-opus --thinking-level max   --agent agents/coding/developer.book --context AGENTS.md --limit 1 --test npm run test-for-ptbk-coder",
                 "npx ts-node ./src/cli/test/ptbk.ts coder run --harness openai-codex --model gpt-5.5         --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --limit 1 --test npm run test-for-ptbk-coder",
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code  --model claude-4.8-opus --thinking-level max   --agent agents/coding/developer.book --context AGENTS.md --limit 1 --test npm run test-for-ptbk-coder",
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness openai-codex --model gpt-5.5         --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --limit 1 --test npm run test-for-ptbk-coder",
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code  --model claude-4.8-opus --thinking-level max   --agent agents/coding/developer.book --context AGENTS.md --limit 1 --test npm run test-for-ptbk-coder",
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness openai-codex --model gpt-5.5         --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --limit 1 --test npm run test-for-ptbk-coder",
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code  --model claude-4.8-opus --thinking-level max   --agent agents/coding/developer.book --context AGENTS.md --limit 1 --test npm run test-for-ptbk-coder",
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness openai-codex --model gpt-5.5         --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --limit 1 --test npm run test-for-ptbk-coder",
                 "npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code  --model claude-4.8-opus --thinking-level max   --agent agents/coding/developer.book --context AGENTS.md --limit 1 --test npm run test-for-ptbk-coder"
             ],
             "execute": true,
