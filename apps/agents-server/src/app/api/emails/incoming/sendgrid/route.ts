@@ -1,6 +1,10 @@
 import { $getTableName } from '../../../../../database/$getTableName';
 import { $provideSupabaseForServer } from '../../../../../database/$provideSupabaseForServer';
 import { parseInboundSendgridEmail } from '../../../../../message-providers/email/sendgrid/parseInboundSendgridEmail';
+import {
+    resolveSendgridInboundParseWebhookErrorStatus,
+    verifySendgridInboundParseWebhook,
+} from '../../../../../message-providers/email/sendgrid/verifySendgridInboundParseWebhook';
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
@@ -8,7 +12,10 @@ import { NextRequest, NextResponse } from 'next/server';
  */
 export async function POST(request: NextRequest) {
     try {
-        const formData = await request.formData();
+        const rawBody = Buffer.from(await request.arrayBuffer());
+        verifySendgridInboundParseWebhook(request.headers, rawBody);
+
+        const formData = await createRequestFromRawBody(request, rawBody).formData();
         const rawEmail = formData.get('email');
 
         if (typeof rawEmail !== 'string') {
@@ -45,7 +52,22 @@ export async function POST(request: NextRequest) {
         console.error('Error processing inbound email', error);
         return NextResponse.json(
             { error: error instanceof Error ? error.message : 'Unknown error' },
-            { status: 500 },
+            { status: resolveSendgridInboundParseWebhookErrorStatus(error) },
         );
     }
+}
+
+/**
+ * Recreates a request from verified raw bytes so `formData()` can parse the multipart payload.
+ *
+ * @param request - Original incoming request.
+ * @param rawBody - Verified raw request body.
+ * @returns Request with an unread body stream.
+ */
+function createRequestFromRawBody(request: NextRequest, rawBody: Buffer): Request {
+    return new Request(request.url, {
+        method: request.method,
+        headers: request.headers,
+        body: new Uint8Array(rawBody),
+    });
 }

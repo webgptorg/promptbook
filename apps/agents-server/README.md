@@ -50,6 +50,15 @@ ptbk agents-server start --harness github-copilot --model gpt-5.4 --thinking-lev
 <a id="agents-server-env-promptbook-team-agent-access-token"></a>
 -   `PROMPTBOOK_TEAM_AGENT_ACCESS_TOKEN`: Dedicated secret used by same-server `TEAM` calls to authorize access to private teammate agents. Must be a dedicated random string — falling back to `ADMIN_PASSWORD` or `SUPABASE_SERVICE_ROLE_KEY` would let a leak of one credential compromise both authentication boundaries. When not configured, same-server team access stays disabled (the integration fails closed) so leaving the variable empty is safe but disables the feature. Use a long random string, for example the output of `openssl rand -hex 32`.
 
+<a id="agents-server-env-sendgrid-inbound-parse-public-key"></a>
+-   `SENDGRID_INBOUND_PARSE_PUBLIC_KEY`: Public verification key from SendGrid Signed Webhook settings for `/api/emails/incoming/sendgrid`. The route verifies `X-Twilio-Email-Event-Webhook-Signature` over the raw multipart body before parsing or inserting an inbound `EMAIL` message. Configure either this public key or `SENDGRID_INBOUND_PARSE_WEBHOOK_SECRET`; the SendGrid public-key flow is preferred.
+
+<a id="agents-server-env-sendgrid-inbound-parse-webhook-secret"></a>
+-   `SENDGRID_INBOUND_PARSE_WEBHOOK_SECRET`: Shared secret for deployments that sign SendGrid Inbound Parse callbacks with HMAC instead of SendGrid's public-key signature flow. Leave empty when `SENDGRID_INBOUND_PARSE_PUBLIC_KEY` is configured. Use a dedicated random string and keep it separate from `SENDGRID_API_KEY`, `ADMIN_PASSWORD`, and other server secrets.
+
+<a id="agents-server-env-sendgrid-inbound-parse-hosts"></a>
+-   `SENDGRID_INBOUND_PARSE_HOSTS`: Comma-separated list of public hostnames allowed to receive SendGrid Inbound Parse callbacks, for example `mail.example.com,parse.example.com`. The route rejects signed requests delivered through any other `Host` / `X-Forwarded-Host`, so point SendGrid only at the hostnames that are also protected by your reverse-proxy or platform IP allowlisting.
+
 ## Creating servers
 
 When creating new Agents server, search across the repository for [☁]
