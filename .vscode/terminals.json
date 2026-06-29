@@ -497,6 +497,18 @@
             "focus": false
         },
         {
+            "name": "⚡↔ Run ptbk coder Codex/Claude zig-zag (💤)(💸)(⏳)",
+            "commands": [
+                "set -a && source .env && set +a",
+                "unset GITHUB_TOKEN",
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness openai-codex --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --priority 1 --limit 1 --test npm run test-for-ptbk-coder && npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code --model claude-4.8-opus --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --priority 1 --limit 1 --test npm run test-for-ptbk-coder"
+            ],
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
             "name": "⚡🚀 Run ptbk coder `gpt-5.4` Coding Agent (💸)(⏳)",
             "commands": [
                 "set -a && source .env && set +a",
