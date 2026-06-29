@@ -9,8 +9,8 @@ import { LOCAL_USER_CHAT_JOB_PARAMETERS_KEY } from './localChatRunnerConstants';
 
 describe('LocalUserChatJobMetadata', () => {
     it('creates stable local chat message file paths from the original thread timestamp', () => {
-        expect(createLocalChatMessageFileName('chat/with spaces', '2026-05-21T10:00:00.000Z')).toBe(
-            '2026-05-21-chat-with-spaces.book',
+        expect(createLocalChatMessageFileName('chat/with spaces', '2026-05-21T10:00:00.000Z', 'job/42')).toBe(
+            '2026-05-21-chat-with-spaces-job-42.book',
         );
 
         expect(
@@ -18,16 +18,17 @@ describe('LocalUserChatJobMetadata', () => {
                 agentDirectoryName: 'agent-local',
                 threadId: 'chat-1',
                 threadCreatedAt: '2026-05-21T10:00:00.000Z',
+                jobId: 'job-1',
                 queuedAt: '2026-05-21T10:01:00.000Z',
                 expectedMessagesBeforeAnswer: 3,
             }),
         ).toEqual(
             expect.objectContaining({
                 agentDirectoryName: 'agent-local',
-                fileName: '2026-05-21-chat-1.book',
-                queuedPath: 'messages/queued/2026-05-21-chat-1.book',
-                finishedPath: 'messages/finished/2026-05-21-chat-1.book',
-                failedPath: 'messages/failed/2026-05-21-chat-1.book',
+                fileName: '2026-05-21-chat-1-job-1.book',
+                queuedPath: 'messages/queued/2026-05-21-chat-1-job-1.book',
+                finishedPath: 'messages/finished/2026-05-21-chat-1-job-1.book',
+                failedPath: 'messages/failed/2026-05-21-chat-1-job-1.book',
             }),
         );
     });
@@ -37,6 +38,7 @@ describe('LocalUserChatJobMetadata', () => {
             agentDirectoryName: 'agent-local',
             threadId: 'chat-1',
             threadCreatedAt: '2026-05-21T10:00:00.000Z',
+            jobId: 'job-1',
             queuedAt: '2026-05-21T10:01:00.000Z',
             expectedMessagesBeforeAnswer: 1,
         });

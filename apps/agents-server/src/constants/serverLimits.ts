@@ -40,6 +40,13 @@ export const DEFAULT_SPAWN_AGENT_RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
 export const DEFAULT_LOCAL_AGENT_RUNNER_MAX_FAILED_ATTEMPTS = 3;
 
 /**
+ * Default maximum number of local runner harness instances allowed to answer queued messages at once.
+ *
+ * @private shared Agents Server constant
+ */
+export const DEFAULT_LOCAL_AGENT_RUNNER_MAX_PARALLEL_MESSAGES = 3;
+
+/**
  * Stable keys used by the dedicated server-limits table.
  *
  * @private shared Agents Server constant
@@ -53,6 +60,7 @@ export const SERVER_LIMIT_KEYS = {
     SPAWN_AGENT_RATE_LIMIT_MAX: 'SPAWN_AGENT_RATE_LIMIT_MAX',
     SPAWN_AGENT_RATE_LIMIT_WINDOW_MS: 'SPAWN_AGENT_RATE_LIMIT_WINDOW_MS',
     LOCAL_AGENT_RUNNER_MAX_FAILED_ATTEMPTS: 'LOCAL_AGENT_RUNNER_MAX_FAILED_ATTEMPTS',
+    LOCAL_AGENT_RUNNER_MAX_PARALLEL_MESSAGES: 'LOCAL_AGENT_RUNNER_MAX_PARALLEL_MESSAGES',
 } as const;
 
 /**
@@ -177,6 +185,17 @@ export const SERVER_LIMIT_DEFINITIONS = [
         description: 'Stops the local coding-agent watcher from retrying the same queued chat message forever.',
         unit: 'count',
         defaultValue: DEFAULT_LOCAL_AGENT_RUNNER_MAX_FAILED_ATTEMPTS,
+        minimumValue: 1,
+        step: 1,
+        legacyMetadataKeys: [],
+    },
+    {
+        key: SERVER_LIMIT_KEYS.LOCAL_AGENT_RUNNER_MAX_PARALLEL_MESSAGES,
+        category: 'Local agent runner',
+        title: 'Max parallel harness instances',
+        description: 'Caps how many queued chat messages the local coding-agent harness may answer at the same time.',
+        unit: 'count',
+        defaultValue: DEFAULT_LOCAL_AGENT_RUNNER_MAX_PARALLEL_MESSAGES,
         minimumValue: 1,
         step: 1,
         legacyMetadataKeys: [],

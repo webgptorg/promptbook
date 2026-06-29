@@ -59,6 +59,7 @@ export type AgentTickResult = {
 export type TickAgentMessagesOptions = {
     readonly isQuietWhenIdle?: boolean;
     readonly projectPath?: string;
+    readonly queuedMessage?: AgentMessageFile;
     readonly uiHandle?: CoderRunUiHandle;
     readonly uiPresentation?: AgentTickUiPresentation;
 };
@@ -92,7 +93,7 @@ export async function tickAgentMessages(
 
     const projectPath = tickOptions.projectPath || process.cwd();
     let queueSnapshot = await loadAgentMessageQueueSnapshot(projectPath);
-    let queuedMessage = queueSnapshot.queuedMessages[0];
+    let queuedMessage = resolveSelectedQueuedMessage(queueSnapshot, tickOptions.queuedMessage);
 
     if (!queuedMessage) {
         announceNoQueuedMessages(tickOptions);
@@ -115,7 +116,7 @@ export async function tickAgentMessages(
 
     if (autoPullTimestamp !== undefined) {
         queueSnapshot = await loadAgentMessageQueueSnapshot(projectPath);
-        queuedMessage = queueSnapshot.queuedMessages[0];
+        queuedMessage = resolveSelectedQueuedMessage(queueSnapshot, tickOptions.queuedMessage);
 
         if (!queuedMessage) {
             if (tickOptions.uiHandle && !tickOptions.uiPresentation?.isSharedDashboard) {
@@ -155,7 +156,7 @@ export async function tickAgentMessages(
                 tickOptions.uiPresentation?.completedProgressStats ||
                     createAgentQueueProgressSnapshot({
                         finishedMessageCount: queueSnapshot.finishedMessageCount + 1,
-                        queuedMessages: queueSnapshot.queuedMessages.slice(1),
+                        queuedMessages: removeQueuedMessageFromSnapshot(queueSnapshot, queuedMessage),
                     }),
             );
             if (tickOptions.uiPresentation?.completedAgentStatusLines) {
@@ -168,7 +169,9 @@ export async function tickAgentMessages(
                 uiHandle?.state.setMessagePreviewLines([...tickOptions.uiPresentation.completedMessagePreviewLines]);
             }
             if (tickOptions.uiPresentation?.completedMessagePreviewSections) {
-                uiHandle?.state.setMessagePreviewSections([...tickOptions.uiPresentation.completedMessagePreviewSections]);
+                uiHandle?.state.setMessagePreviewSections([
+                    ...tickOptions.uiPresentation.completedMessagePreviewSections,
+                ]);
             }
             uiHandle?.state.setStatusMessage('Message answered');
             uiHandle?.state.setPhase('done');
@@ -194,6 +197,34 @@ export async function tickAgentMessages(
         }
         printAgentGitIdentityTipAtProcessExitIfNeeded();
     }
+}
+
+/**
+ * Resolves either the explicitly selected queued message or the first available queue item.
+ */
+function resolveSelectedQueuedMessage(
+    queueSnapshot: AgentMessageQueueSnapshot,
+    selectedQueuedMessage: AgentMessageFile | undefined,
+): AgentMessageFile | undefined {
+    if (!selectedQueuedMessage) {
+        return queueSnapshot.queuedMessages[0];
+    }
+
+    return queueSnapshot.queuedMessages.find(
+        (queuedMessage) => queuedMessage.relativePath === selectedQueuedMessage.relativePath,
+    );
+}
+
+/**
+ * Creates a progress queue list with the processed message removed from its original snapshot.
+ */
+function removeQueuedMessageFromSnapshot(
+    queueSnapshot: AgentMessageQueueSnapshot,
+    processedQueuedMessage: AgentMessageFile,
+): ReadonlyArray<AgentMessageFile> {
+    return queueSnapshot.queuedMessages.filter(
+        (queuedMessage) => queuedMessage.relativePath !== processedQueuedMessage.relativePath,
+    );
 }
 
 /**
@@ -376,7 +407,9 @@ function seedAgentRunUiHandle(
     }
 
     uiHandle.state.setCurrentPrompt(queuedMessage.relativePath);
-    uiHandle.state.setMessagePreviewLines([...(uiPresentation?.messagePreviewLines || agentUiMetadata.latestUserMessageLines)]);
+    uiHandle.state.setMessagePreviewLines([
+        ...(uiPresentation?.messagePreviewLines || agentUiMetadata.latestUserMessageLines),
+    ]);
     uiHandle.state.setPhase('loading');
     uiHandle.state.setStatusMessage('Preparing message');
 }

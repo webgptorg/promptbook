@@ -27,6 +27,7 @@ import { buildAgentRunUiFrame } from '../ui/buildAgentRunUiFrame';
 import { WAITING_FOR_MESSAGE_LABEL } from '../ui/agentRunUiConstants';
 import { resolvePromptRunner } from '../../run-codex-prompts/main/resolvePromptRunner';
 import { buildAgentMessageScriptPath } from '../messages/buildAgentMessageScriptPath';
+import type { AgentMessageFile } from '../messages/AgentMessageFile';
 import {
     createAgentIgnoreMatcher,
     resolveAgentIdFromRepositoryName,
@@ -67,9 +68,27 @@ type LocalAgentRunnerProjectSummary = {
     readonly project: LocalAgentRunnerProject;
     readonly localAgentName: string;
     readonly localAgentUrl: string;
+    readonly queuedMessages: ReadonlyArray<AgentMessageFile>;
     readonly queuedMessageCount: number;
     readonly finishedMessageCount: number;
     readonly queuedMessagePreview?: AgentRunQueuedMessagePreview;
+};
+
+/**
+ * One selected queued message that should be handled by a harness task.
+ */
+type LocalAgentRunnerWorkItem = {
+    readonly projectSummary: LocalAgentRunnerProjectSummary;
+    readonly queuedMessage: AgentMessageFile;
+};
+
+/**
+ * One harness task currently answering a queued message.
+ */
+type ActiveAgentMessageTask = {
+    readonly projectPath: string;
+    readonly queuedMessage: AgentMessageFile;
+    readonly promise: Promise<void>;
 };
 
 /**
@@ -93,6 +112,7 @@ type MultiAgentAutoPullResult = {
  */
 export type RunMultipleAgentMessagesControls = {
     readonly shouldContinue?: () => boolean;
+    readonly queuePollIntervalMs?: number;
     readonly watchErrorLogDirectoryPath?: string;
     readonly onUiInitialized?: (uiHandle: CoderRunUiHandle | undefined) => void;
 };
@@ -109,7 +129,11 @@ export async function runMultipleAgentMessages(
 
     const rootPath = process.cwd();
     const shouldContinue = controls.shouldContinue || (() => just(true));
+    const queuePollIntervalMs = controls.queuePollIntervalMs ?? MULTI_AGENT_QUEUE_POLL_INTERVAL_MS;
     const ignoreMatcher = createAgentIgnoreMatcher(options.ignorePatterns);
+    const isParallelMessageLimitConfigured = options.maxParallelMessages !== undefined;
+    const maxParallelMessageCount = normalizeMaxParallelMessageCount(options.maxParallelMessages);
+    const activeMessageTasksByKey = new Map<string, ActiveAgentMessageTask>();
     let githubSynchronizationTimestamp: number | undefined;
     let githubIgnoredRepositoryCount = 0;
     const autoPullTimestampsByProjectPath = new Map<string, number>();
@@ -151,14 +175,20 @@ export async function runMultipleAgentMessages(
             let projectSummaries = projectSummariesResult.projectSummaries;
             lastObservedProjectCount = projectSummaries.length;
             let ignoredAgentCount = projectSummariesResult.ignoredProjectCount + githubIgnoredRepositoryCount;
-            const autoPullResult = await pullLatestChangesForLocalAgentRunnerProjectsIfNeeded({
-                rootPath,
-                runOptions: options,
-                uiHandle,
-                projectSummaries,
-                ignoredAgentCount,
-                autoPullTimestampsByProjectPath,
-            });
+            const autoPullResult =
+                activeMessageTasksByKey.size === 0
+                    ? await pullLatestChangesForLocalAgentRunnerProjectsIfNeeded({
+                          rootPath,
+                          runOptions: options,
+                          uiHandle,
+                          projectSummaries,
+                          ignoredAgentCount,
+                          autoPullTimestampsByProjectPath,
+                      })
+                    : {
+                          isAnyRepositoryPulled: false,
+                          pulledProjectPaths: new Set<string>(),
+                      };
 
             if (autoPullResult.isAnyRepositoryPulled) {
                 projectSummariesResult = await loadLocalAgentRunnerProjectSummaries(rootPath, {
@@ -170,31 +200,25 @@ export async function runMultipleAgentMessages(
                 ignoredAgentCount = projectSummariesResult.ignoredProjectCount + githubIgnoredRepositoryCount;
             }
 
-            const queuedProjects = projectSummaries.filter((projectSummary) => projectSummary.queuedMessageCount > 0);
+            const availableParallelMessageSlots = Math.max(0, maxParallelMessageCount - activeMessageTasksByKey.size);
+            const queuedWorkItems =
+                availableParallelMessageSlots > 0
+                    ? selectQueuedWorkItems({
+                          projectSummaries,
+                          activeMessageTasksByKey,
+                          availableParallelMessageSlots,
+                          isParallelMessageLimitConfigured,
+                      })
+                    : [];
+            const answeringProjectPaths = createAnsweringProjectPaths(activeMessageTasksByKey, queuedWorkItems);
 
-            if (queuedProjects.length === 0) {
+            if (queuedWorkItems.length === 0 && activeMessageTasksByKey.size === 0) {
                 updateMultipleAgentRunUiForWatching(uiHandle, options, rootPath, projectSummaries, ignoredAgentCount);
-                await wait(MULTI_AGENT_QUEUE_POLL_INTERVAL_MS);
+                await wait(queuePollIntervalMs);
                 continue;
             }
 
-            if (!uiHandle) {
-                for (const queuedProject of queuedProjects) {
-                    console.info(
-                        colors.blue(
-                            `Processing ${formatProjectPath(rootPath, queuedProject.project.projectPath)} with ${
-                                queuedProject.localAgentName
-                            }.`,
-                        ),
-                    );
-                }
-            }
-
-            const answeringProjectPaths = new Set(
-                queuedProjects.map((queuedProject) => queuedProject.project.projectPath),
-            );
-
-            if (uiHandle) {
+            if (queuedWorkItems.length === 0) {
                 updateMultipleAgentRunUiForAnswering(
                     uiHandle,
                     options,
@@ -202,62 +226,55 @@ export async function runMultipleAgentMessages(
                     projectSummaries,
                     answeringProjectPaths,
                     ignoredAgentCount,
+                    activeMessageTasksByKey.size,
                 );
+                await waitForNextSchedulerTurn(activeMessageTasksByKey, queuePollIntervalMs);
+                continue;
             }
 
-            const tickResults = await Promise.allSettled(
-                queuedProjects.map(async (queuedProject) => {
-                    const tickRunOptions = createAgentRunOptionsForQueuedProjectTick({
-                        runOptions: options,
-                        isProjectPulledInCurrentIteration: autoPullResult.pulledProjectPaths.has(
-                            queuedProject.project.projectPath,
+            if (!uiHandle) {
+                for (const queuedWorkItem of queuedWorkItems) {
+                    console.info(
+                        colors.blue(
+                            `Processing ${formatProjectPath(
+                                rootPath,
+                                queuedWorkItem.projectSummary.project.projectPath,
+                            )}/${queuedWorkItem.queuedMessage.relativePath} with ${
+                                queuedWorkItem.projectSummary.localAgentName
+                            }.`,
                         ),
-                    });
-                    const tickResult = await tickAgentMessages(tickRunOptions, {
-                        isQuietWhenIdle: true,
-                        projectPath: queuedProject.project.projectPath,
-                        uiHandle,
-                        uiPresentation: uiHandle
-                            ? buildMultiAgentTickUiPresentation({
-                                  rootPath,
-                                  projectSummaries,
-                                  answeringProjectPaths,
-                                  ignoredAgentCount,
-                              })
-                            : undefined,
-                    });
+                    );
+                }
+            }
 
-                    return {
-                        projectPath: queuedProject.project.projectPath,
-                        tickResult,
-                    };
-                }),
+            updateMultipleAgentRunUiForAnswering(
+                uiHandle,
+                options,
+                rootPath,
+                projectSummaries,
+                answeringProjectPaths,
+                ignoredAgentCount,
+                activeMessageTasksByKey.size + queuedWorkItems.length,
             );
 
-            for (const tickResult of tickResults) {
-                if (tickResult.status === 'fulfilled') {
-                    if (tickResult.value.tickResult.autoPullTimestamp !== undefined) {
-                        autoPullTimestampsByProjectPath.set(
-                            tickResult.value.projectPath,
-                            tickResult.value.tickResult.autoPullTimestamp,
-                        );
-                    }
-                    if (tickResult.value.tickResult.isMessageProcessed) {
-                        messageFailureTracker.clearMessageFailure(
-                            tickResult.value.projectPath,
-                            tickResult.value.tickResult.queuedMessage,
-                        );
-                    }
-                    continue;
-                }
-
-                await handleAgentWatchError({
-                    commandDisplayName: 'ptbk agent-folder run-multiple',
-                    logDirectoryPath: controls.watchErrorLogDirectoryPath || rootPath,
-                    error: tickResult.reason,
+            for (const queuedWorkItem of queuedWorkItems) {
+                startActiveAgentMessageTask({
+                    rootPath,
+                    options,
+                    queuedWorkItem,
+                    projectSummaries,
+                    answeringProjectPaths,
+                    ignoredAgentCount,
+                    autoPullResult,
+                    autoPullTimestampsByProjectPath,
+                    activeMessageTasksByKey,
+                    messageFailureTracker,
+                    uiHandle,
+                    watchErrorLogDirectoryPath: controls.watchErrorLogDirectoryPath || rootPath,
                 });
-                await messageFailureTracker.recordFailure(tickResult.reason);
             }
+
+            await waitForNextSchedulerTurn(activeMessageTasksByKey, queuePollIntervalMs);
         } catch (error) {
             await handleAgentWatchError({
                 commandDisplayName: 'ptbk agent-folder run-multiple',
@@ -265,9 +282,244 @@ export async function runMultipleAgentMessages(
                 error,
             });
             await messageFailureTracker.recordFailure(error);
-            await wait(MULTI_AGENT_QUEUE_POLL_INTERVAL_MS);
+            await wait(queuePollIntervalMs);
         }
     }
+
+    await waitForActiveMessageTasksToSettle(activeMessageTasksByKey);
+}
+
+/**
+ * Starts one selected queued-message harness task and records it until it settles.
+ */
+function startActiveAgentMessageTask(options: {
+    readonly rootPath: string;
+    readonly options: AgentRunOptions;
+    readonly queuedWorkItem: LocalAgentRunnerWorkItem;
+    readonly projectSummaries: ReadonlyArray<LocalAgentRunnerProjectSummary>;
+    readonly answeringProjectPaths: ReadonlySet<string>;
+    readonly ignoredAgentCount: number;
+    readonly autoPullResult: MultiAgentAutoPullResult;
+    readonly autoPullTimestampsByProjectPath: Map<string, number>;
+    readonly activeMessageTasksByKey: Map<string, ActiveAgentMessageTask>;
+    readonly messageFailureTracker: AgentMessageFailureTracker;
+    readonly uiHandle?: CoderRunUiHandle;
+    readonly watchErrorLogDirectoryPath: string;
+}): void {
+    const { queuedWorkItem } = options;
+    const projectPath = queuedWorkItem.projectSummary.project.projectPath;
+    const messageKey = createAgentMessageTaskKey(projectPath, queuedWorkItem.queuedMessage);
+    const promise = runActiveAgentMessageTask({
+        rootPath: options.rootPath,
+        options: options.options,
+        queuedWorkItem,
+        projectSummaries: options.projectSummaries,
+        answeringProjectPaths: options.answeringProjectPaths,
+        ignoredAgentCount: options.ignoredAgentCount,
+        autoPullResult: options.autoPullResult,
+        autoPullTimestampsByProjectPath: options.autoPullTimestampsByProjectPath,
+        messageFailureTracker: options.messageFailureTracker,
+        uiHandle: options.uiHandle,
+        watchErrorLogDirectoryPath: options.watchErrorLogDirectoryPath,
+    }).finally(() => {
+        options.activeMessageTasksByKey.delete(messageKey);
+    });
+
+    options.activeMessageTasksByKey.set(messageKey, {
+        projectPath,
+        queuedMessage: queuedWorkItem.queuedMessage,
+        promise,
+    });
+}
+
+/**
+ * Runs one queued-message tick and folds its result back into shared watcher state.
+ */
+async function runActiveAgentMessageTask(options: {
+    readonly rootPath: string;
+    readonly options: AgentRunOptions;
+    readonly queuedWorkItem: LocalAgentRunnerWorkItem;
+    readonly projectSummaries: ReadonlyArray<LocalAgentRunnerProjectSummary>;
+    readonly answeringProjectPaths: ReadonlySet<string>;
+    readonly ignoredAgentCount: number;
+    readonly autoPullResult: MultiAgentAutoPullResult;
+    readonly autoPullTimestampsByProjectPath: Map<string, number>;
+    readonly messageFailureTracker: AgentMessageFailureTracker;
+    readonly uiHandle?: CoderRunUiHandle;
+    readonly watchErrorLogDirectoryPath: string;
+}): Promise<void> {
+    const projectPath = options.queuedWorkItem.projectSummary.project.projectPath;
+
+    try {
+        const tickRunOptions = createAgentRunOptionsForQueuedProjectTick({
+            runOptions: options.options,
+            isProjectPulledInCurrentIteration: options.autoPullResult.pulledProjectPaths.has(projectPath),
+        });
+        const tickResult = await tickAgentMessages(tickRunOptions, {
+            isQuietWhenIdle: true,
+            projectPath,
+            queuedMessage: options.queuedWorkItem.queuedMessage,
+            uiHandle: options.uiHandle,
+            uiPresentation: options.uiHandle
+                ? buildMultiAgentTickUiPresentation({
+                      rootPath: options.rootPath,
+                      projectSummaries: options.projectSummaries,
+                      answeringProjectPaths: options.answeringProjectPaths,
+                      ignoredAgentCount: options.ignoredAgentCount,
+                  })
+                : undefined,
+        });
+
+        if (tickResult.autoPullTimestamp !== undefined) {
+            options.autoPullTimestampsByProjectPath.set(projectPath, tickResult.autoPullTimestamp);
+        }
+
+        if (tickResult.isMessageProcessed) {
+            options.messageFailureTracker.clearMessageFailure(projectPath, tickResult.queuedMessage);
+        }
+    } catch (error) {
+        await handleAgentWatchError({
+            commandDisplayName: 'ptbk agent-folder run-multiple',
+            logDirectoryPath: options.watchErrorLogDirectoryPath,
+            error,
+        });
+        await options.messageFailureTracker.recordFailure(error);
+    }
+}
+
+/**
+ * Selects the next queued messages that can be started without exceeding active harness capacity.
+ */
+function selectQueuedWorkItems(options: {
+    readonly projectSummaries: ReadonlyArray<LocalAgentRunnerProjectSummary>;
+    readonly activeMessageTasksByKey: ReadonlyMap<string, ActiveAgentMessageTask>;
+    readonly availableParallelMessageSlots: number;
+    readonly isParallelMessageLimitConfigured: boolean;
+}): Array<LocalAgentRunnerWorkItem> {
+    const activeProjectPaths = new Set(
+        Array.from(options.activeMessageTasksByKey.values()).map((activeMessageTask) => activeMessageTask.projectPath),
+    );
+    const queuedProjectSummaries = options.projectSummaries.filter((projectSummary) => {
+        if (projectSummary.queuedMessageCount === 0) {
+            return false;
+        }
+
+        return options.isParallelMessageLimitConfigured || !activeProjectPaths.has(projectSummary.project.projectPath);
+    });
+
+    if (!options.isParallelMessageLimitConfigured) {
+        return queuedProjectSummaries
+            .map((projectSummary) => selectFirstInactiveQueuedWorkItem(projectSummary, options.activeMessageTasksByKey))
+            .filter((workItem): workItem is LocalAgentRunnerWorkItem => workItem !== null);
+    }
+
+    const workItems: Array<LocalAgentRunnerWorkItem> = [];
+    for (let messageIndex = 0; workItems.length < options.availableParallelMessageSlots; messageIndex++) {
+        let isAnyMessageAtIndex = false;
+
+        for (const projectSummary of queuedProjectSummaries) {
+            const queuedMessage = projectSummary.queuedMessages[messageIndex];
+            if (!queuedMessage) {
+                continue;
+            }
+
+            isAnyMessageAtIndex = true;
+            if (
+                options.activeMessageTasksByKey.has(
+                    createAgentMessageTaskKey(projectSummary.project.projectPath, queuedMessage),
+                )
+            ) {
+                continue;
+            }
+
+            workItems.push({ projectSummary, queuedMessage });
+            if (workItems.length >= options.availableParallelMessageSlots) {
+                return workItems;
+            }
+        }
+
+        if (!isAnyMessageAtIndex) {
+            return workItems;
+        }
+    }
+
+    return workItems;
+}
+
+/**
+ * Selects the first inactive queued message from a project while preserving legacy one-message-per-project behavior.
+ */
+function selectFirstInactiveQueuedWorkItem(
+    projectSummary: LocalAgentRunnerProjectSummary,
+    activeMessageTasksByKey: ReadonlyMap<string, ActiveAgentMessageTask>,
+): LocalAgentRunnerWorkItem | null {
+    const queuedMessage = projectSummary.queuedMessages.find(
+        (message) =>
+            !activeMessageTasksByKey.has(createAgentMessageTaskKey(projectSummary.project.projectPath, message)),
+    );
+
+    return queuedMessage ? { projectSummary, queuedMessage } : null;
+}
+
+/**
+ * Builds the set of project paths currently represented by active or newly scheduled harness tasks.
+ */
+function createAnsweringProjectPaths(
+    activeMessageTasksByKey: ReadonlyMap<string, ActiveAgentMessageTask>,
+    queuedWorkItems: ReadonlyArray<LocalAgentRunnerWorkItem>,
+): Set<string> {
+    return new Set([
+        ...Array.from(activeMessageTasksByKey.values()).map((activeMessageTask) => activeMessageTask.projectPath),
+        ...queuedWorkItems.map((queuedWorkItem) => queuedWorkItem.projectSummary.project.projectPath),
+    ]);
+}
+
+/**
+ * Creates a stable scheduler key for one queued message file.
+ */
+function createAgentMessageTaskKey(projectPath: string, queuedMessage: AgentMessageFile): string {
+    return `${projectPath}\0${queuedMessage.relativePath}`;
+}
+
+/**
+ * Normalizes the maximum number of parallel queued-message tasks.
+ */
+function normalizeMaxParallelMessageCount(rawValue: number | undefined): number {
+    const parsedValue = Number(rawValue);
+
+    if (!Number.isFinite(parsedValue) || parsedValue <= 0) {
+        return Number.POSITIVE_INFINITY;
+    }
+
+    return Math.floor(parsedValue);
+}
+
+/**
+ * Waits for either one active task to finish or the next queue polling interval.
+ */
+async function waitForNextSchedulerTurn(
+    activeMessageTasksByKey: ReadonlyMap<string, ActiveAgentMessageTask>,
+    queuePollIntervalMs: number,
+): Promise<void> {
+    if (activeMessageTasksByKey.size === 0) {
+        return;
+    }
+
+    await Promise.race([
+        ...Array.from(activeMessageTasksByKey.values()).map((activeMessageTask) => activeMessageTask.promise),
+        wait(queuePollIntervalMs),
+    ]);
+}
+
+/**
+ * Preserves previous shutdown behavior by letting active harness tasks finish before returning.
+ */
+async function waitForActiveMessageTasksToSettle(
+    activeMessageTasksByKey: ReadonlyMap<string, ActiveAgentMessageTask>,
+): Promise<void> {
+    await Promise.allSettled(
+        Array.from(activeMessageTasksByKey.values()).map((activeMessageTask) => activeMessageTask.promise),
+    );
 }
 
 /**
@@ -497,6 +749,7 @@ async function loadLocalAgentRunnerProjectSummaries(
                 project,
                 localAgentName: localAgentIdentity.localAgentName,
                 localAgentUrl: localAgentIdentity.localAgentUrl || formatProjectPath(rootPath, project.projectPath),
+                queuedMessages: queueSnapshot.queuedMessages,
                 queuedMessageCount: queueSnapshot.queuedMessages.length,
                 finishedMessageCount: queueSnapshot.finishedMessageCount,
                 ...(queuedMessagePreview ? { queuedMessagePreview } : {}),
@@ -544,16 +797,17 @@ function updateMultipleAgentRunUiForWatching(
  * Updates the shared UI while one or more child repositories are answering queued messages.
  */
 function updateMultipleAgentRunUiForAnswering(
-    uiHandle: CoderRunUiHandle,
+    uiHandle: CoderRunUiHandle | undefined,
     options: AgentRunOptions,
     rootPath: string,
     projectSummaries: ReadonlyArray<LocalAgentRunnerProjectSummary>,
     answeringProjectPaths: ReadonlySet<string>,
     ignoredAgentCount: number,
+    activeMessageCount: number,
 ): void {
-    const activeProjectCount = projectSummaries.filter((projectSummary) =>
-        answeringProjectPaths.has(projectSummary.project.projectPath),
-    ).length;
+    if (!uiHandle) {
+        return;
+    }
 
     setMultipleAgentRunUiConfig(uiHandle, options, projectSummaries.length, ignoredAgentCount);
     uiHandle.state.updateProgress(createMultiAgentQueueProgressSnapshot(projectSummaries));
@@ -561,7 +815,7 @@ function updateMultipleAgentRunUiForAnswering(
     uiHandle.state.setCurrentScriptPaths(buildMultiAgentScriptPaths(projectSummaries, answeringProjectPaths));
     uiHandle.state.setPhase('running');
     uiHandle.state.setStatusMessage(
-        `Answering ${activeProjectCount} queued message${activeProjectCount === 1 ? '' : 's'}`,
+        `Answering ${activeMessageCount} queued message${activeMessageCount === 1 ? '' : 's'}`,
     );
     uiHandle.state.setDetailLines(
         buildMultiAgentAnsweringDetailLines(rootPath, projectSummaries, answeringProjectPaths),

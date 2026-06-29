@@ -170,7 +170,7 @@ export function LimitsClient() {
                                 {category === 'Agent spawning' &&
                                     'Limits protecting the persistent `spawn_agent` tool from accidental or abusive overuse.'}
                                 {category === 'Local agent runner' &&
-                                    'Limits controlling local coding-agent retries for durable chat messages.'}
+                                    'Limits controlling local coding-agent parallelism and retries for durable chat messages.'}
                             </p>
                         </div>
 

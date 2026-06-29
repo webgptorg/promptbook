@@ -13,6 +13,7 @@ describe('normalizeServerLimitValues', () => {
             [SERVER_LIMIT_KEYS.SPAWN_AGENT_RATE_LIMIT_MAX]: '12',
             [SERVER_LIMIT_KEYS.SPAWN_AGENT_RATE_LIMIT_WINDOW_MS]: 500,
             [SERVER_LIMIT_KEYS.LOCAL_AGENT_RUNNER_MAX_FAILED_ATTEMPTS]: '6',
+            [SERVER_LIMIT_KEYS.LOCAL_AGENT_RUNNER_MAX_PARALLEL_MESSAGES]: '3',
         });
 
         expect(normalizedValues).toEqual({
@@ -27,6 +28,7 @@ describe('normalizeServerLimitValues', () => {
             [SERVER_LIMIT_KEYS.SPAWN_AGENT_RATE_LIMIT_WINDOW_MS]:
                 DEFAULT_SERVER_LIMIT_VALUES[SERVER_LIMIT_KEYS.SPAWN_AGENT_RATE_LIMIT_WINDOW_MS],
             [SERVER_LIMIT_KEYS.LOCAL_AGENT_RUNNER_MAX_FAILED_ATTEMPTS]: 6,
+            [SERVER_LIMIT_KEYS.LOCAL_AGENT_RUNNER_MAX_PARALLEL_MESSAGES]: 3,
         });
     });
 });

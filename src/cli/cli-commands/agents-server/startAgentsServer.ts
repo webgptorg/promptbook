@@ -21,7 +21,10 @@ import {
     type PreparedAgentsServerRuntime,
     resolveAgentsServerAppPath,
 } from './buildAgentsServer';
-import { DEFAULT_LOCAL_AGENT_RUNNER_MAX_FAILED_ATTEMPTS } from '../../../../apps/agents-server/src/constants/serverLimits';
+import {
+    DEFAULT_LOCAL_AGENT_RUNNER_MAX_FAILED_ATTEMPTS,
+    DEFAULT_LOCAL_AGENT_RUNNER_MAX_PARALLEL_MESSAGES,
+} from '../../../../apps/agents-server/src/constants/serverLimits';
 
 /**
  * Local worker-pump delay while the Agents Server foreground process stays active.
@@ -206,6 +209,7 @@ type PreparedAgentsServerLaunch = {
  */
 type LocalAgentRunnerLimits = {
     readonly maxFailedAttempts: number;
+    readonly maxParallelMessages: number;
 };
 
 /**
@@ -537,6 +541,7 @@ function createLocalAgentRunOptions(
         autoPull: false,
         autoClone: false,
         maxMessageProcessingFailures: localAgentRunnerLimits.maxFailedAttempts,
+        maxParallelMessages: localAgentRunnerLimits.maxParallelMessages,
     };
 }
 
@@ -557,7 +562,7 @@ async function waitForLocalAgentRunnerLimits(options: {
             const limits = await fetchLocalAgentRunnerLimits(options);
             logRunnerEvent(
                 options.logStreams.runner,
-                `Local agent runner max failed attempts: ${limits.maxFailedAttempts}.`,
+                `Local agent runner limits: ${limits.maxFailedAttempts} failed attempt(s), ${limits.maxParallelMessages} parallel message(s).`,
             );
             return limits;
         } catch (error) {
@@ -569,6 +574,7 @@ async function waitForLocalAgentRunnerLimits(options: {
     if (!options.state.isContinuing) {
         return {
             maxFailedAttempts: DEFAULT_LOCAL_AGENT_RUNNER_MAX_FAILED_ATTEMPTS,
+            maxParallelMessages: DEFAULT_LOCAL_AGENT_RUNNER_MAX_PARALLEL_MESSAGES,
         };
     }
 
@@ -604,6 +610,7 @@ async function fetchLocalAgentRunnerLimits(options: {
     const payload = (await response.json()) as Partial<LocalAgentRunnerLimits>;
     return {
         maxFailedAttempts: normalizeLocalAgentRunnerMaxFailedAttempts(payload.maxFailedAttempts),
+        maxParallelMessages: normalizeLocalAgentRunnerMaxParallelMessages(payload.maxParallelMessages),
     };
 }
 
@@ -615,6 +622,19 @@ function normalizeLocalAgentRunnerMaxFailedAttempts(rawValue: unknown): number {
 
     if (!Number.isFinite(parsedValue) || parsedValue <= 0) {
         return DEFAULT_LOCAL_AGENT_RUNNER_MAX_FAILED_ATTEMPTS;
+    }
+
+    return Math.floor(parsedValue);
+}
+
+/**
+ * Normalizes the local runner parallel message cap returned by the internal server route.
+ */
+function normalizeLocalAgentRunnerMaxParallelMessages(rawValue: unknown): number {
+    const parsedValue = Number(rawValue);
+
+    if (!Number.isFinite(parsedValue) || parsedValue <= 0) {
+        return DEFAULT_LOCAL_AGENT_RUNNER_MAX_PARALLEL_MESSAGES;
     }
 
     return Math.floor(parsedValue);

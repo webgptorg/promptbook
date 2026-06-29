@@ -18,7 +18,7 @@ export async function POST(request: Request) {
 }
 
 /**
- * Validates authorization and returns the current local runner retry limits.
+ * Validates authorization and returns the current local runner limits.
  *
  * @param request - Incoming route request.
  * @returns Local runner limits response.

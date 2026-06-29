@@ -26,6 +26,7 @@ describe('expiredRunningUserChatJobDiagnostics', () => {
                 [SERVER_LIMIT_KEYS.SPAWN_AGENT_RATE_LIMIT_MAX]: 5,
                 [SERVER_LIMIT_KEYS.SPAWN_AGENT_RATE_LIMIT_WINDOW_MS]: 600_000,
                 [SERVER_LIMIT_KEYS.LOCAL_AGENT_RUNNER_MAX_FAILED_ATTEMPTS]: 3,
+                [SERVER_LIMIT_KEYS.LOCAL_AGENT_RUNNER_MAX_PARALLEL_MESSAGES]: 3,
             },
             activeTasks: {
                 counters: {

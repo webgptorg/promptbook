@@ -18,4 +18,5 @@ export type AgentRunOptions = {
     readonly autoClone: boolean;
     readonly ignorePatterns?: readonly string[];
     readonly maxMessageProcessingFailures?: number;
+    readonly maxParallelMessages?: number;
 };

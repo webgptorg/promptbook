@@ -23,10 +23,11 @@ export function createLocalUserChatJobMetadata(options: {
     agentDirectoryName: string;
     threadId: string;
     threadCreatedAt: string;
+    jobId: string;
     queuedAt: string;
     expectedMessagesBeforeAnswer: number;
 }): LocalUserChatJobMetadata {
-    const fileName = createLocalChatMessageFileName(options.threadId, options.threadCreatedAt);
+    const fileName = createLocalChatMessageFileName(options.threadId, options.threadCreatedAt, options.jobId);
 
     return {
         version: 1,
@@ -102,15 +103,24 @@ export function withoutLocalUserChatJobMetadata(parameters: UserChatJobParameter
 /**
  * Creates the filename used by one local message-thread book.
  */
-export function createLocalChatMessageFileName(threadId: string, threadCreatedAt: string): string {
+export function createLocalChatMessageFileName(threadId: string, threadCreatedAt: string, jobId?: string): string {
     const createdOnDate = resolveLocalChatThreadCreatedOnDate(threadCreatedAt);
-    const normalizedThreadId = threadId.trim().replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/^-+|-+$/g, '');
+    const normalizedThreadId = threadId
+        .trim()
+        .replace(/[^a-zA-Z0-9._-]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+    const normalizedJobId = jobId
+        ?.trim()
+        .replace(/[^a-zA-Z0-9._-]+/g, '-')
+        .replace(/^-+|-+$/g, '');
 
     if (normalizedThreadId.length > 0) {
-        return `${createdOnDate}-${normalizedThreadId}.book`;
+        return `${createdOnDate}-${normalizedThreadId}${normalizedJobId ? `-${normalizedJobId}` : ''}.book`;
     }
 
-    return `${createdOnDate}-${Buffer.from(threadId, 'utf8').toString('hex') || 'thread'}.book`;
+    return `${createdOnDate}-${Buffer.from(threadId, 'utf8').toString('hex') || 'thread'}${
+        normalizedJobId ? `-${normalizedJobId}` : ''
+    }.book`;
 }
 
 /**

@@ -46,6 +46,7 @@ export type SpawnAgentLimits = {
  */
 export type LocalAgentRunnerLimits = {
     readonly maxFailedAttempts: number;
+    readonly maxParallelMessages: number;
 };
 
 /**
@@ -270,6 +271,7 @@ export async function getLocalAgentRunnerLimits(): Promise<LocalAgentRunnerLimit
     const limits = await getServerLimits();
     return {
         maxFailedAttempts: limits[SERVER_LIMIT_KEYS.LOCAL_AGENT_RUNNER_MAX_FAILED_ATTEMPTS],
+        maxParallelMessages: limits[SERVER_LIMIT_KEYS.LOCAL_AGENT_RUNNER_MAX_PARALLEL_MESSAGES],
     };
 }
 

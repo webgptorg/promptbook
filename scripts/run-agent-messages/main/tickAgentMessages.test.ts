@@ -134,7 +134,9 @@ describe('tickAgentMessages', () => {
             attemptCount: 1,
         });
         (
-            pullLatestChangesForAgentQueueIfEnabled as jest.MockedFunction<typeof pullLatestChangesForAgentQueueIfEnabled>
+            pullLatestChangesForAgentQueueIfEnabled as jest.MockedFunction<
+                typeof pullLatestChangesForAgentQueueIfEnabled
+            >
         ).mockResolvedValue(undefined);
     });
 
@@ -164,10 +166,16 @@ describe('tickAgentMessages', () => {
         process.chdir(temporaryProjectPath);
         await mkdir(join(temporaryProjectPath, 'messages', 'queued'), { recursive: true });
         await writeLocalAgentBook(temporaryProjectPath);
-        await writeFile(join(temporaryProjectPath, 'messages', 'queued', 'question.book'), 'MESSAGE @User\nHi\n', 'utf-8');
+        await writeFile(
+            join(temporaryProjectPath, 'messages', 'queued', 'question.book'),
+            'MESSAGE @User\nHi\n',
+            'utf-8',
+        );
 
         (
-            pullLatestChangesForAgentQueueIfEnabled as jest.MockedFunction<typeof pullLatestChangesForAgentQueueIfEnabled>
+            pullLatestChangesForAgentQueueIfEnabled as jest.MockedFunction<
+                typeof pullLatestChangesForAgentQueueIfEnabled
+            >
         ).mockResolvedValue(123_456);
 
         const result = await tickAgentMessages(createAgentRunOptions({ autoPull: true }));
@@ -201,7 +209,9 @@ describe('tickAgentMessages', () => {
 
         (runPromptWithTestFeedback as jest.MockedFunction<typeof runPromptWithTestFeedback>).mockImplementation(
             async ({ prompt }) => {
-                expect(prompt).toContain('Read `messages/queued/question.book` and answer the most recent `MESSAGE @User`');
+                expect(prompt).toContain(
+                    'Read `messages/queued/question.book` and answer the most recent `MESSAGE @User`',
+                );
                 expect(prompt).toContain('You are Calendar Agent');
                 expect(prompt).toContain('You answer calendar questions with exact counts.');
                 expect(prompt).toContain('## Rules');
@@ -230,6 +240,51 @@ describe('tickAgentMessages', () => {
             projectPath: temporaryProjectPath,
         });
         expect(printAgentGitIdentityTipAtProcessExitIfNeeded).toHaveBeenCalled();
+    });
+
+    it('answers an explicitly selected queued message when multiple files are waiting', async () => {
+        temporaryProjectPath = await createTemporaryProject();
+        process.chdir(temporaryProjectPath);
+        await mkdir(join(temporaryProjectPath, 'messages', 'queued'), { recursive: true });
+        await writeLocalAgentBook(temporaryProjectPath);
+        await writeFile(
+            join(temporaryProjectPath, 'messages', 'queued', 'first.book'),
+            'MESSAGE @User\nFirst\n',
+            'utf-8',
+        );
+        await writeFile(
+            join(temporaryProjectPath, 'messages', 'queued', 'second.book'),
+            'MESSAGE @User\nSecond\n',
+            'utf-8',
+        );
+
+        (runPromptWithTestFeedback as jest.MockedFunction<typeof runPromptWithTestFeedback>).mockImplementation(
+            async ({ prompt }) => {
+                expect(prompt).toContain('Read `messages/queued/second.book`');
+                await appendFile(
+                    join(temporaryProjectPath!, 'messages', 'queued', 'second.book'),
+                    '\nMESSAGE @Agent\nSecond answer\n',
+                    'utf-8',
+                );
+                return { usage: UNCERTAIN_USAGE, attemptCount: 1 };
+            },
+        );
+
+        const result = await tickAgentMessages(createAgentRunOptions(), {
+            queuedMessage: {
+                absolutePath: join(temporaryProjectPath, 'messages', 'queued', 'second.book'),
+                relativePath: 'messages/queued/second.book',
+                fileName: 'second.book',
+            },
+        });
+
+        expect(result.isMessageProcessed).toBe(true);
+        expect(await readFile(join(temporaryProjectPath, 'messages', 'queued', 'first.book'), 'utf-8')).toContain(
+            'First',
+        );
+        expect(await readFile(join(temporaryProjectPath, 'messages', 'finished', 'second.book'), 'utf-8')).toContain(
+            'Second answer',
+        );
     });
 
     it('includes the queued source path in the commit when the original message was tracked', async () => {

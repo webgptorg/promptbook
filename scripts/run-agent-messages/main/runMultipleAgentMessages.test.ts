@@ -52,6 +52,28 @@ async function createTemporaryRootDirectory(): Promise<string> {
     return mkdtemp(join(tmpdir(), 'ptbk-agent-multiple-run-'));
 }
 
+/**
+ * Waits until one Jest assertion passes.
+ */
+async function waitForExpectation(assertion: () => void, timeoutMs = 1_000): Promise<void> {
+    const startedAt = Date.now();
+    let lastError: unknown;
+
+    while (Date.now() - startedAt < timeoutMs) {
+        try {
+            assertion();
+            return;
+        } catch (error) {
+            lastError = error;
+            await new Promise((resolve) => setTimeout(resolve, 5));
+        }
+    }
+
+    if (lastError) {
+        throw lastError;
+    }
+}
+
 describe('runMultipleAgentMessages', () => {
     let temporaryRootDirectory: string | undefined;
     let consoleErrorSpy: jest.SpyInstance<void, [message?: unknown, ...optionalParams: unknown[]]>;
@@ -154,6 +176,70 @@ describe('runMultipleAgentMessages', () => {
                 (call) => call[1]?.projectPath,
             ),
         ).toEqual([join(temporaryRootDirectory, 'agent-a'), join(temporaryRootDirectory, 'agent-b')]);
+    });
+
+    it('starts another same-project queued message before the previous harness finishes when parallelism allows it', async () => {
+        temporaryRootDirectory = await createTemporaryRootDirectory();
+        const agentProjectPath = join(temporaryRootDirectory, 'agent-a');
+        await mkdir(join(agentProjectPath, 'messages', 'queued'), { recursive: true });
+        await writeFile(join(agentProjectPath, 'agent.book'), 'Agent A', 'utf-8');
+        await writeFile(join(agentProjectPath, 'messages', 'queued', 'first.book'), 'MESSAGE @User\nFirst\n', 'utf-8');
+
+        process.chdir(temporaryRootDirectory);
+
+        let isContinuing = true;
+        let resolveFirstMessageRun: () => void = () => undefined;
+        let resolveFirstMessageStarted: () => void = () => undefined;
+        const firstMessageStarted = new Promise<void>((resolve) => {
+            resolveFirstMessageStarted = resolve;
+        });
+        const firstMessageRun = new Promise<void>((resolve) => {
+            resolveFirstMessageRun = resolve;
+        });
+
+        (tickAgentMessages as jest.MockedFunction<typeof tickAgentMessages>).mockImplementation(
+            async (_options, tickOptions) => {
+                if (tickOptions?.queuedMessage?.fileName === 'first.book') {
+                    resolveFirstMessageStarted();
+                    await firstMessageRun;
+                    return {
+                        isMessageProcessed: true,
+                        queuedMessage: tickOptions.queuedMessage,
+                    };
+                }
+
+                if (tickOptions?.queuedMessage?.fileName === 'second.book') {
+                    isContinuing = false;
+                    return {
+                        isMessageProcessed: true,
+                        queuedMessage: tickOptions.queuedMessage,
+                    };
+                }
+
+                return { isMessageProcessed: false };
+            },
+        );
+
+        const runPromise = runMultipleAgentMessages(createAgentRunOptions({ maxParallelMessages: 2 }), {
+            shouldContinue: () => isContinuing,
+            queuePollIntervalMs: 1,
+        });
+
+        await firstMessageStarted;
+        await writeFile(
+            join(agentProjectPath, 'messages', 'queued', 'second.book'),
+            'MESSAGE @User\nSecond\n',
+            'utf-8',
+        );
+        await waitForExpectation(() => expect(tickAgentMessages).toHaveBeenCalledTimes(2));
+        resolveFirstMessageRun();
+        await runPromise;
+
+        expect(
+            (tickAgentMessages as jest.MockedFunction<typeof tickAgentMessages>).mock.calls.map(
+                (call) => call[1]?.queuedMessage?.fileName,
+            ),
+        ).toEqual(['first.book', 'second.book']);
     });
 
     it('ignores local repositories by agent name, normalized agent name, and agent id', async () => {

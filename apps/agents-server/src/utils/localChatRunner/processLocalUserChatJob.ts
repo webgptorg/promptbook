@@ -85,9 +85,11 @@ export async function processLocalUserChatJob(job: UserChatJobRecord): Promise<P
 /**
  * Processes the next local user chat job waiting for worker attention.
  */
-export async function processNextLocalUserChatJob(options: {
-    preferredJobId?: string;
-} = {}): Promise<ProcessLocalUserChatJobResult | null> {
+export async function processNextLocalUserChatJob(
+    options: {
+        preferredJobId?: string;
+    } = {},
+): Promise<ProcessLocalUserChatJobResult | null> {
     if (options.preferredJobId) {
         const claimedPreferredJob = await claimNextQueuedUserChatJob({ preferredJobId: options.preferredJobId });
         if (claimedPreferredJob) {
@@ -143,13 +145,8 @@ async function enqueueLocalUserChatJob(job: UserChatJobRecord): Promise<ProcessL
     }
 
     const previousThreadMessages = resolvePromptThreadBeforeUserMessage(chat.messages, job.userMessageId);
-    if (previousThreadMessages.some((message) => message.sender === 'AGENT' && message.isComplete === false)) {
-        return { didMutate: false, outcome: 'waiting' };
-    }
-
-    const agentInitialMessage = previousThreadMessages.length === 0
-        ? parseAgentSource(agentSourceSnapshot.agentSource).initialMessage
-        : null;
+    const agentInitialMessage =
+        previousThreadMessages.length === 0 ? parseAgentSource(agentSourceSnapshot.agentSource).initialMessage : null;
     const initialAgentThreadMessages = agentInitialMessage
         ? [{ sender: 'AGENT' as const, content: agentInitialMessage }]
         : [];
@@ -170,6 +167,7 @@ async function enqueueLocalUserChatJob(job: UserChatJobRecord): Promise<ProcessL
         agentDirectoryName: agentFolder.directoryName,
         threadId: chat.id,
         threadCreatedAt: chat.createdAt,
+        jobId: job.id,
         queuedAt,
         expectedMessagesBeforeAnswer: threadMessages.length,
     });
@@ -326,7 +324,11 @@ async function handleLocalUserChatJobProcessingError(
     const metadata = getLocalUserChatJobMetadata(job);
     const failureReason = error instanceof Error ? error.message : 'Local agent runner synchronization failed.';
 
-    if (job.status === 'QUEUED' || (job.status === 'RUNNING' && !metadata) || (metadata && isLocalUserChatJobTimedOut(metadata))) {
+    if (
+        job.status === 'QUEUED' ||
+        (job.status === 'RUNNING' && !metadata) ||
+        (metadata && isLocalUserChatJobTimedOut(metadata))
+    ) {
         await persistUserChatJobTerminalState({
             job,
             status: 'FAILED',
