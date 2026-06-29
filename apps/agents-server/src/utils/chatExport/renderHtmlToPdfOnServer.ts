@@ -2,6 +2,12 @@ import { createServerChromiumLaunchOptions } from '@/src/tools/createServerChrom
 import { chromium } from 'playwright';
 
 /**
+ * URL protocols that can be allowed through the PDF renderer request
+ * interception because they cannot reach a server-side network destination.
+ */
+const CHAT_EXPORT_PDF_ALLOWED_REQUEST_PROTOCOLS = new Set(['about:', 'data:']);
+
+/**
  * Browser viewport used while rendering standalone HTML exports to PDF.
  */
 const CHAT_EXPORT_PDF_VIEWPORT = {
@@ -32,6 +38,16 @@ export async function renderHtmlToPdfOnServer(html: string): Promise<Buffer> {
         const page = await browser.newPage();
 
         try {
+            await page.route('**/*', async (route) => {
+                const requestUrl = route.request().url();
+
+                if (isAllowedPdfRendererRequestUrl(requestUrl)) {
+                    await route.continue();
+                    return;
+                }
+
+                await route.abort('blockedbyclient');
+            });
             await page.setViewportSize(CHAT_EXPORT_PDF_VIEWPORT);
             await page.emulateMedia({ media: 'print' });
             await page.setContent(html, { waitUntil: 'load' });
@@ -50,5 +66,21 @@ export async function renderHtmlToPdfOnServer(html: string): Promise<Buffer> {
         }
     } finally {
         await browser.close();
+    }
+}
+
+/**
+ * Returns whether a Playwright request can proceed while rendering a chat export PDF.
+ *
+ * @param requestUrl - URL reported by Playwright for one intercepted request.
+ * @returns Whether the request cannot reach an external or internal network host.
+ *
+ * @private internal helper of `renderHtmlToPdfOnServer`
+ */
+function isAllowedPdfRendererRequestUrl(requestUrl: string): boolean {
+    try {
+        return CHAT_EXPORT_PDF_ALLOWED_REQUEST_PROTOCOLS.has(new URL(requestUrl).protocol);
+    } catch {
+        return false;
     }
 }

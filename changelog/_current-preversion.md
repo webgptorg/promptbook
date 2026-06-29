@@ -1,3 +1,5 @@
+-   Hardened Agents Server `/api/chat/export/pdf` against unauthenticated and SSRF-style abuse. The route now requires `getCurrentUser()` before reading the payload, applies a per-user sliding-window rate limit before spawning Playwright, sanitizes generated chat-export HTML URL attributes through the existing `assertSafeUrl` guard before rendering, blocks all Chromium network requests except non-network `about:` / `data:` URLs during PDF generation, and returns `Content-Disposition` with a quoted ASCII fallback plus RFC 5987 `filename*` encoding.
+
 -   Changed Agents Server durable chat progress so users see real progress in the requested sequence instead of an immediate synthetic queued card:
 
     -   Newly queued assistant placeholders no longer persist a progress card, which lets the browser rotate the configured `THINKING_MESSAGES` while the worker has not picked up the job yet.
