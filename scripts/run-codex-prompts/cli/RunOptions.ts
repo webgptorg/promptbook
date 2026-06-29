@@ -95,10 +95,6 @@ export type RunOptions = {
      */
     priority: number;
     /**
-     * Optional maximum number of successful prompt runs to process before stopping.
-     */
-    limit?: number;
-    /**
      * Optional HTTP server URL shown in the rich terminal UI for `ptbk coder server`.
      */
     serverUrl?: string;

@@ -96,7 +96,6 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
         let hasWaitedForStart = false;
         let previousRoundStartTime: number | undefined;
         let previousRoundEndTime: number | undefined;
-        let completedRunCount = 0;
 
         while (just(true)) {
             if (options.autoPull && !options.dryRun) {
@@ -191,16 +190,6 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
             });
             previousRoundStartTime = currentRoundStartTime;
             previousRoundEndTime = Date.now();
-            completedRunCount += 1;
-
-            if (isRunLimitReached({ completedRunCount, limit: options.limit })) {
-                finishWhenRunLimitIsReached({
-                    completedRunCount,
-                    isRichUiEnabled,
-                    uiHandle,
-                });
-                return;
-            }
         }
     } finally {
         cleanupRunDisplays(progressDisplay, uiHandle, options);
@@ -235,16 +224,6 @@ function validateRunCodexPromptOptions(options: RunOptions): void {
                 Flag \`--auto-pull\` requires commits, so it cannot be combined with \`--no-commit\`.
 
                 Auto-pull keeps the repository up to date between prompt rounds, which requires each successful round to end with a clean committed working tree.
-            `),
-        );
-    }
-
-    if (options.limit !== undefined && (!Number.isInteger(options.limit) || options.limit <= 0)) {
-        throw new NotAllowed(
-            spaceTrim(`
-                Flag \`--limit\` expects a positive integer.
-
-                Received: \`${options.limit}\`
             `),
         );
     }
@@ -454,29 +433,6 @@ function finishWhenNoPromptIsAvailable(
     }
 
     return true;
-}
-
-/**
- * Checks whether the configured successful prompt-run limit has been reached.
- */
-function isRunLimitReached(options: { completedRunCount: number; limit?: number }): boolean {
-    const { completedRunCount, limit } = options;
-
-    return limit !== undefined && completedRunCount >= limit;
-}
-
-/**
- * Updates UI and console output when a user-configured run limit stops the loop.
- */
-function finishWhenRunLimitIsReached(options: {
-    completedRunCount: number;
-    isRichUiEnabled: boolean;
-    uiHandle?: CoderRunUiHandle;
-}): void {
-    const { completedRunCount, isRichUiEnabled, uiHandle } = options;
-    const runCountLabel = completedRunCount === 1 ? '1 prompt run' : `${completedRunCount} prompt runs`;
-
-    announceRunCompletion(`Run limit reached after ${runCountLabel}.`, colors.green, isRichUiEnabled, uiHandle);
 }
 
 /**

@@ -221,17 +221,4 @@ describe('$initializeCoderRunCommand', () => {
             }),
         );
     });
-
-    it('passes run limit through when provided', async () => {
-        const program = createProgramWithRunCommand();
-
-        await program.parseAsync(['node', 'test', 'run', '--dry-run', '--limit', '2'], { from: 'node' });
-
-        expect(getRunCodexPromptsMock()).toHaveBeenCalledWith(
-            expect.objectContaining({
-                dryRun: true,
-                limit: 2,
-            }),
-        );
-    });
 });

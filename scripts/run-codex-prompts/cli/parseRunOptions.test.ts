@@ -113,16 +113,6 @@ describe('parseRunOptions', () => {
         });
     });
 
-    it('parses run limit when provided', () => {
-        const options = parseRunOptions(['--harness', 'github-copilot', '--limit', '2']);
-
-        expect(options).toMatchObject({
-            dryRun: false,
-            agentName: 'github-copilot',
-            limit: 2,
-        });
-    });
-
     it('leaves changes uncommitted only when --no-commit is provided', () => {
         const options = parseRunOptions(['--harness', 'github-copilot', '--no-commit']);
 
@@ -427,16 +417,6 @@ describe('parseRunOptions', () => {
 
     it('rejects missing priority value', () => {
         expect(() => parseRunOptions(['--harness', 'gemini', '--priority'])).toThrow('process.exit');
-        expect(processExitSpy).toHaveBeenCalledWith(1);
-    });
-
-    it('rejects invalid limit values', () => {
-        expect(() => parseRunOptions(['--harness', 'gemini', '--limit', '0'])).toThrow('process.exit');
-        expect(processExitSpy).toHaveBeenCalledWith(1);
-    });
-
-    it('rejects missing limit value', () => {
-        expect(() => parseRunOptions(['--harness', 'gemini', '--limit'])).toThrow('process.exit');
         expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 

@@ -166,16 +166,6 @@ describe('runCodexPrompts', () => {
         ).rejects.toThrow(/--no-commit/);
     });
 
-    it('rejects invalid run limits', async () => {
-        await expect(
-            runCodexPrompts(
-                createRunOptions({
-                    limit: 0,
-                }),
-            ),
-        ).rejects.toThrow(NotAllowed);
-    });
-
     it('pulls before loading prompts when --auto-pull is enabled', async () => {
         const events: string[] = [];
         const promptSelection = createPromptSelection();
@@ -198,22 +188,5 @@ describe('runCodexPrompts', () => {
 
         expect(events).toEqual(['pull', 'load', 'run', 'pull', 'load']);
         expect(ensureWorkingTreeClean).toHaveBeenCalledTimes(1);
-    });
-
-    it('stops after the configured successful prompt run limit', async () => {
-        const promptSelection = createPromptSelection();
-
-        (findNextTodoPrompt as jest.MockedFunction<typeof findNextTodoPrompt>).mockReturnValue(promptSelection);
-
-        await runCodexPrompts(
-            createRunOptions({
-                limit: 2,
-                waitForUser: false,
-                ignoreGitChanges: true,
-            }),
-        );
-
-        expect(runPromptRound).toHaveBeenCalledTimes(2);
-        expect(loadPromptFiles).toHaveBeenCalledTimes(2);
     });
 });
