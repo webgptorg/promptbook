@@ -3,21 +3,35 @@ import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForSer
 import type { AgentsServerDatabase } from '@/src/database/schema';
 
 /**
- * Database row shape for `User`.
+ * User row shape needed by durable chat execution.
  */
-type UserRow = AgentsServerDatabase['public']['Tables']['User']['Row'];
+type UserByIdRow = Pick<
+    AgentsServerDatabase['public']['Tables']['User']['Row'],
+    'id' | 'username' | 'isAdmin' | 'profileImageUrl'
+>;
+
+/**
+ * Supabase projection for user fields needed by durable chat execution.
+ */
+const USER_BY_ID_SELECT_COLUMNS = 'id, username, isAdmin, profileImageUrl';
 
 /**
  * Loads one user row by database id.
+ *
+ * @private internal Agents Server user lookup helper
  */
-export async function getUserById(userId: number): Promise<UserRow | null> {
+export async function getUserById(userId: number): Promise<UserByIdRow | null> {
     const supabase = $provideSupabaseForServer();
     const tableName = await $getTableName('User');
-    const { data, error } = await supabase.from(tableName).select('*').eq('id', userId).maybeSingle();
+    const { data, error } = await supabase
+        .from(tableName)
+        .select(USER_BY_ID_SELECT_COLUMNS)
+        .eq('id', userId)
+        .maybeSingle();
 
     if (error) {
         throw new Error(`Failed to resolve user "${userId}": ${error.message}`);
     }
 
-    return (data as UserRow | null) || null;
+    return (data as UserByIdRow | null) || null;
 }

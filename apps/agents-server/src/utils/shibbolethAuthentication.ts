@@ -61,9 +61,12 @@ const SHIBBOLETH_AUTHENTICATION_PROVIDER = 'SHIBBOLETH';
 const LOCAL_AND_SHIBBOLETH_AUTHENTICATION_PROVIDER = 'LOCAL_AND_SHIBBOLETH';
 
 /**
- * User table row with Shibboleth profile columns added by migration.
+ * User table row fields needed while linking Shibboleth identities.
  */
-type UserRowWithShibbolethColumns = AgentsServerDatabase['public']['Tables']['User']['Row'] & {
+type UserRowWithShibbolethColumns = Pick<
+    AgentsServerDatabase['public']['Tables']['User']['Row'],
+    'id' | 'username' | 'isAdmin'
+> & {
     readonly email?: string | null;
     readonly displayName?: string | null;
     readonly authenticationProvider?: string | null;
@@ -86,6 +89,11 @@ type UserUpdateWithShibbolethColumns = AgentsServerDatabase['public']['Tables'][
     readonly displayName?: string | null;
     readonly authenticationProvider?: string | null;
 };
+
+/**
+ * Supabase projection for user fields needed while linking Shibboleth identities.
+ */
+const SHIBBOLETH_USER_SELECT_COLUMNS: string = 'id, username, isAdmin, email, displayName, authenticationProvider';
 
 /**
  * Prefixed Shibboleth identity row.
@@ -791,7 +799,7 @@ async function findUserRowById(userId: number): Promise<UserRowWithShibbolethCol
     const supabase = $provideSupabaseForServer();
     const { data, error } = await supabase
         .from(await $getTableName('User'))
-        .select('*')
+        .select(SHIBBOLETH_USER_SELECT_COLUMNS)
         .eq('id', userId)
         .maybeSingle();
 
@@ -809,7 +817,7 @@ async function findUserRowByEmail(email: string): Promise<UserRowWithShibbolethC
     const supabase = $provideSupabaseForServer();
     const { data, error } = await supabase
         .from(await $getTableName('User'))
-        .select('*')
+        .select(SHIBBOLETH_USER_SELECT_COLUMNS)
         .eq('email' as never, email as never)
         .maybeSingle();
 
@@ -827,7 +835,7 @@ async function findUserRowByUsername(username: string): Promise<UserRowWithShibb
     const supabase = $provideSupabaseForServer();
     const { data, error } = await supabase
         .from(await $getTableName('User'))
-        .select('*')
+        .select(SHIBBOLETH_USER_SELECT_COLUMNS)
         .eq('username', username)
         .maybeSingle();
 
@@ -859,14 +867,14 @@ async function insertShibbolethUser(
     const { data, error } = await supabase
         .from(await $getTableName('User'))
         .insert(userInsert)
-        .select('*')
+        .select(SHIBBOLETH_USER_SELECT_COLUMNS)
         .single();
 
     if (error) {
         throw new Error(`Failed to create Shibboleth user: ${error.message}`);
     }
 
-    return data as UserRowWithShibbolethColumns;
+    return data as unknown as UserRowWithShibbolethColumns;
 }
 
 /**
@@ -892,14 +900,14 @@ async function updateLinkedShibbolethUser(
         .from(await $getTableName('User'))
         .update(userUpdate)
         .eq('id', user.id)
-        .select('*')
+        .select(SHIBBOLETH_USER_SELECT_COLUMNS)
         .single();
 
     if (error) {
         throw new Error(`Failed to update Shibboleth user: ${error.message}`);
     }
 
-    return data as UserRowWithShibbolethColumns;
+    return data as unknown as UserRowWithShibbolethColumns;
 }
 
 /**

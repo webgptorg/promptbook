@@ -2,6 +2,7 @@ import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '../../../database/$provideSupabaseForServer';
 import { getPasswordValidationMessage, hashPassword } from '../../../utils/auth';
 import { isUserAdmin } from '../../../utils/isUserAdmin';
+import { PUBLIC_USER_SELECT_COLUMNS, toPublicUser, type PublicUser } from '../../../utils/publicUser';
 import { NextResponse } from 'next/server';
 
 /**
@@ -16,14 +17,14 @@ export async function GET() {
         const supabase = $provideSupabaseForServer();
         const { data: users, error } = await supabase
             .from(await $getTableName('User'))
-            .select('*')
+            .select(PUBLIC_USER_SELECT_COLUMNS)
             .order('username');
 
         if (error) {
             throw error;
         }
 
-        return NextResponse.json(users);
+        return NextResponse.json(((users || []) as unknown as PublicUser[]).map(toPublicUser));
     } catch (error) {
         console.error('List users error:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -58,7 +59,7 @@ export async function POST(request: Request) {
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
             })
-            .select('*')
+            .select(PUBLIC_USER_SELECT_COLUMNS)
             .single();
 
         if (error) {
@@ -69,7 +70,7 @@ export async function POST(request: Request) {
             throw error;
         }
 
-        return NextResponse.json(newUser);
+        return NextResponse.json(toPublicUser(newUser as unknown as PublicUser));
     } catch (error) {
         console.error('Create user error:', error);
         const passwordValidationMessage = getPasswordValidationMessage(error);

@@ -116,16 +116,26 @@ export async function runScriptUntilMarkerIdle(options: RunScriptUntilMarkerIdle
         };
 
         /**
+         * Finishes a marker-completed run and then asks bash to stop.
+         */
+        const finishAfterIdleTimeout = (): void => {
+            settleWithLog('completed after idle timeout', () => resolve(fullOutput));
+
+            try {
+                commandProcess.kill();
+            } catch {
+                // Windows can report EPERM when bash exits before the idle timer fires.
+            }
+        };
+
+        /**
          * Resets the idle timer that triggers termination after inactivity.
          */
         const scheduleIdleExit = (): void => {
             if (idleTimer) {
                 clearTimeout(idleTimer);
             }
-            idleTimer = setTimeout(() => {
-                commandProcess.kill();
-                settleWithLog('completed after idle timeout', () => resolve(fullOutput));
-            }, idleTimeoutMs);
+            idleTimer = setTimeout(finishAfterIdleTimeout, idleTimeoutMs);
         };
 
         /**

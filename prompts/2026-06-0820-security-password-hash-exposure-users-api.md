@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.00 3 hours by OpenAI Codex `gpt-5.5`
 
 [🔐] Fix `passwordHash` exposure in `/api/users` admin endpoint of Agents Server
 
@@ -9,3 +9,4 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle and the SOLID principles — consider a small shared `toPublicUser(row)` mapper.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

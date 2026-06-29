@@ -1,6 +1,6 @@
 import { $getTableName } from '../database/$getTableName';
 import { $provideSupabaseForServer } from '../database/$provideSupabaseForServer';
-import { AgentsServerDatabase } from '../database/schema';
+import type { AgentsServerDatabase } from '../database/schema';
 import { verifyPassword } from './auth';
 import {
     AUTHENTICATION_ATTEMPT_PURPOSES,
@@ -12,6 +12,19 @@ import {
     type AuthenticationAttemptRateLimitRejection,
 } from './authenticationAttemptRateLimit';
 import { isAdminPasswordEqual } from './isAdminPasswordEqual';
+
+/**
+ * User row shape needed for password authentication.
+ */
+type AuthenticationUserRow = Pick<
+    AgentsServerDatabase['public']['Tables']['User']['Row'],
+    'username' | 'isAdmin' | 'passwordHash'
+>;
+
+/**
+ * Supabase projection for user fields needed by password authentication.
+ */
+const AUTHENTICATION_USER_SELECT_COLUMNS = 'username, isAdmin, passwordHash';
 
 /**
  * Type describing authenticated user.
@@ -121,7 +134,7 @@ export async function authenticateUser(username: string, password: string): Prom
         const supabase = $provideSupabaseForServer();
         const { data: user, error } = await supabase
             .from(await $getTableName('User'))
-            .select('*')
+            .select(AUTHENTICATION_USER_SELECT_COLUMNS)
             .eq('username', username)
             .single();
 
@@ -129,7 +142,7 @@ export async function authenticateUser(username: string, password: string): Prom
             return null;
         }
 
-        const userRow = user as AgentsServerDatabase['public']['Tables']['User']['Row'];
+        const userRow = user as AuthenticationUserRow;
         const isValid = await verifyPassword(password, userRow.passwordHash);
 
         if (!isValid) {

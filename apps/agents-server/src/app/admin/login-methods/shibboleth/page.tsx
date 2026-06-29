@@ -8,6 +8,7 @@ import { isUserAdmin } from '../../../../utils/isUserAdmin';
 import type { ServerLanguageCode } from '../../../../languages/ServerLanguageRegistry';
 import { formatServerLanguageHumanReadableDate } from '../../../../utils/localization/formatServerLanguageHumanReadableDate';
 import { getRequestServerLanguage } from '../../../../utils/localization/getRequestServerLanguage';
+import { PUBLIC_USER_SELECT_COLUMNS, toPublicUser, type PublicUser } from '../../../../utils/publicUser';
 import {
     getShibbolethAuthenticationAttemptTableName,
     getShibbolethUserIdentityTableName,
@@ -15,18 +16,6 @@ import {
     type ShibbolethAuthenticationAttemptRow,
     type ShibbolethUserIdentityRow,
 } from '../../../../utils/shibbolethAuthentication';
-
-/**
- * User row subset displayed on the Shibboleth dashboard.
- */
-type DashboardUserRow = {
-    readonly id: number;
-    readonly username: string;
-    readonly email?: string | null;
-    readonly displayName?: string | null;
-    readonly authenticationProvider?: string | null;
-    readonly isAdmin: boolean;
-};
 
 /**
  * Builds an absolute URL for Shibboleth route configuration inside server components.
@@ -62,7 +51,7 @@ async function loadShibbolethAuthenticationAttempts(): Promise<ReadonlyArray<Shi
  */
 async function loadShibbolethIdentitiesWithUsers(): Promise<{
     readonly identities: ReadonlyArray<ShibbolethUserIdentityRow>;
-    readonly usersById: ReadonlyMap<number, DashboardUserRow>;
+    readonly usersById: ReadonlyMap<number, PublicUser>;
 }> {
     const supabase = $provideSupabaseForServer();
     const { data: identities, error } = await supabase
@@ -90,7 +79,7 @@ async function loadShibbolethIdentitiesWithUsers(): Promise<{
 
     const { data: users, error: usersError } = await supabase
         .from(await $getTableName('User'))
-        .select('*')
+        .select(PUBLIC_USER_SELECT_COLUMNS)
         .in('id', userIds);
 
     if (usersError) {
@@ -101,9 +90,10 @@ async function loadShibbolethIdentitiesWithUsers(): Promise<{
         };
     }
 
-    const usersById = new Map<number, DashboardUserRow>();
-    for (const user of (users as unknown as DashboardUserRow[] | null) || []) {
-        usersById.set(user.id, user);
+    const usersById = new Map<number, PublicUser>();
+    for (const user of (users as unknown as PublicUser[] | null) || []) {
+        const publicUser = toPublicUser(user);
+        usersById.set(publicUser.id, publicUser);
     }
 
     return {
