@@ -17,7 +17,7 @@ const DEFAULT_WAIT_AFTER_ERROR_MS = 10 * 60 * 1000;
  * CLI usage text for this script.
  */
 const USAGE =
-    'Usage: run-codex-prompts [--dry-run] [--harness <harness-name>] [--model <model>] [--context <context-or-file>] [--test <test-command...>] [--preserve-logs] [--no-ui] [--thinking-level <thinking-level>] [--priority <minimum-priority>] [--allow-credits] [--auto-migrate] [--allow-destructive-auto-migrate] [--wait-after-prompt <duration>] [--wait-between-prompts <duration>] [--wait-after-error <duration>] [--no-auto] [--no-commit] [--ignore-git-changes] [--no-normalize-line-endings] [--auto-push] [--auto-pull]';
+    'Usage: run-codex-prompts [--dry-run] [--harness <harness-name>] [--model <model>] [--context <context-or-file>] [--test <test-command...>] [--preserve-logs] [--no-ui] [--thinking-level <thinking-level>] [--priority <minimum-priority>] [--limit <run-count>] [--allow-credits] [--auto-migrate] [--allow-destructive-auto-migrate] [--wait-after-prompt <duration>] [--wait-between-prompts <duration>] [--wait-after-error <duration>] [--no-auto] [--no-commit] [--ignore-git-changes] [--no-normalize-line-endings] [--auto-push] [--auto-pull]';
 
 /**
  * Top-level flags supported by this command.
@@ -32,6 +32,7 @@ const KNOWN_OPTION_FLAGS = new Set([
     '--no-ui',
     '--thinking-level',
     '--priority',
+    '--limit',
     '--allow-credits',
     '--auto-migrate',
     '--allow-destructive-auto-migrate',
@@ -71,6 +72,8 @@ export function parseRunOptions(args: string[]): RunOptions {
     const thinkingLevelValue = readOptionValue(args, '--thinking-level');
     const hasPriorityFlag = args.includes('--priority');
     const priority = parsePriority(readOptionValue(args, '--priority'), hasPriorityFlag);
+    const hasLimitFlag = args.includes('--limit');
+    const limit = parseLimit(readOptionValue(args, '--limit'), hasLimitFlag);
     const noCommit = args.includes('--no-commit');
     const ignoreGitChanges = args.includes('--ignore-git-changes');
     const normalizeLineEndings = !args.includes('--no-normalize-line-endings');
@@ -133,6 +136,7 @@ export function parseRunOptions(args: string[]): RunOptions {
         testCommand,
         thinkingLevel,
         priority,
+        limit,
     };
 }
 
@@ -209,6 +213,25 @@ function parsePriority(priorityValue: string | undefined, hasPriorityFlag: boole
     }
 
     return priority;
+}
+
+/**
+ * Parses and validates the optional successful prompt-run limit.
+ */
+function parseLimit(limitValue: string | undefined, hasLimitFlag: boolean): number | undefined {
+    if (limitValue === undefined) {
+        if (hasLimitFlag) {
+            exitWithUsageError('Missing value for --limit. Use a positive integer.');
+        }
+        return undefined;
+    }
+
+    const limit = Number(limitValue);
+    if (!Number.isInteger(limit) || limit <= 0) {
+        exitWithUsageError(`Invalid value for --limit: "${limitValue}". Use a positive integer.`);
+    }
+
+    return limit;
 }
 
 /**
