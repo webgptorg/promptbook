@@ -1,11 +1,20 @@
+import { spawn } from 'child_process';
+import { EventEmitter } from 'events';
 import { lstat, mkdir, mkdtemp, readFile, rm, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import {
+    createAgentsServerRuntimeEnvironment,
+    ensureAgentsServerBuild,
     isAgentsServerBuildCacheCurrent,
+    PTBK_AGENTS_SERVER_BUILD_WORKER_COUNT_ENV,
     resolveAgentsServerBuildAppPath,
     writeAgentsServerBuildCache,
 } from './buildAgentsServer';
+
+jest.mock('child_process', () => ({
+    spawn: jest.fn(),
+}));
 
 /**
  * Minimal local runtime layout used by Agents Server build-cache tests.
@@ -15,6 +24,14 @@ type AgentsServerBuildFixture = {
     readonly buildIdPath: string;
     readonly sharedSourcePath: string;
     readonly temporaryDirectoryPath: string;
+};
+
+/**
+ * Exit status emitted by one mocked Next.js build process.
+ */
+type MockedNextBuildExitStatus = {
+    readonly code: number | null;
+    readonly signal: NodeJS.Signals | null;
 };
 
 /**
@@ -61,11 +78,30 @@ describe('Agents Server build cache', () => {
 
     afterEach(async () => {
         process.chdir(originalWorkingDirectory);
+        getSpawnMock().mockReset();
         await Promise.all(
             temporaryDirectoryPaths
                 .splice(0)
                 .map((temporaryDirectoryPath) => rm(temporaryDirectoryPath, { recursive: true, force: true })),
         );
+    });
+
+    it('sets a conservative Next build worker count in the CLI runtime environment', () => {
+        const environment = createAgentsServerRuntimeEnvironment({ ...process.env }, 'node_modules');
+
+        expect(environment[PTBK_AGENTS_SERVER_BUILD_WORKER_COUNT_ENV]).toBe('1');
+    });
+
+    it('preserves an explicit Next build worker count override', () => {
+        const environment = createAgentsServerRuntimeEnvironment(
+            {
+                ...process.env,
+                [PTBK_AGENTS_SERVER_BUILD_WORKER_COUNT_ENV]: '2',
+            },
+            'node_modules',
+        );
+
+        expect(environment[PTBK_AGENTS_SERVER_BUILD_WORKER_COUNT_ENV]).toBe('2');
     });
 
     it('keeps the cached build until shared runtime source changes', async () => {
@@ -144,7 +180,79 @@ describe('Agents Server build cache', () => {
         expect(materializedAppPath).toBe(join(materializedRuntimeRootPath, 'apps', 'agents-server'));
         expect(nodeModulesLinkStats.isSymbolicLink() || nodeModulesLinkStats.isDirectory()).toBe(true);
     });
+
+    it('retries one Next build attempt killed by the operating system', async () => {
+        const fixture = await createAgentsServerBuildFixture();
+        const outputChunks: Array<string> = [];
+        temporaryDirectoryPaths.push(fixture.temporaryDirectoryPath);
+
+        mockNextBuildExitStatuses([
+            { code: null, signal: 'SIGKILL' },
+            { code: 0, signal: null },
+        ]);
+
+        await ensureAgentsServerBuild({
+            appPath: fixture.appPath,
+            isBuildForced: true,
+            onBuildOutput: (chunk) => outputChunks.push(chunk),
+        });
+
+        const firstSpawnOptions = getSpawnMock().mock.calls[0]?.[2] as { env?: NodeJS.ProcessEnv } | undefined;
+
+        expect(getSpawnMock()).toHaveBeenCalledTimes(2);
+        expect(outputChunks.join('')).toContain('signal `SIGKILL`');
+        expect(firstSpawnOptions?.env?.[PTBK_AGENTS_SERVER_BUILD_WORKER_COUNT_ENV]).toBe('1');
+    });
+
+    it('does not retry normal Next build failures', async () => {
+        const fixture = await createAgentsServerBuildFixture();
+        temporaryDirectoryPaths.push(fixture.temporaryDirectoryPath);
+
+        mockNextBuildExitStatuses([{ code: 1, signal: null }]);
+
+        await expect(
+            ensureAgentsServerBuild({
+                appPath: fixture.appPath,
+                isBuildForced: true,
+            }),
+        ).rejects.toThrow('Exit code: `1`');
+
+        expect(getSpawnMock()).toHaveBeenCalledTimes(1);
+    });
 });
+
+/**
+ * Returns the mocked child-process spawn function.
+ *
+ * @private internal utility of buildAgentsServer tests
+ */
+function getSpawnMock(): jest.MockedFunction<typeof spawn> {
+    return spawn as jest.MockedFunction<typeof spawn>;
+}
+
+/**
+ * Mocks consecutive Next.js build subprocess exits.
+ *
+ * @private internal utility of buildAgentsServer tests
+ */
+function mockNextBuildExitStatuses(exitStatuses: Array<MockedNextBuildExitStatus>): void {
+    getSpawnMock().mockImplementation(() => {
+        const exitStatus = exitStatuses.shift() || { code: 0, signal: null };
+        const commandProcess = new EventEmitter() as EventEmitter & {
+            stdout: EventEmitter;
+            stderr: EventEmitter;
+        };
+
+        commandProcess.stdout = new EventEmitter();
+        commandProcess.stderr = new EventEmitter();
+
+        setImmediate(() => {
+            commandProcess.emit('close', exitStatus.code, exitStatus.signal);
+        });
+
+        return commandProcess as unknown as ReturnType<typeof spawn>;
+    });
+}
 
 /**
  * Returns true when the path exists.

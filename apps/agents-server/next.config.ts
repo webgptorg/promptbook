@@ -23,6 +23,13 @@ const agentsServerNodeModulesPath = process.env.PTBK_AGENTS_SERVER_NODE_MODULES_
 const isNextValidationIgnored = process.env.PTBK_AGENTS_SERVER_IGNORE_NEXT_VALIDATION === 'true';
 
 /**
+ * Optional worker count override for CLI-owned production builds on memory-constrained VPS hosts.
+ */
+const AGENTS_SERVER_BUILD_WORKER_COUNT = parseAgentsServerBuildWorkerCount(
+    process.env.PTBK_AGENTS_SERVER_BUILD_WORKER_COUNT,
+);
+
+/**
  * Whether Sentry source maps can be uploaded during production builds.
  */
 const IS_SENTRY_SOURCE_MAP_UPLOAD_ENABLED = Boolean(process.env.SENTRY_AUTH_TOKEN);
@@ -57,6 +64,7 @@ const nextConfig: NextConfig = {
 
     experimental: {
         externalDir: true,
+        ...(AGENTS_SERVER_BUILD_WORKER_COUNT ? { cpus: AGENTS_SERVER_BUILD_WORKER_COUNT } : {}),
     },
 
     turbopack: {
@@ -161,4 +169,17 @@ function createPromptbookLocalPackageAliases(): Record<string, string> {
     } catch {
         return {};
     }
+}
+
+/**
+ * Parses a positive integer worker count from the CLI build environment.
+ */
+function parseAgentsServerBuildWorkerCount(rawValue: string | undefined): number | undefined {
+    const parsedValue = Number(rawValue);
+
+    if (!Number.isFinite(parsedValue) || parsedValue < 1) {
+        return undefined;
+    }
+
+    return Math.floor(parsedValue);
 }
