@@ -1,4 +1,5 @@
 Expert
+META VISIBILITY PRIVATE
 
 FROM {Adam}
 RULE testing rule from Expert
@@ -33,7 +34,6 @@ USE SEARCH ENGINE
 
 
 CLOSED
-
 
 
 

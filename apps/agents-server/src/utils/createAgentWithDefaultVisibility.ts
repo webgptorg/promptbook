@@ -1,6 +1,7 @@
 import type { AgentBasicInformation, AgentCollection, string_book } from '@promptbook-local/types';
 import type { CreateAgentInput } from '../../../../src/collection/agent-collection/CreateAgentInput';
 import { assignAgentOwner } from './agentOwnership';
+import { parseAgentSourceVisibility } from './agentVisibility';
 import { getDefaultAgentVisibility } from './getDefaultAgentVisibility';
 
 /**
@@ -27,7 +28,8 @@ export async function createAgentWithDefaultVisibility(
     options: CreateAgentWithDefaultVisibilityOptions = {},
 ): Promise<AgentBasicInformation & Required<Pick<AgentBasicInformation, 'permanentId'>>> {
     const { userId, ...createOptions } = options;
-    const visibility = options.visibility ?? (await getDefaultAgentVisibility());
+    const sourceVisibility = parseAgentSourceVisibility(agentSource, { isStrict: true });
+    const visibility = options.visibility ?? sourceVisibility ?? (await getDefaultAgentVisibility());
 
     const createdAgent = await collection.createAgent(agentSource, {
         ...createOptions,

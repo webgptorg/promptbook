@@ -1,4 +1,9 @@
 import type { string_book } from '../../book-2.0/agent-source/string_book';
+import {
+    AGENT_VISIBILITY_VALUES,
+    normalizeAgentVisibility,
+    type AgentVisibility,
+} from '../../book-2.0/agent-source/agentSourceVisibility';
 import { LimitReachedError } from '../../errors/LimitReachedError';
 import { ParseError } from '../../errors/ParseError';
 import type { LlmToolDefinition } from '../../types/LlmToolDefinition';
@@ -9,14 +14,14 @@ import { spaceTrim } from '../../utils/organization/spaceTrim';
  *
  * @private shared create-agent contract
  */
-export const CREATE_AGENT_VISIBILITY_VALUES = ['PRIVATE', 'UNLISTED', 'PUBLIC'] as const;
+export const CREATE_AGENT_VISIBILITY_VALUES = AGENT_VISIBILITY_VALUES;
 
 /**
  * Supported visibility options for agent creation.
  *
  * @private shared create-agent contract
  */
-export type CreateAgentVisibility = (typeof CREATE_AGENT_VISIBILITY_VALUES)[number];
+export type CreateAgentVisibility = AgentVisibility;
 
 /**
  * Canonical input payload for creating one persisted agent entity.
@@ -244,8 +249,8 @@ function parseOptionalVisibility(rawValue: unknown): CreateAgentVisibility | und
         );
     }
 
-    const isSupportedVisibility = CREATE_AGENT_VISIBILITY_VALUES.includes(rawValue as CreateAgentVisibility);
-    if (!isSupportedVisibility) {
+    const visibility = normalizeAgentVisibility(rawValue);
+    if (!visibility) {
         throw new ParseError(
             spaceTrim(`
                 Invalid create-agent payload.
@@ -255,5 +260,5 @@ function parseOptionalVisibility(rawValue: unknown): CreateAgentVisibility | und
         );
     }
 
-    return rawValue as CreateAgentVisibility;
+    return visibility;
 }

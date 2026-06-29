@@ -3,6 +3,7 @@ import { resolveAvatarVisualId } from '../../../avatars/visuals/avatarVisualRegi
 import { normalizeTo_camelCase } from '../../../utils/normalization/normalizeTo_camelCase';
 import { normalizeDomainForMatching } from '../../../utils/validators/url/normalizeDomainForMatching';
 import type { ParsedCommitment } from '../../../commitments/_base/ParsedCommitment';
+import { normalizeAgentVisibility } from '../agentSourceVisibility';
 import type { ParseAgentSourceState } from './ParseAgentSourceState';
 
 /**
@@ -25,6 +26,7 @@ const META_COMMITMENT_APPLIERS: Readonly<Record<string, MetaCommitmentApplier | 
     'META COLOR': applyMetaColorContent,
     'META FONT': applyMetaFontContent,
     'META VOICE': applyMetaVoiceContent,
+    'META VISIBILITY': applyMetaVisibilityContent,
 };
 
 /**
@@ -57,6 +59,11 @@ function applyGenericMetaCommitment(state: ParseAgentSourceState, content: strin
 
     if (metaTypeRaw.toUpperCase() === 'AVATAR') {
         applyMetaAvatarContent(state, metaValue);
+        return;
+    }
+
+    if (metaTypeRaw.toUpperCase() === 'VISIBILITY') {
+        applyMetaVisibilityContent(state, metaValue);
         return;
     }
 
@@ -147,6 +154,16 @@ function applyMetaFontContent(state: ParseAgentSourceState, content: string): vo
  */
 function applyMetaVoiceContent(state: ParseAgentSourceState, content: string): void {
     state.meta.voice = spaceTrim(content);
+}
+
+/**
+ * Applies META VISIBILITY content into the normalized `meta.visibility` field.
+ */
+function applyMetaVisibilityContent(state: ParseAgentSourceState, content: string): void {
+    const visibility = normalizeAgentVisibility(content);
+    if (visibility) {
+        state.meta.visibility = visibility;
+    }
 }
 
 /**

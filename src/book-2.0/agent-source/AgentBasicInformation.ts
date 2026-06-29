@@ -4,6 +4,7 @@ import type { string_agent_url } from '../../types/string_agent_url';
 import type { string_fonts } from '../../types/string_markdown';
 import type { string_color } from '../../types/string_person_fullname';
 import type { string_url_image } from '../../types/string_url_image';
+import type { AgentVisibility } from './agentSourceVisibility';
 
 /**
  * Unified parameter representation that supports two different notations:
@@ -130,6 +131,7 @@ export type AgentBasicInformation = {
         font?: string_fonts;
         color?: string_color;
         voice?: string;
+        visibility?: AgentVisibility;
         [key: string]: string | undefined;
     };
 

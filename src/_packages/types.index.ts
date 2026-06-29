@@ -5,6 +5,7 @@ import type { BookParameter } from '../book-2.0/agent-source/AgentBasicInformati
 import type { AgentCapability } from '../book-2.0/agent-source/AgentBasicInformation';
 import type { AgentBasicInformation } from '../book-2.0/agent-source/AgentBasicInformation';
 import type { AgentModelRequirements } from '../book-2.0/agent-source/AgentModelRequirements';
+import type { AgentVisibility } from '../book-2.0/agent-source/agentSourceVisibility';
 import type { CreateAgentModelRequirementsOptions } from '../book-2.0/agent-source/CreateAgentModelRequirementsOptions';
 import type { string_book } from '../book-2.0/agent-source/string_book';
 import type { BookNodeAgentSource } from '../book-3.0/BookNodeAgentSource';
@@ -449,6 +450,7 @@ export type { BookParameter };
 export type { AgentCapability };
 export type { AgentBasicInformation };
 export type { AgentModelRequirements };
+export type { AgentVisibility };
 export type { CreateAgentModelRequirementsOptions };
 export type { string_book };
 export type { BookNodeAgentSource };

@@ -9,7 +9,7 @@ describe('parseCreateAgentInput', () => {
             source: 'Child Agent\nPERSONA You are helpful.',
             folderId: 12,
             sortOrder: 3,
-            visibility: 'UNLISTED',
+            visibility: '  unlisted ',
         });
 
         expect(parsed).toEqual({

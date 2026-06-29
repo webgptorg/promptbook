@@ -2,6 +2,17 @@
 // `@promptbook/core`
 
 import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
+import { AGENT_VISIBILITY_VALUES } from '../book-2.0/agent-source/agentSourceVisibility';
+import type { AgentVisibility } from '../book-2.0/agent-source/agentSourceVisibility';
+import { DEFAULT_AGENT_VISIBILITY } from '../book-2.0/agent-source/agentSourceVisibility';
+import { isAgentVisibility } from '../book-2.0/agent-source/agentSourceVisibility';
+import { normalizeAgentVisibility } from '../book-2.0/agent-source/agentSourceVisibility';
+import { parseAgentVisibility } from '../book-2.0/agent-source/agentSourceVisibility';
+import { parseAgentVisibilityStrict } from '../book-2.0/agent-source/agentSourceVisibility';
+import { parseAgentSourceVisibility } from '../book-2.0/agent-source/agentSourceVisibility';
+import { isPublicAgentVisibility } from '../book-2.0/agent-source/agentSourceVisibility';
+import { getNextAgentVisibility } from '../book-2.0/agent-source/agentSourceVisibility';
+import { setAgentSourceVisibility } from '../book-2.0/agent-source/agentSourceVisibility';
 import { computeAgentHash } from '../book-2.0/agent-source/computeAgentHash';
 import { createAgentModelRequirements } from '../book-2.0/agent-source/createAgentModelRequirements';
 import type { CreateAgentModelRequirementsOptions } from '../book-2.0/agent-source/CreateAgentModelRequirementsOptions';
@@ -233,6 +244,17 @@ export { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION };
 
 
 // Note: Entities of the `@promptbook/core`
+export { AGENT_VISIBILITY_VALUES };
+export type { AgentVisibility };
+export { DEFAULT_AGENT_VISIBILITY };
+export { isAgentVisibility };
+export { normalizeAgentVisibility };
+export { parseAgentVisibility };
+export { parseAgentVisibilityStrict };
+export { parseAgentSourceVisibility };
+export { isPublicAgentVisibility };
+export { getNextAgentVisibility };
+export { setAgentSourceVisibility };
 export { computeAgentHash };
 export { createAgentModelRequirements };
 export type { CreateAgentModelRequirementsOptions };

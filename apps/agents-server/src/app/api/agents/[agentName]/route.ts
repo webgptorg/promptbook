@@ -1,12 +1,10 @@
 // DELETE /api/agents/[agentName]
 // PATCH /api/agents/[agentName] - update agent visibility
 // POST /api/agents/[agentName]/restore - restore deleted agent
-import { $getTableName } from '@/src/database/$getTableName';
-import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import { renameAgentSource } from '@/src/utils/renameAgentSource';
-import { isAgentVisibility, type AgentVisibility } from '@/src/utils/agentVisibility';
+import { normalizeAgentVisibility, setAgentSourceVisibility } from '@/src/utils/agentVisibility';
 import { TODO_any, type string_book } from '@promptbook-local/types';
 import { NextResponse } from 'next/server';
 import { findAgentForCallerWriteAccess } from '@/src/utils/findAgentForCallerWriteAccess';
@@ -41,7 +39,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ ag
             return NextResponse.json({ success: false, error: 'Agent not found' }, { status: 404 });
         }
 
-        const body = (await request.json()) as { visibility?: AgentVisibility; name?: string };
+        const body = (await request.json()) as { visibility?: unknown; name?: string };
 
         if (typeof body.name === 'string') {
             const trimmedName = body.name.trim();
@@ -69,27 +67,19 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ ag
             });
         }
 
-        const { visibility } = body;
+        const visibility = normalizeAgentVisibility(body.visibility);
 
-        if (!isAgentVisibility(visibility)) {
+        if (!visibility) {
             return NextResponse.json(
                 { success: false, error: 'Invalid visibility value. Must be PRIVATE, UNLISTED, or PUBLIC.' },
                 { status: 400 },
             );
         }
 
-        const supabase = $provideSupabaseForServer();
-
-        const updateResult = await supabase
-            .from(await $getTableName(`Agent`))
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            .update({ visibility } as any)
-            .eq('id', targetAgent.id)
-            .is('deletedAt', null);
-
-        if (updateResult.error) {
-            return NextResponse.json({ success: false, error: updateResult.error.message }, { status: 500 });
-        }
+        const collection = await $provideAgentCollectionForServer();
+        const agentId = getAgentCollectionIdentifier(targetAgent);
+        const nextAgentSource = setAgentSourceVisibility(targetAgent.agentSource as string_book, visibility);
+        await collection.updateAgentSource(agentId, nextAgentSource);
 
         invalidateCachedActiveOrganizationSnapshots();
 

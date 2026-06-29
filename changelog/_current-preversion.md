@@ -1,3 +1,5 @@
+-   Added `META VISIBILITY` as the book-language source of truth for Agents Server agent visibility. Agent creation, book saves, menu visibility changes, and management API visibility updates now normalize the commitment to `PRIVATE`, `UNLISTED`, or `PUBLIC` and mirror it into the database column used for filtering. Bundled default agents now declare their visibility in book source, with `Generic chatter` public and the other defaults private.
+
 -   Added `--limit <run-count>` to `ptbk coder run`, letting coding-agent sessions stop cleanly after the configured number of successful prompt runs. The legacy `run-codex-prompts` option parser now accepts the same flag, and the VS Code terminal list includes a prepared Codex/Claude zig-zag script that runs one prompt per harness with `--limit 1`.
 
 -   Fixed Agents Server admin user responses so `/api/users`, `/api/users/[username]`, and the Shibboleth admin dashboard no longer expose `passwordHash`. User-facing code now shares an explicit public user projection and `toPublicUser` mapper, while authentication and password-change paths use narrow internal projections only where the hash is needed.

@@ -51,8 +51,11 @@ export function createAgentPersistenceRecords(
     options: CreateAgentPersistenceRecordsOptions = {},
     createdAt: string = new Date().toISOString(),
 ): CreateAgentPersistenceRecordsResult {
-    const preparedAgentSource = prepareAgentSourceForPersistence(agentSource);
-    const { agentProfile, agentSource: normalizedAgentSource } = preparedAgentSource;
+    const preparedAgentSource = prepareAgentSourceForPersistence(agentSource, {
+        visibility: options.visibility,
+        isVisibilityOverride: options.visibility !== undefined,
+    });
+    const { agentProfile, agentSource: normalizedAgentSource, visibility } = preparedAgentSource;
     const permanentId = preparedAgentSource.permanentId || $randomBase58(14);
     const { agentName, agentHash } = agentProfile;
 
@@ -74,8 +77,8 @@ export function createAgentPersistenceRecords(
     if (options.sortOrder !== undefined) {
         agentInsertRecord.sortOrder = options.sortOrder;
     }
-    if (options.visibility !== undefined) {
-        agentInsertRecord.visibility = options.visibility;
+    if (visibility !== undefined) {
+        agentInsertRecord.visibility = visibility;
     }
 
     return {

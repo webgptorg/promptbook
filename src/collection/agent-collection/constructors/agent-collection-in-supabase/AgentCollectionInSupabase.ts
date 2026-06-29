@@ -322,7 +322,7 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
     ): Promise<void> {
         const selectPreviousAgentResult = await this.supabaseClient
             .from(this.getTableName('Agent'))
-            .select('agentHash,agentName,permanentId')
+            .select('agentHash,agentName,permanentId,visibility')
             .eq('permanentId', permanentId)
             .single();
 
@@ -343,9 +343,12 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
         const previousAgentName = selectPreviousAgentResult.data.agentName;
         const previousAgentHash = selectPreviousAgentResult.data.agentHash;
         const previousPermanentId = selectPreviousAgentResult.data.permanentId;
+        const previousVisibility = selectPreviousAgentResult.data.visibility;
 
-        const preparedAgentSource = prepareAgentSourceForPersistence(agentSource);
-        const { agentProfile, agentSource: normalizedAgentSource } = preparedAgentSource;
+        const preparedAgentSource = prepareAgentSourceForPersistence(agentSource, {
+            visibility: previousVisibility,
+        });
+        const { agentProfile, agentSource: normalizedAgentSource, visibility } = preparedAgentSource;
         let { permanentId: newPermanentId } = preparedAgentSource;
 
         const { agentHash, agentName } = agentProfile;
@@ -380,6 +383,7 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
                 updatedAt: new Date().toISOString(),
                 agentHash: agentProfile.agentHash,
                 agentSource: normalizedAgentSource,
+                visibility: visibility ?? previousVisibility,
                 promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
             })
             .eq('permanentId', permanentId);

@@ -1,4 +1,5 @@
 Developer
+META VISIBILITY PRIVATE
 
 RULE
 Keep in mind the DRY _(don't repeat yourself)_ principle.

@@ -1,4 +1,5 @@
 Teacher
+META VISIBILITY PRIVATE
 
 FROM {Adam}
 RULE testing rule from Teacher
@@ -75,7 +76,6 @@ NOTE ```
 
 
 CLOSED
-
 
 
 

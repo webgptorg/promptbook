@@ -18,6 +18,7 @@ import {
     ManagementAgentPathParamsSchema,
     ManagementAgentUpdateRequestSchema,
 } from '@/src/utils/managementApi/managementApiSchemas';
+import { setAgentSourceVisibility } from '@/src/utils/agentVisibility';
 import {
     createManagementApiErrorResponse,
     createManagementApiJsonResponse,
@@ -34,7 +35,6 @@ type ManagementAgentUpdateRequest = z.infer<typeof ManagementAgentUpdateRequestS
  * Agent metadata fields updated directly in the database during `PATCH`.
  */
 type ManagementAgentMetadataUpdate = {
-    visibility?: ManagementAgentUpdateRequest['visibility'];
     folderId?: ManagementAgentUpdateRequest['folderId'];
     sortOrder?: ManagementAgentUpdateRequest['sortOrder'];
     updatedAt?: string;
@@ -259,7 +259,11 @@ async function updateOwnedAgentSourceIfNeeded(
     existingAgent: OwnedAgentRow,
     updateRequest: ManagementAgentUpdateRequest,
 ): Promise<void> {
-    if (updateRequest.name === undefined && updateRequest.source === undefined) {
+    if (
+        updateRequest.name === undefined &&
+        updateRequest.source === undefined &&
+        updateRequest.visibility === undefined
+    ) {
         return;
     }
 
@@ -280,11 +284,15 @@ function createUpdatedOwnedAgentSource(
     updateRequest: ManagementAgentUpdateRequest,
 ): string_book {
     const sourceWithRequestedContent = (updateRequest.source || existingAgent.agentSource) as string_book;
-    if (!updateRequest.name) {
-        return sourceWithRequestedContent;
+    const sourceWithRequestedName = updateRequest.name
+        ? renameAgentSource(sourceWithRequestedContent, updateRequest.name)
+        : sourceWithRequestedContent;
+
+    if (updateRequest.visibility === undefined) {
+        return sourceWithRequestedName;
     }
 
-    return renameAgentSource(sourceWithRequestedContent, updateRequest.name);
+    return setAgentSourceVisibility(sourceWithRequestedName, updateRequest.visibility);
 }
 
 /**
@@ -302,9 +310,6 @@ async function createOwnedAgentMetadataUpdate(
 ): Promise<ManagementAgentMetadataUpdate> {
     const metadataUpdate: ManagementAgentMetadataUpdate = {};
 
-    if (updateRequest.visibility !== undefined) {
-        metadataUpdate.visibility = updateRequest.visibility;
-    }
     if (updateRequest.folderId !== undefined) {
         metadataUpdate.folderId = updateRequest.folderId;
     }

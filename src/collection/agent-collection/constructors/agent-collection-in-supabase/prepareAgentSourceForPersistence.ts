@@ -1,7 +1,29 @@
 import type { AgentBasicInformation } from '../../../../book-2.0/agent-source/AgentBasicInformation';
+import {
+    DEFAULT_AGENT_VISIBILITY,
+    parseAgentSourceVisibility,
+    setAgentSourceVisibility,
+    type AgentVisibility,
+} from '../../../../book-2.0/agent-source/agentSourceVisibility';
 import { parseAgentSource } from '../../../../book-2.0/agent-source/parseAgentSource';
 import type { string_book } from '../../../../book-2.0/agent-source/string_book';
 import type { string_agent_permanent_id } from '../../../../types/string_agent_name';
+
+/**
+ * Options used while preparing a source for persistence.
+ *
+ * @private shared persistence helper for `AgentCollectionInSupabase`
+ */
+export type PrepareAgentSourceForPersistenceOptions = {
+    /**
+     * Visibility value that should be written into the book when present.
+     */
+    readonly visibility?: AgentVisibility | null;
+    /**
+     * Whether `visibility` should replace an existing `META VISIBILITY` commitment.
+     */
+    readonly isVisibilityOverride?: boolean;
+};
 
 /**
  * Prepared agent source payload ready for database persistence.
@@ -24,6 +46,10 @@ export type PreparedAgentSourceForPersistence = {
      * Permanent id extracted from the original source before stripping `META ID`.
      */
     readonly permanentId: string_agent_permanent_id | undefined;
+    /**
+     * Visibility parsed from the normalized source.
+     */
+    readonly visibility: AgentVisibility | undefined;
 };
 
 /**
@@ -36,20 +62,30 @@ export type PreparedAgentSourceForPersistence = {
  *
  * @private shared persistence helper for `AgentCollectionInSupabase`
  */
-export function prepareAgentSourceForPersistence(agentSource: string_book): PreparedAgentSourceForPersistence {
-    let agentProfile = parseAgentSource(agentSource);
-    const permanentId = agentProfile.permanentId;
+export function prepareAgentSourceForPersistence(
+    agentSource: string_book,
+    options: PrepareAgentSourceForPersistenceOptions = {},
+): PreparedAgentSourceForPersistence {
+    const originalAgentProfile = parseAgentSource(agentSource);
+    const permanentId = originalAgentProfile.permanentId;
 
-    const strippedAgentSource = stripMetaIdLines(agentSource);
-    if (strippedAgentSource !== agentSource) {
-        agentSource = strippedAgentSource;
-        agentProfile = parseAgentSource(agentSource);
-    }
+    agentSource = stripMetaIdLines(agentSource);
+    const sourceVisibility = parseAgentSourceVisibility(agentSource, { isStrict: true });
+    const resolvedVisibility =
+        options.isVisibilityOverride || !sourceVisibility
+            ? options.visibility ?? sourceVisibility ?? DEFAULT_AGENT_VISIBILITY
+            : sourceVisibility;
+
+    agentSource = setAgentSourceVisibility(agentSource, resolvedVisibility);
+
+    const agentProfile = parseAgentSource(agentSource);
+    const visibility = parseAgentSourceVisibility(agentSource, { isStrict: true }) ?? undefined;
 
     return {
         agentProfile,
         agentSource,
         permanentId,
+        visibility,
     };
 }
 

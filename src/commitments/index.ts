@@ -28,6 +28,7 @@ import { MetaFontCommitmentDefinition } from './META_FONT/META_FONT';
 import { MetaImageCommitmentDefinition } from './META_IMAGE/META_IMAGE';
 import { MetaInputPlaceholderCommitmentDefinition } from './META_INPUT_PLACEHOLDER/META_INPUT_PLACEHOLDER';
 import { MetaLinkCommitmentDefinition } from './META_LINK/META_LINK';
+import { MetaVisibilityCommitmentDefinition } from './META_VISIBILITY/META_VISIBILITY';
 import { MetaVoiceCommitmentDefinition } from './META_VOICE/META_VOICE';
 import { ModelCommitmentDefinition } from './MODEL/MODEL';
 import { NoteCommitmentDefinition } from './NOTE/NOTE';
@@ -102,6 +103,7 @@ export const COMMITMENT_REGISTRY = [
     new MetaDomainCommitmentDefinition(),
     new MetaDisclaimerCommitmentDefinition(),
     new MetaInputPlaceholderCommitmentDefinition(),
+    new MetaVisibilityCommitmentDefinition(),
     new MetaCommitmentDefinition(),
     new MetaVoiceCommitmentDefinition(),
     new NoteCommitmentDefinition('NOTE'),

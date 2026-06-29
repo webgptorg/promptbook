@@ -1,4 +1,5 @@
 Adam
+META VISIBILITY PRIVATE
 
 FROM  {void}
 RULE testing rule from Adam
@@ -26,7 +27,6 @@ RULE Write the names of the documents from which you are sourcing information in
 NOTE Todo: USE SEARCH ENGINE
 
 CLOSED
-
 
 
 

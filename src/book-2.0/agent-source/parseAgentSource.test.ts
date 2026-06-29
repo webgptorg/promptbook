@@ -364,6 +364,18 @@ describe('parseAgentSource', () => {
         expect(result.meta.inputPlaceholder).toBe('Ask me anything about your tasks');
     });
 
+    it('parses META VISIBILITY and normalizes supported values', () => {
+        const agentSource = validateBook(
+            spaceTrim(`
+                Helper Agent
+                META VISIBILITY   public
+            `),
+        );
+        const result = parseAgentSource(agentSource);
+
+        expect(result.meta.visibility).toBe('PUBLIC');
+    });
+
     it('parses MESSAGE SUFFIX with multiline markdown content', () => {
         const agentSource = validateBook(
             spaceTrim(`
