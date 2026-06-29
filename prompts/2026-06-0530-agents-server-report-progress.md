@@ -38,3 +38,14 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
+---
+
+[ ]
+
+[✨🖖] Remove "Working on your request" from response
+
+-   Show the progress as follows:
+    1. Randomly cycle through THINKING_MESSAGES
+    2. "Working on your request" **<- Remove this, it is bullshit and does not show any real progress**
+    3. Finally, show the final answer
+-   You are working with the [Agents Server](apps/agents-server)

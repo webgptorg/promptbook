@@ -22,6 +22,10 @@
 
 [x] $7.18 an hour by Claude Code
 
+---
+
+[ ]
+
 [✨🧐] The self-update of the Agents server should show more info
 
 -   On `/admin/update` of Agents server you can trigger the self-update of the server
@@ -36,4 +40,3 @@
 
 ![self-update](screenshots/2026-06-0551-agents-server-self-update-enhance-1.png)
 ![errored self update](screenshots/2026-06-0551-agents-server-self-update-enhance.png)
-

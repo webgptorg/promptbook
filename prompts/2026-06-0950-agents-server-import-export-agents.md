@@ -34,3 +34,13 @@
 -   You are working with the [Agents Server](apps/agents-server) with agent lising
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
+---
+
+[ ] !
+
+[✨🚕] Modify import of the agents
+
+-   If the user drops zip file inside a folder on the agents server, put the imported agents inside this folder
+    -   For example `https://s24.ptbk.io/?folder=xxx` drops a zip file with agents, the agents should be imported into the folder `xxx`
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server) with agent lising

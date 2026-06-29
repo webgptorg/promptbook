@@ -1,8 +1,11 @@
 [ ] !!!
 
-[✨😘] baz
+[✨😘] Only one instance of `promptbook-agents-server` should run
 
--   @@@
+-   On `/admin/update` of Agents server you can trigger the self-update of the server
+-   Sometimes it happens that there are multiple instances of `promptbook-agents-server` running, this should not happen, only one instance should run
+    -   This shouldnt happen even if the server update fails, every time just one instance should run
+-   You can look at testing server https://s24.ptbk.io/ or ssh into the VPS `s24.ptbk.io` and check the logs
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
