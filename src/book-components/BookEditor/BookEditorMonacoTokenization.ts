@@ -22,6 +22,16 @@ const AGENT_REFERENCE_AT_PATTERN = '(?<!\\S)@[A-Za-z0-9_-]+';
 const AGENT_REFERENCE_BRACED_PATTERN = '\\{[^{}\\r\\n]+\\}';
 
 /**
+ * Pattern matching plain inline `@` tokens, for example email addresses.
+ *
+ * Monaco tokenizes from the current offset, so `team@foo.bar` can otherwise reach
+ * the `@foo` suffix and look like a standalone compact reference.
+ *
+ * @private function of BookEditorMonaco
+ */
+const NON_AGENT_REFERENCE_INLINE_AT_TOKEN_REGEX = /[^\s{}]*[^\s@{}]@[^\s{}]+/;
+
+/**
  * Commitment types where compact agent references are supported.
  *
  * @private function of BookEditorMonaco
@@ -334,6 +344,7 @@ export const BookEditorMonacoTokenization = {
     AGENT_URL_REFERENCE_REGEX,
     AGENT_REFERENCE_TOKEN_REGEX,
     AGENT_REFERENCE_BRACED_REGEX,
+    NON_AGENT_REFERENCE_INLINE_AT_TOKEN_REGEX,
     AGENT_REFERENCE_HIGHLIGHT_REGEXES,
     extractAgentReferenceValue,
     resolveAgentReferenceToUrl,

@@ -312,14 +312,17 @@ export function ensureBookEditorMonacoLanguage(
         commitmentRegex,
     );
 
-    const parameterRegex = /@([a-zA-Z0-9_á-žÁ-Žč-řČ-Řš-žŠ-Žа-яА-ЯёЁ]+)/;
+    const PARAMETER_REGEX = /@([a-zA-Z0-9_á-žÁ-Žč-řČ-Řš-žŠ-Žа-яА-ЯёЁ]+)/;
+    const NON_AGENT_REFERENCE_INLINE_AT_TOKEN_REGEX =
+        BookEditorMonacoTokenization.NON_AGENT_REFERENCE_INLINE_AT_TOKEN_REGEX;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const defaultBodyRules: any = [
         [/^---[-]*$/, ''],
         [CODE_BLOCK_FENCE_REGEX, 'code-block', '@codeblock'],
         ...commitmentTransitionRules,
-        [parameterRegex, 'parameter'],
+        [NON_AGENT_REFERENCE_INLINE_AT_TOKEN_REGEX, ''],
+        [PARAMETER_REGEX, 'parameter'],
         [/\{[^}]+\}/, 'parameter'],
     ];
 
@@ -329,7 +332,8 @@ export function ensureBookEditorMonacoLanguage(
         [CODE_BLOCK_FENCE_REGEX, 'code-block', '@codeblock'],
         ...commitmentTransitionRules,
         ...BookEditorMonacoTokenization.AGENT_REFERENCE_HIGHLIGHT_REGEXES.map((regex) => [regex, 'agent-reference']),
-        [parameterRegex, 'parameter'],
+        [NON_AGENT_REFERENCE_INLINE_AT_TOKEN_REGEX, ''],
+        [PARAMETER_REGEX, 'parameter'],
         [/\{[^}]+\}/, 'parameter'],
     ];
 

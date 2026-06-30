@@ -25,6 +25,19 @@ type MonacoLanguageMock = {
 };
 
 /**
+ * Monaco tokenizer rule tuple used by the mocked Monarch configuration.
+ */
+type MonacoTokenizerRule = readonly [RegExp, string, string?];
+
+/**
+ * One matched Monaco token from a tokenizer-rule scan.
+ */
+type MonacoTokenizerMatch = {
+    readonly token: string;
+    readonly value: string;
+};
+
+/**
  * Creates a lightweight Monaco mock for language-registration tests.
  */
 function createMonacoLanguageMock(): MonacoLanguageMock {
@@ -66,6 +79,48 @@ function createMonacoLanguageMock(): MonacoLanguageMock {
             setModelLanguage,
         },
     };
+}
+
+/**
+ * Runs a small Monarch-like scan over one line using the configured tokenizer rules.
+ *
+ * Monaco evaluates rules from the current offset, which is the behavior that matters for
+ * inline `@` tokens such as email addresses.
+ */
+function collectMonacoTokenizerMatches(
+    tokenizerRules: ReadonlyArray<MonacoTokenizerRule>,
+    line: string,
+): Array<MonacoTokenizerMatch> {
+    const matches: Array<MonacoTokenizerMatch> = [];
+    let currentIndex = 0;
+
+    while (currentIndex < line.length) {
+        const lineRest = line.slice(currentIndex);
+        let isMatched = false;
+
+        for (const [regex, token] of tokenizerRules) {
+            regex.lastIndex = 0;
+            const match = regex.exec(lineRest);
+
+            if (match === null || match.index !== 0 || match[0].length === 0) {
+                continue;
+            }
+
+            matches.push({
+                token,
+                value: match[0],
+            });
+            currentIndex += match[0].length;
+            isMatched = true;
+            break;
+        }
+
+        if (!isMatched) {
+            currentIndex++;
+        }
+    }
+
+    return matches;
 }
 
 describe('ensureBookEditorMonacoLanguage', () => {
@@ -215,6 +270,31 @@ describe('ensureBookEditorMonacoLanguage', () => {
         expect(bodyCodeBlockRule?.[0].test('   ```markdown')).toBe(true);
         expect(codeBlockClosingRule?.[0].test('```')).toBe(true);
         expect(codeBlockClosingRule?.[0].test('   ```')).toBe(true);
+    });
+
+    it('does not tokenize inline email addresses as agent references in TEAM content', () => {
+        const { monaco, spies } = createMonacoLanguageMock();
+
+        ensureBookEditorMonacoLanguage(monaco);
+
+        const MONARCH_CONFIG = spies.setMonarchTokensProvider.mock.calls[0]?.[1] as {
+            readonly tokenizer: {
+                readonly 'agent-reference-body': ReadonlyArray<MonacoTokenizerRule>;
+            };
+        };
+        const MATCHES = collectMonacoTokenizerMatches(
+            MONARCH_CONFIG.tokenizer['agent-reference-body'],
+            ' @Paul and {Erik Smith} with email team@foo.bar',
+        );
+        const AGENT_REFERENCE_VALUES = MATCHES.filter(({ token }) => token === 'agent-reference').map(({ value }) =>
+            value.trim(),
+        );
+        const isEmailHighlighted = MATCHES.some(
+            ({ token, value }) => (token === 'agent-reference' || token === 'parameter') && value.includes('@foo'),
+        );
+
+        expect(AGENT_REFERENCE_VALUES).toEqual(['@Paul', '{Erik Smith}']);
+        expect(isEmailHighlighted).toBe(false);
     });
 
     it('re-applies Book model language when mounted editor uses a different language', () => {
