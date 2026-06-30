@@ -35,7 +35,7 @@ export async function seedServerCoreAgents(
         const createdAt = new Date().toISOString();
         const { agentInsertRecord, agentHistoryInsertRecord } = createAgentPersistenceRecords(
             coreAgentBook,
-            { folderId: coreFolderId, sortOrder: index, visibility: DEFAULT_AGENT_VISIBILITY },
+            { folderId: coreFolderId, sortOrder: index },
             createdAt,
         );
 
@@ -158,5 +158,5 @@ async function insertCoreFolder(
         }),
     );
 
-    return insertResult.rows[0].id;
+    return insertResult.rows[0]!.id;
 }

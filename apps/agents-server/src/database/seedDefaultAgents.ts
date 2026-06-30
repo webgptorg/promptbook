@@ -2,7 +2,6 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { AgentCollectionInSupabase } from '../../../../src/collection/agent-collection/constructors/agent-collection-in-supabase/AgentCollectionInSupabase';
 import type { AgentsDatabaseSchema } from '../../../../src/collection/agent-collection/constructors/agent-collection-in-supabase/AgentsDatabaseSchema';
 import { $provideSupabaseForServer } from './$provideSupabaseForServer';
-import { DEFAULT_AGENT_VISIBILITY } from '../utils/agentVisibility';
 import { loadDefaultAgentBooks } from '../utils/defaultAgents/loadDefaultAgentBooks';
 import { loadAgentsServerEnvFile } from './loadAgentsServerEnvFile';
 import { seedCoreAgents } from './seedCoreAgents';
@@ -161,7 +160,6 @@ async function seedDefaultAgentBooks(
     for (const [index, defaultAgentBook] of defaultAgentBooks.entries()) {
         const createdAgent = await collection.createAgent(defaultAgentBook, {
             sortOrder: index,
-            visibility: DEFAULT_AGENT_VISIBILITY,
         });
         createdAgentNames.push(createdAgent.agentName);
         logger.info(`Created default agent: ${createdAgent.agentName}`);

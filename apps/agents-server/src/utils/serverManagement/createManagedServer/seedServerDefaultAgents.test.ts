@@ -25,7 +25,7 @@ describe('seedServerDefaultAgents', () => {
             const filePath = String(args[0]);
 
             if (filePath.endsWith('alpha.book')) {
-                return 'Alpha Agent\n\nPERSONA You answer alpha questions.\nCLOSED\n' as never;
+                return 'Alpha Agent\nMETA VISIBILITY PUBLIC\n\nPERSONA You answer alpha questions.\nCLOSED\n' as never;
             }
 
             if (filePath.endsWith('zeta.book')) {
@@ -64,11 +64,12 @@ describe('seedServerDefaultAgents', () => {
 
         expect(firstAgentInsertParameters[0]).toBe('alpha-agent');
         expect(firstAgentInsertParameters[10]).toBe(0);
-        expect(firstAgentInsertParameters[11]).toBe('UNLISTED');
+        expect(firstAgentInsertParameters[11]).toBe('PUBLIC');
         expect(firstHistoryInsertParameters[1]).toBe('alpha-agent');
         expect(firstHistoryInsertParameters[2]).toBe(firstAgentInsertParameters[3]);
         expect(secondAgentInsertParameters[0]).toBe('zeta-agent');
         expect(secondAgentInsertParameters[10]).toBe(1);
+        expect(secondAgentInsertParameters[11]).toBe('UNLISTED');
         expect(sqlRecorder.render()).toContain('Alpha Agent');
         expect(sqlRecorder.render()).toContain('Zeta Agent');
     });

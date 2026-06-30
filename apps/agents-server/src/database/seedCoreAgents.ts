@@ -6,7 +6,6 @@ import { parseAgentSource } from '../../../../src/book-2.0/agent-source/parseAge
 import type { string_book } from '../../../../src/book-2.0/agent-source/string_book';
 import { DatabaseError } from '../../../../src/errors/DatabaseError';
 import { CORE_AGENT_DIRECTORY_NAME, loadCoreAgentBooks } from '../utils/defaultAgents/loadDefaultAgentBooks';
-import { DEFAULT_AGENT_VISIBILITY } from '../utils/agentVisibility';
 import { $provideSupabaseForServer } from './$provideSupabaseForServer';
 
 /**
@@ -100,7 +99,6 @@ export async function seedCoreAgents(options: SeedCoreAgentsOptions = {}): Promi
         const createdAgent = await collection.createAgent(coreAgentBook, {
             folderId: coreFolderId,
             sortOrder: index,
-            visibility: DEFAULT_AGENT_VISIBILITY,
         });
         createdAgentNames.push(createdAgent.agentName);
         logger.info(`Created \`.core\` agent: ${createdAgent.agentName}`);

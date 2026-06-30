@@ -2,6 +2,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
 import { seedDefaultAgents } from './seedDefaultAgents';
+import { seedCoreAgents } from './seedCoreAgents';
 import { $provideLocalSqliteSupabase, $resetLocalSqliteSupabaseForTests } from './sqlite/$provideLocalSqliteSupabase';
 
 /**
@@ -43,7 +44,7 @@ describe('seedDefaultAgents', () => {
 
     it('creates sorted bundled default agents when the server has no agents', async () => {
         writeDefaultAgentBook('zeta.book', 'Zeta Agent\n\nPERSONA You answer zeta questions.\nCLOSED\n');
-        writeDefaultAgentBook('alpha.book', 'Alpha Agent\n\nPERSONA You answer alpha questions.\nCLOSED\n');
+        writeDefaultAgentBook('alpha.book', 'Alpha Agent\nMETA VISIBILITY PUBLIC\n\nPERSONA You answer alpha questions.\nCLOSED\n');
         writeFileSync(join(defaultAgentsDirectory, 'ignore.txt'), 'not a book\n', 'utf-8');
 
         const result = await seedDefaultAgents({
@@ -74,7 +75,7 @@ describe('seedDefaultAgents', () => {
         ]);
         expect((agentsResult.data as Array<{ sortOrder: number }>).map((agent) => agent.sortOrder)).toEqual([0, 1]);
         expect((agentsResult.data as Array<{ visibility: string }>).map((agent) => agent.visibility)).toEqual([
-            'UNLISTED',
+            'PUBLIC',
             'UNLISTED',
         ]);
         expect((historyResult.data as Array<{ agentName: string }>).map((agent) => agent.agentName)).toEqual([
@@ -112,6 +113,36 @@ describe('seedDefaultAgents', () => {
         expect((agentsResult.data as Array<{ agentName: string }>).map((agent) => agent.agentName)).toEqual([
             'existing-agent',
         ]);
+    });
+
+    it('creates bundled core agents with visibility from META VISIBILITY', async () => {
+        const coreAgentsDirectory = join(defaultAgentsDirectory, '.core');
+        mkdirSync(coreAgentsDirectory, { recursive: true });
+        writeFileSync(
+            join(coreAgentsDirectory, 'teacher.book'),
+            'Teacher\nMETA VISIBILITY PUBLIC\n\nPERSONA You teach clearly.\nCLOSED\n',
+            'utf-8',
+        );
+
+        const result = await seedCoreAgents({
+            defaultAgentDirectory: defaultAgentsDirectory,
+            logger: SILENT_LOGGER,
+        });
+        const supabase = $provideLocalSqliteSupabase();
+        const agentsResult = await supabase.from('Agent').select('agentName,folderId,visibility').maybeSingle();
+        const foldersResult = await supabase.from('AgentFolder').select('id,name').maybeSingle();
+
+        expect(result.createdAgentNames).toEqual(['teacher']);
+        expect(agentsResult.error).toBeNull();
+        expect(foldersResult.error).toBeNull();
+        expect(agentsResult.data).toMatchObject({
+            agentName: 'teacher',
+            folderId: (foldersResult.data as { id: number }).id,
+            visibility: 'PUBLIC',
+        });
+        expect(foldersResult.data).toMatchObject({
+            name: '.core',
+        });
     });
 
     /**

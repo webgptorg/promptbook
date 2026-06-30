@@ -29,7 +29,7 @@ export async function seedServerDefaultAgents(
         const createdAt = new Date().toISOString();
         const { agentInsertRecord, agentHistoryInsertRecord } = createAgentPersistenceRecords(
             defaultAgentBook,
-            { sortOrder: index, visibility: DEFAULT_AGENT_VISIBILITY },
+            { sortOrder: index },
             createdAt,
         );
 
