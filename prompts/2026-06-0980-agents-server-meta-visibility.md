@@ -21,3 +21,14 @@ META VISIBILITY PUBLIC
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
+---
+
+[ ] !
+
+[✨⏱] When creating initial books, respect `META VISIBILITY`
+
+-   For example, when creating the initial book for the agent "Generic chatter" which has here `META VISIBILITY PUBLIC`, on the server it should be created as `PUBLIC`
+-   But on the server the book has `META VISIBILITY UNLISTED`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)

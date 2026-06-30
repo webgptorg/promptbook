@@ -1,5 +1,9 @@
 [x] (2 attempts) $0.1974 an hour by Claude Code
 
+---
+
+[ ]
+
 [✨⚔️] When the chat runner gets the chat for answering, it should contain also the initial message in the chat thread
 
 -   Do a proper analysis of the current functionality before you start implementing.
@@ -25,4 +29,3 @@ MESSAGE @Agent
 MESSAGE @User
 ...
 ```
-

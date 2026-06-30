@@ -22,7 +22,12 @@
 
 [ ] !!!!
 
-[✨🥲] Listing of the `.core` should look special
+[✨🥲] Listing of the `.` agent folders should be hidden by default
 
--   @@@@@@
--   This is relevant for all folders starting with `.` and not only for `.core` folder
+-   Add toggle to show/hide the `.` folders in the agents server
+-   This is relevant for all folders starting with `.` like `.core` folder
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+
+![alt text](screenshots/2026-06-0960-agents-server-no-core-server.png)
