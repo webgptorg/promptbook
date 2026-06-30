@@ -82,11 +82,12 @@ export async function runPromptRound({
     const promptWithAgent = resolvedAgentSystemMessage
         ? spaceTrim(
               (block) => `
-                  ${block(resolvedAgentSystemMessage.trim())}
-
+                  
                   ## Your Task
 
                   ${block(taskPrompt)}
+
+                  ${block(resolvedAgentSystemMessage.trim())}
               `,
           )
         : taskPrompt;
