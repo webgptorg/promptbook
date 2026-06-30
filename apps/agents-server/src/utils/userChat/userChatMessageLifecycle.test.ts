@@ -1,6 +1,7 @@
 import {
     createQueuedUserChatAssistantMessage,
     createQueuedUserChatUserMessage,
+    createUserChatRunnerThreadMessages,
     resolveMessageLifecycleStateFromJobStatus,
     resolvePromptThreadBeforeUserMessage,
 } from './userChatMessageLifecycle';
@@ -93,6 +94,93 @@ describe('userChatMessageLifecycle', () => {
             'assistant-2',
         ]);
         expect(resolvePromptThreadBeforeUserMessage(messages, 'missing')).toEqual([]);
+    });
+
+    it('should include the configured initial agent message before the first runner user turn', () => {
+        const resolveInitialAgentMessage = jest.fn(() => 'Hello, I am ready to help.');
+        const messages: Array<UserChatMessage> = [
+            {
+                id: 'user-1',
+                sender: 'USER',
+                content: 'Can you help me?',
+                createdAt: createdAtIso,
+                isComplete: true,
+            },
+            {
+                id: 'assistant-1',
+                sender: 'AGENT',
+                content: '',
+                createdAt: createdAtIso,
+                isComplete: false,
+            },
+        ];
+
+        expect(
+            createUserChatRunnerThreadMessages({
+                messages,
+                userMessageId: 'user-1',
+                resolveInitialAgentMessage,
+            }),
+        ).toEqual([
+            {
+                sender: 'AGENT',
+                content: 'Hello, I am ready to help.',
+            },
+            {
+                sender: 'USER',
+                content: 'Can you help me?',
+            },
+        ]);
+        expect(resolveInitialAgentMessage).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not repeat the configured initial agent message after the first runner user turn', () => {
+        const resolveInitialAgentMessage = jest.fn(() => 'Hello, I am ready to help.');
+        const messages: Array<UserChatMessage> = [
+            {
+                id: 'user-1',
+                sender: 'USER',
+                content: 'First question',
+                createdAt: createdAtIso,
+                isComplete: true,
+            },
+            {
+                id: 'assistant-1',
+                sender: 'AGENT',
+                content: 'First answer',
+                createdAt: createdAtIso,
+                isComplete: true,
+            },
+            {
+                id: 'user-2',
+                sender: 'USER',
+                content: 'Second question',
+                createdAt: createdAtIso,
+                isComplete: true,
+            },
+        ];
+
+        expect(
+            createUserChatRunnerThreadMessages({
+                messages,
+                userMessageId: 'user-2',
+                resolveInitialAgentMessage,
+            }),
+        ).toEqual([
+            {
+                sender: 'USER',
+                content: 'First question',
+            },
+            {
+                sender: 'AGENT',
+                content: 'First answer',
+            },
+            {
+                sender: 'USER',
+                content: 'Second question',
+            },
+        ]);
+        expect(resolveInitialAgentMessage).not.toHaveBeenCalled();
     });
 
     it('should map durable job status values to chat lifecycle labels', () => {

@@ -2,7 +2,7 @@
 
 ---
 
-[ ]
+[x] $2.33 2 hours by OpenAI Codex `gpt-5.5`
 
 [✨⚔️] When the chat runner gets the chat for answering, it should contain also the initial message in the chat thread
 
@@ -29,3 +29,4 @@ MESSAGE @Agent
 MESSAGE @User
 ...
 ```
+

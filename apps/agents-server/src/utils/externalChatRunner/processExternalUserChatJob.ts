@@ -11,7 +11,10 @@ import { createUserChatRunnerProgressCard } from '../userChat/createUserChatRunn
 import { updateUserChatAssistantMessage } from '../userChat/updateUserChatAssistantMessage';
 import type { UserChatJobRecord } from '../userChat/UserChatJobRecord';
 import type { UserChatJobRow } from '../userChat/UserChatJobRow';
-import { resolvePromptThreadBeforeUserMessage } from '../userChat/userChatMessageLifecycle';
+import {
+    createUserChatRunnerThreadMessages,
+    resolvePromptThreadBeforeUserMessage,
+} from '../userChat/userChatMessageLifecycle';
 import {
     EXTERNAL_USER_CHAT_JOB_ANSWER_TIMEOUT_MS,
     EXTERNAL_USER_CHAT_JOB_PROVIDER,
@@ -150,22 +153,11 @@ async function enqueueExternalUserChatJob(job: UserChatJobRecord): Promise<Proce
         return { didMutate: false, outcome: 'waiting' };
     }
 
-    const agentInitialMessage = previousThreadMessages.length === 0
-        ? parseAgentSource(agentSourceSnapshot.agentSource).initialMessage
-        : null;
-    const initialAgentThreadMessages = agentInitialMessage
-        ? [{ sender: 'AGENT' as const, content: agentInitialMessage }]
-        : [];
-
-    const threadMessages = [
-        ...initialAgentThreadMessages,
-        ...[...previousThreadMessages, userMessage]
-            .filter((message) => message.isComplete !== false)
-            .filter((message) => message.sender === 'USER' || message.sender === 'AGENT'),
-    ].map((message) => ({
-        sender: String(message.sender),
-        content: message.content,
-    }));
+    const threadMessages = createUserChatRunnerThreadMessages({
+        messages: chat.messages,
+        userMessageId: job.userMessageId,
+        resolveInitialAgentMessage: () => parseAgentSource(agentSourceSnapshot.agentSource).initialMessage,
+    });
 
     const repository = await ensureExternalAgentRepository(agentSourceSnapshot);
     const queuedAt = new Date().toISOString();

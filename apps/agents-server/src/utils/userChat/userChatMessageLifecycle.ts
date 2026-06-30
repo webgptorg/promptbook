@@ -5,6 +5,13 @@ import type { ChatMessage } from '../../../../../src/_packages/types.index';
 export type UserChatMessageLifecycleState = NonNullable<ChatMessage['lifecycleState']>;
 
 /**
+ * Message shape written into local/external chat-runner `.book` files.
+ */
+export type UserChatRunnerThreadMessage = Pick<ChatMessage, 'content'> & {
+    sender: 'USER' | 'AGENT';
+};
+
+/**
  * Creates one persisted user-authored message for a durable chat turn.
  */
 export function createQueuedUserChatUserMessage(options: {
@@ -90,6 +97,36 @@ export function resolvePromptThreadBeforeUserMessage(
 }
 
 /**
+ * Creates the complete chat thread mirrored to a runner before it writes the next answer.
+ */
+export function createUserChatRunnerThreadMessages(options: {
+    messages: ReadonlyArray<ChatMessage>;
+    userMessageId: string;
+    resolveInitialAgentMessage: () => string | null | undefined;
+}): Array<UserChatRunnerThreadMessage> {
+    const userMessage = options.messages.find((message) => message.id === options.userMessageId);
+    if (!userMessage) {
+        return [];
+    }
+
+    const previousThreadMessages = resolvePromptThreadBeforeUserMessage(options.messages, options.userMessageId);
+
+    return [
+        ...createInitialUserChatRunnerThreadMessages({
+            isFirstUserTurn: previousThreadMessages.length === 0,
+            resolveInitialAgentMessage: options.resolveInitialAgentMessage,
+        }),
+        ...previousThreadMessages,
+        userMessage,
+    ]
+        .filter(isUserChatRunnerThreadMessage)
+        .map((message) => ({
+            sender: message.sender,
+            content: message.content,
+        }));
+}
+
+/**
  * Maps durable job status values to message lifecycle labels rendered by the UI.
  */
 export function resolveMessageLifecycleStateFromJobStatus(status: string): UserChatMessageLifecycleState {
@@ -106,4 +143,36 @@ export function resolveMessageLifecycleStateFromJobStatus(status: string): UserC
         default:
             return 'completed';
     }
+}
+
+/**
+ * Recreates the synthetic first agent message that the UI shows for empty durable chats.
+ */
+function createInitialUserChatRunnerThreadMessages(options: {
+    isFirstUserTurn: boolean;
+    resolveInitialAgentMessage: () => string | null | undefined;
+}): Array<UserChatRunnerThreadMessage> {
+    if (!options.isFirstUserTurn) {
+        return [];
+    }
+
+    const initialAgentMessage = options.resolveInitialAgentMessage();
+    if (!initialAgentMessage || initialAgentMessage.trim().length === 0) {
+        return [];
+    }
+
+    return [
+        {
+            sender: 'AGENT',
+            content: initialAgentMessage,
+        },
+    ];
+}
+
+/**
+ * Returns true when one persisted message should be visible to out-of-process runners.
+ */
+function isUserChatRunnerThreadMessage(message: ChatMessage): message is ChatMessage & UserChatRunnerThreadMessage {
+    const isRunnerSender = message.sender === 'USER' || message.sender === 'AGENT';
+    return message.isComplete !== false && isRunnerSender;
 }
