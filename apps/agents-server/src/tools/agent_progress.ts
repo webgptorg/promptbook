@@ -9,11 +9,6 @@ import type { ChatProgressCard, ChatProgressItem } from '../../../../src/book-co
 import { updateUserChatAssistantMessage } from '../utils/userChat/updateUserChatAssistantMessage';
 
 /**
- * Internal default title used when the progress card is initialized without explicit heading.
- */
-const DEFAULT_PROGRESS_TITLE = 'Working on your request';
-
-/**
  * Maximum markdown length accepted for one progress-card text field.
  */
 const MAX_PROGRESS_TEXT_LENGTH = 1_200;
@@ -227,7 +222,6 @@ function applyAgentProgressPayloadToMessage(
 function normalizeStoredProgressCard(rawCard: ChatMessage['progressCard']): ChatProgressCard {
     if (!rawCard) {
         return {
-            title: DEFAULT_PROGRESS_TITLE,
             items: [],
             isVisible: true,
         };
@@ -244,8 +238,10 @@ function normalizeStoredProgressCard(rawCard: ChatMessage['progressCard']): Chat
               .filter((item) => item.text.length > 0)
         : [];
 
+    const normalizedTitle = normalizeOptionalText(rawCard.title);
+
     return {
-        title: normalizeOptionalText(rawCard.title) || DEFAULT_PROGRESS_TITLE,
+        ...(normalizedTitle ? { title: normalizedTitle } : {}),
         now: normalizeOptionalText(rawCard.now) || undefined,
         next: normalizeOptionalText(rawCard.next) || undefined,
         items: normalizedItems,
@@ -264,7 +260,7 @@ function applyAgentProgressPayloadToCard(
 ): ChatProgressCard {
     if (payload.action === 'initialize') {
         return {
-            title: payload.title || DEFAULT_PROGRESS_TITLE,
+            ...(payload.title ? { title: payload.title } : {}),
             ...(payload.now !== undefined ? { now: payload.now } : {}),
             ...(payload.next !== undefined ? { next: payload.next } : {}),
             items: payload.items || [],
@@ -290,7 +286,6 @@ function applyAgentProgressPayloadToCard(
 
         return {
             ...currentCard,
-            title: currentCard.title || DEFAULT_PROGRESS_TITLE,
             items: existingItems,
             updatedAt,
             isVisible: true,
@@ -303,7 +298,6 @@ function applyAgentProgressPayloadToCard(
         ...(payload.now !== undefined ? { now: payload.now } : {}),
         ...(payload.next !== undefined ? { next: payload.next } : {}),
         ...(payload.items !== undefined ? { items: payload.items } : {}),
-        title: payload.title || currentCard.title || DEFAULT_PROGRESS_TITLE,
         updatedAt,
         isVisible: true,
     };

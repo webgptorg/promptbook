@@ -12,11 +12,6 @@ export type UserChatRunnerKind = 'local' | 'external';
 export type UserChatRunnerProgressPhase = 'queued_for_runner';
 
 /**
- * Default title used while an out-of-process runner is working on a chat answer.
- */
-const USER_CHAT_RUNNER_PROGRESS_TITLE = 'Working on your request';
-
-/**
  * User-facing labels for durable chat runners.
  */
 const USER_CHAT_RUNNER_LABELS: Record<UserChatRunnerKind, string> = {
@@ -35,7 +30,6 @@ export function createUserChatRunnerProgressCard(options: {
     readonly phase: UserChatRunnerProgressPhase;
 }): NonNullable<ChatMessage['progressCard']> {
     return {
-        title: USER_CHAT_RUNNER_PROGRESS_TITLE,
         now: createUserChatRunnerProgressNowText(options),
         items: [],
         updatedAt: new Date().toISOString() as NonNullable<ChatMessage['progressCard']>['updatedAt'],

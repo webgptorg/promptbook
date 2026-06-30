@@ -10,11 +10,11 @@ describe('createUserChatHarnessProgressCard', () => {
         const progressCard = createUserChatHarnessProgressCard([{ name: 'web_search', state: 'PENDING' }]);
 
         expect(progressCard).toMatchObject({
-            title: 'Working on your request',
             now: 'Running action: Searching the web.',
             items: [],
             isVisible: true,
         });
+        expect(progressCard).not.toHaveProperty('title');
     });
 
     it('shows one completed harness action from the latest visible tool call', () => {
@@ -26,5 +26,6 @@ describe('createUserChatHarnessProgressCard', () => {
         expect(progressCard).toMatchObject({
             now: 'Action completed: Browsing the web.',
         });
+        expect(progressCard).not.toHaveProperty('title');
     });
 });

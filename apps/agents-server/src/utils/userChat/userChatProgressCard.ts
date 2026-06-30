@@ -76,11 +76,6 @@ export type UserChatProgressContext = {
 };
 
 /**
- * Default title used by durable chat progress cards.
- */
-const USER_CHAT_PROGRESS_TITLE = 'Working on your request';
-
-/**
  * Ordered progress item identifiers shared across all durable chat phases.
  */
 const USER_CHAT_PROGRESS_ITEM_IDS = {
@@ -165,7 +160,6 @@ export function createUserChatProgressCard(
     const { now, next } = composeUserChatProgressPhaseText(phase, context);
 
     return {
-        title: USER_CHAT_PROGRESS_TITLE,
         now,
         next,
         items: USER_CHAT_PROGRESS_ITEMS.map((item) => ({

@@ -5,11 +5,6 @@ import { isVisibleChatToolCall } from '../../../../../src/book-components/Chat/u
 import { resolveToolCallState } from '../../../../../src/book-components/Chat/utils/resolveToolCallState';
 
 /**
- * Default title used while a running chat job reports harness action progress.
- */
-const USER_CHAT_HARNESS_PROGRESS_TITLE = 'Working on your request';
-
-/**
  * Creates a user-facing progress card from the latest visible harness/tool action.
  *
  * @param toolCalls - Latest aggregated tool-call snapshots emitted by the agent runtime.
@@ -24,7 +19,6 @@ export function createUserChatHarnessProgressCard(
     }
 
     return {
-        title: USER_CHAT_HARNESS_PROGRESS_TITLE,
         now: createHarnessProgressNowText(latestVisibleToolCall),
         items: [],
         updatedAt: new Date().toISOString() as NonNullable<ChatMessage['progressCard']>['updatedAt'],
