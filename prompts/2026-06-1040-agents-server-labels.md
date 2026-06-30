@@ -1,4 +1,4 @@
-[ ] !
+[x] ~$0.00 an hour by OpenAI Codex `gpt-5.5`
 
 [✨🐊] Do not show `{Void}` and `Time` labels
 
@@ -9,3 +9,4 @@
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ![alt text](screenshots/2026-06-1040-agents-server-labels.png)
+

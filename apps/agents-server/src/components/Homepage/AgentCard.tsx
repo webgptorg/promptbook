@@ -5,7 +5,11 @@ import { CheckCircle2Icon, EyeIcon, EyeOffIcon, LockIcon, RotateCcwIcon } from '
 import Link from 'next/link';
 import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 import type { AgentVisibility } from '../../utils/agentVisibility';
-import { AgentCapabilityChips, HOMEPAGE_CAPABILITY_CHIPS_LIMIT } from '../AgentProfile/AgentCapabilityChips';
+import {
+    AGENT_CARD_HIDDEN_CAPABILITY_TYPES,
+    AgentCapabilityChips,
+    HOMEPAGE_CAPABILITY_CHIPS_LIMIT,
+} from '../AgentProfile/AgentCapabilityChips';
 import { useAgentBackground } from '../AgentProfile/useAgentBackground';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 import { AgentAvatar } from '../AgentAvatar/AgentAvatar';
@@ -153,6 +157,7 @@ export function AgentCard({
                             <AgentCapabilityChips
                                 agent={agent}
                                 className="mt-2"
+                                hiddenCapabilityTypes={AGENT_CARD_HIDDEN_CAPABILITY_TYPES}
                                 maxChips={HOMEPAGE_CAPABILITY_CHIPS_LIMIT}
                                 size="compact"
                             />
@@ -202,6 +207,7 @@ export function AgentCard({
                             <AgentCapabilityChips
                                 agent={agent}
                                 className="mt-2"
+                                hiddenCapabilityTypes={AGENT_CARD_HIDDEN_CAPABILITY_TYPES}
                                 maxChips={HOMEPAGE_CAPABILITY_CHIPS_LIMIT}
                                 size="compact"
                             />
