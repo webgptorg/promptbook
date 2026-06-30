@@ -91,13 +91,16 @@ export function AgentsList(props: AgentsListProps) {
                 allAgentsLabel={state.allAgentsLabel}
                 breadcrumbFolders={state.breadcrumbFolders}
                 canOrganize={canOrganize}
+                hasHiddenFolders={state.hasHiddenFolders}
                 headingTitle={state.headingTitle}
                 isAdmin={isAdmin}
                 isAgentsExporting={state.isAgentsExporting}
                 isAgentsImporting={state.isAgentsImporting}
+                isHiddenFoldersVisible={state.isHiddenFoldersVisible}
                 onCreateFolder={state.handleCreateFolder}
                 onExportAgents={() => void state.handleAgentsExport()}
                 onNavigateToFolder={state.navigateToFolder}
+                onSetHiddenFoldersVisible={state.setHiddenFoldersVisible}
                 onSetViewMode={state.setViewMode}
                 viewMode={state.viewMode}
             />

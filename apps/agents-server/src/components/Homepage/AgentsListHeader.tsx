@@ -3,6 +3,8 @@
 import {
     Building2,
     DownloadIcon,
+    Eye,
+    EyeOff,
     FolderPlusIcon,
     Gamepad2,
     Grid,
@@ -61,6 +63,10 @@ type AgentsListHeaderProps = {
      */
     readonly canOrganize: boolean;
     /**
+     * Whether the unfiltered organization snapshot contains at least one hidden folder.
+     */
+    readonly hasHiddenFolders: boolean;
+    /**
      * Current heading title.
      */
     readonly headingTitle: string;
@@ -68,6 +74,10 @@ type AgentsListHeaderProps = {
      * Whether agents import/export controls are available.
      */
     readonly isAdmin: boolean;
+    /**
+     * Whether hidden folders are currently rendered in the agents list.
+     */
+    readonly isHiddenFoldersVisible: boolean;
     /**
      * Downloads an agents archive.
      */
@@ -80,6 +90,10 @@ type AgentsListHeaderProps = {
      * Navigates to the selected folder scope.
      */
     readonly onNavigateToFolder: (folderId: number | null) => void;
+    /**
+     * Toggles whether hidden folders are visible in the agents list.
+     */
+    readonly onSetHiddenFoldersVisible: (isVisible: boolean) => void;
     /**
      * Switches the homepage view mode.
      */
@@ -124,13 +138,16 @@ export function AgentsListHeader({
     allAgentsLabel,
     breadcrumbFolders,
     canOrganize,
+    hasHiddenFolders,
     headingTitle,
     isAdmin,
     isAgentsExporting,
     isAgentsImporting,
+    isHiddenFoldersVisible,
     onCreateFolder,
     onExportAgents,
     onNavigateToFolder,
+    onSetHiddenFoldersVisible,
     onSetViewMode,
     viewMode,
 }: AgentsListHeaderProps) {
@@ -190,6 +207,30 @@ export function AgentsListHeader({
                         >
                             <FolderPlusIcon className="w-4 h-4" />
                             New Folder
+                        </button>
+                    )}
+                    {hasHiddenFolders && (
+                        <button
+                            type="button"
+                            onClick={() => onSetHiddenFoldersVisible(!isHiddenFoldersVisible)}
+                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-colors ${
+                                isHiddenFoldersVisible
+                                    ? 'border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100'
+                                    : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
+                            }`}
+                            title={
+                                isHiddenFoldersVisible
+                                    ? 'Hide folders whose name starts with "."'
+                                    : 'Show folders whose name starts with "."'
+                            }
+                            aria-pressed={isHiddenFoldersVisible}
+                        >
+                            {isHiddenFoldersVisible ? (
+                                <EyeOff className="w-4 h-4" />
+                            ) : (
+                                <Eye className="w-4 h-4" />
+                            )}
+                            {isHiddenFoldersVisible ? 'Hide hidden' : 'Show hidden'}
                         </button>
                     )}
                     <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-lg ml-4">

@@ -5,6 +5,7 @@ import { useMemo } from 'react';
 import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../../utils/agentOrganization/types';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 import { getAgentIdentifier } from './agentOrganizationUtils';
+import { filterHiddenFolderTree } from './hiddenFolders';
 import { useAgentsListAgentState } from './useAgentsListAgentState';
 import { useAgentsListDerivedState } from './useAgentsListDerivedState';
 import {
@@ -82,14 +83,22 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
         showFederatedAgents,
         externalAgents: initialExternalAgents,
     } = props;
-    const { folderQuery, routeSyncKey, searchParamsSnapshot, setViewMode, updateCurrentPathQuery, viewMode } =
-        useAgentsListQueryState();
+    const {
+        folderQuery,
+        isHiddenFoldersVisible,
+        routeSyncKey,
+        searchParamsSnapshot,
+        setHiddenFoldersVisible,
+        setViewMode,
+        updateCurrentPathQuery,
+        viewMode,
+    } = useAgentsListQueryState();
     const { formatText } = useAgentNaming();
     const isTouchInput = useIsTouchInput();
     const allowFullCardDrag = canOrganize && viewMode === 'LIST' && !isTouchInput;
     const {
-        agents,
-        folders,
+        agents: agentsBeforeHiddenFilter,
+        folders: foldersBeforeHiddenFilter,
         lastSyncedRouteKey,
         persistQueuedOrganizationMutation,
         setAgents,
@@ -100,6 +109,14 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
         initialFolders,
         routeSyncKey,
     });
+    const {
+        agents,
+        folders,
+        hasHiddenFolders,
+    } = useMemo(
+        () => filterHiddenFolderTree(foldersBeforeHiddenFilter, agentsBeforeHiddenFilter, isHiddenFoldersVisible),
+        [foldersBeforeHiddenFilter, agentsBeforeHiddenFilter, isHiddenFoldersVisible],
+    );
     const {
         agentCount,
         allAgentsLabel,
@@ -272,11 +289,13 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
         handleRequestFolderVisibilityUpdate: folderState.handleRequestFolderVisibilityUpdate,
         handleShowQrCode: overlayState.handleShowQrCode,
         handleSubmitFolderEdit: folderState.handleSubmitFolderEdit,
+        hasHiddenFolders,
         headingTitle,
         isAgentsExporting: importExportState.isAgentsExporting,
         isAgentsImportDragActive: importExportState.isAgentsImportDragActive,
         isAgentsImporting: importExportState.isAgentsImporting,
         isFolderEditSubmitting: folderState.isFolderEditSubmitting,
+        isHiddenFoldersVisible,
         navigateToFolder,
         mazeAgents,
         officeAgents,
@@ -286,6 +305,7 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
         qrCodeAgentEmail,
         qrCodeAgentUrl,
         sensors,
+        setHiddenFoldersVisible,
         setViewMode,
         viewMode,
         visibleAgentDragIds,

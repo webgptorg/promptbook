@@ -20,7 +20,7 @@
 
 ---
 
-[ ] !!!!
+[x] $6.43 2 hours by Claude Code
 
 [✨🥲] Listing of the `.` agent folders should be hidden by default
 
@@ -31,3 +31,4 @@
 -   You are working with the [Agents Server](apps/agents-server)
 
 ![alt text](screenshots/2026-06-0960-agents-server-no-core-server.png)
+
