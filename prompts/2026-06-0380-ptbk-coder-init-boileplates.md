@@ -10,7 +10,7 @@ ptbk coder init
 
 ---
 
-[ ] !
+[x] $2.82 31 minutes by Claude Code
 
 [✨😎] When running `ptbk coder init` automatically run creation of boilerplates and create a simple agent
 
@@ -31,3 +31,4 @@ ptbk coder init
     2. `agents/developer.book` - Is file in the consumer project where `ptbk coder init` is run
     -   There should be some mechanism that relyably provides access to the `agents/default/developer.book` from the `@promptbook/cli` package, so that it can be used in the consumer project
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
+
