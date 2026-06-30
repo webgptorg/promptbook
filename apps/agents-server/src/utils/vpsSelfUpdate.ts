@@ -204,6 +204,10 @@ export type VpsSelfUpdateOverview = {
      */
     readonly latestRemoteCommitDate: string | null;
     /**
+     * Latest remote commit subject.
+     */
+    readonly latestRemoteCommitMessage: string | null;
+    /**
      * Number of commits the deployed checkout is behind the latest remote commit, or `null` when unknown.
      */
     readonly commitsBehindCount: number | null;
@@ -456,22 +460,24 @@ export async function readVpsSelfUpdateOverview(): Promise<VpsSelfUpdateOverview
         });
     }
 
-    const [currentCommitSha, currentCommitMessage, currentCommitDate, latestRemoteCommitSha] = await Promise.all([
-        runGitInRepository(repositoryDirectory, ['rev-parse', 'HEAD']),
-        runGitInRepository(repositoryDirectory, ['log', '-1', '--format=%s']),
-        runGitInRepository(repositoryDirectory, ['log', '-1', '--format=%aI']),
-        readRemoteCommitSha(repositoryDirectory, currentEnvironment.branch, originRepositoryUrl),
+    await refreshVpsSelfUpdateRemoteBranch(repositoryDirectory, currentEnvironment.branch, originRepositoryUrl);
+
+    const [currentCommit, latestRemoteCommitSha] = await Promise.all([
+        readCommitMetadataFromRepository(repositoryDirectory, 'HEAD'),
+        readLatestRemoteBranchCommitSha(repositoryDirectory, currentEnvironment.branch, originRepositoryUrl),
     ]);
-    const latestRemoteCommitDate = latestRemoteCommitSha
-        ? await readCommitDateFromRepository(repositoryDirectory, latestRemoteCommitSha)
+    const latestRemoteCommit = latestRemoteCommitSha
+        ? await readCommitMetadataFromRepository(repositoryDirectory, latestRemoteCommitSha)
         : null;
+    const currentCommitSha = currentCommit?.commitSha ?? null;
+    const latestRemoteCommitResolvedSha = latestRemoteCommit?.commitSha ?? latestRemoteCommitSha;
     const commitsBehindCount =
-        currentCommitSha && latestRemoteCommitSha
-            ? await countCommitsBetween(repositoryDirectory, currentCommitSha, latestRemoteCommitSha)
+        currentCommitSha && latestRemoteCommitResolvedSha
+            ? await countCommitsBetween(repositoryDirectory, currentCommitSha, latestRemoteCommitResolvedSha)
             : null;
     const pendingCommits =
-        currentCommitSha && latestRemoteCommitSha
-            ? await listCommitsBetween(repositoryDirectory, currentCommitSha, latestRemoteCommitSha)
+        currentCommitSha && latestRemoteCommitResolvedSha
+            ? await listCommitsBetween(repositoryDirectory, currentCommitSha, latestRemoteCommitResolvedSha)
             : [];
     const resolvedJob = resolveVpsSelfUpdateJobForOverview(job, {
         currentEnvironment,
@@ -486,15 +492,16 @@ export async function readVpsSelfUpdateOverview(): Promise<VpsSelfUpdateOverview
         repositoryDirectory,
         currentCommitSha,
         currentCommitShortSha: abbreviateCommitSha(currentCommitSha),
-        currentCommitMessage,
-        currentCommitDate,
-        latestRemoteCommitSha,
-        latestRemoteCommitShortSha: abbreviateCommitSha(latestRemoteCommitSha),
-        latestRemoteCommitDate,
+        currentCommitMessage: currentCommit?.subject ?? null,
+        currentCommitDate: currentCommit?.authoredAt ?? null,
+        latestRemoteCommitSha: latestRemoteCommitResolvedSha,
+        latestRemoteCommitShortSha: abbreviateCommitSha(latestRemoteCommitResolvedSha),
+        latestRemoteCommitDate: latestRemoteCommit?.authoredAt ?? null,
+        latestRemoteCommitMessage: latestRemoteCommit?.subject ?? null,
         commitsBehindCount,
         pendingCommits,
         isUpdateAvailable: Boolean(
-            currentCommitSha && latestRemoteCommitSha && currentCommitSha !== latestRemoteCommitSha,
+            currentCommitSha && latestRemoteCommitResolvedSha && currentCommitSha !== latestRemoteCommitResolvedSha,
         ),
         originRepositoryUrl,
         isOriginRepositoryDefault: originRepositoryUrl === VPS_SELF_UPDATE_DEFAULT_ORIGIN_REPOSITORY_URL,
@@ -526,9 +533,32 @@ export type VpsSelfUpdatePendingCommit = {
 };
 
 /**
+ * Browser-safe metadata read from one git commit object.
+ */
+type VpsSelfUpdateCommitMetadata = {
+    /**
+     * Full commit hash.
+     */
+    readonly commitSha: string;
+    /**
+     * Single-line commit subject.
+     */
+    readonly subject: string;
+    /**
+     * Author timestamp in ISO format or `null` when unknown.
+     */
+    readonly authoredAt: string | null;
+};
+
+/**
  * Hard ceiling for the pending-commits listing returned in the overview to avoid huge payloads on a long-stale server.
  */
 const VPS_SELF_UPDATE_MAX_PENDING_COMMITS = 100;
+
+/**
+ * Number of latest branch commits fetched for the update overview.
+ */
+const VPS_SELF_UPDATE_OVERVIEW_FETCH_DEPTH = VPS_SELF_UPDATE_MAX_PENDING_COMMITS + 1;
 
 /**
  * Browser-safe summary of one commit that the super admin can pick from the custom-target picker.
@@ -825,6 +855,7 @@ function createUnavailableOverview(context: {
         latestRemoteCommitSha: null,
         latestRemoteCommitShortSha: null,
         latestRemoteCommitDate: null,
+        latestRemoteCommitMessage: null,
         commitsBehindCount: null,
         pendingCommits: [],
         isUpdateAvailable: false,
@@ -1172,6 +1203,59 @@ async function runGitInRepository(repositoryDirectory: string, args: ReadonlyArr
 }
 
 /**
+ * Fetches the tracked remote branch into the local object database before building the browser overview.
+ *
+ * @param repositoryDirectory - Repository checkout path.
+ * @param branch - Target branch.
+ * @param originRepositoryUrl - Configured upstream repository URL.
+ */
+async function refreshVpsSelfUpdateRemoteBranch(
+    repositoryDirectory: string,
+    branch: string,
+    originRepositoryUrl: string,
+): Promise<void> {
+    if (!branch) {
+        return;
+    }
+
+    await runGitInRepository(repositoryDirectory, [
+        'fetch',
+        '--no-tags',
+        '--prune',
+        `--depth=${VPS_SELF_UPDATE_OVERVIEW_FETCH_DEPTH}`,
+        originRepositoryUrl,
+        `+refs/heads/${branch}:${createVpsSelfUpdateRemoteBranchReference(branch)}`,
+    ]);
+}
+
+/**
+ * Reads the latest tracked-branch commit from the local remote-tracking ref, falling back to `ls-remote`.
+ *
+ * @param repositoryDirectory - Repository checkout path.
+ * @param branch - Target branch.
+ * @param originRepositoryUrl - Configured upstream repository URL.
+ * @returns Remote branch commit sha or `null`.
+ */
+async function readLatestRemoteBranchCommitSha(
+    repositoryDirectory: string,
+    branch: string,
+    originRepositoryUrl: string,
+): Promise<string | null> {
+    if (!branch) {
+        return null;
+    }
+
+    const remoteBranchReference = createVpsSelfUpdateRemoteBranchReference(branch);
+    const localCommitSha = await runGitInRepository(repositoryDirectory, [
+        'rev-parse',
+        '--verify',
+        `${remoteBranchReference}^{commit}`,
+    ]);
+
+    return localCommitSha || readRemoteCommitSha(repositoryDirectory, branch, originRepositoryUrl);
+}
+
+/**
  * Reads the latest remote branch commit without mutating the local checkout.
  *
  * @param repositoryDirectory - Repository checkout path.
@@ -1197,17 +1281,47 @@ async function readRemoteCommitSha(
 }
 
 /**
- * Reads the author timestamp of a known commit from the local repository.
+ * Creates the local remote-tracking reference used for the update overview fetch.
+ *
+ * @param branch - Target branch.
+ * @returns Local remote-tracking reference.
+ */
+function createVpsSelfUpdateRemoteBranchReference(branch: string): string {
+    return `refs/remotes/origin/${branch}`;
+}
+
+/**
+ * Reads hash, subject and author timestamp for one known commit from the local repository.
  *
  * @param repositoryDirectory - Repository checkout path.
- * @param commitSha - Commit hash to look up.
- * @returns ISO timestamp or `null` when the commit is unknown locally.
+ * @param commitReference - Commit hash or git revision reference to look up.
+ * @returns Commit metadata or `null` when the commit cannot be resolved locally.
  */
-async function readCommitDateFromRepository(
+async function readCommitMetadataFromRepository(
     repositoryDirectory: string,
-    commitSha: string,
-): Promise<string | null> {
-    return runGitInRepository(repositoryDirectory, ['log', '-1', '--format=%aI', commitSha]);
+    commitReference: string,
+): Promise<VpsSelfUpdateCommitMetadata | null> {
+    const output = await runGitInRepository(repositoryDirectory, [
+        'log',
+        '-1',
+        `--format=%H${GIT_LOG_FIELD_SEPARATOR}%aI${GIT_LOG_FIELD_SEPARATOR}%s`,
+        commitReference,
+    ]);
+    if (!output) {
+        return null;
+    }
+
+    const fields = output.split(GIT_LOG_FIELD_SEPARATOR);
+    const commitSha = fields[0] ?? '';
+    if (!commitSha) {
+        return null;
+    }
+
+    return {
+        commitSha,
+        authoredAt: fields[1] || null,
+        subject: fields.slice(2).join(GIT_LOG_FIELD_SEPARATOR),
+    };
 }
 
 /**

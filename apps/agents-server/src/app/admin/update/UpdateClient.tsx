@@ -81,6 +81,7 @@ type UpdateOverview = {
     readonly latestRemoteCommitSha: string | null;
     readonly latestRemoteCommitShortSha: string | null;
     readonly latestRemoteCommitDate: string | null;
+    readonly latestRemoteCommitMessage: string | null;
     readonly commitsBehindCount: number | null;
     readonly pendingCommits: ReadonlyArray<UpdatePendingCommit>;
     readonly isUpdateAvailable: boolean;
@@ -487,11 +488,6 @@ function CurrentDeploymentCard({
     readonly overview: UpdateOverview | null;
     readonly language: ServerLanguageCode;
 }) {
-    const currentCommitDateLabel = formatHumanReadableTimestamp(overview?.currentCommitDate ?? null, language);
-    const latestRemoteCommitDateLabel = formatHumanReadableTimestamp(
-        overview?.latestRemoteCommitDate ?? null,
-        language,
-    );
     const driftLabel = useMemo(
         () => buildDeploymentDriftLabel(overview, language),
         [overview, language],
@@ -521,20 +517,22 @@ function CurrentDeploymentCard({
                         {overview?.currentEnvironment.branch || 'production'}
                     </dd>
                 </div>
-                <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-                    <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Deployed commit</dt>
-                    <dd className="mt-1 font-mono text-slate-900">{overview?.currentCommitShortSha || 'Unknown'}</dd>
-                    <div className="mt-1 text-xs text-slate-500">{currentCommitDateLabel}</div>
-                </div>
-                <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-                    <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                        Latest remote commit
-                    </dt>
-                    <dd className="mt-1 font-mono text-slate-900">
-                        {overview?.latestRemoteCommitShortSha || 'Unknown'}
-                    </dd>
-                    <div className="mt-1 text-xs text-slate-500">{latestRemoteCommitDateLabel}</div>
-                </div>
+                <CommitSummaryCard
+                    label="Deployed commit"
+                    commitSha={overview?.currentCommitSha ?? null}
+                    shortCommitSha={overview?.currentCommitShortSha ?? null}
+                    subject={overview?.currentCommitMessage ?? null}
+                    authoredAt={overview?.currentCommitDate ?? null}
+                    language={language}
+                />
+                <CommitSummaryCard
+                    label="Latest remote commit"
+                    commitSha={overview?.latestRemoteCommitSha ?? null}
+                    shortCommitSha={overview?.latestRemoteCommitShortSha ?? null}
+                    subject={overview?.latestRemoteCommitMessage ?? null}
+                    authoredAt={overview?.latestRemoteCommitDate ?? null}
+                    language={language}
+                />
                 <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
                     <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                         Update availability
@@ -555,21 +553,44 @@ function CurrentDeploymentCard({
                 </div>
             </dl>
 
-            {overview?.currentCommitMessage && (
-                <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
-                    <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                        Current commit message
-                    </div>
-                    <div className="mt-1 text-slate-900">{overview.currentCommitMessage}</div>
-                </div>
-            )}
-
             {overview?.repositoryDirectory && (
                 <div className="text-xs text-slate-500">
                     Managed repository:
                     <span className="ml-2 font-mono text-slate-700">{overview.repositoryDirectory}</span>
                 </div>
             )}
+        </div>
+    );
+}
+
+/**
+ * Renders one commit as subject, hash and authored date.
+ *
+ * @private internal component of `<UpdateClient/>`
+ */
+function CommitSummaryCard({
+    label,
+    commitSha,
+    shortCommitSha,
+    subject,
+    authoredAt,
+    language,
+}: {
+    readonly label: string;
+    readonly commitSha: string | null;
+    readonly shortCommitSha: string | null;
+    readonly subject: string | null;
+    readonly authoredAt: string | null;
+    readonly language: ServerLanguageCode;
+}) {
+    const commitHashLabel = commitSha || shortCommitSha || 'Unknown hash';
+
+    return (
+        <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+            <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</dt>
+            <dd className="mt-1 text-slate-900">{subject || 'Unknown commit subject'}</dd>
+            <div className="mt-2 break-all font-mono text-xs text-slate-600">{commitHashLabel}</div>
+            <div className="mt-1 text-xs text-slate-500">{formatHumanReadableTimestamp(authoredAt, language)}</div>
         </div>
     );
 }
@@ -620,11 +641,9 @@ function PendingCommitsCard({
                 <ul className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white">
                     {overview.pendingCommits.map((pendingCommit) => (
                         <li key={pendingCommit.commitSha} className="px-4 py-3">
-                            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                                <span className="font-mono text-xs text-slate-500">
-                                    {pendingCommit.shortCommitSha}
-                                </span>
-                                <span className="text-sm text-slate-900">{pendingCommit.subject}</span>
+                            <div className="text-sm text-slate-900">{pendingCommit.subject}</div>
+                            <div className="mt-1 break-all font-mono text-xs text-slate-500">
+                                {pendingCommit.commitSha || pendingCommit.shortCommitSha}
                             </div>
                             <div className="mt-1 text-xs text-slate-500">
                                 {formatHumanReadableTimestamp(pendingCommit.authoredAt, language)}

@@ -24,7 +24,7 @@
 
 ---
 
-[ ]
+[x] ~$0.3252 2 hours by OpenAI Codex `gpt-5.5`
 
 [✨🧐] The self-update of the Agents server should show more info
 
@@ -40,3 +40,4 @@
 
 ![self-update](screenshots/2026-06-0551-agents-server-self-update-enhance-1.png)
 ![errored self update](screenshots/2026-06-0551-agents-server-self-update-enhance.png)
+
