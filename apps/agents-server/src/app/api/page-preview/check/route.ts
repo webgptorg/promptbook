@@ -1,8 +1,9 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { assertsError } from '../../../../../../../src/errors/assertsError';
+import { assertSafeUrl } from '../../../../utils/assertSafeUrl';
+import { getCurrentUser } from '../../../../utils/getCurrentUser';
 import { checkIfUrlCanBeEmbedded } from '../../../../utils/iframe/checkIfUrlCanBeEmbedded';
-import { resolvePagePreviewRequestUrl } from '../../../../utils/pagePreview/resolvePagePreviewRequestUrl';
 
 /**
  * Checks whether a given URL can be embedded in an iframe by inspecting
@@ -17,13 +18,27 @@ import { resolvePagePreviewRequestUrl } from '../../../../utils/pagePreview/reso
  * The destination URL is validated against private/internal IP ranges before fetching.
  */
 export async function GET(request: NextRequest): Promise<NextResponse> {
-    const requestUrlResolution = await resolvePagePreviewRequestUrl(request);
-    if (requestUrlResolution.errorResponse !== null) {
-        return requestUrlResolution.errorResponse;
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const url = request.nextUrl.searchParams.get('url');
+
+    if (!url) {
+        return NextResponse.json({ error: 'Missing required query parameter: url' }, { status: 400 });
+    }
+
+    // Guard against SSRF: reject private/internal IPs and non-HTTP(S) schemes
+    try {
+        assertSafeUrl(url);
+    } catch (error) {
+        assertsError(error);
+        return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
     try {
-        const canEmbed = await checkIfUrlCanBeEmbedded(requestUrlResolution.url);
+        const canEmbed = await checkIfUrlCanBeEmbedded(url);
         return NextResponse.json({ canEmbed });
     } catch (error) {
         assertsError(error);
