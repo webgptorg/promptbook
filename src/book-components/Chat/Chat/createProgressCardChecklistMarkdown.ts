@@ -15,13 +15,6 @@ const PENDING_PROGRESS_MARKER_HTML = '<span data-chat-progress-marker="pending" 
 const COMPLETED_PROGRESS_MARKER_HTML = '<span data-chat-progress-marker="completed" aria-hidden="true"></span>';
 
 /**
- * Human-facing label shown for "now" progress updates.
- *
- * @private internal helper of `<ChatMessageItem/>`
- */
-const PROGRESS_NOW_LABEL = "What I'm Doing Now";
-
-/**
  * Human-facing label shown for "next" progress updates.
  *
  * @private internal helper of `<ChatMessageItem/>`
@@ -85,7 +78,7 @@ function createProgressCardMarkdownSections(progressCard: NonNullable<ChatMessag
     }
 
     if (normalizedNow) {
-        markdownSections.push(`**${PROGRESS_NOW_LABEL}:** ${normalizedNow}`);
+        markdownSections.push(normalizedNow);
     }
 
     const itemLines: Array<string> = [];

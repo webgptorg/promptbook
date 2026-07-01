@@ -53,7 +53,6 @@ function createAssistantProgressMessageFixture(overrides: Partial<ChatMessage> =
         content: '',
         isComplete: false,
         progressCard: {
-            title: 'Working on your request',
             now: 'Collecting relevant references',
             items: [
                 {
@@ -174,6 +173,8 @@ describe('ChatMessageItem progress checklist rendering', () => {
         const { container } = renderChatMessageItem(createAssistantProgressMessageFixture());
 
         expect(container.querySelector('section')).toBeNull();
+        expect(container.textContent).not.toContain("What I'm Doing Now");
+        expect(container.textContent).toContain('Collecting relevant references');
         expect(queryProgressMarkers(container)).toHaveLength(2);
         expect(queryProgressMarkers(container, 'completed')).toHaveLength(1);
         expect(queryProgressMarkers(container, 'pending')).toHaveLength(1);

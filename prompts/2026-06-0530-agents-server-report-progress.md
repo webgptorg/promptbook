@@ -44,7 +44,7 @@
 
 ---
 
-[ ]
+[x] ~$0.3999 an hour by OpenAI Codex `gpt-5.5`
 
 [✨🖖] Remove "Working on your request" from response
 
@@ -53,3 +53,4 @@
     2. "What I'm Doing Now:" **<- Remove this, it is bullshit and does not show any real progress**
     3. Finally, show the final answer
 -   You are working with the [Agents Server](apps/agents-server)
+
