@@ -881,28 +881,28 @@
         },
         {
             "name": "🌎 SSH to live",
-            "command": "ssh root@68.183.19.218",
+            "command": "ssh root@live.ptbk.io",
             "execute": true,
             "onlySingle": false,
             "focus": false
         },
         {
             "name": "🌎 SSH to preview",
-            "command": "ssh root@198.199.87.43",
+            "command": "ssh root@preview.ptbk.io",
             "execute": true,
             "onlySingle": false,
             "focus": false
         },
         {
             "name": "🌎 SSH to production",
-            "command": "ssh root@159.223.178.11",
+            "command": "ssh root@production.ptbk.io",
             "execute": true,
             "onlySingle": false,
             "focus": false
         },
         {
             "name": "🌎 SSH to LTS",
-            "command": "ssh root@143.198.172.180",
+            "command": "ssh root@lts.ptbk.io",
             "execute": true,
             "onlySingle": false,
             "focus": false
