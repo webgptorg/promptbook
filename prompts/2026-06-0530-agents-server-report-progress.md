@@ -42,11 +42,14 @@
 
 [x] $5.73 2 hours by Claude Code
 
+---
+
+[ ]
+
 [✨🖖] Remove "Working on your request" from response
 
 -   Show the progress as follows:
     1. Randomly cycle through THINKING_MESSAGES
-    2. "Working on your request" **<- Remove this, it is bullshit and does not show any real progress**
+    2. "What I'm Doing Now:" **<- Remove this, it is bullshit and does not show any real progress**
     3. Finally, show the final answer
 -   You are working with the [Agents Server](apps/agents-server)
-
