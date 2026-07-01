@@ -130,6 +130,10 @@ function formatTaskKind(kind: AdminChatTaskRecord['kind']): string {
         return 'Chat timeout';
     }
 
+    if (kind === 'VPS_SELF_UPDATE') {
+        return 'Self-update';
+    }
+
     return kind;
 }
 
@@ -260,8 +264,9 @@ function resolveTaskRowClassName(task: AdminChatTaskRecord, isStuck: boolean): s
  * @private function of TaskManagerTaskRow
  */
 function TaskManagerTaskActions({ busyAction, isBusy, onRunTaskAction, task }: TaskManagerTaskActionsProps) {
-    const isCancelable = task.status === 'QUEUED' || task.status === 'RUNNING';
-    const isRetryable = task.status === 'FAILED';
+    const isDurableChatTask = task.kind === 'CHAT_COMPLETION' || task.kind === 'CHAT_TIMEOUT';
+    const isCancelable = isDurableChatTask && (task.status === 'QUEUED' || task.status === 'RUNNING');
+    const isRetryable = isDurableChatTask && task.status === 'FAILED';
 
     return (
         <div className="flex justify-end gap-2">

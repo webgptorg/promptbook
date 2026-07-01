@@ -1043,6 +1043,18 @@ function resolveVpsSelfUpdateStateDirectory(): string {
 }
 
 /**
+ * Reads a lightweight snapshot of the currently persisted standalone VPS self-update job.
+ *
+ * Reads only the persisted status file and its log tail — no git access, no remote fetching —
+ * so it is safe to call from frequent polling loops such as the admin task manager.
+ *
+ * @returns Parsed job snapshot (status `idle` when no job has ever been persisted).
+ */
+export async function readVpsSelfUpdateJobSnapshot(): Promise<VpsSelfUpdateJobSnapshot> {
+    return readPersistedVpsSelfUpdateJob();
+}
+
+/**
  * Reads one persisted update-job snapshot from disk.
  *
  * @returns Parsed job snapshot.

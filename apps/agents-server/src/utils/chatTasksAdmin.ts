@@ -10,9 +10,11 @@ export type AdminChatTaskView = 'active' | 'running' | 'queued' | 'failed' | 'al
 /**
  * Durable task kinds currently surfaced by the admin task manager.
  *
+ * `VPS_SELF_UPDATE` represents the standalone VPS self-update session triggered from `/admin/update`.
+ *
  * @private internal admin utility of Agents Server
  */
-export type AdminChatTaskKind = 'CHAT_COMPLETION' | 'CHAT_TIMEOUT';
+export type AdminChatTaskKind = 'CHAT_COMPLETION' | 'CHAT_TIMEOUT' | 'VPS_SELF_UPDATE';
 
 /**
  * One row shown in the admin task-manager table.
