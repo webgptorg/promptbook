@@ -23,13 +23,7 @@ Create persistent AI agents that turn your company's scattered knowledge into ac
 
 
 
-[![Vercel](https://img.shields.io/badge/Vercel-Deploy%20Agents%20Server-black?logo=vercel)](https://vercel.com/new/clone?project-name=promptbook-agents-server&repository-name=promptbook-agents-server&repository-url=https%3A%2F%2Fgithub.com%2Fwebgptorg%2Fpromptbook&root-directory=apps%2Fagents-server&demo-title=Promptbook+Agents+Server&demo-description=Persistent+AI+agents+with+a+built-in+admin+UI.+This+deploy+creates+a+Supabase+project+automatically%2C+injects+the+required+database+credentials%2C+and+Promptbook+runs+the+SQL+migrations+on+first+startup.&demo-url=https%3A%2F%2Fgallery.ptbk.io%2F&external-id=https%3A%2F%2Fgithub.com%2Fwebgptorg%2Fpromptbook%2Ftree%2Fmain%2Fapps%2Fagents-server&env=OPENAI_API_KEY%2CADMIN_PASSWORD%2CSUPABASE_AUTO_MIGRATE&envDescription=Supabase+is+created+automatically+by+the+required+Vercel+integration.+Add+OPENAI_API_KEY+from+https%3A%2F%2Fplatform.openai.com%2Fapi-keys%2C+choose+ADMIN_PASSWORD+for+your+first+admin+login%2C+and+leave+SUPABASE_AUTO_MIGRATE+enabled.&envLink=https%3A%2F%2Fgithub.com%2Fwebgptorg%2Fpromptbook%2Fblob%2Fmain%2FREADME.md%23vercel-form-fields&envDefaults=%7B%22SUPABASE_AUTO_MIGRATE%22%3A%22true%22%7D&stores=%5B%7B%22type%22%3A%22integration%22%2C%22integrationSlug%22%3A%22supabase%22%2C%22productSlug%22%3A%22supabase%22%7D%5D)
-
-
-
-### Standalone VPS
-
-Run the standalone VPS installer only on a fresh server. Interactive mode asks for the installation values:
+Run the standalone VPS installer _(for example on DigitalOcean)_ only on a fresh server. Interactive mode asks for the installation values:
 
 ```bash
 sudo curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/other/vps/install.sh | bash
@@ -278,8 +272,6 @@ TEAM You are part of the legal team of Paul Smith & Associés, you discuss with 
 
 </td></tr></table>
 
-
-
 ### Promptbook Ecosystem
 
 Promptbook is an ecosystem of tools centered around the **Agents Server** - a production-ready platform for running persistent AI agents.
@@ -291,8 +283,6 @@ The [**Agents Server**](https://gallery.ptbk.io/) is the primary way to use Prom
 #### Promptbook Engine
 
 The [Promptbook Engine](https://github.com/webgptorg/promptbook) is the open-source core that powers everything. It parses the Book language, applies commitments, manages LLM provider integrations, and executes agents. The Agents Server is built on top of the Engine. If you need to embed agent capabilities directly into your own application, you can use the Engine as a standalone TypeScript/JavaScript library via [NPM packages](https://www.npmjs.com/package/@promptbook/core).
-
-
 
 
 
@@ -340,8 +330,6 @@ Promptbook project is an ecosystem centered around the **Agents Server** - a pla
     
   </tbody>
 </table>
-
-
 
 ### 🌐 Community & Social Media
 
@@ -391,8 +379,6 @@ Join our growing community of developers and users:
     
   </tbody>
 </table>
-
-
 
 
 
@@ -607,8 +593,6 @@ The following glossary is used to clarify certain concepts:
 -   **Longtail** refers to non-common or rare events, items, or entities that are not well-represented in the training data of machine learning models. Longtail items are often challenging for models to predict accurately.
 
 _Note: This section is not a complete dictionary, more list of general AI / LLM terms that has connection with Promptbook_
-
-
 
 ### 💯 Core concepts
 

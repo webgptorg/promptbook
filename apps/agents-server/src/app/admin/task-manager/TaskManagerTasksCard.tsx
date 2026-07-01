@@ -20,13 +20,13 @@ type TaskManagerTasksCardProps = {
  */
 function resolveEmptyStateMessage(view: ReturnType<typeof useTaskManagerState>['view'], search: string): string {
     if (search) {
-        return 'No background chat tasks matched the current search.';
+        return 'No background tasks matched the current search.';
     }
     if (view === 'running') {
-        return 'No running background chat tasks right now.';
+        return 'No running background tasks right now.';
     }
     if (view === 'queued') {
-        return 'No queued background chat tasks right now.';
+        return 'No queued background tasks right now.';
     }
     if (view === 'failed') {
         return 'No failed background chat tasks were recorded in the last 24 hours.';
@@ -35,7 +35,7 @@ function resolveEmptyStateMessage(view: ReturnType<typeof useTaskManagerState>['
         return 'No background chat tasks matched the selected time window.';
     }
 
-    return 'No active background chat tasks right now.';
+    return 'No active background tasks right now.';
 }
 
 /**
@@ -51,7 +51,7 @@ export function TaskManagerTasksCard({ language, state }: TaskManagerTasksCardPr
         <Card className="hover:border-gray-200 hover:shadow-md">
             <div className="flex items-center justify-between gap-4">
                 <div>
-                    <h2 className="text-lg font-medium text-gray-900">Background chat tasks ({state.total.toLocaleString()})</h2>
+                    <h2 className="text-lg font-medium text-gray-900">Background tasks ({state.total.toLocaleString()})</h2>
                     <p className="mt-1 text-sm text-gray-500">
                         Sorted by started time for running work and creation time for queued work.
                     </p>

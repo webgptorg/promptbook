@@ -22,9 +22,9 @@ export function TaskManagerClient() {
                 <div>
                     <h1 className="text-3xl font-light text-gray-900">Task manager</h1>
                     <p className="mt-1 max-w-3xl text-sm text-gray-500">
-                        Admin-only operational view of durable background chat work across all users, including chat
-                        completions and scheduled timeout wake-ups. This dashboard shows queue and worker state, not
-                        chat transcript content.
+                        Admin-only operational view of background work across all users, including chat completions,
+                        scheduled timeout wake-ups, self-updates, and live browser previews. This dashboard shows queue
+                        and worker state, not chat transcript content.
                     </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">

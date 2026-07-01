@@ -134,6 +134,10 @@ function formatTaskKind(kind: AdminChatTaskRecord['kind']): string {
         return 'Self-update';
     }
 
+    if (kind === 'BROWSER_PREVIEW') {
+        return 'Browser preview';
+    }
+
     return kind;
 }
 

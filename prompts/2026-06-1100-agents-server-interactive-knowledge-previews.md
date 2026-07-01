@@ -2,7 +2,7 @@
 
 ---
 
-[ ]
+[x] ~$0.9625 an hour by OpenAI Codex `gpt-5.5`
 
 [✨☃️] The preview of the knowledge should be interactive not just freezed image
 
@@ -16,3 +16,4 @@
 
 ![alt text](screenshots/2026-06-1100-agents-server-interactive-knowledge-previews-1.png)
 ![alt text](screenshots/2026-06-1100-agents-server-interactive-knowledge-previews.png)
+

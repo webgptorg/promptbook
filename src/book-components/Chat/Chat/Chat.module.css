@@ -3356,6 +3356,43 @@
     text-decoration: underline;
 }
 
+.citationBrowserStreamFallback {
+    width: 100%;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.citationBrowserStreamImage {
+    width: 100%;
+    max-height: 60vh;
+    min-height: 400px;
+    object-fit: cover;
+    object-position: top;
+    display: block;
+    cursor: crosshair;
+    user-select: none;
+    touch-action: none;
+}
+
+.citationBrowserStreamLink {
+    display: block;
+    text-align: center;
+    padding: 10px 16px;
+    background: #f0f0f0;
+    color: #333;
+    font-size: 0.9em;
+    font-weight: 500;
+    text-decoration: none;
+    border-top: 1px solid #ddd;
+    transition: background 0.15s;
+}
+
+.citationBrowserStreamLink:hover {
+    background: #e0e0e0;
+    text-decoration: underline;
+}
+
 .citationMetadata {
     background: #f8f8f8;
     padding: 16px;

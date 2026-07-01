@@ -4,6 +4,7 @@ import { getAdminChatTasks } from './getAdminChatTasksResponse/getAdminChatTasks
 import { mapVpsSelfUpdateJobToAdminChatTask } from './getAdminChatTasksResponse/mapVpsSelfUpdateJobToAdminChatTask';
 import { parseAdminChatTaskQuery, type ParsedAdminChatTaskQuery } from './getAdminChatTasksResponse/parseAdminChatTaskQuery';
 import { throttledAdminRecovery } from './getAdminChatTasksResponse/throttledAdminRecovery';
+import { listPagePreviewBrowserAdminTasks } from './pagePreviewBrowserSessions';
 import { readVpsSelfUpdateJobSnapshot } from './vpsSelfUpdate';
 
 /**
@@ -63,7 +64,11 @@ export async function getAdminChatTasksResponse(
 
     const adminChatTasks = await getAdminChatTasks(parsedQuery);
     const vpsSelfUpdateTask = await loadVpsSelfUpdateAdminChatTask();
-    const injectedTasks = collectAdminChatTasksToInject(vpsSelfUpdateTask, parsedQuery);
+    const pagePreviewBrowserTasks = listPagePreviewBrowserAdminTasks();
+    const injectableTasks = [vpsSelfUpdateTask, ...pagePreviewBrowserTasks].filter(
+        (task): task is AdminChatTaskRecord => task !== null,
+    );
+    const injectedTasks = collectAdminChatTasksToInject(injectableTasks, parsedQuery);
     const { items, total } = mergeInjectedAdminChatTasks({
         databaseItems: adminChatTasks.items,
         databaseTotal: adminChatTasks.total,
@@ -71,7 +76,7 @@ export async function getAdminChatTasksResponse(
         page: parsedQuery.page,
         pageSize: parsedQuery.pageSize,
     });
-    const counters = mergeInjectedAdminChatTaskCounters(adminChatTasks.counters, vpsSelfUpdateTask);
+    const counters = mergeInjectedAdminChatTaskCounters(adminChatTasks.counters, injectableTasks);
 
     return {
         status: 200,
@@ -109,27 +114,18 @@ async function loadVpsSelfUpdateAdminChatTask(): Promise<AdminChatTaskRecord | n
 /**
  * Filters out injected tasks that do not belong to the requested admin task-manager view or search.
  *
- * @param vpsSelfUpdateTask - Currently persisted self-update task or `null`.
+ * @param injectableTasks - Synthetic task rows collected from process-local state.
  * @param query - Parsed admin task-manager query.
  * @returns Tasks to inject on top of the database-backed items.
  */
 function collectAdminChatTasksToInject(
-    vpsSelfUpdateTask: AdminChatTaskRecord | null,
+    injectableTasks: ReadonlyArray<AdminChatTaskRecord>,
     query: ParsedAdminChatTaskQuery,
 ): ReadonlyArray<AdminChatTaskRecord> {
-    if (!vpsSelfUpdateTask) {
-        return [];
-    }
-
-    if (!matchesAdminChatTaskView(vpsSelfUpdateTask, query, Date.now())) {
-        return [];
-    }
-
-    if (!matchesAdminChatTaskSearch(vpsSelfUpdateTask, query.search)) {
-        return [];
-    }
-
-    return [vpsSelfUpdateTask];
+    const nowTimestamp = Date.now();
+    return injectableTasks.filter(
+        (task) => matchesAdminChatTaskView(task, query, nowTimestamp) && matchesAdminChatTaskSearch(task, query.search),
+    );
 }
 
 /**
@@ -160,32 +156,62 @@ function mergeInjectedAdminChatTasks(options: {
 }
 
 /**
- * Adds the injected self-update task to the summary counters so the header metrics stay accurate.
+ * Adds injected tasks to the summary counters so the header metrics stay accurate.
  *
  * @param databaseCounters - Counters computed from durable database rows.
- * @param vpsSelfUpdateTask - Currently persisted self-update task or `null`.
- * @returns Merged counters including the injected task.
+ * @param injectedTasks - Synthetic task rows collected from process-local state.
+ * @returns Merged counters including the injected tasks.
  */
 function mergeInjectedAdminChatTaskCounters(
     databaseCounters: AdminChatTaskCounters,
-    vpsSelfUpdateTask: AdminChatTaskRecord | null,
+    injectedTasks: ReadonlyArray<AdminChatTaskRecord>,
 ): AdminChatTaskCounters {
-    if (!vpsSelfUpdateTask) {
+    if (injectedTasks.length === 0) {
         return databaseCounters;
     }
 
     const nowTimestamp = Date.now();
-    const isRunning = vpsSelfUpdateTask.status === 'RUNNING';
-    const isFailedInWindow =
-        vpsSelfUpdateTask.status === 'FAILED' &&
-        isIsoTimestampAtOrAfter(vpsSelfUpdateTask.finishedAt, nowTimestamp - 24 * HOUR_IN_MILLISECONDS);
+    const injectedQueuedTimestamps = injectedTasks
+        .filter((task) => task.status === 'QUEUED')
+        .map((task) => Date.parse(task.queuedAt))
+        .filter((timestamp) => Number.isFinite(timestamp));
+    const oldestInjectedQueuedAgeMs =
+        injectedQueuedTimestamps.length === 0 ? null : nowTimestamp - Math.min(...injectedQueuedTimestamps);
 
     return {
-        runningCount: databaseCounters.runningCount + (isRunning ? 1 : 0),
-        queuedCount: databaseCounters.queuedCount,
-        failedLast24hCount: databaseCounters.failedLast24hCount + (isFailedInWindow ? 1 : 0),
-        oldestQueuedAgeMs: databaseCounters.oldestQueuedAgeMs,
+        runningCount: databaseCounters.runningCount + injectedTasks.filter((task) => task.status === 'RUNNING').length,
+        queuedCount: databaseCounters.queuedCount + injectedTasks.filter((task) => task.status === 'QUEUED').length,
+        failedLast24hCount:
+            databaseCounters.failedLast24hCount +
+            injectedTasks.filter(
+                (task) =>
+                    task.status === 'FAILED' &&
+                    isIsoTimestampAtOrAfter(task.finishedAt, nowTimestamp - 24 * HOUR_IN_MILLISECONDS),
+            ).length,
+        oldestQueuedAgeMs: mergeOldestQueuedAge(databaseCounters.oldestQueuedAgeMs, oldestInjectedQueuedAgeMs),
     };
+}
+
+/**
+ * Merges durable and injected queued-task ages.
+ *
+ * @param databaseOldestQueuedAgeMs - Oldest durable queued-task age.
+ * @param injectedOldestQueuedAgeMs - Oldest injected queued-task age.
+ * @returns Oldest queued age across both sources.
+ */
+function mergeOldestQueuedAge(
+    databaseOldestQueuedAgeMs: number | null,
+    injectedOldestQueuedAgeMs: number | null,
+): number | null {
+    if (databaseOldestQueuedAgeMs === null) {
+        return injectedOldestQueuedAgeMs;
+    }
+
+    if (injectedOldestQueuedAgeMs === null) {
+        return databaseOldestQueuedAgeMs;
+    }
+
+    return Math.max(databaseOldestQueuedAgeMs, injectedOldestQueuedAgeMs);
 }
 
 /**
