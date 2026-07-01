@@ -46,7 +46,7 @@ export const CHAT_VISUAL_MODE_COOKIE_NAME = 'promptbook_agents_chat_visual_mode'
 /**
  * Fallback visual mode when metadata/browser values are missing or invalid.
  */
-export const DEFAULT_CHAT_VISUAL_MODE: ChatVisualMode = CHAT_VISUAL_MODES.BUBBLE_MODE;
+export const DEFAULT_CHAT_VISUAL_MODE: ChatVisualMode = CHAT_VISUAL_MODES.ARTICLE_MODE;
 
 /**
  * Resolves one raw visual mode value to a supported mode.

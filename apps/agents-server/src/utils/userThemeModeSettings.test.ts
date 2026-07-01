@@ -48,7 +48,7 @@ describe('userThemeModeSettings', () => {
             }),
         ).toEqual({
             version: 1,
-            themeMode: THEME_MODES.SYSTEM,
+            themeMode: THEME_MODES.LIGHT,
         });
     });
 

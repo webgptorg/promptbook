@@ -46,7 +46,7 @@ export const THEME_MODE_OPTIONS: ReadonlyArray<{
 /**
  * Built-in fallback theme mode applied when metadata/browser values are missing or invalid.
  */
-export const DEFAULT_THEME_MODE: ThemeMode = THEME_MODES.SYSTEM;
+export const DEFAULT_THEME_MODE: ThemeMode = THEME_MODES.LIGHT;
 
 /**
  * Local storage key used to keep the latest browser theme mode in sync.
