@@ -31,7 +31,7 @@ export function HeaderHomepageLink({
     onClick,
 }: HeaderHomepageLinkProps) {
     const compactServerName = serverName.split(' ')[0] || serverName;
-    const mergedLogoClassName = `h-6 w-6 shrink-0 object-contain sm:h-8 sm:w-8 ${logoClassName}`.trim();
+    const mergedLogoClassName = `h-6 w-6 shrink-0 object-contain sm:h-6 sm:w-6 ${logoClassName}`.trim();
     const mergedLabelClassName =
         `min-w-0 truncate text-base font-bold tracking-tight text-gray-900 dark:text-slate-100 ${labelClassName}`.trim();
 
