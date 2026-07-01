@@ -1,15 +1,29 @@
-[-]
+[ ]
 
 [✨𓀀] baz
 
 ```bash
-@@@
-
-npm install ptbk
-
-ptbk coder init
-
-ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md
+hejny@Pavols-MacBook-Air test1 % ptbk about    
+Promptbook: Create persistent AI agents that turn your company's scattered knowledge into action
+Book language version: 2.0.0
+Promptbook engine version: 0.112.0-119
+Environment: Node.js
+Node.js version: v24.17.0
+Platform type: darwin
+Platform architecture: arm64
+https://github.com/webgptorg/promptbook
+https://ptbk.io
+hejny@Pavols-MacBook-Air test1 % npx ptbk about
+Promptbook: Create persistent AI agents that turn your company's scattered knowledge into action
+Book language version: 2.0.0
+Promptbook engine version: 0.113.0-1
+Environment: Node.js
+Node.js version: v24.17.0
+Platform type: darwin
+Platform architecture: arm64
+https://github.com/webgptorg/promptbook
+https://ptbk.io
+hejny@Pavols-MacBook-Air test1 % npx ptbk about
 ```
 
 -   @@@
