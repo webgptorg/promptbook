@@ -42,9 +42,10 @@ export function buildAgentMessagePrompt(messageRelativePath: string, agentSystem
 
                 [Up to 50,000 CZK](?message=We are posting an order up to 50,000 CZK)
                 [Up to 100,000 CZK](?message=We are posting an order up to 100,000 CZK)
-                [Over 100,000 CZK](?message=We are posting an order over 100,000 CZK)
+                [Over 100,000 CZK](?messageDraft=We are posting an order over 100,000 CZK)
                 \`\`\`
 
+                - You can use \`message\` for message that will be sent immediately after clicking the button, or \`messageDraft\` for message that will be prefilled in the input field for editing before sending.
 
                 ## This is how you should behave
 

@@ -1,11 +1,19 @@
+[-]
+
+[✨♞] qux
+
+-   @@@
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+-   If you need to do the database migration, do it
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+```book
 Copywriter
-
-
 
 META VISIBILITY PRIVATE
 
-NONCE Created by Codex on 2026-04-23
-FROM {void}
 
 GOAL
 
@@ -43,11 +51,14 @@ napíšu ti text ve firemním tónu pro web, email, kampaň nebo produkt.
 
 Dokážu připravit slogan, homepage text, CTA i několik variant stejného sdělení pro různé publikum.
 
-[Napiš claim](?message=Navrhni mi 5 variant claimu pro službu, která firmám zavádí AI asistenty.)
-[Landing page](?message=Napiš hero sekci landing page pro AI asistenta pro HR onboarding.)
-[Email po demu](?message=Napiš krátký follow-up email po produktovém demu pro operations manažera.)
+[Více](?message=Napiš mi víc o sobě)
+[Napiš claim](?messageDraft=Navrhni mi 5 variant claimu pro službu, která firmám zavádí AI asistenty.)
+[Landing page](?messageDraft=Napiš hero sekci landing page pro AI asistenta pro HR onboarding.)
+[Email po demu](?messageDraft=Napiš krátký follow-up email po produktovém demu pro operations manažera.)
 
 USE TIME
 USE TIMEOUT
 
 CLOSED
+
+```

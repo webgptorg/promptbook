@@ -1,0 +1,54 @@
+[ ]
+
+[✨🟣] When `--agent` present 
+
+```bash
+me@DESKTOP-2QD9KQQ MINGW64 ~/work/ai/promptbook (main)
+$ npx ts-node ./src/cli/test/ptbk.ts coder server --harness openai-codex --model gpt-5.5 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --priority 0 --test npm run test-for-ptbk-coder
+Starting prompt runner in server (keep-alive) mode…
+
+                               ▄▄▄▄ ▄▄▄▄▄▄ ▄▄▄▄  ▄▄ ▄▄   ▄▄  ▄▄▄ 
+                               ██▄█▀  ██   ██▄██ ██▄█▀   ██ ██▀██
+                               ██     ██   ██▄█▀ ██ ██ ▄ ██ ▀███▀
+
+┌ Session ─────────────────────────────────────────────────────────────────────────────────────┐
+│ State     PAUSED  Paused before checking the git working tree                                │
+│ Runner   codex  ·  gpt-5.5  ·  thinking xhigh                                                │
+│ Context  AGENTS.md                                                                           │
+│ Server   http://localhost:4441                                                               │
+│ Test     npm run test-for-ptbk-coder                                                         │
+│ This run Task 3/3  ·  2 done  ·  1 left                                                      │
+│ Backlog  Repo 610 total                                                                      │
+│ Scope    Priority ≥0  ·  Write 100 prompts first                                             │
+│ Timing   Elapsed 2h 48m  ·  Total 4h 12m  ·  ETA Today 19:25                                 │
+│ Progress ████████████████████████████████████████░░░░░░░░░░░░░░░░░░░ 67% complete (2/3 done) │
+└──────────────────────────────────────────────────────────────────────────────────────────────┘
+┌ Current task ────────────────────────────────────────────────────────────────────────────────┐
+│ prompts/2026-06-0870-ptbk-coder-npx-vs-no-npx.md#1                                           │
+│ Attempt 1/3  ·  Paused before checking the git working tree                                  │
+└──────────────────────────────────────────────────────────────────────────────────────────────┘
+┌ Live output ─────────────────────────────────────────────────────────────────────────────────┐
+│ ›    - Local:        http://localhost:4440                                                   │
+│ ›    - Network:      http://192.168.56.1:4440                                                │
+│ ›  ✓ Starting...                                                                             │
+│ ›  ✓ Ready in 2.9s                                                                           │
+│ › (node:8176) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please u... │
+│ › (Use `node --trace-deprecation ...` to show where the warning was created)                 │
+│ › Prerendered home page and saved to C:\Users\me\work\ai\promptbook\apps\agents-server\.n... │
+│ › 🎉 All tests passed!                                                                       │
+└──────────────────────────────────────────────────────────────────────────────────────────────┘
+┌ Controls ────────────────────────────────────────────────────────────────────────────────────┐
+│  P  Resume   CTRL+C  Exit                                                                    │
+└──────────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+-   @@@@@@@
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
+-   Also look and update [the dev scripts in `terminals.json`](.vscode/terminals.json)
+-   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+
+![Agent visuals on web](screenshots/2026-06-0890-ptbk-coder-agent-visual.png)
+![Agent visuals on web](screenshots/2026-06-0890-ptbk-coder-agent-visual-1.png)
