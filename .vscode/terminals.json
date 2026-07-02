@@ -180,6 +180,20 @@
             "focus": true
         },
         {
+            "name": "👨‍💻🔵 Run CLI `ptbk -v`",
+            "commands": ["unset OPENAI_API_KEY && unset OPENAI_BASE_URL", "npx ts-node ./src/cli/test/ptbk.ts -v"],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "👨‍💻🔵 Run CLI `ptbk --version`",
+            "commands": ["unset OPENAI_API_KEY && unset OPENAI_BASE_URL", "npx ts-node ./src/cli/test/ptbk.ts --version"],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
             "name": "👨‍💻🔠 Run Book Components web app",
             "cwd": "./apps/book-components/",
             "commands": ["unset OPENAI_API_KEY && unset OPENAI_BASE_URL", "npm run dev"],

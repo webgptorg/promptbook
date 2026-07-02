@@ -66,6 +66,24 @@ describe('how promptbookCli works', () => {
             }),
         ).resolves.toContain(PROMPTBOOK_ENGINE_VERSION));
 
+    it('should print version for `--version`', () =>
+        expect(
+            $execCommand({
+                command: 'ts-node src/cli/test/ptbk.ts --version',
+                crashOnError: false,
+                cwd: process.cwd(),
+            }),
+        ).resolves.toBe(PROMPTBOOK_ENGINE_VERSION));
+
+    it('should print version for `-v`', () =>
+        expect(
+            $execCommand({
+                command: 'ts-node src/cli/test/ptbk.ts -v',
+                crashOnError: false,
+                cwd: process.cwd(),
+            }),
+        ).resolves.toBe(PROMPTBOOK_ENGINE_VERSION));
+
     it('should expose `coder init` command', () =>
         expect(
             $execCommand({

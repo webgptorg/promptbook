@@ -49,6 +49,13 @@ const DEPRECATED_TOP_LEVEL_COMMAND_MESSAGES: Readonly<Record<string, string>> = 
 };
 
 /**
+ * Raw top-level CLI arguments that print the Promptbook version.
+ *
+ * @private internal constant of `promptbookCli`
+ */
+const VERSION_OPTION_ARGUMENTS: ReadonlySet<string> = new Set(['-v', '--version']);
+
+/**
  * Runs CLI utilities of Promptbook package
  *
  * @private within the `@promptbook/cli`
@@ -65,8 +72,15 @@ export async function promptbookCli(): Promise<void> {
         );
     }
 
-    const cliArguments = process.argv.slice(2);
-    const isVerbose = cliArguments.some((arg) => arg === '--verbose' || arg === '-v');
+    const commandLineArguments = process.argv.slice(2);
+    const isVersionRequested = isTopLevelVersionRequested(commandLineArguments);
+
+    if (isVersionRequested) {
+        console.info(PROMPTBOOK_ENGINE_VERSION);
+        return process.exit(0);
+    }
+
+    const isVerbose = commandLineArguments.some((argument) => argument === '--verbose' || argument === '-v');
     //     <- TODO: Can be this be done with commander before the commander commands are initialized?
     if (isVerbose) {
         console.info(
@@ -104,12 +118,23 @@ export async function promptbookCli(): Promise<void> {
     // TODO: [🧠] Should it be here or not> $addGlobalOptionsToCommand(program);
     program.commands.forEach($addGlobalOptionsToCommand);
 
-    if (cliArguments.length === 0) {
+    if (commandLineArguments.length === 0) {
         program.outputHelp();
         return process.exit(0);
     }
 
     program.parse(process.argv);
+}
+
+/**
+ * Checks whether the invocation asks for the root Promptbook CLI version.
+ *
+ * @private internal utility of `promptbookCli`
+ */
+function isTopLevelVersionRequested(commandLineArguments: ReadonlyArray<string>): boolean {
+    const firstCommandLineArgument = commandLineArguments[0];
+
+    return firstCommandLineArgument !== undefined && VERSION_OPTION_ARGUMENTS.has(firstCommandLineArgument);
 }
 
 /**
