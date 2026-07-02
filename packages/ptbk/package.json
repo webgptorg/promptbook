@@ -1,6 +1,6 @@
 {
     "name": "ptbk",
-    "version": "0.113.0-2",
+    "version": "0.113.0-3",
     "description": "Promptbook: Create persistent AI agents that turn your company's scattered knowledge into action",
     "private": false,
     "sideEffects": false,
@@ -91,11 +91,11 @@
         "zod": "$zod"
     },
     "peerDependencies": {
-        "@promptbook/core": "0.113.0-2"
+        "@promptbook/core": "0.113.0-3"
     },
     "dependencies": {
-        "@promptbook/cli": "0.113.0-2",
-        "promptbook": "0.113.0-2"
+        "@promptbook/cli": "0.113.0-3",
+        "promptbook": "0.113.0-3"
     },
     "bin": {
         "ptbk": "bin/promptbook-cli-proxy.js"
