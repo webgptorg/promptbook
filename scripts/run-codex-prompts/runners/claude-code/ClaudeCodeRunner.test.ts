@@ -35,4 +35,21 @@ describe('ClaudeCodeRunner', () => {
             }),
         );
     });
+
+    it('passes model to the Claude Code script', async () => {
+        const runner = new ClaudeCodeRunner({ model: 'claude-4.8-opus' });
+
+        await runner.runPrompt({
+            prompt: 'Prompt body',
+            projectPath: 'C:\\repo',
+            scriptPath: 'C:\\repo\\temp\\runner.sh',
+            preserveArtifactsOnSuccess: false,
+        });
+
+        expect($runGoScriptWithOutput).toHaveBeenCalledWith(
+            expect.objectContaining({
+                scriptContent: expect.stringContaining('--model claude-4.8-opus'),
+            }),
+        );
+    });
 });

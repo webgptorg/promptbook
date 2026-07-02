@@ -1,4 +1,4 @@
-[ ]
+[x] $3.17 34 minutes by Claude Code
 
 [✨🔇] The `claude-code` model should be in generated temporarty `sh` script:
 
@@ -20,3 +20,4 @@ But information about `claude-4.8-opus` is missing
 -   Also look and update [the dev scripts in `terminals.json`](.vscode/terminals.json)
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

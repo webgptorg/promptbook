@@ -90,8 +90,10 @@ export function resolvePromptRunner(options: RunOptions): PromptRunnerResolution
         return createRunnerResolution(
             options,
             new ClaudeCodeRunner({
+                model: options.model,
                 thinkingLevel: options.thinkingLevel,
             }),
+            options.model,
         );
     }
 
@@ -194,7 +196,7 @@ function getRunnerMetadata(options: RunOptions, actualRunnerModel?: string): Run
         return { runnerName, modelName: CLINE_MODEL };
     }
 
-    if (options.agentName === 'opencode') {
+    if (options.agentName === 'opencode' || options.agentName === 'claude-code') {
         return { runnerName, modelName: options.model };
     }
 

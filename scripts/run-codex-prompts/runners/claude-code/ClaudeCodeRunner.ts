@@ -23,6 +23,7 @@ export class ClaudeCodeRunner implements PromptRunner {
     public async runPrompt(options: PromptRunOptions): Promise<PromptRunResult> {
         const scriptContent = buildClaudeScript({
             prompt: options.prompt,
+            model: this.options.model,
             thinkingLevel: this.options.thinkingLevel,
         });
 
