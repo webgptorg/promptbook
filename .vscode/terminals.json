@@ -188,7 +188,10 @@
         },
         {
             "name": "👨‍💻🔵 Run CLI `ptbk --version`",
-            "commands": ["unset OPENAI_API_KEY && unset OPENAI_BASE_URL", "npx ts-node ./src/cli/test/ptbk.ts --version"],
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/cli/test/ptbk.ts --version"
+            ],
             "execute": true,
             "onlySingle": true,
             "focus": true
@@ -845,7 +848,7 @@
         },
         {
             "name": "(❗) 🔪 Kill all Node.js processes (💤)",
-            "command": "echo 🔪 && taskkill /F /IM node.exe",
+            "command": "echo 🔪 && taskkill /F /IM node.exe && taskkill /F /IM codex.exe && taskkill /F /IM claude.exe",
             "shellPath": "C:\\Windows\\System32\\cmd.exe",
             "execute": false,
             "onlySingle": false,
