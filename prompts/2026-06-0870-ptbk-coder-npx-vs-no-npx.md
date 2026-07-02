@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.00 an hour by OpenAI Codex `gpt-5.5`
 
 [✨𓀀] The `npx ptbk`, `npm i ptbk && ptbk` and `npm i -D ptbk && ptbk` works differently, fix it
 
@@ -34,3 +34,4 @@ hejny@Pavols-MacBook-Air test1 % npx ptbk about
 -   Also look and update [the dev scripts in `terminals.json`](.vscode/terminals.json)
 -   You are working with [`ptbk`](src/cli/cli-commands/)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

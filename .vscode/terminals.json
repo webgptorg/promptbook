@@ -194,6 +194,13 @@
             "focus": true
         },
         {
+            "name": "🧪 Test package `ptbk` proxy (💤)",
+            "command": "npx jest scripts/generate-packages/addDependenciesForGeneratedPackages.test.ts --runInBand",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
             "name": "👨‍💻🔠 Run Book Components web app",
             "cwd": "./apps/book-components/",
             "commands": ["unset OPENAI_API_KEY && unset OPENAI_BASE_URL", "npm run dev"],

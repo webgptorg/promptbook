@@ -248,7 +248,7 @@ export function getPackagesMetadataForRollup() {
         packageScope: null,
         packageBasename: 'ptbk',
         packageFullname: 'ptbk',
-        additionalDependencies: ['promptbook' /* <- Note: [🧃] */],
+        additionalDependencies: ['@promptbook/cli', 'promptbook' /* <- Note: [🧃] */],
     });
 
     /*/

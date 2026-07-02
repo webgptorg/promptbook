@@ -94,6 +94,7 @@
         "@promptbook/core": "0.113.0-1"
     },
     "dependencies": {
+        "@promptbook/cli": "0.113.0-1",
         "promptbook": "0.113.0-1"
     },
     "bin": {
