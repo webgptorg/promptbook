@@ -94,8 +94,7 @@
         "@promptbook/core": "0.113.0-5"
     },
     "dependencies": {
-        "@promptbook/cli": "0.113.0-5",
-        "promptbook": "0.113.0-5"
+        "promptbook": "0.113.0-1"
     },
     "bin": {
         "ptbk": "bin/promptbook-cli-proxy.js"
