@@ -15,7 +15,7 @@ export function buildClaudeScript(options: ClaudeScriptOptions): string {
 
     return spaceTrim(
         (block) => `
-            claude --allowedTools "Bash,Read,Edit,Write"${MODEL_ARGUMENT}${THINKING_LEVEL_ARGUMENT} --output-format json --print <<'${CLAUDE_PROMPT_DELIMITER}'
+            claude --allowedTools "Bash,Read,Edit,Write"${MODEL_ARGUMENT}${THINKING_LEVEL_ARGUMENT} --output-format stream-json --verbose --include-partial-messages --print <<'${CLAUDE_PROMPT_DELIMITER}'
 
             ${block(options.prompt)}
 
