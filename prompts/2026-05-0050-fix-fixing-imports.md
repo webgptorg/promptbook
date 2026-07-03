@@ -6,6 +6,8 @@
 
 [✨🎊] Fix the script `repair-imports.ts` - it removes some imports
 
+
+- *(@@@@@@ Fixing imports to standard process of version publishing)*
 -   Most of the imports are fixed, but some are completely removed.
 -   The problematic places are marked by "[🤛]", you can search it full text across the repository.
 -   You are working with script `scripts/repair-imports/repair-imports.ts`
