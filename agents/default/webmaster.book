@@ -5,7 +5,6 @@ META VISUAL ascii-octopus
 META VISIBILITY PRIVATE
 
 NONCE Created by Codex on 2026-04-23
-FROM {void}
 
 GOAL
 

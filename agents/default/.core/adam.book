@@ -1,8 +1,9 @@
 Adam
+
+
 META VISIBILITY PRIVATE
 
-FROM  {void}
-RULE testing rule from Adam
+FROM @Void
 
 
 META COLOR #ff0b0bff
@@ -19,9 +20,6 @@ console.log('Hello');
 ```
 
 USE TIME
-
-
-RULE Write the names of the documents from which you are sourcing information in this format: '【document123.doc】'.
 
 
 NOTE Todo: USE SEARCH ENGINE
