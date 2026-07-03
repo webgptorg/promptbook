@@ -385,10 +385,7 @@ function mapColorToAnsi256(color: HalfCellColor): number {
         if (gray > ANSI_256_NEAR_WHITE_GRAY_LEVEL) {
             return ANSI_256_WHITE_INDEX; // <- Note: Pure white lives in the color cube
         }
-        return (
-            232 +
-            Math.round(((gray - 8) / ANSI_256_GRAYSCALE_RAMP_MAX_LEVEL) * ANSI_256_GRAYSCALE_RAMP_INDEX_SPAN)
-        );
+        return 232 + Math.round(((gray - 8) / ANSI_256_GRAYSCALE_RAMP_MAX_LEVEL) * ANSI_256_GRAYSCALE_RAMP_INDEX_SPAN);
     }
 
     const redIndex = Math.round((red / 255) * 5);

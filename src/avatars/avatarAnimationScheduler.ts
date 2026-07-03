@@ -133,7 +133,8 @@ function ensureAvatarAnimationLoop(): void {
         // Run the most stale listeners first so each avatar keeps its target FPS even when
         // total work exceeds the per-frame budget.
         dueListenerEntries.sort(
-            (firstListenerEntry, secondListenerEntry) => firstListenerEntry.lastRunAtMs - secondListenerEntry.lastRunAtMs,
+            (firstListenerEntry, secondListenerEntry) =>
+                firstListenerEntry.lastRunAtMs - secondListenerEntry.lastRunAtMs,
         );
 
         const listenersToRunCount = Math.min(dueListenerEntries.length, MAX_AVATAR_LISTENERS_PER_FRAME);

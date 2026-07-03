@@ -47,21 +47,25 @@ CLOSED
     });
 
     it('uses META VISIBILITY from the book when no creation override is provided', () => {
-        const result = createAgentPersistenceRecords(`
+        const result = createAgentPersistenceRecords(
+            `
 Helper Agent
 META VISIBILITY private
 GOAL Help with testing.
-` as string_book);
+` as string_book,
+        );
 
         expect(result.agentInsertRecord.visibility).toBe('PRIVATE');
         expect(result.agentInsertRecord.agentSource).toContain('META VISIBILITY PRIVATE');
     });
 
     it('adds default META VISIBILITY when neither input nor book declares it', () => {
-        const result = createAgentPersistenceRecords(`
+        const result = createAgentPersistenceRecords(
+            `
 Helper Agent
 GOAL Help with testing.
-` as string_book);
+` as string_book,
+        );
 
         expect(result.agentInsertRecord.visibility).toBe('UNLISTED');
         expect(result.agentInsertRecord.agentSource).toContain('META VISIBILITY UNLISTED');

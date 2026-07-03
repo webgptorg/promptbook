@@ -502,12 +502,16 @@ function resolveVisibleContinuousOctopusPatches(
     }
 
     for (let longitudeIndex = 0; longitudeIndex < longitudePatchCount; longitudeIndex++) {
-        const patchCenterLongitude = (longitudeBoundaries[longitudeIndex]! + longitudeBoundaries[longitudeIndex + 1]!) / 2;
+        const patchCenterLongitude =
+            (longitudeBoundaries[longitudeIndex]! + longitudeBoundaries[longitudeIndex + 1]!) / 2;
         cachedTentacleInfluencesByPatchCenterLongitude[longitudeIndex] = resolveContinuousTentacleInfluence(
             options,
             patchCenterLongitude,
         );
-        cachedLobeWavesByPatchCenterLongitude[longitudeIndex] = resolveContinuousLobeWave(options, patchCenterLongitude);
+        cachedLobeWavesByPatchCenterLongitude[longitudeIndex] = resolveContinuousLobeWave(
+            options,
+            patchCenterLongitude,
+        );
         cachedCosByPatchCenterLongitude[longitudeIndex] = Math.max(0, Math.cos(patchCenterLongitude));
     }
 

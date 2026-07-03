@@ -8,10 +8,7 @@ import {
     PROMPTS_TEMPLATES_DIRECTORY_PATH,
 } from './boilerplateTemplates';
 import { ensureCoderEnvFile } from './ensureCoderEnvFile';
-import {
-    CODER_AGENTS_DIRECTORY_PATH,
-    ensureCoderDeveloperAgentFile,
-} from './ensureCoderDeveloperAgentFile';
+import { CODER_AGENTS_DIRECTORY_PATH, ensureCoderDeveloperAgentFile } from './ensureCoderDeveloperAgentFile';
 import { ensureCoderGitignoreFile } from './ensureCoderGitignoreFile';
 import { ensureCoderMarkdownFile } from './ensureCoderMarkdownFile';
 import { ensureCoderPackageJsonFile } from './ensureCoderPackageJsonFile';

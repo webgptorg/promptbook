@@ -12,10 +12,7 @@ import {
     normalizePromptRunnerCliOptions,
     PROMPT_RUNNER_DESCRIPTION,
 } from '../common/promptRunnerCliOptions';
-import {
-    DEFAULT_WAIT_AFTER_ERROR_MS,
-    parseOptionalWaitDuration,
-} from './waitOptions';
+import { DEFAULT_WAIT_AFTER_ERROR_MS, parseOptionalWaitDuration } from './waitOptions';
 
 /**
  * Initializes `coder run` command for Promptbook CLI utilities
@@ -66,11 +63,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
     );
     addPromptRunnerExecutionOptions(command);
     command.option('--priority <minimum-priority>', 'Filter prompts by minimum priority level', parseIntOption, 0);
-    command.option(
-        '--limit <run-count>',
-        'Stop after processing this many prompt runs',
-        parsePositiveIntegerOption,
-    );
+    command.option('--limit <run-count>', 'Stop after processing this many prompt runs', parsePositiveIntegerOption);
     command.option(
         '--wait-after-prompt <duration>',
         spaceTrim(`

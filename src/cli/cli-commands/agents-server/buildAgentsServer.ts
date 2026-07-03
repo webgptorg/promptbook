@@ -739,7 +739,9 @@ function isNextBuildTerminationRetryable(exitStatus: NextBuildExitStatus): boole
  * Creates one visible retry message for a killed Next.js build attempt.
  */
 function createNextBuildRetryMessage(exitStatus: NextBuildExitStatus, nextAttempt: number): string {
-    return `\nAgents Server Next build was terminated by ${describeNextBuildExitStatus(exitStatus)}. Retrying attempt ${nextAttempt}/${AGENTS_SERVER_BUILD_MAX_ATTEMPTS}.\n`;
+    return `\nAgents Server Next build was terminated by ${describeNextBuildExitStatus(
+        exitStatus,
+    )}. Retrying attempt ${nextAttempt}/${AGENTS_SERVER_BUILD_MAX_ATTEMPTS}.\n`;
 }
 
 /**

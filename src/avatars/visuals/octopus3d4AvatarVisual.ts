@@ -193,8 +193,14 @@ export const octopus3d4AvatarVisual: AvatarVisualDefinition = {
     isAnimated: true,
     supportsPointerTracking: true,
     render({ context, size, palette, createRandom, timeMs, interaction }) {
-        const { morphologyProfile, animationPhase, leftEyePhaseOffset, rightEyePhaseOffset, tentacleProfiles, skinSpots } =
-            getOctopus3d4StableState(createRandom);
+        const {
+            morphologyProfile,
+            animationPhase,
+            leftEyePhaseOffset,
+            rightEyePhaseOffset,
+            tentacleProfiles,
+            skinSpots,
+        } = getOctopus3d4StableState(createRandom);
         const sceneCenterX = size * 0.5;
         const sceneCenterY = size * 0.535;
         const bob = Math.sin(timeMs / 980 + animationPhase) * size * 0.013;
@@ -568,7 +574,8 @@ function resolveVisibleBlobbyContinuousPatches(
     }
 
     for (let longitudeIndex = 0; longitudeIndex < longitudePatchCount; longitudeIndex++) {
-        const patchCenterLongitude = (longitudeBoundaries[longitudeIndex]! + longitudeBoundaries[longitudeIndex + 1]!) / 2;
+        const patchCenterLongitude =
+            (longitudeBoundaries[longitudeIndex]! + longitudeBoundaries[longitudeIndex + 1]!) / 2;
         cachedTentacleInfluencesByPatchCenterLongitude[longitudeIndex] = resolveBlobbyTentacleInfluence(
             options,
             patchCenterLongitude,
@@ -702,8 +709,7 @@ function sampleBlobbyContinuousSurfacePointWithLongitudeCache(
     const lowerBlend = smoothStep(0.34, 1, verticalProgress);
     const tipBlend = smoothStep(0.66, 1, verticalProgress);
     const centerPull = resolveSignedAngularDistance(longitude, tentacleInfluence.centerLongitude);
-    const effectiveLongitude =
-        longitude + centerPull * lowerBlend * tentacleInfluence.core * (0.26 + tipBlend * 0.22);
+    const effectiveLongitude = longitude + centerPull * lowerBlend * tentacleInfluence.core * (0.26 + tipBlend * 0.22);
     const mantleRipple =
         Math.sin(
             longitude * morphologyProfile.body.lobeCount +
@@ -742,10 +748,7 @@ function sampleBlobbyContinuousSurfacePointWithLongitudeCache(
         lowerBlend * tentacleInfluence.core * (0.12 + tentacleInfluence.depthScale * 0.07) -
         Math.max(0, -Math.cos(effectiveLongitude)) * 0.05;
     const tentacleTubeRadius =
-        lowerBlend *
-        tentacleInfluence.core *
-        (0.12 + tipBlend * 0.07 + tentacleInfluence.widthScale * 0.028) *
-        radiusX;
+        lowerBlend * tentacleInfluence.core * (0.12 + tipBlend * 0.07 + tentacleInfluence.widthScale * 0.028) * radiusX;
     const planarRadiusX = cosineLatitude * radiusX * horizontalScale + tentacleTubeRadius;
     const planarRadiusZ = cosineLatitude * radiusZ * depthScale + tentacleTubeRadius * 0.74;
     const lowerDrop =
@@ -759,10 +762,7 @@ function sampleBlobbyContinuousSurfacePointWithLongitudeCache(
     const combinedTentacleSway = (primaryTentacleWave + secondaryTentacleWave) * radiusX * (0.06 + tipBlend * 0.06);
 
     return {
-        x:
-            Math.sin(effectiveLongitude) * planarRadiusX +
-            combinedTentacleSway +
-            tentacleCurl * radiusX * 0.18,
+        x: Math.sin(effectiveLongitude) * planarRadiusX + combinedTentacleSway + tentacleCurl * radiusX * 0.18,
         y:
             Math.sin(latitude) * radiusY * (1 + upperBlend * 0.14) -
             upperBlend * radiusY * 0.12 +
@@ -911,11 +911,7 @@ function drawBlobbyContinuousSurfacePatch(
     drawProjectedQuad(context, surfacePatch.corners, surfacePatch.fillStyle);
 
     if (surfacePatch.lightIntensity > 0) {
-        drawProjectedQuad(
-            context,
-            surfacePatch.corners,
-            `rgba(255, 255, 255, ${0.2 * surfacePatch.lightIntensity})`,
-        );
+        drawProjectedQuad(context, surfacePatch.corners, `rgba(255, 255, 255, ${0.2 * surfacePatch.lightIntensity})`);
     } else if (surfacePatch.lightIntensity < 0) {
         drawProjectedQuad(
             context,
