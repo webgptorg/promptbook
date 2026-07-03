@@ -37,7 +37,7 @@ describe('ClaudeCodeRunner', () => {
     });
 
     it('passes model to the Claude Code script', async () => {
-        const runner = new ClaudeCodeRunner({ model: 'claude-4.8-opus' });
+        const runner = new ClaudeCodeRunner({ model: 'claude-opus-4-8' });
 
         await runner.runPrompt({
             prompt: 'Prompt body',
@@ -48,7 +48,7 @@ describe('ClaudeCodeRunner', () => {
 
         expect($runGoScriptWithOutput).toHaveBeenCalledWith(
             expect.objectContaining({
-                scriptContent: expect.stringContaining('--model claude-4.8-opus'),
+                scriptContent: expect.stringContaining('--model claude-opus-4-8'),
             }),
         );
     });

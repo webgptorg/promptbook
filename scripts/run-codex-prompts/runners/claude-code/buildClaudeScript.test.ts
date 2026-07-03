@@ -43,10 +43,10 @@ describe('buildClaudeScript', () => {
     it('uses the provided model in the Claude Code CLI command', () => {
         const script = buildClaudeScript({
             prompt: 'Hello from test prompt',
-            model: 'claude-4.8-opus',
+            model: 'claude-opus-4-8',
         });
 
-        expect(script).toContain('--model claude-4.8-opus');
+        expect(script).toContain('--model claude-opus-4-8');
     });
 
     it('omits the model flag when no model is provided', () => {
@@ -60,11 +60,11 @@ describe('buildClaudeScript', () => {
     it('includes both model and effort flags when both are provided', () => {
         const script = buildClaudeScript({
             prompt: 'Prompt',
-            model: 'claude-4.8-opus',
+            model: 'claude-opus-4-8',
             thinkingLevel: 'max',
         });
 
-        expect(script).toContain('--model claude-4.8-opus');
+        expect(script).toContain('--model claude-opus-4-8');
         expect(script).toContain('--effort max');
     });
 });
