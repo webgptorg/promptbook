@@ -32,3 +32,27 @@
 
 ![alt text](screenshots/2026-06-0960-agents-server-no-core-server.png)
 
+---
+
+[ ]
+
+[✨🥲] Make inheritance of agents working
+
+-   When `FROM` commitment is used in the agent book, the agent should inherit from referenced agent
+-   When the `FROM` commitment is not used, inherit from the `Adam` agent
+-   When the `FROM @Void` / `FROM {Void}` is used, the agent should not inherit from any agent
+-   But now it always behaves as if `FROM @Void` is used, so the agent does not inherit from any agent, and this is not correct
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+
+```book
+Generic chatter
+
+FROM @Basic
+
+GOAL Empathetic and understanding support bot.
+
+CLOSED
+
+```
