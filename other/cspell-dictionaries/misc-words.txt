@@ -509,3 +509,9 @@ versitygw
 SAMEORIGIN
 sameorigin
 domcontentloaded
+rasterizing
+napi
+mintty
+COLORTERM
+truecolor
+ghostty

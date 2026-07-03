@@ -2,6 +2,7 @@ import colors from 'colors';
 import moment from 'moment';
 import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
+import type { string_book } from '../../../src/book-2.0/agent-source/string_book';
 import { DatabaseError } from '../../../src/errors/DatabaseError';
 import { NotAllowed } from '../../../src/errors/NotAllowed';
 import { just } from '../../../src/utils/organization/just';
@@ -13,7 +14,7 @@ import type {
 } from '../common/CoderRunPauseCheckpoint';
 import { CliProgressDisplay } from '../common/cliProgressDisplay';
 import { loadCachedAveragePromptDurationMs } from '../common/coderRunEstimateCache';
-import { resolveAgentSystemMessage } from '../common/resolveAgentSystemMessage';
+import { resolveCoderAgent } from '../common/resolveCoderAgent';
 import { sleepWithCountdown } from '../common/sleepWithCountdown';
 import { resolveCoderContext } from '../common/resolveCoderContext';
 import {
@@ -38,6 +39,7 @@ import type { PromptFile } from '../prompts/types/PromptFile';
 import type { PromptSelection } from '../prompts/types/PromptSelection';
 import type { PromptStats } from '../prompts/types/PromptStats';
 import { waitForPromptStart } from '../prompts/waitForPromptStart';
+import { buildCoderRunAgentVisual } from '../ui/buildCoderRunAgentVisual';
 import { renderCoderRunUi, type CoderRunUiHandle } from '../ui/renderCoderRunUi';
 import { resolvePromptRunner } from './resolvePromptRunner';
 import { runPromptRound } from './runPromptRound';
@@ -75,7 +77,8 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
 
     try {
         const resolvedCoderContext = await resolveCoderContext(options.context, process.cwd());
-        const resolvedAgentSystemMessage = await resolveAgentSystemMessage(options.agent, process.cwd());
+        const resolvedCoderAgent = await resolveCoderAgent(options.agent, process.cwd());
+        const resolvedAgentSystemMessage = resolvedCoderAgent?.systemMessage;
 
         if (await runDryRunIfRequested(options)) {
             return;
@@ -85,6 +88,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
         console.info(colors.green(`Running prompts with ${runner.name}`));
 
         initializeRunUi(uiHandle, runner.name, actualRunnerModel, options);
+        await initializeRunUiAgentVisual(uiHandle, resolvedCoderAgent?.agentSource);
         await seedCachedAveragePromptDuration({
             options,
             actualRunnerModel,
@@ -378,6 +382,26 @@ function initializeRunUi(
     });
     uiHandle?.state.setPhase('loading');
     uiHandle?.state.setStatusMessage(`Running prompts with ${runnerName}`);
+}
+
+/**
+ * Renders the `--agent` book avatar as ASCII art and shows it instead of the default brand banner.
+ *
+ * Keeps the default banner when no agent is selected, the UI is disabled, or the visual cannot be rendered.
+ */
+async function initializeRunUiAgentVisual(
+    uiHandle: CoderRunUiHandle | undefined,
+    agentSource: string_book | undefined,
+): Promise<void> {
+    if (!uiHandle || !agentSource) {
+        return;
+    }
+
+    const agentVisualLines = await buildCoderRunAgentVisual(agentSource);
+
+    if (agentVisualLines) {
+        uiHandle.state.setAgentVisualLines(agentVisualLines);
+    }
 }
 
 /**

@@ -6,14 +6,29 @@ import { spaceTrim } from '../../../src/utils/organization/spaceTrim';
 import { createAgentRunnerSystemMessage } from '../../run-agent-messages/messages/createAgentRunnerSystemMessage';
 
 /**
+ * Agent data resolved from the optional `--agent` book file.
+ */
+export type ResolvedCoderAgent = {
+    /**
+     * Raw source of the agent `.book` file.
+     */
+    readonly agentSource: string_book;
+
+    /**
+     * Compiled system message injected into each coding prompt.
+     */
+    readonly systemMessage: string;
+};
+
+/**
  * Reads an optional agent `.book` file and compiles its system message for injection into coder prompts.
  *
  * Returns `undefined` when no agent path is provided.
  */
-export async function resolveAgentSystemMessage(
+export async function resolveCoderAgent(
     agentPath: string | undefined,
     currentWorkingDirectory: string,
-): Promise<string | undefined> {
+): Promise<ResolvedCoderAgent | undefined> {
     if (!agentPath) {
         return undefined;
     }
@@ -32,5 +47,8 @@ export async function resolveAgentSystemMessage(
         throw error;
     });
 
-    return createAgentRunnerSystemMessage(agentSource as string_book);
+    return {
+        agentSource: agentSource as string_book,
+        systemMessage: await createAgentRunnerSystemMessage(agentSource as string_book),
+    };
 }

@@ -63,6 +63,7 @@ export type { CoderRunProgressSnapshot };
  */
 export class CoderRunUiState extends EventEmitter {
     public config: CoderRunConfig = { agentName: '', priority: 0 };
+    public agentVisualLines: string[] | undefined;
     public currentPromptLabel = '';
     public currentScriptPaths: string[] = [];
     public currentAttempt = 1;
@@ -111,6 +112,14 @@ export class CoderRunUiState extends EventEmitter {
      */
     public setConfig(config: CoderRunConfig): void {
         this.config = config;
+        this.emitChange();
+    }
+
+    /**
+     * Replaces the ASCII-art agent visual shown instead of the default brand banner.
+     */
+    public setAgentVisualLines(agentVisualLines: ReadonlyArray<string> | undefined): void {
+        this.agentVisualLines = agentVisualLines === undefined ? undefined : [...agentVisualLines];
         this.emitChange();
     }
 

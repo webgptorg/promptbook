@@ -73,6 +73,20 @@ describe('buildCoderRunUiFrame', () => {
         expect(output).toContain('P  Pause');
     });
 
+    it('shows the ASCII-art agent visual instead of the default brand banner when one is provided', () => {
+        const agentVisualLines = [
+            '\u001b[38;2;34;211;238m▄▀▄▀▄▀▄▀\u001b[0m',
+            '\u001b[38;2;34;211;238m▀▄▀▄▀▄▀▄\u001b[0m',
+        ];
+        const lines = buildCoderRunUiFrame(createFrameOptions({ agentVisualLines })).map(stripAnsi);
+        const output = lines.join('\n');
+
+        expect(output).not.toContain('▄▄▄▄ ▄▄▄▄▄▄ ▄▄▄▄');
+        expect(output).toContain('▄▀▄▀▄▀▄▀');
+        expect(output).toContain('▀▄▀▄▀▄▀▄');
+        expect(lines[0]!.startsWith(' ')).toBe(true); // <- Note: The agent visual is centered on the frame width
+    });
+
     it('keeps the frame height stable while live output grows', () => {
         const emptyOutputFrame = buildCoderRunUiFrame(createFrameOptions({ agentOutputLines: [] }));
         const streamingOutputFrame = buildCoderRunUiFrame(

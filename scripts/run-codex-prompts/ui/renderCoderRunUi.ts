@@ -255,6 +255,7 @@ export function renderCoderRunUi(
             pauseState: getPauseState(),
             pauseTargetLabel: getPauseTargetLabel(),
             config: state.config,
+            agentVisualLines: state.agentVisualLines,
             phase: state.phase,
             currentPromptLabel: state.currentPromptLabel,
             currentScriptPaths: state.currentScriptPaths,

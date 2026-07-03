@@ -9,7 +9,7 @@ describe('buildClaudeScript', () => {
         expect(script).toContain("<<'CLAUDE_PROMPT'");
         expect(script).toContain('claude --allowedTools "Bash,Read,Edit,Write"');
         expect(script).not.toContain('claude -p');
-        expect(script).toContain('--output-format json');
+        expect(script).toContain('--output-format stream-json');
         expect(script).toContain('--print');
         expect(script).toContain('Hello from test prompt');
     });

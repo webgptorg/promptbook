@@ -16,7 +16,7 @@ import {
     type SessionRow,
 } from './buildRunUiFrameShared';
 import { isCoderRunUiAutoRefreshing } from './coderRunUiRefresh';
-import { fitPlainText } from './coderRunUiText';
+import { centerAnsiText, fitPlainText } from './coderRunUiText';
 
 /**
  * Minimum width used for the rich coder-run frame.
@@ -40,6 +40,11 @@ export type BuildCoderRunUiFrameOptions = {
     readonly terminalWidth: number;
     readonly animationFrame: number;
     readonly spinner: string;
+
+    /**
+     * ANSI ASCII-art lines of the `--agent` avatar visual shown instead of the default brand banner.
+     */
+    readonly agentVisualLines?: readonly string[];
     readonly pauseState: CoderRunPauseState;
     readonly pauseTargetLabel: string;
     readonly config: CoderRunConfig;
@@ -108,7 +113,7 @@ export function buildCoderRunUiFrame(options: BuildCoderRunUiFrameOptions): stri
     const controls = buildControlPills(pausePresentation.pauseControl, options.pendingEnterLabel).join('  ');
 
     const frame = [
-        ...buildCoderRunOctopusVisual({ totalWidth, animationFrame: octopusAnimationFrame }),
+        ...buildFrameHeaderVisual(options, totalWidth, octopusAnimationFrame),
         '',
         ...renderBox('Session', sessionLines, totalWidth, colors.yellow.bold),
         ...renderBox(
@@ -133,6 +138,24 @@ export function buildCoderRunUiFrame(options: BuildCoderRunUiFrameOptions): stri
 
     frame.push(...renderBox('Controls', [controls], totalWidth, colors.white.bold));
     return frame;
+}
+
+/**
+ * Builds the header visual above the dashboard boxes.
+ *
+ * Shows the ASCII-art `--agent` avatar visual when one is available and
+ * falls back to the default brand banner otherwise.
+ */
+function buildFrameHeaderVisual(
+    options: BuildCoderRunUiFrameOptions,
+    totalWidth: number,
+    octopusAnimationFrame: number,
+): readonly string[] {
+    if (options.agentVisualLines !== undefined && options.agentVisualLines.length > 0) {
+        return options.agentVisualLines.map((agentVisualLine) => centerAnsiText(agentVisualLine, totalWidth));
+    }
+
+    return buildCoderRunOctopusVisual({ totalWidth, animationFrame: octopusAnimationFrame });
 }
 
 /**

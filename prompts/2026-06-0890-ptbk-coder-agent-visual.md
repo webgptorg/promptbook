@@ -1,4 +1,4 @@
-[ ] !!
+[x] (2 attempts) $2.44 6 hours by Claude Code `fable`
 
 [✨🟣] When `--agent` present in `ptbk coder`, show the visual as ASCII
 
@@ -53,3 +53,4 @@ Starting prompt runner in server (keep-alive) mode…
 
 ![Agent visuals on web](screenshots/2026-06-0890-ptbk-coder-agent-visual.png)
 ![Agent visuals on web](screenshots/2026-06-0890-ptbk-coder-agent-visual-1.png)
+
