@@ -3,7 +3,7 @@ import type { AgentReferenceResolver } from '../../../../src/book-2.0/agent-sour
 import type { FederatedAgentImportConfiguration } from '../constants/federatedAgentImport';
 import { parseAgentSource } from '../../../../src/book-2.0/agent-source/parseAgentSource';
 import { resolveTeamCapabilitiesFromAgentSource } from './agentReferenceResolver/resolveTeamCapabilitiesFromAgentSource';
-import { resolveInheritedAgentSource } from './resolveInheritedAgentSource';
+import { resolveInheritedAgentSource, type AgentSourceImporter } from './resolveInheritedAgentSource';
 
 /**
  * Options for deriving the canonical resolved agent state from an editable source.
@@ -33,6 +33,11 @@ export type ResolveAgentStateFromSourceOptions = {
      * Retry configuration used when loading imported agents from federated servers.
      */
     readonly federatedAgentImportConfiguration?: FederatedAgentImportConfiguration;
+
+    /**
+     * Optional importer for same-instance agent sources.
+     */
+    readonly agentSourceImporter?: AgentSourceImporter;
 };
 
 /**
@@ -112,6 +117,7 @@ export async function resolveAgentStateFromSource(
         currentAgentAliases: options.currentAgentAliases,
         agentReferenceResolver: options.agentReferenceResolver,
         federatedAgentImportConfiguration: options.federatedAgentImportConfiguration,
+        agentSourceImporter: options.agentSourceImporter,
     });
     const resolvedAgentProfile = parseAgentSource(resolvedAgentSource);
     const resolvedTeamCapabilities = await resolveTeamCapabilitiesFromAgentSource(

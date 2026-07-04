@@ -30,7 +30,7 @@ export type ResolvedStoredAgentState<TAgent extends StoredAgentSourceRecord> = T
  */
 export type ResolveStoredAgentStateOptions = Pick<
     ResolveAgentStateFromSourceOptions,
-    'adamAgentUrl' | 'agentReferenceResolver' | 'federatedAgentImportConfiguration'
+    'adamAgentUrl' | 'agentReferenceResolver' | 'federatedAgentImportConfiguration' | 'agentSourceImporter'
 > & {
     /**
      * Public/current server origin used to build canonical local agent URLs.
@@ -91,6 +91,7 @@ export async function resolveStoredAgentState<TAgent extends StoredAgentSourceRe
         currentAgentAliases: createCanonicalLocalAgentAliases(agent, options.localServerUrl),
         agentReferenceResolver: options.agentReferenceResolver,
         federatedAgentImportConfiguration,
+        agentSourceImporter: options.agentSourceImporter,
     });
 
     return {

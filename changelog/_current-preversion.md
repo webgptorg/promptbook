@@ -1,3 +1,5 @@
+-   Fixed Agents Server agent inheritance so local parent agents are loaded directly from the server collection instead of re-entering the authenticated `/api/book` HTTP route. `FROM @Basic` / `FROM {Basic}` now materializes the referenced local parent, agents without `FROM` inherit from the local Adam agent, and `FROM @Void` / `FROM {Void}` still explicitly disables inheritance.
+
 -   Added security PRDs for current Agents Server risks that still need implementation: unauthenticated browser-test automation APIs, missing owner-scoped private agent/folder authorization, and unauthenticated CDN uploads.
 
 -   Leveraged the `spaceTrim` utility for authored multiline strings that were still assembled via array `.join('\n')` or `+ '\n\n' +` concatenation. The `TEAM` commitment's shared teammate-usage guidance, the built-in `ptbk coder` boilerplate template contents, and the `<LlmChatPreview/>` fallback scenario greeting now use `spaceTrim` template literals — producing byte-identical output while improving readability. The now-unused `buildCoderPromptTemplateContent` helper was removed.

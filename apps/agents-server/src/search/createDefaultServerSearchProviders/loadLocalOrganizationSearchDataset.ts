@@ -2,7 +2,9 @@ import { $getTableName } from '../../database/$getTableName';
 import { $provideSupabaseForServer } from '../../database/$provideSupabaseForServer';
 import type { AgentsServerDatabase } from '../../database/schema';
 import type { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
+import { $provideAgentCollectionForServer } from '../../tools/$provideAgentCollectionForServer';
 import { $provideAgentReferenceResolver } from '../../utils/agentReferenceResolver/$provideAgentReferenceResolver';
+import { createLocalAgentSourceImporter } from '../../utils/createLocalAgentSourceImporter';
 import { getWellKnownAgentUrl } from '../../utils/getWellKnownAgentUrl';
 import { resolveCurrentOrInternalServerOrigin } from '../../utils/resolveCurrentOrInternalServerOrigin';
 import { resolveStoredAgentStates } from '../../utils/resolveStoredAgentState';
@@ -85,12 +87,21 @@ export async function loadLocalOrganizationSearchDataset(options: {
     const folders = (folderResult.data || []) as AgentFolderSearchRow[];
     const localServerUrl = await resolveCurrentOrInternalServerOrigin();
     const agentReferenceResolver = await $provideAgentReferenceResolver();
+    const adamAgentUrl = await getWellKnownAgentUrl('ADAM');
+    const agentSourceImporter = createLocalAgentSourceImporter({
+        collection: await $provideAgentCollectionForServer(),
+        localServerUrls: [localServerUrl],
+        localAgentUrls: [adamAgentUrl],
+        adamAgentUrl,
+        fallbackResolver: agentReferenceResolver,
+    });
     const resolvedAgents = await resolveStoredAgentStates(
         (agentResult.data || []) as Array<Pick<AgentSearchRow, 'id' | 'agentName' | 'permanentId' | 'agentSource' | 'folderId' | 'visibility'>>,
         {
             localServerUrl,
-            adamAgentUrl: await getWellKnownAgentUrl('ADAM'),
+            adamAgentUrl,
             agentReferenceResolver,
+            agentSourceImporter,
         },
     );
     const agents = resolvedAgents.map((agent) => ({

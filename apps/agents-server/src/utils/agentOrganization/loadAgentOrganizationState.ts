@@ -2,7 +2,9 @@ import type { AgentBasicInformation } from '../../../../../src/book-2.0/agent-so
 import { $getTableName } from '../../database/$getTableName';
 import { $provideSupabaseForServer } from '../../database/$provideSupabaseForServer';
 import type { AgentsServerDatabase } from '../../database/schema';
+import { $provideAgentCollectionForServer } from '../../tools/$provideAgentCollectionForServer';
 import { $provideAgentReferenceResolver } from '../agentReferenceResolver/$provideAgentReferenceResolver';
+import { createLocalAgentSourceImporter } from '../createLocalAgentSourceImporter';
 import { getCurrentUser } from '../getCurrentUser';
 import { getWellKnownAgentUrl } from '../getWellKnownAgentUrl';
 import { resolveCurrentOrInternalServerOrigin } from '../resolveCurrentOrInternalServerOrigin';
@@ -187,14 +189,24 @@ async function loadResolvedOrganizationSnapshot(options: {
 
     const localServerUrl = await resolveCurrentOrInternalServerOrigin();
     const agentReferenceResolver = await $provideAgentReferenceResolver();
+    const adamAgentUrl = await getWellKnownAgentUrl('ADAM');
+    const collection = await $provideAgentCollectionForServer();
+    const agentSourceImporter = createLocalAgentSourceImporter({
+        collection,
+        localServerUrls: [localServerUrl],
+        localAgentUrls: [adamAgentUrl],
+        adamAgentUrl,
+        fallbackResolver: agentReferenceResolver,
+    });
     const resolvedAgents = await resolveStoredAgentStates(
         (agentResult.data || []) as Array<
             Pick<AgentRow, 'agentName' | 'agentSource' | 'permanentId' | 'visibility' | 'folderId' | 'sortOrder'>
         >,
         {
             localServerUrl,
-            adamAgentUrl: await getWellKnownAgentUrl('ADAM'),
+            adamAgentUrl,
             agentReferenceResolver,
+            agentSourceImporter,
         },
     );
     const agents = resolvedAgents.map((agent) =>
