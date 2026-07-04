@@ -120,26 +120,26 @@ const DEFAULT_CODER_PROMPT_TEMPLATE_DEFINITIONS = [
         id: 'common',
         relativeFilePath: join(PROMPTS_TEMPLATES_DIRECTORY_PATH, 'common.md'),
         slugPrefix: null,
-        content: buildCoderPromptTemplateContent([
-            '-   @@@',
-            "-   Keep in mind the DRY _(don't repeat yourself)_ principle.",
-            '-   Do a proper analysis of the current functionality before you start implementing.',
-            '-   Add the changes into the [changelog](changelog/_current-preversion.md)',
-        ]),
+        content: spaceTrim(`
+            -   @@@
+            -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+            -   Do a proper analysis of the current functionality before you start implementing.
+            -   Add the changes into the [changelog](changelog/_current-preversion.md)
+        `),
         isDefaultProjectTemplate: true,
     },
     {
         id: 'agents-server',
         relativeFilePath: join(PROMPTS_TEMPLATES_DIRECTORY_PATH, 'agents-server.md'),
         slugPrefix: 'agents-server',
-        content: buildCoderPromptTemplateContent([
-            '-   @@@',
-            "-   Keep in mind the DRY _(don't repeat yourself)_ principle.",
-            '-   Do a proper analysis of the current functionality before you start implementing.',
-            '-   You are working with the [Agents Server](apps/agents-server)',
-            '-   If you need to do the database migration, do it',
-            '-   Add the changes into the [changelog](changelog/_current-preversion.md)',
-        ]),
+        content: spaceTrim(`
+            -   @@@
+            -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+            -   Do a proper analysis of the current functionality before you start implementing.
+            -   You are working with the [Agents Server](apps/agents-server)
+            -   If you need to do the database migration, do it
+            -   Add the changes into the [changelog](changelog/_current-preversion.md)
+        `),
         isDefaultProjectTemplate: false,
     },
 ] as const satisfies ReadonlyArray<CoderPromptTemplateDefinition>;
@@ -286,13 +286,6 @@ function getDefaultCoderPromptTemplateDefinitionOrUndefined(
     template: string,
 ): CoderPromptTemplateDefinition | undefined {
     return DEFAULT_CODER_PROMPT_TEMPLATE_DEFINITIONS.find((definition) => definition.id === template);
-}
-
-/**
- * Builds stable markdown content for one coder prompt template without indentation drift.
- */
-function buildCoderPromptTemplateContent(lines: ReadonlyArray<string>): string {
-    return lines.join('\n');
 }
 
 /**

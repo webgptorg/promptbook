@@ -113,10 +113,10 @@ const teamToolTitles: Record<string_javascript_name, string> = {};
  *
  * @private
  */
-const TEAM_SYSTEM_MESSAGE_GUIDANCE_LINES = [
-    '-   If a teammate is relevant to the request, consult that teammate using the matching tool.',
-    '-   Do not ask the user for information that a listed teammate can provide directly.',
-] as const;
+const TEAM_SYSTEM_MESSAGE_GUIDANCE = spaceTrim(`
+    -   If a teammate is relevant to the request, consult that teammate using the matching tool.
+    -   Do not ask the user for information that a listed teammate can provide directly.
+`);
 /**
  * Constant for remote agents by Url.
  */
@@ -352,7 +352,7 @@ function buildTeamSystemMessageBody(teamEntries: ReadonlyArray<TeamToolEntry>): 
 
     return spaceTrim(
         (block) => `
-            ${block(TEAM_SYSTEM_MESSAGE_GUIDANCE_LINES.join('\n'))}
+            ${block(TEAM_SYSTEM_MESSAGE_GUIDANCE)}
 
             ${block(teammateSections.join('\n\n'))}
         `,
