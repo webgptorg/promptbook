@@ -144,7 +144,7 @@ async function enqueueLocalUserChatJob(job: UserChatJobRecord): Promise<ProcessL
         throw new Error(`User message "${job.userMessageId}" was not found in chat "${job.chatId}".`);
     }
 
-    const threadMessages = createUserChatRunnerThreadMessages({
+    const threadMessages = await createUserChatRunnerThreadMessages({
         messages: chat.messages,
         userMessageId: job.userMessageId,
         resolveInitialAgentMessage: () => parseAgentSource(agentSourceSnapshot.agentSource).initialMessage,

@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.00 an hour by OpenAI Codex `gpt-5.5`
 
 [✨✥] Agents must be able to see images and other attached files
 

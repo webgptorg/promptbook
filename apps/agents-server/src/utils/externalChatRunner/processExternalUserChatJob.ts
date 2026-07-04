@@ -153,7 +153,7 @@ async function enqueueExternalUserChatJob(job: UserChatJobRecord): Promise<Proce
         return { didMutate: false, outcome: 'waiting' };
     }
 
-    const threadMessages = createUserChatRunnerThreadMessages({
+    const threadMessages = await createUserChatRunnerThreadMessages({
         messages: chat.messages,
         userMessageId: job.userMessageId,
         resolveInitialAgentMessage: () => parseAgentSource(agentSourceSnapshot.agentSource).initialMessage,

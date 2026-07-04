@@ -1,4 +1,6 @@
 import type { ChatMessage } from '../../../../../src/_packages/types.index';
+import { appendChatAttachmentContextWithContent } from '../../../../../src/utils/chat/chatAttachments/appendChatAttachmentContextWithContent';
+
 /**
  * Lifecycle states rendered on canonical server-owned chat messages.
  */
@@ -99,11 +101,11 @@ export function resolvePromptThreadBeforeUserMessage(
 /**
  * Creates the complete chat thread mirrored to a runner before it writes the next answer.
  */
-export function createUserChatRunnerThreadMessages(options: {
+export async function createUserChatRunnerThreadMessages(options: {
     messages: ReadonlyArray<ChatMessage>;
     userMessageId: string;
     resolveInitialAgentMessage: () => string | null | undefined;
-}): Array<UserChatRunnerThreadMessage> {
+}): Promise<Array<UserChatRunnerThreadMessage>> {
     const userMessage = options.messages.find((message) => message.id === options.userMessageId);
     if (!userMessage) {
         return [];
@@ -111,19 +113,16 @@ export function createUserChatRunnerThreadMessages(options: {
 
     const previousThreadMessages = resolvePromptThreadBeforeUserMessage(options.messages, options.userMessageId);
 
-    return [
+    const threadMessages = [
         ...createInitialUserChatRunnerThreadMessages({
             isFirstUserTurn: previousThreadMessages.length === 0,
             resolveInitialAgentMessage: options.resolveInitialAgentMessage,
         }),
         ...previousThreadMessages,
         userMessage,
-    ]
-        .filter(isUserChatRunnerThreadMessage)
-        .map((message) => ({
-            sender: message.sender,
-            content: message.content,
-        }));
+    ].filter(isUserChatRunnerThreadMessage);
+
+    return await Promise.all(threadMessages.map(createUserChatRunnerThreadMessage));
 }
 
 /**
@@ -175,4 +174,35 @@ function createInitialUserChatRunnerThreadMessages(options: {
 function isUserChatRunnerThreadMessage(message: ChatMessage): message is ChatMessage & UserChatRunnerThreadMessage {
     const isRunnerSender = message.sender === 'USER' || message.sender === 'AGENT';
     return message.isComplete !== false && isRunnerSender;
+}
+
+/**
+ * Creates one runner-visible message with attachment context inlined into user-authored content.
+ *
+ * @private helper of `createUserChatRunnerThreadMessages`
+ */
+async function createUserChatRunnerThreadMessage(
+    message: ChatMessage & UserChatRunnerThreadMessage,
+): Promise<UserChatRunnerThreadMessage> {
+    return {
+        sender: message.sender,
+        content: await createUserChatRunnerThreadMessageContent(message),
+    };
+}
+
+/**
+ * Adds attachment URLs and best-effort text previews to user messages mirrored into runner `.book` files.
+ *
+ * @private helper of `createUserChatRunnerThreadMessage`
+ */
+async function createUserChatRunnerThreadMessageContent(
+    message: ChatMessage & UserChatRunnerThreadMessage,
+): Promise<string> {
+    if (message.sender !== 'USER' || !message.attachments || message.attachments.length === 0) {
+        return message.content;
+    }
+
+    return await appendChatAttachmentContextWithContent(message.content, message.attachments, {
+        allowLocalhost: true,
+    });
 }
