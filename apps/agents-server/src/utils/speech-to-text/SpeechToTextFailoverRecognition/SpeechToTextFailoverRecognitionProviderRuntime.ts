@@ -172,7 +172,6 @@ export class SpeechToTextFailoverRecognitionProviderRuntime {
             }
         }
 
-        this.options.onForceIdleStop();
         return false;
     }
 

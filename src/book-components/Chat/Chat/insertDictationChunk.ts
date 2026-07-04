@@ -8,11 +8,11 @@ export function insertDictationChunk(params: {
     readonly dictatedText: string;
     readonly selectionStart: number;
     readonly selectionEnd: number;
-    readonly shouldReplaceSelection: boolean;
+    readonly isReplacingSelection: boolean;
 }): { nextValue: string; start: number; caret: number } {
-    const { currentValue, dictatedText, selectionStart, selectionEnd, shouldReplaceSelection } = params;
+    const { currentValue, dictatedText, selectionStart, selectionEnd, isReplacingSelection } = params;
     const replaceStart = selectionStart;
-    const replaceEnd = shouldReplaceSelection ? selectionEnd : selectionStart;
+    const replaceEnd = isReplacingSelection ? selectionEnd : selectionStart;
     const prefix = currentValue.slice(0, replaceStart);
     const suffix = currentValue.slice(replaceEnd);
     const previousCharacter = prefix.slice(-1);

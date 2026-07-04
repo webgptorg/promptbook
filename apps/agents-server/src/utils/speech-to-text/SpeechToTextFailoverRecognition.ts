@@ -302,13 +302,45 @@ export class SpeechToTextFailoverRecognition implements SpeechRecognition {
      * Handles stall watchdog restart/failover escalation.
      */
     private handleStallDetected(): void {
+        void this.handleStallDetectedAsync();
+    }
+
+    /**
+     * Handles stall watchdog restart/failover escalation.
+     */
+    private async handleStallDetectedAsync(): Promise<void> {
+        const providerId = this.providerRuntime.currentProviderId;
+
         if (!this.providerRuntime.hasRestartedCurrentProvider) {
             this.providerRuntime.markCurrentProviderRestarted();
-            void this.providerRuntime.restartCurrentProvider('stall-detected');
+            this.telemetryReporter.emit({
+                type: 'provider-restart',
+                providerId,
+                elapsedMs: Date.now() - this.sessionStartedAtMs,
+                detail: 'stall-detected',
+            });
+
+            const restartSucceeded = await this.providerRuntime.restartCurrentProvider('stall-detected');
+            if (restartSucceeded) {
+                return;
+            }
+        }
+
+        const failoverSucceeded = await this.providerRuntime.failoverToNextProvider('stall-after-restart');
+        if (failoverSucceeded) {
             return;
         }
 
-        void this.providerRuntime.failoverToNextProvider('stall-after-restart');
+        this._state = 'ERROR';
+        this.emit({
+            type: 'ERROR',
+            message: 'Speech recognition stalled while audio was detected. No fallback speech-to-text provider was available.',
+            code: 'unknown',
+            providerId,
+            canRetry: true,
+            canOpenBrowserSettings: false,
+        });
+        this.forceIdleStop();
     }
 
     /**

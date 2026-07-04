@@ -39,6 +39,17 @@ type DictationChunk = {
 };
 
 /**
+ * Stable insertion range captured when the user starts dictation.
+ *
+ * @private function of `useChatInputAreaDictation`
+ */
+type DictationInsertionSelection = {
+    readonly selectionStart: number;
+    readonly selectionEnd: number;
+    readonly isReplacingSelection: boolean;
+};
+
+/**
  * Stable dictation error shape consumed by the correction panel UI.
  *
  * @private function of `useChatInputAreaDictation`
@@ -88,7 +99,7 @@ type UseChatInputAreaDictationFinalResultHandlerProps = {
     readonly applyMessageContent: (nextContent: string) => void;
     readonly dictationSettings: DictationRefinementSettings;
     readonly dictationDictionary: ReturnType<typeof useChatInputAreaDictationPersistence>['dictationDictionary'];
-    readonly replaceSelectionOnNextFinalRef: MutableRefObject<boolean>;
+    readonly dictationInsertionSelectionRef: MutableRefObject<DictationInsertionSelection | null>;
     readonly focusTextareaSelection: (selectionStart: number, selectionEnd: number) => void;
     readonly state: UseChatInputAreaDictationState;
 };
@@ -126,7 +137,7 @@ type UseChatInputAreaDictationVoiceInputControlsProps = {
     readonly resolvedSpeechRecognitionLanguage: string;
     readonly whisperMode: boolean;
     readonly pendingStopFallbackRef: MutableRefObject<ReturnType<typeof setTimeout> | null>;
-    readonly replaceSelectionOnNextFinalRef: MutableRefObject<boolean>;
+    readonly dictationInsertionSelectionRef: MutableRefObject<DictationInsertionSelection | null>;
     readonly clearPendingStopFallback: () => void;
     readonly state: Pick<
         UseChatInputAreaDictationState,
@@ -144,6 +155,7 @@ type UseChatInputAreaDictationCorrectionHandlersProps = {
     readonly dictationLastFinalChunk: string;
     readonly dictationEditableChunk: string;
     readonly dictationDictionary: ReturnType<typeof useChatInputAreaDictationPersistence>['dictationDictionary'];
+    readonly dictationInsertionSelectionRef: MutableRefObject<DictationInsertionSelection | null>;
     readonly messageContentRef: MutableRefObject<string>;
     readonly applyMessageContent: (nextContent: string) => void;
     readonly focusTextareaSelection: (selectionStart: number, selectionEnd: number) => void;
@@ -235,21 +247,96 @@ function clearPendingStopFallbackTimeout(
 }
 
 /**
- * Captures whether the next finalized chunk should replace the current selection.
+ * Captures where the next finalized chunk should be inserted.
  *
  * @private function of `useChatInputAreaDictation`
  */
-function captureSelectionReplacementIntent(
+function captureDictationInsertionSelection(
     textareaRef: MutableRefObject<HTMLTextAreaElement | null>,
-    replaceSelectionOnNextFinalRef: MutableRefObject<boolean>,
+    dictationInsertionSelectionRef: MutableRefObject<DictationInsertionSelection | null>,
 ): void {
     const textarea = textareaRef.current;
     if (!textarea) {
         return;
     }
 
-    const { selectionStart, selectionEnd } = resolveTextareaSelection(textarea, 0);
-    replaceSelectionOnNextFinalRef.current = selectionStart !== selectionEnd;
+    const { selectionStart, selectionEnd } = resolveTextareaSelection(textarea, textarea.value.length);
+    dictationInsertionSelectionRef.current = {
+        selectionStart,
+        selectionEnd,
+        isReplacingSelection: selectionStart !== selectionEnd,
+    };
+}
+
+/**
+ * Resolves the insertion range for one finalized dictation chunk.
+ *
+ * @private function of `useChatInputAreaDictation`
+ */
+function resolveDictationInsertionSelection(
+    textareaElement: HTMLTextAreaElement,
+    messageContentLength: number,
+    dictationInsertionSelection: DictationInsertionSelection | null,
+): DictationInsertionSelection {
+    if (dictationInsertionSelection) {
+        return dictationInsertionSelection;
+    }
+
+    const { selectionStart, selectionEnd } = resolveTextareaSelection(textareaElement, messageContentLength);
+
+    return {
+        selectionStart,
+        selectionEnd,
+        isReplacingSelection: selectionStart !== selectionEnd,
+    };
+}
+
+/**
+ * Removes one tracked dictated chunk from the current composer value.
+ *
+ * @private function of `useChatInputAreaDictation`
+ */
+function removeTrackedDictationChunk(currentValue: string, chunk: DictationChunk): string {
+    const trackedText = currentValue.slice(chunk.start, chunk.start + chunk.finalText.length);
+
+    if (trackedText === chunk.finalText) {
+        return `${currentValue.slice(0, chunk.start)}${currentValue.slice(chunk.start + chunk.finalText.length)}`;
+    }
+
+    return replaceLastOccurrence(currentValue, chunk.finalText, '');
+}
+
+/**
+ * Replaces one tracked dictated chunk inside the current composer value.
+ *
+ * @private function of `useChatInputAreaDictation`
+ */
+function replaceTrackedDictationChunk(currentValue: string, chunk: DictationChunk, correctedChunk: string): string {
+    const trackedText = currentValue.slice(chunk.start, chunk.start + chunk.finalText.length);
+
+    if (trackedText === chunk.finalText) {
+        return `${currentValue.slice(0, chunk.start)}${correctedChunk}${currentValue.slice(
+            chunk.start + chunk.finalText.length,
+        )}`;
+    }
+
+    return replaceLastOccurrence(currentValue, chunk.finalText, correctedChunk);
+}
+
+/**
+ * Stores the next append position after a programmatic dictation edit.
+ *
+ * @private function of `useChatInputAreaDictation`
+ */
+function updateDictationInsertionCaret(
+    dictationInsertionSelectionRef: MutableRefObject<DictationInsertionSelection | null>,
+    caret: number,
+): void {
+    dictationInsertionSelectionRef.current = {
+        selectionStart: caret,
+        selectionEnd: caret,
+        isReplacingSelection: false,
+    };
 }
 
 /**
@@ -376,7 +463,7 @@ function useChatInputAreaDictationFinalResultHandler({
     applyMessageContent,
     dictationSettings,
     dictationDictionary,
-    replaceSelectionOnNextFinalRef,
+    dictationInsertionSelectionRef,
     focusTextareaSelection,
     state,
 }: UseChatInputAreaDictationFinalResultHandlerProps) {
@@ -403,16 +490,20 @@ function useChatInputAreaDictationFinalResultHandler({
                 return;
             }
 
-            const { selectionStart, selectionEnd } = resolveTextareaSelection(textarea, previousMessageContent.length);
+            const { selectionStart, selectionEnd, isReplacingSelection } = resolveDictationInsertionSelection(
+                textarea,
+                previousMessageContent.length,
+                dictationInsertionSelectionRef.current,
+            );
             const insertion = insertDictationChunk({
                 currentValue: previousMessageContent,
                 dictatedText: refinedText,
                 selectionStart,
                 selectionEnd,
-                shouldReplaceSelection: replaceSelectionOnNextFinalRef.current,
+                isReplacingSelection,
             });
 
-            replaceSelectionOnNextFinalRef.current = false;
+            updateDictationInsertionCaret(dictationInsertionSelectionRef, insertion.caret);
             setDictationInterimText('');
             setDictationError(null);
             setDictationUiState('listening');
@@ -433,10 +524,10 @@ function useChatInputAreaDictationFinalResultHandler({
         [
             applyMessageContent,
             dictationDictionary,
+            dictationInsertionSelectionRef,
             dictationSettings,
             focusTextareaSelection,
             messageContentRef,
-            replaceSelectionOnNextFinalRef,
             setDictationChunks,
             setDictationEditableChunk,
             setDictationError,
@@ -491,7 +582,9 @@ function useChatInputAreaDictationSpeechRecognitionEventHandler({
                     return;
                 case 'STOP':
                     clearPendingStopFallback();
-                    setDictationUiState((currentState) => (currentState === 'disabled' ? currentState : 'idle'));
+                    setDictationUiState((currentState) =>
+                        currentState === 'disabled' || currentState === 'error' ? currentState : 'idle',
+                    );
                     setDictationInterimText('');
                     return;
             }
@@ -549,7 +642,7 @@ function useChatInputAreaDictationVoiceInputControls({
     resolvedSpeechRecognitionLanguage,
     whisperMode,
     pendingStopFallbackRef,
-    replaceSelectionOnNextFinalRef,
+    dictationInsertionSelectionRef,
     clearPendingStopFallback,
     state,
 }: UseChatInputAreaDictationVoiceInputControlsProps) {
@@ -560,7 +653,7 @@ function useChatInputAreaDictationVoiceInputControls({
             return;
         }
 
-        captureSelectionReplacementIntent(textareaRef, replaceSelectionOnNextFinalRef);
+        captureDictationInsertionSelection(textareaRef, dictationInsertionSelectionRef);
         setDictationError(null);
         setDictationInterimText('');
         setDictationUiState('listening');
@@ -570,7 +663,7 @@ function useChatInputAreaDictationVoiceInputControls({
             whisperMode,
         });
     }, [
-        replaceSelectionOnNextFinalRef,
+        dictationInsertionSelectionRef,
         resolvedSpeechRecognitionLanguage,
         setDictationError,
         setDictationInterimText,
@@ -635,6 +728,7 @@ function useChatInputAreaDictationCorrectionHandlers({
     dictationLastFinalChunk,
     dictationEditableChunk,
     dictationDictionary,
+    dictationInsertionSelectionRef,
     messageContentRef,
     applyMessageContent,
     focusTextareaSelection,
@@ -651,17 +745,23 @@ function useChatInputAreaDictationCorrectionHandlers({
             return;
         }
 
+        const nextMessageContent = removeTrackedDictationChunk(messageContentRef.current, lastChunk);
+        const nextCaret = Math.min(lastChunk.start, nextMessageContent.length);
+
         setDictationChunks(previousChunks);
-        applyMessageContent(lastChunk.beforeValue);
+        applyMessageContent(nextMessageContent);
 
         const previousFinalChunk = previousChunks[previousChunks.length - 1]?.finalText || '';
         setDictationLastFinalChunk(previousFinalChunk);
         setDictationEditableChunk(previousFinalChunk);
-        focusTextareaSelection(lastChunk.start, lastChunk.start);
+        updateDictationInsertionCaret(dictationInsertionSelectionRef, nextCaret);
+        focusTextareaSelection(nextCaret, nextCaret);
     }, [
         applyMessageContent,
+        dictationInsertionSelectionRef,
         dictationChunks,
         focusTextareaSelection,
+        messageContentRef,
         setDictationChunks,
         setDictationEditableChunk,
         setDictationLastFinalChunk,
@@ -673,21 +773,27 @@ function useChatInputAreaDictationCorrectionHandlers({
             return;
         }
 
-        const nextMessageContent = replaceLastOccurrence(
-            messageContentRef.current,
-            dictationLastFinalChunk,
-            correctedChunk,
-        );
+        const lastChunk = dictationChunks[dictationChunks.length - 1];
+        const nextMessageContent = lastChunk
+            ? replaceTrackedDictationChunk(messageContentRef.current, lastChunk, correctedChunk)
+            : replaceLastOccurrence(messageContentRef.current, dictationLastFinalChunk, correctedChunk);
+        const correctionStart = lastChunk?.start ?? nextMessageContent.length;
+        const correctionCaret = Math.min(correctionStart + correctedChunk.length, nextMessageContent.length);
 
         applyMessageContent(nextMessageContent);
         setDictationLastFinalChunk(correctedChunk);
         setDictationChunks((previousChunks) => replaceLastDictationChunk(previousChunks, correctedChunk));
         setDictationDictionary(learnDictationDictionary(dictationLastFinalChunk, correctedChunk, dictationDictionary));
+        updateDictationInsertionCaret(dictationInsertionSelectionRef, correctionCaret);
+        focusTextareaSelection(correctionCaret, correctionCaret);
     }, [
         applyMessageContent,
         dictationDictionary,
         dictationEditableChunk,
+        dictationChunks,
+        dictationInsertionSelectionRef,
         dictationLastFinalChunk,
+        focusTextareaSelection,
         messageContentRef,
         setDictationChunks,
         setDictationDictionary,
@@ -713,7 +819,7 @@ export function useChatInputAreaDictation({
     applyMessageContent,
 }: UseChatInputAreaDictationProps) {
     const pendingStopFallbackRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const replaceSelectionOnNextFinalRef = useRef(false);
+    const dictationInsertionSelectionRef = useRef<DictationInsertionSelection | null>(null);
     const [dictationUiState, setDictationUiState] = useState<DictationUiState>('idle');
     const [dictationInterimText, setDictationInterimText] = useState('');
     const [dictationError, setDictationError] = useState<DictationError | null>(null);
@@ -753,7 +859,7 @@ export function useChatInputAreaDictation({
         applyMessageContent,
         dictationSettings,
         dictationDictionary,
-        replaceSelectionOnNextFinalRef,
+        dictationInsertionSelectionRef,
         focusTextareaSelection,
         state: dictationState,
     });
@@ -775,7 +881,7 @@ export function useChatInputAreaDictation({
         resolvedSpeechRecognitionLanguage,
         whisperMode: dictationSettings.whisperMode,
         pendingStopFallbackRef,
-        replaceSelectionOnNextFinalRef,
+        dictationInsertionSelectionRef,
         clearPendingStopFallback,
         state: {
             dictationUiState,
@@ -789,6 +895,7 @@ export function useChatInputAreaDictation({
         dictationLastFinalChunk,
         dictationEditableChunk,
         dictationDictionary,
+        dictationInsertionSelectionRef,
         messageContentRef,
         applyMessageContent,
         focusTextareaSelection,

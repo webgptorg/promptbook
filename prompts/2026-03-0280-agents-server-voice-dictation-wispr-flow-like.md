@@ -3,7 +3,7 @@
 
 ---
 
-[ ]
+[x] ~$0.4154 an hour by OpenAI Codex `gpt-5.5`
 
 [✨🖊] Enhance agent chat dictation (speech-to-text), Wispr Flow-like UX
 
@@ -90,4 +90,5 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
 

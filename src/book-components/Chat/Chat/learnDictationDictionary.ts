@@ -30,7 +30,7 @@ export function learnDictationDictionary(
                 continue;
             }
 
-            if (previousWord.toLowerCase() !== correctedWord.toLowerCase()) {
+            if (previousWord !== correctedWord) {
                 nextDictionary[previousWord.toLowerCase()] = correctedWord;
             }
         }
