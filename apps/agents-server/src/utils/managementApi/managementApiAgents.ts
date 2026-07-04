@@ -4,8 +4,10 @@ import { loadLocalOrganizationSearchDataset } from '../../search/createDefaultSe
 import { stringifyJsonForSearch } from '../../search/createDefaultServerSearchProviders/stringifyJsonForSearch';
 import { $getTableName } from '../../database/$getTableName';
 import { $provideSupabaseForServer } from '../../database/$provideSupabaseForServer';
+import { $provideAgentCollectionForServer } from '../../tools/$provideAgentCollectionForServer';
 import type { OwnedAgentRow } from '../agentOwnership';
 import { $provideAgentReferenceResolver } from '../agentReferenceResolver/$provideAgentReferenceResolver';
+import { createLocalAgentSourceImporter } from '../createLocalAgentSourceImporter';
 import { getWellKnownAgentUrl } from '../getWellKnownAgentUrl';
 import { resolveCurrentOrInternalServerOrigin } from '../resolveCurrentOrInternalServerOrigin';
 import { resolveStoredAgentState } from '../resolveStoredAgentState';
@@ -42,10 +44,22 @@ export type ManagementAgentListItem = {
  * @returns Resolved agent state derived from the stored unresolved source.
  */
 export async function resolveOwnedAgentDerivedState(row: OwnedAgentRow) {
+    const localServerUrl = await resolveCurrentOrInternalServerOrigin();
+    const adamAgentUrl = await getWellKnownAgentUrl('ADAM');
+    const agentReferenceResolver = await $provideAgentReferenceResolver();
+    const agentSourceImporter = createLocalAgentSourceImporter({
+        collection: await $provideAgentCollectionForServer(),
+        localServerUrls: [localServerUrl],
+        localAgentUrls: [adamAgentUrl],
+        adamAgentUrl,
+        fallbackResolver: agentReferenceResolver,
+    });
+
     return resolveStoredAgentState(row, {
-        localServerUrl: await resolveCurrentOrInternalServerOrigin(),
-        adamAgentUrl: await getWellKnownAgentUrl('ADAM'),
-        agentReferenceResolver: await $provideAgentReferenceResolver(),
+        localServerUrl,
+        adamAgentUrl,
+        agentReferenceResolver,
+        agentSourceImporter,
     });
 }
 

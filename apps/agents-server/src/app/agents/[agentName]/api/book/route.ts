@@ -8,6 +8,7 @@ import {
 import { loadFederatedAgentImportConfiguration } from '@/src/utils/federatedAgentImportConfiguration';
 import { getCurrentUser } from '@/src/utils/getCurrentUser';
 import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
+import { createLocalAgentSourceImporter } from '@/src/utils/createLocalAgentSourceImporter';
 import { resolveInheritedAgentSource } from '@/src/utils/resolveInheritedAgentSource';
 import { padBook, validateBook } from '@promptbook-local/core';
 import type { string_agent_url } from '@promptbook-local/types';
@@ -96,13 +97,24 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
         const agentSource = resolvedAgentContext.unresolvedAgentSource;
         const agentReferenceResolver = resolvedAgentContext.scopedAgentReferenceResolver;
         const federatedAgentImportConfiguration = await loadFederatedAgentImportConfiguration();
+        const adamAgentUrl = await getWellKnownAgentUrl('ADAM');
+        const localServerUrl = new URL(request.url).origin;
+        const agentSourceImporter = createLocalAgentSourceImporter({
+            collection,
+            localServerUrls: [localServerUrl],
+            localAgentUrls: [adamAgentUrl],
+            adamAgentUrl,
+            fallbackResolver: baseAgentReferenceResolver,
+            federatedAgentImportConfiguration,
+        });
         const effectiveAgentSource = await resolveInheritedAgentSource(agentSource, {
-            adamAgentUrl: await getWellKnownAgentUrl('ADAM'),
+            adamAgentUrl,
             recursionLevel,
             currentAgentUrl: resolvedAgentContext.canonicalAgentUrl,
             inheritancePath: inheritancePath as Array<string_agent_url>,
             agentReferenceResolver,
             federatedAgentImportConfiguration,
+            agentSourceImporter,
         });
         const etag = `W/"${computeHash(effectiveAgentSource)}"`;
 

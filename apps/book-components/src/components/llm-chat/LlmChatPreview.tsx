@@ -2,6 +2,7 @@
 
 import { book, createAgentLlmExecutionTools } from '@promptbook-local/core';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { spaceTrim } from 'spacetrim';
 import { LlmChat } from '../../../../../src/book-components/Chat/LlmChat/LlmChat';
 import { useSendMessageToLlmChat } from '../../../../../src/book-components/Chat/hooks/useSendMessageToLlmChat';
 import type { ChatMessage } from '../../../../../src/book-components/Chat/types/ChatMessage';
@@ -131,7 +132,12 @@ export default function LlmChatPreview() {
                             'pavol-hejny-agent':
                                 '🧙‍♂️ Summoning the spirit of Pavol Hejný... If you are truly him, reveal a quirky productivity insight!',
                         } as Record<string, string>
-                    )[kind] || `Hello from scenario "${kind}"` + '\n\n' + `[Say Hello](?message=Hello!)`,
+                    )[kind] ||
+                    spaceTrim(`
+                        Hello from scenario "${kind}"
+
+                        [Say Hello](?message=Hello!)
+                    `),
                 isComplete: true,
             },
         ];

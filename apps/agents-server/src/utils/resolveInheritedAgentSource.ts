@@ -231,7 +231,41 @@ type ResolveInheritedAgentSourceOptions = ImportAgentOptions & {
      * Retry configuration used for federated imported-agent loading.
      */
     readonly federatedAgentImportConfiguration?: FederatedAgentImportConfiguration;
+    /**
+     * Optional same-instance source importer used before falling back to HTTP import.
+     */
+    readonly agentSourceImporter?: AgentSourceImporter;
 };
+
+/**
+ * Context passed to a custom agent source importer.
+ */
+export type AgentSourceImporterContext = {
+    /**
+     * Commitment that requested the imported source.
+     */
+    readonly commitmentType: 'FROM' | 'IMPORT';
+
+    /**
+     * Import options propagated from the current resolution pass.
+     */
+    readonly importAgentOptions: ImportAgentOptions;
+
+    /**
+     * Retry configuration used by the default HTTP importer.
+     */
+    readonly federatedAgentImportConfiguration: FederatedAgentImportConfiguration;
+};
+
+/**
+ * Imports one agent source before the resolver falls back to the default HTTP importer.
+ *
+ * Return `null` when the importer does not own the given URL.
+ */
+export type AgentSourceImporter = (
+    agentUrl: string_agent_url,
+    context: AgentSourceImporterContext,
+) => Promise<string_book | null>;
 
 /**
  * Parent inheritance state derived before rewriting the source body.
@@ -276,6 +310,11 @@ type AgentImportContext = {
      * Import options propagated to downstream agent loading.
      */
     readonly importAgentOptions: ImportAgentOptions;
+
+    /**
+     * Optional importer for same-instance agent sources.
+     */
+    readonly agentSourceImporter?: AgentSourceImporter;
 
     /**
      * Original resolution options used for cycle detection.
@@ -364,6 +403,7 @@ function createAgentImportContext(options?: ResolveInheritedAgentSourceOptions):
             recursionLevel: options?.recursionLevel || 0,
             inheritancePath: createResolutionLineage(options),
         },
+        agentSourceImporter: options?.agentSourceImporter,
         resolutionOptions: options,
     };
 }
@@ -427,11 +467,20 @@ async function importAgentCorpus(
 ): Promise<string> {
     assertNoResolutionCycle(agentUrl, commitmentType, context.resolutionOptions);
 
-    const importedAgentSource = await importAgentWithFallback(
-        agentUrl,
-        context.importAgentOptions,
-        context.federatedAgentImportConfiguration,
-    );
+    const locallyImportedAgentSource = context.agentSourceImporter
+        ? await context.agentSourceImporter(agentUrl, {
+              commitmentType,
+              importAgentOptions: context.importAgentOptions,
+              federatedAgentImportConfiguration: context.federatedAgentImportConfiguration,
+          })
+        : null;
+    const importedAgentSource =
+        locallyImportedAgentSource ??
+        (await importAgentWithFallback(
+            agentUrl,
+            context.importAgentOptions,
+            context.federatedAgentImportConfiguration,
+        ));
 
     return getAgentSourceCorpus(importedAgentSource as string_book);
 }

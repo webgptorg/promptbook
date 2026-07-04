@@ -212,6 +212,7 @@ async function delayNextMatchingRequest(
     options: DelayNextMatchingRequestOptions,
 ): Promise<DelayedRequestControl> {
     let hasInterceptedTargetRequest = false;
+    let isReleased = false;
     let releaseRequest: (() => void) | null = null;
     let markStarted: (() => void) | null = null;
     let markFinished: (() => void) | null = null;
@@ -239,6 +240,9 @@ async function delayNextMatchingRequest(
 
         await new Promise<void>((resolve) => {
             releaseRequest = resolve;
+            if (isReleased) {
+                resolve();
+            }
         });
 
         try {
@@ -255,6 +259,7 @@ async function delayNextMatchingRequest(
         waitUntilStarted,
         waitUntilFinished,
         release() {
+            isReleased = true;
             releaseRequest?.();
         },
         async dispose() {

@@ -1,13 +1,30 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { AgentBasicInformation, string_book } from '../../../../src/_packages/types.index';
+import type {
+    AgentBasicInformation,
+    string_agent_permanent_id,
+    string_agent_url,
+    string_book,
+} from '../../../../src/_packages/types.index';
+import type { AgentReferenceResolver } from '../../../../src/book-2.0/agent-source/AgentReferenceResolver';
 import type { AgentCollection } from '../../../../src/collection/agent-collection/AgentCollection';
+import { DEFAULT_MAX_RECURSION } from '../../../../src/config';
+import { NotFoundError } from '../../../../src/errors/NotFoundError';
+import { ParseError } from '../../../../src/errors/ParseError';
+import { spaceTrim } from '../../../../src/utils/organization/spaceTrim';
 import { normalizeDomainForMatching } from '../../../../src/utils/validators/url/normalizeDomainForMatching';
 import type { FederatedAgentImportConfiguration } from '../constants/federatedAgentImport';
 import { createServerAgentReferenceResolver } from './agentReferenceResolver/createServerAgentReferenceResolver';
 import { loadFederatedAgentImportConfiguration } from './federatedAgentImportConfiguration';
 import { getFederatedServers } from './getFederatedServers';
 import { getWellKnownAgentUrl } from './getWellKnownAgentUrl';
-import { resolveInheritedAgentSource } from './resolveInheritedAgentSource';
+import {
+    createLocalAgentUrl,
+    normalizeLocalAgentUrlReferences,
+    normalizeLocalServerUrls,
+    resolveLocalAgentRouteReference,
+} from './localAgentRouteReferences';
+import { createMissingImportedAgentFallback } from './createMissingImportedAgentFallback';
+import { resolveInheritedAgentSource, type AgentSourceImporter } from './resolveInheritedAgentSource';
 import { createServerPublicUrl, type ServerRecord } from './serverRegistry';
 
 /**
@@ -112,11 +129,6 @@ type CustomDomainAgentRow = {
 };
 
 /**
- * Minimal agent identity row used to initialize compact-reference resolution.
- */
-type CustomDomainAgentReferenceRow = Pick<CustomDomainAgentRow, 'agentName' | 'permanentId'>;
-
-/**
  * Minimal resolved metadata needed for custom-domain matching.
  */
 type ResolvedCustomDomainMetadata = Pick<AgentBasicInformation, 'links' | 'meta'>;
@@ -127,7 +139,20 @@ type ResolvedCustomDomainMetadata = Pick<AgentBasicInformation, 'links' | 'meta'
  * @param agents - Stored server-owned agents.
  * @returns Lightweight collection compatible with the resolver initialization step.
  */
-function createResolverAgentCollection(agents: ReadonlyArray<CustomDomainAgentReferenceRow>): AgentCollection {
+function createResolverAgentCollection(agents: ReadonlyArray<CustomDomainAgentRow>): AgentCollection {
+    const resolveAgent = (agentNameOrPermanentId: string): CustomDomainAgentRow => {
+        const agent = agents.find(
+            (candidate) =>
+                candidate.agentName === agentNameOrPermanentId || candidate.permanentId === agentNameOrPermanentId,
+        );
+
+        if (!agent) {
+            throw new NotFoundError(`Agent with name or id "${agentNameOrPermanentId}" not found`);
+        }
+
+        return agent;
+    };
+
     return {
         async listAgents() {
             return agents.map(
@@ -146,6 +171,13 @@ function createResolverAgentCollection(agents: ReadonlyArray<CustomDomainAgentRe
                         personaDescription: null,
                     } satisfies AgentBasicInformation),
             );
+        },
+        async getAgentPermanentId(agentNameOrPermanentId: string) {
+            const agent = resolveAgent(agentNameOrPermanentId);
+            return (agent.permanentId || agent.agentName) as string_agent_permanent_id;
+        },
+        async getAgentSource(agentNameOrPermanentId: string) {
+            return resolveAgent(agentNameOrPermanentId).agentSource as string_book;
         },
     } as unknown as AgentCollection;
 }
@@ -179,6 +211,108 @@ function matchesResolvedCustomDomain(
 function createCanonicalLocalAgentUrl(agent: CustomDomainAgentRow, localServerUrl: string): string {
     const canonicalAgentIdentifier = agent.permanentId || agent.agentName;
     return `${localServerUrl.replace(/\/+$/g, '')}/agents/${encodeURIComponent(canonicalAgentIdentifier)}`;
+}
+
+/**
+ * Creates an Edge-safe local importer for custom-domain metadata resolution.
+ *
+ * @param options - Local collection and inheritance dependencies.
+ * @returns Local source importer for route-level agent URLs.
+ */
+function createCustomDomainLocalAgentSourceImporter(options: {
+    readonly collection: Pick<AgentCollection, 'getAgentPermanentId' | 'getAgentSource'>;
+    readonly localServerUrl: string;
+    readonly adamAgentUrl: string_agent_url;
+    readonly agentReferenceResolver: AgentReferenceResolver;
+    readonly federatedAgentImportConfiguration: FederatedAgentImportConfiguration;
+}): AgentSourceImporter {
+    const localServerUrls = normalizeLocalServerUrls([options.localServerUrl]);
+    const localAgentUrlReferences = normalizeLocalAgentUrlReferences([options.adamAgentUrl]);
+    const agentSourceImporter: AgentSourceImporter = async (agentUrl, context) => {
+        const localRouteReference = resolveLocalAgentRouteReference(agentUrl, localServerUrls, localAgentUrlReferences);
+
+        if (!localRouteReference) {
+            return null;
+        }
+
+        const nextRecursionLevel = (context.importAgentOptions.recursionLevel || 0) + 1;
+        assertCustomDomainLocalImportRecursionLevel(nextRecursionLevel, agentUrl);
+
+        let agentPermanentId: string_agent_permanent_id;
+        let unresolvedAgentSource: string_book;
+
+        try {
+            agentPermanentId = await options.collection.getAgentPermanentId(localRouteReference.agentIdentifier);
+            unresolvedAgentSource = await options.collection.getAgentSource(agentPermanentId);
+        } catch (error) {
+            if (error instanceof NotFoundError) {
+                return createMissingImportedAgentFallback(agentUrl, 1, error);
+            }
+
+            throw error;
+        }
+
+        const resolvedAgentName = readAgentSourceTitle(unresolvedAgentSource) || localRouteReference.agentIdentifier;
+        const canonicalAgentUrl = createLocalAgentUrl(localRouteReference.localServerUrl, agentPermanentId);
+
+        return resolveInheritedAgentSource(unresolvedAgentSource, {
+            adamAgentUrl: options.adamAgentUrl,
+            recursionLevel: nextRecursionLevel,
+            inheritancePath: context.importAgentOptions.inheritancePath,
+            currentAgentUrl: canonicalAgentUrl,
+            currentAgentAliases: [
+                canonicalAgentUrl,
+                createLocalAgentUrl(localRouteReference.localServerUrl, localRouteReference.agentIdentifier),
+                createLocalAgentUrl(localRouteReference.localServerUrl, resolvedAgentName),
+            ].filter((value, index, values): value is string_agent_url => values.indexOf(value) === index),
+            agentReferenceResolver: options.agentReferenceResolver,
+            federatedAgentImportConfiguration:
+                options.federatedAgentImportConfiguration || context.federatedAgentImportConfiguration,
+            agentSourceImporter,
+        });
+    };
+
+    return agentSourceImporter;
+}
+
+/**
+ * Reads the first non-empty title line from one book source.
+ *
+ * @param agentSource - Agent book source.
+ * @returns Title or `null` when the source has no title line.
+ */
+function readAgentSourceTitle(agentSource: string_book): string | null {
+    for (const line of agentSource.split(/\r?\n/)) {
+        const title = line.trim();
+
+        if (title) {
+            return title;
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Throws when direct local importing would exceed the configured recursion limit.
+ *
+ * @param recursionLevel - Next recursion level.
+ * @param agentUrl - Local agent URL being imported.
+ */
+function assertCustomDomainLocalImportRecursionLevel(recursionLevel: number, agentUrl: string_agent_url): void {
+    if (recursionLevel <= DEFAULT_MAX_RECURSION) {
+        return;
+    }
+
+    throw new ParseError(
+        spaceTrim(
+            (block) => `
+                Recursion depth ${recursionLevel} exceeds maximum allowed ${DEFAULT_MAX_RECURSION} while importing local custom-domain agent:
+
+                ${block(agentUrl)}
+            `,
+        ),
+    );
 }
 
 /**
@@ -254,6 +388,7 @@ async function resolveCustomDomainMetadataForAgent(
         readonly adamAgentUrl: string;
         readonly agentReferenceResolver: Awaited<ReturnType<typeof createServerAgentReferenceResolver>>;
         readonly federatedAgentImportConfiguration: FederatedAgentImportConfiguration;
+        readonly agentSourceImporter: AgentSourceImporter;
     },
 ): Promise<ResolvedCustomDomainMetadata> {
     const resolvedAgentSource = await resolveInheritedAgentSource(agent.agentSource as string_book, {
@@ -261,6 +396,7 @@ async function resolveCustomDomainMetadataForAgent(
         currentAgentUrl: createCanonicalLocalAgentUrl(agent, options.localServerUrl),
         agentReferenceResolver: options.agentReferenceResolver,
         federatedAgentImportConfiguration: options.federatedAgentImportConfiguration,
+        agentSourceImporter: options.agentSourceImporter,
     });
 
     return parseResolvedCustomDomainMetadata(resolvedAgentSource);
@@ -309,7 +445,7 @@ export async function resolveCustomDomainAgent(
 
             const { data: resolverReferenceAgents, error: resolverReferenceError } = await supabase
                 .from(tableName)
-                .select('agentName, permanentId')
+                .select('agentName, permanentId, agentSource')
                 .is('deletedAt', null);
 
             if (resolverReferenceError || !Array.isArray(resolverReferenceAgents)) {
@@ -317,12 +453,20 @@ export async function resolveCustomDomainAgent(
             }
 
             const localServerUrl = createServerPublicUrl(server.domain).href;
+            const agentCollection = createResolverAgentCollection(
+                resolverReferenceAgents as Array<CustomDomainAgentRow>,
+            );
             const agentReferenceResolver = await createServerAgentReferenceResolver({
-                agentCollection: createResolverAgentCollection(
-                    resolverReferenceAgents as Array<CustomDomainAgentReferenceRow>,
-                ),
+                agentCollection,
                 localServerUrl,
                 federatedServers,
+            });
+            const agentSourceImporter = createCustomDomainLocalAgentSourceImporter({
+                collection: agentCollection,
+                localServerUrl,
+                adamAgentUrl,
+                agentReferenceResolver,
+                federatedAgentImportConfiguration,
             });
 
             let matchedAgent: CustomDomainAgentRow | undefined;
@@ -333,6 +477,7 @@ export async function resolveCustomDomainAgent(
                     adamAgentUrl,
                     agentReferenceResolver,
                     federatedAgentImportConfiguration,
+                    agentSourceImporter,
                 });
 
                 if (matchesResolvedCustomDomain(resolvedMetadata, candidates)) {

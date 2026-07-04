@@ -1,12 +1,10 @@
-import { padBook } from '../../../../src/book-2.0/agent-source/padBook';
-import { validateBook } from '../../../../src/book-2.0/agent-source/string_book';
 import type { string_agent_url } from '../../../../src/types/typeAliases';
 import type { string_book } from '../../../../src/book-2.0/agent-source/string_book';
-import { spaceTrim } from '../../../../src/utils/organization/spaceTrim';
 import {
     DEFAULT_FEDERATED_AGENT_IMPORT_CONFIGURATION,
     type FederatedAgentImportConfiguration,
 } from '../constants/federatedAgentImport';
+import { createMissingImportedAgentFallback } from './createMissingImportedAgentFallback';
 import { retryWithBackoff } from './retryWithBackoff';
 import { importAgent, type ImportAgentOptions } from './importAgent';
 
@@ -39,61 +37,6 @@ const cachedFailedImportedAgentFallbackByKey = new Map<string, FailedImportedAge
  * In-flight import-with-fallback resolutions keyed by canonical agent URL.
  */
 const pendingImportedAgentFallbackByKey = new Map<string, Promise<string_book>>();
-
-/**
- * Collapses one thrown error into a single-line message suitable for `NOTE` commitments.
- *
- * @param agentUrl - Canonical imported agent URL.
- * @param error - Unknown error raised while loading the imported agent.
- * @returns Human-readable single-line failure reason.
- *
- * @private internal helper for imported-agent fallback books
- */
-function normalizeImportFailureMessage(agentUrl: string_agent_url, error: unknown): string {
-    const rawMessage = error instanceof Error ? error.message : String(error);
-    const normalizedMessage = rawMessage.replace(/\s+/g, ' ').trim();
-    const prefix = `Failed to import agent from "${agentUrl}"`;
-
-    if (normalizedMessage.startsWith(prefix)) {
-        const suffix = normalizedMessage.slice(prefix.length).trim();
-        if (suffix.length > 0) {
-            return suffix.replace(/^[-:,\s]+/, '').trim() || 'unknown error';
-        }
-    }
-
-    return normalizedMessage || 'unknown error';
-}
-
-/**
- * Creates the ad-hoc fallback source returned when a federated imported agent stays unavailable.
- *
- * @param agentUrl - Canonical imported agent URL.
- * @param attempts - Total number of attempts that were used.
- * @param error - Final error raised by the failed import attempts.
- * @returns Valid fallback book source.
- *
- * @private internal helper for imported-agent fallback books
- */
-function createMissingImportedAgentFallback(
-    agentUrl: string_agent_url,
-    attempts: number,
-    error: unknown,
-): string_book {
-    const failureMessage = normalizeImportFailureMessage(agentUrl, error);
-
-    return padBook(
-        validateBook(
-            spaceTrim(
-                `
-                    Not found agent
-
-                    NOTE This agent was supposed to be imported from ${agentUrl}, but it can not be loaded after ${attempts} attempts because of ${failureMessage}
-                    CLOSED
-                `,
-            ),
-        ),
-    );
-}
 
 /**
  * Builds the stable cache key used for import-with-fallback memoization.

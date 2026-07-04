@@ -1,3 +1,11 @@
+-   Fixed Agents Server local and external chat-runner queueing so attached files are visible to the answering agent. Runner `.book` files now include the existing chat attachment context for user messages, preserving image/file URLs and best-effort inline text previews for readable attachments before the local or git-backed runner writes the final answer.
+
+-   Fixed Agents Server agent inheritance so local parent agents are loaded directly from the server collection instead of re-entering the authenticated `/api/book` HTTP route. `FROM @Basic` / `FROM {Basic}` now materializes the referenced local parent, agents without `FROM` inherit from the local Adam agent, and `FROM @Void` / `FROM {Void}` still explicitly disables inheritance.
+
+-   Added security PRDs for current Agents Server risks that still need implementation: unauthenticated browser-test automation APIs, missing owner-scoped private agent/folder authorization, and unauthenticated CDN uploads.
+
+-   Leveraged the `spaceTrim` utility for authored multiline strings that were still assembled via array `.join('\n')` or `+ '\n\n' +` concatenation. The `TEAM` commitment's shared teammate-usage guidance, the built-in `ptbk coder` boilerplate template contents, and the `<LlmChatPreview/>` fallback scenario greeting now use `spaceTrim` template literals — producing byte-identical output while improving readability. The now-unused `buildCoderPromptTemplateContent` helper was removed.
+
 -   Fixed `ptbk -v` so it prints the Promptbook version just like `ptbk --version`, while keeping `-v` / `--verbose` available for subcommands that use verbose logging. Added VS Code terminal shortcuts for both version checks.
 
 -   Replaced frozen citation page-preview screenshots in Agents Server chat with live browser previews for sources that cannot be embedded in an iframe. The shared `<CitationIframePreview/>` now opens a Playwright-backed MJPEG stream through `/api/page-preview/stream`, forwards click and wheel input through `/api/page-preview/input`, and keeps the existing iframe path for embeddable URLs. Active live preview sessions are tracked in process memory, closed when the modal stream is aborted, and surfaced as `Browser preview` rows in `/admin/task-manager` without a database migration.

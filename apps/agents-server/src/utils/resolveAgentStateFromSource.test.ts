@@ -1,6 +1,14 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import { book, createAgentModelRequirements } from '../../../../src/_packages/core.index'; // <- [🚾]
-import type { string_book } from '../../../../src/_packages/types.index';
+import type { AgentBasicInformation } from '../../../../src/book-2.0/agent-source/AgentBasicInformation';
+import type { AgentCollection } from '../../../../src/collection/agent-collection/AgentCollection';
+import type {
+    string_agent_permanent_id,
+    string_agent_url,
+    string_book,
+} from '../../../../src/_packages/types.index';
+import { createServerAgentReferenceResolver } from './agentReferenceResolver/createServerAgentReferenceResolver';
+import { createLocalAgentSourceImporter } from './createLocalAgentSourceImporter';
 import { resolveAgentStateFromSource } from './resolveAgentStateFromSource';
 
 /**
@@ -32,12 +40,230 @@ function mockFetchRoutes(routes: Record<string, string>): void {
     }) as typeof fetch;
 }
 
+/**
+ * Source-backed local collection used by inheritance regression tests.
+ *
+ * @param agentRecords - Local agents keyed by name and permanent id.
+ * @returns Minimal agent collection mock.
+ */
+function createMockAgentCollection(
+    agentRecords: ReadonlyArray<{
+        readonly agentName: string;
+        readonly permanentId: string;
+        readonly agentSource: string_book;
+    }>,
+): AgentCollection {
+    const findAgentRecord = (agentNameOrPermanentId: string) => {
+        const agentRecord = agentRecords.find(
+            (candidate) =>
+                candidate.agentName === agentNameOrPermanentId || candidate.permanentId === agentNameOrPermanentId,
+        );
+
+        if (!agentRecord) {
+            throw new Error(`Unexpected agent lookup: ${agentNameOrPermanentId}`);
+        }
+
+        return agentRecord;
+    };
+
+    return {
+        async listAgents() {
+            return agentRecords.map(
+                (agentRecord) =>
+                    ({
+                        agentName: agentRecord.agentName,
+                        permanentId: agentRecord.permanentId,
+                        agentHash: `test-${agentRecord.permanentId}`,
+                        personaDescription: null,
+                        initialMessage: null,
+                        links: [],
+                        capabilities: [],
+                        samples: [],
+                        knowledgeSources: [],
+                        parameters: [],
+                        meta: {},
+                    } satisfies AgentBasicInformation),
+            );
+        },
+        async getAgentPermanentId(agentNameOrPermanentId: string) {
+            return findAgentRecord(agentNameOrPermanentId).permanentId as string_agent_permanent_id;
+        },
+        async getAgentSource(agentNameOrPermanentId: string) {
+            return findAgentRecord(agentNameOrPermanentId).agentSource;
+        },
+    } as unknown as AgentCollection;
+}
+
+/**
+ * Creates a compact-reference resolver and direct local importer for one mock collection.
+ *
+ * @param collection - Local source collection.
+ * @param adamAgentUrl - Adam URL for implicit inheritance.
+ * @returns Shared resolver and importer.
+ */
+async function createLocalInheritanceTestDependencies(collection: AgentCollection, adamAgentUrl: string) {
+    const agentReferenceResolver = await createServerAgentReferenceResolver({
+        agentCollection: collection,
+        localServerUrl: 'https://local.example',
+    });
+    const agentSourceImporter = createLocalAgentSourceImporter({
+        collection,
+        localServerUrls: ['https://local.example'],
+        adamAgentUrl: adamAgentUrl as string_agent_url,
+        fallbackResolver: agentReferenceResolver,
+    });
+
+    return { agentReferenceResolver, agentSourceImporter };
+}
+
 afterEach(() => {
     global.fetch = ORIGINAL_FETCH;
     jest.restoreAllMocks();
 });
 
 describe('resolveAgentStateFromSource', () => {
+    it('inherits from compact local FROM references without HTTP import', async () => {
+        const adamAgentUrl = 'https://local.example/agents/adam';
+        const collection = createMockAgentCollection([
+            {
+                agentName: 'Adam',
+                permanentId: 'adam',
+                agentSource: book`
+                    Adam
+
+                    FROM @Void
+                    RULE Start from Adam.
+                `,
+            },
+            {
+                agentName: 'Basic',
+                permanentId: 'basic-id',
+                agentSource: book`
+                    Basic
+
+                    FROM @Void
+                    RULE Follow the Basic parent rule.
+                `,
+            },
+        ]);
+        const { agentReferenceResolver, agentSourceImporter } = await createLocalInheritanceTestDependencies(
+            collection,
+            adamAgentUrl,
+        );
+        global.fetch = jest.fn(async () => {
+            throw new Error('HTTP import should not be used for local inheritance.');
+        }) as typeof fetch;
+
+        const resolvedAgentState = await resolveAgentStateFromSource(
+            book`
+                Generic chatter
+
+                FROM @Basic
+                GOAL Empathetic and understanding support bot.
+                CLOSED
+            `,
+            {
+                adamAgentUrl: adamAgentUrl as string_agent_url,
+                canonicalAgentUrl: 'https://local.example/agents/generic-chatter' as string_agent_url,
+                agentReferenceResolver,
+                agentSourceImporter,
+            },
+        );
+        const modelRequirements = await createAgentModelRequirements(resolvedAgentState.resolvedAgentSource);
+
+        expect(global.fetch).not.toHaveBeenCalled();
+        expect(resolvedAgentState.resolvedAgentSource).toContain(
+            'NOTE Inherited FROM https://local.example/agents/basic-id',
+        );
+        expect(modelRequirements.systemMessage).toContain('Follow the Basic parent rule.');
+        expect(modelRequirements.systemMessage).toContain('Empathetic and understanding support bot.');
+    });
+
+    it('inherits from local Adam by default without HTTP import', async () => {
+        const adamAgentUrl = 'https://local.example/agents/adam';
+        const collection = createMockAgentCollection([
+            {
+                agentName: 'Adam',
+                permanentId: 'adam',
+                agentSource: book`
+                    Adam
+
+                    FROM @Void
+                    RULE Start from Adam.
+                `,
+            },
+        ]);
+        const { agentReferenceResolver, agentSourceImporter } = await createLocalInheritanceTestDependencies(
+            collection,
+            adamAgentUrl,
+        );
+        global.fetch = jest.fn(async () => {
+            throw new Error('HTTP import should not be used for local Adam inheritance.');
+        }) as typeof fetch;
+
+        const resolvedAgentState = await resolveAgentStateFromSource(
+            book`
+                Generic chatter
+
+                GOAL Empathetic and understanding support bot.
+            `,
+            {
+                adamAgentUrl: adamAgentUrl as string_agent_url,
+                canonicalAgentUrl: 'https://local.example/agents/generic-chatter' as string_agent_url,
+                agentReferenceResolver,
+                agentSourceImporter,
+            },
+        );
+
+        expect(global.fetch).not.toHaveBeenCalled();
+        expect(resolvedAgentState.resolvedAgentSource).toContain(
+            'NOTE Inherited Adam FROM https://local.example/agents/adam',
+        );
+        expect(resolvedAgentState.resolvedAgentSource).toContain('RULE Start from Adam.');
+    });
+
+    it('keeps FROM @Void as explicit no-parent inheritance', async () => {
+        const adamAgentUrl = 'https://local.example/agents/adam';
+        const collection = createMockAgentCollection([
+            {
+                agentName: 'Adam',
+                permanentId: 'adam',
+                agentSource: book`
+                    Adam
+
+                    FROM @Void
+                    RULE Start from Adam.
+                `,
+            },
+        ]);
+        const { agentReferenceResolver, agentSourceImporter } = await createLocalInheritanceTestDependencies(
+            collection,
+            adamAgentUrl,
+        );
+        global.fetch = jest.fn(async () => {
+            throw new Error('HTTP import should not be used for explicit no-parent inheritance.');
+        }) as typeof fetch;
+
+        const resolvedAgentState = await resolveAgentStateFromSource(
+            book`
+                Generic chatter
+
+                FROM @Void
+                GOAL Empathetic and understanding support bot.
+            `,
+            {
+                adamAgentUrl: adamAgentUrl as string_agent_url,
+                canonicalAgentUrl: 'https://local.example/agents/generic-chatter' as string_agent_url,
+                agentReferenceResolver,
+                agentSourceImporter,
+            },
+        );
+
+        expect(global.fetch).not.toHaveBeenCalled();
+        expect(resolvedAgentState.resolvedAgentSource).toContain('FROM @Void');
+        expect(resolvedAgentState.resolvedAgentSource).not.toContain('RULE Start from Adam.');
+    });
+
     it('inherits metadata and initial message from the resolved parent source', async () => {
         const parentAgentUrl = 'https://example.com/agents/parent-metadata';
         mockFetchRoutes({

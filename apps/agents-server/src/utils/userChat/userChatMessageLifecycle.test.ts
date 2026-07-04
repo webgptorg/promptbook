@@ -13,11 +13,23 @@ type UserChatMessage = Parameters<typeof resolvePromptThreadBeforeUserMessage>[0
 
 describe('userChatMessageLifecycle', () => {
     const createdAtIso = '2026-03-11T12:00:00.000Z' as NonNullable<UserChatMessage['createdAt']>;
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
     it('should create queued user and assistant messages with durable metadata', () => {
         const userMessage = createQueuedUserChatUserMessage({
             messageId: 'user-message',
             clientMessageId: 'client-message',
             content: 'Hello',
+            attachments: [
+                {
+                    name: 'diagram.png',
+                    type: 'image/png',
+                    url: 'https://cdn.example.com/diagram.png',
+                },
+            ],
             replyingTo: {
                 threadId: 'chat-1',
                 messageId: 'assistant-0',
@@ -37,6 +49,13 @@ describe('userChatMessageLifecycle', () => {
             sender: 'USER',
             content: 'Hello',
             clientMessageId: 'client-message',
+            attachments: [
+                {
+                    name: 'diagram.png',
+                    type: 'image/png',
+                    url: 'https://cdn.example.com/diagram.png',
+                },
+            ],
             replyingTo: {
                 threadId: 'chat-1',
                 messageId: 'assistant-0',
@@ -96,7 +115,7 @@ describe('userChatMessageLifecycle', () => {
         expect(resolvePromptThreadBeforeUserMessage(messages, 'missing')).toEqual([]);
     });
 
-    it('should include the configured initial agent message before the first runner user turn', () => {
+    it('should include the configured initial agent message before the first runner user turn', async () => {
         const resolveInitialAgentMessage = jest.fn(() => 'Hello, I am ready to help.');
         const messages: Array<UserChatMessage> = [
             {
@@ -116,7 +135,7 @@ describe('userChatMessageLifecycle', () => {
         ];
 
         expect(
-            createUserChatRunnerThreadMessages({
+            await createUserChatRunnerThreadMessages({
                 messages,
                 userMessageId: 'user-1',
                 resolveInitialAgentMessage,
@@ -134,7 +153,7 @@ describe('userChatMessageLifecycle', () => {
         expect(resolveInitialAgentMessage).toHaveBeenCalledTimes(1);
     });
 
-    it('should not repeat the configured initial agent message after the first runner user turn', () => {
+    it('should not repeat the configured initial agent message after the first runner user turn', async () => {
         const resolveInitialAgentMessage = jest.fn(() => 'Hello, I am ready to help.');
         const messages: Array<UserChatMessage> = [
             {
@@ -161,7 +180,7 @@ describe('userChatMessageLifecycle', () => {
         ];
 
         expect(
-            createUserChatRunnerThreadMessages({
+            await createUserChatRunnerThreadMessages({
                 messages,
                 userMessageId: 'user-2',
                 resolveInitialAgentMessage,
@@ -181,6 +200,48 @@ describe('userChatMessageLifecycle', () => {
             },
         ]);
         expect(resolveInitialAgentMessage).not.toHaveBeenCalled();
+    });
+
+    it('should include attachment links and text previews in runner user messages', async () => {
+        const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue(
+            new Response('Quarterly revenue: 124000 USD', {
+                headers: {
+                    'content-type': 'text/plain; charset=utf-8',
+                },
+            }),
+        );
+        const messages: Array<UserChatMessage> = [
+            {
+                id: 'user-1',
+                sender: 'USER',
+                content: 'Please inspect this file.',
+                createdAt: createdAtIso,
+                isComplete: true,
+                attachments: [
+                    {
+                        name: 'report.txt',
+                        type: 'text/plain',
+                        url: 'https://cdn.example.com/report.txt',
+                    },
+                ],
+            },
+        ];
+
+        const runnerMessages = await createUserChatRunnerThreadMessages({
+            messages,
+            userMessageId: 'user-1',
+            resolveInitialAgentMessage: () => null,
+        });
+
+        expect(fetchSpy).toHaveBeenCalledWith('https://cdn.example.com/report.txt', expect.any(Object));
+        expect(runnerMessages).toHaveLength(1);
+        expect(runnerMessages[0]!.content).toContain('Please inspect this file.');
+        expect(runnerMessages[0]!.content).toContain('Attached files:');
+        expect(runnerMessages[0]!.content).toContain(
+            '- report.txt (text/plain): https://cdn.example.com/report.txt',
+        );
+        expect(runnerMessages[0]!.content).toContain('Attached file contents:');
+        expect(runnerMessages[0]!.content).toContain('Quarterly revenue: 124000 USD');
     });
 
     it('should map durable job status values to chat lifecycle labels', () => {
