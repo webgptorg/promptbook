@@ -1,0 +1,74 @@
+/**
+ * Browser-safe environment option returned by the update API.
+ *
+ * @private type of `<UpdateClient/>`
+ */
+export type UpdateEnvironmentOption = {
+    readonly id: string;
+    readonly branch: string;
+    readonly label: string;
+    readonly description: string;
+    readonly isCustom: boolean;
+};
+
+/**
+ * Browser-safe latest update-job snapshot.
+ *
+ * @private type of `<UpdateClient/>`
+ */
+export type UpdateJobSnapshot = {
+    readonly status: 'idle' | 'running' | 'succeeded' | 'failed';
+    readonly pid: number | null;
+    readonly targetBranch: string | null;
+    readonly targetEnvironment: UpdateEnvironmentOption;
+    readonly currentStep: string | null;
+    readonly currentCommitSha: string | null;
+    readonly targetCommitSha: string | null;
+    readonly errorMessage: string | null;
+    readonly startedAt: string | null;
+    readonly finishedAt: string | null;
+    readonly isStale: boolean;
+    readonly logTail: string | null;
+    readonly logFilePath: string | null;
+};
+
+/**
+ * Browser-safe summary of one commit between the deployed checkout and the latest remote commit.
+ *
+ * @private type of `<UpdateClient/>`
+ */
+export type UpdatePendingCommit = {
+    readonly commitSha: string;
+    readonly shortCommitSha: string;
+    readonly subject: string;
+    readonly authoredAt: string | null;
+};
+
+/**
+ * Browser-safe self-update overview returned by the super-admin API.
+ *
+ * @private type of `<UpdateClient/>`
+ */
+export type UpdateOverview = {
+    readonly isAvailable: boolean;
+    readonly unavailableReason: string | null;
+    readonly environments: ReadonlyArray<UpdateEnvironmentOption>;
+    readonly currentEnvironment: UpdateEnvironmentOption;
+    readonly repositoryDirectory: string | null;
+    readonly currentCommitSha: string | null;
+    readonly currentCommitShortSha: string | null;
+    readonly currentCommitMessage: string | null;
+    readonly currentCommitDate: string | null;
+    readonly latestRemoteCommitSha: string | null;
+    readonly latestRemoteCommitShortSha: string | null;
+    readonly latestRemoteCommitDate: string | null;
+    readonly latestRemoteCommitMessage: string | null;
+    readonly commitsBehindCount: number | null;
+    readonly pendingCommits: ReadonlyArray<UpdatePendingCommit>;
+    readonly isUpdateAvailable: boolean;
+    readonly originRepositoryUrl: string;
+    readonly isOriginRepositoryDefault: boolean;
+    readonly defaultOriginRepositoryUrl: string;
+    readonly job: UpdateJobSnapshot;
+    readonly error?: string;
+};
