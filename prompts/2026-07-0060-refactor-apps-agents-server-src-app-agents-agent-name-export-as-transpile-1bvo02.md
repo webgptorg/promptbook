@@ -1,4 +1,4 @@
-[ ]
+[x] $6.41 an hour by Claude Code `claude-opus-4-8`
 
 [🧹🔯] Refactor [`AgentCodePageClient.tsx` file](apps/agents-server/src/app/agents/[agentName]/export-as-transpiled-code/AgentCodePageClient.tsx)
 
