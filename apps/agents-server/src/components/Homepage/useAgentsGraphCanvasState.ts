@@ -197,12 +197,13 @@ export function useAgentsGraphCanvasState(props: UseAgentsGraphCanvasStateProps)
         () =>
             buildGraphLayoutNodes({
                 serverGroups,
+                links: graphData.links,
                 orderIndexByNodeId: graphData.orderIndexByNodeId,
                 publicUrl: normalizedPublicUrl,
                 storedPositions: storedPositionsRef.current,
                 onNodeOpen: onOpenGraphNode,
             }),
-        [serverGroups, graphData.orderIndexByNodeId, normalizedPublicUrl, onOpenGraphNode],
+        [serverGroups, graphData.links, graphData.orderIndexByNodeId, normalizedPublicUrl, onOpenGraphNode],
     );
 
     const [nodes, setNodes, onNodesChange] = useNodesState(layoutNodes);

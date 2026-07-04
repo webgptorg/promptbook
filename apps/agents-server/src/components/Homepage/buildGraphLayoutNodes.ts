@@ -5,8 +5,13 @@ import { darken } from '../../../../../src/utils/color/operators/darken';
 import { textColor } from '../../../../../src/utils/color/operators/furthest';
 import { lighten } from '../../../../../src/utils/color/operators/lighten';
 import type { Node } from 'reactflow';
-import type { AgentWithVisibility, GraphNode, ServerGroup } from './buildGraphData';
-import { normalizeServerUrl } from './buildGraphData';
+import type { AgentWithVisibility, GraphLink, GraphNode, ServerGroup } from './buildGraphDataTypes';
+import {
+    buildFreeGraphBoxLayout,
+    type FreeGraphBoxLayoutLink,
+    type FreeGraphBoxLayoutPosition,
+} from './buildFreeGraphBoxLayout';
+import { normalizeServerUrl } from './normalizeServerUrl';
 
 /**
  * Width of each rendered agent node.
@@ -44,27 +49,6 @@ const FOLDER_PADDING_X = 24;
 const FOLDER_PADDING_Y = 20;
 
 /**
- * Horizontal gap between folders.
- *
- * @private function of AgentsGraph
- */
-const FOLDER_GAP_X = 40;
-
-/**
- * Vertical gap between folders.
- *
- * @private function of AgentsGraph
- */
-const FOLDER_GAP_Y = 32;
-
-/**
- * Maximum columns used in an agent folder grid.
- *
- * @private function of AgentsGraph
- */
-const AGENT_MAX_COLUMNS = 4;
-
-/**
  * Horizontal spacing between agent nodes.
  *
  * @private function of AgentsGraph
@@ -100,11 +84,81 @@ const SERVER_PADDING_X = 32;
 const SERVER_PADDING_Y = 24;
 
 /**
- * Gap between server groups.
+ * Horizontal gap between server groups.
  *
  * @private function of AgentsGraph
  */
-const SERVER_GAP = 64;
+const SERVER_GAP_X = 96;
+
+/**
+ * Vertical gap between server groups.
+ *
+ * @private function of AgentsGraph
+ */
+const SERVER_GAP_Y = 80;
+
+/**
+ * Preferred distance between linked agent nodes during layout relaxation.
+ *
+ * @private function of AgentsGraph
+ */
+const AGENT_RELATIONSHIP_DISTANCE = 96;
+
+/**
+ * Strength used to pull linked agent nodes together.
+ *
+ * @private function of AgentsGraph
+ */
+const AGENT_RELATIONSHIP_STRENGTH = 0.045;
+
+/**
+ * Strength used to keep unrelated agent nodes near their seeded placement.
+ *
+ * @private function of AgentsGraph
+ */
+const AGENT_CENTER_PULL_STRENGTH = 0.014;
+
+/**
+ * Preferred distance between linked folder groups during layout relaxation.
+ *
+ * @private function of AgentsGraph
+ */
+const FOLDER_RELATIONSHIP_DISTANCE = 180;
+
+/**
+ * Strength used to pull linked folder groups together.
+ *
+ * @private function of AgentsGraph
+ */
+const FOLDER_RELATIONSHIP_STRENGTH = 0.035;
+
+/**
+ * Strength used to keep unrelated folder groups near their seeded placement.
+ *
+ * @private function of AgentsGraph
+ */
+const FOLDER_CENTER_PULL_STRENGTH = 0.012;
+
+/**
+ * Preferred distance between linked server groups during layout relaxation.
+ *
+ * @private function of AgentsGraph
+ */
+const SERVER_RELATIONSHIP_DISTANCE = 260;
+
+/**
+ * Strength used to pull linked server groups together.
+ *
+ * @private function of AgentsGraph
+ */
+const SERVER_RELATIONSHIP_STRENGTH = 0.028;
+
+/**
+ * Strength used to keep remote server groups around the current server.
+ *
+ * @private function of AgentsGraph
+ */
+const SERVER_CENTER_PULL_STRENGTH = 0.01;
 
 /**
  * Storage key prefix for persisted node positions.
@@ -132,15 +186,11 @@ type NodeVisualStyle = {
  */
 type FolderLayout = {
     folder: ServerGroup['folders'][number];
+    nodeId: string;
     width: number;
     height: number;
-    agentColumns: number;
-    contentWidth: number;
-    contentHeight: number;
-    column?: number;
-    row?: number;
-    x?: number;
-    y?: number;
+    agentPositionsById: Map<string, FreeGraphBoxLayoutPosition>;
+    orderIndex: number;
 };
 
 /**
@@ -150,9 +200,33 @@ type FolderLayout = {
  */
 type ServerLayout = {
     serverGroup: ServerGroup;
+    nodeId: string;
     folderLayouts: FolderLayout[];
+    folderPositionsById: Map<string, FreeGraphBoxLayoutPosition>;
     width: number;
     height: number;
+    orderIndex: number;
+};
+
+/**
+ * Hierarchical placement metadata for one agent node.
+ *
+ * @private function of AgentsGraph
+ */
+type AgentLayoutLocation = {
+    serverNodeId: string;
+    folderNodeId: string;
+};
+
+/**
+ * Weighted layout link accumulator.
+ *
+ * @private function of AgentsGraph
+ */
+type AggregatedLayoutLink = {
+    sourceId: string;
+    targetId: string;
+    weight: number;
 };
 
 /**
@@ -299,139 +373,326 @@ export const saveStoredPositions = (storageKey: string, positions: StoredPositio
 };
 
 /**
- * Build nodes for servers, folders, and agents using a hierarchical grid layout that keeps the current server centered.
+ * Build the stable React Flow server group node id.
+ */
+const buildServerNodeId = (serverUrl: string): string => `server:${serverUrl}`;
+
+/**
+ * Build the stable React Flow folder group node id.
+ */
+const buildFolderNodeId = (serverUrl: string, folderId: number | null): string =>
+    `folder:${serverUrl}:${folderId ?? 'root'}`;
+
+/**
+ * Add or increment an undirected layout link.
+ */
+function addAggregatedLayoutLink(
+    linksByKey: Map<string, AggregatedLayoutLink>,
+    sourceId: string,
+    targetId: string,
+): void {
+    if (sourceId === targetId) {
+        return;
+    }
+
+    const isSourceFirst = sourceId.localeCompare(targetId) <= 0;
+    const normalizedSourceId = isSourceFirst ? sourceId : targetId;
+    const normalizedTargetId = isSourceFirst ? targetId : sourceId;
+    const key = `${normalizedSourceId}->${normalizedTargetId}`;
+    const existingLink = linksByKey.get(key);
+
+    if (existingLink) {
+        existingLink.weight += 1;
+        return;
+    }
+
+    linksByKey.set(key, {
+        sourceId: normalizedSourceId,
+        targetId: normalizedTargetId,
+        weight: 1,
+    });
+}
+
+/**
+ * Convert aggregated layout links to the free-layout helper shape.
+ */
+function finalizeAggregatedLayoutLinks(linksByKey: ReadonlyMap<string, AggregatedLayoutLink>): FreeGraphBoxLayoutLink[] {
+    return Array.from(linksByKey.values()).map((link) => ({
+        sourceId: link.sourceId,
+        targetId: link.targetId,
+        weight: link.weight,
+    }));
+}
+
+/**
+ * Build server and folder lookup metadata for every agent node.
+ */
+function buildAgentLayoutLocationById(serverGroups: ReadonlyArray<ServerGroup>): Map<string, AgentLayoutLocation> {
+    const agentLayoutLocationById = new Map<string, AgentLayoutLocation>();
+
+    serverGroups.forEach((serverGroup) => {
+        const serverNodeId = buildServerNodeId(serverGroup.serverUrl);
+
+        serverGroup.folders.forEach((folder) => {
+            const folderNodeId = buildFolderNodeId(serverGroup.serverUrl, folder.id);
+
+            folder.agents.forEach((agent) => {
+                agentLayoutLocationById.set(agent.id, {
+                    serverNodeId,
+                    folderNodeId,
+                });
+            });
+        });
+    });
+
+    return agentLayoutLocationById;
+}
+
+/**
+ * Build weighted layout links between agents inside one folder.
+ */
+function buildAgentLayoutLinks(
+    folder: ServerGroup['folders'][number],
+    graphLinks: ReadonlyArray<GraphLink>,
+): FreeGraphBoxLayoutLink[] {
+    const agentIds = new Set(folder.agents.map((agent) => agent.id));
+    const linksByKey = new Map<string, AggregatedLayoutLink>();
+
+    graphLinks.forEach((link) => {
+        if (!agentIds.has(link.source) || !agentIds.has(link.target)) {
+            return;
+        }
+
+        addAggregatedLayoutLink(linksByKey, link.source, link.target);
+    });
+
+    return finalizeAggregatedLayoutLinks(linksByKey);
+}
+
+/**
+ * Build weighted layout links between folders inside one server.
+ */
+function buildFolderLayoutLinks(
+    serverNodeId: string,
+    graphLinks: ReadonlyArray<GraphLink>,
+    agentLayoutLocationById: ReadonlyMap<string, AgentLayoutLocation>,
+): FreeGraphBoxLayoutLink[] {
+    const linksByKey = new Map<string, AggregatedLayoutLink>();
+
+    graphLinks.forEach((link) => {
+        const sourceLocation = agentLayoutLocationById.get(link.source);
+        const targetLocation = agentLayoutLocationById.get(link.target);
+
+        if (!sourceLocation || !targetLocation) {
+            return;
+        }
+
+        if (sourceLocation.serverNodeId !== serverNodeId || targetLocation.serverNodeId !== serverNodeId) {
+            return;
+        }
+
+        addAggregatedLayoutLink(linksByKey, sourceLocation.folderNodeId, targetLocation.folderNodeId);
+    });
+
+    return finalizeAggregatedLayoutLinks(linksByKey);
+}
+
+/**
+ * Build weighted layout links between server groups.
+ */
+function buildServerLayoutLinks(
+    graphLinks: ReadonlyArray<GraphLink>,
+    agentLayoutLocationById: ReadonlyMap<string, AgentLayoutLocation>,
+): FreeGraphBoxLayoutLink[] {
+    const linksByKey = new Map<string, AggregatedLayoutLink>();
+
+    graphLinks.forEach((link) => {
+        const sourceLocation = agentLayoutLocationById.get(link.source);
+        const targetLocation = agentLayoutLocationById.get(link.target);
+
+        if (!sourceLocation || !targetLocation) {
+            return;
+        }
+
+        addAggregatedLayoutLink(linksByKey, sourceLocation.serverNodeId, targetLocation.serverNodeId);
+    });
+
+    return finalizeAggregatedLayoutLinks(linksByKey);
+}
+
+/**
+ * Build the free-layout dimensions and node positions for one folder.
+ */
+function buildFolderLayout(
+    serverUrl: string,
+    folder: ServerGroup['folders'][number],
+    orderIndex: number,
+    graphLinks: ReadonlyArray<GraphLink>,
+): FolderLayout {
+    const nodeId = buildFolderNodeId(serverUrl, folder.id);
+    const agentLayout = buildFreeGraphBoxLayout(
+        folder.agents.map((agent, agentIndex) => ({
+            id: agent.id,
+            width: NODE_WIDTH,
+            height: NODE_HEIGHT,
+            orderIndex: agentIndex,
+        })),
+        buildAgentLayoutLinks(folder, graphLinks),
+        {
+            paddingX: FOLDER_PADDING_X,
+            paddingY: FOLDER_PADDING_Y,
+            gapX: AGENT_HORIZONTAL_GAP,
+            gapY: AGENT_VERTICAL_GAP,
+            relationshipDistance: AGENT_RELATIONSHIP_DISTANCE,
+            relationshipStrength: AGENT_RELATIONSHIP_STRENGTH,
+            centerPullStrength: AGENT_CENTER_PULL_STRENGTH,
+        },
+    );
+
+    return {
+        folder,
+        nodeId,
+        width: Math.max(agentLayout.width, NODE_WIDTH + FOLDER_PADDING_X * 2),
+        height: Math.max(agentLayout.height + FOLDER_HEADER_HEIGHT, NODE_HEIGHT + FOLDER_PADDING_Y * 2 + FOLDER_HEADER_HEIGHT),
+        agentPositionsById: agentLayout.positionsById,
+        orderIndex,
+    };
+}
+
+/**
+ * Build the free-layout dimensions and folder positions for one server.
+ */
+function buildServerLayout(
+    serverGroup: ServerGroup,
+    orderIndex: number,
+    graphLinks: ReadonlyArray<GraphLink>,
+    agentLayoutLocationById: ReadonlyMap<string, AgentLayoutLocation>,
+): ServerLayout {
+    const nodeId = buildServerNodeId(serverGroup.serverUrl);
+    const folderLayouts = serverGroup.folders.map((folder, folderIndex) =>
+        buildFolderLayout(serverGroup.serverUrl, folder, folderIndex, graphLinks),
+    );
+    const rootFolder = folderLayouts.find((folderLayout) => folderLayout.folder.id === null);
+    const folderLayout = buildFreeGraphBoxLayout(
+        folderLayouts.map((layout) => ({
+            id: layout.nodeId,
+            width: layout.width,
+            height: layout.height,
+            orderIndex: layout.orderIndex,
+        })),
+        buildFolderLayoutLinks(nodeId, graphLinks, agentLayoutLocationById),
+        {
+            paddingX: SERVER_PADDING_X,
+            paddingY: SERVER_PADDING_Y,
+            gapX: FOLDER_PADDING_X * 2,
+            gapY: FOLDER_PADDING_Y * 2,
+            relationshipDistance: FOLDER_RELATIONSHIP_DISTANCE,
+            relationshipStrength: FOLDER_RELATIONSHIP_STRENGTH,
+            centerPullStrength: FOLDER_CENTER_PULL_STRENGTH,
+            centerItemId: rootFolder?.nodeId,
+        },
+    );
+
+    return {
+        serverGroup,
+        nodeId,
+        folderLayouts,
+        folderPositionsById: folderLayout.positionsById,
+        width: Math.max(folderLayout.width, NODE_WIDTH + SERVER_PADDING_X * 2),
+        height: Math.max(folderLayout.height + SERVER_HEADER_HEIGHT, NODE_HEIGHT + SERVER_PADDING_Y * 2 + SERVER_HEADER_HEIGHT),
+        orderIndex,
+    };
+}
+
+/**
+ * Build free-layout server group positions while keeping the current server centered.
+ */
+function buildServerPositionsById(
+    serverLayouts: ReadonlyArray<ServerLayout>,
+    graphLinks: ReadonlyArray<GraphLink>,
+    agentLayoutLocationById: ReadonlyMap<string, AgentLayoutLocation>,
+    publicUrl: string,
+): Map<string, FreeGraphBoxLayoutPosition> {
+    const normalizedPublicUrl = normalizeServerUrl(publicUrl);
+    const currentServerNodeId = buildServerNodeId(normalizedPublicUrl);
+    const centerServerLayout =
+        serverLayouts.find((layout) => layout.nodeId === currentServerNodeId) || serverLayouts[0] || null;
+    const serverLayout = buildFreeGraphBoxLayout(
+        serverLayouts.map((layout) => ({
+            id: layout.nodeId,
+            width: layout.width,
+            height: layout.height,
+            orderIndex: layout.orderIndex,
+        })),
+        buildServerLayoutLinks(graphLinks, agentLayoutLocationById),
+        {
+            paddingX: 0,
+            paddingY: 0,
+            gapX: SERVER_GAP_X,
+            gapY: SERVER_GAP_Y,
+            relationshipDistance: SERVER_RELATIONSHIP_DISTANCE,
+            relationshipStrength: SERVER_RELATIONSHIP_STRENGTH,
+            centerPullStrength: SERVER_CENTER_PULL_STRENGTH,
+            centerItemId: centerServerLayout?.nodeId,
+        },
+    );
+
+    if (!centerServerLayout) {
+        return serverLayout.positionsById;
+    }
+
+    const centerServerPosition = serverLayout.positionsById.get(centerServerLayout.nodeId);
+    if (!centerServerPosition) {
+        return serverLayout.positionsById;
+    }
+
+    const centerX = centerServerPosition.x + centerServerLayout.width / 2;
+    const centerY = centerServerPosition.y + centerServerLayout.height / 2;
+    const centeredPositionsById = new Map<string, FreeGraphBoxLayoutPosition>();
+
+    serverLayout.positionsById.forEach((position, serverNodeId) => {
+        centeredPositionsById.set(serverNodeId, {
+            x: position.x - centerX,
+            y: position.y - centerY,
+        });
+    });
+
+    return centeredPositionsById;
+}
+
+/**
+ * Build nodes for servers, folders, and agents using a hierarchical free layout that keeps the current server centered.
  *
  * @private function of AgentsGraph
  */
 export const buildGraphLayoutNodes = (params: {
     serverGroups: ServerGroup[];
+    links: GraphLink[];
     orderIndexByNodeId: Map<string, number>;
     publicUrl: string;
     storedPositions: StoredPositions;
     onNodeOpen: (node: GraphNode) => void;
 }): Node[] => {
-    const { serverGroups, orderIndexByNodeId, publicUrl, storedPositions, onNodeOpen } = params;
+    const { serverGroups, links, orderIndexByNodeId, publicUrl, storedPositions, onNodeOpen } = params;
     const nodes: Node[] = [];
 
     if (serverGroups.length === 0) {
         return nodes;
     }
 
-    const serverLayouts = serverGroups.map((serverGroup) => {
-        const folderLayouts: FolderLayout[] = serverGroup.folders.map((folder): FolderLayout => {
-            const agentCount = folder.agents.length;
-            const agentColumns = Math.max(1, Math.min(AGENT_MAX_COLUMNS, Math.ceil(Math.sqrt(agentCount || 1))));
-            const rows = Math.max(1, Math.ceil(agentCount / agentColumns));
-            const contentWidth = agentColumns * NODE_WIDTH + Math.max(0, agentColumns - 1) * AGENT_HORIZONTAL_GAP;
-            const contentHeight = rows * NODE_HEIGHT + Math.max(0, rows - 1) * AGENT_VERTICAL_GAP;
-            const width = Math.max(contentWidth + FOLDER_PADDING_X * 2, NODE_WIDTH + FOLDER_PADDING_X * 2);
-            const height = Math.max(
-                contentHeight + FOLDER_PADDING_Y * 2 + FOLDER_HEADER_HEIGHT,
-                NODE_HEIGHT + FOLDER_PADDING_Y * 2 + FOLDER_HEADER_HEIGHT,
-            );
+    const agentLayoutLocationById = buildAgentLayoutLocationById(serverGroups);
+    const serverLayouts = serverGroups.map((serverGroup, serverIndex) =>
+        buildServerLayout(serverGroup, serverIndex, links, agentLayoutLocationById),
+    );
+    const serverPositionsById = buildServerPositionsById(serverLayouts, links, agentLayoutLocationById, publicUrl);
 
-            return {
-                folder,
-                width,
-                height,
-                agentColumns,
-                contentWidth,
-                contentHeight,
-            };
-        });
-
-        const folderColumnCount = Math.max(1, Math.ceil(Math.sqrt(folderLayouts.length)));
-        const folderRowCount = Math.max(1, Math.ceil(folderLayouts.length / folderColumnCount));
-        const columnWidths = Array(folderColumnCount).fill(0);
-        const rowHeights = Array(folderRowCount).fill(0);
-
-        folderLayouts.forEach((layout, index) => {
-            const column = index % folderColumnCount;
-            const row = Math.floor(index / folderColumnCount);
-            layout.column = column;
-            layout.row = row;
-            columnWidths[column] = Math.max(columnWidths[column], layout.width);
-            rowHeights[row] = Math.max(rowHeights[row], layout.height);
-        });
-
-        const columnOffsets: number[] = [];
-        for (let columnIndex = 0; columnIndex < folderColumnCount; columnIndex += 1) {
-            columnOffsets[columnIndex] =
-                columnIndex === 0
-                    ? SERVER_PADDING_X
-                    : columnOffsets[columnIndex - 1] + columnWidths[columnIndex - 1] + FOLDER_GAP_X;
-        }
-
-        const rowOffsets: number[] = [];
-        for (let rowIndex = 0; rowIndex < folderRowCount; rowIndex += 1) {
-            rowOffsets[rowIndex] =
-                rowIndex === 0
-                    ? SERVER_HEADER_HEIGHT + SERVER_PADDING_Y
-                    : rowOffsets[rowIndex - 1] + rowHeights[rowIndex - 1] + FOLDER_GAP_Y;
-        }
-
-        folderLayouts.forEach((layout) => {
-            layout.x = columnOffsets[layout.column ?? 0];
-            layout.y = rowOffsets[layout.row ?? 0];
-        });
-
-        const serverWidth =
-            columnWidths.reduce((sum, width) => sum + width, 0) +
-            Math.max(folderColumnCount - 1, 0) * FOLDER_GAP_X +
-            SERVER_PADDING_X * 2;
-        const serverHeight =
-            SERVER_HEADER_HEIGHT +
-            SERVER_PADDING_Y * 2 +
-            rowHeights.reduce((sum, height) => sum + height, 0) +
-            Math.max(folderRowCount - 1, 0) * FOLDER_GAP_Y;
-
-        return { serverGroup, folderLayouts, width: serverWidth, height: serverHeight } satisfies ServerLayout;
-    });
-
-    const maxServerWidth = Math.max(NODE_WIDTH, ...serverLayouts.map((layout) => layout.width));
-    const maxServerHeight = Math.max(NODE_HEIGHT, ...serverLayouts.map((layout) => layout.height));
-    const serverColumnCount = Math.max(1, Math.ceil(Math.sqrt(serverLayouts.length)));
-    const serverRowCount = Math.ceil(serverLayouts.length / serverColumnCount);
-    const centerColumn = (serverColumnCount - 1) / 2;
-    const centerRow = (serverRowCount - 1) / 2;
-    const serverSpacingX = maxServerWidth + SERVER_GAP;
-    const serverSpacingY = maxServerHeight + SERVER_GAP;
-
-    const serverCoords: { row: number; column: number }[] = [];
-    for (let row = 0; row < serverRowCount; row += 1) {
-        for (let column = 0; column < serverColumnCount; column += 1) {
-            serverCoords.push({ row, column });
-        }
-    }
-
-    serverCoords.sort((left, right) => {
-        const leftDistance = Math.abs(left.row - centerRow) + Math.abs(left.column - centerColumn);
-        const rightDistance = Math.abs(right.row - centerRow) + Math.abs(right.column - centerColumn);
-        if (leftDistance !== rightDistance) {
-            return leftDistance - rightDistance;
-        }
-        if (left.row !== right.row) {
-            return left.row - right.row;
-        }
-        return left.column - right.column;
-    });
-
-    const centerOffsetX = centerColumn * serverSpacingX;
-    const centerOffsetY = centerRow * serverSpacingY;
-
-    serverLayouts.forEach((layout, index) => {
-        const coord = serverCoords[index];
-        if (!coord) {
-            return;
-        }
-        const serverX = coord.column * serverSpacingX - centerOffsetX;
-        const serverY = coord.row * serverSpacingY - centerOffsetY;
-        const serverNodeId = `server:${layout.serverGroup.serverUrl}`;
+    serverLayouts.forEach((layout) => {
+        const serverPosition = serverPositionsById.get(layout.nodeId) ?? { x: 0, y: 0 };
 
         nodes.push({
-            id: serverNodeId,
+            id: layout.nodeId,
             type: 'serverGroup',
-            position: { x: serverX, y: serverY },
+            position: serverPosition,
             data: {
                 label: layout.serverGroup.label,
                 agentCount: layout.serverGroup.folders.reduce((sum, folder) => sum + folder.agents.length, 0),
@@ -447,15 +708,19 @@ export const buildGraphLayoutNodes = (params: {
         });
 
         layout.folderLayouts.forEach((folderLayout) => {
-            const folderNodeId = `folder:${layout.serverGroup.serverUrl}:${folderLayout.folder.id ?? 'root'}`;
+            const folderPosition = layout.folderPositionsById.get(folderLayout.nodeId) ?? {
+                x: SERVER_PADDING_X,
+                y: SERVER_PADDING_Y,
+            };
+
             nodes.push({
-                id: folderNodeId,
+                id: folderLayout.nodeId,
                 type: 'folderGroup',
-                parentId: serverNodeId,
+                parentId: layout.nodeId,
                 extent: 'parent',
                 position: {
-                    x: folderLayout.x ?? SERVER_PADDING_X,
-                    y: folderLayout.y ?? SERVER_HEADER_HEIGHT + SERVER_PADDING_Y,
+                    x: folderPosition.x,
+                    y: SERVER_HEADER_HEIGHT + folderPosition.y,
                 },
                 data: {
                     label: folderLayout.folder.label,
@@ -470,7 +735,7 @@ export const buildGraphLayoutNodes = (params: {
                 draggable: false,
             });
 
-            folderLayout.folder.agents.forEach((agent, agentIndex) => {
+            folderLayout.folder.agents.forEach((agent) => {
                 const { imageUrl, placeholderUrl } = getAgentImageUrls(agent.agent, publicUrl);
                 const style = buildAgentChipStyle(agent.agent);
                 const orderIndex = orderIndexByNodeId.get(agent.id) ?? null;
@@ -479,27 +744,20 @@ export const buildGraphLayoutNodes = (params: {
                     tooltipParts.push(`Folder: ${folderLayout.folder.label}`);
                 }
                 const tooltip = tooltipParts.filter(Boolean).join('\n');
-
-                const column = agentIndex % folderLayout.agentColumns;
-                const row = Math.floor(agentIndex / folderLayout.agentColumns);
-                const horizontalAvailable = folderLayout.width - FOLDER_PADDING_X * 2;
-                const horizontalOffset = Math.max(0, (horizontalAvailable - folderLayout.contentWidth) / 2);
-                const agentX = FOLDER_PADDING_X + horizontalOffset + column * (NODE_WIDTH + AGENT_HORIZONTAL_GAP);
-                const verticalAvailable = folderLayout.height - FOLDER_PADDING_Y * 2 - FOLDER_HEADER_HEIGHT;
-                const verticalOffset = Math.max(0, (verticalAvailable - folderLayout.contentHeight) / 2);
-                const agentY =
-                    FOLDER_HEADER_HEIGHT + FOLDER_PADDING_Y + verticalOffset + row * (NODE_HEIGHT + AGENT_VERTICAL_GAP);
-
+                const agentPosition = folderLayout.agentPositionsById.get(agent.id) ?? {
+                    x: FOLDER_PADDING_X,
+                    y: FOLDER_PADDING_Y,
+                };
                 const storedPosition = storedPositions[agent.id];
                 const finalPosition =
-                    storedPosition && storedPosition.parentId === folderNodeId
+                    storedPosition && storedPosition.parentId === folderLayout.nodeId
                         ? { x: storedPosition.x, y: storedPosition.y }
-                        : { x: agentX, y: agentY };
+                        : { x: agentPosition.x, y: FOLDER_HEADER_HEIGHT + agentPosition.y };
 
                 nodes.push({
                     id: agent.id,
                     type: 'agent',
-                    parentId: folderNodeId,
+                    parentId: folderLayout.nodeId,
                     extent: 'parent',
                     position: finalPosition,
                     data: {
