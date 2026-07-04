@@ -1,5 +1,10 @@
 [x] ~$1.49 an hour by OpenAI Codex `gpt-5.3-codex`
 
+
+---
+
+[ ]
+
 [✨🖊] Enhance agent chat dictation (speech-to-text), Wispr Flow-like UX
 
 -   The Agents Server has voice interaction in the chat UI has several parts:

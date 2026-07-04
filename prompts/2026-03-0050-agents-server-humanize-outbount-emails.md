@@ -13,16 +13,16 @@
 
 ---
 
-[-]
+[ ]
 
-[✨↩️] foo
+[✨↩️] Use `humanizeAiText` utility for humanizing all the outbound Agent interactions
 
--   @@@
+-   Use [`humanizeAiText` utility](src/utils/markdown/humanizeAiText.ts)
+-   This should happen inside the sending email function. The agent shouldn't know about this. The agent is generating the text without knowing that it will be humanized.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
--   If you need to do the database migration, do it
--   Add the changes into the [changelog](changelog/_current-preversion.md)
+
 
 ---
 

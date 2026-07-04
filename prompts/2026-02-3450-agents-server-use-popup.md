@@ -1,5 +1,8 @@
 [x] _<- Note: resource exhausted; commiting manually; maybe not working_
 
+
+@@@@@@ How this poping up should work in Agents window
+
 [✨🎤] Make commitment `USE POPUP`
 
 **For example:**
