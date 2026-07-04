@@ -3057,11 +3057,11 @@
     -   Removed redundant page-level `generateMetadata = generateAgentMetadata` aliases from agent subpages (`book`, `book+chat`, `chat`, `integration`, `system-message`, `website-integration`, `iframe`, and profile page) so metadata branding is inherited from one DRY layout source.
     -   As a result, agent favicon and related metadata branding are now applied consistently across agent pages through the shared layout metadata pipeline.
 
--   Humanized AI-generated outbound email text in Agents Server `USE EMAIL` flow:
+-   Humanized AI-generated outbound email text in the shared Agents Server email send path:
 
     -   Added a shared `humanizeOutboundEmail` utility for email payload cleanup using `humanizeAiText`.
-    -   `send_email` now humanizes outbound email subject and body right before sending, without exposing this behavior to the agent.
-    -   Added a focused unit test covering subject/content cleanup and metadata subject synchronization.
+    -   `sendMessage` now humanizes outbound email subject and body before persistence and provider delivery, without exposing this behavior to the agent.
+    -   Added focused unit coverage for subject/content cleanup, metadata subject synchronization, and the shared send boundary.
 
 -   Improved BookEditor syntax highlighting for note-like commitments:
 
