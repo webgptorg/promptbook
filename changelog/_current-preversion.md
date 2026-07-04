@@ -1,3 +1,5 @@
+-   Added security PRDs for current Agents Server risks that still need implementation: unauthenticated browser-test automation APIs, missing owner-scoped private agent/folder authorization, and unauthenticated CDN uploads.
+
 -   Leveraged the `spaceTrim` utility for authored multiline strings that were still assembled via array `.join('\n')` or `+ '\n\n' +` concatenation. The `TEAM` commitment's shared teammate-usage guidance, the built-in `ptbk coder` boilerplate template contents, and the `<LlmChatPreview/>` fallback scenario greeting now use `spaceTrim` template literals — producing byte-identical output while improving readability. The now-unused `buildCoderPromptTemplateContent` helper was removed.
 
 -   Fixed `ptbk -v` so it prints the Promptbook version just like `ptbk --version`, while keeping `-v` / `--verbose` available for subcommands that use verbose logging. Added VS Code terminal shortcuts for both version checks.
