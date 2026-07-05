@@ -56,6 +56,7 @@ export async function analyzeSourceFileForRefactorCandidate(
     const extension = extname(filePath).toLowerCase();
     const relativePath = normalizeRefactorCandidatePath(relative(rootDir, filePath));
     const reasons: string[] = [];
+    let severityScore = 0;
 
     if (!lineCountExemptPaths.has(normalizedAbsolutePath)) {
         const lineCount = countLines(content);
@@ -63,6 +64,7 @@ export async function analyzeSourceFileForRefactorCandidate(
 
         if (lineCount > maxLines) {
             reasons.push(`lines ${lineCount}/${maxLines}`);
+            severityScore += lineCount / maxLines;
         }
     }
 
@@ -71,14 +73,17 @@ export async function analyzeSourceFileForRefactorCandidate(
 
         if (structureSummary.entityCount > heuristics.maxEntityCountPerFile) {
             reasons.push(`entities ${structureSummary.entityCount}/${heuristics.maxEntityCountPerFile}`);
+            severityScore += structureSummary.entityCount / heuristics.maxEntityCountPerFile;
         }
 
         if (structureSummary.functionCount > heuristics.maxFunctionCountPerFile) {
             reasons.push(`functions ${structureSummary.functionCount}/${heuristics.maxFunctionCountPerFile}`);
+            severityScore += structureSummary.functionCount / heuristics.maxFunctionCountPerFile;
         }
 
         if (structureSummary.maxFunctionComplexity > heuristics.maxFunctionComplexity) {
             reasons.push(buildComplexityReason(structureSummary, heuristics.maxFunctionComplexity));
+            severityScore += structureSummary.maxFunctionComplexity / heuristics.maxFunctionComplexity;
         }
     }
 
@@ -90,6 +95,7 @@ export async function analyzeSourceFileForRefactorCandidate(
         absolutePath: filePath,
         relativePath,
         reasons,
+        severityScore,
     };
 }
 

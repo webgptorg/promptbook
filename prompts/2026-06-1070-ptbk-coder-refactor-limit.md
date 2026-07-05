@@ -1,4 +1,4 @@
-[ ] !
+[x] $5.49 38 minutes by Claude Code `claude-opus-4-8`
 
 [✨🧏] Add `--limit` to `ptbk coder find-refactor-candidates` 
 
@@ -13,3 +13,4 @@ ptbk coder coder find-refactor-candidates --level low --limit 10
 -   Also look and update [the dev scripts in `terminals.json`](.vscode/terminals.json)
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

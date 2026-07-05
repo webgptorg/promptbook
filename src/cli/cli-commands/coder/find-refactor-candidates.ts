@@ -12,6 +12,7 @@ import {
 } from '../../../../scripts/find-refactor-candidates/RefactorCandidateLevel';
 import { assertsError } from '../../../errors/assertsError';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
+import { createPositiveIntegerOptionParser } from '../common/createPositiveIntegerOptionParser';
 import { handleActionErrors } from '../common/handleActionErrors';
 
 /**
@@ -44,11 +45,17 @@ export function $initializeCoderFindRefactorCandidatesCommand(program: Program):
             .choices([...REFACTOR_CANDIDATE_LEVEL_VALUES])
             .default(DEFAULT_REFACTOR_CANDIDATE_LEVEL),
     );
+    command.option(
+        '--limit <candidate-count>',
+        'Create at most this many refactor prompts, keeping the most important candidates',
+        createPositiveIntegerOptionParser('--limit'),
+    );
 
     command.action(
         handleActionErrors(async (cliOptions) => {
-            const { level = DEFAULT_REFACTOR_CANDIDATE_LEVEL } = cliOptions as {
+            const { level = DEFAULT_REFACTOR_CANDIDATE_LEVEL, limit } = cliOptions as {
                 readonly level?: RefactorCandidateLevel;
+                readonly limit?: number;
             };
 
             // Note: Import the function dynamically to avoid loading heavy dependencies until needed
@@ -57,7 +64,7 @@ export function $initializeCoderFindRefactorCandidatesCommand(program: Program):
             );
 
             try {
-                await findRefactorCandidates({ level });
+                await findRefactorCandidates({ level, limit });
             } catch (error) {
                 assertsError(error);
                 console.error(colors.bgRed(`${error.name}`));

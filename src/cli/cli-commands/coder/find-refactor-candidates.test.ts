@@ -66,4 +66,31 @@ describe('$initializeCoderFindRefactorCandidatesCommand', () => {
             );
         },
     );
+
+    it('leaves the limit undefined when --limit is omitted', async () => {
+        const program = createProgramWithFindRefactorCandidatesCommand();
+
+        await program.parseAsync(['node', 'test', 'find-refactor-candidates'], { from: 'node' });
+
+        expect(getFindRefactorCandidatesMock()).toHaveBeenCalledWith(
+            expect.objectContaining({
+                limit: undefined,
+            }),
+        );
+    });
+
+    it('passes the parsed --limit through to the finder alongside --level', async () => {
+        const program = createProgramWithFindRefactorCandidatesCommand();
+
+        await program.parseAsync(['node', 'test', 'find-refactor-candidates', '--level', 'low', '--limit', '10'], {
+            from: 'node',
+        });
+
+        expect(getFindRefactorCandidatesMock()).toHaveBeenCalledWith(
+            expect.objectContaining({
+                level: 'low',
+                limit: 10,
+            }),
+        );
+    });
 });

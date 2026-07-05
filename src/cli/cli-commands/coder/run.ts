@@ -1,9 +1,9 @@
 import colors from 'colors';
 import { Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */ } from 'commander';
 import { spaceTrim } from 'spacetrim';
-import { NotAllowed } from '../../../errors/NotAllowed';
 import { assertsError } from '../../../errors/assertsError';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
+import { createPositiveIntegerOptionParser } from '../common/createPositiveIntegerOptionParser';
 import { handleActionErrors } from '../common/handleActionErrors';
 import type { PromptRunnerCliOptions } from '../common/promptRunnerCliOptions';
 import {
@@ -63,7 +63,11 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
     );
     addPromptRunnerExecutionOptions(command);
     command.option('--priority <minimum-priority>', 'Filter prompts by minimum priority level', parseIntOption, 0);
-    command.option('--limit <run-count>', 'Stop after processing this many prompt runs', parsePositiveIntegerOption);
+    command.option(
+        '--limit <run-count>',
+        'Stop after processing this many prompt runs',
+        createPositiveIntegerOptionParser('--limit'),
+    );
     command.option(
         '--wait-after-prompt <duration>',
         spaceTrim(`
@@ -203,27 +207,6 @@ function parseIntOption(value: string): number {
     if (isNaN(parsed)) {
         throw new Error(`Invalid number: ${value}`);
     }
-    return parsed;
-}
-
-/**
- * Parses a positive integer option value.
- *
- * @private internal utility of `coder run` command
- */
-function parsePositiveIntegerOption(value: string): number {
-    const parsed = Number(value);
-
-    if (!Number.isInteger(parsed) || parsed <= 0) {
-        throw new NotAllowed(
-            spaceTrim(`
-                Invalid value for \`--limit\`: \`${value}\`.
-
-                Use a positive integer.
-            `),
-        );
-    }
-
     return parsed;
 }
 

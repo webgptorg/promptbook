@@ -13,6 +13,7 @@ import {
     type RefactorCandidateLevel,
 } from './RefactorCandidateLevel';
 import { resolveRefactorCandidateProject } from './resolveRefactorCandidateProject';
+import { selectMostImportantRefactorCandidates } from './selectMostImportantRefactorCandidates';
 import { writeRefactorCandidatePrompts } from './writeRefactorCandidatePrompts';
 
 if (require.main === module) {
@@ -43,7 +44,7 @@ function initializeFindRefactorCandidatesRun(): void {
  * @public exported from `@promptbook/cli`
  */
 export async function findRefactorCandidates(options: FindRefactorCandidatesOptions = {}): Promise<void> {
-    const { level = DEFAULT_REFACTOR_CANDIDATE_LEVEL } = options;
+    const { level = DEFAULT_REFACTOR_CANDIDATE_LEVEL, limit } = options;
     const heuristics = getRefactorCandidateLevelConfiguration(level);
 
     initializeFindRefactorCandidatesRun();
@@ -75,8 +76,11 @@ export async function findRefactorCandidates(options: FindRefactorCandidatesOpti
         return;
     }
 
+    const selectedCandidatesToWrite = selectMostImportantRefactorCandidates(candidatesToWrite, limit);
+    const skippedByLimit = candidatesToWrite.length - selectedCandidatesToWrite.length;
+
     const createdPrompts = await writeRefactorCandidatePrompts({
-        candidates: candidatesToWrite,
+        candidates: selectedCandidatesToWrite,
         rootDir,
         promptsDir,
     });
@@ -84,6 +88,11 @@ export async function findRefactorCandidates(options: FindRefactorCandidatesOpti
     console.info(colors.green(`Created ${createdPrompts.length} prompt(s) in ${PROMPTS_DIR_NAME}.`));
     if (alreadyTracked > 0) {
         console.info(colors.gray(`Skipped ${alreadyTracked} candidate(s) with existing prompts.`));
+    }
+    if (skippedByLimit > 0) {
+        console.info(
+            colors.gray(`Skipped ${skippedByLimit} lower-priority candidate(s) because of \`--limit ${limit}\`.`),
+        );
     }
 }
 
@@ -97,6 +106,14 @@ export type FindRefactorCandidatesOptions = {
      * Aggressiveness level used to score candidate files.
      */
     readonly level?: RefactorCandidateLevel;
+
+    /**
+     * Maximum number of refactor prompts to create in this run.
+     *
+     * When more candidates are found than this limit, only the most important ones (by severity)
+     * are turned into prompts. When omitted, a prompt is created for every candidate.
+     */
+    readonly limit?: number;
 };
 
 /**
