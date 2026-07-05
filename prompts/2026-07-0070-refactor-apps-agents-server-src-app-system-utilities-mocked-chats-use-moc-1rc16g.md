@@ -1,4 +1,4 @@
-[ ]
+[x] $3.90 an hour by Claude Code `claude-opus-4-8`
 
 [🧹♌️] Refactor [`useMockedChatsEditorState.ts` file](apps/agents-server/src/app/system/utilities/mocked-chats/useMockedChatsEditorState.ts)
 
