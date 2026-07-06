@@ -1,4 +1,4 @@
-[!] failed after an hour by Claude Code `claude-opus-4-8`
+[ ]
 
 [🧹🌪] Refactor [`vpsSelfUpdate.ts` file](apps/agents-server/src/utils/vpsSelfUpdate.ts)
 
