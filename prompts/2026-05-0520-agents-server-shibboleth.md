@@ -164,3 +164,28 @@ S pozdravem,
 [Citovaný text byl skryt]
 ```
 
+
+
+
+---
+
+
+[ ] ! 
+
+[✨🐡] Fix Shibboleth according to feedback
+
+
+Zdravím,
+
+hlásím, že přihlašování přes náš Shibboleth je úspěšně nakonfigurované a plně funkční s drobnou chybičkou na konci.
+
+Otestoval jsem to se svým účtem a ve vaší administraci na s23.ptbk.io vidím u svého pokusu stav SUCCESS – váš systém správně přijal token a vyčetl z něj jméno i e-mail (Jakub Ježíšek, jezisek@opf.slu.cz).
+
+Na vaší testovací instanci máte ale chybu v přesměrování po přihlášení. Po úspěšném zpracování SAML odpovědi na ACS endpointu mě váš backend přesměruje na adresu https://localhost:4440/. Pravděpodobně vám v testovacím prostředí zůstala v env proměnné (APP_URL / FRONTEND_URL) adresa z lokálního vývoje místo adresy serveru.
+
+Z pohledu Slezské univerzity je ale SAML integrace ověřená. Jakmile si to opravíte (a potvrdíte, že nasazujete stejnou konfiguraci na pasu.ptbk.io), připravím u nás v Shibbolethu překlopení na finální produkční doménu.
+
+Pro ostrý provoz od vás budu potřebovat opět totéž:
+    Produkční EntityID
+    Produkční ACS URL
+    (Případně rovnou hotové finální XML s metadatay vašeho produkčního SP).
