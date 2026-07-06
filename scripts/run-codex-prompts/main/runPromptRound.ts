@@ -1,6 +1,7 @@
 import colors from 'colors';
 import moment from 'moment';
 import { spaceTrim } from 'spacetrim';
+import { increaseHeadings } from '../../../book/scripts/import-markdown/increaseHeadings';
 import type { RunOptions } from '../cli/RunOptions';
 import { appendCoderContext } from '../common/appendCoderContext';
 import type { CliProgressDisplay } from '../common/cliProgressDisplay';
@@ -87,7 +88,9 @@ export async function runPromptRound({
 
                   ${block(taskPrompt)}
 
-                  ${block(resolvedAgentSystemMessage.trim())}
+                  ## Your Behavior
+
+                  ${block(increaseHeadings(resolvedAgentSystemMessage))}
               `,
           )
         : taskPrompt;

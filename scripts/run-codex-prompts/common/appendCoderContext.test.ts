@@ -7,7 +7,7 @@ describe('appendCoderContext', () => {
 
     it('appends trimmed context as a separate section', () => {
         expect(appendCoderContext('Implement the feature\n', '\n## Rules\n- Be careful\n')).toBe(
-            'Implement the feature\n\n## Rules\n- Be careful',
+            'Implement the feature\n\n## Context\n\n### Rules\n- Be careful',
         );
     });
 

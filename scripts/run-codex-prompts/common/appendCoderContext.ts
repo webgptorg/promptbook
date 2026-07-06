@@ -1,3 +1,6 @@
+import { spaceTrim } from 'spacetrim';
+import { increaseHeadings } from '../../../book/scripts/import-markdown/increaseHeadings';
+
 /**
  * Appends optional coding context to a runner prompt.
  */
@@ -12,5 +15,13 @@ export function appendCoderContext(prompt: string, context: string | undefined):
         return normalizedContext;
     }
 
-    return `${normalizedPrompt}\n\n${normalizedContext}`;
+    return spaceTrim(
+        (block) => `
+            ${block(normalizedPrompt)}
+
+            ## Context
+        
+            ${block(increaseHeadings(normalizedContext))}
+        `,
+    );
 }
