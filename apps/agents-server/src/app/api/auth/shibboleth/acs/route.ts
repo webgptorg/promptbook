@@ -6,6 +6,7 @@ import {
     getShibbolethRequestDetails,
     recordShibbolethAuthenticationAttempt,
     resolveShibbolethAuthenticationConfiguration,
+    resolveShibbolethPublicRequestUrl,
     sanitizeShibbolethRelayState,
 } from '../../../../../utils/shibbolethAuthentication';
 import { setSession } from '../../../../../utils/session';
@@ -15,6 +16,7 @@ import { setSession } from '../../../../../utils/session';
  */
 export async function POST(request: Request) {
     const requestDetails = getShibbolethRequestDetails(request);
+    const publicRequestUrl = resolveShibbolethPublicRequestUrl(request);
     let relayState = '/';
 
     try {
@@ -34,7 +36,7 @@ export async function POST(request: Request) {
         }
 
         const configuration = await resolveShibbolethAuthenticationConfiguration({
-            requestUrl: request.url,
+            requestUrl: publicRequestUrl,
             isIdentityProviderMetadataValidationEnabled: true,
         });
 
@@ -95,7 +97,7 @@ export async function POST(request: Request) {
             rawAttributes: linkedUser.profileAttributes.rawAttributes,
         });
 
-        return NextResponse.redirect(new URL(relayState, request.url), 303);
+        return NextResponse.redirect(new URL(relayState, configuration.serviceProviderUrls.origin), 303);
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Failed to finish Shibboleth authentication.';
         await recordShibbolethAuthenticationAttempt({

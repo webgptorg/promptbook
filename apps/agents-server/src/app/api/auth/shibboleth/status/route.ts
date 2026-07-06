@@ -1,12 +1,15 @@
 import { NextResponse } from 'next/server';
-import { resolveShibbolethAuthenticationConfiguration } from '../../../../../utils/shibbolethAuthentication';
+import {
+    resolveShibbolethAuthenticationConfiguration,
+    resolveShibbolethPublicRequestUrl,
+} from '../../../../../utils/shibbolethAuthentication';
 
 /**
  * Handles get.
  */
 export async function GET(request: Request) {
     const configuration = await resolveShibbolethAuthenticationConfiguration({
-        requestUrl: request.url,
+        requestUrl: resolveShibbolethPublicRequestUrl(request),
         isIdentityProviderMetadataValidationEnabled: false,
     });
 

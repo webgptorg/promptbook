@@ -11,6 +11,7 @@ export { getShibbolethRequestDetails } from './shibbolethAuthentication/getShibb
 export { getShibbolethUserIdentityTableName } from './shibbolethAuthentication/getShibbolethUserIdentityTableName';
 export { recordShibbolethAuthenticationAttempt } from './shibbolethAuthentication/recordShibbolethAuthenticationAttempt';
 export { resolveShibbolethAuthenticationConfiguration } from './shibbolethAuthentication/resolveShibbolethAuthenticationConfiguration';
+export { resolveShibbolethPublicRequestUrl } from './shibbolethAuthentication/resolveShibbolethPublicRequestUrl';
 export { sanitizeShibbolethRelayState } from './shibbolethAuthentication/sanitizeShibbolethRelayState';
 
 export type {
