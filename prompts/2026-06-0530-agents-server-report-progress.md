@@ -41,16 +41,16 @@
 ---
 
 [x] $5.73 2 hours by Claude Code
+[x] ~$0.3999 an hour by OpenAI Codex `gpt-5.5`
 
 ---
 
-[x] ~$0.3999 an hour by OpenAI Codex `gpt-5.5`
+[ ]
 
 [✨🖖] Remove "Working on your request" from response
 
 -   Show the progress as follows:
-    1. Randomly cycle through THINKING_MESSAGES
-    2. "What I'm Doing Now:" **<- Remove this, it is bullshit and does not show any real progress**
+    1. Randomly cycle through `THINKING_MESSAGES` **<- Keep this until 3. final message is ready**
+    2. "The local agent runner has the request and is working on the answer." **<- Remove this, it is bullshit and does not show any real progress**
     3. Finally, show the final answer
 -   You are working with the [Agents Server](apps/agents-server)
-

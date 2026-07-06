@@ -54,3 +54,20 @@ Starting prompt runner in server (keep-alive) mode…
 ![Agent visuals on web](screenshots/2026-06-0890-ptbk-coder-agent-visual.png)
 ![Agent visuals on web](screenshots/2026-06-0890-ptbk-coder-agent-visual-1.png)
 
+---
+
+[ ]
+
+[✨🟣] Enhance visual representation when `--agent` present in `ptbk coder`
+
+-   Agents has visuals on website which is in the 1:1 aspect ratio rectangle with background color
+-   But on the terminal there should be variant with horizontal rectangle and backgroundless
+-   This is relevant when `--agent` present in `ptbk coder`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle, the visual representation should be same for web and terminal, just different aspect ratio and background, but reuse the code which generates the visual representation
+-   Also in the terminal UI the visual representation should be animated in a same way as on the web
+-   Do a proper analysis of the current functionality of `ptbk coder`, agent avatars and related functionality before you start implementing.
+-   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![Agent visuals on web](screenshots/2026-06-0890-ptbk-coder-agent-visual.png)
+![Agent visuals on web](screenshots/2026-06-0890-ptbk-coder-agent-visual-1.png)
