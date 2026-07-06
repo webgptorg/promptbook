@@ -1,4 +1,4 @@
-[ ]
+[x] $9.01 an hour by Claude Code `claude-opus-4-8`
 
 [🧹🎹] Refactor [`getAdminChatTasks.ts` file](apps/agents-server/src/utils/getAdminChatTasksResponse/getAdminChatTasks.ts)
 
