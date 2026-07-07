@@ -1,0 +1,19 @@
+{
+    "autokill": true,
+    "terminals": [
+        {
+            "name": "🏭💉 Import markdowns",
+            "commands": ["./scripts/import-markdown/import-markdown.ts"],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🧪 Unit Test",
+            "command": "npx jest",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        }
+    ]
+}

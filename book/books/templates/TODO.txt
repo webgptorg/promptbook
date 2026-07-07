@@ -1,0 +1,4 @@
+TODO: [🧠] Should be URL of templates:
+- https://github.com/webgptorg/book/blob/main/books/templates/generic.book.md
+- https://raw.githubusercontent.com/webgptorg/book/refs/heads/main/books/templates/generic.book.md
+- sth. on promptboo.studio

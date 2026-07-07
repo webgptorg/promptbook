@@ -1,0 +1,17 @@
+# Identifications
+
+This is a sample how to identify PARAMETERs, KNOWLEDGE, PERSONAs, INSTRUMENTs and ACTIONs in a book.
+
+- INPUT PARAMETER {fullname} The full name of the person from Harry Potter series in English
+- OUTPUT PARAMETER {story} One page (A4) story of the character written in English
+- KNOWLEDGE [Harry Potter] ./harry-potter.pdf
+
+## Write a story
+
+- PERSONA <J. K. Rowling> Author of the Harry Potter series
+
+```
+Write a story about {fullname}
+```
+
+-> {story}
