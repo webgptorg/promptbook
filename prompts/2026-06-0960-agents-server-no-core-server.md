@@ -34,7 +34,7 @@
 
 ---
 
-[ ]
+[x] ~$0.5769 an hour by OpenAI Codex `gpt-5.5`
 
 [✨🥲] Listing of the `.` agent folders should be hidden in the header menu
 
@@ -73,3 +73,4 @@ GOAL Empathetic and understanding support bot.
 CLOSED
 
 ```
+

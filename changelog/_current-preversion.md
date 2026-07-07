@@ -1,3 +1,5 @@
+-   Hid dot-prefixed Agents Server folders such as `.core` from the header agent menu. The header now reuses the shared hidden-folder filtering rule so those folders, their descendants, and agents inside them do not appear in the dropdown listing, while the homepage's existing hidden-folder toggle keeps using the same source of truth.
+
 -   Enhanced the `ptbk coder run --agent` terminal visual so it now reuses the shared animated avatar renderer as a transparent horizontal ASCII-art surface instead of a static framed square snapshot. The rich coder UI now keeps refreshing animated agent visuals while waiting or running, while still falling back to the default banner if the decorative terminal render is unavailable.
 
 -   Added `META VISUAL` support for Agents Server avatar visuals. `META VISUAL` now shares the existing `META AVATAR` parsing path, stores the normalized built-in visual id in `meta.avatar`, and accepts case/separator variants such as `Minecraft2`, `minecraft2`, and `minecraft-2`.
