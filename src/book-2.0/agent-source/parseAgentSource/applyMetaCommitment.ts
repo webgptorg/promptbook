@@ -16,6 +16,7 @@ type MetaCommitmentApplier = (state: ParseAgentSourceState, content: string) => 
  */
 const META_COMMITMENT_APPLIERS: Readonly<Record<string, MetaCommitmentApplier | undefined>> = {
     'META AVATAR': applyMetaAvatarContent,
+    'META VISUAL': applyMetaAvatarContent,
     'META LINK': applyMetaLinkContent,
     'META DOMAIN': applyMetaDomainContent,
     'META IMAGE': applyMetaImageContent,
@@ -72,7 +73,7 @@ function applyGenericMetaCommitment(state: ParseAgentSourceState, content: strin
 }
 
 /**
- * Applies META AVATAR content into the canonical `meta.avatar` field.
+ * Applies META AVATAR / META VISUAL content into the canonical `meta.avatar` field.
  */
 function applyMetaAvatarContent(state: ParseAgentSourceState, content: string): void {
     const avatarVisualId = resolveAvatarVisualId(content);

@@ -407,7 +407,7 @@ export const metadataDefaults: ReadonlyArray<MetadataDefinition> = [
     {
         key: DEFAULT_AGENT_AVATAR_VISUAL_METADATA_KEY,
         value: DEFAULT_AGENT_AVATAR_VISUAL_METADATA_VALUE,
-        note: `Default built-in avatar visual used for agents without \`META IMAGE\` or \`META AVATAR\`. Allowed values: ${formatMetadataOptionValues(
+        note: `Default built-in avatar visual used for agents without \`META IMAGE\`, \`META AVATAR\`, or \`META VISUAL\`. Allowed values: ${formatMetadataOptionValues(
             DEFAULT_AGENT_AVATAR_VISUAL_METADATA_OPTIONS.map(({ metadataValue, title }) => ({
                 value: metadataValue,
                 label: title,

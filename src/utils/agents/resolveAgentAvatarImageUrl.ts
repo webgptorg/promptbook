@@ -47,7 +47,7 @@ export type ResolveAgentAvatarOptions = {
 export type ResolveAgentAvatarImageUrlOptions = ResolveAgentAvatarOptions;
 
 /**
- * Default built-in avatar visual used when an agent does not define `META IMAGE`.
+ * Default built-in avatar visual used when an agent does not define `META IMAGE`, `META AVATAR`, or `META VISUAL`.
  *
  * @private shared avatar contract
  */
@@ -195,7 +195,7 @@ export function resolveAgentAvatarFallbackUrl(options: ResolveAgentAvatarOptions
 
 /**
  * Resolve the best avatar representation for an agent, preferring explicit `META IMAGE`
- * and otherwise returning the default deterministic canvas visual.
+ * and otherwise returning the selected deterministic canvas visual.
  *
  * @private utility of `<Chat/>`
  */

@@ -42,6 +42,9 @@ describe('avatar visual registry', () => {
         expect(resolveAvatarVisualId('Octopus 3D 2')).toBe('octopus3d2');
         expect(resolveAvatarVisualId('Octopus 3D 3')).toBe('octopus3d3');
         expect(resolveAvatarVisualId('Octopus 3D 4')).toBe('octopus3d4');
+        expect(resolveAvatarVisualId('Minecraft2')).toBe('minecraft2');
+        expect(resolveAvatarVisualId('minecraft2')).toBe('minecraft2');
+        expect(resolveAvatarVisualId('minecraft-2')).toBe('minecraft2');
         expect(resolveAvatarVisualId('Minecraft 3D 2')).toBe('minecraft2');
         expect(resolveAvatarVisualId('unknown')).toBe(null);
     });

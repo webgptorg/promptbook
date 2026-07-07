@@ -55,6 +55,7 @@ const PROFILE_COMMITMENT_TYPES = new Set([
     'PERSONAE',
     'META',
     'META AVATAR',
+    'META VISUAL',
     'META IMAGE',
     'META LINK',
     'META DOMAIN',
@@ -333,7 +334,7 @@ export function createStandaloneBookLanguageMarkdown(): string_markdown {
             4. **Add capabilities**
             Add only necessary \`USE*\` and/or \`MEMORY\` commitments.
             5. **Set profile metadata**
-            Add \`META DESCRIPTION\`, \`META AVATAR\` or \`META IMAGE\`, \`META INPUT PLACEHOLDER\`, and disclaimers if needed.
+            Add \`META DESCRIPTION\`, \`META AVATAR\` / \`META VISUAL\` or \`META IMAGE\`, \`META INPUT PLACEHOLDER\`, and disclaimers if needed.
             6. **Add first interaction**
             Add \`INITIAL MESSAGE\` and optionally sample \`USER MESSAGE\` / \`AGENT MESSAGE\` pairs.
             7. **Close for deterministic behavior (optional)**

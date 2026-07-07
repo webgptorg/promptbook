@@ -5,16 +5,21 @@ import { TODO_USE } from '../../utils/organization/TODO_USE';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 
 /**
+ * META AVATAR / META VISUAL commitment type.
+ */
+type MetaAvatarCommitmentType = 'META AVATAR' | 'META VISUAL';
+
+/**
  * META AVATAR commitment definition
  *
- * The `META AVATAR` commitment sets the built-in default avatar visual used when
- * the agent does not provide an explicit `META IMAGE`.
+ * The `META AVATAR` and `META VISUAL` commitments set the built-in default avatar visual
+ * used when the agent does not provide an explicit `META IMAGE`.
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export class MetaAvatarCommitmentDefinition extends BaseCommitmentDefinition<'META AVATAR'> {
-    public constructor() {
-        super('META AVATAR');
+export class MetaAvatarCommitmentDefinition extends BaseCommitmentDefinition<MetaAvatarCommitmentType> {
+    public constructor(type: MetaAvatarCommitmentType = 'META AVATAR') {
+        super(type);
     }
 
     /**
@@ -38,14 +43,15 @@ export class MetaAvatarCommitmentDefinition extends BaseCommitmentDefinition<'ME
         const supportedVisuals = AVATAR_VISUALS.map((avatarVisual) => `\`${avatarVisual.id}\``).join(', ');
 
         return spaceTrim(`
-            # META AVATAR
+            # ${this.type}
 
             Sets the built-in avatar visual used for the agent when no explicit \`META IMAGE\` is provided.
+            \`META AVATAR\` and \`META VISUAL\` are equivalent.
 
             ## Key aspects
 
             - Does not modify the agent's behavior or responses.
-            - Only one \`META AVATAR\` should be used per agent.
+            - Only one \`META AVATAR\` or \`META VISUAL\` should be used per agent.
             - If multiple are specified, the last one takes precedence.
             - Values are matched case-insensitively and spaces, hyphens, and underscores are normalized.
             - Supported visuals are derived from the shared avatar registry: ${supportedVisuals}.
@@ -60,9 +66,9 @@ export class MetaAvatarCommitmentDefinition extends BaseCommitmentDefinition<'ME
             \`\`\`
 
             \`\`\`book
-            Orb Assistant
+            Minecraft Assistant
 
-            META AVATAR orb
+            META VISUAL Minecraft2
             GOAL Answer in a calm and focused way.
             \`\`\`
         `);
@@ -71,7 +77,7 @@ export class MetaAvatarCommitmentDefinition extends BaseCommitmentDefinition<'ME
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
         TODO_USE(content);
 
-        // META AVATAR doesn't modify the system message or model requirements.
+        // META AVATAR and META VISUAL don't modify the system message or model requirements.
         // It's handled separately in the parsing logic for profile avatar resolution.
         return requirements;
     }

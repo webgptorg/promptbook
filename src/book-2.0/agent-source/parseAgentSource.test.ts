@@ -236,6 +236,23 @@ describe('parseAgentSource', () => {
         ).toBe('octopus3d3');
     });
 
+    it('parses META VISUAL as a normalized built-in avatar visual', () => {
+        const META_VISUAL_VARIANTS = ['Minecraft2', 'minecraft2', 'Minecraft 2', 'minecraft-2'] as const;
+
+        for (const visualValue of META_VISUAL_VARIANTS) {
+            expect(
+                parseAgentSource(
+                    validateBook(
+                        spaceTrim(`
+                            AI Avatar
+                            META VISUAL ${visualValue}
+                        `),
+                    ),
+                ).meta.avatar,
+            ).toBe('minecraft2');
+        }
+    });
+
     it('parses agent with multiple META commitments and overrides', () => {
         const agentSource = validateBook(
             spaceTrim(`
