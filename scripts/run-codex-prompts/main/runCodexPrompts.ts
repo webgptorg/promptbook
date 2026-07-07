@@ -385,7 +385,7 @@ function initializeRunUi(
 }
 
 /**
- * Renders the `--agent` book avatar as ASCII art and shows it instead of the default brand banner.
+ * Prepares the `--agent` book avatar ASCII-art renderer and shows it instead of the default brand banner.
  *
  * Keeps the default banner when no agent is selected, the UI is disabled, or the visual cannot be rendered.
  */
@@ -397,10 +397,10 @@ async function initializeRunUiAgentVisual(
         return;
     }
 
-    const agentVisualLines = await buildCoderRunAgentVisual(agentSource);
+    const agentVisual = await buildCoderRunAgentVisual(agentSource);
 
-    if (agentVisualLines) {
-        uiHandle.state.setAgentVisualLines(agentVisualLines);
+    if (agentVisual) {
+        uiHandle.state.setAgentVisual(agentVisual);
     }
 }
 

@@ -56,7 +56,7 @@ Starting prompt runner in server (keep-alive) mode…
 
 ---
 
-[ ]
+[x] ~$1.04 an hour by OpenAI Codex `gpt-5.5`
 
 [✨🟣] Enhance visual representation when `--agent` present in `ptbk coder`
 
@@ -71,3 +71,4 @@ Starting prompt runner in server (keep-alive) mode…
 
 ![Agent visuals on web](screenshots/2026-06-0890-ptbk-coder-agent-visual.png)
 ![Agent visuals on web](screenshots/2026-06-0890-ptbk-coder-agent-visual-1.png)
+

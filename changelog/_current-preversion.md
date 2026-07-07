@@ -1,3 +1,5 @@
+-   Enhanced the `ptbk coder run --agent` terminal visual so it now reuses the shared animated avatar renderer as a transparent horizontal ASCII-art surface instead of a static framed square snapshot. The rich coder UI now keeps refreshing animated agent visuals while waiting or running, while still falling back to the default banner if the decorative terminal render is unavailable.
+
 -   Added `META VISUAL` support for Agents Server avatar visuals. `META VISUAL` now shares the existing `META AVATAR` parsing path, stores the normalized built-in visual id in `meta.avatar`, and accepts case/separator variants such as `Minecraft2`, `minecraft2`, and `minecraft-2`.
 
 -   Kept Agents Server local and external runner replies on the browser-side `THINKING_MESSAGES` rotation until the final answer is ready by removing the generic runner handoff progress card. The local/external queue handoff still marks the assistant placeholder as running, but it no longer replaces the thinking text with **"The local agent runner has the request and is working on the answer."** or the external-runner variant.

@@ -10,6 +10,7 @@ function createFrameOptions(
     return {
         terminalWidth: 96,
         animationFrame: 0,
+        animationTimeMs: 0,
         spinner: '⠋',
         pauseState: 'RUNNING',
         pauseTargetLabel: 'the next task',
@@ -85,6 +86,37 @@ describe('buildCoderRunUiFrame', () => {
         expect(output).toContain('▄▀▄▀▄▀▄▀');
         expect(output).toContain('▀▄▀▄▀▄▀▄');
         expect(lines[0]!.startsWith(' ')).toBe(true); // <- Note: The agent visual is centered on the frame width
+    });
+
+    it('renders the animated agent visual frame for the current animation time', () => {
+        const lines = buildCoderRunUiFrame(
+            createFrameOptions({
+                animationTimeMs: 1234,
+                agentVisual: {
+                    isAnimated: true,
+                    renderFrame: ({ animationTimeMs }) => [`agent frame ${animationTimeMs}`],
+                },
+            }),
+        ).map(stripAnsi);
+        const output = lines.join('\n');
+
+        expect(output).not.toContain('▄▄▄▄ ▄▄▄▄▄▄ ▄▄▄▄');
+        expect(output).toContain('agent frame 1234');
+    });
+
+    it('falls back to the default banner when the agent visual cannot render a frame', () => {
+        const output = buildCoderRunUiFrame(
+            createFrameOptions({
+                agentVisual: {
+                    isAnimated: true,
+                    renderFrame: () => [],
+                },
+            }),
+        )
+            .map(stripAnsi)
+            .join('\n');
+
+        expect(output).toContain('▄▄▄▄ ▄▄▄▄▄▄ ▄▄▄▄');
     });
 
     it('keeps the frame height stable while live output grows', () => {

@@ -1,12 +1,10 @@
 import { EventEmitter } from 'events';
 import moment from 'moment';
 import { buildCoderRunProgressSnapshot, type CoderRunProgressSnapshot } from '../common/buildCoderRunProgressSnapshot';
-import type {
-    AgentRunMessagePreviewSection,
-    AgentRunStatusTableRow,
-} from './buildCoderRunUiFrame';
 import { CoderRunTimer } from '../common/CoderRunTimer';
 import type { PromptStats } from '../prompts/types/PromptStats';
+import type { CoderRunAgentVisual } from './buildCoderRunAgentVisual';
+import type { AgentRunMessagePreviewSection, AgentRunStatusTableRow } from './buildCoderRunUiFrame';
 
 /**
  * Maximum number of agent output lines kept in the scrolling output area.
@@ -63,7 +61,7 @@ export type { CoderRunProgressSnapshot };
  */
 export class CoderRunUiState extends EventEmitter {
     public config: CoderRunConfig = { agentName: '', priority: 0 };
-    public agentVisualLines: string[] | undefined;
+    public agentVisual: CoderRunAgentVisual | undefined;
     public currentPromptLabel = '';
     public currentScriptPaths: string[] = [];
     public currentAttempt = 1;
@@ -116,10 +114,10 @@ export class CoderRunUiState extends EventEmitter {
     }
 
     /**
-     * Replaces the ASCII-art agent visual shown instead of the default brand banner.
+     * Replaces the ASCII-art agent visual renderer shown instead of the default brand banner.
      */
-    public setAgentVisualLines(agentVisualLines: ReadonlyArray<string> | undefined): void {
-        this.agentVisualLines = agentVisualLines === undefined ? undefined : [...agentVisualLines];
+    public setAgentVisual(agentVisual: CoderRunAgentVisual | undefined): void {
+        this.agentVisual = agentVisual;
         this.emitChange();
     }
 
