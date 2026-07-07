@@ -2,7 +2,7 @@
 // <- Note: [??] 'use client' is enforced by Next.js when building the https://book-components.ptbk.io/ but in ideal case,
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
-import { useCallback, useMemo, type MouseEvent } from 'react';
+import { useCallback, useMemo, useState, type MouseEvent } from 'react';
 import { Color } from '../../../utils/color/Color';
 import { SolidArrowButton } from '../../icons/SolidArrowButton';
 import { classNames } from '../../_common/react-utils/classNames';
@@ -20,6 +20,7 @@ import { ChatMessageList } from './ChatMessageList';
 import type { ChatProps } from './ChatProps';
 import { ChatRatingModal } from './ChatRatingModal';
 import { ChatToolCallModal } from './ChatToolCallModal';
+import type { ChatComposerDraft } from './useChatInputAreaComposer';
 import { useChatPostprocessedMessages } from './useChatPostprocessedMessages';
 import { useChatScrollState } from './useChatScrollState';
 import { useChatToolCallState } from './useChatToolCallState';
@@ -79,6 +80,7 @@ export function Chat(props: ChatProps) {
         onMessage,
         onActionButton,
         onQuickMessageButton,
+        onQuickMessageDraftButton,
         onReplyToMessage,
         onCancelReply,
         onReset,
@@ -133,6 +135,16 @@ export function Chat(props: ChatProps) {
         () => participants.find((participant) => participant.name === 'AGENT'),
         [participants],
     );
+
+    // Note: A `?messageDraft=` quick button prefills the composer with an editable draft instead of
+    //       sending it. `<Chat/>` owns the composer, so it handles the draft itself unless the host
+    //       overrides the behavior via `onQuickMessageDraftButton`.
+    const [composerDraft, setComposerDraft] = useState<ChatComposerDraft | undefined>(undefined);
+    const handleInternalQuickMessageDraftButton = useCallback((messageDraftContent: string) => {
+        setComposerDraft({ content: messageDraftContent });
+    }, []);
+    const resolvedOnQuickMessageDraftButton =
+        onQuickMessageDraftButton ?? (onMessage ? handleInternalQuickMessageDraftButton : undefined);
     const postprocessedMessages = useChatPostprocessedMessages({
         messages,
         isAiTextHumanizedAndPromptbookified,
@@ -344,6 +356,7 @@ export function Chat(props: ChatProps) {
                         onMessage={onMessage}
                         onActionButton={onActionButton}
                         onQuickMessageButton={onQuickMessageButton}
+                        onQuickMessageDraftButton={resolvedOnQuickMessageDraftButton}
                         onReplyToMessage={onReplyToMessage}
                         canReplyToMessage={canReplyToMessage}
                         onCreateAgent={onCreateAgent}
@@ -377,6 +390,7 @@ export function Chat(props: ChatProps) {
                             replyingToMessage={replyingToMessage}
                             onCancelReply={onCancelReply}
                             defaultMessage={defaultMessage}
+                            draftMessage={composerDraft}
                             enterBehavior={enterBehavior}
                             resolveEnterBehavior={resolveEnterBehavior}
                             placeholderMessageContent={

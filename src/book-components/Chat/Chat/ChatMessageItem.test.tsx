@@ -499,3 +499,54 @@ describe('ChatMessageItem replies', () => {
         expect(onReplyToMessage).toHaveBeenCalledWith(message);
     });
 });
+
+describe('ChatMessageItem quick message buttons', () => {
+    it('sends a ?message= quick button immediately through the quick-message handler', () => {
+        const onQuickMessageButton = jest.fn<(messageContent: string) => void>();
+        const onQuickMessageDraftButton = jest.fn<(messageDraftContent: string) => void>();
+        renderChatMessageItem(
+            {
+                id: 'agent-quick-message-1',
+                sender: 'AGENT',
+                content: 'Pick an option\n\n[Send](?message=Tell me more)',
+                isComplete: true,
+            },
+            { onQuickMessageButton, onQuickMessageDraftButton },
+        );
+
+        fireEvent.click(screen.getByRole('button', { name: 'Send' }));
+
+        expect(onQuickMessageButton).toHaveBeenCalledWith('Tell me more');
+        expect(onQuickMessageDraftButton).not.toHaveBeenCalled();
+    });
+
+    it('prefills a ?messageDraft= quick button through the draft handler without sending', () => {
+        const onQuickMessageButton = jest.fn<(messageContent: string) => void>();
+        const onQuickMessageDraftButton = jest.fn<(messageDraftContent: string) => void>();
+        renderChatMessageItem(
+            {
+                id: 'agent-quick-draft-1',
+                sender: 'AGENT',
+                content: 'Pick an option\n\n[Draft](?messageDraft=Write me a claim)',
+                isComplete: true,
+            },
+            { onQuickMessageButton, onQuickMessageDraftButton },
+        );
+
+        fireEvent.click(screen.getByRole('button', { name: 'Draft' }));
+
+        expect(onQuickMessageDraftButton).toHaveBeenCalledWith('Write me a claim');
+        expect(onQuickMessageButton).not.toHaveBeenCalled();
+    });
+
+    it('hides ?messageDraft= quick buttons when no draft handler is provided', () => {
+        renderChatMessageItem({
+            id: 'agent-quick-draft-2',
+            sender: 'AGENT',
+            content: 'Pick an option\n\n[Draft](?messageDraft=Write me a claim)',
+            isComplete: true,
+        });
+
+        expect(screen.queryByRole('button', { name: 'Draft' })).toBeNull();
+    });
+});

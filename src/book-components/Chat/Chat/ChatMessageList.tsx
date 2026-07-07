@@ -50,6 +50,7 @@ export type ChatMessageListProps = {
     onMessage?: (messageContent: string) => Promisable<void>;
     onActionButton?: ChatProps['onActionButton'];
     onQuickMessageButton?: ChatProps['onQuickMessageButton'];
+    onQuickMessageDraftButton?: ChatProps['onQuickMessageDraftButton'];
     onReplyToMessage?: ChatProps['onReplyToMessage'];
     canReplyToMessage?: ChatProps['canReplyToMessage'];
     onCreateAgent?: (bookContent: string) => void;
@@ -97,6 +98,7 @@ export function ChatMessageList(props: ChatMessageListProps) {
         onMessage,
         onActionButton,
         onQuickMessageButton,
+        onQuickMessageDraftButton,
         onReplyToMessage,
         canReplyToMessage,
         onCreateAgent,
@@ -149,6 +151,7 @@ export function ChatMessageList(props: ChatMessageListProps) {
                         onMessage={onMessage}
                         onActionButton={onActionButton}
                         onQuickMessageButton={onQuickMessageButton}
+                        onQuickMessageDraftButton={onQuickMessageDraftButton}
                         onReplyToMessage={onReplyToMessage}
                         canReplyToMessage={canReplyToMessage}
                         setExpandedMessageId={setExpandedMessageId}

@@ -24,7 +24,7 @@ import type { ChatProps, ChatSoundSystem } from './ChatProps';
 import { ChatReplyPreview } from './ChatReplyPreview';
 import type { SpeechRecognitionUiDescriptor } from './resolveSpeechRecognitionUiDescriptor';
 import { useChatInputAreaAttachments } from './useChatInputAreaAttachments';
-import { useChatInputAreaComposer } from './useChatInputAreaComposer';
+import { useChatInputAreaComposer, type ChatComposerDraft } from './useChatInputAreaComposer';
 import { useChatInputAreaDictation } from './useChatInputAreaDictation';
 
 /**
@@ -48,6 +48,7 @@ export type ChatInputAreaProps = {
     speechRecognition?: ChatProps['speechRecognition'];
     speechRecognitionLanguage?: ChatProps['speechRecognitionLanguage'];
     defaultMessage?: string;
+    draftMessage?: ChatComposerDraft;
     replyingToMessage?: ChatMessage | null;
     onCancelReply?: ChatProps['onCancelReply'];
     enterBehavior?: ChatProps['enterBehavior'];
@@ -521,6 +522,7 @@ export function ChatInputArea(props: ChatInputAreaProps) {
         speechRecognition,
         speechRecognitionLanguage,
         defaultMessage,
+        draftMessage,
         replyingToMessage,
         onCancelReply,
         enterBehavior,
@@ -566,6 +568,7 @@ export function ChatInputArea(props: ChatInputAreaProps) {
         onMessage,
         onChange,
         defaultMessage,
+        draftMessage,
         enterBehavior,
         resolveEnterBehavior,
         isFocusedOnLoad,

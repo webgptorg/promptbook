@@ -10,6 +10,20 @@ export type MessageQuickButton = {
 };
 
 /**
+ * Represents a quick draft-message button parsed from chat markdown.
+ *
+ * Unlike `MessageQuickButton`, clicking this button prefills the composer with an
+ * editable draft instead of sending the message immediately.
+ *
+ * @private internal helper type of `MessageButton`
+ */
+export type MessageDraftQuickButton = {
+    type: 'messageDraft';
+    text: string;
+    messageDraft: string;
+};
+
+/**
  * Represents a quick action button parsed from chat markdown.
  *
  * @private internal helper type of `MessageButton`
@@ -25,7 +39,7 @@ export type ActionQuickButton = {
  *
  * @public exported from `@promptbook/components`
  */
-export type MessageButton = MessageQuickButton | ActionQuickButton;
+export type MessageButton = MessageQuickButton | MessageDraftQuickButton | ActionQuickButton;
 
 /**
  * Extracts one quick button definition from a markdown link query string.
@@ -48,6 +62,16 @@ function parseQuickButtonDefinition(text: string, query: string): MessageButton 
         };
     }
 
+    const messageDraft = searchParams.get('messageDraft');
+
+    if (messageDraft !== null) {
+        return {
+            type: 'messageDraft',
+            text,
+            messageDraft,
+        };
+    }
+
     const code = searchParams.get('action');
 
     if (code !== null) {
@@ -62,7 +86,8 @@ function parseQuickButtonDefinition(text: string, query: string): MessageButton 
 }
 
 /**
- * Parses markdown quick buttons in the format `[Button Text](?message=...)` or `[Button Text](?action=...)`.
+ * Parses markdown quick buttons in the format `[Button Text](?message=...)`, `[Button Text](?messageDraft=...)`
+ * or `[Button Text](?action=...)`.
  * Returns both the content without supported quick buttons and the extracted button definitions.
  *
  * @param content The markdown content that may contain buttons

@@ -49,7 +49,7 @@ import { useChatMessageSpeechPlayback } from './useChatMessageSpeechPlayback';
  */
 type ChatMessageItemProps = Pick<
     ChatProps,
-    'onMessage' | 'onActionButton' | 'onQuickMessageButton' | 'participants'
+    'onMessage' | 'onActionButton' | 'onQuickMessageButton' | 'onQuickMessageDraftButton' | 'participants'
 > & {
     message: ChatMessage;
     participant: ChatParticipant | undefined;
@@ -243,6 +243,7 @@ export const ChatMessageItem = memo(
             onMessage,
             onActionButton,
             onQuickMessageButton,
+            onQuickMessageDraftButton,
             setExpandedMessageId,
             isExpanded,
             currentRating,
@@ -404,6 +405,14 @@ export const ChatMessageItem = memo(
                         return nextButtons;
                     }
 
+                    if (button.type === 'messageDraft') {
+                        if (onQuickMessageDraftButton) {
+                            nextButtons.push({ button, buttonIndex });
+                        }
+
+                        return nextButtons;
+                    }
+
                     if (!onActionButton || consumedActionButtonIndexes.has(buttonIndex)) {
                         return nextButtons;
                     }
@@ -411,7 +420,14 @@ export const ChatMessageItem = memo(
                     nextButtons.push({ button, buttonIndex });
                     return nextButtons;
                 }, []),
-            [buttons, consumedActionButtonIndexes, onActionButton, onMessage, onQuickMessageButton],
+            [
+                buttons,
+                consumedActionButtonIndexes,
+                onActionButton,
+                onMessage,
+                onQuickMessageButton,
+                onQuickMessageDraftButton,
+            ],
         );
         const shouldShowButtons = isLastMessage && renderableButtons.length > 0;
         const speechPlaybackEnabled = isSpeechPlaybackEnabled ?? true;
@@ -1009,6 +1025,13 @@ export const ChatMessageItem = memo(
                                                 return;
                                             }
 
+                                            if (button.type === 'messageDraft') {
+                                                if (onQuickMessageDraftButton) {
+                                                    void onQuickMessageDraftButton(button.messageDraft);
+                                                }
+                                                return;
+                                            }
+
                                             void handleActionButtonClick(buttonIndex, button.code);
                                         }}
                                         disabled={button.type === 'action' && pendingActionButtonIndex === buttonIndex}
@@ -1159,6 +1182,10 @@ export const ChatMessageItem = memo(
         }
 
         if (prev.onQuickMessageButton !== next.onQuickMessageButton) {
+            return false;
+        }
+
+        if (prev.onQuickMessageDraftButton !== next.onQuickMessageDraftButton) {
             return false;
         }
 
