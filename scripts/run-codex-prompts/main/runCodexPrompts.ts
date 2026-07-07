@@ -378,6 +378,7 @@ function initializeRunUi(
         context: options.context,
         serverUrl: options.serverUrl,
         priority: options.priority,
+        limit: options.limit,
         testCommand: options.testCommand,
     });
     uiHandle?.state.setPhase('loading');

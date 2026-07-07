@@ -296,6 +296,10 @@ function buildBacklogSummary(progress: CoderRunProgressSnapshot): string {
 function buildScopeSummary(progress: CoderRunProgressSnapshot, config: CoderRunConfig): string {
     const parts = [`Priority ≥${config.priority}`];
 
+    if (config.limit !== undefined) {
+        parts.push(`Limit ${formatPromptRunCount(config.limit)}`);
+    }
+
     if (progress.toBeWrittenPrompts > 0) {
         parts.push(`Write ${formatPromptCount(progress.toBeWrittenPrompts)} first`);
     }
@@ -315,4 +319,11 @@ function buildTimingSummary(progress: CoderRunProgressSnapshot): string {
  */
 function formatPromptCount(count: number): string {
     return `${count} prompt${count === 1 ? '' : 's'}`;
+}
+
+/**
+ * Formats a configured successful prompt-run limit with singular/plural wording.
+ */
+function formatPromptRunCount(count: number): string {
+    return `${count} prompt run${count === 1 ? '' : 's'}`;
 }

@@ -74,6 +74,21 @@ describe('buildCoderRunUiFrame', () => {
         expect(output).toContain('P  Pause');
     });
 
+    it('shows the configured run limit in the session scope row', () => {
+        const output = buildCoderRunUiFrame(
+            createFrameOptions({
+                config: {
+                    ...createFrameOptions().config,
+                    limit: 2,
+                },
+            }),
+        )
+            .map(stripAnsi)
+            .join('\n');
+
+        expect(output).toContain('Scope    Priority ≥1  ·  Limit 2 prompt runs  ·  Write 1 prompt first');
+    });
+
     it('shows the ASCII-art agent visual instead of the default brand banner when one is provided', () => {
         const agentVisualLines = [
             '\u001b[38;2;34;211;238m▄▀▄▀▄▀▄▀\u001b[0m',
