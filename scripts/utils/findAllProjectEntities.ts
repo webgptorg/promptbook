@@ -51,6 +51,11 @@ export type FindAllProjectEntitiesOptions = {
     readonly includeScripts?: boolean;
 
     /**
+     * Whether app source exports should be included alongside `src`.
+     */
+    readonly isApplicationSourceIncluded?: boolean;
+
+    /**
      * Whether duplicate export names across different files should be tolerated.
      */
     readonly allowDuplicateNames?: boolean;
@@ -62,9 +67,10 @@ export type FindAllProjectEntitiesOptions = {
  */
 export async function findAllProjectEntities({
     includeScripts = false,
+    isApplicationSourceIncluded = false,
     allowDuplicateNames = false,
 }: FindAllProjectEntitiesOptions = {}): Promise<ReadonlyArray<EntityMetadata>> {
-    const files = await readAllProjectFiles({ includeScripts });
+    const files = await readAllProjectFiles({ includeScripts, isApplicationSourceIncluded });
 
     const entitities: Array<EntityMetadata> = [];
     for (const file of files) {
