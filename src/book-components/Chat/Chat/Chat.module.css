@@ -1433,6 +1433,9 @@
     text-decoration: none;
     transition: all 0.2s ease;
     max-width: 200px;
+    cursor: pointer;
+    font-family: inherit;
+    line-height: inherit;
 }
 
 .attachment:hover {
@@ -2411,6 +2414,47 @@
     overflow-y: auto;
     overflow-x: hidden;
     position: relative;
+}
+
+.imageAttachmentModal {
+    width: min(92vw, 1040px);
+    max-width: 1040px;
+    max-height: calc(100vh - 48px);
+    padding: 0;
+    overflow: hidden;
+    position: relative;
+}
+
+.imageAttachmentModalHeader {
+    padding: 20px 68px 14px 24px;
+    border-bottom: 1px solid #e2e8f0;
+    background: #f8fafc;
+}
+
+.imageAttachmentModalTitle {
+    margin: 0 !important;
+    color: #0f172a !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    line-height: 1.35;
+    text-align: left !important;
+    overflow-wrap: anywhere;
+}
+
+.imageAttachmentModalPreview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-height: calc(100vh - 130px);
+    padding: 16px;
+    background: #0f172a;
+}
+
+.imageAttachmentModalImage {
+    display: block;
+    max-width: 100%;
+    max-height: calc(100vh - 162px);
+    object-fit: contain;
 }
 
 .toolCallHeader {

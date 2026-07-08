@@ -550,3 +550,72 @@ describe('ChatMessageItem quick message buttons', () => {
         expect(screen.queryByRole('button', { name: 'Draft' })).toBeNull();
     });
 });
+
+describe('ChatMessageItem attachments', () => {
+    it('opens image attachments in a modal instead of a new tab link', async () => {
+        renderChatMessageItem({
+            id: 'user-message-image-attachment-1',
+            sender: 'USER',
+            content: 'Here is the picture.',
+            isComplete: true,
+            attachments: [
+                {
+                    name: 'design.png',
+                    type: 'image/png',
+                    url: 'https://example.com/design.png',
+                },
+            ],
+        });
+
+        const attachmentButton = screen.getByRole('button', { name: 'Open image attachment design.png' });
+
+        expect(attachmentButton.getAttribute('target')).toBeNull();
+
+        fireEvent.click(attachmentButton);
+
+        const dialog = await screen.findByRole('dialog', { name: 'design.png' });
+        const image = screen.getByRole('img', { name: 'design.png' });
+
+        expect(dialog).toBeDefined();
+        expect(image.getAttribute('src')).toBe('https://example.com/design.png');
+    });
+
+    it('opens image attachments by filename when the MIME type is generic', () => {
+        renderChatMessageItem({
+            id: 'user-message-image-attachment-2',
+            sender: 'USER',
+            content: 'Here is the screenshot.',
+            isComplete: true,
+            attachments: [
+                {
+                    name: 'screenshot.webp',
+                    type: 'application/octet-stream',
+                    url: 'https://example.com/files/download?id=123',
+                },
+            ],
+        });
+
+        expect(screen.getByRole('button', { name: 'Open image attachment screenshot.webp' })).toBeDefined();
+    });
+
+    it('keeps non-image attachments as new-tab links', () => {
+        renderChatMessageItem({
+            id: 'user-message-file-attachment-1',
+            sender: 'USER',
+            content: 'Here is the document.',
+            isComplete: true,
+            attachments: [
+                {
+                    name: 'report.pdf',
+                    type: 'application/pdf',
+                    url: 'https://example.com/report.pdf',
+                },
+            ],
+        });
+
+        const attachmentLink = screen.getByRole('link', { name: '📎 report.pdf' });
+
+        expect(attachmentLink.getAttribute('href')).toBe('https://example.com/report.pdf');
+        expect(attachmentLink.getAttribute('target')).toBe('_blank');
+    });
+});
