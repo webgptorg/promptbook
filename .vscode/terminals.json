@@ -190,16 +190,16 @@
         {
             "name": "🏭🍎 Build Book Editor macOS app (💤)(⏳)",
             "command": "npm run build:book-editor-macos",
-            "execute": false,
-            "onlySingle": false,
-            "focus": false
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
         },
         {
             "name": "🏭🆚 Build VSCode extension (💤)",
             "command": "npm run build:vscode-extension",
-            "execute": false,
-            "onlySingle": false,
-            "focus": false
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
         },
         {
             "name": "🧸🔠 Run Playground web app",
@@ -876,8 +876,8 @@
             "focus": true
         },
         {
-            "name": "🌎 SSH to s22.ptbk.io",
-            "command": "ssh root@s22.ptbk.io",
+            "name": "🌎 SSH to s23.ptbk.io",
+            "command": "ssh root@s23.ptbk.io",
             "execute": true,
             "onlySingle": false,
             "focus": false
