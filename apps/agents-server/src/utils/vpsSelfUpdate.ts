@@ -9,6 +9,17 @@ export { readVpsSelfUpdateOverview } from './vpsSelfUpdate/readVpsSelfUpdateOver
 export { resolveVpsSelfUpdateJobForOverview } from './vpsSelfUpdate/resolveVpsSelfUpdateJobForOverview';
 export { startVpsSelfUpdate } from './vpsSelfUpdate/startVpsSelfUpdate';
 export {
+    ensureAutomaticVpsSelfUpdateSchedulerBootstrapped,
+    rescheduleAutomaticVpsSelfUpdateScheduler,
+} from './vpsSelfUpdate/vpsSelfUpdateScheduler';
+export {
+    readVpsSelfUpdateAutomaticConfiguration,
+    updateVpsSelfUpdateAutomaticConfiguration,
+    VPS_SELF_UPDATE_AUTOMATIC_CRON_ENV_NAME,
+    VPS_SELF_UPDATE_AUTOMATIC_ENABLED_ENV_NAME,
+    VPS_SELF_UPDATE_BRANCH_ENV_NAME,
+} from './vpsSelfUpdate/vpsSelfUpdateAutomaticConfiguration';
+export {
     getCustomVpsSelfUpdateEnvironment,
     getDefaultVpsSelfUpdateEnvironment,
     resolveVpsSelfUpdateEnvironment,
@@ -23,13 +34,18 @@ export {
     resolveVpsSelfUpdateStatusFilePath,
 } from './vpsSelfUpdate/vpsSelfUpdateStateFiles';
 
-export type { VpsSelfUpdateEnvironmentId, VpsSelfUpdateEnvironmentOption } from './vpsSelfUpdate/vpsSelfUpdateEnvironment';
+export type {
+    VpsSelfUpdateEnvironmentId,
+    VpsSelfUpdateEnvironmentOption,
+} from './vpsSelfUpdate/vpsSelfUpdateEnvironment';
 export type {
     VpsSelfUpdateCandidateCommit,
     VpsSelfUpdateCandidateCommitsFilter,
+    VpsSelfUpdateAutomaticConfiguration,
     VpsSelfUpdateJobOverviewContext,
     VpsSelfUpdateJobSnapshot,
     VpsSelfUpdateJobStatus,
+    VpsSelfUpdateJobTrigger,
     VpsSelfUpdateOverview,
     VpsSelfUpdatePendingCommit,
     VpsSelfUpdateStartRequest,

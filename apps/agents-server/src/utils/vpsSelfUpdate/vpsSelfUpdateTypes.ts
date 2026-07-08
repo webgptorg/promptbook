@@ -8,6 +8,33 @@ import type { VpsSelfUpdateEnvironmentOption } from './vpsSelfUpdateEnvironment'
 export type VpsSelfUpdateJobStatus = 'idle' | 'running' | 'succeeded' | 'failed';
 
 /**
+ * Source that started one standalone VPS self-update run.
+ *
+ * @private type of `vpsSelfUpdate`
+ */
+export type VpsSelfUpdateJobTrigger = 'manual' | 'automatic';
+
+/**
+ * Browser-safe automatic self-update configuration.
+ *
+ * @private type of `vpsSelfUpdate`
+ */
+export type VpsSelfUpdateAutomaticConfiguration = {
+    /**
+     * Whether scheduled branch updates are enabled.
+     */
+    readonly isEnabled: boolean;
+    /**
+     * Branch environment tracked by the automatic scheduler.
+     */
+    readonly environment: VpsSelfUpdateEnvironmentOption;
+    /**
+     * Cron expression controlling how often the scheduler checks the tracked branch.
+     */
+    readonly cronExpression: string;
+};
+
+/**
  * Snapshot of the latest standalone VPS self-update job.
  *
  * @private type of `vpsSelfUpdate`
@@ -17,6 +44,10 @@ export type VpsSelfUpdateJobSnapshot = {
      * Last known job status.
      */
     readonly status: VpsSelfUpdateJobStatus;
+    /**
+     * Whether the job was started manually from the Update page or by the automatic scheduler.
+     */
+    readonly trigger: VpsSelfUpdateJobTrigger;
     /**
      * Background process id when available.
      */
@@ -150,6 +181,10 @@ export type VpsSelfUpdateOverview = {
      */
     readonly defaultOriginRepositoryUrl: string;
     /**
+     * Automatic self-update configuration persisted in the standalone VPS `.env` file.
+     */
+    readonly automaticConfiguration: VpsSelfUpdateAutomaticConfiguration;
+    /**
      * Latest persisted update-job state.
      */
     readonly job: VpsSelfUpdateJobSnapshot;
@@ -189,6 +224,10 @@ export type VpsSelfUpdateStartRequest = {
      * Optional override of the upstream repository URL (must be a `https://` git URL).
      */
     readonly originRepositoryUrl?: string | null;
+    /**
+     * Source that started the update. Defaults to `manual`.
+     */
+    readonly trigger?: VpsSelfUpdateJobTrigger;
 };
 
 /**

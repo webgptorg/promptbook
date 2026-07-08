@@ -18,6 +18,7 @@ export type UpdateEnvironmentOption = {
  */
 export type UpdateJobSnapshot = {
     readonly status: 'idle' | 'running' | 'succeeded' | 'failed';
+    readonly trigger: 'manual' | 'automatic';
     readonly pid: number | null;
     readonly targetBranch: string | null;
     readonly targetEnvironment: UpdateEnvironmentOption;
@@ -30,6 +31,17 @@ export type UpdateJobSnapshot = {
     readonly isStale: boolean;
     readonly logTail: string | null;
     readonly logFilePath: string | null;
+};
+
+/**
+ * Browser-safe automatic self-update configuration.
+ *
+ * @private type of `<UpdateClient/>`
+ */
+export type AutomaticUpdateConfiguration = {
+    readonly isEnabled: boolean;
+    readonly environment: UpdateEnvironmentOption;
+    readonly cronExpression: string;
 };
 
 /**
@@ -69,6 +81,7 @@ export type UpdateOverview = {
     readonly originRepositoryUrl: string;
     readonly isOriginRepositoryDefault: boolean;
     readonly defaultOriginRepositoryUrl: string;
+    readonly automaticConfiguration: AutomaticUpdateConfiguration;
     readonly job: UpdateJobSnapshot;
     readonly error?: string;
 };

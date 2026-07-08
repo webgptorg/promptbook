@@ -10,7 +10,7 @@ export type AdminChatTaskView = 'active' | 'running' | 'queued' | 'failed' | 'al
 /**
  * Durable task kinds currently surfaced by the admin task manager.
  *
- * `VPS_SELF_UPDATE` represents the standalone VPS self-update session triggered from `/admin/update`.
+ * `VPS_SELF_UPDATE` represents a manual or automatic standalone VPS self-update session.
  * `BROWSER_PREVIEW` represents an ephemeral live browser stream used by citation previews.
  *
  * @private internal admin utility of Agents Server

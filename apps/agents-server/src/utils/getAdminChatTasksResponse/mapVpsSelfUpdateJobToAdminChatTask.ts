@@ -34,9 +34,11 @@ export function mapVpsSelfUpdateJobToAdminChatTask(job: VpsSelfUpdateJobSnapshot
     const updatedAt = finishedAt || startedAt || new Date().toISOString();
     const errorSummary = job.errorMessage || null;
     const currentStepDetails = job.currentStep || null;
+    const triggerLabel = formatVpsSelfUpdateTrigger(job.trigger);
+    const taskId = `${VPS_SELF_UPDATE_ADMIN_CHAT_TASK_ID}:${job.trigger}`;
 
     return {
-        id: VPS_SELF_UPDATE_ADMIN_CHAT_TASK_ID,
+        id: taskId,
         kind: 'VPS_SELF_UPDATE',
         status,
         createdAt: startedAt || updatedAt,
@@ -56,12 +58,22 @@ export function mapVpsSelfUpdateJobToAdminChatTask(job: VpsSelfUpdateJobSnapshot
         lastErrorDetails: currentStepDetails,
         userId: 0,
         username: null,
-        agentPermanentId: VPS_SELF_UPDATE_ADMIN_CHAT_TASK_ID,
-        agentName: job.targetEnvironment.label,
+        agentPermanentId: taskId,
+        agentName: `${triggerLabel} self-update: ${job.targetEnvironment.label}`,
         chatId: job.targetBranch || job.targetEnvironment.branch || VPS_SELF_UPDATE_ADMIN_CHAT_TASK_ID,
         workerId: job.pid !== null ? String(job.pid) : null,
-        queueName: VPS_SELF_UPDATE_ADMIN_CHAT_TASK_QUEUE_NAME,
+        queueName: `${VPS_SELF_UPDATE_ADMIN_CHAT_TASK_QUEUE_NAME}:${job.trigger}`,
     };
+}
+
+/**
+ * Formats one self-update trigger for task-manager display.
+ *
+ * @param trigger - Persisted self-update trigger.
+ * @returns Capitalized trigger label.
+ */
+function formatVpsSelfUpdateTrigger(trigger: VpsSelfUpdateJobSnapshot['trigger']): string {
+    return trigger === 'automatic' ? 'Automatic' : 'Manual';
 }
 
 /**

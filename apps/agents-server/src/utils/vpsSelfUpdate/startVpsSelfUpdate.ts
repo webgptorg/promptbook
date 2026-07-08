@@ -18,7 +18,7 @@ import {
     resolveVpsSelfUpdateStatusFilePath,
     writeVpsSelfUpdateStatusFile,
 } from './vpsSelfUpdateStateFiles';
-import type { VpsSelfUpdateOverview, VpsSelfUpdateStartRequest } from './vpsSelfUpdateTypes';
+import type { VpsSelfUpdateJobTrigger, VpsSelfUpdateOverview, VpsSelfUpdateStartRequest } from './vpsSelfUpdateTypes';
 
 /**
  * Starts one detached VPS self-update run for the selected environment.
@@ -42,6 +42,7 @@ export async function startVpsSelfUpdate(request: VpsSelfUpdateStartRequest): Pr
     }
 
     const targetEnvironment = resolveVpsSelfUpdateEnvironment(request.environmentId);
+    const trigger = normalizeVpsSelfUpdateJobTrigger(request.trigger);
     const isCustomEnvironment = targetEnvironment.isCustom;
     const targetRef = isCustomEnvironment
         ? normalizeVpsSelfUpdateArbitraryRef(request.customRef)
@@ -94,6 +95,7 @@ export async function startVpsSelfUpdate(request: VpsSelfUpdateStartRequest): Pr
                 ...createVpsInstallerCommandEnvironment(),
                 PTBK_SELF_UPDATE_STATUS_FILE: statusFilePath,
                 PTBK_SELF_UPDATE_LOG_FILE: logFilePath,
+                PTBK_SELF_UPDATE_TRIGGER: trigger,
                 PTBK_TARGET_REPOSITORY_REF: targetRef,
                 PROMPTBOOK_REPOSITORY_URL: originRepositoryUrl,
             },
@@ -101,9 +103,10 @@ export async function startVpsSelfUpdate(request: VpsSelfUpdateStartRequest): Pr
 
         await writeVpsSelfUpdateStatusFile({
             STATUS: 'running',
+            TRIGGER: trigger,
             PID: String(child.pid ?? ''),
             TARGET_REF: targetRef,
-            CURRENT_STEP_B64: encodeStatusField('Queued standalone VPS self-update.'),
+            CURRENT_STEP_B64: encodeStatusField(createQueuedVpsSelfUpdateStep(trigger)),
             ERROR_MESSAGE_B64: '',
             STARTED_AT: startedAt,
             FINISHED_AT: '',
@@ -118,6 +121,28 @@ export async function startVpsSelfUpdate(request: VpsSelfUpdateStartRequest): Pr
     }
 
     return readVpsSelfUpdateOverview();
+}
+
+/**
+ * Normalizes one self-update trigger value.
+ *
+ * @param trigger - Optional trigger from the caller.
+ * @returns Supported trigger value.
+ */
+function normalizeVpsSelfUpdateJobTrigger(trigger: VpsSelfUpdateJobTrigger | undefined): VpsSelfUpdateJobTrigger {
+    return trigger === 'automatic' ? 'automatic' : 'manual';
+}
+
+/**
+ * Builds the initial queued status step for the selected trigger.
+ *
+ * @param trigger - Source that started the update.
+ * @returns Human-readable initial status.
+ */
+function createQueuedVpsSelfUpdateStep(trigger: VpsSelfUpdateJobTrigger): string {
+    return trigger === 'automatic'
+        ? 'Queued automatic standalone VPS self-update.'
+        : 'Queued standalone VPS self-update.';
 }
 
 /**

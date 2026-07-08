@@ -61,6 +61,7 @@ APT_LOCK_PATHS=(
 )
 PTBK_SELF_UPDATE_STATUS_FILE="${PTBK_SELF_UPDATE_STATUS_FILE:-$INSTALL_DIR/.promptbook/self-update/self-update.status}"
 PTBK_SELF_UPDATE_LOG_FILE="${PTBK_SELF_UPDATE_LOG_FILE:-$INSTALL_DIR/.promptbook/self-update/self-update.log}"
+PTBK_SELF_UPDATE_TRIGGER="${PTBK_SELF_UPDATE_TRIGGER:-manual}"
 SELF_UPDATE_STARTED_AT=""
 SELF_UPDATE_CURRENT_COMMIT=""
 SELF_UPDATE_TARGET_COMMIT=""
@@ -306,6 +307,7 @@ write_self_update_status_file() {
     "${SUDO[@]}" mkdir -p "$(dirname "$PTBK_SELF_UPDATE_STATUS_FILE")"
     "${SUDO[@]}" tee "$PTBK_SELF_UPDATE_STATUS_FILE" >/dev/null <<EOF
 STATUS=$status
+TRIGGER=$PTBK_SELF_UPDATE_TRIGGER
 PID=$pid_value
 TARGET_REF=$target_ref
 CURRENT_STEP_B64=$current_step_b64

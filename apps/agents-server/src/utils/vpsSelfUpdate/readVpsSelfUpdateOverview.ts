@@ -3,6 +3,7 @@ import {
     readCurrentVpsSelfUpdateEnvironment,
     resolveManagedPromptbookRepositoryDirectory,
 } from './vpsSelfUpdateConfiguration';
+import { readVpsSelfUpdateAutomaticConfiguration } from './vpsSelfUpdateAutomaticConfiguration';
 import { VPS_SELF_UPDATE_ENVIRONMENTS, type VpsSelfUpdateEnvironmentOption } from './vpsSelfUpdateEnvironment';
 import {
     readConfiguredVpsSelfUpdateOriginRepositoryUrl,
@@ -33,6 +34,7 @@ export async function readVpsSelfUpdateOverview(): Promise<VpsSelfUpdateOverview
     const scriptPath = await resolveVpsInstallerScriptPath();
     const job = await readPersistedVpsSelfUpdateJob();
     const originRepositoryUrl = await readConfiguredVpsSelfUpdateOriginRepositoryUrl();
+    const automaticConfiguration = await readVpsSelfUpdateAutomaticConfiguration();
 
     if (process.platform !== 'linux') {
         return createUnavailableOverview({
@@ -40,6 +42,7 @@ export async function readVpsSelfUpdateOverview(): Promise<VpsSelfUpdateOverview
             repositoryDirectory,
             job,
             originRepositoryUrl,
+            automaticConfiguration,
             unavailableReason: 'Self-update is available only on the standalone Linux VPS deployment.',
         });
     }
@@ -50,6 +53,7 @@ export async function readVpsSelfUpdateOverview(): Promise<VpsSelfUpdateOverview
             repositoryDirectory,
             job,
             originRepositoryUrl,
+            automaticConfiguration,
             unavailableReason: 'The shared VPS installer script could not be found on this server.',
         });
     }
@@ -60,6 +64,7 @@ export async function readVpsSelfUpdateOverview(): Promise<VpsSelfUpdateOverview
             repositoryDirectory: null,
             job,
             originRepositoryUrl,
+            automaticConfiguration,
             unavailableReason: 'The managed Promptbook repository directory is not configured on this server.',
         });
     }
@@ -110,6 +115,7 @@ export async function readVpsSelfUpdateOverview(): Promise<VpsSelfUpdateOverview
         originRepositoryUrl,
         isOriginRepositoryDefault: originRepositoryUrl === VPS_SELF_UPDATE_DEFAULT_ORIGIN_REPOSITORY_URL,
         defaultOriginRepositoryUrl: VPS_SELF_UPDATE_DEFAULT_ORIGIN_REPOSITORY_URL,
+        automaticConfiguration,
         job: resolvedJob,
     };
 }
@@ -125,6 +131,7 @@ function createUnavailableOverview(context: {
     readonly repositoryDirectory: string | null;
     readonly job: VpsSelfUpdateJobSnapshot;
     readonly originRepositoryUrl: string;
+    readonly automaticConfiguration: VpsSelfUpdateOverview['automaticConfiguration'];
     readonly unavailableReason: string;
 }): VpsSelfUpdateOverview {
     return {
@@ -147,6 +154,7 @@ function createUnavailableOverview(context: {
         originRepositoryUrl: context.originRepositoryUrl,
         isOriginRepositoryDefault: context.originRepositoryUrl === VPS_SELF_UPDATE_DEFAULT_ORIGIN_REPOSITORY_URL,
         defaultOriginRepositoryUrl: VPS_SELF_UPDATE_DEFAULT_ORIGIN_REPOSITORY_URL,
+        automaticConfiguration: context.automaticConfiguration,
         job: context.job,
     };
 }

@@ -1,14 +1,30 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { CustomCommitPickerCandidate } from './CustomCommitPicker';
 import { getUpdateJobSuccessMessage } from './getUpdateJobSuccessMessage';
-import type { UpdateEnvironmentOption, UpdateOverview } from './UpdateOverview';
+import type { AutomaticUpdateConfiguration, UpdateEnvironmentOption, UpdateOverview } from './UpdateOverview';
 
 /**
  * Interval (ms) used while polling a running standalone VPS update job.
  */
 const UPDATE_OVERVIEW_REFRESH_INTERVAL_MS = 4000;
+
+/**
+ * Default draft shown before the update overview finishes loading.
+ */
+const DEFAULT_AUTOMATIC_UPDATE_CRON_EXPRESSION = '0 0 * * *';
+
+/**
+ * Draft state used by the automatic self-update configuration form.
+ *
+ * @private type of `useUpdateClientState`
+ */
+type AutomaticUpdateConfigurationDraft = {
+    readonly isEnabled: boolean;
+    readonly environmentId: string;
+    readonly cronExpression: string;
+};
 
 /**
  * Options for loading the standalone VPS update overview.
@@ -29,6 +45,19 @@ type StartUpdateRequestBody = {
     readonly environment: string;
     readonly customRef: string | null;
     readonly originRepositoryUrl: string | null;
+};
+
+/**
+ * Body sent when saving automatic self-update configuration.
+ *
+ * @private type of `useUpdateClientState`
+ */
+type SaveAutomaticUpdateConfigurationRequestBody = {
+    readonly automaticConfiguration: {
+        readonly isEnabled: boolean;
+        readonly environment: string;
+        readonly cronExpression: string;
+    };
 };
 
 /**
@@ -66,9 +95,11 @@ export type UpdateClientState = {
     readonly selectedEnvironment: UpdateEnvironmentOption | null;
     readonly customRef: string;
     readonly originRepositoryUrlOverride: string;
+    readonly automaticConfigurationDraft: AutomaticUpdateConfigurationDraft;
     readonly isAdvancedExpanded: boolean;
     readonly isLoading: boolean;
     readonly isStartingUpdate: boolean;
+    readonly isSavingAutomaticConfiguration: boolean;
     readonly errorMessage: string | null;
     readonly successMessage: string | null;
     readonly isCustomEnvironmentSelected: boolean;
@@ -77,15 +108,17 @@ export type UpdateClientState = {
     readonly isCustomRefRelease: boolean;
     readonly isCustomRefMissing: boolean;
     readonly isOriginRepositoryUrlOverrideChanged: boolean;
+    readonly isAutomaticConfigurationChanged: boolean;
     readonly updateTerminalId: string;
     readonly updateTerminalEmptyState: string;
     readonly loadOverview: (options?: LoadUpdateOverviewOptions) => Promise<void>;
     readonly startUpdate: () => Promise<void>;
+    readonly saveAutomaticConfiguration: () => Promise<void>;
+    readonly changeAutomaticUpdateEnabled: (isEnabled: boolean) => void;
+    readonly selectAutomaticUpdateEnvironment: (environmentId: string) => void;
+    readonly changeAutomaticUpdateCronExpression: (cronExpression: string) => void;
     readonly selectEnvironment: (environmentId: string) => void;
-    readonly selectCustomRef: (
-        nextRef: string,
-        matchedCandidate: CustomCommitPickerCandidate | null,
-    ) => void;
+    readonly selectCustomRef: (nextRef: string, matchedCandidate: CustomCommitPickerCandidate | null) => void;
     readonly changeOriginRepositoryUrlOverride: (nextValue: string) => void;
     readonly toggleAdvanced: () => void;
 };
@@ -103,11 +136,18 @@ export function useUpdateClientState(): UpdateClientState {
     const [customRef, setCustomRef] = useState<string>('');
     const [customCandidate, setCustomCandidate] = useState<CustomCommitPickerCandidate | null>(null);
     const [originRepositoryUrlOverride, setOriginRepositoryUrlOverride] = useState<string>('');
+    const [automaticConfigurationDraft, setAutomaticConfigurationDraft] = useState<AutomaticUpdateConfigurationDraft>({
+        isEnabled: false,
+        environmentId: 'production',
+        cronExpression: DEFAULT_AUTOMATIC_UPDATE_CRON_EXPRESSION,
+    });
     const [isAdvancedExpanded, setIsAdvancedExpanded] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState(true);
     const [isStartingUpdate, setIsStartingUpdate] = useState(false);
+    const [isSavingAutomaticConfiguration, setIsSavingAutomaticConfiguration] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
+    const isAutomaticConfigurationDirtyRef = useRef(false);
 
     const loadOverview = useCallback(async (options?: LoadUpdateOverviewOptions): Promise<void> => {
         try {
@@ -123,6 +163,9 @@ export function useUpdateClientState(): UpdateClientState {
                 (currentSelectedEnvironmentId) => currentSelectedEnvironmentId || payload.currentEnvironment.id,
             );
             setOriginRepositoryUrlOverride((currentValue) => currentValue || payload.originRepositoryUrl);
+            if (!isAutomaticConfigurationDirtyRef.current) {
+                setAutomaticConfigurationDraft(createAutomaticUpdateConfigurationDraft(payload.automaticConfiguration));
+            }
             if (payload.job.status === 'succeeded') {
                 setSuccessMessage(getUpdateJobSuccessMessage(payload.job));
             } else if (payload.job.status === 'failed') {
@@ -172,6 +215,10 @@ export function useUpdateClientState(): UpdateClientState {
         overview,
         originRepositoryUrlOverride,
     );
+    const isAutomaticConfigurationChanged = isAutomaticUpdateConfigurationChanged(
+        automaticConfigurationDraft,
+        overview?.automaticConfiguration ?? null,
+    );
     const updateTerminalId = buildUpdateTerminalId(overview);
     const updateTerminalEmptyState = getUpdateTerminalEmptyState(isLoading, overview);
 
@@ -218,6 +265,50 @@ export function useUpdateClientState(): UpdateClientState {
         selectedEnvironment,
     ]);
 
+    const saveAutomaticConfiguration = useCallback(async (): Promise<void> => {
+        try {
+            setIsSavingAutomaticConfiguration(true);
+            setErrorMessage(null);
+            setSuccessMessage(null);
+
+            const payload = await saveAutomaticUpdateConfiguration(automaticConfigurationDraft);
+
+            setOverview(payload);
+            setSelectedEnvironmentId(payload.currentEnvironment.id);
+            setAutomaticConfigurationDraft(createAutomaticUpdateConfigurationDraft(payload.automaticConfiguration));
+            isAutomaticConfigurationDirtyRef.current = false;
+            setSuccessMessage('Automatic self-update configuration saved.');
+        } catch (error) {
+            setErrorMessage(getErrorMessage(error, 'Failed to save automatic self-update configuration.'));
+        } finally {
+            setIsSavingAutomaticConfiguration(false);
+        }
+    }, [automaticConfigurationDraft]);
+
+    const changeAutomaticUpdateEnabled = useCallback((isEnabled: boolean): void => {
+        isAutomaticConfigurationDirtyRef.current = true;
+        setAutomaticConfigurationDraft((currentDraft) => ({
+            ...currentDraft,
+            isEnabled,
+        }));
+    }, []);
+
+    const selectAutomaticUpdateEnvironment = useCallback((environmentId: string): void => {
+        isAutomaticConfigurationDirtyRef.current = true;
+        setAutomaticConfigurationDraft((currentDraft) => ({
+            ...currentDraft,
+            environmentId,
+        }));
+    }, []);
+
+    const changeAutomaticUpdateCronExpression = useCallback((cronExpression: string): void => {
+        isAutomaticConfigurationDirtyRef.current = true;
+        setAutomaticConfigurationDraft((currentDraft) => ({
+            ...currentDraft,
+            cronExpression,
+        }));
+    }, []);
+
     const selectEnvironment = useCallback((environmentId: string): void => {
         setSelectedEnvironmentId(environmentId);
     }, []);
@@ -239,9 +330,11 @@ export function useUpdateClientState(): UpdateClientState {
         selectedEnvironment,
         customRef,
         originRepositoryUrlOverride,
+        automaticConfigurationDraft,
         isAdvancedExpanded,
         isLoading,
         isStartingUpdate,
+        isSavingAutomaticConfiguration,
         errorMessage,
         successMessage,
         isCustomEnvironmentSelected,
@@ -250,10 +343,15 @@ export function useUpdateClientState(): UpdateClientState {
         isCustomRefRelease,
         isCustomRefMissing,
         isOriginRepositoryUrlOverrideChanged,
+        isAutomaticConfigurationChanged,
         updateTerminalId,
         updateTerminalEmptyState,
         loadOverview,
         startUpdate,
+        saveAutomaticConfiguration,
+        changeAutomaticUpdateEnabled,
+        selectAutomaticUpdateEnvironment,
+        changeAutomaticUpdateCronExpression,
         selectEnvironment,
         selectCustomRef,
         changeOriginRepositoryUrlOverride: setOriginRepositoryUrlOverride,
@@ -305,6 +403,51 @@ async function startUpdateJob(requestBody: StartUpdateRequestBody): Promise<Upda
 }
 
 /**
+ * Saves automatic self-update configuration with the prepared API request body.
+ *
+ * @param draft - Automatic self-update form draft.
+ * @returns Updated overview snapshot returned by the server.
+ *
+ * @private function of `useUpdateClientState`
+ */
+async function saveAutomaticUpdateConfiguration(draft: AutomaticUpdateConfigurationDraft): Promise<UpdateOverview> {
+    const response = await fetch('/api/admin/update', {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(createSaveAutomaticUpdateConfigurationRequestBody(draft)),
+    });
+    const payload = (await response.json()) as UpdateOverview;
+
+    if (!response.ok) {
+        throw new Error(payload.error || 'Failed to save automatic self-update configuration.');
+    }
+
+    return payload;
+}
+
+/**
+ * Builds the PATCH body for saving automatic self-update configuration.
+ *
+ * @param draft - Automatic self-update form draft.
+ * @returns Request body accepted by `/api/admin/update`.
+ *
+ * @private function of `useUpdateClientState`
+ */
+function createSaveAutomaticUpdateConfigurationRequestBody(
+    draft: AutomaticUpdateConfigurationDraft,
+): SaveAutomaticUpdateConfigurationRequestBody {
+    return {
+        automaticConfiguration: {
+            isEnabled: draft.isEnabled,
+            environment: draft.environmentId,
+            cronExpression: draft.cronExpression.trim(),
+        },
+    };
+}
+
+/**
  * Builds the POST body for starting the update without mixing UI state decisions into the network call.
  *
  * @param options - Current target environment, custom ref, and origin override state.
@@ -326,6 +469,48 @@ function createStartUpdateRequestBody(options: CreateStartUpdateRequestBodyOptio
         customRef: isCustomEnvironmentSelected ? customRef.trim() : null,
         originRepositoryUrl: isOriginRepositoryUrlOverrideChanged ? originRepositoryUrlOverride.trim() : null,
     };
+}
+
+/**
+ * Creates a form draft from the persisted automatic self-update configuration.
+ *
+ * @param configuration - Persisted automatic configuration.
+ * @returns Form draft.
+ *
+ * @private function of `useUpdateClientState`
+ */
+function createAutomaticUpdateConfigurationDraft(
+    configuration: AutomaticUpdateConfiguration,
+): AutomaticUpdateConfigurationDraft {
+    return {
+        isEnabled: configuration.isEnabled,
+        environmentId: configuration.environment.id,
+        cronExpression: configuration.cronExpression,
+    };
+}
+
+/**
+ * Returns whether the automatic self-update draft differs from the persisted configuration.
+ *
+ * @param draft - Current form draft.
+ * @param configuration - Persisted automatic configuration from the overview.
+ * @returns `true` when there are unsaved automatic self-update changes.
+ *
+ * @private function of `useUpdateClientState`
+ */
+function isAutomaticUpdateConfigurationChanged(
+    draft: AutomaticUpdateConfigurationDraft,
+    configuration: AutomaticUpdateConfiguration | null,
+): boolean {
+    if (!configuration) {
+        return false;
+    }
+
+    return (
+        draft.isEnabled !== configuration.isEnabled ||
+        draft.environmentId !== configuration.environment.id ||
+        draft.cronExpression.trim() !== configuration.cronExpression
+    );
 }
 
 /**
@@ -411,7 +596,9 @@ function isOriginRepositoryUrlOverrideChangedForOverview(
  * @private function of `useUpdateClientState`
  */
 function buildUpdateTerminalId(overview: UpdateOverview | null): string {
-    return `standalone-vps-update:${overview?.job.startedAt || overview?.job.finishedAt || overview?.job.status || 'loading'}`;
+    return `standalone-vps-update:${
+        overview?.job.startedAt || overview?.job.finishedAt || overview?.job.status || 'loading'
+    }`;
 }
 
 /**

@@ -7,6 +7,7 @@ import {
     resolveVpsSelfUpdateLogFilePath,
 } from './vpsSelfUpdateStateFiles';
 import type { VpsSelfUpdateJobSnapshot, VpsSelfUpdateJobStatus } from './vpsSelfUpdateTypes';
+import type { VpsSelfUpdateJobTrigger } from './vpsSelfUpdateTypes';
 
 /**
  * Reads a lightweight snapshot of the currently persisted standalone VPS self-update job.
@@ -39,10 +40,13 @@ export async function readPersistedVpsSelfUpdateJob(): Promise<VpsSelfUpdateJobS
     const logFilePath = statusEntries.get('LOG_FILE') || resolveVpsSelfUpdateLogFilePath();
     const rawStatus = statusEntries.get('STATUS');
     const status = isVpsSelfUpdateJobStatus(rawStatus) ? rawStatus : 'idle';
+    const rawTrigger = statusEntries.get('TRIGGER');
+    const trigger = isVpsSelfUpdateJobTrigger(rawTrigger) ? rawTrigger : 'manual';
     const isStale = status === 'running' && pid !== null ? !(await isVpsSelfUpdateProcessAlive(pid)) : false;
 
     return {
         status: isStale ? 'failed' : status,
+        trigger,
         pid,
         targetBranch,
         targetEnvironment,
@@ -100,4 +104,14 @@ function parseNullableVpsSelfUpdateInteger(value: string | undefined): number | 
  */
 function isVpsSelfUpdateJobStatus(value: string | undefined): value is VpsSelfUpdateJobStatus {
     return value === 'idle' || value === 'running' || value === 'succeeded' || value === 'failed';
+}
+
+/**
+ * Type guard for persisted job triggers.
+ *
+ * @param value - Raw trigger value.
+ * @returns `true` when supported.
+ */
+function isVpsSelfUpdateJobTrigger(value: string | undefined): value is VpsSelfUpdateJobTrigger {
+    return value === 'manual' || value === 'automatic';
 }

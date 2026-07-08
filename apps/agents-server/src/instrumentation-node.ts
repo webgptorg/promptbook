@@ -15,6 +15,21 @@ export async function registerNodeRuntimeInstrumentation(): Promise<void> {
             createAutomaticMigrationFailureLogContext(error),
         );
     }
+
+    try {
+        const { ensureAutomaticVpsSelfUpdateSchedulerBootstrapped } = await import(
+            './utils/vpsSelfUpdate/vpsSelfUpdateScheduler'
+        );
+        ensureAutomaticVpsSelfUpdateSchedulerBootstrapped();
+    } catch (error) {
+        console.error('❌ Automatic VPS self-update scheduler failed during Agents Server instrumentation.', {
+            nextRuntime: process.env.NEXT_RUNTIME,
+            nodeEnv: process.env.NODE_ENV,
+            errorName: error instanceof Error ? error.name : undefined,
+            errorMessage: error instanceof Error ? error.message : String(error),
+            errorStack: error instanceof Error ? error.stack : undefined,
+        });
+    }
 }
 
 /**

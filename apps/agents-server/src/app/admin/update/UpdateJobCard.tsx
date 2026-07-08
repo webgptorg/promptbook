@@ -125,13 +125,28 @@ function UpdateJobSummaryGrid({
     readonly language: ServerLanguageCode;
 }) {
     return (
-        <dl className="grid gap-4 text-sm text-slate-600 md:grid-cols-2 xl:grid-cols-4">
+        <dl className="grid gap-4 text-sm text-slate-600 md:grid-cols-2 xl:grid-cols-5">
             <UpdateJobMetric label="Target" value={job?.targetEnvironment.label || 'Production'} />
+            <UpdateJobMetric label="Trigger" value={formatUpdateJobTrigger(job)} />
             <UpdateJobMetric label="Step" value={job?.currentStep || 'Idle'} />
             <UpdateJobMetric label="Started" value={formatHumanReadableTimestamp(job?.startedAt, language)} />
             <UpdateJobMetric label="Finished" value={formatHumanReadableTimestamp(job?.finishedAt, language)} />
         </dl>
     );
+}
+
+/**
+ * Formats the update job trigger for the summary grid.
+ *
+ * @param job - Latest job snapshot.
+ * @returns Human-readable trigger label.
+ */
+function formatUpdateJobTrigger(job: UpdateJobSnapshot | null): string {
+    if (!job || job.status === 'idle') {
+        return 'Manual';
+    }
+
+    return job.trigger === 'automatic' ? 'Automatic' : 'Manual';
 }
 
 /**

@@ -67,6 +67,7 @@ describe('resolveVpsSelfUpdateJobForOverview', () => {
 function createStaleUpdateJob(overrides: Partial<VpsSelfUpdateJobSnapshot> = {}): VpsSelfUpdateJobSnapshot {
     return {
         status: 'failed',
+        trigger: 'manual',
         pid: 1234,
         targetBranch: PRODUCTION_ENVIRONMENT.branch,
         targetEnvironment: PRODUCTION_ENVIRONMENT,

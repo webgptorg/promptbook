@@ -3,6 +3,7 @@
 import { RefreshCcw } from 'lucide-react';
 import { Card } from '../../../components/Homepage/Card';
 import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
+import { AutomaticSelfUpdateConfigurationCard } from './AutomaticSelfUpdateConfigurationCard';
 import { CurrentDeploymentCard } from './CurrentDeploymentCard';
 import { PendingCommitsCard } from './PendingCommitsCard';
 import { TargetEnvironmentCard } from './TargetEnvironmentCard';
@@ -60,9 +61,15 @@ export function UpdateClient() {
                     <CurrentDeploymentCard overview={state.overview} language={language} />
                 </Card>
 
-                <Card className="hover:border-gray-200 hover:shadow-md">
-                    <TargetEnvironmentCard state={state} language={language} />
-                </Card>
+                <div className="space-y-4">
+                    <Card className="hover:border-gray-200 hover:shadow-md">
+                        <TargetEnvironmentCard state={state} language={language} />
+                    </Card>
+
+                    <Card className="hover:border-gray-200 hover:shadow-md">
+                        <AutomaticSelfUpdateConfigurationCard state={state} />
+                    </Card>
+                </div>
             </div>
 
             <UpdateJobCard state={state} language={language} />
