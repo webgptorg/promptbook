@@ -1,4 +1,4 @@
-[ ]
+[ ] !
 
 [✨🎎] The self-update of the Agents server should show information about Migration
 
