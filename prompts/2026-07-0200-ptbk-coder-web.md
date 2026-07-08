@@ -1,4 +1,4 @@
-[ ] !
+[x] ~$1.41 an hour by OpenAI Codex `gpt-5.5`
 
 [✨🍖] Make a website for `ptbk coder`
 
@@ -36,3 +36,4 @@ ptbk coder init
 
 ptbk coder server --harness claude-code --model fable --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder
 ```
+
