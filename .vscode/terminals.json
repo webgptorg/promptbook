@@ -229,22 +229,22 @@
             "focus": true
         },
         {
-            "name": "(❗) ✨🔼 Update the preview Agents servers (live / `main` -> `preview`) (💤)",
-            "command": "git branch --force preview main && git push origin preview --force-with-lease && (cd ./apps/agents-server/ && npx tsx ./src/database/migrate.ts --only=preview)",
+            "name": "(❗) ✨🔼 Update Agent server (live / `main` -> `preview`) (💤)",
+            "command": "git branch --force preview main && git push origin preview --force-with-lease",
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
-            "name": "(❗❗) ✨🔼 Update the production Agents servers (`preview` -> `production`) (💤)",
-            "command": "git branch --force production preview && git push origin production --force-with-lease && (cd ./apps/agents-server/ && npx tsx ./src/database/migrate.ts --only=production)",
+            "name": "(❗❗) ✨🔼 Update Agent server (`preview` -> `production`) (💤)",
+            "command": "git branch --force production preview && git push origin production --force-with-lease",
             "execute": false,
-            "onlySingle": true,
-            "focus": true
+            "onlySingle": false,
+            "focus": false
         },
         {
-            "name": "(❗❗❗) ✨🔼 Update the LTS Agents servers (`production` -> `lts`) (💤)",
-            "command": "git branch --force lts production && git push origin lts --force-with-lease && (cd ./apps/agents-server/ && npx tsx ./src/database/migrate.ts --only=lts)",
+            "name": "(❗❗❗) ✨🔼 Update Agent server (`production` -> `lts`) (💤)",
+            "command": "git branch --force lts production && git push origin lts --force-with-lease",
             "execute": false,
             "onlySingle": true,
             "focus": true
