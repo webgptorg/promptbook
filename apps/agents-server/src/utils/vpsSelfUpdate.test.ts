@@ -80,6 +80,15 @@ function createStaleUpdateJob(overrides: Partial<VpsSelfUpdateJobSnapshot> = {})
         isStale: true,
         logTail: null,
         logFilePath: '/tmp/promptbook-self-update.log',
+        databaseMigrations: {
+            status: 'succeeded',
+            processedPrefixes: [],
+            totalMigrationFiles: null,
+            perPrefix: [],
+            isSkippedDueToActiveMigrationLock: null,
+            errorMessage: null,
+            summaryFilePath: null,
+        },
         ...overrides,
     };
 }

@@ -63,6 +63,30 @@ describe('runDatabaseMigrations', () => {
         currentQueryHandler = async () => ({ rows: [] });
     });
 
+    it('returns applied migration filenames for each migrated prefix', async () => {
+        mockReadMigrationFiles.mockResolvedValue(['001_add_table.sql', '002_add_index.sql']);
+
+        const migrationResult = await runDatabaseMigrations({
+            prefixes: ['server_Test_'],
+            connectionString: 'postgres://example.test/db',
+            appliedBy: DATABASE_MIGRATION_APPLIED_BY.MANUAL,
+            logger: createSilentLogger(),
+        });
+
+        expect(migrationResult).toEqual({
+            processedPrefixes: ['server_Test_'],
+            totalMigrationFiles: 2,
+            perPrefix: [
+                {
+                    prefix: 'server_Test_',
+                    appliedCount: 2,
+                    appliedMigrationFiles: ['001_add_table.sql', '002_add_index.sql'],
+                },
+            ],
+            isSkippedDueToActiveMigrationLock: false,
+        });
+    });
+
     it('adds advisory-lock timeout guidance when waiting for the migration lock times out', async () => {
         currentQueryHandler = async (sql) => {
             const normalizedSql = normalizeSql(sql);

@@ -30,6 +30,7 @@ export { VPS_SELF_UPDATE_DEFAULT_ORIGIN_REPOSITORY_URL } from './vpsSelfUpdate/v
 export {
     encodeStatusField,
     readVpsSelfUpdateLogFileContent,
+    resolveVpsSelfUpdateDatabaseMigrationSummaryFilePath,
     resolveVpsSelfUpdateLogFilePath,
     resolveVpsSelfUpdateStatusFilePath,
 } from './vpsSelfUpdate/vpsSelfUpdateStateFiles';
@@ -42,6 +43,9 @@ export type {
     VpsSelfUpdateCandidateCommit,
     VpsSelfUpdateCandidateCommitsFilter,
     VpsSelfUpdateAutomaticConfiguration,
+    VpsSelfUpdateDatabaseMigrationPrefixSummary,
+    VpsSelfUpdateDatabaseMigrationSnapshot,
+    VpsSelfUpdateDatabaseMigrationStatus,
     VpsSelfUpdateJobOverviewContext,
     VpsSelfUpdateJobSnapshot,
     VpsSelfUpdateJobStatus,

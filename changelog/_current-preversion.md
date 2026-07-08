@@ -1,3 +1,5 @@
+-   Added database migration details to the Agents Server standalone VPS self-update page. The shared migration runner now reports newly applied migration filenames per prefix, the self-update migration command writes a machine-readable summary into the existing self-update state directory, and `/admin/update` shows migration status, checked file count, processed prefixes, applied count, and applied filenames alongside the update job log.
+
 -   Added a new Next.js landing page app for `ptbk coder` in `apps/coder-landing`. The dark-mode page explains the prompt-file workflow from `npm install ptbk` and `ptbk coder init` through server mode, verification, Git commits, harness selection, and advanced queue operation, with durable implementation specs in `apps/coder-landing/specs`.
 
 -   Fixed `scripts/repair-imports/repair-imports.ts` so cross-boundary imports from `src` to `apps/agents-server/src` can be repaired. The shared project entity scanner can now include app source exports when requested, which lets the repair script resolve Agents Server constants such as `DEFAULT_LOCAL_AGENT_RUNNER_MAX_FAILED_ATTEMPTS` without broadening the files it rewrites.

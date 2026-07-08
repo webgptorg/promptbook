@@ -14,6 +14,17 @@ export function resolveVpsSelfUpdateLogFilePath(): string {
 }
 
 /**
+ * Resolves the filesystem path of the persisted self-update database migration summary file.
+ *
+ * @returns Absolute migration-summary file path.
+ *
+ * @private function of `vpsSelfUpdate`
+ */
+export function resolveVpsSelfUpdateDatabaseMigrationSummaryFilePath(): string {
+    return resolve(resolveVpsSelfUpdateStateDirectory(), 'self-update-database-migrations.json');
+}
+
+/**
  * Resolves the filesystem path of the persisted self-update status file.
  *
  * @returns Absolute status-file path.

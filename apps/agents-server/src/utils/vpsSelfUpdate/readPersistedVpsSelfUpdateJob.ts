@@ -6,8 +6,25 @@ import {
     readVpsSelfUpdateStatusFile,
     resolveVpsSelfUpdateLogFilePath,
 } from './vpsSelfUpdateStateFiles';
-import type { VpsSelfUpdateJobSnapshot, VpsSelfUpdateJobStatus } from './vpsSelfUpdateTypes';
+import type {
+    VpsSelfUpdateDatabaseMigrationSnapshot,
+    VpsSelfUpdateDatabaseMigrationStatus,
+    VpsSelfUpdateJobSnapshot,
+    VpsSelfUpdateJobStatus,
+} from './vpsSelfUpdateTypes';
 import type { VpsSelfUpdateJobTrigger } from './vpsSelfUpdateTypes';
+
+/**
+ * Status values accepted from the shell-owned database migration status field.
+ */
+const VPS_SELF_UPDATE_DATABASE_MIGRATION_STATUSES = new Set<VpsSelfUpdateDatabaseMigrationStatus>([
+    'pending',
+    'running',
+    'succeeded',
+    'failed',
+    'skipped',
+    'unknown',
+]);
 
 /**
  * Reads a lightweight snapshot of the currently persisted standalone VPS self-update job.
@@ -43,6 +60,7 @@ export async function readPersistedVpsSelfUpdateJob(): Promise<VpsSelfUpdateJobS
     const rawTrigger = statusEntries.get('TRIGGER');
     const trigger = isVpsSelfUpdateJobTrigger(rawTrigger) ? rawTrigger : 'manual';
     const isStale = status === 'running' && pid !== null ? !(await isVpsSelfUpdateProcessAlive(pid)) : false;
+    const databaseMigrations = parseVpsSelfUpdateDatabaseMigrationSnapshot(statusEntries, status);
 
     return {
         status: isStale ? 'failed' : status,
@@ -59,6 +77,7 @@ export async function readPersistedVpsSelfUpdateJob(): Promise<VpsSelfUpdateJobS
         isStale,
         logTail: await readLastVpsSelfUpdateTextFileChunk(logFilePath),
         logFilePath,
+        databaseMigrations,
     };
 }
 
@@ -114,4 +133,163 @@ function isVpsSelfUpdateJobStatus(value: string | undefined): value is VpsSelfUp
  */
 function isVpsSelfUpdateJobTrigger(value: string | undefined): value is VpsSelfUpdateJobTrigger {
     return value === 'manual' || value === 'automatic';
+}
+
+/**
+ * Parses database migration status and summary fields from the shell-owned update status file.
+ *
+ * @param statusEntries - Parsed status-file fields.
+ * @param jobStatus - Persisted self-update job status.
+ * @returns Browser-safe database migration snapshot.
+ */
+function parseVpsSelfUpdateDatabaseMigrationSnapshot(
+    statusEntries: ReadonlyMap<string, string>,
+    jobStatus: VpsSelfUpdateJobStatus,
+): VpsSelfUpdateDatabaseMigrationSnapshot {
+    const rawStatus = statusEntries.get('DATABASE_MIGRATION_STATUS');
+    const summaryFilePath = statusEntries.get('DATABASE_MIGRATION_SUMMARY_FILE') || null;
+    const errorMessage = decodeVpsSelfUpdateStatusField(statusEntries.get('DATABASE_MIGRATION_ERROR_MESSAGE_B64'));
+    const summary = parseVpsSelfUpdateDatabaseMigrationSummary(
+        decodeVpsSelfUpdateStatusField(statusEntries.get('DATABASE_MIGRATION_SUMMARY_B64')),
+    );
+
+    return {
+        status: isVpsSelfUpdateDatabaseMigrationStatus(rawStatus)
+            ? rawStatus
+            : resolveMissingVpsSelfUpdateDatabaseMigrationStatus(jobStatus),
+        ...summary,
+        errorMessage,
+        summaryFilePath,
+    };
+}
+
+/**
+ * Parses the machine-readable migration summary produced by the migration CLI.
+ *
+ * @param rawSummary - JSON summary string from `PTBK_DATABASE_MIGRATION_SUMMARY_FILE`.
+ * @returns Normalized migration summary fields.
+ */
+function parseVpsSelfUpdateDatabaseMigrationSummary(
+    rawSummary: string | null,
+): Pick<
+    VpsSelfUpdateDatabaseMigrationSnapshot,
+    'processedPrefixes' | 'totalMigrationFiles' | 'perPrefix' | 'isSkippedDueToActiveMigrationLock'
+> {
+    if (!rawSummary) {
+        return createEmptyVpsSelfUpdateDatabaseMigrationSummary();
+    }
+
+    try {
+        const parsedSummary = JSON.parse(rawSummary) as unknown;
+        if (!isRecord(parsedSummary)) {
+            return createEmptyVpsSelfUpdateDatabaseMigrationSummary();
+        }
+
+        return {
+            processedPrefixes: parseStringArray(parsedSummary.processedPrefixes),
+            totalMigrationFiles: parseNullableNonNegativeInteger(parsedSummary.totalMigrationFiles),
+            perPrefix: parseVpsSelfUpdateDatabaseMigrationPrefixSummaries(parsedSummary.perPrefix),
+            isSkippedDueToActiveMigrationLock:
+                typeof parsedSummary.isSkippedDueToActiveMigrationLock === 'boolean'
+                    ? parsedSummary.isSkippedDueToActiveMigrationLock
+                    : null,
+        };
+    } catch {
+        return createEmptyVpsSelfUpdateDatabaseMigrationSummary();
+    }
+}
+
+/**
+ * Creates empty migration summary values for jobs without recorded migration details.
+ *
+ * @returns Empty database migration summary.
+ */
+function createEmptyVpsSelfUpdateDatabaseMigrationSummary(): Pick<
+    VpsSelfUpdateDatabaseMigrationSnapshot,
+    'processedPrefixes' | 'totalMigrationFiles' | 'perPrefix' | 'isSkippedDueToActiveMigrationLock'
+> {
+    return {
+        processedPrefixes: [],
+        totalMigrationFiles: null,
+        perPrefix: [],
+        isSkippedDueToActiveMigrationLock: null,
+    };
+}
+
+/**
+ * Resolves the migration status used when older status files do not contain migration fields.
+ *
+ * @param jobStatus - Persisted self-update job status.
+ * @returns Migration status fallback.
+ */
+function resolveMissingVpsSelfUpdateDatabaseMigrationStatus(
+    jobStatus: VpsSelfUpdateJobStatus,
+): VpsSelfUpdateDatabaseMigrationStatus {
+    return jobStatus === 'idle' ? 'pending' : 'unknown';
+}
+
+/**
+ * Type guard for persisted database migration statuses.
+ *
+ * @param value - Raw status value.
+ * @returns `true` when supported.
+ */
+function isVpsSelfUpdateDatabaseMigrationStatus(
+    value: string | undefined,
+): value is VpsSelfUpdateDatabaseMigrationStatus {
+    return value !== undefined && VPS_SELF_UPDATE_DATABASE_MIGRATION_STATUSES.has(value as VpsSelfUpdateDatabaseMigrationStatus);
+}
+
+/**
+ * Parses per-prefix migration summaries from untrusted JSON.
+ *
+ * @param value - Raw per-prefix JSON value.
+ * @returns Normalized per-prefix summaries.
+ */
+function parseVpsSelfUpdateDatabaseMigrationPrefixSummaries(
+    value: unknown,
+): VpsSelfUpdateDatabaseMigrationSnapshot['perPrefix'] {
+    if (!Array.isArray(value)) {
+        return [];
+    }
+
+    return value.filter(isRecord).map((prefixSummary) => ({
+        prefix: typeof prefixSummary.prefix === 'string' ? prefixSummary.prefix : '',
+        appliedCount: parseNullableNonNegativeInteger(prefixSummary.appliedCount) ?? 0,
+        appliedMigrationFiles: parseStringArray(prefixSummary.appliedMigrationFiles),
+    }));
+}
+
+/**
+ * Parses an array of strings from untrusted JSON.
+ *
+ * @param value - Raw JSON value.
+ * @returns String array.
+ */
+function parseStringArray(value: unknown): Array<string> {
+    if (!Array.isArray(value)) {
+        return [];
+    }
+
+    return value.filter((item): item is string => typeof item === 'string');
+}
+
+/**
+ * Parses a non-negative integer from untrusted JSON.
+ *
+ * @param value - Raw JSON value.
+ * @returns Parsed integer or `null`.
+ */
+function parseNullableNonNegativeInteger(value: unknown): number | null {
+    return typeof value === 'number' && Number.isInteger(value) && value >= 0 ? value : null;
+}
+
+/**
+ * Checks whether a raw JSON value is a record.
+ *
+ * @param value - Raw JSON value.
+ * @returns `true` when the value is a non-array object.
+ */
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
 }

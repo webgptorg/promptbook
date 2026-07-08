@@ -12,6 +12,45 @@ export type UpdateEnvironmentOption = {
 };
 
 /**
+ * Browser-safe database migration status recorded during one self-update job.
+ *
+ * @private type of `<UpdateClient/>`
+ */
+export type UpdateDatabaseMigrationStatus =
+    | 'pending'
+    | 'running'
+    | 'succeeded'
+    | 'failed'
+    | 'skipped'
+    | 'unknown';
+
+/**
+ * Browser-safe database migration summary for one table prefix.
+ *
+ * @private type of `<UpdateClient/>`
+ */
+export type UpdateDatabaseMigrationPrefixSummary = {
+    readonly prefix: string;
+    readonly appliedCount: number;
+    readonly appliedMigrationFiles: ReadonlyArray<string>;
+};
+
+/**
+ * Browser-safe database migration snapshot recorded during one self-update job.
+ *
+ * @private type of `<UpdateClient/>`
+ */
+export type UpdateDatabaseMigrationSnapshot = {
+    readonly status: UpdateDatabaseMigrationStatus;
+    readonly processedPrefixes: ReadonlyArray<string>;
+    readonly totalMigrationFiles: number | null;
+    readonly perPrefix: ReadonlyArray<UpdateDatabaseMigrationPrefixSummary>;
+    readonly isSkippedDueToActiveMigrationLock: boolean | null;
+    readonly errorMessage: string | null;
+    readonly summaryFilePath: string | null;
+};
+
+/**
  * Browser-safe latest update-job snapshot.
  *
  * @private type of `<UpdateClient/>`
@@ -31,6 +70,7 @@ export type UpdateJobSnapshot = {
     readonly isStale: boolean;
     readonly logTail: string | null;
     readonly logFilePath: string | null;
+    readonly databaseMigrations: UpdateDatabaseMigrationSnapshot;
 };
 
 /**

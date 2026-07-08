@@ -1,13 +1,21 @@
+import { mkdir, writeFile } from 'fs/promises';
+import { dirname } from 'path';
 import colors from 'colors';
 import {
     DATABASE_MIGRATION_APPLIED_BY,
     resolveDatabaseMigrationRuntimeConfiguration,
     runDatabaseMigrations,
+    type RunDatabaseMigrationsResult,
 } from './runDatabaseMigrations';
 import { isAgentsServerSqliteMode } from './agentsServerDatabaseMode';
 import { loadAgentsServerEnvFile } from './loadAgentsServerEnvFile';
 
 loadAgentsServerEnvFile();
+
+/**
+ * Optional output path for a machine-readable migration summary used by standalone VPS self-update.
+ */
+const DATABASE_MIGRATION_SUMMARY_FILE_ENV_NAME = 'PTBK_DATABASE_MIGRATION_SUMMARY_FILE';
 
 /**
  * Runs manual migration command from CLI arguments.
@@ -31,7 +39,7 @@ async function migrate(): Promise<void> {
     }
 
     try {
-        await runDatabaseMigrations({
+        const migrationResult = await runDatabaseMigrations({
             prefixes: runtimeConfiguration.prefixes,
             registeredServers: runtimeConfiguration.registeredServers,
             connectionString: runtimeConfiguration.connectionString,
@@ -40,6 +48,7 @@ async function migrate(): Promise<void> {
             logger: console,
             logSqlStatements: true,
         });
+        await writeDatabaseMigrationSummaryFile(migrationResult);
         console.info(colors.bgGreen('\n🎉 All migrations completed successfully'));
     } catch (error) {
         console.error(colors.bgRed('\n❌ Migration failed:'));
@@ -50,6 +59,21 @@ async function migrate(): Promise<void> {
         }
         process.exit(1);
     }
+}
+
+/**
+ * Writes machine-readable migration summary when the caller provides an output path.
+ *
+ * @param migrationResult - Result returned by the shared migration runner.
+ */
+async function writeDatabaseMigrationSummaryFile(migrationResult: RunDatabaseMigrationsResult): Promise<void> {
+    const summaryFilePath = process.env[DATABASE_MIGRATION_SUMMARY_FILE_ENV_NAME]?.trim();
+    if (!summaryFilePath) {
+        return;
+    }
+
+    await mkdir(dirname(summaryFilePath), { recursive: true });
+    await writeFile(summaryFilePath, `${JSON.stringify(migrationResult, null, 2)}\n`, 'utf-8');
 }
 
 /**

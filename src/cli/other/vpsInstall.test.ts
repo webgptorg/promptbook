@@ -310,8 +310,9 @@ describe('other/vps/install.sh', () => {
         expect(installScript).toContain(
             'Skipping PostgreSQL database migrations because Agents Server is configured for local SQLite.',
         );
+        expect(installScript).toContain('summary_file_shell="$(shell_quote "$PTBK_DATABASE_MIGRATION_SUMMARY_FILE")"');
         expect(installScript).toContain(
-            'cd $agents_server_dir_shell && PTBK_AGENTS_SERVER_ENV_FILE=$env_file_shell npx --yes tsx ./src/database/migrate.ts',
+            'cd $agents_server_dir_shell && PTBK_AGENTS_SERVER_ENV_FILE=$env_file_shell PTBK_DATABASE_MIGRATION_SUMMARY_FILE=$summary_file_shell npx --yes tsx ./src/database/migrate.ts',
         );
     });
 

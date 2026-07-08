@@ -35,6 +35,75 @@ export type VpsSelfUpdateAutomaticConfiguration = {
 };
 
 /**
+ * Persisted database migration status inside one standalone VPS self-update run.
+ *
+ * @private type of `vpsSelfUpdate`
+ */
+export type VpsSelfUpdateDatabaseMigrationStatus =
+    | 'pending'
+    | 'running'
+    | 'succeeded'
+    | 'failed'
+    | 'skipped'
+    | 'unknown';
+
+/**
+ * Browser-safe database migration summary for one table prefix.
+ *
+ * @private type of `vpsSelfUpdate`
+ */
+export type VpsSelfUpdateDatabaseMigrationPrefixSummary = {
+    /**
+     * Prefix that was processed.
+     */
+    readonly prefix: string;
+    /**
+     * Number of newly applied migration files.
+     */
+    readonly appliedCount: number;
+    /**
+     * Migration filenames newly applied for this prefix.
+     */
+    readonly appliedMigrationFiles: ReadonlyArray<string>;
+};
+
+/**
+ * Browser-safe database migration snapshot recorded during one standalone VPS self-update run.
+ *
+ * @private type of `vpsSelfUpdate`
+ */
+export type VpsSelfUpdateDatabaseMigrationSnapshot = {
+    /**
+     * Last known migration status inside the update job.
+     */
+    readonly status: VpsSelfUpdateDatabaseMigrationStatus;
+    /**
+     * Prefixes that were processed by the migration runner.
+     */
+    readonly processedPrefixes: ReadonlyArray<string>;
+    /**
+     * Number of SQL migration files discovered on disk, or `null` when not recorded yet.
+     */
+    readonly totalMigrationFiles: number | null;
+    /**
+     * Per-prefix summary from the migration runner.
+     */
+    readonly perPrefix: ReadonlyArray<VpsSelfUpdateDatabaseMigrationPrefixSummary>;
+    /**
+     * Whether migration execution was skipped because another process already held the advisory lock.
+     */
+    readonly isSkippedDueToActiveMigrationLock: boolean | null;
+    /**
+     * Error message when the migration step failed.
+     */
+    readonly errorMessage: string | null;
+    /**
+     * Absolute migration-summary file path when known.
+     */
+    readonly summaryFilePath: string | null;
+};
+
+/**
  * Snapshot of the latest standalone VPS self-update job.
  *
  * @private type of `vpsSelfUpdate`
@@ -96,6 +165,10 @@ export type VpsSelfUpdateJobSnapshot = {
      * Absolute log-file path when known.
      */
     readonly logFilePath: string | null;
+    /**
+     * Database migration status and summary recorded during this update job.
+     */
+    readonly databaseMigrations: VpsSelfUpdateDatabaseMigrationSnapshot;
 };
 
 /**

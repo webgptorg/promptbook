@@ -62,9 +62,13 @@ APT_LOCK_PATHS=(
 PTBK_SELF_UPDATE_STATUS_FILE="${PTBK_SELF_UPDATE_STATUS_FILE:-$INSTALL_DIR/.promptbook/self-update/self-update.status}"
 PTBK_SELF_UPDATE_LOG_FILE="${PTBK_SELF_UPDATE_LOG_FILE:-$INSTALL_DIR/.promptbook/self-update/self-update.log}"
 PTBK_SELF_UPDATE_TRIGGER="${PTBK_SELF_UPDATE_TRIGGER:-manual}"
+PTBK_DATABASE_MIGRATION_SUMMARY_FILE="${PTBK_DATABASE_MIGRATION_SUMMARY_FILE:-$INSTALL_DIR/.promptbook/self-update/self-update-database-migrations.json}"
 SELF_UPDATE_STARTED_AT=""
 SELF_UPDATE_CURRENT_COMMIT=""
 SELF_UPDATE_TARGET_COMMIT=""
+SELF_UPDATE_DATABASE_MIGRATION_STATUS="pending"
+SELF_UPDATE_DATABASE_MIGRATION_SUMMARY_B64=""
+SELF_UPDATE_DATABASE_MIGRATION_ERROR_MESSAGE=""
 # pm2 instance that should remain after `self_update_agents_server` exits, even on
 # failure. Tracks the blue/green progression (old → replacement after nginx switch)
 # so the failure trap can converge pm2 to a single running Agents Server instance.
@@ -300,9 +304,11 @@ write_self_update_status_file() {
     local pid_value="${8:-$$}"
     local current_step_b64=""
     local error_message_b64=""
+    local database_migration_error_message_b64=""
 
     current_step_b64="$(encode_status_field "$current_step")"
     error_message_b64="$(encode_status_field "$error_message")"
+    database_migration_error_message_b64="$(encode_status_field "$SELF_UPDATE_DATABASE_MIGRATION_ERROR_MESSAGE")"
 
     "${SUDO[@]}" mkdir -p "$(dirname "$PTBK_SELF_UPDATE_STATUS_FILE")"
     "${SUDO[@]}" tee "$PTBK_SELF_UPDATE_STATUS_FILE" >/dev/null <<EOF
@@ -317,6 +323,10 @@ FINISHED_AT=$finished_at
 CURRENT_COMMIT=$current_commit
 TARGET_COMMIT=$target_commit
 LOG_FILE=$PTBK_SELF_UPDATE_LOG_FILE
+DATABASE_MIGRATION_STATUS=$SELF_UPDATE_DATABASE_MIGRATION_STATUS
+DATABASE_MIGRATION_SUMMARY_FILE=$PTBK_DATABASE_MIGRATION_SUMMARY_FILE
+DATABASE_MIGRATION_SUMMARY_B64=$SELF_UPDATE_DATABASE_MIGRATION_SUMMARY_B64
+DATABASE_MIGRATION_ERROR_MESSAGE_B64=$database_migration_error_message_b64
 EOF
 }
 
@@ -335,6 +345,19 @@ write_failed_self_update_status_on_exit() {
     fi
 
     exit "$exit_code"
+}
+
+reset_self_update_database_migration_status() {
+    SELF_UPDATE_DATABASE_MIGRATION_STATUS="running"
+    SELF_UPDATE_DATABASE_MIGRATION_SUMMARY_B64=""
+    SELF_UPDATE_DATABASE_MIGRATION_ERROR_MESSAGE=""
+    rm -f "$PTBK_DATABASE_MIGRATION_SUMMARY_FILE"
+}
+
+record_self_update_database_migration_summary() {
+    if [[ -f "$PTBK_DATABASE_MIGRATION_SUMMARY_FILE" ]]; then
+        SELF_UPDATE_DATABASE_MIGRATION_SUMMARY_B64="$(base64 < "$PTBK_DATABASE_MIGRATION_SUMMARY_FILE" | tr -d '\n')"
+    fi
 }
 
 read_repository_commit_sha() {
@@ -2687,18 +2710,35 @@ run_agents_server_database_migrations() {
     local database_mode=""
     local env_file_shell=""
     local agents_server_dir_shell=""
+    local summary_file_shell=""
+    local migration_exit_code=0
 
     database_mode="$(get_env_value PTBK_AGENTS_SERVER_DATABASE | tr '[:upper:]' '[:lower:]')"
     if [[ "$database_mode" == "sqlite" || "$database_mode" == "local" ]]; then
+        SELF_UPDATE_DATABASE_MIGRATION_STATUS="skipped"
+        SELF_UPDATE_DATABASE_MIGRATION_ERROR_MESSAGE="PostgreSQL database migrations were skipped because Agents Server is configured for local SQLite."
         log "Skipping PostgreSQL database migrations because Agents Server is configured for local SQLite."
         return
     fi
 
     env_file_shell="$(shell_quote "$ENV_FILE")"
     agents_server_dir_shell="$(shell_quote "$PROMPTBOOK_REPOSITORY_DIR/apps/agents-server")"
+    summary_file_shell="$(shell_quote "$PTBK_DATABASE_MIGRATION_SUMMARY_FILE")"
 
     log "Running Agents Server database migrations."
-    run_as_service_user bash -lc "cd $agents_server_dir_shell && PTBK_AGENTS_SERVER_ENV_FILE=$env_file_shell npx --yes tsx ./src/database/migrate.ts"
+    run_as_service_user bash -lc "cd $agents_server_dir_shell && PTBK_AGENTS_SERVER_ENV_FILE=$env_file_shell PTBK_DATABASE_MIGRATION_SUMMARY_FILE=$summary_file_shell npx --yes tsx ./src/database/migrate.ts" || migration_exit_code=$?
+
+    if [[ "$migration_exit_code" -ne 0 ]]; then
+        SELF_UPDATE_DATABASE_MIGRATION_STATUS="failed"
+        SELF_UPDATE_DATABASE_MIGRATION_ERROR_MESSAGE="Agents Server database migrations exited with status $migration_exit_code."
+        record_self_update_database_migration_summary
+        write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Running Agents Server database migrations." "$SELF_UPDATE_DATABASE_MIGRATION_ERROR_MESSAGE" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "" "$$"
+        return "$migration_exit_code"
+    fi
+
+    SELF_UPDATE_DATABASE_MIGRATION_STATUS="succeeded"
+    SELF_UPDATE_DATABASE_MIGRATION_ERROR_MESSAGE=""
+    record_self_update_database_migration_summary
 }
 
 start_pm2_agents_server_process() {
@@ -3174,6 +3214,7 @@ self_update_agents_server() {
     write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Refreshing the Promptbook CLI launcher." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "" "$$"
     install_promptbook_cli_launcher
 
+    reset_self_update_database_migration_status
     write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Running Agents Server database migrations." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "" "$$"
     run_agents_server_database_migrations
 

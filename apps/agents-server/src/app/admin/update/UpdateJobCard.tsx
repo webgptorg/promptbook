@@ -9,6 +9,7 @@ import { downloadBlob, parseFilenameFromContentDisposition } from '../../../util
 import { formatHumanReadableTimestamp } from './formatHumanReadableTimestamp';
 import { getUpdateJobFailureMessage } from './getUpdateJobFailureMessage';
 import { getUpdateJobSuccessMessage } from './getUpdateJobSuccessMessage';
+import { UpdateDatabaseMigrationsPanel } from './UpdateDatabaseMigrationsPanel';
 import type { UpdateJobSnapshot } from './UpdateOverview';
 import type { UpdateClientState } from './useUpdateClientState';
 
@@ -74,6 +75,10 @@ export function UpdateJobCard({ state, language }: UpdateJobCardProps) {
 
                 <UpdateJobSummaryGrid job={job} language={language} />
                 <UpdateJobStatusMessage job={job} />
+                <UpdateDatabaseMigrationsPanel
+                    databaseMigrations={job?.databaseMigrations ?? null}
+                    isJobIdle={jobStatus === 'idle'}
+                />
 
                 {job?.logFilePath && (
                     <div className="text-xs text-slate-500">

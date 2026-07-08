@@ -1,5 +1,5 @@
 import { spawn } from 'child_process';
-import { mkdir, open } from 'fs/promises';
+import { mkdir, open, rm } from 'fs/promises';
 import { dirname } from 'path';
 import { NotAllowed } from '../../../../../src/errors/NotAllowed';
 import { spaceTrim } from 'spacetrim';
@@ -14,6 +14,7 @@ import { readPersistedVpsSelfUpdateJob } from './readPersistedVpsSelfUpdateJob';
 import { readVpsSelfUpdateOverview } from './readVpsSelfUpdateOverview';
 import {
     encodeStatusField,
+    resolveVpsSelfUpdateDatabaseMigrationSummaryFilePath,
     resolveVpsSelfUpdateLogFilePath,
     resolveVpsSelfUpdateStatusFilePath,
     writeVpsSelfUpdateStatusFile,
@@ -79,8 +80,10 @@ export async function startVpsSelfUpdate(request: VpsSelfUpdateStartRequest): Pr
 
     const statusFilePath = resolveVpsSelfUpdateStatusFilePath();
     const logFilePath = resolveVpsSelfUpdateLogFilePath();
+    const databaseMigrationSummaryFilePath = resolveVpsSelfUpdateDatabaseMigrationSummaryFilePath();
     const startedAt = new Date().toISOString();
     await mkdir(dirname(logFilePath), { recursive: true });
+    await rm(databaseMigrationSummaryFilePath, { force: true });
     const logHandle = await open(logFilePath, 'a');
 
     try {
@@ -97,6 +100,7 @@ export async function startVpsSelfUpdate(request: VpsSelfUpdateStartRequest): Pr
                 PTBK_SELF_UPDATE_LOG_FILE: logFilePath,
                 PTBK_SELF_UPDATE_TRIGGER: trigger,
                 PTBK_TARGET_REPOSITORY_REF: targetRef,
+                PTBK_DATABASE_MIGRATION_SUMMARY_FILE: databaseMigrationSummaryFilePath,
                 PROMPTBOOK_REPOSITORY_URL: originRepositoryUrl,
             },
         });
@@ -113,6 +117,10 @@ export async function startVpsSelfUpdate(request: VpsSelfUpdateStartRequest): Pr
             CURRENT_COMMIT: '',
             TARGET_COMMIT: '',
             LOG_FILE: logFilePath,
+            DATABASE_MIGRATION_STATUS: 'pending',
+            DATABASE_MIGRATION_SUMMARY_FILE: databaseMigrationSummaryFilePath,
+            DATABASE_MIGRATION_SUMMARY_B64: '',
+            DATABASE_MIGRATION_ERROR_MESSAGE_B64: '',
         });
 
         child.unref();

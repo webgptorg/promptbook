@@ -1,4 +1,4 @@
-[ ] !
+[x] ~$0.5976 3 hours by OpenAI Codex `gpt-5.5`
 
 [✨🎎] The self-update of the Agents server should show information about Migration
 
@@ -8,3 +8,4 @@
 -   You are working with the [Agents Server](apps/agents-server)
 
 ![alt text](screenshots/2026-07-0290-agents-server-update-show-migrations.png)
+

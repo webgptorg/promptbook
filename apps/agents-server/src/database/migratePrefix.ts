@@ -44,6 +44,10 @@ export type MigratePrefixOptions = {
      * Optional observer notified about the current prefix migration sub-step.
      */
     readonly onProgress?: (progress: MigratePrefixProgress) => void;
+    /**
+     * Optional observer notified after one migration file has been applied and recorded.
+     */
+    readonly onMigrationApplied?: (appliedMigration: MigratePrefixAppliedMigration) => void;
 };
 
 /**
@@ -75,6 +79,22 @@ export type MigratePrefixProgress = {
      * Migration file currently being applied, when relevant.
      */
     readonly migrationFile?: string;
+};
+
+/**
+ * Snapshot emitted after one migration file has been successfully applied for one prefix.
+ *
+ * @private function of runDatabaseMigrations
+ */
+export type MigratePrefixAppliedMigration = {
+    /**
+     * Prefix currently being migrated.
+     */
+    readonly prefix: string;
+    /**
+     * Migration file that has been applied and recorded.
+     */
+    readonly migrationFile: string;
 };
 
 /**
@@ -159,6 +179,10 @@ export async function applyPendingMigrationsForPrefix(options: MigratePrefixOpti
             [migrationFile, options.appliedBy],
         );
         appliedCount++;
+        options.onMigrationApplied?.({
+            prefix: options.prefix,
+            migrationFile,
+        });
         options.logger.info(`  ✅ Applied ${migrationFile}`);
     }
 
