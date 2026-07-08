@@ -354,6 +354,14 @@
             "onlySingle": true,
             "focus": true
         },
+                {
+            "name": "🧸🔠 Run ptbk coder landing page",
+            "cwd": "./apps/coder-landing/",
+            "commands": ["unset OPENAI_API_KEY && unset OPENAI_BASE_URL", "npm run dev"],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
         {
             "--note": " <- Note: [🔠] Register new apps here "
         },
