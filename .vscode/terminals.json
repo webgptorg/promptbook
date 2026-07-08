@@ -11,6 +11,143 @@
         },
 
         {
+            "name": "🐙🚀 Run ptbk coder Codex/Claude zig-zag (💸)(⏳)",
+            "commands": [
+                "set -a && source .env && set +a",
+                "unset GITHUB_TOKEN",
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness openai-codex --model gpt-5.5         --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --limit 1 --test npm run test-for-ptbk-coder",
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code  --model claude-opus-4-8 --thinking-level max   --agent agents/coding/developer.book --context AGENTS.md --limit 1 --test npm run test-for-ptbk-coder",
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness openai-codex --model gpt-5.5         --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --limit 1 --test npm run test-for-ptbk-coder",
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code  --model claude-opus-4-8 --thinking-level max   --agent agents/coding/developer.book --context AGENTS.md --limit 1 --test npm run test-for-ptbk-coder",
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness openai-codex --model gpt-5.5         --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --limit 1 --test npm run test-for-ptbk-coder",
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code  --model claude-opus-4-8 --thinking-level max   --agent agents/coding/developer.book --context AGENTS.md --limit 1 --test npm run test-for-ptbk-coder",
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness openai-codex --model gpt-5.5         --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --limit 1 --test npm run test-for-ptbk-coder",
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code  --model claude-opus-4-8 --thinking-level max   --agent agents/coding/developer.book --context AGENTS.md --limit 1 --test npm run test-for-ptbk-coder",
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness openai-codex --model gpt-5.5         --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --limit 1 --test npm run test-for-ptbk-coder",
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code  --model claude-opus-4-8 --thinking-level max   --agent agents/coding/developer.book --context AGENTS.md --limit 1 --test npm run test-for-ptbk-coder",
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness openai-codex --model gpt-5.5         --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --limit 1 --test npm run test-for-ptbk-coder",
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code  --model claude-opus-4-8 --thinking-level max   --agent agents/coding/developer.book --context AGENTS.md --limit 1 --test npm run test-for-ptbk-coder"
+            ],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🐙🚀 Run ptbk coder `gpt-5.4` Coding Agent (💸)(⏳)",
+            "commands": [
+                "set -a && source .env && set +a",
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/cli/test/ptbk.ts coder server --harness openai-codex --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --priority 1 --test npm run test-for-ptbk-coder"
+            ],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🐙🚀 Run ptbk coder `gpt-5.5` Coding Agent (💤)(💸)(⏳)",
+            "commands": [
+                "set -a && source .env && set +a",
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/cli/test/ptbk.ts coder server --harness openai-codex --model gpt-5.5 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder"
+            ],
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🐙🚀 Run ptbk coder `claude-opus-4-8` Coding Agent (💤)(💸)(⏳)",
+            "commands": [
+                "set -a && source .env && set +a",
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/cli/test/ptbk.ts coder server --harness claude-code --model claude-opus-4-8 --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder --wait-between-prompts 4h"
+            ],
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🐙🚀 Run ptbk coder `claude-fable` Coding Agent (💤)(💸)(⏳)",
+            "commands": [
+                "set -a && source .env && set +a",
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/cli/test/ptbk.ts coder server --harness claude-code --model fable --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder --wait-between-prompts 4h"
+            ],
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🐙🏭 Generate \"Generic\" prompt boilerplates for Coding Agent",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --count 10 --template prompts/_templates/common.md",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🐙🏭 Generate \"Agents server\" prompt boilerplates for Coding Agent (💤)",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --count 5 --template prompts/_templates/agents-server.md",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🐙🏭 Generate \"Utils app\" prompt boilerplates for Coding Agent",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --count 5 --template prompts/_templates/utils-app.md",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🐙🏭 Generate \"ptbk coder\" prompt boilerplates for Coding Agent (💤)",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --count 5 --template prompts/_templates/ptbk-coder.md",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🐙🏭 Generate \"ptbk agent-folder\" prompt boilerplates for Coding Agent",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --count 5 --template prompts/_templates/ptbk-agent.md",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🐙🏭 Generate \"ptbk agents-server\" prompt boilerplates for Coding Agent",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --count 5 --template prompts/_templates/ptbk-agents-server.md",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🐙🏭 Generate test prompt boilerplates for Coding Agent",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --count 1 --template prompts/_templates/test.md",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🐙🏭 Find refactor candidates for Coding Agent",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder find-refactor-candidates",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🐙🔎 Find unwritten prompts",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder find-unwritten",
+            "execute": true,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🐙✔ Verify prompts done by Coding Agent",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder verify --reverse --ignore Refactor",
+            "execute": true,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
             "name": "✨👨‍💻 Run ptbk agents-server dev",
             "commands": [
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
@@ -335,7 +472,7 @@
             "focus": false
         },
         {
-            "name": "🐙 Import GitHub",
+            "name": "🐱‍👤 Import GitHub",
             "command": "npm run import-github",
             "execute": true,
             "onlySingle": true,
@@ -420,143 +557,6 @@
             "execute": true,
             "onlySingle": true,
             "focus": true
-        },
-        {
-            "name": "⚡🏭 Generate \"Generic\" prompt boilerplates for Coding Agent",
-            "command": "npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --count 10 --template prompts/_templates/common.md",
-            "execute": true,
-            "onlySingle": true,
-            "focus": true
-        },
-        {
-            "name": "⚡🏭 Generate \"Agents server\" prompt boilerplates for Coding Agent",
-            "command": "npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --count 5 --template prompts/_templates/agents-server.md",
-            "execute": true,
-            "onlySingle": true,
-            "focus": true
-        },
-        {
-            "name": "⚡🏭 Generate \"Utils app\" prompt boilerplates for Coding Agent",
-            "command": "npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --count 5 --template prompts/_templates/utils-app.md",
-            "execute": true,
-            "onlySingle": true,
-            "focus": true
-        },
-        {
-            "name": "⚡🏭 Generate \"ptbk coder\" prompt boilerplates for Coding Agent",
-            "command": "npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --count 5 --template prompts/_templates/ptbk-coder.md",
-            "execute": true,
-            "onlySingle": true,
-            "focus": true
-        },
-        {
-            "name": "⚡🏭 Generate \"ptbk agent-folder\" prompt boilerplates for Coding Agent",
-            "command": "npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --count 5 --template prompts/_templates/ptbk-agent.md",
-            "execute": true,
-            "onlySingle": true,
-            "focus": true
-        },
-        {
-            "name": "⚡🏭 Generate \"ptbk agents-server\" prompt boilerplates for Coding Agent",
-            "command": "npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --count 5 --template prompts/_templates/ptbk-agents-server.md",
-            "execute": true,
-            "onlySingle": true,
-            "focus": true
-        },
-        {
-            "name": "⚡🏭 Generate test prompt boilerplates for Coding Agent",
-            "command": "npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --count 1 --template prompts/_templates/test.md",
-            "execute": true,
-            "onlySingle": true,
-            "focus": true
-        },
-        {
-            "name": "⚡🏭 Find refactor candidates for Coding Agent",
-            "command": "npx ts-node ./src/cli/test/ptbk.ts coder find-refactor-candidates",
-            "execute": true,
-            "onlySingle": true,
-            "focus": true
-        },
-        {
-            "name": "⚡🔎 Find unwritten prompts",
-            "command": "npx ts-node ./src/cli/test/ptbk.ts coder find-unwritten",
-            "execute": true,
-            "onlySingle": false,
-            "focus": false
-        },
-        {
-            "name": "⚡🚀 Run ptbk coder Codex/Claude zig-zag (💸)(⏳)",
-            "commands": [
-                "set -a && source .env && set +a",
-                "unset GITHUB_TOKEN",
-                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness openai-codex --model gpt-5.5         --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --limit 1 --test npm run test-for-ptbk-coder",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code  --model claude-opus-4-8 --thinking-level max   --agent agents/coding/developer.book --context AGENTS.md --limit 1 --test npm run test-for-ptbk-coder",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness openai-codex --model gpt-5.5         --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --limit 1 --test npm run test-for-ptbk-coder",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code  --model claude-opus-4-8 --thinking-level max   --agent agents/coding/developer.book --context AGENTS.md --limit 1 --test npm run test-for-ptbk-coder",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness openai-codex --model gpt-5.5         --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --limit 1 --test npm run test-for-ptbk-coder",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code  --model claude-opus-4-8 --thinking-level max   --agent agents/coding/developer.book --context AGENTS.md --limit 1 --test npm run test-for-ptbk-coder",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness openai-codex --model gpt-5.5         --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --limit 1 --test npm run test-for-ptbk-coder",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code  --model claude-opus-4-8 --thinking-level max   --agent agents/coding/developer.book --context AGENTS.md --limit 1 --test npm run test-for-ptbk-coder",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness openai-codex --model gpt-5.5         --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --limit 1 --test npm run test-for-ptbk-coder",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code  --model claude-opus-4-8 --thinking-level max   --agent agents/coding/developer.book --context AGENTS.md --limit 1 --test npm run test-for-ptbk-coder",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness openai-codex --model gpt-5.5         --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --limit 1 --test npm run test-for-ptbk-coder",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code  --model claude-opus-4-8 --thinking-level max   --agent agents/coding/developer.book --context AGENTS.md --limit 1 --test npm run test-for-ptbk-coder"
-            ],
-            "execute": true,
-            "onlySingle": true,
-            "focus": true
-        },
-        {
-            "name": "⚡🚀 Run ptbk coder `gpt-5.4` Coding Agent (💸)(⏳)",
-            "commands": [
-                "set -a && source .env && set +a",
-                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts coder server --harness openai-codex --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --priority 1 --test npm run test-for-ptbk-coder"
-            ],
-            "execute": true,
-            "onlySingle": true,
-            "focus": true
-        },
-        {
-            "name": "⚡🚀 Run ptbk coder `gpt-5.5` Coding Agent (💤)(💸)(⏳)",
-            "commands": [
-                "set -a && source .env && set +a",
-                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts coder server --harness openai-codex --model gpt-5.5 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder"
-            ],
-            "execute": false,
-            "onlySingle": false,
-            "focus": false
-        },
-        {
-            "name": "⚡🚀 Run ptbk coder `claude-opus-4-8` Coding Agent (💤)(💸)(⏳)",
-            "commands": [
-                "set -a && source .env && set +a",
-                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts coder server --harness claude-code --model claude-opus-4-8 --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder --wait-between-prompts 4h"
-            ],
-            "execute": false,
-            "onlySingle": false,
-            "focus": false
-        },
-        {
-            "name": "⚡🚀 Run ptbk coder `claude-fable` Coding Agent (💤)(💸)(⏳)",
-            "commands": [
-                "set -a && source .env && set +a",
-                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts coder server --harness claude-code --model fable --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder --wait-between-prompts 4h"
-            ],
-            "execute": false,
-            "onlySingle": false,
-            "focus": false
-        },
-        {
-            "name": "⚡✔ Verify prompts done by Coding Agent",
-            "command": "npx ts-node ./src/cli/test/ptbk.ts coder verify --reverse --ignore Refactor",
-            "execute": true,
-            "onlySingle": false,
-            "focus": false
         },
         {
             "name": "🏭🩹 Fix Lint",
