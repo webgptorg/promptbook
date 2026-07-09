@@ -20,7 +20,7 @@
 
 ---
 
-[ ] !
+[x] $11.80 an hour by Claude Code `claude-opus-4-8`
 
 [✨✥] Fix source chip of the attached image in the chat
 
@@ -59,3 +59,4 @@
 ![images before being send](screenshots/2026-06-1140-agents-server-images-1.png)
 ![image after being send](screenshots/2026-06-1140-agents-server-images-2.png)
 ![image popup](screenshots/2026-06-1140-agents-server-images-3.png)
+

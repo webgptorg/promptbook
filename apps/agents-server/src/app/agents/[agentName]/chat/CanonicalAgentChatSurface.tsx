@@ -14,9 +14,9 @@ import { useServerLanguage } from '../../../../components/ServerLanguage/ServerL
 import { ChatThreadLoadingSkeleton } from '../../../../components/Skeleton/ChatThreadLoadingSkeleton';
 import { useSoundSystem } from '../../../../components/SoundSystemProvider/SoundSystemProvider';
 import { usePromptbookTheme } from '../../../../components/ThemeMode/usePromptbookTheme';
+import { createAttachmentAwareCitationLabelResolver } from '../../../../utils/chat/createAttachmentAwareCitationLabelResolver';
 import { createDefaultChatEffects } from '../../../../utils/chat/createDefaultChatEffects';
 import { executeQuickActionButton } from '../../../../utils/chat/executeQuickActionButton';
-import { resolveAgentsServerCitationLabel } from '../../../../utils/chat/resolveAgentsServerCitationLabel';
 import { downloadChatPdfFromServer } from '../../../../utils/chatExport/downloadChatPdfFromServer';
 import {
     isChatFeedbackEnabled,
@@ -217,6 +217,10 @@ export function CanonicalAgentChatSurface({
         ),
         [activeTimeouts, cancelAction, currentTimestamp, extraActions, isReadOnly, onCancelActiveTimeout],
     );
+    const resolveCitationLabel = useMemo(
+        () => createAttachmentAwareCitationLabelResolver(state.renderedMessages),
+        [state.renderedMessages],
+    );
     const shouldRenderLoadingSkeleton = state.initialMessage === undefined && state.renderedMessages.length === 0;
     const chatElement = shouldRenderLoadingSkeleton ? (
         renderCanonicalAgentChatLoadingSkeleton()
@@ -266,7 +270,7 @@ export function CanonicalAgentChatSurface({
             teamAgentProfiles={state.teamAgentProfiles}
             extraActions={extraActionNodes}
             saveFormatHandlers={saveFormatHandlers}
-            resolveCitationLabel={resolveAgentsServerCitationLabel}
+            resolveCitationLabel={resolveCitationLabel}
             theme={promptbookTheme}
         >
             {!isReadOnly && areFileAttachmentsEnabled && !fileUploadAvailability.isUploadAvailable && (
