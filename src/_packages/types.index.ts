@@ -23,8 +23,8 @@ import type { AvatarProfileFromSourceProps } from '../book-components/AvatarProf
 import type { BookEditorUploadProgressCallback } from '../book-components/BookEditor/BookEditor';
 import type { BookEditorUploadOptions } from '../book-components/BookEditor/BookEditor';
 import type { BookEditorProps } from '../book-components/BookEditor/BookEditor';
-import type { UploadItem } from '../book-components/BookEditor/useBookEditorMonacoUploads';
-import type { UploadStats } from '../book-components/BookEditor/useBookEditorMonacoUploads';
+import type { UploadItem } from '../book-components/BookEditor/useBookEditorMonacoUploads/bookEditorMonacoUploadTypes';
+import type { UploadStats } from '../book-components/BookEditor/useBookEditorMonacoUploads/bookEditorMonacoUploadTypes';
 import type { AgentChatProps } from '../book-components/Chat/AgentChat/AgentChatProps';
 import type { AgentChipData } from '../book-components/Chat/AgentChip/AgentChip';
 import type { AgentChipProps } from '../book-components/Chat/AgentChip/AgentChip';
