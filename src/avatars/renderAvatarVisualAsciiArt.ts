@@ -1,11 +1,11 @@
 import { spaceTrim } from 'spacetrim';
 import { EnvironmentMismatchError } from '../errors/EnvironmentMismatchError';
 import { UnexpectedError } from '../errors/UnexpectedError';
-import type { AsciiArtColorDepth } from '../utils/ascii-art/convertImageDataToAsciiArt';
-import type { AsciiArtImageData } from '../utils/ascii-art/convertImageDataToAsciiArt';
+import type { AsciiArtColorDepth, AsciiArtImageData } from '../utils/ascii-art/convertImageDataToAsciiArt';
 import { convertImageDataToAsciiArt } from '../utils/ascii-art/convertImageDataToAsciiArt';
 import { DEFAULT_AVATAR_SIZE } from './avatarRenderingUtils';
-import { renderAvatarVisual, type ResolvedAvatarRenderDefinition } from './renderAvatarVisual';
+import type { ResolvedAvatarRenderDefinition } from './renderAvatarVisual';
+import { renderAvatarVisual } from './renderAvatarVisual';
 import type { AvatarDefinition } from './types/AvatarDefinition';
 import type { AvatarSurfaceStyle, AvatarVisualId } from './types/AvatarVisualDefinition';
 

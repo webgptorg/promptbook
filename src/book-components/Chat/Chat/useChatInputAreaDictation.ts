@@ -1,13 +1,13 @@
 'use client';
 
 import {
-    useCallback,
-    useEffect,
-    useRef,
-    useState,
-    type Dispatch,
-    type MutableRefObject,
-    type SetStateAction,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type Dispatch,
+  type MutableRefObject,
+  type SetStateAction
 } from 'react';
 import type { SpeechRecognitionErrorCode, SpeechRecognitionEvent } from '../../../types/SpeechRecognition';
 import type { ChatProps } from './ChatProps';

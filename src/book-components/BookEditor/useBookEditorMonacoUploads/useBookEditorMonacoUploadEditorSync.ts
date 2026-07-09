@@ -1,5 +1,5 @@
 import type { editor } from 'monaco-editor';
-import { type MutableRefObject, useCallback, useRef } from 'react';
+import { useCallback, useRef, type MutableRefObject } from 'react';
 import { BookEditorMonacoConstants } from '../BookEditorMonacoConstants';
 import type { UploadDecorationIdsRef, UploadFilesRef, UploadPlaceholderEntry } from './bookEditorMonacoUploadTypes';
 import { clearScheduledTimer } from './clearScheduledTimer';

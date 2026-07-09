@@ -1,9 +1,9 @@
 import type { AgentBasicInformation } from '../../../../book-2.0/agent-source/AgentBasicInformation';
+import type { AgentVisibility } from '../../../../book-2.0/agent-source/agentSourceVisibility';
 import {
     DEFAULT_AGENT_VISIBILITY,
     parseAgentSourceVisibility,
     setAgentSourceVisibility,
-    type AgentVisibility,
 } from '../../../../book-2.0/agent-source/agentSourceVisibility';
 import { parseAgentSource } from '../../../../book-2.0/agent-source/parseAgentSource';
 import type { string_book } from '../../../../book-2.0/agent-source/string_book';

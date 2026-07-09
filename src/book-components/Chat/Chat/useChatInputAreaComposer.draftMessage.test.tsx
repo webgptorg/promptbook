@@ -4,7 +4,8 @@ import { describe, expect, it } from '@jest/globals';
 import { act, renderHook } from '@testing-library/react';
 import type { MutableRefObject } from 'react';
 import type { ChatInputUploadedFile } from './ChatInputUploadedFile';
-import { useChatInputAreaComposer, type ChatComposerDraft } from './useChatInputAreaComposer';
+import type { ChatComposerDraft } from './useChatInputAreaComposer';
+import { useChatInputAreaComposer } from './useChatInputAreaComposer';
 
 /**
  * Props toggled between renders of `useChatInputAreaComposer` in these draft-message tests.

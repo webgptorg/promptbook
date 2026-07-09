@@ -1,7 +1,8 @@
-import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../../version';
+import { PUBLIC_AGENTS_SERVERS } from '../../../servers';
+import { CLAIM, IS_COST_PREVENTED, NAME } from '../../config';
 import { $detectRuntimeEnvironment } from '../../utils/environment/$detectRuntimeEnvironment';
 import type { AboutPromptbookInformationOptions } from '../../utils/misc/aboutPromptbookInformation';
-import { CLAIM, IS_COST_PREVENTED, NAME, PUBLIC_AGENTS_SERVERS } from './BookEditorBrowserConfig';
+import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../../version';
 import styles from './BookEditor.module.css';
 
 /**

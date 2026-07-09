@@ -1,6 +1,6 @@
 import type { editor, Position } from 'monaco-editor';
 import { useEffect } from 'react';
-import { PROMPTBOOK_SYNTAX_COLORS } from './BookEditorBrowserConfig';
+import { PROMPTBOOK_SYNTAX_COLORS } from '../../config';
 import { BookEditorMonacoConstants } from './BookEditorMonacoConstants';
 import { BookEditorMonacoTokenization } from './BookEditorMonacoTokenization';
 import type { BookEditorTheme } from './BookEditorTheme';

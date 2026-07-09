@@ -2,11 +2,12 @@
 // <- Note: [👲] 'use client' is enforced by Next.js when building the https://book-components.ptbk.io/ but in ideal case,
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
-import { type CSSProperties, useState } from 'react';
+import { useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import type { Promisable } from 'type-fest';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import { DEFAULT_BOOK } from '../../book-2.0/agent-source/string_book';
+import { DEFAULT_IS_VERBOSE } from '../../config';
 import type { number_percent } from '../../types/number_percent';
 import type { number_positive } from '../../types/number_positive';
 import type { string_knowledge_source_content } from '../../types/string_knowledge_source_content';
@@ -15,7 +16,6 @@ import { countLines } from '../../utils/expectation-counters/countLines';
 import type { HoistedMenuItem } from '../_common/MenuHoisting/MenuHoistingContext';
 import { classNames } from '../_common/react-utils/classNames';
 import styles from './BookEditor.module.css';
-import { DEFAULT_IS_VERBOSE } from './BookEditorBrowserConfig';
 import { BookEditorMonaco } from './BookEditorMonaco';
 import type { BookEditorTheme } from './BookEditorTheme';
 import { BOOK_EDITOR_RENDER_THEME, resolveBookEditorRenderTheme } from './BookEditorTheme';

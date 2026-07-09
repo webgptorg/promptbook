@@ -32,7 +32,11 @@ function applyProgressUpdates(
  *
  * @private function of BookEditorMonaco
  */
-export function useBookEditorMonacoUploadProgressQueue({ setUploadItems }: { readonly setUploadItems: SetUploadItems }) {
+export function useBookEditorMonacoUploadProgressQueue({
+    setUploadItems,
+}: {
+    readonly setUploadItems: SetUploadItems;
+}) {
     const progressUpdateTimerRef = useRef<number | null>(null);
     const pendingProgressUpdatesRef = useRef<Map<string, UploadProgressUpdate>>(new Map());
 

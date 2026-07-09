@@ -17,11 +17,8 @@ import {
     PROMPT_RUNNER_DESCRIPTION,
 } from '../common/promptRunnerCliOptions';
 import { ensureAgentsServerBuild } from './buildAgentsServer';
-import {
-    loadAgentsServerProjectEnvironment,
-    startAgentsServer,
-    type AgentsServerNextRuntimeMode,
-} from './startAgentsServer';
+import type { AgentsServerNextRuntimeMode } from './startAgentsServer';
+import { loadAgentsServerProjectEnvironment, startAgentsServer } from './startAgentsServer';
 
 /**
  * Default port used by `ptbk agents-server start` and `ptbk agents-server dev`.

@@ -24,7 +24,8 @@ import type { ChatProps, ChatSoundSystem } from './ChatProps';
 import { ChatReplyPreview } from './ChatReplyPreview';
 import type { SpeechRecognitionUiDescriptor } from './resolveSpeechRecognitionUiDescriptor';
 import { useChatInputAreaAttachments } from './useChatInputAreaAttachments';
-import { useChatInputAreaComposer, type ChatComposerDraft } from './useChatInputAreaComposer';
+import type { ChatComposerDraft } from './useChatInputAreaComposer';
+import { useChatInputAreaComposer } from './useChatInputAreaComposer';
 import { useChatInputAreaDictation } from './useChatInputAreaDictation';
 
 /**

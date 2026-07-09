@@ -3,15 +3,15 @@
 import { CloseIcon } from '../../icons/CloseIcon';
 import { DownloadIcon } from '../../icons/DownloadIcon';
 import { classNames } from '../../_common/react-utils/classNames';
+import { useResolvedCitationLabel } from '../hooks/useResolvedCitationLabel';
 import { MarkdownContent } from '../MarkdownContent/MarkdownContent';
 import type { ChatParticipant } from '../types/ChatParticipant';
 import type { CitationLabelResolver } from '../types/CitationLabelResolver';
-import { useResolvedCitationLabel } from '../hooks/useResolvedCitationLabel';
 import { isPlainTextCitation, resolveCitationPreviewUrl } from '../utils/citationHelpers';
 import type { ParsedCitation } from '../utils/parseCitationsFromContent';
 import styles from './Chat.module.css';
-import { CitationIframePreview } from './CitationIframePreview';
 import type { ChatSoundSystem } from './ChatProps';
+import { CitationIframePreview } from './CitationIframePreview';
 
 /**
  * Props for the citation preview modal.

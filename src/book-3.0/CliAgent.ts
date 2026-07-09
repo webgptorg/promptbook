@@ -6,13 +6,7 @@ import { resolvePromptbookTemporaryPath } from '../utils/filesystem/promptbookTe
 import { spaceTrim } from '../utils/organization/spaceTrim';
 import type { BookNodeAgentSourceOptions, ResolvedBookNodeAgentSource } from './BookNodeAgentSource';
 import { resolveBookNodeAgentSource } from './BookNodeAgentSource';
-import {
-    CLI_AGENT_HARNESS_NAMES,
-    CLI_AGENT_THINKING_LEVEL_VALUES,
-    PTBK_HARNESS_ENV,
-    PTBK_MODEL_ENV,
-    PTBK_THINKING_LEVEL_ENV,
-} from './cliAgentEnv';
+import { CLI_AGENT_HARNESS_NAMES, CLI_AGENT_THINKING_LEVEL_VALUES, PTBK_HARNESS_ENV, PTBK_MODEL_ENV, PTBK_THINKING_LEVEL_ENV } from './cliAgentEnv';
 
 /**
  * CLI harness names supported by `ptbk agent exec`.

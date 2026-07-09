@@ -1,6 +1,8 @@
 import colors from 'colors';
-import { Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */ } from 'commander';
-import { Option } from 'commander';
+import {
+    Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
+    Option,
+} from 'commander';
 import { spaceTrim } from 'spacetrim';
 import { NETWORK_LIMITS } from '../../../constants';
 import { assertsError } from '../../../errors/assertsError';

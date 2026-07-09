@@ -18,9 +18,9 @@ import type { string_date_iso8601, string_token } from '../../types/string_token
 import type { ToolCallLogEntry, ToolCallState } from '../../types/ToolCall';
 import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
 import type { TODO_any } from '../../utils/organization/TODO_any';
+import { OpenAiAssistantExecutionToolsProgressReporter } from './OpenAiAssistantExecutionToolsProgressReporter';
 import { buildToolInvocationScript } from './utils/buildToolInvocationScript';
 import { mapToolsToOpenAi } from './utils/mapToolsToOpenAi';
-import { OpenAiAssistantExecutionToolsProgressReporter } from './OpenAiAssistantExecutionToolsProgressReporter';
 
 /**
  * Type describing streamed tool call.

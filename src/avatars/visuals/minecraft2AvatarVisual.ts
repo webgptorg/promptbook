@@ -2,6 +2,7 @@
 
 import { drawAvatarFrame } from '../avatarRenderingUtils';
 import type { AvatarPalette, AvatarVisualDefinition } from '../types/AvatarVisualDefinition';
+import type { Point3D, ProjectedPoint } from './avatar3dProjectionShared';
 import {
     clampNumber,
     crossProduct3D,
@@ -11,8 +12,6 @@ import {
     projectScenePoint,
     subtractPoint3D,
     transformScenePoint,
-    type Point3D,
-    type ProjectedPoint,
 } from './avatar3dProjectionShared';
 import type { MinecraftCuboidTextures, MinecraftTexture } from './minecraftAvatarVisualShared';
 import { createMinecraftHeadTextures, createMinecraftTorsoTextures } from './minecraftAvatarVisualShared';
