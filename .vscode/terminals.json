@@ -354,7 +354,7 @@
             "onlySingle": true,
             "focus": true
         },
-                {
+        {
             "name": "🧸🔠 Run ptbk coder landing page",
             "cwd": "./apps/coder-landing/",
             "commands": ["unset OPENAI_API_KEY && unset OPENAI_BASE_URL", "npm run dev"],
@@ -830,7 +830,7 @@
         },
         {
             "name": "(❗) 🔪 Kill all Node.js processes (💤)",
-            "command": "echo 🔪 && taskkill /F /IM node.exe >nul 2>&1 && taskkill /F /IM codex.exe >nul 2>&1 && taskkill /F /IM claude.exe >nul 2>&1",
+            "command": "echo 🔪 & taskkill /F /IM node.exe & taskkill /F /IM codex.exe & taskkill /F /IM claude.exe",
             "shellPath": "C:\\Windows\\System32\\cmd.exe",
             "execute": false,
             "onlySingle": false,
