@@ -1,9 +1,10 @@
 import type { AdminChatTaskRecord } from '../chatTasksAdmin';
 import type { UserChatJobStatus } from '../userChat/UserChatJobRecord';
 import type { VpsSelfUpdateJobSnapshot } from '../vpsSelfUpdate';
+import { resolveVpsSelfUpdateJobIdentity } from '../vpsSelfUpdate/vpsSelfUpdateJobIdentity';
 
 /**
- * Stable synthetic task id used for the singleton standalone VPS self-update task row.
+ * Stable synthetic task id prefix used for standalone VPS self-update task rows.
  *
  * @private internal admin utility of Agents Server
  */
@@ -35,7 +36,7 @@ export function mapVpsSelfUpdateJobToAdminChatTask(job: VpsSelfUpdateJobSnapshot
     const errorSummary = job.errorMessage || null;
     const currentStepDetails = job.currentStep || null;
     const triggerLabel = formatVpsSelfUpdateTrigger(job.trigger);
-    const taskId = `${VPS_SELF_UPDATE_ADMIN_CHAT_TASK_ID}:${job.trigger}`;
+    const taskId = `${VPS_SELF_UPDATE_ADMIN_CHAT_TASK_ID}:${resolveVpsSelfUpdateJobIdentity(job)}`;
 
     return {
         id: taskId,

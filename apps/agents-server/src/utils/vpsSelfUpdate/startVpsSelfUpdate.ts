@@ -10,6 +10,7 @@ import {
     persistVpsSelfUpdateOriginRepositoryUrl,
     readConfiguredVpsSelfUpdateOriginRepositoryUrl,
 } from './vpsSelfUpdateOriginRepository';
+import { preserveVpsSelfUpdateJobInTaskHistory } from './vpsSelfUpdateJobHistory';
 import { readPersistedVpsSelfUpdateJob } from './readPersistedVpsSelfUpdateJob';
 import { readVpsSelfUpdateOverview } from './readVpsSelfUpdateOverview';
 import {
@@ -64,7 +65,7 @@ export async function startVpsSelfUpdate(request: VpsSelfUpdateStartRequest): Pr
 
     const originRepositoryUrl = requestedOriginUrl || (await readConfiguredVpsSelfUpdateOriginRepositoryUrl());
 
-    const currentJob = await readPersistedVpsSelfUpdateJob();
+    const currentJob = await readPersistedVpsSelfUpdateJob({ isLogTailIncluded: false });
     if (currentJob.status === 'running' && !currentJob.isStale) {
         throw new NotAllowed(
             spaceTrim(`
@@ -77,11 +78,13 @@ export async function startVpsSelfUpdate(request: VpsSelfUpdateStartRequest): Pr
     if (!scriptPath) {
         throw new NotAllowed('The shared VPS installer script could not be found on this server.');
     }
+    await preserveVpsSelfUpdateJobInTaskHistory(currentJob);
 
     const statusFilePath = resolveVpsSelfUpdateStatusFilePath();
     const logFilePath = resolveVpsSelfUpdateLogFilePath();
     const databaseMigrationSummaryFilePath = resolveVpsSelfUpdateDatabaseMigrationSummaryFilePath();
     const startedAt = new Date().toISOString();
+    const jobId = createVpsSelfUpdateJobId(startedAt);
     await mkdir(dirname(logFilePath), { recursive: true });
     await rm(databaseMigrationSummaryFilePath, { force: true });
     const logHandle = await open(logFilePath, 'a');
@@ -98,6 +101,7 @@ export async function startVpsSelfUpdate(request: VpsSelfUpdateStartRequest): Pr
                 ...createVpsInstallerCommandEnvironment(),
                 PTBK_SELF_UPDATE_STATUS_FILE: statusFilePath,
                 PTBK_SELF_UPDATE_LOG_FILE: logFilePath,
+                PTBK_SELF_UPDATE_JOB_ID: jobId,
                 PTBK_SELF_UPDATE_TRIGGER: trigger,
                 PTBK_TARGET_REPOSITORY_REF: targetRef,
                 PTBK_DATABASE_MIGRATION_SUMMARY_FILE: databaseMigrationSummaryFilePath,
@@ -106,6 +110,7 @@ export async function startVpsSelfUpdate(request: VpsSelfUpdateStartRequest): Pr
         });
 
         await writeVpsSelfUpdateStatusFile({
+            JOB_ID: jobId,
             STATUS: 'running',
             TRIGGER: trigger,
             PID: String(child.pid ?? ''),
@@ -129,6 +134,23 @@ export async function startVpsSelfUpdate(request: VpsSelfUpdateStartRequest): Pr
     }
 
     return readVpsSelfUpdateOverview();
+}
+
+/**
+ * Creates a stable identifier for one self-update run.
+ *
+ * @param startedAt - ISO timestamp of the self-update start.
+ * @returns Self-update job id.
+ */
+function createVpsSelfUpdateJobId(startedAt: string): string {
+    if (typeof globalThis.crypto?.randomUUID === 'function') {
+        return globalThis.crypto.randomUUID();
+    }
+
+    const startedAtFingerprint = startedAt.replace(/[^0-9]/gu, '');
+    const randomFingerprint = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER).toString(36);
+
+    return `self-update-${startedAtFingerprint}-${process.pid}-${randomFingerprint}`;
 }
 
 /**

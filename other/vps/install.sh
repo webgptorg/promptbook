@@ -61,6 +61,7 @@ APT_LOCK_PATHS=(
 )
 PTBK_SELF_UPDATE_STATUS_FILE="${PTBK_SELF_UPDATE_STATUS_FILE:-$INSTALL_DIR/.promptbook/self-update/self-update.status}"
 PTBK_SELF_UPDATE_LOG_FILE="${PTBK_SELF_UPDATE_LOG_FILE:-$INSTALL_DIR/.promptbook/self-update/self-update.log}"
+PTBK_SELF_UPDATE_JOB_ID="${PTBK_SELF_UPDATE_JOB_ID:-}"
 PTBK_SELF_UPDATE_TRIGGER="${PTBK_SELF_UPDATE_TRIGGER:-manual}"
 PTBK_DATABASE_MIGRATION_SUMMARY_FILE="${PTBK_DATABASE_MIGRATION_SUMMARY_FILE:-$INSTALL_DIR/.promptbook/self-update/self-update-database-migrations.json}"
 SELF_UPDATE_STARTED_AT=""
@@ -312,6 +313,7 @@ write_self_update_status_file() {
 
     "${SUDO[@]}" mkdir -p "$(dirname "$PTBK_SELF_UPDATE_STATUS_FILE")"
     "${SUDO[@]}" tee "$PTBK_SELF_UPDATE_STATUS_FILE" >/dev/null <<EOF
+JOB_ID=$PTBK_SELF_UPDATE_JOB_ID
 STATUS=$status
 TRIGGER=$PTBK_SELF_UPDATE_TRIGGER
 PID=$pid_value
@@ -3186,6 +3188,9 @@ self_update_agents_server() {
         PROMPTBOOK_REPOSITORY_REF="$(normalize_promptbook_repository_ref "$target_ref")"
     fi
     SELF_UPDATE_STARTED_AT="$(date --utc --iso-8601=seconds)"
+    if [[ -z "$PTBK_SELF_UPDATE_JOB_ID" ]]; then
+        PTBK_SELF_UPDATE_JOB_ID="self-update-$(date --utc +%Y%m%dT%H%M%SZ)-$$"
+    fi
     old_repository_dir="$PROMPTBOOK_REPOSITORY_DIR"
     old_app_name="$APP_NAME"
     old_port="$PORT"

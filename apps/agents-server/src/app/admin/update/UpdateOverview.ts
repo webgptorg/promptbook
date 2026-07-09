@@ -56,6 +56,7 @@ export type UpdateDatabaseMigrationSnapshot = {
  * @private type of `<UpdateClient/>`
  */
 export type UpdateJobSnapshot = {
+    readonly jobId: string | null;
     readonly status: 'idle' | 'running' | 'succeeded' | 'failed';
     readonly trigger: 'manual' | 'automatic';
     readonly pid: number | null;

@@ -110,6 +110,10 @@ export type VpsSelfUpdateDatabaseMigrationSnapshot = {
  */
 export type VpsSelfUpdateJobSnapshot = {
     /**
+     * Stable identifier of one self-update run.
+     */
+    readonly jobId: string | null;
+    /**
      * Last known job status.
      */
     readonly status: VpsSelfUpdateJobStatus;

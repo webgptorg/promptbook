@@ -1,7 +1,6 @@
 import { readVpsSelfUpdateAutomaticConfiguration } from './vpsSelfUpdateAutomaticConfiguration';
 import { resolveNextVpsSelfUpdateCronRun } from './vpsSelfUpdateCron';
 import { readVpsSelfUpdateOverview } from './readVpsSelfUpdateOverview';
-import { startVpsSelfUpdate } from './startVpsSelfUpdate';
 
 /**
  * Global key used to keep one automatic self-update scheduler per Node.js process.
@@ -131,6 +130,7 @@ async function runAutomaticVpsSelfUpdateCheck(): Promise<void> {
             return;
         }
 
+        const { startVpsSelfUpdate } = await import('./startVpsSelfUpdate');
         await startVpsSelfUpdate({
             environmentId: configuration.environment.id,
             trigger: 'automatic',

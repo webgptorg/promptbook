@@ -5,6 +5,7 @@
 
 export { listVpsSelfUpdateCandidateCommits } from './vpsSelfUpdate/listVpsSelfUpdateCandidateCommits';
 export { readVpsSelfUpdateJobSnapshot } from './vpsSelfUpdate/readPersistedVpsSelfUpdateJob';
+export { readVpsSelfUpdateJobTaskSnapshots } from './vpsSelfUpdate/vpsSelfUpdateJobHistory';
 export { readVpsSelfUpdateOverview } from './vpsSelfUpdate/readVpsSelfUpdateOverview';
 export { resolveVpsSelfUpdateJobForOverview } from './vpsSelfUpdate/resolveVpsSelfUpdateJobForOverview';
 export { startVpsSelfUpdate } from './vpsSelfUpdate/startVpsSelfUpdate';

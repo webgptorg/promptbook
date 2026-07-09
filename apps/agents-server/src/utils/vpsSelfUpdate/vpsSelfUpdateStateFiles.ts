@@ -25,6 +25,17 @@ export function resolveVpsSelfUpdateDatabaseMigrationSummaryFilePath(): string {
 }
 
 /**
+ * Resolves the filesystem path of the persisted self-update task history file.
+ *
+ * @returns Absolute task-history file path.
+ *
+ * @private function of `vpsSelfUpdate`
+ */
+export function resolveVpsSelfUpdateTaskHistoryFilePath(): string {
+    return resolve(resolveVpsSelfUpdateStateDirectory(), 'self-update-task-history.json');
+}
+
+/**
  * Resolves the filesystem path of the persisted self-update status file.
  *
  * @returns Absolute status-file path.

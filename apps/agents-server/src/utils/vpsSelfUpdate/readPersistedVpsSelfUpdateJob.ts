@@ -15,6 +15,16 @@ import type {
 import type { VpsSelfUpdateJobTrigger } from './vpsSelfUpdateTypes';
 
 /**
+ * Options for reading the shell-owned self-update status snapshot.
+ */
+type ReadPersistedVpsSelfUpdateJobOptions = {
+    /**
+     * Whether to include the log tail in the returned snapshot.
+     */
+    readonly isLogTailIncluded?: boolean;
+};
+
+/**
  * Status values accepted from the shell-owned database migration status field.
  */
 const VPS_SELF_UPDATE_DATABASE_MIGRATION_STATUSES = new Set<VpsSelfUpdateDatabaseMigrationStatus>([
@@ -37,18 +47,22 @@ const VPS_SELF_UPDATE_DATABASE_MIGRATION_STATUSES = new Set<VpsSelfUpdateDatabas
  * @private function of `vpsSelfUpdate`
  */
 export async function readVpsSelfUpdateJobSnapshot(): Promise<VpsSelfUpdateJobSnapshot> {
-    return readPersistedVpsSelfUpdateJob();
+    return readPersistedVpsSelfUpdateJob({ isLogTailIncluded: false });
 }
 
 /**
  * Reads one persisted update-job snapshot from disk.
  *
+ * @param options - Snapshot loading options.
  * @returns Parsed job snapshot.
  *
  * @private function of `vpsSelfUpdate`
  */
-export async function readPersistedVpsSelfUpdateJob(): Promise<VpsSelfUpdateJobSnapshot> {
+export async function readPersistedVpsSelfUpdateJob(
+    options: ReadPersistedVpsSelfUpdateJobOptions = {},
+): Promise<VpsSelfUpdateJobSnapshot> {
     const statusEntries = await readVpsSelfUpdateStatusFile();
+    const jobId = statusEntries.get('JOB_ID') || null;
     const targetBranch = statusEntries.get('TARGET_REF') || null;
     const targetEnvironment = resolveVpsSelfUpdateEnvironment(targetBranch);
     const pid = parseNullableVpsSelfUpdateInteger(statusEntries.get('PID'));
@@ -63,6 +77,7 @@ export async function readPersistedVpsSelfUpdateJob(): Promise<VpsSelfUpdateJobS
     const databaseMigrations = parseVpsSelfUpdateDatabaseMigrationSnapshot(statusEntries, status);
 
     return {
+        jobId,
         status: isStale ? 'failed' : status,
         trigger,
         pid,
@@ -75,7 +90,7 @@ export async function readPersistedVpsSelfUpdateJob(): Promise<VpsSelfUpdateJobS
         startedAt: statusEntries.get('STARTED_AT') || null,
         finishedAt: statusEntries.get('FINISHED_AT') || null,
         isStale,
-        logTail: await readLastVpsSelfUpdateTextFileChunk(logFilePath),
+        logTail: options.isLogTailIncluded === false ? null : await readLastVpsSelfUpdateTextFileChunk(logFilePath),
         logFilePath,
         databaseMigrations,
     };
