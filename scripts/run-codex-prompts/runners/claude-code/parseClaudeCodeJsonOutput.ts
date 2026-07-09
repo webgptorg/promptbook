@@ -1,57 +1,16 @@
 import colors from 'colors';
 import type { Usage } from '../../../../src/execution/Usage';
 import { UNCERTAIN_USAGE } from '../../../../src/execution/utils/usage-constants';
-import { TODO_any } from '../../../../src/utils/organization/TODO_any';
-
-/**
- * Claude Code JSON output structure.
- */
-type ClaudeCodeJsonOutput = {
-    type: 'result';
-    subtype: 'success' | 'error';
-    is_error: boolean;
-    duration_ms: number;
-    duration_api_ms: number;
-    num_turns: number;
-    result: string;
-    session_id: string;
-    total_cost_usd: number;
-    usage: {
-        input_tokens: number;
-        cache_creation_input_tokens: number;
-        cache_read_input_tokens: number;
-        output_tokens: number;
-        server_tool_use: {
-            web_search_requests: number;
-            web_fetch_requests: number;
-        };
-        service_tier: string;
-        cache_creation?: {
-            ephemeral_1h_input_tokens: number;
-            ephemeral_5m_input_tokens: number;
-        };
-    };
-    modelUsage?: Record<string, TODO_any>;
-    permission_denials: Array<TODO_any>;
-    uuid: string;
-};
+import { findClaudeCodeResultEvent } from './parseClaudeCodeOutputEvents';
 
 /**
  * Parses Claude Code JSON output and extracts usage information.
  */
 export function parseClaudeCodeJsonOutput(output: string): Usage {
     try {
-        // Extract JSON from the output - it should be a line starting with {"type":"result"
-        const lines = output.split(/\r?\n/);
-        const jsonLine = lines.find((line) => line.trim().startsWith('{"type":"result"'));
+        const parsed = findClaudeCodeResultEvent(output);
 
-        if (!jsonLine) {
-            return UNCERTAIN_USAGE;
-        }
-
-        const parsed = JSON.parse(jsonLine) as ClaudeCodeJsonOutput;
-
-        if (parsed.type !== 'result') {
+        if (!parsed) {
             return UNCERTAIN_USAGE;
         }
 

@@ -12,14 +12,24 @@ const CLAUDE_PROMPT_DELIMITER = 'CLAUDE_PROMPT';
 export function buildClaudeScript(options: ClaudeScriptOptions): string {
     const MODEL_ARGUMENT = options.model ? ` --model ${options.model}` : '';
     const THINKING_LEVEL_ARGUMENT = options.thinkingLevel ? ` --effort ${options.thinkingLevel}` : '';
+    const RESUME_SESSION_ARGUMENT = options.resumeSessionId
+        ? ` --resume ${quoteShellArgument(options.resumeSessionId)}`
+        : '';
 
     return spaceTrim(
         (block) => `
-            claude --allowedTools "Bash,Read,Edit,Write"${MODEL_ARGUMENT}${THINKING_LEVEL_ARGUMENT} --output-format stream-json --verbose --include-partial-messages --print <<'${CLAUDE_PROMPT_DELIMITER}'
+            claude --allowedTools "Bash,Read,Edit,Write"${MODEL_ARGUMENT}${THINKING_LEVEL_ARGUMENT}${RESUME_SESSION_ARGUMENT} --output-format stream-json --verbose --include-partial-messages --print <<'${CLAUDE_PROMPT_DELIMITER}'
 
             ${block(options.prompt)}
 
             ${CLAUDE_PROMPT_DELIMITER}
         `,
     );
+}
+
+/**
+ * Quotes one shell argument for the generated Bash script.
+ */
+function quoteShellArgument(value: string): string {
+    return JSON.stringify(value);
 }

@@ -1,4 +1,4 @@
-[ ] !
+[x] ~$0.6688 2 hours by OpenAI Codex `gpt-5.5`
 
 [✨🦩] Automatically resurrect the Claude code tasks
 
@@ -28,3 +28,4 @@ Pozdější spuštění skriptu vytvořilo novou session c8391abc-..., která ok
 -   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts) with claude code harness
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
