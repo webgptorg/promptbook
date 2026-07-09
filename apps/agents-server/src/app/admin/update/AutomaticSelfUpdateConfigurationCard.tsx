@@ -22,9 +22,9 @@ export function AutomaticSelfUpdateConfigurationCard({ state }: AutomaticSelfUpd
     const environments = (state.overview?.environments ?? []).filter((environment) => !environment.isCustom);
 
     return (
-        <div className="space-y-4">
-            <div className="flex items-start justify-between gap-3">
-                <div>
+        <div className="min-w-0 space-y-4">
+            <div className="flex min-w-0 items-start justify-between gap-3">
+                <div className="min-w-0">
                     <h2 className="text-lg font-semibold text-slate-900">Automatic self-update</h2>
                     <p className="mt-1 text-sm text-slate-500">
                         Scheduled checks use the selected branch and the cron interval stored in the VPS{' '}
@@ -45,8 +45,8 @@ export function AutomaticSelfUpdateConfigurationCard({ state }: AutomaticSelfUpd
                 Enable automatic updates
             </label>
 
-            <div className="grid gap-3 sm:grid-cols-[1fr_1.2fr]">
-                <label className="block text-sm font-medium text-slate-700">
+            <div className="grid min-w-0 gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
+                <label className="block min-w-0 text-sm font-medium text-slate-700">
                     Branch
                     <select
                         value={state.automaticConfigurationDraft.environmentId}
@@ -62,7 +62,7 @@ export function AutomaticSelfUpdateConfigurationCard({ state }: AutomaticSelfUpd
                     </select>
                 </label>
 
-                <label className="block text-sm font-medium text-slate-700">
+                <label className="block min-w-0 text-sm font-medium text-slate-700">
                     Cron interval
                     <input
                         type="text"

@@ -42,22 +42,24 @@ export function CurrentDeploymentCard({ overview, language }: CurrentDeploymentC
     return (
         <div className="space-y-4">
             <div className="flex items-start gap-3">
-                <Server className="mt-0.5 h-5 w-5 text-blue-600" />
-                <div>
+                <Server className="mt-0.5 h-5 w-5 shrink-0 text-blue-600" />
+                <div className="min-w-0">
                     <h2 className="text-lg font-semibold text-slate-900">Current deployment</h2>
                     <p className="mt-1 text-sm text-slate-500">
                         The server currently tracks the{' '}
                         <span className="font-medium">{overview?.currentEnvironment.label || 'Production'}</span>{' '}
                         environment on branch{' '}
-                        <span className="font-mono">{overview?.currentEnvironment.branch || 'production'}</span>.
+                        <span className="break-all font-mono">
+                            {overview?.currentEnvironment.branch || 'production'}.
+                        </span>
                     </p>
                 </div>
             </div>
 
-            <dl className="grid gap-4 text-sm text-slate-600 sm:grid-cols-2">
-                <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+            <dl className="grid min-w-0 gap-4 text-sm text-slate-600 sm:grid-cols-2">
+                <div className="min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
                     <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Branch</dt>
-                    <dd className="mt-1 font-mono text-slate-900">
+                    <dd className="mt-1 break-all font-mono text-slate-900">
                         {overview?.currentEnvironment.branch || 'production'}
                     </dd>
                 </div>
@@ -77,19 +79,19 @@ export function CurrentDeploymentCard({ overview, language }: CurrentDeploymentC
                     authoredAt={overview?.latestRemoteCommitDate ?? null}
                     language={language}
                 />
-                <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                <div className="min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
                     <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                         Update availability
                     </dt>
-                    <dd className="mt-1 flex items-center gap-2 text-slate-900">
+                    <dd className="mt-1 flex min-w-0 items-center gap-2 break-words text-slate-900">
                         {overview?.isUpdateAvailable ? (
                             <>
-                                <TriangleAlert className="h-4 w-4 text-amber-500" />
+                                <TriangleAlert className="h-4 w-4 shrink-0 text-amber-500" />
                                 {driftLabel}
                             </>
                         ) : (
                             <>
-                                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                                <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
                                 Up to date
                             </>
                         )}
@@ -100,7 +102,7 @@ export function CurrentDeploymentCard({ overview, language }: CurrentDeploymentC
             {overview?.repositoryDirectory && (
                 <div className="text-xs text-slate-500">
                     Managed repository:
-                    <span className="ml-2 font-mono text-slate-700">{overview.repositoryDirectory}</span>
+                    <span className="ml-2 break-all font-mono text-slate-700">{overview.repositoryDirectory}</span>
                 </div>
             )}
         </div>
@@ -123,9 +125,9 @@ function CommitSummaryCard({
     const commitHashLabel = commitSha || shortCommitSha || 'Unknown hash';
 
     return (
-        <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+        <div className="min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
             <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</dt>
-            <dd className="mt-1 text-slate-900">{subject || 'Unknown commit subject'}</dd>
+            <dd className="mt-1 break-words text-slate-900">{subject || 'Unknown commit subject'}</dd>
             <div className="mt-2 break-all font-mono text-xs text-slate-600">{commitHashLabel}</div>
             <div className="mt-1 text-xs text-slate-500">{formatHumanReadableTimestamp(authoredAt, language)}</div>
         </div>

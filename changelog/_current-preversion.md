@@ -1,3 +1,5 @@
+-   Fixed the Agents Server standalone VPS self-update page layout so `/admin/update` cards size to their content instead of stretching stacked cards over later sections. Long branch names, refs, log paths, migration summaries, and repository URLs now wrap inside their cards without forcing horizontal overflow.
+
 -   Preserved Agents Server standalone VPS self-update history in `/admin/task-manager`. Each self-update run now carries a stable job id, the previous singleton status is archived before a new update overwrites it, and the task-manager API injects all preserved self-update task rows instead of only the latest one.
 
 -   Added automatic Claude Code session resurrection to `ptbk coder run --harness claude-code`. When Claude reports a session limit, the runner now extracts the explicit `session_id` and reset timestamp from the stream-json output, waits for the reset, and resumes the same Claude Code session with `--resume <session-id>` instead of letting the prompt round fall into the generic failed-attempt path. The rich terminal UI now shows the Claude-specific resurrection wait/resume status while other harnesses keep their existing behavior.

@@ -40,9 +40,9 @@ export function UpdateDatabaseMigrationsPanel({
     const processedPrefixCount = getProcessedDatabaseMigrationPrefixCount(databaseMigrations);
 
     return (
-        <section className="rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-4">
+        <section className="min-w-0 rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-4">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                <div>
+                <div className="min-w-0">
                     <h3 className="text-sm font-semibold text-slate-900">Database migrations</h3>
                     <p className="mt-1 text-sm text-slate-600">
                         {formatDatabaseMigrationStatusMessage(databaseMigrations, isJobIdle)}
@@ -51,7 +51,7 @@ export function UpdateDatabaseMigrationsPanel({
                 <DatabaseMigrationStatusBadge status={status} />
             </div>
 
-            <dl className="mt-4 grid gap-3 text-sm text-slate-600 md:grid-cols-3">
+            <dl className="mt-4 grid min-w-0 gap-3 text-sm text-slate-600 md:grid-cols-3">
                 <DatabaseMigrationMetric
                     label="Applied"
                     value={appliedCount === null ? 'Not recorded' : String(appliedCount)}
@@ -73,7 +73,9 @@ export function UpdateDatabaseMigrationsPanel({
             {databaseMigrations?.summaryFilePath && (
                 <div className="mt-3 text-xs text-slate-500">
                     Migration summary:
-                    <span className="ml-2 font-mono text-slate-700">{databaseMigrations.summaryFilePath}</span>
+                    <span className="ml-2 break-all font-mono text-slate-700">
+                        {databaseMigrations.summaryFilePath}
+                    </span>
                 </div>
             )}
 
@@ -98,9 +100,9 @@ export function UpdateDatabaseMigrationsPanel({
  */
 function DatabaseMigrationMetric({ label, value }: DatabaseMigrationMetricProps) {
     return (
-        <div className="rounded-xl border border-slate-200 bg-white px-4 py-3">
+        <div className="min-w-0 rounded-xl border border-slate-200 bg-white px-4 py-3">
             <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</dt>
-            <dd className="mt-1 text-slate-900">{value}</dd>
+            <dd className="mt-1 break-words text-slate-900">{value}</dd>
         </div>
     );
 }
@@ -118,19 +120,19 @@ function DatabaseMigrationPrefixSummaryRow({
     const isAppliedMigrationFileListVisible = prefixSummary.appliedMigrationFiles.length > 0;
 
     return (
-        <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
+        <div className="min-w-0 rounded-lg border border-slate-200 bg-white px-3 py-2">
             <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                <span className="font-mono text-xs text-slate-700">
+                <span className="break-all font-mono text-xs text-slate-700">
                     {formatDatabaseMigrationPrefix(prefixSummary.prefix)}
                 </span>
-                <span className="text-xs font-semibold text-slate-500">
+                <span className="shrink-0 text-xs font-semibold text-slate-500">
                     {formatCountWithNoun(prefixSummary.appliedCount, 'migration file', 'migration files')} applied
                 </span>
             </div>
             {isAppliedMigrationFileListVisible && (
                 <ul className="mt-2 space-y-1">
                     {prefixSummary.appliedMigrationFiles.map((migrationFile) => (
-                        <li key={migrationFile} className="font-mono text-xs text-slate-600">
+                        <li key={migrationFile} className="break-all font-mono text-xs text-slate-600">
                             {migrationFile}
                         </li>
                     ))}
@@ -148,7 +150,7 @@ function DatabaseMigrationPrefixSummaryRow({
 function DatabaseMigrationStatusBadge({ status }: { readonly status: UpdateDatabaseMigrationStatus }) {
     return (
         <span
-            className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide ${getDatabaseMigrationStatusClassName(
+            className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide ${getDatabaseMigrationStatusClassName(
                 status,
             )}`}
         >
