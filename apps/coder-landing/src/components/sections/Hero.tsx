@@ -1,13 +1,16 @@
-import { INSTALL_COMMAND } from '@/data/commands';
 import { LiveTerminalDemo } from '@/components/LiveTerminalDemo/LiveTerminalDemo';
 import { TerminalBlock } from '@/components/TerminalBlock/TerminalBlock';
+import { INSTALL_COMMAND, LIVE_RUN_COMMAND } from '@/data/commands';
+import { createLiveDemoFrames } from '@/data/createLiveDemoFrames';
 
 /**
  * Renders the hero section with the value proposition, install command and live terminal preview.
  *
  * Note: Specified in [`specs/sections/hero.md`](../../../specs/sections/hero.md)
  */
-export function Hero() {
+export async function Hero() {
+    const liveDemoFrames = await createLiveDemoFrames();
+
     return (
         <section className="relative overflow-hidden">
             {/* Note: Decorative gradient glow behind the hero */}
@@ -16,7 +19,7 @@ export function Hero() {
                 aria-hidden
             />
 
-            <div className="relative mx-auto grid max-w-6xl gap-12 px-4 pb-20 pt-16 md:pt-24 lg:grid-cols-2 lg:items-center">
+            <div className="relative mx-auto grid max-w-7xl gap-12 px-4 pb-20 pt-16 md:pt-24 lg:grid-cols-2 lg:items-center">
                 <div>
                     <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-promptbook-blue-dark/60 bg-promptbook-blue-dark/10 px-3 py-1 text-xs text-promptbook-blue">
                         Part of the Promptbook ecosystem
@@ -54,7 +57,7 @@ export function Hero() {
                     </div>
                 </div>
 
-                <LiveTerminalDemo />
+                <LiveTerminalDemo command={LIVE_RUN_COMMAND} frames={liveDemoFrames} />
             </div>
         </section>
     );
