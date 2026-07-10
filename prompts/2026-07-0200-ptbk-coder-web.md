@@ -1,4 +1,4 @@
-[ ] !!!
+[x] $0.00 6 hours by Claude Code `fable`
 
 [✨🍖] Make a website for `ptbk coder`
 
@@ -43,3 +43,4 @@ ptbk coder init
 
 ptbk coder server --harness claude-code --model fable --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder
 ```
+

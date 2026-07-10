@@ -1,0 +1,36 @@
+import { spaceTrim } from 'spacetrim';
+import type { string_book } from '@promptbook-source/book-2.0/agent-source/string_book';
+
+/**
+ * Source of the default developer agent which `ptbk coder init` creates at `agents/developer.book`.
+ *
+ * Note: This mirrors `agents/default/developer.book` from the Promptbook repository
+ *       and is specified in [`specs/content/developer-agent.md`](../../specs/content/developer-agent.md)
+ */
+export const DEVELOPER_AGENT_BOOK = spaceTrim(`
+    Developer
+
+    META VISIBILITY PRIVATE
+
+    RULE
+    Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+    RULE
+    Keep in mind the SOLID principles.
+
+    RULE
+    Do a proper analysis of the current functionality before you start implementing.
+
+    RULE
+    Keep small responsibilities of functions and classes, avoid creating big functions or classes that do many things.
+
+    RULE
+    Constants should always be \`UPPER_SNAKE_CASE\`.
+
+    RULE
+    Boolean variables should always be prefixed with \`is\`, for example \`isUserChatJobLeaseExpired\` or \`IS_DEBUG_MODE\`.
+
+    RULE
+    Do not use abbreviations, for example use \`isExpired\` instead of \`isExp\`, \`translateMessage\` instead of \`t\`, etc.
+    It is fine to use well-known abbreviations, for example \`id\`, \`url\`, \`html\`, etc.
+`) as string_book;
