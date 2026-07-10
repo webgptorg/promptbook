@@ -32,11 +32,7 @@ import {
     DEFAULT_AGENT_AVATAR_VISUAL_METADATA_KEY,
     resolveDefaultAgentAvatarVisualId,
 } from '../constants/defaultAgentAvatarVisual';
-import {
-    DEFAULT_THEME_METADATA_KEY,
-    THEME_MODE_COOKIE_NAME,
-    resolveThemeMode,
-} from '../constants/themeMode';
+import { DEFAULT_THEME_METADATA_KEY, THEME_MODE_COOKIE_NAME, resolveThemeMode } from '../constants/themeMode';
 import { parseChatFeedbackMode } from '../utils/chatFeedbackMode';
 import { getFederatedServers } from '../utils/getFederatedServers';
 import { isUserAdmin } from '../utils/isUserAdmin';
@@ -53,6 +49,8 @@ import {
     resolveShibbolethAuthenticationMenuStatus,
 } from '../constants/shibbolethAuth';
 import { resolveFileUploadAvailability } from '../utils/upload/fileUploadAvailability';
+import { readServerResourceWarningStatus } from '../utils/resourceMonitor/readServerResourceMonitorSnapshot';
+import { RESOURCE_MONITOR_OK_WARNING_STATUS } from '../utils/resourceMonitor/resourceMonitorTypes';
 import '@prisma/studio-core/ui/index.css';
 import './globals.css';
 
@@ -270,6 +268,18 @@ export default async function RootLayout({
     const currentUserPromise = getCurrentUser();
     const isAdminPromise = isUserAdmin();
     const isGlobalAdminPromise = isUserGlobalAdmin();
+    const resourceMonitorWarningStatusPromise = isGlobalAdminPromise.then(async (isGlobalAdmin) => {
+        if (!isGlobalAdmin) {
+            return RESOURCE_MONITOR_OK_WARNING_STATUS;
+        }
+
+        try {
+            return await readServerResourceWarningStatus();
+        } catch (error) {
+            console.error('Failed to resolve resource monitor warning status:', error);
+            return RESOURCE_MONITOR_OK_WARNING_STATUS;
+        }
+    });
     const providedServerPromise = $provideServer();
     const serverVisibilityPromise = getServerVisibility();
     const agentNamingPromise = getAgentNaming();
@@ -289,10 +299,7 @@ export default async function RootLayout({
         'custom stylesheet CSS',
         getAggregatedCustomStylesheetCss,
     );
-    const customJavascriptPromise = resolveOptionalLayoutText(
-        'custom JavaScript',
-        getCustomJavascriptWithIntegrations,
-    );
+    const customJavascriptPromise = resolveOptionalLayoutText('custom JavaScript', getCustomJavascriptWithIntegrations);
     const cookieStorePromise = cookies();
     const requestHeadersPromise = headers();
     const defaultThemeModePromise = Promise.all([currentUserPromise, cookieStorePromise, layoutMetadataPromise]).then(
@@ -318,23 +325,25 @@ export default async function RootLayout({
                 showFederatedServersPublicly: (layoutMetadata.SHOW_FEDERATED_SERVERS_PUBLICLY ?? 'false') === 'true',
             }),
     );
-    const footerLinksPromise = Promise.all([layoutMetadataPromise, federatedServersPromise, serverVisibilityPromise]).then(
-        ([layoutMetadata, federatedServers, serverVisibility]) => {
-            const footerLinks = [
-                ...parseFooterLinks(layoutMetadata.FOOTER_LINKS),
-                ...federatedServers.map(({ title, url }) => ({ title, url })),
-            ];
+    const footerLinksPromise = Promise.all([
+        layoutMetadataPromise,
+        federatedServersPromise,
+        serverVisibilityPromise,
+    ]).then(([layoutMetadata, federatedServers, serverVisibility]) => {
+        const footerLinks = [
+            ...parseFooterLinks(layoutMetadata.FOOTER_LINKS),
+            ...federatedServers.map(({ title, url }) => ({ title, url })),
+        ];
 
-            if (isPublicServerVisibility(serverVisibility)) {
-                footerLinks.push({
-                    title: 'Sitemap',
-                    url: '/sitemap.xml',
-                });
-            }
+        if (isPublicServerVisibility(serverVisibility)) {
+            footerLinks.push({
+                title: 'Sitemap',
+                url: '/sitemap.xml',
+            });
+        }
 
-            return footerLinks;
-        },
-    );
+        return footerLinks;
+    });
 
     const [
         isAdmin,
@@ -354,6 +363,7 @@ export default async function RootLayout({
         footerLinks,
         serverVisibility,
         fileUploadAvailability,
+        resourceMonitorWarningStatus,
     ] = await Promise.all([
         isAdminPromise,
         isGlobalAdminPromise,
@@ -372,6 +382,7 @@ export default async function RootLayout({
         footerLinksPromise,
         serverVisibilityPromise,
         fileUploadAvailabilityPromise,
+        resourceMonitorWarningStatusPromise,
     ]);
 
     const serverName = layoutMetadata.SERVER_NAME || 'Promptbook Agents Server';
@@ -433,7 +444,9 @@ export default async function RootLayout({
                     agentFolders={JSON.parse(JSON.stringify(agentFolders))}
                     agentNaming={agentNaming}
                     isFooterShown={isFooterShown}
-                    footerLinks={isPublicServer ? footerLinks : footerLinks.filter((link) => link.url !== '/sitemap.xml')}
+                    footerLinks={
+                        isPublicServer ? footerLinks : footerLinks.filter((link) => link.url !== '/sitemap.xml')
+                    }
                     federatedServers={federatedServers}
                     defaultIsSoundsOn={chatPreferences.defaultIsSoundsOn}
                     defaultIsVibrationOn={chatPreferences.defaultIsVibrationOn}
@@ -441,6 +454,7 @@ export default async function RootLayout({
                     isExperimental={isExperimental}
                     feedbackMode={feedbackMode}
                     shibbolethAuthenticationStatus={shibbolethAuthenticationStatus}
+                    resourceMonitorWarningStatus={resourceMonitorWarningStatus}
                     isExperimentalPwaAppEnabled={isExperimentalPwaAppEnabled}
                     controlPanelOptionAvailability={controlPanelOptionAvailability}
                     defaultServerLanguage={serverLanguage}

@@ -3,6 +3,7 @@ import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../../util
 import type { ChatFeedbackMode } from '../../utils/chatFeedbackMode';
 import type { UserInfo } from '../../utils/getCurrentUser';
 import type { ShibbolethAuthenticationMenuStatus } from '../../constants/shibbolethAuth';
+import type { ServerResourceWarningStatus } from '../../utils/resourceMonitor/resourceMonitorTypes';
 import type { SubMenuItem } from './SubMenuItem';
 
 /**
@@ -63,6 +64,11 @@ export type HeaderProps = {
      * Shibboleth authentication status used to show login-method menu entries and warnings.
      */
     shibbolethAuthenticationStatus?: ShibbolethAuthenticationMenuStatus;
+
+    /**
+     * Resource monitor status used to show super-admin resource pressure warnings.
+     */
+    resourceMonitorWarningStatus?: ServerResourceWarningStatus;
 };
 
 /**

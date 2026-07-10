@@ -1,3 +1,5 @@
+import { isValidElement } from 'react';
+
 import type { ServerTranslationKey } from '../../languages/ServerTranslationKeys';
 import type { UserInfo } from '../../utils/getCurrentUser';
 import { buildHeaderSystemMenuItems } from './buildHeaderSystemMenuItems';
@@ -20,6 +22,24 @@ function collectStringLabels(items: ReadonlyArray<SubMenuItem>): string[] {
         const currentLabel = typeof item.label === 'string' ? [item.label] : [];
         return [...currentLabel, ...(item.items ? collectStringLabels(item.items) : [])];
     });
+}
+
+/**
+ * Finds one menu entry by href.
+ */
+function findItemByHref(items: ReadonlyArray<SubMenuItem>, href: string): SubMenuItem | null {
+    for (const item of items) {
+        if (item.href === href) {
+            return item;
+        }
+
+        const childItem = item.items ? findItemByHref(item.items, href) : null;
+        if (childItem) {
+            return childItem;
+        }
+    }
+
+    return null;
 }
 
 describe('buildHeaderSystemMenuItems', () => {
@@ -50,6 +70,7 @@ describe('buildHeaderSystemMenuItems', () => {
             expect.arrayContaining([
                 'translated:header.settings',
                 'translated:header.environmentVariables',
+                'translated:header.resourceMonitor',
                 'translated:header.update',
                 'translated:header.database',
                 'translated:header.logs',
@@ -84,8 +105,35 @@ describe('buildHeaderSystemMenuItems', () => {
 
         expect(collectStringLabels(normalAdminItems)).not.toContain('translated:header.database');
         expect(collectStringLabels(normalAdminItems)).not.toContain('translated:header.update');
+        expect(collectStringLabels(normalAdminItems)).not.toContain('translated:header.resourceMonitor');
         expect(collectStringLabels(normalAdminItems)).not.toContain('translated:header.cliAccess');
         expect(userItems.map((item) => item.label)).not.toContain('translated:header.superAdmin');
+    });
+
+    it('decorates the resource monitor menu item when resources are under pressure', () => {
+        const translate = (key: ServerTranslationKey) => `translated:${key}`;
+        const items = buildHeaderSystemMenuItems({
+            translate,
+            currentUser: FIXTURE_USER,
+            isAdmin: true,
+            isGlobalAdmin: true,
+            isExperimental: false,
+            feedbackMode: 'stars',
+            resourceMonitorWarningStatus: {
+                isWarningShown: true,
+                issues: [
+                    {
+                        resource: 'memory',
+                        message: 'Free memory is low.',
+                    },
+                ],
+                warningMessages: ['Free memory is low.'],
+            },
+        });
+        const resourceMonitorItem = findItemByHref(items, '/admin/resource-monitor');
+
+        expect(resourceMonitorItem).not.toBeNull();
+        expect(isValidElement(resourceMonitorItem?.label)).toBe(true);
     });
 
     it('adds Shibboleth under login methods only when Shibboleth authentication is active', () => {
