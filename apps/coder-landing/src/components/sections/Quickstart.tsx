@@ -1,6 +1,6 @@
-import type { ReactNode } from 'react';
-import { INIT_COMMAND, INSTALL_COMMAND, RUN_COMMAND, SERVER_COMMAND } from '@/data/commands';
 import { TerminalBlock } from '@/components/TerminalBlock/TerminalBlock';
+import { INIT_COMMAND, INSTALL_COMMAND, RUN_COMMAND, SERVER_COMMAND } from '@/data/commands';
+import type { ReactNode } from 'react';
 
 /**
  * One step of the quickstart walkthrough.
@@ -38,8 +38,8 @@ const QUICKSTART_STEPS: ReadonlyArray<QuickstartStep> = [
         description: (
             <>
                 <code className="text-promptbook-blue">ptbk coder</code> ships with the{' '}
-                <code className="text-promptbook-blue">ptbk</code> package. Install it in your project (or globally
-                with <code className="text-promptbook-blue">-g</code>).
+                <code className="text-promptbook-blue">ptbk</code> package. Install it in your project (or globally with{' '}
+                <code className="text-promptbook-blue">-g</code>).
             </>
         ),
         command: INSTALL_COMMAND,
@@ -65,7 +65,7 @@ const QUICKSTART_STEPS: ReadonlyArray<QuickstartStep> = [
                 same way you would prompt Claude Code or Codex — plain language, as specific as you like.
             </>
         ),
-        command: 'echo "Add a dark mode toggle to the settings page" > prompts/add-dark-mode.md',
+        command: 'echo "Add a dark mode" > prompts/add-dark-mode.md',
         terminalTitle: 'prompts/add-dark-mode.md',
     },
     {

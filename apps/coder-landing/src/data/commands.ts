@@ -35,7 +35,7 @@ export const DRY_RUN_COMMAND = 'ptbk coder run --dry-run';
  * project context and post-prompt test verification.
  */
 export const SERVER_COMMAND =
-    'ptbk coder server --harness claude-code --model fable --thinking-level max --agent agents/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder';
+    'ptbk coder server --harness claude-code --model fable --thinking-level max --agent agents/developer.book --context AGENTS.md --test npm run test';
 
 /**
  * Command which runs the queue with the developer agent persona from a `.book` file.
