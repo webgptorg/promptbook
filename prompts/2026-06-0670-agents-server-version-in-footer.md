@@ -20,9 +20,30 @@
 
 ---
 
-[ ]
+[ ] !
 
-[✨𓀃] In the footer of agents server there should be unique emoji heard in "Made with ❤️ in Europe"
+[✨𓀃] Modify footer of the Agents server
+
+**Now it shows:**
+
+```
+© 2026 Promptbook
+All rights reserved.
+Made with ❤️ in Europe
+
+Promptbook engine version 0.113.0-1
+```
+
+**It should show:**
+
+```
+© 2026 Promptbook
+All rights reserved.
+Made with ❤️ in Europe
+
+Promptbook engine version 0.11.11-1
+```
+
 
 - @@@@@@@
 -   Use the hash of the commit to derive the emoji
