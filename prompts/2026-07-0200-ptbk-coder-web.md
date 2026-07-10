@@ -46,7 +46,7 @@ ptbk coder server --harness claude-code --model fable --thinking-level max --age
 
 ---
 
-[ ] !
+[ ] !!!
 
 [✨🍖] Make the sample in terminal in `ptbk coder` landing website
 
