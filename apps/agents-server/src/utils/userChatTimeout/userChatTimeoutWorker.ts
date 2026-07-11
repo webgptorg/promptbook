@@ -10,6 +10,7 @@ import { getUserChat } from '../userChat/getUserChat';
 import { getUserChatJobByClientMessageId } from '../userChat/getUserChatJobByClientMessageId';
 import { mutateUserChat } from '../userChat/mutateUserChat';
 import { triggerUserChatJobWorker } from '../userChat/triggerUserChatJobWorker';
+import { runWithTaskTerminalCapture } from '../taskTerminal/runWithTaskTerminalCapture';
 import type { UserChatTimeoutParameters, UserChatTimeoutRecord } from './UserChatTimeoutRecord';
 import { createTimeoutWakeUpMessage } from './createTimeoutWakeUpMessage';
 import {
@@ -214,7 +215,9 @@ export async function runUserChatTimeoutWorkerTick(): Promise<void> {
                 break;
             }
 
-            await processClaimedUserChatTimeout(claimedTimeout);
+            await runWithTaskTerminalCapture(claimedTimeout.timeoutId, () =>
+                processClaimedUserChatTimeout(claimedTimeout),
+            );
         }
     } catch (error) {
         console.error('[user-chat-timeout]', 'worker_tick_failed', serializeError(error as Error));

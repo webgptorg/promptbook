@@ -1,4 +1,4 @@
-[.] !!!!!
+[x] $7.50 11 hours by Claude Code `fable`
 
 [✨😉] In the task manager, allow to see the full CLI terminal of each particular task in real time
 
@@ -13,3 +13,4 @@
 -   You are working with the [Agents Server](apps/agents-server) with `/admin/task-manager`
 
 ![alt text](screenshots/2026-07-0340-agents-server-foo.png)
+

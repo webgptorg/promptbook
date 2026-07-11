@@ -1,6 +1,7 @@
 import { mapUserChatTimeoutRow } from './mapUserChatTimeoutRow';
 import { isMissingUserChatTimeoutRelationError } from './isMissingUserChatTimeoutRelationError';
 import { provideUserChatTimeoutTable } from './provideUserChatTimeoutTable';
+import { markTaskTerminalLogFinished } from '../../taskTerminal/taskTerminalLog';
 import type { UserChatTimeoutRecord, UserChatTimeoutRow } from '../UserChatTimeoutRecord';
 
 /**
@@ -35,6 +36,8 @@ export async function updateUserChatTimeoutTerminalState(
 
         throw new Error(`Failed to update user chat timeout "${timeoutId}": ${error.message}`);
     }
+
+    markTaskTerminalLogFinished(timeoutId, { isSuccessful: status === 'COMPLETED' });
 
     return data ? mapUserChatTimeoutRow(data as UserChatTimeoutRow) : null;
 }

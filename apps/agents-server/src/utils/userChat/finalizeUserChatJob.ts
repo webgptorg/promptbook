@@ -1,6 +1,7 @@
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideClientSql } from '@/src/database/$provideClientSql';
 import { isAgentsServerSqliteMode } from '@/src/database/agentsServerDatabaseMode';
+import { markTaskTerminalLogFinished } from '../taskTerminal/taskTerminalLog';
 import type { UserChatJobRow } from './UserChatJobRow';
 import type { UserChatJobRecord, UserChatJobStatus } from './UserChatJobRecord';
 import { mapUserChatJobRow } from './mapUserChatJobRow';
@@ -15,6 +16,21 @@ type FinalUserChatJobStatus = Extract<UserChatJobStatus, 'COMPLETED' | 'FAILED' 
  * Persists one final status for a durable chat job.
  */
 export async function finalizeUserChatJob(options: {
+    jobId: string;
+    status: FinalUserChatJobStatus;
+    provider?: string | null;
+    failureReason?: string | null;
+    failureDetails?: string | null;
+}): Promise<UserChatJobRecord | null> {
+    const finalizedJob = await persistFinalUserChatJobStatus(options);
+    markTaskTerminalLogFinished(options.jobId, { isSuccessful: options.status === 'COMPLETED' });
+    return finalizedJob;
+}
+
+/**
+ * Persists one final job status through the mode-specific database path.
+ */
+async function persistFinalUserChatJobStatus(options: {
     jobId: string;
     status: FinalUserChatJobStatus;
     provider?: string | null;
