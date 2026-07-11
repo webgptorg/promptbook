@@ -577,6 +577,7 @@ describe('ChatMessageItem attachments', () => {
         const image = screen.getByRole('img', { name: 'design.png' });
 
         expect(dialog).toBeDefined();
+        expect(dialog.parentElement?.parentElement).toBe(document.body);
         expect(image.getAttribute('src')).toBe('https://example.com/design.png');
     });
 

@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { classNames } from '../../_common/react-utils/classNames';
 import { CloseIcon } from '../../icons/CloseIcon';
 import type { ChatMessage } from '../types/ChatMessage';
@@ -31,9 +32,14 @@ type ChatImageAttachmentModalProps = {
  */
 export function ChatImageAttachmentModal({ attachment, mode = 'LIGHT', onClose }: ChatImageAttachmentModalProps) {
     const modalDialogRef = useRef<HTMLDivElement>(null);
+    const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
 
     useEffect(() => {
-        if (!attachment) {
+        setPortalContainer(document.body);
+    }, []);
+
+    useEffect(() => {
+        if (!attachment || !portalContainer) {
             return;
         }
 
@@ -52,15 +58,15 @@ export function ChatImageAttachmentModal({ attachment, mode = 'LIGHT', onClose }
             window.removeEventListener('keydown', handleEscape);
             previouslyFocusedElement?.focus();
         };
-    }, [attachment, onClose]);
+    }, [attachment, onClose, portalContainer]);
 
-    if (!attachment) {
+    if (!attachment || !portalContainer) {
         return null;
     }
 
     const attachmentName = attachment.name || 'Image attachment';
 
-    return (
+    return createPortal(
         <div
             className={styles.ratingModal}
             data-chat-modal="image-attachment"
@@ -96,6 +102,7 @@ export function ChatImageAttachmentModal({ attachment, mode = 'LIGHT', onClose }
                     <img src={attachment.url} alt={attachmentName} className={styles.imageAttachmentModalImage} />
                 </div>
             </div>
-        </div>
+        </div>,
+        portalContainer,
     );
 }
