@@ -1,4 +1,4 @@
-[ ] !!!!!
+[.] !!!!!
 
 [✨😉] In the task manager, allow to see the full CLI terminal of each particular task in real time
 
