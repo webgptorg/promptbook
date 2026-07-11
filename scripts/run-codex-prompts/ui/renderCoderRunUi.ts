@@ -135,6 +135,7 @@ export function renderCoderRunUi(
     }
 
     let spinnerFrame = 0;
+    const animationStartTimeMs = Date.now();
     let previousFrameLines: string[] = [];
     let isRendering = false;
     let renderScheduled = false;
@@ -170,7 +171,12 @@ export function renderCoderRunUi(
             autoRefreshTimeout = undefined;
         }
 
-        const autoRefreshInterval = getCoderRunUiAutoRefreshInterval(state.phase, getPauseState());
+        const isAgentVisualAnimated = state.agentVisual?.isAnimated === true;
+        const autoRefreshInterval = getCoderRunUiAutoRefreshInterval(
+            state.phase,
+            getPauseState(),
+            isAgentVisualAnimated,
+        );
         if (autoRefreshInterval === undefined) {
             return;
         }
@@ -251,11 +257,12 @@ export function renderCoderRunUi(
         return buildFrameLinesFromState({
             terminalWidth: getTerminalWidth(),
             animationFrame: spinnerFrame,
+            animationTimeMs: Date.now() - animationStartTimeMs,
             spinner: SPINNER_FRAMES[spinnerFrame]!,
             pauseState: getPauseState(),
             pauseTargetLabel: getPauseTargetLabel(),
             config: state.config,
-            agentVisualLines: state.agentVisualLines,
+            agentVisual: state.agentVisual,
             phase: state.phase,
             currentPromptLabel: state.currentPromptLabel,
             currentScriptPaths: state.currentScriptPaths,

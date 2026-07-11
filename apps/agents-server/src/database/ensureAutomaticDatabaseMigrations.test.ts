@@ -20,7 +20,7 @@ jest.mock('./runDatabaseMigrations', () => ({
 const SUCCESSFUL_MIGRATION_RESULT = {
     processedPrefixes: ['server_Test_'],
     totalMigrationFiles: 1,
-    perPrefix: [{ prefix: 'server_Test_', appliedCount: 0 }],
+    perPrefix: [{ prefix: 'server_Test_', appliedCount: 0, appliedMigrationFiles: [] }],
     isSkippedDueToActiveMigrationLock: false,
 };
 

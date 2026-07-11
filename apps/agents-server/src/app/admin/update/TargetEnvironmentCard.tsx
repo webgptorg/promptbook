@@ -79,7 +79,7 @@ export function TargetEnvironmentCard({ state, language }: TargetEnvironmentCard
     const isControlsDisabled = state.isUpdateRunning || state.isStartingUpdate;
 
     return (
-        <div className="space-y-4">
+        <div className="min-w-0 space-y-4">
             <div>
                 <h2 className="text-lg font-semibold text-slate-900">Target environment</h2>
                 <p className="mt-1 text-sm text-slate-500">
@@ -124,7 +124,7 @@ function EnvironmentOptionList({
     onSelectEnvironment,
 }: EnvironmentOptionListProps) {
     return (
-        <div className="grid gap-3">
+        <div className="grid min-w-0 gap-3">
             {environments.map((environment) => (
                 <EnvironmentOptionButton
                     key={environment.id}
@@ -156,22 +156,22 @@ function EnvironmentOptionButton({
             type="button"
             onClick={() => onSelectEnvironment(environment.id)}
             disabled={isDisabled}
-            className={`rounded-2xl border px-4 py-4 text-left transition ${
+            className={`min-w-0 rounded-2xl border px-4 py-4 text-left transition ${
                 isSelected
                     ? 'border-blue-300 bg-blue-50 text-blue-900 shadow-sm'
                     : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:shadow-sm'
             } disabled:cursor-not-allowed disabled:opacity-60`}
         >
-            <div className="flex items-center justify-between gap-3">
-                <div className="text-sm font-semibold">{environment.label}</div>
+            <div className="flex min-w-0 items-center justify-between gap-3">
+                <div className="min-w-0 break-words text-sm font-semibold">{environment.label}</div>
                 {isCurrent && (
-                    <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
+                    <span className="shrink-0 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
                         Current
                     </span>
                 )}
             </div>
-            {environment.branch && <div className="mt-1 font-mono text-xs">{environment.branch}</div>}
-            <div className="mt-2 text-sm opacity-80">{environment.description}</div>
+            {environment.branch && <div className="mt-1 break-all font-mono text-xs">{environment.branch}</div>}
+            <div className="mt-2 break-words text-sm opacity-80">{environment.description}</div>
         </button>
     );
 }
@@ -191,7 +191,7 @@ function CustomRefPanel({ state, language, isControlsDisabled }: CustomRefPanelP
     }
 
     return (
-        <div className="space-y-3 rounded-xl border border-blue-200 bg-blue-50/40 p-4">
+        <div className="min-w-0 space-y-3 rounded-xl border border-blue-200 bg-blue-50/40 p-4">
             <CustomCommitPicker
                 language={language}
                 selectedRef={state.customRef}
@@ -225,10 +225,10 @@ function UpdateStartButton({ state }: UpdateStartButtonProps) {
             type="button"
             onClick={() => void state.startUpdate()}
             disabled={isUpdateStartDisabled(state)}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex w-full min-w-0 items-center justify-center gap-2 rounded-md bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
             <UpdateStartButtonIcon buttonMode={buttonMode} />
-            {getUpdateStartButtonLabel(state)}
+            <span className="min-w-0 break-words text-center">{getUpdateStartButtonLabel(state)}</span>
         </button>
     );
 }
@@ -240,14 +240,14 @@ function UpdateStartButton({ state }: UpdateStartButtonProps) {
  */
 function UpdateStartButtonIcon({ buttonMode }: { readonly buttonMode: UpdateStartButtonMode }) {
     if (buttonMode === 'loading') {
-        return <Loader2 className="h-4 w-4 animate-spin" />;
+        return <Loader2 className="h-4 w-4 shrink-0 animate-spin" />;
     }
 
     if (buttonMode === 'rocket') {
-        return <Rocket className="h-4 w-4" />;
+        return <Rocket className="h-4 w-4 shrink-0" />;
     }
 
-    return <Download className="h-4 w-4" />;
+    return <Download className="h-4 w-4 shrink-0" />;
 }
 
 /**

@@ -1,12 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import type { ToolCall } from '../../../types/ToolCall';
 import { buildToolCallChipText, getToolCallChipletInfo } from './getToolCallChipletInfo';
-import {
-    createDeduplicatedWalletCredentialToolCalls,
-    createWalletCredentialToolCall,
-    parseWalletCredentialToolCallResult,
-    WALLET_CREDENTIAL_TOOL_CALL_NAME,
-} from './walletCredentialToolCall';
+import { createDeduplicatedWalletCredentialToolCalls, createWalletCredentialToolCall, parseWalletCredentialToolCallResult, WALLET_CREDENTIAL_TOOL_CALL_NAME } from './walletCredentialToolCall';
 
 /**
  * Creates a minimal tool call for credential chip tests.

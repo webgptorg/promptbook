@@ -67,4 +67,13 @@ describe('buildClaudeScript', () => {
         expect(script).toContain('--model claude-opus-4-8');
         expect(script).toContain('--effort max');
     });
+
+    it('adds explicit resume session id when provided', () => {
+        const script = buildClaudeScript({
+            prompt: 'Prompt',
+            resumeSessionId: '61e19706-0dd7-4835-89b8-3ae12c0b57cc',
+        });
+
+        expect(script).toContain('--resume "61e19706-0dd7-4835-89b8-3ae12c0b57cc"');
+    });
 });

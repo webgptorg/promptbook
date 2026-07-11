@@ -78,7 +78,7 @@ type AgentAvatarProps = {
 
 /**
  * Renders either the explicit agent image or the shared animated default avatar visual.
- * Agent-level `META AVATAR` values are resolved before the federated server default and the
+ * Agent-level `META AVATAR` / `META VISUAL` values are resolved before the federated server default and the
  * local server metadata default.
  *
  * @private shared component of Agents Server

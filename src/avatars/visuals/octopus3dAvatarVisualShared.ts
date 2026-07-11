@@ -1,13 +1,8 @@
 /* eslint-disable no-magic-numbers */
 
 import type { AvatarPalette } from '../types/AvatarVisualDefinition';
-import {
-    clampNumber,
-    projectScenePoint,
-    transformScenePoint,
-    type Point3D,
-    type ProjectedPoint,
-} from './avatar3dProjectionShared';
+import type { Point3D, ProjectedPoint } from './avatar3dProjectionShared';
+import { clampNumber, projectScenePoint, transformScenePoint } from './avatar3dProjectionShared';
 import { resolveOrganicEyeMotion } from './octopusAvatarVisualShared';
 
 // Note: [💞] Ignore a discrepancy between file name and entity name

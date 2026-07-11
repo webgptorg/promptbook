@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { resolveAgentAvatarImageUrl } from '../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 import { buildFolderPath, getFolderPathSegments } from '../../utils/agentOrganization/folderPath';
+import { filterHiddenFolderTree } from '../../utils/agentOrganization/hiddenFolders';
 import type { AgentOrganizationAgent } from '../../utils/agentOrganization/types';
 import { buildFreshAgentChatHref } from '../../utils/agentRouting/agentRouteHrefs';
 import { FolderAppearanceIcon } from '../FolderAppearance/FolderAppearanceIcon';
@@ -428,14 +429,15 @@ export function buildAgentMenuStructure(
     agents: ReadonlyArray<HeaderAgentMenuAgent>,
     folders: ReadonlyArray<HeaderAgentMenuFolder>,
 ): AgentMenuStructure {
-    const agentMenuData = prepareAgentMenuData(agents, folders);
-    const agentAvatarByIdentifier = createAgentAvatarByIdentifier(agents);
+    const { agents: visibleAgents, folders: visibleFolders } = filterHiddenFolderTree(folders, agents, false);
+    const agentMenuData = prepareAgentMenuData(visibleAgents, visibleFolders);
+    const agentAvatarByIdentifier = createAgentAvatarByIdentifier(visibleAgents);
 
     const getAgentAvatarUrl = (agent: HeaderAgentMenuAgent): string | null =>
         agentAvatarByIdentifier.get(getAgentNavigationId(agent)) ?? null;
 
     return {
-        tree: createAgentTree(folders, agentMenuData, getAgentAvatarUrl),
-        items: createAgentMenuItems(folders, agentMenuData, getAgentAvatarUrl),
+        tree: createAgentTree(visibleFolders, agentMenuData, getAgentAvatarUrl),
+        items: createAgentMenuItems(visibleFolders, agentMenuData, getAgentAvatarUrl),
     };
 }

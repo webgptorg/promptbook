@@ -3,9 +3,9 @@
 import type { string_url } from '@promptbook-local/types';
 import { useMemo } from 'react';
 import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../../utils/agentOrganization/types';
+import { filterHiddenFolderTree } from '../../utils/agentOrganization/hiddenFolders';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 import { getAgentIdentifier } from './agentOrganizationUtils';
-import { filterHiddenFolderTree } from './hiddenFolders';
 import { useAgentsListAgentState } from './useAgentsListAgentState';
 import { useAgentsListDerivedState } from './useAgentsListDerivedState';
 import {

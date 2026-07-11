@@ -82,7 +82,11 @@ async function repairImports({
         throw new Error(`Working tree is not clean`);
     }
 
-    const allEntities = await findAllProjectEntities({ includeScripts: true, allowDuplicateNames: true });
+    const allEntities = await findAllProjectEntities({
+        includeScripts: true,
+        isApplicationSourceIncluded: true,
+        allowDuplicateNames: true,
+    });
     const files = await readAllProjectFiles();
     const unfoundEntities: Array<{ entity: string; filePath: string }> = [];
 

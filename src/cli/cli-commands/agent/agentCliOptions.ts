@@ -1,11 +1,8 @@
 import type {
-    Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
+  Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */
 } from 'commander';
 import { NotAllowed } from '../../../errors/NotAllowed';
-import type {
-    NormalizedPromptRunnerSelectionCliOptions,
-    PromptRunnerSelectionCliOptions,
-} from '../common/promptRunnerCliOptions';
+import type { NormalizedPromptRunnerSelectionCliOptions, PromptRunnerSelectionCliOptions } from '../common/promptRunnerCliOptions';
 import { normalizePromptRunnerSelectionCliOptions } from '../common/promptRunnerCliOptions';
 
 /**

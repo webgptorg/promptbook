@@ -1,333 +1,164 @@
 # Data Model
 
-Agents Server stores data in PostgreSQL/Supabase or local SQLite. PostgreSQL/Supabase is the production model; SQLite is a local adapter that preserves the same logical tables and Supabase-shaped behavior.
-
-## Table Namespaces
-
-Most tables are per logical server. Their physical table name is:
-
-```text
-<tablePrefix><TableName>
-```
-
-Migration files use `prefix_` as the placeholder. For example, `prefix_Agent` becomes `server_example_com_Agent` for a server with table prefix `server_example_com_`.
-
-The global `_Server` table is not prefixed.
-
-## Global Server Table
-
-`_Server` stores logical server registrations:
-
-- `id`
-- `name`
-- `environment`
-- `domain`
-- `tablePrefix`
-- `createdAt`
-- `updatedAt`
-
-`name`, `domain`, and `tablePrefix` MUST be unique.
-
-## Agent Tables
-
-`Agent` stores the current state of each agent:
-
-- `id`: database id.
-- `permanentId`: stable id used for long-lived references.
-- `agentName`: human-readable name.
-- `agentSource`: book-language source.
-- `agentHash`: source/runtime hash.
-- `agentProfile`: resolved profile metadata.
-- `preparedModelRequirements`: cached model requirements.
-- `promptbookEngineVersion`
-- `usage`
-- `visibility`: `PRIVATE`, `UNLISTED`, or `PUBLIC`.
-- `folderId`
-- `sortOrder`
-- `userId`
-- `createdAt`, `updatedAt`, `deletedAt`
-
-`AgentHistory` stores append-only source snapshots:
-
-- `agentName`
-- `permanentId`
-- `agentHash`
-- `previousAgentHash`
-- `agentSource`
-- `promptbookEngineVersion`
-- `versionName`
-- `createdAt`
-
-`AgentFolder` stores organization hierarchy:
-
-- `id`
-- `name`
-- `parentId`
-- `sortOrder`
-- `icon`
-- `color`
-- `userId`
-- `createdAt`, `updatedAt`, `deletedAt`
-
-Active folder names MUST be unique within `(userId, parentId)`. Folder deletion is soft deletion and cascades behaviorally to descendant folders and owned agents.
-
-`AgentPreparation` tracks background preparation:
-
-- `agentPermanentId`
-- `targetFingerprint`
-- `lastPreparedFingerprint`
-- `status`
-- `triggerReason`
-- scheduling and run timestamps
-- retry count, error, and duration fields
-
-`AgentExternals` maps agents to vendor-side external resources:
-
-- `type`
-- `hash`
-- `externalId`
-- `vendor`
-- optional `note`
-
-## Chat Tables
-
-`ChatHistory` stores stateless chat records:
-
-- message hash and previous message hash
-- `agentName`
-- `agentPermanentId`
-- `agentHash`
-- serialized message content
-- telemetry: URL, IP, user agent, language, platform
-- `source`: for example `AGENT_PAGE_CHAT` or `OPENAI_API_COMPATIBILITY`
-- `actorType`: `ANONYMOUS`, `TEAM_MEMBER`, or `API_KEY`
-- `apiKey`
-- `usage`
-- `userId`
-- timestamps
-
-`ChatFeedback` stores user feedback about chat answers:
-
-- rating/text fields
-- user note and expected answer
-- agent identity fields
-- telemetry
-- timestamps
-
-`UserChat` stores durable conversations:
-
-- text `id`
-- `userId`
-- `agentPermanentId`
-- `source`: `WEB_UI`, `OPENAI_API`, or `TEAM_MEMBER`
-- `title`
-- `messages` JSON array
-- `draftMessage`
-- `lastMessageAt`
-- timestamps
-
-`UserChatJob` stores durable generation jobs:
-
-- text `id`
-- `chatId`
-- `userId`
-- `agentPermanentId`
-- `userMessageId`
-- `assistantMessageId`
-- `clientMessageId`
-- `status`: `QUEUED`, `RUNNING`, `COMPLETED`, `FAILED`, or `CANCELLED`
-- `parameters` JSON
-- queue, start, completion, cancel, heartbeat, and lease timestamps
-- `attemptCount`
-- `provider`
-- `failureReason`
-- `failureDetails`
-- runtime diagnostics such as raw prompt/request and duration when available
-- timestamps
-
-`UserChatTimeout` stores delayed and recurring chat actions:
-
-- text `id`
-- `chatId`
-- `userId`
-- `agentPermanentId`
-- `status`
-- `message`
-- `parameters`
-- `durationMs`
-- recurrence interval when configured
-- due, queue, start, completion, cancel, pause, and lease timestamps
-- `attemptCount`
-- `failureReason`
-- timestamps
-
-## User and Security Tables
-
-`User` stores accounts:
-
-- `id`
-- `username`
-- `passwordHash`
-- `isAdmin`
-- `profileImageUrl`
-- `email`
-- `displayName`
-- `authenticationProvider`
-- timestamps
-
-API responses MUST use a public projection and MUST NOT expose `passwordHash`.
-
-`ApiTokens` stores API keys:
-
-- `id`
-- `token`
-- `note`
-- `isRevoked`
-- `userId`
-- timestamps
-
-`ShibbolethUserIdentity` stores external identity links.
-
-`ShibbolethAuthenticationAttempt` stores Shibboleth audit records.
-
-## Configuration Tables
-
-`Metadata` stores string configuration:
-
-- `key`
-- `value`
-- optional `note`
-- timestamps
-
-`ServerLimit` stores numeric limits:
-
-- `key`
-- `value`
-- timestamps
-
-Both `key` columns MUST be unique.
-
-## User Data Tables
-
-`UserMemory` stores memory:
-
-- `userId`
-- `agentPermanentId`
-- `content`
-- `isGlobal`
-- `deletedAt`
-- timestamps
-
-Global memories have no agent-specific scope. Agent memories include `agentPermanentId`.
-
-`Wallet` stores secrets and credentials:
-
-- `userId`
-- `isUserScoped`
-- `agentPermanentId`
-- `recordType`: `USERNAME_PASSWORD`, `SESSION_COOKIE`, or `ACCESS_TOKEN`
-- `service`
-- `key`
-- `jsonSchema`
-- `username`
-- `password`
-- `secret`
-- `cookies`
-- `isGlobal`
-- `deletedAt`
-- timestamps
+All state lives in one relational (PostgreSQL-compatible) database. Instance-scoped tables carry the per-server [table prefix](servers-and-multi-tenancy.md#table-prefixes), written here as `prefix_`. Timestamps are `TIMESTAMP WITH TIME ZONE`; `createdAt`/`updatedAt` default to `now()`. Ids are identity `BIGINT` unless noted. JSON columns are `JSONB`. Migrations that materialize this model are specified in [Migrations](operations/migrations.md).
 
-Wallet responses MUST redact secrets unless the route explicitly performs a credential operation that requires them.
+## Global tables (no prefix)
 
-`UserData` stores JSON values by `(userId, key)`.
+### `_Server`
 
-`UserPushSubscription` stores web-push endpoints and public keys.
+Server-instance registry: `id`, `name` (unique), `environment` enum `LTS|PREVIEW|PRODUCTION|LIVE`, `domain` (unique), `tablePrefix` (unique), timestamps. See [Servers and multi-tenancy](servers-and-multi-tenancy.md#server-registry).
 
-`ShareTargetPayload` stores PWA share-target payloads until consumed.
+### `prefix_Migrations` (one per prefix)
 
-## File and Media Tables
+Applied-migration bookkeeping: `filename` (PK), `appliedAt`, `appliedBy`.
 
-`File` tracks uploads:
+## Agents
 
-- `id`
-- `userId`
-- `fileName`
-- `fileSize`
-- `fileType`
-- `storageUrl`
-- `shortUrl`
-- `purpose`
-- `status`
-- `agentId`
-- `securityResult`
-- `createdAt`
+### `prefix_Agent`
 
-`Image` stores generated or uploaded image records:
+The agent store (see [Agents](agents.md)): `id`, `agentName` (indexed, **not unique**), `permanentId` (unique), `agentHash`, `agentSource` (text), `agentProfile` (JSON profile snapshot), `promptbookEngineVersion`, `usage` (JSON, nullable), `preparedModelRequirements` (JSON, nullable), `folderId` → `AgentFolder.id`, `sortOrder`, `visibility` (`PUBLIC|PRIVATE|UNLISTED`), `userId` → `User.id` (nullable owner, `ON DELETE SET NULL`), `createdAt`, `updatedAt`, `deletedAt` (soft delete).
 
-- `filename`
-- `prompt`
-- `cdnUrl`
-- `cdnKey`
-- `agentId`
-- `purpose`: `AVATAR` or `TESTING`
-- timestamps
+### `prefix_AgentHistory`
 
-## Message and Email Tables
+Append-only source versions: `id`, `createdAt`, `agentName`, `permanentId` → `Agent.permanentId`, `agentHash`, `previousAgentHash` (nullable — hash chain), `agentSource`, `promptbookEngineVersion`, `versionName` (nullable label). Every source change MUST append here.
 
-`Message` stores generic communication records:
+### `prefix_AgentFolder`
 
-- `channel`
-- `direction`
-- `sender` JSON
-- `recipients` JSON
-- `content`
-- `threadId`
-- `metadata`
-- timestamps
+Folder tree: `id`, `name`, `parentId` → self (nullable), `sortOrder`, `icon` (nullable), `color` (nullable), `userId` (nullable owner), `createdAt`, `updatedAt`, `deletedAt`. Names starting with `.` are hidden folders (e.g. `.core`). See [Folders and organization](agents/folders-and-organization.md).
 
-`MessageSendAttempt` stores provider send attempts:
+### `prefix_AgentPreparation`
 
-- `messageId`
-- `providerName`
-- `isSuccessful`
-- raw provider response
-- timestamps
+Background preparation queue, **one row per agent** (unique `agentPermanentId`, FK cascade): `targetFingerprint`, `lastPreparedFingerprint`, `status` (default `SCHEDULED`), `triggerReason`, `scheduledAt`, `runAfter`, `startedAt`, `completedAt`, `failedAt`, `retryCount`, `lastError`, `lastDurationMs`. See [Preparation and caching](agents/preparation-and-caching.md).
 
-## Integration and Cache Tables
+### `prefix_AgentExternals`
 
-`LlmCache` stores language-model cache entries.
+Mapping of agent artifacts to external-vendor resources: `type`, `hash`, `externalId`, `vendor`, `note`. Used to reuse provider-side objects (e.g. vector stores) across identical content.
 
-`OpenAiAssistantCache` stores OpenAI assistant compatibility cache entries.
+### `prefix_VectorStoreKnowledgeSourceHashes`
 
-`GenerationLock` stores generation coordination records.
+Knowledge-source change detection: `source` (URL/identifier), `hash`, `etag`, `lastModified`, `sizeBytes`.
 
-`VectorStoreKnowledgeSourceHashes` stores hashes for indexed knowledge sources.
+### `prefix_OpenAiAssistantCache`
 
-`CustomStylesheet` and `CustomJavascript` store administrator-provided UI extensions.
+`agentHash` → provider `assistantId` cache, so identical agent sources reuse the provider-side assistant.
 
-`DefaultFederatedAgent` stores default federated-agent mappings.
+## LLM infrastructure
 
-`CalendarConnection` stores connected calendars:
+### `prefix_LlmCache`
 
-- user and agent scope
-- provider and calendar URL
-- token reference
-- scopes
-- status
-- disconnect and sync timestamps
+Generic LLM response cache keyed by `hash` with JSON `value`.
 
-Active connections MUST be unique for `(userId, agentPermanentId, provider, calendarUrl)`.
+### `prefix_GenerationLock`
 
-`CalendarActivity` stores calendar operation audit records.
+Cooperative locks for expensive generation: `lockKey`, `expiresAt`. Workers MUST treat expired rows as free.
 
-## Deletion and History Rules
+## Conversations
 
-Soft deletion MUST be preferred for user-facing resources where historical references may exist:
+### `prefix_ChatHistory`
 
-- agents
-- folders
-- user memories
-- wallet records
+Frozen observability log of stateless/OpenAI chats (see [History and feedback](chat/history-and-feedback.md)): `messageHash`, `previousMessageHash` (nullable — per-conversation hash chain), `agentName`, `agentHash`, `agentPermanentId` → `Agent.permanentId` (FK cascade; `agentName` kept as denormalized history), `message` (JSON `{role, sender, content, attachments?}`), `promptbookEngineVersion`, request context (`url`, `ip`, `userAgent`, `language`, `platform`), `source` (`AGENT_PAGE_CHAT|OPENAI_API_COMPATIBILITY`), `apiKey` (nullable), `actorType` (`ANONYMOUS|TEAM_MEMBER|API_KEY`), `usage` (JSON), `userId` (nullable).
 
-Agent source changes MUST preserve history snapshots. Durable chat job records SHOULD remain available for task-manager and audit views.
+### `prefix_ChatFeedback`
 
+User feedback (see [History and feedback](chat/history-and-feedback.md#feedback)): `agentName`, `agentHash`, `agentPermanentId` FK, `rating`, `textRating`, `chatThread` (serialized thread), `userNote`, `expectedAnswer`, `promptbookEngineVersion`, request context columns as above.
+
+### `prefix_UserChat`
+
+Durable chats (see [User chats](chat/user-chats.md)): `id` TEXT PK (client-generated), `userId` FK, `agentPermanentId` FK, `source` (`WEB_UI|OPENAI_API|TEAM_MEMBER`), `messages` (JSON array, canonical message list), `draftMessage` (nullable), `title` (nullable), `lastMessageAt`, timestamps. Frozen sources (`TEAM_MEMBER`) are read-only conversation records.
+
+### `prefix_UserChatJob`
+
+One background turn per user message: `id` TEXT PK, `chatId` FK cascade, `userId` FK, `agentPermanentId` FK, `userMessageId`, `assistantMessageId`, `clientMessageId` (idempotency key), `status` (`QUEUED|RUNNING|COMPLETED|FAILED|CANCELLED`), `parameters` (JSON; also carries runner metadata under reserved keys), `queuedAt`, `startedAt`, `completedAt`, `cancelRequestedAt`, `lastHeartbeatAt`, `leaseExpiresAt`, `attemptCount`, `provider` (runner identifier), `failureReason`, `failureDetails`, `repliedToThreadId`/`repliedToMessageId` (reply references).
+
+### `prefix_UserChatTimeout`
+
+Scheduled wake-ups (see [Timeouts](chat/timeouts.md)): `id` TEXT PK, `chatId`/`userId`/`agentPermanentId` FKs cascade, `status` (same enum as jobs, CHECK-constrained), `message` (nullable wake-up text), `parameters` (JSON; recurrence), `durationMs`, `dueAt`, `queuedAt`, `startedAt`, `completedAt`, `cancelRequestedAt`, `leaseExpiresAt`, `attemptCount`, `failureReason`. Indexed by `(status, dueAt)` and per chat.
+
+## Identity and personal data
+
+### `prefix_User`
+
+`id`, `username` (unique), `passwordHash` (`salt:hash` scrypt — see [Users and authentication](users-and-authentication.md#passwords)), `isAdmin`, `profileImageUrl` (nullable), timestamps.
+
+### `prefix_ApiTokens`
+
+`token`, `note`, `isRevoked`, `userId` (nullable owner, `ON DELETE SET NULL`), timestamps.
+
+### `prefix_ShibbolethUserIdentity`
+
+SAML identity link, unique per `userId`, `email`, and `nameId`: `displayName`, `nameIdFormat`, `unstructuredName`, `eduPersonPrincipalName`, `rawAttributes` (JSON), `lastLoggedInAt`, `loginCount`.
+
+### `prefix_ShibbolethAuthenticationAttempt`
+
+Audit log: `stage` (e.g. `LOGIN_REQUEST`, `ASSERTION_CONSUMER_SERVICE`), `status` (`STARTED|REDIRECTED|SUCCESS|FAILED|REJECTED`), `userId`, `email`, `displayName`, `nameId`, `relayState`, `ip`, `userAgent`, `errorMessage`, `rawAttributes`.
+
+### `prefix_UserMemory`
+
+Persistent memories (see [Memory](users/memory.md)): `userId` FK, `agentPermanentId` FK (nullable), `content`, `isGlobal`, `deletedAt` (soft delete), timestamps.
+
+### `prefix_Wallet`
+
+Stored credentials (see [Wallet](users/wallet.md)); renamed from `prefix_UserWallet`: `userId` FK, `isUserScoped`, `agentPermanentId` FK (nullable), `recordType` (`USERNAME_PASSWORD|SESSION_COOKIE|ACCESS_TOKEN`), `service`, `key`, `jsonSchema` (JSON, nullable), `username`, `password`, `secret`, `cookies`, `isGlobal`, `deletedAt`, timestamps.
+
+### `prefix_UserData`
+
+Free-form per-user key/value settings: `userId` FK, `key`, `value` (JSON). See [Settings and notifications](users/settings-and-notifications.md).
+
+### `prefix_UserPushSubscription`
+
+Web-push subscriptions: `id` TEXT PK, `userId` FK cascade, `endpoint` (unique), `p256dh`, `auth`, `userAgent`, focus tracking (`isChatFocused`, `focusedAgentPermanentId`, `focusedChatId`, `focusUpdatedAt`).
+
+## Files and media
+
+### `prefix_File`
+
+Uploaded/derived files (see [Attachments and files](chat/attachments-and-files.md)): `userId` (nullable), `agentId` (nullable), `fileName`, `fileSize`, `fileType`, `storageUrl`, `shortUrl`, `purpose`, `status` (upload lifecycle), `securityResult` (JSON verdict).
+
+### `prefix_Image`
+
+Generated images: `filename`, `prompt`, `cdnUrl`, `cdnKey`, `agentId` (nullable), `purpose` (`AVATAR|TESTING`).
+
+### `prefix_ShareTargetPayload`
+
+Pending PWA share-target payloads: `id` TEXT PK, `agentPermanentId` FK cascade, `message`, `attachments` (JSON array), `consumedAt`. See [Embedding and PWA](ui/embedding-and-pwa.md#share-target).
+
+## Messaging
+
+### `prefix_Message`
+
+Channel-agnostic message log (currently `EMAIL`): `channel`, `direction` (`INBOUND|OUTBOUND`), `sender` (JSON), `recipients` (JSON), `content`, `threadId`, `metadata` (JSON). See [Email](integrations/email.md).
+
+### `prefix_MessageSendAttempt`
+
+Delivery attempts per message: `messageId` FK, `providerName`, `isSuccessful`, `raw` (provider response JSON).
+
+## Calendar
+
+### `prefix_CalendarConnection`
+
+`userId` + `agentPermanentId` FKs cascade, `provider`, `calendarUrl`, `calendarId`, `tokenRef` (reference to the wallet-held token), `scopes` (JSON), `status` (default `CONNECTED`), `disconnectedAt`, `lastSyncedAt`. Unique active connection per `(userId, agentPermanentId, provider, calendarUrl)`.
+
+### `prefix_CalendarActivity`
+
+Audit of calendar operations: `userId` (SET NULL), `agentPermanentId` FK cascade, `connectionId` (SET NULL), `provider`, `operation`, `calendarUrl`, `eventId`, `status`, `details` (JSON). See [Calendar](integrations/calendar.md).
+
+## Configuration
+
+### `prefix_Metadata`
+
+Admin-editable instance configuration: `key`, `value` (text), `note`. Keys, defaults, and semantics in [Configuration](configuration.md#metadata).
+
+### `prefix_ServerLimit`
+
+Dedicated numeric limits: `key`, `value` (number). Keys in [Configuration](configuration.md#server-limits).
+
+### `prefix_CustomStylesheet` / `prefix_CustomJavascript`
+
+Admin-managed custom CSS/JS: unique `scope` + `css`/`js` text (see [Configuration](configuration.md#custom-css-and-javascript)).
+
+## Cross-cutting invariants
+
+-   **Soft deletion** (`deletedAt`) is used for `Agent`, `AgentFolder`, `UserMemory`, `Wallet`; hard deletes cascade where FKs specify.
+-   **`permanentId` is the join key** for everything agent-related created after agent names stopped being unique; `agentName` columns retained in `ChatHistory`/`ChatFeedback` are denormalized snapshots.
+-   **Backward-compatible migrations only**: columns/tables are added, never removed/renamed in meaning; older server versions MUST keep working against a newer schema (see [Migrations](operations/migrations.md#compatibility-rules)).
+-   The reference implementation enables row-level security on all tables and accesses them exclusively with the service-role key server-side.

@@ -7,7 +7,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * META commitment definition
  *
  * The META commitment handles all meta-information about the agent such as:
- * - META AVATAR: Sets the agent's built-in default avatar visual
+ * - META AVATAR / META VISUAL: Sets the agent's built-in default avatar visual
  * - META IMAGE: Sets the agent's avatar/profile image URL
  * - META LINK: Provides profile/source links for the person the agent models
  * - META DOMAIN: Sets the canonical custom domain/host of the agent
@@ -22,7 +22,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * Example usage in agent source:
  *
  * ```book
- * META AVATAR pixel-art
+ * META VISUAL pixel-art
  * META IMAGE https://example.com/avatar.jpg
  * META LINK https://twitter.com/username
  * META DOMAIN my-agent.com
@@ -65,7 +65,7 @@ export class MetaCommitmentDefinition extends BaseCommitmentDefinition<`META${st
 
             ## Supported META types
 
-            - **META AVATAR** - Sets the agent's built-in default avatar visual
+            - **META AVATAR** / **META VISUAL** - Sets the agent's built-in default avatar visual
             - **META IMAGE** - Sets the agent's avatar/profile image URL
             - **META LINK** - Provides profile/source links for the person the agent models
             - **META DOMAIN** - Sets the canonical custom domain/host of the agent
@@ -89,7 +89,7 @@ export class MetaCommitmentDefinition extends BaseCommitmentDefinition<`META${st
             \`\`\`book
             Professional Assistant
 
-            META AVATAR octopus3
+            META VISUAL octopus3
             META IMAGE https://example.com/professional-avatar.jpg
             META TITLE Senior Business Consultant
             META DESCRIPTION Specialized in strategic planning and project management

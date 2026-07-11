@@ -1,111 +1,25 @@
 import colors from 'colors';
-import moment from 'moment';
-import { relative } from 'path';
 import { just } from '../../../src/utils/organization/just';
-import type {
-    AgentRunMessagePreviewSection,
-    AgentRunStatusTableRow,
-} from '../../run-codex-prompts/ui/buildCoderRunUiFrame';
-import { renderCoderRunUi, type CoderRunUiHandle } from '../../run-codex-prompts/ui/renderCoderRunUi';
-import type { PromptStats } from '../../run-codex-prompts/prompts/types/PromptStats';
+import type { CoderRunUiHandle } from '../../run-codex-prompts/ui/renderCoderRunUi';
 import type { AgentRunOptions } from '../AgentRunOptions';
-import { createCoderRunOptionsForAgent } from './createCoderRunOptionsForAgent';
-import { listLocalAgentRunnerProjects, type LocalAgentRunnerProject } from './listLocalAgentRunnerProjects';
-import { loadAgentMessageQueueSnapshot } from './loadAgentMessageQueueSnapshot';
-import { pullLatestChangesForAgentQueueIfEnabled } from './pullLatestChangesForAgentQueueIfEnabled';
-import { synchronizeGithubAgentRunnerRepositories } from './synchronizeGithubAgentRunnerRepositories';
-import { shouldRunPeriodicTask } from './shouldRunPeriodicTask';
-import { tickAgentMessages, type AgentTickUiPresentation } from './tickAgentMessages';
+import { createAgentIgnoreMatcher } from './agentIgnorePatterns';
+import { AgentMessageFailureTracker } from './AgentMessageFailureTracker';
+import { handleAgentWatchError } from './handleAgentWatchError';
+import { loadLocalAgentRunnerProjectSummaries } from './runMultipleAgentMessages/loadLocalAgentRunnerProjectSummaries';
+import { MultipleAgentAutoPuller } from './runMultipleAgentMessages/MultipleAgentAutoPuller';
+import { MultipleAgentGithubSynchronizer } from './runMultipleAgentMessages/MultipleAgentGithubSynchronizer';
+import { MultipleAgentRunUiPresenter } from './runMultipleAgentMessages/MultipleAgentRunUiPresenter';
+import { RunMultipleAgentMessageTaskScheduler } from './runMultipleAgentMessages/RunMultipleAgentMessageTaskScheduler';
+import { formatProjectPath } from './runMultipleAgentMessages/formatProjectPath';
+import type { LocalAgentRunnerWorkItem } from './runMultipleAgentMessages/LocalAgentRunnerWorkItem';
+import { wait } from './runMultipleAgentMessages/wait';
 import { validateAgentRunOptions } from './validateAgentRunOptions';
 import { validateAgentWatchOptions } from './validateAgentWatchOptions';
-import {
-    loadAgentRunQueuedMessagePreview,
-    readLocalAgentUiIdentity,
-    type AgentRunQueuedMessagePreview,
-} from '../ui/loadAgentRunUiMetadata';
-import { buildAgentRunUiFrame } from '../ui/buildAgentRunUiFrame';
-import { WAITING_FOR_MESSAGE_LABEL } from '../ui/agentRunUiConstants';
-import { resolvePromptRunner } from '../../run-codex-prompts/main/resolvePromptRunner';
-import { buildAgentMessageScriptPath } from '../messages/buildAgentMessageScriptPath';
-import type { AgentMessageFile } from '../messages/AgentMessageFile';
-import {
-    createAgentIgnoreMatcher,
-    resolveAgentIdFromRepositoryName,
-    type AgentIgnoreMatcher,
-} from './agentIgnorePatterns';
-import { handleAgentWatchError } from './handleAgentWatchError';
-import { AgentMessageFailureTracker } from './AgentMessageFailureTracker';
 
 /**
  * Delay between multi-agent watch iterations while all queues stay empty.
  */
 const MULTI_AGENT_QUEUE_POLL_INTERVAL_MS = 2_000;
-
-/**
- * Delay between GitHub owner synchronization rounds while the multi-agent runner stays active.
- */
-const MULTI_AGENT_GITHUB_SYNC_INTERVAL_MS = 30_000;
-
-/**
- * Delay between GitHub owner synchronization rounds while no local repositories exist yet.
- */
-const MULTI_AGENT_EMPTY_DIRECTORY_GITHUB_SYNC_INTERVAL_MS = MULTI_AGENT_QUEUE_POLL_INTERVAL_MS;
-
-/**
- * Delay between idle auto-pull rounds for each watched child repository.
- */
-const MULTI_AGENT_IDLE_AUTO_PULL_INTERVAL_MS = 30_000;
-
-/**
- * Visible width reserved for the legacy status-word column in plain status lines.
- */
-const LEGACY_STATUS_WIDTH = 9;
-
-/**
- * Direct child repository summary rendered in the shared multi-agent dashboard.
- */
-type LocalAgentRunnerProjectSummary = {
-    readonly project: LocalAgentRunnerProject;
-    readonly localAgentName: string;
-    readonly localAgentUrl: string;
-    readonly queuedMessages: ReadonlyArray<AgentMessageFile>;
-    readonly queuedMessageCount: number;
-    readonly finishedMessageCount: number;
-    readonly queuedMessagePreview?: AgentRunQueuedMessagePreview;
-};
-
-/**
- * One selected queued message that should be handled by a harness task.
- */
-type LocalAgentRunnerWorkItem = {
-    readonly projectSummary: LocalAgentRunnerProjectSummary;
-    readonly queuedMessage: AgentMessageFile;
-};
-
-/**
- * One harness task currently answering a queued message.
- */
-type ActiveAgentMessageTask = {
-    readonly projectPath: string;
-    readonly queuedMessage: AgentMessageFile;
-    readonly promise: Promise<void>;
-};
-
-/**
- * Local watched and ignored project summaries resolved in one directory scan.
- */
-type LocalAgentRunnerProjectSummariesResult = {
-    readonly projectSummaries: ReadonlyArray<LocalAgentRunnerProjectSummary>;
-    readonly ignoredProjectCount: number;
-};
-
-/**
- * Result of one multi-repository auto-pull round.
- */
-type MultiAgentAutoPullResult = {
-    readonly isAnyRepositoryPulled: boolean;
-    readonly pulledProjectPaths: ReadonlySet<string>;
-};
 
 /**
  * Optional integrations for callers that supervise the multi-agent watcher as one service.
@@ -130,60 +44,63 @@ export async function runMultipleAgentMessages(
     const rootPath = process.cwd();
     const shouldContinue = controls.shouldContinue || (() => just(true));
     const queuePollIntervalMs = controls.queuePollIntervalMs ?? MULTI_AGENT_QUEUE_POLL_INTERVAL_MS;
+    const watchErrorLogDirectoryPath = controls.watchErrorLogDirectoryPath || rootPath;
     const ignoreMatcher = createAgentIgnoreMatcher(options.ignorePatterns);
-    const isParallelMessageLimitConfigured = options.maxParallelMessages !== undefined;
-    const maxParallelMessageCount = normalizeMaxParallelMessageCount(options.maxParallelMessages);
-    const activeMessageTasksByKey = new Map<string, ActiveAgentMessageTask>();
-    let githubSynchronizationTimestamp: number | undefined;
-    let githubIgnoredRepositoryCount = 0;
-    const autoPullTimestampsByProjectPath = new Map<string, number>();
-    let lastObservedProjectCount = 0;
-    let isWatchSessionInitialized = false;
-    let uiHandle: CoderRunUiHandle | undefined;
+    const githubSynchronizer = new MultipleAgentGithubSynchronizer();
+    const autoPuller = new MultipleAgentAutoPuller();
     const messageFailureTracker = new AgentMessageFailureTracker({
         maxMessageProcessingFailures: options.maxMessageProcessingFailures,
     });
+    let lastObservedProjectCount = 0;
+    let isWatchSessionInitialized = false;
+    let uiPresenter: MultipleAgentRunUiPresenter | undefined;
+    let taskScheduler: RunMultipleAgentMessageTaskScheduler | undefined;
 
     while (shouldContinue()) {
         try {
             if (!isWatchSessionInitialized) {
-                uiHandle = await initializeMultipleAgentRunUi(options);
+                uiPresenter = MultipleAgentRunUiPresenter.create(options, rootPath);
+                taskScheduler = new RunMultipleAgentMessageTaskScheduler({
+                    runOptions: options,
+                    messageFailureTracker,
+                    autoPuller,
+                    uiPresenter,
+                    watchErrorLogDirectoryPath,
+                });
                 isWatchSessionInitialized = true;
-                controls.onUiInitialized?.(uiHandle);
+                controls.onUiInitialized?.(uiPresenter.uiHandle);
 
-                if (!uiHandle) {
+                if (!uiPresenter.uiHandle) {
                     console.info(colors.green('Watching direct child agent repositories for queued messages.'));
                 }
             }
 
-            githubSynchronizationTimestamp = await synchronizeGithubAgentRunnerRepositoriesIfNeeded({
+            const currentUiPresenter = uiPresenter!;
+            const currentTaskScheduler = taskScheduler!;
+
+            await githubSynchronizer.synchronizeIfNeeded({
                 rootPath,
                 runOptions: options,
                 ignoreMatcher,
-                uiHandle,
-                lastSynchronizationTimestamp: githubSynchronizationTimestamp,
-                onIgnoredRepositoryCountUpdated: (ignoredRepositoryCount) => {
-                    githubIgnoredRepositoryCount = ignoredRepositoryCount;
-                },
+                uiPresenter: currentUiPresenter,
                 lastObservedProjectCount,
             });
 
             let projectSummariesResult = await loadLocalAgentRunnerProjectSummaries(rootPath, {
-                includeMessagePreviews: Boolean(uiHandle),
+                includeMessagePreviews: Boolean(currentUiPresenter.uiHandle),
                 ignoreMatcher,
             });
             let projectSummaries = projectSummariesResult.projectSummaries;
             lastObservedProjectCount = projectSummaries.length;
-            let ignoredAgentCount = projectSummariesResult.ignoredProjectCount + githubIgnoredRepositoryCount;
+            let ignoredAgentCount = projectSummariesResult.ignoredProjectCount + githubSynchronizer.ignoredAgentCount;
             const autoPullResult =
-                activeMessageTasksByKey.size === 0
-                    ? await pullLatestChangesForLocalAgentRunnerProjectsIfNeeded({
+                currentTaskScheduler.activeMessageCount === 0
+                    ? await autoPuller.pullIfNeeded({
                           rootPath,
                           runOptions: options,
-                          uiHandle,
+                          uiPresenter: currentUiPresenter,
                           projectSummaries,
                           ignoredAgentCount,
-                          autoPullTimestampsByProjectPath,
                       })
                     : {
                           isAnyRepositoryPulled: false,
@@ -192,93 +109,54 @@ export async function runMultipleAgentMessages(
 
             if (autoPullResult.isAnyRepositoryPulled) {
                 projectSummariesResult = await loadLocalAgentRunnerProjectSummaries(rootPath, {
-                    includeMessagePreviews: Boolean(uiHandle),
+                    includeMessagePreviews: Boolean(currentUiPresenter.uiHandle),
                     ignoreMatcher,
                 });
                 projectSummaries = projectSummariesResult.projectSummaries;
                 lastObservedProjectCount = projectSummaries.length;
-                ignoredAgentCount = projectSummariesResult.ignoredProjectCount + githubIgnoredRepositoryCount;
+                ignoredAgentCount = projectSummariesResult.ignoredProjectCount + githubSynchronizer.ignoredAgentCount;
             }
 
-            const availableParallelMessageSlots = Math.max(0, maxParallelMessageCount - activeMessageTasksByKey.size);
-            const queuedWorkItems =
-                availableParallelMessageSlots > 0
-                    ? selectQueuedWorkItems({
-                          projectSummaries,
-                          activeMessageTasksByKey,
-                          availableParallelMessageSlots,
-                          isParallelMessageLimitConfigured,
-                      })
-                    : [];
-            const answeringProjectPaths = createAnsweringProjectPaths(activeMessageTasksByKey, queuedWorkItems);
+            const queuedWorkItems = currentTaskScheduler.selectQueuedWorkItems(projectSummaries);
+            const answeringProjectPaths = currentTaskScheduler.createAnsweringProjectPaths(queuedWorkItems);
 
-            if (queuedWorkItems.length === 0 && activeMessageTasksByKey.size === 0) {
-                updateMultipleAgentRunUiForWatching(uiHandle, options, rootPath, projectSummaries, ignoredAgentCount);
+            if (queuedWorkItems.length === 0 && currentTaskScheduler.activeMessageCount === 0) {
+                currentUiPresenter.updateForWatching(projectSummaries, ignoredAgentCount);
                 await wait(queuePollIntervalMs);
                 continue;
             }
 
             if (queuedWorkItems.length === 0) {
-                updateMultipleAgentRunUiForAnswering(
-                    uiHandle,
-                    options,
-                    rootPath,
+                currentUiPresenter.updateForAnswering({
                     projectSummaries,
                     answeringProjectPaths,
                     ignoredAgentCount,
-                    activeMessageTasksByKey.size,
-                );
-                await waitForNextSchedulerTurn(activeMessageTasksByKey, queuePollIntervalMs);
+                    activeMessageCount: currentTaskScheduler.activeMessageCount,
+                });
+                await currentTaskScheduler.waitForNextTurn(queuePollIntervalMs);
                 continue;
             }
 
-            if (!uiHandle) {
-                for (const queuedWorkItem of queuedWorkItems) {
-                    console.info(
-                        colors.blue(
-                            `Processing ${formatProjectPath(
-                                rootPath,
-                                queuedWorkItem.projectSummary.project.projectPath,
-                            )}/${queuedWorkItem.queuedMessage.relativePath} with ${
-                                queuedWorkItem.projectSummary.localAgentName
-                            }.`,
-                        ),
-                    );
-                }
-            }
-
-            updateMultipleAgentRunUiForAnswering(
-                uiHandle,
-                options,
-                rootPath,
+            announceQueuedWorkItems(rootPath, currentUiPresenter, queuedWorkItems);
+            currentUiPresenter.updateForAnswering({
                 projectSummaries,
                 answeringProjectPaths,
                 ignoredAgentCount,
-                activeMessageTasksByKey.size + queuedWorkItems.length,
-            );
+                activeMessageCount: currentTaskScheduler.activeMessageCount + queuedWorkItems.length,
+            });
+            currentTaskScheduler.startQueuedWorkItems({
+                queuedWorkItems,
+                projectSummaries,
+                answeringProjectPaths,
+                ignoredAgentCount,
+                autoPullResult,
+            });
 
-            for (const queuedWorkItem of queuedWorkItems) {
-                startActiveAgentMessageTask({
-                    rootPath,
-                    options,
-                    queuedWorkItem,
-                    projectSummaries,
-                    answeringProjectPaths,
-                    ignoredAgentCount,
-                    autoPullResult,
-                    autoPullTimestampsByProjectPath,
-                    activeMessageTasksByKey,
-                    messageFailureTracker,
-                    uiHandle,
-                    watchErrorLogDirectoryPath: controls.watchErrorLogDirectoryPath || rootPath,
-                });
-            }
-
-            await waitForNextSchedulerTurn(activeMessageTasksByKey, queuePollIntervalMs);
+            await currentTaskScheduler.waitForNextTurn(queuePollIntervalMs);
         } catch (error) {
             await handleAgentWatchError({
                 commandDisplayName: 'ptbk agent-folder run-multiple',
-                logDirectoryPath: controls.watchErrorLogDirectoryPath || rootPath,
+                logDirectoryPath: watchErrorLogDirectoryPath,
                 error,
             });
             await messageFailureTracker.recordFailure(error);
@@ -286,847 +164,30 @@ export async function runMultipleAgentMessages(
         }
     }
 
-    await waitForActiveMessageTasksToSettle(activeMessageTasksByKey);
+    await taskScheduler?.waitForActiveTasksToSettle();
 }
 
 /**
- * Starts one selected queued-message harness task and records it until it settles.
+ * Prints queued work in legacy no-UI mode.
+ *
+ * @private function of `runMultipleAgentMessages`
  */
-function startActiveAgentMessageTask(options: {
-    readonly rootPath: string;
-    readonly options: AgentRunOptions;
-    readonly queuedWorkItem: LocalAgentRunnerWorkItem;
-    readonly projectSummaries: ReadonlyArray<LocalAgentRunnerProjectSummary>;
-    readonly answeringProjectPaths: ReadonlySet<string>;
-    readonly ignoredAgentCount: number;
-    readonly autoPullResult: MultiAgentAutoPullResult;
-    readonly autoPullTimestampsByProjectPath: Map<string, number>;
-    readonly activeMessageTasksByKey: Map<string, ActiveAgentMessageTask>;
-    readonly messageFailureTracker: AgentMessageFailureTracker;
-    readonly uiHandle?: CoderRunUiHandle;
-    readonly watchErrorLogDirectoryPath: string;
-}): void {
-    const { queuedWorkItem } = options;
-    const projectPath = queuedWorkItem.projectSummary.project.projectPath;
-    const messageKey = createAgentMessageTaskKey(projectPath, queuedWorkItem.queuedMessage);
-    const promise = runActiveAgentMessageTask({
-        rootPath: options.rootPath,
-        options: options.options,
-        queuedWorkItem,
-        projectSummaries: options.projectSummaries,
-        answeringProjectPaths: options.answeringProjectPaths,
-        ignoredAgentCount: options.ignoredAgentCount,
-        autoPullResult: options.autoPullResult,
-        autoPullTimestampsByProjectPath: options.autoPullTimestampsByProjectPath,
-        messageFailureTracker: options.messageFailureTracker,
-        uiHandle: options.uiHandle,
-        watchErrorLogDirectoryPath: options.watchErrorLogDirectoryPath,
-    }).finally(() => {
-        options.activeMessageTasksByKey.delete(messageKey);
-    });
-
-    options.activeMessageTasksByKey.set(messageKey, {
-        projectPath,
-        queuedMessage: queuedWorkItem.queuedMessage,
-        promise,
-    });
-}
-
-/**
- * Runs one queued-message tick and folds its result back into shared watcher state.
- */
-async function runActiveAgentMessageTask(options: {
-    readonly rootPath: string;
-    readonly options: AgentRunOptions;
-    readonly queuedWorkItem: LocalAgentRunnerWorkItem;
-    readonly projectSummaries: ReadonlyArray<LocalAgentRunnerProjectSummary>;
-    readonly answeringProjectPaths: ReadonlySet<string>;
-    readonly ignoredAgentCount: number;
-    readonly autoPullResult: MultiAgentAutoPullResult;
-    readonly autoPullTimestampsByProjectPath: Map<string, number>;
-    readonly messageFailureTracker: AgentMessageFailureTracker;
-    readonly uiHandle?: CoderRunUiHandle;
-    readonly watchErrorLogDirectoryPath: string;
-}): Promise<void> {
-    const projectPath = options.queuedWorkItem.projectSummary.project.projectPath;
-
-    try {
-        const tickRunOptions = createAgentRunOptionsForQueuedProjectTick({
-            runOptions: options.options,
-            isProjectPulledInCurrentIteration: options.autoPullResult.pulledProjectPaths.has(projectPath),
-        });
-        const tickResult = await tickAgentMessages(tickRunOptions, {
-            isQuietWhenIdle: true,
-            projectPath,
-            queuedMessage: options.queuedWorkItem.queuedMessage,
-            uiHandle: options.uiHandle,
-            uiPresentation: options.uiHandle
-                ? buildMultiAgentTickUiPresentation({
-                      rootPath: options.rootPath,
-                      projectSummaries: options.projectSummaries,
-                      answeringProjectPaths: options.answeringProjectPaths,
-                      ignoredAgentCount: options.ignoredAgentCount,
-                  })
-                : undefined,
-        });
-
-        if (tickResult.autoPullTimestamp !== undefined) {
-            options.autoPullTimestampsByProjectPath.set(projectPath, tickResult.autoPullTimestamp);
-        }
-
-        if (tickResult.isMessageProcessed) {
-            options.messageFailureTracker.clearMessageFailure(projectPath, tickResult.queuedMessage);
-        }
-    } catch (error) {
-        await handleAgentWatchError({
-            commandDisplayName: 'ptbk agent-folder run-multiple',
-            logDirectoryPath: options.watchErrorLogDirectoryPath,
-            error,
-        });
-        await options.messageFailureTracker.recordFailure(error);
-    }
-}
-
-/**
- * Selects the next queued messages that can be started without exceeding active harness capacity.
- */
-function selectQueuedWorkItems(options: {
-    readonly projectSummaries: ReadonlyArray<LocalAgentRunnerProjectSummary>;
-    readonly activeMessageTasksByKey: ReadonlyMap<string, ActiveAgentMessageTask>;
-    readonly availableParallelMessageSlots: number;
-    readonly isParallelMessageLimitConfigured: boolean;
-}): Array<LocalAgentRunnerWorkItem> {
-    const activeProjectPaths = new Set(
-        Array.from(options.activeMessageTasksByKey.values()).map((activeMessageTask) => activeMessageTask.projectPath),
-    );
-    const queuedProjectSummaries = options.projectSummaries.filter((projectSummary) => {
-        if (projectSummary.queuedMessageCount === 0) {
-            return false;
-        }
-
-        return options.isParallelMessageLimitConfigured || !activeProjectPaths.has(projectSummary.project.projectPath);
-    });
-
-    if (!options.isParallelMessageLimitConfigured) {
-        return queuedProjectSummaries
-            .map((projectSummary) => selectFirstInactiveQueuedWorkItem(projectSummary, options.activeMessageTasksByKey))
-            .filter((workItem): workItem is LocalAgentRunnerWorkItem => workItem !== null);
-    }
-
-    const workItems: Array<LocalAgentRunnerWorkItem> = [];
-    for (let messageIndex = 0; workItems.length < options.availableParallelMessageSlots; messageIndex++) {
-        let isAnyMessageAtIndex = false;
-
-        for (const projectSummary of queuedProjectSummaries) {
-            const queuedMessage = projectSummary.queuedMessages[messageIndex];
-            if (!queuedMessage) {
-                continue;
-            }
-
-            isAnyMessageAtIndex = true;
-            if (
-                options.activeMessageTasksByKey.has(
-                    createAgentMessageTaskKey(projectSummary.project.projectPath, queuedMessage),
-                )
-            ) {
-                continue;
-            }
-
-            workItems.push({ projectSummary, queuedMessage });
-            if (workItems.length >= options.availableParallelMessageSlots) {
-                return workItems;
-            }
-        }
-
-        if (!isAnyMessageAtIndex) {
-            return workItems;
-        }
-    }
-
-    return workItems;
-}
-
-/**
- * Selects the first inactive queued message from a project while preserving legacy one-message-per-project behavior.
- */
-function selectFirstInactiveQueuedWorkItem(
-    projectSummary: LocalAgentRunnerProjectSummary,
-    activeMessageTasksByKey: ReadonlyMap<string, ActiveAgentMessageTask>,
-): LocalAgentRunnerWorkItem | null {
-    const queuedMessage = projectSummary.queuedMessages.find(
-        (message) =>
-            !activeMessageTasksByKey.has(createAgentMessageTaskKey(projectSummary.project.projectPath, message)),
-    );
-
-    return queuedMessage ? { projectSummary, queuedMessage } : null;
-}
-
-/**
- * Builds the set of project paths currently represented by active or newly scheduled harness tasks.
- */
-function createAnsweringProjectPaths(
-    activeMessageTasksByKey: ReadonlyMap<string, ActiveAgentMessageTask>,
+function announceQueuedWorkItems(
+    rootPath: string,
+    uiPresenter: MultipleAgentRunUiPresenter,
     queuedWorkItems: ReadonlyArray<LocalAgentRunnerWorkItem>,
-): Set<string> {
-    return new Set([
-        ...Array.from(activeMessageTasksByKey.values()).map((activeMessageTask) => activeMessageTask.projectPath),
-        ...queuedWorkItems.map((queuedWorkItem) => queuedWorkItem.projectSummary.project.projectPath),
-    ]);
-}
-
-/**
- * Creates a stable scheduler key for one queued message file.
- */
-function createAgentMessageTaskKey(projectPath: string, queuedMessage: AgentMessageFile): string {
-    return `${projectPath}\0${queuedMessage.relativePath}`;
-}
-
-/**
- * Normalizes the maximum number of parallel queued-message tasks.
- */
-function normalizeMaxParallelMessageCount(rawValue: number | undefined): number {
-    const parsedValue = Number(rawValue);
-
-    if (!Number.isFinite(parsedValue) || parsedValue <= 0) {
-        return Number.POSITIVE_INFINITY;
-    }
-
-    return Math.floor(parsedValue);
-}
-
-/**
- * Waits for either one active task to finish or the next queue polling interval.
- */
-async function waitForNextSchedulerTurn(
-    activeMessageTasksByKey: ReadonlyMap<string, ActiveAgentMessageTask>,
-    queuePollIntervalMs: number,
-): Promise<void> {
-    if (activeMessageTasksByKey.size === 0) {
+): void {
+    if (uiPresenter.uiHandle) {
         return;
     }
 
-    await Promise.race([
-        ...Array.from(activeMessageTasksByKey.values()).map((activeMessageTask) => activeMessageTask.promise),
-        wait(queuePollIntervalMs),
-    ]);
-}
-
-/**
- * Preserves previous shutdown behavior by letting active harness tasks finish before returning.
- */
-async function waitForActiveMessageTasksToSettle(
-    activeMessageTasksByKey: ReadonlyMap<string, ActiveAgentMessageTask>,
-): Promise<void> {
-    await Promise.allSettled(
-        Array.from(activeMessageTasksByKey.values()).map((activeMessageTask) => activeMessageTask.promise),
-    );
-}
-
-/**
- * Creates the shared multi-agent rich UI when the terminal supports it.
- */
-async function initializeMultipleAgentRunUi(options: AgentRunOptions): Promise<CoderRunUiHandle | undefined> {
-    if (options.noUi || !process.stdout.isTTY) {
-        return undefined;
-    }
-
-    const uiHandle = renderCoderRunUi(moment(), { buildFrameLines: buildAgentRunUiFrame });
-
-    setMultipleAgentRunUiConfig(uiHandle, options, 0, 0);
-    uiHandle.state.setAgentStatusLines(['No direct child agent repositories detected yet.']);
-    uiHandle.state.setAgentStatusTableRows([]);
-    uiHandle.state.setMessagePreviewSections([]);
-
-    return uiHandle;
-}
-
-/**
- * Synchronizes missing local repositories from GitHub when the owner configuration is available.
- */
-async function synchronizeGithubAgentRunnerRepositoriesIfNeeded(options: {
-    readonly rootPath: string;
-    readonly runOptions: AgentRunOptions;
-    readonly ignoreMatcher: AgentIgnoreMatcher;
-    readonly uiHandle?: CoderRunUiHandle;
-    readonly lastSynchronizationTimestamp: number | undefined;
-    readonly onIgnoredRepositoryCountUpdated: (ignoredRepositoryCount: number) => void;
-    readonly lastObservedProjectCount: number;
-}): Promise<number | undefined> {
-    const {
-        rootPath,
-        runOptions,
-        ignoreMatcher,
-        uiHandle,
-        lastSynchronizationTimestamp,
-        onIgnoredRepositoryCountUpdated,
-        lastObservedProjectCount,
-    } = options;
-
-    if (!runOptions.autoClone) {
-        onIgnoredRepositoryCountUpdated(0);
-        return lastSynchronizationTimestamp;
-    }
-
-    const synchronizationIntervalMs =
-        lastObservedProjectCount === 0
-            ? MULTI_AGENT_EMPTY_DIRECTORY_GITHUB_SYNC_INTERVAL_MS
-            : MULTI_AGENT_GITHUB_SYNC_INTERVAL_MS;
-
-    if (
-        !shouldRunPeriodicTask({
-            lastRunTimestamp: lastSynchronizationTimestamp,
-            intervalMs: synchronizationIntervalMs,
-        })
-    ) {
-        return lastSynchronizationTimestamp;
-    }
-
-    if (uiHandle) {
-        setMultipleAgentRunUiConfig(uiHandle, runOptions, lastObservedProjectCount, 0);
-        uiHandle.state.setPhase('loading');
-        uiHandle.state.setStatusMessage('Checking GitHub for new agent repositories');
-        uiHandle.state.setDetailLines(['Refreshing configured `agent-*` repositories from GitHub when available.']);
-    }
-
-    const synchronizationResult = await synchronizeGithubAgentRunnerRepositories(rootPath, { ignoreMatcher });
-    onIgnoredRepositoryCountUpdated(synchronizationResult.ignoredRepositoryNames?.length || 0);
-
-    if (!uiHandle && synchronizationResult.clonedRepositoryNames.length > 0) {
+    for (const queuedWorkItem of queuedWorkItems) {
         console.info(
-            colors.gray(
-                `Cloned ${synchronizationResult.clonedRepositoryNames.length} new agent repositor${
-                    synchronizationResult.clonedRepositoryNames.length === 1 ? 'y' : 'ies'
-                }: ${synchronizationResult.clonedRepositoryNames.join(', ')}`,
+            colors.blue(
+                `Processing ${formatProjectPath(rootPath, queuedWorkItem.projectSummary.project.projectPath)}/${
+                    queuedWorkItem.queuedMessage.relativePath
+                } with ${queuedWorkItem.projectSummary.localAgentName}.`,
             ),
         );
     }
-
-    return synchronizationResult.synchronizedAt ?? lastSynchronizationTimestamp;
-}
-
-/**
- * Pulls latest changes for watched child repositories when their idle auto-pull interval elapsed.
- */
-async function pullLatestChangesForLocalAgentRunnerProjectsIfNeeded(options: {
-    readonly rootPath: string;
-    readonly runOptions: AgentRunOptions;
-    readonly uiHandle?: CoderRunUiHandle;
-    readonly projectSummaries: ReadonlyArray<LocalAgentRunnerProjectSummary>;
-    readonly ignoredAgentCount: number;
-    readonly autoPullTimestampsByProjectPath: Map<string, number>;
-}): Promise<MultiAgentAutoPullResult> {
-    const { rootPath, runOptions, uiHandle, projectSummaries, ignoredAgentCount, autoPullTimestampsByProjectPath } =
-        options;
-    const pulledProjectPaths = new Set<string>();
-
-    if (!runOptions.autoPull || projectSummaries.length === 0) {
-        return { isAnyRepositoryPulled: false, pulledProjectPaths };
-    }
-
-    pruneAutoPullTimestampsForCurrentProjects(autoPullTimestampsByProjectPath, projectSummaries);
-
-    const projectSummariesToPull = projectSummaries.filter((projectSummary) =>
-        shouldRunPeriodicTask({
-            lastRunTimestamp: autoPullTimestampsByProjectPath.get(projectSummary.project.projectPath),
-            intervalMs: MULTI_AGENT_IDLE_AUTO_PULL_INTERVAL_MS,
-        }),
-    );
-
-    if (projectSummariesToPull.length === 0) {
-        return { isAnyRepositoryPulled: false, pulledProjectPaths };
-    }
-
-    if (uiHandle) {
-        setMultipleAgentRunUiConfig(uiHandle, runOptions, projectSummaries.length, ignoredAgentCount);
-        uiHandle.state.updateProgress(createMultiAgentQueueProgressSnapshot(projectSummaries));
-        uiHandle.state.setAgentStatusLines(buildMultiAgentStatusLines(rootPath, projectSummaries, new Set()));
-        uiHandle.state.setAgentStatusTableRows(buildMultiAgentStatusTableRows(projectSummaries, new Set()));
-        uiHandle.state.setPhase('loading');
-        uiHandle.state.setStatusMessage('Pulling latest changes for watched repositories');
-        uiHandle.state.setDetailLines(buildAutoPullDetailLines(rootPath, projectSummariesToPull));
-    } else {
-        console.info(
-            colors.gray(
-                `Pulling latest changes for ${projectSummariesToPull.length} watched agent repositor${
-                    projectSummariesToPull.length === 1 ? 'y' : 'ies'
-                }...`,
-            ),
-        );
-    }
-
-    for (const projectSummary of projectSummariesToPull) {
-        const projectPath = projectSummary.project.projectPath;
-        const autoPullTimestamp = await pullLatestChangesForAgentQueueIfEnabled({
-            projectPath,
-            runOptions,
-            logMessage: uiHandle
-                ? undefined
-                : `Pulling latest changes in ${formatProjectPath(rootPath, projectPath)}...`,
-        });
-
-        if (autoPullTimestamp !== undefined) {
-            autoPullTimestampsByProjectPath.set(projectPath, autoPullTimestamp);
-            pulledProjectPaths.add(projectPath);
-        }
-    }
-
-    return {
-        isAnyRepositoryPulled: pulledProjectPaths.size > 0,
-        pulledProjectPaths,
-    };
-}
-
-/**
- * Removes idle auto-pull timestamps for directories that are no longer watched.
- */
-function pruneAutoPullTimestampsForCurrentProjects(
-    autoPullTimestampsByProjectPath: Map<string, number>,
-    projectSummaries: ReadonlyArray<LocalAgentRunnerProjectSummary>,
-): void {
-    const currentProjectPaths = new Set(projectSummaries.map((projectSummary) => projectSummary.project.projectPath));
-
-    for (const projectPath of autoPullTimestampsByProjectPath.keys()) {
-        if (!currentProjectPaths.has(projectPath)) {
-            autoPullTimestampsByProjectPath.delete(projectPath);
-        }
-    }
-}
-
-/**
- * Builds the run options used for a queued project tick after the multi-runner may have already pulled that project.
- */
-function createAgentRunOptionsForQueuedProjectTick(options: {
-    readonly runOptions: AgentRunOptions;
-    readonly isProjectPulledInCurrentIteration: boolean;
-}): AgentRunOptions {
-    const { runOptions, isProjectPulledInCurrentIteration } = options;
-
-    if (!isProjectPulledInCurrentIteration) {
-        return runOptions;
-    }
-
-    return {
-        ...runOptions,
-        autoPull: false,
-    };
-}
-
-/**
- * Loads current direct-child repository summaries used by the shared dashboard and queue routing.
- */
-async function loadLocalAgentRunnerProjectSummaries(
-    rootPath: string,
-    options: {
-        readonly includeMessagePreviews: boolean;
-        readonly ignoreMatcher: AgentIgnoreMatcher;
-    },
-): Promise<LocalAgentRunnerProjectSummariesResult> {
-    const projects = await listLocalAgentRunnerProjects(rootPath);
-    let ignoredProjectCount = 0;
-
-    const projectSummaries = await Promise.all(
-        projects.map(async (project) => {
-            const localAgentIdentity = await readLocalAgentUiIdentity(project.projectPath);
-            const isProjectIgnored = options.ignoreMatcher.isIgnored({
-                agentName: localAgentIdentity.localAgentName,
-                normalizedAgentName: localAgentIdentity.normalizedAgentName,
-                agentId: localAgentIdentity.agentId || resolveAgentIdFromRepositoryName(project.directoryName),
-                repositoryName: project.directoryName,
-            });
-
-            if (isProjectIgnored) {
-                ignoredProjectCount++;
-                return null;
-            }
-
-            const queueSnapshot = await loadAgentMessageQueueSnapshot(project.projectPath);
-            const queuedMessagePreview =
-                options.includeMessagePreviews && queueSnapshot.queuedMessages[0]
-                    ? await loadAgentRunQueuedMessagePreview(queueSnapshot.queuedMessages[0])
-                    : undefined;
-
-            return {
-                project,
-                localAgentName: localAgentIdentity.localAgentName,
-                localAgentUrl: localAgentIdentity.localAgentUrl || formatProjectPath(rootPath, project.projectPath),
-                queuedMessages: queueSnapshot.queuedMessages,
-                queuedMessageCount: queueSnapshot.queuedMessages.length,
-                finishedMessageCount: queueSnapshot.finishedMessageCount,
-                ...(queuedMessagePreview ? { queuedMessagePreview } : {}),
-            } satisfies LocalAgentRunnerProjectSummary;
-        }),
-    );
-
-    return {
-        projectSummaries: projectSummaries.filter(
-            (projectSummary): projectSummary is LocalAgentRunnerProjectSummary => projectSummary !== null,
-        ),
-        ignoredProjectCount,
-    };
-}
-
-/**
- * Updates the shared UI to the idle multi-agent watch state.
- */
-function updateMultipleAgentRunUiForWatching(
-    uiHandle: CoderRunUiHandle | undefined,
-    options: AgentRunOptions,
-    rootPath: string,
-    projectSummaries: ReadonlyArray<LocalAgentRunnerProjectSummary>,
-    ignoredAgentCount: number,
-): void {
-    if (!uiHandle) {
-        return;
-    }
-
-    setMultipleAgentRunUiConfig(uiHandle, options, projectSummaries.length, ignoredAgentCount);
-    uiHandle.state.updateProgress(createMultiAgentQueueProgressSnapshot(projectSummaries));
-    uiHandle.state.setCurrentPrompt('');
-    uiHandle.state.setPhase('waiting');
-    uiHandle.state.setStatusMessage(
-        projectSummaries.length > 0 ? `Watching ${formatAgentCount(projectSummaries.length)}` : 'Watching for Agents',
-    );
-    uiHandle.state.setDetailLines(buildMultiAgentWatchingDetailLines(rootPath, projectSummaries));
-    uiHandle.state.setAgentStatusLines(buildMultiAgentStatusLines(rootPath, projectSummaries, new Set()));
-    uiHandle.state.setAgentStatusTableRows(buildMultiAgentStatusTableRows(projectSummaries, new Set()));
-    uiHandle.state.setMessagePreviewLines([WAITING_FOR_MESSAGE_LABEL]);
-    uiHandle.state.setMessagePreviewSections([]);
-}
-
-/**
- * Updates the shared UI while one or more child repositories are answering queued messages.
- */
-function updateMultipleAgentRunUiForAnswering(
-    uiHandle: CoderRunUiHandle | undefined,
-    options: AgentRunOptions,
-    rootPath: string,
-    projectSummaries: ReadonlyArray<LocalAgentRunnerProjectSummary>,
-    answeringProjectPaths: ReadonlySet<string>,
-    ignoredAgentCount: number,
-    activeMessageCount: number,
-): void {
-    if (!uiHandle) {
-        return;
-    }
-
-    setMultipleAgentRunUiConfig(uiHandle, options, projectSummaries.length, ignoredAgentCount);
-    uiHandle.state.updateProgress(createMultiAgentQueueProgressSnapshot(projectSummaries));
-    uiHandle.state.setCurrentPrompt('');
-    uiHandle.state.setCurrentScriptPaths(buildMultiAgentScriptPaths(projectSummaries, answeringProjectPaths));
-    uiHandle.state.setPhase('running');
-    uiHandle.state.setStatusMessage(
-        `Answering ${activeMessageCount} queued message${activeMessageCount === 1 ? '' : 's'}`,
-    );
-    uiHandle.state.setDetailLines(
-        buildMultiAgentAnsweringDetailLines(rootPath, projectSummaries, answeringProjectPaths),
-    );
-    uiHandle.state.setAgentStatusLines(buildMultiAgentStatusLines(rootPath, projectSummaries, answeringProjectPaths));
-    uiHandle.state.setAgentStatusTableRows(buildMultiAgentStatusTableRows(projectSummaries, answeringProjectPaths));
-    uiHandle.state.setMessagePreviewSections(
-        buildMultiAgentMessagePreviewSections(projectSummaries, answeringProjectPaths),
-    );
-}
-
-/**
- * Builds active temporary runner shell script paths for the shared multi-agent dashboard.
- */
-function buildMultiAgentScriptPaths(
-    projectSummaries: ReadonlyArray<LocalAgentRunnerProjectSummary>,
-    answeringProjectPaths: ReadonlySet<string>,
-): string[] {
-    return projectSummaries
-        .filter((projectSummary) => answeringProjectPaths.has(projectSummary.project.projectPath))
-        .map((projectSummary) =>
-            projectSummary.queuedMessagePreview
-                ? buildAgentMessageScriptPath(
-                      projectSummary.project.projectPath,
-                      projectSummary.queuedMessagePreview.queuedMessage,
-                  )
-                : undefined,
-        )
-        .filter((scriptPath): scriptPath is string => Boolean(scriptPath));
-}
-
-/**
- * Applies the shared runner configuration and concise agent count label.
- */
-function setMultipleAgentRunUiConfig(
-    uiHandle: CoderRunUiHandle,
-    options: AgentRunOptions,
-    agentCount: number,
-    ignoredAgentCount: number,
-): void {
-    const sharedRunOptions = createCoderRunOptionsForAgent(options);
-    const { runner, actualRunnerModel } = resolvePromptRunner(sharedRunOptions);
-
-    uiHandle.state.setConfig({
-        agentName: runner.name,
-        localAgentName: formatAgentCount(agentCount, ignoredAgentCount),
-        modelName: actualRunnerModel,
-        thinkingLevel: options.thinkingLevel,
-        priority: 0,
-    });
-}
-
-/**
- * Builds the multi-agent presentation passed into one active queued-message tick.
- */
-function buildMultiAgentTickUiPresentation(options: {
-    readonly rootPath: string;
-    readonly projectSummaries: ReadonlyArray<LocalAgentRunnerProjectSummary>;
-    readonly answeringProjectPaths: ReadonlySet<string>;
-    readonly ignoredAgentCount: number;
-}): AgentTickUiPresentation {
-    const { rootPath, projectSummaries, answeringProjectPaths, ignoredAgentCount } = options;
-
-    return {
-        isSharedDashboard: true,
-        sessionAgentName: formatAgentCount(projectSummaries.length, ignoredAgentCount),
-        agentStatusLines: buildMultiAgentStatusLines(rootPath, projectSummaries, answeringProjectPaths),
-        agentStatusTableRows: buildMultiAgentStatusTableRows(projectSummaries, answeringProjectPaths),
-        messagePreviewLines: buildMultiAgentUserMessageLines(projectSummaries, answeringProjectPaths),
-        messagePreviewSections: buildMultiAgentMessagePreviewSections(projectSummaries, answeringProjectPaths),
-        progressStats: createMultiAgentQueueProgressSnapshot(projectSummaries),
-        completedAgentStatusLines: buildMultiAgentStatusLines(rootPath, projectSummaries, new Set()),
-        completedAgentStatusTableRows: buildMultiAgentStatusTableRows(projectSummaries, new Set()),
-        completedMessagePreviewLines: [WAITING_FOR_MESSAGE_LABEL],
-        completedMessagePreviewSections: [],
-        completedProgressStats: createCompletedMultiAgentQueueProgressSnapshot(projectSummaries, answeringProjectPaths),
-    };
-}
-
-/**
- * Converts watched project summaries into the shared progress-stat shape.
- */
-function createMultiAgentQueueProgressSnapshot(
-    projectSummaries: ReadonlyArray<LocalAgentRunnerProjectSummary>,
-): PromptStats {
-    return {
-        done: projectSummaries.reduce(
-            (totalFinishedMessages, projectSummary) => totalFinishedMessages + projectSummary.finishedMessageCount,
-            0,
-        ),
-        forAgent: projectSummaries.reduce(
-            (totalQueuedMessages, projectSummary) => totalQueuedMessages + projectSummary.queuedMessageCount,
-            0,
-        ),
-        belowMinimumPriority: 0,
-        toBeWritten: 0,
-    };
-}
-
-/**
- * Predicts the aggregate queue stats after the current active message is answered.
- */
-function createCompletedMultiAgentQueueProgressSnapshot(
-    projectSummaries: ReadonlyArray<LocalAgentRunnerProjectSummary>,
-    answeringProjectPaths: ReadonlySet<string>,
-): PromptStats {
-    const activeAnsweringCount = projectSummaries.filter((projectSummary) =>
-        answeringProjectPaths.has(projectSummary.project.projectPath),
-    ).length;
-    const progressStats = createMultiAgentQueueProgressSnapshot(projectSummaries);
-
-    return {
-        ...progressStats,
-        done: progressStats.done + activeAnsweringCount,
-        forAgent: Math.max(0, progressStats.forAgent - activeAnsweringCount),
-    };
-}
-
-/**
- * Builds one readable status row per watched local agent repository.
- */
-function buildMultiAgentStatusLines(
-    rootPath: string,
-    projectSummaries: ReadonlyArray<LocalAgentRunnerProjectSummary>,
-    answeringProjectPaths: ReadonlySet<string>,
-): string[] {
-    if (projectSummaries.length === 0) {
-        return ['No direct child agent repositories detected yet.'];
-    }
-
-    return projectSummaries.map((projectSummary) => {
-        const isAnswering = answeringProjectPaths.has(projectSummary.project.projectPath);
-        const status = isAnswering ? 'Answering' : 'Idle';
-        const currentMessage = isAnswering ? formatCurrentAgentMessage(projectSummary) : '';
-
-        return `${status.padEnd(LEGACY_STATUS_WIDTH)} ${projectSummary.localAgentName} (${formatProjectPath(
-            rootPath,
-            projectSummary.project.projectPath,
-        )})${currentMessage}`;
-    });
-}
-
-/**
- * Builds one structured status-table row per watched local agent repository.
- */
-function buildMultiAgentStatusTableRows(
-    projectSummaries: ReadonlyArray<LocalAgentRunnerProjectSummary>,
-    answeringProjectPaths: ReadonlySet<string>,
-): AgentRunStatusTableRow[] {
-    return projectSummaries.map((projectSummary) => ({
-        status: answeringProjectPaths.has(projectSummary.project.projectPath) ? 'Answering' : 'Idle',
-        agentName: projectSummary.localAgentName,
-        url: projectSummary.localAgentUrl,
-    }));
-}
-
-/**
- * Builds the current-message summary appended to an answering agent status row.
- */
-function formatCurrentAgentMessage(projectSummary: LocalAgentRunnerProjectSummary): string {
-    if (!projectSummary.queuedMessagePreview) {
-        return '';
-    }
-
-    return `  ·  ${projectSummary.queuedMessagePreview.queuedMessage.relativePath}: ${projectSummary.queuedMessagePreview.latestUserMessageSummary}`;
-}
-
-/**
- * Builds the user-message preview lines for all agents currently answering.
- */
-function buildMultiAgentUserMessageLines(
-    projectSummaries: ReadonlyArray<LocalAgentRunnerProjectSummary>,
-    answeringProjectPaths: ReadonlySet<string>,
-): string[] {
-    const answeringMessageLines = projectSummaries
-        .filter((projectSummary) => answeringProjectPaths.has(projectSummary.project.projectPath))
-        .flatMap((projectSummary) => buildAnsweringAgentMessageLines(projectSummary));
-
-    return answeringMessageLines.length > 0 ? answeringMessageLines : [WAITING_FOR_MESSAGE_LABEL];
-}
-
-/**
- * Builds one dedicated message-preview panel per answering agent.
- */
-function buildMultiAgentMessagePreviewSections(
-    projectSummaries: ReadonlyArray<LocalAgentRunnerProjectSummary>,
-    answeringProjectPaths: ReadonlySet<string>,
-): AgentRunMessagePreviewSection[] {
-    return projectSummaries
-        .filter((projectSummary) => answeringProjectPaths.has(projectSummary.project.projectPath))
-        .map((projectSummary) => ({
-            title: `User message: ${projectSummary.localAgentName}`,
-            messagePreviewLines: projectSummary.queuedMessagePreview?.latestUserMessageLines.length
-                ? projectSummary.queuedMessagePreview.latestUserMessageLines
-                : [projectSummary.queuedMessagePreview?.queuedMessage.relativePath || WAITING_FOR_MESSAGE_LABEL],
-        }));
-}
-
-/**
- * Builds line-preserving message preview rows for one answering agent.
- */
-function buildAnsweringAgentMessageLines(projectSummary: LocalAgentRunnerProjectSummary): string[] {
-    const messageLines = projectSummary.queuedMessagePreview?.latestUserMessageLines;
-
-    if (!messageLines || messageLines.length === 0) {
-        return [
-            `${projectSummary.localAgentName}: ${
-                projectSummary.queuedMessagePreview?.queuedMessage.relativePath || 'Queued message'
-            }`,
-        ];
-    }
-
-    const prefix = `${projectSummary.localAgentName}: `;
-    const continuationPrefix = ' '.repeat(prefix.length);
-
-    return messageLines.map((messageLine, lineIndex) =>
-        lineIndex === 0 ? `${prefix}${messageLine}` : `${continuationPrefix}${messageLine}`,
-    );
-}
-
-/**
- * Builds concise detail lines for the shared dashboard while multiple child repositories are answering.
- */
-function buildMultiAgentAnsweringDetailLines(
-    rootPath: string,
-    projectSummaries: ReadonlyArray<LocalAgentRunnerProjectSummary>,
-    answeringProjectPaths: ReadonlySet<string>,
-): string[] {
-    return projectSummaries
-        .filter((projectSummary) => answeringProjectPaths.has(projectSummary.project.projectPath))
-        .slice(0, 6)
-        .map(
-            (projectSummary) =>
-                `${formatProjectPath(rootPath, projectSummary.project.projectPath)}  ·  ${
-                    projectSummary.queuedMessagePreview?.queuedMessage.relativePath || 'Queued message'
-                }`,
-        );
-}
-
-/**
- * Formats the session-level count label used by multi-agent runs.
- */
-function formatAgentCount(agentCount: number, ignoredAgentCount = 0): string {
-    const agentCountLabel = `${agentCount} Agent${agentCount === 1 ? '' : 's'}`;
-
-    if (ignoredAgentCount === 0) {
-        return agentCountLabel;
-    }
-
-    return `${agentCountLabel}  ·  ${ignoredAgentCount} ignored`;
-}
-
-/**
- * Builds concise per-repository detail lines for the idle multi-agent dashboard.
- */
-function buildMultiAgentWatchingDetailLines(
-    rootPath: string,
-    projectSummaries: ReadonlyArray<LocalAgentRunnerProjectSummary>,
-): string[] {
-    const projectDetailLines = projectSummaries
-        .slice(0, 6)
-        .map(
-            (projectSummary) =>
-                `${formatProjectPath(rootPath, projectSummary.project.projectPath)}  ·  ${
-                    projectSummary.localAgentName
-                }  ·  ${projectSummary.queuedMessageCount} queued  ·  ${projectSummary.finishedMessageCount} finished`,
-        );
-
-    if (projectSummaries.length === 0) {
-        return ['No direct child agent repositories detected yet.'];
-    }
-
-    if (projectSummaries.length > projectDetailLines.length) {
-        projectDetailLines.push(
-            `…and ${projectSummaries.length - projectDetailLines.length} more direct child repositories.`,
-        );
-    }
-
-    return projectDetailLines;
-}
-
-/**
- * Builds concise detail lines for the shared dashboard while multiple child repositories are being pulled.
- */
-function buildAutoPullDetailLines(
-    rootPath: string,
-    projectSummaries: ReadonlyArray<LocalAgentRunnerProjectSummary>,
-): string[] {
-    const projectDetailLines = projectSummaries
-        .slice(0, 6)
-        .map((projectSummary) => `Pulling ${formatProjectPath(rootPath, projectSummary.project.projectPath)}`);
-
-    if (projectSummaries.length > projectDetailLines.length) {
-        projectDetailLines.push(
-            `…and ${projectSummaries.length - projectDetailLines.length} more direct child repositories.`,
-        );
-    }
-
-    return projectDetailLines;
-}
-
-/**
- * Formats one child project path for stable console and UI output.
- */
-function formatProjectPath(rootPath: string, projectPath: string): string {
-    return relative(rootPath, projectPath).replace(/\\/gu, '/');
-}
-
-/**
- * Waits for the next idle poll interval in multi-agent watch mode.
- */
-async function wait(delayMs: number): Promise<void> {
-    await new Promise((resolve) => setTimeout(resolve, delayMs));
 }

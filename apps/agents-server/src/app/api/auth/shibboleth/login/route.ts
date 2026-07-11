@@ -4,6 +4,7 @@ import {
     getShibbolethRequestDetails,
     recordShibbolethAuthenticationAttempt,
     resolveShibbolethAuthenticationConfiguration,
+    resolveShibbolethPublicRequestUrl,
     sanitizeShibbolethRelayState,
 } from '../../../../../utils/shibbolethAuthentication';
 
@@ -12,11 +13,12 @@ import {
  */
 export async function GET(request: Request) {
     const requestDetails = getShibbolethRequestDetails(request);
+    const publicRequestUrl = resolveShibbolethPublicRequestUrl(request);
     const relayState = sanitizeShibbolethRelayState(new URL(request.url).searchParams.get('returnTo'));
 
     try {
         const configuration = await resolveShibbolethAuthenticationConfiguration({
-            requestUrl: request.url,
+            requestUrl: publicRequestUrl,
             isIdentityProviderMetadataValidationEnabled: true,
         });
 

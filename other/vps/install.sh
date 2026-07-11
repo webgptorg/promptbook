@@ -21,6 +21,8 @@ PROMPTBOOK_REPOSITORY_URL="${PROMPTBOOK_REPOSITORY_URL:-https://github.com/webgp
 PROMPTBOOK_REPOSITORY_REF="${PROMPTBOOK_REPOSITORY_REF:-main}"
 PTBK_BIN_DIR="${PTBK_BIN_DIR:-$INSTALL_DIR/bin}"
 PTBK_RELEASES_DIR="${PTBK_RELEASES_DIR:-$PTBK_BIN_DIR}"
+# [🧹] Total number of installed Agents Server versions kept by garbage collection (the current one plus previous ones).
+AGENTS_SERVER_GC_KEEP_VERSIONS="${AGENTS_SERVER_GC_KEEP_VERSIONS:-3}"
 PROMPTBOOK_REPOSITORY_DIR="${PROMPTBOOK_REPOSITORY_DIR:-}"
 PROMPTBOOK_LEGACY_REPOSITORY_DIR="${PROMPTBOOK_LEGACY_REPOSITORY_DIR:-$INSTALL_DIR/repository}"
 PROMPTBOOK_REPOSITORY_RELEASE_NAME=""
@@ -61,9 +63,15 @@ APT_LOCK_PATHS=(
 )
 PTBK_SELF_UPDATE_STATUS_FILE="${PTBK_SELF_UPDATE_STATUS_FILE:-$INSTALL_DIR/.promptbook/self-update/self-update.status}"
 PTBK_SELF_UPDATE_LOG_FILE="${PTBK_SELF_UPDATE_LOG_FILE:-$INSTALL_DIR/.promptbook/self-update/self-update.log}"
+PTBK_SELF_UPDATE_JOB_ID="${PTBK_SELF_UPDATE_JOB_ID:-}"
+PTBK_SELF_UPDATE_TRIGGER="${PTBK_SELF_UPDATE_TRIGGER:-manual}"
+PTBK_DATABASE_MIGRATION_SUMMARY_FILE="${PTBK_DATABASE_MIGRATION_SUMMARY_FILE:-$INSTALL_DIR/.promptbook/self-update/self-update-database-migrations.json}"
 SELF_UPDATE_STARTED_AT=""
 SELF_UPDATE_CURRENT_COMMIT=""
 SELF_UPDATE_TARGET_COMMIT=""
+SELF_UPDATE_DATABASE_MIGRATION_STATUS="pending"
+SELF_UPDATE_DATABASE_MIGRATION_SUMMARY_B64=""
+SELF_UPDATE_DATABASE_MIGRATION_ERROR_MESSAGE=""
 # pm2 instance that should remain after `self_update_agents_server` exits, even on
 # failure. Tracks the blue/green progression (old → replacement after nginx switch)
 # so the failure trap can converge pm2 to a single running Agents Server instance.
@@ -299,13 +307,17 @@ write_self_update_status_file() {
     local pid_value="${8:-$$}"
     local current_step_b64=""
     local error_message_b64=""
+    local database_migration_error_message_b64=""
 
     current_step_b64="$(encode_status_field "$current_step")"
     error_message_b64="$(encode_status_field "$error_message")"
+    database_migration_error_message_b64="$(encode_status_field "$SELF_UPDATE_DATABASE_MIGRATION_ERROR_MESSAGE")"
 
     "${SUDO[@]}" mkdir -p "$(dirname "$PTBK_SELF_UPDATE_STATUS_FILE")"
     "${SUDO[@]}" tee "$PTBK_SELF_UPDATE_STATUS_FILE" >/dev/null <<EOF
+JOB_ID=$PTBK_SELF_UPDATE_JOB_ID
 STATUS=$status
+TRIGGER=$PTBK_SELF_UPDATE_TRIGGER
 PID=$pid_value
 TARGET_REF=$target_ref
 CURRENT_STEP_B64=$current_step_b64
@@ -315,6 +327,10 @@ FINISHED_AT=$finished_at
 CURRENT_COMMIT=$current_commit
 TARGET_COMMIT=$target_commit
 LOG_FILE=$PTBK_SELF_UPDATE_LOG_FILE
+DATABASE_MIGRATION_STATUS=$SELF_UPDATE_DATABASE_MIGRATION_STATUS
+DATABASE_MIGRATION_SUMMARY_FILE=$PTBK_DATABASE_MIGRATION_SUMMARY_FILE
+DATABASE_MIGRATION_SUMMARY_B64=$SELF_UPDATE_DATABASE_MIGRATION_SUMMARY_B64
+DATABASE_MIGRATION_ERROR_MESSAGE_B64=$database_migration_error_message_b64
 EOF
 }
 
@@ -333,6 +349,19 @@ write_failed_self_update_status_on_exit() {
     fi
 
     exit "$exit_code"
+}
+
+reset_self_update_database_migration_status() {
+    SELF_UPDATE_DATABASE_MIGRATION_STATUS="running"
+    SELF_UPDATE_DATABASE_MIGRATION_SUMMARY_B64=""
+    SELF_UPDATE_DATABASE_MIGRATION_ERROR_MESSAGE=""
+    rm -f "$PTBK_DATABASE_MIGRATION_SUMMARY_FILE"
+}
+
+record_self_update_database_migration_summary() {
+    if [[ -f "$PTBK_DATABASE_MIGRATION_SUMMARY_FILE" ]]; then
+        SELF_UPDATE_DATABASE_MIGRATION_SUMMARY_B64="$(base64 < "$PTBK_DATABASE_MIGRATION_SUMMARY_FILE" | tr -d '\n')"
+    fi
 }
 
 read_repository_commit_sha() {
@@ -1133,6 +1162,53 @@ remove_promptbook_repository_directory_if_safe() {
 
     log "Removing old Promptbook repository $resolved_repository_dir."
     "${SUDO[@]}" rm -rf -- "$resolved_repository_dir"
+}
+
+# [🧹] Garbage-collects old Agents Server versions inside $PTBK_RELEASES_DIR so the disk does not
+# run out of space. The currently deployed release is always kept, the newest previous releases
+# are kept until AGENTS_SERVER_GC_KEEP_VERSIONS versions stay installed in total, and everything
+# older is removed together with stale `.install-*` staging checkouts left by interrupted installs.
+garbage_collect_promptbook_releases() {
+    local keep_versions_count="$AGENTS_SERVER_GC_KEEP_VERSIONS"
+    local current_repository_dir=""
+    local release_dir=""
+    local stale_staging_dir=""
+    local kept_versions_count=0
+
+    if ! [[ "$keep_versions_count" =~ ^[0-9]+$ ]] || [[ "$keep_versions_count" -lt 1 ]]; then
+        warn "AGENTS_SERVER_GC_KEEP_VERSIONS='$AGENTS_SERVER_GC_KEEP_VERSIONS' is not a positive integer; keeping 3 versions."
+        keep_versions_count=3
+    fi
+
+    if [[ ! -d "$PTBK_RELEASES_DIR" ]]; then
+        return
+    fi
+
+    log "Garbage-collecting old Agents Server versions in $PTBK_RELEASES_DIR (keeping the $keep_versions_count most recent)."
+    current_repository_dir="$(realpath -m "$PROMPTBOOK_REPOSITORY_DIR")"
+
+    # Interrupted installs leave `.install-*` staging checkouts behind. Self-updates are
+    # serialized and this runs either before the staging directory of the active run is
+    # created or after it was moved to its release directory, so every staging directory
+    # found here belongs to a previous failed run.
+    while IFS= read -r stale_staging_dir; do
+        remove_promptbook_repository_directory_if_safe "$stale_staging_dir"
+    done < <(find "$PTBK_RELEASES_DIR" -mindepth 1 -maxdepth 1 -type d -name '.install-*' 2>/dev/null)
+
+    # The currently deployed release is always kept, even when it is not the newest directory.
+    kept_versions_count=1
+    while IFS= read -r release_dir; do
+        if [[ "$(realpath -m "$release_dir")" == "$current_repository_dir" ]]; then
+            continue
+        fi
+
+        if [[ "$kept_versions_count" -lt "$keep_versions_count" ]]; then
+            kept_versions_count=$((kept_versions_count + 1))
+            continue
+        fi
+
+        remove_promptbook_repository_directory_if_safe "$release_dir"
+    done < <(find "$PTBK_RELEASES_DIR" -mindepth 1 -maxdepth 1 -type d ! -name '.*' -printf '%T@\t%p\n' 2>/dev/null | sort -rn | cut -f2-)
 }
 
 install_promptbook_repository() {
@@ -2685,18 +2761,35 @@ run_agents_server_database_migrations() {
     local database_mode=""
     local env_file_shell=""
     local agents_server_dir_shell=""
+    local summary_file_shell=""
+    local migration_exit_code=0
 
     database_mode="$(get_env_value PTBK_AGENTS_SERVER_DATABASE | tr '[:upper:]' '[:lower:]')"
     if [[ "$database_mode" == "sqlite" || "$database_mode" == "local" ]]; then
+        SELF_UPDATE_DATABASE_MIGRATION_STATUS="skipped"
+        SELF_UPDATE_DATABASE_MIGRATION_ERROR_MESSAGE="PostgreSQL database migrations were skipped because Agents Server is configured for local SQLite."
         log "Skipping PostgreSQL database migrations because Agents Server is configured for local SQLite."
         return
     fi
 
     env_file_shell="$(shell_quote "$ENV_FILE")"
     agents_server_dir_shell="$(shell_quote "$PROMPTBOOK_REPOSITORY_DIR/apps/agents-server")"
+    summary_file_shell="$(shell_quote "$PTBK_DATABASE_MIGRATION_SUMMARY_FILE")"
 
     log "Running Agents Server database migrations."
-    run_as_service_user bash -lc "cd $agents_server_dir_shell && PTBK_AGENTS_SERVER_ENV_FILE=$env_file_shell npx --yes tsx ./src/database/migrate.ts"
+    run_as_service_user bash -lc "cd $agents_server_dir_shell && PTBK_AGENTS_SERVER_ENV_FILE=$env_file_shell PTBK_DATABASE_MIGRATION_SUMMARY_FILE=$summary_file_shell npx --yes tsx ./src/database/migrate.ts" || migration_exit_code=$?
+
+    if [[ "$migration_exit_code" -ne 0 ]]; then
+        SELF_UPDATE_DATABASE_MIGRATION_STATUS="failed"
+        SELF_UPDATE_DATABASE_MIGRATION_ERROR_MESSAGE="Agents Server database migrations exited with status $migration_exit_code."
+        record_self_update_database_migration_summary
+        write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Running Agents Server database migrations." "$SELF_UPDATE_DATABASE_MIGRATION_ERROR_MESSAGE" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "" "$$"
+        return "$migration_exit_code"
+    fi
+
+    SELF_UPDATE_DATABASE_MIGRATION_STATUS="succeeded"
+    SELF_UPDATE_DATABASE_MIGRATION_ERROR_MESSAGE=""
+    record_self_update_database_migration_summary
 }
 
 start_pm2_agents_server_process() {
@@ -2928,6 +3021,9 @@ load_runtime_configuration_from_env_file() {
     env_value="$(get_env_value PTBK_RELEASES_DIR)"
     [[ -n "$env_value" ]] && PTBK_RELEASES_DIR="$env_value"
 
+    env_value="$(get_env_value AGENTS_SERVER_GC_KEEP_VERSIONS)"
+    [[ -n "$env_value" ]] && AGENTS_SERVER_GC_KEEP_VERSIONS="$env_value"
+
     env_value="$(get_env_value PTBK_SHARED_NEXT_STATIC_ROOT)"
     [[ -n "$env_value" ]] && PTBK_SHARED_NEXT_STATIC_ROOT="$env_value"
 
@@ -3144,6 +3240,9 @@ self_update_agents_server() {
         PROMPTBOOK_REPOSITORY_REF="$(normalize_promptbook_repository_ref "$target_ref")"
     fi
     SELF_UPDATE_STARTED_AT="$(date --utc --iso-8601=seconds)"
+    if [[ -z "$PTBK_SELF_UPDATE_JOB_ID" ]]; then
+        PTBK_SELF_UPDATE_JOB_ID="self-update-$(date --utc +%Y%m%dT%H%M%SZ)-$$"
+    fi
     old_repository_dir="$PROMPTBOOK_REPOSITORY_DIR"
     old_app_name="$APP_NAME"
     old_port="$PORT"
@@ -3164,6 +3263,11 @@ self_update_agents_server() {
     write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Preserving currently served Agents Server static assets." "" "$SELF_UPDATE_CURRENT_COMMIT" "" "" "$$"
     publish_agents_server_next_static_assets_from_repository "$old_repository_dir" 0
 
+    # Garbage-collect before cloning so accumulated old versions cannot exhaust the disk
+    # space needed by the new checkout.
+    write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Garbage-collecting old Agents Server versions." "" "$SELF_UPDATE_CURRENT_COMMIT" "" "" "$$"
+    garbage_collect_promptbook_releases
+
     SELF_UPDATE_TARGET_COMMIT="$(read_remote_repository_commit_sha "$PROMPTBOOK_REPOSITORY_REF")"
     write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Installing the latest Promptbook checkout into a versioned release directory." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "" "$$"
     install_promptbook_repository
@@ -3172,6 +3276,7 @@ self_update_agents_server() {
     write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Refreshing the Promptbook CLI launcher." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "" "$$"
     install_promptbook_cli_launcher
 
+    reset_self_update_database_migration_status
     write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Running Agents Server database migrations." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "" "$$"
     run_agents_server_database_migrations
 
@@ -3185,6 +3290,7 @@ self_update_agents_server() {
         set_env_value PTBK_REPOSITORY_DIR "$PROMPTBOOK_REPOSITORY_DIR"
         set_env_value PTBK_VPS_INSTALL_SCRIPT "$PROMPTBOOK_REPOSITORY_DIR/other/vps/install.sh"
         cleanup_orphan_agents_server_pm2_processes "$APP_NAME"
+        garbage_collect_promptbook_releases
         finished_at="$(date --utc --iso-8601=seconds)"
         write_self_update_status_file "succeeded" "$PROMPTBOOK_REPOSITORY_REF" "Standalone VPS self-update finished; the requested release was already installed." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "$finished_at" ""
         trap - EXIT
@@ -3214,12 +3320,15 @@ self_update_agents_server() {
     set_env_value PTBK_PM2_BASE_APP_NAME "$PTBK_PM2_BASE_APP_NAME"
     set_env_value PTBK_PM2_APP_NAME "$replacement_app_name"
 
-    write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Removing previous Agents Server pm2 processes and old repository checkout." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "" "$$"
+    write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Removing previous Agents Server pm2 processes and garbage-collecting old versions." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "" "$$"
     if [[ "$old_app_name" != "$replacement_app_name" ]]; then
         stop_pm2_process_if_running "$old_app_name"
     fi
     cleanup_orphan_agents_server_pm2_processes "$replacement_app_name"
-    remove_promptbook_repository_directory_if_safe "$old_repository_dir" "$PROMPTBOOK_REPOSITORY_DIR"
+    # Instead of always deleting the just-replaced checkout, keep the newest
+    # AGENTS_SERVER_GC_KEEP_VERSIONS versions (including the new current one) so
+    # recent releases stay available for manual rollback while older ones are removed.
+    garbage_collect_promptbook_releases
 
     finished_at="$(date --utc --iso-8601=seconds)"
     write_self_update_status_file "succeeded" "$PROMPTBOOK_REPOSITORY_REF" "Standalone VPS self-update finished successfully." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "$finished_at" ""

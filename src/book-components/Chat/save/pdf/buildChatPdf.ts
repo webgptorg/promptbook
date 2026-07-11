@@ -4,8 +4,8 @@ import { spaceTrim } from 'spacetrim';
 import { UnexpectedError } from '../../../../errors/UnexpectedError';
 import type { ChatMessage } from '../../types/ChatMessage';
 import type { ChatParticipant } from '../../types/ChatParticipant';
-import { getPromptbookExportBranding } from '../_common/getPromptbookExportBranding';
 import { buildChatHtml, CHAT_HTML_EXPORT_RENDER_ROOT_CLASS_NAME } from '../html/htmlSaveFormatDefinition';
+import { getPromptbookExportBranding } from '../_common/getPromptbookExportBranding';
 
 /**
  * Pixel width used while the standalone HTML document is laid out for PDF pages.

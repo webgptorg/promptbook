@@ -8,6 +8,7 @@ import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../../util
 import type { ChatFeedbackMode } from '../../utils/chatFeedbackMode';
 import type { UserInfo } from '../../utils/getCurrentUser';
 import type { ShibbolethAuthenticationMenuStatus } from '../../constants/shibbolethAuth';
+import type { ServerResourceWarningStatus } from '../../utils/resourceMonitor/resourceMonitorTypes';
 import { AgentNamingProvider } from '../AgentNaming/AgentNamingContext';
 import { DefaultAgentAvatarVisualProvider } from '../AgentAvatar/DefaultAgentAvatarVisualProvider';
 import { LegacyUiAutoTranslator } from '../AgentNaming/LegacyUiAutoTranslator';
@@ -57,6 +58,10 @@ type LayoutWrapperProps = {
      */
     readonly shibbolethAuthenticationStatus: ShibbolethAuthenticationMenuStatus;
     /**
+     * Resource monitor status used by the header menu.
+     */
+    readonly resourceMonitorWarningStatus: ServerResourceWarningStatus;
+    /**
      * Indicates if the install-as-app option should be shown in agent menus.
      */
     readonly isExperimentalPwaAppEnabled: boolean;
@@ -101,6 +106,7 @@ export function LayoutWrapper({
     isExperimental,
     feedbackMode,
     shibbolethAuthenticationStatus,
+    resourceMonitorWarningStatus,
     isExperimentalPwaAppEnabled,
     controlPanelOptionAvailability,
     defaultIsSoundsOn,
@@ -152,7 +158,9 @@ export function LayoutWrapper({
                                                     <BrowserPushNotificationsProvider
                                                         defaultEnabled={defaultIsNotificationsOn}
                                                         pushPublicKey={webPushPublicKey}
-                                                        isMetadataAvailable={controlPanelOptionAvailability.notifications}
+                                                        isMetadataAvailable={
+                                                            controlPanelOptionAvailability.notifications
+                                                        }
                                                     >
                                                         <ChatEnterBehaviorPreferencesProvider>
                                                             <ClientVersionMismatchListener />
@@ -181,11 +189,16 @@ export function LayoutWrapper({
                                                                                         serverLogoUrl={serverLogoUrl}
                                                                                         agents={agents}
                                                                                         agentFolders={agentFolders}
-                                                                                        federatedServers={federatedServers}
+                                                                                        federatedServers={
+                                                                                            federatedServers
+                                                                                        }
                                                                                         isExperimental={isExperimental}
                                                                                         feedbackMode={feedbackMode}
                                                                                         shibbolethAuthenticationStatus={
                                                                                             shibbolethAuthenticationStatus
+                                                                                        }
+                                                                                        resourceMonitorWarningStatus={
+                                                                                            resourceMonitorWarningStatus
                                                                                         }
                                                                                     />
                                                                                     <main className={mainClassName}>
@@ -195,9 +208,12 @@ export function LayoutWrapper({
                                                                                             {children}
                                                                                         </HomepageOptimisticNavigation>
                                                                                     </main>
-                                                                                    {isFooterShown && !isFooterHiddenOnPage && (
-                                                                                        <Footer extraLinks={footerLinks} />
-                                                                                    )}
+                                                                                    {isFooterShown &&
+                                                                                        !isFooterHiddenOnPage && (
+                                                                                            <Footer
+                                                                                                extraLinks={footerLinks}
+                                                                                            />
+                                                                                        )}
                                                                                 </div>
                                                                             )}
                                                                         </ActiveAgentBreadcrumbProvider>

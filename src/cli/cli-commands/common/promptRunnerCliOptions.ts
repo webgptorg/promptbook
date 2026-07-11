@@ -1,17 +1,12 @@
 import colors from 'colors';
 import {
-    Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
-    Option,
+  Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
+  Option
 } from 'commander';
 import { spaceTrim } from 'spacetrim';
+import { CLI_AGENT_HARNESS_NAMES, PTBK_HARNESS_ENV, PTBK_MODEL_ENV, PTBK_THINKING_LEVEL_ENV } from '../../../book-3.0/cliAgentEnv';
 import type { ThinkingLevel } from '../coder/ThinkingLevel';
 import { THINKING_LEVEL_VALUES } from '../coder/ThinkingLevel';
-import {
-    CLI_AGENT_HARNESS_NAMES,
-    PTBK_HARNESS_ENV,
-    PTBK_MODEL_ENV,
-    PTBK_THINKING_LEVEL_ENV,
-} from '../../../book-3.0/cliAgentEnv';
 
 export { PTBK_HARNESS_ENV, PTBK_MODEL_ENV, PTBK_THINKING_LEVEL_ENV };
 

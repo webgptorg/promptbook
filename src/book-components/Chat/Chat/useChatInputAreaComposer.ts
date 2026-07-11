@@ -1,13 +1,13 @@
 'use client';
 
 import {
-    useCallback,
-    useEffect,
-    useRef,
-    useState,
-    type ChangeEvent,
-    type KeyboardEvent as ReactKeyboardEvent,
-    type MutableRefObject,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type MutableRefObject
 } from 'react';
 import { spaceTrim } from 'spacetrim';
 import type { ChatMessage } from '../types/ChatMessage';
@@ -35,6 +35,18 @@ type PendingEnterIntentSnapshot = {
 };
 
 /**
+ * One programmatic request to replace the composer content with an editable draft.
+ *
+ * A fresh object identity is used for every request so repeated draft insertions
+ * (even with identical text) re-apply to the composer.
+ *
+ * @private function of `<ChatInputArea/>`
+ */
+export type ChatComposerDraft = {
+    readonly content: string;
+};
+
+/**
  * Props for `useChatInputAreaComposer`.
  *
  * @private function of `<ChatInputArea/>`
@@ -43,6 +55,7 @@ type UseChatInputAreaComposerProps = {
     readonly onMessage?: ChatProps['onMessage'];
     readonly onChange?: ChatProps['onChange'];
     readonly defaultMessage?: string;
+    readonly draftMessage?: ChatComposerDraft;
     readonly enterBehavior?: ChatProps['enterBehavior'];
     readonly resolveEnterBehavior?: ChatProps['resolveEnterBehavior'];
     readonly isFocusedOnLoad?: boolean;
@@ -474,6 +487,38 @@ function useChatInputAreaComposerFocus({
 }
 
 /**
+ * Applies programmatic draft-message insertions to the composer.
+ *
+ * Each new `draftMessage` object replaces the composer content and moves the caret
+ * to the end so the seeded draft can be edited before sending. Repeated requests with
+ * identical text still apply because every request carries a fresh object identity.
+ *
+ * @private function of `useChatInputAreaComposer`
+ */
+function useChatInputAreaDraftMessage(params: {
+    readonly draftMessage?: ChatComposerDraft;
+    readonly textareaRef: MutableRefObject<HTMLTextAreaElement | null>;
+    readonly applyMessageContent: (nextContent: string) => void;
+}): void {
+    const { draftMessage, textareaRef, applyMessageContent } = params;
+    const lastAppliedDraftMessageRef = useRef<ChatComposerDraft | undefined>(undefined);
+
+    useEffect(() => {
+        if (draftMessage === undefined || draftMessage === lastAppliedDraftMessageRef.current) {
+            return;
+        }
+
+        lastAppliedDraftMessageRef.current = draftMessage;
+        applyMessageContent(draftMessage.content);
+
+        const textareaElement = textareaRef.current;
+        if (textareaElement) {
+            focusTextareaCaret(textareaElement, draftMessage.content.length);
+        }
+    }, [applyMessageContent, draftMessage, textareaRef]);
+}
+
+/**
  * Creates the newline insertion action used by the composer Enter handling.
  *
  * @private function of `useChatInputAreaComposer`
@@ -695,6 +740,7 @@ export function useChatInputAreaComposer(props: UseChatInputAreaComposerProps) {
         onMessage,
         onChange,
         defaultMessage,
+        draftMessage,
         enterBehavior,
         resolveEnterBehavior,
         isFocusedOnLoad,
@@ -717,6 +763,12 @@ export function useChatInputAreaComposer(props: UseChatInputAreaComposerProps) {
         textareaRef,
         isFocusedOnLoad,
         isMobile,
+    });
+
+    useChatInputAreaDraftMessage({
+        draftMessage,
+        textareaRef,
+        applyMessageContent,
     });
 
     const handleInsertNewline = useChatInputAreaNewlineHandler({

@@ -1,165 +1,116 @@
 # Agents
 
-An agent is a persisted book-language source plus resolved metadata, visibility, folder placement, ownership, runtime preparation state, and chat-facing behavior.
+An **agent** is the central entity of the Agents Server: an AI persona defined by a plain-text **agent source** written in the [Book language](book-language.md), persisted per server instance, and exposed through the UI and APIs.
 
 ## Identity
 
-Agents have two public identifiers:
+Every agent row carries three identifiers (persisted in `prefix_Agent`, see [Data model](data-model.md#prefix_agent)):
 
-- `agentName`: human-readable name derived from the book title line.
-- `permanentId`: stable identifier that survives renames and is preferred for durable links.
+| Identifier    | Nature                                                                | Uniqueness                              | Stability                                        |
+| ------------- | --------------------------------------------------------------------- | --------------------------------------- | ------------------------------------------------ |
+| `permanentId` | Random base58 string assigned by the server at creation.              | Unique per server instance.             | Never changes; the canonical reference.          |
+| `agentName`   | Human-readable name; the first line of the agent source.              | **Not** unique (duplicates allowed).    | Changes whenever the first source line changes.  |
+| `agentHash`   | Hash of the current agent source, used for integrity and cache keys.  | Shared by identical sources.            | Changes on every source edit.                    |
 
-Routes MUST accept both when resolving an agent unless a specific route states otherwise. Canonical local URLs SHOULD use:
+**Identifier resolution rule:** wherever a route or API accepts an *agent identifier* (`:agentName` path segments, API bodies), the server MUST accept **either** the `agentName` **or** the `permanentId` and resolve it with an `agentName`-or-`permanentId` lookup returning the first match. Because names are not unique, `permanentId` is the only reliable reference; generated URLs SHOULD prefer `permanentId` when available. `resolveCanonicalAgentName` maps any identifier back to the stored `agentName`.
 
-```text
-/agents/<permanentId-or-agentName>
-```
+Agents also reference each other by **agent URL** — `https://<server-domain>/agents/<identifier>` — used by inheritance, imports, team references, and federation.
 
-When both a name and permanent id could match different agents, the implementation MUST avoid ambiguous writes and SHOULD return a conflict error for management operations.
+### Book-scoped sub-agents
 
-## Source of Truth
+An identifier of the form `<parentIdentifier>.{Sub Agent Name}` refers to an agent **defined inside another agent's book** (for example through team references). Routes that accept agent identifiers MUST parse this form, apply access checks against the *parent* agent, and resolve the sub-agent's source from the parent's book. See [Inheritance and imports](agents/inheritance-and-imports.md#book-scoped-references).
 
-The agent source is book-language text stored in `Agent.agentSource`. Derived columns such as `agentProfile`, `agentHash`, `preparedModelRequirements`, and `visibility` are mirrors or caches.
+## Persisted agent state
 
-`META VISIBILITY` in book source is the source of truth for agent visibility. The server MUST normalize it to:
+For each agent the server persists:
 
-- `PRIVATE`
-- `UNLISTED`
-- `PUBLIC`
+-   `agentSource` — the raw Book-language text (single source of truth for behavior).
+-   `agentProfile` — JSON snapshot of the parsed profile (see below), denormalized for fast listing.
+-   `agentHash`, `permanentId`, `agentName` — identity (above).
+-   `preparedModelRequirements` — optional cached compilation output (see [Preparation and caching](agents/preparation-and-caching.md)).
+-   `promptbookEngineVersion` — engine version that last wrote the row.
+-   `visibility` — `PUBLIC` | `UNLISTED` | `PRIVATE` (below).
+-   `folderId`, `sortOrder` — placement (see [Folders and organization](agents/folders-and-organization.md)).
+-   `userId` — optional owner (used by the [Management API](api/management-api.md) for per-token ownership scoping).
+-   `createdAt`, `updatedAt`, `deletedAt` — lifecycle timestamps (`deletedAt` = soft deletion).
+-   `usage` — accumulated usage JSON (token/cost accounting).
 
-and mirror the normalized value into `Agent.visibility`.
+## Agent profile
 
-When the source does not declare visibility, `DEFAULT_VISIBILITY` applies. See [Configuration](configuration.md).
+The **profile** is derived from the agent source by the lightweight synchronous parser (`parseAgentSource`, see [Book language](book-language.md#two-stage-parsing)) and contains:
+
+-   `agentName` (first line), `agentHash`, `permanentId`
+-   `personaDescription` — from the last `GOAL`/`GOALS` commitment (falling back to `PERSONA`/`PERSONAE` for backward compatibility)
+-   `initialMessage` — from `INITIAL MESSAGE`
+-   `meta` — key/value map from `META <TYPE> …` commitments (`fullname`, `description`, `image`, `avatar`, `color`, `font`, `domain`, `voice`, `visibility`, `disclaimer`, `inputPlaceholder`, `messageSuffix`, …); later commitments of the same type override earlier ones
+-   `links` (from `META LINK`), `parameters` (`@Parameter` / `{parameter}` notations), `capabilities` (from `USE …`/`KNOWLEDGE` commitments), `samples` (question/answer pairs), `knowledgeSources`
+
+The profile is served publicly for accessible agents via `GET /agents/:agentName/api/profile` (see [Public agent API](api/public-agent-api.md)).
+
+## Visibility
+
+Each agent has exactly one visibility value:
+
+| Value      | Listing (home, search, sitemap)          | Direct access (profile/chat/APIs)                          |
+| ---------- | ---------------------------------------- | ----------------------------------------------------------- |
+| `PUBLIC`   | Listed for everyone.                     | Everyone.                                                    |
+| `UNLISTED` | Hidden from anonymous listings.          | Everyone who knows the URL.                                  |
+| `PRIVATE`  | Hidden from anonymous listings.          | Only signed-in users, or requests carrying a valid same-server **team token** on routes that opt in (`allowTeamInternalAccess`). |
+
+Rules:
+
+-   The default visibility for new agents comes from the `DEFAULT_VISIBILITY` metadata key (default `UNLISTED`), unless the source itself declares `META VISIBILITY <value>` or the creator specifies one explicitly.
+-   Denied access to a `PRIVATE` agent MUST yield HTTP 403 with the message "This agent is private. Sign in to access it."
+-   Whether an agent appears in **public listings** additionally depends on the instance-level [server visibility](servers-and-multi-tenancy.md#server-visibility).
+-   The team token is specified in [Users and authentication](users-and-authentication.md#team-internal-access-token).
+
+## Lifecycle
+
+### Creation
+
+Agents are created by:
+
+1. **UI "Add agent"** — a server action generates a boilerplate book whose agent name is drawn from a name pool (`NAME_POOL` metadata: `ENGLISH` or `CZECH`), then persists it. Depending on the `NEW_AGENT_WIZARD` metadata mode, the UI opens either the plain book editor or a guided wizard that composes the initial book.
+2. **API** — `POST /api/agents` (session-authenticated), the [Management API](api/management-api.md) (`POST /api/v1/agents`, assigns `userId` ownership from the token), [import](agents/transfer-and-backup.md), [cloning](agents/transfer-and-backup.md#cloning), the [spawn tool](chat/runtime-tools.md#spawn_agent), or the missing-agent recovery flow (below).
+
+On creation the server MUST: assign a fresh `permanentId`, compute `agentHash`, parse and store `agentProfile`, apply default visibility, and append the first [history entry](#history).
+
+### Editing
+
+Editing replaces the whole `agentSource` (there is no partial patching). On every source change the server MUST:
+
+1. Re-parse the profile, recompute `agentHash`, update `agentName` from the first line, bump `updatedAt`.
+2. Append an entry to `prefix_AgentHistory` containing the previous chain (`previousAgentHash`) and the new source; entries MAY carry a user-provided `versionName`.
+3. Invalidate/refresh cached model requirements and schedule [preparation](agents/preparation-and-caching.md) when relevant.
+
+Sources are edited through the book editor page and `GET/PUT` book API (see [Public agent API](api/public-agent-api.md#book)); history is listed via the book history API and the history page.
+
+### Soft deletion and restore
+
+-   Deleting an agent sets `deletedAt` (row and history are retained). Deleted agents:
+    -   disappear from listings and folders,
+    -   respond to chat APIs with HTTP **410 Gone** and error code `agent_deleted` ("This agent has been deleted. You can restore it from the Recycle Bin."),
+    -   appear in the **Recycle bin** page for signed-in users.
+-   Restore clears `deletedAt` (`POST /api/agents/:agentName/restore`). Folders soft-delete/restore analogously.
+
+### Seeding
+
+On startup the server ensures well-known content exists (idempotently):
+
+-   **Core agents** — a hidden folder named `.core` containing the bundled well-known agents:
+    -   **Adam** (`adam`) — the default ancestor for all agents (see [Inheritance](agents/inheritance-and-imports.md#the-adam-ancestor)),
+    -   **Teacher** (`teacher`) — the Book-language expert used by [self-learning](agents/self-learning.md).
+    Folders whose name starts with `.` are hidden from normal navigation (header menu, listings).
+-   **Default agents** — when the server has no agents at all, the bundled default `*.book` files are inserted once (skipped when any agent exists or no bundled books are found).
 
 ## Ownership
 
-Agents MAY be owned by a `User` through `userId`.
+`Agent.userId` records an owning user. It is set when an agent is created through the Management API (token owner) and MAY be set by other flows. Ownership scopes Management API reads/writes; the web UI treats all signed-in users of an instance as one team and does not restrict by owner.
 
-Write access requires an authenticated user with write permission to that agent. Administrator privileges MAY grant broader write access where existing admin routes define it. Management API routes are owner-scoped by API token user. See [Management API](management-api.md).
+## Related specs
 
-Read access depends on visibility:
-
-- `PUBLIC`: visible in public lists and public profile pages.
-- `UNLISTED`: reachable by direct URL but not generally indexed.
-- `PRIVATE`: visible only to authorized users, owner, admin, or valid same-server team calls.
-
-## Folder Organization
-
-Agents MAY belong to an `AgentFolder`. Folders form a tree through `parentId`.
-
-Folder behavior:
-
-- Names MUST be nonempty.
-- Names MUST NOT contain `/`.
-- Active folder names MUST be unique within the same parent and owner.
-- New folders are appended by `sortOrder`.
-- Deleting a folder soft-deletes that folder, descendants, and agents in those folders.
-- Hidden folders whose name starts with `.` are hidden from the homepage by default.
-
-The `.core` folder contains local core agents and is hidden by default.
-
-## Creation
-
-Agent creation MUST:
-
-1. Validate book source.
-2. Normalize/pad source according to book-language rules.
-3. Resolve the display name from the source title.
-4. Apply visibility from `META VISIBILITY` or `DEFAULT_VISIBILITY`.
-5. Assign `permanentId`.
-6. Assign owner and folder if provided and authorized.
-7. Assign `sortOrder` to the next available position when not provided.
-8. Store current agent state and any required derived profile/runtime fields.
-
-## Updating
-
-Agent updates MAY change:
-
-- source
-- name
-- visibility
-- folder
-- sort order
-
-Source, name, and visibility changes MUST update book source and preserve a history snapshot. Folder and sort-order changes MAY update columns directly.
-
-Renaming an agent MUST update the book title line through book-language-safe transformation, not by blindly changing database columns.
-
-## Soft Delete and Restore
-
-Deleting an agent MUST mark `deletedAt` instead of removing the row.
-
-Restore behavior MUST clear `deletedAt` and place the agent back into an active organization context when possible.
-
-Public lists and normal resolver paths MUST ignore soft-deleted agents. History and administrative recovery surfaces MAY include them.
-
-## Cloning
-
-`POST /api/agents/<agentName>/clone` clones an existing agent for the current authenticated user.
-
-Clone behavior:
-
-- The caller must be signed in.
-- The source agent must be readable.
-- The clone receives a new `permanentId`.
-- The clone source title is replaced with the requested name or a generated copy name.
-- Generated names follow the pattern `<name> (Copy)`, `<name> (Copy 2)`, and so on.
-- The clone inherits the source folder when the caller can use it.
-- The clone uses default visibility rules for new agents.
-
-## Import and Export
-
-Administrators can import `.book` files and ZIP archives.
-
-Import behavior:
-
-- Accept direct `.book` files.
-- Accept ZIP files with `.book` entries.
-- Ignore or warn about non-book ZIP entries.
-- Allow targeting a folder.
-- Support conflict resolution modes: `ASK`, `SKIP`, and `DUPLICATE`.
-- Return a conflict response when `ASK` is used and conflicting names require a user decision.
-
-Exports SHOULD produce `.book` files arranged in the folder hierarchy so a fresh server can recreate agents and folders.
-
-## Seeding
-
-On an empty server, the default-agent seeder MAY create bundled default agents from `PTBK_DEFAULT_AGENTS_DIR` or built-in defaults.
-
-Core agents MUST be ensured on every server start:
-
-- A `.core` folder exists.
-- Well-known agents such as Adam and Teacher exist locally.
-- Missing core agents are inserted without depending on an external core server.
-
-Core agents provide local defaults for inheritance and teacher behavior.
-
-## Federation
-
-Federation allows one server to discover agents from configured remote servers.
-
-`FEDERATED_SERVERS` defines remote server URLs. `SHOW_FEDERATED_SERVERS_PUBLICLY` controls whether those servers are exposed in public listing responses.
-
-Default federated-agent synchronization is deprecated in favor of local core seeding, but `DefaultFederatedAgent` records may still exist for compatibility.
-
-## Custom Domains
-
-An agent MAY claim a custom domain through book metadata such as `META DOMAIN` or `META LINK`. The routing behavior is defined in [Server Routing](server-routing.md).
-
-## Preparation
-
-Agent preparation computes external runtime artifacts for an agent/source fingerprint. Preparation state is stored in `AgentPreparation`.
-
-Chat runtime SHOULD wait for a running preparation for the same fingerprint when required, and MAY use cached model requirements or external artifacts when they match the current fingerprint.
-
-## Public Agent List
-
-`GET /api/agents` returns public organization data:
-
-- active public/unlisted agents according to visibility filtering rules
-- folders visible in the public organization tree
-- federated server metadata when allowed
-- default avatar visual id
-
-Private agents MUST NOT be included in anonymous public lists.
-
+-   [Inheritance and imports](agents/inheritance-and-imports.md) — how one source is resolved into the effective source.
+-   [Preparation and caching](agents/preparation-and-caching.md) — background work triggered by source changes.
+-   [Avatars and visuals](agents/avatars-and-visuals.md) — how the visual identity is resolved and generated.
+-   [Federation](agents/federation.md) — agents hosted on other servers.
+-   [Transfer and backup](agents/transfer-and-backup.md) — moving agents between servers.

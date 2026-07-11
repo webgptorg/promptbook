@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import { runAgentChat } from '../../../../scripts/run-agent-chat/runAgentChat';
 import { runAgentExec } from '../../../../scripts/run-agent-chat/runAgentExec';
-import { PTBK_THINKING_LEVEL_ENV } from '../common/promptRunnerCliOptions';
+import { PTBK_THINKING_LEVEL_ENV } from '../../../book-3.0/cliAgentEnv';
 import { $initializeAgentChatCommand } from './chat';
 import { $initializeAgentExecCommand } from './exec';
 

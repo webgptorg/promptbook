@@ -1,6 +1,7 @@
 import colors from 'colors';
 import type { CoderRunPauseState } from '../common/waitForPause';
 import type { CoderRunConfig, CoderRunPhase, CoderRunProgressSnapshot } from './CoderRunUiState';
+import type { CoderRunAgentVisual } from './buildCoderRunAgentVisual';
 import { buildCoderRunOctopusVisual } from './buildCoderRunOctopusVisual';
 import {
     buildControlPills,
@@ -39,10 +40,16 @@ export type { CoderRunPauseState };
 export type BuildCoderRunUiFrameOptions = {
     readonly terminalWidth: number;
     readonly animationFrame: number;
+    readonly animationTimeMs: number;
     readonly spinner: string;
 
     /**
-     * ANSI ASCII-art lines of the `--agent` avatar visual shown instead of the default brand banner.
+     * ANSI ASCII-art renderer of the `--agent` avatar visual shown instead of the default brand banner.
+     */
+    readonly agentVisual?: CoderRunAgentVisual;
+
+    /**
+     * Optional static ANSI ASCII-art lines of the `--agent` avatar visual.
      */
     readonly agentVisualLines?: readonly string[];
     readonly pauseState: CoderRunPauseState;
@@ -153,6 +160,16 @@ function buildFrameHeaderVisual(
 ): readonly string[] {
     if (options.agentVisualLines !== undefined && options.agentVisualLines.length > 0) {
         return options.agentVisualLines.map((agentVisualLine) => centerAnsiText(agentVisualLine, totalWidth));
+    }
+
+    if (options.agentVisual !== undefined) {
+        const agentVisualLines = options.agentVisual.renderFrame({
+            animationTimeMs: options.animationTimeMs,
+        });
+
+        if (agentVisualLines.length > 0) {
+            return agentVisualLines.map((agentVisualLine) => centerAnsiText(agentVisualLine, totalWidth));
+        }
     }
 
     return buildCoderRunOctopusVisual({ totalWidth, animationFrame: octopusAnimationFrame });
@@ -279,6 +296,10 @@ function buildBacklogSummary(progress: CoderRunProgressSnapshot): string {
 function buildScopeSummary(progress: CoderRunProgressSnapshot, config: CoderRunConfig): string {
     const parts = [`Priority ≥${config.priority}`];
 
+    if (config.limit !== undefined) {
+        parts.push(`Limit ${formatPromptRunCount(config.limit)}`);
+    }
+
     if (progress.toBeWrittenPrompts > 0) {
         parts.push(`Write ${formatPromptCount(progress.toBeWrittenPrompts)} first`);
     }
@@ -298,4 +319,11 @@ function buildTimingSummary(progress: CoderRunProgressSnapshot): string {
  */
 function formatPromptCount(count: number): string {
     return `${count} prompt${count === 1 ? '' : 's'}`;
+}
+
+/**
+ * Formats a configured successful prompt-run limit with singular/plural wording.
+ */
+function formatPromptRunCount(count: number): string {
+    return `${count} prompt run${count === 1 ? '' : 's'}`;
 }

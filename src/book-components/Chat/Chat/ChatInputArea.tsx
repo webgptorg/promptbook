@@ -8,7 +8,6 @@ import { grayscale } from '../../../utils/color/operators/grayscale';
 import { lighten } from '../../../utils/color/operators/lighten';
 import type { WithTake } from '../../../utils/take/interfaces/ITakeChain';
 import { AttachmentIcon } from '../../icons/AttachmentIcon';
-import { CloseIcon } from '../../icons/CloseIcon';
 import { MicIcon } from '../../icons/MicIcon';
 import { SendIcon } from '../../icons/SendIcon';
 import { classNames } from '../../_common/react-utils/classNames';
@@ -21,9 +20,11 @@ import { chatCssClassNames } from './chatCssClassNames';
 import { ChatInputAreaDictationPanel } from './ChatInputAreaDictationPanel';
 import type { ChatInputUploadedFile } from './ChatInputUploadedFile';
 import type { ChatProps, ChatSoundSystem } from './ChatProps';
+import { ChatMessageAttachments, type ChatMessageAttachment } from './ChatMessageAttachments';
 import { ChatReplyPreview } from './ChatReplyPreview';
 import type { SpeechRecognitionUiDescriptor } from './resolveSpeechRecognitionUiDescriptor';
 import { useChatInputAreaAttachments } from './useChatInputAreaAttachments';
+import type { ChatComposerDraft } from './useChatInputAreaComposer';
 import { useChatInputAreaComposer } from './useChatInputAreaComposer';
 import { useChatInputAreaDictation } from './useChatInputAreaDictation';
 
@@ -48,6 +49,7 @@ export type ChatInputAreaProps = {
     speechRecognition?: ChatProps['speechRecognition'];
     speechRecognitionLanguage?: ChatProps['speechRecognitionLanguage'];
     defaultMessage?: string;
+    draftMessage?: ChatComposerDraft;
     replyingToMessage?: ChatMessage | null;
     onCancelReply?: ChatProps['onCancelReply'];
     enterBehavior?: ChatProps['enterBehavior'];
@@ -62,6 +64,7 @@ export type ChatInputAreaProps = {
     onButtonClick: ChatInputButtonClickHandler;
     chatInputClassName?: string;
     chatUiTranslations?: ChatProps['chatUiTranslations'];
+    mode?: 'LIGHT' | 'DARK';
 };
 
 /**
@@ -86,6 +89,19 @@ type ChatInputAreaColorModel = {
     readonly inputContainerStyle: CSSProperties;
     readonly primaryButtonStyle: CSSProperties;
 };
+
+/**
+ * Converts one pending composer upload into the message attachment payload.
+ *
+ * @private function of `<ChatInputArea/>`
+ */
+function createUploadedFileAttachment(uploadedFile: ChatInputUploadedFile): ChatMessageAttachment {
+    return {
+        name: uploadedFile.file.name,
+        type: uploadedFile.file.type,
+        url: uploadedFile.content,
+    };
+}
 
 /**
  * Creates the shared color styles used by the composer.
@@ -182,10 +198,6 @@ function createChatInputAreaRootProps(params: {
  *
  * @private component of `<ChatInputArea/>`
  */
-function formatUploadedFileSizeInKilobytes(fileSizeInBytes: number): string {
-    return `${(fileSizeInBytes / 1024).toFixed(1)} KB`;
-}
-
 /**
  * Renders the optional reply preview section.
  *
@@ -216,34 +228,30 @@ function ChatInputAreaReplyPreviewSection({ replyPreview }: { replyPreview: Chat
 function ChatInputAreaUploadedFilesSection(props: {
     readonly uploadedFiles: ReadonlyArray<ChatInputUploadedFile>;
     readonly removeUploadedFile: (fileId: string) => void;
+    readonly inputContainerStyle: CSSProperties;
+    readonly mode: 'LIGHT' | 'DARK';
 }) {
-    const { uploadedFiles, removeUploadedFile } = props;
+    const { uploadedFiles, removeUploadedFile, inputContainerStyle, mode } = props;
 
     if (uploadedFiles.length === 0) {
         return null;
     }
 
+    const attachments = uploadedFiles.map(createUploadedFileAttachment);
+
     return (
-        <div className={styles.filePreviewContainer}>
-            {uploadedFiles.map((uploadedFile) => (
-                <div key={uploadedFile.id} className={styles.filePreview}>
-                    <div className={styles.fileIcon}>📎</div>
-                    <div className={styles.fileInfo}>
-                        <div className={styles.fileName}>{uploadedFile.file.name}</div>
-                        <div className={styles.fileSize}>
-                            {formatUploadedFileSizeInKilobytes(uploadedFile.file.size)}
-                        </div>
-                    </div>
-                    <button
-                        className={styles.removeFileButton}
-                        onClick={() => removeUploadedFile(uploadedFile.id)}
-                        title="Remove file"
-                    >
-                        <CloseIcon />
-                    </button>
-                </div>
-            ))}
-        </div>
+        <ChatMessageAttachments
+            attachments={attachments}
+            className={styles.filePreviewContainer}
+            mode={mode}
+            onRemoveAttachment={(_attachment, attachmentIndex) => {
+                const uploadedFile = uploadedFiles[attachmentIndex];
+                if (uploadedFile) {
+                    removeUploadedFile(uploadedFile.id);
+                }
+            }}
+            style={inputContainerStyle}
+        />
     );
 }
 
@@ -521,6 +529,7 @@ export function ChatInputArea(props: ChatInputAreaProps) {
         speechRecognition,
         speechRecognitionLanguage,
         defaultMessage,
+        draftMessage,
         replyingToMessage,
         onCancelReply,
         enterBehavior,
@@ -535,6 +544,7 @@ export function ChatInputArea(props: ChatInputAreaProps) {
         onButtonClick,
         chatInputClassName,
         chatUiTranslations,
+        mode = 'LIGHT',
     } = props;
     const {
         fileInputRef,
@@ -566,6 +576,7 @@ export function ChatInputArea(props: ChatInputAreaProps) {
         onMessage,
         onChange,
         defaultMessage,
+        draftMessage,
         enterBehavior,
         resolveEnterBehavior,
         isFocusedOnLoad,
@@ -629,7 +640,12 @@ export function ChatInputArea(props: ChatInputAreaProps) {
         <div className={classNames(styles.chatInput, chatInputClassName, isDragOver && styles.dragOver)} {...rootProps}>
             <ChatInputAreaReplyPreviewSection replyPreview={replyPreview} />
 
-            <ChatInputAreaUploadedFilesSection uploadedFiles={uploadedFiles} removeUploadedFile={removeUploadedFile} />
+            <ChatInputAreaUploadedFilesSection
+                uploadedFiles={uploadedFiles}
+                removeUploadedFile={removeUploadedFile}
+                inputContainerStyle={inputContainerStyle}
+                mode={mode}
+            />
 
             <div
                 className={classNames(styles.inputContainer, chatCssClassNames.inputContainer)}

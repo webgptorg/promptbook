@@ -45,7 +45,7 @@
 
 ---
 
-[ ]
+[x] ~$0.2437 2 hours by OpenAI Codex `gpt-5.5`
 
 [✨🖖] Remove "Working on your request" from response
 
@@ -54,3 +54,4 @@
     2. "The local agent runner has the request and is working on the answer." **<- Remove this, it is bullshit and does not show any real progress**
     3. Finally, show the final answer
 -   You are working with the [Agents Server](apps/agents-server)
+

@@ -87,11 +87,41 @@ describe('resolveImportEntity', () => {
                         tags: [],
                         isType: false,
                     },
+                    {
+                        filename: 'C:\\repo\\apps\\agents-server\\src\\version.ts',
+                        type: 'const',
+                        name: 'BOOK_LANGUAGE_VERSION',
+                        tags: [],
+                        isType: false,
+                    },
                 ],
             }),
         ).toEqual(
             expect.objectContaining({
                 filename: 'C:\\repo\\src\\version.ts',
+            }),
+        );
+    });
+
+    it('resolves app exports from existing app import paths', () => {
+        expect(
+            resolveImportEntity({
+                currentFilePath: 'C:\\repo\\src\\cli\\cli-commands\\agents-server\\startAgentsServer.ts',
+                currentImportPath: '../../../../apps/agents-server/src/constants/serverLimits',
+                importedName: 'DEFAULT_LOCAL_AGENT_RUNNER_MAX_FAILED_ATTEMPTS',
+                allEntities: [
+                    {
+                        filename: 'C:\\repo\\apps\\agents-server\\src\\constants\\serverLimits.ts',
+                        type: 'const',
+                        name: 'DEFAULT_LOCAL_AGENT_RUNNER_MAX_FAILED_ATTEMPTS',
+                        tags: [],
+                        isType: false,
+                    },
+                ],
+            }),
+        ).toEqual(
+            expect.objectContaining({
+                filename: 'C:\\repo\\apps\\agents-server\\src\\constants\\serverLimits.ts',
             }),
         );
     });

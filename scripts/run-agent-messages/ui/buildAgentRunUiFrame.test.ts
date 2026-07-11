@@ -15,6 +15,7 @@ function createFrameOptions(overrides: Partial<Parameters<typeof buildAgentRunUi
     return {
         terminalWidth: 96,
         animationFrame: 0,
+        animationTimeMs: 0,
         spinner: '⠋',
         pauseState: 'RUNNING' as const,
         pauseTargetLabel: 'the next task',

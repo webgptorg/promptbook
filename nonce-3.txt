@@ -1,2 +1,0 @@
-Create file named `nonce-foo-4.txt` with content `foo`
-Create file named `nonce-bar-4.txt` with content `bar`

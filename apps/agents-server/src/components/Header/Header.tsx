@@ -56,6 +56,7 @@ export function Header(props: HeaderProps) {
         isExperimental = false,
         feedbackMode = 'stars',
         shibbolethAuthenticationStatus,
+        resourceMonitorWarningStatus,
     } = props;
     const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
     const router = useRouter();
@@ -241,6 +242,8 @@ export function Header(props: HeaderProps) {
     const isShibbolethConfigurationWarningShown = Boolean(
         shibbolethAuthenticationStatus?.isActive && !shibbolethAuthenticationStatus.isConfigured,
     );
+    const isResourceMonitorWarningShown = Boolean(isGlobalAdmin && resourceMonitorWarningStatus?.isWarningShown);
+    const isSystemWarningShown = isShibbolethConfigurationWarningShown || isResourceMonitorWarningShown;
     const systemMenuEntries = useMemo(
         () =>
             buildHeaderSystemMenuItems({
@@ -251,12 +254,22 @@ export function Header(props: HeaderProps) {
                 isExperimental,
                 feedbackMode,
                 shibbolethAuthenticationStatus,
+                resourceMonitorWarningStatus,
             }),
-        [currentUser, feedbackMode, isAdmin, isExperimental, isGlobalAdmin, shibbolethAuthenticationStatus, t],
+        [
+            currentUser,
+            feedbackMode,
+            isAdmin,
+            isExperimental,
+            isGlobalAdmin,
+            resourceMonitorWarningStatus,
+            shibbolethAuthenticationStatus,
+            t,
+        ],
     );
     const systemLabel = useMemo(
         () =>
-            isShibbolethConfigurationWarningShown ? (
+            isSystemWarningShown ? (
                 <span className="inline-flex items-center gap-2">
                     {t('header.systemMenuLabel')}
                     <TriangleAlert className="h-4 w-4 text-amber-500" aria-label="Warning" />
@@ -264,7 +277,7 @@ export function Header(props: HeaderProps) {
             ) : (
                 t('header.systemMenuLabel')
             ),
-        [isShibbolethConfigurationWarningShown, t],
+        [isSystemWarningShown, t],
     );
     const menuItems = useMemo(
         () =>

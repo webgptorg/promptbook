@@ -1,11 +1,13 @@
 import { spaceTrim } from 'spacetrim';
 import { EnvironmentMismatchError } from '../errors/EnvironmentMismatchError';
-import type { AsciiArtColorDepth } from '../utils/ascii-art/convertImageDataToAsciiArt';
+import { UnexpectedError } from '../errors/UnexpectedError';
+import type { AsciiArtColorDepth, AsciiArtImageData } from '../utils/ascii-art/convertImageDataToAsciiArt';
 import { convertImageDataToAsciiArt } from '../utils/ascii-art/convertImageDataToAsciiArt';
 import { DEFAULT_AVATAR_SIZE } from './avatarRenderingUtils';
+import type { ResolvedAvatarRenderDefinition } from './renderAvatarVisual';
 import { renderAvatarVisual } from './renderAvatarVisual';
 import type { AvatarDefinition } from './types/AvatarDefinition';
-import type { AvatarVisualId } from './types/AvatarVisualDefinition';
+import type { AvatarSurfaceStyle, AvatarVisualId } from './types/AvatarVisualDefinition';
 
 /**
  * Default output width of the ASCII avatar in terminal character cells.
@@ -20,6 +22,20 @@ export const DEFAULT_AVATAR_ASCII_ART_COLUMNS = 32;
  * @private within the repository
  */
 const STATIC_AVATAR_ASCII_ART_FRAME_TIME_MS = 840;
+
+/**
+ * Default source canvas width used before the pixels are converted to ASCII art.
+ *
+ * @private within the repository
+ */
+const DEFAULT_AVATAR_ASCII_ART_CANVAS_WIDTH = DEFAULT_AVATAR_SIZE;
+
+/**
+ * Default source canvas height used before the pixels are converted to ASCII art.
+ *
+ * @private within the repository
+ */
+const DEFAULT_AVATAR_ASCII_ART_CANVAS_HEIGHT = DEFAULT_AVATAR_SIZE;
 
 /**
  * Factory creating a drawable canvas of the requested pixel size.
@@ -46,6 +62,13 @@ export type RenderAvatarVisualAsciiArtOptions = {
      * Built-in avatar visual to render, the same one used on the website.
      */
     readonly visualId: AvatarVisualId;
+
+    /**
+     * Surface used to composite the avatar before ASCII conversion.
+     *
+     * @default 'framed'
+     */
+    readonly surface?: AvatarSurfaceStyle;
 
     /**
      * Output width in terminal character cells.
@@ -76,6 +99,25 @@ export type RenderAvatarVisualAsciiArtOptions = {
     readonly timeMs?: number;
 
     /**
+     * Source canvas width in CSS pixels before ASCII conversion.
+     *
+     * @default `DEFAULT_AVATAR_SIZE`
+     */
+    readonly canvasWidth?: number;
+
+    /**
+     * Source canvas height in CSS pixels before ASCII conversion.
+     *
+     * @default `DEFAULT_AVATAR_SIZE`
+     */
+    readonly canvasHeight?: number;
+
+    /**
+     * Optional stable render data reused across frames.
+     */
+    readonly resolvedAvatarRenderDefinition?: ResolvedAvatarRenderDefinition;
+
+    /**
      * Platform-specific canvas factory used to rasterize the visual.
      */
     readonly createCanvas: CreateCanvasForAsciiArt;
@@ -97,23 +139,88 @@ export type RenderAvatarVisualAsciiArtOptions = {
 export function renderAvatarVisualAsciiArt(options: RenderAvatarVisualAsciiArtOptions): ReadonlyArray<string> {
     const columns = options.columns ?? DEFAULT_AVATAR_ASCII_ART_COLUMNS;
     const rows = options.rows ?? Math.round(columns / 2);
+    const canvasWidth = options.canvasWidth ?? DEFAULT_AVATAR_ASCII_ART_CANVAS_WIDTH;
+    const canvasHeight = options.canvasHeight ?? DEFAULT_AVATAR_ASCII_ART_CANVAS_HEIGHT;
+    assertPositiveCanvasDimension(canvasWidth, 'canvasWidth');
+    assertPositiveCanvasDimension(canvasHeight, 'canvasHeight');
 
-    const canvas = options.createCanvas(DEFAULT_AVATAR_SIZE, DEFAULT_AVATAR_SIZE);
+    const imageData = renderAvatarVisualAsciiArtImageData(options, canvasWidth, canvasHeight);
+
+    return convertImageDataToAsciiArt({
+        imageData,
+        columns,
+        rows,
+        colorDepth: options.colorDepth,
+    });
+}
+
+/**
+ * Renders one avatar visual frame into source pixels ready for ASCII conversion.
+ *
+ * @private helper of `renderAvatarVisualAsciiArt`
+ */
+function renderAvatarVisualAsciiArtImageData(
+    options: RenderAvatarVisualAsciiArtOptions,
+    canvasWidth: number,
+    canvasHeight: number,
+): AsciiArtImageData {
+    const avatarSize = Math.min(canvasWidth, canvasHeight);
+    const avatarCanvas = createCanvasWithBrowserShape(options.createCanvas, avatarSize, avatarSize);
+
+    renderAvatarVisual(
+        {
+            canvas: avatarCanvas,
+            avatarDefinition: options.avatarDefinition,
+            visualId: options.visualId,
+            surface: options.surface,
+            size: avatarSize,
+            timeMs: options.timeMs ?? STATIC_AVATAR_ASCII_ART_FRAME_TIME_MS,
+            devicePixelRatio: 1,
+        },
+        options.resolvedAvatarRenderDefinition,
+    );
+
+    if (canvasWidth === avatarSize && canvasHeight === avatarSize) {
+        return getCanvas2dContext(avatarCanvas).getImageData(0, 0, avatarSize, avatarSize);
+    }
+
+    const canvas = createCanvasWithBrowserShape(options.createCanvas, canvasWidth, canvasHeight);
+    const context = getCanvas2dContext(canvas);
+    const avatarLeft = (canvasWidth - avatarSize) / 2;
+    const avatarTop = (canvasHeight - avatarSize) / 2;
+
+    context.clearRect(0, 0, canvasWidth, canvasHeight);
+    context.drawImage(avatarCanvas, avatarLeft, avatarTop, avatarSize, avatarSize);
+
+    return context.getImageData(0, 0, canvasWidth, canvasHeight);
+}
+
+/**
+ * Creates a canvas and adds the small browser-shape compatibility shim expected by avatar rendering.
+ *
+ * @private helper of `renderAvatarVisualAsciiArt`
+ */
+function createCanvasWithBrowserShape(
+    createCanvas: CreateCanvasForAsciiArt,
+    width: number,
+    height: number,
+): HTMLCanvasElement {
+    const canvas = createCanvas(width, height);
 
     if (!canvas.style) {
         // Note: `renderAvatarVisual` expects a browser canvas shape; Node.js canvases only need this tiny compatibility shim.
         (canvas as { style: HTMLCanvasElement['style'] }).style = {} as HTMLCanvasElement['style'];
     }
 
-    renderAvatarVisual({
-        canvas,
-        avatarDefinition: options.avatarDefinition,
-        visualId: options.visualId,
-        size: DEFAULT_AVATAR_SIZE,
-        timeMs: options.timeMs ?? STATIC_AVATAR_ASCII_ART_FRAME_TIME_MS,
-        devicePixelRatio: 1,
-    });
+    return canvas;
+}
 
+/**
+ * Reads a 2D rendering context or throws a branded environment error.
+ *
+ * @private helper of `renderAvatarVisualAsciiArt`
+ */
+function getCanvas2dContext(canvas: HTMLCanvasElement): CanvasRenderingContext2D {
     const context = canvas.getContext('2d');
 
     if (!context) {
@@ -127,12 +234,24 @@ export function renderAvatarVisualAsciiArt(options: RenderAvatarVisualAsciiArtOp
         );
     }
 
-    const imageData = context.getImageData(0, 0, DEFAULT_AVATAR_SIZE, DEFAULT_AVATAR_SIZE);
+    return context;
+}
 
-    return convertImageDataToAsciiArt({
-        imageData,
-        columns,
-        rows,
-        colorDepth: options.colorDepth,
-    });
+/**
+ * Validates one source canvas dimension.
+ *
+ * @private helper of `renderAvatarVisualAsciiArt`
+ */
+function assertPositiveCanvasDimension(value: number, dimensionName: 'canvasWidth' | 'canvasHeight'): void {
+    if (Number.isInteger(value) && value > 0) {
+        return;
+    }
+
+    throw new UnexpectedError(
+        spaceTrim(`
+            Avatar ASCII-art source canvas dimension is invalid.
+
+            \`${dimensionName}\` must be a positive integer but \`${value}\` was requested.
+        `),
+    );
 }

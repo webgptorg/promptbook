@@ -16,7 +16,7 @@ ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh -
 
 ---
 
-[ ]
+[x] ~$0.2780 an hour by OpenAI Codex `gpt-5.5`
 
 [✨🦝] When `--limit` option is used with `ptbk coder run`, show the limit in the terminal UI
 
@@ -67,3 +67,4 @@ ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh -
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
+

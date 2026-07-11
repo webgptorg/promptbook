@@ -264,15 +264,46 @@ describe('other/vps/install.sh', () => {
     it('runs standalone self-update from a stable script copy', () => {
         expect(installScript).toContain('rerun_self_update_from_stable_script "$@"');
         expect(installScript).toContain('PTBK_SELF_UPDATE_SCRIPT_COPY=1 exec bash "$runtime_script" self-update "$@"');
+        expect(installScript).toContain('PTBK_SELF_UPDATE_JOB_ID="${PTBK_SELF_UPDATE_JOB_ID:-}"');
+        expect(installScript).toContain('JOB_ID=$PTBK_SELF_UPDATE_JOB_ID');
         expect(installScript).toContain('trap write_failed_self_update_status_on_exit EXIT');
         expect(installScript).toContain('start_pm2_agents_server_process "$replacement_app_name" "$replacement_port"');
         expect(installScript).toContain('wait_for_agents_server_health "$replacement_app_name" "$replacement_port"');
         expect(installScript).toContain('switch_nginx_to_agents_server_port "$replacement_port"');
         expect(installScript).toContain('stop_pm2_process_if_running "$old_app_name"');
-        expect(installScript).toContain(
+        expect(installScript).not.toContain("trap '\n        local exit_code=$?");
+    });
+
+    it('garbage-collects old Agents Server versions during self-update', () => {
+        const selfUpdateFunction = installScript.slice(
+            installScript.indexOf('\nself_update_agents_server() {'),
+            installScript.indexOf('\nprint_summary() {'),
+        );
+
+        // [🧹] Keep in sync with DEFAULT_AGENTS_SERVER_GC_KEEP_VERSIONS_COUNT in
+        //      apps/agents-server/src/utils/vpsSelfUpdate/vpsSelfUpdateInstalledVersions.ts
+        expect(installScript).toContain('AGENTS_SERVER_GC_KEEP_VERSIONS="${AGENTS_SERVER_GC_KEEP_VERSIONS:-3}"');
+        expect(installScript).toContain('garbage_collect_promptbook_releases()');
+        expect(installScript).toContain('get_env_value AGENTS_SERVER_GC_KEEP_VERSIONS');
+
+        // Garbage collection frees disk space before the new checkout is cloned…
+        expect(selfUpdateFunction.indexOf('garbage_collect_promptbook_releases')).toBeLessThan(
+            selfUpdateFunction.indexOf('install_promptbook_repository'),
+        );
+        // …and runs again after the nginx switch instead of unconditionally deleting the previous
+        // release, so the newest AGENTS_SERVER_GC_KEEP_VERSIONS versions stay available for rollback.
+        expect(selfUpdateFunction.lastIndexOf('garbage_collect_promptbook_releases')).toBeGreaterThan(
+            selfUpdateFunction.indexOf('switch_nginx_to_agents_server_port "$replacement_port"'),
+        );
+        expect(selfUpdateFunction).not.toContain(
             'remove_promptbook_repository_directory_if_safe "$old_repository_dir" "$PROMPTBOOK_REPOSITORY_DIR"',
         );
-        expect(installScript).not.toContain("trap '\n        local exit_code=$?");
+
+        // The current release is never garbage-collected.
+        expect(installScript).toContain(
+            'current_repository_dir="$(realpath -m "$PROMPTBOOK_REPOSITORY_DIR")"',
+        );
+        expect(installScript).toContain("find \"$PTBK_RELEASES_DIR\" -mindepth 1 -maxdepth 1 -type d -name '.install-*'");
     });
 
     it('preserves Next static assets across standalone self-updates', () => {
@@ -310,8 +341,9 @@ describe('other/vps/install.sh', () => {
         expect(installScript).toContain(
             'Skipping PostgreSQL database migrations because Agents Server is configured for local SQLite.',
         );
+        expect(installScript).toContain('summary_file_shell="$(shell_quote "$PTBK_DATABASE_MIGRATION_SUMMARY_FILE")"');
         expect(installScript).toContain(
-            'cd $agents_server_dir_shell && PTBK_AGENTS_SERVER_ENV_FILE=$env_file_shell npx --yes tsx ./src/database/migrate.ts',
+            'cd $agents_server_dir_shell && PTBK_AGENTS_SERVER_ENV_FILE=$env_file_shell PTBK_DATABASE_MIGRATION_SUMMARY_FILE=$summary_file_shell npx --yes tsx ./src/database/migrate.ts',
         );
     });
 

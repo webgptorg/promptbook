@@ -14,7 +14,7 @@ type DefaultAgentAvatarVisualProviderProps = {
     readonly children: ReactNode;
 
     /**
-     * Metadata-resolved built-in visual id used when an agent has no `META IMAGE` or `META AVATAR`.
+     * Metadata-resolved built-in visual id used when an agent has no `META IMAGE`, `META AVATAR`, or `META VISUAL`.
      */
     readonly defaultAgentAvatarVisualId: AvatarVisualId;
 };

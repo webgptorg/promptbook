@@ -1,9 +1,6 @@
+import type { AgentVisibility } from '../../book-2.0/agent-source/agentSourceVisibility';
+import { AGENT_VISIBILITY_VALUES, normalizeAgentVisibility } from '../../book-2.0/agent-source/agentSourceVisibility';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
-import {
-    AGENT_VISIBILITY_VALUES,
-    normalizeAgentVisibility,
-    type AgentVisibility,
-} from '../../book-2.0/agent-source/agentSourceVisibility';
 import { LimitReachedError } from '../../errors/LimitReachedError';
 import { ParseError } from '../../errors/ParseError';
 import type { LlmToolDefinition } from '../../types/LlmToolDefinition';

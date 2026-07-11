@@ -1,4 +1,5 @@
-import { refineFinalDictationChunk, type DictationRefinementSettings } from './refineFinalDictationChunk';
+import type { DictationRefinementSettings } from './refineFinalDictationChunk';
+import { refineFinalDictationChunk } from './refineFinalDictationChunk';
 
 const DEFAULT_TEST_SETTINGS: DictationRefinementSettings = {
     autoPunctuation: true,

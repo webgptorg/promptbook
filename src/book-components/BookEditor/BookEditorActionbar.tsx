@@ -16,8 +16,8 @@ import { Dropdown } from '../_common/Dropdown/Dropdown';
 import type { HoistedMenuItem } from '../_common/MenuHoisting/MenuHoistingContext';
 import { useMenuHoisting } from '../_common/MenuHoisting/MenuHoistingContext';
 import { Modal } from '../_common/Modal/Modal';
-import { BookEditorAboutPromptbookInformation } from './BookEditorAboutPromptbookInformation';
 import styles from './BookEditor.module.css';
+import { BookEditorAboutPromptbookInformation } from './BookEditorAboutPromptbookInformation';
 
 /**
  * Props for book editor actionbar.

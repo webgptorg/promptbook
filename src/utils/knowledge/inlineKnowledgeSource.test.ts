@@ -1,8 +1,4 @@
-import {
-    createInlineKnowledgeSourceFile,
-    inlineKnowledgeSourceToDataUrl,
-    parseDataUrlKnowledgeSource,
-} from './inlineKnowledgeSource';
+import { createInlineKnowledgeSourceFile, inlineKnowledgeSourceToDataUrl, parseDataUrlKnowledgeSource } from './inlineKnowledgeSource';
 
 describe('inline knowledge source helpers', () => {
     it('creates metadata with normalized filename and text mime type', () => {

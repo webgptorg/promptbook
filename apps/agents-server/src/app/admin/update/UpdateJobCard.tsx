@@ -9,8 +9,10 @@ import { downloadBlob, parseFilenameFromContentDisposition } from '../../../util
 import { formatHumanReadableTimestamp } from './formatHumanReadableTimestamp';
 import { getUpdateJobFailureMessage } from './getUpdateJobFailureMessage';
 import { getUpdateJobSuccessMessage } from './getUpdateJobSuccessMessage';
+import { UpdateDatabaseMigrationsPanel } from './UpdateDatabaseMigrationsPanel';
 import type { UpdateJobSnapshot } from './UpdateOverview';
 import type { UpdateClientState } from './useUpdateClientState';
+import { UPDATE_PAGE_CARD_CLASS_NAME } from './updatePageCardClassName';
 
 /**
  * Duration (ms) of the transient "Copied!" / "Saved!" feedback shown next to log action buttons.
@@ -59,10 +61,10 @@ export function UpdateJobCard({ state, language }: UpdateJobCardProps) {
     const jobStatus = job?.status ?? 'idle';
 
     return (
-        <Card className="hover:border-gray-200 hover:shadow-md">
-            <div className="space-y-4">
+        <Card className={UPDATE_PAGE_CARD_CLASS_NAME}>
+            <div className="min-w-0 space-y-4">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
+                    <div className="min-w-0">
                         <h2 className="text-lg font-semibold text-slate-900">Update job</h2>
                         <p className="mt-1 text-sm text-slate-500">
                             The update runs in the background so the browser request can finish cleanly before pm2
@@ -74,11 +76,15 @@ export function UpdateJobCard({ state, language }: UpdateJobCardProps) {
 
                 <UpdateJobSummaryGrid job={job} language={language} />
                 <UpdateJobStatusMessage job={job} />
+                <UpdateDatabaseMigrationsPanel
+                    databaseMigrations={job?.databaseMigrations ?? null}
+                    isJobIdle={jobStatus === 'idle'}
+                />
 
                 {job?.logFilePath && (
                     <div className="text-xs text-slate-500">
                         Installer log:
-                        <span className="ml-2 font-mono text-slate-700">{job.logFilePath}</span>
+                        <span className="ml-2 break-all font-mono text-slate-700">{job.logFilePath}</span>
                     </div>
                 )}
                 {job?.status === 'failed' && <UpdateJobLogActions />}
@@ -103,7 +109,7 @@ export function UpdateJobCard({ state, language }: UpdateJobCardProps) {
 function UpdateJobStatusBadge({ status }: { readonly status: UpdateJobStatus }) {
     return (
         <span
-            className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide ${getUpdateJobStatusClassName(
+            className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide ${getUpdateJobStatusClassName(
                 status,
             )}`}
         >
@@ -125,13 +131,28 @@ function UpdateJobSummaryGrid({
     readonly language: ServerLanguageCode;
 }) {
     return (
-        <dl className="grid gap-4 text-sm text-slate-600 md:grid-cols-2 xl:grid-cols-4">
+        <dl className="grid min-w-0 gap-4 text-sm text-slate-600 md:grid-cols-2 xl:grid-cols-5">
             <UpdateJobMetric label="Target" value={job?.targetEnvironment.label || 'Production'} />
+            <UpdateJobMetric label="Trigger" value={formatUpdateJobTrigger(job)} />
             <UpdateJobMetric label="Step" value={job?.currentStep || 'Idle'} />
             <UpdateJobMetric label="Started" value={formatHumanReadableTimestamp(job?.startedAt, language)} />
             <UpdateJobMetric label="Finished" value={formatHumanReadableTimestamp(job?.finishedAt, language)} />
         </dl>
     );
+}
+
+/**
+ * Formats the update job trigger for the summary grid.
+ *
+ * @param job - Latest job snapshot.
+ * @returns Human-readable trigger label.
+ */
+function formatUpdateJobTrigger(job: UpdateJobSnapshot | null): string {
+    if (!job || job.status === 'idle') {
+        return 'Manual';
+    }
+
+    return job.trigger === 'automatic' ? 'Automatic' : 'Manual';
 }
 
 /**
@@ -141,9 +162,9 @@ function UpdateJobSummaryGrid({
  */
 function UpdateJobMetric({ label, value }: UpdateJobMetricProps) {
     return (
-        <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+        <div className="min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
             <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</dt>
-            <dd className="mt-1 text-slate-900">{value}</dd>
+            <dd className="mt-1 break-words text-slate-900">{value}</dd>
         </div>
     );
 }

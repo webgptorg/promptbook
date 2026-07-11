@@ -4,6 +4,11 @@ import * as ts from 'typescript';
 import type { EntityMetadata } from '../../utils/findAllProjectEntities';
 
 /**
+ * Top-level repository area that can own exported entities.
+ */
+type RepositoryArea = 'src' | 'scripts' | 'apps';
+
+/**
  * Prefix for temporary type aliases that keep type-syntax imports visible during import organization.
  */
 const ORGANIZE_IMPORTS_TYPE_USAGE_WORKAROUND_PREFIX = '__RepairImportsTypeUsage';
@@ -225,12 +230,12 @@ function normalizePath(path: string): string {
 }
 
 /**
- * Detects whether an import is clearly targeting repository `src` or `scripts`.
+ * Detects whether an import is clearly targeting one repository area.
  */
-function resolvePreferredRepositoryArea(candidatePaths: ReadonlySet<string>): 'src' | 'scripts' | undefined {
+function resolvePreferredRepositoryArea(candidatePaths: ReadonlySet<string>): RepositoryArea | undefined {
     const repositoryAreas = Array.from(candidatePaths)
         .map(resolveRepositoryArea)
-        .filter((repositoryArea): repositoryArea is 'src' | 'scripts' => repositoryArea !== undefined);
+        .filter((repositoryArea): repositoryArea is RepositoryArea => repositoryArea !== undefined);
 
     return new Set(repositoryAreas).size === 1 ? repositoryAreas[0] : undefined;
 }
@@ -238,18 +243,22 @@ function resolvePreferredRepositoryArea(candidatePaths: ReadonlySet<string>): 's
 /**
  * Resolves the top-level repository area for a normalized absolute path.
  */
-function resolveRepositoryArea(path: string): 'src' | 'scripts' | undefined {
+function resolveRepositoryArea(path: string): RepositoryArea | undefined {
     const normalizedPath = normalizePath(path);
+    const normalizedProjectRoot = normalizePath(process.cwd());
+    const repositoryRelativePath = normalizedPath.startsWith(`${normalizedProjectRoot}/`)
+        ? normalizedPath.slice(normalizedProjectRoot.length + 1)
+        : normalizedPath;
+    const pathSegments = repositoryRelativePath.split('/');
+    const repositoryAreaIndexes = (['src', 'scripts', 'apps'] as const)
+        .map((repositoryArea) => ({
+            repositoryArea,
+            index: pathSegments.indexOf(repositoryArea),
+        }))
+        .filter(({ index }) => index !== -1)
+        .sort((a, b) => a.index - b.index);
 
-    if (normalizedPath.includes('/src/')) {
-        return 'src';
-    }
-
-    if (normalizedPath.includes('/scripts/')) {
-        return 'scripts';
-    }
-
-    return undefined;
+    return repositoryAreaIndexes[0]?.repositoryArea;
 }
 
 /**

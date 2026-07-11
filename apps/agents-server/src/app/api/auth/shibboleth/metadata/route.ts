@@ -1,11 +1,14 @@
 import { NextResponse } from 'next/server';
-import { createShibbolethServiceProviderMetadataXml } from '../../../../../utils/shibbolethAuthentication';
+import {
+    createShibbolethServiceProviderMetadataXml,
+    resolveShibbolethPublicRequestUrl,
+} from '../../../../../utils/shibbolethAuthentication';
 
 /**
  * Handles get.
  */
 export async function GET(request: Request) {
-    const metadataXml = await createShibbolethServiceProviderMetadataXml(request.url);
+    const metadataXml = await createShibbolethServiceProviderMetadataXml(resolveShibbolethPublicRequestUrl(request));
 
     return new NextResponse(metadataXml, {
         headers: {

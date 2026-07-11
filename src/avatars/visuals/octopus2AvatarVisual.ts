@@ -2,11 +2,7 @@
 
 import { drawAvatarFrame } from '../avatarRenderingUtils';
 import type { AvatarPalette, AvatarVisualDefinition } from '../types/AvatarVisualDefinition';
-import {
-    createOrganicOctopusBodyPoints,
-    resolveOrganicEyeMotion,
-    traceSmoothClosedPath,
-} from './octopusAvatarVisualShared';
+import { createOrganicOctopusBodyPoints, resolveOrganicEyeMotion, traceSmoothClosedPath } from './octopusAvatarVisualShared';
 
 /**
  * Octopus2 avatar visual.

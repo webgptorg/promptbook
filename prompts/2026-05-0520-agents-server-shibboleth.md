@@ -170,7 +170,7 @@ S pozdravem,
 ---
 
 
-[ ] ! 
+[x] ~$0.4671 an hour by OpenAI Codex `gpt-5.5`
 
 [✨🐡] Fix Shibboleth according to feedback
 
@@ -189,3 +189,4 @@ Pro ostrý provoz od vás budu potřebovat opět totéž:
     Produkční EntityID
     Produkční ACS URL
     (Případně rovnou hotové finální XML s metadatay vašeho produkčního SP).
+

@@ -1,4 +1,5 @@
 import {
+    Activity,
     BarChart3,
     Code2,
     Globe2,
@@ -16,6 +17,7 @@ import type { ServerTranslationKey } from '../../languages/ServerTranslationKeys
 import type { ShibbolethAuthenticationMenuStatus } from '../../constants/shibbolethAuth';
 import type { ChatFeedbackMode } from '../../utils/chatFeedbackMode';
 import type { UserInfo } from '../../utils/getCurrentUser';
+import type { ServerResourceWarningStatus } from '../../utils/resourceMonitor/resourceMonitorTypes';
 import type { SubMenuItem } from './SubMenuItem';
 
 /**
@@ -54,6 +56,7 @@ type BuildHeaderSystemMenuItemsOptions = {
     readonly isExperimental: boolean;
     readonly feedbackMode: ChatFeedbackMode;
     readonly shibbolethAuthenticationStatus?: ShibbolethAuthenticationMenuStatus;
+    readonly resourceMonitorWarningStatus?: ServerResourceWarningStatus;
 };
 
 /**
@@ -156,6 +159,7 @@ export function buildHeaderSystemMenuItems({
     isExperimental,
     feedbackMode,
     shibbolethAuthenticationStatus,
+    resourceMonitorWarningStatus,
 }: BuildHeaderSystemMenuItemsOptions): SubMenuItem[] {
     const userAccountSystemItems: SubMenuItem[] = [
         {
@@ -218,6 +222,7 @@ export function buildHeaderSystemMenuItems({
         ];
     }
 
+    const isResourceMonitorWarningShown = Boolean(isGlobalAdmin && resourceMonitorWarningStatus?.isWarningShown);
     const superAdminSystemItems: SubMenuItem[] = [
         {
             label: translate('header.servers'),
@@ -230,6 +235,13 @@ export function buildHeaderSystemMenuItems({
         },
         ...(isGlobalAdmin
             ? [
+                  {
+                      label: isResourceMonitorWarningShown
+                          ? createWarningMenuLabel(translate('header.resourceMonitor'))
+                          : translate('header.resourceMonitor'),
+                      href: '/admin/resource-monitor',
+                      icon: Activity,
+                  } as SubMenuItem,
                   {
                       label: translate('header.update'),
                       href: '/admin/update',
@@ -387,7 +399,7 @@ export function buildHeaderSystemMenuItems({
     return [
         ...createSystemCategory('My Account', userAccountSystemItems, translate),
         ...createSystemCategory('Utilities', utilitiesSystemItems, translate),
-        ...createSystemCategory('Super Admin', superAdminSystemItems, translate),
+        ...createSystemCategory('Super Admin', superAdminSystemItems, translate, isResourceMonitorWarningShown),
         ...createSystemCategory('Administration', administrationSystemItems, translate),
         ...createSystemCategory(
             'Login Methods',

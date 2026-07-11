@@ -1,5 +1,6 @@
 import { PROMPTBOOK_TEMPORARY_DIRECTORY } from '../../../utils/filesystem/promptbookTemporaryPath';
-import { ensureProjectGitignoreFile, type ProjectInitializationStatus } from '../common/projectInitialization';
+import type { ProjectInitializationStatus } from '../common/projectInitialization';
+import { ensureProjectGitignoreFile } from '../common/projectInitialization';
 
 /**
  * Gitignore header for rules initialized by the Agents Server command.

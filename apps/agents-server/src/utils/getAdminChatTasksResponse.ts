@@ -1,11 +1,12 @@
 import { ensureUserChatTimeoutWorkerBootstrapped } from '@/src/utils/userChatTimeout/ensureUserChatTimeoutWorkerBootstrapped';
 import type { AdminChatTaskCounters, AdminChatTaskListResponse, AdminChatTaskRecord } from './chatTasksAdmin';
 import { getAdminChatTasks } from './getAdminChatTasksResponse/getAdminChatTasks';
+import { compareAdminChatTasks } from './getAdminChatTasksResponse/getAdminChatTasks/compareAdminChatTasks';
 import { mapVpsSelfUpdateJobToAdminChatTask } from './getAdminChatTasksResponse/mapVpsSelfUpdateJobToAdminChatTask';
 import { parseAdminChatTaskQuery, type ParsedAdminChatTaskQuery } from './getAdminChatTasksResponse/parseAdminChatTaskQuery';
 import { throttledAdminRecovery } from './getAdminChatTasksResponse/throttledAdminRecovery';
 import { listPagePreviewBrowserAdminTasks } from './pagePreviewBrowserSessions';
-import { readVpsSelfUpdateJobSnapshot } from './vpsSelfUpdate';
+import { readVpsSelfUpdateJobTaskSnapshots } from './vpsSelfUpdate';
 
 /**
  * Milliseconds in one hour.
@@ -62,13 +63,12 @@ export async function getAdminChatTasksResponse(
     // [🧠] Recovery operations are throttled to avoid hammering the DB on every admin poll
     await throttledAdminRecovery();
 
-    const adminChatTasks = await getAdminChatTasks(parsedQuery);
-    const vpsSelfUpdateTask = await loadVpsSelfUpdateAdminChatTask();
+    const vpsSelfUpdateTasks = await loadVpsSelfUpdateAdminChatTasks();
     const pagePreviewBrowserTasks = listPagePreviewBrowserAdminTasks();
-    const injectableTasks = [vpsSelfUpdateTask, ...pagePreviewBrowserTasks].filter(
-        (task): task is AdminChatTaskRecord => task !== null,
-    );
+    const injectableTasks = [...vpsSelfUpdateTasks, ...pagePreviewBrowserTasks];
     const injectedTasks = collectAdminChatTasksToInject(injectableTasks, parsedQuery);
+    const databaseQuery = createInjectedAwareAdminChatTaskQuery(parsedQuery, injectedTasks.length);
+    const adminChatTasks = await getAdminChatTasks(databaseQuery);
     const { items, total } = mergeInjectedAdminChatTasks({
         databaseItems: adminChatTasks.items,
         databaseTotal: adminChatTasks.total,
@@ -95,19 +95,21 @@ export async function getAdminChatTasksResponse(
 }
 
 /**
- * Loads the currently persisted standalone VPS self-update task, if any.
+ * Loads persisted standalone VPS self-update tasks, if any.
  *
  * The read is defensive so a corrupt status file cannot block the admin task manager from rendering.
  *
- * @returns Injectable task record or `null` when no self-update has ever been triggered on this server.
+ * @returns Injectable task records.
  */
-async function loadVpsSelfUpdateAdminChatTask(): Promise<AdminChatTaskRecord | null> {
+async function loadVpsSelfUpdateAdminChatTasks(): Promise<Array<AdminChatTaskRecord>> {
     try {
-        const jobSnapshot = await readVpsSelfUpdateJobSnapshot();
-        return mapVpsSelfUpdateJobToAdminChatTask(jobSnapshot);
+        const jobSnapshots = await readVpsSelfUpdateJobTaskSnapshots();
+        return jobSnapshots
+            .map(mapVpsSelfUpdateJobToAdminChatTask)
+            .filter((task): task is AdminChatTaskRecord => task !== null);
     } catch (error) {
-        console.error('[admin-chat-task] failed to load VPS self-update task snapshot', error);
-        return null;
+        console.error('[admin-chat-task] failed to load VPS self-update task snapshots', error);
+        return [];
     }
 }
 
@@ -123,13 +125,42 @@ function collectAdminChatTasksToInject(
     query: ParsedAdminChatTaskQuery,
 ): ReadonlyArray<AdminChatTaskRecord> {
     const nowTimestamp = Date.now();
-    return injectableTasks.filter(
-        (task) => matchesAdminChatTaskView(task, query, nowTimestamp) && matchesAdminChatTaskSearch(task, query.search),
-    );
+    return injectableTasks
+        .filter(
+            (task) =>
+                matchesAdminChatTaskView(task, query, nowTimestamp) &&
+                matchesAdminChatTaskSearch(task, query.search),
+        )
+        .sort((leftTask, rightTask) => compareAdminChatTasks(leftTask, rightTask, query.view));
 }
 
 /**
- * Prepends the injected task rows to the paginated database items so the self-update stays visible on page 1.
+ * Builds the database query needed to merge injected task rows into the requested page.
+ *
+ * @param query - Parsed admin task-manager query.
+ * @param injectedTaskCount - Number of injected rows that appear before database-backed rows.
+ * @returns Query used for loading enough database-backed rows to fill the final page.
+ */
+function createInjectedAwareAdminChatTaskQuery(
+    query: ParsedAdminChatTaskQuery,
+    injectedTaskCount: number,
+): ParsedAdminChatTaskQuery {
+    if (injectedTaskCount === 0) {
+        return query;
+    }
+
+    const pageOffset = (query.page - 1) * query.pageSize;
+    const databaseEndOffset = Math.max(0, pageOffset + query.pageSize - injectedTaskCount);
+
+    return {
+        ...query,
+        page: 1,
+        pageSize: Math.max(1, databaseEndOffset),
+    };
+}
+
+/**
+ * Prepends injected task rows to the database-backed items and returns the requested combined page.
  *
  * @param options - Merge inputs.
  * @returns Merged items for the current page and the updated total row count.
@@ -142,16 +173,21 @@ function mergeInjectedAdminChatTasks(options: {
     readonly pageSize: number;
 }): { items: Array<AdminChatTaskRecord>; total: number } {
     const total = options.databaseTotal + options.injectedTasks.length;
-
     if (options.injectedTasks.length === 0) {
         return { items: [...options.databaseItems], total };
     }
 
-    if (options.page !== 1) {
-        return { items: [...options.databaseItems], total };
+    const pageOffset = (options.page - 1) * options.pageSize;
+    const injectedItems = options.injectedTasks.slice(pageOffset, pageOffset + options.pageSize);
+    const remainingPageSize = options.pageSize - injectedItems.length;
+
+    if (remainingPageSize <= 0) {
+        return { items: [...injectedItems], total };
     }
 
-    const items = [...options.injectedTasks, ...options.databaseItems].slice(0, options.pageSize);
+    const databaseOffset = Math.max(0, pageOffset - options.injectedTasks.length);
+    const databaseItems = options.databaseItems.slice(databaseOffset, databaseOffset + remainingPageSize);
+    const items = [...injectedItems, ...databaseItems];
     return { items, total };
 }
 

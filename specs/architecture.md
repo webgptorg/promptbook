@@ -1,79 +1,61 @@
 # Architecture
 
-Agents Server is a multi-tenant Next.js application that hosts Promptbook agents. It provides web pages, public APIs, authenticated management APIs, background workers, and administrative controls around the Promptbook Engine.
+Agents Server is a single web application that serves three surfaces from one origin:
 
-## Responsibilities
+1. **Web UI** — pages for browsing, chatting with, and editing agents, plus administration.
+2. **HTTP APIs** — public agent APIs, OpenAI-compatible APIs, a stable management API, and internal worker APIs.
+3. **Static/meta surfaces** — robots, sitemap, manifest, embed script, documentation.
 
-Agents Server MUST provide these responsibilities:
+## Component split: Promptbook Engine vs. Agents Server
 
-- Store agents written in the book language.
-- Resolve agents by name, permanent id, folder placement, ownership, visibility, and custom domain.
-- Serve profile, chat, book-editing, integration, history, image, timeout, and export views for agents.
-- Execute stateless chat requests and durable queued user-chat jobs.
-- Persist chat history, feedback, durable chats, user data, files, messages, and operational records.
-- Expose a stable management API at `/api/v1`.
-- Support per-server configuration through metadata, environment variables, and server limits.
-- Support one physical deployment serving multiple logical servers by table prefix.
+-   The **Promptbook Engine** is a framework-agnostic library implementing the [Book language](book-language.md): parsing agent sources, compiling them into model requirements, and executing agents against LLM providers. It can run standalone (library, CLI) or inside applications.
+-   The **Agents Server** (this specification) is the application that persists agents and conversations, exposes them over HTTP, renders the UI, and orchestrates background work. It embeds the Engine for all Book-language concerns.
 
-## Promptbook Engine Boundary
+A compatible Agents Server MUST embed a Book-language implementation with the semantics described in [Book language](book-language.md); everything else in these specs is server behavior.
 
-The Promptbook Engine is the framework-agnostic agent runtime. Agents Server uses it to parse book-language source, create model requirements, run agents, and resolve commitments.
+## Major subsystems
 
-Agents Server owns the web/API behavior around that engine:
+| Subsystem            | Responsibility                                                                                | Spec                                                        |
+| -------------------- | --------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| Request routing      | Host → server-instance resolution, agent-name redirects, custom domains, access restriction.  | [Servers and multi-tenancy](servers-and-multi-tenancy.md)   |
+| Agent store          | CRUD, history, folders, visibility, soft deletion.                                             | [Agents](agents.md)                                         |
+| Chat runtime         | Stateless streaming chat and durable queued chats.                                             | [Chats](chats.md)                                           |
+| Identity             | Users, sessions, API tokens, worker token, team token.                                         | [Users and authentication](users-and-authentication.md)     |
+| Persistence          | One relational database, namespaced per server instance by table prefix.                       | [Data model](data-model.md)                                 |
+| Configuration        | Environment variables (deployment-scoped) and `Metadata` rows (instance-scoped, admin-editable). | [Configuration](configuration.md)                         |
+| Background work      | Job/timeout workers, agent preparation, migrations at startup.                                 | [Background workers](operations/background-workers.md)      |
+| File storage         | Uploads and generated assets on a CDN/S3-compatible store.                                     | [Attachments and files](chat/attachments-and-files.md)      |
 
-- Authentication and authorization.
-- Agent persistence and organization.
-- Per-server routing and custom domains.
-- Durable chat queues and workers.
-- User memory, wallet, and file handling.
-- Admin and management APIs.
+## Request lifecycle
 
-Any compatible implementation MUST keep this boundary clear. Engine-level behavior can be delegated to the Promptbook Engine, but server-level contracts are defined by these specs.
+Every incoming HTTP request (except explicitly excluded infrastructure paths, see below) passes through a **middleware pipeline** before reaching a page or API handler:
 
-## Runtime Components
+1. **Content-Security-Policy nonce** — a fresh single-use nonce is generated per request and attached so only server-rendered inline scripts (theme bootstrap, custom JavaScript, analytics) may execute. The CSP header is applied to every response.
+2. **Request context resolution** — the `Host` header is resolved against the server registry to determine the current server instance and its table prefix; custom domains are resolved to an agent; instance settings (allowed IPs, embedding allowance, server visibility) are loaded. See [Servers and multi-tenancy](servers-and-multi-tenancy.md).
+3. **Access control** — when the instance restricts access by IP (`RESTRICT_IP`), requests are allowed when at least one of: client IP matches the allowlist, a session cookie is present, or a valid API token is presented. Otherwise the request is answered with the restricted page/response. See [Users and authentication](users-and-authentication.md#restricted-access).
+4. **Routing rewrites**:
+    -   `/:first…` where `first` is **not** a reserved path and does not start with `.` → HTTP redirect to `/agents/:first…` (with permissive CORS headers on the redirect). Reserved paths are the fixed top-level route names of the application (generated from the route tree, e.g. `admin`, `agents`, `api`, `docs`, `system`, static asset names, `_next`, `manifest.webmanifest`).
+    -   Requests on a **custom domain** that resolves to an agent are rewritten to that agent's path, forwarding the resolved server domain in the `x-promptbook-server` request header.
+5. **Response headers** — visibility headers (crawling/indexing hints) and, for embeddable routes, a `frame-ancestors` allowance are appended. See [Embedding and PWA](ui/embedding-and-pwa.md).
 
-Agents Server consists of these logical components:
+Excluded from the middleware: static assets (`_next/static`, `_next/image`, favicon, logos, fonts), `robots.txt`, `/api/health` (readiness probe MUST NOT depend on database lookups), and `/api/internal/*` (authorized separately by the worker token).
 
-- Middleware: resolves request context, content security policy, access restriction, custom-domain rewrites, legacy redirects, and visibility headers. See [Server Routing](server-routing.md).
-- Web pages: render the homepage, agent pages, admin pages, system pages, documentation, and embedded views. See [User Interface Navigation](ui/navigation.md).
-- API routes: expose public, authenticated, internal, OpenAI-compatible, and management endpoints. See [HTTP Routes](http-routes.md).
-- Database layer: abstracts Supabase/PostgreSQL and local SQLite while preserving Supabase-shaped query behavior. See [Data Model](data-model.md).
-- Agent collection: creates, updates, clones, soft-deletes, restores, imports, exports, and lists agents. See [Agents](agents.md).
-- Chat runtime: converts requests into prompt context, executes agents, streams output, persists history, and records tool usage. See [Chat Runtime](chat-runtime.md).
-- Durable chat worker system: claims queued jobs, writes runner message files, synchronizes finished/failed answers, and processes chat timeouts. See [User Chats](user-chats.md) and [Background Workers](operations/background-workers.md).
-- Admin/configuration surface: manages metadata, users, API tokens, limits, styles, logs, servers, and backups. See [Admin](admin.md).
+## Startup
 
-## Request Lifecycle
+At process start the server MUST:
 
-A normal request follows this lifecycle:
+1. Load environment configuration (optionally from an `.env` file in local/CLI mode).
+2. Run [automatic database migrations](operations/migrations.md) when enabled (`SUPABASE_AUTO_MIGRATE`), without blocking request handling on failure (errors are logged with full database diagnostics).
+3. [Seed](agents.md#seeding) the hidden `.core` folder with the bundled well-known agents (Adam, Teacher) and, on an empty server, the bundled default agents.
 
-1. Middleware creates a request context from the host, IP address, cookies, API-token headers, server registry, metadata, and table prefix.
-2. Middleware applies access restriction. Restricted HTML requests are rewritten to `/restricted`; restricted non-HTML requests receive `403`.
-3. Middleware applies legacy agent redirects and custom-domain rewrites when appropriate.
-4. The route handler or page resolves the current logical server and database table prefix.
-5. The handler resolves authentication and authorization for the requested resource.
-6. The handler performs database reads/writes, agent-source resolution, model execution, or background-worker actions.
-7. The response applies cache, CORS, visibility, and security headers required by the route family.
+## Deployment shapes
 
-## State Consistency
+The same application runs in three shapes (details in [Deployment](operations/deployment.md)):
 
-The server uses append-friendly and soft-delete-friendly state:
+-   **Hosted multi-server** — one deployment serves many registered server instances (domains), each with its own table prefix in a shared PostgreSQL database.
+-   **Standalone VPS** — single-instance deployment, optionally bootstrapped over a raw IP address before a domain exists, with self-update capability.
+-   **Local CLI** — `ptbk agents-server init/start` runs the packaged app locally, with either Supabase/PostgreSQL or a local SQLite database file (SQLite mode emulates the same SQL surface).
 
-- Agents, folders, memories, wallet records, and many user resources use soft deletion.
-- Agent updates preserve history snapshots.
-- Durable chat jobs use explicit status transitions.
-- Database migrations MUST remain backward compatible. See [Database Migrations](operations/database-migrations.md).
-- Server-level configuration SHOULD be changed through metadata and server limits instead of code changes. See [Configuration](configuration.md).
+## External services
 
-## Compatibility Requirements
-
-A replica is compatible when a user can:
-
-- Configure a server instance.
-- Create, organize, edit, clone, import, export, delete, and restore agents.
-- Chat with agents through the web UI and OpenAI-compatible APIs.
-- Use durable chat conversations and background workers.
-- Use memory, wallet, files, feedback, images, and integrations.
-- Administer users, API tokens, metadata, limits, styles, backups, and logs.
-- Drive automation through `/api/v1`.
-
+The reference implementation depends on: an OpenAI-compatible LLM provider (agent execution, embeddings, transcription), an S3-compatible object store/CDN (files, images), optional ElevenLabs (TTS), optional email providers (SendGrid/SMTP/ZeptoMail), optional Google OAuth (calendar), optional GitHub App (projects), and optional web-push. Each is specified in its own spec; all are optional except the LLM provider and the database.

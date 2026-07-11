@@ -1,4 +1,5 @@
-import { ASSISTANT_PREPARATION_TOOL_CALL_NAME, type ToolCall } from '../../../types/ToolCall';
+import type { ToolCall } from '../../../types/ToolCall';
+import { ASSISTANT_PREPARATION_TOOL_CALL_NAME } from '../../../types/ToolCall';
 
 /**
  * Tool calls that stay available in message data but should not be surfaced as user-facing chat progress.

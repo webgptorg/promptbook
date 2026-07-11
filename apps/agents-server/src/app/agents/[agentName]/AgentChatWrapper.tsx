@@ -19,9 +19,9 @@ import { useServerLanguage } from '../../../components/ServerLanguage/ServerLang
 import { ChatThreadLoadingSkeleton } from '../../../components/Skeleton/ChatThreadLoadingSkeleton';
 import { useSoundSystem } from '../../../components/SoundSystemProvider/SoundSystemProvider';
 import { fetchCalendarOAuthStatus, type CalendarOAuthStatusResponse } from '../../../utils/calendarOAuthClient';
+import { createAttachmentAwareCitationLabelResolver } from '../../../utils/chat/createAttachmentAwareCitationLabelResolver';
 import { createDefaultChatEffects } from '../../../utils/chat/createDefaultChatEffects';
 import { executeQuickActionButton } from '../../../utils/chat/executeQuickActionButton';
-import { resolveAgentsServerCitationLabel } from '../../../utils/chat/resolveAgentsServerCitationLabel';
 import {
     isChatFeedbackEnabled,
     toChatComponentFeedbackMode,
@@ -144,6 +144,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     const sendMessage = useSendMessageToLlmChat();
     const [githubAppStatus, setGithubAppStatus] = useState<GithubAppStatusResponse | null>(null);
     const [calendarOAuthStatus, setCalendarOAuthStatus] = useState<CalendarOAuthStatusResponse | null>(null);
+    const [renderedMessages, setRenderedMessages] = useState<ReadonlyArray<ChatMessage>>([]);
     const currentAgentPermanentId = useMemo(() => {
         return typeof (agent as { permanentId?: unknown } | undefined)?.permanentId === 'string'
             ? ((agent as { permanentId?: string }).permanentId as string)
@@ -282,6 +283,19 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         setIsPrivateModeEnabled,
         t,
     });
+
+    // Track rendered messages so cited chat attachments resolve to their original filenames.
+    const handleChatMessagesChange = useCallback(
+        (messages: ReadonlyArray<ChatMessage>) => {
+            setRenderedMessages(messages);
+            handleMessagesChange(messages);
+        },
+        [handleMessagesChange],
+    );
+    const resolveCitationLabel = useMemo(
+        () => createAttachmentAwareCitationLabelResolver(renderedMessages),
+        [renderedMessages],
+    );
 
     // Handle errors from chat
     const handleError = useCallback((error: unknown, retry: () => void) => {
@@ -439,7 +453,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
             autoExecuteMessage={effectiveAutoExecuteMessage}
             autoExecuteMessageAttachments={effectiveAutoExecuteMessageAttachments}
             persistenceKey={persistenceKey}
-            onChange={handleMessagesChange}
+            onChange={handleChatMessagesChange}
             onInputTextChange={onInputTextChange}
             onActionButton={executeQuickActionButton}
             sendMessage={sendMessage}
@@ -459,7 +473,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
             onReset={onStartNewChat}
             resetMode={onStartNewChat ? 'delegate' : undefined}
             teamAgentProfiles={teamAgentProfiles}
-            resolveCitationLabel={resolveAgentsServerCitationLabel}
+            resolveCitationLabel={resolveCitationLabel}
         >
             {allowFileAttachments && !fileUploadAvailability.isUploadAvailable && (
                 <FileUploadUnavailableNotice className="mx-4 mt-4" />

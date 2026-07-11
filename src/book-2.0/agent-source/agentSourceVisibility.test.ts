@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { ParseError } from '../../errors/ParseError';
-import type { string_book } from './string_book';
 import { parseAgentSourceVisibility, setAgentSourceVisibility } from './agentSourceVisibility';
+import type { string_book } from './string_book';
 
 describe('agentSourceVisibility', () => {
     it('parses META VISIBILITY case-insensitively and trims whitespace', () => {

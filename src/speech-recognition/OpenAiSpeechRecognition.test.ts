@@ -1,7 +1,4 @@
-import {
-    resolveOpenAiSpeechRecognitionAudioFileDescriptor,
-    resolveOpenAiSpeechRecognitionPreferredRecordingFormat,
-} from './OpenAiSpeechRecognition';
+import { resolveOpenAiSpeechRecognitionAudioFileDescriptor, resolveOpenAiSpeechRecognitionPreferredRecordingFormat } from './OpenAiSpeechRecognition';
 
 describe('OpenAiSpeechRecognition helpers', () => {
     const originalMediaRecorder = globalThis.MediaRecorder;

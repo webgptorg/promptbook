@@ -1,0 +1,17 @@
+# Sample of type system
+
+This is a sample book that demonstrates the use of the type system
+
+- INPUT PARAMETER {fullname} The full name of the person from Harry Potter series in English
+- OUTPUT PARAMETER {story} One page (A4) story of the character written in English
+- KNOWLEDGE [Harry Potter] ./harry-potter.pdf
+
+## Write a story
+
+- PERSONA <J. K. Rowling> Author of the Harry Potter series
+
+```
+Write a story about {fullname}
+```
+
+-> {story}

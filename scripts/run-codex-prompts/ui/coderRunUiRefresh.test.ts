@@ -10,6 +10,7 @@ describe('getCoderRunUiAutoRefreshInterval', () => {
         expect(isCoderRunUiAutoRefreshing('running', 'RUNNING')).toBe(true);
         expect(isCoderRunUiAutoRefreshing('running', 'PAUSING')).toBe(true);
         expect(isCoderRunUiAutoRefreshing('waiting', 'RUNNING')).toBe(false);
+        expect(isCoderRunUiAutoRefreshing('waiting', 'RUNNING', true)).toBe(true);
         expect(isCoderRunUiAutoRefreshing('running', 'PAUSED')).toBe(false);
     });
 
@@ -29,6 +30,9 @@ describe('getCoderRunUiAutoRefreshInterval', () => {
         expect(getCoderRunUiAutoRefreshInterval('running', 'PAUSING')).toBe(
             ACTIVE_CODER_RUN_UI_REFRESH_INTERVAL_MS,
         );
+        expect(getCoderRunUiAutoRefreshInterval('waiting', 'RUNNING', true)).toBe(
+            ACTIVE_CODER_RUN_UI_REFRESH_INTERVAL_MS,
+        );
     });
 
     it('stops automatic refreshes while the UI should stay visually still', () => {
@@ -37,5 +41,6 @@ describe('getCoderRunUiAutoRefreshInterval', () => {
         expect(getCoderRunUiAutoRefreshInterval('done', 'RUNNING')).toBeUndefined();
         expect(getCoderRunUiAutoRefreshInterval('error', 'RUNNING')).toBeUndefined();
         expect(getCoderRunUiAutoRefreshInterval('running', 'PAUSED')).toBeUndefined();
+        expect(getCoderRunUiAutoRefreshInterval('waiting', 'PAUSED', true)).toBeUndefined();
     });
 });

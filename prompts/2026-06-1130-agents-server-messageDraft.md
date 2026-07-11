@@ -1,4 +1,4 @@
-[ ]
+[x] $10.48 an hour by Claude Code `claude-opus-4-8`
 
 [✨♞] Add support for `messageDraft` in the chat messages
 
@@ -28,3 +28,4 @@ Dokážu připravit slogan, homepage text, CTA i několik variant stejného sdě
 CLOSED
 
 ```
+

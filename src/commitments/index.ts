@@ -96,6 +96,7 @@ export const COMMITMENT_REGISTRY = [
     new ActionCommitmentDefinition('ACTIONS'),
     new ComponentCommitmentDefinition(),
     new MetaAvatarCommitmentDefinition(),
+    new MetaAvatarCommitmentDefinition('META VISUAL'),
     new MetaImageCommitmentDefinition(),
     new MetaColorCommitmentDefinition(),
     new MetaFontCommitmentDefinition(),

@@ -4,7 +4,7 @@ import type { ChatParticipant } from '../../types/ChatParticipant';
 import { resolveCitationPreviewUrl } from '../../utils/citationHelpers';
 import { parseMessageButtons } from '../../utils/parseMessageButtons';
 import { renderMarkdown } from '../../utils/renderMarkdown';
-import type { ChatSaveFormatDefinition } from '../_common/ChatSaveFormatDefinition';
+import type { ChatExportCitationFootnoteRegistry, ChatExportCitationRenderModel } from '../_common/chatExportRendering';
 import {
     buildChatExportParticipantMap,
     createChatExportCitationFootnoteRegistry,
@@ -12,9 +12,8 @@ import {
     formatChatExportCitationFootnoteLabel,
     formatChatExportTimestamp,
     resolveChatExportParticipantVisuals,
-    type ChatExportCitationFootnoteRegistry,
-    type ChatExportCitationRenderModel,
 } from '../_common/chatExportRendering';
+import type { ChatSaveFormatDefinition } from '../_common/ChatSaveFormatDefinition';
 import { getPromptbookExportBranding } from '../_common/getPromptbookExportBranding';
 
 /**

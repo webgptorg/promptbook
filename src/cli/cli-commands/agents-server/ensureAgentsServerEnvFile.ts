@@ -1,5 +1,6 @@
 import { spaceTrim } from 'spacetrim';
-import { ensureProjectEnvFile, type EnsureProjectEnvFileResult } from '../common/projectInitialization';
+import type { EnsureProjectEnvFileResult } from '../common/projectInitialization';
+import { ensureProjectEnvFile } from '../common/projectInitialization';
 
 /**
  * Agents Server environment variable initialized for local startup.

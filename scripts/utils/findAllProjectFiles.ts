@@ -2,6 +2,11 @@ import glob from 'glob-promise'; // <- TODO: [🚰] Use just 'glob'
 import { join } from 'path';
 
 /**
+ * App source roots that can be imported by the main repository sources.
+ */
+const APP_SOURCE_ROOTS = ['apps/agents-server/src'] as const;
+
+/**
  * Options for scanning repository source files.
  */
 export type FindAllProjectFilesOptions = {
@@ -9,6 +14,11 @@ export type FindAllProjectFilesOptions = {
      * Whether repository scripts should be included alongside the engine sources.
      */
     readonly includeScripts?: boolean;
+
+    /**
+     * Whether app source files should be included alongside the engine sources.
+     */
+    readonly isApplicationSourceIncluded?: boolean;
 };
 
 /**
@@ -17,14 +27,30 @@ export type FindAllProjectFilesOptions = {
  */
 export async function findAllProjectFiles({
     includeScripts = false,
+    isApplicationSourceIncluded = false,
 }: FindAllProjectFilesOptions = {}): Promise<ReadonlyArray<string>> {
-    const srcFiles = await glob(join(__dirname, '../../src/**/*.{ts,tsx}').split('\\').join('/'));
-    const scriptFiles = includeScripts
-        ? await glob(join(__dirname, '../../scripts/**/*.{ts,tsx}').split('\\').join('/'))
+    const srcFiles = await glob(createProjectSourceGlob('src'));
+    const scriptFiles = includeScripts ? await glob(createProjectSourceGlob('scripts')) : [];
+    const appFiles = isApplicationSourceIncluded
+        ? (await Promise.all(APP_SOURCE_ROOTS.map(findProjectSourceFiles))).flat()
         : [];
     const serversConfigurationFile = join(__dirname, '../../servers.ts');
 
-    return [...srcFiles, ...scriptFiles, serversConfigurationFile];
+    return [...srcFiles, ...scriptFiles, ...appFiles, serversConfigurationFile];
+}
+
+/**
+ * Finds TypeScript files under one repository-root relative source directory.
+ */
+async function findProjectSourceFiles(relativeSourceRoot: string): Promise<ReadonlyArray<string>> {
+    return await glob(createProjectSourceGlob(relativeSourceRoot));
+}
+
+/**
+ * Creates a normalized TypeScript source glob for a repository-root relative directory.
+ */
+function createProjectSourceGlob(relativeSourceRoot: string): string {
+    return join(__dirname, '../../', relativeSourceRoot, '**/*.{ts,tsx}').split('\\').join('/');
 }
 
 // Note: [⚫] Code for repository script [findAllProjectFiles](scripts/utils/findAllProjectFiles.ts) should never be published in any package

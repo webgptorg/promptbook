@@ -78,7 +78,7 @@ const nextConfig: NextConfig = {
         },
     },
 
-    webpack(config, { isServer }) {
+    webpack(config, { isServer, nextRuntime }) {
         config.resolve.alias = {
             ...config.resolve.alias,
             '@': path.resolve(__dirname),
@@ -92,11 +92,14 @@ const nextConfig: NextConfig = {
             );
         }
 
-        // Exclude Node.js-only modules from client bundle
-        if (!isServer) {
+        // Exclude Node.js-only modules from client and edge bundles
+        if (!isServer || nextRuntime === 'edge') {
             config.resolve.fallback = {
                 ...config.resolve.fallback,
                 fs: false,
+                'fs/promises': false,
+                path: false,
+                util: false,
                 net: false,
                 tls: false,
                 dns: false,

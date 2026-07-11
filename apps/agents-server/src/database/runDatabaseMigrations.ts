@@ -109,6 +109,10 @@ export type DatabaseMigrationPrefixResult = {
      * Number of newly applied migration files.
      */
     readonly appliedCount: number;
+    /**
+     * Migration filenames newly applied for this prefix.
+     */
+    readonly appliedMigrationFiles: ReadonlyArray<string>;
 };
 
 /**
@@ -270,6 +274,7 @@ export async function runDatabaseMigrations(
         }
 
         for (const prefix of selectedPrefixes) {
+            const appliedMigrationFiles: Array<string> = [];
             failureContext.stage = 'migrate-prefix';
             failureContext.currentPrefix = prefix;
             failureContext.currentPrefixStage = undefined;
@@ -289,8 +294,11 @@ export async function runDatabaseMigrations(
                     failureContext.currentPrefixStage = stage;
                     failureContext.currentMigrationFile = migrationFile;
                 },
+                onMigrationApplied: ({ migrationFile }) => {
+                    appliedMigrationFiles.push(migrationFile);
+                },
             });
-            perPrefix.push({ prefix, appliedCount });
+            perPrefix.push({ prefix, appliedCount, appliedMigrationFiles });
         }
 
         return {

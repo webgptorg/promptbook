@@ -5,13 +5,14 @@
 import { useMonaco } from '@monaco-editor/react';
 import { useId } from 'react';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
+import { SaveIcon } from '../icons/SaveIcon';
 import { MonacoEditorWithShadowDom } from '../_common/MonacoEditorWithShadowDom';
 import { classNames } from '../_common/react-utils/classNames';
-import { SaveIcon } from '../icons/SaveIcon';
 import type { BookEditorProps } from './BookEditor';
 import styles from './BookEditor.module.css';
 import { BookEditorActionbar } from './BookEditorActionbar';
 import { BookEditorMonacoConstants } from './BookEditorMonacoConstants';
+import { BookEditorMonacoUploadPanel } from './BookEditorMonacoUploadPanel';
 import { BOOK_EDITOR_RENDER_THEME, resolveBookEditorRenderTheme } from './BookEditorTheme';
 import { createDeprecatedCommitmentDiagnostics } from './createDeprecatedCommitmentDiagnostics.browser';
 import { useBookEditorMonacoDecorations } from './useBookEditorMonacoDecorations';
@@ -21,7 +22,6 @@ import { useBookEditorMonacoLanguage } from './useBookEditorMonacoLanguage';
 import { useBookEditorMonacoLifecycle } from './useBookEditorMonacoLifecycle';
 import { useBookEditorMonacoStyles } from './useBookEditorMonacoStyles';
 import { useBookEditorMonacoUploads } from './useBookEditorMonacoUploads';
-import { BookEditorMonacoUploadPanel } from './BookEditorMonacoUploadPanel';
 
 /**
  * Matches characters that are unsafe in CSS identifiers and HTML IDs.

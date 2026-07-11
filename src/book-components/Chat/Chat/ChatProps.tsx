@@ -550,6 +550,15 @@ export type ChatProps = {
     onQuickMessageButton?(messageContent: string): Promisable<void>;
 
     /**
+     * Called when user clicks a quick draft-message button parsed from message markdown.
+     *
+     * Unlike `onQuickMessageButton`, this prefills the composer with an editable draft
+     * instead of sending the message. When not provided, `<Chat/>` prefills its own
+     * composer so the draft can be edited before sending.
+     */
+    onQuickMessageDraftButton?(messageDraftContent: string): Promisable<void>;
+
+    /**
      * Optional callback fired when the user starts replying to one existing message.
      */
     onReplyToMessage?(message: ChatMessage): void;

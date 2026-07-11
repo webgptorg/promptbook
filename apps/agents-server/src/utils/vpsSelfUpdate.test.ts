@@ -66,7 +66,9 @@ describe('resolveVpsSelfUpdateJobForOverview', () => {
  */
 function createStaleUpdateJob(overrides: Partial<VpsSelfUpdateJobSnapshot> = {}): VpsSelfUpdateJobSnapshot {
     return {
+        jobId: 'stale-update-job',
         status: 'failed',
+        trigger: 'manual',
         pid: 1234,
         targetBranch: PRODUCTION_ENVIRONMENT.branch,
         targetEnvironment: PRODUCTION_ENVIRONMENT,
@@ -79,6 +81,15 @@ function createStaleUpdateJob(overrides: Partial<VpsSelfUpdateJobSnapshot> = {})
         isStale: true,
         logTail: null,
         logFilePath: '/tmp/promptbook-self-update.log',
+        databaseMigrations: {
+            status: 'succeeded',
+            processedPrefixes: [],
+            totalMigrationFiles: null,
+            perPrefix: [],
+            isSkippedDueToActiveMigrationLock: null,
+            errorMessage: null,
+            summaryFilePath: null,
+        },
         ...overrides,
     };
 }
