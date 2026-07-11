@@ -1,6 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_TABLE_PREFIX } from '../../../config';
-import { resolveCustomDomainAgent, type CustomDomainResolution } from '../../utils/customDomainRouting';
 import { resolveRegisteredServerByHost, type ServerRecord } from '../../utils/serverRegistry';
 
 /**
@@ -26,6 +25,20 @@ const CUSTOM_DOMAIN_RESOLUTION_TIMEOUT_MS = 1_500;
 const CUSTOM_DOMAIN_RESOLUTION_EXCLUDED_HOST_SUFFIXES = ['.vercel.app', '.vercel.sh'];
 
 /**
+ * Prefix used when generating HTTP URL variants for host matching.
+ *
+ * @private function of createMiddlewareRequestContext
+ */
+const HTTP_PROTOCOL_PREFIX = 'http://';
+
+/**
+ * Prefix used when generating HTTPS URL variants for host matching.
+ *
+ * @private function of createMiddlewareRequestContext
+ */
+const HTTPS_PROTOCOL_PREFIX = 'https://';
+
+/**
  * Parameters required to resolve server/table routing for one middleware request.
  *
  * @private function of createMiddlewareRequestContext
@@ -35,6 +48,42 @@ type ResolveMiddlewareServerRoutingOptions = {
     readonly pathname: string;
     readonly registeredServers: ReadonlyArray<ServerRecord>;
     readonly supabase: SupabaseClient | null;
+};
+
+/**
+ * Candidate values used when searching one custom host in `agentProfile`.
+ *
+ * @private function of createMiddlewareRequestContext
+ */
+type CustomDomainMatchCandidates = {
+    readonly domainCandidates: string[];
+    readonly linkCandidates: string[];
+};
+
+/**
+ * Result of resolving one custom domain to an actual server-owned agent.
+ *
+ * @private function of createMiddlewareRequestContext
+ */
+export type CustomDomainResolution = {
+    /**
+     * Server that owns the agent matching the custom domain.
+     */
+    readonly server: ServerRecord;
+
+    /**
+     * Name of the agent that should be served for the custom domain.
+     */
+    readonly agentName: string;
+};
+
+/**
+ * Minimal persisted agent shape needed for middleware custom-domain resolution.
+ *
+ * @private function of createMiddlewareRequestContext
+ */
+type MiddlewareCustomDomainAgentRow = {
+    readonly agentName: string;
 };
 
 /**
@@ -72,6 +121,116 @@ const cachedCustomDomainResolutionByHost = new Map<string, CachedCustomDomainRes
  * @private function of createMiddlewareRequestContext
  */
 const inFlightCustomDomainResolutionByHost = new Map<string, Promise<CustomDomainResolution | null>>();
+
+/**
+ * Builds `agentProfile` candidates for one incoming request host.
+ *
+ * @param host - Raw `Host` header value.
+ * @returns Candidate values for both `META DOMAIN` and `META LINK`.
+ *
+ * @private function of createMiddlewareRequestContext
+ */
+function createCustomDomainMatchCandidates(host: string): CustomDomainMatchCandidates {
+    const normalizedHost = normalizeMiddlewareHost(host);
+    if (!normalizedHost) {
+        return {
+            domainCandidates: [],
+            linkCandidates: [],
+        };
+    }
+
+    const loweredHost = host.trim().toLowerCase();
+
+    return {
+        domainCandidates: uniqueStrings([
+            normalizedHost,
+            `${HTTPS_PROTOCOL_PREFIX}${normalizedHost}`,
+            `${HTTP_PROTOCOL_PREFIX}${normalizedHost}`,
+        ]),
+        linkCandidates: uniqueStrings([
+            loweredHost,
+            normalizedHost,
+            `${HTTPS_PROTOCOL_PREFIX}${normalizedHost}`,
+            `${HTTP_PROTOCOL_PREFIX}${normalizedHost}`,
+        ]),
+    };
+}
+
+/**
+ * Creates a PostgREST `or(...)` filter matching both `META DOMAIN` and `META LINK` values.
+ *
+ * @param host - Raw `Host` header value.
+ * @returns OR filter string or `null` when no valid candidates can be produced.
+ *
+ * @private function of createMiddlewareRequestContext
+ */
+function createCustomDomainOrFilter(host: string): string | null {
+    const { domainCandidates, linkCandidates } = createCustomDomainMatchCandidates(host);
+
+    const domainFilters = domainCandidates.map(
+        (domainCandidate) => `agentProfile.cs.${JSON.stringify({ meta: { domain: domainCandidate } })}`,
+    );
+    const linkFilters = linkCandidates.map(
+        (linkCandidate) => `agentProfile.cs.${JSON.stringify({ links: [linkCandidate] })}`,
+    );
+
+    const filters = [...domainFilters, ...linkFilters];
+    return filters.length > 0 ? filters.join(',') : null;
+}
+
+/**
+ * Resolves a custom host to the matching stored agent using only persisted `agentProfile` data.
+ *
+ * This middleware path intentionally avoids the full source-inheritance resolver so it remains
+ * Edge-runtime compatible and lightweight.
+ *
+ * @param host - Incoming request host header.
+ * @param supabase - Supabase client instance.
+ * @param servers - Registered servers from `_Server`.
+ * @returns Resolution data or `null` when no matching agent was found.
+ *
+ * @private function of createMiddlewareRequestContext
+ */
+async function resolveCustomDomainAgentFromProfiles(
+    host: string,
+    supabase: SupabaseClient,
+    servers: ReadonlyArray<ServerRecord>,
+): Promise<CustomDomainResolution | null> {
+    const customDomainOrFilter = createCustomDomainOrFilter(host);
+    if (!customDomainOrFilter) {
+        return null;
+    }
+
+    for (const server of servers) {
+        try {
+            const tableName = `${server.tablePrefix}Agent`;
+            const { data, error } = await supabase
+                .from(tableName)
+                .select('agentName')
+                .or(customDomainOrFilter)
+                .is('deletedAt', null)
+                .limit(1);
+
+            if (error || !Array.isArray(data) || data.length === 0) {
+                continue;
+            }
+
+            const firstMatch = data[0] as MiddlewareCustomDomainAgentRow;
+            if (!firstMatch?.agentName) {
+                continue;
+            }
+
+            return {
+                server,
+                agentName: firstMatch.agentName,
+            };
+        } catch {
+            // Ignore one server failure and continue with the next registry record.
+        }
+    }
+
+    return null;
+}
 
 /**
  * Resolves server/table routing state for one incoming request.
@@ -313,12 +472,38 @@ async function resolveCustomDomainAgentWithTimeout(
     });
 
     try {
-        return await Promise.race([resolveCustomDomainAgent(host, supabase, registeredServers), timeoutPromise]);
+        return await Promise.race([
+            resolveCustomDomainAgentFromProfiles(host, supabase, registeredServers),
+            timeoutPromise,
+        ]);
     } finally {
         if (timeoutHandle) {
             clearTimeout(timeoutHandle);
         }
     }
+}
+
+/**
+ * Returns unique, non-empty string values while keeping original order.
+ *
+ * @param values - Raw candidate values.
+ * @returns Ordered unique values.
+ *
+ * @private function of createMiddlewareRequestContext
+ */
+function uniqueStrings(values: readonly string[]): string[] {
+    const seen = new Set<string>();
+    const result: string[] = [];
+
+    for (const value of values) {
+        if (!value || seen.has(value)) {
+            continue;
+        }
+        seen.add(value);
+        result.push(value);
+    }
+
+    return result;
 }
 
 /**

@@ -4,7 +4,31 @@ import {
     FEDERATED_AGENT_IMPORT_MAX_ATTEMPTS,
     type FederatedAgentImportConfiguration,
 } from '../constants/federatedAgentImport';
-import { getFederatedAgentImportRetryDelayMs } from './serverLimits';
+
+/**
+ * Loads the retry-delay limit while keeping this module Edge-runtime safe.
+ *
+ * The dedicated limits implementation depends on the server database layer,
+ * including local SQLite helpers that import Node-only modules (`fs`, `path`).
+ * Middleware runs in the Edge runtime, so this helper resolves the limit lazily
+ * and falls back to defaults when the server-limits module is unavailable.
+ *
+ * @returns Configured retry delay in milliseconds.
+ *
+ * @private internal helper for Agents Server imported-agent resolution
+ */
+async function loadFederatedAgentImportRetryDelayMs(): Promise<number> {
+    try {
+        const { getFederatedAgentImportRetryDelayMs } = await import('./serverLimits');
+        return await getFederatedAgentImportRetryDelayMs();
+    } catch (error) {
+        console.warn(
+            '[loadFederatedAgentImportRetryDelayMs] Falling back to default retry delay from configuration constants:',
+            error,
+        );
+        return DEFAULT_FEDERATED_AGENT_IMPORT_CONFIGURATION.retryDelayMs;
+    }
+}
 
 /**
  * Cached federated imported-agent retry configuration shared across one request/runtime tick.
@@ -16,7 +40,7 @@ import { getFederatedAgentImportRetryDelayMs } from './serverLimits';
 const loadFederatedAgentImportConfigurationCached = cache(async (): Promise<FederatedAgentImportConfiguration> => {
     return {
         maxAttempts: FEDERATED_AGENT_IMPORT_MAX_ATTEMPTS,
-        retryDelayMs: await getFederatedAgentImportRetryDelayMs(),
+        retryDelayMs: await loadFederatedAgentImportRetryDelayMs(),
     };
 });
 

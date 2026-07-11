@@ -1,13 +1,15 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { NextRequest } from 'next/server';
-import type { CustomDomainResolution } from '../utils/customDomainRouting';
 import { isIpAllowed } from '../utils/isIpAllowed';
 import type { ServerVisibility } from '../utils/serverVisibility';
 import { getMiddlewareSupabase } from './createMiddlewareRequestContext/getMiddlewareSupabase';
 import { getRequestIp } from './createMiddlewareRequestContext/getRequestIp';
 import { isRequestAuthorizedByApiToken } from './createMiddlewareRequestContext/isRequestAuthorizedByApiToken';
 import { loadRegisteredServers } from './createMiddlewareRequestContext/loadRegisteredServers';
-import { resolveMiddlewareServerRouting } from './createMiddlewareRequestContext/resolveMiddlewareServerRouting';
+import {
+    resolveMiddlewareServerRouting,
+    type CustomDomainResolution,
+} from './createMiddlewareRequestContext/resolveMiddlewareServerRouting';
 import { resolveMiddlewareSettings } from './createMiddlewareRequestContext/resolveMiddlewareSettings';
 
 /**
@@ -38,14 +40,13 @@ export async function createMiddlewareRequestContext(request: NextRequest): Prom
     const host = request.headers.get('host');
     const supabase = getMiddlewareSupabase();
     const registeredServers = supabase || process.env.SERVERS ? await loadRegisteredServers() : [];
-    const { canQueryServerTables, customDomainResolution, tablePrefixForRequest } = await resolveMiddlewareServerRouting(
-        {
+    const { canQueryServerTables, customDomainResolution, tablePrefixForRequest } =
+        await resolveMiddlewareServerRouting({
             host,
             pathname: request.nextUrl.pathname,
             registeredServers,
             supabase,
-        },
-    );
+        });
     const { allowedIps, isEmbeddingAllowed, serverVisibility } = await resolveMiddlewareSettings({
         supabase,
         canQueryServerTables,
