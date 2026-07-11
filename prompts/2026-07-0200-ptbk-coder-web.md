@@ -46,7 +46,7 @@ ptbk coder server --harness claude-code --model fable --thinking-level max --age
 
 ---
 
-[x] ~$1.18 an hour by OpenAI Codex `gpt-5.5`
+[ ] !!!
 
 [✨🍖] Make the sample in terminal in `ptbk coder` landing website
 
@@ -62,24 +62,12 @@ ptbk coder server --harness claude-code --model fable --thinking-level max --age
 
 **This is how really the `ptbk coder` is working and look like:**
 
+![alt text](screenshots/2026-07-0200-ptbk-coder-web-1.png)
+
 ```console
 
 me@DESKTOP-2QD9KQQ MINGW64 ~/work/ai/promptbook (main)
 $ npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code --model fable --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder --wait-between-prompts 4h --limit 1
-
-
-                                               ▄▄▄▄
-                                           ▀▄▀▀▀▀▀▀▀▄▄
-                                          ▀▀▀▀▀▀▀▀▀▀▀▀ ▄
-                                          ▀▀▀▀▀▀▀▀▀▀▀▀▄
-                                         ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▄
-                                        ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▄
-                                        ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
-                                        ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▄
-                                       ▄▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
-                                       ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▄
-                                          ▀▀▀▀▀▀ ▀▀▀▀▀▀▀▀
-                                          ▀ ▀ ▀    ▀▀▀
 
 ┌ Session ─────────────────────────────────────────────────────────────────────────────────────┐
 │ State     DONE  Run limit reached after 1 prompt run.                                        │
@@ -110,4 +98,3 @@ $ npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code --model fab
 │  P  Pause   CTRL+C  Exit                                                                     │
 └─────────────────────────────────────────────────────────────
 ```
-

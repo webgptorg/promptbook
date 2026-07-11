@@ -26,12 +26,6 @@ export const INIT_COMMAND = 'ptbk coder init';
 export const RUN_COMMAND = 'ptbk coder run --harness claude-code';
 
 /**
- * Full `ptbk coder run` command shown in the live terminal dashboard preview.
- */
-export const LIVE_RUN_COMMAND =
-    'ptbk coder run --harness claude-code --model fable --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder --wait-between-prompts 4h --limit 1';
-
-/**
  * Command which previews the prompt queue without executing anything.
  */
 export const DRY_RUN_COMMAND = 'ptbk coder run --dry-run';
