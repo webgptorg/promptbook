@@ -1,3 +1,5 @@
+-   Refactored the `ptbk agents-server` build helper so `buildAgentsServer.ts` is now a small facade. Runtime environment preparation, packaged runtime materialization, build-input filtering, cache fingerprinting, and finite Next.js build execution now live in focused private modules under `buildAgentsServer/`, while the exported CLI helper API and observable build behavior remain unchanged.
+
 -   Fixed Agents Server chat composer image attachments so pending uploaded images use the same clickable attachment chips as sent messages. Users can now open an attached image in the in-chat preview popup before sending the message, while the composer still keeps its remove control for pending files.
 
 -   Fixed Agents Server chat image attachment previews so the popup is mounted above the chat layout instead of inside the message list, preventing the composer from covering the bottom of large images. The preview modal now keeps its header and image body constrained to the available viewport on desktop and mobile.
