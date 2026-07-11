@@ -3,8 +3,16 @@
 //       overview builder, git readers, persisted job state, and configuration helpers
 //       remain split across small, single-responsibility modules.
 
+export { deleteVpsSelfUpdateInstalledVersion } from './vpsSelfUpdate/deleteVpsSelfUpdateInstalledVersion';
 export { listVpsSelfUpdateCandidateCommits } from './vpsSelfUpdate/listVpsSelfUpdateCandidateCommits';
 export { readVpsSelfUpdateJobSnapshot } from './vpsSelfUpdate/readPersistedVpsSelfUpdateJob';
+export {
+    AGENTS_SERVER_GC_KEEP_VERSIONS_ENV_NAME,
+    DEFAULT_AGENTS_SERVER_GC_KEEP_VERSIONS_COUNT,
+    listVpsSelfUpdateInstalledVersions,
+    normalizeAgentsServerGcKeepVersionsCount,
+    readAgentsServerGcKeepVersionsCount,
+} from './vpsSelfUpdate/vpsSelfUpdateInstalledVersions';
 export { readVpsSelfUpdateJobTaskSnapshots } from './vpsSelfUpdate/vpsSelfUpdateJobHistory';
 export { readVpsSelfUpdateOverview } from './vpsSelfUpdate/readVpsSelfUpdateOverview';
 export { resolveVpsSelfUpdateJobForOverview } from './vpsSelfUpdate/resolveVpsSelfUpdateJobForOverview';
@@ -47,6 +55,7 @@ export type {
     VpsSelfUpdateDatabaseMigrationPrefixSummary,
     VpsSelfUpdateDatabaseMigrationSnapshot,
     VpsSelfUpdateDatabaseMigrationStatus,
+    VpsSelfUpdateInstalledVersion,
     VpsSelfUpdateJobOverviewContext,
     VpsSelfUpdateJobSnapshot,
     VpsSelfUpdateJobStatus,

@@ -86,6 +86,18 @@ export type AutomaticUpdateConfiguration = {
 };
 
 /**
+ * Browser-safe summary of one installed Agents Server version.
+ *
+ * @private type of `<UpdateClient/>`
+ */
+export type UpdateInstalledVersion = {
+    readonly name: string;
+    readonly directoryPath: string;
+    readonly modifiedAt: string | null;
+    readonly isCurrent: boolean;
+};
+
+/**
  * Browser-safe summary of one commit between the deployed checkout and the latest remote commit.
  *
  * @private type of `<UpdateClient/>`
@@ -123,6 +135,8 @@ export type UpdateOverview = {
     readonly isOriginRepositoryDefault: boolean;
     readonly defaultOriginRepositoryUrl: string;
     readonly automaticConfiguration: AutomaticUpdateConfiguration;
+    readonly installedVersions: ReadonlyArray<UpdateInstalledVersion>;
+    readonly garbageCollectionKeepVersionsCount: number;
     readonly job: UpdateJobSnapshot;
     readonly error?: string;
 };

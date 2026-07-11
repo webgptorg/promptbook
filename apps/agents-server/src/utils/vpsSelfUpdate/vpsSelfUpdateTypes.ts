@@ -176,6 +176,30 @@ export type VpsSelfUpdateJobSnapshot = {
 };
 
 /**
+ * Browser-safe summary of one Agents Server version installed in the releases directory.
+ *
+ * @private type of `vpsSelfUpdate`
+ */
+export type VpsSelfUpdateInstalledVersion = {
+    /**
+     * Release directory name (short commit hash or release tag, e.g. `10dbbe7` or `0.101.0`).
+     */
+    readonly name: string;
+    /**
+     * Absolute path of the installed version directory.
+     */
+    readonly directoryPath: string;
+    /**
+     * Last modification time of the version directory in ISO format, or `null` when unknown.
+     */
+    readonly modifiedAt: string | null;
+    /**
+     * Whether this version is the currently deployed one.
+     */
+    readonly isCurrent: boolean;
+};
+
+/**
  * Browser-safe self-update overview shown on the Update page.
  *
  * @private type of `vpsSelfUpdate`
@@ -261,6 +285,14 @@ export type VpsSelfUpdateOverview = {
      * Automatic self-update configuration persisted in the standalone VPS `.env` file.
      */
     readonly automaticConfiguration: VpsSelfUpdateAutomaticConfiguration;
+    /**
+     * Agents Server versions installed in the releases directory (newest first, current version included).
+     */
+    readonly installedVersions: ReadonlyArray<VpsSelfUpdateInstalledVersion>;
+    /**
+     * Total number of installed versions kept by automatic garbage collection (`AGENTS_SERVER_GC_KEEP_VERSIONS`).
+     */
+    readonly garbageCollectionKeepVersionsCount: number;
     /**
      * Latest persisted update-job state.
      */

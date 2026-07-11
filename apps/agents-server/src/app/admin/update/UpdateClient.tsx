@@ -5,6 +5,7 @@ import { Card } from '../../../components/Homepage/Card';
 import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
 import { AutomaticSelfUpdateConfigurationCard } from './AutomaticSelfUpdateConfigurationCard';
 import { CurrentDeploymentCard } from './CurrentDeploymentCard';
+import { InstalledVersionsCard } from './InstalledVersionsCard';
 import { PendingCommitsCard } from './PendingCommitsCard';
 import { TargetEnvironmentCard } from './TargetEnvironmentCard';
 import { UpdateJobCard } from './UpdateJobCard';
@@ -75,6 +76,7 @@ export function UpdateClient() {
 
             <UpdateJobCard state={state} language={language} />
             <PendingCommitsCard overview={state.overview} language={language} />
+            <InstalledVersionsCard state={state} language={language} />
         </div>
     );
 }

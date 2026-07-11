@@ -100,6 +100,7 @@ export type UpdateClientState = {
     readonly isLoading: boolean;
     readonly isStartingUpdate: boolean;
     readonly isSavingAutomaticConfiguration: boolean;
+    readonly deletingVersionName: string | null;
     readonly errorMessage: string | null;
     readonly successMessage: string | null;
     readonly isCustomEnvironmentSelected: boolean;
@@ -113,6 +114,7 @@ export type UpdateClientState = {
     readonly updateTerminalEmptyState: string;
     readonly loadOverview: (options?: LoadUpdateOverviewOptions) => Promise<void>;
     readonly startUpdate: () => Promise<void>;
+    readonly deleteInstalledVersion: (versionName: string) => Promise<void>;
     readonly saveAutomaticConfiguration: () => Promise<void>;
     readonly changeAutomaticUpdateEnabled: (isEnabled: boolean) => void;
     readonly selectAutomaticUpdateEnvironment: (environmentId: string) => void;
@@ -145,6 +147,7 @@ export function useUpdateClientState(): UpdateClientState {
     const [isLoading, setIsLoading] = useState(true);
     const [isStartingUpdate, setIsStartingUpdate] = useState(false);
     const [isSavingAutomaticConfiguration, setIsSavingAutomaticConfiguration] = useState(false);
+    const [deletingVersionName, setDeletingVersionName] = useState<string | null>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const isAutomaticConfigurationDirtyRef = useRef(false);
@@ -265,6 +268,23 @@ export function useUpdateClientState(): UpdateClientState {
         selectedEnvironment,
     ]);
 
+    const deleteInstalledVersion = useCallback(async (versionName: string): Promise<void> => {
+        try {
+            setDeletingVersionName(versionName);
+            setErrorMessage(null);
+            setSuccessMessage(null);
+
+            const payload = await deleteInstalledVersionRequest(versionName);
+
+            setOverview(payload);
+            setSuccessMessage(`Deleted the installed Agents Server version ${versionName}.`);
+        } catch (error) {
+            setErrorMessage(getErrorMessage(error, 'Failed to delete the installed version.'));
+        } finally {
+            setDeletingVersionName(null);
+        }
+    }, []);
+
     const saveAutomaticConfiguration = useCallback(async (): Promise<void> => {
         try {
             setIsSavingAutomaticConfiguration(true);
@@ -335,6 +355,7 @@ export function useUpdateClientState(): UpdateClientState {
         isLoading,
         isStartingUpdate,
         isSavingAutomaticConfiguration,
+        deletingVersionName,
         errorMessage,
         successMessage,
         isCustomEnvironmentSelected,
@@ -348,6 +369,7 @@ export function useUpdateClientState(): UpdateClientState {
         updateTerminalEmptyState,
         loadOverview,
         startUpdate,
+        deleteInstalledVersion,
         saveAutomaticConfiguration,
         changeAutomaticUpdateEnabled,
         selectAutomaticUpdateEnvironment,
@@ -397,6 +419,31 @@ async function startUpdateJob(requestBody: StartUpdateRequestBody): Promise<Upda
 
     if (!response.ok) {
         throw new Error(payload.error || 'Failed to start the update.');
+    }
+
+    return payload;
+}
+
+/**
+ * Deletes one old installed Agents Server version through the admin API.
+ *
+ * @param versionName - Release directory name to delete.
+ * @returns Updated overview snapshot returned by the server.
+ *
+ * @private function of `useUpdateClientState`
+ */
+async function deleteInstalledVersionRequest(versionName: string): Promise<UpdateOverview> {
+    const response = await fetch('/api/admin/update/versions', {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ versionName }),
+    });
+    const payload = (await response.json()) as UpdateOverview;
+
+    if (!response.ok) {
+        throw new Error(payload.error || 'Failed to delete the installed version.');
     }
 
     return payload;
