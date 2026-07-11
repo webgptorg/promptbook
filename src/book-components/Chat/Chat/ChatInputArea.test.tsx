@@ -1,7 +1,7 @@
 /** @jest-environment jsdom */
 
 import { describe, expect, it, jest } from '@jest/globals';
-import { act, fireEvent, render, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { Color } from '../../../utils/color/Color';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
@@ -50,6 +50,18 @@ function getComposerTextarea(container: HTMLElement): HTMLTextAreaElement {
     }
 
     return textarea;
+}
+
+/**
+ * Returns the hidden file input used by the chat composer.
+ */
+function getComposerFileInput(container: HTMLElement): HTMLInputElement {
+    const fileInput = container.querySelector<HTMLInputElement>('input[type="file"]');
+    if (!fileInput) {
+        throw new Error('Expected chat composer file input.');
+    }
+
+    return fileInput;
 }
 
 describe('ChatInputArea', () => {
@@ -217,5 +229,29 @@ describe('ChatInputArea', () => {
             expect(onMessage).toHaveBeenCalledWith('Yes, operating expenses first.', [], replyingToMessage),
         );
         await waitFor(() => expect(onCancelReply).toHaveBeenCalledTimes(2));
+    });
+
+    it('opens pending image attachments in the same modal before sending', async () => {
+        const onFileUpload = jest.fn(async () => 'https://example.com/uploads/photo.png');
+        const { container } = render(<ChatInputArea {...createProps({ onFileUpload })} />);
+        const fileInput = getComposerFileInput(container);
+        const file = new File(['image'], 'photo.png', { type: 'image/png' });
+
+        fireEvent.change(fileInput, { target: { files: [file] } });
+
+        const attachmentButton = await screen.findByRole('button', {
+            name: 'Open image attachment photo.png',
+        });
+
+        expect(screen.getByRole('button', { name: 'Remove attachment photo.png' })).toBeDefined();
+
+        fireEvent.click(attachmentButton);
+
+        const dialog = await screen.findByRole('dialog', { name: 'photo.png' });
+        const image = screen.getByRole('img', { name: 'photo.png' });
+
+        expect(dialog).toBeDefined();
+        expect(dialog.parentElement?.parentElement).toBe(document.body);
+        expect(image.getAttribute('src')).toBe('https://example.com/uploads/photo.png');
     });
 });

@@ -1438,6 +1438,62 @@
     line-height: inherit;
 }
 
+.attachmentWithRemove {
+    gap: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.attachmentMainAction {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 8px 7px 12px;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    line-height: inherit;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.attachmentRemoveButton {
+    display: inline-flex;
+    flex: 0 0 auto;
+    width: 22px;
+    height: 22px;
+    align-items: center;
+    justify-content: center;
+    margin-right: 5px;
+    border: 0;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.24);
+    color: inherit;
+    cursor: pointer;
+    opacity: 0.85;
+    transition:
+        background 0.2s ease,
+        opacity 0.2s ease,
+        transform 0.2s ease;
+}
+
+.attachmentRemoveButton:hover {
+    background: rgba(239, 68, 68, 0.18);
+    opacity: 1;
+    transform: scale(1.04);
+}
+
+.attachmentRemoveButton svg {
+    width: 12px;
+    height: 12px;
+}
+
+.attachmentWithRemove .attachmentName {
+    min-width: 0;
+}
+
 .attachment:hover {
     background: rgba(255, 255, 255, 0.34);
     background: color-mix(in srgb, var(--message-bg-color, #ffffff) 62%, rgba(255, 255, 255, 0.9) 38%);
@@ -1668,6 +1724,15 @@
     flex-wrap: wrap;
     gap: 8px;
     margin-bottom: 8px;
+}
+
+.filePreviewContainer.attachments {
+    --message-bg-color: var(--input-bg-color);
+    --message-text-color: var(--input-text-color);
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+    color: var(--input-text-color);
 }
 
 /* Individual file preview */

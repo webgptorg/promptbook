@@ -404,6 +404,7 @@ export function Chat(props: ChatProps) {
                             soundSystem={soundSystem}
                             onButtonClick={handleButtonClick}
                             chatUiTranslations={chatUiTranslations}
+                            mode={mode}
                             chatInputClassName={classNames(
                                 isConstrainedArticleMode && styles.articleModeChatInput,
                                 getChatCssClassName('chatInput'),

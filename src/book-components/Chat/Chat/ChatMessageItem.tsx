@@ -32,7 +32,7 @@ import {
 import { splitMessageContentIntoSegments } from '../utils/splitMessageContentIntoSegments';
 import styles from './Chat.module.css';
 import { chatCssClassNames } from './chatCssClassNames';
-import { ChatImageAttachmentModal } from './ChatImageAttachmentModal';
+import { ChatMessageAttachments } from './ChatMessageAttachments';
 import { ChatMessageRichContent } from './ChatMessageRichContent';
 import { ChatMessageToolCallChips } from './ChatMessageToolCallChips';
 import type { ChatProps } from './ChatProps';
@@ -157,25 +157,11 @@ type RenderableMessageButton = {
 };
 
 /**
- * One uploaded file attached to a chat message.
- *
- * @private type of `<ChatMessageItem/>`
- */
-type ChatMessageAttachment = NonNullable<ChatMessage['attachments']>[number];
-
-/**
  * Layout variants used for message-level utility actions (copy/read/feedback).
  *
  * @private internal helper of `<ChatMessageItem/>`
  */
 type MessageActionsLayout = 'bubble-overlay' | 'article-footer';
-
-/**
- * File extensions treated as image attachments when the MIME type is missing.
- *
- * @private constant of `<ChatMessageItem/>`
- */
-const IMAGE_ATTACHMENT_EXTENSIONS = new Set(['avif', 'gif', 'jpg', 'jpeg', 'png', 'svg', 'webp']);
 
 /**
  * Gesture thresholds used for touch swipe-to-reply.
@@ -239,38 +225,6 @@ function formatAnswerDurationLabel(
 ): string {
     const template = timingTranslations?.answerDurationLabel || DEFAULT_ANSWER_DURATION_LABEL;
     return template.replace(/\{duration\}/g, durationLabel);
-}
-
-/**
- * Returns whether the attachment should open in the in-chat image preview.
- *
- * @private function of `<ChatMessageItem/>`
- */
-function isImageChatMessageAttachment(attachment: ChatMessageAttachment): boolean {
-    if (attachment.type.toLowerCase().startsWith('image/')) {
-        return true;
-    }
-
-    const extension =
-        getChatMessageAttachmentExtension(attachment.url) || getChatMessageAttachmentExtension(attachment.name);
-
-    return Boolean(extension && IMAGE_ATTACHMENT_EXTENSIONS.has(extension));
-}
-
-/**
- * Gets a file extension from an attachment URL or name.
- *
- * @private function of `<ChatMessageItem/>`
- */
-function getChatMessageAttachmentExtension(value: string): string | null {
-    const pathname = value.split(/[?#]/)[0] ?? '';
-    const filename = pathname.split(/[\\/]/).pop();
-
-    if (!filename || !filename.includes('.')) {
-        return null;
-    }
-
-    return filename.split('.').pop()?.toLowerCase() || null;
 }
 
 /**
@@ -420,7 +374,6 @@ export const ChatMessageItem = memo(
             () => new Set(),
         );
         const [replySwipeDistance, setReplySwipeDistance] = useState(0);
-        const [selectedImageAttachment, setSelectedImageAttachment] = useState<ChatMessageAttachment | null>(null);
         const isReportIssueFeedbackMode = feedbackMode === 'report_issue';
         const replySwipeGestureRef = useRef<{
             pointerId: number;
@@ -1002,41 +955,7 @@ export const ChatMessageItem = memo(
                         </div>
 
                         {message.attachments && message.attachments.length > 0 && (
-                            <div className={styles.attachments}>
-                                {message.attachments.map((attachment, index) =>
-                                    isImageChatMessageAttachment(attachment) ? (
-                                        <button
-                                            key={index}
-                                            type="button"
-                                            className={styles.attachment}
-                                            title={attachment.name}
-                                            aria-label={`Open image attachment ${attachment.name}`}
-                                            onPointerDown={(event) => {
-                                                event.stopPropagation();
-                                            }}
-                                            onClick={(event) => {
-                                                event.stopPropagation();
-                                                setSelectedImageAttachment(attachment);
-                                            }}
-                                        >
-                                            <span className={styles.attachmentIcon}>📎</span>
-                                            <span className={styles.attachmentName}>{attachment.name}</span>
-                                        </button>
-                                    ) : (
-                                        <a
-                                            key={index}
-                                            href={attachment.url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className={styles.attachment}
-                                            title={attachment.name}
-                                        >
-                                            <span className={styles.attachmentIcon}>📎</span>
-                                            <span className={styles.attachmentName}>{attachment.name}</span>
-                                        </a>
-                                    ),
-                                )}
-                            </div>
+                            <ChatMessageAttachments attachments={message.attachments} mode={mode} />
                         )}
 
                         <ChatMessageToolCallChips chips={toolCallChips} onToolCallClick={onToolCallClick} />
@@ -1161,13 +1080,6 @@ export const ChatMessageItem = memo(
                         <div className={styles.messageLifecycleError}>{message.lifecycleError}</div>
                     )}
                 </div>
-                <ChatImageAttachmentModal
-                    attachment={selectedImageAttachment}
-                    mode={mode}
-                    onClose={() => {
-                        setSelectedImageAttachment(null);
-                    }}
-                />
             </div>
         );
     },

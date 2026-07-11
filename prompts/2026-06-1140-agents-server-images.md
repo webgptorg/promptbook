@@ -45,7 +45,7 @@
 
 ---
 
-[ ] !
+[x] ~$0.7689 an hour by OpenAI Codex `gpt-5.5`
 
 [✨✥] Show attached images before the sending the message to the agent
 
@@ -59,5 +59,6 @@
 ![images before being send](screenshots/2026-06-1140-agents-server-images-1.png)
 ![image after being send](screenshots/2026-06-1140-agents-server-images-2.png)
 ![image popup](screenshots/2026-06-1140-agents-server-images-3.png)
+
 
 
