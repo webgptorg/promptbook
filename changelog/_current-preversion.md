@@ -1,3 +1,5 @@
+-   Fixed Agents Server `/admin/task-manager` task terminals for local chat-completion jobs so the dialog tails the live coding-harness runtime log written by `ptbk agent-folder run-multiple`. Self-update and page-preview terminals keep their existing behavior, while durable chat jobs now resolve the shared per-message harness log path instead of relying only on Next-process in-memory console capture.
+
 -   Fixed `ptbk coder run --limit <run-count>` progress totals so the terminal UI shows the configured run limit as the current-session denominator, for example `(0/2 done)` instead of `(0/9 done)` when nine prompts are runnable but only two should be processed.
 
 -   Added a shared Agents Server `<CronJobConfiguration/>` component for cron-backed schedules. The standalone VPS `/admin/update` automatic self-update settings now use it to offer common hourly/daily/weekly/monthly schedule controls while still preserving direct cron expression editing for values such as `0 0 * * *`.

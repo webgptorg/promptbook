@@ -1,4 +1,5 @@
 import type { AgentMessageFile } from './AgentMessageFile';
+import { buildAgentMessageRuntimeLogPathFromFileName } from '../../../src/utils/agent-message-runtime/agentMessageRuntimePaths';
 import { buildAgentMessageScriptPath } from './buildAgentMessageScriptPath';
 
 describe('buildAgentMessageScriptPath', () => {
@@ -11,6 +12,9 @@ describe('buildAgentMessageScriptPath', () => {
 
         expect(buildAgentMessageScriptPath('/project', messageFile)).toBe(
             '/project/.promptbook/agent-messages/question.sh',
+        );
+        expect(buildAgentMessageRuntimeLogPathFromFileName('/project', messageFile.fileName)).toBe(
+            '/project/.promptbook/agent-messages/question.log.txt',
         );
     });
 });

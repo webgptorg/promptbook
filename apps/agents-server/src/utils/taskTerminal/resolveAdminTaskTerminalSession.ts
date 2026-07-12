@@ -1,7 +1,12 @@
+import { readFile } from 'fs/promises';
+import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
+import { buildAgentMessageRuntimeLogPathFromFileName } from '../../../../../src/utils/agent-message-runtime/agentMessageRuntimePaths';
 import { getUserChatJobById } from '../userChat/getUserChatJobById';
 import { getUserChatTimeoutById } from '../userChatTimeout/userChatTimeoutStore/getUserChatTimeoutById';
 import { VPS_SELF_UPDATE_ADMIN_CHAT_TASK_ID } from '../getAdminChatTasksResponse/mapVpsSelfUpdateJobToAdminChatTask';
+import { getLocalUserChatJobMetadata } from '../localChatRunner/LocalUserChatJobMetadata';
+import { resolveLocalAgentRootPath } from '../localChatRunner/ensureLocalAgentFolder';
 import { listPagePreviewBrowserAdminTasks } from '../pagePreviewBrowserSessions';
 import {
     readVpsSelfUpdateJobSnapshot,
@@ -28,9 +33,9 @@ const VPS_SELF_UPDATE_TASK_ID_PREFIX = `${VPS_SELF_UPDATE_ADMIN_CHAT_TASK_ID}:`;
 const PAGE_PREVIEW_TASK_ID_PREFIX = 'page-preview-';
 
 /**
- * How often the standalone VPS self-update installer log file is polled while streaming.
+ * How often a task-owned terminal log file is polled while streaming.
  */
-const VPS_SELF_UPDATE_TERMINAL_POLL_INTERVAL_MS = 2_000;
+const TASK_TERMINAL_LOG_FILE_POLL_INTERVAL_MS = 2_000;
 
 /**
  * Terminal subscribe function compatible with the shared admin terminal SSE helper.
@@ -92,6 +97,22 @@ async function resolveDurableTaskTerminalSession(taskId: string): Promise<AdminT
 
     const isRunning = task.status === 'QUEUED' || task.status === 'RUNNING';
 
+    if (job) {
+        const localRunnerMetadata = getLocalUserChatJobMetadata(job);
+
+        if (localRunnerMetadata) {
+            return await resolveLocalUserChatJobTerminalSession({
+                taskId,
+                isRunning,
+                startedAt: task.startedAt || task.queuedAt || task.createdAt,
+                finishedAt: task.completedAt,
+                exitCode: resolveFinishedTaskExitCode(task.status),
+                agentDirectoryName: localRunnerMetadata.agentDirectoryName,
+                fileName: localRunnerMetadata.fileName,
+            });
+        }
+    }
+
     return {
         session: createInMemoryTaskTerminalSession({
             taskId,
@@ -101,6 +122,47 @@ async function resolveDurableTaskTerminalSession(taskId: string): Promise<AdminT
             exitCode: resolveFinishedTaskExitCode(task.status),
         }),
         subscribe: subscribeToTaskTerminalLog,
+    };
+}
+
+/**
+ * Resolves the terminal session backed by the local coding-harness runtime log file.
+ *
+ * @param options - Durable job lifecycle fields and local runner metadata.
+ * @returns Terminal resolution backed by the per-job harness log file.
+ */
+async function resolveLocalUserChatJobTerminalSession(options: {
+    readonly taskId: string;
+    readonly isRunning: boolean;
+    readonly startedAt: string;
+    readonly finishedAt: string | null;
+    readonly exitCode: number | null;
+    readonly agentDirectoryName: string;
+    readonly fileName: string;
+}): Promise<AdminTaskTerminalResolution> {
+    const runtimeLogPath = resolveLocalUserChatJobRuntimeLogPath({
+        agentDirectoryName: options.agentDirectoryName,
+        fileName: options.fileName,
+    });
+    const terminalLogSnapshot = getTaskTerminalLogSnapshot(options.taskId);
+    const output = (await readOptionalTextFile(runtimeLogPath)) || terminalLogSnapshot?.output || '';
+    const session: TaskTerminalLogSnapshot = {
+        id: options.taskId,
+        isRunning: options.isRunning,
+        output,
+        startedAt: options.startedAt,
+        finishedAt: options.finishedAt,
+        exitCode: options.exitCode,
+        signal: null,
+    };
+
+    return {
+        session,
+        subscribe: createPolledTaskTerminalLogFileSubscribe({
+            session,
+            readOutput: () => readOptionalTextFile(runtimeLogPath),
+            resolveExitSnapshot: (knownOutput) => resolveDurableTaskExitSnapshot(options.taskId, session, knownOutput),
+        }),
     };
 }
 
@@ -160,6 +222,60 @@ function createInMemoryTaskTerminalSession(options: {
 }
 
 /**
+ * Builds the runtime log path created by the foreground local coding harness.
+ *
+ * @param options - Local runner folder and queued message filename.
+ * @returns Absolute path to the live harness runtime log file.
+ */
+function resolveLocalUserChatJobRuntimeLogPath(options: {
+    readonly agentDirectoryName: string;
+    readonly fileName: string;
+}): string {
+    return buildAgentMessageRuntimeLogPathFromFileName(
+        join(resolveLocalAgentRootPath(), options.agentDirectoryName),
+        options.fileName,
+    );
+}
+
+/**
+ * Resolves a durable chat-task exit snapshot while a file-backed terminal stream is open.
+ *
+ * @param taskId - Durable chat job identifier.
+ * @param session - Initial terminal session snapshot.
+ * @param knownOutput - Latest terminal output already sent to the browser.
+ * @returns Exit snapshot or `null` while the job is still active.
+ */
+async function resolveDurableTaskExitSnapshot(
+    taskId: string,
+    session: TaskTerminalLogSnapshot,
+    knownOutput: string,
+): Promise<TaskTerminalLogSnapshot | null> {
+    const latestJob = await getUserChatJobById(taskId);
+
+    if (!latestJob) {
+        return {
+            ...session,
+            isRunning: false,
+            output: knownOutput,
+            finishedAt: new Date().toISOString(),
+            exitCode: 1,
+        };
+    }
+
+    if (latestJob.status === 'QUEUED' || latestJob.status === 'RUNNING') {
+        return null;
+    }
+
+    return {
+        ...session,
+        isRunning: false,
+        output: knownOutput,
+        finishedAt: latestJob.completedAt || new Date().toISOString(),
+        exitCode: resolveFinishedTaskExitCode(latestJob.status) ?? 1,
+    };
+}
+
+/**
  * Maps one finished durable-task status to the synthetic terminal exit code.
  *
  * @param status - Durable task status.
@@ -211,7 +327,31 @@ async function resolveVpsSelfUpdateTaskTerminalSession(taskId: string): Promise<
 
     return {
         session,
-        subscribe: createVpsSelfUpdateLogFileSubscribe({ session, jobIdentity }),
+        subscribe: createPolledTaskTerminalLogFileSubscribe({
+            session,
+            readOutput: async () => {
+                const latestJobSnapshot = await readVpsSelfUpdateJobSnapshot();
+                const isStillLatestJob = resolveVpsSelfUpdateJobIdentity(latestJobSnapshot) === jobIdentity;
+
+                return isStillLatestJob ? (await readVpsSelfUpdateLogFileContent()) || '' : null;
+            },
+            resolveExitSnapshot: async (knownOutput) => {
+                const latestJobSnapshot = await readVpsSelfUpdateJobSnapshot();
+                const isStillLatestJob = resolveVpsSelfUpdateJobIdentity(latestJobSnapshot) === jobIdentity;
+
+                if (isStillLatestJob && latestJobSnapshot.status === 'running') {
+                    return null;
+                }
+
+                return {
+                    ...session,
+                    isRunning: false,
+                    output: knownOutput,
+                    finishedAt: latestJobSnapshot.finishedAt || new Date().toISOString(),
+                    exitCode: resolveVpsSelfUpdateExitCode(latestJobSnapshot.status) ?? 1,
+                };
+            },
+        }),
     };
 }
 
@@ -251,19 +391,17 @@ function resolveVpsSelfUpdateExitCode(status: VpsSelfUpdateJobSnapshot['status']
 }
 
 /**
- * Creates a subscribe function that live-tails the persisted self-update installer log file.
+ * Creates a subscribe function that live-tails a task-owned terminal log file.
  *
- * The detached installer process cannot push events into this server process, so the log
- * file is polled and only newly appended text is forwarded to the subscriber.
- *
- * @param options - Initial session snapshot and the identity of the streamed run.
+ * @param options - Initial session snapshot, file reader, and lifecycle resolver.
  * @returns Subscribe function compatible with the shared admin terminal SSE helper.
  */
-function createVpsSelfUpdateLogFileSubscribe(options: {
+function createPolledTaskTerminalLogFileSubscribe(options: {
     readonly session: TaskTerminalLogSnapshot;
-    readonly jobIdentity: string;
+    readonly readOutput: () => Promise<string | null>;
+    readonly resolveExitSnapshot: (knownOutput: string) => Promise<TaskTerminalLogSnapshot | null>;
 }): AdminTaskTerminalSubscribe {
-    return (taskId, subscriber) => {
+    return (_taskId, subscriber) => {
         let knownOutput = options.session.output;
         let isStopped = false;
         let isPollInFlight = false;
@@ -275,43 +413,43 @@ function createVpsSelfUpdateLogFileSubscribe(options: {
 
             isPollInFlight = true;
             try {
-                const [logFileContent, latestJob] = await Promise.all([
-                    readVpsSelfUpdateLogFileContent(),
-                    readVpsSelfUpdateJobSnapshot(),
-                ]);
-                const isStillLatestJob = resolveVpsSelfUpdateJobIdentity(latestJob) === options.jobIdentity;
-                const output = isStillLatestJob ? logFileContent || '' : knownOutput;
+                const output = await options.readOutput();
 
                 if (isStopped) {
                     return;
                 }
 
-                if (output.length > knownOutput.length && output.startsWith(knownOutput)) {
-                    subscriber.onOutput({
-                        type: 'output',
-                        chunk: output.slice(knownOutput.length),
-                    });
+                if (output !== null) {
+                    const outputChunk = resolveAppendedTaskTerminalLogFileChunk(knownOutput, output);
+
+                    if (outputChunk !== null) {
+                        subscriber.onOutput({
+                            type: 'output',
+                            chunk: outputChunk,
+                        });
+                    }
+
                     knownOutput = output;
                 }
 
-                if (!isStillLatestJob || latestJob.status !== 'running') {
-                    subscriber.onExit({
-                        type: 'exit',
-                        snapshot: {
-                            ...options.session,
-                            isRunning: false,
-                            output: knownOutput,
-                            finishedAt: latestJob.finishedAt || new Date().toISOString(),
-                            exitCode: resolveVpsSelfUpdateExitCode(latestJob.status) ?? 1,
-                        },
-                    });
+                const exitSnapshot = await options.resolveExitSnapshot(knownOutput);
+
+                if (isStopped || !exitSnapshot) {
+                    return;
                 }
+
+                isStopped = true;
+                clearInterval(pollInterval);
+                subscriber.onExit({
+                    type: 'exit',
+                    snapshot: exitSnapshot,
+                });
             } catch {
                 // Note: Ignore transient log-file read failures and retry on the next poll
             } finally {
                 isPollInFlight = false;
             }
-        }, VPS_SELF_UPDATE_TERMINAL_POLL_INTERVAL_MS);
+        }, TASK_TERMINAL_LOG_FILE_POLL_INTERVAL_MS);
         pollInterval.unref?.();
 
         return () => {
@@ -319,4 +457,56 @@ function createVpsSelfUpdateLogFileSubscribe(options: {
             clearInterval(pollInterval);
         };
     };
+}
+
+/**
+ * Resolves the output chunk appended since the last file poll.
+ *
+ * @param knownOutput - Output already sent to the browser.
+ * @param nextOutput - Latest complete log file content.
+ * @returns Appended chunk, full replacement content after truncation, or `null` when unchanged.
+ */
+function resolveAppendedTaskTerminalLogFileChunk(knownOutput: string, nextOutput: string): string | null {
+    if (nextOutput === knownOutput) {
+        return null;
+    }
+
+    if (nextOutput.startsWith(knownOutput)) {
+        return nextOutput.slice(knownOutput.length);
+    }
+
+    return nextOutput;
+}
+
+/**
+ * Reads one optional terminal log file.
+ *
+ * @param filePath - Absolute log file path.
+ * @returns File content or `null` when the log file does not exist yet.
+ */
+async function readOptionalTextFile(filePath: string): Promise<string | null> {
+    try {
+        return await readFile(filePath, 'utf-8');
+    } catch (error) {
+        if (isFileNotFoundError(error)) {
+            return null;
+        }
+
+        throw error;
+    }
+}
+
+/**
+ * Returns true when one filesystem error indicates a missing path.
+ *
+ * @param error - Unknown filesystem error.
+ * @returns Whether the error means the file path is absent.
+ */
+function isFileNotFoundError(error: unknown): boolean {
+    return Boolean(
+        error &&
+            typeof error === 'object' &&
+            'code' in error &&
+            ((error as { code?: string }).code === 'ENOENT' || (error as { code?: string }).code === 'ENOTDIR'),
+    );
 }
