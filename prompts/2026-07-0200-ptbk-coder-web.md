@@ -46,13 +46,15 @@ ptbk coder server --harness claude-code --model fable --thinking-level max --age
 
 ---
 
-[x] ~$1.18 an hour by OpenAI Codex `gpt-5.5`
+[x] ~$1.08 an hour by OpenAI Codex `gpt-5.5`
 
 [✨🍖] Make the sample in terminal in `ptbk coder` landing website
 
 -   The "Live terminal" sample is not showing what is really happening in the `ptbk coder` when it is running, make the sample in the landing page show what is really happening in the `ptbk coder` when it is running
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
     -   The animation of the Agent visual (the octopus) should share same code in the Agents server, `ptbk coder` and the landing page "live terminal", so that it is consistent and not repeated in multiple places
+    -   The terminal must be shown as the text terminal with colors
+    -   The terminal should go from entering the command to the final output BUT do not blink or do not reset the terminal
 -   Do a proper analysis of the current landing website, the `ptbk coder` and related functionality before you start implementing.
 -   You are working with the [`ptbk coder` landing website](apps/coder-landing)
 -   You are making page for [`ptbk coder`](src/cli/cli-commands/coder/)
@@ -62,24 +64,12 @@ ptbk coder server --harness claude-code --model fable --thinking-level max --age
 
 **This is how really the `ptbk coder` is working and look like:**
 
+![alt text](screenshots/2026-07-0200-ptbk-coder-web-1.png)
+
 ```console
 
 me@DESKTOP-2QD9KQQ MINGW64 ~/work/ai/promptbook (main)
 $ npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code --model fable --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder --wait-between-prompts 4h --limit 1
-
-
-                                               ▄▄▄▄
-                                           ▀▄▀▀▀▀▀▀▀▄▄
-                                          ▀▀▀▀▀▀▀▀▀▀▀▀ ▄
-                                          ▀▀▀▀▀▀▀▀▀▀▀▀▄
-                                         ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▄
-                                        ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▄
-                                        ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
-                                        ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▄
-                                       ▄▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
-                                       ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▄
-                                          ▀▀▀▀▀▀ ▀▀▀▀▀▀▀▀
-                                          ▀ ▀ ▀    ▀▀▀
 
 ┌ Session ─────────────────────────────────────────────────────────────────────────────────────┐
 │ State     DONE  Run limit reached after 1 prompt run.                                        │

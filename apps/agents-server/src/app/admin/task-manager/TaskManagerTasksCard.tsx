@@ -9,6 +9,7 @@ import { TaskManagerTaskRow } from './TaskManagerTaskRow';
  * @private function of TaskManagerClient
  */
 type TaskManagerTasksCardProps = {
+    isSuperAdmin: boolean;
     language: ServerLanguageCode;
     state: ReturnType<typeof useTaskManagerState>;
 };
@@ -43,7 +44,7 @@ function resolveEmptyStateMessage(view: ReturnType<typeof useTaskManagerState>['
  *
  * @private function of TaskManagerClient
  */
-export function TaskManagerTasksCard({ language, state }: TaskManagerTasksCardProps) {
+export function TaskManagerTasksCard({ isSuperAdmin, language, state }: TaskManagerTasksCardProps) {
     const firstVisibleTaskIndex = Math.min((state.page - 1) * state.pageSize + 1, state.total);
     const lastVisibleTaskIndex = Math.min(state.page * state.pageSize, state.total);
 
@@ -87,6 +88,7 @@ export function TaskManagerTasksCard({ language, state }: TaskManagerTasksCardPr
                                     language={language}
                                     busyAction={state.busyAction}
                                     busyTaskId={state.busyTaskId}
+                                    isSuperAdmin={isSuperAdmin}
                                     onRunTaskAction={state.runTaskAction}
                                     stuckThresholdMinutes={state.stuckThresholdMinutes}
                                 />

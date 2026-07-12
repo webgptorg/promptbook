@@ -13,6 +13,7 @@ import { updateUserChatAssistantMessage } from '../userChat/updateUserChatAssist
 import type { UserChatJobRecord } from '../userChat/UserChatJobRecord';
 import type { UserChatJobRow } from '../userChat/UserChatJobRow';
 import { createUserChatRunnerThreadMessages } from '../userChat/userChatMessageLifecycle';
+import { runWithTaskTerminalCapture } from '../taskTerminal/runWithTaskTerminalCapture';
 import {
     createLocalUserChatJobMetadata,
     getLocalUserChatJobMetadata,
@@ -44,6 +45,15 @@ export type ProcessLocalUserChatJobResult = {
  * Processes one UserChatJob through the local message-folder runner contract.
  */
 export async function processLocalUserChatJob(job: UserChatJobRecord): Promise<ProcessLocalUserChatJobResult> {
+    return await runWithTaskTerminalCapture(job.id, () => processLocalUserChatJobWithinTerminalCapture(job));
+}
+
+/**
+ * Processes one local job while its console output is mirrored into the task terminal log.
+ */
+async function processLocalUserChatJobWithinTerminalCapture(
+    job: UserChatJobRecord,
+): Promise<ProcessLocalUserChatJobResult> {
     try {
         if (job.status === 'COMPLETED' || job.status === 'CANCELLED') {
             return { didMutate: false, outcome: 'ignored' };
@@ -119,6 +129,15 @@ export async function processNextLocalUserChatJob(
  * Enqueues one local queued job into the current agent folder.
  */
 async function enqueueLocalUserChatJob(job: UserChatJobRecord): Promise<ProcessLocalUserChatJobResult> {
+    return await runWithTaskTerminalCapture(job.id, () => enqueueLocalUserChatJobWithinTerminalCapture(job));
+}
+
+/**
+ * Enqueues one local job while its console output is mirrored into the task terminal log.
+ */
+async function enqueueLocalUserChatJobWithinTerminalCapture(
+    job: UserChatJobRecord,
+): Promise<ProcessLocalUserChatJobResult> {
     const [chat, agentSourceSnapshot] = await Promise.all([
         getUserChat({
             userId: job.userId,

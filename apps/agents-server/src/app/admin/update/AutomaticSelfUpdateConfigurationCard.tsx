@@ -1,6 +1,7 @@
 'use client';
 
 import { CalendarClock, Loader2, Save } from 'lucide-react';
+import { CronJobConfiguration } from '../../../components/CronJobConfiguration/CronJobConfiguration';
 import type { UpdateClientState } from './useUpdateClientState';
 
 /**
@@ -45,7 +46,7 @@ export function AutomaticSelfUpdateConfigurationCard({ state }: AutomaticSelfUpd
                 Enable automatic updates
             </label>
 
-            <div className="grid min-w-0 gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
+            <div className="grid min-w-0 gap-3">
                 <label className="block min-w-0 text-sm font-medium text-slate-700">
                     Branch
                     <select
@@ -62,17 +63,13 @@ export function AutomaticSelfUpdateConfigurationCard({ state }: AutomaticSelfUpd
                     </select>
                 </label>
 
-                <label className="block min-w-0 text-sm font-medium text-slate-700">
-                    Cron interval
-                    <input
-                        type="text"
-                        value={state.automaticConfigurationDraft.cronExpression}
-                        onChange={(event) => state.changeAutomaticUpdateCronExpression(event.target.value)}
-                        disabled={isDisabled}
-                        placeholder="0 0 * * *"
-                        className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 font-mono text-sm text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500"
-                    />
-                </label>
+                <CronJobConfiguration
+                    label="Cron interval"
+                    value={state.automaticConfigurationDraft.cronExpression}
+                    onChange={state.changeAutomaticUpdateCronExpression}
+                    isDisabled={isDisabled}
+                    helperText="Pick a common schedule or edit the cron expression directly."
+                />
             </div>
 
             <button

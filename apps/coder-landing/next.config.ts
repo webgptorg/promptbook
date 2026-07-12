@@ -5,8 +5,6 @@ import path from 'path';
  * Map of next config.
  */
 const nextConfig: NextConfig = {
-    serverExternalPackages: ['@napi-rs/canvas'],
-
     experimental: {
         externalDir: true,
     },

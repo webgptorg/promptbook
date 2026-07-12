@@ -16,6 +16,11 @@ const PROGRESS_REFRESH_INTERVAL_MS = 1000;
 const PROGRESS_HEADER_RESERVED_LINES = 3;
 
 /**
+ * Fallback terminal width when stdout does not report a column count.
+ */
+const DEFAULT_PROGRESS_TERMINAL_COLUMNS = 80;
+
+/**
  * Compact CLI progress display that stays pinned at the top of the terminal.
  */
 export class CliProgressDisplay {
@@ -39,6 +44,7 @@ export class CliProgressDisplay {
     public constructor(
         startTime: moment.Moment,
         private readonly minimumPriority: number,
+        private readonly runLimit?: number,
     ) {
         this.isInteractive = Boolean(process.stdout.isTTY);
         this.timer = new CoderRunTimer(startTime);
@@ -147,8 +153,9 @@ export class CliProgressDisplay {
             this.timer.getElapsedDuration(),
             this.initialDone ?? this.stats.done,
             this.cachedAveragePromptDurationMs,
+            this.runLimit,
         );
-        const columns = Math.max(40, process.stdout.columns ?? 80);
+        const columns = Math.max(40, process.stdout.columns ?? DEFAULT_PROGRESS_TERMINAL_COLUMNS);
         const workingLine =
             snapshot.sessionTotal > 0
                 ? [

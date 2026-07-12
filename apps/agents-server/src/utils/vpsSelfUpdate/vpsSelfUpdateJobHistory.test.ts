@@ -8,6 +8,7 @@ import {
     readVpsSelfUpdateJobTaskHistory,
     readVpsSelfUpdateJobTaskSnapshots,
 } from './vpsSelfUpdateJobHistory';
+import { VPS_SELF_UPDATE_RESTART_SUCCESS_STEP } from './vpsSelfUpdateJobConstants';
 import { encodeStatusField, writeVpsSelfUpdateStatusFile } from './vpsSelfUpdateStateFiles';
 import type { VpsSelfUpdateJobSnapshot } from './vpsSelfUpdateTypes';
 
@@ -86,6 +87,81 @@ describe('vpsSelfUpdateJobHistory', () => {
 
         expect(snapshots.map((job) => job.jobId)).toEqual(['manual-update-1']);
         expect(snapshots[0]?.currentStep).toBe('Latest update state.');
+    });
+
+    it('shows a stale restarted self-update status snapshot as succeeded when the target commit is deployed', async () => {
+        const productionEnvironment = getDefaultVpsSelfUpdateEnvironment();
+        await writeVpsSelfUpdateStatusFile({
+            JOB_ID: 'manual-update-1',
+            STATUS: 'running',
+            TRIGGER: 'manual',
+            PID: '99999999',
+            TARGET_REF: productionEnvironment.branch,
+            CURRENT_STEP_B64: encodeStatusField(
+                'Removing previous Agents Server pm2 processes and garbage-collecting old versions.',
+            ),
+            ERROR_MESSAGE_B64: '',
+            STARTED_AT: '2026-07-12T08:06:34.000Z',
+            FINISHED_AT: '',
+            CURRENT_COMMIT: 'old-commit',
+            TARGET_COMMIT: 'target-commit',
+            LOG_FILE: '',
+            DATABASE_MIGRATION_STATUS: 'succeeded',
+            DATABASE_MIGRATION_SUMMARY_FILE: '',
+            DATABASE_MIGRATION_SUMMARY_B64: '',
+            DATABASE_MIGRATION_ERROR_MESSAGE_B64: '',
+        });
+
+        const snapshots = await readVpsSelfUpdateJobTaskSnapshots({
+            overviewContext: {
+                currentEnvironment: productionEnvironment,
+                currentCommitSha: 'target-commit',
+            },
+        });
+
+        expect(snapshots).toHaveLength(1);
+        expect(snapshots[0]).toMatchObject({
+            jobId: 'manual-update-1',
+            status: 'succeeded',
+            currentStep: VPS_SELF_UPDATE_RESTART_SUCCESS_STEP,
+            currentCommitSha: 'target-commit',
+            errorMessage: null,
+            isStale: false,
+        });
+    });
+
+    it('archives stale restarted self-update jobs as succeeded when the target commit is already deployed', async () => {
+        const productionEnvironment = getDefaultVpsSelfUpdateEnvironment();
+        await preserveVpsSelfUpdateJobInTaskHistory(
+            createVpsSelfUpdateJobSnapshot({
+                jobId: 'manual-update-1',
+                status: 'failed',
+                pid: 99999999,
+                currentStep: 'Removing previous Agents Server pm2 processes and garbage-collecting old versions.',
+                currentCommitSha: 'old-commit',
+                targetCommitSha: 'target-commit',
+                finishedAt: null,
+                isStale: true,
+            }),
+            {
+                overviewContext: {
+                    currentEnvironment: productionEnvironment,
+                    currentCommitSha: 'target-commit',
+                },
+            },
+        );
+
+        const history = await readVpsSelfUpdateJobTaskHistory();
+
+        expect(history).toHaveLength(1);
+        expect(history[0]).toMatchObject({
+            jobId: 'manual-update-1',
+            status: 'succeeded',
+            currentStep: VPS_SELF_UPDATE_RESTART_SUCCESS_STEP,
+            currentCommitSha: 'target-commit',
+            errorMessage: null,
+            isStale: false,
+        });
     });
 });
 

@@ -1,6 +1,7 @@
 import type { Page } from 'playwright';
 import type { AdminChatTaskRecord } from './chatTasksAdmin';
 import type { UserInfo } from './getCurrentUser';
+import { appendTaskTerminalLogLine, markTaskTerminalLogFinished } from './taskTerminal/taskTerminalLog';
 
 /**
  * Prefix for browser-preview session identifiers created by the citation preview UI.
@@ -125,6 +126,10 @@ export function registerPagePreviewBrowserSession(
     };
 
     pagePreviewBrowserSessions.set(options.sessionId, session);
+    appendTaskTerminalLogLine(
+        options.sessionId,
+        `Started live browser preview of ${options.url} for user #${session.userId} (${session.username || 'unknown'}).`,
+    );
     return session;
 }
 
@@ -148,6 +153,10 @@ export function attachPagePreviewBrowserSessionPage(
     session.page = page;
     session.viewport = viewport;
     session.updatedAt = new Date().toISOString();
+    appendTaskTerminalLogLine(
+        sessionId,
+        `Browser page attached with a ${viewport.width}x${viewport.height} viewport, streaming frames.`,
+    );
 }
 
 /**
@@ -172,7 +181,10 @@ export function markPagePreviewBrowserSessionFrame(sessionId: string): void {
  * @param sessionId - Active session id.
  */
 export function finishPagePreviewBrowserSession(sessionId: string): void {
-    pagePreviewBrowserSessions.delete(sessionId);
+    if (pagePreviewBrowserSessions.delete(sessionId)) {
+        appendTaskTerminalLogLine(sessionId, 'Browser preview session finished.');
+        markTaskTerminalLogFinished(sessionId, { isSuccessful: true });
+    }
 }
 
 /**

@@ -14,6 +14,7 @@ import {
     createUserChatRunnerThreadMessages,
     resolvePromptThreadBeforeUserMessage,
 } from '../userChat/userChatMessageLifecycle';
+import { runWithTaskTerminalCapture } from '../taskTerminal/runWithTaskTerminalCapture';
 import {
     EXTERNAL_USER_CHAT_JOB_ANSWER_TIMEOUT_MS,
     EXTERNAL_USER_CHAT_JOB_PROVIDER,
@@ -52,6 +53,15 @@ export type ProcessExternalUserChatJobResult = {
  * Processes one UserChatJob through the git-backed external runner contract.
  */
 export async function processExternalUserChatJob(job: UserChatJobRecord): Promise<ProcessExternalUserChatJobResult> {
+    return await runWithTaskTerminalCapture(job.id, () => processExternalUserChatJobWithinTerminalCapture(job));
+}
+
+/**
+ * Processes one external job while its console output is mirrored into the task terminal log.
+ */
+async function processExternalUserChatJobWithinTerminalCapture(
+    job: UserChatJobRecord,
+): Promise<ProcessExternalUserChatJobResult> {
     try {
         if (job.status === 'COMPLETED' || job.status === 'CANCELLED') {
             return { didMutate: false, outcome: 'ignored' };

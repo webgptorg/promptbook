@@ -1,92 +1,99 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import type { LiveDemoFrame } from '@/data/liveDemoScript';
-import { LIVE_DEMO_LOOP_PAUSE_MS, LIVE_DEMO_TYPING_INTERVAL_MS } from '@/data/liveDemoScript';
+import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react';
+import type { LiveDemoCommandLine, LiveDemoLine, LiveDemoTextLine, LiveDemoTextTone } from '@/data/liveDemoScript';
+import { LIVE_DEMO_SCRIPT, LIVE_DEMO_TYPING_INTERVAL_MS } from '@/data/liveDemoScript';
+import { SharedAgentTerminalVisual } from './SharedAgentTerminalVisual';
 
 /**
- * Props accepted by the live terminal dashboard preview.
+ * CSS classes used for individual line tones of the live terminal.
  */
-type LiveTerminalDemoProps = {
-    /**
-     * Command typed before the dashboard starts redrawing.
-     */
-    readonly command: string;
-
-    /**
-     * Real `ptbk coder run` dashboard snapshots produced by the shared CLI frame builder.
-     */
-    readonly frames: ReadonlyArray<LiveDemoFrame>;
+const LIVE_DEMO_TONE_CLASS_NAMES: Record<LiveDemoTextTone, string> = {
+    plain: 'text-gray-100',
+    muted: 'text-gray-400',
+    border: 'text-gray-500',
+    command: 'text-gray-100',
+    prompt: 'text-promptbook-green',
+    label: 'text-gray-500',
+    sessionTitle: 'font-semibold text-yellow-300',
+    taskTitle: 'font-semibold text-fuchsia-300',
+    outputTitle: 'font-semibold text-promptbook-green',
+    controlsTitle: 'font-semibold text-white',
+    success: 'text-promptbook-green',
+    info: 'text-promptbook-blue',
+    warning: 'text-amber-300',
+    progressEmpty: 'text-promptbook-blue',
+    badgeDone: 'bg-promptbook-green px-1 font-bold text-promptbook-dark-gray',
+    key: 'bg-gray-100 px-1 font-bold text-gray-950',
 };
 
 /**
- * Short pause between finishing the typed command and drawing the first dashboard frame.
+ * Command line after partial typing state has been applied.
  */
-const LIVE_DEMO_COMMAND_TO_FRAME_DELAY_MS = 450;
+type VisibleLiveDemoCommandLine = LiveDemoCommandLine & {
+    /**
+     * Currently typed command prefix.
+     */
+    readonly typedText: string;
+};
 
 /**
- * Renders one "live" preview of `ptbk coder` in action.
- *
- * The command is typed once, then the body replays serialized snapshots produced by the same
- * dashboard renderer that powers the real `ptbk coder run` terminal UI.
+ * Line currently visible in the live terminal.
+ */
+type VisibleLiveDemoLine =
+    | LiveDemoTextLine
+    | VisibleLiveDemoCommandLine
+    | Exclude<LiveDemoLine, LiveDemoTextLine | LiveDemoCommandLine>;
+
+/**
+ * Renders one preview of `ptbk coder run` in action - a text terminal that starts
+ * at the entered command and settles on the same rich dashboard shape as the real CLI.
  *
  * Note: Specified in [`specs/components/live-terminal.md`](../../../specs/components/live-terminal.md)
  */
-export function LiveTerminalDemo({ command, frames }: LiveTerminalDemoProps) {
-    const [typedCommand, setTypedCommand] = useState('');
-    const [currentFrame, setCurrentFrame] = useState<LiveDemoFrame | null>(frames[0] || null);
-    const [isTypingCommand, setIsTypingCommand] = useState(true);
+export function LiveTerminalDemo() {
+    const [visibleLines, setVisibleLines] = useState<ReadonlyArray<VisibleLiveDemoLine>>([]);
+    const [isPlaybackComplete, setIsPlaybackComplete] = useState(false);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         let isCancelled = false;
 
-        function waitFor(milliseconds: number): Promise<void> {
-            return new Promise((resolve) => setTimeout(resolve, milliseconds));
-        }
+        async function playScript(): Promise<void> {
+            for (const line of LIVE_DEMO_SCRIPT) {
+                await waitFor(line.delayMs);
 
-        async function playDemo() {
-            while (!isCancelled) {
-                setCurrentFrame(null);
-                setTypedCommand('');
-                setIsTypingCommand(true);
-
-                for (let typedCharacterCount = 1; typedCharacterCount <= command.length; typedCharacterCount++) {
-                    await waitFor(LIVE_DEMO_TYPING_INTERVAL_MS);
-                    if (isCancelled) {
-                        return;
-                    }
-                    setTypedCommand(command.slice(0, typedCharacterCount));
+                if (isCancelled) {
+                    return;
                 }
 
-                setIsTypingCommand(false);
-                await waitFor(LIVE_DEMO_COMMAND_TO_FRAME_DELAY_MS);
-
-                for (const frame of frames) {
-                    if (isCancelled) {
-                        return;
-                    }
-                    setCurrentFrame(frame);
-                    await waitFor(frame.delayMs);
+                if (line.kind === 'command') {
+                    await typeCommandLine(line, () => isCancelled, setVisibleLines);
+                    continue;
                 }
 
-                await waitFor(LIVE_DEMO_LOOP_PAUSE_MS);
+                setVisibleLines((previousLines) => [...previousLines, line]);
+            }
+
+            if (!isCancelled) {
+                setIsPlaybackComplete(true);
             }
         }
 
-        playDemo();
+        playScript();
 
         return () => {
             isCancelled = true;
         };
-    }, [command, frames]);
+    }, []);
 
     useEffect(() => {
         const scrollContainer = scrollContainerRef.current;
-        if (scrollContainer && currentFrame) {
-            scrollContainer.scrollTop = 0;
+
+        if (scrollContainer) {
+            scrollContainer.scrollTop = scrollContainer.scrollHeight;
         }
-    }, [currentFrame]);
+    }, [visibleLines]);
 
     return (
         <div className="overflow-hidden rounded-xl border border-gray-700/70 bg-[#0d1117] shadow-2xl shadow-black/40">
@@ -95,30 +102,91 @@ export function LiveTerminalDemo({ command, frames }: LiveTerminalDemoProps) {
                 <span className="h-3 w-3 rounded-full bg-[#febc2e]" aria-hidden />
                 <span className="h-3 w-3 rounded-full bg-[#28c840]" aria-hidden />
                 <span className="ml-2 flex-1 truncate font-mono text-xs text-gray-400">
-                    ptbk coder run - live terminal
+                    ptbk coder run — live terminal
                 </span>
                 <span className="flex items-center gap-1.5 text-xs text-promptbook-green">
-                    <span className="h-2 w-2 animate-pulse rounded-full bg-promptbook-green" aria-hidden />
-                    live
+                    <span className="h-2 w-2 rounded-full bg-promptbook-green" aria-hidden />
+                    sample run
                 </span>
             </div>
             <div
                 ref={scrollContainerRef}
-                aria-label="Simulated ptbk coder run dashboard"
-                className="h-[31rem] overflow-auto p-4 font-mono text-[8px] leading-[1.25] text-gray-100 sm:text-[9px] md:h-[36rem]"
+                aria-label="Simulated ptbk coder run terminal session"
+                className="h-[30rem] overflow-auto p-4 font-mono text-[10px] leading-tight md:h-[38rem] md:text-[11px]"
             >
-                <div className="whitespace-pre-wrap break-words">
-                    <span className="select-none text-gray-500">$ </span>
-                    <span>{typedCommand}</span>
-                    {isTypingCommand && <span className="animate-pulse text-promptbook-blue">▊</span>}
-                </div>
-
-                {currentFrame ? (
-                    <pre className="mt-3 min-w-max whitespace-pre text-gray-100" aria-hidden="true">
-                        {currentFrame.lines.join('\n')}
-                    </pre>
-                ) : null}
+                {visibleLines.map((line, lineIndex) => (
+                    <LiveTerminalLine key={lineIndex} line={line} isPlaybackComplete={isPlaybackComplete} />
+                ))}
             </div>
         </div>
     );
+}
+
+/**
+ * Renders one visible terminal line.
+ */
+function LiveTerminalLine({
+    line,
+    isPlaybackComplete,
+}: {
+    readonly line: VisibleLiveDemoLine;
+    readonly isPlaybackComplete: boolean;
+}) {
+    if (line.kind === 'agentVisual') {
+        return <SharedAgentTerminalVisual isAnimationActive={!isPlaybackComplete} />;
+    }
+
+    if (line.kind === 'command') {
+        return (
+            <div className="whitespace-pre">
+                <span className="select-none text-gray-500">$ </span>
+                <span className={LIVE_DEMO_TONE_CLASS_NAMES.command}>{line.typedText}</span>
+            </div>
+        );
+    }
+
+    if (line.parts.length === 0) {
+        return <div className="whitespace-pre">&nbsp;</div>;
+    }
+
+    return (
+        <div className="whitespace-pre">
+            {line.parts.map((part, partIndex) => (
+                <span key={partIndex} className={LIVE_DEMO_TONE_CLASS_NAMES[part.tone]}>
+                    {part.text}
+                </span>
+            ))}
+        </div>
+    );
+}
+
+/**
+ * Types one command line character-by-character.
+ */
+async function typeCommandLine(
+    line: LiveDemoCommandLine,
+    isCancelled: () => boolean,
+    setVisibleLines: Dispatch<SetStateAction<ReadonlyArray<VisibleLiveDemoLine>>>,
+): Promise<void> {
+    setVisibleLines((previousLines) => [...previousLines, { ...line, typedText: '' }]);
+
+    for (let typedCharacterCount = 1; typedCharacterCount <= line.text.length; typedCharacterCount++) {
+        await waitFor(LIVE_DEMO_TYPING_INTERVAL_MS);
+
+        if (isCancelled()) {
+            return;
+        }
+
+        setVisibleLines((previousLines) => [
+            ...previousLines.slice(0, -1),
+            { ...line, typedText: line.text.slice(0, typedCharacterCount) },
+        ]);
+    }
+}
+
+/**
+ * Waits for the requested playback delay.
+ */
+function waitFor(milliseconds: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }

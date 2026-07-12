@@ -25,4 +25,28 @@ describe('CoderRunUiState', () => {
         expect(progress.estimatedLabel).not.toBe('after first completion');
         expect(progress.isEstimatedTotalKnown).toBe(true);
     });
+
+    it('uses the configured run limit for rich UI session progress', () => {
+        const state = new CoderRunUiState(moment());
+
+        state.setConfig({
+            agentName: 'GitHub Copilot',
+            priority: 0,
+            limit: 2,
+        });
+        state.updateProgress({
+            done: 0,
+            forAgent: 9,
+            belowMinimumPriority: 0,
+            toBeWritten: 0,
+        });
+
+        expect(state.getProgress()).toMatchObject({
+            sessionDone: 0,
+            sessionRemaining: 2,
+            sessionTotal: 2,
+            currentPromptIndex: 1,
+            percentage: 0,
+        });
+    });
 });

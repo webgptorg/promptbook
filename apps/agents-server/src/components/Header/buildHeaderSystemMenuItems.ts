@@ -1,14 +1,53 @@
 import {
     Activity,
+    Archive,
+    BadgeInfo,
     BarChart3,
-    Code2,
+    Bot,
+    Brain,
+    Bug,
+    Building2,
+    ChartNoAxesColumn,
+    ClipboardList,
+    Crown,
+    Database,
+    FileAudio,
+    FileCode,
+    FileCode2,
+    FileJson,
+    FileSearch,
+    FileStack,
+    FlaskConical,
     Globe2,
+    Gauge,
+    History,
+    Home,
+    Images,
     KeyRound,
+    LogIn,
+    Mail,
+    MessageCircle,
+    MessageSquareText,
+    Mic,
+    MousePointerClick,
+    Paintbrush,
+    PlugZap,
     RefreshCw,
-    Settings2,
+    Scale,
+    ScrollText,
+    Search,
+    Server,
+    Shield,
     ShieldCheck,
+    SlidersHorizontal,
+    Star,
+    Terminal,
+    TerminalSquare,
     TriangleAlert,
+    UserCircle,
     UserRound,
+    Users,
+    WalletCards,
     Wrench,
     type LucideIcon,
 } from 'lucide-react';
@@ -44,6 +83,53 @@ type SystemCategoryLabel =
     | 'Legal & About';
 
 /**
+ * Hrefs owned by the System dropdown that receive a dedicated icon.
+ *
+ * @private type of Header
+ */
+type SystemMenuItemHref =
+    | '/system/settings'
+    | '/system/profile'
+    | '/system/user-memory'
+    | '/system/user-wallet'
+    | '/system/utilities'
+    | '/system/utilities/mocked-chats'
+    | '/admin/about'
+    | 'https://ptbk.io/'
+    | '/admin/servers'
+    | '/admin/environment'
+    | '/admin/resource-monitor'
+    | '/admin/update'
+    | '/admin/database'
+    | '/admin/logs'
+    | '/admin/code-runners'
+    | '/admin/cli-access'
+    | '/admin/models'
+    | '/admin/metadata'
+    | '/admin/limits'
+    | '/admin/messages'
+    | '/admin/backup'
+    | '/admin/users'
+    | '/admin/custom-css'
+    | '/admin/custom-js'
+    | '/admin/images'
+    | '/admin/files'
+    | '/admin/login-methods/shibboleth#setup-instructions'
+    | '/admin/login-methods/shibboleth'
+    | '/admin/usage'
+    | '/admin/task-manager'
+    | '/admin/chat-history'
+    | '/admin/chat-feedback'
+    | '/admin/api-tokens'
+    | '/swagger'
+    | '/admin/browser-test'
+    | '/admin/voice-input-test'
+    | '/admin/transcriptions'
+    | '/admin/search-engine-test'
+    | '/admin/error-simulation'
+    | '/experiments/story';
+
+/**
  * Input required to build the System dropdown tree.
  *
  * @private type of Header
@@ -65,13 +151,59 @@ type BuildHeaderSystemMenuItemsOptions = {
 const SYSTEM_CATEGORY_ICON_MAP: Record<SystemCategoryLabel, LucideIcon> = {
     'My Account': UserRound,
     Utilities: Wrench,
-    'Super Admin': Settings2,
-    Administration: Settings2,
-    'Login Methods': KeyRound,
+    'Super Admin': Crown,
+    Administration: Building2,
+    'Login Methods': LogIn,
     'Monitoring & Usage': BarChart3,
-    'Integrations & Keys': KeyRound,
-    'Developer / Debug': Code2,
-    'Legal & About': Globe2,
+    'Integrations & Keys': PlugZap,
+    'Developer / Debug': Bug,
+    'Legal & About': Scale,
+};
+
+/**
+ * Dedicated icon used for each System dropdown leaf entry.
+ */
+const SYSTEM_MENU_ICON_BY_HREF: Record<SystemMenuItemHref, LucideIcon> = {
+    '/system/settings': SlidersHorizontal,
+    '/system/profile': UserCircle,
+    '/system/user-memory': Brain,
+    '/system/user-wallet': WalletCards,
+    '/system/utilities': MousePointerClick,
+    '/system/utilities/mocked-chats': MessageSquareText,
+    '/admin/about': BadgeInfo,
+    'https://ptbk.io/': Home,
+    '/admin/servers': Server,
+    '/admin/environment': FileCode2,
+    '/admin/resource-monitor': Activity,
+    '/admin/update': RefreshCw,
+    '/admin/database': Database,
+    '/admin/logs': ScrollText,
+    '/admin/code-runners': TerminalSquare,
+    '/admin/cli-access': Terminal,
+    '/admin/models': Bot,
+    '/admin/metadata': FileJson,
+    '/admin/limits': Gauge,
+    '/admin/messages': Mail,
+    '/admin/backup': Archive,
+    '/admin/users': Users,
+    '/admin/custom-css': Paintbrush,
+    '/admin/custom-js': FileCode,
+    '/admin/images': Images,
+    '/admin/files': FileStack,
+    '/admin/login-methods/shibboleth#setup-instructions': Shield,
+    '/admin/login-methods/shibboleth': ShieldCheck,
+    '/admin/usage': ChartNoAxesColumn,
+    '/admin/task-manager': ClipboardList,
+    '/admin/chat-history': History,
+    '/admin/chat-feedback': MessageCircle,
+    '/admin/api-tokens': KeyRound,
+    '/swagger': FileSearch,
+    '/admin/browser-test': Globe2,
+    '/admin/voice-input-test': Mic,
+    '/admin/transcriptions': FileAudio,
+    '/admin/search-engine-test': Search,
+    '/admin/error-simulation': FlaskConical,
+    '/experiments/story': Star,
 };
 
 /**
@@ -90,18 +222,43 @@ const SYSTEM_CATEGORY_TRANSLATION_KEY_MAP: Record<SystemCategoryLabel, ServerTra
 };
 
 /**
- * Propagates one fallback icon to submenu entries that do not specify their own icon.
+ * Checks whether a href is one of the System dropdown routes with a dedicated icon.
  */
-function applyFallbackSubMenuIcon(
+function isSystemMenuItemHref(href: string): href is SystemMenuItemHref {
+    return Object.prototype.hasOwnProperty.call(SYSTEM_MENU_ICON_BY_HREF, href);
+}
+
+/**
+ * Resolves the icon for one System submenu entry.
+ */
+function resolveSystemSubMenuIcon(
+    item: SubMenuItem,
+    fallbackIcon: NonNullable<SubMenuItem['icon']>,
+): NonNullable<SubMenuItem['icon']> {
+    if (item.icon) {
+        return item.icon;
+    }
+
+    if (item.href && isSystemMenuItemHref(item.href)) {
+        return SYSTEM_MENU_ICON_BY_HREF[item.href];
+    }
+
+    return fallbackIcon;
+}
+
+/**
+ * Adds a stable icon to each System submenu entry without repeating icon assignments in every item literal.
+ */
+function applySystemSubMenuIcons(
     items: ReadonlyArray<SubMenuItem>,
     fallbackIcon: NonNullable<SubMenuItem['icon']>,
 ): SubMenuItem[] {
     return items.map((item) => {
-        const resolvedIcon = item.icon ?? fallbackIcon;
+        const resolvedIcon = resolveSystemSubMenuIcon(item, fallbackIcon);
         return {
             ...item,
             icon: resolvedIcon,
-            items: item.items ? applyFallbackSubMenuIcon(item.items, resolvedIcon) : item.items,
+            items: item.items ? applySystemSubMenuIcons(item.items, resolvedIcon) : item.items,
         };
     });
 }
@@ -141,7 +298,7 @@ function createSystemCategory(
                 ? createWarningMenuLabel(translate(SYSTEM_CATEGORY_TRANSLATION_KEY_MAP[label]))
                 : translate(SYSTEM_CATEGORY_TRANSLATION_KEY_MAP[label]),
             icon: categoryIcon,
-            items: applyFallbackSubMenuIcon(items, categoryIcon),
+            items: applySystemSubMenuIcons(items, categoryIcon),
         },
     ];
 }
@@ -240,12 +397,10 @@ export function buildHeaderSystemMenuItems({
                           ? createWarningMenuLabel(translate('header.resourceMonitor'))
                           : translate('header.resourceMonitor'),
                       href: '/admin/resource-monitor',
-                      icon: Activity,
                   } as SubMenuItem,
                   {
                       label: translate('header.update'),
                       href: '/admin/update',
-                      icon: RefreshCw,
                   } as SubMenuItem,
                   {
                       label: translate('header.database'),
@@ -325,7 +480,6 @@ export function buildHeaderSystemMenuItems({
                   href: isShibbolethConfigurationWarningShown
                       ? '/admin/login-methods/shibboleth#setup-instructions'
                       : '/admin/login-methods/shibboleth',
-                  icon: ShieldCheck,
               },
           ]
         : [];

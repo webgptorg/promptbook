@@ -68,3 +68,19 @@ ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh -
 -   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 
+---
+
+[x] ~$0.2744 an hour by OpenAI Codex `gpt-5.5`
+
+[✨🦝] When `--limit` option is used with `ptbk coder run`, show the limit in the terminal UI not total tasks
+
+```bash
+ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --limit 2
+```
+
+-   For example when the `--limit` is `2` instead of "(0/9 done)" show "(0/2 done)"
+-   When no limit is set, show the total tasks as before "(0/9 done)"
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
+-   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
+

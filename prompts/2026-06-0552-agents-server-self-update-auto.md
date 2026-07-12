@@ -17,3 +17,18 @@
 
 ![alt text](screenshots/2026-06-0552-agents-server-self-update-auto.png)
 
+---
+
+[x] ~$0.3664 an hour by OpenAI Codex `gpt-5.5`
+
+[✨🧐] The self-update cron have some wizard
+
+-   On `/admin/update` of Agents server you can trigger the self-update of the server
+-   You can also configure the self-update cron job as cron notation, for example `0 0 * * *`
+-   But cron notation is not user friendly, so add some wizard to configure the self-update cron job in a user friendly way, for example with a dropdown or a calendar.
+-   But also allow to enter the cron notation directly, for example `0 0 * * *`
+-   Create some shared react component for the cron job configuration which will have `value` and `onChange` props, so that it can be used in other places as well.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+

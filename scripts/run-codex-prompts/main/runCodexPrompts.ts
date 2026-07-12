@@ -287,7 +287,9 @@ function createRunDisplays(
 } {
     const isRichUiEnabled = !options.dryRun && !options.noUi && Boolean(process.stdout.isTTY);
     const progressDisplay =
-        options.dryRun || options.noUi || isRichUiEnabled ? undefined : new CliProgressDisplay(runStartDate, options.priority);
+        options.dryRun || options.noUi || isRichUiEnabled
+            ? undefined
+            : new CliProgressDisplay(runStartDate, options.priority, options.limit);
     const uiHandle =
         isRichUiEnabled || options.uiState
             ? renderCoderRunUi(runStartDate, {

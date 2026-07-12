@@ -8,11 +8,23 @@ import { TaskManagerTasksCard } from './TaskManagerTasksCard';
 import { useTaskManagerState } from './useTaskManagerState';
 
 /**
+ * Props for the admin task-manager dashboard client.
+ *
+ * @private route component of AdminTaskManagerPage
+ */
+type TaskManagerClientProps = {
+    /**
+     * Whether the current user is the environment-backed super-admin who may open task terminals.
+     */
+    isSuperAdmin: boolean;
+};
+
+/**
  * Admin task-manager dashboard client.
  *
  * @private route component of AdminTaskManagerPage
  */
-export function TaskManagerClient() {
+export function TaskManagerClient({ isSuperAdmin }: TaskManagerClientProps) {
     const { language } = useServerLanguage();
     const taskManagerState = useTaskManagerState(language);
 
@@ -55,7 +67,7 @@ export function TaskManagerClient() {
                 </Card>
             ) : null}
 
-            <TaskManagerTasksCard language={language} state={taskManagerState} />
+            <TaskManagerTasksCard language={language} state={taskManagerState} isSuperAdmin={isSuperAdmin} />
         </div>
     );
 }

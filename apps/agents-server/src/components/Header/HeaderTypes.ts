@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { ComponentType, ReactNode } from 'react';
 import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../../utils/agentOrganization/types';
 import type { ChatFeedbackMode } from '../../utils/chatFeedbackMode';
 import type { UserInfo } from '../../utils/getCurrentUser';
@@ -79,6 +79,11 @@ type MenuItemBase = {
      * Unique identifier used for hover timers and shared actions.
      */
     readonly id: string;
+
+    /**
+     * Optional visual icon rendered before the menu label.
+     */
+    readonly icon?: ComponentType<{ className?: string }>;
 };
 
 /**

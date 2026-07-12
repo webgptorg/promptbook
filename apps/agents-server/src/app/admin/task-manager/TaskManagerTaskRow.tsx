@@ -1,6 +1,12 @@
+'use client';
+
+import { useState } from 'react';
+import { SquareTerminal } from 'lucide-react';
 import type { AdminChatTaskRecord } from '@/src/utils/chatTasksAdmin';
 import type { ServerLanguageCode } from '@/src/languages/ServerLanguageRegistry';
 import { formatServerLanguageHumanReadableDate } from '@/src/utils/localization/formatServerLanguageHumanReadableDate';
+import { TaskManagerTaskLogActions } from './TaskManagerTaskLogActions';
+import { TaskManagerTaskTerminalDialog } from './TaskManagerTaskTerminalDialog';
 import type { useTaskManagerState } from './useTaskManagerState';
 
 /**
@@ -11,6 +17,7 @@ import type { useTaskManagerState } from './useTaskManagerState';
 type TaskManagerTaskRowProps = {
     busyAction: ReturnType<typeof useTaskManagerState>['busyAction'];
     busyTaskId: ReturnType<typeof useTaskManagerState>['busyTaskId'];
+    isSuperAdmin: boolean;
     language: ServerLanguageCode;
     onRunTaskAction: ReturnType<typeof useTaskManagerState>['runTaskAction'];
     stuckThresholdMinutes: ReturnType<typeof useTaskManagerState>['stuckThresholdMinutes'];
@@ -54,6 +61,8 @@ type TaskInfoBlockProps = {
  */
 type TaskManagerTaskActionsProps = Pick<TaskManagerTaskRowProps, 'busyAction' | 'onRunTaskAction' | 'task'> & {
     isBusy: boolean;
+    isSuperAdmin: boolean;
+    onOpenTerminal: () => void;
 };
 
 /**
@@ -267,13 +276,32 @@ function resolveTaskRowClassName(task: AdminChatTaskRecord, isStuck: boolean): s
  *
  * @private function of TaskManagerTaskRow
  */
-function TaskManagerTaskActions({ busyAction, isBusy, onRunTaskAction, task }: TaskManagerTaskActionsProps) {
+function TaskManagerTaskActions({
+    busyAction,
+    isBusy,
+    isSuperAdmin,
+    onOpenTerminal,
+    onRunTaskAction,
+    task,
+}: TaskManagerTaskActionsProps) {
     const isDurableChatTask = task.kind === 'CHAT_COMPLETION' || task.kind === 'CHAT_TIMEOUT';
     const isCancelable = isDurableChatTask && (task.status === 'QUEUED' || task.status === 'RUNNING');
     const isRetryable = isDurableChatTask && task.status === 'FAILED';
 
     return (
-        <div className="flex justify-end gap-2">
+        <div className="flex flex-wrap justify-end gap-2">
+            {isSuperAdmin ? (
+                <button
+                    type="button"
+                    onClick={onOpenTerminal}
+                    className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-slate-900 px-3 py-1.5 font-semibold text-white hover:bg-slate-800"
+                    title="Open the read-only live CLI terminal of this task"
+                >
+                    <SquareTerminal className="h-3.5 w-3.5" />
+                    Terminal
+                </button>
+            ) : null}
+
             {isCancelable ? (
                 <button
                     type="button"
@@ -296,7 +324,7 @@ function TaskManagerTaskActions({ busyAction, isBusy, onRunTaskAction, task }: T
                 </button>
             ) : null}
 
-            {!isCancelable && !isRetryable ? (
+            {!isCancelable && !isRetryable && !isSuperAdmin ? (
                 <span className="rounded-md border border-gray-200 bg-gray-50 px-3 py-1.5 font-medium text-gray-500">
                     -
                 </span>
@@ -313,11 +341,13 @@ function TaskManagerTaskActions({ busyAction, isBusy, onRunTaskAction, task }: T
 export function TaskManagerTaskRow({
     busyAction,
     busyTaskId,
+    isSuperAdmin,
     language,
     onRunTaskAction,
     stuckThresholdMinutes,
     task,
 }: TaskManagerTaskRowProps) {
+    const [isTerminalDialogOpen, setIsTerminalDialogOpen] = useState(false);
     const isStuck = isTaskStuck(task, stuckThresholdMinutes);
     const isBusy = busyTaskId === task.id;
 
@@ -406,21 +436,26 @@ export function TaskManagerTaskRow({
             </td>
 
             <td className="max-w-xs px-4 py-3 align-top text-[11px] leading-relaxed text-gray-600">
-                {task.lastErrorSummary || task.lastErrorDetails ? (
-                    <div className="space-y-2">
-                        {task.lastErrorSummary ? <div>{truncateText(task.lastErrorSummary, 220)}</div> : null}
-                        {task.lastErrorDetails ? (
-                            <details className="rounded-md border border-gray-200 bg-gray-50 p-2">
-                                <summary className="cursor-pointer font-medium text-gray-700">Show details</summary>
-                                <pre className="mt-2 overflow-x-auto whitespace-pre-wrap break-words text-[10px] leading-relaxed text-gray-600">
-                                    {task.lastErrorDetails}
-                                </pre>
-                            </details>
-                        ) : null}
-                    </div>
-                ) : (
-                    '-'
-                )}
+                <div className="space-y-2">
+                    {task.lastErrorSummary || task.lastErrorDetails ? (
+                        <>
+                            {task.lastErrorSummary ? <div>{truncateText(task.lastErrorSummary, 220)}</div> : null}
+                            {task.lastErrorDetails ? (
+                                <details className="rounded-md border border-gray-200 bg-gray-50 p-2">
+                                    <summary className="cursor-pointer font-medium text-gray-700">
+                                        Show details
+                                    </summary>
+                                    <pre className="mt-2 overflow-x-auto whitespace-pre-wrap break-words text-[10px] leading-relaxed text-gray-600">
+                                        {task.lastErrorDetails}
+                                    </pre>
+                                </details>
+                            ) : null}
+                        </>
+                    ) : (
+                        '-'
+                    )}
+                    <TaskManagerTaskLogActions task={task} />
+                </div>
             </td>
 
             <td className="px-4 py-3 align-top">
@@ -428,8 +463,13 @@ export function TaskManagerTaskRow({
                     task={task}
                     busyAction={busyAction}
                     isBusy={isBusy}
+                    isSuperAdmin={isSuperAdmin}
+                    onOpenTerminal={() => setIsTerminalDialogOpen(true)}
                     onRunTaskAction={onRunTaskAction}
                 />
+                {isTerminalDialogOpen ? (
+                    <TaskManagerTaskTerminalDialog task={task} onClose={() => setIsTerminalDialogOpen(false)} />
+                ) : null}
             </td>
         </tr>
     );
