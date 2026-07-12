@@ -29,6 +29,26 @@ type HeaderDesktopTopMenuNavigationProps = {
 };
 
 /**
+ * Renders a top-level menu label with its optional icon.
+ *
+ * @private function of Header
+ */
+function HeaderDesktopTopMenuItemLabel({ item }: { readonly item: MenuItem }) {
+    const ItemIcon = item.icon;
+
+    if (!ItemIcon) {
+        return item.label;
+    }
+
+    return (
+        <span className="inline-flex min-w-0 items-center gap-2">
+            <ItemIcon className="h-4 w-4 shrink-0 text-gray-500" aria-hidden />
+            <span className="min-w-0">{item.label}</span>
+        </span>
+    );
+}
+
+/**
  * Renders desktop-only top-level navigation entries shown to the right of the search slot.
  *
  * @private function of Header
@@ -54,7 +74,7 @@ export function HeaderDesktopTopMenuNavigation({
                             href={item.href}
                             className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
                         >
-                            {item.label}
+                            <HeaderDesktopTopMenuItemLabel item={item} />
                         </HeadlessLink>
                     );
                 }
@@ -91,7 +111,7 @@ export function HeaderDesktopTopMenuNavigation({
                             onBlur={() => scheduleMenuClose(item.id, () => item.setIsOpen(false))}
                             aria-expanded={item.isOpen}
                         >
-                            {item.label}
+                            <HeaderDesktopTopMenuItemLabel item={item} />
                             <ChevronDown className="w-4 h-4" />
                         </button>
 

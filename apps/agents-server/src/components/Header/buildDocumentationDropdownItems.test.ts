@@ -1,6 +1,24 @@
 import { describe, expect, it } from '@jest/globals';
 import { getVisibleCommitmentDefinitions } from '../../utils/getVisibleCommitmentDefinitions';
 import { buildDocumentationDropdownItems } from './buildDocumentationDropdownItems';
+import type { SubMenuItem } from './SubMenuItem';
+
+/**
+ * Counts every submenu item including nested entries.
+ */
+function countSubMenuItems(items: ReadonlyArray<SubMenuItem>): number {
+    return items.reduce((count, item) => count + 1 + (item.items ? countSubMenuItems(item.items) : 0), 0);
+}
+
+/**
+ * Collects every rendered submenu icon including nested entries.
+ */
+function collectSubMenuIcons(items: ReadonlyArray<SubMenuItem>): Array<NonNullable<SubMenuItem['icon']>> {
+    return items.flatMap((item) => [
+        ...(item.icon ? [item.icon] : []),
+        ...(item.items ? collectSubMenuIcons(item.items) : []),
+    ]);
+}
 
 describe('buildDocumentationDropdownItems', () => {
     it('puts important commitments before the rest of the documentation catalogue and fades low-level entries', () => {
@@ -20,5 +38,13 @@ describe('buildDocumentationDropdownItems', () => {
 
         expect(lastItem?.href).toBe('/docs/MODEL');
         expect(lastLabel?.props?.className).toContain('opacity-70');
+    });
+
+    it('assigns one distinct icon to every documentation menu entry', () => {
+        const items = buildDocumentationDropdownItems(getVisibleCommitmentDefinitions(), (key) => key);
+        const icons = collectSubMenuIcons(items);
+
+        expect(icons).toHaveLength(countSubMenuItems(items));
+        expect(new Set(icons).size).toBe(icons.length);
     });
 });

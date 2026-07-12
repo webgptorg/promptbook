@@ -1,3 +1,4 @@
+import { BookOpenText, MonitorCog } from 'lucide-react';
 import type { MenuItem } from './HeaderTypes';
 import type { SubMenuItem } from './SubMenuItem';
 
@@ -14,6 +15,7 @@ type HeaderMenuSetter = (isOpen: boolean) => void;
  * @private type of Header
  */
 type HeaderDropdownMenuItemConfig = {
+    readonly icon: MenuItem['icon'];
     readonly id: string;
     readonly isMobileOpen: boolean;
     readonly isOpen: boolean;
@@ -50,6 +52,7 @@ type BuildHeaderMenuItemsOptions = {
  * @private function of Header
  */
 function createHeaderDropdownMenuItem({
+    icon,
     id,
     isMobileOpen,
     isOpen,
@@ -60,6 +63,7 @@ function createHeaderDropdownMenuItem({
 }: HeaderDropdownMenuItemConfig): MenuItem {
     return {
         type: 'dropdown',
+        icon,
         id,
         label,
         isOpen,
@@ -96,6 +100,7 @@ export function buildHeaderMenuItems({
         items.push(
             createHeaderDropdownMenuItem({
                 id: 'documentation',
+                icon: BookOpenText,
                 label: documentationLabel,
                 items: documentationDropdownItems,
                 isOpen: isDocsOpen,
@@ -110,6 +115,7 @@ export function buildHeaderMenuItems({
         items.push(
             createHeaderDropdownMenuItem({
                 id: 'system',
+                icon: MonitorCog,
                 label: systemLabel,
                 items: systemMenuEntries,
                 isOpen: isSystemOpen,

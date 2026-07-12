@@ -759,6 +759,26 @@ type HeaderMobileDrawerMenuEntryProps = {
 };
 
 /**
+ * Renders a top-level mobile menu label with its optional icon.
+ *
+ * @private function of HeaderMobileDrawer
+ */
+function HeaderMobileDrawerMenuItemLabel({ item }: { readonly item: MenuItem }) {
+    const ItemIcon = item.icon;
+
+    if (!ItemIcon) {
+        return item.label;
+    }
+
+    return (
+        <span className="inline-flex min-w-0 items-center gap-2">
+            <ItemIcon className="h-4 w-4 shrink-0 text-gray-500" aria-hidden />
+            <span className="min-w-0">{item.label}</span>
+        </span>
+    );
+}
+
+/**
  * Renders one top-level mobile menu item as either a direct link or a nested dropdown.
  *
  * @private function of HeaderMobileDrawer
@@ -776,7 +796,7 @@ function HeaderMobileDrawerMenuEntry({
                 className="block w-full rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 hover:text-blue-600 active:bg-gray-100"
                 onClick={closeMenu}
             >
-                {item.label}
+                <HeaderMobileDrawerMenuItemLabel item={item} />
             </HeadlessLink>
         );
     }
@@ -787,7 +807,7 @@ function HeaderMobileDrawerMenuEntry({
                 className={MOBILE_DRAWER_TOP_LEVEL_BUTTON_CLASSNAME}
                 onClick={() => item.setIsMobileOpen(!item.isMobileOpen)}
             >
-                {item.label}
+                <HeaderMobileDrawerMenuItemLabel item={item} />
                 <ChevronDown className={createHeaderMobileDrawerChevronClassName(item.isMobileOpen)} />
             </button>
             {item.isMobileOpen && (
