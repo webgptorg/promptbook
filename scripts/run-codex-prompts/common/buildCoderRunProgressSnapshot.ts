@@ -32,11 +32,14 @@ export function buildCoderRunProgressSnapshot(
     elapsedDuration: moment.Duration,
     initialDone: number,
     cachedAveragePromptDurationMs?: number,
+    runLimit?: number,
 ): CoderRunProgressSnapshot {
     const totalPrompts = stats.done + stats.forAgent + stats.toBeWritten;
-    const sessionDone = Math.max(0, stats.done - initialDone);
-    const sessionRemaining = stats.forAgent;
-    const sessionTotal = sessionDone + sessionRemaining;
+    const completedSessionPrompts = Math.max(0, stats.done - initialDone);
+    const availableSessionTotal = completedSessionPrompts + stats.forAgent;
+    const sessionTotal = resolveSessionTotal(availableSessionTotal, runLimit);
+    const sessionDone = Math.min(completedSessionPrompts, sessionTotal);
+    const sessionRemaining = Math.max(0, sessionTotal - sessionDone);
     const currentPromptIndex = sessionTotal > 0 ? Math.min(sessionDone + 1, sessionTotal) : 0;
     const percentage = sessionTotal > 0 ? Math.round((sessionDone / sessionTotal) * 100) : 0;
     const elapsedText = formatDurationBrief(elapsedDuration);
@@ -82,4 +85,15 @@ export function buildCoderRunProgressSnapshot(
         estimatedLabel,
         isEstimatedTotalKnown,
     };
+}
+
+/**
+ * Resolves the number of prompt runs represented by the current session progress.
+ */
+function resolveSessionTotal(availableSessionTotal: number, runLimit: number | undefined): number {
+    if (runLimit === undefined) {
+        return availableSessionTotal;
+    }
+
+    return Math.min(availableSessionTotal, runLimit);
 }

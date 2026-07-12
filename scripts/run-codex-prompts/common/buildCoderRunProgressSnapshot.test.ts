@@ -78,4 +78,52 @@ describe('buildCoderRunProgressSnapshot', () => {
             isEstimatedTotalKnown: true,
         });
     });
+
+    it('uses the configured run limit as the current session total when it is smaller than the runnable queue', () => {
+        const snapshot = buildCoderRunProgressSnapshot(
+            {
+                done: 43,
+                forAgent: 9,
+                belowMinimumPriority: 0,
+                toBeWritten: 0,
+            },
+            moment.duration(10, 'seconds'),
+            43,
+            undefined,
+            2,
+        );
+
+        expect(snapshot).toMatchObject({
+            totalPrompts: 52,
+            sessionDone: 0,
+            sessionRemaining: 2,
+            sessionTotal: 2,
+            currentPromptIndex: 1,
+            percentage: 0,
+        });
+    });
+
+    it('counts completed prompts against the configured run limit', () => {
+        const snapshot = buildCoderRunProgressSnapshot(
+            {
+                done: 44,
+                forAgent: 8,
+                belowMinimumPriority: 0,
+                toBeWritten: 0,
+            },
+            moment.duration(10, 'minutes'),
+            43,
+            undefined,
+            2,
+        );
+
+        expect(snapshot).toMatchObject({
+            totalPrompts: 52,
+            sessionDone: 1,
+            sessionRemaining: 1,
+            sessionTotal: 2,
+            currentPromptIndex: 2,
+            percentage: 50,
+        });
+    });
 });

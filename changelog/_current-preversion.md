@@ -1,3 +1,5 @@
+-   Fixed `ptbk coder run --limit <run-count>` progress totals so the terminal UI shows the configured run limit as the current-session denominator, for example `(0/2 done)` instead of `(0/9 done)` when nine prompts are runnable but only two should be processed.
+
 -   Added a shared Agents Server `<CronJobConfiguration/>` component for cron-backed schedules. The standalone VPS `/admin/update` automatic self-update settings now use it to offer common hourly/daily/weekly/monthly schedule controls while still preserving direct cron expression editing for values such as `0 0 * * *`.
 
 -   Updated the `ptbk coder` landing page live terminal so the hero now replays the real `ptbk coder run` rich dashboard instead of the older fake `ptbk coder server` log. The sample types a limited run command, cycles through `LOADING` / `RUNNING` / `VERIFYING` / `DONE` dashboard states, shows the real `Session`, `Current task`, `Live output`, and `Controls` panels, and renders the agent visual through the shared `src/avatars` component used by Agents Server and the coder terminal ASCII bridge.

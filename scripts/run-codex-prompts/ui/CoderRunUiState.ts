@@ -152,6 +152,7 @@ export class CoderRunUiState extends EventEmitter {
             this.timer.getElapsedDuration(),
             this.initialDone ?? this.stats.done,
             this.cachedAveragePromptDurationMs,
+            this.config.limit,
         );
     }
 
