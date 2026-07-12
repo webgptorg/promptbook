@@ -23,6 +23,7 @@ import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../utils/a
 import { getAgentNaming } from '../utils/getAgentNaming';
 import { getCurrentUser } from '../utils/getCurrentUser';
 import { getDefaultChatPreferences } from '../utils/chatPreferences';
+import { formatServerLanguageHumanReadableDate } from '../utils/localization/formatServerLanguageHumanReadableDate';
 import {
     CHAT_VISUAL_MODE_COOKIE_NAME,
     CHAT_VISUAL_MODE_METADATA_KEY,
@@ -51,6 +52,7 @@ import {
 import { resolveFileUploadAvailability } from '../utils/upload/fileUploadAvailability';
 import { readServerResourceWarningStatus } from '../utils/resourceMonitor/readServerResourceMonitorSnapshot';
 import { RESOURCE_MONITOR_OK_WARNING_STATUS } from '../utils/resourceMonitor/resourceMonitorTypes';
+import { readAgentsServerFooterVersion } from '../utils/vpsSelfUpdate/readAgentsServerFooterVersion';
 import '@prisma/studio-core/ui/index.css';
 import './globals.css';
 
@@ -288,6 +290,7 @@ export default async function RootLayout({
     );
     const chatPreferencesPromise = getDefaultChatPreferences();
     const defaultIsNotificationsOnPromise = getDefaultIsNotificationsOn();
+    const footerVersionMetadataPromise = readAgentsServerFooterVersion();
     const fileUploadAvailabilityPromise = providedServerPromise.then((providedServer) =>
         resolveFileUploadAvailability({
             serverId: providedServer.id,
@@ -364,6 +367,7 @@ export default async function RootLayout({
         serverVisibility,
         fileUploadAvailability,
         resourceMonitorWarningStatus,
+        footerVersionMetadata,
     ] = await Promise.all([
         isAdminPromise,
         isGlobalAdminPromise,
@@ -383,6 +387,7 @@ export default async function RootLayout({
         serverVisibilityPromise,
         fileUploadAvailabilityPromise,
         resourceMonitorWarningStatusPromise,
+        footerVersionMetadataPromise,
     ]);
 
     const serverName = layoutMetadata.SERVER_NAME || 'Promptbook Agents Server';
@@ -411,6 +416,16 @@ export default async function RootLayout({
     const defaultAgentAvatarVisualId = resolveDefaultAgentAvatarVisualId(rawDefaultAgentAvatarVisual);
     const preferredLanguageSource = isServerLanguageEnforced ? rawServerLanguage : cookieLanguage || rawServerLanguage;
     const serverLanguage = resolveServerLanguageCode(preferredLanguageSource);
+    const footerVersionReleasedAtLabel =
+        formatServerLanguageHumanReadableDate(footerVersionMetadata.releasedAt, serverLanguage, {
+            fallbackLabel: '',
+        }) || null;
+    const footerVersion = {
+        label: footerVersionMetadata.label,
+        url: footerVersionMetadata.versionUrl,
+        commitSha: footerVersionMetadata.currentCommitSha,
+        releasedAtLabel: footerVersionReleasedAtLabel,
+    };
     const controlPanelOptionAvailability = getControlPanelOptionAvailability({
         metadata: layoutMetadata,
         isPushNotificationsConfigured: Boolean(webPushPublicKey),
@@ -447,6 +462,7 @@ export default async function RootLayout({
                     footerLinks={
                         isPublicServer ? footerLinks : footerLinks.filter((link) => link.url !== '/sitemap.xml')
                     }
+                    footerVersion={footerVersion}
                     federatedServers={federatedServers}
                     defaultIsSoundsOn={chatPreferences.defaultIsSoundsOn}
                     defaultIsVibrationOn={chatPreferences.defaultIsVibrationOn}

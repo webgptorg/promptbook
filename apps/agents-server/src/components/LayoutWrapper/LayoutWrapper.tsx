@@ -18,7 +18,7 @@ import { ClientVersionMismatchListener } from '../ClientVersion/ClientVersionMis
 import { ChatEnterBehaviorPreferencesProvider } from '../ChatEnterBehavior/ChatEnterBehaviorPreferencesProvider';
 import { HomepageOptimisticNavigation } from '../Homepage/HomepageOptimisticNavigation';
 import { FileUploadAvailabilityProvider } from '../FileUploadAvailability/FileUploadAvailabilityContext';
-import { Footer, type FooterLink } from '../Footer/Footer';
+import { Footer, type FooterLink, type FooterVersionInfo } from '../Footer/Footer';
 import { ActiveAgentBreadcrumbProvider } from '../Header/ActiveAgentBreadcrumbContext';
 import { Header } from '../Header/Header';
 import { MobileMenuHoistingProvider } from '../Header/MobileMenuHoistingContext';
@@ -50,6 +50,7 @@ type LayoutWrapperProps = {
     agentNaming: AgentNaming;
     isFooterShown: boolean;
     footerLinks: Array<FooterLink>;
+    footerVersion: FooterVersionInfo;
     federatedServers: Array<{ url: string; title: string }>;
     isExperimental: boolean;
     feedbackMode: ChatFeedbackMode;
@@ -102,6 +103,7 @@ export function LayoutWrapper({
     agentNaming,
     isFooterShown,
     footerLinks,
+    footerVersion,
     federatedServers,
     isExperimental,
     feedbackMode,
@@ -212,6 +214,7 @@ export function LayoutWrapper({
                                                                                         !isFooterHiddenOnPage && (
                                                                                             <Footer
                                                                                                 extraLinks={footerLinks}
+                                                                                                version={footerVersion}
                                                                                             />
                                                                                         )}
                                                                                 </div>
