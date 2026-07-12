@@ -4443,3 +4443,175 @@ Error: Cannot repair imports: 2 entities not found in project.
 
 ```
 
+
+
+
+---
+
+
+[ ]
+
+[✨🟧] Fix the script `repair-imports.ts`, it repairs imports but broke something
+
+- The fixing imports itself is working, but it broke the project. The script is not able to repair the imports correctly, and it is causing errors in the tests.
+- This is kinda a automated refactoring, it should never ever break the project, it should only fix the imports and make the project compile and run correctly.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   Fix the reason why the repair-imports script breaks the project
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+
+This is what happen during the last run of the repair-imports script, look at commit `1c4999b3600c0a8afa7d1d1a1db55df009eaac51`:
+
+
+```console
+
+Summary of all failing tests
+ FAIL  src/cli/cli-commands/agents-server/run.test.ts
+  ● $initializeAgentsServerStartCommand › starts on the default port with local runner options from CLI flags
+
+    TypeError: getEnsureAgentsServerBuildMock(...).mockResolvedValue is not a function
+
+      81 |         delete process.env.PTBK_MODEL;
+      82 |         delete process.env.PTBK_THINKING_LEVEL;
+    > 83 |         getEnsureAgentsServerBuildMock().mockResolvedValue({
+         |                                          ^
+      84 |             appPath: 'apps/agents-server',
+      85 |             nodeModulesPath: 'node_modules',
+      86 |             nextCliPath: 'next',
+
+      at Object.<anonymous> (src/cli/cli-commands/agents-server/run.test.ts:83:42)
+
+  ● $initializeAgentsServerStartCommand › starts on the default port with local runner options from CLI flags
+
+    TypeError: Cannot read properties of undefined (reading 'mockRestore')
+
+       98 |         restoreEnvironmentVariable('PTBK_MODEL', originalEnvironment.PTBK_MODEL);
+       99 |         restoreEnvironmentVariable('PTBK_THINKING_LEVEL', originalEnvironment.PTBK_THINKING_LEVEL);
+    > 100 |         processExitSpy.mockRestore();
+          |                        ^
+      101 |         consoleErrorSpy.mockRestore();
+      102 |         consoleInfoSpy.mockRestore();
+      103 |         jest.clearAllMocks();
+
+      at Object.<anonymous> (src/cli/cli-commands/agents-server/run.test.ts:100:24)
+
+  ● $initializeAgentsServerStartCommand › uses PTBK and PORT environment defaults when flags are omitted
+
+    TypeError: getEnsureAgentsServerBuildMock(...).mockResolvedValue is not a function
+
+      81 |         delete process.env.PTBK_MODEL;
+      82 |         delete process.env.PTBK_THINKING_LEVEL;
+    > 83 |         getEnsureAgentsServerBuildMock().mockResolvedValue({
+         |                                          ^
+      84 |             appPath: 'apps/agents-server',
+      85 |             nodeModulesPath: 'node_modules',
+      86 |             nextCliPath: 'next',
+
+      at Object.<anonymous> (src/cli/cli-commands/agents-server/run.test.ts:83:42)
+
+  ● $initializeAgentsServerStartCommand › uses PTBK and PORT environment defaults when flags are omitted
+
+    TypeError: Cannot read properties of undefined (reading 'mockRestore')
+
+       98 |         restoreEnvironmentVariable('PTBK_MODEL', originalEnvironment.PTBK_MODEL);
+       99 |         restoreEnvironmentVariable('PTBK_THINKING_LEVEL', originalEnvironment.PTBK_THINKING_LEVEL);
+    > 100 |         processExitSpy.mockRestore();
+          |                        ^
+      101 |         consoleErrorSpy.mockRestore();
+      102 |         consoleInfoSpy.mockRestore();
+      103 |         jest.clearAllMocks();
+
+      at Object.<anonymous> (src/cli/cli-commands/agents-server/run.test.ts:100:24)
+
+  ● $initializeAgentsServerStartCommand › lets CLI flags override PTBK and PORT environment defaults
+
+    TypeError: getEnsureAgentsServerBuildMock(...).mockResolvedValue is not a function
+
+      81 |         delete process.env.PTBK_MODEL;
+      82 |         delete process.env.PTBK_THINKING_LEVEL;
+    > 83 |         getEnsureAgentsServerBuildMock().mockResolvedValue({
+         |                                          ^
+      84 |             appPath: 'apps/agents-server',
+      85 |             nodeModulesPath: 'node_modules',
+      86 |             nextCliPath: 'next',
+
+      at Object.<anonymous> (src/cli/cli-commands/agents-server/run.test.ts:83:42)
+
+  ● $initializeAgentsServerStartCommand › lets CLI flags override PTBK and PORT environment defaults
+
+    TypeError: Cannot read properties of undefined (reading 'mockRestore')
+
+       98 |         restoreEnvironmentVariable('PTBK_MODEL', originalEnvironment.PTBK_MODEL);
+       99 |         restoreEnvironmentVariable('PTBK_THINKING_LEVEL', originalEnvironment.PTBK_THINKING_LEVEL);
+    > 100 |         processExitSpy.mockRestore();
+          |                        ^
+      101 |         consoleErrorSpy.mockRestore();
+      102 |         consoleInfoSpy.mockRestore();
+      103 |         jest.clearAllMocks();
+
+      at Object.<anonymous> (src/cli/cli-commands/agents-server/run.test.ts:100:24)
+
+  ● $initializeAgentsServerStartCommand › passes forced build startup through to the runtime
+
+    TypeError: getEnsureAgentsServerBuildMock(...).mockResolvedValue is not a function
+
+      81 |         delete process.env.PTBK_MODEL;
+      82 |         delete process.env.PTBK_THINKING_LEVEL;
+    > 83 |         getEnsureAgentsServerBuildMock().mockResolvedValue({
+         |                                          ^
+      84 |             appPath: 'apps/agents-server',
+      85 |             nodeModulesPath: 'node_modules',
+      86 |             nextCliPath: 'next',
+
+      at Object.<anonymous> (src/cli/cli-commands/agents-server/run.test.ts:83:42)
+
+  ● $initializeAgentsServerStartCommand › passes forced build startup through to the runtime
+
+    TypeError: Cannot read properties of undefined (reading 'mockRestore')
+
+       98 |         restoreEnvironmentVariable('PTBK_MODEL', originalEnvironment.PTBK_MODEL);
+       99 |         restoreEnvironmentVariable('PTBK_THINKING_LEVEL', originalEnvironment.PTBK_THINKING_LEVEL);
+    > 100 |         processExitSpy.mockRestore();
+          |                        ^
+      101 |         consoleErrorSpy.mockRestore();
+      102 |         consoleInfoSpy.mockRestore();
+      103 |         jest.clearAllMocks();
+
+      at Object.<anonymous> (src/cli/cli-commands/agents-server/run.test.ts:100:24)
+
+  ● $initializeAgentsServerBuildCommand › always forces a production build
+
+    TypeError: getEnsureAgentsServerBuildMock(...).mockResolvedValue is not a function
+
+      243 |
+      244 |     beforeEach(() => {
+    > 245 |         getEnsureAgentsServerBuildMock().mockResolvedValue({
+          |                                          ^
+      246 |             appPath: 'apps/agents-server',
+      247 |             nodeModulesPath: 'node_modules',
+      248 |             nextCliPath: 'next',
+
+      at Object.<anonymous> (src/cli/cli-commands/agents-server/run.test.ts:245:42)
+
+  ● $initializeAgentsServerBuildCommand › always forces a production build
+
+    TypeError: Cannot read properties of undefined (reading 'mockRestore')
+
+      255 |
+      256 |     afterEach(() => {
+    > 257 |         processExitSpy.mockRestore();
+          |                        ^
+      258 |         consoleErrorSpy.mockRestore();
+      259 |         consoleInfoSpy.mockRestore();
+      260 |         jest.clearAllMocks();
+
+      at Object.<anonymous> (src/cli/cli-commands/agents-server/run.test.ts:257:24)
+
+
+Test Suites: 1 failed, 565 passed, 566 total
+Tests:       5 failed, 7 todo, 2351 passed, 2363 total
+Snapshots:   0 total
+Time:        785.02 s
+Ran all test suites.
+Force exiting Jest: Have you considered using `--detectOpenHandles` to detect async operations that kept running after all tests finished?
+```

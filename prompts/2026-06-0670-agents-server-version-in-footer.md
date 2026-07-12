@@ -38,14 +38,18 @@ Promptbook engine version 0.113.0-1
 
 ```
 © 2026 Promptbook
-All rights reserved.
 Made with ❤️ in Europe
 
-Promptbook engine version 0.11.11-1
+v0.11.11-1 (1c4999b), 2 days ago
 ```
 
 
-- @@@@@@@
+-  Put there the latest version tag of the server, for example `0.11.11-1`
+- If the server is on newer commit than the latest version tag, show additionally the shorthash of the commit, for example `0.11.11-1 (1c4999b)`
+- The version information should be linked to the git repository and should be smaller and a little bit fainter compared with other text in the footer.
+-  also show how long ago the version was released based on the commit date
+-  reuse the same logic and code from the self-update admin page
+-  but make the rendering of the footer very lightweight. The footer is rendered every time, so it shouldn't degrade the performance of the agent server
 -   Use the hash of the commit to derive the emoji
 -   Do not show always "❤️" but vary the emoji based on the hash of the commit, for example "Made with 🐙 in Europe" or "Made with 🦄 in Europe"
 -   Use only positive or neutral emojis, no negative or scary emoji
@@ -53,5 +57,5 @@ Promptbook engine version 0.11.11-1
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
+
 
