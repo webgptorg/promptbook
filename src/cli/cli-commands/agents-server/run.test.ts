@@ -1,12 +1,11 @@
 import { Command } from 'commander';
-import { ensureAgentsServerBuild } from './buildAgentsServer/ensureAgentsServerBuild';
+import { ensureAgentsServerBuild } from './buildAgentsServer';
 import {
     $initializeAgentsServerBuildCommand,
     $initializeAgentsServerDevCommand,
     $initializeAgentsServerStartCommand,
 } from './run';
-import { startAgentsServer } from './startAgentsServer';
-import { loadAgentsServerProjectEnvironment } from './startAgentsServer/loadAgentsServerProjectEnvironment';
+import { loadAgentsServerProjectEnvironment, startAgentsServer } from './startAgentsServer';
 
 jest.mock('./buildAgentsServer', () => ({
     ensureAgentsServerBuild: jest.fn(),

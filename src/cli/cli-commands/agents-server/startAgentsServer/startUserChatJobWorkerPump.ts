@@ -3,8 +3,7 @@ import type { number_port } from '../../../../types/number_positive';
 import type { AgentsServerChildEnvironment } from './AgentsServerChildEnvironment';
 import type { AgentsServerLogStreams } from './AgentsServerLogStreams';
 import { logRunnerEvent } from './AgentsServerLogStreams';
-import type { AgentsServerSupervisorState } from './AgentsServerSupervisorState';
-import { addUiError } from './AgentsServerSupervisorState';
+import { addUiError, type AgentsServerSupervisorState } from './AgentsServerSupervisorState';
 import { createInternalRouteErrorMessage } from './createInternalRouteErrorMessage';
 import { readInternalRouteErrorDetails } from './readInternalRouteErrorDetails';
 
