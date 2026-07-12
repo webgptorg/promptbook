@@ -38,6 +38,12 @@ export const SERVER_COMMAND =
     'ptbk coder server --harness claude-code --model fable --thinking-level max --agent agents/developer.book --context AGENTS.md --test npm run test';
 
 /**
+ * Command typed by the live terminal dashboard in the hero.
+ */
+export const LIVE_TERMINAL_RUN_COMMAND =
+    'ptbk coder run --harness claude-code --model fable --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder --wait-between-prompts 4h --limit 1';
+
+/**
  * Command which runs the queue with the developer agent persona from a `.book` file.
  */
 export const AGENT_RUN_COMMAND =
