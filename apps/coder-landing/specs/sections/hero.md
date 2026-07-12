@@ -23,4 +23,4 @@ First content block under the header. Two-column on desktop (text left, live ter
 
 ## Right column
 
-The [live terminal demo](../components/live-terminal.md) playing the scripted `ptbk coder run` dashboard.
+The [live terminal demo](../components/live-terminal.md) playing the scripted `ptbk coder server` session.

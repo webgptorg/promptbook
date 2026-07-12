@@ -15,7 +15,6 @@
 ## Single source of truth (DRY)
 
 -   Canonical page data (commands, harness catalog, links, demo script, agent source) lives in one data module per concern (`src/data/`), mirrored 1:1 by the specs in [`content/`](./content/). No command or catalog value may be duplicated as a string in two components.
--   The live terminal agent visual uses the shared `src/avatars` renderer, matching Agents Server avatar rendering and the `ptbk coder` terminal ASCII bridge.
 -   The specs in this folder must allow a 1:1 re-implementation of the page without the source code (see [`README.md`](./README.md)).
 
 ## Accessibility
