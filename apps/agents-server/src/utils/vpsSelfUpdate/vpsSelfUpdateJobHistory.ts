@@ -3,10 +3,17 @@ import { dirname } from 'path';
 import { resolveVpsSelfUpdateEnvironment } from './vpsSelfUpdateEnvironment';
 import { resolveVpsSelfUpdateJobIdentity } from './vpsSelfUpdateJobIdentity';
 import { readPersistedVpsSelfUpdateJob } from './readPersistedVpsSelfUpdateJob';
+import { resolveVpsSelfUpdateJobForOverview } from './resolveVpsSelfUpdateJobForOverview';
+import {
+    readCurrentVpsSelfUpdateEnvironment,
+    resolveManagedPromptbookRepositoryDirectory,
+} from './vpsSelfUpdateConfiguration';
+import { readCommitMetadataFromRepository } from './vpsSelfUpdateRepository';
 import { resolveVpsSelfUpdateTaskHistoryFilePath } from './vpsSelfUpdateStateFiles';
 import type {
     VpsSelfUpdateDatabaseMigrationSnapshot,
     VpsSelfUpdateDatabaseMigrationStatus,
+    VpsSelfUpdateJobOverviewContext,
     VpsSelfUpdateJobSnapshot,
     VpsSelfUpdateJobStatus,
     VpsSelfUpdateJobTrigger,
@@ -56,33 +63,60 @@ type VpsSelfUpdateTaskHistoryFile = {
 };
 
 /**
+ * Options for reading task-manager self-update snapshots.
+ *
+ * @private type of `vpsSelfUpdate`
+ */
+type ReadVpsSelfUpdateJobTaskSnapshotsOptions = {
+    /**
+     * Current runtime state used to reinterpret a stale restart as a successful update.
+     */
+    readonly overviewContext?: VpsSelfUpdateJobOverviewContext | null;
+};
+
+/**
  * Archives one latest self-update snapshot before a new self-update overwrites the singleton status file.
  *
  * @param job - Latest job snapshot to preserve in task history.
+ * @param options - Optional current runtime state override.
  *
  * @private function of `vpsSelfUpdate`
  */
-export async function preserveVpsSelfUpdateJobInTaskHistory(job: VpsSelfUpdateJobSnapshot): Promise<void> {
+export async function preserveVpsSelfUpdateJobInTaskHistory(
+    job: VpsSelfUpdateJobSnapshot,
+    options: ReadVpsSelfUpdateJobTaskSnapshotsOptions = {},
+): Promise<void> {
     if (job.status === 'idle') {
         return;
     }
 
+    const [resolvedJob] = await resolveVpsSelfUpdateJobTaskSnapshots([job], options);
     const history = await readVpsSelfUpdateJobTaskHistory();
-    const jobs = collectUniqueVpsSelfUpdateJobs([sanitizeVpsSelfUpdateJobForTaskHistory(job), ...history]);
+    const jobs = collectUniqueVpsSelfUpdateJobs([
+        sanitizeVpsSelfUpdateJobForTaskHistory(resolvedJob ?? job),
+        ...history,
+    ]);
     await writeVpsSelfUpdateJobTaskHistory(jobs);
 }
 
 /**
  * Reads all self-update task snapshots that should be surfaced in the admin task manager.
  *
+ * A successful self-update can restart the old server before it writes the final succeeded status.
+ * Task-manager rows therefore use the same target-commit reconciliation as `/admin/update`.
+ *
+ * @param options - Optional current runtime state override.
  * @returns Latest singleton status followed by archived history, with duplicates removed.
  *
  * @private function of `vpsSelfUpdate`
  */
-export async function readVpsSelfUpdateJobTaskSnapshots(): Promise<Array<VpsSelfUpdateJobSnapshot>> {
+export async function readVpsSelfUpdateJobTaskSnapshots(
+    options: ReadVpsSelfUpdateJobTaskSnapshotsOptions = {},
+): Promise<Array<VpsSelfUpdateJobSnapshot>> {
     const latestJob = await readPersistedVpsSelfUpdateJob({ isLogTailIncluded: false });
     const history = await readVpsSelfUpdateJobTaskHistory();
-    return collectUniqueVpsSelfUpdateJobs([latestJob, ...history]).filter((job) => job.status !== 'idle');
+    const jobs = collectUniqueVpsSelfUpdateJobs([latestJob, ...history]).filter((job) => job.status !== 'idle');
+    return await resolveVpsSelfUpdateJobTaskSnapshots(jobs, options);
 }
 
 /**
@@ -153,6 +187,75 @@ function collectUniqueVpsSelfUpdateJobs(
     }
 
     return [...jobsByIdentity.values()];
+}
+
+/**
+ * Resolves restart-aware task snapshots through the shared update-page reconciliation.
+ *
+ * @param jobs - Self-update task snapshots.
+ * @param options - Optional current runtime state override.
+ * @returns Resolved task snapshots.
+ *
+ * @private function of `vpsSelfUpdate`
+ */
+async function resolveVpsSelfUpdateJobTaskSnapshots(
+    jobs: ReadonlyArray<VpsSelfUpdateJobSnapshot>,
+    options: ReadVpsSelfUpdateJobTaskSnapshotsOptions,
+): Promise<Array<VpsSelfUpdateJobSnapshot>> {
+    if (!jobs.some(isRestartedVpsSelfUpdateCandidate)) {
+        return [...jobs];
+    }
+
+    const overviewContext =
+        options.overviewContext === undefined
+            ? await readCurrentVpsSelfUpdateJobOverviewContext()
+            : options.overviewContext;
+
+    if (!overviewContext) {
+        return [...jobs];
+    }
+
+    return jobs.map((job) => resolveVpsSelfUpdateJobForOverview(job, overviewContext));
+}
+
+/**
+ * Returns whether a job could be the stale old process left by a successful restart.
+ *
+ * The full success check stays inside `resolveVpsSelfUpdateJobForOverview`; this predicate only avoids
+ * local git reads for ordinary completed, failed, or running jobs.
+ *
+ * @param job - Self-update job snapshot.
+ * @returns `true` when current repository state may change how the job should be displayed.
+ *
+ * @private function of `vpsSelfUpdate`
+ */
+function isRestartedVpsSelfUpdateCandidate(job: VpsSelfUpdateJobSnapshot): boolean {
+    return job.status === 'failed' && job.isStale;
+}
+
+/**
+ * Reads the lightweight current runtime state required for self-update restart reconciliation.
+ *
+ * @returns Current job overview context or `null` when local repository state is unavailable.
+ *
+ * @private function of `vpsSelfUpdate`
+ */
+async function readCurrentVpsSelfUpdateJobOverviewContext(): Promise<VpsSelfUpdateJobOverviewContext | null> {
+    const currentEnvironment = await readCurrentVpsSelfUpdateEnvironment();
+    const repositoryDirectory = await resolveManagedPromptbookRepositoryDirectory();
+    if (!repositoryDirectory) {
+        return null;
+    }
+
+    const currentCommit = await readCommitMetadataFromRepository(repositoryDirectory, 'HEAD');
+    if (!currentCommit) {
+        return null;
+    }
+
+    return {
+        currentEnvironment,
+        currentCommitSha: currentCommit.commitSha,
+    };
 }
 
 /**

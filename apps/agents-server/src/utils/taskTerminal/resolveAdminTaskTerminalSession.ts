@@ -9,7 +9,6 @@ import { getLocalUserChatJobMetadata } from '../localChatRunner/LocalUserChatJob
 import { resolveLocalAgentRootPath } from '../localChatRunner/ensureLocalAgentFolder';
 import { listPagePreviewBrowserAdminTasks } from '../pagePreviewBrowserSessions';
 import {
-    readVpsSelfUpdateJobSnapshot,
     readVpsSelfUpdateJobTaskSnapshots,
     readVpsSelfUpdateLogFileContent,
 } from '../vpsSelfUpdate';
@@ -308,8 +307,8 @@ async function resolveVpsSelfUpdateTaskTerminalSession(taskId: string): Promise<
         return null;
     }
 
-    const latestJob = await readVpsSelfUpdateJobSnapshot();
-    const isLatestJob = resolveVpsSelfUpdateJobIdentity(latestJob) === jobIdentity;
+    const latestJob = jobSnapshots[0] ?? null;
+    const isLatestJob = latestJob !== null && resolveVpsSelfUpdateJobIdentity(latestJob) === jobIdentity;
     const output = isLatestJob
         ? (await readVpsSelfUpdateLogFileContent()) || ''
         : createArchivedVpsSelfUpdateLogPlaceholder(job);
@@ -330,13 +329,27 @@ async function resolveVpsSelfUpdateTaskTerminalSession(taskId: string): Promise<
         subscribe: createPolledTaskTerminalLogFileSubscribe({
             session,
             readOutput: async () => {
-                const latestJobSnapshot = await readVpsSelfUpdateJobSnapshot();
+                const latestJobSnapshot = await readLatestVpsSelfUpdateTaskSnapshot();
+                if (!latestJobSnapshot) {
+                    return null;
+                }
+
                 const isStillLatestJob = resolveVpsSelfUpdateJobIdentity(latestJobSnapshot) === jobIdentity;
 
                 return isStillLatestJob ? (await readVpsSelfUpdateLogFileContent()) || '' : null;
             },
             resolveExitSnapshot: async (knownOutput) => {
-                const latestJobSnapshot = await readVpsSelfUpdateJobSnapshot();
+                const latestJobSnapshot = await readLatestVpsSelfUpdateTaskSnapshot();
+                if (!latestJobSnapshot) {
+                    return {
+                        ...session,
+                        isRunning: false,
+                        output: knownOutput,
+                        finishedAt: new Date().toISOString(),
+                        exitCode: 1,
+                    };
+                }
+
                 const isStillLatestJob = resolveVpsSelfUpdateJobIdentity(latestJobSnapshot) === jobIdentity;
 
                 if (isStillLatestJob && latestJobSnapshot.status === 'running') {
@@ -353,6 +366,16 @@ async function resolveVpsSelfUpdateTaskTerminalSession(taskId: string): Promise<
             },
         }),
     };
+}
+
+/**
+ * Reads the latest restart-aware standalone VPS self-update task snapshot.
+ *
+ * @returns Latest self-update task snapshot or `null` when no task snapshot is persisted.
+ */
+async function readLatestVpsSelfUpdateTaskSnapshot(): Promise<VpsSelfUpdateJobSnapshot | null> {
+    const jobSnapshots = await readVpsSelfUpdateJobTaskSnapshots();
+    return jobSnapshots[0] ?? null;
 }
 
 /**
