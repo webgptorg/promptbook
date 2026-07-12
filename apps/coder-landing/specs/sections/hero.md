@@ -18,9 +18,9 @@ First content block under the header. Two-column on desktop (text left, live ter
 
 4. **Install terminal**: a [terminal block](../components/terminal-block.md) with the canonical `INSTALL_COMMAND` (`npm install ptbk`, see [`../content/commands.md`](../content/commands.md)).
 5. **CTA row**:
-    -   Primary (filled Promptbook Blue): `Get started in 3 commands` → `#quickstart`
-    -   Secondary (outlined): `How it works` → `#how-it-works`
+    - Primary (filled Promptbook Blue): `Get started in 3 commands` → `#quickstart`
+    - Secondary (outlined): `How it works` → `#how-it-works`
 
 ## Right column
 
-The [live terminal demo](../components/live-terminal.md) playing the scripted `ptbk coder server` session.
+The [live terminal demo](../components/live-terminal.md) playing the scripted `ptbk coder run` rich terminal session.

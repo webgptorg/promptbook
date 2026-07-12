@@ -46,7 +46,7 @@ ptbk coder server --harness claude-code --model fable --thinking-level max --age
 
 ---
 
-[ ] !!!
+[x] ~$1.08 an hour by OpenAI Codex `gpt-5.5`
 
 [✨🍖] Make the sample in terminal in `ptbk coder` landing website
 
@@ -100,3 +100,4 @@ $ npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code --model fab
 │  P  Pause   CTRL+C  Exit                                                                     │
 └─────────────────────────────────────────────────────────────
 ```
+

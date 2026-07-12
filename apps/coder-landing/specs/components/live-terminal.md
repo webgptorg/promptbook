@@ -1,55 +1,32 @@
 # Component: Live terminal demo
 
-A fake terminal in the [hero](../sections/hero.md) which replays a scripted `ptbk coder server` session in an endless loop, giving the visitor a "live" preview of the product without running anything.
+A scripted terminal in the [hero](../sections/hero.md) which shows what a real `ptbk coder run` rich terminal session looks like, without running the user project.
 
 ## Frame
 
-Same window chrome as the [terminal block](./terminal-block.md) (rounded frame, `#0d1117` body, `#161b22` title bar, traffic lights), with two differences:
+Same window chrome as the [terminal block](./terminal-block.md) (rounded frame, `#0d1117` body, `#161b22` title bar, traffic lights), with these differences:
 
--   Title: `ptbk coder server — live preview`.
--   Instead of a Copy button, a **live indicator**: a small pulsing green dot + the word `live` in Promptbook Green.
--   Body height is fixed (~20rem, ~24rem on desktop) and scrolls vertically; the view **auto-scrolls to the latest line**.
+-   Title: `ptbk coder run — live terminal`.
+-   Instead of a Copy button, a static Promptbook Green dot + `sample run`. The indicator must not pulse or blink.
+-   Body height is fixed (~30rem, ~38rem on desktop) and scrolls vertically and horizontally; the view **auto-scrolls to the latest line**.
+-   Dashboard rows use fixed-width terminal text. Long output is truncated with `...` inside the box, not wrapped through the border.
 
 ## Script playback
 
-The script is an ordered list of lines, each with a *tone*, *text* and *delay before appearing*:
+The script is an ordered list of terminal events:
 
-1.  The session starts with the canonical `SERVER_COMMAND` (see [`../content/commands.md`](../content/commands.md)) rendered as a command line: gray non-selectable `$ ` prompt, then the command **typed character by character** (~12ms per character).
-2.  All other lines appear at once after their delay, colored by tone:
-    -   `success` (`✔ …` lines) → Promptbook Green
-    -   `info` (`● …` queue-status lines) → Promptbook Blue
-    -   `accent` (`▶ …` headings: app name, prompt file names) → Promptbook Blue, semibold
-    -   `muted` (prompt excerpts, spinner "working…" lines) → mid gray
-    -   `plain` (diff stats, empty spacer lines) → light gray
-3.  A pulsing block cursor `▊` is rendered at the end of the newest line.
-4.  When the script finishes, the terminal pauses ~5 seconds, clears, and replays from the start.
+1.  The session starts with a shell prompt line, then the canonical `LIVE_DEMO_RUN_COMMAND` (see [`../content/commands.md`](../content/commands.md)) rendered as a command line: gray non-selectable `$ ` prompt, then the command **typed character by character** (~10ms per character).
+2.  The shared agent visual appears as colored ANSI-style text. It is generated from the same avatar pipeline used by Agents Server and `ptbk coder run`: the demo `.book` source is parsed, the avatar visual is resolved, `renderAvatarVisualAsciiArt` converts it to terminal text, and the browser renders the ANSI color escapes.
+3.  The terminal prints the rich `ptbk coder run` dashboard boxes: `Session`, `Current task`, `Live output`, and `Controls`.
+4.  When the script finishes, the terminal stays on the final output. It must not clear, loop, reset, or render a blinking cursor.
 
-## Scripted session (verbatim)
+## Final Dashboard Content
 
-After the typed `SERVER_COMMAND`, the following lines play (tone → text; delays are ~200–900ms, with ~1.6s on the two "working…" lines):
+The final dashboard must tell the same story as an actual limited run:
 
-```text
-accent   ▶ Promptbook Coder
-success  ✔ Working tree clean
-success  ✔ Agent identity: Promptbook Coding Agent <coding-agent@promptbook.studio>
-success  ✔ Kanban UI running at http://localhost:4441
-info     ● Queue: 3 prompts waiting
-plain    (empty line)
-accent   ▶ prompts/add-dark-mode.md
-muted      Add a dark mode toggle to the settings page…
-muted      ⠋ claude-code (fable, thinking: max) is working…
-plain      4 files changed (+182 −23)
-success    ✔ npm run test-for-ptbk-coder → 128 passed
-success    ✔ Committed a1b2c3d "Add dark mode toggle to settings"
-plain    (empty line)
-accent   ▶ prompts/fix-login-redirect.md
-muted      Fix the redirect loop after login on expired sessions…
-muted      ⠋ claude-code (fable, thinking: max) is working…
-plain      2 files changed (+41 −7)
-success    ✔ npm run test-for-ptbk-coder → 128 passed
-success    ✔ Committed b4e5f6a "Fix login redirect loop"
-plain    (empty line)
-info     ● Queue: 1 prompt waiting — watching prompts/ for new files…
-```
+-   `Session` shows `DONE`, runner `claude-code · fable · thinking xhigh`, context `AGENTS.md`, test `npm run test-for-ptbk-coder`, run limit `1 prompt run`, backlog counts, elapsed time, and a 0% progress bar.
+-   `Current task` shows `prompts/2026-07-0200-ptbk-coder-web.md#1` and `Attempt 1/3 · Run limit reached after 1 prompt run.`
+-   `Live output` shows the app server local/network URLs, startup readiness, the `punycode` deprecation warning, prerender output, and `🎉 All tests passed!`.
+-   `Controls` shows `P Pause` and `CTRL+C Exit`.
 
-The story the script must always tell: *queue of prompt files → agent works → tests pass → signed commit → next prompt → server keeps watching*. This mirrors the core workflow in [`../product.md`](../product.md).
+The story the script must always tell: _the user enters `ptbk coder run` → the agent visual starts → the real rich terminal dashboard reaches the final output_. This mirrors the actual CLI workflow in [`../product.md`](../product.md).
