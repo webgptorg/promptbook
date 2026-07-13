@@ -58,7 +58,7 @@ export const ADVANCED_FEATURES: ReadonlyArray<AdvancedFeatureDefinition> = [
     {
         title: 'Pacing and retries',
         description:
-            'Pace the queue with wait durations and let errors retry automatically — up to 3 times with a cool-down in between.',
+            'Pace the queue with wall-clock wait durations that keep elapsing through pause and sleep, with automatic error retries after a cool-down.',
         sampleCommand: 'ptbk coder run --harness claude-code --wait-between-prompts 30m --wait-after-error 10m',
     },
     {

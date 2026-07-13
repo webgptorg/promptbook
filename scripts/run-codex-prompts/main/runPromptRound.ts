@@ -223,6 +223,8 @@ async function waitAfterErrorBeforeRetry(options: {
         );
     }
 
+    const retryDeadlineTimeMs = Date.now() + runOptions.waitAfterError;
+
     await waitForRequestedPause({
         checkpointLabel: 'waiting after error before retrying the prompt',
         phase: 'waiting',
@@ -234,6 +236,7 @@ async function waitAfterErrorBeforeRetry(options: {
 
     await sleepWithCountdown({
         durationMs: runOptions.waitAfterError,
+        deadlineTimeMs: retryDeadlineTimeMs,
         waitKind: 'after-error',
         isRichUiEnabled,
         uiHandle,

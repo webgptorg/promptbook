@@ -1,34 +1,34 @@
 import {
-    getCodeRunnerAuthenticationSession,
-    getLatestCodeRunnerAuthenticationSession,
-    startCodeRunnerAuthenticationSession,
-    stopCodeRunnerAuthenticationSession,
-    subscribeToCodeRunnerAuthenticationSession,
-    writeCodeRunnerAuthenticationSessionInput,
-} from '@/src/utils/codeRunnerAuthentication';
+    getHarnessAuthenticationSession,
+    getLatestHarnessAuthenticationSession,
+    startHarnessAuthenticationSession,
+    stopHarnessAuthenticationSession,
+    subscribeToHarnessAuthenticationSession,
+    writeHarnessAuthenticationSessionInput,
+} from '@/src/utils/harnessAuthentication';
 import { createAdminTerminalRouteHandlers } from '@/src/utils/createAdminTerminalRouteHandlers';
-import { readConfiguredCodeRunner } from '@/src/utils/codeRunnerConfiguration';
+import { readConfiguredHarness } from '@/src/utils/harnessConfiguration';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 /**
- * Shared route handlers for the code-runner authentication terminal.
+ * Shared route handlers for the harness authentication terminal.
  */
 const authenticationTerminalRouteHandlers = createAdminTerminalRouteHandlers(
     {
         async getLatestSession() {
-            const { agent } = await readConfiguredCodeRunner();
-            return getLatestCodeRunnerAuthenticationSession(agent);
+            const { harness } = await readConfiguredHarness();
+            return getLatestHarnessAuthenticationSession(harness);
         },
-        getSession: getCodeRunnerAuthenticationSession,
+        getSession: getHarnessAuthenticationSession,
         async startSession() {
-            const { agent } = await readConfiguredCodeRunner();
-            return startCodeRunnerAuthenticationSession(agent);
+            const { harness } = await readConfiguredHarness();
+            return startHarnessAuthenticationSession(harness);
         },
-        writeSessionInput: writeCodeRunnerAuthenticationSessionInput,
-        stopSession: stopCodeRunnerAuthenticationSession,
-        subscribeToSession: subscribeToCodeRunnerAuthenticationSession,
+        writeSessionInput: writeHarnessAuthenticationSessionInput,
+        stopSession: stopHarnessAuthenticationSession,
+        subscribeToSession: subscribeToHarnessAuthenticationSession,
     },
     {
         loadErrorMessage: 'Failed to load the authentication session.',

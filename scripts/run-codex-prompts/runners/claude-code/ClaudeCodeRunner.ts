@@ -1,6 +1,7 @@
 import colors from 'colors';
 import { formatDurationMs } from '../../common/parseDuration';
 import { $runGoScriptWithOutput } from '../../common/runGoScript/$runGoScriptWithOutput';
+import { waitUntilWorldTimeDeadline } from '../../common/waitUntilWorldTimeDeadline';
 import type { PromptRunOptions } from '../types/PromptRunOptions';
 import type { PromptRunResult } from '../types/PromptRunResult';
 import type { PromptRunner } from '../types/PromptRunner';
@@ -113,6 +114,7 @@ async function waitForClaudeCodeSessionLimitReset(
     options: PromptRunOptions,
 ): Promise<void> {
     const delayMs = getClaudeCodeSessionLimitDelayMs(sessionLimit);
+    const resetDeadlineTimeMs = Date.now() + delayMs;
     const sessionLabel = formatClaudeCodeSessionIdForDisplay(sessionLimit.sessionId);
     const resetSummary = formatClaudeCodeSessionLimitForDisplay(sessionLimit);
 
@@ -124,32 +126,23 @@ async function waitForClaudeCodeSessionLimitReset(
         );
     }
 
-    let remainingDelayMs = delayMs;
-
-    while (remainingDelayMs > 0) {
-        await options.waitForPauseCheckpoint?.({
-            checkpointLabel: 'the Claude Code session limit reset',
-            phase: 'waiting',
-            statusMessage: `Claude Code session ${sessionLabel} hit its limit; resurrection #${resurrectionCount} resumes in ${formatDurationMs(remainingDelayMs)}`,
-        });
-
-        const currentDelayMs = Math.min(CLAUDE_CODE_SESSION_RESURRECTION_POLL_MS, remainingDelayMs);
-        await waitFor(currentDelayMs);
-        remainingDelayMs -= currentDelayMs;
-    }
+    await waitUntilWorldTimeDeadline({
+        deadlineTimeMs: resetDeadlineTimeMs,
+        pollIntervalMs: CLAUDE_CODE_SESSION_RESURRECTION_POLL_MS,
+        onTick: async (remainingDelayMs) => {
+            await options.waitForPauseCheckpoint?.({
+                checkpointLabel: 'the Claude Code session limit reset',
+                phase: 'waiting',
+                statusMessage: `Claude Code session ${sessionLabel} hit its limit; resurrection #${resurrectionCount} resumes in ${formatDurationMs(Math.min(remainingDelayMs, delayMs))}`,
+            });
+        },
+    });
 
     await options.waitForPauseCheckpoint?.({
         checkpointLabel: 'resurrecting the Claude Code session with --resume',
         phase: 'running',
         statusMessage: `Resurrecting Claude Code session ${sessionLabel} with --resume`,
     });
-}
-
-/**
- * Waits for a fixed amount of milliseconds.
- */
-async function waitFor(delayMs: number): Promise<void> {
-    await new Promise((resolve) => setTimeout(resolve, delayMs));
 }
 
 /**

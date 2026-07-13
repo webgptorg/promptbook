@@ -106,6 +106,11 @@ type AdminTerminalCardProps<TSession extends AdminTerminalSession> = {
     readonly outputEmptyState: string;
 
     /**
+     * Whether the terminal output area should be mounted.
+     */
+    readonly isOutputVisible?: boolean;
+
+    /**
      * Optional shortcut buttons that send raw terminal input.
      */
     readonly quickActions?: ReadonlyArray<AdminTerminalQuickAction>;
@@ -136,6 +141,7 @@ export function AdminTerminalCard<TSession extends AdminTerminalSession>({
     stopLabel,
     outputLabel,
     outputEmptyState,
+    isOutputVisible = true,
     quickActions = [],
     children,
 }: AdminTerminalCardProps<TSession>) {
@@ -175,32 +181,34 @@ export function AdminTerminalCard<TSession extends AdminTerminalSession>({
 
                 {children}
 
-                <div className="space-y-2">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                        <h3 className="text-sm font-semibold text-slate-700">{outputLabel}</h3>
-                        {session ? (
-                            <span className="text-xs text-slate-500">
-                                {session.isRunning
-                                    ? 'Running'
-                                    : session.exitCode === 0
-                                      ? 'Finished successfully'
-                                      : 'Finished with an error'}
-                            </span>
-                        ) : (
-                            <span className="text-xs text-slate-500">No session started yet.</span>
-                        )}
+                {isOutputVisible ? (
+                    <div className="space-y-2">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                            <h3 className="text-sm font-semibold text-slate-700">{outputLabel}</h3>
+                            {session ? (
+                                <span className="text-xs text-slate-500">
+                                    {session.isRunning
+                                        ? 'Running'
+                                        : session.exitCode === 0
+                                          ? 'Finished successfully'
+                                          : 'Finished with an error'}
+                                </span>
+                            ) : (
+                                <span className="text-xs text-slate-500">No session started yet.</span>
+                            )}
+                        </div>
+                        <AdminXtermTerminal
+                            terminalId={session?.id || `${title}:empty`}
+                            output={session?.output || ''}
+                            emptyState={outputEmptyState}
+                            isRunning={Boolean(session?.isRunning)}
+                            ariaLabel={outputLabel}
+                            onData={onSend}
+                        />
                     </div>
-                    <AdminXtermTerminal
-                        terminalId={session?.id || `${title}:empty`}
-                        output={session?.output || ''}
-                        emptyState={outputEmptyState}
-                        isRunning={Boolean(session?.isRunning)}
-                        ariaLabel={outputLabel}
-                        onData={onSend}
-                    />
-                </div>
+                ) : null}
 
-                {quickActions.length > 0 ? (
+                {isOutputVisible && quickActions.length > 0 ? (
                     <div className="flex flex-wrap gap-3">
                         {quickActions.map((quickAction) => (
                             <button

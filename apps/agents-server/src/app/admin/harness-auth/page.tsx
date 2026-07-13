@@ -1,14 +1,14 @@
 import { ForbiddenPage } from '../../../components/ForbiddenPage/ForbiddenPage';
 import { isUserGlobalAdmin } from '../../../utils/isUserGlobalAdmin';
-import { CodeRunnersClient } from './CodeRunnersClient';
+import { HarnessAuthClient } from './HarnessAuthClient';
 
 /**
- * Super-admin page for configuring standalone code runners.
+ * Super-admin page for configuring standalone harness authentication.
  */
-export default async function CodeRunnersPage() {
+export default async function HarnessAuthPage() {
     if (!(await isUserGlobalAdmin())) {
         return <ForbiddenPage />;
     }
 
-    return <CodeRunnersClient />;
+    return <HarnessAuthClient />;
 }

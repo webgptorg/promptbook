@@ -1,6 +1,7 @@
 import colors from 'colors';
 import { formatDurationMs } from './parseDuration';
 import type { CoderRunUiHandle } from '../ui/renderCoderRunUi';
+import { waitUntilWorldTimeDeadline } from './waitUntilWorldTimeDeadline';
 
 /**
  * Refresh interval used by the countdown display while waiting.
@@ -46,6 +47,7 @@ export function describeCoderRunWait(waitKind: CoderRunWaitKind, remainingMs: nu
  */
 export async function sleepWithCountdown(options: {
     durationMs: number;
+    deadlineTimeMs?: number;
     waitKind: CoderRunWaitKind;
     isRichUiEnabled: boolean;
     uiHandle?: CoderRunUiHandle;
@@ -56,19 +58,21 @@ export async function sleepWithCountdown(options: {
         return;
     }
 
-    let remaining = durationMs;
+    const deadlineTimeMs = options.deadlineTimeMs ?? Date.now() + durationMs;
 
-    while (remaining > 0) {
-        const statusMessage = describeCoderRunWait(waitKind, remaining, durationMs);
+    await waitUntilWorldTimeDeadline({
+        deadlineTimeMs,
+        pollIntervalMs: WAIT_COUNTDOWN_UPDATE_INTERVAL_MS,
+        onTick: (remainingDurationMs) => {
+            const visibleRemainingDurationMs = Math.min(remainingDurationMs, durationMs);
+            const statusMessage = describeCoderRunWait(waitKind, visibleRemainingDurationMs, durationMs);
 
-        if (!isRichUiEnabled) {
-            console.info(colors.gray(`${statusMessage}...`));
-        } else {
+            if (!isRichUiEnabled) {
+                console.info(colors.gray(`${statusMessage}...`));
+                return;
+            }
+
             uiHandle?.state.setStatusMessage(`${statusMessage}...`);
-        }
-
-        const sleepMs = Math.min(WAIT_COUNTDOWN_UPDATE_INTERVAL_MS, remaining);
-        await new Promise<void>((resolve) => setTimeout(resolve, sleepMs));
-        remaining -= sleepMs;
-    }
+        },
+    });
 }

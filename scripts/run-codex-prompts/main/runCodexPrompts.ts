@@ -617,18 +617,10 @@ async function waitBetweenPromptRoundsIfNeeded(options: {
         return;
     }
 
-    const now = Date.now();
     const waitBetweenPromptsEndTime = previousRoundStartTime + waitBetweenPrompts;
     const waitAfterPromptEndTime = previousRoundEndTime + waitAfterPrompt;
 
-    // Phase 1: pace from start of previous prompt (`--wait-between-prompts`)
-    const phase1Duration = Math.max(0, waitBetweenPromptsEndTime - now);
-
-    // Phase 2: rest from end of previous prompt (`--wait-after-prompt`)
-    const phase2StartTime = Math.max(now, waitBetweenPromptsEndTime);
-    const phase2Duration = Math.max(0, waitAfterPromptEndTime - phase2StartTime);
-
-    if (phase1Duration <= 0 && phase2Duration <= 0) {
+    if (Date.now() >= waitBetweenPromptsEndTime && Date.now() >= waitAfterPromptEndTime) {
         return;
     }
 
@@ -636,18 +628,22 @@ async function waitBetweenPromptRoundsIfNeeded(options: {
     uiHandle?.state.pauseTimer();
     uiHandle?.state.setPhase('waiting');
 
-    if (phase1Duration > 0) {
+    // Phase 1: pace from start of previous prompt (`--wait-between-prompts`)
+    if (Date.now() < waitBetweenPromptsEndTime) {
         await sleepWithCountdown({
-            durationMs: phase1Duration,
+            durationMs: waitBetweenPrompts,
+            deadlineTimeMs: waitBetweenPromptsEndTime,
             waitKind: 'between-prompts',
             isRichUiEnabled,
             uiHandle,
         });
     }
 
-    if (phase2Duration > 0) {
+    // Phase 2: rest from end of previous prompt (`--wait-after-prompt`)
+    if (Date.now() < waitAfterPromptEndTime) {
         await sleepWithCountdown({
-            durationMs: phase2Duration,
+            durationMs: waitAfterPrompt,
+            deadlineTimeMs: waitAfterPromptEndTime,
             waitKind: 'after-prompt',
             isRichUiEnabled,
             uiHandle,

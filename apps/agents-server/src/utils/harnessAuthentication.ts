@@ -11,21 +11,23 @@ import {
 } from './interactiveTerminalSession';
 
 /**
- * Serializable snapshot of one interactive code-runner authentication session.
+ * Serializable snapshot of one interactive harness authentication session.
+ *
+ * @private internal utility of Agents Server Harness Auth
  */
-export type CodeRunnerAuthenticationSessionSnapshot = {
+export type HarnessAuthenticationSessionSnapshot = {
     /**
      * Session identifier used by the browser UI.
      */
     readonly id: string;
 
     /**
-     * Runner being authenticated.
+     * Harness being authenticated.
      */
-    readonly agent: string;
+    readonly harness: string;
 
     /**
-     * Whether the interactive runner process is still active.
+     * Whether the interactive harness process is still active.
      */
     readonly isRunning: boolean;
 
@@ -57,8 +59,10 @@ export type CodeRunnerAuthenticationSessionSnapshot = {
 
 /**
  * Browser stream callbacks used by one subscribed UI client.
+ *
+ * @private internal utility of Agents Server Harness Auth
  */
-export type CodeRunnerAuthenticationSessionSubscriber = {
+export type HarnessAuthenticationSessionSubscriber = {
     /**
      * Called whenever new terminal output arrives.
      */
@@ -67,27 +71,29 @@ export type CodeRunnerAuthenticationSessionSubscriber = {
     /**
      * Called once the session exits.
      */
-    readonly onExit: (event: { readonly type: 'exit'; readonly snapshot: CodeRunnerAuthenticationSessionSnapshot }) => void;
+    readonly onExit: (event: { readonly type: 'exit'; readonly snapshot: HarnessAuthenticationSessionSnapshot }) => void;
 };
 
 /**
- * Starts a streamed authentication session for the currently configured standalone runner.
+ * Starts a streamed authentication session for the currently configured standalone harness.
  *
- * @param agent - Runner identifier stored in `.env`.
- * @returns Existing running session for the same runner or a new one.
+ * @param harness - Harness identifier stored in `.env`.
+ * @returns Existing running session for the same harness or a new one.
+ *
+ * @private internal utility of Agents Server Harness Auth
  */
-export async function startCodeRunnerAuthenticationSession(
-    agent: string,
-): Promise<CodeRunnerAuthenticationSessionSnapshot> {
+export async function startHarnessAuthenticationSession(
+    harness: string,
+): Promise<HarnessAuthenticationSessionSnapshot> {
     const scriptPath = await resolveVpsInstallerScriptPath();
     if (!scriptPath) {
         throw new Error('The VPS installer script could not be found on this server.');
     }
 
-    return toRequiredCodeRunnerAuthenticationSessionSnapshot(
+    return toRequiredHarnessAuthenticationSessionSnapshot(
         startInteractiveTerminalSession({
-            sessionKey: buildCodeRunnerAuthenticationSessionKey(agent),
-            title: `${agent} authentication`,
+            sessionKey: buildHarnessAuthenticationSessionKey(harness),
+            title: `${harness} authentication`,
             command: 'bash',
             arguments: [scriptPath, 'authenticate-runner'],
             env: createVpsInstallerCommandEnvironment({
@@ -95,26 +101,28 @@ export async function startCodeRunnerAuthenticationSession(
                 isProcessRestartEnabled: false,
             }),
             metadata: {
-                agent,
+                harness,
             },
-            unavailableErrorMessage: 'Interactive code-runner authentication is available only on the Linux VPS runtime.',
+            unavailableErrorMessage: 'Interactive harness authentication is available only on the Linux VPS runtime.',
         }),
-        agent,
+        harness,
     );
 }
 
 /**
- * Returns the latest known authentication session for a runner.
+ * Returns the latest known authentication session for a harness.
  *
- * @param agent - Runner identifier.
+ * @param harness - Harness identifier.
  * @returns Serializable session snapshot or `null`.
+ *
+ * @private internal utility of Agents Server Harness Auth
  */
-export function getLatestCodeRunnerAuthenticationSession(
-    agent: string,
-): CodeRunnerAuthenticationSessionSnapshot | null {
-    return toCodeRunnerAuthenticationSessionSnapshot(
-        getLatestInteractiveTerminalSession(buildCodeRunnerAuthenticationSessionKey(agent)),
-        agent,
+export function getLatestHarnessAuthenticationSession(
+    harness: string,
+): HarnessAuthenticationSessionSnapshot | null {
+    return toHarnessAuthenticationSessionSnapshot(
+        getLatestInteractiveTerminalSession(buildHarnessAuthenticationSessionKey(harness)),
+        harness,
     );
 }
 
@@ -123,11 +131,13 @@ export function getLatestCodeRunnerAuthenticationSession(
  *
  * @param sessionId - Session identifier.
  * @returns Serializable session snapshot or `null`.
+ *
+ * @private internal utility of Agents Server Harness Auth
  */
-export function getCodeRunnerAuthenticationSession(
+export function getHarnessAuthenticationSession(
     sessionId: string,
-): CodeRunnerAuthenticationSessionSnapshot | null {
-    return toCodeRunnerAuthenticationSessionSnapshot(getInteractiveTerminalSession(sessionId));
+): HarnessAuthenticationSessionSnapshot | null {
+    return toHarnessAuthenticationSessionSnapshot(getInteractiveTerminalSession(sessionId));
 }
 
 /**
@@ -136,17 +146,19 @@ export function getCodeRunnerAuthenticationSession(
  * @param sessionId - Session identifier.
  * @param subscriber - Stream callbacks.
  * @returns Cleanup callback.
+ *
+ * @private internal utility of Agents Server Harness Auth
  */
-export function subscribeToCodeRunnerAuthenticationSession(
+export function subscribeToHarnessAuthenticationSession(
     sessionId: string,
-    subscriber: CodeRunnerAuthenticationSessionSubscriber,
+    subscriber: HarnessAuthenticationSessionSubscriber,
 ): (() => void) | null {
     return subscribeToInteractiveTerminalSession(sessionId, {
         onOutput: subscriber.onOutput,
         onExit: ({ snapshot }) =>
             subscriber.onExit({
                 type: 'exit',
-                snapshot: toRequiredCodeRunnerAuthenticationSessionSnapshot(snapshot),
+                snapshot: toRequiredHarnessAuthenticationSessionSnapshot(snapshot),
             }),
     });
 }
@@ -157,12 +169,14 @@ export function subscribeToCodeRunnerAuthenticationSession(
  * @param sessionId - Session identifier.
  * @param input - Raw text to write to stdin.
  * @returns Updated session snapshot.
+ *
+ * @private internal utility of Agents Server Harness Auth
  */
-export function writeCodeRunnerAuthenticationSessionInput(
+export function writeHarnessAuthenticationSessionInput(
     sessionId: string,
     input: string,
-): CodeRunnerAuthenticationSessionSnapshot {
-    return toRequiredCodeRunnerAuthenticationSessionSnapshot(writeInteractiveTerminalSessionInput(sessionId, input));
+): HarnessAuthenticationSessionSnapshot {
+    return toRequiredHarnessAuthenticationSessionSnapshot(writeInteractiveTerminalSessionInput(sessionId, input));
 }
 
 /**
@@ -170,41 +184,43 @@ export function writeCodeRunnerAuthenticationSessionInput(
  *
  * @param sessionId - Session identifier.
  * @returns Updated session snapshot.
+ *
+ * @private internal utility of Agents Server Harness Auth
  */
-export function stopCodeRunnerAuthenticationSession(
+export function stopHarnessAuthenticationSession(
     sessionId: string,
-): CodeRunnerAuthenticationSessionSnapshot {
-    return toRequiredCodeRunnerAuthenticationSessionSnapshot(stopInteractiveTerminalSession(sessionId));
+): HarnessAuthenticationSessionSnapshot {
+    return toRequiredHarnessAuthenticationSessionSnapshot(stopInteractiveTerminalSession(sessionId));
 }
 
 /**
- * Builds the stable logical session key for one runner authentication terminal.
+ * Builds the stable logical session key for one harness authentication terminal.
  *
- * @param agent - Runner identifier.
+ * @param harness - Harness identifier.
  * @returns Stable session key.
  */
-function buildCodeRunnerAuthenticationSessionKey(agent: string): string {
-    return `code-runner-authentication:${agent}`;
+function buildHarnessAuthenticationSessionKey(harness: string): string {
+    return `harness-authentication:${harness}`;
 }
 
 /**
- * Converts one generic terminal snapshot into the runner-specific browser shape.
+ * Converts one generic terminal snapshot into the harness-specific browser shape.
  *
  * @param session - Generic terminal snapshot.
- * @param fallbackAgent - Agent name used when older sessions miss metadata.
- * @returns Runner-specific snapshot or `null`.
+ * @param fallbackHarness - Harness name used when older sessions miss metadata.
+ * @returns Harness-specific snapshot or `null`.
  */
-function toCodeRunnerAuthenticationSessionSnapshot(
+function toHarnessAuthenticationSessionSnapshot(
     session: InteractiveTerminalSessionSnapshot | null,
-    fallbackAgent = '',
-): CodeRunnerAuthenticationSessionSnapshot | null {
+    fallbackHarness = '',
+): HarnessAuthenticationSessionSnapshot | null {
     if (!session) {
         return null;
     }
 
     return {
         id: session.id,
-        agent: session.metadata.agent || fallbackAgent,
+        harness: session.metadata.harness || session.metadata.agent || fallbackHarness,
         isRunning: session.isRunning,
         output: session.output,
         startedAt: session.startedAt,
@@ -215,16 +231,16 @@ function toCodeRunnerAuthenticationSessionSnapshot(
 }
 
 /**
- * Converts one generic terminal snapshot into a required runner-specific snapshot.
+ * Converts one generic terminal snapshot into a required harness-specific snapshot.
  *
  * @param session - Generic terminal snapshot.
- * @returns Runner-specific snapshot.
+ * @returns Harness-specific snapshot.
  */
-function toRequiredCodeRunnerAuthenticationSessionSnapshot(
+function toRequiredHarnessAuthenticationSessionSnapshot(
     session: InteractiveTerminalSessionSnapshot | null,
-    fallbackAgent = '',
-): CodeRunnerAuthenticationSessionSnapshot {
-    const mappedSession = toCodeRunnerAuthenticationSessionSnapshot(session, fallbackAgent);
+    fallbackHarness = '',
+): HarnessAuthenticationSessionSnapshot {
+    const mappedSession = toHarnessAuthenticationSessionSnapshot(session, fallbackHarness);
 
     if (!mappedSession) {
         throw new Error('Authentication session was not found.');

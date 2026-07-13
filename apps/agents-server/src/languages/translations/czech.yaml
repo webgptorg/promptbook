@@ -141,7 +141,7 @@ header.resourceMonitor: Monitoring zdrojů
 header.update: Aktualizace
 header.database: Databáze
 header.logs: Logy
-header.codeRunners: Code runnery
+header.harnessAuth: Přihlášení harnessu
 header.cliAccess: CLI přístup
 header.models: Modely
 header.openApiDocumentation: Dokumentace OpenAPI

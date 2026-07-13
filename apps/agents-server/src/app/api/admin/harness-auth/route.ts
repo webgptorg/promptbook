@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
 import { isUserGlobalAdmin } from '@/src/utils/isUserGlobalAdmin';
-import { readConfiguredCodeRunner, resolveCodeRunnerStatus } from '@/src/utils/codeRunnerConfiguration';
+import { readConfiguredHarness, resolveHarnessStatus } from '@/src/utils/harnessConfiguration';
 import {
-    applyVpsCodeRunnerConfiguration,
+    applyVpsHarnessConfiguration,
     updateVpsEnvironmentVariables,
 } from '@/src/utils/vpsConfiguration';
 
 /**
- * Loads configured code-runner settings from the editable VPS environment.
+ * Loads configured harness settings from the editable VPS environment.
  */
 export async function GET() {
     if (!(await isUserGlobalAdmin())) {
@@ -15,22 +15,22 @@ export async function GET() {
     }
 
     try {
-        const configuredCodeRunner = await readConfiguredCodeRunner();
+        const configuredHarness = await readConfiguredHarness();
 
         return NextResponse.json({
-            ...configuredCodeRunner,
-            status: await resolveCodeRunnerStatus(configuredCodeRunner.agent),
+            ...configuredHarness,
+            status: await resolveHarnessStatus(configuredHarness.harness),
         });
     } catch (error) {
         return NextResponse.json(
-            { error: error instanceof Error ? error.message : 'Failed to load code-runner configuration.' },
+            { error: error instanceof Error ? error.message : 'Failed to load harness configuration.' },
             { status: 500 },
         );
     }
 }
 
 /**
- * Updates code-runner environment variables.
+ * Updates harness environment variables.
  */
 export async function PATCH(request: Request) {
     if (!(await isUserGlobalAdmin())) {
@@ -40,7 +40,7 @@ export async function PATCH(request: Request) {
     try {
         const body = (await request.json().catch(() => null)) as
             | {
-                  readonly agent?: string;
+                  readonly harness?: string;
                   readonly model?: string;
                   readonly thinkingLevel?: string;
                   readonly applyRuntimeConfiguration?: boolean;
@@ -48,11 +48,11 @@ export async function PATCH(request: Request) {
             | null;
 
         if (!body) {
-            return NextResponse.json({ error: 'Code-runner payload is required.' }, { status: 400 });
+            return NextResponse.json({ error: 'Harness payload is required.' }, { status: 400 });
         }
 
         await updateVpsEnvironmentVariables({
-            PTBK_HARNESS: body.agent || '',
+            PTBK_HARNESS: body.harness || '',
             PTBK_MODEL: body.model || '',
             PTBK_THINKING_LEVEL: body.thinkingLevel || '',
         });
@@ -62,11 +62,11 @@ export async function PATCH(request: Request) {
 
         return NextResponse.json({
             ...payload,
-            applyResult: body.applyRuntimeConfiguration ? await applyVpsCodeRunnerConfiguration() : null,
+            applyResult: body.applyRuntimeConfiguration ? await applyVpsHarnessConfiguration() : null,
         });
     } catch (error) {
         return NextResponse.json(
-            { error: error instanceof Error ? error.message : 'Failed to update code-runner configuration.' },
+            { error: error instanceof Error ? error.message : 'Failed to update harness configuration.' },
             { status: 500 },
         );
     }

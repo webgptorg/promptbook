@@ -1,3 +1,9 @@
+-   Fixed `ptbk coder` artificial waits so they are tied to wall-clock deadlines instead of decrementing only while the Node process is actively awake. `--wait-between-prompts`, `--wait-after-prompt`, `--wait-after-error`, OpenAI Codex rate-limit backoff, and Claude Code session-limit resurrection waits now elapse during `p`/web-UI pauses and while the computer sleeps.
+
+-   Fixed Agents Server `/admin/harness-auth` so the page no longer shows multiple xterm panels. Harness status and apply output now render as plain text, and the **Live authentication terminal** is the only interactive terminal, mounted only while an authentication session is running.
+
+-   Renamed Agents Server standalone VPS harness authentication to `/admin/harness-auth`, with Harness Auth menu/page/API copy and installer guidance aligned around `PTBK_HARNESS` subscription-backed CLI sign-in.
+
 -   Fixed the `ptbk coder` landing page live terminal avatar so the sample now uses the shared terminal avatar renderer and the same `AsciiOctopus` fallback as the real Promptbook Developer coder agent. The terminal avatar dimensions and refresh cadence are centralized in `src/utils/agents/terminalAgentAvatarVisual`, with both the real rich CLI UI and the landing page using that shared preset.
 
 -   Fixed `scripts/repair-imports/repair-imports.ts` so it preserves imports from modules mocked in the same test file. The repair pass now detects static `jest.mock(...)` and `vi.mock(...)` module specifiers and leaves matching imports on their mocked facade module instead of redirecting them to deeper implementation files, preventing repaired imports from bypassing test mocks.
@@ -121,7 +127,7 @@
 
     -   Added the explicit `--yes-i-understand-that-script-should-be-run-on-fresh-server` installer option alongside `PTBK_CONFIRM_FRESH_VPS=yes`, so automated installs can acknowledge the fresh-server requirement without an interactive prompt.
     -   Added installer options for the common automated values (`--domain`, `--openai-api-key`, `--sentry-dsn`, and `--admin-password`) while reusing the same defaults and environment variables as the interactive prompts.
-    -   Documented interactive and non-interactive standalone VPS installation examples in the README, including the non-interactive code-runner skip behavior.
+    -   Documented interactive and non-interactive standalone VPS installation examples in the README, including the non-interactive harness skip behavior.
 
 -   Replaced the remote Promptbook Core Agents Server with a bundled local `.core` folder so each Agents Server can run without any external dependency on `core.ptbk.io`:
 
@@ -338,7 +344,7 @@
 
 -   Updated the standalone VPS Agents Server installer to ask for an optional Sentry DSN and persist it as `SENTRY_DSN`, so browser application error reports can be forwarded to Sentry immediately after installation.
 
--   Added `--non-interactive` support to the standalone VPS Agents Server installer so automated installs take default answers, avoid prompt-based sudo validation, and skip initial code-runner CLI installation/authentication until it is configured later from the UI or SSH.
+-   Added `--non-interactive` support to the standalone VPS Agents Server installer so automated installs take default answers, avoid prompt-based sudo validation, and skip initial harness CLI installation/authentication until it is configured later from the UI or SSH.
 
 -   Fixed standalone VPS Agents Server domains backed by SQLite so numeric-looking metadata values, including `SERVER_NAME`, are read as strings instead of crashing the layout header with `split is not a function`.
 
@@ -391,12 +397,12 @@
     -   `other/vps/install.sh` now starts the Agents Server pm2 process with `--cron-restart '0 * * * *'`, so new standalone installs automatically restart the service once per hour.
     -   The installer summary now prints the configured pm2 hourly-restart schedule alongside the managed process name.
 
--   Added standalone VPS code-runner authentication to `System -> Super Admin -> Code runners`:
+-   Added standalone VPS harness authentication to `System -> Super Admin -> Harness Auth`:
 
-    -   Super-admins can now launch the saved runner CLI directly from `/admin/code-runners`, watch its authentication output live in the browser, and send interactive terminal input without SSHing into the VPS.
+    -   Super-admins can now launch the saved harness CLI directly from `/admin/harness-auth`, watch its authentication output live in the browser, and send interactive terminal input without SSHing into the VPS.
     -   The Agents Server now keeps an in-process streamed authentication session for the active runner and reuses the shared standalone VPS installer entrypoint for the same server-side authentication command path.
     -   `other/vps/install.sh` now exposes an `authenticate-runner` subcommand and supports interactive authentication flows for the configured runner CLIs through a pseudo-terminal wrapper.
-    -   Fixed embedded admin terminals on `/admin/cli-access` and `/admin/code-runners` so stale input acknowledgements no longer overwrite newer streamed output and make typed characters appear one step behind.
+    -   Fixed embedded admin terminals on `/admin/cli-access` and `/admin/harness-auth` so stale input acknowledgements no longer overwrite newer streamed output and make typed characters appear one step behind.
 
 -   Added standalone VPS DNS diagnostics to `System -> Super Admin -> Servers`:
 
@@ -451,8 +457,8 @@
 
     -   The VPS installer can now continue without a custom domain, keeps the internal Agents Server on localhost, exposes raw-IP access through nginx on port 80, and skips SSL until domains are configured.
     -   Raw-IP access now opens the super-admin server setup flow when no domains exist, redirects to HTTPS when one domain exists, and shows a domain chooser when multiple domains are configured.
-    -   Moved Servers to `System -> Super Admin`, added VPS `.env` environment variables, pm2 logs, and code-runner configuration screens, and kept secrets masked in the UI.
-    -   Reused the VPS installer script from admin actions so domain changes apply nginx/certbot/pm2 updates and code-runner changes can install/configure the selected runner from the same script path.
+    -   Moved Servers to `System -> Super Admin`, added VPS `.env` environment variables, pm2 logs, and harness configuration screens, and kept secrets masked in the UI.
+    -   Reused the VPS installer script from admin actions so domain changes apply nginx/certbot/pm2 updates and harness changes can install/configure the selected harness from the same script path.
 
 -   Renamed the CLI agent queue command family from `ptbk agent` to `ptbk agent-folder`:
 

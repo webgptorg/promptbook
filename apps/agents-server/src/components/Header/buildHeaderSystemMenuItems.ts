@@ -52,6 +52,7 @@ import {
     type LucideIcon,
 } from 'lucide-react';
 import { createElement } from 'react';
+import { HARNESS_AUTH_ADMIN_PATH } from '../../constants/harnessAuthRoutes';
 import type { ServerTranslationKey } from '../../languages/ServerTranslationKeys';
 import type { ShibbolethAuthenticationMenuStatus } from '../../constants/shibbolethAuth';
 import type { ChatFeedbackMode } from '../../utils/chatFeedbackMode';
@@ -102,7 +103,7 @@ type SystemMenuItemHref =
     | '/admin/update'
     | '/admin/database'
     | '/admin/logs'
-    | '/admin/code-runners'
+    | typeof HARNESS_AUTH_ADMIN_PATH
     | '/admin/cli-access'
     | '/admin/models'
     | '/admin/metadata'
@@ -178,7 +179,7 @@ const SYSTEM_MENU_ICON_BY_HREF: Record<SystemMenuItemHref, LucideIcon> = {
     '/admin/update': RefreshCw,
     '/admin/database': Database,
     '/admin/logs': ScrollText,
-    '/admin/code-runners': TerminalSquare,
+    [HARNESS_AUTH_ADMIN_PATH]: TerminalSquare,
     '/admin/cli-access': Terminal,
     '/admin/models': Bot,
     '/admin/metadata': FileJson,
@@ -411,8 +412,8 @@ export function buildHeaderSystemMenuItems({
                       href: '/admin/logs',
                   } as SubMenuItem,
                   {
-                      label: translate('header.codeRunners'),
-                      href: '/admin/code-runners',
+                      label: translate('header.harnessAuth'),
+                      href: HARNESS_AUTH_ADMIN_PATH,
                   } as SubMenuItem,
                   {
                       label: translate('header.cliAccess'),

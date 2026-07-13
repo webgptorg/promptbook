@@ -147,7 +147,7 @@ export const SERVER_TRANSLATION_KEYS = [
     'header.update',
     'header.database',
     'header.logs',
-    'header.codeRunners',
+    'header.harnessAuth',
     'header.cliAccess',
     'header.models',
     'header.openApiDocumentation',

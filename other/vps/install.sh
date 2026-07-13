@@ -1346,7 +1346,7 @@ install_runner_dependencies() {
             "${SUDO[@]}" npm install -g @google/gemini-cli
             ;;
         *)
-            warn "No automatic dependency installer is defined for runner '$PTBK_HARNESS'. Make sure its CLI is available on PATH."
+            warn "No automatic dependency installer is defined for harness '$PTBK_HARNESS'. Make sure its CLI is available on PATH."
             ;;
     esac
 }
@@ -1411,7 +1411,7 @@ run_runner_authentication_command() {
 
     authentication_command="$(resolve_runner_authentication_command)"
     if [[ -z "$authentication_command" ]]; then
-        warn "No interactive authentication command is defined for runner '$PTBK_HARNESS'."
+        warn "No interactive authentication command is defined for harness '$PTBK_HARNESS'."
         return 0
     fi
 
@@ -1420,7 +1420,7 @@ run_runner_authentication_command() {
         return
     fi
 
-    warn "The 'script' command is not available, starting the runner CLI without a pseudo-terminal."
+    warn "The 'script' command is not available, starting the harness CLI without a pseudo-terminal."
     run_as_service_user bash -lc "cd $(shell_quote "$INSTALL_DIR") && exec $authentication_command"
 }
 
@@ -1983,18 +1983,18 @@ configure_runner_authentication() {
 
     if is_openai_codex_api_key_runner_configured; then
         set_env_value PTBK_OPENAI_CODEX_USE_API_KEY 1
-        log "OpenAI API key detected; the OpenAI Codex runner will use OPENAI_API_KEY without interactive CLI authentication."
+        log "OpenAI API key detected; the OpenAI Codex harness will use OPENAI_API_KEY without interactive CLI authentication."
         return
     fi
 
     authentication_binary="${authentication_command%% *}"
     if ! command -v "$authentication_binary" >/dev/null 2>&1; then
-        warn "Runner CLI '$authentication_binary' is not available, skipping interactive authentication."
+        warn "Harness CLI '$authentication_binary' is not available, skipping interactive authentication."
         return
     fi
 
     if ! is_interactive; then
-        warn "Runner authentication requires an interactive VPS terminal. Run $authentication_command as $RUN_USER inside $INSTALL_DIR and complete any login or project-trust steps before restarting pm2."
+        warn "Harness authentication requires an interactive VPS terminal. Run $authentication_command as $RUN_USER inside $INSTALL_DIR and complete any login or project-trust steps before restarting pm2."
         return
     fi
 
@@ -2007,22 +2007,22 @@ configure_runner_authentication() {
     fi
 
     if [[ "$is_runner_authentication_requested" != "1" ]]; then
-        warn "Skipping runner authentication. The runner must be authenticated before it can answer chats."
+        warn "Skipping harness authentication. The harness must be authenticated before it can answer chats."
         return
     fi
 
-    log "Starting the $PTBK_HARNESS CLI. Complete any login or project-trust prompts, then exit the runner CLI to continue."
+    log "Starting the $PTBK_HARNESS CLI. Complete any login or project-trust prompts, then exit the harness CLI to continue."
     set +e
     run_runner_authentication_command < /dev/tty > /dev/tty
     local runner_exit_code=$?
     set -e
 
     if [[ "$runner_exit_code" -ne 0 ]]; then
-        warn "The $PTBK_HARNESS CLI exited with status $runner_exit_code. The server will still start, but the runner may need authentication."
+        warn "The $PTBK_HARNESS CLI exited with status $runner_exit_code. The server will still start, but the harness may need authentication."
     fi
 }
 
-configure_code_runner_for_initial_installation() {
+configure_harness_for_initial_installation() {
     if ! is_interactive; then
         if is_openai_codex_api_key_runner_configured; then
             log "Installing and configuring OpenAI Codex CLI for non-interactive OPENAI_API_KEY authentication."
@@ -2031,8 +2031,8 @@ configure_code_runner_for_initial_installation() {
             return
         fi
 
-        log "Skipping code-runner CLI installation and authentication in non-interactive mode."
-        log "Configure the runner later from System -> Super Admin -> Code runners or by running: bash $PROMPTBOOK_REPOSITORY_DIR/other/vps/install.sh apply-runner"
+        log "Skipping harness CLI installation and authentication in non-interactive mode."
+        log "Configure the harness later from System -> Super Admin -> Harness Auth or by running: bash $PROMPTBOOK_REPOSITORY_DIR/other/vps/install.sh apply-runner"
         return
     fi
 
@@ -2040,7 +2040,7 @@ configure_code_runner_for_initial_installation() {
     configure_runner_authentication
 }
 
-authenticate_code_runner() {
+authenticate_harness() {
     local authentication_command=""
     local authentication_binary=""
     local runner_exit_code=0
@@ -2051,16 +2051,16 @@ authenticate_code_runner() {
 
     authentication_command="$(resolve_runner_authentication_command)"
     if [[ -z "$authentication_command" ]]; then
-        fail "No interactive authentication command is defined for runner '$PTBK_HARNESS'."
+        fail "No interactive authentication command is defined for harness '$PTBK_HARNESS'."
     fi
 
     authentication_binary="${authentication_command%% *}"
     if ! command -v "$authentication_binary" >/dev/null 2>&1; then
-        fail "Runner CLI '$authentication_binary' is not available. Apply the runner configuration first so the CLI gets installed."
+        fail "Harness CLI '$authentication_binary' is not available. Apply the harness configuration first so the CLI gets installed."
     fi
 
-    log "Starting interactive authentication for runner '$PTBK_HARNESS' in $INSTALL_DIR."
-    log "Complete any login or project-trust prompts in the browser terminal and exit the runner CLI when finished."
+    log "Starting interactive authentication for harness '$PTBK_HARNESS' in $INSTALL_DIR."
+    log "Complete any login or project-trust prompts in the browser terminal and exit the harness CLI when finished."
 
     set +e
     run_runner_authentication_command
@@ -2068,10 +2068,10 @@ authenticate_code_runner() {
     set -e
 
     if [[ "$runner_exit_code" -ne 0 ]]; then
-        fail "Runner authentication command exited with status $runner_exit_code."
+        fail "Harness authentication command exited with status $runner_exit_code."
     fi
 
-    log "Runner authentication command finished."
+    log "Harness authentication command finished."
 }
 
 open_server_cli_shell() {
@@ -3173,7 +3173,7 @@ apply_vps_runtime_configuration() {
     print_summary
 }
 
-apply_code_runner_configuration() {
+apply_harness_configuration() {
     initialize_sudo
     resolve_run_user
     load_runtime_configuration_from_env_file
@@ -3378,9 +3378,9 @@ main() {
     confirm_fresh_vps_installation
     check_required_resources
 
-    PTBK_HARNESS="$(prompt_with_default "Coding runner" "$PTBK_HARNESS")"
-    PTBK_MODEL="$(prompt_with_default "Runner model" "$PTBK_MODEL")"
-    PTBK_THINKING_LEVEL="$(prompt_with_default "Runner thinking level" "$PTBK_THINKING_LEVEL")"
+    PTBK_HARNESS="$(prompt_with_default "Harness" "$PTBK_HARNESS")"
+    PTBK_MODEL="$(prompt_with_default "Harness model" "$PTBK_MODEL")"
+    PTBK_THINKING_LEVEL="$(prompt_with_default "Harness thinking level" "$PTBK_THINKING_LEVEL")"
     PROMPTBOOK_REPOSITORY_REF="$(normalize_promptbook_repository_ref "$(prompt_with_default "Deployment environment (production/main/preview/LTS)" "$PROMPTBOOK_REPOSITORY_REF")")"
     PORT="$(prompt_with_default "Agents Server port" "$PORT")"
     configure_domains
@@ -3404,7 +3404,7 @@ main() {
     initialize_promptbook_project
     install_default_agents
     configure_self_contained_s3_storage
-    configure_code_runner_for_initial_installation
+    configure_harness_for_initial_installation
     configure_pm2_startup
     build_agents_server
     start_agents_server
@@ -3474,13 +3474,13 @@ fi
 
 if [[ "${1:-}" == "apply-runner" ]]; then
     shift
-    apply_code_runner_configuration "$@"
+    apply_harness_configuration "$@"
     exit 0
 fi
 
 if [[ "${1:-}" == "authenticate-runner" ]]; then
     shift
-    authenticate_code_runner "$@"
+    authenticate_harness "$@"
     exit 0
 fi
 

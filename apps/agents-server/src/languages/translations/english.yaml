@@ -143,7 +143,7 @@ header.resourceMonitor: Resource monitor
 header.update: Update
 header.database: Database
 header.logs: Logs
-header.codeRunners: Code runners
+header.harnessAuth: Harness Auth
 header.cliAccess: CLI Access
 header.models: Models
 header.openApiDocumentation: OpenAPI Documentation

@@ -5,13 +5,15 @@ import { listVpsEnvironmentVariables } from './vpsConfiguration';
 const execFileAsync = promisify(execFile);
 
 /**
- * Saved standalone VPS code-runner configuration exposed to the admin UI.
+ * Saved standalone VPS harness configuration exposed to the admin UI.
+ *
+ * @private internal utility of Agents Server Harness Auth
  */
-export type ConfiguredCodeRunner = {
+export type ConfiguredHarness = {
     /**
-     * Runner identifier persisted in `.env`.
+     * Harness identifier persisted in `.env`.
      */
-    readonly agent: string;
+    readonly harness: string;
 
     /**
      * Model identifier persisted in `.env`.
@@ -25,11 +27,13 @@ export type ConfiguredCodeRunner = {
 };
 
 /**
- * Reads the currently configured standalone VPS code runner from managed environment variables.
+ * Reads the currently configured standalone VPS harness from managed environment variables.
  *
- * @returns Saved code-runner settings with fallback defaults.
+ * @returns Saved harness settings with fallback defaults.
+ *
+ * @private internal utility of Agents Server Harness Auth
  */
-export async function readConfiguredCodeRunner(): Promise<ConfiguredCodeRunner> {
+export async function readConfiguredHarness(): Promise<ConfiguredHarness> {
     const snapshot = await listVpsEnvironmentVariables();
     const environmentByKey = Object.fromEntries(snapshot.variables.map((variable) => [variable.key, variable.value])) as Record<
         string,
@@ -37,20 +41,22 @@ export async function readConfiguredCodeRunner(): Promise<ConfiguredCodeRunner> 
     >;
 
     return {
-        agent: environmentByKey.PTBK_HARNESS || process.env.PTBK_HARNESS || process.env.PTBK_AGENT || 'github-copilot',
+        harness: environmentByKey.PTBK_HARNESS || process.env.PTBK_HARNESS || process.env.PTBK_AGENT || 'github-copilot',
         model: environmentByKey.PTBK_MODEL || process.env.PTBK_MODEL || 'gpt-5.4',
         thinkingLevel: environmentByKey.PTBK_THINKING_LEVEL || process.env.PTBK_THINKING_LEVEL || 'xhigh',
     };
 }
 
 /**
- * Resolves a short runner-authentication status for the configured runner.
+ * Resolves a short authentication status for the configured harness.
  *
- * @param agent - Runner id.
+ * @param harness - Harness id.
  * @returns Human-readable status.
+ *
+ * @private internal utility of Agents Server Harness Auth
  */
-export async function resolveCodeRunnerStatus(agent: string): Promise<string> {
-    if (agent !== 'github-copilot') {
+export async function resolveHarnessStatus(harness: string): Promise<string> {
+    if (harness !== 'github-copilot') {
         return 'Status check is currently available for GitHub Copilot CLI only.';
     }
 
