@@ -13,6 +13,7 @@ USE PROJECT {Project2 Server}
 TEAM Consult your work with @Lawyer and {Frontend Developer} before you start implementing. They will help you to avoid mistakes and save time.
 ```
 
+- *(@@@ delete this prompt)*
 -   Alongside agents, create a projects
 - Identification pool of Agents and projects is same - names are unique across the system
     - For example, reference @Foo or {Foo} can be used to reference both an Agent and a Project
@@ -24,4 +25,4 @@ TEAM Consult your work with @Lawyer and {Frontend Developer} before you start im
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-- 11:11
+- 11:11 x
