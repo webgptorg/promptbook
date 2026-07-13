@@ -1,6 +1,7 @@
 import colors from 'colors';
 import { $runGoScriptUntilMarkerIdle } from '../../common/runGoScript/$runGoScriptUntilMarkerIdle';
 import { ProgressiveBackoff } from '../../common/ProgressiveBackoff';
+import { waitUntilWorldTimeDeadline } from '../../common/waitUntilWorldTimeDeadline';
 import type { PromptRunOptions } from '../types/PromptRunOptions';
 import type { PromptRunResult } from '../types/PromptRunResult';
 import type { PromptRunner } from '../types/PromptRunner';
@@ -43,13 +44,6 @@ const RATE_LIMIT_BACKOFF_MAX_MS = 30 * 60 * 1000;
  * Randomized delay proportion added/subtracted for retry jitter.
  */
 const RATE_LIMIT_BACKOFF_JITTER_RATIO = 0.15;
-
-/**
- * Waits for one given amount of milliseconds.
- */
-async function waitFor(delayMs: number): Promise<void> {
-    await new Promise((resolve) => setTimeout(resolve, delayMs));
-}
 
 /**
  * Formats a delay value into a concise `xh ym zs` style label.
@@ -148,7 +142,8 @@ export class OpenAiCodexRunner implements PromptRunner {
                 }
 
                 const delayMs = this.rateLimitBackoff.nextDelayMs();
-                const retryAt = new Date(Date.now() + delayMs).toISOString();
+                const retryDeadlineTimeMs = Date.now() + delayMs;
+                const retryAt = new Date(retryDeadlineTimeMs).toISOString();
                 const retryIndex = this.rateLimitBackoff.retryCount;
                 const summary = extractFailureSummary(details);
 
@@ -160,7 +155,11 @@ export class OpenAiCodexRunner implements PromptRunner {
                     );
                 }
 
-                await waitForRetryDelay(delayMs, options);
+                await waitForRetryDelay({
+                    delayMs,
+                    retryDeadlineTimeMs,
+                    promptRunOptions: options,
+                });
             }
         }
     }
@@ -169,20 +168,24 @@ export class OpenAiCodexRunner implements PromptRunner {
 /**
  * Waits for the next Codex retry while polling for requested pause checkpoints.
  */
-async function waitForRetryDelay(delayMs: number, options: PromptRunOptions): Promise<void> {
-    let remainingDelayMs = delayMs;
+async function waitForRetryDelay(options: {
+    readonly delayMs: number;
+    readonly retryDeadlineTimeMs: number;
+    readonly promptRunOptions: PromptRunOptions;
+}): Promise<void> {
+    const { delayMs, retryDeadlineTimeMs, promptRunOptions } = options;
 
-    while (remainingDelayMs > 0) {
-        const remainingDelayLabel = formatDelay(remainingDelayMs);
+    await waitUntilWorldTimeDeadline({
+        deadlineTimeMs: retryDeadlineTimeMs,
+        pollIntervalMs: RATE_LIMIT_BACKOFF_POLL_MS,
+        onTick: async (remainingDelayMs) => {
+            const remainingDelayLabel = formatDelay(Math.min(remainingDelayMs, delayMs));
 
-        await options.waitForPauseCheckpoint?.({
-            checkpointLabel: 'the next OpenAI Codex retry after rate limit',
-            phase: 'running',
-            statusMessage: `Waiting ${remainingDelayLabel} before retrying OpenAI Codex`,
-        });
-
-        const currentDelayMs = Math.min(RATE_LIMIT_BACKOFF_POLL_MS, remainingDelayMs);
-        await waitFor(currentDelayMs);
-        remainingDelayMs -= currentDelayMs;
-    }
+            await promptRunOptions.waitForPauseCheckpoint?.({
+                checkpointLabel: 'the next OpenAI Codex retry after rate limit',
+                phase: 'running',
+                statusMessage: `Waiting ${remainingDelayLabel} before retrying OpenAI Codex`,
+            });
+        },
+    });
 }

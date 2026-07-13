@@ -1,3 +1,5 @@
+-   Fixed `ptbk coder` artificial waits so they are tied to wall-clock deadlines instead of decrementing only while the Node process is actively awake. `--wait-between-prompts`, `--wait-after-prompt`, `--wait-after-error`, OpenAI Codex rate-limit backoff, and Claude Code session-limit resurrection waits now elapse during `p`/web-UI pauses and while the computer sleeps.
+
 -   Fixed Agents Server `/admin/harness-auth` so the page no longer shows multiple xterm panels. Harness status and apply output now render as plain text, and the **Live authentication terminal** is the only interactive terminal, mounted only while an authentication session is running.
 
 -   Renamed Agents Server standalone VPS harness authentication to `/admin/harness-auth`, with Harness Auth menu/page/API copy and installer guidance aligned around `PTBK_HARNESS` subscription-backed CLI sign-in.
