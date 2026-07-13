@@ -1,3 +1,5 @@
+-   Fixed Agents Server `/admin/harness-auth` so the page no longer shows multiple xterm panels. Harness status and apply output now render as plain text, and the **Live authentication terminal** is the only interactive terminal, mounted only while an authentication session is running.
+
 -   Renamed Agents Server standalone VPS harness authentication to `/admin/harness-auth`, with Harness Auth menu/page/API copy and installer guidance aligned around `PTBK_HARNESS` subscription-backed CLI sign-in.
 
 -   Fixed the `ptbk coder` landing page live terminal avatar so the sample now uses the shared terminal avatar renderer and the same `AsciiOctopus` fallback as the real Promptbook Developer coder agent. The terminal avatar dimensions and refresh cadence are centralized in `src/utils/agents/terminalAgentAvatarVisual`, with both the real rich CLI UI and the landing page using that shared preset.

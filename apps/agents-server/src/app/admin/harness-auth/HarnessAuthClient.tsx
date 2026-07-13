@@ -3,7 +3,6 @@
 import { Loader2, Save, ServerCog } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { AdminTerminalCard } from '../../../components/AdminTerminal/AdminTerminalCard';
-import { AdminXtermTerminal } from '../../../components/AdminTerminal/AdminXtermTerminal';
 import { useAdminTerminalSession } from '../../../components/AdminTerminal/useAdminTerminalSession';
 import { Card } from '../../../components/Homepage/Card';
 import { HARNESS_AUTH_API_PATH, HARNESS_AUTHENTICATION_API_PATH } from '../../../constants/harnessAuthRoutes';
@@ -69,6 +68,44 @@ const AUTHENTICATION_HINTS: Record<string, string> = {
  */
 const INPUT_CLASS_NAME =
     'w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-50 disabled:text-gray-500';
+
+/**
+ * Shared plain-output text styling for non-interactive harness command results.
+ */
+const HARNESS_PLAIN_OUTPUT_TEXT_CLASS_NAME =
+    'whitespace-pre-wrap break-words font-mono text-xs leading-5 text-slate-600';
+
+/**
+ * Props for the non-terminal harness output block.
+ */
+type HarnessPlainOutputBlockProps = {
+    /**
+     * Visible output heading.
+     */
+    readonly title: string;
+
+    /**
+     * Plain output text to show.
+     */
+    readonly output: string;
+
+    /**
+     * Optional max-height and overflow classes for longer output.
+     */
+    readonly outputSizeClassName?: string;
+};
+
+/**
+ * Plain text command output block used when an interactive terminal would be misleading.
+ */
+function HarnessPlainOutputBlock({ title, output, outputSizeClassName = '' }: HarnessPlainOutputBlockProps) {
+    return (
+        <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+            <p className="text-sm font-semibold text-slate-700">{title}</p>
+            <pre className={`mt-2 ${outputSizeClassName} ${HARNESS_PLAIN_OUTPUT_TEXT_CLASS_NAME}`}>{output}</pre>
+        </div>
+    );
+}
 
 /**
  * Client UI for configuring the local harness used by durable chats.
@@ -277,17 +314,20 @@ export function HarnessAuthClient() {
                         Save and apply harness
                     </button>
                 </div>
+
+                <div className="mt-6">
+                    <HarnessPlainOutputBlock
+                        title="Harness status"
+                        output={status || 'Harness status was not available.'}
+                    />
+                </div>
             </Card>
 
             {applyOutput ? (
-                <AdminXtermTerminal
-                    terminalId="harness-apply-output"
+                <HarnessPlainOutputBlock
+                    title="Harness apply output"
                     output={applyOutput}
-                    emptyState="No apply output returned."
-                    isReadOnly
-                    isPlainTextOutput
-                    heightClassName="h-72"
-                    ariaLabel="Harness apply output"
+                    outputSizeClassName="max-h-72 overflow-auto"
                 />
             ) : null}
 
@@ -308,18 +348,9 @@ export function HarnessAuthClient() {
                 stopLabel="Stop terminal"
                 outputLabel="Live authentication terminal"
                 outputEmptyState="No authentication session output yet. Start the saved-harness terminal to see the live authentication log here."
+                isOutputVisible={Boolean(authenticationSession?.isRunning)}
                 quickActions={[{ label: 'Send Enter', input: '\n' }]}
-            >
-                <AdminXtermTerminal
-                    terminalId="harness-status"
-                    output={status || 'Harness status was not available.'}
-                    emptyState="Harness status was not available."
-                    isReadOnly
-                    isPlainTextOutput
-                    heightClassName="h-64"
-                    ariaLabel="Harness status"
-                />
-            </AdminTerminalCard>
+            />
         </div>
     );
 }
