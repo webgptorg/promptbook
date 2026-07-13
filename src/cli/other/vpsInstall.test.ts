@@ -126,30 +126,30 @@ describe('other/vps/install.sh', () => {
         expect(installScript).toContain('ADMIN_PASSWORD="$2"');
     });
 
-    it('defaults standalone VPS coding runner to OpenAI Codex while keeping GitHub Copilot available', () => {
+    it('defaults standalone VPS harness to OpenAI Codex while keeping GitHub Copilot available', () => {
         const runnerDependenciesFunction = installScript.slice(
             installScript.indexOf('\ninstall_runner_dependencies() {'),
             installScript.indexOf('\nresolve_runner_authentication_command() {'),
         );
 
         expect(installScript).toContain('PTBK_HARNESS="${PTBK_HARNESS:-${PTBK_AGENT:-openai-codex}}"');
-        expect(installScript).toContain('PTBK_HARNESS="$(prompt_with_default "Coding runner" "$PTBK_HARNESS")"');
+        expect(installScript).toContain('PTBK_HARNESS="$(prompt_with_default "Harness" "$PTBK_HARNESS")"');
         expect(runnerDependenciesFunction).toContain('github-copilot)');
         expect(runnerDependenciesFunction).toContain('openai-codex)');
     });
 
-    it('uses the configured OpenAI API key for OpenAI Codex runner authentication', () => {
+    it('uses the configured OpenAI API key for OpenAI Codex harness authentication', () => {
         const runnerAuthenticationPreferenceFunction = installScript.slice(
             installScript.indexOf('\nprompt_runner_authentication_preference() {'),
             installScript.indexOf('\nrun_runner_authentication_command() {'),
         );
         const runnerAuthenticationFunction = installScript.slice(
             installScript.indexOf('\nconfigure_runner_authentication() {'),
-            installScript.indexOf('\nconfigure_code_runner_for_initial_installation() {'),
+            installScript.indexOf('\nconfigure_harness_for_initial_installation() {'),
         );
-        const codeRunnerInitialInstallationFunction = installScript.slice(
-            installScript.indexOf('\nconfigure_code_runner_for_initial_installation() {'),
-            installScript.indexOf('\nauthenticate_code_runner() {'),
+        const harnessInitialInstallationFunction = installScript.slice(
+            installScript.indexOf('\nconfigure_harness_for_initial_installation() {'),
+            installScript.indexOf('\nauthenticate_harness() {'),
         );
 
         expect(installScript).toContain('PTBK_OPENAI_CODEX_USE_API_KEY="${PTBK_OPENAI_CODEX_USE_API_KEY:-0}"');
@@ -159,17 +159,17 @@ describe('other/vps/install.sh', () => {
         expect(runnerAuthenticationPreferenceFunction).toContain('IS_RUNNER_AUTHENTICATION_REQUESTED=0');
         expect(runnerAuthenticationFunction).toContain('set_env_value PTBK_OPENAI_CODEX_USE_API_KEY 1');
         expect(runnerAuthenticationFunction).toContain(
-            'OpenAI API key detected; the OpenAI Codex runner will use OPENAI_API_KEY without interactive CLI authentication.',
+            'OpenAI API key detected; the OpenAI Codex harness will use OPENAI_API_KEY without interactive CLI authentication.',
         );
         expect(runnerAuthenticationFunction.indexOf('if is_openai_codex_api_key_runner_configured; then')).toBeLessThan(
             runnerAuthenticationFunction.indexOf('if ! is_interactive; then'),
         );
-        expect(codeRunnerInitialInstallationFunction).toContain('if is_openai_codex_api_key_runner_configured; then');
-        expect(codeRunnerInitialInstallationFunction).toContain('install_runner_dependencies');
-        expect(codeRunnerInitialInstallationFunction).toContain('configure_runner_authentication');
-        expect(codeRunnerInitialInstallationFunction.indexOf('install_runner_dependencies')).toBeLessThan(
-            codeRunnerInitialInstallationFunction.indexOf(
-                'Skipping code-runner CLI installation and authentication in non-interactive mode.',
+        expect(harnessInitialInstallationFunction).toContain('if is_openai_codex_api_key_runner_configured; then');
+        expect(harnessInitialInstallationFunction).toContain('install_runner_dependencies');
+        expect(harnessInitialInstallationFunction).toContain('configure_runner_authentication');
+        expect(harnessInitialInstallationFunction.indexOf('install_runner_dependencies')).toBeLessThan(
+            harnessInitialInstallationFunction.indexOf(
+                'Skipping harness CLI installation and authentication in non-interactive mode.',
             ),
         );
     });

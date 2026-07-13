@@ -284,12 +284,12 @@ export async function applyVpsRuntimeConfiguration(
 }
 
 /**
- * Installs/configures the selected local code runner through the shared VPS installer script.
+ * Installs/configures the selected local harness through the shared VPS installer script.
  *
  * @returns Command output or a skipped reason when not running on a Linux VPS.
  */
-export async function applyVpsCodeRunnerConfiguration(): Promise<VpsCommandResult> {
-    return runVpsInstallerCommand('apply-runner', 'VPS code-runner configuration can only be applied on Linux.');
+export async function applyVpsHarnessConfiguration(): Promise<VpsCommandResult> {
+    return runVpsInstallerCommand('apply-runner', 'VPS harness configuration can only be applied on Linux.');
 }
 
 /**

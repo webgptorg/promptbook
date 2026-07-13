@@ -6,12 +6,13 @@ import { AdminTerminalCard } from '../../../components/AdminTerminal/AdminTermin
 import { AdminXtermTerminal } from '../../../components/AdminTerminal/AdminXtermTerminal';
 import { useAdminTerminalSession } from '../../../components/AdminTerminal/useAdminTerminalSession';
 import { Card } from '../../../components/Homepage/Card';
+import { HARNESS_AUTH_API_PATH, HARNESS_AUTHENTICATION_API_PATH } from '../../../constants/harnessAuthRoutes';
 
 /**
- * Code-runner API response.
+ * Harness Auth API response.
  */
-type CodeRunnersResponse = {
-    readonly agent?: string;
+type HarnessAuthResponse = {
+    readonly harness?: string;
     readonly model?: string;
     readonly thinkingLevel?: string;
     readonly status?: string;
@@ -25,9 +26,9 @@ type CodeRunnersResponse = {
 /**
  * Browser-safe snapshot of one authentication terminal session.
  */
-type CodeRunnerAuthenticationSession = {
+type HarnessAuthenticationSession = {
     readonly id: string;
-    readonly agent: string;
+    readonly harness: string;
     readonly isRunning: boolean;
     readonly output: string;
     readonly startedAt: string;
@@ -37,9 +38,9 @@ type CodeRunnerAuthenticationSession = {
 };
 
 /**
- * Supported runner options shown by the standalone UI.
+ * Supported harness options shown by the standalone UI.
  */
-const RUNNER_OPTIONS = [
+const HARNESS_OPTIONS = [
     { value: 'github-copilot', label: 'GitHub Copilot' },
     { value: 'openai-codex', label: 'OpenAI Codex' },
     { value: 'claude-code', label: 'Claude Code' },
@@ -48,7 +49,7 @@ const RUNNER_OPTIONS = [
 ] as const;
 
 /**
- * Contextual UI copy for the runner authentication terminal.
+ * Contextual UI copy for the harness authentication terminal.
  */
 const AUTHENTICATION_HINTS: Record<string, string> = {
     'github-copilot':
@@ -60,20 +61,20 @@ const AUTHENTICATION_HINTS: Record<string, string> = {
     opencode:
         'Start the terminal and complete the Opencode authentication flow directly there, including any browser/device confirmation, then exit the CLI.',
     gemini:
-        'Start the terminal and complete the Gemini CLI authentication prompts there, then exit the CLI after it confirms that the runner is ready.',
+        'Start the terminal and complete the Gemini CLI authentication prompts there, then exit the CLI after it confirms that the harness is ready.',
 };
 
 /**
- * Shared input styling for code-runner controls.
+ * Shared input styling for harness controls.
  */
 const INPUT_CLASS_NAME =
     'w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-50 disabled:text-gray-500';
 
 /**
- * Client UI for configuring the local coding runner used by durable chats.
+ * Client UI for configuring the local harness used by durable chats.
  */
-export function CodeRunnersClient() {
-    const [agent, setAgent] = useState('github-copilot');
+export function HarnessAuthClient() {
+    const [harness, setHarness] = useState('github-copilot');
     const [model, setModel] = useState('gpt-5.4');
     const [thinkingLevel, setThinkingLevel] = useState('xhigh');
     const [status, setStatus] = useState('');
@@ -82,15 +83,15 @@ export function CodeRunnersClient() {
     const [configurationErrorMessage, setConfigurationErrorMessage] = useState<string | null>(null);
     const [configurationSuccessMessage, setConfigurationSuccessMessage] = useState<string | null>(null);
     const [applyOutput, setApplyOutput] = useState<string | null>(null);
-    const authenticationTerminal = useAdminTerminalSession<CodeRunnerAuthenticationSession>({
-        basePath: '/api/admin/code-runners/authentication',
+    const authenticationTerminal = useAdminTerminalSession<HarnessAuthenticationSession>({
+        basePath: HARNESS_AUTHENTICATION_API_PATH,
         loadErrorMessage: 'Failed to load the authentication session.',
         startErrorMessage: 'Failed to start the authentication session.',
         sendErrorMessage: 'Failed to send authentication input.',
         stopErrorMessage: 'Failed to stop the authentication session.',
-        startSuccessMessage: 'Runner authentication terminal started.',
-        finishSuccessMessage: 'Runner authentication finished.',
-        finishErrorMessage: 'Runner authentication session ended with an error.',
+        startSuccessMessage: 'Harness authentication terminal started.',
+        finishSuccessMessage: 'Harness authentication finished.',
+        finishErrorMessage: 'Harness authentication session ended with an error.',
     });
     const {
         session: authenticationSession,
@@ -106,27 +107,27 @@ export function CodeRunnersClient() {
         stopSession: stopAuthenticationSession,
     } = authenticationTerminal;
     const authenticationHint =
-        AUTHENTICATION_HINTS[agent] ||
-        'Start the terminal, complete the runner authentication flow there, and exit the CLI when the runner is ready.';
+        AUTHENTICATION_HINTS[harness] ||
+        'Start the terminal, complete the harness authentication flow there, and exit the CLI when the harness is ready.';
     const errorMessage = configurationErrorMessage ?? authenticationErrorMessage;
     const successMessage = configurationSuccessMessage ?? authenticationSuccessMessage;
 
     /**
-     * Loads current code-runner settings.
+     * Loads current harness settings.
      */
     const loadConfiguration = useCallback(async (): Promise<void> => {
         try {
             setIsLoading(true);
             setConfigurationErrorMessage(null);
 
-            const response = await fetch('/api/admin/code-runners', { cache: 'no-store' });
-            const payload = (await response.json()) as CodeRunnersResponse;
+            const response = await fetch(HARNESS_AUTH_API_PATH, { cache: 'no-store' });
+            const payload = (await response.json()) as HarnessAuthResponse;
 
             if (!response.ok) {
-                throw new Error(payload.error || 'Failed to load code-runner configuration.');
+                throw new Error(payload.error || 'Failed to load harness configuration.');
             }
 
-            setAgent(payload.agent || 'github-copilot');
+            setHarness(payload.harness || 'github-copilot');
             setModel(payload.model || 'gpt-5.4');
             setThinkingLevel(payload.thinkingLevel || 'xhigh');
             setStatus(payload.status || '');
@@ -134,7 +135,7 @@ export function CodeRunnersClient() {
             await loadAuthenticationSession();
         } catch (error) {
             setConfigurationErrorMessage(
-                error instanceof Error ? error.message : 'Failed to load code-runner configuration.',
+                error instanceof Error ? error.message : 'Failed to load harness configuration.',
             );
         } finally {
             setIsLoading(false);
@@ -154,7 +155,7 @@ export function CodeRunnersClient() {
     }, [authenticationSession?.finishedAt, loadConfiguration]);
 
     /**
-     * Saves code-runner settings into `.env`.
+     * Saves harness settings into `.env`.
      */
     async function saveConfiguration(applyRuntimeConfiguration: boolean): Promise<void> {
         try {
@@ -164,32 +165,32 @@ export function CodeRunnersClient() {
             clearAuthenticationMessages();
             setApplyOutput(null);
 
-            const response = await fetch('/api/admin/code-runners', {
+            const response = await fetch(HARNESS_AUTH_API_PATH, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ agent, model, thinkingLevel, applyRuntimeConfiguration }),
+                body: JSON.stringify({ harness, model, thinkingLevel, applyRuntimeConfiguration }),
             });
-            const payload = (await response.json()) as CodeRunnersResponse;
+            const payload = (await response.json()) as HarnessAuthResponse;
 
             if (!response.ok) {
-                throw new Error(payload.error || 'Failed to save code-runner configuration.');
+                throw new Error(payload.error || 'Failed to save harness configuration.');
             }
 
-            setAgent(payload.agent || agent);
+            setHarness(payload.harness || harness);
             setModel(payload.model || model);
             setThinkingLevel(payload.thinkingLevel || thinkingLevel);
             setStatus(payload.status || '');
             setApplyOutput(payload.applyResult?.output || null);
             setConfigurationSuccessMessage(
                 applyRuntimeConfiguration
-                    ? 'Code-runner configuration was saved and applied.'
-                    : 'Code-runner configuration was saved.',
+                    ? 'Harness configuration was saved and applied.'
+                    : 'Harness configuration was saved.',
             );
         } catch (error) {
             setConfigurationErrorMessage(
-                error instanceof Error ? error.message : 'Failed to save code-runner configuration.',
+                error instanceof Error ? error.message : 'Failed to save harness configuration.',
             );
         } finally {
             setIsSaving(false);
@@ -199,9 +200,10 @@ export function CodeRunnersClient() {
     return (
         <div className="container mx-auto space-y-6 px-4 py-8">
             <div className="mt-20">
-                <h1 className="text-3xl font-light text-gray-900">Code runners</h1>
+                <h1 className="text-3xl font-light text-gray-900">Harness Auth</h1>
                 <p className="mt-1 text-sm text-gray-500">
-                    Configure the local runner used by the standalone Agents Server durable chat worker.
+                    Configure the harness used by the standalone Agents Server durable chat worker and sign in to
+                    subscription-backed CLIs such as OpenAI Codex.
                 </p>
             </div>
 
@@ -219,14 +221,14 @@ export function CodeRunnersClient() {
             <Card className="hover:border-gray-200 hover:shadow-md">
                 <div className="grid gap-5 md:grid-cols-3">
                     <label className="space-y-2">
-                        <span className="text-sm font-semibold text-slate-700">Runner</span>
+                        <span className="text-sm font-semibold text-slate-700">Harness</span>
                         <select
-                            value={agent}
-                            onChange={(event) => setAgent(event.target.value)}
+                            value={harness}
+                            onChange={(event) => setHarness(event.target.value)}
                             disabled={isLoading || isSaving || isStartingAuthentication}
                             className={INPUT_CLASS_NAME}
                         >
-                            {RUNNER_OPTIONS.map((option) => (
+                            {HARNESS_OPTIONS.map((option) => (
                                 <option key={option.value} value={option.value}>
                                     {option.label}
                                 </option>
@@ -263,7 +265,7 @@ export function CodeRunnersClient() {
                         className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                         {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                        Save runner
+                        Save harness
                     </button>
                     <button
                         type="button"
@@ -272,26 +274,26 @@ export function CodeRunnersClient() {
                         className="inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                         {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <ServerCog className="h-4 w-4" />}
-                        Save and apply runner
+                        Save and apply harness
                     </button>
                 </div>
             </Card>
 
             {applyOutput ? (
                 <AdminXtermTerminal
-                    terminalId="code-runner-apply-output"
+                    terminalId="harness-apply-output"
                     output={applyOutput}
                     emptyState="No apply output returned."
                     isReadOnly
                     isPlainTextOutput
                     heightClassName="h-72"
-                    ariaLabel="Code-runner apply output"
+                    ariaLabel="Harness apply output"
                 />
             ) : null}
 
             <AdminTerminalCard
                 title="Authentication"
-                description="Save runner changes first if you want to authenticate a different CLI, then start the saved-runner terminal here instead of SSHing into the VPS."
+                description="Save harness changes first if you want to authenticate a different CLI, then start the saved-harness terminal here instead of SSHing into the VPS."
                 hint={authenticationHint}
                 session={authenticationSession}
                 onStart={() => void startAuthenticationSession()}
@@ -301,21 +303,21 @@ export function CodeRunnersClient() {
                 isStarting={isStartingAuthentication}
                 isSending={isSendingAuthenticationInput}
                 isStopping={isStoppingAuthentication}
-                startLabel="Authenticate saved runner"
+                startLabel="Authenticate saved harness"
                 runningLabel="Authentication running"
                 stopLabel="Stop terminal"
                 outputLabel="Live authentication terminal"
-                outputEmptyState="No authentication session output yet. Start the saved-runner terminal to see the live authentication log here."
+                outputEmptyState="No authentication session output yet. Start the saved-harness terminal to see the live authentication log here."
                 quickActions={[{ label: 'Send Enter', input: '\n' }]}
             >
                 <AdminXtermTerminal
-                    terminalId="code-runner-status"
-                    output={status || 'Runner status was not available.'}
-                    emptyState="Runner status was not available."
+                    terminalId="harness-status"
+                    output={status || 'Harness status was not available.'}
+                    emptyState="Harness status was not available."
                     isReadOnly
                     isPlainTextOutput
                     heightClassName="h-64"
-                    ariaLabel="Runner status"
+                    ariaLabel="Harness status"
                 />
             </AdminTerminalCard>
         </div>

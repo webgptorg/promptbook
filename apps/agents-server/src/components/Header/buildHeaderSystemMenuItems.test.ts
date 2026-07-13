@@ -91,7 +91,7 @@ describe('buildHeaderSystemMenuItems', () => {
                 'translated:header.update',
                 'translated:header.database',
                 'translated:header.logs',
-                'translated:header.codeRunners',
+                'translated:header.harnessAuth',
                 'translated:header.cliAccess',
                 'translated:header.toolLimits',
                 'translated:header.backups',
