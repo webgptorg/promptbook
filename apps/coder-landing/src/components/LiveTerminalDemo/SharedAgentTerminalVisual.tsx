@@ -3,17 +3,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { DEVELOPER_AGENT_BOOK } from '@/data/developerAgentBook';
 import {
-    createAvatarDefinitionFromAgentBasicInformation,
-    DEFAULT_AVATAR_SIZE,
-} from '@promptbook-source/avatars/avatarRenderingUtils';
-import { renderAvatarVisualAsciiArt } from '@promptbook-source/avatars/renderAvatarVisualAsciiArt';
-import { resolveAvatarRenderDefinition } from '@promptbook-source/avatars/renderAvatarVisual';
-import { resolveAvatarVisualId } from '@promptbook-source/avatars/visuals/avatarVisualRegistry';
-import { parseAgentSource } from '@promptbook-source/book-2.0/agent-source/parseAgentSource';
-import {
-    DEFAULT_AGENT_AVATAR_VISUAL_ID,
-    resolveAgentAvatarVisualId,
-} from '@promptbook-source/utils/agents/resolveAgentAvatarImageUrl';
+    createTerminalAgentAvatarVisual,
+    TERMINAL_AGENT_AVATAR_VISUAL_REFRESH_INTERVAL_MS,
+} from '@promptbook-source/utils/agents/terminalAgentAvatarVisual';
+import type { AvatarVisualId } from '@promptbook-source/avatars/types/AvatarVisualDefinition';
 import { AnsiTerminalLine } from './AnsiTerminalLine';
 
 /**
@@ -27,60 +20,20 @@ type SharedAgentTerminalVisualProps = {
 };
 
 /**
- * Output width of the landing terminal agent visual in terminal character cells.
+ * Built-in fallback visual used by the landing live terminal sample.
+ *
+ * The actual Promptbook Developer coder agent in this repository declares the same visual,
+ * while explicit `META AVATAR` / `META VISUAL` values in the demo source still take precedence.
  */
-const LIVE_DEMO_AGENT_VISUAL_COLUMNS = 48;
+const LIVE_DEMO_AGENT_AVATAR_VISUAL_ID: AvatarVisualId = 'ascii-octopus';
 
 /**
- * Output height of the landing terminal agent visual in terminal character cells.
+ * Shared terminal avatar renderer used by the landing live terminal sample.
  */
-const LIVE_DEMO_AGENT_VISUAL_ROWS = 12;
-
-/**
- * Aspect ratio of the source canvas used for the terminal variant.
- */
-const LIVE_DEMO_AGENT_VISUAL_CANVAS_ASPECT_RATIO = 2;
-
-/**
- * Source canvas width used before the avatar is converted to ASCII art.
- */
-const LIVE_DEMO_AGENT_VISUAL_CANVAS_WIDTH = DEFAULT_AVATAR_SIZE * LIVE_DEMO_AGENT_VISUAL_CANVAS_ASPECT_RATIO;
-
-/**
- * Source canvas height used before the avatar is converted to ASCII art.
- */
-const LIVE_DEMO_AGENT_VISUAL_CANVAS_HEIGHT = DEFAULT_AVATAR_SIZE;
-
-/**
- * Refresh interval matching the rich `ptbk coder run` terminal UI cadence.
- */
-const LIVE_DEMO_AGENT_VISUAL_REFRESH_INTERVAL_MS = 300;
-
-/**
- * Parsed landing demo agent source used for the same avatar resolution path as `ptbk coder run --agent`.
- */
-const LIVE_DEMO_AGENT_BASIC_INFORMATION = parseAgentSource(DEVELOPER_AGENT_BOOK);
-
-/**
- * Stable avatar definition derived from the demo agent book.
- */
-const LIVE_DEMO_AVATAR_DEFINITION = createAvatarDefinitionFromAgentBasicInformation(LIVE_DEMO_AGENT_BASIC_INFORMATION);
-
-/**
- * Built-in avatar visual resolved from the demo agent book.
- */
-const LIVE_DEMO_AVATAR_VISUAL_ID = resolveAgentAvatarVisualId(
-    LIVE_DEMO_AGENT_BASIC_INFORMATION,
-    resolveAvatarVisualId(LIVE_DEMO_AGENT_BASIC_INFORMATION.meta.visual) || DEFAULT_AGENT_AVATAR_VISUAL_ID,
-);
-
-/**
- * Stable render inputs reused across browser-side ASCII frames.
- */
-const LIVE_DEMO_RESOLVED_AVATAR_RENDER_DEFINITION = resolveAvatarRenderDefinition({
-    avatarDefinition: LIVE_DEMO_AVATAR_DEFINITION,
-    visualId: LIVE_DEMO_AVATAR_VISUAL_ID,
-    surface: 'transparent',
+const LIVE_DEMO_AGENT_VISUAL = createTerminalAgentAvatarVisual({
+    agentSource: DEVELOPER_AGENT_BOOK,
+    defaultAvatarVisualId: LIVE_DEMO_AGENT_AVATAR_VISUAL_ID,
+    createCanvas,
 });
 
 /**
@@ -100,17 +53,8 @@ export function SharedAgentTerminalVisual({ isAnimationActive }: SharedAgentTerm
 
             try {
                 setTerminalVisualLines(
-                    renderAvatarVisualAsciiArt({
-                        avatarDefinition: LIVE_DEMO_AVATAR_DEFINITION,
-                        visualId: LIVE_DEMO_AVATAR_VISUAL_ID,
-                        surface: 'transparent',
-                        columns: LIVE_DEMO_AGENT_VISUAL_COLUMNS,
-                        rows: LIVE_DEMO_AGENT_VISUAL_ROWS,
-                        canvasWidth: LIVE_DEMO_AGENT_VISUAL_CANVAS_WIDTH,
-                        canvasHeight: LIVE_DEMO_AGENT_VISUAL_CANVAS_HEIGHT,
-                        timeMs: performance.now() - animationStartedAtMs,
-                        createCanvas,
-                        resolvedAvatarRenderDefinition: LIVE_DEMO_RESOLVED_AVATAR_RENDER_DEFINITION,
+                    LIVE_DEMO_AGENT_VISUAL.renderFrame({
+                        animationTimeMs: performance.now() - animationStartedAtMs,
                     }),
                 );
             } catch {
@@ -124,7 +68,7 @@ export function SharedAgentTerminalVisual({ isAnimationActive }: SharedAgentTerm
             return;
         }
 
-        const intervalId = window.setInterval(renderFrame, LIVE_DEMO_AGENT_VISUAL_REFRESH_INTERVAL_MS);
+        const intervalId = window.setInterval(renderFrame, TERMINAL_AGENT_AVATAR_VISUAL_REFRESH_INTERVAL_MS);
 
         return () => {
             window.clearInterval(intervalId);
@@ -136,7 +80,7 @@ export function SharedAgentTerminalVisual({ isAnimationActive }: SharedAgentTerm
     }
 
     return (
-        <div className="py-1 text-[10px] leading-none md:text-[11px]" aria-hidden>
+        <div className="py-1 text-[10px] leading-tight md:text-[11px]" aria-hidden>
             {terminalVisualLines.map((line, lineIndex) => (
                 <div key={lineIndex} className="whitespace-pre">
                     <AnsiTerminalLine line={line} />

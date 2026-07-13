@@ -1,4 +1,5 @@
 import type { CoderRunPauseState } from '../common/waitForPause';
+import { TERMINAL_AGENT_AVATAR_VISUAL_REFRESH_INTERVAL_MS } from '../../../src/utils/agents/terminalAgentAvatarVisual';
 import type { CoderRunPhase } from './CoderRunUiState';
 
 /**
@@ -6,7 +7,7 @@ import type { CoderRunPhase } from './CoderRunUiState';
  *
  * @private internal constant of coder run UI
  */
-export const ACTIVE_CODER_RUN_UI_REFRESH_INTERVAL_MS = 300;
+export const ACTIVE_CODER_RUN_UI_REFRESH_INTERVAL_MS = TERMINAL_AGENT_AVATAR_VISUAL_REFRESH_INTERVAL_MS;
 
 /**
  * Phases that still benefit from automatic refreshes because the frame can change
