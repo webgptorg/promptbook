@@ -101,3 +101,18 @@ $ npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code --model fab
 └─────────────────────────────────────────────────────────────
 ```
 
+---
+
+[ ]
+
+[✨🍖] Make the sample in terminal agent avatar visual (the octopus ) in `ptbk coder` landing website look like the real `ptbk coder`
+
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+    -   The animation of the Agent visual (the octopus) should share same code in the Agents server, `ptbk coder` and the landing page "live terminal", so that it is consistent and not repeated in multiple places
+-   Do a proper analysis of the current landing website, the `ptbk coder` and related functionality before you start implementing.
+-   You are working with the [`ptbk coder` landing website](apps/coder-landing)
+-   You are making page for [`ptbk coder`](src/cli/cli-commands/coder/)
+    -   Do not change `ptbk coder` itself, just enhance a landing page for it
+
+![The real agent visual in the terminal](screenshots/2026-07-0200-ptbk-coder-web-2.png)
+![The "ugly" not-alike visual on web](screenshots/2026-07-0200-ptbk-coder-web-3.png)
