@@ -1,6 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import {
     addOrganizeImportsTypeUsageWorkarounds,
+    findLocallyMockedModulePaths,
     parseNamedImportSpecifiers,
     removeOrganizeImportsTypeUsageWorkarounds,
     renderNamedImportStatement,
@@ -152,6 +153,29 @@ describe('renderNamedImportStatement', () => {
                 },
             }),
         ).toBe(`import type { FormatCommand } from './FormatCommand';`);
+    });
+});
+
+describe('findLocallyMockedModulePaths', () => {
+    it('finds static Jest and Vitest module mocks that pin local import paths', () => {
+        const fileContent = spaceTrim(`
+            import { ensureAgentsServerBuild } from './buildAgentsServer';
+            import { startAgentsServer } from './startAgentsServer';
+
+            jest.mock('./buildAgentsServer', () => ({
+                ensureAgentsServerBuild: jest.fn(),
+            }));
+            vi.mock(\`./startAgentsServer\`, () => ({
+                startAgentsServer: vi.fn(),
+            }));
+            jest.mocked(ensureAgentsServerBuild);
+            jest.mock(resolveDynamicModulePath(), () => ({}));
+        `);
+
+        expect(Array.from(findLocallyMockedModulePaths('run.test.ts', fileContent)).sort()).toEqual([
+            './buildAgentsServer',
+            './startAgentsServer',
+        ]);
     });
 });
 

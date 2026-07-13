@@ -9,6 +9,16 @@ import type { EntityMetadata } from '../../utils/findAllProjectEntities';
 type RepositoryArea = 'src' | 'scripts' | 'apps';
 
 /**
+ * Test framework globals whose module mock calls pin import module specifiers.
+ */
+const MODULE_MOCK_GLOBAL_NAMES = new Set(['jest', 'vi']);
+
+/**
+ * Test framework methods that mock a module by module specifier.
+ */
+const MODULE_MOCK_METHOD_NAMES = new Set(['mock', 'doMock', 'unstable_mockModule']);
+
+/**
  * Prefix for temporary type aliases that keep type-syntax imports visible during import organization.
  */
 const ORGANIZE_IMPORTS_TYPE_USAGE_WORKAROUND_PREFIX = '__RepairImportsTypeUsage';
@@ -109,7 +119,9 @@ export function renderNamedImportStatement({
     importFrom,
     importedSpecifier,
 }: RenderNamedImportStatementOptions): string {
-    return `import ${importedSpecifier.isType ? `type ` : ``}{ ${importedSpecifier.renderedName} } from '${importFrom}';`;
+    return `import ${importedSpecifier.isType ? `type ` : ``}{ ${
+        importedSpecifier.renderedName
+    } } from '${importFrom}';`;
 }
 
 /**
@@ -138,6 +150,36 @@ export function addOrganizeImportsTypeUsageWorkarounds(filePath: string, fileCon
  */
 export function removeOrganizeImportsTypeUsageWorkarounds(fileContent: string): string {
     return fileContent.replace(ORGANIZE_IMPORTS_TYPE_USAGE_WORKAROUND_REGEX, '');
+}
+
+/**
+ * Finds module specifiers mocked inside one source file.
+ *
+ * Imports from these module specifiers are intentionally coupled to the mock and must not be redirected to
+ * deeper implementation files by the repair script.
+ */
+export function findLocallyMockedModulePaths(filePath: string, fileContent: string): ReadonlySet<string> {
+    const sourceFile = parseTypescriptSourceFile(filePath, fileContent);
+    const mockedModulePaths = new Set<string>();
+
+    /**
+     * Visits call expressions that can declare module mocks.
+     */
+    function visitNode(node: ts.Node): void {
+        if (ts.isCallExpression(node)) {
+            const mockedModulePath = resolveMockedModulePath(node);
+
+            if (mockedModulePath) {
+                mockedModulePaths.add(mockedModulePath);
+            }
+        }
+
+        ts.forEachChild(node, visitNode);
+    }
+
+    visitNode(sourceFile);
+
+    return mockedModulePaths;
 }
 
 /**
@@ -334,6 +376,51 @@ function collectImportedIdentifiers(
     ts.forEachChild(node, (childNode) =>
         collectImportedIdentifiers(childNode, importedLocalNames, importedTypeUsageNames),
     );
+}
+
+/**
+ * Resolves the static module path from a Jest/Vitest module mock call.
+ */
+function resolveMockedModulePath(callExpression: ts.CallExpression): string | undefined {
+    if (!isModuleMockCallExpression(callExpression.expression)) {
+        return undefined;
+    }
+
+    const moduleSpecifier = callExpression.arguments[0];
+
+    if (!moduleSpecifier) {
+        return undefined;
+    }
+
+    return resolveStaticStringExpression(moduleSpecifier);
+}
+
+/**
+ * Checks whether a call expression target is a known module mock helper.
+ */
+function isModuleMockCallExpression(expression: ts.Expression): boolean {
+    if (!ts.isPropertyAccessExpression(expression)) {
+        return false;
+    }
+
+    if (!ts.isIdentifier(expression.expression)) {
+        return false;
+    }
+
+    return (
+        MODULE_MOCK_GLOBAL_NAMES.has(expression.expression.text) && MODULE_MOCK_METHOD_NAMES.has(expression.name.text)
+    );
+}
+
+/**
+ * Resolves string and no-substitution template literals without evaluating code.
+ */
+function resolveStaticStringExpression(expression: ts.Expression): string | undefined {
+    if (ts.isStringLiteral(expression) || ts.isNoSubstitutionTemplateLiteral(expression)) {
+        return expression.text;
+    }
+
+    return undefined;
 }
 
 /**

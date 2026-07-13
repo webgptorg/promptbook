@@ -11,7 +11,12 @@ import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
 import { findAllProjectEntities } from '../utils/findAllProjectEntities';
 import { readAllProjectFiles } from '../utils/readAllProjectFiles';
 import { writeAllProjectFiles } from '../utils/writeAllProjectFiles';
-import { parseNamedImportSpecifiers, renderNamedImportStatement, resolveImportEntity } from './utils/repairImportUtils';
+import {
+    findLocallyMockedModulePaths,
+    parseNamedImportSpecifiers,
+    renderNamedImportStatement,
+    resolveImportEntity,
+} from './utils/repairImportUtils';
 /*
 import { findAllProjectFiles } from '../utils/findAllProjectFiles';
 import { execCommands } from '../utils/execCommand/execCommands';
@@ -126,13 +131,22 @@ async function repairImports({
 
         if (matches.length === 0) {
             console.info(colors.gray('/' + relative(process.cwd(), file.path).split('\\').join('/')));
+            continue;
         } else {
             console.info(
                 colors.green('/' + relative(process.cwd(), file.path).split('\\').join('/') + ` (${matches.length}x)`),
             );
         }
 
+        const locallyMockedModulePaths = findLocallyMockedModulePaths(file.path, file.content);
+
         for (const match of matches) {
+            const currentImportPath = match.groups!.importPath;
+
+            if (locallyMockedModulePaths.has(currentImportPath)) {
+                continue;
+            }
+
             const importedEntities = parseNamedImportSpecifiers(
                 match.groups!.importedEntities,
                 Boolean(match.groups!.topLevelType),
@@ -145,7 +159,7 @@ async function repairImports({
                 const entity = resolveImportEntity({
                     allEntities,
                     currentFilePath: file.path,
-                    currentImportPath: match.groups!.importPath,
+                    currentImportPath,
                     importedName: importedEntity.importedName,
                 });
 
