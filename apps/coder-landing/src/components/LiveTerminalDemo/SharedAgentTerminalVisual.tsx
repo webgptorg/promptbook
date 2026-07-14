@@ -85,7 +85,10 @@ export function SharedAgentTerminalVisual({ isAnimationActive }: SharedAgentTerm
     }
 
     return (
-        <div className="py-1 text-[10px] leading-tight md:text-[11px]" aria-hidden>
+        // Note: The avatar is drawn with `▀` / `▄` half-block characters, so the rows must tile seamlessly
+        //       like a real terminal. A line-height below `1` makes each block glyph fill its whole line box,
+        //       removing the inter-row gaps that otherwise wash the octopus out into faint horizontal stripes.
+        <div className="py-1 text-[10px] leading-[0.8] md:text-[11px]" aria-hidden>
             {terminalVisualLines.map((line, lineIndex) => (
                 <div key={lineIndex} className="whitespace-pre">
                     <AnsiTerminalLine line={line} />
