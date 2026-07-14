@@ -1,6 +1,14 @@
 import { spaceTrim } from 'spacetrim';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
+import { createTimeoutTools } from '../USE_TIMEOUT/createTimeoutTools';
+
+/**
+ * Metadata flag used to add goal scheduling instructions only once.
+ *
+ * @private internal constant of GOAL
+ */
+const GOAL_SCHEDULING_METADATA_KEY = 'goalScheduling';
 
 /**
  * GOAL commitment definition
@@ -109,9 +117,54 @@ export class GoalCommitmentDefinition extends BaseCommitmentDefinition<'GOAL' | 
             `,
         );
         const requirementsWithGoal = this.appendToSystemMessage(requirements, goalSection, '\n\n');
+        const requirementsWithScheduling = this.addGoalSchedulingInstructions(requirementsWithGoal);
 
-        return this.appendToPromptSuffix(requirementsWithGoal, trimmedContent);
+        return this.appendToPromptSuffix(requirementsWithScheduling, trimmedContent);
     }
+
+    /**
+     * Adds timeout tools and goal-owned scheduling guidance to agents that have an effective goal.
+     */
+    private addGoalSchedulingInstructions(requirements: AgentModelRequirements): AgentModelRequirements {
+        const requirementsWithTimeoutTools: AgentModelRequirements = {
+            ...requirements,
+            tools: createTimeoutTools(requirements.tools || []),
+        };
+
+        if (requirementsWithTimeoutTools._metadata?.[GOAL_SCHEDULING_METADATA_KEY]) {
+            return requirementsWithTimeoutTools;
+        }
+
+        return this.appendToSystemMessage(
+            {
+                ...requirementsWithTimeoutTools,
+                _metadata: {
+                    ...requirementsWithTimeoutTools._metadata,
+                    [GOAL_SCHEDULING_METADATA_KEY]: true,
+                },
+            },
+            createGoalSchedulingSystemMessage(),
+            '\n\n',
+        );
+    }
+}
+
+/**
+ * Creates scheduling instructions for agents that define a GOAL.
+ *
+ * @private internal utility of GOAL
+ */
+function createGoalSchedulingSystemMessage(): string {
+    return spaceTrim(`
+        ## Goal-driven scheduling
+
+        -   When the goal requires autonomous follow-up, use \`set_timeout\` to schedule this chat to wake up later; include \`recurrenceIntervalMs\` for cron-like repeated wake-ups.
+        -   Use \`list_timeouts\` and \`update_timeout\` to keep only the useful active or recurring schedule for the current goal.
+        -   Use \`cancel_timeout\` when a previously scheduled wake-up is no longer useful for the current goal.
+        -   When the book/source changes or a scheduled wake-up arrives, reassess the goal and adjust the next wake-up before finishing.
+        -   Do not create wake-ups for agents without an effective \`GOAL\` or \`GOALS\`.
+        -   Do not claim a schedule was changed unless the timeout tool confirms it.
+    `);
 }
 
 // Note: [💞] Ignore a discrepancy between file name and entity name

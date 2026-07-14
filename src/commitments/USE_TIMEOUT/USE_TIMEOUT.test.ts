@@ -241,6 +241,20 @@ describe('UseTimeoutCommitmentDefinition', () => {
         });
     });
 
+    it('parses recurring set-timeout arguments with normalized fields', () => {
+        expect(
+            parseTimeoutToolArgs.set({
+                milliseconds: 60_000.9,
+                recurrenceIntervalMs: 86_400_000.7,
+                message: '  Check daily  ',
+            }),
+        ).toEqual({
+            milliseconds: 60_000,
+            recurrenceIntervalMs: 86_400_000,
+            message: 'Check daily',
+        });
+    });
+
     it('parses bulk timeout updates when only paused is provided', () => {
         expect(
             parseTimeoutToolArgs.update({

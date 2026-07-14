@@ -1,12 +1,12 @@
 import { string_agent_name, string_agent_permanent_id } from '@promptbook-local/types';
-import { BookOpenIcon, CodeIcon, GlobeIcon, MessageSquareIcon, NotebookPenIcon } from 'lucide-react';
+import { BookOpenIcon, ClockIcon, CodeIcon, GlobeIcon, MessageSquareIcon, NotebookPenIcon } from 'lucide-react';
 import type { ComponentType } from 'react';
 import { buildAgentProfileHref, buildFreshAgentChatHref } from '../../../utils/agentRouting/agentRouteHrefs';
 
 /**
  * Identifier for agent-specific navigation links.
  */
-export type AgentLinkId = 'chat' | 'book' | 'integration' | 'website';
+export type AgentLinkId = 'chat' | 'book' | 'schedule' | 'integration' | 'website';
 
 /**
  * Text formatter applied to agent-facing UI labels.
@@ -58,6 +58,13 @@ export const getAgentLinks = (
             href: `${profileHref}/book`,
             icon: NotebookPenIcon,
             description: formatText("Edit the agent's knowledge book."),
+        },
+        {
+            id: 'schedule',
+            title: formatText('Goal Schedule'),
+            href: `${profileHref}/timeouts`,
+            icon: ClockIcon,
+            description: formatText('Review autonomous wake-ups and recurring goal work.'),
         },
         {
             id: 'integration',
