@@ -1,4 +1,13 @@
-import { Cpu, HardDrive, MemoryStick, Network, RefreshCcw, TriangleAlert, type LucideIcon } from 'lucide-react';
+import {
+    Cpu,
+    FolderGit2,
+    HardDrive,
+    MemoryStick,
+    Network,
+    RefreshCcw,
+    TriangleAlert,
+    type LucideIcon,
+} from 'lucide-react';
 import Link from 'next/link';
 
 import { ForbiddenPage } from '../../../components/ForbiddenPage/ForbiddenPage';
@@ -156,9 +165,13 @@ function ResourceSummaryGrid({ snapshot }: { readonly snapshot: ServerResourceMo
     const isDiskWarning = isWarningIssuePresent(snapshot.warningStatus.issues, 'disk');
     const isDiskUsageAvailable = snapshot.disk.usedRatio !== null;
     const isNetworkTrafficAvailable = snapshot.network.isTrafficAvailable;
+    const projectStorageRatio =
+        snapshot.disk.totalBytes && snapshot.disk.totalBytes > 0
+            ? snapshot.agentProjects.totalSizeBytes / snapshot.disk.totalBytes
+            : null;
 
     return (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
             <ResourceMetricCard
                 icon={Cpu}
                 label="CPU load"
@@ -202,6 +215,16 @@ function ResourceSummaryGrid({ snapshot }: { readonly snapshot: ServerResourceMo
                 caption={`${snapshot.network.networkInterfaceCount} interfaces, ${snapshot.network.networkAddressCount} addresses`}
                 tone={isNetworkTrafficAvailable ? 'neutral' : 'unavailable'}
                 ratio={null}
+            />
+            <ResourceMetricCard
+                icon={FolderGit2}
+                label="Project storage"
+                value={formatResourceBytes(snapshot.agentProjects.totalSizeBytes)}
+                caption={`${snapshot.agentProjects.totalProjectCount.toLocaleString()} projects under ${
+                    snapshot.agentProjects.storageDirectory
+                }`}
+                tone="neutral"
+                ratio={projectStorageRatio}
             />
         </div>
     );
@@ -250,6 +273,9 @@ function ResourceDetailGrid({ snapshot }: { readonly snapshot: ServerResourceMon
             </ResourcePanel>
             <ResourcePanel icon={HardDrive} title="Disk">
                 <DetailList items={diskItems} />
+            </ResourcePanel>
+            <ResourcePanel icon={FolderGit2} title="Agent Projects">
+                <AgentProjectsUsageTable snapshot={snapshot} />
             </ResourcePanel>
             <ResourcePanel icon={Network} title="Network">
                 <NetworkUsageTable snapshot={snapshot} />
@@ -354,6 +380,82 @@ function DetailList({ items }: { readonly items: ReadonlyArray<DetailListItem> }
                 </div>
             ))}
         </dl>
+    );
+}
+
+/**
+ * Renders project storage grouped by owning agent.
+ *
+ * @param props - Project usage props.
+ * @returns Project storage table or empty state.
+ */
+function AgentProjectsUsageTable({ snapshot }: { readonly snapshot: ServerResourceMonitorSnapshot }) {
+    if (snapshot.agentProjects.agents.length === 0) {
+        return (
+            <div className="rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600">
+                No agent projects have been created yet. Storage root: {snapshot.agentProjects.storageDirectory}
+            </div>
+        );
+    }
+
+    return (
+        <div className="space-y-4">
+            <DetailList
+                items={[
+                    { label: 'Storage root', value: snapshot.agentProjects.storageDirectory },
+                    { label: 'Total project size', value: formatResourceBytes(snapshot.agentProjects.totalSizeBytes) },
+                    { label: 'Total projects', value: snapshot.agentProjects.totalProjectCount.toLocaleString() },
+                ]}
+            />
+            <div className="overflow-x-auto">
+                <table className="min-w-full text-left text-sm">
+                    <thead>
+                        <tr className="border-b border-gray-200 text-xs uppercase tracking-wide text-gray-400">
+                            <th className="py-2 pr-4 font-semibold">Agent</th>
+                            <th className="py-2 pr-4 font-semibold">Projects</th>
+                            <th className="py-2 pr-4 font-semibold">Total size</th>
+                            <th className="py-2 pr-4 font-semibold">Folders</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {snapshot.agentProjects.agents.map((agent) => (
+                            <tr key={agent.agentPermanentId} className="border-b border-gray-100 last:border-0">
+                                <td className="py-2 pr-4 align-top">
+                                    <div className="font-medium text-gray-900">
+                                        {agent.agentName || agent.agentPermanentId}
+                                    </div>
+                                    <div className="font-mono text-xs text-gray-500">{agent.agentPermanentId}</div>
+                                </td>
+                                <td className="py-2 pr-4 align-top text-gray-700">
+                                    {agent.projectCount.toLocaleString()}
+                                </td>
+                                <td className="py-2 pr-4 align-top text-gray-700">
+                                    {formatResourceBytes(agent.totalSizeBytes)}
+                                </td>
+                                <td className="min-w-[18rem] py-2 pr-4 align-top">
+                                    <ul className="space-y-2">
+                                        {agent.projects.map((project) => (
+                                            <li key={project.id}>
+                                                <div className="font-medium text-gray-900">
+                                                    {project.name} · {formatResourceBytes(project.sizeBytes)}
+                                                    {project.isGitRepository ? ' · git' : ''}
+                                                </div>
+                                                <div className="break-all font-mono text-xs text-gray-500">
+                                                    {project.directoryPath}
+                                                </div>
+                                                {project.errorMessage ? (
+                                                    <div className="text-xs text-amber-700">{project.errorMessage}</div>
+                                                ) : null}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     );
 }
 

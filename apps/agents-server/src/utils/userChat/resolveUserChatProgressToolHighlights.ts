@@ -38,6 +38,14 @@ const USER_CHAT_PROGRESS_TOOL_LABEL_BY_NAME: Record<string, string> = {
     project_delete_file: 'project files',
     project_create_branch: 'project repository',
     project_create_pull_request: 'project repository',
+    agent_project_list: 'local projects',
+    agent_project_create: 'local projects',
+    agent_project_list_files: 'project files',
+    agent_project_read_file: 'project files',
+    agent_project_write_file: 'project files',
+    agent_project_delete_path: 'project files',
+    agent_project_run_script: 'project scripts',
+    agent_project_link_file: 'project links',
 };
 
 /**

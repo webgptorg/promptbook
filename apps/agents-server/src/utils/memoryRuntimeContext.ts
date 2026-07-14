@@ -119,6 +119,7 @@ function createMergedRuntimeContext(
         email: createEmailRuntimeContext(options, existingRuntimeContext),
         calendars: createCalendarsRuntimeContext(options, existingRuntimeContext),
         agentsServer: createAgentsServerRuntimeContext(options, existingRuntimeContext),
+        agentProjects: createAgentProjectsRuntimeContext(options, existingRuntimeContext),
         spawn: createSpawnRuntimeContext(options.agentPermanentId, existingRuntimeContext),
         chat: createChatRuntimeContext(
             options,
@@ -241,6 +242,27 @@ function createAgentsServerRuntimeContext(
     return agentsServerRuntimeContext.localServerUrl || agentsServerRuntimeContext.teamInternalAccessToken
         ? agentsServerRuntimeContext
         : undefined;
+}
+
+/**
+ * Resolves the local project runtime context used by agent project tools.
+ */
+function createAgentProjectsRuntimeContext(
+    options: ComposePromptParametersWithMemoryContextOptions,
+    existingRuntimeContext: ToolRuntimeContext,
+): ToolRuntimeContext['agentProjects'] {
+    const agentId = normalizeOptionalText(options.agentPermanentId);
+    const agentName = normalizeOptionalText(options.agentName);
+    const localServerUrl = normalizeOptionalText(options.localServerUrl);
+    const agentProjectsRuntimeContext = {
+        ...(existingRuntimeContext.agentProjects || {}),
+        ...(agentId ? { agentId } : {}),
+        ...(agentName ? { agentName } : {}),
+        ...(typeof options.currentUserIdentity?.userId === 'number' ? { userId: options.currentUserIdentity.userId } : {}),
+        ...(localServerUrl ? { localServerUrl } : {}),
+    };
+
+    return agentProjectsRuntimeContext.agentId ? agentProjectsRuntimeContext : undefined;
 }
 
 /**
