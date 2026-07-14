@@ -3,15 +3,12 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
 import styles from '../Chat.module.css';
 import { createPagePreviewSessionId } from './createPagePreviewSessionId';
+import { LiveBrowserPreviewToolbar } from './LiveBrowserPreviewToolbar';
 import type { PagePreviewNavigationAction, PagePreviewPointerButton } from './PagePreviewInputEvent';
 import { PagePreviewInputQueue } from './PagePreviewInputQueue';
 import type { PagePreviewSessionState } from './PagePreviewSessionState';
-import {
-    clampPagePreviewViewport,
-    PAGE_PREVIEW_DEFAULT_VIEWPORT,
-    type PagePreviewViewport,
-} from './PagePreviewViewport';
-import { LiveBrowserPreviewToolbar } from './LiveBrowserPreviewToolbar';
+import type { PagePreviewViewport } from './PagePreviewViewport';
+import { clampPagePreviewViewport, PAGE_PREVIEW_DEFAULT_VIEWPORT } from './PagePreviewViewport';
 
 /**
  * Props of the live browser preview.
@@ -277,14 +274,16 @@ export function LiveBrowserPreview({ src, title, agentIdentifier }: LiveBrowserP
 
             if (event.ctrlKey || event.metaKey) {
                 // Ctrl+wheel (and trackpad pinch) zooms the local preview like remote desktop viewers
-                const zoomFactor = event.deltaY < 0 ? PAGE_PREVIEW_WHEEL_ZOOM_FACTOR : 1 / PAGE_PREVIEW_WHEEL_ZOOM_FACTOR;
-                setZoomLevel((previousZoomLevel) =>
-                    Math.round(
-                        Math.max(
-                            PAGE_PREVIEW_MIN_ZOOM,
-                            Math.min(PAGE_PREVIEW_MAX_ZOOM, previousZoomLevel * zoomFactor),
-                        ) * 100,
-                    ) / 100,
+                const zoomFactor =
+                    event.deltaY < 0 ? PAGE_PREVIEW_WHEEL_ZOOM_FACTOR : 1 / PAGE_PREVIEW_WHEEL_ZOOM_FACTOR;
+                setZoomLevel(
+                    (previousZoomLevel) =>
+                        Math.round(
+                            Math.max(
+                                PAGE_PREVIEW_MIN_ZOOM,
+                                Math.min(PAGE_PREVIEW_MAX_ZOOM, previousZoomLevel * zoomFactor),
+                            ) * 100,
+                        ) / 100,
                 );
                 return;
             }

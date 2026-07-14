@@ -3,7 +3,8 @@ import type { AgentsServerChildEnvironment } from './AgentsServerChildEnvironmen
 import type { AgentsServerLogStreams } from './AgentsServerLogStreams';
 import { logRunnerEvent } from './AgentsServerLogStreams';
 import type { AgentsServerRuntimePaths } from './AgentsServerRuntimePaths';
-import { addUiError, type AgentsServerSupervisorState } from './AgentsServerSupervisorState';
+import type { AgentsServerSupervisorState } from './AgentsServerSupervisorState';
+import { addUiError } from './AgentsServerSupervisorState';
 import { forwardChildOutput } from './forwardChildOutput';
 import { resolveAgentsServerChildHostname } from './resolveAgentsServerChildHostname';
 import type { AgentsServerNextRuntimeMode, StartAgentsServerOptions } from './StartAgentsServerOptions';

@@ -1,10 +1,10 @@
 import { spaceTrim } from 'spacetrim';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import {
-    TERMINAL_AGENT_AVATAR_VISUAL_COLUMNS,
-    TERMINAL_AGENT_AVATAR_VISUAL_ROWS,
     centerTerminalAgentAvatarVisualLines,
     resolveTerminalAgentAvatarVisualId,
+    TERMINAL_AGENT_AVATAR_VISUAL_COLUMNS,
+    TERMINAL_AGENT_AVATAR_VISUAL_ROWS,
 } from './terminalAgentAvatarVisual';
 
 describe('terminalAgentAvatarVisual', () => {

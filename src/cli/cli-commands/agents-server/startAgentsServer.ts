@@ -3,17 +3,10 @@ import { mkdir } from 'fs/promises';
 import { runMultipleAgentMessages } from '../../../../scripts/run-agent-messages/main/runMultipleAgentMessages';
 import { withCurrentWorkingDirectory } from '../../../../scripts/run-agent-messages/main/withCurrentWorkingDirectory';
 import { createAgentsServerChildEnvironment } from './startAgentsServer/AgentsServerChildEnvironment';
-import {
-    closeAgentsServerLogStreams,
-    createAgentsServerLogStreams,
-    logRunnerEvent,
-} from './startAgentsServer/AgentsServerLogStreams';
+import { closeAgentsServerLogStreams, createAgentsServerLogStreams, logRunnerEvent } from './startAgentsServer/AgentsServerLogStreams';
 import { resolveAgentsServerRuntimePaths } from './startAgentsServer/AgentsServerRuntimePaths';
-import {
-    addUiOutput,
-    assertNextServerStillRunning,
-    type AgentsServerSupervisorState,
-} from './startAgentsServer/AgentsServerSupervisorState';
+import type { AgentsServerSupervisorState } from './startAgentsServer/AgentsServerSupervisorState';
+import { addUiOutput, assertNextServerStillRunning } from './startAgentsServer/AgentsServerSupervisorState';
 import { createLocalAgentRunOptions } from './startAgentsServer/createLocalAgentRunOptions';
 import { loadAgentsServerProjectEnvironment } from './startAgentsServer/loadAgentsServerProjectEnvironment';
 import { prepareAgentsServerLaunch } from './startAgentsServer/prepareAgentsServerLaunch';
@@ -24,7 +17,10 @@ import { stopChildProcess } from './startAgentsServer/stopChildProcess';
 import { waitForLocalAgentRunnerLimits } from './startAgentsServer/waitForLocalAgentRunnerLimits';
 
 export { loadAgentsServerProjectEnvironment } from './startAgentsServer/loadAgentsServerProjectEnvironment';
-export type { AgentsServerNextRuntimeMode, StartAgentsServerOptions } from './startAgentsServer/StartAgentsServerOptions';
+export type {
+  AgentsServerNextRuntimeMode,
+  StartAgentsServerOptions
+} from './startAgentsServer/StartAgentsServerOptions';
 
 /**
  * Starts the Agents Server web app and local coding-agent queue workers in the foreground.
