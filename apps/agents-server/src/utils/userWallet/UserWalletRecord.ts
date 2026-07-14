@@ -2,8 +2,13 @@ import type { UserWalletJsonSchema } from './UserWalletRow';
 
 /**
  * Supported wallet record types.
+ *
+ * - `USERNAME_PASSWORD` - login credentials for one service
+ * - `SESSION_COOKIE` - logged-in session cookies for one service
+ * - `ACCESS_TOKEN` - API token or other secret for one service
+ * - `BROWSER_PROFILE` - link to the filesystem directory with the agent's persistent browser profile
  */
-export type UserWalletRecordType = 'USERNAME_PASSWORD' | 'SESSION_COOKIE' | 'ACCESS_TOKEN';
+export type UserWalletRecordType = 'USERNAME_PASSWORD' | 'SESSION_COOKIE' | 'ACCESS_TOKEN' | 'BROWSER_PROFILE';
 
 /**
  * Normalized wallet record returned by API and runtime adapters.

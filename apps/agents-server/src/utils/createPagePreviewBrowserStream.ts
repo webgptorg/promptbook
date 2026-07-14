@@ -73,6 +73,14 @@ export type CreatePagePreviewBrowserStreamOptions = {
      * Initial viewport of the streamed page, usually measured from the client preview area.
      */
     readonly viewport: PagePreviewViewport;
+
+    /**
+     * Persistent per-agent browser-profile directory, `null` for the shared default profile.
+     *
+     * When the stream runs on an agent profile, everything the user does in the live browser
+     * (like logging into a website) is saved into the agent's persistent browser profile.
+     */
+    readonly browserProfileDirectory?: string | null;
 };
 
 /**
@@ -134,7 +142,10 @@ export function createPagePreviewBrowserStream(options: CreatePagePreviewBrowser
             };
 
             try {
-                const browserContext = await $provideBrowserForServer({ sessionId: options.sessionId });
+                const browserContext = await $provideBrowserForServer({
+                    sessionId: options.sessionId,
+                    browserProfileDirectory: options.browserProfileDirectory,
+                });
                 page = await browserContext.newPage();
                 await page.setViewportSize(options.viewport);
 

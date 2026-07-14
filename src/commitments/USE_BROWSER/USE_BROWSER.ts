@@ -72,6 +72,7 @@ export class UseBrowserCommitmentDefinition extends BaseCommitmentDefinition<'US
               1. **One-shot URL fetching**: Simple function to fetch and scrape URL content (active)
               2. **Running browser**: For complex tasks like scrolling, clicking, form filling, etc. (runtime-dependent)
             - The actual browser tool usage is handled by the agent runtime
+            - On the Agents Server, every agent browses in its own persistent isolated browser profile, so cookies and logged-in sessions survive across chats (the profile is linked from the agent wallet)
             - Allows the agent to fetch current information from websites and documents
             - Useful for research tasks, fact-checking, and accessing dynamic content
             - Supports various content types including HTML pages and PDF documents

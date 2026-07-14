@@ -2,6 +2,7 @@ import { fetchUrlContent } from '../../../../src/commitments/USE_BROWSER/fetchUr
 import { emitToolCallProgressFromToolArgs } from '../../../../src/commitments/_common/toolRuntimeContext';
 import type { string_date_iso8601 } from '../../../../src/types/typeAliases';
 import type { Page } from 'playwright';
+import { $provideAgentBrowserProfileForToolArgs } from '../utils/agentBrowserProfile/$provideAgentBrowserProfileForToolArgs';
 import type { RunBrowserInternalOptions } from './RunBrowserArgs';
 import { runBrowserArtifacts } from './runBrowserArtifacts';
 import { runBrowserConstants } from './runBrowserConstants';
@@ -90,11 +91,18 @@ export async function run_browser(args: RunBrowserArgs, internalOptions: RunBrow
         const normalizedActions = runBrowserWorkflow.normalizeActions(args.actions);
         runBrowserErrorHandling.assertNotAborted(internalOptions.signal, sessionId);
 
+        // Browse inside the agent's own persistent browser profile so cookies and logged-in
+        // sessions survive across chats and server restarts
+        const agentBrowserProfile = await $provideAgentBrowserProfileForToolArgs(
+            args as Record<string, unknown>,
+        );
+
         const openedPage = await runBrowserWorkflow.openPageWithUrl({
             url: initialUrl,
             sessionId,
             timeouts: timeoutConfiguration,
             signal: internalOptions.signal,
+            browserProfileDirectory: agentBrowserProfile?.directory ?? null,
         });
         page = openedPage.page;
         connectDurationMs = openedPage.connectDurationMs;

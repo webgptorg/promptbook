@@ -12,6 +12,12 @@ import { LiveBrowserPreview } from './pagePreview/LiveBrowserPreview';
 export type CitationIframePreviewProps = {
     src: string;
     title: string;
+
+    /**
+     * Optional agent identifier (name or permanent id) scoping the live browser fallback
+     * to the agent's persistent server-side browser profile.
+     */
+    agentIdentifier?: string;
 };
 
 /**
@@ -31,7 +37,7 @@ type EmbedStatus = 'loading' | 'embed' | 'browser-stream';
  *
  * @private component of `<ChatCitationModal/>`
  */
-export function CitationIframePreview({ src, title }: CitationIframePreviewProps) {
+export function CitationIframePreview({ src, title, agentIdentifier }: CitationIframePreviewProps) {
     const [status, setStatus] = useState<EmbedStatus>('loading');
 
     useEffect(() => {
@@ -61,7 +67,7 @@ export function CitationIframePreview({ src, title }: CitationIframePreviewProps
     }
 
     if (status === 'browser-stream') {
-        return <LiveBrowserPreview src={src} title={title} />;
+        return <LiveBrowserPreview src={src} title={title} agentIdentifier={agentIdentifier} />;
     }
 
     return <iframe src={src} className={styles.citationIframe} title={title} />;

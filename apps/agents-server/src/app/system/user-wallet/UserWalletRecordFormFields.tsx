@@ -56,6 +56,7 @@ export function UserWalletRecordFormFields({
                     </option>
                     <option value="USERNAME_PASSWORD">Username + Password</option>
                     <option value="SESSION_COOKIE">Session Cookie</option>
+                    <option value="BROWSER_PROFILE">Browser Profile</option>
                 </select>
                 <input
                     value={draft.service}
@@ -168,6 +169,18 @@ function UserWalletCredentialFields(props: {
                 onChange={(event) => props.updateDraft('cookies', event.target.value)}
                 placeholder="session=abc123; path=/; secure"
                 textareaClassName="!min-h-[90px]"
+            />
+        );
+    }
+
+    if (props.draft.recordType === 'BROWSER_PROFILE') {
+        // The profile itself lives on the server filesystem - the wallet stores only the link to it
+        return (
+            <input
+                value={props.draft.secret}
+                onChange={(event) => props.updateDraft('secret', event.target.value)}
+                placeholder="Filesystem path to the agent browser-profile directory"
+                className="w-full rounded-md border border-gray-300 px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
         );
     }

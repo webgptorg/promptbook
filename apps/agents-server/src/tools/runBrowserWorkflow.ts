@@ -48,6 +48,10 @@ export const runBrowserWorkflow = {
         readonly sessionId: string;
         readonly timeouts: RunBrowserTimeoutConfiguration;
         readonly signal?: AbortSignal;
+        /**
+         * Persistent per-agent browser-profile directory, `null` for the shared default profile.
+         */
+        readonly browserProfileDirectory?: string | null;
     }): Promise<OpenPageWithUrlResult> {
         runBrowserErrorHandling.assertNotAborted(options.signal, options.sessionId);
 
@@ -55,6 +59,7 @@ export const runBrowserWorkflow = {
         const browserContext = await $provideBrowserForServer({
             signal: options.signal,
             sessionId: options.sessionId,
+            browserProfileDirectory: options.browserProfileDirectory,
         });
         const connectDurationMs = Date.now() - connectStartedAt;
         const page = await browserContext.newPage();

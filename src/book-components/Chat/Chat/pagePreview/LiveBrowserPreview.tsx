@@ -28,6 +28,14 @@ export type LiveBrowserPreviewProps = {
      * Human-readable title of the previewed source.
      */
     readonly title: string;
+
+    /**
+     * Optional agent identifier (name or permanent id).
+     *
+     * When set, the live session runs inside the agent's persistent server-side browser profile,
+     * so actions like logging into a website are saved for the agent's future browsing.
+     */
+    readonly agentIdentifier?: string;
 };
 
 /**
@@ -98,7 +106,7 @@ const PAGE_PREVIEW_MULTI_CLICK_DISTANCE_PX = 5;
  *
  * @private component of `<ChatCitationModal/>`
  */
-export function LiveBrowserPreview({ src, title }: LiveBrowserPreviewProps) {
+export function LiveBrowserPreview({ src, title, agentIdentifier }: LiveBrowserPreviewProps) {
     const [reconnectCounter, setReconnectCounter] = useState(0);
     // A fresh session id is needed per previewed URL and per reconnect attempt
     const sessionId = useMemo(() => createPagePreviewSessionId(), [src, reconnectCounter]);
@@ -404,7 +412,7 @@ export function LiveBrowserPreview({ src, title }: LiveBrowserPreviewProps) {
     const streamUrl = streamViewport
         ? `/api/page-preview/stream?url=${encodeURIComponent(src)}&sessionId=${encodeURIComponent(sessionId)}&width=${
               streamViewport.width
-          }&height=${streamViewport.height}`
+          }&height=${streamViewport.height}${agentIdentifier ? `&agent=${encodeURIComponent(agentIdentifier)}` : ''}`
         : null;
     const displayedUrl = urlDraft ?? sessionState?.url ?? src;
 

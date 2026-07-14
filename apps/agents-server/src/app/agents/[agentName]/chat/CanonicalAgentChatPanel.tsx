@@ -111,6 +111,7 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
     return (
         <>
             <CanonicalAgentChatSurface
+                agentName={agentName}
                 brandColor={brandColor}
                 inputPlaceholder={inputPlaceholder}
                 draftMessage={draftMessage}

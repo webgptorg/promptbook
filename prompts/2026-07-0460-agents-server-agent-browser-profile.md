@@ -1,4 +1,4 @@
-[ ] !!!!
+[x] by unfinished `fable` in session `d9e016e8-f64e-41a8-b097-64d2362d0448`
 
 [✨🚤] Each agent should have its own browser profile. 
 

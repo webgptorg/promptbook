@@ -40,7 +40,11 @@ export function UserWalletClient(props: UserWalletClientProps) {
 
     return (
         <div className="container mx-auto p-8 max-w-6xl">
-            <h1 className="text-3xl font-bold mb-8">User Wallet</h1>
+            <h1 className="text-3xl font-bold mb-2">Agent Wallet</h1>
+            <p className="text-sm text-gray-600 mb-8">
+                Every agent has its own wallet giving it access to external resources — login credentials, logged-in
+                sessions, access tokens, and its persistent browser profile.
+            </p>
 
             {state.error && (
                 <div className="mb-6 rounded-md border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">

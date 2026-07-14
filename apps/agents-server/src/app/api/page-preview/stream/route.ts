@@ -6,6 +6,7 @@ import {
     PAGE_PREVIEW_DEFAULT_VIEWPORT,
 } from '../../../../../../../src/book-components/Chat/Chat/pagePreview/PagePreviewViewport';
 import { assertsError } from '../../../../../../../src/errors/assertsError';
+import { $provideAgentBrowserProfile } from '../../../../utils/agentBrowserProfile/$provideAgentBrowserProfile';
 import { assertSafeUrl } from '../../../../utils/assertSafeUrl';
 import {
     createPagePreviewBrowserStream,
@@ -29,6 +30,9 @@ export const dynamic = 'force-dynamic';
  * - `url` — fully-qualified public HTTP(S) URL to preview
  * - `sessionId` — client-created browser-preview session id used for interaction events
  * - `width` / `height` — optional initial viewport measured from the client preview area
+ * - `agent` — optional agent identifier (name or permanent id); when set, the live session runs
+ *   inside the agent's persistent browser profile so logins performed by the user are saved for
+ *   the agent's future browsing
  *
  * Requires authentication to prevent unauthenticated SSRF and browser-process abuse.
  */
@@ -62,6 +66,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     try {
+        const agentIdentifier = request.nextUrl.searchParams.get('agent')?.trim() || null;
+        const agentBrowserProfile = agentIdentifier
+            ? await $provideAgentBrowserProfile({
+                  agentIdentifier,
+                  userId: typeof currentUser.id === 'number' ? currentUser.id : undefined,
+              })
+            : null;
+
         registerPagePreviewBrowserSession({
             sessionId,
             url,
@@ -73,6 +85,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
             sessionId,
             url,
             viewport,
+            browserProfileDirectory: agentBrowserProfile?.directory ?? null,
         });
 
         return new NextResponse(stream, {

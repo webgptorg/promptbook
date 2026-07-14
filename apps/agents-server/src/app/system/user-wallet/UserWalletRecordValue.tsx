@@ -44,6 +44,18 @@ export function UserWalletRecordValue({ record }: UserWalletRecordValueProps) {
         );
     }
 
+    if (record.recordType === 'BROWSER_PROFILE') {
+        // The profile directory link is not a secret - only the profile files on the server are sensitive
+        return (
+            <div
+                className="rounded-md border border-gray-200 bg-gray-50 px-2 py-1 font-mono text-xs text-gray-700 break-all"
+                aria-label="Agent browser-profile directory"
+            >
+                {record.secret || '-'}
+            </div>
+        );
+    }
+
     return (
         <SecretTextarea
             value={record.secret || ''}

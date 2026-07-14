@@ -40,6 +40,14 @@ export function normalizeWalletPayload(options: CreateUserWalletRecordOptions): 
         throw new Error('ACCESS_TOKEN records require secret.');
     }
 
+    if (recordType === 'BROWSER_PROFILE' && !secret) {
+        throw new Error('BROWSER_PROFILE records require secret with the profile directory path.');
+    }
+
+    if (recordType === 'BROWSER_PROFILE' && isGlobal) {
+        throw new Error('BROWSER_PROFILE records must be scoped to one agent.');
+    }
+
     return {
         userId: options.userId,
         isUserScoped,
@@ -74,7 +82,13 @@ function normalizeWalletRecordType(value: unknown): UserWalletRecordType {
         return value;
     }
 
-    throw new Error('Unsupported wallet record type. Use USERNAME_PASSWORD, SESSION_COOKIE, or ACCESS_TOKEN.');
+    if (value === 'BROWSER_PROFILE') {
+        return value;
+    }
+
+    throw new Error(
+        'Unsupported wallet record type. Use USERNAME_PASSWORD, SESSION_COOKIE, ACCESS_TOKEN, or BROWSER_PROFILE.',
+    );
 }
 
 /**

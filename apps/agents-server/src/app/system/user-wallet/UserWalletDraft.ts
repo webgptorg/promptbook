@@ -161,6 +161,14 @@ export function validateUserWalletDraft(draft: UserWalletDraft): string | null {
         return 'Secret is required.';
     }
 
+    if (draft.recordType === 'BROWSER_PROFILE' && !draft.secret.trim()) {
+        return 'Browser profile directory path is required.';
+    }
+
+    if (draft.recordType === 'BROWSER_PROFILE' && draft.isGlobal) {
+        return 'Browser profile records must be scoped to one agent.';
+    }
+
     try {
         parseWalletJsonSchemaFromTextarea(draft.jsonSchemaText);
     } catch (validationError) {
@@ -187,7 +195,7 @@ export function createUserWalletRecordRequestPayload(
         jsonSchema,
         username: draft.recordType === 'USERNAME_PASSWORD' ? draft.username : undefined,
         password: draft.recordType === 'USERNAME_PASSWORD' ? draft.password : undefined,
-        secret: draft.recordType === 'ACCESS_TOKEN' ? draft.secret : undefined,
+        secret: draft.recordType === 'ACCESS_TOKEN' || draft.recordType === 'BROWSER_PROFILE' ? draft.secret : undefined,
         cookies: draft.recordType === 'SESSION_COOKIE' ? draft.cookies : undefined,
         isUserScoped: draft.isUserScoped,
         isGlobal: draft.isGlobal,

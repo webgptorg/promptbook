@@ -913,7 +913,7 @@ export type AgentsServerDatabase = {
                     userId: number;
                     isUserScoped: boolean;
                     agentPermanentId: string | null;
-                    recordType: 'USERNAME_PASSWORD' | 'SESSION_COOKIE' | 'ACCESS_TOKEN';
+                    recordType: 'USERNAME_PASSWORD' | 'SESSION_COOKIE' | 'ACCESS_TOKEN' | 'BROWSER_PROFILE';
                     service: string;
                     key: string;
                     jsonSchema: Json | null;
@@ -931,7 +931,7 @@ export type AgentsServerDatabase = {
                     userId: number;
                     isUserScoped?: boolean;
                     agentPermanentId?: string | null;
-                    recordType: 'USERNAME_PASSWORD' | 'SESSION_COOKIE' | 'ACCESS_TOKEN';
+                    recordType: 'USERNAME_PASSWORD' | 'SESSION_COOKIE' | 'ACCESS_TOKEN' | 'BROWSER_PROFILE';
                     service: string;
                     key?: string;
                     jsonSchema?: Json | null;
@@ -949,7 +949,7 @@ export type AgentsServerDatabase = {
                     userId?: number;
                     isUserScoped?: boolean;
                     agentPermanentId?: string | null;
-                    recordType?: 'USERNAME_PASSWORD' | 'SESSION_COOKIE' | 'ACCESS_TOKEN';
+                    recordType?: 'USERNAME_PASSWORD' | 'SESSION_COOKIE' | 'ACCESS_TOKEN' | 'BROWSER_PROFILE';
                     service?: string;
                     key?: string;
                     jsonSchema?: Json | null;

@@ -510,6 +510,15 @@ export type ChatProps = {
     readonly title?: string;
 
     /**
+     * Optional identifier (name or permanent id) of the agent owning this chat.
+     *
+     * When set, server-side live browser previews opened from the chat (for example from
+     * knowledge citation chips) run inside the agent's persistent browser profile, so logins
+     * performed by the user in the live session are saved for the agent's future browsing.
+     */
+    readonly agentIdentifier?: string;
+
+    /**
      * Messages to render - they are rendered as they are
      */
     readonly messages: ReadonlyArray<ChatMessage>;

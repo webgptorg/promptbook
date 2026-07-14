@@ -491,6 +491,7 @@ export function AgentProfileChat({
                         ) : (
                             <Chat
                                 title={`Chat with ${fullname}`}
+                                agentIdentifier={agentName}
                                 participants={chatParticipants}
                                 chatLocale={language}
                                 timingTranslations={timingTranslations}

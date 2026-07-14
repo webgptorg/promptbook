@@ -14,7 +14,10 @@ let browserProvider: BrowserConnectionProvider | null = null;
  * This function supports both local and remote browser connections based on environment configuration.
  * Use REMOTE_BROWSER_URL environment variable to configure a remote Playwright server.
  *
- * @param options - Optional runtime request options used for cancellation and logging context.
+ * Pass `options.browserProfileDirectory` to browse inside the persistent isolated browser profile
+ * of one agent instead of the shared default profile.
+ *
+ * @param options - Optional runtime request options used for cancellation, profile selection and logging context.
  * @returns Browser context instance
  */
 export async function $provideBrowserForServer(options: BrowserContextRequestOptions = {}): Promise<BrowserContext> {

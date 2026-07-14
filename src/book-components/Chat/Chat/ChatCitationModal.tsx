@@ -24,6 +24,13 @@ export type ChatCitationModalProps = {
     participants: ReadonlyArray<ChatParticipant>;
     resolveCitationLabel?: CitationLabelResolver;
     soundSystem?: ChatSoundSystem;
+
+    /**
+     * Optional agent identifier (name or permanent id) scoping the live browser fallback
+     * to the agent's persistent server-side browser profile.
+     */
+    agentIdentifier?: string;
+
     onClose: () => void;
 };
 
@@ -43,7 +50,7 @@ const EMPTY_MODAL_CITATION: ParsedCitation = {
  * @private component of `<Chat/>`
  */
 export function ChatCitationModal(props: ChatCitationModalProps) {
-    const { isOpen, citation, participants, resolveCitationLabel, soundSystem, onClose } = props;
+    const { isOpen, citation, participants, resolveCitationLabel, soundSystem, agentIdentifier, onClose } = props;
     const resolvedCitation = citation || EMPTY_MODAL_CITATION;
     const label = useResolvedCitationLabel(resolvedCitation, resolveCitationLabel);
 
@@ -102,6 +109,7 @@ export function ChatCitationModal(props: ChatCitationModalProps) {
                                     <CitationIframePreview
                                         src={previewUrl ?? citation.source}
                                         title={`Preview of ${label}`}
+                                        agentIdentifier={agentIdentifier}
                                     />
                                 )}
                             </div>

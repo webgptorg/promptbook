@@ -58,6 +58,10 @@ type TranslateText = ReturnType<typeof useServerLanguage>['t'];
  * @private function of CanonicalAgentChatPanel
  */
 type CanonicalAgentChatSurfaceProps = {
+    /**
+     * Agent name used to scope live browser previews to the agent's persistent browser profile.
+     */
+    readonly agentName: string;
     readonly brandColor?: string;
     readonly inputPlaceholder: string | undefined;
     readonly draftMessage?: string;
@@ -91,6 +95,7 @@ const USER_PARTICIPANT_COLOR = '#115EB6';
  * @private function of CanonicalAgentChatPanel
  */
 export function CanonicalAgentChatSurface({
+    agentName,
     brandColor,
     inputPlaceholder,
     draftMessage,
@@ -229,6 +234,7 @@ export function CanonicalAgentChatSurface({
             className="agent-chat-panel__chat h-full min-h-0 w-full"
             style={chatBackgroundStyle}
             title={`Chat with ${state.agentDisplayName}`}
+            agentIdentifier={agentName}
             messages={state.renderedMessages}
             defaultMessage={draftMessage}
             placeholderMessageContent={inputPlaceholder}

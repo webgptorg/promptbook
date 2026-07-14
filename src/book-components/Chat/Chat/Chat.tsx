@@ -128,6 +128,7 @@ export function Chat(props: ChatProps) {
         isSpeechPlaybackEnabled = true,
         elevenLabsVoiceId,
         chatUiTranslations,
+        agentIdentifier,
     } = props;
 
     const buttonColor = useMemo(() => Color.from(buttonColorRaw || '#0066cc'), [buttonColorRaw]);
@@ -437,6 +438,7 @@ export function Chat(props: ChatProps) {
                 participants={participants}
                 resolveCitationLabel={resolveCitationLabel}
                 soundSystem={soundSystem}
+                agentIdentifier={agentIdentifier}
                 onClose={closeCitationModal}
             />
 
