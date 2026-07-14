@@ -99,12 +99,12 @@ export type LiveDemoLine = LiveDemoTextLine | LiveDemoCommandLine | LiveDemoAgen
 /**
  * Width of the terminal dashboard frame in character cells.
  */
-const TERMINAL_BOX_WIDTH = 76;
+export const LIVE_DEMO_TERMINAL_BOX_WIDTH = 76;
 
 /**
  * Width of box body content between the borders.
  */
-const TERMINAL_BODY_WIDTH = TERMINAL_BOX_WIDTH - 4;
+const TERMINAL_BODY_WIDTH = LIVE_DEMO_TERMINAL_BOX_WIDTH - 4;
 
 /**
  * Visible width reserved for labels in the session box.
@@ -276,7 +276,7 @@ function createBoxLines(
     rows: ReadonlyArray<ReadonlyArray<LiveDemoTextPart>>,
 ): ReadonlyArray<LiveDemoTextLine> {
     const titleText = ` ${title} `;
-    const borderWidth = Math.max(0, TERMINAL_BOX_WIDTH - 2 - titleText.length);
+    const borderWidth = Math.max(0, LIVE_DEMO_TERMINAL_BOX_WIDTH - 2 - titleText.length);
 
     return [
         createTextLine([
@@ -285,7 +285,7 @@ function createBoxLines(
             createTextPart(`${'─'.repeat(borderWidth)}┐`, 'border'),
         ]),
         ...rows.map(createBoxBodyLine),
-        createTextLine([createTextPart(`└${'─'.repeat(TERMINAL_BOX_WIDTH - 2)}┘`, 'border')]),
+        createTextLine([createTextPart(`└${'─'.repeat(LIVE_DEMO_TERMINAL_BOX_WIDTH - 2)}┘`, 'border')]),
     ];
 }
 

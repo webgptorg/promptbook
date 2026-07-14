@@ -3,10 +3,7 @@ import {
     DEFAULT_AVATAR_SIZE,
 } from '../../avatars/avatarRenderingUtils';
 import { resolveAvatarRenderDefinition, type ResolvedAvatarRenderDefinition } from '../../avatars/renderAvatarVisual';
-import {
-    renderAvatarVisualAsciiArt,
-    type CreateCanvasForAsciiArt,
-} from '../../avatars/renderAvatarVisualAsciiArt';
+import { renderAvatarVisualAsciiArt, type CreateCanvasForAsciiArt } from '../../avatars/renderAvatarVisualAsciiArt';
 import type { AvatarDefinition } from '../../avatars/types/AvatarDefinition';
 import type { AvatarVisualId } from '../../avatars/types/AvatarVisualDefinition';
 import { resolveAvatarVisualId } from '../../avatars/visuals/avatarVisualRegistry';
@@ -38,6 +35,22 @@ export const TERMINAL_AGENT_AVATAR_VISUAL_ROWS = 12;
  * @private shared helper for terminal avatar rendering
  */
 export const TERMINAL_AGENT_AVATAR_VISUAL_REFRESH_INTERVAL_MS = 300;
+
+/**
+ * Centers ANSI-colored terminal avatar lines within one terminal frame.
+ *
+ * @param lines ANSI-colored avatar lines.
+ * @param frameColumns Available frame width in terminal character cells.
+ * @returns Avatar lines with leading terminal spaces added.
+ *
+ * @private shared helper for terminal avatar rendering
+ */
+export function centerTerminalAgentAvatarVisualLines(
+    lines: ReadonlyArray<string>,
+    frameColumns: number,
+): ReadonlyArray<string> {
+    return lines.map((line) => centerTerminalAgentAvatarVisualLine(line, frameColumns));
+}
 
 /**
  * Aspect ratio of the source canvas used for the terminal avatar variant.
@@ -258,4 +271,37 @@ function renderTerminalAgentAvatarVisualFrame(
         createCanvas: options.createCanvas,
         resolvedAvatarRenderDefinition: options.resolvedAvatarRenderDefinition,
     });
+}
+
+/**
+ * Centers one ANSI-colored terminal avatar line within the available frame width.
+ *
+ * @private shared helper for terminal avatar rendering
+ */
+function centerTerminalAgentAvatarVisualLine(line: string, frameColumns: number): string {
+    const paddingWidth = Math.max(
+        0,
+        Math.floor((frameColumns - getTerminalAgentAvatarVisualLineVisibleLength(line)) / 2),
+    );
+
+    return `${' '.repeat(paddingWidth)}${line}`;
+}
+
+/**
+ * Measures one terminal avatar line without ANSI escape sequences.
+ *
+ * @private shared helper for terminal avatar rendering
+ */
+function getTerminalAgentAvatarVisualLineVisibleLength(line: string): number {
+    return stripTerminalAgentAvatarVisualAnsi(line).length;
+}
+
+/**
+ * Removes ANSI escape sequences that do not occupy terminal character cells.
+ *
+ * @private shared helper for terminal avatar rendering
+ */
+function stripTerminalAgentAvatarVisualAnsi(line: string): string {
+    // eslint-disable-next-line no-control-regex
+    return line.replace(/\x1b\][^\x07]*(?:\x07|\x1b\\)/g, '').replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '');
 }

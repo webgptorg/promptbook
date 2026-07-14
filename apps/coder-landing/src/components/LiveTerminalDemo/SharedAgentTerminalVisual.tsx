@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { DEVELOPER_AGENT_BOOK } from '@/data/developerAgentBook';
+import { LIVE_DEMO_TERMINAL_BOX_WIDTH } from '@/data/liveDemoScript';
 import {
+    centerTerminalAgentAvatarVisualLines,
     createTerminalAgentAvatarVisual,
     TERMINAL_AGENT_AVATAR_VISUAL_REFRESH_INTERVAL_MS,
 } from '@promptbook-source/utils/agents/terminalAgentAvatarVisual';
@@ -53,9 +55,12 @@ export function SharedAgentTerminalVisual({ isAnimationActive }: SharedAgentTerm
 
             try {
                 setTerminalVisualLines(
-                    LIVE_DEMO_AGENT_VISUAL.renderFrame({
-                        animationTimeMs: performance.now() - animationStartedAtMs,
-                    }),
+                    centerTerminalAgentAvatarVisualLines(
+                        LIVE_DEMO_AGENT_VISUAL.renderFrame({
+                            animationTimeMs: performance.now() - animationStartedAtMs,
+                        }),
+                        LIVE_DEMO_TERMINAL_BOX_WIDTH,
+                    ),
                 );
             } catch {
                 setTerminalVisualLines([]);

@@ -120,7 +120,7 @@ $ npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code --model fab
 
 ---
 
-[ ] !!!
+[x] ~$0.8985 an hour by OpenAI Codex `gpt-5.5`
 
 [✨🍖] Make the sample in terminal agent avatar visual (the octopus ) in `ptbk coder` landing website look like the real `ptbk coder`
 
@@ -133,3 +133,4 @@ $ npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code --model fab
 
 ![The real agent visual in the terminal](screenshots/2026-07-0200-ptbk-coder-web-2.png)
 ![The "ugly" not-alike visual on web](screenshots/2026-07-0200-ptbk-coder-web-4.png)
+
