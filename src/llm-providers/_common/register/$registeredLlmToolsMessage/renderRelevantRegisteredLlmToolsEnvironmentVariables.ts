@@ -1,4 +1,7 @@
-import type { AvailableEnvironmentVariables, RegisteredLlmToolStatus } from './RegisteredLlmToolsMessageContext';
+import type {
+    AvailableEnvironmentVariables,
+    RegisteredLlmToolStatus,
+} from './RegisteredLlmToolsMessageContext';
 
 /**
  * Renders the list of environment variables used by at least one registered provider.

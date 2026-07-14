@@ -1,4 +1,7 @@
-import type { AvailableEnvironmentVariables, RegisteredLlmToolStatus } from './RegisteredLlmToolsMessageContext';
+import type {
+    AvailableEnvironmentVariables,
+    RegisteredLlmToolStatus,
+} from './RegisteredLlmToolsMessageContext';
 
 /**
  * Creates the configuration-status sentence for one provider.

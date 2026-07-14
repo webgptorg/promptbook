@@ -1,4 +1,4 @@
-import type { PreparedAgentsServerRuntime } from '../buildAgentsServer/PreparedAgentsServerRuntime';
+import type { PreparedAgentsServerRuntime } from '../buildAgentsServer';
 import type { AgentsServerChildEnvironment } from './AgentsServerChildEnvironment';
 import type { AgentsServerRuntimePaths } from './AgentsServerRuntimePaths';
 

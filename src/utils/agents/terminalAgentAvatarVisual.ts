@@ -1,8 +1,9 @@
-import { createAvatarDefinitionFromAgentBasicInformation, DEFAULT_AVATAR_SIZE } from '../../avatars/avatarRenderingUtils';
-import type { ResolvedAvatarRenderDefinition } from '../../avatars/renderAvatarVisual';
-import { resolveAvatarRenderDefinition } from '../../avatars/renderAvatarVisual';
-import type { CreateCanvasForAsciiArt } from '../../avatars/renderAvatarVisualAsciiArt';
-import { renderAvatarVisualAsciiArt } from '../../avatars/renderAvatarVisualAsciiArt';
+import {
+    createAvatarDefinitionFromAgentBasicInformation,
+    DEFAULT_AVATAR_SIZE,
+} from '../../avatars/avatarRenderingUtils';
+import { resolveAvatarRenderDefinition, type ResolvedAvatarRenderDefinition } from '../../avatars/renderAvatarVisual';
+import { renderAvatarVisualAsciiArt, type CreateCanvasForAsciiArt } from '../../avatars/renderAvatarVisualAsciiArt';
 import type { AvatarDefinition } from '../../avatars/types/AvatarDefinition';
 import type { AvatarVisualId } from '../../avatars/types/AvatarVisualDefinition';
 import { resolveAvatarVisualId } from '../../avatars/visuals/avatarVisualRegistry';

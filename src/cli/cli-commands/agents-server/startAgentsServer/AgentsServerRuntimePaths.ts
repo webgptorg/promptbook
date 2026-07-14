@@ -1,6 +1,6 @@
 import { join } from 'path';
 import { resolvePromptbookTemporaryPath } from '../../../../utils/filesystem/promptbookTemporaryPath';
-import { resolveAgentsServerAppPath } from '../buildAgentsServer/resolveAgentsServerAppPath';
+import { resolveAgentsServerAppPath } from '../buildAgentsServer';
 
 /**
  * Name of the local Agents Server log folder relative to the launch working directory.
