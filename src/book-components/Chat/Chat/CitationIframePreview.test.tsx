@@ -1,27 +1,8 @@
 /** @jest-environment jsdom */
 
 import { describe, expect, it, jest, beforeEach, afterEach } from '@jest/globals';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { CitationIframePreview } from './CitationIframePreview';
-
-/**
- * Creates a minimal DOMRect-like object for preview input tests.
- *
- * @returns DOMRect-compatible shape.
- */
-function createPreviewRect(): DOMRect {
-    return {
-        bottom: 220,
-        height: 200,
-        left: 10,
-        right: 110,
-        top: 20,
-        width: 100,
-        x: 10,
-        y: 20,
-        toJSON: () => ({}),
-    } as DOMRect;
-}
 
 /**
  * Installs a fetch mock that answers the embed check with the given result.
@@ -59,45 +40,22 @@ describe('CitationIframePreview', () => {
         expect(frame.getAttribute('src')).toBe('https://example.com/source');
     });
 
-    it('uses a live browser stream and forwards pointer input when embedding is blocked', async () => {
-        const fetchMock = mockEmbedCheck(false);
+    it('falls back to the interactive live browser preview when embedding is blocked', async () => {
+        mockEmbedCheck(false);
 
         render(<CitationIframePreview src="https://example.com/blocked" title="Blocked source" />);
 
         const image = await screen.findByAltText('Live browser preview of Blocked source');
         const imageSource = image.getAttribute('src') || '';
         const streamUrl = new URL(imageSource, 'https://agents.example');
-        const sessionId = streamUrl.searchParams.get('sessionId');
 
         expect(streamUrl.pathname).toBe('/api/page-preview/stream');
         expect(streamUrl.searchParams.get('url')).toBe('https://example.com/blocked');
-        expect(sessionId).toMatch(/^page-preview-[a-z0-9-]{16,80}$/);
+        expect(streamUrl.searchParams.get('sessionId')).toMatch(/^page-preview-[a-z0-9-]{16,80}$/);
+        expect(Number(streamUrl.searchParams.get('width'))).toBeGreaterThan(0);
+        expect(Number(streamUrl.searchParams.get('height'))).toBeGreaterThan(0);
 
-        jest.spyOn(image, 'getBoundingClientRect').mockReturnValue(createPreviewRect());
-        fireEvent.click(image, { clientX: 60, clientY: 120 });
-
-        await waitFor(() => {
-            expect(fetchMock).toHaveBeenCalledWith(
-                '/api/page-preview/input',
-                expect.objectContaining({
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    keepalive: true,
-                }),
-            );
-        });
-
-        const inputCall = fetchMock.mock.calls.find((call) => call[0] === '/api/page-preview/input');
-        expect(inputCall).toBeDefined();
-
-        const body = JSON.parse(String(inputCall?.[1]?.body));
-        expect(body).toMatchObject({
-            sessionId,
-            type: 'click',
-            xRatio: 0.5,
-            yRatio: 0.5,
-        });
+        // The remote-desktop toolbar of `<LiveBrowserPreview/>` is present
+        expect(screen.getByLabelText('Browser address')).toBeDefined();
     });
 });

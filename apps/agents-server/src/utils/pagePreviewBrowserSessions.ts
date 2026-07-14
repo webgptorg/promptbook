@@ -1,21 +1,12 @@
-import type { Page } from 'playwright';
+import type { CDPSession, Page } from 'playwright';
+import {
+    PAGE_PREVIEW_SESSION_ID_PATTERN,
+    PAGE_PREVIEW_SESSION_ID_PREFIX,
+} from '../../../../src/book-components/Chat/Chat/pagePreview/createPagePreviewSessionId';
+import type { PagePreviewViewport } from '../../../../src/book-components/Chat/Chat/pagePreview/PagePreviewViewport';
 import type { AdminChatTaskRecord } from './chatTasksAdmin';
 import type { UserInfo } from './getCurrentUser';
 import { appendTaskTerminalLogLine, markTaskTerminalLogFinished } from './taskTerminal/taskTerminalLog';
-
-/**
- * Prefix for browser-preview session identifiers created by the citation preview UI.
- *
- * @private internal constant of Agents Server page-preview streaming
- */
-const PAGE_PREVIEW_BROWSER_SESSION_ID_PREFIX = 'page-preview-';
-
-/**
- * Pattern accepted for client-created page-preview session identifiers.
- *
- * @private internal constant of Agents Server page-preview streaming
- */
-const PAGE_PREVIEW_BROWSER_SESSION_ID_PATTERN = /^page-preview-[a-z0-9-]{16,80}$/;
 
 /**
  * Queue name used when active browser previews are surfaced in the admin task manager.
@@ -45,19 +36,38 @@ export type PagePreviewBrowserSession = {
     readonly startedAt: string;
     readonly processId: number | null;
     page: Page | null;
-    viewport: PagePreviewBrowserViewport | null;
+    viewport: PagePreviewViewport | null;
+    cdpSession: CDPSession | null;
+    applyViewport: ((viewport: PagePreviewViewport) => Promise<void>) | null;
     updatedAt: string;
     lastFrameAt: string | null;
 };
 
 /**
- * Browser viewport used to convert pointer ratios into Playwright coordinates.
+ * Live page attachment of one browser preview stream.
  *
  * @private internal type of Agents Server page-preview streaming
  */
-export type PagePreviewBrowserViewport = {
-    readonly width: number;
-    readonly height: number;
+export type AttachPagePreviewBrowserSessionPageOptions = {
+    /**
+     * Playwright page bound to the stream.
+     */
+    readonly page: Page;
+
+    /**
+     * Viewport used by the stream.
+     */
+    readonly viewport: PagePreviewViewport;
+
+    /**
+     * CDP session used for screencasting and navigation-history lookups, when available.
+     */
+    readonly cdpSession?: CDPSession | null;
+
+    /**
+     * Applies a new viewport to the running stream (resizes the page and restarts the screencast).
+     */
+    readonly applyViewport?: (viewport: PagePreviewViewport) => Promise<void>;
 };
 
 /**
@@ -93,7 +103,7 @@ export function normalizePagePreviewBrowserSessionId(requestedSessionId: string 
     }
 
     const normalizedSessionId = requestedSessionId.trim().toLowerCase();
-    return PAGE_PREVIEW_BROWSER_SESSION_ID_PATTERN.test(normalizedSessionId) ? normalizedSessionId : null;
+    return PAGE_PREVIEW_SESSION_ID_PATTERN.test(normalizedSessionId) ? normalizedSessionId : null;
 }
 
 /**
@@ -123,6 +133,8 @@ export function registerPagePreviewBrowserSession(
         processId: typeof process.pid === 'number' ? process.pid : null,
         page: null,
         viewport: null,
+        cdpSession: null,
+        applyViewport: null,
     };
 
     pagePreviewBrowserSessions.set(options.sessionId, session);
@@ -137,26 +149,42 @@ export function registerPagePreviewBrowserSession(
  * Attaches the Playwright page used by one live browser preview.
  *
  * @param sessionId - Active session id.
- * @param page - Playwright page bound to the stream.
- * @param viewport - Viewport used by the stream.
+ * @param options - Live page attachment.
  */
 export function attachPagePreviewBrowserSessionPage(
     sessionId: string,
-    page: Page,
-    viewport: PagePreviewBrowserViewport,
+    options: AttachPagePreviewBrowserSessionPageOptions,
 ): void {
     const session = pagePreviewBrowserSessions.get(sessionId);
     if (!session) {
         return;
     }
 
-    session.page = page;
-    session.viewport = viewport;
+    session.page = options.page;
+    session.viewport = options.viewport;
+    session.cdpSession = options.cdpSession ?? null;
+    session.applyViewport = options.applyViewport ?? null;
     session.updatedAt = new Date().toISOString();
     appendTaskTerminalLogLine(
         sessionId,
-        `Browser page attached with a ${viewport.width}x${viewport.height} viewport, streaming frames.`,
+        `Browser page attached with a ${options.viewport.width}x${options.viewport.height} viewport, streaming frames.`,
     );
+}
+
+/**
+ * Updates the viewport recorded for one live browser preview.
+ *
+ * @param sessionId - Active session id.
+ * @param viewport - New viewport of the streamed page.
+ */
+export function updatePagePreviewBrowserSessionViewport(sessionId: string, viewport: PagePreviewViewport): void {
+    const session = pagePreviewBrowserSessions.get(sessionId);
+    if (!session) {
+        return;
+    }
+
+    session.viewport = viewport;
+    session.updatedAt = new Date().toISOString();
 }
 
 /**
@@ -237,7 +265,7 @@ export function listPagePreviewBrowserAdminTasks(): Array<AdminChatTaskRecord> {
         lastErrorDetails: session.url,
         userId: session.userId,
         username: session.username,
-        agentPermanentId: PAGE_PREVIEW_BROWSER_SESSION_ID_PREFIX,
+        agentPermanentId: PAGE_PREVIEW_SESSION_ID_PREFIX,
         agentName: PAGE_PREVIEW_BROWSER_TASK_AGENT_NAME,
         chatId: session.url,
         workerId: session.processId === null ? null : String(session.processId),

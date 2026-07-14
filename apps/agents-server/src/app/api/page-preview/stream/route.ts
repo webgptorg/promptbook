@@ -1,6 +1,10 @@
 import { serializeError } from '@promptbook-local/utils';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import {
+    clampPagePreviewViewport,
+    PAGE_PREVIEW_DEFAULT_VIEWPORT,
+} from '../../../../../../../src/book-components/Chat/Chat/pagePreview/PagePreviewViewport';
 import { assertsError } from '../../../../../../../src/errors/assertsError';
 import { assertSafeUrl } from '../../../../utils/assertSafeUrl';
 import {
@@ -24,6 +28,7 @@ export const dynamic = 'force-dynamic';
  * Query parameters:
  * - `url` — fully-qualified public HTTP(S) URL to preview
  * - `sessionId` — client-created browser-preview session id used for interaction events
+ * - `width` / `height` — optional initial viewport measured from the client preview area
  *
  * Requires authentication to prevent unauthenticated SSRF and browser-process abuse.
  */
@@ -35,6 +40,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     const url = request.nextUrl.searchParams.get('url');
     const sessionId = normalizePagePreviewBrowserSessionId(request.nextUrl.searchParams.get('sessionId'));
+    const viewport =
+        clampPagePreviewViewport(
+            Number.parseFloat(request.nextUrl.searchParams.get('width') ?? ''),
+            Number.parseFloat(request.nextUrl.searchParams.get('height') ?? ''),
+        ) ?? PAGE_PREVIEW_DEFAULT_VIEWPORT;
 
     if (!url) {
         return NextResponse.json({ error: 'Missing required query parameter: url' }, { status: 400 });
@@ -62,6 +72,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
             request,
             sessionId,
             url,
+            viewport,
         });
 
         return new NextResponse(stream, {

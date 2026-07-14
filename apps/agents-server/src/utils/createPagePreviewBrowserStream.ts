@@ -1,11 +1,14 @@
 import type { Page } from 'playwright';
+import type { PagePreviewViewport } from '../../../../src/book-components/Chat/Chat/pagePreview/PagePreviewViewport';
 import { $provideBrowserForServer } from '../tools/$provideBrowserForServer';
-import type { PagePreviewBrowserViewport } from './pagePreviewBrowserSessions';
+import { createPagePreviewFramePump } from './createPagePreviewFramePump';
 import {
     attachPagePreviewBrowserSessionPage,
     finishPagePreviewBrowserSession,
     markPagePreviewBrowserSessionFrame,
+    updatePagePreviewBrowserSessionViewport,
 } from './pagePreviewBrowserSessions';
+import { startPagePreviewScreencast } from './startPagePreviewScreencast';
 
 /**
  * Boundary used for MJPEG page-preview streams.
@@ -15,25 +18,25 @@ import {
 const PAGE_PREVIEW_STREAM_BOUNDARY = 'pagepreviewboundary';
 
 /**
- * Width of the live browser preview viewport.
- *
- * @private internal constant of Agents Server page-preview streaming
- */
-const PAGE_PREVIEW_VIEWPORT_WIDTH = 1280;
-
-/**
- * Height of the live browser preview viewport.
- *
- * @private internal constant of Agents Server page-preview streaming
- */
-const PAGE_PREVIEW_VIEWPORT_HEIGHT = 800;
-
-/**
- * Milliseconds between streamed browser frames.
+ * Milliseconds between streamed browser frames when falling back to screenshot polling.
  *
  * @private internal constant of Agents Server page-preview streaming
  */
 const PAGE_PREVIEW_FRAME_INTERVAL_MS = 350;
+
+/**
+ * Minimum milliseconds between two screencast frames (caps the stream at ~15 fps).
+ *
+ * @private internal constant of Agents Server page-preview streaming
+ */
+const PAGE_PREVIEW_MINIMUM_FRAME_INTERVAL_MS = 66;
+
+/**
+ * Milliseconds of inactivity after which the latest frame is re-sent to keep the stream alive.
+ *
+ * @private internal constant of Agents Server page-preview streaming
+ */
+const PAGE_PREVIEW_HEARTBEAT_INTERVAL_MS = 2000;
 
 /**
  * JPEG quality used by the live browser preview stream.
@@ -65,25 +68,31 @@ export type CreatePagePreviewBrowserStreamOptions = {
     readonly request: Request;
     readonly sessionId: string;
     readonly url: string;
+
+    /**
+     * Initial viewport of the streamed page, usually measured from the client preview area.
+     */
+    readonly viewport: PagePreviewViewport;
 };
 
 /**
  * Creates a Playwright-backed MJPEG stream for one page-preview browser session.
+ *
+ * Frames are sourced from a CDP screencast (pushed on every repaint, smooth for video and
+ * scrolling) with a screenshot-polling fallback when CDP is unavailable. The stream keeps
+ * running until the client disconnects or the page is closed.
  *
  * @param options - Stream options.
  * @returns Readable multipart stream.
  */
 export function createPagePreviewBrowserStream(options: CreatePagePreviewBrowserStreamOptions): ReadableStream<Uint8Array> {
     const encoder = new TextEncoder();
-    const viewport: PagePreviewBrowserViewport = {
-        width: PAGE_PREVIEW_VIEWPORT_WIDTH,
-        height: PAGE_PREVIEW_VIEWPORT_HEIGHT,
-    };
 
     return new ReadableStream<Uint8Array>({
         async start(controller) {
             let isStreamOpen = true;
             let page: Page | null = null;
+            let stopFrameSource: (() => void) | null = null;
 
             const closeStream = async (): Promise<void> => {
                 if (!isStreamOpen) {
@@ -91,6 +100,7 @@ export function createPagePreviewBrowserStream(options: CreatePagePreviewBrowser
                 }
 
                 isStreamOpen = false;
+                stopFrameSource?.();
                 finishPagePreviewBrowserSession(options.sessionId);
                 await page?.close().catch(() => undefined);
 
@@ -109,28 +119,81 @@ export function createPagePreviewBrowserStream(options: CreatePagePreviewBrowser
                 { once: true },
             );
 
+            const writeFrame = (frame: Buffer): void => {
+                if (!isStreamOpen) {
+                    return;
+                }
+
+                try {
+                    controller.enqueue(encoder.encode(createPagePreviewFrameHeader(frame.byteLength)));
+                    controller.enqueue(frame);
+                    markPagePreviewBrowserSessionFrame(options.sessionId);
+                } catch {
+                    // The controller may already be closed when the client disconnects mid-frame.
+                }
+            };
+
             try {
                 const browserContext = await $provideBrowserForServer({ sessionId: options.sessionId });
                 page = await browserContext.newPage();
-                attachPagePreviewBrowserSessionPage(options.sessionId, page, viewport);
+                await page.setViewportSize(options.viewport);
 
-                await page.setViewportSize(viewport);
+                const framePump = createPagePreviewFramePump({
+                    minimumFrameIntervalMs: PAGE_PREVIEW_MINIMUM_FRAME_INTERVAL_MS,
+                    heartbeatIntervalMs: PAGE_PREVIEW_HEARTBEAT_INTERVAL_MS,
+                    writeFrame,
+                });
+
+                const screencast = await startPagePreviewScreencast({
+                    page,
+                    viewport: options.viewport,
+                    jpegQuality: PAGE_PREVIEW_JPEG_QUALITY,
+                    onFrame: framePump.pushFrame,
+                });
+
+                stopFrameSource = () => {
+                    framePump.stop();
+                    void screencast?.stop();
+                };
+
+                const streamedPage = page;
+                attachPagePreviewBrowserSessionPage(options.sessionId, {
+                    page,
+                    viewport: options.viewport,
+                    cdpSession: screencast?.cdpSession ?? null,
+                    applyViewport: async (viewport: PagePreviewViewport) => {
+                        await streamedPage.setViewportSize(viewport);
+                        await screencast?.applyViewport(viewport);
+                        updatePagePreviewBrowserSessionViewport(options.sessionId, viewport);
+                    },
+                });
+
+                // Navigation happens after the screencast starts so the user watches the page load live
                 await page.goto(options.url, {
                     waitUntil: 'domcontentloaded',
                     timeout: PAGE_PREVIEW_NAVIGATION_TIMEOUT_MS,
                 });
 
-                while (isStreamOpen && !options.request.signal.aborted) {
-                    const buffer = await page.screenshot({
+                if (screencast) {
+                    // Prime the stream in case the screencast delivered its first frame before the client attached
+                    const initialFrame = await page.screenshot({
                         type: 'jpeg',
                         quality: PAGE_PREVIEW_JPEG_QUALITY,
                     });
-                    const header = createPagePreviewFrameHeader(buffer.byteLength);
+                    framePump.pushFrame(initialFrame);
 
-                    controller.enqueue(encoder.encode(header));
-                    controller.enqueue(buffer);
-                    markPagePreviewBrowserSessionFrame(options.sessionId);
-                    await waitForNextPagePreviewFrame(options.request.signal);
+                    await waitForPagePreviewStreamEnd(options.request.signal, page);
+                } else {
+                    framePump.stop();
+
+                    while (isStreamOpen && !options.request.signal.aborted && !page.isClosed()) {
+                        const frame = await page.screenshot({
+                            type: 'jpeg',
+                            quality: PAGE_PREVIEW_JPEG_QUALITY,
+                        });
+                        writeFrame(frame);
+                        await waitForNextPagePreviewFrame(options.request.signal);
+                    }
                 }
             } catch (error) {
                 if (!options.request.signal.aborted) {
@@ -155,6 +218,23 @@ function createPagePreviewFrameHeader(byteLength: number): string {
 }
 
 /**
+ * Waits until the stream request aborts or the streamed page closes.
+ *
+ * @param signal - Request abort signal.
+ * @param page - Streamed Playwright page.
+ */
+function waitForPagePreviewStreamEnd(signal: AbortSignal, page: Page): Promise<void> {
+    if (signal.aborted || page.isClosed()) {
+        return Promise.resolve();
+    }
+
+    return new Promise((resolve) => {
+        signal.addEventListener('abort', () => resolve(), { once: true });
+        page.once('close', () => resolve());
+    });
+}
+
+/**
  * Waits before sending the next stream frame, resolving early on abort.
  *
  * @param signal - Request abort signal.
@@ -165,15 +245,16 @@ function waitForNextPagePreviewFrame(signal: AbortSignal): Promise<void> {
     }
 
     return new Promise((resolve) => {
-        const timeout = setTimeout(resolve, PAGE_PREVIEW_FRAME_INTERVAL_MS);
+        const handleAbort = () => {
+            clearTimeout(timeout);
+            resolve();
+        };
+        const timeout = setTimeout(() => {
+            // The listener must not accumulate on the signal across the many frames of one stream
+            signal.removeEventListener('abort', handleAbort);
+            resolve();
+        }, PAGE_PREVIEW_FRAME_INTERVAL_MS);
 
-        signal.addEventListener(
-            'abort',
-            () => {
-                clearTimeout(timeout);
-                resolve();
-            },
-            { once: true },
-        );
+        signal.addEventListener('abort', handleAbort, { once: true });
     });
 }
