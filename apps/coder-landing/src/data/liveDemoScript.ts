@@ -13,8 +13,10 @@ export type LiveDemoTextTone =
     | 'sessionTitle'
     | 'taskTitle'
     | 'outputTitle'
+    | 'errorTitle'
     | 'controlsTitle'
     | 'success'
+    | 'error'
     | 'info'
     | 'warning'
     | 'progressEmpty'
@@ -148,6 +150,19 @@ const LIVE_DEMO_EMPTY_PROGRESS_BAR_WIDTH =
     TERMINAL_BODY_WIDTH - SESSION_LABEL_WIDTH - 1 - LIVE_DEMO_PROGRESS_LABEL.length;
 
 /**
+ * Wrapped full file path chunks used by the demo Errors panel.
+ */
+const LIVE_DEMO_ERROR_FILE_PATH_CHUNKS = [
+    'C:/Users/me/work/ai/promptbook/.promptbook/coder-prompts/',
+    '2026-07-0480-agents-server-browser-preview.sh',
+] as const;
+
+/**
+ * Full local file path shown in the demo Errors panel.
+ */
+const LIVE_DEMO_ERROR_FILE_PATH = LIVE_DEMO_ERROR_FILE_PATH_CHUNKS.join('');
+
+/**
  * How long the fake live terminal waits between typing two characters of a command, in milliseconds.
  */
 export const LIVE_DEMO_TYPING_INTERVAL_MS = 10;
@@ -228,6 +243,13 @@ export const LIVE_DEMO_SCRIPT: ReadonlyArray<LiveDemoLine> = [
             'muted',
         ),
         buildLiveOutputLine('🎉 All tests passed!', 'success'),
+    ]),
+    ...createBoxLines('Errors', 'errorTitle', [
+        [
+            createTextPart('✗ ', 'error'),
+            createTextPart(`Command "bash ${LIVE_DEMO_ERROR_FILE_PATH}" exited with code 1`, 'plain'),
+        ],
+        ...buildFilePathRows(LIVE_DEMO_ERROR_FILE_PATH_CHUNKS),
     ]),
     ...createBoxLines('Controls', 'controlsTitle', [
         [
@@ -312,6 +334,15 @@ function buildLabeledLine(label: string, valueParts: ReadonlyArray<LiveDemoTextP
  */
 function buildLiveOutputLine(text: string, tone: LiveDemoTextTone): ReadonlyArray<LiveDemoTextPart> {
     return [createTextPart('› ', 'success'), createTextPart(text, tone)];
+}
+
+/**
+ * Builds wrapped full file path rows matching the rich CLI Errors panel.
+ */
+function buildFilePathRows(filePathChunks: ReadonlyArray<string>): ReadonlyArray<ReadonlyArray<LiveDemoTextPart>> {
+    return filePathChunks.map((filePathChunk, index) =>
+        buildLabeledLine(index === 0 ? 'File' : '', [createTextPart(filePathChunk, 'info')]),
+    );
 }
 
 /**

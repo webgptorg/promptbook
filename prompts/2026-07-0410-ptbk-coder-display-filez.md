@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.4251 an hour by OpenAI Codex `gpt-5.5`
 
 [✨🦏] Show the full paths to a files in ptbk coder in the terminal UI
 

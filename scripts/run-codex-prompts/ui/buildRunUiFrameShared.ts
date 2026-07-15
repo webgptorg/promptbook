@@ -21,6 +21,11 @@ export const SESSION_LABEL_WIDTH = 8;
 const MAX_SCRIPT_SESSION_ROWS = 3;
 
 /**
+ * Matches runner errors that include the local shell script path passed to bash.
+ */
+const BASH_COMMAND_FILE_PATH_PATTERN = /Command\s+"bash\s+([^"\r\n]+)"/gu;
+
+/**
  * One structured row rendered inside the session box.
  */
 export type SessionRow = {
@@ -113,6 +118,16 @@ export function buildScriptPathSessionRows(scriptPaths: readonly string[], bodyW
             value: colors.gray(`...and ${uniqueScriptPaths.length - MAX_SCRIPT_SESSION_ROWS} more scripts`),
         },
     ];
+}
+
+/**
+ * Builds error box lines and expands detected local files into wrapped clickable path rows.
+ */
+export function buildErrorDisplayLines(errorMessages: readonly string[], bodyWidth: number): readonly string[] {
+    return errorMessages.flatMap((errorMessage) => [
+        `${colors.red('✗')} ${stripAnsi(errorMessage)}`,
+        ...buildErrorFilePathLines(errorMessage, bodyWidth),
+    ]);
 }
 
 /**
@@ -211,22 +226,134 @@ function buildRunningPhaseBadge(phase: CoderRunPhase): string {
 /**
  * Builds one OSC 8 terminal hyperlink to a local file.
  */
-function buildTerminalFileLink(scriptPath: string, availableWidth: number): string {
-    const absoluteScriptPath = resolve(scriptPath);
-    const displayPath = fitPlainText(formatScriptPathForDisplay(absoluteScriptPath), availableWidth);
-    const fileUrl = pathToFileURL(absoluteScriptPath).href;
-    return `\u001B]8;;${fileUrl}\u0007${displayPath}\u001B]8;;\u0007`;
+function buildTerminalFileLink(filePath: string, availableWidth: number, displayPath?: string): string {
+    const absoluteFilePath = resolveShellFilePath(filePath);
+    const linkDisplayPath = fitPlainText(
+        displayPath ?? formatProjectFilePathForDisplay(absoluteFilePath),
+        availableWidth,
+    );
+    const fileUrl = pathToFileURL(absoluteFilePath).href;
+    return `\u001B]8;;${fileUrl}\u0007${linkDisplayPath}\u001B]8;;\u0007`;
 }
 
 /**
  * Formats paths relative to the current project when possible so the Session box stays readable.
  */
-function formatScriptPathForDisplay(scriptPath: string): string {
-    const relativeScriptPath = relative(process.cwd(), scriptPath).replace(/\\/gu, '/');
+function formatProjectFilePathForDisplay(filePath: string): string {
+    const relativeFilePath = relative(process.cwd(), filePath).replace(/\\/gu, '/');
 
-    if (relativeScriptPath && !relativeScriptPath.startsWith('..') && !isAbsolute(relativeScriptPath)) {
-        return relativeScriptPath;
+    if (relativeFilePath && !relativeFilePath.startsWith('..') && !isAbsolute(relativeFilePath)) {
+        return relativeFilePath;
     }
 
-    return scriptPath.replace(/\\/gu, '/');
+    return formatFullFilePathForDisplay(filePath);
+}
+
+/**
+ * Builds wrapped file path rows for known local files referenced by an error.
+ */
+function buildErrorFilePathLines(errorMessage: string, bodyWidth: number): readonly string[] {
+    const filePaths = extractErrorFilePaths(errorMessage);
+
+    if (filePaths.length === 0) {
+        return [];
+    }
+
+    const availableValueWidth = Math.max(10, bodyWidth - SESSION_LABEL_WIDTH - 1);
+    return filePaths.flatMap((filePath) => {
+        const absoluteFilePath = resolveShellFilePath(filePath);
+        const displayPathChunks = splitFilePathForDisplay(
+            formatFullFilePathForDisplay(absoluteFilePath),
+            availableValueWidth,
+        );
+
+        return displayPathChunks.map((displayPathChunk, index) =>
+            buildLabeledSessionLine(
+                index === 0 ? 'File' : '',
+                buildTerminalFileLink(absoluteFilePath, availableValueWidth, displayPathChunk),
+                bodyWidth,
+            ),
+        );
+    });
+}
+
+/**
+ * Extracts local file paths from known runner error formats.
+ */
+function extractErrorFilePaths(errorMessage: string): readonly string[] {
+    const filePaths = new Set<string>();
+
+    for (const match of errorMessage.matchAll(BASH_COMMAND_FILE_PATH_PATTERN)) {
+        const filePath = match[1]?.trim();
+
+        if (filePath) {
+            filePaths.add(filePath);
+        }
+    }
+
+    return [...filePaths];
+}
+
+/**
+ * Resolves shell-formatted paths back to local filesystem paths for terminal hyperlinks.
+ */
+function resolveShellFilePath(filePath: string): string {
+    const trimmedFilePath = filePath.trim();
+    const windowsFilePath = convertMingwFilePathToWindowsPath(trimmedFilePath);
+    return resolve(windowsFilePath);
+}
+
+/**
+ * Converts `/c/...` paths used by Git Bash/MSYS on Windows back to `C:\...`.
+ */
+function convertMingwFilePathToWindowsPath(filePath: string): string {
+    if (process.platform !== 'win32') {
+        return filePath;
+    }
+
+    const match = filePath.match(/^\/([a-zA-Z])\/(.*)$/u);
+
+    if (!match) {
+        return filePath;
+    }
+
+    return `${match[1]!.toUpperCase()}:\\${match[2]!.replace(/\//gu, '\\')}`;
+}
+
+/**
+ * Formats an absolute file path for full-path display in the terminal.
+ */
+function formatFullFilePathForDisplay(filePath: string): string {
+    return filePath.replace(/\\/gu, '/');
+}
+
+/**
+ * Splits a file path into terminal-width chunks while preferring directory boundaries.
+ */
+function splitFilePathForDisplay(filePath: string, availableWidth: number): readonly string[] {
+    if (filePath.length <= availableWidth) {
+        return [filePath];
+    }
+
+    const chunks: string[] = [];
+    let remainingFilePath = filePath;
+
+    while (remainingFilePath.length > availableWidth) {
+        let splitIndex = remainingFilePath.lastIndexOf('/', availableWidth);
+
+        if (splitIndex <= 0) {
+            splitIndex = availableWidth;
+        } else {
+            splitIndex += 1;
+        }
+
+        chunks.push(remainingFilePath.slice(0, splitIndex));
+        remainingFilePath = remainingFilePath.slice(splitIndex);
+    }
+
+    if (remainingFilePath) {
+        chunks.push(remainingFilePath);
+    }
+
+    return chunks;
 }

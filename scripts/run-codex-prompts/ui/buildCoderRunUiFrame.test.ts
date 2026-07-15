@@ -1,4 +1,5 @@
 import { buildCoderRunUiFrame, type BuildCoderRunUiFrameOptions } from './buildCoderRunUiFrame';
+import { buildErrorDisplayLines, SESSION_LABEL_WIDTH } from './buildRunUiFrameShared';
 import { stripAnsi } from './coderRunUiText';
 
 /**
@@ -203,5 +204,39 @@ describe('buildCoderRunUiFrame', () => {
 
         expect(output).toContain('Script   .promptbook/coder-prompts/feature.sh');
         expect(lines.join('\n')).toContain('file:///');
+    });
+
+    it('renders full clickable file paths from command errors', () => {
+        const scriptPath = `${process.cwd()}\\.promptbook\\coder-prompts\\2026-07-0480-agents-server-browser-preview.sh`;
+        const lines = buildCoderRunUiFrame(
+            createFrameOptions({
+                errors: [`Command "bash ${scriptPath}" failed: spawn bash ENOENT`],
+            }),
+        );
+        const output = lines.map(stripAnsi).join('\n');
+
+        expect(output).toContain('Errors');
+        expect(output).toContain('File');
+        expect(output).toContain('2026-07-0480-agents-server-browser-preview.sh');
+        expect(lines.join('\n')).toContain('file:///');
+    });
+
+    it('preserves long error file paths across wrapped file rows', () => {
+        const bodyWidth = 40;
+        const availableValueWidth = bodyWidth - SESSION_LABEL_WIDTH - 1;
+        const scriptPath = `${process.cwd()}\\.promptbook\\coder-prompts\\2026-07-0480-agents-server-browser-preview.sh`;
+        const expectedDisplayPath = scriptPath.replace(/\\/gu, '/');
+        const errorLines = buildErrorDisplayLines([`Command "bash ${scriptPath}" exited with code 1`], bodyWidth).map(
+            stripAnsi,
+        );
+        const displayedPath = errorLines
+            .slice(1)
+            .map((line) => line.slice(SESSION_LABEL_WIDTH + 1).trimEnd())
+            .join('');
+
+        expect(displayedPath).toBe(expectedDisplayPath);
+        expect(errorLines.slice(1).every((line) => line.length <= bodyWidth)).toBe(true);
+        expect(errorLines.slice(1).some((line) => line.includes('/'))).toBe(true);
+        expect(availableValueWidth).toBeGreaterThan(0);
     });
 });

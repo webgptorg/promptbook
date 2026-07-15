@@ -5,6 +5,7 @@ import type { CoderRunAgentVisual } from './buildCoderRunAgentVisual';
 import { buildCoderRunOctopusVisual } from './buildCoderRunOctopusVisual';
 import {
     buildControlPills,
+    buildErrorDisplayLines,
     buildLabeledSessionLine,
     buildPausePresentation,
     buildProgressBar,
@@ -133,13 +134,10 @@ export function buildCoderRunUiFrame(options: BuildCoderRunUiFrameOptions): stri
     ];
 
     if (options.errors.length > 0) {
+        const bodyWidth = Math.max(10, totalWidth - 4);
+
         frame.push(
-            ...renderBox(
-                'Errors',
-                options.errors.map((errorLine) => `${colors.red('✗')} ${errorLine}`),
-                totalWidth,
-                colors.red.bold,
-            ),
+            ...renderBox('Errors', buildErrorDisplayLines(options.errors, bodyWidth), totalWidth, colors.red.bold),
         );
     }
 
