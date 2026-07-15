@@ -1,4 +1,8 @@
 import { DEFAULT_THINKING_MESSAGES } from '../../../../src/utils/DEFAULT_THINKING_MESSAGES';
+import {
+    normalizeThinkingMessageVariants,
+    parseThinkingMessageVariants,
+} from '../../../../src/book-components/Chat/utils/thinkingMessageVariants';
 import { getMetadata } from '../database/getMetadata';
 import { parseSlashSeparatedMetadata } from './metadataVariants';
 
@@ -11,8 +15,22 @@ export { DEFAULT_THINKING_MESSAGES };
  * @returns Trimmed, non-empty variants or the shared defaults.
  */
 export function parseThinkingMessages(raw: string | null | undefined): ReadonlyArray<string> {
-    const variants = parseSlashSeparatedMetadata(raw);
-    return variants.length > 0 ? variants : DEFAULT_THINKING_MESSAGES;
+    return normalizeThinkingMessageVariants(parseSlashSeparatedMetadata(raw));
+}
+
+/**
+ * Resolves agent-specific thinking messages with server metadata as fallback.
+ *
+ * @param agentThinkingMessages - Variants parsed from `META THINKING MESSAGE` commitments.
+ * @param serverThinkingMessages - Server-level metadata variants.
+ * @returns Agent variants when present, otherwise server variants/defaults.
+ */
+export function resolveThinkingMessages(
+    agentThinkingMessages: ReadonlyArray<string> | null | undefined,
+    serverThinkingMessages: ReadonlyArray<string>,
+): ReadonlyArray<string> {
+    const agentVariants = parseThinkingMessageVariants(agentThinkingMessages);
+    return agentVariants.length > 0 ? agentVariants : normalizeThinkingMessageVariants(serverThinkingMessages);
 }
 
 /**

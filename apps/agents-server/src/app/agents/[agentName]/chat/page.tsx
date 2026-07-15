@@ -7,7 +7,7 @@ import { loadChatConfiguration } from '@/src/utils/chatConfiguration';
 import { ensureChatHistoryIdentity } from '@/src/utils/currentUserIdentity';
 import { getCurrentUser } from '@/src/utils/getCurrentUser';
 import { peekShareTargetPayload } from '@/src/utils/shareTargetPayloads';
-import { getThinkingMessages } from '@/src/utils/thinkingMessages';
+import { getThinkingMessages, resolveThinkingMessages } from '@/src/utils/thinkingMessages';
 import { headers } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 import { resolveSpeechRecognitionLanguage } from '../../../../../../../src/utils/language/getBrowserPreferredSpeechRecognitionLanguage';
@@ -113,7 +113,7 @@ export default async function AgentChatPage({
     const historyIdentityAvailablePromise = ensureChatHistoryIdentity();
     const currentUserPromise = getCurrentUser();
     const chatConfigurationPromise = loadChatConfiguration();
-    const thinkingMessagesPromise = getThinkingMessages();
+    const serverThinkingMessagesPromise = getThinkingMessages();
     const providedServerPromise = $provideServer();
     const shareTargetPayloadPromise = shareTarget
         ? peekShareTargetPayload({
@@ -141,7 +141,7 @@ export default async function AgentChatPage({
         historyIdentityAvailable,
         currentUser,
         { isFileAttachmentsEnabled, feedbackMode },
-        thinkingMessages,
+        serverThinkingMessages,
         { publicUrl },
         shareTargetPayload,
     ] =
@@ -150,10 +150,11 @@ export default async function AgentChatPage({
         historyIdentityAvailablePromise,
         currentUserPromise,
         chatConfigurationPromise,
-        thinkingMessagesPromise,
+        serverThinkingMessagesPromise,
         providedServerPromise,
         shareTargetPayloadPromise,
     ]);
+    const thinkingMessages = resolveThinkingMessages(agentProfile.thinkingMessages, serverThinkingMessages);
     const agentUrl = new URL(`/agents/${encodeURIComponent(canonicalAgentId)}`, publicUrl).href;
     const agentDisplayName = agentProfile.meta.fullname || agentProfile.agentName || canonicalAgentId;
     const inputPlaceholder = agentProfile.meta.inputPlaceholder?.trim() || undefined;

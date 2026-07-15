@@ -14,6 +14,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * - META TITLE: Sets the agent's display title
  * - META DESCRIPTION: Sets the agent's description
  * - META INPUT PLACEHOLDER: Sets chat input placeholder text
+ * - META THINKING MESSAGE: Adds custom thinking placeholder variants
  * - META [ANYTHING]: Any other meta information in uppercase format
  *
  * These commitments are special because they don't affect the system message,
@@ -29,6 +30,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * META TITLE Professional Assistant
  * META DESCRIPTION An AI assistant specialized in business tasks
  * META INPUT PLACEHOLDER Write a message...
+ * META THINKING MESSAGE Thinking...
  * META AUTHOR John Doe
  * META VERSION 1.0
  * ```
@@ -72,6 +74,7 @@ export class MetaCommitmentDefinition extends BaseCommitmentDefinition<`META${st
             - **META TITLE** - Sets the agent's display title
             - **META DESCRIPTION** - Sets the agent's description
             - **META INPUT PLACEHOLDER** - Sets chat input placeholder text
+            - **META THINKING MESSAGE** - Adds custom thinking placeholder variants
             - **META [ANYTHING]** - Any other meta information in uppercase format
 
             ## Key aspects
@@ -80,6 +83,7 @@ export class MetaCommitmentDefinition extends BaseCommitmentDefinition<`META${st
             - Used for visual representation and attribution in user interfaces
             - Multiple META commitments of different types can be used
             - Multiple META LINK commitments can be used for different social profiles
+            - Multiple META THINKING MESSAGE commitments can be used for different thinking placeholder variants
             - If multiple META commitments of the same type are specified, the last one takes precedence (except for LINK)
 
             ## Examples

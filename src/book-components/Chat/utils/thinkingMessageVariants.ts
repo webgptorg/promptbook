@@ -31,15 +31,25 @@ const THINKING_MESSAGE_DELAY_MAX_MS = 5_000;
  * @private internal helper for Promptbook chat placeholders
  */
 export function normalizeThinkingMessageVariants(thinkingMessages?: ReadonlyArray<string>): ReadonlyArray<string> {
-    if (!thinkingMessages) {
-        return DEFAULT_THINKING_MESSAGES;
-    }
-
-    const normalized = thinkingMessages
-        .map((message) => message?.trim())
-        .filter((message): message is string => Boolean(message));
+    const normalized = parseThinkingMessageVariants(thinkingMessages);
 
     return normalized.length > 0 ? normalized : DEFAULT_THINKING_MESSAGES;
+}
+
+/**
+ * Parses configured thinking-message variants without applying default fallbacks.
+ *
+ * @param thinkingMessages Raw thinking-message variants.
+ * @returns Trimmed non-empty variants.
+ *
+ * @private internal helper for Promptbook chat placeholders
+ */
+export function parseThinkingMessageVariants(thinkingMessages?: ReadonlyArray<string> | null): ReadonlyArray<string> {
+    if (!thinkingMessages) {
+        return [];
+    }
+
+    return thinkingMessages.map((message) => message?.trim()).filter((message): message is string => Boolean(message));
 }
 
 /**

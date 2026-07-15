@@ -34,6 +34,7 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
         permanentId: parsedProfile.meta.id,
         personaDescription,
         initialMessage,
+        thinkingMessages: parsedProfile.thinkingMessages,
         meta: parsedProfile.meta,
         links: parsedProfile.links,
         parameters: parseParameters(agentSource),

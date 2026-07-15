@@ -115,6 +115,14 @@ export type AgentBasicInformation = {
     initialMessage: string | null;
 
     /**
+     * Optional custom thinking placeholder variants shown while this agent is composing a reply.
+     *
+     * This is derived from `META THINKING MESSAGE` commitments.
+     * Multiple commitments are preserved as multiple variants.
+     */
+    thinkingMessages?: Array<string>;
+
+    /**
      * Metadata commitments parsed from META lines
      * Each META commitment has the format "META TYPE content"
      * When there are multiple meta commitments of the same type, later overrides earlier

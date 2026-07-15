@@ -17,6 +17,7 @@ export function extractParsedAgentProfile(commitments: ReadonlyArray<ParsedCommi
         capabilities: [],
         samples: [],
         knowledgeSources: [],
+        thinkingMessages: [],
         pendingUserMessage: null,
         knownKnowledgeSourceUrls: new Set<string>(),
     };
@@ -31,6 +32,7 @@ export function extractParsedAgentProfile(commitments: ReadonlyArray<ParsedCommi
         capabilities: state.capabilities,
         samples: state.samples,
         knowledgeSources: state.knowledgeSources,
+        thinkingMessages: state.thinkingMessages,
     };
 }
 

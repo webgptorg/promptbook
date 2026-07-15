@@ -381,6 +381,30 @@ describe('parseAgentSource', () => {
         expect(result.meta.inputPlaceholder).toBe('Ask me anything about your tasks');
     });
 
+    it('parses META THINKING MESSAGE as custom thinking-message variants', () => {
+        const agentSource = validateBook(
+            spaceTrim(`
+                Helper Agent
+                META THINKING MESSAGE Thinking...
+                META THINKING MESSAGE Processing...
+                META THINKING MESSAGE
+
+                Doing
+                extra **hard** work
+            `),
+        );
+        const result = parseAgentSource(agentSource);
+
+        expect(result.thinkingMessages).toEqual([
+            'Thinking...',
+            'Processing...',
+            spaceTrim(`
+                Doing
+                extra **hard** work
+            `),
+        ]);
+    });
+
     it('parses META VISIBILITY and normalizes supported values', () => {
         const agentSource = validateBook(
             spaceTrim(`

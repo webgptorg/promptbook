@@ -23,6 +23,7 @@ const META_COMMITMENT_APPLIERS: Readonly<Record<string, MetaCommitmentApplier | 
     'META DESCRIPTION': applyMetaDescriptionContent,
     'META DISCLAIMER': applyMetaDisclaimerContent,
     'META INPUT PLACEHOLDER': applyMetaInputPlaceholderContent,
+    'META THINKING MESSAGE': applyMetaThinkingMessageContent,
     'MESSAGE SUFFIX': applyMessageSuffixContent,
     'META COLOR': applyMetaColorContent,
     'META FONT': applyMetaFontContent,
@@ -127,6 +128,18 @@ function applyMetaDisclaimerContent(state: ParseAgentSourceState, content: strin
  */
 function applyMetaInputPlaceholderContent(state: ParseAgentSourceState, content: string): void {
     state.meta.inputPlaceholder = spaceTrim(content);
+}
+
+/**
+ * Applies one META THINKING MESSAGE content block into the custom thinking-message variants.
+ */
+function applyMetaThinkingMessageContent(state: ParseAgentSourceState, content: string): void {
+    const thinkingMessage = spaceTrim(content);
+    if (!thinkingMessage) {
+        return;
+    }
+
+    state.thinkingMessages = [...(state.thinkingMessages || []), thinkingMessage];
 }
 
 /**

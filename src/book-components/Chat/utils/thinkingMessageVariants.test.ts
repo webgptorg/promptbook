@@ -4,6 +4,7 @@ import {
     getRandomThinkingMessageDelayMs,
     getRandomThinkingMessageVariant,
     normalizeThinkingMessageVariants,
+    parseThinkingMessageVariants,
 } from './thinkingMessageVariants';
 
 describe('thinkingMessageVariants', () => {
@@ -16,6 +17,14 @@ describe('thinkingMessageVariants', () => {
             'Thinking...',
             'Searching...',
         ]);
+    });
+
+    it('parses configured variants without applying defaults', () => {
+        expect(parseThinkingMessageVariants([' Thinking... ', '', '   ', 'Searching...'])).toEqual([
+            'Thinking...',
+            'Searching...',
+        ]);
+        expect(parseThinkingMessageVariants(undefined)).toEqual([]);
     });
 
     it('avoids repeating the excluded variant when an alternative exists', () => {

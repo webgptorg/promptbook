@@ -7,5 +7,5 @@ import type { AgentBasicInformation } from '../AgentBasicInformation';
  */
 export type ParsedAgentProfile = Pick<
     AgentBasicInformation,
-    'meta' | 'links' | 'capabilities' | 'samples' | 'knowledgeSources'
+    'meta' | 'links' | 'capabilities' | 'samples' | 'knowledgeSources' | 'thinkingMessages'
 >;

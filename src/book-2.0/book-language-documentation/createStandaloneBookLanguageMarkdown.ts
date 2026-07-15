@@ -62,6 +62,7 @@ const PROFILE_COMMITMENT_TYPES = new Set([
     'META DESCRIPTION',
     'META DISCLAIMER',
     'META INPUT PLACEHOLDER',
+    'META THINKING MESSAGE',
     'META VISIBILITY',
     'META COLOR',
     'META FONT',
@@ -334,7 +335,7 @@ export function createStandaloneBookLanguageMarkdown(): string_markdown {
             4. **Add capabilities**
             Add only necessary \`USE*\` and/or \`MEMORY\` commitments.
             5. **Set profile metadata**
-            Add \`META DESCRIPTION\`, \`META AVATAR\` / \`META VISUAL\` or \`META IMAGE\`, \`META INPUT PLACEHOLDER\`, and disclaimers if needed.
+            Add \`META DESCRIPTION\`, \`META AVATAR\` / \`META VISUAL\` or \`META IMAGE\`, \`META INPUT PLACEHOLDER\`, \`META THINKING MESSAGE\`, and disclaimers if needed.
             6. **Add first interaction**
             Add \`INITIAL MESSAGE\` and optionally sample \`USER MESSAGE\` / \`AGENT MESSAGE\` pairs.
             7. **Close for deterministic behavior (optional)**
@@ -359,6 +360,7 @@ export function createStandaloneBookLanguageMarkdown(): string_markdown {
 
                         META DESCRIPTION Practical project-planning assistant.
                         META INPUT PLACEHOLDER Describe your project goal or blocker...
+                        META THINKING MESSAGE Reviewing your project details...
 
                         INITIAL MESSAGE Share your project goal and current blocker, and I will propose a concrete next-step plan.
                         CLOSED
