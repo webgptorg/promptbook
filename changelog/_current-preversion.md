@@ -1,3 +1,5 @@
+-   Fixed Agents Server local chat completions so an unconfigured local coding-agent runner failure now fails the queued chat task after the first failed harness attempt. The runner still uses the existing `messages/failed` reconciliation path, so the chat message and `/admin/task-manager` status reach the same terminal failed state without duplicating job-finalization logic.
+
 -   Changed the Agents Server `CHAT_FEEDBACK_MODE` default to `off`, including metadata defaults, missing-metadata fallback, and create-server defaults, so post-response chat feedback is opt-in by default.
 
 -   Fixed the Agents Server live browser citation popup so blocked knowledge-source pages now open in the normal centered popup size first, with the existing toolbar full-screen control kept as the larger mode. This prevents the preview from launching as a wide near-full-page panel under the app header.

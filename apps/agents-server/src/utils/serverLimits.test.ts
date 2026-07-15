@@ -3,6 +3,10 @@ import { DEFAULT_SERVER_LIMIT_VALUES, SERVER_LIMIT_KEYS } from '../constants/ser
 import { normalizeServerLimitValues } from './serverLimits';
 
 describe('normalizeServerLimitValues', () => {
+    it('fails Agents Server local chat completions on the first local runner failure by default', () => {
+        expect(DEFAULT_SERVER_LIMIT_VALUES[SERVER_LIMIT_KEYS.LOCAL_AGENT_RUNNER_MAX_FAILED_ATTEMPTS]).toBe(1);
+    });
+
     it('falls back to defaults for invalid values while preserving valid integers', () => {
         const normalizedValues = normalizeServerLimitValues({
             [SERVER_LIMIT_KEYS.TIMEOUT_MAX_ACTIVE_PER_CHAT]: '9',

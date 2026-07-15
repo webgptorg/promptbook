@@ -37,7 +37,7 @@ export const DEFAULT_SPAWN_AGENT_RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
  *
  * @private shared Agents Server constant
  */
-export const DEFAULT_LOCAL_AGENT_RUNNER_MAX_FAILED_ATTEMPTS = 3;
+export const DEFAULT_LOCAL_AGENT_RUNNER_MAX_FAILED_ATTEMPTS = 1;
 
 /**
  * Default maximum number of local runner harness instances allowed to answer queued messages at once.
@@ -182,7 +182,7 @@ export const SERVER_LIMIT_DEFINITIONS = [
         key: SERVER_LIMIT_KEYS.LOCAL_AGENT_RUNNER_MAX_FAILED_ATTEMPTS,
         category: 'Local agent runner',
         title: 'Max failed message attempts',
-        description: 'Stops the local coding-agent watcher from retrying the same queued chat message forever.',
+        description: 'Fails the chat completion task after this many failed local coding-agent attempts.',
         unit: 'count',
         defaultValue: DEFAULT_LOCAL_AGENT_RUNNER_MAX_FAILED_ATTEMPTS,
         minimumValue: 1,
