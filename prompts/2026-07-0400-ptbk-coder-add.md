@@ -1,6 +1,6 @@
 [ ]
 
-[✨🪴] bar
+[✨🪴] Create command `ptbk coder add`
 
 ```bash
 # Simple
@@ -19,10 +19,12 @@ EOF
 ptbk coder add
 ```
 
--   @@@@@@@@@@@@@@@@@@@@@@@
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   This command will add the new prompt file with one prompt
+- Find unique emoji tag for this prompt, for example `[✨🪴]`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle, reuse existing code especially with the `ptbk coder generate-boilerplates` command
 -   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
--   Also look and update [the dev scripts in `terminals.json`](.vscode/terminals.json)
+-   Create one script with interactive add in [the dev scripts in `terminals.json`](.vscode/terminals.json)
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Update the [`ptbk coder` landing website](apps/coder-landing)
+- Add `coder:add` when initializing the Promptbook coder
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
