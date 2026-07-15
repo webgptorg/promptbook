@@ -33,7 +33,7 @@ export function getDefaultCoderAgentCodingFileContent({
             2. Create or customize prompt templates in \`${formatDisplayPath(
                 PROMPTS_TEMPLATES_DIRECTORY_PATH,
             )}/\`. ${buildStarterTemplateSentence()}
-            3. Generate prompt files with \`npm run coder:generate-boilerplates\` or \`ptbk coder generate-boilerplates --template <template> --count <count>\`.
+            3. Generate prompt files with \`npm run coder:generate-boilerplates\` or \`ptbk coder generate-boilerplates --template <template> --count <count>\`. To append a single ready-to-run prompt straight from a description, use \`npm run coder:add\` or \`ptbk coder add "some new feature"\`.
             4. Replace every \`@@@\`, keep drafts as \`[-]\`, and switch prompts to \`[ ]\` when they are ready to run. Completed prompts are marked \`[x]\`.
             5. Run \`npm run coder:run\` to execute the next ready prompt with the configured coding agent.
             6. Use \`npm run coder:verify\` to archive finished prompts into \`${formatDisplayPath(
@@ -106,6 +106,12 @@ function describeDefaultCoderPackageJsonScript(scriptName: string, scriptCommand
         return `Runs \`${scriptCommand}\` to create new prompt files in \`${formatDisplayPath(
             PROMPTS_DIRECTORY_PATH,
         )}/\`.`;
+    }
+
+    if (scriptName === 'coder:add') {
+        return `Runs \`${scriptCommand}\` to add one ready-to-run prompt file to \`${formatDisplayPath(
+            PROMPTS_DIRECTORY_PATH,
+        )}/\` from a plain-language description.`;
     }
 
     if (scriptName === 'coder:run') {

@@ -1,4 +1,4 @@
-[ ]
+[x] $10.57 an hour by Claude Code `claude-opus-4-8`
 
 [✨🪴] Create command `ptbk coder add`
 
@@ -28,3 +28,4 @@ ptbk coder add
 -   Update the [`ptbk coder` landing website](apps/coder-landing)
 - Add `coder:add` when initializing the Promptbook coder
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

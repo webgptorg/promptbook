@@ -269,6 +269,46 @@ export async function resolveCoderPromptTemplate({
 }
 
 /**
+ * Builds one prompt section (status line, emoji-tagged title, and body) shared by
+ * `coder generate-boilerplates` and `coder add`.
+ *
+ * @private internal utility of `ptbk coder`
+ */
+export function buildCoderPromptSection({
+    statusLine,
+    emojiTag,
+    title,
+    body,
+}: {
+    /**
+     * Checklist status marker of the section, for example `[-]`, `[ ]`, or `[ ] !!`.
+     */
+    readonly statusLine: string;
+    /**
+     * Emoji tag rendered before the title, for example `[✨🪴]`.
+     */
+    readonly emojiTag: string;
+    /**
+     * Single-line title rendered right after the emoji tag.
+     */
+    readonly title: string;
+    /**
+     * Markdown body rendered below the title.
+     */
+    readonly body: string;
+}): string {
+    return spaceTrim(
+        (block) => `
+            ${statusLine}
+
+            ${emojiTag} ${title}
+
+            ${block(body)}
+        `,
+    );
+}
+
+/**
  * Normalizes one raw `--template` option to either a trimmed string or `undefined`.
  */
 function normalizeCoderPromptTemplateOption(templateOption?: string): string | undefined {

@@ -4,6 +4,7 @@ import type {
 } from 'commander';
 import { spaceTrim } from 'spacetrim';
 import type { $side_effect } from '../../utils/organization/$side_effect';
+import { $initializeCoderAddCommand } from './coder/add';
 import { $initializeCoderFindFreshEmojiTagCommand } from './coder/find-fresh-emoji-tags';
 import { $initializeCoderFindRefactorCandidatesCommand } from './coder/find-refactor-candidates';
 import { $initializeCoderFindUnwrittenCommand } from './coder/find-unwritten';
@@ -18,6 +19,7 @@ import { $initializeCoderVerifyCommand } from './coder/verify';
  *
  * The coder command provides utilities for automated coding:
  * - init: Initialize coder configuration in current project
+ * - add: Add one ready-to-run prompt file to the queue
  * - generate-boilerplates: Generate prompt boilerplate files
  * - find-refactor-candidates: Find files that need refactoring
  * - run: Run coding prompts with AI agents
@@ -36,6 +38,7 @@ export function $initializeCoderCommand(program: Program): $side_effect {
 
             Subcommands:
             - init: Initialize coder configuration in current project
+            - add: Add one ready-to-run prompt file to the queue
             - generate-boilerplates: Generate prompt boilerplate files
             - find-refactor-candidates: Find files that need refactoring
             - find-unwritten: List prompt sections that still need to be authored
@@ -48,6 +51,7 @@ export function $initializeCoderCommand(program: Program): $side_effect {
 
     // Register all subcommands
     $initializeCoderInitCommand(coderCommand);
+    $initializeCoderAddCommand(coderCommand);
     $initializeCoderGenerateBoilerplatesCommand(coderCommand);
     $initializeCoderFindRefactorCandidatesCommand(coderCommand);
     $initializeCoderFindUnwrittenCommand(coderCommand);

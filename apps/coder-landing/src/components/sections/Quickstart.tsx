@@ -1,5 +1,5 @@
 import { TerminalBlock } from '@/components/TerminalBlock/TerminalBlock';
-import { INIT_COMMAND, INSTALL_COMMAND, RUN_COMMAND, SERVER_COMMAND } from '@/data/commands';
+import { ADD_COMMAND, INIT_COMMAND, INSTALL_COMMAND, RUN_COMMAND, SERVER_COMMAND } from '@/data/commands';
 import type { ReactNode } from 'react';
 
 /**
@@ -61,12 +61,13 @@ const QUICKSTART_STEPS: ReadonlyArray<QuickstartStep> = [
         title: 'Write your backlog as prompts',
         description: (
             <>
-                Each task is one markdown file in <code className="text-promptbook-blue">prompts/</code>. Write it the
-                same way you would prompt Claude Code or Codex — plain language, as specific as you like.
+                <code className="text-promptbook-blue">ptbk coder add</code> writes one ready-to-run markdown file into{' '}
+                <code className="text-promptbook-blue">prompts/</code> for you. Describe the task the same way you would
+                prompt Claude Code or Codex — plain language, as specific as you like. Pipe in a heredoc for longer
+                descriptions, or run it with no arguments to type one interactively.
             </>
         ),
-        command: 'echo "Add a dark mode" > prompts/add-dark-mode.md',
-        terminalTitle: 'prompts/add-dark-mode.md',
+        command: ADD_COMMAND,
     },
     {
         title: 'Run the queue',

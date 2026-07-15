@@ -7,6 +7,7 @@ The single source of truth for every shell command shown on the page. Any sectio
 | `INSTALL_COMMAND`        | `npm install ptbk`                                                                                                                                                                                     | [Hero](../sections/hero.md), [Quickstart step 1](../sections/quickstart.md) |
 | `INSTALL_GLOBAL_COMMAND` | `npm install --global ptbk`                                                                                                                                                                            | (available alternative; may be mentioned in prose)                          |
 | `INIT_COMMAND`           | `ptbk coder init`                                                                                                                                                                                      | [Quickstart step 2](../sections/quickstart.md)                              |
+| `ADD_COMMAND`            | `ptbk coder add "Add a dark mode toggle to the settings page"`                                                                                                                                         | [Quickstart step 3](../sections/quickstart.md)                              |
 | `RUN_COMMAND`            | `ptbk coder run --harness claude-code`                                                                                                                                                                 | [Quickstart step 4](../sections/quickstart.md)                              |
 | `DRY_RUN_COMMAND`        | `ptbk coder run --dry-run`                                                                                                                                                                             | [Advanced features](../sections/advanced-features.md)                       |
 | `SERVER_COMMAND`         | `ptbk coder server --harness claude-code --model fable --thinking-level max --agent agents/developer.book --context AGENTS.md --test npm run test`                                                     | [Quickstart step 5](../sections/quickstart.md)                              |
@@ -27,7 +28,7 @@ These `ptbk coder` options may be referenced in page prose and must be described
 -   `--context <text-or-file>` — extra instructions inline or from a project file (e.g. `AGENTS.md`).
 -   `--test <command...>` — verification command run after each prompt; failures are fed back and retried.
 -   `--dry-run` — print unwritten prompts without executing.
--   `--priority <n>` — process only prompts with at least this priority.
+-   `--priority <n>` — for `run` / `find-unwritten`, process only prompts with at least this priority; for `add`, set the priority of the new prompt (rendered as trailing `!` markers).
 -   `--limit <n>` — stop after N prompt runs (`run` only).
 -   `--no-auto` — wait for user confirmation before each prompt.
 -   `--no-commit`, `--ignore-git-changes`, `--auto-push`, `--auto-pull` — git behavior switches.

@@ -7,7 +7,7 @@ import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
 import { handleActionErrors } from '../common/handleActionErrors';
-import { getDefaultCoderPromptTemplateDefinitions, PROMPTS_DIRECTORY_PATH, resolveCoderPromptTemplate } from './boilerplateTemplates';
+import { buildCoderPromptSection, getDefaultCoderPromptTemplateDefinitions, PROMPTS_DIRECTORY_PATH, resolveCoderPromptTemplate } from './boilerplateTemplates';
 
 /**
  * Initializes `coder generate-boilerplates` command for Promptbook CLI utilities
@@ -121,16 +121,12 @@ export async function generatePromptBoilerplate({
         const filepath = join(PROMPTS_DIRECTORY_PATH, filename);
         const absoluteFilepath = join(projectPath, filepath);
         const emojiTag = formatPromptEmojiTag(emoji);
-        const one = spaceTrim(
-            (block) => `
-
-                [-]
-
-                ${emojiTag} ${title}
-
-                ${block(promptTemplate.content)}
-            `,
-        );
+        const one = buildCoderPromptSection({
+            statusLine: '[-]',
+            emojiTag,
+            title,
+            body: promptTemplate.content,
+        });
         const content = spaceTrim(
             (block) => `
 
