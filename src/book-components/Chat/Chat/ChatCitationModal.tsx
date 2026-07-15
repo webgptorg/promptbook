@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { CloseIcon } from '../../icons/CloseIcon';
 import { DownloadIcon } from '../../icons/DownloadIcon';
 import { classNames } from '../../_common/react-utils/classNames';
@@ -11,7 +12,7 @@ import { isPlainTextCitation, resolveCitationPreviewUrl } from '../utils/citatio
 import type { ParsedCitation } from '../utils/parseCitationsFromContent';
 import styles from './Chat.module.css';
 import type { ChatSoundSystem } from './ChatProps';
-import { CitationIframePreview } from './CitationIframePreview';
+import { CitationIframePreview, type CitationIframePreviewStatus } from './CitationIframePreview';
 
 /**
  * Props for the citation preview modal.
@@ -53,12 +54,17 @@ export function ChatCitationModal(props: ChatCitationModalProps) {
     const { isOpen, citation, participants, resolveCitationLabel, soundSystem, agentIdentifier, onClose } = props;
     const resolvedCitation = citation || EMPTY_MODAL_CITATION;
     const label = useResolvedCitationLabel(resolvedCitation, resolveCitationLabel);
+    const previewUrl = citation ? resolveCitationPreviewUrl(citation, participants) : null;
+    const [citationPreviewStatus, setCitationPreviewStatus] = useState<CitationIframePreviewStatus>('loading');
+
+    useEffect(() => {
+        setCitationPreviewStatus('loading');
+    }, [isOpen, previewUrl, citation?.source]);
 
     if (!isOpen || !citation) {
         return null;
     }
 
-    const previewUrl = resolveCitationPreviewUrl(citation, participants);
     const isValidUrl = !!previewUrl;
     const previewTarget = previewUrl ?? citation.source;
     const previewBase = previewTarget.split(/[?#]/)[0]!;
@@ -69,87 +75,113 @@ export function ChatCitationModal(props: ChatCitationModalProps) {
     const hasTextPreview = !isValidUrl && (citation.excerpt || isTextCitation);
     const textPreviewContent = isTextCitation ? citation.source : citation.excerpt ?? '';
     const textPreviewHeading = isTextCitation ? 'Text:' : 'Excerpt:';
+    const isLiveBrowserPreview = isValidUrl && !isImage && citationPreviewStatus === 'browser-stream';
+    const citationIframePreview =
+        isValidUrl && !isImage ? (
+            <CitationIframePreview
+                src={previewUrl ?? citation.source}
+                title={`Preview of ${label}`}
+                agentIdentifier={agentIdentifier}
+                onClose={isLiveBrowserPreview ? onClose : undefined}
+                onStatusChange={setCitationPreviewStatus}
+                initialStatus={citationPreviewStatus}
+            />
+        ) : null;
 
     return (
         <div
             className={styles.ratingModal}
+            data-chat-modal={isLiveBrowserPreview ? 'citation-browser' : undefined}
             onClick={(event) => {
                 if (event.target === event.currentTarget) {
                     onClose();
                 }
             }}
         >
-            <div className={classNames(styles.ratingModalContent, styles.toolCallModal)}>
-                <button type="button" className={styles.modalCloseButton} onClick={onClose} aria-label="Close dialog">
-                    <CloseIcon />
-                </button>
-                <div className={styles.searchModalHeader}>
-                    <span className={styles.searchModalIcon}>📄</span>
-                    <h3 className={styles.searchModalQuery}>{label}</h3>
-                </div>
+            <div
+                className={classNames(
+                    styles.ratingModalContent,
+                    styles.toolCallModal,
+                    isLiveBrowserPreview && styles.citationBrowserModal,
+                )}
+            >
+                {isLiveBrowserPreview ? (
+                    <div className={styles.citationBrowserModalBody}>{citationIframePreview}</div>
+                ) : (
+                    <>
+                        <button
+                            type="button"
+                            className={styles.modalCloseButton}
+                            onClick={onClose}
+                            aria-label="Close dialog"
+                        >
+                            <CloseIcon />
+                        </button>
+                        <div className={styles.searchModalHeader}>
+                            <span className={styles.searchModalIcon}>📄</span>
+                            <h3 className={styles.searchModalQuery}>{label}</h3>
+                        </div>
 
-                <div className={styles.searchModalContent}>
-                    <div className={styles.citationDetails}>
-                        {isValidUrl ? (
-                            <div className={styles.citationPreview}>
-                                {isImage ? (
-                                    <img
-                                        src={previewUrl ?? citation.source}
-                                        className={styles.citationImage}
-                                        alt={`Preview of ${citation.source}`}
-                                        style={{
-                                            maxWidth: '100%',
-                                            maxHeight: '100%',
-                                            objectFit: 'contain',
-                                            display: 'block',
-                                            margin: '0 auto',
-                                        }}
-                                    />
+                        <div className={styles.searchModalContent}>
+                            <div className={styles.citationDetails}>
+                                {isValidUrl ? (
+                                    <div className={styles.citationPreview}>
+                                        {isImage ? (
+                                            <img
+                                                src={previewUrl ?? citation.source}
+                                                className={styles.citationImage}
+                                                alt={`Preview of ${citation.source}`}
+                                                style={{
+                                                    maxWidth: '100%',
+                                                    maxHeight: '100%',
+                                                    objectFit: 'contain',
+                                                    display: 'block',
+                                                    margin: '0 auto',
+                                                }}
+                                            />
+                                        ) : (
+                                            citationIframePreview
+                                        )}
+                                    </div>
+                                ) : hasTextPreview ? (
+                                    <div className={styles.citationExcerpt}>
+                                        <h4>{textPreviewHeading}</h4>
+                                        <MarkdownContent content={textPreviewContent} />
+                                    </div>
                                 ) : (
-                                    <CitationIframePreview
-                                        src={previewUrl ?? citation.source}
-                                        title={`Preview of ${label}`}
-                                        agentIdentifier={agentIdentifier}
-                                    />
+                                    <div
+                                        className={styles.noResults}
+                                        onClick={() => {
+                                            console.info({ citation });
+                                        }}
+                                    >
+                                        <p>📄 Document preview unavailable</p>
+                                    </div>
                                 )}
                             </div>
-                        ) : hasTextPreview ? (
-                            <div className={styles.citationExcerpt}>
-                                <h4>{textPreviewHeading}</h4>
-                                <MarkdownContent content={textPreviewContent} />
-                            </div>
-                        ) : (
-                            <div
-                                className={styles.noResults}
-                                onClick={() => {
-                                    console.info({ citation });
-                                }}
-                            >
-                                <p>📄 Document preview unavailable</p>
-                            </div>
-                        )}
-                    </div>
-                </div>
+                        </div>
 
-                <div className={styles.ratingActions}>
-                    {previewUrl && (
-                        <a
-                            href={previewUrl}
-                            download={citation.source}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className={styles.downloadButton}
-                            onClick={() => {
-                                if (soundSystem) {
-                                    /* not await */ soundSystem.play('button_click');
-                                }
-                            }}
-                        >
-                            <DownloadIcon size={18} />
-                            <span>Download</span>
-                        </a>
-                    )}
-                </div>
+                        <div className={styles.ratingActions}>
+                            {previewUrl && (
+                                <a
+                                    href={previewUrl}
+                                    download={citation.source}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className={styles.downloadButton}
+                                    onClick={() => {
+                                        if (soundSystem) {
+                                            /* not await */ soundSystem.play('button_click');
+                                        }
+                                    }}
+                                >
+                                    <DownloadIcon size={18} />
+                                    <span>Download</span>
+                                </a>
+                            )}
+                        </div>
+                    </>
+                )}
             </div>
         </div>
     );

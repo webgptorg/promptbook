@@ -36,6 +36,11 @@ export type LiveBrowserPreviewProps = {
      * so actions like logging into a website are saved for the agent's future browsing.
      */
     readonly agentIdentifier?: string;
+
+    /**
+     * Optional close handler for modal-hosted previews.
+     */
+    readonly onClose?: () => void;
 };
 
 /**
@@ -106,7 +111,7 @@ const PAGE_PREVIEW_MULTI_CLICK_DISTANCE_PX = 5;
  *
  * @private component of `<ChatCitationModal/>`
  */
-export function LiveBrowserPreview({ src, title, agentIdentifier }: LiveBrowserPreviewProps) {
+export function LiveBrowserPreview({ src, title, agentIdentifier, onClose }: LiveBrowserPreviewProps) {
     const [reconnectCounter, setReconnectCounter] = useState(0);
     // A fresh session id is needed per previewed URL and per reconnect attempt
     const sessionId = useMemo(() => createPagePreviewSessionId(), [src, reconnectCounter]);
@@ -432,6 +437,7 @@ export function LiveBrowserPreview({ src, title, agentIdentifier }: LiveBrowserP
                 onZoomOut={() => applyZoomLevel(zoomLevel - PAGE_PREVIEW_ZOOM_STEP)}
                 onZoomReset={() => applyZoomLevel(1)}
                 onToggleFullscreen={toggleFullscreen}
+                onClose={onClose}
             />
             <div
                 className={styles.liveBrowserPreviewStreamArea}

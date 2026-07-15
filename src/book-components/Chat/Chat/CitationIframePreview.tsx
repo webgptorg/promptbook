@@ -18,6 +18,21 @@ export type CitationIframePreviewProps = {
      * to the agent's persistent server-side browser profile.
      */
     agentIdentifier?: string;
+
+    /**
+     * Optional close handler passed to the live browser toolbar when the preview fills a modal.
+     */
+    onClose?: () => void;
+
+    /**
+     * Reports whether the URL is embedded directly or shown through the live browser fallback.
+     */
+    onStatusChange?: (status: CitationIframePreviewStatus) => void;
+
+    /**
+     * Initial preview status used when the parent already knows the resolved mode.
+     */
+    initialStatus?: CitationIframePreviewStatus;
 };
 
 /**
@@ -25,7 +40,7 @@ export type CitationIframePreviewProps = {
  *
  * @private type of `<CitationIframePreview/>`
  */
-type EmbedStatus = 'loading' | 'embed' | 'browser-stream';
+export type CitationIframePreviewStatus = 'loading' | 'embed' | 'browser-stream';
 
 /**
  * Renders a citation URL preview as an iframe when the target page allows embedding,
@@ -37,37 +52,49 @@ type EmbedStatus = 'loading' | 'embed' | 'browser-stream';
  *
  * @private component of `<ChatCitationModal/>`
  */
-export function CitationIframePreview({ src, title, agentIdentifier }: CitationIframePreviewProps) {
-    const [status, setStatus] = useState<EmbedStatus>('loading');
+export function CitationIframePreview({
+    src,
+    title,
+    agentIdentifier,
+    onClose,
+    onStatusChange,
+    initialStatus = 'loading',
+}: CitationIframePreviewProps) {
+    const [status, setStatus] = useState<CitationIframePreviewStatus>(initialStatus);
 
     useEffect(() => {
         let cancelled = false;
+        setStatus(initialStatus);
+        onStatusChange?.(initialStatus);
 
         fetch(`/api/page-preview/check?url=${encodeURIComponent(src)}`)
             .then((response) => response.json())
             .then((data: { canEmbed: boolean }) => {
                 if (!cancelled) {
-                    setStatus(data.canEmbed ? 'embed' : 'browser-stream');
+                    const nextStatus = data.canEmbed ? 'embed' : 'browser-stream';
+                    setStatus(nextStatus);
+                    onStatusChange?.(nextStatus);
                 }
             })
             .catch(() => {
                 // API not available — fall back to iframe (e.g. outside agents-server)
                 if (!cancelled) {
                     setStatus('embed');
+                    onStatusChange?.('embed');
                 }
             });
 
         return () => {
             cancelled = true;
         };
-    }, [src]);
+    }, [initialStatus, onStatusChange, src]);
 
     if (status === 'loading') {
         return <div className={styles.citationIframeLoading}>Loading preview…</div>;
     }
 
     if (status === 'browser-stream') {
-        return <LiveBrowserPreview src={src} title={title} agentIdentifier={agentIdentifier} />;
+        return <LiveBrowserPreview src={src} title={title} agentIdentifier={agentIdentifier} onClose={onClose} />;
     }
 
     return <iframe src={src} className={styles.citationIframe} title={title} />;

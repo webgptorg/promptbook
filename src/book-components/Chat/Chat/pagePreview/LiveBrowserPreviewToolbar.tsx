@@ -2,6 +2,7 @@
 
 import type { FormEvent } from 'react';
 import { classNames } from '../../../_common/react-utils/classNames';
+import { CloseIcon } from '../../../icons/CloseIcon';
 import styles from '../Chat.module.css';
 import type { PagePreviewNavigationAction } from './PagePreviewInputEvent';
 
@@ -75,6 +76,11 @@ export type LiveBrowserPreviewToolbarProps = {
      * Toggles the full screen mode of the preview.
      */
     readonly onToggleFullscreen: () => void;
+
+    /**
+     * Optional close handler shown when the preview fills a modal dialog.
+     */
+    readonly onClose?: () => void;
 };
 
 /**
@@ -98,6 +104,7 @@ export function LiveBrowserPreviewToolbar(props: LiveBrowserPreviewToolbarProps)
         onZoomOut,
         onZoomReset,
         onToggleFullscreen,
+        onClose,
     } = props;
 
     const handleUrlSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -197,6 +204,20 @@ export function LiveBrowserPreviewToolbar(props: LiveBrowserPreviewToolbarProps)
             >
                 ↗
             </a>
+            {onClose && (
+                <button
+                    type="button"
+                    className={classNames(
+                        styles.liveBrowserPreviewToolbarButton,
+                        styles.liveBrowserPreviewToolbarCloseButton,
+                    )}
+                    onClick={onClose}
+                    title="Close preview"
+                    aria-label="Close preview"
+                >
+                    <CloseIcon />
+                </button>
+            )}
         </div>
     );
 }

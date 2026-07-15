@@ -162,4 +162,16 @@ describe('LiveBrowserPreview', () => {
         expect(navigateEvent).toMatchObject({ type: 'navigate', action: 'reload' });
         expect(gotoEvent).toMatchObject({ type: 'goto', url: 'https://example.org/docs' });
     });
+
+    it('renders an optional close button for modal-hosted previews', async () => {
+        mockPreviewFetch();
+        const handleClose = jest.fn();
+
+        render(<LiveBrowserPreview src="https://example.com/blocked" title="Blocked source" onClose={handleClose} />);
+        await screen.findByAltText('Live browser preview of Blocked source');
+
+        fireEvent.click(screen.getByLabelText('Close preview'));
+
+        expect(handleClose).toHaveBeenCalledTimes(1);
+    });
 });

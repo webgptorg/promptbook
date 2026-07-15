@@ -2477,6 +2477,11 @@
     padding: 24px;
 }
 
+.ratingModal[data-chat-modal='citation-browser'] {
+    box-sizing: border-box;
+    padding: 24px;
+}
+
 .toolCallModal {
     max-width: 800px;
     padding: 0;
@@ -2484,6 +2489,27 @@
     overflow-y: auto;
     overflow-x: hidden;
     position: relative;
+}
+
+.citationBrowserModal {
+    width: min(100%, 1280px);
+    max-width: none;
+    height: calc(100vh - 48px);
+    height: calc(100dvh - 48px);
+    max-height: calc(100vh - 48px);
+    max-height: calc(100dvh - 48px);
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    background: #f8fafc;
+}
+
+.citationBrowserModalBody {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
 }
 
 .imageAttachmentModal {
@@ -3482,9 +3508,15 @@
 
 .liveBrowserPreview {
     width: 100%;
+    min-height: 0;
     display: flex;
     flex-direction: column;
     background: #f8fafc;
+}
+
+.citationBrowserModal .liveBrowserPreview {
+    flex: 1 1 auto;
+    height: 100%;
 }
 
 .liveBrowserPreview:fullscreen {
@@ -3533,6 +3565,15 @@
     font-variant-numeric: tabular-nums;
 }
 
+.liveBrowserPreviewToolbarCloseButton {
+    margin-left: 2px;
+}
+
+.liveBrowserPreviewToolbarCloseButton svg {
+    width: 14px;
+    height: 14px;
+}
+
 .liveBrowserPreviewUrlForm {
     flex: 1;
     min-width: 0;
@@ -3562,6 +3603,12 @@
     background: #f8f8f8;
     outline: none;
     touch-action: none;
+}
+
+.citationBrowserModal .liveBrowserPreviewStreamArea {
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 0;
 }
 
 .liveBrowserPreviewStreamArea:focus-visible {
@@ -4534,6 +4581,11 @@
         align-items: center;
     }
 
+    .ratingModal[data-chat-modal='citation-browser'] {
+        padding: 8px;
+        align-items: center;
+    }
+
     .ratingModalContent {
         margin: 0;
         width: 100%;
@@ -4548,6 +4600,16 @@
         max-height: calc(100dvh - 24px);
         padding: 0;
         border-radius: 16px;
+    }
+
+    .ratingModalContent.citationBrowserModal {
+        width: 100%;
+        height: calc(100vh - 16px);
+        height: calc(100dvh - 16px);
+        max-height: calc(100vh - 16px);
+        max-height: calc(100dvh - 16px);
+        padding: 0;
+        border-radius: 14px;
     }
 
     .imageAttachmentModalHeader {
