@@ -36,7 +36,7 @@ describe('ChatCitationModal', () => {
         jest.restoreAllMocks();
     });
 
-    it('moves blocked URL citations into the full live-browser popup with a toolbar close button', async () => {
+    it('moves blocked URL citations into the standard live-browser popup with toolbar controls', async () => {
         mockEmbedCheck(false);
         const handleClose = jest.fn();
 
@@ -51,6 +51,7 @@ describe('ChatCitationModal', () => {
 
         const closePreviewButton = await screen.findByLabelText('Close preview');
 
+        expect(screen.getByLabelText('Full screen')).toBeDefined();
         expect(screen.queryByLabelText('Close dialog')).toBeNull();
 
         fireEvent.click(closePreviewButton);

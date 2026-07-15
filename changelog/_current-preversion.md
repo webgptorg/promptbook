@@ -1,3 +1,5 @@
+-   Fixed the Agents Server live browser citation popup so blocked knowledge-source pages now open in the normal centered popup size first, with the existing toolbar full-screen control kept as the larger mode. This prevents the preview from launching as a wide near-full-page panel under the app header.
+
 -   Fixed Agents Server chat source chips so resolved citation titles stay cached through chat rerenders instead of briefly blinking back to fallback source names when messages are added. Citation popups now use a plain dim backdrop instead of blurring the whole chat underneath, preventing source/input borders from smearing into a horizontal line across the page.
 
 -   Fixed the Agents Server live browser citation popup so blocked knowledge-source pages fill the popup with the browser session instead of being nested inside the generic citation modal. The live browser toolbar now carries an optional close button, so users can close the popup from the same surface even after entering full screen, while embeddable iframes, images, and text citations keep the existing citation modal layout.

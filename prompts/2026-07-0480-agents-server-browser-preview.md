@@ -50,7 +50,7 @@
 
 ---
 
-[ ]
+[x] ~$0.4121 an hour by OpenAI Codex `gpt-5.5` (ChatGPT account)
 
 [✨🐶] Enhance the live browser session
 
@@ -63,3 +63,4 @@
 
 ![Ugly large size](screenshots/2026-07-0480-agents-server-browser-preview-4.png)
 ![The correct popup size](screenshots/2026-07-0480-agents-server-browser-preview-5.png)
+

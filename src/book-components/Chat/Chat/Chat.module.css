@@ -2489,10 +2489,8 @@
 }
 
 .citationBrowserModal {
-    width: min(100%, 1280px);
-    max-width: none;
-    height: calc(100vh - 48px);
-    height: calc(100dvh - 48px);
+    width: min(90vw, 800px);
+    max-width: 800px;
     max-height: calc(100vh - 48px);
     max-height: calc(100dvh - 48px);
     margin: 0;
@@ -3513,7 +3511,7 @@
 
 .citationBrowserModal .liveBrowserPreview {
     flex: 1 1 auto;
-    height: 100%;
+    min-height: 0;
 }
 
 .liveBrowserPreview:fullscreen {
@@ -3603,9 +3601,8 @@
 }
 
 .citationBrowserModal .liveBrowserPreviewStreamArea {
-    flex: 1 1 auto;
-    height: auto;
-    min-height: 0;
+    height: min(60vh, 640px);
+    min-height: min(400px, calc(100dvh - 140px));
 }
 
 .liveBrowserPreviewStreamArea:focus-visible {
@@ -4601,12 +4598,15 @@
 
     .ratingModalContent.citationBrowserModal {
         width: 100%;
-        height: calc(100vh - 16px);
-        height: calc(100dvh - 16px);
         max-height: calc(100vh - 16px);
         max-height: calc(100dvh - 16px);
         padding: 0;
         border-radius: 14px;
+    }
+
+    .citationBrowserModal .liveBrowserPreviewStreamArea {
+        height: 58vh;
+        min-height: min(320px, calc(100dvh - 112px));
     }
 
     .imageAttachmentModalHeader {
