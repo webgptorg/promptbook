@@ -3,7 +3,14 @@
 import { drawAvatarFrame } from '../avatarRenderingUtils';
 import type { AvatarPalette, AvatarVisualDefinition } from '../types/AvatarVisualDefinition';
 import type { OrganicTentacleShape } from './octopusAvatarVisualShared';
-import { createOrganicOctopusBodyPoints, createOrganicOctopusTentacleShapes, getCubicBezierPoint, resolveOrganicEyeMotion, sampleOrganicTentacleRibbonPoints, traceSmoothClosedPath } from './octopusAvatarVisualShared';
+import {
+    createOrganicOctopusBodyPoints,
+    createOrganicOctopusTentacleShapes,
+    getCubicBezierPoint,
+    resolveOrganicEyeMotion,
+    sampleOrganicTentacleRibbonPoints,
+    traceSmoothClosedPath,
+} from './octopusAvatarVisualShared';
 
 /**
  * Deterministic morphology knobs that keep `Octopus3` recognizable while widening seeded body, face, and tentacle variety.

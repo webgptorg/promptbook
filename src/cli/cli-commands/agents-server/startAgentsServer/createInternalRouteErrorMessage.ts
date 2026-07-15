@@ -3,7 +3,11 @@
  *
  * @private internal utility of `startAgentsServer`
  */
-export function createInternalRouteErrorMessage(routeLabel: string, response: Response, details: string | null): string {
+export function createInternalRouteErrorMessage(
+    routeLabel: string,
+    response: Response,
+    details: string | null,
+): string {
     const statusText = response.statusText ? ` ${response.statusText}` : '';
     const statusMessage = `${response.status}${statusText}`;
 

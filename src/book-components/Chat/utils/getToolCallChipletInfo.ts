@@ -3,7 +3,11 @@ import { ASSISTANT_PREPARATION_TOOL_CALL_NAME } from '../../../types/ToolCall';
 import type { AgentChipData } from '../AgentChip/AgentChip';
 import { formatToolCallLocalTime } from './formatToolCallLocalTime';
 import { formatToolCallTranslationTemplate } from './formatToolCallTranslationTemplate';
-import { buildTimeoutToolCallChipLabel, isTimeoutToolCallName, resolveTimeoutToolCallPresentation } from './timeoutToolCallPresentation';
+import {
+    buildTimeoutToolCallChipLabel,
+    isTimeoutToolCallName,
+    resolveTimeoutToolCallPresentation,
+} from './timeoutToolCallPresentation';
 import { getToolCallResultDate } from './toolCallParsing/getToolCallResultDate';
 import { parseTeamToolResult } from './toolCallParsing/parseTeamToolResult';
 import { parseToolCallArguments } from './toolCallParsing/parseToolCallArguments';

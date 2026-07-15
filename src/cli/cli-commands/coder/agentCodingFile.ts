@@ -1,6 +1,12 @@
 import { spaceTrim } from 'spacetrim';
 import { AGENTS_FILE_PATH } from './agentsFile';
-import { getDefaultCoderProjectPromptTemplateDefinitions, getDefaultCoderPromptTemplateDefinitions, PROMPTS_DIRECTORY_PATH, PROMPTS_DONE_DIRECTORY_PATH, PROMPTS_TEMPLATES_DIRECTORY_PATH } from './boilerplateTemplates';
+import {
+    getDefaultCoderProjectPromptTemplateDefinitions,
+    getDefaultCoderPromptTemplateDefinitions,
+    PROMPTS_DIRECTORY_PATH,
+    PROMPTS_DONE_DIRECTORY_PATH,
+    PROMPTS_TEMPLATES_DIRECTORY_PATH,
+} from './boilerplateTemplates';
 import { formatDisplayPath } from './formatDisplayPath';
 
 /**

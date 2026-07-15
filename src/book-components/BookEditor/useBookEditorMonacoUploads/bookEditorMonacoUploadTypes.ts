@@ -139,9 +139,4 @@ export type UploadDecorationIdsRef = MutableRefObject<Map<string, string>>;
  *
  * @private function of BookEditorMonaco
  */
-export type QueueProgressUpdate = (
-    uploadId: string,
-    progress: number,
-    loadedBytes: number,
-    totalBytes: number,
-) => void;
+export type QueueProgressUpdate = (uploadId: string, progress: number, loadedBytes: number, totalBytes: number) => void;

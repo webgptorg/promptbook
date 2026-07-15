@@ -1,5 +1,7 @@
 import colors from 'colors';
-import type { Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */ } from 'commander';
+import type {
+    Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
+} from 'commander';
 import { mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import prompts from 'prompts';

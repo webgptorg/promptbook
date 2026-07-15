@@ -1,5 +1,10 @@
 import { describe, expect, it } from '@jest/globals';
-import { createAvatarDefinitionKey, createAvatarInteractionRuntimeState, resolveAvatarPointerTarget, stepAvatarInteractionRuntimeState } from './avatarInteractionUtils';
+import {
+    createAvatarDefinitionKey,
+    createAvatarInteractionRuntimeState,
+    resolveAvatarPointerTarget,
+    stepAvatarInteractionRuntimeState,
+} from './avatarInteractionUtils';
 
 describe('createAvatarDefinitionKey', () => {
     it('ignores object identity and relies on normalized avatar fields', () => {

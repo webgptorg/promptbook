@@ -34,9 +34,7 @@ describe('normalizePagePreviewInputEvent', () => {
             clickCount: 1,
         });
 
-        expect(
-            normalizePagePreviewInputEvent({ type: 'down', xRatio: 0.5, yRatio: 0.5, button: 'laser' }),
-        ).toBeNull();
+        expect(normalizePagePreviewInputEvent({ type: 'down', xRatio: 0.5, yRatio: 0.5, button: 'laser' })).toBeNull();
 
         expect(
             normalizePagePreviewInputEvent({ type: 'down', xRatio: 0.5, yRatio: 0.5, clickCount: 99 }),

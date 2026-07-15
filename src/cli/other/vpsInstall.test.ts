@@ -156,7 +156,9 @@ describe('other/vps/install.sh', () => {
         expect(installScript).toContain('resolve_openai_codex_api_key_usage()');
         expect(installScript).toContain('is_openai_codex_chatgpt_runner_authenticated()');
         expect(installScript).toContain('is_openai_codex_api_key_runner_configured()');
-        expect(runnerAuthenticationPreferenceFunction).toContain('if is_openai_codex_chatgpt_runner_authenticated; then');
+        expect(runnerAuthenticationPreferenceFunction).toContain(
+            'if is_openai_codex_chatgpt_runner_authenticated; then',
+        );
         expect(runnerAuthenticationPreferenceFunction).toContain('if is_openai_codex_api_key_runner_configured; then');
         expect(runnerAuthenticationPreferenceFunction).toContain('IS_RUNNER_AUTHENTICATION_REQUESTED=0');
         expect(runnerAuthenticationFunction).toContain('if is_openai_codex_chatgpt_runner_authenticated; then');
@@ -170,10 +172,12 @@ describe('other/vps/install.sh', () => {
         );
         expect(
             runnerAuthenticationPreferenceFunction.indexOf('if is_openai_codex_chatgpt_runner_authenticated; then'),
-        ).toBeLessThan(runnerAuthenticationPreferenceFunction.indexOf('if is_openai_codex_api_key_runner_configured; then'));
-        expect(runnerAuthenticationFunction.indexOf('if is_openai_codex_chatgpt_runner_authenticated; then')).toBeLessThan(
-            runnerAuthenticationFunction.indexOf('if is_openai_codex_api_key_runner_configured; then'),
+        ).toBeLessThan(
+            runnerAuthenticationPreferenceFunction.indexOf('if is_openai_codex_api_key_runner_configured; then'),
         );
+        expect(
+            runnerAuthenticationFunction.indexOf('if is_openai_codex_chatgpt_runner_authenticated; then'),
+        ).toBeLessThan(runnerAuthenticationFunction.indexOf('if is_openai_codex_api_key_runner_configured; then'));
         expect(runnerAuthenticationFunction.indexOf('if is_openai_codex_api_key_runner_configured; then')).toBeLessThan(
             runnerAuthenticationFunction.indexOf('if ! is_interactive; then'),
         );
@@ -183,7 +187,9 @@ describe('other/vps/install.sh', () => {
         expect(harnessInitialInstallationFunction).toContain('configure_runner_authentication');
         expect(
             harnessInitialInstallationFunction.indexOf('if is_openai_codex_chatgpt_runner_authenticated; then'),
-        ).toBeLessThan(harnessInitialInstallationFunction.indexOf('if is_openai_codex_api_key_runner_configured; then'));
+        ).toBeLessThan(
+            harnessInitialInstallationFunction.indexOf('if is_openai_codex_api_key_runner_configured; then'),
+        );
         expect(harnessInitialInstallationFunction.indexOf('install_runner_dependencies')).toBeLessThan(
             harnessInitialInstallationFunction.indexOf(
                 'Skipping harness CLI installation and authentication in non-interactive mode.',
@@ -317,10 +323,10 @@ describe('other/vps/install.sh', () => {
         );
 
         // The current release is never garbage-collected.
+        expect(installScript).toContain('current_repository_dir="$(realpath -m "$PROMPTBOOK_REPOSITORY_DIR")"');
         expect(installScript).toContain(
-            'current_repository_dir="$(realpath -m "$PROMPTBOOK_REPOSITORY_DIR")"',
+            'find "$PTBK_RELEASES_DIR" -mindepth 1 -maxdepth 1 -type d -name \'.install-*\'',
         );
-        expect(installScript).toContain("find \"$PTBK_RELEASES_DIR\" -mindepth 1 -maxdepth 1 -type d -name '.install-*'");
     });
 
     it('preserves Next static assets across standalone self-updates', () => {

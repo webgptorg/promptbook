@@ -13,7 +13,10 @@ import { getToolCallTimestamp } from '../utils/toolCallParsing/getToolCallTimest
 import { parseTeamToolResult } from '../utils/toolCallParsing/parseTeamToolResult';
 import { parseToolCallResult } from '../utils/toolCallParsing/parseToolCallResult';
 import type { TeamToolResult } from '../utils/toolCallParsing/TeamToolResult';
-import { createAdvancedToolCallReportFilename, createAdvancedToolCallReportMarkdown } from './renderAdvancedToolCallDetails';
+import {
+    createAdvancedToolCallReportFilename,
+    createAdvancedToolCallReportMarkdown,
+} from './renderAdvancedToolCallDetails';
 
 /**
  * Tool-call snapshot rendered by the modal.

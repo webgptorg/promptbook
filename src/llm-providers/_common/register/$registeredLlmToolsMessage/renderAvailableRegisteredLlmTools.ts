@@ -1,9 +1,6 @@
 import colors from 'colors';
 import { spaceTrim } from 'spacetrim';
-import type {
-    AvailableEnvironmentVariables,
-    RegisteredLlmToolStatus,
-} from './RegisteredLlmToolsMessageContext';
+import type { AvailableEnvironmentVariables, RegisteredLlmToolStatus } from './RegisteredLlmToolsMessageContext';
 import { createRegisteredLlmToolConfigurationStatusMessage } from './createRegisteredLlmToolConfigurationStatusMessage';
 import { createRegisteredLlmToolInstallationStatusMessage } from './createRegisteredLlmToolInstallationStatusMessage';
 

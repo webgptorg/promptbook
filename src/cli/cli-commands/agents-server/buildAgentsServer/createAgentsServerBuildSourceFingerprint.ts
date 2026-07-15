@@ -43,7 +43,9 @@ async function addAgentsServerBuildInputToFingerprint(
     try {
         inputStats = await stat(options.inputPath);
     } catch {
-        fingerprint.update(`missing:${normalizeAgentsServerBuildInputPath(options.runtimeRootPath, options.inputPath)}\n`);
+        fingerprint.update(
+            `missing:${normalizeAgentsServerBuildInputPath(options.runtimeRootPath, options.inputPath)}\n`,
+        );
         return;
     }
 
@@ -58,7 +60,9 @@ async function addAgentsServerBuildInputToFingerprint(
         return;
     }
 
-    fingerprint.update(`directory:${normalizeAgentsServerBuildInputPath(options.runtimeRootPath, options.inputPath)}\n`);
+    fingerprint.update(
+        `directory:${normalizeAgentsServerBuildInputPath(options.runtimeRootPath, options.inputPath)}\n`,
+    );
     const inputDirents = await readdir(options.inputPath, { withFileTypes: true });
     const sortedInputDirents = [...inputDirents].sort((left, right) => left.name.localeCompare(right.name));
 

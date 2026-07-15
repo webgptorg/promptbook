@@ -1,7 +1,16 @@
 import colors from 'colors';
-import { AGENT_BOOK_FILE_PATH, AGENT_FINISHED_MESSAGES_DIRECTORY_PATH, AGENT_MESSAGES_DIRECTORY_PATH, AGENT_QUEUED_MESSAGES_DIRECTORY_PATH } from '../../../book-3.0/agentFolderPaths';
+import {
+    AGENT_BOOK_FILE_PATH,
+    AGENT_FINISHED_MESSAGES_DIRECTORY_PATH,
+    AGENT_MESSAGES_DIRECTORY_PATH,
+    AGENT_QUEUED_MESSAGES_DIRECTORY_PATH,
+} from '../../../book-3.0/agentFolderPaths';
 import type { InitializationStatus } from '../coder/boilerplateTemplates';
-import { AGENT_BOOK_LANGUAGE_MANUAL_FILE_PATH, AGENT_DOCS_DIRECTORY_PATH, AGENT_KNOWLEDGE_DIRECTORY_PATH } from './agentProjectPaths';
+import {
+    AGENT_BOOK_LANGUAGE_MANUAL_FILE_PATH,
+    AGENT_DOCS_DIRECTORY_PATH,
+    AGENT_KNOWLEDGE_DIRECTORY_PATH,
+} from './agentProjectPaths';
 import type { AgentInitializationSummary } from './initializeAgentProjectConfiguration';
 
 /**

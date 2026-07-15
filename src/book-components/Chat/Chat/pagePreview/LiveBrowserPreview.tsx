@@ -282,14 +282,16 @@ export function LiveBrowserPreview({ src, title, agentIdentifier, onClose }: Liv
 
             if (event.ctrlKey || event.metaKey) {
                 // Ctrl+wheel (and trackpad pinch) zooms the local preview like remote desktop viewers
-                const zoomFactor = event.deltaY < 0 ? PAGE_PREVIEW_WHEEL_ZOOM_FACTOR : 1 / PAGE_PREVIEW_WHEEL_ZOOM_FACTOR;
-                setZoomLevel((previousZoomLevel) =>
-                    Math.round(
-                        Math.max(
-                            PAGE_PREVIEW_MIN_ZOOM,
-                            Math.min(PAGE_PREVIEW_MAX_ZOOM, previousZoomLevel * zoomFactor),
-                        ) * 100,
-                    ) / 100,
+                const zoomFactor =
+                    event.deltaY < 0 ? PAGE_PREVIEW_WHEEL_ZOOM_FACTOR : 1 / PAGE_PREVIEW_WHEEL_ZOOM_FACTOR;
+                setZoomLevel(
+                    (previousZoomLevel) =>
+                        Math.round(
+                            Math.max(
+                                PAGE_PREVIEW_MIN_ZOOM,
+                                Math.min(PAGE_PREVIEW_MAX_ZOOM, previousZoomLevel * zoomFactor),
+                            ) * 100,
+                        ) / 100,
                 );
                 return;
             }

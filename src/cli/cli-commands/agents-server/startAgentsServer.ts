@@ -24,7 +24,10 @@ import { stopChildProcess } from './startAgentsServer/stopChildProcess';
 import { waitForLocalAgentRunnerLimits } from './startAgentsServer/waitForLocalAgentRunnerLimits';
 
 export { loadAgentsServerProjectEnvironment } from './startAgentsServer/loadAgentsServerProjectEnvironment';
-export type { AgentsServerNextRuntimeMode, StartAgentsServerOptions } from './startAgentsServer/StartAgentsServerOptions';
+export type {
+    AgentsServerNextRuntimeMode,
+    StartAgentsServerOptions,
+} from './startAgentsServer/StartAgentsServerOptions';
 
 /**
  * Starts the Agents Server web app and local coding-agent queue workers in the foreground.

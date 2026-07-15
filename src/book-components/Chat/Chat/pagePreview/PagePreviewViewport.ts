@@ -48,14 +48,17 @@ export const PAGE_PREVIEW_DEFAULT_VIEWPORT: PagePreviewViewport = {
  * @private utility shared between `<LiveBrowserPreview/>` and the Agents Server page-preview routes
  */
 export function clampPagePreviewViewport(width: unknown, height: unknown): PagePreviewViewport | null {
-    if (typeof width !== 'number' || typeof height !== 'number' || !Number.isFinite(width) || !Number.isFinite(height)) {
+    if (
+        typeof width !== 'number' ||
+        typeof height !== 'number' ||
+        !Number.isFinite(width) ||
+        !Number.isFinite(height)
+    ) {
         return null;
     }
 
     return {
-        width: Math.round(
-            Math.max(PAGE_PREVIEW_MIN_VIEWPORT.width, Math.min(PAGE_PREVIEW_MAX_VIEWPORT.width, width)),
-        ),
+        width: Math.round(Math.max(PAGE_PREVIEW_MIN_VIEWPORT.width, Math.min(PAGE_PREVIEW_MAX_VIEWPORT.width, width))),
         height: Math.round(
             Math.max(PAGE_PREVIEW_MIN_VIEWPORT.height, Math.min(PAGE_PREVIEW_MAX_VIEWPORT.height, height)),
         ),

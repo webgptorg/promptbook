@@ -3,7 +3,12 @@
 import { drawAvatarFrame } from '../avatarRenderingUtils';
 import type { AvatarPalette, AvatarVisualDefinition } from '../types/AvatarVisualDefinition';
 import type { OrganicTentacleRibbonPoint } from './octopusAvatarVisualShared';
-import { createOrganicOctopusBodyPoints, createOrganicOctopusTentacleShapes, resolveOrganicEyeMotion, sampleOrganicTentacleRibbonPoints } from './octopusAvatarVisualShared';
+import {
+    createOrganicOctopusBodyPoints,
+    createOrganicOctopusTentacleShapes,
+    resolveOrganicEyeMotion,
+    sampleOrganicTentacleRibbonPoints,
+} from './octopusAvatarVisualShared';
 
 /**
  * Glyph ramp used for the main octopus body fill.
