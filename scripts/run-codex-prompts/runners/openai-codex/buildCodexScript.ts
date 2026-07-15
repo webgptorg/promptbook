@@ -1,5 +1,6 @@
 import { spaceTrim } from '../../../../src/utils/organization/spaceTrim';
 import { toPosixPath } from '../../common/runGoScript/toPosixPath';
+import { CODEX_LOGIN_METHOD_MARKER } from './codexLoginMethod';
 import type { CodexScriptOptions } from './CodexScriptOptions';
 
 /**
@@ -29,12 +30,14 @@ export function buildCodexScript(options: CodexScriptOptions): string {
                 ;;
         esac
 
+        CODEX_LOGIN_METHOD=chatgpt
         ${options.allowCredits ? 'CODEX_LOGIN_METHOD_ARGUMENTS=()' : 'CODEX_LOGIN_METHOD_ARGUMENTS=(-c forced_login_method=chatgpt)'}
         unset CODEX_API_KEY
         if [ "$IS_CODEX_CHATGPT_LOGIN_ACTIVE" != "1" ] &&
             [ "\${PTBK_OPENAI_CODEX_USE_API_KEY:-0}" = "1" ] &&
             [ -n "\${OPENAI_API_KEY:-}" ]; then
             CODEX_LOGIN_METHOD_ARGUMENTS=(-c forced_login_method=api)
+            CODEX_LOGIN_METHOD=api
             CODEX_API_KEY="\${OPENAI_API_KEY}"
             export CODEX_API_KEY
         fi
@@ -59,6 +62,8 @@ export function buildCodexScript(options: CodexScriptOptions): string {
         'unset OPENAI_API_KEY',
         'unset OPENAI_BASE_URL',
         'fi',
+        '',
+        `printf '%s %s\\n' '${CODEX_LOGIN_METHOD_MARKER}' "\${CODEX_LOGIN_METHOD}"`,
         '',
         `${options.codexCommand} \\`,
         '    "${CODEX_LOGIN_METHOD_ARGUMENTS[@]}" \\',

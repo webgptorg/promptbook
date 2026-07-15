@@ -321,6 +321,7 @@ async function finalizeSuccessfulPromptRound(options: {
         runnerMetadata.modelName,
         promptExecutionStartedDate,
         result.attemptCount,
+        result.loginMethod,
     );
     await writePromptFile(nextPrompt.file);
     await normalizeLineEndingsForCurrentRound(runOptions, roundChangedFilesSnapshot);

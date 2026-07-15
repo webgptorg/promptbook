@@ -7,6 +7,7 @@ import type { PromptRunResult } from '../types/PromptRunResult';
 import type { PromptRunner } from '../types/PromptRunner';
 import { buildCodexScript } from './buildCodexScript';
 import { buildCodexUsageFromOutput } from './buildCodexUsageFromOutput';
+import { parseCodexLoginMethodFromOutput } from './parseCodexLoginMethodFromOutput';
 import {
     buildCreditsDisallowedError,
     classifyCodexFailure,
@@ -128,7 +129,10 @@ export class OpenAiCodexRunner implements PromptRunner {
                 });
 
                 this.rateLimitBackoff.reset();
-                return { usage: buildCodexUsageFromOutput(output, this.options.model) };
+                return {
+                    usage: buildCodexUsageFromOutput(output, this.options.model),
+                    loginMethod: parseCodexLoginMethodFromOutput(output),
+                };
             } catch (error) {
                 const details = extractCodexFailureDetails(error);
                 const failureKind = classifyCodexFailure(details);

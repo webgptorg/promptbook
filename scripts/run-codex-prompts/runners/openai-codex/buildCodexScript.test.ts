@@ -20,6 +20,9 @@ describe('buildCodexScript', () => {
         expect(script).toContain('CODEX_LOGIN_METHOD_ARGUMENTS=(-c forced_login_method=chatgpt)');
         expect(script).toContain('CODEX_LOGIN_METHOD_ARGUMENTS=(-c forced_login_method=api)');
         expect(script).toContain('"${CODEX_LOGIN_METHOD_ARGUMENTS[@]}"');
+        expect(script).toContain('CODEX_LOGIN_METHOD=chatgpt');
+        expect(script).toContain('CODEX_LOGIN_METHOD=api');
+        expect(script).toContain('printf \'%s %s\\n\' \'ptbk-codex-login-method:\' "${CODEX_LOGIN_METHOD}"');
     });
 
     it('uses the provided thinking level override', () => {

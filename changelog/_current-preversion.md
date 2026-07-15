@@ -361,6 +361,7 @@
 
     -   Fixed the OpenAI Codex runner shell to source the installed Agents Server `.env` through `PTBK_AGENTS_SERVER_ENV_FILE`, detect `codex login status`, and keep `forced_login_method=chatgpt` when a ChatGPT account is active.
     -   Kept API-key fallback for servers without a ChatGPT Codex login by mapping `OPENAI_API_KEY` to `CODEX_API_KEY` for non-interactive `codex exec` and passing `forced_login_method=api` only when `PTBK_OPENAI_CODEX_USE_API_KEY=1`.
+    -   Reported the resolved Codex login method (**ChatGPT account** vs. **API key**) on the completed coding-agent task status line next to the reused token-usage estimate, so task details show whether a run was billed to the server's ChatGPT subscription or the `OPENAI_API_KEY`.
     -   Fixed the generated OpenAI Codex runner shell so Agents Server message folders can run outside a Git repository and prompt text cannot accidentally terminate the heredoc used to pass the prompt to Codex.
 
 -   Updated the standalone VPS Agents Server installer to ask for an optional Sentry DSN and persist it as `SENTRY_DSN`, so browser application error reports can be forwarded to Sentry immediately after installation.

@@ -49,7 +49,7 @@ describe('OpenAiCodexRunner', () => {
 
         await jest.runAllTimersAsync();
 
-        await expect(runPromise).resolves.toEqual({ usage: UNCERTAIN_USAGE });
+        await expect(runPromise).resolves.toEqual({ usage: UNCERTAIN_USAGE, loginMethod: 'unknown' });
         expect($runGoScriptUntilMarkerIdle).toHaveBeenCalledTimes(2);
         expect(buildCodexUsageFromOutput).toHaveBeenCalledWith('tokens used', 'gpt-5.2-codex');
         expect(waitForPauseCheckpoint.mock.calls.map(([checkpoint]) => checkpoint.checkpointLabel)).toEqual([
