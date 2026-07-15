@@ -9,6 +9,7 @@ import { HamburgerMenu } from '../../../../../src/book-components/_common/Hambur
 import { useMenuHoisting } from '../../../../../src/book-components/_common/MenuHoisting/MenuHoistingContext';
 import { just } from '../../../../../src/utils/organization/just';
 import { getVisibleCommitmentDefinitions } from '../../utils/getVisibleCommitmentDefinitions';
+import { DEFAULT_CHAT_FEEDBACK_MODE } from '../../utils/chatFeedbackMode';
 import { useInstallPromptState, type AgentContextMenuRenamePayload } from '../AgentContextMenu/AgentContextMenu';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 import { QrCodeModal } from '../AgentProfile/QrCodeModal';
@@ -54,7 +55,7 @@ export function Header(props: HeaderProps) {
         agentFolders,
         federatedServers,
         isExperimental = false,
-        feedbackMode = 'stars',
+        feedbackMode = DEFAULT_CHAT_FEEDBACK_MODE,
         shibbolethAuthenticationStatus,
         resourceMonitorWarningStatus,
     } = props;

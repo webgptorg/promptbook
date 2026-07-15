@@ -47,7 +47,7 @@ import {
     SERVER_LANGUAGE_METADATA_KEY,
 } from '../languages/ServerLanguageRegistry';
 import { AGENT_VISIBILITY_OPTIONS, DEFAULT_VISIBILITY_METADATA_KEY } from '../utils/agentVisibility';
-import { CHAT_FEEDBACK_MODE_OPTIONS } from '../utils/chatFeedbackMode';
+import { CHAT_FEEDBACK_MODE_OPTIONS, DEFAULT_CHAT_FEEDBACK_MODE } from '../utils/chatFeedbackMode';
 import { SERVER_VISIBILITY_METADATA_KEY, SERVER_VISIBILITY_OPTIONS } from '../utils/serverVisibility';
 
 /**
@@ -301,7 +301,7 @@ export const metadataDefaults: ReadonlyArray<MetadataDefinition> = [
     },
     {
         key: 'CHAT_FEEDBACK_MODE',
-        value: 'stars',
+        value: DEFAULT_CHAT_FEEDBACK_MODE,
         note: `Controls post-response feedback UI mode. Allowed values: ${formatMetadataOptionValues(
             CHAT_FEEDBACK_MODE_OPTIONS,
         )}.`,

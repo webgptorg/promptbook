@@ -5,7 +5,7 @@ import { showAlert } from '../../../components/AsyncDialogs/asyncDialogs';
 import { useFileUploadAvailability } from '../../../components/FileUploadAvailability/FileUploadAvailabilityContext';
 import { useDirtyModalGuard } from '../../../components/utils/useDirtyModalGuard';
 import { buildServerTablePrefix } from '../../../utils/buildServerTablePrefix';
-import type { ChatFeedbackMode } from '../../../utils/chatFeedbackMode';
+import { DEFAULT_CHAT_FEEDBACK_MODE, type ChatFeedbackMode } from '../../../utils/chatFeedbackMode';
 import { getSafeCdnPath } from '../../../utils/cdn/utils/getSafeCdnPath';
 import { normalizeUploadFilename } from '../../../utils/normalization/normalizeUploadFilename';
 import { buildDefaultUserFileUploadPath, uploadFileToServer } from '../../../utils/upload/uploadFileToServer';
@@ -274,7 +274,7 @@ function createInitialWizardState(): CreateServerWizardState {
         initialSettings: {
             language: 'en',
             homepageMessage: '',
-            feedbackMode: 'stars',
+            feedbackMode: DEFAULT_CHAT_FEEDBACK_MODE,
             isFileAttachmentsEnabled: true,
             isExperimentalPwaAppEnabled: true,
             isFooterShown: true,

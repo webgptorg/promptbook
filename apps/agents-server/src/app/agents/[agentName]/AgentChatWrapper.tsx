@@ -23,6 +23,7 @@ import { createAttachmentAwareCitationLabelResolver } from '../../../utils/chat/
 import { createDefaultChatEffects } from '../../../utils/chat/createDefaultChatEffects';
 import { executeQuickActionButton } from '../../../utils/chat/executeQuickActionButton';
 import {
+    DEFAULT_CHAT_FEEDBACK_MODE,
     isChatFeedbackEnabled,
     toChatComponentFeedbackMode,
     type ChatFeedbackMode,
@@ -104,7 +105,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         onMessagesChange,
         onInputTextChange,
         areFileAttachmentsEnabled,
-        feedbackMode = 'stars',
+        feedbackMode = DEFAULT_CHAT_FEEDBACK_MODE,
         chatFailMessage,
         onStartNewChat,
         onAutoExecuteMessageConsumed,

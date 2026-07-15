@@ -1,3 +1,5 @@
+-   Changed the Agents Server `CHAT_FEEDBACK_MODE` default to `off`, including metadata defaults, missing-metadata fallback, and create-server defaults, so post-response chat feedback is opt-in by default.
+
 -   Fixed the Agents Server live browser citation popup so blocked knowledge-source pages now open in the normal centered popup size first, with the existing toolbar full-screen control kept as the larger mode. This prevents the preview from launching as a wide near-full-page panel under the app header.
 
 -   Fixed Agents Server chat source chips so resolved citation titles stay cached through chat rerenders instead of briefly blinking back to fallback source names when messages are added. Citation popups now use a plain dim backdrop instead of blurring the whole chat underneath, preventing source/input borders from smearing into a horizontal line across the page.

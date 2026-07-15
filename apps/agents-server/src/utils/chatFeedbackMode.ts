@@ -32,7 +32,7 @@ export const CHAT_FEEDBACK_MODE_OPTIONS: ReadonlyArray<{
 /**
  * Default feedback mode used when metadata is missing or invalid.
  */
-const DEFAULT_CHAT_FEEDBACK_MODE: ChatFeedbackMode = 'stars';
+export const DEFAULT_CHAT_FEEDBACK_MODE: ChatFeedbackMode = 'off';
 
 /**
  * Normalizes one raw feedback-mode value from metadata.

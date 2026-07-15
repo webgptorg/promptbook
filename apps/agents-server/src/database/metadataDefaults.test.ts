@@ -13,7 +13,7 @@ import {
 import { DEFAULT_THEME_METADATA_KEY, THEME_MODE_OPTIONS } from '../constants/themeMode';
 import { SERVER_LANGUAGE_OPTIONS, SERVER_LANGUAGE_METADATA_KEY } from '../languages/ServerLanguageRegistry';
 import { DEFAULT_VISIBILITY_METADATA_KEY, AGENT_VISIBILITY_OPTIONS } from '../utils/agentVisibility';
-import { CHAT_FEEDBACK_MODE_OPTIONS } from '../utils/chatFeedbackMode';
+import { CHAT_FEEDBACK_MODE_OPTIONS, DEFAULT_CHAT_FEEDBACK_MODE } from '../utils/chatFeedbackMode';
 import { SERVER_VISIBILITY_METADATA_KEY, SERVER_VISIBILITY_OPTIONS } from '../utils/serverVisibility';
 import { getMetadataDefinition, validateMetadataValue } from './metadataDefaults';
 
@@ -21,6 +21,7 @@ describe('metadata defaults enum options', () => {
     it('exposes predefined options for enum-like metadata entries', () => {
         expect(getMetadataDefinition(SERVER_LANGUAGE_METADATA_KEY)?.options).toEqual(SERVER_LANGUAGE_OPTIONS);
         expect(getMetadataDefinition(SERVER_VISIBILITY_METADATA_KEY)?.options).toEqual(SERVER_VISIBILITY_OPTIONS);
+        expect(getMetadataDefinition('CHAT_FEEDBACK_MODE')?.value).toBe(DEFAULT_CHAT_FEEDBACK_MODE);
         expect(getMetadataDefinition('CHAT_FEEDBACK_MODE')?.options).toEqual(CHAT_FEEDBACK_MODE_OPTIONS);
         expect(getMetadataDefinition(CHAT_VISUAL_MODE_METADATA_KEY)?.options).toEqual(CHAT_VISUAL_MODE_OPTIONS);
         expect(getMetadataDefinition(DEFAULT_THEME_METADATA_KEY)?.options).toEqual(THEME_MODE_OPTIONS);
