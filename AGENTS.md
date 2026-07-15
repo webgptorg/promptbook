@@ -62,7 +62,9 @@ Do not edit these places manually, as they will be overwritten by the code gener
 
 ## Additional context
 
--   Attached images (if any) are relative to the root of the project.
+-   Look at attached images if there are present
+-   Attached images are in folder `prompts` on the root of the project
+    -   For example the ![alt text](screenshots/foo.png) is image file `prompts/screenshots/foo.png`
 
 ### The Agents Server menu _(as additional context)_
 
