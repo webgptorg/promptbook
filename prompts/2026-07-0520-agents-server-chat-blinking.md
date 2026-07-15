@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.6675 an hour by OpenAI Codex `gpt-5.5`
 
 [✨🎖] Fix Chat blinking
 
@@ -11,3 +11,4 @@
 
 ![sources chips](screenshots/2026-07-0520-agents-server-chat-blinking.png)
 ![ugly horizontal line](screenshots/2026-07-0520-agents-server-chat-blinking-1.png)
+

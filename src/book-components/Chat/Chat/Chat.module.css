@@ -2390,8 +2390,7 @@
     right: 0;
     bottom: 0;
 
-    background-color: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(8px);
+    background-color: rgba(15, 23, 42, 0.76);
 
     display: flex;
     justify-content: center;
@@ -2403,11 +2402,9 @@
 @keyframes modalFadeIn {
     from {
         opacity: 0;
-        backdrop-filter: blur(0px);
     }
     to {
         opacity: 1;
-        backdrop-filter: blur(8px);
     }
 }
 
