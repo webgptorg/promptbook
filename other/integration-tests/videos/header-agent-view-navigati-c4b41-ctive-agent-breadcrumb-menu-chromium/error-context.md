@@ -1,0 +1,103 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e5]:
+        - generic [ref=e7]:
+          - link "Promptbook Agents Server" [ref=e9] [cursor=pointer]:
+            - /url: /
+            - img [ref=e11]
+            - generic [ref=e12]: Promptbook Agents Server
+          - img [ref=e13]
+          - button "E2E Header Agent View Navigation avatar E2E Header Agent View Navigation" [ref=e17] [cursor=pointer]:
+            - generic [ref=e18]:
+              - generic "E2E Header Agent View Navigation avatar" [ref=e20]
+              - generic [ref=e21]: E2E Header Agent View Navigation
+            - img [ref=e22]
+          - img [ref=e24]
+          - button "Chat" [ref=e28] [cursor=pointer]:
+            - generic [ref=e29]:
+              - img [ref=e30]
+              - generic [ref=e32]: Chat
+            - img [ref=e33]
+        - generic [ref=e37]:
+          - generic [ref=e38]: Global search
+          - generic [ref=e39]:
+            - img
+            - combobox "Global search" [ref=e40]
+        - generic [ref=e41]:
+          - navigation [ref=e42]:
+            - button "Documentation" [ref=e44] [cursor=pointer]:
+              - generic [ref=e45]:
+                - img [ref=e46]
+                - generic [ref=e48]: Documentation
+              - img [ref=e49]
+            - button "System Warning" [ref=e52] [cursor=pointer]:
+              - generic [ref=e53]:
+                - img [ref=e54]
+                - generic [ref=e66]:
+                  - text: System
+                  - img "Warning" [ref=e67]
+              - img [ref=e69]
+          - button "Open global control panel" [ref=e72] [cursor=pointer]:
+            - img [ref=e73]
+            - generic [ref=e76]: Control panel
+          - button "A admin Admin" [ref=e79] [cursor=pointer]:
+            - generic [ref=e81]: A
+            - generic [ref=e82]:
+              - generic [ref=e83]: admin
+              - generic [ref=e84]: Admin
+            - img [ref=e85]
+    - main [ref=e87]:
+      - main [ref=e88]:
+        - generic [ref=e89]:
+          - complementary [ref=e90]:
+            - button "Expand sidebar" [ref=e92] [cursor=pointer]:
+              - img [ref=e93]
+            - generic [ref=e96]:
+              - link "New chat" [ref=e97] [cursor=pointer]:
+                - /url: /agents/Y6Rgtu5Ji6iKQH/chat?chat=new
+                - img [ref=e98]
+              - button "New chat (0 messages, a minute ago)" [ref=e101] [cursor=pointer]:
+                - generic "0 messages" [ref=e103]: "0"
+                - generic [ref=e104]:
+                  - generic [ref=e105]: New chat
+                  - generic [ref=e106]: No messages yet
+                - generic [ref=e107]: a minute ago
+              - generic [ref=e108]:
+                - button "Hide empty chats" [ref=e109] [cursor=pointer]:
+                  - img [ref=e110]
+                - button "EXT" [ref=e115] [cursor=pointer]
+              - paragraph [ref=e116]: Chats
+          - generic [ref=e121]:
+            - generic [ref=e122]:
+              - link "New chat" [ref=e123] [cursor=pointer]:
+                - /url: /agents/Y6Rgtu5Ji6iKQH/chat?chat=new
+                - img [ref=e124]
+                - generic [ref=e126]: New chat
+              - button "Save" [ref=e128] [cursor=pointer]:
+                - img [ref=e129]
+                - generic [ref=e132]: Save
+            - generic [ref=e136]:
+              - paragraph [ref=e139]: Hello! I am E2E Header Agent View Navigation.
+              - button "Hello" [ref=e141] [cursor=pointer]:
+                - paragraph [ref=e143]: Hello
+              - generic [ref=e146]:
+                - button "Read message aloud" [ref=e147] [cursor=pointer]:
+                  - img [ref=e148]
+                - button "Copy message" [ref=e150] [cursor=pointer]:
+                  - img [ref=e151]
+            - generic [ref=e156]:
+              - textbox "Write a message..." [active] [ref=e157]
+              - button "Attach file" [ref=e158] [cursor=pointer]:
+                - img [ref=e159]
+              - button "Start dictation" [ref=e161] [cursor=pointer]:
+                - img [ref=e162]
+              - button [ref=e165] [cursor=pointer]:
+                - img [ref=e166]
+  - generic:
+    - region "Notifications"
+  - alert [ref=e168]
+```
