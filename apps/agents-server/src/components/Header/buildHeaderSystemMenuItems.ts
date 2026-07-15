@@ -17,7 +17,6 @@ import {
     FileJson,
     FileSearch,
     FileStack,
-    FolderGit2,
     FlaskConical,
     Globe2,
     Gauge,
@@ -116,7 +115,6 @@ type SystemMenuItemHref =
     | '/admin/custom-js'
     | '/admin/images'
     | '/admin/files'
-    | '/admin/projects'
     | '/admin/login-methods/shibboleth#setup-instructions'
     | '/admin/login-methods/shibboleth'
     | '/admin/usage'
@@ -193,7 +191,6 @@ const SYSTEM_MENU_ICON_BY_HREF: Record<SystemMenuItemHref, LucideIcon> = {
     '/admin/custom-js': FileCode,
     '/admin/images': Images,
     '/admin/files': FileStack,
-    '/admin/projects': FolderGit2,
     '/admin/login-methods/shibboleth#setup-instructions': Shield,
     '/admin/login-methods/shibboleth': ShieldCheck,
     '/admin/usage': ChartNoAxesColumn,
@@ -469,10 +466,6 @@ export function buildHeaderSystemMenuItems({
         {
             label: translate('header.files'),
             href: '/admin/files',
-        },
-        {
-            label: translate('header.projects'),
-            href: '/admin/projects',
         },
     ];
 

@@ -121,12 +121,6 @@ export type ToolRuntimeContext = {
         localServerUrl?: string;
         teamInternalAccessToken?: string;
     };
-    agentProjects?: {
-        agentId?: string;
-        agentName?: string;
-        userId?: number;
-        localServerUrl?: string;
-    };
     spawn?: {
         depth?: number;
         parentRunId?: string;

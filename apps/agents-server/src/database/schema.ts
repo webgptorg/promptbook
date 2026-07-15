@@ -85,7 +85,6 @@ export type AgentsServerDatabase = {
                     folderId: number | null;
                     sortOrder: number;
                     deletedAt: string | null;
-                    userId: number | null;
                     visibility: 'PUBLIC' | 'PRIVATE' | 'UNLISTED';
                 };
                 Insert: {
@@ -103,7 +102,6 @@ export type AgentsServerDatabase = {
                     folderId?: number | null;
                     sortOrder?: number;
                     deletedAt?: string | null;
-                    userId?: number | null;
                     visibility?: 'PUBLIC' | 'PRIVATE' | 'UNLISTED';
                 };
                 Update: {
@@ -121,7 +119,6 @@ export type AgentsServerDatabase = {
                     folderId?: number | null;
                     sortOrder?: number;
                     deletedAt?: string | null;
-                    userId?: number | null;
                     visibility?: 'PUBLIC' | 'PRIVATE' | 'UNLISTED';
                 };
                 Relationships: [
@@ -210,7 +207,6 @@ export type AgentsServerDatabase = {
                     sortOrder: number;
                     icon: string | null;
                     color: string | null;
-                    userId: number | null;
                 };
                 Insert: {
                     id?: number;
@@ -222,7 +218,6 @@ export type AgentsServerDatabase = {
                     sortOrder?: number;
                     icon?: string | null;
                     color?: string | null;
-                    userId?: number | null;
                 };
                 Update: {
                     id?: number;
@@ -234,7 +229,6 @@ export type AgentsServerDatabase = {
                     sortOrder?: number;
                     icon?: string | null;
                     color?: string | null;
-                    userId?: number | null;
                 };
                 Relationships: [
                     {
@@ -242,43 +236,6 @@ export type AgentsServerDatabase = {
                         columns: ['parentId'];
                         referencedRelation: 'AgentFolder';
                         referencedColumns: ['id'];
-                    },
-                ];
-            };
-            AgentProject: {
-                Row: {
-                    id: number;
-                    createdAt: string;
-                    updatedAt: string | null;
-                    agentPermanentId: string;
-                    name: string;
-                    directoryName: string;
-                    deletedAt: string | null;
-                };
-                Insert: {
-                    id?: number;
-                    createdAt?: string;
-                    updatedAt?: string | null;
-                    agentPermanentId: string;
-                    name: string;
-                    directoryName: string;
-                    deletedAt?: string | null;
-                };
-                Update: {
-                    id?: number;
-                    createdAt?: string;
-                    updatedAt?: string | null;
-                    agentPermanentId?: string;
-                    name?: string;
-                    directoryName?: string;
-                    deletedAt?: string | null;
-                };
-                Relationships: [
-                    {
-                        foreignKeyName: 'AgentProject_agentPermanentId_fkey';
-                        columns: ['agentPermanentId'];
-                        referencedRelation: 'Agent';
-                        referencedColumns: ['permanentId'];
                     },
                 ];
             };

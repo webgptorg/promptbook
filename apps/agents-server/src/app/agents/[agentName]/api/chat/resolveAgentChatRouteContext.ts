@@ -5,7 +5,6 @@ import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentColle
 import { $provideOpenAiAgentKitExecutionToolsForServer } from '@/src/tools/$provideOpenAiAgentKitExecutionToolsForServer';
 import { createChatAttachmentTools } from '@/src/tools/createChatAttachmentTools';
 import { createAgentProgressTools } from '@/src/tools/createAgentProgressTools';
-import { createAgentProjectTools } from '@/src/tools/createAgentProjectTools';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import {
     AGENT_PREPARATION_CHAT_WAIT_TIMEOUT_MS,
@@ -169,7 +168,7 @@ export async function resolveAgentChatRouteContext(
         calendarConnections,
         useEmailConfiguration,
     });
-    const runtimeTools = createAgentProgressTools(createAgentProjectTools(createChatAttachmentTools([], attachments)));
+    const runtimeTools = createAgentProgressTools(createChatAttachmentTools([], attachments));
     const promptParameters = composePromptParametersWithMemoryContext({
         baseParameters: incomingParameters,
         currentUserIdentity,

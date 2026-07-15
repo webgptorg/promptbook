@@ -169,7 +169,6 @@ export const SERVER_TRANSLATION_KEYS = [
     'header.errorSimulation',
     'header.imagesGallery',
     'header.files',
-    'header.projects',
     'header.users',
     'header.shibboleth',
     'header.versionInfo',
