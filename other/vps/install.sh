@@ -1389,6 +1389,11 @@ prompt_runner_authentication_preference() {
         return
     fi
 
+    if is_openai_codex_chatgpt_runner_authenticated; then
+        IS_RUNNER_AUTHENTICATION_REQUESTED=0
+        return
+    fi
+
     if is_openai_codex_api_key_runner_configured; then
         IS_RUNNER_AUTHENTICATION_REQUESTED=0
         return
@@ -1564,6 +1569,11 @@ ensure_secret_env_value() {
 resolve_openai_codex_api_key_usage() {
     local openai_api_key="${REQUESTED_OPENAI_API_KEY:-}"
 
+    if is_openai_codex_chatgpt_runner_authenticated; then
+        printf '0'
+        return
+    fi
+
     if [[ -z "$openai_api_key" ]]; then
         openai_api_key="$(get_env_value OPENAI_API_KEY)"
     fi
@@ -1578,6 +1588,26 @@ resolve_openai_codex_api_key_usage() {
     fi
 
     printf '0'
+}
+
+is_openai_codex_chatgpt_runner_authenticated() {
+    local codex_login_status=""
+
+    if [[ "$PTBK_HARNESS" != "openai-codex" ]]; then
+        return 1
+    fi
+
+    if ! command -v codex >/dev/null 2>&1; then
+        return 1
+    fi
+
+    if [[ -n "$RUN_USER" && -n "$RUN_HOME" ]]; then
+        codex_login_status="$(run_as_service_user codex login status 2>/dev/null || true)"
+    else
+        codex_login_status="$(codex login status 2>/dev/null || true)"
+    fi
+
+    [[ "$codex_login_status" == *"Logged in using ChatGPT"* ]]
 }
 
 is_openai_codex_api_key_runner_configured() {
@@ -1981,9 +2011,15 @@ configure_runner_authentication() {
         return
     fi
 
+    if is_openai_codex_chatgpt_runner_authenticated; then
+        set_env_value PTBK_OPENAI_CODEX_USE_API_KEY 0
+        log "OpenAI Codex is logged in with ChatGPT; the harness will use the ChatGPT account instead of OPENAI_API_KEY."
+        return
+    fi
+
     if is_openai_codex_api_key_runner_configured; then
         set_env_value PTBK_OPENAI_CODEX_USE_API_KEY 1
-        log "OpenAI API key detected; the OpenAI Codex harness will use OPENAI_API_KEY without interactive CLI authentication."
+        log "OpenAI API key detected and no ChatGPT Codex login is active; the OpenAI Codex harness will use OPENAI_API_KEY without interactive CLI authentication."
         return
     fi
 
@@ -2024,8 +2060,15 @@ configure_runner_authentication() {
 
 configure_harness_for_initial_installation() {
     if ! is_interactive; then
+        if is_openai_codex_chatgpt_runner_authenticated; then
+            log "OpenAI Codex CLI is already logged in with ChatGPT; configuring the harness without API-key mode."
+            install_runner_dependencies
+            configure_runner_authentication
+            return
+        fi
+
         if is_openai_codex_api_key_runner_configured; then
-            log "Installing and configuring OpenAI Codex CLI for non-interactive OPENAI_API_KEY authentication."
+            log "Installing and configuring OpenAI Codex CLI for non-interactive OPENAI_API_KEY authentication because no ChatGPT login is active."
             install_runner_dependencies
             configure_runner_authentication
             return

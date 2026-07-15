@@ -19,9 +19,21 @@ export function buildCodexScript(options: CodexScriptOptions): string {
     const delimiter = resolveShellHereDocumentDelimiter(CODEX_PROMPT_DELIMITER, options.prompt);
     const projectPath = toPosixPath(options.projectPath);
     const loginMethodConfig = spaceTrim(`
+        CODEX_LOGIN_STATUS="$(${options.codexCommand} login status 2>/dev/null || true)"
+        case "$CODEX_LOGIN_STATUS" in
+            *"Logged in using ChatGPT"*)
+                IS_CODEX_CHATGPT_LOGIN_ACTIVE=1
+                ;;
+            *)
+                IS_CODEX_CHATGPT_LOGIN_ACTIVE=0
+                ;;
+        esac
+
         ${options.allowCredits ? 'CODEX_LOGIN_METHOD_ARGUMENTS=()' : 'CODEX_LOGIN_METHOD_ARGUMENTS=(-c forced_login_method=chatgpt)'}
         unset CODEX_API_KEY
-        if [ "\${PTBK_OPENAI_CODEX_USE_API_KEY:-0}" = "1" ] && [ -n "\${OPENAI_API_KEY:-}" ]; then
+        if [ "$IS_CODEX_CHATGPT_LOGIN_ACTIVE" != "1" ] &&
+            [ "\${PTBK_OPENAI_CODEX_USE_API_KEY:-0}" = "1" ] &&
+            [ -n "\${OPENAI_API_KEY:-}" ]; then
             CODEX_LOGIN_METHOD_ARGUMENTS=(-c forced_login_method=api)
             CODEX_API_KEY="\${OPENAI_API_KEY}"
             export CODEX_API_KEY
@@ -41,7 +53,9 @@ export function buildCodexScript(options: CodexScriptOptions): string {
         '',
         loginMethodConfig,
         '',
-        'if [ "${PTBK_OPENAI_CODEX_USE_API_KEY:-0}" != "1" ] || [ -z "${OPENAI_API_KEY:-}" ]; then',
+        'if [ "$IS_CODEX_CHATGPT_LOGIN_ACTIVE" = "1" ] ||',
+        '    [ "${PTBK_OPENAI_CODEX_USE_API_KEY:-0}" != "1" ] ||',
+        '    [ -z "${OPENAI_API_KEY:-}" ]; then',
         'unset OPENAI_API_KEY',
         'unset OPENAI_BASE_URL',
         'fi',

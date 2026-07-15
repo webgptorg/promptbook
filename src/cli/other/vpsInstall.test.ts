@@ -138,7 +138,7 @@ describe('other/vps/install.sh', () => {
         expect(runnerDependenciesFunction).toContain('openai-codex)');
     });
 
-    it('uses the configured OpenAI API key for OpenAI Codex harness authentication', () => {
+    it('prefers ChatGPT Codex login before falling back to the configured OpenAI API key', () => {
         const runnerAuthenticationPreferenceFunction = installScript.slice(
             installScript.indexOf('\nprompt_runner_authentication_preference() {'),
             installScript.indexOf('\nrun_runner_authentication_command() {'),
@@ -154,19 +154,36 @@ describe('other/vps/install.sh', () => {
 
         expect(installScript).toContain('PTBK_OPENAI_CODEX_USE_API_KEY="${PTBK_OPENAI_CODEX_USE_API_KEY:-0}"');
         expect(installScript).toContain('resolve_openai_codex_api_key_usage()');
+        expect(installScript).toContain('is_openai_codex_chatgpt_runner_authenticated()');
         expect(installScript).toContain('is_openai_codex_api_key_runner_configured()');
+        expect(runnerAuthenticationPreferenceFunction).toContain('if is_openai_codex_chatgpt_runner_authenticated; then');
         expect(runnerAuthenticationPreferenceFunction).toContain('if is_openai_codex_api_key_runner_configured; then');
         expect(runnerAuthenticationPreferenceFunction).toContain('IS_RUNNER_AUTHENTICATION_REQUESTED=0');
+        expect(runnerAuthenticationFunction).toContain('if is_openai_codex_chatgpt_runner_authenticated; then');
+        expect(runnerAuthenticationFunction).toContain('set_env_value PTBK_OPENAI_CODEX_USE_API_KEY 0');
+        expect(runnerAuthenticationFunction).toContain(
+            'OpenAI Codex is logged in with ChatGPT; the harness will use the ChatGPT account instead of OPENAI_API_KEY.',
+        );
         expect(runnerAuthenticationFunction).toContain('set_env_value PTBK_OPENAI_CODEX_USE_API_KEY 1');
         expect(runnerAuthenticationFunction).toContain(
-            'OpenAI API key detected; the OpenAI Codex harness will use OPENAI_API_KEY without interactive CLI authentication.',
+            'OpenAI API key detected and no ChatGPT Codex login is active; the OpenAI Codex harness will use OPENAI_API_KEY without interactive CLI authentication.',
+        );
+        expect(
+            runnerAuthenticationPreferenceFunction.indexOf('if is_openai_codex_chatgpt_runner_authenticated; then'),
+        ).toBeLessThan(runnerAuthenticationPreferenceFunction.indexOf('if is_openai_codex_api_key_runner_configured; then'));
+        expect(runnerAuthenticationFunction.indexOf('if is_openai_codex_chatgpt_runner_authenticated; then')).toBeLessThan(
+            runnerAuthenticationFunction.indexOf('if is_openai_codex_api_key_runner_configured; then'),
         );
         expect(runnerAuthenticationFunction.indexOf('if is_openai_codex_api_key_runner_configured; then')).toBeLessThan(
             runnerAuthenticationFunction.indexOf('if ! is_interactive; then'),
         );
+        expect(harnessInitialInstallationFunction).toContain('if is_openai_codex_chatgpt_runner_authenticated; then');
         expect(harnessInitialInstallationFunction).toContain('if is_openai_codex_api_key_runner_configured; then');
         expect(harnessInitialInstallationFunction).toContain('install_runner_dependencies');
         expect(harnessInitialInstallationFunction).toContain('configure_runner_authentication');
+        expect(
+            harnessInitialInstallationFunction.indexOf('if is_openai_codex_chatgpt_runner_authenticated; then'),
+        ).toBeLessThan(harnessInitialInstallationFunction.indexOf('if is_openai_codex_api_key_runner_configured; then'));
         expect(harnessInitialInstallationFunction.indexOf('install_runner_dependencies')).toBeLessThan(
             harnessInitialInstallationFunction.indexOf(
                 'Skipping harness CLI installation and authentication in non-interactive mode.',

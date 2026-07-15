@@ -15,6 +15,8 @@ describe('buildCodexScript', () => {
         expect(script).toContain('-c model_reasoning_effort="xhigh"');
         expect(script).toContain('--model gpt-5.4');
         expect(script).toContain('--skip-git-repo-check');
+        expect(script).toContain('CODEX_LOGIN_STATUS="$(codex login status 2>/dev/null || true)"');
+        expect(script).toContain('IS_CODEX_CHATGPT_LOGIN_ACTIVE=1');
         expect(script).toContain('CODEX_LOGIN_METHOD_ARGUMENTS=(-c forced_login_method=chatgpt)');
         expect(script).toContain('CODEX_LOGIN_METHOD_ARGUMENTS=(-c forced_login_method=api)');
         expect(script).toContain('"${CODEX_LOGIN_METHOD_ARGUMENTS[@]}"');
@@ -36,7 +38,7 @@ describe('buildCodexScript', () => {
         expect(script).not.toContain('-c model_reasoning_effort="xhigh"');
     });
 
-    it('keeps OpenAI API key authentication only when the VPS installer enabled it', () => {
+    it('keeps OpenAI API key authentication only when enabled and ChatGPT login is not active', () => {
         const script = buildCodexScript({
             prompt: 'Hello from test prompt',
             projectPath: '/project/path',
@@ -52,12 +54,14 @@ describe('buildCodexScript', () => {
         );
         expect(script).toContain('source "${PTBK_AGENTS_SERVER_ENV_FILE}"');
         expect(script).toContain('elif [ -f .env ]; then');
-        expect(script).toContain('if [ "${PTBK_OPENAI_CODEX_USE_API_KEY:-0}" = "1" ]');
+        expect(script).toContain('if [ "$IS_CODEX_CHATGPT_LOGIN_ACTIVE" != "1" ] &&');
+        expect(script).toContain('[ "${PTBK_OPENAI_CODEX_USE_API_KEY:-0}" = "1" ] &&');
         expect(script).toContain('CODEX_LOGIN_METHOD_ARGUMENTS=(-c forced_login_method=api)');
         expect(script).toContain('unset CODEX_API_KEY');
         expect(script).toContain('CODEX_API_KEY="${OPENAI_API_KEY}"');
         expect(script).toContain('export CODEX_API_KEY');
-        expect(script).toContain('if [ "${PTBK_OPENAI_CODEX_USE_API_KEY:-0}" != "1" ]');
+        expect(script).toContain('if [ "$IS_CODEX_CHATGPT_LOGIN_ACTIVE" = "1" ] ||');
+        expect(script).toContain('[ "${PTBK_OPENAI_CODEX_USE_API_KEY:-0}" != "1" ] ||');
         expect(script).toContain('unset OPENAI_API_KEY');
         expect(script).toContain('unset OPENAI_BASE_URL');
     });
@@ -76,6 +80,7 @@ describe('buildCodexScript', () => {
         expect(script).toContain('CODEX_LOGIN_METHOD_ARGUMENTS=()');
         expect(script).not.toContain('CODEX_LOGIN_METHOD_ARGUMENTS=(-c forced_login_method=chatgpt)');
         expect(script).toContain('CODEX_LOGIN_METHOD_ARGUMENTS=(-c forced_login_method=api)');
+        expect(script).toContain('[ "$IS_CODEX_CHATGPT_LOGIN_ACTIVE" != "1" ]');
     });
 
     it('uses a different prompt delimiter when the prompt contains the default delimiter line', () => {
