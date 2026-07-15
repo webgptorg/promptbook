@@ -48,3 +48,18 @@
 ![alt text](screenshots/2026-07-0480-agents-server-browser-preview-2.png)
 ![alt text](screenshots/2026-07-0480-agents-server-browser-preview-3.png)
 
+---
+
+[ ]
+
+[✨🐶] Enhance the live browser session
+
+-   When the user clicks on the knowledge chip, they are seeing the live browser in popup
+-   But the UI of this popup is bit ugly because its very large obstructed by header
+-   Its should have two modes - standard popup size and full screen mode
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+
+![Ugly large size](screenshots/2026-07-0480-agents-server-browser-preview-4.png)
+![The correct popup size](screenshots/2026-07-0480-agents-server-browser-preview-5.png)
