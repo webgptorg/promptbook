@@ -1,8 +1,9 @@
 [x] ~$0.4243 an hour by OpenAI Codex `gpt-5.5`
+[x] $4.25 7 hours by Claude Code `claude-opus-4-8`
 
 ---
 
-[x] $4.25 7 hours by Claude Code `claude-opus-4-8`
+[ ] !!!!!!!!!!!!!!!!!!
 
 [✨😺] If the codex is logged in to the ChatGPT account on the server. Use this ChatGPT account, not the token usage via the API key.
 
@@ -24,4 +25,3 @@ Logged in using ChatGPT
 -   Show wheather the codex was used via the ChatGPT account or API key in the task details
 -   Show also the usage in the task details
 -   Keep in mind the DRY _(don't repeat yourself)_ principle, reusen the existing code for computing the usage and displaying the usage
-
