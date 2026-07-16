@@ -32,14 +32,12 @@ const timeoutToolRuntimeAdapter: TimeoutToolRuntimeAdapter = {
     async scheduleTimeout(
         args: {
             milliseconds: number;
-            recurrenceIntervalMs?: number;
             message?: string;
         },
         runtimeContext: TimeoutToolRuntimeContext,
     ): Promise<{
         timeoutId: string;
         dueAt: string;
-        recurrenceIntervalMs?: number | null;
     }> {
         const chatId = requireTimeoutScopeField(runtimeContext.chatId, 'chat');
         const userId = requireTimeoutScopeField(runtimeContext.userId, 'user');
@@ -49,7 +47,6 @@ const timeoutToolRuntimeAdapter: TimeoutToolRuntimeAdapter = {
             agentPermanentId,
             chatId,
             durationMs: args.milliseconds,
-            recurrenceIntervalMs: args.recurrenceIntervalMs,
             message: normalizeTimeoutMessage(args.message),
             parameters: runtimeContext.promptParameters,
         });
@@ -57,7 +54,6 @@ const timeoutToolRuntimeAdapter: TimeoutToolRuntimeAdapter = {
         return {
             timeoutId: timeout.timeoutId,
             dueAt: timeout.dueAt,
-            recurrenceIntervalMs: timeout.recurrenceIntervalMs,
         };
     },
     async cancelTimeout(

@@ -55,16 +55,10 @@ export function createTimeoutToolFunctions(): Record<string_javascript_name, Too
                     status: 'set',
                     timeoutId: scheduledTimeout.timeoutId,
                     dueAt: scheduledTimeout.dueAt,
-                    ...(scheduledTimeout.recurrenceIntervalMs !== undefined
-                        ? { recurrenceIntervalMs: scheduledTimeout.recurrenceIntervalMs }
-                        : {}),
                 };
 
                 return createToolExecutionEnvelope({
-                    assistantMessage:
-                        scheduledTimeout.recurrenceIntervalMs && scheduledTimeout.recurrenceIntervalMs > 0
-                            ? 'The recurring timer was set.'
-                            : 'The timer was set.',
+                    assistantMessage: 'The timer was set.',
                     toolResult: result,
                 });
             } catch (error) {

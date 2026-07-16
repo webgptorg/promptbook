@@ -1,6 +1,5 @@
 import type { AgentBasicInformation, AgentCollection, string_book } from '@promptbook-local/types';
 import type { CreateAgentInput } from '../../../../src/collection/agent-collection/CreateAgentInput';
-import { scheduleAgentGoalAwakeningSafely } from './agentGoalScheduler';
 import { assignAgentOwner } from './agentOwnership';
 import { parseAgentSourceVisibility } from './agentVisibility';
 import { getDefaultAgentVisibility } from './getDefaultAgentVisibility';
@@ -40,13 +39,6 @@ export async function createAgentWithDefaultVisibility(
     if (typeof userId === 'number') {
         await assignAgentOwner(createdAgent.permanentId, userId);
     }
-
-    await scheduleAgentGoalAwakeningSafely({
-        agentPermanentId: createdAgent.permanentId,
-        agentSource,
-        triggerReason: 'AGENT_CREATED',
-        ...(typeof userId === 'number' ? { userId } : {}),
-    });
 
     return createdAgent;
 }

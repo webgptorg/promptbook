@@ -1,6 +1,5 @@
 import type { AgentCollection, string_agent_permanent_id, string_book } from '@promptbook-local/types';
 import { computeAgentHash } from '../../../../src/book-2.0/agent-source/computeAgentHash';
-import { scheduleAgentGoalAwakeningSafely } from './agentGoalScheduler';
 import { $invalidateProvidedAgentReferenceResolverCache } from './agentReferenceResolver/$provideAgentReferenceResolver';
 import { scheduleAgentPreparation } from './agentPreparation';
 import { invalidateCachedServerAgentRuntime } from './cachedServerAgentRuntime';
@@ -85,12 +84,6 @@ export function attachAgentPreparationScheduling(
             agentPermanentId: permanentId,
             fingerprint,
             triggerReason: 'AGENT_UPDATED',
-        });
-
-        await scheduleAgentGoalAwakeningSafely({
-            agentPermanentId: permanentId,
-            agentSource,
-            triggerReason: 'AGENT_SOURCE_UPDATED',
         });
     };
 

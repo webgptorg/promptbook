@@ -7,7 +7,6 @@ import type { TODO_any } from '../../utils/organization/TODO_any';
  */
 export type SetTimeoutToolArgs = {
     milliseconds?: number;
-    recurrenceIntervalMs?: number;
     message?: string;
     [key: string]: TODO_any;
 };
@@ -97,7 +96,6 @@ export type SetTimeoutToolResult = {
     status: 'set' | 'disabled' | 'error';
     timeoutId?: string;
     dueAt?: string;
-    recurrenceIntervalMs?: number | null;
     message?: string;
 };
 
@@ -180,14 +178,12 @@ export type TimeoutToolRuntimeAdapter = {
     scheduleTimeout(
         args: {
             milliseconds: number;
-            recurrenceIntervalMs?: number;
             message?: string;
         },
         runtimeContext: TimeoutToolRuntimeContext,
     ): Promise<{
         timeoutId: string;
         dueAt: string;
-        recurrenceIntervalMs?: number | null;
     }>;
     cancelTimeout(
         args:

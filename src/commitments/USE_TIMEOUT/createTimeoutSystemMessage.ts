@@ -10,7 +10,7 @@ export function createTimeoutSystemMessage(extraInstructions: string): string {
         (block) => `
             ## Timeout scheduling
 
-            -   Use \`set_timeout\` to wake this same chat thread in the future; include \`recurrenceIntervalMs\` for cron-like repeated wake-ups.
+            -   Use \`set_timeout\` to wake this same chat thread in the future.
             -   Use \`list_timeouts\` to review timeout ids/details across all chats for the same user+agent scope.
             -   \`cancel_timeout\` accepts either one timeout id or \`allActive: true\` to cancel all active timeouts in this same user+agent scope.
             -   Use \`update_timeout\` to pause/resume, edit next run, edit recurrence, or update timeout payload details.

@@ -28,7 +28,6 @@ const MAX_LIST_TIMEOUTS_LIMIT = 100;
  */
 type ParsedSetTimeoutToolArgs = {
     milliseconds: number;
-    recurrenceIntervalMs?: number;
     message?: string;
 };
 
@@ -214,23 +213,6 @@ function parseOptionalTimeoutRecurrenceInterval(value: unknown): number | null |
 }
 
 /**
- * Parses one optional recurrence interval for new timeouts.
- *
- * @private internal utility of USE TIMEOUT
- */
-function parseOptionalNewTimeoutRecurrenceInterval(value: unknown): number | undefined {
-    if (value === undefined || value === null) {
-        return undefined;
-    }
-
-    if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) {
-        throw createTimeoutToolArgsError('Timeout `recurrenceIntervalMs` must be a positive number of milliseconds.');
-    }
-
-    return Math.floor(value);
-}
-
-/**
  * Parses one explicit `message` update value.
  *
  * @private internal utility of USE TIMEOUT
@@ -402,11 +384,9 @@ export const parseTimeoutToolArgs = {
         }
 
         const message = typeof args.message === 'string' ? args.message.trim() : '';
-        const recurrenceIntervalMs = parseOptionalNewTimeoutRecurrenceInterval(args.recurrenceIntervalMs);
 
         return {
             milliseconds: Math.floor(parsedMilliseconds),
-            ...(recurrenceIntervalMs !== undefined ? { recurrenceIntervalMs } : {}),
             ...(message ? { message } : {}),
         };
     },

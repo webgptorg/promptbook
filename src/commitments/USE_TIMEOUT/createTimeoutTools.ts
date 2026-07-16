@@ -13,18 +13,13 @@ export function createTimeoutTools(existingTools: ReadonlyArray<LlmToolDefinitio
         tools.push({
             name: TimeoutToolNames.set,
             description:
-                'Schedule one thread-scoped wake-up in the current chat. Optionally make it recurring. The timer returns immediately and wakes this same conversation later.',
+                'Schedule one thread-scoped wake-up in the current chat. The timer returns immediately and wakes this same conversation later.',
             parameters: {
                 type: 'object',
                 properties: {
                     milliseconds: {
                         type: 'number',
                         description: 'Delay in milliseconds before the timeout wakes the same chat thread.',
-                    },
-                    recurrenceIntervalMs: {
-                        type: 'number',
-                        description:
-                            'Optional recurrence interval in milliseconds for cron-like repeated wake-ups after the first run.',
                     },
                     message: {
                         type: 'string',
