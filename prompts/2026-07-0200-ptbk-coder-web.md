@@ -140,7 +140,7 @@ $ npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code --model fab
 
 ---
 
-[ ]
+[x] by `gpt-5.5` commited manually
 
 [✨🍖] Make the sample in terminal agent avatar visual (the octopus ) in `ptbk coder` landing website look like the avatar octopus on web
 

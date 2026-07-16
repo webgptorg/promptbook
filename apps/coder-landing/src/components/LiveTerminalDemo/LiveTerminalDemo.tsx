@@ -55,7 +55,6 @@ type VisibleLiveDemoLine =
  */
 export function LiveTerminalDemo() {
     const [visibleLines, setVisibleLines] = useState<ReadonlyArray<VisibleLiveDemoLine>>([]);
-    const [isPlaybackComplete, setIsPlaybackComplete] = useState(false);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -75,10 +74,6 @@ export function LiveTerminalDemo() {
                 }
 
                 setVisibleLines((previousLines) => [...previousLines, line]);
-            }
-
-            if (!isCancelled) {
-                setIsPlaybackComplete(true);
             }
         }
 
@@ -117,7 +112,7 @@ export function LiveTerminalDemo() {
                 className="h-[30rem] overflow-auto p-4 font-mono text-[10px] leading-tight md:h-[38rem] md:text-[11px]"
             >
                 {visibleLines.map((line, lineIndex) => (
-                    <LiveTerminalLine key={lineIndex} line={line} isPlaybackComplete={isPlaybackComplete} />
+                    <LiveTerminalLine key={lineIndex} line={line} />
                 ))}
             </div>
         </div>
@@ -129,13 +124,11 @@ export function LiveTerminalDemo() {
  */
 function LiveTerminalLine({
     line,
-    isPlaybackComplete,
 }: {
     readonly line: VisibleLiveDemoLine;
-    readonly isPlaybackComplete: boolean;
 }) {
     if (line.kind === 'agentVisual') {
-        return <SharedAgentTerminalVisual isAnimationActive={!isPlaybackComplete} />;
+        return <SharedAgentTerminalVisual />;
     }
 
     if (line.kind === 'command') {

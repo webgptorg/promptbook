@@ -1,25 +1,15 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
 import { DEVELOPER_AGENT_BOOK } from '@/data/developerAgentBook';
-import { LIVE_DEMO_TERMINAL_BOX_WIDTH } from '@/data/liveDemoScript';
-import {
-    centerTerminalAgentAvatarVisualLines,
-    createTerminalAgentAvatarVisual,
-    TERMINAL_AGENT_AVATAR_VISUAL_REFRESH_INTERVAL_MS,
-} from '@promptbook-source/utils/agents/terminalAgentAvatarVisual';
+import { Avatar, createAvatarDefinitionFromAgentBasicInformation } from '@promptbook-source/avatars';
 import type { AvatarVisualId } from '@promptbook-source/avatars/types/AvatarVisualDefinition';
-import { AnsiTerminalLine } from './AnsiTerminalLine';
+import { parseAgentSource } from '@promptbook-source/book-2.0/agent-source/parseAgentSource';
+import { resolveAgentAvatarVisualId } from '@promptbook-source/utils/agents/resolveAgentAvatarImageUrl';
 
 /**
- * Props of `<SharedAgentTerminalVisual/>`.
+ * Size of the live demo avatar canvas in CSS pixels.
  */
-type SharedAgentTerminalVisualProps = {
-    /**
-     * Whether the visual should keep advancing frames.
-     */
-    readonly isAnimationActive: boolean;
-};
+const LIVE_DEMO_AGENT_AVATAR_SIZE = 120;
 
 /**
  * Built-in fallback visual used by the landing live terminal sample.
@@ -30,80 +20,36 @@ type SharedAgentTerminalVisualProps = {
 const LIVE_DEMO_AGENT_AVATAR_VISUAL_ID: AvatarVisualId = 'ascii-octopus';
 
 /**
- * Shared terminal avatar renderer used by the landing live terminal sample.
+ * Parsed source of the default developer agent shown in the live terminal sample.
  */
-const LIVE_DEMO_AGENT_VISUAL = createTerminalAgentAvatarVisual({
-    agentSource: DEVELOPER_AGENT_BOOK,
-    defaultAvatarVisualId: LIVE_DEMO_AGENT_AVATAR_VISUAL_ID,
-    createCanvas,
-});
+const LIVE_DEMO_AGENT_BASIC_INFORMATION = parseAgentSource(DEVELOPER_AGENT_BOOK);
 
 /**
- * Renders the same shared agent avatar visual as colored terminal text.
+ * Stable avatar identity used by the shared avatar renderer.
  */
-export function SharedAgentTerminalVisual({ isAnimationActive }: SharedAgentTerminalVisualProps) {
-    const animationStartedAtMsRef = useRef<number | null>(null);
-    const [terminalVisualLines, setTerminalVisualLines] = useState<ReadonlyArray<string>>([]);
+const LIVE_DEMO_AGENT_AVATAR_DEFINITION = createAvatarDefinitionFromAgentBasicInformation(
+    LIVE_DEMO_AGENT_BASIC_INFORMATION,
+);
 
-    useEffect(() => {
-        if (animationStartedAtMsRef.current === null) {
-            animationStartedAtMsRef.current = performance.now();
-        }
+/**
+ * Built-in visual selected for the live demo avatar.
+ */
+const LIVE_DEMO_AGENT_RESOLVED_AVATAR_VISUAL_ID = resolveAgentAvatarVisualId(
+    LIVE_DEMO_AGENT_BASIC_INFORMATION,
+    LIVE_DEMO_AGENT_AVATAR_VISUAL_ID,
+);
 
-        function renderFrame(): void {
-            const animationStartedAtMs = animationStartedAtMsRef.current || performance.now();
-
-            try {
-                setTerminalVisualLines(
-                    centerTerminalAgentAvatarVisualLines(
-                        LIVE_DEMO_AGENT_VISUAL.renderFrame({
-                            animationTimeMs: performance.now() - animationStartedAtMs,
-                        }),
-                        LIVE_DEMO_TERMINAL_BOX_WIDTH,
-                    ),
-                );
-            } catch {
-                setTerminalVisualLines([]);
-            }
-        }
-
-        renderFrame();
-
-        if (!isAnimationActive) {
-            return;
-        }
-
-        const intervalId = window.setInterval(renderFrame, TERMINAL_AGENT_AVATAR_VISUAL_REFRESH_INTERVAL_MS);
-
-        return () => {
-            window.clearInterval(intervalId);
-        };
-    }, [isAnimationActive]);
-
-    if (terminalVisualLines.length === 0) {
-        return null;
-    }
-
+/**
+ * Renders the same shared `AsciiOctopus` avatar visual used by the web avatar previews.
+ */
+export function SharedAgentTerminalVisual() {
     return (
-        // Note: The avatar is drawn with `▀` / `▄` half-block characters, so the rows must tile seamlessly
-        //       like a real terminal. A line-height below `1` makes each block glyph fill its whole line box,
-        //       removing the inter-row gaps that otherwise wash the octopus out into faint horizontal stripes.
-        <div className="py-1 text-[10px] leading-[0.8] md:text-[11px]" aria-hidden>
-            {terminalVisualLines.map((line, lineIndex) => (
-                <div key={lineIndex} className="whitespace-pre">
-                    <AnsiTerminalLine line={line} />
-                </div>
-            ))}
+        <div className="flex justify-center py-2" aria-hidden>
+            <Avatar
+                avatarDefinition={LIVE_DEMO_AGENT_AVATAR_DEFINITION}
+                visualId={LIVE_DEMO_AGENT_RESOLVED_AVATAR_VISUAL_ID}
+                size={LIVE_DEMO_AGENT_AVATAR_SIZE}
+            />
         </div>
     );
-}
-
-/**
- * Creates a browser canvas for the shared avatar-to-ASCII renderer.
- */
-function createCanvas(width: number, height: number): HTMLCanvasElement {
-    const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    return canvas;
 }
