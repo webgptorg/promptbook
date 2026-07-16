@@ -1,7 +1,6 @@
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideOpenAiAgentKitExecutionToolsForServer } from '@/src/tools/$provideOpenAiAgentKitExecutionToolsForServer';
 import { createAgentProgressTools } from '@/src/tools/createAgentProgressTools';
-import { createAgentProjectTools } from '@/src/tools/createAgentProjectTools';
 import { createChatAttachmentTools } from '@/src/tools/createChatAttachmentTools';
 import {
     AGENT_PREPARATION_CHAT_WAIT_TIMEOUT_MS,
@@ -139,7 +138,7 @@ export async function createRunUserChatJobExecutionContext(options: {
             isEmailEnabled: useEmailConfiguration.isEnabled,
         });
     const runtimeTools = createAgentProgressTools(
-        createAgentProjectTools(createChatAttachmentTools([], options.userMessageAttachments || [])),
+        createChatAttachmentTools([], options.userMessageAttachments || []),
     );
 
     /**
