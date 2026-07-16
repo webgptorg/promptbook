@@ -1,3 +1,5 @@
+-   Fixed Agents Server chat source chips so non-URL technical sources render with readable labels. Citation chips now extract meaningful names from JSON source payloads (for example GitHub repository arrays and package metadata) and label decoded binary/image sources such as JPEG data instead of showing unreadable raw bytes.
+
 -   Fixed the `ptbk coder` landing page live terminal avatar preview so the sample now renders the existing shared `AsciiOctopus` canvas avatar directly, matching the web avatar visual instead of the blocky terminal rasterization.
 
 -   Fixed the `ptbk coder` landing page live terminal avatar alignment so the web sample now centers the shared animated `AsciiOctopus` lines to the same dashboard width as the surrounding live-terminal boxes.

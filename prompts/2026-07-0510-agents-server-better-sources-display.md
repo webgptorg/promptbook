@@ -1,4 +1,4 @@
-[ ]
+[x] by `gpt-5.5` commited manually
 
 [✨🙍] Show the sources in some nicer way
 
