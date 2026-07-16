@@ -19,6 +19,7 @@ export type LocalSqliteReadIndex = {
 const JSON_COLUMNS_BY_TABLE = new Map<string, ReadonlySet<string>>([
     ['Agent', new Set(['agentProfile', 'usage', 'preparedModelRequirements', 'preparedExternals'])],
     ['AgentHistory', new Set([])],
+    ['AgentProject', new Set([])],
     ['ChatHistory', new Set(['message', 'usage'])],
     ['LlmCache', new Set(['value'])],
     ['VectorStoreKnowledgeSourceHashes', new Set([])],
@@ -83,6 +84,7 @@ const UNIQUE_INDEX_COLUMNS_BY_TABLE = new Map<string, ReadonlyArray<ReadonlyArra
     ['Metadata', [['key']]],
     ['ServerLimit', [['key']]],
     ['Agent', [['permanentId']]],
+    ['AgentProject', [['agentPermanentId', 'name'], ['agentPermanentId', 'directoryName']]],
     ['AgentExternals', [['type', 'hash']]],
     ['VectorStoreKnowledgeSourceHashes', [['source']]],
     ['User', [['username']]],
@@ -116,6 +118,13 @@ const READ_INDEXES_BY_TABLE = new Map<string, ReadonlyArray<LocalSqliteReadIndex
     [
         'AgentFolder',
         [{ name: 'active_directory', columns: ['deletedAt', 'parentId', 'sortOrder', 'name'] }],
+    ],
+    [
+        'AgentProject',
+        [
+            { name: 'agent_active_projects', columns: ['agentPermanentId', 'deletedAt', 'name'] },
+            { name: 'active_projects', columns: ['deletedAt', 'agentPermanentId'] },
+        ],
     ],
     [
         'UserChat',

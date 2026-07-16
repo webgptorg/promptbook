@@ -6,6 +6,7 @@ import {
 import type { ToolFunction } from '../../../../src/scripting/javascript/JavascriptExecutionToolsOptions';
 import { getAllCommitmentsToolFunctionsForNode } from '../../../../src/commitments/_common/getAllCommitmentsToolFunctionsForNode';
 import { agent_progress } from './agent_progress';
+import { createAgentProjectToolFunctions } from './createAgentProjectToolFunctions';
 import { createChatAttachmentToolFunctions } from './createChatAttachmentToolFunctions';
 
 /**
@@ -13,6 +14,7 @@ import { createChatAttachmentToolFunctions } from './createChatAttachmentToolFun
  */
 const SERVER_TOOL_FUNCTIONS: CommitmentToolFunctions = {
     ...createChatAttachmentToolFunctions(),
+    ...createAgentProjectToolFunctions(),
     agent_progress,
 };
 

@@ -165,6 +165,7 @@ header.searchEngineTest: Search Engine Test
 header.errorSimulation: Error simulation
 header.imagesGallery: Images gallery
 header.files: Files
+header.projects: Projects
 header.users: Users
 header.shibboleth: Shibboleth
 header.versionInfo: Version info

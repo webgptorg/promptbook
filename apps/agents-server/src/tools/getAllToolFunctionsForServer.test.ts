@@ -1,9 +1,19 @@
 import { describe, expect, it } from '@jest/globals';
 import { createAgentModelRequirements } from '../../../../src/book-2.0/agent-source/createAgentModelRequirements';
 import { validateBook } from '../../../../src/book-2.0/agent-source/string_book';
+import { AgentProjectToolNames } from './AgentProjectToolNames';
 import { getAllToolFunctionsForServer } from './getAllToolFunctionsForServer';
 
 describe('getAllToolFunctionsForServer', () => {
+    it('registers local agent project tool functions', () => {
+        const toolFunctions = getAllToolFunctionsForServer();
+
+        expect(toolFunctions[AgentProjectToolNames.listProjects]).toEqual(expect.any(Function));
+        expect(toolFunctions[AgentProjectToolNames.createProject]).toEqual(expect.any(Function));
+        expect(toolFunctions[AgentProjectToolNames.readFile]).toEqual(expect.any(Function));
+        expect(toolFunctions[AgentProjectToolNames.git]).toEqual(expect.any(Function));
+    });
+
     it('keeps TEAM tool functions live after the server registry is created', async () => {
         const teammateUrl = 'https://local.example/agents/slave';
         const toolName = 'team_chat_slave';

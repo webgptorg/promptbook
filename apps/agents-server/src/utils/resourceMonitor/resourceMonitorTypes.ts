@@ -143,6 +143,42 @@ export type NetworkResourceUsage = {
 };
 
 /**
+ * Disk usage snapshot for one agent project folder.
+ */
+export type AgentProjectResourceUsage = {
+    readonly id: number;
+    readonly name: string;
+    readonly directoryPath: string;
+    readonly sizeBytes: number;
+    readonly fileCount: number;
+    readonly directoryCount: number;
+    readonly isGitRepository: boolean;
+    readonly errorMessage: string | null;
+};
+
+/**
+ * Aggregated project usage for one agent.
+ */
+export type AgentProjectAgentResourceUsage = {
+    readonly agentPermanentId: string;
+    readonly agentName: string | null;
+    readonly projectCount: number;
+    readonly totalSizeBytes: number;
+    readonly projects: ReadonlyArray<AgentProjectResourceUsage>;
+};
+
+/**
+ * Project storage usage snapshot.
+ */
+export type AgentProjectsResourceUsage = {
+    readonly storageDirectory: string;
+    readonly totalProjectCount: number;
+    readonly totalSizeBytes: number;
+    readonly agents: ReadonlyArray<AgentProjectAgentResourceUsage>;
+    readonly errorMessage: string | null;
+};
+
+/**
  * Full resource monitor snapshot rendered by `/admin/resource-monitor`.
  */
 export type ServerResourceMonitorSnapshot = {
@@ -151,5 +187,6 @@ export type ServerResourceMonitorSnapshot = {
     readonly memory: MemoryResourceUsage;
     readonly disk: DiskResourceUsage;
     readonly network: NetworkResourceUsage;
+    readonly agentProjects: AgentProjectsResourceUsage;
     readonly warningStatus: ServerResourceWarningStatus;
 };
