@@ -138,3 +138,18 @@ $ npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code --model fab
 ![The "ugly" not-alike visual on web](screenshots/2026-07-0200-ptbk-coder-web-4.png)
 ![The "ugly" not-alike visual on web](screenshots/2026-07-0200-ptbk-coder-web-5.png)
 
+---
+
+[ ]
+
+[✨🍖] Make the sample in terminal agent avatar visual (the octopus ) in `ptbk coder` landing website look like the avatar octopus on web
+
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do not implement this visual newly, use `AsciiOctopus` which is already implemented
+-   Do a proper analysis of the current landing website, the `ptbk coder` and related functionality before you start implementing.
+-   You are working with the [`ptbk coder` landing website](apps/coder-landing)
+-   You are making page for [`ptbk coder`](src/cli/cli-commands/coder/)
+    -   Do not change `ptbk coder` itself, just enhance a landing page for it
+
+![Ugly visual on web](screenshots/2026-07-0200-ptbk-coder-web-6.png)
+![Desired `AsciiOctopus` to be there](screenshots/2026-07-0200-ptbk-coder-web-7.png)
