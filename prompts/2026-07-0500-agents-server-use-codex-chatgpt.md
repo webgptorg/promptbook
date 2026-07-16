@@ -1,9 +1,10 @@
 [x] ~$0.4243 an hour by OpenAI Codex `gpt-5.5`
 [x] $4.25 7 hours by Claude Code `claude-opus-4-8`
+[.] Failed by `fable` and stashed
 
 ---
 
-[.] !!!!!!!!!!!!!!!!!!
+[ ] !!!!!!!
 
 [✨😺] If the codex is logged in to the ChatGPT account on the server. Use this ChatGPT account, not the token usage via the API key.
 

@@ -6,7 +6,6 @@
 
 [✨🏖] Every agent should have its own folder for his projects.
 
--   _(@@@ wait for fable)_
 -   Purpose of this change is to give every agent its own isolated environment where they can do their work and have their own persistent data, like files, scripts, and other project-related information.
 -   Agent server can have multiple agents, each agent can have multiple projects, and each project has its own directory on the agent server
 -   Projects are linked to the Agent, not to the entire Agent server or user. Every Agent can have multiple projects.
