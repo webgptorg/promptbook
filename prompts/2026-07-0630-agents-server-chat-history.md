@@ -1,4 +1,4 @@
-[ ] !!!
+[.] !!!
 
 [✨🐌] Chat history (`/admin/chat-history`) isnt working, fix it
 
