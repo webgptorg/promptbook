@@ -29,7 +29,9 @@ npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --harness openai-co
 --context <context-or-file>   # Append extra instructions inline or load them from a file in the current project
 --no-ui                       # Disable the rich terminal UI and stream plain console output instead
 --thinking-level <level>      # Reasoning effort for OpenAI Codex and GitHub Copilot: low, medium, high, xhigh
---priority <minimum-priority> # Filter prompts by minimum priority level (default: 0)
+--priority <minimum-priority> # Alias for --min-priority
+--min-priority <minimum-priority> # Filter prompts by minimum priority level
+--max-priority <maximum-priority> # Filter prompts by maximum priority level
 --allow-credits               # Allow OpenAI Codex runner to spend credits when limits are exhausted
 --auto-push                  # Push each successful commit to the configured remote
 --auto-migrate                # Run testing-server DB migrations after each successful prompt
@@ -77,8 +79,8 @@ ptbk coder run --harness gemini --model gemini-3-flash-preview
 # Run with Claude Code
 ptbk coder run --harness claude-code
 
-# Run with priority filter
-ptbk coder run --harness openai-codex --model gpt-5.2-codex --priority 1
+# Run with priority range filter
+ptbk coder run --harness openai-codex --model gpt-5.2-codex --min-priority 1 --max-priority 5
 
 # Run with automatic testing-server migrations after each prompt
 ptbk coder run --harness openai-codex --model gpt-5.2-codex --auto-migrate

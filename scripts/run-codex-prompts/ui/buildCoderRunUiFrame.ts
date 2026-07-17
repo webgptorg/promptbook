@@ -1,5 +1,6 @@
 import colors from 'colors';
 import type { CoderRunPauseState } from '../common/waitForPause';
+import { formatPriorityFilter } from '../prompts/priorityFilter';
 import type { CoderRunConfig, CoderRunPhase, CoderRunProgressSnapshot } from './CoderRunUiState';
 import type { CoderRunAgentVisual } from './buildCoderRunAgentVisual';
 import { buildCoderRunOctopusVisual } from './buildCoderRunOctopusVisual';
@@ -282,7 +283,7 @@ function buildBacklogSummary(progress: CoderRunProgressSnapshot): string {
     const parts = [`Repo ${progress.totalPrompts} total`];
 
     if (progress.skippedPrompts > 0) {
-        parts.push(`${formatPromptCount(progress.skippedPrompts)} below priority`);
+        parts.push(`${formatPromptCount(progress.skippedPrompts)} outside priority scope`);
     }
 
     return parts.join('  ·  ');
@@ -292,7 +293,7 @@ function buildBacklogSummary(progress: CoderRunProgressSnapshot): string {
  * Builds the priority/write-order summary shown in the session box.
  */
 function buildScopeSummary(progress: CoderRunProgressSnapshot, config: CoderRunConfig): string {
-    const parts = [`Priority ≥${config.priority}`];
+    const parts = [formatPriorityFilter(config.priorityFilter ?? {})];
 
     if (config.limit !== undefined) {
         parts.push(`Limit ${formatPromptRunCount(config.limit)}`);

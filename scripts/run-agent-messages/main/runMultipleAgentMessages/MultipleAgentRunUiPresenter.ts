@@ -196,7 +196,6 @@ export class MultipleAgentRunUiPresenter {
             localAgentName: this.formatAgentCount(agentCount, ignoredAgentCount),
             modelName: actualRunnerModel,
             thinkingLevel: this.runOptions.thinkingLevel,
-            priority: 0,
         });
     }
 
@@ -227,7 +226,7 @@ export class MultipleAgentRunUiPresenter {
                 (totalQueuedMessages, projectSummary) => totalQueuedMessages + projectSummary.queuedMessageCount,
                 0,
             ),
-            belowMinimumPriority: 0,
+            outsidePriorityRange: 0,
             toBeWritten: 0,
         };
     }

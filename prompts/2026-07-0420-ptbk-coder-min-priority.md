@@ -1,4 +1,4 @@
-[ ] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+[x] ~$0.8148 an hour by OpenAI Codex `gpt-5.5` (ChatGPT account)
 
 [✨🎋] Add `--max-priority` and `--min-priority` options to `ptbk coder`
 
@@ -21,3 +21,4 @@ ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh -
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Update the [`ptbk coder` landing website](apps/coder-landing)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

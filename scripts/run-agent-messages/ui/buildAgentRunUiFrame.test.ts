@@ -24,7 +24,6 @@ function createFrameOptions(overrides: Partial<Parameters<typeof buildAgentRunUi
             localAgentName: 'GitHub Copilot Support',
             modelName: 'gpt-5.4',
             thinkingLevel: 'high',
-            priority: 0,
         },
         phase: 'running' as const,
         currentPromptLabel: 'messages/queued/message-0008.book',
@@ -143,7 +142,6 @@ describe('buildAgentRunUiFrame', () => {
                     localAgentName: '2 Agents',
                     modelName: 'gpt-5.4',
                     thinkingLevel: 'high',
-                    priority: 0,
                 },
                 agentStatusTableRows: [
                     { status: 'Answering', agentName: 'Agent A', url: 'https://example.com/agents/a' },
@@ -182,7 +180,6 @@ describe('buildAgentRunUiFrame', () => {
                     localAgentName: '0 Agents  ·  2 ignored',
                     modelName: 'gpt-5.4',
                     thinkingLevel: 'high',
-                    priority: 0,
                 },
                 agentStatusLines: ['No direct child agent repositories detected yet.'],
                 agentStatusTableRows: [],

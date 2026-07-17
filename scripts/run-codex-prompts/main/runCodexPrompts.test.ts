@@ -109,7 +109,7 @@ describe('runCodexPrompts', () => {
         (summarizePrompts as jest.MockedFunction<typeof summarizePrompts>).mockReturnValue({
             done: 0,
             forAgent: 1,
-            belowMinimumPriority: 0,
+            outsidePriorityRange: 0,
             toBeWritten: 0,
         });
         (resolvePromptRunner as jest.MockedFunction<typeof resolvePromptRunner>).mockReturnValue({

@@ -21,7 +21,7 @@ function createFrameOptions(
             thinkingLevel: 'xhigh',
             context: 'AGENTS.md',
             serverUrl: 'http://localhost:4441',
-            priority: 1,
+            priorityFilter: { minimumPriority: 1 },
             testCommand: 'npm test',
         },
         phase: 'waiting',
@@ -66,7 +66,7 @@ describe('buildCoderRunUiFrame', () => {
         expect(output).toContain('Server   http://localhost:4441');
         expect(output).toContain('Test     npm test');
         expect(output).toContain('This run Task 3/5  ·  2 done  ·  3 left');
-        expect(output).toContain('Backlog  Repo 18 total  ·  12 prompts below priority');
+        expect(output).toContain('Backlog  Repo 18 total  ·  12 prompts outside priority scope');
         expect(output).toContain('Scope    Priority ≥1  ·  Write 1 prompt first');
         expect(output).toContain('Timing   Elapsed 2m  ·  Total 8m  ·  ETA Today 9:45');
         expect(output).toContain('25% complete (2/5 done)');
@@ -88,6 +88,21 @@ describe('buildCoderRunUiFrame', () => {
             .join('\n');
 
         expect(output).toContain('Scope    Priority ≥1  ·  Limit 2 prompt runs  ·  Write 1 prompt first');
+    });
+
+    it('shows bounded priority ranges in the session scope row', () => {
+        const output = buildCoderRunUiFrame(
+            createFrameOptions({
+                config: {
+                    ...createFrameOptions().config,
+                    priorityFilter: { minimumPriority: 1, maximumPriority: 5 },
+                },
+            }),
+        )
+            .map(stripAnsi)
+            .join('\n');
+
+        expect(output).toContain('Scope    Priority 1-5  ·  Write 1 prompt first');
     });
 
     it('shows the ASCII-art agent visual instead of the default brand banner when one is provided', () => {

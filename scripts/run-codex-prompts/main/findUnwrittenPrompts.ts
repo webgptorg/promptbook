@@ -4,6 +4,7 @@ import { listPromptsToBeWritten } from '../prompts/listPromptsToBeWritten';
 import { loadPromptFiles } from '../prompts/loadPromptFiles';
 import { printPromptsToBeWritten } from '../prompts/printPromptsToBeWritten';
 import { printStats } from '../prompts/printStats';
+import { normalizePriorityFilter } from '../prompts/priorityFilter';
 import { summarizePrompts } from '../prompts/summarizePrompts';
 
 /**
@@ -32,18 +33,19 @@ const PROMPTS_DIR = join(process.cwd(), 'prompts');
  */
 export async function findUnwrittenPrompts(options: FindUnwrittenPromptsOptions = {}): Promise<number> {
     const { priority = 0 } = options;
+    const priorityFilter = normalizePriorityFilter({ priority });
 
     const promptFiles = await loadPromptFiles(PROMPTS_DIR);
-    const stats = summarizePrompts(promptFiles, priority);
-    printStats(stats, priority);
+    const stats = summarizePrompts(promptFiles, priorityFilter);
+    printStats(stats, priorityFilter);
 
-    const unwrittenPrompts = listPromptsToBeWritten(promptFiles, priority);
+    const unwrittenPrompts = listPromptsToBeWritten(promptFiles, priorityFilter);
 
     if (unwrittenPrompts.length === 0) {
         console.info(colors.green('All prompts are written — nothing to do.'));
     } else {
         console.info(colors.yellow(`Found ${unwrittenPrompts.length} prompt(s) that need to be written:`));
-        printPromptsToBeWritten(promptFiles, priority);
+        printPromptsToBeWritten(promptFiles, priorityFilter);
     }
 
     return unwrittenPrompts.length;

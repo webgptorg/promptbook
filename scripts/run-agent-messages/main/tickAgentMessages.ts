@@ -406,7 +406,6 @@ function seedAgentRunUiHandle(
         localAgentName: uiPresentation?.sessionAgentName || agentUiMetadata.localAgentName,
         modelName: actualRunnerModel,
         thinkingLevel: options.thinkingLevel,
-        priority: 0,
     });
     uiHandle.state.updateProgress(uiPresentation?.progressStats || createAgentQueueProgressSnapshot(queueSnapshot));
     uiHandle.state.setAgentStatusLines([...(uiPresentation?.agentStatusLines || [])]);

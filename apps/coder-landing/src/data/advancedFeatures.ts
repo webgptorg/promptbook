@@ -52,8 +52,8 @@ export const ADVANCED_FEATURES: ReadonlyArray<AdvancedFeatureDefinition> = [
     },
     {
         title: 'Prompt priorities',
-        description: 'Give important prompts a higher priority and process only those above a minimum level.',
-        sampleCommand: 'ptbk coder run --harness claude-code --priority 1',
+        description: 'Give prompts a priority and process only the range you want in the current run.',
+        sampleCommand: 'ptbk coder run --harness claude-code --min-priority 1 --max-priority 5',
     },
     {
         title: 'Pacing and retries',

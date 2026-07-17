@@ -3,6 +3,7 @@ import { Command as Program /* <- Note: [🔸] Using Program because Command is 
 import { spaceTrim } from 'spacetrim';
 import { assertsError } from '../../../errors/assertsError';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
+import { createNonNegativeIntegerOptionParser } from '../common/createNonNegativeIntegerOptionParser';
 import { createPositiveIntegerOptionParser } from '../common/createPositiveIntegerOptionParser';
 import { handleActionErrors } from '../common/handleActionErrors';
 import type { PromptRunnerCliOptions } from '../common/promptRunnerCliOptions';
@@ -62,7 +63,21 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
         false,
     );
     addPromptRunnerExecutionOptions(command);
-    command.option('--priority <minimum-priority>', 'Filter prompts by minimum priority level', parseIntOption, 0);
+    command.option(
+        '--priority <minimum-priority>',
+        'Alias for --min-priority; filter prompts by minimum priority level',
+        createNonNegativeIntegerOptionParser('--priority'),
+    );
+    command.option(
+        '--min-priority <minimum-priority>',
+        'Filter prompts by minimum priority level',
+        createNonNegativeIntegerOptionParser('--min-priority'),
+    );
+    command.option(
+        '--max-priority <maximum-priority>',
+        'Filter prompts by maximum priority level',
+        createNonNegativeIntegerOptionParser('--max-priority'),
+    );
     command.option(
         '--limit <run-count>',
         'Stop after processing this many prompt runs',
@@ -113,6 +128,8 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 test,
                 preserveLogs,
                 priority,
+                minPriority: minimumPriority,
+                maxPriority: maximumPriority,
                 limit,
                 waitAfterPrompt: waitAfterPromptValue,
                 waitBetweenPrompts: waitBetweenPromptsValue,
@@ -126,7 +143,9 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 readonly context?: string;
                 readonly test?: string | string[];
                 readonly preserveLogs: boolean;
-                readonly priority: number;
+                readonly priority?: number;
+                readonly minPriority?: number;
+                readonly maxPriority?: number;
                 readonly limit?: number;
                 readonly waitAfterPrompt?: string;
                 readonly waitBetweenPrompts?: string;
@@ -169,7 +188,9 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 preserveLogs,
                 noUi: runnerOptions.noUi,
                 thinkingLevel: runnerOptions.thinkingLevel,
-                priority,
+                priority: priority ?? 0,
+                minimumPriority,
+                maximumPriority,
                 limit,
                 normalizeLineEndings: runnerOptions.normalizeLineEndings,
                 allowCredits: runnerOptions.allowCredits,
@@ -195,19 +216,6 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             return process.exit(0);
         }),
     );
-}
-
-/**
- * Parses an integer option value
- *
- * @private internal utility of `coder run` command
- */
-function parseIntOption(value: string): number {
-    const parsed = parseInt(value, 10);
-    if (isNaN(parsed)) {
-        throw new Error(`Invalid number: ${value}`);
-    }
-    return parsed;
 }
 
 /**

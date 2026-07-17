@@ -1,6 +1,7 @@
 import colors from 'colors';
 import moment from 'moment';
 import { clearLine, cursorTo } from 'readline';
+import { formatExcludedPriorityFilter, formatPriorityFilter, type PriorityFilter } from '../prompts/priorityFilter';
 import type { PromptStats } from '../prompts/types/PromptStats';
 import { buildCoderRunProgressSnapshot } from './buildCoderRunProgressSnapshot';
 import { CoderRunTimer } from './CoderRunTimer';
@@ -24,7 +25,7 @@ const DEFAULT_PROGRESS_TERMINAL_COLUMNS = 80;
  * Compact CLI progress display that stays pinned at the top of the terminal.
  */
 export class CliProgressDisplay {
-    private stats: PromptStats = { done: 0, forAgent: 0, belowMinimumPriority: 0, toBeWritten: 0 };
+    private stats: PromptStats = { done: 0, forAgent: 0, outsidePriorityRange: 0, toBeWritten: 0 };
 
     /**
      * Initial number of completed prompts when the session started.
@@ -43,7 +44,7 @@ export class CliProgressDisplay {
      */
     public constructor(
         startTime: moment.Moment,
-        private readonly minimumPriority: number,
+        private readonly priorityFilter: PriorityFilter = {},
         private readonly runLimit?: number,
     ) {
         this.isInteractive = Boolean(process.stdout.isTTY);
@@ -156,14 +157,15 @@ export class CliProgressDisplay {
             this.runLimit,
         );
         const columns = Math.max(40, process.stdout.columns ?? DEFAULT_PROGRESS_TERMINAL_COLUMNS);
+        const priorityScopeLabel = formatPriorityFilter(this.priorityFilter);
         const workingLine =
             snapshot.sessionTotal > 0
                 ? [
                       `Working on ${snapshot.currentPromptIndex}/${snapshot.sessionTotal} prompts`,
-                      `Priority >=${this.minimumPriority}`,
+                      priorityScopeLabel,
                       `Repo total ${snapshot.totalPrompts}`,
                   ].join(' | ')
-                : [`No runnable prompts`, `Priority >=${this.minimumPriority}`, `Repo total ${snapshot.totalPrompts}`].join(
+                : [`No runnable prompts`, priorityScopeLabel, `Repo total ${snapshot.totalPrompts}`].join(
                       ' | ',
                   );
         const detailParts = [
@@ -173,7 +175,8 @@ export class CliProgressDisplay {
         ];
 
         if (snapshot.skippedPrompts > 0) {
-            detailParts.splice(1, 0, `Skipping ${snapshot.skippedPrompts} prompts with Priority <${this.minimumPriority}`);
+            const skippedPriorityLabel = formatExcludedPriorityFilter(this.priorityFilter) ?? 'outside priority scope';
+            detailParts.splice(1, 0, `Skipping ${snapshot.skippedPrompts} prompts with ${skippedPriorityLabel}`);
         }
         if (snapshot.toBeWrittenPrompts > 0) {
             detailParts.splice(

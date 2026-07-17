@@ -1,5 +1,6 @@
 import type { ThinkingLevel } from '../../../src/cli/cli-commands/coder/ThinkingLevel';
 import type { PromptRunnerHarnessName } from '../../../src/cli/cli-commands/common/promptRunnerCliOptions';
+import type { PriorityFilter } from '../prompts/priorityFilter';
 import type { CoderRunUiState } from '../ui/CoderRunUiState';
 
 /**
@@ -91,9 +92,21 @@ export type RunOptions = {
      */
     agent?: string;
     /**
-     * Minimum prompt priority required for processing.
+     * Legacy alias for `minimumPriority`.
      */
     priority: number;
+    /**
+     * Optional minimum prompt priority required for processing.
+     */
+    minimumPriority?: number;
+    /**
+     * Optional maximum prompt priority allowed for processing.
+     */
+    maximumPriority?: number;
+    /**
+     * Normalized prompt priority filter.
+     */
+    priorityFilter?: PriorityFilter;
     /**
      * Optional maximum number of successful prompt runs to process before stopping.
      */

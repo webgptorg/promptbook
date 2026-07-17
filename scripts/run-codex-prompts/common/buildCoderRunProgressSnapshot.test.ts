@@ -7,7 +7,7 @@ describe('buildCoderRunProgressSnapshot', () => {
             {
                 done: 47,
                 forAgent: 3,
-                belowMinimumPriority: 12,
+                outsidePriorityRange: 12,
                 toBeWritten: 2,
             },
             moment.duration(45, 'minutes'),
@@ -34,7 +34,7 @@ describe('buildCoderRunProgressSnapshot', () => {
             {
                 done: 43,
                 forAgent: 5,
-                belowMinimumPriority: 9,
+                outsidePriorityRange: 9,
                 toBeWritten: 1,
             },
             moment.duration(10, 'seconds'),
@@ -59,7 +59,7 @@ describe('buildCoderRunProgressSnapshot', () => {
             {
                 done: 43,
                 forAgent: 5,
-                belowMinimumPriority: 9,
+                outsidePriorityRange: 9,
                 toBeWritten: 1,
             },
             moment.duration(10, 'seconds'),
@@ -84,7 +84,7 @@ describe('buildCoderRunProgressSnapshot', () => {
             {
                 done: 43,
                 forAgent: 9,
-                belowMinimumPriority: 0,
+                outsidePriorityRange: 0,
                 toBeWritten: 0,
             },
             moment.duration(10, 'seconds'),
@@ -108,7 +108,7 @@ describe('buildCoderRunProgressSnapshot', () => {
             {
                 done: 44,
                 forAgent: 8,
-                belowMinimumPriority: 0,
+                outsidePriorityRange: 0,
                 toBeWritten: 0,
             },
             moment.duration(10, 'minutes'),

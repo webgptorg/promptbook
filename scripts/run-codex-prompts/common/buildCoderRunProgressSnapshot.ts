@@ -77,7 +77,7 @@ export function buildCoderRunProgressSnapshot(
         sessionRemaining,
         sessionTotal,
         currentPromptIndex,
-        skippedPrompts: stats.belowMinimumPriority,
+        skippedPrompts: stats.outsidePriorityRange,
         toBeWrittenPrompts: stats.toBeWritten,
         percentage,
         elapsedText,

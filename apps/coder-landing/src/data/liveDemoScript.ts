@@ -210,7 +210,7 @@ export const LIVE_DEMO_SCRIPT: ReadonlyArray<LiveDemoLine> = [
         buildLabeledLine('This run', [createTextPart('Task 1/7  ·  0 done  ·  7 left', 'plain')]),
         buildLabeledLine('Backlog', [createTextPart('Repo 363 total', 'plain')]),
         buildLabeledLine('Scope', [
-            createTextPart('Priority ≥0  ·  Limit 1 prompt run  ·  Write 113 prompts first', 'plain'),
+            createTextPart('All priorities  ·  Limit 1 prompt run  ·  Write 113 prompts first', 'plain'),
         ]),
         buildLabeledLine('Timing', [
             createTextPart('Elapsed 5h 34m  ·  Total estimating...  ·  ETA after first completion', 'plain'),

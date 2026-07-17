@@ -40,8 +40,8 @@ describe('priority filtering', () => {
     it('filters runnable prompts and picks the highest priority above threshold', () => {
         const files = createPromptFiles();
 
-        const runnable = listRunnablePrompts(files, 3);
-        const next = findNextTodoPrompt(files, 3);
+        const runnable = listRunnablePrompts(files, { minimumPriority: 3 });
+        const next = findNextTodoPrompt(files, { minimumPriority: 3 });
 
         expect(runnable).toHaveLength(2);
         expect(runnable.map(({ section }) => section.priority)).toEqual([4, 3]);
@@ -51,8 +51,8 @@ describe('priority filtering', () => {
     it('filters upcoming and to-be-written lists by minimum priority', () => {
         const files = createPromptFiles();
 
-        const upcoming = listUpcomingTasks(files, 3);
-        const toBeWritten = listPromptsToBeWritten(files, 3);
+        const upcoming = listUpcomingTasks(files, { minimumPriority: 3 });
+        const toBeWritten = listPromptsToBeWritten(files, { minimumPriority: 3 });
 
         expect(upcoming).toHaveLength(2);
         expect(upcoming.map((task) => task.priority)).toEqual([4, 3]);
@@ -62,14 +62,24 @@ describe('priority filtering', () => {
 
     it('reports stats with low-priority runnable prompts separated', () => {
         const files = createPromptFiles();
-        const stats = summarizePrompts(files, 3);
+        const stats = summarizePrompts(files, { minimumPriority: 3 });
 
         expect(stats).toEqual({
             done: 1,
             forAgent: 2,
-            belowMinimumPriority: 1,
+            outsidePriorityRange: 1,
             toBeWritten: 1,
         });
+    });
+
+    it('filters runnable prompts by an inclusive priority range', () => {
+        const files = createPromptFiles();
+
+        const runnable = listRunnablePrompts(files, { minimumPriority: 2, maximumPriority: 3 });
+        const next = findNextTodoPrompt(files, { minimumPriority: 2, maximumPriority: 3 });
+
+        expect(runnable.map(({ section }) => section.priority)).toEqual([3, 2]);
+        expect(next?.section.priority).toBe(3);
     });
 
     it('parses failed prompts and excludes them from runnable tasks', () => {
@@ -86,7 +96,7 @@ describe('priority filtering', () => {
             `),
         );
 
-        const runnable = listRunnablePrompts([file], 0);
+        const runnable = listRunnablePrompts([file]);
 
         expect(file.sections[0]?.status).toBe('failed');
         expect(runnable).toHaveLength(1);

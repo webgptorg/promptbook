@@ -2,6 +2,7 @@ import { EventEmitter } from 'events';
 import moment from 'moment';
 import { buildCoderRunProgressSnapshot, type CoderRunProgressSnapshot } from '../common/buildCoderRunProgressSnapshot';
 import { CoderRunTimer } from '../common/CoderRunTimer';
+import type { PriorityFilter } from '../prompts/priorityFilter';
 import type { PromptStats } from '../prompts/types/PromptStats';
 import type { CoderRunAgentVisual } from './buildCoderRunAgentVisual';
 import type { AgentRunMessagePreviewSection, AgentRunStatusTableRow } from './buildCoderRunUiFrame';
@@ -40,7 +41,7 @@ export type CoderRunConfig = {
     readonly thinkingLevel?: string;
     readonly context?: string;
     readonly serverUrl?: string;
-    readonly priority: number;
+    readonly priorityFilter?: PriorityFilter;
     readonly limit?: number;
     readonly testCommand?: string;
 };
@@ -61,7 +62,7 @@ export type { CoderRunProgressSnapshot };
  * @private internal utility of coder run UI
  */
 export class CoderRunUiState extends EventEmitter {
-    public config: CoderRunConfig = { agentName: '', priority: 0 };
+    public config: CoderRunConfig = { agentName: '' };
     public agentVisual: CoderRunAgentVisual | undefined;
     public currentPromptLabel = '';
     public currentScriptPaths: string[] = [];
@@ -78,7 +79,7 @@ export class CoderRunUiState extends EventEmitter {
     public statusMessage = 'Initializing...';
     public errors: string[] = [];
 
-    private stats: PromptStats = { done: 0, forAgent: 0, belowMinimumPriority: 0, toBeWritten: 0 };
+    private stats: PromptStats = { done: 0, forAgent: 0, outsidePriorityRange: 0, toBeWritten: 0 };
     private readonly timer: CoderRunTimer;
     private initialDone: number | undefined;
     private cachedAveragePromptDurationMs: number | undefined;

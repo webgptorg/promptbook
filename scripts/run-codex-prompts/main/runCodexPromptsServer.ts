@@ -2,6 +2,7 @@ import colors from 'colors';
 import moment from 'moment';
 import type { number_port } from '../../../src/types/number_positive';
 import type { RunOptions } from '../cli/RunOptions';
+import { normalizePriorityFilter } from '../prompts/priorityFilter';
 import { startCoderHttpServer } from '../server/runCoderHttpServer';
 import { CoderRunUiState } from '../ui/CoderRunUiState';
 import { runCodexPrompts } from './runCodexPrompts';
@@ -35,10 +36,15 @@ export async function runCodexPromptsServer(options: CoderServerRunOptions): Pro
     const { port, ...runOptions } = options;
     const serverUrl = `http://localhost:${port}`;
     const uiState = new CoderRunUiState(moment());
+    const priorityFilter = normalizePriorityFilter({
+        priority: runOptions.priority,
+        minimumPriority: runOptions.minimumPriority ?? runOptions.priorityFilter?.minimumPriority,
+        maximumPriority: runOptions.maximumPriority ?? runOptions.priorityFilter?.maximumPriority,
+    });
 
     const serverHandle = startCoderHttpServer({
         port,
-        minimumPriority: runOptions.priority,
+        priorityFilter,
         serverUrl,
         uiState,
     });
@@ -48,6 +54,7 @@ export async function runCodexPromptsServer(options: CoderServerRunOptions): Pro
     try {
         await runCodexPrompts({
             ...runOptions,
+            priorityFilter,
             keepAlive: true,
             serverUrl,
             uiState,

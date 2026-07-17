@@ -34,7 +34,6 @@ export async function initializeAgentRunUi(
         localAgentName,
         modelName: actualRunnerModel,
         thinkingLevel: options.thinkingLevel,
-        priority: 0,
     });
     uiHandle.state.setAgentStatusTableRows([{ status: 'Idle', agentName: localAgentName, url: '.' }]);
 

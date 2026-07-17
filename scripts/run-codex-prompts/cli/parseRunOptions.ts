@@ -6,6 +6,7 @@ import {
     type PromptRunnerHarnessName,
 } from '../../../src/cli/cli-commands/common/promptRunnerCliOptions';
 import { parseDuration } from '../common/parseDuration';
+import { normalizePriorityFilter } from '../prompts/priorityFilter';
 import type { RunOptions } from './RunOptions';
 
 /**
@@ -17,7 +18,7 @@ const DEFAULT_WAIT_AFTER_ERROR_MS = 10 * 60 * 1000;
  * CLI usage text for this script.
  */
 const USAGE =
-    'Usage: run-codex-prompts [--dry-run] [--harness <harness-name>] [--model <model>] [--context <context-or-file>] [--test <test-command...>] [--preserve-logs] [--no-ui] [--thinking-level <thinking-level>] [--priority <minimum-priority>] [--limit <run-count>] [--allow-credits] [--auto-migrate] [--allow-destructive-auto-migrate] [--wait-after-prompt <duration>] [--wait-between-prompts <duration>] [--wait-after-error <duration>] [--no-auto] [--no-commit] [--ignore-git-changes] [--no-normalize-line-endings] [--auto-push] [--auto-pull]';
+    'Usage: run-codex-prompts [--dry-run] [--harness <harness-name>] [--model <model>] [--context <context-or-file>] [--test <test-command...>] [--preserve-logs] [--no-ui] [--thinking-level <thinking-level>] [--priority <minimum-priority>] [--min-priority <minimum-priority>] [--max-priority <maximum-priority>] [--limit <run-count>] [--allow-credits] [--auto-migrate] [--allow-destructive-auto-migrate] [--wait-after-prompt <duration>] [--wait-between-prompts <duration>] [--wait-after-error <duration>] [--no-auto] [--no-commit] [--ignore-git-changes] [--no-normalize-line-endings] [--auto-push] [--auto-pull]';
 
 /**
  * Top-level flags supported by this command.
@@ -32,6 +33,8 @@ const KNOWN_OPTION_FLAGS = new Set([
     '--no-ui',
     '--thinking-level',
     '--priority',
+    '--min-priority',
+    '--max-priority',
     '--limit',
     '--allow-credits',
     '--auto-migrate',
@@ -70,8 +73,30 @@ export function parseRunOptions(args: string[]): RunOptions {
     const noUi = args.includes('--no-ui');
     const hasThinkingLevelFlag = args.includes('--thinking-level');
     const thinkingLevelValue = readOptionValue(args, '--thinking-level');
-    const hasPriorityFlag = args.includes('--priority');
-    const priority = parsePriority(readOptionValue(args, '--priority'), hasPriorityFlag);
+    const isPriorityFlagProvided = args.includes('--priority');
+    const legacyMinimumPriority = parsePriorityBoundary(
+        readOptionValue(args, '--priority'),
+        isPriorityFlagProvided,
+        '--priority',
+    );
+    const isMinimumPriorityFlagProvided = args.includes('--min-priority');
+    const explicitMinimumPriority = parsePriorityBoundary(
+        readOptionValue(args, '--min-priority'),
+        isMinimumPriorityFlagProvided,
+        '--min-priority',
+    );
+    const isMaximumPriorityFlagProvided = args.includes('--max-priority');
+    const maximumPriority = parsePriorityBoundary(
+        readOptionValue(args, '--max-priority'),
+        isMaximumPriorityFlagProvided,
+        '--max-priority',
+    );
+    const minimumPriority = resolveMinimumPriority(legacyMinimumPriority, explicitMinimumPriority);
+    const priorityFilter = parsePriorityFilter({
+        priority: legacyMinimumPriority,
+        minimumPriority,
+        maximumPriority,
+    });
     const hasLimitFlag = args.includes('--limit');
     const limit = parseLimit(readOptionValue(args, '--limit'), hasLimitFlag);
     const noCommit = args.includes('--no-commit');
@@ -135,7 +160,10 @@ export function parseRunOptions(args: string[]): RunOptions {
         context,
         testCommand,
         thinkingLevel,
-        priority,
+        priority: minimumPriority ?? 0,
+        minimumPriority,
+        maximumPriority,
+        priorityFilter,
         limit,
     };
 }
@@ -197,22 +225,61 @@ function readVariadicOptionValue(args: string[], flag: string): string | undefin
 }
 
 /**
- * Parses and validates the minimum prompt priority.
+ * Parses and validates one priority boundary.
  */
-function parsePriority(priorityValue: string | undefined, hasPriorityFlag: boolean): number {
+function parsePriorityBoundary(
+    priorityValue: string | undefined,
+    isPriorityFlagProvided: boolean,
+    optionName: string,
+): number | undefined {
     if (priorityValue === undefined) {
-        if (hasPriorityFlag) {
-            exitWithUsageError('Missing value for --priority. Use a non-negative integer.');
+        if (isPriorityFlagProvided) {
+            exitWithUsageError(`Missing value for ${optionName}. Use a non-negative integer.`);
         }
-        return 0;
+        return undefined;
     }
 
     const priority = Number(priorityValue);
     if (!Number.isInteger(priority) || priority < 0) {
-        exitWithUsageError(`Invalid value for --priority: "${priorityValue}". Use a non-negative integer.`);
+        exitWithUsageError(`Invalid value for ${optionName}: "${priorityValue}". Use a non-negative integer.`);
     }
 
     return priority;
+}
+
+/**
+ * Resolves `--priority` as the legacy alias for `--min-priority`.
+ */
+function resolveMinimumPriority(
+    legacyMinimumPriority: number | undefined,
+    explicitMinimumPriority: number | undefined,
+): number | undefined {
+    if (
+        legacyMinimumPriority !== undefined &&
+        explicitMinimumPriority !== undefined &&
+        legacyMinimumPriority !== explicitMinimumPriority
+    ) {
+        exitWithUsageError(
+            'Conflicting values for --priority and --min-priority. Use one minimum priority value.',
+        );
+    }
+
+    return explicitMinimumPriority ?? legacyMinimumPriority;
+}
+
+/**
+ * Normalizes the priority range and preserves this legacy CLI parser's usage-error behavior.
+ */
+function parsePriorityFilter(options: {
+    readonly priority?: number;
+    readonly minimumPriority?: number;
+    readonly maximumPriority?: number;
+}): ReturnType<typeof normalizePriorityFilter> {
+    try {
+        return normalizePriorityFilter(options);
+    } catch (error) {
+        exitWithUsageError(error instanceof Error ? error.message : String(error));
+    }
 }
 
 /**

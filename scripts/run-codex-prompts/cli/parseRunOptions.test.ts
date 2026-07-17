@@ -110,6 +110,41 @@ describe('parseRunOptions', () => {
             model: 'gpt-5.2-codex',
             context: 'AGENTS.md',
             priority: 3,
+            minimumPriority: 3,
+            priorityFilter: { minimumPriority: 3 },
+        });
+    });
+
+    it('parses min and max priority filters', () => {
+        const options = parseRunOptions([
+            '--harness',
+            'github-copilot',
+            '--min-priority',
+            '1',
+            '--max-priority',
+            '5',
+        ]);
+
+        expect(options).toMatchObject({
+            dryRun: false,
+            agentName: 'github-copilot',
+            priority: 1,
+            minimumPriority: 1,
+            maximumPriority: 5,
+            priorityFilter: { minimumPriority: 1, maximumPriority: 5 },
+        });
+    });
+
+    it('parses a max priority filter without a minimum priority filter', () => {
+        const options = parseRunOptions(['--harness', 'github-copilot', '--max-priority', '5']);
+
+        expect(options).toMatchObject({
+            dryRun: false,
+            agentName: 'github-copilot',
+            priority: 0,
+            minimumPriority: undefined,
+            maximumPriority: 5,
+            priorityFilter: { maximumPriority: 5 },
         });
     });
 
@@ -197,6 +232,7 @@ describe('parseRunOptions', () => {
             dryRun: true,
             waitForUser: true,
             priority: 2,
+            minimumPriority: 2,
             noCommit: false,
             autoPush: false,
             autoPull: false,
@@ -427,6 +463,23 @@ describe('parseRunOptions', () => {
 
     it('rejects missing priority value', () => {
         expect(() => parseRunOptions(['--harness', 'gemini', '--priority'])).toThrow('process.exit');
+        expect(processExitSpy).toHaveBeenCalledWith(1);
+    });
+
+    it('rejects invalid min priority values', () => {
+        expect(() => parseRunOptions(['--harness', 'gemini', '--min-priority', '1.5'])).toThrow('process.exit');
+        expect(processExitSpy).toHaveBeenCalledWith(1);
+    });
+
+    it('rejects invalid max priority values', () => {
+        expect(() => parseRunOptions(['--harness', 'gemini', '--max-priority', 'invalid'])).toThrow('process.exit');
+        expect(processExitSpy).toHaveBeenCalledWith(1);
+    });
+
+    it('rejects invalid priority ranges', () => {
+        expect(() =>
+            parseRunOptions(['--harness', 'gemini', '--min-priority', '5', '--max-priority', '1']),
+        ).toThrow('process.exit');
         expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 

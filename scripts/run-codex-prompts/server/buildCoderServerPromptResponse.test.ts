@@ -76,7 +76,7 @@ describe('buildCoderServerPromptFileResponses', () => {
         const responses = buildCoderServerPromptFileResponses({
             promptFiles: [promptFile],
             finishedPromptFiles: [finishedPromptFile],
-            minimumPriority: 2,
+            priorityFilter: { minimumPriority: 2 },
             uiState,
         });
         const sections = responses.flatMap((response) => response.sections);
@@ -122,7 +122,7 @@ describe('buildCoderServerPromptFileResponses', () => {
         const responses = buildCoderServerPromptFileResponses({
             promptFiles: [promptFile],
             finishedPromptFiles: [],
-            minimumPriority: 1,
+            priorityFilter: { minimumPriority: 1 },
             uiState,
         });
 

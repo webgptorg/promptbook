@@ -37,7 +37,7 @@ export function createAgentQueueProgressSnapshot(queueSnapshot: AgentMessageQueu
     return {
         done: queueSnapshot.finishedMessageCount,
         forAgent: queueSnapshot.queuedMessages.length,
-        belowMinimumPriority: 0,
+        outsidePriorityRange: 0,
         toBeWritten: 0,
     };
 }

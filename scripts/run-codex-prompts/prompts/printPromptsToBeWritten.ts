@@ -1,13 +1,14 @@
 import { buildPromptLabelForDisplay } from './buildPromptLabelForDisplay';
 import { buildPromptSummary } from './buildPromptSummary';
 import { listPromptsToBeWritten } from './listPromptsToBeWritten';
+import type { PriorityFilter } from './priorityFilter';
 import type { PromptFile } from './types/PromptFile';
 
 /**
  * Prints the list of prompts that still need to be written.
  */
-export function printPromptsToBeWritten(files: PromptFile[], minimumPriority = 0): void {
-    const promptsToWrite = listPromptsToBeWritten(files, minimumPriority);
+export function printPromptsToBeWritten(files: PromptFile[], priorityFilter: PriorityFilter = {}): void {
+    const promptsToWrite = listPromptsToBeWritten(files, priorityFilter);
 
     let i = 0;
     for (const { file, section } of promptsToWrite) {

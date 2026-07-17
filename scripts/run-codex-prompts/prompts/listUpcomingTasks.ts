@@ -3,12 +3,13 @@ import type { UpcomingTask } from './types/UpcomingTask';
 import { buildPromptLabelForDisplay } from './buildPromptLabelForDisplay';
 import { buildPromptSummary } from './buildPromptSummary';
 import { listRunnablePrompts } from './listRunnablePrompts';
+import type { PriorityFilter } from './priorityFilter';
 
 /**
  * Lists upcoming tasks that are ready to run (no authoring placeholders).
  */
-export function listUpcomingTasks(files: PromptFile[], minimumPriority = 0): UpcomingTask[] {
-    return listRunnablePrompts(files, minimumPriority).map(({ file, section }) => ({
+export function listUpcomingTasks(files: PromptFile[], priorityFilter: PriorityFilter = {}): UpcomingTask[] {
+    return listRunnablePrompts(files, priorityFilter).map(({ file, section }) => ({
         label: buildPromptLabelForDisplay(file, section),
         summary: buildPromptSummary(file, section),
         priority: section.priority,

@@ -28,7 +28,7 @@ These `ptbk coder` options may be referenced in page prose and must be described
 -   `--context <text-or-file>` — extra instructions inline or from a project file (e.g. `AGENTS.md`).
 -   `--test <command...>` — verification command run after each prompt; failures are fed back and retried.
 -   `--dry-run` — print unwritten prompts without executing.
--   `--priority <n>` — for `run` / `find-unwritten`, process only prompts with at least this priority; for `add`, set the priority of the new prompt (rendered as trailing `!` markers).
+-   `--min-priority <n>`, `--max-priority <n>` — for `run`, process only prompts within the inclusive priority range; `--priority <n>` remains an alias for `--min-priority`; for `add`, `--priority <n>` sets the priority of the new prompt (rendered as trailing `!` markers).
 -   `--limit <n>` — stop after N prompt runs (`run` only).
 -   `--no-auto` — wait for user confirmation before each prompt.
 -   `--no-commit`, `--ignore-git-changes`, `--auto-push`, `--auto-pull` — git behavior switches.

@@ -2,8 +2,9 @@ import { relative } from 'path';
 import { buildCodexPrompt } from '../prompts/buildCodexPrompt';
 import { buildPromptLabelForDisplay } from '../prompts/buildPromptLabelForDisplay';
 import { buildPromptSummary } from '../prompts/buildPromptSummary';
-import { hasSufficientPriority } from '../prompts/hasSufficientPriority';
+import { isPromptInPriorityFilter } from '../prompts/isPromptInPriorityFilter';
 import { isPromptToBeWritten } from '../prompts/isPromptToBeWritten';
+import type { PriorityFilter } from '../prompts/priorityFilter';
 import type { PromptFile } from '../prompts/types/PromptFile';
 import type { PromptSection } from '../prompts/types/PromptSection';
 import type { PromptStatus } from '../prompts/types/PromptStatus';
@@ -60,7 +61,7 @@ export type CoderServerPromptFileResponse = {
 export type BuildCoderServerPromptFileResponsesOptions = {
     readonly promptFiles: readonly PromptFile[];
     readonly finishedPromptFiles: readonly PromptFile[];
-    readonly minimumPriority: number;
+    readonly priorityFilter: PriorityFilter;
     readonly uiState?: CoderRunUiState;
 };
 
@@ -77,7 +78,7 @@ export function buildCoderServerPromptFileResponses(
             buildCoderServerPromptFileResponse({
                 promptFile,
                 isFinished: false,
-                minimumPriority: options.minimumPriority,
+                priorityFilter: options.priorityFilter,
                 activePrompt,
             }),
         ),
@@ -85,7 +86,7 @@ export function buildCoderServerPromptFileResponses(
             buildCoderServerPromptFileResponse({
                 promptFile,
                 isFinished: true,
-                minimumPriority: options.minimumPriority,
+                priorityFilter: options.priorityFilter,
                 activePrompt,
             }),
         ),
@@ -98,10 +99,10 @@ export function buildCoderServerPromptFileResponses(
 function buildCoderServerPromptFileResponse(options: {
     readonly promptFile: PromptFile;
     readonly isFinished: boolean;
-    readonly minimumPriority: number;
+    readonly priorityFilter: PriorityFilter;
     readonly activePrompt?: ActivePrompt;
 }): CoderServerPromptFileResponse {
-    const { promptFile, isFinished, minimumPriority, activePrompt } = options;
+    const { promptFile, isFinished, priorityFilter, activePrompt } = options;
 
     return {
         filePath: promptFile.path,
@@ -113,7 +114,7 @@ function buildCoderServerPromptFileResponse(options: {
                 promptFile,
                 section,
                 isFinished,
-                minimumPriority,
+                priorityFilter,
                 activePrompt,
             }),
         ),
@@ -127,10 +128,10 @@ function buildCoderServerPromptSectionResponse(options: {
     readonly promptFile: PromptFile;
     readonly section: PromptSection;
     readonly isFinished: boolean;
-    readonly minimumPriority: number;
+    readonly priorityFilter: PriorityFilter;
     readonly activePrompt?: ActivePrompt;
 }): CoderServerPromptSectionResponse {
-    const { promptFile, section, isFinished, minimumPriority, activePrompt } = options;
+    const { promptFile, section, isFinished, priorityFilter, activePrompt } = options;
     const isUnwritten = isPromptToBeWritten(promptFile, section);
     const isActive = isPromptActive(promptFile, section, activePrompt);
     const column = getPromptColumn({
@@ -138,7 +139,7 @@ function buildCoderServerPromptSectionResponse(options: {
         isFinished,
         isUnwritten,
         isActive,
-        minimumPriority,
+        priorityFilter,
     });
 
     return {
@@ -166,9 +167,9 @@ function getPromptColumn(options: {
     readonly isFinished: boolean;
     readonly isUnwritten: boolean;
     readonly isActive: boolean;
-    readonly minimumPriority: number;
+    readonly priorityFilter: PriorityFilter;
 }): CoderServerBoardColumn {
-    const { section, isFinished, isUnwritten, isActive, minimumPriority } = options;
+    const { section, isFinished, isUnwritten, isActive, priorityFilter } = options;
 
     if (isFinished) {
         return 'finished';
@@ -190,7 +191,7 @@ function getPromptColumn(options: {
         return 'in-progress';
     }
 
-    if (!hasSufficientPriority(section, minimumPriority)) {
+    if (!isPromptInPriorityFilter(section, priorityFilter)) {
         return 'low-priority';
     }
 

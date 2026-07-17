@@ -6,6 +6,7 @@ import { NotAllowed } from '../../../src/errors/NotAllowed';
 import type { number_port } from '../../../src/types/number_positive';
 import { commitChanges } from '../git/commitChanges';
 import { loadPromptFiles } from '../prompts/loadPromptFiles';
+import type { PriorityFilter } from '../prompts/priorityFilter';
 import type { PromptFile } from '../prompts/types/PromptFile';
 import type { CoderRunUiState } from '../ui/CoderRunUiState';
 import { getPauseState, getPauseTargetLabel, requestPause, requestResume } from '../common/waitForPause';
@@ -44,7 +45,7 @@ export type CoderHttpServerHandle = {
  */
 export type StartCoderHttpServerOptions = {
     readonly port: number_port;
-    readonly minimumPriority: number;
+    readonly priorityFilter: PriorityFilter;
     readonly serverUrl: string;
     readonly uiState?: CoderRunUiState;
 };
@@ -63,14 +64,14 @@ export type StartCoderHttpServerOptions = {
  * @private internal utility of `ptbk coder server`
  */
 export function startCoderHttpServer(options: StartCoderHttpServerOptions): CoderHttpServerHandle {
-    const { port, minimumPriority, serverUrl, uiState } = options;
+    const { port, priorityFilter, serverUrl, uiState } = options;
     const promptsDir = join(process.cwd(), PROMPTS_DIRECTORY_NAME);
 
     const server: Server = createServer(async (request: IncomingMessage, response: ServerResponse) => {
         try {
             await handleRequest(request, response, {
                 promptsDir,
-                minimumPriority,
+                priorityFilter,
                 uiState,
             });
         } catch (error) {
@@ -108,11 +109,11 @@ async function handleRequest(
     response: ServerResponse,
     options: {
         readonly promptsDir: string;
-        readonly minimumPriority: number;
+        readonly priorityFilter: PriorityFilter;
         readonly uiState?: CoderRunUiState;
     },
 ): Promise<void> {
-    const { promptsDir, minimumPriority, uiState } = options;
+    const { promptsDir, priorityFilter, uiState } = options;
     const urlPath = new URL(request.url || '/', `http://localhost`).pathname;
     const method = (request.method || 'GET').toUpperCase();
 
@@ -143,7 +144,7 @@ async function handleRequest(
     if (urlPath === '/api/prompts' && method === 'GET') {
         const promptData = await loadPromptsForApi({
             promptsDir,
-            minimumPriority,
+            priorityFilter,
             uiState,
         });
         response.writeHead(200, jsonHeaders());
@@ -211,17 +212,17 @@ async function handleRequest(
  */
 async function loadPromptsForApi(options: {
     readonly promptsDir: string;
-    readonly minimumPriority: number;
+    readonly priorityFilter: PriorityFilter;
     readonly uiState?: CoderRunUiState;
 }): Promise<CoderServerPromptFileResponse[]> {
-    const { promptsDir, minimumPriority, uiState } = options;
+    const { promptsDir, priorityFilter, uiState } = options;
     const promptFiles = await loadPromptFilesSafely(promptsDir);
     const finishedPromptFiles = await loadPromptFilesSafely(join(promptsDir, FINISHED_PROMPTS_DIRECTORY_NAME));
 
     return buildCoderServerPromptFileResponses({
         promptFiles,
         finishedPromptFiles,
-        minimumPriority,
+        priorityFilter,
         uiState,
     });
 }

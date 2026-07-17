@@ -33,6 +33,7 @@ import { listUpcomingTasks } from '../prompts/listUpcomingTasks';
 import { loadPromptFiles } from '../prompts/loadPromptFiles';
 import { printPromptsToBeWritten } from '../prompts/printPromptsToBeWritten';
 import { printStats } from '../prompts/printStats';
+import { normalizePriorityFilter, type PriorityFilter } from '../prompts/priorityFilter';
 import { printUpcomingTasks } from '../prompts/printUpcomingTasks';
 import { summarizePrompts } from '../prompts/summarizePrompts';
 import type { PromptFile } from '../prompts/types/PromptFile';
@@ -66,7 +67,7 @@ type PromptQueueSnapshot = {
  * @public exported from `@promptbook/cli`
  */
 export async function runCodexPrompts(providedOptions?: RunOptions): Promise<void> {
-    const options = providedOptions ?? parseRunOptions(process.argv.slice(2));
+    const options = normalizeRunOptions(providedOptions ?? parseRunOptions(process.argv.slice(2)));
     validateRunCodexPromptOptions(options);
 
     const runStartDate = moment();
@@ -131,7 +132,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                 hasShownUpcomingTasks,
                 promptFiles: promptQueueSnapshot.promptFiles,
                 stats: promptQueueSnapshot.stats,
-                minimumPriority: options.priority,
+                priorityFilter: options.priorityFilter,
                 isRichUiEnabled,
             });
 
@@ -289,7 +290,7 @@ function createRunDisplays(
     const progressDisplay =
         options.dryRun || options.noUi || isRichUiEnabled
             ? undefined
-            : new CliProgressDisplay(runStartDate, options.priority, options.limit);
+            : new CliProgressDisplay(runStartDate, options.priorityFilter, options.limit);
     const uiHandle =
         isRichUiEnabled || options.uiState
             ? renderCoderRunUi(runStartDate, {
@@ -301,6 +302,25 @@ function createRunDisplays(
         isRichUiEnabled,
         progressDisplay,
         uiHandle,
+    };
+}
+
+/**
+ * Normalizes legacy and current priority options into one validated run option shape.
+ */
+function normalizeRunOptions(options: RunOptions): RunOptions {
+    const priorityFilter = normalizePriorityFilter({
+        priority: options.priority,
+        minimumPriority: options.minimumPriority ?? options.priorityFilter?.minimumPriority,
+        maximumPriority: options.maximumPriority ?? options.priorityFilter?.maximumPriority,
+    });
+
+    return {
+        ...options,
+        priority: priorityFilter.minimumPriority ?? 0,
+        minimumPriority: priorityFilter.minimumPriority,
+        maximumPriority: priorityFilter.maximumPriority,
+        priorityFilter,
     };
 }
 
@@ -357,10 +377,10 @@ async function runDryRunIfRequested(options: RunOptions): Promise<boolean> {
     }
 
     const promptFiles = await loadPromptFiles(PROMPTS_DIR);
-    const stats = summarizePrompts(promptFiles, options.priority);
-    printStats(stats, options.priority);
+    const stats = summarizePrompts(promptFiles, options.priorityFilter);
+    printStats(stats, options.priorityFilter);
     console.info(colors.yellow('Following prompts need to be written:'));
-    printPromptsToBeWritten(promptFiles, options.priority);
+    printPromptsToBeWritten(promptFiles, options.priorityFilter);
     return true;
 }
 
@@ -379,7 +399,7 @@ function initializeRunUi(
         thinkingLevel: options.thinkingLevel,
         context: options.context,
         serverUrl: options.serverUrl,
-        priority: options.priority,
+        priorityFilter: options.priorityFilter,
         limit: options.limit,
         testCommand: options.testCommand,
     });
@@ -420,19 +440,19 @@ async function loadPromptQueueSnapshot(options: {
     uiHandle?.state.setCurrentScriptPath(undefined);
 
     const promptFiles = await loadPromptFiles(PROMPTS_DIR);
-    const stats = summarizePrompts(promptFiles, runOptions.priority);
+    const stats = summarizePrompts(promptFiles, runOptions.priorityFilter);
 
     progressDisplay?.update(stats);
     uiHandle?.state.updateProgress(stats);
 
     if (!isRichUiEnabled) {
-        printStats(stats, runOptions.priority);
+        printStats(stats, runOptions.priorityFilter);
     }
 
     return {
         promptFiles,
         stats,
-        nextPrompt: findNextTodoPrompt(promptFiles, runOptions.priority),
+        nextPrompt: findNextTodoPrompt(promptFiles, runOptions.priorityFilter),
     };
 }
 
@@ -443,10 +463,10 @@ function showUpcomingTasksOnce(options: {
     hasShownUpcomingTasks: boolean;
     promptFiles: PromptFile[];
     stats: PromptStats;
-    minimumPriority: number;
+    priorityFilter?: PriorityFilter;
     isRichUiEnabled: boolean;
 }): boolean {
-    const { hasShownUpcomingTasks, promptFiles, stats, minimumPriority, isRichUiEnabled } = options;
+    const { hasShownUpcomingTasks, promptFiles, stats, priorityFilter, isRichUiEnabled } = options;
 
     if (hasShownUpcomingTasks || isRichUiEnabled) {
         return true;
@@ -454,11 +474,11 @@ function showUpcomingTasksOnce(options: {
 
     if (stats.toBeWritten > 0) {
         console.info(colors.yellow('Following prompts need to be written:'));
-        printPromptsToBeWritten(promptFiles, minimumPriority);
+        printPromptsToBeWritten(promptFiles, priorityFilter);
         console.info('');
     }
 
-    printUpcomingTasks(listUpcomingTasks(promptFiles, minimumPriority));
+    printUpcomingTasks(listUpcomingTasks(promptFiles, priorityFilter));
     return true;
 }
 

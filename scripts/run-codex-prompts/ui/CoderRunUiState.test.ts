@@ -8,13 +8,13 @@ describe('CoderRunUiState', () => {
         state.updateProgress({
             done: 0,
             forAgent: 5,
-            belowMinimumPriority: 0,
+            outsidePriorityRange: 0,
             toBeWritten: 0,
         });
         state.updateProgress({
             done: 1,
             forAgent: 4,
-            belowMinimumPriority: 0,
+            outsidePriorityRange: 0,
             toBeWritten: 0,
         });
 
@@ -31,13 +31,12 @@ describe('CoderRunUiState', () => {
 
         state.setConfig({
             agentName: 'GitHub Copilot',
-            priority: 0,
             limit: 2,
         });
         state.updateProgress({
             done: 0,
             forAgent: 9,
-            belowMinimumPriority: 0,
+            outsidePriorityRange: 0,
             toBeWritten: 0,
         });
 
