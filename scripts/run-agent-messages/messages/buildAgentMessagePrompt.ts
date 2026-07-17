@@ -1,9 +1,23 @@
 import { spaceTrim } from 'spacetrim';
+import { AGENT_PROJECTS_DIRECTORY_PATH } from '../../../src/cli/cli-commands/agent-folder/agentProjectPaths';
+import {
+    buildAgentProjectsPromptSection,
+    type AgentProjectsPromptSectionOptions,
+} from './buildAgentProjectsPromptSection';
+
+/**
+ * Options adjusting the generated agent message prompt.
+ */
+export type BuildAgentMessagePromptOptions = AgentProjectsPromptSectionOptions;
 
 /**
  * Builds the prompt sent to the selected coding runner for one queued user-thread book.
  */
-export function buildAgentMessagePrompt(messageRelativePath: string, agentSystemMessage: string): string {
+export function buildAgentMessagePrompt(
+    messageRelativePath: string,
+    agentSystemMessage: string,
+    options: BuildAgentMessagePromptOptions = {},
+): string {
     return spaceTrim(
         (block) =>
             `
@@ -11,7 +25,7 @@ export function buildAgentMessagePrompt(messageRelativePath: string, agentSystem
 
                 -   Read \`${messageRelativePath}\` and answer the most recent \`MESSAGE @User\`
                 -   Only change the queued message file by appending one new \`MESSAGE @Agent\` block
-                -   Do not modify any other file in the repository
+                -   Do not modify any other file in the repository, except files inside your own \`${AGENT_PROJECTS_DIRECTORY_PATH}/\` directory
 
                 ## Rules for the answering
 
@@ -46,6 +60,8 @@ export function buildAgentMessagePrompt(messageRelativePath: string, agentSystem
                 \`\`\`
 
                 - You can use \`message\` for message that will be sent immediately after clicking the button, or \`messageDraft\` for message that will be prefilled in the input field for editing before sending.
+
+                ${block(buildAgentProjectsPromptSection(options))}
 
                 ## This is how you should behave
 

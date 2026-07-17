@@ -29,6 +29,7 @@ import { buildAgentMessageCommitMessage } from '../messages/buildAgentMessageCom
 import { buildAgentMessagePrompt } from '../messages/buildAgentMessagePrompt';
 import { buildAgentMessageScriptPath } from '../messages/buildAgentMessageScriptPath';
 import { createAgentRunnerSystemMessage } from '../messages/createAgentRunnerSystemMessage';
+import { resolveAgentProjectsUrlPath } from '../messages/resolveAgentProjectsUrlPath';
 import { moveAgentMessageToFinished, type FinishedAgentMessageFile } from '../messages/moveAgentMessageToFinished';
 import {
     createAgentQueueProgressSnapshot,
@@ -240,7 +241,9 @@ async function runQueuedAgentMessage(options: {
 }): Promise<FinishedAgentMessageFile> {
     const { projectPath, options: runOptions, runner, queuedMessage, uiHandle, isSharedDashboard } = options;
     const agentSystemMessage = await loadLocalAgentSystemMessage(projectPath);
-    const prompt = buildAgentMessagePrompt(queuedMessage.relativePath, agentSystemMessage);
+    const prompt = buildAgentMessagePrompt(queuedMessage.relativePath, agentSystemMessage, {
+        projectsUrlPath: resolveAgentProjectsUrlPath(projectPath),
+    });
     const scriptPath = buildAgentMessageScriptPath(projectPath, queuedMessage);
     const runtimeLogPath = buildScriptLogPath(scriptPath);
     const roundChangedFilesSnapshot = runOptions.normalizeLineEndings

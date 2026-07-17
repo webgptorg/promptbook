@@ -9,6 +9,7 @@ common.chat: Chat
 chat.answerDurationLabel: 'Odpověď za {duration}'
 common.book: Book
 common.timeouts: Časovače
+common.projects: Projekty
 common.more: Více
 chatEnterBehavior.sectionEyebrow: Klávesové zkratky
 chatEnterBehavior.sectionTitle: Psaní zpráv
@@ -163,6 +164,7 @@ header.searchEngineTest: Test vyhledávače
 header.errorSimulation: Simulace chyb
 header.imagesGallery: Galerie obrázků
 header.files: Soubory
+header.agentProjects: Projekty agentů
 header.users: Uživatelé
 header.shibboleth: Shibboleth
 header.versionInfo: Informace o verzi

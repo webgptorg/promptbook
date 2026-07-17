@@ -45,6 +45,10 @@ function resolveAgentHierarchyView(segment: string | undefined): AgentHierarchyV
         return 'Timeouts';
     }
 
+    if (segment === 'projects') {
+        return 'Projects';
+    }
+
     return 'More';
 }
 

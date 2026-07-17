@@ -3,6 +3,7 @@ import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForSer
 import type { string_book } from '@promptbook-local/types';
 import { mkdir, writeFile } from 'fs/promises';
 import { join } from 'path';
+import { AGENT_PROJECTS_DIRECTORY_PATH } from '../../../../../src/book-3.0/agentFolderPaths';
 import { resolvePromptbookTemporaryPath } from '../../../../../src/utils/filesystem/promptbookTemporaryPath';
 import { PTBK_AGENTS_SERVER_AGENT_ROOT_ENV } from './localChatRunnerConstants';
 
@@ -62,6 +63,7 @@ export async function ensureLocalAgentFolder(snapshot: LocalAgentSourceSnapshot)
         mkdir(join(directoryPath, 'messages', 'finished'), { recursive: true }),
         mkdir(join(directoryPath, 'messages', 'failed'), { recursive: true }),
         mkdir(join(directoryPath, 'knowledge'), { recursive: true }),
+        mkdir(join(directoryPath, AGENT_PROJECTS_DIRECTORY_PATH), { recursive: true }),
     ]);
 
     await writeFile(join(directoryPath, 'agent.book'), normalizeAgentSource(snapshot.agentSource), 'utf-8');

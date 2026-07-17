@@ -15,4 +15,29 @@ describe('buildAgentMessagePrompt', () => {
         expect(prompt).not.toContain('docs/book-language-manual.md');
         expect(prompt).not.toContain('# Book Language blueprint');
     });
+
+    it('explains the agent-owned projects convention in every prompt', () => {
+        const prompt = buildAgentMessagePrompt('messages/queued/question.book', 'You are Support Assistant');
+
+        expect(prompt).toContain('## Projects');
+        expect(prompt).toContain('projects/');
+        expect(prompt).toContain(
+            '-   Do not modify any other file in the repository, except files inside your own `projects/` directory',
+        );
+    });
+
+    it('teaches chat links to project files when the projects URL path is known', () => {
+        const prompt = buildAgentMessagePrompt('messages/queued/question.book', 'You are Support Assistant', {
+            projectsUrlPath: '/agents/agent1234/projects',
+        });
+
+        expect(prompt).toContain('[Homepage](/agents/agent1234/projects/my-website/files/index.html)');
+    });
+
+    it('falls back to plain project paths when the projects URL path is unknown', () => {
+        const prompt = buildAgentMessagePrompt('messages/queued/question.book', 'You are Support Assistant');
+
+        expect(prompt).toContain('`projects/my-website/index.html`');
+        expect(prompt).not.toContain('files/index.html)');
+    });
 });

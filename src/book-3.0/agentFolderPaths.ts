@@ -36,3 +36,13 @@ export const AGENT_FINISHED_MESSAGES_DIRECTORY_PATH = join(AGENT_MESSAGES_DIRECT
  * @public exported from `@promptbook/node`
  */
 export const AGENT_FAILED_MESSAGES_DIRECTORY_PATH = join(AGENT_MESSAGES_DIRECTORY_PATH, 'failed');
+
+/**
+ * Relative path to the agent-owned projects root used by the agent folder convention.
+ *
+ * Each direct child directory is one project — an isolated folder the agent fully controls
+ * (files, scripts, optionally its own git repository).
+ *
+ * @private internal constant of the agent folder convention, used by agent runners and the Agents Server
+ */
+export const AGENT_PROJECTS_DIRECTORY_PATH = 'projects';

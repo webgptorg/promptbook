@@ -9,6 +9,7 @@ common.chat: Chat
 chat.answerDurationLabel: '{duration} to answer'
 common.book: Book
 common.timeouts: Timeouts
+common.projects: Projects
 common.more: More
 chatEnterBehavior.sectionEyebrow: Keybindings
 chatEnterBehavior.sectionTitle: Chat composer
@@ -165,6 +166,7 @@ header.searchEngineTest: Search Engine Test
 header.errorSimulation: Error simulation
 header.imagesGallery: Images gallery
 header.files: Files
+header.agentProjects: Agent Projects
 header.users: Users
 header.shibboleth: Shibboleth
 header.versionInfo: Version info

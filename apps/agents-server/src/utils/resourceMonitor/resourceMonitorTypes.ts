@@ -143,6 +143,61 @@ export type NetworkResourceUsage = {
 };
 
 /**
+ * Project storage usage of one agent.
+ */
+export type AgentProjectsResourceAgentUsage = {
+    /**
+     * Permanent id of the agent owning the projects.
+     */
+    readonly agentPermanentId: string;
+
+    /**
+     * Display name of the agent, or `null` when the agent row no longer exists.
+     */
+    readonly agentName: string | null;
+
+    /**
+     * Count of projects of the agent.
+     */
+    readonly projectCount: number;
+
+    /**
+     * Total size of all projects of the agent in bytes.
+     */
+    readonly sizeBytes: number;
+};
+
+/**
+ * Storage usage of all agent projects on this server.
+ */
+export type AgentProjectsResourceUsage = {
+    /**
+     * Absolute path of the scanned local agent root.
+     */
+    readonly rootPath: string;
+
+    /**
+     * Total size of all projects of all agents in bytes.
+     */
+    readonly totalSizeBytes: number;
+
+    /**
+     * Total count of projects across all agents.
+     */
+    readonly totalProjectCount: number;
+
+    /**
+     * Per-agent project usage ordered by size descending. Only agents with at least one project are listed.
+     */
+    readonly agents: ReadonlyArray<AgentProjectsResourceAgentUsage>;
+
+    /**
+     * Error message when the projects usage could not be measured.
+     */
+    readonly errorMessage: string | null;
+};
+
+/**
  * Full resource monitor snapshot rendered by `/admin/resource-monitor`.
  */
 export type ServerResourceMonitorSnapshot = {
@@ -151,5 +206,6 @@ export type ServerResourceMonitorSnapshot = {
     readonly memory: MemoryResourceUsage;
     readonly disk: DiskResourceUsage;
     readonly network: NetworkResourceUsage;
+    readonly projects: AgentProjectsResourceUsage;
     readonly warningStatus: ServerResourceWarningStatus;
 };

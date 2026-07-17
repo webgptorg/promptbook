@@ -51,6 +51,10 @@ export function buildActiveAgentViewItems({
             label: createAgentViewLabel('Timeouts', translate),
             href: `${activeAgentBasePath}/timeouts`,
         },
+        {
+            label: createAgentViewLabel('Projects', translate),
+            href: `${activeAgentBasePath}/projects`,
+        },
     ];
 
     if (isAdmin) {
