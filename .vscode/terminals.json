@@ -60,7 +60,7 @@
             "commands": [
                 "set -a && source .env && set +a",
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code --model claude-opus-4-8 --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder --wait-between-prompts 4h"
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code --model claude-opus-4-8 --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder"
             ],
             "execute": false,
             "onlySingle": false,
@@ -71,7 +71,7 @@
             "commands": [
                 "set -a && source .env && set +a",
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code --model fable --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder --wait-between-prompts 4h"
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code --model fable --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --priority 3"
             ],
             "execute": false,
             "onlySingle": false,
