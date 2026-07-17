@@ -1590,6 +1590,18 @@ resolve_openai_codex_api_key_usage() {
     printf '0'
 }
 
+run_openai_codex_login_status_without_api_environment() {
+    if [[ -n "$RUN_USER" && -n "$RUN_HOME" ]]; then
+        run_as_service_user bash -lc 'unset OPENAI_API_KEY OPENAI_BASE_URL CODEX_API_KEY; codex login status' 2>/dev/null || true
+        return
+    fi
+
+    (
+        unset OPENAI_API_KEY OPENAI_BASE_URL CODEX_API_KEY
+        codex login status
+    ) 2>/dev/null || true
+}
+
 is_openai_codex_chatgpt_runner_authenticated() {
     local codex_login_status=""
 
@@ -1601,11 +1613,7 @@ is_openai_codex_chatgpt_runner_authenticated() {
         return 1
     fi
 
-    if [[ -n "$RUN_USER" && -n "$RUN_HOME" ]]; then
-        codex_login_status="$(run_as_service_user codex login status 2>/dev/null || true)"
-    else
-        codex_login_status="$(codex login status 2>/dev/null || true)"
-    fi
+    codex_login_status="$(run_openai_codex_login_status_without_api_environment)"
 
     [[ "$codex_login_status" == *"Logged in using ChatGPT"* ]]
 }

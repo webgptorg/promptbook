@@ -30,7 +30,7 @@ Logged in using ChatGPT
 
 ---
 
-[ ] !!!!!!!!!!!!
+[x] ~$0.3883 an hour by OpenAI Codex `gpt-5.5`
 
 [✨😺] If Agents server is using the `openai-codex` harness  and the `codex` on the agents server VPS is logged in to the ChatGPT account on the server, use this ChatGPT account, not the token usage via the API key
 
@@ -56,5 +56,6 @@ Logged in using ChatGPT
 -   You are working with the [Agents Server](apps/agents-server)
 -   Keep in mind the DRY _(don't repeat yourself)_ principle
 -  You have implemented this task multiple times, but the bug is still here. Try to think deeper about why this is happening. 
+
 
 

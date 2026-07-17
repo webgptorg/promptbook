@@ -20,7 +20,10 @@ export function buildCodexScript(options: CodexScriptOptions): string {
     const delimiter = resolveShellHereDocumentDelimiter(CODEX_PROMPT_DELIMITER, options.prompt);
     const projectPath = toPosixPath(options.projectPath);
     const loginMethodConfig = spaceTrim(`
-        CODEX_LOGIN_STATUS="$(${options.codexCommand} login status 2>/dev/null || true)"
+        CODEX_LOGIN_STATUS="$(
+            unset OPENAI_API_KEY OPENAI_BASE_URL CODEX_API_KEY
+            ${options.codexCommand} login status 2>/dev/null || true
+        )"
         case "$CODEX_LOGIN_STATUS" in
             *"Logged in using ChatGPT"*)
                 IS_CODEX_CHATGPT_LOGIN_ACTIVE=1

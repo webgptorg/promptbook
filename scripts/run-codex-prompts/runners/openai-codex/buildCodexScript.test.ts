@@ -15,7 +15,9 @@ describe('buildCodexScript', () => {
         expect(script).toContain('-c model_reasoning_effort="xhigh"');
         expect(script).toContain('--model gpt-5.4');
         expect(script).toContain('--skip-git-repo-check');
-        expect(script).toContain('CODEX_LOGIN_STATUS="$(codex login status 2>/dev/null || true)"');
+        expect(script).toContain('CODEX_LOGIN_STATUS="$(');
+        expect(script).toContain('unset OPENAI_API_KEY OPENAI_BASE_URL CODEX_API_KEY');
+        expect(script).toContain('codex login status 2>/dev/null || true');
         expect(script).toContain('IS_CODEX_CHATGPT_LOGIN_ACTIVE=1');
         expect(script).toContain('CODEX_LOGIN_METHOD_ARGUMENTS=(-c forced_login_method=chatgpt)');
         expect(script).toContain('CODEX_LOGIN_METHOD_ARGUMENTS=(-c forced_login_method=api)');
@@ -56,6 +58,12 @@ describe('buildCodexScript', () => {
             'if [ -n "${PTBK_AGENTS_SERVER_ENV_FILE:-}" ] && [ -f "${PTBK_AGENTS_SERVER_ENV_FILE}" ]; then',
         );
         expect(script).toContain('source "${PTBK_AGENTS_SERVER_ENV_FILE}"');
+        expect(script.indexOf('source "${PTBK_AGENTS_SERVER_ENV_FILE}"')).toBeLessThan(
+            script.indexOf('CODEX_LOGIN_STATUS="$('),
+        );
+        expect(script.indexOf('unset OPENAI_API_KEY OPENAI_BASE_URL CODEX_API_KEY')).toBeLessThan(
+            script.indexOf('codex login status 2>/dev/null || true'),
+        );
         expect(script).toContain('elif [ -f .env ]; then');
         expect(script).toContain('if [ "$IS_CODEX_CHATGPT_LOGIN_ACTIVE" != "1" ] &&');
         expect(script).toContain('[ "${PTBK_OPENAI_CODEX_USE_API_KEY:-0}" = "1" ] &&');
