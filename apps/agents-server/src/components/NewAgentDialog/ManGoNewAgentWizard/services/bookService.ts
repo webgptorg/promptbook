@@ -1,21 +1,21 @@
-import { validateBook } from '../../../../../../../src/book-2.0/agent-source/string_book';
+import { postManGoOnboardingJson } from './postManGoOnboardingJson';
 
 /**
- * Boundary used by the imported Book language panel.
+ * Response returned by the manGo Book conversion endpoint.
  *
- * The Agents Server draft is already Book language, so conversion means validating the
- * current editable source and returning it unchanged.
+ * @private internal type of the manGo wizard book service.
+ */
+type ConvertToBookResponse = {
+    readonly book: string;
+    readonly isValid: boolean;
+};
+
+/**
+ * Boundary used by the imported Book language panel. Backed by the manGo book expert.
  *
  * @param input - Current Book editor content.
  * @returns Validated Book source and validation flag for the panel badge.
  */
 export async function convertToBook(input: string): Promise<{ book: string; isValid: boolean }> {
-    let isValid = true;
-    try {
-        validateBook(input);
-    } catch {
-        isValid = false;
-    }
-
-    return { book: input, isValid };
+    return postManGoOnboardingJson<ConvertToBookResponse>('/api/onboarding/book', { input });
 }

@@ -1,29 +1,39 @@
-import { spaceTrim } from 'spacetrim';
-
 import type { ChatMessage, KnowledgeItem } from '../types';
+import { postManGoOnboardingJson } from './postManGoOnboardingJson';
 
+/**
+ * Request sent by the step 4 test UI.
+ */
 export type AgentTestRequest = {
     readonly bookSource: string;
     readonly knowledge: readonly KnowledgeItem[];
     readonly messages: readonly ChatMessage[];
 };
 
+/**
+ * Reply returned by the live step 4 agent test.
+ */
 export type AgentTestReply = {
     readonly role: 'agent';
     readonly content: string;
 };
 
 /**
- * Boundary for "run the agent against a test message". Backed by the `runAgentTest`
- * server function (Promptbook `LiteAgent`). The UI depends only on this interface — see
- * the wizard Test step.
+ * Boundary for "run the agent against a test message".
  */
 export type AgentTestService = {
     send(request: AgentTestRequest): Promise<AgentTestReply>;
-}
+};
 
-/** Public URLs of knowledge sources that finished uploading (files → S3 URL, links → URL). */
-function knowledgeUrls(knowledge: readonly KnowledgeItem[]): string[] {
+/**
+ * Public URLs of knowledge sources that finished uploading.
+ *
+ * @param knowledge - Wizard knowledge items.
+ * @returns Public knowledge URLs.
+ *
+ * @private internal helper of the manGo agent test service.
+ */
+function knowledgeUrls(knowledge: readonly KnowledgeItem[]): readonly string[] {
     return knowledge
         .filter((item) => item.status === 'ready')
         .map((item) => (item.kind === 'url' ? item.url : item.publicUrl))
@@ -31,39 +41,25 @@ function knowledgeUrls(knowledge: readonly KnowledgeItem[]): string[] {
 }
 
 /**
- * Resolves the last user message sent to the preview responder.
+ * API payload sent to the step 4 test endpoint.
  *
- * @param messages - Chat history collected in the test step.
- * @returns Most recent user message content.
+ * @private internal type of the manGo agent test service.
  */
-function getLastUserMessage(messages: readonly ChatMessage[]): string {
-    for (let index = messages.length - 1; index >= 0; index -= 1) {
-        const message = messages[index];
-        if (message.role === 'user') {
-            return message.content;
-        }
-    }
+type AgentTestApiRequest = {
+    readonly bookSource: string;
+    readonly knowledge: readonly string[];
+    readonly messages: ReadonlyArray<Pick<ChatMessage, 'role' | 'content'>>;
+};
 
-    return '';
-}
-
+/**
+ * Endpoint-backed service used by the step 4 test UI.
+ */
 export const agentTestService: AgentTestService = {
     async send(request) {
-        const lastUserMessage = getLastUserMessage(request.messages);
-        const readyKnowledgeUrls = knowledgeUrls(request.knowledge);
-        const reply = spaceTrim(`
-            Návrh odpovědi podle aktuálního booku:
-
-            Rozumím požadavku: "${lastUserMessage || 'bez zadání'}"
-
-            Doporučený postup:
-            1. Odpovědět věcně a stručně podle pravidel v booku.
-            2. Zmínit dostupný kontext ze znalostní báze${
-                readyKnowledgeUrls.length > 0 ? ` (${readyKnowledgeUrls.length} zdrojů)` : ''
-            }.
-            3. Pokud chybí jistota, požádat o doplnění nebo předat člověku.
-        `);
-
-        return { role: 'agent', content: reply };
+        return postManGoOnboardingJson<AgentTestReply>('/api/onboarding/test', {
+            bookSource: request.bookSource,
+            knowledge: knowledgeUrls(request.knowledge),
+            messages: request.messages.map((message) => ({ role: message.role, content: message.content })),
+        } satisfies AgentTestApiRequest);
     },
 };

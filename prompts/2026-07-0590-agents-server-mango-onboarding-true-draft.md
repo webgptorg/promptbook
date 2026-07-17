@@ -1,4 +1,4 @@
-[ ] !!
+[x] ~$0.9721 an hour by OpenAI Codex `gpt-5.5` (ChatGPT account)
 
 [✨🙄] Use AI agent in the mango wizard not just simple templating
 
@@ -14,3 +14,4 @@
 ![Generation of true draft](screenshots/2026-07-0590-agents-server-mango-onboarding-true-draft-1.png)
 ![alt text](screenshots/2026-07-0590-agents-server-mango-onboarding-true-draft-2.png)
 ![Do the same thing in step 4](screenshots/2026-07-0590-agents-server-mango-onboarding-true-draft-3.png)
+

@@ -1,16 +1,13 @@
-import { spaceTrim } from 'spacetrim';
+import { postManGoOnboardingJson } from './postManGoOnboardingJson';
 
 /**
- * Normalizes one user-entered single-line wizard value.
+ * Response returned by the manGo Book draft endpoint.
  *
- * @param value - Raw user-entered value.
- * @returns Trimmed single-line text.
- *
- * @private internal helper of the manGo wizard draft service.
+ * @private internal type of the manGo wizard draft service.
  */
-function normalizeSingleLineInput(value: string): string {
-    return value.replace(/\s+/g, ' ').trim();
-}
+type GenerateBookDraftResponse = {
+    readonly draft: string;
+};
 
 /**
  * Builds the initial Book source for the imported manGo wizard.
@@ -26,20 +23,10 @@ export async function generateBookDraft(input: {
     readonly agentName: string;
     readonly agentBrief: string;
 }): Promise<string> {
-    const agentName = normalizeSingleLineInput(input.agentName) || 'Nový agent';
-    const agentBrief = normalizeSingleLineInput(input.agentBrief);
+    const response = await postManGoOnboardingJson<GenerateBookDraftResponse>('/api/onboarding/draft', {
+        agentName: input.agentName,
+        agentBrief: input.agentBrief,
+    });
 
-    return spaceTrim(`
-        ${agentName}
-
-        NOTE This agent was created via the NEW_AGENT_WIZARD manGo wizard flow
-
-        GOAL ${agentBrief || 'Help users with the assigned business workflow.'}
-
-        RULE Answer clearly and practically.
-        RULE Ask a clarifying question when the request is ambiguous.
-        RULE Escalate risky, unclear, or out-of-scope requests to a human.
-
-        CLOSED
-    `);
+    return response.draft;
 }
