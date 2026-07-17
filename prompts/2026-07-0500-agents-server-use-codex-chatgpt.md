@@ -4,7 +4,7 @@
 
 ---
 
-[ ] !!!!!!!
+[x] $23.05 5 hours by Claude Code `fable`
 
 [✨😺] If the codex is logged in to the ChatGPT account on the server. Use this ChatGPT account, not the token usage via the API key.
 
@@ -26,3 +26,4 @@ Logged in using ChatGPT
 -   Show wheather the codex was used via the ChatGPT account or API key in the task details
 -   Show also the usage in the task details
 -   Keep in mind the DRY _(don't repeat yourself)_ principle, reusen the existing code for computing the usage and displaying the usage
+

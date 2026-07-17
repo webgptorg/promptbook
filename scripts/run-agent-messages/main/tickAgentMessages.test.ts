@@ -234,9 +234,22 @@ describe('tickAgentMessages', () => {
         expect(await readFile(join(temporaryProjectPath, 'messages', 'finished', 'question.book'), 'utf-8')).toContain(
             'MESSAGE @Agent',
         );
+        expect(
+            JSON.parse(
+                await readFile(
+                    join(temporaryProjectPath, 'messages', 'finished', 'question.book.report.json'),
+                    'utf-8',
+                ),
+            ),
+        ).toEqual({
+            version: 1,
+            runnerName: 'github-copilot',
+            modelName: 'gpt-5.4',
+            usage: UNCERTAIN_USAGE,
+        });
         expect(commitChanges).toHaveBeenCalledWith('Answering message question.book', {
             autoPush: true,
-            includePaths: ['messages/finished/question.book'],
+            includePaths: ['messages/finished/question.book', 'messages/finished/question.book.report.json'],
             projectPath: temporaryProjectPath,
         });
         expect(printAgentGitIdentityTipAtProcessExitIfNeeded).toHaveBeenCalled();
@@ -303,8 +316,58 @@ describe('tickAgentMessages', () => {
 
         expect(commitChanges).toHaveBeenCalledWith('Answering message tracked.book', {
             autoPush: false,
-            includePaths: ['messages/queued/tracked.book', 'messages/finished/tracked.book'],
+            includePaths: [
+                'messages/queued/tracked.book',
+                'messages/finished/tracked.book',
+                'messages/finished/tracked.book.report.json',
+            ],
             projectPath: temporaryProjectPath,
+        });
+    });
+
+    it('reports the Codex login method in the run report sidecar when the runner detects it', async () => {
+        temporaryProjectPath = await createTemporaryProject();
+        process.chdir(temporaryProjectPath);
+        await mkdir(join(temporaryProjectPath, 'messages', 'queued'), { recursive: true });
+        await writeLocalAgentBook(temporaryProjectPath);
+        await writeFile(
+            join(temporaryProjectPath, 'messages', 'queued', 'question.book'),
+            'MESSAGE @User\nHi\n',
+            'utf-8',
+        );
+
+        (resolvePromptRunner as jest.MockedFunction<typeof resolvePromptRunner>).mockReturnValue({
+            runner: {
+                name: 'codex',
+                runPrompt: jest.fn(),
+            },
+            actualRunnerModel: 'gpt-5.2-codex',
+            runnerMetadata: {
+                runnerName: 'OpenAI Codex',
+                modelName: 'gpt-5.2-codex',
+            },
+        });
+        (runPromptWithTestFeedback as jest.MockedFunction<typeof runPromptWithTestFeedback>).mockResolvedValue({
+            usage: UNCERTAIN_USAGE,
+            loginMethod: 'chatgpt',
+            attemptCount: 1,
+        });
+
+        await tickAgentMessages(createAgentRunOptions({ agentName: 'openai-codex', model: 'gpt-5.2-codex' }));
+
+        expect(
+            JSON.parse(
+                await readFile(
+                    join(temporaryProjectPath, 'messages', 'finished', 'question.book.report.json'),
+                    'utf-8',
+                ),
+            ),
+        ).toEqual({
+            version: 1,
+            runnerName: 'codex',
+            modelName: 'gpt-5.2-codex',
+            loginMethod: 'chatgpt',
+            usage: UNCERTAIN_USAGE,
         });
     });
 

@@ -1,5 +1,5 @@
 import type { Usage } from '../../../../src/execution/Usage';
-import type { CodexLoginMethod } from '../openai-codex/codexLoginMethod';
+import type { CodexLoginMethod } from '../../../../src/book-3.0/codexLoginMethod';
 
 /**
  * Result returned from running a prompt.

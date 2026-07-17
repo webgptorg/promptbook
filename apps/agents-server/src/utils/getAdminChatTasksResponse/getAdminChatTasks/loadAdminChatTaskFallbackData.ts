@@ -27,6 +27,7 @@ export type AdminChatTaskJobRow = {
     agentPermanentId: string;
     chatId: string;
     status: UserChatJobStatus;
+    parameters?: unknown;
 };
 
 /**
@@ -109,7 +110,7 @@ export async function loadAdminChatTaskFallbackData(): Promise<AdminChatTaskFall
 async function loadAdminChatTaskJobRows(): Promise<Array<AdminChatTaskJobRow>> {
     const userChatJobTable = await provideUserChatJobTable();
     const { data, error } = await userChatJobTable.select(
-        'id,createdAt,queuedAt,startedAt,updatedAt,completedAt,cancelRequestedAt,lastHeartbeatAt,leaseExpiresAt,attemptCount,failureReason,failureDetails,userId,agentPermanentId,chatId,status',
+        'id,createdAt,queuedAt,startedAt,updatedAt,completedAt,cancelRequestedAt,lastHeartbeatAt,leaseExpiresAt,attemptCount,failureReason,failureDetails,userId,agentPermanentId,chatId,status,parameters',
     );
 
     if (error) {

@@ -1,12 +1,14 @@
-import type { Usage } from '../../../src/execution/Usage';
+import type { Usage } from '../Usage';
 
 /**
- * Formats usage price for display in checkbox.
+ * Formats usage price for display in prompt status lines and task details.
  * Examples:
  * - "$0.12" (certain)
  * - "~$3.05" (uncertain)
  * - "$0.00" (zero cost)
  * - "<$0.01" (tiny non-zero cost)
+ *
+ * @private internal utility of the prompt runners and the Agents Server task details
  */
 export function formatUsagePrice(usage: Usage): string {
     const price = usage.price.value;

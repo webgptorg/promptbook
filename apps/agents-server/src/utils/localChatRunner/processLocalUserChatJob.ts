@@ -2,6 +2,10 @@ import type { Json } from '@/src/database/schema';
 import { mkdir, readFile, rm, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { parseAgentSource } from '../../../../../src/book-2.0/agent-source/parseAgentSource';
+import {
+    buildAgentMessageRunReportPath,
+    parseAgentMessageRunReport,
+} from '../../../../../src/book-3.0/AgentMessageRunReport';
 import { createUserChatJobFailureDetails } from '../userChat/createUserChatJobFailureDetails';
 import { claimNextQueuedUserChatJob } from '../userChat/claimNextQueuedUserChatJob';
 import { finalizeUserChatJob } from '../userChat/finalizeUserChatJob';
@@ -13,6 +17,7 @@ import { updateUserChatAssistantMessage } from '../userChat/updateUserChatAssist
 import type { UserChatJobRecord } from '../userChat/UserChatJobRecord';
 import type { UserChatJobRow } from '../userChat/UserChatJobRow';
 import { createUserChatRunnerThreadMessages } from '../userChat/userChatMessageLifecycle';
+import { persistUserChatJobRunReport } from '../userChat/userChatJobRunReport';
 import { runWithTaskTerminalCapture } from '../taskTerminal/runWithTaskTerminalCapture';
 import {
     createLocalUserChatJobMetadata,
@@ -218,6 +223,7 @@ async function synchronizeLocalUserChatJob(
         });
 
         if (content) {
+            await persistLocalUserChatJobRunReportIfPresent(job, agentDirectoryPath, metadata);
             await persistUserChatJobTerminalState({
                 job,
                 status: 'COMPLETED',
@@ -265,6 +271,36 @@ async function synchronizeLocalUserChatJob(
     }
 
     return { didMutate: false, outcome: 'waiting' };
+}
+
+/**
+ * Persists the runner-produced report sidecar into the job before completion when it exists.
+ *
+ * The report is best-effort telemetry shown in the admin task details, so any read or
+ * persistence failure only logs a warning instead of failing the finished chat answer.
+ */
+async function persistLocalUserChatJobRunReportIfPresent(
+    job: UserChatJobRecord,
+    agentDirectoryPath: string,
+    metadata: LocalUserChatJobMetadata,
+): Promise<void> {
+    try {
+        const reportFileContent = await readOptionalTextFile(
+            join(agentDirectoryPath, buildAgentMessageRunReportPath(metadata.finishedPath)),
+        );
+        const report = reportFileContent === null ? null : parseAgentMessageRunReport(reportFileContent);
+        if (!report) {
+            return;
+        }
+
+        await persistUserChatJobRunReport(job, report);
+    } catch (error) {
+        console.warn('[local-chat-runner] run_report_sync_failed', {
+            chatId: job.chatId,
+            jobId: job.id,
+            error,
+        });
+    }
 }
 
 /**

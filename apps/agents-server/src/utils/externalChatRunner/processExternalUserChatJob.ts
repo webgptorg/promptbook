@@ -1,5 +1,9 @@
 import type { Json } from '@/src/database/schema';
 import { parseAgentSource } from '../../../../../src/book-2.0/agent-source/parseAgentSource';
+import {
+    buildAgentMessageRunReportPath,
+    parseAgentMessageRunReport,
+} from '../../../../../src/book-3.0/AgentMessageRunReport';
 import { createUserChatJobFailureDetails } from '../userChat/createUserChatJobFailureDetails';
 import { claimNextQueuedUserChatJob } from '../userChat/claimNextQueuedUserChatJob';
 import { finalizeUserChatJob } from '../userChat/finalizeUserChatJob';
@@ -14,6 +18,7 @@ import {
     createUserChatRunnerThreadMessages,
     resolvePromptThreadBeforeUserMessage,
 } from '../userChat/userChatMessageLifecycle';
+import { persistUserChatJobRunReport } from '../userChat/userChatJobRunReport';
 import { runWithTaskTerminalCapture } from '../taskTerminal/runWithTaskTerminalCapture';
 import {
     EXTERNAL_USER_CHAT_JOB_ANSWER_TIMEOUT_MS,
@@ -39,7 +44,10 @@ import {
     parseExternalChatFailedMessageBook,
     parseExternalChatFinishedMessageBook,
 } from './externalChatMessageBook';
-import { ensureExternalChatRunnerGithubConfiguration } from './ExternalChatRunnerConfiguration';
+import {
+    ensureExternalChatRunnerGithubConfiguration,
+    type ExternalChatRunnerGithubConfiguration,
+} from './ExternalChatRunnerConfiguration';
 
 /**
  * Result of processing one external user chat job.
@@ -222,6 +230,7 @@ async function synchronizeExternalUserChatJob(
         });
 
         if (content) {
+            await persistExternalUserChatJobRunReportIfPresent(job, configuration, metadata);
             await persistUserChatJobTerminalState({
                 job,
                 status: 'COMPLETED',
@@ -269,6 +278,38 @@ async function synchronizeExternalUserChatJob(
     }
 
     return { didMutate: false, outcome: 'waiting' };
+}
+
+/**
+ * Persists the runner-produced report sidecar into the job before completion when it exists.
+ *
+ * The report is best-effort telemetry shown in the admin task details, so any read or
+ * persistence failure only logs a warning instead of failing the finished chat answer.
+ */
+async function persistExternalUserChatJobRunReportIfPresent(
+    job: UserChatJobRecord,
+    configuration: ExternalChatRunnerGithubConfiguration,
+    metadata: ExternalUserChatJobMetadata,
+): Promise<void> {
+    try {
+        const reportFile = await readGithubFile(
+            configuration,
+            metadata.repositoryFullName,
+            buildAgentMessageRunReportPath(metadata.finishedPath),
+        );
+        const report = reportFile === null ? null : parseAgentMessageRunReport(reportFile.content);
+        if (!report) {
+            return;
+        }
+
+        await persistUserChatJobRunReport(job, report);
+    } catch (error) {
+        console.warn('[external-chat-runner] run_report_sync_failed', {
+            chatId: job.chatId,
+            jobId: job.id,
+            error,
+        });
+    }
 }
 
 /**

@@ -1,7 +1,7 @@
 import moment from 'moment';
 import type { Usage } from '../../../src/execution/Usage';
-import { formatUsagePrice } from '../common/formatUsagePrice';
-import { formatCodexLoginMethod, type CodexLoginMethod } from '../runners/openai-codex/codexLoginMethod';
+import { formatCodexLoginMethod, type CodexLoginMethod } from '../../../src/book-3.0/codexLoginMethod';
+import { formatUsagePrice } from '../../../src/execution/utils/formatUsagePrice';
 import { formatPromptAttemptMetadata } from './formatPromptAttemptMetadata';
 import { formatRunnerSignature } from './formatRunnerSignature';
 import type { PromptFile } from './types/PromptFile';

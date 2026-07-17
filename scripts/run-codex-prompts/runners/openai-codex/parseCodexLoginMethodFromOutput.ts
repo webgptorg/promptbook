@@ -1,4 +1,4 @@
-import { CODEX_LOGIN_METHOD_MARKER, type CodexLoginMethod } from './codexLoginMethod';
+import { CODEX_LOGIN_METHOD_MARKER, type CodexLoginMethod } from '../../../../src/book-3.0/codexLoginMethod';
 
 /**
  * Detects which login method Codex used from the captured CLI output.

@@ -1,5 +1,6 @@
 import type { AdminChatTaskCounters, AdminChatTaskRecord } from '../../chatTasksAdmin';
 import type { UserChatJobStatus } from '../../userChat/UserChatJobRecord';
+import { getUserChatJobRunReportFromParameters } from '../../userChat/userChatJobRunReport';
 import { resolveNullableSqlNumber, resolveSqlCount } from './adminChatTaskSqlValues';
 
 /**
@@ -29,6 +30,7 @@ export type AdminChatTaskSqlRow = {
     agentPermanentId: string;
     agentName: string | null;
     chatId: string;
+    parameters: unknown;
     totalCount: string | number;
 };
 
@@ -76,6 +78,7 @@ export function mapAdminChatTaskSqlRow(row: AdminChatTaskSqlRow): AdminChatTaskR
         chatId: row.chatId,
         workerId: null,
         queueName: row.kind === 'CHAT_TIMEOUT' ? 'user-chat-timeouts' : 'user-chat-jobs',
+        runReport: getUserChatJobRunReportFromParameters(row.parameters),
     };
 }
 

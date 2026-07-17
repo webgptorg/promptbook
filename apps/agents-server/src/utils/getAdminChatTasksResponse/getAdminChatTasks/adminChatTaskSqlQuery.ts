@@ -34,7 +34,8 @@ export function createAdminChatTaskBaseQuery(options: {
             "user"."username" AS "username",
             job."agentPermanentId" AS "agentPermanentId",
             agent."agentName" AS "agentName",
-            job."chatId" AS "chatId"
+            job."chatId" AS "chatId",
+            job."parameters" AS "parameters"
         FROM ${options.userChatJobTable} job
         LEFT JOIN ${options.userTable} "user" ON "user"."id" = job."userId"
         LEFT JOIN ${options.agentTable} agent ON agent."permanentId" = job."agentPermanentId"
@@ -62,7 +63,8 @@ export function createAdminChatTaskBaseQuery(options: {
             "user"."username" AS "username",
             timeout."agentPermanentId" AS "agentPermanentId",
             agent."agentName" AS "agentName",
-            timeout."chatId" AS "chatId"
+            timeout."chatId" AS "chatId",
+            NULL::JSONB AS "parameters"
         FROM ${options.userChatTimeoutTable} timeout
         LEFT JOIN ${options.userTable} "user" ON "user"."id" = timeout."userId"
         LEFT JOIN ${options.agentTable} agent ON agent."permanentId" = timeout."agentPermanentId"

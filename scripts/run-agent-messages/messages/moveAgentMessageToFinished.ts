@@ -1,5 +1,6 @@
 import { mkdir, rename, rm, stat } from 'fs/promises';
 import { join } from 'path';
+import { buildAgentMessageRunReportPath } from '../../../src/book-3.0/AgentMessageRunReport';
 import { AGENT_FINISHED_MESSAGES_DIRECTORY_PATH } from '../../../src/cli/cli-commands/agent-folder/agentProjectPaths';
 import type { AgentMessageFile } from './AgentMessageFile';
 
@@ -29,6 +30,8 @@ export async function moveAgentMessageToFinished(
     if (await isExistingPath(finishedMessagePath)) {
         await rm(finishedMessagePath, { force: true });
     }
+    // Note: A run-report sidecar of a previously answered round must not describe the new answer
+    await rm(buildAgentMessageRunReportPath(finishedMessagePath), { force: true });
     await rename(messageFile.absolutePath, finishedMessagePath);
 
     return {

@@ -1,4 +1,5 @@
 import type { AdminChatTaskRecord } from '../../chatTasksAdmin';
+import { getUserChatJobRunReportFromParameters } from '../../userChat/userChatJobRunReport';
 import { resolveNullableSqlNumber } from './adminChatTaskSqlValues';
 import type {
     AdminChatTaskFallbackData,
@@ -56,6 +57,7 @@ function mapAdminChatTaskJobRow(
         chatId: row.chatId,
         workerId: null,
         queueName: 'user-chat-jobs',
+        runReport: getUserChatJobRunReportFromParameters(row.parameters),
     };
 }
 

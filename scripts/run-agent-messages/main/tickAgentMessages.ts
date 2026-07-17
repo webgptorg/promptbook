@@ -16,7 +16,10 @@ import { commitChanges } from '../../run-codex-prompts/git/commitChanges';
 import { resolvePromptRunner } from '../../run-codex-prompts/main/resolvePromptRunner';
 import type { PromptRunner } from '../../run-codex-prompts/runners/types/PromptRunner';
 import type { PromptStats } from '../../run-codex-prompts/prompts/types/PromptStats';
-import { runPromptWithTestFeedback } from '../../run-codex-prompts/testing/runPromptWithTestFeedback';
+import {
+    runPromptWithTestFeedback,
+    type RunPromptWithTestFeedbackResult,
+} from '../../run-codex-prompts/testing/runPromptWithTestFeedback';
 import { renderCoderRunUi, type CoderRunUiHandle } from '../../run-codex-prompts/ui/renderCoderRunUi';
 import type {
     AgentRunMessagePreviewSection,
@@ -31,6 +34,10 @@ import { buildAgentMessageScriptPath } from '../messages/buildAgentMessageScript
 import { createAgentRunnerSystemMessage } from '../messages/createAgentRunnerSystemMessage';
 import { resolveAgentProjectsUrlPath } from '../messages/resolveAgentProjectsUrlPath';
 import { moveAgentMessageToFinished, type FinishedAgentMessageFile } from '../messages/moveAgentMessageToFinished';
+import {
+    writeAgentMessageRunReport,
+    type WrittenAgentMessageRunReport,
+} from '../messages/writeAgentMessageRunReport';
 import {
     createAgentQueueProgressSnapshot,
     loadAgentMessageQueueSnapshot,
@@ -147,6 +154,7 @@ export async function tickAgentMessages(
             projectPath,
             options,
             runner,
+            actualRunnerModel,
             queuedMessage,
             uiHandle,
             isSharedDashboard: tickOptions.uiPresentation?.isSharedDashboard,
@@ -235,11 +243,13 @@ async function runQueuedAgentMessage(options: {
     readonly projectPath: string;
     readonly options: AgentRunOptions;
     readonly runner: PromptRunner;
+    readonly actualRunnerModel: string | undefined;
     readonly queuedMessage: AgentMessageFile;
     readonly uiHandle?: CoderRunUiHandle;
     readonly isSharedDashboard?: boolean;
 }): Promise<FinishedAgentMessageFile> {
-    const { projectPath, options: runOptions, runner, queuedMessage, uiHandle, isSharedDashboard } = options;
+    const { projectPath, options: runOptions, runner, actualRunnerModel, queuedMessage, uiHandle, isSharedDashboard } =
+        options;
     const agentSystemMessage = await loadLocalAgentSystemMessage(projectPath);
     const prompt = buildAgentMessagePrompt(queuedMessage.relativePath, agentSystemMessage, {
         projectsUrlPath: resolveAgentProjectsUrlPath(projectPath),
@@ -264,11 +274,12 @@ async function runQueuedAgentMessage(options: {
     }
     uiHandle?.startCapturingAgentOutput();
 
+    let promptRunResult: RunPromptWithTestFeedbackResult;
     try {
         try {
-            await withPromptRuntimeLog(
+            promptRunResult = await withPromptRuntimeLog(
                 scriptPath,
-                async (logPath) => {
+                async (logPath) =>
                     await runPromptWithTestFeedback({
                         runner,
                         prompt,
@@ -280,8 +291,7 @@ async function runQueuedAgentMessage(options: {
                         onAttemptStarted: (attemptCount) => {
                             uiHandle?.state.setAttempt(attemptCount);
                         },
-                    });
-                },
+                    }),
                 { preserveArtifactsOnSuccess: false },
             );
         } catch (error) {
@@ -299,10 +309,22 @@ async function runQueuedAgentMessage(options: {
     await normalizeLineEndingsForAgentRound(projectPath, runOptions, roundChangedFilesSnapshot);
 
     const finishedMessage = await moveAgentMessageToFinished(projectPath, queuedMessage);
+    const writtenRunReport = await writeAgentMessageRunReport({
+        finishedMessageAbsolutePath: finishedMessage.absolutePath,
+        finishedMessageRelativePath: finishedMessage.relativePath,
+        report: {
+            version: 1,
+            runnerName: runner.name,
+            modelName: actualRunnerModel,
+            loginMethod: promptRunResult.loginMethod,
+            usage: promptRunResult.usage,
+        },
+    });
     await commitAnsweredMessageIfEnabled({
         options: runOptions,
         queuedMessage,
         finishedMessage,
+        writtenRunReport,
         isQueuedMessageTracked,
         uiHandle,
         isSharedDashboard,
@@ -424,6 +446,7 @@ async function commitAnsweredMessageIfEnabled(options: {
     readonly options: AgentRunOptions;
     readonly queuedMessage: AgentMessageFile;
     readonly finishedMessage: FinishedAgentMessageFile;
+    readonly writtenRunReport: WrittenAgentMessageRunReport | null;
     readonly isQueuedMessageTracked: boolean;
     readonly uiHandle?: CoderRunUiHandle;
     readonly isSharedDashboard?: boolean;
@@ -433,6 +456,7 @@ async function commitAnsweredMessageIfEnabled(options: {
         options: runOptions,
         queuedMessage,
         finishedMessage,
+        writtenRunReport,
         isQueuedMessageTracked,
         uiHandle,
         isSharedDashboard,
@@ -451,7 +475,7 @@ async function commitAnsweredMessageIfEnabled(options: {
     }
     await commitChanges(buildAgentMessageCommitMessage(queuedMessage), {
         autoPush: runOptions.autoPush,
-        includePaths: buildCommitIncludePaths(queuedMessage, finishedMessage, isQueuedMessageTracked),
+        includePaths: buildCommitIncludePaths(queuedMessage, finishedMessage, writtenRunReport, isQueuedMessageTracked),
         projectPath,
     });
 }
@@ -462,13 +486,18 @@ async function commitAnsweredMessageIfEnabled(options: {
 function buildCommitIncludePaths(
     queuedMessage: AgentMessageFile,
     finishedMessage: FinishedAgentMessageFile,
+    writtenRunReport: WrittenAgentMessageRunReport | null,
     isQueuedMessageTracked: boolean,
 ): ReadonlyArray<string> {
-    if (isQueuedMessageTracked) {
-        return [queuedMessage.relativePath, finishedMessage.relativePath];
+    const includePaths = isQueuedMessageTracked
+        ? [queuedMessage.relativePath, finishedMessage.relativePath]
+        : [finishedMessage.relativePath];
+
+    if (writtenRunReport) {
+        includePaths.push(writtenRunReport.relativePath);
     }
 
-    return [finishedMessage.relativePath];
+    return includePaths;
 }
 
 /**

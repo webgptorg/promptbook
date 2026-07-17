@@ -1,6 +1,6 @@
 import { spaceTrim } from '../../../../src/utils/organization/spaceTrim';
 import { toPosixPath } from '../../common/runGoScript/toPosixPath';
-import { CODEX_LOGIN_METHOD_MARKER } from './codexLoginMethod';
+import { CODEX_LOGIN_METHOD_MARKER } from '../../../../src/book-3.0/codexLoginMethod';
 import type { CodexScriptOptions } from './CodexScriptOptions';
 
 /**

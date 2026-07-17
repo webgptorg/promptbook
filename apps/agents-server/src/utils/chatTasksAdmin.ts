@@ -1,3 +1,4 @@
+import type { AgentMessageRunReport } from '../../../../src/book-3.0/AgentMessageRunReport';
 import type { UserChatJobStatus } from './userChat/UserChatJobRecord';
 
 /**
@@ -48,6 +49,11 @@ export type AdminChatTaskRecord = {
     chatId: string;
     workerId: string | null;
     queueName: string | null;
+
+    /**
+     * Harness run report of the answered turn (runner, model, Codex login method, usage), when the runner reported one.
+     */
+    runReport?: AgentMessageRunReport | null;
 };
 
 /**

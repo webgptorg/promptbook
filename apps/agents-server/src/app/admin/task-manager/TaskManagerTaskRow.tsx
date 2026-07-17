@@ -5,6 +5,8 @@ import { SquareTerminal } from 'lucide-react';
 import type { AdminChatTaskRecord } from '@/src/utils/chatTasksAdmin';
 import type { ServerLanguageCode } from '@/src/languages/ServerLanguageRegistry';
 import { formatServerLanguageHumanReadableDate } from '@/src/utils/localization/formatServerLanguageHumanReadableDate';
+import { formatCodexLoginMethod } from '../../../../../../src/book-3.0/codexLoginMethod';
+import { formatUsagePrice } from '../../../../../../src/execution/utils/formatUsagePrice';
 import { TaskManagerTaskLogActions } from './TaskManagerTaskLogActions';
 import { TaskManagerTaskTerminalDialog } from './TaskManagerTaskTerminalDialog';
 import type { useTaskManagerState } from './useTaskManagerState';
@@ -246,6 +248,51 @@ function isTaskStuck(task: AdminChatTaskRecord, thresholdMinutes: number): boole
 }
 
 /**
+ * Builds the info rows describing how the harness runner answered one task.
+ *
+ * Shows the runner with its model, whether OpenAI Codex was billed to the server's
+ * ChatGPT account or the `OPENAI_API_KEY`, and the reported usage of the run.
+ *
+ * @private function of TaskManagerTaskRow
+ */
+function buildTaskRunReportRows(runReport: AdminChatTaskRecord['runReport']): Array<TaskInfoRow> {
+    if (!runReport) {
+        return [];
+    }
+
+    const loginMethodLabel = formatCodexLoginMethod(runReport.loginMethod);
+
+    return [
+        {
+            label: 'Runner',
+            value: runReport.modelName ? `${runReport.runnerName} (${runReport.modelName})` : runReport.runnerName,
+            secondary: loginMethodLabel ? `via ${loginMethodLabel}` : null,
+        },
+        {
+            label: 'Usage',
+            value: formatUsagePrice(runReport.usage),
+            secondary: formatTaskRunReportTokens(runReport.usage),
+        },
+    ];
+}
+
+/**
+ * Formats reported input/output token counts for the usage info row.
+ *
+ * @private function of TaskManagerTaskRow
+ */
+function formatTaskRunReportTokens(usage: NonNullable<AdminChatTaskRecord['runReport']>['usage']): string | null {
+    const inputTokensCount = usage.input?.tokensCount?.value ?? 0;
+    const outputTokensCount = usage.output?.tokensCount?.value ?? 0;
+
+    if (inputTokensCount === 0 && outputTokensCount === 0) {
+        return null;
+    }
+
+    return `${inputTokensCount.toLocaleString('en-US')} in / ${outputTokensCount.toLocaleString('en-US')} out tokens`;
+}
+
+/**
  * Truncates long error text for compact table rendering.
  *
  * @private function of TaskManagerTaskRow
@@ -431,6 +478,7 @@ export function TaskManagerTaskRow({
                         { label: 'Worker', value: task.workerId || '-' },
                         { label: 'Lease expires', value: formatDateTime(task.leaseExpiresAt, language) },
                         { label: 'Paused at', value: formatDateTime(task.pausedAt, language) },
+                        ...buildTaskRunReportRows(task.runReport),
                     ]}
                 />
             </td>
