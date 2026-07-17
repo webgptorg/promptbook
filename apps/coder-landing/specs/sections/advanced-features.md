@@ -30,9 +30,9 @@ Anchor `#features`. A grid of feature cards, each pairing a short explanation wi
 3. **Autopilot git** — "Pull before prompts and push after commits, so a long-running queue stays in sync with your remote."
 4. **Kanban web UI** — "ptbk coder server keeps running after the queue is empty, watches for new prompt files and serves a Trello-style board where you can edit prompts in the browser."
 5. **Prompt priorities** — "Give prompts a priority and process only the range you want in the current run."
-6. **Pacing and retries** — "Pace the queue with wall-clock wait durations that keep elapsing through pause and sleep, with automatic error retries after a cool-down."
+6. **Pacing and retries** — "Pace the queue with wall-clock wait durations that keep elapsing through pause and sleep, skip the active wait with S, and retry errors after a cool-down."
 7. **Dry run first** — "Preview which prompts would run — without touching your code or spending a single token."
-8. **Human in the loop** — "Confirm each prompt manually with --no-auto, or press "p" in the terminal (or the pause button in the web UI) to pause a running queue."
+8. **Human in the loop** — "Confirm each prompt manually with --no-auto, press P to pause a running queue, or press X to end after the current prompt."
 9. **Verify and archive** — "Walk through completed prompts interactively, archive the finished ones to prompts/done/ and auto-append repair prompts for incomplete work."
 
 Option semantics must stay consistent with [`../content/commands.md`](../content/commands.md).

@@ -101,7 +101,7 @@ export type LiveDemoLine = LiveDemoTextLine | LiveDemoCommandLine | LiveDemoAgen
 /**
  * Width of the terminal dashboard frame in character cells.
  */
-export const LIVE_DEMO_TERMINAL_BOX_WIDTH = 76;
+export const LIVE_DEMO_TERMINAL_BOX_WIDTH = 96;
 
 /**
  * Width of box body content between the borders.
@@ -254,7 +254,11 @@ export const LIVE_DEMO_SCRIPT: ReadonlyArray<LiveDemoLine> = [
     ...createBoxLines('Controls', 'controlsTitle', [
         [
             createTextPart(' P ', 'key'),
-            createTextPart(' Pause   ', 'plain'),
+            createTextPart(' Pause  ', 'plain'),
+            createTextPart(' S ', 'key'),
+            createTextPart(' Skip current waiting  ', 'plain'),
+            createTextPart(' X ', 'key'),
+            createTextPart(' End with this prompt   ', 'plain'),
             createTextPart(' CTRL+C ', 'key'),
             createTextPart(' Exit', 'plain'),
         ],

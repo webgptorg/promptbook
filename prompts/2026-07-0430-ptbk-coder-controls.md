@@ -1,4 +1,4 @@
-[ ]
+[x] (2 attempts) ~$0.3446 3 hours by OpenAI Codex `gpt-5.5` (ChatGPT account)
 
 [✨😼] Add controls
 
@@ -28,3 +28,4 @@ The controls should be:
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Update the [`ptbk coder` landing website](apps/coder-landing)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

@@ -46,6 +46,14 @@ npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --harness openai-co
 
 For `--harness openai-codex`, credits are opt-in. If Codex reports that credits are required and `--allow-credits` is not set, the runner fails fast with a rerun hint.
 
+### Terminal controls
+
+```text
+P  Pause  S  Skip current waiting  X  End with this prompt  CTRL+C  Exit
+```
+
+Press `X` again after requesting the dynamic end to continue the full current run.
+
 ### Examples:
 
 ```bash

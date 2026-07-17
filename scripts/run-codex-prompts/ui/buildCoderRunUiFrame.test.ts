@@ -15,6 +15,7 @@ function createFrameOptions(
         spinner: '⠋',
         pauseState: 'RUNNING',
         pauseTargetLabel: 'the next task',
+        isEndAfterCurrentPromptRequested: false,
         config: {
             agentName: 'GitHub Copilot',
             modelName: 'gpt-5.4',
@@ -73,6 +74,21 @@ describe('buildCoderRunUiFrame', () => {
         expect(output).toContain('Current task');
         expect(output).toContain('ENTER  Start');
         expect(output).toContain('P  Pause');
+        expect(output).toContain('S  Skip current waiting');
+        expect(output).toContain('X  End with this prompt');
+        expect(output).toContain('CTRL+C  Exit');
+    });
+
+    it('renders the cancel-end control with the current run total', () => {
+        const output = buildCoderRunUiFrame(
+            createFrameOptions({
+                isEndAfterCurrentPromptRequested: true,
+            }),
+        )
+            .map(stripAnsi)
+            .join('\n');
+
+        expect(output).toContain('X  Do all 5 prompts');
     });
 
     it('shows the configured run limit in the session scope row', () => {

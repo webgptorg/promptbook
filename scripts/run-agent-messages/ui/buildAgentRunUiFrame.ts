@@ -52,9 +52,17 @@ const MAX_AGENT_URL_COLUMN_WIDTH = 30;
 const AGENT_URL_COLUMN_RATIO = 0.38;
 
 /**
+ * Snapshot consumed by the pure agent-run frame builder.
+ */
+type BuildAgentRunUiFrameOptions = Omit<
+    BuildCoderRunUiFrameOptions,
+    'agentVisual' | 'agentVisualLines' | 'isEndAfterCurrentPromptRequested'
+>;
+
+/**
  * Builds the complete boxed terminal frame for the rich `ptbk agent-folder run` UI.
  */
-export function buildAgentRunUiFrame(options: BuildCoderRunUiFrameOptions): string[] {
+export function buildAgentRunUiFrame(options: BuildAgentRunUiFrameOptions): string[] {
     const totalWidth = Math.max(MIN_FRAME_WIDTH, Math.min(options.terminalWidth, MAX_FRAME_WIDTH));
     const isPromptActive = options.phase === 'running' || options.phase === 'verifying' || options.phase === 'loading';
     const promptStatusPrefix = isPromptActive ? `${colors.yellow(`${options.spinner} `)}` : '';
@@ -75,7 +83,10 @@ export function buildAgentRunUiFrame(options: BuildCoderRunUiFrameOptions): stri
         : [options.statusMessage, ...options.detailLines.map((detailLine) => `• ${detailLine}`)];
     const userMessageBoxes = buildUserMessageBoxes(options, totalWidth);
     const visibleOutputLines = buildVisibleOutputLines(options.agentOutputLines);
-    const controls = buildControlPills(pausePresentation.pauseControl, options.pendingEnterLabel).join('  ');
+    const controls = buildControlPills({
+        pauseControl: pausePresentation.pauseControl,
+        pendingEnterLabel: options.pendingEnterLabel,
+    }).join('  ');
     const frame = [
         ...buildAgentRunInitialsVisual(options.config.localAgentName || 'Local Agent', totalWidth),
         '',
@@ -105,7 +116,7 @@ export function buildAgentRunUiFrame(options: BuildCoderRunUiFrameOptions): stri
  * Builds the structured session lines for the agent-specific dashboard.
  */
 function buildSessionLines(
-    options: BuildCoderRunUiFrameOptions,
+    options: BuildAgentRunUiFrameOptions,
     totalWidth: number,
     pausePresentation: ReturnType<typeof buildPausePresentation>,
 ): readonly string[] {
@@ -156,7 +167,7 @@ function buildSessionLines(
 /**
  * Builds the rich agent status table with status, agent name, and URL columns.
  */
-function buildAgentStatusTableLines(options: BuildCoderRunUiFrameOptions, totalWidth: number): readonly string[] {
+function buildAgentStatusTableLines(options: BuildAgentRunUiFrameOptions, totalWidth: number): readonly string[] {
     const bodyWidth = Math.max(10, totalWidth - 4);
     const rows = getAgentStatusTableRows(options);
 
@@ -200,7 +211,7 @@ function buildAgentStatusTableLines(options: BuildCoderRunUiFrameOptions, totalW
 /**
  * Resolves structured table rows from explicit agent data or legacy string rows.
  */
-function getAgentStatusTableRows(options: BuildCoderRunUiFrameOptions): readonly AgentRunStatusTableRow[] {
+function getAgentStatusTableRows(options: BuildAgentRunUiFrameOptions): readonly AgentRunStatusTableRow[] {
     if (options.agentStatusTableRows && options.agentStatusTableRows.length > 0) {
         return options.agentStatusTableRows;
     }
@@ -225,7 +236,7 @@ function getAgentStatusTableRows(options: BuildCoderRunUiFrameOptions): readonly
 /**
  * Builds the fallback status row used by single-agent runs.
  */
-function buildSingleAgentStatusRow(options: BuildCoderRunUiFrameOptions): AgentRunStatusTableRow {
+function buildSingleAgentStatusRow(options: BuildAgentRunUiFrameOptions): AgentRunStatusTableRow {
     const isAnswering =
         Boolean(options.currentPromptLabel) &&
         (options.phase === 'loading' || options.phase === 'running' || options.phase === 'verifying');
@@ -262,7 +273,7 @@ function parseLegacyAgentStatusLine(statusLine: string): AgentRunStatusTableRow 
 /**
  * Counts agent statuses from explicit structured rows, legacy rows, or the single-agent fallback state.
  */
-function countAgentStatuses(options: BuildCoderRunUiFrameOptions): {
+function countAgentStatuses(options: BuildAgentRunUiFrameOptions): {
     readonly totalAgents: number;
     readonly idleAgents: number;
     readonly answeringAgents: number;
@@ -291,7 +302,7 @@ function parseMultiAgentSessionCount(localAgentName: string | undefined): number
 /**
  * Builds one or more user-message boxes, one per answering agent when needed.
  */
-function buildUserMessageBoxes(options: BuildCoderRunUiFrameOptions, totalWidth: number): readonly string[] {
+function buildUserMessageBoxes(options: BuildAgentRunUiFrameOptions, totalWidth: number): readonly string[] {
     const previewSections =
         options.messagePreviewSections && options.messagePreviewSections.length > 0
             ? options.messagePreviewSections

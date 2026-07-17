@@ -38,7 +38,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             - Optional --no-ui keeps plain streaming console output for logging and debugging
             - Supports GPG signing of commits
             - Optional post-prompt verification with test-feedback retries
-            - Progress tracking and interactive controls
+            - Progress tracking and interactive P/S/X terminal controls
             - Dry-run mode to preview prompts
         `),
     );

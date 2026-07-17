@@ -1,9 +1,11 @@
 import type { CoderRunUiHandle } from '../ui/renderCoderRunUi';
 import { sleepWithCountdown } from './sleepWithCountdown';
+import { requestSkipCurrentWait, resetCoderRunControls } from './waitForPause';
 import { waitUntilWorldTimeDeadline } from './waitUntilWorldTimeDeadline';
 
 describe('waitUntilWorldTimeDeadline', () => {
     afterEach(() => {
+        resetCoderRunControls();
         jest.useRealTimers();
     });
 
@@ -63,5 +65,27 @@ describe('waitUntilWorldTimeDeadline', () => {
 
         await expect(waitPromise).resolves.toBeUndefined();
         expect(uiHandle.state.setStatusMessage).toHaveBeenCalledTimes(1);
+    });
+
+    it('ends countdown waits immediately when the active wait is skipped', async () => {
+        jest.useFakeTimers({ now: 0 });
+        const uiHandle = {
+            state: {
+                setStatusMessage: jest.fn(),
+            },
+        } as unknown as CoderRunUiHandle;
+
+        const waitPromise = sleepWithCountdown({
+            durationMs: 60_000,
+            deadlineTimeMs: 60_000,
+            waitKind: 'after-prompt',
+            isRichUiEnabled: true,
+            uiHandle,
+        });
+
+        expect(requestSkipCurrentWait()).toBe('REQUESTED_SKIP');
+
+        await expect(waitPromise).resolves.toBeUndefined();
+        expect(jest.getTimerCount()).toBe(0);
     });
 });

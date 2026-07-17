@@ -185,7 +185,12 @@ export function buildProgressBar(percentage: number, availableWidth: number, lab
 /**
  * Builds the control pills shown in the footer box.
  */
-export function buildControlPills(pauseControl: string, pendingEnterLabel: string | undefined): readonly string[] {
+export function buildControlPills(options: {
+    readonly pauseControl: string;
+    readonly pendingEnterLabel: string | undefined;
+    readonly additionalControls?: readonly string[];
+}): readonly string[] {
+    const { pauseControl, pendingEnterLabel, additionalControls = [] } = options;
     const pills: string[] = [];
 
     if (pendingEnterLabel) {
@@ -193,9 +198,56 @@ export function buildControlPills(pauseControl: string, pendingEnterLabel: strin
     }
 
     pills.push(pauseControl);
+    pills.push(...additionalControls);
     pills.push(colors.bgRed.white(' CTRL+C ') + colors.white(' Exit'));
 
     return pills;
+}
+
+/**
+ * Builds the coder-run control pills shown in the footer box.
+ */
+export function buildCoderRunControlPills(options: {
+    readonly pauseControl: string;
+    readonly pendingEnterLabel: string | undefined;
+    readonly isEndAfterCurrentPromptRequested: boolean;
+    readonly sessionTotal: number;
+}): readonly string[] {
+    const { pauseControl, pendingEnterLabel, isEndAfterCurrentPromptRequested, sessionTotal } = options;
+
+    return buildControlPills({
+        pauseControl,
+        pendingEnterLabel,
+        additionalControls: [
+            buildSkipCurrentWaitControl(),
+            buildEndAfterCurrentPromptControl(isEndAfterCurrentPromptRequested, sessionTotal),
+        ],
+    });
+}
+
+/**
+ * Builds the `S` wait-skip control label.
+ */
+function buildSkipCurrentWaitControl(): string {
+    return colors.bgCyan.black(' S ') + colors.white(' Skip current waiting');
+}
+
+/**
+ * Builds the dynamic `X` control label.
+ */
+function buildEndAfterCurrentPromptControl(isEndAfterCurrentPromptRequested: boolean, sessionTotal: number): string {
+    if (isEndAfterCurrentPromptRequested) {
+        return colors.bgBlue.white(' X ') + colors.white(` Do all ${formatControlPromptCount(sessionTotal)}`);
+    }
+
+    return colors.bgBlue.white(' X ') + colors.white(' End with this prompt');
+}
+
+/**
+ * Formats one prompt count for the `X` control.
+ */
+function formatControlPromptCount(count: number): string {
+    return `${count} prompt${count === 1 ? '' : 's'}`;
 }
 
 /**

@@ -1,6 +1,13 @@
 import moment from 'moment';
 import { clearLine, cursorTo, emitKeypressEvents } from 'readline';
-import { getPauseState, getPauseTargetLabel, togglePauseState } from '../common/waitForPause';
+import {
+    getEndAfterCurrentPromptState,
+    getPauseState,
+    getPauseTargetLabel,
+    requestSkipCurrentWait,
+    toggleEndAfterCurrentPromptState,
+    togglePauseState,
+} from '../common/waitForPause';
 import { buildCoderRunUiFrame, type BuildCoderRunUiFrameOptions } from './buildCoderRunUiFrame';
 import { CoderRunUiState } from './CoderRunUiState';
 import { getCoderRunUiAutoRefreshInterval } from './coderRunUiRefresh';
@@ -261,6 +268,7 @@ export function renderCoderRunUi(
             spinner: SPINNER_FRAMES[spinnerFrame]!,
             pauseState: getPauseState(),
             pauseTargetLabel: getPauseTargetLabel(),
+            isEndAfterCurrentPromptRequested: getEndAfterCurrentPromptState(),
             config: state.config,
             agentVisual: state.agentVisual,
             phase: state.phase,
@@ -318,6 +326,18 @@ export function renderCoderRunUi(
 
         if (key.name === 'p') {
             togglePauseState();
+            scheduleRender();
+            return;
+        }
+
+        if (key.name === 's') {
+            requestSkipCurrentWait();
+            scheduleRender();
+            return;
+        }
+
+        if (key.name === 'x') {
+            toggleEndAfterCurrentPromptState();
             scheduleRender();
             return;
         }

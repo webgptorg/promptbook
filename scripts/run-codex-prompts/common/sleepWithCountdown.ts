@@ -2,6 +2,12 @@ import colors from 'colors';
 import { formatDurationMs } from './parseDuration';
 import type { CoderRunUiHandle } from '../ui/renderCoderRunUi';
 import { waitUntilWorldTimeDeadline } from './waitUntilWorldTimeDeadline';
+import {
+    beginSkippableWait,
+    finishSkippableWait,
+    shouldSkipCurrentWait,
+    waitForSkippableMilliseconds,
+} from './waitForPause';
 
 /**
  * Refresh interval used by the countdown display while waiting.
@@ -59,20 +65,27 @@ export async function sleepWithCountdown(options: {
     }
 
     const deadlineTimeMs = options.deadlineTimeMs ?? Date.now() + durationMs;
+    const waitToken = beginSkippableWait();
 
-    await waitUntilWorldTimeDeadline({
-        deadlineTimeMs,
-        pollIntervalMs: WAIT_COUNTDOWN_UPDATE_INTERVAL_MS,
-        onTick: (remainingDurationMs) => {
-            const visibleRemainingDurationMs = Math.min(remainingDurationMs, durationMs);
-            const statusMessage = describeCoderRunWait(waitKind, visibleRemainingDurationMs, durationMs);
+    try {
+        await waitUntilWorldTimeDeadline({
+            deadlineTimeMs,
+            pollIntervalMs: WAIT_COUNTDOWN_UPDATE_INTERVAL_MS,
+            shouldStopWaiting: () => shouldSkipCurrentWait(waitToken),
+            waitForMilliseconds: (waitDurationMs) => waitForSkippableMilliseconds(waitToken, waitDurationMs),
+            onTick: (remainingDurationMs) => {
+                const visibleRemainingDurationMs = Math.min(remainingDurationMs, durationMs);
+                const statusMessage = describeCoderRunWait(waitKind, visibleRemainingDurationMs, durationMs);
 
-            if (!isRichUiEnabled) {
-                console.info(colors.gray(`${statusMessage}...`));
-                return;
-            }
+                if (!isRichUiEnabled) {
+                    console.info(colors.gray(`${statusMessage}...`));
+                    return;
+                }
 
-            uiHandle?.state.setStatusMessage(`${statusMessage}...`);
-        },
-    });
+                uiHandle?.state.setStatusMessage(`${statusMessage}...`);
+            },
+        });
+    } finally {
+        finishSkippableWait(waitToken);
+    }
 }

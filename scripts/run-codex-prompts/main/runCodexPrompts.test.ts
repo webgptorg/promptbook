@@ -1,5 +1,6 @@
 import { NotAllowed } from '../../../src/errors/NotAllowed';
 import { resolveCoderContext } from '../common/resolveCoderContext';
+import { toggleEndAfterCurrentPromptState } from '../common/waitForPause';
 import type { RunOptions } from '../cli/RunOptions';
 import { ensureWorkingTreeClean } from '../git/ensureWorkingTreeClean';
 import { pullLatestChanges } from '../git/pullLatestChanges';
@@ -215,5 +216,24 @@ describe('runCodexPrompts', () => {
 
         expect(runPromptRound).toHaveBeenCalledTimes(2);
         expect(loadPromptFiles).toHaveBeenCalledTimes(2);
+    });
+
+    it('stops after the current prompt when the dynamic end control is requested', async () => {
+        const promptSelection = createPromptSelection();
+
+        (findNextTodoPrompt as jest.MockedFunction<typeof findNextTodoPrompt>).mockReturnValue(promptSelection);
+        (runPromptRound as jest.MockedFunction<typeof runPromptRound>).mockImplementation(async () => {
+            toggleEndAfterCurrentPromptState();
+        });
+
+        await runCodexPrompts(
+            createRunOptions({
+                waitForUser: false,
+                ignoreGitChanges: true,
+            }),
+        );
+
+        expect(runPromptRound).toHaveBeenCalledTimes(1);
+        expect(loadPromptFiles).toHaveBeenCalledTimes(1);
     });
 });

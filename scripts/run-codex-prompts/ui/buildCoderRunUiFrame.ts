@@ -5,7 +5,7 @@ import type { CoderRunConfig, CoderRunPhase, CoderRunProgressSnapshot } from './
 import type { CoderRunAgentVisual } from './buildCoderRunAgentVisual';
 import { buildCoderRunOctopusVisual } from './buildCoderRunOctopusVisual';
 import {
-    buildControlPills,
+    buildCoderRunControlPills,
     buildErrorDisplayLines,
     buildLabeledSessionLine,
     buildPausePresentation,
@@ -56,6 +56,7 @@ export type BuildCoderRunUiFrameOptions = {
     readonly agentVisualLines?: readonly string[];
     readonly pauseState: CoderRunPauseState;
     readonly pauseTargetLabel: string;
+    readonly isEndAfterCurrentPromptRequested: boolean;
     readonly config: CoderRunConfig;
     readonly phase: CoderRunPhase;
     readonly currentPromptLabel: string;
@@ -119,7 +120,12 @@ export function buildCoderRunUiFrame(options: BuildCoderRunUiFrameOptions): stri
 
     const visibleOutputLines = buildVisibleOutputLines(options.agentOutputLines);
 
-    const controls = buildControlPills(pausePresentation.pauseControl, options.pendingEnterLabel).join('  ');
+    const controls = buildCoderRunControlPills({
+        pauseControl: pausePresentation.pauseControl,
+        pendingEnterLabel: options.pendingEnterLabel,
+        isEndAfterCurrentPromptRequested: options.isEndAfterCurrentPromptRequested,
+        sessionTotal: options.progress.sessionTotal,
+    }).join('  ');
 
     const frame = [
         ...buildFrameHeaderVisual(options, totalWidth, octopusAnimationFrame),

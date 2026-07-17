@@ -1,10 +1,16 @@
 import {
     announcePauseTargetLabel,
+    beginSkippableWait,
     checkPause,
+    finishSkippableWait,
+    getEndAfterCurrentPromptState,
     getPauseState,
     getPauseTargetLabel,
-    requestResume,
+    requestSkipCurrentWait,
+    resetCoderRunControls,
+    toggleEndAfterCurrentPromptState,
     togglePauseState,
+    waitForSkippableMilliseconds,
 } from './waitForPause';
 
 /**
@@ -16,11 +22,12 @@ async function waitForNextTick(): Promise<void> {
 
 describe('waitForPause', () => {
     beforeEach(() => {
-        requestResume();
+        resetCoderRunControls();
     });
 
     afterEach(() => {
-        requestResume();
+        resetCoderRunControls();
+        jest.useRealTimers();
     });
 
     it('cancels a pending pause before the runner becomes fully paused', () => {
@@ -72,5 +79,30 @@ describe('waitForPause', () => {
         await pausePromise;
 
         expect(getPauseTargetLabel()).toBe('the next task');
+    });
+
+    it('toggles the dynamic end-after-current-prompt control', () => {
+        expect(getEndAfterCurrentPromptState()).toBe(false);
+        expect(toggleEndAfterCurrentPromptState()).toBe('REQUESTED_END');
+        expect(getEndAfterCurrentPromptState()).toBe(true);
+        expect(toggleEndAfterCurrentPromptState()).toBe('CANCELLED_END');
+        expect(getEndAfterCurrentPromptState()).toBe(false);
+    });
+
+    it('skips only an active timed wait', async () => {
+        jest.useFakeTimers();
+
+        expect(requestSkipCurrentWait()).toBe('NO_ACTIVE_WAIT');
+
+        const waitToken = beginSkippableWait();
+        const waitPromise = waitForSkippableMilliseconds(waitToken, 60_000);
+
+        expect(requestSkipCurrentWait()).toBe('REQUESTED_SKIP');
+        await expect(waitPromise).resolves.toBeUndefined();
+
+        finishSkippableWait(waitToken);
+        expect(requestSkipCurrentWait()).toBe('NO_ACTIVE_WAIT');
+        expect(jest.getTimerCount()).toBe(0);
+
     });
 });

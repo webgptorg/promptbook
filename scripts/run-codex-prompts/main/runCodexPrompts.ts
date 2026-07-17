@@ -20,7 +20,9 @@ import { resolveCoderContext } from '../common/resolveCoderContext';
 import {
     announcePauseTargetLabel,
     checkPause,
-    listenForPause,
+    getEndAfterCurrentPromptState,
+    listenForCoderRunControls,
+    resetCoderRunControls,
     resetPauseTargetLabel,
 } from '../common/waitForPause';
 import { printAgentGitIdentityTipIfNeeded } from '../git/agentGitIdentity';
@@ -69,6 +71,7 @@ type PromptQueueSnapshot = {
 export async function runCodexPrompts(providedOptions?: RunOptions): Promise<void> {
     const options = normalizeRunOptions(providedOptions ?? parseRunOptions(process.argv.slice(2)));
     validateRunCodexPromptOptions(options);
+    resetCoderRunControls();
 
     const runStartDate = moment();
     const { isRichUiEnabled, progressDisplay, uiHandle } = createRunDisplays(options, runStartDate);
@@ -137,6 +140,15 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
             });
 
             if (!promptQueueSnapshot.nextPrompt) {
+                if (isEndAfterCurrentPromptRequested(completedRunCount)) {
+                    finishWhenEndAfterCurrentPromptIsRequested({
+                        completedRunCount,
+                        isRichUiEnabled,
+                        uiHandle,
+                    });
+                    return;
+                }
+
                 if (options.keepAlive) {
                     announceKeepAliveStatus(promptQueueSnapshot, isRichUiEnabled, uiHandle);
                     await new Promise<void>((resolve) => setTimeout(resolve, KEEP_ALIVE_POLL_INTERVAL_MS));
@@ -159,6 +171,15 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                     progressDisplay,
                     uiHandle,
                 });
+            }
+
+            if (isEndAfterCurrentPromptRequested(completedRunCount)) {
+                finishWhenEndAfterCurrentPromptIsRequested({
+                    completedRunCount,
+                    isRichUiEnabled,
+                    uiHandle,
+                });
+                return;
             }
 
             hasWaitedForStart = await waitForPromptConfirmationIfNeeded({
@@ -206,9 +227,19 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                 });
                 return;
             }
+
+            if (isEndAfterCurrentPromptRequested(completedRunCount)) {
+                finishWhenEndAfterCurrentPromptIsRequested({
+                    completedRunCount,
+                    isRichUiEnabled,
+                    uiHandle,
+                });
+                return;
+            }
         }
     } finally {
         cleanupRunDisplays(progressDisplay, uiHandle, options);
+        resetCoderRunControls();
     }
 }
 
@@ -364,7 +395,7 @@ function createPauseWaiter(options: {
  */
 function startPauseListenerIfNeeded(isRichUiEnabled: boolean): void {
     if (!isRichUiEnabled) {
-        listenForPause();
+        listenForCoderRunControls();
     }
 }
 
@@ -513,6 +544,13 @@ function isRunLimitReached(options: { completedRunCount: number; limit?: number 
 }
 
 /**
+ * Checks whether the user-requested dynamic end control should stop the loop now.
+ */
+function isEndAfterCurrentPromptRequested(completedRunCount: number): boolean {
+    return completedRunCount > 0 && getEndAfterCurrentPromptState();
+}
+
+/**
  * Updates UI and console output when a user-configured run limit stops the loop.
  */
 function finishWhenRunLimitIsReached(options: {
@@ -524,6 +562,20 @@ function finishWhenRunLimitIsReached(options: {
     const runCountLabel = completedRunCount === 1 ? '1 prompt run' : `${completedRunCount} prompt runs`;
 
     announceRunCompletion(`Run limit reached after ${runCountLabel}.`, colors.green, isRichUiEnabled, uiHandle);
+}
+
+/**
+ * Updates UI and console output when the dynamic `X` control stops the loop after a prompt.
+ */
+function finishWhenEndAfterCurrentPromptIsRequested(options: {
+    completedRunCount: number;
+    isRichUiEnabled: boolean;
+    uiHandle?: CoderRunUiHandle;
+}): void {
+    const { completedRunCount, isRichUiEnabled, uiHandle } = options;
+    const runCountLabel = completedRunCount === 1 ? '1 prompt run' : `${completedRunCount} prompt runs`;
+
+    announceRunCompletion(`End requested after ${runCountLabel}.`, colors.green, isRichUiEnabled, uiHandle);
 }
 
 /**

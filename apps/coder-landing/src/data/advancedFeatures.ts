@@ -58,7 +58,7 @@ export const ADVANCED_FEATURES: ReadonlyArray<AdvancedFeatureDefinition> = [
     {
         title: 'Pacing and retries',
         description:
-            'Pace the queue with wall-clock wait durations that keep elapsing through pause and sleep, with automatic error retries after a cool-down.',
+            'Pace the queue with wall-clock wait durations that keep elapsing through pause and sleep, skip the active wait with S, and retry errors after a cool-down.',
         sampleCommand: 'ptbk coder run --harness claude-code --wait-between-prompts 30m --wait-after-error 10m',
     },
     {
@@ -69,7 +69,7 @@ export const ADVANCED_FEATURES: ReadonlyArray<AdvancedFeatureDefinition> = [
     {
         title: 'Human in the loop',
         description:
-            'Confirm each prompt manually with --no-auto, or press "p" in the terminal (or the pause button in the web UI) to pause a running queue.',
+            'Confirm each prompt manually with --no-auto, press P to pause a running queue, or press X to end after the current prompt.',
         sampleCommand: 'ptbk coder run --harness claude-code --no-auto',
     },
     {

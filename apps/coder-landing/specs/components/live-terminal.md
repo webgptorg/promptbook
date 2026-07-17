@@ -28,6 +28,6 @@ The final dashboard must tell the same story as an actual limited run:
 -   `Current task` shows `prompts/2026-07-0200-ptbk-coder-web.md#1` and `Attempt 1/3 · Run limit reached after 1 prompt run.`
 -   `Live output` shows the app server local/network URLs, startup readiness, the `punycode` deprecation warning, prerender output, and `🎉 All tests passed!`.
 -   `Errors` shows one earlier failed `bash` command and a wrapped full `File` path to `.promptbook/coder-prompts/2026-07-0480-agents-server-browser-preview.sh`.
--   `Controls` shows `P Pause` and `CTRL+C Exit`.
+-   `Controls` shows `P Pause`, `S Skip current waiting`, `X End with this prompt`, and `CTRL+C Exit`.
 
 The story the script must always tell: _the user enters `ptbk coder run` → the agent visual starts → the real rich terminal dashboard reaches the final output_. This mirrors the actual CLI workflow in [`../product.md`](../product.md).

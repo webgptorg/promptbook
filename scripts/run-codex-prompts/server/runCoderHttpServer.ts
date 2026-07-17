@@ -89,7 +89,7 @@ export function startCoderHttpServer(options: StartCoderHttpServerOptions): Code
             spaceTrim(`
                 Coder server running at ${colors.cyan(serverUrl)}
                 Open the URL above in your browser to see the kanban board.
-                Press ${colors.bold('p')} to pause / resume the agent runner.
+                Terminal controls: ${colors.bold('P')} pause, ${colors.bold('S')} skip waiting, ${colors.bold('X')} end after current prompt.
             `),
         );
     });

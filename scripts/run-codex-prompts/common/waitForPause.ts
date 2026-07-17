@@ -17,6 +17,21 @@ export type CoderRunPauseState = 'RUNNING' | 'PAUSING' | 'PAUSED';
 export type CoderRunPauseToggleResult = 'REQUESTED_PAUSE' | 'CANCELLED_PAUSE' | 'RESUMED';
 
 /**
+ * Result of requesting a timed wait skip.
+ */
+export type CoderRunSkipCurrentWaitResult = 'REQUESTED_SKIP' | 'NO_ACTIVE_WAIT';
+
+/**
+ * Result of toggling the dynamic end-after-current-prompt state.
+ */
+export type CoderRunEndAfterCurrentPromptToggleResult = 'REQUESTED_END' | 'CANCELLED_END';
+
+/**
+ * Token that identifies one active timed wait which can be skipped by the user.
+ */
+export type CoderRunSkippableWaitToken = symbol;
+
+/**
  * Current pause state.
  */
 let pauseState: CoderRunPauseState = 'RUNNING';
@@ -25,6 +40,26 @@ let pauseState: CoderRunPauseState = 'RUNNING';
  * Label of the next checkpoint where the requested pause will take effect.
  */
 let pauseTargetLabel = DEFAULT_PAUSE_TARGET_LABEL;
+
+/**
+ * Token of the currently active timed wait, if the runner is inside one.
+ */
+let activeSkippableWaitToken: CoderRunSkippableWaitToken | undefined;
+
+/**
+ * Whether the user requested the active timed wait to end immediately.
+ */
+let isSkipCurrentWaitRequested = false;
+
+/**
+ * Whether the runner should stop after the current prompt round reaches its normal boundary.
+ */
+let isEndAfterCurrentPromptRequested = false;
+
+/**
+ * Promise resolvers waiting for the active timed wait to be skipped.
+ */
+const SKIP_CURRENT_WAIT_RESOLVERS = new Map<CoderRunSkippableWaitToken, Set<() => void>>();
 
 /**
  * Stores one new pause state in the shared runner controller.
@@ -38,6 +73,13 @@ function setPauseState(nextPauseState: CoderRunPauseState): void {
  */
 function setPauseTargetLabel(nextPauseTargetLabel: string): void {
     pauseTargetLabel = nextPauseTargetLabel.trim() || DEFAULT_PAUSE_TARGET_LABEL;
+}
+
+/**
+ * Stores the dynamic end-after-current-prompt state.
+ */
+function setEndAfterCurrentPromptRequested(isRequested: boolean): void {
+    isEndAfterCurrentPromptRequested = isRequested;
 }
 
 /**
@@ -61,9 +103,127 @@ export function togglePauseState(): CoderRunPauseToggleResult {
 }
 
 /**
- * Listens for the "p" key to pause and resume.
+ * Applies the two-state toggle used by the `X` hotkey.
  */
-export function listenForPause(): void {
+export function toggleEndAfterCurrentPromptState(): CoderRunEndAfterCurrentPromptToggleResult {
+    if (!isEndAfterCurrentPromptRequested) {
+        setEndAfterCurrentPromptRequested(true);
+        return 'REQUESTED_END';
+    }
+
+    setEndAfterCurrentPromptRequested(false);
+    return 'CANCELLED_END';
+}
+
+/**
+ * Returns whether the dynamic end-after-current-prompt control is active.
+ */
+export function getEndAfterCurrentPromptState(): boolean {
+    return isEndAfterCurrentPromptRequested;
+}
+
+/**
+ * Starts one timed wait which can be skipped by the `S` hotkey.
+ */
+export function beginSkippableWait(): CoderRunSkippableWaitToken {
+    const waitToken = Symbol('coder-run-skippable-wait');
+
+    activeSkippableWaitToken = waitToken;
+    isSkipCurrentWaitRequested = false;
+    SKIP_CURRENT_WAIT_RESOLVERS.clear();
+
+    return waitToken;
+}
+
+/**
+ * Finishes one timed wait and clears any skip request that belonged to it.
+ */
+export function finishSkippableWait(waitToken: CoderRunSkippableWaitToken): void {
+    if (activeSkippableWaitToken !== waitToken) {
+        return;
+    }
+
+    activeSkippableWaitToken = undefined;
+    isSkipCurrentWaitRequested = false;
+    resolveSkipCurrentWaitResolvers(waitToken);
+    SKIP_CURRENT_WAIT_RESOLVERS.delete(waitToken);
+}
+
+/**
+ * Requests that the currently active timed wait ends immediately.
+ */
+export function requestSkipCurrentWait(): CoderRunSkipCurrentWaitResult {
+    if (activeSkippableWaitToken === undefined) {
+        return 'NO_ACTIVE_WAIT';
+    }
+
+    isSkipCurrentWaitRequested = true;
+    resolveSkipCurrentWaitResolvers(activeSkippableWaitToken);
+    return 'REQUESTED_SKIP';
+}
+
+/**
+ * Returns whether one timed wait should end early.
+ */
+export function shouldSkipCurrentWait(waitToken: CoderRunSkippableWaitToken): boolean {
+    return activeSkippableWaitToken === waitToken && isSkipCurrentWaitRequested;
+}
+
+/**
+ * Waits for either a timeout or an `S` hotkey skip request.
+ */
+export async function waitForSkippableMilliseconds(
+    waitToken: CoderRunSkippableWaitToken,
+    durationMs: number,
+): Promise<void> {
+    if (durationMs <= 0 || shouldSkipCurrentWait(waitToken)) {
+        return;
+    }
+
+    await new Promise<void>((resolve) => {
+        let timeout: NodeJS.Timeout | undefined = setTimeout(resolveWait, durationMs);
+        const resolver = (): void => resolveWait();
+        const resolvers = getSkipCurrentWaitResolvers(waitToken);
+
+        resolvers.add(resolver);
+
+        function resolveWait(): void {
+            if (timeout !== undefined) {
+                clearTimeout(timeout);
+                timeout = undefined;
+            }
+
+            resolvers.delete(resolver);
+            if (resolvers.size === 0) {
+                SKIP_CURRENT_WAIT_RESOLVERS.delete(waitToken);
+            }
+
+            resolve();
+        }
+    });
+}
+
+/**
+ * Restores all shared terminal controls to their default state.
+ */
+export function resetCoderRunControls(): void {
+    setPauseState('RUNNING');
+    resetPauseTargetLabel();
+    setEndAfterCurrentPromptRequested(false);
+
+    if (activeSkippableWaitToken !== undefined) {
+        resolveSkipCurrentWaitResolvers(activeSkippableWaitToken);
+    }
+
+    activeSkippableWaitToken = undefined;
+    isSkipCurrentWaitRequested = false;
+    SKIP_CURRENT_WAIT_RESOLVERS.clear();
+}
+
+/**
+ * Listens for the terminal control keys.
+ */
+export function listenForCoderRunControls(): void {
     if (!process.stdin.isTTY) {
         return;
     }
@@ -86,7 +246,30 @@ export function listenForPause(): void {
                 console.log(colors.green('Pause cancelled. Resuming...'));
             }
         }
+
+        if (key.name === 's') {
+            if (requestSkipCurrentWait() === 'REQUESTED_SKIP') {
+                console.log(colors.green('Skipping current wait...'));
+            }
+        }
+
+        if (key.name === 'x') {
+            const toggleResult = toggleEndAfterCurrentPromptState();
+
+            if (toggleResult === 'REQUESTED_END') {
+                console.log(colors.yellow('Will end after the current prompt finishes.'));
+            } else {
+                console.log(colors.green('End request cancelled. Continuing all prompts.'));
+            }
+        }
     });
+}
+
+/**
+ * Backwards-compatible alias for the shared terminal controls listener.
+ */
+export function listenForPause(): void {
+    listenForCoderRunControls();
 }
 
 /**
@@ -168,4 +351,36 @@ export function requestPause(): void {
 export function requestResume(): void {
     setPauseState('RUNNING');
     resetPauseTargetLabel();
+}
+
+/**
+ * Gets or creates the resolver set for one timed wait.
+ */
+function getSkipCurrentWaitResolvers(waitToken: CoderRunSkippableWaitToken): Set<() => void> {
+    const existingResolvers = SKIP_CURRENT_WAIT_RESOLVERS.get(waitToken);
+
+    if (existingResolvers !== undefined) {
+        return existingResolvers;
+    }
+
+    const resolvers = new Set<() => void>();
+    SKIP_CURRENT_WAIT_RESOLVERS.set(waitToken, resolvers);
+    return resolvers;
+}
+
+/**
+ * Resolves all pending skip waiters for one timed wait.
+ */
+function resolveSkipCurrentWaitResolvers(waitToken: CoderRunSkippableWaitToken): void {
+    const resolvers = SKIP_CURRENT_WAIT_RESOLVERS.get(waitToken);
+
+    if (resolvers === undefined) {
+        return;
+    }
+
+    for (const resolver of resolvers) {
+        resolver();
+    }
+
+    resolvers.clear();
 }

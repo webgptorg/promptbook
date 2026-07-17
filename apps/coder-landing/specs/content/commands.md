@@ -32,7 +32,7 @@ These `ptbk coder` options may be referenced in page prose and must be described
 -   `--limit <n>` — stop after N prompt runs (`run` only).
 -   `--no-auto` — wait for user confirmation before each prompt.
 -   `--no-commit`, `--ignore-git-changes`, `--auto-push`, `--auto-pull` — git behavior switches.
--   `--wait-after-prompt`, `--wait-between-prompts`, `--wait-after-error <duration>` — wall-clock pacing; durations like `1h`, `30m`, `5s`; pause and computer sleep count against the wait; errors retry up to 3 times (default wait `10m`).
+-   `--wait-after-prompt`, `--wait-between-prompts`, `--wait-after-error <duration>` — wall-clock pacing; durations like `1h`, `30m`, `5s`; pause and computer sleep count against the wait; `S` skips the active wait; errors retry up to 3 times (default wait `10m`).
 -   `--no-ui`, `--preserve-logs` — plain streaming output / keep temp artifacts.
 -   `--port <port>` — `server` only; kanban UI port, default `4441`.
 

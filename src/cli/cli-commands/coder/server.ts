@@ -51,7 +51,7 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
             - Serves a kanban board at http://localhost:<port> for visual progress tracking
             - Allows editing prompt files directly from the browser (Trello-style)
             - Play / pause button in the browser stays in sync with the CLI pause state
-            - Press "p" in the terminal to pause / resume (same as \`ptbk coder run\`)
+            - Terminal controls match \`ptbk coder run\`: P pause/resume, S skip waiting, X end after current prompt
         `),
     );
 
