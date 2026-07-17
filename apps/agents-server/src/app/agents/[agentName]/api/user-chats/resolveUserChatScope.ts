@@ -1,6 +1,7 @@
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { canAccessAgentVisibility, resolveAgentVisibility } from '@/src/utils/agentAccess';
 import { resolveCurrentUserIdentity } from '@/src/utils/currentUserIdentity';
+import { isUserGlobalAdmin } from '@/src/utils/isUserGlobalAdmin';
 import { ensureUserChatTimeoutWorkerBootstrapped } from '@/src/utils/userChatTimeout/ensureUserChatTimeoutWorkerBootstrapped';
 
 /**
@@ -9,6 +10,11 @@ import { ensureUserChatTimeoutWorkerBootstrapped } from '@/src/utils/userChatTim
 export type ResolvedUserChatScope = {
     userId: number;
     viewerIsAdmin: boolean;
+    /**
+     * True when the viewer is the environment-backed super-admin
+     * who may browse all users' chats in a view-only mode.
+     */
+    viewerIsSuperAdmin: boolean;
     agentPermanentId: string;
 };
 
@@ -32,7 +38,10 @@ export async function resolveUserChatScope(
 
     try {
         const collection = await $provideAgentCollectionForServer();
-        const agentPermanentId = await collection.getAgentPermanentId(agentIdentifier);
+        const [agentPermanentId, viewerIsSuperAdmin] = await Promise.all([
+            collection.getAgentPermanentId(agentIdentifier),
+            isUserGlobalAdmin(),
+        ]);
         const visibility = await resolveAgentVisibility(agentPermanentId);
         const isAllowed = canAccessAgentVisibility({
             visibility,
@@ -48,6 +57,7 @@ export async function resolveUserChatScope(
             scope: {
                 userId: currentUserIdentity.userId,
                 viewerIsAdmin: currentUserIdentity.isAdmin,
+                viewerIsSuperAdmin,
                 agentPermanentId,
             },
         };

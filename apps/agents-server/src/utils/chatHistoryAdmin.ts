@@ -32,6 +32,7 @@ export type ChatHistoryListParams = {
     page?: number;
     pageSize?: number;
     agentName?: string;
+    chatId?: string;
     search?: string;
     sortBy?: ChatHistorySortField;
     sortOrder?: ChatHistorySortOrder;
@@ -46,6 +47,7 @@ function buildQuery(params: ChatHistoryListParams): string {
     if (params.page && params.page > 0) searchParams.set('page', String(params.page));
     if (params.pageSize && params.pageSize > 0) searchParams.set('pageSize', String(params.pageSize));
     if (params.agentName) searchParams.set('agentName', params.agentName);
+    if (params.chatId) searchParams.set('chatId', params.chatId);
     if (params.search) searchParams.set('search', params.search);
     if (params.sortBy) searchParams.set('sortBy', params.sortBy);
     if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);

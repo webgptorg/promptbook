@@ -6,6 +6,7 @@ import { resolveAgentAccess } from '@/src/utils/agentAccess';
 import { loadChatConfiguration } from '@/src/utils/chatConfiguration';
 import { ensureChatHistoryIdentity } from '@/src/utils/currentUserIdentity';
 import { getCurrentUser } from '@/src/utils/getCurrentUser';
+import { isUserGlobalAdmin } from '@/src/utils/isUserGlobalAdmin';
 import { peekShareTargetPayload } from '@/src/utils/shareTargetPayloads';
 import { getThinkingMessages, resolveThinkingMessages } from '@/src/utils/thinkingMessages';
 import { headers } from 'next/headers';
@@ -144,6 +145,7 @@ export default async function AgentChatPage({
         serverThinkingMessages,
         { publicUrl },
         shareTargetPayload,
+        isCurrentUserSuperAdmin,
     ] =
         await Promise.all([
         agentProfilePromise,
@@ -153,6 +155,7 @@ export default async function AgentChatPage({
         serverThinkingMessagesPromise,
         providedServerPromise,
         shareTargetPayloadPromise,
+        isUserGlobalAdmin(),
     ]);
     const thinkingMessages = resolveThinkingMessages(agentProfile.thinkingMessages, serverThinkingMessages);
     const agentUrl = new URL(`/agents/${encodeURIComponent(canonicalAgentId)}`, publicUrl).href;
@@ -180,6 +183,7 @@ export default async function AgentChatPage({
                 speechRecognitionLanguage={speechRecognitionLanguage}
                 isHistoryEnabled={historyIdentityAvailable}
                 isCurrentUserAdmin={currentUser?.isAdmin === true}
+                isCurrentUserSuperAdmin={isCurrentUserSuperAdmin}
                 areFileAttachmentsEnabled={isFileAttachmentsEnabled}
                 feedbackMode={feedbackMode}
                 isHeadlessMode={isHeadless}

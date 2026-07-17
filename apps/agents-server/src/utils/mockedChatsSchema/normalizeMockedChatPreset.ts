@@ -96,9 +96,10 @@ function normalizeMockedChatParticipants(value: unknown): Array<MockedChatPartic
         };
     });
 
-    if (!uniqueParticipants.some((participant) => participant.isMe)) {
+    const firstParticipant = uniqueParticipants[0];
+    if (firstParticipant && !uniqueParticipants.some((participant) => participant.isMe)) {
         uniqueParticipants[0] = {
-            ...uniqueParticipants[0],
+            ...firstParticipant,
             isMe: true,
         };
     }

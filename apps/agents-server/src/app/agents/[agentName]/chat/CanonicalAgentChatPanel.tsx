@@ -25,6 +25,14 @@ type CanonicalAgentChatPanelProps = {
     initialAgentMessage?: string | null;
     isReadOnly?: boolean;
     readOnlySource?: UserChatSource;
+    /**
+     * True when the viewed chat belongs to a different user than the current viewer.
+     */
+    isExternalUserChat?: boolean;
+    /**
+     * Optional actions rendered inside the read-only banner (for example super-admin shortcuts).
+     */
+    readOnlyExtraActions?: ReactNode;
     messages: ReadonlyArray<ChatMessage>;
     draftMessage?: string;
     autoExecuteMessage?: string;
@@ -72,6 +80,8 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
         initialAgentMessage,
         isReadOnly = false,
         readOnlySource,
+        isExternalUserChat = false,
+        readOnlyExtraActions,
         messages,
         draftMessage,
         autoExecuteMessage,
@@ -122,6 +132,8 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
                 currentTimestamp={currentTimestamp}
                 isReadOnly={isReadOnly}
                 readOnlySource={readOnlySource}
+                isExternalUserChat={isExternalUserChat}
+                readOnlyExtraActions={readOnlyExtraActions}
                 onDraftMessageChange={onDraftMessageChange}
                 onStartNewChat={onStartNewChat}
                 newChatButtonHref={newChatButtonHref}

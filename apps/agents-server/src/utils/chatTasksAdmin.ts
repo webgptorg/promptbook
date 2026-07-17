@@ -154,6 +154,24 @@ export async function $fetchAdminChatTasks(params: AdminChatTaskListParams = {})
 }
 
 /**
+ * Fetches one durable background task for the admin task detail page.
+ *
+ * @private internal admin utility of Agents Server
+ */
+export async function $fetchAdminChatTask(taskId: string): Promise<AdminChatTaskRecord> {
+    const response = await fetch(`/api/admin/chat-tasks/${encodeURIComponent(taskId)}`, {
+        method: 'GET',
+    });
+
+    const payload = (await response.json().catch(() => ({}))) as { task?: AdminChatTaskRecord; error?: string };
+    if (!response.ok || !payload.task) {
+        throw new Error(payload.error || 'Failed to load the background task.');
+    }
+
+    return payload.task;
+}
+
+/**
  * Requests admin cancellation for one durable chat task.
  *
  * @private internal admin utility of Agents Server

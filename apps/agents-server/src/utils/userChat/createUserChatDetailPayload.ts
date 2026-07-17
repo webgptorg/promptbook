@@ -9,9 +9,22 @@ import { listUserChatJobs } from './listUserChatJobs';
 import { reconcileUserChatActiveJobs } from './reconcileUserChatActiveJobs';
 
 /**
+ * Optional viewer context injected while building one chat detail payload.
+ */
+type CreateUserChatDetailPayloadOptions = {
+    /**
+     * Database user id of the current viewer, used to mark other users' chats as view-only.
+     */
+    viewerUserId?: number;
+};
+
+/**
  * Builds the API payload used for one canonical scoped chat detail.
  */
-export async function createUserChatDetailPayload(chat: UserChatRecord): Promise<{
+export async function createUserChatDetailPayload(
+    chat: UserChatRecord,
+    options: CreateUserChatDetailPayloadOptions = {},
+): Promise<{
     chat: ReturnType<typeof createUserChatSummary>;
     messages: UserChatRecord['messages'];
     draftMessage: string | null;
@@ -89,6 +102,7 @@ export async function createUserChatDetailPayload(chat: UserChatRecord): Promise
         chat: createUserChatSummary(currentChat, {
             timeoutActivity: createUserChatTimeoutActivity(activeTimeouts),
             activeJobCount: activeJobs.length,
+            viewerUserId: options.viewerUserId,
         }),
         messages: currentChat.messages,
         draftMessage: currentChat.draftMessage,

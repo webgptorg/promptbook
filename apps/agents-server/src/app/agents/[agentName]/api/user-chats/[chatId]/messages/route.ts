@@ -10,7 +10,7 @@ import {
     createUserChatDetailPayload,
     getUserChat,
     getUserChatJobByClientMessageId,
-    isFrozenUserChatSource,
+    isUserChatViewOnly,
     resolveUserChatReplyReference,
     triggerUserChatJobWorker,
 } from '@/src/utils/userChat';
@@ -78,6 +78,7 @@ export async function POST(
         const existingChat = await getUserChat({
             userId: scopeResult.scope.userId,
             viewerIsAdmin: scopeResult.scope.viewerIsAdmin,
+            viewerIsSuperAdmin: scopeResult.scope.viewerIsSuperAdmin,
             agentPermanentId: scopeResult.scope.agentPermanentId,
             chatId,
         });
@@ -86,7 +87,7 @@ export async function POST(
             return NextResponse.json({ error: 'Chat not found.' }, { status: 404 });
         }
 
-        if (isFrozenUserChatSource(existingChat.source)) {
+        if (isUserChatViewOnly({ chat: existingChat, viewerUserId: scopeResult.scope.userId })) {
             return NextResponse.json({ error: 'Frozen chats are view-only in the web UI.' }, { status: 403 });
         }
 
@@ -106,7 +107,7 @@ export async function POST(
 
         if (existingJob) {
             return NextResponse.json({
-                ...(await createUserChatDetailPayload(existingChat)),
+                ...(await createUserChatDetailPayload(existingChat, { viewerUserId: scopeResult.scope.userId })),
                 job: existingJob,
             });
         }
@@ -144,6 +145,7 @@ export async function POST(
             attachments,
             replyingTo,
             parameters,
+            chatHistoryTelemetryRequest: request,
         }).catch(async (error) => {
             if (isDuplicateUserChatJobError(error)) {
                 const duplicateJob = await getUserChatJobByClientMessageId({
@@ -178,7 +180,9 @@ export async function POST(
 
         return NextResponse.json(
             {
-                ...(await createUserChatDetailPayload(enqueuedTurn.chat)),
+                ...(await createUserChatDetailPayload(enqueuedTurn.chat, {
+                    viewerUserId: scopeResult.scope.userId,
+                })),
                 job: enqueuedTurn.job,
             },
             { status: 202 },

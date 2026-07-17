@@ -3,6 +3,7 @@ import { $randomBase58 } from '../../../../../src/utils/random/$randomBase58';
 import { createUserChatJob } from './createUserChatJob';
 import { deleteUserChatJob } from './deleteUserChatJob';
 import { mutateUserChat } from './mutateUserChat';
+import { recordUserChatMessageInChatHistory } from './recordUserChatMessageInChatHistory';
 import type { UserChatJobRecord } from './UserChatJobRecord';
 import type { UserChatRecord } from './UserChatRecord';
 import { assertValidUserChatMessageReplies } from './userChatReplies';
@@ -30,6 +31,10 @@ export async function appendQueuedUserChatTurn(options: {
     attachments?: ChatMessage['attachments'];
     replyingTo?: ChatMessage['replyingTo'];
     parameters?: Record<string, unknown>;
+    /**
+     * Optional HTTP request used only for chat-history telemetry (ip, user-agent,...).
+     */
+    chatHistoryTelemetryRequest?: Request | null;
 }): Promise<{
     chat: UserChatRecord;
     job: UserChatJobRecord;
@@ -83,6 +88,21 @@ export async function appendQueuedUserChatTurn(options: {
                     lastMessageAt: nowIso,
                 };
             },
+        });
+
+        // Note: Recording is best-effort telemetry for `/admin/chat-history` and must never block the chat turn
+        void recordUserChatMessageInChatHistory({
+            agentPermanentId: options.agentPermanentId,
+            chatId: options.chatId,
+            taskId: jobId,
+            userId: options.userId,
+            message: {
+                role: 'USER',
+                sender: 'USER',
+                content: options.messageContent,
+                attachments: options.attachments,
+            },
+            request: options.chatHistoryTelemetryRequest,
         });
 
         return { chat, job };

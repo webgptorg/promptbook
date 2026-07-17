@@ -1,6 +1,7 @@
 import type { ChatMessage, string_date_iso8601 } from '@promptbook-local/types';
 import { useCallback, useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from 'react';
 import { showConfirm } from '../../../components/AsyncDialogs/asyncDialogs';
+import { notifyError, notifySuccess } from '../../../components/Notifications/notifications';
 import {
     $clearAgentChatHistory,
     $deleteChatHistoryRow,
@@ -11,6 +12,11 @@ import {
     type ChatHistorySortField,
     type ChatHistorySortOrder,
 } from '../../../utils/chatHistoryAdmin';
+import {
+    $saveMockedChatPresetFromMessages,
+    MOCKED_CHATS_EDITOR_ROUTE,
+} from '../../../utils/mockedChats/$saveMockedChatPresetFromMessages';
+import type { MockedChatSourceMessage } from '../../../utils/mockedChats/createMockedChatPresetFromChatMessages';
 
 /**
  * Default page size used in the table view.
@@ -97,6 +103,9 @@ export type UseChatHistoryState = {
     handleViewModeChange: (mode: ChatHistoryViewMode) => void;
     handleDeleteRow: (row: ChatHistoryRow) => Promise<void>;
     handleClearAgentHistory: () => Promise<void>;
+    handleCreateMockFromRow: (row: ChatHistoryRow) => Promise<void>;
+    handleCreateMockFromChatView: () => Promise<void>;
+    isCreatingMock: boolean;
     isSortedBy: (field: ChatHistorySortField) => boolean;
     goToPreviousPage: () => void;
     goToNextPage: () => void;
@@ -215,6 +224,27 @@ function createChatHistoryMessages(items: ChatHistoryRow[], viewMode: ChatHistor
 }
 
 /**
+ * Converts one stored chat history row into a mocked-chat source message.
+ */
+function mapChatHistoryRowToMockedChatSourceMessage(row: ChatHistoryRow): MockedChatSourceMessage {
+    return {
+        sender: String(resolveChatHistoryMessageSender(row.message)),
+        content:
+            typeof resolveChatHistoryMessageContent(row.message) === 'string'
+                ? (resolveChatHistoryMessageContent(row.message) as string)
+                : JSON.stringify(row.message),
+        createdAt: row.createdAt,
+    };
+}
+
+/**
+ * Builds a human-readable mocked-chat preset name for one recorded chat.
+ */
+function createMockedChatNameFromRow(row: ChatHistoryRow): string {
+    return `${row.agentName} chat ${new Date(row.createdAt).toLocaleDateString('en-US')}`;
+}
+
+/**
  * Requests confirmation before deleting one chat history row.
  */
 async function confirmDeleteChatMessage(): Promise<boolean> {
@@ -258,6 +288,7 @@ export function useChatHistoryState({ initialAgentName, formatText }: UseChatHis
     const [error, setError] = useState<string | null>(null);
     const [agents, setAgents] = useState<AdminAgentInfo[]>([]);
     const [agentsLoading, setAgentsLoading] = useState(false);
+    const [isCreatingMock, setIsCreatingMock] = useState(false);
 
     const applyChatHistoryResponse = useCallback((response: ChatHistoryListResponse) => {
         setItems(response.items);
@@ -457,6 +488,69 @@ export function useChatHistoryState({ initialAgentName, formatText }: UseChatHis
         }
     }, [agentName, applyChatHistoryResponse, formatText, loadChatHistory]);
 
+    const createMockAndNavigate = useCallback(
+        async (name: string, messages: ReadonlyArray<MockedChatSourceMessage>): Promise<void> => {
+            if (isCreatingMock) {
+                return;
+            }
+
+            if (messages.length === 0) {
+                notifyError('There are no messages to create a mocked chat from.');
+                return;
+            }
+
+            try {
+                setIsCreatingMock(true);
+                await $saveMockedChatPresetFromMessages({ name, messages });
+                notifySuccess('Mocked chat was created.');
+                window.location.href = MOCKED_CHATS_EDITOR_ROUTE;
+            } catch (actionError) {
+                notifyError(
+                    resolveChatHistoryActionErrorMessage(actionError, 'Failed to create the mocked chat'),
+                );
+            } finally {
+                setIsCreatingMock(false);
+            }
+        },
+        [isCreatingMock],
+    );
+
+    const handleCreateMockFromRow = useCallback(
+        async (row: ChatHistoryRow): Promise<void> => {
+            let mockSourceRows: ChatHistoryRow[] = [row];
+
+            if (row.chatId) {
+                try {
+                    const chatResponse = await $fetchChatHistory({
+                        chatId: row.chatId,
+                        pageSize: CHAT_VIEW_PAGE_SIZE,
+                        sortBy: 'createdAt',
+                        sortOrder: 'asc',
+                    });
+                    if (chatResponse.items.length > 0) {
+                        mockSourceRows = chatResponse.items;
+                    }
+                } catch {
+                    // Note: Falling back to the single row keeps the button usable when the chat lookup fails
+                }
+            }
+
+            await createMockAndNavigate(
+                createMockedChatNameFromRow(row),
+                mockSourceRows.map(mapChatHistoryRowToMockedChatSourceMessage),
+            );
+        },
+        [createMockAndNavigate],
+    );
+
+    const handleCreateMockFromChatView = useCallback(async (): Promise<void> => {
+        const firstRow = items[0];
+        await createMockAndNavigate(
+            firstRow ? createMockedChatNameFromRow(firstRow) : 'Recorded chat',
+            items.map(mapChatHistoryRowToMockedChatSourceMessage),
+        );
+    }, [createMockAndNavigate, items]);
+
     const isSortedBy = useCallback((field: ChatHistorySortField) => sortBy === field, [sortBy]);
 
     const goToPreviousPage = useCallback(() => {
@@ -491,6 +585,9 @@ export function useChatHistoryState({ initialAgentName, formatText }: UseChatHis
         handleViewModeChange,
         handleDeleteRow,
         handleClearAgentHistory,
+        handleCreateMockFromRow,
+        handleCreateMockFromChatView,
+        isCreatingMock,
         isSortedBy,
         goToPreviousPage,
         goToNextPage,

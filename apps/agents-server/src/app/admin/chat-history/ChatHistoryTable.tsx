@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { Card } from '../../../components/Homepage/Card';
 import type { ServerLanguageCode } from '../../../languages/ServerLanguageRegistry';
 import { formatServerLanguageHumanReadableDate } from '../../../utils/localization/formatServerLanguageHumanReadableDate';
@@ -20,6 +21,8 @@ type ChatHistoryTableProps = Pick<
     | 'handleSortChange'
     | 'isSortedBy'
     | 'handleDeleteRow'
+    | 'handleCreateMockFromRow'
+    | 'isCreatingMock'
     | 'goToPreviousPage'
     | 'goToNextPage'
 > & {
@@ -106,6 +109,8 @@ export function ChatHistoryTable({
     handleSortChange,
     isSortedBy,
     handleDeleteRow,
+    handleCreateMockFromRow,
+    isCreatingMock,
     goToPreviousPage,
     goToNextPage,
 }: ChatHistoryTableProps) {
@@ -174,13 +179,33 @@ export function ChatHistoryTable({
                                         <div className="truncate text-xs">{row.platform || '-'}</div>
                                     </td>
                                     <td className="whitespace-nowrap px-4 py-3 text-right text-xs font-medium">
-                                        <button
-                                            type="button"
-                                            onClick={() => handleDeleteRow(row)}
-                                            className="text-red-600 hover:text-red-800"
-                                        >
-                                            Delete
-                                        </button>
+                                        <div className="flex items-center justify-end gap-3">
+                                            <button
+                                                type="button"
+                                                onClick={() => void handleCreateMockFromRow(row)}
+                                                disabled={isCreatingMock}
+                                                className="text-blue-600 hover:text-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
+                                                title="Create a mocked chat preset from this chat"
+                                            >
+                                                Create mock
+                                            </button>
+                                            {row.taskId ? (
+                                                <Link
+                                                    href={`/admin/task-manager/${encodeURIComponent(row.taskId)}`}
+                                                    className="text-blue-600 hover:text-blue-800"
+                                                    title="Open the chat completion task of this message"
+                                                >
+                                                    Task
+                                                </Link>
+                                            ) : null}
+                                            <button
+                                                type="button"
+                                                onClick={() => handleDeleteRow(row)}
+                                                className="text-red-600 hover:text-red-800"
+                                            >
+                                                Delete
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}

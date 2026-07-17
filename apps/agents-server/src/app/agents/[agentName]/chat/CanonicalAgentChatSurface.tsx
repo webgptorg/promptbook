@@ -72,6 +72,14 @@ type CanonicalAgentChatSurfaceProps = {
     readonly currentTimestamp: number;
     readonly isReadOnly: boolean;
     readonly readOnlySource?: UserChatSource;
+    /**
+     * True when the viewed chat belongs to a different user than the current viewer.
+     */
+    readonly isExternalUserChat?: boolean;
+    /**
+     * Optional actions rendered inside the read-only banner (for example super-admin shortcuts).
+     */
+    readonly readOnlyExtraActions?: ReactNode;
     readonly onDraftMessageChange: (message: string) => void;
     readonly onStartNewChat?: () => Promise<void> | void;
     readonly newChatButtonHref?: string;
@@ -106,6 +114,8 @@ export function CanonicalAgentChatSurface({
     currentTimestamp,
     isReadOnly,
     readOnlySource,
+    isExternalUserChat = false,
+    readOnlyExtraActions,
     onDraftMessageChange,
     onStartNewChat,
     newChatButtonHref,
@@ -147,10 +157,15 @@ export function CanonicalAgentChatSurface({
     );
     const { language, t: translateText } = useServerLanguage();
     const translations = useMemo(() => createCanonicalAgentChatTranslations(translateText), [translateText]);
-    const frozenChatBannerLabel = useMemo(
-        () => (readOnlySource ? getUserChatSourceBannerLabel(readOnlySource) : null),
-        [readOnlySource],
-    );
+    const frozenChatBannerLabel = useMemo(() => {
+        const sourceBannerLabel = readOnlySource ? getUserChatSourceBannerLabel(readOnlySource) : null;
+        if (sourceBannerLabel) {
+            return sourceBannerLabel;
+        }
+
+        // Note: Chats of other users have no external source but must still explain the view-only mode
+        return isExternalUserChat ? 'another user' : null;
+    }, [isExternalUserChat, readOnlySource]);
     const feedbackEnabled = isChatFeedbackEnabled(feedbackMode);
     const cancellableJob = useMemo(() => resolveCancellableJob(activeJobs), [activeJobs]);
     const { chatVisualMode } = useChatVisualMode();
@@ -285,6 +300,7 @@ export function CanonicalAgentChatSurface({
             {isReadOnly && frozenChatBannerLabel && (
                 <div className="mx-4 mt-4 rounded-2xl border border-amber-200 bg-amber-50/95 px-4 py-3 text-sm font-medium text-amber-900 shadow-sm dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
                     {translateText('chat.frozenBannerLabel', { source: frozenChatBannerLabel })}
+                    {readOnlyExtraActions}
                 </div>
             )}
         </Chat>

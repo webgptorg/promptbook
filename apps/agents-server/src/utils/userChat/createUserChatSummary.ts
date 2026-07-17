@@ -50,6 +50,10 @@ const SUMMARY_RUNNING_ACTIVITY_MAX_AGE_MS = 6 * 60 * 1_000;
 type CreateUserChatSummaryOptions = {
     timeoutActivity?: UserChatTimeoutActivity;
     activeJobCount?: number;
+    /**
+     * Database user id of the current viewer, used to mark other users' chats as view-only.
+     */
+    viewerUserId?: number;
 };
 
 /**
@@ -64,6 +68,10 @@ export type UserChatSummarySeed = {
     lastMessageAt: string | null;
     title: string | null;
     source: UserChatRecord['source'];
+    /**
+     * Database user id owning the chat, used to mark other users' chats as view-only.
+     */
+    userId?: number;
     messagesCount: number;
     firstUserMessageContent: string;
     lastPreviewMessageContent: string;
@@ -89,6 +97,7 @@ export function createUserChatSummary(
             lastMessageAt: chat.lastMessageAt,
             title: chat.title,
             source: chat.source,
+            userId: chat.userId,
             messagesCount: chat.messages.length,
             firstUserMessageContent: firstUserMessage?.content || '',
             lastPreviewMessageContent: lastMessage?.content || '',
@@ -113,6 +122,8 @@ export function createUserChatSummaryFromSeed(
         options.activeJobCount && options.activeJobCount > 0
             ? options.activeJobCount
             : resolveSummaryPendingActivityCount(chat.updatedAt, chat.pendingAssistantMessageCount);
+    const isExternalUserChat =
+        options.viewerUserId !== undefined && chat.userId !== undefined && chat.userId !== options.viewerUserId;
 
     return {
         id: chat.id,
@@ -120,7 +131,8 @@ export function createUserChatSummaryFromSeed(
         updatedAt: chat.updatedAt,
         lastMessageAt: chat.lastMessageAt,
         source: chat.source,
-        isReadOnly: isFrozenUserChatSource(chat.source),
+        isReadOnly: isFrozenUserChatSource(chat.source) || isExternalUserChat,
+        isExternalUserChat,
         messagesCount: chat.messagesCount,
         title: shortenText(storedTitle || titleSource || DEFAULT_CHAT_TITLE, CHAT_TITLE_MAX_LENGTH),
         preview: shortenText(previewSource, CHAT_PREVIEW_MAX_LENGTH),
