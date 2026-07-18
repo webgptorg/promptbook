@@ -1607,14 +1607,16 @@ resolve_openai_codex_api_key_usage() {
 }
 
 run_openai_codex_login_status_without_api_environment() {
+    # 'codex login status' prints the "Logged in using ChatGPT" line to stderr, so merge it into stdout (2>&1)
+    # right on the codex invocation; the outer 2>/dev/null only drops sudo/login-shell noise, not the status line.
     if [[ -n "$RUN_USER" && -n "$RUN_HOME" ]]; then
-        run_as_service_user bash -lc 'unset OPENAI_API_KEY OPENAI_BASE_URL CODEX_API_KEY; codex login status' 2>/dev/null || true
+        run_as_service_user bash -lc 'unset OPENAI_API_KEY OPENAI_BASE_URL CODEX_API_KEY; codex login status 2>&1' 2>/dev/null || true
         return
     fi
 
     (
         unset OPENAI_API_KEY OPENAI_BASE_URL CODEX_API_KEY
-        codex login status
+        codex login status 2>&1
     ) 2>/dev/null || true
 }
 

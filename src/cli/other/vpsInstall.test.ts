@@ -156,7 +156,7 @@ describe('other/vps/install.sh', () => {
         expect(installScript).toContain('resolve_openai_codex_api_key_usage()');
         expect(installScript).toContain('run_openai_codex_login_status_without_api_environment()');
         expect(installScript).toContain(
-            "unset OPENAI_API_KEY OPENAI_BASE_URL CODEX_API_KEY; codex login status",
+            "unset OPENAI_API_KEY OPENAI_BASE_URL CODEX_API_KEY; codex login status 2>&1",
         );
         expect(installScript).toContain('is_openai_codex_chatgpt_runner_authenticated()');
         expect(installScript).toContain('is_openai_codex_api_key_runner_configured()');

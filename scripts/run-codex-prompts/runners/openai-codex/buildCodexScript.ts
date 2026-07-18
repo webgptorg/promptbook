@@ -22,7 +22,8 @@ export function buildCodexScript(options: CodexScriptOptions): string {
     const loginMethodConfig = spaceTrim(`
         CODEX_LOGIN_STATUS="$(
             unset OPENAI_API_KEY OPENAI_BASE_URL CODEX_API_KEY
-            ${options.codexCommand} login status 2>/dev/null || true
+            # 'codex login status' prints the "Logged in using ChatGPT" line to stderr, so merge stderr into stdout (2>&1) to capture it
+            ${options.codexCommand} login status 2>&1 || true
         )"
         case "$CODEX_LOGIN_STATUS" in
             *"Logged in using ChatGPT"*)

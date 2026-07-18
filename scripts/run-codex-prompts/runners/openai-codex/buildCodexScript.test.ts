@@ -17,7 +17,7 @@ describe('buildCodexScript', () => {
         expect(script).toContain('--skip-git-repo-check');
         expect(script).toContain('CODEX_LOGIN_STATUS="$(');
         expect(script).toContain('unset OPENAI_API_KEY OPENAI_BASE_URL CODEX_API_KEY');
-        expect(script).toContain('codex login status 2>/dev/null || true');
+        expect(script).toContain('codex login status 2>&1 || true');
         expect(script).toContain('IS_CODEX_CHATGPT_LOGIN_ACTIVE=1');
         expect(script).toContain('CODEX_LOGIN_METHOD_ARGUMENTS=(-c forced_login_method=chatgpt)');
         expect(script).toContain('CODEX_LOGIN_METHOD_ARGUMENTS=(-c forced_login_method=api)');
@@ -62,7 +62,7 @@ describe('buildCodexScript', () => {
             script.indexOf('CODEX_LOGIN_STATUS="$('),
         );
         expect(script.indexOf('unset OPENAI_API_KEY OPENAI_BASE_URL CODEX_API_KEY')).toBeLessThan(
-            script.indexOf('codex login status 2>/dev/null || true'),
+            script.indexOf('codex login status 2>&1 || true'),
         );
         expect(script).toContain('elif [ -f .env ]; then');
         expect(script).toContain('if [ "$IS_CODEX_CHATGPT_LOGIN_ACTIVE" != "1" ] &&');
