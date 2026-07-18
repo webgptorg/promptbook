@@ -20,6 +20,17 @@ export function buildAgentProjectProfileHref(agentPermanentId: string, projectNa
 }
 
 /**
+ * Builds the href that starts browser VS Code for one project.
+ *
+ * @param agentPermanentId - Permanent id of the agent.
+ * @param projectName - Project directory name.
+ * @returns Project browser VS Code launcher href.
+ */
+export function buildAgentProjectVscodeHref(agentPermanentId: string, projectName: string): string {
+    return `${buildAgentProjectProfileHref(agentPermanentId, projectName)}/vscode`;
+}
+
+/**
  * Builds the href of one browsed folder inside a project profile.
  *
  * @param agentPermanentId - Permanent id of the agent.

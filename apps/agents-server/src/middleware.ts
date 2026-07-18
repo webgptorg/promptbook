@@ -69,7 +69,8 @@ export const config = {
          * - public folder
          * - api/health (standalone VPS readiness probe)
          * - api/internal (worker/cron routes are authorized separately)
+         * - api/agent-project-vscode (browser VS Code proxy has its own session-token guard and CSP)
          */
-        '/((?!_next/static|_next/image|favicon.ico|logo-|fonts/|robots.txt|api/health|api/internal).*)',
+        '/((?!_next/static|_next/image|favicon.ico|logo-|fonts/|robots.txt|api/health|api/internal|api/agent-project-vscode).*)',
     ],
 };
