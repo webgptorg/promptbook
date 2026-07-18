@@ -44,6 +44,7 @@ type UseHeaderAgentMenusOptions = {
     readonly isAdmin: boolean;
     readonly isAuthenticated: boolean;
     readonly isInstalled: boolean;
+    readonly isProjectsViewVisible: boolean;
     readonly namingPlural: string;
     readonly namingSingular: string;
     readonly onAgentRenamed: (payload: AgentContextMenuRenamePayload) => void;
@@ -159,6 +160,7 @@ export function useHeaderAgentMenus({
     isAdmin,
     isAuthenticated,
     isInstalled,
+    isProjectsViewVisible,
     namingPlural,
     namingSingular,
     onAgentRenamed,
@@ -202,9 +204,10 @@ export function useHeaderAgentMenus({
                 activeAgentNavigationId,
                 agentMoreViewItems,
                 isAdmin,
+                isProjectsViewVisible,
                 translate,
             }),
-        [activeAgentNavigationId, agentMoreViewItems, isAdmin, translate],
+        [activeAgentNavigationId, agentMoreViewItems, isAdmin, isProjectsViewVisible, translate],
     );
 
     const {

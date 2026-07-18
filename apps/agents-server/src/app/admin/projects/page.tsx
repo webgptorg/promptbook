@@ -119,6 +119,7 @@ function AdminAgentProjectsSection({ summary }: { readonly summary: AgentProject
                 agentPermanentId={summary.agentPermanentId}
                 projects={summary.projects}
                 isAdminView
+                isProjectDetailsVisible
             />
         </section>
     );

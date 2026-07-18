@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
 import { NotAllowed } from '../../../../../../../../../../src/errors/NotAllowed';
 import { NotFoundError } from '../../../../../../../../../../src/errors/NotFoundError';
-import { createAgentForbiddenResponse, resolveAgentAccess } from '@/src/utils/agentAccess';
+import { createAgentForbiddenResponse } from '@/src/utils/agentAccess';
+import {
+    AGENT_PROJECT_DETAILS_FORBIDDEN_MESSAGE,
+    resolveAgentProjectsAccess,
+} from '@/src/utils/agentProjects/agentProjectAccess';
 import { readAgentProjectFile } from '@/src/utils/agentProjects/readAgentProjectFile';
 import { resolveAgentRouteTarget } from '@/src/utils/agentRouting/resolveAgentRouteTarget';
 
@@ -28,9 +32,13 @@ export async function GET(
         return NextResponse.json({ error: 'Agent not found.' }, { status: 404 });
     }
 
-    const access = await resolveAgentAccess(routeTarget.canonicalAgentId, { request });
-    if (!access.isAllowed) {
+    const access = await resolveAgentProjectsAccess(routeTarget.canonicalAgentId, { request });
+    if (!access.isProjectOverviewVisible) {
         return createAgentForbiddenResponse();
+    }
+
+    if (!access.isProjectDetailsVisible) {
+        return createAgentForbiddenResponse(AGENT_PROJECT_DETAILS_FORBIDDEN_MESSAGE);
     }
 
     try {

@@ -14,7 +14,7 @@ export const PRIVATE_AGENT_FORBIDDEN_MESSAGE = 'This agent is private. Sign in t
 /**
  * Options for resolving access to one agent.
  */
-type ResolveAgentAccessOptions = {
+export type ResolveAgentAccessOptions = {
     /**
      * Request carrying the optional same-server TEAM access header.
      */

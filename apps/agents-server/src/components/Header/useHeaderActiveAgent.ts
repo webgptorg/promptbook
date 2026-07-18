@@ -53,6 +53,7 @@ type HeaderActiveAgentState = {
     readonly activeAgentNavigationId: string | null;
     readonly activeAgentOrigin: string;
     readonly activeAgentUrl: string;
+    readonly isActiveAgentProjectsViewVisible: boolean;
     readonly activeAgentView: ActiveAgentNavigation['view'];
     readonly activeAgentViewLabel: ReactNode;
     readonly agentMenuTree: ReturnType<typeof buildAgentMenuStructure>['tree'];
@@ -274,6 +275,7 @@ export function useHeaderActiveAgent({
         activeAgentNavigationId,
         activeAgentOrigin: origin,
         activeAgentUrl: createActiveAgentUrl(activeAgentNavigationId, origin),
+        isActiveAgentProjectsViewVisible: activeAgentBreadcrumbInfo?.isProjectsViewVisible === true,
         activeAgentView: activeAgentNavigation.view,
         activeAgentViewLabel: activeAgentNavigation.view
             ? createAgentViewLabel(activeAgentNavigation.view, translate)

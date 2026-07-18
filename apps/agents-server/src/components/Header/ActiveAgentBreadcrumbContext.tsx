@@ -12,7 +12,12 @@ import type { AgentBasicInformation } from '../../../../../src/book-2.0/agent-so
 export type ActiveAgentBreadcrumbInfo = Pick<
     AgentBasicInformation,
     'agentName' | 'agentHash' | 'permanentId' | 'meta'
->;
+> & {
+    /**
+     * Whether the active agent has projects visible to the current request.
+     */
+    readonly isProjectsViewVisible?: boolean;
+};
 
 /**
  * Internal shape of the active-agent breadcrumb context.

@@ -18,6 +18,7 @@ type BuildActiveAgentViewItemsOptions = {
     readonly activeAgentNavigationId: string | null;
     readonly agentMoreViewItems: ReadonlyArray<SubMenuItem>;
     readonly isAdmin: boolean;
+    readonly isProjectsViewVisible: boolean;
     readonly translate: HeaderTranslate;
 };
 
@@ -30,6 +31,7 @@ export function buildActiveAgentViewItems({
     activeAgentNavigationId,
     agentMoreViewItems,
     isAdmin,
+    isProjectsViewVisible,
     translate,
 }: BuildActiveAgentViewItemsOptions): SubMenuItem[] {
     if (!activeAgentNavigationId) {
@@ -51,11 +53,14 @@ export function buildActiveAgentViewItems({
             label: createAgentViewLabel('Timeouts', translate),
             href: `${activeAgentBasePath}/timeouts`,
         },
-        {
+    ];
+
+    if (isProjectsViewVisible) {
+        items.push({
             label: createAgentViewLabel('Projects', translate),
             href: `${activeAgentBasePath}/projects`,
-        },
-    ];
+        });
+    }
 
     if (isAdmin) {
         items.push({

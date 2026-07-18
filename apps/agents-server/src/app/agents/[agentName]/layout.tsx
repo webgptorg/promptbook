@@ -2,6 +2,8 @@
 
 import type { Metadata } from 'next';
 import { resolveAgentRouteTarget } from '../../../utils/agentRouting/resolveAgentRouteTarget';
+import { resolveAgentProjectsAccess } from '../../../utils/agentProjects/agentProjectAccess';
+import { hasAgentProjects } from '../../../utils/agentProjects/hasAgentProjects';
 import { ActiveAgentBreadcrumbBinder } from './ActiveAgentBreadcrumbBinder';
 import { getAgentName, getAgentProfile } from './_utils';
 import { generateAgentMetadata } from './generateAgentMetadata';
@@ -36,13 +38,19 @@ async function tryResolveActiveAgentBreadcrumbInfo(
             return null;
         }
 
-        const agentProfile = await getAgentProfile(routeTarget.canonicalAgentId);
+        const [agentProfile, projectsAccess] = await Promise.all([
+            getAgentProfile(routeTarget.canonicalAgentId),
+            resolveAgentProjectsAccess(routeTarget.canonicalAgentId),
+        ]);
+        const isProjectsViewVisible =
+            projectsAccess.isProjectOverviewVisible && (await hasAgentProjects(routeTarget.canonicalAgentId));
 
         return {
             agentName: agentProfile.agentName,
             agentHash: agentProfile.agentHash,
             permanentId: agentProfile.permanentId,
             meta: agentProfile.meta,
+            isProjectsViewVisible,
         };
     } catch {
         return null;

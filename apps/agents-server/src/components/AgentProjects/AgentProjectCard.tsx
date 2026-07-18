@@ -1,7 +1,9 @@
+import { MarkdownContent } from '@promptbook-local/components';
 import { FileIcon, FolderKanbanIcon, GitBranchIcon } from 'lucide-react';
 import type { AgentProjectInfo } from '../../utils/agentProjects/AgentProjectInfo';
 import { buildAgentProjectFileHref } from '../../utils/agentProjects/agentProjectHrefs';
 import { listAgentProjectFiles } from '../../utils/agentProjects/listAgentProjectFiles';
+import { readAgentProjectReadme } from '../../utils/agentProjects/readAgentProjectReadme';
 import { formatResourceBytes } from '../../utils/resourceMonitor/formatResourceMonitorValue';
 
 /**
@@ -29,6 +31,11 @@ type AgentProjectCardProps = {
      * Whether admin-only details (like the absolute folder path on the server disk) are shown.
      */
     readonly isAdminView: boolean;
+
+    /**
+     * Whether file listings and project metadata can be shown.
+     */
+    readonly isProjectDetailsVisible: boolean;
 };
 
 /**
@@ -36,7 +43,16 @@ type AgentProjectCardProps = {
  *
  * @private component of Agent Projects dashboards
  */
-export async function AgentProjectCard({ agentPermanentId, project, isAdminView }: AgentProjectCardProps) {
+export async function AgentProjectCard({
+    agentPermanentId,
+    project,
+    isAdminView,
+    isProjectDetailsVisible,
+}: AgentProjectCardProps) {
+    if (!isProjectDetailsVisible) {
+        return <AgentProjectOverviewCard project={project} />;
+    }
+
     const fileListing = await listAgentProjectFiles(project.absolutePath, MAX_LISTED_PROJECT_FILES);
 
     return (
@@ -70,6 +86,29 @@ export async function AgentProjectCard({ agentPermanentId, project, isAdminView 
                 projectName={project.projectName}
                 fileListing={fileListing}
             />
+        </section>
+    );
+}
+
+/**
+ * Renders the limited anonymous-safe project card.
+ *
+ * @private component of Agent Projects dashboards
+ */
+async function AgentProjectOverviewCard({ project }: { readonly project: AgentProjectInfo }) {
+    const readme = await readAgentProjectReadme(project.absolutePath);
+
+    return (
+        <section className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+            <div className="flex items-center gap-2">
+                <FolderKanbanIcon className="h-5 w-5 text-gray-500" aria-hidden />
+                <h3 className="text-lg font-semibold text-gray-900">{project.projectName}</h3>
+            </div>
+            {readme && (
+                <article className="prose prose-sm prose-slate mt-4 max-w-none prose-headings:text-gray-900 prose-a:text-blue-700 prose-code:rounded-md prose-code:bg-gray-100 prose-code:px-1 prose-code:py-0.5 prose-code:before:content-none prose-code:after:content-none">
+                    <MarkdownContent content={readme.content} />
+                </article>
+            )}
         </section>
     );
 }

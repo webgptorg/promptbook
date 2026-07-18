@@ -22,6 +22,11 @@ type AgentProjectsBoardProps = {
      * Whether admin-only details (like absolute folder paths on the server disk) are shown.
      */
     readonly isAdminView: boolean;
+
+    /**
+     * Whether project metadata and files can be shown.
+     */
+    readonly isProjectDetailsVisible: boolean;
 };
 
 /**
@@ -31,7 +36,12 @@ type AgentProjectsBoardProps = {
  *
  * @private component of Agent Projects dashboards
  */
-export function AgentProjectsBoard({ agentPermanentId, projects, isAdminView }: AgentProjectsBoardProps) {
+export function AgentProjectsBoard({
+    agentPermanentId,
+    projects,
+    isAdminView,
+    isProjectDetailsVisible,
+}: AgentProjectsBoardProps) {
     if (projects.length === 0) {
         return (
             <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-6 py-10 text-center">
@@ -53,6 +63,7 @@ export function AgentProjectsBoard({ agentPermanentId, projects, isAdminView }: 
                     agentPermanentId={agentPermanentId}
                     project={project}
                     isAdminView={isAdminView}
+                    isProjectDetailsVisible={isProjectDetailsVisible}
                 />
             ))}
         </div>
