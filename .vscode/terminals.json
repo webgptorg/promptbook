@@ -57,22 +57,14 @@
         },
         {
             "name": "🐙🚀 Run ptbk coder `claude-opus-4-8` Coding Agent (💤)(💸)(⏳)",
-            "commands": [
-                "set -a && source .env && set +a",
-                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code --model claude-opus-4-8 --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder"
-            ],
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code --model claude-opus-4-8 --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder",
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
             "name": "🐙🚀 Run ptbk coder `claude-fable` Coding Agent (💤)(💸)(⏳)",
-            "commands": [
-                "set -a && source .env && set +a",
-                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code --model fable --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --min-priority 3"
-            ],
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code --model fable --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --min-priority 3",
             "execute": false,
             "onlySingle": false,
             "focus": false
