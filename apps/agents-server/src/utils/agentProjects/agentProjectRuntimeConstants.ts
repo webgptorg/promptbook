@@ -38,3 +38,7 @@ export const PTBK_AGENTS_SERVER_USER_CHAT_WORKER_TOKEN_ENV = 'PTBK_AGENTS_SERVER
  */
 export const USER_CHAT_WORKER_TOKEN_HEADER = 'x-user-chat-worker-token';
 
+/**
+ * Header emitted by the project-runtime auth route with the approved local runtime port.
+ */
+export const AGENT_PROJECT_RUNTIME_AUTH_RESPONSE_PORT_HEADER = 'X-Promptbook-Agent-Project-Port';

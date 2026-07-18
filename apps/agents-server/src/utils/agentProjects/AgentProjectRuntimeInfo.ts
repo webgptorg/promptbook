@@ -54,8 +54,26 @@ export type AgentProjectRuntimeInfo = {
 
     /**
      * Browser URL for the runtime.
+     *
+     * In production this is the public project subdomain. In local development it
+     * falls back to the loopback URL.
      */
     readonly url: string;
+
+    /**
+     * Local loopback URL assigned to the project runtime.
+     */
+    readonly localUrl: string;
+
+    /**
+     * Public browser URL assigned to the project runtime.
+     */
+    readonly publicUrl: string;
+
+    /**
+     * Public project domain, or `null` when no routable server domain is configured.
+     */
+    readonly domain: string | null;
 
     /**
      * Agents Server project page URL path.
@@ -71,6 +89,11 @@ export type AgentProjectRuntimeInfo = {
      * Process id of the server-owned dev process, or `null` when no child process is owned.
      */
     readonly processId: number | null;
+
+    /**
+     * pm2 process name for server-owned runtimes, or `null` when the runtime is local-only.
+     */
+    readonly pm2ProcessName: string | null;
 
     /**
      * Current runtime status.
@@ -92,4 +115,3 @@ export type AgentProjectRuntimeInfo = {
      */
     readonly updatedAt: string;
 };
-

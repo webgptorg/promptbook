@@ -25,6 +25,48 @@ export const MANAGED_SERVER_ENVIRONMENT_OPTIONS: ReadonlyArray<ManagedServerEnvi
 ] as const;
 
 /**
+ * Project subdomain assigned under one managed server domain.
+ *
+ * @private function of <ServersClient/>
+ */
+export type ManagedServerProjectSubdomain = {
+    /**
+     * Permanent id of the agent owning the project.
+     */
+    readonly agentPermanentId: string;
+
+    /**
+     * Project directory name.
+     */
+    readonly projectName: string;
+
+    /**
+     * Public project subdomain.
+     */
+    readonly domain: string;
+
+    /**
+     * Public browser URL for the project.
+     */
+    readonly publicUrl: string;
+
+    /**
+     * Agents Server project profile href.
+     */
+    readonly projectHref: string;
+
+    /**
+     * ISO timestamp when the subdomain was first assigned.
+     */
+    readonly assignedAt: string;
+
+    /**
+     * ISO timestamp when the subdomain assignment was last refreshed.
+     */
+    readonly updatedAt: string;
+};
+
+/**
  * Server registry row returned by the admin servers API.
  *
  * @private function of <ServersClient/>
@@ -69,6 +111,11 @@ export type ManagedServerRow = {
      * Optional standalone-VPS DNS verification details for the domain.
      */
     readonly dnsDiagnostic?: ManagedServerDnsDiagnostic | null;
+
+    /**
+     * Project subdomains assigned below this server domain.
+     */
+    readonly projectSubdomains?: ReadonlyArray<ManagedServerProjectSubdomain>;
 };
 
 /**

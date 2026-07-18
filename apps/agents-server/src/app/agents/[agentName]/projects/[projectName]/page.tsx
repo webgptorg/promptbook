@@ -11,7 +11,9 @@ import {
     FolderIcon,
     FolderKanbanIcon,
     GitBranchIcon,
+    PlayIcon,
     PlugZapIcon,
+    RadioTowerIcon,
     SquareIcon,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -46,7 +48,11 @@ import { formatResourceBytes } from '@/src/utils/resourceMonitor/formatResourceM
 import { isUserGlobalAdmin } from '@/src/utils/isUserGlobalAdmin';
 import { enforceCanonicalLocalAgentId } from '../../_utils';
 import { AgentProjectVscodeKeyboardShortcut } from './AgentProjectVscodeKeyboardShortcut';
-import { $terminateAgentProjectRuntimeFromProjectPageAction } from './actions';
+import {
+    $startAgentProjectDevRuntimeFromProjectPageAction,
+    $startAgentProjectStaticRuntimeFromProjectPageAction,
+    $terminateAgentProjectRuntimeFromProjectPageAction,
+} from './actions';
 
 /**
  * Query parameter used to choose the currently browsed project folder.
@@ -255,10 +261,13 @@ function ProjectRuntimePanel({
     if (!runtime) {
         return (
             <section className="rounded-lg border border-gray-200 bg-white px-4 py-3 shadow-sm">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <PlugZapIcon className="h-4 w-4 text-gray-400" aria-hidden />
-                    <span className="font-semibold text-gray-900">Runtime</span>
-                    <span>Project is not running.</span>
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <PlugZapIcon className="h-4 w-4 text-gray-400" aria-hidden />
+                        <span className="font-semibold text-gray-900">Runtime</span>
+                        <span>Project is not running.</span>
+                    </div>
+                    <ProjectRuntimeStartButtons agentPermanentId={agentPermanentId} projectName={projectName} />
                 </div>
             </section>
         );
@@ -278,14 +287,23 @@ function ProjectRuntimePanel({
                     <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-600">
                         <span>{formatAgentProjectRuntimeMode(runtime.mode)}</span>
                         <a
-                            href={runtime.url}
+                            href={runtime.publicUrl}
                             target="_blank"
                             rel="noreferrer"
                             className="inline-flex items-center gap-1 font-mono text-blue-700 hover:text-blue-900 hover:underline"
                         >
-                            {runtime.url}
+                            {runtime.publicUrl}
                             <ExternalLinkIcon className="h-3.5 w-3.5" aria-hidden />
                         </a>
+                        {runtime.domain && (
+                            <span className="inline-flex items-center gap-1 font-mono text-xs text-gray-500">
+                                <RadioTowerIcon className="h-3.5 w-3.5" aria-hidden />
+                                {runtime.domain}
+                            </span>
+                        )}
+                        {runtime.localUrl !== runtime.publicUrl && (
+                            <span className="font-mono text-xs text-gray-500">Local: {runtime.localUrl}</span>
+                        )}
                         {runtime.command && (
                             <span className="max-w-full truncate font-mono text-xs text-gray-500">
                                 {runtime.command}
@@ -293,23 +311,71 @@ function ProjectRuntimePanel({
                         )}
                     </div>
                 </div>
-                <form
-                    action={$terminateAgentProjectRuntimeFromProjectPageAction.bind(
-                        null,
-                        agentPermanentId,
-                        projectName,
+                <div className="flex flex-wrap items-center gap-2">
+                    {!runtime.isRunning && (
+                        <ProjectRuntimeStartButtons agentPermanentId={agentPermanentId} projectName={projectName} />
                     )}
-                >
-                    <button
-                        type="submit"
-                        className="inline-flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-sm font-semibold text-red-700 hover:bg-red-100"
+                    <form
+                        action={$terminateAgentProjectRuntimeFromProjectPageAction.bind(
+                            null,
+                            agentPermanentId,
+                            projectName,
+                        )}
                     >
-                        <SquareIcon className="h-4 w-4" aria-hidden />
-                        {runtime.isRunning ? 'Terminate' : 'Release port'}
-                    </button>
-                </form>
+                        <button
+                            type="submit"
+                            className="inline-flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-sm font-semibold text-red-700 hover:bg-red-100"
+                        >
+                            <SquareIcon className="h-4 w-4" aria-hidden />
+                            {runtime.isRunning ? 'Terminate' : 'Release port'}
+                        </button>
+                    </form>
+                </div>
             </div>
         </section>
+    );
+}
+
+/**
+ * Renders project runtime start actions.
+ */
+function ProjectRuntimeStartButtons({
+    agentPermanentId,
+    projectName,
+}: {
+    /**
+     * Permanent id of the agent owning the project.
+     */
+    readonly agentPermanentId: string;
+
+    /**
+     * Project directory name.
+     */
+    readonly projectName: string;
+}) {
+    return (
+        <div className="flex flex-wrap items-center gap-2">
+            <form action={$startAgentProjectDevRuntimeFromProjectPageAction.bind(null, agentPermanentId, projectName)}>
+                <button
+                    type="submit"
+                    className="inline-flex items-center gap-2 rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-sm font-semibold text-blue-700 hover:bg-blue-100"
+                >
+                    <PlayIcon className="h-4 w-4" aria-hidden />
+                    Start dev
+                </button>
+            </form>
+            <form
+                action={$startAgentProjectStaticRuntimeFromProjectPageAction.bind(null, agentPermanentId, projectName)}
+            >
+                <button
+                    type="submit"
+                    className="inline-flex items-center gap-2 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm font-semibold text-gray-700 hover:border-blue-200 hover:text-blue-700"
+                >
+                    <RadioTowerIcon className="h-4 w-4" aria-hidden />
+                    Serve static
+                </button>
+            </form>
+        </div>
     );
 }
 

@@ -5,6 +5,7 @@ import { dirname, join, resolve } from 'path';
 import { promisify } from 'util';
 import { spaceTrim } from 'spacetrim';
 import { NotAllowed } from '../../../../src/errors/NotAllowed';
+import { UnexpectedError } from '../../../../src/errors/UnexpectedError';
 import { normalizeServerDomain } from './serverRegistry';
 import { isStandaloneVpsRawIpBootstrapActive } from './standaloneVpsRawIpBootstrap';
 
@@ -35,6 +36,7 @@ export const VPS_ENVIRONMENT_VARIABLE_KEYS = [
     'PORT',
     'PTBK_HOSTNAME',
     'PTBK_PUBLIC_IP_ADDRESS',
+    'PTBK_AGENT_PROJECT_DOMAINS_FILE',
     'PTBK_PM2_APP_NAME',
     'PTBK_NGINX_SITE_NAME',
     'LETS_ENCRYPT_EMAIL',
@@ -361,7 +363,7 @@ async function runVpsInstallerCommand(
             .join('\n')
             .trim();
 
-        throw new Error(
+        throw new UnexpectedError(
             spaceTrim(`
                 Failed to run VPS installer command \`${command}\`.
 

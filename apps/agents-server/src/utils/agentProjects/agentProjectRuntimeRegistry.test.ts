@@ -9,6 +9,12 @@ import {
     terminateAgentProjectRuntimeForProject,
     terminateAllAgentProjectRuntimes,
 } from './agentProjectRuntimeRegistry';
+import {
+    PTBK_AGENT_PROJECT_DOMAINS_FILE_ENV,
+    PTBK_AGENT_PROJECT_DOMAIN_REGISTRY_FILE_ENV,
+    PTBK_AGENT_PROJECT_RUNTIME_REGISTRY_FILE_ENV,
+} from './agentProjectRuntimePaths';
+import { PTBK_AGENT_PROJECT_RUNTIME_PM2_ENABLED_ENV } from './agentProjectRuntimePm2';
 
 jest.mock('../localChatRunner/ensureLocalAgentFolder', () => ({
     resolveLocalAgentRootPath: jest.fn(),
@@ -22,11 +28,29 @@ const resolveLocalAgentRootPathMock = resolveLocalAgentRootPath as jest.MockedFu
     typeof resolveLocalAgentRootPath
 >;
 
+/**
+ * Environment snapshot restored after each runtime test.
+ */
+const ORIGINAL_ENVIRONMENT = {
+    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+    PTBK_AGENT_PROJECT_DOMAINS_FILE: process.env[PTBK_AGENT_PROJECT_DOMAINS_FILE_ENV],
+    PTBK_AGENT_PROJECT_DOMAIN_REGISTRY_FILE: process.env[PTBK_AGENT_PROJECT_DOMAIN_REGISTRY_FILE_ENV],
+    PTBK_AGENT_PROJECT_RUNTIME_PM2_ENABLED: process.env[PTBK_AGENT_PROJECT_RUNTIME_PM2_ENABLED_ENV],
+    PTBK_AGENT_PROJECT_RUNTIME_REGISTRY_FILE: process.env[PTBK_AGENT_PROJECT_RUNTIME_REGISTRY_FILE_ENV],
+    SERVERS: process.env.SERVERS,
+};
+
 describe('agentProjectRuntimeRegistry', () => {
     let temporaryDirectory: string | null = null;
 
     beforeEach(async () => {
         temporaryDirectory = await mkdtemp(join(tmpdir(), 'promptbook-project-runtime-'));
+        process.env[PTBK_AGENT_PROJECT_DOMAINS_FILE_ENV] = join(temporaryDirectory, 'domains.txt');
+        process.env[PTBK_AGENT_PROJECT_DOMAIN_REGISTRY_FILE_ENV] = join(temporaryDirectory, 'domains.json');
+        process.env[PTBK_AGENT_PROJECT_RUNTIME_PM2_ENABLED_ENV] = '0';
+        process.env[PTBK_AGENT_PROJECT_RUNTIME_REGISTRY_FILE_ENV] = join(temporaryDirectory, 'runtimes.json');
+        delete process.env.NEXT_PUBLIC_SITE_URL;
+        delete process.env.SERVERS;
         resolveLocalAgentRootPathMock.mockReturnValue(temporaryDirectory);
     });
 
@@ -39,6 +63,24 @@ describe('agentProjectRuntimeRegistry', () => {
         }
 
         jest.clearAllMocks();
+        restoreEnvironmentVariable('NEXT_PUBLIC_SITE_URL', ORIGINAL_ENVIRONMENT.NEXT_PUBLIC_SITE_URL);
+        restoreEnvironmentVariable(
+            PTBK_AGENT_PROJECT_DOMAINS_FILE_ENV,
+            ORIGINAL_ENVIRONMENT.PTBK_AGENT_PROJECT_DOMAINS_FILE,
+        );
+        restoreEnvironmentVariable(
+            PTBK_AGENT_PROJECT_DOMAIN_REGISTRY_FILE_ENV,
+            ORIGINAL_ENVIRONMENT.PTBK_AGENT_PROJECT_DOMAIN_REGISTRY_FILE,
+        );
+        restoreEnvironmentVariable(
+            PTBK_AGENT_PROJECT_RUNTIME_PM2_ENABLED_ENV,
+            ORIGINAL_ENVIRONMENT.PTBK_AGENT_PROJECT_RUNTIME_PM2_ENABLED,
+        );
+        restoreEnvironmentVariable(
+            PTBK_AGENT_PROJECT_RUNTIME_REGISTRY_FILE_ENV,
+            ORIGINAL_ENVIRONMENT.PTBK_AGENT_PROJECT_RUNTIME_REGISTRY_FILE,
+        );
+        restoreEnvironmentVariable('SERVERS', ORIGINAL_ENVIRONMENT.SERVERS);
     });
 
     it('assigns one reusable port per project', async () => {
@@ -102,4 +144,16 @@ async function createProject(
     for (const [fileName, content] of Object.entries(files)) {
         await writeFile(join(projectPath, fileName), content, 'utf-8');
     }
+}
+
+/**
+ * Restores one optional environment variable after a test case.
+ */
+function restoreEnvironmentVariable(key: string, value: string | undefined): void {
+    if (value === undefined) {
+        delete process.env[key];
+        return;
+    }
+
+    process.env[key] = value;
 }

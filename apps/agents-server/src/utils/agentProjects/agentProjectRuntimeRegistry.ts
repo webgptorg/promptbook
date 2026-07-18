@@ -1,9 +1,13 @@
 import { spawn, type ChildProcess } from 'child_process';
-import type { Server } from 'http';
 import { randomUUID } from 'crypto';
+import { mkdir, readFile, writeFile } from 'fs/promises';
+import type { Server } from 'http';
+import { dirname } from 'path';
 import { NotAllowed } from '../../../../../src/errors/NotAllowed';
 import { NotFoundError } from '../../../../../src/errors/NotFoundError';
+import { UnexpectedError } from '../../../../../src/errors/UnexpectedError';
 import { spaceTrim } from '../../../../../src/utils/organization/spaceTrim';
+import { applyVpsRuntimeConfiguration } from '../vpsConfiguration';
 import type {
     AgentProjectRuntimeInfo,
     AgentProjectRuntimeMode,
@@ -16,7 +20,19 @@ import {
     AGENT_PROJECT_RUNTIME_START_POLL_INTERVAL_MS,
     AGENT_PROJECT_RUNTIME_START_TIMEOUT_MS,
 } from './agentProjectRuntimeConstants';
+import {
+    assignAgentProjectDomain,
+    resolveAgentProjectDomainRecordByHost,
+    type AgentProjectDomainAssignment,
+} from './agentProjectRuntimeDomains';
 import { buildAgentProjectProfileHref } from './agentProjectHrefs';
+import {
+    isAgentProjectRuntimePm2Enabled,
+    resolveAgentProjectRuntimePm2Status,
+    startAgentProjectRuntimePm2Process,
+    stopAgentProjectRuntimePm2Process,
+} from './agentProjectRuntimePm2';
+import { resolveAgentProjectRuntimeRegistryFilePath } from './agentProjectRuntimePaths';
 import { createStaticAgentProjectServer } from './createStaticAgentProjectServer';
 import { findFreeTcpPort } from './findFreeTcpPort';
 import { isTcpPortListening, waitForTcpPortListening } from './isTcpPortListening';
@@ -27,6 +43,11 @@ import { resolveAgentProjectInfo } from './resolveAgentProjectInfo';
  * Global key used to keep project runtimes alive across module reloads.
  */
 const AGENT_PROJECT_RUNTIME_REGISTRY_GLOBAL_KEY = '__PROMPTBOOK_AGENT_PROJECT_RUNTIME_REGISTRY__';
+
+/**
+ * Current persisted runtime registry schema version.
+ */
+const AGENT_PROJECT_RUNTIME_REGISTRY_VERSION = 1;
 
 /**
  * Placeholder replaced with the assigned port in custom dev commands.
@@ -45,7 +66,12 @@ type AgentProjectRuntimeRegistryState = {
     /**
      * Runtime records keyed by runtime id.
      */
-    readonly runtimesById: Map<string, MutableAgentProjectRuntimeRecord>;
+    runtimesById: Map<string, MutableAgentProjectRuntimeRecord>;
+
+    /**
+     * Whether the persisted registry has already been loaded into memory.
+     */
+    isLoaded: boolean;
 };
 
 /**
@@ -66,9 +92,13 @@ type MutableAgentProjectRuntimeRecord = {
     mode: AgentProjectRuntimeMode;
     port: number;
     url: string;
+    localUrl: string;
+    publicUrl: string;
+    domain: string | null;
     projectHref: string;
     command: string | null;
     processId: number | null;
+    pm2ProcessName: string | null;
     status: AgentProjectRuntimeStatus;
     isRunning: boolean;
     startedAt: string;
@@ -76,6 +106,19 @@ type MutableAgentProjectRuntimeRecord = {
     staticServer?: Server;
     childProcess?: ChildProcess;
 };
+
+/**
+ * Persisted runtime registry shape.
+ */
+type PersistedAgentProjectRuntimeRegistry = {
+    readonly version: number;
+    readonly runtimes: ReadonlyArray<PersistedAgentProjectRuntimeRecord>;
+};
+
+/**
+ * Persisted subset of a mutable runtime record.
+ */
+type PersistedAgentProjectRuntimeRecord = Omit<MutableAgentProjectRuntimeRecord, 'staticServer' | 'childProcess'>;
 
 /**
  * Options identifying one agent project.
@@ -90,6 +133,11 @@ type AgentProjectRuntimeProjectOptions = {
      * Directory name of the project.
      */
     readonly projectName: string;
+
+    /**
+     * Optional base server domain selected by the request that triggered the runtime.
+     */
+    readonly serverDomain?: string | null;
 };
 
 /**
@@ -100,6 +148,18 @@ export type StartAgentProjectDevRuntimeOptions = AgentProjectRuntimeProjectOptio
      * Optional shell command. `{port}` and `{host}` placeholders are replaced before execution.
      */
     readonly command?: string;
+};
+
+/**
+ * Runtime start preparation shared by dev and static runtimes.
+ */
+type PreparedAgentProjectRuntimeStart = {
+    readonly project: NonNullable<Awaited<ReturnType<typeof resolveAgentProjectInfo>>>;
+    readonly port: number;
+    readonly localUrl: string;
+    readonly publicUrl: string;
+    readonly domain: string | null;
+    readonly domainAssignment: AgentProjectDomainAssignment;
 };
 
 /**
@@ -114,14 +174,25 @@ export type StartAgentProjectDevRuntimeOptions = AgentProjectRuntimeProjectOptio
 export async function assignAgentProjectPort(
     options: AgentProjectRuntimeProjectOptions,
 ): Promise<AgentProjectRuntimeInfo> {
-    const existingRuntime = await resolveAgentProjectRuntime(options.agentPermanentId, options.projectName);
+    await hydrateAgentProjectRuntimeRegistryState();
 
-    if (existingRuntime) {
-        return existingRuntime;
+    const existingRuntimeRecord = findAgentProjectRuntimeRecord(options.agentPermanentId, options.projectName);
+
+    if (existingRuntimeRecord) {
+        await refreshAgentProjectRuntimeRecord(existingRuntimeRecord);
+        await persistAgentProjectRuntimeRegistryState();
+        return toAgentProjectRuntimeInfo(existingRuntimeRecord);
     }
 
     const project = await resolveExistingAgentProject(options);
     const port = await findFreeTcpPort();
+    const localUrl = createAgentProjectRuntimeLocalUrl(port);
+    const domainAssignment = await assignAgentProjectDomain({
+        agentPermanentId: options.agentPermanentId,
+        projectName: project.projectName,
+        serverDomain: options.serverDomain,
+    });
+    const publicUrl = domainAssignment.record?.publicUrl ?? localUrl;
     const now = new Date().toISOString();
     const runtimeRecord: MutableAgentProjectRuntimeRecord = {
         id: createAgentProjectRuntimeId(),
@@ -130,10 +201,14 @@ export async function assignAgentProjectPort(
         projectPath: project.absolutePath,
         mode: 'assigned-port',
         port,
-        url: createAgentProjectRuntimeUrl(port),
+        url: publicUrl,
+        localUrl,
+        publicUrl,
+        domain: domainAssignment.record?.domain ?? null,
         projectHref: buildAgentProjectProfileHref(options.agentPermanentId, project.projectName),
         command: null,
         processId: null,
+        pm2ProcessName: null,
         status: 'assigned',
         isRunning: false,
         startedAt: now,
@@ -141,6 +216,8 @@ export async function assignAgentProjectPort(
     };
 
     getAgentProjectRuntimeRegistryState().runtimesById.set(runtimeRecord.id, runtimeRecord);
+    await persistAgentProjectRuntimeRegistryState();
+    await applyAgentProjectRuntimePublicConfiguration(domainAssignment);
     return toAgentProjectRuntimeInfo(runtimeRecord);
 }
 
@@ -153,41 +230,34 @@ export async function assignAgentProjectPort(
 export async function startAgentProjectStaticRuntime(
     options: AgentProjectRuntimeProjectOptions,
 ): Promise<AgentProjectRuntimeInfo> {
-    const project = await resolveExistingAgentProject(options);
+    await hydrateAgentProjectRuntimeRegistryState();
 
-    await terminateAgentProjectRuntimeForProject(options);
-
-    const port = await findFreeTcpPort();
-    const staticServer = createStaticAgentProjectServer(project.absolutePath);
-
-    await listenOnPort(staticServer, port);
-
+    const preparedStart = await prepareAgentProjectRuntimeStart(options);
     const now = new Date().toISOString();
-    const runtimeRecord: MutableAgentProjectRuntimeRecord = {
-        id: createAgentProjectRuntimeId(),
+    const runtimeRecord = createMutableAgentProjectRuntimeRecord({
         agentPermanentId: options.agentPermanentId,
-        projectName: project.projectName,
-        projectPath: project.absolutePath,
-        mode: 'static-server',
-        port,
-        url: createAgentProjectRuntimeUrl(port),
-        projectHref: buildAgentProjectProfileHref(options.agentPermanentId, project.projectName),
         command: null,
-        processId: null,
-        status: 'running',
-        isRunning: true,
+        domain: preparedStart.domain,
+        localUrl: preparedStart.localUrl,
+        mode: 'static-server',
+        port: preparedStart.port,
+        projectName: preparedStart.project.projectName,
+        projectPath: preparedStart.project.absolutePath,
+        publicUrl: preparedStart.publicUrl,
         startedAt: now,
-        updatedAt: now,
-        staticServer,
-    };
-
-    staticServer.once('close', () => {
-        runtimeRecord.status = 'stopped';
-        runtimeRecord.isRunning = false;
-        runtimeRecord.updatedAt = new Date().toISOString();
+        status: 'starting',
     });
 
+    if (isAgentProjectRuntimePm2Enabled()) {
+        await startPm2ManagedAgentProjectRuntime(runtimeRecord);
+    } else {
+        await startInProcessStaticAgentProjectRuntime(runtimeRecord);
+    }
+
     getAgentProjectRuntimeRegistryState().runtimesById.set(runtimeRecord.id, runtimeRecord);
+    await refreshAgentProjectRuntimeRecord(runtimeRecord);
+    await persistAgentProjectRuntimeRegistryState();
+    await applyAgentProjectRuntimePublicConfiguration(preparedStart.domainAssignment);
     return toAgentProjectRuntimeInfo(runtimeRecord);
 }
 
@@ -200,60 +270,35 @@ export async function startAgentProjectStaticRuntime(
 export async function startAgentProjectDevRuntime(
     options: StartAgentProjectDevRuntimeOptions,
 ): Promise<AgentProjectRuntimeInfo> {
-    const project = await resolveExistingAgentProject(options);
+    await hydrateAgentProjectRuntimeRegistryState();
 
-    await terminateAgentProjectRuntimeForProject(options);
-
-    const port = await findFreeTcpPort();
-    const command = normalizeDevCommand(options.command, port);
-    const childProcess = spawn(command, {
-        cwd: project.absolutePath,
-        detached: false,
-        env: {
-            ...process.env,
-            HOST: AGENT_PROJECT_RUNTIME_HOST,
-            HOSTNAME: AGENT_PROJECT_RUNTIME_HOST,
-            PORT: String(port),
-        },
-        shell: true,
-        stdio: 'ignore',
-        windowsHide: true,
-    });
+    const preparedStart = await prepareAgentProjectRuntimeStart(options);
+    const command = normalizeDevCommand(options.command, preparedStart.port);
     const now = new Date().toISOString();
-    const runtimeRecord: MutableAgentProjectRuntimeRecord = {
-        id: createAgentProjectRuntimeId(),
+    const runtimeRecord = createMutableAgentProjectRuntimeRecord({
         agentPermanentId: options.agentPermanentId,
-        projectName: project.projectName,
-        projectPath: project.absolutePath,
-        mode: 'dev-server',
-        port,
-        url: createAgentProjectRuntimeUrl(port),
-        projectHref: buildAgentProjectProfileHref(options.agentPermanentId, project.projectName),
         command,
-        processId: childProcess.pid ?? null,
-        status: 'starting',
-        isRunning: false,
+        domain: preparedStart.domain,
+        localUrl: preparedStart.localUrl,
+        mode: 'dev-server',
+        port: preparedStart.port,
+        projectName: preparedStart.project.projectName,
+        projectPath: preparedStart.project.absolutePath,
+        publicUrl: preparedStart.publicUrl,
         startedAt: now,
-        updatedAt: now,
-        childProcess,
-    };
+        status: 'starting',
+    });
 
-    childProcess.once('exit', () => {
-        runtimeRecord.status = 'stopped';
-        runtimeRecord.isRunning = false;
-        runtimeRecord.updatedAt = new Date().toISOString();
-    });
-    childProcess.once('error', () => {
-        runtimeRecord.status = 'stopped';
-        runtimeRecord.isRunning = false;
-        runtimeRecord.updatedAt = new Date().toISOString();
-    });
-    childProcess.unref();
+    if (isAgentProjectRuntimePm2Enabled()) {
+        await startPm2ManagedAgentProjectRuntime(runtimeRecord);
+    } else {
+        startChildProcessAgentProjectDevRuntime(runtimeRecord);
+    }
 
     getAgentProjectRuntimeRegistryState().runtimesById.set(runtimeRecord.id, runtimeRecord);
 
     const isListening = await waitForTcpPortListening({
-        port,
+        port: runtimeRecord.port,
         host: AGENT_PROJECT_RUNTIME_HOST,
         timeoutMs: AGENT_PROJECT_RUNTIME_START_TIMEOUT_MS,
         pollIntervalMs: AGENT_PROJECT_RUNTIME_START_POLL_INTERVAL_MS,
@@ -265,6 +310,9 @@ export async function startAgentProjectDevRuntime(
         runtimeRecord.updatedAt = new Date().toISOString();
     }
 
+    await refreshAgentProjectRuntimeRecord(runtimeRecord);
+    await persistAgentProjectRuntimeRegistryState();
+    await applyAgentProjectRuntimePublicConfiguration(preparedStart.domainAssignment);
     return toAgentProjectRuntimeInfo(runtimeRecord);
 }
 
@@ -279,6 +327,8 @@ export async function resolveAgentProjectRuntime(
     agentPermanentId: string,
     projectName: string,
 ): Promise<AgentProjectRuntimeInfo | null> {
+    await hydrateAgentProjectRuntimeRegistryState();
+
     const runtimeRecord = findAgentProjectRuntimeRecord(agentPermanentId, projectName);
 
     if (!runtimeRecord) {
@@ -286,7 +336,26 @@ export async function resolveAgentProjectRuntime(
     }
 
     await refreshAgentProjectRuntimeRecord(runtimeRecord);
+    await persistAgentProjectRuntimeRegistryState();
     return toAgentProjectRuntimeInfo(runtimeRecord);
+}
+
+/**
+ * Resolves one running project runtime by public project-domain host.
+ *
+ * @param host - Raw request host.
+ * @returns Runtime info or `null`.
+ */
+export async function resolveAgentProjectRuntimeByDomain(
+    host: string | null | undefined,
+): Promise<AgentProjectRuntimeInfo | null> {
+    const domainRecord = await resolveAgentProjectDomainRecordByHost(host);
+
+    if (!domainRecord) {
+        return null;
+    }
+
+    return await resolveAgentProjectRuntime(domainRecord.agentPermanentId, domainRecord.projectName);
 }
 
 /**
@@ -295,9 +364,12 @@ export async function resolveAgentProjectRuntime(
  * @returns Runtime infos ordered by start time.
  */
 export async function listAgentProjectRuntimes(): Promise<ReadonlyArray<AgentProjectRuntimeInfo>> {
+    await hydrateAgentProjectRuntimeRegistryState();
+
     const runtimeRecords = [...getAgentProjectRuntimeRegistryState().runtimesById.values()];
 
     await Promise.all(runtimeRecords.map((runtimeRecord) => refreshAgentProjectRuntimeRecord(runtimeRecord)));
+    await persistAgentProjectRuntimeRegistryState();
 
     return runtimeRecords
         .map((runtimeRecord) => toAgentProjectRuntimeInfo(runtimeRecord))
@@ -311,6 +383,8 @@ export async function listAgentProjectRuntimes(): Promise<ReadonlyArray<AgentPro
  * @returns Terminated runtime info or `null` when it no longer exists.
  */
 export async function terminateAgentProjectRuntimeById(runtimeId: string): Promise<AgentProjectRuntimeInfo | null> {
+    await hydrateAgentProjectRuntimeRegistryState();
+
     const runtimeRecord = getAgentProjectRuntimeRegistryState().runtimesById.get(runtimeId);
 
     if (!runtimeRecord) {
@@ -319,6 +393,7 @@ export async function terminateAgentProjectRuntimeById(runtimeId: string): Promi
 
     await terminateAgentProjectRuntimeRecord(runtimeRecord);
     getAgentProjectRuntimeRegistryState().runtimesById.delete(runtimeId);
+    await persistAgentProjectRuntimeRegistryState();
     return toAgentProjectRuntimeInfo(runtimeRecord);
 }
 
@@ -331,6 +406,8 @@ export async function terminateAgentProjectRuntimeById(runtimeId: string): Promi
 export async function terminateAgentProjectRuntimeForProject(
     options: AgentProjectRuntimeProjectOptions,
 ): Promise<AgentProjectRuntimeInfo | null> {
+    await hydrateAgentProjectRuntimeRegistryState();
+
     const runtimeRecord = findAgentProjectRuntimeRecord(options.agentPermanentId, options.projectName);
 
     if (!runtimeRecord) {
@@ -339,6 +416,7 @@ export async function terminateAgentProjectRuntimeForProject(
 
     await terminateAgentProjectRuntimeRecord(runtimeRecord);
     getAgentProjectRuntimeRegistryState().runtimesById.delete(runtimeRecord.id);
+    await persistAgentProjectRuntimeRegistryState();
     return toAgentProjectRuntimeInfo(runtimeRecord);
 }
 
@@ -348,9 +426,201 @@ export async function terminateAgentProjectRuntimeForProject(
  * This is used by tests and process-level cleanup.
  */
 export async function terminateAllAgentProjectRuntimes(): Promise<void> {
+    await hydrateAgentProjectRuntimeRegistryState();
+
     const runtimeIds = [...getAgentProjectRuntimeRegistryState().runtimesById.keys()];
 
     await Promise.all(runtimeIds.map((runtimeId) => terminateAgentProjectRuntimeById(runtimeId)));
+}
+
+/**
+ * Prepares common runtime start metadata and terminates any previous runtime.
+ */
+async function prepareAgentProjectRuntimeStart(
+    options: AgentProjectRuntimeProjectOptions,
+): Promise<PreparedAgentProjectRuntimeStart> {
+    const project = await resolveExistingAgentProject(options);
+
+    await terminateAgentProjectRuntimeForProject({
+        agentPermanentId: options.agentPermanentId,
+        projectName: project.projectName,
+    });
+
+    const port = await findFreeTcpPort();
+    const localUrl = createAgentProjectRuntimeLocalUrl(port);
+    const domainAssignment = await assignAgentProjectDomain({
+        agentPermanentId: options.agentPermanentId,
+        projectName: project.projectName,
+        serverDomain: options.serverDomain,
+    });
+    const publicUrl = domainAssignment.record?.publicUrl ?? localUrl;
+
+    return {
+        project,
+        port,
+        localUrl,
+        publicUrl,
+        domain: domainAssignment.record?.domain ?? null,
+        domainAssignment,
+    };
+}
+
+/**
+ * Creates an initial mutable runtime record.
+ */
+function createMutableAgentProjectRuntimeRecord(options: {
+    readonly agentPermanentId: string;
+    readonly command: string | null;
+    readonly domain: string | null;
+    readonly localUrl: string;
+    readonly mode: AgentProjectRuntimeMode;
+    readonly port: number;
+    readonly projectName: string;
+    readonly projectPath: string;
+    readonly publicUrl: string;
+    readonly startedAt: string;
+    readonly status: AgentProjectRuntimeStatus;
+}): MutableAgentProjectRuntimeRecord {
+    return {
+        id: createAgentProjectRuntimeId(),
+        agentPermanentId: options.agentPermanentId,
+        projectName: options.projectName,
+        projectPath: options.projectPath,
+        mode: options.mode,
+        port: options.port,
+        url: options.publicUrl,
+        localUrl: options.localUrl,
+        publicUrl: options.publicUrl,
+        domain: options.domain,
+        projectHref: buildAgentProjectProfileHref(options.agentPermanentId, options.projectName),
+        command: options.command,
+        processId: null,
+        pm2ProcessName: null,
+        status: options.status,
+        isRunning: false,
+        startedAt: options.startedAt,
+        updatedAt: options.startedAt,
+    };
+}
+
+/**
+ * Starts a pm2-managed project runtime.
+ */
+async function startPm2ManagedAgentProjectRuntime(runtimeRecord: MutableAgentProjectRuntimeRecord): Promise<void> {
+    if (runtimeRecord.mode !== 'dev-server' && runtimeRecord.mode !== 'static-server') {
+        return;
+    }
+
+    try {
+        const processResult = await startAgentProjectRuntimePm2Process({
+            agentPermanentId: runtimeRecord.agentPermanentId,
+            projectName: runtimeRecord.projectName,
+            projectPath: runtimeRecord.projectPath,
+            mode: runtimeRecord.mode,
+            port: runtimeRecord.port,
+            command: runtimeRecord.command,
+            publicUrl: runtimeRecord.publicUrl,
+            localUrl: runtimeRecord.localUrl,
+        });
+
+        runtimeRecord.pm2ProcessName = processResult.processName;
+        runtimeRecord.processId = processResult.processId;
+        runtimeRecord.updatedAt = new Date().toISOString();
+    } catch (error) {
+        throw new NotAllowed(
+            spaceTrim(`
+                Failed to start project \`${runtimeRecord.projectName}\` as a pm2 process.
+
+                **Project path:** \`${runtimeRecord.projectPath}\`
+                **Cause:** \`${error instanceof Error ? error.message : String(error)}\`
+            `),
+        );
+    }
+}
+
+/**
+ * Starts the local in-process static server used outside production pm2.
+ */
+async function startInProcessStaticAgentProjectRuntime(
+    runtimeRecord: MutableAgentProjectRuntimeRecord,
+): Promise<void> {
+    const staticServer = createStaticAgentProjectServer(runtimeRecord.projectPath);
+
+    await listenOnPort(staticServer, runtimeRecord.port);
+
+    runtimeRecord.staticServer = staticServer;
+    runtimeRecord.status = 'running';
+    runtimeRecord.isRunning = true;
+    runtimeRecord.updatedAt = new Date().toISOString();
+
+    staticServer.once('close', () => {
+        runtimeRecord.status = 'stopped';
+        runtimeRecord.isRunning = false;
+        runtimeRecord.updatedAt = new Date().toISOString();
+        void persistAgentProjectRuntimeRegistryState();
+    });
+}
+
+/**
+ * Starts the local child-process dev runtime used outside production pm2.
+ */
+function startChildProcessAgentProjectDevRuntime(runtimeRecord: MutableAgentProjectRuntimeRecord): void {
+    const childProcess = spawn(runtimeRecord.command || AGENT_PROJECT_RUNTIME_DEFAULT_DEV_COMMAND, {
+        cwd: runtimeRecord.projectPath,
+        detached: false,
+        env: {
+            ...process.env,
+            HOST: AGENT_PROJECT_RUNTIME_HOST,
+            HOSTNAME: AGENT_PROJECT_RUNTIME_HOST,
+            PORT: String(runtimeRecord.port),
+            PTBK_AGENT_PROJECT_LOCAL_URL: runtimeRecord.localUrl,
+            PTBK_AGENT_PROJECT_PUBLIC_URL: runtimeRecord.publicUrl,
+        },
+        shell: true,
+        stdio: 'ignore',
+        windowsHide: true,
+    });
+
+    runtimeRecord.childProcess = childProcess;
+    runtimeRecord.processId = childProcess.pid ?? null;
+
+    childProcess.once('exit', () => {
+        runtimeRecord.status = 'stopped';
+        runtimeRecord.isRunning = false;
+        runtimeRecord.updatedAt = new Date().toISOString();
+        void persistAgentProjectRuntimeRegistryState();
+    });
+    childProcess.once('error', () => {
+        runtimeRecord.status = 'stopped';
+        runtimeRecord.isRunning = false;
+        runtimeRecord.updatedAt = new Date().toISOString();
+        void persistAgentProjectRuntimeRegistryState();
+    });
+    childProcess.unref();
+}
+
+/**
+ * Applies installer-managed nginx and SSL configuration when a public domain exists.
+ */
+async function applyAgentProjectRuntimePublicConfiguration(
+    domainAssignment: AgentProjectDomainAssignment,
+): Promise<void> {
+    if (!domainAssignment.record) {
+        return;
+    }
+
+    try {
+        await applyVpsRuntimeConfiguration({ isProcessRestartEnabled: false });
+    } catch (error) {
+        throw new UnexpectedError(
+            spaceTrim(`
+                Failed to expose project \`${domainAssignment.record.projectName}\` on its public subdomain.
+
+                **Project domain:** \`${domainAssignment.record.domain}\`
+                **Cause:** \`${error instanceof Error ? error.message : String(error)}\`
+            `),
+        );
+    }
 }
 
 /**
@@ -404,14 +674,19 @@ async function refreshAgentProjectRuntimeRecord(runtimeRecord: MutableAgentProje
     }
 
     const isListening = await isTcpPortListening(runtimeRecord.port, AGENT_PROJECT_RUNTIME_HOST);
+    const pm2Status = await resolveAgentProjectRuntimePm2Status(runtimeRecord.pm2ProcessName);
+
+    runtimeRecord.processId = pm2Status.processId ?? runtimeRecord.processId;
     runtimeRecord.isRunning = isListening;
 
     if (isListening) {
         runtimeRecord.status = 'running';
-    } else if (runtimeRecord.childProcess && runtimeRecord.childProcess.exitCode === null) {
-        runtimeRecord.status = 'starting';
     } else if (runtimeRecord.mode === 'assigned-port') {
         runtimeRecord.status = 'assigned';
+    } else if (pm2Status.isKnown && pm2Status.isRunning) {
+        runtimeRecord.status = 'starting';
+    } else if (runtimeRecord.childProcess && runtimeRecord.childProcess.exitCode === null) {
+        runtimeRecord.status = 'starting';
     } else {
         runtimeRecord.status = 'stopped';
     }
@@ -431,6 +706,7 @@ async function terminateAgentProjectRuntimeRecord(runtimeRecord: MutableAgentPro
         runtimeRecord.childProcess.kill();
     }
 
+    await stopAgentProjectRuntimePm2Process(runtimeRecord.pm2ProcessName);
     await killProcessListeningOnPort(runtimeRecord.port);
 
     runtimeRecord.status = 'stopped';
@@ -499,7 +775,7 @@ function normalizeDevCommand(command: string | undefined, port: number): string 
 /**
  * Creates the local runtime URL for one port.
  */
-function createAgentProjectRuntimeUrl(port: number): string {
+function createAgentProjectRuntimeLocalUrl(port: number): string {
     return `http://${AGENT_PROJECT_RUNTIME_HOST}:${port}`;
 }
 
@@ -522,14 +798,207 @@ function toAgentProjectRuntimeInfo(runtimeRecord: MutableAgentProjectRuntimeReco
         mode: runtimeRecord.mode,
         port: runtimeRecord.port,
         url: runtimeRecord.url,
+        localUrl: runtimeRecord.localUrl,
+        publicUrl: runtimeRecord.publicUrl,
+        domain: runtimeRecord.domain,
         projectHref: runtimeRecord.projectHref,
         command: runtimeRecord.command,
         processId: runtimeRecord.processId,
+        pm2ProcessName: runtimeRecord.pm2ProcessName,
         status: runtimeRecord.status,
         isRunning: runtimeRecord.isRunning,
         startedAt: runtimeRecord.startedAt,
         updatedAt: runtimeRecord.updatedAt,
     };
+}
+
+/**
+ * Converts a mutable runtime record to persisted JSON data.
+ */
+function toPersistedAgentProjectRuntimeRecord(
+    runtimeRecord: MutableAgentProjectRuntimeRecord,
+): PersistedAgentProjectRuntimeRecord {
+    return {
+        id: runtimeRecord.id,
+        agentPermanentId: runtimeRecord.agentPermanentId,
+        projectName: runtimeRecord.projectName,
+        projectPath: runtimeRecord.projectPath,
+        mode: runtimeRecord.mode,
+        port: runtimeRecord.port,
+        url: runtimeRecord.url,
+        localUrl: runtimeRecord.localUrl,
+        publicUrl: runtimeRecord.publicUrl,
+        domain: runtimeRecord.domain,
+        projectHref: runtimeRecord.projectHref,
+        command: runtimeRecord.command,
+        processId: runtimeRecord.processId,
+        pm2ProcessName: runtimeRecord.pm2ProcessName,
+        status: runtimeRecord.status,
+        isRunning: runtimeRecord.isRunning,
+        startedAt: runtimeRecord.startedAt,
+        updatedAt: runtimeRecord.updatedAt,
+    };
+}
+
+/**
+ * Hydrates the in-memory registry from the persisted runtime registry once per process.
+ */
+async function hydrateAgentProjectRuntimeRegistryState(): Promise<void> {
+    const registryState = getAgentProjectRuntimeRegistryState();
+
+    if (registryState.isLoaded) {
+        return;
+    }
+
+    const runtimeRecords = await readPersistedAgentProjectRuntimeRecords();
+    registryState.runtimesById = new Map(
+        runtimeRecords.map((runtimeRecord) => [runtimeRecord.id, { ...runtimeRecord }]),
+    );
+    registryState.isLoaded = true;
+}
+
+/**
+ * Persists the in-memory runtime registry.
+ */
+async function persistAgentProjectRuntimeRegistryState(): Promise<void> {
+    const registryState = getAgentProjectRuntimeRegistryState();
+    const registryFilePath = resolveAgentProjectRuntimeRegistryFilePath();
+    const payload: PersistedAgentProjectRuntimeRegistry = {
+        version: AGENT_PROJECT_RUNTIME_REGISTRY_VERSION,
+        runtimes: [...registryState.runtimesById.values()].map(toPersistedAgentProjectRuntimeRecord),
+    };
+
+    try {
+        await mkdir(dirname(registryFilePath), { recursive: true });
+        await writeFile(registryFilePath, `${JSON.stringify(payload, null, 4)}\n`, 'utf-8');
+    } catch (error) {
+        throw new UnexpectedError(
+            spaceTrim(`
+                Failed to persist agent project runtime registry.
+
+                **Registry file:** \`${registryFilePath}\`
+                **Cause:** \`${error instanceof Error ? error.message : String(error)}\`
+            `),
+        );
+    }
+}
+
+/**
+ * Reads persisted project runtime records.
+ */
+async function readPersistedAgentProjectRuntimeRecords(): Promise<ReadonlyArray<PersistedAgentProjectRuntimeRecord>> {
+    const registryFilePath = resolveAgentProjectRuntimeRegistryFilePath();
+    let rawContent: string;
+
+    try {
+        rawContent = await readFile(registryFilePath, 'utf-8');
+    } catch (error) {
+        if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+            return [];
+        }
+
+        throw new UnexpectedError(
+            spaceTrim(`
+                Failed to read agent project runtime registry.
+
+                **Registry file:** \`${registryFilePath}\`
+                **Cause:** \`${error instanceof Error ? error.message : String(error)}\`
+            `),
+        );
+    }
+
+    try {
+        return parsePersistedAgentProjectRuntimeRegistry(JSON.parse(rawContent));
+    } catch (error) {
+        throw new UnexpectedError(
+            spaceTrim(`
+                Failed to parse agent project runtime registry.
+
+                **Registry file:** \`${registryFilePath}\`
+                **Cause:** \`${error instanceof Error ? error.message : String(error)}\`
+            `),
+        );
+    }
+}
+
+/**
+ * Parses persisted runtime records and ignores invalid legacy rows.
+ */
+function parsePersistedAgentProjectRuntimeRegistry(
+    rawValue: unknown,
+): ReadonlyArray<PersistedAgentProjectRuntimeRecord> {
+    if (!rawValue || typeof rawValue !== 'object') {
+        return [];
+    }
+
+    const registry = rawValue as Partial<PersistedAgentProjectRuntimeRegistry>;
+
+    if (!Array.isArray(registry.runtimes)) {
+        return [];
+    }
+
+    return registry.runtimes
+        .map((rawRecord): PersistedAgentProjectRuntimeRecord | null => {
+            if (!rawRecord || typeof rawRecord !== 'object') {
+                return null;
+            }
+
+            const record = rawRecord as Partial<PersistedAgentProjectRuntimeRecord>;
+
+            if (
+                typeof record.id !== 'string' ||
+                typeof record.agentPermanentId !== 'string' ||
+                typeof record.projectName !== 'string' ||
+                typeof record.projectPath !== 'string' ||
+                !isAgentProjectRuntimeMode(record.mode) ||
+                typeof record.port !== 'number' ||
+                typeof record.projectHref !== 'string' ||
+                typeof record.startedAt !== 'string' ||
+                typeof record.updatedAt !== 'string'
+            ) {
+                return null;
+            }
+
+            const localUrl =
+                typeof record.localUrl === 'string' ? record.localUrl : createAgentProjectRuntimeLocalUrl(record.port);
+            const publicUrl = typeof record.publicUrl === 'string' ? record.publicUrl : record.url || localUrl;
+
+            return {
+                id: record.id,
+                agentPermanentId: record.agentPermanentId,
+                projectName: record.projectName,
+                projectPath: record.projectPath,
+                mode: record.mode,
+                port: record.port,
+                url: typeof record.url === 'string' ? record.url : publicUrl,
+                localUrl,
+                publicUrl,
+                domain: typeof record.domain === 'string' ? record.domain : null,
+                projectHref: record.projectHref,
+                command: typeof record.command === 'string' ? record.command : null,
+                processId: typeof record.processId === 'number' ? record.processId : null,
+                pm2ProcessName: typeof record.pm2ProcessName === 'string' ? record.pm2ProcessName : null,
+                status: isAgentProjectRuntimeStatus(record.status) ? record.status : 'stopped',
+                isRunning: record.isRunning === true,
+                startedAt: record.startedAt,
+                updatedAt: record.updatedAt,
+            };
+        })
+        .filter((record): record is PersistedAgentProjectRuntimeRecord => record !== null);
+}
+
+/**
+ * Checks whether a raw value is a known runtime status.
+ */
+function isAgentProjectRuntimeStatus(value: unknown): value is AgentProjectRuntimeStatus {
+    return value === 'assigned' || value === 'starting' || value === 'running' || value === 'stopped';
+}
+
+/**
+ * Checks whether a raw value is a known runtime mode.
+ */
+function isAgentProjectRuntimeMode(value: unknown): value is AgentProjectRuntimeMode {
+    return value === 'assigned-port' || value === 'static-server' || value === 'dev-server';
 }
 
 /**
@@ -539,8 +1008,8 @@ function getAgentProjectRuntimeRegistryState(): AgentProjectRuntimeRegistryState
     const registryGlobal = globalThis as AgentProjectRuntimeRegistryGlobal;
     registryGlobal[AGENT_PROJECT_RUNTIME_REGISTRY_GLOBAL_KEY] ??= {
         runtimesById: new Map(),
+        isLoaded: false,
     };
 
     return registryGlobal[AGENT_PROJECT_RUNTIME_REGISTRY_GLOBAL_KEY]!;
 }
-

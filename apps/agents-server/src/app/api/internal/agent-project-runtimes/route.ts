@@ -3,9 +3,7 @@ import { ParseError } from '../../../../../../../src/errors/ParseError';
 import { NotAllowed } from '../../../../../../../src/errors/NotAllowed';
 import { NotFoundError } from '../../../../../../../src/errors/NotFoundError';
 import { isTimingSafeEqualString } from '../../../../../../../src/utils/isTimingSafeEqualString';
-import {
-    USER_CHAT_WORKER_TOKEN_HEADER,
-} from '@/src/utils/agentProjects/agentProjectRuntimeConstants';
+import { USER_CHAT_WORKER_TOKEN_HEADER } from '@/src/utils/agentProjects/agentProjectRuntimeConstants';
 import {
     assignAgentProjectPort,
     startAgentProjectDevRuntime,
@@ -37,6 +35,7 @@ type AgentProjectRuntimeRequest = {
     readonly agentPermanentId: string;
     readonly projectName: string;
     readonly command?: string;
+    readonly serverDomain?: string;
 };
 
 /**
@@ -91,12 +90,15 @@ async function parseAgentProjectRuntimeRequest(request: Request): Promise<AgentP
     const agentPermanentId = normalizeRequiredText(body.agentPermanentId, 'agentPermanentId');
     const projectName = normalizeRequiredText(body.projectName, 'projectName');
     const command = normalizeOptionalText(body.command, 'command');
+    const serverDomain =
+        normalizeOptionalText(body.serverDomain, 'serverDomain') || resolveServerDomainFromRequest(request);
 
     return {
         action,
         agentPermanentId,
         projectName,
         ...(command !== undefined ? { command } : {}),
+        ...(serverDomain !== undefined ? { serverDomain } : {}),
     };
 }
 
@@ -174,3 +176,14 @@ function isAuthorizedInternalWorkerRequest(request: Request): boolean {
     return isTimingSafeEqualString(token, resolveUserChatWorkerInternalToken());
 }
 
+/**
+ * Resolves the public server domain forwarded to the internal worker request.
+ */
+function resolveServerDomainFromRequest(request: Request): string | undefined {
+    return (
+        request.headers.get('x-promptbook-server') ||
+        request.headers.get('x-forwarded-host') ||
+        request.headers.get('host') ||
+        undefined
+    );
+}

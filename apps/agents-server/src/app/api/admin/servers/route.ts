@@ -3,6 +3,7 @@ import { spaceTrim } from 'spacetrim';
 import { DatabaseError } from '../../../../../../../src/errors/DatabaseError';
 import { isAgentsServerSqliteMode } from '../../../../database/agentsServerDatabaseMode';
 import { seedDefaultAgents } from '../../../../database/seedDefaultAgents';
+import { listAgentProjectDomainRecords } from '../../../../utils/agentProjects/agentProjectRuntimeDomains';
 import { resolveCurrentServerRegistryContext } from '../../../../utils/currentServerRegistryContext';
 import { isUserAdmin } from '../../../../utils/isUserAdmin';
 import { isUserGlobalAdmin } from '../../../../utils/isUserGlobalAdmin';
@@ -42,9 +43,24 @@ export async function GET() {
         }
 
         const context = await resolveCurrentServerRegistryContext();
-        const servers = isAgentsServerSqliteMode()
+        const serversWithoutProjectSubdomains = isAgentsServerSqliteMode()
             ? await createStandaloneVpsServersResponse(context.registeredServers)
             : context.registeredServers;
+        const projectDomainRecords = await listAgentProjectDomainRecords();
+        const servers = serversWithoutProjectSubdomains.map((server) => ({
+            ...server,
+            projectSubdomains: projectDomainRecords
+                .filter((record) => record.serverDomain === normalizeServerDomain(server.domain))
+                .map((record) => ({
+                    agentPermanentId: record.agentPermanentId,
+                    projectName: record.projectName,
+                    domain: record.domain,
+                    publicUrl: record.publicUrl,
+                    projectHref: record.projectHref,
+                    assignedAt: record.assignedAt,
+                    updatedAt: record.updatedAt,
+                })),
+        }));
 
         return NextResponse.json({
             servers,

@@ -1,7 +1,7 @@
 'use client';
 
 import { Fragment } from 'react';
-import { ArrowRightLeft, Loader2, RefreshCcw, Save } from 'lucide-react';
+import { ArrowRightLeft, ExternalLink, Loader2, RefreshCcw, Save } from 'lucide-react';
 import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
 import type { ServerLanguageCode } from '../../../languages/ServerLanguageRegistry';
 import { formatServerLanguageHumanReadableDate } from '../../../utils/localization/formatServerLanguageHumanReadableDate';
@@ -191,6 +191,8 @@ function ServersRegistryTableRow(props: ServersRegistryTableRowProps) {
     const isCurrent = server.id === currentServerId;
     const dnsDiagnostic = server.dnsDiagnostic || null;
     const hasDnsIssue = Boolean(dnsDiagnostic && dnsDiagnostic.status !== 'verified');
+    const projectSubdomains = server.projectSubdomains || [];
+    const hasProjectSubdomains = projectSubdomains.length > 0;
     const columnCount = isStandaloneVps ? 6 : 8;
 
     return (
@@ -259,7 +261,12 @@ function ServersRegistryTableRow(props: ServersRegistryTableRowProps) {
                             <ServerStatusBadge label="DNS ready" tone="green" />
                         ) : null}
                         {hasDnsIssue ? <ServerStatusBadge label="DNS issue" tone="amber" /> : null}
-                        {!isCurrent && !isDirty && !dnsDiagnostic ? <span className="text-xs text-gray-400">-</span> : null}
+                        {hasProjectSubdomains ? (
+                            <ServerStatusBadge label={`${projectSubdomains.length} project subdomains`} tone="blue" />
+                        ) : null}
+                        {!isCurrent && !isDirty && !dnsDiagnostic && !hasProjectSubdomains ? (
+                            <span className="text-xs text-gray-400">-</span>
+                        ) : null}
                     </div>
                 </td>
                 <td className="px-4 py-3 align-top text-xs text-gray-600">
@@ -312,6 +319,13 @@ function ServersRegistryTableRow(props: ServersRegistryTableRowProps) {
                     </div>
                 </td>
             </tr>
+            {hasProjectSubdomains ? (
+                <tr className="bg-sky-50/50">
+                    <td colSpan={columnCount} className="px-4 py-4">
+                        <ProjectSubdomainsPanel projectSubdomains={projectSubdomains} />
+                    </td>
+                </tr>
+            ) : null}
             {hasDnsIssue ? (
                 <tr className="bg-amber-50/70">
                     <td colSpan={columnCount} className="px-4 py-4">
@@ -396,6 +410,60 @@ function ServersRegistryTableRow(props: ServersRegistryTableRowProps) {
                 </tr>
             ) : null}
         </>
+    );
+}
+
+/**
+ * Renders project subdomains assigned below one server domain.
+ */
+function ProjectSubdomainsPanel({
+    projectSubdomains,
+}: {
+    readonly projectSubdomains: NonNullable<ManagedServerRow['projectSubdomains']>;
+}) {
+    return (
+        <div className="space-y-3 rounded-lg border border-sky-200 bg-sky-50 px-4 py-4 text-sm text-sky-950">
+            <p className="font-semibold">Project subdomains</p>
+            <div className="overflow-x-auto rounded-md border border-sky-100 bg-white">
+                <table className="min-w-full divide-y divide-sky-100 text-xs">
+                    <thead className="bg-sky-50 text-sky-900">
+                        <tr>
+                            <th className="px-3 py-2 text-left font-semibold">Project</th>
+                            <th className="px-3 py-2 text-left font-semibold">Subdomain</th>
+                            <th className="px-3 py-2 text-left font-semibold">Agent</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-sky-100">
+                        {projectSubdomains.map((projectSubdomain) => (
+                            <tr key={`${projectSubdomain.agentPermanentId}-${projectSubdomain.projectName}`}>
+                                <td className="px-3 py-2">
+                                    <a
+                                        href={projectSubdomain.projectHref}
+                                        className="font-semibold text-sky-800 hover:text-sky-950 hover:underline"
+                                    >
+                                        {projectSubdomain.projectName}
+                                    </a>
+                                </td>
+                                <td className="px-3 py-2">
+                                    <a
+                                        href={projectSubdomain.publicUrl}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="inline-flex items-center gap-1 font-mono text-sky-800 hover:text-sky-950 hover:underline"
+                                    >
+                                        {projectSubdomain.domain}
+                                        <ExternalLink className="h-3.5 w-3.5" aria-hidden />
+                                    </a>
+                                </td>
+                                <td className="px-3 py-2 font-mono text-slate-500">
+                                    {projectSubdomain.agentPermanentId}
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     );
 }
 

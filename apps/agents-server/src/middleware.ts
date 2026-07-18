@@ -69,7 +69,8 @@ export const config = {
          * - public folder
          * - api/health (standalone VPS readiness probe)
          * - api/internal (worker/cron routes are authorized separately)
+         * - api/agent-project-runtime-auth (nginx internal auth subrequests are authorized by runtime domain)
          */
-        '/((?!_next/static|_next/image|favicon.ico|logo-|fonts/|robots.txt|api/health|api/internal).*)',
+        '/((?!_next/static|_next/image|favicon.ico|logo-|fonts/|robots.txt|api/health|api/internal|api/agent-project-runtime-auth).*)',
     ],
 };

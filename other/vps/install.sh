@@ -9,6 +9,7 @@ NODE_MINIMUM_VERSION="${NODE_MINIMUM_VERSION:-}"
 PORT="${PORT:-${PTBK_PORT:-4440}}"
 PTBK_FILE_STORAGE_MODE="${PTBK_FILE_STORAGE_MODE:-self-contained-s3}"
 PTBK_DATA_DIR="${PTBK_DATA_DIR:-$INSTALL_DIR/data}"
+PTBK_AGENT_PROJECT_DOMAINS_FILE="${PTBK_AGENT_PROJECT_DOMAINS_FILE:-$PTBK_DATA_DIR/agent-projects/domains.txt}"
 PTBK_DATABASE_DIR="${PTBK_DATABASE_DIR:-$PTBK_DATA_DIR/database}"
 PTBK_SELF_CONTAINED_S3_DIRECTORY="${PTBK_SELF_CONTAINED_S3_DIRECTORY:-$PTBK_DATA_DIR/s3}"
 PTBK_SELF_CONTAINED_S3_PORT="${PTBK_SELF_CONTAINED_S3_PORT:-10000}"
@@ -104,6 +105,7 @@ IS_RUNNER_AUTHENTICATION_REQUESTED=""
 GENERATED_ADMIN_PASSWORD=""
 PUBLIC_IP_ADDRESS=""
 DOMAINS=()
+PROJECT_DOMAINS=()
 
 log() {
     printf '[promptbook-vps] %s\n' "$*"
@@ -857,6 +859,45 @@ set_domains_from_csv() {
         fi
         append_domain "$domain"
     done
+}
+
+append_project_domain() {
+    local raw_domain="$1"
+    local normalized_domain=""
+    local existing_domain=""
+
+    normalized_domain="$(normalize_domain "$raw_domain")"
+    if [[ -z "$normalized_domain" ]]; then
+        warn "Ignoring invalid agent project subdomain '$raw_domain' from $PTBK_AGENT_PROJECT_DOMAINS_FILE."
+        return
+    fi
+
+    for existing_domain in "${DOMAINS[@]}" "${PROJECT_DOMAINS[@]}"; do
+        if [[ "$existing_domain" == "$normalized_domain" ]]; then
+            return
+        fi
+    done
+
+    PROJECT_DOMAINS+=("$normalized_domain")
+}
+
+load_agent_project_domains_from_file() {
+    local raw_domain=""
+    local normalized_line=""
+
+    PROJECT_DOMAINS=()
+    if [[ ! -r "$PTBK_AGENT_PROJECT_DOMAINS_FILE" ]]; then
+        return
+    fi
+
+    while IFS= read -r raw_domain || [[ -n "$raw_domain" ]]; do
+        normalized_line="$(printf '%s' "$raw_domain" | sed -E 's/[#].*$//; s/^[[:space:]]+|[[:space:]]+$//g')"
+        if [[ -z "$normalized_line" ]]; then
+            continue
+        fi
+
+        append_project_domain "$normalized_line"
+    done < "$PTBK_AGENT_PROJECT_DOMAINS_FILE"
 }
 
 initialize_sudo() {
@@ -1996,6 +2037,7 @@ configure_environment() {
     set_env_value PTBK_PUBLIC_IP_ADDRESS "$PUBLIC_IP_ADDRESS"
     set_env_value PTBK_INSTALL_DIR "$INSTALL_DIR"
     set_env_value PTBK_DATA_DIR "$PTBK_DATA_DIR"
+    set_env_value PTBK_AGENT_PROJECT_DOMAINS_FILE "$PTBK_AGENT_PROJECT_DOMAINS_FILE"
     set_env_value PTBK_DATABASE_DIR "$PTBK_DATABASE_DIR"
     set_env_value PTBK_RELEASES_DIR "$PTBK_RELEASES_DIR"
     set_env_value PTBK_SHARED_NEXT_STATIC_ROOT "$PTBK_SHARED_NEXT_STATIC_ROOT"
@@ -2691,6 +2733,53 @@ build_nginx_agent_project_vscode_location_block() {
 EOF
 }
 
+build_nginx_agent_project_runtime_server_block() {
+    local project_server_names="$1"
+
+    if [[ -z "$project_server_names" ]]; then
+        return
+    fi
+
+    cat <<EOF
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name ${project_server_names};
+
+    client_max_body_size 100m;
+    include ${NGINX_ERROR_SNIPPET_PATH};
+
+    location = /api/agent-project-runtime-auth {
+        internal;
+        include ${NGINX_PROXY_SNIPPET_PATH};
+    }
+
+    location / {
+        auth_request /api/agent-project-runtime-auth;
+        auth_request_set \$promptbook_agent_project_port \$upstream_http_x_promptbook_agent_project_port;
+
+        proxy_pass http://127.0.0.1:\$promptbook_agent_project_port;
+        proxy_http_version 1.1;
+        proxy_buffering off;
+        proxy_redirect off;
+        proxy_hide_header Server;
+
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Host \$host;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection \$promptbook_connection_upgrade;
+
+        proxy_read_timeout 3600s;
+        proxy_send_timeout 3600s;
+    }
+}
+EOF
+}
+
 configure_nginx_branding() {
     ensure_nginx_headers_more_module_is_available
     write_nginx_fallback_page
@@ -2704,21 +2793,28 @@ configure_nginx_reverse_proxy() {
     local nginx_available_path="/etc/nginx/sites-available/${NGINX_SITE_NAME}"
     local nginx_enabled_path="/etc/nginx/sites-enabled/${NGINX_SITE_NAME}"
     local server_names=""
+    local project_server_names=""
     local next_static_location_block=""
     local s3_location_block=""
     local agent_project_vscode_location_block=""
+    local agent_project_runtime_server_block=""
 
     configure_nginx_branding
 
     server_names="$(join_by_space "${DOMAINS[@]}")"
+    project_server_names="$(join_by_space "${PROJECT_DOMAINS[@]}")"
     next_static_location_block="$(build_nginx_next_static_location_block)"
     s3_location_block="$(build_nginx_self_contained_s3_location_block)"
     agent_project_vscode_location_block="$(build_nginx_agent_project_vscode_location_block)"
+    agent_project_runtime_server_block="$(build_nginx_agent_project_runtime_server_block "$project_server_names")"
 
     if [[ -n "$server_names" ]]; then
         log "Configuring nginx reverse proxy for raw IP access and $server_names."
     else
         log "Configuring nginx reverse proxy for raw IP access."
+    fi
+    if [[ -n "$project_server_names" ]]; then
+        log "Configuring nginx reverse proxy for agent project subdomains: $project_server_names."
     fi
 
     "${SUDO[@]}" tee "$nginx_available_path" >/dev/null <<EOF
@@ -2767,6 +2863,12 @@ ${agent_project_vscode_location_block}
 EOF
     fi
 
+    if [[ -n "$agent_project_runtime_server_block" ]]; then
+        "${SUDO[@]}" tee -a "$nginx_available_path" >/dev/null <<EOF
+${agent_project_runtime_server_block}
+EOF
+    fi
+
     "${SUDO[@]}" ln -sfn "$nginx_available_path" "$nginx_enabled_path"
     "${SUDO[@]}" rm -f /etc/nginx/sites-enabled/default
     test_nginx_config
@@ -2791,6 +2893,7 @@ test_nginx_config() {
 
 warn_if_domain_dns_is_not_ready() {
     local domain=""
+    local checked_domains=("${DOMAINS[@]}" "${PROJECT_DOMAINS[@]}")
     local resolved_addresses=""
 
     if [[ "$PUBLIC_IP_ADDRESS" == "localhost" ]]; then
@@ -2798,7 +2901,7 @@ warn_if_domain_dns_is_not_ready() {
         return
     fi
 
-    for domain in "${DOMAINS[@]}"; do
+    for domain in "${checked_domains[@]}"; do
         resolved_addresses="$(getent ahosts "$domain" 2>/dev/null | awk '{ print $1 }' | sort -u | tr '\n' ' ' | sed -E 's/[[:space:]]+$//')"
         if [[ -z "$resolved_addresses" ]]; then
             warn "$domain does not resolve yet. Certbot HTTP validation will fail until DNS propagates."
@@ -2814,9 +2917,11 @@ warn_if_domain_dns_is_not_ready() {
 configure_ssl_certificates() {
     local certbot_arguments=(--nginx --non-interactive --agree-tos --redirect --keep-until-expiring --expand)
     local domain=""
+    local certificate_domains=("${DOMAINS[@]}" "${PROJECT_DOMAINS[@]}")
+    local certificate_domains_label=""
     local first_domain="${DOMAINS[0]:-}"
 
-    if [[ "${#DOMAINS[@]}" -eq 0 ]]; then
+    if [[ "${#certificate_domains[@]}" -eq 0 ]]; then
         log "Skipping Let's Encrypt SSL setup because no custom domains are configured."
         return
     fi
@@ -2829,13 +2934,14 @@ configure_ssl_certificates() {
         certbot_arguments+=(--register-unsafely-without-email)
     fi
 
-    for domain in "${DOMAINS[@]}"; do
+    for domain in "${certificate_domains[@]}"; do
         certbot_arguments+=(-d "$domain")
     done
+    certificate_domains_label="$(join_by_comma "${certificate_domains[@]}")"
 
-    log "Requesting Let's Encrypt SSL certificate for $SERVERS."
+    log "Requesting Let's Encrypt SSL certificate for $certificate_domains_label."
     if ! "${SUDO[@]}" certbot "${certbot_arguments[@]}"; then
-        warn "Let's Encrypt certificate request failed for $SERVERS. Keeping the current public URL unchanged so raw-IP bootstrap access remains available."
+        warn "Let's Encrypt certificate request failed for $certificate_domains_label. Keeping the current public URL unchanged so raw-IP bootstrap access remains available."
         warn "Fix DNS and firewall access for these domains, then rerun: bash $PROMPTBOOK_REPOSITORY_DIR/other/vps/install.sh apply-domains"
         return
     fi
@@ -3162,6 +3268,13 @@ load_runtime_configuration_from_env_file() {
     env_value="$(get_env_value PTBK_DATA_DIR)"
     [[ -n "$env_value" ]] && PTBK_DATA_DIR="$env_value"
 
+    env_value="$(get_env_value PTBK_AGENT_PROJECT_DOMAINS_FILE)"
+    if [[ -n "$env_value" ]]; then
+        PTBK_AGENT_PROJECT_DOMAINS_FILE="$env_value"
+    elif [[ "$PTBK_AGENT_PROJECT_DOMAINS_FILE" == "$INSTALL_DIR/data/agent-projects/domains.txt" ]]; then
+        PTBK_AGENT_PROJECT_DOMAINS_FILE="$PTBK_DATA_DIR/agent-projects/domains.txt"
+    fi
+
     env_value="$(get_env_value PTBK_DATABASE_DIR)"
     [[ -n "$env_value" ]] && PTBK_DATABASE_DIR="$env_value"
 
@@ -3251,6 +3364,7 @@ load_runtime_configuration_from_env_file() {
 
     SERVERS="$(get_env_value SERVERS)"
     set_domains_from_csv "$SERVERS"
+    load_agent_project_domains_from_file
 
     PUBLIC_IP_ADDRESS="$(get_env_value PTBK_PUBLIC_IP_ADDRESS)"
     if [[ -z "$PUBLIC_IP_ADDRESS" ]]; then
@@ -3508,6 +3622,9 @@ print_summary() {
         log "Domains: $SERVERS"
     else
         log "Domains: none configured; use http://$PUBLIC_IP_ADDRESS and add domains from System -> Super Admin -> Servers."
+    fi
+    if [[ "${#PROJECT_DOMAINS[@]}" -gt 0 ]]; then
+        log "Project subdomains: $(join_by_comma "${PROJECT_DOMAINS[@]}")"
     fi
     log "Project directory: $INSTALL_DIR"
     log "Repository: $PROMPTBOOK_REPOSITORY_DIR"
