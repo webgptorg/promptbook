@@ -41,11 +41,14 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
         const chatSummarySeeds = await listUserChatSummarySeeds({
             userId: scopeResult.scope.userId,
             viewerIsAdmin: scopeResult.scope.viewerIsAdmin,
+            viewerIsSuperAdmin: scopeResult.scope.viewerIsSuperAdmin,
             agentPermanentId: scopeResult.scope.agentPermanentId,
             includeExternalChats: showExternalChats,
         });
         const activityUserId =
-            scopeResult.scope.viewerIsAdmin && showExternalChats ? undefined : scopeResult.scope.userId;
+            (scopeResult.scope.viewerIsAdmin || scopeResult.scope.viewerIsSuperAdmin) && showExternalChats
+                ? undefined
+                : scopeResult.scope.userId;
         const [timeoutActivities, jobActivityCounts] = await Promise.all([
             listUserChatTimeoutActivities({
                 userId: activityUserId,
@@ -67,15 +70,19 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
             ? await getUserChat({
                   userId: scopeResult.scope.userId,
                   viewerIsAdmin: scopeResult.scope.viewerIsAdmin,
+                  viewerIsSuperAdmin: scopeResult.scope.viewerIsSuperAdmin,
                   agentPermanentId: scopeResult.scope.agentPermanentId,
                   chatId: activeChatSummarySeed.id,
               })
             : null;
-        const activeChatDetail = activeChat ? await createUserChatDetailPayload(activeChat) : null;
+        const activeChatDetail = activeChat
+            ? await createUserChatDetailPayload(activeChat, { viewerUserId: scopeResult.scope.userId })
+            : null;
         const chatSummaries = chatSummarySeeds.map((chat) =>
             createUserChatSummaryFromSeed(chat, {
                 timeoutActivity: timeoutActivities[chat.id],
                 activeJobCount: jobActivityCounts[chat.id],
+                viewerUserId: scopeResult.scope.userId,
             }),
         );
 

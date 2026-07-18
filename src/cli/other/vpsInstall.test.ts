@@ -154,6 +154,10 @@ describe('other/vps/install.sh', () => {
 
         expect(installScript).toContain('PTBK_OPENAI_CODEX_USE_API_KEY="${PTBK_OPENAI_CODEX_USE_API_KEY:-0}"');
         expect(installScript).toContain('resolve_openai_codex_api_key_usage()');
+        expect(installScript).toContain('run_openai_codex_login_status_without_api_environment()');
+        expect(installScript).toContain(
+            "unset OPENAI_API_KEY OPENAI_BASE_URL CODEX_API_KEY; codex login status",
+        );
         expect(installScript).toContain('is_openai_codex_chatgpt_runner_authenticated()');
         expect(installScript).toContain('is_openai_codex_api_key_runner_configured()');
         expect(runnerAuthenticationPreferenceFunction).toContain(

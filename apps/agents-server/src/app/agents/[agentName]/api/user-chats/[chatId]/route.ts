@@ -3,7 +3,7 @@ import {
     createUserChatDetailPayload,
     deleteUserChat,
     getUserChat,
-    isFrozenUserChatSource,
+    isUserChatViewOnly,
     updateUserChatMessages,
 } from '@/src/utils/userChat';
 import { UserChatReplyValidationError } from '@/src/utils/userChat/UserChatReplyValidationError';
@@ -40,6 +40,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
         const chat = await getUserChat({
             userId: scopeResult.scope.userId,
             viewerIsAdmin: scopeResult.scope.viewerIsAdmin,
+            viewerIsSuperAdmin: scopeResult.scope.viewerIsSuperAdmin,
             agentPermanentId: scopeResult.scope.agentPermanentId,
             chatId,
         });
@@ -48,7 +49,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
             return NextResponse.json({ error: 'Chat not found.' }, { status: 404 });
         }
 
-        return NextResponse.json(await createUserChatDetailPayload(chat));
+        return NextResponse.json(await createUserChatDetailPayload(chat, { viewerUserId: scopeResult.scope.userId }));
     } catch (error) {
         return NextResponse.json(
             { error: error instanceof Error ? error.message : 'Failed to load chat.' },
@@ -84,6 +85,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ ag
         const existingChat = await getUserChat({
             userId: scopeResult.scope.userId,
             viewerIsAdmin: scopeResult.scope.viewerIsAdmin,
+            viewerIsSuperAdmin: scopeResult.scope.viewerIsSuperAdmin,
             agentPermanentId: scopeResult.scope.agentPermanentId,
             chatId,
         });
@@ -92,7 +94,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ ag
             return NextResponse.json({ error: 'Chat not found.' }, { status: 404 });
         }
 
-        if (isFrozenUserChatSource(existingChat.source)) {
+        if (isUserChatViewOnly({ chat: existingChat, viewerUserId: scopeResult.scope.userId })) {
             return NextResponse.json({ error: 'Frozen chats are view-only in the web UI.' }, { status: 403 });
         }
 
@@ -108,7 +110,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ ag
             messages: body.messages as Array<ChatMessage>,
         });
 
-        return NextResponse.json(await createUserChatDetailPayload(updatedChat));
+        return NextResponse.json(
+            await createUserChatDetailPayload(updatedChat, { viewerUserId: scopeResult.scope.userId }),
+        );
     } catch (error) {
         if (error instanceof UserChatScopeError) {
             return resolveUserChatUpdateScopeErrorResponse(error);
@@ -196,6 +200,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ a
         const existingChat = await getUserChat({
             userId: scopeResult.scope.userId,
             viewerIsAdmin: scopeResult.scope.viewerIsAdmin,
+            viewerIsSuperAdmin: scopeResult.scope.viewerIsSuperAdmin,
             agentPermanentId: scopeResult.scope.agentPermanentId,
             chatId,
         });
@@ -204,7 +209,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ a
             return NextResponse.json({ error: 'Chat not found.' }, { status: 404 });
         }
 
-        if (isFrozenUserChatSource(existingChat.source)) {
+        if (isUserChatViewOnly({ chat: existingChat, viewerUserId: scopeResult.scope.userId })) {
             return NextResponse.json({ error: 'Frozen chats are view-only in the web UI.' }, { status: 403 });
         }
 

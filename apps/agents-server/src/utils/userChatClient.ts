@@ -40,6 +40,11 @@ export type UserChatSummary = {
     lastMessageAt: string | null;
     source: UserChatSource;
     isReadOnly: boolean;
+    /**
+     * True when the chat belongs to a different user than the current viewer
+     * (visible only to admins/super-admins browsing external chats).
+     */
+    isExternalUserChat?: boolean;
     messagesCount: number;
     title: string;
     preview: string;

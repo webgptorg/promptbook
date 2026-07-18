@@ -95,6 +95,17 @@ export function ChatHistoryClient({ initialAgentName }: ChatHistoryClientProps) 
 
             {chatHistoryState.viewMode === 'chat' ? (
                 <div className="bg-white rounded-lg shadow border border-gray-200 overflow-hidden flex flex-col">
+                    <div className="flex justify-end border-b border-gray-200 bg-gray-50 p-3">
+                        <button
+                            type="button"
+                            onClick={() => void chatHistoryState.handleCreateMockFromChatView()}
+                            disabled={chatHistoryState.isCreatingMock}
+                            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+                            title="Create a mocked chat preset from the shown messages"
+                        >
+                            {chatHistoryState.isCreatingMock ? 'Creating mock…' : 'Create mock'}
+                        </button>
+                    </div>
                     <div className="h-[800px] relative">
                         <MockedChat
                             messages={chatHistoryState.chatMessages}
@@ -130,6 +141,8 @@ export function ChatHistoryClient({ initialAgentName }: ChatHistoryClientProps) 
                     handleSortChange={chatHistoryState.handleSortChange}
                     isSortedBy={chatHistoryState.isSortedBy}
                     handleDeleteRow={chatHistoryState.handleDeleteRow}
+                    handleCreateMockFromRow={chatHistoryState.handleCreateMockFromRow}
+                    isCreatingMock={chatHistoryState.isCreatingMock}
                     goToPreviousPage={chatHistoryState.goToPreviousPage}
                     goToNextPage={chatHistoryState.goToNextPage}
                 />

@@ -42,6 +42,11 @@ export type UserChatSummary = {
     lastMessageAt: string | null;
     source: UserChatSource;
     isReadOnly: boolean;
+    /**
+     * True when the chat belongs to a different user than the current viewer
+     * (visible only to admins/super-admins browsing external chats).
+     */
+    isExternalUserChat: boolean;
     messagesCount: number;
     title: string;
     preview: string;
@@ -55,6 +60,11 @@ export type UserChatSummary = {
 export type ListUserChatsOptions = {
     userId: number;
     viewerIsAdmin: boolean;
+    /**
+     * True when the viewer is the environment-backed super-admin
+     * who may browse all users' chats on the server.
+     */
+    viewerIsSuperAdmin?: boolean;
     agentPermanentId: string;
     includeExternalChats?: boolean;
 };
@@ -65,6 +75,11 @@ export type ListUserChatsOptions = {
 export type GetUserChatOptions = {
     userId: number;
     viewerIsAdmin?: boolean;
+    /**
+     * True when the viewer is the environment-backed super-admin
+     * who may open other users' chats in a view-only mode.
+     */
+    viewerIsSuperAdmin?: boolean;
     agentPermanentId: string;
     chatId: string;
 };

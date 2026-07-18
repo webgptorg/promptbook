@@ -42,6 +42,11 @@ export type AgentChatHistoryClientProps = {
     initialAgentMessage?: string | null;
     isHistoryEnabled: boolean;
     isCurrentUserAdmin: boolean;
+    /**
+     * True when the viewer is the environment-backed super-admin
+     * who may browse all users' chats in a view-only mode.
+     */
+    isCurrentUserSuperAdmin?: boolean;
     areFileAttachmentsEnabled: boolean;
     feedbackMode: ChatFeedbackMode;
     isHeadlessMode?: boolean;
@@ -117,6 +122,7 @@ export function useAgentChatHistoryClientState(
         initialForceNewChat = false,
         isHistoryEnabled,
         isCurrentUserAdmin,
+        isCurrentUserSuperAdmin = false,
         isHeadlessMode = false,
     } = props;
     const { formatText } = useAgentNaming();
@@ -159,7 +165,7 @@ export function useAgentChatHistoryClientState(
         clearPendingProfileMessage(agentName);
     }, [agentName, pendingProfileMessage]);
 
-    const shouldShowExternalChats = isCurrentUserAdmin && showExternalChats;
+    const shouldShowExternalChats = (isCurrentUserAdmin || isCurrentUserSuperAdmin) && showExternalChats;
     const {
         chats,
         activeChatId,

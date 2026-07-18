@@ -35,9 +35,12 @@ export type ChatHistoryActorType = NonNullable<ChatHistoryInsert['actorType']>;
  */
 export type CreateChatHistoryRecorderOptions = {
     /**
-     * HTTP request that carries telemetry headers and URL.
+     * Optional HTTP request that carries telemetry headers and URL.
+     *
+     * Server-side callers (for example durable chat-job workers) have no request,
+     * telemetry columns stay `null` for them.
      */
-    request: Request;
+    request?: Request | null;
     /**
      * Agent route identifier (`agentName` or `permanentId`).
      */
@@ -63,6 +66,10 @@ export type CreateChatHistoryRecorderOptions = {
      */
     userId?: number | null;
     /**
+     * Optional id of the canonical `UserChat` the recorded messages belong to.
+     */
+    chatId?: string | null;
+    /**
      * When false, recorder computes hashes but skips DB writes.
      */
     isEnabled?: boolean;
@@ -84,6 +91,10 @@ export type RecordChatHistoryMessageOptions = {
      * Optional usage tracking statistics.
      */
     usage?: ChatHistoryInsert['usage'];
+    /**
+     * Optional id of the durable chat-completion task (`UserChatJob`) linked to this message.
+     */
+    taskId?: string | null;
 };
 
 /**
@@ -94,7 +105,7 @@ export type RecordChatHistoryMessage = (options: RecordChatHistoryMessageOptions
 /**
  * Optional columns that may be missing on partially migrated databases.
  */
-const CHAT_HISTORY_OPTIONAL_COLUMNS = ['source', 'apiKey', 'actorType', 'usage', 'userId'] as const;
+const CHAT_HISTORY_OPTIONAL_COLUMNS = ['source', 'apiKey', 'actorType', 'usage', 'userId', 'chatId', 'taskId'] as const;
 
 /**
  * Optional chat-history columns that may be unavailable before migrations are applied.
@@ -108,26 +119,32 @@ export async function createChatHistoryRecorder(
     options: CreateChatHistoryRecorderOptions,
 ): Promise<RecordChatHistoryMessage> {
     const {
-        request,
+        request = null,
         agentIdentifier,
         agentHash,
         source,
         apiKey = null,
         actorType,
         userId = null,
+        chatId = null,
         isEnabled = true,
     } = options;
     const supabase = $provideSupabaseForServer();
     const tableName = await $getTableName('ChatHistory');
-    const userAgent = request.headers.get('user-agent');
-    const ip = resolveIpAddress(request);
-    const language = request.headers.get('accept-language');
+    const userAgent = request ? request.headers.get('user-agent') : null;
+    const ip = request ? resolveIpAddress(request) : null;
+    const language = request ? request.headers.get('accept-language') : null;
     const platform = resolvePlatform(userAgent);
     const resolvedActorType = actorType ?? inferActorType({ request, apiKey });
     const canonicalAgentName = isEnabled ? await resolveCanonicalAgentName(agentIdentifier) : null;
     const agentNameForInsert = canonicalAgentName || agentIdentifier;
 
-    return async ({ message, previousMessageHash = null, usage = null }: RecordChatHistoryMessageOptions): Promise<string> => {
+    return async ({
+        message,
+        previousMessageHash = null,
+        usage = null,
+        taskId = null,
+    }: RecordChatHistoryMessageOptions): Promise<string> => {
         const messageHash = computeHash(message);
         if (!isEnabled) {
             return messageHash;
@@ -141,7 +158,7 @@ export async function createChatHistoryRecorder(
             agentHash,
             message,
             promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
-            url: request.url,
+            url: request ? request.url : null,
             ip,
             userAgent,
             language,
@@ -151,6 +168,8 @@ export async function createChatHistoryRecorder(
             actorType: resolvedActorType,
             usage,
             userId,
+            chatId,
+            taskId,
         };
 
         const { error } = await supabase.from(tableName).insert(row);
@@ -231,7 +250,7 @@ function resolvePlatform(userAgent: string | null): string | null {
  * Infers actor type from request auth context.
  */
 function inferActorType(options: {
-    request: Request;
+    request: Request | null;
     apiKey: string | null;
 }): ChatHistoryActorType {
     const { request, apiKey } = options;
@@ -239,7 +258,7 @@ function inferActorType(options: {
         return 'API_KEY';
     }
 
-    const cookieHeader = request.headers.get('cookie') || '';
+    const cookieHeader = request?.headers.get('cookie') || '';
     if (/(^|;\s*)(sessionToken|adminToken)=/.test(cookieHeader)) {
         return 'TEAM_MEMBER';
     }

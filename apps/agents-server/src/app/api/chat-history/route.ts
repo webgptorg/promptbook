@@ -53,6 +53,7 @@ function parseSortOrder(value: string | null): SortOrder {
  * - page: number (1-based)
  * - pageSize: number (items per page)
  * - agentName: filter by agent name
+ * - chatId: filter by canonical chat id
  * - search: free-text search across agentName, url and ip
  * - sortBy: createdAt | agentName | id (default: createdAt)
  * - sortOrder: asc | desc (default: desc)
@@ -71,6 +72,7 @@ export async function GET(request: NextRequest) {
             parsePositiveInt(searchParams.get('pageSize'), DEFAULT_PAGE_SIZE),
         );
         const agentName = searchParams.get('agentName');
+        const chatId = searchParams.get('chatId');
         const search = searchParams.get('search')?.trim() || '';
         const sortBy = parseSortField(searchParams.get('sortBy'));
         const sortOrder = parseSortOrder(searchParams.get('sortOrder'));
@@ -84,6 +86,10 @@ export async function GET(request: NextRequest) {
 
         if (agentName) {
             query = query.eq('agentName', agentName);
+        }
+
+        if (chatId) {
+            query = query.eq('chatId', chatId);
         }
 
         if (search) {

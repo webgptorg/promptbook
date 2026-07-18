@@ -44,9 +44,9 @@ const SQLITE_CHAT_MESSAGES_JSON_EXPRESSION = `CASE WHEN json_valid(chat."message
  * Lists all user chats for one agent ordered by creation time (newest first).
  */
 export async function listUserChats(options: ListUserChatsOptions): Promise<Array<UserChatRecord>> {
-    const { userId, viewerIsAdmin, agentPermanentId, includeExternalChats = false } = options;
+    const { userId, viewerIsAdmin, viewerIsSuperAdmin = false, agentPermanentId, includeExternalChats = false } = options;
     const userChatTable = await provideUserChatTable();
-    const shouldLoadExternalChats = viewerIsAdmin && includeExternalChats;
+    const shouldLoadExternalChats = (viewerIsAdmin || viewerIsSuperAdmin) && includeExternalChats;
     const query = shouldLoadExternalChats
         ? userChatTable.select('*').eq('agentPermanentId', agentPermanentId)
         : userChatTable
@@ -63,6 +63,11 @@ export async function listUserChats(options: ListUserChatsOptions): Promise<Arra
     const chats = ((data || []) as Array<UserChatRow>).map(mapUserChatRow);
 
     if (!shouldLoadExternalChats) {
+        return chats;
+    }
+
+    if (viewerIsSuperAdmin) {
+        // Note: Super-admins reviewing external chats see every chat of every user on the server
         return chats;
     }
 
@@ -87,9 +92,15 @@ export async function listUserChatSummarySeeds(options: ListUserChatsOptions): P
 
     const userChatTableName = quoteIdentifier(await $getTableName('UserChat'));
     const sql = await $provideClientSql();
-    const shouldLoadExternalChats = options.viewerIsAdmin && options.includeExternalChats;
+    const shouldLoadAllUsersChats = Boolean(options.viewerIsSuperAdmin && options.includeExternalChats);
+    const shouldLoadExternalChats =
+        shouldLoadAllUsersChats || (options.viewerIsAdmin && options.includeExternalChats);
 
-    const whereClause = shouldLoadExternalChats
+    const whereClause = shouldLoadAllUsersChats
+        ? `
+            "agentPermanentId" = $1
+        `
+        : shouldLoadExternalChats
         ? `
             "agentPermanentId" = $1
             AND ("source" <> '${USER_CHAT_SOURCES.WEB_UI}' OR "userId" = $2)
@@ -99,7 +110,9 @@ export async function listUserChatSummarySeeds(options: ListUserChatsOptions): P
             AND "agentPermanentId" = $2
             AND "source" = '${USER_CHAT_SOURCES.WEB_UI}'
         `;
-    const queryValues = shouldLoadExternalChats
+    const queryValues = shouldLoadAllUsersChats
+        ? [options.agentPermanentId]
+        : shouldLoadExternalChats
         ? [options.agentPermanentId, options.userId]
         : [options.userId, options.agentPermanentId];
     try {
@@ -112,6 +125,7 @@ export async function listUserChatSummarySeeds(options: ListUserChatsOptions): P
                     "lastMessageAt",
                     "title",
                     "source",
+                    "userId",
                     COALESCE(jsonb_array_length("messages"), 0) AS "messagesCount",
                     COALESCE(
                         (
@@ -173,8 +187,14 @@ async function listUserChatSummarySeedsViaSqlite(options: ListUserChatsOptions):
     ensureLocalSqliteTableReadIndexes(rawUserChatTableName);
 
     const userChatTableName = quoteIdentifier(rawUserChatTableName);
-    const shouldLoadExternalChats = options.viewerIsAdmin && options.includeExternalChats;
-    const whereClause = shouldLoadExternalChats
+    const shouldLoadAllUsersChats = Boolean(options.viewerIsSuperAdmin && options.includeExternalChats);
+    const shouldLoadExternalChats =
+        shouldLoadAllUsersChats || (options.viewerIsAdmin && options.includeExternalChats);
+    const whereClause = shouldLoadAllUsersChats
+        ? `
+            chat."agentPermanentId" = ?
+        `
+        : shouldLoadExternalChats
         ? `
             chat."agentPermanentId" = ?
             AND (chat."source" <> ? OR chat."userId" = ?)
@@ -184,7 +204,9 @@ async function listUserChatSummarySeedsViaSqlite(options: ListUserChatsOptions):
             AND chat."agentPermanentId" = ?
             AND chat."source" = ?
         `;
-    const queryValues = shouldLoadExternalChats
+    const queryValues = shouldLoadAllUsersChats
+        ? [options.agentPermanentId]
+        : shouldLoadExternalChats
         ? [options.agentPermanentId, USER_CHAT_SOURCES.WEB_UI, options.userId]
         : [options.userId, options.agentPermanentId, USER_CHAT_SOURCES.WEB_UI];
 
@@ -200,6 +222,7 @@ async function listUserChatSummarySeedsViaSqlite(options: ListUserChatsOptions):
                         chat."lastMessageAt",
                         chat."title",
                         chat."source",
+                        chat."userId",
                         COALESCE(json_array_length(${SQLITE_CHAT_MESSAGES_JSON_EXPRESSION}), 0) AS "messagesCount",
                         COALESCE(
                             (
@@ -264,6 +287,7 @@ type UserChatSummarySeedSqlRow = {
     lastMessageAt: string | null;
     title: string | null;
     source: UserChatSource;
+    userId: number | string;
     messagesCount: number | string;
     firstUserMessageContent: string | null;
     lastPreviewMessageContent: string | null;
@@ -283,6 +307,7 @@ function mapUserChatSummarySeedSqlRow(row: UserChatSummarySeedSqlRow): UserChatS
         lastMessageAt: row.lastMessageAt,
         title: row.title,
         source: row.source,
+        userId: parseNonNegativeInteger(row.userId),
         messagesCount: parseNonNegativeInteger(row.messagesCount),
         firstUserMessageContent: row.firstUserMessageContent || '',
         lastPreviewMessageContent: row.lastPreviewMessageContent || '',
@@ -394,6 +419,7 @@ function createUserChatSummarySeedFromChatRecord(chat: UserChatRecord): UserChat
         lastMessageAt: chat.lastMessageAt,
         title: chat.title,
         source: chat.source,
+        userId: chat.userId,
         messagesCount: chat.messages.length,
         firstUserMessageContent: resolveFirstUserMessageContent(chat.messages),
         lastPreviewMessageContent: resolveLastPreviewMessageContent(chat.messages),

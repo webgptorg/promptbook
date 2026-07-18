@@ -1,5 +1,6 @@
 import type { ChatMessage, LlmToolDefinition, ToolCall } from '@promptbook-local/types';
 import { sendUserChatPushNotification } from '../sendUserChatPushNotification';
+import { recordUserChatMessageInChatHistory } from './recordUserChatMessageInChatHistory';
 import type { UserChatJobRecord } from './UserChatJobRecord';
 import { isUserChatNotFoundScopeError } from './UserChatScopeError';
 import { finalizeUserChatJob } from './finalizeUserChatJob';
@@ -71,6 +72,19 @@ export async function persistUserChatJobTerminalState(options: {
         );
 
         if (completedMessage) {
+            // Note: Recording is best-effort telemetry for `/admin/chat-history` and must never block job completion
+            void recordUserChatMessageInChatHistory({
+                agentPermanentId: options.job.agentPermanentId,
+                chatId: options.job.chatId,
+                taskId: options.job.id,
+                userId: options.job.userId,
+                message: {
+                    role: 'MODEL',
+                    sender: 'MODEL',
+                    content: typeof completedMessage.content === 'string' ? completedMessage.content : '',
+                },
+            });
+
             await sendUserChatPushNotification({
                 chat: completedChat,
                 message: completedMessage,

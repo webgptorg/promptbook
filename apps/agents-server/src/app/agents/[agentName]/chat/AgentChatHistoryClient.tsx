@@ -8,6 +8,7 @@ import { AgentChatWrapper } from '../AgentChatWrapper';
 import { AgentChatPageLayout } from './AgentChatPageLayout';
 import { AgentChatSidebar } from './AgentChatSidebar';
 import { CanonicalAgentChatPanel } from './CanonicalAgentChatPanel';
+import { ExternalUserChatAdminActions } from './ExternalUserChatAdminActions';
 import { type AgentChatHistoryClientProps, useAgentChatHistoryClientState } from './useAgentChatHistoryClientState';
 
 /**
@@ -64,6 +65,7 @@ type AgentChatHistoryReadyViewProps = Pick<
     | 'areFileAttachmentsEnabled'
     | 'feedbackMode'
     | 'isCurrentUserAdmin'
+    | 'isCurrentUserSuperAdmin'
 > & {
     isHeadlessMode: boolean;
     activeChatId: string;
@@ -116,6 +118,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         speechRecognitionLanguage,
         initialAgentMessage,
         isCurrentUserAdmin,
+        isCurrentUserSuperAdmin = false,
         areFileAttachmentsEnabled,
         feedbackMode,
         isHeadlessMode = false,
@@ -190,6 +193,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             areFileAttachmentsEnabled={areFileAttachmentsEnabled}
             feedbackMode={feedbackMode}
             isCurrentUserAdmin={isCurrentUserAdmin}
+            isCurrentUserSuperAdmin={isCurrentUserSuperAdmin}
             isHeadlessMode={isHeadlessMode}
             activeChatId={activeChatId}
             chats={chats}
@@ -293,6 +297,7 @@ function AgentChatHistoryReadyView(props: AgentChatHistoryReadyViewProps) {
         areFileAttachmentsEnabled,
         feedbackMode,
         isCurrentUserAdmin,
+        isCurrentUserSuperAdmin,
         isHeadlessMode,
         activeChatId,
         chats,
@@ -325,6 +330,14 @@ function AgentChatHistoryReadyView(props: AgentChatHistoryReadyViewProps) {
         onAutoExecuteMessagePending,
         onAutoExecuteMessageConsumed,
     } = props;
+    const isActiveExternalUserChat = activeChatSummary?.isExternalUserChat === true;
+    const externalUserChatAdminActions =
+        isCurrentUserSuperAdmin === true && isActiveExternalUserChat ? (
+            <ExternalUserChatAdminActions
+                chatTitle={activeChatSummary?.title || 'Recorded chat'}
+                messages={renderedActiveMessages}
+            />
+        ) : undefined;
     const chatSurface = (
         <div className="relative flex min-h-0 flex-1 overflow-hidden">
             {isActiveChatLoading ? (
@@ -343,6 +356,8 @@ function AgentChatHistoryReadyView(props: AgentChatHistoryReadyViewProps) {
                     initialAgentMessage={initialAgentMessage}
                     isReadOnly={isActiveChatReadOnly}
                     readOnlySource={activeChatSummary?.source}
+                    isExternalUserChat={isActiveExternalUserChat}
+                    readOnlyExtraActions={externalUserChatAdminActions}
                     messages={renderedActiveMessages}
                     draftMessage={isActiveChatReadOnly ? '' : activeChatDraftMessage}
                     autoExecuteMessage={autoExecuteMessage}
@@ -375,7 +390,7 @@ function AgentChatHistoryReadyView(props: AgentChatHistoryReadyViewProps) {
             onSelectChat={onSelectChat}
             onDeleteChat={onDeleteChat}
             newChatHref={newChatHref}
-            isAdmin={isCurrentUserAdmin}
+            isAdmin={isCurrentUserAdmin || isCurrentUserSuperAdmin === true}
             showExternalChats={shouldShowExternalChats}
             onShowExternalChatsChange={onShowExternalChatsChange}
             isCollapsed={isSidebarCollapsed}

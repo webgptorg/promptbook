@@ -1,10 +1,7 @@
 'use client';
 
-import { showAlert, showConfirm, showPrompt } from '@/src/components/AsyncDialogs/asyncDialogs';
 import {
-    $cancelAdminChatTask,
     $fetchAdminChatTasks,
-    $retryAdminChatTask,
     type AdminChatTaskCounters,
     type AdminChatTaskRecord,
     type AdminChatTaskView,
@@ -12,13 +9,20 @@ import {
 import type { ServerLanguageCode } from '@/src/languages/ServerLanguageRegistry';
 import { formatServerLanguageHumanReadableDate } from '@/src/utils/localization/formatServerLanguageHumanReadableDate';
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
+import {
+    confirmAdminChatTaskAction,
+    executeAdminChatTaskAction,
+    requestAdminChatTaskActionReason,
+    showAdminChatTaskActionFailure,
+    type AdminChatTaskActionKind,
+} from './adminChatTaskActionDialogs';
 
 /**
  * Supported row-level admin actions.
  *
  * @private function of TaskManagerClient
  */
-type TaskActionKind = 'cancel' | 'retry';
+type TaskActionKind = AdminChatTaskActionKind;
 
 /**
  * State returned by `useTaskManagerState`.
@@ -57,20 +61,6 @@ type UseTaskManagerStateResult = {
     view: AdminChatTaskView;
     goToNextPage: () => void;
     goToPreviousPage: () => void;
-};
-
-/**
- * Dialog copy used for one admin task action.
- *
- * @private function of TaskManagerClient
- */
-type TaskActionDialogCopy = {
-    cancelLabel: string;
-    confirmLabel: string;
-    failureTitle: string;
-    promptTitle: string;
-    title: string;
-    verb: string;
 };
 
 /**
@@ -123,108 +113,6 @@ function formatDuration(durationMs: number | null): string {
     }
 
     return parts.slice(0, 2).join(' ');
-}
-
-/**
- * Resolves dialog copy for the selected admin task action.
- *
- * @private function of TaskManagerClient
- */
-function resolveTaskActionDialogCopy(action: TaskActionKind): TaskActionDialogCopy {
-    if (action === 'cancel') {
-        return {
-            cancelLabel: 'Abort',
-            confirmLabel: 'Cancel task',
-            failureTitle: 'Cancellation failed',
-            promptTitle: 'Cancel task reason',
-            title: 'Cancel background task',
-            verb: 'Cancel',
-        };
-    }
-
-    return {
-        cancelLabel: 'Abort',
-        confirmLabel: 'Retry task',
-        failureTitle: 'Retry failed',
-        promptTitle: 'Retry task reason',
-        title: 'Retry failed task',
-        verb: 'Retry',
-    };
-}
-
-/**
- * Requests confirmation before mutating a durable task.
- *
- * @private function of TaskManagerClient
- */
-async function confirmTaskAction(action: TaskActionKind, taskId: string): Promise<boolean> {
-    const dialogCopy = resolveTaskActionDialogCopy(action);
-
-    return showConfirm({
-        title: dialogCopy.title,
-        message: `${dialogCopy.verb} task "${taskId}"?`,
-        confirmLabel: dialogCopy.confirmLabel,
-        cancelLabel: dialogCopy.cancelLabel,
-    }).catch(() => false);
-}
-
-/**
- * Prompts for a required reason before destructive admin actions.
- *
- * @private function of TaskManagerClient
- */
-async function requestAdminReason(action: TaskActionKind, taskId: string): Promise<string | null> {
-    const dialogCopy = resolveTaskActionDialogCopy(action);
-    const value = await showPrompt({
-        title: dialogCopy.promptTitle,
-        message: `Provide a short reason for task "${taskId}".`,
-        confirmLabel: 'Continue',
-        cancelLabel: dialogCopy.cancelLabel,
-        placeholder: 'Required reason',
-        inputLabel: 'Reason',
-    }).catch(() => null);
-
-    const reason = value?.trim() || '';
-    if (reason) {
-        return reason;
-    }
-
-    if (value !== null) {
-        await showAlert({
-            title: 'Reason required',
-            message: 'This action requires a non-empty reason.',
-        }).catch(() => undefined);
-    }
-
-    return null;
-}
-
-/**
- * Performs one admin task action against the API.
- *
- * @private function of TaskManagerClient
- */
-async function executeTaskAction(taskId: string, action: TaskActionKind, reason: string): Promise<void> {
-    if (action === 'cancel') {
-        await $cancelAdminChatTask(taskId, { reason });
-        return;
-    }
-
-    await $retryAdminChatTask(taskId, { reason });
-}
-
-/**
- * Surfaces a failed admin task action to the operator.
- *
- * @private function of TaskManagerClient
- */
-async function showTaskActionFailure(action: TaskActionKind, error: unknown): Promise<void> {
-    const dialogCopy = resolveTaskActionDialogCopy(action);
-
-    await showAlert({
-        title: dialogCopy.failureTitle,
-        message: error instanceof Error ? error.message : 'Task action failed.',
-    }).catch(() => undefined);
 }
 
 /**
@@ -367,12 +255,12 @@ export function useTaskManagerState(language: ServerLanguageCode): UseTaskManage
 
     const runTaskAction = useCallback(
         async (task: AdminChatTaskRecord, action: TaskActionKind): Promise<void> => {
-            const isConfirmed = await confirmTaskAction(action, task.id);
+            const isConfirmed = await confirmAdminChatTaskAction(action, task.id);
             if (!isConfirmed) {
                 return;
             }
 
-            const reason = await requestAdminReason(action, task.id);
+            const reason = await requestAdminChatTaskActionReason(action, task.id);
             if (!reason) {
                 return;
             }
@@ -380,10 +268,10 @@ export function useTaskManagerState(language: ServerLanguageCode): UseTaskManage
             try {
                 setBusyTaskId(task.id);
                 setBusyAction(action);
-                await executeTaskAction(task.id, action, reason);
+                await executeAdminChatTaskAction(task.id, action, reason);
                 refreshNow();
             } catch (actionError) {
-                await showTaskActionFailure(action, actionError);
+                await showAdminChatTaskActionFailure(action, actionError);
             } finally {
                 setBusyTaskId(null);
                 setBusyAction(null);

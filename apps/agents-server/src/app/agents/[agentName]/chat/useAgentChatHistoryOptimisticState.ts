@@ -455,6 +455,7 @@ function createOptimisticUserChatSummary(chatId: string, timestamp: string): Use
         lastMessageAt: null,
         source: USER_CHAT_SOURCES.WEB_UI,
         isReadOnly: false,
+        isExternalUserChat: false,
         messagesCount: 0,
         title: '',
         preview: '',

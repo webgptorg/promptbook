@@ -8,7 +8,7 @@ import { USER_CHAT_SOURCES } from './UserChatSource';
  * Loads one user chat by id.
  */
 export async function getUserChat(options: GetUserChatOptions): Promise<UserChatRecord | null> {
-    const { userId, viewerIsAdmin = false, agentPermanentId, chatId } = options;
+    const { userId, viewerIsAdmin = false, viewerIsSuperAdmin = false, agentPermanentId, chatId } = options;
     const userChatTable = await provideUserChatTable();
 
     const { data, error } = await userChatTable
@@ -28,8 +28,13 @@ export async function getUserChat(options: GetUserChatOptions): Promise<UserChat
     const chat = mapUserChatRow(data as UserChatRow);
 
     if (chat.source === USER_CHAT_SOURCES.WEB_UI) {
-        return chat.userId === userId ? chat : null;
+        if (chat.userId === userId) {
+            return chat;
+        }
+
+        // Note: Super-admins may open other users' chats in a view-only mode
+        return viewerIsSuperAdmin ? chat : null;
     }
 
-    return viewerIsAdmin ? chat : null;
+    return viewerIsAdmin || viewerIsSuperAdmin ? chat : null;
 }

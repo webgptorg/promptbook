@@ -14,6 +14,7 @@ export { getUserChatJob } from './userChat/getUserChatJob';
 export { getUserChatJobById } from './userChat/getUserChatJobById';
 export { getUserChatJobByClientMessageId } from './userChat/getUserChatJobByClientMessageId';
 export { heartbeatUserChatJob } from './userChat/heartbeatUserChatJob';
+export { isUserChatViewOnly } from './userChat/isUserChatViewOnly';
 export { listExpiredRunningUserChatJobs } from './userChat/listExpiredRunningUserChatJobs';
 export { listUserChats, listUserChatSummarySeeds } from './userChat/listUserChats';
 export { listUserChatJobActivityCounts, listUserChatJobs } from './userChat/listUserChatJobs';
