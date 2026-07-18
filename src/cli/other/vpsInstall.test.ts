@@ -265,6 +265,38 @@ describe('other/vps/install.sh', () => {
         expect(installScript).not.toContain('env DEBIAN_FRONTEND=noninteractive apt-get install');
     });
 
+    it('installs code-server for browser VS Code project editing', () => {
+        const mainFunction = installScript.slice(installScript.indexOf('\nmain() {'));
+        const selfUpdateFunction = installScript.slice(installScript.indexOf('\nself_update_agents_server() {'));
+
+        expect(installScript).toContain('AGENT_PROJECT_VSCODE_NPM_PACKAGE=');
+        expect(installScript).toContain('install_agents_server_vscode_dependencies()');
+        expect(installScript).toContain('npm install -g "$AGENT_PROJECT_VSCODE_NPM_PACKAGE"');
+        expect(mainFunction.indexOf('install_agents_server_vscode_dependencies')).toBeGreaterThan(
+            mainFunction.indexOf('install_agents_server_browser_dependencies'),
+        );
+        expect(selfUpdateFunction).toContain('install_agents_server_vscode_dependencies');
+    });
+
+    it('configures authenticated Nginx proxying for browser VS Code project sessions', () => {
+        const nginxConfiguration = installScript.slice(
+            installScript.indexOf('\nconfigure_nginx_reverse_proxy() {'),
+            installScript.indexOf('\nreload_or_restart_nginx() {'),
+        );
+
+        expect(installScript).toContain('NGINX_AGENT_PROJECT_VSCODE_AUTH_LOCATION=');
+        expect(installScript).toContain('build_nginx_agent_project_vscode_location_block()');
+        expect(nginxConfiguration).toContain('agent_project_vscode_location_block=');
+        expect(installScript).toContain('location ^~ /agent-project-vscode/');
+        expect(installScript).toContain('auth_request ${NGINX_AGENT_PROJECT_VSCODE_AUTH_LOCATION};');
+        expect(installScript).toContain(
+            'auth_request_set \\$agent_project_vscode_port \\$upstream_http_x_promptbook_agent_project_vscode_port;',
+        );
+        expect(installScript).toContain('proxy_set_header X-Original-URI \\$request_uri;');
+        expect(installScript).toContain('proxy_set_header Upgrade \\$http_upgrade;');
+        expect(installScript).toContain('configure_nginx_reverse_proxy');
+    });
+
     it('defaults standalone VPS file storage to self-contained VersityGW S3', () => {
         const mainFunction = installScript.slice(installScript.indexOf('\nmain() {'));
 
