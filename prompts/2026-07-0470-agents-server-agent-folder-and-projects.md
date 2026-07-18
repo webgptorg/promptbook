@@ -102,6 +102,10 @@
 
 -   The Vscode should be opened in a browser similarly, for example, as the Vscode which can be run from GitHub by pressing "."
 -   implement the function so that when you press "." when you are looking at the project, it will automatically open the built-in VS Code same as the GitHub does
+- When you install `code-server` Keep in mind that software on the server can be installed either via VPS install.sh script from scratch on fresh VPS or via the update.
+- Do not duplicate code and logic in the repository for these two ways, update and install.sh script should share similar code and logic for installing the software on the server.
+- When running install.sh script on already installed VPS, it should effectively do same as the update from the superadmin panel
+- When some dependencies are added in new version of the software, the update should install these dependencies on the server if they are not installed yet. This should be a pattern for now and for the future. Now you are doing this for the `code-server` software, but in the future, it should be done for every software which is installed on the server.
 -   The VS Code should be able to edit the files and do the git operations on the project files.
 -   Also, if the user is super admin, the terminal of the VScode should be the full admin terminal of the server with CWD on the root of the viewed project.
 -   The theme light/dark of the VSCode should be the same as the theme of the agent server user is having
