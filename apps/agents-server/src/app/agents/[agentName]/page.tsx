@@ -594,6 +594,7 @@ function renderAgentProfilePage(viewModel: AgentPageViewModel) {
                 isAuthenticated={viewModel.isAuthenticated}
                 isHeadless={viewModel.isHeadless}
                 folderContext={viewModel.folderContext}
+                isProjectsViewVisible={viewModel.projects.length > 0}
                 actions={viewModel.actions}
             >
                 {viewModel.isDeleted && <DeletedAgentBanner />}
@@ -615,6 +616,7 @@ function renderAgentProfilePage(viewModel: AgentPageViewModel) {
                     speechRecognitionLanguage={viewModel.speechRecognitionLanguage}
                     isHistoryEnabled={viewModel.isHistoryEnabled}
                     areFileAttachmentsEnabled={viewModel.areFileAttachmentsEnabled}
+                    projectReferences={viewModel.projects}
                 />
             </AgentProfileWrapper>
         </>

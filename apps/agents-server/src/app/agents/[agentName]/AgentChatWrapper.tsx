@@ -7,10 +7,7 @@ import { RemoteAgent } from '@promptbook-local/core';
 import { ClientVersionMismatchError } from '@promptbook-local/utils';
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { string_agent_url } from '../../../../../../src/types/typeAliases';
-import {
-    AgentProjectReferencesList,
-    type AgentProjectItemInfo,
-} from '../../../components/AgentProjects/AgentProjectReferencesList';
+import type { AgentProjectItemInfo } from '../../../components/AgentProjects/AgentProjectReferencesList';
 import { useAgentBackground } from '../../../components/AgentProfile/useAgentBackground';
 import { useChatEnterBehaviorPreferences } from '../../../components/ChatEnterBehavior/ChatEnterBehaviorPreferencesProvider';
 import { ChatErrorDialog } from '../../../components/ChatErrorDialog';
@@ -36,6 +33,7 @@ import { reportClientVersionMismatch } from '../../../utils/clientVersionClient'
 import type { FriendlyErrorMessage } from '../../../utils/errorMessages';
 import { handleChatError } from '../../../utils/errorMessages';
 import { fetchGithubAppStatus, type GithubAppStatusResponse } from '../../../utils/githubAppClient';
+import { createAgentProjectMarkdownReferences } from '../../../utils/agentProjects/createAgentProjectMarkdownReferences';
 import { createDefaultSpeechRecognition } from '../../../utils/speech-to-text/createDefaultSpeechRecognition';
 import { chatFileUploadHandler } from '../../../utils/upload/createBookEditorUploadHandler';
 import {
@@ -77,7 +75,7 @@ type AgentChatWrapperProps = {
     feedbackMode?: ChatFeedbackMode;
     chatFailMessage?: string;
     /**
-     * Compact project references shown in the chat surface.
+     * Project references resolved from `[[project-name]]` markdown tokens.
      */
     projectReferences?: ReadonlyArray<AgentProjectItemInfo>;
     /**
@@ -146,6 +144,14 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
 
     const { value: agent } = usePromise(agentPromise, [agentPromise]);
     const teamAgentProfiles = useTeamAgentProfiles(agent?.capabilities);
+    const markdownInlineReferences = useMemo(
+        () =>
+            createAgentProjectMarkdownReferences({
+                agentPermanentId: agentName,
+                projects: projectReferences,
+            }),
+        [agentName, projectReferences],
+    );
 
     // Error state management
     const [currentError, setCurrentError] = useState<FriendlyErrorMessage | null>(null);
@@ -483,14 +489,9 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
             onReset={onStartNewChat}
             resetMode={onStartNewChat ? 'delegate' : undefined}
             teamAgentProfiles={teamAgentProfiles}
+            markdownInlineReferences={markdownInlineReferences}
             resolveCitationLabel={resolveCitationLabel}
         >
-            <AgentProjectReferencesList
-                agentPermanentId={agentName}
-                projects={projectReferences}
-                className="mx-4 mt-4"
-                itemClassName="max-w-full sm:max-w-xs"
-            />
             {allowFileAttachments && !fileUploadAvailability.isUploadAvailable && (
                 <FileUploadUnavailableNotice className="mx-4 mt-4" />
             )}

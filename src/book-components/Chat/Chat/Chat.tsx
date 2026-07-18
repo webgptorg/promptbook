@@ -119,6 +119,7 @@ export function Chat(props: ChatProps) {
         toolTitles,
         teammates,
         teamAgentProfiles,
+        markdownInlineReferences,
         layout,
         visualMode = 'ARTICLE_MODE',
         theme = 'LIGHT',
@@ -364,6 +365,7 @@ export function Chat(props: ChatProps) {
                         toolTitles={toolTitles}
                         teammates={teammates}
                         teamAgentProfiles={teamAgentProfiles}
+                        markdownInlineReferences={markdownInlineReferences}
                         visualMode={visualMode}
                         soundSystem={soundSystem}
                         onToolCallClick={openToolCall}

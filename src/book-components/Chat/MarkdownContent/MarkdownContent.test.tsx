@@ -101,4 +101,45 @@ describe('MarkdownContent details rendering', () => {
         expect(link.getAttribute('href')).toBeNull();
         expect(container.querySelector('svg')).toBeNull();
     });
+
+    it('renders known inline references as link chips', () => {
+        const { container } = render(
+            <MarkdownContent
+                content="Open [[website]] and keep [[unknown-project]] literal."
+                inlineReferences={[
+                    {
+                        reference: 'website',
+                        label: 'Website',
+                        href: '/agents/example-agent/projects/website',
+                        title: 'Website project',
+                    },
+                ]}
+            />,
+        );
+
+        const link = screen.getByRole('link', { name: 'Website' });
+
+        expect(link.getAttribute('href')).toBe('/agents/example-agent/projects/website');
+        expect(link.getAttribute('title')).toBe('Website project');
+        expect(link.className).toContain('inlineReferenceChip');
+        expect(container.textContent).toContain('[[unknown-project]]');
+    });
+
+    it('keeps inline references inside code literal', () => {
+        const { container } = render(
+            <MarkdownContent
+                content="Use `[[website]]` in code, then open [[website]]."
+                inlineReferences={[
+                    {
+                        reference: 'website',
+                        label: 'Website',
+                        href: '/agents/example-agent/projects/website',
+                    },
+                ]}
+            />,
+        );
+
+        expect(container.querySelector('code')?.textContent).toBe('[[website]]');
+        expect(screen.getAllByRole('link', { name: 'Website' })).toHaveLength(1);
+    });
 });

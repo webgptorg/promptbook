@@ -57,6 +57,10 @@ export type ChatMessageListProps = {
     toolTitles?: Record<string, string>;
     teammates?: ChatProps['teammates'];
     teamAgentProfiles?: ChatProps['teamAgentProfiles'];
+    /**
+     * Optional inline references rendered from `[[reference]]` tokens in message markdown.
+     */
+    markdownInlineReferences?: ChatProps['markdownInlineReferences'];
     visualMode?: ChatProps['visualMode'];
     onToolCallClick?: (toolCall: NonNullable<ChatMessage['toolCalls']>[number]) => void;
     onCitationClick?: (citation: ParsedCitation) => void;
@@ -104,6 +108,7 @@ export function ChatMessageList(props: ChatMessageListProps) {
         onCreateAgent,
         toolTitles,
         teammates,
+        markdownInlineReferences,
         onToolCallClick,
         onCitationClick,
         visualMode,
@@ -171,6 +176,7 @@ export function ChatMessageList(props: ChatMessageListProps) {
                         toolTitles={toolTitles}
                         teammates={teammates}
                         teamAgentProfiles={teamAgentProfiles}
+                        markdownInlineReferences={markdownInlineReferences}
                         visualMode={visualMode}
                         onToolCallClick={onToolCallClick}
                         onCitationClick={onCitationClick}

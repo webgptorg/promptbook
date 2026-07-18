@@ -74,6 +74,7 @@ import type { ChatParticipant } from '../book-components/Chat/types/ChatParticip
 import type { CitationLabelResolver } from '../book-components/Chat/types/CitationLabelResolver';
 import type { MessageButton } from '../book-components/Chat/utils/parseMessageButtons';
 import { parseMessageButtons } from '../book-components/Chat/utils/parseMessageButtons';
+import type { MarkdownInlineReference } from '../book-components/Chat/utils/renderMarkdown';
 import { ArrowIcon } from '../book-components/icons/ArrowIcon';
 import { MicIcon } from '../book-components/icons/MicIcon';
 import { PauseIcon } from '../book-components/icons/PauseIcon';
@@ -165,6 +166,7 @@ export type { ChatParticipant };
 export type { CitationLabelResolver };
 export type { MessageButton };
 export { parseMessageButtons };
+export type { MarkdownInlineReference };
 export { ArrowIcon };
 export { MicIcon };
 export { PauseIcon };

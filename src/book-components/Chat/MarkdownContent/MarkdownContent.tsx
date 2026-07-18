@@ -5,7 +5,7 @@ import { createRoot, type Root } from 'react-dom/client';
 import type { string_markdown } from '../../../types/string_markdown';
 import { classNames } from '../../_common/react-utils/classNames';
 import { CodeBlock } from '../CodeBlock/CodeBlock';
-import { renderMarkdown } from '../utils/renderMarkdown';
+import { renderMarkdown, type MarkdownInlineReference } from '../utils/renderMarkdown';
 import styles from './MarkdownContent.module.css';
 
 /**
@@ -22,6 +22,7 @@ type MarkdownContentProps = {
     content: string_markdown;
 
     className?: string;
+    inlineReferences?: ReadonlyArray<MarkdownInlineReference>;
     onCreateAgent?: (bookContent: string) => void;
     theme?: 'LIGHT' | 'DARK';
 };
@@ -114,13 +115,15 @@ function resolveClickedDetailsElement(target: EventTarget | null, container: HTM
  * @public exported from `@promptbook/components`
  */
 export const MarkdownContent = memo(function MarkdownContent(props: MarkdownContentProps) {
-    const { content, className, onCreateAgent, theme } = props;
+    const { content, className, inlineReferences, onCreateAgent, theme } = props;
     const htmlContent = useMemo(
         () =>
             renderMarkdown(content, {
                 citationReferenceClassName: styles.citationRef,
+                inlineReferences,
+                inlineReferenceClassName: styles.inlineReferenceChip,
             }),
-        [content],
+        [content, inlineReferences],
     );
     const [resolvedTheme, setResolvedTheme] = useState<MarkdownContentTheme>(() => resolveMarkdownContentTheme(theme));
     const containerRef = useRef<HTMLDivElement>(null);

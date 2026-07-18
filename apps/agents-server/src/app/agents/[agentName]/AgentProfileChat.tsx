@@ -20,11 +20,13 @@ import { FileUploadUnavailableNotice } from '../../../components/FileUploadAvail
 import { useFileUploadAvailability } from '../../../components/FileUploadAvailability/FileUploadAvailabilityContext';
 import { createMyChatsMobileMenuItem } from '../../../components/Header/createMyChatsMobileMenuItem';
 import { useHoistedMobileMenuItems } from '../../../components/Header/MobileMenuHoistingContext';
+import type { AgentProjectItemInfo } from '../../../components/AgentProjects/AgentProjectReferencesList';
 import { usePrivateModePreferences } from '../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
 import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
 import { ChatThreadLoadingSkeleton } from '../../../components/Skeleton/ChatThreadLoadingSkeleton';
 import { usePromptbookTheme } from '../../../components/ThemeMode/usePromptbookTheme';
 import type { ServerLanguageCode } from '../../../languages/ServerLanguageRegistry';
+import { createAgentProjectMarkdownReferences } from '../../../utils/agentProjects/createAgentProjectMarkdownReferences';
 import { buildFreshAgentChatHref } from '../../../utils/agentRouting/agentRouteHrefs';
 import { executeQuickActionButton } from '../../../utils/chat/executeQuickActionButton';
 import { resolveChatMessageValidationIssue } from '../../../utils/chat/validateChatMessageContent';
@@ -58,6 +60,10 @@ export type AgentProfileChatProps = {
     speechRecognitionLanguage?: string;
     isHistoryEnabled?: boolean;
     areFileAttachmentsEnabled?: boolean;
+    /**
+     * Project references resolved from `[[project-name]]` markdown tokens.
+     */
+    projectReferences?: ReadonlyArray<AgentProjectItemInfo>;
 };
 
 /**
@@ -263,6 +269,7 @@ export function AgentProfileChat({
     speechRecognitionLanguage,
     isHistoryEnabled = false,
     areFileAttachmentsEnabled = true,
+    projectReferences = [],
 }: AgentProfileChatProps) {
     const [isCreatingAgent, setIsCreatingAgent] = useState(false);
     const [optimisticNavigationState, setOptimisticNavigationState] = useState<OptimisticChatNavigationState | null>(null);
@@ -277,6 +284,14 @@ export function AgentProfileChat({
     keepUnused(isCreatingAgent);
 
     const chatRoute = useMemo(() => `/agents/${encodeURIComponent(agentName)}/chat`, [agentName]);
+    const markdownInlineReferences = useMemo(
+        () =>
+            createAgentProjectMarkdownReferences({
+                agentPermanentId: agentName,
+                projects: projectReferences,
+            }),
+        [agentName, projectReferences],
+    );
     const agentPromise = useMemo(
         () =>
             RemoteAgent.connect({
@@ -496,6 +511,7 @@ export function AgentProfileChat({
                                 chatLocale={language}
                                 timingTranslations={timingTranslations}
                                 feedbackTranslations={feedbackTranslations}
+                                markdownInlineReferences={markdownInlineReferences}
                                 messages={initialMessages}
                                 onMessage={handleMessage}
                                 onActionButton={executeQuickActionButton}

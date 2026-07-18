@@ -187,6 +187,7 @@ export function useHeaderAgentMenus({
         folderContext: activeAgentFolderContext,
         isAdmin,
         isAuthenticated,
+        isProjectsViewVisible,
         onShowQrCode: handleShowAgentQrCode,
         onAgentRenamed,
         onRequestClose: closeAgentViewDropdown,

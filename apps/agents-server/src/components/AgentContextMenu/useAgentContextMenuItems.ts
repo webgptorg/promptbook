@@ -8,6 +8,7 @@ import {
     DownloadIcon,
     ExternalLinkIcon,
     FileTextIcon,
+    FolderKanbanIcon,
     FolderOpenIcon,
     MailIcon,
     MessageCircleQuestionIcon,
@@ -20,6 +21,7 @@ import {
     SquareSplitHorizontalIcon,
     TrashIcon,
 } from 'lucide-react';
+import { buildAgentProjectsDashboardHref } from '../../utils/agentProjects/agentProjectHrefs';
 import { buildFreshAgentChatHref } from '../../utils/agentRouting/agentRouteHrefs';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 import type { ContextMenuItem, ContextMenuLinkItem } from '../ContextMenu/ContextMenuPanel';
@@ -195,6 +197,8 @@ function createSharingMenuItems(
  * @param editBookLink - Generated edit-book link metadata.
  * @param folderContext - Optional folder navigation context.
  * @param formatText - Agent-aware text formatter.
+ * @param isAuthenticated - Whether logged-in-only workspace links should render.
+ * @param isProjectsViewVisible - Whether the projects view link should render.
  * @returns Navigation and workspace menu items.
  */
 function createWorkspaceMenuItems(
@@ -203,6 +207,7 @@ function createWorkspaceMenuItems(
     folderContext: AgentContextMenuBaseProps['folderContext'],
     formatText: FormatAgentContextMenuText,
     isAuthenticated: boolean,
+    isProjectsViewVisible: boolean,
 ): ContextMenuItem[] {
     const menuItems: ContextMenuItem[] = [];
 
@@ -229,6 +234,15 @@ function createWorkspaceMenuItems(
             label: formatText('Textarea Entry'),
         },
     );
+
+    if (isProjectsViewVisible) {
+        menuItems.push({
+            type: 'link',
+            href: buildAgentProjectsDashboardHref(agentIdentifier),
+            icon: FolderKanbanIcon,
+            label: formatText('Projects'),
+        });
+    }
 
     if (isAuthenticated) {
         menuItems.push(
@@ -405,6 +419,7 @@ export function useAgentContextMenuItems(props: AgentContextMenuBaseProps): Cont
         isInstalled = false,
         onInstallApp,
         fromDirectoryListing,
+        isProjectsViewVisible = false,
     } = props;
 
     const { isExperimentalPwaAppEnabled } = useMetadataFlags();
@@ -430,6 +445,7 @@ export function useAgentContextMenuItems(props: AgentContextMenuBaseProps): Cont
         folderContext,
         formatText,
         isAuthenticated,
+        isProjectsViewVisible,
     );
     const managementMenuItems = createManagementMenuItems(
         formatText,

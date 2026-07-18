@@ -17,6 +17,11 @@ import { createCitationMarkerRegex, parseCitationMarker } from './parseCitationM
 const DEFAULT_CITATION_REFERENCE_CLASS_NAME = 'citationRef';
 
 /**
+ * Default class name used for rendered inline reference chips outside of CSS modules.
+ */
+const DEFAULT_INLINE_REFERENCE_CLASS_NAME = 'inlineReferenceChip';
+
+/**
  * Browser stylesheet id used when KaTeX output is rendered in a live chat component.
  */
 const KATEX_STYLESHEET_ID = 'katex-css';
@@ -243,6 +248,13 @@ const DETAILS_PLACEHOLDER_REGEX = new RegExp(`${DETAILS_PLACEHOLDER_PREFIX}(\\d+
 const DETAILS_PLACEHOLDER_WRAPPED_REGEX = new RegExp(`<p>\\s*(${DETAILS_PLACEHOLDER_PREFIX}\\d+__)\\s*<\\/p>`, 'g');
 
 /**
+ * Pattern matching inline `[[reference]]` chips in markdown text.
+ *
+ * @private utility of `renderMarkdown`
+ */
+const INLINE_REFERENCE_REGEX = /\[\[([^\]\r\n]+?)\]\]/g;
+
+/**
  * Markdown patterns that are strong enough to identify content as markdown.
  */
 const MARKDOWN_CONTENT_PATTERNS: ReadonlyArray<RegExp> = [
@@ -284,6 +296,35 @@ type MathDelimiterDefinition = {
  */
 type RenderMarkdownOptions = {
     readonly citationReferenceClassName?: string;
+    readonly inlineReferences?: ReadonlyArray<MarkdownInlineReference>;
+    readonly inlineReferenceClassName?: string;
+};
+
+/**
+ * One inline markdown reference converted from `[[reference]]` into a safe link chip.
+ *
+ * @public exported from `@promptbook/components`
+ */
+export type MarkdownInlineReference = {
+    /**
+     * Raw reference text between `[[` and `]]`.
+     */
+    readonly reference: string;
+
+    /**
+     * Human-readable label rendered inside the link chip.
+     */
+    readonly label: string;
+
+    /**
+     * Link target for the rendered reference.
+     */
+    readonly href: string;
+
+    /**
+     * Optional hover title for the rendered reference.
+     */
+    readonly title?: string;
 };
 
 /**
@@ -718,6 +759,90 @@ function escapeHtml(value: string): string_html {
 }
 
 /**
+ * Normalizes inline reference keys for stable matching.
+ *
+ * @param value - Raw reference key.
+ * @returns Trimmed case-insensitive key.
+ *
+ * @private utility of `renderMarkdown`
+ */
+function normalizeMarkdownInlineReferenceKey(value: string): string {
+    return value.trim().toLowerCase();
+}
+
+/**
+ * Builds a lookup of inline markdown references keyed by the authored `[[reference]]` text.
+ *
+ * @param references - References available to this markdown render.
+ * @returns Reference lookup map.
+ *
+ * @private utility of `renderMarkdown`
+ */
+function createMarkdownInlineReferenceByKey(
+    references: ReadonlyArray<MarkdownInlineReference>,
+): Map<string, MarkdownInlineReference> {
+    const referenceByKey = new Map<string, MarkdownInlineReference>();
+
+    for (const reference of references) {
+        const normalizedReference = normalizeMarkdownInlineReferenceKey(reference.reference);
+        if (!normalizedReference || referenceByKey.has(normalizedReference)) {
+            continue;
+        }
+
+        referenceByKey.set(normalizedReference, reference);
+    }
+
+    return referenceByKey;
+}
+
+/**
+ * Renders one inline reference as raw HTML that is sanitized by the shared markdown sanitizer.
+ *
+ * @param reference - Resolved inline reference.
+ * @param className - CSS class applied to the generated link.
+ * @returns HTML anchor markup.
+ *
+ * @private utility of `renderMarkdown`
+ */
+function renderMarkdownInlineReferenceHtml(reference: MarkdownInlineReference, className: string): string {
+    const escapedClassName = escapeHtml(className);
+    const escapedHref = escapeHtml(reference.href);
+    const escapedLabel = escapeHtml(reference.label);
+    const escapedTitle = escapeHtml(reference.title || reference.label);
+
+    return `<a class="${escapedClassName}" href="${escapedHref}" title="${escapedTitle}">${escapedLabel}</a>`;
+}
+
+/**
+ * Replaces known `[[reference]]` tokens with link chips while leaving unknown tokens unchanged.
+ *
+ * @param markdown - Markdown content after code masking.
+ * @param options - Markdown render options.
+ * @returns Markdown with known inline references rendered as HTML anchors.
+ *
+ * @private utility of `renderMarkdown`
+ */
+function applyMarkdownInlineReferences(markdown: string_markdown, options?: RenderMarkdownOptions): string_markdown {
+    const references = options?.inlineReferences;
+    const className = options?.inlineReferenceClassName || DEFAULT_INLINE_REFERENCE_CLASS_NAME;
+
+    if (!references || references.length === 0) {
+        return markdown;
+    }
+
+    const referenceByKey = createMarkdownInlineReferenceByKey(references);
+    if (referenceByKey.size === 0) {
+        return markdown;
+    }
+
+    return markdown.replace(INLINE_REFERENCE_REGEX, (match, rawReference: string) => {
+        const reference = referenceByKey.get(normalizeMarkdownInlineReferenceKey(rawReference));
+
+        return reference ? renderMarkdownInlineReferenceHtml(reference, className) : match;
+    }) as string_markdown;
+}
+
+/**
  * Loads KaTeX CSS in browser environments that need to display math output.
  *
  * @private utility of `renderMarkdown`
@@ -760,7 +885,10 @@ export function renderMarkdown(markdown: string_markdown, options?: RenderMarkdo
     try {
         const normalizedMarkdown = normalizeMarkdownSublists(markdown);
         const { masked: maskedMarkdown, restore: restoreDetails } = maskDetailsBlocks(normalizedMarkdown);
-        const processedMarkdown = renderMathInMarkdown(maskedMarkdown);
+        const { masked: codeMaskedMarkdown, restore: restoreCode } = maskMarkdownCodeSegments(maskedMarkdown);
+        const referencedMarkdown = applyMarkdownInlineReferences(codeMaskedMarkdown, options);
+        const inlineReferenceMarkdown = restoreCode(referencedMarkdown);
+        const processedMarkdown = renderMathInMarkdown(inlineReferenceMarkdown);
         const html = converter.makeHtml(processedMarkdown) as string_html;
 
         registerKatexStylesheet(html);

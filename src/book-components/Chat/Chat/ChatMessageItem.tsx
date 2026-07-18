@@ -119,6 +119,10 @@ type ChatMessageItemProps = Pick<
      */
     teamAgentProfiles?: ChatProps['teamAgentProfiles'];
     /**
+     * Optional inline references rendered from `[[reference]]` tokens in message markdown.
+     */
+    markdownInlineReferences?: ChatProps['markdownInlineReferences'];
+    /**
      * Controls whether assistant replies render as bubbles or article blocks.
      */
     visualMode?: ChatProps['visualMode'];
@@ -264,6 +268,7 @@ export const ChatMessageItem = memo(
             onReplyToMessage,
             canReplyToMessage,
             teamAgentProfiles,
+            markdownInlineReferences,
             visualMode = 'ARTICLE_MODE',
             onToolCallClick,
             onCitationClick,
@@ -950,6 +955,7 @@ export const ChatMessageItem = memo(
                                 contentSegments={contentSegments}
                                 streamingFeaturePlaceholderKind={streamingFeaturePlaceholderKind}
                                 onCreateAgent={onCreateAgent}
+                                markdownInlineReferences={markdownInlineReferences}
                                 mode={mode}
                             />
                         </div>
@@ -1221,6 +1227,10 @@ export const ChatMessageItem = memo(
         }
 
         if (prev.teammates !== next.teammates) {
+            return false;
+        }
+
+        if (prev.markdownInlineReferences !== next.markdownInlineReferences) {
             return false;
         }
 

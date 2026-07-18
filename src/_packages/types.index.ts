@@ -62,6 +62,7 @@ import type { ChatParticipant } from '../book-components/Chat/types/ChatParticip
 import type { CitationLabelResolver } from '../book-components/Chat/types/CitationLabelResolver';
 import type { ParsedCitation } from '../book-components/Chat/utils/parseCitationsFromContent';
 import type { MessageButton } from '../book-components/Chat/utils/parseMessageButtons';
+import type { MarkdownInlineReference } from '../book-components/Chat/utils/renderMarkdown';
 import type { TeamToolResult } from '../book-components/Chat/utils/toolCallParsing/TeamToolResult';
 import type { QrCodeOptions } from '../book-components/Qr/useQrCode';
 import type { AgentCollection } from '../collection/agent-collection/AgentCollection';
@@ -507,6 +508,7 @@ export type { ChatParticipant };
 export type { CitationLabelResolver };
 export type { ParsedCitation };
 export type { MessageButton };
+export type { MarkdownInlineReference };
 export type { TeamToolResult };
 export type { QrCodeOptions };
 export type { AgentCollection };

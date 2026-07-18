@@ -67,6 +67,11 @@ type AgentProfileWrapperProps = {
      */
     readonly folderContext?: AgentFolderContext | null;
 
+    /**
+     * Whether the projects view link should be shown in the agent menu.
+     */
+    readonly isProjectsViewVisible?: boolean;
+
     /***
      * Actions to be rendered within the agent profile
      */
@@ -92,6 +97,7 @@ export function AgentProfileWrapper(props: AgentProfileWrapperProps) {
         isAuthenticated,
         isHeadless,
         folderContext,
+        isProjectsViewVisible = false,
         actions,
         children,
     } = props;
@@ -141,6 +147,7 @@ export function AgentProfileWrapper(props: AgentProfileWrapperProps) {
                     agentUrl={agentUrl}
                     agentEmail={agentEmail}
                     folderContext={folderContext}
+                    isProjectsViewVisible={isProjectsViewVisible}
                     isAdmin={isAdmin}
                     isAuthenticated={isAuthenticated}
                     onShowQrCode={onShowQrCode}

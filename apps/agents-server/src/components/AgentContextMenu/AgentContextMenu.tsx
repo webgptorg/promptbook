@@ -84,6 +84,10 @@ export type AgentContextMenuBaseProps = {
      */
     readonly folderContext?: AgentFolderContext | null;
     /**
+     * Whether the projects view link should be shown.
+     */
+    readonly isProjectsViewVisible?: boolean;
+    /**
      * Whether the current user is an admin.
      */
     readonly isAdmin?: boolean;

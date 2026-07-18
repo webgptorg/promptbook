@@ -3,6 +3,7 @@
 import { CodeBlock } from '../CodeBlock/CodeBlock';
 import { MarkdownContent } from '../MarkdownContent/MarkdownContent';
 import type { ChatMessage } from '../types/ChatMessage';
+import type { MarkdownInlineReference } from '../utils/renderMarkdown';
 import type { ChatMessageContentSegment } from '../utils/splitMessageContentIntoSegments';
 import { ChatMessageMap } from './ChatMessageMap';
 import { LOADING_INTERACTIVE_IMAGE } from './constants';
@@ -33,6 +34,10 @@ export type ChatMessageRichContentProps = {
      */
     readonly onCreateAgent?: (bookContent: string) => void;
     /**
+     * Optional inline references rendered from `[[reference]]` tokens in message markdown.
+     */
+    readonly markdownInlineReferences?: ReadonlyArray<MarkdownInlineReference>;
+    /**
      * Resolved theme used by nested code blocks and editors.
      */
     readonly mode: 'LIGHT' | 'DARK';
@@ -44,7 +49,8 @@ export type ChatMessageRichContentProps = {
  * @private internal component of `<ChatMessageItem/>`
  */
 export function ChatMessageRichContent(props: ChatMessageRichContentProps) {
-    const { content, contentSegments, streamingFeaturePlaceholderKind, onCreateAgent, mode } = props;
+    const { content, contentSegments, streamingFeaturePlaceholderKind, onCreateAgent, markdownInlineReferences, mode } =
+        props;
 
     if (content === LOADING_INTERACTIVE_IMAGE) {
         return null;
@@ -58,6 +64,7 @@ export function ChatMessageRichContent(props: ChatMessageRichContentProps) {
                         <MarkdownContent
                             key={`text-${segmentIndex}`}
                             content={segment.content}
+                            inlineReferences={markdownInlineReferences}
                             onCreateAgent={onCreateAgent}
                         />
                     );

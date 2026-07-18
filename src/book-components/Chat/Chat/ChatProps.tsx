@@ -14,6 +14,7 @@ import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
 import type { CitationLabelResolver } from '../types/CitationLabelResolver';
 import type { ChatSaveFormatHandlerMap } from '../save/_common/ChatSaveFormatHandler';
+import type { MarkdownInlineReference } from '../utils/renderMarkdown';
 
 /**
  * Response data returned by the optional `onFeedback` handler.
@@ -804,6 +805,11 @@ export type ChatProps = {
      * Optional cached agent metadata keyed by TEAM tool names to improve chip rendering.
      */
     readonly teamAgentProfiles?: Record<string, AgentChipData>;
+
+    /**
+     * Optional inline references rendered from `[[reference]]` tokens in message markdown.
+     */
+    readonly markdownInlineReferences?: ReadonlyArray<MarkdownInlineReference>;
 
     /**
      * Optional callback to create a new agent from the template.
