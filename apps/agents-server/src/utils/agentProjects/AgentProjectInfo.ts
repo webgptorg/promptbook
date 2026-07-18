@@ -12,6 +12,21 @@ export type AgentProjectInfo = {
     readonly projectName: string;
 
     /**
+     * User-facing name of the project, resolved from the README heading when available.
+     */
+    readonly displayName: string;
+
+    /**
+     * Short project description resolved from the first README paragraph.
+     */
+    readonly description: string;
+
+    /**
+     * Original README filename used for the project profile, or `null` when there is no README.
+     */
+    readonly readmeFileName: string | null;
+
+    /**
      * Path of the project relative to the agent folder root, for example `projects/my-website`.
      */
     readonly relativePath: string;

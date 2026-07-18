@@ -30,6 +30,22 @@ export function resolveAgentProjectsRootPath(agentPermanentId: string): string {
 }
 
 /**
+ * Resolves the absolute path of one project directory while preventing path traversal.
+ *
+ * @param options - Agent permanent id and project directory name.
+ * @returns Absolute project path.
+ * @throws {NotAllowed} When the project name is unsafe.
+ */
+export function resolveSafeAgentProjectPath(options: {
+    readonly agentPermanentId: string;
+    readonly projectName: string;
+}): string {
+    assertSafeAgentProjectPathSegment(options.projectName, 'project name');
+
+    return join(resolveAgentProjectsRootPath(options.agentPermanentId), options.projectName);
+}
+
+/**
  * Extracts the agent permanent id from one local agent runner directory name.
  *
  * @param agentDirectoryName - Directory name, for example `agent-1dkmraaikkd8yp`.
@@ -84,10 +100,30 @@ export function resolveSafeAgentProjectFilePath(options: {
 }): string {
     const { agentPermanentId, projectName, filePathSegments } = options;
 
-    assertSafeAgentProjectPathSegment(projectName, 'project name');
     for (const filePathSegment of filePathSegments) {
         assertSafeAgentProjectPathSegment(filePathSegment, 'project file path segment');
     }
 
-    return join(resolveAgentProjectsRootPath(agentPermanentId), projectName, ...filePathSegments);
+    return join(resolveSafeAgentProjectPath({ agentPermanentId, projectName }), ...filePathSegments);
+}
+
+/**
+ * Resolves one directory path inside one agent project while preventing path traversal.
+ *
+ * @param options - Agent permanent id, project name, and directory path segments from the UI.
+ * @returns Absolute directory path inside the project.
+ * @throws {NotAllowed} When the project name or any directory path segment is unsafe.
+ */
+export function resolveSafeAgentProjectDirectoryPath(options: {
+    readonly agentPermanentId: string;
+    readonly projectName: string;
+    readonly directoryPathSegments: ReadonlyArray<string>;
+}): string {
+    const { agentPermanentId, projectName, directoryPathSegments } = options;
+
+    for (const directoryPathSegment of directoryPathSegments) {
+        assertSafeAgentProjectPathSegment(directoryPathSegment, 'project directory path segment');
+    }
+
+    return join(resolveSafeAgentProjectPath({ agentPermanentId, projectName }), ...directoryPathSegments);
 }

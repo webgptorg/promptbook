@@ -1,6 +1,6 @@
 import { FolderKanbanIcon } from 'lucide-react';
 import type { AgentProjectInfo } from '../../utils/agentProjects/AgentProjectInfo';
-import { AgentProjectCard } from './AgentProjectCard';
+import { AgentProjectItem } from './AgentProjectItem';
 
 /**
  * Props of the shared agent projects board.
@@ -17,16 +17,6 @@ type AgentProjectsBoardProps = {
      * Projects rendered on the board.
      */
     readonly projects: ReadonlyArray<AgentProjectInfo>;
-
-    /**
-     * Whether admin-only details (like absolute folder paths on the server disk) are shown.
-     */
-    readonly isAdminView: boolean;
-
-    /**
-     * Whether project metadata and files can be shown.
-     */
-    readonly isProjectDetailsVisible: boolean;
 };
 
 /**
@@ -39,8 +29,6 @@ type AgentProjectsBoardProps = {
 export function AgentProjectsBoard({
     agentPermanentId,
     projects,
-    isAdminView,
-    isProjectDetailsVisible,
 }: AgentProjectsBoardProps) {
     if (projects.length === 0) {
         return (
@@ -56,14 +44,12 @@ export function AgentProjectsBoard({
     }
 
     return (
-        <div className="space-y-4">
+        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {projects.map((project) => (
-                <AgentProjectCard
+                <AgentProjectItem
                     key={project.projectName}
                     agentPermanentId={agentPermanentId}
                     project={project}
-                    isAdminView={isAdminView}
-                    isProjectDetailsVisible={isProjectDetailsVisible}
                 />
             ))}
         </div>

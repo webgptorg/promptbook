@@ -4,6 +4,10 @@ import { Chat } from '@promptbook-local/components';
 import { useCallback, useMemo, type CSSProperties, type ReactNode } from 'react';
 import type { ChatParticipant } from '../../../../../../../src/book-components/Chat/types/ChatParticipant';
 import type { ChatSaveFormatHandlerOptions } from '../../../../../../../src/book-components/Chat/save/_common/ChatSaveFormatHandler';
+import {
+    AgentProjectReferencesList,
+    type AgentProjectItemInfo,
+} from '../../../../components/AgentProjects/AgentProjectReferencesList';
 import { useAgentBackground } from '../../../../components/AgentProfile/useAgentBackground';
 import { useChatEnterBehaviorPreferences } from '../../../../components/ChatEnterBehavior/ChatEnterBehaviorPreferencesProvider';
 import { notifyError } from '../../../../components/Notifications/notifications';
@@ -80,6 +84,10 @@ type CanonicalAgentChatSurfaceProps = {
      * Optional actions rendered inside the read-only banner (for example super-admin shortcuts).
      */
     readonly readOnlyExtraActions?: ReactNode;
+    /**
+     * Compact project references shown in the chat surface.
+     */
+    readonly projectReferences?: ReadonlyArray<AgentProjectItemInfo>;
     readonly onDraftMessageChange: (message: string) => void;
     readonly onStartNewChat?: () => Promise<void> | void;
     readonly newChatButtonHref?: string;
@@ -116,6 +124,7 @@ export function CanonicalAgentChatSurface({
     readOnlySource,
     isExternalUserChat = false,
     readOnlyExtraActions,
+    projectReferences = [],
     onDraftMessageChange,
     onStartNewChat,
     newChatButtonHref,
@@ -294,6 +303,12 @@ export function CanonicalAgentChatSurface({
             resolveCitationLabel={resolveCitationLabel}
             theme={promptbookTheme}
         >
+            <AgentProjectReferencesList
+                agentPermanentId={agentName}
+                projects={projectReferences}
+                className="mx-4 mt-4"
+                itemClassName="max-w-full sm:max-w-xs"
+            />
             {!isReadOnly && areFileAttachmentsEnabled && !fileUploadAvailability.isUploadAvailable && (
                 <FileUploadUnavailableNotice className="mx-4 mt-4" />
             )}

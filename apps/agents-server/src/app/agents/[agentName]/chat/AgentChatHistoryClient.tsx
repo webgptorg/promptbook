@@ -35,6 +35,7 @@ type AgentChatHistoryPrivateModeViewProps = Pick<
     | 'speechRecognitionLanguage'
     | 'areFileAttachmentsEnabled'
     | 'feedbackMode'
+    | 'projectReferences'
 > & {
     formatText: (text: string) => string;
     autoExecuteMessage: string | undefined;
@@ -66,6 +67,7 @@ type AgentChatHistoryReadyViewProps = Pick<
     | 'feedbackMode'
     | 'isCurrentUserAdmin'
     | 'isCurrentUserSuperAdmin'
+    | 'projectReferences'
 > & {
     isHeadlessMode: boolean;
     activeChatId: string;
@@ -121,6 +123,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         isCurrentUserSuperAdmin = false,
         areFileAttachmentsEnabled,
         feedbackMode,
+        projectReferences = [],
         isHeadlessMode = false,
     } = props;
     const {
@@ -169,6 +172,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 speechRecognitionLanguage={speechRecognitionLanguage}
                 areFileAttachmentsEnabled={areFileAttachmentsEnabled}
                 feedbackMode={feedbackMode}
+                projectReferences={projectReferences}
                 formatText={formatText}
                 autoExecuteMessage={effectiveInitialAutoExecuteMessage}
                 autoExecuteMessageAttachments={effectiveInitialAutoExecuteMessageAttachments}
@@ -194,6 +198,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             feedbackMode={feedbackMode}
             isCurrentUserAdmin={isCurrentUserAdmin}
             isCurrentUserSuperAdmin={isCurrentUserSuperAdmin}
+            projectReferences={projectReferences}
             isHeadlessMode={isHeadlessMode}
             activeChatId={activeChatId}
             chats={chats}
@@ -242,6 +247,7 @@ function AgentChatHistoryPrivateModeView(props: AgentChatHistoryPrivateModeViewP
         speechRecognitionLanguage,
         areFileAttachmentsEnabled,
         feedbackMode,
+        projectReferences = [],
         formatText,
         autoExecuteMessage,
         autoExecuteMessageAttachments,
@@ -264,6 +270,7 @@ function AgentChatHistoryPrivateModeView(props: AgentChatHistoryPrivateModeViewP
                     persistenceKey={`guest-chat-${encodeURIComponent(agentName)}`}
                     areFileAttachmentsEnabled={areFileAttachmentsEnabled}
                     feedbackMode={feedbackMode}
+                    projectReferences={projectReferences}
                     onAutoExecuteMessageConsumed={onAutoExecuteMessageConsumed}
                 />
             </div>
@@ -298,6 +305,7 @@ function AgentChatHistoryReadyView(props: AgentChatHistoryReadyViewProps) {
         feedbackMode,
         isCurrentUserAdmin,
         isCurrentUserSuperAdmin,
+        projectReferences = [],
         isHeadlessMode,
         activeChatId,
         chats,
@@ -358,6 +366,7 @@ function AgentChatHistoryReadyView(props: AgentChatHistoryReadyViewProps) {
                     readOnlySource={activeChatSummary?.source}
                     isExternalUserChat={isActiveExternalUserChat}
                     readOnlyExtraActions={externalUserChatAdminActions}
+                    projectReferences={projectReferences}
                     messages={renderedActiveMessages}
                     draftMessage={isActiveChatReadOnly ? '' : activeChatDraftMessage}
                     autoExecuteMessage={autoExecuteMessage}

@@ -3,6 +3,7 @@
 import { WalletRecordDialog } from '@/src/components/WalletRecordDialog/WalletRecordDialog';
 import type { ChatMessage } from '@promptbook-local/types';
 import { type ReactNode } from 'react';
+import type { AgentProjectItemInfo } from '../../../../components/AgentProjects/AgentProjectReferencesList';
 import { type ChatFeedbackMode } from '../../../../utils/chatFeedbackMode';
 import { type UserChatSource } from '../../../../utils/userChat/UserChatSource';
 import type { UserChatJob, UserChatTimeout } from '../../../../utils/userChatClient';
@@ -33,6 +34,10 @@ type CanonicalAgentChatPanelProps = {
      * Optional actions rendered inside the read-only banner (for example super-admin shortcuts).
      */
     readOnlyExtraActions?: ReactNode;
+    /**
+     * Compact project references shown in the chat surface.
+     */
+    projectReferences?: ReadonlyArray<AgentProjectItemInfo>;
     messages: ReadonlyArray<ChatMessage>;
     draftMessage?: string;
     autoExecuteMessage?: string;
@@ -82,6 +87,7 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
         readOnlySource,
         isExternalUserChat = false,
         readOnlyExtraActions,
+        projectReferences = [],
         messages,
         draftMessage,
         autoExecuteMessage,
@@ -134,6 +140,7 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
                 readOnlySource={readOnlySource}
                 isExternalUserChat={isExternalUserChat}
                 readOnlyExtraActions={readOnlyExtraActions}
+                projectReferences={projectReferences}
                 onDraftMessageChange={onDraftMessageChange}
                 onStartNewChat={onStartNewChat}
                 newChatButtonHref={newChatButtonHref}

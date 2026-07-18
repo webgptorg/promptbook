@@ -22,6 +22,7 @@ export async function readAgentProjectsResourceUsage(): Promise<AgentProjectsRes
                 agentPermanentId: summary.agentPermanentId,
                 agentName: summary.agentName,
                 projectCount: summary.projects.length,
+                projects: summary.projects,
                 sizeBytes: summary.totalSizeBytes,
             })),
             errorMessage: null,

@@ -2,6 +2,7 @@
 
 import type { ChatMessage } from '@promptbook-local/types';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { AgentProjectItemInfo } from '../../../../components/AgentProjects/AgentProjectReferencesList';
 import { useAgentNaming } from '../../../../components/AgentNaming/AgentNamingContext';
 import { createMyChatsMobileMenuItem } from '../../../../components/Header/createMyChatsMobileMenuItem';
 import { useHoistedMobileMenuItems } from '../../../../components/Header/MobileMenuHoistingContext';
@@ -47,6 +48,10 @@ export type AgentChatHistoryClientProps = {
      * who may browse all users' chats in a view-only mode.
      */
     isCurrentUserSuperAdmin?: boolean;
+    /**
+     * Compact project references shown in the chat surface.
+     */
+    projectReferences?: ReadonlyArray<AgentProjectItemInfo>;
     areFileAttachmentsEnabled: boolean;
     feedbackMode: ChatFeedbackMode;
     isHeadlessMode?: boolean;

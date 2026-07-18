@@ -7,6 +7,10 @@ import { RemoteAgent } from '@promptbook-local/core';
 import { ClientVersionMismatchError } from '@promptbook-local/utils';
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { string_agent_url } from '../../../../../../src/types/typeAliases';
+import {
+    AgentProjectReferencesList,
+    type AgentProjectItemInfo,
+} from '../../../components/AgentProjects/AgentProjectReferencesList';
 import { useAgentBackground } from '../../../components/AgentProfile/useAgentBackground';
 import { useChatEnterBehaviorPreferences } from '../../../components/ChatEnterBehavior/ChatEnterBehaviorPreferencesProvider';
 import { ChatErrorDialog } from '../../../components/ChatErrorDialog';
@@ -73,6 +77,10 @@ type AgentChatWrapperProps = {
     feedbackMode?: ChatFeedbackMode;
     chatFailMessage?: string;
     /**
+     * Compact project references shown in the chat surface.
+     */
+    projectReferences?: ReadonlyArray<AgentProjectItemInfo>;
+    /**
      * Optional handler for "New chat" action emitted from chat action bar.
      *
      * When provided, wrapper delegates reset behavior to the caller so the
@@ -107,6 +115,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         areFileAttachmentsEnabled,
         feedbackMode = DEFAULT_CHAT_FEEDBACK_MODE,
         chatFailMessage,
+        projectReferences = [],
         onStartNewChat,
         onAutoExecuteMessageConsumed,
     } = props;
@@ -476,6 +485,12 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
             teamAgentProfiles={teamAgentProfiles}
             resolveCitationLabel={resolveCitationLabel}
         >
+            <AgentProjectReferencesList
+                agentPermanentId={agentName}
+                projects={projectReferences}
+                className="mx-4 mt-4"
+                itemClassName="max-w-full sm:max-w-xs"
+            />
             {allowFileAttachments && !fileUploadAvailability.isUploadAvailable && (
                 <FileUploadUnavailableNotice className="mx-4 mt-4" />
             )}

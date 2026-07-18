@@ -4,7 +4,9 @@ import {
     assertSafeAgentProjectPathSegment,
     parseAgentPermanentIdFromDirectoryName,
     resolveAgentProjectsRootPath,
+    resolveSafeAgentProjectDirectoryPath,
     resolveSafeAgentProjectFilePath,
+    resolveSafeAgentProjectPath,
 } from './agentProjectsPaths';
 
 describe('parseAgentPermanentIdFromDirectoryName', () => {
@@ -38,6 +40,15 @@ describe('assertSafeAgentProjectPathSegment', () => {
 });
 
 describe('resolveSafeAgentProjectFilePath', () => {
+    it('resolves project paths inside the agent projects root', () => {
+        const projectPath = resolveSafeAgentProjectPath({
+            agentPermanentId: 'abc123',
+            projectName: 'my-website',
+        });
+
+        expect(projectPath).toBe(join(resolveAgentProjectsRootPath('abc123'), 'my-website'));
+    });
+
     it('resolves file paths inside the agent projects root', () => {
         const filePath = resolveSafeAgentProjectFilePath({
             agentPermanentId: 'abc123',
@@ -46,6 +57,16 @@ describe('resolveSafeAgentProjectFilePath', () => {
         });
 
         expect(filePath).toBe(join(resolveAgentProjectsRootPath('abc123'), 'my-website', 'assets', 'style.css'));
+    });
+
+    it('resolves directory paths inside the agent projects root', () => {
+        const directoryPath = resolveSafeAgentProjectDirectoryPath({
+            agentPermanentId: 'abc123',
+            projectName: 'my-website',
+            directoryPathSegments: ['assets', 'icons'],
+        });
+
+        expect(directoryPath).toBe(join(resolveAgentProjectsRootPath('abc123'), 'my-website', 'assets', 'icons'));
     });
 
     it('rejects path traversal in the project name and in file path segments', () => {
@@ -62,6 +83,14 @@ describe('resolveSafeAgentProjectFilePath', () => {
                 agentPermanentId: 'abc123',
                 projectName: 'my-website',
                 filePathSegments: ['..', '..', 'agent.book'],
+            }),
+        ).toThrow(NotAllowed);
+
+        expect(() =>
+            resolveSafeAgentProjectDirectoryPath({
+                agentPermanentId: 'abc123',
+                projectName: 'my-website',
+                directoryPathSegments: ['assets', '..'],
             }),
         ).toThrow(NotAllowed);
     });

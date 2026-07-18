@@ -1,8 +1,11 @@
 'use server';
 
 import { ForbiddenPage } from '@/src/components/ForbiddenPage/ForbiddenPage';
+import { AgentProjectReferencesList } from '@/src/components/AgentProjects/AgentProjectReferencesList';
 import { $provideServer } from '@/src/tools/$provideServer';
-import { resolveAgentAccess } from '@/src/utils/agentAccess';
+import { resolveAgentProjectsAccess } from '@/src/utils/agentProjects/agentProjectAccess';
+import { buildAgentProjectsDashboardHref } from '@/src/utils/agentProjects/agentProjectHrefs';
+import { listAgentProjects } from '@/src/utils/agentProjects/listAgentProjects';
 import { isPublicAgentVisibility } from '@/src/utils/agentVisibility';
 import { ensureChatHistoryIdentity } from '@/src/utils/currentUserIdentity';
 import { getServerVisibility } from '@/src/utils/getServerVisibility';
@@ -11,6 +14,7 @@ import { isPublicServerVisibility } from '@/src/utils/serverVisibility';
 import { saturate } from '@promptbook-local/color';
 import { NotFoundError, PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import { headers } from 'next/headers';
+import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { resolveAgentAvatarImageUrl } from '../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 import { Color } from '../../../../../../src/utils/color/Color';
@@ -103,6 +107,7 @@ type AgentPageViewModel = {
     inputPlaceholder: ReturnType<typeof resolveAgentChatInputPlaceholder>;
     brandColorHex: string;
     avatarSrc: string;
+    projects: Awaited<ReturnType<typeof listAgentProjects>>;
     initialAgentMessage: AgentPageData['agentProfile']['initialMessage'];
     speechRecognitionLanguage: ReturnType<typeof resolveSpeechRecognitionLanguage>;
     isHistoryEnabled: boolean;
@@ -453,6 +458,7 @@ function isMissingAgentProfileError(error: unknown): boolean {
 function createAgentPageViewModel(
     route: Extract<ResolvedAgentPageRoute, { kind: 'local' }>,
     data: AgentPageData,
+    projects: Awaited<ReturnType<typeof listAgentProjects>>,
 ): AgentPageViewModel {
     const { agentProfile, agentNaming, isDeleted, publicUrl, requestHeaders, serverVisibility } = data;
 
@@ -496,6 +502,7 @@ function createAgentPageViewModel(
         inputPlaceholder,
         brandColorHex,
         avatarSrc,
+        projects,
         initialAgentMessage: agentProfile.initialMessage,
         speechRecognitionLanguage,
         isHistoryEnabled: data.historyIdentityAvailable,
@@ -590,6 +597,12 @@ function renderAgentProfilePage(viewModel: AgentPageViewModel) {
                 actions={viewModel.actions}
             >
                 {viewModel.isDeleted && <DeletedAgentBanner />}
+                {viewModel.projects.length > 0 && (
+                    <AgentProfileProjectsSection
+                        agentPermanentId={viewModel.agentName}
+                        projects={viewModel.projects}
+                    />
+                )}
                 <DeferredAgentProfileChat
                     agentUrl={viewModel.agentUrl}
                     agentName={viewModel.agentName}
@@ -609,6 +622,47 @@ function renderAgentProfilePage(viewModel: AgentPageViewModel) {
 }
 
 /**
+ * Renders compact project links on the agent profile page.
+ *
+ * @param props - Profile projects props.
+ * @returns Agent profile projects section.
+ */
+function AgentProfileProjectsSection({
+    agentPermanentId,
+    projects,
+}: {
+    /**
+     * Permanent id of the agent owning the projects.
+     */
+    readonly agentPermanentId: string;
+
+    /**
+     * Projects displayed on the profile.
+     */
+    readonly projects: Awaited<ReturnType<typeof listAgentProjects>>;
+}) {
+    return (
+        <section className="mb-4 rounded-lg border border-white/40 bg-white/75 p-3 shadow-sm backdrop-blur-sm">
+            <div className="mb-2 flex items-center justify-between gap-3">
+                <h2 className="text-sm font-semibold text-gray-900">Projects</h2>
+                <Link
+                    href={buildAgentProjectsDashboardHref(agentPermanentId)}
+                    className="text-xs font-semibold text-blue-700 hover:text-blue-900 hover:underline"
+                >
+                    View all
+                </Link>
+            </div>
+            <AgentProjectReferencesList
+                agentPermanentId={agentPermanentId}
+                projects={projects}
+                className="flex-col"
+                itemClassName="w-full bg-white/85"
+            />
+        </section>
+    );
+}
+
+/**
  * Renders the main agent profile page.
  *
  * @param params - Route params containing the agent name.
@@ -621,13 +675,16 @@ export default async function AgentPage(props: AgentPageProps) {
         return renderPseudoAgentProfilePage(route);
     }
 
-    const access = await resolveAgentAccess(route.canonicalAgentId);
+    const access = await resolveAgentProjectsAccess(route.canonicalAgentId);
     if (!access.isAllowed) {
         return <ForbiddenPage />;
     }
 
-    const pageData = await loadAgentPageData(route.canonicalAgentId, Boolean(access.currentUser));
-    return renderAgentProfilePage(createAgentPageViewModel(route, pageData));
+    const [pageData, projects] = await Promise.all([
+        loadAgentPageData(route.canonicalAgentId, Boolean(access.currentUser)),
+        access.isProjectOverviewVisible ? listAgentProjects(route.canonicalAgentId) : Promise.resolve([]),
+    ]);
+    return renderAgentProfilePage(createAgentPageViewModel(route, pageData, projects));
 }
 
 // TODO: [🐱‍🚀] Make this page look nice - 🃏

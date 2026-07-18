@@ -1,8 +1,11 @@
 'use server';
 import type { Metadata, ResolvingMetadata } from 'next';
 import { ForbiddenPage } from '@/src/components/ForbiddenPage/ForbiddenPage';
+import type { AgentProjectItemInfo } from '@/src/components/AgentProjects/AgentProjectReferencesList';
 import { $provideServer } from '@/src/tools/$provideServer';
 import { resolveAgentAccess } from '@/src/utils/agentAccess';
+import { resolveAgentProjectsAccess } from '@/src/utils/agentProjects/agentProjectAccess';
+import { listAgentProjects } from '@/src/utils/agentProjects/listAgentProjects';
 import { loadChatConfiguration } from '@/src/utils/chatConfiguration';
 import { ensureChatHistoryIdentity } from '@/src/utils/currentUserIdentity';
 import { getCurrentUser } from '@/src/utils/getCurrentUser';
@@ -69,6 +72,39 @@ function buildCanonicalAgentChatPath(
 }
 
 /**
+ * Resolves compact project references available to the agent chat surface.
+ *
+ * @param agentPermanentId - Permanent id of the agent owning the projects.
+ * @returns Display-only project references safe to send to the client.
+ */
+async function resolveAgentChatProjectReferences(agentPermanentId: string): Promise<ReadonlyArray<AgentProjectItemInfo>> {
+    const projectAccess = await resolveAgentProjectsAccess(agentPermanentId);
+    if (!projectAccess.isProjectOverviewVisible) {
+        return [];
+    }
+
+    const projects = await listAgentProjects(agentPermanentId);
+    return projects.map(createAgentChatProjectReference);
+}
+
+/**
+ * Converts full server project metadata into the browser-safe display shape.
+ *
+ * @param project - Full project metadata resolved on the server.
+ * @returns Display-only project reference.
+ */
+function createAgentChatProjectReference(
+    project: Awaited<ReturnType<typeof listAgentProjects>>[number],
+): AgentProjectItemInfo {
+    return {
+        projectName: project.projectName,
+        displayName: project.displayName,
+        description: project.description,
+        sizeBytes: project.sizeBytes,
+    };
+}
+
+/**
  * Handles agent chat page.
  */
 export default async function AgentChatPage({
@@ -82,6 +118,7 @@ export default async function AgentChatPage({
     const [agentName, currentSearchParams, requestHeaders] = await Promise.all([getAgentName(params), searchParams, requestHeadersPromise]);
     $sideEffect(requestHeaders);
     const { headless, message, chat, newChat, shareTarget } = currentSearchParams;
+    const isHeadless = headless !== undefined;
 
     const isForcedNewChat = chat === FORCE_NEW_CHAT_QUERY_VALUE || parseBooleanFlag(newChat);
     const effectiveChatId = chat === FORCE_NEW_CHAT_QUERY_VALUE ? undefined : chat;
@@ -116,6 +153,9 @@ export default async function AgentChatPage({
     const chatConfigurationPromise = loadChatConfiguration();
     const serverThinkingMessagesPromise = getThinkingMessages();
     const providedServerPromise = $provideServer();
+    const agentProjectReferencesPromise = isHeadless
+        ? Promise.resolve<ReadonlyArray<AgentProjectItemInfo>>([])
+        : resolveAgentChatProjectReferences(canonicalAgentId);
     const shareTargetPayloadPromise = shareTarget
         ? peekShareTargetPayload({
               shareTargetId: shareTarget,
@@ -124,7 +164,6 @@ export default async function AgentChatPage({
         : Promise.resolve(null);
 
     const isDeleted = await isDeletedPromise;
-    const isHeadless = headless !== undefined;
 
     if (isDeleted) {
         return (
@@ -144,6 +183,7 @@ export default async function AgentChatPage({
         { isFileAttachmentsEnabled, feedbackMode },
         serverThinkingMessages,
         { publicUrl },
+        agentProjectReferences,
         shareTargetPayload,
         isCurrentUserSuperAdmin,
     ] =
@@ -154,6 +194,7 @@ export default async function AgentChatPage({
         chatConfigurationPromise,
         serverThinkingMessagesPromise,
         providedServerPromise,
+        agentProjectReferencesPromise,
         shareTargetPayloadPromise,
         isUserGlobalAdmin(),
     ]);
@@ -184,6 +225,7 @@ export default async function AgentChatPage({
                 isHistoryEnabled={historyIdentityAvailable}
                 isCurrentUserAdmin={currentUser?.isAdmin === true}
                 isCurrentUserSuperAdmin={isCurrentUserSuperAdmin}
+                projectReferences={agentProjectReferences}
                 areFileAttachmentsEnabled={isFileAttachmentsEnabled}
                 feedbackMode={feedbackMode}
                 isHeadlessMode={isHeadless}

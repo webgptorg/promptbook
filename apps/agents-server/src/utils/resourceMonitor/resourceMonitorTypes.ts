@@ -1,3 +1,5 @@
+import type { AgentProjectInfo } from '../agentProjects/AgentProjectInfo';
+
 /**
  * Resource key tracked by the server resource monitor.
  */
@@ -160,6 +162,11 @@ export type AgentProjectsResourceAgentUsage = {
      * Count of projects of the agent.
      */
     readonly projectCount: number;
+
+    /**
+     * Projects of the agent ordered by project name.
+     */
+    readonly projects: ReadonlyArray<AgentProjectInfo>;
 
     /**
      * Total size of all projects of the agent in bytes.

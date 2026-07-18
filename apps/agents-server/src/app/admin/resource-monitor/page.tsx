@@ -1,6 +1,7 @@
 import { Cpu, FolderKanban, HardDrive, MemoryStick, Network, RefreshCcw, TriangleAlert, type LucideIcon } from 'lucide-react';
 import Link from 'next/link';
 
+import { AgentProjectReferencesList } from '../../../components/AgentProjects/AgentProjectReferencesList';
 import { ForbiddenPage } from '../../../components/ForbiddenPage/ForbiddenPage';
 import {
     ADMIN_AGENT_PROJECTS_DASHBOARD_HREF,
@@ -334,7 +335,14 @@ function AgentProjectsUsageTable({ snapshot }: { readonly snapshot: ServerResour
                                         {agentUsage.agentName || agentUsage.agentPermanentId}
                                     </Link>
                                 </td>
-                                <td className="py-2 pr-4 text-gray-700">{agentUsage.projectCount}</td>
+                                <td className="py-2 pr-4 text-gray-700">
+                                    <AgentProjectReferencesList
+                                        agentPermanentId={agentUsage.agentPermanentId}
+                                        projects={agentUsage.projects}
+                                        className="min-w-64 max-w-xl flex-col"
+                                        itemClassName="w-full"
+                                    />
+                                </td>
                                 <td className="py-2 pr-4 text-gray-700">{formatResourceBytes(agentUsage.sizeBytes)}</td>
                             </tr>
                         ))}

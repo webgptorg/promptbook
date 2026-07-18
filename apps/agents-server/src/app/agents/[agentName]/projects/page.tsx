@@ -85,8 +85,6 @@ export default async function AgentProjectsPage({ params }: { params: Promise<{ 
             <AgentProjectsBoard
                 agentPermanentId={canonicalAgentId}
                 projects={projects}
-                isAdminView={isAdmin}
-                isProjectDetailsVisible={access.isProjectDetailsVisible}
             />
         </div>
     );
