@@ -15,7 +15,6 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { AgentProjectVscodeOpenButton } from '@/src/components/AgentProjects/AgentProjectVscodeOpenButton';
 import { AgentProjectRuntimeStatusBadge } from '@/src/components/AgentProjects/AgentProjectRuntimeStatusBadge';
 import { ForbiddenPage } from '@/src/components/ForbiddenPage/ForbiddenPage';
 import {
@@ -27,7 +26,6 @@ import {
     buildAgentProjectFolderHref,
     buildAgentProjectsDashboardHref,
 } from '@/src/utils/agentProjects/agentProjectHrefs';
-import { buildAgentProjectVscodeHref } from '@/src/utils/agentProjects/agentProjectVscodeHrefs';
 import {
     formatAgentProjectRuntimeMode,
     formatAgentProjectRuntimeStatus,
@@ -42,7 +40,6 @@ import { listAgentProjectDirectoryEntries } from '@/src/utils/agentProjects/list
 import { readAgentProjectReadme } from '@/src/utils/agentProjects/readAgentProjectReadme';
 import { resolveAgentProjectInfo } from '@/src/utils/agentProjects/resolveAgentProjectInfo';
 import { buildAgentProfileHref } from '@/src/utils/agentRouting/agentRouteHrefs';
-import { isUserGlobalAdmin } from '@/src/utils/isUserGlobalAdmin';
 import { formatResourceBytes } from '@/src/utils/resourceMonitor/formatResourceMonitorValue';
 import { enforceCanonicalLocalAgentId } from '../../_utils';
 import { $terminateAgentProjectRuntimeFromProjectPageAction } from './actions';
@@ -123,7 +120,7 @@ export default async function AgentProjectPage({ params, searchParams }: AgentPr
         notFound();
     }
 
-    const [readme, directoryListing, projectRuntime, isSuperAdmin] = await Promise.all([
+    const [readme, directoryListing, projectRuntime] = await Promise.all([
         readAgentProjectReadme(project.absolutePath),
         access.isProjectDetailsVisible
             ? resolveProjectDirectoryListing({
@@ -133,7 +130,6 @@ export default async function AgentProjectPage({ params, searchParams }: AgentPr
               })
             : null,
         access.isProjectDetailsVisible ? resolveAgentProjectRuntime(canonicalAgentId, projectName) : null,
-        access.isProjectDetailsVisible ? isUserGlobalAdmin() : false,
     ]);
 
     return (
@@ -142,7 +138,6 @@ export default async function AgentProjectPage({ params, searchParams }: AgentPr
                 agentPermanentId={canonicalAgentId}
                 project={project}
                 isProjectDetailsVisible={access.isProjectDetailsVisible}
-                isProjectVscodeVisible={isSuperAdmin}
             />
             {access.isProjectDetailsVisible && (
                 <ProjectRuntimePanel
@@ -318,7 +313,6 @@ function ProjectProfileHeader({
     agentPermanentId,
     project,
     isProjectDetailsVisible,
-    isProjectVscodeVisible,
 }: {
     /**
      * Permanent id of the agent owning the project.
@@ -334,11 +328,6 @@ function ProjectProfileHeader({
      * Whether detailed project metadata can be shown.
      */
     readonly isProjectDetailsVisible: boolean;
-
-    /**
-     * Whether the current user may open browser VS Code for this project.
-     */
-    readonly isProjectVscodeVisible: boolean;
 }) {
     return (
         <div className="mt-20 space-y-4">
@@ -362,11 +351,6 @@ function ProjectProfileHeader({
                     {project.description && <p className="mt-2 max-w-3xl text-sm text-gray-600">{project.description}</p>}
                 </div>
                 <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
-                    {isProjectVscodeVisible && (
-                        <AgentProjectVscodeOpenButton
-                            href={buildAgentProjectVscodeHref(agentPermanentId, project.projectName)}
-                        />
-                    )}
                     <Link
                         href={buildAgentProfileHref(agentPermanentId)}
                         className="rounded-md border border-gray-200 bg-white px-3 py-1.5 font-semibold text-gray-700 hover:border-blue-200 hover:text-blue-700"

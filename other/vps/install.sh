@@ -44,11 +44,9 @@ NGINX_BRANDED_SERVER_HEADER="Promptbook Agents Server"
 NGINX_BRANDING_CONF_PATH="/etc/nginx/conf.d/promptbook-agents-server-branding.conf"
 NGINX_ERROR_SNIPPET_PATH="/etc/nginx/snippets/promptbook-agents-server-errors.conf"
 NGINX_PROXY_SNIPPET_PATH="/etc/nginx/snippets/promptbook-agents-server-proxy.conf"
-NGINX_AGENT_PROJECT_VSCODE_AUTH_LOCATION="/__promptbook_agent_project_vscode_auth"
 NGINX_FALLBACK_DIR="/var/www/promptbook-agents-server"
 NGINX_FALLBACK_HTML_PATH="$NGINX_FALLBACK_DIR/fallback.html"
 NGINX_FALLBACK_URI="/__promptbook_agents_server_error.html"
-AGENT_PROJECT_VSCODE_NPM_PACKAGE="${PTBK_AGENT_PROJECT_VSCODE_NPM_PACKAGE:-code-server@4.117.0}"
 PTBK_SHARED_NEXT_STATIC_ROOT="${PTBK_SHARED_NEXT_STATIC_ROOT:-$INSTALL_DIR/.promptbook/next-static}"
 PROMPTBOOK_NGINX_FALLBACK_LOGO_RELATIVE_PATH="design/logo-blue-transparent-128.png"
 PROMPTBOOK_SWAP_FILE="${PTBK_SWAP_FILE:-/swapfile-promptbook}"
@@ -1271,20 +1269,6 @@ install_agents_server_browser_dependencies() {
     wait_for_apt_locks
     "${SUDO[@]}" bash -lc "cd $(shell_quote "$PROMPTBOOK_REPOSITORY_DIR") && npx playwright install-deps chromium"
     run_as_service_user bash -lc "cd $(shell_quote "$PROMPTBOOK_REPOSITORY_DIR") && npx playwright install chromium"
-}
-
-install_agents_server_vscode_dependencies() {
-    if command -v code-server >/dev/null 2>&1; then
-        log "code-server is already installed."
-        return
-    fi
-
-    log "Installing code-server for browser VS Code project editing."
-    "${SUDO[@]}" npm install -g "$AGENT_PROJECT_VSCODE_NPM_PACKAGE"
-
-    if ! command -v code-server >/dev/null 2>&1; then
-        fail "The code-server command was not installed. Check npm global installation output above."
-    fi
 }
 
 install_promptbook_cli_launcher() {
@@ -2617,46 +2601,6 @@ build_nginx_next_static_location_block() {
 EOF
 }
 
-build_nginx_agent_project_vscode_location_block() {
-    cat <<EOF
-    location = ${NGINX_AGENT_PROJECT_VSCODE_AUTH_LOCATION} {
-        internal;
-        proxy_pass http://127.0.0.1:${PORT}/api/agent-project-vscode/authorize;
-        proxy_pass_request_body off;
-        proxy_set_header Content-Length "";
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Host \$host;
-        proxy_set_header X-Forwarded-Proto \$scheme;
-        proxy_set_header X-Original-URI \$request_uri;
-    }
-
-    location ^~ /agent-project-vscode/ {
-        auth_request ${NGINX_AGENT_PROJECT_VSCODE_AUTH_LOCATION};
-        auth_request_set \$agent_project_vscode_port \$upstream_http_x_promptbook_agent_project_vscode_port;
-
-        rewrite ^/agent-project-vscode/[^/]+/?(.*)\$ /\$1 break;
-        proxy_pass http://127.0.0.1:\$agent_project_vscode_port;
-        proxy_http_version 1.1;
-        proxy_buffering off;
-        proxy_redirect off;
-        proxy_hide_header Server;
-
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Host \$host;
-        proxy_set_header X-Forwarded-Proto \$scheme;
-        proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection \$promptbook_connection_upgrade;
-
-        proxy_read_timeout 3600s;
-        proxy_send_timeout 3600s;
-    }
-EOF
-}
-
 configure_nginx_branding() {
     ensure_nginx_headers_more_module_is_available
     write_nginx_fallback_page
@@ -2672,14 +2616,12 @@ configure_nginx_reverse_proxy() {
     local server_names=""
     local next_static_location_block=""
     local s3_location_block=""
-    local agent_project_vscode_location_block=""
 
     configure_nginx_branding
 
     server_names="$(join_by_space "${DOMAINS[@]}")"
     next_static_location_block="$(build_nginx_next_static_location_block)"
     s3_location_block="$(build_nginx_self_contained_s3_location_block)"
-    agent_project_vscode_location_block="$(build_nginx_agent_project_vscode_location_block)"
 
     if [[ -n "$server_names" ]]; then
         log "Configuring nginx reverse proxy for raw IP access and $server_names."
@@ -2703,7 +2645,6 @@ server {
 
 ${next_static_location_block}
 ${s3_location_block}
-${agent_project_vscode_location_block}
 
     location / {
         include ${NGINX_PROXY_SNIPPET_PATH};
@@ -2724,7 +2665,6 @@ server {
 
 ${next_static_location_block}
 ${s3_location_block}
-${agent_project_vscode_location_block}
 
     location / {
         include ${NGINX_PROXY_SNIPPET_PATH};
@@ -3027,7 +2967,9 @@ switch_nginx_to_agents_server_port() {
 
     PORT="$next_port"
     log "Switching nginx to Agents Server port $PORT."
-    configure_nginx_reverse_proxy
+    write_nginx_proxy_snippet
+    test_nginx_config
+    reload_or_restart_nginx
 }
 
 stop_pm2_process_if_running() {
@@ -3383,9 +3325,6 @@ self_update_agents_server() {
     write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Installing the latest Promptbook checkout into a versioned release directory." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "" "$$"
     install_promptbook_repository
 
-    write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Ensuring browser VS Code project editing dependencies are installed." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "" "$$"
-    install_agents_server_vscode_dependencies
-
     SELF_UPDATE_CURRENT_COMMIT="$(read_repository_commit_sha)"
     write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Refreshing the Promptbook CLI launcher." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "" "$$"
     install_promptbook_cli_launcher
@@ -3514,7 +3453,6 @@ main() {
     install_global_process_manager
     install_promptbook_repository
     install_agents_server_browser_dependencies
-    install_agents_server_vscode_dependencies
     install_promptbook_cli_launcher
     initialize_promptbook_project
     install_default_agents
