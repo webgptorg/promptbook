@@ -1,7 +1,6 @@
 'use client';
 
 import type { ChatProps } from '@promptbook-local/components';
-import { resolveStaticCitationSourceLabel } from './resolveStaticCitationSourceLabel';
 
 /**
  * Citation label resolver type accepted by the shared Chat component.
@@ -30,9 +29,9 @@ const HTTP_URL_REGEX = /^https?:\/\//i;
  * @private utility of Agents Server chat citations
  */
 export const resolveAgentsServerCitationLabel: AgentsServerCitationLabelResolver = async (citation) => {
-    const staticLabel = resolveStaticCitationSourceLabel(citation);
-    if (staticLabel) {
-        return staticLabel;
+    const title = normalizeCitationLabelResponse(citation.title);
+    if (title) {
+        return title;
     }
 
     if (!hasResolvableCitationTarget(citation.source, citation.url)) {

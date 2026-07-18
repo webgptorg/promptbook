@@ -1,5 +1,4 @@
 import { JSDOM } from 'jsdom';
-import { resolveBinaryCitationBytesLabel, resolveStaticCitationSourceLabel } from './resolveStaticCitationSourceLabel';
 
 /**
  * Citation metadata accepted by the Agents Server source-label resolver.
@@ -100,9 +99,9 @@ export function resolveCitationLabelTargetUrl(citation: CitationSourceLabelPaylo
  * @private utility of Agents Server chat citation labels
  */
 export async function resolveCitationSourceLabel(citation: CitationSourceLabelPayload): Promise<string | null> {
-    const staticLabel = resolveStaticCitationSourceLabel(citation);
-    if (staticLabel) {
-        return staticLabel;
+    const explicitTitle = normalizeResolvedCitationLabel(citation.title);
+    if (explicitTitle) {
+        return explicitTitle;
     }
 
     const targetUrl = resolveCitationLabelTargetUrl(citation);
@@ -128,11 +127,6 @@ export async function resolveCitationSourceLabel(citation: CitationSourceLabelPa
 
     if (isPdf || startsWithPdfSignature(bytes)) {
         return extractCitationLabelFromPdfBytes(bytes);
-    }
-
-    const binaryLabel = resolveBinaryCitationBytesLabel(bytes, contentType);
-    if (binaryLabel) {
-        return binaryLabel;
     }
 
     const text = new TextDecoder('utf-8', { fatal: false }).decode(bytes);
