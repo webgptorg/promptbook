@@ -65,6 +65,17 @@ export function buildAgentProjectFileHref(
 }
 
 /**
+ * Builds the href opening one project in browser VS Code.
+ *
+ * @param agentPermanentId - Permanent id of the agent.
+ * @param projectName - Project directory name.
+ * @returns Project VS Code launcher href.
+ */
+export function buildAgentProjectVscodeHref(agentPermanentId: string, projectName: string): string {
+    return `${buildAgentProjectProfileHref(agentPermanentId, projectName)}/vscode`;
+}
+
+/**
  * Href of the admin dashboard listing all projects of all agents.
  */
 export const ADMIN_AGENT_PROJECTS_DASHBOARD_HREF = '/admin/projects';

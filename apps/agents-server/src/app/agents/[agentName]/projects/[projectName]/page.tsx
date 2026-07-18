@@ -5,6 +5,7 @@ import {
     ArrowLeftIcon,
     BookOpenTextIcon,
     ChevronRightIcon,
+    Code2Icon,
     ExternalLinkIcon,
     FileIcon,
     FolderIcon,
@@ -25,6 +26,7 @@ import {
     buildAgentProjectFileHref,
     buildAgentProjectFolderHref,
     buildAgentProjectsDashboardHref,
+    buildAgentProjectVscodeHref,
 } from '@/src/utils/agentProjects/agentProjectHrefs';
 import {
     formatAgentProjectRuntimeMode,
@@ -41,7 +43,9 @@ import { readAgentProjectReadme } from '@/src/utils/agentProjects/readAgentProje
 import { resolveAgentProjectInfo } from '@/src/utils/agentProjects/resolveAgentProjectInfo';
 import { buildAgentProfileHref } from '@/src/utils/agentRouting/agentRouteHrefs';
 import { formatResourceBytes } from '@/src/utils/resourceMonitor/formatResourceMonitorValue';
+import { isUserGlobalAdmin } from '@/src/utils/isUserGlobalAdmin';
 import { enforceCanonicalLocalAgentId } from '../../_utils';
+import { AgentProjectVscodeKeyboardShortcut } from './AgentProjectVscodeKeyboardShortcut';
 import { $terminateAgentProjectRuntimeFromProjectPageAction } from './actions';
 
 /**
@@ -120,6 +124,7 @@ export default async function AgentProjectPage({ params, searchParams }: AgentPr
         notFound();
     }
 
+    const isCodeServerVisible = access.isProjectDetailsVisible && (await isUserGlobalAdmin());
     const [readme, directoryListing, projectRuntime] = await Promise.all([
         readAgentProjectReadme(project.absolutePath),
         access.isProjectDetailsVisible
@@ -138,6 +143,11 @@ export default async function AgentProjectPage({ params, searchParams }: AgentPr
                 agentPermanentId={canonicalAgentId}
                 project={project}
                 isProjectDetailsVisible={access.isProjectDetailsVisible}
+                isCodeServerVisible={isCodeServerVisible}
+            />
+            <AgentProjectVscodeKeyboardShortcut
+                href={buildAgentProjectVscodeHref(canonicalAgentId, project.projectName)}
+                isEnabled={isCodeServerVisible}
             />
             {access.isProjectDetailsVisible && (
                 <ProjectRuntimePanel
@@ -313,6 +323,7 @@ function ProjectProfileHeader({
     agentPermanentId,
     project,
     isProjectDetailsVisible,
+    isCodeServerVisible,
 }: {
     /**
      * Permanent id of the agent owning the project.
@@ -328,7 +339,14 @@ function ProjectProfileHeader({
      * Whether detailed project metadata can be shown.
      */
     readonly isProjectDetailsVisible: boolean;
+
+    /**
+     * Whether browser VS Code can be opened for this project.
+     */
+    readonly isCodeServerVisible: boolean;
 }) {
+    const codeServerHref = buildAgentProjectVscodeHref(agentPermanentId, project.projectName);
+
     return (
         <div className="mt-20 space-y-4">
             <Link
@@ -348,9 +366,20 @@ function ProjectProfileHeader({
                     {project.displayName !== project.projectName && (
                         <p className="mt-1 font-mono text-xs text-gray-400">{project.projectName}</p>
                     )}
-                    {project.description && <p className="mt-2 max-w-3xl text-sm text-gray-600">{project.description}</p>}
+                    {project.description && (
+                        <p className="mt-2 max-w-3xl text-sm text-gray-600">{project.description}</p>
+                    )}
                 </div>
                 <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
+                    {isCodeServerVisible && (
+                        <Link
+                            href={codeServerHref}
+                            className="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 font-semibold text-blue-700 hover:border-blue-300 hover:bg-blue-100"
+                        >
+                            <Code2Icon className="h-3.5 w-3.5" aria-hidden />
+                            Open VS Code
+                        </Link>
+                    )}
                     <Link
                         href={buildAgentProfileHref(agentPermanentId)}
                         className="rounded-md border border-gray-200 bg-white px-3 py-1.5 font-semibold text-gray-700 hover:border-blue-200 hover:text-blue-700"
@@ -473,14 +502,13 @@ function ProjectDirectoryBreadcrumbs({
                 const nextDirectoryRelativePath = directoryPathSegments.slice(0, index + 1).join('/');
 
                 return (
-                    <span key={`${nextDirectoryRelativePath}-${directoryPathSegment}`} className="flex items-center gap-1">
+                    <span
+                        key={`${nextDirectoryRelativePath}-${directoryPathSegment}`}
+                        className="flex items-center gap-1"
+                    >
                         <ChevronRightIcon className="h-4 w-4 text-gray-300" aria-hidden />
                         <Link
-                            href={buildAgentProjectFolderHref(
-                                agentPermanentId,
-                                projectName,
-                                nextDirectoryRelativePath,
-                            )}
+                            href={buildAgentProjectFolderHref(agentPermanentId, projectName, nextDirectoryRelativePath)}
                             className="font-medium text-gray-700 hover:text-blue-700 hover:underline"
                         >
                             {directoryPathSegment}

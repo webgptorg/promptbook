@@ -60,7 +60,7 @@ describe('other/vps/install.sh', () => {
             'admin_password_default_description="$(resolve_secret_default_description "$default_admin_password" "auto-generate")"',
         );
         expect(mainFunction.indexOf('prompt_api_keys_and_admin_password')).toBeLessThan(
-            mainFunction.indexOf('install_system_packages'),
+            mainFunction.indexOf('install_agents_server_host_dependencies'),
         );
     });
 
@@ -79,16 +79,16 @@ describe('other/vps/install.sh', () => {
         expect(configureEnvironmentFunction).toContain('local public_site_url="$REQUESTED_PUBLIC_SITE_URL"');
         expect(configureEnvironmentFunction).not.toContain('prompt_with_default "Public Agents Server URL"');
         expect(mainFunction.indexOf('prompt_public_site_url')).toBeLessThan(
-            mainFunction.indexOf('install_system_packages'),
+            mainFunction.indexOf('install_agents_server_host_dependencies'),
         );
         expect(mainFunction.indexOf('prompt_runner_authentication_preference')).toBeLessThan(
-            mainFunction.indexOf('install_system_packages'),
+            mainFunction.indexOf('install_agents_server_host_dependencies'),
         );
         expect(mainFunction.indexOf('configure_required_resources')).toBeGreaterThan(
             mainFunction.indexOf('prompt_runner_authentication_preference'),
         );
         expect(mainFunction.indexOf('configure_required_resources')).toBeLessThan(
-            mainFunction.indexOf('install_system_packages'),
+            mainFunction.indexOf('install_agents_server_host_dependencies'),
         );
     });
 
@@ -108,6 +108,18 @@ describe('other/vps/install.sh', () => {
         );
         expect(mainFunction.indexOf('confirm_fresh_vps_installation')).toBeLessThan(
             mainFunction.indexOf('check_required_resources'),
+        );
+    });
+
+    it('runs the self-update flow when install.sh is executed on an installed VPS', () => {
+        const mainFunction = installScript.slice(installScript.indexOf('\nmain() {'));
+
+        expect(installScript).toContain('is_existing_vps_installation()');
+        expect(installScript).toContain('[[ -r "$INSTALL_DIR/.env" ]]');
+        expect(mainFunction).toContain('if is_existing_vps_installation; then');
+        expect(mainFunction).toContain('self_update_agents_server "$@"');
+        expect(mainFunction.indexOf('if is_existing_vps_installation; then')).toBeLessThan(
+            mainFunction.indexOf('confirm_fresh_vps_installation'),
         );
     });
 
@@ -155,9 +167,7 @@ describe('other/vps/install.sh', () => {
         expect(installScript).toContain('PTBK_OPENAI_CODEX_USE_API_KEY="${PTBK_OPENAI_CODEX_USE_API_KEY:-0}"');
         expect(installScript).toContain('resolve_openai_codex_api_key_usage()');
         expect(installScript).toContain('run_openai_codex_login_status_without_api_environment()');
-        expect(installScript).toContain(
-            "unset OPENAI_API_KEY OPENAI_BASE_URL CODEX_API_KEY; codex login status 2>&1",
-        );
+        expect(installScript).toContain('unset OPENAI_API_KEY OPENAI_BASE_URL CODEX_API_KEY; codex login status 2>&1');
         expect(installScript).toContain('is_openai_codex_chatgpt_runner_authenticated()');
         expect(installScript).toContain('is_openai_codex_api_key_runner_configured()');
         expect(runnerAuthenticationPreferenceFunction).toContain(
@@ -219,7 +229,7 @@ describe('other/vps/install.sh', () => {
         );
         expect(installDefaultAgentsFunction).toContain('$PROMPTBOOK_REPOSITORY_DIR/agents/default');
         expect(mainFunction.indexOf('prompt_default_agents_installation')).toBeLessThan(
-            mainFunction.indexOf('install_system_packages'),
+            mainFunction.indexOf('install_agents_server_host_dependencies'),
         );
         expect(mainFunction.indexOf('install_default_agents')).toBeGreaterThan(
             mainFunction.indexOf('initialize_promptbook_project'),
@@ -265,6 +275,79 @@ describe('other/vps/install.sh', () => {
         expect(installScript).not.toContain('env DEBIAN_FRONTEND=noninteractive apt-get install');
     });
 
+    it('installs code-server through shared Agents Server dependency functions', () => {
+        const mainFunction = installScript.slice(installScript.indexOf('\nmain() {'));
+        const selfUpdateFunction = installScript.slice(
+            installScript.indexOf('\nself_update_agents_server() {'),
+            installScript.indexOf('\nprint_summary() {'),
+        );
+        const hostDependenciesFunction = installScript.slice(
+            installScript.indexOf('\ninstall_agents_server_host_dependencies() {'),
+            installScript.indexOf('\nis_path_inside_directory() {'),
+        );
+        const repositoryDependenciesFunction = installScript.slice(
+            installScript.indexOf('\ninstall_agents_server_repository_dependencies() {'),
+            installScript.indexOf('\ninstall_promptbook_cli_launcher() {'),
+        );
+
+        expect(installScript).toContain(
+            'CODE_SERVER_INSTALL_SCRIPT_URL="${CODE_SERVER_INSTALL_SCRIPT_URL:-https://code-server.dev/install.sh}"',
+        );
+        expect(installScript).toContain('CODE_SERVER_INSTALL_PREFIX="${CODE_SERVER_INSTALL_PREFIX:-/usr/local}"');
+        expect(installScript).toContain('install_code_server()');
+        expect(installScript).toContain('curl -fsSL "$CODE_SERVER_INSTALL_SCRIPT_URL" |');
+        expect(installScript).toContain('--method=detect --prefix="$CODE_SERVER_INSTALL_PREFIX"');
+        expect(installScript).toContain('install_agents_server_dependency_requirements()');
+        expect(installScript).toContain('apply_dependency_configuration()');
+        expect(installScript).toContain('bash "$release_install_script_path" apply-dependencies');
+        expect(installScript).toContain('if [[ "${1:-}" == "apply-dependencies" ]]; then');
+        expect(hostDependenciesFunction).toContain('install_system_packages');
+        expect(hostDependenciesFunction).toContain('install_nodejs');
+        expect(hostDependenciesFunction).toContain('install_global_process_manager');
+        expect(hostDependenciesFunction).toContain('install_code_server');
+        expect(repositoryDependenciesFunction).toContain('install_agents_server_browser_dependencies');
+        expect(repositoryDependenciesFunction).toContain('install_agents_server_host_dependencies');
+        expect(repositoryDependenciesFunction).toContain('install_agents_server_repository_dependencies');
+        expect(mainFunction.indexOf('install_agents_server_host_dependencies')).toBeLessThan(
+            mainFunction.indexOf('install_promptbook_repository'),
+        );
+        expect(mainFunction.indexOf('install_agents_server_repository_dependencies')).toBeGreaterThan(
+            mainFunction.indexOf('install_promptbook_repository'),
+        );
+        expect(selfUpdateFunction.indexOf('install_agents_server_dependency_requirements')).toBeGreaterThan(
+            selfUpdateFunction.indexOf('install_promptbook_repository'),
+        );
+        expect(selfUpdateFunction.indexOf('install_agents_server_dependency_requirements')).toBeLessThan(
+            selfUpdateFunction.indexOf('install_promptbook_cli_launcher'),
+        );
+    });
+
+    it('proxies browser VS Code sessions through nginx auth_request', () => {
+        const nginxVscodeLocationFunction = installScript.slice(
+            installScript.indexOf('\nbuild_nginx_agent_project_vscode_location_block() {'),
+            installScript.indexOf('\nconfigure_nginx_branding() {'),
+        );
+        const nginxConfigurationFunction = installScript.slice(
+            installScript.indexOf('\nconfigure_nginx_reverse_proxy() {'),
+            installScript.indexOf('\nreload_or_restart_nginx() {'),
+        );
+
+        expect(nginxVscodeLocationFunction).toContain('location ~ "^/__agent-project-vscode/([^/]+)(/.*)?$"');
+        expect(nginxVscodeLocationFunction).toContain(
+            'auth_request /api/agent-project-vscode-auth/\\$promptbook_code_server_session_id;',
+        );
+        expect(nginxVscodeLocationFunction).toContain(
+            'auth_request_set \\$promptbook_code_server_port \\$upstream_http_x_promptbook_code_server_port;',
+        );
+        expect(nginxVscodeLocationFunction).toContain('proxy_pass http://127.0.0.1:\\$promptbook_code_server_port;');
+        expect(nginxVscodeLocationFunction).toContain('proxy_set_header Upgrade \\$http_upgrade;');
+        expect(nginxVscodeLocationFunction).toContain('proxy_set_header Cookie "";');
+        expect(nginxConfigurationFunction).toContain(
+            'agent_project_vscode_location_block="$(build_nginx_agent_project_vscode_location_block)"',
+        );
+        expect(nginxConfigurationFunction).toContain('${agent_project_vscode_location_block}');
+    });
+
     it('defaults standalone VPS file storage to self-contained VersityGW S3', () => {
         const mainFunction = installScript.slice(installScript.indexOf('\nmain() {'));
 
@@ -281,7 +364,7 @@ describe('other/vps/install.sh', () => {
         expect(installScript).toContain('set_env_value NEXT_PUBLIC_CDN_PUBLIC_URL "$REQUESTED_CDN_PUBLIC_URL"');
         expect(installScript).toContain('location /s3/');
         expect(mainFunction.indexOf('prompt_file_storage')).toBeLessThan(
-            mainFunction.indexOf('install_system_packages'),
+            mainFunction.indexOf('install_agents_server_host_dependencies'),
         );
         expect(mainFunction.indexOf('configure_self_contained_s3_storage')).toBeGreaterThan(
             mainFunction.indexOf('initialize_promptbook_project'),
