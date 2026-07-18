@@ -34,10 +34,28 @@ describe('buildAgentMessagePrompt', () => {
         expect(prompt).toContain('[Homepage](/agents/agent1234/projects/my-website/files/index.html)');
     });
 
+    it('teaches Agents Server runtime API usage when available', () => {
+        const prompt = buildAgentMessagePrompt('messages/queued/question.book', 'You are Support Assistant', {
+            projectRuntimeApi: {
+                agentPermanentId: 'agent1234',
+                serverUrlEnvironmentVariableName: 'PTBK_AGENTS_SERVER_URL',
+                tokenEnvironmentVariableName: 'PTBK_AGENTS_SERVER_USER_CHAT_WORKER_TOKEN',
+            },
+        });
+
+        expect(prompt).toContain('/api/internal/agent-project-runtimes');
+        expect(prompt).toContain('"action":"start_dev_server"');
+        expect(prompt).toContain('"action":"start_static_server"');
+        expect(prompt).toContain('"action":"assign_port"');
+        expect(prompt).toContain('"agentPermanentId":"agent1234"');
+        expect(prompt).toContain('$PTBK_AGENTS_SERVER_USER_CHAT_WORKER_TOKEN');
+    });
+
     it('falls back to plain project paths when the projects URL path is unknown', () => {
         const prompt = buildAgentMessagePrompt('messages/queued/question.book', 'You are Support Assistant');
 
         expect(prompt).toContain('`projects/my-website/index.html`');
         expect(prompt).not.toContain('files/index.html)');
+        expect(prompt).not.toContain('/api/internal/agent-project-runtimes');
     });
 });

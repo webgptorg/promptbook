@@ -1,3 +1,5 @@
+-   Added runnable local agent projects to the Agents Server. Local agents can now ask the server for a tracked free port, start a server-owned project dev command, or start a static file server for plain project folders; the prompt instructions expose the internal runtime API through environment variables instead of embedding secrets. Project runtime ports now appear in `/admin/resource-monitor` with links to the live port and owning project plus terminate/release controls, and each project page shows whether its project is running or has an assigned port with the same terminate/release action.
+
 -   Fixed the `ptbk coder` landing page live terminal avatar preview so the sample now renders the existing shared `AsciiOctopus` canvas avatar directly, matching the web avatar visual instead of the blocky terminal rasterization.
 
 -   Fixed the `ptbk coder` landing page live terminal avatar alignment so the web sample now centers the shared animated `AsciiOctopus` lines to the same dashboard width as the surrounding live-terminal boxes.

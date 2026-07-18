@@ -32,6 +32,7 @@ import { buildAgentMessageCommitMessage } from '../messages/buildAgentMessageCom
 import { buildAgentMessagePrompt } from '../messages/buildAgentMessagePrompt';
 import { buildAgentMessageScriptPath } from '../messages/buildAgentMessageScriptPath';
 import { createAgentRunnerSystemMessage } from '../messages/createAgentRunnerSystemMessage';
+import { resolveAgentProjectRuntimePromptApi } from '../messages/resolveAgentProjectRuntimePromptApi';
 import { resolveAgentProjectsUrlPath } from '../messages/resolveAgentProjectsUrlPath';
 import { moveAgentMessageToFinished, type FinishedAgentMessageFile } from '../messages/moveAgentMessageToFinished';
 import {
@@ -252,6 +253,7 @@ async function runQueuedAgentMessage(options: {
         options;
     const agentSystemMessage = await loadLocalAgentSystemMessage(projectPath);
     const prompt = buildAgentMessagePrompt(queuedMessage.relativePath, agentSystemMessage, {
+        projectRuntimeApi: resolveAgentProjectRuntimePromptApi(projectPath),
         projectsUrlPath: resolveAgentProjectsUrlPath(projectPath),
     });
     const scriptPath = buildAgentMessageScriptPath(projectPath, queuedMessage);

@@ -1,8 +1,25 @@
-import { Cpu, FolderKanban, HardDrive, MemoryStick, Network, RefreshCcw, TriangleAlert, type LucideIcon } from 'lucide-react';
+import {
+    Cpu,
+    ExternalLink,
+    FolderKanban,
+    HardDrive,
+    MemoryStick,
+    Network,
+    PlugZap,
+    RefreshCcw,
+    Square,
+    TriangleAlert,
+    type LucideIcon,
+} from 'lucide-react';
 import Link from 'next/link';
 
 import { AgentProjectReferencesList } from '../../../components/AgentProjects/AgentProjectReferencesList';
+import { AgentProjectRuntimeStatusBadge } from '../../../components/AgentProjects/AgentProjectRuntimeStatusBadge';
 import { ForbiddenPage } from '../../../components/ForbiddenPage/ForbiddenPage';
+import {
+    formatAgentProjectRuntimeMode,
+    formatAgentProjectRuntimeStatus,
+} from '../../../utils/agentProjects/agentProjectRuntimeDisplay';
 import {
     ADMIN_AGENT_PROJECTS_DASHBOARD_HREF,
     buildAgentProjectsDashboardHref,
@@ -19,6 +36,7 @@ import type {
     ServerResourceMonitorSnapshot,
     ServerResourceWarningIssue,
 } from '../../../utils/resourceMonitor/resourceMonitorTypes';
+import { $terminateAgentProjectRuntimeFromResourceMonitorAction } from './actions';
 
 /**
  * Forces fresh resource readings for every request.
@@ -215,6 +233,21 @@ function ResourceSummaryGrid({ snapshot }: { readonly snapshot: ServerResourceMo
                 ratio={null}
             />
             <ResourceMetricCard
+                icon={PlugZap}
+                label="Project ports"
+                value={
+                    snapshot.projectRuntimes.errorMessage
+                        ? 'Not available'
+                        : snapshot.projectRuntimes.totalRuntimeCount.toLocaleString()
+                }
+                caption={
+                    snapshot.projectRuntimes.errorMessage ||
+                    `${snapshot.projectRuntimes.runningRuntimeCount} running, ${snapshot.projectRuntimes.totalRuntimeCount} assigned`
+                }
+                tone={snapshot.projectRuntimes.errorMessage ? 'unavailable' : 'neutral'}
+                ratio={null}
+            />
+            <ResourceMetricCard
                 icon={Network}
                 label="Network rate"
                 value={
@@ -278,6 +311,9 @@ function ResourceDetailGrid({ snapshot }: { readonly snapshot: ServerResourceMon
             </ResourcePanel>
             <ResourcePanel icon={FolderKanban} title="Agent projects">
                 <AgentProjectsUsageTable snapshot={snapshot} />
+            </ResourcePanel>
+            <ResourcePanel icon={PlugZap} title="Project ports">
+                <AgentProjectRuntimesTable snapshot={snapshot} />
             </ResourcePanel>
             <ResourcePanel icon={Network} title="Network">
                 <NetworkUsageTable snapshot={snapshot} />
@@ -370,6 +406,95 @@ function AgentProjectsUsageTable({ snapshot }: { readonly snapshot: ServerResour
                     Open projects dashboard
                 </Link>
             </div>
+        </div>
+    );
+}
+
+/**
+ * Renders assigned project runtime ports.
+ *
+ * @param props - Project runtime props.
+ * @returns Runtime table or fallback.
+ */
+function AgentProjectRuntimesTable({ snapshot }: { readonly snapshot: ServerResourceMonitorSnapshot }) {
+    if (snapshot.projectRuntimes.errorMessage) {
+        return (
+            <div className="rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600">
+                {snapshot.projectRuntimes.errorMessage}
+            </div>
+        );
+    }
+
+    if (snapshot.projectRuntimes.runtimes.length === 0) {
+        return (
+            <div className="rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600">
+                No project runtime port is assigned.
+            </div>
+        );
+    }
+
+    return (
+        <div className="overflow-x-auto">
+            <table className="min-w-full text-left text-sm">
+                <thead>
+                    <tr className="border-b border-gray-200 text-xs uppercase tracking-wide text-gray-400">
+                        <th className="py-2 pr-4 font-semibold">Project</th>
+                        <th className="py-2 pr-4 font-semibold">Port</th>
+                        <th className="py-2 pr-4 font-semibold">Mode</th>
+                        <th className="py-2 pr-4 font-semibold">Status</th>
+                        <th className="py-2 pr-4 font-semibold">Started</th>
+                        <th className="py-2 pr-4 font-semibold">Command</th>
+                        <th className="py-2 pr-4 font-semibold">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {snapshot.projectRuntimes.runtimes.map((runtime) => (
+                        <tr key={runtime.id} className="border-b border-gray-100 last:border-0">
+                            <td className="py-2 pr-4">
+                                <Link
+                                    href={runtime.projectHref}
+                                    className="font-medium text-gray-900 hover:text-blue-700 hover:underline"
+                                >
+                                    {runtime.projectName}
+                                </Link>
+                                <div className="font-mono text-xs text-gray-400">{runtime.agentPermanentId}</div>
+                            </td>
+                            <td className="py-2 pr-4">
+                                <a
+                                    href={runtime.url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="inline-flex items-center gap-1 font-mono text-blue-700 hover:text-blue-900 hover:underline"
+                                >
+                                    {runtime.port}
+                                    <ExternalLink className="h-3.5 w-3.5" aria-hidden />
+                                </a>
+                            </td>
+                            <td className="py-2 pr-4 text-gray-700">{formatAgentProjectRuntimeMode(runtime.mode)}</td>
+                            <td className="py-2 pr-4">
+                                <AgentProjectRuntimeStatusBadge isRunning={runtime.isRunning}>
+                                    {formatAgentProjectRuntimeStatus(runtime)}
+                                </AgentProjectRuntimeStatusBadge>
+                            </td>
+                            <td className="py-2 pr-4 text-gray-500">{formatMeasuredAt(runtime.startedAt)}</td>
+                            <td className="max-w-64 truncate py-2 pr-4 font-mono text-xs text-gray-500">
+                                {runtime.command || ''}
+                            </td>
+                            <td className="py-2 pr-4">
+                                <form action={$terminateAgentProjectRuntimeFromResourceMonitorAction.bind(null, runtime.id)}>
+                                    <button
+                                        type="submit"
+                                        className="inline-flex items-center gap-1 rounded-md border border-red-200 bg-red-50 px-2.5 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100"
+                                    >
+                                        <Square className="h-3.5 w-3.5" aria-hidden />
+                                        {runtime.isRunning ? 'Terminate' : 'Release'}
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
         </div>
     );
 }

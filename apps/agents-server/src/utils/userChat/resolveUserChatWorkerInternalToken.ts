@@ -46,8 +46,9 @@ export function resolveUserChatWorkerInternalToken(): string {
 
                 The Agents Server protects its internal worker routes
                 (\`/api/internal/user-chat-jobs/run\`,
-                \`/api/internal/user-chat-timeouts/run\`, and
-                \`/api/internal/agent-runner-limits\`) with this shared token.
+                \`/api/internal/user-chat-timeouts/run\`,
+                \`/api/internal/agent-runner-limits\`, and
+                \`/api/internal/agent-project-runtimes\`) with this shared token.
                 Reusing \`ADMIN_PASSWORD\`, \`SUPABASE_SERVICE_ROLE_KEY\`, or a
                 hardcoded fallback would let anyone who learns that value drive
                 background jobs at will.

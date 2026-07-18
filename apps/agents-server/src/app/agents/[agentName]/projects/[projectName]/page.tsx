@@ -5,13 +5,17 @@ import {
     ArrowLeftIcon,
     BookOpenTextIcon,
     ChevronRightIcon,
+    ExternalLinkIcon,
     FileIcon,
     FolderIcon,
     FolderKanbanIcon,
     GitBranchIcon,
+    PlugZapIcon,
+    SquareIcon,
 } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { AgentProjectRuntimeStatusBadge } from '@/src/components/AgentProjects/AgentProjectRuntimeStatusBadge';
 import { ForbiddenPage } from '@/src/components/ForbiddenPage/ForbiddenPage';
 import {
     AGENT_PROJECT_DETAILS_FORBIDDEN_MESSAGE,
@@ -22,6 +26,12 @@ import {
     buildAgentProjectFolderHref,
     buildAgentProjectsDashboardHref,
 } from '@/src/utils/agentProjects/agentProjectHrefs';
+import {
+    formatAgentProjectRuntimeMode,
+    formatAgentProjectRuntimeStatus,
+} from '@/src/utils/agentProjects/agentProjectRuntimeDisplay';
+import { resolveAgentProjectRuntime } from '@/src/utils/agentProjects/agentProjectRuntimeRegistry';
+import type { AgentProjectRuntimeInfo } from '@/src/utils/agentProjects/AgentProjectRuntimeInfo';
 import type {
     AgentProjectDirectoryEntry,
     AgentProjectDirectoryListing,
@@ -32,6 +42,7 @@ import { resolveAgentProjectInfo } from '@/src/utils/agentProjects/resolveAgentP
 import { buildAgentProfileHref } from '@/src/utils/agentRouting/agentRouteHrefs';
 import { formatResourceBytes } from '@/src/utils/resourceMonitor/formatResourceMonitorValue';
 import { enforceCanonicalLocalAgentId } from '../../_utils';
+import { $terminateAgentProjectRuntimeFromProjectPageAction } from './actions';
 
 /**
  * Query parameter used to choose the currently browsed project folder.
@@ -109,14 +120,17 @@ export default async function AgentProjectPage({ params, searchParams }: AgentPr
         notFound();
     }
 
-    const readme = await readAgentProjectReadme(project.absolutePath);
-    const directoryListing = access.isProjectDetailsVisible
-        ? await resolveProjectDirectoryListing({
-              agentPermanentId: canonicalAgentId,
-              projectName,
-              directoryPathSegments,
-          })
-        : null;
+    const [readme, directoryListing, projectRuntime] = await Promise.all([
+        readAgentProjectReadme(project.absolutePath),
+        access.isProjectDetailsVisible
+            ? resolveProjectDirectoryListing({
+                  agentPermanentId: canonicalAgentId,
+                  projectName,
+                  directoryPathSegments,
+              })
+            : null,
+        access.isProjectDetailsVisible ? resolveAgentProjectRuntime(canonicalAgentId, projectName) : null,
+    ]);
 
     return (
         <div className="container mx-auto space-y-6 px-4 py-8">
@@ -125,6 +139,13 @@ export default async function AgentProjectPage({ params, searchParams }: AgentPr
                 project={project}
                 isProjectDetailsVisible={access.isProjectDetailsVisible}
             />
+            {access.isProjectDetailsVisible && (
+                <ProjectRuntimePanel
+                    agentPermanentId={canonicalAgentId}
+                    projectName={project.projectName}
+                    runtime={projectRuntime}
+                />
+            )}
             {directoryListing ? (
                 <ProjectDirectoryBrowser
                     agentPermanentId={canonicalAgentId}
@@ -193,6 +214,93 @@ async function resolveProjectDirectoryListing(options: {
 
         throw error;
     }
+}
+
+/**
+ * Renders runtime status and controls for one project.
+ *
+ * @param props - Runtime panel props.
+ * @returns Runtime panel.
+ */
+function ProjectRuntimePanel({
+    agentPermanentId,
+    projectName,
+    runtime,
+}: {
+    /**
+     * Permanent id of the agent owning the project.
+     */
+    readonly agentPermanentId: string;
+
+    /**
+     * Project directory name.
+     */
+    readonly projectName: string;
+
+    /**
+     * Runtime assigned to the project.
+     */
+    readonly runtime: AgentProjectRuntimeInfo | null;
+}) {
+    if (!runtime) {
+        return (
+            <section className="rounded-lg border border-gray-200 bg-white px-4 py-3 shadow-sm">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <PlugZapIcon className="h-4 w-4 text-gray-400" aria-hidden />
+                    <span className="font-semibold text-gray-900">Runtime</span>
+                    <span>Project is not running.</span>
+                </div>
+            </section>
+        );
+    }
+
+    return (
+        <section className="rounded-lg border border-gray-200 bg-white px-4 py-4 shadow-sm">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <PlugZapIcon className="h-4 w-4 text-gray-500" aria-hidden />
+                        <h2 className="text-sm font-semibold text-gray-900">Runtime</h2>
+                        <AgentProjectRuntimeStatusBadge isRunning={runtime.isRunning}>
+                            {formatAgentProjectRuntimeStatus(runtime)}
+                        </AgentProjectRuntimeStatusBadge>
+                    </div>
+                    <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-600">
+                        <span>{formatAgentProjectRuntimeMode(runtime.mode)}</span>
+                        <a
+                            href={runtime.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 font-mono text-blue-700 hover:text-blue-900 hover:underline"
+                        >
+                            {runtime.url}
+                            <ExternalLinkIcon className="h-3.5 w-3.5" aria-hidden />
+                        </a>
+                        {runtime.command && (
+                            <span className="max-w-full truncate font-mono text-xs text-gray-500">
+                                {runtime.command}
+                            </span>
+                        )}
+                    </div>
+                </div>
+                <form
+                    action={$terminateAgentProjectRuntimeFromProjectPageAction.bind(
+                        null,
+                        agentPermanentId,
+                        projectName,
+                    )}
+                >
+                    <button
+                        type="submit"
+                        className="inline-flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-sm font-semibold text-red-700 hover:bg-red-100"
+                    >
+                        <SquareIcon className="h-4 w-4" aria-hidden />
+                        {runtime.isRunning ? 'Terminate' : 'Release port'}
+                    </button>
+                </form>
+            </div>
+        </section>
+    );
 }
 
 /**

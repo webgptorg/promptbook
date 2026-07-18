@@ -1,4 +1,5 @@
 import type { AgentProjectInfo } from '../agentProjects/AgentProjectInfo';
+import type { AgentProjectRuntimeInfo } from '../agentProjects/AgentProjectRuntimeInfo';
 
 /**
  * Resource key tracked by the server resource monitor.
@@ -205,6 +206,31 @@ export type AgentProjectsResourceUsage = {
 };
 
 /**
+ * Runtime ports assigned to agent projects.
+ */
+export type AgentProjectRuntimesResourceUsage = {
+    /**
+     * Assigned or running project runtime ports.
+     */
+    readonly runtimes: ReadonlyArray<AgentProjectRuntimeInfo>;
+
+    /**
+     * Total assigned project ports.
+     */
+    readonly totalRuntimeCount: number;
+
+    /**
+     * Count of project ports with an active TCP listener.
+     */
+    readonly runningRuntimeCount: number;
+
+    /**
+     * Error message when runtime usage could not be read.
+     */
+    readonly errorMessage: string | null;
+};
+
+/**
  * Full resource monitor snapshot rendered by `/admin/resource-monitor`.
  */
 export type ServerResourceMonitorSnapshot = {
@@ -214,5 +240,6 @@ export type ServerResourceMonitorSnapshot = {
     readonly disk: DiskResourceUsage;
     readonly network: NetworkResourceUsage;
     readonly projects: AgentProjectsResourceUsage;
+    readonly projectRuntimes: AgentProjectRuntimesResourceUsage;
     readonly warningStatus: ServerResourceWarningStatus;
 };

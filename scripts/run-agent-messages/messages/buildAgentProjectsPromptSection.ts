@@ -2,6 +2,26 @@ import { spaceTrim } from 'spacetrim';
 import { AGENT_PROJECTS_DIRECTORY_PATH } from '../../../src/cli/cli-commands/agent-folder/agentProjectPaths';
 
 /**
+ * Internal runtime API details available to Agents Server-managed local agents.
+ */
+export type AgentProjectRuntimePromptApi = {
+    /**
+     * Permanent id of the agent currently answering the message.
+     */
+    readonly agentPermanentId: string;
+
+    /**
+     * Environment variable containing the Agents Server origin.
+     */
+    readonly serverUrlEnvironmentVariableName: string;
+
+    /**
+     * Environment variable containing the internal worker token.
+     */
+    readonly tokenEnvironmentVariableName: string;
+};
+
+/**
  * Options of the projects prompt section shared by every coding harness.
  */
 export type AgentProjectsPromptSectionOptions = {
@@ -11,6 +31,11 @@ export type AgentProjectsPromptSectionOptions = {
      * When known, the section teaches the agent how to link project files into the chat.
      */
     readonly projectsUrlPath?: string;
+
+    /**
+     * Internal runtime API details, when the agent is managed by Agents Server.
+     */
+    readonly projectRuntimeApi?: AgentProjectRuntimePromptApi;
 };
 
 /**
@@ -34,6 +59,7 @@ export function buildAgentProjectsPromptSection(options: AgentProjectsPromptSect
             - Do not touch anything outside the \`${AGENT_PROJECTS_DIRECTORY_PATH}/\` directory except the queued message file you are answering.
 
             ${block(buildProjectReferenceInstructions(projectsUrlPath))}
+            ${block(buildProjectRuntimeInstructions(options.projectRuntimeApi))}
         `,
     );
 }
@@ -55,5 +81,42 @@ function buildProjectReferenceInstructions(projectsUrlPath: string | undefined):
         - Link the projects dashboard listing all your projects: \`[My projects](${projectsUrlPath})\`
 
         Use these links whenever you want to show the user a file you created or changed in a project.
+    `);
+}
+
+/**
+ * Builds instructions for running projects through the Agents Server runtime API.
+ */
+function buildProjectRuntimeInstructions(projectRuntimeApi: AgentProjectRuntimePromptApi | undefined): string {
+    if (!projectRuntimeApi) {
+        return '';
+    }
+
+    return spaceTrim(`
+        You can make a project runnable in the user's browser by asking the Agents Server to assign a local port:
+
+        - For a Node project with a \`dev\` script, ask the server to start the dev server. You may pass a custom \`command\`; use \`{port}\` and \`{host}\` placeholders if the framework needs explicit CLI flags.
+        - For a plain static HTML/CSS/JS project, ask the server to start a static server.
+        - If you need to run your own long-lived dev process, ask only for \`assign_port\`, then start your process on the returned \`runtime.port\`.
+        - Always include the returned \`runtime.url\` in your answer when the user should open the running project.
+
+        Examples:
+
+        \`\`\`bash
+        curl -sS -X POST "$${projectRuntimeApi.serverUrlEnvironmentVariableName}/api/internal/agent-project-runtimes" \\
+          -H "Content-Type: application/json" \\
+          -H "x-user-chat-worker-token: $${projectRuntimeApi.tokenEnvironmentVariableName}" \\
+          -d '{"action":"start_dev_server","agentPermanentId":"${projectRuntimeApi.agentPermanentId}","projectName":"<project-name>","command":"npm run dev -- --host {host} --port {port}"}'
+
+        curl -sS -X POST "$${projectRuntimeApi.serverUrlEnvironmentVariableName}/api/internal/agent-project-runtimes" \\
+          -H "Content-Type: application/json" \\
+          -H "x-user-chat-worker-token: $${projectRuntimeApi.tokenEnvironmentVariableName}" \\
+          -d '{"action":"start_static_server","agentPermanentId":"${projectRuntimeApi.agentPermanentId}","projectName":"<project-name>"}'
+
+        curl -sS -X POST "$${projectRuntimeApi.serverUrlEnvironmentVariableName}/api/internal/agent-project-runtimes" \\
+          -H "Content-Type: application/json" \\
+          -H "x-user-chat-worker-token: $${projectRuntimeApi.tokenEnvironmentVariableName}" \\
+          -d '{"action":"assign_port","agentPermanentId":"${projectRuntimeApi.agentPermanentId}","projectName":"<project-name>"}'
+        \`\`\`
     `);
 }

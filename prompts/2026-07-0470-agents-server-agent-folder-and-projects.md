@@ -85,7 +85,7 @@
 
 ---
 
-[ ]
+[x] ~$1.01 an hour by OpenAI Codex `gpt-5.5` (ChatGPT account)
 
 [✨🏖]  Agent projects should be runnable.
 
@@ -133,6 +133,7 @@
 -   Do a proper analysis of the current functionality of agent projects before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server) with agent projects (`/agents/<agentId>/projects`)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
 
 
 

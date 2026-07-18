@@ -1,6 +1,7 @@
 import { cache } from 'react';
 
 import { readAgentProjectsResourceUsage } from './readAgentProjectsResourceUsage';
+import { readAgentProjectRuntimesResourceUsage } from './readAgentProjectRuntimesResourceUsage';
 import { readCpuResourceUsage } from './readCpuResourceUsage';
 import { readDiskResourceUsage } from './readDiskResourceUsage';
 import { readMemoryResourceUsage } from './readMemoryResourceUsage';
@@ -14,11 +15,12 @@ import type { ServerResourceMonitorSnapshot, ServerResourceWarningStatus } from 
  * @returns Full resource monitor snapshot.
  */
 export const readServerResourceMonitorSnapshot = cache(async (): Promise<ServerResourceMonitorSnapshot> => {
-    const [cpu, disk, network, projects] = await Promise.all([
+    const [cpu, disk, network, projects, projectRuntimes] = await Promise.all([
         readCpuResourceUsage({ isProcessUsageSampled: true }),
         readDiskResourceUsage(),
         readNetworkResourceUsage(),
         readAgentProjectsResourceUsage(),
+        readAgentProjectRuntimesResourceUsage(),
     ]);
     const memory = readMemoryResourceUsage();
     const warningStatus = resolveServerResourceWarningStatus({ cpu, memory, disk });
@@ -30,6 +32,7 @@ export const readServerResourceMonitorSnapshot = cache(async (): Promise<ServerR
         disk,
         network,
         projects,
+        projectRuntimes,
         warningStatus,
     };
 });
