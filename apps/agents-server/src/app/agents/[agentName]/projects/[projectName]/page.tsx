@@ -16,7 +16,6 @@ import {
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { AgentProjectRuntimeStatusBadge } from '@/src/components/AgentProjects/AgentProjectRuntimeStatusBadge';
-import { AgentProjectVscodeShortcut } from '@/src/components/AgentProjects/AgentProjectVscodeShortcut';
 import { ForbiddenPage } from '@/src/components/ForbiddenPage/ForbiddenPage';
 import {
     AGENT_PROJECT_DETAILS_FORBIDDEN_MESSAGE,
@@ -26,7 +25,6 @@ import {
     buildAgentProjectFileHref,
     buildAgentProjectFolderHref,
     buildAgentProjectsDashboardHref,
-    buildAgentProjectVscodeHref,
 } from '@/src/utils/agentProjects/agentProjectHrefs';
 import {
     formatAgentProjectRuntimeMode,
@@ -42,7 +40,6 @@ import { listAgentProjectDirectoryEntries } from '@/src/utils/agentProjects/list
 import { readAgentProjectReadme } from '@/src/utils/agentProjects/readAgentProjectReadme';
 import { resolveAgentProjectInfo } from '@/src/utils/agentProjects/resolveAgentProjectInfo';
 import { buildAgentProfileHref } from '@/src/utils/agentRouting/agentRouteHrefs';
-import { isUserGlobalAdmin } from '@/src/utils/isUserGlobalAdmin';
 import { formatResourceBytes } from '@/src/utils/resourceMonitor/formatResourceMonitorValue';
 import { enforceCanonicalLocalAgentId } from '../../_utils';
 import { $terminateAgentProjectRuntimeFromProjectPageAction } from './actions';
@@ -123,7 +120,7 @@ export default async function AgentProjectPage({ params, searchParams }: AgentPr
         notFound();
     }
 
-    const [readme, directoryListing, projectRuntime, isSuperAdmin] = await Promise.all([
+    const [readme, directoryListing, projectRuntime] = await Promise.all([
         readAgentProjectReadme(project.absolutePath),
         access.isProjectDetailsVisible
             ? resolveProjectDirectoryListing({
@@ -133,7 +130,6 @@ export default async function AgentProjectPage({ params, searchParams }: AgentPr
               })
             : null,
         access.isProjectDetailsVisible ? resolveAgentProjectRuntime(canonicalAgentId, projectName) : null,
-        isUserGlobalAdmin(),
     ]);
 
     return (
@@ -142,7 +138,6 @@ export default async function AgentProjectPage({ params, searchParams }: AgentPr
                 agentPermanentId={canonicalAgentId}
                 project={project}
                 isProjectDetailsVisible={access.isProjectDetailsVisible}
-                isBrowserVscodeVisible={access.isProjectDetailsVisible && isSuperAdmin}
             />
             {access.isProjectDetailsVisible && (
                 <ProjectRuntimePanel
@@ -318,7 +313,6 @@ function ProjectProfileHeader({
     agentPermanentId,
     project,
     isProjectDetailsVisible,
-    isBrowserVscodeVisible,
 }: {
     /**
      * Permanent id of the agent owning the project.
@@ -334,11 +328,6 @@ function ProjectProfileHeader({
      * Whether detailed project metadata can be shown.
      */
     readonly isProjectDetailsVisible: boolean;
-
-    /**
-     * Whether browser VS Code can be opened for this project.
-     */
-    readonly isBrowserVscodeVisible: boolean;
 }) {
     return (
         <div className="mt-20 space-y-4">
@@ -359,9 +348,7 @@ function ProjectProfileHeader({
                     {project.displayName !== project.projectName && (
                         <p className="mt-1 font-mono text-xs text-gray-400">{project.projectName}</p>
                     )}
-                    {project.description && (
-                        <p className="mt-2 max-w-3xl text-sm text-gray-600">{project.description}</p>
-                    )}
+                    {project.description && <p className="mt-2 max-w-3xl text-sm text-gray-600">{project.description}</p>}
                 </div>
                 <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
                     <Link
@@ -370,11 +357,6 @@ function ProjectProfileHeader({
                     >
                         Agent profile
                     </Link>
-                    {isBrowserVscodeVisible && (
-                        <AgentProjectVscodeShortcut
-                            href={buildAgentProjectVscodeHref(agentPermanentId, project.projectName)}
-                        />
-                    )}
                     <span className="rounded-md border border-gray-200 bg-white px-3 py-1.5 font-mono text-gray-700">
                         {formatResourceBytes(project.sizeBytes)}
                     </span>
@@ -491,13 +473,14 @@ function ProjectDirectoryBreadcrumbs({
                 const nextDirectoryRelativePath = directoryPathSegments.slice(0, index + 1).join('/');
 
                 return (
-                    <span
-                        key={`${nextDirectoryRelativePath}-${directoryPathSegment}`}
-                        className="flex items-center gap-1"
-                    >
+                    <span key={`${nextDirectoryRelativePath}-${directoryPathSegment}`} className="flex items-center gap-1">
                         <ChevronRightIcon className="h-4 w-4 text-gray-300" aria-hidden />
                         <Link
-                            href={buildAgentProjectFolderHref(agentPermanentId, projectName, nextDirectoryRelativePath)}
+                            href={buildAgentProjectFolderHref(
+                                agentPermanentId,
+                                projectName,
+                                nextDirectoryRelativePath,
+                            )}
                             className="font-medium text-gray-700 hover:text-blue-700 hover:underline"
                         >
                             {directoryPathSegment}
