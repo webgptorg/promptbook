@@ -4,6 +4,7 @@ import type { string_book } from '@promptbook-local/types';
 import { useCallback, useMemo, useState } from 'react';
 import type { NewAgentWizardMode } from '../../../constants/newAgentWizard';
 import type { AgentVisibility } from '../../../utils/agentVisibility';
+import type { NewAgentOpenEditorRequest } from '../NewAgentOpenEditorRequest';
 import { Dialog } from '../../Portal/Dialog';
 import { ONBOARDING_ENTRY_PATH, ONBOARDING_STEPS } from './config/steps';
 import { ManGoOnboardingNavigationContext } from './ManGoOnboardingNavigation';
@@ -48,6 +49,11 @@ type ManGoNewAgentWizardProps = {
      * Opens the created agent route after the completion screen.
      */
     readonly onOpenCreatedAgent: (targetPath: string) => void;
+
+    /**
+     * Switches from manGo onboarding to the classic Book editor before creation.
+     */
+    readonly onOpenEditor: (request: NewAgentOpenEditorRequest) => void;
 };
 
 /**
@@ -112,7 +118,7 @@ function renderManGoWizardStep(props: {
  * @returns Fullscreen create-agent wizard dialog.
  */
 export function ManGoNewAgentWizard(props: ManGoNewAgentWizardProps) {
-    const { defaultVisibility, onClose, onCreate, onOpenCreatedAgent } = props;
+    const { defaultVisibility, onClose, onCreate, onOpenCreatedAgent, onOpenEditor } = props;
     const [currentPath, setCurrentPath] = useState(ONBOARDING_ENTRY_PATH);
     const navigateToPath = useCallback((path: string) => {
         setCurrentPath(path);
@@ -136,7 +142,7 @@ export function ManGoNewAgentWizard(props: ManGoNewAgentWizardProps) {
         >
             <ManGoOnboardingNavigationContext.Provider value={navigationContextValue}>
                 <OnboardingProvider>
-                    <WizardShell>
+                    <WizardShell defaultVisibility={defaultVisibility} onOpenEditor={onOpenEditor}>
                         {renderManGoWizardStep({
                             currentPath,
                             defaultVisibility,

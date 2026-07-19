@@ -3,6 +3,7 @@ import type { Dispatch, SetStateAction } from 'react';
 import type { NewAgentWizardMode } from '../../constants/newAgentWizard';
 import type { AgentVisibility } from '../../utils/agentVisibility';
 import { createNewAgentWizardSource } from './createNewAgentWizardSource';
+import type { NewAgentOpenEditorRequest } from './NewAgentOpenEditorRequest';
 import { buildWizardSourceOptions, type NewAgentWizardState } from './NewAgentWizardState';
 import { trackNewAgentCreationEvent } from './trackNewAgentCreationEvent';
 
@@ -39,10 +40,7 @@ type CreateNewAgentWizardSubmissionActionsOptions = {
     /**
      * Switches from the wizard to the advanced raw editor before creation.
      */
-    readonly onOpenEditor: (request: {
-        readonly agentSource: string_book;
-        readonly visibility: AgentVisibility;
-    }) => void;
+    readonly onOpenEditor: (request: NewAgentOpenEditorRequest) => void;
 
     /**
      * Tracks whether the create request is currently in flight.

@@ -16,6 +16,7 @@ import { NewAgentWizardRulesStep } from './NewAgentWizardRulesStep';
 import { NewAgentWizardTeamStep } from './NewAgentWizardTeamStep';
 import { NewAgentWizardUseSetupStep } from './NewAgentWizardUseSetupStep';
 import { NewAgentWizardWritingStep } from './NewAgentWizardWritingStep';
+import type { NewAgentOpenEditorRequest } from './NewAgentOpenEditorRequest';
 import { useNewAgentWizard } from './useNewAgentWizard';
 
 /**
@@ -81,17 +82,7 @@ export type NewAgentWizardCreateRequest = {
 /**
  * Payload used when the user switches from the wizard to the advanced editor.
  */
-export type NewAgentWizardOpenEditorRequest = {
-    /**
-     * Hidden book source synthesized from the wizard form.
-     */
-    readonly agentSource: string_book;
-
-    /**
-     * Explicit visibility choice selected in the wizard.
-     */
-    readonly visibility: AgentVisibility;
-};
+export type NewAgentWizardOpenEditorRequest = NewAgentOpenEditorRequest;
 
 /**
  * Renders the current wizard step content.

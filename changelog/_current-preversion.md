@@ -1,3 +1,5 @@
+-   Added a classic Book editor exit from the Agents Server manGo new-agent wizard. A small Book button in the manGo rail now opens the existing classic editor with the current partially created draft, including the generated book text and ready knowledge sources, so users can finish creation outside the manGo flow.
+
 -   Added **Download .book** to the Agents Server agent context menu. The action downloads the stored source book for the selected authenticated local agent using the same safe filename sanitization as book ZIP exports, while the existing inherited-source `/api/book` route remains unchanged.
 
 -   Improved Agents Server chat source chips so JSON-like and binary image citations no longer show raw payload text. Source labels now fall back to compact URL snippets when a source URL is known, or type labels such as `JSON file` and `JPEG image` when it is not; source chips now use semantic SVG icons for websites, JSON, documents, media, archives, and related file types, with URL-backed image citations rendered as thumbnails.

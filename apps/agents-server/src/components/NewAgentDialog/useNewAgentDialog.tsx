@@ -14,11 +14,9 @@ import {
 } from '../../app/actions';
 import type { NewAgentWizardMode } from '../../constants/newAgentWizard';
 import { NewAgentDialog } from './NewAgentDialog';
-import type {
-    NewAgentWizardCreateRequest,
-    NewAgentWizardOpenEditorRequest,
-} from './NewAgentWizard';
+import type { NewAgentWizardCreateRequest } from './NewAgentWizard';
 import { NewAgentWizard } from './NewAgentWizard';
+import type { NewAgentOpenEditorRequest } from './NewAgentOpenEditorRequest';
 import {
     ManGoNewAgentWizard,
     type ManGoNewAgentWizardCreateRequest,
@@ -335,9 +333,12 @@ export function useNewAgentDialog(options: UseNewAgentDialogOptions): UseNewAgen
         [isHeadless],
     );
 
-    const handleOpenEditorFromWizard = useCallback((request: NewAgentWizardOpenEditorRequest) => {
+    const handleOpenEditorFromGuidedSurface = useCallback((request: NewAgentOpenEditorRequest) => {
         setDialogState((currentDialogState) => {
-            if (!currentDialogState || currentDialogState.surface !== 'wizard') {
+            if (
+                !currentDialogState ||
+                (currentDialogState.surface !== 'wizard' && currentDialogState.surface !== 'mango-wizard')
+            ) {
                 return currentDialogState;
             }
 
@@ -370,7 +371,7 @@ export function useNewAgentDialog(options: UseNewAgentDialogOptions): UseNewAgen
                     folderId={dialogState.targetFolderId}
                     onClose={closeNewAgentDialog}
                     onCreate={handleCreateFromWizard}
-                    onOpenEditor={handleOpenEditorFromWizard}
+                    onOpenEditor={handleOpenEditorFromGuidedSurface}
                 />
             ) : dialogState?.surface === 'mango-wizard' ? (
                 <ManGoNewAgentWizard
@@ -380,6 +381,7 @@ export function useNewAgentDialog(options: UseNewAgentDialogOptions): UseNewAgen
                     onClose={closeNewAgentDialog}
                     onCreate={handleCreateFromManGoWizard}
                     onOpenCreatedAgent={handleOpenCreatedManGoAgent}
+                    onOpenEditor={handleOpenEditorFromGuidedSurface}
                 />
             ) : null,
     };

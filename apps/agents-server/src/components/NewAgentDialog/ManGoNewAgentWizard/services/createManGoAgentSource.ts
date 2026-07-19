@@ -72,7 +72,12 @@ function insertCommitmentsBeforeLearningMarker(source: string, commitments: Read
     const lines = source.replace(/\r\n/g, '\n').split('\n');
     let markerIndex = -1;
     for (let lineIndex = lines.length - 1; lineIndex >= 0; lineIndex -= 1) {
-        const normalizedLine = lines[lineIndex].trim().toUpperCase();
+        const line = lines[lineIndex];
+        if (line === undefined) {
+            continue;
+        }
+
+        const normalizedLine = line.trim().toUpperCase();
         if (normalizedLine === 'OPEN' || normalizedLine === 'CLOSED') {
             markerIndex = lineIndex;
             break;

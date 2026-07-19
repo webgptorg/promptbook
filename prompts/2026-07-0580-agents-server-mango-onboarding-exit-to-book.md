@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.5409 an hour by OpenAI Codex `gpt-5.5` (ChatGPT account)
 
 [✨🟦] There should be a way to return to the classic book editor when using the Mango editor
 
