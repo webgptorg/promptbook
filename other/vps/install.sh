@@ -1175,8 +1175,15 @@ install_code_server() {
     fi
 
     log "Installing code-server."
+    # Install the self-contained standalone code-server release (with its own bundled Node.js)
+    # under $CODE_SERVER_INSTALL_PREFIX instead of the distro package. The standalone method
+    # never shells out to `npm install -g` (so it cannot fail with the global-install
+    # "Please pass --unsafe-perm to npm to install code-server" post-install error) and never
+    # touches apt/dpkg, so installing it during a self-update cannot deadlock against the apt
+    # lock held by unattended-upgrades. This is the single shared installer used by both the
+    # fresh install and the self-update, so both paths install code-server the same way.
     curl -fsSL "$CODE_SERVER_INSTALL_SCRIPT_URL" |
-        "${SUDO[@]}" sh -s -- --method=detect --prefix="$CODE_SERVER_INSTALL_PREFIX"
+        "${SUDO[@]}" sh -s -- --method=standalone --prefix="$CODE_SERVER_INSTALL_PREFIX"
 
     if ! command -v code-server >/dev/null 2>&1; then
         fail "The code-server command was not installed. Check the installer output above."
