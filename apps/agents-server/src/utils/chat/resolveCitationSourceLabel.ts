@@ -1,4 +1,15 @@
 import { JSDOM } from 'jsdom';
+import {
+    createCitationSourceSignatureFallbackLabel,
+    createCitationUrlSnippet,
+    resolveCitationSourceDisplay,
+    resolveCitationSourceSignatureFromBytes,
+    resolveCitationSourceSignatureFromContentType,
+    resolveRawCitationSourceSignature,
+    type CitationSourceDisplay,
+    type CitationSourceKind,
+    type CitationSourceSignature,
+} from '../../../../../src/book-components/Chat/utils/resolveCitationSourceDisplay';
 
 /**
  * Citation metadata accepted by the Agents Server source-label resolver.
@@ -109,6 +120,14 @@ export async function resolveCitationSourceLabel(citation: CitationSourceLabelPa
         return null;
     }
 
+    const targetDisplay = resolveCitationSourceDisplay({
+        id: 'citation-label-target',
+        source: targetUrl,
+    });
+    if (isUrlSnippetSufficientForTarget(targetDisplay)) {
+        return targetDisplay.label;
+    }
+
     const response = await fetch(targetUrl, {
         headers: {
             'User-Agent': SOURCE_LABEL_USER_AGENT,
@@ -123,6 +142,15 @@ export async function resolveCitationSourceLabel(citation: CitationSourceLabelPa
 
     const bytes = await readResponseSnippet(response, MAX_SOURCE_LABEL_BYTES);
     const contentType = response.headers.get('content-type')?.toLowerCase() || '';
+    const fetchedSignature =
+        resolveCitationSourceSignatureFromContentType(contentType) ||
+        resolveCitationSourceSignatureFromBytes(bytes) ||
+        resolveRawCitationSourceSignature(new TextDecoder('utf-8', { fatal: false }).decode(bytes));
+
+    if (fetchedSignature && isUrlSnippetSufficientForFetchedSource(fetchedSignature, targetDisplay.extension)) {
+        return createCitationUrlSnippet(targetUrl) || createCitationSourceSignatureFallbackLabel(fetchedSignature);
+    }
+
     const isPdf = contentType.includes('application/pdf') || targetUrl.toLowerCase().split('?')[0]?.endsWith('.pdf');
 
     if (isPdf || startsWithPdfSignature(bytes)) {
@@ -135,6 +163,55 @@ export async function resolveCitationSourceLabel(citation: CitationSourceLabelPa
     }
 
     return extractCitationLabelFromHtml(text) || extractCitationLabelFromPlainText(text);
+}
+
+/**
+ * Returns whether the target already has enough file-like URL information for a label.
+ *
+ * @param targetDisplay - Display metadata resolved from the target URL itself.
+ * @returns True when fetching metadata would likely produce unreadable binary/structured payload text.
+ *
+ * @private utility of Agents Server chat citation labels
+ */
+function isUrlSnippetSufficientForTarget(targetDisplay: CitationSourceDisplay): boolean {
+    return isUrlSnippetSufficientForKind(targetDisplay.kind, targetDisplay.extension);
+}
+
+/**
+ * Returns whether fetched content should be labelled by URL snippet rather than decoded body text.
+ *
+ * @param signature - Source signature resolved from response headers or bytes.
+ * @param extension - Target URL extension when known.
+ * @returns True when body text should not become the visible chip label.
+ *
+ * @private utility of Agents Server chat citation labels
+ */
+function isUrlSnippetSufficientForFetchedSource(
+    signature: CitationSourceSignature,
+    extension: string | undefined,
+): boolean {
+    return isUrlSnippetSufficientForKind(signature.kind, extension);
+}
+
+/**
+ * Returns whether a source kind is not useful to inspect for title text.
+ *
+ * @param kind - Source kind.
+ * @param extension - Target URL extension when known.
+ * @returns True when a compact URL snippet is the best label.
+ *
+ * @private utility of Agents Server chat citation labels
+ */
+function isUrlSnippetSufficientForKind(kind: CitationSourceKind, extension: string | undefined): boolean {
+    if (kind === 'json' || kind === 'image') {
+        return true;
+    }
+
+    if (kind !== 'document') {
+        return kind !== 'plain-text' && kind !== 'website';
+    }
+
+    return Boolean(extension && !['md', 'markdown', 'pdf', 'txt'].includes(extension));
 }
 
 /**

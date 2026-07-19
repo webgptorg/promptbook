@@ -65,6 +65,45 @@ describe('citation helper heuristics', () => {
         expect(createReadableCitationSourceLabel('https://www.example.com/')).toBe('example.com');
     });
 
+    it('shows URL snippets for URL-backed file citations', () => {
+        expect(
+            getCitationLabel({
+                id: '0:5',
+                source: 'https://github.com/webgptorg/promptbook/blob/main/package.json',
+            }),
+        ).toBe('github.com/.../package.json');
+    });
+
+    it('shows a JSON fallback instead of raw JSON source text', () => {
+        expect(
+            getCitationLabel({
+                id: '0:6',
+                source: '[{"id":1239608413,"name":"source-file"}]',
+            }),
+        ).toBe('JSON file');
+    });
+
+    it('uses embedded JSON URLs as compact source snippets', () => {
+        expect(
+            getCitationLabel({
+                id: '0:7',
+                source: JSON.stringify({
+                    name: 'package.json',
+                    html_url: 'https://github.com/webgptorg/promptbook/blob/main/package.json',
+                }),
+            }),
+        ).toBe('github.com/.../package.json');
+    });
+
+    it('shows image labels for binary-like image source text', () => {
+        expect(
+            getCitationLabel({
+                id: '0:8',
+                source: '\u00ff\u00d8\u00ff\u00e0 \u004a\u0046\u0049\u0046 binary image content',
+            }),
+        ).toBe('JPEG image');
+    });
+
     it('prefers the explicit url, then literal url, then knowledge sources for modal previews', () => {
         const participants: ReadonlyArray<ChatParticipant> = [
             {

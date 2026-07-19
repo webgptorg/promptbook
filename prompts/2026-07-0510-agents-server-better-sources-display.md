@@ -1,4 +1,4 @@
-[ ]
+[x] ~$1.14 2 hours by OpenAI Codex `gpt-5.5` (ChatGPT account)
 
 [✨🙍] Show the sources in some nicer way
 
@@ -20,3 +20,4 @@
 ![alt text](screenshots/2026-07-0510-agents-server-better-sources-display-1.png)
 ![alt text](screenshots/2026-07-0510-agents-server-better-sources-display-2.png)
 ![alt text](screenshots/2026-07-0510-agents-server-better-sources-display-3.png)
+

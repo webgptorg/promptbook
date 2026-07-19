@@ -69,4 +69,39 @@ describe('resolveCitationSourceLabel', () => {
             }),
         );
     });
+
+    it('uses URL snippets for JSON responses instead of decoded payload text', async () => {
+        global.fetch = jest.fn(async () => {
+            return new Response(JSON.stringify([{ id: 1239608413, name: 'source-file' }]), {
+                headers: {
+                    'content-type': 'application/json; charset=utf-8',
+                },
+            });
+        }) as typeof fetch;
+
+        await expect(
+            resolveCitationSourceLabel({
+                source: 'https://api.github.com/repos/webgptorg/promptbook',
+            }),
+        ).resolves.toBe('api.github.com/.../promptbook');
+    });
+
+    it('uses URL snippets for image responses instead of decoded binary text', async () => {
+        global.fetch = jest.fn(async () => {
+            return new Response(
+                Buffer.from('\u00ff\u00d8\u00ff\u00e0 \u004a\u0046\u0049\u0046 binary image content', 'latin1'),
+                {
+                    headers: {
+                        'content-type': 'image/jpeg',
+                    },
+                },
+            );
+        }) as typeof fetch;
+
+        await expect(
+            resolveCitationSourceLabel({
+                source: 'https://example.com/uploads/photo',
+            }),
+        ).resolves.toBe('example.com/uploads/photo');
+    });
 });
