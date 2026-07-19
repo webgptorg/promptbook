@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.4773 an hour by OpenAI Codex `gpt-5.5` (ChatGPT account)
 
 [✨🕸] On mango wizard allow to scroll the left panel
 
@@ -7,3 +7,4 @@
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ![alt text](screenshots/2026-07-0600-agents-server-mango-onboarding-scrolling.png)
+

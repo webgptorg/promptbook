@@ -150,11 +150,11 @@ export function WizardShell({ children, defaultVisibility, onOpenEditor }: Wizar
 
             {/* Desktop: persistent side rail */}
             <aside
-                className="relative hidden w-80 flex-shrink-0 overflow-hidden p-7 text-white lg:sticky lg:top-0 lg:flex lg:h-screen lg:flex-col"
+                className="relative hidden w-80 flex-shrink-0 overflow-hidden text-white lg:sticky lg:top-0 lg:flex lg:h-screen lg:flex-col"
                 style={RAIL_GRADIENT}
             >
                 <RailArtwork />
-                <div className="relative z-10 flex h-full flex-col">
+                <div className="relative z-10 flex min-h-0 w-full flex-1 flex-col overflow-y-auto overflow-x-hidden overscroll-contain p-7">
                     <div className="flex items-center justify-between gap-3">
                         <button
                             type="button"

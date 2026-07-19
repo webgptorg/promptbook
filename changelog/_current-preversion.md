@@ -1,3 +1,5 @@
+-   Fixed the Agents Server manGo new-agent wizard desktop rail so the left panel scrolls independently on short viewports, keeping the stepper and progress controls reachable while preserving the existing fullscreen layout.
+
 -   Added a classic Book editor exit from the Agents Server manGo new-agent wizard. A small Book button in the manGo rail now opens the existing classic editor with the current partially created draft, including the generated book text and ready knowledge sources, so users can finish creation outside the manGo flow.
 
 -   Added **Download .book** to the Agents Server agent context menu. The action downloads the stored source book for the selected authenticated local agent using the same safe filename sanitization as book ZIP exports, while the existing inherited-source `/api/book` route remains unchanged.
