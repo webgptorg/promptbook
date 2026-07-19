@@ -296,7 +296,8 @@ describe('other/vps/install.sh', () => {
         expect(installScript).toContain('CODE_SERVER_INSTALL_PREFIX="${CODE_SERVER_INSTALL_PREFIX:-/usr/local}"');
         expect(installScript).toContain('install_code_server()');
         expect(installScript).toContain('curl -fsSL "$CODE_SERVER_INSTALL_SCRIPT_URL" |');
-        expect(installScript).toContain('--method=detect --prefix="$CODE_SERVER_INSTALL_PREFIX"');
+        expect(installScript).toContain('--method=standalone --prefix="$CODE_SERVER_INSTALL_PREFIX"');
+        expect(installScript).not.toMatch(/^.*\bnpm\s+(?:install|i)\b.*\bcode-server\b.*$/m);
         expect(installScript).toContain('install_agents_server_dependency_requirements()');
         expect(installScript).toContain('apply_dependency_configuration()');
         expect(installScript).toContain('bash "$release_install_script_path" apply-dependencies');
