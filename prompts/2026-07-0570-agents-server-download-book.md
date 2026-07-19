@@ -1,4 +1,4 @@
-[ ]
+[x] ~$1.02 an hour by OpenAI Codex `gpt-5.5` (ChatGPT account)
 
 [✨🍹] Add Download `.book` to the agents context menu
 
@@ -7,3 +7,4 @@
 -   You are working with the [Agents Server](apps/agents-server)
 
 ![alt text](screenshots/2026-07-0570-agents-server-download-book.png)
+

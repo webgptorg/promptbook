@@ -7,6 +7,7 @@ import {
     CopyPlusIcon,
     DownloadIcon,
     ExternalLinkIcon,
+    FileDownIcon,
     FileTextIcon,
     FolderKanbanIcon,
     FolderOpenIcon,
@@ -194,6 +195,7 @@ function createSharingMenuItems(
  * Creates navigation items for opening the current agent in related views.
  *
  * @param agentIdentifier - Current permanent id or routed agent name.
+ * @param handleDownloadAgentBook - Stored `.book` download action handler.
  * @param editBookLink - Generated edit-book link metadata.
  * @param folderContext - Optional folder navigation context.
  * @param formatText - Agent-aware text formatter.
@@ -203,6 +205,7 @@ function createSharingMenuItems(
  */
 function createWorkspaceMenuItems(
     agentIdentifier: string,
+    handleDownloadAgentBook: () => Promise<void>,
     editBookLink: AgentContextMenuNavigationLink,
     folderContext: AgentContextMenuBaseProps['folderContext'],
     formatText: FormatAgentContextMenuText,
@@ -257,6 +260,13 @@ function createWorkspaceMenuItems(
                 href: editBookLink.href,
                 icon: editBookLink.icon,
                 label: editBookLink.title,
+            },
+            {
+                type: 'action',
+                icon: FileDownIcon,
+                label: formatText('Download .book'),
+                onClick: handleDownloadAgentBook,
+                closeOnClick: true,
             },
         );
     }
@@ -431,6 +441,7 @@ export function useAgentContextMenuItems(props: AgentContextMenuBaseProps): Cont
         editBookLink,
         handleCloneAgent,
         handleDeleteAgent,
+        handleDownloadAgentBook,
         handleRenameAgent,
         handleRequestVisibilityUpdate,
         handleUpdateUrl,
@@ -441,6 +452,7 @@ export function useAgentContextMenuItems(props: AgentContextMenuBaseProps): Cont
     } = useAgentContextMenuActions(props, formatText);
     const workspaceMenuItems = createWorkspaceMenuItems(
         agentIdentifier,
+        handleDownloadAgentBook,
         editBookLink,
         folderContext,
         formatText,

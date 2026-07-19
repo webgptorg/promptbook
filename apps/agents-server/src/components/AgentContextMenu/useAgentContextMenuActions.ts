@@ -6,6 +6,7 @@ import { useCallback, useMemo } from 'react';
 import { getAgentLinks } from '../../app/agents/[agentName]/agentLinks';
 import { deleteAgent } from '../../app/recycle-bin/actions';
 import { DEFAULT_AGENT_VISIBILITY, type AgentVisibility } from '../../utils/agentVisibility';
+import { downloadAgentBook } from '../../utils/agentBook/downloadAgentBook';
 import { promptCloneAgent } from '../AgentCloning/cloneAgent';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 import { showAlert, showConfirm, showPrompt, showVisibilityDialog } from '../AsyncDialogs/asyncDialogs';
@@ -70,6 +71,7 @@ type UseAgentContextMenuActionsResult = {
     readonly editBookLink: AgentContextMenuLink;
     readonly handleCloneAgent: () => Promise<void>;
     readonly handleDeleteAgent: () => Promise<void>;
+    readonly handleDownloadAgentBook: () => Promise<void>;
     readonly handleRenameAgent: () => Promise<void>;
     readonly handleRequestVisibilityUpdate: () => Promise<void>;
     readonly handleUpdateUrl: () => Promise<void>;
@@ -446,6 +448,33 @@ function useAgentContextMenuCloneAction(actionContext: AgentContextMenuActionCon
 }
 
 /**
+ * Creates the stored-book download action handler for the menu.
+ *
+ * @param actionContext - Shared action context.
+ * @returns Stable stored-book download handler.
+ *
+ * @private function of useAgentContextMenuItems
+ */
+function useAgentContextMenuDownloadBookAction(actionContext: AgentContextMenuActionContext): () => Promise<void> {
+    const { agentIdentifier, displayName, formatText } = actionContext;
+
+    return useCallback(async () => {
+        try {
+            await downloadAgentBook({
+                agentIdentifier,
+                filenameAgentName: displayName,
+            });
+        } catch (error) {
+            console.error('Failed to download agent book:', error);
+            await showAgentContextMenuAlert(
+                formatText('Download failed'),
+                resolveAgentContextMenuErrorMessage(error, formatText('Failed to download agent book.')),
+            );
+        }
+    }, [agentIdentifier, displayName, formatText]);
+}
+
+/**
  * Persists a new visibility value for the current agent.
  *
  * @param agentIdentifier - Identifier used by the update API.
@@ -557,6 +586,7 @@ export function useAgentContextMenuActions(
     const handleDeleteAgent = useAgentContextMenuDeleteAction(actionContext);
     const handleRenameAgent = useAgentContextMenuRenameAction(actionContext);
     const handleCloneAgent = useAgentContextMenuCloneAction(actionContext);
+    const handleDownloadAgentBook = useAgentContextMenuDownloadBookAction(actionContext);
     const { handleRequestVisibilityUpdate, shouldShowVisibilityAction } = useAgentContextMenuVisibilityActions(
         actionContext,
         props.isAuthenticated ?? props.isAdmin ?? false,
@@ -566,6 +596,7 @@ export function useAgentContextMenuActions(
         editBookLink,
         handleCloneAgent,
         handleDeleteAgent,
+        handleDownloadAgentBook,
         handleRenameAgent,
         handleRequestVisibilityUpdate,
         handleUpdateUrl,
