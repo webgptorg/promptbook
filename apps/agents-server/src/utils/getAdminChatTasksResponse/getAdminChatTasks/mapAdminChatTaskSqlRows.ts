@@ -30,6 +30,7 @@ export type AdminChatTaskSqlRow = {
     agentPermanentId: string;
     agentName: string | null;
     chatId: string;
+    queueName: string | null;
     parameters: unknown;
     totalCount: string | number;
 };
@@ -77,7 +78,7 @@ export function mapAdminChatTaskSqlRow(row: AdminChatTaskSqlRow): AdminChatTaskR
         agentName: row.agentName,
         chatId: row.chatId,
         workerId: null,
-        queueName: row.kind === 'CHAT_TIMEOUT' ? 'user-chat-timeouts' : 'user-chat-jobs',
+        queueName: row.queueName,
         runReport: getUserChatJobRunReportFromParameters(row.parameters),
     };
 }

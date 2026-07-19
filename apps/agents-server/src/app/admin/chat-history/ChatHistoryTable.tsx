@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Card } from '../../../components/Homepage/Card';
 import type { ServerLanguageCode } from '../../../languages/ServerLanguageRegistry';
 import { formatServerLanguageHumanReadableDate } from '../../../utils/localization/formatServerLanguageHumanReadableDate';
+import { AdminSortableTableHeaderCell } from '../_components/AdminSortableTableHeaderCell';
 import { ChatHistoryPagination } from './ChatHistoryPagination';
 import type { UseChatHistoryState } from './useChatHistoryState';
 
@@ -17,9 +18,9 @@ type ChatHistoryTableProps = Pick<
     | 'page'
     | 'pageSize'
     | 'totalPages'
+    | 'sortBy'
     | 'sortOrder'
     | 'handleSortChange'
-    | 'isSortedBy'
     | 'handleDeleteRow'
     | 'handleCreateMockFromRow'
     | 'isCreatingMock'
@@ -105,9 +106,9 @@ export function ChatHistoryTable({
     page,
     pageSize,
     totalPages,
+    sortBy,
     sortOrder,
     handleSortChange,
-    isSortedBy,
     handleDeleteRow,
     handleCreateMockFromRow,
     isCreatingMock,
@@ -130,26 +131,26 @@ export function ChatHistoryTable({
                     <table className="min-w-full divide-y divide-gray-200 text-sm">
                         <thead className="bg-gray-50">
                             <tr>
-                                <th className="px-4 py-3 text-left font-medium text-gray-500">
-                                    <button
-                                        type="button"
-                                        onClick={() => handleSortChange('createdAt')}
-                                        className="inline-flex items-center gap-1"
-                                    >
-                                        Time
-                                        {isSortedBy('createdAt') && <span>{sortOrder === 'asc' ? '▲' : '▼'}</span>}
-                                    </button>
-                                </th>
-                                <th className="px-4 py-3 text-left font-medium text-gray-500">
-                                    <button
-                                        type="button"
-                                        onClick={() => handleSortChange('agentName')}
-                                        className="inline-flex items-center gap-1"
-                                    >
-                                        {formatText('Agent')}
-                                        {isSortedBy('agentName') && <span>{sortOrder === 'asc' ? '▲' : '▼'}</span>}
-                                    </button>
-                                </th>
+                                <AdminSortableTableHeaderCell
+                                    className="px-4 py-3 text-left font-medium text-gray-500"
+                                    label="time"
+                                    sortBy="createdAt"
+                                    activeSortBy={sortBy}
+                                    sortOrder={sortOrder}
+                                    onSortChange={handleSortChange}
+                                >
+                                    Time
+                                </AdminSortableTableHeaderCell>
+                                <AdminSortableTableHeaderCell
+                                    className="px-4 py-3 text-left font-medium text-gray-500"
+                                    label={formatText('Agent')}
+                                    sortBy="agentName"
+                                    activeSortBy={sortBy}
+                                    sortOrder={sortOrder}
+                                    onSortChange={handleSortChange}
+                                >
+                                    {formatText('Agent')}
+                                </AdminSortableTableHeaderCell>
                                 <th className="px-4 py-3 text-left font-medium text-gray-500">Role</th>
                                 <th className="px-4 py-3 text-left font-medium text-gray-500">Message</th>
                                 <th className="px-4 py-3 text-left font-medium text-gray-500">URL</th>

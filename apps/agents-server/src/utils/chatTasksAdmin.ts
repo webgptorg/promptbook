@@ -9,6 +9,22 @@ import type { UserChatJobStatus } from './userChat/UserChatJobRecord';
 export type AdminChatTaskView = 'active' | 'running' | 'queued' | 'failed' | 'all';
 
 /**
+ * Sortable task-manager columns supported by the admin API.
+ *
+ * `default` keeps the operational order chosen for the active dashboard view.
+ *
+ * @private internal admin utility of Agents Server
+ */
+export type AdminChatTaskSortField = 'default' | 'task' | 'ownership' | 'timeline' | 'duration' | 'queue' | 'lastError';
+
+/**
+ * Sort direction supported by the admin task-manager API.
+ *
+ * @private internal admin utility of Agents Server
+ */
+export type AdminChatTaskSortOrder = 'asc' | 'desc';
+
+/**
  * Durable task kinds currently surfaced by the admin task manager.
  *
  * `VPS_SELF_UPDATE` represents a manual or automatic standalone VPS self-update session.
@@ -81,6 +97,8 @@ export type AdminChatTaskListResponse = {
     pageSize: number;
     view: AdminChatTaskView;
     search: string;
+    sortBy: AdminChatTaskSortField;
+    sortOrder: AdminChatTaskSortOrder;
     timeWindowHours: number;
     generatedAt: string;
 };
@@ -95,6 +113,8 @@ export type AdminChatTaskListParams = {
     pageSize?: number;
     view?: AdminChatTaskView;
     search?: string;
+    sortBy?: AdminChatTaskSortField;
+    sortOrder?: AdminChatTaskSortOrder;
     timeWindowHours?: number;
 };
 
@@ -126,6 +146,12 @@ function buildAdminChatTaskQuery(params: AdminChatTaskListParams): string {
     }
     if (params.search) {
         searchParams.set('search', params.search);
+    }
+    if (params.sortBy) {
+        searchParams.set('sortBy', params.sortBy);
+    }
+    if (params.sortOrder) {
+        searchParams.set('sortOrder', params.sortOrder);
     }
     if (params.timeWindowHours && params.timeWindowHours > 0) {
         searchParams.set('timeWindowHours', String(params.timeWindowHours));

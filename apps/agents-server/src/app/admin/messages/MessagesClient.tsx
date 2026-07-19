@@ -8,8 +8,12 @@ import {
     $fetchMessages,
     type MessageRow,
     type MessageSendAttemptRow,
+    type MessageSortField,
+    type MessageSortOrder,
 } from '../../../utils/messagesAdmin';
 import { formatServerLanguageHumanReadableDate } from '../../../utils/localization/formatServerLanguageHumanReadableDate';
+import { AdminSortableTableHeaderCell } from '../_components/AdminSortableTableHeaderCell';
+import { resolveNextAdminTableSortState } from '../_components/adminTableSorting';
 
 /**
  * Formats date.
@@ -41,6 +45,13 @@ function getStatusBadge(attempts: MessageSendAttemptRow[] | undefined) {
 }
 
 /**
+ * Resolves the initial direction used when switching message sort fields.
+ */
+function resolveMessageDefaultSortOrder(sortBy: MessageSortField): MessageSortOrder {
+    return sortBy === 'createdAt' ? 'desc' : 'asc';
+}
+
+/**
  * Handles messages client.
  */
 export function MessagesClient() {
@@ -53,6 +64,8 @@ export function MessagesClient() {
     const [search, setSearch] = useState('');
     const [channel, setChannel] = useState('');
     const [direction, setDirection] = useState('');
+    const [sortBy, setSortBy] = useState<MessageSortField>('createdAt');
+    const [sortOrder, setSortOrder] = useState<MessageSortOrder>('desc');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -71,6 +84,8 @@ export function MessagesClient() {
                     search: search || undefined,
                     channel: channel || undefined,
                     direction: direction || undefined,
+                    sortBy,
+                    sortOrder,
                 });
 
                 if (isCancelled) return;
@@ -92,7 +107,7 @@ export function MessagesClient() {
         return () => {
             isCancelled = true;
         };
-    }, [page, pageSize, search, channel, direction]);
+    }, [page, pageSize, search, channel, direction, sortBy, sortOrder]);
 
     const totalPages = useMemo(() => {
         if (total <= 0 || pageSize <= 0) return 1;
@@ -111,6 +126,19 @@ export function MessagesClient() {
             setPageSize(next);
             setPage(1);
         }
+    };
+
+    const handleSortChange = (nextSortBy: MessageSortField): void => {
+        const nextSortState = resolveNextAdminTableSortState({
+            currentSortBy: sortBy,
+            currentSortOrder: sortOrder,
+            nextSortBy,
+            resolveDefaultSortOrder: resolveMessageDefaultSortOrder,
+        });
+
+        setSortBy(nextSortState.sortBy);
+        setSortOrder(nextSortState.sortOrder);
+        setPage(1);
     };
 
     const pagination = (
@@ -259,11 +287,47 @@ export function MessagesClient() {
                         <table className="min-w-full divide-y divide-gray-200 text-sm">
                             <thead className="bg-gray-50">
                                 <tr>
-                                    <th className="px-4 py-3 text-left font-medium text-gray-500">Time</th>
-                                    <th className="px-4 py-3 text-left font-medium text-gray-500">Channel</th>
-                                    <th className="px-4 py-3 text-left font-medium text-gray-500">Direction</th>
+                                    <AdminSortableTableHeaderCell
+                                        className="px-4 py-3 text-left font-medium text-gray-500"
+                                        label="time"
+                                        sortBy="createdAt"
+                                        activeSortBy={sortBy}
+                                        sortOrder={sortOrder}
+                                        onSortChange={handleSortChange}
+                                    >
+                                        Time
+                                    </AdminSortableTableHeaderCell>
+                                    <AdminSortableTableHeaderCell
+                                        className="px-4 py-3 text-left font-medium text-gray-500"
+                                        label="channel"
+                                        sortBy="channel"
+                                        activeSortBy={sortBy}
+                                        sortOrder={sortOrder}
+                                        onSortChange={handleSortChange}
+                                    >
+                                        Channel
+                                    </AdminSortableTableHeaderCell>
+                                    <AdminSortableTableHeaderCell
+                                        className="px-4 py-3 text-left font-medium text-gray-500"
+                                        label="direction"
+                                        sortBy="direction"
+                                        activeSortBy={sortBy}
+                                        sortOrder={sortOrder}
+                                        onSortChange={handleSortChange}
+                                    >
+                                        Direction
+                                    </AdminSortableTableHeaderCell>
                                     <th className="px-4 py-3 text-left font-medium text-gray-500">Sender/Recipients</th>
-                                    <th className="px-4 py-3 text-left font-medium text-gray-500">Content</th>
+                                    <AdminSortableTableHeaderCell
+                                        className="px-4 py-3 text-left font-medium text-gray-500"
+                                        label="content"
+                                        sortBy="content"
+                                        activeSortBy={sortBy}
+                                        sortOrder={sortOrder}
+                                        onSortChange={handleSortChange}
+                                    >
+                                        Content
+                                    </AdminSortableTableHeaderCell>
                                     <th className="px-4 py-3 text-left font-medium text-gray-500">Status</th>
                                 </tr>
                             </thead>

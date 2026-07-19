@@ -1,8 +1,10 @@
 'use client';
 
 import { EyeOff, Loader2, Save, ServerCog } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Card } from '../../../components/Homepage/Card';
+import { AdminSortableTableHeaderCell } from '../_components/AdminSortableTableHeaderCell';
+import { useAdminTableSorting, type AdminTableSortOrder } from '../_components/adminTableSorting';
 
 /**
  * One environment variable returned by the admin API.
@@ -29,6 +31,11 @@ type EnvironmentVariablesResponse = {
 };
 
 /**
+ * Sortable environment variable table columns.
+ */
+type EnvironmentVariableTableSortField = 'key' | 'value' | 'status';
+
+/**
  * Shared input styling for environment rows.
  */
 const INPUT_CLASS_NAME =
@@ -38,6 +45,13 @@ const INPUT_CLASS_NAME =
  * Placeholder shown instead of sensitive environment values.
  */
 const HIDDEN_ENVIRONMENT_VALUE = '********';
+
+/**
+ * Resolves the initial direction used when switching environment variable sort fields.
+ */
+function resolveEnvironmentVariableDefaultSortOrder(): AdminTableSortOrder {
+    return 'asc';
+}
 
 /**
  * Browser UI for standalone VPS environment variables.
@@ -57,6 +71,28 @@ export function EnvironmentVariablesClient() {
         () => variables.some((variable) => draftValues[variable.key] !== variable.value),
         [draftValues, variables],
     );
+
+    const resolveEnvironmentVariableSortValue = useCallback(
+        (variable: EnvironmentVariableRecord, sortBy: EnvironmentVariableTableSortField) => {
+            if (sortBy === 'value') {
+                return draftValues[variable.key] ?? variable.value;
+            }
+
+            if (sortBy === 'status') {
+                return variable.isDefined;
+            }
+
+            return variable.key;
+        },
+        [draftValues],
+    );
+
+    const variableSorting = useAdminTableSorting<EnvironmentVariableRecord, EnvironmentVariableTableSortField>({
+        rows: variables,
+        defaultSortBy: 'key',
+        resolveDefaultSortOrder: resolveEnvironmentVariableDefaultSortOrder,
+        resolveSortValue: resolveEnvironmentVariableSortValue,
+    });
 
     useEffect(() => {
         void loadVariables();
@@ -180,13 +216,40 @@ export function EnvironmentVariablesClient() {
                             </colgroup>
                             <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
                                 <tr>
-                                    <th className="px-4 py-3 text-left font-semibold">Variable</th>
-                                    <th className="px-4 py-3 text-left font-semibold">Value</th>
-                                    <th className="px-4 py-3 text-left font-semibold">Status</th>
+                                    <AdminSortableTableHeaderCell
+                                        className="px-4 py-3 text-left font-semibold"
+                                        label="variable"
+                                        sortBy="key"
+                                        activeSortBy={variableSorting.sortBy}
+                                        sortOrder={variableSorting.sortOrder}
+                                        onSortChange={variableSorting.handleSortChange}
+                                    >
+                                        Variable
+                                    </AdminSortableTableHeaderCell>
+                                    <AdminSortableTableHeaderCell
+                                        className="px-4 py-3 text-left font-semibold"
+                                        label="value"
+                                        sortBy="value"
+                                        activeSortBy={variableSorting.sortBy}
+                                        sortOrder={variableSorting.sortOrder}
+                                        onSortChange={variableSorting.handleSortChange}
+                                    >
+                                        Value
+                                    </AdminSortableTableHeaderCell>
+                                    <AdminSortableTableHeaderCell
+                                        className="px-4 py-3 text-left font-semibold"
+                                        label="status"
+                                        sortBy="status"
+                                        activeSortBy={variableSorting.sortBy}
+                                        sortOrder={variableSorting.sortOrder}
+                                        onSortChange={variableSorting.handleSortChange}
+                                    >
+                                        Status
+                                    </AdminSortableTableHeaderCell>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200 bg-white">
-                                {variables.map((variable) => (
+                                {variableSorting.sortedRows.map((variable) => (
                                     <tr key={variable.key}>
                                         <td className="px-4 py-3 align-top font-mono text-sm font-semibold text-slate-800">
                                             {variable.key}

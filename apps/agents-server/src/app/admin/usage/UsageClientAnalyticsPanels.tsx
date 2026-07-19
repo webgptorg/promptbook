@@ -3,6 +3,8 @@ import type { ServerLanguageCode } from '@/src/languages/ServerLanguageRegistry'
 import type { UsageAnalyticsResponse, UsageMetricMode } from '@/src/utils/usageAdmin';
 import type { ReactNode } from 'react';
 import { useMemo } from 'react';
+import { AdminSortableTableHeaderCell } from '../_components/AdminSortableTableHeaderCell';
+import { useAdminTableSorting, type AdminTableSortOrder } from '../_components/adminTableSorting';
 import { UsageClientFormatting } from './UsageClientFormatting';
 import { UsageClientTimelineChart } from './UsageClientTimelineChart';
 
@@ -239,6 +241,11 @@ type UsageClientSimpleCountTableRow = {
 };
 
 /**
+ * Sortable columns for usage count tables.
+ */
+type UsageClientSimpleCountTableSortField = 'label' | 'calls' | 'tokens' | 'metric';
+
+/**
  * Props for `<UsageClientSimpleCountTable/>`.
  */
 type UsageClientSimpleCountTableProps = {
@@ -252,6 +259,13 @@ type UsageClientSimpleCountTableProps = {
  */
 function UsageClientSimpleCountTable(props: UsageClientSimpleCountTableProps) {
     const { rows, metric, emptyLabel } = props;
+    const sortedTable = useAdminTableSorting<UsageClientSimpleCountTableRow, UsageClientSimpleCountTableSortField>({
+        rows,
+        defaultSortBy: 'metric',
+        defaultSortOrder: 'desc',
+        resolveDefaultSortOrder: resolveUsageClientSimpleCountTableDefaultSortOrder,
+        resolveSortValue: (row, sortBy) => resolveUsageClientSimpleCountTableSortValue(row, sortBy, metric),
+    });
 
     if (rows.length === 0) {
         return <p className="mt-4 text-sm text-gray-500">{emptyLabel}</p>;
@@ -262,14 +276,53 @@ function UsageClientSimpleCountTable(props: UsageClientSimpleCountTableProps) {
             <table className="w-full text-left text-sm">
                 <thead className="sticky top-0 bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
                     <tr>
-                        <th className="px-3 py-2">Name</th>
-                        <th className="px-3 py-2 text-right">Calls</th>
-                        <th className="px-3 py-2 text-right">Tokens</th>
-                        <th className="px-3 py-2 text-right">{UsageClientFormatting.usageMetricLabel(metric)}</th>
+                        <AdminSortableTableHeaderCell
+                            className="px-3 py-2"
+                            label="name"
+                            sortBy="label"
+                            activeSortBy={sortedTable.sortBy}
+                            sortOrder={sortedTable.sortOrder}
+                            onSortChange={sortedTable.handleSortChange}
+                        >
+                            Name
+                        </AdminSortableTableHeaderCell>
+                        <AdminSortableTableHeaderCell
+                            className="px-3 py-2 text-right"
+                            label="calls"
+                            sortBy="calls"
+                            activeSortBy={sortedTable.sortBy}
+                            sortOrder={sortedTable.sortOrder}
+                            onSortChange={sortedTable.handleSortChange}
+                            textAlign="right"
+                        >
+                            Calls
+                        </AdminSortableTableHeaderCell>
+                        <AdminSortableTableHeaderCell
+                            className="px-3 py-2 text-right"
+                            label="tokens"
+                            sortBy="tokens"
+                            activeSortBy={sortedTable.sortBy}
+                            sortOrder={sortedTable.sortOrder}
+                            onSortChange={sortedTable.handleSortChange}
+                            textAlign="right"
+                        >
+                            Tokens
+                        </AdminSortableTableHeaderCell>
+                        <AdminSortableTableHeaderCell
+                            className="px-3 py-2 text-right"
+                            label={UsageClientFormatting.usageMetricLabel(metric)}
+                            sortBy="metric"
+                            activeSortBy={sortedTable.sortBy}
+                            sortOrder={sortedTable.sortOrder}
+                            onSortChange={sortedTable.handleSortChange}
+                            textAlign="right"
+                        >
+                            {UsageClientFormatting.usageMetricLabel(metric)}
+                        </AdminSortableTableHeaderCell>
                     </tr>
                 </thead>
                 <tbody>
-                    {rows.map((row) => (
+                    {sortedTable.sortedRows.map((row) => (
                         <tr key={row.label} className="border-t border-gray-100">
                             <td className="px-3 py-2 font-medium text-gray-700 truncate max-w-[200px]">{row.label}</td>
                             <td className="px-3 py-2 text-right text-gray-700 whitespace-nowrap">
@@ -293,6 +346,30 @@ function UsageClientSimpleCountTable(props: UsageClientSimpleCountTableProps) {
 }
 
 /**
+ * Resolves the initial direction used when switching usage count sort fields.
+ */
+function resolveUsageClientSimpleCountTableDefaultSortOrder(
+    sortBy: UsageClientSimpleCountTableSortField,
+): AdminTableSortOrder {
+    return sortBy === 'label' ? 'asc' : 'desc';
+}
+
+/**
+ * Resolves a comparable value for one usage count table row.
+ */
+function resolveUsageClientSimpleCountTableSortValue(
+    row: UsageClientSimpleCountTableRow,
+    sortBy: UsageClientSimpleCountTableSortField,
+    metric: UsageMetricMode,
+) {
+    if (sortBy === 'metric') {
+        return UsageClientFormatting.resolveMetricValue(row, metric);
+    }
+
+    return row[sortBy];
+}
+
+/**
  * Props for `<UsageClientDetailsTable/>`.
  */
 type UsageClientDetailsTableProps = {
@@ -302,10 +379,22 @@ type UsageClientDetailsTableProps = {
 };
 
 /**
+ * Sortable column for generic usage detail tables.
+ */
+type UsageClientDetailsTableSortField = `${number}`;
+
+/**
  * Generic details table with flexible columns.
  */
 function UsageClientDetailsTable(props: UsageClientDetailsTableProps) {
     const { headers, rows, emptyLabel } = props;
+    const sortedTable = useAdminTableSorting<ReactNode[], UsageClientDetailsTableSortField>({
+        rows,
+        defaultSortBy: '1',
+        defaultSortOrder: 'desc',
+        resolveDefaultSortOrder: resolveUsageClientDetailsTableDefaultSortOrder,
+        resolveSortValue: resolveUsageClientDetailsTableSortValue,
+    });
 
     if (rows.length === 0) {
         return <p className="mt-4 text-sm text-gray-500">{emptyLabel}</p>;
@@ -317,14 +406,23 @@ function UsageClientDetailsTable(props: UsageClientDetailsTableProps) {
                 <thead className="sticky top-0 bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
                     <tr>
                         {headers.map((header, index) => (
-                            <th key={index} className={`px-3 py-2 ${index > 0 ? 'text-right' : ''}`}>
+                            <AdminSortableTableHeaderCell
+                                key={index}
+                                className={`px-3 py-2 ${index > 0 ? 'text-right' : ''}`}
+                                label={header}
+                                sortBy={String(index) as UsageClientDetailsTableSortField}
+                                activeSortBy={sortedTable.sortBy}
+                                sortOrder={sortedTable.sortOrder}
+                                onSortChange={sortedTable.handleSortChange}
+                                textAlign={index > 0 ? 'right' : 'left'}
+                            >
                                 {header}
-                            </th>
+                            </AdminSortableTableHeaderCell>
                         ))}
                     </tr>
                 </thead>
                 <tbody>
-                    {rows.map((row, rowIndex) => (
+                    {sortedTable.sortedRows.map((row, rowIndex) => (
                         <tr key={rowIndex} className="border-t border-gray-100">
                             {row.map((cell, cellIndex) => (
                                 <td
@@ -342,4 +440,21 @@ function UsageClientDetailsTable(props: UsageClientDetailsTableProps) {
             </table>
         </div>
     );
+}
+
+/**
+ * Resolves the initial direction used when switching usage detail sort fields.
+ */
+function resolveUsageClientDetailsTableDefaultSortOrder(sortBy: UsageClientDetailsTableSortField): AdminTableSortOrder {
+    return sortBy === '0' ? 'asc' : 'desc';
+}
+
+/**
+ * Resolves a comparable value for one generic usage detail table row.
+ */
+function resolveUsageClientDetailsTableSortValue(row: ReactNode[], sortBy: UsageClientDetailsTableSortField) {
+    const columnIndex = Number.parseInt(sortBy, 10);
+    const cell = row[columnIndex];
+
+    return typeof cell === 'string' || typeof cell === 'number' ? cell : String(cell ?? '');
 }

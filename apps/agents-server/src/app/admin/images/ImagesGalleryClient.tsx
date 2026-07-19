@@ -34,8 +34,11 @@ export function ImagesGalleryClient() {
                     isLoading={imagesGalleryState.isLoading}
                     page={imagesGalleryState.page}
                     limit={imagesGalleryState.limit}
+                    sortBy={imagesGalleryState.sortBy}
+                    sortOrder={imagesGalleryState.sortOrder}
                     copiedId={imagesGalleryState.copiedId}
                     handlePageChange={imagesGalleryState.handlePageChange}
+                    handleSortChange={imagesGalleryState.handleSortChange}
                     handlePromptCopy={imagesGalleryState.handlePromptCopy}
                 />
             ) : (

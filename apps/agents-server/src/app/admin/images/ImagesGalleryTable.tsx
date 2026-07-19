@@ -3,6 +3,7 @@ import Link from 'next/link';
 import type { ServerLanguageCode } from '../../../languages/ServerLanguageRegistry';
 import { buildAgentProfileHref } from '../../../utils/agentRouting/agentRouteHrefs';
 import { formatServerLanguageHumanReadableDate } from '../../../utils/localization/formatServerLanguageHumanReadableDate';
+import { AdminSortableTableHeaderCell } from '../_components/AdminSortableTableHeaderCell';
 import type { ImageWithAgent } from './actions';
 import { ImagesGalleryParametersBadges } from './ImagesGalleryParametersBadges';
 import { ImagesGalleryPromptCopyButton } from './ImagesGalleryPromptCopyButton';
@@ -14,7 +15,17 @@ import type { UseImagesGalleryState } from './useImagesGalleryState';
  */
 type ImagesGalleryTableProps = Pick<
     UseImagesGalleryState,
-    'images' | 'total' | 'isLoading' | 'page' | 'limit' | 'copiedId' | 'handlePageChange' | 'handlePromptCopy'
+    | 'images'
+    | 'total'
+    | 'isLoading'
+    | 'page'
+    | 'limit'
+    | 'sortBy'
+    | 'sortOrder'
+    | 'copiedId'
+    | 'handlePageChange'
+    | 'handleSortChange'
+    | 'handlePromptCopy'
 > & {
     /**
      * Active text formatter for agent naming.
@@ -119,8 +130,11 @@ export function ImagesGalleryTable({
     isLoading,
     page,
     limit,
+    sortBy,
+    sortOrder,
     copiedId,
     handlePageChange,
+    handleSortChange,
     handlePromptCopy,
 }: ImagesGalleryTableProps) {
     const isOnFirstPage = page === 1;
@@ -132,12 +146,48 @@ export function ImagesGalleryTable({
                 <table className="w-full text-sm text-left text-gray-500">
                     <thead className="text-xs text-gray-700 uppercase bg-gray-50 border-b">
                         <tr>
-                            <th className="px-6 py-3 w-32">Image</th>
-                            <th className="px-6 py-3">Prompt</th>
+                            <AdminSortableTableHeaderCell
+                                className="px-6 py-3 w-32"
+                                label="image"
+                                sortBy="filename"
+                                activeSortBy={sortBy}
+                                sortOrder={sortOrder}
+                                onSortChange={handleSortChange}
+                            >
+                                Image
+                            </AdminSortableTableHeaderCell>
+                            <AdminSortableTableHeaderCell
+                                className="px-6 py-3"
+                                label="prompt"
+                                sortBy="prompt"
+                                activeSortBy={sortBy}
+                                sortOrder={sortOrder}
+                                onSortChange={handleSortChange}
+                            >
+                                Prompt
+                            </AdminSortableTableHeaderCell>
                             <th className="px-6 py-3">{formatText('Agent')}</th>
                             <th className="px-6 py-3">Parameters</th>
-                            <th className="px-6 py-3">Purpose</th>
-                            <th className="px-6 py-3">Created At</th>
+                            <AdminSortableTableHeaderCell
+                                className="px-6 py-3"
+                                label="purpose"
+                                sortBy="purpose"
+                                activeSortBy={sortBy}
+                                sortOrder={sortOrder}
+                                onSortChange={handleSortChange}
+                            >
+                                Purpose
+                            </AdminSortableTableHeaderCell>
+                            <AdminSortableTableHeaderCell
+                                className="px-6 py-3"
+                                label="created at"
+                                sortBy="createdAt"
+                                activeSortBy={sortBy}
+                                sortOrder={sortOrder}
+                                onSortChange={handleSortChange}
+                            >
+                                Created At
+                            </AdminSortableTableHeaderCell>
                         </tr>
                     </thead>
                     <tbody>
@@ -152,7 +202,7 @@ export function ImagesGalleryTable({
                         ))}
                         {images.length === 0 && !isLoading && (
                             <tr>
-                                <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
+                                <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
                                     No images found.
                                 </td>
                             </tr>

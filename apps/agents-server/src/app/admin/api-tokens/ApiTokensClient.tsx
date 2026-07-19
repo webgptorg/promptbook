@@ -7,6 +7,8 @@ import { SecretInput } from '../../../components/SecretInput/SecretInput';
 import { showConfirm } from '../../../components/AsyncDialogs/asyncDialogs';
 import { ApiTokenEntry, createApiToken, deleteApiToken, fetchApiTokens } from '../../../utils/apiTokensClient';
 import { formatServerLanguageHumanReadableDate } from '../../../utils/localization/formatServerLanguageHumanReadableDate';
+import { AdminSortableTableHeaderCell } from '../_components/AdminSortableTableHeaderCell';
+import { useAdminTableSorting, type AdminTableSortOrder } from '../_components/adminTableSorting';
 
 /**
  * Props for rendering a single API token in a masked input.
@@ -15,6 +17,11 @@ type TokenSecretFieldProps = {
     token: string;
     onCopy: (text: string) => void;
 };
+
+/**
+ * Sortable API token table columns.
+ */
+type ApiTokenTableSortField = 'token' | 'note' | 'createdAt';
 
 /**
  * Renders one token value using the shared secret field with visibility toggle and copy action.
@@ -40,6 +47,20 @@ function TokenSecretField({ token, onCopy }: TokenSecretFieldProps) {
             }
         />
     );
+}
+
+/**
+ * Resolves the initial direction used when switching API token sort fields.
+ */
+function resolveApiTokenDefaultSortOrder(sortBy: ApiTokenTableSortField): AdminTableSortOrder {
+    return sortBy === 'createdAt' ? 'desc' : 'asc';
+}
+
+/**
+ * Resolves a comparable value for one API token row.
+ */
+function resolveApiTokenSortValue(entry: ApiTokenEntry, sortBy: ApiTokenTableSortField) {
+    return entry[sortBy];
 }
 
 /**
@@ -119,6 +140,14 @@ export function ApiTokensClient() {
         // You could add a toast notification here
     };
 
+    const tokenSorting = useAdminTableSorting<ApiTokenEntry, ApiTokenTableSortField>({
+        rows: tokens,
+        defaultSortBy: 'createdAt',
+        defaultSortOrder: 'desc',
+        resolveDefaultSortOrder: resolveApiTokenDefaultSortOrder,
+        resolveSortValue: resolveApiTokenSortValue,
+    });
+
     if (loading && tokens.length === 0) {
         return <div className="p-8 text-center">Loading tokens...</div>;
     }
@@ -156,15 +185,36 @@ export function ApiTokensClient() {
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                         <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <AdminSortableTableHeaderCell
+                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                label="token"
+                                sortBy="token"
+                                activeSortBy={tokenSorting.sortBy}
+                                sortOrder={tokenSorting.sortOrder}
+                                onSortChange={tokenSorting.handleSortChange}
+                            >
                                 Token
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            </AdminSortableTableHeaderCell>
+                            <AdminSortableTableHeaderCell
+                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                label="note"
+                                sortBy="note"
+                                activeSortBy={tokenSorting.sortBy}
+                                sortOrder={tokenSorting.sortOrder}
+                                onSortChange={tokenSorting.handleSortChange}
+                            >
                                 Note
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            </AdminSortableTableHeaderCell>
+                            <AdminSortableTableHeaderCell
+                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                label="created at"
+                                sortBy="createdAt"
+                                activeSortBy={tokenSorting.sortBy}
+                                sortOrder={tokenSorting.sortOrder}
+                                onSortChange={tokenSorting.handleSortChange}
+                            >
                                 Created At
-                            </th>
+                            </AdminSortableTableHeaderCell>
                             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Actions
                             </th>
@@ -178,7 +228,7 @@ export function ApiTokensClient() {
                                 </td>
                             </tr>
                         ) : (
-                            tokens.map((entry) => (
+                            tokenSorting.sortedRows.map((entry) => (
                                 <tr key={entry.id}>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 font-mono">
                                         <TokenSecretField token={entry.token} onCopy={copyToClipboard} />

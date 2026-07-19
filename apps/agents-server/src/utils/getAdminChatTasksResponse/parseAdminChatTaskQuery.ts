@@ -1,4 +1,4 @@
-import type { AdminChatTaskView } from '../chatTasksAdmin';
+import type { AdminChatTaskSortField, AdminChatTaskSortOrder, AdminChatTaskView } from '../chatTasksAdmin';
 
 /**
  * Default number of task rows returned per page.
@@ -38,6 +38,8 @@ export type ParsedAdminChatTaskQuery = {
     pageSize: number;
     view: AdminChatTaskView;
     search: string;
+    sortBy: AdminChatTaskSortField;
+    sortOrder: AdminChatTaskSortOrder;
     timeWindowHours: number;
 };
 
@@ -60,12 +62,43 @@ export function parseAdminChatTaskQuery(searchParams: URLSearchParams): ParsedAd
         ),
         view,
         search: searchParams.get('search')?.trim() || '',
+        sortBy: parseAdminChatTaskSortField(searchParams.get('sortBy')),
+        sortOrder: parseAdminChatTaskSortOrder(searchParams.get('sortOrder')),
         timeWindowHours: parsePositiveInteger(
             searchParams.get('timeWindowHours'),
             DEFAULT_ADMIN_CHAT_TASK_TIME_WINDOW_HOURS,
             MAX_ADMIN_CHAT_TASK_TIME_WINDOW_HOURS,
         ),
     };
+}
+
+/**
+ * Parses the requested admin task-manager sort field.
+ *
+ * @private function of `getAdminChatTasksResponse`
+ */
+function parseAdminChatTaskSortField(value: string | null): AdminChatTaskSortField {
+    if (
+        value === 'task' ||
+        value === 'ownership' ||
+        value === 'timeline' ||
+        value === 'duration' ||
+        value === 'queue' ||
+        value === 'lastError'
+    ) {
+        return value;
+    }
+
+    return 'default';
+}
+
+/**
+ * Parses the requested admin task-manager sort order.
+ *
+ * @private function of `getAdminChatTasksResponse`
+ */
+function parseAdminChatTaskSortOrder(value: string | null): AdminChatTaskSortOrder {
+    return value === 'asc' ? 'asc' : 'desc';
 }
 
 /**

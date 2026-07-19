@@ -137,9 +137,9 @@ export function ChatHistoryClient({ initialAgentName }: ChatHistoryClientProps) 
                     page={chatHistoryState.page}
                     pageSize={chatHistoryState.pageSize}
                     totalPages={chatHistoryState.totalPages}
+                    sortBy={chatHistoryState.sortBy}
                     sortOrder={chatHistoryState.sortOrder}
                     handleSortChange={chatHistoryState.handleSortChange}
-                    isSortedBy={chatHistoryState.isSortedBy}
                     handleDeleteRow={chatHistoryState.handleDeleteRow}
                     handleCreateMockFromRow={chatHistoryState.handleCreateMockFromRow}
                     isCreatingMock={chatHistoryState.isCreatingMock}

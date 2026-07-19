@@ -1,5 +1,7 @@
 import type { ServerLanguageCode } from '@/src/languages/ServerLanguageRegistry';
+import type { AdminChatTaskSortField } from '@/src/utils/chatTasksAdmin';
 import type { useTaskManagerState } from './useTaskManagerState';
+import { AdminSortableTableHeaderCell } from '../_components/AdminSortableTableHeaderCell';
 import { Card } from '../../../components/Homepage/Card';
 import { TaskManagerTaskRow } from './TaskManagerTaskRow';
 
@@ -12,6 +14,20 @@ type TaskManagerTasksCardProps = {
     isSuperAdmin: boolean;
     language: ServerLanguageCode;
     state: ReturnType<typeof useTaskManagerState>;
+};
+
+/**
+ * User-facing labels for sortable task-manager columns.
+ *
+ * @private function of TaskManagerTasksCard
+ */
+const TASK_MANAGER_SORT_LABELS: Record<Exclude<AdminChatTaskSortField, 'default'>, string> = {
+    task: 'task',
+    ownership: 'ownership',
+    timeline: 'timeline',
+    duration: 'duration',
+    queue: 'queue',
+    lastError: 'last error',
 };
 
 /**
@@ -40,6 +56,21 @@ function resolveEmptyStateMessage(view: ReturnType<typeof useTaskManagerState>['
 }
 
 /**
+ * Resolves the table sort status line.
+ *
+ * @private function of TaskManagerTasksCard
+ */
+function resolveTaskManagerSortDescription(state: ReturnType<typeof useTaskManagerState>): string {
+    if (state.sortBy === 'default') {
+        return 'Running work is ordered by start time; queued work by creation time.';
+    }
+
+    return `Sorted by ${TASK_MANAGER_SORT_LABELS[state.sortBy]} ${
+        state.sortOrder === 'asc' ? 'ascending' : 'descending'
+    }.`;
+}
+
+/**
  * Renders the main task table, loading states, and pagination controls.
  *
  * @private function of TaskManagerClient
@@ -53,9 +84,7 @@ export function TaskManagerTasksCard({ isSuperAdmin, language, state }: TaskMana
             <div className="flex items-center justify-between gap-4">
                 <div>
                     <h2 className="text-lg font-medium text-gray-900">Background tasks ({state.total.toLocaleString()})</h2>
-                    <p className="mt-1 text-sm text-gray-500">
-                        Sorted by started time for running work and creation time for queued work.
-                    </p>
+                    <p className="mt-1 text-sm text-gray-500">{resolveTaskManagerSortDescription(state)}</p>
                 </div>
                 {state.isRefreshing ? <span className="text-xs font-medium text-blue-600">Refreshing…</span> : null}
             </div>
@@ -71,12 +100,66 @@ export function TaskManagerTasksCard({ isSuperAdmin, language, state }: TaskMana
                     <table className="min-w-full divide-y divide-gray-200 text-xs">
                         <thead className="bg-gray-50 text-gray-500">
                             <tr>
-                                <th className="px-4 py-3 text-left font-semibold">Task</th>
-                                <th className="px-4 py-3 text-left font-semibold">Ownership</th>
-                                <th className="px-4 py-3 text-left font-semibold">Timeline</th>
-                                <th className="px-4 py-3 text-left font-semibold">Duration</th>
-                                <th className="px-4 py-3 text-left font-semibold">Queue</th>
-                                <th className="px-4 py-3 text-left font-semibold">Last error</th>
+                                <AdminSortableTableHeaderCell
+                                    className="px-4 py-3 text-left font-semibold"
+                                    label="task"
+                                    sortBy="task"
+                                    activeSortBy={state.sortBy}
+                                    sortOrder={state.sortOrder}
+                                    onSortChange={state.handleSortChange}
+                                >
+                                    Task
+                                </AdminSortableTableHeaderCell>
+                                <AdminSortableTableHeaderCell
+                                    className="px-4 py-3 text-left font-semibold"
+                                    label="ownership"
+                                    sortBy="ownership"
+                                    activeSortBy={state.sortBy}
+                                    sortOrder={state.sortOrder}
+                                    onSortChange={state.handleSortChange}
+                                >
+                                    Ownership
+                                </AdminSortableTableHeaderCell>
+                                <AdminSortableTableHeaderCell
+                                    className="px-4 py-3 text-left font-semibold"
+                                    label="timeline"
+                                    sortBy="timeline"
+                                    activeSortBy={state.sortBy}
+                                    sortOrder={state.sortOrder}
+                                    onSortChange={state.handleSortChange}
+                                >
+                                    Timeline
+                                </AdminSortableTableHeaderCell>
+                                <AdminSortableTableHeaderCell
+                                    className="px-4 py-3 text-left font-semibold"
+                                    label="duration"
+                                    sortBy="duration"
+                                    activeSortBy={state.sortBy}
+                                    sortOrder={state.sortOrder}
+                                    onSortChange={state.handleSortChange}
+                                >
+                                    Duration
+                                </AdminSortableTableHeaderCell>
+                                <AdminSortableTableHeaderCell
+                                    className="px-4 py-3 text-left font-semibold"
+                                    label="queue"
+                                    sortBy="queue"
+                                    activeSortBy={state.sortBy}
+                                    sortOrder={state.sortOrder}
+                                    onSortChange={state.handleSortChange}
+                                >
+                                    Queue
+                                </AdminSortableTableHeaderCell>
+                                <AdminSortableTableHeaderCell
+                                    className="px-4 py-3 text-left font-semibold"
+                                    label="last error"
+                                    sortBy="lastError"
+                                    activeSortBy={state.sortBy}
+                                    sortOrder={state.sortOrder}
+                                    onSortChange={state.handleSortChange}
+                                >
+                                    Last error
+                                </AdminSortableTableHeaderCell>
                                 <th className="px-4 py-3 text-right font-semibold">Actions</th>
                             </tr>
                         </thead>

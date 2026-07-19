@@ -78,9 +78,9 @@ export function ChatFeedbackClient({ initialAgentName }: ChatFeedbackClientProps
                 page={chatFeedbackState.page}
                 pageSize={chatFeedbackState.pageSize}
                 totalPages={chatFeedbackState.totalPages}
+                sortBy={chatFeedbackState.sortBy}
                 sortOrder={chatFeedbackState.sortOrder}
                 handleSortChange={chatFeedbackState.handleSortChange}
-                isSortedBy={chatFeedbackState.isSortedBy}
                 handleViewChat={chatFeedbackState.handleViewChat}
                 handleDeleteRow={chatFeedbackState.handleDeleteRow}
                 goToPreviousPage={chatFeedbackState.goToPreviousPage}

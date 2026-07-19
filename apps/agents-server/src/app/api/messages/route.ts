@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { $getTableName } from '../../../database/$getTableName';
 import { $provideSupabase } from '../../../database/$provideSupabase';
 import { isUserAdmin } from '../../../utils/isUserAdmin';
+import type { MessageSortField, MessageSortOrder } from '../../../utils/messagesAdmin';
 
 /**
  * Size of default page.
@@ -23,6 +24,24 @@ function parsePositiveInt(value: string | null, fallback: number): number {
 }
 
 /**
+ * Parses message table sort field.
+ */
+function parseMessageSortField(value: string | null): MessageSortField {
+    if (value === 'channel' || value === 'direction' || value === 'content') {
+        return value;
+    }
+
+    return 'createdAt';
+}
+
+/**
+ * Parses message table sort order.
+ */
+function parseMessageSortOrder(value: string | null): MessageSortOrder {
+    return value === 'asc' ? 'asc' : 'desc';
+}
+
+/**
  * List messages with filters, search and pagination.
  */
 export async function GET(request: NextRequest) {
@@ -38,6 +57,8 @@ export async function GET(request: NextRequest) {
         const search = searchParams.get('search')?.trim() || '';
         const channel = searchParams.get('channel');
         const direction = searchParams.get('direction');
+        const sortBy = parseMessageSortField(searchParams.get('sortBy'));
+        const sortOrder = parseMessageSortOrder(searchParams.get('sortOrder'));
 
         const supabase = $provideSupabase();
 
@@ -61,8 +82,7 @@ export async function GET(request: NextRequest) {
             query = query.ilike('content', `%${escaped}%`);
         }
 
-        // Default sort by createdAt desc
-        query = query.order('createdAt', { ascending: false });
+        query = query.order(sortBy, { ascending: sortOrder === 'asc' });
 
         const from = (page - 1) * pageSize;
         const to = from + pageSize - 1;
@@ -103,6 +123,8 @@ export async function GET(request: NextRequest) {
             total: count ?? 0,
             page,
             pageSize,
+            sortBy,
+            sortOrder,
         });
     } catch (error) {
         console.error('List messages error:', error);

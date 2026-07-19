@@ -30,6 +30,20 @@ export type MessageSendAttemptRow = {
 };
 
 /**
+ * Message list sort fields supported by the admin API.
+ *
+ * @private internal admin utility of Agents Server
+ */
+export type MessageSortField = 'createdAt' | 'channel' | 'direction' | 'content';
+
+/**
+ * Message list sort direction supported by the admin API.
+ *
+ * @private internal admin utility of Agents Server
+ */
+export type MessageSortOrder = 'asc' | 'desc';
+
+/**
  * Response for messages list.
  */
 export type MessagesListResponse = {
@@ -37,6 +51,8 @@ export type MessagesListResponse = {
     total: number;
     page: number;
     pageSize: number;
+    sortBy: MessageSortField;
+    sortOrder: MessageSortOrder;
 };
 
 /**
@@ -48,6 +64,8 @@ export type MessagesListParams = {
     search?: string;
     channel?: string;
     direction?: string;
+    sortBy?: MessageSortField;
+    sortOrder?: MessageSortOrder;
 };
 
 /**
@@ -61,6 +79,8 @@ function buildQuery(params: MessagesListParams): string {
     if (params.search) searchParams.set('search', params.search);
     if (params.channel) searchParams.set('channel', params.channel);
     if (params.direction) searchParams.set('direction', params.direction);
+    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
+    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
 
     const qs = searchParams.toString();
     return qs ? `?${qs}` : '';

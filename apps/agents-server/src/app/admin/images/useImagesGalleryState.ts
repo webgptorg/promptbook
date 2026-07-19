@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
-import { listImages, type ImageWithAgent } from './actions';
+import { resolveNextAdminTableSortState } from '../_components/adminTableSorting';
+import { listImages, type ImagesGallerySortField, type ImagesGallerySortOrder, type ImageWithAgent } from './actions';
 
 /**
  * Page size used by the images gallery views.
@@ -29,10 +30,13 @@ export type UseImagesGalleryState = {
     limit: number;
     hasMore: boolean;
     viewMode: ImagesGalleryViewMode;
+    sortBy: ImagesGallerySortField;
+    sortOrder: ImagesGallerySortOrder;
     copiedId: number | null;
     observerTarget: RefObject<HTMLDivElement | null>;
     handleViewModeChange: (nextViewMode: ImagesGalleryViewMode) => void;
     handlePageChange: (newPage: number) => void;
+    handleSortChange: (sortBy: ImagesGallerySortField) => void;
     handlePromptCopy: (prompt: string, imageId: number) => Promise<void>;
 };
 
@@ -62,6 +66,13 @@ function shouldLoadMoreImages(
 }
 
 /**
+ * Resolves the initial direction used when switching images gallery sort fields.
+ */
+function resolveImagesGalleryDefaultSortOrder(sortBy: ImagesGallerySortField): ImagesGallerySortOrder {
+    return sortBy === 'createdAt' ? 'desc' : 'asc';
+}
+
+/**
  * Handles images gallery loading and view-state orchestration.
  *
  * @private function of <ImagesGalleryClient/>
@@ -73,6 +84,8 @@ export function useImagesGalleryState(): UseImagesGalleryState {
     const [isLoading, setIsLoading] = useState(false);
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
+    const [sortBy, setSortBy] = useState<ImagesGallerySortField>('createdAt');
+    const [sortOrder, setSortOrder] = useState<ImagesGallerySortOrder>('desc');
     const [copiedId, setCopiedId] = useState<number | null>(null);
     const observerTarget = useRef<HTMLDivElement>(null);
 
@@ -86,21 +99,29 @@ export function useImagesGalleryState(): UseImagesGalleryState {
         }
     }, []);
 
-    const loadImagesPage = useCallback(async (pageNumber: number, loadMode: ImagesGalleryLoadMode) => {
-        setIsLoading(true);
+    const loadImagesPage = useCallback(
+        async (pageNumber: number, loadMode: ImagesGalleryLoadMode) => {
+            setIsLoading(true);
 
-        try {
-            const result = await listImages({ page: pageNumber, limit: IMAGES_GALLERY_PAGE_SIZE });
+            try {
+                const result = await listImages({
+                    page: pageNumber,
+                    limit: IMAGES_GALLERY_PAGE_SIZE,
+                    sortBy,
+                    sortOrder,
+                });
 
-            setImages((previousImages) => resolveImagesGalleryItems(previousImages, result.images, loadMode));
-            setTotal(result.total);
-            setHasMore(result.images.length === IMAGES_GALLERY_PAGE_SIZE);
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setIsLoading(false);
-        }
-    }, []);
+                setImages((previousImages) => resolveImagesGalleryItems(previousImages, result.images, loadMode));
+                setTotal(result.total);
+                setHasMore(result.images.length === IMAGES_GALLERY_PAGE_SIZE);
+            } catch (error) {
+                console.error(error);
+            } finally {
+                setIsLoading(false);
+            }
+        },
+        [sortBy, sortOrder],
+    );
 
     useEffect(() => {
         void loadImagesPage(1, 'replace');
@@ -129,6 +150,23 @@ export function useImagesGalleryState(): UseImagesGalleryState {
     const handleViewModeChange = useCallback((nextViewMode: ImagesGalleryViewMode) => {
         setViewMode(nextViewMode);
     }, []);
+
+    const handleSortChange = useCallback(
+        (nextSortBy: ImagesGallerySortField): void => {
+            const nextSortState = resolveNextAdminTableSortState({
+                currentSortBy: sortBy,
+                currentSortOrder: sortOrder,
+                nextSortBy,
+                resolveDefaultSortOrder: resolveImagesGalleryDefaultSortOrder,
+            });
+
+            setSortBy(nextSortState.sortBy);
+            setSortOrder(nextSortState.sortOrder);
+            setPage(1);
+            setHasMore(true);
+        },
+        [sortBy, sortOrder],
+    );
 
     useEffect(() => {
         const target = observerTarget.current;
@@ -160,10 +198,13 @@ export function useImagesGalleryState(): UseImagesGalleryState {
         limit: IMAGES_GALLERY_PAGE_SIZE,
         hasMore,
         viewMode,
+        sortBy,
+        sortOrder,
         copiedId,
         observerTarget,
         handleViewModeChange,
         handlePageChange,
+        handleSortChange,
         handlePromptCopy,
     };
 }

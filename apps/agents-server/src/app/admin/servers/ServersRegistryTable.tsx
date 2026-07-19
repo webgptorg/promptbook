@@ -5,6 +5,8 @@ import { ArrowRightLeft, ExternalLink, Loader2, RefreshCcw, Save } from 'lucide-
 import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
 import type { ServerLanguageCode } from '../../../languages/ServerLanguageRegistry';
 import { formatServerLanguageHumanReadableDate } from '../../../utils/localization/formatServerLanguageHumanReadableDate';
+import { AdminSortableTableHeaderCell } from '../_components/AdminSortableTableHeaderCell';
+import { useAdminTableSorting } from '../_components/adminTableSorting';
 import {
     MANAGED_SERVER_ENVIRONMENT_OPTIONS,
     type ManagedServerEnvironment,
@@ -36,6 +38,27 @@ const SECONDARY_BUTTON_CLASS_NAME =
  */
 const PRIMARY_BUTTON_CLASS_NAME =
     'inline-flex items-center gap-2 rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60';
+
+/**
+ * Sortable registered-server table columns.
+ *
+ * @private function of <ServersClient/>
+ */
+type ServersRegistryTableSortField = 'name' | 'environment' | 'domain' | 'tablePrefix' | 'createdAt' | 'updatedAt';
+
+/**
+ * Sortable project subdomain columns.
+ *
+ * @private function of <ProjectSubdomainsPanel/>
+ */
+type ProjectSubdomainsTableSortField = 'projectName' | 'domain' | 'agentPermanentId';
+
+/**
+ * One project subdomain row rendered below a managed server.
+ *
+ * @private type of <ProjectSubdomainsPanel/>
+ */
+type ProjectSubdomainRow = NonNullable<ManagedServerRow['projectSubdomains']>[number];
 
 /**
  * Props consumed by `ServersRegistryTable`.
@@ -144,6 +167,30 @@ type ServersRegistryTableRowProps = {
  */
 function formatDateTime(value: string, language: ServerLanguageCode): string {
     return formatServerLanguageHumanReadableDate(value, language);
+}
+
+/**
+ * Resolves a comparable value for one registered-server row.
+ *
+ * @private function of <ServersClient/>
+ */
+function resolveServerRegistrySortValue(
+    server: ManagedServerRow,
+    sortBy: ServersRegistryTableSortField,
+): string | number | boolean | Date | null | undefined {
+    return server[sortBy];
+}
+
+/**
+ * Resolves a comparable value for one project subdomain row.
+ *
+ * @private function of <ProjectSubdomainsPanel/>
+ */
+function resolveProjectSubdomainSortValue(
+    projectSubdomain: ProjectSubdomainRow,
+    sortBy: ProjectSubdomainsTableSortField,
+): string {
+    return projectSubdomain[sortBy];
 }
 
 /**
@@ -421,6 +468,12 @@ function ProjectSubdomainsPanel({
 }: {
     readonly projectSubdomains: NonNullable<ManagedServerRow['projectSubdomains']>;
 }) {
+    const projectSubdomainSorting = useAdminTableSorting<ProjectSubdomainRow, ProjectSubdomainsTableSortField>({
+        rows: projectSubdomains,
+        defaultSortBy: 'projectName',
+        resolveSortValue: resolveProjectSubdomainSortValue,
+    });
+
     return (
         <div className="space-y-3 rounded-lg border border-sky-200 bg-sky-50 px-4 py-4 text-sm text-sky-950">
             <p className="font-semibold">Project subdomains</p>
@@ -428,13 +481,40 @@ function ProjectSubdomainsPanel({
                 <table className="min-w-full divide-y divide-sky-100 text-xs">
                     <thead className="bg-sky-50 text-sky-900">
                         <tr>
-                            <th className="px-3 py-2 text-left font-semibold">Project</th>
-                            <th className="px-3 py-2 text-left font-semibold">Subdomain</th>
-                            <th className="px-3 py-2 text-left font-semibold">Agent</th>
+                            <AdminSortableTableHeaderCell
+                                className="px-3 py-2 text-left font-semibold"
+                                label="project"
+                                sortBy="projectName"
+                                activeSortBy={projectSubdomainSorting.sortBy}
+                                sortOrder={projectSubdomainSorting.sortOrder}
+                                onSortChange={projectSubdomainSorting.handleSortChange}
+                            >
+                                Project
+                            </AdminSortableTableHeaderCell>
+                            <AdminSortableTableHeaderCell
+                                className="px-3 py-2 text-left font-semibold"
+                                label="subdomain"
+                                sortBy="domain"
+                                activeSortBy={projectSubdomainSorting.sortBy}
+                                sortOrder={projectSubdomainSorting.sortOrder}
+                                onSortChange={projectSubdomainSorting.handleSortChange}
+                            >
+                                Subdomain
+                            </AdminSortableTableHeaderCell>
+                            <AdminSortableTableHeaderCell
+                                className="px-3 py-2 text-left font-semibold"
+                                label="agent"
+                                sortBy="agentPermanentId"
+                                activeSortBy={projectSubdomainSorting.sortBy}
+                                sortOrder={projectSubdomainSorting.sortOrder}
+                                onSortChange={projectSubdomainSorting.handleSortChange}
+                            >
+                                Agent
+                            </AdminSortableTableHeaderCell>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-sky-100">
-                        {projectSubdomains.map((projectSubdomain) => (
+                        {projectSubdomainSorting.sortedRows.map((projectSubdomain) => (
                             <tr key={`${projectSubdomain.agentPermanentId}-${projectSubdomain.projectName}`}>
                                 <td className="px-3 py-2">
                                     <a
@@ -493,6 +573,11 @@ export function ServersRegistryTable(props: ServersRegistryTableProps) {
         serverDrafts,
         servers,
     } = props;
+    const serverSorting = useAdminTableSorting<ManagedServerRow, ServersRegistryTableSortField>({
+        rows: servers,
+        defaultSortBy: 'name',
+        resolveSortValue: resolveServerRegistrySortValue,
+    });
 
     return (
         <>
@@ -533,22 +618,76 @@ export function ServersRegistryTable(props: ServersRegistryTableProps) {
                         )}
                         <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
                             <tr>
-                                <th className="px-4 py-3 text-left font-semibold">Name</th>
+                                <AdminSortableTableHeaderCell
+                                    className="px-4 py-3 text-left font-semibold"
+                                    label="name"
+                                    sortBy="name"
+                                    activeSortBy={serverSorting.sortBy}
+                                    sortOrder={serverSorting.sortOrder}
+                                    onSortChange={serverSorting.handleSortChange}
+                                >
+                                    Name
+                                </AdminSortableTableHeaderCell>
                                 {!isStandaloneVps ? (
-                                    <th className="px-4 py-3 text-left font-semibold">Environment</th>
+                                    <AdminSortableTableHeaderCell
+                                        className="px-4 py-3 text-left font-semibold"
+                                        label="environment"
+                                        sortBy="environment"
+                                        activeSortBy={serverSorting.sortBy}
+                                        sortOrder={serverSorting.sortOrder}
+                                        onSortChange={serverSorting.handleSortChange}
+                                    >
+                                        Environment
+                                    </AdminSortableTableHeaderCell>
                                 ) : null}
-                                <th className="px-4 py-3 text-left font-semibold">Domain</th>
+                                <AdminSortableTableHeaderCell
+                                    className="px-4 py-3 text-left font-semibold"
+                                    label="domain"
+                                    sortBy="domain"
+                                    activeSortBy={serverSorting.sortBy}
+                                    sortOrder={serverSorting.sortOrder}
+                                    onSortChange={serverSorting.handleSortChange}
+                                >
+                                    Domain
+                                </AdminSortableTableHeaderCell>
                                 {!isStandaloneVps ? (
-                                    <th className="px-4 py-3 text-left font-semibold">Table prefix</th>
+                                    <AdminSortableTableHeaderCell
+                                        className="px-4 py-3 text-left font-semibold"
+                                        label="table prefix"
+                                        sortBy="tablePrefix"
+                                        activeSortBy={serverSorting.sortBy}
+                                        sortOrder={serverSorting.sortOrder}
+                                        onSortChange={serverSorting.handleSortChange}
+                                    >
+                                        Table prefix
+                                    </AdminSortableTableHeaderCell>
                                 ) : null}
                                 <th className="px-4 py-3 text-left font-semibold">Status</th>
-                                <th className="px-4 py-3 text-left font-semibold">Created</th>
-                                <th className="px-4 py-3 text-left font-semibold">Updated</th>
+                                <AdminSortableTableHeaderCell
+                                    className="px-4 py-3 text-left font-semibold"
+                                    label="created"
+                                    sortBy="createdAt"
+                                    activeSortBy={serverSorting.sortBy}
+                                    sortOrder={serverSorting.sortOrder}
+                                    onSortChange={serverSorting.handleSortChange}
+                                >
+                                    Created
+                                </AdminSortableTableHeaderCell>
+                                <AdminSortableTableHeaderCell
+                                    className="px-4 py-3 text-left font-semibold"
+                                    label="updated"
+                                    sortBy="updatedAt"
+                                    activeSortBy={serverSorting.sortBy}
+                                    sortOrder={serverSorting.sortOrder}
+                                    onSortChange={serverSorting.handleSortChange}
+                                >
+                                    Updated
+                                </AdminSortableTableHeaderCell>
                                 <th className="px-4 py-3 text-right font-semibold">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200 bg-white">
-                            {servers.map((server) => (
+                            {serverSorting.sortedRows.map((server) => (
                                 <Fragment key={server.id}>
                                     <ServersRegistryTableRow
                                         currentServerId={currentServerId}

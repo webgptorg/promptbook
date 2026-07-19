@@ -2,6 +2,7 @@ import type { ChatMessage, string_date_iso8601 } from '@promptbook-local/types';
 import { useCallback, useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from 'react';
 import { showConfirm } from '../../../components/AsyncDialogs/asyncDialogs';
 import { notifyError, notifySuccess } from '../../../components/Notifications/notifications';
+import { resolveNextAdminTableSortState } from '../_components/adminTableSorting';
 import {
     $clearAgentChatHistory,
     $deleteChatHistoryRow,
@@ -88,6 +89,7 @@ export type UseChatHistoryState = {
     totalPages: number;
     agentName: string;
     searchInput: string;
+    sortBy: ChatHistorySortField;
     sortOrder: ChatHistorySortOrder;
     viewMode: ChatHistoryViewMode;
     loading: boolean;
@@ -106,7 +108,6 @@ export type UseChatHistoryState = {
     handleCreateMockFromRow: (row: ChatHistoryRow) => Promise<void>;
     handleCreateMockFromChatView: () => Promise<void>;
     isCreatingMock: boolean;
-    isSortedBy: (field: ChatHistorySortField) => boolean;
     goToPreviousPage: () => void;
     goToNextPage: () => void;
 };
@@ -424,13 +425,16 @@ export function useChatHistoryState({ initialAgentName, formatText }: UseChatHis
 
     const handleSortChange = useCallback(
         (field: ChatHistorySortField) => {
-            if (sortBy === field) {
-                setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-                return;
-            }
+            const nextSortState = resolveNextAdminTableSortState({
+                currentSortBy: sortBy,
+                currentSortOrder: sortOrder,
+                nextSortBy: field,
+                resolveDefaultSortOrder: (nextSortBy) => (nextSortBy === 'createdAt' ? 'desc' : 'asc'),
+            });
 
-            setSortBy(field);
-            setSortOrder(field === 'createdAt' ? 'desc' : 'asc');
+            setSortBy(nextSortState.sortBy);
+            setSortOrder(nextSortState.sortOrder);
+            setPage(1);
         },
         [sortBy, sortOrder],
     );
@@ -551,8 +555,6 @@ export function useChatHistoryState({ initialAgentName, formatText }: UseChatHis
         );
     }, [createMockAndNavigate, items]);
 
-    const isSortedBy = useCallback((field: ChatHistorySortField) => sortBy === field, [sortBy]);
-
     const goToPreviousPage = useCallback(() => {
         setPage((previousPage) => Math.max(1, previousPage - 1));
     }, []);
@@ -570,6 +572,7 @@ export function useChatHistoryState({ initialAgentName, formatText }: UseChatHis
         totalPages,
         agentName,
         searchInput,
+        sortBy,
         sortOrder,
         viewMode,
         loading,
@@ -588,7 +591,6 @@ export function useChatHistoryState({ initialAgentName, formatText }: UseChatHis
         handleCreateMockFromRow,
         handleCreateMockFromChatView,
         isCreatingMock,
-        isSortedBy,
         goToPreviousPage,
         goToNextPage,
     };

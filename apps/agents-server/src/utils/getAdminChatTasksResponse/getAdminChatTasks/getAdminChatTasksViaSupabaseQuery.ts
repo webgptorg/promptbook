@@ -17,7 +17,7 @@ export async function getAdminChatTasksViaSupabaseQuery(
     const allTasks = mapAdminChatTaskFallbackRows(await loadAdminChatTaskFallbackData());
     const nowTimestamp = Date.now();
     const filteredTasks = filterAdminChatTasks(allTasks, query, nowTimestamp).sort((leftTask, rightTask) =>
-        compareAdminChatTasks(leftTask, rightTask, query.view),
+        compareAdminChatTasks(leftTask, rightTask, query),
     );
     const pageOffset = (query.page - 1) * query.pageSize;
 

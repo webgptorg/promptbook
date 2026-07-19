@@ -1,4 +1,4 @@
-import type { AdminChatTaskView } from '../../chatTasksAdmin';
+import type { AdminChatTaskSortField, AdminChatTaskSortOrder, AdminChatTaskView } from '../../chatTasksAdmin';
 import type { ParsedAdminChatTaskQuery } from '../parseAdminChatTaskQuery';
 
 /**
@@ -35,6 +35,7 @@ export function createAdminChatTaskBaseQuery(options: {
             job."agentPermanentId" AS "agentPermanentId",
             agent."agentName" AS "agentName",
             job."chatId" AS "chatId",
+            'user-chat-jobs'::text AS "queueName",
             job."parameters" AS "parameters"
         FROM ${options.userChatJobTable} job
         LEFT JOIN ${options.userTable} "user" ON "user"."id" = job."userId"
@@ -64,6 +65,7 @@ export function createAdminChatTaskBaseQuery(options: {
             timeout."agentPermanentId" AS "agentPermanentId",
             agent."agentName" AS "agentName",
             timeout."chatId" AS "chatId",
+            'user-chat-timeouts'::text AS "queueName",
             NULL::JSONB AS "parameters"
         FROM ${options.userChatTimeoutTable} timeout
         LEFT JOIN ${options.userTable} "user" ON "user"."id" = timeout."userId"
@@ -92,7 +94,7 @@ export function createAdminChatTaskListQuery(options: { baseTaskQuery: string; q
                 COUNT(*) OVER() AS "totalCount"
             FROM tasks task
             ${listQueryParts.whereClause}
-            ORDER BY ${createAdminChatTaskOrderBySql(options.query.view, 'task')}
+            ORDER BY ${createAdminChatTaskOrderBySql(options.query, 'task')}
             LIMIT $${listQueryParts.limitPlaceholder}
             OFFSET $${listQueryParts.offsetPlaceholder}
         `,
@@ -233,7 +235,22 @@ function appendAdminChatTaskSearchClause(
  *
  * @private function of `getAdminChatTasks`
  */
-function createAdminChatTaskOrderBySql(view: AdminChatTaskView, alias: string): string {
+function createAdminChatTaskOrderBySql(query: ParsedAdminChatTaskQuery, alias: string): string {
+    const defaultOrderBySql = createAdminChatTaskDefaultOrderBySql(query.view, alias);
+
+    if (query.sortBy === 'default') {
+        return defaultOrderBySql;
+    }
+
+    return `${createAdminChatTaskCustomOrderBySql(query.sortBy, query.sortOrder, alias)}, ${defaultOrderBySql}`;
+}
+
+/**
+ * Resolves the stable default sort order used by each dashboard view.
+ *
+ * @private function of `getAdminChatTasks`
+ */
+function createAdminChatTaskDefaultOrderBySql(view: AdminChatTaskView, alias: string): string {
     switch (view) {
         case 'running':
             return `${alias}."startedAt" DESC NULLS LAST, ${alias}."createdAt" DESC, ${alias}."id" DESC`;
@@ -263,4 +280,65 @@ function createAdminChatTaskOrderBySql(view: AdminChatTaskView, alias: string): 
                 ${alias}."id" DESC
             `;
     }
+}
+
+/**
+ * Resolves SQL order expressions for a sortable task-manager column.
+ *
+ * @private function of `getAdminChatTasks`
+ */
+function createAdminChatTaskCustomOrderBySql(
+    sortBy: Exclude<AdminChatTaskSortField, 'default'>,
+    sortOrder: AdminChatTaskSortOrder,
+    alias: string,
+): string {
+    const direction = sortOrder.toUpperCase();
+
+    switch (sortBy) {
+        case 'task':
+            return `${alias}."id" ${direction} NULLS LAST`;
+        case 'ownership':
+            return [
+                `NULLIF(LOWER(COALESCE(${alias}."username", '')), '') ${direction} NULLS LAST`,
+                `${alias}."userId" ${direction} NULLS LAST`,
+                `NULLIF(LOWER(COALESCE(${alias}."agentName", '')), '') ${direction} NULLS LAST`,
+                `${alias}."agentPermanentId" ${direction} NULLS LAST`,
+                `${alias}."chatId" ${direction} NULLS LAST`,
+            ].join(', ');
+        case 'timeline':
+            return `${createAdminChatTaskTimelineExpressionSql(alias)} ${direction} NULLS LAST`;
+        case 'duration':
+            return `${createAdminChatTaskDurationExpressionSql(alias)} ${direction} NULLS LAST`;
+        case 'queue':
+            return [
+                `NULLIF(LOWER(COALESCE(${alias}."queueName", '')), '') ${direction} NULLS LAST`,
+                `${alias}."leaseExpiresAt" ${direction} NULLS LAST`,
+            ].join(', ');
+        case 'lastError':
+            return `NULLIF(LOWER(COALESCE(${alias}."lastErrorSummary", '')), '') ${direction} NULLS LAST`;
+    }
+}
+
+/**
+ * Builds the SQL timestamp expression used by the task timeline column.
+ *
+ * @private function of `getAdminChatTasks`
+ */
+function createAdminChatTaskTimelineExpressionSql(alias: string): string {
+    return `
+        CASE
+            WHEN ${alias}."status" = 'RUNNING' THEN COALESCE(${alias}."startedAt", ${alias}."createdAt")
+            WHEN ${alias}."status" = 'QUEUED' THEN ${alias}."createdAt"
+            ELSE COALESCE(${alias}."finishedAt", ${alias}."updatedAt", ${alias}."createdAt")
+        END
+    `;
+}
+
+/**
+ * Builds the SQL duration expression used by the task duration column.
+ *
+ * @private function of `getAdminChatTasks`
+ */
+function createAdminChatTaskDurationExpressionSql(alias: string): string {
+    return `EXTRACT(EPOCH FROM (COALESCE(${alias}."finishedAt", ${alias}."updatedAt", CURRENT_TIMESTAMP) - ${alias}."createdAt"))`;
 }

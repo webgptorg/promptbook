@@ -1,29 +1,17 @@
 import {
     Cpu,
-    ExternalLink,
     FolderKanban,
     HardDrive,
     MemoryStick,
     Network,
     PlugZap,
     RefreshCcw,
-    Square,
     TriangleAlert,
     type LucideIcon,
 } from 'lucide-react';
 import Link from 'next/link';
 
-import { AgentProjectReferencesList } from '../../../components/AgentProjects/AgentProjectReferencesList';
-import { AgentProjectRuntimeStatusBadge } from '../../../components/AgentProjects/AgentProjectRuntimeStatusBadge';
 import { ForbiddenPage } from '../../../components/ForbiddenPage/ForbiddenPage';
-import {
-    formatAgentProjectRuntimeMode,
-    formatAgentProjectRuntimeStatus,
-} from '../../../utils/agentProjects/agentProjectRuntimeDisplay';
-import {
-    ADMIN_AGENT_PROJECTS_DASHBOARD_HREF,
-    buildAgentProjectsDashboardHref,
-} from '../../../utils/agentProjects/agentProjectHrefs';
 import { isUserGlobalAdmin } from '../../../utils/isUserGlobalAdmin';
 import {
     formatResourceBytes,
@@ -36,7 +24,12 @@ import type {
     ServerResourceMonitorSnapshot,
     ServerResourceWarningIssue,
 } from '../../../utils/resourceMonitor/resourceMonitorTypes';
-import { $terminateAgentProjectRuntimeFromResourceMonitorAction } from './actions';
+import {
+    AgentProjectRuntimesTable,
+    AgentProjectsUsageTable,
+    NetworkUsageTable,
+} from './ResourceMonitorSortableTables';
+import { formatResourceMonitorMeasuredAt } from './resourceMonitorDisplay';
 
 /**
  * Forces fresh resource readings for every request.
@@ -55,11 +48,6 @@ type DetailListItem = {
     readonly label: string;
     readonly value: string;
 };
-
-/**
- * Upper bound of per-agent project rows shown directly in the resource monitor.
- */
-const MAX_LISTED_PROJECT_AGENTS = 25;
 
 /**
  * Card tone class names.
@@ -126,7 +114,7 @@ function ResourceMonitorHeader({ measuredAt }: { readonly measuredAt: string }) 
             </div>
             <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
                 <span className="rounded-md border border-gray-200 bg-white px-3 py-1.5">
-                    Measured: <span className="font-mono text-gray-700">{formatMeasuredAt(measuredAt)}</span>
+                    Measured: <span className="font-mono text-gray-700">{formatResourceMonitorMeasuredAt(measuredAt)}</span>
                 </span>
                 <Link
                     href="/admin/resource-monitor"
@@ -323,183 +311,6 @@ function ResourceDetailGrid({ snapshot }: { readonly snapshot: ServerResourceMon
 }
 
 /**
- * Renders per-agent project storage usage.
- *
- * @param props - Projects props.
- * @returns Projects table or fallback.
- */
-function AgentProjectsUsageTable({ snapshot }: { readonly snapshot: ServerResourceMonitorSnapshot }) {
-    if (snapshot.projects.errorMessage) {
-        return (
-            <div className="rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600">
-                {snapshot.projects.errorMessage}
-            </div>
-        );
-    }
-
-    if (snapshot.projects.agents.length === 0) {
-        return (
-            <div className="rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600">
-                No agent has created a project yet. Projects live under{' '}
-                <span className="font-mono">{snapshot.projects.rootPath}</span>.
-            </div>
-        );
-    }
-
-    const listedAgents = snapshot.projects.agents.slice(0, MAX_LISTED_PROJECT_AGENTS);
-    const omittedAgentCount = snapshot.projects.agents.length - listedAgents.length;
-
-    return (
-        <div className="space-y-3">
-            <div className="overflow-x-auto">
-                <table className="min-w-full text-left text-sm">
-                    <thead>
-                        <tr className="border-b border-gray-200 text-xs uppercase tracking-wide text-gray-400">
-                            <th className="py-2 pr-4 font-semibold">Agent</th>
-                            <th className="py-2 pr-4 font-semibold">Projects</th>
-                            <th className="py-2 pr-4 font-semibold">Total size</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {listedAgents.map((agentUsage) => (
-                            <tr key={agentUsage.agentPermanentId} className="border-b border-gray-100 last:border-0">
-                                <td className="py-2 pr-4">
-                                    <Link
-                                        href={buildAgentProjectsDashboardHref(agentUsage.agentPermanentId)}
-                                        className="text-gray-900 hover:text-blue-700 hover:underline"
-                                    >
-                                        {agentUsage.agentName || agentUsage.agentPermanentId}
-                                    </Link>
-                                </td>
-                                <td className="py-2 pr-4 text-gray-700">
-                                    <AgentProjectReferencesList
-                                        agentPermanentId={agentUsage.agentPermanentId}
-                                        projects={agentUsage.projects}
-                                        className="min-w-64 max-w-xl flex-col"
-                                        itemClassName="w-full"
-                                    />
-                                </td>
-                                <td className="py-2 pr-4 text-gray-700">{formatResourceBytes(agentUsage.sizeBytes)}</td>
-                            </tr>
-                        ))}
-                    </tbody>
-                    <tfoot>
-                        <tr className="border-t border-gray-200 text-gray-900">
-                            <td className="py-2 pr-4 font-semibold">All agents</td>
-                            <td className="py-2 pr-4 font-semibold">{snapshot.projects.totalProjectCount}</td>
-                            <td className="py-2 pr-4 font-semibold">
-                                {formatResourceBytes(snapshot.projects.totalSizeBytes)}
-                            </td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
-            <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-gray-500">
-                <span>
-                    {omittedAgentCount > 0 ? `…and ${omittedAgentCount} more agents. ` : ''}
-                    Root: <span className="font-mono">{snapshot.projects.rootPath}</span>
-                </span>
-                <Link
-                    href={ADMIN_AGENT_PROJECTS_DASHBOARD_HREF}
-                    className="font-semibold text-blue-700 hover:text-blue-900 hover:underline"
-                >
-                    Open projects dashboard
-                </Link>
-            </div>
-        </div>
-    );
-}
-
-/**
- * Renders assigned project runtime ports.
- *
- * @param props - Project runtime props.
- * @returns Runtime table or fallback.
- */
-function AgentProjectRuntimesTable({ snapshot }: { readonly snapshot: ServerResourceMonitorSnapshot }) {
-    if (snapshot.projectRuntimes.errorMessage) {
-        return (
-            <div className="rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600">
-                {snapshot.projectRuntimes.errorMessage}
-            </div>
-        );
-    }
-
-    if (snapshot.projectRuntimes.runtimes.length === 0) {
-        return (
-            <div className="rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600">
-                No project runtime port is assigned.
-            </div>
-        );
-    }
-
-    return (
-        <div className="overflow-x-auto">
-            <table className="min-w-full text-left text-sm">
-                <thead>
-                    <tr className="border-b border-gray-200 text-xs uppercase tracking-wide text-gray-400">
-                        <th className="py-2 pr-4 font-semibold">Project</th>
-                        <th className="py-2 pr-4 font-semibold">Port</th>
-                        <th className="py-2 pr-4 font-semibold">Mode</th>
-                        <th className="py-2 pr-4 font-semibold">Status</th>
-                        <th className="py-2 pr-4 font-semibold">Started</th>
-                        <th className="py-2 pr-4 font-semibold">Command</th>
-                        <th className="py-2 pr-4 font-semibold">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {snapshot.projectRuntimes.runtimes.map((runtime) => (
-                        <tr key={runtime.id} className="border-b border-gray-100 last:border-0">
-                            <td className="py-2 pr-4">
-                                <Link
-                                    href={runtime.projectHref}
-                                    className="font-medium text-gray-900 hover:text-blue-700 hover:underline"
-                                >
-                                    {runtime.projectName}
-                                </Link>
-                                <div className="font-mono text-xs text-gray-400">{runtime.agentPermanentId}</div>
-                            </td>
-                            <td className="py-2 pr-4">
-                                <a
-                                    href={runtime.url}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="inline-flex items-center gap-1 font-mono text-blue-700 hover:text-blue-900 hover:underline"
-                                >
-                                    {runtime.port}
-                                    <ExternalLink className="h-3.5 w-3.5" aria-hidden />
-                                </a>
-                            </td>
-                            <td className="py-2 pr-4 text-gray-700">{formatAgentProjectRuntimeMode(runtime.mode)}</td>
-                            <td className="py-2 pr-4">
-                                <AgentProjectRuntimeStatusBadge isRunning={runtime.isRunning}>
-                                    {formatAgentProjectRuntimeStatus(runtime)}
-                                </AgentProjectRuntimeStatusBadge>
-                            </td>
-                            <td className="py-2 pr-4 text-gray-500">{formatMeasuredAt(runtime.startedAt)}</td>
-                            <td className="max-w-64 truncate py-2 pr-4 font-mono text-xs text-gray-500">
-                                {runtime.command || ''}
-                            </td>
-                            <td className="py-2 pr-4">
-                                <form action={$terminateAgentProjectRuntimeFromResourceMonitorAction.bind(null, runtime.id)}>
-                                    <button
-                                        type="submit"
-                                        className="inline-flex items-center gap-1 rounded-md border border-red-200 bg-red-50 px-2.5 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100"
-                                    >
-                                        <Square className="h-3.5 w-3.5" aria-hidden />
-                                        {runtime.isRunning ? 'Terminate' : 'Release'}
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-        </div>
-    );
-}
-
-/**
  * Summary card for one monitored resource.
  *
  * @param props - Card props.
@@ -599,57 +410,6 @@ function DetailList({ items }: { readonly items: ReadonlyArray<DetailListItem> }
 }
 
 /**
- * Renders network traffic counters.
- *
- * @param props - Network props.
- * @returns Network table or fallback.
- */
-function NetworkUsageTable({ snapshot }: { readonly snapshot: ServerResourceMonitorSnapshot }) {
-    if (!snapshot.network.isTrafficAvailable) {
-        return (
-            <div className="rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600">
-                {snapshot.network.errorMessage || 'Network traffic counters are not available.'}
-            </div>
-        );
-    }
-
-    return (
-        <div className="overflow-x-auto">
-            <table className="min-w-full text-left text-sm">
-                <thead>
-                    <tr className="border-b border-gray-200 text-xs uppercase tracking-wide text-gray-400">
-                        <th className="py-2 pr-4 font-semibold">Interface</th>
-                        <th className="py-2 pr-4 font-semibold">Received</th>
-                        <th className="py-2 pr-4 font-semibold">Sent</th>
-                        <th className="py-2 pr-4 font-semibold">Receive rate</th>
-                        <th className="py-2 pr-4 font-semibold">Send rate</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {snapshot.network.interfaces.map((networkInterface) => (
-                        <tr key={networkInterface.name} className="border-b border-gray-100 last:border-0">
-                            <td className="py-2 pr-4 font-mono text-gray-900">{networkInterface.name}</td>
-                            <td className="py-2 pr-4 text-gray-700">
-                                {formatResourceBytes(networkInterface.receivedBytes)}
-                            </td>
-                            <td className="py-2 pr-4 text-gray-700">
-                                {formatResourceBytes(networkInterface.transmittedBytes)}
-                            </td>
-                            <td className="py-2 pr-4 text-gray-700">
-                                {formatResourceRate(networkInterface.receivedBytesPerSecond)}
-                            </td>
-                            <td className="py-2 pr-4 text-gray-700">
-                                {formatResourceRate(networkInterface.transmittedBytesPerSecond)}
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-        </div>
-    );
-}
-
-/**
  * Returns whether a resource has an active warning issue.
  *
  * @param issues - Warning issues.
@@ -681,17 +441,4 @@ function formatNullableBytes(bytes: number | null): string {
  */
 function formatLoadValue(value: number | null): string {
     return value === null ? 'Not available' : value.toFixed(2);
-}
-
-/**
- * Formats the server measurement timestamp.
- *
- * @param measuredAt - ISO timestamp.
- * @returns Display value.
- */
-function formatMeasuredAt(measuredAt: string): string {
-    return new Date(measuredAt).toLocaleString('en-US', {
-        dateStyle: 'medium',
-        timeStyle: 'medium',
-    });
 }

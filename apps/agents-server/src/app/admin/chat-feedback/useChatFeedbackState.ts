@@ -1,6 +1,7 @@
 import type { ChatMessage, string_date_iso8601 } from '@promptbook-local/types';
 import { useCallback, useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from 'react';
 import { showAlert, showConfirm } from '../../../components/AsyncDialogs/asyncDialogs';
+import { resolveNextAdminTableSortState } from '../_components/adminTableSorting';
 import {
     $clearAgentChatFeedback,
     $deleteChatFeedbackRow,
@@ -57,6 +58,7 @@ export type UseChatFeedbackState = {
     totalPages: number;
     agentName: string;
     searchInput: string;
+    sortBy: ChatFeedbackSortField;
     sortOrder: ChatFeedbackSortOrder;
     selectedThread: ChatMessage[] | null;
     loading: boolean;
@@ -72,7 +74,6 @@ export type UseChatFeedbackState = {
     handleViewChat: (row: ChatFeedbackRow) => Promise<void>;
     handleDeleteRow: (row: ChatFeedbackRow) => Promise<void>;
     handleClearAgentFeedback: () => Promise<void>;
-    isSortedBy: (field: ChatFeedbackSortField) => boolean;
     goToPreviousPage: () => void;
     goToNextPage: () => void;
     closeThreadDialog: () => void;
@@ -376,13 +377,16 @@ export function useChatFeedbackState({ initialAgentName, formatText }: UseChatFe
 
     const handleSortChange = useCallback(
         (field: ChatFeedbackSortField) => {
-            if (sortBy === field) {
-                setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-                return;
-            }
+            const nextSortState = resolveNextAdminTableSortState({
+                currentSortBy: sortBy,
+                currentSortOrder: sortOrder,
+                nextSortBy: field,
+                resolveDefaultSortOrder: (nextSortBy) => (nextSortBy === 'createdAt' ? 'desc' : 'asc'),
+            });
 
-            setSortBy(field);
-            setSortOrder(field === 'createdAt' ? 'desc' : 'asc');
+            setSortBy(nextSortState.sortBy);
+            setSortOrder(nextSortState.sortOrder);
+            setPage(1);
         },
         [sortBy, sortOrder],
     );
@@ -445,8 +449,6 @@ export function useChatFeedbackState({ initialAgentName, formatText }: UseChatFe
         }
     }, [agentName, applyChatFeedbackResponse, formatText, loadChatFeedback]);
 
-    const isSortedBy = useCallback((field: ChatFeedbackSortField) => sortBy === field, [sortBy]);
-
     const goToPreviousPage = useCallback(() => {
         setPage((previousPage) => Math.max(1, previousPage - 1));
     }, []);
@@ -467,6 +469,7 @@ export function useChatFeedbackState({ initialAgentName, formatText }: UseChatFe
         totalPages,
         agentName,
         searchInput,
+        sortBy,
         sortOrder,
         selectedThread,
         loading,
@@ -482,7 +485,6 @@ export function useChatFeedbackState({ initialAgentName, formatText }: UseChatFe
         handleViewChat,
         handleDeleteRow,
         handleClearAgentFeedback,
-        isSortedBy,
         goToPreviousPage,
         goToNextPage,
         closeThreadDialog,

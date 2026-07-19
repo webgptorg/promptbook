@@ -34,7 +34,10 @@ export function FilesGalleryClient() {
                     isLoading={filesGalleryState.isLoading}
                     page={filesGalleryState.page}
                     limit={filesGalleryState.limit}
+                    sortBy={filesGalleryState.sortBy}
+                    sortOrder={filesGalleryState.sortOrder}
                     handlePageChange={filesGalleryState.handlePageChange}
+                    handleSortChange={filesGalleryState.handleSortChange}
                 />
             ) : (
                 <FilesGalleryGrid

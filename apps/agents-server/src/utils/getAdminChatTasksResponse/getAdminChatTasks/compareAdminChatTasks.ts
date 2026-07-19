@@ -1,6 +1,39 @@
-import type { AdminChatTaskRecord, AdminChatTaskView } from '../../chatTasksAdmin';
+import type {
+    AdminChatTaskRecord,
+    AdminChatTaskSortField,
+    AdminChatTaskSortOrder,
+    AdminChatTaskView,
+} from '../../chatTasksAdmin';
 import type { UserChatJobStatus } from '../../userChat/UserChatJobRecord';
 import { parseIsoTimestamp } from './adminChatTaskTimeUtilities';
+
+/**
+ * Collator used for user-facing task-manager text sorting.
+ *
+ * @private function of `getAdminChatTasks`
+ */
+const ADMIN_CHAT_TASK_STRING_COLLATOR = new Intl.Collator(undefined, {
+    numeric: true,
+    sensitivity: 'base',
+});
+
+/**
+ * Query fields needed for task-manager row comparison.
+ *
+ * @private function of `getAdminChatTasks`
+ */
+type AdminChatTaskSortQuery = {
+    readonly sortBy: AdminChatTaskSortField;
+    readonly sortOrder: AdminChatTaskSortOrder;
+    readonly view: AdminChatTaskView;
+};
+
+/**
+ * Comparable value used by custom task-manager table sorting.
+ *
+ * @private function of `getAdminChatTasks`
+ */
+type AdminChatTaskSortValue = string | number | null;
 
 /**
  * Compares two tasks using the same ordering semantics as the PostgreSQL dashboard query.
@@ -8,6 +41,29 @@ import { parseIsoTimestamp } from './adminChatTaskTimeUtilities';
  * @private function of `getAdminChatTasks`
  */
 export function compareAdminChatTasks(
+    leftTask: AdminChatTaskRecord,
+    rightTask: AdminChatTaskRecord,
+    query: AdminChatTaskSortQuery,
+): number {
+    if (query.sortBy !== 'default') {
+        return (
+            compareAdminChatTaskSortValues(
+                resolveAdminChatTaskSortValue(leftTask, query.sortBy),
+                resolveAdminChatTaskSortValue(rightTask, query.sortBy),
+                query.sortOrder,
+            ) || compareAdminChatTasksByDefaultView(leftTask, rightTask, query.view)
+        );
+    }
+
+    return compareAdminChatTasksByDefaultView(leftTask, rightTask, query.view);
+}
+
+/**
+ * Compares two tasks using the view-specific operational default order.
+ *
+ * @private function of `getAdminChatTasks`
+ */
+function compareAdminChatTasksByDefaultView(
     leftTask: AdminChatTaskRecord,
     rightTask: AdminChatTaskRecord,
     view: AdminChatTaskView,
@@ -55,6 +111,96 @@ export function compareAdminChatTasks(
                 compareStringsDescending(leftTask.id, rightTask.id)
             );
     }
+}
+
+/**
+ * Resolves the custom sort value for one task-manager row.
+ *
+ * @private function of `getAdminChatTasks`
+ */
+function resolveAdminChatTaskSortValue(
+    task: AdminChatTaskRecord,
+    sortBy: Exclude<AdminChatTaskSortField, 'default'>,
+): AdminChatTaskSortValue {
+    switch (sortBy) {
+        case 'task':
+            return task.id;
+        case 'ownership':
+            return [task.username || `#${task.userId}`, task.agentName || task.agentPermanentId, task.chatId].join(' ');
+        case 'timeline':
+            return resolveAdminChatTaskTimelineTimestamp(task);
+        case 'duration':
+            return resolveAdminChatTaskDurationMs(task);
+        case 'queue':
+            return [task.queueName || '', task.workerId || '', task.leaseExpiresAt || ''].join(' ');
+        case 'lastError':
+            return task.lastErrorSummary;
+    }
+}
+
+/**
+ * Resolves the primary timeline timestamp used by the visible task timeline column.
+ *
+ * @private function of `getAdminChatTasks`
+ */
+function resolveAdminChatTaskTimelineTimestamp(task: AdminChatTaskRecord): number | null {
+    if (task.status === 'RUNNING') {
+        return parseIsoTimestamp(task.startedAt) ?? parseIsoTimestamp(task.createdAt);
+    }
+
+    if (task.status === 'QUEUED') {
+        return parseIsoTimestamp(task.createdAt);
+    }
+
+    return parseIsoTimestamp(task.finishedAt) ?? parseIsoTimestamp(task.updatedAt) ?? parseIsoTimestamp(task.createdAt);
+}
+
+/**
+ * Resolves the total task duration in milliseconds.
+ *
+ * @private function of `getAdminChatTasks`
+ */
+function resolveAdminChatTaskDurationMs(task: AdminChatTaskRecord): number | null {
+    const createdTimestamp = parseIsoTimestamp(task.createdAt);
+    if (createdTimestamp === null) {
+        return null;
+    }
+
+    const endTimestamp =
+        parseIsoTimestamp(task.finishedAt) ?? parseIsoTimestamp(task.updatedAt) ?? Date.now();
+
+    return Math.max(0, endTimestamp - createdTimestamp);
+}
+
+/**
+ * Compares custom task-manager sort values while keeping missing values last.
+ *
+ * @private function of `getAdminChatTasks`
+ */
+function compareAdminChatTaskSortValues(
+    leftValue: AdminChatTaskSortValue,
+    rightValue: AdminChatTaskSortValue,
+    sortOrder: AdminChatTaskSortOrder,
+): number {
+    const isLeftValueMissing = leftValue === null || leftValue === '';
+    const isRightValueMissing = rightValue === null || rightValue === '';
+
+    if (isLeftValueMissing && isRightValueMissing) {
+        return 0;
+    }
+    if (isLeftValueMissing) {
+        return 1;
+    }
+    if (isRightValueMissing) {
+        return -1;
+    }
+
+    const comparison =
+        typeof leftValue === 'number' && typeof rightValue === 'number'
+            ? compareNumbersAscending(leftValue, rightValue)
+            : compareStringsAscending(String(leftValue), String(rightValue));
+
+    return sortOrder === 'asc' ? comparison : -comparison;
 }
 
 /**
@@ -123,6 +269,15 @@ function compareNumbersAscending(leftNumber: number, rightNumber: number): numbe
  */
 function compareNumbersDescending(leftNumber: number, rightNumber: number): number {
     return rightNumber - leftNumber;
+}
+
+/**
+ * Sorts strings ascending.
+ *
+ * @private function of `getAdminChatTasks`
+ */
+function compareStringsAscending(leftString: string, rightString: string): number {
+    return ADMIN_CHAT_TASK_STRING_COLLATOR.compare(leftString, rightString);
 }
 
 /**

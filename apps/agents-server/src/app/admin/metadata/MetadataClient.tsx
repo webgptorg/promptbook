@@ -30,6 +30,8 @@ import { getSafeCdnPath } from '../../../utils/cdn/utils/getSafeCdnPath';
 import { downloadBlob, parseFilenameFromContentDisposition } from '../../../utils/download/browserFileDownload';
 import { normalizeUploadFilename } from '../../../utils/normalization/normalizeUploadFilename';
 import { buildDefaultUserFileUploadPath, uploadFileToServer } from '../../../utils/upload/uploadFileToServer';
+import { AdminSortableTableHeaderCell } from '../_components/AdminSortableTableHeaderCell';
+import { useAdminTableSorting } from '../_components/adminTableSorting';
 
 /**
  * Type describing metadata entry.
@@ -45,6 +47,13 @@ type MetadataEntry = {
     definition?: MetadataDefinition;
     deprecatedLimitMetadata?: DeprecatedLimitMetadataDefinition | null;
 };
+
+/**
+ * Sortable metadata table columns.
+ *
+ * @private
+ */
+type MetadataTableSortField = 'type' | 'key' | 'value' | 'note';
 
 /**
  * Endpoint serving standalone metadata JSON exports.
@@ -770,6 +779,32 @@ function mergeMetadataWithDefaults(data: MetadataEntry[]): MetadataEntry[] {
 }
 
 /**
+ * Resolves the type label used for metadata table sorting.
+ *
+ * @private
+ */
+function resolveMetadataTypeSortLabel(entry: MetadataEntry): string {
+    if (entry.deprecatedLimitMetadata) {
+        return 'Deprecated';
+    }
+
+    return entry.definition?.type || 'Unknown';
+}
+
+/**
+ * Resolves a comparable value for one metadata table row.
+ *
+ * @private
+ */
+function resolveMetadataSortValue(entry: MetadataEntry, sortBy: MetadataTableSortField) {
+    if (sortBy === 'type') {
+        return resolveMetadataTypeSortLabel(entry);
+    }
+
+    return entry[sortBy] ?? '';
+}
+
+/**
  * Renders the metadata management admin view with creation and inline editing helpers.
  *
  * @private @@@
@@ -791,6 +826,11 @@ export function MetadataClient() {
     const [addFormState, setAddFormState] = useState<MetadataFormState>(createEmptyFormState);
     const [editingFormState, setEditingFormState] = useState<MetadataFormState>(createEmptyFormState);
     const isMetadataTransferBusy = isExportingMetadata || isImportingMetadata;
+    const metadataSorting = useAdminTableSorting<MetadataEntry, MetadataTableSortField>({
+        rows: metadata,
+        defaultSortBy: 'key',
+        resolveSortValue: resolveMetadataSortValue,
+    });
 
     const fetchMetadata = async () => {
         try {
@@ -1248,18 +1288,46 @@ export function MetadataClient() {
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                         <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <AdminSortableTableHeaderCell
+                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                label="type"
+                                sortBy="type"
+                                activeSortBy={metadataSorting.sortBy}
+                                sortOrder={metadataSorting.sortOrder}
+                                onSortChange={metadataSorting.handleSortChange}
+                            >
                                 Type
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            </AdminSortableTableHeaderCell>
+                            <AdminSortableTableHeaderCell
+                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                label="key"
+                                sortBy="key"
+                                activeSortBy={metadataSorting.sortBy}
+                                sortOrder={metadataSorting.sortOrder}
+                                onSortChange={metadataSorting.handleSortChange}
+                            >
                                 Key
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            </AdminSortableTableHeaderCell>
+                            <AdminSortableTableHeaderCell
+                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                label="value"
+                                sortBy="value"
+                                activeSortBy={metadataSorting.sortBy}
+                                sortOrder={metadataSorting.sortOrder}
+                                onSortChange={metadataSorting.handleSortChange}
+                            >
                                 Value
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            </AdminSortableTableHeaderCell>
+                            <AdminSortableTableHeaderCell
+                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                label="note"
+                                sortBy="note"
+                                activeSortBy={metadataSorting.sortBy}
+                                sortOrder={metadataSorting.sortOrder}
+                                onSortChange={metadataSorting.handleSortChange}
+                            >
                                 Note
-                            </th>
+                            </AdminSortableTableHeaderCell>
                             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Actions
                             </th>
@@ -1273,7 +1341,7 @@ export function MetadataClient() {
                                 </td>
                             </tr>
                         ) : (
-                            metadata.map((entry) => {
+                            metadataSorting.sortedRows.map((entry) => {
                                 const htmlIdSuffix = toHtmlIdSuffix(entry.key);
                                 const isDeprecatedLimitMetadata = Boolean(entry.deprecatedLimitMetadata);
                                 const editValueFieldId = `edit-metadata-value-${htmlIdSuffix}`;

@@ -75,6 +75,7 @@ export async function getAdminChatTasksResponse(
         injectedTasks,
         page: parsedQuery.page,
         pageSize: parsedQuery.pageSize,
+        query: parsedQuery,
     });
     const counters = mergeInjectedAdminChatTaskCounters(adminChatTasks.counters, injectableTasks);
 
@@ -88,6 +89,8 @@ export async function getAdminChatTasksResponse(
             pageSize: parsedQuery.pageSize,
             view: parsedQuery.view,
             search: parsedQuery.search,
+            sortBy: parsedQuery.sortBy,
+            sortOrder: parsedQuery.sortOrder,
             timeWindowHours: parsedQuery.timeWindowHours,
             generatedAt: new Date().toISOString(),
         },
@@ -131,7 +134,7 @@ function collectAdminChatTasksToInject(
                 matchesAdminChatTaskView(task, query, nowTimestamp) &&
                 matchesAdminChatTaskSearch(task, query.search),
         )
-        .sort((leftTask, rightTask) => compareAdminChatTasks(leftTask, rightTask, query.view));
+        .sort((leftTask, rightTask) => compareAdminChatTasks(leftTask, rightTask, query));
 }
 
 /**
@@ -150,7 +153,7 @@ function createInjectedAwareAdminChatTaskQuery(
     }
 
     const pageOffset = (query.page - 1) * query.pageSize;
-    const databaseEndOffset = Math.max(0, pageOffset + query.pageSize - injectedTaskCount);
+    const databaseEndOffset = Math.max(0, pageOffset + query.pageSize);
 
     return {
         ...query,
@@ -171,6 +174,7 @@ function mergeInjectedAdminChatTasks(options: {
     readonly injectedTasks: ReadonlyArray<AdminChatTaskRecord>;
     readonly page: number;
     readonly pageSize: number;
+    readonly query: ParsedAdminChatTaskQuery;
 }): { items: Array<AdminChatTaskRecord>; total: number } {
     const total = options.databaseTotal + options.injectedTasks.length;
     if (options.injectedTasks.length === 0) {
@@ -178,16 +182,10 @@ function mergeInjectedAdminChatTasks(options: {
     }
 
     const pageOffset = (options.page - 1) * options.pageSize;
-    const injectedItems = options.injectedTasks.slice(pageOffset, pageOffset + options.pageSize);
-    const remainingPageSize = options.pageSize - injectedItems.length;
+    const items = [...options.injectedTasks, ...options.databaseItems]
+        .sort((leftTask, rightTask) => compareAdminChatTasks(leftTask, rightTask, options.query))
+        .slice(pageOffset, pageOffset + options.pageSize);
 
-    if (remainingPageSize <= 0) {
-        return { items: [...injectedItems], total };
-    }
-
-    const databaseOffset = Math.max(0, pageOffset - options.injectedTasks.length);
-    const databaseItems = options.databaseItems.slice(databaseOffset, databaseOffset + remainingPageSize);
-    const items = [...injectedItems, ...databaseItems];
     return { items, total };
 }
 

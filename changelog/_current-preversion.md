@@ -1,3 +1,5 @@
+-   Added sortable column headers to Agents Server administration tables, with shared sorting controls and helpers reused across task manager, chat history, chat feedback, messages, files, images, API tokens, metadata, servers, environment variables, usage detail, Shibboleth, and resource monitor tables. Paginated admin lists now send whitelisted sort fields to their loaders so the full result set is ordered before pagination.
+
 -   Fixed the Agents Server manGo new-agent wizard desktop rail so the left panel scrolls independently on short viewports, keeping the stepper and progress controls reachable while preserving the existing fullscreen layout.
 
 -   Added a classic Book editor exit from the Agents Server manGo new-agent wizard. A small Book button in the manGo rail now opens the existing classic editor with the current partially created draft, including the generated book text and ready knowledge sources, so users can finish creation outside the manGo flow.

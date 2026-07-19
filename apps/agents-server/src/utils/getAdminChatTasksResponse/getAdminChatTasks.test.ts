@@ -65,6 +65,8 @@ describe('getAdminChatTasks', () => {
             pageSize: 10,
             view: 'active',
             search: '',
+            sortBy: 'default',
+            sortOrder: 'desc',
             timeWindowHours: 24,
         });
 
@@ -95,6 +97,8 @@ describe('getAdminChatTasks', () => {
             pageSize: 10,
             view: 'all',
             search: 'ALP',
+            sortBy: 'default',
+            sortOrder: 'desc',
             timeWindowHours: 24,
         });
 

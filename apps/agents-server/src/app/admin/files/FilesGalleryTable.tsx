@@ -3,6 +3,7 @@ import Link from 'next/link';
 import type { ServerLanguageCode } from '../../../languages/ServerLanguageRegistry';
 import { buildAgentProfileHref } from '../../../utils/agentRouting/agentRouteHrefs';
 import { formatServerLanguageHumanReadableDate } from '../../../utils/localization/formatServerLanguageHumanReadableDate';
+import { AdminSortableTableHeaderCell } from '../_components/AdminSortableTableHeaderCell';
 import { FilesGalleryStatusBadge } from './FilesGalleryStatusBadge';
 import type { UseFilesGalleryState } from './useFilesGalleryState';
 
@@ -11,7 +12,7 @@ import type { UseFilesGalleryState } from './useFilesGalleryState';
  */
 type FilesGalleryTableProps = Pick<
     UseFilesGalleryState,
-    'files' | 'total' | 'isLoading' | 'page' | 'limit' | 'handlePageChange'
+    'files' | 'total' | 'isLoading' | 'page' | 'limit' | 'sortBy' | 'sortOrder' | 'handlePageChange' | 'handleSortChange'
 > & {
     /**
      * Active text formatter for agent naming.
@@ -44,7 +45,10 @@ export function FilesGalleryTable({
     isLoading,
     page,
     limit,
+    sortBy,
+    sortOrder,
     handlePageChange,
+    handleSortChange,
 }: FilesGalleryTableProps) {
     const isOnFirstPage = page === 1;
     const isOnLastPage = page * limit >= total;
@@ -55,13 +59,67 @@ export function FilesGalleryTable({
                 <table className="w-full text-sm text-left text-gray-500">
                     <thead className="text-xs text-gray-700 uppercase bg-gray-50 border-b">
                         <tr>
-                            <th className="px-6 py-3">File Name</th>
-                            <th className="px-6 py-3">Type</th>
-                            <th className="px-6 py-3">Size</th>
+                            <AdminSortableTableHeaderCell
+                                className="px-6 py-3"
+                                label="file name"
+                                sortBy="fileName"
+                                activeSortBy={sortBy}
+                                sortOrder={sortOrder}
+                                onSortChange={handleSortChange}
+                            >
+                                File Name
+                            </AdminSortableTableHeaderCell>
+                            <AdminSortableTableHeaderCell
+                                className="px-6 py-3"
+                                label="type"
+                                sortBy="fileType"
+                                activeSortBy={sortBy}
+                                sortOrder={sortOrder}
+                                onSortChange={handleSortChange}
+                            >
+                                Type
+                            </AdminSortableTableHeaderCell>
+                            <AdminSortableTableHeaderCell
+                                className="px-6 py-3"
+                                label="size"
+                                sortBy="fileSize"
+                                activeSortBy={sortBy}
+                                sortOrder={sortOrder}
+                                onSortChange={handleSortChange}
+                            >
+                                Size
+                            </AdminSortableTableHeaderCell>
                             <th className="px-6 py-3">{formatText('Agent')}</th>
-                            <th className="px-6 py-3">Purpose</th>
-                            <th className="px-6 py-3">Status</th>
-                            <th className="px-6 py-3">Created At</th>
+                            <AdminSortableTableHeaderCell
+                                className="px-6 py-3"
+                                label="purpose"
+                                sortBy="purpose"
+                                activeSortBy={sortBy}
+                                sortOrder={sortOrder}
+                                onSortChange={handleSortChange}
+                            >
+                                Purpose
+                            </AdminSortableTableHeaderCell>
+                            <AdminSortableTableHeaderCell
+                                className="px-6 py-3"
+                                label="status"
+                                sortBy="status"
+                                activeSortBy={sortBy}
+                                sortOrder={sortOrder}
+                                onSortChange={handleSortChange}
+                            >
+                                Status
+                            </AdminSortableTableHeaderCell>
+                            <AdminSortableTableHeaderCell
+                                className="px-6 py-3"
+                                label="created at"
+                                sortBy="createdAt"
+                                activeSortBy={sortBy}
+                                sortOrder={sortOrder}
+                                onSortChange={handleSortChange}
+                            >
+                                Created At
+                            </AdminSortableTableHeaderCell>
                         </tr>
                     </thead>
                     <tbody>

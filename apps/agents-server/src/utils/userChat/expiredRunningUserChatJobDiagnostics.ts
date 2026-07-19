@@ -39,6 +39,8 @@ export async function loadExpiredRunningUserChatJobRuntimeSnapshot(): Promise<Ex
             pageSize: EXPIRED_USER_CHAT_JOB_DIAGNOSTIC_TASK_LIMIT,
             view: 'active',
             search: '',
+            sortBy: 'default',
+            sortOrder: 'desc',
             timeWindowHours: EXPIRED_USER_CHAT_JOB_DIAGNOSTIC_TIME_WINDOW_HOURS,
         }),
     ]);

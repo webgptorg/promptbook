@@ -4,11 +4,14 @@ import {
     $fetchAdminChatTasks,
     type AdminChatTaskCounters,
     type AdminChatTaskRecord,
+    type AdminChatTaskSortField,
+    type AdminChatTaskSortOrder,
     type AdminChatTaskView,
 } from '@/src/utils/chatTasksAdmin';
 import type { ServerLanguageCode } from '@/src/languages/ServerLanguageRegistry';
 import { formatServerLanguageHumanReadableDate } from '@/src/utils/localization/formatServerLanguageHumanReadableDate';
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
+import { resolveNextAdminTableSortState } from '../_components/adminTableSorting';
 import {
     confirmAdminChatTaskAction,
     executeAdminChatTaskAction,
@@ -48,6 +51,8 @@ type UseTaskManagerStateResult = {
     search: string;
     searchInput: string;
     selectView: (view: AdminChatTaskView) => void;
+    sortBy: AdminChatTaskSortField;
+    sortOrder: AdminChatTaskSortOrder;
     stuckThresholdMinutes: number;
     tasks: Array<AdminChatTaskRecord>;
     timeWindowHours: number;
@@ -61,6 +66,7 @@ type UseTaskManagerStateResult = {
     view: AdminChatTaskView;
     goToNextPage: () => void;
     goToPreviousPage: () => void;
+    handleSortChange: (sortBy: AdminChatTaskSortField) => void;
 };
 
 /**
@@ -116,6 +122,19 @@ function formatDuration(durationMs: number | null): string {
 }
 
 /**
+ * Resolves the initial direction used when switching task-manager sort fields.
+ *
+ * @private function of TaskManagerClient
+ */
+function resolveTaskManagerDefaultSortOrder(sortBy: AdminChatTaskSortField): AdminChatTaskSortOrder {
+    if (sortBy === 'timeline' || sortBy === 'duration') {
+        return 'desc';
+    }
+
+    return 'asc';
+}
+
+/**
  * Normalizes errors thrown while loading the task dashboard.
  *
  * @private function of TaskManagerClient
@@ -138,6 +157,8 @@ export function useTaskManagerState(language: ServerLanguageCode): UseTaskManage
     const [timeWindowHours, setTimeWindowHours] = useState(24);
     const [searchInput, setSearchInput] = useState('');
     const search = useDeferredValue(searchInput).trim();
+    const [sortBy, setSortBy] = useState<AdminChatTaskSortField>('default');
+    const [sortOrder, setSortOrder] = useState<AdminChatTaskSortOrder>('desc');
     const [tasks, setTasks] = useState<Array<AdminChatTaskRecord>>([]);
     const [total, setTotal] = useState(0);
     const [generatedAt, setGeneratedAt] = useState<string | null>(null);
@@ -180,7 +201,7 @@ export function useTaskManagerState(language: ServerLanguageCode): UseTaskManage
 
     useEffect(() => {
         setPage(1);
-    }, [pageSize, search, timeWindowHours, view]);
+    }, [pageSize, search, sortBy, sortOrder, timeWindowHours, view]);
 
     useEffect(() => {
         let isCancelled = false;
@@ -197,6 +218,8 @@ export function useTaskManagerState(language: ServerLanguageCode): UseTaskManage
                     pageSize,
                     view,
                     search: search || undefined,
+                    sortBy,
+                    sortOrder,
                     timeWindowHours,
                 });
 
@@ -226,7 +249,7 @@ export function useTaskManagerState(language: ServerLanguageCode): UseTaskManage
         return () => {
             isCancelled = true;
         };
-    }, [page, pageSize, refreshNonce, search, timeWindowHours, view]);
+    }, [page, pageSize, refreshNonce, search, sortBy, sortOrder, timeWindowHours, view]);
 
     useEffect(() => {
         if (pollIntervalMs <= 0) {
@@ -280,6 +303,21 @@ export function useTaskManagerState(language: ServerLanguageCode): UseTaskManage
         [refreshNow],
     );
 
+    const handleSortChange = useCallback(
+        (nextSortBy: AdminChatTaskSortField): void => {
+            const nextSortState = resolveNextAdminTableSortState({
+                currentSortBy: sortBy,
+                currentSortOrder: sortOrder,
+                nextSortBy,
+                resolveDefaultSortOrder: resolveTaskManagerDefaultSortOrder,
+            });
+
+            setSortBy(nextSortState.sortBy);
+            setSortOrder(nextSortState.sortOrder);
+        },
+        [sortBy, sortOrder],
+    );
+
     return {
         busyAction,
         busyTaskId,
@@ -301,6 +339,8 @@ export function useTaskManagerState(language: ServerLanguageCode): UseTaskManage
         search,
         searchInput,
         selectView,
+        sortBy,
+        sortOrder,
         stuckThresholdMinutes,
         tasks,
         timeWindowHours,
@@ -314,5 +354,6 @@ export function useTaskManagerState(language: ServerLanguageCode): UseTaskManage
         view,
         goToNextPage,
         goToPreviousPage,
+        handleSortChange,
     };
 }

@@ -27,13 +27,29 @@ export type FileWithAgent = {
 };
 
 /**
+ * File gallery sort fields supported by the admin table.
+ *
+ * @private function of FilesGalleryClient
+ */
+export type FilesGallerySortField = 'fileName' | 'fileType' | 'fileSize' | 'purpose' | 'status' | 'createdAt';
+
+/**
+ * File gallery sort direction supported by the admin table.
+ *
+ * @private function of FilesGalleryClient
+ */
+export type FilesGallerySortOrder = 'asc' | 'desc';
+
+/**
  * Lists files.
  */
 export async function listFiles(options: {
     page: number;
     limit: number;
+    sortBy?: FilesGallerySortField;
+    sortOrder?: FilesGallerySortOrder;
 }): Promise<{ files: FileWithAgent[]; total: number }> {
-    const { page, limit } = options;
+    const { page, limit, sortBy = 'createdAt', sortOrder = 'desc' } = options;
     const offset = (page - 1) * limit;
 
     const supabase = $provideSupabaseForServer();
@@ -56,7 +72,7 @@ export async function listFiles(options: {
             { count: 'exact' },
         )
         .range(offset, offset + limit - 1)
-        .order('createdAt', { ascending: false });
+        .order(sortBy, { ascending: sortOrder === 'asc' });
 
     if (error) {
         console.error('Error fetching files:', error);

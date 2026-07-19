@@ -26,13 +26,29 @@ export type ImageWithAgent = {
 };
 
 /**
+ * Image gallery sort fields supported by the admin table.
+ *
+ * @private function of ImagesGalleryClient
+ */
+export type ImagesGallerySortField = 'filename' | 'prompt' | 'purpose' | 'createdAt';
+
+/**
+ * Image gallery sort direction supported by the admin table.
+ *
+ * @private function of ImagesGalleryClient
+ */
+export type ImagesGallerySortOrder = 'asc' | 'desc';
+
+/**
  * Lists images.
  */
 export async function listImages(options: {
     page: number;
     limit: number;
+    sortBy?: ImagesGallerySortField;
+    sortOrder?: ImagesGallerySortOrder;
 }): Promise<{ images: ImageWithAgent[]; total: number }> {
-    const { page, limit } = options;
+    const { page, limit, sortBy = 'createdAt', sortOrder = 'desc' } = options;
     const offset = (page - 1) * limit;
 
     const supabase = $provideSupabaseForServer();
@@ -55,7 +71,7 @@ export async function listImages(options: {
             { count: 'exact' },
         )
         .range(offset, offset + limit - 1)
-        .order('createdAt', { ascending: false });
+        .order(sortBy, { ascending: sortOrder === 'asc' });
 
     if (error) {
         console.error('Error fetching images:', error);

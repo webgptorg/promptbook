@@ -5,8 +5,6 @@ import { $getTableName } from '../../../../database/$getTableName';
 import { $provideSupabaseForServer } from '../../../../database/$provideSupabaseForServer';
 import { ForbiddenPage } from '../../../../components/ForbiddenPage/ForbiddenPage';
 import { isUserAdmin } from '../../../../utils/isUserAdmin';
-import type { ServerLanguageCode } from '../../../../languages/ServerLanguageRegistry';
-import { formatServerLanguageHumanReadableDate } from '../../../../utils/localization/formatServerLanguageHumanReadableDate';
 import { getRequestServerLanguage } from '../../../../utils/localization/getRequestServerLanguage';
 import { PUBLIC_USER_SELECT_COLUMNS, toPublicUser, type PublicUser } from '../../../../utils/publicUser';
 import {
@@ -16,6 +14,7 @@ import {
     type ShibbolethAuthenticationAttemptRow,
     type ShibbolethUserIdentityRow,
 } from '../../../../utils/shibbolethAuthentication';
+import { ShibbolethSortableTables } from './ShibbolethSortableTables';
 
 /**
  * Builds an absolute URL for Shibboleth route configuration inside server components.
@@ -100,13 +99,6 @@ async function loadShibbolethIdentitiesWithUsers(): Promise<{
         identities: identityRows,
         usersById,
     };
-}
-
-/**
- * Formats an optional date-time value for the dashboard.
- */
-function formatDashboardDateTime(value: string | null | undefined, language: ServerLanguageCode): string {
-    return formatServerLanguageHumanReadableDate(value, language, { fallbackLabel: 'Never' });
 }
 
 /**
@@ -251,105 +243,12 @@ export default async function ShibbolethLoginMethodPage() {
                 </ol>
             </section>
 
-            <section className="rounded-md border border-gray-200 bg-white p-5">
-                <h2 className="text-lg font-semibold text-gray-950">Authentication Attempts</h2>
-                <div className="mt-4 overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200 text-sm">
-                        <thead>
-                            <tr className="text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                <th className="py-2 pr-4">Time</th>
-                                <th className="py-2 pr-4">Status</th>
-                                <th className="py-2 pr-4">Stage</th>
-                                <th className="py-2 pr-4">Email</th>
-                                <th className="py-2 pr-4">Name</th>
-                                <th className="py-2 pr-4">Error</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                            {attempts.length === 0 ? (
-                                <tr>
-                                    <td className="py-3 text-gray-500" colSpan={6}>
-                                        No Shibboleth authentication attempts recorded yet.
-                                    </td>
-                                </tr>
-                            ) : (
-                                attempts.map((attempt) => (
-                                    <tr key={attempt.id}>
-                                        <td className="whitespace-nowrap py-2 pr-4 text-gray-700">
-                                            {formatDashboardDateTime(attempt.createdAt, language)}
-                                        </td>
-                                        <td className="py-2 pr-4 font-medium text-gray-900">{attempt.status}</td>
-                                        <td className="py-2 pr-4 text-gray-700">{attempt.stage}</td>
-                                        <td className="py-2 pr-4 text-gray-700">{attempt.email || '-'}</td>
-                                        <td className="py-2 pr-4 text-gray-700">{attempt.displayName || '-'}</td>
-                                        <td className="max-w-xs py-2 pr-4 text-gray-600">
-                                            {attempt.errorMessage || '-'}
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
-            <section className="rounded-md border border-gray-200 bg-white p-5">
-                <h2 className="text-lg font-semibold text-gray-950">Shibboleth Users</h2>
-                <div className="mt-4 overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200 text-sm">
-                        <thead>
-                            <tr className="text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                <th className="py-2 pr-4">User</th>
-                                <th className="py-2 pr-4">Email</th>
-                                <th className="py-2 pr-4">Display Name</th>
-                                <th className="py-2 pr-4">Institutional ID</th>
-                                <th className="py-2 pr-4">Logins</th>
-                                <th className="py-2 pr-4">Last Login</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                            {identitiesWithUsers.identities.length === 0 ? (
-                                <tr>
-                                    <td className="py-3 text-gray-500" colSpan={6}>
-                                        No Shibboleth users have logged in yet.
-                                    </td>
-                                </tr>
-                            ) : (
-                                identitiesWithUsers.identities.map((identity) => {
-                                    const user = identitiesWithUsers.usersById.get(identity.userId);
-                                    return (
-                                        <tr key={identity.id}>
-                                            <td className="py-2 pr-4">
-                                                {user ? (
-                                                    <Link
-                                                        href={`/admin/users/${encodeURIComponent(user.username)}`}
-                                                        className="font-medium text-blue-700 hover:text-blue-900"
-                                                    >
-                                                        {user.username}
-                                                    </Link>
-                                                ) : (
-                                                    <span className="text-gray-500">
-                                                        Missing user #{identity.userId}
-                                                    </span>
-                                                )}
-                                            </td>
-                                            <td className="py-2 pr-4 text-gray-700">{identity.email}</td>
-                                            <td className="py-2 pr-4 text-gray-700">{identity.displayName || '-'}</td>
-                                            <td className="py-2 pr-4 text-gray-700">
-                                                {identity.unstructuredName || identity.eduPersonPrincipalName || '-'}
-                                            </td>
-                                            <td className="py-2 pr-4 text-gray-700">{identity.loginCount}</td>
-                                            <td className="whitespace-nowrap py-2 pr-4 text-gray-700">
-                                                {formatDashboardDateTime(identity.lastLoggedInAt, language)}
-                                            </td>
-                                        </tr>
-                                    );
-                                })
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-            </section>
+            <ShibbolethSortableTables
+                attempts={attempts}
+                identities={identitiesWithUsers.identities}
+                language={language}
+                users={Array.from(identitiesWithUsers.usersById.values())}
+            />
         </div>
     );
 }
