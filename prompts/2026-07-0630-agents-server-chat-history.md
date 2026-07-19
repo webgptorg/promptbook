@@ -25,3 +25,25 @@
 
 ![alt text](screenshots/2026-07-0640-agents-server-external-chats.png)
 
+
+
+---
+
+[ ]
+
+[✨🐌] Chat history (`/admin/chat-history`) Should be separated by each chat 
+
+- Now every chat is mixed in one pile. 
+- You should be able to see chats by chat threads. 
+-  When you are looking at the table CSV view, allow seeing both all the chat messages mixed together and filter by agent or filter by agent and chat thread.
+-  When you are looking as chat view, do not mix chat threads together.
+-  In the chat view, the chat should always be in the bubble mode, even if in controls you have turned on the article mode.
+-  In the table view, show rendered Markdown.
+-  When linking to the chat history, always link to the most detailed view.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+
+
+![alt text](screenshots/2026-07-0630-agents-server-chat-history-1.png)
+![alt text](screenshots/2026-07-0630-agents-server-chat-history-2.png)
