@@ -1,4 +1,4 @@
-[ ]
+[x] $8.01 6 hours by Claude Code `claude-opus-4-8`
 
 [✨🚭] Allow to specify required model for each prompt
 
@@ -75,3 +75,4 @@ ptbk coder run --harness github-copilot --model gpt-5.5 --thinking-level xhigh -
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Update the [`ptbk coder` landing website](apps/coder-landing)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

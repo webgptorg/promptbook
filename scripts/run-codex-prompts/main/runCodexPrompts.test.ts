@@ -95,6 +95,7 @@ function createPromptSelection(): PromptSelection {
         endLine: 1,
         status: 'todo',
         priority: 0,
+        requiredModelOrHarnessTokens: [],
     };
 
     return { file, section };

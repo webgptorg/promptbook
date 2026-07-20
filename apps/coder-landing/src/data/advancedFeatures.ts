@@ -78,4 +78,10 @@ export const ADVANCED_FEATURES: ReadonlyArray<AdvancedFeatureDefinition> = [
             'Walk through completed prompts interactively, archive the finished ones to prompts/done/ and auto-append repair prompts for incomplete work.',
         sampleCommand: VERIFY_COMMAND,
     },
+    {
+        title: 'Pin a model or harness',
+        description:
+            'Require a model, harness, or whole model family for a prompt right in its [ ] line. The queue runs it only when the current model or harness matches — otherwise it is skipped.',
+        sampleCommand: '[ ] use `gpt-5.5`',
+    },
 ];

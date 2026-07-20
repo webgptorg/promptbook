@@ -36,6 +36,7 @@ import { loadPromptFiles } from '../prompts/loadPromptFiles';
 import { printPromptsToBeWritten } from '../prompts/printPromptsToBeWritten';
 import { printStats } from '../prompts/printStats';
 import { normalizePriorityFilter, type PriorityFilter } from '../prompts/priorityFilter';
+import type { RunnerFilter } from '../prompts/runnerFilter';
 import { printUpcomingTasks } from '../prompts/printUpcomingTasks';
 import { summarizePrompts } from '../prompts/summarizePrompts';
 import type { PromptFile } from '../prompts/types/PromptFile';
@@ -91,6 +92,13 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
         const { runner, actualRunnerModel, runnerMetadata } = resolvePromptRunner(options);
         console.info(colors.green(`Running prompts with ${runner.name}`));
 
+        // Note: A prompt may require a specific model, harness or model family in its `[ ]` status line;
+        // such prompts are skipped when they do not match the model and harness of the current runner
+        const runnerFilter: RunnerFilter = {
+            model: runnerMetadata.modelName,
+            harness: options.agentName,
+        };
+
         initializeRunUi(uiHandle, runner.name, actualRunnerModel, options);
         await initializeRunUiAgentVisual(uiHandle, resolvedCoderAgent?.agentSource);
         await seedCachedAveragePromptDuration({
@@ -129,6 +137,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                 isRichUiEnabled,
                 progressDisplay,
                 uiHandle,
+                runnerFilter,
             });
 
             hasShownUpcomingTasks ||= showUpcomingTasksOnce({
@@ -137,6 +146,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                 stats: promptQueueSnapshot.stats,
                 priorityFilter: options.priorityFilter,
                 isRichUiEnabled,
+                runnerFilter,
             });
 
             if (!promptQueueSnapshot.nextPrompt) {
@@ -466,8 +476,9 @@ async function loadPromptQueueSnapshot(options: {
     isRichUiEnabled: boolean;
     progressDisplay?: CliProgressDisplay;
     uiHandle?: CoderRunUiHandle;
+    runnerFilter?: RunnerFilter;
 }): Promise<PromptQueueSnapshot> {
-    const { options: runOptions, isRichUiEnabled, progressDisplay, uiHandle } = options;
+    const { options: runOptions, isRichUiEnabled, progressDisplay, uiHandle, runnerFilter } = options;
     uiHandle?.state.setCurrentScriptPath(undefined);
 
     const promptFiles = await loadPromptFiles(PROMPTS_DIR);
@@ -483,7 +494,7 @@ async function loadPromptQueueSnapshot(options: {
     return {
         promptFiles,
         stats,
-        nextPrompt: findNextTodoPrompt(promptFiles, runOptions.priorityFilter),
+        nextPrompt: findNextTodoPrompt(promptFiles, runOptions.priorityFilter, runnerFilter),
     };
 }
 
@@ -496,8 +507,9 @@ function showUpcomingTasksOnce(options: {
     stats: PromptStats;
     priorityFilter?: PriorityFilter;
     isRichUiEnabled: boolean;
+    runnerFilter?: RunnerFilter;
 }): boolean {
-    const { hasShownUpcomingTasks, promptFiles, stats, priorityFilter, isRichUiEnabled } = options;
+    const { hasShownUpcomingTasks, promptFiles, stats, priorityFilter, isRichUiEnabled, runnerFilter } = options;
 
     if (hasShownUpcomingTasks || isRichUiEnabled) {
         return true;
@@ -509,7 +521,7 @@ function showUpcomingTasksOnce(options: {
         console.info('');
     }
 
-    printUpcomingTasks(listUpcomingTasks(promptFiles, priorityFilter));
+    printUpcomingTasks(listUpcomingTasks(promptFiles, priorityFilter, runnerFilter));
     return true;
 }
 

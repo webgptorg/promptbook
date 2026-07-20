@@ -30,6 +30,7 @@ export function parsePromptFile(filePath: string, content: string): PromptFile {
             const parsedStatus = parseStatusLine(statusLine);
             const status = parsedStatus?.status ?? 'not-ready';
             const priority = parsedStatus?.priority ?? 0;
+            const requiredModelOrHarnessTokens = parsedStatus?.requiredModelOrHarnessTokens ?? [];
 
             sections.push({
                 index,
@@ -37,6 +38,7 @@ export function parsePromptFile(filePath: string, content: string): PromptFile {
                 endLine,
                 status,
                 priority,
+                requiredModelOrHarnessTokens,
                 statusLineIndex: parsedStatus ? firstNonEmptyLine : undefined,
             });
             index += 1;
@@ -56,38 +58,77 @@ export function parsePromptFile(filePath: string, content: string): PromptFile {
 }
 
 /**
- * Parses a status line like "[ ] !!" or "[-]" or "[x] ~$0.65 21 minutes..." into status and priority.
- * For [x] done and [!] failed prompts, allow metadata after the status marker.
+ * Parses a status line into status, priority and any required model or harness tokens.
+ *
+ * Examples: "[ ] !!", "[-]", "[ ] use `gpt-5.5`", "[ ] !!!! `gpt`", "[x] ~$0.65 21 minutes...".
+ * For [x] done and [!] failed prompts, any content after the status marker is allowed and ignored.
  */
-function parseStatusLine(line: string): { status: PromptStatus; priority: number } | undefined {
+function parseStatusLine(
+    line: string,
+): { status: PromptStatus; priority: number; requiredModelOrHarnessTokens: string[] } | undefined {
     // For done prompts [x], allow any content after (for cost/time metadata)
     const doneMatch = line.match(/^\[(?<status>[xX])\]/);
     if (doneMatch) {
-        return { status: 'done', priority: 0 };
+        return { status: 'done', priority: 0, requiredModelOrHarnessTokens: [] };
     }
 
     // For failed prompts [!], allow any content after (for failure metadata)
     const failedMatch = line.match(/^\[(?<status>!)\]/);
     if (failedMatch) {
-        return { status: 'failed', priority: 0 };
+        return { status: 'failed', priority: 0, requiredModelOrHarnessTokens: [] };
     }
 
-    // For todo [ ] and not-ready [-], require clean end with optional priority markers
-    const match = line.match(/^\[(?<status>[ -])\]\s*(?<priority>!*)\s*$/);
+    // For todo [ ] and not-ready [-], the marker may be followed by priority markers (`!`) and/or
+    // required model or harness tokens written in backticks (for example `gpt-5.5` or `github-copilot`).
+    const match = line.match(/^\[(?<status>[ -])\](?<annotations>.*)$/);
     if (!match) {
         return undefined;
     }
-    const statusChar = match.groups?.status?.toLowerCase();
-    let status: PromptStatus;
 
-    if (statusChar === '-') {
-        status = 'not-ready';
-    } else {
-        status = 'todo';
+    const parsedAnnotations = parseStatusLineAnnotations(match.groups?.annotations ?? '');
+    if (parsedAnnotations === undefined) {
+        return undefined;
     }
 
-    const priority = status === 'todo' ? match.groups?.priority?.length ?? 0 : 0;
-    return { status, priority };
+    const status: PromptStatus = match.groups?.status?.toLowerCase() === '-' ? 'not-ready' : 'todo';
+
+    // Note: Only actionable todo prompts carry a priority and a runner requirement
+    return {
+        status,
+        priority: status === 'todo' ? parsedAnnotations.priority : 0,
+        requiredModelOrHarnessTokens: status === 'todo' ? parsedAnnotations.requiredModelOrHarnessTokens : [],
+    };
+}
+
+/**
+ * Parses the annotations that may follow a todo `[ ]` or not-ready `[-]` status marker.
+ *
+ * Recognizes priority markers (`!`) and required model or harness tokens written in backticks, so
+ * that a line such as "[ ] use `github-copilot` !!!!!" yields priority `5` and token `github-copilot`.
+ * When at least one backtick token is present the surrounding free-text filler (for example `use`
+ * or `model`) is ignored. When no token is present the annotations must contain only priority
+ * markers, matching the historical strict parsing so that unrelated lines are not read as statuses.
+ *
+ * Returns `undefined` when the annotations cannot be interpreted as a status line.
+ */
+function parseStatusLineAnnotations(
+    annotations: string,
+): { priority: number; requiredModelOrHarnessTokens: string[] } | undefined {
+    const requiredModelOrHarnessTokens: string[] = [];
+    const annotationsWithoutTokens = annotations.replace(/`(?<token>[^`]+)`/g, (_wholeMatch, token: string) => {
+        const trimmedToken = token.trim();
+        if (trimmedToken !== '') {
+            requiredModelOrHarnessTokens.push(trimmedToken);
+        }
+        return ' ';
+    });
+
+    if (requiredModelOrHarnessTokens.length === 0 && !/^[\s!]*$/.test(annotationsWithoutTokens)) {
+        return undefined;
+    }
+
+    const priority = (annotationsWithoutTokens.match(/!/g) ?? []).length;
+    return { priority, requiredModelOrHarnessTokens };
 }
 
 /**
