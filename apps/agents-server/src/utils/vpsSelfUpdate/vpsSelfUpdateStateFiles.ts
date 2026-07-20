@@ -111,6 +111,30 @@ export async function readVpsSelfUpdateStatusFile(): Promise<Map<string, string>
 }
 
 /**
+ * Reads the last modification time of the persisted shell-owned self-update status file.
+ *
+ * Used as the effective finish time when a self-update process is terminated by the server
+ * restart it triggers before it can record its own `FINISHED_AT` timestamp.
+ *
+ * @returns ISO modification timestamp or `null` when the status file does not exist yet.
+ *
+ * @private function of `vpsSelfUpdate`
+ */
+export async function readVpsSelfUpdateStatusFileModifiedAt(): Promise<string | null> {
+    const statusFilePath = resolveVpsSelfUpdateStatusFilePath();
+    try {
+        const statusFileStats = await stat(statusFilePath);
+        return statusFileStats.mtime.toISOString();
+    } catch (error) {
+        if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+            return null;
+        }
+
+        throw error;
+    }
+}
+
+/**
  * Writes the minimal initial status file before the detached installer takes over.
  *
  * @param entries - Flat status-file fields.

@@ -4,6 +4,7 @@ import {
     decodeVpsSelfUpdateStatusField,
     readLastVpsSelfUpdateTextFileChunk,
     readVpsSelfUpdateStatusFile,
+    readVpsSelfUpdateStatusFileModifiedAt,
     resolveVpsSelfUpdateLogFilePath,
 } from './vpsSelfUpdateStateFiles';
 import type {
@@ -75,6 +76,12 @@ export async function readPersistedVpsSelfUpdateJob(
     const trigger = isVpsSelfUpdateJobTrigger(rawTrigger) ? rawTrigger : 'manual';
     const isStale = status === 'running' && pid !== null ? !(await isVpsSelfUpdateProcessAlive(pid)) : false;
     const databaseMigrations = parseVpsSelfUpdateDatabaseMigrationSnapshot(statusEntries, status);
+    // A successful self-update restarts the server, which usually terminates the detached installer
+    // before it can write its own `FINISHED_AT`. When such a run is now stale (running status, dead
+    // process), fall back to the status file's last-write time so the real total update time is
+    // still reported instead of a misleading zero-second duration.
+    const recordedFinishedAt = statusEntries.get('FINISHED_AT') || null;
+    const finishedAt = recordedFinishedAt || (isStale ? await readVpsSelfUpdateStatusFileModifiedAt() : null);
 
     return {
         jobId,
@@ -88,7 +95,7 @@ export async function readPersistedVpsSelfUpdateJob(
         targetCommitSha: statusEntries.get('TARGET_COMMIT') || null,
         errorMessage: isStale && !errorMessage ? VPS_SELF_UPDATE_STALE_ERROR_MESSAGE : errorMessage,
         startedAt: statusEntries.get('STARTED_AT') || null,
-        finishedAt: statusEntries.get('FINISHED_AT') || null,
+        finishedAt,
         isStale,
         logTail: options.isLogTailIncluded === false ? null : await readLastVpsSelfUpdateTextFileChunk(logFilePath),
         logFilePath,

@@ -31,7 +31,9 @@ export function mapVpsSelfUpdateJobToAdminChatTask(job: VpsSelfUpdateJobSnapshot
 
     const isTerminalStatus = status === 'COMPLETED' || status === 'FAILED';
     const startedAt = job.startedAt;
-    const finishedAt = isTerminalStatus ? job.finishedAt || startedAt : null;
+    // Report the real recorded finish time only; falling back to `startedAt` would render a
+    // misleading zero-second total duration for a self-update whose finish time is unknown.
+    const finishedAt = isTerminalStatus ? job.finishedAt : null;
     const updatedAt = finishedAt || startedAt || new Date().toISOString();
     const errorSummary = job.errorMessage || null;
     const currentStepDetails = job.currentStep || null;
