@@ -1,4 +1,4 @@
-[ ] !!!!!!!!!!!!!
+[x] $18.70 36 minutes by Claude Code `fable`
 
 [✨🏖] Fix the projects and server domains
 
@@ -25,3 +25,4 @@
 -   Do a proper analysis of the current functionality of agent projects before you start fixing or implementing
 -   You are working with the [Agents Server](apps/agents-server) with agent projects (`/agents/<agentId>/projects`)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

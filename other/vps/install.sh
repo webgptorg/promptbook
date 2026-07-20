@@ -47,6 +47,10 @@ NGINX_BRANDED_SERVER_HEADER="Promptbook Agents Server"
 NGINX_BRANDING_CONF_PATH="/etc/nginx/conf.d/promptbook-agents-server-branding.conf"
 NGINX_ERROR_SNIPPET_PATH="/etc/nginx/snippets/promptbook-agents-server-errors.conf"
 NGINX_PROXY_SNIPPET_PATH="/etc/nginx/snippets/promptbook-agents-server-proxy.conf"
+NGINX_SSL_SNIPPET_PATH="/etc/nginx/snippets/promptbook-agents-server-ssl.conf"
+NGINX_ACME_CHALLENGE_WEBROOT_DIR="/var/www/promptbook-agents-server-acme"
+CERTBOT_RENEWAL_DEPLOY_HOOK_PATH="/etc/letsencrypt/renewal-hooks/deploy/promptbook-agents-server-reload-nginx.sh"
+LETS_ENCRYPT_LIVE_DIRECTORY="/etc/letsencrypt/live"
 NGINX_FALLBACK_DIR="/var/www/promptbook-agents-server"
 NGINX_FALLBACK_HTML_PATH="$NGINX_FALLBACK_DIR/fallback.html"
 NGINX_FALLBACK_URI="/__promptbook_agents_server_error.html"
@@ -2740,22 +2744,34 @@ build_nginx_agent_project_vscode_location_block() {
 EOF
 }
 
-build_nginx_agent_project_runtime_server_block() {
-    local project_server_names="$1"
+build_nginx_acme_challenge_location_block() {
+    cat <<EOF
+    # Serve ACME HTTP-01 challenges from a static webroot so certificates can be
+    # issued and renewed without certbot ever editing this nginx configuration.
+    location ^~ /.well-known/acme-challenge/ {
+        root ${NGINX_ACME_CHALLENGE_WEBROOT_DIR};
+        default_type "text/plain";
+    }
+EOF
+}
 
-    if [[ -z "$project_server_names" ]]; then
-        return
-    fi
-
+build_nginx_agents_server_location_blocks() {
+    build_nginx_acme_challenge_location_block
+    printf '\n'
+    build_nginx_next_static_location_block
+    build_nginx_self_contained_s3_location_block
+    build_nginx_agent_project_vscode_location_block
     cat <<EOF
 
-server {
-    listen 80;
-    listen [::]:80;
-    server_name ${project_server_names};
+    location / {
+        include ${NGINX_PROXY_SNIPPET_PATH};
+    }
+EOF
+}
 
-    client_max_body_size 100m;
-    include ${NGINX_ERROR_SNIPPET_PATH};
+build_nginx_agent_project_location_blocks() {
+    build_nginx_acme_challenge_location_block
+    cat <<EOF
 
     location = /api/agent-project-runtime-auth {
         internal;
@@ -2783,8 +2799,120 @@ server {
         proxy_read_timeout 3600s;
         proxy_send_timeout 3600s;
     }
+EOF
+}
+
+build_nginx_http_server_block() {
+    local server_names="$1"
+    local location_blocks="$2"
+
+    cat <<EOF
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name ${server_names};
+
+    client_max_body_size 100m;
+    include ${NGINX_ERROR_SNIPPET_PATH};
+
+${location_blocks}
 }
 EOF
+}
+
+build_nginx_http_redirect_server_block() {
+    local domain="$1"
+
+    cat <<EOF
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name ${domain};
+
+$(build_nginx_acme_challenge_location_block)
+
+    location / {
+        return 301 https://\$host\$request_uri;
+    }
+}
+EOF
+}
+
+build_nginx_https_server_block() {
+    local domain="$1"
+    local location_blocks="$2"
+
+    cat <<EOF
+
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    server_name ${domain};
+
+    ssl_certificate ${LETS_ENCRYPT_LIVE_DIRECTORY}/${domain}/fullchain.pem;
+    ssl_certificate_key ${LETS_ENCRYPT_LIVE_DIRECTORY}/${domain}/privkey.pem;
+    include ${NGINX_SSL_SNIPPET_PATH};
+
+    client_max_body_size 100m;
+    include ${NGINX_ERROR_SNIPPET_PATH};
+
+${location_blocks}
+}
+EOF
+}
+
+# Emits the two nginx server blocks of one public domain: the port-80 block and,
+# when a Let's Encrypt certificate already exists on disk, the port-443 block.
+# Domains without a certificate stay reachable over plain HTTP, so one domain
+# with failing DNS or certificate issuance can never break the other domains.
+build_nginx_domain_server_blocks() {
+    local domain="$1"
+    local location_blocks="$2"
+
+    if domain_has_ssl_certificate "$domain"; then
+        build_nginx_http_redirect_server_block "$domain"
+        build_nginx_https_server_block "$domain" "$location_blocks"
+    else
+        build_nginx_http_server_block "$domain" "$location_blocks"
+    fi
+}
+
+domain_has_ssl_certificate() {
+    local domain="$1"
+
+    "${SUDO[@]}" test -s "$LETS_ENCRYPT_LIVE_DIRECTORY/$domain/fullchain.pem" 2>/dev/null &&
+        "${SUDO[@]}" test -s "$LETS_ENCRYPT_LIVE_DIRECTORY/$domain/privkey.pem" 2>/dev/null
+}
+
+write_nginx_ssl_snippet() {
+    "${SUDO[@]}" tee "$NGINX_SSL_SNIPPET_PATH" >/dev/null <<EOF
+# Managed by the Promptbook Agents Server installer.
+ssl_session_timeout 1d;
+ssl_session_cache shared:PromptbookAgentsServerSSL:10m;
+ssl_session_tickets off;
+ssl_protocols TLSv1.2 TLSv1.3;
+ssl_prefer_server_ciphers off;
+EOF
+}
+
+ensure_acme_challenge_webroot() {
+    "${SUDO[@]}" install -d -m 755 "$NGINX_ACME_CHALLENGE_WEBROOT_DIR"
+}
+
+install_certbot_renewal_reload_hook() {
+    "${SUDO[@]}" install -d -m 755 "$(dirname "$CERTBOT_RENEWAL_DEPLOY_HOOK_PATH")"
+    "${SUDO[@]}" tee "$CERTBOT_RENEWAL_DEPLOY_HOOK_PATH" >/dev/null <<'EOF'
+#!/usr/bin/env bash
+# Managed by the Promptbook Agents Server installer.
+# Reloads nginx after every successful certificate (re)issuance so renewed
+# certificates are served without any manual intervention.
+if nginx -t >/dev/null 2>&1; then
+    systemctl reload nginx || true
+fi
+EOF
+    "${SUDO[@]}" chmod 755 "$CERTBOT_RENEWAL_DEPLOY_HOOK_PATH"
 }
 
 configure_nginx_branding() {
@@ -2794,37 +2922,46 @@ configure_nginx_branding() {
     write_nginx_branding_configuration
     write_nginx_error_snippet
     write_nginx_proxy_snippet
+    write_nginx_ssl_snippet
+    ensure_acme_challenge_webroot
 }
 
 configure_nginx_reverse_proxy() {
     local nginx_available_path="/etc/nginx/sites-available/${NGINX_SITE_NAME}"
     local nginx_enabled_path="/etc/nginx/sites-enabled/${NGINX_SITE_NAME}"
-    local server_names=""
-    local project_server_names=""
-    local next_static_location_block=""
-    local s3_location_block=""
-    local agent_project_vscode_location_block=""
-    local agent_project_runtime_server_block=""
+    local domain=""
+    local nginx_configuration=""
+    local agents_server_location_blocks=""
+    local agent_project_location_blocks=""
+    local secured_domains=()
+    local insecure_domains=()
 
     configure_nginx_branding
 
-    server_names="$(join_by_space "${DOMAINS[@]}")"
-    project_server_names="$(join_by_space "${PROJECT_DOMAINS[@]}")"
-    next_static_location_block="$(build_nginx_next_static_location_block)"
-    s3_location_block="$(build_nginx_self_contained_s3_location_block)"
-    agent_project_vscode_location_block="$(build_nginx_agent_project_vscode_location_block)"
-    agent_project_runtime_server_block="$(build_nginx_agent_project_runtime_server_block "$project_server_names")"
+    agents_server_location_blocks="$(build_nginx_agents_server_location_blocks)"
+    agent_project_location_blocks="$(build_nginx_agent_project_location_blocks)"
 
-    if [[ -n "$server_names" ]]; then
-        log "Configuring nginx reverse proxy for raw IP access and $server_names."
-    else
-        log "Configuring nginx reverse proxy for raw IP access."
+    for domain in "${DOMAINS[@]}" "${PROJECT_DOMAINS[@]}"; do
+        if domain_has_ssl_certificate "$domain"; then
+            secured_domains+=("$domain")
+        else
+            insecure_domains+=("$domain")
+        fi
+    done
+
+    log "Configuring nginx reverse proxy for raw IP access."
+    if [[ "${#secured_domains[@]}" -gt 0 ]]; then
+        log "Serving HTTPS with existing certificates for: $(join_by_comma "${secured_domains[@]}")."
     fi
-    if [[ -n "$project_server_names" ]]; then
-        log "Configuring nginx reverse proxy for agent project subdomains: $project_server_names."
+    if [[ "${#insecure_domains[@]}" -gt 0 ]]; then
+        log "Serving plain HTTP (no certificate yet) for: $(join_by_comma "${insecure_domains[@]}")."
     fi
 
-    "${SUDO[@]}" tee "$nginx_available_path" >/dev/null <<EOF
+    # The raw-IP default server guarantees the Agents Server always stays
+    # reachable over plain HTTP, no matter what happens to any domain or
+    # certificate below.
+    nginx_configuration="$(
+        cat <<EOF
 map \$http_upgrade \$promptbook_connection_upgrade {
     default upgrade;
     '' close;
@@ -2838,49 +2975,58 @@ server {
     client_max_body_size 100m;
     include ${NGINX_ERROR_SNIPPET_PATH};
 
-${next_static_location_block}
-${s3_location_block}
-${agent_project_vscode_location_block}
-
-    location / {
-        include ${NGINX_PROXY_SNIPPET_PATH};
-    }
+${agents_server_location_blocks}
 }
 EOF
+    )"
 
-    if [[ -n "$server_names" ]]; then
-        "${SUDO[@]}" tee -a "$nginx_available_path" >/dev/null <<EOF
+    for domain in "${DOMAINS[@]}"; do
+        nginx_configuration+="$(build_nginx_domain_server_blocks "$domain" "$agents_server_location_blocks")"
+    done
 
-server {
-    listen 80;
-    listen [::]:80;
-    server_name ${server_names};
+    for domain in "${PROJECT_DOMAINS[@]}"; do
+        nginx_configuration+="$(build_nginx_domain_server_blocks "$domain" "$agent_project_location_blocks")"
+    done
 
-    client_max_body_size 100m;
-    include ${NGINX_ERROR_SNIPPET_PATH};
-
-${next_static_location_block}
-${s3_location_block}
-${agent_project_vscode_location_block}
-
-    location / {
-        include ${NGINX_PROXY_SNIPPET_PATH};
-    }
-}
-EOF
-    fi
-
-    if [[ -n "$agent_project_runtime_server_block" ]]; then
-        "${SUDO[@]}" tee -a "$nginx_available_path" >/dev/null <<EOF
-${agent_project_runtime_server_block}
-EOF
-    fi
-
-    "${SUDO[@]}" ln -sfn "$nginx_available_path" "$nginx_enabled_path"
-    "${SUDO[@]}" rm -f /etc/nginx/sites-enabled/default
-    test_nginx_config
+    write_nginx_site_configuration "$nginx_available_path" "$nginx_enabled_path" "$nginx_configuration"
     "${SUDO[@]}" systemctl enable nginx >/dev/null
     reload_or_restart_nginx
+}
+
+# Writes the nginx site configuration atomically: the previous configuration is
+# backed up first and restored when the generated one does not pass `nginx -t`,
+# so a bad generation can never take the running server offline.
+write_nginx_site_configuration() {
+    local nginx_available_path="$1"
+    local nginx_enabled_path="$2"
+    local nginx_configuration="$3"
+    local nginx_backup_path="${nginx_available_path}.promptbook-previous"
+    local is_backup_available=0
+
+    if "${SUDO[@]}" test -f "$nginx_available_path"; then
+        "${SUDO[@]}" cp "$nginx_available_path" "$nginx_backup_path"
+        is_backup_available=1
+    fi
+
+    printf '%s\n' "$nginx_configuration" | "${SUDO[@]}" tee "$nginx_available_path" >/dev/null
+    "${SUDO[@]}" ln -sfn "$nginx_available_path" "$nginx_enabled_path"
+    "${SUDO[@]}" rm -f /etc/nginx/sites-enabled/default
+
+    if "${SUDO[@]}" nginx -t; then
+        return
+    fi
+
+    if [[ "$is_backup_available" -eq 1 ]]; then
+        warn "The generated nginx configuration is invalid; restoring the previous working configuration."
+        "${SUDO[@]}" cp "$nginx_backup_path" "$nginx_available_path"
+    else
+        warn "The generated nginx configuration is invalid; disabling the site so nginx keeps running."
+        "${SUDO[@]}" rm -f "$nginx_enabled_path" "$nginx_available_path"
+    fi
+
+    test_nginx_config
+    reload_or_restart_nginx
+    fail "The generated nginx configuration failed validation and was rolled back; the server keeps running on the previous configuration. Inspect the output of: sudo nginx -t"
 }
 
 reload_or_restart_nginx() {
@@ -2909,7 +3055,9 @@ warn_if_domain_dns_is_not_ready() {
     fi
 
     for domain in "${checked_domains[@]}"; do
-        resolved_addresses="$(getent ahosts "$domain" 2>/dev/null | awk '{ print $1 }' | sort -u | tr '\n' ' ' | sed -E 's/[[:space:]]+$//')"
+        # `|| true` keeps a non-resolving domain from aborting the whole script
+        # under `set -e`; an unresolved domain must only produce a warning.
+        resolved_addresses="$(getent ahosts "$domain" 2>/dev/null | awk '{ print $1 }' | sort -u | tr '\n' ' ' | sed -E 's/[[:space:]]+$//' || true)"
         if [[ -z "$resolved_addresses" ]]; then
             warn "$domain does not resolve yet. Certbot HTTP validation will fail until DNS propagates."
             continue
@@ -2921,19 +3069,22 @@ warn_if_domain_dns_is_not_ready() {
     done
 }
 
-configure_ssl_certificates() {
-    local certbot_arguments=(--nginx --non-interactive --agree-tos --redirect --keep-until-expiring --expand)
-    local domain=""
-    local certificate_domains=("${DOMAINS[@]}" "${PROJECT_DOMAINS[@]}")
-    local certificate_domains_label=""
-    local first_domain="${DOMAINS[0]:-}"
-
-    if [[ "${#certificate_domains[@]}" -eq 0 ]]; then
-        log "Skipping Let's Encrypt SSL setup because no custom domains are configured."
-        return
-    fi
-
-    warn_if_domain_dns_is_not_ready
+# Requests one isolated Let's Encrypt certificate for a single domain. The
+# `--cert-name` pin gives every domain its own certificate lineage, so a
+# validation failure of one domain (missing DNS, firewall, rate limit, ...)
+# can never break certificates or renewals of any other domain.
+request_ssl_certificate_for_domain() {
+    local domain="$1"
+    local certbot_arguments=(
+        certonly
+        --webroot
+        --webroot-path "$NGINX_ACME_CHALLENGE_WEBROOT_DIR"
+        --cert-name "$domain"
+        --domain "$domain"
+        --non-interactive
+        --agree-tos
+        --keep-until-expiring
+    )
 
     if [[ -n "$LETS_ENCRYPT_EMAIL" ]]; then
         certbot_arguments+=(--email "$LETS_ENCRYPT_EMAIL")
@@ -2941,19 +3092,38 @@ configure_ssl_certificates() {
         certbot_arguments+=(--register-unsafely-without-email)
     fi
 
-    for domain in "${certificate_domains[@]}"; do
-        certbot_arguments+=(-d "$domain")
-    done
-    certificate_domains_label="$(join_by_comma "${certificate_domains[@]}")"
+    "${SUDO[@]}" certbot "${certbot_arguments[@]}"
+}
 
-    log "Requesting Let's Encrypt SSL certificate for $certificate_domains_label."
-    if ! "${SUDO[@]}" certbot "${certbot_arguments[@]}"; then
-        warn "Let's Encrypt certificate request failed for $certificate_domains_label. Keeping the current public URL unchanged so raw-IP bootstrap access remains available."
-        warn "Fix DNS and firewall access for these domains, then rerun: bash $PROMPTBOOK_REPOSITORY_DIR/other/vps/install.sh apply-domains"
+configure_ssl_certificates() {
+    local domain=""
+    local certificate_domains=("${DOMAINS[@]}" "${PROJECT_DOMAINS[@]}")
+    local failed_domains=()
+    local first_domain="${DOMAINS[0]:-}"
+
+    if [[ "${#certificate_domains[@]}" -eq 0 ]]; then
+        log "Skipping Let's Encrypt SSL setup because no custom domains are configured."
         return
     fi
 
-    if [[ -n "$first_domain" ]]; then
+    ensure_acme_challenge_webroot
+    install_certbot_renewal_reload_hook
+    warn_if_domain_dns_is_not_ready
+
+    for domain in "${certificate_domains[@]}"; do
+        log "Requesting Let's Encrypt SSL certificate for $domain."
+        if ! request_ssl_certificate_for_domain "$domain"; then
+            failed_domains+=("$domain")
+            warn "Let's Encrypt certificate request failed for $domain. All other domains stay untouched and $domain stays reachable over plain HTTP."
+        fi
+    done
+
+    if [[ "${#failed_domains[@]}" -gt 0 ]]; then
+        warn "Certificates could not be issued for: $(join_by_comma "${failed_domains[@]}")."
+        warn "Point the DNS of these domains to $PUBLIC_IP_ADDRESS, then rerun: bash $PROMPTBOOK_REPOSITORY_DIR/other/vps/install.sh apply-domains"
+    fi
+
+    if [[ -n "$first_domain" ]] && domain_has_ssl_certificate "$first_domain"; then
         set_env_value NEXT_PUBLIC_SITE_URL "https://${first_domain}"
         local configured_storage_mode=""
         configured_storage_mode="$(get_env_value PTBK_FILE_STORAGE_MODE)"
@@ -2962,7 +3132,9 @@ configure_ssl_certificates() {
         fi
     fi
 
-    "${SUDO[@]}" systemctl reload nginx
+    # Re-render the nginx configuration so freshly issued certificates start
+    # serving HTTPS immediately while failed domains keep their HTTP fallback.
+    configure_nginx_reverse_proxy
 }
 
 configure_pm2_startup() {
@@ -3604,6 +3776,15 @@ self_update_agents_server() {
     set_env_value PTBK_PM2_BASE_APP_NAME "$PTBK_PM2_BASE_APP_NAME"
     set_env_value PTBK_PM2_APP_NAME "$replacement_app_name"
 
+    # Refresh the nginx and SSL configuration for the server and project domains
+    # so self-update also repairs missing HTTPS server blocks or certificates.
+    # Failures only warn: a domain problem must never break the self-update or
+    # take the already switched-over Agents Server offline.
+    write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Refreshing nginx and SSL configuration for server and project domains." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "" "$$"
+    if ! (configure_nginx_reverse_proxy && configure_ssl_certificates); then
+        warn "Refreshing the nginx and SSL configuration failed; keeping the previous configuration. Rerun later with: bash $PROMPTBOOK_REPOSITORY_DIR/other/vps/install.sh apply-domains"
+    fi
+
     write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Removing previous Agents Server pm2 processes and garbage-collecting old versions." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "" "$$"
     if [[ "$old_app_name" != "$replacement_app_name" ]]; then
         stop_pm2_process_if_running "$old_app_name"
@@ -3705,6 +3886,12 @@ main() {
     configure_ssl_certificates
     print_summary
 }
+
+# When sourced (for example by tests), only load the function definitions and
+# never run the installer itself.
+if [[ "${BASH_SOURCE[0]}" != "$0" ]]; then
+    return 0
+fi
 
 while [[ "$#" -gt 0 ]]; do
     case "$1" in
