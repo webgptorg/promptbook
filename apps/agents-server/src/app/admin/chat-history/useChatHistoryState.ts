@@ -7,12 +7,18 @@ import {
     $clearAgentChatHistory,
     $deleteChatHistoryRow,
     $fetchChatHistory,
+    $fetchChatHistoryThreads,
     type ChatHistoryListParams,
     type ChatHistoryListResponse,
     type ChatHistoryRow,
     type ChatHistorySortField,
     type ChatHistorySortOrder,
+    type ChatHistoryThread,
 } from '../../../utils/chatHistoryAdmin';
+import {
+    resolveChatHistoryMessageSender,
+    resolveChatHistoryMessageText,
+} from '../../../utils/chatHistoryMessage';
 import {
     $saveMockedChatPresetFromMessages,
     MOCKED_CHATS_EDITOR_ROUTE,
@@ -70,6 +76,14 @@ type UseChatHistoryStateProps = {
      */
     initialAgentName?: string;
     /**
+     * Optional initial chat thread filter, taken from the URL query.
+     */
+    initialChatId?: string;
+    /**
+     * Optional initial view mode, taken from the URL query.
+     */
+    initialViewMode?: ChatHistoryViewMode;
+    /**
      * Active text formatter for agent naming.
      */
     formatText: (text: string) => string;
@@ -88,6 +102,10 @@ export type UseChatHistoryState = {
     pageSize: number;
     totalPages: number;
     agentName: string;
+    chatId: string;
+    threads: ChatHistoryThread[];
+    threadsLoading: boolean;
+    selectedThread: ChatHistoryThread | null;
     searchInput: string;
     sortBy: ChatHistorySortField;
     sortOrder: ChatHistorySortOrder;
@@ -100,6 +118,7 @@ export type UseChatHistoryState = {
     handleSearchInputChange: (event: ChangeEvent<HTMLInputElement>) => void;
     handleSearchSubmit: (event: FormEvent<HTMLFormElement>) => void;
     handleAgentChange: (event: ChangeEvent<HTMLSelectElement>) => void;
+    handleChatThreadChange: (chatId: string) => void;
     handlePageSizeChange: (event: ChangeEvent<HTMLSelectElement>) => void;
     handleSortChange: (field: ChatHistorySortField) => void;
     handleViewModeChange: (mode: ChatHistoryViewMode) => void;
@@ -135,17 +154,23 @@ function mapAdminAgents(data: AgentsApiResponse): AdminAgentInfo[] {
  * Builds fetch params for the current chat history view state.
  */
 function createChatHistoryListParams(
-    state: Pick<UseChatHistoryState, 'page' | 'pageSize' | 'agentName'> & {
+    state: Pick<UseChatHistoryState, 'page' | 'pageSize' | 'agentName' | 'chatId'> & {
         search: string;
         sortBy: ChatHistorySortField;
         sortOrder: ChatHistorySortOrder;
     },
     overrides: Partial<ChatHistoryListParams> = {},
 ): ChatHistoryListParams {
+    const chatId = state.chatId || undefined;
+
     return {
         page: state.page,
         pageSize: state.pageSize,
-        agentName: state.agentName || undefined,
+        // Note: A chat thread belongs to exactly one agent, so a selected `chatId` fully
+        // determines the rows and the redundant `agentName` filter is dropped. This keeps
+        // deep-links robust even when the agent was addressed by permanent id.
+        agentName: chatId ? undefined : state.agentName || undefined,
+        chatId,
         search: state.search || undefined,
         sortBy: state.sortBy,
         sortOrder: state.sortOrder,
@@ -180,31 +205,19 @@ function getChatHistoryViewSettings(mode: ChatHistoryViewMode): ChatHistoryViewS
 }
 
 /**
- * Builds the CSV export URL for the active agent filter.
+ * Builds the CSV export URL for the active agent and chat thread filters.
  */
-function getChatHistoryExportUrl(agentName: string): string {
+function getChatHistoryExportUrl(agentName: string, chatId: string): string {
     const params = new URLSearchParams();
 
-    if (agentName) {
+    if (chatId) {
+        // Note: A selected chat thread fully determines the exported rows (see `createChatHistoryListParams`)
+        params.set('chatId', chatId);
+    } else if (agentName) {
         params.set('agentName', agentName);
     }
 
     return `/api/chat-history/export?${params.toString()}`;
-}
-
-/**
- * Converts one stored chat message into the sender used by <MockedChat/>.
- */
-function resolveChatHistoryMessageSender(message: unknown): ChatMessage['sender'] {
-    const role = ((message as { role?: string }).role || 'USER').toUpperCase();
-    return role === 'USER' ? 'USER' : 'ASSISTANT';
-}
-
-/**
- * Converts one stored chat message into the content used by <MockedChat/>.
- */
-function resolveChatHistoryMessageContent(message: unknown): ChatMessage['content'] {
-    return (message as { content?: ChatMessage['content'] }).content || JSON.stringify(message);
 }
 
 /**
@@ -218,7 +231,7 @@ function createChatHistoryMessages(items: ChatHistoryRow[], viewMode: ChatHistor
     return items.map((row) => ({
         id: String(row.id),
         sender: resolveChatHistoryMessageSender(row.message),
-        content: resolveChatHistoryMessageContent(row.message),
+        content: resolveChatHistoryMessageText(row.message) || JSON.stringify(row.message),
         isComplete: true,
         createdAt: row.createdAt as string_date_iso8601,
     }));
@@ -230,10 +243,7 @@ function createChatHistoryMessages(items: ChatHistoryRow[], viewMode: ChatHistor
 function mapChatHistoryRowToMockedChatSourceMessage(row: ChatHistoryRow): MockedChatSourceMessage {
     return {
         sender: String(resolveChatHistoryMessageSender(row.message)),
-        content:
-            typeof resolveChatHistoryMessageContent(row.message) === 'string'
-                ? (resolveChatHistoryMessageContent(row.message) as string)
-                : JSON.stringify(row.message),
+        content: resolveChatHistoryMessageText(row.message) || JSON.stringify(row.message),
         createdAt: row.createdAt,
     };
 }
@@ -274,17 +284,26 @@ async function confirmClearAgentHistory(agentName: string, formatText: (text: st
  *
  * @private function of <ChatHistoryClient/>
  */
-export function useChatHistoryState({ initialAgentName, formatText }: UseChatHistoryStateProps): UseChatHistoryState {
+export function useChatHistoryState({
+    initialAgentName,
+    initialChatId,
+    initialViewMode,
+    formatText,
+}: UseChatHistoryStateProps): UseChatHistoryState {
+    const initialViewSettings = getChatHistoryViewSettings(initialViewMode ?? 'table');
     const [items, setItems] = useState<ChatHistoryRow[]>([]);
     const [total, setTotal] = useState(0);
     const [page, setPage] = useState(1);
-    const [pageSize, setPageSize] = useState(TABLE_VIEW_PAGE_SIZE);
+    const [pageSize, setPageSize] = useState(initialViewSettings.pageSize);
     const [agentName, setAgentName] = useState(initialAgentName ?? '');
+    const [chatId, setChatId] = useState(initialChatId ?? '');
+    const [threads, setThreads] = useState<ChatHistoryThread[]>([]);
+    const [threadsLoading, setThreadsLoading] = useState(false);
     const [searchInput, setSearchInput] = useState('');
     const [search, setSearch] = useState('');
-    const [sortBy, setSortBy] = useState<ChatHistorySortField>('createdAt');
-    const [sortOrder, setSortOrder] = useState<ChatHistorySortOrder>('desc');
-    const [viewMode, setViewMode] = useState<ChatHistoryViewMode>('table');
+    const [sortBy, setSortBy] = useState<ChatHistorySortField>(initialViewSettings.sortBy);
+    const [sortOrder, setSortOrder] = useState<ChatHistorySortOrder>(initialViewSettings.sortOrder);
+    const [viewMode, setViewMode] = useState<ChatHistoryViewMode>(initialViewMode ?? 'table');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [agents, setAgents] = useState<AdminAgentInfo[]>([]);
@@ -304,6 +323,7 @@ export function useChatHistoryState({ initialAgentName, formatText }: UseChatHis
                         page,
                         pageSize,
                         agentName,
+                        chatId,
                         search,
                         sortBy,
                         sortOrder,
@@ -311,7 +331,7 @@ export function useChatHistoryState({ initialAgentName, formatText }: UseChatHis
                     overrides,
                 ),
             ),
-        [page, pageSize, agentName, search, sortBy, sortOrder],
+        [page, pageSize, agentName, chatId, search, sortBy, sortOrder],
     );
 
     useEffect(() => {
@@ -350,6 +370,43 @@ export function useChatHistoryState({ initialAgentName, formatText }: UseChatHis
             setAgentName(initialAgentName);
         }
     }, [initialAgentName]);
+
+    useEffect(() => {
+        if (initialChatId) {
+            setChatId(initialChatId);
+        }
+    }, [initialChatId]);
+
+    useEffect(() => {
+        let isCancelled = false;
+
+        async function loadThreads() {
+            try {
+                setThreadsLoading(true);
+                const nextThreads = await $fetchChatHistoryThreads(agentName || undefined);
+                if (isCancelled) {
+                    return;
+                }
+
+                setThreads(nextThreads);
+            } catch {
+                // Note: The thread list is a browsing aid; a failure must not break the message views
+                if (!isCancelled) {
+                    setThreads([]);
+                }
+            } finally {
+                if (!isCancelled) {
+                    setThreadsLoading(false);
+                }
+            }
+        }
+
+        loadThreads();
+
+        return () => {
+            isCancelled = true;
+        };
+    }, [agentName]);
 
     useEffect(() => {
         let isCancelled = false;
@@ -393,9 +450,14 @@ export function useChatHistoryState({ initialAgentName, formatText }: UseChatHis
         return Math.max(1, Math.ceil(total / pageSize));
     }, [total, pageSize]);
 
-    const exportUrl = useMemo(() => getChatHistoryExportUrl(agentName), [agentName]);
+    const exportUrl = useMemo(() => getChatHistoryExportUrl(agentName, chatId), [agentName, chatId]);
 
     const chatMessages = useMemo(() => createChatHistoryMessages(items, viewMode), [items, viewMode]);
+
+    const selectedThread = useMemo(
+        () => (chatId ? threads.find((thread) => thread.chatId === chatId) ?? null : null),
+        [chatId, threads],
+    );
 
     const handleSearchInputChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
         setSearchInput(event.target.value);
@@ -412,8 +474,24 @@ export function useChatHistoryState({ initialAgentName, formatText }: UseChatHis
 
     const handleAgentChange = useCallback((event: ChangeEvent<HTMLSelectElement>) => {
         setAgentName(event.target.value);
+        // Note: Chat threads are scoped to a single agent, so switching agent clears the thread filter
+        setChatId('');
         setPage(1);
     }, []);
+
+    const handleChatThreadChange = useCallback(
+        (nextChatId: string) => {
+            setChatId(nextChatId);
+            setPage(1);
+
+            // Note: Selecting a thread also aligns the agent filter so both filters stay consistent
+            const nextThread = nextChatId ? threads.find((thread) => thread.chatId === nextChatId) : undefined;
+            if (nextThread && nextThread.agentName !== agentName) {
+                setAgentName(nextThread.agentName);
+            }
+        },
+        [agentName, threads],
+    );
 
     const handlePageSizeChange = useCallback((event: ChangeEvent<HTMLSelectElement>) => {
         const nextPageSize = parseInt(event.target.value, 10);
@@ -571,6 +649,10 @@ export function useChatHistoryState({ initialAgentName, formatText }: UseChatHis
         pageSize,
         totalPages,
         agentName,
+        chatId,
+        threads,
+        threadsLoading,
+        selectedThread,
         searchInput,
         sortBy,
         sortOrder,
@@ -583,6 +665,7 @@ export function useChatHistoryState({ initialAgentName, formatText }: UseChatHis
         handleSearchInputChange,
         handleSearchSubmit,
         handleAgentChange,
+        handleChatThreadChange,
         handlePageSizeChange,
         handleSortChange,
         handleViewModeChange,

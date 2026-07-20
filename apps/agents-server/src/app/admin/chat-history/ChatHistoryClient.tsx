@@ -1,10 +1,9 @@
 'use client';
 
-import { MockedChat } from '@promptbook-local/components';
 import { useAgentNaming } from '../../../components/AgentNaming/AgentNamingContext';
 import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
+import { ChatHistoryChatView } from './ChatHistoryChatView';
 import { ChatHistoryFiltersCard } from './ChatHistoryFiltersCard';
-import { ChatHistoryPagination } from './ChatHistoryPagination';
 import { ChatHistoryTable } from './ChatHistoryTable';
 import { useChatHistoryState } from './useChatHistoryState';
 
@@ -16,15 +15,23 @@ type ChatHistoryClientProps = {
      * Optional initial agent filter, taken from the URL query.
      */
     initialAgentName?: string;
+    /**
+     * Optional initial chat thread filter, taken from the URL query.
+     */
+    initialChatId?: string;
+    /**
+     * Optional initial view mode, taken from the URL query.
+     */
+    initialViewMode?: 'table' | 'chat';
 };
 
 /**
  * Handles chat history client.
  */
-export function ChatHistoryClient({ initialAgentName }: ChatHistoryClientProps) {
+export function ChatHistoryClient({ initialAgentName, initialChatId, initialViewMode }: ChatHistoryClientProps) {
     const { formatText } = useAgentNaming();
     const { language } = useServerLanguage();
-    const chatHistoryState = useChatHistoryState({ initialAgentName, formatText });
+    const chatHistoryState = useChatHistoryState({ initialAgentName, initialChatId, initialViewMode, formatText });
 
     return (
         <div className="container mx-auto px-4 py-8 space-y-6">
@@ -88,44 +95,34 @@ export function ChatHistoryClient({ initialAgentName }: ChatHistoryClientProps) 
                 agents={chatHistoryState.agents}
                 agentsLoading={chatHistoryState.agentsLoading}
                 handleAgentChange={chatHistoryState.handleAgentChange}
+                chatId={chatHistoryState.chatId}
+                threads={chatHistoryState.threads}
+                threadsLoading={chatHistoryState.threadsLoading}
+                handleChatThreadChange={chatHistoryState.handleChatThreadChange}
                 pageSize={chatHistoryState.pageSize}
                 handlePageSizeChange={chatHistoryState.handlePageSizeChange}
                 handleClearAgentHistory={chatHistoryState.handleClearAgentHistory}
             />
 
             {chatHistoryState.viewMode === 'chat' ? (
-                <div className="bg-white rounded-lg shadow border border-gray-200 overflow-hidden flex flex-col">
-                    <div className="flex justify-end border-b border-gray-200 bg-gray-50 p-3">
-                        <button
-                            type="button"
-                            onClick={() => void chatHistoryState.handleCreateMockFromChatView()}
-                            disabled={chatHistoryState.isCreatingMock}
-                            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
-                            title="Create a mocked chat preset from the shown messages"
-                        >
-                            {chatHistoryState.isCreatingMock ? 'Creating mock…' : 'Create mock'}
-                        </button>
-                    </div>
-                    <div className="h-[800px] relative">
-                        <MockedChat
-                            messages={chatHistoryState.chatMessages}
-                            isPausable={true}
-                            isResettable={false}
-                            isSaveButtonEnabled={true}
-                            layout="STANDALONE"
-                        />
-                    </div>
-                    <div className="p-4 bg-gray-50 border-t border-gray-200">
-                        <ChatHistoryPagination
-                            total={chatHistoryState.total}
-                            page={chatHistoryState.page}
-                            pageSize={chatHistoryState.pageSize}
-                            totalPages={chatHistoryState.totalPages}
-                            goToPreviousPage={chatHistoryState.goToPreviousPage}
-                            goToNextPage={chatHistoryState.goToNextPage}
-                        />
-                    </div>
-                </div>
+                <ChatHistoryChatView
+                    formatText={formatText}
+                    language={language}
+                    chatId={chatHistoryState.chatId}
+                    selectedThread={chatHistoryState.selectedThread}
+                    chatMessages={chatHistoryState.chatMessages}
+                    threads={chatHistoryState.threads}
+                    threadsLoading={chatHistoryState.threadsLoading}
+                    handleChatThreadChange={chatHistoryState.handleChatThreadChange}
+                    handleCreateMockFromChatView={chatHistoryState.handleCreateMockFromChatView}
+                    isCreatingMock={chatHistoryState.isCreatingMock}
+                    total={chatHistoryState.total}
+                    page={chatHistoryState.page}
+                    pageSize={chatHistoryState.pageSize}
+                    totalPages={chatHistoryState.totalPages}
+                    goToPreviousPage={chatHistoryState.goToPreviousPage}
+                    goToNextPage={chatHistoryState.goToNextPage}
+                />
             ) : (
                 <ChatHistoryTable
                     formatText={formatText}

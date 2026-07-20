@@ -9,6 +9,7 @@ import { isUserAdmin } from '../../../../utils/isUserAdmin';
  *
  * Query params:
  * - agentName: filter by agent name (optional)
+ * - chatId: filter by canonical chat id / thread (optional)
  */
 export async function GET(request: NextRequest) {
     if (!(await isUserAdmin())) {
@@ -18,6 +19,7 @@ export async function GET(request: NextRequest) {
     try {
         const searchParams = request.nextUrl.searchParams;
         const agentName = searchParams.get('agentName');
+        const chatId = searchParams.get('chatId');
 
         const supabase = $provideSupabase();
         const table = await $getTableName('ChatHistory');
@@ -26,6 +28,10 @@ export async function GET(request: NextRequest) {
 
         if (agentName) {
             query = query.eq('agentName', agentName);
+        }
+
+        if (chatId) {
+            query = query.eq('chatId', chatId);
         }
 
         query = query.order('createdAt', { ascending: false });

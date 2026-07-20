@@ -1,6 +1,8 @@
+import { MarkdownContent } from '@promptbook-local/components';
 import Link from 'next/link';
 import { Card } from '../../../components/Homepage/Card';
 import type { ServerLanguageCode } from '../../../languages/ServerLanguageRegistry';
+import { resolveChatHistoryMessageRole, resolveChatHistoryMessageText } from '../../../utils/chatHistoryMessage';
 import { formatServerLanguageHumanReadableDate } from '../../../utils/localization/formatServerLanguageHumanReadableDate';
 import { AdminSortableTableHeaderCell } from '../_components/AdminSortableTableHeaderCell';
 import { ChatHistoryPagination } from './ChatHistoryPagination';
@@ -46,49 +48,22 @@ function formatDate(dateString: string | null | undefined, language: ServerLangu
 }
 
 /**
- * Gets message role.
- */
-function getMessageRole(message: unknown): string {
-    if (!message || typeof message !== 'object') return '-';
-
-    const role = (message as { role?: string }).role;
-    return role || '-';
-}
-
-/**
- * Gets message preview.
- */
-function getMessagePreview(message: unknown, maxLength = 120): string {
-    if (message == null) return '-';
-
-    if (typeof message === 'string') {
-        return message.length > maxLength ? `${message.slice(0, maxLength)}…` : message;
-    }
-
-    if (typeof message === 'object') {
-        const content = (message as { content?: unknown }).content ?? (message as { text?: unknown }).text ?? message;
-
-        let text: string;
-
-        if (typeof content === 'string') {
-            text = content;
-        } else if (Array.isArray(content)) {
-            text = content.map((part) => String(part)).join(' ');
-        } else {
-            text = JSON.stringify(content);
-        }
-
-        return text.length > maxLength ? `${text.slice(0, maxLength)}…` : text;
-    }
-
-    return String(message);
-}
-
-/**
- * Renders the preview cell used in the chat history table.
+ * Renders the message cell used in the chat history table with rendered Markdown.
+ *
+ * @private function of <ChatHistoryTable/>
  */
 function ChatHistoryPreviewCell({ message }: { message: unknown }) {
-    return <div className="max-h-24 overflow-hidden overflow-ellipsis text-xs leading-snug">{getMessagePreview(message)}</div>;
+    const text = resolveChatHistoryMessageText(message);
+
+    if (!text) {
+        return <span className="text-gray-400">-</span>;
+    }
+
+    return (
+        <div className="max-h-24 overflow-y-auto text-xs leading-snug">
+            <MarkdownContent content={text} />
+        </div>
+    );
 }
 
 /**
@@ -167,7 +142,9 @@ export function ChatHistoryTable({
                                         {formatDate(row.createdAt, language)}
                                     </td>
                                     <td className="whitespace-nowrap px-4 py-3 text-gray-700">{row.agentName}</td>
-                                    <td className="whitespace-nowrap px-4 py-3 text-gray-700">{getMessageRole(row.message)}</td>
+                                    <td className="whitespace-nowrap px-4 py-3 text-gray-700">
+                                        {resolveChatHistoryMessageRole(row.message)}
+                                    </td>
                                     <td className="max-w-xs px-4 py-3 text-gray-700">
                                         <ChatHistoryPreviewCell message={row.message} />
                                     </td>

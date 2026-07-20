@@ -13,6 +13,10 @@ type ChatHistoryFiltersCardProps = Pick<
     | 'agents'
     | 'agentsLoading'
     | 'handleAgentChange'
+    | 'chatId'
+    | 'threads'
+    | 'threadsLoading'
+    | 'handleChatThreadChange'
     | 'pageSize'
     | 'handlePageSizeChange'
     | 'handleClearAgentHistory'
@@ -37,10 +41,15 @@ export function ChatHistoryFiltersCard({
     agents,
     agentsLoading,
     handleAgentChange,
+    chatId,
+    threads,
+    threadsLoading,
+    handleChatThreadChange,
     pageSize,
     handlePageSizeChange,
     handleClearAgentHistory,
 }: ChatHistoryFiltersCardProps) {
+    const isChatThreadFilterEnabled = Boolean(agentName);
     return (
         <Card>
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
@@ -85,6 +94,32 @@ export function ChatHistoryFiltersCard({
                             ))}
                         </select>
                         {agentsLoading && <span className="text-xs text-gray-400">{formatText('Loading agents…')}</span>}
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                        <label htmlFor="chatThreadFilter" className="text-sm font-medium text-gray-700">
+                            Chat thread
+                        </label>
+                        <select
+                            id="chatThreadFilter"
+                            value={chatId}
+                            onChange={(event) => handleChatThreadChange(event.target.value)}
+                            disabled={!isChatThreadFilterEnabled}
+                            className="w-full md:w-64 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
+                        >
+                            <option value="">All threads</option>
+                            {threads.map((thread) => (
+                                <option key={thread.chatId} value={thread.chatId}>
+                                    {thread.title} ({thread.messageCount})
+                                </option>
+                            ))}
+                        </select>
+                        {isChatThreadFilterEnabled && threadsLoading && (
+                            <span className="text-xs text-gray-400">Loading chat threads…</span>
+                        )}
+                        {!isChatThreadFilterEnabled && (
+                            <span className="text-xs text-gray-400">{formatText('Pick an agent to filter by chat thread')}</span>
+                        )}
                     </div>
 
                     <div className="flex flex-col gap-1">

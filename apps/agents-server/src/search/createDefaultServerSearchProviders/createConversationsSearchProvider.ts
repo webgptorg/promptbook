@@ -28,7 +28,7 @@ type UserChatSearchRow = Pick<
  */
 type ChatHistorySearchRow = Pick<
     AgentsServerDatabase['public']['Tables']['ChatHistory']['Row'],
-    'id' | 'createdAt' | 'agentName' | 'message' | 'url' | 'ip'
+    'id' | 'createdAt' | 'agentName' | 'chatId' | 'message' | 'url' | 'ip'
 >;
 
 /**
@@ -162,7 +162,7 @@ async function searchAdminConversations(
     const supabase = $provideSupabaseForServer();
     const { data, error } = await supabase
         .from(await $getTableName('ChatHistory'))
-        .select('id, createdAt, agentName, message, url, ip')
+        .select('id, createdAt, agentName, chatId, message, url, ip')
         .order('createdAt', { ascending: false })
         .limit(defaultServerSearchProviderConfig.adminLogLimit);
 
@@ -185,6 +185,13 @@ async function searchAdminConversations(
             continue;
         }
 
+        const adminChatHistoryParams = new URLSearchParams({ agentName: row.agentName });
+        if (row.chatId) {
+            // Note: Deep-link straight to the recorded conversation (most detailed view) when the thread is known
+            adminChatHistoryParams.set('chatId', row.chatId);
+            adminChatHistoryParams.set('view', 'chat');
+        }
+
         results.push({
             id: `conversation-admin-${row.id}`,
             providerId: 'conversations',
@@ -193,7 +200,7 @@ async function searchAdminConversations(
             icon: 'conversation',
             title: `Chat log #${row.id} (${row.agentName})`,
             snippet: match.snippet,
-            href: `/admin/chat-history?agentName=${encodeURIComponent(row.agentName)}`,
+            href: `/admin/chat-history?${adminChatHistoryParams.toString()}`,
             score: match.score + 6,
         });
     }

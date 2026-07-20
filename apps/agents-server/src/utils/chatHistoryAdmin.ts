@@ -1,4 +1,7 @@
 import type { AgentsServerDatabase } from '../database/schema';
+import type { ChatHistoryThread } from './chatHistoryMessage';
+
+export type { ChatHistoryThread } from './chatHistoryMessage';
 
 /**
  * Type describing chat history row.
@@ -74,6 +77,40 @@ export async function $fetchChatHistory(params: ChatHistoryListParams = {}): Pro
     }
 
     return (await response.json()) as ChatHistoryListResponse;
+}
+
+/**
+ * Response for the chat history threads listing.
+ */
+export type ChatHistoryThreadsResponse = {
+    threads: ChatHistoryThread[];
+};
+
+/**
+ * Fetch the recorded chat threads (grouped by canonical chat id) from the admin API.
+ *
+ * Shared by the admin chat history filters and the chat transcript view so both
+ * browse conversations thread by thread instead of one mixed pile.
+ */
+export async function $fetchChatHistoryThreads(agentName?: string): Promise<ChatHistoryThread[]> {
+    const searchParams = new URLSearchParams();
+
+    if (agentName) {
+        searchParams.set('agentName', agentName);
+    }
+
+    const qs = searchParams.toString();
+    const response = await fetch(`/api/chat-history/threads${qs ? `?${qs}` : ''}`, {
+        method: 'GET',
+    });
+
+    if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to load chat threads');
+    }
+
+    const data = (await response.json()) as ChatHistoryThreadsResponse;
+    return data.threads ?? [];
 }
 
 /**

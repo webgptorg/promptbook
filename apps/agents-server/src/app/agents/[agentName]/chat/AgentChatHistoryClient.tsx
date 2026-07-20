@@ -342,6 +342,8 @@ function AgentChatHistoryReadyView(props: AgentChatHistoryReadyViewProps) {
     const externalUserChatAdminActions =
         isCurrentUserSuperAdmin === true && isActiveExternalUserChat ? (
             <ExternalUserChatAdminActions
+                agentName={agentName}
+                chatId={activeChatId}
                 chatTitle={activeChatSummary?.title || 'Recorded chat'}
                 messages={renderedActiveMessages}
             />

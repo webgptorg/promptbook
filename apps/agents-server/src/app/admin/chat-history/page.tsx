@@ -8,6 +8,8 @@ import { ChatHistoryClient } from './ChatHistoryClient';
 type AdminChatHistoryPageProps = {
     searchParams?: Promise<{
         agentName?: string;
+        chatId?: string;
+        view?: string;
     }>;
 };
 
@@ -19,7 +21,16 @@ export default async function AdminChatHistoryPage({ searchParams }: AdminChatHi
         return <ForbiddenPage />;
     }
 
-    const initialAgentName = (await searchParams)?.agentName || undefined;
+    const resolvedSearchParams = await searchParams;
+    const initialAgentName = resolvedSearchParams?.agentName || undefined;
+    const initialChatId = resolvedSearchParams?.chatId || undefined;
+    const initialViewMode = resolvedSearchParams?.view === 'chat' ? 'chat' : undefined;
 
-    return <ChatHistoryClient initialAgentName={initialAgentName} />;
+    return (
+        <ChatHistoryClient
+            initialAgentName={initialAgentName}
+            initialChatId={initialChatId}
+            initialViewMode={initialViewMode}
+        />
+    );
 }
