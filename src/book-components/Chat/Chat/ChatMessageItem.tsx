@@ -32,6 +32,7 @@ import {
 import { splitMessageContentIntoSegments } from '../utils/splitMessageContentIntoSegments';
 import styles from './Chat.module.css';
 import { chatCssClassNames } from './chatCssClassNames';
+import { RATING_STAR_SYMBOL } from './constants';
 import { ChatMessageAttachments } from './ChatMessageAttachments';
 import { ChatMessageRichContent } from './ChatMessageRichContent';
 import { ChatMessageToolCallChips } from './ChatMessageToolCallChips';
@@ -676,7 +677,7 @@ export const ChatMessageItem = memo(
                                     } as CSSProperties
                                 }
                             >
-                                ⭐
+                                {RATING_STAR_SYMBOL}
                             </span>
                         ))
                     ) : (
@@ -689,7 +690,7 @@ export const ChatMessageItem = memo(
                                 } as CSSProperties
                             }
                         >
-                            ⭐
+                            {RATING_STAR_SYMBOL}
                         </span>
                     )}
                 </div>
