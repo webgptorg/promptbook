@@ -247,9 +247,15 @@ describe('other/vps/install.sh', () => {
     });
 
     it('keeps raw-IP bootstrap access when domain SSL issuance fails during apply-domains', () => {
-        expect(installScript).toContain('if ! "${SUDO[@]}" certbot "${certbot_arguments[@]}"; then');
+        // Every domain gets an isolated certificate lineage; one failing domain only warns…
+        expect(installScript).toContain('if ! request_ssl_certificate_for_domain "$domain"; then');
         expect(installScript).toContain(
-            'Keeping the current public URL unchanged so raw-IP bootstrap access remains available.',
+            'All other domains stay untouched and $domain stays reachable over plain HTTP.',
+        );
+        // …and the public URL only switches to HTTPS once the certificate really exists,
+        // so a failed issuance keeps the raw-IP bootstrap URL unchanged.
+        expect(installScript).toContain(
+            'if [[ -n "$first_domain" ]] && domain_has_ssl_certificate "$first_domain"; then',
         );
         expect(installScript).toContain('set_env_value NEXT_PUBLIC_SITE_URL "https://${first_domain}"');
     });
@@ -321,6 +327,12 @@ describe('other/vps/install.sh', () => {
         expect(selfUpdateFunction.indexOf('install_agents_server_dependency_requirements')).toBeLessThan(
             selfUpdateFunction.indexOf('install_promptbook_cli_launcher'),
         );
+        // A failing dependency installation (for example the code-server download) must warn
+        // and continue instead of aborting the whole self-update; the next update retries it.
+        expect(selfUpdateFunction).toContain('if ! (install_agents_server_dependency_requirements); then');
+        expect(selfUpdateFunction).toContain(
+            'Installing Agents Server runtime dependencies failed; continuing the self-update without them.',
+        );
     });
 
     it('proxies browser VS Code sessions through nginx auth_request', () => {
@@ -343,10 +355,15 @@ describe('other/vps/install.sh', () => {
         expect(nginxVscodeLocationFunction).toContain('proxy_pass http://127.0.0.1:\\$promptbook_code_server_port;');
         expect(nginxVscodeLocationFunction).toContain('proxy_set_header Upgrade \\$http_upgrade;');
         expect(nginxVscodeLocationFunction).toContain('proxy_set_header Cookie "";');
-        expect(nginxConfigurationFunction).toContain(
-            'agent_project_vscode_location_block="$(build_nginx_agent_project_vscode_location_block)"',
+        const agentsServerLocationBlocksFunction = installScript.slice(
+            installScript.indexOf('\nbuild_nginx_agents_server_location_blocks() {'),
+            installScript.indexOf('\nbuild_nginx_agent_project_location_blocks() {'),
         );
-        expect(nginxConfigurationFunction).toContain('${agent_project_vscode_location_block}');
+
+        expect(agentsServerLocationBlocksFunction).toContain('build_nginx_agent_project_vscode_location_block');
+        expect(nginxConfigurationFunction).toContain(
+            'agents_server_location_blocks="$(build_nginx_agents_server_location_blocks)"',
+        );
     });
 
     it('defaults standalone VPS file storage to self-contained VersityGW S3', () => {

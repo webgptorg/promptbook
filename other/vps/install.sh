@@ -3727,7 +3727,14 @@ self_update_agents_server() {
 
     SELF_UPDATE_CURRENT_COMMIT="$(read_repository_commit_sha)"
     write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Installing Agents Server runtime dependencies." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "" "$$"
-    install_agents_server_dependency_requirements
+    # Dependencies (including host software newly required by the target release) are
+    # re-ensured on every self-update, but one failing installation must never abort the
+    # whole update: the already-running server keeps serving without the new tool and the
+    # next self-update retries the installation. Hard requirements still fail the update
+    # where they are actually needed (`npm ci` above, the Agents Server build below).
+    if ! (install_agents_server_dependency_requirements); then
+        warn "Installing Agents Server runtime dependencies failed; continuing the self-update without them. Rerun later with: bash $PROMPTBOOK_REPOSITORY_DIR/other/vps/install.sh apply-dependencies"
+    fi
 
     write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Refreshing the Promptbook CLI launcher." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "" "$$"
     install_promptbook_cli_launcher
