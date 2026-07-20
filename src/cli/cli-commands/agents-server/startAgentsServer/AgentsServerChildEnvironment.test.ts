@@ -9,8 +9,7 @@ import { createAgentsServerChildEnvironment } from './AgentsServerChildEnvironme
  */
 const ORIGINAL_ENVIRONMENT = {
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
-    [PTBK_AGENTS_SERVER_USER_CHAT_WORKER_TOKEN_ENV]:
-        process.env[PTBK_AGENTS_SERVER_USER_CHAT_WORKER_TOKEN_ENV],
+    [PTBK_AGENTS_SERVER_USER_CHAT_WORKER_TOKEN_ENV]: process.env[PTBK_AGENTS_SERVER_USER_CHAT_WORKER_TOKEN_ENV],
 };
 
 describe('createAgentsServerChildEnvironment', () => {
