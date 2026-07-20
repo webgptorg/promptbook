@@ -1,12 +1,7 @@
-import { after, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/src/utils/getCurrentUser';
-import { cancelScheduledUserChatTimeout, getUserChatTimeoutById } from '@/src/utils/userChatTimeout';
-import {
-    getUserChatJobById,
-    persistUserChatJobTerminalState,
-    requestUserChatJobCancellation,
-    triggerUserChatJobWorker,
-} from '@/src/utils/userChat';
+import { cancelAdminChatTaskById } from '@/src/utils/cancelAdminChatTaskById';
+import { readRequiredAdminReason } from '@/src/utils/readRequiredAdminReason';
 import { isUserAdmin } from '@/src/utils/isUserAdmin';
 
 /**
@@ -27,65 +22,22 @@ export async function POST(request: Request, { params }: { params: Promise<{ tas
 
     try {
         const actor = (await getCurrentUser())?.username || 'admin';
-        const job = await getUserChatJobById(taskId);
+        const outcome = await cancelAdminChatTaskById({
+            taskId,
+            actor,
+            reason,
+            requestOrigin: new URL(request.url).origin,
+        });
 
-        if (job) {
-            if (job.status === 'COMPLETED' || job.status === 'FAILED' || job.status === 'CANCELLED') {
-                return NextResponse.json({ error: 'Task is already finished.' }, { status: 409 });
-            }
-
-            console.info('[admin-chat-task] cancel', {
-                actor,
-                taskId,
-                reason,
-                kind: 'CHAT_COMPLETION',
-                status: job.status,
-            });
-
-            const cancellationRequestedJob = await requestUserChatJobCancellation(taskId);
-            if (!cancellationRequestedJob) {
-                return NextResponse.json({ error: 'Task could not be cancelled.' }, { status: 409 });
-            }
-
-            if (job.status === 'QUEUED') {
-                await persistUserChatJobTerminalState({
-                    job: cancellationRequestedJob,
-                    status: 'CANCELLED',
-                    failureReason: 'Chat generation was cancelled by an administrator before it started.',
-                });
-            } else {
-                after(() =>
-                    triggerUserChatJobWorker({
-                        origin: new URL(request.url).origin,
-                        preferredJobId: taskId,
-                    }).catch((error) =>
-                        console.error('[admin-chat-task] failed to wake worker after cancellation request', error),
-                    ),
-                );
-            }
-
-            return NextResponse.json({ ok: true });
-        }
-
-        const timeout = await getUserChatTimeoutById(taskId);
-        if (!timeout) {
+        if (outcome === 'NOT_FOUND') {
             return NextResponse.json({ error: 'Task not found.' }, { status: 404 });
         }
 
-        if (timeout.status === 'COMPLETED' || timeout.status === 'FAILED' || timeout.status === 'CANCELLED') {
+        if (outcome === 'ALREADY_FINISHED') {
             return NextResponse.json({ error: 'Task is already finished.' }, { status: 409 });
         }
 
-        console.info('[admin-chat-task] cancel', {
-            actor,
-            taskId,
-            reason,
-            kind: 'CHAT_TIMEOUT',
-            status: timeout.status,
-        });
-
-        const cancelledTimeout = await cancelScheduledUserChatTimeout(taskId);
-        if (!cancelledTimeout) {
+        if (outcome === 'NOT_CANCELLABLE') {
             return NextResponse.json({ error: 'Task could not be cancelled.' }, { status: 409 });
         }
 
@@ -97,20 +49,4 @@ export async function POST(request: Request, { params }: { params: Promise<{ tas
             { status: 500 },
         );
     }
-}
-
-/**
- * Reads and validates the required admin reason payload.
- */
-async function readRequiredAdminReason(request: Request): Promise<string | null> {
-    const payload = (await request.json().catch(() => ({}))) as {
-        reason?: unknown;
-    };
-
-    if (typeof payload.reason !== 'string') {
-        return null;
-    }
-
-    const reason = payload.reason.trim();
-    return reason.length > 0 ? reason : null;
 }

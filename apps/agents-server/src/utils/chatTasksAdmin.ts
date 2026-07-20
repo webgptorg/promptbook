@@ -128,6 +128,17 @@ export type AdminChatTaskActionPayload = {
 };
 
 /**
+ * Summary returned after bulk-cancelling every active durable chat task.
+ *
+ * @private internal admin utility of Agents Server
+ */
+export type CancelAllAdminChatTasksSummary = {
+    matchedCount: number;
+    cancelledCount: number;
+    hasMore: boolean;
+};
+
+/**
  * Builds the admin task-manager query string.
  *
  * @private internal admin utility of Agents Server
@@ -235,4 +246,35 @@ export async function $retryAdminChatTask(taskId: string, payload: AdminChatTask
         const data = await response.json().catch(() => ({}));
         throw new Error(data.error || 'Failed to retry task.');
     }
+}
+
+/**
+ * Requests admin cancellation for every active durable chat task at once.
+ *
+ * @private internal admin utility of Agents Server
+ */
+export async function $cancelAllAdminChatTasks(
+    payload: AdminChatTaskActionPayload,
+): Promise<CancelAllAdminChatTasksSummary> {
+    const response = await fetch(`/api/admin/chat-tasks/cancel-all`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+    });
+
+    const data = (await response.json().catch(() => ({}))) as Partial<CancelAllAdminChatTasksSummary> & {
+        error?: string;
+    };
+
+    if (!response.ok) {
+        throw new Error(data.error || 'Failed to cancel all tasks.');
+    }
+
+    return {
+        matchedCount: data.matchedCount ?? 0,
+        cancelledCount: data.cancelledCount ?? 0,
+        hasMore: data.hasMore ?? false,
+    };
 }

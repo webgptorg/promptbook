@@ -14,9 +14,14 @@ import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } f
 import { resolveNextAdminTableSortState } from '../_components/adminTableSorting';
 import {
     confirmAdminChatTaskAction,
+    confirmCancelAllActiveAdminChatTasks,
     executeAdminChatTaskAction,
+    executeCancelAllActiveAdminChatTasks,
     requestAdminChatTaskActionReason,
+    requestCancelAllActiveAdminChatTasksReason,
     showAdminChatTaskActionFailure,
+    showCancelAllActiveAdminChatTasksFailure,
+    showCancelAllActiveAdminChatTasksResult,
     type AdminChatTaskActionKind,
 } from './adminChatTaskActionDialogs';
 
@@ -35,8 +40,11 @@ type TaskActionKind = AdminChatTaskActionKind;
 type UseTaskManagerStateResult = {
     busyAction: TaskActionKind | null;
     busyTaskId: string | null;
+    cancelAllActiveTasks: () => Promise<void>;
     counters: AdminChatTaskCounters | null;
     error: string | null;
+    hasActiveTasks: boolean;
+    isCancellingAllActiveTasks: boolean;
     isLoading: boolean;
     isNextPageDisabled: boolean;
     isPreviousPageDisabled: boolean;
@@ -169,6 +177,7 @@ export function useTaskManagerState(language: ServerLanguageCode): UseTaskManage
     const [refreshNonce, setRefreshNonce] = useState(0);
     const [busyTaskId, setBusyTaskId] = useState<string | null>(null);
     const [busyAction, setBusyAction] = useState<TaskActionKind | null>(null);
+    const [isCancellingAllActiveTasks, setIsCancellingAllActiveTasks] = useState(false);
     const hasLoadedOnceRef = useRef(false);
 
     const refreshNow = useCallback((): void => {
@@ -303,6 +312,29 @@ export function useTaskManagerState(language: ServerLanguageCode): UseTaskManage
         [refreshNow],
     );
 
+    const cancelAllActiveTasks = useCallback(async (): Promise<void> => {
+        const isConfirmed = await confirmCancelAllActiveAdminChatTasks();
+        if (!isConfirmed) {
+            return;
+        }
+
+        const reason = await requestCancelAllActiveAdminChatTasksReason();
+        if (!reason) {
+            return;
+        }
+
+        try {
+            setIsCancellingAllActiveTasks(true);
+            const summary = await executeCancelAllActiveAdminChatTasks(reason);
+            await showCancelAllActiveAdminChatTasksResult(summary);
+            refreshNow();
+        } catch (cancelAllError) {
+            await showCancelAllActiveAdminChatTasksFailure(cancelAllError);
+        } finally {
+            setIsCancellingAllActiveTasks(false);
+        }
+    }, [refreshNow]);
+
     const handleSortChange = useCallback(
         (nextSortBy: AdminChatTaskSortField): void => {
             const nextSortState = resolveNextAdminTableSortState({
@@ -318,11 +350,16 @@ export function useTaskManagerState(language: ServerLanguageCode): UseTaskManage
         [sortBy, sortOrder],
     );
 
+    const hasActiveTasks = counters !== null && counters.runningCount + counters.queuedCount > 0;
+
     return {
         busyAction,
         busyTaskId,
+        cancelAllActiveTasks,
         counters,
         error,
+        hasActiveTasks,
+        isCancellingAllActiveTasks,
         isLoading,
         isNextPageDisabled: page >= totalPages,
         isPreviousPageDisabled: page <= 1,

@@ -86,7 +86,18 @@ export function TaskManagerTasksCard({ isSuperAdmin, language, state }: TaskMana
                     <h2 className="text-lg font-medium text-gray-900">Background tasks ({state.total.toLocaleString()})</h2>
                     <p className="mt-1 text-sm text-gray-500">{resolveTaskManagerSortDescription(state)}</p>
                 </div>
-                {state.isRefreshing ? <span className="text-xs font-medium text-blue-600">Refreshing…</span> : null}
+                <div className="flex items-center gap-3">
+                    {state.isRefreshing ? <span className="text-xs font-medium text-blue-600">Refreshing…</span> : null}
+                    <button
+                        type="button"
+                        onClick={() => void state.cancelAllActiveTasks()}
+                        disabled={state.isCancellingAllActiveTasks || !state.hasActiveTasks}
+                        className="rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                        title="Cancel all active (queued + running) background tasks across all users"
+                    >
+                        {state.isCancellingAllActiveTasks ? 'Cancelling all…' : 'Cancel all active tasks'}
+                    </button>
+                </div>
             </div>
 
             {state.isLoading ? (
