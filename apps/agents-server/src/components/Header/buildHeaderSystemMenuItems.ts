@@ -4,6 +4,7 @@ import {
     BadgeInfo,
     BarChart3,
     Bot,
+    Boxes,
     Brain,
     Bug,
     Building2,
@@ -103,6 +104,7 @@ type SystemMenuItemHref =
     | '/admin/resource-monitor'
     | '/admin/update'
     | '/admin/database'
+    | '/admin/internal-s3'
     | '/admin/logs'
     | typeof HARNESS_AUTH_ADMIN_PATH
     | '/admin/cli-access'
@@ -180,6 +182,7 @@ const SYSTEM_MENU_ICON_BY_HREF: Record<SystemMenuItemHref, LucideIcon> = {
     '/admin/resource-monitor': Activity,
     '/admin/update': RefreshCw,
     '/admin/database': Database,
+    '/admin/internal-s3': Boxes,
     '/admin/logs': ScrollText,
     [HARNESS_AUTH_ADMIN_PATH]: TerminalSquare,
     '/admin/cli-access': Terminal,
@@ -409,6 +412,10 @@ export function buildHeaderSystemMenuItems({
                   {
                       label: translate('header.database'),
                       href: '/admin/database',
+                  } as SubMenuItem,
+                  {
+                      label: translate('header.internalS3'),
+                      href: '/admin/internal-s3',
                   } as SubMenuItem,
                   {
                       label: translate('header.logs'),

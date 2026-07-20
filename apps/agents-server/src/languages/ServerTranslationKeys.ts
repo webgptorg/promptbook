@@ -147,6 +147,7 @@ export const SERVER_TRANSLATION_KEYS = [
     'header.resourceMonitor',
     'header.update',
     'header.database',
+    'header.internalS3',
     'header.logs',
     'header.harnessAuth',
     'header.cliAccess',

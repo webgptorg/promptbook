@@ -141,6 +141,7 @@ header.environmentVariables: Proměnné prostředí
 header.resourceMonitor: Monitoring zdrojů
 header.update: Aktualizace
 header.database: Databáze
+header.internalS3: Interní S3
 header.logs: Logy
 header.harnessAuth: Přihlášení harnessu
 header.cliAccess: CLI přístup
