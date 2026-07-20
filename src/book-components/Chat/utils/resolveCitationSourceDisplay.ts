@@ -125,6 +125,13 @@ const FILENAME_SEPARATOR_REGEX = /[-_]+/g;
 const WHITESPACE_REGEX = /\s+/g;
 
 /**
+ * Pattern matching an XML `CDATA` section that wraps an entire citation source value.
+ *
+ * @private utility constant of `<Chat/>` citation rendering
+ */
+const CDATA_SECTION_REGEX = /^\s*<!\[CDATA\[([\s\S]*?)\]\]>\s*$/;
+
+/**
  * Maximum size of JSON-like citation source text parsed for embedded URLs.
  *
  * @private utility constant of `<Chat/>` citation rendering
@@ -315,26 +322,29 @@ const IMAGE_FALLBACK_LABEL_BY_FORMAT: Readonly<Record<CitationImageFormat, strin
  * @private utility of `<Chat/>` citation rendering
  */
 export function resolveCitationSourceDisplay(citation: ParsedCitation): CitationSourceDisplay {
-    const source = citation.source.trim();
-    const explicitTitle = normalizeCitationDisplayLabel(citation.title);
-    const directTargetUrl = resolveCitationTargetUrl(citation);
+    const normalizedCitation = unwrapCitationCdataSource(citation);
+    const source = normalizedCitation.source.trim();
+    const explicitTitle = normalizeCitationDisplayLabel(normalizedCitation.title);
+    const directTargetUrl = resolveCitationTargetUrl(normalizedCitation);
     const rawSourceSignature = resolveRawCitationSourceSignature(source);
     const jsonSourceUrl = rawSourceSignature?.kind === 'json' ? resolveCitationUrlFromJsonSource(source) : null;
     const targetUrl = directTargetUrl || jsonSourceUrl || undefined;
-    const extension = resolveCitationFileExtension(citation, targetUrl);
+    const extension = resolveCitationFileExtension(normalizedCitation, targetUrl);
     const extensionSignature = extension ? resolveCitationSourceSignatureFromFileExtension(extension) : null;
     const targetUrlSignature = targetUrl && !extensionSignature ? ({ kind: 'website' } as const) : null;
     const signature =
         rawSourceSignature ||
         extensionSignature ||
         targetUrlSignature ||
-        (isPlainTextCitationSource(citation) ? ({ kind: 'plain-text' } as const) : ({ kind: 'file' } as const));
+        (isPlainTextCitationSource(normalizedCitation)
+            ? ({ kind: 'plain-text' } as const)
+            : ({ kind: 'file' } as const));
     const imageFormat =
         signature.kind === 'image' ? signature.imageFormat || resolveImageFormatFromExtension(extension) : undefined;
     const label =
         explicitTitle ||
         createCitationSourceFallbackLabel({
-            citation,
+            citation: normalizedCitation,
             extension,
             imageFormat,
             isRawTechnicalSource: Boolean(rawSourceSignature),
@@ -351,6 +361,30 @@ export function resolveCitationSourceDisplay(citation: ParsedCitation): Citation
         ...(extension ? { extension } : {}),
         ...(imageFormat ? { imageFormat } : {}),
     };
+}
+
+/**
+ * Removes an XML `CDATA` wrapper from a citation source so chip labels stay human-readable.
+ *
+ * Some knowledge feeds keep the raw `<![CDATA[…]]>` wrapper around source titles, which would
+ * otherwise leak into the chip label (for example `<![CDATA[AI ta Krajta]]>`). When the whole
+ * source is a single `CDATA` section, this returns a citation carrying only the inner text so
+ * every downstream label and icon heuristic operates on the meaningful value.
+ *
+ * @param citation - Citation metadata that may carry a `CDATA`-wrapped source.
+ * @returns The original citation, or a copy whose source is the unwrapped inner text.
+ *
+ * @private utility of `<Chat/>` citation rendering
+ */
+function unwrapCitationCdataSource(citation: ParsedCitation): ParsedCitation {
+    const cdataMatch = citation.source.match(CDATA_SECTION_REGEX);
+    const innerText = cdataMatch?.[1]?.trim();
+
+    if (innerText === undefined) {
+        return citation;
+    }
+
+    return { ...citation, source: innerText };
 }
 
 /**

@@ -83,6 +83,15 @@ describe('citation helper heuristics', () => {
         ).toBe('JSON file');
     });
 
+    it('unwraps CDATA-wrapped source text into a readable label', () => {
+        expect(
+            getCitationLabel({
+                id: '0:9',
+                source: '<![CDATA[AI ta Krajta]]>',
+            }),
+        ).toBe('AI ta Krajta');
+    });
+
     it('uses embedded JSON URLs as compact source snippets', () => {
         expect(
             getCitationLabel({

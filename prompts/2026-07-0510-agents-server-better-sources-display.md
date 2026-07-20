@@ -23,7 +23,7 @@
 
 ---
 
-[ ]
+[x] (2 attempts) $1.10 44 minutes by Claude Code `claude-opus-4-8`
 
 [✨🙍] Show the sources in some nicer way
 
@@ -35,3 +35,4 @@
 -   You are working with the [Agents Server](apps/agents-server)
 
 ![alt text](screenshots/2026-07-0510-agents-server-better-sources-display-4.png)
+
