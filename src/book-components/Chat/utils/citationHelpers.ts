@@ -1,11 +1,6 @@
 import type { ChatParticipant } from '../types/ChatParticipant';
-import {
-    createReadableCitationSourceDisplayLabel,
-    isCitationSourceUrl,
-    isPlainTextCitationSource,
-    resolveCitationSourceDisplay,
-} from './resolveCitationSourceDisplay';
 import type { ParsedCitation } from './parseCitationsFromContent';
+import { createReadableCitationSourceDisplayLabel, isCitationSourceUrl, isPlainTextCitationSource, resolveCitationSourceDisplay } from './resolveCitationSourceDisplay';
 import { resolveCitationUrl } from './resolveCitationUrl';
 
 /**

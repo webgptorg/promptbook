@@ -5,7 +5,8 @@ import { createRoot, type Root } from 'react-dom/client';
 import type { string_markdown } from '../../../types/string_markdown';
 import { classNames } from '../../_common/react-utils/classNames';
 import { CodeBlock } from '../CodeBlock/CodeBlock';
-import { renderMarkdown, type MarkdownInlineReference } from '../utils/renderMarkdown';
+import type { MarkdownInlineReference } from '../utils/renderMarkdown';
+import { renderMarkdown } from '../utils/renderMarkdown';
 import styles from './MarkdownContent.module.css';
 
 /**

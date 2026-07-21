@@ -1,5 +1,6 @@
 import type { WriteStream } from 'fs';
-import { addUiOutput, type AgentsServerSupervisorState } from './AgentsServerSupervisorState';
+import type { AgentsServerSupervisorState } from './AgentsServerSupervisorState';
+import { addUiOutput } from './AgentsServerSupervisorState';
 
 /**
  * Persists one child output chunk and forwards readable lines into UI or plain output.

@@ -1,12 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { UNCERTAIN_USAGE } from '../execution/utils/usage-constants';
 import type { AgentMessageRunReport } from './AgentMessageRunReport';
-import {
-    buildAgentMessageRunReportPath,
-    normalizeAgentMessageRunReport,
-    parseAgentMessageRunReport,
-    serializeAgentMessageRunReport,
-} from './AgentMessageRunReport';
+import { buildAgentMessageRunReportPath, normalizeAgentMessageRunReport, parseAgentMessageRunReport, serializeAgentMessageRunReport } from './AgentMessageRunReport';
 
 describe('buildAgentMessageRunReportPath', () => {
     it('appends the report suffix to a relative message path', () => {

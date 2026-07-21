@@ -12,7 +12,8 @@ import { isPlainTextCitation, resolveCitationPreviewUrl } from '../utils/citatio
 import type { ParsedCitation } from '../utils/parseCitationsFromContent';
 import styles from './Chat.module.css';
 import type { ChatSoundSystem } from './ChatProps';
-import { CitationIframePreview, type CitationIframePreviewStatus } from './CitationIframePreview';
+import type { CitationIframePreviewStatus } from './CitationIframePreview';
+import { CitationIframePreview } from './CitationIframePreview';
 
 /**
  * Props for the citation preview modal.

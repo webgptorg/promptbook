@@ -5,12 +5,12 @@ import { tmpdir } from 'os';
 import { join } from 'path';
 import {
     createAgentsServerRuntimeEnvironment,
-    ensureAgentsServerBuild,
-    isAgentsServerBuildCacheCurrent,
     PTBK_AGENTS_SERVER_BUILD_WORKER_COUNT_ENV,
-    resolveAgentsServerBuildAppPath,
-    writeAgentsServerBuildCache,
-} from './buildAgentsServer';
+} from './buildAgentsServer/createAgentsServerRuntimeEnvironment';
+import { ensureAgentsServerBuild } from './buildAgentsServer/ensureAgentsServerBuild';
+import { isAgentsServerBuildCacheCurrent } from './buildAgentsServer/isAgentsServerBuildCacheCurrent';
+import { resolveAgentsServerBuildAppPath } from './buildAgentsServer/resolveAgentsServerBuildAppPath';
+import { writeAgentsServerBuildCache } from './buildAgentsServer/writeAgentsServerBuildCache';
 
 jest.mock('child_process', () => ({
     spawn: jest.fn(),

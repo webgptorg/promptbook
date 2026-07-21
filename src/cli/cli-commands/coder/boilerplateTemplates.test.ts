@@ -4,16 +4,8 @@ import { tmpdir } from 'os';
 import { join } from 'path';
 import { AGENT_CODING_FILE_PATH, getDefaultCoderAgentCodingFileContent } from './agentCodingFile';
 import { AGENTS_FILE_PATH, getDefaultCoderAgentsFileContent } from './agentsFile';
-import {
-    getDefaultCoderProjectPromptTemplateDefinitions,
-    getDefaultCoderPromptTemplateDefinition,
-    getDefaultCoderPromptTemplateDefinitions,
-    resolveCoderPromptTemplate,
-} from './boilerplateTemplates';
-import {
-    CODER_DEVELOPER_AGENT_FILE_PATH,
-    DEFAULT_CODER_DEVELOPER_AGENT_SOURCE_FILE_PATH,
-} from './ensureCoderDeveloperAgentFile';
+import { getDefaultCoderProjectPromptTemplateDefinitions, getDefaultCoderPromptTemplateDefinition, getDefaultCoderPromptTemplateDefinitions, resolveCoderPromptTemplate } from './boilerplateTemplates';
+import { CODER_DEVELOPER_AGENT_FILE_PATH, DEFAULT_CODER_DEVELOPER_AGENT_SOURCE_FILE_PATH } from './ensureCoderDeveloperAgentFile';
 import { getDefaultCoderPackageJsonScripts } from './getDefaultCoderPackageJsonScripts';
 import { getDefaultCoderVscodeSettings } from './getDefaultCoderVscodeSettings';
 import { initializeCoderProjectConfiguration } from './initializeCoderProjectConfiguration';

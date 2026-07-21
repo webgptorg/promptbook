@@ -1,6 +1,6 @@
 import colors from 'colors';
 import type {
-    Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
+  Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */
 } from 'commander';
 import { mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
@@ -11,12 +11,7 @@ import { ParseError } from '../../../errors/ParseError';
 import { normalizeToKebabCase } from '../../../utils/normalization/normalize-to-kebab-case';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
 import { handleActionErrors } from '../common/handleActionErrors';
-import {
-    buildCoderPromptSection,
-    getDefaultCoderPromptTemplateDefinitions,
-    PROMPTS_DIRECTORY_PATH,
-    resolveCoderPromptTemplate,
-} from './boilerplateTemplates';
+import { buildCoderPromptSection, getDefaultCoderPromptTemplateDefinitions, PROMPTS_DIRECTORY_PATH, resolveCoderPromptTemplate } from './boilerplateTemplates';
 
 /**
  * Placeholder token replaced when a prompt is authored — see the `@@@` convention.

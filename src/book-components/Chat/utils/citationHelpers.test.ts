@@ -1,11 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import type { ChatParticipant } from '../types/ChatParticipant';
-import {
-    createReadableCitationSourceLabel,
-    getCitationLabel,
-    isPlainTextCitation,
-    resolveCitationPreviewUrl,
-} from './citationHelpers';
+import { createReadableCitationSourceLabel, getCitationLabel, isPlainTextCitation, resolveCitationPreviewUrl } from './citationHelpers';
 import type { ParsedCitation } from './parseCitationsFromContent';
 
 describe('citation helper heuristics', () => {

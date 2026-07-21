@@ -1,29 +1,26 @@
 'use client';
 
 import {
-    Archive,
-    File,
-    FileCode,
-    FileJson,
-    FileSpreadsheet,
-    FileText,
-    Globe2,
-    ImageIcon,
-    Music,
-    Presentation,
-    Table,
-    Video,
-    type LucideIcon,
+  Archive,
+  File,
+  FileCode,
+  FileJson,
+  FileSpreadsheet,
+  FileText,
+  Globe2,
+  ImageIcon,
+  Music,
+  Presentation,
+  Table,
+  Video,
+  type LucideIcon
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useResolvedCitationLabel } from '../hooks/useResolvedCitationLabel';
 import type { CitationLabelResolver } from '../types/CitationLabelResolver';
-import {
-    resolveCitationSourceDisplay,
-    type CitationSourceDisplay,
-    type CitationSourceKind,
-} from '../utils/resolveCitationSourceDisplay';
 import type { ParsedCitation } from '../utils/parseCitationsFromContent';
+import type { CitationSourceDisplay, CitationSourceKind } from '../utils/resolveCitationSourceDisplay';
+import { resolveCitationSourceDisplay } from '../utils/resolveCitationSourceDisplay';
 import styles from './SourceChip.module.css';
 
 /**

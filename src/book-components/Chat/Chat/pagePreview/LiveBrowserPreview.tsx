@@ -3,15 +3,12 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
 import styles from '../Chat.module.css';
 import { createPagePreviewSessionId } from './createPagePreviewSessionId';
+import { LiveBrowserPreviewToolbar } from './LiveBrowserPreviewToolbar';
 import type { PagePreviewNavigationAction, PagePreviewPointerButton } from './PagePreviewInputEvent';
 import { PagePreviewInputQueue } from './PagePreviewInputQueue';
 import type { PagePreviewSessionState } from './PagePreviewSessionState';
-import {
-    clampPagePreviewViewport,
-    PAGE_PREVIEW_DEFAULT_VIEWPORT,
-    type PagePreviewViewport,
-} from './PagePreviewViewport';
-import { LiveBrowserPreviewToolbar } from './LiveBrowserPreviewToolbar';
+import type { PagePreviewViewport } from './PagePreviewViewport';
+import { clampPagePreviewViewport, PAGE_PREVIEW_DEFAULT_VIEWPORT } from './PagePreviewViewport';
 
 /**
  * Props of the live browser preview.

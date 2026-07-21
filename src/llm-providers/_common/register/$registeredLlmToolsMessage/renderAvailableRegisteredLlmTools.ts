@@ -1,8 +1,8 @@
 import colors from 'colors';
 import { spaceTrim } from 'spacetrim';
-import type { AvailableEnvironmentVariables, RegisteredLlmToolStatus } from './RegisteredLlmToolsMessageContext';
 import { createRegisteredLlmToolConfigurationStatusMessage } from './createRegisteredLlmToolConfigurationStatusMessage';
 import { createRegisteredLlmToolInstallationStatusMessage } from './createRegisteredLlmToolInstallationStatusMessage';
+import type { AvailableEnvironmentVariables, RegisteredLlmToolStatus } from './RegisteredLlmToolsMessageContext';
 
 /**
  * Renders all provider lines in the status summary.

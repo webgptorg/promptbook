@@ -1,9 +1,4 @@
-import {
-    TOOL_PROGRESS_TOKEN_ARGUMENT,
-    TOOL_PROGRESS_TOKEN_PARAMETER,
-    TOOL_RUNTIME_CONTEXT_ARGUMENT,
-    TOOL_RUNTIME_CONTEXT_PARAMETER,
-} from '../../../commitments/_common/toolRuntimeContext';
+import { TOOL_PROGRESS_TOKEN_ARGUMENT, TOOL_PROGRESS_TOKEN_PARAMETER, TOOL_RUNTIME_CONTEXT_ARGUMENT, TOOL_RUNTIME_CONTEXT_PARAMETER } from '../../../commitments/_common/toolRuntimeContext';
 
 /**
  * Builds a tool invocation script that injects hidden runtime context into tool args.
