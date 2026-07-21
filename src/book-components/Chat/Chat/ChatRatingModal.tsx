@@ -6,7 +6,6 @@ import { classNames } from '../../_common/react-utils/classNames';
 import type { ChatMessage } from '../types/ChatMessage';
 import styles from './Chat.module.css';
 import type { ChatFeedbackMode, ChatProps } from './ChatProps';
-import { RATING_STAR_SYMBOL } from './constants';
 
 /**
  * Supported star values rendered by the rating UI.
@@ -280,7 +279,7 @@ function ChatRatingModalStarsSection(props: {
                         color: resolveChatRatingStarColor(star, selectedRating, mode),
                     }}
                 >
-                    {RATING_STAR_SYMBOL}
+                    ⭐
                 </span>
             ))}
         </div>

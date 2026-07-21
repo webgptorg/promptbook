@@ -677,7 +677,7 @@ export const ChatMessageItem = memo(
                                     } as CSSProperties
                                 }
                             >
-                                {RATING_STAR_SYMBOL}
+                                ⭐
                             </span>
                         ))
                     ) : (
@@ -690,7 +690,7 @@ export const ChatMessageItem = memo(
                                 } as CSSProperties
                             }
                         >
-                            {RATING_STAR_SYMBOL}
+                            ⭐
                         </span>
                     )}
                 </div>
