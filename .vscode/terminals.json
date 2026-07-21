@@ -430,8 +430,15 @@
             "focus": true
         },
         {
-            "name": "🧪 Test Package generation (build) (💤)",
+            "name": "🧪 Test Package generation (skip build) (💤)",
             "command": "npm run test-package-generation",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🧪 Test Package generation (build) (💤)(⏳)",
+            "command": "ts-node ./scripts/generate-packages/generate-packages.ts",
             "execute": false,
             "onlySingle": false,
             "focus": false
