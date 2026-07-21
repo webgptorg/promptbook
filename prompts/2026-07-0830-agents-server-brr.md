@@ -1,6 +1,6 @@
 [-]
 
-[✨🖤] qux
+[✨🫂] brr
 
 -   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
@@ -12,7 +12,7 @@
 
 [-]
 
-[✨🖤] qux
+[✨🫂] brr
 
 -   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
@@ -24,7 +24,7 @@
 
 [-]
 
-[✨🖤] qux
+[✨🫂] brr
 
 -   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
@@ -36,7 +36,7 @@
 
 [-]
 
-[✨🖤] qux
+[✨🫂] brr
 
 -   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
