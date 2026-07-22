@@ -10,8 +10,9 @@ import { isUserGlobalAdmin } from '../../../../utils/isUserGlobalAdmin';
 import { buildServerTablePrefix } from '../../../../utils/buildServerTablePrefix';
 import {
     createServerPublicUrl,
-    listEnvironmentRegisteredServers,
+    isServerEnvironment,
     normalizeServerDomain,
+    SERVER_ENVIRONMENT,
 } from '../../../../utils/serverRegistry';
 import {
     assertGlobalAdminAccess,
@@ -121,24 +122,34 @@ export async function POST(request: Request) {
             }
             const tablePrefix = normalizeStandaloneVpsCreateServerTablePrefix(body);
 
+            // Note: The VPS registry database is the source of truth for the server list.
+            //       Its unique table prefix selects the new server's own isolated SQLite database.
+            const { createStandaloneServer } = await import('../../../../database/sqlite/standaloneServerRegistryStore');
+            const createdServer = createStandaloneServer({
+                name: body.name?.trim() || normalizedDomain,
+                environment: isServerEnvironment(body.environment) ? body.environment : SERVER_ENVIRONMENT.PRODUCTION,
+                domain: normalizedDomain,
+                tablePrefix,
+            });
+
+            // Note: `SERVERS` stays a projection of the registry for nginx/certbot provisioning
+            //       and Edge middleware host matching; it no longer defines table prefixes.
             const existingDomains = await listConfiguredVpsDomains();
-            await updateConfiguredVpsDomains([...existingDomains, normalizedDomain], { tablePrefix });
+            await updateConfiguredVpsDomains([...existingDomains, normalizedDomain]);
             await applyVpsRuntimeConfiguration({ isProcessRestartEnabled: false });
-            const createdServer = listEnvironmentRegisteredServers().find((server) => server.domain === normalizedDomain);
-            if (createdServer) {
-                await applyStandaloneVpsServerMetadata({
-                    tablePrefix: createdServer.tablePrefix,
-                    name: body.name,
-                    iconUrl: body.iconUrl,
-                });
-            }
+
+            await applyStandaloneVpsServerMetadata({
+                tablePrefix: createdServer.tablePrefix,
+                name: body.name,
+                iconUrl: body.iconUrl,
+            });
             if (isDefaultAgentsInstalled) {
                 await seedDefaultAgents({ tablePrefix });
             }
 
             return NextResponse.json(
                 {
-                    server: createdServer ?? null,
+                    server: createdServer,
                     publicUrl: createServerPublicUrl(normalizedDomain).href,
                 },
                 { status: 201 },

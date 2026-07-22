@@ -17,6 +17,30 @@ export async function registerNodeRuntimeInstrumentation(): Promise<void> {
     }
 
     try {
+        const { isAgentsServerSqliteMode } = await import('./database/agentsServerDatabaseMode');
+        if (isAgentsServerSqliteMode()) {
+            // Note: Creates the VPS registry database on first boot and registers all
+            //       `SERVERS` domains, so every server gets its own isolated SQLite database
+            //       before the first request arrives.
+            const { listStandaloneRegisteredServers } = await import(
+                './database/sqlite/standaloneServerRegistryStore'
+            );
+            const registeredServers = listStandaloneRegisteredServers();
+            console.info(
+                `🗂️ VPS server registry ready with ${registeredServers.length} registered server(s) in standalone SQLite mode.`,
+            );
+        }
+    } catch (error) {
+        console.error('❌ VPS server registry bootstrap failed during Agents Server instrumentation.', {
+            nextRuntime: process.env.NEXT_RUNTIME,
+            nodeEnv: process.env.NODE_ENV,
+            errorName: error instanceof Error ? error.name : undefined,
+            errorMessage: error instanceof Error ? error.message : String(error),
+            errorStack: error instanceof Error ? error.stack : undefined,
+        });
+    }
+
+    try {
         const { ensureAutomaticVpsSelfUpdateSchedulerBootstrapped } = await import(
             './utils/vpsSelfUpdate/vpsSelfUpdateScheduler'
         );

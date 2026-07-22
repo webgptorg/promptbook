@@ -79,7 +79,7 @@ const TEXT_PRIMARY_KEY_TABLES = new Set([
  * @private constant of `$provideLocalSqliteSupabase`
  */
 const UNIQUE_INDEX_COLUMNS_BY_TABLE = new Map<string, ReadonlyArray<ReadonlyArray<string>>>([
-    ['_Server', [['name'], ['domain']]],
+    ['_Server', [['name'], ['domain'], ['tablePrefix']]],
     ['Metadata', [['key']]],
     ['ServerLimit', [['key']]],
     ['Agent', [['permanentId']]],

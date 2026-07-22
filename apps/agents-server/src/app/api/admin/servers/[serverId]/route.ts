@@ -1,12 +1,9 @@
 import { NextResponse } from 'next/server';
 import { isAgentsServerSqliteMode } from '../../../../../database/agentsServerDatabaseMode';
+import type { ServerRecord } from '../../../../../utils/serverRegistry';
 import { resolveCurrentServerRegistryContext } from '../../../../../utils/currentServerRegistryContext';
 import { isUserGlobalAdmin } from '../../../../../utils/isUserGlobalAdmin';
-import {
-    createServerPublicUrl,
-    listEnvironmentRegisteredServers,
-    normalizeServerDomain,
-} from '../../../../../utils/serverRegistry';
+import { createServerPublicUrl, normalizeServerDomain } from '../../../../../utils/serverRegistry';
 import {
     assertGlobalAdminAccess,
     deleteManagedServer,
@@ -38,7 +35,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ serve
         const parsedServerId = parseManagedServerId(serverId);
 
         if (isAgentsServerSqliteMode()) {
-            const updatedServer = await updateStandaloneVpsServerDomain(parsedServerId, body.domain);
+            const updatedServer = await updateStandaloneVpsServer(parsedServerId, body);
             await applyStandaloneVpsServerMetadata({
                 tablePrefix: updatedServer.tablePrefix,
                 name: body.name,
@@ -110,50 +107,62 @@ export async function DELETE(_request: Request, context: { params: Promise<{ ser
 }
 
 /**
- * Updates a virtual standalone VPS server by replacing its domain in `SERVERS`.
+ * Updates one registered standalone VPS server in the VPS registry database.
  *
- * @param serverId - Virtual server id.
- * @param rawDomain - Replacement domain.
- * @returns Updated virtual server row.
+ * The server keeps its id and its isolated per-server SQLite database; only the
+ * domain (and name) change, so no server data is lost or leaked by renames.
+ *
+ * @param serverId - Registry server id.
+ * @param input - Replacement domain and optional name.
+ * @returns Updated registry row.
  */
-async function updateStandaloneVpsServerDomain(serverId: number, rawDomain: string) {
-    const normalizedDomain = normalizeServerDomain(rawDomain);
-    if (!normalizedDomain) {
+async function updateStandaloneVpsServer(
+    serverId: number,
+    input: { readonly domain?: string; readonly name?: string },
+): Promise<ServerRecord> {
+    const normalizedDomain = input.domain === undefined ? undefined : normalizeServerDomain(input.domain) ?? undefined;
+    if (input.domain !== undefined && !normalizedDomain) {
         throw new Error('A valid domain is required.');
     }
 
-    const servers = listEnvironmentRegisteredServers();
-    const serverIndex = servers.findIndex((server) => server.id === serverId);
-    if (serverIndex === -1) {
-        throw new Error(`Standalone VPS server ${serverId} was not found.`);
-    }
+    const { getStandaloneServerById, updateStandaloneServer } = await import(
+        '../../../../../database/sqlite/standaloneServerRegistryStore'
+    );
+    const previousServer = getStandaloneServerById(serverId);
+    const updatedServer = updateStandaloneServer(serverId, {
+        domain: normalizedDomain,
+        name: input.name,
+    });
 
-    const domains = await listConfiguredVpsDomains();
-    const nextDomains = domains.map((domain, index) => (index === serverIndex ? normalizedDomain : domain));
-    await updateConfiguredVpsDomains(nextDomains);
-    await applyVpsRuntimeConfiguration({ isProcessRestartEnabled: false });
-
-    const updatedServer = listEnvironmentRegisteredServers().find((server) => server.domain === normalizedDomain);
-    if (!updatedServer) {
-        throw new Error(`Standalone VPS server ${normalizedDomain} was not persisted.`);
+    if (previousServer && previousServer.domain !== updatedServer.domain) {
+        const domains = await listConfiguredVpsDomains();
+        const replacedDomains = domains.map((domain) =>
+            domain === previousServer.domain ? updatedServer.domain : domain,
+        );
+        await updateConfiguredVpsDomains(
+            replacedDomains.includes(updatedServer.domain)
+                ? replacedDomains
+                : [...replacedDomains, updatedServer.domain],
+        );
+        await applyVpsRuntimeConfiguration({ isProcessRestartEnabled: false });
     }
 
     return updatedServer;
 }
 
 /**
- * Deletes a virtual standalone VPS server by removing its domain from `SERVERS`.
+ * Deletes one registered standalone VPS server.
  *
- * @param serverId - Virtual server id.
+ * The registration row and its domain are removed, while the isolated
+ * per-server SQLite database file stays on disk so no data is destroyed silently.
+ *
+ * @param serverId - Registry server id.
  */
 async function deleteStandaloneVpsServerDomain(serverId: number): Promise<void> {
-    const servers = listEnvironmentRegisteredServers();
-    const serverIndex = servers.findIndex((server) => server.id === serverId);
-    if (serverIndex === -1) {
-        throw new Error(`Standalone VPS server ${serverId} was not found.`);
-    }
+    const { deleteStandaloneServer } = await import('../../../../../database/sqlite/standaloneServerRegistryStore');
+    const deletedServer = deleteStandaloneServer(serverId);
 
     const domains = await listConfiguredVpsDomains();
-    await updateConfiguredVpsDomains(domains.filter((_domain, index) => index !== serverIndex));
+    await updateConfiguredVpsDomains(domains.filter((domain) => domain !== deletedServer.domain));
     await applyVpsRuntimeConfiguration({ isProcessRestartEnabled: false });
 }

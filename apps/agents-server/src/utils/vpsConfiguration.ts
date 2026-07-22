@@ -221,25 +221,17 @@ export async function listConfiguredVpsDomains(): Promise<Array<string>> {
 }
 
 /**
- * Options used when updating the standalone VPS domain list.
- */
-type UpdateConfiguredVpsDomainsOptions = {
-    /**
-     * Optional server-level table prefix to persist together with the domain list.
-     */
-    readonly tablePrefix?: string | null;
-};
-
-/**
  * Replaces the standalone VPS domain list in `.env`.
  *
+ * Note: The domain list intentionally never touches `SUPABASE_TABLE_PREFIX`.
+ * Per-server namespaces are stored in the VPS registry database, so one shared
+ * environment prefix can no longer make servers leak data into each other.
+ *
  * @param domains - Domains to store in `SERVERS`.
- * @param options - Optional server-level settings to persist.
  * @returns Safe environment snapshot after writing.
  */
 export async function updateConfiguredVpsDomains(
     domains: ReadonlyArray<string>,
-    options?: UpdateConfiguredVpsDomainsOptions,
 ): Promise<Awaited<ReturnType<typeof listVpsEnvironmentVariables>>> {
     const normalizedDomains = normalizeDomains(domains);
     const primaryDomain = normalizedDomains[0] ?? '';
@@ -261,10 +253,6 @@ export async function updateConfiguredVpsDomains(
         updates.NEXT_PUBLIC_SITE_URL = publicIpAddress
             ? `http://${publicIpAddress}`
             : '';
-    }
-
-    if (options && Object.prototype.hasOwnProperty.call(options, 'tablePrefix')) {
-        updates.SUPABASE_TABLE_PREFIX = options.tablePrefix?.trim() || '';
     }
 
     return updateVpsEnvironmentVariables(updates);
@@ -416,25 +404,6 @@ export function isSensitiveEnvironmentVariable(key: string): boolean {
  */
 export function parseDomainsCsv(value: string): Array<string> {
     return normalizeDomains(value.split(','));
-}
-
-/**
- * Builds the deterministic table prefix used by standalone domain records.
- *
- * @param domain - Normalized domain.
- * @returns Table prefix for the server namespace.
- */
-export function buildDomainTablePrefix(domain: string): string {
-    const prefixSuffix = domain
-        .toLowerCase()
-        .replace(/-/gu, '_dash_')
-        .replace(/\./gu, '_')
-        .replace(/:/gu, '_port_')
-        .replace(/[^a-z0-9_]/gu, '_')
-        .replace(/_+/gu, '_')
-        .replace(/^_+|_+$/gu, '');
-
-    return `server_${prefixSuffix}_`;
 }
 
 /**

@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync } from 'fs';
 import { dirname } from 'path';
 import { resolveAgentsServerSqliteDatabasePath } from './resolveAgentsServerSqliteDatabasePath';
+import { resolveServerSqliteDatabasePath } from './resolveServerSqliteDatabasePath';
 
 /**
  * Shape of the `better-sqlite3` module constructor loaded at runtime.
@@ -40,44 +41,75 @@ export type AgentsServerSqliteStatement = {
 };
 
 /**
- * Cached SQLite database connection.
+ * Cached SQLite database connections keyed by absolute database file path.
  */
-let agentsServerSqliteDatabase: AgentsServerSqliteDatabase | null = null;
+const sqliteDatabaseByPath = new Map<string, AgentsServerSqliteDatabase>();
 
 /**
- * Opens and initializes the shared local SQLite database.
+ * Opens and initializes one SQLite database file, caching the connection per path.
  *
- * @returns Shared SQLite database connection.
+ * @param databasePath - Absolute path of the SQLite database file.
+ * @returns Cached SQLite database connection.
  *
  * @private exported from Agents Server SQLite utilities
  */
-export function $provideAgentsServerSqliteDatabase(): AgentsServerSqliteDatabase {
-    if (agentsServerSqliteDatabase) {
-        return agentsServerSqliteDatabase;
+export function $provideSqliteDatabaseAtPath(databasePath: string): AgentsServerSqliteDatabase {
+    const cachedDatabase = sqliteDatabaseByPath.get(databasePath);
+    if (cachedDatabase) {
+        return cachedDatabase;
     }
 
-    const databasePath = resolveAgentsServerSqliteDatabasePath();
     const databaseDirectory = dirname(databasePath);
-
     if (!existsSync(databaseDirectory)) {
         mkdirSync(databaseDirectory, { recursive: true });
     }
 
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const BetterSqlite = require('better-sqlite3') as BetterSqliteConstructor;
-    agentsServerSqliteDatabase = new BetterSqlite(databasePath);
-    agentsServerSqliteDatabase.pragma('journal_mode = WAL');
-    agentsServerSqliteDatabase.pragma('foreign_keys = ON');
+    const database = new BetterSqlite(databasePath);
+    database.pragma('journal_mode = WAL');
+    database.pragma('foreign_keys = ON');
 
-    return agentsServerSqliteDatabase;
+    sqliteDatabaseByPath.set(databasePath, database);
+    return database;
 }
 
 /**
- * Closes the cached SQLite connection and resets adapter state for isolated tests.
+ * Opens the VPS-wide SQLite registry database.
+ *
+ * This database is owned by the super-admin and holds only VPS-level data,
+ * most importantly the `_Server` table listing all servers running on this VPS.
+ * Server-scoped data (agents, projects, metadata, users, ...) lives in isolated
+ * per-server databases provided by `$provideServerSqliteDatabase`.
+ *
+ * @returns Shared VPS registry SQLite database connection.
+ *
+ * @private exported from Agents Server SQLite utilities
+ */
+export function $provideVpsRegistrySqliteDatabase(): AgentsServerSqliteDatabase {
+    return $provideSqliteDatabaseAtPath(resolveAgentsServerSqliteDatabasePath());
+}
+
+/**
+ * Opens the isolated SQLite database of one server namespace.
+ *
+ * @param tablePrefix - Stable server namespace key, or an empty string for the default server.
+ * @returns Per-server SQLite database connection.
+ *
+ * @private exported from Agents Server SQLite utilities
+ */
+export function $provideServerSqliteDatabase(tablePrefix: string): AgentsServerSqliteDatabase {
+    return $provideSqliteDatabaseAtPath(resolveServerSqliteDatabasePath(tablePrefix));
+}
+
+/**
+ * Closes all cached SQLite connections and resets adapter state for isolated tests.
  *
  * @private exported from Agents Server SQLite utilities
  */
 export function $resetAgentsServerSqliteDatabaseForTests(): void {
-    agentsServerSqliteDatabase?.close?.();
-    agentsServerSqliteDatabase = null;
+    for (const database of sqliteDatabaseByPath.values()) {
+        database.close?.();
+    }
+    sqliteDatabaseByPath.clear();
 }

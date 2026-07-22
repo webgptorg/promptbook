@@ -1,21 +1,33 @@
 import type { TODO_any } from '@promptbook-local/types';
 import type { AgentsServerSqliteDatabase } from '../$provideAgentsServerSqliteDatabase';
+import type { LocalSqliteTableLocation } from '../resolveLocalSqliteTableLocation';
 import type { LocalSqliteSelectOptions, LocalSqliteUpsertOptions } from './localSqliteTypes';
 import { LocalSqliteQueryBuilder } from './LocalSqliteQueryBuilder';
 
 /**
+ * Resolver routing one logical table name to its isolated SQLite database.
+ *
+ * @private type of `LocalSqliteSupabaseClient`
+ */
+export type LocalSqliteTableLocationResolver = (tableName: string) => LocalSqliteTableLocation;
+
+/**
  * Supabase-shaped client with only the table query surface used by Agents Server.
+ *
+ * Every table access is routed through the location resolver, so each server
+ * namespace transparently works with its own isolated SQLite database file.
  *
  * @private class of `$provideLocalSqliteSupabase`
  */
 export class LocalSqliteSupabaseClient {
-    public constructor(private readonly database: AgentsServerSqliteDatabase) {}
+    public constructor(private readonly resolveTableLocation: LocalSqliteTableLocationResolver) {}
 
     /**
-     * Starts a query for one SQLite table.
+     * Starts a query for one logical SQLite table.
      */
     public from(tableName: string): LocalSqliteTable {
-        return new LocalSqliteTable(this.database, tableName);
+        const { database, localTableName } = this.resolveTableLocation(tableName);
+        return new LocalSqliteTable(database, localTableName);
     }
 }
 

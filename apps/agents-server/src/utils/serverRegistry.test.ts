@@ -35,13 +35,22 @@ describe('listEnvironmentRegisteredServers', () => {
         ]);
     });
 
-    it('uses the configured standalone VPS table prefix for all SERVERS domains', () => {
-        setEnvironmentVariable('SERVERS', 'www.example.com, support.example.com');
+    it('uses the configured standalone VPS table prefix only for a single-domain setup', () => {
+        setEnvironmentVariable('SERVERS', 'www.example.com');
         setEnvironmentVariable('SUPABASE_TABLE_PREFIX', 'server_AcmeSupport_');
 
         expect(listEnvironmentRegisteredServers().map((server) => server.tablePrefix)).toEqual([
             'server_AcmeSupport_',
-            'server_AcmeSupport_',
+        ]);
+    });
+
+    it('gives every SERVERS domain its own isolated table prefix even when a prefix is configured', () => {
+        setEnvironmentVariable('SERVERS', 'www.example.com, support.example.com');
+        setEnvironmentVariable('SUPABASE_TABLE_PREFIX', 'server_AcmeSupport_');
+
+        expect(listEnvironmentRegisteredServers().map((server) => server.tablePrefix)).toEqual([
+            'server_www_example_com_',
+            'server_support_example_com_',
         ]);
     });
 

@@ -1,4 +1,4 @@
-[ ] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+[x] $52.83 an hour by Claude Code `fable`
 
 [✨😈] Fix the servers
 
@@ -26,3 +26,4 @@ There is one VPS-wide SQLite database for superadmin for managing the list of th
 
 Do a deep analysis of the current functionality of the servers and make the fixes.
 You dont need to keep backwards compatibility or retain the old data, do in a way that each server is isolated and has its own SQLite database and the superadmin has its own SQLite database for managing the list of the servers when the VPS is installed for the first time.
+

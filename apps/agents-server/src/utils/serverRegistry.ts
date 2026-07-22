@@ -2,6 +2,7 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { spaceTrim } from 'spacetrim';
 import { DatabaseError } from '../../../../src/errors/DatabaseError';
 import { isAgentsServerSqliteMode } from '../database/agentsServerDatabaseMode';
+import { buildDomainTablePrefix } from './buildDomainTablePrefix';
 
 /**
  * Supported `_Server.environment` values.
@@ -140,7 +141,18 @@ export async function listRegisteredServersUsingServiceRole(options?: {
     const environmentServers = listEnvironmentRegisteredServers();
 
     if (isAgentsServerSqliteMode()) {
-        return environmentServers;
+        if (isEdgeRuntime()) {
+            // Note: The Edge middleware cannot open SQLite files. It only needs the domain list
+            //       for host matching and never queries server tables in SQLite mode, so the
+            //       environment-derived rows are sufficient there.
+            return environmentServers;
+        }
+
+        // Note: In standalone SQLite mode the VPS registry database is the source of truth.
+        //       Every server row carries its own unique table prefix selecting the isolated
+        //       per-server database file, so servers cannot leak data into each other.
+        const { listStandaloneRegisteredServers } = await import('../database/sqlite/standaloneServerRegistryStore');
+        return listStandaloneRegisteredServers();
     }
 
     const shouldReuseCache =
@@ -171,7 +183,11 @@ export async function listRegisteredServersUsingServiceRole(options?: {
 /**
  * Loads virtual server records from the comma-separated `SERVERS` environment variable.
  *
- * @returns Server records with deterministic table prefixes from the configured server prefix or normalized domains.
+ * Every domain gets its own deterministic domain-derived table prefix so servers can
+ * never share one namespace. The configured `SUPABASE_TABLE_PREFIX` is honored only
+ * for a single-domain setup where no ambiguity exists.
+ *
+ * @returns Server records with per-domain deterministic table prefixes.
  */
 export function listEnvironmentRegisteredServers(): Array<ServerRecord> {
     const rawServers = process.env[SERVERS_ENV_NAME];
@@ -192,10 +208,22 @@ export function listEnvironmentRegisteredServers(): Array<ServerRecord> {
         name: domain,
         environment: SERVER_ENVIRONMENT.PRODUCTION,
         domain,
-        tablePrefix: configuredTablePrefix || buildEnvironmentServerTablePrefix(domain),
+        tablePrefix:
+            normalizedDomains.length === 1 && configuredTablePrefix
+                ? configuredTablePrefix
+                : buildDomainTablePrefix(domain),
         createdAt: ENVIRONMENT_SERVER_TIMESTAMP,
         updatedAt: ENVIRONMENT_SERVER_TIMESTAMP,
     }));
+}
+
+/**
+ * Checks whether the current code runs inside the Next.js Edge runtime.
+ *
+ * @returns `true` when running in the Edge runtime (for example in middleware).
+ */
+function isEdgeRuntime(): boolean {
+    return process.env.NEXT_RUNTIME === 'edge';
 }
 
 /**
@@ -498,25 +526,6 @@ function mergeRegisteredServers(
     }
 
     return mergedServers;
-}
-
-/**
- * Builds a deterministic table prefix from a normalized domain.
- *
- * @param domain - Normalized server domain.
- * @returns Prefix such as `server_www_example_com_`.
- */
-function buildEnvironmentServerTablePrefix(domain: string): string {
-    const prefixSuffix = domain
-        .toLowerCase()
-        .replace(/-/gu, '_dash_')
-        .replace(/\./gu, '_')
-        .replace(/:/gu, '_port_')
-        .replace(/[^a-z0-9_]/gu, '_')
-        .replace(/_+/gu, '_')
-        .replace(/^_+|_+$/gu, '');
-
-    return `server_${prefixSuffix}_`;
 }
 
 /**

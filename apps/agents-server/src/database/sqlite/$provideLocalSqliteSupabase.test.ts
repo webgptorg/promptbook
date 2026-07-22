@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync } from 'fs';
+import { existsSync, mkdtempSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
 
@@ -14,6 +14,8 @@ describe('$provideLocalSqliteSupabase', () => {
             ...ORIGINAL_ENVIRONMENT,
             PTBK_AGENTS_SERVER_SQLITE_PATH: join(temporaryDirectory, 'agents-server.sqlite'),
         };
+        delete process.env.SERVERS;
+        delete process.env.SUPABASE_TABLE_PREFIX;
     });
 
     afterEach(async () => {
@@ -158,8 +160,8 @@ describe('$provideLocalSqliteSupabase', () => {
     });
 
     it('returns metadata values as strings from older numeric-affinity SQLite tables', async () => {
-        const { $provideAgentsServerSqliteDatabase } = await import('./$provideAgentsServerSqliteDatabase');
-        const database = $provideAgentsServerSqliteDatabase();
+        const { resolveLocalSqliteTableLocation } = await import('./resolveLocalSqliteTableLocation');
+        const { database } = resolveLocalSqliteTableLocation('server_S22_Metadata');
         database.exec(
             [
                 'CREATE TABLE "server_S22_Metadata" (',
@@ -192,9 +194,9 @@ describe('$provideLocalSqliteSupabase', () => {
     });
 
     it('creates read indexes for frequent standalone server queries', async () => {
-        const { $provideAgentsServerSqliteDatabase } = await import('./$provideAgentsServerSqliteDatabase');
+        const { resolveLocalSqliteTableLocation } = await import('./resolveLocalSqliteTableLocation');
         const { ensureLocalSqliteTableReadIndexes } = await import('./$provideLocalSqliteSupabase');
-        const database = $provideAgentsServerSqliteDatabase();
+        const { database } = resolveLocalSqliteTableLocation('standalone_UserChat');
 
         database.exec('CREATE TABLE "standalone_UserChat" ("id" TEXT PRIMARY KEY)');
 
@@ -218,5 +220,70 @@ describe('$provideLocalSqliteSupabase', () => {
                 'index_standalone_UserChat_agent_source_user_createdAt',
             ]),
         );
+    });
+
+    it('isolates registered servers into their own SQLite database files', async () => {
+        const { createStandaloneServer } = await import('./standaloneServerRegistryStore');
+        createStandaloneServer({
+            name: 'Client A',
+            environment: 'PRODUCTION',
+            domain: 'client-a.example.com',
+            tablePrefix: 'server_ClientA_',
+        });
+        createStandaloneServer({
+            name: 'Client B',
+            environment: 'PRODUCTION',
+            domain: 'client-b.example.com',
+            tablePrefix: 'server_ClientB_',
+        });
+
+        const { $provideLocalSqliteSupabase } = await import('./$provideLocalSqliteSupabase');
+        const supabase = $provideLocalSqliteSupabase();
+        const now = new Date('2026-05-24T10:00:00.000Z').toISOString();
+
+        const { error: insertError } = await supabase.from('server_ClientA_Agent').insert({
+            agentName: 'client-a-agent',
+            agentHash: 'hash-a',
+            permanentId: 'agent-a',
+            agentProfile: { agentName: 'client-a-agent' },
+            agentSource: 'Client A Agent',
+            promptbookEngineVersion: 'test',
+            usage: {},
+            createdAt: now,
+        });
+        expect(insertError).toBeNull();
+
+        // The other server must not see the agent of the first server
+        const { data: leakedAgents, error: leakError } = await supabase
+            .from('server_ClientB_Agent')
+            .select('*')
+            .eq('permanentId', 'agent-a');
+        expect(leakError).toBeNull();
+        expect(leakedAgents).toEqual([]);
+
+        // The owning server still sees its own agent
+        const { data: ownAgents } = await supabase.from('server_ClientA_Agent').select('*');
+        expect(ownAgents).toHaveLength(1);
+
+        // Each server namespace lives in its own database file with unprefixed table names
+        const { resolveServerSqliteDatabasePath } = await import('./resolveServerSqliteDatabasePath');
+        expect(existsSync(resolveServerSqliteDatabasePath('server_ClientA_'))).toBe(true);
+        expect(existsSync(resolveServerSqliteDatabasePath('server_ClientB_'))).toBe(true);
+
+        const { resolveLocalSqliteTableLocation } = await import('./resolveLocalSqliteTableLocation');
+        const clientALocation = resolveLocalSqliteTableLocation('server_ClientA_Agent');
+        expect(clientALocation.localTableName).toBe('Agent');
+        const clientAAgentRows = clientALocation.database.prepare('SELECT "permanentId" FROM "Agent"').all();
+        expect(clientAAgentRows).toEqual([{ permanentId: 'agent-a' }]);
+    });
+
+    it('routes VPS-level tables into the VPS registry database', async () => {
+        const { resolveLocalSqliteTableLocation } = await import('./resolveLocalSqliteTableLocation');
+        const { $provideVpsRegistrySqliteDatabase } = await import('./$provideAgentsServerSqliteDatabase');
+
+        const serverRegistryLocation = resolveLocalSqliteTableLocation('_Server');
+
+        expect(serverRegistryLocation.localTableName).toBe('_Server');
+        expect(serverRegistryLocation.database).toBe($provideVpsRegistrySqliteDatabase());
     });
 });

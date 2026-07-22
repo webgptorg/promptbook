@@ -1,8 +1,8 @@
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideClientSql } from '@/src/database/$provideClientSql';
 import { isAgentsServerSqliteMode } from '@/src/database/agentsServerDatabaseMode';
-import { $provideAgentsServerSqliteDatabase } from '@/src/database/sqlite/$provideAgentsServerSqliteDatabase';
 import { ensureLocalSqliteTableReadIndexes } from '@/src/database/sqlite/$provideLocalSqliteSupabase';
+import { resolveLocalSqliteTableLocation } from '@/src/database/sqlite/resolveLocalSqliteTableLocation';
 import type { ListUserChatsOptions, UserChatRecord } from './UserChatRecord';
 import type { UserChatSource } from './UserChatSource';
 import type { UserChatRow } from './UserChatRow';
@@ -186,7 +186,10 @@ async function listUserChatSummarySeedsViaSqlite(options: ListUserChatsOptions):
     const rawUserChatTableName = await $getTableName('UserChat');
     ensureLocalSqliteTableReadIndexes(rawUserChatTableName);
 
-    const userChatTableName = quoteIdentifier(rawUserChatTableName);
+    // Note: The logical table name is routed to the isolated per-server SQLite database,
+    //       where the table lives under its unprefixed local name.
+    const { database, localTableName } = resolveLocalSqliteTableLocation(rawUserChatTableName);
+    const userChatTableName = quoteIdentifier(localTableName);
     const shouldLoadAllUsersChats = Boolean(options.viewerIsSuperAdmin && options.includeExternalChats);
     const shouldLoadExternalChats =
         shouldLoadAllUsersChats || (options.viewerIsAdmin && options.includeExternalChats);
@@ -211,7 +214,6 @@ async function listUserChatSummarySeedsViaSqlite(options: ListUserChatsOptions):
         : [options.userId, options.agentPermanentId, USER_CHAT_SOURCES.WEB_UI];
 
     try {
-        const database = $provideAgentsServerSqliteDatabase();
         const summaryRows = database
             .prepare(
                 `

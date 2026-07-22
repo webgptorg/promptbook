@@ -106,6 +106,8 @@ const nextConfig: NextConfig = {
                 child_process: false,
                 // jsdom and related dependencies that require Node.js APIs
                 canvas: false,
+                // Standalone VPS SQLite backend is Node-only; edge middleware never runs it
+                'better-sqlite3': false,
             };
         }
 

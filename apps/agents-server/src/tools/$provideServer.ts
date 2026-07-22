@@ -63,7 +63,7 @@ const getCachedProvidedServer = cache(async (): Promise<ProvidedServer> => {
                     };
                 }
 
-                throw new Error(`Server with host "${requestHost}" is not registered in SERVERS`);
+                throw new Error(`Server with host "${requestHost}" is not registered in the VPS server registry`);
             }
 
             return {

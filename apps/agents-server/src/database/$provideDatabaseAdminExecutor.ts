@@ -2,10 +2,8 @@ import type { StudioBFFSqlLintDetails, StudioBFFSqlLintResult } from '@prisma/st
 import { Pool, type PoolClient } from 'pg';
 import { isAgentsServerSqliteMode } from './agentsServerDatabaseMode';
 import { resolvePostgresConnectionString } from './resolvePostgresConnectionString';
-import {
-    $provideAgentsServerSqliteDatabase,
-    type AgentsServerSqliteDatabase,
-} from './sqlite/$provideAgentsServerSqliteDatabase';
+import { $provideCurrentServerSqliteDatabase } from './sqlite/$provideCurrentServerSqliteDatabase';
+import type { AgentsServerSqliteDatabase } from './sqlite/$provideAgentsServerSqliteDatabase';
 
 /**
  * Query shape sent by Embedded Prisma Studio adapters.
@@ -65,19 +63,20 @@ function $providePostgresDatabaseAdminExecutor(): DatabaseAdminExecutor {
 /**
  * Provides the SQLite raw SQL executor used by Embedded Prisma Studio.
  *
+ * The executor targets the isolated database of the server handling the current
+ * request, so one server's admin can never inspect another server's data.
+ *
  * @returns SQLite-backed database admin executor.
  */
 function $provideSqliteDatabaseAdminExecutor(): DatabaseAdminExecutor {
-    const database = $provideAgentsServerSqliteDatabase();
-
     return {
-        execute: (query) => Promise.resolve(executeSqliteDatabaseAdminQuery(database, query)),
-        executeTransaction: (queries) =>
-            Promise.resolve(
-                database.transaction((transactionQueries: ReadonlyArray<DatabaseAdminQuery>) =>
-                    transactionQueries.map((query) => executeSqliteDatabaseAdminQuery(database, query)),
-                )(queries),
-            ),
+        execute: async (query) => executeSqliteDatabaseAdminQuery(await $provideCurrentServerSqliteDatabase(), query),
+        executeTransaction: async (queries) => {
+            const database = await $provideCurrentServerSqliteDatabase();
+            return database.transaction((transactionQueries: ReadonlyArray<DatabaseAdminQuery>) =>
+                transactionQueries.map((query) => executeSqliteDatabaseAdminQuery(database, query)),
+            )(queries);
+        },
         lintSql: (details) => Promise.resolve({ diagnostics: [], schemaVersion: details.schemaVersion }),
     };
 }
