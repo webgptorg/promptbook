@@ -87,7 +87,14 @@ function compareAdminChatTasksByDefaultView(
                 compareStringsDescending(leftTask.id, rightTask.id)
             );
         case 'all':
+            // The `All` history view is ordered by finished time so the newest finished task is on top;
+            // the shared timeline timestamp resolves to `finishedAt` for terminal tasks while keeping
+            // still-active tasks placed by their start/queue time instead of dropping them to the bottom.
             return (
+                compareNullableNumbersDescending(
+                    resolveAdminChatTaskTimelineTimestamp(leftTask),
+                    resolveAdminChatTaskTimelineTimestamp(rightTask),
+                ) ||
                 compareIsoTimestampsDescending(leftTask.updatedAt, rightTask.updatedAt) ||
                 compareIsoTimestampsDescending(leftTask.createdAt, rightTask.createdAt) ||
                 compareStringsDescending(leftTask.id, rightTask.id)
@@ -228,20 +235,26 @@ function compareNullableIsoTimestampsDescending(
     leftTimestampIso: string | null,
     rightTimestampIso: string | null,
 ): number {
-    const leftTimestamp = parseIsoTimestamp(leftTimestampIso);
-    const rightTimestamp = parseIsoTimestamp(rightTimestampIso);
+    return compareNullableNumbersDescending(parseIsoTimestamp(leftTimestampIso), parseIsoTimestamp(rightTimestampIso));
+}
 
-    if (leftTimestamp === rightTimestamp) {
+/**
+ * Sorts nullable numbers descending while keeping `null` values last.
+ *
+ * @private function of `getAdminChatTasks`
+ */
+function compareNullableNumbersDescending(leftNumber: number | null, rightNumber: number | null): number {
+    if (leftNumber === rightNumber) {
         return 0;
     }
-    if (leftTimestamp === null) {
+    if (leftNumber === null) {
         return 1;
     }
-    if (rightTimestamp === null) {
+    if (rightNumber === null) {
         return -1;
     }
 
-    return compareNumbersDescending(leftTimestamp, rightTimestamp);
+    return compareNumbersDescending(leftNumber, rightNumber);
 }
 
 /**

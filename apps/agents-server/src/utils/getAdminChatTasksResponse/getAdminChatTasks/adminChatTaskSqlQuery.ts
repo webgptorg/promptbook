@@ -259,7 +259,10 @@ function createAdminChatTaskDefaultOrderBySql(view: AdminChatTaskView, alias: st
         case 'failed':
             return `${alias}."finishedAt" DESC NULLS LAST, ${alias}."updatedAt" DESC, ${alias}."id" DESC`;
         case 'all':
-            return `${alias}."updatedAt" DESC, ${alias}."createdAt" DESC, ${alias}."id" DESC`;
+            // The `All` history view is ordered by finished time so the newest finished task is on top;
+            // the shared timeline expression resolves to `finishedAt` for terminal tasks while keeping
+            // still-active tasks placed by their start/queue time instead of dropping them to the bottom.
+            return `${createAdminChatTaskTimelineExpressionSql(alias)} DESC NULLS LAST, ${alias}."updatedAt" DESC, ${alias}."createdAt" DESC, ${alias}."id" DESC`;
         case 'active':
         default:
             return `
