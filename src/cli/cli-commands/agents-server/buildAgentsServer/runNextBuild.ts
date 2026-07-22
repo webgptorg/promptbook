@@ -5,11 +5,10 @@ import { NotAllowed } from '../../../../errors/NotAllowed';
 /**
  * Node.js heap size limit (in MiB) injected into `NODE_OPTIONS` for the Next.js production build.
  *
- * Next.js webpack peaks at ~1.9 GiB on a fresh install; the Node.js default cap is ~1.7 GiB,
- * which causes an OOM crash on first-run VPS installations where swap is the primary resource.
- * Raising the limit lets the build complete on the first attempt.
+ * Next.js webpack can exceed the default ~4 GiB cap after the full verification suite warms the
+ * workspace, and VPS self-updates use this same production build path.
  */
-const AGENTS_SERVER_BUILD_MAX_OLD_SPACE_MIB = 4096;
+const AGENTS_SERVER_BUILD_MAX_OLD_SPACE_MIB = 8192;
 
 /**
  * Maximum attempts for a Next.js build that was killed by the operating system.

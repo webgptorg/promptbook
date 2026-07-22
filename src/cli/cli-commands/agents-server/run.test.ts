@@ -1,18 +1,21 @@
 import { Command } from 'commander';
-import { ensureAgentsServerBuild } from './buildAgentsServer';
+import { ensureAgentsServerBuild } from './buildAgentsServer/ensureAgentsServerBuild';
 import {
     $initializeAgentsServerBuildCommand,
     $initializeAgentsServerDevCommand,
     $initializeAgentsServerStartCommand,
 } from './run';
-import { loadAgentsServerProjectEnvironment, startAgentsServer } from './startAgentsServer';
+import { startAgentsServer } from './startAgentsServer';
+import { loadAgentsServerProjectEnvironment } from './startAgentsServer/loadAgentsServerProjectEnvironment';
 
-jest.mock('./buildAgentsServer', () => ({
+jest.mock('./buildAgentsServer/ensureAgentsServerBuild', () => ({
     ensureAgentsServerBuild: jest.fn(),
 }));
 jest.mock('./startAgentsServer', () => ({
-    loadAgentsServerProjectEnvironment: jest.fn(),
     startAgentsServer: jest.fn(),
+}));
+jest.mock('./startAgentsServer/loadAgentsServerProjectEnvironment', () => ({
+    loadAgentsServerProjectEnvironment: jest.fn(),
 }));
 
 /**

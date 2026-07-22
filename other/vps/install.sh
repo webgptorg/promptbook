@@ -2,6 +2,12 @@
 
 set -Eeuo pipefail
 
+INSTALL_SCRIPT_SOURCE_PATH="${BASH_SOURCE[0]:-}"
+IS_INSTALL_SCRIPT_SOURCED=0
+if [[ -n "$INSTALL_SCRIPT_SOURCE_PATH" && "$INSTALL_SCRIPT_SOURCE_PATH" != "$0" ]]; then
+    IS_INSTALL_SCRIPT_SOURCED=1
+fi
+
 APP_NAME="${PTBK_PM2_APP_NAME:-promptbook-agents-server}"
 INSTALL_DIR="${PTBK_INSTALL_DIR:-/opt/promptbook-agents-server}"
 NODE_MAJOR_VERSION="${NODE_MAJOR_VERSION:-22}"
@@ -122,6 +128,21 @@ warn() {
 fail() {
     printf '[promptbook-vps] Error: %s\n' "$*" >&2
     exit 1
+}
+
+is_install_script_sourced() {
+    [[ "$IS_INSTALL_SCRIPT_SOURCED" == "1" ]]
+}
+
+resolve_running_install_script_path() {
+    local source_script="$INSTALL_SCRIPT_SOURCE_PATH"
+
+    if [[ -n "$source_script" && -r "$source_script" ]]; then
+        printf '%s' "$source_script"
+        return 0
+    fi
+
+    return 1
 }
 
 is_interactive() {
@@ -3556,15 +3577,15 @@ rerun_self_update_from_stable_script() {
         return
     fi
 
-    local source_script="${BASH_SOURCE[0]}"
+    local source_script=""
     local runtime_script="$INSTALL_DIR/.promptbook/self-update/install.sh"
 
-    if [[ "$source_script" == "$runtime_script" ]]; then
+    if ! source_script="$(resolve_running_install_script_path)"; then
+        warn "Cannot copy self-update script because the running installer does not have a readable file path. Continuing in place."
         return
     fi
 
-    if [[ ! -r "$source_script" ]]; then
-        warn "Cannot copy self-update script from $source_script. Continuing in place."
+    if [[ "$source_script" == "$runtime_script" ]]; then
         return
     fi
 
@@ -3896,7 +3917,7 @@ main() {
 
 # When sourced (for example by tests), only load the function definitions and
 # never run the installer itself.
-if [[ "${BASH_SOURCE[0]}" != "$0" ]]; then
+if is_install_script_sourced; then
     return 0
 fi
 

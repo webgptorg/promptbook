@@ -202,6 +202,7 @@ describe('Agents Server build cache', () => {
         expect(getSpawnMock()).toHaveBeenCalledTimes(2);
         expect(outputChunks.join('')).toContain('signal `SIGKILL`');
         expect(firstSpawnOptions?.env?.[PTBK_AGENTS_SERVER_BUILD_WORKER_COUNT_ENV]).toBe('1');
+        expect(firstSpawnOptions?.env?.NODE_OPTIONS).toContain('--max-old-space-size=8192');
     });
 
     it('does not retry normal Next build failures', async () => {

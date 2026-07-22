@@ -12,6 +12,12 @@
         "noUncheckedIndexedAccess": true,
         "module": "esnext",
         "moduleResolution": "node",
+        "baseUrl": ".",
+        "paths": {
+            "@/*": ["apps/agents-server/*"],
+            "@common/*": ["apps/_common/*"],
+            "@promptbook-local/*": ["src/_packages/*.index"]
+        },
         "isolatedModules": false,
         "resolveJsonModule": true,
         "downlevelIteration": true,

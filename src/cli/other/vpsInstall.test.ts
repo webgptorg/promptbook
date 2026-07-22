@@ -402,6 +402,15 @@ describe('other/vps/install.sh', () => {
         expect(installScript).not.toContain("trap '\n        local exit_code=$?");
     });
 
+    it('keeps the installer entrypoint safe when the script is executed from stdin', () => {
+        expect(installScript).toContain('INSTALL_SCRIPT_SOURCE_PATH="${BASH_SOURCE[0]:-}"');
+        expect(installScript).toContain('is_install_script_sourced()');
+        expect(installScript).toContain('resolve_running_install_script_path()');
+        expect(installScript).toContain('if is_install_script_sourced; then');
+        expect(installScript).not.toContain('source_script="${BASH_SOURCE[0]}"');
+        expect(installScript).not.toContain('if [[ "${BASH_SOURCE[0]}" != "$0" ]]; then');
+    });
+
     it('garbage-collects old Agents Server versions during self-update', () => {
         const selfUpdateFunction = installScript.slice(
             installScript.indexOf('\nself_update_agents_server() {'),
