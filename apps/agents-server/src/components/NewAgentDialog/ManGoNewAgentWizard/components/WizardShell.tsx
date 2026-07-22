@@ -114,7 +114,7 @@ export function WizardShell({ children, defaultVisibility, onOpenEditor }: Wizar
     }
 
     return (
-        <div data-onboarding-ui className="flex min-h-screen flex-col bg-zinc-50 text-zinc-900 lg:flex-row">
+        <div data-onboarding-ui className="flex h-[100dvh] min-h-0 flex-col overflow-hidden bg-zinc-50 text-zinc-900 lg:flex-row">
             {/* Mobile: compact top bar */}
             <div className="relative overflow-hidden text-white lg:hidden" style={RAIL_GRADIENT}>
                 <div className="relative z-10 flex items-center justify-between px-5 py-3.5">
@@ -210,7 +210,7 @@ export function WizardShell({ children, defaultVisibility, onOpenEditor }: Wizar
                 </div>
             </aside>
 
-            <main className="flex-1 px-5 py-8 sm:px-8 sm:py-12">
+            <main className="min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain px-5 py-8 sm:px-8 sm:py-12">
                 <div className="ob-animate-rise">{children}</div>
             </main>
         </div>

@@ -2,7 +2,7 @@
 
 ---
 
-[ ]
+[x] ~$0.2494 2 hours by OpenAI Codex `gpt-5.5` (ChatGPT account)
 
 [✨🕸] On mango wizard allow to scroll the right panel
 
@@ -12,3 +12,4 @@
 
 ![alt text](screenshots/2026-07-0600-agents-server-mango-onboarding-scrolling.png)
 ![alt text](screenshots/2026-07-0600-agents-server-mango-onboarding-scrolling-1.png)
+
