@@ -1,4 +1,4 @@
-[ ] !!
+[x] $3.73 an hour by Claude Code `claude-opus-4-8`
 
 [✨🐟] Move install script
 
@@ -20,3 +20,4 @@ sudo curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/head
     --openai-api-key sk-proj-xxx \
     --admin-password xxx
 ```
+
