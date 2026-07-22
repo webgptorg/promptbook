@@ -8,7 +8,10 @@ describe('other/vps/install.sh', () => {
         expect(installScript).toContain(
             'PROMPTBOOK_REPOSITORY_URL="${PROMPTBOOK_REPOSITORY_URL:-https://github.com/webgptorg/promptbook.git}"',
         );
-        expect(installScript).toContain('PROMPTBOOK_REPOSITORY_REF="${PROMPTBOOK_REPOSITORY_REF:-main}"');
+        expect(installScript).toContain('DEFAULT_PROMPTBOOK_REPOSITORY_REF="preview"');
+        expect(installScript).toContain(
+            'PROMPTBOOK_REPOSITORY_REF="${PROMPTBOOK_REPOSITORY_REF:-$DEFAULT_PROMPTBOOK_REPOSITORY_REF}"',
+        );
         expect(installScript).toContain('PTBK_RELEASES_DIR="${PTBK_RELEASES_DIR:-$PTBK_BIN_DIR}"');
         expect(installScript).toContain(
             'git clone --depth 1 --branch "$PROMPTBOOK_REPOSITORY_REF" "$PROMPTBOOK_REPOSITORY_URL" "$staging_repository_dir"',
@@ -24,7 +27,7 @@ describe('other/vps/install.sh', () => {
         expect(installScript).toContain('node_modules/.bin/ts-node');
         expect(installScript).toContain('verify_promptbook_cli_supports_agents_server');
         expect(installScript).toContain(
-            "does not provide 'ptbk agents-server init'. Choose main or another branch that includes standalone Agents Server support.",
+            "does not provide 'ptbk agents-server init'. Choose one of: $PROMPTBOOK_ENVIRONMENT_OPTIONS_LABEL.",
         );
         expect(installScript).toContain('PTBK_PATH=$ptbk_command_shell');
         expect(installScript).toContain('pm2 start \\"\\$PTBK_PATH\\"');
@@ -136,6 +139,41 @@ describe('other/vps/install.sh', () => {
         expect(installScript).toContain('SENTRY_DSN="$2"');
         expect(installScript).toContain('--admin-password)');
         expect(installScript).toContain('ADMIN_PASSWORD="$2"');
+    });
+
+    it('accepts a deployment environment option and defaults fresh installs to preview', () => {
+        const mainFunction = installScript.slice(installScript.indexOf('\nmain() {'));
+        const selfUpdateFunction = installScript.slice(
+            installScript.indexOf('\nself_update_agents_server() {'),
+            installScript.indexOf('\nprint_summary() {'),
+        );
+
+        expect(installScript).toContain('DEFAULT_PROMPTBOOK_REPOSITORY_REF="preview"');
+        expect(installScript).toContain('PROMPTBOOK_ENVIRONMENT_OPTIONS_LABEL="live, preview, production, or LTS"');
+        expect(installScript).toContain(
+            'PROMPTBOOK_ENVIRONMENT_PROMPT_LABEL="Deployment environment (live/preview/production/LTS)"',
+        );
+        expect(installScript).toContain('resolve_promptbook_environment_repository_ref()');
+        expect(installScript).toContain('main | live)');
+        expect(installScript).toContain("printf 'main'");
+        expect(installScript).toContain('preview)');
+        expect(installScript).toContain("printf 'preview'");
+        expect(installScript).toContain('lts)');
+        expect(installScript).toContain("printf 'lts'");
+        expect(installScript).toContain('select_promptbook_repository_environment()');
+        expect(installScript).toContain('--env)');
+        expect(installScript).toContain('select_promptbook_repository_environment "--env" "$2"');
+        expect(installScript).toContain('--env=*)');
+        expect(installScript).toContain('select_promptbook_repository_environment "--env" "${1#*=}"');
+        expect(selfUpdateFunction).toContain('--env)');
+        expect(selfUpdateFunction).toContain('target_ref="$(normalize_promptbook_repository_environment_option "--env" "$1")"');
+        expect(selfUpdateFunction).toContain('--env=*)');
+        expect(selfUpdateFunction).toContain(
+            'target_ref="$(normalize_promptbook_repository_environment_option "--env" "${1#--env=}")"',
+        );
+        expect(mainFunction).toContain(
+            'prompt_with_default "$PROMPTBOOK_ENVIRONMENT_PROMPT_LABEL" "$PROMPTBOOK_REPOSITORY_REF"',
+        );
     });
 
     it('defaults standalone VPS harness to OpenAI Codex while keeping GitHub Copilot available', () => {

@@ -25,7 +25,10 @@ PTBK_SELF_CONTAINED_S3_REGION="${PTBK_SELF_CONTAINED_S3_REGION:-us-east-1}"
 PTBK_EXTERNAL_S3_REGION="${PTBK_EXTERNAL_S3_REGION:-auto}"
 PTBK_CDN_PATH_PREFIX="${PTBK_CDN_PATH_PREFIX:-ptbk-agents}"
 PROMPTBOOK_REPOSITORY_URL="${PROMPTBOOK_REPOSITORY_URL:-https://github.com/webgptorg/promptbook.git}"
-PROMPTBOOK_REPOSITORY_REF="${PROMPTBOOK_REPOSITORY_REF:-main}"
+DEFAULT_PROMPTBOOK_REPOSITORY_REF="preview"
+PROMPTBOOK_ENVIRONMENT_OPTIONS_LABEL="live, preview, production, or LTS"
+PROMPTBOOK_ENVIRONMENT_PROMPT_LABEL="Deployment environment (live/preview/production/LTS)"
+PROMPTBOOK_REPOSITORY_REF="${PROMPTBOOK_REPOSITORY_REF:-$DEFAULT_PROMPTBOOK_REPOSITORY_REF}"
 CODE_SERVER_INSTALL_SCRIPT_URL="${CODE_SERVER_INSTALL_SCRIPT_URL:-https://code-server.dev/install.sh}"
 CODE_SERVER_INSTALL_PREFIX="${CODE_SERVER_INSTALL_PREFIX:-/usr/local}"
 PTBK_BIN_DIR="${PTBK_BIN_DIR:-$INSTALL_DIR/bin}"
@@ -111,6 +114,7 @@ REQUESTED_CDN_PUBLIC_URL="${NEXT_PUBLIC_CDN_PUBLIC_URL:-}"
 REQUESTED_CDN_FORCE_PATH_STYLE="${CDN_FORCE_PATH_STYLE:-false}"
 REQUESTED_ADDITIONAL_SWAP_MIB=0
 REQUESTED_INSTALL_DEFAULT_AGENTS="yes"
+REQUESTED_PROMPTBOOK_REPOSITORY_REF=""
 IS_RUNNER_AUTHENTICATION_REQUESTED=""
 GENERATED_ADMIN_PASSWORD=""
 PUBLIC_IP_ADDRESS=""
@@ -241,13 +245,16 @@ is_existing_vps_installation() {
     [[ -r "$INSTALL_DIR/.env" ]]
 }
 
-normalize_promptbook_repository_ref() {
+normalize_promptbook_environment_key() {
     local raw_ref="${1:-}"
-    local normalized_ref=""
 
-    normalized_ref="$(printf '%s' "$raw_ref" | tr '[:upper:]' '[:lower:]' | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')"
+    printf '%s' "$raw_ref" | tr '[:upper:]' '[:lower:]' | sed -E 's/^[[:space:]]+|[[:space:]]+$//g'
+}
 
-    case "$normalized_ref" in
+resolve_promptbook_environment_repository_ref() {
+    local environment_key="$1"
+
+    case "$environment_key" in
         '' | production)
             printf 'production'
             ;;
@@ -261,9 +268,42 @@ normalize_promptbook_repository_ref() {
             printf 'lts'
             ;;
         *)
-            fail "Unsupported Promptbook environment '$raw_ref'. Use one of: production, main, preview, LTS."
+            return 1
             ;;
     esac
+}
+
+normalize_promptbook_repository_ref() {
+    local raw_ref="${1:-}"
+    local environment_key=""
+    local repository_ref=""
+
+    environment_key="$(normalize_promptbook_environment_key "$raw_ref")"
+
+    if repository_ref="$(resolve_promptbook_environment_repository_ref "$environment_key")"; then
+        printf '%s' "$repository_ref"
+        return
+    fi
+
+    fail "Unsupported Promptbook environment '$raw_ref'. Use one of: $PROMPTBOOK_ENVIRONMENT_OPTIONS_LABEL."
+}
+
+normalize_promptbook_repository_environment_option() {
+    local option_name="$1"
+    local raw_ref="${2:-}"
+    local environment_key=""
+
+    environment_key="$(normalize_promptbook_environment_key "$raw_ref")"
+    if [[ -z "$environment_key" ]]; then
+        fail "Missing value for $option_name."
+    fi
+
+    normalize_promptbook_repository_ref "$raw_ref"
+}
+
+select_promptbook_repository_environment() {
+    REQUESTED_PROMPTBOOK_REPOSITORY_REF="$(normalize_promptbook_repository_environment_option "$1" "$2")"
+    PROMPTBOOK_REPOSITORY_REF="$REQUESTED_PROMPTBOOK_REPOSITORY_REF"
 }
 
 resolve_promptbook_environment_label() {
@@ -432,26 +472,16 @@ read_remote_repository_commit_sha() {
 # four predefined environments. Used for self-update targets that may point at arbitrary commits or tags.
 normalize_promptbook_repository_ref_safe() {
     local raw_ref="${1:-}"
-    local normalized_ref=""
+    local environment_key=""
+    local repository_ref=""
 
-    normalized_ref="$(printf '%s' "$raw_ref" | tr '[:upper:]' '[:lower:]' | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')"
-    case "$normalized_ref" in
-        '' | production)
-            printf 'production'
-            ;;
-        main | live)
-            printf 'main'
-            ;;
-        preview)
-            printf 'preview'
-            ;;
-        lts)
-            printf 'lts'
-            ;;
-        *)
-            printf '%s' "$raw_ref"
-            ;;
-    esac
+    environment_key="$(normalize_promptbook_environment_key "$raw_ref")"
+    if repository_ref="$(resolve_promptbook_environment_repository_ref "$environment_key")"; then
+        printf '%s' "$repository_ref"
+        return
+    fi
+
+    printf '%s' "$raw_ref"
 }
 
 read_remote_repository_tag_for_commit() {
@@ -1437,7 +1467,7 @@ verify_promptbook_cli_supports_agents_server() {
         return
     fi
 
-    fail "The Promptbook repository branch '$PROMPTBOOK_REPOSITORY_REF' does not provide 'ptbk agents-server init'. Choose main or another branch that includes standalone Agents Server support."
+    fail "The Promptbook repository branch '$PROMPTBOOK_REPOSITORY_REF' does not provide 'ptbk agents-server init'. Choose one of: $PROMPTBOOK_ENVIRONMENT_OPTIONS_LABEL."
 }
 
 install_runner_dependencies() {
@@ -3691,6 +3721,16 @@ self_update_agents_server() {
                 target_ref="${1#--branch=}"
                 is_custom_ref=0
                 ;;
+            --env)
+                shift
+                [[ $# -gt 0 ]] || fail "Missing value for --env."
+                target_ref="$(normalize_promptbook_repository_environment_option "--env" "$1")"
+                is_custom_ref=0
+                ;;
+            --env=*)
+                target_ref="$(normalize_promptbook_repository_environment_option "--env" "${1#--env=}")"
+                is_custom_ref=0
+                ;;
             --ref)
                 shift
                 [[ $# -gt 0 ]] || fail "Missing value for --ref."
@@ -3873,7 +3913,11 @@ main() {
 
     if is_existing_vps_installation; then
         log "Existing Promptbook Agents Server installation detected at $INSTALL_DIR; running self-update."
-        self_update_agents_server "$@"
+        if [[ -n "$REQUESTED_PROMPTBOOK_REPOSITORY_REF" ]]; then
+            self_update_agents_server --branch "$REQUESTED_PROMPTBOOK_REPOSITORY_REF" "$@"
+        else
+            self_update_agents_server "$@"
+        fi
         return
     fi
 
@@ -3884,7 +3928,7 @@ main() {
     PTBK_HARNESS="$(prompt_with_default "Harness" "$PTBK_HARNESS")"
     PTBK_MODEL="$(prompt_with_default "Harness model" "$PTBK_MODEL")"
     PTBK_THINKING_LEVEL="$(prompt_with_default "Harness thinking level" "$PTBK_THINKING_LEVEL")"
-    PROMPTBOOK_REPOSITORY_REF="$(normalize_promptbook_repository_ref "$(prompt_with_default "Deployment environment (production/main/preview/LTS)" "$PROMPTBOOK_REPOSITORY_REF")")"
+    PROMPTBOOK_REPOSITORY_REF="$(normalize_promptbook_repository_ref "$(prompt_with_default "$PROMPTBOOK_ENVIRONMENT_PROMPT_LABEL" "$PROMPTBOOK_REPOSITORY_REF")")"
     PORT="$(prompt_with_default "Agents Server port" "$PORT")"
     configure_domains
     if [[ "${#DOMAINS[@]}" -gt 0 ]]; then
@@ -3929,6 +3973,15 @@ while [[ "$#" -gt 0 ]]; do
             ;;
         --yes-i-understand-that-script-should-be-run-on-fresh-server)
             PTBK_CONFIRM_FRESH_VPS=1
+            shift
+            ;;
+        --env)
+            [[ "$#" -ge 2 ]] || fail "Missing value for --env."
+            select_promptbook_repository_environment "--env" "$2"
+            shift 2
+            ;;
+        --env=*)
+            select_promptbook_repository_environment "--env" "${1#*=}"
             shift
             ;;
         --domain | --domains)
@@ -4005,7 +4058,11 @@ fi
 
 if [[ "${1:-}" == "self-update" ]]; then
     shift
-    self_update_agents_server "$@"
+    if [[ -n "$REQUESTED_PROMPTBOOK_REPOSITORY_REF" ]]; then
+        self_update_agents_server --branch "$REQUESTED_PROMPTBOOK_REPOSITORY_REF" "$@"
+    else
+        self_update_agents_server "$@"
+    fi
     exit 0
 fi
 

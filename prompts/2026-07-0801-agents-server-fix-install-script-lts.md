@@ -1,4 +1,4 @@
-[ ] !!!
+[x] (2 attempts) ~$0.6582 4 hours by OpenAI Codex `gpt-5.5`
 
 [✨🏜] Add option to pick environment to `install.sh` script
 
@@ -17,3 +17,4 @@ root@collboard-ptbk-lts:~# sudo curl -fsSL https://raw.githubusercontent.com/web
     --openai-api-key sk-proj-xxx \
     --admin-password xxx
 ```
+
