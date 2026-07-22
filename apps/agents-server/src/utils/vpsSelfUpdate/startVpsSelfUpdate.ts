@@ -25,7 +25,7 @@ import type { VpsSelfUpdateJobTrigger, VpsSelfUpdateOverview, VpsSelfUpdateStart
 /**
  * Starts one detached VPS self-update run for the selected environment.
  *
- * The actual update is executed by `other/vps/install.sh self-update`, while this
+ * The actual update is executed by `install.sh self-update`, while this
  * helper writes the initial persisted state and detaches the background process so
  * the triggering HTTP request can finish before pm2 restarts the server.
  *

@@ -18,8 +18,8 @@ set -Eeuo pipefail
 
 TEST_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# shellcheck source=./install.sh
-source "$TEST_SCRIPT_DIR/install.sh"
+# shellcheck source=../../install.sh
+source "$TEST_SCRIPT_DIR/../../install.sh"
 
 TEST_FAILURES=0
 

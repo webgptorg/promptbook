@@ -26,13 +26,13 @@ https://cloud.digitalocean.com/droplets/new?i=ce436d&region=nyc1&size=s-1vcpu-2g
 Run the standalone VPS installer _(for example on DigitalOcean)_ only on a fresh server. Interactive mode asks for the installation values:
 
 ```bash
-sudo curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/other/vps/install.sh | bash
+sudo curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/install.sh | bash
 ```
 
 Non-interactive mode takes defaults from command-line options. Use `--env live`, `--env preview`, `--env production`, or `--env lts` to pick the installed environment; the default is `preview`. When `--openai-api-key` is provided with the default OpenAI Codex runner, the installer installs and configures Codex automatically; other runner authentication can be configured later from the UI or SSH:
 
 ```bash
-sudo curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/other/vps/install.sh | bash -s -- \
+sudo curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/install.sh | bash -s -- \
     --non-interactive \
     --yes-i-understand-that-script-should-be-run-on-fresh-server \
     --env preview \

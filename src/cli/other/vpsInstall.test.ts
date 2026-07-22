@@ -1,8 +1,8 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
-describe('other/vps/install.sh', () => {
-    const installScript = readFileSync(join(__dirname, '../../../other/vps/install.sh'), 'utf-8');
+describe('install.sh', () => {
+    const installScript = readFileSync(join(__dirname, '../../../install.sh'), 'utf-8');
 
     it('installs Promptbook from the GitHub repository instead of the npm package registry', () => {
         expect(installScript).toContain(

@@ -1416,7 +1416,7 @@ install_agents_server_dependencies() {
 }
 
 install_agents_server_dependency_requirements() {
-    local release_install_script_path="$PROMPTBOOK_REPOSITORY_DIR/other/vps/install.sh"
+    local release_install_script_path="$PROMPTBOOK_REPOSITORY_DIR/install.sh"
 
     if [[ -f "$release_install_script_path" ]] && grep -q '^apply_dependency_configuration()' "$release_install_script_path"; then
         log "Applying dependency requirements from $release_install_script_path."
@@ -2105,7 +2105,7 @@ configure_environment() {
     set_env_value PTBK_SHARED_NEXT_STATIC_ROOT "$PTBK_SHARED_NEXT_STATIC_ROOT"
     set_env_value PTBK_REPOSITORY_DIR "$PROMPTBOOK_REPOSITORY_DIR"
     set_env_value PROMPTBOOK_REPOSITORY_REF "$PROMPTBOOK_REPOSITORY_REF"
-    set_env_value PTBK_VPS_INSTALL_SCRIPT "$PROMPTBOOK_REPOSITORY_DIR/other/vps/install.sh"
+    set_env_value PTBK_VPS_INSTALL_SCRIPT "$PROMPTBOOK_REPOSITORY_DIR/install.sh"
     set_env_value PTBK_AGENTS_SERVER_ENV_FILE "$ENV_FILE"
     set_env_value PTBK_PM2_BASE_APP_NAME "$PTBK_PM2_BASE_APP_NAME"
     set_env_value PTBK_PM2_APP_NAME "$APP_NAME"
@@ -2249,7 +2249,7 @@ configure_harness_for_initial_installation() {
         fi
 
         log "Skipping harness CLI installation and authentication in non-interactive mode."
-        log "Configure the harness later from System -> Super Admin -> Harness Auth or by running: bash $PROMPTBOOK_REPOSITORY_DIR/other/vps/install.sh apply-runner"
+        log "Configure the harness later from System -> Super Admin -> Harness Auth or by running: bash $PROMPTBOOK_REPOSITORY_DIR/install.sh apply-runner"
         return
     fi
 
@@ -3171,7 +3171,7 @@ configure_ssl_certificates() {
 
     if [[ "${#failed_domains[@]}" -gt 0 ]]; then
         warn "Certificates could not be issued for: $(join_by_comma "${failed_domains[@]}")."
-        warn "Point the DNS of these domains to $PUBLIC_IP_ADDRESS, then rerun: bash $PROMPTBOOK_REPOSITORY_DIR/other/vps/install.sh apply-domains"
+        warn "Point the DNS of these domains to $PUBLIC_IP_ADDRESS, then rerun: bash $PROMPTBOOK_REPOSITORY_DIR/install.sh apply-domains"
     fi
 
     if [[ -n "$first_domain" ]] && domain_has_ssl_certificate "$first_domain"; then
@@ -3298,7 +3298,7 @@ start_pm2_agents_server_process() {
     process_port_shell="$(shell_quote "$process_port")"
     ptbk_command_shell="$(shell_quote "$PTBK_COMMAND_PATH")"
     repository_dir_shell="$(shell_quote "$PROMPTBOOK_REPOSITORY_DIR")"
-    install_script_shell="$(shell_quote "$PROMPTBOOK_REPOSITORY_DIR/other/vps/install.sh")"
+    install_script_shell="$(shell_quote "$PROMPTBOOK_REPOSITORY_DIR/install.sh")"
     env_file_shell="$(shell_quote "$ENV_FILE")"
     base_app_name_shell="$(shell_quote "$PTBK_PM2_BASE_APP_NAME")"
     data_dir_shell="$(shell_quote "$PTBK_DATA_DIR")"
@@ -3794,7 +3794,7 @@ self_update_agents_server() {
     # next self-update retries the installation. Hard requirements still fail the update
     # where they are actually needed (`npm ci` above, the Agents Server build below).
     if ! (install_agents_server_dependency_requirements); then
-        warn "Installing Agents Server runtime dependencies failed; continuing the self-update without them. Rerun later with: bash $PROMPTBOOK_REPOSITORY_DIR/other/vps/install.sh apply-dependencies"
+        warn "Installing Agents Server runtime dependencies failed; continuing the self-update without them. Rerun later with: bash $PROMPTBOOK_REPOSITORY_DIR/install.sh apply-dependencies"
     fi
 
     write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Refreshing the Promptbook CLI launcher." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "" "$$"
@@ -3812,7 +3812,7 @@ self_update_agents_server() {
         set_env_value PROMPTBOOK_REPOSITORY_REF "$PROMPTBOOK_REPOSITORY_REF"
         set_env_value PTBK_SHARED_NEXT_STATIC_ROOT "$PTBK_SHARED_NEXT_STATIC_ROOT"
         set_env_value PTBK_REPOSITORY_DIR "$PROMPTBOOK_REPOSITORY_DIR"
-        set_env_value PTBK_VPS_INSTALL_SCRIPT "$PROMPTBOOK_REPOSITORY_DIR/other/vps/install.sh"
+        set_env_value PTBK_VPS_INSTALL_SCRIPT "$PROMPTBOOK_REPOSITORY_DIR/install.sh"
         cleanup_orphan_agents_server_pm2_processes "$APP_NAME"
         garbage_collect_promptbook_releases
         finished_at="$(date --utc --iso-8601=seconds)"
@@ -3840,7 +3840,7 @@ self_update_agents_server() {
     set_env_value PTBK_SHARED_NEXT_STATIC_ROOT "$PTBK_SHARED_NEXT_STATIC_ROOT"
     set_env_value PTBK_REPOSITORY_DIR "$PROMPTBOOK_REPOSITORY_DIR"
     set_env_value PROMPTBOOK_REPOSITORY_REF "$PROMPTBOOK_REPOSITORY_REF"
-    set_env_value PTBK_VPS_INSTALL_SCRIPT "$PROMPTBOOK_REPOSITORY_DIR/other/vps/install.sh"
+    set_env_value PTBK_VPS_INSTALL_SCRIPT "$PROMPTBOOK_REPOSITORY_DIR/install.sh"
     set_env_value PTBK_PM2_BASE_APP_NAME "$PTBK_PM2_BASE_APP_NAME"
     set_env_value PTBK_PM2_APP_NAME "$replacement_app_name"
 
@@ -3850,7 +3850,7 @@ self_update_agents_server() {
     # take the already switched-over Agents Server offline.
     write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Refreshing nginx and SSL configuration for server and project domains." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "" "$$"
     if ! (configure_nginx_reverse_proxy && configure_ssl_certificates); then
-        warn "Refreshing the nginx and SSL configuration failed; keeping the previous configuration. Rerun later with: bash $PROMPTBOOK_REPOSITORY_DIR/other/vps/install.sh apply-domains"
+        warn "Refreshing the nginx and SSL configuration failed; keeping the previous configuration. Rerun later with: bash $PROMPTBOOK_REPOSITORY_DIR/install.sh apply-domains"
     fi
 
     write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Removing previous Agents Server pm2 processes and garbage-collecting old versions." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "" "$$"

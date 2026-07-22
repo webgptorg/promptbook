@@ -17,7 +17,7 @@ export const AGENTS_SERVER_GC_KEEP_VERSIONS_ENV_NAME = 'AGENTS_SERVER_GC_KEEP_VE
 /**
  * Default total number of installed versions kept by garbage collection (the current one plus two previous ones).
  *
- * Note: [🧹] Keep in sync with the `AGENTS_SERVER_GC_KEEP_VERSIONS` default in `other/vps/install.sh`.
+ * Note: [🧹] Keep in sync with the `AGENTS_SERVER_GC_KEEP_VERSIONS` default in `install.sh`.
  *
  * @private constant of `vpsSelfUpdate`
  */

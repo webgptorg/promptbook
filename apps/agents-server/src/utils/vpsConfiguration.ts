@@ -587,9 +587,9 @@ async function readOptionalTextFile(filePath: string): Promise<string> {
 export async function resolveVpsInstallerScriptPath(): Promise<string | null> {
     const candidates = [
         process.env.PTBK_VPS_INSTALL_SCRIPT?.trim(),
-        process.env.PTBK_REPOSITORY_DIR ? join(process.env.PTBK_REPOSITORY_DIR, 'other/vps/install.sh') : '',
-        join(process.cwd(), 'other/vps/install.sh'),
-        join(process.cwd(), '../../other/vps/install.sh'),
+        process.env.PTBK_REPOSITORY_DIR ? join(process.env.PTBK_REPOSITORY_DIR, 'install.sh') : '',
+        join(process.cwd(), 'install.sh'),
+        join(process.cwd(), '../../install.sh'),
     ].filter((candidate): candidate is string => Boolean(candidate));
 
     for (const candidate of candidates) {

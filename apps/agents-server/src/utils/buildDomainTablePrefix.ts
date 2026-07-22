@@ -5,7 +5,7 @@
  * - In Supabase mode it prefixes the server tables inside the shared database.
  * - In standalone SQLite mode it selects the isolated per-server database file.
  *
- * Note: Keep in sync with `build_domain_table_prefix` in `other/vps/install.sh`.
+ * Note: Keep in sync with `build_domain_table_prefix` in `install.sh`.
  *
  * @param domain - Normalized server domain such as `client.example.com`.
  * @returns Prefix such as `server_client_example_com_`.
