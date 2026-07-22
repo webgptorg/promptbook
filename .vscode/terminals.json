@@ -438,7 +438,7 @@
         },
         {
             "name": "🧪 Test Package generation (build) (💤)(⏳)",
-            "command": "ts-node ./scripts/generate-packages/generate-packages.ts",
+            "command": "npx ts-node ./scripts/generate-packages/generate-packages.ts",
             "execute": false,
             "onlySingle": false,
             "focus": false
