@@ -168,6 +168,25 @@ describe('ChatMessageItem lifecycle badges', () => {
     });
 });
 
+describe('ChatMessageItem feedback stars', () => {
+    it('only colors picked expanded feedback stars as active', () => {
+        const { container } = renderChatMessageItem(createAssistantMessageFixture(), {
+            currentRating: 3,
+            isExpanded: true,
+            isFeedbackEnabled: true,
+        });
+
+        const starElements = Array.from(
+            container.querySelectorAll<HTMLElement>('span[style*="--chat-feedback-star-color"]'),
+        );
+
+        expect(
+            starElements.map((starElement) => starElement.style.getPropertyValue('--chat-feedback-star-color')),
+        ).toEqual(['#ffd700', '#ffd700', '#ffd700', '#ccc', '#ccc']);
+        expect(container.textContent).not.toContain('⭐');
+    });
+});
+
 describe('ChatMessageItem progress checklist rendering', () => {
     it('renders progress with explicit status markers without a separate progress panel container', () => {
         const { container } = renderChatMessageItem(createAssistantProgressMessageFixture());

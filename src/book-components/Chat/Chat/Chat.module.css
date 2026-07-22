@@ -949,6 +949,18 @@
     color: #ffd700;
 }
 
+.feedbackStar {
+    color: var(--chat-feedback-star-color, #ccc);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.feedbackStarIcon {
+    display: block;
+}
+
 /* Sender Avatar */
 .chatMainFlow .chatMessage .avatar {
     width: var(--chat-message-avatar-size);

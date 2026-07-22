@@ -35,6 +35,7 @@ import { chatCssClassNames } from './chatCssClassNames';
 import { ChatMessageAttachments } from './ChatMessageAttachments';
 import { ChatMessageRichContent } from './ChatMessageRichContent';
 import { ChatMessageToolCallChips } from './ChatMessageToolCallChips';
+import { CHAT_FEEDBACK_STAR_RATINGS, ChatFeedbackStar, resolveChatFeedbackStarInactiveColor } from './ChatFeedbackStar';
 import type { ChatProps } from './ChatProps';
 import { ChatReplyPreview } from './ChatReplyPreview';
 import { createChatMessageToolCallRenderModel } from './createChatMessageToolCallRenderModel';
@@ -661,36 +662,23 @@ export const ChatMessageItem = memo(
                             ⚠
                         </button>
                     ) : isExpanded ? (
-                        [1, 2, 3, 4, 5].map((star) => (
-                            <span
+                        CHAT_FEEDBACK_STAR_RATINGS.map((star) => (
+                            <ChatFeedbackStar
                                 key={star}
                                 onClick={() => handleRating(message, star)}
                                 onMouseEnter={() => setLocalHoveredRating(star)}
-                                className={classNames(
-                                    styles.ratingStar,
-                                    star <= (localHoveredRating || currentRating || 0) && styles.active,
-                                )}
-                                style={
-                                    {
-                                        '--star-inactive-color': mode === 'LIGHT' ? '#ccc' : '#555',
-                                    } as CSSProperties
-                                }
-                            >
-                                ⭐
-                            </span>
+                                className={styles.ratingStar}
+                                isActive={star <= (localHoveredRating || currentRating || 0)}
+                                inactiveColor={resolveChatFeedbackStarInactiveColor(mode)}
+                            />
                         ))
                     ) : (
-                        <span
+                        <ChatFeedbackStar
                             onClick={() => handleRating(message, currentRating || 1)}
-                            className={classNames(styles.ratingStar, currentRating && styles.active)}
-                            style={
-                                {
-                                    '--star-inactive-color': mode === 'LIGHT' ? '#888' : '#666',
-                                } as CSSProperties
-                            }
-                        >
-                            ⭐
-                        </span>
+                            className={styles.ratingStar}
+                            isActive={Boolean(currentRating)}
+                            inactiveColor={resolveChatFeedbackStarInactiveColor(mode, 'muted')}
+                        />
                     )}
                 </div>
             );

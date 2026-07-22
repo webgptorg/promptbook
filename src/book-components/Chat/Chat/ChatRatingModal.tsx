@@ -2,17 +2,10 @@
 
 import type { MouseEventHandler } from 'react';
 import type { id } from '../../../types/string_token';
-import { classNames } from '../../_common/react-utils/classNames';
 import type { ChatMessage } from '../types/ChatMessage';
+import { CHAT_FEEDBACK_STAR_RATINGS, ChatFeedbackStar, resolveChatFeedbackStarInactiveColor } from './ChatFeedbackStar';
 import styles from './Chat.module.css';
 import type { ChatFeedbackMode, ChatProps } from './ChatProps';
-
-/**
- * Supported star values rendered by the rating UI.
- *
- * @private component of `<ChatRatingModal/>`
- */
-const STAR_RATINGS = [1, 2, 3, 4, 5] as const;
 
 /**
  * Localized copy rendered by the rating modal.
@@ -194,19 +187,6 @@ function resolveSelectedChatRating(params: {
 }
 
 /**
- * Resolves the color for one star in the rating picker.
- *
- * @private function of `<ChatRatingModal/>`
- */
-function resolveChatRatingStarColor(star: number, selectedRating: number, mode: 'LIGHT' | 'DARK'): string {
-    if (star <= selectedRating) {
-        return '#FFD700';
-    }
-
-    return mode === 'LIGHT' ? '#ccc' : '#555';
-}
-
-/**
  * Returns the placeholder used in the expected-answer field.
  *
  * @private function of `<ChatRatingModal/>`
@@ -262,8 +242,8 @@ function ChatRatingModalStarsSection(props: {
 
     return (
         <div className={styles.stars}>
-            {STAR_RATINGS.map((star) => (
-                <span
+            {CHAT_FEEDBACK_STAR_RATINGS.map((star) => (
+                <ChatFeedbackStar
                     key={star}
                     onClick={() =>
                         setMessageRatings((previousRatings) => {
@@ -274,13 +254,10 @@ function ChatRatingModalStarsSection(props: {
                     }
                     onMouseEnter={() => setHoveredRating(star)}
                     onMouseLeave={() => setHoveredRating(0)}
-                    className={classNames(styles.ratingModalStar)}
-                    style={{
-                        color: resolveChatRatingStarColor(star, selectedRating, mode),
-                    }}
-                >
-                    ⭐
-                </span>
+                    className={styles.ratingModalStar}
+                    isActive={star <= selectedRating}
+                    inactiveColor={resolveChatFeedbackStarInactiveColor(mode)}
+                />
             ))}
         </div>
     );
