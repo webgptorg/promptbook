@@ -66,6 +66,19 @@ Do not edit these places manually, as they will be overwritten by the code gener
 -   Attached images are in folder `prompts` on the root of the project
     -   For example the ![alt text](screenshots/foo.png) is image file `prompts/screenshots/foo.png`
 
+### Agents server installed on VPS _(as additional context)_
+
+-   There are two distinct things:
+    1. Entire VPS
+    2. Each server
+-   On one VPS there can be multiple servers and each server has its own domain
+-   Most things (like agents, projects, metadata, etc.) are living on each server and some things (like environment variables, superadmin, etc.) are bound to entire VPS
+-   Purpose of this is to be able to run multiple clients on one VPS and each client can have its own server with its own domain and settings
+-   The entire VPS is managed by superadmin and each server is managed by normal admin of that server _(or superadmin can also manage each server)_
+-   Superadmin has always name `admin` and password hardcoded in environment variable `ADMIN_PASSWORD`
+-   The VPS is installed by running `install.sh` script on a fresh VPS
+-   Servers can be added and removed by superadmin on `/admin/servers` page
+
 ### The Agents Server menu _(as additional context)_
 
 The menu of the agent server looks like this:
