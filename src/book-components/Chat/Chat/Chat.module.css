@@ -959,6 +959,8 @@
 
 .feedbackStarIcon {
     display: block;
+    fill: var(--chat-feedback-star-fill, none);
+    stroke: var(--chat-feedback-star-color, currentColor);
 }
 
 /* Sender Avatar */

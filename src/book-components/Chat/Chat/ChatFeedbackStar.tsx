@@ -68,15 +68,17 @@ export function ChatFeedbackStar({
     onMouseEnter,
     onMouseLeave,
 }: ChatFeedbackStarProps) {
-    const CHAT_FEEDBACK_STAR_COLOR = isActive ? CHAT_FEEDBACK_STAR_ACTIVE_COLOR : inactiveColor;
+    const chatFeedbackStarColor = isActive ? CHAT_FEEDBACK_STAR_ACTIVE_COLOR : inactiveColor;
+    const chatFeedbackStarFill = isActive ? 'currentColor' : 'none';
 
     return (
         <span
             className={classNames(styles.feedbackStar, className)}
             style={
                 {
-                    '--chat-feedback-star-color': CHAT_FEEDBACK_STAR_COLOR,
-                    color: CHAT_FEEDBACK_STAR_COLOR,
+                    '--chat-feedback-star-color': chatFeedbackStarColor,
+                    '--chat-feedback-star-fill': chatFeedbackStarFill,
+                    color: chatFeedbackStarColor,
                 } as CSSProperties
             }
             onClick={onClick}
@@ -88,7 +90,7 @@ export function ChatFeedbackStar({
                 focusable="false"
                 className={styles.feedbackStarIcon}
                 size={CHAT_FEEDBACK_STAR_ICON_SIZE}
-                fill={isActive ? 'currentColor' : 'none'}
+                fill={chatFeedbackStarFill}
             />
         </span>
     );

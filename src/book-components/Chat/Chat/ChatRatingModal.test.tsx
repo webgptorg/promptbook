@@ -63,6 +63,9 @@ describe('ChatRatingModal feedback stars', () => {
         expect(
             starElements.map((starElement) => starElement.style.getPropertyValue('--chat-feedback-star-color')),
         ).toEqual(['#ffd700', '#ffd700', '#ccc', '#ccc', '#ccc']);
+        expect(
+            starElements.map((starElement) => starElement.style.getPropertyValue('--chat-feedback-star-fill')),
+        ).toEqual(['currentColor', 'currentColor', 'none', 'none', 'none']);
         expect(starElements.map((starElement) => starElement.style.color)).toEqual([
             'rgb(255, 215, 0)',
             'rgb(255, 215, 0)',
