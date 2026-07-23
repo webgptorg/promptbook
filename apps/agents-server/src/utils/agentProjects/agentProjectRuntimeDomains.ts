@@ -148,7 +148,8 @@ export async function assignAgentProjectDomain(options: {
         const nextRecords = records.map((record) => {
             const isSameProject =
                 record.agentPermanentId.toLowerCase() === options.agentPermanentId.toLowerCase() &&
-                record.projectName.toLowerCase() === options.projectName.toLowerCase();
+                record.projectName.toLowerCase() === options.projectName.toLowerCase() &&
+                normalizeServerDomain(record.serverDomain) === serverDomain;
 
             if (!isSameProject) {
                 return record;

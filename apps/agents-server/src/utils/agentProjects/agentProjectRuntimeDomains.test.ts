@@ -77,6 +77,33 @@ describe('agentProjectRuntimeDomains', () => {
         expect(domainsFileContent).toContain('my-project.agents.example.com');
     });
 
+    it('keeps same-named project subdomains scoped to their server domain', async () => {
+        await assignAgentProjectDomain({
+            agentPermanentId: 'AgentABC',
+            projectName: 'My Project',
+            serverDomain: 'agents-a.example.com',
+        });
+        await assignAgentProjectDomain({
+            agentPermanentId: 'AgentABC',
+            projectName: 'My Project',
+            serverDomain: 'agents-b.example.com',
+        });
+
+        await expect(listAgentProjectDomainRecords()).resolves.toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    serverDomain: 'agents-a.example.com',
+                    domain: 'my-project.agents-a.example.com',
+                }),
+                expect.objectContaining({
+                    serverDomain: 'agents-b.example.com',
+                    domain: 'my-project.agents-b.example.com',
+                }),
+            ]),
+        );
+        await expect(listAgentProjectDomainRecords()).resolves.toHaveLength(2);
+    });
+
     it('skips project subdomains when only a local development URL is configured', () => {
         process.env.NEXT_PUBLIC_SITE_URL = 'http://localhost:4440';
 

@@ -1,43 +1,55 @@
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
-import { readdir } from 'fs/promises';
 import { DatabaseError } from '../../../../../src/errors/DatabaseError';
 import { spaceTrim } from '../../../../../src/utils/organization/spaceTrim';
-import { resolveLocalAgentRootPath } from '../localChatRunner/ensureLocalAgentFolder';
+import { createLocalAgentDirectoryName, resolveLocalAgentRootPath } from '../localChatRunner/ensureLocalAgentFolder';
 import type { AgentProjectsSummary, AllAgentProjectsReport } from './AgentProjectInfo';
-import { parseAgentPermanentIdFromDirectoryName } from './agentProjectsPaths';
-import { isMissingPathError } from './isMissingPathError';
 import { listAgentProjects } from './listAgentProjects';
+
+/**
+ * Agent row from the current server database needed to scope project filesystem folders.
+ */
+type CurrentServerProjectAgent = {
+    /**
+     * Permanent id of the current-server agent.
+     */
+    readonly agentPermanentId: string;
+
+    /**
+     * Display name of the current-server agent.
+     */
+    readonly agentName: string | null;
+
+    /**
+     * Local runner directory name derived from the permanent id.
+     */
+    readonly agentDirectoryName: string;
+};
 
 /**
  * Builds the server-wide report of all projects of all agents.
  *
- * The report is assembled from the local agent root on disk (the single source of truth for
- * project data) and enriched with agent display names from the database. Agents without any
- * project are counted but not listed.
+ * The report is assembled from current-server agents stored in the database and then
+ * enriched with their local project folders on disk. This keeps project dashboards scoped
+ * to the server selected by the request host even when multiple servers share one VPS.
  *
  * @returns Report with per-agent summaries ordered by total size descending.
  */
 export async function listAllAgentProjectSummaries(): Promise<AllAgentProjectsReport> {
     const rootPath = resolveLocalAgentRootPath();
-    const agentDirectoryNames = await listAgentDirectoryNames(rootPath);
+    const agents = await loadCurrentServerProjectAgents();
 
     const summaryCandidates = await Promise.all(
-        agentDirectoryNames.map(async (agentDirectoryName): Promise<AgentProjectsSummary | null> => {
-            const agentPermanentId = parseAgentPermanentIdFromDirectoryName(agentDirectoryName);
-            if (agentPermanentId === null) {
-                return null;
-            }
-
-            const projects = await listAgentProjects(agentPermanentId);
+        agents.map(async (agent): Promise<AgentProjectsSummary | null> => {
+            const projects = await listAgentProjects(agent.agentPermanentId);
             if (projects.length === 0) {
                 return null;
             }
 
             return {
-                agentPermanentId,
-                agentName: null,
-                agentDirectoryName,
+                agentPermanentId: agent.agentPermanentId,
+                agentName: agent.agentName,
+                agentDirectoryName: agent.agentDirectoryName,
                 projects,
                 totalSizeBytes: projects.reduce((totalSizeBytes, project) => totalSizeBytes + project.sizeBytes, 0),
                 totalFileCount: projects.reduce((totalFileCount, project) => totalFileCount + project.fileCount, 0),
@@ -45,22 +57,13 @@ export async function listAllAgentProjectSummaries(): Promise<AllAgentProjectsRe
         }),
     );
 
-    const summariesWithoutNames = summaryCandidates.filter(
-        (summaryCandidate): summaryCandidate is AgentProjectsSummary => summaryCandidate !== null,
-    );
-    const agentNameByPermanentId = await loadAgentNamesByPermanentId(
-        summariesWithoutNames.map((summary) => summary.agentPermanentId),
-    );
-    const summaries = summariesWithoutNames
-        .map((summary) => ({
-            ...summary,
-            agentName: agentNameByPermanentId.get(summary.agentPermanentId.toLowerCase()) ?? null,
-        }))
+    const summaries = summaryCandidates
+        .filter((summaryCandidate): summaryCandidate is AgentProjectsSummary => summaryCandidate !== null)
         .sort((firstSummary, secondSummary) => secondSummary.totalSizeBytes - firstSummary.totalSizeBytes);
 
     return {
         rootPath,
-        scannedAgentDirectoryCount: agentDirectoryNames.length,
+        totalAgentCount: agents.length,
         summaries,
         totalSizeBytes: summaries.reduce((totalSizeBytes, summary) => totalSizeBytes + summary.totalSizeBytes, 0),
         totalProjectCount: summaries.reduce((totalProjectCount, summary) => totalProjectCount + summary.projects.length, 0),
@@ -70,59 +73,32 @@ export async function listAllAgentProjectSummaries(): Promise<AllAgentProjectsRe
 }
 
 /**
- * Lists local agent directory names inside the agent root, treating a missing root as empty.
+ * Loads current-server agents that may own local project folders.
  */
-async function listAgentDirectoryNames(rootPath: string): Promise<ReadonlyArray<string>> {
-    try {
-        const rootEntries = await readdir(rootPath, { withFileTypes: true });
-        return rootEntries
-            .filter((rootEntry) => rootEntry.isDirectory())
-            .map((rootEntry) => rootEntry.name)
-            .filter((directoryName) => parseAgentPermanentIdFromDirectoryName(directoryName) !== null);
-    } catch (error) {
-        if (isMissingPathError(error)) {
-            return [];
-        }
-
-        throw error;
-    }
-}
-
-/**
- * Loads display names of agents for the given permanent ids in one query.
- *
- * Local agent directory names are lowercased permanent ids, so the lookup map is keyed by
- * lowercased permanent id.
- */
-async function loadAgentNamesByPermanentId(
-    agentPermanentIds: ReadonlyArray<string>,
-): Promise<Map<string, string>> {
-    if (agentPermanentIds.length === 0) {
-        return new Map();
-    }
-
+async function loadCurrentServerProjectAgents(): Promise<ReadonlyArray<CurrentServerProjectAgent>> {
     const supabase = $provideSupabaseForServer();
     const { data, error } = await supabase
         .from(await $getTableName('Agent'))
         .select('permanentId,agentName')
-        .in('permanentId', [...agentPermanentIds]);
+        .is('deletedAt', null);
 
     if (error) {
         throw new DatabaseError(
             spaceTrim(`
-                Failed to load agent names for the projects report.
+                Failed to load current-server agents for the projects report.
 
                 **Database error:** ${error.message}
             `),
         );
     }
 
-    const agentNameByPermanentId = new Map<string, string>();
-    for (const agentRow of (data || []) as Array<{ permanentId: string | null; agentName: string | null }>) {
-        if (agentRow.permanentId && agentRow.agentName) {
-            agentNameByPermanentId.set(agentRow.permanentId.toLowerCase(), agentRow.agentName);
-        }
-    }
-
-    return agentNameByPermanentId;
+    return ((data || []) as Array<{ permanentId: string | null; agentName: string | null }>)
+        .filter((agentRow): agentRow is { permanentId: string; agentName: string | null } =>
+            Boolean(agentRow.permanentId),
+        )
+        .map((agentRow) => ({
+            agentPermanentId: agentRow.permanentId,
+            agentName: agentRow.agentName,
+            agentDirectoryName: createLocalAgentDirectoryName(agentRow.permanentId),
+        }));
 }

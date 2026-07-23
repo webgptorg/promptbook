@@ -50,7 +50,7 @@ export default async function AdminAgentProjectsPage() {
                 <AdminProjectsMetricCard
                     icon={BotIcon}
                     label="Agents with projects"
-                    value={`${report.summaries.length.toLocaleString()} of ${report.scannedAgentDirectoryCount.toLocaleString()}`}
+                    value={`${report.summaries.length.toLocaleString()} of ${report.totalAgentCount.toLocaleString()}`}
                 />
                 <AdminProjectsMetricCard
                     icon={FilesIcon}

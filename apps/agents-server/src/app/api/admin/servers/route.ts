@@ -51,7 +51,7 @@ export async function GET() {
         const servers = serversWithoutProjectSubdomains.map((server) => ({
             ...server,
             projectSubdomains: projectDomainRecords
-                .filter((record) => record.serverDomain === normalizeServerDomain(server.domain))
+                .filter((record) => normalizeServerDomain(record.serverDomain) === normalizeServerDomain(server.domain))
                 .map((record) => ({
                     agentPermanentId: record.agentPermanentId,
                     projectName: record.projectName,

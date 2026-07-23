@@ -1,4 +1,4 @@
-[ ] !
+[x] ~$0.9828 an hour by OpenAI Codex `gpt-5.5` (ChatGPT account)
 
 [✨®️] Project should be scoped to server not to entire VPS
 
@@ -14,3 +14,4 @@
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ![project shown from different server](screenshots/2026-07-0850-agents-server-projects-scoped-to-server.png)
+

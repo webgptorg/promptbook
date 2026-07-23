@@ -102,14 +102,14 @@ export type AgentProjectsSummary = AgentProjectsOwner & {
  */
 export type AllAgentProjectsReport = {
     /**
-     * Absolute path of the local agent root that was scanned.
+     * Absolute path of the local agent root containing project folders.
      */
     readonly rootPath: string;
 
     /**
-     * Count of scanned local agent directories (including agents without any project).
+     * Count of current-server agents checked for local project folders.
      */
-    readonly scannedAgentDirectoryCount: number;
+    readonly totalAgentCount: number;
 
     /**
      * Per-agent project summaries for agents that have at least one project, ordered by total size descending.
