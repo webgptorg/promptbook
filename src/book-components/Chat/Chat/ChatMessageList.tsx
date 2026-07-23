@@ -10,6 +10,7 @@ import type { ParsedCitation } from '../utils/parseCitationsFromContent';
 import styles from './Chat.module.css';
 import { ChatMessageItem } from './ChatMessageItem';
 import type { ChatProps } from './ChatProps';
+import { resolveChatRatingMessageKey } from './resolveChatRatingMessageKey';
 
 /**
  * Props for the Chat message list container.
@@ -143,8 +144,9 @@ export function ChatMessageList(props: ChatMessageListProps) {
             {messages.map((message, index) => {
                 const participant = participants.find((entry) => entry.name === message.sender);
                 const isLastMessage = index === messages.length - 1;
-                const isExpanded = expandedMessageId === message.id;
-                const currentRating = messageRatings.get(message.id || message.content /* <-[??] */) || 0;
+                const messageRatingKey = resolveChatRatingMessageKey(message);
+                const isExpanded = expandedMessageId === messageRatingKey;
+                const currentRating = messageRatings.get(messageRatingKey) || 0;
 
                 return (
                     <ChatMessageItem

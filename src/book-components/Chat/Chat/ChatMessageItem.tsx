@@ -40,6 +40,7 @@ import type { ChatProps } from './ChatProps';
 import { ChatReplyPreview } from './ChatReplyPreview';
 import { createChatMessageToolCallRenderModel } from './createChatMessageToolCallRenderModel';
 import { createProgressCardChecklistMarkdown, isProgressCardVisible } from './createProgressCardChecklistMarkdown';
+import { resolveChatRatingMessageKey } from './resolveChatRatingMessageKey';
 import { resolveStreamingFeaturePlaceholderKind } from './StreamingFeaturePlaceholder';
 import { useChatMessageAvatarTooltip } from './useChatMessageAvatarTooltip';
 import { useChatMessageSpeechPlayback } from './useChatMessageSpeechPlayback';
@@ -637,7 +638,7 @@ export const ChatMessageItem = memo(
                         isReportIssueFeedbackMode
                             ? undefined
                             : () => {
-                                  setExpandedMessageId(message.id || message.content /* <-[💃] */);
+                                  setExpandedMessageId(resolveChatRatingMessageKey(message));
                               }
                     }
                     onMouseLeave={

@@ -2,6 +2,7 @@ import type { MutableRefObject } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Promisable } from 'type-fest';
 import type { id } from '../../../types/string_token';
+import { resolveChatRatingMessageKey } from '../Chat/resolveChatRatingMessageKey';
 import type { ChatFeedbackMode, ChatFeedbackResponse, ChatProps } from '../Chat/ChatProps';
 import type { ChatMessage } from '../types/ChatMessage';
 
@@ -122,15 +123,6 @@ const DEFAULT_FEEDBACK_ERROR_MESSAGE = 'Failed to save feedback. Please try agai
  * Constant for feedback status timeout.
  */
 const FEEDBACK_STATUS_TIMEOUT_IN_MILLISECONDS = 3000;
-
-/**
- * Resolves the key used to keep one message rating in the local map.
- *
- * @private function of `useChatRatings`
- */
-function resolveChatRatingMessageKey(message: Pick<ChatMessage, 'id' | 'content'>) {
-    return message.id || message.content /* <- TODO: [??][??] Is `message.content` good replacement for the ID */;
-}
 
 /**
  * Normalizes the stored rating for the current feedback mode.

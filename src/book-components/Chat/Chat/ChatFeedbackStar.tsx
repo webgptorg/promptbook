@@ -88,7 +88,7 @@ export function ChatFeedbackStar({
                 focusable="false"
                 className={styles.feedbackStarIcon}
                 size={CHAT_FEEDBACK_STAR_ICON_SIZE}
-                fill="currentColor"
+                fill={isActive ? 'currentColor' : 'none'}
             />
         </span>
     );

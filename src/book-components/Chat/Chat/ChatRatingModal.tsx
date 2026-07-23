@@ -6,6 +6,7 @@ import type { ChatMessage } from '../types/ChatMessage';
 import { CHAT_FEEDBACK_STAR_RATINGS, ChatFeedbackStar, resolveChatFeedbackStarInactiveColor } from './ChatFeedbackStar';
 import styles from './Chat.module.css';
 import type { ChatFeedbackMode, ChatProps } from './ChatProps';
+import { resolveChatRatingMessageKey } from './resolveChatRatingMessageKey';
 
 /**
  * Localized copy rendered by the rating modal.
@@ -53,15 +54,6 @@ export type ChatRatingModalProps = {
     setTextRating: (value: string) => void;
     submitRating: () => Promise<void>;
 };
-
-/**
- * Resolves the key used to persist message rating state.
- *
- * @private function of `<ChatRatingModal/>`
- */
-function resolveChatRatingMessageKey(message: Pick<ChatMessage, 'id' | 'content'>) {
-    return message.id || message.content /* <-[??] */;
-}
 
 /**
  * Returns whether the modal should render the report-issue flow.
