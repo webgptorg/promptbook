@@ -1,7 +1,7 @@
 import { $getTableName } from '../database/$getTableName';
 import { $provideSupabaseForServer } from '../database/$provideSupabaseForServer';
 import type { AgentsServerDatabase } from '../database/schema';
-import { buildAgentNameOrIdFilter } from './agentIdentifier';
+import { buildAgentNameOrIdFilter, isSameAgentPermanentId } from './agentIdentifier';
 
 /**
  * Agent row shape used by owner-aware helpers.
@@ -134,7 +134,7 @@ function pickAgentRowByIdentifier(
         return null;
     }
 
-    const permanentIdMatch = rows.find((row) => row.permanentId === identifier);
+    const permanentIdMatch = rows.find((row) => isSameAgentPermanentId(row.permanentId, identifier));
     if (permanentIdMatch) {
         return permanentIdMatch;
     }

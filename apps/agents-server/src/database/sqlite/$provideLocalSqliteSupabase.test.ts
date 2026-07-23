@@ -159,6 +159,68 @@ describe('$provideLocalSqliteSupabase', () => {
         });
     });
 
+    it('resolves agents by permanent id case-insensitively', async () => {
+        const { buildAgentNameOrPermanentIdFilter } = await import(
+            '../../../../../src/collection/agent-collection/constructors/agent-collection-in-supabase/buildAgentNameOrPermanentIdFilter'
+        );
+        const { $provideLocalSqliteSupabase } = await import('./$provideLocalSqliteSupabase');
+        const supabase = $provideLocalSqliteSupabase();
+        const now = new Date('2026-05-24T10:00:00.000Z').toISOString();
+
+        await supabase.from('Agent').insert({
+            agentName: 'case-insensitive-id-agent',
+            agentHash: 'agent-hash',
+            permanentId: 'doQMRg82izNfJa',
+            agentProfile: { agentName: 'case-insensitive-id-agent' },
+            agentSource: 'Case Insensitive Id Agent',
+            promptbookEngineVersion: 'test',
+            usage: {},
+            createdAt: now,
+        });
+
+        for (const requestedIdentifier of ['doQMRg82izNfJa', 'DOQMRG82IZNFJA', 'doqmrg82iznfja']) {
+            const { data, error } = await supabase
+                .from('Agent')
+                .select('permanentId')
+                .or(buildAgentNameOrPermanentIdFilter(requestedIdentifier))
+                .limit(1)
+                .maybeSingle();
+
+            expect(error).toBeNull();
+            expect(data).toMatchObject({ permanentId: 'doQMRg82izNfJa' });
+        }
+    });
+
+    it('does not treat wildcard characters in a lookup identifier as pattern matches', async () => {
+        const { buildAgentNameOrPermanentIdFilter } = await import(
+            '../../../../../src/collection/agent-collection/constructors/agent-collection-in-supabase/buildAgentNameOrPermanentIdFilter'
+        );
+        const { $provideLocalSqliteSupabase } = await import('./$provideLocalSqliteSupabase');
+        const supabase = $provideLocalSqliteSupabase();
+        const now = new Date('2026-05-24T10:00:00.000Z').toISOString();
+
+        await supabase.from('Agent').insert({
+            agentName: 'wildcard-guard-agent',
+            agentHash: 'agent-hash',
+            permanentId: 'abcDEF123456gh',
+            agentProfile: { agentName: 'wildcard-guard-agent' },
+            agentSource: 'Wildcard Guard Agent',
+            promptbookEngineVersion: 'test',
+            usage: {},
+            createdAt: now,
+        });
+
+        const { data, error } = await supabase
+            .from('Agent')
+            .select('permanentId')
+            .or(buildAgentNameOrPermanentIdFilter('%'))
+            .limit(1)
+            .maybeSingle();
+
+        expect(error).toBeNull();
+        expect(data).toBeNull();
+    });
+
     it('returns metadata values as strings from older numeric-affinity SQLite tables', async () => {
         const { resolveLocalSqliteTableLocation } = await import('./resolveLocalSqliteTableLocation');
         const { database } = resolveLocalSqliteTableLocation('server_S22_Metadata');

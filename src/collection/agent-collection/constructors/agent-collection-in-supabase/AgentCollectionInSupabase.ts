@@ -12,6 +12,7 @@ import { $randomBase58 } from '../../../../utils/random/$randomBase58';
 import { PROMPTBOOK_ENGINE_VERSION } from '../../../../version';
 import type { AgentCollectionInSupabaseOptions } from './AgentCollectionInSupabaseOptions';
 import type { AgentsDatabaseSchema } from './AgentsDatabaseSchema';
+import { buildAgentNameOrPermanentIdFilter } from './buildAgentNameOrPermanentIdFilter';
 import type { CreateAgentPersistenceRecordsOptions } from './createAgentPersistenceRecords';
 import { createAgentPersistenceRecords } from './createAgentPersistenceRecords';
 import { prepareAgentSourceForPersistence } from './prepareAgentSourceForPersistence';
@@ -47,19 +48,6 @@ function normalizeHistoryVersionName(versionName: string | null | undefined): st
 
     const normalizedVersionName = versionName.trim();
     return normalizedVersionName.length > 0 ? normalizedVersionName : null;
-}
-
-/**
- * Builds a Supabase `.or()` filter for agent name or permanent id lookups.
- *
- * @param agentNameOrPermanentId - Agent name or stable permanent identifier to match.
- * @returns `.or()` filter string safe to pass to Supabase.
- *
- * @private internal helper of `AgentCollectionInSupabase`
- */
-function buildAgentNameOrPermanentIdFilter(agentNameOrPermanentId: string): string {
-    const encodedAgentIdentifier = encodeURIComponent(agentNameOrPermanentId);
-    return `agentName.eq.${encodedAgentIdentifier},permanentId.eq.${encodedAgentIdentifier}`;
 }
 
 /**
