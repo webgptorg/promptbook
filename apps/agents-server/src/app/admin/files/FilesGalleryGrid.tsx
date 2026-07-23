@@ -3,6 +3,7 @@ import Link from 'next/link';
 import type { ServerLanguageCode } from '../../../languages/ServerLanguageRegistry';
 import { buildAgentProfileHref } from '../../../utils/agentRouting/agentRouteHrefs';
 import { formatServerLanguageHumanReadableDate } from '../../../utils/localization/formatServerLanguageHumanReadableDate';
+import { formatResourceBytes } from '../../../utils/resourceMonitor/formatResourceMonitorValue';
 import { FilesGalleryStatusBadge } from './FilesGalleryStatusBadge';
 import type { UseFilesGalleryState } from './useFilesGalleryState';
 
@@ -20,13 +21,6 @@ type FilesGalleryGridProps = Pick<UseFilesGalleryState, 'files' | 'isLoading' | 
      */
     readonly language: ServerLanguageCode;
 };
-
-/**
- * Formats one file size for the compact grid view.
- */
-function formatFilesGalleryCompactFileSize(fileSize: number): string {
-    return `${(fileSize / 1024).toFixed(1)} KB`;
-}
 
 /**
  * Renders the grid view of the files gallery, including infinite-scroll feedback.
@@ -88,7 +82,7 @@ export function FilesGalleryGrid({
                             </p>
                             <div className="mt-1 flex justify-between items-center">
                                 <span className="text-[10px] text-gray-500">
-                                    {formatFilesGalleryCompactFileSize(file.fileSize)}
+                                    {formatResourceBytes(file.fileSize)}
                                 </span>
                                 <FilesGalleryStatusBadge
                                     status={file.status}

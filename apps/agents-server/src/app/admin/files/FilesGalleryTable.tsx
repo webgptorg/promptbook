@@ -3,6 +3,7 @@ import Link from 'next/link';
 import type { ServerLanguageCode } from '../../../languages/ServerLanguageRegistry';
 import { buildAgentProfileHref } from '../../../utils/agentRouting/agentRouteHrefs';
 import { formatServerLanguageHumanReadableDate } from '../../../utils/localization/formatServerLanguageHumanReadableDate';
+import { formatResourceBytes } from '../../../utils/resourceMonitor/formatResourceMonitorValue';
 import { AdminSortableTableHeaderCell } from '../_components/AdminSortableTableHeaderCell';
 import { FilesGalleryStatusBadge } from './FilesGalleryStatusBadge';
 import type { UseFilesGalleryState } from './useFilesGalleryState';
@@ -24,13 +25,6 @@ type FilesGalleryTableProps = Pick<
      */
     readonly language: ServerLanguageCode;
 };
-
-/**
- * Formats one file size for the table view.
- */
-function formatFilesGalleryFileSize(fileSize: number): string {
-    return `${(fileSize / 1024).toFixed(2)} KB`;
-}
 
 /**
  * Renders the table view of the files gallery, including pagination.
@@ -140,7 +134,7 @@ export function FilesGalleryTable({
                                     )}
                                 </td>
                                 <td className="px-6 py-4">{file.fileType}</td>
-                                <td className="px-6 py-4">{formatFilesGalleryFileSize(file.fileSize)}</td>
+                                <td className="px-6 py-4">{formatResourceBytes(file.fileSize)}</td>
                                 <td className="px-6 py-4">
                                     {file.agent ? (
                                         <Link
@@ -180,7 +174,7 @@ export function FilesGalleryTable({
             </div>
             <div className="flex items-center justify-between px-6 py-4 border-t bg-gray-50">
                 <span className="text-sm text-gray-700">
-                    Showing <span className="font-medium">{(page - 1) * limit + 1}</span> to{' '}
+                    Showing <span className="font-medium">{total === 0 ? 0 : (page - 1) * limit + 1}</span> to{' '}
                     <span className="font-medium">{Math.min(page * limit, total)}</span> of{' '}
                     <span className="font-medium">{total}</span> results
                 </span>

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
 import { resolveNextAdminTableSortState } from '../_components/adminTableSorting';
-import { listFiles, type FilesGallerySortField, type FilesGallerySortOrder, type FileWithAgent } from './actions';
+import { listFiles } from './actions';
+import type { FilesGallerySortField, FilesGallerySortOrder, FileWithAgent } from './filesGalleryTypes';
 
 /**
  * Page size used by the files gallery views.

@@ -1,6 +1,7 @@
 import { ListObjectsV2Command, S3Client } from '@aws-sdk/client-s3';
 import { createInternalS3Client } from './createInternalS3Client';
 import type { InternalS3Configuration, InternalS3Health, InternalS3ObjectStatistics } from './internalS3Types';
+import { resolveInternalS3ErrorMessage } from './resolveInternalS3ErrorMessage';
 
 /**
  * Maximum number of object pages enumerated before statistics are reported as truncated.
@@ -68,7 +69,7 @@ export async function probeInternalS3Health(configuration: InternalS3Configurati
             isReachable: false,
             latencyMs: null,
             statistics: null,
-            errorMessage: resolveInternalS3ErrorMessage(error),
+            errorMessage: resolveInternalS3ErrorMessage(error, { timeoutMs: INTERNAL_S3_PROBE_TIMEOUT_MS }),
         };
     } finally {
         clearTimeout(timeoutHandle);
@@ -131,23 +132,4 @@ async function readInternalS3ObjectStatistics(
         },
         firstPageLatencyMs,
     };
-}
-
-/**
- * Resolves a user-facing message from an internal S3 probe error.
- *
- * @param error - Thrown value.
- * @returns Human-readable failure message.
- * @private helper of `probeInternalS3Health`
- */
-function resolveInternalS3ErrorMessage(error: unknown): string {
-    if (error instanceof Error) {
-        if (error.name === 'AbortError' || error.name === 'TimeoutError') {
-            return `Internal S3 did not respond within ${INTERNAL_S3_PROBE_TIMEOUT_MS / 1000} seconds.`;
-        }
-
-        return error.message;
-    }
-
-    return 'Unknown error while contacting the internal S3 storage.';
 }

@@ -1,11 +1,29 @@
-import { Boxes, FileStack, HardDrive, RefreshCcw, Server, type LucideIcon } from 'lucide-react';
+import {
+    Boxes,
+    ExternalLink,
+    File,
+    FileStack,
+    Folder,
+    FolderUp,
+    HardDrive,
+    RefreshCcw,
+    Server,
+    type LucideIcon,
+} from 'lucide-react';
 import Link from 'next/link';
 
 import { ForbiddenPage } from '../../../components/ForbiddenPage/ForbiddenPage';
 import { isUserGlobalAdmin } from '../../../utils/isUserGlobalAdmin';
-import type { InternalS3Configuration, InternalS3Snapshot } from '../../../utils/internalS3/internalS3Types';
+import type {
+    InternalS3BrowserEntry,
+    InternalS3BrowserSnapshot,
+    InternalS3Configuration,
+    InternalS3Snapshot,
+} from '../../../utils/internalS3/internalS3Types';
+import { readInternalS3Directory } from '../../../utils/internalS3/readInternalS3Directory';
 import { readInternalS3Snapshot } from '../../../utils/internalS3/readInternalS3Snapshot';
 import { formatResourceBytes } from '../../../utils/resourceMonitor/formatResourceMonitorValue';
+import { AdminStorageTabs } from '../_components/AdminStorageTabs';
 
 /**
  * Forces a fresh configuration read and live probe on every request.
@@ -50,20 +68,45 @@ const INTERNAL_S3_TONE_CONTAINER_CLASS_NAMES: Record<InternalS3Tone, string> = {
 };
 
 /**
+ * Human-readable limit matching `INTERNAL_S3_BROWSER_MAX_KEYS`.
+ *
+ * @private internal helper of `/admin/internal-s3`
+ */
+const INTERNAL_S3_BROWSER_VISIBLE_LIMIT_LABEL = '1,000';
+
+/**
+ * Props accepted by the internal S3 page.
+ *
+ * @private route props of `/admin/internal-s3`
+ */
+type InternalS3PageProps = {
+    /**
+     * Query parameters controlling the object browser.
+     */
+    readonly searchParams?: Promise<{
+        readonly prefix?: string;
+    }>;
+};
+
+/**
  * Super-admin page showing the bundled self-contained (internal) S3 storage status.
  */
-export default async function InternalS3Page() {
+export default async function InternalS3Page({ searchParams }: InternalS3PageProps) {
     if (!(await isUserGlobalAdmin())) {
         return <ForbiddenPage />;
     }
 
     const snapshot = await readInternalS3Snapshot();
+    const resolvedSearchParams = await searchParams;
+    const browser = await readInternalS3Directory(snapshot.configuration, resolvedSearchParams?.prefix);
 
     return (
         <div className="container mx-auto space-y-6 px-4 py-8">
             <InternalS3Header checkedAt={snapshot.checkedAt} />
+            <AdminStorageTabs activePage="internal-s3" />
             <InternalS3StatusBanner snapshot={snapshot} />
             <InternalS3SummaryGrid snapshot={snapshot} />
+            <InternalS3BrowserPanel browser={browser} />
             <InternalS3ConfigurationPanel configuration={snapshot.configuration} />
         </div>
     );
@@ -266,6 +309,203 @@ function InternalS3ConfigurationPanel({ configuration }: { readonly configuratio
 }
 
 /**
+ * Renders the internal S3 object browser panel.
+ *
+ * @param props - Browser props.
+ * @returns Browser panel.
+ */
+function InternalS3BrowserPanel({ browser }: { readonly browser: InternalS3BrowserSnapshot }) {
+    return (
+        <section className="rounded-lg border border-gray-200 bg-white shadow-sm">
+            <div className="flex flex-col gap-3 border-b border-gray-200 px-5 py-4 md:flex-row md:items-start md:justify-between">
+                <div>
+                    <div className="flex items-center gap-2">
+                        <Folder className="h-5 w-5 text-gray-500" aria-hidden />
+                        <h2 className="text-lg font-semibold text-gray-900">File browser</h2>
+                    </div>
+                    <InternalS3Breadcrumbs relativePrefix={browser.relativePrefix} />
+                    <p className="mt-2 text-xs text-gray-500">
+                        S3 prefix:{' '}
+                        <span className="font-mono text-gray-700">{browser.absolutePrefix || 'bucket root'}</span>
+                    </p>
+                </div>
+                <Link
+                    href={buildInternalS3BrowserHref(browser.relativePrefix)}
+                    className="inline-flex items-center gap-2 rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100"
+                >
+                    <RefreshCcw className="h-3.5 w-3.5" />
+                    Refresh browser
+                </Link>
+            </div>
+
+            {!browser.isAvailable ? (
+                <div className="px-5 py-6 text-sm text-rose-700">{browser.errorMessage}</div>
+            ) : (
+                <InternalS3BrowserTable browser={browser} />
+            )}
+        </section>
+    );
+}
+
+/**
+ * Renders breadcrumb links for the current S3 browser prefix.
+ *
+ * @param props - Breadcrumb props.
+ * @returns Breadcrumb navigation.
+ */
+function InternalS3Breadcrumbs({ relativePrefix }: { readonly relativePrefix: string }) {
+    const segments = relativePrefix
+        .replace(/\/+$/u, '')
+        .split('/')
+        .filter(Boolean);
+
+    let cumulativePrefix = '';
+
+    return (
+        <nav className="mt-2 flex flex-wrap items-center gap-1 text-sm text-gray-500" aria-label="S3 prefix">
+            <Link href="/admin/internal-s3" className="font-medium text-blue-600 hover:underline">
+                root
+            </Link>
+            {segments.map((segment) => {
+                cumulativePrefix = `${cumulativePrefix}${segment}/`;
+
+                return (
+                    <span key={cumulativePrefix} className="inline-flex items-center gap-1">
+                        <span className="text-gray-300">/</span>
+                        <Link
+                            href={buildInternalS3BrowserHref(cumulativePrefix)}
+                            className="font-medium text-blue-600 hover:underline"
+                        >
+                            {segment}
+                        </Link>
+                    </span>
+                );
+            })}
+        </nav>
+    );
+}
+
+/**
+ * Renders internal S3 browser entries in a table.
+ *
+ * @param props - Table props.
+ * @returns Browser table.
+ */
+function InternalS3BrowserTable({ browser }: { readonly browser: InternalS3BrowserSnapshot }) {
+    const isEmpty = browser.entries.length === 0 && browser.parentPrefix === null;
+
+    return (
+        <>
+            <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm text-gray-500">
+                    <thead className="border-b bg-gray-50 text-xs uppercase text-gray-700">
+                        <tr>
+                            <th className="px-5 py-3">Name</th>
+                            <th className="px-5 py-3">Type</th>
+                            <th className="px-5 py-3 text-right">Size</th>
+                            <th className="px-5 py-3">Last Modified</th>
+                            <th className="px-5 py-3">S3 Key</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {browser.parentPrefix !== null ? (
+                            <tr className="border-b bg-white hover:bg-gray-50">
+                                <td className="px-5 py-3">
+                                    <Link
+                                        href={buildInternalS3BrowserHref(browser.parentPrefix)}
+                                        className="inline-flex items-center gap-2 font-medium text-blue-600 hover:underline"
+                                    >
+                                        <FolderUp className="h-4 w-4" aria-hidden />
+                                        ..
+                                    </Link>
+                                </td>
+                                <td className="px-5 py-3">Parent folder</td>
+                                <td className="px-5 py-3 text-right">—</td>
+                                <td className="px-5 py-3">—</td>
+                                <td className="px-5 py-3 font-mono text-xs text-gray-400">—</td>
+                            </tr>
+                        ) : null}
+                        {browser.entries.map((entry) => (
+                            <InternalS3BrowserRow key={`${entry.kind}:${entry.key}`} entry={entry} />
+                        ))}
+                        {isEmpty ? (
+                            <tr>
+                                <td colSpan={5} className="px-5 py-6 text-center text-gray-500">
+                                    No objects found.
+                                </td>
+                            </tr>
+                        ) : null}
+                    </tbody>
+                </table>
+            </div>
+            {browser.isTruncated ? (
+                <div className="border-t border-amber-200 bg-amber-50 px-5 py-3 text-sm text-amber-900">
+                    Showing the first {INTERNAL_S3_BROWSER_VISIBLE_LIMIT_LABEL} entries in this prefix.
+                </div>
+            ) : null}
+        </>
+    );
+}
+
+/**
+ * Renders one internal S3 browser table row.
+ *
+ * @param props - Row props.
+ * @returns Browser row.
+ */
+function InternalS3BrowserRow({ entry }: { readonly entry: InternalS3BrowserEntry }) {
+    const Icon = entry.kind === 'directory' ? Folder : File;
+
+    return (
+        <tr className="border-b bg-white hover:bg-gray-50">
+            <td className="px-5 py-3">
+                {entry.kind === 'directory' && entry.relativePrefix !== null ? (
+                    <Link
+                        href={buildInternalS3BrowserHref(entry.relativePrefix)}
+                        className="inline-flex max-w-md items-center gap-2 font-medium text-blue-600 hover:underline"
+                    >
+                        <Icon className="h-4 w-4 shrink-0" aria-hidden />
+                        <span className="truncate" title={entry.name}>
+                            {entry.name}
+                        </span>
+                    </Link>
+                ) : entry.publicUrl ? (
+                    <a
+                        href={entry.publicUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex max-w-md items-center gap-2 font-medium text-blue-600 hover:underline"
+                    >
+                        <Icon className="h-4 w-4 shrink-0" aria-hidden />
+                        <span className="truncate" title={entry.name}>
+                            {entry.name}
+                        </span>
+                        <ExternalLink className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                    </a>
+                ) : (
+                    <span className="inline-flex max-w-md items-center gap-2 text-gray-900">
+                        <Icon className="h-4 w-4 shrink-0 text-gray-400" aria-hidden />
+                        <span className="truncate" title={entry.name}>
+                            {entry.name}
+                        </span>
+                    </span>
+                )}
+            </td>
+            <td className="px-5 py-3">{entry.kind === 'directory' ? 'Folder' : 'Object'}</td>
+            <td className="px-5 py-3 text-right">
+                {entry.sizeBytes === null ? '—' : formatResourceBytes(entry.sizeBytes)}
+            </td>
+            <td className="px-5 py-3 whitespace-nowrap">{formatInternalS3BrowserTimestamp(entry.lastModified)}</td>
+            <td className="max-w-lg px-5 py-3">
+                <span className="block truncate font-mono text-xs text-gray-500" title={entry.key}>
+                    {entry.key}
+                </span>
+            </td>
+        </tr>
+    );
+}
+
+/**
  * Resolves the banner tone, title, and message from a snapshot.
  *
  * @param snapshot - Internal S3 snapshot.
@@ -385,4 +625,36 @@ function formatInternalS3Timestamp(checkedAt: string): string {
         dateStyle: 'medium',
         timeStyle: 'medium',
     });
+}
+
+/**
+ * Formats an internal S3 object timestamp.
+ *
+ * @param timestamp - ISO timestamp, or `null`.
+ * @returns Display value.
+ * @private internal helper of `/admin/internal-s3`
+ */
+function formatInternalS3BrowserTimestamp(timestamp: string | null): string {
+    if (!timestamp) {
+        return '—';
+    }
+
+    return formatInternalS3Timestamp(timestamp);
+}
+
+/**
+ * Builds a route href for one internal S3 browser prefix.
+ *
+ * @param relativePrefix - Relative S3 browser prefix.
+ * @returns Internal S3 page href.
+ * @private internal helper of `/admin/internal-s3`
+ */
+function buildInternalS3BrowserHref(relativePrefix: string): string {
+    if (!relativePrefix) {
+        return '/admin/internal-s3';
+    }
+
+    const searchParams = new URLSearchParams();
+    searchParams.set('prefix', relativePrefix);
+    return `/admin/internal-s3?${searchParams.toString()}`;
 }

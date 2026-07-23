@@ -8,16 +8,32 @@ import { FilesGalleryViewModeToggle } from './FilesGalleryViewModeToggle';
 import { useFilesGalleryState } from './useFilesGalleryState';
 
 /**
+ * Props accepted by `FilesGalleryClient`.
+ *
+ * @private client props of `/admin/files`
+ */
+type FilesGalleryClientProps = {
+    /**
+     * Whether the page header should keep the standalone top offset.
+     */
+    readonly isHeaderOffsetEnabled?: boolean;
+};
+
+/**
  * Handles files gallery client.
  */
-export function FilesGalleryClient() {
+export function FilesGalleryClient({ isHeaderOffsetEnabled = true }: FilesGalleryClientProps) {
     const { formatText } = useAgentNaming();
     const { language } = useServerLanguage();
     const filesGalleryState = useFilesGalleryState();
 
     return (
-        <div className="container mx-auto px-4 py-8 space-y-6">
-            <div className="flex justify-between items-center mt-20 mb-4">
+        <>
+            <div
+                className={`flex justify-between items-center mb-4 ${
+                    isHeaderOffsetEnabled ? 'mt-20' : ''
+                }`.trim()}
+            >
                 <h1 className="text-3xl text-gray-900 font-light">Files Gallery</h1>
                 <FilesGalleryViewModeToggle
                     viewMode={filesGalleryState.viewMode}
@@ -49,6 +65,6 @@ export function FilesGalleryClient() {
                     observerTarget={filesGalleryState.observerTarget}
                 />
             )}
-        </div>
+        </>
     );
 }

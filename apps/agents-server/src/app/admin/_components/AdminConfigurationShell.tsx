@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import Link from 'next/link';
+import { AdminRouteTabs, type AdminRouteTabItem } from './AdminRouteTabs';
 
 /**
  * Supported admin configuration pages shown in the shared sub-navigation.
@@ -13,12 +13,7 @@ type AdminConfigurationPage = 'environment' | 'metadata' | 'limits';
  *
  * @private admin configuration UI helper
  */
-const ADMIN_CONFIGURATION_NAVIGATION_ITEMS: ReadonlyArray<{
-    readonly id: AdminConfigurationPage;
-    readonly href: '/admin/environment' | '/admin/metadata' | '/admin/limits';
-    readonly label: string;
-    readonly description: string;
-}> = [
+const ADMIN_CONFIGURATION_NAVIGATION_ITEMS: ReadonlyArray<AdminRouteTabItem<AdminConfigurationPage>> = [
     {
         id: 'environment',
         href: '/admin/environment',
@@ -63,28 +58,7 @@ export function AdminConfigurationShell({ activePage, children }: AdminConfigura
                         limits from one configuration area.
                     </p>
                 </div>
-                <div className="grid gap-3 md:grid-cols-3">
-                    {ADMIN_CONFIGURATION_NAVIGATION_ITEMS.map((item) => {
-                        const isActive = item.id === activePage;
-
-                        return (
-                            <Link
-                                key={item.id}
-                                href={item.href}
-                                className={`rounded-2xl border px-4 py-4 transition ${
-                                    isActive
-                                        ? 'border-blue-300 bg-blue-50 text-blue-900 shadow-sm'
-                                        : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:shadow-sm'
-                                }`}
-                            >
-                                <div className="text-sm font-semibold">{item.label}</div>
-                                <div className={`mt-1 text-sm ${isActive ? 'text-blue-800' : 'text-slate-500'}`}>
-                                    {item.description}
-                                </div>
-                            </Link>
-                        );
-                    })}
-                </div>
+                <AdminRouteTabs activeTabId={activePage} items={ADMIN_CONFIGURATION_NAVIGATION_ITEMS} />
             </div>
 
             {children}

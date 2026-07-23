@@ -155,3 +155,87 @@ export type InternalS3Snapshot = {
      */
     readonly checkedAt: string;
 };
+
+/**
+ * One folder or object displayed by the internal S3 browser.
+ *
+ * @private internal utility of the `/admin/internal-s3` page
+ */
+export type InternalS3BrowserEntry = {
+    /**
+     * Entry kind.
+     */
+    readonly kind: 'directory' | 'file';
+
+    /**
+     * Absolute S3 object key or common prefix.
+     */
+    readonly key: string;
+
+    /**
+     * Name displayed for the current directory level.
+     */
+    readonly name: string;
+
+    /**
+     * Relative prefix opened when clicking a directory entry.
+     */
+    readonly relativePrefix: string | null;
+
+    /**
+     * Object size in bytes, or `null` for folders.
+     */
+    readonly sizeBytes: number | null;
+
+    /**
+     * ISO last-modified timestamp, or `null` when the provider did not return it.
+     */
+    readonly lastModified: string | null;
+
+    /**
+     * Public object URL, or `null` for folders and unconfigured public URLs.
+     */
+    readonly publicUrl: string | null;
+};
+
+/**
+ * One directory listing rendered by the internal S3 browser.
+ *
+ * @private internal utility of the `/admin/internal-s3` page
+ */
+export type InternalS3BrowserSnapshot = {
+    /**
+     * Relative browser prefix below the configured path prefix.
+     */
+    readonly relativePrefix: string;
+
+    /**
+     * Absolute S3 key prefix sent to the storage provider.
+     */
+    readonly absolutePrefix: string;
+
+    /**
+     * Relative prefix of the parent directory, or `null` at the browser root.
+     */
+    readonly parentPrefix: string | null;
+
+    /**
+     * Whether the listing can be shown.
+     */
+    readonly isAvailable: boolean;
+
+    /**
+     * Direct folder and file entries in the current prefix.
+     */
+    readonly entries: ReadonlyArray<InternalS3BrowserEntry>;
+
+    /**
+     * Whether the provider truncated the listing.
+     */
+    readonly isTruncated: boolean;
+
+    /**
+     * Human-readable failure reason when listing is unavailable.
+     */
+    readonly errorMessage: string | null;
+};

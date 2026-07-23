@@ -1,4 +1,4 @@
-import type { FileWithAgent } from './actions';
+import type { FileWithAgent } from './filesGalleryTypes';
 
 /**
  * Props for FilesGalleryStatusBadge.
