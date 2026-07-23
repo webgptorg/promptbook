@@ -6,7 +6,7 @@
 
 -   Moved the standalone VPS Agents Server installer from `other/vps/install.sh` to `install.sh` in the repository root so the entry-point script is easy to find, while its dependency scripts (for example `other/vps/test-nginx-config-generation.sh`) stay under `other/vps/` and are called relative to the root installer. The self-update flow, the installer self-references it persists into `PTBK_VPS_INSTALL_SCRIPT`, the Agents Server installer-path resolver, and the documented `curl … | bash` deploy instructions now point at the root `install.sh`; the resolver still falls back across candidate paths, so servers self-updating from an older release keep working across the move.
 
--   Fixed Agents Server chat feedback stars so unpicked stars no longer stay yellow. The shared chat feedback controls now render CSS-colored star icons instead of the native colored emoji glyph, so the compact response control and rating modal both reflect the picked rating.
+-   Fixed Agents Server chat feedback stars so unpicked stars no longer stay yellow. The shared chat feedback controls now render CSS-colored star icons with their resolved color applied inline instead of the native colored emoji glyph, so the compact response control and rating modal both reflect the picked rating even when legacy chat selectors style generic spans.
 
 -   Added `--env` to the standalone VPS Agents Server installer. Fresh installs now default to the `preview` environment, while `--env live`, `--env production`, and `--env lts` select the corresponding Promptbook branch and persist it as `PROMPTBOOK_REPOSITORY_REF`.
 

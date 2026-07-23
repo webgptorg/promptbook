@@ -68,12 +68,15 @@ export function ChatFeedbackStar({
     onMouseEnter,
     onMouseLeave,
 }: ChatFeedbackStarProps) {
+    const CHAT_FEEDBACK_STAR_COLOR = isActive ? CHAT_FEEDBACK_STAR_ACTIVE_COLOR : inactiveColor;
+
     return (
         <span
             className={classNames(styles.feedbackStar, className)}
             style={
                 {
-                    '--chat-feedback-star-color': isActive ? CHAT_FEEDBACK_STAR_ACTIVE_COLOR : inactiveColor,
+                    '--chat-feedback-star-color': CHAT_FEEDBACK_STAR_COLOR,
+                    color: CHAT_FEEDBACK_STAR_COLOR,
                 } as CSSProperties
             }
             onClick={onClick}
