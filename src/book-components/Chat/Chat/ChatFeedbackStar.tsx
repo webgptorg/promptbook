@@ -70,6 +70,11 @@ export function ChatFeedbackStar({
 }: ChatFeedbackStarProps) {
     const chatFeedbackStarColor = isActive ? CHAT_FEEDBACK_STAR_ACTIVE_COLOR : inactiveColor;
     const chatFeedbackStarFill = isActive ? 'currentColor' : 'none';
+    const chatFeedbackStarIconStyle = {
+        color: chatFeedbackStarColor,
+        fill: chatFeedbackStarFill,
+        stroke: chatFeedbackStarColor,
+    } as CSSProperties;
 
     return (
         <span
@@ -91,6 +96,7 @@ export function ChatFeedbackStar({
                 className={styles.feedbackStarIcon}
                 size={CHAT_FEEDBACK_STAR_ICON_SIZE}
                 fill={chatFeedbackStarFill}
+                style={chatFeedbackStarIconStyle}
             />
         </span>
     );

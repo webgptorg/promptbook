@@ -193,11 +193,24 @@ describe('ChatMessageItem feedback stars', () => {
             'rgb(204, 204, 204)',
             'rgb(204, 204, 204)',
         ]);
-        expect(
-            Array.from(
-                container.querySelectorAll('span[style*="--chat-feedback-star-color"] svg'),
-            ).map((starElement) => starElement.getAttribute('fill')),
-        ).toEqual(['currentColor', 'currentColor', 'currentColor', 'none', 'none']);
+        const starIconElements = Array.from(
+            container.querySelectorAll<SVGElement>('span[style*="--chat-feedback-star-color"] svg'),
+        );
+
+        expect(starIconElements.map((starIconElement) => starIconElement.getAttribute('fill'))).toEqual([
+            'currentColor',
+            'currentColor',
+            'currentColor',
+            'none',
+            'none',
+        ]);
+        expect(starIconElements.map((starIconElement) => starIconElement.style.getPropertyValue('fill'))).toEqual([
+            'currentColor',
+            'currentColor',
+            'currentColor',
+            'none',
+            'none',
+        ]);
         expect(container.textContent).not.toContain('⭐');
     });
 });
