@@ -1,8 +1,7 @@
 [ ]
 
-[✨🏖] Allow to assign custom domain of any order to projects
+[✨🏖] Allow to assign custom domain of any order to the project
 
--   @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality of agent projects before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server) with pages `/admin/projects` and `/admin/servers`
