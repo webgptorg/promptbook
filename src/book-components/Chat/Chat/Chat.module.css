@@ -942,11 +942,7 @@
     cursor: pointer;
     font-size: 20px;
     transition: color 0.2s;
-    color: var(--star-inactive-color, #ccc);
-}
-
-.ratingStar.active {
-    color: #ffd700;
+    color: var(--chat-feedback-star-color, var(--star-inactive-color, #ccc));
 }
 
 .feedbackStar {
@@ -959,8 +955,14 @@
 
 .feedbackStarIcon {
     display: block;
-    fill: var(--chat-feedback-star-fill, none);
-    stroke: var(--chat-feedback-star-color, currentColor);
+    color: var(--chat-feedback-star-color, currentColor) !important;
+    fill: var(--chat-feedback-star-fill, none) !important;
+    stroke: var(--chat-feedback-star-color, currentColor) !important;
+}
+
+.feedbackStarIcon * {
+    fill: var(--chat-feedback-star-fill, none) !important;
+    stroke: var(--chat-feedback-star-color, currentColor) !important;
 }
 
 /* Sender Avatar */

@@ -2,7 +2,7 @@
 
 ---
 
-[ ] use `gpt`
+[x] commited manually
 
 [🌟⭐] Stars are all yellow despite of picked stars, fix it
 

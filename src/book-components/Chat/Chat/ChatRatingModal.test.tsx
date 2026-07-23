@@ -91,6 +91,13 @@ describe('ChatRatingModal feedback stars', () => {
             'none',
             'none',
         ]);
+        expect(starIconElements.map((starIconElement) => starIconElement.style.getPropertyValue('stroke'))).toEqual([
+            '#ffd700',
+            '#ffd700',
+            '#ccc',
+            '#ccc',
+            '#ccc',
+        ]);
         expect(container.textContent).not.toContain('⭐');
     });
 });
