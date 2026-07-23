@@ -22,6 +22,7 @@ import {
 } from './agentProjectRuntimeConstants';
 import {
     assignAgentProjectDomain,
+    resolveAgentProjectDomainRecord,
     resolveAgentProjectDomainRecordByHost,
     type AgentProjectDomainAssignment,
 } from './agentProjectRuntimeDomains';
@@ -341,6 +342,40 @@ export async function resolveAgentProjectRuntime(
 }
 
 /**
+ * Refreshes the public URL/domain fields of an existing runtime after a project-domain assignment changes.
+ *
+ * @param options - Project identity and server domain whose assignment should be reflected.
+ * @returns Updated runtime info or `null` when the project has no runtime.
+ */
+export async function refreshAgentProjectRuntimePublicDomain(
+    options: AgentProjectRuntimeProjectOptions,
+): Promise<AgentProjectRuntimeInfo | null> {
+    await hydrateAgentProjectRuntimeRegistryState();
+
+    const runtimeRecord = findAgentProjectRuntimeRecord(options.agentPermanentId, options.projectName);
+
+    if (!runtimeRecord) {
+        return null;
+    }
+
+    const domainRecord = await resolveAgentProjectDomainRecord({
+        agentPermanentId: options.agentPermanentId,
+        projectName: runtimeRecord.projectName,
+        serverDomain: options.serverDomain,
+    });
+    const publicUrl = domainRecord?.publicUrl ?? runtimeRecord.localUrl;
+
+    runtimeRecord.domain = domainRecord?.domain ?? null;
+    runtimeRecord.publicUrl = publicUrl;
+    runtimeRecord.url = publicUrl;
+    runtimeRecord.updatedAt = new Date().toISOString();
+
+    await refreshAgentProjectRuntimeRecord(runtimeRecord);
+    await persistAgentProjectRuntimeRegistryState();
+    return toAgentProjectRuntimeInfo(runtimeRecord);
+}
+
+/**
  * Resolves one running project runtime by public project-domain host.
  *
  * @param host - Raw request host.
@@ -541,9 +576,7 @@ async function startPm2ManagedAgentProjectRuntime(runtimeRecord: MutableAgentPro
 /**
  * Starts the local in-process static server used outside production pm2.
  */
-async function startInProcessStaticAgentProjectRuntime(
-    runtimeRecord: MutableAgentProjectRuntimeRecord,
-): Promise<void> {
+async function startInProcessStaticAgentProjectRuntime(runtimeRecord: MutableAgentProjectRuntimeRecord): Promise<void> {
     const staticServer = createStaticAgentProjectServer(runtimeRecord.projectPath);
 
     await listenOnPort(staticServer, runtimeRecord.port);
@@ -614,7 +647,7 @@ async function applyAgentProjectRuntimePublicConfiguration(
     } catch (error) {
         throw new UnexpectedError(
             spaceTrim(`
-                Failed to expose project \`${domainAssignment.record.projectName}\` on its public subdomain.
+                Failed to expose project \`${domainAssignment.record.projectName}\` on its public domain.
 
                 **Project domain:** \`${domainAssignment.record.domain}\`
                 **Cause:** \`${error instanceof Error ? error.message : String(error)}\`

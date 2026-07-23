@@ -133,6 +133,7 @@ describe('tickAgentMessages', () => {
         (runPromptWithTestFeedback as jest.MockedFunction<typeof runPromptWithTestFeedback>).mockResolvedValue({
             usage: UNCERTAIN_USAGE,
             attemptCount: 1,
+            steps: [],
         });
         (
             pullLatestChangesForAgentQueueIfEnabled as jest.MockedFunction<
@@ -225,7 +226,7 @@ describe('tickAgentMessages', () => {
                     '\nMESSAGE @Agent\nThere are 5 events in your calendar for this week.\n',
                     'utf-8',
                 );
-                return { usage: UNCERTAIN_USAGE, attemptCount: 1 };
+                return { usage: UNCERTAIN_USAGE, attemptCount: 1, steps: [] };
             },
         );
 
@@ -280,7 +281,7 @@ describe('tickAgentMessages', () => {
                     '\nMESSAGE @Agent\nSecond answer\n',
                     'utf-8',
                 );
-                return { usage: UNCERTAIN_USAGE, attemptCount: 1 };
+                return { usage: UNCERTAIN_USAGE, attemptCount: 1, steps: [] };
             },
         );
 
@@ -352,6 +353,7 @@ describe('tickAgentMessages', () => {
             usage: UNCERTAIN_USAGE,
             loginMethod: 'chatgpt',
             attemptCount: 1,
+            steps: [],
         });
 
         await tickAgentMessages(createAgentRunOptions({ agentName: 'openai-codex', model: 'gpt-5.2-codex' }));
@@ -396,7 +398,7 @@ describe('tickAgentMessages', () => {
                     '\nMESSAGE @Agent\nSecond answer\n',
                     'utf-8',
                 );
-                return { usage: UNCERTAIN_USAGE, attemptCount: 1 };
+                return { usage: UNCERTAIN_USAGE, attemptCount: 1, steps: [] };
             },
         );
 

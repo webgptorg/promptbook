@@ -923,7 +923,7 @@ append_project_domain() {
 
     normalized_domain="$(normalize_domain "$raw_domain")"
     if [[ -z "$normalized_domain" ]]; then
-        warn "Ignoring invalid agent project subdomain '$raw_domain' from $PTBK_AGENT_PROJECT_DOMAINS_FILE."
+        warn "Ignoring invalid agent project domain '$raw_domain' from $PTBK_AGENT_PROJECT_DOMAINS_FILE."
         return
     fi
 
@@ -3880,7 +3880,7 @@ print_summary() {
         log "Domains: none configured; use http://$PUBLIC_IP_ADDRESS and add domains from System -> Super Admin -> Servers."
     fi
     if [[ "${#PROJECT_DOMAINS[@]}" -gt 0 ]]; then
-        log "Project subdomains: $(join_by_comma "${PROJECT_DOMAINS[@]}")"
+        log "Project domains: $(join_by_comma "${PROJECT_DOMAINS[@]}")"
     fi
     log "Project directory: $INSTALL_DIR"
     log "Repository: $PROMPTBOOK_REPOSITORY_DIR"

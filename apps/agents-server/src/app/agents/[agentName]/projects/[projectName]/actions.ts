@@ -10,7 +10,7 @@ import {
     startAgentProjectStaticRuntime,
     terminateAgentProjectRuntimeForProject,
 } from '@/src/utils/agentProjects/agentProjectRuntimeRegistry';
-import { resolveCurrentServerRegistryContext } from '@/src/utils/currentServerRegistryContext';
+import { resolveCurrentAgentProjectServerDomain } from '@/src/utils/agentProjects/resolveCurrentAgentProjectServerDomain';
 
 /**
  * Starts the default dev runtime for one project from its project page.
@@ -27,7 +27,7 @@ export async function $startAgentProjectDevRuntimeFromProjectPageAction(
     await startAgentProjectDevRuntime({
         agentPermanentId,
         projectName,
-        serverDomain: await resolveCurrentProjectRuntimeServerDomain(),
+        serverDomain: await resolveCurrentAgentProjectServerDomain(),
     });
     revalidateProjectRuntimePaths(agentPermanentId, projectName);
 }
@@ -47,7 +47,7 @@ export async function $startAgentProjectStaticRuntimeFromProjectPageAction(
     await startAgentProjectStaticRuntime({
         agentPermanentId,
         projectName,
-        serverDomain: await resolveCurrentProjectRuntimeServerDomain(),
+        serverDomain: await resolveCurrentAgentProjectServerDomain(),
     });
     revalidateProjectRuntimePaths(agentPermanentId, projectName);
 }
@@ -94,13 +94,4 @@ function revalidateProjectRuntimePaths(agentPermanentId: string, projectName: st
     revalidatePath(buildAgentProjectProfileHref(agentPermanentId, projectName));
     revalidatePath('/admin/resource-monitor');
     revalidatePath('/admin/servers');
-}
-
-/**
- * Resolves the current public server domain for project subdomain assignment.
- */
-async function resolveCurrentProjectRuntimeServerDomain(): Promise<string | null> {
-    const context = await resolveCurrentServerRegistryContext();
-
-    return context.currentServer?.domain || context.hostServer?.domain || null;
 }

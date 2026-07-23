@@ -25,11 +25,11 @@ export const MANAGED_SERVER_ENVIRONMENT_OPTIONS: ReadonlyArray<ManagedServerEnvi
 ] as const;
 
 /**
- * Project subdomain assigned under one managed server domain.
+ * Project domain assigned to one managed server project.
  *
  * @private function of <ServersClient/>
  */
-export type ManagedServerProjectSubdomain = {
+export type ManagedServerProjectDomain = {
     /**
      * Permanent id of the agent owning the project.
      */
@@ -41,7 +41,12 @@ export type ManagedServerProjectSubdomain = {
     readonly projectName: string;
 
     /**
-     * Public project subdomain.
+     * Optional admin-assigned custom project domain.
+     */
+    readonly customDomain: string | null;
+
+    /**
+     * Public project domain.
      */
     readonly domain: string;
 
@@ -56,12 +61,12 @@ export type ManagedServerProjectSubdomain = {
     readonly projectHref: string;
 
     /**
-     * ISO timestamp when the subdomain was first assigned.
+     * ISO timestamp when the domain was first assigned.
      */
     readonly assignedAt: string;
 
     /**
-     * ISO timestamp when the subdomain assignment was last refreshed.
+     * ISO timestamp when the domain assignment was last refreshed.
      */
     readonly updatedAt: string;
 };
@@ -113,9 +118,9 @@ export type ManagedServerRow = {
     readonly dnsDiagnostic?: ManagedServerDnsDiagnostic | null;
 
     /**
-     * Project subdomains assigned below this server domain.
+     * Project domains owned by this server.
      */
-    readonly projectSubdomains?: ReadonlyArray<ManagedServerProjectSubdomain>;
+    readonly projectDomains?: ReadonlyArray<ManagedServerProjectDomain>;
 };
 
 /**
@@ -673,9 +678,7 @@ function useDeleteCurrentServerAction(options: {
 
                 await reloadServers();
             } catch (deleteError) {
-                setError(
-                    resolveServersRegistryActionErrorMessage(deleteError, 'Failed to delete the current server.'),
-                );
+                setError(resolveServersRegistryActionErrorMessage(deleteError, 'Failed to delete the current server.'));
             } finally {
                 setDeletingServerId(null);
             }

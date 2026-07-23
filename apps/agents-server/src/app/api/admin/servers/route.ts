@@ -44,17 +44,18 @@ export async function GET() {
         }
 
         const context = await resolveCurrentServerRegistryContext();
-        const serversWithoutProjectSubdomains = isAgentsServerSqliteMode()
+        const serversWithoutProjectDomains = isAgentsServerSqliteMode()
             ? await createStandaloneVpsServersResponse(context.registeredServers)
             : context.registeredServers;
         const projectDomainRecords = await listAgentProjectDomainRecords();
-        const servers = serversWithoutProjectSubdomains.map((server) => ({
+        const servers = serversWithoutProjectDomains.map((server) => ({
             ...server,
-            projectSubdomains: projectDomainRecords
+            projectDomains: projectDomainRecords
                 .filter((record) => normalizeServerDomain(record.serverDomain) === normalizeServerDomain(server.domain))
                 .map((record) => ({
                     agentPermanentId: record.agentPermanentId,
                     projectName: record.projectName,
+                    customDomain: record.customDomain,
                     domain: record.domain,
                     publicUrl: record.publicUrl,
                     projectHref: record.projectHref,
@@ -124,7 +125,9 @@ export async function POST(request: Request) {
 
             // Note: The VPS registry database is the source of truth for the server list.
             //       Its unique table prefix selects the new server's own isolated SQLite database.
-            const { createStandaloneServer } = await import('../../../../database/sqlite/standaloneServerRegistryStore');
+            const { createStandaloneServer } = await import(
+                '../../../../database/sqlite/standaloneServerRegistryStore'
+            );
             const createdServer = createStandaloneServer({
                 name: body.name?.trim() || normalizedDomain,
                 environment: isServerEnvironment(body.environment) ? body.environment : SERVER_ENVIRONMENT.PRODUCTION,

@@ -13,7 +13,7 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 /**
- * Authorizes an nginx proxy request to one public agent project subdomain.
+ * Authorizes an nginx proxy request to one public agent project domain.
  */
 export async function GET(request: Request): Promise<Response> {
     const runtimeInfo = await resolveAgentProjectRuntimeByDomain(request.headers.get('host'));
