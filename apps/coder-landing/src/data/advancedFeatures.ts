@@ -84,4 +84,10 @@ export const ADVANCED_FEATURES: ReadonlyArray<AdvancedFeatureDefinition> = [
             'Require a model, harness, or whole model family for a prompt right in its [ ] line. The queue runs it only when the current model or harness matches — otherwise it is skipped.',
         sampleCommand: '[ ] use `gpt-5.5`',
     },
+    {
+        title: 'Cost and time, step by step',
+        description:
+            'Every finished prompt records what each step cost and how long it took — implementation, testing and fixing — right in its [x] line, instead of one lumped total.',
+        sampleCommand: '[x] by Claude Code `claude-opus-4-8` - Implementation $8.01 6 hours; Testing 1 hour',
+    },
 ];
