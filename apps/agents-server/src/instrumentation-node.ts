@@ -54,6 +54,25 @@ export async function registerNodeRuntimeInstrumentation(): Promise<void> {
             errorStack: error instanceof Error ? error.stack : undefined,
         });
     }
+
+    try {
+        // Note: Keeps Let's Encrypt certificates for every assigned server and project
+        //       domain obtained and renewed automatically. A domain whose DNS was not
+        //       ready when it was created gets its certificate on a later maintenance
+        //       pass, without ever restarting or taking down the running server.
+        const { ensureAutomaticVpsCertificateSchedulerBootstrapped } = await import(
+            './utils/vpsCertificateScheduler'
+        );
+        ensureAutomaticVpsCertificateSchedulerBootstrapped();
+    } catch (error) {
+        console.error('❌ Automatic VPS certificate scheduler failed during Agents Server instrumentation.', {
+            nextRuntime: process.env.NEXT_RUNTIME,
+            nodeEnv: process.env.NODE_ENV,
+            errorName: error instanceof Error ? error.name : undefined,
+            errorMessage: error instanceof Error ? error.message : String(error),
+            errorStack: error instanceof Error ? error.stack : undefined,
+        });
+    }
 }
 
 /**

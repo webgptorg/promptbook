@@ -274,6 +274,25 @@ export async function applyVpsRuntimeConfiguration(
 }
 
 /**
+ * Requests missing certificates and renews expiring ones for every configured
+ * server and project domain through the shared VPS installer script.
+ *
+ * Unlike {@link applyVpsRuntimeConfiguration} this never restarts the running
+ * Agents Server process, so it is safe to run automatically on a schedule to
+ * pick up a domain whose DNS became ready after it was created and to renew
+ * certificates before they expire. Per-domain failures keep every other domain
+ * and the main server online.
+ *
+ * @returns Command output or a skipped reason when not running on a Linux VPS.
+ */
+export async function applyVpsCertificateConfiguration(): Promise<VpsCommandResult> {
+    return runVpsInstallerCommand(
+        'apply-certificates',
+        'VPS certificate maintenance can only be applied on Linux.',
+    );
+}
+
+/**
  * Installs/configures the selected local harness through the shared VPS installer script.
  *
  * @returns Command output or a skipped reason when not running on a Linux VPS.

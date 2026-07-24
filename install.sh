@@ -3171,7 +3171,7 @@ configure_ssl_certificates() {
 
     if [[ "${#failed_domains[@]}" -gt 0 ]]; then
         warn "Certificates could not be issued for: $(join_by_comma "${failed_domains[@]}")."
-        warn "Point the DNS of these domains to $PUBLIC_IP_ADDRESS, then rerun: bash $PROMPTBOOK_REPOSITORY_DIR/install.sh apply-domains"
+        warn "The Agents Server retries certificate issuance automatically, so these domains switch to HTTPS on their own once their DNS points to $PUBLIC_IP_ADDRESS. To retry immediately, rerun: bash $PROMPTBOOK_REPOSITORY_DIR/install.sh apply-certificates"
     fi
 
     if [[ -n "$first_domain" ]] && domain_has_ssl_certificate "$first_domain"; then
@@ -3664,6 +3664,23 @@ apply_vps_runtime_configuration() {
     print_summary
 }
 
+# Requests missing certificates and renews expiring ones for every configured
+# server and project domain WITHOUT restarting the running Agents Server. This
+# is deliberately lighter than `apply_vps_runtime_configuration` so it is safe to
+# run automatically on a schedule: it reuses the same idempotent
+# `configure_ssl_certificates` (isolated per-domain certificate lineages, plain
+# HTTP fallback for domains that still fail, `--keep-until-expiring` renewals),
+# but skips the firewall, S3, and pm2 restart steps. A domain whose DNS was not
+# ready at creation time therefore gets its certificate automatically on the next
+# maintenance pass after its DNS starts resolving, while the main server domain
+# and every already-certified domain stay online no matter what.
+apply_certificate_maintenance() {
+    initialize_sudo
+    resolve_run_user
+    load_runtime_configuration_from_env_file
+    configure_ssl_certificates
+}
+
 apply_harness_configuration() {
     initialize_sudo
     resolve_run_user
@@ -4029,6 +4046,12 @@ done
 if [[ "${1:-}" == "apply-domains" ]]; then
     shift
     apply_vps_runtime_configuration "$@"
+    exit 0
+fi
+
+if [[ "${1:-}" == "apply-certificates" ]]; then
+    shift
+    apply_certificate_maintenance "$@"
     exit 0
 fi
 

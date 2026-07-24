@@ -298,6 +298,32 @@ describe('install.sh', () => {
         expect(installScript).toContain('set_env_value NEXT_PUBLIC_SITE_URL "https://${first_domain}"');
     });
 
+    it('maintains certificates on a schedule without restarting the running server', () => {
+        const certificateMaintenanceFunction = installScript.slice(
+            installScript.indexOf('\napply_certificate_maintenance() {'),
+            installScript.indexOf('\napply_harness_configuration() {'),
+        );
+
+        // The Agents Server certificate scheduler runs certificate maintenance through
+        // its own lightweight subcommand…
+        expect(installScript).toContain('if [[ "${1:-}" == "apply-certificates" ]]; then');
+        expect(installScript).toContain('apply_certificate_maintenance "$@"');
+
+        // …which reuses the same idempotent certificate configuration as apply-domains
+        // (obtaining missing certificates and renewing expiring ones for every server
+        // and project domain)…
+        expect(certificateMaintenanceFunction).toContain('load_runtime_configuration_from_env_file');
+        expect(certificateMaintenanceFunction).toContain('configure_ssl_certificates');
+
+        // …but must never restart the running Agents Server or touch the firewall, so a
+        // periodic run can never drop active chats or take the main domain offline.
+        expect(certificateMaintenanceFunction).not.toContain('restart_agents_server_if_running');
+        expect(certificateMaintenanceFunction).not.toContain('configure_firewall');
+
+        // A failed issuance tells operators the retry is automatic.
+        expect(installScript).toContain('The Agents Server retries certificate issuance automatically,');
+    });
+
     it('waits for apt and dpkg locks before package installation commands', () => {
         const browserDependenciesFunction = installScript.slice(
             installScript.indexOf('\ninstall_agents_server_browser_dependencies() {'),
