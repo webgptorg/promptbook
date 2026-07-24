@@ -5,10 +5,12 @@ import { resolveLocalAgentRootPath } from '../localChatRunner/ensureLocalAgentFo
 import {
     assignAgentProjectPort,
     listAgentProjectRuntimes,
+    refreshAgentProjectRuntimePublicDomain,
     startAgentProjectStaticRuntime,
     terminateAgentProjectRuntimeForProject,
     terminateAllAgentProjectRuntimes,
 } from './agentProjectRuntimeRegistry';
+import { setAgentProjectCustomDomain } from './agentProjectRuntimeDomains';
 import {
     PTBK_AGENT_PROJECT_DOMAINS_FILE_ENV,
     PTBK_AGENT_PROJECT_DOMAIN_REGISTRY_FILE_ENV,
@@ -125,6 +127,41 @@ describe('agentProjectRuntimeRegistry', () => {
 
         expect(terminatedRuntime?.id).toBe(runtime.id);
         expect(runtimes).toHaveLength(0);
+    });
+
+    it('uses and refreshes custom project domains on runtime records', async () => {
+        await createProject(temporaryDirectory!, 'abc123', 'website');
+        await setAgentProjectCustomDomain({
+            agentPermanentId: 'abc123',
+            projectName: 'website',
+            serverDomain: 'agents.example.com',
+            customDomain: 'website.example.com',
+        });
+
+        const runtime = await assignAgentProjectPort({
+            agentPermanentId: 'abc123',
+            projectName: 'website',
+            serverDomain: 'agents.example.com',
+        });
+
+        expect(runtime.domain).toBe('website.example.com');
+        expect(runtime.publicUrl).toBe('https://website.example.com');
+
+        await setAgentProjectCustomDomain({
+            agentPermanentId: 'abc123',
+            projectName: 'website',
+            serverDomain: 'agents.example.com',
+            customDomain: 'client.website.example.com',
+        });
+
+        const refreshedRuntime = await refreshAgentProjectRuntimePublicDomain({
+            agentPermanentId: 'abc123',
+            projectName: 'website',
+            serverDomain: 'agents.example.com',
+        });
+
+        expect(refreshedRuntime?.domain).toBe('client.website.example.com');
+        expect(refreshedRuntime?.publicUrl).toBe('https://client.website.example.com');
     });
 });
 

@@ -47,18 +47,18 @@ const PRIMARY_BUTTON_CLASS_NAME =
 type ServersRegistryTableSortField = 'name' | 'environment' | 'domain' | 'tablePrefix' | 'createdAt' | 'updatedAt';
 
 /**
- * Sortable project subdomain columns.
+ * Sortable project domain columns.
  *
- * @private function of <ProjectSubdomainsPanel/>
+ * @private function of <ProjectDomainsPanel/>
  */
-type ProjectSubdomainsTableSortField = 'projectName' | 'domain' | 'agentPermanentId';
+type ProjectDomainsTableSortField = 'projectName' | 'domain' | 'agentPermanentId';
 
 /**
- * One project subdomain row rendered below a managed server.
+ * One project domain row rendered below a managed server.
  *
- * @private type of <ProjectSubdomainsPanel/>
+ * @private type of <ProjectDomainsPanel/>
  */
-type ProjectSubdomainRow = NonNullable<ManagedServerRow['projectSubdomains']>[number];
+type ProjectDomainRow = NonNullable<ManagedServerRow['projectDomains']>[number];
 
 /**
  * Props consumed by `ServersRegistryTable`.
@@ -182,15 +182,12 @@ function resolveServerRegistrySortValue(
 }
 
 /**
- * Resolves a comparable value for one project subdomain row.
+ * Resolves a comparable value for one project domain row.
  *
- * @private function of <ProjectSubdomainsPanel/>
+ * @private function of <ProjectDomainsPanel/>
  */
-function resolveProjectSubdomainSortValue(
-    projectSubdomain: ProjectSubdomainRow,
-    sortBy: ProjectSubdomainsTableSortField,
-): string {
-    return projectSubdomain[sortBy];
+function resolveProjectDomainSortValue(projectDomain: ProjectDomainRow, sortBy: ProjectDomainsTableSortField): string {
+    return projectDomain[sortBy];
 }
 
 /**
@@ -238,13 +235,18 @@ function ServersRegistryTableRow(props: ServersRegistryTableRowProps) {
     const isCurrent = server.id === currentServerId;
     const dnsDiagnostic = server.dnsDiagnostic || null;
     const hasDnsIssue = Boolean(dnsDiagnostic && dnsDiagnostic.status !== 'verified');
-    const projectSubdomains = server.projectSubdomains || [];
-    const hasProjectSubdomains = projectSubdomains.length > 0;
+    const projectDomains = server.projectDomains || [];
+    const projectDomainCount = projectDomains.length;
+    const isProjectDomainAssigned = projectDomainCount > 0;
     const columnCount = isStandaloneVps ? 6 : 8;
 
     return (
         <>
-            <tr className={isCurrent ? 'bg-blue-50/40 dark:bg-sky-950/45' : 'hover:bg-gray-50 dark:hover:bg-slate-900/80'}>
+            <tr
+                className={
+                    isCurrent ? 'bg-blue-50/40 dark:bg-sky-950/45' : 'hover:bg-gray-50 dark:hover:bg-slate-900/80'
+                }
+            >
                 <td className="px-4 py-3 align-top">
                     <input
                         type="text"
@@ -308,10 +310,15 @@ function ServersRegistryTableRow(props: ServersRegistryTableRowProps) {
                             <ServerStatusBadge label="DNS ready" tone="green" />
                         ) : null}
                         {hasDnsIssue ? <ServerStatusBadge label="DNS issue" tone="amber" /> : null}
-                        {hasProjectSubdomains ? (
-                            <ServerStatusBadge label={`${projectSubdomains.length} project subdomains`} tone="blue" />
+                        {isProjectDomainAssigned ? (
+                            <ServerStatusBadge
+                                label={`${projectDomainCount} project ${
+                                    projectDomainCount === 1 ? 'domain' : 'domains'
+                                }`}
+                                tone="blue"
+                            />
                         ) : null}
-                        {!isCurrent && !isDirty && !dnsDiagnostic && !hasProjectSubdomains ? (
+                        {!isCurrent && !isDirty && !dnsDiagnostic && !isProjectDomainAssigned ? (
                             <span className="text-xs text-gray-400">-</span>
                         ) : null}
                     </div>
@@ -366,10 +373,10 @@ function ServersRegistryTableRow(props: ServersRegistryTableRowProps) {
                     </div>
                 </td>
             </tr>
-            {hasProjectSubdomains ? (
+            {isProjectDomainAssigned ? (
                 <tr className="bg-sky-50/50">
                     <td colSpan={columnCount} className="px-4 py-4">
-                        <ProjectSubdomainsPanel projectSubdomains={projectSubdomains} />
+                        <ProjectDomainsPanel projectDomains={projectDomains} />
                     </td>
                 </tr>
             ) : null}
@@ -378,10 +385,10 @@ function ServersRegistryTableRow(props: ServersRegistryTableRowProps) {
                     <td colSpan={columnCount} className="px-4 py-4">
                         <div className="space-y-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-900">
                             <div className="space-y-1">
-                            <p className="font-semibold">
-                                DNS setup needs attention for <span className="font-mono">{server.domain}</span>
-                            </p>
-                            <p>{dnsDiagnostic?.summary}</p>
+                                <p className="font-semibold">
+                                    DNS setup needs attention for <span className="font-mono">{server.domain}</span>
+                                </p>
+                                <p>{dnsDiagnostic?.summary}</p>
                                 {dnsDiagnostic?.resolvedAddresses.length ? (
                                     <p className="text-xs text-amber-800">
                                         Currently resolves to:{' '}
@@ -461,22 +468,22 @@ function ServersRegistryTableRow(props: ServersRegistryTableRowProps) {
 }
 
 /**
- * Renders project subdomains assigned below one server domain.
+ * Renders project domains owned by one server.
  */
-function ProjectSubdomainsPanel({
-    projectSubdomains,
+function ProjectDomainsPanel({
+    projectDomains,
 }: {
-    readonly projectSubdomains: NonNullable<ManagedServerRow['projectSubdomains']>;
+    readonly projectDomains: NonNullable<ManagedServerRow['projectDomains']>;
 }) {
-    const projectSubdomainSorting = useAdminTableSorting<ProjectSubdomainRow, ProjectSubdomainsTableSortField>({
-        rows: projectSubdomains,
+    const projectDomainSorting = useAdminTableSorting<ProjectDomainRow, ProjectDomainsTableSortField>({
+        rows: projectDomains,
         defaultSortBy: 'projectName',
-        resolveSortValue: resolveProjectSubdomainSortValue,
+        resolveSortValue: resolveProjectDomainSortValue,
     });
 
     return (
         <div className="space-y-3 rounded-lg border border-sky-200 bg-sky-50 px-4 py-4 text-sm text-sky-950">
-            <p className="font-semibold">Project subdomains</p>
+            <p className="font-semibold">Project domains</p>
             <div className="overflow-x-auto rounded-md border border-sky-100 bg-white">
                 <table className="min-w-full divide-y divide-sky-100 text-xs">
                     <thead className="bg-sky-50 text-sky-900">
@@ -485,59 +492,62 @@ function ProjectSubdomainsPanel({
                                 className="px-3 py-2 text-left font-semibold"
                                 label="project"
                                 sortBy="projectName"
-                                activeSortBy={projectSubdomainSorting.sortBy}
-                                sortOrder={projectSubdomainSorting.sortOrder}
-                                onSortChange={projectSubdomainSorting.handleSortChange}
+                                activeSortBy={projectDomainSorting.sortBy}
+                                sortOrder={projectDomainSorting.sortOrder}
+                                onSortChange={projectDomainSorting.handleSortChange}
                             >
                                 Project
                             </AdminSortableTableHeaderCell>
                             <AdminSortableTableHeaderCell
                                 className="px-3 py-2 text-left font-semibold"
-                                label="subdomain"
+                                label="domain"
                                 sortBy="domain"
-                                activeSortBy={projectSubdomainSorting.sortBy}
-                                sortOrder={projectSubdomainSorting.sortOrder}
-                                onSortChange={projectSubdomainSorting.handleSortChange}
+                                activeSortBy={projectDomainSorting.sortBy}
+                                sortOrder={projectDomainSorting.sortOrder}
+                                onSortChange={projectDomainSorting.handleSortChange}
                             >
-                                Subdomain
+                                Domain
                             </AdminSortableTableHeaderCell>
                             <AdminSortableTableHeaderCell
                                 className="px-3 py-2 text-left font-semibold"
                                 label="agent"
                                 sortBy="agentPermanentId"
-                                activeSortBy={projectSubdomainSorting.sortBy}
-                                sortOrder={projectSubdomainSorting.sortOrder}
-                                onSortChange={projectSubdomainSorting.handleSortChange}
+                                activeSortBy={projectDomainSorting.sortBy}
+                                sortOrder={projectDomainSorting.sortOrder}
+                                onSortChange={projectDomainSorting.handleSortChange}
                             >
                                 Agent
                             </AdminSortableTableHeaderCell>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-sky-100">
-                        {projectSubdomainSorting.sortedRows.map((projectSubdomain) => (
-                            <tr key={`${projectSubdomain.agentPermanentId}-${projectSubdomain.projectName}`}>
+                        {projectDomainSorting.sortedRows.map((projectDomain) => (
+                            <tr key={`${projectDomain.agentPermanentId}-${projectDomain.projectName}`}>
                                 <td className="px-3 py-2">
                                     <a
-                                        href={projectSubdomain.projectHref}
+                                        href={projectDomain.projectHref}
                                         className="font-semibold text-sky-800 hover:text-sky-950 hover:underline"
                                     >
-                                        {projectSubdomain.projectName}
+                                        {projectDomain.projectName}
                                     </a>
                                 </td>
                                 <td className="px-3 py-2">
                                     <a
-                                        href={projectSubdomain.publicUrl}
+                                        href={projectDomain.publicUrl}
                                         target="_blank"
                                         rel="noreferrer"
                                         className="inline-flex items-center gap-1 font-mono text-sky-800 hover:text-sky-950 hover:underline"
                                     >
-                                        {projectSubdomain.domain}
+                                        {projectDomain.domain}
                                         <ExternalLink className="h-3.5 w-3.5" aria-hidden />
                                     </a>
+                                    {projectDomain.customDomain ? (
+                                        <span className="ml-2 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 font-sans text-[0.7rem] font-semibold text-emerald-700">
+                                            Custom
+                                        </span>
+                                    ) : null}
                                 </td>
-                                <td className="px-3 py-2 font-mono text-slate-500">
-                                    {projectSubdomain.agentPermanentId}
-                                </td>
+                                <td className="px-3 py-2 font-mono text-slate-500">{projectDomain.agentPermanentId}</td>
                             </tr>
                         ))}
                     </tbody>

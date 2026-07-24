@@ -316,10 +316,9 @@ async function finalizeSuccessfulPromptRound(options: {
     markPromptDone(
         nextPrompt.file,
         nextPrompt.section,
-        result.usage,
+        result.steps,
         runnerMetadata.runnerName,
         runnerMetadata.modelName,
-        promptExecutionStartedDate,
         result.attemptCount,
         result.loginMethod,
     );

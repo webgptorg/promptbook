@@ -144,6 +144,7 @@ describe('runPromptRound', () => {
         (runPromptWithTestFeedback as jest.MockedFunction<typeof runPromptWithTestFeedback>).mockResolvedValue({
             usage: UNCERTAIN_USAGE,
             attemptCount: 1,
+            steps: [{ kind: 'implementation', usage: UNCERTAIN_USAGE, durationMs: 1000 }],
         });
         (writePromptFile as jest.MockedFunction<typeof writePromptFile>).mockResolvedValue(undefined);
         (commitChanges as jest.MockedFunction<typeof commitChanges>).mockResolvedValue(undefined);

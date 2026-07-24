@@ -48,6 +48,9 @@ describe('runPromptWithTestFeedback', () => {
         });
 
         expect(result.attemptCount).toBe(1);
+        expect(result.steps).toEqual([
+            { kind: 'implementation', usage: UNCERTAIN_USAGE, durationMs: expect.any(Number) },
+        ]);
         expect(runPromptMock).toHaveBeenCalledTimes(1);
         expect(runPromptTestCommandExecutor).not.toHaveBeenCalled();
         expect(waitForPauseCheckpoint).toHaveBeenCalledWith({
@@ -88,6 +91,7 @@ describe('runPromptWithTestFeedback', () => {
         });
 
         expect(result.attemptCount).toBe(2);
+        expect(result.steps.map((step) => step.kind)).toEqual(['implementation', 'testing', 'fixing', 'testing']);
         expect(attemptCounts).toEqual([1, 2]);
         expect(runPromptMock).toHaveBeenCalledTimes(2);
         expect(runPromptTestCommandExecutor).toHaveBeenCalledTimes(2);

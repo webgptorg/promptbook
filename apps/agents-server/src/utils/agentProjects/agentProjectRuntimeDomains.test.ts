@@ -6,6 +6,7 @@ import {
     listAgentProjectDomainRecords,
     resolveAgentProjectDomainRecordByHost,
     resolveAgentProjectRuntimeBaseDomain,
+    setAgentProjectCustomDomain,
 } from './agentProjectRuntimeDomains';
 import {
     PTBK_AGENT_PROJECT_DOMAINS_FILE_ENV,
@@ -51,7 +52,7 @@ describe('agentProjectRuntimeDomains', () => {
         restoreEnvironmentVariable('SERVERS', ORIGINAL_ENVIRONMENT.SERVERS);
     });
 
-    it('assigns a stable project subdomain and writes the installer domains file', async () => {
+    it('assigns a stable generated project domain and writes the installer domains file', async () => {
         const assignment = await assignAgentProjectDomain({
             agentPermanentId: 'AgentABC',
             projectName: 'My Project',
@@ -62,6 +63,7 @@ describe('agentProjectRuntimeDomains', () => {
             agentPermanentId: 'AgentABC',
             projectName: 'My Project',
             serverDomain: 'agents.example.com',
+            customDomain: null,
             domain: 'my-project.agents.example.com',
             publicUrl: 'https://my-project.agents.example.com',
             projectHref: '/agents/AgentABC/projects/My%20Project',
@@ -77,7 +79,7 @@ describe('agentProjectRuntimeDomains', () => {
         expect(domainsFileContent).toContain('my-project.agents.example.com');
     });
 
-    it('keeps same-named project subdomains scoped to their server domain', async () => {
+    it('keeps same-named generated project domains scoped to their server domain', async () => {
         await assignAgentProjectDomain({
             agentPermanentId: 'AgentABC',
             projectName: 'My Project',
@@ -104,7 +106,91 @@ describe('agentProjectRuntimeDomains', () => {
         await expect(listAgentProjectDomainRecords()).resolves.toHaveLength(2);
     });
 
-    it('skips project subdomains when only a local development URL is configured', () => {
+    it('uses an assigned custom project domain of any hostname depth', async () => {
+        const customAssignment = await setAgentProjectCustomDomain({
+            agentPermanentId: 'AgentABC',
+            projectName: 'My Project',
+            serverDomain: 'agents.example.com',
+            customDomain: 'https://client.website.example.co.uk/path',
+        });
+        const runtimeAssignment = await assignAgentProjectDomain({
+            agentPermanentId: 'AgentABC',
+            projectName: 'My Project',
+            serverDomain: 'agents.example.com',
+        });
+
+        expect(customAssignment.record).toMatchObject({
+            customDomain: 'client.website.example.co.uk',
+            domain: 'client.website.example.co.uk',
+            publicUrl: 'https://client.website.example.co.uk',
+        });
+        expect(runtimeAssignment.record).toMatchObject({
+            customDomain: 'client.website.example.co.uk',
+            domain: 'client.website.example.co.uk',
+        });
+
+        const domainsFileContent = await readFile(process.env[PTBK_AGENT_PROJECT_DOMAINS_FILE_ENV]!, 'utf-8');
+
+        expect(domainsFileContent).toContain('client.website.example.co.uk');
+        expect(domainsFileContent).not.toContain('my-project.agents.example.com');
+    });
+
+    it('clears a custom domain back to the generated project domain', async () => {
+        await setAgentProjectCustomDomain({
+            agentPermanentId: 'AgentABC',
+            projectName: 'My Project',
+            serverDomain: 'agents.example.com',
+            customDomain: 'landing.example.com',
+        });
+
+        const clearedAssignment = await setAgentProjectCustomDomain({
+            agentPermanentId: 'AgentABC',
+            projectName: 'My Project',
+            serverDomain: 'agents.example.com',
+            customDomain: '',
+        });
+
+        expect(clearedAssignment.record).toMatchObject({
+            customDomain: null,
+            domain: 'my-project.agents.example.com',
+        });
+
+        const domainsFileContent = await readFile(process.env[PTBK_AGENT_PROJECT_DOMAINS_FILE_ENV]!, 'utf-8');
+
+        expect(domainsFileContent).toContain('my-project.agents.example.com');
+        expect(domainsFileContent).not.toContain('landing.example.com');
+    });
+
+    it('rejects custom domains already assigned to another project', async () => {
+        await setAgentProjectCustomDomain({
+            agentPermanentId: 'AgentABC',
+            projectName: 'First Project',
+            serverDomain: 'agents.example.com',
+            customDomain: 'landing.example.com',
+        });
+
+        await expect(
+            setAgentProjectCustomDomain({
+                agentPermanentId: 'AgentABC',
+                projectName: 'Second Project',
+                serverDomain: 'agents.example.com',
+                customDomain: 'landing.example.com',
+            }),
+        ).rejects.toThrow('already assigned to another project');
+    });
+
+    it('rejects invalid custom project domains', async () => {
+        await expect(
+            setAgentProjectCustomDomain({
+                agentPermanentId: 'AgentABC',
+                projectName: 'My Project',
+                serverDomain: 'agents.example.com',
+                customDomain: 'localhost:4440',
+            }),
+        ).rejects.toThrow('Invalid custom project domain');
+    });
+
+    it('skips generated project domains when only a local development URL is configured', () => {
         process.env.NEXT_PUBLIC_SITE_URL = 'http://localhost:4440';
 
         expect(resolveAgentProjectRuntimeBaseDomain()).toBeNull();

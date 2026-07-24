@@ -55,7 +55,7 @@ export type AgentProjectRuntimeInfo = {
     /**
      * Browser URL for the runtime.
      *
-     * In production this is the public project subdomain. In local development it
+     * In production this is the public project domain. In local development it
      * falls back to the loopback URL.
      */
     readonly url: string;

@@ -1,9 +1,17 @@
 import moment from 'moment';
 import { spaceTrim } from 'spacetrim';
+import type { CoderRunStep } from '../common/CoderRunStep';
 import { UNCERTAIN_USAGE } from '../../../src/execution/utils/usage-constants';
 import { markPromptDone } from './markPromptDone';
 import { markPromptFailed } from './markPromptFailed';
 import { parsePromptFile } from './parsePromptFile';
+
+/**
+ * Builds a minimal single-implementation step list for the attempt-metadata tests.
+ */
+function createDoneSteps(): ReadonlyArray<CoderRunStep> {
+    return [{ kind: 'implementation', usage: UNCERTAIN_USAGE, durationMs: 6 * 60 * 60 * 1000 }];
+}
 
 describe('prompt attempt metadata', () => {
     it('keeps done prompts unchanged for a single attempt', () => {
@@ -16,9 +24,10 @@ describe('prompt attempt metadata', () => {
         );
         const section = file.sections[0]!;
 
-        markPromptDone(file, section, UNCERTAIN_USAGE, 'GitHub Copilot', 'gpt-5.4', moment(), 1);
+        markPromptDone(file, section, createDoneSteps(), 'GitHub Copilot', 'gpt-5.4', 1);
 
         expect(file.lines[0]).toMatch(/^\[x\] /);
+        expect(file.lines[0]).toContain('by GitHub Copilot `gpt-5.4` - Implementation ');
         expect(file.lines[0]).not.toContain('(1 attempt');
     });
 
@@ -32,7 +41,7 @@ describe('prompt attempt metadata', () => {
         );
         const section = file.sections[0]!;
 
-        markPromptDone(file, section, UNCERTAIN_USAGE, 'GitHub Copilot', 'gpt-5.4', moment(), 2);
+        markPromptDone(file, section, createDoneSteps(), 'GitHub Copilot', 'gpt-5.4', 2);
 
         expect(file.lines[0]).toContain('[x] (2 attempts) ');
     });
@@ -47,7 +56,7 @@ describe('prompt attempt metadata', () => {
         );
         const section = file.sections[0]!;
 
-        markPromptDone(file, section, UNCERTAIN_USAGE, 'OpenAI Codex', 'gpt-5.4', moment(), 1, 'chatgpt');
+        markPromptDone(file, section, createDoneSteps(), 'OpenAI Codex', 'gpt-5.4', 1, 'chatgpt');
 
         expect(file.lines[0]).toContain('by OpenAI Codex `gpt-5.4` (ChatGPT account)');
     });
@@ -62,7 +71,7 @@ describe('prompt attempt metadata', () => {
         );
         const section = file.sections[0]!;
 
-        markPromptDone(file, section, UNCERTAIN_USAGE, 'OpenAI Codex', 'gpt-5.4', moment(), 1, 'api');
+        markPromptDone(file, section, createDoneSteps(), 'OpenAI Codex', 'gpt-5.4', 1, 'api');
 
         expect(file.lines[0]).toContain('by OpenAI Codex `gpt-5.4` (API key)');
     });
@@ -77,7 +86,7 @@ describe('prompt attempt metadata', () => {
         );
         const section = file.sections[0]!;
 
-        markPromptDone(file, section, UNCERTAIN_USAGE, 'OpenAI Codex', 'gpt-5.4', moment(), 1, 'unknown');
+        markPromptDone(file, section, createDoneSteps(), 'OpenAI Codex', 'gpt-5.4', 1, 'unknown');
 
         expect(file.lines[0]).toContain('by OpenAI Codex `gpt-5.4`');
         expect(file.lines[0]).not.toMatch(/\((?:ChatGPT account|API key)\)/);

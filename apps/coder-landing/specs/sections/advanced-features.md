@@ -9,7 +9,7 @@ Anchor `#features`. A grid of feature cards, each pairing a short explanation wi
 
 ## Cards
 
-3-column grid on desktop, 2 on tablet, 1 on mobile. Each card: title (Outfit semibold), description, and a [terminal block](../components/terminal-block.md) snippet. Exactly these ten cards, in this order:
+3-column grid on desktop, 2 on tablet, 1 on mobile. Each card: title (Outfit semibold), description, and a [terminal block](../components/terminal-block.md) snippet. Exactly these eleven cards, in this order:
 
 | #  | Title                          | Snippet                                                                            |
 | -- | ------------------------------ | ----------------------------------------------------------------------------------- |
@@ -23,6 +23,7 @@ Anchor `#features`. A grid of feature cards, each pairing a short explanation wi
 | 8  | Human in the loop              | `ptbk coder run --harness claude-code --no-auto`                                    |
 | 9  | Verify and archive             | `ptbk coder verify`                                                                 |
 | 10 | Pin a model or harness         | ``[ ] use `gpt-5.5` ``                                                              |
+| 11 | Cost and time, step by step    | ``[x] by Claude Code `claude-opus-4-8` - Implementation $8.01 6 hours; Testing 1 hour`` |
 
 ## Descriptions (verbatim card copy)
 
@@ -36,5 +37,6 @@ Anchor `#features`. A grid of feature cards, each pairing a short explanation wi
 8. **Human in the loop** — "Confirm each prompt manually with --no-auto, press P to pause a running queue, or press X to end after the current prompt."
 9. **Verify and archive** — "Walk through completed prompts interactively, archive the finished ones to prompts/done/ and auto-append repair prompts for incomplete work."
 10. **Pin a model or harness** — "Require a model, harness, or whole model family for a prompt right in its [ ] line. The queue runs it only when the current model or harness matches — otherwise it is skipped."
+11. **Cost and time, step by step** — "Every finished prompt records what each step cost and how long it took — implementation, testing and fixing — right in its [x] line, instead of one lumped total."
 
 Option semantics must stay consistent with [`../content/commands.md`](../content/commands.md).
