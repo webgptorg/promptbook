@@ -16,9 +16,9 @@ bash.exe.stackdump
 other/integration-tests/videos/.last-run.json
 other/integration-tests/videos/**/*.webm
 
-agents-server.sqlite
-agents-server.sqlite-shm
-agents-server.sqlite-wal
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
 
 
 /logs
