@@ -4,7 +4,6 @@ import { $provideAgentReferenceResolver } from '../agentReferenceResolver/$provi
 import { consumeAgentReferenceResolutionIssues } from '../agentReferenceResolver/AgentReferenceResolutionIssue';
 import { parseBookScopedAgentIdentifier } from '../agentReferenceResolver/bookScopedAgentReferences';
 import { resolvePseudoAgentDescriptor } from '../pseudoAgents';
-import { isSameAgentPermanentId } from '../agentIdentifier';
 import { normalizeAgentName } from '../../../../../src/_packages/core.index';
 import type { PseudoAgentKind } from '../../../../../src/book-2.0/agent-source/pseudoAgentReferences';
 import { cache } from 'react';
@@ -346,7 +345,7 @@ async function findLocalAgentRouteMatch(
 
     return (
         agents.find((agent: { agentName: string; permanentId?: string | null }) => {
-            if (agent.agentName === reference || isSameAgentPermanentId(agent.permanentId, reference)) {
+            if (agent.agentName === reference || agent.permanentId === reference) {
                 return true;
             }
 

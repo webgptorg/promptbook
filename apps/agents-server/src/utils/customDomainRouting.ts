@@ -24,7 +24,6 @@ import {
     resolveLocalAgentRouteReference,
 } from './localAgentRouteReferences';
 import { createMissingImportedAgentFallback } from './createMissingImportedAgentFallback';
-import { isSameAgentPermanentId } from './agentIdentifier';
 import { resolveInheritedAgentSource, type AgentSourceImporter } from './resolveInheritedAgentSource';
 import { createServerPublicUrl, type ServerRecord } from './serverRegistry';
 
@@ -144,8 +143,7 @@ function createResolverAgentCollection(agents: ReadonlyArray<CustomDomainAgentRo
     const resolveAgent = (agentNameOrPermanentId: string): CustomDomainAgentRow => {
         const agent = agents.find(
             (candidate) =>
-                candidate.agentName === agentNameOrPermanentId ||
-                isSameAgentPermanentId(candidate.permanentId, agentNameOrPermanentId),
+                candidate.agentName === agentNameOrPermanentId || candidate.permanentId === agentNameOrPermanentId,
         );
 
         if (!agent) {

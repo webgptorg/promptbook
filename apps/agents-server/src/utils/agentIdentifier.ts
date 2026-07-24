@@ -1,5 +1,3 @@
-import { buildAgentNameOrPermanentIdFilter } from '../../../../src/collection/agent-collection/constructors/agent-collection-in-supabase/buildAgentNameOrPermanentIdFilter';
-
 /**
  * Minimal agent shape needed to build canonical route identifiers.
  */
@@ -28,33 +26,13 @@ export function resolveAgentRouteIdentifier(agent: AgentRouteIdentifierSource): 
 /**
  * Builds a Supabase `.or()` filter that matches an agent by name or permanent identifier.
  *
- * Agent permanent ids are matched case-insensitively (see {@link buildAgentNameOrPermanentIdFilter}),
- * so `/agents/doQMRg82izNfJa`, `/agents/DOQMRG82IZNFJA`, and `/agents/doqmrg82iznfja` all resolve to
- * the same agent. This re-exports the shared Promptbook Engine helper to keep a single source of truth.
+ * Supabase/PostgREST filters expect values to be URL-encoded so that characters like
+ * spaces or punctuation do not break the query syntax (e.g. `agentName.eq.AI Team`).
  *
  * @param identifier - Agent name or permanent identifier to match.
  * @returns `.or()` filter string safe to pass to Supabase.
  */
-export const buildAgentNameOrIdFilter = buildAgentNameOrPermanentIdFilter;
-
-/**
- * Compares two agent permanent identifiers case-insensitively.
- *
- * Agent permanent ids are Base58 tokens that the Agents Server treats case-insensitively, so
- * `doQMRg82izNfJa`, `DOQMRG82IZNFJA`, and `doqmrg82iznfja` all identify the same agent. Use this
- * whenever a route/API identifier is compared against a stored permanent id in memory.
- *
- * @param firstPermanentId - First permanent id (or `null`/`undefined`).
- * @param secondPermanentId - Second permanent id (or `null`/`undefined`).
- * @returns `true` when both ids are non-empty and equal ignoring case.
- */
-export function isSameAgentPermanentId(
-    firstPermanentId: string | null | undefined,
-    secondPermanentId: string | null | undefined,
-): boolean {
-    if (!firstPermanentId || !secondPermanentId) {
-        return false;
-    }
-
-    return firstPermanentId.toLowerCase() === secondPermanentId.toLowerCase();
+export function buildAgentNameOrIdFilter(identifier: string): string {
+    const encodedIdentifier = encodeURIComponent(identifier);
+    return `agentName.eq.${encodedIdentifier},permanentId.eq.${encodedIdentifier}`;
 }

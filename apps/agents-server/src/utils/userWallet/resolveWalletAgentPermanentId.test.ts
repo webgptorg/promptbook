@@ -64,7 +64,7 @@ describe('resolveWalletAgentPermanentId', () => {
 
         await expect(resolveWalletAgentPermanentId('Lawyer')).resolves.toBe('lawyer-123');
         expect(supabaseMock.from).toHaveBeenCalledWith('server_Agent');
-        expect(supabaseMock.or).toHaveBeenCalledWith('agentName.eq.Lawyer,permanentId.ilike.Lawyer');
+        expect(supabaseMock.or).toHaveBeenCalledWith('agentName.eq.Lawyer,permanentId.eq.Lawyer');
     });
 
     it('returns null without querying Supabase when the identifier is empty', async () => {
