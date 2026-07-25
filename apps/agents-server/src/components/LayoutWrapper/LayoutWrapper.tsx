@@ -63,6 +63,10 @@ type LayoutWrapperProps = {
      */
     readonly resourceMonitorWarningStatus: ServerResourceWarningStatus;
     /**
+     * Whether one or more bundled core agents are missing on this server (admin-only warning).
+     */
+    readonly isCoreAgentsMissing: boolean;
+    /**
      * Indicates if the install-as-app option should be shown in agent menus.
      */
     readonly isExperimentalPwaAppEnabled: boolean;
@@ -109,6 +113,7 @@ export function LayoutWrapper({
     feedbackMode,
     shibbolethAuthenticationStatus,
     resourceMonitorWarningStatus,
+    isCoreAgentsMissing,
     isExperimentalPwaAppEnabled,
     controlPanelOptionAvailability,
     defaultIsSoundsOn,
@@ -201,6 +206,9 @@ export function LayoutWrapper({
                                                                                         }
                                                                                         resourceMonitorWarningStatus={
                                                                                             resourceMonitorWarningStatus
+                                                                                        }
+                                                                                        isCoreAgentsMissing={
+                                                                                            isCoreAgentsMissing
                                                                                         }
                                                                                     />
                                                                                     <main className={mainClassName}>

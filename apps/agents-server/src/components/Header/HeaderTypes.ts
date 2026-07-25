@@ -69,6 +69,11 @@ export type HeaderProps = {
      * Resource monitor status used to show super-admin resource pressure warnings.
      */
     resourceMonitorWarningStatus?: ServerResourceWarningStatus;
+
+    /**
+     * Whether one or more bundled core agents are missing on this server (admin-only warning).
+     */
+    isCoreAgentsMissing?: boolean;
 };
 
 /**

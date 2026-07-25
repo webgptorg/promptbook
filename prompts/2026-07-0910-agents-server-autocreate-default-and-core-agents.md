@@ -1,4 +1,4 @@
-[ ] !!
+[x] by Claude Code `claude-opus-4-8` - Implementation $14.90 3 hours; Testing 28 minutes
 
 [✨🥸] When the default agents are missing on the server, ask the admin if he wants to create them. 
 
@@ -22,3 +22,4 @@
 ![the default core agents](screenshots/2026-07-0910-agents-server-autocreate-default-and-core-agents-1.png)
 ![missing default agents](screenshots/2026-07-0910-agents-server-autocreate-default-and-core-agents-2.png)
 !["Install default agents" when creating new server](screenshots/2026-07-0910-agents-server-autocreate-default-and-core-agents-3.png)
+

@@ -3,6 +3,7 @@ import {
     Archive,
     BadgeInfo,
     BarChart3,
+    Blocks,
     Bot,
     Boxes,
     Brain,
@@ -110,6 +111,7 @@ type SystemMenuItemHref =
     | typeof HARNESS_AUTH_ADMIN_PATH
     | '/superadmin/cli-access'
     | '/admin/models'
+    | '/admin/core-agents'
     | '/admin/metadata'
     | '/admin/limits'
     | '/admin/messages'
@@ -150,6 +152,7 @@ type BuildHeaderSystemMenuItemsOptions = {
     readonly feedbackMode: ChatFeedbackMode;
     readonly shibbolethAuthenticationStatus?: ShibbolethAuthenticationMenuStatus;
     readonly resourceMonitorWarningStatus?: ServerResourceWarningStatus;
+    readonly isCoreAgentsWarningShown?: boolean;
 };
 
 /**
@@ -189,6 +192,7 @@ const SYSTEM_MENU_ICON_BY_HREF: Record<SystemMenuItemHref, LucideIcon> = {
     [HARNESS_AUTH_ADMIN_PATH]: TerminalSquare,
     '/superadmin/cli-access': Terminal,
     '/admin/models': Bot,
+    '/admin/core-agents': Blocks,
     '/admin/metadata': FileJson,
     '/admin/limits': Gauge,
     '/admin/messages': Mail,
@@ -327,6 +331,7 @@ export function buildHeaderSystemMenuItems({
     feedbackMode,
     shibbolethAuthenticationStatus,
     resourceMonitorWarningStatus,
+    isCoreAgentsWarningShown = false,
 }: BuildHeaderSystemMenuItemsOptions): SubMenuItem[] {
     const userAccountSystemItems: SubMenuItem[] = [
         {
@@ -440,6 +445,12 @@ export function buildHeaderSystemMenuItems({
         {
             label: translate('header.models'),
             href: '/admin/models',
+        },
+        {
+            label: isCoreAgentsWarningShown
+                ? createWarningMenuLabel(translate('header.coreAgents'))
+                : translate('header.coreAgents'),
+            href: '/admin/core-agents',
         },
         {
             label: translate('header.metadata'),
@@ -580,7 +591,7 @@ export function buildHeaderSystemMenuItems({
         ...createSystemCategory('My Account', userAccountSystemItems, translate),
         ...createSystemCategory('Utilities', utilitiesSystemItems, translate),
         ...createSystemCategory('Super Admin', superAdminSystemItems, translate, isResourceMonitorWarningShown),
-        ...createSystemCategory('Administration', administrationSystemItems, translate),
+        ...createSystemCategory('Administration', administrationSystemItems, translate, isCoreAgentsWarningShown),
         ...createSystemCategory(
             'Login Methods',
             loginMethodsSystemItems,

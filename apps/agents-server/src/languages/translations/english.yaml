@@ -148,6 +148,7 @@ header.logs: Logs
 header.harnessAuth: Harness Auth
 header.cliAccess: CLI Access
 header.models: Models
+header.coreAgents: Core Agents
 header.openApiDocumentation: OpenAPI Documentation
 header.apiTokens: API Tokens
 header.metadata: Metadata

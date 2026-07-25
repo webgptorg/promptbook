@@ -152,6 +152,7 @@ export const SERVER_TRANSLATION_KEYS = [
     'header.harnessAuth',
     'header.cliAccess',
     'header.models',
+    'header.coreAgents',
     'header.openApiDocumentation',
     'header.apiTokens',
     'header.metadata',

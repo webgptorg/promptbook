@@ -3,8 +3,10 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { $sideEffect } from '../../../../src/utils/organization/$sideEffect';
 import { ForbiddenPage } from '../components/ForbiddenPage/ForbiddenPage';
+import { DefaultAgentsStatusNotice } from '../components/Homepage/DefaultAgentsStatusNotice';
 import { HomepagePrimarySections } from '../components/Homepage/HomepagePrimarySections';
 import { $provideServer } from '../tools/$provideServer';
+import { resolveDefaultAgentsStatus } from '../utils/defaultAgents/resolveDefaultAgentsStatus';
 import { isUserAdmin } from '../utils/isUserAdmin';
 import { isUserGlobalAdmin } from '../utils/isUserGlobalAdmin';
 import {
@@ -42,9 +44,29 @@ export default async function HomePage() {
         getHomePageAgents(),
     ]);
 
+    // Note: The missing-agents notice is only relevant to admins, who alone can reinstate the bundled agents.
+    const defaultAgentsStatus = isAdmin
+        ? await resolveDefaultAgentsStatus().catch((error) => {
+              console.error('Failed to resolve default agents status:', error);
+              return null;
+          })
+        : null;
+
     return (
         <div className="agents-server-route-shell min-h-screen">
             <div className="container mx-auto px-4 py-16">
+                {defaultAgentsStatus && (
+                    <DefaultAgentsStatusNotice
+                        isAnyCoreAgentMissing={defaultAgentsStatus.isAnyCoreAgentMissing}
+                        isAnyDefaultAgentMissing={defaultAgentsStatus.isAnyDefaultAgentMissing}
+                        missingCoreAgentTitles={defaultAgentsStatus.coreAgents
+                            .filter((coreAgent) => !coreAgent.isPresent)
+                            .map((coreAgent) => coreAgent.title)}
+                        missingDefaultAgentTitles={defaultAgentsStatus.defaultAgents
+                            .filter((defaultAgent) => !defaultAgent.isPresent)
+                            .map((defaultAgent) => defaultAgent.title)}
+                    />
+                )}
                 <HomepagePrimarySections
                     agents={agents}
                     folders={folders}

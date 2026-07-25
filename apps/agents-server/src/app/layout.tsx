@@ -20,6 +20,10 @@ import { $provideServer } from '../tools/$provideServer';
 import { isSelfContainedS3StorageSelected } from '../tools/$provideCdnForServer';
 import { loadAgentOrganizationState } from '../utils/agentOrganization/loadAgentOrganizationState';
 import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../utils/agentOrganization/types';
+import {
+    loadBundledAgentIdentities,
+    resolveMissingCoreAgentNames,
+} from '../utils/defaultAgents/resolveDefaultAgentsStatus';
 import { getAgentNaming } from '../utils/getAgentNaming';
 import { getCurrentUser } from '../utils/getCurrentUser';
 import { getDefaultChatPreferences } from '../utils/chatPreferences';
@@ -288,6 +292,11 @@ export default async function RootLayout({
     const organizationStatePromise = isAdminPromise.then((isAdmin) =>
         isAdmin ? loadAgentOrganizationState({ status: 'ACTIVE', includePrivate: true }) : null,
     );
+    // Note: Core agents live in the private `.core` folder, which is already part of the admin organization state, so
+    //       the missing-core warning is derived without any extra database query.
+    const coreAgentIdentitiesPromise = isAdminPromise.then((isAdmin) =>
+        isAdmin ? loadBundledAgentIdentities().then((identities) => identities.coreAgents).catch(() => []) : [],
+    );
     const chatPreferencesPromise = getDefaultChatPreferences();
     const defaultIsNotificationsOnPromise = getDefaultIsNotificationsOn();
     const footerVersionMetadataPromise = readAgentsServerFooterVersion();
@@ -368,6 +377,7 @@ export default async function RootLayout({
         fileUploadAvailability,
         resourceMonitorWarningStatus,
         footerVersionMetadata,
+        coreAgentIdentities,
     ] = await Promise.all([
         isAdminPromise,
         isGlobalAdminPromise,
@@ -388,6 +398,7 @@ export default async function RootLayout({
         fileUploadAvailabilityPromise,
         resourceMonitorWarningStatusPromise,
         footerVersionMetadataPromise,
+        coreAgentIdentitiesPromise,
     ]);
 
     const serverName = layoutMetadata.SERVER_NAME || 'Promptbook Agents Server';
@@ -395,6 +406,12 @@ export default async function RootLayout({
     const isFooterShown = (layoutMetadata.IS_FOOTER_SHOWN ?? 'true') === 'true';
     const agents: AgentOrganizationAgent[] = organizationState?.agents || [];
     const agentFolders: AgentOrganizationFolder[] = organizationState?.folders || [];
+    const isCoreAgentsMissing =
+        isAdmin &&
+        resolveMissingCoreAgentNames(
+            coreAgentIdentities,
+            agents.map((agent) => agent.agentName),
+        ).length > 0;
     const isExperimental = (layoutMetadata.IS_EXPERIMENTAL_APP ?? 'false') === 'true';
     const feedbackMode = parseChatFeedbackMode(layoutMetadata.CHAT_FEEDBACK_MODE, layoutMetadata.IS_FEEDBACK_ENABLED);
     const isExperimentalPwaAppEnabled = (layoutMetadata.IS_EXPERIMENTAL_PWA_APP_ENABLED ?? 'true') === 'true';
@@ -471,6 +488,7 @@ export default async function RootLayout({
                     feedbackMode={feedbackMode}
                     shibbolethAuthenticationStatus={shibbolethAuthenticationStatus}
                     resourceMonitorWarningStatus={resourceMonitorWarningStatus}
+                    isCoreAgentsMissing={isCoreAgentsMissing}
                     isExperimentalPwaAppEnabled={isExperimentalPwaAppEnabled}
                     controlPanelOptionAvailability={controlPanelOptionAvailability}
                     defaultServerLanguage={serverLanguage}

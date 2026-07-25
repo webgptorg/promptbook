@@ -2,10 +2,9 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { spaceTrim } from 'spacetrim';
 import { AgentCollectionInSupabase } from '../../../../src/collection/agent-collection/constructors/agent-collection-in-supabase/AgentCollectionInSupabase';
 import type { AgentsDatabaseSchema } from '../../../../src/collection/agent-collection/constructors/agent-collection-in-supabase/AgentsDatabaseSchema';
-import { parseAgentSource } from '../../../../src/book-2.0/agent-source/parseAgentSource';
-import type { string_book } from '../../../../src/book-2.0/agent-source/string_book';
 import { DatabaseError } from '../../../../src/errors/DatabaseError';
 import { CORE_AGENT_DIRECTORY_NAME, loadCoreAgentBooks } from '../utils/defaultAgents/loadDefaultAgentBooks';
+import { createMissingAgentsFromBooks } from './createMissingAgentsFromBooks';
 import { $provideSupabaseForServer } from './$provideSupabaseForServer';
 
 /**
@@ -87,36 +86,15 @@ export async function seedCoreAgents(options: SeedCoreAgentsOptions = {}): Promi
 
     const coreFolderId = await ensureCoreFolderExists(tablePrefix);
     const existingAgentNames = await loadExistingActiveAgentNames(tablePrefix);
-    const createdAgentNames: Array<string> = [];
-
-    for (const [index, coreAgentBook] of coreAgentBooks.entries()) {
-        const agentName = parseCoreAgentName(coreAgentBook);
-
-        if (existingAgentNames.has(agentName)) {
-            continue;
-        }
-
-        const createdAgent = await collection.createAgent(coreAgentBook, {
-            folderId: coreFolderId,
-            sortOrder: index,
-        });
-        createdAgentNames.push(createdAgent.agentName);
-        logger.info(`Created \`.core\` agent: ${createdAgent.agentName}`);
-    }
+    const createdAgentNames = await createMissingAgentsFromBooks({
+        collection,
+        agentBooks: coreAgentBooks,
+        existingAgentNames,
+        folderId: coreFolderId,
+        logger,
+    });
 
     return { coreFolderId, createdAgentNames };
-}
-
-/**
- * Reads the agent name from one bundled `.core` book source.
- *
- * @param coreAgentBook - Raw `.core` agent book source.
- * @returns Persisted agent name parsed from the book.
- *
- * @private utility of `.core` folder seeding
- */
-function parseCoreAgentName(coreAgentBook: string_book): string {
-    return parseAgentSource(coreAgentBook).agentName;
 }
 
 /**

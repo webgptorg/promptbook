@@ -58,6 +58,7 @@ export function Header(props: HeaderProps) {
         feedbackMode = DEFAULT_CHAT_FEEDBACK_MODE,
         shibbolethAuthenticationStatus,
         resourceMonitorWarningStatus,
+        isCoreAgentsMissing = false,
     } = props;
     const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
     const router = useRouter();
@@ -246,7 +247,9 @@ export function Header(props: HeaderProps) {
         shibbolethAuthenticationStatus?.isActive && !shibbolethAuthenticationStatus.isConfigured,
     );
     const isResourceMonitorWarningShown = Boolean(isGlobalAdmin && resourceMonitorWarningStatus?.isWarningShown);
-    const isSystemWarningShown = isShibbolethConfigurationWarningShown || isResourceMonitorWarningShown;
+    const isCoreAgentsWarningShown = Boolean(isAdmin && isCoreAgentsMissing);
+    const isSystemWarningShown =
+        isShibbolethConfigurationWarningShown || isResourceMonitorWarningShown || isCoreAgentsWarningShown;
     const systemMenuEntries = useMemo(
         () =>
             buildHeaderSystemMenuItems({
@@ -258,6 +261,7 @@ export function Header(props: HeaderProps) {
                 feedbackMode,
                 shibbolethAuthenticationStatus,
                 resourceMonitorWarningStatus,
+                isCoreAgentsWarningShown,
             }),
         [
             currentUser,
@@ -265,6 +269,7 @@ export function Header(props: HeaderProps) {
             isAdmin,
             isExperimental,
             isGlobalAdmin,
+            isCoreAgentsWarningShown,
             resourceMonitorWarningStatus,
             shibbolethAuthenticationStatus,
             t,
