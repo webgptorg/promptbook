@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { isUserGlobalAdmin } from '@/src/utils/isUserGlobalAdmin';
-import { readConfiguredHarness, resolveHarnessStatus } from '@/src/utils/harnessConfiguration';
+import { readConfiguredHarness, resolveHarnessAuthenticationStatus } from '@/src/utils/harnessConfiguration';
 import {
     applyVpsHarnessConfiguration,
     updateVpsEnvironmentVariables,
@@ -16,10 +16,12 @@ export async function GET() {
 
     try {
         const configuredHarness = await readConfiguredHarness();
+        const authenticationStatus = await resolveHarnessAuthenticationStatus(configuredHarness.harness);
 
         return NextResponse.json({
             ...configuredHarness,
-            status: await resolveHarnessStatus(configuredHarness.harness),
+            status: authenticationStatus.status,
+            codexLoginMethod: authenticationStatus.codexLoginMethod,
         });
     } catch (error) {
         return NextResponse.json(

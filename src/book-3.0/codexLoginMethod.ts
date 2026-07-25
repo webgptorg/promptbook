@@ -22,6 +22,17 @@ export type CodexLoginMethod = 'chatgpt' | 'api' | 'unknown';
 export const CODEX_LOGIN_METHOD_MARKER = 'ptbk-codex-login-method:';
 
 /**
+ * Substring that the `codex login status` command prints when the Codex CLI is signed in with a
+ * ChatGPT subscription account instead of an `OPENAI_API_KEY`.
+ *
+ * This is the single source of truth for detecting an active ChatGPT login, reused by the Codex runner
+ * script and by the Agents Server harness authentication status resolver.
+ *
+ * @private internal constant of the OpenAI Codex runner and the Agents Server Harness Auth
+ */
+export const CODEX_CHATGPT_LOGIN_STATUS_NEEDLE = 'Logged in using ChatGPT';
+
+/**
  * Formats one Codex login method as a short human-readable label for prompt status lines and task details.
  *
  * @returns The label to append to a status line, or `undefined` when there is no meaningful method to show

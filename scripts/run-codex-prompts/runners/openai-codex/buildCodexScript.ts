@@ -1,6 +1,6 @@
 import { spaceTrim } from '../../../../src/utils/organization/spaceTrim';
 import { toPosixPath } from '../../common/runGoScript/toPosixPath';
-import { CODEX_LOGIN_METHOD_MARKER } from '../../../../src/book-3.0/codexLoginMethod';
+import { CODEX_CHATGPT_LOGIN_STATUS_NEEDLE, CODEX_LOGIN_METHOD_MARKER } from '../../../../src/book-3.0/codexLoginMethod';
 import type { CodexScriptOptions } from './CodexScriptOptions';
 
 /**
@@ -26,7 +26,7 @@ export function buildCodexScript(options: CodexScriptOptions): string {
             ${options.codexCommand} login status 2>&1 || true
         )"
         case "$CODEX_LOGIN_STATUS" in
-            *"Logged in using ChatGPT"*)
+            *"${CODEX_CHATGPT_LOGIN_STATUS_NEEDLE}"*)
                 IS_CODEX_CHATGPT_LOGIN_ACTIVE=1
                 ;;
             *)

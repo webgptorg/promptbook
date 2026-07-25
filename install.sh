@@ -1520,7 +1520,11 @@ resolve_runner_authentication_command() {
             printf 'copilot'
             ;;
         openai-codex)
-            printf 'codex'
+            # Use the device-authorization login flow so the admin can authenticate the ChatGPT
+            # subscription from the browser terminal without a local browser callback. Launching the
+            # bare 'codex' TUI here would start the interactive chat instead of a login and die in the
+            # non-interactive web terminal with "Session terminated, killing shell...".
+            printf 'codex login --device-auth'
             ;;
         claude-code)
             printf 'claude'

@@ -2,10 +2,12 @@
 
 import { Loader2, Save, ServerCog } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
+import type { CodexLoginMethod } from '../../../../../../src/book-3.0/codexLoginMethod';
 import { AdminTerminalCard } from '../../../components/AdminTerminal/AdminTerminalCard';
 import { useAdminTerminalSession } from '../../../components/AdminTerminal/useAdminTerminalSession';
 import { Card } from '../../../components/Homepage/Card';
 import { HARNESS_AUTH_API_PATH, HARNESS_AUTHENTICATION_API_PATH } from '../../../constants/harnessAuthRoutes';
+import { OpenAiCodexAuthWizard } from './OpenAiCodexAuthWizard';
 
 /**
  * Harness Auth API response.
@@ -15,6 +17,7 @@ type HarnessAuthResponse = {
     readonly model?: string;
     readonly thinkingLevel?: string;
     readonly status?: string;
+    readonly codexLoginMethod?: CodexLoginMethod | null;
     readonly applyResult?: {
         readonly isAvailable: boolean;
         readonly output: string;
@@ -54,7 +57,7 @@ const AUTHENTICATION_HINTS: Record<string, string> = {
     'github-copilot':
         'Start the terminal, run `/login` if Copilot asks for it, trust the installation directory, and exit the CLI once the signed-in status is shown.',
     'openai-codex':
-        'Start the terminal and follow the Codex CLI login flow there. Paste any prompted device or browser code in your browser, then exit the CLI when authentication succeeds.',
+        'Start the terminal to run `codex login --device-auth`. It prints a verification URL and a one-time code — open the URL in your browser, enter the code, and approve access for your ChatGPT account. The terminal finishes on its own once you are signed in.',
     'claude-code':
         'Start the terminal and complete the Claude Code login or project-trust prompts directly in the embedded terminal, then exit the CLI once it is ready.',
     opencode:
@@ -115,6 +118,7 @@ export function HarnessAuthClient() {
     const [model, setModel] = useState('gpt-5.4');
     const [thinkingLevel, setThinkingLevel] = useState('xhigh');
     const [status, setStatus] = useState('');
+    const [codexLoginMethod, setCodexLoginMethod] = useState<CodexLoginMethod | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [configurationErrorMessage, setConfigurationErrorMessage] = useState<string | null>(null);
@@ -168,6 +172,7 @@ export function HarnessAuthClient() {
             setModel(payload.model || 'gpt-5.4');
             setThinkingLevel(payload.thinkingLevel || 'xhigh');
             setStatus(payload.status || '');
+            setCodexLoginMethod(payload.codexLoginMethod ?? null);
 
             await loadAuthenticationSession();
         } catch (error) {
@@ -219,6 +224,7 @@ export function HarnessAuthClient() {
             setModel(payload.model || model);
             setThinkingLevel(payload.thinkingLevel || thinkingLevel);
             setStatus(payload.status || '');
+            setCodexLoginMethod(payload.codexLoginMethod ?? null);
             setApplyOutput(payload.applyResult?.output || null);
             setConfigurationSuccessMessage(
                 applyRuntimeConfiguration
@@ -330,6 +336,8 @@ export function HarnessAuthClient() {
                     outputSizeClassName="max-h-72 overflow-auto"
                 />
             ) : null}
+
+            {harness === 'openai-codex' ? <OpenAiCodexAuthWizard codexLoginMethod={codexLoginMethod} /> : null}
 
             <AdminTerminalCard
                 title="Authentication"
