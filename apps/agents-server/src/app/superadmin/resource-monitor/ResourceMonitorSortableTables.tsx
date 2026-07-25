@@ -21,8 +21,8 @@ import type {
 } from '@/src/utils/resourceMonitor/resourceMonitorTypes';
 import { ExternalLink, Square } from 'lucide-react';
 import Link from 'next/link';
-import { AdminSortableTableHeaderCell } from '../_components/AdminSortableTableHeaderCell';
-import { useAdminTableSorting, type AdminTableSortOrder } from '../_components/adminTableSorting';
+import { AdminSortableTableHeaderCell } from '../../admin/_components/AdminSortableTableHeaderCell';
+import { useAdminTableSorting, type AdminTableSortOrder } from '../../admin/_components/adminTableSorting';
 import { $terminateAgentProjectRuntimeFromResourceMonitorAction } from './actions';
 import { formatResourceMonitorMeasuredAt } from './resourceMonitorDisplay';
 

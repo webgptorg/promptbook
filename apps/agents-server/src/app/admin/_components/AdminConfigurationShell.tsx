@@ -16,7 +16,7 @@ type AdminConfigurationPage = 'environment' | 'metadata' | 'limits';
 const ADMIN_CONFIGURATION_NAVIGATION_ITEMS: ReadonlyArray<AdminRouteTabItem<AdminConfigurationPage>> = [
     {
         id: 'environment',
-        href: '/admin/environment',
+        href: '/superadmin/environment',
         label: 'Environment variables',
         description: 'VPS-wide .env values with secrets masked in the browser.',
     },

@@ -90,7 +90,7 @@ export async function DELETE(_request: Request, context: { params: Promise<{ ser
             nextServerId === null
                 ? null
                 : currentContext.registeredServers.find((server) => server.id === nextServerId) ?? null;
-        const redirectUrl = nextServer ? new URL('/admin/servers', createServerPublicUrl(nextServer.domain)).href : null;
+        const redirectUrl = nextServer ? new URL('/superadmin/servers', createServerPublicUrl(nextServer.domain)).href : null;
 
         return NextResponse.json({
             success: true,

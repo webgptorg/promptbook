@@ -3,7 +3,7 @@
  *
  * @private internal route constant for Agents Server Harness Auth UI
  */
-export const HARNESS_AUTH_ADMIN_PATH = '/admin/harness-auth';
+export const HARNESS_AUTH_ADMIN_PATH = '/superadmin/harness-auth';
 
 /**
  * Admin API path for configuring standalone harness authentication.

@@ -1,4 +1,4 @@
-import { readJsonResponse } from '../custom-resource/shared';
+import { readJsonResponse } from '../../admin/custom-resource/shared';
 import type { ManagedServerRow, ServerDraft } from './useServersRegistryState';
 
 /**

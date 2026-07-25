@@ -1,6 +1,6 @@
 import { ForbiddenPage } from '../../../components/ForbiddenPage/ForbiddenPage';
 import { isUserAdmin } from '../../../utils/isUserAdmin';
-import { AdminConfigurationShell } from '../_components/AdminConfigurationShell';
+import { AdminConfigurationShell } from '../../admin/_components/AdminConfigurationShell';
 import { EnvironmentVariablesClient } from './EnvironmentVariablesClient';
 
 /**

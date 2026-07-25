@@ -231,7 +231,7 @@ export type AgentProjectRuntimesResourceUsage = {
 };
 
 /**
- * Full resource monitor snapshot rendered by `/admin/resource-monitor`.
+ * Full resource monitor snapshot rendered by `/superadmin/resource-monitor`.
  */
 export type ServerResourceMonitorSnapshot = {
     readonly measuredAt: string;

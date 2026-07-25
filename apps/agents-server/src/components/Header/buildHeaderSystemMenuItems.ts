@@ -100,15 +100,15 @@ type SystemMenuItemHref =
     | '/system/utilities/mocked-chats'
     | '/admin/about'
     | 'https://ptbk.io/'
-    | '/admin/servers'
-    | '/admin/environment'
-    | '/admin/resource-monitor'
-    | '/admin/update'
-    | '/admin/database'
-    | '/admin/internal-s3'
-    | '/admin/logs'
+    | '/superadmin/servers'
+    | '/superadmin/environment'
+    | '/superadmin/resource-monitor'
+    | '/superadmin/update'
+    | '/superadmin/database'
+    | '/superadmin/internal-s3'
+    | '/superadmin/logs'
     | typeof HARNESS_AUTH_ADMIN_PATH
-    | '/admin/cli-access'
+    | '/superadmin/cli-access'
     | '/admin/models'
     | '/admin/metadata'
     | '/admin/limits'
@@ -179,15 +179,15 @@ const SYSTEM_MENU_ICON_BY_HREF: Record<SystemMenuItemHref, LucideIcon> = {
     '/system/utilities/mocked-chats': MessageSquareText,
     '/admin/about': BadgeInfo,
     'https://ptbk.io/': Home,
-    '/admin/servers': Server,
-    '/admin/environment': FileCode2,
-    '/admin/resource-monitor': Activity,
-    '/admin/update': RefreshCw,
-    '/admin/database': Database,
-    '/admin/internal-s3': Boxes,
-    '/admin/logs': ScrollText,
+    '/superadmin/servers': Server,
+    '/superadmin/environment': FileCode2,
+    '/superadmin/resource-monitor': Activity,
+    '/superadmin/update': RefreshCw,
+    '/superadmin/database': Database,
+    '/superadmin/internal-s3': Boxes,
+    '/superadmin/logs': ScrollText,
     [HARNESS_AUTH_ADMIN_PATH]: TerminalSquare,
-    '/admin/cli-access': Terminal,
+    '/superadmin/cli-access': Terminal,
     '/admin/models': Bot,
     '/admin/metadata': FileJson,
     '/admin/limits': Gauge,
@@ -393,12 +393,12 @@ export function buildHeaderSystemMenuItems({
     const superAdminSystemItems: SubMenuItem[] = [
         {
             label: translate('header.servers'),
-            href: '/admin/servers',
+            href: '/superadmin/servers',
             isBold: true,
         },
         {
             label: translate('header.environmentVariables'),
-            href: '/admin/environment',
+            href: '/superadmin/environment',
         },
         ...(isGlobalAdmin
             ? [
@@ -406,23 +406,23 @@ export function buildHeaderSystemMenuItems({
                       label: isResourceMonitorWarningShown
                           ? createWarningMenuLabel(translate('header.resourceMonitor'))
                           : translate('header.resourceMonitor'),
-                      href: '/admin/resource-monitor',
+                      href: '/superadmin/resource-monitor',
                   } as SubMenuItem,
                   {
                       label: translate('header.update'),
-                      href: '/admin/update',
+                      href: '/superadmin/update',
                   } as SubMenuItem,
                   {
                       label: translate('header.database'),
-                      href: '/admin/database',
+                      href: '/superadmin/database',
                   } as SubMenuItem,
                   {
                       label: translate('header.internalS3'),
-                      href: '/admin/internal-s3',
+                      href: '/superadmin/internal-s3',
                   } as SubMenuItem,
                   {
                       label: translate('header.logs'),
-                      href: '/admin/logs',
+                      href: '/superadmin/logs',
                   } as SubMenuItem,
                   {
                       label: translate('header.harnessAuth'),
@@ -430,7 +430,7 @@ export function buildHeaderSystemMenuItems({
                   } as SubMenuItem,
                   {
                       label: translate('header.cliAccess'),
-                      href: '/admin/cli-access',
+                      href: '/superadmin/cli-access',
                   } as SubMenuItem,
               ]
             : []),
