@@ -147,7 +147,7 @@ describe('buildHeaderSystemMenuItems', () => {
                 warningMessages: ['Free memory is low.'],
             },
         });
-        const resourceMonitorItem = findItemByHref(items, '/admin/resource-monitor');
+        const resourceMonitorItem = findItemByHref(items, '/superadmin/resource-monitor');
 
         expect(resourceMonitorItem).not.toBeNull();
         expect(isValidElement(resourceMonitorItem?.label)).toBe(true);

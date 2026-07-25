@@ -92,6 +92,6 @@ async function assertProjectRuntimeActionAccess(
  */
 function revalidateProjectRuntimePaths(agentPermanentId: string, projectName: string): void {
     revalidatePath(buildAgentProjectProfileHref(agentPermanentId, projectName));
-    revalidatePath('/admin/resource-monitor');
-    revalidatePath('/admin/servers');
+    revalidatePath('/superadmin/resource-monitor');
+    revalidatePath('/superadmin/servers');
 }

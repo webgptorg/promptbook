@@ -4,7 +4,7 @@ import type {
     ManagedServerDnsExpectedRecord,
     ManagedServerDnsProviderGuide,
     ManagedServerDnsStatus,
-} from '../app/admin/servers/ServersRegistryDnsTypes';
+} from '../app/superadmin/servers/ServersRegistryDnsTypes';
 
 /**
  * Resolver signature used for DNS lookups.
@@ -67,7 +67,7 @@ const DNS_PENDING_ERROR_CODES = new Set(['ENOTFOUND', 'ENODATA', 'EAI_AGAIN', 'E
  * Creates the browser-safe DNS status for one standalone VPS domain.
  *
  * @param options - Domain, VPS IP, and optional resolver override.
- * @returns DNS diagnostic rendered on `/admin/servers`.
+ * @returns DNS diagnostic rendered on `/superadmin/servers`.
  */
 export async function createStandaloneVpsDomainDnsDiagnostic(
     options: CreateStandaloneVpsDomainDnsDiagnosticOptions,

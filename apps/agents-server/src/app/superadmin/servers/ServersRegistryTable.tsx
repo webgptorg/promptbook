@@ -5,8 +5,8 @@ import { ArrowRightLeft, ExternalLink, Loader2, RefreshCcw, Save } from 'lucide-
 import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
 import type { ServerLanguageCode } from '../../../languages/ServerLanguageRegistry';
 import { formatServerLanguageHumanReadableDate } from '../../../utils/localization/formatServerLanguageHumanReadableDate';
-import { AdminSortableTableHeaderCell } from '../_components/AdminSortableTableHeaderCell';
-import { useAdminTableSorting } from '../_components/adminTableSorting';
+import { AdminSortableTableHeaderCell } from '../../admin/_components/AdminSortableTableHeaderCell';
+import { useAdminTableSorting } from '../../admin/_components/adminTableSorting';
 import {
     MANAGED_SERVER_ENVIRONMENT_OPTIONS,
     type ManagedServerEnvironment,

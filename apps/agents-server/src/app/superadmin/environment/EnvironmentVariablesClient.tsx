@@ -3,8 +3,8 @@
 import { EyeOff, Loader2, Save, ServerCog } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Card } from '../../../components/Homepage/Card';
-import { AdminSortableTableHeaderCell } from '../_components/AdminSortableTableHeaderCell';
-import { useAdminTableSorting, type AdminTableSortOrder } from '../_components/adminTableSorting';
+import { AdminSortableTableHeaderCell } from '../../admin/_components/AdminSortableTableHeaderCell';
+import { useAdminTableSorting, type AdminTableSortOrder } from '../../admin/_components/adminTableSorting';
 
 /**
  * One environment variable returned by the admin API.

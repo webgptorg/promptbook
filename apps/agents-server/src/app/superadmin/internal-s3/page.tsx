@@ -23,7 +23,7 @@ import type {
 import { readInternalS3Directory } from '../../../utils/internalS3/readInternalS3Directory';
 import { readInternalS3Snapshot } from '../../../utils/internalS3/readInternalS3Snapshot';
 import { formatResourceBytes } from '../../../utils/resourceMonitor/formatResourceMonitorValue';
-import { AdminStorageTabs } from '../_components/AdminStorageTabs';
+import { AdminStorageTabs } from '../../admin/_components/AdminStorageTabs';
 
 /**
  * Forces a fresh configuration read and live probe on every request.
@@ -33,21 +33,21 @@ export const dynamic = 'force-dynamic';
 /**
  * Value shown when a configuration entry is not set.
  *
- * @private internal helper of `/admin/internal-s3`
+ * @private internal helper of `/superadmin/internal-s3`
  */
 const INTERNAL_S3_EMPTY_VALUE = '—';
 
 /**
  * Visual tone used across status cards and the status banner.
  *
- * @private internal helper of `/admin/internal-s3`
+ * @private internal helper of `/superadmin/internal-s3`
  */
 type InternalS3Tone = 'positive' | 'warning' | 'critical' | 'muted';
 
 /**
  * One label/value row rendered in the configuration detail list.
  *
- * @private internal helper of `/admin/internal-s3`
+ * @private internal helper of `/superadmin/internal-s3`
  */
 type InternalS3DetailItem = {
     readonly label: string;
@@ -58,7 +58,7 @@ type InternalS3DetailItem = {
 /**
  * Banner and card container tone class names.
  *
- * @private internal helper of `/admin/internal-s3`
+ * @private internal helper of `/superadmin/internal-s3`
  */
 const INTERNAL_S3_TONE_CONTAINER_CLASS_NAMES: Record<InternalS3Tone, string> = {
     positive: 'border-emerald-200 bg-emerald-50 text-emerald-900',
@@ -70,14 +70,14 @@ const INTERNAL_S3_TONE_CONTAINER_CLASS_NAMES: Record<InternalS3Tone, string> = {
 /**
  * Human-readable limit matching `INTERNAL_S3_BROWSER_MAX_KEYS`.
  *
- * @private internal helper of `/admin/internal-s3`
+ * @private internal helper of `/superadmin/internal-s3`
  */
 const INTERNAL_S3_BROWSER_VISIBLE_LIMIT_LABEL = '1,000';
 
 /**
  * Props accepted by the internal S3 page.
  *
- * @private route props of `/admin/internal-s3`
+ * @private route props of `/superadmin/internal-s3`
  */
 type InternalS3PageProps = {
     /**
@@ -137,7 +137,7 @@ function InternalS3Header({ checkedAt }: { readonly checkedAt: string }) {
                     Checked: <span className="font-mono text-gray-700">{formatInternalS3Timestamp(checkedAt)}</span>
                 </span>
                 <Link
-                    href="/admin/internal-s3"
+                    href="/superadmin/internal-s3"
                     className="inline-flex items-center gap-2 rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 font-semibold text-blue-700 hover:bg-blue-100"
                 >
                     <RefreshCcw className="h-3.5 w-3.5" />
@@ -363,7 +363,7 @@ function InternalS3Breadcrumbs({ relativePrefix }: { readonly relativePrefix: st
 
     return (
         <nav className="mt-2 flex flex-wrap items-center gap-1 text-sm text-gray-500" aria-label="S3 prefix">
-            <Link href="/admin/internal-s3" className="font-medium text-blue-600 hover:underline">
+            <Link href="/superadmin/internal-s3" className="font-medium text-blue-600 hover:underline">
                 root
             </Link>
             {segments.map((segment) => {
@@ -510,7 +510,7 @@ function InternalS3BrowserRow({ entry }: { readonly entry: InternalS3BrowserEntr
  *
  * @param snapshot - Internal S3 snapshot.
  * @returns Banner descriptor.
- * @private internal helper of `/admin/internal-s3`
+ * @private internal helper of `/superadmin/internal-s3`
  */
 function resolveInternalS3Status(snapshot: InternalS3Snapshot): {
     readonly tone: InternalS3Tone;
@@ -555,7 +555,7 @@ function resolveInternalS3Status(snapshot: InternalS3Snapshot): {
  *
  * @param isReachable - Reachability flag, or `null` when not checked.
  * @returns Display label.
- * @private internal helper of `/admin/internal-s3`
+ * @private internal helper of `/superadmin/internal-s3`
  */
 function resolveConnectivityLabel(isReachable: boolean | null): string {
     if (isReachable === null) {
@@ -570,7 +570,7 @@ function resolveConnectivityLabel(isReachable: boolean | null): string {
  *
  * @param isReachable - Reachability flag, or `null` when not checked.
  * @returns Card tone.
- * @private internal helper of `/admin/internal-s3`
+ * @private internal helper of `/superadmin/internal-s3`
  */
 function resolveConnectivityTone(isReachable: boolean | null): InternalS3Tone {
     if (isReachable === null) {
@@ -585,7 +585,7 @@ function resolveConnectivityTone(isReachable: boolean | null): InternalS3Tone {
  *
  * @param count - Object count, or `null`.
  * @returns Display value.
- * @private internal helper of `/admin/internal-s3`
+ * @private internal helper of `/superadmin/internal-s3`
  */
 function formatInternalS3Count(count: number | null): string {
     return count === null ? 'Not available' : count.toLocaleString();
@@ -596,7 +596,7 @@ function formatInternalS3Count(count: number | null): string {
  *
  * @param latencyMs - Latency in milliseconds.
  * @returns Display value.
- * @private internal helper of `/admin/internal-s3`
+ * @private internal helper of `/superadmin/internal-s3`
  */
 function formatInternalS3Latency(latencyMs: number): string {
     return `${latencyMs.toLocaleString()} ms`;
@@ -607,7 +607,7 @@ function formatInternalS3Latency(latencyMs: number): string {
  *
  * @param value - Flag value.
  * @returns `Yes` or `No`.
- * @private internal helper of `/admin/internal-s3`
+ * @private internal helper of `/superadmin/internal-s3`
  */
 function formatInternalS3Boolean(value: boolean): string {
     return value ? 'Yes' : 'No';
@@ -618,7 +618,7 @@ function formatInternalS3Boolean(value: boolean): string {
  *
  * @param checkedAt - ISO timestamp.
  * @returns Display value.
- * @private internal helper of `/admin/internal-s3`
+ * @private internal helper of `/superadmin/internal-s3`
  */
 function formatInternalS3Timestamp(checkedAt: string): string {
     return new Date(checkedAt).toLocaleString('en-US', {
@@ -632,7 +632,7 @@ function formatInternalS3Timestamp(checkedAt: string): string {
  *
  * @param timestamp - ISO timestamp, or `null`.
  * @returns Display value.
- * @private internal helper of `/admin/internal-s3`
+ * @private internal helper of `/superadmin/internal-s3`
  */
 function formatInternalS3BrowserTimestamp(timestamp: string | null): string {
     if (!timestamp) {
@@ -647,14 +647,14 @@ function formatInternalS3BrowserTimestamp(timestamp: string | null): string {
  *
  * @param relativePrefix - Relative S3 browser prefix.
  * @returns Internal S3 page href.
- * @private internal helper of `/admin/internal-s3`
+ * @private internal helper of `/superadmin/internal-s3`
  */
 function buildInternalS3BrowserHref(relativePrefix: string): string {
     if (!relativePrefix) {
-        return '/admin/internal-s3';
+        return '/superadmin/internal-s3';
     }
 
     const searchParams = new URLSearchParams();
     searchParams.set('prefix', relativePrefix);
-    return `/admin/internal-s3?${searchParams.toString()}`;
+    return `/superadmin/internal-s3?${searchParams.toString()}`;
 }

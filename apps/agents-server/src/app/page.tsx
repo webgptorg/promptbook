@@ -29,7 +29,7 @@ export default async function HomePage() {
     }
 
     if (ipAddressRouting === 'CONFIGURE') {
-        redirect('/admin/servers?setup=1');
+        redirect('/superadmin/servers?setup=1');
     }
 
     if (Array.isArray(ipAddressRouting)) {

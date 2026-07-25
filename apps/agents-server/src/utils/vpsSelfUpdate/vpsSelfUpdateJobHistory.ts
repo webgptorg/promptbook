@@ -103,7 +103,7 @@ export async function preserveVpsSelfUpdateJobInTaskHistory(
  * Reads all self-update task snapshots that should be surfaced in the admin task manager.
  *
  * A successful self-update can restart the old server before it writes the final succeeded status.
- * Task-manager rows therefore use the same target-commit reconciliation as `/admin/update`.
+ * Task-manager rows therefore use the same target-commit reconciliation as `/superadmin/update`.
  *
  * @param options - Optional current runtime state override.
  * @returns Latest singleton status followed by archived history, with duplicates removed.

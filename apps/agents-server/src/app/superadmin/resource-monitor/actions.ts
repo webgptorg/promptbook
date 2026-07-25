@@ -21,5 +21,5 @@ export async function $terminateAgentProjectRuntimeFromResourceMonitorAction(run
     }
 
     await terminateAgentProjectRuntimeById(runtimeId);
-    revalidatePath('/admin/resource-monitor');
+    revalidatePath('/superadmin/resource-monitor');
 }

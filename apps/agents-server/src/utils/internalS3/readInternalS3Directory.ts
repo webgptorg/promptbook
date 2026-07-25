@@ -67,7 +67,7 @@ type InternalS3BrowserPrefix = {
  * @param configuration - Internal S3 configuration.
  * @param rawRelativePrefix - Browser prefix from the URL query.
  * @returns Directory listing snapshot.
- * @private internal utility of the `/admin/internal-s3` page
+ * @private internal utility of the `/superadmin/internal-s3` page
  */
 export async function readInternalS3Directory(
     configuration: InternalS3Configuration,

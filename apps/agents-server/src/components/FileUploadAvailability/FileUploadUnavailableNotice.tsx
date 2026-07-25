@@ -36,7 +36,7 @@ export function FileUploadUnavailableNotice({ className }: FileUploadUnavailable
             <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0" aria-hidden="true" />
             <div className="space-y-1">
                 <p className="font-medium">{fileUploadAvailability.message}</p>
-                <Link href="/admin/servers" className="inline-flex font-semibold underline underline-offset-2">
+                <Link href="/superadmin/servers" className="inline-flex font-semibold underline underline-offset-2">
                     Open server/domain settings
                 </Link>
             </div>

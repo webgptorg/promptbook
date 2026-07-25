@@ -75,7 +75,7 @@ export async function readVpsSelfUpdateAutomaticConfiguration(): Promise<VpsSelf
 /**
  * Saves automatic self-update configuration through the shared VPS `.env` writer.
  *
- * @param update - Raw configuration payload from `/admin/update`.
+ * @param update - Raw configuration payload from `/superadmin/update`.
  * @returns Normalized automatic self-update configuration.
  *
  * @private function of `vpsSelfUpdate`

@@ -36,6 +36,7 @@ export const RESERVED_PATHS: readonly string[] = [
     "sitemap.xml",
     "sounds",
     "story",
+    "superadmin",
     "sw.js",
     "swagger",
     "system",

@@ -3,7 +3,7 @@
  *
  * @param measuredAt - ISO timestamp.
  * @returns Display value.
- * @private internal helper of `/admin/resource-monitor`
+ * @private internal helper of `/superadmin/resource-monitor`
  */
 export function formatResourceMonitorMeasuredAt(measuredAt: string): string {
     return new Date(measuredAt).toLocaleString('en-US', {

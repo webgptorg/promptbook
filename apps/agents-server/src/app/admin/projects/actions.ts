@@ -66,8 +66,8 @@ export async function $setAgentProjectCustomDomainFromAdminProjectsAction(
         serverDomain,
     });
     revalidatePath('/admin/projects');
-    revalidatePath('/admin/servers');
-    revalidatePath('/admin/resource-monitor');
+    revalidatePath('/superadmin/servers');
+    revalidatePath('/superadmin/resource-monitor');
     revalidatePath(buildAgentProjectProfileHref(agentPermanentId, project.projectName));
 }
 
