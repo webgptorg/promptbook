@@ -2,7 +2,7 @@
 
 [✨🥸] baz
 
--   @@@
+-   @@@@@@@@@@@@@@@@@@@@@@@@@@@@
 -   Default agents are in this repository in `agents/default/` core default agents in `agents/default/.core`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.

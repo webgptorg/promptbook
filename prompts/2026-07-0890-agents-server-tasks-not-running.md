@@ -18,3 +18,16 @@
 ![not running](screenshots/2026-07-0890-agents-server-tasks-not-running-4.png)
 ![not running](screenshots/2026-07-0890-agents-server-tasks-not-running-5.png)
 
+---
+
+
+[ ]
+
+
+- @@@@@@@@@@@@@
+-  **This server**
+-  **All servers (VPS)** is not showing all the things like terminal button
+- The `/admin/task-manager-vps` should be `/superadmin/task-manager`
+
+![alt text](screenshots/2026-07-0890-agents-server-tasks-not-running-6.png)
+![not seeing all the thing like terminal](screenshots/2026-07-0890-agents-server-tasks-not-running-7.png)
