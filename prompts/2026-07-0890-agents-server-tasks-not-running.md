@@ -24,10 +24,13 @@
 [ ]
 
 
-- @@@@@@@@@@@@@
--  **This server**
+[✨☀️] The task manager for one server should work in the same way and show the same things as the task manager for the entire VPS. 
+
+-  The only difference between these two task managers is if you are showing the tasks for entire VPS or just for one server.
+-  When you are showing tasks for entire VPS, you should see exactly the same information for the tasks you are seeing on a single server.
+-  **This server**  Is showing all the things connected with the task
 -  **All servers (VPS)** is not showing all the things like terminal button
-- The `/admin/task-manager-vps` should be `/superadmin/task-manager`
+- The `/admin/task-manager-vps` should be on path `/superadmin/task-manager`
 
 ![alt text](screenshots/2026-07-0890-agents-server-tasks-not-running-6.png)
 ![not seeing all the thing like terminal](screenshots/2026-07-0890-agents-server-tasks-not-running-7.png)

@@ -13,3 +13,19 @@
 
 
 ![alt text](screenshots/2026-07-0860-agents-server-certificates.png)
+
+
+---
+
+
+[ ]
+
+[✨🔙] When the agent server is setting up a new server or obtaining or renewing a certificate, show this in a task manager as a task
+
+-   This should be a new type of task alongside the chat completion and server update task.
+-  Log at the start time, the end time, the duration, and all the things which are tracked on the other types of tasks.
+-  Link from this task to the super admin servers page
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
