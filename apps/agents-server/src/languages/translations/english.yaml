@@ -157,6 +157,7 @@ header.customJs: Custom JS
 header.chatHistory: Chat history
 header.usageAnalytics: Usage analytics
 header.taskManager: Task manager
+header.vpsTaskManager: Task manager (all servers)
 header.messagesEmails: Messages & Emails
 header.backups: Backups
 header.chatFeedback: Chat feedback

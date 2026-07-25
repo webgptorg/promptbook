@@ -67,6 +67,18 @@ export type AdminChatTaskRecord = {
     queueName: string | null;
 
     /**
+     * Registered server this task belongs to, set only by the VPS-wide superadmin aggregation.
+     *
+     * `null` (or absent) means the per-server view, or a VPS-level task not bound to any one server.
+     */
+    serverName?: string | null;
+
+    /**
+     * Domain of the registered server this task belongs to, set only by the VPS-wide superadmin aggregation.
+     */
+    serverDomain?: string | null;
+
+    /**
      * Harness run report of the answered turn (runner, model, Codex login method, usage), when the runner reported one.
      */
     runReport?: AgentMessageRunReport | null;
@@ -185,6 +197,28 @@ export async function $fetchAdminChatTasks(params: AdminChatTaskListParams = {})
     if (!response.ok) {
         const payload = await response.json().catch(() => ({}));
         throw new Error(payload.error || 'Failed to load background chat tasks.');
+    }
+
+    return (await response.json()) as AdminChatTaskListResponse;
+}
+
+/**
+ * Fetches the paginated task-manager payload aggregated across every server on the VPS.
+ *
+ * Superadmin-only companion to `$fetchAdminChatTasks`; each task carries its `serverName`/`serverDomain`.
+ *
+ * @private internal admin utility of Agents Server
+ */
+export async function $fetchVpsAdminChatTasks(
+    params: AdminChatTaskListParams = {},
+): Promise<AdminChatTaskListResponse> {
+    const response = await fetch(`/api/admin/vps/chat-tasks${buildAdminChatTaskQuery(params)}`, {
+        method: 'GET',
+    });
+
+    if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(payload.error || 'Failed to load VPS-wide background chat tasks.');
     }
 
     return (await response.json()) as AdminChatTaskListResponse;

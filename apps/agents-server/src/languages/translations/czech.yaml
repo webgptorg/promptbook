@@ -155,6 +155,7 @@ header.customJs: Vlastní JS
 header.chatHistory: Historie chatů
 header.usageAnalytics: Analytika využití
 header.taskManager: Správa úloh
+header.vpsTaskManager: Správa úloh (všechny servery)
 header.messagesEmails: Zprávy a e-maily
 header.backups: Zálohy
 header.chatFeedback: Hodnocení chatu

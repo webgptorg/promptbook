@@ -5,11 +5,12 @@ import { isAgentsServerSqliteMode } from '../database/agentsServerDatabaseMode';
 import { resolveInternalServerOrigin } from '../utils/resolveInternalServerOrigin';
 import { createServerPublicUrl, listRegisteredServersUsingServiceRole } from '../utils/serverRegistry';
 import { resolveServerSelection } from '../utils/serverSelection';
+import { getServerContextOverride } from './serverContextOverride';
 
 /**
  * Resolved server routing context for the current request.
  */
-type ProvidedServer = {
+export type ProvidedServer = {
     /**
      * Registered server id when the request points to one.
      */
@@ -118,9 +119,20 @@ const getCachedProvidedServer = cache(async (): Promise<ProvidedServer> => {
 /**
  * Resolves the current server routing context.
  *
+ * When a background worker runs work on behalf of one specific VPS server (see
+ * `runWithServerContextOverride`), the explicit override wins over the request-header
+ * resolution. This lets a single detached worker tick process every registered server
+ * on the VPS without depending on a matching `host` header, which loopback self-calls
+ * never carry.
+ *
  * @returns Server routing context for the current request.
  */
 export async function $provideServer(): Promise<ProvidedServer> {
+    const overriddenServer = getServerContextOverride();
+    if (overriddenServer) {
+        return overriddenServer;
+    }
+
     return getCachedProvidedServer();
 }
 

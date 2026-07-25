@@ -161,6 +161,7 @@ export const SERVER_TRANSLATION_KEYS = [
     'header.chatHistory',
     'header.usageAnalytics',
     'header.taskManager',
+    'header.vpsTaskManager',
     'header.messagesEmails',
     'header.backups',
     'header.chatFeedback',

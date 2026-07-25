@@ -1,7 +1,6 @@
-import { processNextLocalUserChatJob, type ProcessLocalUserChatJobResult } from '@/src/utils/localChatRunner';
 import {
-    recoverExpiredRunningUserChatJobs,
     resolveUserChatWorkerInternalToken,
+    runDurableUserChatJobWorkerTick,
     triggerUserChatJobWorker,
 } from '@/src/utils/userChat';
 import { after, NextResponse } from 'next/server';
@@ -31,6 +30,10 @@ export async function POST(request: Request) {
 /**
  * Validates authorization and executes one durable user-chat worker tick.
  *
+ * A preferred job is scoped to the current request's server. A plain coordinator poll fans
+ * out across every registered server on the VPS so jobs advance for all servers, not only the
+ * first/default one.
+ *
  * @param request - Incoming route request.
  * @returns Worker execution response.
  */
@@ -49,10 +52,8 @@ async function handleUserChatJobWorkerRequest(request: Request) {
     const preferredJobId = typeof body.preferredJobId === 'string' ? body.preferredJobId : undefined;
 
     try {
-        await recoverExpiredRunningUserChatJobs();
-
-        const processedJob = await processNextLocalUserChatJob({ preferredJobId });
-        if (!processedJob || !shouldRequeueUserChatJobWorker(processedJob)) {
+        const { didMutate } = await runDurableUserChatJobWorkerTick({ preferredJobId });
+        if (!didMutate) {
             return new Response(null, { status: 204 });
         }
 
@@ -72,18 +73,6 @@ async function handleUserChatJobWorkerRequest(request: Request) {
             { status: 500 },
         );
     }
-}
-
-/**
- * Decides whether one worker outcome should immediately schedule another worker tick.
- *
- * Mutating outcomes may have exposed more queued work, while non-mutating `waiting`
- * outcomes need the foreground fallback poll instead of a tight self-requeue loop.
- *
- * @private route helper
- */
-function shouldRequeueUserChatJobWorker(processedJob: ProcessLocalUserChatJobResult): boolean {
-    return processedJob.didMutate;
 }
 
 /**

@@ -13,37 +13,25 @@ jest.mock('next/server', () => {
     };
 });
 
-jest.mock('@/src/utils/localChatRunner', () => ({
-    processNextLocalUserChatJob: jest.fn(),
-}));
-
 jest.mock('@/src/utils/userChat', () => ({
-    recoverExpiredRunningUserChatJobs: jest.fn(),
     resolveUserChatWorkerInternalToken: jest.fn(),
+    runDurableUserChatJobWorkerTick: jest.fn(),
     triggerUserChatJobWorker: jest.fn(),
 }));
 
 import { after } from 'next/server';
-import { processNextLocalUserChatJob } from '@/src/utils/localChatRunner';
 import {
-    recoverExpiredRunningUserChatJobs,
     resolveUserChatWorkerInternalToken,
+    runDurableUserChatJobWorkerTick,
     triggerUserChatJobWorker,
 } from '@/src/utils/userChat';
 import { POST } from './route';
 
 /**
- * Mocked expired-job recovery used by the worker route tests.
+ * Mocked durable worker tick used by the worker route tests.
  */
-const recoverExpiredRunningUserChatJobsMock = recoverExpiredRunningUserChatJobs as jest.MockedFunction<
-    typeof recoverExpiredRunningUserChatJobs
->;
-
-/**
- * Mocked durable chat job processor used by the worker route tests.
- */
-const processNextLocalUserChatJobMock = processNextLocalUserChatJob as jest.MockedFunction<
-    typeof processNextLocalUserChatJob
+const runDurableUserChatJobWorkerTickMock = runDurableUserChatJobWorkerTick as jest.MockedFunction<
+    typeof runDurableUserChatJobWorkerTick
 >;
 
 /**
@@ -62,11 +50,7 @@ describe('POST /api/internal/user-chat-jobs/run', () => {
     beforeEach(() => {
         jest.clearAllMocks();
 
-        recoverExpiredRunningUserChatJobsMock.mockResolvedValue(0);
-        processNextLocalUserChatJobMock.mockResolvedValue({
-            didMutate: true,
-            outcome: 'queued',
-        } as Awaited<ReturnType<typeof processNextLocalUserChatJob>>);
+        runDurableUserChatJobWorkerTickMock.mockResolvedValue({ didMutate: true });
         resolveUserChatWorkerInternalTokenMock.mockReturnValue('test-worker-token');
         triggerUserChatJobWorkerMock.mockResolvedValue();
         mockAfter.mockImplementation((callback: () => unknown) => {
@@ -98,11 +82,8 @@ describe('POST /api/internal/user-chat-jobs/run', () => {
         expect(consoleErrorSpy).not.toHaveBeenCalled();
     });
 
-    it('does not immediately requeue while the local chat runner is still waiting', async () => {
-        processNextLocalUserChatJobMock.mockResolvedValueOnce({
-            didMutate: false,
-            outcome: 'waiting',
-        });
+    it('does not immediately requeue while every server tick is still waiting', async () => {
+        runDurableUserChatJobWorkerTickMock.mockResolvedValueOnce({ didMutate: false });
 
         const response = await POST(createAuthorizedWorkerRequest());
 
@@ -116,7 +97,7 @@ describe('POST /api/internal/user-chat-jobs/run', () => {
         const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
         const workerError = new Error('database unavailable');
 
-        processNextLocalUserChatJobMock.mockRejectedValueOnce(workerError);
+        runDurableUserChatJobWorkerTickMock.mockRejectedValueOnce(workerError);
 
         const response = await POST(createAuthorizedWorkerRequest());
 

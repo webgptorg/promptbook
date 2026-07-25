@@ -3,6 +3,8 @@
 import {
     $fetchAdminChatTasks,
     type AdminChatTaskCounters,
+    type AdminChatTaskListParams,
+    type AdminChatTaskListResponse,
     type AdminChatTaskRecord,
     type AdminChatTaskSortField,
     type AdminChatTaskSortOrder,
@@ -152,11 +154,35 @@ function resolveTaskLoadErrorMessage(loadError: unknown): string {
 }
 
 /**
+ * Fetches one paginated task-manager page. Matches `$fetchAdminChatTasks`/`$fetchVpsAdminChatTasks`.
+ *
+ * @private function of TaskManagerClient
+ */
+type FetchTaskManagerTasks = (params?: AdminChatTaskListParams) => Promise<AdminChatTaskListResponse>;
+
+/**
+ * Options for `useTaskManagerState`.
+ *
+ * @private function of TaskManagerClient
+ */
+type UseTaskManagerStateOptions = {
+    /**
+     * Task-page fetcher, defaulting to the per-server endpoint. The VPS-wide view passes the
+     * superadmin cross-server fetcher instead.
+     */
+    fetchTasks?: FetchTaskManagerTasks;
+};
+
+/**
  * Manages task-manager query state, polling, loading, and guarded task actions.
  *
  * @private function of TaskManagerClient
  */
-export function useTaskManagerState(language: ServerLanguageCode): UseTaskManagerStateResult {
+export function useTaskManagerState(
+    language: ServerLanguageCode,
+    options: UseTaskManagerStateOptions = {},
+): UseTaskManagerStateResult {
+    const fetchTasks = options.fetchTasks ?? $fetchAdminChatTasks;
     const [view, setView] = useState<AdminChatTaskView>('active');
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(50);
@@ -222,7 +248,7 @@ export function useTaskManagerState(language: ServerLanguageCode): UseTaskManage
 
             try {
                 setError(null);
-                const response = await $fetchAdminChatTasks({
+                const response = await fetchTasks({
                     page,
                     pageSize,
                     view,
@@ -258,7 +284,7 @@ export function useTaskManagerState(language: ServerLanguageCode): UseTaskManage
         return () => {
             isCancelled = true;
         };
-    }, [page, pageSize, refreshNonce, search, sortBy, sortOrder, timeWindowHours, view]);
+    }, [fetchTasks, page, pageSize, refreshNonce, search, sortBy, sortOrder, timeWindowHours, view]);
 
     useEffect(() => {
         if (pollIntervalMs <= 0) {

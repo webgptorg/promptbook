@@ -1,8 +1,10 @@
 'use client';
 
+import { $fetchVpsAdminChatTasks } from '@/src/utils/chatTasksAdmin';
 import { Card } from '../../../components/Homepage/Card';
 import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
 import { TaskManagerFiltersCard } from './TaskManagerFiltersCard';
+import { SERVER_TASK_MANAGER_PATH, TaskManagerScopeTabs, VPS_TASK_MANAGER_PATH, type TaskManagerScope } from './TaskManagerScopeTabs';
 import { TaskManagerSummaryMetrics } from './TaskManagerSummaryMetrics';
 import { TaskManagerTasksCard } from './TaskManagerTasksCard';
 import { useTaskManagerState } from './useTaskManagerState';
@@ -14,34 +16,49 @@ import { useTaskManagerState } from './useTaskManagerState';
  */
 type TaskManagerClientProps = {
     /**
-     * Whether the current user is the environment-backed super-admin who may open task terminals.
+     * Whether the current user is the environment-backed super-admin who may open task terminals
+     * and reach the VPS-wide view.
      */
     isSuperAdmin: boolean;
+    /**
+     * Whether this dashboard shows one server or the whole VPS. Defaults to the per-server view.
+     */
+    scope?: TaskManagerScope;
 };
 
 /**
- * Admin task-manager dashboard client.
+ * Admin task-manager dashboard client, shared by the per-server and VPS-wide views.
  *
  * @private route component of AdminTaskManagerPage
  */
-export function TaskManagerClient({ isSuperAdmin }: TaskManagerClientProps) {
+export function TaskManagerClient({ isSuperAdmin, scope = 'server' }: TaskManagerClientProps) {
     const { language } = useServerLanguage();
-    const taskManagerState = useTaskManagerState(language);
+    const isVpsScope = scope === 'vps';
+    const taskManagerState = useTaskManagerState(language, isVpsScope ? { fetchTasks: $fetchVpsAdminChatTasks } : {});
 
     return (
         <div className="container mx-auto space-y-6 px-4 py-8">
-            <div className="mt-20 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div className="mt-20">
+                <TaskManagerScopeTabs activeScope={scope} isSuperAdmin={isSuperAdmin} />
+            </div>
+
+            <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                 <div>
-                    <h1 className="text-3xl font-light text-gray-900">Task manager</h1>
+                    <h1 className="text-3xl font-light text-gray-900">
+                        {isVpsScope ? 'Task manager · All servers (VPS)' : 'Task manager'}
+                    </h1>
                     <p className="mt-1 max-w-3xl text-sm text-gray-500">
-                        Admin-only operational view of background work across all users, including chat completions,
-                        scheduled timeout wake-ups, self-updates, and live browser previews. This dashboard shows queue
-                        and worker state, not chat transcript content.
+                        {isVpsScope
+                            ? 'Superadmin-only operational view of background work across every server on this VPS, including chat completions, scheduled timeout wake-ups, self-updates, and live browser previews. Each task shows the server it belongs to. This view is read-only.'
+                            : 'Admin-only operational view of background work across all users, including chat completions, scheduled timeout wake-ups, self-updates, and live browser previews. This dashboard shows queue and worker state, not chat transcript content.'}
                     </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
                     <span className="rounded-full border border-gray-200 bg-white px-3 py-1.5">
-                        Route: <span className="font-mono text-gray-700">/admin/task-manager</span>
+                        Route:{' '}
+                        <span className="font-mono text-gray-700">
+                            {isVpsScope ? VPS_TASK_MANAGER_PATH : SERVER_TASK_MANAGER_PATH}
+                        </span>
                     </span>
                     <button
                         type="button"
@@ -67,7 +84,13 @@ export function TaskManagerClient({ isSuperAdmin }: TaskManagerClientProps) {
                 </Card>
             ) : null}
 
-            <TaskManagerTasksCard language={language} state={taskManagerState} isSuperAdmin={isSuperAdmin} />
+            <TaskManagerTasksCard
+                language={language}
+                state={taskManagerState}
+                isSuperAdmin={isSuperAdmin}
+                showServerColumn={isVpsScope}
+                isReadOnly={isVpsScope}
+            />
         </div>
     );
 }

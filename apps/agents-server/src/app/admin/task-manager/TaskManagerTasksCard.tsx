@@ -14,6 +14,14 @@ type TaskManagerTasksCardProps = {
     isSuperAdmin: boolean;
     language: ServerLanguageCode;
     state: ReturnType<typeof useTaskManagerState>;
+    /**
+     * Whether to show the originating-server column (VPS-wide view only).
+     */
+    showServerColumn?: boolean;
+    /**
+     * Whether the table is read-only, hiding row actions and bulk cancellation (VPS-wide view only).
+     */
+    isReadOnly?: boolean;
 };
 
 /**
@@ -75,7 +83,13 @@ function resolveTaskManagerSortDescription(state: ReturnType<typeof useTaskManag
  *
  * @private function of TaskManagerClient
  */
-export function TaskManagerTasksCard({ isSuperAdmin, language, state }: TaskManagerTasksCardProps) {
+export function TaskManagerTasksCard({
+    isSuperAdmin,
+    language,
+    state,
+    showServerColumn = false,
+    isReadOnly = false,
+}: TaskManagerTasksCardProps) {
     const firstVisibleTaskIndex = Math.min((state.page - 1) * state.pageSize + 1, state.total);
     const lastVisibleTaskIndex = Math.min(state.page * state.pageSize, state.total);
 
@@ -88,15 +102,17 @@ export function TaskManagerTasksCard({ isSuperAdmin, language, state }: TaskMana
                 </div>
                 <div className="flex items-center gap-3">
                     {state.isRefreshing ? <span className="text-xs font-medium text-blue-600">Refreshing…</span> : null}
-                    <button
-                        type="button"
-                        onClick={() => void state.cancelAllActiveTasks()}
-                        disabled={state.isCancellingAllActiveTasks || !state.hasActiveTasks}
-                        className="rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 disabled:cursor-not-allowed disabled:opacity-60"
-                        title="Cancel all active (queued + running) background tasks across all users"
-                    >
-                        {state.isCancellingAllActiveTasks ? 'Cancelling all…' : 'Cancel all active tasks'}
-                    </button>
+                    {isReadOnly ? null : (
+                        <button
+                            type="button"
+                            onClick={() => void state.cancelAllActiveTasks()}
+                            disabled={state.isCancellingAllActiveTasks || !state.hasActiveTasks}
+                            className="rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                            title="Cancel all active (queued + running) background tasks across all users"
+                        >
+                            {state.isCancellingAllActiveTasks ? 'Cancelling all…' : 'Cancel all active tasks'}
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -111,6 +127,9 @@ export function TaskManagerTasksCard({ isSuperAdmin, language, state }: TaskMana
                     <table className="min-w-full divide-y divide-gray-200 text-xs">
                         <thead className="bg-gray-50 text-gray-500">
                             <tr>
+                                {showServerColumn ? (
+                                    <th className="px-4 py-3 text-left font-semibold">Server</th>
+                                ) : null}
                                 <AdminSortableTableHeaderCell
                                     className="px-4 py-3 text-left font-semibold"
                                     label="task"
@@ -171,7 +190,9 @@ export function TaskManagerTasksCard({ isSuperAdmin, language, state }: TaskMana
                                 >
                                     Last error
                                 </AdminSortableTableHeaderCell>
-                                <th className="px-4 py-3 text-right font-semibold">Actions</th>
+                                {isReadOnly ? null : (
+                                    <th className="px-4 py-3 text-right font-semibold">Actions</th>
+                                )}
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200 bg-white">
@@ -185,6 +206,8 @@ export function TaskManagerTasksCard({ isSuperAdmin, language, state }: TaskMana
                                     isSuperAdmin={isSuperAdmin}
                                     onRunTaskAction={state.runTaskAction}
                                     stuckThresholdMinutes={state.stuckThresholdMinutes}
+                                    showServerColumn={showServerColumn}
+                                    isReadOnly={isReadOnly}
                                 />
                             ))}
                         </tbody>

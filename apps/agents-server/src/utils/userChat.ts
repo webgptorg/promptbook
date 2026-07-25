@@ -32,6 +32,10 @@ export {
     resolveUserChatReplyReference,
 } from './userChat/userChatReplies';
 export { retryUserChatJob } from './userChat/retryUserChatJob';
+export {
+    runDurableUserChatJobWorkerTick,
+    type DurableUserChatJobWorkerTickResult,
+} from './userChat/runDurableUserChatJobWorkerTick';
 export { runImmediateUserChatAnswer } from './userChat/runImmediateUserChatAnswer';
 export { runUserChatJob } from './userChat/runUserChatJob';
 export { triggerUserChatJobWorker } from './userChat/triggerUserChatJobWorker';

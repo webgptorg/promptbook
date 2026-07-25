@@ -39,6 +39,7 @@ import {
     ScrollText,
     Search,
     Server,
+    ServerCog,
     Shield,
     ShieldCheck,
     SlidersHorizontal,
@@ -123,6 +124,7 @@ type SystemMenuItemHref =
     | '/admin/login-methods/shibboleth'
     | '/admin/usage'
     | '/admin/task-manager'
+    | '/admin/task-manager-vps'
     | '/admin/chat-history'
     | '/admin/chat-feedback'
     | '/admin/api-tokens'
@@ -201,6 +203,7 @@ const SYSTEM_MENU_ICON_BY_HREF: Record<SystemMenuItemHref, LucideIcon> = {
     '/admin/login-methods/shibboleth': ShieldCheck,
     '/admin/usage': ChartNoAxesColumn,
     '/admin/task-manager': ClipboardList,
+    '/admin/task-manager-vps': ServerCog,
     '/admin/chat-history': History,
     '/admin/chat-feedback': MessageCircle,
     '/admin/api-tokens': KeyRound,
@@ -508,6 +511,14 @@ export function buildHeaderSystemMenuItems({
             label: translate('header.taskManager'),
             href: '/admin/task-manager',
         },
+        ...(isGlobalAdmin
+            ? [
+                  {
+                      label: translate('header.vpsTaskManager'),
+                      href: '/admin/task-manager-vps',
+                  } as SubMenuItem,
+              ]
+            : []),
         {
             label: translate('header.chatHistory'),
             href: '/admin/chat-history',
