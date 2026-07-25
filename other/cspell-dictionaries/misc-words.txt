@@ -322,6 +322,7 @@ interlinguistics
 miniapp
 aipp
 supabase
+ilike
 noopener
 noreferrer
 segoe

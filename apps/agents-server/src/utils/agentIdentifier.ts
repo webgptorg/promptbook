@@ -1,3 +1,5 @@
+import { buildAgentNameOrPermanentIdFilter } from '../../../../src/collection/agent-collection/constructors/agent-collection-in-supabase/buildAgentNameOrPermanentIdFilter';
+
 /**
  * Minimal agent shape needed to build canonical route identifiers.
  */
@@ -26,13 +28,34 @@ export function resolveAgentRouteIdentifier(agent: AgentRouteIdentifierSource): 
 /**
  * Builds a Supabase `.or()` filter that matches an agent by name or permanent identifier.
  *
- * Supabase/PostgREST filters expect values to be URL-encoded so that characters like
- * spaces or punctuation do not break the query syntax (e.g. `agentName.eq.AI Team`).
+ * The permanent identifier is matched case-insensitively so that `/agents/:agentId` routes
+ * resolve to the same agent regardless of the letter casing used in the URL. This delegates to
+ * the shared core builder to keep a single source of truth for the filter syntax.
  *
  * @param identifier - Agent name or permanent identifier to match.
  * @returns `.or()` filter string safe to pass to Supabase.
  */
 export function buildAgentNameOrIdFilter(identifier: string): string {
-    const encodedIdentifier = encodeURIComponent(identifier);
-    return `agentName.eq.${encodedIdentifier},permanentId.eq.${encodedIdentifier}`;
+    return buildAgentNameOrPermanentIdFilter(identifier);
+}
+
+/**
+ * Compares two agent permanent identifiers case-insensitively.
+ *
+ * Permanent ids are treated as case-insensitive, so `doQMRg82izNfJa` and `DOQMRG82IZNFJA`
+ * refer to the same agent. Empty, `null` or `undefined` ids never match.
+ *
+ * @param firstPermanentId - First permanent id to compare.
+ * @param secondPermanentId - Second permanent id to compare.
+ * @returns `true` when both ids are present and equal ignoring case.
+ */
+export function isSameAgentPermanentId(
+    firstPermanentId: string | null | undefined,
+    secondPermanentId: string | null | undefined,
+): boolean {
+    if (!firstPermanentId || !secondPermanentId) {
+        return false;
+    }
+
+    return firstPermanentId.toLowerCase() === secondPermanentId.toLowerCase();
 }

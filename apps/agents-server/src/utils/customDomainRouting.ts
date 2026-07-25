@@ -13,6 +13,7 @@ import { ParseError } from '../../../../src/errors/ParseError';
 import { spaceTrim } from '../../../../src/utils/organization/spaceTrim';
 import { normalizeDomainForMatching } from '../../../../src/utils/validators/url/normalizeDomainForMatching';
 import type { FederatedAgentImportConfiguration } from '../constants/federatedAgentImport';
+import { isSameAgentPermanentId } from './agentIdentifier';
 import { createServerAgentReferenceResolver } from './agentReferenceResolver/createServerAgentReferenceResolver';
 import { loadFederatedAgentImportConfiguration } from './federatedAgentImportConfiguration';
 import { getFederatedServers } from './getFederatedServers';
@@ -143,7 +144,8 @@ function createResolverAgentCollection(agents: ReadonlyArray<CustomDomainAgentRo
     const resolveAgent = (agentNameOrPermanentId: string): CustomDomainAgentRow => {
         const agent = agents.find(
             (candidate) =>
-                candidate.agentName === agentNameOrPermanentId || candidate.permanentId === agentNameOrPermanentId,
+                candidate.agentName === agentNameOrPermanentId ||
+                isSameAgentPermanentId(candidate.permanentId, agentNameOrPermanentId),
         );
 
         if (!agent) {

@@ -1,7 +1,7 @@
 import { $getTableName } from '../database/$getTableName';
 import { $provideSupabaseForServer } from '../database/$provideSupabaseForServer';
 import type { AgentsServerDatabase } from '../database/schema';
-import { buildAgentNameOrIdFilter } from './agentIdentifier';
+import { buildAgentNameOrIdFilter, isSameAgentPermanentId } from './agentIdentifier';
 
 /**
  * Agent row shape used by owner-aware helpers.
@@ -116,7 +116,7 @@ const OWNED_AGENT_ROW_COLUMNS =
  * Disambiguates a list of agent rows that all matched the same identifier.
  *
  * Resolution order:
- * 1. Exact `permanentId` match — always preferred because permanent ids are unique.
+ * 1. Case-insensitive `permanentId` match — always preferred because permanent ids are unique.
  * 2. Single `agentName` match — preserves the legacy lookup by human-readable name.
  * 3. Single remaining row — accepts the only candidate found.
  *
@@ -134,7 +134,7 @@ function pickAgentRowByIdentifier(
         return null;
     }
 
-    const permanentIdMatch = rows.find((row) => row.permanentId === identifier);
+    const permanentIdMatch = rows.find((row) => isSameAgentPermanentId(row.permanentId, identifier));
     if (permanentIdMatch) {
         return permanentIdMatch;
     }
