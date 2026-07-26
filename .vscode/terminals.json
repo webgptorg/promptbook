@@ -857,34 +857,6 @@
             "focus": true
         },
         {
-            "name": "🌎 SSH to browser server",
-            "command": "ssh root@159.203.128.124",
-            "execute": true,
-            "onlySingle": true,
-            "focus": true
-        },
-        {
-            "name": "🌎 SSH to s20.ptbk.io",
-            "command": "ssh root@s20.ptbk.io",
-            "execute": true,
-            "onlySingle": true,
-            "focus": true
-        },
-        {
-            "name": "🌎 SSH to s23.ptbk.io",
-            "command": "ssh root@s23.ptbk.io",
-            "execute": true,
-            "onlySingle": false,
-            "focus": false
-        },
-        {
-            "name": "🌎 SSH to s24.ptbk.io",
-            "command": "ssh root@s24.ptbk.io",
-            "execute": true,
-            "onlySingle": false,
-            "focus": false
-        },
-        {
             "name": "🌎 SSH to live",
             "command": "ssh root@live.ptbk.io",
             "execute": true,
