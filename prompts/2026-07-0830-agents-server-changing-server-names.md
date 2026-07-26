@@ -2,10 +2,10 @@
 
 [✨😈] Fix the servers changing name
 
--   @@@
+-   @@@@@@@@@@@@@
 
 ![alt text](screenshots/2026-07-0830-agents-server-changing-server-names.png)
-![alt text](screenshots/2026-07-0830-agents-server-changing-server-names-1.png)
+![the server name is defined by metadata `SERVER_NAME`](screenshots/2026-07-0830-agents-server-changing-server-names-1.png)
 
 -   There are two things:
     1. Entire VPS

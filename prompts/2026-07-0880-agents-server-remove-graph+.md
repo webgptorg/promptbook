@@ -8,9 +8,8 @@
 `Maze` - remove and cleanup
 `Pixel` - remove and cleanup
 
-
--   Also do a cleanup of the code which isn't used anymore. 
-- Also remove the dependencies which are not reused anymore. 
+-   Also do a cleanup of the code which isn't used anymore.
+-   Also remove the dependencies which are not reused anymore.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
