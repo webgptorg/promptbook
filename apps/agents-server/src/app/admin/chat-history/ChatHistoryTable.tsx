@@ -127,6 +127,7 @@ export function ChatHistoryTable({
                                     {formatText('Agent')}
                                 </AdminSortableTableHeaderCell>
                                 <th className="px-4 py-3 text-left font-medium text-gray-500">Role</th>
+                                <th className="px-4 py-3 text-left font-medium text-gray-500">Source</th>
                                 <th className="px-4 py-3 text-left font-medium text-gray-500">Message</th>
                                 <th className="px-4 py-3 text-left font-medium text-gray-500">URL</th>
                                 <th className="px-4 py-3 text-left font-medium text-gray-500">IP</th>
@@ -144,6 +145,9 @@ export function ChatHistoryTable({
                                     <td className="whitespace-nowrap px-4 py-3 text-gray-700">{row.agentName}</td>
                                     <td className="whitespace-nowrap px-4 py-3 text-gray-700">
                                         {resolveChatHistoryMessageRole(row.message)}
+                                    </td>
+                                    <td className="whitespace-nowrap px-4 py-3 text-gray-700">
+                                        {row.source || '-'}
                                     </td>
                                     <td className="max-w-xs px-4 py-3 text-gray-700">
                                         <ChatHistoryPreviewCell message={row.message} />

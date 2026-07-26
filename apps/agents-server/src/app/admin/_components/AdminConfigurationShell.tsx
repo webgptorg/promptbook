@@ -6,7 +6,7 @@ import { AdminRouteTabs, type AdminRouteTabItem } from './AdminRouteTabs';
  *
  * @private admin configuration UI helper
  */
-type AdminConfigurationPage = 'environment' | 'metadata' | 'limits';
+type AdminConfigurationPage = 'environment' | 'metadata' | 'limits' | 'email-server';
 
 /**
  * One shared navigation item rendered in the configuration shell.
@@ -19,6 +19,12 @@ const ADMIN_CONFIGURATION_NAVIGATION_ITEMS: ReadonlyArray<AdminRouteTabItem<Admi
         href: '/superadmin/environment',
         label: 'Environment variables',
         description: 'VPS-wide .env values with secrets masked in the browser.',
+    },
+    {
+        id: 'email-server',
+        href: '/admin/email-server',
+        label: 'Email server',
+        description: 'Agent addresses, Stalwart synchronization, and mail DNS records.',
     },
     {
         id: 'metadata',

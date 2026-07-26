@@ -22,6 +22,11 @@ const APP_PORT = 4440;
 const APP_URL = `http://127.0.0.1:${APP_PORT}`;
 
 /**
+ * Maximum time allowed for the production Agents Server bundle used by browser tests.
+ */
+const E2E_WEB_SERVER_TIMEOUT_MS = 30 * 60 * 1000;
+
+/**
  * Shared environment variables required by the Agents Server in deterministic e2e runs.
  */
 const APP_E2E_ENV = {
@@ -93,11 +98,11 @@ const config = defineConfig({
         },
         {
             command:
-                'npm run prebuild && node -r ./scripts/ignore-kill-eperm.js ../../node_modules/next/dist/bin/next build && npm run start',
+                'npm run prebuild && node --max-old-space-size=8192 -r ./scripts/ignore-kill-eperm.js ../../node_modules/next/dist/bin/next build && npm run start',
             cwd: __dirname,
             url: APP_URL,
             reuseExistingServer: false,
-            timeout: 8 * 60 * 1000,
+            timeout: E2E_WEB_SERVER_TIMEOUT_MS,
             stdout: 'pipe',
             stderr: 'pipe',
             env: {

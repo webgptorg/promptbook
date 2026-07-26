@@ -4,6 +4,7 @@ import { resolveAgentAvatarImageUrl } from '../../../../../src/utils/agents/reso
 import { buildAgentFolderContext, type AgentFolderContext } from '../../utils/agentOrganization/agentFolderContext';
 import type { AgentOrganizationAgent } from '../../utils/agentOrganization/types';
 import { buildAgentProfileHref, buildFreshAgentChatHref } from '../../utils/agentRouting/agentRouteHrefs';
+import { createAgentEmailAddress } from '../../utils/email/agentEmailAddress';
 import type { ServerTranslationKey } from '../../languages/ServerTranslationKeys';
 import { useActiveAgentBreadcrumbInfo, type ActiveAgentBreadcrumbInfo } from './ActiveAgentBreadcrumbContext';
 import type { HeaderAgentMenuFolder } from './AgentMenuStructure';
@@ -202,12 +203,26 @@ function createActiveAgentUrl(activeAgentNavigationId: string | null, origin: st
  *
  * @private function of Header
  */
-function createActiveAgentEmail(activeAgentNavigationId: string | null, hostname: string): string {
+function createActiveAgentEmail(
+    activeAgent: AgentOrganizationAgent | null,
+    activeAgentBreadcrumbInfo: ActiveAgentBreadcrumbInfo | null,
+    activeAgentNavigationId: string | null,
+    hostname: string,
+): string {
     if (!activeAgentNavigationId || !hostname) {
         return '';
     }
 
-    return `${activeAgentNavigationId}@${hostname}`;
+    const agentIdentity = activeAgent || activeAgentBreadcrumbInfo;
+
+    return createAgentEmailAddress(
+        {
+            agentName: agentIdentity?.agentName || activeAgentNavigationId,
+            permanentId: agentIdentity?.permanentId || activeAgentNavigationId,
+            fullname: agentIdentity?.meta?.fullname,
+        },
+        hostname,
+    );
 }
 
 /**
@@ -267,7 +282,12 @@ export function useHeaderActiveAgent({
     return {
         activeAgent,
         activeAgentAvatarUrl,
-        activeAgentEmail: createActiveAgentEmail(activeAgentNavigationId, hostname),
+        activeAgentEmail: createActiveAgentEmail(
+            activeAgent,
+            activeAgentBreadcrumbInfo,
+            activeAgentNavigationId,
+            hostname,
+        ),
         activeAgentFolderContext,
         activeAgentHref,
         activeAgentLabel,

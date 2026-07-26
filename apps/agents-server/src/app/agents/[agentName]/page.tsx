@@ -8,6 +8,7 @@ import { buildAgentProjectsDashboardHref } from '@/src/utils/agentProjects/agent
 import { listAgentProjects } from '@/src/utils/agentProjects/listAgentProjects';
 import { isPublicAgentVisibility } from '@/src/utils/agentVisibility';
 import { ensureChatHistoryIdentity } from '@/src/utils/currentUserIdentity';
+import { createAgentEmailAddress } from '@/src/utils/email/agentEmailAddress';
 import { getServerVisibility } from '@/src/utils/getServerVisibility';
 import { isUserAdmin } from '@/src/utils/isUserAdmin';
 import { isPublicServerVisibility } from '@/src/utils/serverVisibility';
@@ -490,7 +491,14 @@ function createAgentPageViewModel(
         agent: agentProfile,
         agentUrl: route.canonicalUrl,
         publicUrl: publicUrl.href,
-        agentEmail: `${route.canonicalAgentId}@${publicUrl.hostname}`,
+        agentEmail: createAgentEmailAddress(
+            {
+                agentName: agentProfile.agentName,
+                permanentId: agentProfile.permanentId || route.canonicalAgentId,
+                fullname,
+            },
+            publicUrl.hostname,
+        ),
         agentName: route.canonicalAgentId,
         isAdmin: data.isAdmin,
         isAuthenticated: data.isAuthenticated,

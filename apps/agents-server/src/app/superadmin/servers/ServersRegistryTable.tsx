@@ -1,7 +1,7 @@
 'use client';
 
 import { Fragment } from 'react';
-import { ArrowRightLeft, ExternalLink, Loader2, RefreshCcw, Save } from 'lucide-react';
+import { ArrowRightLeft, ExternalLink, Loader2, Mail, RefreshCcw, Save } from 'lucide-react';
 import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
 import type { ServerLanguageCode } from '../../../languages/ServerLanguageRegistry';
 import { formatServerLanguageHumanReadableDate } from '../../../utils/localization/formatServerLanguageHumanReadableDate';
@@ -331,6 +331,14 @@ function ServersRegistryTableRow(props: ServersRegistryTableRowProps) {
                 </td>
                 <td className="px-4 py-3 align-top">
                     <div className="flex flex-wrap justify-end gap-2">
+                        <a
+                            href={`https://${server.domain}/admin/email-server`}
+                            className={`${SECONDARY_BUTTON_CLASS_NAME} px-2 py-1 text-xs`}
+                            title={`MX, SPF, DKIM, and DMARC instructions for ${server.domain}`}
+                        >
+                            <Mail className="h-3.5 w-3.5" />
+                            Mail DNS
+                        </a>
                         <button
                             type="button"
                             onClick={() => void onSaveServer(server.id)}

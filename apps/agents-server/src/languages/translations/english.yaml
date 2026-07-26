@@ -140,6 +140,7 @@ header.viewAllUsers: View all users
 header.createNewUser: Create new user
 header.servers: Servers
 header.environmentVariables: Environment variables
+header.vpsEmailServer: VPS email server
 header.resourceMonitor: Resource monitor
 header.update: Update
 header.database: Database
@@ -160,6 +161,7 @@ header.usageAnalytics: Usage analytics
 header.taskManager: Task manager
 header.vpsTaskManager: Task manager (all servers)
 header.messagesEmails: Messages & Emails
+header.emailServer: Email server
 header.backups: Backups
 header.chatFeedback: Chat feedback
 header.browser: Browser

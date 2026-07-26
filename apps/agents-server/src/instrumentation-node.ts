@@ -41,6 +41,21 @@ export async function registerNodeRuntimeInstrumentation(): Promise<void> {
     }
 
     try {
+        const { synchronizeAllStalwartEmailDomains } = await import(
+            './utils/stalwart/synchronizeAllStalwartEmailDomains'
+        );
+        await synchronizeAllStalwartEmailDomains();
+    } catch (error) {
+        console.error('❌ Stalwart domain synchronization failed during Agents Server instrumentation.', {
+            nextRuntime: process.env.NEXT_RUNTIME,
+            nodeEnv: process.env.NODE_ENV,
+            errorName: error instanceof Error ? error.name : undefined,
+            errorMessage: error instanceof Error ? error.message : String(error),
+            errorStack: error instanceof Error ? error.stack : undefined,
+        });
+    }
+
+    try {
         const { ensureAutomaticVpsSelfUpdateSchedulerBootstrapped } = await import(
             './utils/vpsSelfUpdate/vpsSelfUpdateScheduler'
         );

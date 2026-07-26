@@ -22,6 +22,11 @@ PTBK_SELF_CONTAINED_S3_PORT="${PTBK_SELF_CONTAINED_S3_PORT:-10000}"
 PTBK_SELF_CONTAINED_S3_SERVICE_NAME="${PTBK_SELF_CONTAINED_S3_SERVICE_NAME:-promptbook-versitygw}"
 PTBK_SELF_CONTAINED_S3_BUCKET="${PTBK_SELF_CONTAINED_S3_BUCKET:-promptbook-files}"
 PTBK_SELF_CONTAINED_S3_REGION="${PTBK_SELF_CONTAINED_S3_REGION:-us-east-1}"
+PTBK_STALWART_INSTALL_SCRIPT_URL="${PTBK_STALWART_INSTALL_SCRIPT_URL:-https://get.stalw.art/install.sh}"
+PTBK_STALWART_SERVICE_NAME="${PTBK_STALWART_SERVICE_NAME:-stalwart}"
+PTBK_STALWART_ENV_FILE="${PTBK_STALWART_ENV_FILE:-/etc/stalwart/stalwart.env}"
+PTBK_STALWART_CONFIG_FILE="${PTBK_STALWART_CONFIG_FILE:-/etc/stalwart/config.json}"
+PTBK_STALWART_ADMIN_DOMAIN="${PTBK_STALWART_ADMIN_DOMAIN:-promptbook.invalid}"
 PTBK_EXTERNAL_S3_REGION="${PTBK_EXTERNAL_S3_REGION:-auto}"
 PTBK_CDN_PATH_PREFIX="${PTBK_CDN_PATH_PREFIX:-ptbk-agents}"
 PROMPTBOOK_REPOSITORY_URL="${PROMPTBOOK_REPOSITORY_URL:-https://github.com/webgptorg/promptbook.git}"
@@ -1149,6 +1154,296 @@ EOF
     "${SUDO[@]}" systemctl restart "$PTBK_SELF_CONTAINED_S3_SERVICE_NAME"
 }
 
+install_stalwart_mail_server() {
+    local temporary_directory=""
+
+    if command -v stalwart >/dev/null 2>&1; then
+        log "Stalwart Mail Server is already installed."
+        return
+    fi
+
+    log "Installing Stalwart Mail Server from the official installer."
+    temporary_directory="$(mktemp -d)"
+    curl --proto '=https' --tlsv1.2 -fsSL "$PTBK_STALWART_INSTALL_SCRIPT_URL" -o "$temporary_directory/install.sh"
+    "${SUDO[@]}" sh "$temporary_directory/install.sh"
+    rm -rf "$temporary_directory"
+}
+
+ensure_stalwart_environment() {
+    ensure_secret_env_value PTBK_STALWART_API_PASSWORD 32
+    ensure_secret_env_value PTBK_STALWART_MTA_HOOK_TOKEN 32
+    ensure_secret_env_value PTBK_STALWART_SMTP_PASSWORD 32
+    set_env_value PTBK_STALWART_API_URL "http://127.0.0.1:8080/api"
+    set_env_value PTBK_STALWART_API_USERNAME "admin"
+    set_env_value PTBK_STALWART_SMTP_HOST "127.0.0.1"
+    set_env_value PTBK_STALWART_SMTP_PORT "587"
+    set_env_value PTBK_STALWART_SMTP_SECURE "false"
+    set_env_value PTBK_STALWART_SMTP_TLS_REJECT_UNAUTHORIZED "false"
+}
+
+bootstrap_stalwart_mail_server() {
+    local stalwart_api_password="$1"
+    local first_domain="${DOMAINS[0]:-}"
+    local bootstrap_payload_file=""
+    local bootstrap_response_file=""
+    local attempt=0
+    local is_bootstrapped=0
+
+    if "${SUDO[@]}" test -s "$PTBK_STALWART_CONFIG_FILE"; then
+        return
+    fi
+
+    if [[ -z "$first_domain" ]]; then
+        warn "Stalwart is installed but cannot be bootstrapped until an Agents Server domain is configured."
+        return
+    fi
+
+    log "Bootstrapping Stalwart for $first_domain with local RocksDB storage and automatic DKIM keys."
+    bootstrap_payload_file="$(mktemp)"
+    bootstrap_response_file="$(mktemp)"
+    STALWART_BOOTSTRAP_DOMAIN="$first_domain" node -e '
+        const fs = require("node:fs");
+        const domain = process.env.STALWART_BOOTSTRAP_DOMAIN;
+        const payload = {
+            methodCalls: [
+                [
+                    "x:Bootstrap/set",
+                    {
+                        update: {
+                            singleton: {
+                                serverHostname: `mail.${domain}`,
+                                defaultDomain: domain,
+                                requestTlsCertificate: false,
+                                generateDkimKeys: true,
+                            },
+                        },
+                    },
+                    "promptbook-bootstrap",
+                ],
+            ],
+            using: ["urn:ietf:params:jmap:core", "urn:stalwart:jmap"],
+        };
+        fs.writeFileSync(process.argv[1], JSON.stringify(payload));
+    ' "$bootstrap_payload_file"
+
+    for attempt in $(seq 1 30); do
+        if curl -fsS \
+            --user "admin:$stalwart_api_password" \
+            --header "Content-Type: application/json" \
+            --data-binary "@$bootstrap_payload_file" \
+            "http://127.0.0.1:8080/api" > "$bootstrap_response_file"; then
+            if node -e '
+                const fs = require("node:fs");
+                const payload = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+                const response = payload.methodResponses?.[0];
+                if (!response || response[0] === "error") {
+                    process.exit(1);
+                }
+            ' "$bootstrap_response_file"; then
+                is_bootstrapped=1
+                break
+            fi
+        elif "${SUDO[@]}" test -s "$PTBK_STALWART_CONFIG_FILE"; then
+            is_bootstrapped=1
+            break
+        fi
+        sleep 1
+    done
+
+    if [[ "$is_bootstrapped" != "1" ]]; then
+        rm -f "$bootstrap_payload_file" "$bootstrap_response_file"
+        fail "Stalwart bootstrap failed. Inspect the stalwart service logs and rerun the installer."
+    fi
+
+    rm -f "$bootstrap_payload_file" "$bootstrap_response_file"
+    "${SUDO[@]}" systemctl restart "$PTBK_STALWART_SERVICE_NAME"
+}
+
+provision_stalwart_application_administrator() {
+    local stalwart_api_password="$1"
+    local stalwart_api_username=""
+
+    stalwart_api_username="promptbook-admin@$PTBK_STALWART_ADMIN_DOMAIN"
+    log "Provisioning the regular Stalwart administrator used by Agents Server."
+    STALWART_PROVISIONING_DOMAIN="$PTBK_STALWART_ADMIN_DOMAIN" \
+        STALWART_PROVISIONING_PASSWORD="$stalwart_api_password" \
+        STALWART_PROVISIONING_USERNAME="$stalwart_api_username" \
+        node <<'NODE'
+const domain = process.env.STALWART_PROVISIONING_DOMAIN;
+const password = process.env.STALWART_PROVISIONING_PASSWORD;
+const username = process.env.STALWART_PROVISIONING_USERNAME;
+const endpoint = 'http://127.0.0.1:8080/api';
+const capabilities = ['urn:ietf:params:jmap:core', 'urn:stalwart:jmap'];
+
+async function callStalwart(authorization, methodName, argumentsValue) {
+    let response;
+    for (let attempt = 1; attempt <= 30; attempt++) {
+        try {
+            response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    Authorization: authorization,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    methodCalls: [[methodName, argumentsValue, 'promptbook-installer']],
+                    using: capabilities,
+                }),
+            });
+            if (response.status < 500) {
+                break;
+            }
+        } catch (error) {
+            if (attempt === 30) {
+                throw error;
+            }
+        }
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+
+    if (!response) {
+        throw new Error('Stalwart did not answer the management request.');
+    }
+
+    const responseText = await response.text();
+    if (!response.ok) {
+        throw new Error(`Stalwart returned HTTP ${response.status}: ${responseText.slice(0, 500)}`);
+    }
+
+    const payload = JSON.parse(responseText);
+    const methodResponse = payload.methodResponses?.[0];
+    if (!methodResponse || methodResponse[0] === 'error') {
+        throw new Error(`Stalwart rejected ${methodName}: ${JSON.stringify(methodResponse?.[1] || payload)}`);
+    }
+
+    return methodResponse[1];
+}
+
+async function listObjects(authorization, objectName) {
+    const queryResult = await callStalwart(authorization, `x:${objectName}/query`, {
+        filter: {},
+        limit: 10000,
+    });
+    if (!Array.isArray(queryResult.ids) || queryResult.ids.length === 0) {
+        return [];
+    }
+    const getResult = await callStalwart(authorization, `x:${objectName}/get`, {
+        ids: queryResult.ids,
+    });
+    return Array.isArray(getResult.list) ? getResult.list : [];
+}
+
+async function main() {
+    const recoveryAuthorization = `Basic ${Buffer.from(`admin:${password}`).toString('base64')}`;
+    const domains = await listObjects(recoveryAuthorization, 'Domain');
+    let managedDomain = domains.find((candidate) => candidate.name === domain);
+    if (!managedDomain?.id) {
+        const domainResult = await callStalwart(recoveryAuthorization, 'x:Domain/set', {
+            create: {
+                promptbookAdministratorDomain: {
+                    aliases: [],
+                    certificateManagement: { '@type': 'Manual' },
+                    dkimManagement: { '@type': 'Manual' },
+                    dnsManagement: { '@type': 'Manual' },
+                    name: domain,
+                    subAddressing: { '@type': 'Enabled' },
+                },
+            },
+        });
+        const domainId = domainResult.created?.promptbookAdministratorDomain?.id;
+        if (!domainId) {
+            throw new Error(`Stalwart did not create the internal administrator domain ${domain}.`);
+        }
+        managedDomain = { id: domainId, name: domain };
+    }
+
+    const accounts = await listObjects(recoveryAuthorization, 'Account');
+    const existingAdministrator = accounts.find(
+        (candidate) => candidate.name === 'promptbook-admin' && candidate.domainId === managedDomain.id,
+    );
+    const administratorValue = {
+        credentials: [{ '@type': 'Password', secret: password }],
+        roles: { '@type': 'Admin' },
+        permissions: { '@type': 'Inherit' },
+    };
+
+    await callStalwart(
+        recoveryAuthorization,
+        'x:Account/set',
+        existingAdministrator?.id
+            ? {
+                  update: {
+                      [existingAdministrator.id]: administratorValue,
+                  },
+              }
+            : {
+                  create: {
+                      promptbookAdministrator: {
+                          '@type': 'User',
+                          name: 'promptbook-admin',
+                          domainId: managedDomain.id,
+                          memberGroupIds: [],
+                          quotas: {},
+                          aliases: [],
+                          encryptionAtRest: { '@type': 'Disabled' },
+                          description: 'Agents Server Stalwart administrator',
+                          ...administratorValue,
+                      },
+                  },
+              },
+    );
+
+    const administratorAuthorization = `Basic ${Buffer.from(`${username}:${password}`).toString('base64')}`;
+    await callStalwart(administratorAuthorization, 'x:Domain/query', {
+        filter: {},
+        limit: 1,
+    });
+}
+
+main().catch((error) => {
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exit(1);
+});
+NODE
+
+    set_env_value PTBK_STALWART_API_USERNAME "$stalwart_api_username"
+}
+
+configure_stalwart_mail_server() {
+    local stalwart_api_password=""
+    local temporary_environment_file=""
+
+    ensure_stalwart_environment
+    install_stalwart_mail_server
+    stalwart_api_password="$(get_env_value PTBK_STALWART_API_PASSWORD)"
+
+    if [[ -z "$stalwart_api_password" ]]; then
+        fail "PTBK_STALWART_API_PASSWORD must be configured before Stalwart is started."
+    fi
+
+    temporary_environment_file="$(mktemp)"
+    if [[ -f "$PTBK_STALWART_ENV_FILE" ]]; then
+        "${SUDO[@]}" cat "$PTBK_STALWART_ENV_FILE" |
+            grep -v '^STALWART_RECOVERY_ADMIN=' > "$temporary_environment_file" || true
+    fi
+    printf 'STALWART_RECOVERY_ADMIN=admin:%s\n' "$stalwart_api_password" >> "$temporary_environment_file"
+    "${SUDO[@]}" install -o root -g stalwart -m 640 "$temporary_environment_file" "$PTBK_STALWART_ENV_FILE"
+    rm -f "$temporary_environment_file"
+
+    "${SUDO[@]}" systemctl enable "$PTBK_STALWART_SERVICE_NAME" >/dev/null
+    "${SUDO[@]}" systemctl restart "$PTBK_STALWART_SERVICE_NAME"
+    bootstrap_stalwart_mail_server "$stalwart_api_password"
+    provision_stalwart_application_administrator "$stalwart_api_password"
+
+    temporary_environment_file="$(mktemp)"
+    "${SUDO[@]}" cat "$PTBK_STALWART_ENV_FILE" |
+        grep -v '^STALWART_RECOVERY_ADMIN=' > "$temporary_environment_file" || true
+    "${SUDO[@]}" install -o root -g stalwart -m 640 "$temporary_environment_file" "$PTBK_STALWART_ENV_FILE"
+    rm -f "$temporary_environment_file"
+    "${SUDO[@]}" systemctl restart "$PTBK_STALWART_SERVICE_NAME"
+    log "Stalwart is available locally on port 8080 for bootstrap and management."
+}
+
 is_node_version_supported() {
     local minimum_version=""
     minimum_version="$(resolve_node_minimum_version)"
@@ -2142,6 +2437,7 @@ configure_environment() {
     ensure_secret_env_value SESSION_SECRET 32
     ensure_secret_env_value PTBK_AGENTS_SERVER_USER_CHAT_WORKER_TOKEN 32
     ensure_secret_env_value PROMPTBOOK_TEAM_AGENT_ACCESS_TOKEN 32
+    ensure_stalwart_environment
 
     if [[ -n "${COPILOT_GITHUB_TOKEN:-}" ]]; then
         set_env_value COPILOT_GITHUB_TOKEN "$COPILOT_GITHUB_TOKEN"
@@ -2323,13 +2619,14 @@ configure_firewall() {
     fi
 
     if "${SUDO[@]}" ufw status | grep -q 'Status: active'; then
-        log "Opening HTTP and HTTPS in ufw for nginx."
+        log "Opening HTTP, HTTPS, and inbound SMTP ports in ufw."
         if "${SUDO[@]}" ufw app list | grep -q '^  Nginx Full$'; then
             "${SUDO[@]}" ufw allow 'Nginx Full'
         else
             "${SUDO[@]}" ufw allow 80/tcp
             "${SUDO[@]}" ufw allow 443/tcp
         fi
+        "${SUDO[@]}" ufw allow 25/tcp
     fi
 }
 
@@ -3661,6 +3958,7 @@ apply_vps_runtime_configuration() {
     resolve_run_user
     load_runtime_configuration_from_env_file
     configure_self_contained_s3_storage
+    configure_stalwart_mail_server
     configure_nginx_reverse_proxy
     configure_firewall
     configure_ssl_certificates
@@ -3915,6 +4213,8 @@ print_summary() {
     log "pm2 process: $APP_NAME"
     log "pm2 hourly restart: $PM2_HOURLY_RESTART_CRON"
     log "nginx site: /etc/nginx/sites-available/$NGINX_SITE_NAME"
+    log "Stalwart service: $PTBK_STALWART_SERVICE_NAME"
+    log "Stalwart administration: use an SSH tunnel to http://127.0.0.1:8080/admin"
 
     if [[ -n "$GENERATED_ADMIN_PASSWORD" ]]; then
         log "Generated ADMIN_PASSWORD: $GENERATED_ADMIN_PASSWORD"
@@ -3970,6 +4270,7 @@ main() {
     initialize_promptbook_project
     install_default_agents
     configure_self_contained_s3_storage
+    configure_stalwart_mail_server
     configure_harness_for_initial_installation
     configure_pm2_startup
     build_agents_server

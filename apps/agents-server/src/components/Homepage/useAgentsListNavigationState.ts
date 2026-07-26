@@ -2,7 +2,8 @@
 
 import type { string_url } from '@promptbook-local/types';
 import { useCallback, useMemo } from 'react';
-import type { AgentOrganizationFolder } from '../../utils/agentOrganization/types';
+import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../../utils/agentOrganization/types';
+import { createAgentEmailAddress } from '../../utils/email/agentEmailAddress';
 import type { CurrentPathQueryNavigationMode } from '../_utils/useCurrentPathQueryNavigation';
 import { buildFolderMaps, buildFolderPath, getFolderPathSegments } from './agentOrganizationUtils';
 import type { HomeViewMode } from './homeViewMode';
@@ -36,7 +37,7 @@ type UseAgentsListNavigationStateProps = {
  * @private function of AgentsList
  */
 type UseAgentsListNavigationStateResult = {
-    readonly buildAgentEmail: (identifier: string) => string;
+    readonly buildAgentEmail: (agent: AgentOrganizationAgent) => string;
     readonly buildAgentUrl: (identifier: string) => string;
     readonly federatedAgents: AgentWithVisibility[];
     readonly federatedServersStatus: ReturnType<typeof useFederatedAgents>['federatedServersStatus'];
@@ -101,7 +102,17 @@ export function useAgentsListNavigationState({
         [normalizedPublicUrl],
     );
     const buildAgentEmail = useCallback(
-        (identifier: string) => (publicUrlHost ? `${identifier}@${publicUrlHost}` : ''),
+        (agent: AgentOrganizationAgent) =>
+            publicUrlHost
+                ? createAgentEmailAddress(
+                      {
+                          agentName: agent.agentName,
+                          permanentId: agent.permanentId || agent.agentName,
+                          fullname: agent.meta.fullname,
+                      },
+                      publicUrlHost,
+                  )
+                : '',
         [publicUrlHost],
     );
 

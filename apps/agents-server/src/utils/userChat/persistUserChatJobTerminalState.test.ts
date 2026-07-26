@@ -13,6 +13,10 @@ const sendUserChatPushNotificationMock = jest.fn<(options: unknown) => Promise<v
  * Constant for update user chat assistant message mock.
  */
 const updateUserChatAssistantMessageMock = jest.fn<(options: unknown) => Promise<unknown>>();
+/**
+ * Constant for email chat reply mock.
+ */
+const sendEmailChatReplyMock = jest.fn<(options: unknown) => Promise<void>>();
 
 jest.mock('./finalizeUserChatJob', () => ({
     finalizeUserChatJob: (options: unknown) => finalizeUserChatJobMock(options),
@@ -26,6 +30,10 @@ jest.mock('./updateUserChatAssistantMessage', () => ({
     updateUserChatAssistantMessage: (options: unknown) => updateUserChatAssistantMessageMock(options),
 }));
 
+jest.mock('../email/sendEmailChatReply', () => ({
+    sendEmailChatReply: (options: unknown) => sendEmailChatReplyMock(options),
+}));
+
 import { persistUserChatJobTerminalState } from './persistUserChatJobTerminalState';
 
 describe('persistUserChatJobTerminalState', () => {
@@ -33,8 +41,10 @@ describe('persistUserChatJobTerminalState', () => {
         finalizeUserChatJobMock.mockReset();
         sendUserChatPushNotificationMock.mockReset();
         updateUserChatAssistantMessageMock.mockReset();
+        sendEmailChatReplyMock.mockReset();
         finalizeUserChatJobMock.mockResolvedValue(null);
         sendUserChatPushNotificationMock.mockResolvedValue(undefined);
+        sendEmailChatReplyMock.mockResolvedValue(undefined);
     });
 
     it('finalizes the durable job even when the chat row disappears before assistant-state persistence', async () => {
@@ -126,5 +136,35 @@ describe('persistUserChatJobTerminalState', () => {
                 isComplete: false,
             }).prompt,
         ).toBe(prompt);
+    });
+
+    it('sends completed email-chat answers through the email transport', async () => {
+        updateUserChatAssistantMessageMock.mockResolvedValue({
+            id: 'email-chat-123',
+            userId: 3,
+            source: 'EMAIL',
+            messages: [
+                {
+                    id: 'assistant-123',
+                    content: 'Email answer',
+                },
+            ],
+        });
+
+        await persistUserChatJobTerminalState({
+            job: {
+                id: 'job-123',
+                userId: 3,
+                agentPermanentId: 'agent-123',
+                chatId: 'email-chat-123',
+                assistantMessageId: 'assistant-123',
+            },
+            status: 'COMPLETED',
+        });
+
+        expect(sendEmailChatReplyMock).toHaveBeenCalledWith({
+            jobId: 'job-123',
+            content: 'Email answer',
+        });
     });
 });

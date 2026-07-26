@@ -29,6 +29,8 @@ import {
     KeyRound,
     LogIn,
     Mail,
+    MailCheck,
+    Mails,
     MessageCircle,
     MessageSquareText,
     Mic,
@@ -103,6 +105,7 @@ type SystemMenuItemHref =
     | 'https://ptbk.io/'
     | '/superadmin/servers'
     | '/superadmin/environment'
+    | '/superadmin/email-server'
     | '/superadmin/resource-monitor'
     | '/superadmin/update'
     | '/superadmin/database'
@@ -113,6 +116,7 @@ type SystemMenuItemHref =
     | '/admin/models'
     | '/admin/core-agents'
     | '/admin/metadata'
+    | '/admin/email-server'
     | '/admin/limits'
     | '/admin/messages'
     | '/admin/backup'
@@ -184,6 +188,7 @@ const SYSTEM_MENU_ICON_BY_HREF: Record<SystemMenuItemHref, LucideIcon> = {
     'https://ptbk.io/': Home,
     '/superadmin/servers': Server,
     '/superadmin/environment': FileCode2,
+    '/superadmin/email-server': Mails,
     '/superadmin/resource-monitor': Activity,
     '/superadmin/update': RefreshCw,
     '/superadmin/database': Database,
@@ -194,6 +199,7 @@ const SYSTEM_MENU_ICON_BY_HREF: Record<SystemMenuItemHref, LucideIcon> = {
     '/admin/models': Bot,
     '/admin/core-agents': Blocks,
     '/admin/metadata': FileJson,
+    '/admin/email-server': MailCheck,
     '/admin/limits': Gauge,
     '/admin/messages': Mail,
     '/admin/backup': Archive,
@@ -408,6 +414,10 @@ export function buildHeaderSystemMenuItems({
         ...(isGlobalAdmin
             ? [
                   {
+                      label: translate('header.vpsEmailServer'),
+                      href: '/superadmin/email-server',
+                  } as SubMenuItem,
+                  {
                       label: isResourceMonitorWarningShown
                           ? createWarningMenuLabel(translate('header.resourceMonitor'))
                           : translate('header.resourceMonitor'),
@@ -455,6 +465,10 @@ export function buildHeaderSystemMenuItems({
         {
             label: translate('header.metadata'),
             href: '/admin/metadata',
+        },
+        {
+            label: translate('header.emailServer'),
+            href: '/admin/email-server',
         },
         {
             label: translate('header.toolLimits'),

@@ -2,6 +2,7 @@ import type { ChatMessage } from '@promptbook-local/types';
 import {
     createChatHistoryRecorder,
     type ChatHistoryActorType,
+    type ChatHistorySource,
 } from '@/src/utils/chat/createChatHistoryRecorder';
 import { resolveAgentHash } from '@/src/utils/resolveAgentHash';
 
@@ -49,6 +50,10 @@ export type RecordUserChatMessageInChatHistoryOptions = {
      * Actor type stored with the record; durable chats always belong to logged-in users.
      */
     actorType?: ChatHistoryActorType;
+    /**
+     * Transport which originated this durable chat message.
+     */
+    source?: ChatHistorySource;
 };
 
 /**
@@ -71,6 +76,7 @@ export async function recordUserChatMessageInChatHistory(
         message,
         request = null,
         actorType = 'TEAM_MEMBER',
+        source = 'AGENT_PAGE_CHAT',
     } = options;
 
     try {
@@ -79,7 +85,7 @@ export async function recordUserChatMessageInChatHistory(
             request,
             agentIdentifier: agentPermanentId,
             agentHash: agentHash || UNKNOWN_AGENT_HASH,
-            source: 'AGENT_PAGE_CHAT',
+            source,
             actorType,
             userId,
             chatId,

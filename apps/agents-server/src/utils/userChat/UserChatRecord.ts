@@ -92,6 +92,7 @@ export type CreateUserChatOptions = {
     agentPermanentId: string;
     source?: UserChatSource;
     chatId?: string;
+    title?: string | null;
     messages?: ReadonlyArray<ChatMessage>;
 };
 

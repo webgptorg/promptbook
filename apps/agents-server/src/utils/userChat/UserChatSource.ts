@@ -5,6 +5,7 @@ export const USER_CHAT_SOURCES = {
     WEB_UI: 'WEB_UI',
     OPENAI_API: 'OPENAI_API',
     TEAM_MEMBER: 'TEAM_MEMBER',
+    EMAIL: 'EMAIL',
 } as const;
 
 /**
@@ -31,6 +32,10 @@ export function getUserChatSourceChipLabel(source: UserChatSource): string | nul
         return 'TEAM';
     }
 
+    if (source === USER_CHAT_SOURCES.EMAIL) {
+        return 'EMAIL';
+    }
+
     return null;
 }
 
@@ -44,6 +49,10 @@ export function getUserChatSourceBannerLabel(source: UserChatSource): string | n
 
     if (source === USER_CHAT_SOURCES.TEAM_MEMBER) {
         return 'team member';
+    }
+
+    if (source === USER_CHAT_SOURCES.EMAIL) {
+        return 'email';
     }
 
     return null;

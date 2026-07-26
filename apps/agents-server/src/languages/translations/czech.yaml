@@ -138,6 +138,7 @@ header.viewAllUsers: Zobrazit všechny uživatele
 header.createNewUser: Vytvořit nového uživatele
 header.servers: Servery
 header.environmentVariables: Proměnné prostředí
+header.vpsEmailServer: E-mailový server VPS
 header.resourceMonitor: Monitoring zdrojů
 header.update: Aktualizace
 header.database: Databáze
@@ -158,6 +159,7 @@ header.usageAnalytics: Analytika využití
 header.taskManager: Správa úloh
 header.vpsTaskManager: Správa úloh (všechny servery)
 header.messagesEmails: Zprávy a e-maily
+header.emailServer: E-mailový server
 header.backups: Zálohy
 header.chatFeedback: Hodnocení chatu
 header.browser: Prohlížeč

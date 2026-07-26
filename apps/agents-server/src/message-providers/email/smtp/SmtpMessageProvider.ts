@@ -13,6 +13,7 @@ export type SmtpMessageProviderConfiguration = {
     host: string;
     port: number;
     secure: boolean;
+    isTlsCertificateValidationEnabled?: boolean;
     username: string;
     password: string;
 };
@@ -28,6 +29,9 @@ export class SmtpMessageProvider implements MessageProvider {
             host: configuration.host,
             port: configuration.port,
             secure: configuration.secure,
+            tls: {
+                rejectUnauthorized: configuration.isTlsCertificateValidationEnabled ?? true,
+            },
             auth: {
                 user: configuration.username,
                 pass: configuration.password,
@@ -49,6 +53,7 @@ export class SmtpMessageProvider implements MessageProvider {
 
         const text = removeMarkdownFormatting(message.content);
         const html = await marked.parse(message.content);
+        const headers = normalizeStringRecord(message.metadata?.headers);
 
         return this.transporter.sendMail({
             from: sender.fullName
@@ -62,6 +67,44 @@ export class SmtpMessageProvider implements MessageProvider {
             subject: message.subject || message.metadata?.subject || 'No Subject',
             text,
             html,
+            replyTo: normalizeOptionalString(message.metadata?.replyTo),
+            inReplyTo: normalizeOptionalString(message.metadata?.inReplyTo),
+            references: normalizeStringArray(message.metadata?.references),
+            headers: Object.keys(headers).length > 0 ? headers : undefined,
         });
     }
+}
+
+/**
+ * Normalizes an arbitrary metadata value to an optional non-empty string.
+ */
+function normalizeOptionalString(value: unknown): string | undefined {
+    return typeof value === 'string' && value.trim() ? value.trim() : undefined;
+}
+
+/**
+ * Normalizes an arbitrary metadata value to a string array.
+ */
+function normalizeStringArray(value: unknown): string[] | undefined {
+    if (!Array.isArray(value)) {
+        return undefined;
+    }
+
+    const normalizedValues = value.filter((item): item is string => typeof item === 'string' && Boolean(item.trim()));
+    return normalizedValues.length > 0 ? normalizedValues : undefined;
+}
+
+/**
+ * Normalizes custom SMTP headers stored in message metadata.
+ */
+function normalizeStringRecord(value: unknown): Record<string, string> {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+        return {};
+    }
+
+    return Object.fromEntries(
+        Object.entries(value).filter(
+            (entry): entry is [string, string] => typeof entry[1] === 'string' && Boolean(entry[1].trim()),
+        ),
+    );
 }

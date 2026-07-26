@@ -23,7 +23,7 @@ type ChatHistoryInsertError = {
 /**
  * Source value for chat-history records.
  */
-export type ChatHistorySource = NonNullable<ChatHistoryInsert['source']>;
+export type ChatHistorySource = NonNullable<ChatHistoryInsert['source']> | 'EMAIL';
 
 /**
  * Actor type value for chat-history records.
@@ -163,7 +163,7 @@ export async function createChatHistoryRecorder(
             userAgent,
             language,
             platform,
-            source,
+            source: source as ChatHistoryInsert['source'],
             apiKey,
             actorType: resolvedActorType,
             usage,

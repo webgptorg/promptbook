@@ -50,7 +50,8 @@ export async function createUserChat(options: CreateUserChatOptions): Promise<Us
             createdAt: now,
             updatedAt: now,
             lastMessageAt: resolveLastMessageAt(messages, now),
-            source,
+            title: options.title,
+            source: source as unknown as UserChatInsert['source'],
             messages: messages as unknown as Json,
         };
 

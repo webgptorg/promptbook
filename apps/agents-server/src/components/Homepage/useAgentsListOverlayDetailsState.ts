@@ -12,7 +12,7 @@ import { useAgentsListOverlayState } from './useAgentsListOverlayState';
  * @private function of AgentsList
  */
 type UseAgentsListOverlayDetailsStateProps = {
-    readonly buildAgentEmail: (identifier: string) => string;
+    readonly buildAgentEmail: (agent: AgentOrganizationAgent) => string;
     readonly buildAgentUrl: (identifier: string) => string;
     readonly folderById: Map<number, AgentOrganizationFolder>;
     readonly folders: AgentOrganizationFolder[];
@@ -64,11 +64,11 @@ export function useAgentsListOverlayDetailsState({
             ? null
             : buildAgentFolderContext(contextMenuAgent.folderId ?? null, folderById);
     const contextMenuAgentUrl = contextMenuAgent ? buildAgentUrl(contextMenuIdentifier) : '';
-    const contextMenuAgentEmail = contextMenuAgent ? buildAgentEmail(contextMenuIdentifier) : '';
+    const contextMenuAgentEmail = contextMenuAgent ? buildAgentEmail(contextMenuAgent) : '';
     const qrCodeAgent = overlayState.qrCodeAgent;
     const qrCodeIdentifier = qrCodeAgent ? getAgentIdentifier(qrCodeAgent) : '';
     const qrCodeAgentUrl = qrCodeAgent ? buildAgentUrl(qrCodeIdentifier) : '';
-    const qrCodeAgentEmail = qrCodeAgent ? buildAgentEmail(qrCodeIdentifier) : '';
+    const qrCodeAgentEmail = qrCodeAgent ? buildAgentEmail(qrCodeAgent) : '';
 
     return {
         contextMenuAgent,

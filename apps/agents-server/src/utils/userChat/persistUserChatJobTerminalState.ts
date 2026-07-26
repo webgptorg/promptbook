@@ -1,10 +1,12 @@
 import type { ChatMessage, LlmToolDefinition, ToolCall } from '@promptbook-local/types';
 import { sendUserChatPushNotification } from '../sendUserChatPushNotification';
+import { sendEmailChatReply } from '../email/sendEmailChatReply';
 import { recordUserChatMessageInChatHistory } from './recordUserChatMessageInChatHistory';
 import type { UserChatJobRecord } from './UserChatJobRecord';
 import { isUserChatNotFoundScopeError } from './UserChatScopeError';
 import { finalizeUserChatJob } from './finalizeUserChatJob';
 import { updateUserChatAssistantMessage } from './updateUserChatAssistantMessage';
+import { USER_CHAT_SOURCES } from './UserChatSource';
 import { resolveMessageLifecycleStateFromJobStatus } from './userChatMessageLifecycle';
 
 /**
@@ -83,6 +85,14 @@ export async function persistUserChatJobTerminalState(options: {
                     sender: 'MODEL',
                     content: typeof completedMessage.content === 'string' ? completedMessage.content : '',
                 },
+                source:
+                    completedChat.source === USER_CHAT_SOURCES.EMAIL
+                        ? 'EMAIL'
+                        : 'AGENT_PAGE_CHAT',
+                actorType:
+                    completedChat.source === USER_CHAT_SOURCES.EMAIL
+                        ? 'ANONYMOUS'
+                        : 'TEAM_MEMBER',
             });
 
             await sendUserChatPushNotification({
@@ -96,6 +106,20 @@ export async function persistUserChatJobTerminalState(options: {
                     error,
                 });
             });
+
+            if (completedChat.source === USER_CHAT_SOURCES.EMAIL) {
+                await sendEmailChatReply({
+                    jobId: options.job.id,
+                    content: typeof completedMessage.content === 'string' ? completedMessage.content : '',
+                }).catch((error) => {
+                    console.error('[email-chat]', 'reply_failed_post_persist', {
+                        userId: completedChat.userId,
+                        chatId: completedChat.id,
+                        messageId: completedMessage.id,
+                        error,
+                    });
+                });
+            }
         }
     }
 }

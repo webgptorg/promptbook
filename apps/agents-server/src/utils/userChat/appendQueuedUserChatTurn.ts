@@ -1,4 +1,5 @@
 import type { ChatMessage } from '@promptbook-local/types';
+import type { ChatHistoryActorType, ChatHistorySource } from '../chat/createChatHistoryRecorder';
 import { $randomBase58 } from '../../../../../src/utils/random/$randomBase58';
 import { createUserChatJob } from './createUserChatJob';
 import { deleteUserChatJob } from './deleteUserChatJob';
@@ -35,6 +36,14 @@ export async function appendQueuedUserChatTurn(options: {
      * Optional HTTP request used only for chat-history telemetry (ip, user-agent,...).
      */
     chatHistoryTelemetryRequest?: Request | null;
+    /**
+     * Source marker mirrored into the administrator chat-history audit.
+     */
+    chatHistorySource?: ChatHistorySource;
+    /**
+     * Actor marker mirrored into the administrator chat-history audit.
+     */
+    chatHistoryActorType?: ChatHistoryActorType;
 }): Promise<{
     chat: UserChatRecord;
     job: UserChatJobRecord;
@@ -103,6 +112,8 @@ export async function appendQueuedUserChatTurn(options: {
                 attachments: options.attachments,
             },
             request: options.chatHistoryTelemetryRequest,
+            source: options.chatHistorySource,
+            actorType: options.chatHistoryActorType,
         });
 
         return { chat, job };
