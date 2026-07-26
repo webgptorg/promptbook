@@ -51,6 +51,7 @@ import {
 } from '../utils/getControlPanelOptionAvailability';
 import {
     SHIBBOLETH_AUTHENTICATION_METADATA_KEYS,
+    SHIBBOLETH_AUTHENTICATION_MENU_STATUS_HIDDEN,
     resolveShibbolethAuthenticationMenuStatus,
 } from '../constants/shibbolethAuth';
 import { resolveFileUploadAvailability } from '../utils/upload/fileUploadAvailability';
@@ -447,7 +448,11 @@ export default async function RootLayout({
         metadata: layoutMetadata,
         isPushNotificationsConfigured: Boolean(webPushPublicKey),
     });
-    const shibbolethAuthenticationStatus = resolveShibbolethAuthenticationMenuStatus(layoutMetadata);
+    // Note: The Shibboleth activation/configuration status backs an admin-only login-method warning, so it is never
+    //       sent to regular or anonymous visitors — they receive an inert status instead of the real values.
+    const shibbolethAuthenticationStatus = isAdmin
+        ? resolveShibbolethAuthenticationMenuStatus(layoutMetadata)
+        : SHIBBOLETH_AUTHENTICATION_MENU_STATUS_HIDDEN;
     const themeModeBootstrapScript = createThemeModeBootstrapScript(defaultThemeMode);
 
     return (

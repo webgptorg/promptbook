@@ -102,6 +102,19 @@ export type ShibbolethAuthenticationMenuStatus = {
 };
 
 /**
+ * Shibboleth menu status shown to viewers who are not allowed to see login-method configuration.
+ *
+ * The Shibboleth menu entry and its misconfiguration warning are meant for administrators only, so
+ * non-admin viewers receive this inert status instead of the real activation/configuration values.
+ *
+ * @private internal Shibboleth menu default
+ */
+export const SHIBBOLETH_AUTHENTICATION_MENU_STATUS_HIDDEN: ShibbolethAuthenticationMenuStatus = {
+    isActive: false,
+    isConfigured: false,
+};
+
+/**
  * Parses a metadata boolean value.
  *
  * @param value - Raw metadata value.

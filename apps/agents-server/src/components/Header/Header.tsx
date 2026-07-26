@@ -20,6 +20,7 @@ import { buildDocumentationDropdownItems } from './buildDocumentationDropdownIte
 import { buildFederatedDropdownItems } from './buildFederatedDropdownItems';
 import { buildHeaderMenuItems } from './buildHeaderMenuItems';
 import { buildHeaderSystemMenuItems } from './buildHeaderSystemMenuItems';
+import { resolveHeaderSystemWarnings } from './resolveHeaderSystemWarnings';
 import { HeaderControlPanelDropdown } from './ControlPanel/ControlPanel';
 import { HeaderDesktopContextNavigation } from './HeaderDesktopContextNavigation';
 import { HeaderDesktopTopMenuNavigation } from './HeaderDesktopTopMenuNavigation';
@@ -243,13 +244,13 @@ export function Header(props: HeaderProps) {
     );
 
     const hasMenuAccess = Boolean(currentUser || isAdmin);
-    const isShibbolethConfigurationWarningShown = Boolean(
-        shibbolethAuthenticationStatus?.isActive && !shibbolethAuthenticationStatus.isConfigured,
-    );
-    const isResourceMonitorWarningShown = Boolean(isGlobalAdmin && resourceMonitorWarningStatus?.isWarningShown);
-    const isCoreAgentsWarningShown = Boolean(isAdmin && isCoreAgentsMissing);
-    const isSystemWarningShown =
-        isShibbolethConfigurationWarningShown || isResourceMonitorWarningShown || isCoreAgentsWarningShown;
+    const { isSystemWarningShown } = resolveHeaderSystemWarnings({
+        isAdmin,
+        isGlobalAdmin,
+        shibbolethAuthenticationStatus,
+        resourceMonitorWarningStatus,
+        isCoreAgentsMissing,
+    });
     const systemMenuEntries = useMemo(
         () =>
             buildHeaderSystemMenuItems({
@@ -261,7 +262,7 @@ export function Header(props: HeaderProps) {
                 feedbackMode,
                 shibbolethAuthenticationStatus,
                 resourceMonitorWarningStatus,
-                isCoreAgentsWarningShown,
+                isCoreAgentsMissing,
             }),
         [
             currentUser,
@@ -269,7 +270,7 @@ export function Header(props: HeaderProps) {
             isAdmin,
             isExperimental,
             isGlobalAdmin,
-            isCoreAgentsWarningShown,
+            isCoreAgentsMissing,
             resourceMonitorWarningStatus,
             shibbolethAuthenticationStatus,
             t,

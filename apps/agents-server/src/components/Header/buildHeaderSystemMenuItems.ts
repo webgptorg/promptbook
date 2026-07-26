@@ -64,6 +64,7 @@ import type { ShibbolethAuthenticationMenuStatus } from '../../constants/shibbol
 import type { ChatFeedbackMode } from '../../utils/chatFeedbackMode';
 import type { UserInfo } from '../../utils/getCurrentUser';
 import type { ServerResourceWarningStatus } from '../../utils/resourceMonitor/resourceMonitorTypes';
+import { resolveHeaderSystemWarnings } from './resolveHeaderSystemWarnings';
 import type { SubMenuItem } from './SubMenuItem';
 
 /**
@@ -156,7 +157,7 @@ type BuildHeaderSystemMenuItemsOptions = {
     readonly feedbackMode: ChatFeedbackMode;
     readonly shibbolethAuthenticationStatus?: ShibbolethAuthenticationMenuStatus;
     readonly resourceMonitorWarningStatus?: ServerResourceWarningStatus;
-    readonly isCoreAgentsWarningShown?: boolean;
+    readonly isCoreAgentsMissing?: boolean;
 };
 
 /**
@@ -337,7 +338,7 @@ export function buildHeaderSystemMenuItems({
     feedbackMode,
     shibbolethAuthenticationStatus,
     resourceMonitorWarningStatus,
-    isCoreAgentsWarningShown = false,
+    isCoreAgentsMissing = false,
 }: BuildHeaderSystemMenuItemsOptions): SubMenuItem[] {
     const userAccountSystemItems: SubMenuItem[] = [
         {
@@ -400,7 +401,16 @@ export function buildHeaderSystemMenuItems({
         ];
     }
 
-    const isResourceMonitorWarningShown = Boolean(isGlobalAdmin && resourceMonitorWarningStatus?.isWarningShown);
+    // Note: The System warnings are gated by admin capability in a single shared place so the submenu entries and the
+    //       top-level System label indicator always agree on what the current viewer is allowed to see.
+    const { isShibbolethConfigurationWarningShown, isResourceMonitorWarningShown, isCoreAgentsWarningShown } =
+        resolveHeaderSystemWarnings({
+            isAdmin,
+            isGlobalAdmin,
+            shibbolethAuthenticationStatus,
+            resourceMonitorWarningStatus,
+            isCoreAgentsMissing,
+        });
     const superAdminSystemItems: SubMenuItem[] = [
         {
             label: translate('header.servers'),
@@ -511,9 +521,6 @@ export function buildHeaderSystemMenuItems({
         },
     ];
 
-    const isShibbolethConfigurationWarningShown = Boolean(
-        shibbolethAuthenticationStatus?.isActive && !shibbolethAuthenticationStatus.isConfigured,
-    );
     const loginMethodsSystemItems: SubMenuItem[] = shibbolethAuthenticationStatus?.isActive
         ? [
               {

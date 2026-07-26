@@ -111,7 +111,9 @@ export function buildHeaderMenuItems({
         );
     }
 
-    if (systemMenuEntries.length > 0) {
+    // Note: The System menu (like Documentation) is only offered to signed-in viewers, so anonymous visitors never see
+    //       it — nor any admin-only warning indicator it might carry.
+    if (hasMenuAccess && systemMenuEntries.length > 0) {
         items.push(
             createHeaderDropdownMenuItem({
                 id: 'system',
