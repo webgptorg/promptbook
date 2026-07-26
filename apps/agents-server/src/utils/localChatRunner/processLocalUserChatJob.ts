@@ -37,6 +37,7 @@ import {
     loadLocalAgentSourceSnapshot,
     resolveLocalAgentRootPath,
 } from './ensureLocalAgentFolder';
+import { persistLocalUserChatJobProgressFromRuntimeLog } from './persistLocalUserChatJobProgressFromRuntimeLog';
 
 /**
  * Result of processing one local user chat job.
@@ -269,6 +270,11 @@ async function synchronizeLocalUserChatJob(
         });
         return { didMutate: true, outcome: 'failed' };
     }
+
+    // Note: The message is still being answered — surface the runner's live activity as progress.
+    //       This stays `didMutate: false` so it never triggers extra worker ticks; the next chat
+    //       detail poll reloads the chat and shows the freshly persisted progress card.
+    await persistLocalUserChatJobProgressFromRuntimeLog(job, metadata);
 
     return { didMutate: false, outcome: 'waiting' };
 }

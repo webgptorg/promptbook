@@ -1,4 +1,4 @@
-[ ]
+[x] by Claude Code `claude-opus-4-8` - Implementation $7.86 an hour; Testing 25 minutes
 
 [✨🟪] Show progress what is agent doing
 
@@ -8,3 +8,4 @@
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ![alt text](screenshots/2026-07-0750-agents-server-show-progress.png)
+
