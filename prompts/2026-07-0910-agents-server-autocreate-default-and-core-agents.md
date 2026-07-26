@@ -22,3 +22,18 @@
 ![the default core agents](screenshots/2026-07-0910-agents-server-autocreate-default-and-core-agents-1.png)
 ![missing default agents](screenshots/2026-07-0910-agents-server-autocreate-default-and-core-agents-2.png)
 !["Install default agents" when creating new server](screenshots/2026-07-0910-agents-server-autocreate-default-and-core-agents-3.png)
+
+---
+
+[ ]
+
+[✨🥸] @@@@@@@@@@
+
+-   `META ORIGIN`@@@
+-   `CORE PURPOSE` @@@
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![alt text](screenshots/2026-07-0910-agents-server-autocreate-default-and-core-agents-4.png)
+![alt text](screenshots/2026-07-0910-agents-server-autocreate-default-and-core-agents-5.png)
