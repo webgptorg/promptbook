@@ -10,8 +10,8 @@ import { readInternalS3Configuration } from './readInternalS3Configuration';
  * fully configured storage — probing an external endpoint or a half-configured setup would be
  * misleading, so those cases return a skip reason instead.
  *
- * @returns Combined configuration and health snapshot for the `/superadmin/internal-s3` page.
- * @private internal utility of the `/superadmin/internal-s3` page
+ * @returns Combined configuration and health snapshot for the `/admin/internal-s3` page.
+ * @private internal utility of the `/admin/internal-s3` page
  */
 export async function readInternalS3Snapshot(): Promise<InternalS3Snapshot> {
     const configuration = readInternalS3Configuration();
@@ -23,7 +23,7 @@ export async function readInternalS3Snapshot(): Promise<InternalS3Snapshot> {
             health: null,
             probeSkippedReason: spaceTrim(
                 `
-                    This server is not using the bundled self-contained S3 storage, so no live
+                    This VPS is not using the bundled self-contained S3 storage, so no live
                     connectivity check is performed.
                 `,
             ),

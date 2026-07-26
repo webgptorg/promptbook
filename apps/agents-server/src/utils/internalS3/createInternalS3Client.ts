@@ -33,7 +33,7 @@ function normalizeInternalS3Endpoint(endpoint: string): string {
  *
  * @param configuration - Internal S3 configuration (must be fully configured).
  * @returns S3 client bound to the internal endpoint.
- * @private internal utility of the `/superadmin/internal-s3` page
+ * @private internal utility of the `/admin/internal-s3` page
  */
 export function createInternalS3Client(configuration: InternalS3Configuration): S3Client {
     return new S3Client({

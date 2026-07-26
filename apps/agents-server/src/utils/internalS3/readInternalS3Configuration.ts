@@ -21,7 +21,7 @@ function readOptionalEnvironmentValue(value: string | undefined): string | null 
  * [✨🏣] Mirrors the environment contract consumed by `$provideCdnForServer` for self-contained S3.
  *
  * @returns Internal S3 configuration for display.
- * @private internal utility of the `/superadmin/internal-s3` page
+ * @private internal utility of the `/admin/internal-s3` page
  */
 export function readInternalS3Configuration(): InternalS3Configuration {
     const endpoint = readOptionalEnvironmentValue(process.env.CDN_ENDPOINT);

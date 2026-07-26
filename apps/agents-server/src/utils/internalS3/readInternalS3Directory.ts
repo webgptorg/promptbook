@@ -67,7 +67,7 @@ type InternalS3BrowserPrefix = {
  * @param configuration - Internal S3 configuration.
  * @param rawRelativePrefix - Browser prefix from the URL query.
  * @returns Directory listing snapshot.
- * @private internal utility of the `/superadmin/internal-s3` page
+ * @private internal utility of the `/admin/internal-s3` page
  */
 export async function readInternalS3Directory(
     configuration: InternalS3Configuration,
@@ -78,7 +78,7 @@ export async function readInternalS3Directory(
     if (!configuration.isSelfContainedS3Selected) {
         return createUnavailableInternalS3BrowserSnapshot(
             prefix,
-            'Self-contained S3 is not the active storage for this server.',
+            'Self-contained S3 is not the active storage for this VPS.',
         );
     }
 

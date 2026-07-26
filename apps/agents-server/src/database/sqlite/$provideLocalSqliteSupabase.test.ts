@@ -193,6 +193,52 @@ describe('$provideLocalSqliteSupabase', () => {
         expect(typeof (data as { value: unknown } | null)?.value).toBe('string');
     });
 
+    it('stores uploaded file sizes with numeric SQLite affinity for gallery sorting', async () => {
+        const { $provideLocalSqliteSupabase } = await import('./$provideLocalSqliteSupabase');
+        const supabase = $provideLocalSqliteSupabase();
+        const now = new Date('2026-07-26T10:00:00.000Z').toISOString();
+
+        await supabase.from('standalone_File').insert([
+            {
+                createdAt: now,
+                fileName: 'large.bin',
+                fileSize: 100,
+                fileType: 'application/octet-stream',
+                storageUrl: 'https://cdn.example.test/large.bin',
+                shortUrl: null,
+                purpose: 'TESTING',
+                status: 'COMPLETED',
+            },
+            {
+                createdAt: now,
+                fileName: 'small.bin',
+                fileSize: 9,
+                fileType: 'application/octet-stream',
+                storageUrl: 'https://cdn.example.test/small.bin',
+                shortUrl: null,
+                purpose: 'TESTING',
+                status: 'COMPLETED',
+            },
+        ]);
+
+        const { data, error } = await supabase
+            .from('standalone_File')
+            .select('fileName,fileSize')
+            .order('fileSize', { ascending: true });
+
+        expect(error).toBeNull();
+        expect(data).toEqual([
+            {
+                fileName: 'small.bin',
+                fileSize: 9,
+            },
+            {
+                fileName: 'large.bin',
+                fileSize: 100,
+            },
+        ]);
+    });
+
     it('creates read indexes for frequent standalone server queries', async () => {
         const { resolveLocalSqliteTableLocation } = await import('./resolveLocalSqliteTableLocation');
         const { ensureLocalSqliteTableReadIndexes } = await import('./$provideLocalSqliteSupabase');

@@ -6,7 +6,7 @@
  *
  * [✨🏣] Companion of the self-contained S3 storage set up by `$provideCdnForServer`.
  *
- * @private internal utility of the `/superadmin/internal-s3` page
+ * @private internal utility of the `/admin/internal-s3` page
  */
 export type InternalS3Configuration = {
     /**
@@ -15,7 +15,7 @@ export type InternalS3Configuration = {
     readonly storageMode: string | null;
 
     /**
-     * Whether the bundled self-contained S3 (VersityGW) is the active storage for this server.
+     * Whether the bundled self-contained S3 (VersityGW) is the active storage for this VPS.
      */
     readonly isSelfContainedS3Selected: boolean;
 
@@ -83,7 +83,7 @@ export type InternalS3Configuration = {
 /**
  * Object statistics gathered from the internal S3 bucket.
  *
- * @private internal utility of the `/superadmin/internal-s3` page
+ * @private internal utility of the `/admin/internal-s3` page
  */
 export type InternalS3ObjectStatistics = {
     /**
@@ -105,7 +105,7 @@ export type InternalS3ObjectStatistics = {
 /**
  * Result of a live connectivity and statistics probe against the internal S3 storage.
  *
- * @private internal utility of the `/superadmin/internal-s3` page
+ * @private internal utility of the `/admin/internal-s3` page
  */
 export type InternalS3Health = {
     /**
@@ -132,7 +132,7 @@ export type InternalS3Health = {
 /**
  * Combined configuration and live-health snapshot rendered by the internal S3 admin page.
  *
- * @private internal utility of the `/superadmin/internal-s3` page
+ * @private internal utility of the `/admin/internal-s3` page
  */
 export type InternalS3Snapshot = {
     /**
@@ -159,7 +159,7 @@ export type InternalS3Snapshot = {
 /**
  * One folder or object displayed by the internal S3 browser.
  *
- * @private internal utility of the `/superadmin/internal-s3` page
+ * @private internal utility of the `/admin/internal-s3` page
  */
 export type InternalS3BrowserEntry = {
     /**
@@ -201,7 +201,7 @@ export type InternalS3BrowserEntry = {
 /**
  * One directory listing rendered by the internal S3 browser.
  *
- * @private internal utility of the `/superadmin/internal-s3` page
+ * @private internal utility of the `/admin/internal-s3` page
  */
 export type InternalS3BrowserSnapshot = {
     /**

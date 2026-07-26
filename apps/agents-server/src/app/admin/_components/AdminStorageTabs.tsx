@@ -8,14 +8,14 @@ import { AdminRouteTabs, type AdminRouteTabItem } from './AdminRouteTabs';
 export type AdminStoragePage = 'internal-s3' | 'files';
 
 /**
- * Route-backed storage navigation shared by `/superadmin/internal-s3` and `/admin/files`.
+ * Route-backed storage navigation shared by `/admin/internal-s3` and `/admin/files`.
  *
  * @private storage admin UI constant
  */
 const ADMIN_STORAGE_NAVIGATION_ITEMS: ReadonlyArray<AdminRouteTabItem<AdminStoragePage>> = [
     {
         id: 'internal-s3',
-        href: '/superadmin/internal-s3',
+        href: '/admin/internal-s3',
         label: 'Internal S3',
         description: 'VPS-wide bundled object storage visible only to the superadmin.',
     },

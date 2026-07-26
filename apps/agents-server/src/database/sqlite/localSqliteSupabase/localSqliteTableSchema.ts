@@ -51,7 +51,10 @@ const TEXT_COLUMNS_BY_TABLE = new Map<string, ReadonlySet<string>>([['Metadata',
  *
  * @private constant of `$provideLocalSqliteSupabase`
  */
-const INTEGER_COLUMNS_BY_TABLE = new Map<string, ReadonlySet<string>>([['ServerLimit', new Set(['value'])]]);
+const INTEGER_COLUMNS_BY_TABLE = new Map<string, ReadonlySet<string>>([
+    ['File', new Set(['fileSize'])],
+    ['ServerLimit', new Set(['value'])],
+]);
 
 /**
  * Boolean columns stored as integers by SQLite and restored as booleans.

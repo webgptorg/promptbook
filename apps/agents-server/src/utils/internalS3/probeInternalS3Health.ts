@@ -43,7 +43,7 @@ type InternalS3ObjectStatisticsProbe = {
  *
  * @param configuration - Fully configured internal S3 configuration.
  * @returns Live health snapshot.
- * @private internal utility of the `/superadmin/internal-s3` page
+ * @private internal utility of the `/admin/internal-s3` page
  */
 export async function probeInternalS3Health(configuration: InternalS3Configuration): Promise<InternalS3Health> {
     const s3Client = createInternalS3Client(configuration);

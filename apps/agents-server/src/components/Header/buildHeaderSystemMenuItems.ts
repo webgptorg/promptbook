@@ -110,7 +110,7 @@ type SystemMenuItemHref =
     | '/superadmin/resource-monitor'
     | '/superadmin/update'
     | '/superadmin/database'
-    | '/superadmin/internal-s3'
+    | '/admin/internal-s3'
     | '/superadmin/logs'
     | typeof HARNESS_AUTH_ADMIN_PATH
     | '/superadmin/cli-access'
@@ -193,7 +193,7 @@ const SYSTEM_MENU_ICON_BY_HREF: Record<SystemMenuItemHref, LucideIcon> = {
     '/superadmin/resource-monitor': Activity,
     '/superadmin/update': RefreshCw,
     '/superadmin/database': Database,
-    '/superadmin/internal-s3': Boxes,
+    '/admin/internal-s3': Boxes,
     '/superadmin/logs': ScrollText,
     [HARNESS_AUTH_ADMIN_PATH]: TerminalSquare,
     '/superadmin/cli-access': Terminal,
@@ -443,7 +443,7 @@ export function buildHeaderSystemMenuItems({
                   } as SubMenuItem,
                   {
                       label: translate('header.internalS3'),
-                      href: '/superadmin/internal-s3',
+                      href: '/admin/internal-s3',
                   } as SubMenuItem,
                   {
                       label: translate('header.logs'),
