@@ -2,7 +2,15 @@
 
 ---
 
-[ ] use `claude`
+[!] use `claude`
+
+---
+
+[x] 👇 was "use `claude`" respected
+
+---
+
+[ ] use `gpt`
 
 [✨🆗] The tasks in task manager should be sorted by finished time
 
@@ -12,23 +20,3 @@
 -   You are working with the [Agents Server](apps/agents-server) with tasks `/admin/task-manager`
 
 ![Agents Server incorrect task order](screenshots/2026-07-0740-agents-server-sort-tasks.png)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
