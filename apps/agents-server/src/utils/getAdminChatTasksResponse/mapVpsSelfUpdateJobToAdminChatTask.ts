@@ -1,3 +1,4 @@
+import { buildVpsSelfUpdateAdminChatTaskId, VPS_SELF_UPDATE_ADMIN_CHAT_TASK_ID_PREFIX } from '../adminChatTaskLinks';
 import type { AdminChatTaskRecord } from '../chatTasksAdmin';
 import type { UserChatJobStatus } from '../userChat/UserChatJobRecord';
 import type { VpsSelfUpdateJobSnapshot } from '../vpsSelfUpdate';
@@ -6,9 +7,12 @@ import { resolveVpsSelfUpdateJobIdentity } from '../vpsSelfUpdate/vpsSelfUpdateJ
 /**
  * Stable synthetic task id prefix used for standalone VPS self-update task rows.
  *
+ * Kept for backward compatibility; the value is single-sourced from the browser-safe
+ * `VPS_SELF_UPDATE_ADMIN_CHAT_TASK_ID_PREFIX` shared with the update page.
+ *
  * @private internal admin utility of Agents Server
  */
-export const VPS_SELF_UPDATE_ADMIN_CHAT_TASK_ID = 'vps-self-update';
+export const VPS_SELF_UPDATE_ADMIN_CHAT_TASK_ID = VPS_SELF_UPDATE_ADMIN_CHAT_TASK_ID_PREFIX;
 
 /**
  * Synthetic queue name used for the standalone VPS self-update task row.
@@ -38,7 +42,7 @@ export function mapVpsSelfUpdateJobToAdminChatTask(job: VpsSelfUpdateJobSnapshot
     const errorSummary = job.errorMessage || null;
     const currentStepDetails = job.currentStep || null;
     const triggerLabel = formatVpsSelfUpdateTrigger(job.trigger);
-    const taskId = `${VPS_SELF_UPDATE_ADMIN_CHAT_TASK_ID}:${resolveVpsSelfUpdateJobIdentity(job)}`;
+    const taskId = buildVpsSelfUpdateAdminChatTaskId(resolveVpsSelfUpdateJobIdentity(job));
 
     return {
         id: taskId,

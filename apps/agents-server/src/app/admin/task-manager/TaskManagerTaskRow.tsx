@@ -3,9 +3,11 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { SquareTerminal } from 'lucide-react';
+import { buildAdminChatTaskDetailHref } from '@/src/utils/adminChatTaskLinks';
 import type { AdminChatTaskRecord } from '@/src/utils/chatTasksAdmin';
 import type { ServerLanguageCode } from '@/src/languages/ServerLanguageRegistry';
 import { TaskManagerTaskLogActions } from './TaskManagerTaskLogActions';
+import { TaskManagerTaskTargetLink } from './TaskManagerTaskTargetLink';
 import { TaskManagerTaskTerminalDialog } from './TaskManagerTaskTerminalDialog';
 import {
     buildTaskRunReportRows,
@@ -175,7 +177,7 @@ export function TaskManagerTaskRow({
                     </span>
                 ) : (
                     <Link
-                        href={`/admin/task-manager/${encodeURIComponent(task.id)}`}
+                        href={buildAdminChatTaskDetailHref(task.id)}
                         className="font-mono text-[11px] font-semibold text-blue-700 underline-offset-2 hover:underline"
                         title="Open the task detail page"
                     >
@@ -229,6 +231,11 @@ export function TaskManagerTaskRow({
                         { label: 'Chat', value: task.chatId },
                     ]}
                 />
+                {isReadOnly ? null : (
+                    <div className="mt-2">
+                        <TaskManagerTaskTargetLink task={task} />
+                    </div>
+                )}
             </td>
 
             <td className="px-4 py-3 align-top">

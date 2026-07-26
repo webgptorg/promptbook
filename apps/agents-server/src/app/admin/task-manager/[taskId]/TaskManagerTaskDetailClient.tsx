@@ -14,6 +14,7 @@ import {
     type AdminChatTaskActionKind,
 } from '../adminChatTaskActionDialogs';
 import { TaskManagerTaskLogActions } from '../TaskManagerTaskLogActions';
+import { TaskManagerTaskTargetLink } from '../TaskManagerTaskTargetLink';
 import { TaskManagerTaskTerminalDialog } from '../TaskManagerTaskTerminalDialog';
 import {
     buildTaskRunReportRows,
@@ -153,6 +154,7 @@ export function TaskManagerTaskDetailClient({ taskId, isSuperAdmin }: TaskManage
                     >
                         Refresh now
                     </button>
+                    {task ? <TaskManagerTaskTargetLink task={task} /> : null}
                     {isSuperAdmin && task ? (
                         <button
                             type="button"

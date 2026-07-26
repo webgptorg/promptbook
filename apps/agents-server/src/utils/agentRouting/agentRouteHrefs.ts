@@ -59,6 +59,20 @@ export function buildAgentChatHref(agentIdentifier: string): string {
 }
 
 /**
+ * Builds the canonical chat href that reopens one existing conversation with a local agent.
+ *
+ * @param agentIdentifier - Canonical permanent id.
+ * @param chatId - Id of the existing conversation to reopen.
+ * @returns Canonical chat href pointing at the existing conversation.
+ */
+export function buildExistingAgentChatHref(agentIdentifier: string, chatId: string): string {
+    const chatHref = buildAgentChatHref(agentIdentifier);
+    const parsedHref = new URL(chatHref, RELATIVE_HREF_BASE_URL);
+    parsedHref.searchParams.set(AGENT_CHAT_QUERY_PARAM, chatId);
+    return formatParsedHref(chatHref, parsedHref);
+}
+
+/**
  * Forces one chat href to start a fresh conversation.
  *
  * @param href - Relative or absolute chat href.

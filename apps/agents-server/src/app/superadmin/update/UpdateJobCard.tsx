@@ -1,10 +1,12 @@
 'use client';
 
-import { ClipboardCopy, FileDown, Loader2 } from 'lucide-react';
+import { ArrowUpRight, ClipboardCopy, FileDown, Loader2 } from 'lucide-react';
+import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { AdminXtermTerminal } from '../../../components/AdminTerminal/AdminXtermTerminal';
 import { Card } from '../../../components/Homepage/Card';
 import type { ServerLanguageCode } from '../../../languages/ServerLanguageRegistry';
+import { buildAdminChatTaskDetailHref, buildVpsSelfUpdateAdminChatTaskId } from '../../../utils/adminChatTaskLinks';
 import { downloadBlob, parseFilenameFromContentDisposition } from '../../../utils/download/browserFileDownload';
 import { formatHumanReadableTimestamp } from './formatHumanReadableTimestamp';
 import { getUpdateJobFailureMessage } from './getUpdateJobFailureMessage';
@@ -71,7 +73,19 @@ export function UpdateJobCard({ state, language }: UpdateJobCardProps) {
                             restarts the server.
                         </p>
                     </div>
-                    <UpdateJobStatusBadge status={jobStatus} />
+                    <div className="flex flex-wrap items-center gap-3">
+                        {job?.jobId && jobStatus !== 'idle' ? (
+                            <Link
+                                href={buildAdminChatTaskDetailHref(buildVpsSelfUpdateAdminChatTaskId(job.jobId))}
+                                className="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100"
+                                title="Open this self-update in the task manager"
+                            >
+                                <ArrowUpRight className="h-3.5 w-3.5" />
+                                View task
+                            </Link>
+                        ) : null}
+                        <UpdateJobStatusBadge status={jobStatus} />
+                    </div>
                 </div>
 
                 <UpdateJobSummaryGrid job={job} language={language} />

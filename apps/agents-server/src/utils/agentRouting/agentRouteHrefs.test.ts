@@ -2,6 +2,7 @@ import {
     appendFreshChatQuery,
     buildAgentChatHref,
     buildAgentProfileHref,
+    buildExistingAgentChatHref,
     buildFreshAgentChatHref,
     buildFreshAgentChatHrefFromAgentUrl,
 } from './agentRouteHrefs';
@@ -11,6 +12,10 @@ describe('agentRouteHrefs', () => {
         expect(buildAgentProfileHref('agent-123')).toBe('/agents/agent-123');
         expect(buildAgentChatHref('agent-123')).toBe('/agents/agent-123/chat');
         expect(buildFreshAgentChatHref('agent-123')).toBe('/agents/agent-123/chat?chat=new');
+    });
+
+    it('builds hrefs that reopen one existing conversation', () => {
+        expect(buildExistingAgentChatHref('agent-123', 'chat-abc')).toBe('/agents/agent-123/chat?chat=chat-abc');
     });
 
     it('adds the fresh-chat query to existing chat hrefs', () => {

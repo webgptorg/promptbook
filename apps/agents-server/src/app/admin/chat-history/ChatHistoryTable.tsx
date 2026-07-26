@@ -2,6 +2,7 @@ import { MarkdownContent } from '@promptbook-local/components';
 import Link from 'next/link';
 import { Card } from '../../../components/Homepage/Card';
 import type { ServerLanguageCode } from '../../../languages/ServerLanguageRegistry';
+import { buildAdminChatTaskDetailHref } from '../../../utils/adminChatTaskLinks';
 import { resolveChatHistoryMessageRole, resolveChatHistoryMessageText } from '../../../utils/chatHistoryMessage';
 import { formatServerLanguageHumanReadableDate } from '../../../utils/localization/formatServerLanguageHumanReadableDate';
 import { AdminSortableTableHeaderCell } from '../_components/AdminSortableTableHeaderCell';
@@ -173,7 +174,7 @@ export function ChatHistoryTable({
                                             </button>
                                             {row.taskId ? (
                                                 <Link
-                                                    href={`/admin/task-manager/${encodeURIComponent(row.taskId)}`}
+                                                    href={buildAdminChatTaskDetailHref(row.taskId)}
                                                     className="text-blue-600 hover:text-blue-800"
                                                     title="Open the chat completion task of this message"
                                                 >
