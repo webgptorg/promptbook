@@ -2,7 +2,16 @@ import type { ToolFunction } from '../../scripting/javascript/JavascriptExecutio
 import type { string_javascript_name } from '../../types/string_person_fullname';
 import { getMemoryToolRuntimeAdapterOrDisabledResult } from './getMemoryToolRuntimeAdapterOrDisabledResult';
 import { MemoryToolNames } from './MemoryToolNames';
-import type { DeleteMemoryToolArgs, DeleteMemoryToolResult, RetrieveMemoryToolArgs, RetrieveMemoryToolResult, StoreMemoryToolArgs, StoreMemoryToolResult, UpdateMemoryToolArgs, UpdateMemoryToolResult } from './MemoryToolRuntimeAdapter';
+import type {
+    DeleteMemoryToolArgs,
+    DeleteMemoryToolResult,
+    RetrieveMemoryToolArgs,
+    RetrieveMemoryToolResult,
+    StoreMemoryToolArgs,
+    StoreMemoryToolResult,
+    UpdateMemoryToolArgs,
+    UpdateMemoryToolResult,
+} from './MemoryToolRuntimeAdapter';
 import { parseMemoryToolArgs } from './parseMemoryToolArgs';
 import { resolveMemoryRuntimeContext } from './resolveMemoryRuntimeContext';
 

@@ -1,6 +1,10 @@
 import { describe, expect, it } from '@jest/globals';
 import { DEFAULT_SIMPLIFIED_CITATION_ID, normalizeCitationMarkersToFullNotation } from './parseCitationMarker';
-import { dedupeCitationsBySource, parseCitationsFromContent, stripCitationsFromContent } from './parseCitationsFromContent';
+import {
+    dedupeCitationsBySource,
+    parseCitationsFromContent,
+    stripCitationsFromContent,
+} from './parseCitationsFromContent';
 
 describe('parseCitationsFromContent', () => {
     it('parses full notation citation markers', () => {

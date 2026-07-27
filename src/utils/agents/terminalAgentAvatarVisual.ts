@@ -1,4 +1,7 @@
-import { createAvatarDefinitionFromAgentBasicInformation, DEFAULT_AVATAR_SIZE } from '../../avatars/avatarRenderingUtils';
+import {
+    createAvatarDefinitionFromAgentBasicInformation,
+    DEFAULT_AVATAR_SIZE,
+} from '../../avatars/avatarRenderingUtils';
 import type { ResolvedAvatarRenderDefinition } from '../../avatars/renderAvatarVisual';
 import { resolveAvatarRenderDefinition } from '../../avatars/renderAvatarVisual';
 import type { CreateCanvasForAsciiArt } from '../../avatars/renderAvatarVisualAsciiArt';

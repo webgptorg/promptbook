@@ -18,9 +18,7 @@ describe('buildAgentNameOrPermanentIdFilter', () => {
     });
 
     it('url-encodes values so that spaces and punctuation cannot break the filter syntax', () => {
-        expect(buildAgentNameOrPermanentIdFilter('AI Team')).toBe(
-            'agentName.eq.AI%20Team,permanentId.ilike.AI%20Team',
-        );
+        expect(buildAgentNameOrPermanentIdFilter('AI Team')).toBe('agentName.eq.AI%20Team,permanentId.ilike.AI%20Team');
     });
 
     it('escapes `LIKE` wildcard characters in the permanent-id branch', () => {

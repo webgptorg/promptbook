@@ -8,9 +8,11 @@ describe('resolveAgentMessageRuntimeActivity', () => {
     });
 
     it('returns null when the log has no structured assistant text', () => {
-        const logText = ['+ claude --output-format stream-json', 'some plain shell noise', 'Traceback (most recent call last)'].join(
-            '\n',
-        );
+        const logText = [
+            '+ claude --output-format stream-json',
+            'some plain shell noise',
+            'Traceback (most recent call last)',
+        ].join('\n');
 
         expect(resolveAgentMessageRuntimeActivity(logText)).toBeNull();
     });
@@ -26,7 +28,10 @@ describe('resolveAgentMessageRuntimeActivity', () => {
 
     it('keeps the latest assistant narration when multiple turns are streamed', () => {
         const logText = [
-            JSON.stringify({ type: 'assistant', message: { content: [{ type: 'text', text: 'First I will search.' }] } }),
+            JSON.stringify({
+                type: 'assistant',
+                message: { content: [{ type: 'text', text: 'First I will search.' }] },
+            }),
             JSON.stringify({ type: 'user', message: { content: [{ type: 'tool_result', text: 'result' }] } }),
             JSON.stringify({
                 type: 'assistant',
@@ -39,7 +44,10 @@ describe('resolveAgentMessageRuntimeActivity', () => {
 
     it('ignores assistant turns that only contain tool calls', () => {
         const logText = [
-            JSON.stringify({ type: 'assistant', message: { content: [{ type: 'text', text: 'Checking the website.' }] } }),
+            JSON.stringify({
+                type: 'assistant',
+                message: { content: [{ type: 'text', text: 'Checking the website.' }] },
+            }),
             JSON.stringify({
                 type: 'assistant',
                 message: { content: [{ type: 'tool_use', text: undefined }] },
@@ -60,7 +68,8 @@ describe('resolveAgentMessageRuntimeActivity', () => {
     });
 
     it('tolerates shell prefixes before the JSON payload', () => {
-        const logText = '2026-07-07T00:00:00Z {"type":"assistant","message":{"content":[{"type":"text","text":"Thinking about your request."}]}}';
+        const logText =
+            '2026-07-07T00:00:00Z {"type":"assistant","message":{"content":[{"type":"text","text":"Thinking about your request."}]}}';
 
         expect(resolveAgentMessageRuntimeActivity(logText)).toBe('Thinking about your request.');
     });

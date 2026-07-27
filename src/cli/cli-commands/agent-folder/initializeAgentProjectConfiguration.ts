@@ -1,8 +1,19 @@
-import { AGENT_BOOK_FILE_PATH, AGENT_FINISHED_MESSAGES_DIRECTORY_PATH, AGENT_MESSAGES_DIRECTORY_PATH, AGENT_QUEUED_MESSAGES_DIRECTORY_PATH } from '../../../book-3.0/agentFolderPaths';
+import {
+    AGENT_BOOK_FILE_PATH,
+    AGENT_FINISHED_MESSAGES_DIRECTORY_PATH,
+    AGENT_MESSAGES_DIRECTORY_PATH,
+    AGENT_QUEUED_MESSAGES_DIRECTORY_PATH,
+} from '../../../book-3.0/agentFolderPaths';
 import type { InitializationStatus } from '../coder/boilerplateTemplates';
 import { ensureCoderMarkdownFile } from '../coder/ensureCoderMarkdownFile';
 import { ensureDirectory } from '../coder/ensureDirectory';
-import { AGENT_BOOK_LANGUAGE_MANUAL_FILE_PATH, AGENT_DOCS_DIRECTORY_PATH, AGENT_KNOWLEDGE_DIRECTORY_PATH, getDefaultAgentBookContent, getDefaultBookLanguageManualContent } from './agentProjectPaths';
+import {
+    AGENT_BOOK_LANGUAGE_MANUAL_FILE_PATH,
+    AGENT_DOCS_DIRECTORY_PATH,
+    AGENT_KNOWLEDGE_DIRECTORY_PATH,
+    getDefaultAgentBookContent,
+    getDefaultBookLanguageManualContent,
+} from './agentProjectPaths';
 
 /**
  * Result summary returned after local agent configuration initialization.

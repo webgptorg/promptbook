@@ -4,7 +4,12 @@ import type { Prompt } from '../types/Prompt';
 import type { string_markdown, string_markdown_text } from '../types/string_markdown';
 import type { string_title } from '../types/string_title';
 import type { AvailableModel } from './AvailableModel';
-import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult, ImagePromptResult } from './PromptResult';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+    ImagePromptResult,
+} from './PromptResult';
 
 /**
  * Container for all the tools needed to execute prompts to large language models like GPT-4

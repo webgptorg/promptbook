@@ -1,4 +1,9 @@
-import type { SpeechRecognition, SpeechRecognitionEvent, SpeechRecognitionStartOptions, SpeechRecognitionState } from '../types/SpeechRecognition';
+import type {
+    SpeechRecognition,
+    SpeechRecognitionEvent,
+    SpeechRecognitionStartOptions,
+    SpeechRecognitionState,
+} from '../types/SpeechRecognition';
 
 /**
  * Options for OpenAiSpeechRecognition

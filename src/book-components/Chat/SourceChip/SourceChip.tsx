@@ -1,19 +1,19 @@
 'use client';
 
 import {
-  Archive,
-  File,
-  FileCode,
-  FileJson,
-  FileSpreadsheet,
-  FileText,
-  Globe2,
-  ImageIcon,
-  Music,
-  Presentation,
-  Table,
-  Video,
-  type LucideIcon
+    Archive,
+    File,
+    FileCode,
+    FileJson,
+    FileSpreadsheet,
+    FileText,
+    Globe2,
+    ImageIcon,
+    Music,
+    Presentation,
+    Table,
+    Video,
+    type LucideIcon,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useResolvedCitationLabel } from '../hooks/useResolvedCitationLabel';

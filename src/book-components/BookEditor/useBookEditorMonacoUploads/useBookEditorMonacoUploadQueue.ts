@@ -1,6 +1,16 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { DEFAULT_MAX_CONCURRENT_UPLOADS } from '../../../config';
-import type { BookEditorMonacoOnFileUpload, BookEditorMonacoUploadProgressCallback, QueueProgressUpdate, SetUploadItems, UpdateUploadItem, UploadFilesRef, UploadItem, UploadItemsRef, UploadProgressUpdate } from './bookEditorMonacoUploadTypes';
+import type {
+    BookEditorMonacoOnFileUpload,
+    BookEditorMonacoUploadProgressCallback,
+    QueueProgressUpdate,
+    SetUploadItems,
+    UpdateUploadItem,
+    UploadFilesRef,
+    UploadItem,
+    UploadItemsRef,
+    UploadProgressUpdate,
+} from './bookEditorMonacoUploadTypes';
 import { clearScheduledTimer } from './clearScheduledTimer';
 import { replaceUploadItemById } from './useBookEditorMonacoUploadItemsState';
 

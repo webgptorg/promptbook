@@ -1,6 +1,11 @@
 import { spaceTrim } from 'spacetrim';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
-import type { CancelTimeoutToolArgs, ListTimeoutsToolArgs, SetTimeoutToolArgs, UpdateTimeoutToolArgs } from './TimeoutToolRuntimeAdapter';
+import type {
+    CancelTimeoutToolArgs,
+    ListTimeoutsToolArgs,
+    SetTimeoutToolArgs,
+    UpdateTimeoutToolArgs,
+} from './TimeoutToolRuntimeAdapter';
 
 /**
  * Default number of rows returned by `list_timeouts`.

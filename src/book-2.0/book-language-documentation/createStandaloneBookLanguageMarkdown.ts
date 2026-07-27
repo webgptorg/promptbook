@@ -1,6 +1,9 @@
 import { spaceTrim } from 'spacetrim';
 import { NotYetImplementedCommitmentDefinition } from '../../commitments/_base/NotYetImplementedCommitmentDefinition';
-import { formatCommitmentReplacementText, getCommitmentNoticeMetadata } from '../../commitments/_common/getCommitmentNoticeMetadata';
+import {
+    formatCommitmentReplacementText,
+    getCommitmentNoticeMetadata,
+} from '../../commitments/_common/getCommitmentNoticeMetadata';
 import { getGroupedCommitmentDefinitions } from '../../commitments/_common/getGroupedCommitmentDefinitions';
 import type { string_markdown } from '../../types/string_markdown';
 import { BOOK_LANGUAGE_VERSION } from '../../version';

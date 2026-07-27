@@ -166,7 +166,9 @@ describe('install.sh', () => {
         expect(installScript).toContain('--env=*)');
         expect(installScript).toContain('select_promptbook_repository_environment "--env" "${1#*=}"');
         expect(selfUpdateFunction).toContain('--env)');
-        expect(selfUpdateFunction).toContain('target_ref="$(normalize_promptbook_repository_environment_option "--env" "$1")"');
+        expect(selfUpdateFunction).toContain(
+            'target_ref="$(normalize_promptbook_repository_environment_option "--env" "$1")"',
+        );
         expect(selfUpdateFunction).toContain('--env=*)');
         expect(selfUpdateFunction).toContain(
             'target_ref="$(normalize_promptbook_repository_environment_option "--env" "${1#--env=}")"',
