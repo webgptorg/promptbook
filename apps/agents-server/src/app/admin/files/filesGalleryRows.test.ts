@@ -4,6 +4,7 @@ import {
     type FilesGalleryDatabaseAgentRow,
     type FilesGalleryDatabaseFileRow,
 } from './filesGalleryRows';
+import { resolveFilesGalleryFileHref } from './filesGalleryLinks';
 
 describe('filesGalleryRows', () => {
     it('normalizes files and attaches agent labels from a separate lookup', () => {
@@ -93,5 +94,26 @@ describe('filesGalleryRows', () => {
         ] as unknown as FilesGalleryDatabaseFileRow[];
 
         expect(collectFilesGalleryAgentIds(files)).toEqual([3, 9]);
+    });
+
+    it('resolves short URLs as a fallback when the storage URL is missing', () => {
+        expect(
+            resolveFilesGalleryFileHref({
+                storageUrl: '  ',
+                shortUrl: 'https://short.example.test/file',
+            }),
+        ).toBe('https://short.example.test/file');
+        expect(
+            resolveFilesGalleryFileHref({
+                storageUrl: 'https://storage.example.test/file',
+                shortUrl: 'https://short.example.test/file',
+            }),
+        ).toBe('https://storage.example.test/file');
+        expect(
+            resolveFilesGalleryFileHref({
+                storageUrl: null,
+                shortUrl: null,
+            }),
+        ).toBeNull();
     });
 });

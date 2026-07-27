@@ -5,6 +5,7 @@ import { buildAgentProfileHref } from '../../../utils/agentRouting/agentRouteHre
 import { formatServerLanguageHumanReadableDate } from '../../../utils/localization/formatServerLanguageHumanReadableDate';
 import { formatResourceBytes } from '../../../utils/resourceMonitor/formatResourceMonitorValue';
 import { AdminSortableTableHeaderCell } from '../_components/AdminSortableTableHeaderCell';
+import { resolveFilesGalleryFileHref } from './filesGalleryLinks';
 import { FilesGalleryStatusBadge } from './FilesGalleryStatusBadge';
 import type { UseFilesGalleryState } from './useFilesGalleryState';
 
@@ -13,7 +14,15 @@ import type { UseFilesGalleryState } from './useFilesGalleryState';
  */
 type FilesGalleryTableProps = Pick<
     UseFilesGalleryState,
-    'files' | 'total' | 'isLoading' | 'page' | 'limit' | 'sortBy' | 'sortOrder' | 'handlePageChange' | 'handleSortChange'
+    | 'files'
+    | 'total'
+    | 'isLoading'
+    | 'page'
+    | 'limit'
+    | 'sortBy'
+    | 'sortOrder'
+    | 'handlePageChange'
+    | 'handleSortChange'
 > & {
     /**
      * Active text formatter for agent naming.
@@ -117,51 +126,55 @@ export function FilesGalleryTable({
                         </tr>
                     </thead>
                     <tbody>
-                        {files.map((file) => (
-                            <tr key={file.id} className="bg-white border-b hover:bg-gray-50">
-                                <td className="px-6 py-4">
-                                    {file.storageUrl ? (
-                                        <a
-                                            href={file.storageUrl}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-blue-600 hover:underline"
-                                        >
-                                            {file.fileName}
-                                        </a>
-                                    ) : (
-                                        file.fileName
-                                    )}
-                                </td>
-                                <td className="px-6 py-4">{file.fileType}</td>
-                                <td className="px-6 py-4">{formatResourceBytes(file.fileSize)}</td>
-                                <td className="px-6 py-4">
-                                    {file.agent ? (
-                                        <Link
-                                            href={buildAgentProfileHref(
-                                                file.agent.permanentId || file.agent.agentName,
-                                            )}
-                                            className="text-blue-600 hover:underline"
-                                        >
-                                            {file.agent.agentName}
-                                        </Link>
-                                    ) : (
-                                        <span className="text-gray-400">-</span>
-                                    )}
-                                </td>
-                                <td className="px-6 py-4">
-                                    <span className="bg-gray-100 text-gray-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
-                                        {file.purpose}
-                                    </span>
-                                </td>
-                                <td className="px-6 py-4">
-                                    <FilesGalleryStatusBadge status={file.status} />
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    {formatServerLanguageHumanReadableDate(file.createdAt, language)}
-                                </td>
-                            </tr>
-                        ))}
+                        {files.map((file) => {
+                            const fileHref = resolveFilesGalleryFileHref(file);
+
+                            return (
+                                <tr key={file.id} className="bg-white border-b hover:bg-gray-50">
+                                    <td className="px-6 py-4">
+                                        {fileHref ? (
+                                            <a
+                                                href={fileHref}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-blue-600 hover:underline"
+                                            >
+                                                {file.fileName}
+                                            </a>
+                                        ) : (
+                                            file.fileName
+                                        )}
+                                    </td>
+                                    <td className="px-6 py-4">{file.fileType}</td>
+                                    <td className="px-6 py-4">{formatResourceBytes(file.fileSize)}</td>
+                                    <td className="px-6 py-4">
+                                        {file.agent ? (
+                                            <Link
+                                                href={buildAgentProfileHref(
+                                                    file.agent.permanentId || file.agent.agentName,
+                                                )}
+                                                className="text-blue-600 hover:underline"
+                                            >
+                                                {file.agent.agentName}
+                                            </Link>
+                                        ) : (
+                                            <span className="text-gray-400">-</span>
+                                        )}
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <span className="bg-gray-100 text-gray-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
+                                            {file.purpose}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <FilesGalleryStatusBadge status={file.status} />
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        {formatServerLanguageHumanReadableDate(file.createdAt, language)}
+                                    </td>
+                                </tr>
+                            );
+                        })}
                         {files.length === 0 && !isLoading && (
                             <tr>
                                 <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
