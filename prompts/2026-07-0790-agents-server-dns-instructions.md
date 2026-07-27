@@ -1,4 +1,4 @@
-[ ]
+[x] by OpenAI Codex `gpt-5.6-luna` (ChatGPT account) - Implementation ~$0.7864 37 minutes; Testing 23 minutes
 
 [✨𓀝] Show the instructions how to setup DNS records for projects
 
@@ -13,3 +13,4 @@
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ![alt text](screenshots/2026-07-0790-agents-server-dns-instructions.png)
+

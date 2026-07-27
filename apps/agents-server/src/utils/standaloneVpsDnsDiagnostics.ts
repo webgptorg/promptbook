@@ -2,9 +2,9 @@ import { lookup } from 'dns/promises';
 import type {
     ManagedServerDnsDiagnostic,
     ManagedServerDnsExpectedRecord,
-    ManagedServerDnsProviderGuide,
     ManagedServerDnsStatus,
 } from '../app/superadmin/servers/ServersRegistryDnsTypes';
+import { DNS_PROVIDER_GUIDES } from './dnsProviderGuides';
 
 /**
  * Resolver signature used for DNS lookups.
@@ -35,28 +35,6 @@ type CreateStandaloneVpsDomainDnsDiagnosticOptions = {
      */
     readonly resolveDnsAddresses?: ResolveDnsAddresses;
 };
-
-/**
- * Provider guides shown together with DNS record instructions.
- */
-const DNS_PROVIDER_GUIDES: ReadonlyArray<ManagedServerDnsProviderGuide> = [
-    {
-        label: 'Cloudflare DNS records',
-        href: 'https://developers.cloudflare.com/dns/manage-dns-records/how-to/create-dns-records/',
-    },
-    {
-        label: 'GoDaddy DNS records',
-        href: 'https://www.godaddy.com/help/manage-dns-records-680',
-    },
-    {
-        label: 'Namecheap DNS records',
-        href: 'https://www.namecheap.com/support/knowledgebase/article.aspx/319/2237/how-can-i-set-up-an-a-address-record-for-my-domain/',
-    },
-    {
-        label: 'Squarespace DNS records',
-        href: 'https://support.squarespace.com/hc/en-us/articles/360002101888-Adding-custom-DNS-records-to-your-Squarespace-managed-domain',
-    },
-];
 
 /**
  * DNS error codes treated as "not resolving yet" during propagation.

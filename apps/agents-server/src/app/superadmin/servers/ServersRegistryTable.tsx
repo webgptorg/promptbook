@@ -2,6 +2,8 @@
 
 import { Fragment } from 'react';
 import { ArrowRightLeft, ExternalLink, Loader2, Mail, RefreshCcw, Save } from 'lucide-react';
+import { AgentProjectDnsInstructions } from '../../../components/AgentProjectDnsInstructions/AgentProjectDnsInstructions';
+import { DnsProviderGuides } from '../../../components/DnsProviderGuides/DnsProviderGuides';
 import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
 import type { ServerLanguageCode } from '../../../languages/ServerLanguageRegistry';
 import { formatServerLanguageHumanReadableDate } from '../../../utils/localization/formatServerLanguageHumanReadableDate';
@@ -384,7 +386,11 @@ function ServersRegistryTableRow(props: ServersRegistryTableRowProps) {
             {isProjectDomainAssigned ? (
                 <tr className="bg-sky-50/50">
                     <td colSpan={columnCount} className="px-4 py-4">
-                        <ProjectDomainsPanel projectDomains={projectDomains} />
+                        <ProjectDomainsPanel
+                            projectDomains={projectDomains}
+                            publicIpAddress={dnsDiagnostic?.publicIpAddress}
+                            serverDomain={server.domain}
+                        />
                     </td>
                 </tr>
             ) : null}
@@ -453,19 +459,10 @@ function ServersRegistryTableRow(props: ServersRegistryTableRowProps) {
 
                             <div className="space-y-2">
                                 <p className="font-medium">Provider guides</p>
-                                <div className="flex flex-wrap gap-3 text-xs">
-                                    {dnsDiagnostic?.providerGuides.map((guide) => (
-                                        <a
-                                            key={guide.href}
-                                            href={guide.href}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="font-semibold text-amber-700 underline decoration-amber-400 underline-offset-2 hover:text-amber-900"
-                                        >
-                                            {guide.label}
-                                        </a>
-                                    ))}
-                                </div>
+                                <DnsProviderGuides
+                                    guides={dnsDiagnostic?.providerGuides}
+                                    linkClassName="font-semibold text-amber-700 underline decoration-amber-400 underline-offset-2 hover:text-amber-900"
+                                />
                             </div>
                         </div>
                     </td>
@@ -479,15 +476,20 @@ function ServersRegistryTableRow(props: ServersRegistryTableRowProps) {
  * Renders project domains owned by one server.
  */
 function ProjectDomainsPanel({
+    publicIpAddress,
     projectDomains,
+    serverDomain,
 }: {
+    readonly publicIpAddress: string | null | undefined;
     readonly projectDomains: NonNullable<ManagedServerRow['projectDomains']>;
+    readonly serverDomain: string;
 }) {
     const projectDomainSorting = useAdminTableSorting<ProjectDomainRow, ProjectDomainsTableSortField>({
         rows: projectDomains,
         defaultSortBy: 'projectName',
         resolveSortValue: resolveProjectDomainSortValue,
     });
+    const generatedProjectDomain = projectDomains.find((projectDomain) => !projectDomain.customDomain)?.domain ?? null;
 
     return (
         <div className="space-y-3 rounded-lg border border-sky-200 bg-sky-50 px-4 py-4 text-sm text-sky-950">
@@ -561,6 +563,13 @@ function ProjectDomainsPanel({
                     </tbody>
                 </table>
             </div>
+            {generatedProjectDomain ? (
+                <AgentProjectDnsInstructions
+                    projectDomain={generatedProjectDomain}
+                    publicIpAddress={publicIpAddress}
+                    serverDomain={serverDomain}
+                />
+            ) : null}
         </div>
     );
 }

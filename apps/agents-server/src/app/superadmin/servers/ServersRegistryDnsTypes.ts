@@ -1,3 +1,5 @@
+import type { DnsProviderGuide } from '../../../utils/dnsProviderGuides';
+
 /**
  * Supported DNS verification states shown for standalone VPS domains.
  *
@@ -37,17 +39,7 @@ export type ManagedServerDnsExpectedRecord = {
  *
  * @private shared type for the `/superadmin/servers` registry flow
  */
-export type ManagedServerDnsProviderGuide = {
-    /**
-     * Human-readable provider label.
-     */
-    readonly label: string;
-
-    /**
-     * Official provider help URL.
-     */
-    readonly href: string;
-};
+export type ManagedServerDnsProviderGuide = DnsProviderGuide;
 
 /**
  * DNS diagnostic payload returned for one standalone VPS domain.
