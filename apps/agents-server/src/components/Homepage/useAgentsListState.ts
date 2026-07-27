@@ -23,7 +23,6 @@ import { useAgentsListOverlayDetailsState } from './useAgentsListOverlayDetailsS
 import { useAgentsListOverlayState } from './useAgentsListOverlayState';
 import { useAgentsListQueryState } from './useAgentsListQueryState';
 import { useAgentsListSyncState } from './useAgentsListSyncState';
-import type { AgentWithVisibility } from './useFederatedAgents';
 import { useIsTouchInput } from './useIsTouchInput';
 
 /**
@@ -49,21 +48,9 @@ type UseAgentsListStateProps = {
      */
     readonly canOrganize: boolean;
     /**
-     * Controls whether federated agents are loaded and shown in graph view.
-     */
-    readonly showFederatedAgents: boolean;
-    /**
      * Base URL of the agents server.
      */
     readonly publicUrl: string_url;
-    /**
-     * Optional external agents to display in list view.
-     */
-    readonly externalAgents?: AgentWithVisibility[];
-    /**
-     * Whether the current view is inside a subfolder.
-     */
-    readonly isSubfolderView: boolean;
 };
 
 /**
@@ -75,27 +62,18 @@ type UseAgentsListStateProps = {
  * @private function of AgentsList
  */
 export function useAgentsListState(props: UseAgentsListStateProps) {
-    const {
-        agents: initialAgents,
-        folders: initialFolders,
-        canOrganize,
-        publicUrl,
-        showFederatedAgents,
-        externalAgents: initialExternalAgents,
-    } = props;
+    const { agents: initialAgents, folders: initialFolders, canOrganize, publicUrl } = props;
     const {
         folderQuery,
         isHiddenFoldersVisible,
         routeSyncKey,
         searchParamsSnapshot,
         setHiddenFoldersVisible,
-        setViewMode,
         updateCurrentPathQuery,
-        viewMode,
     } = useAgentsListQueryState();
     const { formatText } = useAgentNaming();
     const isTouchInput = useIsTouchInput();
-    const allowFullCardDrag = canOrganize && viewMode === 'LIST' && !isTouchInput;
+    const allowFullCardDrag = canOrganize && !isTouchInput;
     const {
         agents: agentsBeforeHiddenFilter,
         folders: foldersBeforeHiddenFilter,
@@ -109,11 +87,7 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
         initialFolders,
         routeSyncKey,
     });
-    const {
-        agents,
-        folders,
-        hasHiddenFolders,
-    } = useMemo(
+    const { agents, folders, hasHiddenFolders } = useMemo(
         () => filterHiddenFolderTree(foldersBeforeHiddenFilter, agentsBeforeHiddenFilter, isHiddenFoldersVisible),
         [foldersBeforeHiddenFilter, agentsBeforeHiddenFilter, isHiddenFoldersVisible],
     );
@@ -126,9 +100,6 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
         folderPathSegments,
         getFolderPreviewAgents,
         headingTitle,
-        mazeAgents,
-        officeAgents,
-        officeFolders,
         parentFolderInfo,
         visibleAgents,
         visibleFolders,
@@ -137,8 +108,6 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
         folderQuery,
         folders,
         formatText,
-        publicUrl,
-        viewMode,
     });
 
     useAgentsListFolderPathRecovery({
@@ -151,16 +120,12 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
         updateCurrentPathQuery,
     });
 
-    const { buildAgentEmail, buildAgentUrl, federatedAgents, federatedServersStatus, navigateToFolder } =
-        useAgentsListNavigationState({
-            folders,
-            initialExternalAgents,
-            publicUrl,
-            searchParamsSnapshot,
-            showFederatedAgents,
-            updateCurrentPathQuery,
-            viewMode,
-        });
+    const { buildAgentEmail, buildAgentUrl, navigateToFolder } = useAgentsListNavigationState({
+        folders,
+        publicUrl,
+        searchParamsSnapshot,
+        updateCurrentPathQuery,
+    });
 
     const organizationActions = useAgentsListOrganizationActions({
         agents,
@@ -256,8 +221,6 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
         dragAgentLabel,
         dragFolderLabel,
         dropIndicator: dragState.dropIndicator,
-        federatedAgents,
-        federatedServersStatus,
         folderEditDialogInitialValues: folderState.folderEditDialogState?.initialValues ?? null,
         folderEditDialogMode: folderState.folderEditDialogState?.mode ?? null,
         folders,
@@ -297,17 +260,12 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
         isFolderEditSubmitting: folderState.isFolderEditSubmitting,
         isHiddenFoldersVisible,
         navigateToFolder,
-        mazeAgents,
-        officeAgents,
-        officeFolders,
         parentFolderInfo,
         qrCodeAgent,
         qrCodeAgentEmail,
         qrCodeAgentUrl,
         sensors,
         setHiddenFoldersVisible,
-        setViewMode,
-        viewMode,
         visibleAgentDragIds,
         visibleAgents,
         visibleFolderDragIds,

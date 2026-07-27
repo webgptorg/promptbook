@@ -300,27 +300,6 @@ html.dark .agents-server-route-shell {
     overflow: hidden;
 }
 
-/* Agents graph styling */
-.agents-graph-surface {
-    background: radial-gradient(circle at 15% 15%, rgba(186, 230, 253, 0.45), transparent 55%),
-        radial-gradient(circle at 85% 85%, rgba(253, 230, 138, 0.35), transparent 60%), #f8fafc;
-}
-
-html.dark .agents-graph-surface {
-    background: radial-gradient(circle at 15% 15%, rgba(14, 165, 233, 0.2), transparent 45%),
-        radial-gradient(circle at 85% 85%, rgba(59, 130, 246, 0.16), transparent 48%), #020617;
-}
-
-.agents-graph-canvas {
-    position: relative;
-    z-index: 1;
-}
-
-.agents-graph-flow {
-    font-family: var(--font-poppins), 'Poppins', system-ui, -apple-system, sans-serif;
-    text-rendering: optimizeLegibility;
-}
-
 /* Code block styling */
 pre code {
     font-family: var(--font-mono), 'Courier New', monospace;
@@ -392,44 +371,6 @@ html.dark ::-webkit-scrollbar-thumb:hover {
 
 .animate-spin {
     animation: spin 1s linear infinite;
-}
-
-@keyframes agents-maze-bob {
-    0%,
-    100% {
-        transform: translateY(0);
-    }
-    50% {
-        transform: translateY(-4px);
-    }
-}
-
-@keyframes agents-maze-pulse {
-    0%,
-    100% {
-        opacity: 0.24;
-        transform: scale(0.7);
-    }
-    50% {
-        opacity: 0.52;
-        transform: scale(1);
-    }
-}
-
-.agents-maze-avatar {
-    animation: agents-maze-bob 3s ease-in-out infinite;
-    transform-origin: center bottom;
-}
-
-.agents-maze-pulse {
-    animation: agents-maze-pulse 2.2s ease-in-out infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .agents-maze-avatar,
-    .agents-maze-pulse {
-        animation: none;
-    }
 }
 
 /* Global route-transition progress bar */

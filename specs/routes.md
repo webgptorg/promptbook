@@ -42,7 +42,7 @@ All under `/admin` — see [Admin](ui/admin.md) for the section list.
 
 ## Meta/static routes
 
-`/robots.txt`, `/sitemap.xml` ([server visibility](servers-and-multi-tenancy.md#server-visibility)), `/manifest.webmanifest` (+ per-agent manifest params), `/humans.txt`, `/security.txt`, `/openapi.json` ([Management API](api/management-api.md#openapi)), `/api/embed.js` ([Embedding](ui/embedding-and-pwa.md#embed-script)), `/agents/:agentName/images/*` (avatar/screenshot renders, [Avatars](agents/avatars-and-visuals.md)), `/pixel-agents-assets/*` (bundled visual assets), `/s3/:first/:second/:hash/:filename` (stored-file proxy, [Attachments and files](chat/attachments-and-files.md#serving)).
+`/robots.txt`, `/sitemap.xml` ([server visibility](servers-and-multi-tenancy.md#server-visibility)), `/manifest.webmanifest` (+ per-agent manifest params), `/humans.txt`, `/security.txt`, `/openapi.json` ([Management API](api/management-api.md#openapi)), `/api/embed.js` ([Embedding](ui/embedding-and-pwa.md#embed-script)), `/agents/:agentName/images/*` (avatar/screenshot renders, [Avatars](agents/avatars-and-visuals.md)), `/s3/:first/:second/:hash/:filename` (stored-file proxy, [Attachments and files](chat/attachments-and-files.md#serving)).
 
 ## Agent-scoped APIs (`/agents/:agentName/api/...`)
 

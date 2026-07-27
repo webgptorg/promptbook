@@ -5,8 +5,7 @@ import { string_url } from '@promptbook-local/types';
 import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../../utils/agentOrganization/types';
 import { AgentsListDialogs } from './AgentsListDialogs';
 import { AgentsListHeader } from './AgentsListHeader';
-import { AgentsListViewContent } from './AgentsListViewContent';
-import type { AgentWithVisibility } from './useFederatedAgents';
+import { AgentsListListView } from './AgentsListListView';
 import { useAgentsListState } from './useAgentsListState';
 
 /**
@@ -34,30 +33,15 @@ type AgentsListProps = {
     readonly canOrganize: boolean;
 
     /**
-     * Controls whether federated agents are loaded and shown in graph view.
-     */
-    readonly showFederatedAgents: boolean;
-
-    /**
      * Base URL of the agents server
      *
      * Note: [??] Using `string_url`, not `URL` object because we are passing prop from server to client.
      */
     readonly publicUrl: string_url;
-
-    /**
-     * Optional external agents to display in the list view (used for federated agents)
-     */
-    readonly externalAgents?: AgentWithVisibility[];
-
-    /**
-     * Whether the current view is inside a subfolder.
-     */
-    readonly isSubfolderView: boolean;
 };
 
 /**
- * Renders the agents list with folder navigation and graph view toggles.
+ * Renders the agents list with folder navigation and organization controls.
  */
 export function AgentsList(props: AgentsListProps) {
     const { canOrganize, isAdmin, publicUrl } = props;
@@ -69,7 +53,9 @@ export function AgentsList(props: AgentsListProps) {
     const onRenameContextMenuFolder =
         canOrganize && contextMenuFolder ? () => state.handleRenameFolder(contextMenuFolder.id) : undefined;
     const onRequestContextMenuFolderVisibilityUpdate =
-        isAdmin && contextMenuFolder ? () => state.handleRequestFolderVisibilityUpdate(contextMenuFolder.id) : undefined;
+        isAdmin && contextMenuFolder
+            ? () => state.handleRequestFolderVisibilityUpdate(contextMenuFolder.id)
+            : undefined;
 
     return (
         <section
@@ -101,23 +87,17 @@ export function AgentsList(props: AgentsListProps) {
                 onExportAgents={() => void state.handleAgentsExport()}
                 onNavigateToFolder={state.navigateToFolder}
                 onSetHiddenFoldersVisible={state.setHiddenFoldersVisible}
-                onSetViewMode={state.setViewMode}
-                viewMode={state.viewMode}
             />
-            <AgentsListViewContent
+            <AgentsListListView
                 activeAgent={state.activeAgent}
                 activeDragItemType={state.activeDragItemType}
                 activeFolder={state.activeFolder}
-                agents={state.agents}
                 allowFullCardDrag={state.allowFullCardDrag}
                 canOrganize={canOrganize}
                 currentFolderId={state.currentFolderId}
                 dragAgentLabel={state.dragAgentLabel}
                 dragFolderLabel={state.dragFolderLabel}
                 dropIndicator={state.dropIndicator}
-                federatedAgents={state.federatedAgents}
-                federatedServersStatus={state.federatedServersStatus}
-                folders={state.folders}
                 getAgentDragId={state.getAgentDragId}
                 getFolderDragId={state.getFolderDragId}
                 getFolderPreviewAgents={state.getFolderPreviewAgents}
@@ -133,14 +113,10 @@ export function AgentsList(props: AgentsListProps) {
                 handleRenameFolder={state.handleRenameFolder}
                 handleRequestAgentVisibilityChange={state.handleRequestAgentVisibilityChange}
                 isAdmin={isAdmin}
-                mazeAgents={state.mazeAgents}
-                officeAgents={state.officeAgents}
-                officeFolders={state.officeFolders}
                 onNavigateToFolder={state.navigateToFolder}
                 parentFolderInfo={state.parentFolderInfo}
                 publicUrl={publicUrl}
                 sensors={state.sensors}
-                viewMode={state.viewMode}
                 visibleAgentDragIds={state.visibleAgentDragIds}
                 visibleAgents={state.visibleAgents}
                 visibleFolderDragIds={state.visibleFolderDragIds}

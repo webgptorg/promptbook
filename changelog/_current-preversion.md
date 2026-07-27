@@ -1,3 +1,5 @@
+-   Simplified the Agents Server homepage to keep only the **List** agents view. Removed the Graph, Office, Maze, and Pixel view switcher/renderers, their unused layout/state/test/CSS code, the Pixel Agents asset route, and the now-unused `reactflow` and `pixel-agents` dependencies; the existing list and federated-agent cards remain available.
+
 -   Added **VPS server setup** tasks to the Agents Server `/admin/task-manager`. Creating a new server and the automatic Let's Encrypt certificate obtain/renew maintenance now persist their full task lifecycle, including start, finish, duration, worker, queue, attempt, error, and searchable target details, and the task's **Open** link leads to the super admin `/superadmin/servers` page.
 
 -   Added project DNS setup instructions to the Agents Server `/admin/servers` project-domain panel. Administrators can now choose between configuring one project-specific hostname or a wildcard for all generated project domains, and between an A record pointing to the VPS or a CNAME pointing to the server domain.

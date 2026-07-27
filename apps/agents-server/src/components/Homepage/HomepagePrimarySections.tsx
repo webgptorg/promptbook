@@ -7,7 +7,6 @@ import { getIsSubfolderView } from '../../utils/getIsSubfolderView';
 import { AgentsList } from './AgentsList';
 import { ExternalAgentsSectionClient } from './ExternalAgentsSectionClient';
 import { HomepageMessage } from './HomepageMessage';
-import { isHomeListViewMode, resolveHomeViewMode } from './homeViewMode';
 
 /**
  * Props for the shared homepage/dashboard agents section.
@@ -52,8 +51,6 @@ export function HomepagePrimarySections({
 }: HomepagePrimarySectionsProps) {
     const searchParams = useSearchParams();
     const isSubfolderView = getIsSubfolderView(searchParams || undefined);
-    const viewMode = resolveHomeViewMode(searchParams?.get('view'));
-    const isListView = isHomeListViewMode(viewMode);
 
     return (
         <>
@@ -64,11 +61,9 @@ export function HomepagePrimarySections({
                 isAdmin={isAdmin}
                 canOrganize={canOrganize}
                 publicUrl={publicUrl}
-                showFederatedAgents={!isSubfolderView}
-                isSubfolderView={isSubfolderView}
             />
 
-            {isListView && !isSubfolderView && <ExternalAgentsSectionClient publicUrl={publicUrl} />}
+            {!isSubfolderView && <ExternalAgentsSectionClient publicUrl={publicUrl} />}
         </>
     );
 }

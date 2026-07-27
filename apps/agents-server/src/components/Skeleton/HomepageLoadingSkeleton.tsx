@@ -1,21 +1,10 @@
 import { AgentCardsLoadingSkeleton } from './AgentCardsLoadingSkeleton';
-import { GraphLoadingSkeleton } from './GraphLoadingSkeleton';
 import { Skeleton } from './Skeleton';
-
-/**
- * Props for home-route skeleton rendering.
- */
-type HomepageLoadingSkeletonProps = {
-    /**
-     * Whether graph placeholder should be shown together with list placeholders.
-     */
-    readonly showGraphPlaceholder?: boolean;
-};
 
 /**
  * Placeholder for large home/list route loads.
  */
-export function HomepageLoadingSkeleton({ showGraphPlaceholder = true }: HomepageLoadingSkeletonProps) {
+export function HomepageLoadingSkeleton() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900">
             <div
@@ -34,15 +23,9 @@ export function HomepageLoadingSkeleton({ showGraphPlaceholder = true }: Homepag
                     <section className="mt-16">
                         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
                             <Skeleton className="h-10 w-72 rounded-xl" />
-                            <div className="flex items-center gap-2">
-                                <Skeleton className="h-9 w-20 rounded-lg" />
-                                <Skeleton className="h-9 w-20 rounded-lg" />
-                            </div>
                         </div>
                         <AgentCardsLoadingSkeleton cardCount={8} />
                     </section>
-
-                    {showGraphPlaceholder && <GraphLoadingSkeleton height={520} />}
                 </div>
             </div>
         </div>

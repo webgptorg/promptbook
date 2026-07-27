@@ -1,6 +1,6 @@
 /**
- * Normalize a server URL by removing any trailing slash.
+ * Normalize a server URL by removing its trailing slash.
  *
- * @private function of buildGraphData
+ * @private function of the Agents Server homepage federation helpers
  */
 export const normalizeServerUrl = (url: string): string => url.replace(/\/$/, '');

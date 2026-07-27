@@ -1,4 +1,4 @@
-[ ]
+[x] (2 attempts) by OpenAI Codex `gpt-5.6-luna` (ChatGPT account) - Implementation ~$0.9371 32 minutes; Testing 21 minutes; Fixing ~$2.00 3 hours; Testing 33 minutes
 
 [✨🐂] Remove all the agents views in the homepage except the main List view
 
@@ -16,3 +16,4 @@
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ![alt text](screenshots/2026-07-0880-agents-server-remove-graph+.png)
+

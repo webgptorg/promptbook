@@ -307,66 +307,6 @@ export function getVisibleAgents(
 }
 
 /**
- * Resolves the folder set used by office-style views.
- *
- * @param currentFolderId - Current folder scope.
- * @param childrenByParentId - Folder child lookup.
- * @returns Folder id set for the office scope or null at the root.
- *
- * @private function of AgentsList
- */
-export function createOfficeVisibleFolderIdSet(
-    currentFolderId: number | null,
-    childrenByParentId: ReadonlyMap<number | null, number[]>,
-): Set<number> | null {
-    if (currentFolderId === null) {
-        return null;
-    }
-
-    return new Set(collectDescendantFolderIds(currentFolderId, childrenByParentId));
-}
-
-/**
- * Filters agents for office-style subtree rendering.
- *
- * @param agents - All local agents.
- * @param officeVisibleFolderIds - Folder scope for office views.
- * @returns Agents visible in the office scope.
- *
- * @private function of AgentsList
- */
-export function getOfficeAgents(
-    agents: ReadonlyArray<AgentOrganizationAgent>,
-    officeVisibleFolderIds: ReadonlySet<number> | null,
-): AgentOrganizationAgent[] {
-    if (officeVisibleFolderIds === null) {
-        return Array.from(agents);
-    }
-
-    return agents.filter((agent) => agent.folderId !== null && officeVisibleFolderIds.has(agent.folderId));
-}
-
-/**
- * Filters folders for office-style subtree rendering.
- *
- * @param folders - All folders in the organization.
- * @param officeVisibleFolderIds - Folder scope for office views.
- * @returns Folders visible in the office scope.
- *
- * @private function of AgentsList
- */
-export function getOfficeFolders(
-    folders: ReadonlyArray<AgentOrganizationFolder>,
-    officeVisibleFolderIds: ReadonlySet<number> | null,
-): AgentOrganizationFolder[] {
-    if (officeVisibleFolderIds === null) {
-        return Array.from(folders);
-    }
-
-    return folders.filter((folder) => officeVisibleFolderIds.has(folder.id));
-}
-
-/**
  * Creates the POST payload used to persist folder organization changes.
  *
  * @param folders - Updated folders to persist.
