@@ -1,0 +1,172 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e5]:
+        - generic [ref=e7]:
+          - link "Promptbook Agents Server" [ref=e9] [cursor=pointer]:
+            - /url: /
+            - img [ref=e11]
+            - generic [ref=e12]: Promptbook Agents Server
+          - img [ref=e13]
+          - button "agents" [ref=e17] [cursor=pointer]:
+            - generic [ref=e18]:
+              - img [ref=e20]
+              - generic [ref=e22]: agents
+            - img [ref=e23]
+        - generic [ref=e27]:
+          - generic [ref=e28]: Global search
+          - generic [ref=e29]:
+            - img
+            - combobox "Global search" [ref=e30]
+        - generic [ref=e31]:
+          - navigation [ref=e32]:
+            - button "Documentation" [ref=e34] [cursor=pointer]:
+              - generic [ref=e35]:
+                - img [ref=e36]
+                - generic [ref=e38]: Documentation
+              - img [ref=e39]
+            - button "System Warning" [ref=e42] [cursor=pointer]:
+              - generic [ref=e43]:
+                - img [ref=e44]
+                - generic [ref=e56]:
+                  - text: System
+                  - img "Warning" [ref=e57]
+              - img [ref=e59]
+          - button "Open global control panel" [ref=e62] [cursor=pointer]:
+            - img [ref=e63]
+            - generic [ref=e66]: Control panel
+          - generic [ref=e68]:
+            - button "A admin Admin" [expanded] [ref=e69] [cursor=pointer]:
+              - generic [ref=e71]: A
+              - generic [ref=e72]:
+                - generic [ref=e73]: admin
+                - generic [ref=e74]: Admin
+              - img [ref=e75]
+            - generic [ref=e77]:
+              - generic [ref=e78]:
+                - paragraph [ref=e79]: admin
+                - paragraph [ref=e80]: Admin
+              - button "Change Password" [ref=e81] [cursor=pointer]:
+                - img [ref=e82]
+                - text: Change Password
+              - button "Log out" [ref=e85] [cursor=pointer]:
+                - img [ref=e86]
+                - text: Log out
+    - main [ref=e89]:
+      - generic [ref=e91]:
+        - generic [ref=e92]:
+          - generic [ref=e93]:
+            - heading "Core agents are missing" [level=2] [ref=e94]
+            - paragraph [ref=e95]: "The core agents are used as a base for every other agent on this server. The following core agents are missing: Adam, Creator, Expert, Teacher. You can reinstate them with a single click; existing agents are left untouched."
+            - generic [ref=e96]:
+              - button "Reinstate core agents" [ref=e97] [cursor=pointer]
+              - link "Open Core Agents page" [ref=e98] [cursor=pointer]:
+                - /url: /admin/core-agents
+          - generic [ref=e99]:
+            - heading "Default agents are missing" [level=2] [ref=e100]
+            - paragraph [ref=e101]: "The default agents showcase what Promptbook agents can do. The following default agents are missing: Aktualizátor prezentací, Chat na webu, Chat nad firemními dokumenty, Oponent, Copywriter, Developer, Firemní právník, Generic chatter, Product Manager, Social Media Manager, Správce kalendáře, Webmaster. You can reinstate them with a single click; existing agents are left untouched."
+            - button "Reinstate default agents" [ref=e103] [cursor=pointer]
+        - generic [ref=e104]:
+          - heading "Local Agents (0) All Agents Download New Folder List Graph Office Maze Pixel" [level=2] [ref=e105]:
+            - generic [ref=e106]:
+              - generic [ref=e107]:
+                - generic [ref=e108]: Local Agents (0)
+                - button "All Agents" [ref=e110] [cursor=pointer]
+              - generic [ref=e111]:
+                - button "Download" [ref=e112] [cursor=pointer]:
+                  - img [ref=e113]
+                  - text: Download
+                - button "New Folder" [ref=e116] [cursor=pointer]:
+                  - img [ref=e117]
+                  - text: New Folder
+                - generic [ref=e119]:
+                  - button "List" [ref=e120] [cursor=pointer]:
+                    - img [ref=e121]
+                    - generic [ref=e123]: List
+                  - button "Graph" [ref=e124] [cursor=pointer]:
+                    - img [ref=e125]
+                    - generic [ref=e130]: Graph
+                  - button "Office" [ref=e131] [cursor=pointer]:
+                    - img [ref=e132]
+                    - generic [ref=e136]: Office
+                  - button "Maze" [ref=e137] [cursor=pointer]:
+                    - img [ref=e138]
+                    - generic [ref=e140]: Maze
+                  - button "Pixel" [ref=e141] [cursor=pointer]:
+                    - img [ref=e142]
+                    - generic [ref=e144]: Pixel
+          - generic [ref=e145]:
+            - generic [ref=e147] [cursor=pointer]: + Add New Agent
+            - link "Open Recycle Bin" [ref=e148] [cursor=pointer]:
+              - /url: /recycle-bin
+              - img [ref=e149]
+              - text: Open Recycle Bin
+          - status [ref=e152]
+    - contentinfo [ref=e153]:
+      - generic [ref=e154]:
+        - generic [ref=e155]:
+          - generic [ref=e156]:
+            - heading "Promptbook" [level=3] [ref=e157]
+            - paragraph [ref=e158]: Create persistent AI agents that turn your company's scattered knowledge into action
+          - generic [ref=e159]:
+            - heading "Product" [level=3] [ref=e160]
+            - list [ref=e161]:
+              - listitem [ref=e162]:
+                - link "Get started" [ref=e163] [cursor=pointer]:
+                  - /url: /get-started
+              - listitem [ref=e164]:
+                - link "Manifest" [ref=e165] [cursor=pointer]:
+                  - /url: /manifest
+              - listitem [ref=e166]:
+                - link "Documentation" [ref=e167] [cursor=pointer]:
+                  - /url: https://github.com/webgptorg/promptbook
+              - listitem [ref=e168]:
+                - link "Terms of Service" [ref=e169] [cursor=pointer]:
+                  - /url: /terms
+              - listitem [ref=e170]:
+                - link "Privacy Policy" [ref=e171] [cursor=pointer]:
+                  - /url: /privacy
+          - generic [ref=e172]:
+            - heading "Company" [level=3] [ref=e173]
+            - list [ref=e174]:
+              - listitem [ref=e175]:
+                - link "AI Web, LLC" [ref=e176] [cursor=pointer]:
+                  - /url: https://or-justice-cz.translate.goog/ias/ui/rejstrik-firma.vysledky?subjektId=1223693&typ=UPLNY&_x_tr_sl=cs&_x_tr_tl=en&_x_tr_hl=en-US&_x_tr_pto=wapp
+              - listitem [ref=e177]:
+                - link "About Us" [ref=e178] [cursor=pointer]:
+                  - /url: https://ptbk.io/#about-us
+              - listitem [ref=e179]:
+                - link "Blog" [ref=e180] [cursor=pointer]:
+                  - /url: https://ptbk.io/blog
+              - listitem [ref=e181]:
+                - link "Logos & Branding" [ref=e182] [cursor=pointer]:
+                  - /url: /design
+          - generic [ref=e183]:
+            - heading "Connect" [level=3] [ref=e184]
+            - list [ref=e185]:
+              - listitem [ref=e186]:
+                - link "GitHub" [ref=e187] [cursor=pointer]:
+                  - /url: https://github.com/webgptorg/promptbook
+              - listitem [ref=e188]:
+                - link "LinkedIn" [ref=e189] [cursor=pointer]:
+                  - /url: https://linkedin.com/company/promptbook
+              - listitem [ref=e190]:
+                - link "Discord" [ref=e191] [cursor=pointer]:
+                  - /url: https://discord.gg/x3QWNaa89N
+              - listitem [ref=e192]:
+                - link "More" [ref=e193] [cursor=pointer]:
+                  - /url: /contact
+        - generic [ref=e194]:
+          - paragraph [ref=e195]:
+            - text: © 2026 Promptbook
+            - text: Made with 🍓 in Europe
+          - paragraph [ref=e196]:
+            - link "v0.113.0-14 (f776df2), 5 days ago" [ref=e197] [cursor=pointer]:
+              - /url: https://github.com/webgptorg/promptbook/commit/f776df27301e3da7ac22036aac4b07df0aafe96e
+  - generic:
+    - region "Notifications"
+  - alert [ref=e198]
+```
