@@ -19,6 +19,7 @@
 
 [✨🎪] Add file browser to Internal S3 viewer
 
+-   _(Wait before implementing if the error of repeated commits was caused by this)_
 -   Do a proper analysis of the current functionality before you start implementing.
 -   Also fix the `/admin/files` page
 -   Difference between `/admin/internal-s3` and `/admin/files` pages:
@@ -33,15 +34,3 @@
 
 ![`/admin/internal-s3` page](screenshots/2026-07-0670-agents-server-s3-admin-1.png)
 ![`/admin/files` page](screenshots/2026-07-0670-agents-server-s3-admin-2.png)
-
-
-
-
-
-
-
-
-
-
-
-

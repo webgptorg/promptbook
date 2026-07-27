@@ -26,7 +26,6 @@ function createPromptSection(index: number): PromptSection {
         endLine: 1,
         status: 'todo',
         priority: 0,
-        requiredModelOrHarnessTokens: [],
     };
 }
 
