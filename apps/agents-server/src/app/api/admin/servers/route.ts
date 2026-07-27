@@ -26,6 +26,7 @@ import {
     resolveStandaloneVpsServerDisplayName,
 } from '../../../../utils/serverManagement/standaloneVpsServerMetadata';
 import { createStandaloneVpsDomainDnsDiagnostic } from '../../../../utils/standaloneVpsDnsDiagnostics';
+import { runWithVpsServerSetupTask } from '../../../../utils/vpsTask/runWithVpsServerSetupTask';
 import {
     applyVpsRuntimeConfiguration,
     listConfiguredVpsDomains,
@@ -116,46 +117,21 @@ export async function POST(request: Request) {
 
         const body = withEnvironmentAdminUser((await request.json()) as CreateServerInput);
         if (isAgentsServerSqliteMode()) {
-            const isDefaultAgentsInstalled = body.isDefaultAgentsInstalled !== false;
             const normalizedDomain = normalizeServerDomain(body.domain);
             if (!normalizedDomain) {
                 return NextResponse.json({ error: 'A valid domain is required.' }, { status: 400 });
             }
-            const tablePrefix = normalizeStandaloneVpsCreateServerTablePrefix(body);
+            const serverName = body.name?.trim() || normalizedDomain;
 
-            // Note: The VPS registry database is the source of truth for the server list.
-            //       Its unique table prefix selects the new server's own isolated SQLite database.
-            const { createStandaloneServer } = await import(
-                '../../../../database/sqlite/standaloneServerRegistryStore'
-            );
-            const createdServer = createStandaloneServer({
-                name: body.name?.trim() || normalizedDomain,
-                environment: isServerEnvironment(body.environment) ? body.environment : SERVER_ENVIRONMENT.PRODUCTION,
-                domain: normalizedDomain,
-                tablePrefix,
-            });
-
-            // Note: `SERVERS` stays a projection of the registry for nginx/certbot provisioning
-            //       and Edge middleware host matching; it no longer defines table prefixes.
-            const existingDomains = await listConfiguredVpsDomains();
-            await updateConfiguredVpsDomains([...existingDomains, normalizedDomain]);
-            await applyVpsRuntimeConfiguration({ isProcessRestartEnabled: false });
-
-            await applyStandaloneVpsServerMetadata({
-                tablePrefix: createdServer.tablePrefix,
-                name: body.name,
-                iconUrl: body.iconUrl,
-            });
-            if (isDefaultAgentsInstalled) {
-                await seedDefaultAgents({ tablePrefix });
-            }
-
-            return NextResponse.json(
+            return runWithVpsServerSetupTask(
                 {
-                    server: createdServer,
-                    publicUrl: createServerPublicUrl(normalizedDomain).href,
+                    taskName: `Server setup: ${serverName}`,
+                    chatId: normalizedDomain,
+                    serverName,
+                    serverDomain: normalizedDomain,
                 },
-                { status: 201 },
+                () => createStandaloneVpsServer(body, normalizedDomain),
+                (response) => response.status < 400,
             );
         }
 
@@ -187,6 +163,53 @@ export async function POST(request: Request) {
             { status: resolveManagedServerErrorStatus(error) },
         );
     }
+}
+
+/**
+ * Creates and provisions one standalone VPS server.
+ *
+ * @param body - Create-server request payload.
+ * @param normalizedDomain - Validated server domain.
+ * @returns Create response.
+ *
+ * @private function of `POST`
+ */
+async function createStandaloneVpsServer(body: CreateServerInput, normalizedDomain: string): Promise<NextResponse> {
+    const isDefaultAgentsInstalled = body.isDefaultAgentsInstalled !== false;
+    const tablePrefix = normalizeStandaloneVpsCreateServerTablePrefix(body);
+
+    // Note: The VPS registry database is the source of truth for the server list.
+    //       Its unique table prefix selects the new server's own isolated SQLite database.
+    const { createStandaloneServer } = await import('../../../../database/sqlite/standaloneServerRegistryStore');
+    const createdServer = createStandaloneServer({
+        name: body.name?.trim() || normalizedDomain,
+        environment: isServerEnvironment(body.environment) ? body.environment : SERVER_ENVIRONMENT.PRODUCTION,
+        domain: normalizedDomain,
+        tablePrefix,
+    });
+
+    // Note: `SERVERS` stays a projection of the registry for nginx/certbot provisioning
+    //       and Edge middleware host matching; it no longer defines table prefixes.
+    const existingDomains = await listConfiguredVpsDomains();
+    await updateConfiguredVpsDomains([...existingDomains, normalizedDomain]);
+    await applyVpsRuntimeConfiguration({ isProcessRestartEnabled: false });
+
+    await applyStandaloneVpsServerMetadata({
+        tablePrefix: createdServer.tablePrefix,
+        name: body.name,
+        iconUrl: body.iconUrl,
+    });
+    if (isDefaultAgentsInstalled) {
+        await seedDefaultAgents({ tablePrefix });
+    }
+
+    return NextResponse.json(
+        {
+            server: createdServer,
+            publicUrl: createServerPublicUrl(normalizedDomain).href,
+        },
+        { status: 201 },
+    );
 }
 
 /**

@@ -1,6 +1,7 @@
 import type { AdminChatTaskCounters, AdminChatTaskRecord } from '../chatTasksAdmin';
 import { listPagePreviewBrowserAdminTasks } from '../pagePreviewBrowserSessions';
 import { readVpsSelfUpdateJobTaskSnapshots } from '../vpsSelfUpdate';
+import { readVpsServerSetupTaskHistory } from '../vpsTask/vpsTaskHistory';
 import { compareAdminChatTasks } from './getAdminChatTasks/compareAdminChatTasks';
 import { mapVpsSelfUpdateJobToAdminChatTask } from './mapVpsSelfUpdateJobToAdminChatTask';
 import type { ParsedAdminChatTaskQuery } from './parseAdminChatTaskQuery';
@@ -26,7 +27,11 @@ const HOUR_IN_MILLISECONDS = 60 * 60 * 1000;
  * @private internal utility of admin task-manager injection
  */
 export async function loadInjectableAdminChatTasks(): Promise<Array<AdminChatTaskRecord>> {
-    return [...(await loadVpsSelfUpdateAdminChatTasks()), ...listPagePreviewBrowserAdminTasks()];
+    return [
+        ...(await loadVpsSelfUpdateAdminChatTasks()),
+        ...(await loadVpsServerSetupAdminTasks()),
+        ...listPagePreviewBrowserAdminTasks(),
+    ];
 }
 
 /**
@@ -44,6 +49,22 @@ async function loadVpsSelfUpdateAdminChatTasks(): Promise<Array<AdminChatTaskRec
             .filter((task): task is AdminChatTaskRecord => task !== null);
     } catch (error) {
         console.error('[admin-chat-task] failed to load VPS self-update task snapshots', error);
+        return [];
+    }
+}
+
+/**
+ * Loads persisted VPS server setup and certificate-maintenance tasks, if any.
+ *
+ * @returns Injectable task records.
+ *
+ * @private function of `loadInjectableAdminChatTasks`
+ */
+async function loadVpsServerSetupAdminTasks(): Promise<Array<AdminChatTaskRecord>> {
+    try {
+        return await readVpsServerSetupTaskHistory();
+    } catch (error) {
+        console.error('[admin-chat-task] failed to load VPS server setup task history', error);
         return [];
     }
 }

@@ -8,6 +8,7 @@ import { NotAllowed } from '../../../../src/errors/NotAllowed';
 import { UnexpectedError } from '../../../../src/errors/UnexpectedError';
 import { normalizeServerDomain } from './serverRegistry';
 import { isStandaloneVpsRawIpBootstrapActive } from './standaloneVpsRawIpBootstrap';
+import { runWithVpsServerSetupTask } from './vpsTask/runWithVpsServerSetupTask';
 
 const execFileAsync = promisify(execFile);
 
@@ -286,9 +287,24 @@ export async function applyVpsRuntimeConfiguration(
  * @returns Command output or a skipped reason when not running on a Linux VPS.
  */
 export async function applyVpsCertificateConfiguration(): Promise<VpsCommandResult> {
-    return runVpsInstallerCommand(
-        'apply-certificates',
-        'VPS certificate maintenance can only be applied on Linux.',
+    const configuredDomains = await listConfiguredVpsDomains();
+    return runWithVpsServerSetupTask(
+        {
+            taskName: 'Certificate maintenance',
+            chatId: configuredDomains.join(', ') || 'configured VPS domains',
+        },
+        () =>
+            runVpsInstallerCommand(
+                'apply-certificates',
+                'VPS certificate maintenance can only be applied on Linux.',
+            ),
+        (result) =>
+            result.isAvailable
+                ? true
+                : {
+                      isSuccessful: false,
+                      errorSummary: result.output,
+                  },
     );
 }
 

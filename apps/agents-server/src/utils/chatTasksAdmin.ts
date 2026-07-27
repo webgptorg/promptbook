@@ -29,10 +29,16 @@ export type AdminChatTaskSortOrder = 'asc' | 'desc';
  *
  * `VPS_SELF_UPDATE` represents a manual or automatic standalone VPS self-update session.
  * `BROWSER_PREVIEW` represents an ephemeral live browser stream used by citation previews.
+ * `VPS_SERVER_SETUP` represents VPS server bootstrap and certificate maintenance.
  *
  * @private internal admin utility of Agents Server
  */
-export type AdminChatTaskKind = 'CHAT_COMPLETION' | 'CHAT_TIMEOUT' | 'VPS_SELF_UPDATE' | 'BROWSER_PREVIEW';
+export type AdminChatTaskKind =
+    | 'CHAT_COMPLETION'
+    | 'CHAT_TIMEOUT'
+    | 'VPS_SELF_UPDATE'
+    | 'VPS_SERVER_SETUP'
+    | 'BROWSER_PREVIEW';
 
 /**
  * One row shown in the admin task-manager table.
@@ -67,7 +73,8 @@ export type AdminChatTaskRecord = {
     queueName: string | null;
 
     /**
-     * Registered server this task belongs to, set only by the VPS-wide superadmin aggregation.
+     * Registered server this task belongs to, when the source task is bound to one server or the
+     * VPS-wide superadmin aggregation adds the owning server.
      *
      * `null` (or absent) means the per-server view, or a VPS-level task not bound to any one server.
      */

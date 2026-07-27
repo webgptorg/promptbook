@@ -114,6 +114,10 @@ export function formatTaskKind(kind: AdminChatTaskRecord['kind']): string {
         return 'Self-update';
     }
 
+    if (kind === 'VPS_SERVER_SETUP') {
+        return 'Server setup';
+    }
+
     if (kind === 'BROWSER_PREVIEW') {
         return 'Browser preview';
     }

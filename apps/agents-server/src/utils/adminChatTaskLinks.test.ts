@@ -1,5 +1,6 @@
 import {
     buildAdminChatTaskDetailHref,
+    buildVpsServerSetupAdminChatTaskId,
     buildVpsSelfUpdateAdminChatTaskId,
     resolveAdminChatTaskTargetLink,
 } from './adminChatTaskLinks';
@@ -39,6 +40,17 @@ describe('adminChatTaskLinks', () => {
                 href: '/superadmin/update',
                 label: 'Open update',
                 title: 'Open the standalone VPS self-update page',
+                isExternal: false,
+            });
+        });
+
+        it('links server setup tasks to the super admin servers page', () => {
+            const targetLink = resolveAdminChatTaskTargetLink(createAdminChatTaskRecord({ kind: 'VPS_SERVER_SETUP' }));
+
+            expect(targetLink).toEqual({
+                href: '/superadmin/servers',
+                label: 'Open servers',
+                title: 'Open the super admin servers page',
                 isExternal: false,
             });
         });
@@ -84,6 +96,12 @@ describe('adminChatTaskLinks', () => {
     describe('buildVpsSelfUpdateAdminChatTaskId', () => {
         it('builds the synthetic self-update task id from a job identity', () => {
             expect(buildVpsSelfUpdateAdminChatTaskId('manual-update-1')).toBe('vps-self-update:manual-update-1');
+        });
+    });
+
+    describe('buildVpsServerSetupAdminChatTaskId', () => {
+        it('builds the synthetic server-setup task id from a task identity', () => {
+            expect(buildVpsServerSetupAdminChatTaskId('server-setup-1')).toBe('vps-server-setup:server-setup-1');
         });
     });
 });

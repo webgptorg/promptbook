@@ -3,6 +3,7 @@ import type { ServerEnvironment, ServerRecord } from '../serverRegistry';
 import { bootstrapManagedServer } from './createManagedServer/bootstrapManagedServer';
 import { createFailedServerResult } from './createManagedServer/createFailedServerResult';
 import { normalizeCreateServerInput } from './createManagedServer/normalizeCreateServerInput';
+import { runWithVpsServerSetupTask } from '../vpsTask/runWithVpsServerSetupTask';
 
 /**
  * User row requested by the create-server wizard.
@@ -177,9 +178,28 @@ export type CreateServerResult =
  * @returns Success result or a failure payload containing the attempted SQL dump.
  */
 export async function createManagedServer(input: CreateServerInput): Promise<CreateServerResult> {
+    let normalizedInput: ReturnType<typeof normalizeCreateServerInput>;
     try {
-        return await bootstrapManagedServer(normalizeCreateServerInput(input));
+        normalizedInput = normalizeCreateServerInput(input);
     } catch (error) {
         return createFailedServerResult(error, null, null);
     }
+
+    return runWithVpsServerSetupTask(
+        {
+            taskName: `Server setup: ${normalizedInput.name}`,
+            chatId: normalizedInput.domain,
+            serverName: normalizedInput.name,
+            serverDomain: normalizedInput.domain,
+        },
+        () => bootstrapManagedServer(normalizedInput),
+        (result) =>
+            result.ok
+                ? true
+                : {
+                      isSuccessful: false,
+                      errorSummary: result.message,
+                      errorDetails: result.sqlDump,
+                  },
+    );
 }

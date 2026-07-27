@@ -15,7 +15,7 @@
 
 ---
 
-[ ]
+[x] by OpenAI Codex `gpt-5.6-luna` (ChatGPT account) - Implementation ~$0.8116 an hour; Testing 40 minutes
 
 [✨🔙] When the agent server is setting up a new server or obtaining or renewing a certificate, show this in a task manager as a task
 
@@ -26,3 +26,4 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

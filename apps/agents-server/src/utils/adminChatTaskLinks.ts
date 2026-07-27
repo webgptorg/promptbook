@@ -19,6 +19,13 @@ const VPS_SELF_UPDATE_PAGE_ROUTE = '/superadmin/update';
 export const VPS_SELF_UPDATE_ADMIN_CHAT_TASK_ID_PREFIX = 'vps-self-update';
 
 /**
+ * Synthetic task-id prefix shared by VPS server setup and certificate-maintenance task rows.
+ *
+ * @private internal admin utility of Agents Server
+ */
+export const VPS_SERVER_SETUP_ADMIN_CHAT_TASK_ID_PREFIX = 'vps-server-setup';
+
+/**
  * Link from one admin task to the Agents Server page it operates on (task → page).
  *
  * Every durable background task acts on exactly one place in the Agents Server — a chat thread, the
@@ -79,6 +86,13 @@ export function resolveAdminChatTaskTargetLink(task: AdminChatTaskRecord): Admin
                 title: 'Open the standalone VPS self-update page',
                 isExternal: false,
             };
+        case 'VPS_SERVER_SETUP':
+            return {
+                href: '/superadmin/servers',
+                label: 'Open servers',
+                title: 'Open the super admin servers page',
+                isExternal: false,
+            };
         case 'BROWSER_PREVIEW':
             if (!isAbsoluteHttpUrl(task.chatId)) {
                 return null;
@@ -116,6 +130,18 @@ export function buildAdminChatTaskDetailHref(taskId: string): string {
  */
 export function buildVpsSelfUpdateAdminChatTaskId(jobIdentity: string): string {
     return `${VPS_SELF_UPDATE_ADMIN_CHAT_TASK_ID_PREFIX}:${jobIdentity}`;
+}
+
+/**
+ * Builds the synthetic admin task id of one VPS server setup run.
+ *
+ * @param taskIdentity - Stable identity of the setup run.
+ * @returns Synthetic server-setup task id.
+ *
+ * @private internal admin utility of Agents Server
+ */
+export function buildVpsServerSetupAdminChatTaskId(taskIdentity: string): string {
+    return `${VPS_SERVER_SETUP_ADMIN_CHAT_TASK_ID_PREFIX}:${taskIdentity}`;
 }
 
 /**
