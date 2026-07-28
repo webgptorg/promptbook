@@ -18,6 +18,7 @@ import { useCanonicalAgentChatPanelState } from './useCanonicalAgentChatPanelSta
 type CanonicalAgentChatPanelProps = {
     chatId: string;
     agentName: string;
+    agentTitle: string;
     agentUrl: string;
     brandColor?: string;
     inputPlaceholder: string | undefined;
@@ -77,6 +78,7 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
     const {
         chatId,
         agentName,
+        agentTitle,
         agentUrl,
         brandColor,
         inputPlaceholder,
@@ -111,6 +113,7 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
     const panelState = useCanonicalAgentChatPanelState({
         chatId,
         agentName,
+        agentTitle,
         agentUrl,
         initialAgentMessage,
         isReadOnly,

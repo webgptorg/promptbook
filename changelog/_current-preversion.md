@@ -1,3 +1,7 @@
+-   Fixed the Agents Server initial chat greeting so a partially loaded agent never shows its opaque permanent id. The canonical chat now reuses the already resolved human-readable agent title until the remote agent profile is available.
+
+-   Fixed the default Coder project npm scripts to use the locally installed `ptbk` command expected by the Coder boilerplate verification.
+
 -   Enhanced Agents Server admin page tabs with one shared underline-style navigation component. Configuration, storage, and task-manager scope tabs now use consistent spacing, active-state styling, hover states, and accessible current-page semantics.
 
 -   Unified the Agents Server per-server and VPS-wide task managers. The VPS-wide `/superadmin/task-manager` now shows the same task details, target links, log controls, task detail links, cancellation/retry actions, terminal button, and bulk cancellation action as `/admin/task-manager`, with only the owning **Server** column added; cross-server actions preserve each server's isolated context, and the former `/admin/task-manager-vps` URL redirects to the new super-admin route.

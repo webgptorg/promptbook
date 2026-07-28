@@ -23,6 +23,7 @@ import { useAgentChatMetaDisclaimer } from '../useAgentChatMetaDisclaimer';
 import { useAgentChatToolInteractions } from '../useAgentChatToolInteractions';
 import { useTeamAgentProfiles } from '../useTeamAgentProfiles';
 import { createReplyingToSnapshot, isReplyableCanonicalChatMessage } from './chatReplies';
+import { resolveAgentChatDisplayName } from './resolveAgentChatDisplayName';
 import { useCanonicalChatMessages } from './useCanonicalChatMessages';
 import { queuePendingOutboundMessage } from './usePendingOutboundMessages';
 
@@ -85,6 +86,7 @@ type CanonicalAgentKnowledgeSource = {
 type UseCanonicalAgentChatPanelStateOptions = {
     readonly chatId: string;
     readonly agentName: string;
+    readonly agentTitle: string;
     readonly agentUrl: string;
     readonly initialAgentMessage?: string | null;
     readonly isReadOnly: boolean;
@@ -184,6 +186,7 @@ export function useCanonicalAgentChatPanelState(
     const {
         chatId,
         agentName,
+        agentTitle,
         agentUrl,
         initialAgentMessage,
         isReadOnly,
@@ -360,7 +363,7 @@ export function useCanonicalAgentChatPanelState(
         onManualMessage: handleManualMessage,
     });
 
-    const agentDisplayName = useMemo(() => resolveAgentDisplayName(agent, agentName), [agent, agentName]);
+    const agentDisplayName = useMemo(() => resolveAgentChatDisplayName(agent, agentTitle), [agent, agentTitle]);
     const agentKnowledgeSources = useMemo(() => resolveAgentKnowledgeSources(agent), [agent]);
     const resolvedAgentAvatar = useMemo(
         () => resolveResolvedAgentAvatar(agent, agentName, agentUrl),
@@ -665,15 +668,6 @@ function resolveCurrentAgentPermanentId(agent: RemoteAgent | null | undefined, a
     return typeof (agent as { permanentId?: unknown } | undefined)?.permanentId === 'string'
         ? ((agent as { permanentId?: string }).permanentId as string)
         : agentName;
-}
-
-/**
- * Resolves the display name shared across chat title, participants, and fallback copy.
- *
- * @private function of CanonicalAgentChatPanel
- */
-function resolveAgentDisplayName(agent: RemoteAgent | null | undefined, agentName: string): string {
-    return agent?.meta.fullname || agent?.agentName || agentName;
 }
 
 /**

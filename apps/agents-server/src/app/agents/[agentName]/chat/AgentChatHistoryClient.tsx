@@ -57,6 +57,7 @@ type AgentChatHistoryLoadingViewProps = {
 type AgentChatHistoryReadyViewProps = Pick<
     AgentChatHistoryClientProps,
     | 'agentName'
+    | 'agentTitle'
     | 'agentUrl'
     | 'brandColor'
     | 'inputPlaceholder'
@@ -113,6 +114,7 @@ type AgentChatHistoryReadyViewProps = Pick<
 export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const {
         agentName,
+        agentTitle,
         agentUrl,
         brandColor,
         inputPlaceholder,
@@ -188,6 +190,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     return (
         <AgentChatHistoryReadyView
             agentName={agentName}
+            agentTitle={agentTitle}
             agentUrl={agentUrl}
             brandColor={brandColor}
             inputPlaceholder={inputPlaceholder}
@@ -295,6 +298,7 @@ function AgentChatHistoryLoadingView(props: AgentChatHistoryLoadingViewProps) {
 function AgentChatHistoryReadyView(props: AgentChatHistoryReadyViewProps) {
     const {
         agentName,
+        agentTitle,
         agentUrl,
         brandColor,
         inputPlaceholder,
@@ -358,6 +362,7 @@ function AgentChatHistoryReadyView(props: AgentChatHistoryReadyViewProps) {
                 <CanonicalAgentChatPanel
                     chatId={activeChatId}
                     agentName={agentName}
+                    agentTitle={agentTitle}
                     agentUrl={agentUrl}
                     brandColor={brandColor}
                     inputPlaceholder={inputPlaceholder}
