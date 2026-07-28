@@ -2,12 +2,12 @@
  * Default npm scripts initialized by `ptbk coder init`.
  */
 const DEFAULT_CODER_PACKAGE_JSON_SCRIPTS = {
-    'coder:generate-boilerplates': 'ptbk coder generate-boilerplates --template ./prompts/templates/common.md',
-    'coder:add': 'ptbk coder add --template ./prompts/templates/common.md',
+    'coder:generate-boilerplates': 'npx ptbk coder generate-boilerplates --template ./prompts/templates/common.md',
+    'coder:add': 'npx ptbk coder add --template ./prompts/templates/common.md',
     'coder:run':
-        'ptbk coder run --harness openai-codex --model gpt-5.5 --thinking-level xhigh --agent agents/developer.book --context AGENTS.md',
-    // 'coder:find-refactor-candidates': 'ptbk coder find-refactor-candidates',
-    'coder:verify': 'ptbk coder verify',
+        'npx ptbk coder run --harness openai-codex --model gpt-5.5 --thinking-level xhigh --agent agents/developer.book --context AGENTS.md',
+    // 'coder:find-refactor-candidates': 'npx ptbk coder find-refactor-candidates',
+    'coder:verify': 'npx ptbk coder verify',
 } as const satisfies Readonly<Record<string, string>>;
 
 /**
