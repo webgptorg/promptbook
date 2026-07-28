@@ -12,6 +12,16 @@ type AgentProjectReferencesListProps = {
     readonly agentPermanentId: string;
 
     /**
+     * Public domain of the server owning the projects, when known.
+     */
+    readonly serverDomain?: string | null;
+
+    /**
+     * Public domain serving the current page, when known.
+     */
+    readonly currentServerDomain?: string | null;
+
+    /**
      * Display-only project references.
      */
     readonly projects: ReadonlyArray<AgentProjectItemInfo>;
@@ -35,6 +45,8 @@ type AgentProjectReferencesListProps = {
  */
 export function AgentProjectReferencesList({
     agentPermanentId,
+    serverDomain = null,
+    currentServerDomain = null,
     projects,
     className = '',
     itemClassName = '',
@@ -49,6 +61,8 @@ export function AgentProjectReferencesList({
                 <AgentProjectItem
                     key={project.projectName}
                     agentPermanentId={agentPermanentId}
+                    serverDomain={serverDomain}
+                    currentServerDomain={currentServerDomain}
                     project={project}
                     variant="small"
                     className={itemClassName}

@@ -1,4 +1,4 @@
-import type { AgentProjectInfo } from '../agentProjects/AgentProjectInfo';
+import type { AgentProjectInfo, AgentProjectsOwner } from '../agentProjects/AgentProjectInfo';
 import type { AgentProjectRuntimeInfo } from '../agentProjects/AgentProjectRuntimeInfo';
 
 /**
@@ -148,17 +148,7 @@ export type NetworkResourceUsage = {
 /**
  * Project storage usage of one agent.
  */
-export type AgentProjectsResourceAgentUsage = {
-    /**
-     * Permanent id of the agent owning the projects.
-     */
-    readonly agentPermanentId: string;
-
-    /**
-     * Display name of the agent, or `null` when the agent row no longer exists.
-     */
-    readonly agentName: string | null;
-
+export type AgentProjectsResourceAgentUsage = AgentProjectsOwner & {
     /**
      * Count of projects of the agent.
      */
@@ -176,7 +166,7 @@ export type AgentProjectsResourceAgentUsage = {
 };
 
 /**
- * Storage usage of all agent projects on this server.
+ * Storage usage of all agent projects on the VPS.
  */
 export type AgentProjectsResourceUsage = {
     /**
@@ -193,6 +183,11 @@ export type AgentProjectsResourceUsage = {
      * Total count of projects across all agents.
      */
     readonly totalProjectCount: number;
+
+    /**
+     * Public domain of the server handling the resource-monitor request.
+     */
+    readonly currentServerDomain: string | null;
 
     /**
      * Per-agent project usage ordered by size descending. Only agents with at least one project are listed.

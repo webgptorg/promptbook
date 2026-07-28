@@ -1,7 +1,7 @@
 import { FolderKanbanIcon } from 'lucide-react';
 import Link from 'next/link';
 import type { AgentProjectInfo } from '../../utils/agentProjects/AgentProjectInfo';
-import { buildAgentProjectProfileHref } from '../../utils/agentProjects/agentProjectHrefs';
+import { buildAgentProjectProfileHrefForServer } from '../../utils/agentProjects/agentProjectHrefs';
 import { formatResourceBytes } from '../../utils/resourceMonitor/formatResourceMonitorValue';
 
 /**
@@ -27,6 +27,16 @@ type AgentProjectItemProps = {
     readonly agentPermanentId: string;
 
     /**
+     * Public domain of the server owning the project, when known.
+     */
+    readonly serverDomain?: string | null;
+
+    /**
+     * Public domain serving the current page, when known.
+     */
+    readonly currentServerDomain?: string | null;
+
+    /**
      * Displayed project metadata.
      */
     readonly project: AgentProjectItemInfo;
@@ -50,11 +60,18 @@ type AgentProjectItemProps = {
  */
 export function AgentProjectItem({
     agentPermanentId,
+    serverDomain = null,
+    currentServerDomain = null,
     project,
     variant = 'full',
     className = '',
 }: AgentProjectItemProps) {
-    const href = buildAgentProjectProfileHref(agentPermanentId, project.projectName);
+    const href = buildAgentProjectProfileHrefForServer({
+        agentPermanentId,
+        projectName: project.projectName,
+        serverDomain,
+        currentServerDomain,
+    });
 
     if (variant === 'small') {
         return <SmallAgentProjectItem href={href} project={project} className={className} />;

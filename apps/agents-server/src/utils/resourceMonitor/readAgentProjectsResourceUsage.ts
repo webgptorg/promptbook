@@ -1,4 +1,5 @@
 import { listAllAgentProjectSummaries } from '../agentProjects/listAllAgentProjectSummaries';
+import { resolveCurrentServerRegistryContext } from '../currentServerRegistryContext';
 import { resolveLocalAgentRootPath } from '../localChatRunner/ensureLocalAgentFolder';
 import type { AgentProjectsResourceUsage } from './resourceMonitorTypes';
 
@@ -12,15 +13,23 @@ import type { AgentProjectsResourceUsage } from './resourceMonitorTypes';
  */
 export async function readAgentProjectsResourceUsage(): Promise<AgentProjectsResourceUsage> {
     try {
-        const report = await listAllAgentProjectSummaries();
+        const [report, currentServerContext] = await Promise.all([
+            listAllAgentProjectSummaries({ scope: 'vps' }),
+            resolveCurrentServerRegistryContext(),
+        ]);
 
         return {
             rootPath: report.rootPath,
             totalSizeBytes: report.totalSizeBytes,
             totalProjectCount: report.totalProjectCount,
+            currentServerDomain: currentServerContext.currentServer?.domain ?? null,
             agents: report.summaries.map((summary) => ({
                 agentPermanentId: summary.agentPermanentId,
                 agentName: summary.agentName,
+                agentDirectoryName: summary.agentDirectoryName,
+                serverId: summary.serverId,
+                serverName: summary.serverName,
+                serverDomain: summary.serverDomain,
                 projectCount: summary.projects.length,
                 projects: summary.projects,
                 sizeBytes: summary.totalSizeBytes,
@@ -32,6 +41,7 @@ export async function readAgentProjectsResourceUsage(): Promise<AgentProjectsRes
             rootPath: resolveLocalAgentRootPath(),
             totalSizeBytes: 0,
             totalProjectCount: 0,
+            currentServerDomain: null,
             agents: [],
             errorMessage: error instanceof Error ? error.message : 'Failed to measure agent project sizes.',
         };

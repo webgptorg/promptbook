@@ -1,3 +1,5 @@
+import { createServerPublicUrl, normalizeServerDomain } from '../serverRegistry';
+
 /**
  * Builds the href of the projects dashboard of one agent.
  *
@@ -9,6 +11,28 @@ export function buildAgentProjectsDashboardHref(agentPermanentId: string): strin
 }
 
 /**
+ * Builds the href of one agent's projects dashboard on its owning server.
+ *
+ * A project on the current server stays a relative application link. A project owned by
+ * another server receives an absolute URL so it cannot accidentally open under the current
+ * server's database namespace.
+ *
+ * @param options - Agent and server identity.
+ * @returns Server-scoped projects dashboard href.
+ */
+export function buildAgentProjectsDashboardHrefForServer(options: {
+    readonly agentPermanentId: string;
+    readonly serverDomain: string | null;
+    readonly currentServerDomain: string | null;
+}): string {
+    return buildAgentProjectHrefForServer(
+        buildAgentProjectsDashboardHref(options.agentPermanentId),
+        options.serverDomain,
+        options.currentServerDomain,
+    );
+}
+
+/**
  * Builds the href of the project profile page.
  *
  * @param agentPermanentId - Permanent id of the agent.
@@ -17,6 +41,25 @@ export function buildAgentProjectsDashboardHref(agentPermanentId: string): strin
  */
 export function buildAgentProjectProfileHref(agentPermanentId: string, projectName: string): string {
     return `${buildAgentProjectsDashboardHref(agentPermanentId)}/${encodeURIComponent(projectName)}`;
+}
+
+/**
+ * Builds the href of one project on its owning server.
+ *
+ * @param options - Project and server identity.
+ * @returns Server-scoped project profile href.
+ */
+export function buildAgentProjectProfileHrefForServer(options: {
+    readonly agentPermanentId: string;
+    readonly projectName: string;
+    readonly serverDomain: string | null;
+    readonly currentServerDomain: string | null;
+}): string {
+    return buildAgentProjectHrefForServer(
+        buildAgentProjectProfileHref(options.agentPermanentId, options.projectName),
+        options.serverDomain,
+        options.currentServerDomain,
+    );
 }
 
 /**
@@ -79,3 +122,26 @@ export function buildAgentProjectVscodeHref(agentPermanentId: string, projectNam
  * Href of the admin dashboard listing all projects of all agents.
  */
 export const ADMIN_AGENT_PROJECTS_DASHBOARD_HREF = '/admin/projects';
+
+/**
+ * Makes a project href absolute only when its owner is a foreign server.
+ *
+ * @param relativeHref - Path within the Agents Server application.
+ * @param serverDomain - Domain of the owning server.
+ * @param currentServerDomain - Domain serving the current request.
+ * @returns Relative current-server href or absolute foreign-server href.
+ */
+function buildAgentProjectHrefForServer(
+    relativeHref: string,
+    serverDomain: string | null,
+    currentServerDomain: string | null,
+): string {
+    const normalizedServerDomain = normalizeServerDomain(serverDomain || '');
+    const normalizedCurrentServerDomain = normalizeServerDomain(currentServerDomain || '');
+
+    if (!normalizedServerDomain || normalizedServerDomain === normalizedCurrentServerDomain) {
+        return relativeHref;
+    }
+
+    return new URL(relativeHref, createServerPublicUrl(normalizedServerDomain)).toString();
+}

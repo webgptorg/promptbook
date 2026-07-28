@@ -54,7 +54,7 @@ export default async function AdminAgentProjectsPage() {
     }
 
     const [report, currentServerDomain, projectDomainRecords] = await Promise.all([
-        listAllAgentProjectSummaries(),
+        listAllAgentProjectSummaries({ scope: 'current-server' }),
         resolveCurrentAgentProjectServerDomain(),
         listAgentProjectDomainRecords(),
     ]);

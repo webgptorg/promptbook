@@ -2,7 +2,7 @@
 
 ---
 
-[ ]
+[x] by OpenAI Codex `gpt-5.6-luna` (ChatGPT account) - Implementation ~$0.9282 31 minutes; Testing 36 minutes
 
 [✨®️] Project should be scoped to server not to entire VPS
 
@@ -21,3 +21,4 @@
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ![project shown from different server](screenshots/2026-07-0850-agents-server-projects-scoped-to-server.png)
+

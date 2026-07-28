@@ -75,6 +75,21 @@ export type AgentProjectsOwner = {
      * Local agent runner directory name, for example `agent-1dkmraaikkd8yp`.
      */
     readonly agentDirectoryName: string;
+
+    /**
+     * Numeric id of the server owning the agent, or `null` for the unregistered default server.
+     */
+    readonly serverId: number | null;
+
+    /**
+     * Display name of the server owning the agent, or `null` when the server is not registered.
+     */
+    readonly serverName: string | null;
+
+    /**
+     * Public domain of the server owning the agent, or `null` when the server is not registered.
+     */
+    readonly serverDomain: string | null;
 };
 
 /**
@@ -98,7 +113,7 @@ export type AgentProjectsSummary = AgentProjectsOwner & {
 };
 
 /**
- * Server-wide report of all agent projects used by the admin dashboard and the resource monitor.
+ * Report of agent projects used by the per-server admin dashboard and the VPS resource monitor.
  */
 export type AllAgentProjectsReport = {
     /**
@@ -107,7 +122,7 @@ export type AllAgentProjectsReport = {
     readonly rootPath: string;
 
     /**
-     * Count of current-server agents checked for local project folders.
+     * Count of agents checked for local project folders in the selected scope.
      */
     readonly totalAgentCount: number;
 

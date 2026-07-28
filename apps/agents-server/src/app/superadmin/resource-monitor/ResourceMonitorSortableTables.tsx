@@ -8,7 +8,7 @@ import {
 } from '@/src/utils/agentProjects/agentProjectRuntimeDisplay';
 import {
     ADMIN_AGENT_PROJECTS_DASHBOARD_HREF,
-    buildAgentProjectsDashboardHref,
+    buildAgentProjectsDashboardHrefForServer,
 } from '@/src/utils/agentProjects/agentProjectHrefs';
 import {
     formatResourceBytes,
@@ -144,18 +144,30 @@ export function AgentProjectsUsageTable({ snapshot }: ResourceMonitorTableProps)
                     </thead>
                     <tbody>
                         {listedAgents.map((agentUsage) => (
-                            <tr key={agentUsage.agentPermanentId} className="border-b border-gray-100 last:border-0">
+                            <tr
+                                key={`${agentUsage.serverId ?? 'default'}-${agentUsage.agentPermanentId}`}
+                                className="border-b border-gray-100 last:border-0"
+                            >
                                 <td className="py-2 pr-4">
                                     <Link
-                                        href={buildAgentProjectsDashboardHref(agentUsage.agentPermanentId)}
+                                        href={buildAgentProjectsDashboardHrefForServer({
+                                            agentPermanentId: agentUsage.agentPermanentId,
+                                            serverDomain: agentUsage.serverDomain,
+                                            currentServerDomain: snapshot.projects.currentServerDomain,
+                                        })}
                                         className="text-gray-900 hover:text-blue-700 hover:underline"
                                     >
                                         {agentUsage.agentName || agentUsage.agentPermanentId}
                                     </Link>
+                                    {agentUsage.serverName && (
+                                        <div className="text-xs text-gray-400">{agentUsage.serverName}</div>
+                                    )}
                                 </td>
                                 <td className="py-2 pr-4 text-gray-700">
                                     <AgentProjectReferencesList
                                         agentPermanentId={agentUsage.agentPermanentId}
+                                        serverDomain={agentUsage.serverDomain}
+                                        currentServerDomain={snapshot.projects.currentServerDomain}
                                         projects={agentUsage.projects}
                                         className="min-w-64 max-w-xl flex-col"
                                         itemClassName="w-full"

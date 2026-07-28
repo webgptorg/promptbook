@@ -4,6 +4,8 @@ import { join } from 'path';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import { PTBK_AGENTS_SERVER_AGENT_ROOT_ENV } from '../localChatRunner/localChatRunnerConstants';
 import { createLocalAgentDirectoryName } from '../localChatRunner/ensureLocalAgentFolder';
+import { getServerContextOverride } from '@/src/tools/serverContextOverride';
+import { listRegisteredServersUsingServiceRole } from '../serverRegistry';
 import { listAllAgentProjectSummaries } from './listAllAgentProjectSummaries';
 
 jest.mock('@/src/database/$getTableName', () => ({
@@ -12,6 +14,11 @@ jest.mock('@/src/database/$getTableName', () => ({
 
 jest.mock('@/src/database/$provideSupabaseForServer', () => ({
     $provideSupabaseForServer: jest.fn(),
+}));
+
+jest.mock('../serverRegistry', () => ({
+    createServerPublicUrl: jest.fn((domain: string) => new URL(`https://${domain}`)),
+    listRegisteredServersUsingServiceRole: jest.fn(),
 }));
 
 /**
@@ -23,6 +30,7 @@ const ORIGINAL_AGENT_ROOT = process.env[PTBK_AGENTS_SERVER_AGENT_ROOT_ENV];
  * Mocked database rows returned from the current server `Agent` table.
  */
 let mockedAgentRows: Array<{ permanentId: string | null; agentName: string | null }> = [];
+let mockedAgentRowsByTablePrefix: Record<string, Array<{ permanentId: string | null; agentName: string | null }>> = {};
 
 describe('listAllAgentProjectSummaries', () => {
     let temporaryDirectory: string | null = null;
@@ -31,8 +39,10 @@ describe('listAllAgentProjectSummaries', () => {
         temporaryDirectory = await mkdtemp(join(tmpdir(), 'promptbook-agent-project-summaries-'));
         process.env[PTBK_AGENTS_SERVER_AGENT_ROOT_ENV] = temporaryDirectory;
         mockedAgentRows = [];
+        mockedAgentRowsByTablePrefix = {};
 
         ($provideSupabaseForServer as jest.Mock).mockReturnValue(createMockSupabaseClient());
+        (listRegisteredServersUsingServiceRole as jest.Mock).mockResolvedValue([]);
     });
 
     afterEach(async () => {
@@ -74,6 +84,60 @@ describe('listAllAgentProjectSummaries', () => {
         expect(report.summaries[0]?.projects.map((project) => project.projectName)).toEqual(['current-project']);
         expect(report.totalProjectCount).toBe(1);
     });
+
+    it('aggregates projects from every registered server for the VPS scope', async () => {
+        const firstServer = {
+            id: 1,
+            name: 'First server',
+            environment: 'PRODUCTION' as const,
+            domain: 'first.example.com',
+            tablePrefix: 'server_First_',
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+        };
+        const secondServer = {
+            id: 2,
+            name: 'Second server',
+            environment: 'PRODUCTION' as const,
+            domain: 'second.example.com',
+            tablePrefix: 'server_Second_',
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+        };
+        (listRegisteredServersUsingServiceRole as jest.Mock).mockResolvedValue([firstServer, secondServer]);
+        mockedAgentRowsByTablePrefix = {
+            [firstServer.tablePrefix]: [{ permanentId: 'FirstAgent', agentName: 'First agent' }],
+            [secondServer.tablePrefix]: [{ permanentId: 'SecondAgent', agentName: 'Second agent' }],
+        };
+
+        await createProjectFile({
+            agentPermanentId: 'FirstAgent',
+            projectName: 'first-project',
+            fileName: 'index.html',
+        });
+        await createProjectFile({
+            agentPermanentId: 'SecondAgent',
+            projectName: 'second-project',
+            fileName: 'index.html',
+        });
+
+        const report = await listAllAgentProjectSummaries({ scope: 'vps' });
+
+        expect(report.totalAgentCount).toBe(2);
+        expect(report.totalProjectCount).toBe(2);
+        expect(report.summaries).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    agentPermanentId: 'FirstAgent',
+                    serverDomain: firstServer.domain,
+                }),
+                expect.objectContaining({
+                    agentPermanentId: 'SecondAgent',
+                    serverDomain: secondServer.domain,
+                }),
+            ]),
+        );
+    });
 });
 
 /**
@@ -103,7 +167,7 @@ function createMockSupabaseClient() {
         from: jest.fn(() => ({
             select: jest.fn(() => ({
                 is: jest.fn(async () => ({
-                    data: mockedAgentRows,
+                    data: mockedAgentRowsByTablePrefix[getServerContextOverride()?.tablePrefix || ''] || mockedAgentRows,
                     error: null,
                 })),
             })),
