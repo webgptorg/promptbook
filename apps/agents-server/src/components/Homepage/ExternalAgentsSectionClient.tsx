@@ -111,17 +111,7 @@ export function ExternalAgentsSectionClient(props: ExternalAgentsSectionClientPr
     }, []);
 
     if (initialLoading) {
-        return (
-            <div className="mt-8" role="status" aria-live="polite" aria-busy="true" aria-label="Loading federated agents">
-                <AgentCardsSection
-                    title={formatText('Federated agents')}
-                    publicUrl={publicUrl}
-                    agents={[]}
-                    isLoading={true}
-                    loadingCardCount={4}
-                />
-            </div>
-        );
+        return null;
     }
 
     const serverUrls = Object.keys(servers);
@@ -135,6 +125,10 @@ export function ExternalAgentsSectionClient(props: ExternalAgentsSectionClientPr
             {serverUrls.map((serverUrl) => {
                 const state = servers[serverUrl];
                 const hostname = getServerHeadingLabel(serverUrl);
+
+                if (!state) {
+                    return null;
+                }
 
                 if (state.status === 'loading') {
                     return (
