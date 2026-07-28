@@ -1,6 +1,6 @@
 ;;
 ;; Domain:     ptbk.io.
-;; Exported:   2026-03-18 01:39:11
+;; Exported:   2026-07-28 14:25:31
 ;;
 ;; This file is intended for use for informational and archival
 ;; purposes ONLY and MUST be edited before use on a production
@@ -24,7 +24,7 @@
 ;;
 ;; Use at your own risk.
 ;; SOA Record
-ptbk.io	3600	IN	SOA	rick.ns.cloudflare.com. dns.cloudflare.com. 2052546455 10000 2400 604800 3600
+ptbk.io	3600	IN	SOA	rick.ns.cloudflare.com. dns.cloudflare.com. 2053691533 10000 2400 604800 3600
 
 ;; NS Records
 ptbk.io.	86400	IN	NS	rick.ns.cloudflare.com.
@@ -38,11 +38,42 @@ book-components.ptbk.io.	1	IN	A	76.76.21.21 ; cf_tags=cf-proxied:false
 elenwe.ptbk.io.	1	IN	A	76.76.21.21 ; Aldaronic; A/B testing landing page for Promptbook via Vercel cf_tags=cf-proxied:false
 emailer.ptbk.io.	1	IN	A	76.76.21.21 ; Aldaronic; A/B testing landing page for Promptbook via Vercel cf_tags=cf-proxied:false
 feanor.ptbk.io.	1	IN	A	76.76.21.21 ; Aldaronic; A/B testing landing page for Promptbook via Vercel cf_tags=cf-proxied:false
+live1.ptbk.io.	1	IN	A	68.183.19.218 ; cf_tags=cf-proxied:false
+live2.ptbk.io.	1	IN	A	68.183.19.218 ; cf_tags=cf-proxied:false
+live3.ptbk.io.	1	IN	A	68.183.19.218 ; cf_tags=cf-proxied:false
+live4.ptbk.io.	1	IN	A	68.183.19.218 ; cf_tags=cf-proxied:false
+live.ptbk.io.	1	IN	A	68.183.19.218 ; cf_tags=cf-proxied:false
+lts1.ptbk.io.	1	IN	A	167.172.180.231 ; cf_tags=cf-proxied:false
+lts2.ptbk.io.	1	IN	A	167.172.180.231 ; cf_tags=cf-proxied:false
+lts3.ptbk.io.	1	IN	A	167.172.180.231 ; cf_tags=cf-proxied:false
+lts4.ptbk.io.	1	IN	A	167.172.180.231 ; cf_tags=cf-proxied:false
+*.lts.ptbk.io.	1	IN	A	167.172.180.231 ; cf_tags=cf-proxied:false
+lts.ptbk.io.	1	IN	A	167.172.180.231 ; cf_tags=cf-proxied:false
+mail.live.ptbk.io.	1	IN	A	167.172.180.231 ; cf_tags=cf-proxied:false
+mta-sts.live.ptbk.io.	1	IN	A	167.172.180.231 ; Hosts the HTTPS MTA-STS policy for this mail domain. cf_tags=cf-proxied:false
+pasu.ptbk.io.	1	IN	A	167.172.180.231 ; cf_tags=cf-proxied:false
 podcast.ptbk.io.	1	IN	A	207.154.239.143 ; Owncast server cf_tags=cf-proxied:false
+preview.ptbk.io.	1	IN	A	198.199.87.43 ; cf_tags=cf-proxied:false
+production.ptbk.io.	1	IN	A	159.223.178.11 ; cf_tags=cf-proxied:false
 ptbk.io.	1	IN	A	76.76.21.21 ; Vercel cf_tags=cf-proxied:false
+s19.ptbk.io.	60	IN	A	167.99.144.26 ; cf_tags=cf-proxied:false
+s20.ptbk.io.	60	IN	A	167.99.151.212 ; cf_tags=cf-proxied:false
+s22-1.ptbk.io.	60	IN	A	167.172.138.126 ; cf_tags=cf-proxied:false
+s22-2.ptbk.io.	60	IN	A	167.172.138.126 ; cf_tags=cf-proxied:false
+s22.ptbk.io.	60	IN	A	167.172.138.126 ; cf_tags=cf-proxied:false
+s23.ptbk.io.	1	IN	A	167.172.138.126 ; cf_tags=cf-proxied:false
+s24-1.ptbk.io.	1	IN	A	134.122.27.41 ; cf_tags=cf-proxied:false
+s24-2.ptbk.io.	1	IN	A	134.122.27.41 ; cf_tags=cf-proxied:false
+s24-3.ptbk.io.	1	IN	A	134.122.27.41 ; cf_tags=cf-proxied:false
+*.s24.ptbk.io.	1	IN	A	134.122.27.41 ; cf_tags=cf-proxied:false
+s24.ptbk.io.	1	IN	A	134.122.27.41 ; cf_tags=cf-proxied:false
 s5.ptbk.io.	1	IN	A	104.248.16.7 ; cf_tags=cf-proxied:false
 soul.ptbk.io.	1	IN	A	76.76.21.21 ; Aldaronic; A/B testing landing page for Promptbook via Vercel cf_tags=cf-proxied:false
+test.ptbk.io.	1	IN	A	134.122.123.80 ; cf_tags=cf-proxied:false
 webgpt.ptbk.io.	1	IN	A	76.76.21.21 ; Aldaronic; A/B testing landing page for Promptbook via Vercel cf_tags=cf-proxied:false
+
+;; CAA Records
+live.ptbk.io.	1	IN	CAA	0 issue "issue \"letsencrypt.org\"" ; Authorizes Let’s Encrypt to issue the public SMTP and MTA-STS TLS certificates.
 
 ;; CNAME Records
 bizkithub.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
@@ -52,6 +83,7 @@ brevo2._domainkey.ptbk.io.	3600	IN	CNAME	b2.ptbk-io.dkim.brevo.com. ; cf_tags=cf
 browser.s5.ptbk.io.	1	IN	CNAME	s5.ptbk.io. ; cf_tags=cf-proxied:false
 chutoo.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
 chutoo-test.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
+coder.ptbk.io.	1	IN	CNAME	b9cf27eeafce63ae.vercel-dns-016.com. ; cf_tags=cf-proxied:false
 core.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
 core-test.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
 daeron.ptbk.io.	1	IN	CNAME	webgptorg.github.io. ; A/B testing landing page for Promptbook cf_tags=cf-proxied:false
@@ -63,11 +95,13 @@ gallery.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Pr
 greenhack.ptbk.io.	1	IN	CNAME	jorgesquared.github.io. ; Landing page for GreenHack 2025 cf_tags=cf-proxied:false
 jiri-jahn.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
 landing-pages.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
+*.lts1.ptbk.io.	1	IN	CNAME	lts1.ptbk.io. ; cf_tags=cf-proxied:false
 luthien.ptbk.io.	1	IN	CNAME	webgptorg.github.io. ; A/B testing landing page for Promptbook cf_tags=cf-proxied:false
+mango.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
 michal-novotny.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
 neon-media.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
 new.ptbk.io.	600	IN	CNAME	66b13097a4733114.vercel-dns-016.com. ; cf_tags=cf-proxied:false
-pasu.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
+pasu-old-vercel.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
 pasu-test.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
 pavol-hejny.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
 playground.ptbk.io.	600	IN	CNAME	89afef358143d158.vercel-dns-016.com. ; cf_tags=cf-proxied:false
@@ -76,6 +110,7 @@ praha13-test.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed 
 promptbook.s5.ptbk.io.	1	IN	CNAME	s5.ptbk.io. ; cf_tags=cf-proxied:false
 promptimage.s5.ptbk.io.	1	IN	CNAME	s5.ptbk.io. ; cf_tags=cf-proxied:false
 *.ptbk.io.	1	IN	CNAME	ptbk.io. ; cf_tags=cf-proxied:false
+ptbk.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
 rymarov.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
 s10.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
 s11.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
@@ -94,14 +129,24 @@ vyjednavani.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed b
 www.ptbk.io.	1	IN	CNAME	ptbk.io. ; cf_tags=cf-proxied:false
 
 ;; MX Records
-ptbk.io.	1	IN	MX	20 mx2.improvmx.com.
-ptbk.io.	1	IN	MX	10 mx1.improvmx.com.
+live.ptbk.io.	1	IN	MX	10 mail.live.ptbk.io. ; Routes inbound mail for the Agents Server domain to Stalwart.
+ptbk.io.	3600	IN	MX	10 alt4.aspmx.l.google.com.
+ptbk.io.	3600	IN	MX	5 alt2.aspmx.l.google.com.
+ptbk.io.	3600	IN	MX	10 alt3.aspmx.l.google.com.
+ptbk.io.	3600	IN	MX	5 alt1.aspmx.l.google.com.
+ptbk.io.	3600	IN	MX	1 aspmx.l.google.com.
 
 ;; TXT Records
+_dmarc.live.ptbk.io.	1	IN	TXT	"v=DMARC1; p=quarantine; rua=mailto:dmarc-reports@live.ptbk.io; adkim=s; aspf=s" ; DMARC requests strict alignment and aggregate reports.
 _dmarc.ptbk.io.	3600	IN	TXT	"v=DMARC1; p=none; rua=mailto:rua@dmarc.brevo.com"
+google._domainkey.ptbk.io.	1	IN	TXT	"v=DKIM1;k=rsa;p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAzPNj4tJshvI8z8mIh/EJEVIrRwgaHl9HWYLjtz9Cr21PLuHjAcx9hA/Qbok1mW4KdFgQoUzkzve6K6BpTlDqNq7S0qst7f4ihPpM/d5aGZ/QU6hAeVIbI+vBXw6hINuL/5RTk3+xNWoJQgM3jimb00P4+TycIosDj3kmZ28GbRa/BIbpN7z7X8hXdKZW1PrdgYU" "1bxix0LhIDQXarmW2lMcIVI4CQBSmCxnUlMxyRHku2XYFlhflsn5oHLS6N94XRfBu6lhrwbyhlon+t5FNHYVglq7EDcK2dORH/FLa4xyGIOhyI73G1dw70g1MOEQAm2GYRQiu4v7D3Cdw8trGYQIDAQAB" ; Generated by Google for DKIM
+live.ptbk.io.	1	IN	TXT	"v=spf1 mx -all" ; SPF permits only this domain’s MX host to send mail.
 mailjet._domainkey.ptbk.io.	1	IN	TXT	"k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAjK22CacLuBq54pCvmKz+AuAmM2uiw+9arcZmyw4+LD/mPgi/d3Sl0gJe3O9Ldi+F/ED2ea4C3iA9lPZBJev3YiaXXZGTPJ2mb+XFw39lL47+PKkwkAQ6oqt3h28hJAeKS7VT9dwqK3AdWSTouhJCuJoY6o4KhXgtC6eZ8tArc3D7BlAHsongKVVvXj8KDpvwVYTsDeDoq/" "mDwqgqKZ17RpOw8fbwyAZDMaIaQr3/M+QHIEt5EVmkgNp07//KzrLsSMQAzI1kAwD2VGB8yU7thNmtY5I3WVsyk2Oj3aM/4eO31ONHr2THMXX1IG51yOvnDXNx05hC8LmdemeyM8MMJwIDAQAB"
-ptbk.io.	1	IN	TXT	"v=spf1 include:spf.mailjet.com a mx include:gransy.com include:spf.improvmx.com ~all"
+_mta-sts.live.ptbk.io.	1	IN	TXT	"v=STSv1; id=20260725" ; Advertises the current MTA-STS policy version. Change the id whenever the policy changes.
+ptbk.io.	3600	IN	TXT	"v=spf1 include:spf.mailjet.com a mx include:gransy.com include:spf.improvmx.com include:_spf.google.com ~all"
+ptbk.io.	3600	IN	TXT	"google-site-verification=lCEzESePSsfLjSpdQfEmZTdKcUFPPbUJWwIb-W5dt-g"
 ptbk.io.	3600	IN	TXT	"brevo-code:a6d3b92e194ed959d43a2bc39950691c"
+_smtp._tls.live.ptbk.io.	1	IN	TXT	"v=TLSRPTv1; rua=mailto:tls-reports@live.ptbk.io" ; Receives reports about TLS delivery failures.
 _vercel.ptbk.io.	600	IN	TXT	"vc-domain-verify=new.ptbk.io,9512f0ede0ec8545e321,dc"
 _vercel.ptbk.io.	600	IN	TXT	"vc-domain-verify=playground.ptbk.io,87ce7bdc0268d1814424,dc"
 _vercel.ptbk.io.	1	IN	TXT	"vc-domain-verify=admin.ptbk.io,74a4c9aef4b71f8a8f52"
