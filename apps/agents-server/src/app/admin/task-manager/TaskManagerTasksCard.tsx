@@ -18,10 +18,6 @@ type TaskManagerTasksCardProps = {
      * Whether to show the originating-server column (VPS-wide view only).
      */
     showServerColumn?: boolean;
-    /**
-     * Whether the table is read-only, hiding row actions and bulk cancellation (VPS-wide view only).
-     */
-    isReadOnly?: boolean;
 };
 
 /**
@@ -88,7 +84,6 @@ export function TaskManagerTasksCard({
     language,
     state,
     showServerColumn = false,
-    isReadOnly = false,
 }: TaskManagerTasksCardProps) {
     const firstVisibleTaskIndex = Math.min((state.page - 1) * state.pageSize + 1, state.total);
     const lastVisibleTaskIndex = Math.min(state.page * state.pageSize, state.total);
@@ -102,17 +97,15 @@ export function TaskManagerTasksCard({
                 </div>
                 <div className="flex items-center gap-3">
                     {state.isRefreshing ? <span className="text-xs font-medium text-blue-600">Refreshing…</span> : null}
-                    {isReadOnly ? null : (
-                        <button
-                            type="button"
-                            onClick={() => void state.cancelAllActiveTasks()}
-                            disabled={state.isCancellingAllActiveTasks || !state.hasActiveTasks}
-                            className="rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 disabled:cursor-not-allowed disabled:opacity-60"
-                            title="Cancel all active (queued + running) background tasks across all users"
-                        >
-                            {state.isCancellingAllActiveTasks ? 'Cancelling all…' : 'Cancel all active tasks'}
-                        </button>
-                    )}
+                    <button
+                        type="button"
+                        onClick={() => void state.cancelAllActiveTasks()}
+                        disabled={state.isCancellingAllActiveTasks || !state.hasActiveTasks}
+                        className="rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                        title="Cancel all active (queued + running) background tasks across all users"
+                    >
+                        {state.isCancellingAllActiveTasks ? 'Cancelling all…' : 'Cancel all active tasks'}
+                    </button>
                 </div>
             </div>
 
@@ -190,9 +183,7 @@ export function TaskManagerTasksCard({
                                 >
                                     Last error
                                 </AdminSortableTableHeaderCell>
-                                {isReadOnly ? null : (
-                                    <th className="px-4 py-3 text-right font-semibold">Actions</th>
-                                )}
+                                <th className="px-4 py-3 text-right font-semibold">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200 bg-white">
@@ -207,7 +198,6 @@ export function TaskManagerTasksCard({
                                     onRunTaskAction={state.runTaskAction}
                                     stuckThresholdMinutes={state.stuckThresholdMinutes}
                                     showServerColumn={showServerColumn}
-                                    isReadOnly={isReadOnly}
                                 />
                             ))}
                         </tbody>

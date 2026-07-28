@@ -1,5 +1,7 @@
 import { cancelAdminChatTaskById } from '@/src/utils/cancelAdminChatTaskById';
 import { getAdminChatTasks } from '@/src/utils/getAdminChatTasksResponse/getAdminChatTasks';
+import { getVpsAdminChatTasksResponse } from '@/src/utils/getVpsAdminChatTasksResponse';
+import type { AdminChatTaskRecord } from '@/src/utils/chatTasksAdmin';
 import type { ParsedAdminChatTaskQuery } from '@/src/utils/getAdminChatTasksResponse/parseAdminChatTaskQuery';
 
 /**
@@ -61,6 +63,11 @@ export type CancelAllActiveAdminChatTasksOptions = {
      * Request origin used to wake the durable chat worker for running jobs.
      */
     requestOrigin: string;
+
+    /**
+     * Whether active tasks should be collected across every registered server on the VPS.
+     */
+    isVpsWide?: boolean;
 };
 
 /**
@@ -76,15 +83,16 @@ export type CancelAllActiveAdminChatTasksOptions = {
 export async function cancelAllActiveAdminChatTasks(
     options: CancelAllActiveAdminChatTasksOptions,
 ): Promise<CancelAllActiveAdminChatTasksSummary> {
-    const collectedActiveTasks = await collectActiveAdminChatTaskIds();
+    const collectedActiveTasks = await collectActiveAdminChatTasks(options.isVpsWide ?? false);
     let cancelledCount = 0;
 
-    for (const taskId of collectedActiveTasks.taskIds) {
+    for (const task of collectedActiveTasks.tasks) {
         const outcome = await cancelAdminChatTaskById({
-            taskId,
+            taskId: task.id,
             actor: options.actor,
             reason: options.reason,
             requestOrigin: options.requestOrigin,
+            serverDomain: task.serverDomain,
         });
 
         if (outcome === 'CANCELLED') {
@@ -93,48 +101,82 @@ export async function cancelAllActiveAdminChatTasks(
     }
 
     return {
-        matchedCount: collectedActiveTasks.taskIds.length,
+        matchedCount: collectedActiveTasks.tasks.length,
         cancelledCount,
         hasMore: collectedActiveTasks.hasMore,
     };
 }
 
 /**
- * Collects one bounded snapshot of active durable chat-task ids for bulk cancellation.
+ * Collects one bounded snapshot of active durable chat tasks for bulk cancellation.
  *
- * @returns The collected active task ids and whether the per-run cap truncated them.
+ * @returns The collected tasks and whether the per-run cap truncated them.
  * @private function of `cancelAllActiveAdminChatTasks`
  */
-async function collectActiveAdminChatTaskIds(): Promise<{ taskIds: Array<string>; hasMore: boolean }> {
-    const collectedTaskIds: Array<string> = [];
+async function collectActiveAdminChatTasks(isVpsWide: boolean): Promise<{
+    tasks: Array<AdminChatTaskRecord>;
+    hasMore: boolean;
+}> {
+    const collectedTasks: Array<AdminChatTaskRecord> = [];
     let page = 1;
     let totalActiveTaskCount = 0;
 
-    while (collectedTaskIds.length < MAX_BULK_ADMIN_CHAT_TASK_CANCEL_TARGETS) {
-        const activeTasks = await getAdminChatTasks(createActiveAdminChatTaskQuery(page));
-        totalActiveTaskCount = activeTasks.total;
+    while (collectedTasks.length < MAX_BULK_ADMIN_CHAT_TASK_CANCEL_TARGETS) {
+        const activeTasks = isVpsWide
+            ? await getVpsAdminChatTasksResponse(createActiveAdminChatTaskSearchParams(page))
+            : {
+                  status: 200 as const,
+                  response: {
+                      ...(await getAdminChatTasks(createActiveAdminChatTaskQuery(page))),
+                      generatedAt: new Date().toISOString(),
+                  },
+              };
 
-        if (activeTasks.items.length === 0) {
+        if (activeTasks.status !== 200) {
             break;
         }
 
-        for (const task of activeTasks.items) {
-            collectedTaskIds.push(task.id);
+        const activeTaskPage = activeTasks.response;
+        totalActiveTaskCount = activeTaskPage.total;
+
+        if (activeTaskPage.items.length === 0) {
+            break;
         }
 
-        if (collectedTaskIds.length >= totalActiveTaskCount) {
+        collectedTasks.push(...activeTaskPage.items);
+
+        if (collectedTasks.length >= totalActiveTaskCount) {
             break;
         }
 
         page += 1;
     }
 
-    const cappedTaskIds = collectedTaskIds.slice(0, MAX_BULK_ADMIN_CHAT_TASK_CANCEL_TARGETS);
+    const cappedTasks = collectedTasks.slice(0, MAX_BULK_ADMIN_CHAT_TASK_CANCEL_TARGETS);
 
     return {
-        taskIds: cappedTaskIds,
-        hasMore: totalActiveTaskCount > cappedTaskIds.length,
+        tasks: cappedTasks,
+        hasMore: totalActiveTaskCount > cappedTasks.length,
     };
+}
+
+/**
+ * Converts the normalized active-task query into the URL-search format used by the VPS listing.
+ *
+ * @param page - One-based page number.
+ * @returns Search parameters for the VPS-wide task listing.
+ *
+ * @private function of `cancelAllActiveAdminChatTasks`
+ */
+function createActiveAdminChatTaskSearchParams(page: number): URLSearchParams {
+    const searchParams = new URLSearchParams();
+    const query = createActiveAdminChatTaskQuery(page);
+
+    for (const [key, value] of Object.entries(query)) {
+        searchParams.set(key, String(value));
+    }
+
+    return searchParams;
 }
 
 /**

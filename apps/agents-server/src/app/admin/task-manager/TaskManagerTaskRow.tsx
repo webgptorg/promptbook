@@ -41,10 +41,6 @@ type TaskManagerTaskRowProps = {
      * Whether to render the originating-server cell (VPS-wide view only).
      */
     showServerColumn?: boolean;
-    /**
-     * Whether the row is read-only, hiding the detail link and the row actions (VPS-wide view only).
-     */
-    isReadOnly?: boolean;
 };
 
 /**
@@ -151,7 +147,6 @@ export function TaskManagerTaskRow({
     stuckThresholdMinutes,
     task,
     showServerColumn = false,
-    isReadOnly = false,
 }: TaskManagerTaskRowProps) {
     const [isTerminalDialogOpen, setIsTerminalDialogOpen] = useState(false);
     const isStuck = isTaskStuck(task, stuckThresholdMinutes);
@@ -168,22 +163,13 @@ export function TaskManagerTaskRow({
                 </td>
             ) : null}
             <td className="px-4 py-3 align-top">
-                {isReadOnly ? (
-                    <span
-                        className="font-mono text-[11px] font-semibold text-gray-700"
-                        title="Task id (open the per-server task manager to act on it)"
-                    >
-                        {task.id}
-                    </span>
-                ) : (
-                    <Link
-                        href={buildAdminChatTaskDetailHref(task.id)}
-                        className="font-mono text-[11px] font-semibold text-blue-700 underline-offset-2 hover:underline"
-                        title="Open the task detail page"
-                    >
-                        {task.id}
-                    </Link>
-                )}
+                <Link
+                    href={buildAdminChatTaskDetailHref(task.id, task.serverDomain)}
+                    className="font-mono text-[11px] font-semibold text-blue-700 underline-offset-2 hover:underline"
+                    title="Open the task detail page"
+                >
+                    {task.id}
+                </Link>
                 <div className="mt-2 flex flex-wrap gap-2">
                     <TaskStatusBadge task={task} isStuck={isStuck} />
                     <span className="rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 font-medium text-gray-600">
@@ -231,11 +217,9 @@ export function TaskManagerTaskRow({
                         { label: 'Chat', value: task.chatId },
                     ]}
                 />
-                {isReadOnly ? null : (
-                    <div className="mt-2">
-                        <TaskManagerTaskTargetLink task={task} />
-                    </div>
-                )}
+                <div className="mt-2">
+                    <TaskManagerTaskTargetLink task={task} />
+                </div>
             </td>
 
             <td className="px-4 py-3 align-top">
@@ -295,21 +279,19 @@ export function TaskManagerTaskRow({
                 </div>
             </td>
 
-            {isReadOnly ? null : (
-                <td className="px-4 py-3 align-top">
-                    <TaskManagerTaskActions
-                        task={task}
-                        busyAction={busyAction}
-                        isBusy={isBusy}
-                        isSuperAdmin={isSuperAdmin}
-                        onOpenTerminal={() => setIsTerminalDialogOpen(true)}
-                        onRunTaskAction={onRunTaskAction}
-                    />
-                    {isTerminalDialogOpen ? (
-                        <TaskManagerTaskTerminalDialog task={task} onClose={() => setIsTerminalDialogOpen(false)} />
-                    ) : null}
-                </td>
-            )}
+            <td className="px-4 py-3 align-top">
+                <TaskManagerTaskActions
+                    task={task}
+                    busyAction={busyAction}
+                    isBusy={isBusy}
+                    isSuperAdmin={isSuperAdmin}
+                    onOpenTerminal={() => setIsTerminalDialogOpen(true)}
+                    onRunTaskAction={onRunTaskAction}
+                />
+                {isTerminalDialogOpen ? (
+                    <TaskManagerTaskTerminalDialog task={task} onClose={() => setIsTerminalDialogOpen(false)} />
+                ) : null}
+            </td>
         </tr>
     );
 }

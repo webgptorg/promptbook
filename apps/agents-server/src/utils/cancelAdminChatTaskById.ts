@@ -6,6 +6,7 @@ import {
     requestUserChatJobCancellation,
     triggerUserChatJobWorker,
 } from '@/src/utils/userChat';
+import { runWithRegisteredServerContext } from '../tools/mapRegisteredServerContexts';
 
 /**
  * Outcome of one admin-requested cancellation of a durable chat task.
@@ -44,6 +45,11 @@ export type CancelAdminChatTaskByIdOptions = {
      * Request origin used to wake the durable chat worker for running jobs.
      */
     requestOrigin: string;
+
+    /**
+     * Owning server domain for a VPS-wide task action.
+     */
+    serverDomain?: string | null;
 };
 
 /**
@@ -58,6 +64,27 @@ export type CancelAdminChatTaskByIdOptions = {
  * @private internal admin utility of Agents Server
  */
 export async function cancelAdminChatTaskById(options: CancelAdminChatTaskByIdOptions): Promise<CancelAdminChatTaskOutcome> {
+    if (options.serverDomain) {
+        const result = await runWithRegisteredServerContext(options.serverDomain, () =>
+            cancelAdminChatTaskByIdInCurrentServer(options),
+        );
+        return result ?? 'NOT_FOUND';
+    }
+
+    return cancelAdminChatTaskByIdInCurrentServer(options);
+}
+
+/**
+ * Requests cancellation against the server context already active for the current operation.
+ *
+ * @param options - Task id, audit metadata, and request origin.
+ * @returns The cancellation outcome for the resolved task.
+ *
+ * @private function of `cancelAdminChatTaskById`
+ */
+async function cancelAdminChatTaskByIdInCurrentServer(
+    options: CancelAdminChatTaskByIdOptions,
+): Promise<CancelAdminChatTaskOutcome> {
     const { taskId, actor, reason, requestOrigin } = options;
     const job = await getUserChatJobById(taskId);
 

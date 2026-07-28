@@ -1,4 +1,10 @@
-import { createServerPublicUrl, listRegisteredServersUsingServiceRole, type ServerRecord } from '../utils/serverRegistry';
+import {
+    createServerPublicUrl,
+    listRegisteredServersUsingServiceRole,
+    normalizeServerDomain,
+    resolveRegisteredServerByHost,
+    type ServerRecord,
+} from '../utils/serverRegistry';
 import type { ProvidedServer } from './$provideServer';
 import { runWithServerContextOverride } from './serverContextOverride';
 
@@ -58,4 +64,41 @@ export async function mapRegisteredServerContexts<TResult>(
     }
 
     return serverRuns;
+}
+
+/**
+ * Runs one callback inside the registered server identified by its domain.
+ *
+ * The helper is used by VPS-wide admin actions after the listing has identified the owning
+ * server. Returning `null` for an unknown domain keeps a stale task row from being treated as a
+ * task belonging to the ambient request server.
+ *
+ * @param serverDomain - Domain of the registered server to enter.
+ * @param callback - Work to run inside the selected server context.
+ * @returns Callback result, or `null` when the server is no longer registered.
+ *
+ * @private internal utility of Agents Server server-context routing
+ */
+export async function runWithRegisteredServerContext<TResult>(
+    serverDomain: string,
+    callback: () => Promise<TResult>,
+): Promise<TResult | null> {
+    const normalizedServerDomain = normalizeServerDomain(serverDomain);
+    if (!normalizedServerDomain) {
+        return null;
+    }
+
+    const registeredServers = await listRegisteredServersUsingServiceRole();
+    const server = resolveRegisteredServerByHost(normalizedServerDomain, registeredServers);
+    if (!server) {
+        return null;
+    }
+
+    const providedServer: ProvidedServer = {
+        id: server.id,
+        publicUrl: createServerPublicUrl(server.domain),
+        tablePrefix: server.tablePrefix,
+    };
+
+    return runWithServerContextOverride(providedServer, callback);
 }

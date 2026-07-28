@@ -1,5 +1,6 @@
 import { buildExistingAgentChatHref } from './agentRouting/agentRouteHrefs';
 import type { AdminChatTaskRecord } from './chatTasksAdmin';
+import { createServerPublicUrl } from './serverRegistry';
 
 /**
  * Browser page route of the super-admin standalone VPS self-update panel.
@@ -73,12 +74,19 @@ export function resolveAdminChatTaskTargetLink(task: AdminChatTaskRecord): Admin
             if (!task.agentPermanentId || !task.chatId) {
                 return null;
             }
-            return {
-                href: buildExistingAgentChatHref(task.agentPermanentId, task.chatId),
-                label: 'Open chat',
-                title: 'Open the chat thread this task belongs to',
-                isExternal: false,
-            };
+            {
+                const chatHref = buildExistingAgentChatHref(task.agentPermanentId, task.chatId);
+                const isForeignServer = Boolean(task.serverDomain);
+
+                return {
+                    href: isForeignServer
+                        ? new URL(chatHref, createServerPublicUrl(task.serverDomain!)).toString()
+                        : chatHref,
+                    label: 'Open chat',
+                    title: 'Open the chat thread this task belongs to',
+                    isExternal: isForeignServer,
+                };
+            }
         case 'VPS_SELF_UPDATE':
             return {
                 href: VPS_SELF_UPDATE_PAGE_ROUTE,
@@ -116,8 +124,13 @@ export function resolveAdminChatTaskTargetLink(task: AdminChatTaskRecord): Admin
  *
  * @private internal admin utility of Agents Server
  */
-export function buildAdminChatTaskDetailHref(taskId: string): string {
-    return `/admin/task-manager/${encodeURIComponent(taskId)}`;
+export function buildAdminChatTaskDetailHref(taskId: string, serverDomain?: string | null): string {
+    const href = `/admin/task-manager/${encodeURIComponent(taskId)}`;
+    if (!serverDomain) {
+        return href;
+    }
+
+    return `${href}?serverDomain=${encodeURIComponent(serverDomain)}`;
 }
 
 /**

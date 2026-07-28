@@ -33,6 +33,24 @@ describe('adminChatTaskLinks', () => {
             expect(targetLink?.href).toBe('/agents/agent-1/chat?chat=chat-1');
         });
 
+        it('opens a foreign VPS task on the server that owns its chat', () => {
+            const targetLink = resolveAdminChatTaskTargetLink(
+                createAdminChatTaskRecord({
+                    kind: 'CHAT_COMPLETION',
+                    agentPermanentId: 'agent-1',
+                    chatId: 'chat-1',
+                    serverDomain: 'foreign.example.com',
+                }),
+            );
+
+            expect(targetLink).toEqual({
+                href: 'https://foreign.example.com/agents/agent-1/chat?chat=chat-1',
+                label: 'Open chat',
+                title: 'Open the chat thread this task belongs to',
+                isExternal: true,
+            });
+        });
+
         it('links self-update tasks to the update page', () => {
             const targetLink = resolveAdminChatTaskTargetLink(createAdminChatTaskRecord({ kind: 'VPS_SELF_UPDATE' }));
 
@@ -89,6 +107,12 @@ describe('adminChatTaskLinks', () => {
         it('builds the task detail page href and encodes the task id', () => {
             expect(buildAdminChatTaskDetailHref('vps-self-update:manual-update-1')).toBe(
                 '/admin/task-manager/vps-self-update%3Amanual-update-1',
+            );
+        });
+
+        it('includes the owning server when linking from the VPS-wide manager', () => {
+            expect(buildAdminChatTaskDetailHref('task-1', 'foreign.example.com')).toBe(
+                '/admin/task-manager/task-1?serverDomain=foreign.example.com',
             );
         });
     });

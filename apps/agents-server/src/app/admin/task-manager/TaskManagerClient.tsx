@@ -34,7 +34,10 @@ type TaskManagerClientProps = {
 export function TaskManagerClient({ isSuperAdmin, scope = 'server' }: TaskManagerClientProps) {
     const { language } = useServerLanguage();
     const isVpsScope = scope === 'vps';
-    const taskManagerState = useTaskManagerState(language, isVpsScope ? { fetchTasks: $fetchVpsAdminChatTasks } : {});
+    const taskManagerState = useTaskManagerState(language, {
+        fetchTasks: isVpsScope ? $fetchVpsAdminChatTasks : undefined,
+        isVpsScope,
+    });
 
     return (
         <div className="container mx-auto space-y-6 px-4 py-8">
@@ -49,7 +52,7 @@ export function TaskManagerClient({ isSuperAdmin, scope = 'server' }: TaskManage
                     </h1>
                     <p className="mt-1 max-w-3xl text-sm text-gray-500">
                         {isVpsScope
-                            ? 'Superadmin-only operational view of background work across every server on this VPS, including chat completions, scheduled timeout wake-ups, self-updates, and live browser previews. Each task shows the server it belongs to. This view is read-only.'
+                            ? 'Superadmin-only operational view of background work across every server on this VPS, including chat completions, scheduled timeout wake-ups, self-updates, and live browser previews. Each task shows the server it belongs to.'
                             : 'Admin-only operational view of background work across all users, including chat completions, scheduled timeout wake-ups, self-updates, and live browser previews. This dashboard shows queue and worker state, not chat transcript content.'}
                     </p>
                 </div>
@@ -89,7 +92,6 @@ export function TaskManagerClient({ isSuperAdmin, scope = 'server' }: TaskManage
                 state={taskManagerState}
                 isSuperAdmin={isSuperAdmin}
                 showServerColumn={isVpsScope}
-                isReadOnly={isVpsScope}
             />
         </div>
     );

@@ -16,6 +16,7 @@ import {
 import { TaskManagerTaskLogActions } from '../TaskManagerTaskLogActions';
 import { TaskManagerTaskTargetLink } from '../TaskManagerTaskTargetLink';
 import { TaskManagerTaskTerminalDialog } from '../TaskManagerTaskTerminalDialog';
+import { SERVER_TASK_MANAGER_PATH, VPS_TASK_MANAGER_PATH } from '../TaskManagerScopeTabs';
 import {
     buildTaskRunReportRows,
     formatTaskDateTime,
@@ -43,6 +44,10 @@ type TaskManagerTaskDetailClientProps = {
      * Whether the current user is the environment-backed super-admin who may open task terminals.
      */
     isSuperAdmin: boolean;
+    /**
+     * Owning server domain when the detail page was opened from the VPS-wide manager.
+     */
+    serverDomain: string | null;
 };
 
 /**
@@ -64,7 +69,7 @@ function TaskDetailCard({ title, rows }: { title: string; rows: ReadonlyArray<Ta
  *
  * @private route component of AdminTaskManagerTaskDetailPage
  */
-export function TaskManagerTaskDetailClient({ taskId, isSuperAdmin }: TaskManagerTaskDetailClientProps) {
+export function TaskManagerTaskDetailClient({ taskId, isSuperAdmin, serverDomain }: TaskManagerTaskDetailClientProps) {
     const { language } = useServerLanguage();
     const [task, setTask] = useState<AdminChatTaskRecord | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -83,7 +88,7 @@ export function TaskManagerTaskDetailClient({ taskId, isSuperAdmin }: TaskManage
         async function loadTask(): Promise<void> {
             try {
                 setErrorMessage(null);
-                const loadedTask = await $fetchAdminChatTask(taskId);
+                const loadedTask = await $fetchAdminChatTask(taskId, serverDomain);
                 if (!isCancelled) {
                     setTask(loadedTask);
                 }
@@ -105,7 +110,7 @@ export function TaskManagerTaskDetailClient({ taskId, isSuperAdmin }: TaskManage
         return () => {
             isCancelled = true;
         };
-    }, [taskId, refreshNonce]);
+    }, [refreshNonce, serverDomain, taskId]);
 
     const runTaskAction = useCallback(
         async (action: AdminChatTaskActionKind): Promise<void> => {
@@ -121,7 +126,7 @@ export function TaskManagerTaskDetailClient({ taskId, isSuperAdmin }: TaskManage
 
             try {
                 setBusyAction(action);
-                await executeAdminChatTaskAction(taskId, action, reason);
+                await executeAdminChatTaskAction(taskId, action, reason, task?.serverDomain || serverDomain);
                 refreshNow();
             } catch (actionError) {
                 await showAdminChatTaskActionFailure(action, actionError);
@@ -129,7 +134,7 @@ export function TaskManagerTaskDetailClient({ taskId, isSuperAdmin }: TaskManage
                 setBusyAction(null);
             }
         },
-        [refreshNow, taskId],
+        [refreshNow, serverDomain, task, taskId],
     );
 
     const isDurableChatTask = task ? task.kind === 'CHAT_COMPLETION' || task.kind === 'CHAT_TIMEOUT' : false;
@@ -140,7 +145,10 @@ export function TaskManagerTaskDetailClient({ taskId, isSuperAdmin }: TaskManage
         <div className="container mx-auto space-y-6 px-4 py-8">
             <div className="mt-20 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                 <div>
-                    <Link href="/admin/task-manager" className="text-sm text-blue-700 underline-offset-2 hover:underline">
+                    <Link
+                        href={serverDomain ? VPS_TASK_MANAGER_PATH : SERVER_TASK_MANAGER_PATH}
+                        className="text-sm text-blue-700 underline-offset-2 hover:underline"
+                    >
                         ← Task manager
                     </Link>
                     <h1 className="mt-2 text-3xl font-light text-gray-900">Task detail</h1>

@@ -171,6 +171,10 @@ type UseTaskManagerStateOptions = {
      * superadmin cross-server fetcher instead.
      */
     fetchTasks?: FetchTaskManagerTasks;
+    /**
+     * Whether task actions should use the VPS-wide superadmin endpoints.
+     */
+    isVpsScope?: boolean;
 };
 
 /**
@@ -183,6 +187,7 @@ export function useTaskManagerState(
     options: UseTaskManagerStateOptions = {},
 ): UseTaskManagerStateResult {
     const fetchTasks = options.fetchTasks ?? $fetchAdminChatTasks;
+    const isVpsScope = options.isVpsScope ?? false;
     const [view, setView] = useState<AdminChatTaskView>('active');
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(50);
@@ -326,7 +331,7 @@ export function useTaskManagerState(
             try {
                 setBusyTaskId(task.id);
                 setBusyAction(action);
-                await executeAdminChatTaskAction(task.id, action, reason);
+                await executeAdminChatTaskAction(task.id, action, reason, isVpsScope ? task.serverDomain : null);
                 refreshNow();
             } catch (actionError) {
                 await showAdminChatTaskActionFailure(action, actionError);
@@ -335,7 +340,7 @@ export function useTaskManagerState(
                 setBusyAction(null);
             }
         },
-        [refreshNow],
+        [isVpsScope, refreshNow],
     );
 
     const cancelAllActiveTasks = useCallback(async (): Promise<void> => {
@@ -351,7 +356,7 @@ export function useTaskManagerState(
 
         try {
             setIsCancellingAllActiveTasks(true);
-            const summary = await executeCancelAllActiveAdminChatTasks(reason);
+            const summary = await executeCancelAllActiveAdminChatTasks(reason, isVpsScope);
             await showCancelAllActiveAdminChatTasksResult(summary);
             refreshNow();
         } catch (cancelAllError) {
@@ -359,7 +364,7 @@ export function useTaskManagerState(
         } finally {
             setIsCancellingAllActiveTasks(false);
         }
-    }, [refreshNow]);
+    }, [isVpsScope, refreshNow]);
 
     const handleSortChange = useCallback(
         (nextSortBy: AdminChatTaskSortField): void => {

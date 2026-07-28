@@ -1,5 +1,6 @@
 import type { AdminChatTaskRecord } from './chatTasksAdmin';
 import { getAdminChatTasksResponse } from './getAdminChatTasksResponse';
+import { runWithRegisteredServerContext } from '../tools/mapRegisteredServerContexts';
 
 /**
  * Widest history window (in hours) accepted by the admin task listing.
@@ -25,11 +26,35 @@ const TASK_LOOKUP_PAGE_SIZE = 200;
  * @param taskId - Id of the durable task (`UserChatJob` id or injected task id).
  * @returns The task record or `null` when no task matches.
  */
-export async function getAdminChatTaskById(taskId: string): Promise<AdminChatTaskRecord | null> {
+export async function getAdminChatTaskById(
+    taskId: string,
+    serverDomain?: string | null,
+): Promise<AdminChatTaskRecord | null> {
     const normalizedTaskId = taskId.trim();
     if (!normalizedTaskId) {
         return null;
     }
+
+    if (serverDomain) {
+        const task = await runWithRegisteredServerContext(serverDomain, () =>
+            getAdminChatTaskByIdInCurrentServer(normalizedTaskId),
+        );
+
+        return task ? { ...task, serverDomain } : null;
+    }
+
+    return getAdminChatTaskByIdInCurrentServer(normalizedTaskId);
+}
+
+/**
+ * Loads one task from the server context already active for the request.
+ *
+ * @param normalizedTaskId - Trimmed task identifier.
+ * @returns The task record or `null` when no task matches.
+ *
+ * @private function of `getAdminChatTaskById`
+ */
+async function getAdminChatTaskByIdInCurrentServer(normalizedTaskId: string): Promise<AdminChatTaskRecord | null> {
 
     const searchParams = new URLSearchParams({
         view: 'all',

@@ -8,12 +8,18 @@ import {
 } from '@/src/utils/userChatTimeout';
 import { getUserChatJobById, retryUserChatJob, triggerUserChatJobWorker } from '@/src/utils/userChat';
 import { isUserAdmin } from '@/src/utils/isUserAdmin';
+import { isUserGlobalAdmin } from '@/src/utils/isUserGlobalAdmin';
+import { runWithRegisteredServerContext } from '@/src/tools/mapRegisteredServerContexts';
 
 /**
  * Requeues one failed durable chat task from the admin dashboard.
  */
 export async function POST(request: Request, { params }: { params: Promise<{ taskId: string }> }) {
-    if (!(await isUserAdmin())) {
+    const requestUrl = new URL(request.url);
+    const serverDomain = requestUrl.searchParams.get('serverDomain')?.trim() || null;
+    const isAuthorized = serverDomain ? await isUserGlobalAdmin() : await isUserAdmin();
+
+    if (!isAuthorized) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -25,7 +31,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ tas
         return NextResponse.json({ error: 'A non-empty reason is required.' }, { status: 400 });
     }
 
-    try {
+    const retryTaskInCurrentServer = async (): Promise<NextResponse> => {
         const actor = (await getCurrentUser())?.username || 'admin';
         const job = await getUserChatJobById(taskId);
 
@@ -49,7 +55,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ tas
 
             after(() =>
                 triggerUserChatJobWorker({
-                    origin: new URL(request.url).origin,
+                    origin: requestUrl.origin,
                     preferredJobId: retriedJob.id,
                 }).catch((error) => console.error('[admin-chat-task] failed to wake worker after retry', error)),
             );
@@ -83,11 +89,23 @@ export async function POST(request: Request, { params }: { params: Promise<{ tas
 
         after(() =>
             triggerUserChatTimeoutWorker({
-                origin: new URL(request.url).origin,
+                origin: requestUrl.origin,
             }).catch((error) => console.error('[admin-chat-task] failed to wake timeout worker after retry', error)),
         );
 
         return NextResponse.json({ ok: true });
+    };
+
+    try {
+        const response = serverDomain
+            ? await runWithRegisteredServerContext(serverDomain, retryTaskInCurrentServer)
+            : await retryTaskInCurrentServer();
+
+        if (!response) {
+            return NextResponse.json({ error: 'Task not found.' }, { status: 404 });
+        }
+
+        return response;
     } catch (error) {
         console.error('[admin-chat-task] retry failed', { taskId, error });
         return NextResponse.json(

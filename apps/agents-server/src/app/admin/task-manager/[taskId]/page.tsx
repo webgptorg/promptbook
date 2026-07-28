@@ -8,11 +8,14 @@ import { TaskManagerTaskDetailClient } from './TaskManagerTaskDetailClient';
  */
 export default async function AdminTaskManagerTaskDetailPage({
     params,
+    searchParams,
 }: {
     params: Promise<{ taskId: string }>;
+    searchParams?: Promise<{ serverDomain?: string }>;
 }) {
-    const [{ taskId: rawTaskId }, isAdmin, isSuperAdmin] = await Promise.all([
+    const [{ taskId: rawTaskId }, resolvedSearchParams, isAdmin, isSuperAdmin] = await Promise.all([
         params,
+        searchParams,
         isUserAdmin(),
         isUserGlobalAdmin(),
     ]);
@@ -21,5 +24,11 @@ export default async function AdminTaskManagerTaskDetailPage({
         return <ForbiddenPage />;
     }
 
-    return <TaskManagerTaskDetailClient taskId={decodeURIComponent(rawTaskId)} isSuperAdmin={isSuperAdmin} />;
+    return (
+        <TaskManagerTaskDetailClient
+            taskId={decodeURIComponent(rawTaskId)}
+            isSuperAdmin={isSuperAdmin}
+            serverDomain={resolvedSearchParams?.serverDomain || null}
+        />
+    );
 }

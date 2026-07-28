@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createInteractiveTerminalEventStream } from '@/src/utils/createInteractiveTerminalEventStream';
 import { isUserGlobalAdmin } from '@/src/utils/isUserGlobalAdmin';
 import { resolveAdminTaskTerminalSession } from '@/src/utils/taskTerminal/resolveAdminTaskTerminalSession';
+import { runWithRegisteredServerContext } from '@/src/tools/mapRegisteredServerContexts';
 
 /**
  * Forces fresh terminal snapshots and live streams for every request.
@@ -24,24 +25,32 @@ export async function GET(request: Request, { params }: { params: Promise<{ task
 
     const { taskId: rawTaskId } = await params;
     const taskId = decodeURIComponent(rawTaskId);
+    const serverDomain = new URL(request.url).searchParams.get('serverDomain')?.trim() || null;
 
     try {
-        const terminalResolution = await resolveAdminTaskTerminalSession(taskId);
-        if (!terminalResolution) {
-            return NextResponse.json({ error: 'Task not found.' }, { status: 404 });
-        }
+        const resolveTerminalResponse = async (): Promise<Response | null> => {
+            const terminalResolution = await resolveAdminTaskTerminalSession(taskId);
+            if (!terminalResolution) {
+                return null;
+            }
 
-        const { searchParams } = new URL(request.url);
-        if (searchParams.get('stream') === '1') {
-            return createInteractiveTerminalEventStream(
-                request,
-                taskId,
-                terminalResolution.session,
-                terminalResolution.subscribe,
-            );
-        }
+            if (new URL(request.url).searchParams.get('stream') === '1') {
+                return createInteractiveTerminalEventStream(
+                    request,
+                    taskId,
+                    terminalResolution.session,
+                    terminalResolution.subscribe,
+                );
+            }
 
-        return NextResponse.json({ session: terminalResolution.session });
+            return NextResponse.json({ session: terminalResolution.session });
+        };
+
+        const response = serverDomain
+            ? await runWithRegisteredServerContext(serverDomain, resolveTerminalResponse)
+            : await resolveTerminalResponse();
+
+        return response || NextResponse.json({ error: 'Task not found.' }, { status: 404 });
     } catch (error) {
         console.error('[admin-chat-task] terminal failed', { taskId, error });
         return NextResponse.json(

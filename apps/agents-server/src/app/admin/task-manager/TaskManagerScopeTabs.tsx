@@ -21,7 +21,7 @@ export const SERVER_TASK_MANAGER_PATH = '/admin/task-manager';
  *
  * @private function of TaskManagerScopeTabs
  */
-export const VPS_TASK_MANAGER_PATH = '/admin/task-manager-vps';
+export const VPS_TASK_MANAGER_PATH = '/superadmin/task-manager';
 
 /**
  * Props for the task-manager scope tabs.

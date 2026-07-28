@@ -108,6 +108,22 @@ type UseAdminTerminalSessionOptions = {
 };
 
 /**
+ * Appends terminal-stream query parameters while preserving parameters already present on a base path.
+ *
+ * @param basePath - Terminal API path, possibly with routing parameters.
+ * @param params - Additional query parameters.
+ * @returns The complete terminal API path.
+ */
+function appendTerminalQueryParameters(basePath: string, params: URLSearchParams): string {
+    const query = params.toString();
+    if (!query) {
+        return basePath;
+    }
+
+    return `${basePath}${basePath.includes('?') ? '&' : '?'}${query}`;
+}
+
+/**
  * Shared browser hook for admin pages that start, stream, write to, and stop one terminal session.
  *
  * @param options - API endpoints and user-facing messages for the terminal.
@@ -158,7 +174,12 @@ export function useAdminTerminalSession<TSession extends AdminTerminalSession>(
             return;
         }
 
-        const eventSource = new EventSource(`${options.basePath}?sessionId=${encodeURIComponent(sessionId)}&stream=1`);
+        const eventSource = new EventSource(
+            appendTerminalQueryParameters(
+                options.basePath,
+                new URLSearchParams({ sessionId, stream: '1' }),
+            ),
+        );
 
         const handleSnapshot = (event: MessageEvent<string>) => {
             const payload = JSON.parse(event.data) as TSession;

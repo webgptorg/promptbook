@@ -55,7 +55,9 @@ function resolveTerminalStatusLabel(session: AdminTerminalSession | null, isLoad
  */
 export function TaskManagerTaskTerminalDialog({ task, onClose }: TaskManagerTaskTerminalDialogProps) {
     const terminal = useAdminTerminalSession({
-        basePath: `/api/admin/chat-tasks/${encodeURIComponent(task.id)}/terminal`,
+        basePath: `/api/admin/chat-tasks/${encodeURIComponent(task.id)}/terminal${
+            task.serverDomain ? `?serverDomain=${encodeURIComponent(task.serverDomain)}` : ''
+        }`,
         loadErrorMessage: 'Failed to load the task terminal.',
         startErrorMessage: 'Failed to open the task terminal.',
         sendErrorMessage: 'The task terminal is read-only.',

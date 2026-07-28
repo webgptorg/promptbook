@@ -236,10 +236,13 @@ export async function $fetchVpsAdminChatTasks(
  *
  * @private internal admin utility of Agents Server
  */
-export async function $fetchAdminChatTask(taskId: string): Promise<AdminChatTaskRecord> {
-    const response = await fetch(`/api/admin/chat-tasks/${encodeURIComponent(taskId)}`, {
-        method: 'GET',
-    });
+export async function $fetchAdminChatTask(taskId: string, serverDomain?: string | null): Promise<AdminChatTaskRecord> {
+    const response = await fetch(
+        `/api/admin/chat-tasks/${encodeURIComponent(taskId)}${buildServerDomainQuery(serverDomain)}`,
+        {
+            method: 'GET',
+        },
+    );
 
     const payload = (await response.json().catch(() => ({}))) as { task?: AdminChatTaskRecord; error?: string };
     if (!response.ok || !payload.task) {
@@ -254,14 +257,21 @@ export async function $fetchAdminChatTask(taskId: string): Promise<AdminChatTask
  *
  * @private internal admin utility of Agents Server
  */
-export async function $cancelAdminChatTask(taskId: string, payload: AdminChatTaskActionPayload): Promise<void> {
-    const response = await fetch(`/api/admin/chat-tasks/${encodeURIComponent(taskId)}/cancel`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
+export async function $cancelAdminChatTask(
+    taskId: string,
+    payload: AdminChatTaskActionPayload,
+    serverDomain?: string | null,
+): Promise<void> {
+    const response = await fetch(
+        `/api/admin/chat-tasks/${encodeURIComponent(taskId)}/cancel${buildServerDomainQuery(serverDomain)}`,
+        {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
         },
-        body: JSON.stringify(payload),
-    });
+    );
 
     if (!response.ok) {
         const data = await response.json().catch(() => ({}));
@@ -274,14 +284,21 @@ export async function $cancelAdminChatTask(taskId: string, payload: AdminChatTas
  *
  * @private internal admin utility of Agents Server
  */
-export async function $retryAdminChatTask(taskId: string, payload: AdminChatTaskActionPayload): Promise<void> {
-    const response = await fetch(`/api/admin/chat-tasks/${encodeURIComponent(taskId)}/retry`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
+export async function $retryAdminChatTask(
+    taskId: string,
+    payload: AdminChatTaskActionPayload,
+    serverDomain?: string | null,
+): Promise<void> {
+    const response = await fetch(
+        `/api/admin/chat-tasks/${encodeURIComponent(taskId)}/retry${buildServerDomainQuery(serverDomain)}`,
+        {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
         },
-        body: JSON.stringify(payload),
-    });
+    );
 
     if (!response.ok) {
         const data = await response.json().catch(() => ({}));
@@ -296,8 +313,10 @@ export async function $retryAdminChatTask(taskId: string, payload: AdminChatTask
  */
 export async function $cancelAllAdminChatTasks(
     payload: AdminChatTaskActionPayload,
+    isVpsScope = false,
 ): Promise<CancelAllAdminChatTasksSummary> {
-    const response = await fetch(`/api/admin/chat-tasks/cancel-all`, {
+    const cancelAllPath = isVpsScope ? '/api/admin/vps/chat-tasks/cancel-all' : '/api/admin/chat-tasks/cancel-all';
+    const response = await fetch(cancelAllPath, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -318,4 +337,16 @@ export async function $cancelAllAdminChatTasks(
         cancelledCount: data.cancelledCount ?? 0,
         hasMore: data.hasMore ?? false,
     };
+}
+
+/**
+ * Builds the optional owning-server query used by VPS-wide task actions.
+ *
+ * @param serverDomain - Owning server domain, when the task came from the VPS-wide listing.
+ * @returns Encoded query string or an empty string.
+ *
+ * @private function of Agents Server admin task utilities
+ */
+function buildServerDomainQuery(serverDomain?: string | null): string {
+    return serverDomain ? `?serverDomain=${encodeURIComponent(serverDomain)}` : '';
 }

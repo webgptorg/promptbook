@@ -3,12 +3,17 @@ import { getCurrentUser } from '@/src/utils/getCurrentUser';
 import { cancelAdminChatTaskById } from '@/src/utils/cancelAdminChatTaskById';
 import { readRequiredAdminReason } from '@/src/utils/readRequiredAdminReason';
 import { isUserAdmin } from '@/src/utils/isUserAdmin';
+import { isUserGlobalAdmin } from '@/src/utils/isUserGlobalAdmin';
 
 /**
  * Requests admin cancellation for one queued or running durable chat task.
  */
 export async function POST(request: Request, { params }: { params: Promise<{ taskId: string }> }) {
-    if (!(await isUserAdmin())) {
+    const requestUrl = new URL(request.url);
+    const serverDomain = requestUrl.searchParams.get('serverDomain')?.trim() || null;
+    const isAuthorized = serverDomain ? await isUserGlobalAdmin() : await isUserAdmin();
+
+    if (!isAuthorized) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -26,7 +31,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ tas
             taskId,
             actor,
             reason,
-            requestOrigin: new URL(request.url).origin,
+            requestOrigin: requestUrl.origin,
+            serverDomain,
         });
 
         if (outcome === 'NOT_FOUND') {

@@ -20,7 +20,7 @@
 
 ---
 
-[ ]
+[x] by OpenAI Codex `gpt-5.6-luna` (ChatGPT account) - Implementation ~$1.16 43 minutes; Testing 32 minutes
 
 [✨☀️] The task manager for one server should work in the same way and show the same things as the task manager for the entire VPS.
 
@@ -32,3 +32,4 @@
 
 ![alt text](screenshots/2026-07-0890-agents-server-tasks-not-running-6.png)
 ![not seeing all the thing like terminal](screenshots/2026-07-0890-agents-server-tasks-not-running-7.png)
+

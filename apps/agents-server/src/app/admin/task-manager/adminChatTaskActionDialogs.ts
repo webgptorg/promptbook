@@ -134,13 +134,14 @@ export async function executeAdminChatTaskAction(
     taskId: string,
     action: AdminChatTaskActionKind,
     reason: string,
+    serverDomain?: string | null,
 ): Promise<void> {
     if (action === 'cancel') {
-        await $cancelAdminChatTask(taskId, { reason });
+        await $cancelAdminChatTask(taskId, { reason }, serverDomain);
         return;
     }
 
-    await $retryAdminChatTask(taskId, { reason });
+    await $retryAdminChatTask(taskId, { reason }, serverDomain);
 }
 
 /**
@@ -189,8 +190,11 @@ export function requestCancelAllActiveAdminChatTasksReason(): Promise<string | n
  *
  * @private shared dialog flow of the admin task manager
  */
-export function executeCancelAllActiveAdminChatTasks(reason: string): Promise<CancelAllAdminChatTasksSummary> {
-    return $cancelAllAdminChatTasks({ reason });
+export function executeCancelAllActiveAdminChatTasks(
+    reason: string,
+    isVpsScope = false,
+): Promise<CancelAllAdminChatTasksSummary> {
+    return $cancelAllAdminChatTasks({ reason }, isVpsScope);
 }
 
 /**

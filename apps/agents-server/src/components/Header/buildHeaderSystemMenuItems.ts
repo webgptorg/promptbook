@@ -131,7 +131,7 @@ type SystemMenuItemHref =
     | '/admin/login-methods/shibboleth'
     | '/admin/usage'
     | '/admin/task-manager'
-    | '/admin/task-manager-vps'
+    | '/superadmin/task-manager'
     | '/admin/chat-history'
     | '/admin/chat-feedback'
     | '/admin/api-tokens'
@@ -214,7 +214,7 @@ const SYSTEM_MENU_ICON_BY_HREF: Record<SystemMenuItemHref, LucideIcon> = {
     '/admin/login-methods/shibboleth': ShieldCheck,
     '/admin/usage': ChartNoAxesColumn,
     '/admin/task-manager': ClipboardList,
-    '/admin/task-manager-vps': ServerCog,
+    '/superadmin/task-manager': ServerCog,
     '/admin/chat-history': History,
     '/admin/chat-feedback': MessageCircle,
     '/admin/api-tokens': KeyRound,
@@ -547,7 +547,7 @@ export function buildHeaderSystemMenuItems({
             ? [
                   {
                       label: translate('header.vpsTaskManager'),
-                      href: '/admin/task-manager-vps',
+                      href: '/superadmin/task-manager',
                   } as SubMenuItem,
               ]
             : []),
