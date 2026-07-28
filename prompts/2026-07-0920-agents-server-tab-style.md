@@ -1,4 +1,4 @@
-[ ]
+[x] by OpenAI Codex `gpt-5.6-luna` (ChatGPT account) - Implementation ~$0.5618 38 minutes; Testing 32 minutes
 
 [✨🎾] Enhance the tab style across the agent server admin pages.
 
@@ -14,3 +14,4 @@
 
 ![good looking tab style](screenshots/2026-07-0920-agents-server-tab-style.png)
 ![ugly looking tab style](screenshots/2026-07-0920-agents-server-tab-style-1.png)
+

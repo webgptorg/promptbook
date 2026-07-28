@@ -17,13 +17,11 @@ const ADMIN_STORAGE_NAVIGATION_ITEMS: ReadonlyArray<AdminRouteTabItem<AdminStora
         id: 'internal-s3',
         href: '/admin/internal-s3',
         label: 'Internal S3',
-        description: 'VPS-wide bundled object storage visible only to the superadmin.',
     },
     {
         id: 'files',
         href: '/admin/files',
         label: 'Server files',
-        description: 'Uploaded files tracked for the currently selected server.',
     },
 ];
 

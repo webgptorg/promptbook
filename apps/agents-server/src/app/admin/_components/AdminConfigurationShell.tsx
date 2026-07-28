@@ -18,25 +18,21 @@ const ADMIN_CONFIGURATION_NAVIGATION_ITEMS: ReadonlyArray<AdminRouteTabItem<Admi
         id: 'environment',
         href: '/superadmin/environment',
         label: 'Environment variables',
-        description: 'VPS-wide .env values with secrets masked in the browser.',
     },
     {
         id: 'email-server',
         href: '/admin/email-server',
         label: 'Email server',
-        description: 'Agent addresses, Stalwart synchronization, and mail DNS records.',
     },
     {
         id: 'metadata',
         href: '/admin/metadata',
         label: 'Metadata',
-        description: 'Domain-specific feature flags, text settings, and compatibility keys.',
     },
     {
         id: 'limits',
         href: '/admin/limits',
         label: 'Limits',
-        description: 'Operational quotas, retry windows, upload caps, and rate limits.',
     },
 ];
 

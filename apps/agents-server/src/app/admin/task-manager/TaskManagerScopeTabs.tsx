@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import { AdminRouteTabs, type AdminRouteTabItem } from '../_components/AdminRouteTabs';
 
 /**
  * Task-manager scope: one server, or the whole VPS.
@@ -24,6 +24,24 @@ export const SERVER_TASK_MANAGER_PATH = '/admin/task-manager';
 export const VPS_TASK_MANAGER_PATH = '/superadmin/task-manager';
 
 /**
+ * Route-backed task-manager scope navigation.
+ *
+ * @private function of TaskManagerScopeTabs
+ */
+const TASK_MANAGER_SCOPE_NAVIGATION_ITEMS: ReadonlyArray<AdminRouteTabItem<TaskManagerScope>> = [
+    {
+        id: 'server',
+        href: SERVER_TASK_MANAGER_PATH,
+        label: 'This server',
+    },
+    {
+        id: 'vps',
+        href: VPS_TASK_MANAGER_PATH,
+        label: 'All servers (VPS)',
+    },
+];
+
+/**
  * Props for the task-manager scope tabs.
  *
  * @private function of TaskManagerClient
@@ -40,27 +58,6 @@ type TaskManagerScopeTabsProps = {
 };
 
 /**
- * Renders one scope tab link.
- *
- * @private function of TaskManagerScopeTabs
- */
-function TaskManagerScopeTab({ href, label, isActive }: { href: string; label: string; isActive: boolean }) {
-    return (
-        <Link
-            href={href}
-            aria-current={isActive ? 'page' : undefined}
-            className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium ${
-                isActive
-                    ? 'border-blue-600 text-blue-700'
-                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-            }`}
-        >
-            {label}
-        </Link>
-    );
-}
-
-/**
  * Renders the tabs interlinking the per-server and VPS-wide task managers.
  *
  * The VPS-wide tab is superadmin-only, so ordinary admins keep the single per-server view with
@@ -73,14 +70,5 @@ export function TaskManagerScopeTabs({ activeScope, isSuperAdmin }: TaskManagerS
         return null;
     }
 
-    return (
-        <div className="flex flex-wrap items-center gap-1 border-b border-gray-200">
-            <TaskManagerScopeTab href={SERVER_TASK_MANAGER_PATH} label="This server" isActive={activeScope === 'server'} />
-            <TaskManagerScopeTab
-                href={VPS_TASK_MANAGER_PATH}
-                label="All servers (VPS)"
-                isActive={activeScope === 'vps'}
-            />
-        </div>
-    );
+    return <AdminRouteTabs activeTabId={activeScope} items={TASK_MANAGER_SCOPE_NAVIGATION_ITEMS} />;
 }
