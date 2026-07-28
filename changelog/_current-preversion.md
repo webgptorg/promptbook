@@ -1,3 +1,5 @@
+-   Improved Agents Server `/admin/users` with a practical admin table that puts named users first and clearly groups anonymous visitor accounts below them. User creation now opens a create-server-style dialog with a browser Web Crypto secure password generator, and every user links to a detail page with recent chat activity plus direct links to filtered Chat history and Task manager views. Chat history now supports preserving a user filter through table, thread, and CSV views, and task/chat tables link back to the relevant user.
+
 -   Fixed the Agents Server initial chat greeting so a partially loaded agent never shows its opaque permanent id. The canonical chat now reuses the already resolved human-readable agent title until the remote agent profile is available.
 
 -   Fixed the default Coder project npm scripts to use the locally installed `ptbk` command expected by the Coder boilerplate verification.

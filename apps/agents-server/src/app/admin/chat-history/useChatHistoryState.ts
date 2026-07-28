@@ -15,10 +15,7 @@ import {
     type ChatHistorySortOrder,
     type ChatHistoryThread,
 } from '../../../utils/chatHistoryAdmin';
-import {
-    resolveChatHistoryMessageSender,
-    resolveChatHistoryMessageText,
-} from '../../../utils/chatHistoryMessage';
+import { resolveChatHistoryMessageSender, resolveChatHistoryMessageText } from '../../../utils/chatHistoryMessage';
 import {
     $saveMockedChatPresetFromMessages,
     MOCKED_CHATS_EDITOR_ROUTE,
@@ -80,6 +77,10 @@ type UseChatHistoryStateProps = {
      */
     initialChatId?: string;
     /**
+     * Optional initial user filter, taken from the URL query.
+     */
+    initialUserId?: number;
+    /**
      * Optional initial view mode, taken from the URL query.
      */
     initialViewMode?: ChatHistoryViewMode;
@@ -103,6 +104,7 @@ export type UseChatHistoryState = {
     totalPages: number;
     agentName: string;
     chatId: string;
+    userId: number | undefined;
     threads: ChatHistoryThread[];
     threadsLoading: boolean;
     selectedThread: ChatHistoryThread | null;
@@ -154,7 +156,7 @@ function mapAdminAgents(data: AgentsApiResponse): AdminAgentInfo[] {
  * Builds fetch params for the current chat history view state.
  */
 function createChatHistoryListParams(
-    state: Pick<UseChatHistoryState, 'page' | 'pageSize' | 'agentName' | 'chatId'> & {
+    state: Pick<UseChatHistoryState, 'page' | 'pageSize' | 'agentName' | 'chatId' | 'userId'> & {
         search: string;
         sortBy: ChatHistorySortField;
         sortOrder: ChatHistorySortOrder;
@@ -171,6 +173,7 @@ function createChatHistoryListParams(
         // deep-links robust even when the agent was addressed by permanent id.
         agentName: chatId ? undefined : state.agentName || undefined,
         chatId,
+        userId: state.userId,
         search: state.search || undefined,
         sortBy: state.sortBy,
         sortOrder: state.sortOrder,
@@ -207,7 +210,7 @@ function getChatHistoryViewSettings(mode: ChatHistoryViewMode): ChatHistoryViewS
 /**
  * Builds the CSV export URL for the active agent and chat thread filters.
  */
-function getChatHistoryExportUrl(agentName: string, chatId: string): string {
+function getChatHistoryExportUrl(agentName: string, chatId: string, userId?: number): string {
     const params = new URLSearchParams();
 
     if (chatId) {
@@ -215,6 +218,10 @@ function getChatHistoryExportUrl(agentName: string, chatId: string): string {
         params.set('chatId', chatId);
     } else if (agentName) {
         params.set('agentName', agentName);
+    }
+
+    if (userId) {
+        params.set('userId', String(userId));
     }
 
     return `/api/chat-history/export?${params.toString()}`;
@@ -273,7 +280,9 @@ async function confirmDeleteChatMessage(): Promise<boolean> {
 async function confirmClearAgentHistory(agentName: string, formatText: (text: string) => string): Promise<boolean> {
     return showConfirm({
         title: 'Clear chat history',
-        message: `${formatText('Are you sure you want to permanently delete all chat history for agent')} "${agentName}"?`,
+        message: `${formatText(
+            'Are you sure you want to permanently delete all chat history for agent',
+        )} "${agentName}"?`,
         confirmLabel: 'Delete history',
         cancelLabel: 'Cancel',
     }).catch(() => false);
@@ -287,6 +296,7 @@ async function confirmClearAgentHistory(agentName: string, formatText: (text: st
 export function useChatHistoryState({
     initialAgentName,
     initialChatId,
+    initialUserId,
     initialViewMode,
     formatText,
 }: UseChatHistoryStateProps): UseChatHistoryState {
@@ -297,6 +307,7 @@ export function useChatHistoryState({
     const [pageSize, setPageSize] = useState(initialViewSettings.pageSize);
     const [agentName, setAgentName] = useState(initialAgentName ?? '');
     const [chatId, setChatId] = useState(initialChatId ?? '');
+    const [userId] = useState<number | undefined>(initialUserId);
     const [threads, setThreads] = useState<ChatHistoryThread[]>([]);
     const [threadsLoading, setThreadsLoading] = useState(false);
     const [searchInput, setSearchInput] = useState('');
@@ -324,6 +335,7 @@ export function useChatHistoryState({
                         pageSize,
                         agentName,
                         chatId,
+                        userId,
                         search,
                         sortBy,
                         sortOrder,
@@ -331,7 +343,7 @@ export function useChatHistoryState({
                     overrides,
                 ),
             ),
-        [page, pageSize, agentName, chatId, search, sortBy, sortOrder],
+        [page, pageSize, agentName, chatId, search, sortBy, sortOrder, userId],
     );
 
     useEffect(() => {
@@ -383,7 +395,7 @@ export function useChatHistoryState({
         async function loadThreads() {
             try {
                 setThreadsLoading(true);
-                const nextThreads = await $fetchChatHistoryThreads(agentName || undefined);
+                const nextThreads = await $fetchChatHistoryThreads(agentName || undefined, userId);
                 if (isCancelled) {
                     return;
                 }
@@ -406,7 +418,7 @@ export function useChatHistoryState({
         return () => {
             isCancelled = true;
         };
-    }, [agentName]);
+    }, [agentName, userId]);
 
     useEffect(() => {
         let isCancelled = false;
@@ -450,7 +462,7 @@ export function useChatHistoryState({
         return Math.max(1, Math.ceil(total / pageSize));
     }, [total, pageSize]);
 
-    const exportUrl = useMemo(() => getChatHistoryExportUrl(agentName, chatId), [agentName, chatId]);
+    const exportUrl = useMemo(() => getChatHistoryExportUrl(agentName, chatId, userId), [agentName, chatId, userId]);
 
     const chatMessages = useMemo(() => createChatHistoryMessages(items, viewMode), [items, viewMode]);
 
@@ -587,9 +599,7 @@ export function useChatHistoryState({
                 notifySuccess('Mocked chat was created.');
                 window.location.href = MOCKED_CHATS_EDITOR_ROUTE;
             } catch (actionError) {
-                notifyError(
-                    resolveChatHistoryActionErrorMessage(actionError, 'Failed to create the mocked chat'),
-                );
+                notifyError(resolveChatHistoryActionErrorMessage(actionError, 'Failed to create the mocked chat'));
             } finally {
                 setIsCreatingMock(false);
             }
@@ -650,6 +660,7 @@ export function useChatHistoryState({
         totalPages,
         agentName,
         chatId,
+        userId,
         threads,
         threadsLoading,
         selectedThread,

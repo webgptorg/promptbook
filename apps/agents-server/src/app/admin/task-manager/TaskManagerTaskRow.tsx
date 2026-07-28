@@ -202,13 +202,22 @@ export function TaskManagerTaskRow({
             </td>
 
             <td className="px-4 py-3 align-top">
+                <div className="mb-2 last:mb-0">
+                    <div className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">User</div>
+                    {task.userId > 0 ? (
+                        <Link
+                            href={`/admin/users/${encodeURIComponent(task.username || String(task.userId))}`}
+                            className="break-all text-[11px] text-blue-700 hover:underline"
+                        >
+                            #{task.userId}
+                        </Link>
+                    ) : (
+                        <span className="break-all text-[11px] text-gray-800">#{task.userId}</span>
+                    )}
+                    <div className="break-all text-[11px] text-gray-500">{task.username || '-'}</div>
+                </div>
                 <TaskInfoBlock
                     rows={[
-                        {
-                            label: 'User',
-                            value: `#${task.userId}`,
-                            secondary: task.username || '-',
-                        },
                         {
                             label: 'Agent',
                             value: task.agentName || task.agentPermanentId,
@@ -263,9 +272,7 @@ export function TaskManagerTaskRow({
                             {task.lastErrorSummary ? <div>{truncateTaskText(task.lastErrorSummary, 220)}</div> : null}
                             {task.lastErrorDetails ? (
                                 <details className="rounded-md border border-gray-200 bg-gray-50 p-2">
-                                    <summary className="cursor-pointer font-medium text-gray-700">
-                                        Show details
-                                    </summary>
+                                    <summary className="cursor-pointer font-medium text-gray-700">Show details</summary>
                                     <pre className="mt-2 overflow-x-auto whitespace-pre-wrap break-words text-[10px] leading-relaxed text-gray-600">
                                         {task.lastErrorDetails}
                                     </pre>

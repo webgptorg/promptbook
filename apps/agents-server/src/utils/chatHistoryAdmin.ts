@@ -36,6 +36,7 @@ export type ChatHistoryListParams = {
     pageSize?: number;
     agentName?: string;
     chatId?: string;
+    userId?: number;
     search?: string;
     sortBy?: ChatHistorySortField;
     sortOrder?: ChatHistorySortOrder;
@@ -51,6 +52,7 @@ function buildQuery(params: ChatHistoryListParams): string {
     if (params.pageSize && params.pageSize > 0) searchParams.set('pageSize', String(params.pageSize));
     if (params.agentName) searchParams.set('agentName', params.agentName);
     if (params.chatId) searchParams.set('chatId', params.chatId);
+    if (params.userId && params.userId > 0) searchParams.set('userId', String(params.userId));
     if (params.search) searchParams.set('search', params.search);
     if (params.sortBy) searchParams.set('sortBy', params.sortBy);
     if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
@@ -92,11 +94,14 @@ export type ChatHistoryThreadsResponse = {
  * Shared by the admin chat history filters and the chat transcript view so both
  * browse conversations thread by thread instead of one mixed pile.
  */
-export async function $fetchChatHistoryThreads(agentName?: string): Promise<ChatHistoryThread[]> {
+export async function $fetchChatHistoryThreads(agentName?: string, userId?: number): Promise<ChatHistoryThread[]> {
     const searchParams = new URLSearchParams();
 
     if (agentName) {
         searchParams.set('agentName', agentName);
+    }
+    if (userId && userId > 0) {
+        searchParams.set('userId', String(userId));
     }
 
     const qs = searchParams.toString();

@@ -20,6 +20,10 @@ type ChatHistoryClientProps = {
      */
     initialChatId?: string;
     /**
+     * Optional initial user filter, taken from the URL query.
+     */
+    initialUserId?: number;
+    /**
      * Optional initial view mode, taken from the URL query.
      */
     initialViewMode?: 'table' | 'chat';
@@ -28,10 +32,21 @@ type ChatHistoryClientProps = {
 /**
  * Handles chat history client.
  */
-export function ChatHistoryClient({ initialAgentName, initialChatId, initialViewMode }: ChatHistoryClientProps) {
+export function ChatHistoryClient({
+    initialAgentName,
+    initialChatId,
+    initialUserId,
+    initialViewMode,
+}: ChatHistoryClientProps) {
     const { formatText } = useAgentNaming();
     const { language } = useServerLanguage();
-    const chatHistoryState = useChatHistoryState({ initialAgentName, initialChatId, initialViewMode, formatText });
+    const chatHistoryState = useChatHistoryState({
+        initialAgentName,
+        initialChatId,
+        initialUserId,
+        initialViewMode,
+        formatText,
+    });
 
     return (
         <div className="container mx-auto px-4 py-8 space-y-6">
@@ -102,6 +117,7 @@ export function ChatHistoryClient({ initialAgentName, initialChatId, initialView
                 pageSize={chatHistoryState.pageSize}
                 handlePageSizeChange={chatHistoryState.handlePageSizeChange}
                 handleClearAgentHistory={chatHistoryState.handleClearAgentHistory}
+                userId={chatHistoryState.userId}
             />
 
             {chatHistoryState.viewMode === 'chat' ? (

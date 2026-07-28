@@ -8,6 +8,7 @@ import { Section } from '../../../../components/Homepage/Section';
 import { useServerLanguage } from '../../../../components/ServerLanguage/ServerLanguageProvider';
 import { useUsersAdmin } from '../../../../components/UsersList/useUsersAdmin';
 import { formatServerLanguageHumanReadableDate } from '../../../../utils/localization/formatServerLanguageHumanReadableDate';
+import { UserActivityTable } from './UserActivityTable';
 
 /**
  * Props for user detail client.
@@ -77,7 +78,7 @@ export function UserDetailClient({ userId }: UserDetailClientProps) {
                 &larr; {t('users.backToUsers')}
             </Link>
 
-            <Section title={t('users.profileTitle', { username: user.username })}>
+            <Section title={t('users.profileTitle', { username: user.username })} gridClassName="space-y-6">
                 <Card>
                     <div className="flex justify-between items-start">
                         <div>
@@ -139,13 +140,7 @@ export function UserDetailClient({ userId }: UserDetailClientProps) {
                     </p>
                 </Card>
 
-                <Card>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('users.activityTitle')}</h3>
-                    <p className="text-gray-600 text-sm">
-                        {t('users.activityDescription')}
-                        {/* TODO: [🧠] Implement user activity timeline once events are stored. */}
-                    </p>
-                </Card>
+                <UserActivityTable userId={user.id} username={user.username} />
             </Section>
         </div>
     );

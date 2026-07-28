@@ -3,6 +3,7 @@ import { $getTableName } from '../../../../database/$getTableName';
 import { $provideSupabase } from '../../../../database/$provideSupabase';
 import { groupChatHistoryThreads, type ChatHistoryThreadSourceRow } from '../../../../utils/chatHistoryMessage';
 import { isUserAdmin } from '../../../../utils/isUserAdmin';
+import { parsePositiveUserId } from '../../../../utils/parsePositiveUserId';
 
 /**
  * Maximum number of recent recorded messages scanned when building the chat thread list.
@@ -18,6 +19,7 @@ const CHAT_HISTORY_THREADS_SCAN_LIMIT = 1000;
  *
  * Query params:
  * - agentName: restrict the threads to a single agent (optional)
+ * - userId: restrict the threads to one user (optional)
  *
  * The response separates the flat `ChatHistory` audit log into distinct chat
  * threads so the admin chat history can be browsed conversation by conversation.
@@ -29,6 +31,7 @@ export async function GET(request: NextRequest) {
 
     try {
         const agentName = request.nextUrl.searchParams.get('agentName');
+        const userId = parsePositiveUserId(request.nextUrl.searchParams.get('userId'));
 
         const supabase = $provideSupabase();
         const table = await $getTableName('ChatHistory');
@@ -42,6 +45,10 @@ export async function GET(request: NextRequest) {
 
         if (agentName) {
             query = query.eq('agentName', agentName);
+        }
+
+        if (userId !== null) {
+            query = query.eq('userId', userId);
         }
 
         const { data, error } = await query;

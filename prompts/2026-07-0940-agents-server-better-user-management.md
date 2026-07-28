@@ -1,4 +1,4 @@
-[ ]
+[x] (2 attempts) by OpenAI Codex `gpt-5.6-luna` (ChatGPT account) - Implementation ~$1.19 an hour; Testing 18 minutes; Fixing ~$1.63 2 hours; Testing 29 minutes
 
 [✨😞] Enhance the admin page for managing users.
 
@@ -16,3 +16,4 @@
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ![alt text](screenshots/2026-07-0940-agents-server-better-user-management.png)
+

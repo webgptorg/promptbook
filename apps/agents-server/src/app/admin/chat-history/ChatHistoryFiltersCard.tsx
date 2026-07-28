@@ -2,6 +2,11 @@ import { Card } from '../../../components/Homepage/Card';
 import type { UseChatHistoryState } from './useChatHistoryState';
 
 /**
+ * Legacy phrase used for the user filter summary.
+ */
+const SHOWING_CHAT_HISTORY_FOR_USER_TEXT = 'Showing chat history for user';
+
+/**
  * Props for ChatHistoryFiltersCard.
  */
 type ChatHistoryFiltersCardProps = Pick<
@@ -20,6 +25,7 @@ type ChatHistoryFiltersCardProps = Pick<
     | 'pageSize'
     | 'handlePageSizeChange'
     | 'handleClearAgentHistory'
+    | 'userId'
 > & {
     /**
      * Active text formatter for agent naming.
@@ -48,6 +54,7 @@ export function ChatHistoryFiltersCard({
     pageSize,
     handlePageSizeChange,
     handleClearAgentHistory,
+    userId,
 }: ChatHistoryFiltersCardProps) {
     const isChatThreadFilterEnabled = Boolean(agentName);
     return (
@@ -93,7 +100,9 @@ export function ChatHistoryFiltersCard({
                                 </option>
                             ))}
                         </select>
-                        {agentsLoading && <span className="text-xs text-gray-400">{formatText('Loading agents…')}</span>}
+                        {agentsLoading && (
+                            <span className="text-xs text-gray-400">{formatText('Loading agents…')}</span>
+                        )}
                     </div>
 
                     <div className="flex flex-col gap-1">
@@ -118,7 +127,9 @@ export function ChatHistoryFiltersCard({
                             <span className="text-xs text-gray-400">Loading chat threads…</span>
                         )}
                         {!isChatThreadFilterEnabled && (
-                            <span className="text-xs text-gray-400">{formatText('Pick an agent to filter by chat thread')}</span>
+                            <span className="text-xs text-gray-400">
+                                {formatText('Pick an agent to filter by chat thread')}
+                            </span>
                         )}
                     </div>
 
@@ -156,6 +167,12 @@ export function ChatHistoryFiltersCard({
                     </button>
                 </div>
             )}
+            {userId ? (
+                <div className="mt-4 rounded-md border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+                    {formatText(SHOWING_CHAT_HISTORY_FOR_USER_TEXT)}{' '}
+                    <span className="font-semibold">#{userId}</span>.
+                </div>
+            ) : null}
         </Card>
     );
 }

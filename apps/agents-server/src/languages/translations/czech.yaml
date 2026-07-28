@@ -394,16 +394,33 @@ forbidden.title: 403 Zakázáno
 forbidden.message: Nemáte oprávnění k přístupu na tuto stránku.
 users.loadingUsers: Načítám uživatele…
 users.sectionTitle: 'Uživatelé ({count})'
+users.tableDescription: Pojmenovaní uživatelé jsou nahoře, anonymní návštěvníci jsou pod nimi.
+users.userColumn: Uživatel
+users.roleColumn: Role a identita
+users.activityColumn: Aktivita
+users.actionsColumn: Akce
+users.noUsers: Nebyli nalezeni žádní uživatelé.
 users.adminRole: Správce
+users.userRole: Uživatel
+users.anonymousUser: Anonymní uživatel
+users.anonymousLabel: Anonymní
 users.createdLabel: Vytvořeno
 users.removeAdmin: Odebrat roli správce
 users.makeAdmin: Nastavit jako správce
 users.delete: Smazat
 users.addNewUser: Přidat nového uživatele
+users.createDialogTitle: Vytvořit nového uživatele
+users.createDialogDescription: Přidejte účet, který se může přihlásit k tomuto serveru.
+users.closeCreateDialog: Zavřít dialog vytvoření uživatele
+users.usernameLabel: Uživatelské jméno
 users.usernamePlaceholder: Uživatelské jméno
+users.passwordLabel: Heslo
 users.passwordPlaceholder: Heslo
 users.passwordAriaLabel: Heslo
+users.generatePassword: Vygenerovat bezpečné heslo
+users.passwordGeneratorDescription: Používá bezpečný generátor náhodných hodnot vašeho prohlížeče.
 users.isAdminCheckbox: Administrátor
+users.adminRoleDescription: Správci mohou spravovat tento server a jeho uživatele.
 users.createUser: Vytvořit uživatele
 users.deleteConfirmTitle: Smazat uživatele
 users.deleteConfirmMessage: 'Opravdu chcete smazat uživatele {username}?'
@@ -426,7 +443,19 @@ users.deleteUserAction: Smazat uživatele
 users.createdAgentsTitle: Agenti tohoto uživatele
 users.createdAgentsDescription: Seznam agentů vytvořených tímto uživatelem zatím není propojený s datovým modelem.
 users.activityTitle: Aktivita
-users.activityDescription: Podrobné sledování aktivity zatím není k dispozici. Jako orientační přehled změn zatím můžete použít výše uvedené časy vytvoření a poslední úpravy.
+users.activityDescription: Poslední zaznamenané chatové zprávy tohoto uživatele.
+users.activityLoading: Načítám aktivitu…
+users.noActivity: Nebyla zaznamenána žádná aktivita v chatu.
+users.activityTime: Čas
+users.activityAgent: Agent
+users.activityRole: Role
+users.activityMessage: Zpráva
+users.activityAction: Akce
+users.openActivity: Otevřít
+users.activityShowing: Zobrazeno {count} z {total} zpráv.
+users.viewChatHistory: Historie chatu
+users.viewProfile: Zobrazit profil
+users.viewTasks: Správce úloh
 chat.feedback.reportIssueButtonTitle: Nahlásit problém
 chat.feedback.reportIssueButtonAriaLabel: Nahlásit problém s touto odpovědí
 chat.feedback.reportIssueModalTitle: Nahlásit problém

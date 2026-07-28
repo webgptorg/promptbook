@@ -127,6 +127,7 @@ export function ChatHistoryTable({
                                 >
                                     {formatText('Agent')}
                                 </AdminSortableTableHeaderCell>
+                                <th className="px-4 py-3 text-left font-medium text-gray-500">User</th>
                                 <th className="px-4 py-3 text-left font-medium text-gray-500">Role</th>
                                 <th className="px-4 py-3 text-left font-medium text-gray-500">Source</th>
                                 <th className="px-4 py-3 text-left font-medium text-gray-500">Message</th>
@@ -145,11 +146,21 @@ export function ChatHistoryTable({
                                     </td>
                                     <td className="whitespace-nowrap px-4 py-3 text-gray-700">{row.agentName}</td>
                                     <td className="whitespace-nowrap px-4 py-3 text-gray-700">
-                                        {resolveChatHistoryMessageRole(row.message)}
+                                        {row.userId ? (
+                                            <Link
+                                                href={`/admin/users/${encodeURIComponent(String(row.userId))}`}
+                                                className="text-blue-600 hover:text-blue-800"
+                                            >
+                                                #{row.userId}
+                                            </Link>
+                                        ) : (
+                                            '-'
+                                        )}
                                     </td>
                                     <td className="whitespace-nowrap px-4 py-3 text-gray-700">
-                                        {row.source || '-'}
+                                        {resolveChatHistoryMessageRole(row.message)}
                                     </td>
+                                    <td className="whitespace-nowrap px-4 py-3 text-gray-700">{row.source || '-'}</td>
                                     <td className="max-w-xs px-4 py-3 text-gray-700">
                                         <ChatHistoryPreviewCell message={row.message} />
                                     </td>

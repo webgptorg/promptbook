@@ -398,16 +398,33 @@ forbidden.title: 403 Forbidden
 forbidden.message: You do not have permission to access this page.
 users.loadingUsers: Loading users...
 users.sectionTitle: Users ({count})
+users.tableDescription: Named users appear first; anonymous visitors are grouped below them.
+users.userColumn: User
+users.roleColumn: Role and identity
+users.activityColumn: Activity
+users.actionsColumn: Actions
+users.noUsers: No users found.
 users.adminRole: Admin
+users.userRole: User
+users.anonymousUser: Anonymous user
+users.anonymousLabel: Anonymous
 users.createdLabel: Created
 users.removeAdmin: Remove Admin
 users.makeAdmin: Make Admin
 users.delete: Delete
 users.addNewUser: Add New User
+users.createDialogTitle: Create new user
+users.createDialogDescription: Add an account that can sign in to this server.
+users.closeCreateDialog: Close create user dialog
+users.usernameLabel: Username
 users.usernamePlaceholder: Username
+users.passwordLabel: Password
 users.passwordPlaceholder: Password
 users.passwordAriaLabel: Password
+users.generatePassword: Generate secure password
+users.passwordGeneratorDescription: Uses your browser's secure random generator.
 users.isAdminCheckbox: Is Admin
+users.adminRoleDescription: Administrators can manage this server and its users.
 users.createUser: Create User
 users.deleteConfirmTitle: Delete user
 users.deleteConfirmMessage: Are you sure you want to delete user {username}?
@@ -430,7 +447,19 @@ users.deleteUserAction: Delete user
 users.createdAgentsTitle: Created agents
 users.createdAgentsDescription: Listing agents created by users is not wired to the data model yet.
 users.activityTitle: Activity
-users.activityDescription: Detailed activity tracking is not implemented yet. For now, you can use the created and updated timestamps above as a basic signal of recent changes.
+users.activityDescription: Recent recorded chat messages for this user.
+users.activityLoading: Loading activity...
+users.noActivity: No recorded chat activity.
+users.activityTime: Time
+users.activityAgent: Agent
+users.activityRole: Role
+users.activityMessage: Message
+users.activityAction: Action
+users.openActivity: Open
+users.activityShowing: Showing {count} of {total} messages.
+users.viewChatHistory: Chat history
+users.viewProfile: View profile
+users.viewTasks: Task manager
 chat.feedback.reportIssueButtonTitle: Report issue
 chat.feedback.reportIssueButtonAriaLabel: Report issue with this response
 chat.feedback.reportIssueModalTitle: Report issue

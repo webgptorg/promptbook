@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { $getTableName } from '../../../database/$getTableName';
 import { $provideSupabase } from '../../../database/$provideSupabase';
 import { isUserAdmin } from '../../../utils/isUserAdmin';
+import { parsePositiveUserId } from '../../../utils/parsePositiveUserId';
 
 /**
  * Size of default page.
@@ -67,12 +68,10 @@ export async function GET(request: NextRequest) {
         const searchParams = request.nextUrl.searchParams;
 
         const page = parsePositiveInt(searchParams.get('page'), 1);
-        const pageSize = Math.min(
-            MAX_PAGE_SIZE,
-            parsePositiveInt(searchParams.get('pageSize'), DEFAULT_PAGE_SIZE),
-        );
+        const pageSize = Math.min(MAX_PAGE_SIZE, parsePositiveInt(searchParams.get('pageSize'), DEFAULT_PAGE_SIZE));
         const agentName = searchParams.get('agentName');
         const chatId = searchParams.get('chatId');
+        const userId = parsePositiveUserId(searchParams.get('userId'));
         const search = searchParams.get('search')?.trim() || '';
         const sortBy = parseSortField(searchParams.get('sortBy'));
         const sortOrder = parseSortOrder(searchParams.get('sortOrder'));
@@ -80,9 +79,7 @@ export async function GET(request: NextRequest) {
         const supabase = $provideSupabase();
         const table = await $getTableName('ChatHistory');
 
-        let query = supabase
-            .from(table)
-            .select('*', { count: 'exact' });
+        let query = supabase.from(table).select('*', { count: 'exact' });
 
         if (agentName) {
             query = query.eq('agentName', agentName);
@@ -90,6 +87,10 @@ export async function GET(request: NextRequest) {
 
         if (chatId) {
             query = query.eq('chatId', chatId);
+        }
+
+        if (userId !== null) {
+            query = query.eq('userId', userId);
         }
 
         if (search) {
@@ -101,9 +102,7 @@ export async function GET(request: NextRequest) {
             // - url
             // - ip
             const escaped = search.replace(/%/g, '\\%').replace(/_/g, '\\_');
-            query = query.or(
-                `agentName.ilike.%${escaped}%,url.ilike.%${escaped}%,ip.ilike.%${escaped}%`,
-            );
+            query = query.or(`agentName.ilike.%${escaped}%,url.ilike.%${escaped}%,ip.ilike.%${escaped}%`);
         }
 
         query = query.order(sortBy, { ascending: sortOrder === 'asc' });
@@ -156,10 +155,7 @@ export async function DELETE(request: NextRequest) {
         const supabase = $provideSupabase();
         const table = await $getTableName('ChatHistory');
 
-        const { error } = await supabase
-            .from(table)
-            .delete()
-            .eq('agentName', agentName);
+        const { error } = await supabase.from(table).delete().eq('agentName', agentName);
 
         if (error) {
             console.error('Clear chat history error:', error);
