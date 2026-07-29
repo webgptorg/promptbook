@@ -18,7 +18,16 @@ const execFileAsync = promisify(execFile);
 export const HIDDEN_ENVIRONMENT_VALUE = '********';
 
 /**
- * Environment variable names that can be managed from the standalone VPS UI.
+ * Environment variable names whose values must be concealed in the admin UI.
+ */
+const SENSITIVE_ENVIRONMENT_VARIABLE_KEY_PATTERN =
+    /(?:PASSWORD|SECRET|TOKEN|(?:^|_)KEY(?:_|$)|CREDENTIAL|(?:DATABASE|POSTGRES)_URL)/iu;
+
+/**
+ * Environment variable names initially shown in the standalone VPS UI.
+ *
+ * Every valid key already present in the VPS `.env` file is listed as well,
+ * so integrations and custom variables do not need to be duplicated here.
  */
 export const VPS_ENVIRONMENT_VARIABLE_KEYS = [
     'SERVERS',
@@ -58,18 +67,13 @@ export const VPS_ENVIRONMENT_VARIABLE_KEYS = [
 ] as const;
 
 /**
- * Editable environment variable key supported by the standalone VPS UI.
- */
-export type VpsEnvironmentVariableKey = (typeof VPS_ENVIRONMENT_VARIABLE_KEYS)[number];
-
-/**
  * One environment variable row safe to send to the browser.
  */
 export type VpsEnvironmentVariableRecord = {
     /**
      * Environment variable name.
      */
-    readonly key: VpsEnvironmentVariableKey;
+    readonly key: string;
 
     /**
      * Masked or plain UI value.
@@ -170,7 +174,7 @@ export async function listVpsEnvironmentVariables(): Promise<{
 
     return {
         envFilePath,
-        variables: VPS_ENVIRONMENT_VARIABLE_KEYS.map((key) => {
+        variables: listVpsEnvironmentVariableKeys(envValues).map((key) => {
             const rawValue = envValues.get(key) ?? process.env[key] ?? '';
             const isSensitive = isSensitiveEnvironmentVariable(key);
             return {
@@ -184,7 +188,17 @@ export async function listVpsEnvironmentVariables(): Promise<{
 }
 
 /**
- * Updates supported variables in the installed `.env` file.
+ * Lists every environment variable that can be displayed in the VPS UI.
+ *
+ * @param envValues - Values persisted in the VPS `.env` file.
+ * @returns Known variables together with all persisted custom variables.
+ */
+function listVpsEnvironmentVariableKeys(envValues: ReadonlyMap<string, string>): Array<string> {
+    return [...new Set([...VPS_ENVIRONMENT_VARIABLE_KEYS, ...envValues.keys()])];
+}
+
+/**
+ * Updates variables in the installed `.env` file.
  *
  * Sensitive variables are updated only when the submitted value is not empty and not the mask.
  *
@@ -428,7 +442,7 @@ export function createVpsInstallerCommandEnvironment(
  * @returns `true` when the value is sensitive.
  */
 export function isSensitiveEnvironmentVariable(key: string): boolean {
-    return /(?:PASSWORD|SECRET|TOKEN|API_KEY|PRIVATE_KEY|CREDENTIAL)/iu.test(key);
+    return SENSITIVE_ENVIRONMENT_VARIABLE_KEY_PATTERN.test(key);
 }
 
 /**
@@ -482,19 +496,21 @@ async function readVpsEnvironmentMap(envFilePath: string): Promise<Map<string, s
 }
 
 /**
- * Normalizes update payloads and rejects unsupported keys.
+ * Normalizes update payloads and rejects invalid environment variable names.
  *
  * @param updates - Raw request updates.
- * @returns Supported update entries.
+ * @returns Valid update entries.
  */
 function normalizeVpsEnvironmentUpdates(updates: Readonly<Record<string, string>>): Map<string, string> {
     const normalizedUpdates = new Map<string, string>();
 
     for (const [rawKey, rawValue] of Object.entries(updates)) {
-        if (!isVpsEnvironmentVariableKey(rawKey)) {
+        if (!isEnvironmentVariableKey(rawKey)) {
             throw new NotAllowed(
                 spaceTrim(`
-                    Environment variable \`${rawKey}\` is not editable through the Agents Server UI.
+                    Environment variable name \`${rawKey}\` is invalid.
+
+                    It must start with a letter or underscore and contain only letters, numbers, and underscores.
                 `),
             );
         }
@@ -515,13 +531,13 @@ function normalizeVpsEnvironmentUpdates(updates: Readonly<Record<string, string>
 }
 
 /**
- * Checks whether a raw key is supported by the VPS UI.
+ * Checks whether a value is a valid environment variable name.
  *
- * @param key - Candidate environment variable key.
- * @returns `true` when supported.
+ * @param value - Candidate environment variable name.
+ * @returns `true` when the name can be stored in an `.env` file.
  */
-function isVpsEnvironmentVariableKey(key: string): key is VpsEnvironmentVariableKey {
-    return VPS_ENVIRONMENT_VARIABLE_KEYS.includes(key as VpsEnvironmentVariableKey);
+function isEnvironmentVariableKey(value: string): boolean {
+    return /^[A-Za-z_][A-Za-z0-9_]*$/u.test(value);
 }
 
 /**

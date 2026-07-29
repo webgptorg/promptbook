@@ -5,14 +5,20 @@ import {
     FolderKanbanIcon,
     Globe2Icon,
     HardDriveIcon,
+    PlayIcon,
     SaveIcon,
+    SquareIcon,
     type LucideIcon,
 } from 'lucide-react';
 import Link from 'next/link';
+import { AgentProjectDnsWarning } from '../../../components/AgentProjects/AgentProjectDnsWarning';
+import { AgentProjectRuntimeStatusBadge } from '../../../components/AgentProjects/AgentProjectRuntimeStatusBadge';
 import { AgentProjectsBoard } from '../../../components/AgentProjects/AgentProjectsBoard';
 import { ForbiddenPage } from '../../../components/ForbiddenPage/ForbiddenPage';
+import { isAgentsServerSqliteMode } from '../../../database/agentsServerDatabaseMode';
 import type { AgentProjectInfo } from '../../../utils/agentProjects/AgentProjectInfo';
 import type { AgentProjectsSummary } from '../../../utils/agentProjects/AgentProjectInfo';
+import type { AgentProjectRuntimeInfo } from '../../../utils/agentProjects/AgentProjectRuntimeInfo';
 import {
     buildAgentProjectProfileHref,
     buildAgentProjectsDashboardHref,
@@ -23,11 +29,23 @@ import {
     resolveAgentProjectRuntimeBaseDomain,
     type AgentProjectDomainRecord,
 } from '../../../utils/agentProjects/agentProjectRuntimeDomains';
+import {
+    createAgentProjectDnsDiagnosticLookup,
+    isAgentProjectDnsDiagnosticIssue,
+    listAgentProjectDnsDiagnostics,
+    type AgentProjectDnsDiagnostic,
+} from '../../../utils/agentProjects/listAgentProjectDnsDiagnostics';
+import { formatAgentProjectRuntimeStatus } from '../../../utils/agentProjects/agentProjectRuntimeDisplay';
+import { listAgentProjectRuntimes } from '../../../utils/agentProjects/agentProjectRuntimeRegistry';
 import { resolveCurrentAgentProjectServerDomain } from '../../../utils/agentProjects/resolveCurrentAgentProjectServerDomain';
 import { listAllAgentProjectSummaries } from '../../../utils/agentProjects/listAllAgentProjectSummaries';
 import { isUserAdmin } from '../../../utils/isUserAdmin';
 import { formatResourceBytes } from '../../../utils/resourceMonitor/formatResourceMonitorValue';
-import { $setAgentProjectCustomDomainFromAdminProjectsAction } from './actions';
+import {
+    $setAgentProjectCustomDomainFromAdminProjectsAction,
+    $startAgentProjectRuntimeFromAdminProjectsAction,
+    $terminateAgentProjectRuntimeFromAdminProjectsAction,
+} from './actions';
 import { AGENT_PROJECT_CUSTOM_DOMAIN_FORM_FIELD } from './agentProjectCustomDomainForm';
 
 /**
@@ -39,6 +57,16 @@ const PROJECT_DOMAIN_LOOKUP_KEY_SEPARATOR = '::';
  * Project-domain records keyed by owner and project.
  */
 type AgentProjectDomainLookup = ReadonlyMap<string, AgentProjectDomainRecord>;
+
+/**
+ * Project runtimes keyed by owner and project.
+ */
+type AgentProjectRuntimeLookup = ReadonlyMap<string, AgentProjectRuntimeInfo>;
+
+/**
+ * Project DNS diagnostics keyed by owner and project.
+ */
+type AgentProjectDnsDiagnosticLookup = ReadonlyMap<string, AgentProjectDnsDiagnostic>;
 
 /**
  * Forces fresh project listings from disk on every request.
@@ -53,13 +81,24 @@ export default async function AdminAgentProjectsPage() {
         return <ForbiddenPage />;
     }
 
-    const [report, currentServerDomain, projectDomainRecords] = await Promise.all([
+    const [report, currentServerDomain, projectDomainRecords, projectRuntimes] = await Promise.all([
         listAllAgentProjectSummaries({ scope: 'current-server' }),
         resolveCurrentAgentProjectServerDomain(),
         listAgentProjectDomainRecords(),
+        listAgentProjectRuntimes(),
     ]);
     const serverDomain = resolveAgentProjectRuntimeBaseDomain(currentServerDomain);
     const projectDomainLookup = createAgentProjectDomainLookup(projectDomainRecords, serverDomain);
+    const projectRuntimeLookup = createAgentProjectRuntimeLookup(projectRuntimes);
+    const projectDnsDiagnosticLookup = createAgentProjectDnsDiagnosticLookup(
+        isAgentsServerSqliteMode()
+            ? await listAgentProjectDnsDiagnostics({
+                  projectDomainRecords,
+                  publicIpAddress: process.env.PTBK_PUBLIC_IP_ADDRESS,
+                  serverDomain,
+              })
+            : [],
+    );
 
     return (
         <div className="container mx-auto space-y-6 px-4 py-8">
@@ -104,7 +143,9 @@ export default async function AdminAgentProjectsPage() {
                 report.summaries.map((summary) => (
                     <AdminAgentProjectsSection
                         key={summary.agentDirectoryName}
+                        projectDnsDiagnosticLookup={projectDnsDiagnosticLookup}
                         projectDomainLookup={projectDomainLookup}
+                        projectRuntimeLookup={projectRuntimeLookup}
                         serverDomain={serverDomain}
                         summary={summary}
                     />
@@ -141,11 +182,15 @@ function AdminProjectsMetricCard({
  * Renders projects of one agent inside the admin dashboard.
  */
 function AdminAgentProjectsSection({
+    projectDnsDiagnosticLookup,
     projectDomainLookup,
+    projectRuntimeLookup,
     serverDomain,
     summary,
 }: {
+    readonly projectDnsDiagnosticLookup: AgentProjectDnsDiagnosticLookup;
     readonly projectDomainLookup: AgentProjectDomainLookup;
+    readonly projectRuntimeLookup: AgentProjectRuntimeLookup;
     readonly serverDomain: string | null;
     readonly summary: AgentProjectsSummary;
 }) {
@@ -168,9 +213,24 @@ function AdminAgentProjectsSection({
                     <span className="font-mono text-gray-700">{formatResourceBytes(summary.totalSizeBytes)}</span>
                 </div>
             </div>
-            <AgentProjectsBoard agentPermanentId={summary.agentPermanentId} projects={summary.projects} />
+            <AgentProjectsBoard
+                agentPermanentId={summary.agentPermanentId}
+                projects={summary.projects}
+                renderProjectFooter={(project) => (
+                    <AdminProjectRuntimeControls
+                        agentPermanentId={summary.agentPermanentId}
+                        projectName={project.projectName}
+                        runtime={
+                            projectRuntimeLookup.get(
+                                createAgentProjectLookupKey(summary.agentPermanentId, project.projectName),
+                            ) ?? null
+                        }
+                    />
+                )}
+            />
             <AdminProjectDomainsTable
                 agentPermanentId={summary.agentPermanentId}
+                projectDnsDiagnosticLookup={projectDnsDiagnosticLookup}
                 projectDomainLookup={projectDomainLookup}
                 projects={summary.projects}
                 serverDomain={serverDomain}
@@ -180,15 +240,85 @@ function AdminAgentProjectsSection({
 }
 
 /**
+ * Renders run and stop controls for one project card in the admin dashboard.
+ */
+function AdminProjectRuntimeControls({
+    agentPermanentId,
+    projectName,
+    runtime,
+}: {
+    /**
+     * Permanent id of the agent owning the project.
+     */
+    readonly agentPermanentId: string;
+
+    /**
+     * Directory name of the project.
+     */
+    readonly projectName: string;
+
+    /**
+     * Current project runtime, when one has been assigned.
+     */
+    readonly runtime: AgentProjectRuntimeInfo | null;
+}) {
+    if (runtime?.isRunning) {
+        return (
+            <div className="flex flex-wrap items-center justify-between gap-2">
+                <AgentProjectRuntimeStatusBadge isRunning={runtime.isRunning}>
+                    {formatAgentProjectRuntimeStatus(runtime)}
+                </AgentProjectRuntimeStatusBadge>
+                <form
+                    action={$terminateAgentProjectRuntimeFromAdminProjectsAction.bind(
+                        null,
+                        agentPermanentId,
+                        projectName,
+                    )}
+                >
+                    <button
+                        type="submit"
+                        className="inline-flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-sm font-semibold text-red-700 hover:bg-red-100"
+                    >
+                        <SquareIcon className="h-4 w-4" aria-hidden />
+                        Stop
+                    </button>
+                </form>
+            </div>
+        );
+    }
+
+    return (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+            {runtime && (
+                <AgentProjectRuntimeStatusBadge isRunning={runtime.isRunning}>
+                    {formatAgentProjectRuntimeStatus(runtime)}
+                </AgentProjectRuntimeStatusBadge>
+            )}
+            <form action={$startAgentProjectRuntimeFromAdminProjectsAction.bind(null, agentPermanentId, projectName)}>
+                <button
+                    type="submit"
+                    className="inline-flex items-center gap-2 rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-sm font-semibold text-blue-700 hover:bg-blue-100"
+                >
+                    <PlayIcon className="h-4 w-4" aria-hidden />
+                    Run
+                </button>
+            </form>
+        </div>
+    );
+}
+
+/**
  * Renders custom-domain assignment controls for all projects of one agent.
  */
 function AdminProjectDomainsTable({
     agentPermanentId,
+    projectDnsDiagnosticLookup,
     projectDomainLookup,
     projects,
     serverDomain,
 }: {
     readonly agentPermanentId: string;
+    readonly projectDnsDiagnosticLookup: AgentProjectDnsDiagnosticLookup;
     readonly projectDomainLookup: AgentProjectDomainLookup;
     readonly projects: ReadonlyArray<AgentProjectInfo>;
     readonly serverDomain: string | null;
@@ -213,6 +343,7 @@ function AdminProjectDomainsTable({
                             <AdminProjectDomainsTableRow
                                 key={project.projectName}
                                 agentPermanentId={agentPermanentId}
+                                projectDnsDiagnosticLookup={projectDnsDiagnosticLookup}
                                 project={project}
                                 projectDomainLookup={projectDomainLookup}
                                 serverDomain={serverDomain}
@@ -230,17 +361,21 @@ function AdminProjectDomainsTable({
  */
 function AdminProjectDomainsTableRow({
     agentPermanentId,
+    projectDnsDiagnosticLookup,
     project,
     projectDomainLookup,
     serverDomain,
 }: {
     readonly agentPermanentId: string;
+    readonly projectDnsDiagnosticLookup: AgentProjectDnsDiagnosticLookup;
     readonly project: AgentProjectInfo;
     readonly projectDomainLookup: AgentProjectDomainLookup;
     readonly serverDomain: string | null;
 }) {
     const projectDomainRecord =
-        projectDomainLookup.get(createAgentProjectDomainLookupKey(agentPermanentId, project.projectName)) ?? null;
+        projectDomainLookup.get(createAgentProjectLookupKey(agentPermanentId, project.projectName)) ?? null;
+    const projectDnsDiagnostic =
+        projectDnsDiagnosticLookup.get(createAgentProjectLookupKey(agentPermanentId, project.projectName)) ?? null;
     const generatedDomain = serverDomain
         ? createAgentProjectRuntimeDomain({
               projectName: project.projectName,
@@ -282,6 +417,9 @@ function AdminProjectDomainsTableRow({
                     <span className="ml-2 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">
                         Custom
                     </span>
+                ) : null}
+                {projectDnsDiagnostic && isAgentProjectDnsDiagnosticIssue(projectDnsDiagnostic) ? (
+                    <AgentProjectDnsWarning projectDomain={projectDnsDiagnostic.projectDomain} />
                 ) : null}
             </td>
             <td className="px-4 py-3 align-top">
@@ -334,7 +472,7 @@ function createAgentProjectDomainLookup(
         }
 
         projectDomainLookup.set(
-            createAgentProjectDomainLookupKey(projectDomainRecord.agentPermanentId, projectDomainRecord.projectName),
+            createAgentProjectLookupKey(projectDomainRecord.agentPermanentId, projectDomainRecord.projectName),
             projectDomainRecord,
         );
     }
@@ -343,8 +481,22 @@ function createAgentProjectDomainLookup(
 }
 
 /**
+ * Creates a lookup of project runtimes keyed by owner and project.
+ */
+function createAgentProjectRuntimeLookup(
+    projectRuntimes: ReadonlyArray<AgentProjectRuntimeInfo>,
+): AgentProjectRuntimeLookup {
+    return new Map(
+        projectRuntimes.map((projectRuntime) => [
+            createAgentProjectLookupKey(projectRuntime.agentPermanentId, projectRuntime.projectName),
+            projectRuntime,
+        ]),
+    );
+}
+
+/**
  * Creates a stable lookup key for one agent project.
  */
-function createAgentProjectDomainLookupKey(agentPermanentId: string, projectName: string): string {
+function createAgentProjectLookupKey(agentPermanentId: string, projectName: string): string {
     return [agentPermanentId.toLowerCase(), projectName.toLowerCase()].join(PROJECT_DOMAIN_LOOKUP_KEY_SEPARATOR);
 }

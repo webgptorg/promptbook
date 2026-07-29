@@ -14,11 +14,12 @@ import type {
     AgentProjectRuntimeStatus,
 } from './AgentProjectRuntimeInfo';
 import {
-    AGENT_PROJECT_RUNTIME_COMMAND_MAX_LENGTH,
     AGENT_PROJECT_RUNTIME_DEFAULT_DEV_COMMAND,
     AGENT_PROJECT_RUNTIME_HOST,
     AGENT_PROJECT_RUNTIME_START_POLL_INTERVAL_MS,
     AGENT_PROJECT_RUNTIME_START_TIMEOUT_MS,
+    AGENT_PROJECT_RUNTIME_STOP_POLL_INTERVAL_MS,
+    AGENT_PROJECT_RUNTIME_STOP_TIMEOUT_MS,
 } from './agentProjectRuntimeConstants';
 import {
     assignAgentProjectDomain,
@@ -36,7 +37,8 @@ import {
 import { resolveAgentProjectRuntimeRegistryFilePath } from './agentProjectRuntimePaths';
 import { createStaticAgentProjectServer } from './createStaticAgentProjectServer';
 import { findFreeTcpPort } from './findFreeTcpPort';
-import { isTcpPortListening, waitForTcpPortListening } from './isTcpPortListening';
+import { hasAgentProjectDevScript } from './hasAgentProjectDevScript';
+import { isTcpPortListening, waitForTcpPortListening, waitForTcpPortToStopListening } from './isTcpPortListening';
 import { killProcessListeningOnPort } from './killProcessListeningOnPort';
 import { resolveAgentProjectInfo } from './resolveAgentProjectInfo';
 
@@ -49,16 +51,6 @@ const AGENT_PROJECT_RUNTIME_REGISTRY_GLOBAL_KEY = '__PROMPTBOOK_AGENT_PROJECT_RU
  * Current persisted runtime registry schema version.
  */
 const AGENT_PROJECT_RUNTIME_REGISTRY_VERSION = 1;
-
-/**
- * Placeholder replaced with the assigned port in custom dev commands.
- */
-const DEV_COMMAND_PORT_PLACEHOLDER = '{port}';
-
-/**
- * Placeholder replaced with the local runtime host in custom dev commands.
- */
-const DEV_COMMAND_HOST_PLACEHOLDER = '{host}';
 
 /**
  * Project runtime registry stored on `globalThis`.
@@ -142,16 +134,6 @@ type AgentProjectRuntimeProjectOptions = {
 };
 
 /**
- * Options for starting a server-owned dev runtime.
- */
-export type StartAgentProjectDevRuntimeOptions = AgentProjectRuntimeProjectOptions & {
-    /**
-     * Optional shell command. `{port}` and `{host}` placeholders are replaced before execution.
-     */
-    readonly command?: string;
-};
-
-/**
  * Runtime start preparation shared by dev and static runtimes.
  */
 type PreparedAgentProjectRuntimeStart = {
@@ -223,97 +205,78 @@ export async function assignAgentProjectPort(
 }
 
 /**
- * Starts a server-owned static file server for one project.
+ * Starts one project using its npm `dev` script when available, otherwise a static file server.
  *
  * @param options - Agent and project identification.
- * @returns Runtime info for the static server.
+ * @returns Runtime info for the started project.
  */
-export async function startAgentProjectStaticRuntime(
+export async function startAgentProjectRuntime(
     options: AgentProjectRuntimeProjectOptions,
 ): Promise<AgentProjectRuntimeInfo> {
     await hydrateAgentProjectRuntimeRegistryState();
 
-    const preparedStart = await prepareAgentProjectRuntimeStart(options);
+    const project = await resolveExistingAgentProject(options);
+    const isDevRuntime = await hasAgentProjectDevScript(project.absolutePath);
+    const preparedStart = await prepareAgentProjectRuntimeStart(options, project);
+
+    return await startPreparedAgentProjectRuntime({
+        preparedStart,
+        agentPermanentId: options.agentPermanentId,
+        mode: isDevRuntime ? 'dev-server' : 'static-server',
+    });
+}
+
+/**
+ * Starts one project after its runtime mode and shared start metadata have been resolved.
+ */
+async function startPreparedAgentProjectRuntime(options: {
+    readonly preparedStart: PreparedAgentProjectRuntimeStart;
+    readonly agentPermanentId: string;
+    readonly mode: Extract<AgentProjectRuntimeMode, 'dev-server' | 'static-server'>;
+}): Promise<AgentProjectRuntimeInfo> {
     const now = new Date().toISOString();
     const runtimeRecord = createMutableAgentProjectRuntimeRecord({
         agentPermanentId: options.agentPermanentId,
-        command: null,
-        domain: preparedStart.domain,
-        localUrl: preparedStart.localUrl,
-        mode: 'static-server',
-        port: preparedStart.port,
-        projectName: preparedStart.project.projectName,
-        projectPath: preparedStart.project.absolutePath,
-        publicUrl: preparedStart.publicUrl,
+        command: options.mode === 'dev-server' ? AGENT_PROJECT_RUNTIME_DEFAULT_DEV_COMMAND : null,
+        domain: options.preparedStart.domain,
+        localUrl: options.preparedStart.localUrl,
+        mode: options.mode,
+        port: options.preparedStart.port,
+        projectName: options.preparedStart.project.projectName,
+        projectPath: options.preparedStart.project.absolutePath,
+        publicUrl: options.preparedStart.publicUrl,
         startedAt: now,
         status: 'starting',
     });
 
     if (isAgentProjectRuntimePm2Enabled()) {
         await startPm2ManagedAgentProjectRuntime(runtimeRecord);
+    } else if (runtimeRecord.mode === 'dev-server') {
+        startChildProcessAgentProjectDevRuntime(runtimeRecord);
     } else {
         await startInProcessStaticAgentProjectRuntime(runtimeRecord);
     }
 
     getAgentProjectRuntimeRegistryState().runtimesById.set(runtimeRecord.id, runtimeRecord);
-    await refreshAgentProjectRuntimeRecord(runtimeRecord);
-    await persistAgentProjectRuntimeRegistryState();
-    await applyAgentProjectRuntimePublicConfiguration(preparedStart.domainAssignment);
-    return toAgentProjectRuntimeInfo(runtimeRecord);
-}
 
-/**
- * Starts a server-owned dev command for one project.
- *
- * @param options - Agent, project, and optional command.
- * @returns Runtime info for the dev server.
- */
-export async function startAgentProjectDevRuntime(
-    options: StartAgentProjectDevRuntimeOptions,
-): Promise<AgentProjectRuntimeInfo> {
-    await hydrateAgentProjectRuntimeRegistryState();
+    if (runtimeRecord.mode === 'dev-server') {
+        const isListening = await waitForTcpPortListening({
+            port: runtimeRecord.port,
+            host: AGENT_PROJECT_RUNTIME_HOST,
+            timeoutMs: AGENT_PROJECT_RUNTIME_START_TIMEOUT_MS,
+            pollIntervalMs: AGENT_PROJECT_RUNTIME_START_POLL_INTERVAL_MS,
+        });
 
-    const preparedStart = await prepareAgentProjectRuntimeStart(options);
-    const command = normalizeDevCommand(options.command, preparedStart.port);
-    const now = new Date().toISOString();
-    const runtimeRecord = createMutableAgentProjectRuntimeRecord({
-        agentPermanentId: options.agentPermanentId,
-        command,
-        domain: preparedStart.domain,
-        localUrl: preparedStart.localUrl,
-        mode: 'dev-server',
-        port: preparedStart.port,
-        projectName: preparedStart.project.projectName,
-        projectPath: preparedStart.project.absolutePath,
-        publicUrl: preparedStart.publicUrl,
-        startedAt: now,
-        status: 'starting',
-    });
-
-    if (isAgentProjectRuntimePm2Enabled()) {
-        await startPm2ManagedAgentProjectRuntime(runtimeRecord);
-    } else {
-        startChildProcessAgentProjectDevRuntime(runtimeRecord);
-    }
-
-    getAgentProjectRuntimeRegistryState().runtimesById.set(runtimeRecord.id, runtimeRecord);
-
-    const isListening = await waitForTcpPortListening({
-        port: runtimeRecord.port,
-        host: AGENT_PROJECT_RUNTIME_HOST,
-        timeoutMs: AGENT_PROJECT_RUNTIME_START_TIMEOUT_MS,
-        pollIntervalMs: AGENT_PROJECT_RUNTIME_START_POLL_INTERVAL_MS,
-    });
-
-    if (isListening) {
-        runtimeRecord.status = 'running';
-        runtimeRecord.isRunning = true;
-        runtimeRecord.updatedAt = new Date().toISOString();
+        if (isListening) {
+            runtimeRecord.status = 'running';
+            runtimeRecord.isRunning = true;
+            runtimeRecord.updatedAt = new Date().toISOString();
+        }
     }
 
     await refreshAgentProjectRuntimeRecord(runtimeRecord);
     await persistAgentProjectRuntimeRegistryState();
-    await applyAgentProjectRuntimePublicConfiguration(preparedStart.domainAssignment);
+    await applyAgentProjectRuntimePublicConfiguration(options.preparedStart.domainAssignment);
     return toAgentProjectRuntimeInfo(runtimeRecord);
 }
 
@@ -473,9 +436,8 @@ export async function terminateAllAgentProjectRuntimes(): Promise<void> {
  */
 async function prepareAgentProjectRuntimeStart(
     options: AgentProjectRuntimeProjectOptions,
+    project: NonNullable<Awaited<ReturnType<typeof resolveAgentProjectInfo>>>,
 ): Promise<PreparedAgentProjectRuntimeStart> {
-    const project = await resolveExistingAgentProject(options);
-
     await terminateAgentProjectRuntimeForProject({
         agentPermanentId: options.agentPermanentId,
         projectName: project.projectName,
@@ -741,6 +703,12 @@ async function terminateAgentProjectRuntimeRecord(runtimeRecord: MutableAgentPro
 
     await stopAgentProjectRuntimePm2Process(runtimeRecord.pm2ProcessName);
     await killProcessListeningOnPort(runtimeRecord.port);
+    await waitForTcpPortToStopListening({
+        port: runtimeRecord.port,
+        host: AGENT_PROJECT_RUNTIME_HOST,
+        timeoutMs: AGENT_PROJECT_RUNTIME_STOP_TIMEOUT_MS,
+        pollIntervalMs: AGENT_PROJECT_RUNTIME_STOP_POLL_INTERVAL_MS,
+    });
 
     runtimeRecord.status = 'stopped';
     runtimeRecord.isRunning = false;
@@ -771,38 +739,6 @@ async function closeStaticServer(staticServer: Server): Promise<void> {
             resolve();
         });
     });
-}
-
-/**
- * Normalizes and parameterizes a dev command.
- */
-function normalizeDevCommand(command: string | undefined, port: number): string {
-    const normalizedCommand = (command || AGENT_PROJECT_RUNTIME_DEFAULT_DEV_COMMAND).trim();
-
-    if (!normalizedCommand) {
-        throw new NotAllowed(
-            spaceTrim(`
-                Missing project dev command.
-
-                Pass a non-empty command or omit it to use \`${AGENT_PROJECT_RUNTIME_DEFAULT_DEV_COMMAND}\`.
-            `),
-        );
-    }
-
-    if (normalizedCommand.length > AGENT_PROJECT_RUNTIME_COMMAND_MAX_LENGTH) {
-        throw new NotAllowed(
-            spaceTrim(`
-                Project dev command is too long.
-
-                **Maximum length:** \`${AGENT_PROJECT_RUNTIME_COMMAND_MAX_LENGTH}\`
-                **Received:** \`${normalizedCommand.length}\`
-            `),
-        );
-    }
-
-    return normalizedCommand
-        .replaceAll(DEV_COMMAND_PORT_PLACEHOLDER, String(port))
-        .replaceAll(DEV_COMMAND_HOST_PLACEHOLDER, AGENT_PROJECT_RUNTIME_HOST);
 }
 
 /**

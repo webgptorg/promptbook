@@ -4,14 +4,9 @@
 export const AGENT_PROJECT_RUNTIME_HOST = '127.0.0.1';
 
 /**
- * Default command used when an agent asks the server to start a project dev server.
+ * Command used to run a project that declares an npm `dev` script.
  */
 export const AGENT_PROJECT_RUNTIME_DEFAULT_DEV_COMMAND = 'npm run dev';
-
-/**
- * Maximum accepted custom dev command length.
- */
-export const AGENT_PROJECT_RUNTIME_COMMAND_MAX_LENGTH = 500;
 
 /**
  * Time spent waiting for a freshly spawned dev command to start listening.
@@ -22,6 +17,16 @@ export const AGENT_PROJECT_RUNTIME_START_TIMEOUT_MS = 15_000;
  * Polling interval while waiting for a freshly spawned dev command to bind its port.
  */
 export const AGENT_PROJECT_RUNTIME_START_POLL_INTERVAL_MS = 250;
+
+/**
+ * Maximum time spent waiting for a terminated runtime port to close.
+ */
+export const AGENT_PROJECT_RUNTIME_STOP_TIMEOUT_MS = 5_000;
+
+/**
+ * Polling interval while waiting for a terminated runtime port to close.
+ */
+export const AGENT_PROJECT_RUNTIME_STOP_POLL_INTERVAL_MS = 100;
 
 /**
  * Environment variable containing the local Agents Server origin for local agent runners.

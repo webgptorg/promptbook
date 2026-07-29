@@ -63,3 +63,17 @@ export type ManagedServerDnsDiagnostic = {
      */
     readonly providerGuides: ReadonlyArray<ManagedServerDnsProviderGuide>;
 };
+
+/**
+ * Determines whether a DNS diagnostic represents a configuration problem.
+ *
+ * @param diagnostic - Optional DNS diagnostic to inspect.
+ * @returns `true` when DNS is not verified.
+ *
+ * @private shared type helper for the `/superadmin/servers` registry flow
+ */
+export function isManagedServerDnsDiagnosticIssue(
+    diagnostic: ManagedServerDnsDiagnostic | null | undefined,
+): boolean {
+    return diagnostic?.status !== undefined && diagnostic.status !== 'verified';
+}

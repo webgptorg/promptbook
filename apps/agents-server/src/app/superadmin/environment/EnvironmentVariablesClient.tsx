@@ -1,7 +1,7 @@
 'use client';
 
-import { EyeOff, Loader2, Save, ServerCog } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { EyeOff, Loader2, Plus, Save, ServerCog, X } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Card } from '../../../components/Homepage/Card';
 import { AdminSortableTableHeaderCell } from '../../admin/_components/AdminSortableTableHeaderCell';
 import { useAdminTableSorting, type AdminTableSortOrder } from '../../admin/_components/adminTableSorting';
@@ -15,6 +15,37 @@ type EnvironmentVariableRecord = {
     readonly isSensitive: boolean;
     readonly isDefined: boolean;
 };
+
+/**
+ * One environment variable that has been added in the browser but not yet saved.
+ */
+type NewEnvironmentVariable = {
+    /**
+     * Stable local identifier used as the React key.
+     */
+    readonly id: number;
+
+    /**
+     * Draft environment variable name.
+     */
+    readonly key: string;
+
+    /**
+     * Draft environment variable value.
+     */
+    readonly value: string;
+};
+
+/**
+ * Validated environment-variable updates or the validation error to show in the browser.
+ */
+type EnvironmentVariableUpdatesResult =
+    | {
+          readonly updates: Record<string, string>;
+      }
+    | {
+          readonly errorMessage: string;
+      };
 
 /**
  * Environment API response consumed by the client page.
@@ -60,6 +91,8 @@ export function EnvironmentVariablesClient() {
     const [envFilePath, setEnvFilePath] = useState('');
     const [variables, setVariables] = useState<EnvironmentVariableRecord[]>([]);
     const [draftValues, setDraftValues] = useState<Record<string, string>>({});
+    const [newEnvironmentVariables, setNewEnvironmentVariables] = useState<NewEnvironmentVariable[]>([]);
+    const nextNewEnvironmentVariableIdReference = useRef(1);
     const [canEdit, setCanEdit] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
@@ -68,8 +101,10 @@ export function EnvironmentVariablesClient() {
     const [applyOutput, setApplyOutput] = useState<string | null>(null);
 
     const hasChanges = useMemo(
-        () => variables.some((variable) => draftValues[variable.key] !== variable.value),
-        [draftValues, variables],
+        () =>
+            variables.some((variable) => draftValues[variable.key] !== variable.value) ||
+            newEnvironmentVariables.some((variable) => variable.key.trim() !== '' || variable.value !== ''),
+        [draftValues, newEnvironmentVariables, variables],
     );
 
     const resolveEnvironmentVariableSortValue = useCallback(
@@ -115,6 +150,7 @@ export function EnvironmentVariablesClient() {
             setEnvFilePath(payload.envFilePath);
             setVariables([...payload.variables]);
             setDraftValues(Object.fromEntries(payload.variables.map((variable) => [variable.key, variable.value])));
+            setNewEnvironmentVariables([]);
             setCanEdit(payload.canEdit);
         } catch (error) {
             setErrorMessage(error instanceof Error ? error.message : 'Failed to load environment variables.');
@@ -129,6 +165,12 @@ export function EnvironmentVariablesClient() {
      * @param applyRuntimeConfiguration - Whether to run the VPS apply step after saving.
      */
     async function saveVariables(applyRuntimeConfiguration: boolean): Promise<void> {
+        const environmentVariableUpdatesResult = createEnvironmentVariableUpdates();
+        if ('errorMessage' in environmentVariableUpdatesResult) {
+            setErrorMessage(environmentVariableUpdatesResult.errorMessage);
+            return;
+        }
+
         try {
             setIsSaving(true);
             setErrorMessage(null);
@@ -141,7 +183,7 @@ export function EnvironmentVariablesClient() {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    variables: draftValues,
+                    variables: environmentVariableUpdatesResult.updates,
                     applyRuntimeConfiguration,
                 }),
             });
@@ -154,6 +196,7 @@ export function EnvironmentVariablesClient() {
             setEnvFilePath(payload.envFilePath);
             setVariables([...payload.variables]);
             setDraftValues(Object.fromEntries(payload.variables.map((variable) => [variable.key, variable.value])));
+            setNewEnvironmentVariables([]);
             setCanEdit(payload.canEdit);
             setSuccessMessage('Environment variables were saved.');
             setApplyOutput(payload.applyResult?.output || null);
@@ -162,6 +205,73 @@ export function EnvironmentVariablesClient() {
         } finally {
             setIsSaving(false);
         }
+    }
+
+    /**
+     * Adds one unsaved arbitrary environment variable to the table.
+     */
+    function addNewEnvironmentVariable(): void {
+        const id = nextNewEnvironmentVariableIdReference.current;
+        nextNewEnvironmentVariableIdReference.current += 1;
+
+        setNewEnvironmentVariables((currentVariables) => [
+            ...currentVariables,
+            {
+                id,
+                key: '',
+                value: '',
+            },
+        ]);
+    }
+
+    /**
+     * Removes one unsaved arbitrary environment variable from the table.
+     *
+     * @param id - Local identifier of the variable to remove.
+     */
+    function removeNewEnvironmentVariable(id: number): void {
+        setNewEnvironmentVariables((currentVariables) => currentVariables.filter((variable) => variable.id !== id));
+    }
+
+    /**
+     * Updates one field of an unsaved arbitrary environment variable.
+     *
+     * @param id - Local identifier of the variable to update.
+     * @param field - Field that changed in the browser.
+     * @param value - Next field value.
+     */
+    function updateNewEnvironmentVariable(id: number, field: 'key' | 'value', value: string): void {
+        setNewEnvironmentVariables((currentVariables) =>
+            currentVariables.map((variable) => (variable.id === id ? { ...variable, [field]: value } : variable)),
+        );
+    }
+
+    /**
+     * Combines saved-row drafts with new arbitrary environment variables.
+     *
+     * @returns Environment variable updates accepted by the admin API or a validation message.
+     */
+    function createEnvironmentVariableUpdates(): EnvironmentVariableUpdatesResult {
+        const updates = { ...draftValues };
+
+        for (const newEnvironmentVariable of newEnvironmentVariables) {
+            const key = newEnvironmentVariable.key.trim();
+            if (key === '' && newEnvironmentVariable.value === '') {
+                continue;
+            }
+
+            if (key === '') {
+                return { errorMessage: 'Enter a name for each new environment variable.' };
+            }
+
+            if (Object.prototype.hasOwnProperty.call(updates, key)) {
+                return { errorMessage: `Environment variable \`${key}\` is already listed.` };
+            }
+
+            updates[key] = newEnvironmentVariable.value;
+        }
+
+        return { updates };
     }
 
     return (
@@ -204,6 +314,19 @@ export function EnvironmentVariablesClient() {
             )}
 
             <Card className="hover:border-gray-200 hover:shadow-md">
+                {canEdit && !isLoading && (
+                    <div className="border-b border-gray-200 px-4 py-3">
+                        <button
+                            type="button"
+                            onClick={addNewEnvironmentVariable}
+                            disabled={isSaving}
+                            className="inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                            <Plus className="h-4 w-4" />
+                            Add variable
+                        </button>
+                    </div>
+                )}
                 {isLoading ? (
                     <div className="py-10 text-center text-sm text-gray-500">Loading environment variables...</div>
                 ) : (
@@ -249,6 +372,59 @@ export function EnvironmentVariablesClient() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200 bg-white">
+                                {newEnvironmentVariables.map((variable) => (
+                                    <tr key={`new-environment-variable-${variable.id}`} className="bg-blue-50/40">
+                                        <td className="px-4 py-3 align-top">
+                                            <input
+                                                type="text"
+                                                value={variable.key}
+                                                onChange={(event) =>
+                                                    updateNewEnvironmentVariable(variable.id, 'key', event.target.value)
+                                                }
+                                                disabled={isSaving}
+                                                className={INPUT_CLASS_NAME}
+                                                placeholder="FOO"
+                                                aria-label="New environment variable name"
+                                            />
+                                        </td>
+                                        <td className="px-4 py-3 align-top">
+                                            <div className="relative">
+                                                <input
+                                                    type="password"
+                                                    value={variable.value}
+                                                    onChange={(event) =>
+                                                        updateNewEnvironmentVariable(
+                                                            variable.id,
+                                                            'value',
+                                                            event.target.value,
+                                                        )
+                                                    }
+                                                    disabled={isSaving}
+                                                    className={`${INPUT_CLASS_NAME} pr-10 tracking-wider`}
+                                                    placeholder="Value"
+                                                    aria-label="New environment variable value"
+                                                />
+                                                <EyeOff className="pointer-events-none absolute right-3 top-2.5 h-4 w-4 text-slate-400" />
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-3 align-top">
+                                            <div className="flex items-center gap-2">
+                                                <span className="rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">
+                                                    New
+                                                </span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeNewEnvironmentVariable(variable.id)}
+                                                    disabled={isSaving}
+                                                    className="rounded p-1 text-slate-500 hover:bg-slate-100 hover:text-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                                                    aria-label="Remove new environment variable"
+                                                >
+                                                    <X className="h-4 w-4" />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
                                 {variableSorting.sortedRows.map((variable) => (
                                     <tr key={variable.key}>
                                         <td className="px-4 py-3 align-top font-mono text-sm font-semibold text-slate-800">

@@ -31,6 +31,11 @@ export type ResolveHeaderSystemWarningsOptions = {
      * Whether one or more bundled core agents are missing on this server.
      */
     readonly isCoreAgentsMissing?: boolean;
+
+    /**
+     * Whether one or more generated project domains need DNS configuration.
+     */
+    readonly isAgentProjectsDnsWarningShown?: boolean;
 };
 
 /**
@@ -55,6 +60,11 @@ export type HeaderSystemWarnings = {
     readonly isCoreAgentsWarningShown: boolean;
 
     /**
+     * Whether generated project domain DNS needs administrator attention.
+     */
+    readonly isAgentProjectsDnsWarningShown: boolean;
+
+    /**
      * Whether any System warning should decorate the top-level System menu label.
      */
     readonly isSystemWarningShown: boolean;
@@ -77,18 +87,24 @@ export function resolveHeaderSystemWarnings({
     shibbolethAuthenticationStatus,
     resourceMonitorWarningStatus,
     isCoreAgentsMissing = false,
+    isAgentProjectsDnsWarningShown = false,
 }: ResolveHeaderSystemWarningsOptions): HeaderSystemWarnings {
     const isShibbolethConfigurationWarningShown = Boolean(
         isAdmin && shibbolethAuthenticationStatus?.isActive && !shibbolethAuthenticationStatus.isConfigured,
     );
     const isResourceMonitorWarningShown = Boolean(isGlobalAdmin && resourceMonitorWarningStatus?.isWarningShown);
     const isCoreAgentsWarningShown = Boolean(isAdmin && isCoreAgentsMissing);
+    const isAgentProjectsDnsWarningVisible = Boolean(isAdmin && isAgentProjectsDnsWarningShown);
 
     return {
         isShibbolethConfigurationWarningShown,
         isResourceMonitorWarningShown,
         isCoreAgentsWarningShown,
+        isAgentProjectsDnsWarningShown: isAgentProjectsDnsWarningVisible,
         isSystemWarningShown:
-            isShibbolethConfigurationWarningShown || isResourceMonitorWarningShown || isCoreAgentsWarningShown,
+            isShibbolethConfigurationWarningShown ||
+            isResourceMonitorWarningShown ||
+            isCoreAgentsWarningShown ||
+            isAgentProjectsDnsWarningVisible,
     };
 }

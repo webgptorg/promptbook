@@ -1,5 +1,6 @@
 import { FolderKanbanIcon } from 'lucide-react';
 import Link from 'next/link';
+import type { ReactNode } from 'react';
 import type { AgentProjectInfo } from '../../utils/agentProjects/AgentProjectInfo';
 import { buildAgentProjectProfileHrefForServer } from '../../utils/agentProjects/agentProjectHrefs';
 import { formatResourceBytes } from '../../utils/resourceMonitor/formatResourceMonitorValue';
@@ -12,10 +13,7 @@ export type AgentProjectItemVariant = 'full' | 'small';
 /**
  * Display-only project fields required by `<AgentProjectItem/>`.
  */
-export type AgentProjectItemInfo = Pick<
-    AgentProjectInfo,
-    'projectName' | 'displayName' | 'description' | 'sizeBytes'
->;
+export type AgentProjectItemInfo = Pick<AgentProjectInfo, 'projectName' | 'displayName' | 'description' | 'sizeBytes'>;
 
 /**
  * Props for one shared project reference item.
@@ -50,6 +48,11 @@ type AgentProjectItemProps = {
      * Optional CSS class overrides.
      */
     readonly className?: string;
+
+    /**
+     * Optional controls rendered below the full project card.
+     */
+    readonly footer?: ReactNode;
 };
 
 /**
@@ -65,6 +68,7 @@ export function AgentProjectItem({
     project,
     variant = 'full',
     className = '',
+    footer,
 }: AgentProjectItemProps) {
     const href = buildAgentProjectProfileHrefForServer({
         agentPermanentId,
@@ -77,7 +81,7 @@ export function AgentProjectItem({
         return <SmallAgentProjectItem href={href} project={project} className={className} />;
     }
 
-    return <FullAgentProjectItem href={href} project={project} className={className} />;
+    return <FullAgentProjectItem href={href} project={project} className={className} footer={footer} />;
 }
 
 /**
@@ -98,6 +102,11 @@ type AgentProjectItemVariantProps = {
      * Optional CSS class overrides.
      */
     readonly className: string;
+
+    /**
+     * Optional controls rendered below the full project card.
+     */
+    readonly footer?: ReactNode;
 };
 
 /**
@@ -106,12 +115,10 @@ type AgentProjectItemVariantProps = {
  * @param props - Project item variant props.
  * @returns Full project link card.
  */
-function FullAgentProjectItem({ href, project, className }: AgentProjectItemVariantProps) {
-    return (
-        <Link
-            href={href}
-            className={`group flex h-full min-h-36 flex-col rounded-lg border border-gray-200 bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md ${className}`}
-        >
+function FullAgentProjectItem({ href, project, className, footer }: AgentProjectItemVariantProps) {
+    const isFooterVisible = footer !== undefined && footer !== null;
+    const projectContent = (
+        <>
             <div className="flex items-start gap-3">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-blue-100 bg-blue-50 text-blue-700">
                     <FolderKanbanIcon className="h-5 w-5" aria-hidden />
@@ -131,7 +138,29 @@ function FullAgentProjectItem({ href, project, className }: AgentProjectItemVari
             {project.description && (
                 <p className="mt-3 line-clamp-3 text-sm leading-6 text-gray-600">{project.description}</p>
             )}
-        </Link>
+        </>
+    );
+
+    if (!isFooterVisible) {
+        return (
+            <Link
+                href={href}
+                className={`group flex h-full min-h-36 flex-col rounded-lg border border-gray-200 bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md ${className}`}
+            >
+                {projectContent}
+            </Link>
+        );
+    }
+
+    return (
+        <div
+            className={`group flex h-full min-h-36 flex-col rounded-lg border border-gray-200 bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md ${className}`}
+        >
+            <Link href={href} className="flex flex-1 flex-col p-4">
+                {projectContent}
+            </Link>
+            <div className="border-t border-gray-100 px-4 py-3">{footer}</div>
+        </div>
     );
 }
 

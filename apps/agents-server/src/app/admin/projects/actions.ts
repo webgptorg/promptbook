@@ -7,12 +7,64 @@ import { UnexpectedError } from '../../../../../../src/errors/UnexpectedError';
 import { spaceTrim } from '../../../../../../src/utils/organization/spaceTrim';
 import { buildAgentProjectProfileHref } from '../../../utils/agentProjects/agentProjectHrefs';
 import { setAgentProjectCustomDomain } from '../../../utils/agentProjects/agentProjectRuntimeDomains';
-import { refreshAgentProjectRuntimePublicDomain } from '../../../utils/agentProjects/agentProjectRuntimeRegistry';
+import {
+    refreshAgentProjectRuntimePublicDomain,
+    startAgentProjectRuntime,
+    terminateAgentProjectRuntimeForProject,
+} from '../../../utils/agentProjects/agentProjectRuntimeRegistry';
 import { resolveCurrentAgentProjectServerDomain } from '../../../utils/agentProjects/resolveCurrentAgentProjectServerDomain';
 import { resolveAgentProjectInfo } from '../../../utils/agentProjects/resolveAgentProjectInfo';
 import { isUserAdmin } from '../../../utils/isUserAdmin';
 import { applyVpsRuntimeConfiguration } from '../../../utils/vpsConfiguration';
 import { AGENT_PROJECT_CUSTOM_DOMAIN_FORM_FIELD } from './agentProjectCustomDomainForm';
+
+/**
+ * Starts one project from the admin projects dashboard.
+ *
+ * @param agentPermanentId - Permanent id of the agent owning the project.
+ * @param projectName - Directory name of the project.
+ */
+export async function $startAgentProjectRuntimeFromAdminProjectsAction(
+    agentPermanentId: string,
+    projectName: string,
+): Promise<void> {
+    if (!(await isUserAdmin())) {
+        throw new NotAllowed(
+            spaceTrim(`
+                You are not allowed to start projects from the admin projects dashboard.
+            `),
+        );
+    }
+
+    await startAgentProjectRuntime({
+        agentPermanentId,
+        projectName,
+        serverDomain: await resolveCurrentAgentProjectServerDomain(),
+    });
+    revalidateAgentProjectRuntimeViews(agentPermanentId, projectName);
+}
+
+/**
+ * Stops one project from the admin projects dashboard.
+ *
+ * @param agentPermanentId - Permanent id of the agent owning the project.
+ * @param projectName - Directory name of the project.
+ */
+export async function $terminateAgentProjectRuntimeFromAdminProjectsAction(
+    agentPermanentId: string,
+    projectName: string,
+): Promise<void> {
+    if (!(await isUserAdmin())) {
+        throw new NotAllowed(
+            spaceTrim(`
+                You are not allowed to stop projects from the admin projects dashboard.
+            `),
+        );
+    }
+
+    await terminateAgentProjectRuntimeForProject({ agentPermanentId, projectName });
+    revalidateAgentProjectRuntimeViews(agentPermanentId, projectName);
+}
 
 /**
  * Saves or clears a custom domain assignment for one agent project from `/admin/projects`.
@@ -93,4 +145,14 @@ async function applyAgentProjectCustomDomainRuntimeConfiguration(options: {
             `),
         );
     }
+}
+
+/**
+ * Revalidates views that display one project runtime.
+ */
+function revalidateAgentProjectRuntimeViews(agentPermanentId: string, projectName: string): void {
+    revalidatePath('/admin/projects');
+    revalidatePath(buildAgentProjectProfileHref(agentPermanentId, projectName));
+    revalidatePath('/superadmin/resource-monitor');
+    revalidatePath('/superadmin/servers');
 }

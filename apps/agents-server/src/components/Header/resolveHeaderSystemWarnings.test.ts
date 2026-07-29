@@ -8,12 +8,14 @@ describe('resolveHeaderSystemWarnings', () => {
             shibbolethAuthenticationStatus: { isActive: true, isConfigured: false },
             resourceMonitorWarningStatus: { isWarningShown: true, issues: [], warningMessages: [] },
             isCoreAgentsMissing: true,
+            isAgentProjectsDnsWarningShown: true,
         });
 
         expect(warnings).toEqual({
             isShibbolethConfigurationWarningShown: false,
             isResourceMonitorWarningShown: false,
             isCoreAgentsWarningShown: false,
+            isAgentProjectsDnsWarningShown: false,
             isSystemWarningShown: false,
         });
     });
@@ -65,10 +67,34 @@ describe('resolveHeaderSystemWarnings', () => {
         ).toBe(true);
     });
 
+    it('shows the project DNS warning only to an administrator', () => {
+        expect(
+            resolveHeaderSystemWarnings({
+                isAdmin: false,
+                isGlobalAdmin: false,
+                isAgentProjectsDnsWarningShown: true,
+            }).isAgentProjectsDnsWarningShown,
+        ).toBe(false);
+        expect(
+            resolveHeaderSystemWarnings({
+                isAdmin: true,
+                isGlobalAdmin: false,
+                isAgentProjectsDnsWarningShown: true,
+            }).isAgentProjectsDnsWarningShown,
+        ).toBe(true);
+    });
+
     it('aggregates the individual warnings into the top-level System indicator', () => {
         expect(
             resolveHeaderSystemWarnings({ isAdmin: true, isGlobalAdmin: false, isCoreAgentsMissing: true })
                 .isSystemWarningShown,
+        ).toBe(true);
+        expect(
+            resolveHeaderSystemWarnings({
+                isAdmin: true,
+                isGlobalAdmin: false,
+                isAgentProjectsDnsWarningShown: true,
+            }).isSystemWarningShown,
         ).toBe(true);
         expect(resolveHeaderSystemWarnings({ isAdmin: true, isGlobalAdmin: true }).isSystemWarningShown).toBe(false);
     });

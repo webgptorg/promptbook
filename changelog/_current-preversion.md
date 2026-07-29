@@ -1,3 +1,10 @@
+-   Fixed standalone VPS project DNS visibility: `/superadmin/servers` now verifies generated project hostnames, defaults its setup guidance to the preferred wildcard CNAME record, and labels each owner with a linked agent chip. DNS problems now also appear on affected project pages and the **Agent Projects** menu item.
+
+-   Simplified Agents Server project runtimes to one automatic Run action: projects with a non-empty `package.json` `dev` script now run `npm run dev`, while all other projects use the static server. Admins can now run and stop projects directly from `/admin/projects`.
+
+-   Enhanced the Agents Server `/superadmin/environment` editor so super admins can add arbitrary valid `.env` variables directly from the UI. Every variable already persisted in the VPS `.env` file is now listed automatically — including integrations such as `ELEVEN_LABS_API_KEY` — while sensitive values remain masked and the server-side super-admin-only write policy remains enforced.
+
+- Fixed the Agents Server home page so the temporary federated-agents loading section is not shown before federation data is available. When no federated servers or agents are returned, the homepage now remains free of that section instead of briefly showing it.
 -   Fixed cross-platform unit-test portability: macOS canonical temporary paths no longer conflict with test assertions or Git exclusions, shell-script links normalize Windows-style separators on every host, document-scraper unit tests no longer require locally installed Pandoc or LibreOffice, import repair handles Windows paths when run on another platform, and Agents Server builds clear stale Next route types left by another build output directory.
 
 -   Fixed the Agents Server home page so the temporary federated-agents loading section is not shown before federation data is available. When no federated servers or agents are returned, the homepage now remains free of that section instead of briefly showing it.

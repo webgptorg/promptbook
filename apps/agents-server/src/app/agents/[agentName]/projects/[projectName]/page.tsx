@@ -18,8 +18,10 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { AgentProjectDnsWarning } from '@/src/components/AgentProjects/AgentProjectDnsWarning';
 import { AgentProjectRuntimeStatusBadge } from '@/src/components/AgentProjects/AgentProjectRuntimeStatusBadge';
 import { ForbiddenPage } from '@/src/components/ForbiddenPage/ForbiddenPage';
+import { isAgentsServerSqliteMode } from '@/src/database/agentsServerDatabaseMode';
 import {
     AGENT_PROJECT_DETAILS_FORBIDDEN_MESSAGE,
     resolveAgentProjectsAccess,
@@ -30,6 +32,13 @@ import {
     buildAgentProjectsDashboardHref,
     buildAgentProjectVscodeHref,
 } from '@/src/utils/agentProjects/agentProjectHrefs';
+import {
+    isAgentProjectDnsDiagnosticIssue,
+    listAgentProjectDnsDiagnostics,
+    type AgentProjectDnsDiagnostic,
+} from '@/src/utils/agentProjects/listAgentProjectDnsDiagnostics';
+import { listAgentProjectDomainRecords } from '@/src/utils/agentProjects/agentProjectRuntimeDomains';
+import { resolveCurrentAgentProjectServerDomain } from '@/src/utils/agentProjects/resolveCurrentAgentProjectServerDomain';
 import {
     formatAgentProjectRuntimeMode,
     formatAgentProjectRuntimeStatus,
@@ -45,12 +54,12 @@ import { readAgentProjectReadme } from '@/src/utils/agentProjects/readAgentProje
 import { resolveAgentProjectInfo } from '@/src/utils/agentProjects/resolveAgentProjectInfo';
 import { buildAgentProfileHref } from '@/src/utils/agentRouting/agentRouteHrefs';
 import { formatResourceBytes } from '@/src/utils/resourceMonitor/formatResourceMonitorValue';
+import { isUserAdmin } from '@/src/utils/isUserAdmin';
 import { isUserGlobalAdmin } from '@/src/utils/isUserGlobalAdmin';
 import { enforceCanonicalLocalAgentId } from '../../_utils';
 import { AgentProjectVscodeKeyboardShortcut } from './AgentProjectVscodeKeyboardShortcut';
 import {
-    $startAgentProjectDevRuntimeFromProjectPageAction,
-    $startAgentProjectStaticRuntimeFromProjectPageAction,
+    $startAgentProjectRuntimeFromProjectPageAction,
     $terminateAgentProjectRuntimeFromProjectPageAction,
 } from './actions';
 
@@ -130,8 +139,11 @@ export default async function AgentProjectPage({ params, searchParams }: AgentPr
         notFound();
     }
 
-    const isCodeServerVisible = access.isProjectDetailsVisible && (await isUserGlobalAdmin());
-    const [readme, directoryListing, projectRuntime] = await Promise.all([
+    const [isCodeServerVisible, isProjectDnsWarningVisible] = await Promise.all([
+        access.isProjectDetailsVisible ? isUserGlobalAdmin() : false,
+        access.isProjectDetailsVisible ? isUserAdmin() : false,
+    ]);
+    const [readme, directoryListing, projectRuntime, projectDnsDiagnostic] = await Promise.all([
         readAgentProjectReadme(project.absolutePath),
         access.isProjectDetailsVisible
             ? resolveProjectDirectoryListing({
@@ -141,6 +153,12 @@ export default async function AgentProjectPage({ params, searchParams }: AgentPr
               })
             : null,
         access.isProjectDetailsVisible ? resolveAgentProjectRuntime(canonicalAgentId, projectName) : null,
+        isProjectDnsWarningVisible
+            ? resolveCurrentAgentProjectDnsDiagnostic({
+                  agentPermanentId: canonicalAgentId,
+                  projectName,
+              })
+            : null,
     ]);
 
     return (
@@ -155,6 +173,9 @@ export default async function AgentProjectPage({ params, searchParams }: AgentPr
                 href={buildAgentProjectVscodeHref(canonicalAgentId, project.projectName)}
                 isEnabled={isCodeServerVisible}
             />
+            {projectDnsDiagnostic && isAgentProjectDnsDiagnosticIssue(projectDnsDiagnostic) ? (
+                <AgentProjectDnsWarning projectDomain={projectDnsDiagnostic.projectDomain} />
+            ) : null}
             {access.isProjectDetailsVisible && (
                 <ProjectRuntimePanel
                     agentPermanentId={canonicalAgentId}
@@ -175,6 +196,39 @@ export default async function AgentProjectPage({ params, searchParams }: AgentPr
             )}
             <ProjectReadmePanel fileName={readme?.fileName ?? null} content={readme?.content ?? null} />
         </div>
+    );
+}
+
+/**
+ * Resolves the generated-project DNS diagnostic for the currently viewed project.
+ *
+ * @param options - Identity of the project currently displayed.
+ * @returns Matching generated project DNS diagnostic, or `null` when it is not applicable.
+ */
+async function resolveCurrentAgentProjectDnsDiagnostic(options: {
+    readonly agentPermanentId: string;
+    readonly projectName: string;
+}): Promise<AgentProjectDnsDiagnostic | null> {
+    if (!isAgentsServerSqliteMode()) {
+        return null;
+    }
+
+    const [currentServerDomain, projectDomainRecords] = await Promise.all([
+        resolveCurrentAgentProjectServerDomain(),
+        listAgentProjectDomainRecords(),
+    ]);
+    const projectDnsDiagnostics = await listAgentProjectDnsDiagnostics({
+        projectDomainRecords,
+        publicIpAddress: process.env.PTBK_PUBLIC_IP_ADDRESS,
+        serverDomain: currentServerDomain,
+    });
+
+    return (
+        projectDnsDiagnostics.find(
+            (projectDnsDiagnostic) =>
+                projectDnsDiagnostic.agentPermanentId.toLowerCase() === options.agentPermanentId.toLowerCase() &&
+                projectDnsDiagnostic.projectName.toLowerCase() === options.projectName.toLowerCase(),
+        ) ?? null
     );
 }
 
@@ -267,7 +321,7 @@ function ProjectRuntimePanel({
                         <span className="font-semibold text-gray-900">Runtime</span>
                         <span>Project is not running.</span>
                     </div>
-                    <ProjectRuntimeStartButtons agentPermanentId={agentPermanentId} projectName={projectName} />
+                    <ProjectRuntimeStartButton agentPermanentId={agentPermanentId} projectName={projectName} />
                 </div>
             </section>
         );
@@ -313,7 +367,7 @@ function ProjectRuntimePanel({
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                     {!runtime.isRunning && (
-                        <ProjectRuntimeStartButtons agentPermanentId={agentPermanentId} projectName={projectName} />
+                        <ProjectRuntimeStartButton agentPermanentId={agentPermanentId} projectName={projectName} />
                     )}
                     <form
                         action={$terminateAgentProjectRuntimeFromProjectPageAction.bind(
@@ -337,9 +391,9 @@ function ProjectRuntimePanel({
 }
 
 /**
- * Renders project runtime start actions.
+ * Renders the action that starts one project using its detected runtime mode.
  */
-function ProjectRuntimeStartButtons({
+function ProjectRuntimeStartButton({
     agentPermanentId,
     projectName,
 }: {
@@ -354,28 +408,15 @@ function ProjectRuntimeStartButtons({
     readonly projectName: string;
 }) {
     return (
-        <div className="flex flex-wrap items-center gap-2">
-            <form action={$startAgentProjectDevRuntimeFromProjectPageAction.bind(null, agentPermanentId, projectName)}>
-                <button
-                    type="submit"
-                    className="inline-flex items-center gap-2 rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-sm font-semibold text-blue-700 hover:bg-blue-100"
-                >
-                    <PlayIcon className="h-4 w-4" aria-hidden />
-                    Start dev
-                </button>
-            </form>
-            <form
-                action={$startAgentProjectStaticRuntimeFromProjectPageAction.bind(null, agentPermanentId, projectName)}
+        <form action={$startAgentProjectRuntimeFromProjectPageAction.bind(null, agentPermanentId, projectName)}>
+            <button
+                type="submit"
+                className="inline-flex items-center gap-2 rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-sm font-semibold text-blue-700 hover:bg-blue-100"
             >
-                <button
-                    type="submit"
-                    className="inline-flex items-center gap-2 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm font-semibold text-gray-700 hover:border-blue-200 hover:text-blue-700"
-                >
-                    <RadioTowerIcon className="h-4 w-4" aria-hidden />
-                    Serve static
-                </button>
-            </form>
-        </div>
+                <PlayIcon className="h-4 w-4" aria-hidden />
+                Run
+            </button>
+        </form>
     );
 }
 

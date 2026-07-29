@@ -8,6 +8,7 @@ import { CONTENT_SECURITY_POLICY_NONCE_REQUEST_HEADER } from '../middleware/cont
 import { getCustomJavascriptWithIntegrations } from '../database/customJavascript';
 import { getAggregatedCustomStylesheetCss } from '../database/customStylesheet';
 import { getMetadataMap } from '../database/getMetadata';
+import { isAgentsServerSqliteMode } from '../database/agentsServerDatabaseMode';
 import { getServerVisibility } from '../utils/getServerVisibility';
 import {
     IS_SERVER_LANGUAGE_ENFORCED_METADATA_KEY,
@@ -20,6 +21,12 @@ import { $provideServer } from '../tools/$provideServer';
 import { isSelfContainedS3StorageSelected } from '../tools/$provideCdnForServer';
 import { loadAgentOrganizationState } from '../utils/agentOrganization/loadAgentOrganizationState';
 import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../utils/agentOrganization/types';
+import {
+    isAgentProjectDnsDiagnosticIssue,
+    listAgentProjectDnsDiagnostics,
+} from '../utils/agentProjects/listAgentProjectDnsDiagnostics';
+import { listAgentProjectDomainRecords } from '../utils/agentProjects/agentProjectRuntimeDomains';
+import { resolveCurrentAgentProjectServerDomain } from '../utils/agentProjects/resolveCurrentAgentProjectServerDomain';
 import {
     loadBundledAgentIdentities,
     resolveMissingCoreAgentNames,
@@ -185,6 +192,35 @@ async function resolveOptionalLayoutText(label: string, loader: () => Promise<st
 }
 
 /**
+ * Resolves whether generated project DNS needs an administrator-facing menu warning.
+ *
+ * @param isAdmin - Whether the current viewer may see project administration details.
+ * @returns `true` when a generated project domain is not verified on a standalone VPS.
+ */
+async function resolveAgentProjectsDnsWarningStatus(isAdmin: boolean): Promise<boolean> {
+    if (!isAdmin || !isAgentsServerSqliteMode()) {
+        return false;
+    }
+
+    try {
+        const [currentServerDomain, projectDomainRecords] = await Promise.all([
+            resolveCurrentAgentProjectServerDomain(),
+            listAgentProjectDomainRecords(),
+        ]);
+        const projectDnsDiagnostics = await listAgentProjectDnsDiagnostics({
+            projectDomainRecords,
+            publicIpAddress: process.env.PTBK_PUBLIC_IP_ADDRESS,
+            serverDomain: currentServerDomain,
+        });
+
+        return projectDnsDiagnostics.some(isAgentProjectDnsDiagnosticIssue);
+    } catch (error) {
+        console.error('Failed to resolve agent project DNS warning status:', error);
+        return false;
+    }
+}
+
+/**
  * Generates metadata.
  */
 export async function generateMetadata(): Promise<Metadata> {
@@ -287,6 +323,7 @@ export default async function RootLayout({
             return RESOURCE_MONITOR_OK_WARNING_STATUS;
         }
     });
+    const agentProjectsDnsWarningPromise = isAdminPromise.then(resolveAgentProjectsDnsWarningStatus);
     const providedServerPromise = $provideServer();
     const serverVisibilityPromise = getServerVisibility();
     const agentNamingPromise = getAgentNaming();
@@ -379,6 +416,7 @@ export default async function RootLayout({
         resourceMonitorWarningStatus,
         footerVersionMetadata,
         coreAgentIdentities,
+        isAgentProjectsDnsWarningShown,
     ] = await Promise.all([
         isAdminPromise,
         isGlobalAdminPromise,
@@ -400,6 +438,7 @@ export default async function RootLayout({
         resourceMonitorWarningStatusPromise,
         footerVersionMetadataPromise,
         coreAgentIdentitiesPromise,
+        agentProjectsDnsWarningPromise,
     ]);
 
     const serverName = layoutMetadata.SERVER_NAME || 'Promptbook Agents Server';
@@ -494,6 +533,7 @@ export default async function RootLayout({
                     shibbolethAuthenticationStatus={shibbolethAuthenticationStatus}
                     resourceMonitorWarningStatus={resourceMonitorWarningStatus}
                     isCoreAgentsMissing={isCoreAgentsMissing}
+                    isAgentProjectsDnsWarningShown={isAgentProjectsDnsWarningShown}
                     isExperimentalPwaAppEnabled={isExperimentalPwaAppEnabled}
                     controlPanelOptionAvailability={controlPanelOptionAvailability}
                     defaultServerLanguage={serverLanguage}

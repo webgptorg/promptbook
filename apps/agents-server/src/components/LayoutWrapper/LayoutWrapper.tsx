@@ -67,6 +67,10 @@ type LayoutWrapperProps = {
      */
     readonly isCoreAgentsMissing: boolean;
     /**
+     * Whether generated project domain DNS needs administrator attention.
+     */
+    readonly isAgentProjectsDnsWarningShown: boolean;
+    /**
      * Indicates if the install-as-app option should be shown in agent menus.
      */
     readonly isExperimentalPwaAppEnabled: boolean;
@@ -114,6 +118,7 @@ export function LayoutWrapper({
     shibbolethAuthenticationStatus,
     resourceMonitorWarningStatus,
     isCoreAgentsMissing,
+    isAgentProjectsDnsWarningShown,
     isExperimentalPwaAppEnabled,
     controlPanelOptionAvailability,
     defaultIsSoundsOn,
@@ -209,6 +214,9 @@ export function LayoutWrapper({
                                                                                         }
                                                                                         isCoreAgentsMissing={
                                                                                             isCoreAgentsMissing
+                                                                                        }
+                                                                                        isAgentProjectsDnsWarningShown={
+                                                                                            isAgentProjectsDnsWarningShown
                                                                                         }
                                                                                     />
                                                                                     <main className={mainClassName}>

@@ -93,10 +93,10 @@ function buildProjectRuntimeInstructions(projectRuntimeApi: AgentProjectRuntimeP
     }
 
     return spaceTrim(`
-        You can make a project runnable in the user's browser by asking the Agents Server to assign a local port:
+        You can make a project runnable in the user's browser by asking the Agents Server to start it:
 
-        - For a Node project with a \`dev\` script, ask the server to start the dev server. You may pass a custom \`command\`; use \`{port}\` and \`{host}\` placeholders if the framework needs explicit CLI flags.
-        - For a plain static HTML/CSS/JS project, ask the server to start a static server.
+        - The server automatically runs \`npm run dev\` for a project whose \`package.json\` declares a non-empty \`dev\` script.
+        - Otherwise, the server starts a static file server for the project.
         - If you need to run your own long-lived dev process, ask only for \`assign_port\`, then start your process on the returned \`runtime.port\`.
         - Always include the returned \`runtime.url\` in your answer when the user should open the running project.
 
@@ -106,12 +106,7 @@ function buildProjectRuntimeInstructions(projectRuntimeApi: AgentProjectRuntimeP
         curl -sS -X POST "$${projectRuntimeApi.serverUrlEnvironmentVariableName}/api/internal/agent-project-runtimes" \\
           -H "Content-Type: application/json" \\
           -H "x-user-chat-worker-token: $${projectRuntimeApi.tokenEnvironmentVariableName}" \\
-          -d '{"action":"start_dev_server","agentPermanentId":"${projectRuntimeApi.agentPermanentId}","projectName":"<project-name>","command":"npm run dev -- --host {host} --port {port}"}'
-
-        curl -sS -X POST "$${projectRuntimeApi.serverUrlEnvironmentVariableName}/api/internal/agent-project-runtimes" \\
-          -H "Content-Type: application/json" \\
-          -H "x-user-chat-worker-token: $${projectRuntimeApi.tokenEnvironmentVariableName}" \\
-          -d '{"action":"start_static_server","agentPermanentId":"${projectRuntimeApi.agentPermanentId}","projectName":"<project-name>"}'
+          -d '{"action":"start","agentPermanentId":"${projectRuntimeApi.agentPermanentId}","projectName":"<project-name>"}'
 
         curl -sS -X POST "$${projectRuntimeApi.serverUrlEnvironmentVariableName}/api/internal/agent-project-runtimes" \\
           -H "Content-Type: application/json" \\

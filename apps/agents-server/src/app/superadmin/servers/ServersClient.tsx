@@ -8,6 +8,7 @@ import { Section } from '../../../components/Homepage/Section';
 import { useUnsavedChangesGuard } from '../../../components/utils/useUnsavedChangesGuard';
 import { CreateServerDialog } from './CreateServerDialog';
 import { DeleteCurrentServerSection } from './DeleteCurrentServerSection';
+import { isManagedServerDnsDiagnosticIssue } from './ServersRegistryDnsTypes';
 import { ServersRegistryTable } from './ServersRegistryTable';
 import { UNSAVED_CHANGES_MESSAGE, useCreateServerWizard } from './useCreateServerWizard';
 import { type ManagedServerRow, useServersRegistryState } from './useServersRegistryState';
@@ -54,7 +55,14 @@ export function ServersClient() {
     });
     const hasUnsavedChanges = hasDirtyServerDrafts || (createServerWizard.isDialogOpen && createServerWizard.isDirty);
     const serversWithDnsIssues = useMemo(
-        () => servers.filter((server) => server.dnsDiagnostic && server.dnsDiagnostic.status !== 'verified'),
+        () =>
+            servers.filter(
+                (server) =>
+                    isManagedServerDnsDiagnosticIssue(server.dnsDiagnostic) ||
+                    server.projectDomains?.some((projectDomain) =>
+                        isManagedServerDnsDiagnosticIssue(projectDomain.dnsDiagnostic),
+                    ),
+            ),
         [servers],
     );
     const { confirmBeforeNavigation, allowNextNavigation } = useUnsavedChangesGuard({
@@ -130,9 +138,9 @@ export function ServersClient() {
                             {serversWithDnsIssues.length === 1 ? 'domain' : 'domains'}.
                         </p>
                         <p>
-                            Automatic nginx and SSL setup already ran, but these domains do not resolve to this VPS yet.
-                            Review the DNS instructions in the affected server rows below, update the records at your DNS
-                            provider, and refresh this page after propagation.
+                            Automatic nginx and SSL setup already ran, but one or more server or generated project
+                            domains do not resolve to this VPS yet. Review the DNS instructions in the affected server
+                            rows below, update the records at your DNS provider, and refresh this page after propagation.
                         </p>
                     </div>
                 </Card>

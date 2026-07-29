@@ -6,8 +6,7 @@ import { isTimingSafeEqualString } from '../../../../../../../src/utils/isTiming
 import { USER_CHAT_WORKER_TOKEN_HEADER } from '@/src/utils/agentProjects/agentProjectRuntimeConstants';
 import {
     assignAgentProjectPort,
-    startAgentProjectDevRuntime,
-    startAgentProjectStaticRuntime,
+    startAgentProjectRuntime,
     terminateAgentProjectRuntimeForProject,
 } from '@/src/utils/agentProjects/agentProjectRuntimeRegistry';
 import { resolveUserChatWorkerInternalToken } from '@/src/utils/userChat';
@@ -15,12 +14,7 @@ import { resolveUserChatWorkerInternalToken } from '@/src/utils/userChat';
 /**
  * Actions accepted by the internal agent-project runtime route.
  */
-const AGENT_PROJECT_RUNTIME_REQUEST_ACTIONS = [
-    'assign_port',
-    'start_static_server',
-    'start_dev_server',
-    'terminate',
-] as const;
+const AGENT_PROJECT_RUNTIME_REQUEST_ACTIONS = ['assign_port', 'start', 'terminate'] as const;
 
 /**
  * Supported internal runtime action.
@@ -34,7 +28,6 @@ type AgentProjectRuntimeRequest = {
     readonly action: AgentProjectRuntimeRequestAction;
     readonly agentPermanentId: string;
     readonly projectName: string;
-    readonly command?: string;
     readonly serverDomain?: string;
 };
 
@@ -89,7 +82,6 @@ async function parseAgentProjectRuntimeRequest(request: Request): Promise<AgentP
     const action = normalizeAgentProjectRuntimeAction(body.action);
     const agentPermanentId = normalizeRequiredText(body.agentPermanentId, 'agentPermanentId');
     const projectName = normalizeRequiredText(body.projectName, 'projectName');
-    const command = normalizeOptionalText(body.command, 'command');
     const serverDomain =
         normalizeOptionalText(body.serverDomain, 'serverDomain') || resolveServerDomainFromRequest(request);
 
@@ -97,7 +89,6 @@ async function parseAgentProjectRuntimeRequest(request: Request): Promise<AgentP
         action,
         agentPermanentId,
         projectName,
-        ...(command !== undefined ? { command } : {}),
         ...(serverDomain !== undefined ? { serverDomain } : {}),
     };
 }
@@ -110,12 +101,8 @@ async function executeAgentProjectRuntimeRequest(payload: AgentProjectRuntimeReq
         return await assignAgentProjectPort(payload);
     }
 
-    if (payload.action === 'start_static_server') {
-        return await startAgentProjectStaticRuntime(payload);
-    }
-
-    if (payload.action === 'start_dev_server') {
-        return await startAgentProjectDevRuntime(payload);
+    if (payload.action === 'start') {
+        return await startAgentProjectRuntime(payload);
     }
 
     return await terminateAgentProjectRuntimeForProject(payload);
@@ -132,7 +119,9 @@ function normalizeAgentProjectRuntimeAction(rawAction: unknown): AgentProjectRun
     }
 
     throw new ParseError(
-        `Invalid action \`${normalizedAction}\`. Use one of: \`${AGENT_PROJECT_RUNTIME_REQUEST_ACTIONS.join('`, `')}\`.`,
+        `Invalid action \`${normalizedAction}\`. Use one of: \`${AGENT_PROJECT_RUNTIME_REQUEST_ACTIONS.join(
+            '`, `',
+        )}\`.`,
     );
 }
 

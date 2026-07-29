@@ -153,6 +153,23 @@ describe('buildHeaderSystemMenuItems', () => {
         expect(isValidElement(resourceMonitorItem?.label)).toBe(true);
     });
 
+    it('decorates Agent Projects when generated project DNS needs attention', () => {
+        const translate = (key: ServerTranslationKey) => `translated:${key}`;
+        const items = buildHeaderSystemMenuItems({
+            translate,
+            currentUser: FIXTURE_USER,
+            isAdmin: true,
+            isGlobalAdmin: false,
+            isExperimental: false,
+            feedbackMode: 'stars',
+            isAgentProjectsDnsWarningShown: true,
+        });
+        const agentProjectsItem = findItemByHref(items, '/admin/projects');
+
+        expect(agentProjectsItem).not.toBeNull();
+        expect(isValidElement(agentProjectsItem?.label)).toBe(true);
+    });
+
     it('adds Shibboleth under login methods only when Shibboleth authentication is active', () => {
         const translate = (key: ServerTranslationKey) => `translated:${key}`;
         const inactiveItems = buildHeaderSystemMenuItems({

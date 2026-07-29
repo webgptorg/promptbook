@@ -44,9 +44,9 @@ describe('buildAgentMessagePrompt', () => {
         });
 
         expect(prompt).toContain('/api/internal/agent-project-runtimes');
-        expect(prompt).toContain('"action":"start_dev_server"');
-        expect(prompt).toContain('"action":"start_static_server"');
+        expect(prompt).toContain('"action":"start"');
         expect(prompt).toContain('"action":"assign_port"');
+        expect(prompt).toContain('automatically runs `npm run dev`');
         expect(prompt).toContain('"agentPermanentId":"agent1234"');
         expect(prompt).toContain('$PTBK_AGENTS_SERVER_USER_CHAT_WORKER_TOKEN');
     });

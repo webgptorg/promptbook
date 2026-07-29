@@ -3,16 +3,27 @@ import { spaceTrim } from 'spacetrim';
 import { DatabaseError } from '../../../../../../../src/errors/DatabaseError';
 import { isAgentsServerSqliteMode } from '../../../../database/agentsServerDatabaseMode';
 import { seedDefaultAgents } from '../../../../database/seedDefaultAgents';
+import {
+    buildAgentProjectProfileHrefForServer,
+    buildAgentProjectsDashboardHrefForServer,
+} from '../../../../utils/agentProjects/agentProjectHrefs';
 import { listAgentProjectDomainRecords } from '../../../../utils/agentProjects/agentProjectRuntimeDomains';
+import {
+    createAgentProjectDnsDiagnosticLookup,
+    createAgentProjectDnsDiagnosticLookupKey,
+    listAgentProjectDnsDiagnostics,
+} from '../../../../utils/agentProjects/listAgentProjectDnsDiagnostics';
 import { resolveCurrentServerRegistryContext } from '../../../../utils/currentServerRegistryContext';
 import { isUserAdmin } from '../../../../utils/isUserAdmin';
 import { isUserGlobalAdmin } from '../../../../utils/isUserGlobalAdmin';
+import { loadLocalAgentSourceSnapshot } from '../../../../utils/localChatRunner/ensureLocalAgentFolder';
 import { buildServerTablePrefix } from '../../../../utils/buildServerTablePrefix';
 import {
     createServerPublicUrl,
     isServerEnvironment,
     normalizeServerDomain,
     SERVER_ENVIRONMENT,
+    type ServerRecord,
 } from '../../../../utils/serverRegistry';
 import {
     assertGlobalAdminAccess,
@@ -27,11 +38,17 @@ import {
 } from '../../../../utils/serverManagement/standaloneVpsServerMetadata';
 import { createStandaloneVpsDomainDnsDiagnostic } from '../../../../utils/standaloneVpsDnsDiagnostics';
 import { runWithVpsServerSetupTask } from '../../../../utils/vpsTask/runWithVpsServerSetupTask';
+import { runWithServerContextOverride } from '../../../../tools/serverContextOverride';
 import {
     applyVpsRuntimeConfiguration,
     listConfiguredVpsDomains,
     updateConfiguredVpsDomains,
 } from '../../../../utils/vpsConfiguration';
+
+/**
+ * Separator used in agent-owner lookup keys.
+ */
+const AGENT_PROJECT_OWNER_LOOKUP_KEY_SEPARATOR = '::';
 
 /**
  * Lists all registered servers together with the server resolved from the current domain.
@@ -45,31 +62,67 @@ export async function GET() {
         }
 
         const context = await resolveCurrentServerRegistryContext();
-        const serversWithoutProjectDomains = isAgentsServerSqliteMode()
+        const isStandaloneVps = isAgentsServerSqliteMode();
+        const serversWithoutProjectDomains = isStandaloneVps
             ? await createStandaloneVpsServersResponse(context.registeredServers)
             : context.registeredServers;
         const projectDomainRecords = await listAgentProjectDomainRecords();
-        const servers = serversWithoutProjectDomains.map((server) => ({
-            ...server,
-            projectDomains: projectDomainRecords
-                .filter((record) => normalizeServerDomain(record.serverDomain) === normalizeServerDomain(server.domain))
-                .map((record) => ({
-                    agentPermanentId: record.agentPermanentId,
-                    projectName: record.projectName,
-                    customDomain: record.customDomain,
-                    domain: record.domain,
-                    publicUrl: record.publicUrl,
-                    projectHref: record.projectHref,
-                    assignedAt: record.assignedAt,
-                    updatedAt: record.updatedAt,
-                })),
-        }));
+        const agentNameByProjectOwner = await createAgentNameLookup(projectDomainRecords, context.registeredServers);
+        const currentServerDomain = context.currentServer?.domain || context.hostServer?.domain || null;
+        const servers = await Promise.all(
+            serversWithoutProjectDomains.map(async (server) => {
+                const serverProjectDomainRecords = projectDomainRecords.filter(
+                    (record) => normalizeServerDomain(record.serverDomain) === normalizeServerDomain(server.domain),
+                );
+                const projectDnsDiagnosticByProject = createAgentProjectDnsDiagnosticLookup(
+                    isStandaloneVps
+                        ? await listAgentProjectDnsDiagnostics({
+                              projectDomainRecords: serverProjectDomainRecords,
+                              publicIpAddress: process.env.PTBK_PUBLIC_IP_ADDRESS,
+                              serverDomain: server.domain,
+                          })
+                        : [],
+                );
+
+                return {
+                    ...server,
+                    projectDomains: serverProjectDomainRecords.map((record) => ({
+                        agentPermanentId: record.agentPermanentId,
+                        agentName:
+                            agentNameByProjectOwner.get(
+                                createAgentProjectOwnerLookupKey(record.serverDomain, record.agentPermanentId),
+                            ) ?? null,
+                        agentProjectsHref: buildAgentProjectsDashboardHrefForServer({
+                            agentPermanentId: record.agentPermanentId,
+                            serverDomain: server.domain,
+                            currentServerDomain,
+                        }),
+                        projectName: record.projectName,
+                        customDomain: record.customDomain,
+                        domain: record.domain,
+                        publicUrl: record.publicUrl,
+                        projectHref: buildAgentProjectProfileHrefForServer({
+                            agentPermanentId: record.agentPermanentId,
+                            projectName: record.projectName,
+                            serverDomain: server.domain,
+                            currentServerDomain,
+                        }),
+                        dnsDiagnostic:
+                            projectDnsDiagnosticByProject.get(
+                                createAgentProjectDnsDiagnosticLookupKey(record.agentPermanentId, record.projectName),
+                            )?.dnsDiagnostic ?? null,
+                        assignedAt: record.assignedAt,
+                        updatedAt: record.updatedAt,
+                    })),
+                };
+            }),
+        );
 
         return NextResponse.json({
             servers,
             currentServerId: context.currentServer?.id ?? null,
             canEdit: await isUserGlobalAdmin(),
-            isStandaloneVps: isAgentsServerSqliteMode(),
+            isStandaloneVps,
         });
     } catch (error) {
         return NextResponse.json(
@@ -79,6 +132,72 @@ export async function GET() {
             { status: resolveManagedServerErrorStatus(error) },
         );
     }
+}
+
+/**
+ * Loads readable agent names for project-domain rows without making a stale domain record fail the server registry.
+ *
+ * @param projectDomainRecords - Project domains whose owners need labels.
+ * @param registeredServers - Servers that own the project-domain records.
+ * @returns Project-owner names keyed by owning server and permanent agent id.
+ */
+async function createAgentNameLookup(
+    projectDomainRecords: Awaited<ReturnType<typeof listAgentProjectDomainRecords>>,
+    registeredServers: ReadonlyArray<ServerRecord>,
+): Promise<ReadonlyMap<string, string | null>> {
+    const serverByDomain = new Map<string, ServerRecord>();
+
+    for (const server of registeredServers) {
+        const serverDomain = normalizeServerDomain(server.domain);
+
+        if (serverDomain) {
+            serverByDomain.set(serverDomain, server);
+        }
+    }
+    const projectDomainRecordByOwner = new Map<string, (typeof projectDomainRecords)[number]>();
+
+    for (const projectDomainRecord of projectDomainRecords) {
+        projectDomainRecordByOwner.set(
+            createAgentProjectOwnerLookupKey(projectDomainRecord.serverDomain, projectDomainRecord.agentPermanentId),
+            projectDomainRecord,
+        );
+    }
+
+    const agentNames = await Promise.all(
+        [...projectDomainRecordByOwner.entries()].map(async ([projectOwnerLookupKey, projectDomainRecord]) => {
+            const server = serverByDomain.get(normalizeServerDomain(projectDomainRecord.serverDomain) || '');
+
+            if (!server) {
+                return [projectOwnerLookupKey, null] as const;
+            }
+
+            const agentSnapshot = await runWithServerContextOverride(
+                {
+                    id: server.id,
+                    publicUrl: createServerPublicUrl(server.domain),
+                    tablePrefix: server.tablePrefix,
+                },
+                () => loadLocalAgentSourceSnapshot(projectDomainRecord.agentPermanentId),
+            ).catch(() => null);
+
+            return [projectOwnerLookupKey, agentSnapshot?.agentName || null] as const;
+        }),
+    );
+
+    return new Map(agentNames);
+}
+
+/**
+ * Creates a stable lookup key for one server-scoped project owner.
+ *
+ * @param serverDomain - Domain of the server that owns the agent.
+ * @param agentPermanentId - Permanent id of the agent.
+ * @returns Case-insensitive project-owner lookup key.
+ */
+function createAgentProjectOwnerLookupKey(serverDomain: string, agentPermanentId: string): string {
+    return [normalizeServerDomain(serverDomain) || '', agentPermanentId.toLowerCase()].join(
+        AGENT_PROJECT_OWNER_LOOKUP_KEY_SEPARATOR,
+    );
 }
 
 /**

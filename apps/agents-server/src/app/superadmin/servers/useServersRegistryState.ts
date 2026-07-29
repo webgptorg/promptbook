@@ -36,6 +36,16 @@ export type ManagedServerProjectDomain = {
     readonly agentPermanentId: string;
 
     /**
+     * Readable name of the agent owning the project, when its local profile can be loaded.
+     */
+    readonly agentName: string | null;
+
+    /**
+     * Agents Server projects dashboard of the owning agent.
+     */
+    readonly agentProjectsHref: string;
+
+    /**
      * Project directory name.
      */
     readonly projectName: string;
@@ -59,6 +69,11 @@ export type ManagedServerProjectDomain = {
      * Agents Server project profile href.
      */
     readonly projectHref: string;
+
+    /**
+     * DNS verification state for generated project domains on a standalone VPS.
+     */
+    readonly dnsDiagnostic?: ManagedServerDnsDiagnostic | null;
 
     /**
      * ISO timestamp when the domain was first assigned.
