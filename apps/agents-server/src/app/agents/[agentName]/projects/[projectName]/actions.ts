@@ -6,45 +6,24 @@ import { spaceTrim } from '../../../../../../../../src/utils/organization/spaceT
 import { resolveAgentProjectsAccess } from '@/src/utils/agentProjects/agentProjectAccess';
 import { buildAgentProjectProfileHref } from '@/src/utils/agentProjects/agentProjectHrefs';
 import {
-    startAgentProjectDevRuntime,
-    startAgentProjectStaticRuntime,
+    startAgentProjectRuntime,
     terminateAgentProjectRuntimeForProject,
 } from '@/src/utils/agentProjects/agentProjectRuntimeRegistry';
 import { resolveCurrentAgentProjectServerDomain } from '@/src/utils/agentProjects/resolveCurrentAgentProjectServerDomain';
 
 /**
- * Starts the default dev runtime for one project from its project page.
+ * Starts one project from its project page.
  *
  * @param agentPermanentId - Permanent id of the agent owning the project.
  * @param projectName - Project directory name.
  */
-export async function $startAgentProjectDevRuntimeFromProjectPageAction(
+export async function $startAgentProjectRuntimeFromProjectPageAction(
     agentPermanentId: string,
     projectName: string,
 ): Promise<void> {
     await assertProjectRuntimeActionAccess(agentPermanentId, projectName, 'start');
 
-    await startAgentProjectDevRuntime({
-        agentPermanentId,
-        projectName,
-        serverDomain: await resolveCurrentAgentProjectServerDomain(),
-    });
-    revalidateProjectRuntimePaths(agentPermanentId, projectName);
-}
-
-/**
- * Starts the static runtime for one project from its project page.
- *
- * @param agentPermanentId - Permanent id of the agent owning the project.
- * @param projectName - Project directory name.
- */
-export async function $startAgentProjectStaticRuntimeFromProjectPageAction(
-    agentPermanentId: string,
-    projectName: string,
-): Promise<void> {
-    await assertProjectRuntimeActionAccess(agentPermanentId, projectName, 'start');
-
-    await startAgentProjectStaticRuntime({
+    await startAgentProjectRuntime({
         agentPermanentId,
         projectName,
         serverDomain: await resolveCurrentAgentProjectServerDomain(),
@@ -92,6 +71,7 @@ async function assertProjectRuntimeActionAccess(
  */
 function revalidateProjectRuntimePaths(agentPermanentId: string, projectName: string): void {
     revalidatePath(buildAgentProjectProfileHref(agentPermanentId, projectName));
+    revalidatePath('/admin/projects');
     revalidatePath('/superadmin/resource-monitor');
     revalidatePath('/superadmin/servers');
 }

@@ -6,7 +6,7 @@ import {
     assignAgentProjectPort,
     listAgentProjectRuntimes,
     refreshAgentProjectRuntimePublicDomain,
-    startAgentProjectStaticRuntime,
+    startAgentProjectRuntime,
     terminateAgentProjectRuntimeForProject,
     terminateAllAgentProjectRuntimes,
 } from './agentProjectRuntimeRegistry';
@@ -103,12 +103,12 @@ describe('agentProjectRuntimeRegistry', () => {
         expect(secondRuntime.isRunning).toBe(false);
     });
 
-    it('serves project files through a static runtime and terminates it', async () => {
+    it('serves project files through a static runtime when no package manifest exists', async () => {
         await createProject(temporaryDirectory!, 'abc123', 'website', {
             'index.html': '<h1>Runnable project</h1>',
         });
 
-        const runtime = await startAgentProjectStaticRuntime({
+        const runtime = await startAgentProjectRuntime({
             agentPermanentId: 'abc123',
             projectName: 'website',
         });
@@ -127,6 +127,40 @@ describe('agentProjectRuntimeRegistry', () => {
 
         expect(terminatedRuntime?.id).toBe(runtime.id);
         expect(runtimes).toHaveLength(0);
+    });
+
+    it('serves project files through a static runtime when package metadata has no dev script', async () => {
+        await createProject(temporaryDirectory!, 'abc123', 'website', {
+            'index.html': '<h1>Static project</h1>',
+            'package.json': JSON.stringify({ scripts: { build: 'echo build' } }),
+        });
+
+        const runtime = await startAgentProjectRuntime({
+            agentPermanentId: 'abc123',
+            projectName: 'website',
+        });
+
+        expect(runtime.mode).toBe('static-server');
+        await expect(fetch(runtime.url).then((response) => response.text())).resolves.toContain('Static project');
+    });
+
+    it('runs the package dev script when one is declared', async () => {
+        await createProject(temporaryDirectory!, 'abc123', 'website', {
+            'package.json': JSON.stringify({ scripts: { dev: 'node server.js' } }),
+            'server.js': [
+                "const http = require('http');",
+                "http.createServer((_request, response) => response.end('Dev project')).listen(process.env.PORT, process.env.HOST);",
+            ].join('\n'),
+        });
+
+        const runtime = await startAgentProjectRuntime({
+            agentPermanentId: 'abc123',
+            projectName: 'website',
+        });
+
+        expect(runtime.mode).toBe('dev-server');
+        expect(runtime.isRunning).toBe(true);
+        await expect(fetch(runtime.url).then((response) => response.text())).resolves.toContain('Dev project');
     });
 
     it('uses and refreshes custom project domains on runtime records', async () => {

@@ -1,3 +1,5 @@
+-   Simplified Agents Server project runtimes to one automatic Run action: projects with a non-empty `package.json` `dev` script now run `npm run dev`, while all other projects use the static server. Admins can now run and stop projects directly from `/admin/projects`.
+
 -   Enhanced the Agents Server `/superadmin/environment` editor so super admins can add arbitrary valid `.env` variables directly from the UI. Every variable already persisted in the VPS `.env` file is now listed automatically — including integrations such as `ELEVEN_LABS_API_KEY` — while sensitive values remain masked and the server-side super-admin-only write policy remains enforced.
 
 - Fixed the Agents Server home page so the temporary federated-agents loading section is not shown before federation data is available. When no federated servers or agents are returned, the homepage now remains free of that section instead of briefly showing it.

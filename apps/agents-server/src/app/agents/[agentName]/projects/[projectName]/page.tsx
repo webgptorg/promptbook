@@ -49,8 +49,7 @@ import { isUserGlobalAdmin } from '@/src/utils/isUserGlobalAdmin';
 import { enforceCanonicalLocalAgentId } from '../../_utils';
 import { AgentProjectVscodeKeyboardShortcut } from './AgentProjectVscodeKeyboardShortcut';
 import {
-    $startAgentProjectDevRuntimeFromProjectPageAction,
-    $startAgentProjectStaticRuntimeFromProjectPageAction,
+    $startAgentProjectRuntimeFromProjectPageAction,
     $terminateAgentProjectRuntimeFromProjectPageAction,
 } from './actions';
 
@@ -267,7 +266,7 @@ function ProjectRuntimePanel({
                         <span className="font-semibold text-gray-900">Runtime</span>
                         <span>Project is not running.</span>
                     </div>
-                    <ProjectRuntimeStartButtons agentPermanentId={agentPermanentId} projectName={projectName} />
+                    <ProjectRuntimeStartButton agentPermanentId={agentPermanentId} projectName={projectName} />
                 </div>
             </section>
         );
@@ -313,7 +312,7 @@ function ProjectRuntimePanel({
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                     {!runtime.isRunning && (
-                        <ProjectRuntimeStartButtons agentPermanentId={agentPermanentId} projectName={projectName} />
+                        <ProjectRuntimeStartButton agentPermanentId={agentPermanentId} projectName={projectName} />
                     )}
                     <form
                         action={$terminateAgentProjectRuntimeFromProjectPageAction.bind(
@@ -337,9 +336,9 @@ function ProjectRuntimePanel({
 }
 
 /**
- * Renders project runtime start actions.
+ * Renders the action that starts one project using its detected runtime mode.
  */
-function ProjectRuntimeStartButtons({
+function ProjectRuntimeStartButton({
     agentPermanentId,
     projectName,
 }: {
@@ -354,28 +353,15 @@ function ProjectRuntimeStartButtons({
     readonly projectName: string;
 }) {
     return (
-        <div className="flex flex-wrap items-center gap-2">
-            <form action={$startAgentProjectDevRuntimeFromProjectPageAction.bind(null, agentPermanentId, projectName)}>
-                <button
-                    type="submit"
-                    className="inline-flex items-center gap-2 rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-sm font-semibold text-blue-700 hover:bg-blue-100"
-                >
-                    <PlayIcon className="h-4 w-4" aria-hidden />
-                    Start dev
-                </button>
-            </form>
-            <form
-                action={$startAgentProjectStaticRuntimeFromProjectPageAction.bind(null, agentPermanentId, projectName)}
+        <form action={$startAgentProjectRuntimeFromProjectPageAction.bind(null, agentPermanentId, projectName)}>
+            <button
+                type="submit"
+                className="inline-flex items-center gap-2 rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-sm font-semibold text-blue-700 hover:bg-blue-100"
             >
-                <button
-                    type="submit"
-                    className="inline-flex items-center gap-2 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm font-semibold text-gray-700 hover:border-blue-200 hover:text-blue-700"
-                >
-                    <RadioTowerIcon className="h-4 w-4" aria-hidden />
-                    Serve static
-                </button>
-            </form>
-        </div>
+                <PlayIcon className="h-4 w-4" aria-hidden />
+                Run
+            </button>
+        </form>
     );
 }
 

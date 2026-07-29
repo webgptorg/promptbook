@@ -1,4 +1,5 @@
 import { FolderKanbanIcon } from 'lucide-react';
+import type { ReactNode } from 'react';
 import type { AgentProjectInfo } from '../../utils/agentProjects/AgentProjectInfo';
 import { AgentProjectItem } from './AgentProjectItem';
 
@@ -17,6 +18,11 @@ type AgentProjectsBoardProps = {
      * Projects rendered on the board.
      */
     readonly projects: ReadonlyArray<AgentProjectInfo>;
+
+    /**
+     * Optional controls rendered below each full project card.
+     */
+    readonly renderProjectFooter?: (project: AgentProjectInfo) => ReactNode;
 };
 
 /**
@@ -26,10 +32,7 @@ type AgentProjectsBoardProps = {
  *
  * @private component of Agent Projects dashboards
  */
-export function AgentProjectsBoard({
-    agentPermanentId,
-    projects,
-}: AgentProjectsBoardProps) {
+export function AgentProjectsBoard({ agentPermanentId, projects, renderProjectFooter }: AgentProjectsBoardProps) {
     if (projects.length === 0) {
         return (
             <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-6 py-10 text-center">
@@ -50,6 +53,7 @@ export function AgentProjectsBoard({
                     key={project.projectName}
                     agentPermanentId={agentPermanentId}
                     project={project}
+                    footer={renderProjectFooter?.(project)}
                 />
             ))}
         </div>

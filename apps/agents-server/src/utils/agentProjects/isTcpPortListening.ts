@@ -63,6 +63,33 @@ export async function waitForTcpPortListening(options: {
 }
 
 /**
+ * Waits until a TCP port stops listening or the timeout elapses.
+ *
+ * @param options - Port, host, timeout, and polling interval.
+ * @returns `true` when the port stopped listening before the timeout.
+ */
+export async function waitForTcpPortToStopListening(options: {
+    readonly port: number;
+    readonly host?: string;
+    readonly timeoutMs: number;
+    readonly pollIntervalMs: number;
+}): Promise<boolean> {
+    const startedAtMs = Date.now();
+
+    while (Date.now() - startedAtMs <= options.timeoutMs) {
+        const isListening = await isTcpPortListening(options.port, options.host);
+
+        if (!isListening) {
+            return true;
+        }
+
+        await wait(options.pollIntervalMs);
+    }
+
+    return !(await isTcpPortListening(options.port, options.host));
+}
+
+/**
  * Waits for the given delay.
  *
  * @param delayMs - Delay in milliseconds.
@@ -70,4 +97,3 @@ export async function waitForTcpPortListening(options: {
 async function wait(delayMs: number): Promise<void> {
     await new Promise((resolve) => setTimeout(resolve, delayMs));
 }
-
