@@ -1,3 +1,5 @@
+-   Fixed standalone VPS project DNS visibility: `/superadmin/servers` now verifies generated project hostnames, defaults its setup guidance to the preferred wildcard CNAME record, and labels each owner with a linked agent chip. DNS problems now also appear on affected project pages and the **Agent Projects** menu item.
+
 -   Simplified Agents Server project runtimes to one automatic Run action: projects with a non-empty `package.json` `dev` script now run `npm run dev`, while all other projects use the static server. Admins can now run and stop projects directly from `/admin/projects`.
 
 -   Enhanced the Agents Server `/superadmin/environment` editor so super admins can add arbitrary valid `.env` variables directly from the UI. Every variable already persisted in the VPS `.env` file is now listed automatically — including integrations such as `ELEVEN_LABS_API_KEY` — while sensitive values remain masked and the server-side super-admin-only write policy remains enforced.

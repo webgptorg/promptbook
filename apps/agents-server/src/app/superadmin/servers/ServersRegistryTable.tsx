@@ -1,7 +1,7 @@
 'use client';
 
 import { Fragment } from 'react';
-import { ArrowRightLeft, ExternalLink, Loader2, Mail, RefreshCcw, Save } from 'lucide-react';
+import { ArrowRightLeft, Bot, ExternalLink, Loader2, Mail, RefreshCcw, Save } from 'lucide-react';
 import { AgentProjectDnsInstructions } from '../../../components/AgentProjectDnsInstructions/AgentProjectDnsInstructions';
 import { DnsRecordsInstructions } from '../../../components/DnsRecordsInstructions/DnsRecordsInstructions';
 import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
@@ -9,6 +9,7 @@ import type { ServerLanguageCode } from '../../../languages/ServerLanguageRegist
 import { formatServerLanguageHumanReadableDate } from '../../../utils/localization/formatServerLanguageHumanReadableDate';
 import { AdminSortableTableHeaderCell } from '../../admin/_components/AdminSortableTableHeaderCell';
 import { useAdminTableSorting } from '../../admin/_components/adminTableSorting';
+import { isManagedServerDnsDiagnosticIssue } from './ServersRegistryDnsTypes';
 import {
     MANAGED_SERVER_ENVIRONMENT_OPTIONS,
     type ManagedServerEnvironment,
@@ -236,10 +237,13 @@ function ServersRegistryTableRow(props: ServersRegistryTableRowProps) {
     } = props;
     const isCurrent = server.id === currentServerId;
     const dnsDiagnostic = server.dnsDiagnostic || null;
-    const hasDnsIssue = Boolean(dnsDiagnostic && dnsDiagnostic.status !== 'verified');
+    const hasDnsIssue = isManagedServerDnsDiagnosticIssue(dnsDiagnostic);
     const projectDomains = server.projectDomains || [];
     const projectDomainCount = projectDomains.length;
     const isProjectDomainAssigned = projectDomainCount > 0;
+    const hasProjectDnsIssue = projectDomains.some((projectDomain) =>
+        isManagedServerDnsDiagnosticIssue(projectDomain.dnsDiagnostic),
+    );
     const columnCount = isStandaloneVps ? 6 : 8;
 
     return (
@@ -312,6 +316,7 @@ function ServersRegistryTableRow(props: ServersRegistryTableRowProps) {
                             <ServerStatusBadge label="DNS ready" tone="green" />
                         ) : null}
                         {hasDnsIssue ? <ServerStatusBadge label="DNS issue" tone="amber" /> : null}
+                        {hasProjectDnsIssue ? <ServerStatusBadge label="Project DNS issue" tone="amber" /> : null}
                         {isProjectDomainAssigned ? (
                             <ServerStatusBadge
                                 label={`${projectDomainCount} project ${
@@ -435,6 +440,9 @@ function ProjectDomainsPanel({
         resolveSortValue: resolveProjectDomainSortValue,
     });
     const generatedProjectDomain = projectDomains.find((projectDomain) => !projectDomain.customDomain)?.domain ?? null;
+    const hasProjectDnsIssue = projectDomains.some((projectDomain) =>
+        isManagedServerDnsDiagnosticIssue(projectDomain.dnsDiagnostic),
+    );
 
     return (
         <div className="space-y-3 rounded-lg border border-sky-200 bg-sky-50 px-4 py-4 text-sm text-sky-950">
@@ -501,8 +509,22 @@ function ProjectDomainsPanel({
                                             Custom
                                         </span>
                                     ) : null}
+                                    {isManagedServerDnsDiagnosticIssue(projectDomain.dnsDiagnostic) ? (
+                                        <span className="ml-2 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 font-sans text-[0.7rem] font-semibold text-amber-700">
+                                            DNS setup needed
+                                        </span>
+                                    ) : null}
                                 </td>
-                                <td className="px-3 py-2 font-mono text-slate-500">{projectDomain.agentPermanentId}</td>
+                                <td className="px-3 py-2">
+                                    <a
+                                        href={projectDomain.agentProjectsHref}
+                                        title="Open agent projects"
+                                        className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-sky-200 bg-sky-50 px-2 py-1 font-sans text-xs font-semibold text-sky-800 hover:border-sky-300 hover:bg-sky-100 hover:text-sky-950"
+                                    >
+                                        <Bot className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                                        <span className="truncate">{projectDomain.agentName || 'Agent'}</span>
+                                    </a>
+                                </td>
                             </tr>
                         ))}
                     </tbody>
@@ -510,6 +532,7 @@ function ProjectDomainsPanel({
             </div>
             {generatedProjectDomain ? (
                 <AgentProjectDnsInstructions
+                    isDnsIssue={hasProjectDnsIssue}
                     projectDomain={generatedProjectDomain}
                     publicIpAddress={publicIpAddress}
                     serverDomain={serverDomain}

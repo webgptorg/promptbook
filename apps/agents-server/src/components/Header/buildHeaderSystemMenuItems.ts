@@ -158,6 +158,7 @@ type BuildHeaderSystemMenuItemsOptions = {
     readonly shibbolethAuthenticationStatus?: ShibbolethAuthenticationMenuStatus;
     readonly resourceMonitorWarningStatus?: ServerResourceWarningStatus;
     readonly isCoreAgentsMissing?: boolean;
+    readonly isAgentProjectsDnsWarningShown?: boolean;
 };
 
 /**
@@ -339,6 +340,7 @@ export function buildHeaderSystemMenuItems({
     shibbolethAuthenticationStatus,
     resourceMonitorWarningStatus,
     isCoreAgentsMissing = false,
+    isAgentProjectsDnsWarningShown = false,
 }: BuildHeaderSystemMenuItemsOptions): SubMenuItem[] {
     const userAccountSystemItems: SubMenuItem[] = [
         {
@@ -403,14 +405,19 @@ export function buildHeaderSystemMenuItems({
 
     // Note: The System warnings are gated by admin capability in a single shared place so the submenu entries and the
     //       top-level System label indicator always agree on what the current viewer is allowed to see.
-    const { isShibbolethConfigurationWarningShown, isResourceMonitorWarningShown, isCoreAgentsWarningShown } =
-        resolveHeaderSystemWarnings({
-            isAdmin,
-            isGlobalAdmin,
-            shibbolethAuthenticationStatus,
-            resourceMonitorWarningStatus,
-            isCoreAgentsMissing,
-        });
+    const {
+        isShibbolethConfigurationWarningShown,
+        isResourceMonitorWarningShown,
+        isCoreAgentsWarningShown,
+        isAgentProjectsDnsWarningShown: isAgentProjectsDnsWarningVisible,
+    } = resolveHeaderSystemWarnings({
+        isAdmin,
+        isGlobalAdmin,
+        shibbolethAuthenticationStatus,
+        resourceMonitorWarningStatus,
+        isCoreAgentsMissing,
+        isAgentProjectsDnsWarningShown,
+    });
     const superAdminSystemItems: SubMenuItem[] = [
         {
             label: translate('header.servers'),
@@ -516,7 +523,9 @@ export function buildHeaderSystemMenuItems({
             href: '/admin/files',
         },
         {
-            label: translate('header.agentProjects'),
+            label: isAgentProjectsDnsWarningVisible
+                ? createWarningMenuLabel(translate('header.agentProjects'))
+                : translate('header.agentProjects'),
             href: '/admin/projects',
         },
     ];
@@ -612,7 +621,12 @@ export function buildHeaderSystemMenuItems({
         ...createSystemCategory('My Account', userAccountSystemItems, translate),
         ...createSystemCategory('Utilities', utilitiesSystemItems, translate),
         ...createSystemCategory('Super Admin', superAdminSystemItems, translate, isResourceMonitorWarningShown),
-        ...createSystemCategory('Administration', administrationSystemItems, translate, isCoreAgentsWarningShown),
+        ...createSystemCategory(
+            'Administration',
+            administrationSystemItems,
+            translate,
+            isCoreAgentsWarningShown || isAgentProjectsDnsWarningVisible,
+        ),
         ...createSystemCategory(
             'Login Methods',
             loginMethodsSystemItems,

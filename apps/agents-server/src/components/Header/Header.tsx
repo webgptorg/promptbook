@@ -60,6 +60,7 @@ export function Header(props: HeaderProps) {
         shibbolethAuthenticationStatus,
         resourceMonitorWarningStatus,
         isCoreAgentsMissing = false,
+        isAgentProjectsDnsWarningShown = false,
     } = props;
     const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
     const router = useRouter();
@@ -250,6 +251,7 @@ export function Header(props: HeaderProps) {
         shibbolethAuthenticationStatus,
         resourceMonitorWarningStatus,
         isCoreAgentsMissing,
+        isAgentProjectsDnsWarningShown,
     });
     const systemMenuEntries = useMemo(
         () =>
@@ -263,6 +265,7 @@ export function Header(props: HeaderProps) {
                 shibbolethAuthenticationStatus,
                 resourceMonitorWarningStatus,
                 isCoreAgentsMissing,
+                isAgentProjectsDnsWarningShown,
             }),
         [
             currentUser,
@@ -271,6 +274,7 @@ export function Header(props: HeaderProps) {
             isExperimental,
             isGlobalAdmin,
             isCoreAgentsMissing,
+            isAgentProjectsDnsWarningShown,
             resourceMonitorWarningStatus,
             shibbolethAuthenticationStatus,
             t,

@@ -8,8 +8,10 @@ import { DNS_PROVIDER_GUIDES } from './dnsProviderGuides';
 
 /**
  * Resolver signature used for DNS lookups.
+ *
+ * @private shared by standalone VPS DNS diagnostics and their tests
  */
-type ResolveDnsAddresses = (domain: string) => Promise<ReadonlyArray<string>>;
+export type ResolveDnsAddresses = (domain: string) => Promise<ReadonlyArray<string>>;
 
 /**
  * Input used to create one standalone VPS DNS diagnostic.
@@ -29,6 +31,14 @@ type CreateStandaloneVpsDomainDnsDiagnosticOptions = {
      * Optional already-working hostname that subdomains may target via CNAME.
      */
     readonly fallbackCnameTargetDomain?: string | null | undefined;
+
+    /**
+     * Explicit DNS records to recommend instead of the standard server-domain alternatives.
+     *
+     * This lets generated project domains reuse the same resolution check while prescribing
+     * their wildcard CNAME setup.
+     */
+    readonly expectedRecords?: ReadonlyArray<ManagedServerDnsExpectedRecord>;
 
     /**
      * Optional resolver override used by unit tests.
@@ -51,11 +61,13 @@ export async function createStandaloneVpsDomainDnsDiagnostic(
     options: CreateStandaloneVpsDomainDnsDiagnosticOptions,
 ): Promise<ManagedServerDnsDiagnostic> {
     const publicIpAddress = normalizePublicIpAddress(options.publicIpAddress);
-    const expectedRecords = createExpectedDnsRecords({
-        domain: options.domain,
-        publicIpAddress,
-        fallbackCnameTargetDomain: options.fallbackCnameTargetDomain,
-    });
+    const expectedRecords =
+        options.expectedRecords ??
+        createExpectedDnsRecords({
+            domain: options.domain,
+            publicIpAddress,
+            fallbackCnameTargetDomain: options.fallbackCnameTargetDomain,
+        });
 
     if (!publicIpAddress) {
         return createDnsDiagnostic({

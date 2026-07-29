@@ -74,6 +74,11 @@ export type HeaderProps = {
      * Whether one or more bundled core agents are missing on this server (admin-only warning).
      */
     isCoreAgentsMissing?: boolean;
+
+    /**
+     * Whether generated project domain DNS needs administrator attention.
+     */
+    isAgentProjectsDnsWarningShown?: boolean;
 };
 
 /**

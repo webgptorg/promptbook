@@ -18,7 +18,7 @@
 
 ---
 
-[ ]
+[x] by OpenAI Codex `gpt-5.6-terra` (ChatGPT account) - Implementation ~$1.33 an hour; Testing 29 minutes
 
 [✨🏖] Fix projects listing and DNS instructions in `/superadmin/servers`
 
@@ -47,4 +47,5 @@ Or wildcard record for all subdomains of `lts1.ptbk.io` like _(this should be th
 ![When the DNS misconfigured also add warning to project(s) page `/admin/projects`, `/agents/6gtfPHmVa4VX1S/projects/book-cheatsheet-a4` with link to servers page  `/admin/servers`](screenshots/2026-07-0474-agents-server-agent-projects-run-4.png)
 ![alt text](screenshots/2026-07-0474-agents-server-agent-projects-run-5.png)
 ![Also add exclamation mark icon to the menu item](screenshots/2026-07-0474-agents-server-agent-projects-run-6.png)
+
 

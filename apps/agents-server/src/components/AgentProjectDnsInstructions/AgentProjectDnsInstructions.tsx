@@ -12,10 +12,16 @@ import { createAgentProjectDnsRecord } from '../../utils/agentProjects/createAge
  * combination should be configured at the DNS provider.
  */
 export function AgentProjectDnsInstructions({
+    isDnsIssue = false,
     projectDomain,
     publicIpAddress,
     serverDomain,
 }: {
+    /**
+     * Whether at least one generated project domain currently fails DNS verification.
+     */
+    readonly isDnsIssue?: boolean;
+
     /**
      * Example generated project domain used by the single-project variant.
      */
@@ -31,8 +37,8 @@ export function AgentProjectDnsInstructions({
      */
     readonly serverDomain: string;
 }) {
-    const [isWildcardDomain, setIsWildcardDomain] = useState(false);
-    const [isCnameRecord, setIsCnameRecord] = useState(false);
+    const [isWildcardDomain, setIsWildcardDomain] = useState(true);
+    const [isCnameRecord, setIsCnameRecord] = useState(true);
     const instructionId = useId();
     const selectedRecord = createAgentProjectDnsRecord({
         isCnameRecord,
@@ -56,12 +62,19 @@ export function AgentProjectDnsInstructions({
                 </p>
             </div>
 
+            {isDnsIssue ? (
+                <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-amber-900">
+                    One or more generated project domains do not resolve to this VPS yet. The recommended wildcard
+                    CNAME setup is selected below.
+                </p>
+            ) : null}
+
             <div className="grid gap-4 md:grid-cols-2">
                 <DnsInstructionTabGroup
                     label="Domain coverage"
                     tabs={[
                         { label: 'Single project', value: false },
-                        { label: 'Wildcard (all projects)', value: true },
+                        { label: 'Wildcard (all projects, recommended)', value: true },
                     ]}
                     selectedValue={isWildcardDomain}
                     onSelect={setIsWildcardDomain}
@@ -71,7 +84,7 @@ export function AgentProjectDnsInstructions({
                     label="Record type"
                     tabs={[
                         { label: 'A record (VPS IP)', value: false },
-                        { label: 'CNAME record (server domain)', value: true },
+                        { label: 'CNAME record (server domain, recommended)', value: true },
                     ]}
                     selectedValue={isCnameRecord}
                     onSelect={setIsCnameRecord}
