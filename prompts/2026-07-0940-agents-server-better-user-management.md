@@ -17,3 +17,20 @@
 
 ![alt text](screenshots/2026-07-0940-agents-server-better-user-management.png)
 
+---
+
+[ ]
+
+[✨😞]
+
+-   @@@@@@@@@@@@@@@
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server) with page `/admin/users`
+
+Password
+HoNeiueCdbMS8k5P@aBT
+
+Generate secure password
+
+![alt text](screenshots/2026-07-0940-agents-server-better-user-management-1.png)
