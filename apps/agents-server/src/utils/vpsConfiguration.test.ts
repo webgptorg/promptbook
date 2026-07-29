@@ -2,7 +2,13 @@ import { mkdtemp, readFile, rm, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
-import { createVpsInstallerCommandEnvironment, updateConfiguredVpsDomains } from './vpsConfiguration';
+import { NotAllowed } from '../../../../src/errors/NotAllowed';
+import {
+    createVpsInstallerCommandEnvironment,
+    listVpsEnvironmentVariables,
+    updateConfiguredVpsDomains,
+    updateVpsEnvironmentVariables,
+} from './vpsConfiguration';
 
 /**
  * Original restart-skip flag restored after each environment-mutating test.
@@ -12,6 +18,7 @@ const ORIGINAL_PTBK_NON_INTERACTIVE = process.env.PTBK_NON_INTERACTIVE;
 const ORIGINAL_PTBK_AGENTS_SERVER_ENV_FILE = process.env.PTBK_AGENTS_SERVER_ENV_FILE;
 const ORIGINAL_NEXT_PUBLIC_SITE_URL = process.env.NEXT_PUBLIC_SITE_URL;
 const ORIGINAL_PTBK_PUBLIC_IP_ADDRESS = process.env.PTBK_PUBLIC_IP_ADDRESS;
+const ORIGINAL_FOO = process.env.FOO;
 
 describe('vpsConfiguration', () => {
     afterEach(() => {
@@ -25,6 +32,7 @@ describe('vpsConfiguration', () => {
         restoreEnvironmentVariable('PTBK_AGENTS_SERVER_ENV_FILE', ORIGINAL_PTBK_AGENTS_SERVER_ENV_FILE);
         restoreEnvironmentVariable('NEXT_PUBLIC_SITE_URL', ORIGINAL_NEXT_PUBLIC_SITE_URL);
         restoreEnvironmentVariable('PTBK_PUBLIC_IP_ADDRESS', ORIGINAL_PTBK_PUBLIC_IP_ADDRESS);
+        restoreEnvironmentVariable('FOO', ORIGINAL_FOO);
     });
 
     it('skips pm2 restarts when applying VPS runtime configuration from an active request', () => {
@@ -80,6 +88,54 @@ describe('vpsConfiguration', () => {
         } finally {
             await rm(tempDirectory, { recursive: true, force: true });
         }
+    });
+
+    it('lists every variable persisted in the VPS environment file and saves arbitrary valid variables', async () => {
+        const tempDirectory = await mkdtemp(join(tmpdir(), 'promptbook-vps-configuration-'));
+        const envFilePath = join(tempDirectory, '.env');
+
+        try {
+            await writeFile(
+                envFilePath,
+                spaceTrim(`
+                    ELEVEN_LABS_API_KEY=eleven-labs-api-key
+                    DATABASE_URL=postgres://database-user:database-password@database.example.com/agents
+                `),
+                'utf-8',
+            );
+            process.env.PTBK_AGENTS_SERVER_ENV_FILE = envFilePath;
+
+            const initialSnapshot = await listVpsEnvironmentVariables();
+            expect(initialSnapshot.variables).toContainEqual({
+                key: 'ELEVEN_LABS_API_KEY',
+                value: '********',
+                isSensitive: true,
+                isDefined: true,
+            });
+            expect(initialSnapshot.variables).toContainEqual({
+                key: 'DATABASE_URL',
+                value: '********',
+                isSensitive: true,
+                isDefined: true,
+            });
+
+            const updatedSnapshot = await updateVpsEnvironmentVariables({ FOO: 'custom-value' });
+            const nextEnvFileContent = await readFile(envFilePath, 'utf-8');
+
+            expect(nextEnvFileContent).toContain('FOO=custom-value');
+            expect(updatedSnapshot.variables).toContainEqual({
+                key: 'FOO',
+                value: 'custom-value',
+                isSensitive: false,
+                isDefined: true,
+            });
+        } finally {
+            await rm(tempDirectory, { recursive: true, force: true });
+        }
+    });
+
+    it('rejects malformed arbitrary environment variable names', async () => {
+        await expect(updateVpsEnvironmentVariables({ 'FOO-BAR': 'custom-value' })).rejects.toBeInstanceOf(NotAllowed);
     });
 });
 

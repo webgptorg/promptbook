@@ -1,4 +1,4 @@
-[ ] !
+[x] by OpenAI Codex `gpt-5.6-terra` (ChatGPT account) - Implementation ~$0.6912 43 minutes; Testing 35 minutes
 
 [✨𓀇] When editing the environment variables, allow adding arbitrary environment variables. 
 
@@ -12,3 +12,4 @@
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ![alt text](screenshots/2026-07-0980-agents-server-env.png)
+

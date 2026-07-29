@@ -1,3 +1,5 @@
+-   Enhanced the Agents Server `/superadmin/environment` editor so super admins can add arbitrary valid `.env` variables directly from the UI. Every variable already persisted in the VPS `.env` file is now listed automatically — including integrations such as `ELEVEN_LABS_API_KEY` — while sensitive values remain masked and the server-side super-admin-only write policy remains enforced.
+
 - Fixed the Agents Server home page so the temporary federated-agents loading section is not shown before federation data is available. When no federated servers or agents are returned, the homepage now remains free of that section instead of briefly showing it.
 
 -   Unified Agents Server DNS setup guidance. `/superadmin/servers` and `/admin/email-server` now reuse one record-instruction panel with consistent record columns, setup steps, conflict guidance, and DNS-provider documentation links; server-domain diagnostics still offer one compatible A/AAAA/CNAME alternative, while email setup correctly requires every MX/SPF/DMARC/TLS record shown.
