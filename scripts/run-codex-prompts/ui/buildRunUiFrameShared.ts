@@ -352,7 +352,17 @@ function extractErrorFilePaths(errorMessage: string): readonly string[] {
 function resolveShellFilePath(filePath: string): string {
     const trimmedFilePath = filePath.trim();
     const windowsFilePath = convertMingwFilePathToWindowsPath(trimmedFilePath);
-    return resolve(windowsFilePath);
+    return resolve(normalizeShellFilePathSeparators(windowsFilePath));
+}
+
+/**
+ * Normalizes shell path separators before resolving a path on the host platform.
+ *
+ * Shell-script paths can be reported with Windows separators even when their UI is
+ * rendered on another platform, for example while testing or inspecting shared logs.
+ */
+function normalizeShellFilePathSeparators(filePath: string): string {
+    return process.platform === 'win32' ? filePath : filePath.replace(/\\/gu, '/');
 }
 
 /**

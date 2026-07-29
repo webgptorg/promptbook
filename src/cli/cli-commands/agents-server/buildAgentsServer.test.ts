@@ -1,6 +1,6 @@
 import { spawn } from 'child_process';
 import { EventEmitter } from 'events';
-import { lstat, mkdir, mkdtemp, readFile, rm, writeFile } from 'fs/promises';
+import { lstat, mkdir, mkdtemp, readFile, realpath, rm, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import {
@@ -128,7 +128,9 @@ describe('Agents Server build cache', () => {
     });
 
     it('materializes packaged app sources outside node_modules for Next builds', async () => {
-        const temporaryDirectoryPath = await mkdtemp(join(tmpdir(), 'promptbook-agents-server-packaged-'));
+        const temporaryDirectoryPath = await realpath(
+            await mkdtemp(join(tmpdir(), 'promptbook-agents-server-packaged-')),
+        );
         temporaryDirectoryPaths.push(temporaryDirectoryPath);
 
         const nodeModulesPath = join(temporaryDirectoryPath, 'node_modules');

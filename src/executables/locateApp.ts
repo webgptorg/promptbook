@@ -36,7 +36,7 @@ export type LocateAppOptions = {
  *
  * @private within the repository
  */
-export function locateApp(
+export async function locateApp(
     options: RequireAtLeastOne<LocateAppOptions, 'linuxWhich' | 'windowsSuffix' | 'macOsName'>,
 ): Promise<string_executable_path | null> {
     if (!$isRunningInNode()) {

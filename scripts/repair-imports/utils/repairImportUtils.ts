@@ -248,7 +248,9 @@ export function resolveImportEntity({
  * Computes the candidate filenames that a relative module path may resolve to.
  */
 function resolveRelativeImportCandidatePaths(currentFilePath: string, currentImportPath: string): ReadonlySet<string> {
-    const importBasePath = normalizePath(join(dirname(currentFilePath), currentImportPath));
+    const importBasePath = normalizePath(
+        join(dirname(normalizePath(currentFilePath)), normalizePath(currentImportPath)),
+    );
     const candidates = [
         importBasePath,
         `${importBasePath}.ts`,
@@ -268,7 +270,7 @@ function resolveRelativeImportCandidatePaths(currentFilePath: string, currentImp
  * Normalizes a file path for reliable comparisons on every platform.
  */
 function normalizePath(path: string): string {
-    return normalize(path).split('\\').join('/');
+    return normalize(path.replace(/\\/gu, '/')).split('\\').join('/');
 }
 
 /**

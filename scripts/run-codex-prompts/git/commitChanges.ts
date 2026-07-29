@@ -1,5 +1,5 @@
-import { mkdir, unlink, writeFile } from 'fs/promises';
-import { dirname, relative, resolve } from 'path';
+import { mkdir, realpath, unlink, writeFile } from 'fs/promises';
+import { basename, dirname, relative, resolve } from 'path';
 import { spaceTrim } from 'spacetrim';
 import { $execCommand } from '../../../src/utils/execCommand/$execCommand';
 import { resolvePromptbookTemporaryPath } from '../../../src/utils/filesystem/promptbookTemporaryPath';
@@ -67,7 +67,7 @@ async function stageCommitChanges(
         env: agentEnv,
     });
 
-    const excludedGitPaths = normalizeExcludedGitPaths(projectPath, excludePaths);
+    const excludedGitPaths = await normalizeExcludedGitPaths(projectPath, excludePaths);
     if (excludedGitPaths.length === 0) {
         return;
     }
@@ -94,35 +94,60 @@ function buildGitAddCommand(includePaths: ReadonlyArray<string> | undefined): st
 /**
  * Converts excluded filesystem paths into unique repository-relative Git paths.
  */
-function normalizeExcludedGitPaths(
+async function normalizeExcludedGitPaths(
     projectPath: string,
     excludePaths: ReadonlyArray<string> | undefined,
-): ReadonlyArray<string> {
+): Promise<ReadonlyArray<string>> {
     if (!excludePaths || excludePaths.length === 0) {
         return [];
     }
 
-    return [
-        ...new Set(
-            excludePaths
-                .map((excludePath) => normalizeExcludedGitPath(projectPath, excludePath))
-                .filter((gitPath): gitPath is string => Boolean(gitPath)),
-        ),
-    ];
+    const normalizedExcludedGitPaths = await Promise.all(
+        excludePaths.map((excludePath) => normalizeExcludedGitPath(projectPath, excludePath)),
+    );
+
+    return [...new Set(normalizedExcludedGitPaths.filter((gitPath): gitPath is string => Boolean(gitPath)))];
 }
 
 /**
  * Converts one excluded filesystem path into a Git-friendly repository-relative path.
  */
-function normalizeExcludedGitPath(projectPath: string, excludePath: string): string | undefined {
-    const absoluteExcludePath = resolve(projectPath, excludePath);
-    const relativeExcludePath = relative(projectPath, absoluteExcludePath).replace(/\\/gu, '/');
+async function normalizeExcludedGitPath(projectPath: string, excludePath: string): Promise<string | undefined> {
+    const absoluteExcludePath = await resolvePathThroughExistingAncestor(resolve(projectPath, excludePath));
+    const absoluteProjectPath = await resolvePathThroughExistingAncestor(projectPath);
+    const relativeExcludePath = relative(absoluteProjectPath, absoluteExcludePath).replace(/\\/gu, '/');
 
     if (relativeExcludePath === '' || relativeExcludePath === '.' || relativeExcludePath.startsWith('../')) {
         return undefined;
     }
 
     return relativeExcludePath;
+}
+
+/**
+ * Resolves symlinks in the deepest existing ancestor while retaining a potentially missing path suffix.
+ *
+ * This keeps Git pathspecs relative when macOS presents the same temporary directory through both
+ * `/var` and its canonical `/private/var` path.
+ */
+async function resolvePathThroughExistingAncestor(path: string): Promise<string> {
+    const missingPathSegments: string[] = [];
+    let existingPath = path;
+
+    while (true) {
+        try {
+            return resolve(await realpath(existingPath), ...missingPathSegments);
+        } catch {
+            const parentPath = dirname(existingPath);
+
+            if (parentPath === existingPath) {
+                return path;
+            }
+
+            missingPathSegments.unshift(basename(existingPath));
+            existingPath = parentPath;
+        }
+    }
 }
 
 /**

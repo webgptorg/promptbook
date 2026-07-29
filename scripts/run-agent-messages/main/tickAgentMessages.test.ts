@@ -1,4 +1,4 @@
-import { appendFile, mkdir, mkdtemp, readFile, rm, writeFile } from 'fs/promises';
+import { appendFile, mkdir, mkdtemp, readFile, realpath, rm, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
@@ -86,7 +86,7 @@ function createAgentRunOptions(overrides: Partial<AgentRunOptions> = {}): AgentR
  * Creates one temporary project directory.
  */
 async function createTemporaryProject(): Promise<string> {
-    return mkdtemp(join(tmpdir(), 'ptbk-agent-'));
+    return realpath(await mkdtemp(join(tmpdir(), 'ptbk-agent-')));
 }
 
 /**
