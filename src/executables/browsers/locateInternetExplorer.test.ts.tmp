@@ -1,6 +1,8 @@
 import { describe, expect, it } from '@jest/globals';
 import { locateInternetExplorer } from './locateInternetExplorer';
 
+// Note: This test is commented out because it is platform-specific and may not work on non-Windows systems. Uncomment the test if you are running on Windows and want to test the Internet Explorer locator functionality.
+
 describe('locating the Internet Explorer browser', () => {
     it('should locate Internet Explorer browser', async () => {
         if (process.platform === 'win32') {
