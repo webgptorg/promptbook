@@ -2,8 +2,11 @@
 
 [✨🏖] Project is run either as `dev` or static not both
 
--   @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 -   Allow also to stop/run projects from projects list
+- Now you have two distinct options:
+        - You can run the server as a static server.
+        - You can run a dev script.
+- But this doesn't make sense! The project either has a `package.json` file with a defined `dev` script, and in this situation, when running the project, just run this dev script, or if the project doesn't have `package.json` or the `package.json` doesn't have the `dev` script, the implicit assumption is that the project is a static project and in this situation, just run the static server. 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality of agent projects before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server) with project page
@@ -17,17 +20,17 @@
 
 [ ]
 
-[✨🏖] Fix projects listing and DNS instructions in `/admin/servers`
+[✨🏖] Fix projects listing and DNS instructions in `/superadmin/servers`
 
--   @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
--   The agent should be shown as some nice UI chip or agent name with link not just raw agent ID
+-    When showing instructions how to configure the DNS records, you are missing that the agent server can have projects.
+-   Sidetask: Also the agent should be shown as some nice UI chip or agent name with link not just raw agent ID
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality of agent projects before you start implementing.
--   You are working with the [Agents Server](apps/agents-server) with project page
+-   You are working with the [Agents Server](apps/agents-server) with project page and `/superadmin/servers`
 
 **Current situation:**
 
-For example for project `	book-cheatsheet-a4.lts1.ptbk.io` this record isnt enough:
+For example for project `book-cheatsheet-a4.lts1.ptbk.io` this record isnt enough:
 
 `lts1.ptbk.io A 167.172.180.231`
 

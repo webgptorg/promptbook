@@ -32,14 +32,15 @@
 
 [ ] !!!
 
-[✨☪️] @@@@@@@@@@@@@@@
+[✨☪️] When showing how to configure the DNS records, show it in some standard way across the agent server.  
 
--   @@@@@@@@@@@@@@@
+-    Now there are instructions how to configure the DNS records in two separate places on the agent server, shown in two different ways.
 -   You can definitelly show the DNS records in both places
     -   Just reuse the same component for both places
+    - Use the component from `/superadmin/servers`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality of email server and DNS records management before you start implementing.
--   You are working with the [Agents Server](apps/agents-server)
+-   You are working with the [Agents Server](apps/agents-server)  with `/admin/email-server` and  with `/superadmin/servers`
 
 ![alt text](screenshots/2026-07-0970-agents-server-self-contained-email-server-2.png)
 ![alt text](screenshots/2026-07-0970-agents-server-self-contained-email-server-1.png)
