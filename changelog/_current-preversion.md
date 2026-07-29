@@ -1,5 +1,7 @@
 - Fixed the Agents Server home page so the temporary federated-agents loading section is not shown before federation data is available. When no federated servers or agents are returned, the homepage now remains free of that section instead of briefly showing it.
 
+-   Unified Agents Server DNS setup guidance. `/superadmin/servers` and `/admin/email-server` now reuse one record-instruction panel with consistent record columns, setup steps, conflict guidance, and DNS-provider documentation links; server-domain diagnostics still offer one compatible A/AAAA/CNAME alternative, while email setup correctly requires every MX/SPF/DMARC/TLS record shown.
+
 -   Improved Agents Server `/admin/users` with a practical admin table that puts named users first and clearly groups anonymous visitor accounts below them. User creation now opens a create-server-style dialog with a browser Web Crypto secure password generator, and every user links to a detail page with recent chat activity plus direct links to filtered Chat history and Task manager views. Chat history now supports preserving a user filter through table, thread, and CSV views, and task/chat tables link back to the relevant user.
 
 -   Fixed the Agents Server initial chat greeting so a partially loaded agent never shows its opaque permanent id. The canonical chat now reuses the already resolved human-readable agent title until the remote agent profile is available.

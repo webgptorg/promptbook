@@ -1,4 +1,5 @@
 import { CheckCircle2, Mail, RefreshCcw, Server, TriangleAlert } from 'lucide-react';
+import { DnsRecordsInstructions } from '../../../components/DnsRecordsInstructions/DnsRecordsInstructions';
 import { ForbiddenPage } from '../../../components/ForbiddenPage/ForbiddenPage';
 import { $provideServer } from '../../../tools/$provideServer';
 import { isUserAdmin } from '../../../utils/isUserAdmin';
@@ -108,31 +109,18 @@ export default async function AdminEmailServerPage() {
                         <Server className="h-5 w-5 text-gray-400" />
                         Domain and DNS instructions
                     </h2>
-                    <p className="mt-1 text-sm text-gray-500">
-                        Add these records at your DNS provider. Replace <code>&lt;VPS_PUBLIC_IP&gt;</code> with the
-                        public address of this VPS.
-                    </p>
-                    <div className="mt-4 overflow-x-auto rounded-lg border border-gray-200">
-                        <table className="min-w-full divide-y divide-gray-200 text-left text-sm">
-                            <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
-                                <tr>
-                                    <th className="px-3 py-2">Type</th>
-                                    <th className="px-3 py-2">Name</th>
-                                    <th className="px-3 py-2">Value</th>
-                                    <th className="px-3 py-2">Purpose</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100">
-                                {dnsInstructions.map((record) => (
-                                    <tr key={`${record.type}-${record.name}`}>
-                                        <td className="px-3 py-3 font-mono">{record.type}</td>
-                                        <td className="px-3 py-3 font-mono">{record.name}</td>
-                                        <td className="px-3 py-3 font-mono">{record.value}</td>
-                                        <td className="px-3 py-3 text-gray-600">{record.purpose}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                    <div className="mt-4">
+                        <DnsRecordsInstructions
+                            description={
+                                <p>
+                                    Add these records at your DNS provider. Replace <code>&lt;VPS_PUBLIC_IP&gt;</code>{' '}
+                                    with the public address of this VPS.
+                                </p>
+                            }
+                            domain={snapshot.domain}
+                            recordSelection="all"
+                            records={dnsInstructions}
+                        />
                     </div>
                     <div className="mt-4 space-y-2 rounded-lg bg-blue-50 p-4 text-sm text-blue-950">
                         <p>

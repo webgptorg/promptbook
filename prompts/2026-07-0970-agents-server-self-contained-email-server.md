@@ -30,7 +30,7 @@
 
 ---
 
-[ ] !!!
+[x] by OpenAI Codex `gpt-5.6-terra` (ChatGPT account) - commited manually
 
 [✨☪️] When showing how to configure the DNS records, show it in some standard way across the agent server.  
 

@@ -3,7 +3,7 @@
 import { Fragment } from 'react';
 import { ArrowRightLeft, ExternalLink, Loader2, Mail, RefreshCcw, Save } from 'lucide-react';
 import { AgentProjectDnsInstructions } from '../../../components/AgentProjectDnsInstructions/AgentProjectDnsInstructions';
-import { DnsProviderGuides } from '../../../components/DnsProviderGuides/DnsProviderGuides';
+import { DnsRecordsInstructions } from '../../../components/DnsRecordsInstructions/DnsRecordsInstructions';
 import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
 import type { ServerLanguageCode } from '../../../languages/ServerLanguageRegistry';
 import { formatServerLanguageHumanReadableDate } from '../../../utils/localization/formatServerLanguageHumanReadableDate';
@@ -394,77 +394,22 @@ function ServersRegistryTableRow(props: ServersRegistryTableRowProps) {
                     </td>
                 </tr>
             ) : null}
-            {hasDnsIssue ? (
+            {hasDnsIssue && dnsDiagnostic ? (
                 <tr className="bg-amber-50/70">
                     <td colSpan={columnCount} className="px-4 py-4">
-                        <div className="space-y-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-900">
-                            <div className="space-y-1">
-                                <p className="font-semibold">
+                        <DnsRecordsInstructions
+                            description={dnsDiagnostic.summary}
+                            domain={server.domain}
+                            recordSelection="one"
+                            records={dnsDiagnostic.expectedRecords}
+                            providerGuides={dnsDiagnostic.providerGuides}
+                            resolvedAddresses={dnsDiagnostic.resolvedAddresses}
+                            title={
+                                <>
                                     DNS setup needs attention for <span className="font-mono">{server.domain}</span>
-                                </p>
-                                <p>{dnsDiagnostic?.summary}</p>
-                                {dnsDiagnostic?.resolvedAddresses.length ? (
-                                    <p className="text-xs text-amber-800">
-                                        Currently resolves to:{' '}
-                                        <span className="font-mono">{dnsDiagnostic.resolvedAddresses.join(', ')}</span>
-                                    </p>
-                                ) : null}
-                            </div>
-
-                            {dnsDiagnostic?.expectedRecords.length ? (
-                                <div className="overflow-x-auto rounded-lg border border-amber-200 bg-white">
-                                    <table className="min-w-full divide-y divide-amber-100 text-xs">
-                                        <thead className="bg-amber-100/60 text-amber-900">
-                                            <tr>
-                                                <th className="px-3 py-2 text-left font-semibold">Type</th>
-                                                <th className="px-3 py-2 text-left font-semibold">Name</th>
-                                                <th className="px-3 py-2 text-left font-semibold">Value</th>
-                                                <th className="px-3 py-2 text-left font-semibold">When to use</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-amber-100">
-                                            {dnsDiagnostic.expectedRecords.map((record) => (
-                                                <tr key={`${record.type}-${record.name}-${record.value}`}>
-                                                    <td className="px-3 py-2 font-mono font-semibold text-amber-900">
-                                                        {record.type}
-                                                    </td>
-                                                    <td className="px-3 py-2 font-mono text-slate-800">
-                                                        {record.name}
-                                                    </td>
-                                                    <td className="px-3 py-2 font-mono text-slate-800">
-                                                        {record.value}
-                                                    </td>
-                                                    <td className="px-3 py-2 text-amber-900">
-                                                        {record.note || 'Required.'}
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            ) : null}
-
-                            <div className="space-y-2">
-                                <p className="font-medium">How to fix it</p>
-                                <ol className="list-decimal space-y-1 pl-5 text-amber-900">
-                                    <li>Open your DNS provider for this domain.</li>
-                                    <li>
-                                        Add one of the records above for{' '}
-                                        <span className="font-mono">{server.domain}</span>.
-                                    </li>
-                                    <li>Remove conflicting A, AAAA, or CNAME records for the same hostname.</li>
-                                    <li>Wait for DNS propagation, then refresh this page.</li>
-                                </ol>
-                            </div>
-
-                            <div className="space-y-2">
-                                <p className="font-medium">Provider guides</p>
-                                <DnsProviderGuides
-                                    guides={dnsDiagnostic?.providerGuides}
-                                    linkClassName="font-semibold text-amber-700 underline decoration-amber-400 underline-offset-2 hover:text-amber-900"
-                                />
-                            </div>
-                        </div>
+                                </>
+                            }
+                        />
                     </td>
                 </tr>
             ) : null}

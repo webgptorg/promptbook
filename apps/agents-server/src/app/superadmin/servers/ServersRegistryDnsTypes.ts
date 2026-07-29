@@ -1,4 +1,5 @@
 import type { DnsProviderGuide } from '../../../utils/dnsProviderGuides';
+import type { DnsRecordInstruction } from '../../../utils/dnsRecords/DnsRecordInstruction';
 
 /**
  * Supported DNS verification states shown for standalone VPS domains.
@@ -12,26 +13,11 @@ export type ManagedServerDnsStatus = 'verified' | 'pending' | 'misconfigured' | 
  *
  * @private shared type for the `/superadmin/servers` registry flow
  */
-export type ManagedServerDnsExpectedRecord = {
+export type ManagedServerDnsExpectedRecord = DnsRecordInstruction & {
     /**
-     * DNS record type.
+     * DNS record type supported by standalone VPS domain diagnostics.
      */
     readonly type: 'A' | 'AAAA' | 'CNAME';
-
-    /**
-     * Hostname/record name that should be configured.
-     */
-    readonly name: string;
-
-    /**
-     * Expected record target value.
-     */
-    readonly value: string;
-
-    /**
-     * Optional note clarifying when to use the record.
-     */
-    readonly note: string | null;
 };
 
 /**
