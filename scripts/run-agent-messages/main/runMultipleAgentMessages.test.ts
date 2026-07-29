@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'fs/promises';
+import { mkdir, mkdtemp, readFile, readdir, realpath, rm, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import type { AgentRunOptions } from '../AgentRunOptions';
@@ -49,7 +49,7 @@ function createAgentRunOptions(overrides: Partial<AgentRunOptions> = {}): AgentR
  * Creates one temporary root directory for multi-agent runner tests.
  */
 async function createTemporaryRootDirectory(): Promise<string> {
-    return mkdtemp(join(tmpdir(), 'ptbk-agent-multiple-run-'));
+    return realpath(await mkdtemp(join(tmpdir(), 'ptbk-agent-multiple-run-')));
 }
 
 /**

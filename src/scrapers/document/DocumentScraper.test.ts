@@ -1,14 +1,15 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import { join } from 'path';
-import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
 import { MockedEchoLlmExecutionTools } from '../../llm-providers/mocked/MockedEchoLlmExecutionTools';
 import { $provideFilesystemForNode } from '../_common/register/$provideFilesystemForNode';
+import type { ScraperIntermediateSource } from '../_common/ScraperIntermediateSource';
 import { makeKnowledgeSourceHandler } from '../_common/utils/makeKnowledgeSourceHandler';
 import { MarkdownScraper } from '../markdown/MarkdownScraper';
 import { DocumentScraper } from './DocumentScraper';
 
 describe('how creating knowledge from docx works', () => {
     const rootDirname = join(__dirname, 'examples');
+    const convertedDocumentFixturePath = join(__dirname, '..', 'markdown', 'examples', '10-simple.md');
     const llmTools = new MockedEchoLlmExecutionTools({ isVerbose: false });
 
     /**
@@ -26,6 +27,17 @@ describe('how creating knowledge from docx works', () => {
         ]);
     }
 
+    /**
+     * Keeps unit coverage of the scraper flow independent from the locally installed Pandoc executable.
+     */
+    function mockDocumentConversion(): void {
+        jest.spyOn(DocumentScraper.prototype, '$convert').mockResolvedValue({
+            filename: convertedDocumentFixturePath,
+            isDestroyed: false,
+            destroy: async () => undefined,
+        } satisfies ScraperIntermediateSource);
+    }
+
     afterEach(() => {
         jest.restoreAllMocks();
     });
@@ -35,7 +47,7 @@ describe('how creating knowledge from docx works', () => {
             {
                 fs: $provideFilesystemForNode(),
                 llm: llmTools,
-                executables: await $provideExecutablesForNode(),
+                executables: {},
             },
             {
                 rootDirname,
@@ -44,6 +56,7 @@ describe('how creating knowledge from docx works', () => {
 
     it('should scrape simple information from a .docx file', () => {
         mockMarkdownScrapingToReturnConvertedContent();
+        mockDocumentConversion();
 
         return expect(
             Promise.all([
@@ -68,6 +81,7 @@ describe('how creating knowledge from docx works', () => {
 
     it('should scrape simple information from a .odt file', () => {
         mockMarkdownScrapingToReturnConvertedContent();
+        mockDocumentConversion();
 
         return expect(
             Promise.all([
@@ -92,6 +106,7 @@ describe('how creating knowledge from docx works', () => {
 
     it('should NOT scrape irrelevant information', () => {
         mockMarkdownScrapingToReturnConvertedContent();
+        mockDocumentConversion();
 
         return expect(
             Promise.all([
