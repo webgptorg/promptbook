@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import type { DnsProviderGuide } from '../../utils/dnsProviderGuides';
 import type { DnsRecordInstruction } from '../../utils/dnsRecords/DnsRecordInstruction';
+import { CloudflareDnsWizard } from '../CloudflareDnsWizard/CloudflareDnsWizard';
 import { DnsProviderGuides } from '../DnsProviderGuides/DnsProviderGuides';
 
 /**
@@ -107,6 +108,10 @@ export function DnsRecordsInstructions({
                     <li>Wait for DNS propagation, then refresh this page.</li>
                 </ol>
             </div>
+
+            {records.length ? (
+                <CloudflareDnsWizard domain={domain} recordSelection={recordSelection} records={records} />
+            ) : null}
 
             <div className="space-y-2">
                 <p className="font-medium">Provider guides</p>
