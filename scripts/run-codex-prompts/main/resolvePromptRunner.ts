@@ -1,4 +1,5 @@
 import colors from 'colors';
+import { getHarnessDefinition } from '../../../src/cli/cli-commands/common/harness/HarnessDefinition';
 import { OPENAI_MODELS } from '../../../src/llm-providers/openai/openai-models';
 import type { RunOptions } from '../cli/RunOptions';
 import { ClaudeCodeRunner } from '../runners/claude-code/ClaudeCodeRunner';
@@ -18,23 +19,6 @@ const DEFAULT_CODEX_MODEL = 'gpt-5.2-codex';
  * Constant for cline model.
  */
 const CLINE_MODEL = 'gemini:gemini-3-flash-preview';
-
-/**
- * Type describing runner harness name.
- */
-type RunnerHarnessName = NonNullable<RunOptions['agentName']>;
-
-/**
- * Map of runner labels.
- */
-const RUNNER_LABELS: Record<RunnerHarnessName, string> = {
-    'openai-codex': 'OpenAI Codex',
-    'github-copilot': 'GitHub Copilot',
-    cline: 'Cline',
-    'claude-code': 'Claude Code',
-    opencode: 'Opencode',
-    gemini: 'Gemini CLI',
-};
 
 /**
  * Runner metadata used in prompt status lines.
@@ -182,7 +166,7 @@ function createRunnerResolution(
  * Resolves runner metadata for prompt status lines.
  */
 function getRunnerMetadata(options: RunOptions, actualRunnerModel?: string): RunnerMetadata {
-    const runnerName = options.agentName ? RUNNER_LABELS[options.agentName] ?? 'unknown' : 'unknown';
+    const runnerName = options.agentName ? getHarnessDefinition(options.agentName).label : 'unknown';
 
     if (
         options.agentName === 'openai-codex' ||
