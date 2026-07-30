@@ -1,3 +1,5 @@
+import { resolveStalwartApiUrl } from './resolveStalwartApiUrl';
+
 /**
  * Environment-backed connection settings for the bundled Stalwart instance.
  */
@@ -25,7 +27,7 @@ export function readStalwartConfiguration(): StalwartConfiguration {
     const smtpPassword = process.env.PTBK_STALWART_SMTP_PASSWORD || null;
 
     return {
-        apiUrl: process.env.PTBK_STALWART_API_URL?.trim() || 'http://127.0.0.1:8080/api',
+        apiUrl: resolveStalwartApiUrl(process.env.PTBK_STALWART_API_URL),
         authorization,
         hookToken,
         smtpPassword,

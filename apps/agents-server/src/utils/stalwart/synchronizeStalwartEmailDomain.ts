@@ -12,6 +12,13 @@ import { listStalwartObjects, setStalwartObject } from './stalwartJmapClient';
 export const STALWART_MAIL_BRIDGE_LOCAL_PART = 'promptbook-mailbridge';
 
 /**
+ * How long Stalwart waits for the inbound Agents Server hook to answer.
+ *
+ * Stalwart expects durations of its management objects as a number of milliseconds.
+ */
+const STALWART_INBOUND_HOOK_TIMEOUT_MS = 30_000;
+
+/**
  * Synchronizes one Agents Server domain, bridge mailbox, aliases, and inbound MTA hook.
  */
 export async function synchronizeStalwartEmailDomain(domainValue: string): Promise<void> {
@@ -91,7 +98,7 @@ export async function synchronizeStalwartEmailDomain(domainValue: string): Promi
         httpHeaders: {},
         stages: ['data'],
         tempFailOnError: true,
-        timeout: '30s',
+        timeout: STALWART_INBOUND_HOOK_TIMEOUT_MS,
         enable: {
             match: [
                 {

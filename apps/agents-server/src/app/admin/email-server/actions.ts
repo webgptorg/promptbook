@@ -5,12 +5,16 @@ import { spaceTrim } from '../../../../../../src/utils/organization/spaceTrim';
 import { revalidatePath } from 'next/cache';
 import { $provideServer } from '../../../tools/$provideServer';
 import { isUserAdmin } from '../../../utils/isUserAdmin';
+import {
+    captureStalwartSynchronizationResult,
+    type StalwartSynchronizationResult,
+} from '../../../utils/stalwart/captureStalwartSynchronizationResult';
 import { synchronizeStalwartEmailDomain } from '../../../utils/stalwart/synchronizeStalwartEmailDomain';
 
 /**
  * Synchronizes the current server's agents and transport settings to Stalwart.
  */
-export async function $synchronizeStalwartEmailDomain(): Promise<void> {
+export async function $synchronizeStalwartEmailDomain(): Promise<StalwartSynchronizationResult> {
     if (!(await isUserAdmin())) {
         throw new NotAllowed(
             spaceTrim(`
@@ -20,7 +24,10 @@ export async function $synchronizeStalwartEmailDomain(): Promise<void> {
     }
 
     const server = await $provideServer();
-    await synchronizeStalwartEmailDomain(server.publicUrl.hostname);
+    const result = await captureStalwartSynchronizationResult(() =>
+        synchronizeStalwartEmailDomain(server.publicUrl.hostname),
+    );
     revalidatePath('/admin/email-server');
     revalidatePath('/superadmin/email-server');
+    return result;
 }

@@ -27,6 +27,9 @@ PTBK_STALWART_SERVICE_NAME="${PTBK_STALWART_SERVICE_NAME:-stalwart}"
 PTBK_STALWART_ENV_FILE="${PTBK_STALWART_ENV_FILE:-/etc/stalwart/stalwart.env}"
 PTBK_STALWART_CONFIG_FILE="${PTBK_STALWART_CONFIG_FILE:-/etc/stalwart/config.json}"
 PTBK_STALWART_ADMIN_DOMAIN="${PTBK_STALWART_ADMIN_DOMAIN:-promptbook.invalid}"
+# Stalwart serves its management methods (`x:Bootstrap/set`, `x:Domain/set`, ...) on the JMAP endpoint
+# published as `apiUrl` by `/jmap/session`. Any other path answers HTTP 404.
+PTBK_STALWART_MANAGEMENT_API_URL="${PTBK_STALWART_MANAGEMENT_API_URL:-http://127.0.0.1:8080/jmap/}"
 PTBK_EXTERNAL_S3_REGION="${PTBK_EXTERNAL_S3_REGION:-auto}"
 PTBK_CDN_PATH_PREFIX="${PTBK_CDN_PATH_PREFIX:-ptbk-agents}"
 PROMPTBOOK_REPOSITORY_URL="${PROMPTBOOK_REPOSITORY_URL:-https://github.com/webgptorg/promptbook.git}"
@@ -1173,7 +1176,7 @@ ensure_stalwart_environment() {
     ensure_secret_env_value PTBK_STALWART_API_PASSWORD 32
     ensure_secret_env_value PTBK_STALWART_MTA_HOOK_TOKEN 32
     ensure_secret_env_value PTBK_STALWART_SMTP_PASSWORD 32
-    set_env_value PTBK_STALWART_API_URL "http://127.0.0.1:8080/api"
+    set_env_value PTBK_STALWART_API_URL "$PTBK_STALWART_MANAGEMENT_API_URL"
     set_env_value PTBK_STALWART_API_USERNAME "admin"
     set_env_value PTBK_STALWART_SMTP_HOST "127.0.0.1"
     set_env_value PTBK_STALWART_SMTP_PORT "587"
@@ -1231,7 +1234,7 @@ bootstrap_stalwart_mail_server() {
             --user "admin:$stalwart_api_password" \
             --header "Content-Type: application/json" \
             --data-binary "@$bootstrap_payload_file" \
-            "http://127.0.0.1:8080/api" > "$bootstrap_response_file"; then
+            "$PTBK_STALWART_MANAGEMENT_API_URL" > "$bootstrap_response_file"; then
             if node -e '
                 const fs = require("node:fs");
                 const payload = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
@@ -1268,11 +1271,12 @@ provision_stalwart_application_administrator() {
     STALWART_PROVISIONING_DOMAIN="$PTBK_STALWART_ADMIN_DOMAIN" \
         STALWART_PROVISIONING_PASSWORD="$stalwart_api_password" \
         STALWART_PROVISIONING_USERNAME="$stalwart_api_username" \
+        STALWART_PROVISIONING_API_URL="$PTBK_STALWART_MANAGEMENT_API_URL" \
         node <<'NODE'
 const domain = process.env.STALWART_PROVISIONING_DOMAIN;
 const password = process.env.STALWART_PROVISIONING_PASSWORD;
 const username = process.env.STALWART_PROVISIONING_USERNAME;
-const endpoint = 'http://127.0.0.1:8080/api';
+const endpoint = process.env.STALWART_PROVISIONING_API_URL;
 const capabilities = ['urn:ietf:params:jmap:core', 'urn:stalwart:jmap'];
 
 async function callStalwart(authorization, methodName, argumentsValue) {

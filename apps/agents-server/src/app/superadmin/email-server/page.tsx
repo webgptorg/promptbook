@@ -1,6 +1,7 @@
-import { Mail, RefreshCcw, ServerCog, ShieldCheck } from 'lucide-react';
+import { Mail, ServerCog, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { ForbiddenPage } from '../../../components/ForbiddenPage/ForbiddenPage';
+import { StalwartSynchronizeButton } from '../../../components/StalwartSynchronizeButton/StalwartSynchronizeButton';
 import { isUserGlobalAdmin } from '../../../utils/isUserGlobalAdmin';
 import { listManagedServers } from '../../../utils/serverManagement/listManagedServers';
 import { readStalwartConfiguration } from '../../../utils/stalwart/StalwartConfiguration';
@@ -31,15 +32,10 @@ export default async function SuperAdminEmailServerPage() {
                         and domain mail routing for every Agents Server on this VPS.
                     </p>
                 </div>
-                <form action={$synchronizeAllStalwartEmailDomains}>
-                    <button
-                        type="submit"
-                        className="inline-flex items-center gap-2 rounded-md bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-700"
-                    >
-                        <RefreshCcw className="h-4 w-4" />
-                        Synchronize all domains
-                    </button>
-                </form>
+                <StalwartSynchronizeButton
+                    label="Synchronize all domains"
+                    synchronize={$synchronizeAllStalwartEmailDomains}
+                />
             </header>
 
             <section className="grid gap-4 md:grid-cols-3">

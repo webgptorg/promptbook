@@ -1,6 +1,7 @@
-import { CheckCircle2, Mail, RefreshCcw, Server, TriangleAlert } from 'lucide-react';
+import { CheckCircle2, Mail, Server, TriangleAlert } from 'lucide-react';
 import { DnsRecordsInstructions } from '../../../components/DnsRecordsInstructions/DnsRecordsInstructions';
 import { ForbiddenPage } from '../../../components/ForbiddenPage/ForbiddenPage';
+import { StalwartSynchronizeButton } from '../../../components/StalwartSynchronizeButton/StalwartSynchronizeButton';
 import { $provideServer } from '../../../tools/$provideServer';
 import { isUserAdmin } from '../../../utils/isUserAdmin';
 import { createEmailDnsInstructions } from '../../../utils/stalwart/createEmailDnsInstructions';
@@ -63,15 +64,10 @@ export default async function AdminEmailServerPage() {
                                 ) : null}
                             </div>
                         </div>
-                        <form action={$synchronizeStalwartEmailDomain}>
-                            <button
-                                type="submit"
-                                className="inline-flex items-center gap-2 rounded-md bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-700"
-                            >
-                                <RefreshCcw className="h-4 w-4" />
-                                Synchronize Stalwart
-                            </button>
-                        </form>
+                        <StalwartSynchronizeButton
+                            label="Synchronize Stalwart"
+                            synchronize={$synchronizeStalwartEmailDomain}
+                        />
                     </div>
                 </section>
 
