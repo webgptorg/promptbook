@@ -8,7 +8,7 @@ import type {
     DesiredCloudflareDnsRecord,
 } from './CloudflareDnsRecordSyncPlan';
 import { describeCloudflareDnsRecordUpdateReasons } from './describeCloudflareDnsRecordUpdateReasons';
-import { listAllCloudflareDnsRecords } from './listAllCloudflareDnsRecords';
+import { listAllCloudflareDnsRecords } from '../../src/utils/cloudflare/listAllCloudflareDnsRecords';
 import { selectCloudflareRecordForManagedDomain } from './selectCloudflareRecordForManagedDomain';
 
 /**

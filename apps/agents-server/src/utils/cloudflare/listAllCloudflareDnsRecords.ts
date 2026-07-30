@@ -1,4 +1,4 @@
-import type { CloudflareApiConfiguration, CloudflareDnsRecord } from './CloudflareDnsRecordSyncPlan';
+import type { CloudflareApiConfiguration, CloudflareDnsRecord } from './CloudflareApi';
 import { requestCloudflare } from './requestCloudflare';
 
 /**
@@ -12,8 +12,6 @@ const CLOUDFLARE_DNS_RECORDS_PAGE_LIMIT = 100;
  * @param configuration - Cloudflare API configuration.
  * @param zoneId - Zone id containing the record.
  * @returns DNS records in the zone.
- *
- * @private function of `createCloudflareDnsRecordSyncPlan`
  */
 export async function listAllCloudflareDnsRecords(
     configuration: CloudflareApiConfiguration,

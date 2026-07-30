@@ -12,7 +12,7 @@ import {
     type CloudflareZone,
     type DesiredCloudflareDnsRecord,
 } from './CloudflareDnsRecordSyncPlan';
-import { normalizeCloudflareDnsRecordContent } from './normalizeCloudflareDnsRecordContent';
+import { normalizeCloudflareDnsRecordContent } from '../../src/utils/cloudflare/normalizeCloudflareDnsRecordContent';
 
 /**
  * Resolves the desired Cloudflare DNS record for one managed domain.

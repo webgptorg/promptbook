@@ -10,7 +10,7 @@ export {
     type DesiredCloudflareDnsRecord,
 } from './createCloudflareDnsRecordSyncPlan/CloudflareDnsRecordSyncPlan';
 export { createCloudflareDnsRecordSyncPlan } from './createCloudflareDnsRecordSyncPlan/createCloudflareDnsRecordSyncPlan';
-export { normalizeCloudflareDnsRecordContent } from './createCloudflareDnsRecordSyncPlan/normalizeCloudflareDnsRecordContent';
+export { normalizeCloudflareDnsRecordContent } from '../src/utils/cloudflare/normalizeCloudflareDnsRecordContent';
 export { resolveCloudflareSyncConfiguration } from './createCloudflareDnsRecordSyncPlan/resolveCloudflareSyncConfiguration';
 export { resolveDesiredCloudflareDnsRecord } from './createCloudflareDnsRecordSyncPlan/resolveDesiredCloudflareDnsRecord';
 export { syncCloudflareDnsRecords } from './createCloudflareDnsRecordSyncPlan/syncCloudflareDnsRecords';

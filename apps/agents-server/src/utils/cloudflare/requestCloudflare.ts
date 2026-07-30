@@ -1,6 +1,6 @@
 import { spaceTrim } from 'spacetrim';
-import { DatabaseError } from '../../../../src/errors/DatabaseError';
-import type { CloudflareApiConfiguration } from './CloudflareDnsRecordSyncPlan';
+import { PromptbookFetchError } from '../../../../../src/errors/PromptbookFetchError';
+import type { CloudflareApiConfiguration } from './CloudflareApi';
 
 /**
  * Default Cloudflare API base URL.
@@ -43,8 +43,6 @@ type CloudflareApiEnvelope<TResult> = {
  *
  * @param options - HTTP request options.
  * @returns Parsed Cloudflare response envelope.
- *
- * @private function of `syncCloudflareDnsRecords`
  */
 export async function requestCloudflare<TResult = Record<string, unknown>>(options: {
     readonly configuration: CloudflareApiConfiguration;
@@ -71,7 +69,7 @@ export async function requestCloudflare<TResult = Record<string, unknown>>(optio
     const responseText = await response.text();
 
     if (!response.ok) {
-        throw new DatabaseError(
+        throw new PromptbookFetchError(
             spaceTrim(`
                 Cloudflare API request failed.
 
@@ -87,7 +85,7 @@ export async function requestCloudflare<TResult = Record<string, unknown>>(optio
         responseText ? JSON.parse(responseText) : { success: true, result: {} }
     ) as CloudflareApiEnvelope<TResult>;
     if (!parsedResponse.success) {
-        throw new DatabaseError(
+        throw new PromptbookFetchError(
             spaceTrim(`
                 Cloudflare API request returned an unsuccessful envelope.
 

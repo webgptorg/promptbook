@@ -8,7 +8,7 @@ import {
     type CloudflareDnsRecord,
     type DesiredCloudflareDnsRecord,
 } from './CloudflareDnsRecordSyncPlan';
-import { normalizeCloudflareDnsRecordContent } from './normalizeCloudflareDnsRecordContent';
+import { normalizeCloudflareDnsRecordContent } from '../../src/utils/cloudflare/normalizeCloudflareDnsRecordContent';
 
 /**
  * Lists human-readable reasons why a Cloudflare DNS record should be updated.

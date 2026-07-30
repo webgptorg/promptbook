@@ -1,84 +1,14 @@
-/**
- * Cloudflare DNS records should not be proxied because Vercel must see the original DNS target directly.
- *
- * @private constant of `resolveDesiredCloudflareDnsRecord`
- */
-export const CLOUDFLARE_DNS_RECORD_PROXIED = false;
+import type { CloudflareApiConfiguration, CloudflareDnsRecord } from '../../src/utils/cloudflare/CloudflareApi';
 
-/**
- * Cloudflare TTL `1` means automatic.
- *
- * @private constant of `resolveDesiredCloudflareDnsRecord`
- */
-export const CLOUDFLARE_DNS_RECORD_TTL_AUTOMATIC = 1;
-
-/**
- * Cloudflare API configuration loaded from environment variables.
- *
- * @private type of `sync-vercel-domains`
- */
-export type CloudflareApiConfiguration = {
-    /**
-     * API token used for authentication.
-     */
-    readonly token: string;
-};
-
-/**
- * Minimal Cloudflare zone metadata used for domain-to-zone matching.
- *
- * @private type of `sync-vercel-domains`
- */
-export type CloudflareZone = {
-    /**
-     * Cloudflare zone id.
-     */
-    readonly id: string;
-    /**
-     * Zone apex name.
-     */
-    readonly name: string;
-};
-
-/**
- * Minimal Cloudflare DNS record payload used by the sync script.
- *
- * @private type of `sync-vercel-domains`
- */
-export type CloudflareDnsRecord = {
-    /**
-     * Cloudflare DNS record id.
-     */
-    readonly id: string;
-    /**
-     * DNS record type.
-     */
-    readonly type: string;
-    /**
-     * Fully qualified record name.
-     */
-    readonly name: string;
-    /**
-     * Record content or target.
-     */
-    readonly content: string;
-    /**
-     * Whether the record is proxied through Cloudflare.
-     */
-    readonly proxied?: boolean | null;
-    /**
-     * Record TTL.
-     */
-    readonly ttl?: number | null;
-    /**
-     * Optional user-visible record comment.
-     */
-    readonly comment?: string | null;
-    /**
-     * Optional record tags.
-     */
-    readonly tags?: ReadonlyArray<string>;
-};
+// Note: The Cloudflare API layer is shared with the Agents Server Cloudflare DNS wizard, so these are re-exported
+//       from `src/utils/cloudflare` instead of being defined twice.
+export {
+    CLOUDFLARE_DNS_RECORD_PROXIED,
+    CLOUDFLARE_DNS_RECORD_TTL_AUTOMATIC,
+    type CloudflareApiConfiguration,
+    type CloudflareDnsRecord,
+    type CloudflareZone,
+} from '../../src/utils/cloudflare/CloudflareApi';
 
 /**
  * Desired Cloudflare DNS record derived from one managed domain.
