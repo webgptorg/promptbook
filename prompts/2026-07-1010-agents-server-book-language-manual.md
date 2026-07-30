@@ -27,3 +27,23 @@
 ![Broken Print to PDF](screenshots/2026-07-1010-agents-server-book-language-manual-2.png)
 [The generated Book language documentation](https://pasu.ptbk.io/api/docs/book-language.md)
 
+
+
+---
+
+[ ]
+
+[✨🚵] Improve the Book language manual
+
+
+- When I choose that I want manual in Czech language. It is in English. Fix it. 
+- Remove the "Execution and compilation model" section
+-  Do not put deprecated commitments into the book language manual, like`TEMPLATE` commitment shouldn't be there at all.
+- Low level commitments like `MODEL` should be at the end of the manual, and should be in a separate section called "Low level commitments"
+-  Also put there a checkbox whether the user wants to put there low-level commitments. This checkbox should be by default off.
+-  Put some Promptbook branding into the PDF manual
+-  Syntax highlight the book language in the PDF manual, use BookEditor component for this
+-   Better page wrappings in PDF export - ![alt text](screenshots/2026-07-1010-agents-server-book-language-manual-3.png)
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server) with the Book language documentation

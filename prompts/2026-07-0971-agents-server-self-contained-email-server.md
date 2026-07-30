@@ -1,4 +1,4 @@
-[ ] use `gpt-5.6-sol`
+[ ]
 
 [✨☪️] Fix the Agents server email server.
 
