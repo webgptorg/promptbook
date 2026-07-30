@@ -8,6 +8,8 @@ import type { AgentModelRequirements } from '../book-2.0/agent-source/AgentModel
 import type { AgentVisibility } from '../book-2.0/agent-source/agentSourceVisibility';
 import type { CreateAgentModelRequirementsOptions } from '../book-2.0/agent-source/CreateAgentModelRequirementsOptions';
 import type { string_book } from '../book-2.0/agent-source/string_book';
+import type { BookLanguageDocumentationAgent } from '../book-2.0/book-language-documentation/createStandaloneBookLanguageMarkdown';
+import type { CreateStandaloneBookLanguageMarkdownOptions } from '../book-2.0/book-language-documentation/createStandaloneBookLanguageMarkdown';
 import type { BookNodeAgentSource } from '../book-3.0/BookNodeAgentSource';
 import type { BookNodeAgentSourceOptions } from '../book-3.0/BookNodeAgentSource';
 import type { CliAgentHarness } from '../book-3.0/CliAgent';
@@ -454,6 +456,8 @@ export type { AgentModelRequirements };
 export type { AgentVisibility };
 export type { CreateAgentModelRequirementsOptions };
 export type { string_book };
+export type { BookLanguageDocumentationAgent };
+export type { CreateStandaloneBookLanguageMarkdownOptions };
 export type { BookNodeAgentSource };
 export type { BookNodeAgentSourceOptions };
 export type { CliAgentHarness };

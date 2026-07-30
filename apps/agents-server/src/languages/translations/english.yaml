@@ -180,6 +180,17 @@ header.story: Story
 header.documentationOverview: Overview
 header.documentationApiReference: API Reference
 header.documentationAll: All
+documentation.downloadManual: Download manual
+documentation.preparingManual: Preparing manual…
+documentation.openDownloadOptions: Open manual download options
+documentation.exportFormatLabel: Format
+documentation.exportLanguageLabel: Language
+documentation.bakedAgentsLabel: Agents included in the manual
+documentation.bakedAgentsHint: '{count} selected agent(s) will provide the examples and commitment priority.'
+documentation.noBakedAgentsHint: No agents selected. The exported manual will be generic for every server.
+documentation.noAgentsAvailable: No agents are available on this server.
+documentation.downloadFailedTitle: Manual download failed
+documentation.downloadFailedMessage: Failed to download the Book language manual.
 header.loggedInAs: Logged in as {username}
 header.searchThisServerPlaceholder: Search this server...
 header.searchBoxDefaultPlaceholder: Search agents, folders, docs, conversations...

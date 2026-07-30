@@ -6,6 +6,7 @@ import { Card } from '../../components/Homepage/Card';
 import { Section } from '../../components/Homepage/Section';
 import { OpenMojiIcon } from '../../components/OpenMojiIcon/OpenMojiIcon';
 import { PrintHeader } from '../../components/PrintHeader/PrintHeader';
+import { getBookLanguageDocumentationAgentOptions } from '../../utils/bookLanguageDocumentation/getBookLanguageDocumentationAgents';
 import { getVisibleCommitmentDefinitions } from '../../utils/getVisibleCommitmentDefinitions';
 import {
     getCommitmentNoticeMetadata,
@@ -15,13 +16,14 @@ import {
 /**
  * Handles docs page.
  */
-export default function DocsPage() {
+export default async function DocsPage() {
     const groupedCommitments = getVisibleCommitmentDefinitions();
+    const agents = await getBookLanguageDocumentationAgentOptions();
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900">
             <div className="container mx-auto px-4 py-16">
-                <DocsToolbar />
+                <DocsToolbar agents={agents} />
                 <PrintHeader title="Full Documentation" />
 
                 {/* Screen view: Cards */}
@@ -35,7 +37,9 @@ export default function DocsPage() {
                                 <Link key={primary.type} href={`/docs/${primary.type}`} className="block h-full group">
                                     <Card
                                         className={`h-full group-hover:border-blue-500 transition-colors ${
-                                            isLowVisibilityNotice ? 'opacity-75 transition-opacity group-hover:opacity-100' : ''
+                                            isLowVisibilityNotice
+                                                ? 'opacity-75 transition-opacity group-hover:opacity-100'
+                                                : ''
                                         }`}
                                     >
                                         <div className="flex flex-wrap items-center gap-2 mb-2">

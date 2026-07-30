@@ -5,6 +5,8 @@ import {
     getCommitmentNoticeMetadata,
 } from '../../commitments/_common/getCommitmentNoticeMetadata';
 import { getGroupedCommitmentDefinitions } from '../../commitments/_common/getGroupedCommitmentDefinitions';
+import { parseAgentSourceWithCommitments } from '../agent-source/parseAgentSourceWithCommitments';
+import type { string_book } from '../agent-source/string_book';
 import type { string_markdown } from '../../types/string_markdown';
 import { BOOK_LANGUAGE_VERSION } from '../../version';
 import { bookLanguageCommonPitfalls } from './bookLanguageCommonPitfalls';
@@ -115,6 +117,37 @@ const BEHAVIOR_COMMITMENT_TYPES = new Set([
 type GroupedCommitmentDefinition = ReturnType<typeof getGroupedCommitmentDefinitions>[number];
 
 /**
+ * Agent source incorporated into a server-specific Book language manual.
+ *
+ * @public exported from `@promptbook/core`
+ */
+export type BookLanguageDocumentationAgent = {
+    /**
+     * Human-readable title shown above the baked example.
+     */
+    readonly agentName: string;
+    /**
+     * Current Book source used both as an example and to detect used commitments.
+     */
+    readonly agentSource: string_book;
+};
+
+/**
+ * Optional context used to tailor a standalone Book language manual.
+ *
+ * An empty `agents` array deliberately has the same effect as omitting this
+ * option, which keeps the non-customized manual portable between servers.
+ *
+ * @public exported from `@promptbook/core`
+ */
+export type CreateStandaloneBookLanguageMarkdownOptions = {
+    /**
+     * Server agents whose sources should be baked into examples and usage priority.
+     */
+    readonly agents?: ReadonlyArray<BookLanguageDocumentationAgent>;
+};
+
+/**
  * Creates one standalone markdown guide for Book language (Book 2.0 / agent language).
  *
  * The output intentionally combines:
@@ -126,21 +159,36 @@ type GroupedCommitmentDefinition = ReturnType<typeof getGroupedCommitmentDefinit
  *
  * @public exported from `@promptbook/core`
  */
-export function createStandaloneBookLanguageMarkdown(): string_markdown {
+export function createStandaloneBookLanguageMarkdown(
+    options: CreateStandaloneBookLanguageMarkdownOptions = {},
+): string_markdown {
     const groupedCommitments = getGroupedCommitmentDefinitions();
+    const selectedAgents = options.agents?.filter((agent) => agent.agentSource.trim().length > 0) || [];
+    const commitmentUsageByType = createCommitmentUsageByType(selectedAgents);
+    const isServerSpecificManual = selectedAgents.length > 0;
+    const prioritizedGroupedCommitments = prioritizeGroupedCommitments(groupedCommitments, commitmentUsageByType);
     const generatedAtIso = new Date().toISOString();
-    const placeholderCommitmentCount = groupedCommitments.filter(
+    const placeholderCommitmentCount = prioritizedGroupedCommitments.filter(
         ({ primary }) => primary instanceof NotYetImplementedCommitmentDefinition,
     ).length;
-    const implementedCommitmentCount = groupedCommitments.length - placeholderCommitmentCount;
+    const implementedCommitmentCount = prioritizedGroupedCommitments.length - placeholderCommitmentCount;
 
-    const allCommitmentKeywords = groupedCommitments.flatMap(({ primary, aliases }) => [primary.type, ...aliases]);
-    const toolingCommitments = groupedCommitments.filter(({ primary }) => TOOLING_COMMITMENT_TYPES.has(primary.type));
-    const profileCommitments = groupedCommitments.filter(({ primary }) => PROFILE_COMMITMENT_TYPES.has(primary.type));
-    const compositionCommitments = groupedCommitments.filter(({ primary }) =>
+    const allCommitmentKeywords = prioritizedGroupedCommitments.flatMap(({ primary, aliases }) => [
+        primary.type,
+        ...aliases,
+    ]);
+    const toolingCommitments = prioritizedGroupedCommitments.filter(({ primary }) =>
+        TOOLING_COMMITMENT_TYPES.has(primary.type),
+    );
+    const profileCommitments = prioritizedGroupedCommitments.filter(({ primary }) =>
+        PROFILE_COMMITMENT_TYPES.has(primary.type),
+    );
+    const compositionCommitments = prioritizedGroupedCommitments.filter(({ primary }) =>
         COMPOSITION_COMMITMENT_TYPES.has(primary.type),
     );
-    const behaviorCommitments = groupedCommitments.filter(({ primary }) => BEHAVIOR_COMMITMENT_TYPES.has(primary.type));
+    const behaviorCommitments = prioritizedGroupedCommitments.filter(({ primary }) =>
+        BEHAVIOR_COMMITMENT_TYPES.has(primary.type),
+    );
 
     return spaceTrim(
         // [✨]
@@ -152,7 +200,7 @@ export function createStandaloneBookLanguageMarkdown(): string_markdown {
 
             - Book language version: \`${BOOK_LANGUAGE_VERSION}\`
             - Generated at: \`${generatedAtIso}\`
-            - Commitment groups: \`${groupedCommitments.length}\`
+            - Commitment groups: \`${prioritizedGroupedCommitments.length}\`
             - Implemented commitments: \`${implementedCommitmentCount}\`
             - Placeholder commitments: \`${placeholderCommitmentCount}\`
 
@@ -163,7 +211,9 @@ export function createStandaloneBookLanguageMarkdown(): string_markdown {
             - [Mental model of an agent](#mental-model-of-an-agent)
             - [How to structure good agents](#how-to-structure-good-agents)
             - [Primitives and constructs reference](#primitives-and-constructs-reference)
-            - [Commitment catalog (all commitments)](#commitment-catalog-all-commitments)
+            - [Commitment catalog${
+                isServerSpecificManual ? ' (used commitments first)' : ' (all commitments)'
+            }](#commitment-catalog)
             - [End-to-end examples](#end-to-end-examples)
             - [Do nots and common pitfalls](#do-nots-and-common-pitfalls)
             - [Build an agent from scratch (offline tutorial)](#build-an-agent-from-scratch-offline-tutorial)
@@ -293,7 +343,11 @@ export function createStandaloneBookLanguageMarkdown(): string_markdown {
 
             ${block(getSafeCodeBlock(allCommitmentKeywords.join(', '), 'text'))}
 
-            ## <a id="commitment-catalog-all-commitments"></a>Commitment catalog (all commitments)
+            <a id="commitment-catalog-all-commitments"></a>
+
+            ## <a id="commitment-catalog"></a>Commitment catalog${
+                isServerSpecificManual ? ' (used commitments first)' : ' (all commitments)'
+            }
 
             This section is generated from commitment definitions in \`src/commitments\`.
             For each commitment group you get:
@@ -302,11 +356,24 @@ export function createStandaloneBookLanguageMarkdown(): string_markdown {
             - parsing schema (\`createTypeRegex\` and \`createRegex\`)
             - canonical documentation block
 
-            ${block(groupedCommitments.map(renderCommitmentCatalogSection).join('\n\n'))}
+            ${block(
+                prioritizedGroupedCommitments
+                    .map((groupedCommitment) =>
+                        renderCommitmentCatalogSection(
+                            groupedCommitment,
+                            commitmentUsageByType.get(groupedCommitment.primary.type) || 0,
+                        ),
+                    )
+                    .join('\n\n'),
+            )}
 
             ## <a id="end-to-end-examples"></a>End-to-end examples
 
-            ${block(bookLanguageDocumentationExamples.map(renderExampleSection).join('\n\n'))}
+            ${block(
+                isServerSpecificManual
+                    ? selectedAgents.map(renderBakedAgentExampleSection).join('\n\n')
+                    : bookLanguageDocumentationExamples.map(renderExampleSection).join('\n\n'),
+            )}
 
             ## <a id="do-nots-and-common-pitfalls"></a>Do nots and common pitfalls
 
@@ -341,32 +408,40 @@ export function createStandaloneBookLanguageMarkdown(): string_markdown {
             7. **Close for deterministic behavior (optional)**
             Add \`CLOSED\` when you want stable non-self-modifying behavior.
 
-            Copy-paste template:
-
             ${block(
-                getSafeCodeBlock(
-                    spaceTrim(`
-                        Project Assistant
+                isServerSpecificManual
+                    ? 'Use one of the selected server-agent examples above as your starting point, then retain only the commitments needed for the new agent.'
+                    : spaceTrim(
+                          (block) => `
+                              Copy-paste template:
 
-                        GOAL Help the user turn project ideas into concrete deliverables with focused planning support.
+                              ${block(
+                                  getSafeCodeBlock(
+                                      spaceTrim(`
+                                          Project Assistant
 
-                        RULE Ask clarifying questions when requirements are ambiguous.
-                        RULE Provide concise, structured outputs with actionable steps.
-                        RULE If information is missing, state assumptions explicitly.
-                        RULE Do not invent facts.
+                                          GOAL Help the user turn project ideas into concrete deliverables with focused planning support.
 
-                        KNOWLEDGE Team works in two-week sprints and tracks tasks in Kanban.
-                        KNOWLEDGE Preferred output format: summary, plan, risks, next action.
+                                          RULE Ask clarifying questions when requirements are ambiguous.
+                                          RULE Provide concise, structured outputs with actionable steps.
+                                          RULE If information is missing, state assumptions explicitly.
+                                          RULE Do not invent facts.
 
-                        META DESCRIPTION Practical project-planning assistant.
-                        META INPUT PLACEHOLDER Describe your project goal or blocker...
-                        META THINKING MESSAGE Reviewing your project details...
+                                          KNOWLEDGE Team works in two-week sprints and tracks tasks in Kanban.
+                                          KNOWLEDGE Preferred output format: summary, plan, risks, next action.
 
-                        INITIAL MESSAGE Share your project goal and current blocker, and I will propose a concrete next-step plan.
-                        CLOSED
-                    `),
-                    'book',
-                ),
+                                          META DESCRIPTION Practical project-planning assistant.
+                                          META INPUT PLACEHOLDER Describe your project goal or blocker...
+                                          META THINKING MESSAGE Reviewing your project details...
+
+                                          INITIAL MESSAGE Share your project goal and current blocker, and I will propose a concrete next-step plan.
+                                          CLOSED
+                                      `),
+                                      'book',
+                                  ),
+                              )}
+                          `,
+                      ),
             )}
 
             Validation checklist:
@@ -393,11 +468,12 @@ export function createStandaloneBookLanguageMarkdown(): string_markdown {
  * Renders one commitment section in the generated catalog.
  *
  * @param groupedCommitment - Grouped commitment definition with aliases.
+ * @param usageCount - Number of uses across the selected server agents.
  * @returns Markdown section for a single commitment.
  *
  * @private internal utility of `createStandaloneBookLanguageMarkdown`
  */
-function renderCommitmentCatalogSection(groupedCommitment: GroupedCommitmentDefinition): string {
+function renderCommitmentCatalogSection(groupedCommitment: GroupedCommitmentDefinition, usageCount: number): string {
     const { primary, aliases } = groupedCommitment;
     const notice = getCommitmentNoticeMetadata(primary);
     const status =
@@ -413,6 +489,8 @@ function renderCommitmentCatalogSection(groupedCommitment: GroupedCommitmentDefi
             : `- **Low-level commitment:** ${notice.message}`
         : '';
     const documentationMarkdown = renderGroupedCommitmentDocumentationMarkdown(groupedCommitment);
+    const usageMarkdown =
+        usageCount > 0 ? `- **Used in selected agents:** ${usageCount} occurrence${usageCount === 1 ? '' : 's'}` : '';
 
     return spaceTrim(
         (block) => `
@@ -424,8 +502,91 @@ function renderCommitmentCatalogSection(groupedCommitment: GroupedCommitmentDefi
             - **Type schema (\`createTypeRegex\`):** \`${stringifyRegex(primary.createTypeRegex())}\`
             - **Block schema (\`createRegex\`):** \`${stringifyRegex(primary.createRegex())}\`
             ${noticeText}
+            ${usageMarkdown}
 
             ${block(documentationMarkdown)}
+        `,
+    );
+}
+
+/**
+ * Counts each selected agent's parsed commitments by their canonical group type.
+ *
+ * @param agents - Agent sources baked into the manual.
+ * @returns Occurrence counts keyed by primary commitment type.
+ *
+ * @private internal utility of `createStandaloneBookLanguageMarkdown`
+ */
+function createCommitmentUsageByType(
+    agents: ReadonlyArray<BookLanguageDocumentationAgent>,
+): ReadonlyMap<string, number> {
+    const primaryTypeByCommitmentType = new Map<string, string>();
+
+    for (const { primary, aliases } of getGroupedCommitmentDefinitions()) {
+        primaryTypeByCommitmentType.set(primary.type, primary.type);
+        for (const alias of aliases) {
+            primaryTypeByCommitmentType.set(alias, primary.type);
+        }
+    }
+
+    const usageByType = new Map<string, number>();
+    for (const agent of agents) {
+        for (const commitment of parseAgentSourceWithCommitments(agent.agentSource).commitments) {
+            const primaryType = primaryTypeByCommitmentType.get(commitment.type);
+            if (primaryType) {
+                usageByType.set(primaryType, (usageByType.get(primaryType) || 0) + 1);
+            }
+        }
+    }
+
+    return usageByType;
+}
+
+/**
+ * Preserves canonical ordering while moving actually used commitment groups first.
+ *
+ * @param groupedCommitments - Canonically ordered commitment definitions.
+ * @param commitmentUsageByType - Selected-agent occurrence counts by primary type.
+ * @returns Commitment groups sorted by selected-agent usage, then canonical order.
+ *
+ * @private internal utility of `createStandaloneBookLanguageMarkdown`
+ */
+function prioritizeGroupedCommitments(
+    groupedCommitments: ReadonlyArray<GroupedCommitmentDefinition>,
+    commitmentUsageByType: ReadonlyMap<string, number>,
+): ReadonlyArray<GroupedCommitmentDefinition> {
+    return groupedCommitments
+        .map((groupedCommitment, index) => ({
+            groupedCommitment,
+            index,
+            usageCount: commitmentUsageByType.get(groupedCommitment.primary.type) || 0,
+        }))
+        .sort((first, second) => second.usageCount - first.usageCount || first.index - second.index)
+        .map(({ groupedCommitment }) => groupedCommitment);
+}
+
+/**
+ * Renders a real selected server agent as the manual's practical example.
+ *
+ * @param agent - Agent source selected for the manual.
+ * @returns Markdown section for one baked agent example.
+ *
+ * @private internal utility of `createStandaloneBookLanguageMarkdown`
+ */
+function renderBakedAgentExampleSection(agent: BookLanguageDocumentationAgent): string {
+    const usedCommitmentTypes = Array.from(
+        new Set(parseAgentSourceWithCommitments(agent.agentSource).commitments.map((commitment) => commitment.type)),
+    );
+    const usedCommitmentsMarkdown = usedCommitmentTypes.map((type) => `\`${type}\``).join(', ');
+    return spaceTrim(
+        (block) => `
+            ### <a id="example-${toStableAnchorId(agent.agentName)}"></a>${agent.agentName}
+
+            **Commitments used:** ${usedCommitmentsMarkdown || 'None'}
+
+            **Full source**
+
+            ${block(getSafeCodeBlock(agent.agentSource, 'book'))}
         `,
     );
 }

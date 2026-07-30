@@ -1,4 +1,4 @@
-[ ]
+[x] by OpenAI Codex `gpt-5.6-terra` (ChatGPT account) - Implementation ~$1.43 an hour; Testing 9 minutes
 
 [✨🚵] Improve the Book language manual
 
@@ -26,3 +26,4 @@
 ![Broken Print to PDF](2026-07-1010-agents-server-book-language-manual.pdf)
 ![Broken Print to PDF](screenshots/2026-07-1010-agents-server-book-language-manual-2.png)
 [The generated Book language documentation](https://pasu.ptbk.io/api/docs/book-language.md)
+
