@@ -11,6 +11,7 @@ import type { number_port } from '../../../types/number_positive';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
 import { createNonNegativeIntegerOptionParser } from '../common/createNonNegativeIntegerOptionParser';
 import { handleActionErrors } from '../common/handleActionErrors';
+import { $ensureHarnessInstallations } from '../common/harness/$ensureHarnessInstallations';
 import type { PromptRunnerCliOptions } from '../common/promptRunnerCliOptions';
 import {
     addPromptRunnerExecutionOptions,
@@ -47,6 +48,7 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
 
             Features:
             - Runs the same prompt processing as \`ptbk coder run\`
+            - Checks that the selected harness is installed globally and up to date on startup
             - Does not exit when all prompts are done; polls for new prompt files instead
             - Serves a kanban board at http://localhost:<port> for visual progress tracking
             - Allows editing prompt files directly from the browser (Trello-style)
@@ -171,6 +173,8 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
             const runnerOptions = normalizePromptRunnerCliOptions(cliOptions as PromptRunnerCliOptions, {
                 isAgentRequired: !dryRun,
             });
+
+            await $ensureHarnessInstallations([runnerOptions.agentName]);
 
             // [1] Parse the wait options and --no-auto (same logic as `coder run`)
             const waitForUser = !auto;

@@ -6,6 +6,7 @@ import type { $side_effect } from '../../../utils/organization/$side_effect';
 import { createNonNegativeIntegerOptionParser } from '../common/createNonNegativeIntegerOptionParser';
 import { createPositiveIntegerOptionParser } from '../common/createPositiveIntegerOptionParser';
 import { handleActionErrors } from '../common/handleActionErrors';
+import { $ensureHarnessInstallations } from '../common/harness/$ensureHarnessInstallations';
 import type { PromptRunnerCliOptions } from '../common/promptRunnerCliOptions';
 import {
     addPromptRunnerExecutionOptions,
@@ -36,6 +37,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             - Optional pre-prompt git pull with explicit --auto-pull opt-in
             - Optional --preserve-logs keeps temp prompt/log artifacts after successful rounds
             - Optional --no-ui keeps plain streaming console output for logging and debugging
+            - Checks that the selected harness is installed globally and up to date before the first prompt
             - Supports GPG signing of commits
             - Optional post-prompt verification with test-feedback retries
             - Progress tracking and interactive P/S/X terminal controls
@@ -159,6 +161,8 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             const runnerOptions = normalizePromptRunnerCliOptions(cliOptions as PromptRunnerCliOptions, {
                 isAgentRequired: !dryRun,
             });
+
+            await $ensureHarnessInstallations([runnerOptions.agentName]);
 
             // [1] Parse the wait options and --no-auto:
             //   default: run automatically through the queue (no waiting between prompts)
