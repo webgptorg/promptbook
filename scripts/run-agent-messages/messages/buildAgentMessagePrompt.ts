@@ -1,5 +1,5 @@
 import { spaceTrim } from 'spacetrim';
-import { AGENT_PROJECTS_DIRECTORY_PATH } from '../../../src/cli/cli-commands/agent-folder/agentProjectPaths';
+import { AGENT_PROJECTS_DIRECTORY_PATH } from '../../../src/book-3.0/agentFolderPaths';
 import {
     buildAgentProjectsPromptSection,
     type AgentProjectsPromptSectionOptions,
