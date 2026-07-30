@@ -1,3 +1,5 @@
+-   Added the selected `--thinking-level` to successful `ptbk coder` prompt status lines, alongside the harness and model (for example, `by Claude Code \`claude-opus-4-8\` thinking \`xhigh\``). The Coder landing page now documents this completion metadata.
+
 -   Fixed standalone VPS project DNS visibility: `/superadmin/servers` now verifies generated project hostnames, defaults its setup guidance to the preferred wildcard CNAME record, and labels each owner with a linked agent chip. DNS problems now also appear on affected project pages and the **Agent Projects** menu item.
 
 -   Simplified Agents Server project runtimes to one automatic Run action: projects with a non-empty `package.json` `dev` script now run `npm run dev`, while all other projects use the static server. Admins can now run and stop projects directly from `/admin/projects`.

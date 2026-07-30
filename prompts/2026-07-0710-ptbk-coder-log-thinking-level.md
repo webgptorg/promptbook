@@ -1,4 +1,4 @@
-[ ]
+[x] by OpenAI Codex `gpt-5.6-terra` (ChatGPT account) - Implementation ~$0.4971 6 minutes; Testing 8 minutes
 
 [✨🛄] Log the thinking level in Promptbook coder
 
@@ -20,3 +20,4 @@
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Update the [`ptbk coder` landing website](apps/coder-landing)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

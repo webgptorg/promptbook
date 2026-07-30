@@ -31,6 +31,21 @@ describe('prompt attempt metadata', () => {
         expect(file.lines[0]).not.toContain('(1 attempt');
     });
 
+    it('records the selected thinking level on done prompts', () => {
+        const file = parsePromptFile(
+            'prompts/mark-prompt-done.md',
+            spaceTrim(`
+                [ ]
+                Implement the feature
+            `),
+        );
+        const section = file.sections[0]!;
+
+        markPromptDone(file, section, createDoneSteps(), 'Claude Code', 'claude-opus-4-8', 1, undefined, 'xhigh');
+
+        expect(file.lines[0]).toContain('by Claude Code `claude-opus-4-8` thinking `xhigh` - Implementation ');
+    });
+
     it('stores attempt counts for successful retries', () => {
         const file = parsePromptFile(
             'prompts/mark-prompt-done.md',

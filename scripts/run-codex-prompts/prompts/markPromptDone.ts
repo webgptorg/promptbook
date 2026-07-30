@@ -1,4 +1,5 @@
 import { formatCodexLoginMethod, type CodexLoginMethod } from '../../../src/book-3.0/codexLoginMethod';
+import type { ThinkingLevel } from '../../../src/cli/cli-commands/coder/ThinkingLevel';
 import type { CoderRunStep } from '../common/CoderRunStep';
 import { formatCoderRunSteps } from './formatCoderRunSteps';
 import { formatPromptAttemptMetadata } from './formatPromptAttemptMetadata';
@@ -17,6 +18,7 @@ export function markPromptDone(
     modelName: string | undefined,
     attemptCount = 1,
     loginMethod?: CodexLoginMethod,
+    thinkingLevel?: ThinkingLevel,
 ): void {
     if (section.statusLineIndex === undefined) {
         throw new Error(`Prompt ${section.index + 1} in ${file.name} does not have a status line.`);
@@ -26,14 +28,14 @@ export function markPromptDone(
     if (line === undefined) {
         throw new Error(`Prompt ${section.index + 1} in ${file.name} points to a missing status line.`);
     }
-    const runnerSignature = formatRunnerSignature(runnerName, modelName);
+    const runnerSignature = formatRunnerSignature(runnerName, modelName, thinkingLevel);
     const attemptMetadata = formatPromptAttemptMetadata('done', attemptCount);
     const loginMethodLabel = formatCodexLoginMethod(loginMethod);
     const loginMethodSuffix = loginMethodLabel ? ` (${loginMethodLabel})` : '';
     const stepsSummary = formatCoderRunSteps(steps);
     const stepsSuffix = stepsSummary === '' ? '' : ` - ${stepsSummary}`;
 
-    // Replace "[ ]" or "[ ] !!..." with "[x] by runner (login method) - Step $price duration; ..."
+    // Replace "[ ]" or "[ ] !!..." with "[x] by runner model thinking level (login method) - Step $price duration; ..."
     file.lines[section.statusLineIndex] = line.replace(
         /\[\s*\]\s*!*\s*$/,
         `[x] ${attemptMetadata}by ${runnerSignature}${loginMethodSuffix}${stepsSuffix}`,

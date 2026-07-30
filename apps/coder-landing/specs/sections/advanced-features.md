@@ -33,6 +33,6 @@ Anchor `#features`. A grid of feature cards, each pairing a short explanation wi
 6. **Pacing and retries** — "Pace the queue with wall-clock wait durations that keep elapsing through pause and sleep, skip the active wait with S, and retry errors after a cool-down."
 7. **Dry run first** — "Preview which prompts would run — without touching your code or spending a single token."
 8. **Human in the loop** — "Confirm each prompt manually with --no-auto, press P to pause a running queue, or press X to end after the current prompt."
-9. **Verify and archive** — "Walk through completed prompts interactively, archive the finished ones to prompts/done/ and auto-append repair prompts for incomplete work."
+9. **Verify and archive** — "Successful coding rounds record the harness, model and selected thinking level in the prompt status line. Walk through completed prompts interactively, archive the finished ones to prompts/done/ and auto-append repair prompts for incomplete work."
 
 Option semantics must stay consistent with [`../content/commands.md`](../content/commands.md).

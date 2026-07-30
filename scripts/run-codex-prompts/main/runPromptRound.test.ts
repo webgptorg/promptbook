@@ -175,6 +175,7 @@ describe('runPromptRound', () => {
             options: createRunOptions({
                 noCommit: true,
                 waitForUser: true,
+                thinkingLevel: 'xhigh',
             }),
             runner,
             runnerMetadata: {
@@ -198,7 +199,16 @@ describe('runPromptRound', () => {
                 waitForPauseCheckpoint: waitForRequestedPause,
             }),
         );
-        expect(markPromptDone).toHaveBeenCalled();
+        expect(markPromptDone).toHaveBeenCalledWith(
+            expect.anything(),
+            expect.anything(),
+            expect.anything(),
+            'github-copilot',
+            'gpt-5.4',
+            1,
+            undefined,
+            'xhigh',
+        );
         expect(writePromptFile).toHaveBeenCalled();
         expect(commitChanges).not.toHaveBeenCalled();
         expect(waitForEnter).not.toHaveBeenCalled();
