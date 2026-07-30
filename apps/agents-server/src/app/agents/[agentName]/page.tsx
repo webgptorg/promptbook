@@ -5,7 +5,7 @@ import { AgentProjectReferencesList } from '@/src/components/AgentProjects/Agent
 import { $provideServer } from '@/src/tools/$provideServer';
 import { resolveAgentProjectsAccess } from '@/src/utils/agentProjects/agentProjectAccess';
 import { buildAgentProjectsDashboardHref } from '@/src/utils/agentProjects/agentProjectHrefs';
-import { listAgentProjects } from '@/src/utils/agentProjects/listAgentProjects';
+import { listAgentProjectChatReferences } from '@/src/utils/agentProjects/listAgentProjectChatReferences';
 import { isPublicAgentVisibility } from '@/src/utils/agentVisibility';
 import { ensureChatHistoryIdentity } from '@/src/utils/currentUserIdentity';
 import { createAgentEmailAddress } from '@/src/utils/email/agentEmailAddress';
@@ -108,7 +108,7 @@ type AgentPageViewModel = {
     inputPlaceholder: ReturnType<typeof resolveAgentChatInputPlaceholder>;
     brandColorHex: string;
     avatarSrc: string;
-    projects: Awaited<ReturnType<typeof listAgentProjects>>;
+    projects: Awaited<ReturnType<typeof listAgentProjectChatReferences>>;
     initialAgentMessage: AgentPageData['agentProfile']['initialMessage'];
     speechRecognitionLanguage: ReturnType<typeof resolveSpeechRecognitionLanguage>;
     isHistoryEnabled: boolean;
@@ -459,7 +459,7 @@ function isMissingAgentProfileError(error: unknown): boolean {
 function createAgentPageViewModel(
     route: Extract<ResolvedAgentPageRoute, { kind: 'local' }>,
     data: AgentPageData,
-    projects: Awaited<ReturnType<typeof listAgentProjects>>,
+    projects: Awaited<ReturnType<typeof listAgentProjectChatReferences>>,
 ): AgentPageViewModel {
     const { agentProfile, agentNaming, isDeleted, publicUrl, requestHeaders, serverVisibility } = data;
 
@@ -607,10 +607,7 @@ function renderAgentProfilePage(viewModel: AgentPageViewModel) {
             >
                 {viewModel.isDeleted && <DeletedAgentBanner />}
                 {viewModel.projects.length > 0 && (
-                    <AgentProfileProjectsSection
-                        agentPermanentId={viewModel.agentName}
-                        projects={viewModel.projects}
-                    />
+                    <AgentProfileProjectsSection agentPermanentId={viewModel.agentName} projects={viewModel.projects} />
                 )}
                 <DeferredAgentProfileChat
                     agentUrl={viewModel.agentUrl}
@@ -649,7 +646,7 @@ function AgentProfileProjectsSection({
     /**
      * Projects displayed on the profile.
      */
-    readonly projects: Awaited<ReturnType<typeof listAgentProjects>>;
+    readonly projects: Awaited<ReturnType<typeof listAgentProjectChatReferences>>;
 }) {
     return (
         <section className="mb-4 rounded-lg border border-white/40 bg-white/75 p-3 shadow-sm backdrop-blur-sm">
@@ -692,7 +689,7 @@ export default async function AgentPage(props: AgentPageProps) {
 
     const [pageData, projects] = await Promise.all([
         loadAgentPageData(route.canonicalAgentId, Boolean(access.currentUser)),
-        access.isProjectOverviewVisible ? listAgentProjects(route.canonicalAgentId) : Promise.resolve([]),
+        access.isProjectOverviewVisible ? listAgentProjectChatReferences(route.canonicalAgentId) : Promise.resolve([]),
     ]);
     return renderAgentProfilePage(createAgentPageViewModel(route, pageData, projects));
 }

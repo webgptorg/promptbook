@@ -1,7 +1,7 @@
 import { FolderKanbanIcon } from 'lucide-react';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
-import type { AgentProjectInfo } from '../../utils/agentProjects/AgentProjectInfo';
+import type { AgentProjectReferenceInfo } from '../../utils/agentProjects/AgentProjectReferenceInfo';
 import { buildAgentProjectProfileHrefForServer } from '../../utils/agentProjects/agentProjectHrefs';
 import { formatResourceBytes } from '../../utils/resourceMonitor/formatResourceMonitorValue';
 
@@ -13,7 +13,7 @@ export type AgentProjectItemVariant = 'full' | 'small';
 /**
  * Display-only project fields required by `<AgentProjectItem/>`.
  */
-export type AgentProjectItemInfo = Pick<AgentProjectInfo, 'projectName' | 'displayName' | 'description' | 'sizeBytes'>;
+export type AgentProjectItemInfo = AgentProjectReferenceInfo;
 
 /**
  * Props for one shared project reference item.

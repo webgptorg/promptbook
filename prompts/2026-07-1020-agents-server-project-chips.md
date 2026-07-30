@@ -1,4 +1,4 @@
-[ ]
+[x] by OpenAI Codex `gpt-5.6-terra` (ChatGPT account) - Implementation ~$0.8645 33 minutes; Testing 9 minutes
 
 [✨🥖] When the agent references the project, show it as a nice looking standardized chip
 

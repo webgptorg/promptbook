@@ -5,7 +5,7 @@ import type { AgentProjectItemInfo } from '@/src/components/AgentProjects/AgentP
 import { $provideServer } from '@/src/tools/$provideServer';
 import { resolveAgentAccess } from '@/src/utils/agentAccess';
 import { resolveAgentProjectsAccess } from '@/src/utils/agentProjects/agentProjectAccess';
-import { listAgentProjects } from '@/src/utils/agentProjects/listAgentProjects';
+import { listAgentProjectChatReferences } from '@/src/utils/agentProjects/listAgentProjectChatReferences';
 import { loadChatConfiguration } from '@/src/utils/chatConfiguration';
 import { ensureChatHistoryIdentity } from '@/src/utils/currentUserIdentity';
 import { getCurrentUser } from '@/src/utils/getCurrentUser';
@@ -77,31 +77,15 @@ function buildCanonicalAgentChatPath(
  * @param agentPermanentId - Permanent id of the agent owning the projects.
  * @returns Display-only project references safe to send to the client.
  */
-async function resolveAgentChatProjectReferences(agentPermanentId: string): Promise<ReadonlyArray<AgentProjectItemInfo>> {
+async function resolveAgentChatProjectReferences(
+    agentPermanentId: string,
+): Promise<ReadonlyArray<AgentProjectItemInfo>> {
     const projectAccess = await resolveAgentProjectsAccess(agentPermanentId);
     if (!projectAccess.isProjectOverviewVisible) {
         return [];
     }
 
-    const projects = await listAgentProjects(agentPermanentId);
-    return projects.map(createAgentChatProjectReference);
-}
-
-/**
- * Converts full server project metadata into the browser-safe display shape.
- *
- * @param project - Full project metadata resolved on the server.
- * @returns Display-only project reference.
- */
-function createAgentChatProjectReference(
-    project: Awaited<ReturnType<typeof listAgentProjects>>[number],
-): AgentProjectItemInfo {
-    return {
-        projectName: project.projectName,
-        displayName: project.displayName,
-        description: project.description,
-        sizeBytes: project.sizeBytes,
-    };
+    return await listAgentProjectChatReferences(agentPermanentId);
 }
 
 /**
@@ -112,10 +96,20 @@ export default async function AgentChatPage({
     searchParams,
 }: {
     params: Promise<{ agentName: string }>;
-    searchParams: Promise<{ headless?: string; message?: string; chat?: string; newChat?: string; shareTarget?: string }>;
+    searchParams: Promise<{
+        headless?: string;
+        message?: string;
+        chat?: string;
+        newChat?: string;
+        shareTarget?: string;
+    }>;
 }) {
     const requestHeadersPromise = headers();
-    const [agentName, currentSearchParams, requestHeaders] = await Promise.all([getAgentName(params), searchParams, requestHeadersPromise]);
+    const [agentName, currentSearchParams, requestHeaders] = await Promise.all([
+        getAgentName(params),
+        searchParams,
+        requestHeadersPromise,
+    ]);
     $sideEffect(requestHeaders);
     const { headless, message, chat, newChat, shareTarget } = currentSearchParams;
     const isHeadless = headless !== undefined;
@@ -186,8 +180,7 @@ export default async function AgentChatPage({
         agentProjectReferences,
         shareTargetPayload,
         isCurrentUserSuperAdmin,
-    ] =
-        await Promise.all([
+    ] = await Promise.all([
         agentProfilePromise,
         historyIdentityAvailablePromise,
         currentUserPromise,

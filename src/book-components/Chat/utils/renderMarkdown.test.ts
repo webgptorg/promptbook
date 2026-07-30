@@ -39,6 +39,7 @@ describe('renderMarkdown sanitization', () => {
 
         expect(html).toContain('href="https://example.com/docs"');
         expect(html).toContain('rel="noopener noreferrer"');
+        expect(html).not.toContain('target="_blank"');
         expect(html).toContain('<a>Bad link</a>');
         expect(html).toContain('<img alt="Bad image">');
         expect(html).not.toContain('javascript:');

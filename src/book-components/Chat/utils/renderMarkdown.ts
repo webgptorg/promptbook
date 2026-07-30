@@ -149,11 +149,29 @@ const MARKDOWN_SANITIZER_URL_ATTRIBUTES = ['href', 'src'] as const;
 const MARKDOWN_SANITIZER_ALLOWED_PROTOCOLS = new Set(['http', 'https', 'mailto', 'tel']);
 
 /**
+ * Attribute marking a new-tab action generated for an inline-reference menu.
+ *
+ * @private utility of `renderMarkdown`
+ */
+const INLINE_REFERENCE_MENU_OPTION_MARKER_ATTRIBUTE = 'data-promptbook-inline-reference-menu-option';
+
+/**
  * Internal `data-*` attributes that Promptbook injects into rendered markdown and must survive sanitization.
  *
  * @private utility of `renderMarkdown`
  */
-const MARKDOWN_SANITIZER_ALLOWED_DATA_ATTRIBUTES = new Set(['data-citation-footnote', 'data-chat-progress-marker']);
+const MARKDOWN_SANITIZER_ALLOWED_DATA_ATTRIBUTES = new Set([
+    'data-citation-footnote',
+    'data-chat-progress-marker',
+    INLINE_REFERENCE_MENU_OPTION_MARKER_ATTRIBUTE,
+]);
+
+/**
+ * Link target that remains safe to preserve in sanitized markdown.
+ *
+ * @private utility of `renderMarkdown`
+ */
+const MARKDOWN_SANITIZER_NEW_TAB_TARGET = '_blank';
 
 /**
  * Highest ASCII control character code that should be stripped from sanitized URLs.
@@ -325,6 +343,67 @@ export type MarkdownInlineReference = {
      * Optional hover title for the rendered reference.
      */
     readonly title?: string;
+
+    /**
+     * Optional expandable menu shown when the reference chip is clicked.
+     */
+    readonly menu?: MarkdownInlineReferenceMenu;
+};
+
+/**
+ * Status displayed alongside an expandable markdown inline reference.
+ *
+ * @public exported from `@promptbook/components`
+ */
+export type MarkdownInlineReferenceMenuStatus = {
+    /**
+     * Accessible text describing the current reference status.
+     */
+    readonly label: string;
+
+    /**
+     * Whether the status should be rendered as active.
+     */
+    readonly isActive: boolean;
+};
+
+/**
+ * One destination in an expandable markdown inline reference menu.
+ *
+ * @public exported from `@promptbook/components`
+ */
+export type MarkdownInlineReferenceMenuOption = {
+    /**
+     * Text rendered for the option.
+     */
+    readonly label: string;
+
+    /**
+     * New-tab destination, or `null` while the option is unavailable.
+     */
+    readonly href: string | null;
+
+    /**
+     * Optional hover text for the option.
+     */
+    readonly title?: string;
+};
+
+/**
+ * Expandable menu configuration for a markdown inline reference.
+ *
+ * @public exported from `@promptbook/components`
+ */
+export type MarkdownInlineReferenceMenu = {
+    /**
+     * Current reference status shown in the chip and menu.
+     */
+    readonly status: MarkdownInlineReferenceMenuStatus;
+
+    /**
+     * New-tab actions listed in the expanded menu.
+     */
+    readonly options: ReadonlyArray<MarkdownInlineReferenceMenuOption>;
 };
 
 /**
@@ -397,8 +476,16 @@ function isAllowedSanitizedUrl(value: string): boolean {
 function registerMarkdownSanitizerHooks(markdownSanitizer: DomPurifyInstance): void {
     markdownSanitizer.addHook(
         'uponSanitizeAttribute',
-        (_currentNode: Element, hookEvent: DomPurifyUponSanitizeAttributeHookEvent) => {
+        (currentNode: Element, hookEvent: DomPurifyUponSanitizeAttributeHookEvent) => {
             if (MARKDOWN_SANITIZER_ALLOWED_DATA_ATTRIBUTES.has(hookEvent.attrName)) {
+                hookEvent.forceKeepAttr = true;
+            }
+
+            if (
+                hookEvent.attrName === 'target' &&
+                hookEvent.attrValue === MARKDOWN_SANITIZER_NEW_TAB_TARGET &&
+                currentNode.hasAttribute(INLINE_REFERENCE_MENU_OPTION_MARKER_ATTRIBUTE)
+            ) {
                 hookEvent.forceKeepAttr = true;
             }
         },
@@ -419,7 +506,10 @@ function registerMarkdownSanitizerHooks(markdownSanitizer: DomPurifyInstance): v
             }
         }
 
-        if (currentElement.tagName === 'A' && currentElement.getAttribute('target') === '_blank') {
+        if (
+            currentElement.tagName === 'A' &&
+            currentElement.getAttribute('target') === MARKDOWN_SANITIZER_NEW_TAB_TARGET
+        ) {
             currentElement.setAttribute('rel', 'noopener noreferrer');
         }
     });
@@ -805,12 +895,64 @@ function createMarkdownInlineReferenceByKey(
  * @private utility of `renderMarkdown`
  */
 function renderMarkdownInlineReferenceHtml(reference: MarkdownInlineReference, className: string): string {
+    if (reference.menu) {
+        return renderMarkdownInlineReferenceMenuHtml(reference, className);
+    }
+
     const escapedClassName = escapeHtml(className);
     const escapedHref = escapeHtml(reference.href);
     const escapedLabel = escapeHtml(reference.label);
     const escapedTitle = escapeHtml(reference.title || reference.label);
 
     return `<a class="${escapedClassName}" href="${escapedHref}" title="${escapedTitle}">${escapedLabel}</a>`;
+}
+
+/**
+ * Renders one inline reference with an expandable menu as raw HTML sanitized by the markdown sanitizer.
+ *
+ * @param reference - Resolved inline reference with menu data.
+ * @param className - CSS class applied to the generated reference chip.
+ * @returns HTML details markup.
+ *
+ * @private utility of `renderMarkdown`
+ */
+function renderMarkdownInlineReferenceMenuHtml(reference: MarkdownInlineReference, className: string): string {
+    const menu = reference.menu;
+
+    if (!menu) {
+        return renderMarkdownInlineReferenceHtml({ ...reference, menu: undefined }, className);
+    }
+
+    const escapedClassName = escapeHtml(className);
+    const escapedLabel = escapeHtml(reference.label);
+    const escapedTitle = escapeHtml(reference.title || reference.label);
+    const escapedStatusLabel = escapeHtml(menu.status.label);
+    const statusClassName = menu.status.isActive
+        ? 'inlineReferenceMenuStatus inlineReferenceMenuStatus--active'
+        : 'inlineReferenceMenuStatus';
+    const optionsHtml = menu.options.map((option) => renderMarkdownInlineReferenceMenuOptionHtml(option)).join('');
+
+    return `<details class="${escapedClassName}" title="${escapedTitle}"><summary><span>${escapedLabel}</span><span class="${statusClassName}" title="${escapedStatusLabel}"></span></summary><div><span class="${statusClassName}">${escapedStatusLabel}</span>${optionsHtml}</div></details>`;
+}
+
+/**
+ * Renders one option in an expandable markdown inline reference menu.
+ *
+ * @param option - Menu option definition.
+ * @returns HTML anchor or disabled label markup.
+ *
+ * @private utility of `renderMarkdown`
+ */
+function renderMarkdownInlineReferenceMenuOptionHtml(option: MarkdownInlineReferenceMenuOption): string {
+    const escapedLabel = escapeHtml(option.label);
+    const escapedTitle = escapeHtml(option.title || option.label);
+
+    if (option.href === null) {
+        return `<span class="inlineReferenceMenuOption inlineReferenceMenuOption--disabled" title="${escapedTitle}">${escapedLabel}</span>`;
+    }
+
+    const escapedHref = escapeHtml(option.href);
+    return `<a ${INLINE_REFERENCE_MENU_OPTION_MARKER_ATTRIBUTE} class="inlineReferenceMenuOption" href="${escapedHref}" title="${escapedTitle}" target="${MARKDOWN_SANITIZER_NEW_TAB_TARGET}" rel="noopener noreferrer">${escapedLabel}</a>`;
 }
 
 /**

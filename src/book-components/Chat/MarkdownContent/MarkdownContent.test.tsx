@@ -125,6 +125,48 @@ describe('MarkdownContent details rendering', () => {
         expect(container.textContent).toContain('[[unknown-project]]');
     });
 
+    it('renders expandable inline reference menus with new-tab actions', () => {
+        const { container } = render(
+            <MarkdownContent
+                content="Open [[website]]."
+                inlineReferences={[
+                    {
+                        reference: 'website',
+                        label: 'Website',
+                        href: '/agents/example-agent/projects/website',
+                        menu: {
+                            status: {
+                                label: 'Project is running',
+                                isActive: true,
+                            },
+                            options: [
+                                {
+                                    label: 'Open the project in a new tab',
+                                    href: 'https://website.example.com',
+                                },
+                                {
+                                    label: 'Open the project page in a new tab',
+                                    href: '/agents/example-agent/projects/website',
+                                },
+                            ],
+                        },
+                    },
+                ]}
+            />,
+        );
+
+        const details = container.querySelector('details');
+        const projectLink = screen.getByRole('link', { name: 'Open the project in a new tab' });
+        const projectPageLink = screen.getByRole('link', { name: 'Open the project page in a new tab' });
+
+        expect(details?.querySelector('summary')?.textContent).toContain('Website');
+        expect(details?.textContent).toContain('Project is running');
+        expect(projectLink.getAttribute('href')).toBe('https://website.example.com');
+        expect(projectPageLink.getAttribute('href')).toBe('/agents/example-agent/projects/website');
+        expect(projectLink.getAttribute('target')).toBe('_blank');
+        expect(projectLink.getAttribute('rel')).toBe('noopener noreferrer');
+    });
+
     it('keeps inline references inside code literal', () => {
         const { container } = render(
             <MarkdownContent
