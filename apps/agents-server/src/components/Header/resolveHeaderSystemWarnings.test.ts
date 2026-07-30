@@ -1,4 +1,8 @@
-import { resolveHeaderSystemWarnings } from './resolveHeaderSystemWarnings';
+import {
+    isHeaderSystemWarningShownForCategory,
+    isHeaderSystemWarningShownForHref,
+    resolveHeaderSystemWarnings,
+} from './resolveHeaderSystemWarnings';
 
 describe('resolveHeaderSystemWarnings', () => {
     it('hides every admin warning from anonymous and regular viewers', () => {
@@ -8,94 +12,130 @@ describe('resolveHeaderSystemWarnings', () => {
             shibbolethAuthenticationStatus: { isActive: true, isConfigured: false },
             resourceMonitorWarningStatus: { isWarningShown: true, issues: [], warningMessages: [] },
             isCoreAgentsMissing: true,
+            isAgentEmailWarningShown: true,
             isAgentProjectsDnsWarningShown: true,
+            isVpsEmailServerWarningShown: true,
+            isServersDnsWarningShown: true,
+            isInternalS3WarningShown: true,
         });
 
-        expect(warnings).toEqual({
-            isShibbolethConfigurationWarningShown: false,
-            isResourceMonitorWarningShown: false,
-            isCoreAgentsWarningShown: false,
-            isAgentProjectsDnsWarningShown: false,
-            isSystemWarningShown: false,
-        });
+        expect(warnings.warnings.every((warning) => !warning.isShown)).toBe(true);
+        expect(warnings.isSystemWarningShown).toBe(false);
     });
 
     it('shows the misconfigured Shibboleth warning only to an administrator', () => {
         const shibbolethAuthenticationStatus = { isActive: true, isConfigured: false } as const;
 
         expect(
-            resolveHeaderSystemWarnings({ isAdmin: false, isGlobalAdmin: false, shibbolethAuthenticationStatus })
-                .isShibbolethConfigurationWarningShown,
+            isHeaderSystemWarningShownForHref(
+                resolveHeaderSystemWarnings({ isAdmin: false, isGlobalAdmin: false, shibbolethAuthenticationStatus }),
+                '/admin/login-methods/shibboleth',
+            ),
         ).toBe(false);
         expect(
-            resolveHeaderSystemWarnings({ isAdmin: true, isGlobalAdmin: false, shibbolethAuthenticationStatus })
-                .isShibbolethConfigurationWarningShown,
+            isHeaderSystemWarningShownForHref(
+                resolveHeaderSystemWarnings({ isAdmin: true, isGlobalAdmin: false, shibbolethAuthenticationStatus }),
+                '/admin/login-methods/shibboleth#setup-instructions',
+            ),
         ).toBe(true);
     });
 
     it('does not warn when Shibboleth is active and correctly configured', () => {
-        expect(
-            resolveHeaderSystemWarnings({
-                isAdmin: true,
-                isGlobalAdmin: false,
-                shibbolethAuthenticationStatus: { isActive: true, isConfigured: true },
-            }).isShibbolethConfigurationWarningShown,
-        ).toBe(false);
+        const warnings = resolveHeaderSystemWarnings({
+            isAdmin: true,
+            isGlobalAdmin: false,
+            shibbolethAuthenticationStatus: { isActive: true, isConfigured: true },
+        });
+
+        expect(isHeaderSystemWarningShownForHref(warnings, '/admin/login-methods/shibboleth')).toBe(false);
     });
 
-    it('shows the resource monitor warning only to the super admin', () => {
+    it('shows resource pressure only to the super admin', () => {
         const resourceMonitorWarningStatus = { isWarningShown: true, issues: [], warningMessages: [] } as const;
 
         expect(
-            resolveHeaderSystemWarnings({ isAdmin: true, isGlobalAdmin: false, resourceMonitorWarningStatus })
-                .isResourceMonitorWarningShown,
+            isHeaderSystemWarningShownForHref(
+                resolveHeaderSystemWarnings({ isAdmin: true, isGlobalAdmin: false, resourceMonitorWarningStatus }),
+                '/superadmin/resource-monitor',
+            ),
         ).toBe(false);
         expect(
-            resolveHeaderSystemWarnings({ isAdmin: true, isGlobalAdmin: true, resourceMonitorWarningStatus })
-                .isResourceMonitorWarningShown,
+            isHeaderSystemWarningShownForHref(
+                resolveHeaderSystemWarnings({ isAdmin: true, isGlobalAdmin: true, resourceMonitorWarningStatus }),
+                '/superadmin/resource-monitor',
+            ),
         ).toBe(true);
     });
 
-    it('shows the missing-core-agents warning only to an administrator', () => {
-        expect(
-            resolveHeaderSystemWarnings({ isAdmin: false, isGlobalAdmin: false, isCoreAgentsMissing: true })
-                .isCoreAgentsWarningShown,
-        ).toBe(false);
-        expect(
-            resolveHeaderSystemWarnings({ isAdmin: true, isGlobalAdmin: false, isCoreAgentsMissing: true })
-                .isCoreAgentsWarningShown,
-        ).toBe(true);
+    it('shows per-server operational warnings only to administrators', () => {
+        for (const href of ['/admin/core-agents', '/admin/email-server', '/admin/projects']) {
+            expect(
+                isHeaderSystemWarningShownForHref(
+                    resolveHeaderSystemWarnings({
+                        isAdmin: false,
+                        isGlobalAdmin: false,
+                        isCoreAgentsMissing: true,
+                        isAgentEmailWarningShown: true,
+                        isAgentProjectsDnsWarningShown: true,
+                    }),
+                    href,
+                ),
+            ).toBe(false);
+            expect(
+                isHeaderSystemWarningShownForHref(
+                    resolveHeaderSystemWarnings({
+                        isAdmin: true,
+                        isGlobalAdmin: false,
+                        isCoreAgentsMissing: true,
+                        isAgentEmailWarningShown: true,
+                        isAgentProjectsDnsWarningShown: true,
+                    }),
+                    href,
+                ),
+            ).toBe(true);
+        }
     });
 
-    it('shows the project DNS warning only to an administrator', () => {
-        expect(
-            resolveHeaderSystemWarnings({
-                isAdmin: false,
-                isGlobalAdmin: false,
-                isAgentProjectsDnsWarningShown: true,
-            }).isAgentProjectsDnsWarningShown,
-        ).toBe(false);
-        expect(
-            resolveHeaderSystemWarnings({
-                isAdmin: true,
-                isGlobalAdmin: false,
-                isAgentProjectsDnsWarningShown: true,
-            }).isAgentProjectsDnsWarningShown,
-        ).toBe(true);
+    it('shows VPS operational warnings only to the super admin', () => {
+        for (const href of ['/superadmin/servers', '/superadmin/email-server', '/admin/internal-s3']) {
+            expect(
+                isHeaderSystemWarningShownForHref(
+                    resolveHeaderSystemWarnings({
+                        isAdmin: true,
+                        isGlobalAdmin: false,
+                        isServersDnsWarningShown: true,
+                        isVpsEmailServerWarningShown: true,
+                        isInternalS3WarningShown: true,
+                    }),
+                    href,
+                ),
+            ).toBe(false);
+            expect(
+                isHeaderSystemWarningShownForHref(
+                    resolveHeaderSystemWarnings({
+                        isAdmin: true,
+                        isGlobalAdmin: true,
+                        isServersDnsWarningShown: true,
+                        isVpsEmailServerWarningShown: true,
+                        isInternalS3WarningShown: true,
+                    }),
+                    href,
+                ),
+            ).toBe(true);
+        }
     });
 
-    it('aggregates the individual warnings into the top-level System indicator', () => {
-        expect(
-            resolveHeaderSystemWarnings({ isAdmin: true, isGlobalAdmin: false, isCoreAgentsMissing: true })
-                .isSystemWarningShown,
-        ).toBe(true);
-        expect(
-            resolveHeaderSystemWarnings({
-                isAdmin: true,
-                isGlobalAdmin: false,
-                isAgentProjectsDnsWarningShown: true,
-            }).isSystemWarningShown,
-        ).toBe(true);
-        expect(resolveHeaderSystemWarnings({ isAdmin: true, isGlobalAdmin: true }).isSystemWarningShown).toBe(false);
+    it('aggregates item warnings into their category and top-level System indicators', () => {
+        const warnings = resolveHeaderSystemWarnings({
+            isAdmin: true,
+            isGlobalAdmin: true,
+            isAgentEmailWarningShown: true,
+            isServersDnsWarningShown: true,
+        });
+
+        expect(isHeaderSystemWarningShownForCategory(warnings, 'Administration')).toBe(true);
+        expect(isHeaderSystemWarningShownForCategory(warnings, 'Super Admin')).toBe(true);
+        expect(isHeaderSystemWarningShownForCategory(warnings, 'Login Methods')).toBe(false);
+        expect(warnings.isSystemWarningShown).toBe(true);
     });
 });

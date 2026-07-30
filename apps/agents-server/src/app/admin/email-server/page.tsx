@@ -4,7 +4,10 @@ import { ForbiddenPage } from '../../../components/ForbiddenPage/ForbiddenPage';
 import { $provideServer } from '../../../tools/$provideServer';
 import { isUserAdmin } from '../../../utils/isUserAdmin';
 import { createEmailDnsInstructions } from '../../../utils/stalwart/createEmailDnsInstructions';
-import { readStalwartEmailSnapshot } from '../../../utils/stalwart/readStalwartEmailSnapshot';
+import {
+    isStalwartEmailSnapshotOperational,
+    readStalwartEmailSnapshot,
+} from '../../../utils/stalwart/readStalwartEmailSnapshot';
 import { AdminConfigurationShell } from '../_components/AdminConfigurationShell';
 import { $synchronizeStalwartEmailDomain } from './actions';
 
@@ -24,12 +27,7 @@ export default async function AdminEmailServerPage() {
     const server = await $provideServer();
     const snapshot = await readStalwartEmailSnapshot(server.publicUrl.hostname);
     const dnsInstructions = createEmailDnsInstructions(snapshot.domain);
-    const isOperational = Boolean(
-        snapshot.isReachable &&
-            snapshot.domainId &&
-            snapshot.isBridgeAccountConfigured &&
-            snapshot.isInboundHookConfigured,
-    );
+    const isOperational = isStalwartEmailSnapshotOperational(snapshot);
 
     return (
         <AdminConfigurationShell activePage="email-server">
@@ -59,7 +57,9 @@ export default async function AdminEmailServerPage() {
                                     {snapshot.isInboundHookConfigured ? 'configured' : 'missing'}
                                 </p>
                                 {snapshot.errorMessage ? (
-                                    <p className="mt-2 max-w-4xl whitespace-pre-wrap text-xs">{snapshot.errorMessage}</p>
+                                    <p className="mt-2 max-w-4xl whitespace-pre-wrap text-xs">
+                                        {snapshot.errorMessage}
+                                    </p>
                                 ) : null}
                             </div>
                         </div>
@@ -99,7 +99,9 @@ export default async function AdminEmailServerPage() {
                             </div>
                         ))}
                         {snapshot.agents.length === 0 ? (
-                            <p className="px-4 py-5 text-sm text-gray-500">No active agents have email addresses yet.</p>
+                            <p className="px-4 py-5 text-sm text-gray-500">
+                                No active agents have email addresses yet.
+                            </p>
                         ) : null}
                     </div>
                 </section>
@@ -138,8 +140,8 @@ export default async function AdminEmailServerPage() {
                         </p>
                         <p>
                             <strong>SMTP TLS:</strong> after <code>mail.{snapshot.domain}</code> resolves publicly,
-                            configure Stalwart ACME certificate management or import a publicly trusted certificate
-                            for that hostname.
+                            configure Stalwart ACME certificate management or import a publicly trusted certificate for
+                            that hostname.
                         </p>
                         <p>
                             Open TCP port <code>25</code> publicly. Keep submission ports <code>465</code>/

@@ -21,6 +21,28 @@ export type StalwartEmailSnapshot = {
 };
 
 /**
+ * Determines whether every required part of the current server's agent email integration is operational.
+ *
+ * @param snapshot - Current Stalwart configuration and health snapshot.
+ * @returns `true` when the agent email service can receive and route mail for this server.
+ *
+ * @private shared by Stalwart administration and Header warnings
+ */
+export function isStalwartEmailSnapshotOperational(
+    snapshot: Pick<
+        StalwartEmailSnapshot,
+        'isReachable' | 'domainId' | 'isBridgeAccountConfigured' | 'isInboundHookConfigured'
+    >,
+): boolean {
+    return Boolean(
+        snapshot.isReachable &&
+            snapshot.domainId &&
+            snapshot.isBridgeAccountConfigured &&
+            snapshot.isInboundHookConfigured,
+    );
+}
+
+/**
  * Reads Stalwart state for one server domain without throwing on an unavailable service.
  */
 export async function readStalwartEmailSnapshot(domainValue: string): Promise<StalwartEmailSnapshot> {

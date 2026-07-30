@@ -64,6 +64,14 @@ import {
 import { resolveFileUploadAvailability } from '../utils/upload/fileUploadAvailability';
 import { readServerResourceWarningStatus } from '../utils/resourceMonitor/readServerResourceMonitorSnapshot';
 import { RESOURCE_MONITOR_OK_WARNING_STATUS } from '../utils/resourceMonitor/resourceMonitorTypes';
+import { isInternalS3WarningShown } from '../utils/internalS3/resolveInternalS3Status';
+import { readInternalS3Snapshot } from '../utils/internalS3/readInternalS3Snapshot';
+import { resolveServersDnsWarningStatus } from '../utils/serverManagement/resolveServersDnsWarningStatus';
+import {
+    isStalwartEmailSnapshotOperational,
+    readStalwartEmailSnapshot,
+} from '../utils/stalwart/readStalwartEmailSnapshot';
+import { readStalwartConfiguration } from '../utils/stalwart/StalwartConfiguration';
 import { readAgentsServerFooterVersion } from '../utils/vpsSelfUpdate/readAgentsServerFooterVersion';
 import '@prisma/studio-core/ui/index.css';
 import './globals.css';
@@ -221,6 +229,57 @@ async function resolveAgentProjectsDnsWarningStatus(isAdmin: boolean): Promise<b
 }
 
 /**
+ * Resolves whether the current server's agent email integration needs an administrator-facing menu warning.
+ *
+ * @param options - Current viewer capability and the server domain whose mail integration is checked.
+ * @returns `true` when the current server cannot receive and route agent email.
+ */
+async function resolveAgentEmailWarningStatus(options: {
+    readonly isAdmin: boolean;
+    readonly serverDomain: string;
+}): Promise<boolean> {
+    if (!options.isAdmin) {
+        return false;
+    }
+
+    try {
+        return !isStalwartEmailSnapshotOperational(await readStalwartEmailSnapshot(options.serverDomain));
+    } catch (error) {
+        console.error('Failed to resolve agent email warning status:', error);
+        return false;
+    }
+}
+
+/**
+ * Resolves whether the VPS-wide Stalwart configuration needs a super-admin menu warning.
+ *
+ * @param isGlobalAdmin - Whether the current viewer may see VPS-wide operational details.
+ * @returns `true` when Stalwart credentials or bridge secrets are incomplete.
+ */
+function resolveVpsEmailServerWarningStatus(isGlobalAdmin: boolean): boolean {
+    return Boolean(isGlobalAdmin && !readStalwartConfiguration().isConfigured);
+}
+
+/**
+ * Resolves whether the selected self-contained S3 storage needs a super-admin menu warning.
+ *
+ * @param isGlobalAdmin - Whether the current viewer may see VPS-wide operational details.
+ * @returns `true` when the active self-contained S3 storage is incomplete or unavailable.
+ */
+async function resolveInternalS3WarningStatus(isGlobalAdmin: boolean): Promise<boolean> {
+    if (!isGlobalAdmin) {
+        return false;
+    }
+
+    try {
+        return isInternalS3WarningShown(await readInternalS3Snapshot());
+    } catch (error) {
+        console.error('Failed to resolve Internal S3 warning status:', error);
+        return false;
+    }
+}
+
+/**
  * Generates metadata.
  */
 export async function generateMetadata(): Promise<Metadata> {
@@ -325,6 +384,16 @@ export default async function RootLayout({
     });
     const agentProjectsDnsWarningPromise = isAdminPromise.then(resolveAgentProjectsDnsWarningStatus);
     const providedServerPromise = $provideServer();
+    const agentEmailWarningPromise = Promise.all([isAdminPromise, providedServerPromise]).then(
+        ([isAdmin, providedServer]) =>
+            resolveAgentEmailWarningStatus({
+                isAdmin,
+                serverDomain: providedServer.publicUrl.hostname,
+            }),
+    );
+    const vpsEmailServerWarningPromise = isGlobalAdminPromise.then(resolveVpsEmailServerWarningStatus);
+    const serversDnsWarningPromise = isGlobalAdminPromise.then(resolveServersDnsWarningStatus);
+    const internalS3WarningPromise = isGlobalAdminPromise.then(resolveInternalS3WarningStatus);
     const serverVisibilityPromise = getServerVisibility();
     const agentNamingPromise = getAgentNaming();
     const organizationStatePromise = isAdminPromise.then((isAdmin) =>
@@ -333,7 +402,11 @@ export default async function RootLayout({
     // Note: Core agents live in the private `.core` folder, which is already part of the admin organization state, so
     //       the missing-core warning is derived without any extra database query.
     const coreAgentIdentitiesPromise = isAdminPromise.then((isAdmin) =>
-        isAdmin ? loadBundledAgentIdentities().then((identities) => identities.coreAgents).catch(() => []) : [],
+        isAdmin
+            ? loadBundledAgentIdentities()
+                  .then((identities) => identities.coreAgents)
+                  .catch(() => [])
+            : [],
     );
     const chatPreferencesPromise = getDefaultChatPreferences();
     const defaultIsNotificationsOnPromise = getDefaultIsNotificationsOn();
@@ -416,7 +489,11 @@ export default async function RootLayout({
         resourceMonitorWarningStatus,
         footerVersionMetadata,
         coreAgentIdentities,
+        isAgentEmailWarningShown,
         isAgentProjectsDnsWarningShown,
+        isVpsEmailServerWarningShown,
+        isServersDnsWarningShown,
+        isInternalS3WarningShown,
     ] = await Promise.all([
         isAdminPromise,
         isGlobalAdminPromise,
@@ -438,7 +515,11 @@ export default async function RootLayout({
         resourceMonitorWarningStatusPromise,
         footerVersionMetadataPromise,
         coreAgentIdentitiesPromise,
+        agentEmailWarningPromise,
         agentProjectsDnsWarningPromise,
+        vpsEmailServerWarningPromise,
+        serversDnsWarningPromise,
+        internalS3WarningPromise,
     ]);
 
     const serverName = layoutMetadata.SERVER_NAME || 'Promptbook Agents Server';
@@ -533,7 +614,11 @@ export default async function RootLayout({
                     shibbolethAuthenticationStatus={shibbolethAuthenticationStatus}
                     resourceMonitorWarningStatus={resourceMonitorWarningStatus}
                     isCoreAgentsMissing={isCoreAgentsMissing}
+                    isAgentEmailWarningShown={isAgentEmailWarningShown}
                     isAgentProjectsDnsWarningShown={isAgentProjectsDnsWarningShown}
+                    isVpsEmailServerWarningShown={isVpsEmailServerWarningShown}
+                    isServersDnsWarningShown={isServersDnsWarningShown}
+                    isInternalS3WarningShown={isInternalS3WarningShown}
                     isExperimentalPwaAppEnabled={isExperimentalPwaAppEnabled}
                     controlPanelOptionAvailability={controlPanelOptionAvailability}
                     defaultServerLanguage={serverLanguage}

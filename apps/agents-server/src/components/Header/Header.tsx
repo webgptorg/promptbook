@@ -60,7 +60,11 @@ export function Header(props: HeaderProps) {
         shibbolethAuthenticationStatus,
         resourceMonitorWarningStatus,
         isCoreAgentsMissing = false,
+        isAgentEmailWarningShown = false,
         isAgentProjectsDnsWarningShown = false,
+        isVpsEmailServerWarningShown = false,
+        isServersDnsWarningShown = false,
+        isInternalS3WarningShown = false,
     } = props;
     const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
     const router = useRouter();
@@ -245,14 +249,33 @@ export function Header(props: HeaderProps) {
     );
 
     const hasMenuAccess = Boolean(currentUser || isAdmin);
-    const { isSystemWarningShown } = resolveHeaderSystemWarnings({
-        isAdmin,
-        isGlobalAdmin,
-        shibbolethAuthenticationStatus,
-        resourceMonitorWarningStatus,
-        isCoreAgentsMissing,
-        isAgentProjectsDnsWarningShown,
-    });
+    const systemWarnings = useMemo(
+        () =>
+            resolveHeaderSystemWarnings({
+                isAdmin,
+                isGlobalAdmin,
+                shibbolethAuthenticationStatus,
+                resourceMonitorWarningStatus,
+                isCoreAgentsMissing,
+                isAgentEmailWarningShown,
+                isAgentProjectsDnsWarningShown,
+                isVpsEmailServerWarningShown,
+                isServersDnsWarningShown,
+                isInternalS3WarningShown,
+            }),
+        [
+            isAdmin,
+            isGlobalAdmin,
+            shibbolethAuthenticationStatus,
+            resourceMonitorWarningStatus,
+            isCoreAgentsMissing,
+            isAgentEmailWarningShown,
+            isAgentProjectsDnsWarningShown,
+            isVpsEmailServerWarningShown,
+            isServersDnsWarningShown,
+            isInternalS3WarningShown,
+        ],
+    );
     const systemMenuEntries = useMemo(
         () =>
             buildHeaderSystemMenuItems({
@@ -263,9 +286,7 @@ export function Header(props: HeaderProps) {
                 isExperimental,
                 feedbackMode,
                 shibbolethAuthenticationStatus,
-                resourceMonitorWarningStatus,
-                isCoreAgentsMissing,
-                isAgentProjectsDnsWarningShown,
+                systemWarnings,
             }),
         [
             currentUser,
@@ -273,16 +294,14 @@ export function Header(props: HeaderProps) {
             isAdmin,
             isExperimental,
             isGlobalAdmin,
-            isCoreAgentsMissing,
-            isAgentProjectsDnsWarningShown,
-            resourceMonitorWarningStatus,
             shibbolethAuthenticationStatus,
+            systemWarnings,
             t,
         ],
     );
     const systemLabel = useMemo(
         () =>
-            isSystemWarningShown ? (
+            systemWarnings.isSystemWarningShown ? (
                 <span className="inline-flex items-center gap-2">
                     {t('header.systemMenuLabel')}
                     <TriangleAlert className="h-4 w-4 text-amber-500" aria-label="Warning" />
@@ -290,7 +309,7 @@ export function Header(props: HeaderProps) {
             ) : (
                 t('header.systemMenuLabel')
             ),
-        [isSystemWarningShown, t],
+        [systemWarnings.isSystemWarningShown, t],
     );
     const menuItems = useMemo(
         () =>

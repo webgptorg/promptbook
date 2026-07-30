@@ -1,4 +1,4 @@
-[ ]
+[x] by OpenAI Codex `gpt-5.6-terra` (ChatGPT account) - Implementation ~$1.78 32 minutes; Testing 9 minutes
 
 [✨⭕️] When there is a warning on some admin or super admin page, this warning should be shown also as an exclamation mark alongside the menu item. 
 
@@ -13,3 +13,4 @@
 ![alt text](screenshots/2026-07-1000-agents-server-admin-warning-pattern-4.png)
 ![no warning alongside menu item despite warning on that admin page](screenshots/2026-07-1000-agents-server-admin-warning-pattern-1.png)
 ![alt text](screenshots/2026-07-1000-agents-server-admin-warning-pattern.png)
+

@@ -6,6 +6,7 @@ import { isUserGlobalAdmin } from '../../../utils/isUserGlobalAdmin';
 import type { InternalS3Configuration, InternalS3Snapshot } from '../../../utils/internalS3/internalS3Types';
 import { readInternalS3Directory } from '../../../utils/internalS3/readInternalS3Directory';
 import { readInternalS3Snapshot } from '../../../utils/internalS3/readInternalS3Snapshot';
+import { resolveInternalS3Status, type InternalS3StatusTone } from '../../../utils/internalS3/resolveInternalS3Status';
 import { formatResourceBytes } from '../../../utils/resourceMonitor/formatResourceMonitorValue';
 import { AdminStorageTabs } from '../_components/AdminStorageTabs';
 import { S3BrowserPanel } from '../_components/S3BrowserPanel';
@@ -34,7 +35,7 @@ const INTERNAL_S3_ADMIN_ROUTE = '/admin/internal-s3';
  *
  * @private internal helper of `/admin/internal-s3`
  */
-type InternalS3Tone = 'positive' | 'warning' | 'critical' | 'muted';
+type InternalS3Tone = InternalS3StatusTone;
 
 /**
  * One label/value row rendered in the configuration detail list.
@@ -288,51 +289,6 @@ function InternalS3ConfigurationPanel({ configuration }: { readonly configuratio
             </dl>
         </section>
     );
-}
-
-/**
- * Resolves the banner tone, title, and message from a snapshot.
- *
- * @param snapshot - Internal S3 snapshot.
- * @returns Banner descriptor.
- * @private internal helper of `/admin/internal-s3`
- */
-function resolveInternalS3Status(snapshot: InternalS3Snapshot): {
-    readonly tone: InternalS3Tone;
-    readonly title: string;
-    readonly message: string;
-} {
-    const { configuration, health, probeSkippedReason } = snapshot;
-
-    if (!configuration.isSelfContainedS3Selected) {
-        return {
-            tone: 'muted',
-            title: 'Self-contained S3 is not the active storage',
-            message: probeSkippedReason ?? '',
-        };
-    }
-
-    if (health === null) {
-        return {
-            tone: 'warning',
-            title: 'Self-contained S3 is not fully configured',
-            message: probeSkippedReason ?? '',
-        };
-    }
-
-    if (health.isReachable) {
-        return {
-            tone: 'positive',
-            title: 'Internal S3 storage is reachable',
-            message: 'The bundled VersityGW storage responded to a live object listing.',
-        };
-    }
-
-    return {
-        tone: 'critical',
-        title: 'Internal S3 storage is not reachable',
-        message: health.errorMessage ?? 'The live object listing did not succeed.',
-    };
 }
 
 /**

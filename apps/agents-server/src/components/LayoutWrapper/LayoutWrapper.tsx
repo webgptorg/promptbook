@@ -67,9 +67,25 @@ type LayoutWrapperProps = {
      */
     readonly isCoreAgentsMissing: boolean;
     /**
+     * Whether the current server's agent email integration needs administrator attention.
+     */
+    readonly isAgentEmailWarningShown: boolean;
+    /**
      * Whether generated project domain DNS needs administrator attention.
      */
     readonly isAgentProjectsDnsWarningShown: boolean;
+    /**
+     * Whether the VPS-wide email service needs super-admin attention.
+     */
+    readonly isVpsEmailServerWarningShown: boolean;
+    /**
+     * Whether registered server or project DNS needs super-admin attention.
+     */
+    readonly isServersDnsWarningShown: boolean;
+    /**
+     * Whether active self-contained S3 storage needs super-admin attention.
+     */
+    readonly isInternalS3WarningShown: boolean;
     /**
      * Indicates if the install-as-app option should be shown in agent menus.
      */
@@ -118,7 +134,11 @@ export function LayoutWrapper({
     shibbolethAuthenticationStatus,
     resourceMonitorWarningStatus,
     isCoreAgentsMissing,
+    isAgentEmailWarningShown,
     isAgentProjectsDnsWarningShown,
+    isVpsEmailServerWarningShown,
+    isServersDnsWarningShown,
+    isInternalS3WarningShown,
     isExperimentalPwaAppEnabled,
     controlPanelOptionAvailability,
     defaultIsSoundsOn,
@@ -215,8 +235,20 @@ export function LayoutWrapper({
                                                                                         isCoreAgentsMissing={
                                                                                             isCoreAgentsMissing
                                                                                         }
+                                                                                        isAgentEmailWarningShown={
+                                                                                            isAgentEmailWarningShown
+                                                                                        }
                                                                                         isAgentProjectsDnsWarningShown={
                                                                                             isAgentProjectsDnsWarningShown
+                                                                                        }
+                                                                                        isVpsEmailServerWarningShown={
+                                                                                            isVpsEmailServerWarningShown
+                                                                                        }
+                                                                                        isServersDnsWarningShown={
+                                                                                            isServersDnsWarningShown
+                                                                                        }
+                                                                                        isInternalS3WarningShown={
+                                                                                            isInternalS3WarningShown
                                                                                         }
                                                                                     />
                                                                                     <main className={mainClassName}>

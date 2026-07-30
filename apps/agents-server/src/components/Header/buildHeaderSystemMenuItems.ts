@@ -63,8 +63,11 @@ import type { ServerTranslationKey } from '../../languages/ServerTranslationKeys
 import type { ShibbolethAuthenticationMenuStatus } from '../../constants/shibbolethAuth';
 import type { ChatFeedbackMode } from '../../utils/chatFeedbackMode';
 import type { UserInfo } from '../../utils/getCurrentUser';
-import type { ServerResourceWarningStatus } from '../../utils/resourceMonitor/resourceMonitorTypes';
-import { resolveHeaderSystemWarnings } from './resolveHeaderSystemWarnings';
+import {
+    isHeaderSystemWarningShownForCategory,
+    isHeaderSystemWarningShownForHref,
+    type HeaderSystemWarnings,
+} from './resolveHeaderSystemWarnings';
 import type { SubMenuItem } from './SubMenuItem';
 
 /**
@@ -156,9 +159,17 @@ type BuildHeaderSystemMenuItemsOptions = {
     readonly isExperimental: boolean;
     readonly feedbackMode: ChatFeedbackMode;
     readonly shibbolethAuthenticationStatus?: ShibbolethAuthenticationMenuStatus;
-    readonly resourceMonitorWarningStatus?: ServerResourceWarningStatus;
-    readonly isCoreAgentsMissing?: boolean;
-    readonly isAgentProjectsDnsWarningShown?: boolean;
+    readonly systemWarnings?: HeaderSystemWarnings;
+};
+
+/**
+ * Shared warning-free fallback for callers that only need the static System menu structure.
+ *
+ * @private constant of Header
+ */
+const EMPTY_HEADER_SYSTEM_WARNINGS: HeaderSystemWarnings = {
+    warnings: [],
+    isSystemWarningShown: false,
 };
 
 /**
@@ -286,7 +297,9 @@ function applySystemSubMenuIcons(
 }
 
 /**
- * Decorates a menu label with the warning indicator used for misconfigured login methods.
+ * Decorates a System menu label with the shared warning indicator.
+ *
+ * @private function of Header
  */
 function createWarningMenuLabel(label: string) {
     return createElement(
@@ -301,7 +314,31 @@ function createWarningMenuLabel(label: string) {
 }
 
 /**
+ * Decorates every System menu entry whose destination currently has a visible warning.
+ *
+ * The warning registry owns the route-to-warning mapping, so adding another operational warning
+ * does not require scattered leaf-label conditionals throughout this menu tree.
+ *
+ * @private function of Header
+ */
+function applySystemSubMenuWarnings(
+    items: ReadonlyArray<SubMenuItem>,
+    systemWarnings: HeaderSystemWarnings,
+): SubMenuItem[] {
+    return items.map((item) => ({
+        ...item,
+        label:
+            item.href && typeof item.label === 'string' && isHeaderSystemWarningShownForHref(systemWarnings, item.href)
+                ? createWarningMenuLabel(item.label)
+                : item.label,
+        items: item.items ? applySystemSubMenuWarnings(item.items, systemWarnings) : item.items,
+    }));
+}
+
+/**
  * Creates one category entry inside the System dropdown when there are items to show.
+ *
+ * @private function of Header
  */
 function createSystemCategory(
     label: SystemCategoryLabel,
@@ -338,9 +375,7 @@ export function buildHeaderSystemMenuItems({
     isExperimental,
     feedbackMode,
     shibbolethAuthenticationStatus,
-    resourceMonitorWarningStatus,
-    isCoreAgentsMissing = false,
-    isAgentProjectsDnsWarningShown = false,
+    systemWarnings = EMPTY_HEADER_SYSTEM_WARNINGS,
 }: BuildHeaderSystemMenuItemsOptions): SubMenuItem[] {
     const userAccountSystemItems: SubMenuItem[] = [
         {
@@ -403,21 +438,6 @@ export function buildHeaderSystemMenuItems({
         ];
     }
 
-    // Note: The System warnings are gated by admin capability in a single shared place so the submenu entries and the
-    //       top-level System label indicator always agree on what the current viewer is allowed to see.
-    const {
-        isShibbolethConfigurationWarningShown,
-        isResourceMonitorWarningShown,
-        isCoreAgentsWarningShown,
-        isAgentProjectsDnsWarningShown: isAgentProjectsDnsWarningVisible,
-    } = resolveHeaderSystemWarnings({
-        isAdmin,
-        isGlobalAdmin,
-        shibbolethAuthenticationStatus,
-        resourceMonitorWarningStatus,
-        isCoreAgentsMissing,
-        isAgentProjectsDnsWarningShown,
-    });
     const superAdminSystemItems: SubMenuItem[] = [
         {
             label: translate('header.servers'),
@@ -435,9 +455,7 @@ export function buildHeaderSystemMenuItems({
                       href: '/superadmin/email-server',
                   } as SubMenuItem,
                   {
-                      label: isResourceMonitorWarningShown
-                          ? createWarningMenuLabel(translate('header.resourceMonitor'))
-                          : translate('header.resourceMonitor'),
+                      label: translate('header.resourceMonitor'),
                       href: '/superadmin/resource-monitor',
                   } as SubMenuItem,
                   {
@@ -474,9 +492,7 @@ export function buildHeaderSystemMenuItems({
             href: '/admin/models',
         },
         {
-            label: isCoreAgentsWarningShown
-                ? createWarningMenuLabel(translate('header.coreAgents'))
-                : translate('header.coreAgents'),
+            label: translate('header.coreAgents'),
             href: '/admin/core-agents',
         },
         {
@@ -523,9 +539,7 @@ export function buildHeaderSystemMenuItems({
             href: '/admin/files',
         },
         {
-            label: isAgentProjectsDnsWarningVisible
-                ? createWarningMenuLabel(translate('header.agentProjects'))
-                : translate('header.agentProjects'),
+            label: translate('header.agentProjects'),
             href: '/admin/projects',
         },
     ];
@@ -533,10 +547,8 @@ export function buildHeaderSystemMenuItems({
     const loginMethodsSystemItems: SubMenuItem[] = shibbolethAuthenticationStatus?.isActive
         ? [
               {
-                  label: isShibbolethConfigurationWarningShown
-                      ? createWarningMenuLabel(translate('header.shibboleth'))
-                      : translate('header.shibboleth'),
-                  href: isShibbolethConfigurationWarningShown
+                  label: translate('header.shibboleth'),
+                  href: isHeaderSystemWarningShownForHref(systemWarnings, '/admin/login-methods/shibboleth')
                       ? '/admin/login-methods/shibboleth#setup-instructions'
                       : '/admin/login-methods/shibboleth',
               },
@@ -617,25 +629,33 @@ export function buildHeaderSystemMenuItems({
             : []),
     ];
 
+    const applyWarnings = (items: ReadonlyArray<SubMenuItem>): SubMenuItem[] =>
+        applySystemSubMenuWarnings(items, systemWarnings);
+
     return [
-        ...createSystemCategory('My Account', userAccountSystemItems, translate),
-        ...createSystemCategory('Utilities', utilitiesSystemItems, translate),
-        ...createSystemCategory('Super Admin', superAdminSystemItems, translate, isResourceMonitorWarningShown),
+        ...createSystemCategory('My Account', applyWarnings(userAccountSystemItems), translate),
+        ...createSystemCategory('Utilities', applyWarnings(utilitiesSystemItems), translate),
+        ...createSystemCategory(
+            'Super Admin',
+            applyWarnings(superAdminSystemItems),
+            translate,
+            isHeaderSystemWarningShownForCategory(systemWarnings, 'Super Admin'),
+        ),
         ...createSystemCategory(
             'Administration',
-            administrationSystemItems,
+            applyWarnings(administrationSystemItems),
             translate,
-            isCoreAgentsWarningShown || isAgentProjectsDnsWarningVisible,
+            isHeaderSystemWarningShownForCategory(systemWarnings, 'Administration'),
         ),
         ...createSystemCategory(
             'Login Methods',
-            loginMethodsSystemItems,
+            applyWarnings(loginMethodsSystemItems),
             translate,
-            isShibbolethConfigurationWarningShown,
+            isHeaderSystemWarningShownForCategory(systemWarnings, 'Login Methods'),
         ),
-        ...createSystemCategory('Monitoring & Usage', monitoringAndUsageSystemItems, translate),
-        ...createSystemCategory('Integrations & Keys', integrationsAndKeysSystemItems, translate),
-        ...createSystemCategory('Developer / Debug', developerDebugSystemItems, translate),
-        ...createSystemCategory('Legal & About', legalAndAboutSystemItems, translate),
+        ...createSystemCategory('Monitoring & Usage', applyWarnings(monitoringAndUsageSystemItems), translate),
+        ...createSystemCategory('Integrations & Keys', applyWarnings(integrationsAndKeysSystemItems), translate),
+        ...createSystemCategory('Developer / Debug', applyWarnings(developerDebugSystemItems), translate),
+        ...createSystemCategory('Legal & About', applyWarnings(legalAndAboutSystemItems), translate),
     ];
 }

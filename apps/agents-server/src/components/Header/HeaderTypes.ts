@@ -76,9 +76,29 @@ export type HeaderProps = {
     isCoreAgentsMissing?: boolean;
 
     /**
+     * Whether the current server's agent email integration needs administrator attention.
+     */
+    isAgentEmailWarningShown?: boolean;
+
+    /**
      * Whether generated project domain DNS needs administrator attention.
      */
     isAgentProjectsDnsWarningShown?: boolean;
+
+    /**
+     * Whether the VPS-wide email service needs super-admin attention.
+     */
+    isVpsEmailServerWarningShown?: boolean;
+
+    /**
+     * Whether a registered server or its generated project DNS needs super-admin attention.
+     */
+    isServersDnsWarningShown?: boolean;
+
+    /**
+     * Whether the active self-contained S3 storage needs super-admin attention.
+     */
+    isInternalS3WarningShown?: boolean;
 };
 
 /**

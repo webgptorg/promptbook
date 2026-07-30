@@ -3,6 +3,7 @@ import { isValidElement } from 'react';
 import type { ServerTranslationKey } from '../../languages/ServerTranslationKeys';
 import type { UserInfo } from '../../utils/getCurrentUser';
 import { buildHeaderSystemMenuItems } from './buildHeaderSystemMenuItems';
+import { resolveHeaderSystemWarnings } from './resolveHeaderSystemWarnings';
 import type { SubMenuItem } from './SubMenuItem';
 
 /**
@@ -136,16 +137,15 @@ describe('buildHeaderSystemMenuItems', () => {
             isGlobalAdmin: true,
             isExperimental: false,
             feedbackMode: 'stars',
-            resourceMonitorWarningStatus: {
-                isWarningShown: true,
-                issues: [
-                    {
-                        resource: 'memory',
-                        message: 'Free memory is low.',
-                    },
-                ],
-                warningMessages: ['Free memory is low.'],
-            },
+            systemWarnings: resolveHeaderSystemWarnings({
+                isAdmin: true,
+                isGlobalAdmin: true,
+                resourceMonitorWarningStatus: {
+                    isWarningShown: true,
+                    issues: [],
+                    warningMessages: [],
+                },
+            }),
         });
         const resourceMonitorItem = findItemByHref(items, '/superadmin/resource-monitor');
 
@@ -162,12 +162,45 @@ describe('buildHeaderSystemMenuItems', () => {
             isGlobalAdmin: false,
             isExperimental: false,
             feedbackMode: 'stars',
-            isAgentProjectsDnsWarningShown: true,
+            systemWarnings: resolveHeaderSystemWarnings({
+                isAdmin: true,
+                isGlobalAdmin: false,
+                isAgentProjectsDnsWarningShown: true,
+            }),
         });
         const agentProjectsItem = findItemByHref(items, '/admin/projects');
 
         expect(agentProjectsItem).not.toBeNull();
         expect(isValidElement(agentProjectsItem?.label)).toBe(true);
+    });
+
+    it('decorates every registered warning destination through the shared warning registry', () => {
+        const translate = (key: ServerTranslationKey) => `translated:${key}`;
+        const items = buildHeaderSystemMenuItems({
+            translate,
+            currentUser: FIXTURE_USER,
+            isAdmin: true,
+            isGlobalAdmin: true,
+            isExperimental: false,
+            feedbackMode: 'stars',
+            systemWarnings: resolveHeaderSystemWarnings({
+                isAdmin: true,
+                isGlobalAdmin: true,
+                isAgentEmailWarningShown: true,
+                isVpsEmailServerWarningShown: true,
+                isServersDnsWarningShown: true,
+                isInternalS3WarningShown: true,
+            }),
+        });
+
+        for (const href of [
+            '/admin/email-server',
+            '/superadmin/email-server',
+            '/superadmin/servers',
+            '/admin/internal-s3',
+        ]) {
+            expect(isValidElement(findItemByHref(items, href)?.label)).toBe(true);
+        }
     });
 
     it('adds Shibboleth under login methods only when Shibboleth authentication is active', () => {
@@ -214,16 +247,6 @@ describe('buildHeaderSystemMenuItems', () => {
             shibbolethAuthenticationStatus: {
                 isActive: true,
                 isConfigured: false,
-            },
-            resourceMonitorWarningStatus: {
-                isWarningShown: true,
-                issues: [
-                    {
-                        resource: 'memory',
-                        message: 'Free memory is low.',
-                    },
-                ],
-                warningMessages: ['Free memory is low.'],
             },
         });
         const icons = collectSubMenuIcons(items);
