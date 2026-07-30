@@ -1,3 +1,5 @@
+-   Fixed Super Admin server renames so saving a name on `/superadmin/servers` also updates that server's `SERVER_NAME` metadata. The metadata write now runs in the explicitly selected server context rather than the administrator's current-server context, preserving isolation across a multi-server VPS; it updates existing SQLite metadata rows reliably and clears stale metadata caches.
+
 -   Added the selected `--thinking-level` to successful `ptbk coder` prompt status lines, alongside the harness and model (for example, `by Claude Code \`claude-opus-4-8\` thinking \`xhigh\``). The Coder landing page now documents this completion metadata.
 
 -   Fixed standalone VPS project DNS visibility: `/superadmin/servers` now verifies generated project hostnames, defaults its setup guidance to the preferred wildcard CNAME record, and labels each owner with a linked agent chip. DNS problems now also appear on affected project pages and the **Agent Projects** menu item.

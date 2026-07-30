@@ -33,7 +33,7 @@ import {
 } from '../../../../utils/serverManagement';
 import { ManagedServerInputNormalizer } from '../../../../utils/serverManagement/ManagedServerInputNormalizer';
 import {
-    applyStandaloneVpsServerMetadata,
+    applyServerMetadata,
     resolveStandaloneVpsServerDisplayName,
 } from '../../../../utils/serverManagement/standaloneVpsServerMetadata';
 import { createStandaloneVpsDomainDnsDiagnostic } from '../../../../utils/standaloneVpsDnsDiagnostics';
@@ -313,8 +313,8 @@ async function createStandaloneVpsServer(body: CreateServerInput, normalizedDoma
     await updateConfiguredVpsDomains([...existingDomains, normalizedDomain]);
     await applyVpsRuntimeConfiguration({ isProcessRestartEnabled: false });
 
-    await applyStandaloneVpsServerMetadata({
-        tablePrefix: createdServer.tablePrefix,
+    await applyServerMetadata({
+        server: createdServer,
         name: body.name,
         iconUrl: body.iconUrl,
     });

@@ -1,4 +1,4 @@
-[ ]
+[x] (2 attempts) by OpenAI Codex `gpt-5.6-terra` (ChatGPT account) - Implementation ~$0.8866 29 minutes; Testing 5 minutes; Fixing ~$0.4130 19 minutes; Testing 9 minutes
 
 [✨😈] Fix the servers changing name
 
@@ -19,3 +19,4 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server) mainly with page `/admin/servers`
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
