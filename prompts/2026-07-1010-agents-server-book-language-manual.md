@@ -31,7 +31,7 @@
 
 ---
 
-[ ]
+[x] by Claude Code `claude-opus-5` thinking `max` - Implementation $9.12 7 hours; Testing 29 minutes
 
 [✨🚵] Improve the Book language manual
 
@@ -47,3 +47,4 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server) with the Book language documentation
+

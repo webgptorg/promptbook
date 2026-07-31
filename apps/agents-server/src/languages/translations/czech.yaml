@@ -183,6 +183,8 @@ documentation.preparingManual: Připravuji manuál…
 documentation.openDownloadOptions: Otevřít možnosti stažení manuálu
 documentation.exportFormatLabel: Formát
 documentation.exportLanguageLabel: Jazyk
+documentation.includeLowLevelCommitmentsLabel: Zahrnout nízkoúrovňové commitmenty
+documentation.includeLowLevelCommitmentsHint: Přidá závěrečnou kapitolu s pokročilými commitmenty, jako je MODEL. Většina autorů je nikdy nepotřebuje.
 documentation.bakedAgentsLabel: Agenti zahrnutí v manuálu
 documentation.bakedAgentsHint: 'Vybraní agenti ({count}) poskytnou příklady a určují prioritu commitmentů.'
 documentation.noBakedAgentsHint: Nejsou vybraní žádní agenti. Exportovaný manuál bude stejný pro každý server.

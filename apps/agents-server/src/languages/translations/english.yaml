@@ -185,6 +185,8 @@ documentation.preparingManual: Preparing manual…
 documentation.openDownloadOptions: Open manual download options
 documentation.exportFormatLabel: Format
 documentation.exportLanguageLabel: Language
+documentation.includeLowLevelCommitmentsLabel: Include low level commitments
+documentation.includeLowLevelCommitmentsHint: Adds a closing chapter with advanced commitments such as MODEL. Most authors never need them.
 documentation.bakedAgentsLabel: Agents included in the manual
 documentation.bakedAgentsHint: '{count} selected agent(s) will provide the examples and commitment priority.'
 documentation.noBakedAgentsHint: No agents selected. The exported manual will be generic for every server.

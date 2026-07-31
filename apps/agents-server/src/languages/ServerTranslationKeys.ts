@@ -189,6 +189,8 @@ export const SERVER_TRANSLATION_KEYS = [
     'documentation.openDownloadOptions',
     'documentation.exportFormatLabel',
     'documentation.exportLanguageLabel',
+    'documentation.includeLowLevelCommitmentsLabel',
+    'documentation.includeLowLevelCommitmentsHint',
     'documentation.bakedAgentsLabel',
     'documentation.bakedAgentsHint',
     'documentation.noBakedAgentsHint',

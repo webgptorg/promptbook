@@ -3,6 +3,7 @@
 import { ChevronDown, Download } from 'lucide-react';
 import { useState } from 'react';
 import type { BookLanguageDocumentationAgentOption } from '../../utils/bookLanguageDocumentation/BookLanguageDocumentationAgent';
+import { BOOK_LANGUAGE_DOCUMENTATION_LOW_LEVEL_COMMITMENTS_PARAMETER } from '../../utils/bookLanguageDocumentation/bookLanguageDocumentationExportParameters';
 import { downloadBlob, parseFilenameFromContentDisposition } from '../../utils/download/browserFileDownload';
 import { showAlert } from '../AsyncDialogs/asyncDialogs';
 import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
@@ -40,6 +41,7 @@ export function DocsToolbar({ agents }: DocsToolbarProps) {
     const [isManualDownloading, setIsManualDownloading] = useState(false);
     const [exportFormat, setExportFormat] = useState<BookLanguageDocumentationExportFormat>('pdf');
     const [exportLanguage, setExportLanguage] = useState(language);
+    const [isLowLevelCommitmentsIncluded, setIsLowLevelCommitmentsIncluded] = useState(false);
     const [selectedAgentIds, setSelectedAgentIds] = useState<ReadonlySet<string>>(
         () => new Set(agents.map((agent) => agent.id)),
     );
@@ -55,7 +57,12 @@ export function DocsToolbar({ agents }: DocsToolbarProps) {
 
         try {
             const response = await fetch(
-                createBookLanguageDocumentationExportUrl(exportFormat, exportLanguage, selectedAgentIds),
+                createBookLanguageDocumentationExportUrl({
+                    exportFormat,
+                    exportLanguage,
+                    selectedAgentIds,
+                    isLowLevelCommitmentsIncluded,
+                }),
             );
 
             if (!response.ok) {
@@ -160,6 +167,21 @@ export function DocsToolbar({ agents }: DocsToolbarProps) {
                                 </select>
                             </label>
 
+                            <label className="flex cursor-pointer items-start gap-2 text-sm font-medium text-gray-700 dark:text-slate-100">
+                                <input
+                                    type="checkbox"
+                                    checked={isLowLevelCommitmentsIncluded}
+                                    onChange={(event) => setIsLowLevelCommitmentsIncluded(event.target.checked)}
+                                    className="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                />
+                                <span>
+                                    {t('documentation.includeLowLevelCommitmentsLabel')}
+                                    <span className="mt-1 block text-xs font-normal text-gray-500 dark:text-slate-400">
+                                        {t('documentation.includeLowLevelCommitmentsHint')}
+                                    </span>
+                                </span>
+                            </label>
+
                             <fieldset>
                                 <legend className="text-sm font-medium text-gray-700 dark:text-slate-100">
                                     {t('documentation.bakedAgentsLabel')}
@@ -200,21 +222,47 @@ export function DocsToolbar({ agents }: DocsToolbarProps) {
 }
 
 /**
+ * Currently selected Book language manual export options.
+ *
+ * @private internal type of `DocsToolbar`
+ */
+type BookLanguageDocumentationExportUrlOptions = {
+    /**
+     * Requested file format.
+     */
+    readonly exportFormat: BookLanguageDocumentationExportFormat;
+
+    /**
+     * Requested manual language.
+     */
+    readonly exportLanguage: string;
+
+    /**
+     * Agents to bake into the manual.
+     */
+    readonly selectedAgentIds: ReadonlySet<string>;
+
+    /**
+     * Whether the closing chapter with low-level commitments should be exported.
+     */
+    readonly isLowLevelCommitmentsIncluded: boolean;
+};
+
+/**
  * Creates one Book language manual export URL from the currently selected options.
  *
- * @param exportFormat - Requested file format.
- * @param exportLanguage - Requested manual language metadata.
- * @param selectedAgentIds - Agents to bake into the manual.
+ * @param options - Format, language, agents, and advanced-content selection.
  * @returns Same-origin manual download URL.
  *
  * @private internal utility of `DocsToolbar`
  */
-function createBookLanguageDocumentationExportUrl(
-    exportFormat: BookLanguageDocumentationExportFormat,
-    exportLanguage: string,
-    selectedAgentIds: ReadonlySet<string>,
-): string {
+function createBookLanguageDocumentationExportUrl(options: BookLanguageDocumentationExportUrlOptions): string {
+    const { exportFormat, exportLanguage, selectedAgentIds, isLowLevelCommitmentsIncluded } = options;
     const searchParams = new URLSearchParams({ language: exportLanguage });
+
+    if (isLowLevelCommitmentsIncluded) {
+        searchParams.set(BOOK_LANGUAGE_DOCUMENTATION_LOW_LEVEL_COMMITMENTS_PARAMETER, 'true');
+    }
 
     if (selectedAgentIds.size === 0) {
         searchParams.set('agents', 'none');
