@@ -1,5 +1,5 @@
+import { findBestMatchingCloudflareZoneForDomain } from '../../src/utils/cloudflare/findBestMatchingCloudflareZoneForDomain';
 import { getVercelDomainConfiguration, type VercelApiConfiguration } from '../createVercelDomainSyncPlan';
-import { normalizeManagedDomain } from '../normalizeManagedDomain';
 import type {
     CloudflareSkippedDomain,
     CloudflareZone,
@@ -44,32 +44,4 @@ export async function resolveDesiredCloudflareDnsRecords(options: {
         desiredRecords,
         skippedDomains,
     };
-}
-
-/**
- * Finds the best matching Cloudflare zone for one fully-qualified domain.
- *
- * @param domain - Fully-qualified managed domain.
- * @param zones - Accessible Cloudflare zones.
- * @returns Best matching zone or `null`.
- */
-function findBestMatchingCloudflareZoneForDomain(
-    domain: string,
-    zones: ReadonlyArray<CloudflareZone>,
-): CloudflareZone | null {
-    const normalizedDomain = normalizeManagedDomain(domain);
-    let bestMatch: CloudflareZone | null = null;
-
-    for (const zone of zones) {
-        const normalizedZoneName = normalizeManagedDomain(zone.name);
-        if (normalizedDomain !== normalizedZoneName && !normalizedDomain.endsWith(`.${normalizedZoneName}`)) {
-            continue;
-        }
-
-        if (!bestMatch || normalizedZoneName.length > normalizeManagedDomain(bestMatch.name).length) {
-            bestMatch = zone;
-        }
-    }
-
-    return bestMatch;
 }

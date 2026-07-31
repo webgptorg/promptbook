@@ -1,18 +1,22 @@
 import { spaceTrim } from 'spacetrim';
 import { NotYetImplementedCommitmentDefinition } from '../../commitments/_base/NotYetImplementedCommitmentDefinition';
-import {
-    formatCommitmentReplacementText,
-    getCommitmentNoticeMetadata,
-} from '../../commitments/_common/getCommitmentNoticeMetadata';
 import { getGroupedCommitmentDefinitions } from '../../commitments/_common/getGroupedCommitmentDefinitions';
 import { parseAgentSourceWithCommitments } from '../agent-source/parseAgentSourceWithCommitments';
 import type { string_book } from '../agent-source/string_book';
 import type { string_markdown } from '../../types/string_markdown';
+import type { string_language } from '../../types/string_token';
 import { BOOK_LANGUAGE_VERSION } from '../../version';
-import { bookLanguageCommonPitfalls } from './bookLanguageCommonPitfalls';
 import type { BookLanguageDocumentationExample } from './BookLanguageDocumentationExample';
 import { bookLanguageDocumentationExamples } from './bookLanguageDocumentationExamples';
-import { renderGroupedCommitmentDocumentationMarkdown } from './renderGroupedCommitmentDocumentationMarkdown';
+import type { BookLanguageManualDictionary } from './BookLanguageManualDictionary';
+import {
+    getBookLanguageManualCommitmentGroups,
+    type BookLanguageManualCommitmentGroup,
+} from './getBookLanguageManualCommitmentGroups';
+import { getBookLanguageManualDictionary } from './getBookLanguageManualDictionary';
+import { getSafeCodeBlock } from './getSafeCodeBlock';
+import { renderCommitmentCatalogSection } from './renderCommitmentCatalogSection';
+import { toStableAnchorId } from './toStableAnchorId';
 
 /**
  * Commitment types that primarily model composition of multiple agents.
@@ -53,8 +57,6 @@ const TOOLING_COMMITMENT_TYPES = new Set([
 const PROFILE_COMMITMENT_TYPES = new Set([
     'GOAL',
     'GOALS',
-    'PERSONA',
-    'PERSONAE',
     'META',
     'META AVATAR',
     'META VISUAL',
@@ -70,8 +72,6 @@ const PROFILE_COMMITMENT_TYPES = new Set([
     'META FONT',
     'META VOICE',
     'INITIAL MESSAGE',
-    'MODEL',
-    'MODELS',
 ]);
 
 /**
@@ -85,18 +85,10 @@ const BEHAVIOR_COMMITMENT_TYPES = new Set([
     'KNOWLEDGE',
     'GOAL',
     'GOALS',
-    'STYLE',
-    'STYLES',
     'LANGUAGE',
     'LANGUAGES',
-    'FORMAT',
-    'FORMATS',
-    'TEMPLATE',
-    'TEMPLATES',
     'WRITING SAMPLE',
     'WRITING RULES',
-    'SAMPLE',
-    'EXAMPLE',
     'SCENARIO',
     'SCENARIOS',
     'MESSAGE',
@@ -108,13 +100,6 @@ const BEHAVIOR_COMMITMENT_TYPES = new Set([
     'OPEN',
     'CLOSED',
 ]);
-
-/**
- * One grouped commitment definition as returned by the runtime registry.
- *
- * @private internal utility of `createStandaloneBookLanguageMarkdown`
- */
-type GroupedCommitmentDefinition = ReturnType<typeof getGroupedCommitmentDefinitions>[number];
 
 /**
  * Agent source incorporated into a server-specific Book language manual.
@@ -145,6 +130,19 @@ export type CreateStandaloneBookLanguageMarkdownOptions = {
      * Server agents whose sources should be baked into examples and usage priority.
      */
     readonly agents?: ReadonlyArray<BookLanguageDocumentationAgent>;
+
+    /**
+     * Language the manual should be written in, English is used as the fallback.
+     */
+    readonly language?: string_language;
+
+    /**
+     * Whether the closing chapter with low-level commitments should be generated.
+     *
+     * Low-level commitments are intended for advanced use only, so they are
+     * omitted unless they are explicitly requested.
+     */
+    readonly isLowLevelCommitmentsIncluded?: boolean;
 };
 
 /**
@@ -162,349 +160,297 @@ export type CreateStandaloneBookLanguageMarkdownOptions = {
 export function createStandaloneBookLanguageMarkdown(
     options: CreateStandaloneBookLanguageMarkdownOptions = {},
 ): string_markdown {
-    const groupedCommitments = getGroupedCommitmentDefinitions();
+    const dictionary = getBookLanguageManualDictionary(options.language);
+    const { documented, lowLevel } = getBookLanguageManualCommitmentGroups();
     const selectedAgents = options.agents?.filter((agent) => agent.agentSource.trim().length > 0) || [];
     const commitmentUsageByType = createCommitmentUsageByType(selectedAgents);
     const isServerSpecificManual = selectedAgents.length > 0;
-    const prioritizedGroupedCommitments = prioritizeGroupedCommitments(groupedCommitments, commitmentUsageByType);
+    const isLowLevelCommitmentsIncluded = options.isLowLevelCommitmentsIncluded === true;
+    const catalogCommitments = prioritizeGroupedCommitments(documented, commitmentUsageByType);
+    const lowLevelCommitments = isLowLevelCommitmentsIncluded
+        ? prioritizeGroupedCommitments(lowLevel, commitmentUsageByType)
+        : [];
+    const manualCommitments = [...catalogCommitments, ...lowLevelCommitments];
     const generatedAtIso = new Date().toISOString();
-    const placeholderCommitmentCount = prioritizedGroupedCommitments.filter(
+    const placeholderCommitmentCount = manualCommitments.filter(
         ({ primary }) => primary instanceof NotYetImplementedCommitmentDefinition,
     ).length;
-    const implementedCommitmentCount = prioritizedGroupedCommitments.length - placeholderCommitmentCount;
+    const catalogTitleSuffix = isServerSpecificManual
+        ? dictionary.commitmentCatalogTitleSuffixes.usedFirst
+        : dictionary.commitmentCatalogTitleSuffixes.all;
 
-    const allCommitmentKeywords = prioritizedGroupedCommitments.flatMap(({ primary, aliases }) => [
-        primary.type,
-        ...aliases,
-    ]);
-    const toolingCommitments = prioritizedGroupedCommitments.filter(({ primary }) =>
-        TOOLING_COMMITMENT_TYPES.has(primary.type),
-    );
-    const profileCommitments = prioritizedGroupedCommitments.filter(({ primary }) =>
-        PROFILE_COMMITMENT_TYPES.has(primary.type),
-    );
-    const compositionCommitments = prioritizedGroupedCommitments.filter(({ primary }) =>
-        COMPOSITION_COMMITMENT_TYPES.has(primary.type),
-    );
-    const behaviorCommitments = prioritizedGroupedCommitments.filter(({ primary }) =>
-        BEHAVIOR_COMMITMENT_TYPES.has(primary.type),
-    );
+    const allCommitmentKeywords = manualCommitments.flatMap(({ primary, aliases }) => [primary.type, ...aliases]);
 
     return spaceTrim(
         // [✨]
         (block) => `
-            # Book Language blueprint
+            # ${dictionary.title}
 
-            > Canonical standalone guide for Promptbook Book Agent language.  
-            > Generated from repository https://github.com/webgptorg/promptbook
+            ${block(dictionary.introLines.map((introLine) => `> ${introLine}  `).join('\n'))}
 
-            - Book language version: \`${BOOK_LANGUAGE_VERSION}\`
-            - Generated at: \`${generatedAtIso}\`
-            - Commitment groups: \`${prioritizedGroupedCommitments.length}\`
-            - Implemented commitments: \`${implementedCommitmentCount}\`
-            - Placeholder commitments: \`${placeholderCommitmentCount}\`
+            - ${dictionary.metadataLabels.bookLanguageVersion}: \`${BOOK_LANGUAGE_VERSION}\`
+            - ${dictionary.metadataLabels.generatedAt}: \`${generatedAtIso}\`
+            - ${dictionary.metadataLabels.commitmentGroups}: \`${manualCommitments.length}\`
+            - ${dictionary.metadataLabels.implementedCommitments}: \`${
+            manualCommitments.length - placeholderCommitmentCount
+        }\`
+            - ${dictionary.metadataLabels.placeholderCommitments}: \`${placeholderCommitmentCount}\`
 
-            ## <a id="table-of-contents"></a>Table of Contents
+            ## <a id="table-of-contents"></a>${dictionary.tableOfContentsTitle}
 
-            - [What Book language is](#what-book-language-is)
-            - [Execution and compilation model](#execution-and-compilation-model)
-            - [Mental model of an agent](#mental-model-of-an-agent)
-            - [How to structure good agents](#how-to-structure-good-agents)
-            - [Primitives and constructs reference](#primitives-and-constructs-reference)
-            - [Commitment catalog${
-                isServerSpecificManual ? ' (used commitments first)' : ' (all commitments)'
-            }](#commitment-catalog)
-            - [End-to-end examples](#end-to-end-examples)
-            - [Do nots and common pitfalls](#do-nots-and-common-pitfalls)
-            - [Build an agent from scratch (offline tutorial)](#build-an-agent-from-scratch-offline-tutorial)
+            - [${dictionary.chapters.whatIs.title}](#what-book-language-is)
+            - [${dictionary.chapters.mentalModel.title}](#mental-model-of-an-agent)
+            - [${dictionary.chapters.howToStructure.title}](#how-to-structure-good-agents)
+            - [${dictionary.chapters.primitives.title}](#primitives-and-constructs-reference)
+            - [${dictionary.chapters.commitmentCatalog.title}${catalogTitleSuffix}](#commitment-catalog)
+            - [${dictionary.chapters.examples.title}](#end-to-end-examples)
+            - [${dictionary.chapters.pitfalls.title}](#do-nots-and-common-pitfalls)
+            - [${dictionary.chapters.tutorial.title}](#build-an-agent-from-scratch-offline-tutorial)
+            ${
+                isLowLevelCommitmentsIncluded
+                    ? `- [${dictionary.chapters.lowLevelCommitments.title}](#low-level-commitments)`
+                    : ''
+            }
 
-            ## <a id="what-book-language-is"></a>What Book language is
+            ## <a id="what-book-language-is"></a>${dictionary.chapters.whatIs.title}
 
-            Book language is a domain-specific language for defining **AI agents** as plain-text source.
-            It solves these problems:
+            ${block(dictionary.chapters.whatIs.body)}
 
-            - **One editable source of truth** for agent behavior, tools, memory, and profile metadata.
-            - **Composable agent architecture** through commitments like \`FROM\`, \`IMPORT\`, and \`TEAM\`.
-            - **Deterministic runtime preparation** where source is parsed and compiled into model requirements.
-            - **Portable agent definitions** that can be copied, versioned, and reviewed as text.
+            ## <a id="mental-model-of-an-agent"></a>${dictionary.chapters.mentalModel.title}
 
-            In this repository, "Book language" means **Book 2.0 agent language**.
+            ${block(dictionary.chapters.mentalModel.body)}
 
-            ## <a id="execution-and-compilation-model"></a>Execution and compilation model
+            ${dictionary.mentalModelSections.detectedIntro}
 
-            Promptbook and Agents Server use two core passes:
+            ${block(renderDetectedCommitmentList(catalogCommitments, dictionary))}
 
-            1. **Fast parse pass** (\`parseAgentSource\`):
-            It synchronously extracts agent profile/basic info (name, last goal/profile text, meta, capabilities, samples, references).
-            2. **Compilation pass** (\`createAgentModelRequirements\`):
-            It applies commitments in sequence and builds executable model requirements (system message, tools, memory/tool metadata, imports, etc.).
+            ### ${dictionary.mentalModelSections.meta.title}
 
-            In Agents Server, the runtime flow typically includes:
+            ${block(dictionary.mentalModelSections.meta.body)}
 
-            1. Resolve scoped references (including in-book references like \`{Some Agent}\`).
-            2. Resolve inheritance/import chains into effective source.
-            3. Compile effective source into model requirements.
-            4. Execute chat turns with resolved tools and runtime adapters.
+            ### ${dictionary.mentalModelSections.inheritance.title}
 
-            ## <a id="mental-model-of-an-agent"></a>Mental model of an agent
+            ${block(dictionary.mentalModelSections.inheritance.body)}
 
-            Think of one agent source as four layers:
+            ### ${dictionary.mentalModelSections.composition.title}
 
-            1. **Identity/Profile layer**:
-            Agent name (first non-commitment line), the last \`GOAL\` (preferred) or deprecated \`PERSONA\`, and \`META*\` commitments.
-            2. **Behavior layer**:
-            \`RULE\`, \`KNOWLEDGE\`, \`WRITING SAMPLE\`, \`WRITING RULES\`, deprecated \`STYLE\`, \`FORMAT\`, \`TEMPLATE\`, \`LANGUAGE\`, \`GOAL\`, and related commitments.
-            3. **Capability layer**:
-            \`USE*\`, \`MEMORY\`, and other tooling commitments exposing runtime abilities.
-            4. **Composition layer**:
-            \`FROM\` inheritance, \`IMPORT\` reuse, and \`TEAM\` delegation.
+            ${block(dictionary.mentalModelSections.composition.body)}
 
-            Agent composition commitments in current runtime:
+            ### ${dictionary.mentalModelSections.capabilities.title}
 
-            - Profile-centric commitments detected: ${profileCommitments
-                .map(({ primary }) => `\`${primary.type}\``)
-                .join(', ')}
-            - Behavior-centric commitments detected: ${behaviorCommitments
-                .map(({ primary }) => `\`${primary.type}\``)
-                .join(', ')}
-            - Tool/runtime commitments detected: ${toolingCommitments
-                .map(({ primary }) => `\`${primary.type}\``)
-                .join(', ')}
-            - Composition commitments detected: ${compositionCommitments
-                .map(({ primary }) => `\`${primary.type}\``)
-                .join(', ')}
+            ${block(dictionary.mentalModelSections.capabilities.body)}
 
-            ### META commitments and agent profile
+            ## <a id="how-to-structure-good-agents"></a>${dictionary.chapters.howToStructure.title}
 
-            \`META*\` commitments control profile data shown in UI (for example avatar visual, image, description, disclaimers, domain, input placeholder).
-            They generally shape presentation/metadata rather than tool behavior.
+            ${block(dictionary.chapters.howToStructure.body)}
 
-            ### FROM inheritance
+            ## <a id="primitives-and-constructs-reference"></a>${dictionary.chapters.primitives.title}
 
-            \`FROM\` points to a parent agent source. During inheritance resolution:
+            ### ${dictionary.primitivesSections.coreSyntax.title}
 
-            - Parent corpus is merged into effective source.
-            - \`FROM {Void}\` / \`FROM VOID\` means explicit "no parent".
-            - Missing references are surfaced as notes in resolved source.
+            ${block(dictionary.primitivesSections.coreSyntax.body)}
 
-            ### TEAM and IMPORT
+            ### ${dictionary.primitivesSections.references.title}
 
-            - \`TEAM\` registers teammate agents as callable tools.
-            - \`IMPORT\` injects imported agent/file content into current agent context.
-            - In Agents Server, compact references like \`{Legal Reviewer}\` can resolve to embedded in-book agents.
+            ${block(dictionary.primitivesSections.references.body)}
 
-            ### USE commitments
-
-            \`USE*\` commitments enable capabilities (search, browser, project integration, email, image generation, etc.).
-            They expose runtime tools and system-message guidance used during execution.
-
-            ## <a id="how-to-structure-good-agents"></a>How to structure good agents
-
-            Recommended patterns and tradeoffs:
-
-            1. **Single clear role first**:
-            Start with one narrow \`GOAL\`; use \`PERSONA\` only for backward-compatible legacy books.
-            Tradeoff: less initial flexibility, much higher reliability.
-            2. **Guardrails early**:
-            Add concrete \`RULE\` commitments before adding many tools.
-            Tradeoff: more upfront design, fewer runtime surprises.
-            3. **Grounding over improvisation**:
-            Prefer \`KNOWLEDGE\` + explicit citation rule for high-stakes answers.
-            Tradeoff: extra maintenance for sources, better factual control.
-            4. **Composition over monoliths**:
-            Use \`TEAM\`/\`IMPORT\` for specialized responsibilities.
-            Tradeoff: orchestration overhead, stronger modularity and reuse.
-            5. **Controlled memory**:
-            If using \`MEMORY\`, define what must and must not be remembered.
-            Tradeoff: stricter policy design, better privacy and signal quality.
-
-            ## <a id="primitives-and-constructs-reference"></a>Primitives and constructs reference
-
-            ### Core syntax primitives
-
-            1. **Agent title**:
-            First non-empty line that is not a commitment keyword.
-            2. **Commitment block**:
-            Starts with a commitment keyword and continues until the next commitment block or separator.
-            3. **Horizontal separator**:
-            Lines like \`---\` split sections; in Agents Server they can delimit embedded in-book agents.
-            4. **Code fences**:
-            Preserved inside commitment content; useful for examples/instructions.
-            5. **Parameters**:
-            Both \`@parameter\` and \`{parameter}\` notations are supported and parsed.
-
-            ### Reference tokens and pseudo-agents
-
-            - Compact references like \`{Agent Name}\` are resolved by Agents Server reference resolver.
-            - Pseudo-agent forms (for example \`{User}\`, \`{Void}\`) are supported in relevant commitments.
-            - \`{User}\` is intended for \`TEAM\`; \`{Void}\` is useful for explicit no-parent inheritance.
-
-            ### Commitment keywords currently recognized
+            ### ${dictionary.primitivesSections.keywordsTitle}
 
             ${block(getSafeCodeBlock(allCommitmentKeywords.join(', '), 'text'))}
 
             <a id="commitment-catalog-all-commitments"></a>
 
-            ## <a id="commitment-catalog"></a>Commitment catalog${
-                isServerSpecificManual ? ' (used commitments first)' : ' (all commitments)'
-            }
+            ## <a id="commitment-catalog"></a>${dictionary.chapters.commitmentCatalog.title}${catalogTitleSuffix}
 
-            This section is generated from commitment definitions in \`src/commitments\`.
-            For each commitment group you get:
+            ${block(dictionary.chapters.commitmentCatalog.body)}
 
-            - semantics summary (description/icon/status)
-            - parsing schema (\`createTypeRegex\` and \`createRegex\`)
-            - canonical documentation block
+            ${block(renderCommitmentCatalogSections(catalogCommitments, commitmentUsageByType, dictionary))}
 
-            ${block(
-                prioritizedGroupedCommitments
-                    .map((groupedCommitment) =>
-                        renderCommitmentCatalogSection(
-                            groupedCommitment,
-                            commitmentUsageByType.get(groupedCommitment.primary.type) || 0,
-                        ),
-                    )
-                    .join('\n\n'),
-            )}
-
-            ## <a id="end-to-end-examples"></a>End-to-end examples
+            ## <a id="end-to-end-examples"></a>${dictionary.chapters.examples.title}
 
             ${block(
                 isServerSpecificManual
-                    ? selectedAgents.map(renderBakedAgentExampleSection).join('\n\n')
-                    : bookLanguageDocumentationExamples.map(renderExampleSection).join('\n\n'),
+                    ? selectedAgents.map((agent) => renderBakedAgentExampleSection(agent, dictionary)).join('\n\n')
+                    : bookLanguageDocumentationExamples
+                          .map((example) => renderExampleSection(example, dictionary))
+                          .join('\n\n'),
             )}
 
-            ## <a id="do-nots-and-common-pitfalls"></a>Do nots and common pitfalls
+            ## <a id="do-nots-and-common-pitfalls"></a>${dictionary.chapters.pitfalls.title}
 
-            ${block(
-                bookLanguageCommonPitfalls
-                    .map((pitfall, index) =>
-                        spaceTrim(`
-                            ${index + 1}. **${pitfall.title}**
-                            - Don't: ${pitfall.dont}
-                            - Do instead: ${pitfall.doInstead}
-                        `),
-                    )
-                    .join('\n'),
-            )}
+            ${block(renderPitfallList(dictionary))}
 
-            ## <a id="build-an-agent-from-scratch-offline-tutorial"></a>Build an agent from scratch (offline tutorial)
+            ## <a id="build-an-agent-from-scratch-offline-tutorial"></a>${dictionary.chapters.tutorial.title}
 
-            This tutorial is sufficient without internet access.
-
-            1. **Define role and goal**
-            Create a short name line and one clear \`GOAL\`.
-            2. **Add behavioral constraints**
-            Add 3-6 specific \`RULE\` commitments covering scope, tone, and safety boundaries.
-            3. **Add grounding**
-            Add \`KNOWLEDGE\` commitments (inline text or local/importable sources).
-            4. **Add capabilities**
-            Add only necessary \`USE*\` and/or \`MEMORY\` commitments.
-            5. **Set profile metadata**
-            Add \`META DESCRIPTION\`, \`META AVATAR\` / \`META VISUAL\` or \`META IMAGE\`, \`META INPUT PLACEHOLDER\`, \`META THINKING MESSAGE\`, and disclaimers if needed.
-            6. **Add first interaction**
-            Add \`INITIAL MESSAGE\` and optionally sample \`USER MESSAGE\` / \`AGENT MESSAGE\` pairs.
-            7. **Close for deterministic behavior (optional)**
-            Add \`CLOSED\` when you want stable non-self-modifying behavior.
+            ${block(dictionary.chapters.tutorial.body)}
 
             ${block(
                 isServerSpecificManual
-                    ? 'Use one of the selected server-agent examples above as your starting point, then retain only the commitments needed for the new agent.'
-                    : spaceTrim(
-                          (block) => `
-                              Copy-paste template:
-
-                              ${block(
-                                  getSafeCodeBlock(
-                                      spaceTrim(`
-                                          Project Assistant
-
-                                          GOAL Help the user turn project ideas into concrete deliverables with focused planning support.
-
-                                          RULE Ask clarifying questions when requirements are ambiguous.
-                                          RULE Provide concise, structured outputs with actionable steps.
-                                          RULE If information is missing, state assumptions explicitly.
-                                          RULE Do not invent facts.
-
-                                          KNOWLEDGE Team works in two-week sprints and tracks tasks in Kanban.
-                                          KNOWLEDGE Preferred output format: summary, plan, risks, next action.
-
-                                          META DESCRIPTION Practical project-planning assistant.
-                                          META INPUT PLACEHOLDER Describe your project goal or blocker...
-                                          META THINKING MESSAGE Reviewing your project details...
-
-                                          INITIAL MESSAGE Share your project goal and current blocker, and I will propose a concrete next-step plan.
-                                          CLOSED
-                                      `),
-                                      'book',
-                                  ),
-                              )}
-                          `,
-                      ),
+                    ? dictionary.tutorialSections.serverAgentsHint
+                    : renderCopyPasteTemplate(dictionary),
             )}
 
-            Validation checklist:
+            ${dictionary.tutorialSections.checklistTitle}
 
-            - Does each commitment have a clear purpose?
-            - Are there explicit constraints against hallucination and unsafe behavior?
-            - Are tools only enabled when genuinely needed?
-            - Is memory usage bounded by clear rules?
-            - Is composition (\`FROM\`/\`TEAM\`/\`IMPORT\`) justified and understandable?
+            ${block(dictionary.tutorialSections.checklistBody)}
+
+            ${block(
+                isLowLevelCommitmentsIncluded
+                    ? renderLowLevelCommitmentsChapter(lowLevelCommitments, commitmentUsageByType, dictionary)
+                    : '',
+            )}
 
             ---
 
-            Generated from:
+            ${dictionary.footer.title}
 
-            - Commitments registry and runtime docs in \`src/commitments\`
-            - Parser/compiler behavior in \`src/book-2.0/agent-source\`
-            - Agents Server reference/inheritance resolution in \`apps/agents-server/src/utils\`
-            - Standalone docs source blocks in \`apps/agents-server/src/utils/bookLanguageDocumentation\`
+            ${block(dictionary.footer.body)}
         `,
     );
 }
 
 /**
- * Renders one commitment section in the generated catalog.
+ * Renders the bullet list summarizing which commitment kinds the runtime exposes.
  *
- * @param groupedCommitment - Grouped commitment definition with aliases.
- * @param usageCount - Number of uses across the selected server agents.
- * @returns Markdown section for a single commitment.
+ * @param commitmentGroups - Commitment groups documented in the main catalog.
+ * @param dictionary - Translated labels of the manual.
+ * @returns Markdown bullet list of detected commitment kinds.
  *
  * @private internal utility of `createStandaloneBookLanguageMarkdown`
  */
-function renderCommitmentCatalogSection(groupedCommitment: GroupedCommitmentDefinition, usageCount: number): string {
-    const { primary, aliases } = groupedCommitment;
-    const notice = getCommitmentNoticeMetadata(primary);
-    const status =
-        primary instanceof NotYetImplementedCommitmentDefinition
-            ? 'Placeholder (not fully implemented)'
-            : notice
-            ? `Implemented (${notice.detailLabel})`
-            : 'Implemented';
-    const aliasText = aliases.length === 0 ? 'None' : aliases.map((alias) => `\`${alias}\``).join(', ');
-    const noticeText = notice
-        ? notice.kind === 'deprecated'
-            ? `- **Deprecation:** ${notice.message}${formatCommitmentReplacementText(primary.deprecation?.replacedBy)}`
-            : `- **Low-level commitment:** ${notice.message}`
-        : '';
-    const documentationMarkdown = renderGroupedCommitmentDocumentationMarkdown(groupedCommitment);
-    const usageMarkdown =
-        usageCount > 0 ? `- **Used in selected agents:** ${usageCount} occurrence${usageCount === 1 ? '' : 's'}` : '';
+function renderDetectedCommitmentList(
+    commitmentGroups: ReadonlyArray<BookLanguageManualCommitmentGroup>,
+    dictionary: BookLanguageManualDictionary,
+): string {
+    const detectedSections = [
+        { label: dictionary.mentalModelSections.detectedProfileLabel, types: PROFILE_COMMITMENT_TYPES },
+        { label: dictionary.mentalModelSections.detectedBehaviorLabel, types: BEHAVIOR_COMMITMENT_TYPES },
+        { label: dictionary.mentalModelSections.detectedToolingLabel, types: TOOLING_COMMITMENT_TYPES },
+        { label: dictionary.mentalModelSections.detectedCompositionLabel, types: COMPOSITION_COMMITMENT_TYPES },
+    ];
 
+    return detectedSections
+        .map(({ label, types }) => {
+            const detectedTypes = commitmentGroups
+                .filter(({ primary }) => types.has(primary.type))
+                .map(({ primary }) => `\`${primary.type}\``)
+                .join(', ');
+
+            return `- ${label}: ${detectedTypes}`;
+        })
+        .join('\n');
+}
+
+/**
+ * Renders every commitment section of one catalog chapter.
+ *
+ * @param commitmentGroups - Commitment groups to render, in final order.
+ * @param commitmentUsageByType - Selected-agent occurrence counts by primary type.
+ * @param dictionary - Translated labels of the manual.
+ * @returns Markdown sections joined by blank lines.
+ *
+ * @private internal utility of `createStandaloneBookLanguageMarkdown`
+ */
+function renderCommitmentCatalogSections(
+    commitmentGroups: ReadonlyArray<BookLanguageManualCommitmentGroup>,
+    commitmentUsageByType: ReadonlyMap<string, number>,
+    dictionary: BookLanguageManualDictionary,
+): string {
+    return commitmentGroups
+        .map((groupedCommitment) =>
+            renderCommitmentCatalogSection({
+                groupedCommitment,
+                usageCount: commitmentUsageByType.get(groupedCommitment.primary.type) || 0,
+                dictionary,
+            }),
+        )
+        .join('\n\n');
+}
+
+/**
+ * Renders the closing chapter documenting low-level commitments.
+ *
+ * @param commitmentGroups - Low-level commitment groups, in final order.
+ * @param commitmentUsageByType - Selected-agent occurrence counts by primary type.
+ * @param dictionary - Translated labels of the manual.
+ * @returns Markdown chapter for low-level commitments.
+ *
+ * @private internal utility of `createStandaloneBookLanguageMarkdown`
+ */
+function renderLowLevelCommitmentsChapter(
+    commitmentGroups: ReadonlyArray<BookLanguageManualCommitmentGroup>,
+    commitmentUsageByType: ReadonlyMap<string, number>,
+    dictionary: BookLanguageManualDictionary,
+): string {
     return spaceTrim(
         (block) => `
-            ### <a id="commitment-${toStableAnchorId(primary.type)}"></a>${primary.icon} ${primary.type}
+            ## <a id="low-level-commitments"></a>${dictionary.chapters.lowLevelCommitments.title}
 
-            - **Status:** ${status}
-            - **Aliases:** ${aliasText}
-            - **Semantics:** ${primary.description}
-            - **Type schema (\`createTypeRegex\`):** \`${stringifyRegex(primary.createTypeRegex())}\`
-            - **Block schema (\`createRegex\`):** \`${stringifyRegex(primary.createRegex())}\`
-            ${noticeText}
-            ${usageMarkdown}
+            ${block(dictionary.chapters.lowLevelCommitments.body)}
 
-            ${block(documentationMarkdown)}
+            ${block(renderCommitmentCatalogSections(commitmentGroups, commitmentUsageByType, dictionary))}
+        `,
+    );
+}
+
+/**
+ * Renders the "don't vs do" list of common authoring pitfalls.
+ *
+ * @param dictionary - Translated labels and pitfalls of the manual.
+ * @returns Markdown ordered list of pitfalls.
+ *
+ * @private internal utility of `createStandaloneBookLanguageMarkdown`
+ */
+function renderPitfallList(dictionary: BookLanguageManualDictionary): string {
+    return dictionary.pitfalls
+        .map((pitfall, index) =>
+            spaceTrim(`
+                ${index + 1}. **${pitfall.title}**
+                - ${dictionary.pitfallLabels.dont}: ${pitfall.dont}
+                - ${dictionary.pitfallLabels.doInstead}: ${pitfall.doInstead}
+            `),
+        )
+        .join('\n');
+}
+
+/**
+ * Renders the copy-paste starting template of the offline tutorial.
+ *
+ * @param dictionary - Translated labels of the manual.
+ * @returns Markdown intro sentence with a Book source template.
+ *
+ * @private internal utility of `createStandaloneBookLanguageMarkdown`
+ */
+function renderCopyPasteTemplate(dictionary: BookLanguageManualDictionary): string {
+    return spaceTrim(
+        (block) => `
+            ${dictionary.tutorialSections.templateIntro}
+
+            ${block(
+                getSafeCodeBlock(
+                    spaceTrim(`
+                        Project Assistant
+
+                        GOAL Help the user turn project ideas into concrete deliverables with focused planning support.
+
+                        RULE Ask clarifying questions when requirements are ambiguous.
+                        RULE Provide concise, structured outputs with actionable steps.
+                        RULE If information is missing, state assumptions explicitly.
+                        RULE Do not invent facts.
+
+                        KNOWLEDGE Team works in two-week sprints and tracks tasks in Kanban.
+                        KNOWLEDGE Preferred output format: summary, plan, risks, next action.
+
+                        META DESCRIPTION Practical project-planning assistant.
+                        META INPUT PLACEHOLDER Describe your project goal or blocker...
+                        META THINKING MESSAGE Reviewing your project details...
+
+                        INITIAL MESSAGE Share your project goal and current blocker, and I will propose a concrete next-step plan.
+                        CLOSED
+                    `),
+                    'book',
+                ),
+            )}
         `,
     );
 }
@@ -552,9 +498,9 @@ function createCommitmentUsageByType(
  * @private internal utility of `createStandaloneBookLanguageMarkdown`
  */
 function prioritizeGroupedCommitments(
-    groupedCommitments: ReadonlyArray<GroupedCommitmentDefinition>,
+    groupedCommitments: ReadonlyArray<BookLanguageManualCommitmentGroup>,
     commitmentUsageByType: ReadonlyMap<string, number>,
-): ReadonlyArray<GroupedCommitmentDefinition> {
+): ReadonlyArray<BookLanguageManualCommitmentGroup> {
     return groupedCommitments
         .map((groupedCommitment, index) => ({
             groupedCommitment,
@@ -569,22 +515,29 @@ function prioritizeGroupedCommitments(
  * Renders a real selected server agent as the manual's practical example.
  *
  * @param agent - Agent source selected for the manual.
+ * @param dictionary - Translated labels of the manual.
  * @returns Markdown section for one baked agent example.
  *
  * @private internal utility of `createStandaloneBookLanguageMarkdown`
  */
-function renderBakedAgentExampleSection(agent: BookLanguageDocumentationAgent): string {
+function renderBakedAgentExampleSection(
+    agent: BookLanguageDocumentationAgent,
+    dictionary: BookLanguageManualDictionary,
+): string {
     const usedCommitmentTypes = Array.from(
         new Set(parseAgentSourceWithCommitments(agent.agentSource).commitments.map((commitment) => commitment.type)),
     );
     const usedCommitmentsMarkdown = usedCommitmentTypes.map((type) => `\`${type}\``).join(', ');
+
     return spaceTrim(
         (block) => `
             ### <a id="example-${toStableAnchorId(agent.agentName)}"></a>${agent.agentName}
 
-            **Commitments used:** ${usedCommitmentsMarkdown || 'None'}
+            **${dictionary.exampleLabels.commitmentsUsed}:** ${
+            usedCommitmentsMarkdown || dictionary.exampleLabels.noCommitments
+        }
 
-            **Full source**
+            **${dictionary.exampleLabels.fullSource}**
 
             ${block(getSafeCodeBlock(agent.agentSource, 'book'))}
         `,
@@ -595,67 +548,34 @@ function renderBakedAgentExampleSection(agent: BookLanguageDocumentationAgent): 
  * Renders one end-to-end example section.
  *
  * @param example - Example definition.
+ * @param dictionary - Translated labels and example prose of the manual.
  * @returns Markdown section for one example.
  *
  * @private internal utility of `createStandaloneBookLanguageMarkdown`
  */
-function renderExampleSection(example: BookLanguageDocumentationExample): string {
+function renderExampleSection(
+    example: BookLanguageDocumentationExample,
+    dictionary: BookLanguageManualDictionary,
+): string {
+    const exampleText = dictionary.exampleTexts[example.id];
+
+    if (exampleText === undefined) {
+        return '';
+    }
+
     return spaceTrim(
         (block) => `
-            ### <a id="example-${toStableAnchorId(example.id)}"></a>${example.title}
+            ### <a id="example-${toStableAnchorId(example.id)}"></a>${exampleText.title}
 
-            **Goal:** ${example.goal}
+            **${dictionary.exampleLabels.goal}:** ${exampleText.goal}
 
-            **Full source**
+            **${dictionary.exampleLabels.fullSource}**
 
             ${block(getSafeCodeBlock(example.source, 'book'))}
 
-            **Walkthrough**
+            **${dictionary.exampleLabels.walkthrough}**
 
-            ${block(example.walkthrough.map((step, index) => `${index + 1}. ${step}`).join('\n'))}
+            ${block(exampleText.walkthrough.map((step, index) => `${index + 1}. ${step}`).join('\n'))}
         `,
     );
-}
-
-/**
- * Converts a heading label into a stable markdown anchor id.
- *
- * @param value - Raw heading/identifier text.
- * @returns Stable lowercase anchor id.
- *
- * @private internal utility of `createStandaloneBookLanguageMarkdown`
- */
-function toStableAnchorId(value: string): string {
-    return value
-        .trim()
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '');
-}
-
-/**
- * Converts a regular expression into a concise literal-like string.
- *
- * @param regex - Regex instance.
- * @returns Printable regex pattern and flags.
- *
- * @private internal utility of `createStandaloneBookLanguageMarkdown`
- */
-function stringifyRegex(regex: RegExp): string {
-    return `/${regex.source}/${regex.flags}`;
-}
-
-/**
- * Creates a safe markdown fenced code block even when content contains backticks.
- *
- * @param content - Raw code content.
- * @param language - Optional info-string language label.
- * @returns Fenced code block.
- *
- * @private internal utility of `createStandaloneBookLanguageMarkdown`
- */
-function getSafeCodeBlock(content: string, language = 'markdown'): string {
-    const maxBacktickCount = Math.max(0, ...(content.match(/`+/g) || []).map((match) => match.length));
-    const fence = '`'.repeat(Math.max(3, maxBacktickCount + 1));
-    return `${fence}${language}\n${content}\n${fence}`;
 }

@@ -1,6 +1,6 @@
 import { isManagedCloudflareDnsRecord } from './CLOUDFLARE_DNS_RECORD_COMMENT_MARKER';
 import type { CloudflareDnsRecord, DesiredCloudflareDnsRecord } from './CloudflareDnsRecordSyncPlan';
-import { normalizeCloudflareDnsRecordContent } from './normalizeCloudflareDnsRecordContent';
+import { normalizeCloudflareDnsRecordContent } from '../../src/utils/cloudflare/normalizeCloudflareDnsRecordContent';
 
 /**
  * Picks the Cloudflare record that should represent the managed hostname.

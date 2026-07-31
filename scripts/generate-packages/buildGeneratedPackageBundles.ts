@@ -12,7 +12,7 @@ import { logPackageGenerationStep } from './logPackageGenerationStep';
  *
  * @private internal utility of buildGeneratedPackageBundles
  */
-const ROLLUP_NO_OUTPUT_TIMEOUT_MS = 15 * 60 * 1000;
+const ROLLUP_NO_OUTPUT_TIMEOUT_MS = 60 * 60 * 1000;
 
 /**
  * Rollup should exit almost immediately after printing the final `created ...` line.
@@ -493,7 +493,9 @@ function startBuildResourceReporter(): () => void {
         if (activeRollupBuild !== null) {
             console.error(`📦 Active bundle: ${activeRollupBuild.packageFullname}`);
             console.error(`🆔 Rollup PID: ${activeRollupBuild.childPid ?? 'pending'}`);
-            console.error(`🔇 Time since last Rollup output: ${formatDurationForLog(now - activeRollupBuild.lastOutputAt)}`);
+            console.error(
+                `🔇 Time since last Rollup output: ${formatDurationForLog(now - activeRollupBuild.lastOutputAt)}`,
+            );
             console.error(`🧾 Rollup state: ${activeRollupBuild.lastLifecycleEvent}`);
             if (activeRollupBuild.createdAt !== null) {
                 console.error(

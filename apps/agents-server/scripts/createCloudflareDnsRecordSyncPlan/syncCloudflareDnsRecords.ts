@@ -7,11 +7,11 @@ import type {
     CloudflareSkippedDomain,
     DesiredCloudflareDnsRecord,
 } from './CloudflareDnsRecordSyncPlan';
-import { createCloudflareDnsRecord } from './createCloudflareDnsRecord';
+import { createCloudflareDnsRecord } from '../../src/utils/cloudflare/createCloudflareDnsRecord';
 import { createCloudflareDnsRecordSyncPlan } from './createCloudflareDnsRecordSyncPlan';
-import { listCloudflareZones } from './listCloudflareZones';
+import { listCloudflareZones } from '../../src/utils/cloudflare/listCloudflareZones';
 import { resolveDesiredCloudflareDnsRecords } from './resolveDesiredCloudflareDnsRecords';
-import { updateCloudflareDnsRecord } from './updateCloudflareDnsRecord';
+import { updateManagedCloudflareDnsRecord } from './updateManagedCloudflareDnsRecord';
 
 /**
  * Syncs Cloudflare DNS records for the desired managed domains.
@@ -145,7 +145,7 @@ async function syncCloudflareDnsRecordUpdates(options: {
             continue;
         }
 
-        await updateCloudflareDnsRecord(options.cloudflareConfiguration, recordToUpdate);
+        await updateManagedCloudflareDnsRecord(options.cloudflareConfiguration, recordToUpdate);
         logSyncEvent('info', 'cloudflare_record_updated', {
             domain: recordToUpdate.desiredRecord.name,
             zone: recordToUpdate.desiredRecord.zoneName,

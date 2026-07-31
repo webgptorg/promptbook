@@ -1,4 +1,4 @@
-import type { CloudflareApiConfiguration, CloudflareZone } from './CloudflareDnsRecordSyncPlan';
+import type { CloudflareApiConfiguration, CloudflareZone } from './CloudflareApi';
 import { requestCloudflare } from './requestCloudflare';
 
 /**
@@ -11,8 +11,6 @@ const CLOUDFLARE_ZONES_PAGE_LIMIT = 100;
  *
  * @param configuration - Cloudflare API configuration.
  * @returns Accessible Cloudflare zones.
- *
- * @private function of `syncCloudflareDnsRecords`
  */
 export async function listCloudflareZones(configuration: CloudflareApiConfiguration): Promise<Array<CloudflareZone>> {
     const zones: Array<CloudflareZone> = [];

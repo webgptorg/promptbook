@@ -1,7 +1,7 @@
 import type { editor, Position } from 'monaco-editor';
 import { useEffect } from 'react';
-import { PROMPTBOOK_SYNTAX_COLORS } from '../../config';
 import { BookEditorMonacoConstants } from './BookEditorMonacoConstants';
+import { BOOK_EDITOR_SYNTAX_TOKEN_STYLES } from './BookEditorSyntaxTokenStyles';
 import { BookEditorMonacoTokenization } from './BookEditorMonacoTokenization';
 import type { BookEditorTheme } from './BookEditorTheme';
 import { BOOK_EDITOR_RENDER_THEME, resolveBookEditorRenderTheme } from './BookEditorTheme';
@@ -109,42 +109,7 @@ type MonacoEditorWithBookEditorLanguageState = MonacoEditor & {
  *
  * @private function of BookEditorMonaco
  */
-const BOOK_EDITOR_THEME_RULES = [
-    {
-        token: 'title',
-        foreground: PROMPTBOOK_SYNTAX_COLORS.TITLE.toHex(),
-        fontStyle: 'bold underline',
-    },
-    {
-        token: 'commitment',
-        foreground: PROMPTBOOK_SYNTAX_COLORS.COMMITMENT.toHex(),
-        fontStyle: 'bold',
-    },
-    {
-        token: 'note-commitment',
-        foreground: PROMPTBOOK_SYNTAX_COLORS.NOTE_COMMITMENT.toHex(),
-    },
-    {
-        token: 'todo-commitment',
-        foreground: PROMPTBOOK_SYNTAX_COLORS.TODO_COMMITMENT_TEXT.toHex(),
-        background: PROMPTBOOK_SYNTAX_COLORS.TODO_COMMITMENT_BACKGROUND.toHex(),
-        fontStyle: 'bold',
-    },
-    {
-        token: 'parameter',
-        foreground: PROMPTBOOK_SYNTAX_COLORS.PARAMETER.toHex(),
-        fontStyle: 'italic',
-    },
-    {
-        token: 'agent-reference',
-        foreground: PROMPTBOOK_SYNTAX_COLORS.COMMITMENT.toHex(),
-        fontStyle: 'underline',
-    },
-    {
-        token: 'code-block',
-        foreground: PROMPTBOOK_SYNTAX_COLORS.CODE_BLOCK.toHex(),
-    },
-] as const;
+const BOOK_EDITOR_THEME_RULES = BOOK_EDITOR_SYNTAX_TOKEN_STYLES;
 
 /**
  * Re-defines the shared Book Monaco theme according to the requested light/dark mode.

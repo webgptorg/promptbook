@@ -1,4 +1,11 @@
 /**
+ * Whether every shown DNS record has to be configured or just one of the shown alternatives.
+ *
+ * @private shared by the Agents Server DNS instruction views
+ */
+export type DnsRecordSelection = 'all' | 'one';
+
+/**
  * One DNS record shown to an Agents Server administrator for configuration at a DNS provider.
  *
  * @private shared by the Agents Server DNS instruction views

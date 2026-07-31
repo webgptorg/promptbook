@@ -10,10 +10,23 @@ describe('renderGroupedCommitmentDocumentationMarkdown', () => {
 
         const markdown = renderGroupedCommitmentDocumentationMarkdown(openGroup!);
 
-        expect(markdown).toContain('#### OPEN');
-        expect(markdown).toContain('#### CLOSED');
+        expect(markdown).toContain('## OPEN');
+        expect(markdown).toContain('## CLOSED');
         expect(markdown).toContain('This is the default behavior if neither `OPEN` nor `CLOSED` is specified.');
         expect(markdown).toContain('By default (if not specified), agents are `OPEN` to modification.');
+    });
+
+    it('nests every heading under the host document heading level', () => {
+        const openGroup = getGroupedCommitmentDefinitions().find((group) => group.primary.type === 'OPEN');
+        const goalGroup = getGroupedCommitmentDefinitions().find((group) => group.primary.type === 'GOAL');
+
+        const openMarkdown = renderGroupedCommitmentDocumentationMarkdown(openGroup!, 2);
+        const goalMarkdown = renderGroupedCommitmentDocumentationMarkdown(goalGroup!, 2);
+
+        expect(openMarkdown).toContain('#### OPEN');
+        expect(openMarkdown).toContain('##### Example');
+        expect(goalMarkdown).toContain('#### Key aspects');
+        expect(goalMarkdown).not.toMatch(/^##\s/m);
     });
 
     it('keeps regular commitment docs as a single stripped markdown block', () => {
@@ -23,8 +36,8 @@ describe('renderGroupedCommitmentDocumentationMarkdown', () => {
 
         const markdown = renderGroupedCommitmentDocumentationMarkdown(goalGroup!);
 
-        expect(markdown).not.toContain('#### OPEN');
-        expect(markdown).not.toContain('#### CLOSED');
+        expect(markdown).not.toContain('## OPEN');
+        expect(markdown).not.toContain('## CLOSED');
         expect(markdown).not.toContain('# GOAL');
         expect(markdown).toContain('Defines the main goal which should be achieved by the AI assistant.');
     });

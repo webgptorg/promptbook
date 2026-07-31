@@ -167,6 +167,18 @@ describe('runCodexPrompts', () => {
         ).rejects.toThrow(/--no-commit/);
     });
 
+    it('rejects --isolate together with --no-commit', async () => {
+        await expect(
+            runCodexPrompts(
+                createRunOptions({
+                    isIsolated: true,
+                    noCommit: true,
+                    ignoreGitChanges: true,
+                }),
+            ),
+        ).rejects.toThrow(/--isolate/);
+    });
+
     it('rejects invalid run limits', async () => {
         await expect(
             runCodexPrompts(

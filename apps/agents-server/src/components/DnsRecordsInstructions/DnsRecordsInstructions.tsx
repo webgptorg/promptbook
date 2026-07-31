@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import type { DnsProviderGuide } from '../../utils/dnsProviderGuides';
-import type { DnsRecordInstruction } from '../../utils/dnsRecords/DnsRecordInstruction';
+import type { DnsRecordInstruction, DnsRecordSelection } from '../../utils/dnsRecords/DnsRecordInstruction';
 import { CloudflareDnsWizard } from '../CloudflareDnsWizard/CloudflareDnsWizard';
 import { DnsProviderGuides } from '../DnsProviderGuides/DnsProviderGuides';
 
@@ -31,7 +31,7 @@ export function DnsRecordsInstructions({
     /**
      * Whether every shown record or just one alternative must be configured.
      */
-    readonly recordSelection: 'all' | 'one';
+    readonly recordSelection: DnsRecordSelection;
 
     /**
      * DNS records to configure at the provider.

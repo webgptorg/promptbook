@@ -28,6 +28,7 @@ import {
 import { printAgentGitIdentityTipIfNeeded } from '../git/agentGitIdentity';
 import { ensureWorkingTreeClean } from '../git/ensureWorkingTreeClean';
 import { pullLatestChanges } from '../git/pullLatestChanges';
+import { runIsolatedPromptRound } from '../isolation/runIsolatedPromptRound';
 import { buildPromptLabelForDisplay } from '../prompts/buildPromptLabelForDisplay';
 import { buildPromptSummary } from '../prompts/buildPromptSummary';
 import { findNextTodoPrompt } from '../prompts/findNextTodoPrompt';
@@ -202,7 +203,9 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
             }
 
             const currentRoundStartTime = Date.now();
-            await runPromptRound({
+            // Note: An isolated round implements the prompt in a temporary worktree and merges it back afterwards
+            const runCurrentPromptRound = options.isIsolated ? runIsolatedPromptRound : runPromptRound;
+            await runCurrentPromptRound({
                 options,
                 runner,
                 runnerMetadata,
@@ -271,6 +274,16 @@ function validateRunCodexPromptOptions(options: RunOptions): void {
                 Flag \`--auto-pull\` requires commits, so it cannot be combined with \`--no-commit\`.
 
                 Auto-pull keeps the repository up to date between prompt rounds, which requires each successful round to end with a clean committed working tree.
+            `),
+        );
+    }
+
+    if (options.isIsolated && options.noCommit) {
+        throw new NotAllowed(
+            spaceTrim(`
+                Flag \`--isolate\` cannot be combined with \`--no-commit\`.
+
+                An isolated task is implemented in a temporary worktree and reaches the original branch only through a merge, which requires the round to end with a commit.
             `),
         );
     }

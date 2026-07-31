@@ -32,6 +32,7 @@ These `ptbk coder` options may be referenced in page prose and must be described
 -   `--limit <n>` — stop after N prompt runs (`run` only).
 -   `--no-auto` — wait for user confirmation before each prompt.
 -   `--no-commit`, `--ignore-git-changes`, `--auto-push`, `--auto-pull` — git behavior switches.
+-   `--isolate` — `run` only; implement each prompt in its own temporary git worktree (`.promptbook/coder-isolation-worktrees/<task-name>` on branch `ptbk-coder-isolation/<task-name>`) with its own copy of `.env`. A verified task is merged back into the current branch as one commit and the worktree is deleted; a task that cannot be merged is marked `[!]`, the failure is committed, and its worktree is kept for a manual merge while the coder continues. Because the worktree nests the whole repository one level deeper, git long path support is enabled for the isolated run so that Windows `MAX_PATH` does not break the checkout. Cannot be combined with `--no-commit`.
 -   `--wait-after-prompt`, `--wait-between-prompts`, `--wait-after-error <duration>` — wall-clock pacing; durations like `1h`, `30m`, `5s`; pause and computer sleep count against the wait; `S` skips the active wait; errors retry up to 3 times (default wait `10m`).
 -   `--no-ui`, `--preserve-logs` — plain streaming output / keep temp artifacts.
 -   `--port <port>` — `server` only; kanban UI port, default `4441`.

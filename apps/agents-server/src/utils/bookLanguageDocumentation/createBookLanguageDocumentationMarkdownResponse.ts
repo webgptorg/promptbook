@@ -1,6 +1,8 @@
 import { createStandaloneBookLanguageMarkdown } from '../../../../../src/book-2.0/book-language-documentation/createStandaloneBookLanguageMarkdown';
+import type { string_markdown } from '../../../../../src/types/string_markdown';
 import { NextResponse } from 'next/server';
 import { resolveServerLanguageCode, type ServerLanguageCode } from '../../languages/ServerLanguageRegistry';
+import { BOOK_LANGUAGE_DOCUMENTATION_LOW_LEVEL_COMMITMENTS_PARAMETER } from './bookLanguageDocumentationExportParameters';
 import { getBakedBookLanguageDocumentationAgents } from './getBookLanguageDocumentationAgents';
 
 /**
@@ -23,9 +25,13 @@ export type BookLanguageDocumentationExportOptions = {
      */
     readonly selectedAgentIds: ReadonlyArray<string> | null;
     /**
-     * Requested export language, used for response metadata and document language.
+     * Requested export language, used for the generated manual and response metadata.
      */
     readonly language: ServerLanguageCode;
+    /**
+     * Whether the closing chapter with low-level commitments should be exported.
+     */
+    readonly isLowLevelCommitmentsIncluded: boolean;
 };
 
 /**
@@ -51,6 +57,8 @@ export function parseBookLanguageDocumentationExportOptions(
     return {
         selectedAgentIds: isNoAgentsSelected || selectedAgentIds.length > 0 ? selectedAgentIds : null,
         language: resolveServerLanguageCode(searchParams.get('language') || defaultLanguage),
+        isLowLevelCommitmentsIncluded:
+            searchParams.get(BOOK_LANGUAGE_DOCUMENTATION_LOW_LEVEL_COMMITMENTS_PARAMETER) === 'true',
     };
 }
 
@@ -62,7 +70,7 @@ export function parseBookLanguageDocumentationExportOptions(
  */
 export async function createBookLanguageDocumentationExport(options: BookLanguageDocumentationExportOptions): Promise<{
     readonly language: ServerLanguageCode;
-    readonly markdown: string;
+    readonly markdown: string_markdown;
 }> {
     const bakedAgents = await getBakedBookLanguageDocumentationAgents(options.selectedAgentIds);
 
@@ -73,6 +81,8 @@ export async function createBookLanguageDocumentationExport(options: BookLanguag
                 agentName: agent.name,
                 agentSource: agent.source,
             })),
+            language: options.language,
+            isLowLevelCommitmentsIncluded: options.isLowLevelCommitmentsIncluded,
         }),
     };
 }

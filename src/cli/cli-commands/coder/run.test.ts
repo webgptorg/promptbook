@@ -222,6 +222,32 @@ describe('$initializeCoderRunCommand', () => {
         );
     });
 
+    it('defaults isIsolated to false when --isolate is omitted', async () => {
+        const program = createProgramWithRunCommand();
+
+        await program.parseAsync(['node', 'test', 'run', '--dry-run'], { from: 'node' });
+
+        expect(getRunCodexPromptsMock()).toHaveBeenCalledWith(
+            expect.objectContaining({
+                dryRun: true,
+                isIsolated: false,
+            }),
+        );
+    });
+
+    it('passes isIsolated as true when --isolate is provided', async () => {
+        const program = createProgramWithRunCommand();
+
+        await program.parseAsync(['node', 'test', 'run', '--dry-run', '--isolate'], { from: 'node' });
+
+        expect(getRunCodexPromptsMock()).toHaveBeenCalledWith(
+            expect.objectContaining({
+                dryRun: true,
+                isIsolated: true,
+            }),
+        );
+    });
+
     it('passes run limit through when provided', async () => {
         const program = createProgramWithRunCommand();
 

@@ -11,7 +11,8 @@ import { runGitCommand } from './runGitCommand';
  * Commits staged changes with the provided message using the dedicated coding-agent identity when configured,
  * otherwise falls back to the default Git configuration. Remote pushing is opt-in via `options.autoPush`,
  * `options.includePaths` can restrict staging, `options.onlyPaths` can restrict the commit pathspec,
- * and `options.excludePaths` can keep temporary artifacts out of the created commit.
+ * `options.excludePaths` can keep temporary artifacts out of the created commit and
+ * `options.isEmptyCommitAllowed` keeps a round without any file change from failing.
  */
 export async function commitChanges(
     message: string,
@@ -21,6 +22,7 @@ export async function commitChanges(
         onlyPaths?: ReadonlyArray<string>;
         excludePaths?: ReadonlyArray<string>;
         projectPath?: string;
+        isEmptyCommitAllowed?: boolean;
     },
 ): Promise<void> {
     const projectPath = options?.projectPath || process.cwd();
@@ -39,7 +41,12 @@ export async function commitChanges(
         await stageCommitChanges(projectPath, agentEnv, options?.includePaths, options?.excludePaths);
 
         await runGitCommand({
-            command: buildGitCommitCommand(commitMessagePath, signingFlag, options?.onlyPaths),
+            command: buildGitCommitCommand({
+                commitMessagePath,
+                signingFlag,
+                onlyPaths: options?.onlyPaths,
+                isEmptyCommitAllowed: options?.isEmptyCommitAllowed,
+            }),
             cwd: projectPath,
             env: agentEnv,
         });
@@ -296,21 +303,26 @@ async function executeGitPushCommand(
 /**
  * Builds the `git commit` command with an optional signing flag.
  */
-function buildGitCommitCommand(
-    commitMessagePath: string,
-    signingFlag?: string,
-    onlyPaths?: ReadonlyArray<string>,
-): string {
+function buildGitCommitCommand(options: {
+    commitMessagePath: string;
+    signingFlag?: string;
+    onlyPaths?: ReadonlyArray<string>;
+    isEmptyCommitAllowed?: boolean;
+}): string {
     const commandParts = ['git commit'];
 
-    if (signingFlag) {
-        commandParts.push(signingFlag);
+    if (options.signingFlag) {
+        commandParts.push(options.signingFlag);
     }
 
-    commandParts.push(`--file "${commitMessagePath}"`);
+    if (options.isEmptyCommitAllowed) {
+        commandParts.push('--allow-empty');
+    }
 
-    if (onlyPaths && onlyPaths.length > 0) {
-        commandParts.push('--', ...onlyPaths.map(quoteShellPath));
+    commandParts.push(`--file "${options.commitMessagePath}"`);
+
+    if (options.onlyPaths && options.onlyPaths.length > 0) {
+        commandParts.push('--', ...options.onlyPaths.map(quoteShellPath));
     }
 
     return commandParts.join(' ');

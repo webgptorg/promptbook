@@ -39,6 +39,28 @@ export async function readCurrentBranchName(
 }
 
 /**
+ * Checks whether one local branch already exists in the repository.
+ */
+export async function hasLocalBranch(
+    branchName: string,
+    projectPath: string,
+    env?: Record<string, string>,
+): Promise<boolean> {
+    try {
+        await $execCommand({
+            command: `git rev-parse --verify --quiet "refs/heads/${branchName}"`,
+            cwd: projectPath,
+            env,
+            isVerbose: false,
+        });
+
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+/**
  * Reads optional git config value; returns undefined when the key is missing.
  */
 export async function readOptionalGitConfig(

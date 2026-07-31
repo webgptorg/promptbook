@@ -84,6 +84,11 @@ export type RunOptions = {
      * When true, pull the latest repository changes before processing prompts.
      */
     autoPull: boolean;
+    /**
+     * When true, implement every prompt in its own temporary git worktree and merge the verified result
+     * back into the branch the coder runs on.
+     */
+    isIsolated?: boolean;
     agentName?: PromptRunnerHarnessName;
     model?: string;
     /**
