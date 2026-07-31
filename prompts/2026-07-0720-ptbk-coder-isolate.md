@@ -1,4 +1,4 @@
-[ ]
+[x] by Claude Code `claude-opus-5` thinking `max` - Implementation $22.49 an hour; Testing 28 minutes
 
 [✨🛐] Add `--isolate` option to promptbook coder
 
@@ -16,3 +16,4 @@ ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh -
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Update the [`ptbk coder` landing website](apps/coder-landing)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

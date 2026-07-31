@@ -45,6 +45,12 @@ export const ADVANCED_FEATURES: ReadonlyArray<AdvancedFeatureDefinition> = [
         sampleCommand: 'ptbk coder run --harness claude-code --auto-pull --auto-push',
     },
     {
+        title: 'Isolated worktrees',
+        description:
+            'Implement every prompt in its own temporary git worktree with its own environment. Verified work is merged back into your branch as one commit; an unmergeable task is marked as failed and its worktree is kept for you.',
+        sampleCommand: 'ptbk coder run --harness claude-code --isolate',
+    },
+    {
         title: 'Kanban web UI',
         description:
             'ptbk coder server keeps running after the queue is empty, watches for new prompt files and serves a Trello-style board where you can edit prompts in the browser.',

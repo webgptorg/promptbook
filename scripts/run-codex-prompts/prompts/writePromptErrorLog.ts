@@ -21,8 +21,10 @@ type WritePromptErrorLogOptions = {
 
 /**
  * Writes the failure details for a single prompt run next to the prompt markdown file.
+ *
+ * Returns the path of the written log so callers can include it in a commit.
  */
-export async function writePromptErrorLog(options: WritePromptErrorLogOptions): Promise<void> {
+export async function writePromptErrorLog(options: WritePromptErrorLogOptions): Promise<string> {
     const logPath = buildPromptErrorLogPath(options.file.path);
     const label = buildPromptLabelForDisplay(options.file, options.section);
     const summary = buildPromptSummary(options.file, options.section);
@@ -46,6 +48,8 @@ export async function writePromptErrorLog(options: WritePromptErrorLogOptions): 
     );
 
     await writeFile(logPath, log, 'utf-8');
+
+    return logPath;
 }
 
 /**

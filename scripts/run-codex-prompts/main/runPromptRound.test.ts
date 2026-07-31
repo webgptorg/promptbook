@@ -259,6 +259,8 @@ describe('runPromptRound', () => {
         expect(commitChanges).toHaveBeenCalledWith('feat: example', {
             autoPush: false,
             excludePaths: ['C:\\temp\\runtime.log'],
+            projectPath: process.cwd(),
+            isEmptyCommitAllowed: undefined,
         });
         expect(runAutoMigrateTestingServers).toHaveBeenCalled();
         expect(waitForRequestedPause).toHaveBeenCalledWith({
@@ -271,5 +273,59 @@ describe('runPromptRound', () => {
             phase: 'running',
             statusMessage: 'Running testing-server auto-migration',
         });
+    });
+
+    it('runs the agent and the commit in the provided project path of an isolated round', async () => {
+        const runner: PromptRunner = {
+            name: 'GitHub Copilot',
+            runPrompt: jest.fn(),
+        };
+        const waitForRequestedPause = jest.fn<
+            ReturnType<WaitForCoderRunPauseCheckpoint>,
+            Parameters<WaitForCoderRunPauseCheckpoint>
+        >(async () => undefined);
+        const worktreePath = 'C:\\project\\.promptbook\\coder-isolation-worktrees\\example';
+
+        await runPromptRound({
+            options: createRunOptions({
+                waitForUser: false,
+                isIsolated: true,
+                normalizeLineEndings: true,
+            }),
+            runner,
+            runnerMetadata: {
+                runnerName: 'github-copilot',
+                modelName: 'gpt-5.4',
+            },
+            nextPrompt: createPromptSelection(),
+            promptLabel: 'example.md#1',
+            resolvedCoderContext: undefined,
+            isRichUiEnabled: false,
+            progressDisplay: undefined,
+            uiHandle: undefined,
+            waitForRequestedPause,
+            projectPath: worktreePath,
+        });
+
+        expect(captureChangedFilesSnapshot).toHaveBeenCalledWith(worktreePath);
+        expect(runPromptWithTestFeedback).toHaveBeenCalledWith(
+            expect.objectContaining({
+                projectPath: worktreePath,
+            }),
+        );
+        expect(normalizeLineEndingsInFilesChangedSinceSnapshot).toHaveBeenCalledWith(
+            expect.objectContaining({
+                projectPath: worktreePath,
+            }),
+        );
+        expect(commitChanges).toHaveBeenCalledWith(
+            'feat: example',
+            expect.objectContaining({
+                projectPath: worktreePath,
+                isEmptyCommitAllowed: true,
+            }),
+        );
+        // Note: The prompt status update itself is written into the original project, not into the worktree
+        expect(writePromptFile).toHaveBeenCalledWith(expect.objectContaining({ path: 'prompts\\example.md' }));
     });
 });

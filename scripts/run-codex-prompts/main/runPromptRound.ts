@@ -42,7 +42,7 @@ const MAX_RETRY_ATTEMPTS_AFTER_ERROR = 3;
 /**
  * Input required to execute one prompt-processing round.
  */
-type RunPromptRoundOptions = {
+export type RunPromptRoundOptions = {
     options: RunOptions;
     runner: PromptRunner;
     runnerMetadata: {
@@ -57,6 +57,14 @@ type RunPromptRoundOptions = {
     progressDisplay?: CliProgressDisplay;
     uiHandle?: CoderRunUiHandle;
     waitForRequestedPause: WaitForCoderRunPauseCheckpoint;
+
+    /**
+     * Working directory the coding agent, the verification command and the round commit run in.
+     *
+     * Defaults to the project the coder was started from and is the temporary worktree
+     * when the round is isolated through `--isolate`.
+     */
+    projectPath?: string;
 };
 
 /**
@@ -76,7 +84,9 @@ export async function runPromptRound({
     progressDisplay,
     uiHandle,
     waitForRequestedPause,
+    projectPath,
 }: RunPromptRoundOptions): Promise<void> {
+    const roundProjectPath = projectPath ?? process.cwd();
     const commitMessage = buildCommitMessage(nextPrompt.file, nextPrompt.section);
     const taskPrompt = buildCodexPrompt(nextPrompt.file, nextPrompt.section);
     // Prepend agent system message before the task so the harness sees agent instructions first
@@ -95,6 +105,7 @@ export async function runPromptRound({
           )
         : taskPrompt;
     const codexPrompt = appendCoderContext(promptWithAgent, resolvedCoderContext);
+    // Note: Temporary scripts and runtime logs stay in the original project so they outlive an isolated worktree
     const scriptPath = buildScriptPath(nextPrompt.file, nextPrompt.section);
 
     setPromptRoundRunningState({ isRichUiEnabled, promptLabel, scriptPath, uiHandle });
@@ -107,7 +118,7 @@ export async function runPromptRound({
     const promptExecutionStartedDate = moment();
     let attemptCount = 1;
     const roundChangedFilesSnapshot = options.normalizeLineEndings
-        ? await captureChangedFilesSnapshot(process.cwd())
+        ? await captureChangedFilesSnapshot(roundProjectPath)
         : undefined;
 
     await withPromptRuntimeLog(
@@ -123,7 +134,7 @@ export async function runPromptRound({
                         runner,
                         prompt: codexPrompt,
                         scriptPath,
-                        projectPath: process.cwd(),
+                        projectPath: roundProjectPath,
                         promptLabel,
                         testCommand: options.testCommand,
                         preserveArtifactsOnSuccess: options.preserveLogs,
@@ -148,6 +159,7 @@ export async function runPromptRound({
                         progressDisplay,
                         uiHandle,
                         waitForRequestedPause,
+                        roundProjectPath,
                     });
                     return;
                 } catch (error) {
@@ -180,6 +192,7 @@ export async function runPromptRound({
                 roundChangedFilesSnapshot,
                 uiHandle,
                 waitForRequestedPause,
+                roundProjectPath,
             });
 
             throw lastError;
@@ -290,6 +303,7 @@ async function finalizeSuccessfulPromptRound(options: {
     progressDisplay?: CliProgressDisplay;
     uiHandle?: CoderRunUiHandle;
     waitForRequestedPause: WaitForCoderRunPauseCheckpoint;
+    roundProjectPath: string;
 }): Promise<void> {
     const {
         options: runOptions,
@@ -304,6 +318,7 @@ async function finalizeSuccessfulPromptRound(options: {
         progressDisplay,
         uiHandle,
         waitForRequestedPause,
+        roundProjectPath,
     } = options;
 
     uiHandle?.stopCapturingAgentOutput();
@@ -323,8 +338,10 @@ async function finalizeSuccessfulPromptRound(options: {
         result.loginMethod,
         runOptions.thinkingLevel,
     );
+    // Note: The prompt status is always written into the original project, an isolated round transports
+    //       its own changes back through the merge instead
     await writePromptFile(nextPrompt.file);
-    await normalizeLineEndingsForCurrentRound(runOptions, roundChangedFilesSnapshot);
+    await normalizeLineEndingsForCurrentRound(runOptions, roundProjectPath, roundChangedFilesSnapshot);
     await recordPromptDurationInEstimateCache({
         options: runOptions,
         runnerMetadata,
@@ -348,6 +365,9 @@ async function finalizeSuccessfulPromptRound(options: {
             autoPush: runOptions.autoPush,
             // Keep the live runtime log out of default commits because it is deleted after a successful round.
             excludePaths: runOptions.preserveLogs ? undefined : [logPath],
+            projectPath: roundProjectPath,
+            // Note: An isolated round commits only the agent changes, so a task that needed none must not fail here
+            isEmptyCommitAllowed: runOptions.isIsolated,
         });
     } else {
         uiHandle?.state.setStatusMessage('Leaving changes uncommitted');
@@ -379,6 +399,7 @@ async function finalizeFailedPromptRound(options: {
     roundChangedFilesSnapshot?: ChangedFilesSnapshot;
     uiHandle?: CoderRunUiHandle;
     waitForRequestedPause: WaitForCoderRunPauseCheckpoint;
+    roundProjectPath: string;
 }): Promise<void> {
     const {
         nextPrompt,
@@ -390,6 +411,7 @@ async function finalizeFailedPromptRound(options: {
         roundChangedFilesSnapshot,
         uiHandle,
         waitForRequestedPause,
+        roundProjectPath,
     } = options;
 
     uiHandle?.stopCapturingAgentOutput();
@@ -417,7 +439,7 @@ async function finalizeFailedPromptRound(options: {
         modelName: runnerMetadata.modelName,
         error,
     });
-    await normalizeLineEndingsForCurrentRound(runOptions, roundChangedFilesSnapshot);
+    await normalizeLineEndingsForCurrentRound(runOptions, roundProjectPath, roundChangedFilesSnapshot);
 }
 
 /**
@@ -513,6 +535,7 @@ async function recordPromptDurationInEstimateCache(options: {
  */
 async function normalizeLineEndingsForCurrentRound(
     options: RunOptions,
+    roundProjectPath: string,
     roundChangedFilesSnapshot?: ChangedFilesSnapshot,
 ): Promise<void> {
     if (!options.normalizeLineEndings || !roundChangedFilesSnapshot) {
@@ -521,7 +544,7 @@ async function normalizeLineEndingsForCurrentRound(
 
     try {
         const result = await normalizeLineEndingsInFilesChangedSinceSnapshot({
-            projectPath: process.cwd(),
+            projectPath: roundProjectPath,
             snapshot: roundChangedFilesSnapshot,
         });
 

@@ -33,6 +33,7 @@ npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --harness openai-co
 --min-priority <minimum-priority> # Filter prompts by minimum priority level
 --max-priority <maximum-priority> # Filter prompts by maximum priority level
 --allow-credits               # Allow OpenAI Codex runner to spend credits when limits are exhausted
+--isolate                     # Implement each prompt in its own temporary git worktree and merge it back when verified
 --auto-push                  # Push each successful commit to the configured remote
 --auto-migrate                # Run testing-server DB migrations after each successful prompt
 --allow-destructive-auto-migrate # Override destructive SQL heuristic guard in auto-migrate mode
@@ -92,7 +93,22 @@ ptbk coder run --harness openai-codex --model gpt-5.2-codex --min-priority 1 --m
 
 # Run with automatic testing-server migrations after each prompt
 ptbk coder run --harness openai-codex --model gpt-5.2-codex --auto-migrate
+
+# Run each prompt in its own isolated git worktree
+ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --isolate
 ```
+
+## Isolated runs
+
+With `--isolate`, no prompt is ever implemented in the working tree you started the coder from:
+
+-   Each task gets a temporary git worktree in `.promptbook/coder-isolation-worktrees/<task-name>` on branch `ptbk-coder-isolation/<task-name>` (for example `.promptbook/coder-isolation-worktrees/2026-07-0700-ptbk-coder-timing`).
+-   The worktree gets its own copy of the project `.env`, so the isolated task runs with its own environment.
+-   The coding agent, the `--test` verification command and the round commit all happen inside the worktree.
+-   Once the task is implemented and verified, it is merged back into the branch the coder runs on as one commit and the worktree plus its branch are deleted.
+-   If the merge fails, the task is marked as `[!]` instead of `[x]`, the failure is committed into the original worktree, the temporary worktree is kept for a manual merge, and the coder continues with the next task.
+
+Because the worktrees live inside `.promptbook`, `--isolate` requires that folder to be git-ignored (`ptbk coder init` sets this up).
 
 ## Agent identity configuration
 

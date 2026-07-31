@@ -22,7 +22,7 @@ Consequence: the page may reference Claude Code / Codex as familiar anchors, but
 
 -   `ptbk coder` **does not replace** coding agents — it sits **one level above** them ("harnesses") and keeps them working through a whole backlog unattended.
 -   The mental shift to communicate: *from interactive chat sessions* (one task at a time) *to a versioned queue of prompt files* (`prompts/` folder) processed autonomously.
--   Around the agent, `ptbk coder` adds the unattended-operation machinery: test verification with retry feedback, git commits under a dedicated agent identity (optionally GPG-signed), auto pull/push, pacing, priorities, a kanban web UI, and personas defined in the Book language.
+-   Around the agent, `ptbk coder` adds the unattended-operation machinery: test verification with retry feedback, git commits under a dedicated agent identity (optionally GPG-signed), auto pull/push, isolated worktrees, pacing, priorities, a kanban web UI, and personas defined in the Book language.
 
 ## Core workflow (the loop the page must explain)
 
@@ -32,7 +32,7 @@ Consequence: the page may reference Claude Code / Codex as familiar anchors, but
     - an optional agent persona from a `.book` file (`--agent`, see [`content/developer-agent.md`](./content/developer-agent.md)),
     - optional project context (`--context`, e.g. `AGENTS.md`).
 4. After each prompt: the test command runs (`--test`); failures are fed back to the agent, which retries until green.
-5. The changes are committed under the agent git identity; optionally pushed (`--auto-push`).
+5. The changes are committed under the agent git identity; optionally pushed (`--auto-push`). With `--isolate` the whole round happens in a temporary git worktree that is merged back into the current branch once the task is verified.
 6. Finished prompts are verified and archived to `prompts/done/` (`ptbk coder verify`).
 7. `ptbk coder server` additionally keeps running forever, watches `prompts/` for new files, and serves a Trello-style kanban board (default port 4441).
 

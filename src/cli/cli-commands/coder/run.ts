@@ -35,6 +35,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             - Automatically stages and commits changes with agent identity unless --no-commit is used
             - Optional post-commit git push with explicit --auto-push opt-in
             - Optional pre-prompt git pull with explicit --auto-pull opt-in
+            - Optional --isolate runs every prompt in its own temporary git worktree and merges it back when verified
             - Optional --preserve-logs keeps temp prompt/log artifacts after successful rounds
             - Optional --no-ui keeps plain streaming console output for logging and debugging
             - Checks that the selected harness is installed globally and up to date before the first prompt
@@ -65,6 +66,15 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
         false,
     );
     addPromptRunnerExecutionOptions(command);
+    command.option(
+        '--isolate',
+        spaceTrim(`
+            Implement each prompt in its own temporary git worktree with its own isolated environment.
+            A verified task is merged back into the branch the coder runs on and the worktree is deleted.
+            A task that cannot be merged is marked as failed and its worktree is kept for a manual merge.
+        `),
+        false,
+    );
     command.option(
         '--priority <minimum-priority>',
         'Alias for --min-priority; filter prompts by minimum priority level',
@@ -129,6 +139,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 context,
                 test,
                 preserveLogs,
+                isolate: isIsolated,
                 priority,
                 minPriority: minimumPriority,
                 maxPriority: maximumPriority,
@@ -145,6 +156,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 readonly context?: string;
                 readonly test?: string | string[];
                 readonly preserveLogs: boolean;
+                readonly isolate: boolean;
                 readonly priority?: number;
                 readonly minPriority?: number;
                 readonly maxPriority?: number;
@@ -190,6 +202,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 context,
                 testCommand,
                 preserveLogs,
+                isIsolated,
                 noUi: runnerOptions.noUi,
                 thinkingLevel: runnerOptions.thinkingLevel,
                 priority: priority ?? 0,
