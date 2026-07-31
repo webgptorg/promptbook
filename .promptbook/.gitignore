@@ -1,4 +1,5 @@
 embeddings/*
 ptbk-coder/*
 agents-server/*
+coder-isolation-worktrees/*
 coder-prompts/*
