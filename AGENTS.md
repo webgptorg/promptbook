@@ -76,7 +76,7 @@ Do not edit these places manually, as they will be overwritten by the code gener
 -   Purpose of this is to be able to run multiple clients on one VPS and each client can have its own server with its own domain and settings
 -   The entire VPS is managed by superadmin and each server is managed by normal admin of that server _(or superadmin can also manage each server)_
 -   Superadmin has always name `admin` and password hardcoded in environment variable `ADMIN_PASSWORD`
--   The VPS is installed by running `install.sh` script on a fresh VPS
+-   The VPS is installed by running [the `install.sh`](install.sh) script on a fresh VPS
 -   Servers can be added and removed by superadmin on `/superadmin/servers` page
 
 ### The Agents Server menu _(as additional context)_
