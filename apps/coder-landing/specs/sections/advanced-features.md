@@ -29,7 +29,7 @@ Anchor `#features`. A grid of feature cards, each pairing a short explanation wi
 1. **Verified by your tests** — "Run any test command after each prompt. Failures are fed back to the agent, which retries until the tests pass."
 2. **Commits with its own identity** — "Every successful round is staged and committed under a dedicated agent git identity — optionally GPG-signed — so agent work is always attributable."
 3. **Autopilot git** — "Pull before prompts and push after commits, so a long-running queue stays in sync with your remote."
-4. **Isolated worktrees** — "Implement every prompt in its own temporary git worktree with its own environment. Verified work is merged back into your branch as one commit; an unmergeable task is marked as failed and its worktree is kept for you."
+4. **Isolated worktrees** — "Implement every prompt in its own temporary git worktree with its own environment. Verified work is merged back into your branch as one commit; an unmergeable task is marked as failed and its worktree is kept for you. Deeply nested repositories are handled on Windows too."
 5. **Kanban web UI** — "ptbk coder server keeps running after the queue is empty, watches for new prompt files and serves a Trello-style board where you can edit prompts in the browser."
 6. **Prompt priorities** — "Give prompts a priority and process only the range you want in the current run."
 7. **Pacing and retries** — "Pace the queue with wall-clock wait durations that keep elapsing through pause and sleep, skip the active wait with S, and retry errors after a cool-down."

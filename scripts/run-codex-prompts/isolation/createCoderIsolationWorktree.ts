@@ -3,8 +3,11 @@ import { spaceTrim } from 'spacetrim';
 import { NotAllowed } from '../../../src/errors/NotAllowed';
 import { $execCommand } from '../../../src/utils/execCommand/$execCommand';
 import { getPromptbookTemporaryGitignoreRule } from '../../../src/utils/filesystem/promptbookTemporaryPath';
+import { formatUnknownErrorMessage } from '../common/formatUnknownErrorMessage';
 import { readCurrentBranchName } from '../git/gitBranchContext';
+import { $enableGitLongPathsSupport } from '../git/gitLongPathsSupport';
 import { runGitCommand } from '../git/runGitCommand';
+import { buildCoderIsolationCheckoutFailureError } from './coderIsolationCheckoutFailureReport';
 import type { CoderIsolationWorktree } from './CoderIsolationWorktree';
 import {
     buildCoderIsolationBranchName,
@@ -44,6 +47,12 @@ export async function createCoderIsolationWorktree(
     options: CreateCoderIsolationWorktreeOptions,
 ): Promise<CoderIsolationWorktree> {
     const { projectPath, taskName } = options;
+
+    // Note: The worktree nests the whole repository below `.promptbook/coder-isolation-worktrees/<task-name>`,
+    //       so paths which still fit into the Windows `MAX_PATH` limit inside the project no longer fit inside
+    //       the worktree and git needs long path support to check them out, read them and delete them again
+    $enableGitLongPathsSupport();
+
     const baseBranchName = await readCurrentBranchName(projectPath);
 
     if (baseBranchName === DETACHED_HEAD_BRANCH_NAME) {
@@ -78,13 +87,30 @@ export async function createCoderIsolationWorktree(
         );
     }
 
-    await runGitCommand({
-        command: `git worktree add -b "${worktree.branchName}" "${worktree.worktreePath}" HEAD`,
-        cwd: projectPath,
-    });
+    await checkOutWorktree(worktree);
     await copyCoderIsolationEnvironment(worktree);
 
     return worktree;
+}
+
+/**
+ * Checks the isolation branch out into the temporary worktree directory.
+ *
+ * A half-written worktree is removed again so that the failed task neither blocks its own next attempt
+ * nor leaves an unusable checkout behind.
+ */
+async function checkOutWorktree(worktree: CoderIsolationWorktree): Promise<void> {
+    try {
+        await runGitCommand({
+            command: `git worktree add -b "${worktree.branchName}" "${worktree.worktreePath}" HEAD`,
+            cwd: worktree.projectPath,
+        });
+    } catch (error) {
+        // Note: The cleanup must never replace the reason why the checkout failed with its own failure
+        await removeCoderIsolationWorktree(worktree).catch(() => undefined);
+
+        throw buildCoderIsolationCheckoutFailureError(worktree, formatUnknownErrorMessage(error));
+    }
 }
 
 /**

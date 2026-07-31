@@ -75,6 +75,7 @@ treshold
 worktime
 worktree
 worktrees
+longpaths
 formfactor
 formfactors
 blackhole

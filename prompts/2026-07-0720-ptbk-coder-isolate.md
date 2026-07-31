@@ -19,7 +19,7 @@ ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh -
 
 ---
 
-[ ]
+[x] by Claude Code `claude-opus-5` thinking `max` - Implementation $10.92 42 minutes; Testing 35 minutes
 
 [✨🛐] Fix `--isolate` option to promptbook coder
 
@@ -169,3 +169,4 @@ fatal: Could not reset index file to revision 'HEAD'.
 me@DESKTOP-2QD9KQQ MINGW64 ~/work/ai/promptbook (main)
 $
 ```
+

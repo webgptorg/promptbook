@@ -1,3 +1,4 @@
+import { formatUnknownErrorMessage } from '../common/formatUnknownErrorMessage';
 import { runGitCommand } from '../git/runGitCommand';
 import type { CoderIsolationWorktree } from './CoderIsolationWorktree';
 
@@ -40,7 +41,7 @@ export async function mergeCoderIsolationWorktree(
     } catch (error) {
         await abortSquashMerge(worktree);
 
-        return { isMerged: false, failureDetails: stringifyUnknownError(error) };
+        return { isMerged: false, failureDetails: formatUnknownErrorMessage(error) };
     }
 }
 
@@ -57,19 +58,4 @@ async function abortSquashMerge(worktree: CoderIsolationWorktree): Promise<void>
         cwd: worktree.projectPath,
         isVerbose: false,
     }).catch(() => undefined);
-}
-
-/**
- * Converts unknown thrown values into readable text.
- */
-function stringifyUnknownError(error: unknown): string {
-    if (error instanceof Error) {
-        return error.message;
-    }
-
-    if (typeof error === 'string') {
-        return error;
-    }
-
-    return JSON.stringify(error, null, 2);
 }

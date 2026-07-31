@@ -1,5 +1,6 @@
 import colors from 'colors';
 import { rm, stat } from 'fs/promises';
+import { formatUnknownErrorMessage } from '../common/formatUnknownErrorMessage';
 import { hasLocalBranch } from '../git/gitBranchContext';
 import { runGitCommand } from '../git/runGitCommand';
 import type { CoderIsolationWorktree } from './CoderIsolationWorktree';
@@ -61,7 +62,7 @@ async function removeWorktreeBranch(worktree: CoderIsolationWorktree): Promise<b
     } catch (error) {
         console.warn(
             colors.yellow(
-                `Could not delete the isolation branch \`${worktree.branchName}\`: ${stringifyUnknownError(error)}`,
+                `Could not delete the isolation branch \`${worktree.branchName}\`: ${formatUnknownErrorMessage(error)}`,
             ),
         );
 
@@ -89,15 +90,4 @@ async function isExistingDirectory(path: string): Promise<boolean> {
     } catch {
         return false;
     }
-}
-
-/**
- * Converts unknown thrown values into readable text.
- */
-function stringifyUnknownError(error: unknown): string {
-    if (error instanceof Error) {
-        return error.message;
-    }
-
-    return String(error);
 }

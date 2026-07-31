@@ -47,7 +47,7 @@ export const ADVANCED_FEATURES: ReadonlyArray<AdvancedFeatureDefinition> = [
     {
         title: 'Isolated worktrees',
         description:
-            'Implement every prompt in its own temporary git worktree with its own environment. Verified work is merged back into your branch as one commit; an unmergeable task is marked as failed and its worktree is kept for you.',
+            'Implement every prompt in its own temporary git worktree with its own environment. Verified work is merged back into your branch as one commit; an unmergeable task is marked as failed and its worktree is kept for you. Deeply nested repositories are handled on Windows too.',
         sampleCommand: 'ptbk coder run --harness claude-code --isolate',
     },
     {
