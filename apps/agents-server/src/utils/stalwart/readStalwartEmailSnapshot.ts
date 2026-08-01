@@ -2,6 +2,7 @@ import { normalizeEmailDomain } from '../email/agentEmailAddress';
 import { listAgentEmailIdentities, type AgentEmailIdentity } from '../email/listAgentEmailIdentities';
 import { readStalwartConfiguration } from './StalwartConfiguration';
 import { listStalwartObjects } from './stalwartJmapClient';
+import { buildStalwartInboundHookUrl, STALWART_MAIL_BRIDGE_LOCAL_PART } from './stalwartMailBridge';
 
 /**
  * Read-only operational state shown on Stalwart administration pages.
@@ -77,7 +78,7 @@ export async function readStalwartEmailSnapshot(domainValue: string): Promise<St
         ]);
         const domainObject = domains.find((item) => item.name === domain) || null;
         const domainId = typeof domainObject?.id === 'string' ? domainObject.id : null;
-        const hookUrl = `https://${domain}/api/emails/incoming/stalwart`;
+        const hookUrl = buildStalwartInboundHookUrl(domain);
 
         return {
             ...baseSnapshot,
@@ -86,7 +87,7 @@ export async function readStalwartEmailSnapshot(domainValue: string): Promise<St
             domainId,
             dnsZoneFile: typeof domainObject?.dnsZoneFile === 'string' ? domainObject.dnsZoneFile : null,
             isBridgeAccountConfigured: accounts.some(
-                (item) => item.name === 'promptbook-mailbridge' && item.domainId === domainId,
+                (item) => item.name === STALWART_MAIL_BRIDGE_LOCAL_PART && item.domainId === domainId,
             ),
             isInboundHookConfigured: hooks.some((item) => item.url === hookUrl),
         };

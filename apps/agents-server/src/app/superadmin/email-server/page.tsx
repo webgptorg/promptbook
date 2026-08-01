@@ -55,7 +55,7 @@ export default async function SuperAdminEmailServerPage() {
                     icon={Mail}
                     label="SMTP submission"
                     value={configuration.smtpPassword ? 'Configured' : 'Missing'}
-                    detail="Local authenticated transport on port 587"
+                    detail="Local authenticated transport on port 465"
                 />
             </section>
 
@@ -90,7 +90,7 @@ export default async function SuperAdminEmailServerPage() {
                         Stalwart administration.
                     </li>
                     <li>
-                        Open inbound SMTP port <code>25</code>; keep local submission on <code>587</code> firewalled
+                        Open inbound SMTP port <code>25</code>; keep local submission on <code>465</code> firewalled
                         from the public Internet and retain Nginx on <code>80</code>/<code>443</code>.
                     </li>
                     <li>

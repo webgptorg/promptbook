@@ -140,9 +140,9 @@ export default async function AdminEmailServerPage() {
                             that hostname.
                         </p>
                         <p>
-                            Open TCP port <code>25</code> publicly. Keep submission ports <code>465</code>/
-                            <code>587</code> firewalled unless external mail clients need them, and never expose the
-                            Stalwart management API on port <code>8080</code>.
+                            Open TCP port <code>25</code> publicly. Keep the submission port <code>465</code>{' '}
+                            firewalled unless external mail clients need it, and never expose the Stalwart management
+                            API on port <code>8080</code>.
                         </p>
                     </div>
                     <pre className="mt-4 overflow-auto whitespace-pre-wrap rounded-lg bg-gray-950 p-4 text-xs text-gray-100">

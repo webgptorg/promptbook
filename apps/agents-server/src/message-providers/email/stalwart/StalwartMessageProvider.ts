@@ -1,4 +1,5 @@
 import type { really_any } from '@promptbook-local/types';
+import { buildStalwartMailBridgeAddress } from '../../../utils/stalwart/stalwartMailBridge';
 import type { MessageProvider } from '../../interfaces/MessageProvider';
 import type { OutboundEmail } from '../_common/Email';
 import { parseEmailAddress } from '../_common/utils/parseEmailAddress';
@@ -33,13 +34,21 @@ export class StalwartMessageProvider implements MessageProvider {
             port: this.configuration.port,
             secure: this.configuration.isSecure,
             isTlsCertificateValidationEnabled: this.configuration.isTlsCertificateValidationEnabled,
-            username: this.configuration.username || `promptbook-mailbridge@${senderDomain}`,
+            username: this.configuration.username || buildStalwartMailBridgeAddress(senderDomain),
             password: this.configuration.password,
         });
 
         return provider.send(message);
     }
 }
+
+/**
+ * Submission port of a freshly bootstrapped Stalwart instance.
+ *
+ * Stalwart opens `smtp` on 25 and `submissions` on 465 (implicit TLS); it has **no** listener on the
+ * STARTTLS submission port 587, so mail submitted there is refused.
+ */
+const STALWART_DEFAULT_SUBMISSION_PORT = 465;
 
 /**
  * Builds the bundled Stalwart provider when its SMTP credential is configured.
@@ -50,10 +59,13 @@ export function createStalwartMessageProviderFromEnvironment(): StalwartMessageP
         return null;
     }
 
+    // Note: Port 465 speaks implicit TLS, so an unset `PTBK_STALWART_SMTP_SECURE` must default to `true`
+    const configuredSecureValue = process.env.PTBK_STALWART_SMTP_SECURE?.trim();
+
     return new StalwartMessageProvider({
         host: process.env.PTBK_STALWART_SMTP_HOST || '127.0.0.1',
-        port: Number(process.env.PTBK_STALWART_SMTP_PORT || 587),
-        isSecure: process.env.PTBK_STALWART_SMTP_SECURE === 'true',
+        port: Number(process.env.PTBK_STALWART_SMTP_PORT || STALWART_DEFAULT_SUBMISSION_PORT),
+        isSecure: configuredSecureValue ? configuredSecureValue === 'true' : true,
         isTlsCertificateValidationEnabled:
             process.env.PTBK_STALWART_SMTP_TLS_REJECT_UNAUTHORIZED === 'true',
         username: process.env.PTBK_STALWART_SMTP_USERNAME?.trim() || null,

@@ -25,11 +25,15 @@ PTBK_SELF_CONTAINED_S3_REGION="${PTBK_SELF_CONTAINED_S3_REGION:-us-east-1}"
 PTBK_STALWART_INSTALL_SCRIPT_URL="${PTBK_STALWART_INSTALL_SCRIPT_URL:-https://get.stalw.art/install.sh}"
 PTBK_STALWART_SERVICE_NAME="${PTBK_STALWART_SERVICE_NAME:-stalwart}"
 PTBK_STALWART_ENV_FILE="${PTBK_STALWART_ENV_FILE:-/etc/stalwart/stalwart.env}"
-PTBK_STALWART_CONFIG_FILE="${PTBK_STALWART_CONFIG_FILE:-/etc/stalwart/config.json}"
-PTBK_STALWART_ADMIN_DOMAIN="${PTBK_STALWART_ADMIN_DOMAIN:-promptbook.invalid}"
 # Stalwart serves its management methods (`x:Bootstrap/set`, `x:Domain/set`, ...) on the JMAP endpoint
 # published as `apiUrl` by `/jmap/session`. Any other path answers HTTP 404.
 PTBK_STALWART_MANAGEMENT_API_URL="${PTBK_STALWART_MANAGEMENT_API_URL:-http://127.0.0.1:8080/jmap/}"
+# Number of one-second attempts to reach the local Stalwart management API before giving up.
+PTBK_STALWART_MANAGEMENT_API_ATTEMPTS="${PTBK_STALWART_MANAGEMENT_API_ATTEMPTS:-30}"
+# Management call which detects whether Stalwart still has its bootstrap pending: until the bootstrap
+# completed, every method except `x:Bootstrap/*` is answered with
+# `{"type":"forbidden","description":"The server is in bootstrap mode. ..."}`.
+PTBK_STALWART_BOOTSTRAP_PROBE_PAYLOAD='{"methodCalls":[["x:Domain/query",{"filter":{},"limit":1},"promptbook-bootstrap-probe"]],"using":["urn:ietf:params:jmap:core","urn:stalwart:jmap"]}'
 PTBK_EXTERNAL_S3_REGION="${PTBK_EXTERNAL_S3_REGION:-auto}"
 PTBK_CDN_PATH_PREFIX="${PTBK_CDN_PATH_PREFIX:-ptbk-agents}"
 PROMPTBOOK_REPOSITORY_URL="${PROMPTBOOK_REPOSITORY_URL:-https://github.com/webgptorg/promptbook.git}"
@@ -1179,29 +1183,115 @@ ensure_stalwart_environment() {
     set_env_value PTBK_STALWART_API_URL "$PTBK_STALWART_MANAGEMENT_API_URL"
     set_env_value PTBK_STALWART_API_USERNAME "admin"
     set_env_value PTBK_STALWART_SMTP_HOST "127.0.0.1"
-    set_env_value PTBK_STALWART_SMTP_PORT "587"
-    set_env_value PTBK_STALWART_SMTP_SECURE "false"
+    # Note: A bootstrapped Stalwart listens on 25 (`smtp`) and 465 (`submissions`, implicit TLS) but
+    #       never on 587, and its submission certificate is self-signed for the local hostname.
+    set_env_value PTBK_STALWART_SMTP_PORT "465"
+    set_env_value PTBK_STALWART_SMTP_SECURE "true"
     set_env_value PTBK_STALWART_SMTP_TLS_REJECT_UNAUTHORIZED "false"
+}
+
+call_stalwart_management_api() {
+    local stalwart_api_password="$1"
+    local request_payload_file="$2"
+    local response_file="$3"
+
+    # Note: Stalwart answers a refused method with HTTP 200 and reports the refusal inside
+    #       `methodResponses`, so a non-zero exit status here means the API was not reachable at all.
+    curl -fsS \
+        --user "admin:$stalwart_api_password" \
+        --header "Content-Type: application/json" \
+        --data-binary "@$request_payload_file" \
+        "$PTBK_STALWART_MANAGEMENT_API_URL" > "$response_file"
+}
+
+is_stalwart_method_response_successful() {
+    local response_file="$1"
+
+    node -e '
+        const fs = require("node:fs");
+        try {
+            const payload = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+            const methodResponse = payload.methodResponses?.[0];
+            process.exit(!methodResponse || methodResponse[0] === "error" ? 1 : 0);
+        } catch {
+            process.exit(1);
+        }
+    ' "$response_file"
+}
+
+# Reports the bootstrap state of the local Stalwart instance as `pending`, `done` or `unavailable`.
+#
+# Note: This state must NOT be read from `/etc/stalwart/config.json`. Stalwart writes that file (its
+#       storage descriptor, for example `{"@type":"RocksDb","path":"/var/lib/stalwart/",...}`) already
+#       during its very first startup - long before anything is bootstrapped - and never touches it
+#       again. Treating the file as a "bootstrap already done" marker therefore skipped the bootstrap
+#       on every fresh installation and left the mail server permanently in bootstrap mode, refusing
+#       every management call of Agents Server. Stalwart itself is the only reliable source.
+read_stalwart_bootstrap_state() {
+    local stalwart_api_password="$1"
+    local probe_payload_file=""
+    local probe_response_file=""
+    local attempt=0
+    local bootstrap_state="unavailable"
+
+    probe_payload_file="$(mktemp)"
+    probe_response_file="$(mktemp)"
+    printf '%s' "$PTBK_STALWART_BOOTSTRAP_PROBE_PAYLOAD" > "$probe_payload_file"
+
+    for attempt in $(seq 1 "$PTBK_STALWART_MANAGEMENT_API_ATTEMPTS"); do
+        if call_stalwart_management_api "$stalwart_api_password" "$probe_payload_file" "$probe_response_file"; then
+            if grep -q 'bootstrap mode' "$probe_response_file"; then
+                bootstrap_state="pending"
+                break
+            fi
+            # Note: Only a genuinely accepted management call proves that the bootstrap is done, so any
+            #       other answer keeps retrying instead of silently skipping the bootstrap
+            if is_stalwart_method_response_successful "$probe_response_file"; then
+                bootstrap_state="done"
+                break
+            fi
+        fi
+        sleep 1
+    done
+
+    rm -f "$probe_payload_file" "$probe_response_file"
+    printf '%s' "$bootstrap_state"
 }
 
 bootstrap_stalwart_mail_server() {
     local stalwart_api_password="$1"
     local first_domain="${DOMAINS[0]:-}"
+    local bootstrap_state=""
     local bootstrap_payload_file=""
     local bootstrap_response_file=""
+    local bootstrap_failure_details=""
     local attempt=0
     local is_bootstrapped=0
-
-    if "${SUDO[@]}" test -s "$PTBK_STALWART_CONFIG_FILE"; then
-        return
-    fi
 
     if [[ -z "$first_domain" ]]; then
         warn "Stalwart is installed but cannot be bootstrapped until an Agents Server domain is configured."
         return
     fi
 
+    bootstrap_state="$(read_stalwart_bootstrap_state "$stalwart_api_password")"
+
+    # Note: A mail server which cannot be bootstrapped must never abort the installation. The steps
+    #       which follow - nginx, firewall and TLS certificates - are what makes the VPS reachable and
+    #       safe at all, and the bootstrap is retried by every later installer run anyway.
+    if [[ "$bootstrap_state" == "unavailable" ]]; then
+        warn "Stalwart did not answer its management API at $PTBK_STALWART_MANAGEMENT_API_URL with a usable response, so its bootstrap was skipped. Inspect the stalwart service logs (journalctl -u $PTBK_STALWART_SERVICE_NAME) and rerun the installer."
+        return
+    fi
+
+    if [[ "$bootstrap_state" == "done" ]]; then
+        log "Stalwart is already bootstrapped."
+        return
+    fi
+
     log "Bootstrapping Stalwart for $first_domain with local RocksDB storage and automatic DKIM keys."
+    # Note: [📬] This mirrors `buildStalwartBootstrapValue` of Agents Server, which cannot be imported
+    #       here because a fresh VPS is bootstrapped before Agents Server is built. Both places have to
+    #       be changed together.
     bootstrap_payload_file="$(mktemp)"
     bootstrap_response_file="$(mktemp)"
     STALWART_BOOTSTRAP_DOMAIN="$first_domain" node -e '
@@ -1229,188 +1319,39 @@ bootstrap_stalwart_mail_server() {
         fs.writeFileSync(process.argv[1], JSON.stringify(payload));
     ' "$bootstrap_payload_file"
 
-    for attempt in $(seq 1 30); do
-        if curl -fsS \
-            --user "admin:$stalwart_api_password" \
-            --header "Content-Type: application/json" \
-            --data-binary "@$bootstrap_payload_file" \
-            "$PTBK_STALWART_MANAGEMENT_API_URL" > "$bootstrap_response_file"; then
-            if node -e '
-                const fs = require("node:fs");
-                const payload = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
-                const response = payload.methodResponses?.[0];
-                if (!response || response[0] === "error") {
-                    process.exit(1);
-                }
-            ' "$bootstrap_response_file"; then
-                is_bootstrapped=1
-                break
-            fi
-        elif "${SUDO[@]}" test -s "$PTBK_STALWART_CONFIG_FILE"; then
+    for attempt in $(seq 1 "$PTBK_STALWART_MANAGEMENT_API_ATTEMPTS"); do
+        if call_stalwart_management_api \
+            "$stalwart_api_password" \
+            "$bootstrap_payload_file" \
+            "$bootstrap_response_file" &&
+            is_stalwart_method_response_successful "$bootstrap_response_file"; then
             is_bootstrapped=1
             break
         fi
         sleep 1
     done
 
+    bootstrap_failure_details="$(head -c 500 "$bootstrap_response_file" 2>/dev/null || true)"
+    rm -f "$bootstrap_payload_file" "$bootstrap_response_file"
+
     if [[ "$is_bootstrapped" != "1" ]]; then
-        rm -f "$bootstrap_payload_file" "$bootstrap_response_file"
-        fail "Stalwart bootstrap failed. Inspect the stalwart service logs and rerun the installer."
+        warn "Stalwart bootstrap failed, so the mail server stays in bootstrap mode. Inspect the stalwart service logs (journalctl -u $PTBK_STALWART_SERVICE_NAME) and rerun the installer. Last response: ${bootstrap_failure_details:-<none>}"
+        return
     fi
 
-    rm -f "$bootstrap_payload_file" "$bootstrap_response_file"
+    # Note: Stalwart decides at startup whether it runs in bootstrap mode ("No configuration file was
+    #       found. Port 8080 is open for initial setup."), and only a restarted instance opens the mail
+    #       listeners on 25, 465, 993, 995 and 4190. Agents Server is started right after this step and
+    #       synchronizes its domains immediately, so the restart is awaited here instead of letting that
+    #       first synchronization race a mail server which is still coming up.
     "${SUDO[@]}" systemctl restart "$PTBK_STALWART_SERVICE_NAME"
-}
 
-provision_stalwart_application_administrator() {
-    local stalwart_api_password="$1"
-    local stalwart_api_username=""
+    if [[ "$(read_stalwart_bootstrap_state "$stalwart_api_password")" != "done" ]]; then
+        warn "Stalwart was bootstrapped but did not leave bootstrap mode after its restart. Inspect the stalwart service logs (journalctl -u $PTBK_STALWART_SERVICE_NAME)."
+        return
+    fi
 
-    stalwart_api_username="promptbook-admin@$PTBK_STALWART_ADMIN_DOMAIN"
-    log "Provisioning the regular Stalwart administrator used by Agents Server."
-    STALWART_PROVISIONING_DOMAIN="$PTBK_STALWART_ADMIN_DOMAIN" \
-        STALWART_PROVISIONING_PASSWORD="$stalwart_api_password" \
-        STALWART_PROVISIONING_USERNAME="$stalwart_api_username" \
-        STALWART_PROVISIONING_API_URL="$PTBK_STALWART_MANAGEMENT_API_URL" \
-        node <<'NODE'
-const domain = process.env.STALWART_PROVISIONING_DOMAIN;
-const password = process.env.STALWART_PROVISIONING_PASSWORD;
-const username = process.env.STALWART_PROVISIONING_USERNAME;
-const endpoint = process.env.STALWART_PROVISIONING_API_URL;
-const capabilities = ['urn:ietf:params:jmap:core', 'urn:stalwart:jmap'];
-
-async function callStalwart(authorization, methodName, argumentsValue) {
-    let response;
-    for (let attempt = 1; attempt <= 30; attempt++) {
-        try {
-            response = await fetch(endpoint, {
-                method: 'POST',
-                headers: {
-                    Authorization: authorization,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    methodCalls: [[methodName, argumentsValue, 'promptbook-installer']],
-                    using: capabilities,
-                }),
-            });
-            if (response.status < 500) {
-                break;
-            }
-        } catch (error) {
-            if (attempt === 30) {
-                throw error;
-            }
-        }
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-    }
-
-    if (!response) {
-        throw new Error('Stalwart did not answer the management request.');
-    }
-
-    const responseText = await response.text();
-    if (!response.ok) {
-        throw new Error(`Stalwart returned HTTP ${response.status}: ${responseText.slice(0, 500)}`);
-    }
-
-    const payload = JSON.parse(responseText);
-    const methodResponse = payload.methodResponses?.[0];
-    if (!methodResponse || methodResponse[0] === 'error') {
-        throw new Error(`Stalwart rejected ${methodName}: ${JSON.stringify(methodResponse?.[1] || payload)}`);
-    }
-
-    return methodResponse[1];
-}
-
-async function listObjects(authorization, objectName) {
-    const queryResult = await callStalwart(authorization, `x:${objectName}/query`, {
-        filter: {},
-        limit: 10000,
-    });
-    if (!Array.isArray(queryResult.ids) || queryResult.ids.length === 0) {
-        return [];
-    }
-    const getResult = await callStalwart(authorization, `x:${objectName}/get`, {
-        ids: queryResult.ids,
-    });
-    return Array.isArray(getResult.list) ? getResult.list : [];
-}
-
-async function main() {
-    const recoveryAuthorization = `Basic ${Buffer.from(`admin:${password}`).toString('base64')}`;
-    const domains = await listObjects(recoveryAuthorization, 'Domain');
-    let managedDomain = domains.find((candidate) => candidate.name === domain);
-    if (!managedDomain?.id) {
-        const domainResult = await callStalwart(recoveryAuthorization, 'x:Domain/set', {
-            create: {
-                promptbookAdministratorDomain: {
-                    aliases: [],
-                    certificateManagement: { '@type': 'Manual' },
-                    dkimManagement: { '@type': 'Manual' },
-                    dnsManagement: { '@type': 'Manual' },
-                    name: domain,
-                    subAddressing: { '@type': 'Enabled' },
-                },
-            },
-        });
-        const domainId = domainResult.created?.promptbookAdministratorDomain?.id;
-        if (!domainId) {
-            throw new Error(`Stalwart did not create the internal administrator domain ${domain}.`);
-        }
-        managedDomain = { id: domainId, name: domain };
-    }
-
-    const accounts = await listObjects(recoveryAuthorization, 'Account');
-    const existingAdministrator = accounts.find(
-        (candidate) => candidate.name === 'promptbook-admin' && candidate.domainId === managedDomain.id,
-    );
-    const administratorValue = {
-        credentials: [{ '@type': 'Password', secret: password }],
-        roles: { '@type': 'Admin' },
-        permissions: { '@type': 'Inherit' },
-    };
-
-    await callStalwart(
-        recoveryAuthorization,
-        'x:Account/set',
-        existingAdministrator?.id
-            ? {
-                  update: {
-                      [existingAdministrator.id]: administratorValue,
-                  },
-              }
-            : {
-                  create: {
-                      promptbookAdministrator: {
-                          '@type': 'User',
-                          name: 'promptbook-admin',
-                          domainId: managedDomain.id,
-                          memberGroupIds: [],
-                          quotas: {},
-                          aliases: [],
-                          encryptionAtRest: { '@type': 'Disabled' },
-                          description: 'Agents Server Stalwart administrator',
-                          ...administratorValue,
-                      },
-                  },
-              },
-    );
-
-    const administratorAuthorization = `Basic ${Buffer.from(`${username}:${password}`).toString('base64')}`;
-    await callStalwart(administratorAuthorization, 'x:Domain/query', {
-        filter: {},
-        limit: 1,
-    });
-}
-
-main().catch((error) => {
-    console.error(error instanceof Error ? error.message : String(error));
-    process.exit(1);
-});
-NODE
-
-    set_env_value PTBK_STALWART_API_USERNAME "$stalwart_api_username"
+    log "Stalwart left bootstrap mode and serves $first_domain."
 }
 
 configure_stalwart_mail_server() {
@@ -1425,6 +1366,11 @@ configure_stalwart_mail_server() {
         fail "PTBK_STALWART_API_PASSWORD must be configured before Stalwart is started."
     fi
 
+    # `STALWART_RECOVERY_ADMIN` are Stalwart's fixed administrator credentials. They are kept
+    # permanently (they do NOT put Stalwart into recovery mode - `STALWART_RECOVERY_MODE` does) so
+    # that `PTBK_STALWART_API_USERNAME=admin` keeps working before and after the bootstrap. Without
+    # them the only administrator is the one Stalwart generates during the bootstrap, whose password
+    # is never known to Agents Server.
     temporary_environment_file="$(mktemp)"
     if [[ -f "$PTBK_STALWART_ENV_FILE" ]]; then
         "${SUDO[@]}" cat "$PTBK_STALWART_ENV_FILE" |
@@ -1437,14 +1383,6 @@ configure_stalwart_mail_server() {
     "${SUDO[@]}" systemctl enable "$PTBK_STALWART_SERVICE_NAME" >/dev/null
     "${SUDO[@]}" systemctl restart "$PTBK_STALWART_SERVICE_NAME"
     bootstrap_stalwart_mail_server "$stalwart_api_password"
-    provision_stalwart_application_administrator "$stalwart_api_password"
-
-    temporary_environment_file="$(mktemp)"
-    "${SUDO[@]}" cat "$PTBK_STALWART_ENV_FILE" |
-        grep -v '^STALWART_RECOVERY_ADMIN=' > "$temporary_environment_file" || true
-    "${SUDO[@]}" install -o root -g stalwart -m 640 "$temporary_environment_file" "$PTBK_STALWART_ENV_FILE"
-    rm -f "$temporary_environment_file"
-    "${SUDO[@]}" systemctl restart "$PTBK_STALWART_SERVICE_NAME"
     log "Stalwart is available locally on port 8080 for bootstrap and management."
 }
 

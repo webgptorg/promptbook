@@ -98,7 +98,7 @@ const config = defineConfig({
         },
         {
             command:
-                'npm run prebuild && node --max-old-space-size=8192 -r ./scripts/ignore-kill-eperm.js ../../node_modules/next/dist/bin/next build && npm run start',
+                'npm run prebuild && node --max-old-space-size=8192 -r ./scripts/ignore-kill-eperm.js ./scripts/next-cli.js build && npm run start',
             cwd: __dirname,
             url: APP_URL,
             reuseExistingServer: false,

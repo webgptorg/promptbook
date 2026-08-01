@@ -4,12 +4,14 @@ import { normalizeEmailDomain } from '../email/agentEmailAddress';
 import { EMAIL_SYSTEM_LOCAL_PARTS } from '../email/emailSystemAddresses';
 import { listAgentEmailIdentities } from '../email/listAgentEmailIdentities';
 import { readStalwartConfiguration } from './StalwartConfiguration';
+import { ensureStalwartBootstrapCompleted } from './stalwartBootstrap';
 import { listStalwartObjects, setStalwartObject } from './stalwartJmapClient';
-
-/**
- * Local part of the single mailbox which receives all agent aliases.
- */
-export const STALWART_MAIL_BRIDGE_LOCAL_PART = 'promptbook-mailbridge';
+import { toStalwartJmapObjectList, toStalwartJmapSet } from './stalwartJmapValues';
+import {
+    buildStalwartInboundHookUrl,
+    buildStalwartMailBridgeAddress,
+    STALWART_MAIL_BRIDGE_LOCAL_PART,
+} from './stalwartMailBridge';
 
 /**
  * How long Stalwart waits for the inbound Agents Server hook to answer.
@@ -36,21 +38,22 @@ export async function synchronizeStalwartEmailDomain(domainValue: string): Promi
         );
     }
 
+    // Note: A Stalwart which never finished its initial setup refuses every management call below, so the
+    //       bootstrap is completed here instead of leaving the mail server unusable until the VPS
+    //       installer happens to run again
+    await ensureStalwartBootstrapCompleted(configuration, domain);
+
     const domains = await listStalwartObjects(configuration, 'Domain');
     const existingDomain = domains.find((item) => item.name === domain) || null;
-    let domainId = readObjectId(existingDomain);
-    const bridgeAddress = `${STALWART_MAIL_BRIDGE_LOCAL_PART}@${domain}`;
-    const domainValueForStalwart = {
-        aliases: [],
-        certificateManagement:
-            readObjectProperty(existingDomain, 'certificateManagement') || { '@type': 'Manual' },
+    const domainId = await setStalwartObject(configuration, 'Domain', readObjectId(existingDomain), {
+        // Note: Every collection-valued Stalwart property is an object on the wire, never an array
+        aliases: readObjectProperty(existingDomain, 'aliases') || toStalwartJmapSet([]),
+        certificateManagement: readObjectProperty(existingDomain, 'certificateManagement') || { '@type': 'Manual' },
         dkimManagement: { '@type': 'Automatic' },
         dnsManagement: readObjectProperty(existingDomain, 'dnsManagement') || { '@type': 'Manual' },
         name: domain,
         subAddressing: { '@type': 'Enabled' },
-        ...(domainId ? { catchAllAddress: bridgeAddress } : {}),
-    };
-    domainId = await setStalwartObject(configuration, 'Domain', domainId, domainValueForStalwart);
+    });
 
     const identities = await listAgentEmailIdentities(domain);
     const aliasLocalParts = [
@@ -63,27 +66,28 @@ export async function synchronizeStalwartEmailDomain(domainValue: string): Promi
         '@type': 'User',
         name: STALWART_MAIL_BRIDGE_LOCAL_PART,
         domainId,
-        credentials: [{ '@type': 'Password', secret: configuration.smtpPassword }],
-        memberGroupIds: [],
+        credentials: toStalwartJmapObjectList([{ '@type': 'Password', secret: configuration.smtpPassword }]),
+        memberGroupIds: toStalwartJmapSet([]),
         roles: { '@type': 'User' },
         permissions: { '@type': 'Inherit' },
         quotas: {},
-        aliases: aliasLocalParts.map((name) => ({
-            name,
-            domainId,
-            enabled: true,
-        })),
+        aliases: toStalwartJmapObjectList(
+            aliasLocalParts.map((name) => ({
+                name,
+                domainId,
+                enabled: true,
+            })),
+        ),
         encryptionAtRest: { '@type': 'Disabled' },
         description: `Agents Server mail bridge for ${domain}`,
     });
 
-    if (!existingDomain) {
-        await setStalwartObject(configuration, 'Domain', domainId, {
-            catchAllAddress: bridgeAddress,
-        });
-    }
+    // Note: Stalwart only accepts a catch-all address once the mailbox behind it exists
+    await setStalwartObject(configuration, 'Domain', domainId, {
+        catchAllAddress: buildStalwartMailBridgeAddress(domain),
+    });
 
-    const hookUrl = `https://${domain}/api/emails/incoming/stalwart`;
+    const hookUrl = buildStalwartInboundHookUrl(domain);
     const hooks = await listStalwartObjects(configuration, 'MtaHook');
     const existingHook = hooks.find((item) => item.url === hookUrl) || null;
     await setStalwartObject(configuration, 'MtaHook', readObjectId(existingHook), {
@@ -96,16 +100,16 @@ export async function synchronizeStalwartEmailDomain(domainValue: string): Promi
             },
         },
         httpHeaders: {},
-        stages: ['data'],
+        stages: toStalwartJmapSet(['data']),
         tempFailOnError: true,
         timeout: STALWART_INBOUND_HOOK_TIMEOUT_MS,
         enable: {
-            match: [
+            match: toStalwartJmapObjectList([
                 {
                     if: `rcpt_domain == '${escapeStalwartExpressionString(domain)}' && authenticated_as == ''`,
                     then: 'true',
                 },
-            ],
+            ]),
             else: 'false',
         },
     });

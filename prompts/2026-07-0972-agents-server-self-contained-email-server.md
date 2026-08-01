@@ -1,4 +1,4 @@
-[ ]
+[x] Stuck in isolation / verification loop and committed manually
 
 [✨☪️] Fix the Agents server email server.
 
