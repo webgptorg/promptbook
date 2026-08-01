@@ -30,8 +30,8 @@ Shared facts:
 | Harness          | Sample command                                                                       |
 | ---------------- | ------------------------------------------------------------------------------------ |
 | `claude-code`    | `ptbk coder run --harness claude-code --model fable --thinking-level max`            |
-| `openai-codex`   | `ptbk coder run --harness openai-codex --model gpt-5.2-codex`                        |
-| `github-copilot` | `ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh`     |
+| `openai-codex`   | `ptbk coder run --harness openai-codex --model gpt-5.6-terra`                        |
+| `github-copilot` | `ptbk coder run --harness github-copilot --model gpt-5.6 --thinking-level xhigh`     |
 | `gemini`         | `ptbk coder run --harness gemini --model gemini-3-flash-preview`                     |
 | `opencode`       | `ptbk coder run --harness opencode`                                                  |
 | `cline`          | `ptbk coder run --harness cline`                                                     |

@@ -3,7 +3,7 @@
 [✨🦏] Show the full paths to a files in ptbk coder in the terminal UI
 
 ```console
-ptbk coder run --harness openai-codex --model gpt-5.6 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder --limit 1
+ptbk coder run --harness openai-codex --model gpt-5.6-terra --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder --limit 1
 
 
 ┌ Session ─────────────────────────────────────────────────────────────────────────────────────┐
