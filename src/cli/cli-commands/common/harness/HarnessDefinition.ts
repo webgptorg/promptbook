@@ -100,5 +100,3 @@ export function getHarnessDefinition(harnessName: PromptRunnerHarnessName): Harn
 
     return definition;
 }
-
-// Note: [🟡] Code for CLI harness definitions [HarnessDefinition](src/cli/cli-commands/common/harness/HarnessDefinition.ts) should never be published outside of `@promptbook/cli`
