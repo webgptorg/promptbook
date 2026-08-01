@@ -121,7 +121,7 @@ The book language is designed to be human-readable and easy to write, while also
 Every agent has its source defined in the book language, which is called "agent source". The agent source is parsed and processed by the Promptbook Engine to create the actual AI agent that can interact with users and perform tasks.
 This agent source is internally converted to a structured format called "agent model requirements" which are the actual raw technical instructions for the AI model to run the agent.
 
-There is a standalone book language documentation on each agent server on `/api/docs/book.md` route, for example `https://pavol-hejny.ptbk.io/api/docs/book.md`.
+There is a standalone book language documentation on each agent server on `/api/docs/book.md` route, for example `https://live.ptbk.io/api/docs/book-language.md?language=en`.
 Use it as a reference for the syntax and semantics of the book language, and modify `apps/agents-server/src/utils/bookLanguageDocumentation/createStandaloneBookLanguageMarkdown.ts` if it is relevant to the change you are doing.
 
 #### Commitments _(as additional context and part of Book Language)_
