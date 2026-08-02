@@ -97,9 +97,7 @@ describe('coder boilerplate templates', () => {
 
         const agentCodingFileContent = await readFile(join(projectPath, AGENT_CODING_FILE_PATH), 'utf-8');
         expect(normalizeLineEndings(agentCodingFileContent).trim()).toBe(
-            getDefaultCoderAgentCodingFileContent({
-                packageJsonScripts: getDefaultCoderPackageJsonScripts(),
-            }),
+            getDefaultCoderAgentCodingFileContent(),
         );
 
         await expect(

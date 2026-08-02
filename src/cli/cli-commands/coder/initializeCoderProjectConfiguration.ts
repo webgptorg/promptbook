@@ -14,7 +14,6 @@ import { ensureCoderMarkdownFile } from './ensureCoderMarkdownFile';
 import { ensureCoderPackageJsonFile } from './ensureCoderPackageJsonFile';
 import { ensureCoderVscodeSettingsFile } from './ensureCoderVscodeSettingsFile';
 import { ensureDirectory } from './ensureDirectory';
-import { getDefaultCoderPackageJsonScripts } from './getDefaultCoderPackageJsonScripts';
 
 /**
  * Result summary returned after coder configuration initialization.
@@ -57,9 +56,7 @@ export async function initializeCoderProjectConfiguration(projectPath: string): 
     const agentCodingFileStatus = await ensureCoderMarkdownFile(
         projectPath,
         AGENT_CODING_FILE_PATH,
-        getDefaultCoderAgentCodingFileContent({
-            packageJsonScripts: getDefaultCoderPackageJsonScripts(),
-        }),
+        getDefaultCoderAgentCodingFileContent(),
     );
     const { envFileStatus, initializedEnvVariableNames } = await ensureCoderEnvFile(projectPath);
     const gitignoreFileStatus = await ensureCoderGitignoreFile(projectPath);
