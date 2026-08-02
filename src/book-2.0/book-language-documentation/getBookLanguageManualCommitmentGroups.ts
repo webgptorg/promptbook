@@ -3,6 +3,7 @@ import {
     isLowVisibilityCommitmentNotice,
 } from '../../commitments/_common/getCommitmentNoticeMetadata';
 import { getGroupedCommitmentDefinitions } from '../../commitments/_common/getGroupedCommitmentDefinitions';
+import { NotYetImplementedCommitmentDefinition } from '../../commitments/_base/NotYetImplementedCommitmentDefinition';
 
 /**
  * One grouped commitment definition as returned by the runtime registry.
@@ -23,7 +24,7 @@ export type BookLanguageManualCommitmentGroups = {
     readonly documented: ReadonlyArray<BookLanguageManualCommitmentGroup>;
 
     /**
-     * Low-level and unfinished commitments documented in their own closing chapter.
+     * Low-level commitments documented in their own closing chapter.
      */
     readonly lowLevel: ReadonlyArray<BookLanguageManualCommitmentGroup>;
 };
@@ -46,6 +47,13 @@ export function getBookLanguageManualCommitmentGroups(): BookLanguageManualCommi
         const notice = getCommitmentNoticeMetadata(groupedCommitment.primary);
 
         if (notice?.kind === 'deprecated') {
+            continue;
+        }
+
+        if (
+            groupedCommitment.primary instanceof NotYetImplementedCommitmentDefinition ||
+            groupedCommitment.primary.isUnfinished
+        ) {
             continue;
         }
 

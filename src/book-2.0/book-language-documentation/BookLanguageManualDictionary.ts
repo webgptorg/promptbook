@@ -98,9 +98,7 @@ export type BookLanguageManualDictionary = {
     readonly metadataLabels: {
         readonly bookLanguageVersion: string;
         readonly generatedAt: string;
-        readonly commitmentGroups: string;
-        readonly implementedCommitments: string;
-        readonly placeholderCommitments: string;
+        readonly commitmentCount: string;
     };
 
     /**
@@ -144,7 +142,6 @@ export type BookLanguageManualDictionary = {
     readonly primitivesSections: {
         readonly coreSyntax: BookLanguageManualChapter;
         readonly references: BookLanguageManualChapter;
-        readonly keywordsTitle: string;
     };
 
     /**
@@ -159,18 +156,7 @@ export type BookLanguageManualDictionary = {
      * Labels used in every commitment catalog entry.
      */
     readonly commitmentLabels: {
-        readonly status: string;
         readonly aliases: string;
-        readonly semantics: string;
-        readonly typeSchema: string;
-        readonly blockSchema: string;
-        readonly lowLevelNotice: string;
-        readonly usage: string;
-        readonly usageOccurrence: string;
-        readonly usageOccurrences: string;
-        readonly statusImplemented: string;
-        readonly statusPlaceholder: string;
-        readonly noAliases: string;
     };
 
     /**

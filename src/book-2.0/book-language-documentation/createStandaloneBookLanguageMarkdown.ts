@@ -1,5 +1,4 @@
 import { spaceTrim } from 'spacetrim';
-import { NotYetImplementedCommitmentDefinition } from '../../commitments/_base/NotYetImplementedCommitmentDefinition';
 import { getGroupedCommitmentDefinitions } from '../../commitments/_common/getGroupedCommitmentDefinitions';
 import { parseAgentSourceWithCommitments } from '../agent-source/parseAgentSourceWithCommitments';
 import type { string_book } from '../agent-source/string_book';
@@ -172,14 +171,10 @@ export function createStandaloneBookLanguageMarkdown(
         : [];
     const manualCommitments = [...catalogCommitments, ...lowLevelCommitments];
     const generatedAtIso = new Date().toISOString();
-    const placeholderCommitmentCount = manualCommitments.filter(
-        ({ primary }) => primary instanceof NotYetImplementedCommitmentDefinition,
-    ).length;
     const catalogTitleSuffix = isServerSpecificManual
         ? dictionary.commitmentCatalogTitleSuffixes.usedFirst
         : dictionary.commitmentCatalogTitleSuffixes.all;
-
-    const allCommitmentKeywords = manualCommitments.flatMap(({ primary, aliases }) => [primary.type, ...aliases]);
+    const commitmentSectionAnchorByType = createCommitmentSectionAnchorByType(manualCommitments);
 
     return spaceTrim(
         // [✨]
@@ -190,11 +185,7 @@ export function createStandaloneBookLanguageMarkdown(
 
             - ${dictionary.metadataLabels.bookLanguageVersion}: \`${BOOK_LANGUAGE_VERSION}\`
             - ${dictionary.metadataLabels.generatedAt}: \`${generatedAtIso}\`
-            - ${dictionary.metadataLabels.commitmentGroups}: \`${manualCommitments.length}\`
-            - ${dictionary.metadataLabels.implementedCommitments}: \`${
-            manualCommitments.length - placeholderCommitmentCount
-        }\`
-            - ${dictionary.metadataLabels.placeholderCommitments}: \`${placeholderCommitmentCount}\`
+            - ${dictionary.metadataLabels.commitmentCount}: \`${manualCommitments.length}\`
 
             ## <a id="table-of-contents"></a>${dictionary.tableOfContentsTitle}
 
@@ -203,14 +194,18 @@ export function createStandaloneBookLanguageMarkdown(
             - [${dictionary.chapters.howToStructure.title}](#how-to-structure-good-agents)
             - [${dictionary.chapters.primitives.title}](#primitives-and-constructs-reference)
             - [${dictionary.chapters.commitmentCatalog.title}${catalogTitleSuffix}](#commitment-catalog)
+            ${block(renderCommitmentCatalogTableOfContents(catalogCommitments))}
             - [${dictionary.chapters.examples.title}](#end-to-end-examples)
             - [${dictionary.chapters.pitfalls.title}](#do-nots-and-common-pitfalls)
             - [${dictionary.chapters.tutorial.title}](#build-an-agent-from-scratch-offline-tutorial)
-            ${
+            ${block(
                 isLowLevelCommitmentsIncluded
-                    ? `- [${dictionary.chapters.lowLevelCommitments.title}](#low-level-commitments)`
-                    : ''
-            }
+                    ? spaceTrim(`
+                        - [${dictionary.chapters.lowLevelCommitments.title}](#low-level-commitments)
+                        ${renderCommitmentCatalogTableOfContents(lowLevelCommitments)}
+                    `)
+                    : '',
+            )}
 
             ## <a id="what-book-language-is"></a>${dictionary.chapters.whatIs.title}
 
@@ -254,25 +249,23 @@ export function createStandaloneBookLanguageMarkdown(
 
             ${block(dictionary.primitivesSections.references.body)}
 
-            ### ${dictionary.primitivesSections.keywordsTitle}
-
-            ${block(getSafeCodeBlock(allCommitmentKeywords.join(', '), 'text'))}
-
-            <a id="commitment-catalog-all-commitments"></a>
-
             ## <a id="commitment-catalog"></a>${dictionary.chapters.commitmentCatalog.title}${catalogTitleSuffix}
 
             ${block(dictionary.chapters.commitmentCatalog.body)}
 
-            ${block(renderCommitmentCatalogSections(catalogCommitments, commitmentUsageByType, dictionary))}
+            ${block(renderCommitmentCatalogSections(catalogCommitments, dictionary))}
 
             ## <a id="end-to-end-examples"></a>${dictionary.chapters.examples.title}
 
             ${block(
                 isServerSpecificManual
-                    ? selectedAgents.map((agent) => renderBakedAgentExampleSection(agent, dictionary)).join('\n\n')
+                    ? selectedAgents
+                          .map((agent) =>
+                              renderBakedAgentExampleSection(agent, dictionary, commitmentSectionAnchorByType),
+                          )
+                          .join('\n\n')
                     : bookLanguageDocumentationExamples
-                          .map((example) => renderExampleSection(example, dictionary))
+                          .map((example) => renderExampleSection(example, dictionary, commitmentSectionAnchorByType))
                           .join('\n\n'),
             )}
 
@@ -296,7 +289,7 @@ export function createStandaloneBookLanguageMarkdown(
 
             ${block(
                 isLowLevelCommitmentsIncluded
-                    ? renderLowLevelCommitmentsChapter(lowLevelCommitments, commitmentUsageByType, dictionary)
+                    ? renderLowLevelCommitmentsChapter(lowLevelCommitments, dictionary)
                     : '',
             )}
 
@@ -345,7 +338,6 @@ function renderDetectedCommitmentList(
  * Renders every commitment section of one catalog chapter.
  *
  * @param commitmentGroups - Commitment groups to render, in final order.
- * @param commitmentUsageByType - Selected-agent occurrence counts by primary type.
  * @param dictionary - Translated labels of the manual.
  * @returns Markdown sections joined by blank lines.
  *
@@ -353,14 +345,12 @@ function renderDetectedCommitmentList(
  */
 function renderCommitmentCatalogSections(
     commitmentGroups: ReadonlyArray<BookLanguageManualCommitmentGroup>,
-    commitmentUsageByType: ReadonlyMap<string, number>,
     dictionary: BookLanguageManualDictionary,
 ): string {
     return commitmentGroups
         .map((groupedCommitment) =>
             renderCommitmentCatalogSection({
                 groupedCommitment,
-                usageCount: commitmentUsageByType.get(groupedCommitment.primary.type) || 0,
                 dictionary,
             }),
         )
@@ -371,7 +361,6 @@ function renderCommitmentCatalogSections(
  * Renders the closing chapter documenting low-level commitments.
  *
  * @param commitmentGroups - Low-level commitment groups, in final order.
- * @param commitmentUsageByType - Selected-agent occurrence counts by primary type.
  * @param dictionary - Translated labels of the manual.
  * @returns Markdown chapter for low-level commitments.
  *
@@ -379,7 +368,6 @@ function renderCommitmentCatalogSections(
  */
 function renderLowLevelCommitmentsChapter(
     commitmentGroups: ReadonlyArray<BookLanguageManualCommitmentGroup>,
-    commitmentUsageByType: ReadonlyMap<string, number>,
     dictionary: BookLanguageManualDictionary,
 ): string {
     return spaceTrim(
@@ -388,9 +376,53 @@ function renderLowLevelCommitmentsChapter(
 
             ${block(dictionary.chapters.lowLevelCommitments.body)}
 
-            ${block(renderCommitmentCatalogSections(commitmentGroups, commitmentUsageByType, dictionary))}
+            ${block(renderCommitmentCatalogSections(commitmentGroups, dictionary))}
         `,
     );
+}
+
+/**
+ * Renders links from the manual table of contents to the commitment sections.
+ *
+ * @param commitmentGroups - Commitment sections included in the manual.
+ * @returns Indented markdown links ordered like the catalog.
+ *
+ * @private internal utility of `createStandaloneBookLanguageMarkdown`
+ */
+function renderCommitmentCatalogTableOfContents(
+    commitmentGroups: ReadonlyArray<BookLanguageManualCommitmentGroup>,
+): string {
+    return commitmentGroups
+        .map(
+            ({ primary }) =>
+                `    - [${primary.icon} \`${primary.type}\`](#commitment-${toStableAnchorId(primary.type)})`,
+        )
+        .join('\n');
+}
+
+/**
+ * Maps every recognized spelling of a documented commitment to its stable section anchor.
+ *
+ * @param commitmentGroups - Commitment sections included in the manual.
+ * @returns Canonical anchor id by parsed commitment type.
+ *
+ * @private internal utility of `createStandaloneBookLanguageMarkdown`
+ */
+function createCommitmentSectionAnchorByType(
+    commitmentGroups: ReadonlyArray<BookLanguageManualCommitmentGroup>,
+): ReadonlyMap<string, string> {
+    const anchorByType = new Map<string, string>();
+
+    for (const { primary, aliases } of commitmentGroups) {
+        const anchorId = `commitment-${toStableAnchorId(primary.type)}`;
+        anchorByType.set(primary.type, anchorId);
+
+        for (const alias of aliases) {
+            anchorByType.set(alias, anchorId);
+        }
+    }
+
+    return anchorByType;
 }
 
 /**
@@ -523,11 +555,12 @@ function prioritizeGroupedCommitments(
 function renderBakedAgentExampleSection(
     agent: BookLanguageDocumentationAgent,
     dictionary: BookLanguageManualDictionary,
+    commitmentSectionAnchorByType: ReadonlyMap<string, string>,
 ): string {
     const usedCommitmentTypes = Array.from(
         new Set(parseAgentSourceWithCommitments(agent.agentSource).commitments.map((commitment) => commitment.type)),
     );
-    const usedCommitmentsMarkdown = usedCommitmentTypes.map((type) => `\`${type}\``).join(', ');
+    const usedCommitmentsMarkdown = renderCommitmentSectionLinks(usedCommitmentTypes, commitmentSectionAnchorByType);
 
     return spaceTrim(
         (block) => `
@@ -556,6 +589,7 @@ function renderBakedAgentExampleSection(
 function renderExampleSection(
     example: BookLanguageDocumentationExample,
     dictionary: BookLanguageManualDictionary,
+    commitmentSectionAnchorByType: ReadonlyMap<string, string>,
 ): string {
     const exampleText = dictionary.exampleTexts[example.id];
 
@@ -569,6 +603,11 @@ function renderExampleSection(
 
             **${dictionary.exampleLabels.goal}:** ${exampleText.goal}
 
+            **${dictionary.exampleLabels.commitmentsUsed}:** ${renderCommitmentSectionLinks(
+            parseAgentSourceWithCommitments(example.source as string_book).commitments.map((commitment) => commitment.type),
+            commitmentSectionAnchorByType,
+        )}
+
             **${dictionary.exampleLabels.fullSource}**
 
             ${block(getSafeCodeBlock(example.source, 'book'))}
@@ -578,4 +617,25 @@ function renderExampleSection(
             ${block(exampleText.walkthrough.map((step, index) => `${index + 1}. ${step}`).join('\n'))}
         `,
     );
+}
+
+/**
+ * Renders unique commitment links used by an end-to-end example.
+ *
+ * @param commitmentTypes - Commitment types in their source order.
+ * @param commitmentSectionAnchorByType - Documented commitment anchors by parsed type.
+ * @returns Comma-separated markdown links, or an empty string when none are documented.
+ *
+ * @private internal utility of `createStandaloneBookLanguageMarkdown`
+ */
+function renderCommitmentSectionLinks(
+    commitmentTypes: ReadonlyArray<string>,
+    commitmentSectionAnchorByType: ReadonlyMap<string, string>,
+): string {
+    return Array.from(new Set(commitmentTypes))
+        .flatMap((type) => {
+            const anchorId = commitmentSectionAnchorByType.get(type);
+            return anchorId ? [`[\`${type}\`](#${anchorId})`] : [];
+        })
+        .join(', ');
 }

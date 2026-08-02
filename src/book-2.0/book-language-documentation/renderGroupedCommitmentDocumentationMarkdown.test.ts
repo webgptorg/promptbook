@@ -41,4 +41,29 @@ describe('renderGroupedCommitmentDocumentationMarkdown', () => {
         expect(markdown).not.toContain('# GOAL');
         expect(markdown).toContain('Defines the main goal which should be achieved by the AI assistant.');
     });
+
+    it('focuses examples that do not define an agent title', () => {
+        const internalMessageGroup = getGroupedCommitmentDefinitions().find(
+            (group) => group.primary.type === 'INTERNAL MESSAGE',
+        );
+
+        expect(internalMessageGroup).toBeDefined();
+
+        const markdown = renderGroupedCommitmentDocumentationMarkdown(internalMessageGroup!);
+
+        expect(markdown).toContain('```book\nINTERNAL MESSAGE {');
+        expect(markdown).toContain('\nCLOSED\n```');
+        expect(markdown).not.toContain('```book\nUSER MESSAGE');
+    });
+
+    it('focuses compound commitment keywords before their shorter prefixes', () => {
+        const metaVoiceGroup = getGroupedCommitmentDefinitions().find((group) => group.primary.type === 'META VOICE');
+
+        expect(metaVoiceGroup).toBeDefined();
+
+        const markdown = renderGroupedCommitmentDocumentationMarkdown(metaVoiceGroup!);
+
+        expect(markdown).toContain('```book\nFriendly Assistant\n\nMETA VOICE 21m00Tcm4TlvDq8ikWAM\n\nCLOSED\n```');
+        expect(markdown).not.toContain('```book\nFriendly Assistant\n\nMETA VOICE 21m00Tcm4TlvDq8ikWAM\nPERSONA');
+    });
 });

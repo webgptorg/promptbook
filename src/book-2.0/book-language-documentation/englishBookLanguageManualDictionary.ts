@@ -19,9 +19,7 @@ export const englishBookLanguageManualDictionary: BookLanguageManualDictionary =
     metadataLabels: {
         bookLanguageVersion: 'Book language version',
         generatedAt: 'Generated at',
-        commitmentGroups: 'Commitment groups',
-        implementedCommitments: 'Implemented commitments',
-        placeholderCommitments: 'Placeholder commitments',
+        commitmentCount: 'Number of commitments',
     },
     tableOfContentsTitle: 'Table of Contents',
     chapters: {
@@ -83,12 +81,7 @@ export const englishBookLanguageManualDictionary: BookLanguageManualDictionary =
         commitmentCatalog: {
             title: 'Commitment catalog',
             body: spaceTrim(`
-                This section is generated from commitment definitions in \`src/commitments\`.
-                For each commitment group you get:
-
-                - semantics summary (description/icon/status)
-                - parsing schema (\`createTypeRegex\` and \`createRegex\`)
-                - canonical documentation block
+                Each commitment section explains its purpose, important details, and a focused example.
             `),
         },
         examples: {
@@ -175,41 +168,28 @@ export const englishBookLanguageManualDictionary: BookLanguageManualDictionary =
                 First non-empty line that is not a commitment keyword.
                 2. **Commitment block**:
                 Starts with a commitment keyword and continues until the next commitment block or separator.
-                3. **Horizontal separator**:
-                Lines like \`---\` split sections; in Agents Server they can delimit embedded in-book agents.
+                3. **Multiple agent**:
+                Lines like \`---\` separate agents defined in the same Book source.
                 4. **Code fences**:
-                Preserved inside commitment content; useful for examples/instructions.
-                5. **Parameters**:
-                Both \`@parameter\` and \`{parameter}\` notations are supported and parsed.
+                Start and end with <code>\`\`\`</code>; their content is preserved inside commitments and is useful for examples and instructions.
             `),
         },
         references: {
             title: 'Reference tokens and pseudo-agents',
             body: spaceTrim(`
-                - Compact references like \`{Agent Name}\` are resolved by Agents Server reference resolver.
+                - \`@Foo\` and \`{Foo foo}\` reference another agent; they are not parameter notation.
+                - Compact references like \`@Agent Name\` and \`{Agent Name}\` are resolved by the Agents Server reference resolver.
                 - Pseudo-agent forms (for example \`{User}\`, \`{Void}\`) are supported in relevant commitments.
                 - \`{User}\` is intended for \`TEAM\`; \`{Void}\` is useful for explicit no-parent inheritance.
             `),
         },
-        keywordsTitle: 'Commitment keywords currently recognized',
     },
     commitmentCatalogTitleSuffixes: {
         usedFirst: ' (used commitments first)',
         all: ' (all commitments)',
     },
     commitmentLabels: {
-        status: 'Status',
         aliases: 'Aliases',
-        semantics: 'Semantics',
-        typeSchema: 'Type schema',
-        blockSchema: 'Block schema',
-        lowLevelNotice: 'Low-level commitment',
-        usage: 'Used in selected agents',
-        usageOccurrence: 'occurrence',
-        usageOccurrences: 'occurrences',
-        statusImplemented: 'Implemented',
-        statusPlaceholder: 'Placeholder (not fully implemented)',
-        noAliases: 'None',
     },
     exampleLabels: {
         commitmentsUsed: 'Commitments used',
@@ -259,14 +239,14 @@ export const englishBookLanguageManualDictionary: BookLanguageManualDictionary =
                 'Use this for assistants that must preserve context over time.',
             ],
         },
-        'use-project-and-wallet-integration-agent': {
-            title: 'USE PROJECT and WALLET external integration',
-            goal: 'Work with GitHub repositories and wallet-backed credentials.',
+        'use-project-integration-agent': {
+            title: 'USE PROJECT external integration',
+            goal: 'Work with a GitHub repository through a connected project integration.',
             walkthrough: [
                 '`USE PROJECT` enables repository tools for listing, reading, editing files, and creating PRs.',
                 'Credentials are resolved from wallet records at runtime in Agents Server.',
-                '`WALLET` is kept here as a compatibility marker, but current Book 2.0 parsing treats it as ignored.',
-                'In current runtime behavior, wallet-backed integrations are driven by commitments such as `USE PROJECT` and `USE EMAIL`.',
+                'The agent also defines explicit rules for safe editing and credential handling.',
+                'Use this pattern when an agent needs focused repository access.',
             ],
         },
         'use-calendar-integration-agent': {
@@ -337,10 +317,10 @@ export const englishBookLanguageManualDictionary: BookLanguageManualDictionary =
     footer: {
         title: 'Generated from:',
         body: spaceTrim(`
-            - Commitments registry and runtime docs in \`src/commitments\`
-            - Parser/compiler behavior in \`src/book-2.0/agent-source\`
-            - Agents Server reference/inheritance resolution in \`apps/agents-server/src/utils\`
-            - Standalone docs source blocks in \`apps/agents-server/src/utils/bookLanguageDocumentation\`
+            - [Commitments registry and runtime documentation](https://github.com/webgptorg/promptbook/tree/main/src/commitments)
+            - [Book language parser and source handling](https://github.com/webgptorg/promptbook/tree/main/src/book-2.0/agent-source)
+            - [Agents Server reference and inheritance resolution](https://github.com/webgptorg/promptbook/tree/main/apps/agents-server/src/utils)
+            - [Standalone manual source](https://github.com/webgptorg/promptbook/tree/main/src/book-2.0/book-language-documentation)
         `),
     },
 };

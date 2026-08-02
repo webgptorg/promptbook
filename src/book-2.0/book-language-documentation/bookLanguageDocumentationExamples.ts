@@ -60,13 +60,12 @@ export const bookLanguageDocumentationExamples: ReadonlyArray<BookLanguageDocume
         `),
     },
     {
-        id: 'use-project-and-wallet-integration-agent',
+        id: 'use-project-integration-agent',
         source: spaceTrim(`
             Repository Maintainer
 
             GOAL Maintain a GitHub repository and prepare safe pull requests.
             USE PROJECT https://github.com/acme/website
-            WALLET Store credentials for repository operations.
             RULE Before editing files, explain the planned change and impacted paths.
             RULE Never reveal raw credentials in chat output.
             INITIAL MESSAGE I can inspect the repository and help you prepare PR-ready changes.
