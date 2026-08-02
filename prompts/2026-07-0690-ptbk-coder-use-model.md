@@ -2,8 +2,6 @@
 
 [✨🚭] Allow to specify required model for each prompt
 
--   _(@@@@@@@@@@ Wait before implementing if the error of repeated commits was caused by this)_
-
 **For example when you run:**
 
 ```bash

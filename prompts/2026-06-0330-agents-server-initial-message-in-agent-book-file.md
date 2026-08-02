@@ -8,7 +8,7 @@
 
 [✨⚔️] When the chat runner gets the chat for answering, it should contain also the initial message in the chat thread
 
-- @@@@@@@@
+- @@@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 
