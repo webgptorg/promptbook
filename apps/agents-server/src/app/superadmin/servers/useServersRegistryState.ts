@@ -474,13 +474,21 @@ function useServersRegistryDraftState(servers: ReadonlyArray<ManagedServerRow>) 
     }, []);
 
     const updateServerDraft = useCallback<UpdateServerDraft>((serverId, fieldName, value) => {
-        setServerDrafts((previousServerDrafts) => ({
-            ...previousServerDrafts,
-            [serverId]: {
-                ...previousServerDrafts[serverId],
-                [fieldName]: value,
-            },
-        }));
+        setServerDrafts((previousServerDrafts) => {
+            const serverDraft = previousServerDrafts[serverId];
+
+            if (!serverDraft) {
+                return previousServerDrafts;
+            }
+
+            return {
+                ...previousServerDrafts,
+                [serverId]: {
+                    ...serverDraft,
+                    [fieldName]: value,
+                },
+            };
+        });
     }, []);
 
     const isServerDraftDirty = useCallback(

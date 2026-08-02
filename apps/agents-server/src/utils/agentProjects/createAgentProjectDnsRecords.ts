@@ -33,19 +33,52 @@ export type AgentProjectDnsRecord = {
 };
 
 /**
+ * Placeholder used when preventive project DNS guidance has no assigned project domain yet.
+ *
+ * @private helper for the Agents Server project DNS instructions
+ */
+const PROJECT_DOMAIN_NAME_PLACEHOLDER = '<PROJECT_NAME>';
+
+/**
+ * Inputs used to create one project DNS record instruction.
+ *
+ * @private helper for the Agents Server project DNS instructions
+ */
+type CreateAgentProjectDnsRecordOptions = {
+    /**
+     * Whether the resulting DNS record should be a CNAME instead of an A record.
+     */
+    readonly isCnameRecord: boolean;
+
+    /**
+     * Whether the resulting DNS record should cover every generated project domain.
+     */
+    readonly isWildcardDomain: boolean;
+
+    /**
+     * Assigned project hostname used by the single-project variant, when available.
+     */
+    readonly projectDomain?: string | null;
+
+    /**
+     * Public VPS IP address used by the A-record variant, when known.
+     */
+    readonly publicIpAddress: string | null | undefined;
+
+    /**
+     * Base server domain used by generated project hostnames.
+     */
+    readonly serverDomain: string;
+};
+
+/**
  * Creates the one DNS record shown for a selected project-domain setup.
  *
  * @param options - Project domain, server domain, and selected DNS variants.
  * @returns One DNS record instruction.
  */
-export function createAgentProjectDnsRecord(options: {
-    readonly isCnameRecord: boolean;
-    readonly isWildcardDomain: boolean;
-    readonly projectDomain: string;
-    readonly publicIpAddress: string | null | undefined;
-    readonly serverDomain: string;
-}): AgentProjectDnsRecord {
-    const name = options.isWildcardDomain ? `*.${options.serverDomain}` : options.projectDomain;
+export function createAgentProjectDnsRecord(options: CreateAgentProjectDnsRecordOptions): AgentProjectDnsRecord {
+    const name = createAgentProjectDnsRecordName(options);
 
     if (options.isCnameRecord) {
         return {
@@ -64,4 +97,17 @@ export function createAgentProjectDnsRecord(options: {
             ? 'Point this hostname directly to the VPS public IP address.'
             : 'Replace <VPS_PUBLIC_IP> with the public IP address of this VPS.',
     };
+}
+
+/**
+ * Resolves the DNS hostname displayed for one project DNS record instruction.
+ *
+ * @private helper for createAgentProjectDnsRecord
+ */
+function createAgentProjectDnsRecordName(options: CreateAgentProjectDnsRecordOptions): string {
+    if (options.isWildcardDomain) {
+        return `*.${options.serverDomain}`;
+    }
+
+    return options.projectDomain || `${PROJECT_DOMAIN_NAME_PLACEHOLDER}.${options.serverDomain}`;
 }

@@ -23,9 +23,9 @@ export function AgentProjectDnsInstructions({
     readonly isDnsIssue?: boolean;
 
     /**
-     * Example generated project domain used by the single-project variant.
+     * Example generated project domain used by the single-project variant, when one already exists.
      */
-    readonly projectDomain: string;
+    readonly projectDomain?: string | null;
 
     /**
      * Public VPS IP address, when known by the server.
@@ -49,23 +49,25 @@ export function AgentProjectDnsInstructions({
     });
     const selectedDomainDescription = isWildcardDomain
         ? `This covers all generated project domains under ${serverDomain}.`
-        : `This covers one project, for example ${projectDomain}. Repeat it for each project that needs a public URL.`;
+        : projectDomain
+        ? `This covers one project, for example ${projectDomain}. Repeat it for each project that needs a public URL.`
+        : 'This covers one generated project. Replace the project name placeholder above with its full hostname.';
 
     return (
         <section className="space-y-4 rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-4 text-sm text-indigo-950">
             <div className="space-y-1">
                 <h4 className="font-semibold">Project DNS setup</h4>
                 <p>
-                    Project URLs use a subdomain of <code>{serverDomain}</code>. Configure exactly one of the
-                    following setups; do not add both the single-project and wildcard records, or both A and CNAME
-                    records for the same hostname.
+                    Project URLs use a subdomain of <code>{serverDomain}</code>. Configure exactly one of the following
+                    setups; do not add both the single-project and wildcard records, or both A and CNAME records for the
+                    same hostname.
                 </p>
             </div>
 
             {isDnsIssue ? (
                 <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-amber-900">
-                    One or more generated project domains do not resolve to this VPS yet. The recommended wildcard
-                    CNAME setup is selected below.
+                    One or more generated project domains do not resolve to this VPS yet. The recommended wildcard CNAME
+                    setup is selected below.
                 </p>
             ) : null}
 
@@ -106,9 +108,7 @@ export function AgentProjectDnsInstructions({
                     </thead>
                     <tbody>
                         <tr>
-                            <td className="px-3 py-2 font-mono font-semibold text-indigo-950">
-                                {selectedRecord.type}
-                            </td>
+                            <td className="px-3 py-2 font-mono font-semibold text-indigo-950">{selectedRecord.type}</td>
                             <td className="px-3 py-2 font-mono text-slate-800">{selectedRecord.name}</td>
                             <td className="px-3 py-2 font-mono text-slate-800">{selectedRecord.value}</td>
                             <td className="px-3 py-2 text-indigo-900">{selectedRecord.note}</td>

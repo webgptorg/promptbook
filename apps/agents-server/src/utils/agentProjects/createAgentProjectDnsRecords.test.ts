@@ -35,6 +35,33 @@ describe('createAgentProjectDnsRecord', () => {
         });
     });
 
+    it('creates a preventive wildcard CNAME without an assigned project domain', () => {
+        expect(
+            createAgentProjectDnsRecord({
+                isCnameRecord: true,
+                isWildcardDomain: true,
+                publicIpAddress: '203.0.113.42',
+                serverDomain: 's24.ptbk.io',
+            }),
+        ).toEqual({
+            type: 'CNAME',
+            name: '*.s24.ptbk.io',
+            value: 's24.ptbk.io',
+            note: 'Use this only when `s24.ptbk.io` already resolves to this server.',
+        });
+    });
+
+    it('uses a clear placeholder for a preventive single-project record', () => {
+        expect(
+            createAgentProjectDnsRecord({
+                isCnameRecord: true,
+                isWildcardDomain: false,
+                publicIpAddress: '203.0.113.42',
+                serverDomain: 's24.ptbk.io',
+            }).name,
+        ).toBe('<PROJECT_NAME>.s24.ptbk.io');
+    });
+
     it('shows a replacement placeholder when the VPS IP is unavailable', () => {
         expect(
             createAgentProjectDnsRecord({

@@ -20,7 +20,7 @@
 
 ---
 
-[ ]
+[x] (2 attempts) by OpenAI Codex `gpt-5.6-terra` thinking `max` (ChatGPT account) - Implementation ~$1.21 2 hours; Testing a minute; Fixing ~$1.27 16 hours; Testing 35 minutes
 
 [✨🏖] Fix projects listing and DNS instructions in `/superadmin/servers`
 
@@ -47,3 +47,4 @@ Or wildcard record for all subdomains of `lts1.ptbk.io` like _(this should be th
 ![No DNS record for domain `*.live.ptbk.io`](screenshots/2026-07-0474-agents-server-agent-projects-run-7.png)
 ![Not working project `https://prague-murders-map.live.ptbk.io/`](screenshots/2026-07-0474-agents-server-agent-projects-run-8.png)
 ![Showing the instructions only when the project exists](screenshots/2026-07-0474-agents-server-agent-projects-run-10.png)
+

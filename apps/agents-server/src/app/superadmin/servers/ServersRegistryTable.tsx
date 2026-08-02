@@ -388,17 +388,15 @@ function ServersRegistryTableRow(props: ServersRegistryTableRowProps) {
                     </div>
                 </td>
             </tr>
-            {isProjectDomainAssigned ? (
-                <tr className="bg-sky-50/50">
-                    <td colSpan={columnCount} className="px-4 py-4">
-                        <ProjectDomainsPanel
-                            projectDomains={projectDomains}
-                            publicIpAddress={dnsDiagnostic?.publicIpAddress}
-                            serverDomain={server.domain}
-                        />
-                    </td>
-                </tr>
-            ) : null}
+            <tr className="bg-sky-50/50">
+                <td colSpan={columnCount} className="px-4 py-4">
+                    <ProjectDomainsPanel
+                        projectDomains={projectDomains}
+                        publicIpAddress={dnsDiagnostic?.publicIpAddress}
+                        serverDomain={server.domain}
+                    />
+                </td>
+            </tr>
             {hasDnsIssue && dnsDiagnostic ? (
                 <tr className="bg-amber-50/70">
                     <td colSpan={columnCount} className="px-4 py-4">
@@ -423,7 +421,7 @@ function ServersRegistryTableRow(props: ServersRegistryTableRowProps) {
 }
 
 /**
- * Renders project domains owned by one server.
+ * Renders assigned project domains and preventive DNS guidance for one server.
  */
 function ProjectDomainsPanel({
     publicIpAddress,
@@ -447,97 +445,102 @@ function ProjectDomainsPanel({
     return (
         <div className="space-y-3 rounded-lg border border-sky-200 bg-sky-50 px-4 py-4 text-sm text-sky-950">
             <p className="font-semibold">Project domains</p>
-            <div className="overflow-x-auto rounded-md border border-sky-100 bg-white">
-                <table className="min-w-full divide-y divide-sky-100 text-xs">
-                    <thead className="bg-sky-50 text-sky-900">
-                        <tr>
-                            <AdminSortableTableHeaderCell
-                                className="px-3 py-2 text-left font-semibold"
-                                label="project"
-                                sortBy="projectName"
-                                activeSortBy={projectDomainSorting.sortBy}
-                                sortOrder={projectDomainSorting.sortOrder}
-                                onSortChange={projectDomainSorting.handleSortChange}
-                            >
-                                Project
-                            </AdminSortableTableHeaderCell>
-                            <AdminSortableTableHeaderCell
-                                className="px-3 py-2 text-left font-semibold"
-                                label="domain"
-                                sortBy="domain"
-                                activeSortBy={projectDomainSorting.sortBy}
-                                sortOrder={projectDomainSorting.sortOrder}
-                                onSortChange={projectDomainSorting.handleSortChange}
-                            >
-                                Domain
-                            </AdminSortableTableHeaderCell>
-                            <AdminSortableTableHeaderCell
-                                className="px-3 py-2 text-left font-semibold"
-                                label="agent"
-                                sortBy="agentPermanentId"
-                                activeSortBy={projectDomainSorting.sortBy}
-                                sortOrder={projectDomainSorting.sortOrder}
-                                onSortChange={projectDomainSorting.handleSortChange}
-                            >
-                                Agent
-                            </AdminSortableTableHeaderCell>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-sky-100">
-                        {projectDomainSorting.sortedRows.map((projectDomain) => (
-                            <tr key={`${projectDomain.agentPermanentId}-${projectDomain.projectName}`}>
-                                <td className="px-3 py-2">
-                                    <a
-                                        href={projectDomain.projectHref}
-                                        className="font-semibold text-sky-800 hover:text-sky-950 hover:underline"
-                                    >
-                                        {projectDomain.projectName}
-                                    </a>
-                                </td>
-                                <td className="px-3 py-2">
-                                    <a
-                                        href={projectDomain.publicUrl}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        className="inline-flex items-center gap-1 font-mono text-sky-800 hover:text-sky-950 hover:underline"
-                                    >
-                                        {projectDomain.domain}
-                                        <ExternalLink className="h-3.5 w-3.5" aria-hidden />
-                                    </a>
-                                    {projectDomain.customDomain ? (
-                                        <span className="ml-2 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 font-sans text-[0.7rem] font-semibold text-emerald-700">
-                                            Custom
-                                        </span>
-                                    ) : null}
-                                    {isManagedServerDnsDiagnosticIssue(projectDomain.dnsDiagnostic) ? (
-                                        <span className="ml-2 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 font-sans text-[0.7rem] font-semibold text-amber-700">
-                                            DNS setup needed
-                                        </span>
-                                    ) : null}
-                                </td>
-                                <td className="px-3 py-2">
-                                    <a
-                                        href={projectDomain.agentProjectsHref}
-                                        title="Open agent projects"
-                                        className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-sky-200 bg-sky-50 px-2 py-1 font-sans text-xs font-semibold text-sky-800 hover:border-sky-300 hover:bg-sky-100 hover:text-sky-950"
-                                    >
-                                        <Bot className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                                        <span className="truncate">{projectDomain.agentName || 'Agent'}</span>
-                                    </a>
-                                </td>
+            {projectDomains.length === 0 ? (
+                <p className="text-sky-800">
+                    No project domains are assigned yet. Configure the wildcard record below before the first project is
+                    published.
+                </p>
+            ) : (
+                <div className="overflow-x-auto rounded-md border border-sky-100 bg-white">
+                    <table className="min-w-full divide-y divide-sky-100 text-xs">
+                        <thead className="bg-sky-50 text-sky-900">
+                            <tr>
+                                <AdminSortableTableHeaderCell
+                                    className="px-3 py-2 text-left font-semibold"
+                                    label="project"
+                                    sortBy="projectName"
+                                    activeSortBy={projectDomainSorting.sortBy}
+                                    sortOrder={projectDomainSorting.sortOrder}
+                                    onSortChange={projectDomainSorting.handleSortChange}
+                                >
+                                    Project
+                                </AdminSortableTableHeaderCell>
+                                <AdminSortableTableHeaderCell
+                                    className="px-3 py-2 text-left font-semibold"
+                                    label="domain"
+                                    sortBy="domain"
+                                    activeSortBy={projectDomainSorting.sortBy}
+                                    sortOrder={projectDomainSorting.sortOrder}
+                                    onSortChange={projectDomainSorting.handleSortChange}
+                                >
+                                    Domain
+                                </AdminSortableTableHeaderCell>
+                                <AdminSortableTableHeaderCell
+                                    className="px-3 py-2 text-left font-semibold"
+                                    label="agent"
+                                    sortBy="agentPermanentId"
+                                    activeSortBy={projectDomainSorting.sortBy}
+                                    sortOrder={projectDomainSorting.sortOrder}
+                                    onSortChange={projectDomainSorting.handleSortChange}
+                                >
+                                    Agent
+                                </AdminSortableTableHeaderCell>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-            {generatedProjectDomain ? (
-                <AgentProjectDnsInstructions
-                    isDnsIssue={hasProjectDnsIssue}
-                    projectDomain={generatedProjectDomain}
-                    publicIpAddress={publicIpAddress}
-                    serverDomain={serverDomain}
-                />
-            ) : null}
+                        </thead>
+                        <tbody className="divide-y divide-sky-100">
+                            {projectDomainSorting.sortedRows.map((projectDomain) => (
+                                <tr key={`${projectDomain.agentPermanentId}-${projectDomain.projectName}`}>
+                                    <td className="px-3 py-2">
+                                        <a
+                                            href={projectDomain.projectHref}
+                                            className="font-semibold text-sky-800 hover:text-sky-950 hover:underline"
+                                        >
+                                            {projectDomain.projectName}
+                                        </a>
+                                    </td>
+                                    <td className="px-3 py-2">
+                                        <a
+                                            href={projectDomain.publicUrl}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="inline-flex items-center gap-1 font-mono text-sky-800 hover:text-sky-950 hover:underline"
+                                        >
+                                            {projectDomain.domain}
+                                            <ExternalLink className="h-3.5 w-3.5" aria-hidden />
+                                        </a>
+                                        {projectDomain.customDomain ? (
+                                            <span className="ml-2 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 font-sans text-[0.7rem] font-semibold text-emerald-700">
+                                                Custom
+                                            </span>
+                                        ) : null}
+                                        {isManagedServerDnsDiagnosticIssue(projectDomain.dnsDiagnostic) ? (
+                                            <span className="ml-2 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 font-sans text-[0.7rem] font-semibold text-amber-700">
+                                                DNS setup needed
+                                            </span>
+                                        ) : null}
+                                    </td>
+                                    <td className="px-3 py-2">
+                                        <a
+                                            href={projectDomain.agentProjectsHref}
+                                            title="Open agent projects"
+                                            className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-sky-200 bg-sky-50 px-2 py-1 font-sans text-xs font-semibold text-sky-800 hover:border-sky-300 hover:bg-sky-100 hover:text-sky-950"
+                                        >
+                                            <Bot className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                                            <span className="truncate">{projectDomain.agentName || 'Agent'}</span>
+                                        </a>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+            <AgentProjectDnsInstructions
+                isDnsIssue={hasProjectDnsIssue}
+                projectDomain={generatedProjectDomain}
+                publicIpAddress={publicIpAddress}
+                serverDomain={serverDomain}
+            />
         </div>
     );
 }
