@@ -1,4 +1,4 @@
-[ ]
+[x] by OpenAI Codex `gpt-5.6-luna` thinking `max` - Implementation ~$0.4802 17 minutes; Testing 26 minutes
 
 [✨🛀] Add `--test-before` option to `ptbk coder run`
 
@@ -16,3 +16,4 @@ ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh -
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Update the [`ptbk coder` landing website](apps/coder-landing)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
