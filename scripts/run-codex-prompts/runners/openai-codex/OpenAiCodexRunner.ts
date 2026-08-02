@@ -22,6 +22,11 @@ import type { OpenAiCodexRunnerOptions } from './OpenAiCodexRunnerOptions';
 const CODEX_COMPLETION_LINE = /^\s*tokens used\b/i;
 
 /**
+ * Output line that marks the completed Codex turn in JSONL output mode.
+ */
+const CODEX_JSON_COMPLETION_LINE = /^\s*\{"type":"turn\.(?:completed|failed)"/u;
+
+/**
  * Idle timeout after completion marker to capture trailing output.
  */
 const CODEX_COMPLETION_IDLE_MS = 60 * 1000;
@@ -106,6 +111,7 @@ export class OpenAiCodexRunner implements PromptRunner {
             sandbox: this.options.sandbox,
             askForApproval: this.options.askForApproval,
             allowCredits: this.options.allowCredits,
+            isMachineReadableProgressEnabled: this.options.isMachineReadableProgressEnabled,
             codexCommand: this.options.codexCommand,
         });
         for (let retryIndex = 0; ; retryIndex++) {
@@ -121,7 +127,9 @@ export class OpenAiCodexRunner implements PromptRunner {
                 const output = await $runGoScriptUntilMarkerIdle({
                     scriptPath: options.scriptPath,
                     scriptContent,
-                    completionLineMatcher: CODEX_COMPLETION_LINE,
+                    completionLineMatcher: this.options.isMachineReadableProgressEnabled
+                        ? CODEX_JSON_COMPLETION_LINE
+                        : CODEX_COMPLETION_LINE,
                     idleTimeoutMs: CODEX_COMPLETION_IDLE_MS,
                     logPath: options.logPath,
                     shouldPrintLiveOutput: options.shouldPrintLiveOutput,

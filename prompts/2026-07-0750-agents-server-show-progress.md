@@ -2,7 +2,7 @@
 
 ---
 
-[ ]
+[x] by OpenAI Codex `gpt-5.6-terra` thinking `xhigh` - Implementation ~$1.07 30 minutes; Testing 7 minutes -  *(commiting manually)*
 
 [✨🟪] Show progress what is agent doing
 
@@ -16,4 +16,5 @@
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ![alt text](screenshots/2026-07-0750-agents-server-show-progress.png)
+
 

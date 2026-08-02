@@ -16,4 +16,8 @@ export type OpenAiCodexRunnerOptions = {
      * Allows Codex to spend credits when rate limits are exhausted.
      */
     allowCredits: boolean;
+    /**
+     * Requests Codex JSONL events so a trusted consumer can render concise live progress.
+     */
+    isMachineReadableProgressEnabled?: boolean;
 };

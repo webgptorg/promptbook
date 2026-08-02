@@ -25,5 +25,6 @@ export function createLocalAgentRunOptions(
         autoClone: false,
         maxMessageProcessingFailures: localAgentRunnerLimits.maxFailedAttempts,
         maxParallelMessages: localAgentRunnerLimits.maxParallelMessages,
+        isMachineReadableProgressEnabled: true,
     };
 }

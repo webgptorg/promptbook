@@ -74,6 +74,7 @@ export function buildCodexScript(options: CodexScriptOptions): string {
         `    -c model_reasoning_effort="${thinkingLevel}" \\`,
         `    --ask-for-approval ${options.askForApproval} \\`,
         `    exec --model ${options.model} \\`,
+        ...(options.isMachineReadableProgressEnabled ? ['    --json \\'] : []),
         '    --local-provider none \\',
         `    --sandbox ${options.sandbox} \\`,
         `    -C ${projectPath} \\`,
