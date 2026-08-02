@@ -1,6 +1,6 @@
 [-]
 
-[✨❔] Veryfy the keys before
+[✨❔] Verify the git keys before
 
 ```bash
 @@@
