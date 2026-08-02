@@ -208,18 +208,19 @@ export function buildControlPills(options: {
  * Builds the coder-run control pills shown in the footer box.
  */
 export function buildCoderRunControlPills(options: {
+    readonly phase: CoderRunPhase;
     readonly pauseControl: string;
     readonly pendingEnterLabel: string | undefined;
     readonly isEndAfterCurrentPromptRequested: boolean;
     readonly sessionTotal: number;
 }): readonly string[] {
-    const { pauseControl, pendingEnterLabel, isEndAfterCurrentPromptRequested, sessionTotal } = options;
+    const { phase, pauseControl, pendingEnterLabel, isEndAfterCurrentPromptRequested, sessionTotal } = options;
 
     return buildControlPills({
         pauseControl,
         pendingEnterLabel,
         additionalControls: [
-            buildSkipCurrentWaitControl(),
+            ...(phase === 'waiting' ? [buildSkipCurrentWaitControl()] : []),
             buildEndAfterCurrentPromptControl(isEndAfterCurrentPromptRequested, sessionTotal),
         ],
     });

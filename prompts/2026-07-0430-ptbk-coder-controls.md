@@ -33,7 +33,7 @@ The controls should be:
 
 ---
 
-[ ]
+[x] by OpenAI Codex `gpt-5.6-luna` thinking `max` (ChatGPT account) - Implementation ~$0.4557 24 minutes; Testing 26 minutes
 
 [✨😼] Show "S  Skip current waiting" only when waiting
 
@@ -54,4 +54,5 @@ The controls should be:
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Update the [`ptbk coder` landing website](apps/coder-landing) if relevant
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
 

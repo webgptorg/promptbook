@@ -1,3 +1,5 @@
+-   Fixed rich `ptbk coder run` terminal controls so `S Skip current waiting` is shown only while the coder is in a waiting phase (between prompts, after a prompt, or after an error), and hidden while a prompt is active or the run has finished. The Coder landing demo now matches its completed `DONE` frame and omits the unavailable skip action.
+
 -   Added `ptbk coder ping`, which sends one small disposable task through a selected harness and model, prints the returned result and elapsed response time, and keeps the current project unchanged. It accepts the same harness, model, thinking-level and credit options as the other local runner commands, so it can be used to check connectivity or start consuming an applicable quota before a longer coding run.
 
 -   Fixed Agents Server ElevenLabs text-to-speech configuration to use only `ELEVENLABS_API_KEY`; support for the legacy `ELEVEN_LABS_API_KEY` environment variable was removed.

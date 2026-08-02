@@ -51,6 +51,8 @@ For `--harness openai-codex`, credits are opt-in. If Codex reports that credits 
 
 ### Terminal controls
 
+The `S` control is shown only while the coder is waiting; it is hidden while a prompt is running or after the run has finished.
+
 ```text
 P  Pause  S  Skip current waiting  X  End with this prompt  CTRL+C  Exit
 ```

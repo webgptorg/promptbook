@@ -121,6 +121,7 @@ export function buildCoderRunUiFrame(options: BuildCoderRunUiFrameOptions): stri
     const visibleOutputLines = buildVisibleOutputLines(options.agentOutputLines);
 
     const controls = buildCoderRunControlPills({
+        phase: options.phase,
         pauseControl: pausePresentation.pauseControl,
         pendingEnterLabel: options.pendingEnterLabel,
         isEndAfterCurrentPromptRequested: options.isEndAfterCurrentPromptRequested,
