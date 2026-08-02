@@ -3,6 +3,7 @@ import { UnexpectedError } from '../../../../../src/errors/UnexpectedError';
 import { spaceTrim } from '../../../../../src/utils/organization/spaceTrim';
 import type { StalwartConfiguration } from './StalwartConfiguration';
 import { callStalwartJmapAllowingBootstrapMode } from './stalwartJmapClient';
+import { buildStalwartMailServerHostname } from './stalwartMailBridge';
 
 /**
  * Whether the initial setup of the bundled Stalwart instance is still pending or already finished.
@@ -50,7 +51,7 @@ const STALWART_BOOTSTRAP_VERIFICATION_DELAY_MS = 1_000;
  */
 export function buildStalwartBootstrapValue(domain: string): Readonly<Record<string, unknown>> {
     return {
-        serverHostname: `mail.${domain}`,
+        serverHostname: buildStalwartMailServerHostname(domain),
         defaultDomain: domain,
         requestTlsCertificate: false,
         generateDkimKeys: true,

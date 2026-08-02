@@ -1,8 +1,14 @@
 import { normalizeEmailDomain } from '../email/agentEmailAddress';
 import { listAgentEmailIdentities, type AgentEmailIdentity } from '../email/listAgentEmailIdentities';
+import type { ManagedServerDnsDiagnostic } from '../../app/superadmin/servers/ServersRegistryDnsTypes';
+import { createStandaloneVpsDomainDnsDiagnostic } from '../standaloneVpsDnsDiagnostics';
 import { readStalwartConfiguration } from './StalwartConfiguration';
 import { listStalwartObjects } from './stalwartJmapClient';
-import { buildStalwartInboundHookUrl, STALWART_MAIL_BRIDGE_LOCAL_PART } from './stalwartMailBridge';
+import {
+    buildStalwartInboundHookUrl,
+    buildStalwartMailServerHostname,
+    STALWART_MAIL_BRIDGE_LOCAL_PART,
+} from './stalwartMailBridge';
 
 /**
  * Read-only operational state shown on Stalwart administration pages.
@@ -19,6 +25,7 @@ export type StalwartEmailSnapshot = {
     readonly isBridgeAccountConfigured: boolean;
     readonly isInboundHookConfigured: boolean;
     readonly agents: ReadonlyArray<AgentEmailIdentity>;
+    readonly mailDnsDiagnostic: ManagedServerDnsDiagnostic;
 };
 
 /**
@@ -33,13 +40,14 @@ export function isStalwartEmailSnapshotOperational(
     snapshot: Pick<
         StalwartEmailSnapshot,
         'isReachable' | 'domainId' | 'isBridgeAccountConfigured' | 'isInboundHookConfigured'
-    >,
+    > & { readonly mailDnsDiagnostic: Pick<ManagedServerDnsDiagnostic, 'status'> },
 ): boolean {
     return Boolean(
         snapshot.isReachable &&
             snapshot.domainId &&
             snapshot.isBridgeAccountConfigured &&
-            snapshot.isInboundHookConfigured,
+            snapshot.isInboundHookConfigured &&
+            snapshot.mailDnsDiagnostic.status === 'verified',
     );
 }
 
@@ -49,13 +57,20 @@ export function isStalwartEmailSnapshotOperational(
 export async function readStalwartEmailSnapshot(domainValue: string): Promise<StalwartEmailSnapshot> {
     const domain = normalizeEmailDomain(domainValue);
     const configuration = readStalwartConfiguration();
-    const agents = await listAgentEmailIdentities(domain);
+    const [agents, mailDnsDiagnostic] = await Promise.all([
+        listAgentEmailIdentities(domain),
+        createStandaloneVpsDomainDnsDiagnostic({
+            domain: buildStalwartMailServerHostname(domain),
+            publicIpAddress: process.env.PTBK_PUBLIC_IP_ADDRESS,
+        }),
+    ]);
     const baseSnapshot = {
         checkedAt: new Date().toISOString(),
         apiUrl: configuration.apiUrl,
         isConfigured: configuration.isConfigured,
         domain,
         agents,
+        mailDnsDiagnostic,
     };
 
     if (!configuration.isConfigured) {
@@ -83,7 +98,10 @@ export async function readStalwartEmailSnapshot(domainValue: string): Promise<St
         return {
             ...baseSnapshot,
             isReachable: true,
-            errorMessage: null,
+            errorMessage:
+                mailDnsDiagnostic.status === 'verified'
+                    ? null
+                    : `Public SMTP delivery needs attention. ${mailDnsDiagnostic.summary}`,
             domainId,
             dnsZoneFile: typeof domainObject?.dnsZoneFile === 'string' ? domainObject.dnsZoneFile : null,
             isBridgeAccountConfigured: accounts.some(

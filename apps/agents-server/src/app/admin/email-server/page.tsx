@@ -27,7 +27,7 @@ export default async function AdminEmailServerPage() {
 
     const server = await $provideServer();
     const snapshot = await readStalwartEmailSnapshot(server.publicUrl.hostname);
-    const dnsInstructions = createEmailDnsInstructions(snapshot.domain);
+    const dnsInstructions = createEmailDnsInstructions(snapshot.domain, snapshot.mailDnsDiagnostic.publicIpAddress);
     const isOperational = isStalwartEmailSnapshotOperational(snapshot);
 
     return (
@@ -55,7 +55,8 @@ export default async function AdminEmailServerPage() {
                                     Domain <code>{snapshot.domain}</code> · API{' '}
                                     {snapshot.isReachable ? 'reachable' : 'unavailable'} · bridge{' '}
                                     {snapshot.isBridgeAccountConfigured ? 'configured' : 'missing'} · inbound hook{' '}
-                                    {snapshot.isInboundHookConfigured ? 'configured' : 'missing'}
+                                    {snapshot.isInboundHookConfigured ? 'configured' : 'missing'} · public mail DNS{' '}
+                                    {snapshot.mailDnsDiagnostic.status === 'verified' ? 'verified' : 'needs attention'}
                                 </p>
                                 {snapshot.errorMessage ? (
                                     <p className="mt-2 max-w-4xl whitespace-pre-wrap text-xs">
@@ -110,10 +111,17 @@ export default async function AdminEmailServerPage() {
                     <div className="mt-4">
                         <DnsRecordsInstructions
                             description={
-                                <p>
-                                    Add these records at your DNS provider. Replace <code>&lt;VPS_PUBLIC_IP&gt;</code>{' '}
-                                    with the public address of this VPS.
-                                </p>
+                                snapshot.mailDnsDiagnostic.publicIpAddress ? (
+                                    <p>
+                                        Add these records at your DNS provider. The A records below use this VPS’s
+                                        detected public address.
+                                    </p>
+                                ) : (
+                                    <p>
+                                        Add these records at your DNS provider. Replace <code>&lt;VPS_PUBLIC_IP&gt;</code>{' '}
+                                        with the public address of this VPS.
+                                    </p>
+                                )
                             }
                             domain={snapshot.domain}
                             recordSelection="all"
