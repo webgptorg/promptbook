@@ -30,7 +30,7 @@ const HOW_IT_WORKS_STEPS: ReadonlyArray<HowItWorksStep> = [
     {
         title: 'Every change lands verified in git',
         description:
-            'After each prompt it runs your test command, feeds failures back for retries, and commits the result under a dedicated agent identity. Finished prompts are archived to prompts/done/.',
+            'It can run your tests before coding to catch pre-existing failures, then verifies each prompt, feeds failures back for retries, and commits the result under a dedicated agent identity. Finished prompts are archived to prompts/done/.',
     },
 ];
 

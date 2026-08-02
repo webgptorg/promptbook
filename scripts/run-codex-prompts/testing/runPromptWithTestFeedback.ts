@@ -7,17 +7,13 @@ import { formatUnknownErrorDetails } from '../common/formatUnknownErrorDetails';
 import type { PromptRunOptions } from '../runners/types/PromptRunOptions';
 import type { PromptRunResult } from '../runners/types/PromptRunResult';
 import type { PromptRunner } from '../runners/types/PromptRunner';
+import { limitTestOutput } from './limitTestOutput';
 import { runPromptTestCommand } from './runPromptTestCommand';
 
 /**
  * Maximum number of coding attempts allowed for the same prompt when verification keeps failing.
  */
 const MAX_PROMPT_TEST_ATTEMPTS = 3;
-
-/**
- * Maximum amount of verification output sent back to the coding agent as retry feedback.
- */
-const MAX_TEST_FEEDBACK_OUTPUT_CHARS = 12_000;
 
 /**
  * File extension used by generated shell scripts.
@@ -110,7 +106,7 @@ export async function runPromptWithTestFeedback(
         }
 
         const fullVerificationOutput = formatUnknownErrorDetails(failedVerification.error);
-        const feedbackVerificationOutput = limitVerificationOutputForFeedback(fullVerificationOutput);
+        const feedbackVerificationOutput = limitTestOutput(fullVerificationOutput);
 
         if (attemptCount >= MAX_PROMPT_TEST_ATTEMPTS) {
             console.error(
@@ -308,22 +304,6 @@ function buildFinalVerificationFailureMessage({
             \`\`\`
         `,
     );
-}
-
-/**
- * Limits verification output before it is embedded back into the next coding prompt.
- */
-function limitVerificationOutputForFeedback(verificationOutput: string): string {
-    const normalizedVerificationOutput = verificationOutput.trim();
-
-    if (normalizedVerificationOutput.length <= MAX_TEST_FEEDBACK_OUTPUT_CHARS) {
-        return normalizedVerificationOutput;
-    }
-
-    return spaceTrim(`
-        [...verification output truncated to the last ${MAX_TEST_FEEDBACK_OUTPUT_CHARS} characters...]
-        ${normalizedVerificationOutput.slice(-MAX_TEST_FEEDBACK_OUTPUT_CHARS)}
-    `);
 }
 
 /**

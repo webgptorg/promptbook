@@ -8,10 +8,7 @@ import { NotAllowed } from '../../../src/errors/NotAllowed';
 import { just } from '../../../src/utils/organization/just';
 import type { RunOptions } from '../cli/RunOptions';
 import { parseRunOptions } from '../cli/parseRunOptions';
-import type {
-    CoderRunPauseCheckpointOptions,
-    WaitForCoderRunPauseCheckpoint,
-} from '../common/CoderRunPauseCheckpoint';
+import type { CoderRunPauseCheckpointOptions, WaitForCoderRunPauseCheckpoint } from '../common/CoderRunPauseCheckpoint';
 import { CliProgressDisplay } from '../common/cliProgressDisplay';
 import { loadCachedAveragePromptDurationMs } from '../common/coderRunEstimateCache';
 import { resolveCoderAgent } from '../common/resolveCoderAgent';
@@ -43,8 +40,13 @@ import type { PromptFile } from '../prompts/types/PromptFile';
 import type { PromptSelection } from '../prompts/types/PromptSelection';
 import type { PromptStats } from '../prompts/types/PromptStats';
 import { waitForPromptStart } from '../prompts/waitForPromptStart';
+import type { PromptRunner } from '../runners/types/PromptRunner';
 import { buildCoderRunAgentVisual } from '../ui/buildCoderRunAgentVisual';
 import { renderCoderRunUi, type CoderRunUiHandle } from '../ui/renderCoderRunUi';
+import { createTestBeforeRepairPrompt } from '../testing/createTestBeforeRepairPrompt';
+import { DEFAULT_CODER_TEST_COMMAND, isTestBeforeMode, type TestBeforeMode } from '../testing/TestBeforeMode';
+import { limitTestOutput } from '../testing/limitTestOutput';
+import { runTestBefore } from '../testing/runTestBefore';
 import { resolvePromptRunner } from './resolvePromptRunner';
 import { runPromptRound } from './runPromptRound';
 
@@ -106,6 +108,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
         let previousRoundStartTime: number | undefined;
         let previousRoundEndTime: number | undefined;
         let completedRunCount = 0;
+        let hasRunTestBefore = false;
 
         while (just(true)) {
             if (options.autoPull && !options.dryRun) {
@@ -119,6 +122,22 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                 options,
                 isRichUiEnabled,
             });
+
+            if (!hasRunTestBefore) {
+                hasWaitedForStart = await runTestBeforeIfNeeded({
+                    options,
+                    runner,
+                    runnerMetadata,
+                    resolvedCoderContext,
+                    resolvedAgentSystemMessage,
+                    isRichUiEnabled,
+                    progressDisplay,
+                    uiHandle,
+                    waitForRequestedPause,
+                    hasWaitedForStart,
+                });
+                hasRunTestBefore = true;
+            }
 
             await waitForRequestedPause({
                 checkpointLabel: 'loading prompts',
@@ -250,6 +269,16 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
  * Validates cross-flag constraints before the run starts.
  */
 function validateRunCodexPromptOptions(options: RunOptions): void {
+    if (!isTestBeforeMode(options.testBefore ?? 'no')) {
+        throw new NotAllowed(
+            spaceTrim(`
+                Invalid ${'`--test-before`'} mode: \`${String(options.testBefore)}\`.
+
+                Use one of: \`no\`, \`yes-and-fail\`, \`yes-and-fix\`.
+            `),
+        );
+    }
+
     if (options.allowDestructiveAutoMigrate && !options.autoMigrate) {
         throw new DatabaseError(
             spaceTrim(`
@@ -302,10 +331,7 @@ function validateRunCodexPromptOptions(options: RunOptions): void {
 /**
  * Pulls the latest repository state before loading prompts when the feature is enabled.
  */
-async function pullLatestChangesIfEnabled(options: {
-    options: RunOptions;
-    isRichUiEnabled: boolean;
-}): Promise<void> {
+async function pullLatestChangesIfEnabled(options: { options: RunOptions; isRichUiEnabled: boolean }): Promise<void> {
     const { options: runOptions, isRichUiEnabled } = options;
 
     if (!runOptions.autoPull || runOptions.dryRun) {
@@ -353,6 +379,8 @@ function createRunDisplays(
  * Normalizes legacy and current priority options into one validated run option shape.
  */
 function normalizeRunOptions(options: RunOptions): RunOptions {
+    const testBefore: TestBeforeMode = options.testBefore ?? 'no';
+    const normalizedTestCommand = options.testCommand?.trim();
     const priorityFilter = normalizePriorityFilter({
         priority: options.priority,
         minimumPriority: options.minimumPriority ?? options.priorityFilter?.minimumPriority,
@@ -361,11 +389,131 @@ function normalizeRunOptions(options: RunOptions): RunOptions {
 
     return {
         ...options,
+        testBefore,
+        testCommand: normalizedTestCommand || (testBefore === 'no' ? undefined : DEFAULT_CODER_TEST_COMMAND),
         priority: priorityFilter.minimumPriority ?? 0,
         minimumPriority: priorityFilter.minimumPriority,
         maximumPriority: priorityFilter.maximumPriority,
         priorityFilter,
     };
+}
+
+/**
+ * Runs the optional pre-coding verification and, when requested, its one repair prompt.
+ */
+async function runTestBeforeIfNeeded(options: {
+    options: RunOptions;
+    runner: PromptRunner;
+    runnerMetadata: {
+        runnerName: string;
+        modelName?: string;
+    };
+    resolvedCoderContext?: string;
+    resolvedAgentSystemMessage?: string;
+    isRichUiEnabled: boolean;
+    progressDisplay?: CliProgressDisplay;
+    uiHandle?: CoderRunUiHandle;
+    waitForRequestedPause: WaitForCoderRunPauseCheckpoint;
+    hasWaitedForStart: boolean;
+}): Promise<boolean> {
+    const {
+        options: runOptions,
+        runner,
+        runnerMetadata,
+        resolvedCoderContext,
+        resolvedAgentSystemMessage,
+        isRichUiEnabled,
+        progressDisplay,
+        uiHandle,
+        waitForRequestedPause,
+        hasWaitedForStart,
+    } = options;
+
+    if (runOptions.testBefore === 'no') {
+        return hasWaitedForStart;
+    }
+
+    if (!runOptions.testCommand) {
+        throw new NotAllowed(
+            spaceTrim(`
+                ${'`--test-before ' + runOptions.testBefore + '`'} requires a verification command.
+
+                Pass one with ${'`--test <test-command>`'} or use the default ${'`npm test`'} command by providing the mode through the CLI.
+            `),
+        );
+    }
+
+    if (!runOptions.ignoreGitChanges) {
+        await waitForRequestedPause({
+            checkpointLabel: 'checking the git working tree before testing',
+            phase: 'loading',
+            statusMessage: 'Checking the working tree before testing...',
+        });
+        await ensureWorkingTreeClean();
+    }
+
+    const testBeforeResult = await runTestBefore({
+        testCommand: runOptions.testCommand,
+        projectPath: process.cwd(),
+        waitForPauseCheckpoint: waitForRequestedPause,
+    });
+
+    if (testBeforeResult.isPassed) {
+        return hasWaitedForStart;
+    }
+
+    const testOutput = limitTestOutput(testBeforeResult.testOutput);
+
+    if (runOptions.testBefore === 'yes-and-fail') {
+        throw new NotAllowed(
+            spaceTrim(
+                (block) => `
+                    Pre-coding verification command \`${runOptions.testCommand}\` failed.
+
+                    The coding agent was not started because the project was already failing before the first queued prompt.
+
+                    ### Test results
+                    ${'```'}
+                    ${block(testOutput)}
+                    ${'```'}
+                `,
+            ),
+        );
+    }
+
+    const repairPrompt = await createTestBeforeRepairPrompt({
+        projectPath: process.cwd(),
+        testCommand: runOptions.testCommand,
+        testOutput,
+    });
+    const repairPromptLabel = buildPromptLabelForDisplay(repairPrompt.file, repairPrompt.section);
+    const updatedHasWaitedForStart = await waitForPromptConfirmationIfNeeded({
+        options: runOptions,
+        nextPrompt: repairPrompt,
+        promptLabel: repairPromptLabel,
+        hasWaitedForStart,
+        isRichUiEnabled,
+        progressDisplay,
+        uiHandle,
+    });
+
+    // The repair prompt is created in the current worktree so it can be recorded and committed with the repair.
+    // It therefore intentionally uses the regular round here even when the queue itself uses --isolate.
+    await runPromptRound({
+        options: runOptions,
+        runner,
+        runnerMetadata,
+        nextPrompt: repairPrompt,
+        promptLabel: repairPromptLabel,
+        resolvedCoderContext,
+        resolvedAgentSystemMessage,
+        isRichUiEnabled,
+        progressDisplay,
+        uiHandle,
+        waitForRequestedPause,
+    });
+
+    return updatedHasWaitedForStart;
 }
 
 /**
@@ -642,8 +790,15 @@ async function waitForPromptConfirmationIfNeeded(options: {
     progressDisplay?: CliProgressDisplay;
     uiHandle?: CoderRunUiHandle;
 }): Promise<boolean> {
-    const { options: runOptions, nextPrompt, promptLabel, hasWaitedForStart, isRichUiEnabled, progressDisplay, uiHandle } =
-        options;
+    const {
+        options: runOptions,
+        nextPrompt,
+        promptLabel,
+        hasWaitedForStart,
+        isRichUiEnabled,
+        progressDisplay,
+        uiHandle,
+    } = options;
 
     if (!runOptions.waitForUser) {
         return hasWaitedForStart;

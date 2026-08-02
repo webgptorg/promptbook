@@ -170,6 +170,64 @@ describe('$initializeCoderRunCommand', () => {
         );
     });
 
+    it('defaults pre-coding verification to no', async () => {
+        const program = createProgramWithRunCommand();
+
+        await program.parseAsync(['node', 'test', 'run', '--dry-run'], { from: 'node' });
+
+        expect(getRunCodexPromptsMock()).toHaveBeenCalledWith(
+            expect.objectContaining({
+                dryRun: true,
+                testBefore: 'no',
+                testCommand: undefined,
+            }),
+        );
+    });
+
+    it('passes pre-coding verification mode and uses npm test when no command is provided', async () => {
+        const program = createProgramWithRunCommand();
+
+        await program.parseAsync(['node', 'test', 'run', '--dry-run', '--test-before', 'yes-and-fix'], {
+            from: 'node',
+        });
+
+        expect(getRunCodexPromptsMock()).toHaveBeenCalledWith(
+            expect.objectContaining({
+                dryRun: true,
+                testBefore: 'yes-and-fix',
+                testCommand: 'npm test',
+            }),
+        );
+    });
+
+    it('keeps an explicit verification command when pre-coding verification is enabled', async () => {
+        const program = createProgramWithRunCommand();
+
+        await program.parseAsync(
+            [
+                'node',
+                'test',
+                'run',
+                '--dry-run',
+                '--test',
+                'npm',
+                'run',
+                'test-for-ptbk-coder',
+                '--test-before',
+                'yes-and-fail',
+            ],
+            { from: 'node' },
+        );
+
+        expect(getRunCodexPromptsMock()).toHaveBeenCalledWith(
+            expect.objectContaining({
+                dryRun: true,
+                testBefore: 'yes-and-fail',
+                testCommand: 'npm run test-for-ptbk-coder',
+            }),
+        );
+    });
+
     it('defaults preserveLogs to false when --preserve-logs is omitted', async () => {
         const program = createProgramWithRunCommand();
 

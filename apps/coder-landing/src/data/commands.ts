@@ -31,6 +31,11 @@ export const ADD_COMMAND = 'ptbk coder add "Add a dark mode toggle to the settin
 export const RUN_COMMAND = 'ptbk coder run --harness claude-code';
 
 /**
+ * Command which runs the existing tests before coding and lets one repair prompt fix pre-existing failures.
+ */
+export const TEST_BEFORE_FIX_COMMAND = 'ptbk coder run --harness claude-code --test npm test --test-before yes-and-fix';
+
+/**
  * Command which previews the prompt queue without executing anything.
  */
 export const DRY_RUN_COMMAND = 'ptbk coder run --dry-run';

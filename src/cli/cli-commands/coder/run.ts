@@ -1,5 +1,8 @@
 import colors from 'colors';
-import { Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */ } from 'commander';
+import {
+    Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
+    Option,
+} from 'commander';
 import { spaceTrim } from 'spacetrim';
 import { assertsError } from '../../../errors/assertsError';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
@@ -14,6 +17,11 @@ import {
     normalizePromptRunnerCliOptions,
     PROMPT_RUNNER_DESCRIPTION,
 } from '../common/promptRunnerCliOptions';
+import {
+    DEFAULT_CODER_TEST_COMMAND,
+    TEST_BEFORE_MODE_VALUES,
+    type TestBeforeMode,
+} from '../../../../scripts/run-codex-prompts/testing/TestBeforeMode';
 import { DEFAULT_WAIT_AFTER_ERROR_MS, parseOptionalWaitDuration } from './waitOptions';
 
 /**
@@ -40,6 +48,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             - Optional --no-ui keeps plain streaming console output for logging and debugging
             - Checks that the selected harness is installed globally and up to date before the first prompt
             - Supports GPG signing of commits
+            - Optional pre-coding test run that can stop or repair pre-existing failures
             - Optional post-prompt verification with test-feedback retries
             - Progress tracking and interactive P/S/X terminal controls
             - Dry-run mode to preview prompts
@@ -59,6 +68,16 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
     command.option(
         '--test <test-command...>',
         'Run a verification command after each prompt; quote it when the command itself contains top-level flags',
+    );
+    command.addOption(
+        new Option(
+            '--test-before <mode>',
+            `Run tests before coding: ${TEST_BEFORE_MODE_VALUES.join(
+                ', ',
+            )} (defaults to no; uses npm test when --test is omitted)`,
+        )
+            .choices([...TEST_BEFORE_MODE_VALUES])
+            .default('no'),
     );
     command.option(
         '--preserve-logs',
@@ -138,6 +157,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 agent,
                 context,
                 test,
+                testBefore,
                 preserveLogs,
                 isolate: isIsolated,
                 priority,
@@ -155,6 +175,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 readonly agent?: string;
                 readonly context?: string;
                 readonly test?: string | string[];
+                readonly testBefore: TestBeforeMode;
                 readonly preserveLogs: boolean;
                 readonly isolate: boolean;
                 readonly priority?: number;
@@ -169,7 +190,8 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 readonly allowDestructiveAutoMigrate: boolean;
             } & PromptRunnerCliOptions;
 
-            const testCommand = normalizeCommandOptionValue(test);
+            const configuredTestCommand = normalizeCommandOptionValue(test);
+            const testCommand = configuredTestCommand ?? (testBefore === 'no' ? undefined : DEFAULT_CODER_TEST_COMMAND);
             const runnerOptions = normalizePromptRunnerCliOptions(cliOptions as PromptRunnerCliOptions, {
                 isAgentRequired: !dryRun,
             });
@@ -201,6 +223,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 agent,
                 context,
                 testCommand,
+                testBefore,
                 preserveLogs,
                 isIsolated,
                 noUi: runnerOptions.noUi,

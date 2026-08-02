@@ -5,7 +5,7 @@ import { toPosixPath } from '../common/runGoScript/toPosixPath';
 /**
  * Options for running one verification command after a coding attempt.
  */
-type RunPromptTestCommandOptions = {
+export type RunPromptTestCommandOptions = {
     command: string;
     projectPath: string;
     scriptPath: string;

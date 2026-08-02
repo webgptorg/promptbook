@@ -27,6 +27,8 @@ npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --harness openai-co
 --harness <harness-name>        # Select runner: openai-codex, github-copilot, cline, claude-code, opencode, gemini (required for non-dry-run)
 --model <model>               # Model to use (required for openai-codex and gemini, optional for github-copilot and opencode)
 --context <context-or-file>   # Append extra instructions inline or load them from a file in the current project
+--test <test-command...>       # Run a verification command after each prompt and feed failures back for retries
+--test-before <mode>           # no (default), yes-and-fail, or yes-and-fix; enabled modes default to npm test
 --no-ui                       # Disable the rich terminal UI and stream plain console output instead
 --thinking-level <level>      # Reasoning effort for OpenAI Codex and GitHub Copilot: low, medium, high, xhigh
 --priority <minimum-priority> # Alias for --min-priority
@@ -78,6 +80,9 @@ ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh -
 
 # Run with GitHub Copilot
 ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh
+
+# Run tests before coding and let one repair prompt fix pre-existing failures
+ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --test-before yes-and-fix
 
 # Run with plain streaming output for logging/debugging
 ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --no-ui

@@ -15,4 +15,4 @@ Displayed as a 3-column grid (1 column on mobile), each card with a numbered squ
 
 1. **You write prompts, not sessions** — "Instead of chatting with an agent one task at a time, you drop each task as a markdown file into the prompts/ folder — a backlog your whole team can read, review and version in git."
 2. **ptbk coder drives your agent** — "It feeds the queue to the coding agent you already use — Claude Code, OpenAI Codex, GitHub Copilot, Gemini CLI, opencode or Cline — one prompt at a time, with your project context and an agent persona."
-3. **Every change lands verified in git** — "After each prompt it runs your test command, feeds failures back for retries, and commits the result under a dedicated agent identity. Finished prompts are archived to prompts/done/."
+3. **Every change lands verified in git** — "It can run your tests before coding to catch pre-existing failures, then verifies each prompt, feeds failures back for retries, and commits the result under a dedicated agent identity. Finished prompts are archived to prompts/done/."

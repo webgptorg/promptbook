@@ -39,7 +39,28 @@ describe('parseRunOptions', () => {
             allowCredits: false,
             autoMigrate: false,
             allowDestructiveAutoMigrate: false,
+            testBefore: 'no',
         });
+    });
+
+    it('parses the pre-coding verification mode', () => {
+        const options = parseRunOptions(['--harness', 'github-copilot', '--test-before', 'yes-and-fix']);
+
+        expect(options).toMatchObject({
+            testBefore: 'yes-and-fix',
+        });
+    });
+
+    it('rejects an invalid pre-coding verification mode', () => {
+        expect(() => parseRunOptions(['--harness', 'github-copilot', '--test-before', 'sometimes'])).toThrow(
+            'process.exit',
+        );
+        expect(processExitSpy).toHaveBeenCalledWith(1);
+    });
+
+    it('rejects a missing pre-coding verification mode', () => {
+        expect(() => parseRunOptions(['--harness', 'github-copilot', '--test-before'])).toThrow('process.exit');
+        expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 
     it('parses GitHub Copilot as a supported runner', () => {

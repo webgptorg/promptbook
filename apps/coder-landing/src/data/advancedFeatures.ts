@@ -1,4 +1,4 @@
-import { DRY_RUN_COMMAND, VERIFY_COMMAND } from './commands';
+import { DRY_RUN_COMMAND, TEST_BEFORE_FIX_COMMAND, VERIFY_COMMAND } from './commands';
 
 /**
  * One advanced feature of `ptbk coder` presented as a card with a terminal snippet.
@@ -31,6 +31,12 @@ export const ADVANCED_FEATURES: ReadonlyArray<AdvancedFeatureDefinition> = [
         description:
             'Run any test command after each prompt. Failures are fed back to the agent, which retries until the tests pass.',
         sampleCommand: 'ptbk coder run --harness claude-code --test npm test',
+    },
+    {
+        title: 'Test before coding',
+        description:
+            'Run tests before the first coding prompt. Stop on pre-existing failures, or let one repair prompt fix them before the backlog starts.',
+        sampleCommand: TEST_BEFORE_FIX_COMMAND,
     },
     {
         title: 'Commits with its own identity',
