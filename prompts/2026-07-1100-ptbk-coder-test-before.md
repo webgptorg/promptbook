@@ -1,4 +1,4 @@
-[ ]
+[x] by OpenAI Codex `gpt-5.6-luna` thinking `max` - Implementation ~$0.4802 17 minutes; Testing 26 minutes
 
 [✨🛀] Add `--test-before` option to `ptbk coder run`
 
