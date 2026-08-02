@@ -8,7 +8,7 @@ import { createManGoAgentSource } from './createManGoAgentSource';
  *
  * @param state - Current imported wizard state.
  * @param defaultVisibility - Metadata-backed default visibility for newly created agents.
- * @returns Classic Book editor request carrying the current draft.
+ * @returns Classic Book editor request carrying the current Book.
  *
  * @private internal utility of <ManGoNewAgentWizard/>.
  */

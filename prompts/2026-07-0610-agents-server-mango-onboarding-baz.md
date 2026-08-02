@@ -1,4 +1,4 @@
-[ ]
+[x] by OpenAI Codex `gpt-5.6-luna` thinking `max` (ChatGPT account) - Implementation ~$1.84 an hour; Testing 28 minutes
 
 [✨🌻] The Mango wizard should create a book directly on the second page without the intermediate step of creating some markdown
 
@@ -19,3 +19,4 @@
 ![Just generate book, skip the draft](screenshots/2026-07-0610-agents-server-mango-onboarding-baz-2.png)
 ![alt text](screenshots/2026-07-0610-agents-server-mango-onboarding-baz.png)
 ![alt text](screenshots/2026-07-0610-agents-server-mango-onboarding-baz-1.png)
+

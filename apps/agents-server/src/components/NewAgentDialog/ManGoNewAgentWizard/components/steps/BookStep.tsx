@@ -4,10 +4,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { ONBOARDING_ENTRY_PATH, ONBOARDING_STEPS } from '../../config/steps';
 import { useManGoOnboardingNavigation } from '../../ManGoOnboardingNavigation';
-import { generateBookDraft } from '../../services/draftService';
+import { generateBook } from '../../services/bookService';
 import { useOnboarding } from '../../state/OnboardingProvider';
-import { BookLanguagePanel } from '../BookLanguagePanel';
-import { MarkdownBookEditor } from '../MarkdownBookEditor';
+import { ManGoBookEditor } from '../ManGoBookEditor';
 import { StepFooter, StepHeader } from '../StepFrame';
 import { Banner } from '../ui/Banner';
 import { Button } from '../ui/Button';
@@ -29,16 +28,16 @@ export function BookStep() {
         setPhase('generating');
         setError(null);
         try {
-            const draft = await generateBookDraft({ agentName: state.agentName, agentBrief: state.agentBrief });
-            update({ bookSource: draft });
+            const book = await generateBook({ agentName: state.agentName, agentBrief: state.agentBrief });
+            update({ bookSource: book });
             setPhase('ready');
         } catch (caught) {
-            setError(caught instanceof Error ? caught.message : 'Generování draftu selhalo.');
+            setError(caught instanceof Error ? caught.message : 'Generování booku selhalo.');
             setPhase('error');
         }
     }, [state.agentName, state.agentBrief, update]);
 
-    // Generate the draft once, after hydration completes — so we read the persisted
+    // Generate the Book once, after hydration completes — so we read the persisted
     // name/brief rather than the initial empty state. Runs a single time (startedRef),
     // reading the latest values from the closure captured when hydration flips true.
     useEffect(() => {
@@ -59,7 +58,7 @@ export function BookStep() {
     if (phase === 'init' || phase === 'generating') {
         return (
             <div className="mx-auto max-w-2xl">
-                <StepHeader eyebrow="Definice agenta" title="Připravujeme draft booku" />
+                <StepHeader eyebrow="Definice agenta" title="Generujeme book" />
                 <Card variant="elevated" className="flex flex-col items-center justify-center gap-5 px-8 py-20 text-center">
                     <span className="relative flex h-14 w-14 items-center justify-center">
                         <span className="absolute inset-0 animate-ping rounded-full bg-[color:var(--ob-accent-200)] opacity-60" />
@@ -68,7 +67,7 @@ export function BookStep() {
                         </span>
                     </span>
                     <div>
-                        <p className="text-sm font-semibold text-zinc-800">Čtu vaše zadání a píšu draft book.md…</p>
+                        <p className="text-sm font-semibold text-zinc-800">Čtu vaše zadání a píšu book…</p>
                         <p className="mt-1 text-xs text-zinc-400">Chvíli to může trvat — generuje skutečný model.</p>
                     </div>
                 </Card>
@@ -82,12 +81,12 @@ export function BookStep() {
         <div className="mx-auto max-w-4xl">
             <StepHeader
                 eyebrow="Definice agenta"
-                title="Draft booku je hotový"
-                subtitle="Je to jen výchozí návrh — cokoli přepište, smažte nebo doplňte, klidně přímo na schůzce s klientem."
+                title="Book je připravený"
+                subtitle="Je to výchozí verze — cokoli přepište, smažte nebo doplňte přímo v editoru booku."
             />
 
             {phase === 'error' && (
-                <Banner tone="warning" title="Draft se nepodařilo vygenerovat." className="mb-5">
+                <Banner tone="warning" title="Book se nepodařilo vygenerovat." className="mb-5">
                     <p>{error}</p>
                     <p className="mt-1">Book můžete napsat i ručně níže, nebo to zkuste znovu.</p>
                 </Banner>
@@ -95,7 +94,7 @@ export function BookStep() {
 
             {!isBriefAvailable && state.bookSource.trim().length === 0 && phase !== 'error' && (
                 <Banner tone="info" className="mb-5">
-                    Nejprve vyplňte zadání, ať můžeme draft vygenerovat — nebo book napište ručně níže.{' '}
+                    Nejprve vyplňte zadání, ať můžeme book vygenerovat — nebo book napište ručně níže.{' '}
                     <button
                         type="button"
                         className="font-semibold text-[color:var(--ob-accent-700)] underline underline-offset-2 hover:text-[color:var(--ob-accent-800)]"
@@ -106,13 +105,11 @@ export function BookStep() {
                 </Banner>
             )}
 
-            <MarkdownBookEditor
+            <ManGoBookEditor
                 value={state.bookSource}
                 onChange={(value) => update({ bookSource: value })}
                 onRegenerate={isBriefAvailable ? () => void generate() : undefined}
             />
-
-            {state.bookSource.trim().length > 0 && <BookLanguagePanel source={state.bookSource} />}
 
             <StepFooter
                 left={

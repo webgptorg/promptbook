@@ -6,8 +6,8 @@ import { NotAllowed } from '../../../../../../../src/errors/NotAllowed';
 import type { OnboardingState } from '../types';
 
 /** sessionStorage key for the wizard session — exported so callers (e.g. the dashboard's
- * "Nový onboarding") can clear a stale draft before starting fresh. */
-export const ONBOARDING_STORAGE_KEY = 'onboarding:v1';
+ * "Nový onboarding") can clear a stale Book before starting fresh. */
+export const ONBOARDING_STORAGE_KEY = 'onboarding:v2';
 const STORAGE_KEY = ONBOARDING_STORAGE_KEY;
 
 const INITIAL_STATE: OnboardingState = {

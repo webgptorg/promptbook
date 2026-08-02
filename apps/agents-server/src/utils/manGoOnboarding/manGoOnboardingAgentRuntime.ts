@@ -5,11 +5,7 @@ import { LiteAgent } from '../../../../../src/book-3.0/LiteAgent';
 import type { string_markdown } from '../../../../../src/types/string_markdown';
 import { validateBook } from '../../../../../src/book-2.0/agent-source/string_book';
 import { spaceTrim } from 'spacetrim';
-import {
-    MAN_GO_BOOK_EXPERT_BOOK,
-    MAN_GO_DRAFT_EXPERT_BOOK,
-    MAN_GO_REPLY_REVIEWER_BOOK,
-} from './manGoOnboardingAgentBooks';
+import { MAN_GO_BOOK_EXPERT_BOOK, MAN_GO_REPLY_REVIEWER_BOOK } from './manGoOnboardingAgentBooks';
 
 /**
  * Chat message accepted by the manGo onboarding test runner.
@@ -36,18 +32,11 @@ export type ManGoOnboardingReplyCheck = {
 };
 
 /**
- * Inputs used to generate the first editable Book draft.
+ * Inputs used to generate the first editable Book.
  */
-export type GenerateManGoBookDraftInput = {
+export type GenerateManGoBookInput = {
     readonly agentName: string;
     readonly agentBrief: string;
-};
-
-/**
- * Input used by the Book language conversion panel.
- */
-export type ConvertManGoDraftToBookInput = {
-    readonly input: string;
 };
 
 /**
@@ -69,7 +58,7 @@ export type EvaluateManGoAgentReplyInput = {
 };
 
 /**
- * Fallback source used when step 4 is called before the draft exists.
+ * Fallback source used when step 4 is called before the Book exists.
  *
  * @private internal constant of manGo onboarding agent utilities
  */
@@ -121,24 +110,27 @@ function extractSingleBlockContent(response: string): string {
 }
 
 /**
- * Creates a prompt that asks the imported draft expert for a real Book-language draft.
+ * Creates a prompt that asks the imported Book expert for a complete Book-language source.
  *
  * @param input - Wizard name and brief.
- * @returns Prompt for the draft expert agent.
+ * @returns Prompt for the Book expert agent.
  *
  * @private internal utility of manGo onboarding agent utilities
  */
-function createBookDraftPrompt(input: GenerateManGoBookDraftInput): string {
+function createBookPrompt(input: GenerateManGoBookInput): string {
     return spaceTrim(`
-        Write an editable Promptbook Book-language draft for an AI agent.
+        Create a complete Promptbook Book-language source for one AI agent.
 
         Return only one \`book\` code block. Do not include any explanation outside the block.
+        This source is the final editable Book.
 
         Requirements:
         - Use the provided name as the agent title.
         - Write natural-language commitments in Czech unless the brief clearly asks for another language.
-        - Include a useful PERSONA, GOAL, and practical RULE commitments derived from the brief.
+        - Include a useful PERSONA, GOAL, and practical RULE commitments derived from the description.
         - Keep commitment keywords in English.
+        - Use Book-language commitments such as WRITING SAMPLE, WRITING RULES, MESSAGE SUFFIX, and NOTE when they fit the agent.
+        - Do not use Markdown headings such as \`##\` as a substitute for Book-language commitments.
         - End the book with CLOSED.
 
         Name: ${input.agentName}
@@ -147,86 +139,42 @@ function createBookDraftPrompt(input: GenerateManGoBookDraftInput): string {
 }
 
 /**
- * Creates a first editable Book draft through the imported manGo onboarding AI agent.
+ * Creates the first editable Book through the imported manGo onboarding AI agent.
  *
  * @param input - Agent name and brief captured by the entry step.
  * @returns Editable Book source for the next wizard steps.
  */
-export async function generateManGoBookDraft(input: GenerateManGoBookDraftInput): Promise<string> {
+export async function generateManGoBook(input: GenerateManGoBookInput): Promise<string> {
     const agentName = input.agentName.trim();
     const agentBrief = input.agentBrief.trim();
 
     if (!agentName || !agentBrief) {
         throw new NotAllowed(
             spaceTrim(`
-                Cannot generate a manGo Book draft without both \`agentName\` and \`agentBrief\`.
+                Cannot generate a manGo Book without both \`agentName\` and \`agentBrief\`.
 
-                Fill in the onboarding assignment before generating the draft.
-            `),
-        );
-    }
-
-    const response = await runManGoLiteAgent({
-        bookSource: MAN_GO_DRAFT_EXPERT_BOOK,
-        message: createBookDraftPrompt({ agentName, agentBrief }),
-    });
-    const book = extractSingleBlockContent(response);
-
-    if (!book) {
-        throw new PipelineExecutionError(
-            spaceTrim(`
-                The manGo draft expert returned an empty Book draft.
-
-                Try regenerating the draft from the onboarding step.
-            `),
-        );
-    }
-
-    return book;
-}
-
-/**
- * Converts free-form draft text into canonical Book language through the imported book expert.
- *
- * @param input - Free-form editor content.
- * @returns Generated Book source and validation flag.
- */
-export async function convertManGoDraftToBook(
-    input: ConvertManGoDraftToBookInput,
-): Promise<{ readonly book: string; readonly isValid: boolean }> {
-    const normalizedInput = input.input.trim();
-
-    if (!normalizedInput) {
-        throw new NotAllowed(
-            spaceTrim(`
-                Cannot convert an empty draft to Book language.
-
-                Add draft content before running the manGo Book conversion.
+                Fill in the onboarding assignment before generating the Book.
             `),
         );
     }
 
     const response = await runManGoLiteAgent({
         bookSource: MAN_GO_BOOK_EXPERT_BOOK,
-        message: spaceTrim(`
-            Create a book that defines an agent with the following input:
-
-            Wrap the output in a single \`book\` code block.
-
-            Input:
-            ${normalizedInput}
-        `),
+        message: createBookPrompt({ agentName, agentBrief }),
     });
     const book = extractSingleBlockContent(response);
 
-    let isValid = true;
-    try {
-        validateBook(book);
-    } catch {
-        isValid = false;
+    if (!book) {
+        throw new PipelineExecutionError(
+            spaceTrim(`
+                The manGo Book expert returned an empty Book.
+
+                Try generating the Book again from the onboarding step.
+            `),
+        );
     }
 
-    return { book, isValid };
+    return validateBook(book);
 }
 
 /**

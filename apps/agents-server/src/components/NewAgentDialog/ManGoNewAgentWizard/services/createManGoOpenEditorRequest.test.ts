@@ -38,7 +38,7 @@ describe('createManGoOpenEditorRequest', () => {
         expect(request.agentSource.trimEnd().endsWith('CLOSED')).toBe(true);
     });
 
-    it('includes ready manGo knowledge sources in the classic editor draft', () => {
+    it('includes ready manGo knowledge sources in the classic editor Book', () => {
         const request = createManGoOpenEditorRequest(
             createTestOnboardingState({
                 agentName: 'Support Helper',

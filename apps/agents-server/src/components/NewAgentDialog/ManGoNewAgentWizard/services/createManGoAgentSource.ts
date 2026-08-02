@@ -1,5 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import { validateBook, type string_book } from '../../../../../../../src/book-2.0/agent-source/string_book';
+import { insertBookContentBeforeLearningMarker } from '../lib/bookSource';
 import type { KnowledgeItem, OnboardingState } from '../types';
 
 /**
@@ -22,7 +23,7 @@ function getKnowledgeSource(item: KnowledgeItem): string {
 }
 
 /**
- * Creates a minimal Book source when the editable draft is empty.
+ * Creates a minimal Book source when the editable Book is empty.
  *
  * @param state - Current wizard state.
  * @returns Book source fallback.
@@ -58,41 +59,6 @@ function ensureBookTitle(source: string, agentName: string): string {
 }
 
 /**
- * Inserts extra commitments before a final `OPEN` or `CLOSED` marker when present.
- *
- * @param source - Current Book source.
- * @param commitments - Commitment lines to insert.
- * @returns Source with inserted commitments.
- */
-function insertCommitmentsBeforeLearningMarker(source: string, commitments: ReadonlyArray<string>): string {
-    if (commitments.length === 0) {
-        return source;
-    }
-
-    const lines = source.replace(/\r\n/g, '\n').split('\n');
-    let markerIndex = -1;
-    for (let lineIndex = lines.length - 1; lineIndex >= 0; lineIndex -= 1) {
-        const line = lines[lineIndex];
-        if (line === undefined) {
-            continue;
-        }
-
-        const normalizedLine = line.trim().toUpperCase();
-        if (normalizedLine === 'OPEN' || normalizedLine === 'CLOSED') {
-            markerIndex = lineIndex;
-            break;
-        }
-    }
-    const insertionLines = ['', ...commitments];
-
-    if (markerIndex === -1) {
-        return [...lines, ...insertionLines].join('\n');
-    }
-
-    return [...lines.slice(0, markerIndex), ...insertionLines, '', ...lines.slice(markerIndex)].join('\n');
-}
-
-/**
  * Builds the final Book source submitted from the manGo wizard.
  *
  * @param state - Current imported wizard state.
@@ -108,5 +74,5 @@ export function createManGoAgentSource(state: OnboardingState): string_book {
         .filter((source) => !titledSource.includes(`KNOWLEDGE ${source}`))
         .map((source) => `KNOWLEDGE ${source}`);
 
-    return validateBook(insertCommitmentsBeforeLearningMarker(titledSource, knowledgeCommitments));
+    return validateBook(insertBookContentBeforeLearningMarker(titledSource, knowledgeCommitments));
 }
