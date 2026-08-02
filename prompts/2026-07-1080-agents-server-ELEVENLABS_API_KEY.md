@@ -1,4 +1,4 @@
-[ ]
+[x] by OpenAI Codex `gpt-5.6-luna` thinking `max` (ChatGPT account) - Implementation ~$0.2036 10 minutes; Testing 35 minutes
 
 [✨🩺] Use `ELEVENLABS_API_KEY`
 
@@ -7,3 +7,4 @@
 -   Do not keep backward compatibility for `ELEVEN_LABS_API_KEY` - remove it from the code and environment variables
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

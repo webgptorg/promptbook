@@ -31,7 +31,7 @@ const ELEVEN_LABS_MODEL_ID = process.env.ELEVEN_LABS_MODEL_ID ?? 'eleven_multili
  *
  * @private
  */
-const ELEVEN_LABS_API_KEY = process.env.ELEVEN_LABS_API_KEY;
+const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
 
 /**
  * Maximum number of characters that are sent to a single ElevenLabs TTS request.
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
         });
     }
 
-    if (!ELEVEN_LABS_API_KEY) {
+    if (!ELEVENLABS_API_KEY) {
         return new Response(
             JSON.stringify({
                 error: 'ElevenLabs API key is not configured on the server.',
@@ -153,7 +153,7 @@ export async function POST(request: NextRequest) {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'xi-api-key': ELEVEN_LABS_API_KEY,
+            'xi-api-key': ELEVENLABS_API_KEY,
         },
         body: JSON.stringify({
             text: limitedText,

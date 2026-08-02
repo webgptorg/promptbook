@@ -98,7 +98,7 @@ describe('vpsConfiguration', () => {
             await writeFile(
                 envFilePath,
                 spaceTrim(`
-                    ELEVEN_LABS_API_KEY=eleven-labs-api-key
+                    ELEVENLABS_API_KEY=eleven-labs-api-key
                     DATABASE_URL=postgres://database-user:database-password@database.example.com/agents
                 `),
                 'utf-8',
@@ -107,7 +107,7 @@ describe('vpsConfiguration', () => {
 
             const initialSnapshot = await listVpsEnvironmentVariables();
             expect(initialSnapshot.variables).toContainEqual({
-                key: 'ELEVEN_LABS_API_KEY',
+                key: 'ELEVENLABS_API_KEY',
                 value: '********',
                 isSensitive: true,
                 isDefined: true,
