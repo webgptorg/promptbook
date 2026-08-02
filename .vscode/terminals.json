@@ -45,6 +45,30 @@
             "focus": true
         },
         {
+            "name": "🐙🏓 Ping ptbk coder OpenAI Codex `gpt-5.6-sol` (💤)(💸)",
+            "commands": [
+                "set -a && source .env && set +a",
+                "unset GITHUB_TOKEN",
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/cli/test/ptbk.ts coder ping --harness openai-codex --model gpt-5.6-sol --thinking-level xhigh"
+            ],
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🐙🏓 Ping ptbk coder Claude Code `claude-opus-4-8` (💤)(💸)",
+            "commands": [
+                "set -a && source .env && set +a",
+                "unset GITHUB_TOKEN",
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/cli/test/ptbk.ts coder ping --harness claude-code --model claude-opus-4-8 --thinking-level xhigh"
+            ],
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
             "name": "🐙🚀 Run ptbk coder `gpt-5.5` Coding Agent (💤)(💸)(⏳)",
             "commands": [
                 "set -a && source .env && set +a",

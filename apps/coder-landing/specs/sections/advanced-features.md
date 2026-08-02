@@ -9,7 +9,7 @@ Anchor `#features`. A grid of feature cards, each pairing a short explanation wi
 
 ## Cards
 
-3-column grid on desktop, 2 on tablet, 1 on mobile. Each card: title (Outfit semibold), description, and a [terminal block](../components/terminal-block.md) snippet. Exactly these eleven cards, in this order:
+3-column grid on desktop, 2 on tablet, 1 on mobile. Each card: title (Outfit semibold), description, and a [terminal block](../components/terminal-block.md) snippet. Exactly these twelve cards, in this order:
 
 | #   | Title                         | Snippet                                                                                  |
 | --- | ----------------------------- | ---------------------------------------------------------------------------------------- |
@@ -22,8 +22,9 @@ Anchor `#features`. A grid of feature cards, each pairing a short explanation wi
 | 7   | Prompt priorities             | `ptbk coder run --harness claude-code --min-priority 1 --max-priority 5`                 |
 | 8   | Pacing and retries            | `ptbk coder run --harness claude-code --wait-between-prompts 30m --wait-after-error 10m` |
 | 9   | Dry run first                 | `ptbk coder run --dry-run`                                                               |
-| 10  | Human in the loop             | `ptbk coder run --harness claude-code --no-auto`                                         |
-| 11  | Verify and archive            | `ptbk coder verify`                                                                      |
+| 10  | Ping before you code          | `ptbk coder ping --harness openai-codex --model gpt-5.6-sol --thinking-level xhigh`       |
+| 11  | Human in the loop             | `ptbk coder run --harness claude-code --no-auto`                                         |
+| 12  | Verify and archive            | `ptbk coder verify`                                                                      |
 
 ## Descriptions (verbatim card copy)
 
@@ -36,7 +37,8 @@ Anchor `#features`. A grid of feature cards, each pairing a short explanation wi
 7. **Prompt priorities** — "Give prompts a priority and process only the range you want in the current run."
 8. **Pacing and retries** — "Pace the queue with wall-clock wait durations that keep elapsing through pause and sleep, skip the active wait with S, and retry errors after a cool-down."
 9. **Dry run first** — "Preview which prompts would run — without touching your code or spending a single token."
-10. **Human in the loop** — "Confirm each prompt manually with --no-auto, press P to pause a running queue, or press X to end after the current prompt."
-11. **Verify and archive** — "Successful coding rounds record the harness, model and selected thinking level in the prompt status line. Walk through completed prompts interactively, archive the finished ones to prompts/done/ and auto-append repair prompts for incomplete work."
+10. **Ping before you code** — "Make one small disposable harness/model call, see the returned result and response time, and optionally start consuming an applicable quota before a longer coding run."
+11. **Human in the loop** — "Confirm each prompt manually with --no-auto, press P to pause a running queue, or press X to end after the current prompt."
+12. **Verify and archive** — "Successful coding rounds record the harness, model and selected thinking level in the prompt status line. Walk through completed prompts interactively, archive the finished ones to prompts/done/ and auto-append repair prompts for incomplete work."
 
 Option semantics must stay consistent with [`../content/commands.md`](../content/commands.md).
