@@ -167,6 +167,69 @@ describe('MarkdownContent details rendering', () => {
         expect(projectLink.getAttribute('rel')).toBe('noopener noreferrer');
     });
 
+    it('promotes a legacy project file link into the same inline reference chip', () => {
+        const { container } = render(
+            <MarkdownContent
+                content="[Open the project](/agents/example-agent/projects/website/files/index.html)"
+                inlineReferences={[
+                    {
+                        reference: 'website',
+                        label: 'Website',
+                        href: '/agents/example-agent/projects/website',
+                        sourceHrefPrefixes: ['/agents/example-agent/projects/website/files/'],
+                        menu: {
+                            status: {
+                                label: 'Project is not running',
+                                isActive: false,
+                            },
+                            options: [
+                                {
+                                    label: 'Open the project in a new tab',
+                                    href: null,
+                                },
+                                {
+                                    label: 'Open the project page in a new tab',
+                                    href: '/agents/example-agent/projects/website',
+                                },
+                            ],
+                        },
+                    },
+                ]}
+            />,
+        );
+
+        expect(container.querySelector('details.inlineReferenceChip')).toBeTruthy();
+        expect(container.textContent).toContain('Website');
+        expect(container.querySelector('a[href="/agents/example-agent/projects/website/files/index.html"]')).toBeNull();
+        expect(container.textContent).toContain('Project is not running');
+    });
+
+    it('promotes project links inside details blocks', () => {
+        const { container } = render(
+            <MarkdownContent
+                content="<details open><summary>Project output</summary>[Open the project](/agents/example-agent/projects/website/files/index.html)</details>"
+                inlineReferences={[
+                    {
+                        reference: 'website',
+                        label: 'Website',
+                        href: '/agents/example-agent/projects/website',
+                        sourceHrefPrefixes: ['/agents/example-agent/projects/website/files/'],
+                        menu: {
+                            status: {
+                                label: 'Project is running',
+                                isActive: true,
+                            },
+                            options: [],
+                        },
+                    },
+                ]}
+            />,
+        );
+
+        expect(container.querySelector('details.inlineReferenceChip')).toBeTruthy();
+        expect(container.querySelector('a[href="/agents/example-agent/projects/website/files/index.html"]')).toBeNull();
+    });
+
     it('keeps inline references inside code literal', () => {
         const { container } = render(
             <MarkdownContent

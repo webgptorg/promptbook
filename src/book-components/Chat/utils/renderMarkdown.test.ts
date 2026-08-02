@@ -3,6 +3,40 @@ import { spaceTrim } from 'spacetrim';
 import { renderMarkdown } from './renderMarkdown';
 
 describe('renderMarkdown sanitization', () => {
+    it('promotes matching legacy project links into the configured inline reference chip', () => {
+        const html = renderMarkdown('[Open the project](/agents/agent/projects/website/files/index.html)', {
+            inlineReferences: [
+                {
+                    reference: 'website',
+                    label: 'Website',
+                    href: '/agents/agent/projects/website',
+                    sourceHrefPrefixes: ['/agents/agent/projects/website/files/'],
+                    menu: {
+                        status: {
+                            label: 'Project is running',
+                            isActive: true,
+                        },
+                        options: [
+                            {
+                                label: 'Open the project in a new tab',
+                                href: 'https://website.example.com',
+                            },
+                            {
+                                label: 'Open the project page in a new tab',
+                                href: '/agents/agent/projects/website',
+                            },
+                        ],
+                    },
+                },
+            ],
+        }) as string;
+
+        expect(html).toContain('<details');
+        expect(html).toContain('>Website</span>');
+        expect(html).toContain('href="https://website.example.com"');
+        expect(html).not.toContain('/agents/agent/projects/website/files/index.html');
+    });
+
     it('removes raw active HTML while preserving supported details markup', () => {
         const html = renderMarkdown(
             spaceTrim(`

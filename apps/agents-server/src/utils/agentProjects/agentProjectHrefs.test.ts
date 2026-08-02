@@ -1,4 +1,5 @@
 import {
+    buildAgentProjectFilesHrefPrefix,
     buildAgentProjectProfileHrefForServer,
     buildAgentProjectsDashboardHrefForServer,
 } from './agentProjectHrefs';
@@ -34,5 +35,11 @@ describe('agentProjectHrefs', () => {
                 currentServerDomain: 'current.example.com',
             }),
         ).toBe('https://foreign.example.com/agents/AgentABC/projects');
+    });
+
+    it('builds a reusable href prefix for project files', () => {
+        expect(buildAgentProjectFilesHrefPrefix('AgentABC', 'My Project')).toBe(
+            '/agents/AgentABC/projects/My%20Project/files/',
+        );
     });
 });

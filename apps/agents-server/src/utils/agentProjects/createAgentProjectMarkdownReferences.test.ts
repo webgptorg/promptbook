@@ -19,6 +19,10 @@ describe('createAgentProjectMarkdownReferences', () => {
                 reference: 'website',
                 label: 'Website',
                 href: '/agents/agent%20one/projects/website',
+                sourceHrefPrefixes: [
+                    '/agents/agent%20one/projects/website',
+                    '/agents/agent%20one/projects/website/files/',
+                ],
                 title: 'Marketing website',
                 menu: {
                     status: {
@@ -59,6 +63,7 @@ describe('createAgentProjectMarkdownReferences', () => {
                 reference: 'project-a',
                 label: 'project-a',
                 href: '/agents/agent/projects/project-a',
+                sourceHrefPrefixes: ['/agents/agent/projects/project-a', '/agents/agent/projects/project-a/files/'],
                 title: 'project-a',
                 menu: {
                     status: {
@@ -97,6 +102,11 @@ describe('createAgentProjectMarkdownReferences', () => {
         });
 
         expect(reference?.reference).toBe('website');
+        expect(reference?.sourceHrefPrefixes).toEqual([
+            '/agents/agent/projects/website',
+            '/agents/agent/projects/website/files/',
+            'https://website.example.com',
+        ]);
         expect(reference?.menu?.status).toEqual({
             label: 'Project is running',
             isActive: true,

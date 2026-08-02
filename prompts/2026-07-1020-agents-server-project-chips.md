@@ -2,7 +2,7 @@
 
 ---
 
-[ ]
+[x] by OpenAI Codex `gpt-5.6-luna` thinking `max` (ChatGPT account) - Implementation ~$1.20 37 minutes; Testing 36 minutes
 
 [✨🥖] When the agent references the project, show it as a nice looking standardized chip
 
@@ -18,3 +18,4 @@
 
 ![The project exists](screenshots/2026-07-1020-agents-server-project-chips-1.png)
 ![But agent references this project wrongly by simple link](screenshots/2026-07-1020-agents-server-project-chips-2.png)
+

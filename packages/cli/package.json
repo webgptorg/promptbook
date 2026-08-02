@@ -119,6 +119,7 @@
         "@monaco-editor/react": "4.7.0",
         "@mozilla/readability": "0.6.0",
         "@node-saml/node-saml": "^5.1.0",
+        "@openai/agents": "0.4.15",
         "@prisma/studio-core": "0.27.3",
         "@sendgrid/mail": "8.1.6",
         "@sentry/nextjs": "^10.57.0",

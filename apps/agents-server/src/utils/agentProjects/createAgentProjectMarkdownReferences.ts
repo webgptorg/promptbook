@@ -1,6 +1,6 @@
 import type { MarkdownInlineReference } from '@promptbook-local/types';
 import type { AgentProjectReferenceInfo } from './AgentProjectReferenceInfo';
-import { buildAgentProjectProfileHref } from './agentProjectHrefs';
+import { buildAgentProjectFilesHrefPrefix, buildAgentProjectProfileHref } from './agentProjectHrefs';
 
 /**
  * Markdown inline reference data consumed by chat markdown rendering.
@@ -39,31 +39,41 @@ type AgentProjectMarkdownReferenceInfo = Pick<
 export function createAgentProjectMarkdownReferences(
     options: CreateAgentProjectMarkdownReferencesOptions,
 ): ReadonlyArray<AgentProjectMarkdownReference> {
-    return options.projects.map((project) => ({
-        reference: project.projectName,
-        label: project.displayName || project.projectName,
-        href: buildAgentProjectProfileHref(options.agentPermanentId, project.projectName),
-        title: project.description || project.displayName || project.projectName,
-        menu: {
-            status: {
-                label: project.isRunning ? 'Project is running' : 'Project is not running',
-                isActive: project.isRunning ?? false,
-            },
-            options: [
-                {
-                    label: 'Open the project in a new tab',
-                    href: project.isRunning ? project.projectUrl ?? null : null,
-                    title:
-                        project.isRunning && project.projectUrl
-                            ? 'Open the project in a new tab'
-                            : 'The project must run before it can be opened.',
-                },
-                {
-                    label: 'Open the project page in a new tab',
-                    href: buildAgentProjectProfileHref(options.agentPermanentId, project.projectName),
-                    title: 'Open the project page in a new tab',
-                },
+    return options.projects.map((project) => {
+        const projectProfileHref = buildAgentProjectProfileHref(options.agentPermanentId, project.projectName);
+        const projectUrl = project.projectUrl || null;
+
+        return {
+            reference: project.projectName,
+            label: project.displayName || project.projectName,
+            href: projectProfileHref,
+            sourceHrefPrefixes: [
+                projectProfileHref,
+                buildAgentProjectFilesHrefPrefix(options.agentPermanentId, project.projectName),
+                ...(projectUrl ? [projectUrl] : []),
             ],
-        },
-    }));
+            title: project.description || project.displayName || project.projectName,
+            menu: {
+                status: {
+                    label: project.isRunning ? 'Project is running' : 'Project is not running',
+                    isActive: project.isRunning ?? false,
+                },
+                options: [
+                    {
+                        label: 'Open the project in a new tab',
+                        href: project.isRunning ? projectUrl : null,
+                        title:
+                            project.isRunning && projectUrl
+                                ? 'Open the project in a new tab'
+                                : 'The project must run before it can be opened.',
+                    },
+                    {
+                        label: 'Open the project page in a new tab',
+                        href: projectProfileHref,
+                        title: 'Open the project page in a new tab',
+                    },
+                ],
+            },
+        };
+    });
 }
