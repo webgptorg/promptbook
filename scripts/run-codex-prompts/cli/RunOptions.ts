@@ -69,6 +69,10 @@ export type RunOptions = {
      */
     isVerbose?: boolean;
     /**
+     * Requests machine-readable harness events for a consumer that renders safe live progress.
+     */
+    isMachineReadableProgressEnabled?: boolean;
+    /**
      * Enables automatic migration of testing servers after each successfully completed prompt.
      */
     autoMigrate: boolean;

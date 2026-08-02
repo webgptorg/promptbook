@@ -26,6 +26,7 @@ export function createCoderRunOptionsForAgent(options: AgentRunOptions): RunOpti
         autoPull: options.autoPull,
         agentName: options.agentName,
         model: options.model,
+        isMachineReadableProgressEnabled: options.isMachineReadableProgressEnabled,
         priority: 0,
     };
 }

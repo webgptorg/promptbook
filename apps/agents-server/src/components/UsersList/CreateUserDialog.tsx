@@ -5,24 +5,13 @@ import type { Dispatch, FormEvent, SetStateAction } from 'react';
 import { Dialog } from '../Portal/Dialog';
 import { SecretInput } from '../SecretInput/SecretInput';
 import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
+import { USER_DIALOG_PRIMARY_BUTTON_CLASS_NAME, USER_DIALOG_SECONDARY_BUTTON_CLASS_NAME } from './userDialogClassNames';
 
 /**
- * Shared input styling used by the create-user dialog.
+ * Styling for ordinary form inputs inside the create-user dialog.
  */
-const INPUT_CLASS_NAME =
+const CREATE_USER_INPUT_CLASS_NAME =
     'w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200';
-
-/**
- * Shared secondary button styling used by the create-user dialog.
- */
-const SECONDARY_BUTTON_CLASS_NAME =
-    'inline-flex items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60';
-
-/**
- * Shared primary button styling used by the create-user dialog.
- */
-const PRIMARY_BUTTON_CLASS_NAME =
-    'inline-flex items-center justify-center gap-2 rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60';
 
 /**
  * Props for the create-user dialog.
@@ -31,10 +20,12 @@ const PRIMARY_BUTTON_CLASS_NAME =
  */
 type CreateUserDialogProps = {
     readonly isAdmin: boolean;
+    /** Whether the dialog can be dismissed through its backdrop or Escape key. */
+    readonly isDismissible?: boolean;
     readonly isOpen: boolean;
     readonly isSubmitting: boolean;
     readonly onClose: () => void;
-    readonly onGeneratePassword: () => void;
+    readonly onOpenPasswordGenerator: () => void;
     readonly onSubmit: (event: FormEvent<HTMLFormElement>) => Promise<void>;
     readonly password: string;
     readonly setIsAdmin: Dispatch<SetStateAction<boolean>>;
@@ -50,10 +41,11 @@ type CreateUserDialogProps = {
  */
 export function CreateUserDialog({
     isAdmin,
+    isDismissible,
     isOpen,
     isSubmitting,
     onClose,
-    onGeneratePassword,
+    onOpenPasswordGenerator,
     onSubmit,
     password,
     setIsAdmin,
@@ -68,7 +60,7 @@ export function CreateUserDialog({
     }
 
     return (
-        <Dialog onClose={onClose} className="mx-4 w-full max-w-lg overflow-hidden">
+        <Dialog onClose={onClose} isDismissible={isDismissible} className="mx-4 w-full max-w-lg overflow-hidden">
             <form onSubmit={(event) => void onSubmit(event)}>
                 <div className="flex items-start justify-between gap-4 border-b border-gray-200 px-6 py-5">
                     <div>
@@ -95,7 +87,7 @@ export function CreateUserDialog({
                             type="text"
                             value={username}
                             onChange={(event) => setUsername(event.target.value)}
-                            className={INPUT_CLASS_NAME}
+                            className={CREATE_USER_INPUT_CLASS_NAME}
                             placeholder={t('users.usernamePlaceholder')}
                             autoComplete="off"
                             required
@@ -115,13 +107,12 @@ export function CreateUserDialog({
                         />
                         <button
                             type="button"
-                            onClick={onGeneratePassword}
+                            onClick={onOpenPasswordGenerator}
                             className="mt-2 text-sm font-medium text-blue-600 hover:text-blue-800"
                         >
                             <RefreshCw className="mr-1 inline h-3.5 w-3.5" />
                             {t('users.generatePassword')}
                         </button>
-                        <p className="mt-1 text-xs text-gray-500">{t('users.passwordGeneratorDescription')}</p>
                     </div>
 
                     <label className="flex items-start gap-3 rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600">
@@ -139,10 +130,10 @@ export function CreateUserDialog({
                 </div>
 
                 <div className="flex flex-col-reverse gap-3 border-t border-gray-100 px-6 py-5 sm:flex-row sm:justify-end">
-                    <button type="button" onClick={onClose} className={SECONDARY_BUTTON_CLASS_NAME}>
+                    <button type="button" onClick={onClose} className={USER_DIALOG_SECONDARY_BUTTON_CLASS_NAME}>
                         {t('users.deleteConfirmCancel')}
                     </button>
-                    <button type="submit" disabled={isSubmitting} className={PRIMARY_BUTTON_CLASS_NAME}>
+                    <button type="submit" disabled={isSubmitting} className={USER_DIALOG_PRIMARY_BUTTON_CLASS_NAME}>
                         {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                         {t('users.createUser')}
                     </button>

@@ -435,7 +435,18 @@ users.passwordLabel: Password
 users.passwordPlaceholder: Password
 users.passwordAriaLabel: Password
 users.generatePassword: Generate secure password
+users.passwordGeneratorTitle: Password generator
+users.closePasswordGeneratorDialog: Close password generator
 users.passwordGeneratorDescription: Uses your browser's secure random generator.
+users.passwordGeneratorLength: Password length
+users.passwordGeneratorCharacters: Include characters
+users.passwordGeneratorIncludeUppercaseLetters: Include uppercase letters
+users.passwordGeneratorIncludeLowercaseLetters: Include lowercase letters
+users.passwordGeneratorIncludeNumbers: Include numbers
+users.passwordGeneratorIncludeSpecialCharacters: Include special characters
+users.generatedPassword: Generated password
+users.regeneratePassword: Generate another password
+users.useGeneratedPassword: Use generated password
 users.isAdminCheckbox: Is Admin
 users.adminRoleDescription: Administrators can manage this server and its users.
 users.createUser: Create User

@@ -10,7 +10,7 @@ ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh -
 -   `--test-before no` (Current behavior and the default one), `--test-before yes-and-fail` and `--test-before yes-and-fix`
 - The `--test-before yes-and-fail` should run the tests before the agent coding starts and if there is any error, it should fail and not start the agent coding. It should show the error and the test results.
 - The `--test-before yes-and-fix` should run the tests before the agent coding starts and if there is any error, it should create one prompt for the agent to fix the error and then continue with the agent coding.
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle, reuse existing code for prompt creation especially with the `ptbk coder generate-boilerplates` and `ptbk coder add` commands
 -   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
 -   Also look and update [the dev scripts in `terminals.json`](.vscode/terminals.json) and use `ptbk coder run --test-before yes-and-fix` in the dev scripts 
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)

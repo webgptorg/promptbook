@@ -2245,14 +2245,16 @@ configure_domains() {
         return
     fi
 
-    log "Before SSL is issued, point these DNS records to this VPS:"
+    log "Before SSL and inbound email are issued, point these DNS records to this VPS:"
     for domain in "${DOMAINS[@]}"; do
         log "  $domain  A  $PUBLIC_IP_ADDRESS"
+        log "  mail.$domain  A  $PUBLIC_IP_ADDRESS"
+        log "  $domain  MX  10 mail.$domain."
     done
     log "If your VPS provider gave you an IPv6 address, add matching AAAA records as well."
 
-    if ! prompt_yes_no "Have the DNS records propagated and should SSL setup continue now?" "yes"; then
-        fail "Update DNS for $SERVERS, then run this installer again."
+    if ! prompt_yes_no "Have the web and mail DNS records propagated and should setup continue now?" "yes"; then
+        fail "Update the web and mail DNS records for $SERVERS, then run this installer again."
     fi
 }
 

@@ -21,6 +21,11 @@ type RuntimeLogEvent = {
             readonly text?: string;
         }>;
     };
+    readonly item?: {
+        readonly type?: string;
+        readonly command?: string;
+        readonly exit_code?: number | null;
+    };
 };
 
 /**
@@ -89,6 +94,11 @@ function parseRuntimeLogEvent(line: string): RuntimeLogEvent | null {
  * @private internal helper of `resolveAgentMessageRuntimeActivity`
  */
 function resolveRuntimeLogEventActivity(event: RuntimeLogEvent): string | null {
+    const codexActivity = resolveCodexRuntimeLogEventActivity(event);
+    if (codexActivity) {
+        return codexActivity;
+    }
+
     if (event.type !== 'assistant' || !Array.isArray(event.message?.content)) {
         return null;
     }
@@ -101,6 +111,97 @@ function resolveRuntimeLogEventActivity(event: RuntimeLogEvent): string | null {
         .trim();
 
     return assistantText.length > 0 ? assistantText : null;
+}
+
+/**
+ * Resolves one short user-facing status from a structured Codex JSONL event.
+ *
+ * Codex reasoning and raw command text deliberately remain private. The event type tells us
+ * enough to report a useful action without exposing the internal trace or a command payload.
+ *
+ * @private internal helper of `resolveAgentMessageRuntimeActivity`
+ */
+function resolveCodexRuntimeLogEventActivity(event: RuntimeLogEvent): string | null {
+    if (!event.item || !isCodexItemEvent(event.type)) {
+        return null;
+    }
+
+    const isCompleted = event.type === 'item.completed';
+
+    switch (event.item.type) {
+        case 'reasoning':
+            return isCompleted ? 'Considered the request.' : 'Considering the request.';
+        case 'command_execution':
+            return resolveCodexCommandActivity(event.item.command, isCompleted, event.item.exit_code);
+        case 'file_change':
+            return isCompleted ? 'Updated relevant files.' : 'Updating relevant files.';
+        case 'web_search':
+            return isCompleted ? 'Finished searching the web.' : 'Searching the web.';
+        case 'mcp_tool_call':
+            return isCompleted ? 'Finished using an integration.' : 'Using an integration.';
+        case 'plan_update':
+            return isCompleted ? 'Updated the plan.' : 'Planning the work.';
+        default:
+            return null;
+    }
+}
+
+/**
+ * Returns whether one runtime event is a Codex item lifecycle event.
+ *
+ * @private internal helper of `resolveAgentMessageRuntimeActivity`
+ */
+function isCodexItemEvent(eventType: string | undefined): boolean {
+    return eventType === 'item.started' || eventType === 'item.updated' || eventType === 'item.completed';
+}
+
+/**
+ * Maps one Codex command event to a concise action without revealing the command itself.
+ *
+ * @private internal helper of `resolveAgentMessageRuntimeActivity`
+ */
+function resolveCodexCommandActivity(
+    command: string | undefined,
+    isCompleted: boolean,
+    exitCode: number | null | undefined,
+): string {
+    if (isCompleted && exitCode !== undefined && exitCode !== null && exitCode !== 0) {
+        return 'A command needs attention.';
+    }
+
+    const activity = resolveCodexCommandActivityLabel(command);
+    return isCompleted ? activity.completed : activity.running;
+}
+
+/**
+ * Resolves the short running/completed labels for one safe command category.
+ *
+ * @private internal helper of `resolveAgentMessageRuntimeActivity`
+ */
+function resolveCodexCommandActivityLabel(command: string | undefined): { running: string; completed: string } {
+    const normalizedCommand = command?.toLowerCase() || '';
+
+    if (/(^|\s)(npm\s+(?:run\s+)?test|pnpm\s+(?:run\s+)?test|yarn\s+test|jest|vitest|pytest)\b/u.test(normalizedCommand)) {
+        return { running: 'Running tests.', completed: 'Finished running tests.' };
+    }
+
+    if (/(^|\s)(npm\s+run\s+build|pnpm\s+(?:run\s+)?build|yarn\s+build|next\s+build)\b/u.test(normalizedCommand)) {
+        return { running: 'Building the project.', completed: 'Finished building the project.' };
+    }
+
+    if (/(^|\s)(npm|pnpm|yarn)\s+(?:install|add)\b/u.test(normalizedCommand)) {
+        return { running: 'Installing dependencies.', completed: 'Finished installing dependencies.' };
+    }
+
+    if (/(^|\s)git\s+(?:status|diff|log|show)\b/u.test(normalizedCommand)) {
+        return { running: 'Reviewing changes.', completed: 'Finished reviewing changes.' };
+    }
+
+    if (/(^|\s)(ls|find|rg|grep|sed|cat|head|tail)\b/u.test(normalizedCommand)) {
+        return { running: 'Inspecting relevant files.', completed: 'Finished inspecting relevant files.' };
+    }
+
+    return { running: 'Running a task.', completed: 'Finished a task.' };
 }
 
 /**

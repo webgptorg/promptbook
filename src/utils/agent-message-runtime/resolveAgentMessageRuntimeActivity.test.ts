@@ -73,4 +73,42 @@ describe('resolveAgentMessageRuntimeActivity', () => {
 
         expect(resolveAgentMessageRuntimeActivity(logText)).toBe('Thinking about your request.');
     });
+
+    it('maps a Codex command start to a concise user-facing action', () => {
+        const logText = JSON.stringify({
+            type: 'item.started',
+            item: {
+                type: 'command_execution',
+                command: "rg -n 'progressCard' apps/agents-server",
+            },
+        });
+
+        expect(resolveAgentMessageRuntimeActivity(logText)).toBe('Inspecting relevant files.');
+    });
+
+    it('maps a completed Codex test command without showing its technical payload', () => {
+        const logText = JSON.stringify({
+            type: 'item.completed',
+            item: {
+                type: 'command_execution',
+                command: 'npm test -- createUserChatHarnessProgressCard',
+                exit_code: 0,
+            },
+        });
+
+        expect(resolveAgentMessageRuntimeActivity(logText)).toBe('Finished running tests.');
+    });
+
+    it('keeps failed Codex commands concise', () => {
+        const logText = JSON.stringify({
+            type: 'item.completed',
+            item: {
+                type: 'command_execution',
+                command: 'npm test',
+                exit_code: 1,
+            },
+        });
+
+        expect(resolveAgentMessageRuntimeActivity(logText)).toBe('A command needs attention.');
+    });
 });

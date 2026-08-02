@@ -431,7 +431,18 @@ users.passwordLabel: Heslo
 users.passwordPlaceholder: Heslo
 users.passwordAriaLabel: Heslo
 users.generatePassword: Vygenerovat bezpečné heslo
+users.passwordGeneratorTitle: Generátor hesla
+users.closePasswordGeneratorDialog: Zavřít generátor hesla
 users.passwordGeneratorDescription: Používá bezpečný generátor náhodných hodnot vašeho prohlížeče.
+users.passwordGeneratorLength: Délka hesla
+users.passwordGeneratorCharacters: Zahrnout znaky
+users.passwordGeneratorIncludeUppercaseLetters: Zahrnout velká písmena
+users.passwordGeneratorIncludeLowercaseLetters: Zahrnout malá písmena
+users.passwordGeneratorIncludeNumbers: Zahrnout čísla
+users.passwordGeneratorIncludeSpecialCharacters: Zahrnout speciální znaky
+users.generatedPassword: Vygenerované heslo
+users.regeneratePassword: Vygenerovat jiné heslo
+users.useGeneratedPassword: Použít vygenerované heslo
 users.isAdminCheckbox: Administrátor
 users.adminRoleDescription: Správci mohou spravovat tento server a jeho uživatele.
 users.createUser: Vytvořit uživatele

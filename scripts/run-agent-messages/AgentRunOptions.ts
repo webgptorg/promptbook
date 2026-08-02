@@ -19,4 +19,10 @@ export type AgentRunOptions = {
     readonly ignorePatterns?: readonly string[];
     readonly maxMessageProcessingFailures?: number;
     readonly maxParallelMessages?: number;
+    /**
+     * Requests machine-readable harness events for safe, user-facing runtime progress reporting.
+     *
+     * The Agents Server uses these events only to update the active chat's brief progress line.
+     */
+    readonly isMachineReadableProgressEnabled?: boolean;
 };

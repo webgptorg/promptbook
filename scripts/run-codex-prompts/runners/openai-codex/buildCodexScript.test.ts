@@ -43,6 +43,22 @@ describe('buildCodexScript', () => {
         expect(script).not.toContain('-c model_reasoning_effort="xhigh"');
     });
 
+    it('uses JSONL events when machine-readable progress is requested', () => {
+        const script = buildCodexScript({
+            prompt: 'Hello from test prompt',
+            projectPath: '/project/path',
+            model: 'gpt-5.4',
+            sandbox: 'danger-full-access',
+            askForApproval: 'never',
+            allowCredits: false,
+            isMachineReadableProgressEnabled: true,
+            codexCommand: 'codex',
+        });
+
+        expect(script).toContain('exec --model gpt-5.4');
+        expect(script).toContain('    --json \\');
+    });
+
     it('keeps OpenAI API key authentication only when enabled and ChatGPT login is not active', () => {
         const script = buildCodexScript({
             prompt: 'Hello from test prompt',

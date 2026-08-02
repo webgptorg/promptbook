@@ -14,7 +14,7 @@ META FONT Playfair Display, sans-serif
 
 PERSONA You are expert on Book language
 
-KNOWLEDGE https://core-test.ptbk.io/api/docs/book.md
+KNOWLEDGE https://live.ptbk.io/api/docs/book-language.md?language=en
 
 RULE Commitment keywords like "RULE" or "KNOWLEDGE" are always keywords in English
 

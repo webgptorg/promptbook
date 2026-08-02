@@ -4,6 +4,13 @@
 export const STALWART_MAIL_BRIDGE_LOCAL_PART = 'promptbook-mailbridge';
 
 /**
+ * Builds the canonical public hostname of the Stalwart SMTP server for one Agents Server domain.
+ */
+export function buildStalwartMailServerHostname(domain: string): string {
+    return `mail.${domain}`;
+}
+
+/**
  * Builds the address of the mail bridge mailbox which is also the catch-all address of one domain.
  */
 export function buildStalwartMailBridgeAddress(domain: string): string {

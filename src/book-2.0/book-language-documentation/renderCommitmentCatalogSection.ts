@@ -1,9 +1,4 @@
 import { spaceTrim } from 'spacetrim';
-import { NotYetImplementedCommitmentDefinition } from '../../commitments/_base/NotYetImplementedCommitmentDefinition';
-import {
-    formatCommitmentReplacementText,
-    getCommitmentNoticeMetadata,
-} from '../../commitments/_common/getCommitmentNoticeMetadata';
 import type { BookLanguageManualDictionary } from './BookLanguageManualDictionary';
 import type { BookLanguageManualCommitmentGroup } from './getBookLanguageManualCommitmentGroups';
 import { renderGroupedCommitmentDocumentationMarkdown } from './renderGroupedCommitmentDocumentationMarkdown';
@@ -31,11 +26,6 @@ export type RenderCommitmentCatalogSectionOptions = {
     readonly groupedCommitment: BookLanguageManualCommitmentGroup;
 
     /**
-     * Number of uses across the selected server agents.
-     */
-    readonly usageCount: number;
-
-    /**
      * Translated labels of the manual.
      */
     readonly dictionary: BookLanguageManualDictionary;
@@ -50,42 +40,17 @@ export type RenderCommitmentCatalogSectionOptions = {
  * @private internal utility of `createStandaloneBookLanguageMarkdown`
  */
 export function renderCommitmentCatalogSection(options: RenderCommitmentCatalogSectionOptions): string {
-    const { groupedCommitment, usageCount, dictionary } = options;
+    const { groupedCommitment, dictionary } = options;
     const { primary, aliases } = groupedCommitment;
     const labels = dictionary.commitmentLabels;
-    const notice = getCommitmentNoticeMetadata(primary);
-    const status =
-        primary instanceof NotYetImplementedCommitmentDefinition
-            ? labels.statusPlaceholder
-            : notice
-            ? `${labels.statusImplemented} (${notice.detailLabel})`
-            : labels.statusImplemented;
-    const aliasText = aliases.length === 0 ? labels.noAliases : aliases.map((alias) => `\`${alias}\``).join(', ');
-    const noticeText = notice
-        ? notice.kind === 'deprecated'
-            ? `- **${notice.detailLabel}:** ${notice.message}${formatCommitmentReplacementText(
-                  primary.deprecation?.replacedBy,
-              )}`
-            : `- **${labels.lowLevelNotice}:** ${notice.message}`
-        : '';
-    const usageMarkdown =
-        usageCount > 0
-            ? `- **${labels.usage}:** ${usageCount} ${
-                  usageCount === 1 ? labels.usageOccurrence : labels.usageOccurrences
-              }`
-            : '';
+    const aliasesMarkdown =
+        aliases.length === 0 ? '' : `- **${labels.aliases}:** ${aliases.map((alias) => `\`${alias}\``).join(', ')}`;
 
     return spaceTrim(
         (block) => `
             ### <a id="commitment-${toStableAnchorId(primary.type)}"></a>${primary.icon} ${primary.type}
 
-            - **${labels.status}:** ${status}
-            - **${labels.aliases}:** ${aliasText}
-            - **${labels.semantics}:** ${primary.description}
-            - **${labels.typeSchema} (\`createTypeRegex\`):** \`${stringifyRegex(primary.createTypeRegex())}\`
-            - **${labels.blockSchema} (\`createRegex\`):** \`${stringifyRegex(primary.createRegex())}\`
-            ${noticeText}
-            ${usageMarkdown}
+            ${aliasesMarkdown}
 
             ${block(
                 renderGroupedCommitmentDocumentationMarkdown(
@@ -95,16 +60,4 @@ export function renderCommitmentCatalogSection(options: RenderCommitmentCatalogS
             )}
         `,
     );
-}
-
-/**
- * Converts a regular expression into a concise literal-like string.
- *
- * @param regex - Regex instance.
- * @returns Printable regex pattern and flags.
- *
- * @private internal utility of `renderCommitmentCatalogSection`
- */
-function stringifyRegex(regex: RegExp): string {
-    return `/${regex.source}/${regex.flags}`;
 }

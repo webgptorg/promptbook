@@ -8,8 +8,8 @@ import { Section } from '../Homepage/Section';
 import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
 import { isAnonymousUsername } from '../../utils/anonymousUser';
 import { formatServerLanguageHumanReadableDate } from '@/src/utils/localization/formatServerLanguageHumanReadableDate';
-import { generateSecurePassword } from './generateSecurePassword';
 import { CreateUserDialog } from './CreateUserDialog';
+import { PasswordGeneratorDialog } from './PasswordGeneratorDialog';
 import { useUsersAdmin } from './useUsersAdmin';
 
 /**
@@ -33,6 +33,7 @@ export function UsersList({ allowCreate = true }: UsersListProps) {
     const { language, t } = useServerLanguage();
 
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+    const [isPasswordGeneratorOpen, setIsPasswordGeneratorOpen] = useState(false);
     const [isCreatingUser, setIsCreatingUser] = useState(false);
     const [newUsername, setNewUsername] = useState('');
     const [newPassword, setNewPassword] = useState('');
@@ -65,10 +66,6 @@ export function UsersList({ allowCreate = true }: UsersListProps) {
 
     const handleOpenCreateDialog = () => {
         resetCreateUserForm();
-        const generatedPassword = generateSecurePassword();
-        if (generatedPassword) {
-            setNewPassword(generatedPassword);
-        }
         setIsCreateDialogOpen(true);
     };
 
@@ -78,6 +75,7 @@ export function UsersList({ allowCreate = true }: UsersListProps) {
         }
 
         setIsCreateDialogOpen(false);
+        setIsPasswordGeneratorOpen(false);
         resetCreateUserForm();
     };
 
@@ -93,6 +91,7 @@ export function UsersList({ allowCreate = true }: UsersListProps) {
             });
 
             setIsCreateDialogOpen(false);
+            setIsPasswordGeneratorOpen(false);
             resetCreateUserForm();
         } catch {
             // Error is already handled and exposed via `error` state from the hook
@@ -271,21 +270,27 @@ export function UsersList({ allowCreate = true }: UsersListProps) {
             {allowCreate ? (
                 <CreateUserDialog
                     isAdmin={newIsAdmin}
+                    isDismissible={!isPasswordGeneratorOpen}
                     isOpen={isCreateDialogOpen}
                     isSubmitting={isCreatingUser}
                     onClose={handleCloseCreateDialog}
-                    onGeneratePassword={() => {
-                        const generatedPassword = generateSecurePassword();
-                        if (generatedPassword) {
-                            setNewPassword(generatedPassword);
-                        }
-                    }}
+                    onOpenPasswordGenerator={() => setIsPasswordGeneratorOpen(true)}
                     onSubmit={handleCreateUser}
                     password={newPassword}
                     setIsAdmin={setNewIsAdmin}
                     setPassword={setNewPassword}
                     setUsername={setNewUsername}
                     username={newUsername}
+                />
+            ) : null}
+
+            {isPasswordGeneratorOpen ? (
+                <PasswordGeneratorDialog
+                    onClose={() => setIsPasswordGeneratorOpen(false)}
+                    onUsePassword={(password) => {
+                        setNewPassword(password);
+                        setIsPasswordGeneratorOpen(false);
+                    }}
                 />
             ) : null}
         </div>

@@ -19,9 +19,7 @@ export const czechBookLanguageManualDictionary: BookLanguageManualDictionary = {
     metadataLabels: {
         bookLanguageVersion: 'Verze jazyka Book',
         generatedAt: 'Vygenerováno',
-        commitmentGroups: 'Skupin commitmentů',
-        implementedCommitments: 'Hotových commitmentů',
-        placeholderCommitments: 'Připravovaných commitmentů',
+        commitmentCount: 'Počet commitmentů',
     },
     tableOfContentsTitle: 'Obsah',
     chapters: {
@@ -83,15 +81,7 @@ export const czechBookLanguageManualDictionary: BookLanguageManualDictionary = {
         commitmentCatalog: {
             title: 'Katalog commitmentů',
             body: spaceTrim(`
-                Tato kapitola se generuje z definic commitmentů v \`src/commitments\`.
-                U každé skupiny commitmentů najdete:
-
-                - shrnutí významu (popis, ikona, stav)
-                - schéma pro parsování (\`createTypeRegex\` a \`createRegex\`)
-                - úplnou dokumentaci
-
-                Klíčová slova commitmentů jsou součástí syntaxe, a proto zůstávají anglicky.
-                Anglicky zůstávají i jejich referenční popisy, které jsou závaznou specifikací jazyka.
+                Každá sekce commitmentu vysvětluje jeho účel, důležité podrobnosti a ukazuje soustředěný příklad.
             `),
         },
         examples: {
@@ -178,41 +168,28 @@ export const czechBookLanguageManualDictionary: BookLanguageManualDictionary = {
                 První neprázdný řádek, který není klíčovým slovem commitmentu.
                 2. **Blok commitmentu**:
                 Začíná klíčovým slovem commitmentu a pokračuje až k dalšímu commitmentu nebo oddělovači.
-                3. **Vodorovný oddělovač**:
-                Řádky jako \`---\` dělí zdroj na části; v Agents Serveru jimi lze oddělit agenty vložené přímo v knize.
+                3. **Více agentů**:
+                Řádky jako \`---\` oddělují agenty definované ve stejném zdroji Booku.
                 4. **Bloky kódu**:
-                Uvnitř obsahu commitmentu zůstávají zachované; hodí se pro ukázky a instrukce.
-                5. **Parametry**:
-                Podporovaný a rozpoznávaný je zápis \`@parametr\` i \`{parametr}\`.
+                Začínají a končí pomocí <code>\`\`\`</code>; jejich obsah zůstává uvnitř commitmentu zachovaný a hodí se pro ukázky a instrukce.
             `),
         },
         references: {
             title: 'Odkazy a zástupní agenti',
             body: spaceTrim(`
-                - Zkrácené odkazy jako \`{Jméno agenta}\` vyhodnocuje resolver odkazů v Agents Serveru.
+                - \`@Foo\` a \`{Foo foo}\` odkazují na jiného agenta; nejde o zápis parametrů.
+                - Zkrácené odkazy jako \`@Jméno agenta\` a \`{Jméno agenta}\` vyhodnocuje resolver odkazů v Agents Serveru.
                 - V příslušných commitmentech lze použít i zástupné agenty (například \`{User}\` nebo \`{Void}\`).
                 - \`{User}\` je určený pro \`TEAM\`; \`{Void}\` se hodí pro výslovné zrušení dědičnosti.
             `),
         },
-        keywordsTitle: 'Aktuálně rozpoznávaná klíčová slova commitmentů',
     },
     commitmentCatalogTitleSuffixes: {
         usedFirst: ' (nejdřív používané commitmenty)',
         all: ' (všechny commitmenty)',
     },
     commitmentLabels: {
-        status: 'Stav',
         aliases: 'Varianty zápisu',
-        semantics: 'Význam',
-        typeSchema: 'Schéma klíčového slova',
-        blockSchema: 'Schéma bloku',
-        lowLevelNotice: 'Nízkoúrovňový commitment',
-        usage: 'Použití u vybraných agentů',
-        usageOccurrence: 'výskyt',
-        usageOccurrences: 'výskytů',
-        statusImplemented: 'Hotovo',
-        statusPlaceholder: 'Připravuje se (zatím není plně hotové)',
-        noAliases: 'Žádné',
     },
     exampleLabels: {
         commitmentsUsed: 'Použité commitmenty',
@@ -262,14 +239,14 @@ export const czechBookLanguageManualDictionary: BookLanguageManualDictionary = {
                 'Hodí se pro asistenty, kteří si musí držet kontext v čase.',
             ],
         },
-        'use-project-and-wallet-integration-agent': {
-            title: 'Napojení na projekt (USE PROJECT) a peněženku',
-            goal: 'Pracovat s repozitáři na GitHubu a s přihlašovacími údaji z peněženky.',
+        'use-project-integration-agent': {
+            title: 'Napojení na projekt (USE PROJECT)',
+            goal: 'Pracovat s repozitářem na GitHubu přes připojení projektu.',
             walkthrough: [
                 '`USE PROJECT` zapne nástroje pro výpis, čtení a úpravy souborů a pro zakládání pull requestů.',
                 'Přihlašovací údaje se v Agents Serveru za běhu načtou ze záznamů v peněžence.',
-                '`WALLET` je zde ponechaný jen kvůli zpětné kompatibilitě, aktuální parsování Book 2.0 ho ignoruje.',
-                'V současném chování zajišťují napojení s přihlašovacími údaji commitmenty jako `USE PROJECT` a `USE EMAIL`.',
+                'Agent má také výslovná pravidla pro bezpečné úpravy a práci s přihlašovacími údaji.',
+                'Tento vzor použijte, když agent potřebuje soustředěný přístup k repozitáři.',
             ],
         },
         'use-calendar-integration-agent': {
@@ -340,10 +317,10 @@ export const czechBookLanguageManualDictionary: BookLanguageManualDictionary = {
     footer: {
         title: 'Vygenerováno z:',
         body: spaceTrim(`
-            - Registru commitmentů a běhové dokumentace v \`src/commitments\`
-            - Chování parseru a překladače v \`src/book-2.0/agent-source\`
-            - Vyhodnocení odkazů a dědičnosti v Agents Serveru v \`apps/agents-server/src/utils\`
-            - Zdrojových bloků samostatné dokumentace v \`apps/agents-server/src/utils/bookLanguageDocumentation\`
+            - [Registru commitmentů a běhové dokumentace](https://github.com/webgptorg/promptbook/tree/main/src/commitments)
+            - [Parseru jazyka Book a práce se zdrojem](https://github.com/webgptorg/promptbook/tree/main/src/book-2.0/agent-source)
+            - [Vyhodnocení odkazů a dědičnosti v Agents Serveru](https://github.com/webgptorg/promptbook/tree/main/apps/agents-server/src/utils)
+            - [Zdrojových kódů samostatné příručky](https://github.com/webgptorg/promptbook/tree/main/src/book-2.0/book-language-documentation)
         `),
     },
 };

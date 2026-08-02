@@ -1,4 +1,5 @@
 import type { DnsRecordInstruction } from '../dnsRecords/DnsRecordInstruction';
+import { buildStalwartMailServerHostname } from './stalwartMailBridge';
 
 /**
  * One DNS record required or recommended for reliable mail delivery.
@@ -15,18 +16,21 @@ export type EmailDnsInstruction = DnsRecordInstruction & {
  *
  * DKIM records are intentionally read from Stalwart's generated zone because their public keys must never be guessed.
  */
-export function createEmailDnsInstructions(domain: string): EmailDnsInstruction[] {
+export function createEmailDnsInstructions(domain: string, publicIpAddress?: string | null): EmailDnsInstruction[] {
+    const mailServerHostname = buildStalwartMailServerHostname(domain);
+    const resolvedPublicIpAddress = publicIpAddress?.trim() || '<VPS_PUBLIC_IP>';
+
     return [
         {
             type: 'A',
-            name: `mail.${domain}`,
-            value: '<VPS_PUBLIC_IP>',
+            name: mailServerHostname,
+            value: resolvedPublicIpAddress,
             note: 'Mail server host. Use the same public IPv4 address as this VPS.',
         },
         {
             type: 'MX',
             name: domain,
-            value: `10 mail.${domain}.`,
+            value: `10 ${mailServerHostname}.`,
             note: 'Routes inbound mail for the Agents Server domain to Stalwart.',
         },
         {
@@ -50,7 +54,7 @@ export function createEmailDnsInstructions(domain: string): EmailDnsInstruction[
         {
             type: 'A',
             name: `mta-sts.${domain}`,
-            value: '<VPS_PUBLIC_IP>',
+            value: resolvedPublicIpAddress,
             note: 'Hosts the HTTPS MTA-STS policy for this mail domain.',
         },
         {

@@ -116,6 +116,7 @@ function createOpenAiCodexRunnerResolution(options: RunOptions): PromptRunnerRes
         sandbox: 'danger-full-access',
         askForApproval: 'never',
         allowCredits: options.allowCredits,
+        isMachineReadableProgressEnabled: options.isMachineReadableProgressEnabled,
     });
 
     if (!options.allowCredits && options.isVerbose === true) {
