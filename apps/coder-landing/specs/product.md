@@ -31,7 +31,7 @@ Consequence: the page may reference Claude Code / Codex as familiar anchors, but
 3. `ptbk coder run` (or `ptbk coder server`) feeds prompts one by one to the selected harness, with:
     - an optional agent persona from a `.book` file (`--agent`, see [`content/developer-agent.md`](./content/developer-agent.md)),
     - optional project context (`--context`, e.g. `AGENTS.md`).
-4. After each prompt: the test command runs (`--test`); failures are fed back to the agent, which retries until green.
+4. When enabled, tests run before the first coding prompt (`--test-before`); existing failures either stop the run or create one repair prompt. After each prompt, the test command (`--test`) runs and failures are fed back to the agent, which retries until green.
 5. The changes are committed under the agent git identity; optionally pushed (`--auto-push`). With `--isolate` the whole round happens in a temporary git worktree that is merged back into the current branch once the task is verified.
 6. Finished prompts are verified and archived to `prompts/done/` (`ptbk coder verify`).
 7. `ptbk coder server` additionally keeps running forever, watches `prompts/` for new files, and serves a Trello-style kanban board (default port 4441).

@@ -7,6 +7,7 @@ import {
 } from '../../../src/cli/cli-commands/common/promptRunnerCliOptions';
 import { parseDuration } from '../common/parseDuration';
 import { normalizePriorityFilter } from '../prompts/priorityFilter';
+import { isTestBeforeMode, TEST_BEFORE_MODE_VALUES, type TestBeforeMode } from '../testing/TestBeforeMode';
 import type { RunOptions } from './RunOptions';
 
 /**
@@ -18,7 +19,7 @@ const DEFAULT_WAIT_AFTER_ERROR_MS = 10 * 60 * 1000;
  * CLI usage text for this script.
  */
 const USAGE =
-    'Usage: run-codex-prompts [--dry-run] [--harness <harness-name>] [--model <model>] [--context <context-or-file>] [--test <test-command...>] [--preserve-logs] [--isolate] [--no-ui] [--thinking-level <thinking-level>] [--priority <minimum-priority>] [--min-priority <minimum-priority>] [--max-priority <maximum-priority>] [--limit <run-count>] [--allow-credits] [--auto-migrate] [--allow-destructive-auto-migrate] [--wait-after-prompt <duration>] [--wait-between-prompts <duration>] [--wait-after-error <duration>] [--no-auto] [--no-commit] [--ignore-git-changes] [--no-normalize-line-endings] [--auto-push] [--auto-pull]';
+    'Usage: run-codex-prompts [--dry-run] [--harness <harness-name>] [--model <model>] [--context <context-or-file>] [--test <test-command...>] [--test-before <no|yes-and-fail|yes-and-fix>] [--preserve-logs] [--isolate] [--no-ui] [--thinking-level <thinking-level>] [--priority <minimum-priority>] [--min-priority <minimum-priority>] [--max-priority <maximum-priority>] [--limit <run-count>] [--allow-credits] [--auto-migrate] [--allow-destructive-auto-migrate] [--wait-after-prompt <duration>] [--wait-between-prompts <duration>] [--wait-after-error <duration>] [--no-auto] [--no-commit] [--ignore-git-changes] [--no-normalize-line-endings] [--auto-push] [--auto-pull]';
 
 /**
  * Top-level flags supported by this command.
@@ -29,6 +30,7 @@ const KNOWN_OPTION_FLAGS = new Set([
     '--model',
     '--context',
     '--test',
+    '--test-before',
     '--preserve-logs',
     '--isolate',
     '--no-ui',
@@ -70,6 +72,8 @@ export function parseRunOptions(args: string[]): RunOptions {
     const context = readOptionValue(args, '--context');
     const hasTestCommandFlag = args.includes('--test');
     const testCommand = readVariadicOptionValue(args, '--test');
+    const hasTestBeforeFlag = args.includes('--test-before');
+    const testBefore = parseTestBeforeOption(readOptionValue(args, '--test-before'), hasTestBeforeFlag);
     const preserveLogs = args.includes('--preserve-logs');
     const isIsolated = args.includes('--isolate');
     const noUi = args.includes('--no-ui');
@@ -162,6 +166,7 @@ export function parseRunOptions(args: string[]): RunOptions {
         model,
         context,
         testCommand,
+        testBefore,
         thinkingLevel,
         priority: minimumPriority ?? 0,
         minimumPriority,
@@ -169,6 +174,27 @@ export function parseRunOptions(args: string[]): RunOptions {
         priorityFilter,
         limit,
     };
+}
+
+/**
+ * Parses and validates the optional pre-coding verification mode.
+ */
+function parseTestBeforeOption(value: string | undefined, hasTestBeforeFlag: boolean): TestBeforeMode {
+    if (value === undefined) {
+        if (hasTestBeforeFlag) {
+            exitWithUsageError(`Missing value for --test-before. Use one of: ${TEST_BEFORE_MODE_VALUES.join(', ')}.`);
+        }
+
+        return 'no';
+    }
+
+    if (!isTestBeforeMode(value)) {
+        exitWithUsageError(
+            `Invalid value for --test-before: "${value}". Use one of: ${TEST_BEFORE_MODE_VALUES.join(', ')}.`,
+        );
+    }
+
+    return value;
 }
 
 /**
@@ -262,9 +288,7 @@ function resolveMinimumPriority(
         explicitMinimumPriority !== undefined &&
         legacyMinimumPriority !== explicitMinimumPriority
     ) {
-        exitWithUsageError(
-            'Conflicting values for --priority and --min-priority. Use one minimum priority value.',
-        );
+        exitWithUsageError('Conflicting values for --priority and --min-priority. Use one minimum priority value.');
     }
 
     return explicitMinimumPriority ?? legacyMinimumPriority;

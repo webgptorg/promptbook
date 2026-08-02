@@ -14,6 +14,8 @@ import type { PromptRunner } from '../runners/types/PromptRunner';
 import { resolvePromptRunner } from './resolvePromptRunner';
 import { runCodexPrompts } from './runCodexPrompts';
 import { runPromptRound } from './runPromptRound';
+import { createTestBeforeRepairPrompt } from '../testing/createTestBeforeRepairPrompt';
+import { runTestBefore } from '../testing/runTestBefore';
 
 jest.mock('../common/resolveCoderContext', () => ({
     resolveCoderContext: jest.fn(async () => undefined),
@@ -47,6 +49,14 @@ jest.mock('./runPromptRound', () => ({
     runPromptRound: jest.fn(async () => undefined),
 }));
 
+jest.mock('../testing/runTestBefore', () => ({
+    runTestBefore: jest.fn(),
+}));
+
+jest.mock('../testing/createTestBeforeRepairPrompt', () => ({
+    createTestBeforeRepairPrompt: jest.fn(),
+}));
+
 /**
  * Builds a complete set of run options for focused validation tests.
  */
@@ -55,6 +65,7 @@ function createRunOptions(overrides: Partial<RunOptions> = {}): RunOptions {
         dryRun: false,
         context: undefined,
         testCommand: undefined,
+        testBefore: 'no',
         preserveLogs: false,
         noUi: true,
         thinkingLevel: undefined,
@@ -125,6 +136,13 @@ describe('runCodexPrompts', () => {
             },
         });
         (runPromptRound as jest.MockedFunction<typeof runPromptRound>).mockResolvedValue(undefined);
+        (runTestBefore as jest.MockedFunction<typeof runTestBefore>).mockResolvedValue({
+            isPassed: true,
+            testOutput: 'All tests passed',
+        });
+        (createTestBeforeRepairPrompt as jest.MockedFunction<typeof createTestBeforeRepairPrompt>).mockResolvedValue(
+            createPromptSelection(),
+        );
     });
 
     it('rejects --no-commit in auto mode unless --ignore-git-changes is also enabled', async () => {
@@ -211,6 +229,106 @@ describe('runCodexPrompts', () => {
 
         expect(events).toEqual(['pull', 'load', 'run', 'pull', 'load']);
         expect(ensureWorkingTreeClean).toHaveBeenCalledTimes(1);
+    });
+
+    it('runs pre-coding tests before loading and running the first prompt', async () => {
+        const events: string[] = [];
+        const promptSelection = createPromptSelection();
+
+        (runTestBefore as jest.MockedFunction<typeof runTestBefore>).mockImplementation(async () => {
+            events.push('test-before');
+            return { isPassed: true, testOutput: 'All tests passed' };
+        });
+        (loadPromptFiles as jest.MockedFunction<typeof loadPromptFiles>).mockImplementation(async () => {
+            events.push('load');
+            return [];
+        });
+        (findNextTodoPrompt as jest.MockedFunction<typeof findNextTodoPrompt>)
+            .mockReturnValueOnce(promptSelection)
+            .mockReturnValueOnce(undefined);
+        (runPromptRound as jest.MockedFunction<typeof runPromptRound>).mockImplementation(async () => {
+            events.push('run');
+        });
+
+        await runCodexPrompts(
+            createRunOptions({
+                testBefore: 'yes-and-fail',
+                testCommand: 'npm run test',
+                waitForUser: false,
+            }),
+        );
+
+        expect(events).toEqual(['test-before', 'load', 'run', 'load']);
+        expect(runTestBefore).toHaveBeenCalledWith(
+            expect.objectContaining({
+                testCommand: 'npm run test',
+            }),
+        );
+    });
+
+    it('stops before the agent when pre-coding tests fail in yes-and-fail mode', async () => {
+        (runTestBefore as jest.MockedFunction<typeof runTestBefore>).mockResolvedValue({
+            isPassed: false,
+            testOutput: 'Expected true to be false',
+        });
+
+        await expect(
+            runCodexPrompts(
+                createRunOptions({
+                    testBefore: 'yes-and-fail',
+                    testCommand: 'npm test',
+                    waitForUser: false,
+                }),
+            ),
+        ).rejects.toThrow(/coding agent was not started/);
+
+        expect(createTestBeforeRepairPrompt).not.toHaveBeenCalled();
+        expect(runPromptRound).not.toHaveBeenCalled();
+        expect(loadPromptFiles).not.toHaveBeenCalled();
+    });
+
+    it('runs one repair prompt before the queue when pre-coding tests fail in yes-and-fix mode', async () => {
+        const events: string[] = [];
+        const repairPrompt = createPromptSelection();
+        const queuedPrompt = createPromptSelection();
+
+        (runTestBefore as jest.MockedFunction<typeof runTestBefore>).mockResolvedValue({
+            isPassed: false,
+            testOutput: 'Expected true to be false',
+        });
+        (createTestBeforeRepairPrompt as jest.MockedFunction<typeof createTestBeforeRepairPrompt>).mockImplementation(
+            async () => {
+                events.push('create-repair');
+                return repairPrompt;
+            },
+        );
+        (loadPromptFiles as jest.MockedFunction<typeof loadPromptFiles>).mockImplementation(async () => {
+            events.push('load');
+            return [];
+        });
+        (findNextTodoPrompt as jest.MockedFunction<typeof findNextTodoPrompt>)
+            .mockReturnValueOnce(queuedPrompt)
+            .mockReturnValueOnce(undefined);
+        (runPromptRound as jest.MockedFunction<typeof runPromptRound>).mockImplementation(async ({ nextPrompt }) => {
+            events.push(nextPrompt === repairPrompt ? 'repair' : 'run');
+        });
+
+        await runCodexPrompts(
+            createRunOptions({
+                testBefore: 'yes-and-fix',
+                testCommand: 'npm test',
+                waitForUser: false,
+            }),
+        );
+
+        expect(events).toEqual(['create-repair', 'repair', 'load', 'run', 'load']);
+        expect(runPromptRound).toHaveBeenCalledTimes(2);
+        expect((runPromptRound as jest.MockedFunction<typeof runPromptRound>).mock.calls[0]?.[0].nextPrompt).toBe(
+            repairPrompt,
+        );
+        expect((runPromptRound as jest.MockedFunction<typeof runPromptRound>).mock.calls[1]?.[0].nextPrompt).toBe(
+            queuedPrompt,
+        );
     });
 
     it('stops after the configured successful prompt run limit', async () => {

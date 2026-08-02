@@ -1,6 +1,7 @@
 import type { ThinkingLevel } from '../../../src/cli/cli-commands/coder/ThinkingLevel';
 import type { PromptRunnerHarnessName } from '../../../src/cli/cli-commands/common/promptRunnerCliOptions';
 import type { PriorityFilter } from '../prompts/priorityFilter';
+import type { TestBeforeMode } from '../testing/TestBeforeMode';
 import type { CoderRunUiState } from '../ui/CoderRunUiState';
 
 /**
@@ -19,6 +20,10 @@ export type RunOptions = {
      * Optional verification command executed after each prompt attempt.
      */
     testCommand?: string;
+    /**
+     * Controls whether the test command runs before the first coding prompt.
+     */
+    testBefore?: TestBeforeMode;
     /**
      * Keeps generated prompt/debug artifacts after a successful round instead of cleaning them up.
      */
