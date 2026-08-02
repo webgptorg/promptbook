@@ -20,7 +20,7 @@
 
 ---
 
-[ ]
+[^]
 
 [✨🏖] Fix projects listing and DNS instructions in `/superadmin/servers`
 
