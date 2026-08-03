@@ -1,3 +1,5 @@
+-   Sped up `npm run test-unit` without removing any unit tests: Jest now searches only the unit-test roots, transpiles test TypeScript without repeating the separate project type check, uses two isolated workers while keeping test-level concurrency serialized, and the CLI integration tests no longer type-check a fresh `ts-node` process for every assertion. Coverage reports remain available through Jest's explicit `--coverage` option.
+
 -   Improved `ptbk coder run --test-before`: the prompt queue is loaded before initial verification, the rich terminal UI explains that initial tests are running before agent coding starts, and live test output is shown while the command runs.
 
 -   Added required model and harness matching to `ptbk coder` prompts. A ready `[ ]` status line can now contain one or more backtick-delimited normalized model, model-family, or harness names, combine them with `!` priority markers, and run only when the selected runner matches. The `ptbk coder` landing page now documents model-specific prompts.
