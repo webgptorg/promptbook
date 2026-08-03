@@ -46,11 +46,6 @@ export const TEST_BEFORE_FIX_COMMAND = 'ptbk coder run --harness claude-code --t
 export const DRY_RUN_COMMAND = 'ptbk coder run --dry-run';
 
 /**
- * Command which makes one disposable harness/model call and reports its result and duration.
- */
-export const PING_COMMAND = 'ptbk coder ping --harness openai-codex --model gpt-5.6-sol --thinking-level xhigh';
-
-/**
  * Full-featured command which starts the coder server with kanban UI, agent persona,
  * project context and post-prompt test verification.
  */
