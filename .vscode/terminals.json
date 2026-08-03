@@ -198,14 +198,14 @@
         },
         {
             "name": "🔖🟢 Tag the current commit as good (💤)",
-            "command": "tag=\"good-$(date +%F)\" && git tag -a \"$tag\" HEAD -m \"$tag\" && git push origin \"$tag\"",
+            "command": "git fetch --tags && { base=good-$(date +%F); tag=$base; i=0; while git show-ref --verify --quiet refs/tags/$tag; do i=$((i+1)); tag=$base-$i; done; git tag -a $tag HEAD -m $tag && git push origin $tag && echo '🟢 Created tag marking good commit: ' $tag; }",
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
             "name": "🔖🔴 Tag the current commit as bad (💤)",
-            "command": "tag=\"bad-$(date +%F)\" && git tag -a \"$tag\" HEAD -m \"$tag\" && git push origin \"$tag\"",
+            "command": "git fetch --tags && { base=bad-$(date +%F); tag=$base; i=0; while git show-ref --verify --quiet refs/tags/$tag; do i=$((i+1)); tag=$base-$i; done; git tag -a $tag HEAD -m $tag && git push origin $tag && echo '🔴 Created tag marking bad commit: ' $tag; }",
             "execute": false,
             "onlySingle": false,
             "focus": false
