@@ -1,3 +1,5 @@
+-   Sped up Agents Server tests, builds, and updates: the E2E suite now lints and creates one production bundle which Playwright reuses, while versioned VPS releases reuse lockfile-matched npm dependencies and skip unchanged Playwright system packages. Direct Playwright runs keep their existing self-bootstrapping behavior, and browser revision installation remains idempotent.
+
 -   Sped up `npm run test-unit` without removing any unit tests: Jest now searches only the unit-test roots, transpiles test TypeScript without repeating the separate project type check, uses two isolated workers while keeping test-level concurrency serialized, and the CLI integration tests no longer type-check a fresh `ts-node` process for every assertion. Coverage reports remain available through Jest's explicit `--coverage` option.
 
 -   Improved `ptbk coder run --test-before`: the prompt queue is loaded before initial verification, the rich terminal UI explains that initial tests are running before agent coding starts, and live test output is shown while the command runs.
