@@ -30,6 +30,7 @@ export async function ensureAgentsServerBuild(
     });
     const buildEnvironment = createAgentsServerRuntimeEnvironment(environment, preparedRuntime.nodeModulesPath, {
         isNextValidationIgnored: preparedRuntime.isAppPathMaterialized,
+        isWebpackFilesystemCacheDisabled: true,
     });
 
     if (

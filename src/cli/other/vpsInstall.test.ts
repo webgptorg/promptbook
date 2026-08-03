@@ -403,7 +403,9 @@ describe('install.sh', () => {
         );
         // A failing dependency installation (for example the code-server download) must warn
         // and continue instead of aborting the whole self-update; the next update retries it.
-        expect(selfUpdateFunction).toContain('if ! (install_agents_server_dependency_requirements); then');
+        expect(selfUpdateFunction).toContain(
+            'if ! run_timed_self_update_phase "Installing Agents Server runtime dependencies" install_agents_server_dependency_requirements; then',
+        );
         expect(selfUpdateFunction).toContain(
             'Installing Agents Server runtime dependencies failed; continuing the self-update without them.',
         );
@@ -469,8 +471,10 @@ describe('install.sh', () => {
         expect(installScript).toContain('PTBK_SELF_UPDATE_JOB_ID="${PTBK_SELF_UPDATE_JOB_ID:-}"');
         expect(installScript).toContain('JOB_ID=$PTBK_SELF_UPDATE_JOB_ID');
         expect(installScript).toContain('trap write_failed_self_update_status_on_exit EXIT');
-        expect(installScript).toContain('start_pm2_agents_server_process "$replacement_app_name" "$replacement_port"');
-        expect(installScript).toContain('wait_for_agents_server_health "$replacement_app_name" "$replacement_port"');
+        expect(installScript).toContain('run_timed_self_update_phase()');
+        expect(installScript).toContain('format_self_update_elapsed_duration()');
+        expect(installScript).toContain('start_pm2_agents_server_process');
+        expect(installScript).toContain('wait_for_agents_server_health');
         expect(installScript).toContain('switch_nginx_to_agents_server_port "$replacement_port"');
         expect(installScript).toContain('stop_pm2_process_if_running "$old_app_name"');
         expect(installScript).not.toContain("trap '\n        local exit_code=$?");
@@ -496,6 +500,8 @@ describe('install.sh', () => {
         expect(installScript).toContain('AGENTS_SERVER_GC_KEEP_VERSIONS="${AGENTS_SERVER_GC_KEEP_VERSIONS:-3}"');
         expect(installScript).toContain('garbage_collect_promptbook_releases()');
         expect(installScript).toContain('garbage_collect_promptbook_dependency_caches()');
+        expect(installScript).toContain('remove_retained_agents_server_webpack_build_caches()');
+        expect(installScript).toContain('remove_agents_server_webpack_build_cache_if_safe()');
         expect(installScript).toContain('get_env_value AGENTS_SERVER_GC_KEEP_VERSIONS');
 
         // Garbage collection frees disk space before the new checkout is cloned…
@@ -531,21 +537,34 @@ describe('install.sh', () => {
         expect(installScript).toContain(
             'publish_agents_server_next_static_assets_from_repository "$PROMPTBOOK_REPOSITORY_DIR" 1',
         );
-        expect(installScript).toContain(
-            'publish_agents_server_next_static_assets_from_repository "$old_repository_dir" 0',
-        );
+        expect(installScript).toContain('publish_agents_server_next_static_assets_from_repository');
         expect(installScript).toContain('location ^~ /_next/static/');
         expect(installScript).toContain('root ${PTBK_SHARED_NEXT_STATIC_ROOT};');
         expect(installScript).toContain('try_files \\$uri @promptbook_agents_server_next_static;');
         expect(installScript).toContain('cp -a $target_static_dir_shell/. $source_static_dir_shell/');
         expect(
-            selfUpdateFunction.indexOf(
-                'publish_agents_server_next_static_assets_from_repository "$old_repository_dir" 0',
-            ),
+            selfUpdateFunction.indexOf('"Preserving currently served Agents Server static assets"'),
         ).toBeLessThan(selfUpdateFunction.indexOf('install_promptbook_repository'));
         expect(selfUpdateFunction.indexOf('build_agents_server')).toBeLessThan(
-            selfUpdateFunction.indexOf('start_pm2_agents_server_process "$replacement_app_name" "$replacement_port"'),
+            selfUpdateFunction.indexOf('start_pm2_agents_server_process'),
         );
+    });
+
+    it('records elapsed times for self-update phases', () => {
+        const selfUpdateFunction = installScript.slice(
+            installScript.indexOf('\nself_update_agents_server() {'),
+            installScript.indexOf('\nprint_summary() {'),
+        );
+
+        expect(selfUpdateFunction).toContain(
+            'run_timed_self_update_phase "Rebuilding the Agents Server" build_agents_server',
+        );
+        expect(selfUpdateFunction).toContain(
+            'run_timed_self_update_phase "Garbage-collecting old Agents Server versions" garbage_collect_promptbook_releases',
+        );
+        expect(installScript).toContain('Starting self-update phase');
+        expect(installScript).toContain('Completed self-update phase');
+        expect(installScript).toContain('Self-update phase');
     });
 
     it('loads installed environment for self-update migrations and skips SQLite', () => {

@@ -6,6 +6,7 @@ import { join } from 'path';
 import {
     createAgentsServerRuntimeEnvironment,
     PTBK_AGENTS_SERVER_BUILD_WORKER_COUNT_ENV,
+    PTBK_AGENTS_SERVER_DISABLE_WEBPACK_FILESYSTEM_CACHE_ENV,
 } from './buildAgentsServer/createAgentsServerRuntimeEnvironment';
 import { ensureAgentsServerBuild } from './buildAgentsServer/ensureAgentsServerBuild';
 import { isAgentsServerBuildCacheCurrent } from './buildAgentsServer/isAgentsServerBuildCacheCurrent';
@@ -87,9 +88,12 @@ describe('Agents Server build cache', () => {
     });
 
     it('sets a conservative Next build worker count in the CLI runtime environment', () => {
-        const environment = createAgentsServerRuntimeEnvironment({ ...process.env }, 'node_modules');
+        const environment = createAgentsServerRuntimeEnvironment({ ...process.env }, 'node_modules', {
+            isWebpackFilesystemCacheDisabled: true,
+        });
 
         expect(environment[PTBK_AGENTS_SERVER_BUILD_WORKER_COUNT_ENV]).toBe('1');
+        expect(environment[PTBK_AGENTS_SERVER_DISABLE_WEBPACK_FILESYSTEM_CACHE_ENV]).toBe('true');
     });
 
     it('preserves an explicit Next build worker count override', () => {
@@ -204,6 +208,7 @@ describe('Agents Server build cache', () => {
         expect(getSpawnMock()).toHaveBeenCalledTimes(2);
         expect(outputChunks.join('')).toContain('signal `SIGKILL`');
         expect(firstSpawnOptions?.env?.[PTBK_AGENTS_SERVER_BUILD_WORKER_COUNT_ENV]).toBe('1');
+        expect(firstSpawnOptions?.env?.[PTBK_AGENTS_SERVER_DISABLE_WEBPACK_FILESYSTEM_CACHE_ENV]).toBe('true');
         expect(firstSpawnOptions?.env?.NODE_OPTIONS).toContain('--max-old-space-size=8192');
     });
 

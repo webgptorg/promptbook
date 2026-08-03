@@ -23,6 +23,14 @@ export const PTBK_AGENTS_SERVER_BUILD_WORKER_COUNT_ENV = 'PTBK_AGENTS_SERVER_BUI
 export const PTBK_AGENTS_SERVER_IGNORE_NEXT_VALIDATION_ENV = 'PTBK_AGENTS_SERVER_IGNORE_NEXT_VALIDATION';
 
 /**
+ * Environment variable that disables throwaway webpack filesystem caches for CLI-owned production builds.
+ *
+ * @private internal constant of `buildAgentsServer`
+ */
+export const PTBK_AGENTS_SERVER_DISABLE_WEBPACK_FILESYSTEM_CACHE_ENV =
+    'PTBK_AGENTS_SERVER_DISABLE_WEBPACK_FILESYSTEM_CACHE';
+
+/**
  * Conservative Next.js build worker count used by CLI-owned Agents Server production builds.
  *
  * Standalone VPS self-updates build the replacement server while the current pm2 process is
@@ -41,6 +49,7 @@ export function createAgentsServerRuntimeEnvironment(
     nodeModulesPath: string,
     options: {
         readonly isNextValidationIgnored?: boolean;
+        readonly isWebpackFilesystemCacheDisabled?: boolean;
     } = {},
 ): NodeJS.ProcessEnv {
     return {
@@ -52,6 +61,11 @@ export function createAgentsServerRuntimeEnvironment(
         ...(options.isNextValidationIgnored
             ? {
                   [PTBK_AGENTS_SERVER_IGNORE_NEXT_VALIDATION_ENV]: 'true',
+              }
+            : {}),
+        ...(options.isWebpackFilesystemCacheDisabled
+            ? {
+                  [PTBK_AGENTS_SERVER_DISABLE_WEBPACK_FILESYSTEM_CACHE_ENV]: 'true',
               }
             : {}),
     };

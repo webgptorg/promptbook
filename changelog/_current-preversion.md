@@ -1,3 +1,5 @@
+-   Optimized standalone Agents Server self-updates. The request-aware root layout now declares its dynamic boundary before static prerendering can start database-backed work, CLI-owned release builds no longer write unusable multi-gigabyte webpack filesystem caches, retained release caches are reclaimed before deployment, and each update phase records its elapsed time in the installer log.
+
 -   Fixed Agents Server ElevenLabs text-to-speech configuration to use only `ELEVENLABS_API_KEY`; support for the legacy `ELEVEN_LABS_API_KEY` environment variable was removed.
 
 -   Added `--test-before <no|yes-and-fail|yes-and-fix>` to `ptbk coder run`. Pre-coding verification is disabled by default, can stop the run with the complete test output when existing tests fail, or can create and run one shared-format repair prompt before the normal coding queue; an explicit `--test` command is used when provided and `npm test` is the default for the enabled modes. The Coder landing page and local VS Code coder terminals now document and use the repair mode.

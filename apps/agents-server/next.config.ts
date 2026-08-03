@@ -23,6 +23,11 @@ const agentsServerNodeModulesPath = process.env.PTBK_AGENTS_SERVER_NODE_MODULES_
 const isNextValidationIgnored = process.env.PTBK_AGENTS_SERVER_IGNORE_NEXT_VALIDATION === 'true';
 
 /**
+ * Whether one isolated CLI production build should avoid writing a webpack filesystem cache that no later release can reuse.
+ */
+const isWebpackFilesystemCacheDisabled = process.env.PTBK_AGENTS_SERVER_DISABLE_WEBPACK_FILESYSTEM_CACHE === 'true';
+
+/**
  * Optional worker count override for CLI-owned production builds on memory-constrained VPS hosts.
  */
 const AGENTS_SERVER_BUILD_WORKER_COUNT = parseAgentsServerBuildWorkerCount(
@@ -79,6 +84,12 @@ const nextConfig: NextConfig = {
     },
 
     webpack(config, { isServer, nextRuntime }) {
+        if (isWebpackFilesystemCacheDisabled) {
+            // Versioned VPS releases build into a fresh checkout. Persisting the multi-gigabyte webpack cache there
+            // adds substantial disk I/O but cannot accelerate the next release, which has a different checkout.
+            config.cache = false;
+        }
+
         config.resolve.alias = {
             ...config.resolve.alias,
             '@': path.resolve(__dirname),

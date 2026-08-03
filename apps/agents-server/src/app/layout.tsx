@@ -4,6 +4,7 @@ import { createThemeModeBootstrapScript } from '@/src/components/ThemeMode/creat
 import { APPLICATION_FONT_VARIABLE_CLASS_NAME } from '@/src/utils/applicationFonts';
 import type { Metadata } from 'next';
 import { cookies, headers } from 'next/headers';
+import { connection } from 'next/server';
 import { CONTENT_SECURITY_POLICY_NONCE_REQUEST_HEADER } from '../middleware/contentSecurityPolicy';
 import { getCustomJavascriptWithIntegrations } from '../database/customJavascript';
 import { getAggregatedCustomStylesheetCss } from '../database/customStylesheet';
@@ -349,6 +350,11 @@ export default async function RootLayout({
 }: Readonly<{
     children: React.ReactNode;
 }>) {
+    // Every page uses this request-aware layout (cookies, headers, and the current user). Tell Next.js before
+    // starting its database-backed work so a production build does not repeat that work for every static-render
+    // attempt only to discover that the route must be dynamic.
+    await connection();
+
     const layoutMetadataPromise = getMetadataMap([
         'SERVER_NAME',
         'SERVER_LOGO_URL',

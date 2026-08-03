@@ -152,6 +152,49 @@ fail() {
     exit 1
 }
 
+# Formats one elapsed self-update duration without relying on timestamps from the log collector.
+format_self_update_elapsed_duration() {
+    local elapsed_seconds="$1"
+    local elapsed_minutes=0
+    local elapsed_hours=0
+
+    if [[ "$elapsed_seconds" -lt 60 ]]; then
+        printf '%ss' "$elapsed_seconds"
+        return
+    fi
+
+    elapsed_minutes=$((elapsed_seconds / 60))
+    elapsed_seconds=$((elapsed_seconds % 60))
+    if [[ "$elapsed_minutes" -lt 60 ]]; then
+        printf '%sm %ss' "$elapsed_minutes" "$elapsed_seconds"
+        return
+    fi
+
+    elapsed_hours=$((elapsed_minutes / 60))
+    elapsed_minutes=$((elapsed_minutes % 60))
+    printf '%sh %sm %ss' "$elapsed_hours" "$elapsed_minutes" "$elapsed_seconds"
+}
+
+# Runs one self-update phase and records its elapsed time in the persisted installer log.
+# This makes slow VPS updates diagnosable even when the UI has only a single current-step label.
+run_timed_self_update_phase() {
+    local phase_label="$1"
+    local started_at_seconds="$SECONDS"
+    local exit_code=0
+
+    shift
+    log "Starting self-update phase '$phase_label'."
+    if "$@"; then
+        log "Completed self-update phase '$phase_label' in $(format_self_update_elapsed_duration "$((SECONDS - started_at_seconds))")."
+        return
+    else
+        exit_code=$?
+    fi
+
+    log "Self-update phase '$phase_label' failed after $(format_self_update_elapsed_duration "$((SECONDS - started_at_seconds))") with exit status $exit_code."
+    return "$exit_code"
+}
+
 is_install_script_sourced() {
     [[ "$IS_INSTALL_SCRIPT_SOURCED" == "1" ]]
 }
@@ -672,6 +715,44 @@ remove_promptbook_repository_node_modules_if_safe() {
     if [[ -e "$repository_dir/node_modules" || -L "$repository_dir/node_modules" ]]; then
         run_as_service_user rm -rf -- "$repository_dir/node_modules"
     fi
+}
+
+# Removes the webpack filesystem cache from one release after it has become unnecessary.
+# The cache is a build-only artifact and can grow to several GiB, while `next start` never needs it.
+remove_agents_server_webpack_build_cache_if_safe() {
+    local repository_dir="$1"
+    local webpack_cache_dir="$repository_dir/apps/agents-server/.next/cache/webpack"
+    local resolved_repository_dir=""
+    local expected_webpack_cache_dir=""
+    local resolved_webpack_cache_dir=""
+    local cache_size=""
+
+    [[ -d "$repository_dir/.git" ]] || return
+    [[ -d "$webpack_cache_dir" ]] || return
+
+    resolved_repository_dir="$(realpath -m "$repository_dir")"
+    expected_webpack_cache_dir="$resolved_repository_dir/apps/agents-server/.next/cache/webpack"
+    resolved_webpack_cache_dir="$(realpath -m "$webpack_cache_dir")"
+    if [[ "$resolved_webpack_cache_dir" != "$expected_webpack_cache_dir" ]]; then
+        fail "Refusing to remove an unexpected Agents Server webpack cache at $webpack_cache_dir."
+    fi
+
+    cache_size="$(run_as_service_user du -sh "$webpack_cache_dir" 2>/dev/null | awk '{ print $1 }' || true)"
+    log "Removing unused Agents Server webpack build cache from $webpack_cache_dir${cache_size:+ ($cache_size)}."
+    run_as_service_user rm -rf -- "$webpack_cache_dir"
+}
+
+# Removes webpack caches from retained releases before a new release is built. Versioned release
+# directories cannot reuse those caches, so keeping them only consumes disk and slows future builds.
+remove_retained_agents_server_webpack_build_caches() {
+    local repository_dir=""
+
+    remove_agents_server_webpack_build_cache_if_safe "$PROMPTBOOK_REPOSITORY_DIR"
+
+    [[ -d "$PTBK_RELEASES_DIR" ]] || return
+    while IFS= read -r repository_dir; do
+        remove_agents_server_webpack_build_cache_if_safe "$repository_dir"
+    done < <(find "$PTBK_RELEASES_DIR" -mindepth 1 -maxdepth 1 -type d ! -name '.*' 2>/dev/null)
 }
 
 link_promptbook_dependency_cache() {
@@ -1758,6 +1839,7 @@ garbage_collect_promptbook_releases() {
         remove_promptbook_repository_directory_if_safe "$release_dir"
     done < <(find "$PTBK_RELEASES_DIR" -mindepth 1 -maxdepth 1 -type d ! -name '.*' -printf '%T@\t%p\n' 2>/dev/null | sort -rn | cut -f2-)
 
+    remove_retained_agents_server_webpack_build_caches
     garbage_collect_promptbook_dependency_caches
 }
 
@@ -4253,16 +4335,20 @@ self_update_agents_server() {
     trap write_failed_self_update_status_on_exit EXIT
 
     write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Preserving currently served Agents Server static assets." "" "$SELF_UPDATE_CURRENT_COMMIT" "" "" "$$"
-    publish_agents_server_next_static_assets_from_repository "$old_repository_dir" 0
+    run_timed_self_update_phase \
+        "Preserving currently served Agents Server static assets" \
+        publish_agents_server_next_static_assets_from_repository \
+        "$old_repository_dir" \
+        0
 
     # Garbage-collect before cloning so accumulated old versions cannot exhaust the disk
     # space needed by the new checkout.
     write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Garbage-collecting old Agents Server versions." "" "$SELF_UPDATE_CURRENT_COMMIT" "" "" "$$"
-    garbage_collect_promptbook_releases
+    run_timed_self_update_phase "Garbage-collecting old Agents Server versions" garbage_collect_promptbook_releases
 
     SELF_UPDATE_TARGET_COMMIT="$(read_remote_repository_commit_sha "$PROMPTBOOK_REPOSITORY_REF")"
     write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Installing the latest Promptbook checkout into a versioned release directory." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "" "$$"
-    install_promptbook_repository
+    run_timed_self_update_phase "Installing the latest Promptbook checkout" install_promptbook_repository
 
     SELF_UPDATE_CURRENT_COMMIT="$(read_repository_commit_sha)"
     write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Installing Agents Server runtime dependencies." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "" "$$"
@@ -4271,19 +4357,19 @@ self_update_agents_server() {
     # whole update: the already-running server keeps serving without the new tool and the
     # next self-update retries the installation. Hard requirements still fail the update
     # where they are actually needed (`npm ci` above, the Agents Server build below).
-    if ! (install_agents_server_dependency_requirements); then
+    if ! run_timed_self_update_phase "Installing Agents Server runtime dependencies" install_agents_server_dependency_requirements; then
         warn "Installing Agents Server runtime dependencies failed; continuing the self-update without them. Rerun later with: bash $PROMPTBOOK_REPOSITORY_DIR/install.sh apply-dependencies"
     fi
 
     write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Refreshing the Promptbook CLI launcher." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "" "$$"
-    install_promptbook_cli_launcher
+    run_timed_self_update_phase "Refreshing the Promptbook CLI launcher" install_promptbook_cli_launcher
 
     reset_self_update_database_migration_status
     write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Running Agents Server database migrations." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "" "$$"
-    run_agents_server_database_migrations
+    run_timed_self_update_phase "Running Agents Server database migrations" run_agents_server_database_migrations
 
     write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Rebuilding the Agents Server." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "" "$$"
-    build_agents_server
+    run_timed_self_update_phase "Rebuilding the Agents Server" build_agents_server
 
     if [[ "$(realpath -m "$old_repository_dir")" == "$(realpath -m "$PROMPTBOOK_REPOSITORY_DIR")" ]]; then
         ENV_FILE="$INSTALL_DIR/.env"
@@ -4305,11 +4391,19 @@ self_update_agents_server() {
     replacement_port="$(resolve_next_agents_server_port "$old_port")"
 
     write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Starting the replacement Agents Server pm2 process on port $replacement_port." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "" "$$"
-    start_pm2_agents_server_process "$replacement_app_name" "$replacement_port"
-    wait_for_agents_server_health "$replacement_app_name" "$replacement_port"
+    run_timed_self_update_phase \
+        "Starting the replacement Agents Server pm2 process" \
+        start_pm2_agents_server_process \
+        "$replacement_app_name" \
+        "$replacement_port"
+    run_timed_self_update_phase \
+        "Waiting for the replacement Agents Server health check" \
+        wait_for_agents_server_health \
+        "$replacement_app_name" \
+        "$replacement_port"
 
     write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Switching nginx to the healthy replacement process." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "" "$$"
-    switch_nginx_to_agents_server_port "$replacement_port"
+    run_timed_self_update_phase "Switching nginx to the healthy replacement process" switch_nginx_to_agents_server_port "$replacement_port"
     # nginx now serves traffic from the replacement, so a failure from here on
     # must keep the replacement and remove every other Agents Server instance.
     SELF_UPDATE_ACTIVE_APP_NAME="$replacement_app_name"
@@ -4331,19 +4425,24 @@ self_update_agents_server() {
     # Failures only warn: a domain problem must never break the self-update or
     # take the already switched-over Agents Server offline.
     write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Refreshing nginx and SSL configuration for server and project domains." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "" "$$"
-    if ! (configure_nginx_reverse_proxy && configure_ssl_certificates); then
+    if ! run_timed_self_update_phase "Refreshing nginx configuration" configure_nginx_reverse_proxy; then
+        warn "Refreshing the nginx and SSL configuration failed; keeping the previous configuration. Rerun later with: bash $PROMPTBOOK_REPOSITORY_DIR/install.sh apply-domains"
+    elif ! run_timed_self_update_phase "Refreshing SSL certificates" configure_ssl_certificates; then
         warn "Refreshing the nginx and SSL configuration failed; keeping the previous configuration. Rerun later with: bash $PROMPTBOOK_REPOSITORY_DIR/install.sh apply-domains"
     fi
 
     write_self_update_status_file "running" "$PROMPTBOOK_REPOSITORY_REF" "Removing previous Agents Server pm2 processes and garbage-collecting old versions." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "" "$$"
     if [[ "$old_app_name" != "$replacement_app_name" ]]; then
-        stop_pm2_process_if_running "$old_app_name"
+        run_timed_self_update_phase "Stopping the previous Agents Server process" stop_pm2_process_if_running "$old_app_name"
     fi
-    cleanup_orphan_agents_server_pm2_processes "$replacement_app_name"
+    run_timed_self_update_phase \
+        "Removing orphaned Agents Server processes" \
+        cleanup_orphan_agents_server_pm2_processes \
+        "$replacement_app_name"
     # Instead of always deleting the just-replaced checkout, keep the newest
     # AGENTS_SERVER_GC_KEEP_VERSIONS versions (including the new current one) so
     # recent releases stay available for manual rollback while older ones are removed.
-    garbage_collect_promptbook_releases
+    run_timed_self_update_phase "Garbage-collecting obsolete Agents Server versions" garbage_collect_promptbook_releases
 
     finished_at="$(date --utc --iso-8601=seconds)"
     write_self_update_status_file "succeeded" "$PROMPTBOOK_REPOSITORY_REF" "Standalone VPS self-update finished successfully." "" "$SELF_UPDATE_CURRENT_COMMIT" "$SELF_UPDATE_TARGET_COMMIT" "$finished_at" ""
