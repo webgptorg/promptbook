@@ -197,6 +197,20 @@
             "focus": false
         },
         {
+            "name": "🔖🟢 Tag the current commit as good (💤)",
+            "command": "tag=\"good-$(date +%F)\" && git tag -a \"$tag\" HEAD -m \"$tag\" && git push origin \"$tag\"",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🔖🔴 Tag the current commit as bad (💤)",
+            "command": "tag=\"bad-$(date +%F)\" && git tag -a \"$tag\" HEAD -m \"$tag\" && git push origin \"$tag\"",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
             "name": "✨👨‍💻 Run ptbk agents-server dev",
             "commands": [
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
@@ -280,6 +294,13 @@
         {
             "name": "(❗) ✨🔼 Update Agent server (live / `main` -> `preview`) (💤)",
             "command": "git branch --force preview main && git push origin preview --force-with-lease",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "(❗) ✨🔼 Update Agent server (HEAD -> `preview`) (💤)",
+            "command": "git branch --force preview HEAD && git push origin preview --force-with-lease && git checkout preview",
             "execute": false,
             "onlySingle": false,
             "focus": false
