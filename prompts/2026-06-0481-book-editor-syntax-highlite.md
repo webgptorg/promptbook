@@ -24,31 +24,24 @@ TEAM @Paul and {Erik Smith} with email team@foo.bar
 
 ![alt text](screenshots/2026-06-0481-book-editor-syntax-highlite.png)
 
-
-
 ---
 
-
-[ ] 
+[x] Already implemented
 
 [✨🔆] The referenced agents should not parse `just@email.com `
-
-
-
 
 ```book
 Agent
 
-TEAM @Teammate just@email.com 
+NOTE Testing syntax highlite @Teammate @Teammate123 {Teammate in two words 123} just@email.com
 ```
 
-- @@@@@@@@@@@
--   The `@Paul` is a reference to the agent `Paul` and should be highlited
--   The `{Erik Smith}` is a reference to the agent `Erik Smith`
--   The `team@foo.bar` is just a text and should **not be highlited as a reference to an agent**
+-   The `@Teammate` is a reference to the agent `Teammate` and should be highlited as agent
+-   The `@Teammate123` is a reference to the agent `Teammate123` and should be highlited as agent
+-   The `{Teammate in two words 123}` is a reference to the agent `Teammate in two words 123` and should be highlited as agent
+-   The `just@email.com` is just a text and should **not be highlited as a reference to an agent**
 -   The `@` references must have whitespace before
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
-
 
 ![alt text](screenshots/2026-06-0481-book-editor-syntax-highlite-1.png)
