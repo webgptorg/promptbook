@@ -1,4 +1,10 @@
-import { DRY_RUN_COMMAND, PING_COMMAND, TEST_BEFORE_FIX_COMMAND, VERIFY_COMMAND } from './commands';
+import {
+    DRY_RUN_COMMAND,
+    MODEL_FILTER_COMMAND,
+    PING_COMMAND,
+    TEST_BEFORE_FIX_COMMAND,
+    VERIFY_COMMAND,
+} from './commands';
 
 /**
  * One advanced feature of `ptbk coder` presented as a card with a terminal snippet.
@@ -66,6 +72,12 @@ export const ADVANCED_FEATURES: ReadonlyArray<AdvancedFeatureDefinition> = [
         title: 'Prompt priorities',
         description: 'Give prompts a priority and process only the range you want in the current run.',
         sampleCommand: 'ptbk coder run --harness claude-code --min-priority 1 --max-priority 5',
+    },
+    {
+        title: 'Model-specific prompts',
+        description:
+            'Route a prompt to a model family or harness with a backtick token on its [ ] status line, such as [ ] use model `gpt-5.5`. Other runners skip it automatically.',
+        sampleCommand: MODEL_FILTER_COMMAND,
     },
     {
         title: 'Pacing and retries',

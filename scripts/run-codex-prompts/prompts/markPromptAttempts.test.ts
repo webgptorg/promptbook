@@ -31,6 +31,23 @@ describe('prompt attempt metadata', () => {
         expect(file.lines[0]).not.toContain('(1 attempt');
     });
 
+    it('removes a required model token when marking a prompt as done', () => {
+        const file = parsePromptFile(
+            'prompts/mark-prompt-done.md',
+            spaceTrim(`
+                [ ] use model \`gpt-5.5\` !!!!!
+                Implement the feature
+            `),
+        );
+        const section = file.sections[0]!;
+
+        markPromptDone(file, section, createDoneSteps(), 'GitHub Copilot', 'gpt-5.5', 1);
+
+        expect(file.lines[0]).toMatch(/^\[x\] /);
+        expect(file.lines[0]).not.toContain('use model');
+        expect(file.lines[0]).not.toContain('!!!!!');
+    });
+
     it('records the selected thinking level on done prompts', () => {
         const file = parsePromptFile(
             'prompts/mark-prompt-done.md',
@@ -121,5 +138,21 @@ describe('prompt attempt metadata', () => {
 
         expect(file.lines[0]).toContain('[!] (failed after 3 attempts) ');
         expect(file.lines[0]).toContain('by GitHub Copilot `gpt-5.4`');
+    });
+
+    it('removes a required harness token when marking a prompt as failed', () => {
+        const file = parsePromptFile(
+            'prompts/mark-prompt-failed.md',
+            spaceTrim(`
+                [ ] use \`github-copilot\`
+                Implement the feature
+            `),
+        );
+        const section = file.sections[0]!;
+
+        markPromptFailed(file, section, 'GitHub Copilot', 'gpt-5.4', moment(), 1);
+
+        expect(file.lines[0]).toMatch(/^\[!] /);
+        expect(file.lines[0]).not.toContain('github-copilot');
     });
 });

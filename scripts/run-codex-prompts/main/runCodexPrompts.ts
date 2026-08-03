@@ -29,6 +29,7 @@ import { runIsolatedPromptRound } from '../isolation/runIsolatedPromptRound';
 import { buildPromptLabelForDisplay } from '../prompts/buildPromptLabelForDisplay';
 import { buildPromptSummary } from '../prompts/buildPromptSummary';
 import { findNextTodoPrompt } from '../prompts/findNextTodoPrompt';
+import type { PromptRunnerIdentity } from '../prompts/isPromptCompatibleWithRunner';
 import { listUpcomingTasks } from '../prompts/listUpcomingTasks';
 import { loadPromptFiles } from '../prompts/loadPromptFiles';
 import { printPromptsToBeWritten } from '../prompts/printPromptsToBeWritten';
@@ -92,6 +93,10 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
         }
 
         const { runner, actualRunnerModel, runnerMetadata } = resolvePromptRunner(options);
+        const promptRunnerIdentity: PromptRunnerIdentity = {
+            harnessName: options.agentName,
+            modelName: actualRunnerModel,
+        };
         console.info(colors.green(`Running prompts with ${runner.name}`));
 
         initializeRunUi(uiHandle, runner.name, actualRunnerModel, options);
@@ -149,6 +154,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                 isRichUiEnabled,
                 progressDisplay,
                 uiHandle,
+                promptRunnerIdentity,
             });
 
             hasShownUpcomingTasks ||= showUpcomingTasksOnce({
@@ -157,6 +163,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                 stats: promptQueueSnapshot.stats,
                 priorityFilter: options.priorityFilter,
                 isRichUiEnabled,
+                promptRunnerIdentity,
             });
 
             if (!promptQueueSnapshot.nextPrompt) {
@@ -627,8 +634,9 @@ async function loadPromptQueueSnapshot(options: {
     isRichUiEnabled: boolean;
     progressDisplay?: CliProgressDisplay;
     uiHandle?: CoderRunUiHandle;
+    promptRunnerIdentity: PromptRunnerIdentity;
 }): Promise<PromptQueueSnapshot> {
-    const { options: runOptions, isRichUiEnabled, progressDisplay, uiHandle } = options;
+    const { options: runOptions, isRichUiEnabled, progressDisplay, uiHandle, promptRunnerIdentity } = options;
     uiHandle?.state.setCurrentScriptPath(undefined);
 
     const promptFiles = await loadPromptFiles(PROMPTS_DIR);
@@ -644,7 +652,7 @@ async function loadPromptQueueSnapshot(options: {
     return {
         promptFiles,
         stats,
-        nextPrompt: findNextTodoPrompt(promptFiles, runOptions.priorityFilter),
+        nextPrompt: findNextTodoPrompt(promptFiles, runOptions.priorityFilter, promptRunnerIdentity),
     };
 }
 
@@ -657,8 +665,10 @@ function showUpcomingTasksOnce(options: {
     stats: PromptStats;
     priorityFilter?: PriorityFilter;
     isRichUiEnabled: boolean;
+    promptRunnerIdentity: PromptRunnerIdentity;
 }): boolean {
-    const { hasShownUpcomingTasks, promptFiles, stats, priorityFilter, isRichUiEnabled } = options;
+    const { hasShownUpcomingTasks, promptFiles, stats, priorityFilter, isRichUiEnabled, promptRunnerIdentity } =
+        options;
 
     if (hasShownUpcomingTasks || isRichUiEnabled) {
         return true;
@@ -670,7 +680,7 @@ function showUpcomingTasksOnce(options: {
         console.info('');
     }
 
-    printUpcomingTasks(listUpcomingTasks(promptFiles, priorityFilter));
+    printUpcomingTasks(listUpcomingTasks(promptFiles, priorityFilter, promptRunnerIdentity));
     return true;
 }
 
@@ -686,7 +696,14 @@ function finishWhenNoPromptIsAvailable(
         return false;
     }
 
-    if (promptQueueSnapshot.stats.toBeWritten > 0) {
+    if (promptQueueSnapshot.stats.forAgent > 0) {
+        announceRunCompletion(
+            'No prompts match the selected harness or model.',
+            colors.yellow,
+            isRichUiEnabled,
+            uiHandle,
+        );
+    } else if (promptQueueSnapshot.stats.toBeWritten > 0) {
         announceRunCompletion('No prompts ready for agent.', colors.yellow, isRichUiEnabled, uiHandle);
     } else {
         announceRunCompletion('All prompts are done.', colors.green, isRichUiEnabled, uiHandle);
@@ -747,10 +764,15 @@ function announceKeepAliveStatus(
     isRichUiEnabled: boolean,
     uiHandle?: CoderRunUiHandle,
 ): void {
-    const message =
-        promptQueueSnapshot.stats.toBeWritten > 0
-            ? 'No prompts ready for agent. Watching for changes...'
-            : 'All prompts are done. Watching for changes...';
+    let message: string;
+
+    if (promptQueueSnapshot.stats.forAgent > 0) {
+        message = 'No prompts match the selected harness or model. Watching for changes...';
+    } else if (promptQueueSnapshot.stats.toBeWritten > 0) {
+        message = 'No prompts ready for agent. Watching for changes...';
+    } else {
+        message = 'All prompts are done. Watching for changes...';
+    }
 
     uiHandle?.state.setStatusMessage(message);
     uiHandle?.state.setPhase('waiting');

@@ -1,3 +1,5 @@
+-   Added required model and harness matching to `ptbk coder` prompts. A ready `[ ]` status line can now contain one or more backtick-delimited normalized model, model-family, or harness names, combine them with `!` priority markers, and run only when the selected runner matches. The `ptbk coder` landing page now documents model-specific prompts.
+
 -   Simplified the Agents Server manGo onboarding Book step so the assignment now generates one editable Book directly. The intermediate markdown draft and separate conversion panel were removed, the real Book editor is shown immediately, and section buttons insert valid Book-language commitments before the final `OPEN` or `CLOSED` marker.
 
 -   Fixed rich `ptbk coder run` terminal controls so `S Skip current waiting` is shown only while the coder is in a waiting phase (between prompts, after a prompt, or after an error), and hidden while a prompt is active or the run has finished. The Coder landing demo now matches its completed `DONE` frame and omits the unavailable skip action.
