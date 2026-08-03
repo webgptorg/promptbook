@@ -9,7 +9,7 @@ import { InputField, TextareaField } from '../ui/Field';
 
 /**
  * Entry screen of the wizard ("Řekněte mi o agentovi"). Captures the agent name + a
- * one-sentence brief, then continues to the Book step where the draft is generated.
+ * one-sentence brief, then continues to the Book step where the Book is generated.
  */
 export function ZadaniStep() {
     const { navigateToPath } = useManGoOnboardingNavigation();
@@ -24,8 +24,8 @@ export function ZadaniStep() {
                     Řekněte mi o agentovi
                 </h1>
                 <p className="mt-2.5 text-sm leading-relaxed text-zinc-500">
-                    Stačí název a jedna věta o tom, co má agent dělat. Z toho připravíme draft booku, který si pak
-                    libovolně upravíte.
+                    Stačí název a jedna věta o tom, co má agent dělat. Z toho připravíme book, který si pak libovolně
+                    upravíte.
                 </p>
 
                 <div className="mt-8 space-y-6">
@@ -54,7 +54,7 @@ export function ZadaniStep() {
                             trailingIcon={<span aria-hidden>→</span>}
                             onClick={() => navigateToPath(ONBOARDING_STEPS[0].path)}
                         >
-                            Vygenerovat draft booku
+                            Vygenerovat book
                         </Button>
                     }
                 />

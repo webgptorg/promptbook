@@ -255,8 +255,6 @@ export const LIVE_DEMO_SCRIPT: ReadonlyArray<LiveDemoLine> = [
         [
             createTextPart(' P ', 'key'),
             createTextPart(' Pause  ', 'plain'),
-            createTextPart(' S ', 'key'),
-            createTextPart(' Skip current waiting  ', 'plain'),
             createTextPart(' X ', 'key'),
             createTextPart(' End with this prompt   ', 'plain'),
             createTextPart(' CTRL+C ', 'key'),

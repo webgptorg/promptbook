@@ -1,31 +1,36 @@
 import { spaceTrim } from 'spacetrim';
 
 /**
- * Predefined markdown sections offered as "Přidat sekci" chips in the book editor.
- * Mirrors the wireframe's section presets; users append and then freely edit them.
+ * Predefined Book-language sections offered as "Přidat sekci" chips in the editor.
+ * Mirrors the wireframe's section presets; users insert and then freely edit them.
  */
 export type BookSectionPreset = {
     readonly key: string;
     readonly label: string;
-    readonly markdown: string;
+    readonly book: string;
 };
 
+/**
+ * Book-language section presets shown below the manGo Book editor.
+ *
+ * @private internal constant of <ManGoBookEditor/>
+ */
 export const BOOK_SECTION_PRESETS: readonly BookSectionPreset[] = [
     {
         key: 'priklady',
         label: 'Příklady odpovědí',
-        markdown: spaceTrim(`
-            ## Příklady odpovědí
-            **Dotaz:** Kde je moje objednávka?
-            **Odpověď:** Dobrý den, děkujeme za zprávu. Vaši objednávku jsme ověřili — …
+        book: spaceTrim(`
+            WRITING SAMPLE
+            Uživatel: Kde je moje objednávka?
+            Agent: Dobrý den, děkujeme za zprávu. Vaši objednávku jsme ověřili — …
         `),
     },
     {
         key: 'eskalace',
         label: 'Eskalace',
-        markdown: spaceTrim(`
-            ## Eskalace
-            Kdy předat člověku:
+        book: spaceTrim(`
+            RULE
+            Požadavek předejte člověku, pokud jde o:
             - Reklamace nad 10 000 Kč
             - Rozzlobený zákazník (2. a další urgence)
             - Právní dotazy
@@ -34,8 +39,8 @@ export const BOOK_SECTION_PRESETS: readonly BookSectionPreset[] = [
     {
         key: 'podpis',
         label: 'Podpis / šablona',
-        markdown: spaceTrim(`
-            ## Podpis / šablona
+        book: spaceTrim(`
+            MESSAGE SUFFIX
             S pozdravem,
             Zákaznická podpora
             kontakt@firma.cz
@@ -44,8 +49,9 @@ export const BOOK_SECTION_PRESETS: readonly BookSectionPreset[] = [
     {
         key: 'zakazana',
         label: 'Zakázaná témata',
-        markdown: spaceTrim(`
-            ## Zakázaná témata
+        book: spaceTrim(`
+            RULE
+            Nikdy neposkytujte ani nerozebírejte:
             - Interní procesy a ceny dodavatelů
             - Srovnávání s konkurencí
             - Právní stanoviska
@@ -54,8 +60,9 @@ export const BOOK_SECTION_PRESETS: readonly BookSectionPreset[] = [
     {
         key: 'vlastni',
         label: 'Vlastní sekce',
-        markdown: spaceTrim(`
-            ## Nová sekce
+        book: spaceTrim(`
+            NOTE
+            Vlastní sekce:
             Sem napište cokoli dalšího…
         `),
     },

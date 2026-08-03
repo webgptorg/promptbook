@@ -30,7 +30,7 @@ const ONBOARDING_DONE_PATH = ONBOARDING_FLOW.find((step) => step.id === 'done')?
  */
 type ClassicBookEditorButtonProps = {
     /**
-     * Opens the classic Book editor with the current draft.
+     * Opens the classic Book editor with the current Book.
      */
     readonly onOpenEditor: () => void;
 
@@ -107,7 +107,7 @@ export function WizardShell({ children, defaultVisibility, onOpenEditor }: Wizar
     const isClassicBookEditorButtonVisible = currentPath !== ONBOARDING_DONE_PATH;
 
     /**
-     * Opens the classic Book editor with the current manGo draft.
+     * Opens the classic Book editor with the current manGo Book.
      */
     function handleOpenEditor(): void {
         onOpenEditor(createManGoOpenEditorRequest(state, defaultVisibility));

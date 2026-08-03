@@ -1,4 +1,10 @@
-import { DRY_RUN_COMMAND, TEST_BEFORE_FIX_COMMAND, VERIFY_COMMAND } from './commands';
+import {
+    DRY_RUN_COMMAND,
+    MODEL_FILTER_COMMAND,
+    PING_COMMAND,
+    TEST_BEFORE_FIX_COMMAND,
+    VERIFY_COMMAND,
+} from './commands';
 
 /**
  * One advanced feature of `ptbk coder` presented as a card with a terminal snippet.
@@ -68,6 +74,12 @@ export const ADVANCED_FEATURES: ReadonlyArray<AdvancedFeatureDefinition> = [
         sampleCommand: 'ptbk coder run --harness claude-code --min-priority 1 --max-priority 5',
     },
     {
+        title: 'Model-specific prompts',
+        description:
+            'Route a prompt to a model family or harness with a backtick token on its [ ] status line, such as [ ] use model `gpt-5.5`. Other runners skip it automatically.',
+        sampleCommand: MODEL_FILTER_COMMAND,
+    },
+    {
         title: 'Pacing and retries',
         description:
             'Pace the queue with wall-clock wait durations that keep elapsing through pause and sleep, skip the active wait with S, and retry errors after a cool-down.',
@@ -77,6 +89,12 @@ export const ADVANCED_FEATURES: ReadonlyArray<AdvancedFeatureDefinition> = [
         title: 'Dry run first',
         description: 'Preview which prompts would run — without touching your code or spending a single token.',
         sampleCommand: DRY_RUN_COMMAND,
+    },
+    {
+        title: 'Ping before you code',
+        description:
+            'Make one small disposable harness/model call, see the returned result and response time, and optionally start consuming an applicable quota before a longer coding run.',
+        sampleCommand: PING_COMMAND,
     },
     {
         title: 'Human in the loop',

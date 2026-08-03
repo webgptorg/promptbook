@@ -43,9 +43,9 @@ describe('runTestBefore', () => {
             scriptPath: expect.stringContaining('.promptbook'),
         });
         expect(waitForPauseCheckpoint).toHaveBeenCalledWith({
-            checkpointLabel: 'running tests before coding',
+            checkpointLabel: 'running initial tests before the agent coding starts',
             phase: 'verifying',
-            statusMessage: 'Running tests before coding: npm run test',
+            statusMessage: 'Running initial tests before the agent coding starts: npm run test',
         });
     });
 

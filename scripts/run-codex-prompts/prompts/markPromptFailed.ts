@@ -1,6 +1,7 @@
 import moment from 'moment';
 import { formatPromptAttemptMetadata } from './formatPromptAttemptMetadata';
 import { formatRunnerSignature } from './formatRunnerSignature';
+import { replacePromptTodoStatusLine } from './replacePromptTodoStatusLine';
 import type { PromptFile } from './types/PromptFile';
 import type { PromptSection } from './types/PromptSection';
 
@@ -28,10 +29,9 @@ export function markPromptFailed(
     const duration = moment().diff(promptExecutionStartedDate);
     const durationString = moment.duration(duration).humanize();
     const failureDetails =
-        attemptMetadata === '' ? `failed after ${durationString} by ${runnerSignature}` : `${attemptMetadata}${durationString} by ${runnerSignature}`;
+        attemptMetadata === ''
+            ? `failed after ${durationString} by ${runnerSignature}`
+            : `${attemptMetadata}${durationString} by ${runnerSignature}`;
 
-    file.lines[section.statusLineIndex] = line.replace(
-        /\[\s*\]\s*!*\s*$/,
-        `[!] ${failureDetails}`,
-    );
+    file.lines[section.statusLineIndex] = replacePromptTodoStatusLine(line, `[!] ${failureDetails}`);
 }

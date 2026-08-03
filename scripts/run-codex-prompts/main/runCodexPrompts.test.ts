@@ -231,7 +231,7 @@ describe('runCodexPrompts', () => {
         expect(ensureWorkingTreeClean).toHaveBeenCalledTimes(1);
     });
 
-    it('runs pre-coding tests before loading and running the first prompt', async () => {
+    it('loads the prompt queue before running pre-coding tests', async () => {
         const events: string[] = [];
         const promptSelection = createPromptSelection();
 
@@ -244,6 +244,7 @@ describe('runCodexPrompts', () => {
             return [];
         });
         (findNextTodoPrompt as jest.MockedFunction<typeof findNextTodoPrompt>)
+            .mockReturnValueOnce(promptSelection)
             .mockReturnValueOnce(promptSelection)
             .mockReturnValueOnce(undefined);
         (runPromptRound as jest.MockedFunction<typeof runPromptRound>).mockImplementation(async () => {
@@ -258,7 +259,7 @@ describe('runCodexPrompts', () => {
             }),
         );
 
-        expect(events).toEqual(['test-before', 'load', 'run', 'load']);
+        expect(events).toEqual(['load', 'test-before', 'load', 'run', 'load']);
         expect(runTestBefore).toHaveBeenCalledWith(
             expect.objectContaining({
                 testCommand: 'npm run test',
@@ -284,7 +285,7 @@ describe('runCodexPrompts', () => {
 
         expect(createTestBeforeRepairPrompt).not.toHaveBeenCalled();
         expect(runPromptRound).not.toHaveBeenCalled();
-        expect(loadPromptFiles).not.toHaveBeenCalled();
+        expect(loadPromptFiles).toHaveBeenCalledTimes(1);
     });
 
     it('runs one repair prompt before the queue when pre-coding tests fail in yes-and-fix mode', async () => {
@@ -308,6 +309,7 @@ describe('runCodexPrompts', () => {
         });
         (findNextTodoPrompt as jest.MockedFunction<typeof findNextTodoPrompt>)
             .mockReturnValueOnce(queuedPrompt)
+            .mockReturnValueOnce(queuedPrompt)
             .mockReturnValueOnce(undefined);
         (runPromptRound as jest.MockedFunction<typeof runPromptRound>).mockImplementation(async ({ nextPrompt }) => {
             events.push(nextPrompt === repairPrompt ? 'repair' : 'run');
@@ -321,7 +323,7 @@ describe('runCodexPrompts', () => {
             }),
         );
 
-        expect(events).toEqual(['create-repair', 'repair', 'load', 'run', 'load']);
+        expect(events).toEqual(['load', 'create-repair', 'repair', 'load', 'run', 'load']);
         expect(runPromptRound).toHaveBeenCalledTimes(2);
         expect((runPromptRound as jest.MockedFunction<typeof runPromptRound>).mock.calls[0]?.[0].nextPrompt).toBe(
             repairPrompt,

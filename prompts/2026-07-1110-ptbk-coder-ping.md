@@ -1,4 +1,4 @@
-[ ]
+[x] by OpenAI Codex `gpt-5.6-luna` thinking `max` (ChatGPT account) - Implementation ~$1.03 an hour; Testing 28 minutes
 
 [✨🏷] Create command `ptbk coder ping`
 
@@ -16,3 +16,4 @@ ptbk coder ping --harness openai-codex --model gpt-5.6-sol --thinking-level xhig
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Update the [`ptbk coder` landing website](apps/coder-landing) and add this to the advanced perks
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

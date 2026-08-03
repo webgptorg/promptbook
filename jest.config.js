@@ -1,6 +1,28 @@
+/**
+ * Directories containing the repository's unit tests.
+ */
+const TEST_ROOTS = [
+    '<rootDir>/src',
+    '<rootDir>/apps/agents-server/src',
+    '<rootDir>/apps/agents-server/scripts',
+    '<rootDir>/apps/utils/src',
+    '<rootDir>/scripts',
+    '<rootDir>/book',
+];
+
 module.exports = {
+    // Keep Jest's filesystem crawl limited to directories that contain unit tests.
+    roots: TEST_ROOTS,
     transform: {
-        '(jsx?|tsx?)$': ['ts-jest', { tsconfig: 'tsconfig.jest.json' }],
+        // Type checking is already performed once by `npm run test-types`; unit tests only need transpilation.
+        '(jsx?|tsx?)$': [
+            'ts-jest',
+            {
+                tsconfig: 'tsconfig.jest.json',
+                isolatedModules: true,
+                diagnostics: false,
+            },
+        ],
         '\\.ya?ml$': '<rootDir>/jest.yamlRawTransformer.js',
     },
     testRegex: '(test)\\.(jsx?|tsx?)$',
@@ -15,10 +37,10 @@ module.exports = {
         '^(.*\\.ya?ml)\\?raw$': '$1',
     },
     coverageDirectory: './coverage/',
-    collectCoverage: true,
+    collectCoverage: false,
     testTimeout: 5 /* minutes */ * 60 * 1000,
-    // Limit concurrency to reduce ECONNRESET issues with network-heavy tests
-    maxWorkers: 1,
+    // Keep a small amount of parallelism without overloading network-heavy tests.
+    maxWorkers: 2,
     // Prevent test interference
     maxConcurrency: 1,
 };

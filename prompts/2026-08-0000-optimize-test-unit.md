@@ -1,4 +1,4 @@
-[ ]
+[x] by OpenAI Codex `gpt-5.6-luna` thinking `max` (ChatGPT account) - Implementation ~$1.11 2 hours; Testing 18 minutes
 
 [✨📭] Optimize and speed up the `npm run test-unit`
 
@@ -8,3 +8,4 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

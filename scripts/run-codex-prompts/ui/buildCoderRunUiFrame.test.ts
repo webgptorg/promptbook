@@ -91,6 +91,17 @@ describe('buildCoderRunUiFrame', () => {
         expect(output).toContain('X  Do all 5 prompts');
     });
 
+    it.each(['initializing', 'loading', 'running', 'verifying', 'paused', 'done', 'error'] as const)(
+        'hides the skip-wait control while the coder is in the %s phase',
+        (phase) => {
+            const output = buildCoderRunUiFrame(createFrameOptions({ phase }))
+                .map(stripAnsi)
+                .join('\n');
+
+            expect(output).not.toContain('S  Skip current waiting');
+        },
+    );
+
     it('shows the configured run limit in the session scope row', () => {
         const output = buildCoderRunUiFrame(
             createFrameOptions({

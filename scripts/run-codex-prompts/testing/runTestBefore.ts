@@ -28,13 +28,14 @@ export async function runTestBefore(options: {
     readonly runPromptTestCommandExecutor?: typeof runPromptTestCommand;
 }): Promise<TestBeforeResult> {
     const runPromptTestCommandExecutor = options.runPromptTestCommandExecutor ?? runPromptTestCommand;
+    const initialTestStatusMessage = `Running initial tests before the agent coding starts: ${options.testCommand}`;
 
     await options.waitForPauseCheckpoint?.({
-        checkpointLabel: 'running tests before coding',
+        checkpointLabel: 'running initial tests before the agent coding starts',
         phase: 'verifying',
-        statusMessage: `Running tests before coding: ${options.testCommand}`,
+        statusMessage: initialTestStatusMessage,
     });
-    console.info(colors.gray(`Running verification command before coding: ${options.testCommand}`));
+    console.info(colors.gray(initialTestStatusMessage));
 
     try {
         const testOutput = await runPromptTestCommandExecutor({

@@ -1,18 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 
 /**
- * Agent book copied from the manGo onboarding experiment and used as the drafting specialist.
- *
- * @private internal constant of manGo onboarding agent utilities
- */
-export const MAN_GO_DRAFT_EXPERT_BOOK = spaceTrim(`
-    Book language expert
-
-    LANGUAGE Čeština
-`);
-
-/**
- * Agent book copied from the manGo onboarding experiment and used to convert free-form drafts to Book language.
+ * Agent book copied from the manGo onboarding experiment and used to generate Book language directly.
  *
  * @private internal constant of manGo onboarding agent utilities
  */
@@ -22,7 +11,7 @@ export const MAN_GO_BOOK_EXPERT_BOOK = spaceTrim(`
     PERSONA You are expert in book language
     RULE You can work with the book language and write, modify, or consult the agents based on the book language.
 
-    KNOWLEDGE https://core.ptbk.io/api/docs/book-language.md
+    KNOWLEDGE https://live.ptbk.io/api/docs/book-language.md?language=en
 
     RULE When creating agents, use code blocks with book language:
 

@@ -1,3 +1,17 @@
+-   Sped up Agents Server tests, builds, and updates: the E2E suite now lints and creates one production bundle which Playwright reuses, while versioned VPS releases reuse lockfile-matched npm dependencies and skip unchanged Playwright system packages. Direct Playwright runs keep their existing self-bootstrapping behavior, and browser revision installation remains idempotent.
+
+-   Sped up `npm run test-unit` without removing any unit tests: Jest now searches only the unit-test roots, transpiles test TypeScript without repeating the separate project type check, uses two isolated workers while keeping test-level concurrency serialized, and the CLI integration tests no longer type-check a fresh `ts-node` process for every assertion. Coverage reports remain available through Jest's explicit `--coverage` option.
+
+-   Improved `ptbk coder run --test-before`: the prompt queue is loaded before initial verification, the rich terminal UI explains that initial tests are running before agent coding starts, and live test output is shown while the command runs.
+
+-   Added required model and harness matching to `ptbk coder` prompts. A ready `[ ]` status line can now contain one or more backtick-delimited normalized model, model-family, or harness names, combine them with `!` priority markers, and run only when the selected runner matches. The `ptbk coder` landing page now documents model-specific prompts.
+
+-   Simplified the Agents Server manGo onboarding Book step so the assignment now generates one editable Book directly. The intermediate markdown draft and separate conversion panel were removed, the real Book editor is shown immediately, and section buttons insert valid Book-language commitments before the final `OPEN` or `CLOSED` marker.
+
+-   Fixed rich `ptbk coder run` terminal controls so `S Skip current waiting` is shown only while the coder is in a waiting phase (between prompts, after a prompt, or after an error), and hidden while a prompt is active or the run has finished. The Coder landing demo now matches its completed `DONE` frame and omits the unavailable skip action.
+
+-   Added `ptbk coder ping`, which sends one small disposable task through a selected harness and model, prints the returned result and elapsed response time, and keeps the current project unchanged. It accepts the same harness, model, thinking-level and credit options as the other local runner commands, so it can be used to check connectivity or start consuming an applicable quota before a longer coding run.
+
 -   Fixed Agents Server ElevenLabs text-to-speech configuration to use only `ELEVENLABS_API_KEY`; support for the legacy `ELEVEN_LABS_API_KEY` environment variable was removed.
 
 -   Added `--test-before <no|yes-and-fail|yes-and-fix>` to `ptbk coder run`. Pre-coding verification is disabled by default, can stop the run with the complete test output when existing tests fail, or can create and run one shared-format repair prompt before the normal coding queue; an explicit `--test` command is used when provided and `npm test` is the default for the enabled modes. The Coder landing page and local VS Code coder terminals now document and use the repair mode.

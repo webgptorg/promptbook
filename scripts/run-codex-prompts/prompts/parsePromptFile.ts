@@ -1,4 +1,5 @@
 import { basename } from 'path';
+import { extractPromptRunnerTokens } from './isPromptCompatibleWithRunner';
 import type { PromptFile } from './types/PromptFile';
 import type { PromptSection } from './types/PromptSection';
 import type { PromptStatus } from './types/PromptStatus';
@@ -56,7 +57,7 @@ export function parsePromptFile(filePath: string, content: string): PromptFile {
 }
 
 /**
- * Parses a status line like "[ ] !!" or "[-]" or "[x] ~$0.65 21 minutes..." into status and priority.
+ * Parses a status line like "[ ] !!", "[ ] use `gpt` !!!!!" or "[-]" into status and priority.
  * For [x] done and [!] failed prompts, allow metadata after the status marker.
  */
 function parseStatusLine(line: string): { status: PromptStatus; priority: number } | undefined {
@@ -72,22 +73,27 @@ function parseStatusLine(line: string): { status: PromptStatus; priority: number
         return { status: 'failed', priority: 0 };
     }
 
-    // For todo [ ] and not-ready [-], require clean end with optional priority markers
-    const match = line.match(/^\[(?<status>[ -])\]\s*(?<priority>!*)\s*$/);
-    if (!match) {
+    // For not-ready [-], keep the historical clean-line syntax.
+    if (/^\[-\]\s*!*\s*$/u.test(line)) {
+        return { status: 'not-ready', priority: 0 };
+    }
+
+    // Todo [ ] may contain backtick-delimited model/harness tokens and priority markers
+    // before or after those tokens. Other trailing text remains an invalid status line.
+    const todoMatch = line.match(/^\[ \](?<details>.*)$/u);
+    if (!todoMatch) {
         return undefined;
     }
-    const statusChar = match.groups?.status?.toLowerCase();
-    let status: PromptStatus;
 
-    if (statusChar === '-') {
-        status = 'not-ready';
-    } else {
-        status = 'todo';
+    const details = todoMatch.groups?.details ?? '';
+    const isPriorityOnly = /^[!\s]*$/u.test(details);
+    const hasPromptRunnerTokens = extractPromptRunnerTokens(line).length > 0;
+
+    if (details.trim() !== '' && !isPriorityOnly && !hasPromptRunnerTokens) {
+        return undefined;
     }
 
-    const priority = status === 'todo' ? match.groups?.priority?.length ?? 0 : 0;
-    return { status, priority };
+    return { status: 'todo', priority: details.match(/!/gu)?.length ?? 0 };
 }
 
 /**

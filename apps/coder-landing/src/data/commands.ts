@@ -31,6 +31,11 @@ export const ADD_COMMAND = 'ptbk coder add "Add a dark mode toggle to the settin
 export const RUN_COMMAND = 'ptbk coder run --harness claude-code';
 
 /**
+ * Command which runs prompts through a selected harness and model.
+ */
+export const MODEL_FILTER_COMMAND = 'ptbk coder run --harness github-copilot --model gpt-5.5';
+
+/**
  * Command which runs the existing tests before coding and lets one repair prompt fix pre-existing failures.
  */
 export const TEST_BEFORE_FIX_COMMAND = 'ptbk coder run --harness claude-code --test npm test --test-before yes-and-fix';
@@ -39,6 +44,11 @@ export const TEST_BEFORE_FIX_COMMAND = 'ptbk coder run --harness claude-code --t
  * Command which previews the prompt queue without executing anything.
  */
 export const DRY_RUN_COMMAND = 'ptbk coder run --dry-run';
+
+/**
+ * Command which makes one disposable harness/model call and reports its result and duration.
+ */
+export const PING_COMMAND = 'ptbk coder ping --harness openai-codex --model gpt-5.6-sol --thinking-level xhigh';
 
 /**
  * Full-featured command which starts the coder server with kanban UI, agent persona,

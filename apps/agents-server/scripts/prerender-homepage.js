@@ -32,7 +32,7 @@ const SERVER_READY_MARKER = 'Ready in';
 /**
  * Constant for output dir.
  */
-const OUTPUT_DIR = path.join(APP_ROOT, '.next', 'prerendered');
+const OUTPUT_DIR = path.join(APP_ROOT, process.env.NEXT_DIST_DIR || '.next', 'prerendered');
 /**
  * Constant for output file.
  */

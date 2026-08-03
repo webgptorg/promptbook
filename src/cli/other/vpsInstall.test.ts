@@ -18,6 +18,11 @@ describe('install.sh', () => {
         );
         expect(installScript).toContain('resolve_repository_directory_for_commit "$target_commit_sha"');
         expect(installScript).toContain('npm ci --include=dev');
+        expect(installScript).toContain(
+            'PTBK_NODE_MODULES_CACHE_DIR="${PTBK_NODE_MODULES_CACHE_DIR:-$INSTALL_DIR/.promptbook/node-modules-cache}"',
+        );
+        expect(installScript).toContain('install_promptbook_repository_dependencies()');
+        expect(installScript).toContain('npm ci --include=dev --prefer-offline --no-audit --no-fund');
         expect(installScript).not.toContain('PROMPTBOOK_NPM_PACKAGE');
         expect(installScript).not.toContain('npm install -g "$PROMPTBOOK_NPM_PACKAGE"');
     });
@@ -343,6 +348,9 @@ describe('install.sh', () => {
         expect(browserDependenciesFunction.indexOf('wait_for_apt_locks')).toBeLessThan(
             browserDependenciesFunction.indexOf('npx playwright install-deps chromium'),
         );
+        expect(installScript).toContain('PTBK_PLAYWRIGHT_SYSTEM_DEPENDENCIES_MARKER_PATH=');
+        expect(browserDependenciesFunction).toContain('resolve_playwright_system_dependencies_marker_value');
+        expect(browserDependenciesFunction).toContain('Playwright system dependencies for');
         expect(installScript).not.toContain('env DEBIAN_FRONTEND=noninteractive apt-get update');
         expect(installScript).not.toContain('env DEBIAN_FRONTEND=noninteractive apt-get install');
     });
@@ -487,6 +495,7 @@ describe('install.sh', () => {
         //      apps/agents-server/src/utils/vpsSelfUpdate/vpsSelfUpdateInstalledVersions.ts
         expect(installScript).toContain('AGENTS_SERVER_GC_KEEP_VERSIONS="${AGENTS_SERVER_GC_KEEP_VERSIONS:-3}"');
         expect(installScript).toContain('garbage_collect_promptbook_releases()');
+        expect(installScript).toContain('garbage_collect_promptbook_dependency_caches()');
         expect(installScript).toContain('get_env_value AGENTS_SERVER_GC_KEEP_VERSIONS');
 
         // Garbage collection frees disk space before the new checkout is cloned…

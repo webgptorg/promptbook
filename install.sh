@@ -45,6 +45,12 @@ CODE_SERVER_INSTALL_SCRIPT_URL="${CODE_SERVER_INSTALL_SCRIPT_URL:-https://code-s
 CODE_SERVER_INSTALL_PREFIX="${CODE_SERVER_INSTALL_PREFIX:-/usr/local}"
 PTBK_BIN_DIR="${PTBK_BIN_DIR:-$INSTALL_DIR/bin}"
 PTBK_RELEASES_DIR="${PTBK_RELEASES_DIR:-$PTBK_BIN_DIR}"
+# Shared dependency trees let versioned releases reuse the exact same npm installation when their
+# package-lock files match. This avoids reinstalling hundreds of packages during every self-update.
+PTBK_NODE_MODULES_CACHE_DIR="${PTBK_NODE_MODULES_CACHE_DIR:-$INSTALL_DIR/.promptbook/node-modules-cache}"
+# [🧠] Playwright's apt dependency installation is keyed by the repository lock file. It is expensive
+# and idempotent, so repeat updates can skip it until the dependency set changes.
+PTBK_PLAYWRIGHT_SYSTEM_DEPENDENCIES_MARKER_PATH="${PTBK_PLAYWRIGHT_SYSTEM_DEPENDENCIES_MARKER_PATH:-$INSTALL_DIR/.promptbook/playwright-system-dependencies}"
 # [🧹] Total number of installed Agents Server versions kept by garbage collection (the current one plus previous ones).
 AGENTS_SERVER_GC_KEEP_VERSIONS="${AGENTS_SERVER_GC_KEEP_VERSIONS:-3}"
 PROMPTBOOK_REPOSITORY_DIR="${PROMPTBOOK_REPOSITORY_DIR:-}"
@@ -588,6 +594,180 @@ join_by_space() {
 
 shell_quote() {
     printf "'%s'" "$(printf '%s' "$1" | sed "s/'/'\\\\''/g")"
+}
+
+resolve_promptbook_package_lock_hash() {
+    local repository_dir="$1"
+    local package_lock_path="$repository_dir/package-lock.json"
+
+    if [[ ! -f "$package_lock_path" ]]; then
+        fail "Cannot resolve Promptbook dependency identity because $package_lock_path does not exist."
+    fi
+
+    sha256sum "$package_lock_path" | awk '{ print $1 }'
+}
+
+resolve_promptbook_dependency_cache_directory() {
+    local package_lock_hash="$1"
+
+    printf '%s/%s' "$PTBK_NODE_MODULES_CACHE_DIR" "$package_lock_hash"
+}
+
+is_promptbook_dependency_cache_ready() {
+    local dependency_cache_directory="$1"
+    local package_lock_hash="$2"
+    local dependency_cache_node_modules="$dependency_cache_directory/node_modules"
+    local dependency_cache_marker="$dependency_cache_node_modules/.promptbook-package-lock-hash"
+
+    [[ -d "$dependency_cache_node_modules" ]] || return 1
+    [[ -f "$dependency_cache_marker" ]] || return 1
+    [[ "$(cat "$dependency_cache_marker")" == "$package_lock_hash" ]] || return 1
+    [[ -f "$dependency_cache_node_modules/next/package.json" ]] || return 1
+    [[ -x "$dependency_cache_node_modules/.bin/ts-node" ]] || return 1
+    [[ -f "$dependency_cache_node_modules/playwright/package.json" ]] || return 1
+    [[ -x "$dependency_cache_node_modules/.bin/playwright" ]] || return 1
+}
+
+is_promptbook_repository_node_modules_current() {
+    local repository_dir="$1"
+    local package_lock_hash="$2"
+    local repository_node_modules="$repository_dir/node_modules"
+    local repository_dependency_marker="$repository_node_modules/.promptbook-package-lock-hash"
+
+    [[ -d "$repository_node_modules" ]] || return 1
+    [[ -f "$repository_dependency_marker" ]] || return 1
+    [[ "$(cat "$repository_dependency_marker")" == "$package_lock_hash" ]] || return 1
+    [[ -f "$repository_node_modules/next/package.json" ]] || return 1
+    [[ -x "$repository_node_modules/.bin/ts-node" ]] || return 1
+    [[ -f "$repository_node_modules/playwright/package.json" ]] || return 1
+    [[ -x "$repository_node_modules/.bin/playwright" ]] || return 1
+}
+
+remove_promptbook_dependency_cache_if_safe() {
+    local dependency_cache_directory="$1"
+    local resolved_cache_directory=""
+    local resolved_cache_root=""
+
+    resolved_cache_directory="$(realpath -m "$dependency_cache_directory")"
+    resolved_cache_root="$(realpath -m "$PTBK_NODE_MODULES_CACHE_DIR")"
+
+    if [[ "$resolved_cache_directory" == "$resolved_cache_root" || "$resolved_cache_directory" != "$resolved_cache_root"/* ]]; then
+        fail "Refusing to remove dependency cache outside $PTBK_NODE_MODULES_CACHE_DIR: $dependency_cache_directory."
+    fi
+
+    if [[ -e "$dependency_cache_directory" || -L "$dependency_cache_directory" ]]; then
+        run_as_service_user rm -rf -- "$dependency_cache_directory"
+    fi
+}
+
+remove_promptbook_repository_node_modules_if_safe() {
+    local repository_dir="$1"
+    local resolved_repository_directory=""
+
+    resolved_repository_directory="$(realpath -m "$repository_dir")"
+    if [[ "$resolved_repository_directory" == "/" || ! -d "$repository_dir/.git" ]]; then
+        fail "Refusing to replace dependency tree outside a Promptbook git checkout: $repository_dir."
+    fi
+
+    if [[ -e "$repository_dir/node_modules" || -L "$repository_dir/node_modules" ]]; then
+        run_as_service_user rm -rf -- "$repository_dir/node_modules"
+    fi
+}
+
+link_promptbook_dependency_cache() {
+    local repository_dir="$1"
+    local dependency_cache_directory="$2"
+    local repository_node_modules="$repository_dir/node_modules"
+    local expected_node_modules_target="$(realpath -m "$dependency_cache_directory/node_modules")"
+    local existing_node_modules_target=""
+
+    if [[ -L "$repository_node_modules" ]]; then
+        existing_node_modules_target="$(readlink -f "$repository_node_modules" 2>/dev/null || true)"
+        if [[ "$existing_node_modules_target" == "$expected_node_modules_target" ]]; then
+            return
+        fi
+    fi
+
+    remove_promptbook_repository_node_modules_if_safe "$repository_dir"
+    run_as_service_user ln -s "$dependency_cache_directory/node_modules" "$repository_node_modules"
+}
+
+# Installs the repository dependency tree once per package-lock identity and shares it with
+# versioned releases through a symlink. A complete, lock-matched tree is never reinstalled.
+install_promptbook_repository_dependencies() {
+    local repository_dir="$1"
+    local package_lock_hash=""
+    local dependency_cache_directory=""
+    local dependency_cache_marker=""
+
+    package_lock_hash="$(resolve_promptbook_package_lock_hash "$repository_dir")"
+    dependency_cache_directory="$(resolve_promptbook_dependency_cache_directory "$package_lock_hash")"
+    dependency_cache_marker="$dependency_cache_directory/node_modules/.promptbook-package-lock-hash"
+
+    if is_promptbook_dependency_cache_ready "$dependency_cache_directory" "$package_lock_hash"; then
+        if is_promptbook_repository_node_modules_current "$repository_dir" "$package_lock_hash"; then
+            log "Promptbook dependencies for $package_lock_hash are already installed."
+            return
+        fi
+
+        log "Reusing Promptbook dependencies for package-lock $package_lock_hash."
+        link_promptbook_dependency_cache "$repository_dir" "$dependency_cache_directory"
+        return
+    fi
+
+    log "Installing Promptbook repository dependencies."
+    if [[ -L "$repository_dir/node_modules" ]]; then
+        remove_promptbook_repository_node_modules_if_safe "$repository_dir"
+    fi
+    run_as_service_user bash -lc "cd $(shell_quote "$repository_dir") && npm ci --include=dev --prefer-offline --no-audit --no-fund"
+
+    remove_promptbook_dependency_cache_if_safe "$dependency_cache_directory"
+    run_as_service_user mkdir -p "$dependency_cache_directory"
+    run_as_service_user mv "$repository_dir/node_modules" "$dependency_cache_directory/node_modules"
+    run_as_service_user bash -lc "printf '%s\\n' $(shell_quote "$package_lock_hash") > $(shell_quote "$dependency_cache_marker")"
+    link_promptbook_dependency_cache "$repository_dir" "$dependency_cache_directory"
+}
+
+is_promptbook_dependency_cache_used() {
+    local package_lock_hash="$1"
+    local repository_dir=""
+
+    if [[ -n "$PROMPTBOOK_REPOSITORY_DIR" && -f "$PROMPTBOOK_REPOSITORY_DIR/package-lock.json" ]] &&
+        [[ "$(resolve_promptbook_package_lock_hash "$PROMPTBOOK_REPOSITORY_DIR")" == "$package_lock_hash" ]]; then
+        return 0
+    fi
+
+    if [[ ! -d "$PTBK_RELEASES_DIR" ]]; then
+        return 1
+    fi
+
+    while IFS= read -r repository_dir; do
+        if [[ -f "$repository_dir/package-lock.json" ]] &&
+            [[ "$(resolve_promptbook_package_lock_hash "$repository_dir")" == "$package_lock_hash" ]]; then
+            return 0
+        fi
+    done < <(find "$PTBK_RELEASES_DIR" -mindepth 1 -maxdepth 1 -type d ! -name '.*' 2>/dev/null)
+
+    return 1
+}
+
+# Removes dependency caches which are no longer referenced by any retained release, keeping the
+# performance cache from consuming one full dependency tree per historical update indefinitely.
+garbage_collect_promptbook_dependency_caches() {
+    local dependency_cache_directory=""
+    local package_lock_hash=""
+
+    if [[ ! -d "$PTBK_NODE_MODULES_CACHE_DIR" ]]; then
+        return
+    fi
+
+    while IFS= read -r dependency_cache_directory; do
+        package_lock_hash="$(basename "$dependency_cache_directory")"
+        if ! is_promptbook_dependency_cache_used "$package_lock_hash"; then
+            log "Removing unused Promptbook dependency cache $package_lock_hash."
+            remove_promptbook_dependency_cache_if_safe "$dependency_cache_directory"
+        fi
+    done < <(find "$PTBK_NODE_MODULES_CACHE_DIR" -mindepth 1 -maxdepth 1 -type d 2>/dev/null)
 }
 
 is_apt_lock_path_locked() {
@@ -1577,6 +1757,8 @@ garbage_collect_promptbook_releases() {
 
         remove_promptbook_repository_directory_if_safe "$release_dir"
     done < <(find "$PTBK_RELEASES_DIR" -mindepth 1 -maxdepth 1 -type d ! -name '.*' -printf '%T@\t%p\n' 2>/dev/null | sort -rn | cut -f2-)
+
+    garbage_collect_promptbook_dependency_caches
 }
 
 install_promptbook_repository() {
@@ -1604,8 +1786,8 @@ install_promptbook_repository() {
         fi
 
         PROMPTBOOK_REPOSITORY_DIR="$target_repository_dir"
-        log "Promptbook checkout $PROMPTBOOK_REPOSITORY_RELEASE_NAME already exists; refreshing dependencies."
-        run_as_service_user bash -lc "cd $(shell_quote "$PROMPTBOOK_REPOSITORY_DIR") && npm ci --include=dev"
+        log "Promptbook checkout $PROMPTBOOK_REPOSITORY_RELEASE_NAME already exists; checking dependencies."
+        install_promptbook_repository_dependencies "$PROMPTBOOK_REPOSITORY_DIR"
         return
     fi
 
@@ -1623,8 +1805,7 @@ install_promptbook_repository() {
     fi
     run_as_service_user git -C "$staging_repository_dir" checkout --detach "$target_commit_sha"
 
-    log "Installing Promptbook repository dependencies."
-    run_as_service_user bash -lc "cd $(shell_quote "$staging_repository_dir") && npm ci --include=dev"
+    install_promptbook_repository_dependencies "$staging_repository_dir"
     if [[ -d "$target_repository_dir" ]]; then
         run_as_service_user rmdir "$target_repository_dir"
     fi
@@ -1632,10 +1813,34 @@ install_promptbook_repository() {
     PROMPTBOOK_REPOSITORY_DIR="$target_repository_dir"
 }
 
+resolve_playwright_system_dependencies_marker_value() {
+    local package_lock_hash=""
+
+    package_lock_hash="$(resolve_promptbook_package_lock_hash "$PROMPTBOOK_REPOSITORY_DIR")"
+    printf '%s|%s|%s' "$package_lock_hash" "$(uname -s)" "$(uname -m)"
+}
+
 install_agents_server_browser_dependencies() {
+    local marker_value=""
+    local is_system_dependencies_current=0
+
     log "Installing Chromium and Playwright system dependencies for Agents Server browser features."
-    wait_for_apt_locks
-    "${SUDO[@]}" bash -lc "cd $(shell_quote "$PROMPTBOOK_REPOSITORY_DIR") && npx playwright install-deps chromium"
+    marker_value="$(resolve_playwright_system_dependencies_marker_value)"
+    if [[ -f "$PTBK_PLAYWRIGHT_SYSTEM_DEPENDENCIES_MARKER_PATH" ]] &&
+        [[ "$(cat "$PTBK_PLAYWRIGHT_SYSTEM_DEPENDENCIES_MARKER_PATH")" == "$marker_value" ]]; then
+        log "Playwright system dependencies for $marker_value are already installed."
+        is_system_dependencies_current=1
+    fi
+
+    if [[ "$is_system_dependencies_current" -eq 0 ]]; then
+        wait_for_apt_locks
+        "${SUDO[@]}" bash -lc "cd $(shell_quote "$PROMPTBOOK_REPOSITORY_DIR") && npx playwright install-deps chromium"
+        run_as_service_user mkdir -p "$(dirname "$PTBK_PLAYWRIGHT_SYSTEM_DEPENDENCIES_MARKER_PATH")"
+        run_as_service_user bash -lc "printf '%s\\n' $(shell_quote "$marker_value") > $(shell_quote "$PTBK_PLAYWRIGHT_SYSTEM_DEPENDENCIES_MARKER_PATH")"
+    fi
+
+    # The browser command remains idempotent so a changed Playwright browser revision is downloaded
+    # when necessary even when the operating-system packages can be reused.
     run_as_service_user bash -lc "cd $(shell_quote "$PROMPTBOOK_REPOSITORY_DIR") && npx playwright install chromium"
 }
 
@@ -1663,6 +1868,8 @@ install_agents_server_dependency_requirements() {
             PTBK_DATABASE_DIR="$PTBK_DATABASE_DIR" \
             PTBK_RELEASES_DIR="$PTBK_RELEASES_DIR" \
             PTBK_SHARED_NEXT_STATIC_ROOT="$PTBK_SHARED_NEXT_STATIC_ROOT" \
+            PTBK_NODE_MODULES_CACHE_DIR="$PTBK_NODE_MODULES_CACHE_DIR" \
+            PTBK_PLAYWRIGHT_SYSTEM_DEPENDENCIES_MARKER_PATH="$PTBK_PLAYWRIGHT_SYSTEM_DEPENDENCIES_MARKER_PATH" \
             PROMPTBOOK_REPOSITORY_DIR="$PROMPTBOOK_REPOSITORY_DIR" \
             bash "$release_install_script_path" apply-dependencies
         return
@@ -2346,6 +2553,8 @@ configure_environment() {
     set_env_value PTBK_DATABASE_DIR "$PTBK_DATABASE_DIR"
     set_env_value PTBK_RELEASES_DIR "$PTBK_RELEASES_DIR"
     set_env_value PTBK_SHARED_NEXT_STATIC_ROOT "$PTBK_SHARED_NEXT_STATIC_ROOT"
+    set_env_value PTBK_NODE_MODULES_CACHE_DIR "$PTBK_NODE_MODULES_CACHE_DIR"
+    set_env_value PTBK_PLAYWRIGHT_SYSTEM_DEPENDENCIES_MARKER_PATH "$PTBK_PLAYWRIGHT_SYSTEM_DEPENDENCIES_MARKER_PATH"
     set_env_value PTBK_REPOSITORY_DIR "$PROMPTBOOK_REPOSITORY_DIR"
     set_env_value PROMPTBOOK_REPOSITORY_REF "$PROMPTBOOK_REPOSITORY_REF"
     set_env_value PTBK_VPS_INSTALL_SCRIPT "$PROMPTBOOK_REPOSITORY_DIR/install.sh"
@@ -3762,6 +3971,12 @@ load_runtime_configuration_from_env_file() {
     env_value="$(get_env_value PTBK_SHARED_NEXT_STATIC_ROOT)"
     [[ -n "$env_value" ]] && PTBK_SHARED_NEXT_STATIC_ROOT="$env_value"
 
+    env_value="$(get_env_value PTBK_NODE_MODULES_CACHE_DIR)"
+    [[ -n "$env_value" ]] && PTBK_NODE_MODULES_CACHE_DIR="$env_value"
+
+    env_value="$(get_env_value PTBK_PLAYWRIGHT_SYSTEM_DEPENDENCIES_MARKER_PATH)"
+    [[ -n "$env_value" ]] && PTBK_PLAYWRIGHT_SYSTEM_DEPENDENCIES_MARKER_PATH="$env_value"
+
     env_value="$(get_env_value PTBK_REPOSITORY_DIR)"
     if [[ -n "$env_value" ]]; then
         PROMPTBOOK_REPOSITORY_DIR="$env_value"
@@ -4074,6 +4289,8 @@ self_update_agents_server() {
         ENV_FILE="$INSTALL_DIR/.env"
         set_env_value PROMPTBOOK_REPOSITORY_REF "$PROMPTBOOK_REPOSITORY_REF"
         set_env_value PTBK_SHARED_NEXT_STATIC_ROOT "$PTBK_SHARED_NEXT_STATIC_ROOT"
+        set_env_value PTBK_NODE_MODULES_CACHE_DIR "$PTBK_NODE_MODULES_CACHE_DIR"
+        set_env_value PTBK_PLAYWRIGHT_SYSTEM_DEPENDENCIES_MARKER_PATH "$PTBK_PLAYWRIGHT_SYSTEM_DEPENDENCIES_MARKER_PATH"
         set_env_value PTBK_REPOSITORY_DIR "$PROMPTBOOK_REPOSITORY_DIR"
         set_env_value PTBK_VPS_INSTALL_SCRIPT "$PROMPTBOOK_REPOSITORY_DIR/install.sh"
         cleanup_orphan_agents_server_pm2_processes "$APP_NAME"
@@ -4101,6 +4318,8 @@ self_update_agents_server() {
     set_env_value PORT "$replacement_port"
     set_env_value PTBK_RELEASES_DIR "$PTBK_RELEASES_DIR"
     set_env_value PTBK_SHARED_NEXT_STATIC_ROOT "$PTBK_SHARED_NEXT_STATIC_ROOT"
+    set_env_value PTBK_NODE_MODULES_CACHE_DIR "$PTBK_NODE_MODULES_CACHE_DIR"
+    set_env_value PTBK_PLAYWRIGHT_SYSTEM_DEPENDENCIES_MARKER_PATH "$PTBK_PLAYWRIGHT_SYSTEM_DEPENDENCIES_MARKER_PATH"
     set_env_value PTBK_REPOSITORY_DIR "$PROMPTBOOK_REPOSITORY_DIR"
     set_env_value PROMPTBOOK_REPOSITORY_REF "$PROMPTBOOK_REPOSITORY_REF"
     set_env_value PTBK_VPS_INSTALL_SCRIPT "$PROMPTBOOK_REPOSITORY_DIR/install.sh"

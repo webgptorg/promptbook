@@ -1,4 +1,4 @@
-[ ]
+[x] by OpenAI Codex `gpt-5.6-luna` thinking `max` (ChatGPT account) - Implementation ~$1.13 37 minutes; Testing 28 minutes
 
 [✨🚭] Allow to specify required model for each prompt
 
@@ -74,3 +74,4 @@ ptbk coder run --harness github-copilot --model gpt-5.5 --thinking-level xhigh -
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Update the [`ptbk coder` landing website](apps/coder-landing)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

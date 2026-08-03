@@ -9,6 +9,26 @@ import { $execCommand } from '../../utils/execCommand/$execCommand';
 import { PROMPTBOOK_ENGINE_VERSION } from '../../version';
 
 /**
+ * Command used by CLI integration tests without repeating project-wide type checking in every child process.
+ */
+const PTBK_TEST_COMMAND = 'ts-node --transpile-only src/cli/test/ptbk.ts';
+const PTBK_TEST_WORKING_DIRECTORY = process.cwd();
+
+/**
+ * Executes one Promptbook CLI command from the repository root.
+ *
+ * @param commandArguments - Arguments passed to the CLI after the executable.
+ * @returns The combined CLI output.
+ */
+function $executePtbkTestCommand(commandArguments = ''): Promise<string> {
+    return $execCommand({
+        command: commandArguments ? `${PTBK_TEST_COMMAND} ${commandArguments}` : PTBK_TEST_COMMAND,
+        crashOnError: false,
+        cwd: PTBK_TEST_WORKING_DIRECTORY,
+    });
+}
+
+/**
  * Creates one temporary directory for CLI integration tests.
  */
 async function createTemporaryDirectory(): Promise<string> {
@@ -17,20 +37,10 @@ async function createTemporaryDirectory(): Promise<string> {
 
 describe('how promptbookCli works', () => {
     it('should initiate without errors', () =>
-        expect(
-            $execCommand({
-                command: 'ts-node src/cli/test/ptbk.ts --help',
-                crashOnError: false,
-                cwd: process.cwd(),
-            }),
-        ).resolves.toContain('Usage: promptbook|ptbk [options] [command]'));
+        expect($executePtbkTestCommand('--help')).resolves.toContain('Usage: promptbook|ptbk [options] [command]'));
 
     it('should mark legacy top-level commands as deprecated in help', async () => {
-        const helpOutput = await $execCommand({
-            command: 'ts-node src/cli/test/ptbk.ts --help',
-            crashOnError: false,
-            cwd: process.cwd(),
-        });
+        const helpOutput = await $executePtbkTestCommand('--help');
 
         expect(helpOutput).toContain('run|execute');
         expect(helpOutput).toContain('Deprecated: This command is part of the old pipeline system.');
@@ -42,130 +52,66 @@ describe('how promptbookCli works', () => {
 
     it('should print the same top-level help when started without arguments', async () => {
         const [helpOutput, defaultOutput] = await Promise.all([
-            $execCommand({
-                command: 'ts-node src/cli/test/ptbk.ts --help',
-                crashOnError: false,
-                cwd: process.cwd(),
-            }),
-            $execCommand({
-                command: 'ts-node src/cli/test/ptbk.ts',
-                crashOnError: false,
-                cwd: process.cwd(),
-            }),
+            $executePtbkTestCommand('--help'),
+            $executePtbkTestCommand(),
         ]);
 
         expect(defaultOutput).toBe(helpOutput);
     });
 
     it('should report version', () =>
-        expect(
-            $execCommand({
-                command: 'ts-node src/cli/test/ptbk.ts about',
-                crashOnError: false,
-                cwd: process.cwd(),
-            }),
-        ).resolves.toContain(PROMPTBOOK_ENGINE_VERSION));
+        expect($executePtbkTestCommand('about')).resolves.toContain(PROMPTBOOK_ENGINE_VERSION));
 
     it('should print version for `--version`', () =>
-        expect(
-            $execCommand({
-                command: 'ts-node src/cli/test/ptbk.ts --version',
-                crashOnError: false,
-                cwd: process.cwd(),
-            }),
-        ).resolves.toBe(PROMPTBOOK_ENGINE_VERSION));
+        expect($executePtbkTestCommand('--version')).resolves.toBe(PROMPTBOOK_ENGINE_VERSION));
 
     it('should print version for `-v`', () =>
-        expect(
-            $execCommand({
-                command: 'ts-node src/cli/test/ptbk.ts -v',
-                crashOnError: false,
-                cwd: process.cwd(),
-            }),
-        ).resolves.toBe(PROMPTBOOK_ENGINE_VERSION));
+        expect($executePtbkTestCommand('-v')).resolves.toBe(PROMPTBOOK_ENGINE_VERSION));
 
     it('should expose `coder init` command', () =>
-        expect(
-            $execCommand({
-                command: 'ts-node src/cli/test/ptbk.ts coder init --help',
-                crashOnError: false,
-                cwd: process.cwd(),
-            }),
-        ).resolves.toContain('Initialize Promptbook coder configuration for current project'));
+        expect($executePtbkTestCommand('coder init --help')).resolves.toContain(
+            'Initialize Promptbook coder configuration for current project',
+        ));
 
     it('should expose `agent-folder run-agent` command', () =>
-        expect(
-            $execCommand({
-                command: 'ts-node src/cli/test/ptbk.ts agent-folder run-agent --help',
-                crashOnError: false,
-                cwd: process.cwd(),
-            }),
-        ).resolves.toContain('Watch one agent repository continuously and answer queued user questions'));
+        expect($executePtbkTestCommand('agent-folder run-agent --help')).resolves.toContain(
+            'Watch one agent repository continuously and answer queued user questions',
+        ));
 
     it('should expose `agent chat` command', () =>
-        expect(
-            $execCommand({
-                command: 'ts-node src/cli/test/ptbk.ts agent chat --help',
-                crashOnError: false,
-                cwd: process.cwd(),
-            }),
-        ).resolves.toContain('Run an interactive CLI chat with one Promptbook agent book'));
+        expect($executePtbkTestCommand('agent chat --help')).resolves.toContain(
+            'Run an interactive CLI chat with one Promptbook agent book',
+        ));
 
     it('should expose `agent exec` command', () =>
-        expect(
-            $execCommand({
-                command: 'ts-node src/cli/test/ptbk.ts agent exec --help',
-                crashOnError: false,
-                cwd: process.cwd(),
-            }),
-        ).resolves.toContain('Run one non-interactive message with a Promptbook agent book and print the answer'));
+        expect($executePtbkTestCommand('agent exec --help')).resolves.toContain(
+            'Run one non-interactive message with a Promptbook agent book and print the answer',
+        ));
 
     it('should expose `agents-server start` command', () =>
-        expect(
-            $execCommand({
-                command: 'ts-node src/cli/test/ptbk.ts agents-server start --help',
-                crashOnError: false,
-                cwd: process.cwd(),
-            }),
-        ).resolves.toContain('Start the Agents Server web app and the local coding-agent message runners'));
+        expect($executePtbkTestCommand('agents-server start --help')).resolves.toContain(
+            'Start the Agents Server web app and the local coding-agent message runners',
+        ));
 
     it('should expose `agents-server dev` command', () =>
-        expect(
-            $execCommand({
-                command: 'ts-node src/cli/test/ptbk.ts agents-server dev --help',
-                crashOnError: false,
-                cwd: process.cwd(),
-            }),
-        ).resolves.toContain(
+        expect($executePtbkTestCommand('agents-server dev --help')).resolves.toContain(
             'Start the Agents Server web app in development mode with hot reloading and the local coding-agent message runners',
         ));
 
     it('should expose `agents-server build` command', () =>
-        expect(
-            $execCommand({
-                command: 'ts-node src/cli/test/ptbk.ts agents-server build --help',
-                crashOnError: false,
-                cwd: process.cwd(),
-            }),
-        ).resolves.toContain('Build the Agents Server Next app for later local startup'));
+        expect($executePtbkTestCommand('agents-server build --help')).resolves.toContain(
+            'Build the Agents Server Next app for later local startup',
+        ));
 
     it('should expose `agents-server init` command', () =>
-        expect(
-            $execCommand({
-                command: 'ts-node src/cli/test/ptbk.ts agents-server init --help',
-                crashOnError: false,
-                cwd: process.cwd(),
-            }),
-        ).resolves.toContain('Initialize Promptbook Agents Server configuration for current project'));
+        expect($executePtbkTestCommand('agents-server init --help')).resolves.toContain(
+            'Initialize Promptbook Agents Server configuration for current project',
+        ));
 
     it('should expose `coder initialize` alias', () =>
-        expect(
-            $execCommand({
-                command: 'ts-node src/cli/test/ptbk.ts coder initialize --help',
-                crashOnError: false,
-                cwd: process.cwd(),
-            }),
-        ).resolves.toContain('Initialize Promptbook coder configuration for current project'));
+        expect($executePtbkTestCommand('coder initialize --help')).resolves.toContain(
+            'Initialize Promptbook coder configuration for current project',
+        ));
 
     it('should print checked standalone bootstrap summary for `coder init`', async () => {
         const temporaryDirectory = await createTemporaryDirectory();

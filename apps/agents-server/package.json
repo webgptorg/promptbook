@@ -5,13 +5,15 @@
         "prebuild": "npm run generate-reserved-paths && node ./scripts/clearNextGeneratedTypes.js && npx kill-port 4440 ||  exit 0",
         "predev": "npm run generate-reserved-paths && npx kill-port 4440 ||  exit 0",
         "dev": "next dev -p 4440",
-        "test": "npm run lint && npm run test-build && npm run test-e2e",
-        "test-e2e": "playwright test",
+        "test": "npm run test-e2e",
+        "test-e2e": "node ./scripts/run-e2e-tests.js",
         "pretest-build": "npx kill-port 4021 4440 || exit 0",
         "test-build": "npm run build",
-        "build": "node --max-old-space-size=8192 -r ./scripts/ignore-kill-eperm.js ./scripts/next-cli.js build && node ./scripts/prerender-homepage.js",
+        "pretest-e2e": "npx kill-port 4021 4440 || exit 0",
+        "build": "node ./scripts/build-agents-server.js",
+        "build-e2e": "node ./scripts/build-e2e.js",
         "start": "next start -p 4440",
         "lint": "eslint src/ --max-warnings=0",
-        "postinstall": "cd ../../ && npm ci"
+        "postinstall": "node ./scripts/ensure-root-dependencies.js"
     }
 }

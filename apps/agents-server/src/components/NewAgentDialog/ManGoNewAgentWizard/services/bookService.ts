@@ -1,21 +1,28 @@
 import { postManGoOnboardingJson } from './postManGoOnboardingJson';
 
 /**
- * Response returned by the manGo Book conversion endpoint.
+ * Response returned by the manGo Book generation endpoint.
  *
  * @private internal type of the manGo wizard book service.
  */
-type ConvertToBookResponse = {
+type GenerateBookResponse = {
     readonly book: string;
-    readonly isValid: boolean;
 };
 
 /**
- * Boundary used by the imported Book language panel. Backed by the manGo book expert.
+ * Generates the initial Book directly from the assignment step.
  *
- * @param input - Current Book editor content.
- * @returns Validated Book source and validation flag for the panel badge.
+ * @param input - Agent name and brief captured by the entry step.
+ * @returns Editable Book source used by the following wizard steps.
  */
-export async function convertToBook(input: string): Promise<{ book: string; isValid: boolean }> {
-    return postManGoOnboardingJson<ConvertToBookResponse>('/api/onboarding/book', { input });
+export async function generateBook(input: {
+    readonly agentName: string;
+    readonly agentBrief: string;
+}): Promise<string> {
+    const response = await postManGoOnboardingJson<GenerateBookResponse>('/api/onboarding/book', {
+        agentName: input.agentName,
+        agentBrief: input.agentBrief,
+    });
+
+    return response.book;
 }

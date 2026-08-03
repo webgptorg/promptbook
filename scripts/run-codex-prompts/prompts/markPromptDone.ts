@@ -4,6 +4,7 @@ import type { CoderRunStep } from '../common/CoderRunStep';
 import { formatCoderRunSteps } from './formatCoderRunSteps';
 import { formatPromptAttemptMetadata } from './formatPromptAttemptMetadata';
 import { formatRunnerSignature } from './formatRunnerSignature';
+import { replacePromptTodoStatusLine } from './replacePromptTodoStatusLine';
 import type { PromptFile } from './types/PromptFile';
 import type { PromptSection } from './types/PromptSection';
 
@@ -35,9 +36,9 @@ export function markPromptDone(
     const stepsSummary = formatCoderRunSteps(steps);
     const stepsSuffix = stepsSummary === '' ? '' : ` - ${stepsSummary}`;
 
-    // Replace "[ ]" or "[ ] !!..." with "[x] by runner model thinking level (login method) - Step $price duration; ..."
-    file.lines[section.statusLineIndex] = line.replace(
-        /\[\s*\]\s*!*\s*$/,
+    // Replace the complete todo status, including any required model/harness token.
+    file.lines[section.statusLineIndex] = replacePromptTodoStatusLine(
+        line,
         `[x] ${attemptMetadata}by ${runnerSignature}${loginMethodSuffix}${stepsSuffix}`,
     );
 }
