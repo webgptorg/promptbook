@@ -10,6 +10,7 @@
 Agent 
 
 GOAL Be a great assistant to the user and help them with their tasks.
+SKILL 
 CLOSED
 ```
 
