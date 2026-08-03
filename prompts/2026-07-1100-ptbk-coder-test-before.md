@@ -19,7 +19,7 @@ ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh -
 
 ---
 
-[ ]
+[x] by OpenAI Codex `gpt-5.6-luna` thinking `max` (ChatGPT account) - Implementation ~$0.5485 27 minutes; Testing 28 minutes
 
 [✨🛀] Chamge confusing screen when `--test-before` option is used
 
@@ -27,3 +27,4 @@ ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh -
 -   Load the tasks and show some message like "Running initial tests before the agent coding starts" and show the progress of the tests.
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts) with options `--test-before yes-and-fail` and `--test-before yes-and-fix`
 -   Update the [`ptbk coder` landing website](apps/coder-landing) if relevant
+

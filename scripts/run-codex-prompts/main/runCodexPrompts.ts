@@ -128,6 +128,21 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                 isRichUiEnabled,
             });
 
+            if (!hasRunTestBefore && options.testBefore !== 'no') {
+                await waitForRequestedPause({
+                    checkpointLabel: 'loading prompts before running initial tests',
+                    phase: 'loading',
+                    statusMessage: 'Loading prompts before running initial tests...',
+                });
+                await loadPromptQueueSnapshot({
+                    options,
+                    isRichUiEnabled,
+                    progressDisplay,
+                    uiHandle,
+                    promptRunnerIdentity,
+                });
+            }
+
             if (!hasRunTestBefore) {
                 hasWaitedForStart = await runTestBeforeIfNeeded({
                     options,
@@ -459,10 +474,13 @@ async function runTestBeforeIfNeeded(options: {
         await ensureWorkingTreeClean();
     }
 
+    uiHandle?.startCapturingAgentOutput();
     const testBeforeResult = await runTestBefore({
         testCommand: runOptions.testCommand,
         projectPath: process.cwd(),
         waitForPauseCheckpoint: waitForRequestedPause,
+    }).finally(() => {
+        uiHandle?.stopCapturingAgentOutput();
     });
 
     if (testBeforeResult.isPassed) {

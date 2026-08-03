@@ -1,3 +1,5 @@
+-   Improved `ptbk coder run --test-before`: the prompt queue is loaded before initial verification, the rich terminal UI explains that initial tests are running before agent coding starts, and live test output is shown while the command runs.
+
 -   Added required model and harness matching to `ptbk coder` prompts. A ready `[ ]` status line can now contain one or more backtick-delimited normalized model, model-family, or harness names, combine them with `!` priority markers, and run only when the selected runner matches. The `ptbk coder` landing page now documents model-specific prompts.
 
 -   Simplified the Agents Server manGo onboarding Book step so the assignment now generates one editable Book directly. The intermediate markdown draft and separate conversion panel were removed, the real Book editor is shown immediately, and section buttons insert valid Book-language commitments before the final `OPEN` or `CLOSED` marker.
