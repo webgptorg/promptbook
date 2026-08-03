@@ -2,7 +2,6 @@ import { spawn } from 'child_process';
 import colors from 'colors';
 import os from 'os';
 import { spaceTrim } from 'spacetrim';
-import { forTime } from 'waitasecond';
 import { UnexpectedError } from '../../src/errors/UnexpectedError';
 import type { PackageMetadata } from './PackageMetadata';
 import { logPackageGenerationStep } from './logPackageGenerationStep';
@@ -12,7 +11,7 @@ import { logPackageGenerationStep } from './logPackageGenerationStep';
  *
  * @private internal utility of buildGeneratedPackageBundles
  */
-const ROLLUP_NO_OUTPUT_TIMEOUT_MS = 60 * 60 * 1000;
+const ROLLUP_NO_OUTPUT_TIMEOUT_MS = 15 * 60 * 1000;
 
 /**
  * Rollup should exit almost immediately after printing the final `created ...` line.
@@ -36,6 +35,29 @@ const ROLLUP_HEALTH_CHECK_INTERVAL_MS = 5 * 1000;
 const ROLLUP_CREATED_LINE_REGEX = /^created\s+.+\s+in\s+.+$/i;
 
 /**
+ * ANSI escape sequences emitted by Rollup's colored terminal output.
+ *
+ * @private internal utility of buildGeneratedPackageBundles
+ */
+// eslint-disable-next-line no-control-regex
+const ROLLUP_ANSI_ESCAPE_REGEX = /\u001B\[[0-?]*[ -/]*[@-~]/gu;
+
+/**
+ * Upper bound for concurrently running package bundlers.
+ *
+ * @private internal utility of buildGeneratedPackageBundles
+ */
+const MAX_PARALLEL_PACKAGE_BUILDS = 4;
+
+/**
+ * Conservative amount of memory reserved for one Rollup process when selecting
+ * the default package-build concurrency.
+ *
+ * @private internal utility of buildGeneratedPackageBundles
+ */
+const MINIMUM_MEMORY_PER_PACKAGE_BUILD_BYTES = 4 * 1024 * 1024 * 1024;
+
+/**
  * Runtime diagnostics for the currently running Rollup build.
  *
  * @private internal utility of buildGeneratedPackageBundles
@@ -55,10 +77,10 @@ type ActiveRollupBuild = {
  *
  * @private internal utility of buildGeneratedPackageBundles
  */
-let activeRollupBuild: ActiveRollupBuild | null = null;
+const activeRollupBuilds = new Map<string, ActiveRollupBuild>();
 
 /**
- * Builds every bundle-producing package sequentially with diagnostics.
+ * Builds every bundle-producing package with bounded parallelism and diagnostics.
  *
  * @param packagesMetadata - Metadata of generated packages
  * @param isBundlerSkipped - Whether bundling is disabled for this run
@@ -75,14 +97,72 @@ export async function buildGeneratedPackageBundles(
         return;
     }
 
-    await forTime(1000 * 60 * 60 * 0);
-
     const stopBuildResourceReporter = startBuildResourceReporter();
     const buildablePackages = packagesMetadata.filter(({ isBuilded }) => isBuilded);
+    const packageBuildConcurrency = getPackageBuildConcurrency(buildablePackages.length);
 
     try {
-        // Note: Build each package separately to avoid memory issues and improve build reliability
-        for (let packageIndex = 0; packageIndex < buildablePackages.length; packageIndex++) {
+        console.info(colors.yellow(`Building up to ${packageBuildConcurrency} packages in parallel`));
+        await buildPackageBundlesInParallel(buildablePackages, packageBuildConcurrency);
+
+        console.info(colors.green('✅✅ All packages built successfully'));
+    } finally {
+        stopBuildResourceReporter();
+    }
+}
+
+/**
+ * Selects a safe default number of package bundlers for the current machine.
+ *
+ * Package bundles are independent, but every Rollup process can use substantial
+ * memory while TypeScript and the bundle graph are active. The result therefore
+ * considers package count, CPU count, available system memory, and a hard cap.
+ *
+ * @param packageCount - Number of packages that need to be built
+ * @returns Maximum number of package builds to run simultaneously
+ * @private internal utility of buildGeneratedPackageBundles
+ */
+function getPackageBuildConcurrency(packageCount: number): number {
+    if (packageCount <= 0) {
+        return 0;
+    }
+
+    const cpuConcurrency = Math.max(1, os.availableParallelism() - 1);
+    const memoryConcurrency = Math.max(
+        1,
+        Math.floor(os.totalmem() / MINIMUM_MEMORY_PER_PACKAGE_BUILD_BYTES),
+    );
+
+    return Math.min(packageCount, MAX_PARALLEL_PACKAGE_BUILDS, cpuConcurrency, memoryConcurrency);
+}
+
+/**
+ * Runs package bundlers through a bounded worker pool.
+ *
+ * Existing workers finish their current packages after a failure, while no new
+ * package is started. Waiting for all workers prevents orphaned Rollup processes
+ * when the caller receives the first build error.
+ *
+ * @param buildablePackages - Packages that produce Rollup bundles
+ * @param packageBuildConcurrency - Maximum number of active package builds
+ * @returns Promise resolved after all started builds settle
+ * @private internal utility of buildGeneratedPackageBundles
+ */
+async function buildPackageBundlesInParallel(
+    buildablePackages: ReadonlyArray<PackageMetadata>,
+    packageBuildConcurrency: number,
+): Promise<void> {
+    let nextPackageIndex = 0;
+    let isBuildFailed = false;
+
+    const buildWorker = async (): Promise<void> => {
+        while (!isBuildFailed) {
+            const packageIndex = nextPackageIndex++;
+
+            if (packageIndex >= buildablePackages.length) {
+                return;
+            }
+
             const { packageBasename, packageFullname } = buildablePackages[packageIndex];
 
             console.info(`--- ${packageFullname} ---`);
@@ -90,14 +170,25 @@ export async function buildGeneratedPackageBundles(
                 colors.blue(`📦 Building package ${packageIndex + 1}/${buildablePackages.length}: ${packageFullname}`),
             );
 
-            await buildPackageBundle(packageBasename, packageFullname);
+            try {
+                await buildPackageBundle(packageBasename, packageFullname);
+            } catch (error) {
+                isBuildFailed = true;
+                throw error;
+            }
 
             console.info(colors.green(`✅ Package ${packageFullname} built successfully`));
         }
+    };
 
-        console.info(colors.green('✅✅ All packages built successfully'));
-    } finally {
-        stopBuildResourceReporter();
+    const workerResults = await Promise.allSettled(
+        Array.from({ length: Math.min(packageBuildConcurrency, buildablePackages.length) }, () => buildWorker()),
+    );
+
+    for (const workerResult of workerResults) {
+        if (workerResult.status === 'rejected') {
+            throw workerResult.reason;
+        }
     }
 }
 
@@ -140,29 +231,31 @@ function formatDurationForLog(durationMs: number): string {
  * @private internal utility of buildGeneratedPackageBundles
  */
 function summarizeActiveRollupBuild(now: number): string {
-    const currentActiveRollupBuild = activeRollupBuild;
+    const currentActiveRollupBuilds = Array.from(activeRollupBuilds.values());
 
-    if (currentActiveRollupBuild === null) {
+    if (currentActiveRollupBuilds.length === 0) {
         return 'No Rollup subprocess is currently active.';
     }
 
-    return spaceTrim(
-        (block) => `
-            Package: \`${currentActiveRollupBuild.packageFullname}\`
-            Package basename: \`${currentActiveRollupBuild.packageBasename}\`
-            PID: ${currentActiveRollupBuild.childPid ?? 'pending'}
-            Build runtime: ${formatDurationForLog(now - currentActiveRollupBuild.startedAt)}
-            Time since last output: ${formatDurationForLog(now - currentActiveRollupBuild.lastOutputAt)}
-            Last lifecycle event: ${currentActiveRollupBuild.lastLifecycleEvent}
-            ${block(
-                currentActiveRollupBuild.createdAt === null
-                    ? `Rollup has not reported the final bundle creation line yet.`
-                    : `Time since Rollup reported final bundle creation: ${formatDurationForLog(
-                          now - currentActiveRollupBuild.createdAt,
-                      )}`,
-            )}
-        `,
-    );
+    return currentActiveRollupBuilds
+        .map((currentActiveRollupBuild) =>
+            spaceTrim(`
+                Package: \`${currentActiveRollupBuild.packageFullname}\`
+                Package basename: \`${currentActiveRollupBuild.packageBasename}\`
+                PID: ${currentActiveRollupBuild.childPid ?? 'pending'}
+                Build runtime: ${formatDurationForLog(now - currentActiveRollupBuild.startedAt)}
+                Time since last output: ${formatDurationForLog(now - currentActiveRollupBuild.lastOutputAt)}
+                Last lifecycle event: ${currentActiveRollupBuild.lastLifecycleEvent}
+                ${
+                    currentActiveRollupBuild.createdAt === null
+                        ? `Rollup has not reported the final bundle creation line yet.`
+                        : `Time since Rollup reported final bundle creation: ${formatDurationForLog(
+                              now - currentActiveRollupBuild.createdAt,
+                          )}`
+                }
+            `),
+        )
+        .join('\n\n');
 }
 
 /**
@@ -202,11 +295,13 @@ async function buildPackageBundle(packageBasename: string, packageFullname: stri
         let stdoutBuffer = '';
         let stderrBuffer = '';
         let isSettled = false;
+        let isProcessClosed = false;
+        let isSuccessfulTerminationRequested = false;
         let hangError: UnexpectedError | null = null;
         let healthCheckInterval: NodeJS.Timeout | null = null;
         let forceKillTimeout: NodeJS.Timeout | null = null;
 
-        activeRollupBuild = {
+        activeRollupBuilds.set(packageBasename, {
             packageBasename,
             packageFullname,
             startedAt: Date.now(),
@@ -214,7 +309,7 @@ async function buildPackageBundle(packageBasename: string, packageFullname: stri
             lastOutputAt: Date.now(),
             createdAt: null,
             lastLifecycleEvent: 'Spawn requested',
-        };
+        });
 
         /**
          * Clears timers and the currently active diagnostics.
@@ -228,7 +323,7 @@ async function buildPackageBundle(packageBasename: string, packageFullname: stri
                 clearTimeout(forceKillTimeout);
             }
 
-            activeRollupBuild = null;
+            activeRollupBuilds.delete(packageBasename);
         }
 
         /**
@@ -252,13 +347,17 @@ async function buildPackageBundle(packageBasename: string, packageFullname: stri
          * @param line - One complete output line
          */
         function inspectOutputLine(line: string): void {
-            if (activeRollupBuild === null) {
+            const currentActiveRollupBuild = activeRollupBuilds.get(packageBasename);
+
+            if (currentActiveRollupBuild === undefined) {
                 return;
             }
 
-            if (activeRollupBuild.createdAt === null && ROLLUP_CREATED_LINE_REGEX.test(line.trim())) {
-                activeRollupBuild.createdAt = Date.now();
-                activeRollupBuild.lastLifecycleEvent = 'Rollup reported final bundle creation';
+            const normalizedLine = line.replace(ROLLUP_ANSI_ESCAPE_REGEX, '').trim();
+
+            if (currentActiveRollupBuild.createdAt === null && ROLLUP_CREATED_LINE_REGEX.test(normalizedLine)) {
+                currentActiveRollupBuild.createdAt = Date.now();
+                currentActiveRollupBuild.lastLifecycleEvent = 'Rollup reported final bundle creation';
 
                 console.error(
                     colors.yellow(
@@ -278,16 +377,14 @@ async function buildPackageBundle(packageBasename: string, packageFullname: stri
             const outputText = chunk.toString();
             output.push(outputText);
 
-            if (activeRollupBuild !== null) {
-                activeRollupBuild.lastOutputAt = Date.now();
-                activeRollupBuild.lastLifecycleEvent = `Received ${streamName} output`;
+            const currentActiveRollupBuild = activeRollupBuilds.get(packageBasename);
+
+            if (currentActiveRollupBuild !== undefined) {
+                currentActiveRollupBuild.lastOutputAt = Date.now();
+                currentActiveRollupBuild.lastLifecycleEvent = `Received ${streamName} output`;
             }
 
-            if (streamName === 'stdout') {
-                process.stdout.write(outputText);
-            } else {
-                process.stderr.write(outputText);
-            }
+            forwardRollupOutput(outputText, streamName, commandProcess);
 
             const combinedOutput = `${streamName === 'stdout' ? stdoutBuffer : stderrBuffer}${outputText}`;
             const outputLines = combinedOutput.split(/\r?\n/);
@@ -316,8 +413,10 @@ async function buildPackageBundle(packageBasename: string, packageFullname: stri
 
             const now = Date.now();
 
-            if (activeRollupBuild !== null) {
-                activeRollupBuild.lastLifecycleEvent = reason;
+            const currentActiveRollupBuild = activeRollupBuilds.get(packageBasename);
+
+            if (currentActiveRollupBuild !== undefined) {
+                currentActiveRollupBuild.lastLifecycleEvent = reason;
             }
 
             const diagnosticSummary = summarizeActiveRollupBuild(now);
@@ -348,10 +447,38 @@ async function buildPackageBundle(packageBasename: string, packageFullname: stri
                 ),
             );
 
+            terminateRollupProcess();
+        }
+
+        /**
+         * Terminates a Rollup process that has already produced all bundle files.
+         *
+         * @private internal utility of buildPackageBundle
+         */
+        function requestSuccessfulTermination(): void {
+            if (isSuccessfulTerminationRequested) {
+                return;
+            }
+
+            isSuccessfulTerminationRequested = true;
+            console.error(
+                colors.yellow(
+                    `⌛ Rollup produced the final bundle for ${packageFullname}; terminating its lingering process`,
+                ),
+            );
+            terminateRollupProcess();
+        }
+
+        /**
+         * Requests a graceful process termination and schedules a force kill fallback.
+         *
+         * @private internal utility of buildPackageBundle
+         */
+        function terminateRollupProcess(): void {
             commandProcess.kill();
 
             forceKillTimeout = setTimeout(() => {
-                if (!commandProcess.killed) {
+                if (!isProcessClosed) {
                     console.error(colors.red(`Force-killing Rollup subprocess PID ${commandProcess.pid ?? 'unknown'}`));
                     commandProcess.kill('SIGKILL');
                 }
@@ -359,23 +486,20 @@ async function buildPackageBundle(packageBasename: string, packageFullname: stri
         }
 
         healthCheckInterval = setInterval(() => {
-            if (activeRollupBuild === null) {
+            const currentActiveRollupBuild = activeRollupBuilds.get(packageBasename);
+
+            if (currentActiveRollupBuild === undefined) {
                 return;
             }
 
             const now = Date.now();
-            const timeSinceLastOutput = now - activeRollupBuild.lastOutputAt;
+            const timeSinceLastOutput = now - currentActiveRollupBuild.lastOutputAt;
 
             if (
-                activeRollupBuild.createdAt !== null &&
-                now - activeRollupBuild.createdAt > ROLLUP_EXIT_GRACE_PERIOD_MS
+                currentActiveRollupBuild.createdAt !== null &&
+                now - currentActiveRollupBuild.createdAt > ROLLUP_EXIT_GRACE_PERIOD_MS
             ) {
-                requestTerminationForHang(
-                    spaceTrim(`
-                        Rollup already printed the final \`created ...\` line
-                        but the subprocess did not exit within ${formatDurationForLog(ROLLUP_EXIT_GRACE_PERIOD_MS)}.
-                    `),
-                );
+                requestSuccessfulTermination();
                 return;
             }
 
@@ -387,9 +511,11 @@ async function buildPackageBundle(packageBasename: string, packageFullname: stri
         }, ROLLUP_HEALTH_CHECK_INTERVAL_MS);
 
         commandProcess.on('spawn', () => {
-            if (activeRollupBuild !== null) {
-                activeRollupBuild.childPid = commandProcess.pid ?? null;
-                activeRollupBuild.lastLifecycleEvent = 'Rollup subprocess spawned';
+            const currentActiveRollupBuild = activeRollupBuilds.get(packageBasename);
+
+            if (currentActiveRollupBuild !== undefined) {
+                currentActiveRollupBuild.childPid = commandProcess.pid ?? null;
+                currentActiveRollupBuild.lastLifecycleEvent = 'Rollup subprocess spawned';
             }
         });
 
@@ -402,8 +528,10 @@ async function buildPackageBundle(packageBasename: string, packageFullname: stri
         });
 
         commandProcess.on('exit', (code, signal) => {
-            if (activeRollupBuild !== null) {
-                activeRollupBuild.lastLifecycleEvent = `Rollup subprocess exited with code=${code ?? 'null'} signal=${
+            const currentActiveRollupBuild = activeRollupBuilds.get(packageBasename);
+
+            if (currentActiveRollupBuild !== undefined) {
+                currentActiveRollupBuild.lastLifecycleEvent = `Rollup subprocess exited with code=${code ?? 'null'} signal=${
                     signal ?? 'null'
                 }`;
             }
@@ -426,6 +554,8 @@ async function buildPackageBundle(packageBasename: string, packageFullname: stri
         });
 
         commandProcess.on('close', (code, signal) => {
+            isProcessClosed = true;
+
             if (stdoutBuffer !== '') {
                 inspectOutputLine(stdoutBuffer);
             }
@@ -437,6 +567,11 @@ async function buildPackageBundle(packageBasename: string, packageFullname: stri
             settle(() => {
                 if (hangError !== null) {
                     reject(hangError);
+                    return;
+                }
+
+                if (isSuccessfulTerminationRequested) {
+                    resolve();
                     return;
                 }
 
@@ -461,6 +596,35 @@ async function buildPackageBundle(packageBasename: string, packageFullname: stri
             });
         });
     });
+}
+
+/**
+ * Forwards one Rollup output chunk without allowing the parent output stream to
+ * silently fill and stall the child process.
+ *
+ * @param outputText - Output chunk received from Rollup
+ * @param streamName - Source stream name
+ * @param commandProcess - Rollup subprocess whose stream may need pausing
+ * @private internal utility of buildGeneratedPackageBundles
+ */
+function forwardRollupOutput(
+    outputText: string,
+    streamName: 'stdout' | 'stderr',
+    commandProcess: ReturnType<typeof spawn>,
+): void {
+    const outputStream = streamName === 'stdout' ? process.stdout : process.stderr;
+    const rollupOutputStream = streamName === 'stdout' ? commandProcess.stdout : commandProcess.stderr;
+
+    if (rollupOutputStream === null) {
+        return;
+    }
+
+    const isOutputStreamReady = outputStream.write(outputText);
+
+    if (!isOutputStreamReady) {
+        rollupOutputStream.pause();
+        outputStream.once('drain', () => rollupOutputStream.resume());
+    }
 }
 
 /**
@@ -490,17 +654,17 @@ function startBuildResourceReporter(): () => void {
         console.error(`🧠 Memory: rss=${rss}MB heapUsed=${heapUsed}MB heapTotal=${heapTotal}MB`);
         console.error(`⚙️ CPU load (1m): ${load}`);
         console.error(`⌛ Event loop lag: ${eventLoopLag}ms`);
-        if (activeRollupBuild !== null) {
-            console.error(`📦 Active bundle: ${activeRollupBuild.packageFullname}`);
-            console.error(`🆔 Rollup PID: ${activeRollupBuild.childPid ?? 'pending'}`);
+        for (const currentActiveRollupBuild of activeRollupBuilds.values()) {
+            console.error(`📦 Active bundle: ${currentActiveRollupBuild.packageFullname}`);
+            console.error(`🆔 Rollup PID: ${currentActiveRollupBuild.childPid ?? 'pending'}`);
             console.error(
-                `🔇 Time since last Rollup output: ${formatDurationForLog(now - activeRollupBuild.lastOutputAt)}`,
+                `🔇 Time since last Rollup output: ${formatDurationForLog(now - currentActiveRollupBuild.lastOutputAt)}`,
             );
-            console.error(`🧾 Rollup state: ${activeRollupBuild.lastLifecycleEvent}`);
-            if (activeRollupBuild.createdAt !== null) {
+            console.error(`🧾 Rollup state: ${currentActiveRollupBuild.lastLifecycleEvent}`);
+            if (currentActiveRollupBuild.createdAt !== null) {
                 console.error(
                     `🏁 Time since Rollup reported bundle creation: ${formatDurationForLog(
-                        now - activeRollupBuild.createdAt,
+                        now - currentActiveRollupBuild.createdAt,
                     )}`,
                 );
             }

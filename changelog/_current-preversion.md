@@ -1,3 +1,5 @@
+-   Sped up package generation by building independent Rollup packages in a bounded, CPU- and memory-aware worker pool. Rollup diagnostics now track concurrent subprocesses, handle colored completion output and stream backpressure, fail silent subprocesses sooner, and stop scheduling new packages after a failure while waiting for active builds to finish.
+
 -   Sped up Agents Server tests, builds, and updates: the E2E suite now lints and creates one production bundle which Playwright reuses, while versioned VPS releases reuse lockfile-matched npm dependencies and skip unchanged Playwright system packages. Direct Playwright runs keep their existing self-bootstrapping behavior, and browser revision installation remains idempotent.
 
 -   Sped up `npm run test-unit` without removing any unit tests: Jest now searches only the unit-test roots, transpiles test TypeScript without repeating the separate project type check, uses two isolated workers while keeping test-level concurrency serialized, and the CLI integration tests no longer type-check a fresh `ts-node` process for every assertion. Coverage reports remain available through Jest's explicit `--coverage` option.
