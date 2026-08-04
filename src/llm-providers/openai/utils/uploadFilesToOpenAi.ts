@@ -1,4 +1,4 @@
-import OpenAI from 'openai';
+import type OpenAI from 'openai';
 
 /**
  * Uploads files to OpenAI and returns their IDs

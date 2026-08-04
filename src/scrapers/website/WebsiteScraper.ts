@@ -4,8 +4,6 @@ import type { Converter } from '../_common/Converter';
 import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 // import PipelineCollection from '../../../books/books';
-import { Readability } from '@mozilla/readability';
-import { JSDOM } from 'jsdom';
 import type { Converter as ShowdownConverter } from 'showdown';
 import { DEFAULT_INTERMEDIATE_FILES_STRATEGY, DEFAULT_IS_VERBOSE, DEFAULT_SCRAPE_CACHE_DIRNAME } from '../../config';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
@@ -13,12 +11,32 @@ import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
+import { createLazyModuleLoader } from '../../utils/misc/createLazyModuleLoader';
 import { MarkdownScraper } from '../markdown/MarkdownScraper';
 import type { ScraperAndConverterMetadata } from '../_common/register/ScraperAndConverterMetadata';
 import type { ScraperIntermediateSource } from '../_common/ScraperIntermediateSource';
 import { getScraperIntermediateSource } from '../_common/utils/getScraperIntermediateSource';
 import { websiteScraperMetadata } from './register-metadata';
 import { createShowdownConverter } from './utils/createShowdownConverter';
+
+/**
+ * Loads `jsdom` on demand
+ *
+ * Note: [🐌] `jsdom` is by far the heaviest dependency of Promptbook, loading it eagerly would slow down every single
+ *       run of the `ptbk` CLI utility even when no website is scraped
+ *
+ * @private internal utility of `WebsiteScraper`
+ */
+const loadJsdomModule = createLazyModuleLoader(() => import('jsdom'));
+
+/**
+ * Loads `@mozilla/readability` on demand
+ *
+ * Note: [🐌] Loaded lazily to keep the startup of the `ptbk` CLI utility fast
+ *
+ * @private internal utility of `WebsiteScraper`
+ */
+const loadReadabilityModule = createLazyModuleLoader(() => import('@mozilla/readability'));
 
 /**
  * Scraper for websites
@@ -76,6 +94,8 @@ export class WebsiteScraper implements Converter, Scraper {
         if (this.tools.fs === undefined) {
             throw new EnvironmentMismatchError('Can not scrape websites without filesystem tools');
         }
+
+        const [{ JSDOM }, { Readability }] = await Promise.all([loadJsdomModule(), loadReadabilityModule()]);
 
         const jsdom = new JSDOM(await source.asText(), {
             url: source.url,

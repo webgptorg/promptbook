@@ -1,10 +1,10 @@
-import JSZip from 'jszip';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { FilesystemTools } from '../../execution/FilesystemTools';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { string_filename } from '../../types/string_filename';
 import { stringifyPipelineJson } from '../../utils/editable/utils/stringifyPipelineJson';
 import { validatePipeline } from '../validation/validatePipeline';
+import { loadJsZipModule } from './loadJsZipModule';
 
 /**
  * Saves the given books into an archive file with `.bookc` extension
@@ -29,6 +29,7 @@ export async function saveArchive(
         validatePipeline(pipelineJson);
     }
 
+    const { default: JSZip } = await loadJsZipModule();
     const archive = new JSZip();
 
     const collectionJsonString = stringifyPipelineJson(collectionJson);

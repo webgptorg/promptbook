@@ -1,5 +1,5 @@
 import colors from 'colors';
-import OpenAI from 'openai';
+import type OpenAI from 'openai';
 import { assertsError } from '../../errors/assertsError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { AvailableModel } from '../../execution/AvailableModel';

@@ -4,12 +4,12 @@ import type {
 } from 'commander';
 import { mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
-import prompts from 'prompts';
 import { spaceTrim } from 'spacetrim';
 import { NotAllowed } from '../../../errors/NotAllowed';
 import { ParseError } from '../../../errors/ParseError';
 import { normalizeToKebabCase } from '../../../utils/normalization/normalize-to-kebab-case';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
+import { loadPromptsModule } from '../../common/loadPromptsModule';
 import { handleActionErrors } from '../common/handleActionErrors';
 import {
     buildCoderPromptSection,
@@ -216,6 +216,7 @@ async function resolveCoderPromptDescription(descriptionArgument: string | undef
         return standardInputDescription;
     }
 
+    const { default: prompts } = await loadPromptsModule();
     const response = await prompts({
         type: 'text',
         name: 'description',

@@ -1,5 +1,5 @@
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
-import OpenAI from 'openai';
+import type OpenAI from 'openai';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';

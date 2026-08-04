@@ -1,5 +1,4 @@
 import type { Tool as AgentKitTool } from '@openai/agents';
-import { Agent as AgentFromKit, fileSearchTool, tool as agentKitTool, webSearchTool } from '@openai/agents';
 import { spaceTrim } from 'spacetrim';
 import { parseToolExecutionEnvelope } from '../../commitments/_common/toolExecutionEnvelope';
 import type { ToolCallProgressUpdate } from '../../commitments/_common/toolRuntimeContext';
@@ -26,6 +25,7 @@ import type { TODO_any } from '../../utils/organization/TODO_any';
 import type { OpenAiAgentKitExecutionToolsOptions } from './OpenAiAgentKitExecutionToolsOptions';
 import type { OpenAiCompatibleExecutionToolsNonProxiedOptions } from './OpenAiCompatibleExecutionToolsOptions';
 import { buildToolInvocationScript } from './utils/buildToolInvocationScript';
+import { loadOpenAiAgentsModule } from './utils/loadOpenAiAgentsModule';
 
 /**
  * Constant for default model used for nested DeepSearch tool invocations.
@@ -98,11 +98,12 @@ export class OpenAiAgentKitExecutionToolsToolBuilder {
     /**
      * Builds the tool list for AgentKit, including hosted file search when applicable.
      */
-    public buildAgentKitTools(options: {
+    public async buildAgentKitTools(options: {
         readonly tools?: ModelRequirements['tools'];
         readonly vectorStoreId?: string;
-    }): Array<AgentKitTool> {
+    }): Promise<Array<AgentKitTool>> {
         const { tools, vectorStoreId } = options;
+        const { fileSearchTool, tool: agentKitTool } = await loadOpenAiAgentsModule();
         const agentKitTools: Array<AgentKitTool> = [];
 
         if (vectorStoreId) {
@@ -117,7 +118,7 @@ export class OpenAiAgentKitExecutionToolsToolBuilder {
 
         for (const toolDefinition of tools) {
             if (this.isDeepSearchToolDefinition(toolDefinition)) {
-                agentKitTools.push(this.createDeepSearchAgentKitTool(toolDefinition));
+                agentKitTools.push(await this.createDeepSearchAgentKitTool(toolDefinition));
                 continue;
             }
 
@@ -376,7 +377,8 @@ export class OpenAiAgentKitExecutionToolsToolBuilder {
     /**
      * Creates the native Agent SDK tool used for `USE DEEPSEARCH`.
      */
-    private createDeepSearchAgentKitTool(toolDefinition: AgentKitToolDefinition): AgentKitTool {
+    private async createDeepSearchAgentKitTool(toolDefinition: AgentKitToolDefinition): Promise<AgentKitTool> {
+        const { Agent: AgentFromKit, webSearchTool } = await loadOpenAiAgentsModule();
         const deepSearchAgent = new AgentFromKit({
             name: 'DeepSearch',
             model: DEFAULT_DEEP_SEARCH_MODEL_NAME,

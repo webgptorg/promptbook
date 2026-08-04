@@ -1,11 +1,11 @@
 import colors from 'colors';
-import prompts from 'prompts';
 import { spaceTrim } from 'spacetrim';
 import { forTime } from 'waitasecond';
 import { assertsError } from '../../errors/assertsError';
 import type { PipelineExecutor } from '../../execution/PipelineExecutor';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import { just } from '../../utils/organization/just';
+import { loadPromptsModule } from '../common/loadPromptsModule';
 
 /**
  * Options for running the interactive chatbot
@@ -90,6 +90,7 @@ export async function runInteractiveChatbot(options: RunInteractiveChatbotOption
                 console.info(colors.gray(`---`));
             }
 
+            const { default: prompts } = await loadPromptsModule();
             const response = await prompts({
                 type: 'text',
                 name: 'userMessage',

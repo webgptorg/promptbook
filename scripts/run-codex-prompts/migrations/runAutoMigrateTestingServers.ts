@@ -1,7 +1,7 @@
 import colors from 'colors';
 import * as fs from 'fs';
 import { join } from 'path';
-import { Client } from 'pg';
+import type { Client } from 'pg';
 import { spaceTrim } from 'spacetrim';
 import {
     readMigrationFiles,
@@ -15,11 +15,21 @@ import {
 } from '../../../apps/agents-server/src/database/runDatabaseMigrations';
 import { selectPrefixesForMigration } from '../../../apps/agents-server/src/database/selectPrefixesForMigration';
 import { DatabaseError } from '../../../src/errors/DatabaseError';
+import { createLazyModuleLoader } from '../../../src/utils/misc/createLazyModuleLoader';
 import {
     DESTRUCTIVE_SQL_RULE,
     detectDestructiveSqlStatements,
     type DestructiveSqlStatementMatch,
 } from './detectDestructiveSqlStatements';
+
+/**
+ * Loads the PostgreSQL client (`pg`) on demand
+ *
+ * Note: [🐌] Loaded lazily to keep the startup of the `ptbk` CLI utility fast
+ *
+ * @private function of runAutoMigrateTestingServers
+ */
+const loadPostgresModule = createLazyModuleLoader(() => import('pg'));
 
 /**
  * Migration targets for testing servers that should be migrated by coding-script auto-migration.
@@ -173,6 +183,7 @@ async function listPendingMigrationsByPrefix(options: {
     readonly migrationFiles: ReadonlyArray<string>;
     readonly prefixes: ReadonlyArray<string>;
 }): Promise<Array<PendingMigrationByPrefix>> {
+    const { Client } = await loadPostgresModule();
     const client = new Client({
         connectionString: options.connectionString,
         ssl: { rejectUnauthorized: false },

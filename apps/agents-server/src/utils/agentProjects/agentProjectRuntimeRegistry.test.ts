@@ -31,6 +31,20 @@ const resolveLocalAgentRootPathMock = resolveLocalAgentRootPath as jest.MockedFu
 >;
 
 /**
+ * Number of retries used while removing the temporary project folder.
+ *
+ * Note: A dev runtime is started through `npm run dev`, so the spawned process tree keeps the project folder as its
+ *       working directory. On Windows such a folder cannot be removed until the very last process of that tree is
+ *       gone, which happens shortly after the runtime port is already released.
+ */
+const TEMPORARY_DIRECTORY_REMOVAL_MAX_RETRIES = 20;
+
+/**
+ * Delay between the retries of removing the temporary project folder.
+ */
+const TEMPORARY_DIRECTORY_REMOVAL_RETRY_DELAY_MS = 100;
+
+/**
  * Environment snapshot restored after each runtime test.
  */
 const ORIGINAL_ENVIRONMENT = {
@@ -60,7 +74,12 @@ describe('agentProjectRuntimeRegistry', () => {
         await terminateAllAgentProjectRuntimes();
 
         if (temporaryDirectory) {
-            await rm(temporaryDirectory, { recursive: true, force: true });
+            await rm(temporaryDirectory, {
+                recursive: true,
+                force: true,
+                maxRetries: TEMPORARY_DIRECTORY_REMOVAL_MAX_RETRIES,
+                retryDelay: TEMPORARY_DIRECTORY_REMOVAL_RETRY_DELAY_MS,
+            });
             temporaryDirectory = null;
         }
 

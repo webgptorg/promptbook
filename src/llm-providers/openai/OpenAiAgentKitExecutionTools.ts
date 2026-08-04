@@ -1,4 +1,4 @@
-import { Agent as AgentFromKit, run, setDefaultOpenAIClient, setDefaultOpenAIKey } from '@openai/agents';
+import type { Agent as AgentFromKit } from '@openai/agents';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { CallChatModelStreamOptions, LlmExecutionTools } from '../../execution/LlmExecutionTools';
@@ -23,6 +23,7 @@ import { OpenAiAgentKitExecutionToolsOutputTypeMapper } from './OpenAiAgentKitEx
 import { OpenAiAgentKitExecutionToolsToolBuilder } from './OpenAiAgentKitExecutionToolsToolBuilder';
 import type { OpenAiCompatibleExecutionToolsNonProxiedOptions } from './OpenAiCompatibleExecutionToolsOptions';
 import { OpenAiVectorStoreHandler } from './OpenAiVectorStoreHandler';
+import { loadOpenAiAgentsModule } from './utils/loadOpenAiAgentsModule';
 
 /**
  * Constant for default agent kit model name.
@@ -211,7 +212,8 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
             });
         }
 
-        const agentKitTools = this.buildAgentKitTools({ tools, vectorStoreId });
+        const { Agent: AgentFromKit } = await loadOpenAiAgentsModule();
+        const agentKitTools = await this.buildAgentKitTools({ tools, vectorStoreId });
         const openAiAgentKitAgent = new AgentFromKit({
             name,
             model: this.agentKitModelName,
@@ -275,6 +277,7 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
             agentName: agentForRun.name,
             input: inputItems,
         };
+        const { run } = await loadOpenAiAgentsModule();
         const streamResult = await run(agentForRun, inputItems, {
             stream: true,
             maxTurns: 200,
@@ -433,6 +436,7 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
      * Ensures the AgentKit SDK is wired to the OpenAI client and API key.
      */
     private async ensureAgentKitDefaults(): Promise<void> {
+        const { setDefaultOpenAIClient, setDefaultOpenAIKey } = await loadOpenAiAgentsModule();
         const client = await this.getClient();
         setDefaultOpenAIClient(client as TODO_any);
 

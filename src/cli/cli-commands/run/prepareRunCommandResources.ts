@@ -1,7 +1,6 @@
 import colors from 'colors';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
-import prompts from 'prompts';
 import { spaceTrim } from 'spacetrim';
 import { getAllCommitmentsToolFunctionsForNode } from '../../../commitments/_common/getAllCommitmentsToolFunctionsForNode';
 import { DEFAULT_MAX_EXECUTION_ATTEMPTS } from '../../../config';
@@ -24,6 +23,7 @@ import { JavascriptExecutionTools } from '../../../scripting/javascript/Javascri
 import { isFileExisting } from '../../../utils/files/isFileExisting';
 import { $getCompiledBook } from '../../../wizard/$getCompiledBook';
 import { $provideLlmToolsForCli } from '../../common/$provideLlmToolsForCli';
+import { loadPromptsModule } from '../../common/loadPromptsModule';
 import type { RunCommandCliOptions } from './runCommandAction';
 
 /**
@@ -156,6 +156,7 @@ async function resolveRunPipelineSource(pipelineSource?: string): Promise<string
         return pipelineSource;
     }
 
+    const { default: prompts } = await loadPromptsModule();
     const response = await prompts({
         type: 'text',
         name: 'pipelineSource',

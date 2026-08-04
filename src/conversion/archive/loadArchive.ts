@@ -1,10 +1,10 @@
-import JSZip from 'jszip';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { FilesystemTools } from '../../execution/FilesystemTools';
 import { jsonParse } from '../../formats/json/utils/jsonParse';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { string_filename } from '../../types/string_filename';
 import { validatePipeline } from '../validation/validatePipeline';
+import { loadJsZipModule } from './loadJsZipModule';
 
 /**
  * Loads the books from the archive file with `.bookc` extension
@@ -24,6 +24,7 @@ export async function loadArchive(
     }
 
     const data = await fs.readFile(filePath);
+    const { default: JSZip } = await loadJsZipModule();
     const archive = await JSZip.loadAsync(data);
 
     const indexFile = archive.file('index.book.json');

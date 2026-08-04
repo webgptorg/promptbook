@@ -1,5 +1,5 @@
 import type { ClientOptions } from '@anthropic-ai/sdk';
-import Anthropic from '@anthropic-ai/sdk';
+import type Anthropic from '@anthropic-ai/sdk';
 import type { MessageCreateParamsNonStreaming } from '@anthropic-ai/sdk/resources';
 import Bottleneck from 'bottleneck';
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
@@ -19,6 +19,7 @@ import type { string_name } from '../../types/string_name';
 import type { string_title } from '../../types/string_title';
 import type { string_date_iso8601 } from '../../types/string_token';
 import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
+import { createLazyModuleLoader } from '../../utils/misc/createLazyModuleLoader';
 import type { chococake } from '../../utils/organization/really_any';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { templateParameters } from '../../utils/parameters/templateParameters';
@@ -35,6 +36,15 @@ const ANTHROPIC_PROVIDER_PROFILE: ChatParticipant = {
     fullname: 'Anthropic Claude',
     color: '#d97706',
 } as const;
+
+/**
+ * Loads the Anthropic Claude SDK (`@anthropic-ai/sdk`) on demand
+ *
+ * Note: [🐌] Loaded lazily to keep the startup of the `ptbk` CLI utility fast
+ *
+ * @private internal utility of `AnthropicClaudeExecutionTools`
+ */
+const loadAnthropicClaudeModule = createLazyModuleLoader(() => import('@anthropic-ai/sdk'));
 
 /**
  * Execution Tools for calling Anthropic Claude API.
@@ -80,6 +90,8 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools /* <- TO
             const anthropicOptions: ClientOptions = { ...this.options };
             delete (anthropicOptions as chococake).isVerbose;
             delete (anthropicOptions as chococake).isProxied;
+
+            const { Anthropic } = await loadAnthropicClaudeModule();
             this.client = new Anthropic(anthropicOptions);
         }
 

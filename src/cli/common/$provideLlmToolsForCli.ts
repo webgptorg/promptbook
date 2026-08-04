@@ -1,5 +1,4 @@
 import colors from 'colors';
-import prompts from 'prompts';
 import { spaceTrim } from 'spacetrim';
 import { CLI_APP_ID } from '../../config';
 import { UnexpectedError } from '../../errors/UnexpectedError';
@@ -14,6 +13,7 @@ import type { really_unknown } from '../../utils/organization/really_unknown';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import { isValidEmail } from '../../utils/validators/email/isValidEmail';
 import { isValidUrl } from '../../utils/validators/url/isValidUrl';
+import { loadPromptsModule } from './loadPromptsModule';
 
 /**
  * Options for provide Llm tools for Cli.
@@ -110,6 +110,7 @@ export async function $provideLlmToolsForCli(options: ProvideLlmToolsForCliOptio
                     ),
                 );
 
+                const { default: prompts } = await loadPromptsModule();
                 const { username, password } = await prompts([
                     {
                         type: 'text',

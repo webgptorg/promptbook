@@ -1,7 +1,7 @@
 import colors from 'colors';
 import { mkdir, rename, stat } from 'fs/promises';
 import { extname, join, relative } from 'path';
-import prompts from 'prompts';
+import { loadPromptsModule } from '../../src/cli/common/loadPromptsModule';
 import { buildPromptLabelForDisplay } from '../run-codex-prompts/prompts/buildPromptLabelForDisplay';
 import { findNextTodoPrompt } from '../run-codex-prompts/prompts/findNextTodoPrompt';
 import { loadPromptFiles } from '../run-codex-prompts/prompts/loadPromptFiles';
@@ -401,6 +401,7 @@ async function promptForDoneVerification(
     section: PromptSection,
 ): Promise<'done' | 'needs-work' | 'skip'> {
     const promptLabel = buildPromptLabelForDisplay(file, section);
+    const { default: prompts } = await loadPromptsModule();
     const response = await prompts<'verified'>(
         {
             type: 'select',
@@ -521,6 +522,7 @@ async function resolvePrompt(selection: PromptSelection): Promise<void> {
  */
 async function promptForDecision(selection: PromptSelection): Promise<PromptDecision> {
     const promptLabel = buildPromptLabelForDisplay(selection.file, selection.section);
+    const { default: prompts } = await loadPromptsModule();
     const response = await prompts<'decision'>(
         {
             type: 'select',

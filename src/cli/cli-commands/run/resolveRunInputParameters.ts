@@ -1,10 +1,10 @@
 import colors from 'colors';
-import prompts from 'prompts';
 import { spaceTrim } from 'spacetrim';
 import type { PipelineJson } from '../../../pipeline/PipelineJson/PipelineJson';
 import type { string_parameter_name, string_parameter_value } from '../../../types/string_name';
 import { countLines } from '../../../utils/expectation-counters/countLines';
 import type { TODO_any } from '../../../utils/organization/TODO_any';
+import { loadPromptsModule } from '../../common/loadPromptsModule';
 
 /**
  * Resolves all missing input parameters while keeping the current interactive and non-interactive behavior.
@@ -24,6 +24,7 @@ export async function resolveRunInputParameters(options: {
         return process.exit(1);
     }
 
+    const { default: prompts } = await loadPromptsModule();
     const response = await prompts(questions as TODO_any);
     //                     <- TODO: [🧠][🍼] Change behavior according to the formfactor
 

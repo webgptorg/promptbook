@@ -1,7 +1,10 @@
 import { readFile } from 'fs/promises';
 import { extname, relative, resolve } from 'path';
 import type { SourceFile } from 'typescript';
-import * as ts from 'typescript';
+import type * as TypescriptModule from 'typescript';
+import { getTypescriptModule } from '../../src/cli/cli-commands/coder/getTypescriptModule';
+import { UnexpectedError } from '../../src/errors/UnexpectedError';
+import { spaceTrim } from '../../src/utils/organization/spaceTrim';
 import {
     GENERATED_CODE_MARKERS,
     STRUCTURAL_ANALYSIS_EXTENSIONS,
@@ -9,6 +12,36 @@ import {
 import type { RefactorCandidate } from './RefactorCandidate';
 import type { RefactorCandidateLevelConfiguration } from './RefactorCandidateLevel';
 import { normalizeRefactorCandidatePath } from './normalizeRefactorCandidatePath';
+
+/**
+ * The TypeScript compiler API once it was loaded by `analyzeSourceFileForRefactorCandidate`
+ *
+ * Note: [🐌] `typescript` is a heavy package, it is loaded on demand so that it does not slow down every single run
+ *       of the `ptbk` CLI utility
+ *
+ * @private variable of analyzeSourceFileForRefactorCandidate
+ */
+let loadedTypescriptModule: typeof TypescriptModule | null = null;
+
+/**
+ * Returns the TypeScript compiler API which was already loaded for the structural analysis.
+ *
+ * @private function of analyzeSourceFileForRefactorCandidate
+ */
+function getLoadedTypescriptModule(): typeof TypescriptModule {
+    if (loadedTypescriptModule === null) {
+        throw new UnexpectedError(
+            spaceTrim(`
+                The \`typescript\` module was not loaded yet.
+
+                Structural analysis helpers must be called only from \`analyzeSourceFileForRefactorCandidate\` which
+                loads \`typescript\` lazily.
+            `),
+        );
+    }
+
+    return loadedTypescriptModule;
+}
 
 /**
  * Input required to analyze one source file for refactor candidacy.
@@ -69,6 +102,8 @@ export async function analyzeSourceFileForRefactorCandidate(
     }
 
     if (STRUCTURAL_ANALYSIS_EXTENSIONS.includes(extension)) {
+        loadedTypescriptModule ??= await getTypescriptModule();
+
         const structureSummary = summarizeSourceFileStructure(content, extension, filePath);
 
         if (structureSummary.entityCount > heuristics.maxEntityCountPerFile) {
@@ -137,6 +172,7 @@ function countLines(content: string): number {
  * @private function of analyzeSourceFileForRefactorCandidate
  */
 function summarizeSourceFileStructure(content: string, extension: string, filePath: string): SourceFileStructureSummary {
+    const ts = getLoadedTypescriptModule();
     const scriptKind = getScriptKindForExtension(extension);
     const sourceFile = ts.createSourceFile(filePath, content, ts.ScriptTarget.Latest, true, scriptKind);
 
@@ -152,6 +188,7 @@ function summarizeSourceFileStructure(content: string, extension: string, filePa
  * @private function of analyzeSourceFileForRefactorCandidate
  */
 function countEntitiesInSourceFile(sourceFile: SourceFile): number {
+    const ts = getLoadedTypescriptModule();
     let count = 0;
 
     // Only count top-level declarations to avoid inflating with members or nested scopes.
@@ -242,13 +279,13 @@ type SourceFileStructureSummary = {
  * @private type of analyzeSourceFileForRefactorCandidate
  */
 type CountedFunctionLikeDeclaration =
-    | ts.ArrowFunction
-    | ts.ConstructorDeclaration
-    | ts.FunctionDeclaration
-    | ts.FunctionExpression
-    | ts.GetAccessorDeclaration
-    | ts.MethodDeclaration
-    | ts.SetAccessorDeclaration;
+    | TypescriptModule.ArrowFunction
+    | TypescriptModule.ConstructorDeclaration
+    | TypescriptModule.FunctionDeclaration
+    | TypescriptModule.FunctionExpression
+    | TypescriptModule.GetAccessorDeclaration
+    | TypescriptModule.MethodDeclaration
+    | TypescriptModule.SetAccessorDeclaration;
 
 /**
  * Summarizes named functions and methods in a parsed source file.
@@ -256,11 +293,12 @@ type CountedFunctionLikeDeclaration =
  * @private function of analyzeSourceFileForRefactorCandidate
  */
 function summarizeFunctionsInSourceFile(sourceFile: SourceFile): SourceFileFunctionSummary {
+    const ts = getLoadedTypescriptModule();
     let functionCount = 0;
     let maxFunctionComplexity = 0;
     let mostComplexFunctionName: string | null = null;
 
-    const visitNode = (node: ts.Node): void => {
+    const visitNode = (node: TypescriptModule.Node): void => {
         if (isCountedFunctionLikeDeclaration(node)) {
             functionCount += 1;
 
@@ -288,7 +326,9 @@ function summarizeFunctionsInSourceFile(sourceFile: SourceFile): SourceFileFunct
  *
  * @private function of analyzeSourceFileForRefactorCandidate
  */
-function isCountedFunctionLikeDeclaration(node: ts.Node): node is CountedFunctionLikeDeclaration {
+function isCountedFunctionLikeDeclaration(node: TypescriptModule.Node): node is CountedFunctionLikeDeclaration {
+    const ts = getLoadedTypescriptModule();
+
     if (
         ts.isFunctionDeclaration(node) ||
         ts.isMethodDeclaration(node) ||
@@ -311,7 +351,10 @@ function isCountedFunctionLikeDeclaration(node: ts.Node): node is CountedFunctio
  *
  * @private function of analyzeSourceFileForRefactorCandidate
  */
-function isNamedFunctionExpression(node: ts.ArrowFunction | ts.FunctionExpression): boolean {
+function isNamedFunctionExpression(
+    node: TypescriptModule.ArrowFunction | TypescriptModule.FunctionExpression,
+): boolean {
+    const ts = getLoadedTypescriptModule();
     const parent = node.parent;
 
     return (
@@ -329,9 +372,10 @@ function calculateFunctionComplexity(functionNode: CountedFunctionLikeDeclaratio
         return 1;
     }
 
+    const ts = getLoadedTypescriptModule();
     let complexity = 1;
 
-    const visitNode = (node: ts.Node): void => {
+    const visitNode = (node: TypescriptModule.Node): void => {
         if (node !== functionNode.body && isCountedFunctionLikeDeclaration(node)) {
             return;
         }
@@ -353,7 +397,9 @@ function calculateFunctionComplexity(functionNode: CountedFunctionLikeDeclaratio
  *
  * @private function of analyzeSourceFileForRefactorCandidate
  */
-function isComplexityDecisionNode(node: ts.Node): boolean {
+function isComplexityDecisionNode(node: TypescriptModule.Node): boolean {
+    const ts = getLoadedTypescriptModule();
+
     if (
         ts.isIfStatement(node) ||
         ts.isConditionalExpression(node) ||
@@ -387,6 +433,8 @@ function isComplexityDecisionNode(node: ts.Node): boolean {
  * @private function of analyzeSourceFileForRefactorCandidate
  */
 function getFunctionDisplayName(functionNode: CountedFunctionLikeDeclaration): string | null {
+    const ts = getLoadedTypescriptModule();
+
     if (ts.isConstructorDeclaration(functionNode)) {
         return 'constructor';
     }
@@ -428,7 +476,9 @@ function getFunctionDisplayName(functionNode: CountedFunctionLikeDeclaration): s
  *
  * @private function of analyzeSourceFileForRefactorCandidate
  */
-function getBindingNameText(name: ts.BindingName): string | null {
+function getBindingNameText(name: TypescriptModule.BindingName): string | null {
+    const ts = getLoadedTypescriptModule();
+
     return ts.isIdentifier(name) ? name.text : null;
 }
 
@@ -437,7 +487,9 @@ function getBindingNameText(name: ts.BindingName): string | null {
  *
  * @private function of analyzeSourceFileForRefactorCandidate
  */
-function getPropertyNameText(name: ts.PropertyName): string {
+function getPropertyNameText(name: TypescriptModule.PropertyName): string {
+    const ts = getLoadedTypescriptModule();
+
     if (ts.isIdentifier(name) || ts.isPrivateIdentifier(name) || ts.isStringLiteral(name) || ts.isNumericLiteral(name)) {
         return name.text;
     }
@@ -466,7 +518,9 @@ function buildComplexityReason(
  *
  * @private function of analyzeSourceFileForRefactorCandidate
  */
-function getScriptKindForExtension(extension: string): ts.ScriptKind {
+function getScriptKindForExtension(extension: string): TypescriptModule.ScriptKind {
+    const ts = getLoadedTypescriptModule();
+
     if (extension === '.tsx') {
         return ts.ScriptKind.TSX;
     }

@@ -1,5 +1,5 @@
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
-import OpenAI from 'openai';
+import type OpenAI from 'openai';
 import { spaceTrim } from 'spacetrim';
 import { parseToolExecutionEnvelope } from '../../commitments/_common/toolExecutionEnvelope';
 import type { ToolCallProgressUpdate } from '../../commitments/_common/toolRuntimeContext';

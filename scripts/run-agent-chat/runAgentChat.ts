@@ -1,5 +1,5 @@
 import colors from 'colors';
-import prompts from 'prompts';
+import { loadPromptsModule } from '../../src/cli/common/loadPromptsModule';
 import { resolveInlineOrFileText } from '../run-codex-prompts/common/resolveInlineOrFileText';
 import type { AgentCliHistoryMessage, AgentCliRunOptions } from './AgentCliRunOptions';
 import { createAgentChatWorkspacePath, executeAgentChatTurn } from './executeAgentChatTurn';
@@ -24,6 +24,8 @@ export async function runAgentChat(options: AgentCliRunOptions): Promise<void> {
     if (options.isVerbose) {
         console.info(colors.gray('Type "exit" or "quit" to end the chat.'));
     }
+
+    const { default: prompts } = await loadPromptsModule();
 
     while (true) {
         const response = await prompts({

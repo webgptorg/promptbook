@@ -1,10 +1,4 @@
-import {
-    Agent as AgentFromKit,
-    fileSearchTool,
-    run,
-    setDefaultOpenAIClient,
-    setDefaultOpenAIKey,
-} from '@openai/agents';
+import type { Agent as AgentFromKit } from '@openai/agents';
 import { readFile } from 'fs/promises';
 import { basename, resolve } from 'path';
 import { fileURLToPath } from 'url';
@@ -17,6 +11,7 @@ import { computeOpenAiUsage } from '../llm-providers/openai/computeOpenAiUsage';
 import { OPENAI_MODELS } from '../llm-providers/openai/openai-models';
 import { OpenAiAgentKitExecutionToolsToolBuilder } from '../llm-providers/openai/OpenAiAgentKitExecutionToolsToolBuilder';
 import { OpenAiVectorStoreHandler } from '../llm-providers/openai/OpenAiVectorStoreHandler';
+import { loadOpenAiAgentsModule } from '../llm-providers/openai/utils/loadOpenAiAgentsModule';
 import { $provideScriptingForNode } from '../scrapers/_common/register/$provideScriptingForNode';
 import type { string_knowledge_source_link } from '../types/string_knowledge_source_content';
 import type { string_markdown, string_markdown_text } from '../types/string_markdown';
@@ -112,6 +107,7 @@ export class LiteAgent {
         const preparedAgent = await this.prepareAgent();
         preparedAgent.toolBuilder?.clearRunState();
 
+        const { run } = await loadOpenAiAgentsModule();
         const result = await run(
             preparedAgent.agent,
             createLiteAgentPromptText(normalizedMessage, options.context, preparedAgent.modelRequirements.promptSuffix),
@@ -165,6 +161,12 @@ export class LiteAgent {
             userId: this.options.userId,
         });
         const client = await runtime.getClient();
+        const {
+            Agent: AgentFromKit,
+            fileSearchTool,
+            setDefaultOpenAIClient,
+            setDefaultOpenAIKey,
+        } = await loadOpenAiAgentsModule();
 
         setDefaultOpenAIClient(client as TODO_any);
 
@@ -190,9 +192,9 @@ export class LiteAgent {
                   })
                 : null;
         const agentTools =
-            toolBuilder?.buildAgentKitTools({
+            (await toolBuilder?.buildAgentKitTools({
                 tools: modelRequirements.tools ? [...modelRequirements.tools] : undefined,
-            }) || [];
+            })) || [];
         const normalizedKnowledgeSources = await normalizeLiteAgentKnowledgeSources(
             modelRequirements.knowledgeSources || [],
             resolvedSource.sourceDirectoryPath,

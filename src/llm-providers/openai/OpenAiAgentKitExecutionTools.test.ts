@@ -6,11 +6,11 @@ type BuildAgentKitToolsAccessor = {
     buildAgentKitTools(options: {
         tools: NonNullable<ModelRequirements['tools']>;
         vectorStoreId?: string;
-    }): Array<Record<string, unknown>>;
+    }): Promise<Array<Record<string, unknown>>>;
 };
 
 describe('OpenAiAgentKitExecutionTools', () => {
-    it('builds USE DEEPSEARCH as a native Agent SDK function tool backed by deep research', () => {
+    it('builds USE DEEPSEARCH as a native Agent SDK function tool backed by deep research', async () => {
         const tools = new OpenAiAgentKitExecutionTools({
             apiKey: 'test-api-key',
         });
@@ -32,7 +32,7 @@ describe('OpenAiAgentKitExecutionTools', () => {
             },
         ] satisfies NonNullable<ModelRequirements['tools']>;
 
-        const builtTools = (tools as unknown as BuildAgentKitToolsAccessor).buildAgentKitTools({
+        const builtTools = await (tools as unknown as BuildAgentKitToolsAccessor).buildAgentKitTools({
             tools: toolDefinitions,
         });
 

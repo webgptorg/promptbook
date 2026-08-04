@@ -1,10 +1,20 @@
 import Bottleneck from 'bottleneck';
 import colors from 'colors';
 import type { ClientOptions } from 'openai';
-import OpenAI from 'openai';
+import type OpenAI from 'openai';
 import { API_REQUEST_TIMEOUT, CONNECTION_RETRIES_LIMIT, DEFAULT_MAX_REQUESTS_PER_MINUTE } from '../../config';
 import { assertsError } from '../../errors/assertsError';
+import { createLazyModuleLoader } from '../../utils/misc/createLazyModuleLoader';
 import type { OpenAiCompatibleExecutionToolsNonProxiedOptions } from './OpenAiCompatibleExecutionToolsOptions';
+
+/**
+ * Loads the OpenAI SDK (`openai`) on demand
+ *
+ * Note: [🐌] Loaded lazily to keep the startup of the `ptbk` CLI utility fast
+ *
+ * @private internal utility of `OpenAiCompatibleRequestManager`
+ */
+const loadOpenAiModule = createLazyModuleLoader(() => import('openai'));
 
 /**
  * Manages OpenAI-compatible client creation plus shared retry and rate-limit behavior.
@@ -36,6 +46,7 @@ export class OpenAiCompatibleRequestManager {
                 maxRetries: CONNECTION_RETRIES_LIMIT,
             } as ClientOptions;
 
+            const { default: OpenAI } = await loadOpenAiModule();
             this.client = new OpenAI(enhancedOptions);
         }
 
