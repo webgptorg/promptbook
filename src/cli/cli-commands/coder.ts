@@ -10,6 +10,7 @@ import { $initializeCoderFindRefactorCandidatesCommand } from './coder/find-refa
 import { $initializeCoderFindUnwrittenCommand } from './coder/find-unwritten';
 import { $initializeCoderGenerateBoilerplatesCommand } from './coder/generate-boilerplates';
 import { $initializeCoderInitCommand } from './coder/init';
+import { $initializeCoderPingCommand } from './coder/ping';
 import { $initializeCoderRunCommand } from './coder/run';
 import { $initializeCoderServerCommand } from './coder/server';
 import { $initializeCoderVerifyCommand } from './coder/verify';
@@ -23,6 +24,7 @@ import { $initializeCoderVerifyCommand } from './coder/verify';
  * - generate-boilerplates: Generate prompt boilerplate files
  * - find-refactor-candidates: Find files that need refactoring
  * - run: Run coding prompts with AI agents
+ * - ping: Test one harness and model with a tiny dummy prompt
  * - verify: Verify completed prompts
  * - find-fresh-emoji-tags: Find unused emoji tags
  *
@@ -43,6 +45,7 @@ export function $initializeCoderCommand(program: Program): $side_effect {
             - find-refactor-candidates: Find files that need refactoring
             - find-unwritten: List prompt sections that still need to be authored
             - run: Run coding prompts with AI agents
+            - ping: Test the connection, response time and quota of one harness and model
             - server: Start a long-running coder server with a kanban web UI
             - verify: Verify completed prompts
             - find-fresh-emoji-tags: Find unused emoji tags
@@ -56,6 +59,7 @@ export function $initializeCoderCommand(program: Program): $side_effect {
     $initializeCoderFindRefactorCandidatesCommand(coderCommand);
     $initializeCoderFindUnwrittenCommand(coderCommand);
     $initializeCoderRunCommand(coderCommand);
+    $initializeCoderPingCommand(coderCommand);
     $initializeCoderServerCommand(coderCommand);
     $initializeCoderVerifyCommand(coderCommand);
     $initializeCoderFindFreshEmojiTagCommand(coderCommand);

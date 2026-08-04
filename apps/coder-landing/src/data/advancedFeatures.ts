@@ -2,6 +2,7 @@ import {
     DRY_RUN_COMMAND,
     INIT_GIT_SYNC_COMMAND,
     MODEL_FILTER_COMMAND,
+    PING_COMMAND,
     TEST_BEFORE_FIX_COMMAND,
     VERIFY_COMMAND,
 } from './commands';
@@ -95,6 +96,12 @@ export const ADVANCED_FEATURES: ReadonlyArray<AdvancedFeatureDefinition> = [
         title: 'Dry run first',
         description: 'Preview which prompts would run — without touching your code or spending a single token.',
         sampleCommand: DRY_RUN_COMMAND,
+    },
+    {
+        title: 'Ping before you queue',
+        description:
+            'ptbk coder ping sends one tiny dummy prompt to a harness and model and reports the answer, the response time and the usage. Use it to check that a harness, model and login really work, and to start the hourly or weekly quota window early so it is already refreshing by the time you need it. Your project is left exactly as it was.',
+        sampleCommand: PING_COMMAND,
     },
     {
         title: 'Human in the loop',

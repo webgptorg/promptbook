@@ -10,6 +10,14 @@ import { toPosixPath } from './toPosixPath';
 export const PTBK_CODER_LOG_FILE_ENV_NAME = 'PTBK_CODER_LOG_FILE';
 
 /**
+ * Log line which separates the raw script input from the raw script output of one execution section.
+ *
+ * Readers of a runtime log split on this marker to look only at what the harness really produced,
+ * without the generated script and the prompt it embeds.
+ */
+export const SCRIPT_EXECUTION_LOG_RAW_OUTPUT_MARKER = '--- raw output ---';
+
+/**
  * Small bash wrapper that preserves stdout/stderr streams while teeing both into the runtime log file.
  */
 const LOGGED_BASH_WRAPPER_COMMAND = spaceTrim(`
@@ -63,7 +71,7 @@ export async function appendScriptExecutionLogStart({
             --- raw input ---
             ${block(normalizedInput)}
 
-            --- raw output ---
+            ${SCRIPT_EXECUTION_LOG_RAW_OUTPUT_MARKER}
         `,
     );
 

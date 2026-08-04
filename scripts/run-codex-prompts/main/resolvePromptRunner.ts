@@ -29,6 +29,17 @@ type RunnerMetadata = {
 };
 
 /**
+ * Subset of `RunOptions` which decides which prompt runner is created and how it is labeled.
+ *
+ * Commands that only need one configured harness — such as `ptbk coder ping` — pass just these
+ * fields instead of assembling a complete `RunOptions` for a run they never start.
+ */
+export type PromptRunnerSelectionOptions = Pick<
+    RunOptions,
+    'agentName' | 'model' | 'thinkingLevel' | 'allowCredits' | 'isVerbose' | 'isMachineReadableProgressEnabled'
+>;
+
+/**
  * Resolved runner setup used by `runCodexPrompts`.
  */
 type PromptRunnerResolution = {
@@ -42,7 +53,7 @@ type PromptRunnerResolution = {
  *
  * @private function of runCodexPrompts
  */
-export function resolvePromptRunner(options: RunOptions): PromptRunnerResolution {
+export function resolvePromptRunner(options: PromptRunnerSelectionOptions): PromptRunnerResolution {
     const agentName = options.agentName;
 
     if (!agentName) {
@@ -101,7 +112,7 @@ export function resolvePromptRunner(options: RunOptions): PromptRunnerResolution
 /**
  * Builds the OpenAI Codex runner resolution, including required-model validation.
  */
-function createOpenAiCodexRunnerResolution(options: RunOptions): PromptRunnerResolution {
+function createOpenAiCodexRunnerResolution(options: PromptRunnerSelectionOptions): PromptRunnerResolution {
     const actualRunnerModel = resolveRequiredModel({
         agentName: 'openai-codex',
         providedModel: options.model,
@@ -131,7 +142,7 @@ function createOpenAiCodexRunnerResolution(options: RunOptions): PromptRunnerRes
 /**
  * Builds the Gemini CLI runner resolution, including required-model validation.
  */
-function createGeminiRunnerResolution(options: RunOptions): PromptRunnerResolution {
+function createGeminiRunnerResolution(options: PromptRunnerSelectionOptions): PromptRunnerResolution {
     const actualRunnerModel = resolveRequiredModel({
         agentName: 'gemini',
         providedModel: options.model,
@@ -152,7 +163,7 @@ function createGeminiRunnerResolution(options: RunOptions): PromptRunnerResoluti
  * Combines the instantiated runner with prompt status metadata.
  */
 function createRunnerResolution(
-    options: RunOptions,
+    options: PromptRunnerSelectionOptions,
     runner: PromptRunner,
     actualRunnerModel?: string,
 ): PromptRunnerResolution {
@@ -166,7 +177,7 @@ function createRunnerResolution(
 /**
  * Resolves runner metadata for prompt status lines.
  */
-function getRunnerMetadata(options: RunOptions, actualRunnerModel?: string): RunnerMetadata {
+function getRunnerMetadata(options: PromptRunnerSelectionOptions, actualRunnerModel?: string): RunnerMetadata {
     const runnerName = options.agentName ? getHarnessDefinition(options.agentName).label : 'unknown';
 
     if (
