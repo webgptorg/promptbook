@@ -11,23 +11,12 @@
         },
 
         {
-            "name": "🐙🚀 Run ptbk coder Codex/Claude zig-zag (💸)(⏳)",
+            "name": "🐙🏓 Ping Codex & Claude",
             "commands": [
                 "set -a && source .env && set +a",
-                "unset GITHUB_TOKEN",
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness openai-codex --model gpt-5.5         --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --limit 1 --test npm run test-for-ptbk-coder --test-before yes-and-fix",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code  --model claude-opus-4-8 --thinking-level max   --agent agents/coding/developer.book --context AGENTS.md --limit 1 --test npm run test-for-ptbk-coder --test-before yes-and-fix",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness openai-codex --model gpt-5.5         --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --limit 1 --test npm run test-for-ptbk-coder --test-before yes-and-fix",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code  --model claude-opus-4-8 --thinking-level max   --agent agents/coding/developer.book --context AGENTS.md --limit 1 --test npm run test-for-ptbk-coder --test-before yes-and-fix",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness openai-codex --model gpt-5.5         --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --limit 1 --test npm run test-for-ptbk-coder --test-before yes-and-fix",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code  --model claude-opus-4-8 --thinking-level max   --agent agents/coding/developer.book --context AGENTS.md --limit 1 --test npm run test-for-ptbk-coder --test-before yes-and-fix",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness openai-codex --model gpt-5.5         --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --limit 1 --test npm run test-for-ptbk-coder --test-before yes-and-fix",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code  --model claude-opus-4-8 --thinking-level max   --agent agents/coding/developer.book --context AGENTS.md --limit 1 --test npm run test-for-ptbk-coder --test-before yes-and-fix",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness openai-codex --model gpt-5.5         --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --limit 1 --test npm run test-for-ptbk-coder --test-before yes-and-fix",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code  --model claude-opus-4-8 --thinking-level max   --agent agents/coding/developer.book --context AGENTS.md --limit 1 --test npm run test-for-ptbk-coder --test-before yes-and-fix",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness openai-codex --model gpt-5.5         --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --limit 1 --test npm run test-for-ptbk-coder --test-before yes-and-fix",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code  --model claude-opus-4-8 --thinking-level max   --agent agents/coding/developer.book --context AGENTS.md --limit 1 --test npm run test-for-ptbk-coder --test-before yes-and-fix"
+                "npx ts-node ./src/cli/test/ptbk.ts coder ping --harness claude-code --model claude-sonnet-4-8 --thinking-level low",
+                "npx ts-node ./src/cli/test/ptbk.ts coder ping --harness openai-codex --model gpt-5.6-luna --thinking-level low"
             ],
             "execute": true,
             "onlySingle": true,
