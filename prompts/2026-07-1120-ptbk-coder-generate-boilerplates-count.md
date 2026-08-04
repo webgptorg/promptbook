@@ -1,4 +1,4 @@
-[ ]
+[x] by Claude Code `opus` thinking `max` - Implementation $8.53 28 minutes; Testing 25 minutes
 
 [✨🔩] When generating boilerplates, allow specifying not only the count of the generated prompt files but also how many prompts will be in each file.
 
@@ -15,3 +15,4 @@ ptbk coder generate-boilerplates --count 10*7 --template prompts/_templates/comm
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Update the [`ptbk coder` landing website](apps/coder-landing)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

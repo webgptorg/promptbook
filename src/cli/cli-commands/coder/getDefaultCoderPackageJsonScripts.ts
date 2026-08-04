@@ -1,8 +1,10 @@
+import { DEFAULT_BOILERPLATE_COUNT_OPTION_VALUE } from './boilerplateCount';
+
 /**
  * Default npm scripts initialized by `ptbk coder init`.
  */
 const DEFAULT_CODER_PACKAGE_JSON_SCRIPTS = {
-    'coder:generate-boilerplates': 'ptbk coder generate-boilerplates --template ./prompts/templates/common.md',
+    'coder:generate-boilerplates': `ptbk coder generate-boilerplates --count ${DEFAULT_BOILERPLATE_COUNT_OPTION_VALUE} --template ./prompts/templates/common.md`,
     'coder:add': 'ptbk coder add --template ./prompts/templates/common.md',
     'coder:run':
         'ptbk coder run --harness openai-codex --model gpt-5.6-terra --thinking-level max --agent agents/developer.book --context AGENTS.md --test-before yes-and-fix',

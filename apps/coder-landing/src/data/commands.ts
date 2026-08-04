@@ -36,6 +36,11 @@ export const ADD_COMMAND = 'ptbk coder add "Add a dark mode toggle to the settin
 export const RUN_COMMAND = 'ptbk coder run --harness claude-code';
 
 /**
+ * Command which generates prompt boilerplate files with more than one prompt in each of them.
+ */
+export const GENERATE_BOILERPLATES_COMMAND = 'ptbk coder generate-boilerplates --count 10*7';
+
+/**
  * Command which runs prompts through a selected harness and model.
  */
 export const MODEL_FILTER_COMMAND = 'ptbk coder run --harness github-copilot --model gpt-5.5';

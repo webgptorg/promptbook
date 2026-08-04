@@ -9,7 +9,7 @@ Anchor `#features`. A grid of feature cards, each pairing a short explanation wi
 
 ## Cards
 
-3-column grid on desktop, 2 on tablet, 1 on mobile. Each card: title (Outfit semibold), description, and a [terminal block](../components/terminal-block.md) snippet. Exactly these fourteen cards, in this order:
+3-column grid on desktop, 2 on tablet, 1 on mobile. Each card: title (Outfit semibold), description, and a [terminal block](../components/terminal-block.md) snippet. Exactly these fifteen cards, in this order:
 
 | #   | Title                         | Snippet                                                                                  |
 | --- | ----------------------------- | ---------------------------------------------------------------------------------------- |
@@ -27,6 +27,7 @@ Anchor `#features`. A grid of feature cards, each pairing a short explanation wi
 | 12  | Ping before you queue         | `ptbk coder ping --harness openai-codex --model gpt-5.6-sol --thinking-level xhigh`      |
 | 13  | Human in the loop             | `ptbk coder run --harness claude-code --no-auto`                                         |
 | 14  | Verify and archive            | `ptbk coder verify`                                                                      |
+| 15  | Many prompts per file         | `ptbk coder generate-boilerplates --count 10*7`                                          |
 
 ## Descriptions (verbatim card copy)
 
@@ -44,5 +45,6 @@ Anchor `#features`. A grid of feature cards, each pairing a short explanation wi
 12. **Ping before you queue** — "ptbk coder ping sends one tiny dummy prompt to a harness and model and reports the answer, the response time and the usage. Use it to check that a harness, model and login really work, and to start the hourly or weekly quota window early so it is already refreshing by the time you need it. Your project is left exactly as it was."
 13. **Human in the loop** — "Confirm each prompt manually with --no-auto, press P to pause a running queue, or press X to end after the current prompt."
 14. **Verify and archive** — "Successful coding rounds record the harness, model and selected thinking level in the prompt status line. Walk through completed prompts interactively, archive the finished ones to prompts/done/ and auto-append repair prompts for incomplete work."
+15. **Many prompts per file** — "ptbk coder generate-boilerplates writes one prompt per file by default (--count 5\*1). Power users can batch a whole backlog into fewer files with the advanced --count N\*M notation: N files with M prompts each, every prompt separated by a --- line, tagged with its own fresh emoji and run as its own task."
 
 Option semantics must stay consistent with [`../content/commands.md`](../content/commands.md).

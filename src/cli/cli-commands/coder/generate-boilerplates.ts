@@ -13,6 +13,13 @@ import {
     normalizeCoderGitSyncCliOptions,
 } from '../common/coderGitSyncCliOptions';
 import { handleActionErrors } from '../common/handleActionErrors';
+import type { BoilerplateCount } from './boilerplateCount';
+import {
+    BOILERPLATE_COUNT_OPTION_DESCRIPTION,
+    DEFAULT_BOILERPLATE_COUNT_OPTION_VALUE,
+    formatBoilerplateCount,
+    parseBoilerplateCount,
+} from './boilerplateCount';
 import {
     buildCoderPromptSection,
     getDefaultCoderPromptTemplateDefinitions,
@@ -39,7 +46,7 @@ export function $initializeCoderGenerateBoilerplatesCommand(program: Program): $
         ),
     );
 
-    command.option('--count <count>', `Number of prompt boilerplate files to generate`, '5');
+    command.option('--count <count>', BOILERPLATE_COUNT_OPTION_DESCRIPTION, DEFAULT_BOILERPLATE_COUNT_OPTION_VALUE);
     command.option(
         '--template <template>',
         spaceTrim(`
@@ -59,7 +66,7 @@ export function $initializeCoderGenerateBoilerplatesCommand(program: Program): $
                 readonly template?: string;
             } & CoderGitSyncCliOptions;
 
-            const filesCount = parseFilesCount(countOption);
+            const boilerplateCount = parseBoilerplateCount(countOption);
             const gitSync = normalizeCoderGitSyncCliOptions(cliOptions as CoderGitSyncCliOptions);
             const projectPath = process.cwd();
 
@@ -72,14 +79,14 @@ export function $initializeCoderGenerateBoilerplatesCommand(program: Program): $
 
             await generatePromptBoilerplate({
                 projectPath,
-                filesCount,
+                boilerplateCount,
                 templateOption,
             });
 
             await $commitCoderChanges({
                 gitSync,
                 projectPath,
-                commitMessage: `Prompts ${filesCount}x`,
+                commitMessage: `Prompts ${formatBoilerplateCount(boilerplateCount)}`,
             });
 
             return process.exit(0);
@@ -94,13 +101,15 @@ export function $initializeCoderGenerateBoilerplatesCommand(program: Program): $
  */
 export async function generatePromptBoilerplate({
     projectPath,
-    filesCount,
+    boilerplateCount,
     templateOption,
 }: {
     readonly projectPath: string;
-    readonly filesCount: number;
+    readonly boilerplateCount: BoilerplateCount;
     readonly templateOption?: string;
 }): Promise<void> {
+    const { filesCount, promptsPerFileCount } = boilerplateCount;
+
     // Note: Import these dynamically to avoid circular dependencies and keep CLI fast
     const { buildPromptFilename, getPromptNumbering } = await import(
         '../../../../scripts/utils/prompts/getPromptNumbering'
@@ -125,8 +134,10 @@ export async function generatePromptBoilerplate({
         colors.blue(`Highest existing number for ${promptNumbering.datePrefix} found: ${highestNumberFormatted}`),
     );
 
+    // Note: Every single generated prompt is one separate coding task, so each of them reserves its own fresh emoji tag
+    const promptsCount = filesCount * promptsPerFileCount;
     const { availableCount, selectedEmojis } = await getFreshPromptEmojiTags({
-        count: filesCount,
+        count: promptsCount,
         rootDir: projectPath,
     });
 
@@ -143,7 +154,9 @@ export async function generatePromptBoilerplate({
     for (let i = 0; i < filesCount; i++) {
         const number = promptNumbering.startNumber + i * promptNumbering.step;
         const title = titles[i % titles.length]!;
-        const emoji = selectedEmojis[i]!;
+        const emojiTags = selectedEmojis
+            .slice(i * promptsPerFileCount, (i + 1) * promptsPerFileCount)
+            .map((emoji) => formatPromptEmojiTag(emoji));
         const filename = buildPromptFilename(
             promptNumbering.datePrefix,
             number,
@@ -151,39 +164,18 @@ export async function generatePromptBoilerplate({
         );
         const filepath = join(PROMPTS_DIRECTORY_PATH, filename);
         const absoluteFilepath = join(projectPath, filepath);
-        const emojiTag = formatPromptEmojiTag(emoji);
-        const one = buildCoderPromptSection({
-            statusLine: '[-]',
-            emojiTag,
+        const content = buildBoilerplatePromptFileContent({
+            emojiTags,
             title,
             body: promptTemplate.content,
         });
-        const content = spaceTrim(
-            (block) => `
-
-                ${block(one)}
-
-                ---
-
-                ${block(one)}
-
-                ---
-
-                ${block(one)}
-
-                ---
-
-                ${block(one)}
-
-            `,
-        );
 
         filesToCreate.push({
             filepath,
             absoluteFilepath,
             filename,
             content,
-            emoji,
+            emojiTags,
             number,
         });
     }
@@ -193,26 +185,42 @@ export async function generatePromptBoilerplate({
 
     for (const file of filesToCreate) {
         writeFileSync(file.absoluteFilepath, file.content, 'utf-8');
-        console.info(colors.green(`✓ Created: ${file.filename} with ${formatPromptEmojiTag(file.emoji!)}`));
+        console.info(colors.green(`✓ Created: ${file.filename} with ${file.emojiTags.join(' ')}`));
     }
 
-    console.info(colors.bgGreen(` Successfully created ${filesToCreate.length} prompt boilerplate files! `));
+    console.info(
+        colors.bgGreen(
+            ` Successfully created ${promptsCount} prompts in ${filesToCreate.length} prompt boilerplate files! `,
+        ),
+    );
 }
 
 /**
- * Parses and validates the count of boilerplate files to create.
+ * Builds the markdown content of one generated prompt file with one prompt section per emoji tag.
+ *
+ * Multiple prompts in one file are separated by the `---` separator, exactly like the prompt runner expects them.
  *
  * @private internal utility of `generatePromptBoilerplate` command
  */
-function parseFilesCount(countOption: string): number {
-    const filesCount = Number(countOption);
-
-    if (!Number.isFinite(filesCount) || filesCount <= 0) {
-        console.info(colors.yellow(`Invalid --count '${countOption}'. Falling back to default 5.`));
-        return 5;
-    }
-
-    return Math.floor(filesCount);
+function buildBoilerplatePromptFileContent({
+    emojiTags,
+    title,
+    body,
+}: {
+    readonly emojiTags: ReadonlyArray<string>;
+    readonly title: string;
+    readonly body: string;
+}): string {
+    return emojiTags
+        .map((emojiTag) =>
+            buildCoderPromptSection({
+                statusLine: '[-]',
+                emojiTag,
+                title,
+                body,
+            }),
+        )
+        .join('\n\n---\n\n');
 }
 
 /**

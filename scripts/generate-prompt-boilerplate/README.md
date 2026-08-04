@@ -47,6 +47,18 @@ ptbk coder generate-boilerplates --count 100
 npx ts-node scripts/generate-prompt-boilerplate/generate-prompt-boilerplate.ts --count 100
 ```
 
+### Generate more prompts in each file (advanced):
+
+`--count` accepts both the `N` and the `N*M` notation — `N` files with `M` prompts in each of them. A plain `--count N` is the same as `--count N*1`, and the default is `5*1`. Every single generated prompt is one separate task, so the prompts within one file are separated by `---` and each of them gets its own fresh emoji tag.
+
+```bash
+# Via CLI (recommended)
+ptbk coder generate-boilerplates --count 10*7
+
+# Direct (legacy)
+npx ts-node scripts/generate-prompt-boilerplate/generate-prompt-boilerplate.ts --count 10*7
+```
+
 ### Select a template:
 
 ```bash

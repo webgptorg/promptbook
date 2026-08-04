@@ -8,6 +8,11 @@ import colors from 'colors';
 import commander from 'commander';
 import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
+import {
+    BOILERPLATE_COUNT_OPTION_DESCRIPTION,
+    DEFAULT_BOILERPLATE_COUNT_OPTION_VALUE,
+    parseBoilerplateCount,
+} from '../../src/cli/cli-commands/coder/boilerplateCount';
 import { generatePromptBoilerplate } from '../../src/cli/cli-commands/coder/generate-boilerplates';
 
 if (process.cwd() !== join(__dirname, '../..')) {
@@ -29,7 +34,7 @@ if (process.cwd() !== join(__dirname, '../..')) {
  * Constant for program.
  */
 const program = new commander.Command();
-program.option('--count <count>', `Number of prompt boilerplate files to generate`, '5');
+program.option('--count <count>', BOILERPLATE_COUNT_OPTION_DESCRIPTION, DEFAULT_BOILERPLATE_COUNT_OPTION_VALUE);
 program.option('--template <template>', 'Prompt template alias or file path relative to the current project root');
 program.parse(process.argv);
 
@@ -40,15 +45,15 @@ const { count: countOption, template: templateOption } = program.opts<{
     readonly count: string;
     readonly template?: string;
 }>();
-/**
- * Constant for files count.
- */
-const filesCount = parseFilesCount(countOption);
-generatePromptBoilerplate({
-    projectPath: process.cwd(),
-    filesCount,
-    templateOption,
-})
+// Note: Resolving the `--count` option inside the promise chain so that its validation error is reported the same way as any other failure
+Promise.resolve()
+    .then(() =>
+        generatePromptBoilerplate({
+            projectPath: process.cwd(),
+            boilerplateCount: parseBoilerplateCount(countOption),
+            templateOption,
+        }),
+    )
     .catch((error) => {
         console.error(colors.bgRed(error.name || 'NamelessError'));
         console.error(error);
@@ -57,17 +62,3 @@ generatePromptBoilerplate({
     .then(() => {
         process.exit(0);
     });
-
-/**
- * Parses and validates the count of boilerplate files to create.
- */
-function parseFilesCount(countOption: string): number {
-    const filesCount = Number(countOption);
-
-    if (!Number.isFinite(filesCount) || filesCount <= 0) {
-        console.info(colors.yellow(`Invalid --count '${countOption}'. Falling back to default 5.`));
-        return 5;
-    }
-
-    return Math.floor(filesCount);
-}

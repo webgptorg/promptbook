@@ -1,5 +1,6 @@
 import {
     DRY_RUN_COMMAND,
+    GENERATE_BOILERPLATES_COMMAND,
     INIT_GIT_SYNC_COMMAND,
     MODEL_FILTER_COMMAND,
     PING_COMMAND,
@@ -114,5 +115,11 @@ export const ADVANCED_FEATURES: ReadonlyArray<AdvancedFeatureDefinition> = [
         description:
             'Successful coding rounds record the harness, model and selected thinking level in the prompt status line. Walk through completed prompts interactively, archive the finished ones to prompts/done/ and auto-append repair prompts for incomplete work.',
         sampleCommand: VERIFY_COMMAND,
+    },
+    {
+        title: 'Many prompts per file',
+        description:
+            'ptbk coder generate-boilerplates writes one prompt per file by default (--count 5*1). Power users can batch a whole backlog into fewer files with the advanced --count N*M notation: N files with M prompts each, every prompt separated by a --- line, tagged with its own fresh emoji and run as its own task.',
+        sampleCommand: GENERATE_BOILERPLATES_COMMAND,
     },
 ];
