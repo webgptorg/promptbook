@@ -455,14 +455,14 @@ async function verifyDonePromptsInFile(file: PromptFile): Promise<PromptVerifica
  * Builds the commit message describing one archived prompt file.
  */
 function buildArchiveCommitMessage(file: PromptFile): string {
-    return `Archive verified ptbk coder prompt file ${file.name}`;
+    return `✅ Prompt done and archived \`${file.name}\``; // <- $commitCoderChanges({
 }
 
 /**
  * Builds the commit message describing one appended repair prompt.
  */
 function buildRepairCommitMessage(file: PromptFile): string {
-    return `Add ptbk coder repair prompt into ${file.name}`;
+    return `❌ Repair prompt added into \`${file.name}\``; // <- $commitCoderChanges({
 }
 
 /**
