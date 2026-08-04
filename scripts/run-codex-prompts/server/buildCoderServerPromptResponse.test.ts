@@ -107,6 +107,28 @@ describe('buildCoderServerPromptFileResponses', () => {
         expect(findSection(sections, 'Finished prompt').column).toBe('finished');
     });
 
+    it('keeps a prompt left in the middle of its implementation in the in-progress column', () => {
+        const promptFile = createPromptFile(
+            'prompts/left-in-progress.md',
+            `
+            [^] by OpenAI Codex \`gpt-5.6-luna\` - Implementation in progress
+            Abandoned prompt
+        `,
+        );
+
+        const responses = buildCoderServerPromptFileResponses({
+            promptFiles: [promptFile],
+            finishedPromptFiles: [],
+            priorityFilter: {},
+        });
+
+        expect(responses[0]?.sections[0]).toMatchObject({
+            status: 'in-progress',
+            column: 'in-progress',
+            tags: [{ id: 'left-in-progress', label: '[^]' }],
+        });
+    });
+
     it('uses the implementing tag for the active running prompt', () => {
         const promptFile = createPromptFile(
             'prompts/active.md',

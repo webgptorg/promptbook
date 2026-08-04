@@ -1,5 +1,4 @@
-import { spaceTrim } from 'spacetrim';
-import { UnexpectedError } from '../../../src/errors/UnexpectedError';
+import { resolvePromptStatusLine } from '../prompts/resolvePromptStatusLine';
 import type { PromptFile } from '../prompts/types/PromptFile';
 import type { PromptSection } from '../prompts/types/PromptSection';
 import { buildCoderIsolationMergeFailureStatusNote } from './coderIsolationMergeFailureReport';
@@ -21,25 +20,8 @@ export function markPromptIsolationMergeFailed(
     section: PromptSection,
     worktree: CoderIsolationWorktree,
 ): void {
-    if (section.statusLineIndex === undefined) {
-        throw new UnexpectedError(
-            spaceTrim(`
-                Prompt ${section.index + 1} in \`${file.name}\` does not have a status line.
-            `),
-        );
-    }
-
-    const line = file.lines[section.statusLineIndex];
-    if (line === undefined) {
-        throw new UnexpectedError(
-            spaceTrim(`
-                Prompt ${section.index + 1} in \`${file.name}\` points to a missing status line.
-            `),
-        );
-    }
+    const { statusLineIndex, line } = resolvePromptStatusLine(file, section);
 
     const failedStatusLine = line.replace(PROMPT_STATUS_BOX_PATTERN, '$<indentation>[!]');
-    file.lines[section.statusLineIndex] = `${failedStatusLine} - ${buildCoderIsolationMergeFailureStatusNote(
-        worktree,
-    )}`;
+    file.lines[statusLineIndex] = `${failedStatusLine} - ${buildCoderIsolationMergeFailureStatusNote(worktree)}`;
 }

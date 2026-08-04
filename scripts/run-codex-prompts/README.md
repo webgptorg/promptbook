@@ -105,6 +105,29 @@ ptbk coder run --harness openai-codex --model gpt-5.2-codex --auto-migrate
 ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --isolate
 ```
 
+## Prompt statuses
+
+Every prompt starts with a checklist marker on its first line and the coder rewrites that marker as the task moves along:
+
+| Marker | Meaning                                       |
+| ------ | --------------------------------------------- |
+| `[-]`  | Not ready to be picked up at all              |
+| `[ ]`  | Ready, waiting for the next free coding round |
+| `[^]`  | Being implemented right now                   |
+| `[x]`  | Implemented, verified and committed           |
+| `[!]`  | Failed                                        |
+
+The `[^]` in-progress status is rewritten before every single step of the round, so it always names the harness, the model, the steps which already finished and the step which is running:
+
+```text
+[ ]
+[^] by OpenAI Codex `gpt-5.6-luna` thinking `max` - Implementation in progress
+[^] by OpenAI Codex `gpt-5.6-luna` thinking `max` (ChatGPT account) - Implementation ~$0.2036 10 minutes; Testing in progress
+[x] by OpenAI Codex `gpt-5.6-luna` thinking `max` (ChatGPT account) - Implementation ~$0.2036 10 minutes; Testing 35 minutes
+```
+
+Only the final `[x]` state is committed, because the round commit is created after the prompt has been implemented and verified. The `[^]` status is deliberately never reverted: when the coder is killed or crashes, the prompt file keeps `[^]` as the signal that this task was left in the middle of its implementation. Such a prompt is not picked up again automatically — decide yourself whether to reset it to `[ ]` or to keep the partial work.
+
 ## Isolated runs
 
 With `--isolate`, no prompt is ever implemented in the working tree you started the coder from:

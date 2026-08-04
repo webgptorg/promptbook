@@ -229,6 +229,7 @@ export const CODER_SERVER_HTML = `<!DOCTYPE html>
       line-height: 1.35;
     }
     .tag-not-ready { background: #e2e8f0; color: #475569; }
+    .tag-left-in-progress { background: #ffe4e6; color: #9f1239; }
     .tag-unwritten { background: #fff4cc; color: #8a5a00; }
     .tag-implementing { background: #ede9fe; color: #5b21b6; }
     .tag-verifying { background: #fae8ff; color: #86198f; }

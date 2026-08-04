@@ -43,4 +43,16 @@ describe('formatCoderRunSteps', () => {
     it('returns an empty string when there are no steps', () => {
         expect(formatCoderRunSteps([])).toBe('');
     });
+
+    it('appends the started step behind the finished ones without a price or duration', () => {
+        const steps: ReadonlyArray<CoderRunStep> = [
+            { kind: 'implementation', usage: createUsageWithPrice(8.01), durationMs: 6 * ONE_HOUR_MS },
+        ];
+
+        expect(formatCoderRunSteps(steps, 'testing')).toBe('Implementation $8.01 6 hours; Testing in progress');
+    });
+
+    it('renders the started step alone when nothing has finished yet', () => {
+        expect(formatCoderRunSteps([], 'implementation')).toBe('Implementation in progress');
+    });
 });

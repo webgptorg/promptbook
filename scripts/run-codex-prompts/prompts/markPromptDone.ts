@@ -1,12 +1,10 @@
-import { formatCodexLoginMethod, type CodexLoginMethod } from '../../../src/book-3.0/codexLoginMethod';
+import type { CodexLoginMethod } from '../../../src/book-3.0/codexLoginMethod';
 import type { ThinkingLevel } from '../../../src/cli/cli-commands/coder/ThinkingLevel';
 import type { CoderRunStep } from '../common/CoderRunStep';
-import { formatCoderRunSteps } from './formatCoderRunSteps';
-import { formatPromptAttemptMetadata } from './formatPromptAttemptMetadata';
-import { formatRunnerSignature } from './formatRunnerSignature';
-import { replacePromptTodoStatusLine } from './replacePromptTodoStatusLine';
+import { buildPromptStatusDetails } from './buildPromptStatusDetails';
 import type { PromptFile } from './types/PromptFile';
 import type { PromptSection } from './types/PromptSection';
+import { writePromptStatusLine } from './writePromptStatusLine';
 
 /**
  * Marks a prompt section as done and records the per-step usage pricing and runner details.
@@ -21,24 +19,14 @@ export function markPromptDone(
     loginMethod?: CodexLoginMethod,
     thinkingLevel?: ThinkingLevel,
 ): void {
-    if (section.statusLineIndex === undefined) {
-        throw new Error(`Prompt ${section.index + 1} in ${file.name} does not have a status line.`);
-    }
+    const statusDetails = buildPromptStatusDetails({
+        steps,
+        runnerName,
+        modelName,
+        attemptCount,
+        loginMethod,
+        thinkingLevel,
+    });
 
-    const line = file.lines[section.statusLineIndex];
-    if (line === undefined) {
-        throw new Error(`Prompt ${section.index + 1} in ${file.name} points to a missing status line.`);
-    }
-    const runnerSignature = formatRunnerSignature(runnerName, modelName, thinkingLevel);
-    const attemptMetadata = formatPromptAttemptMetadata('done', attemptCount);
-    const loginMethodLabel = formatCodexLoginMethod(loginMethod);
-    const loginMethodSuffix = loginMethodLabel ? ` (${loginMethodLabel})` : '';
-    const stepsSummary = formatCoderRunSteps(steps);
-    const stepsSuffix = stepsSummary === '' ? '' : ` - ${stepsSummary}`;
-
-    // Replace the complete todo status, including any required model/harness token.
-    file.lines[section.statusLineIndex] = replacePromptTodoStatusLine(
-        line,
-        `[x] ${attemptMetadata}by ${runnerSignature}${loginMethodSuffix}${stepsSuffix}`,
-    );
+    writePromptStatusLine(file, section, `[x] ${statusDetails}`);
 }

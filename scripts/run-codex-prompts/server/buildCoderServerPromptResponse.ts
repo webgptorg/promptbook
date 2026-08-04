@@ -26,7 +26,7 @@ export type CoderServerBoardColumn =
  * UI tag attached to one prompt card.
  */
 export type CoderServerPromptTag = {
-    readonly id: 'not-ready' | 'unwritten' | 'implementing' | 'verifying';
+    readonly id: 'not-ready' | 'unwritten' | 'left-in-progress' | 'implementing' | 'verifying';
     readonly label: string;
 };
 
@@ -187,7 +187,9 @@ function getPromptColumn(options: {
         return 'backlog';
     }
 
-    if (isActive) {
+    // Note: A prompt marked `[^]` stays in progress even when no agent is running it, because its
+    //       implementation was left in the middle
+    if (isActive || section.status === 'in-progress') {
         return 'in-progress';
     }
 
@@ -211,6 +213,11 @@ function buildPromptTags(options: {
 
     if (options.section.status === 'not-ready') {
         tags.push({ id: 'not-ready', label: '[-]' });
+    }
+
+    // Note: A `[^]` prompt which no agent is running right now was left in the middle of its implementation
+    if (options.section.status === 'in-progress' && !options.isActive) {
+        tags.push({ id: 'left-in-progress', label: '[^]' });
     }
 
     if (options.isUnwritten) {
@@ -258,7 +265,7 @@ function getActivePrompt(uiState: CoderRunUiState | undefined): ActivePrompt | u
  * Checks whether a parsed section is the prompt currently handled by the active agent.
  */
 function isPromptActive(promptFile: PromptFile, section: PromptSection, activePrompt: ActivePrompt | undefined): boolean {
-    if (!activePrompt || section.status !== 'todo') {
+    if (!activePrompt || (section.status !== 'todo' && section.status !== 'in-progress')) {
         return false;
     }
 

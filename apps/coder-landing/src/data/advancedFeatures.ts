@@ -111,6 +111,12 @@ export const ADVANCED_FEATURES: ReadonlyArray<AdvancedFeatureDefinition> = [
         sampleCommand: 'ptbk coder run --harness claude-code --no-auto',
     },
     {
+        title: 'Live status in the prompt file',
+        description:
+            'A prompt turns from [ ] into [^] the moment the agent picks it up and names the step that is running, and only becomes [x] once the work is implemented, verified and committed. The [^] state is never reverted, so a killed or crashed queue shows you exactly which task was left in the middle.',
+        sampleCommand: '[^] by OpenAI Codex `gpt-5.6-luna` - Implementation in progress',
+    },
+    {
         title: 'Verify and archive',
         description:
             'Successful coding rounds record the harness, model and selected thinking level in the prompt status line. Walk through completed prompts interactively, archive the finished ones to prompts/done/ and auto-append repair prompts for incomplete work.',

@@ -2,11 +2,13 @@ import colors from 'colors';
 import moment from 'moment';
 import { spaceTrim } from 'spacetrim';
 import { increaseHeadings } from '../../../book/scripts/import-markdown/increaseHeadings';
+import type { ThinkingLevel } from '../../../src/cli/cli-commands/coder/ThinkingLevel';
 import type { RunOptions } from '../cli/RunOptions';
 import { appendCoderContext } from '../common/appendCoderContext';
 import type { CliProgressDisplay } from '../common/cliProgressDisplay';
 import { recordPromptDurationSample } from '../common/coderRunEstimateCache';
 import type { WaitForCoderRunPauseCheckpoint } from '../common/CoderRunPauseCheckpoint';
+import type { CoderRunStepProgress } from '../common/createCoderRunStepTracker';
 import { formatCommitMessageForDisplay } from '../common/formatCommitMessageForDisplay';
 import {
     captureChangedFilesSnapshot,
@@ -24,6 +26,7 @@ import { buildCommitMessage } from '../prompts/buildCommitMessage';
 import { buildScriptPath } from '../prompts/buildScriptPath';
 import { markPromptDone } from '../prompts/markPromptDone';
 import { markPromptFailed } from '../prompts/markPromptFailed';
+import { markPromptInProgress } from '../prompts/markPromptInProgress';
 import type { PromptSelection } from '../prompts/types/PromptSelection';
 import { writePromptErrorLog } from '../prompts/writePromptErrorLog';
 import { writePromptFile } from '../prompts/writePromptFile';
@@ -143,6 +146,14 @@ export async function runPromptRound({
                             attemptCount = nextAttemptCount;
                             uiHandle?.state.setAttempt(nextAttemptCount);
                         },
+                        onStepStarted: (progress) =>
+                            recordPromptRoundInProgress({
+                                nextPrompt,
+                                runnerMetadata,
+                                thinkingLevel: options.thinkingLevel,
+                                attemptCount,
+                                progress,
+                            }),
                         waitForPauseCheckpoint: waitForRequestedPause,
                     });
 
@@ -199,6 +210,41 @@ export async function runPromptRound({
         },
         { preserveArtifactsOnSuccess: options.preserveLogs },
     );
+}
+
+/**
+ * Records into the prompt file that the prompt is being implemented right now.
+ *
+ * The `[^]` in-progress status is written before every single step, so it always names the step which is
+ * running and the steps already finished. It is intentionally never reverted: a coder which is killed or
+ * crashes leaves the `[^]` status behind as the signal that this task was left in the middle.
+ */
+async function recordPromptRoundInProgress(options: {
+    nextPrompt: PromptSelection;
+    runnerMetadata: {
+        runnerName: string;
+        modelName?: string;
+    };
+    thinkingLevel?: ThinkingLevel;
+    attemptCount: number;
+    progress: CoderRunStepProgress;
+}): Promise<void> {
+    const { nextPrompt, runnerMetadata, thinkingLevel, attemptCount, progress } = options;
+
+    markPromptInProgress({
+        file: nextPrompt.file,
+        section: nextPrompt.section,
+        steps: progress.finishedSteps,
+        inProgressStepKind: progress.startedStepKind,
+        runnerName: runnerMetadata.runnerName,
+        modelName: runnerMetadata.modelName,
+        attemptCount,
+        loginMethod: progress.loginMethod,
+        thinkingLevel,
+    });
+    // Note: The prompt status is always written into the original project, an isolated round transports
+    //       its own changes back through the merge instead
+    await writePromptFile(nextPrompt.file);
 }
 
 /**

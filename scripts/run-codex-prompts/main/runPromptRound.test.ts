@@ -12,6 +12,7 @@ import { buildCommitMessage } from '../prompts/buildCommitMessage';
 import { buildScriptPath } from '../prompts/buildScriptPath';
 import { markPromptDone } from '../prompts/markPromptDone';
 import { markPromptFailed } from '../prompts/markPromptFailed';
+import { markPromptInProgress } from '../prompts/markPromptInProgress';
 import { writePromptErrorLog } from '../prompts/writePromptErrorLog';
 import { writePromptFile } from '../prompts/writePromptFile';
 import type { PromptFile } from '../prompts/types/PromptFile';
@@ -66,6 +67,10 @@ jest.mock('../prompts/markPromptDone', () => ({
 
 jest.mock('../prompts/markPromptFailed', () => ({
     markPromptFailed: jest.fn(),
+}));
+
+jest.mock('../prompts/markPromptInProgress', () => ({
+    markPromptInProgress: jest.fn(),
 }));
 
 jest.mock('../prompts/writePromptErrorLog', () => ({
@@ -273,6 +278,119 @@ describe('runPromptRound', () => {
             phase: 'running',
             statusMessage: 'Running testing-server auto-migration',
         });
+    });
+
+    it('records the in-progress status of every started step before the prompt is marked as done', async () => {
+        const runner: PromptRunner = {
+            name: 'OpenAI Codex',
+            runPrompt: jest.fn(),
+        };
+        const waitForRequestedPause = jest.fn<
+            ReturnType<WaitForCoderRunPauseCheckpoint>,
+            Parameters<WaitForCoderRunPauseCheckpoint>
+        >(async () => undefined);
+        const implementationStep = { kind: 'implementation', usage: UNCERTAIN_USAGE, durationMs: 1000 } as const;
+
+        (runPromptWithTestFeedback as jest.MockedFunction<typeof runPromptWithTestFeedback>).mockImplementation(
+            async (options) => {
+                await options.onStepStarted?.({ startedStepKind: 'implementation', finishedSteps: [] });
+                await options.onStepStarted?.({
+                    startedStepKind: 'testing',
+                    finishedSteps: [implementationStep],
+                    loginMethod: 'chatgpt',
+                });
+
+                return { usage: UNCERTAIN_USAGE, attemptCount: 1, steps: [implementationStep] };
+            },
+        );
+
+        await runPromptRound({
+            options: createRunOptions({
+                noCommit: true,
+                waitForUser: false,
+                thinkingLevel: 'max',
+            }),
+            runner,
+            runnerMetadata: {
+                runnerName: 'OpenAI Codex',
+                modelName: 'gpt-5.6-luna',
+            },
+            nextPrompt: createPromptSelection(),
+            promptLabel: 'example.md#1',
+            resolvedCoderContext: undefined,
+            isRichUiEnabled: false,
+            progressDisplay: undefined,
+            uiHandle: undefined,
+            waitForRequestedPause,
+        });
+
+        expect(markPromptInProgress).toHaveBeenCalledTimes(2);
+        expect(markPromptInProgress).toHaveBeenNthCalledWith(
+            1,
+            expect.objectContaining({
+                steps: [],
+                inProgressStepKind: 'implementation',
+                runnerName: 'OpenAI Codex',
+                modelName: 'gpt-5.6-luna',
+                attemptCount: 1,
+                loginMethod: undefined,
+                thinkingLevel: 'max',
+            }),
+        );
+        expect(markPromptInProgress).toHaveBeenNthCalledWith(
+            2,
+            expect.objectContaining({
+                steps: [implementationStep],
+                inProgressStepKind: 'testing',
+                loginMethod: 'chatgpt',
+            }),
+        );
+        // Note: Both in-progress writes plus the final done write reach the prompt file
+        expect(writePromptFile).toHaveBeenCalledTimes(3);
+        expect(
+            (markPromptInProgress as jest.MockedFunction<typeof markPromptInProgress>).mock.invocationCallOrder[1],
+        ).toBeLessThan((markPromptDone as jest.MockedFunction<typeof markPromptDone>).mock.invocationCallOrder[0]!);
+    });
+
+    it('records the in-progress status even when the round ends as failed', async () => {
+        const runner: PromptRunner = {
+            name: 'OpenAI Codex',
+            runPrompt: jest.fn(),
+        };
+        const waitForRequestedPause = jest.fn<
+            ReturnType<WaitForCoderRunPauseCheckpoint>,
+            Parameters<WaitForCoderRunPauseCheckpoint>
+        >(async () => undefined);
+
+        (runPromptWithTestFeedback as jest.MockedFunction<typeof runPromptWithTestFeedback>).mockImplementation(
+            async (options) => {
+                await options.onStepStarted?.({ startedStepKind: 'implementation', finishedSteps: [] });
+
+                throw new Error('The harness died');
+            },
+        );
+
+        await expect(
+            runPromptRound({
+                options: createRunOptions({ noCommit: true, waitForUser: false, waitAfterError: 0 }),
+                runner,
+                runnerMetadata: {
+                    runnerName: 'OpenAI Codex',
+                    modelName: 'gpt-5.6-luna',
+                },
+                nextPrompt: createPromptSelection(),
+                promptLabel: 'example.md#1',
+                resolvedCoderContext: undefined,
+                isRichUiEnabled: false,
+                progressDisplay: undefined,
+                uiHandle: undefined,
+                waitForRequestedPause,
+            }),
+        ).rejects.toThrow('The harness died');
+
+        expect(markPromptInProgress).toHaveBeenCalled();
+        expect(markPromptFailed).toHaveBeenCalled();
+        expect(markPromptDone).not.toHaveBeenCalled();
     });
 
     it('runs the agent and the commit in the provided project path of an isolated round', async () => {

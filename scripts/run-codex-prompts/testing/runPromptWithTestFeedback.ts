@@ -3,6 +3,11 @@ import { spaceTrim } from '../../../src/utils/organization/spaceTrim';
 import { appendCoderContext } from '../common/appendCoderContext';
 import type { CoderRunStep } from '../common/CoderRunStep';
 import type { WaitForCoderRunPauseCheckpoint } from '../common/CoderRunPauseCheckpoint';
+import {
+    createCoderRunStepTracker,
+    type CoderRunStepTracker,
+    type OnCoderRunStepStarted,
+} from '../common/createCoderRunStepTracker';
 import { formatUnknownErrorDetails } from '../common/formatUnknownErrorDetails';
 import type { PromptRunOptions } from '../runners/types/PromptRunOptions';
 import type { PromptRunResult } from '../runners/types/PromptRunResult';
@@ -28,6 +33,12 @@ type RunPromptWithTestFeedbackOptions = PromptRunOptions & {
     promptLabel: string;
     testCommand?: string;
     onAttemptStarted?: (attemptCount: number) => void;
+
+    /**
+     * Notified right before each implementation, testing and fixing step starts, so the caller can
+     * record the in-progress state of the prompt.
+     */
+    onStepStarted?: OnCoderRunStepStarted;
     runPromptTestCommandExecutor?: typeof runPromptTestCommand;
 };
 
@@ -61,7 +72,7 @@ export async function runPromptWithTestFeedback(
     options: RunPromptWithTestFeedbackOptions,
 ): Promise<RunPromptWithTestFeedbackResult> {
     const normalizedTestCommand = options.testCommand?.trim();
-    const steps: Array<CoderRunStep> = [];
+    const stepTracker = createCoderRunStepTracker(options.onStepStarted);
 
     if (!normalizedTestCommand) {
         options.onAttemptStarted?.(1);
@@ -71,10 +82,10 @@ export async function runPromptWithTestFeedback(
             runOptions: options,
             prompt: options.prompt,
             kind: 'implementation',
-            steps,
+            stepTracker,
         });
 
-        return { ...result, attemptCount: 1, steps };
+        return { ...result, attemptCount: 1, steps: stepTracker.steps };
     }
 
     const runPromptTestCommandExecutor = options.runPromptTestCommandExecutor ?? runPromptTestCommand;
@@ -88,7 +99,7 @@ export async function runPromptWithTestFeedback(
             runOptions: options,
             prompt: promptForCurrentAttempt,
             kind: attemptCount === 1 ? 'implementation' : 'fixing',
-            steps,
+            stepTracker,
         });
 
         await waitForVerificationPauseCheckpoint(options.waitForPauseCheckpoint, normalizedTestCommand, attemptCount);
@@ -98,11 +109,11 @@ export async function runPromptWithTestFeedback(
             runPromptTestCommandExecutor,
             testCommand: normalizedTestCommand,
             runOptions: options,
-            steps,
+            stepTracker,
         });
 
         if (failedVerification === undefined) {
-            return { ...result, attemptCount, steps };
+            return { ...result, attemptCount, steps: stepTracker.steps };
         }
 
         const fullVerificationOutput = formatUnknownErrorDetails(failedVerification.error);
@@ -149,9 +160,11 @@ async function runRunnerPromptStep(options: {
     runOptions: RunPromptWithTestFeedbackOptions;
     prompt: string;
     kind: 'implementation' | 'fixing';
-    steps: Array<CoderRunStep>;
+    stepTracker: CoderRunStepTracker;
 }): Promise<PromptRunResult> {
-    const { runOptions, prompt, kind, steps } = options;
+    const { runOptions, prompt, kind, stepTracker } = options;
+
+    await stepTracker.startStep(kind);
     const stepStartedTimeMs = Date.now();
 
     const result = await runOptions.runner.runPrompt({
@@ -163,7 +176,10 @@ async function runRunnerPromptStep(options: {
         waitForPauseCheckpoint: runOptions.waitForPauseCheckpoint,
     });
 
-    steps.push({ kind, usage: result.usage, durationMs: Date.now() - stepStartedTimeMs });
+    stepTracker.finishStep(
+        { kind, usage: result.usage, durationMs: Date.now() - stepStartedTimeMs },
+        result.loginMethod,
+    );
 
     return result;
 }
@@ -176,9 +192,11 @@ async function runVerificationStep(options: {
     runPromptTestCommandExecutor: typeof runPromptTestCommand;
     testCommand: string;
     runOptions: RunPromptWithTestFeedbackOptions;
-    steps: Array<CoderRunStep>;
+    stepTracker: CoderRunStepTracker;
 }): Promise<FailedVerificationOutcome | undefined> {
-    const { runPromptTestCommandExecutor, testCommand, runOptions, steps } = options;
+    const { runPromptTestCommandExecutor, testCommand, runOptions, stepTracker } = options;
+
+    await stepTracker.startStep('testing');
     const stepStartedTimeMs = Date.now();
 
     try {
@@ -194,7 +212,7 @@ async function runVerificationStep(options: {
     } catch (error) {
         return { error };
     } finally {
-        steps.push({ kind: 'testing', usage: null, durationMs: Date.now() - stepStartedTimeMs });
+        stepTracker.finishStep({ kind: 'testing', usage: null, durationMs: Date.now() - stepStartedTimeMs });
     }
 }
 

@@ -58,7 +58,7 @@ export function parsePromptFile(filePath: string, content: string): PromptFile {
 
 /**
  * Parses a status line like "[ ] !!", "[ ] use `gpt` !!!!!" or "[-]" into status and priority.
- * For [x] done and [!] failed prompts, allow metadata after the status marker.
+ * For [x] done, [!] failed and [^] in-progress prompts, allow metadata after the status marker.
  */
 function parseStatusLine(line: string): { status: PromptStatus; priority: number } | undefined {
     // For done prompts [x], allow any content after (for cost/time metadata)
@@ -71,6 +71,12 @@ function parseStatusLine(line: string): { status: PromptStatus; priority: number
     const failedMatch = line.match(/^\[(?<status>!)\]/);
     if (failedMatch) {
         return { status: 'failed', priority: 0 };
+    }
+
+    // For in-progress prompts [^], allow any content after (for the steps recorded so far)
+    const inProgressMatch = line.match(/^\[(?<status>\^)\]/);
+    if (inProgressMatch) {
+        return { status: 'in-progress', priority: 0 };
     }
 
     // For not-ready [-], keep the historical clean-line syntax.

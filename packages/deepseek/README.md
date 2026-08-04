@@ -404,7 +404,7 @@ Or you can install them separately:
 
 Promptbook Coder is **not another standalone coding model**. It is an orchestration layer over coding agents such as **GitHub Copilot**, **OpenAI Codex**, **Claude Code**, **Opencode**, **Cline**, and **Gemini CLI**. The difference is that Promptbook Coder adds a repeatable repository workflow on top of them:
 
--   prompt files with explicit statuses like `[ ]`, `[x]`, and `[-]`
+-   prompt files with explicit statuses like `[ ]`, `[^]`, `[x]`, and `[-]`
 -   automatic selection of the next runnable task, including priority support
 -   optional shared repo context loaded from a file such as `AGENTS.md`
 -   automatic `git add`, commit, and push after each successful prompt
@@ -419,11 +419,11 @@ In short: tools like Claude Code, Codex, or GitHub Copilot are the **engines**; 
 1. `ptbk coder init` prepares the project for the coder workflow, seeds project-owned generic templates in `prompts/templates/`, creates a starter `AGENTS.md` context file, adds helper `npm run coder:*` scripts, ensures `.gitignore` ignores `/.promptbook`, and configures VS Code prompt screenshots in `prompts/screenshots/`.
 2. `ptbk coder generate-boilerplates` creates prompt files in `prompts/`.
 3. You replace placeholder `@@@` sections with real coding tasks.
-4. `ptbk coder run` sends the next ready `[ ]` prompt to the selected coding agent.
+4. `ptbk coder run` sends the next ready `[ ]` prompt to the selected coding agent and immediately marks it as in progress `[^]`, naming the harness, the model and the step which is running.
 5. Promptbook Coder marks the prompt as done `[x]`, records runner metadata, then stages, commits, and pushes the resulting changes.
 6. `ptbk coder verify` reviews completed prompts, archives finished files to `prompts/done/`, and appends a repair prompt when more work is needed.
 
-Prompts marked with `[-]` are not ready yet, prompts containing `@@@` are treated as not fully written, and prompts with more `!` markers have higher priority.
+Prompts marked with `[-]` are not ready yet, prompts containing `@@@` are treated as not fully written, and prompts with more `!` markers have higher priority. A prompt left as `[^]` was interrupted in the middle of its implementation — the in-progress status is never reverted, so a killed or crashed coder always leaves that signal behind.
 
 #### Features
 

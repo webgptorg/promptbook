@@ -1,4 +1,4 @@
-[ ]
+[x] by Claude Code `claude-opus-5` thinking `max` - Implementation 5.81 20 minutes; Testing 5 minutes
 
 [✨🙁] Add in progress signal to the `ptbk coder`
 
@@ -36,3 +36,4 @@
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Update the [`ptbk coder` landing website](apps/coder-landing) if its relevant
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

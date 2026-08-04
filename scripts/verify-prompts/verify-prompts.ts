@@ -10,6 +10,7 @@ import {
 } from '../run-codex-prompts/git/coderGitSync';
 import { buildPromptLabelForDisplay } from '../run-codex-prompts/prompts/buildPromptLabelForDisplay';
 import { findNextTodoPrompt } from '../run-codex-prompts/prompts/findNextTodoPrompt';
+import { isPromptSectionUnfinished } from '../run-codex-prompts/prompts/isPromptSectionUnfinished';
 import { loadPromptFiles } from '../run-codex-prompts/prompts/loadPromptFiles';
 import type { PromptFile } from '../run-codex-prompts/prompts/types/PromptFile';
 import type { PromptSection } from '../run-codex-prompts/prompts/types/PromptSection';
@@ -357,8 +358,10 @@ function displayTopLevelFileList(promptFiles: PromptFile[]): void {
     for (const file of promptFiles) {
         const doneCount = file.sections.filter((section) => section.status === 'done').length;
         const todoCount = file.sections.filter((section) => section.status === 'todo').length;
+        const inProgressCount = file.sections.filter((section) => section.status === 'in-progress').length;
         const notReadyCount = file.sections.filter((section) => section.status === 'not-ready').length;
-        const needsVerification = file.sections.length > 0 && todoCount === 0 && doneCount > 0;
+        const needsVerification =
+            file.sections.length > 0 && !file.sections.some(isPromptSectionUnfinished) && doneCount > 0;
         const statusParts: string[] = [];
 
         if (needsVerification) {
@@ -366,6 +369,9 @@ function displayTopLevelFileList(promptFiles: PromptFile[]): void {
         } else {
             if (todoCount > 0) {
                 statusParts.push(colors.yellow(`${todoCount} todo [ ]`));
+            }
+            if (inProgressCount > 0) {
+                statusParts.push(colors.magenta(`${inProgressCount} in-progress [^]`));
             }
             if (doneCount > 0) {
                 statusParts.push(colors.green(`${doneCount} done [x]`));
@@ -386,7 +392,7 @@ function displayTopLevelFileList(promptFiles: PromptFile[]): void {
 }
 
 /**
- * Finds the first file where at least one prompt is marked as done [x] and no prompts are todo [ ].
+ * Finds the first file where at least one prompt is marked as done [x] and no prompts are todo [ ] or in-progress [^].
  * Completely ignores not-ready prompts like [-], [.], [?], etc.
  * Also excludes files that have been skipped in this session.
  */
@@ -399,10 +405,10 @@ function findFileWithAllDonePrompts(promptFiles: PromptFile[], skippedFiles: Set
         if (skippedFiles.has(file.path)) {
             return false;
         }
-        // File is ready for verification if it has at least one done prompt and no todo prompts
-        const hasTodoPrompts = file.sections.some((section) => section.status === 'todo');
+        // File is ready for verification if it has at least one done prompt and no unfinished prompts
+        const hasUnfinishedPrompts = file.sections.some(isPromptSectionUnfinished);
         const hasDonePrompts = file.sections.some((section) => section.status === 'done');
-        return !hasTodoPrompts && hasDonePrompts;
+        return !hasUnfinishedPrompts && hasDonePrompts;
     });
 }
 
@@ -553,11 +559,11 @@ function displayPromptOverview(promptFiles: PromptFile[]): void {
 
     const filesNeedingVerification = promptFiles.filter((file) => {
         if (file.sections.length === 0) return false;
-        const hasTodo = file.sections.some((section) => section.status === 'todo');
+        const hasUnfinished = file.sections.some(isPromptSectionUnfinished);
         const hasDone = file.sections.some((section) => section.status === 'done');
-        return !hasTodo && hasDone;
+        return !hasUnfinished && hasDone;
     });
-    const pendingFiles = promptFiles.filter((file) => file.sections.some((section) => section.status === 'todo'));
+    const pendingFiles = promptFiles.filter((file) => file.sections.some(isPromptSectionUnfinished));
 
     if (filesNeedingVerification.length) {
         const formattedNames = formatPendingFileNames(filesNeedingVerification.map((file) => file.name));

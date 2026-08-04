@@ -106,6 +106,49 @@ describe('runPromptWithTestFeedback', () => {
         expect(runPromptMock.mock.calls[1]?.[0].prompt).toContain('Expected `true` to equal `false`');
     });
 
+    it('announces every started step with the steps which already finished', async () => {
+        const { runner, runPromptMock } = createMockRunner();
+        const startedSteps: Array<{ startedStepKind: string; finishedStepKinds: string[]; loginMethod?: string }> = [];
+        const runPromptTestCommandExecutor = jest
+            .fn<ReturnType<RunPromptTestCommandExecutor>, Parameters<RunPromptTestCommandExecutor>>()
+            .mockRejectedValueOnce(new Error('Test suite failed'))
+            .mockResolvedValueOnce('All tests passed');
+
+        runPromptMock.mockResolvedValue({ usage: UNCERTAIN_USAGE, loginMethod: 'chatgpt' });
+
+        await runPromptWithTestFeedback({
+            runner,
+            prompt: 'Implement the feature',
+            scriptPath: 'prompts/feature.sh',
+            projectPath: 'C:\\repo',
+            promptLabel: 'prompts/feature.md#1',
+            testCommand: 'npm run test',
+            onStepStarted: async (progress) => {
+                startedSteps.push({
+                    startedStepKind: progress.startedStepKind,
+                    finishedStepKinds: progress.finishedSteps.map((step) => step.kind),
+                    loginMethod: progress.loginMethod,
+                });
+            },
+            runPromptTestCommandExecutor,
+        });
+
+        expect(startedSteps).toEqual([
+            { startedStepKind: 'implementation', finishedStepKinds: [], loginMethod: undefined },
+            { startedStepKind: 'testing', finishedStepKinds: ['implementation'], loginMethod: 'chatgpt' },
+            {
+                startedStepKind: 'fixing',
+                finishedStepKinds: ['implementation', 'testing'],
+                loginMethod: 'chatgpt',
+            },
+            {
+                startedStepKind: 'testing',
+                finishedStepKinds: ['implementation', 'testing', 'fixing'],
+                loginMethod: 'chatgpt',
+            },
+        ]);
+    });
+
     it('fails after the maximum number of verification attempts', async () => {
         const { runner, runPromptMock } = createMockRunner();
         const attemptCounts: number[] = [];

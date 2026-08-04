@@ -7,7 +7,7 @@ import { parsePromptFile } from '../prompts/parsePromptFile';
  * Overwrites the body of one prompt section with new content, preserving the status line.
  *
  * The `newContent` string is the prompt text without the status marker.
- * The status line (`[ ]`, `[x]`, `[!]`, `[-]`) is kept intact.
+ * The status line (`[ ]`, `[^]`, `[x]`, `[!]`, `[-]`) is kept intact.
  *
  * @private internal utility of `ptbk coder server`
  */
