@@ -4,6 +4,7 @@
 //       remain split across small, single-responsibility modules.
 
 export { deleteVpsSelfUpdateInstalledVersion } from './vpsSelfUpdate/deleteVpsSelfUpdateInstalledVersion';
+export { isVpsSelfUpdateJobRunning } from './vpsSelfUpdate/isVpsSelfUpdateJobRunning';
 export { listVpsSelfUpdateCandidateCommits } from './vpsSelfUpdate/listVpsSelfUpdateCandidateCommits';
 export { readVpsSelfUpdateJobSnapshot } from './vpsSelfUpdate/readPersistedVpsSelfUpdateJob';
 export {

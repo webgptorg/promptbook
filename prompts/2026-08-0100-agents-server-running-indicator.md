@@ -1,4 +1,4 @@
-[ ]
+[x] by Claude Code `opus` thinking `max` - Implementation $7.01 13 minutes; Testing 21 minutes
 
 [✨🥓] When the self-update is running, show some icon alongside the menu item "Update". 
 

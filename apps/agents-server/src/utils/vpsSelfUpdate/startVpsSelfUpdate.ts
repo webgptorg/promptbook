@@ -4,6 +4,7 @@ import { dirname } from 'path';
 import { NotAllowed } from '../../../../../src/errors/NotAllowed';
 import { spaceTrim } from 'spacetrim';
 import { createVpsInstallerCommandEnvironment, resolveVpsInstallerScriptPath } from '../vpsConfiguration';
+import { isVpsSelfUpdateJobRunning } from './isVpsSelfUpdateJobRunning';
 import { resolveVpsSelfUpdateEnvironment } from './vpsSelfUpdateEnvironment';
 import {
     normalizeVpsSelfUpdateOriginRepositoryUrl,
@@ -66,7 +67,7 @@ export async function startVpsSelfUpdate(request: VpsSelfUpdateStartRequest): Pr
     const originRepositoryUrl = requestedOriginUrl || (await readConfiguredVpsSelfUpdateOriginRepositoryUrl());
 
     const currentJob = await readPersistedVpsSelfUpdateJob({ isLogTailIncluded: false });
-    if (currentJob.status === 'running' && !currentJob.isStale) {
+    if (isVpsSelfUpdateJobRunning(currentJob)) {
         throw new NotAllowed(
             spaceTrim(`
                 A standalone VPS self-update is already running.

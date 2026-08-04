@@ -87,6 +87,10 @@ type LayoutWrapperProps = {
      */
     readonly isInternalS3WarningShown: boolean;
     /**
+     * Whether a standalone VPS self-update is running right now.
+     */
+    readonly isSelfUpdateRunning: boolean;
+    /**
      * Indicates if the install-as-app option should be shown in agent menus.
      */
     readonly isExperimentalPwaAppEnabled: boolean;
@@ -139,6 +143,7 @@ export function LayoutWrapper({
     isVpsEmailServerWarningShown,
     isServersDnsWarningShown,
     isInternalS3WarningShown,
+    isSelfUpdateRunning,
     isExperimentalPwaAppEnabled,
     controlPanelOptionAvailability,
     defaultIsSoundsOn,
@@ -249,6 +254,9 @@ export function LayoutWrapper({
                                                                                         }
                                                                                         isInternalS3WarningShown={
                                                                                             isInternalS3WarningShown
+                                                                                        }
+                                                                                        isSelfUpdateRunning={
+                                                                                            isSelfUpdateRunning
                                                                                         }
                                                                                     />
                                                                                     <main className={mainClassName}>

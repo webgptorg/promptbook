@@ -1,8 +1,9 @@
-import { isValidElement } from 'react';
+import { Children, isValidElement, type ReactNode } from 'react';
 
 import type { ServerTranslationKey } from '../../languages/ServerTranslationKeys';
 import type { UserInfo } from '../../utils/getCurrentUser';
 import { buildHeaderSystemMenuItems } from './buildHeaderSystemMenuItems';
+import { resolveHeaderSystemActivities } from './resolveHeaderSystemActivities';
 import { resolveHeaderSystemWarnings } from './resolveHeaderSystemWarnings';
 import type { SubMenuItem } from './SubMenuItem';
 
@@ -40,6 +41,20 @@ function collectSubMenuIcons(items: ReadonlyArray<SubMenuItem>): Array<NonNullab
         ...(item.icon ? [item.icon] : []),
         ...(item.items ? collectSubMenuIcons(item.items) : []),
     ]);
+}
+
+/**
+ * Reads the accessible name of the status indicator rendered inside one decorated menu label.
+ */
+function resolveIndicatorAriaLabel(label: ReactNode): string | null {
+    if (!isValidElement<{ children?: ReactNode }>(label)) {
+        return null;
+    }
+
+    const indicatorElement = Children.toArray(label.props.children).find((child) => isValidElement(child));
+    return isValidElement<{ 'aria-label'?: string }>(indicatorElement)
+        ? indicatorElement.props['aria-label'] || null
+        : null;
 }
 
 /**
@@ -201,6 +216,50 @@ describe('buildHeaderSystemMenuItems', () => {
         ]) {
             expect(isValidElement(findItemByHref(items, href)?.label)).toBe(true);
         }
+    });
+
+    it('decorates the Update menu item while a self-update is running', () => {
+        const translate = (key: ServerTranslationKey) => `translated:${key}`;
+        const buildItemsWithSelfUpdateRunning = (isSelfUpdateRunning: boolean) =>
+            buildHeaderSystemMenuItems({
+                translate,
+                currentUser: FIXTURE_USER,
+                isAdmin: true,
+                isGlobalAdmin: true,
+                isExperimental: false,
+                feedbackMode: 'stars',
+                systemActivities: resolveHeaderSystemActivities({ isGlobalAdmin: true, isSelfUpdateRunning }),
+            });
+
+        expect(findItemByHref(buildItemsWithSelfUpdateRunning(false), '/superadmin/update')?.label).toBe(
+            'translated:header.update',
+        );
+        expect(
+            resolveIndicatorAriaLabel(
+                findItemByHref(buildItemsWithSelfUpdateRunning(true), '/superadmin/update')?.label,
+            ),
+        ).toBe('Running');
+    });
+
+    it('decorates warning and running destinations independently of each other', () => {
+        const translate = (key: ServerTranslationKey) => `translated:${key}`;
+        const items = buildHeaderSystemMenuItems({
+            translate,
+            currentUser: FIXTURE_USER,
+            isAdmin: true,
+            isGlobalAdmin: true,
+            isExperimental: false,
+            feedbackMode: 'stars',
+            systemWarnings: resolveHeaderSystemWarnings({
+                isAdmin: true,
+                isGlobalAdmin: true,
+                isServersDnsWarningShown: true,
+            }),
+            systemActivities: resolveHeaderSystemActivities({ isGlobalAdmin: true, isSelfUpdateRunning: true }),
+        });
+
+        expect(resolveIndicatorAriaLabel(findItemByHref(items, '/superadmin/servers')?.label)).toBe('Warning');
+        expect(resolveIndicatorAriaLabel(findItemByHref(items, '/superadmin/update')?.label)).toBe('Running');
     });
 
     it('adds Shibboleth under login methods only when Shibboleth authentication is active', () => {

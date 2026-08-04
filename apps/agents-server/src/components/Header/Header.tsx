@@ -20,6 +20,7 @@ import { buildDocumentationDropdownItems } from './buildDocumentationDropdownIte
 import { buildFederatedDropdownItems } from './buildFederatedDropdownItems';
 import { buildHeaderMenuItems } from './buildHeaderMenuItems';
 import { buildHeaderSystemMenuItems } from './buildHeaderSystemMenuItems';
+import { resolveHeaderSystemActivities } from './resolveHeaderSystemActivities';
 import { resolveHeaderSystemWarnings } from './resolveHeaderSystemWarnings';
 import { HeaderControlPanelDropdown } from './ControlPanel/ControlPanel';
 import { HeaderDesktopContextNavigation } from './HeaderDesktopContextNavigation';
@@ -65,6 +66,7 @@ export function Header(props: HeaderProps) {
         isVpsEmailServerWarningShown = false,
         isServersDnsWarningShown = false,
         isInternalS3WarningShown = false,
+        isSelfUpdateRunning = false,
     } = props;
     const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
     const router = useRouter();
@@ -276,6 +278,10 @@ export function Header(props: HeaderProps) {
             isInternalS3WarningShown,
         ],
     );
+    const systemActivities = useMemo(
+        () => resolveHeaderSystemActivities({ isGlobalAdmin, isSelfUpdateRunning }),
+        [isGlobalAdmin, isSelfUpdateRunning],
+    );
     const systemMenuEntries = useMemo(
         () =>
             buildHeaderSystemMenuItems({
@@ -287,6 +293,7 @@ export function Header(props: HeaderProps) {
                 feedbackMode,
                 shibbolethAuthenticationStatus,
                 systemWarnings,
+                systemActivities,
             }),
         [
             currentUser,
@@ -295,6 +302,7 @@ export function Header(props: HeaderProps) {
             isExperimental,
             isGlobalAdmin,
             shibbolethAuthenticationStatus,
+            systemActivities,
             systemWarnings,
             t,
         ],

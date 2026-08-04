@@ -2,6 +2,7 @@ import { rm, stat } from 'fs/promises';
 import { resolve } from 'path';
 import { spaceTrim } from 'spacetrim';
 import { NotAllowed } from '../../../../../src/errors/NotAllowed';
+import { isVpsSelfUpdateJobRunning } from './isVpsSelfUpdateJobRunning';
 import { readPersistedVpsSelfUpdateJob } from './readPersistedVpsSelfUpdateJob';
 import { resolveManagedPromptbookRepositoryDirectory } from './vpsSelfUpdateConfiguration';
 import { resolveVpsSelfUpdateReleasesDirectory } from './vpsSelfUpdateInstalledVersions';
@@ -37,7 +38,7 @@ export async function deleteVpsSelfUpdateInstalledVersion(versionName: string): 
     }
 
     const currentJob = await readPersistedVpsSelfUpdateJob({ isLogTailIncluded: false });
-    if (currentJob.status === 'running' && !currentJob.isStale) {
+    if (isVpsSelfUpdateJobRunning(currentJob)) {
         throw new NotAllowed(
             spaceTrim(`
                 Installed versions cannot be deleted while a standalone VPS self-update is running.

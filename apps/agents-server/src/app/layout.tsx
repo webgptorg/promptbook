@@ -73,6 +73,8 @@ import {
     readStalwartEmailSnapshot,
 } from '../utils/stalwart/readStalwartEmailSnapshot';
 import { readStalwartConfiguration } from '../utils/stalwart/StalwartConfiguration';
+import { isVpsSelfUpdateJobRunning } from '../utils/vpsSelfUpdate/isVpsSelfUpdateJobRunning';
+import { readVpsSelfUpdateJobSnapshot } from '../utils/vpsSelfUpdate/readPersistedVpsSelfUpdateJob';
 import { readAgentsServerFooterVersion } from '../utils/vpsSelfUpdate/readAgentsServerFooterVersion';
 import '@prisma/studio-core/ui/index.css';
 import './globals.css';
@@ -281,6 +283,25 @@ async function resolveInternalS3WarningStatus(isGlobalAdmin: boolean): Promise<b
 }
 
 /**
+ * Resolves whether a standalone VPS self-update is running right now.
+ *
+ * @param isGlobalAdmin - Whether the current viewer may see VPS-wide operational details.
+ * @returns `true` when a self-update job is in progress.
+ */
+async function resolveSelfUpdateRunningStatus(isGlobalAdmin: boolean): Promise<boolean> {
+    if (!isGlobalAdmin) {
+        return false;
+    }
+
+    try {
+        return isVpsSelfUpdateJobRunning(await readVpsSelfUpdateJobSnapshot());
+    } catch (error) {
+        console.error('Failed to resolve self-update running status:', error);
+        return false;
+    }
+}
+
+/**
  * Generates metadata.
  */
 export async function generateMetadata(): Promise<Metadata> {
@@ -400,6 +421,7 @@ export default async function RootLayout({
     const vpsEmailServerWarningPromise = isGlobalAdminPromise.then(resolveVpsEmailServerWarningStatus);
     const serversDnsWarningPromise = isGlobalAdminPromise.then(resolveServersDnsWarningStatus);
     const internalS3WarningPromise = isGlobalAdminPromise.then(resolveInternalS3WarningStatus);
+    const selfUpdateRunningPromise = isGlobalAdminPromise.then(resolveSelfUpdateRunningStatus);
     const serverVisibilityPromise = getServerVisibility();
     const agentNamingPromise = getAgentNaming();
     const organizationStatePromise = isAdminPromise.then((isAdmin) =>
@@ -500,6 +522,7 @@ export default async function RootLayout({
         isVpsEmailServerWarningShown,
         isServersDnsWarningShown,
         isInternalS3WarningShown,
+        isSelfUpdateRunning,
     ] = await Promise.all([
         isAdminPromise,
         isGlobalAdminPromise,
@@ -526,6 +549,7 @@ export default async function RootLayout({
         vpsEmailServerWarningPromise,
         serversDnsWarningPromise,
         internalS3WarningPromise,
+        selfUpdateRunningPromise,
     ]);
 
     const serverName = layoutMetadata.SERVER_NAME || 'Promptbook Agents Server';
@@ -625,6 +649,7 @@ export default async function RootLayout({
                     isVpsEmailServerWarningShown={isVpsEmailServerWarningShown}
                     isServersDnsWarningShown={isServersDnsWarningShown}
                     isInternalS3WarningShown={isInternalS3WarningShown}
+                    isSelfUpdateRunning={isSelfUpdateRunning}
                     isExperimentalPwaAppEnabled={isExperimentalPwaAppEnabled}
                     controlPanelOptionAvailability={controlPanelOptionAvailability}
                     defaultServerLanguage={serverLanguage}

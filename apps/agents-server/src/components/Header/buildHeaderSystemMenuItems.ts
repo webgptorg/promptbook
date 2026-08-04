@@ -37,6 +37,7 @@ import {
     MousePointerClick,
     Paintbrush,
     PlugZap,
+    RefreshCcw,
     RefreshCw,
     Scale,
     ScrollText,
@@ -63,6 +64,7 @@ import type { ServerTranslationKey } from '../../languages/ServerTranslationKeys
 import type { ShibbolethAuthenticationMenuStatus } from '../../constants/shibbolethAuth';
 import type { ChatFeedbackMode } from '../../utils/chatFeedbackMode';
 import type { UserInfo } from '../../utils/getCurrentUser';
+import { isHeaderSystemActivityShownForHref, type HeaderSystemActivities } from './resolveHeaderSystemActivities';
 import {
     isHeaderSystemWarningShownForCategory,
     isHeaderSystemWarningShownForHref,
@@ -160,6 +162,7 @@ type BuildHeaderSystemMenuItemsOptions = {
     readonly feedbackMode: ChatFeedbackMode;
     readonly shibbolethAuthenticationStatus?: ShibbolethAuthenticationMenuStatus;
     readonly systemWarnings?: HeaderSystemWarnings;
+    readonly systemActivities?: HeaderSystemActivities;
 };
 
 /**
@@ -170,6 +173,15 @@ type BuildHeaderSystemMenuItemsOptions = {
 const EMPTY_HEADER_SYSTEM_WARNINGS: HeaderSystemWarnings = {
     warnings: [],
     isSystemWarningShown: false,
+};
+
+/**
+ * Shared activity-free fallback for callers that only need the static System menu structure.
+ *
+ * @private constant of Header
+ */
+const EMPTY_HEADER_SYSTEM_ACTIVITIES: HeaderSystemActivities = {
+    activities: [],
 };
 
 /**
@@ -297,42 +309,104 @@ function applySystemSubMenuIcons(
 }
 
 /**
- * Decorates a System menu label with the shared warning indicator.
+ * Kinds of status indicator that can decorate a System menu label.
+ *
+ * @private type of Header
+ */
+type SystemMenuIndicatorKind = 'warning' | 'activity';
+
+/**
+ * Visual definition of one System menu status indicator.
+ *
+ * @private type of Header
+ */
+type SystemMenuIndicatorDefinition = {
+    /**
+     * Icon rendered after the menu label.
+     */
+    readonly icon: LucideIcon;
+
+    /**
+     * Utility classes applied to the indicator icon.
+     */
+    readonly className: string;
+
+    /**
+     * Accessible description of the indicated state.
+     */
+    readonly ariaLabel: string;
+};
+
+/**
+ * Look of every System menu status indicator, kept in one place so labels never style icons themselves.
+ *
+ * @private constant of Header
+ */
+const SYSTEM_MENU_INDICATOR_DEFINITIONS: Record<SystemMenuIndicatorKind, SystemMenuIndicatorDefinition> = {
+    warning: {
+        icon: TriangleAlert,
+        className: 'h-4 w-4 text-amber-500',
+        ariaLabel: 'Warning',
+    },
+    activity: {
+        icon: RefreshCcw,
+        className: 'h-4 w-4 animate-spin text-blue-500',
+        ariaLabel: 'Running',
+    },
+};
+
+/**
+ * Resolves which indicator, if any, one System menu destination currently shows.
+ *
+ * @private type of Header
+ */
+type SystemMenuIndicatorResolver = (href: string) => SystemMenuIndicatorKind | null;
+
+/**
+ * Decorates a System menu label with one shared status indicator.
  *
  * @private function of Header
  */
-function createWarningMenuLabel(label: string) {
+function createIndicatorMenuLabel(label: string, indicatorKind: SystemMenuIndicatorKind) {
+    const indicator = SYSTEM_MENU_INDICATOR_DEFINITIONS[indicatorKind];
+
     return createElement(
         'span',
         { className: 'inline-flex items-center gap-2' },
         label,
-        createElement(TriangleAlert, {
-            className: 'h-4 w-4 text-amber-500',
-            'aria-label': 'Warning',
+        createElement(indicator.icon, {
+            className: indicator.className,
+            'aria-label': indicator.ariaLabel,
         }),
     );
 }
 
 /**
- * Decorates every System menu entry whose destination currently has a visible warning.
+ * Decorates every System menu entry whose destination currently has a visible status indicator.
  *
- * The warning registry owns the route-to-warning mapping, so adding another operational warning
- * does not require scattered leaf-label conditionals throughout this menu tree.
+ * The warning and activity registries own the route-to-indicator mapping, so adding another
+ * operational state does not require scattered leaf-label conditionals throughout this menu tree.
  *
  * @private function of Header
  */
-function applySystemSubMenuWarnings(
+function applySystemSubMenuIndicators(
     items: ReadonlyArray<SubMenuItem>,
-    systemWarnings: HeaderSystemWarnings,
+    resolveIndicatorKind: SystemMenuIndicatorResolver,
 ): SubMenuItem[] {
-    return items.map((item) => ({
-        ...item,
-        label:
-            item.href && typeof item.label === 'string' && isHeaderSystemWarningShownForHref(systemWarnings, item.href)
-                ? createWarningMenuLabel(item.label)
-                : item.label,
-        items: item.items ? applySystemSubMenuWarnings(item.items, systemWarnings) : item.items,
-    }));
+    return items.map((item) => {
+        const decoratedItems = item.items ? applySystemSubMenuIndicators(item.items, resolveIndicatorKind) : item.items;
+
+        if (!item.href || typeof item.label !== 'string') {
+            return { ...item, items: decoratedItems };
+        }
+
+        const indicatorKind = resolveIndicatorKind(item.href);
+        return {
+            ...item,
+            label: indicatorKind ? createIndicatorMenuLabel(item.label, indicatorKind) : item.label,
+            items: decoratedItems,
+        };
+    });
 }
 
 /**
@@ -354,7 +428,7 @@ function createSystemCategory(
     return [
         {
             label: isWarningShown
-                ? createWarningMenuLabel(translate(SYSTEM_CATEGORY_TRANSLATION_KEY_MAP[label]))
+                ? createIndicatorMenuLabel(translate(SYSTEM_CATEGORY_TRANSLATION_KEY_MAP[label]), 'warning')
                 : translate(SYSTEM_CATEGORY_TRANSLATION_KEY_MAP[label]),
             icon: categoryIcon,
             items: applySystemSubMenuIcons(items, categoryIcon),
@@ -376,6 +450,7 @@ export function buildHeaderSystemMenuItems({
     feedbackMode,
     shibbolethAuthenticationStatus,
     systemWarnings = EMPTY_HEADER_SYSTEM_WARNINGS,
+    systemActivities = EMPTY_HEADER_SYSTEM_ACTIVITIES,
 }: BuildHeaderSystemMenuItemsOptions): SubMenuItem[] {
     const userAccountSystemItems: SubMenuItem[] = [
         {
@@ -629,33 +704,46 @@ export function buildHeaderSystemMenuItems({
             : []),
     ];
 
-    const applyWarnings = (items: ReadonlyArray<SubMenuItem>): SubMenuItem[] =>
-        applySystemSubMenuWarnings(items, systemWarnings);
+    // Note: A warning always wins over a running activity, so a menu entry which needs administrator
+    //       attention is never hidden behind the progress of a background job.
+    const resolveIndicatorKind: SystemMenuIndicatorResolver = (href) => {
+        if (isHeaderSystemWarningShownForHref(systemWarnings, href)) {
+            return 'warning';
+        }
+
+        if (isHeaderSystemActivityShownForHref(systemActivities, href)) {
+            return 'activity';
+        }
+
+        return null;
+    };
+    const applyIndicators = (items: ReadonlyArray<SubMenuItem>): SubMenuItem[] =>
+        applySystemSubMenuIndicators(items, resolveIndicatorKind);
 
     return [
-        ...createSystemCategory('My Account', applyWarnings(userAccountSystemItems), translate),
-        ...createSystemCategory('Utilities', applyWarnings(utilitiesSystemItems), translate),
+        ...createSystemCategory('My Account', applyIndicators(userAccountSystemItems), translate),
+        ...createSystemCategory('Utilities', applyIndicators(utilitiesSystemItems), translate),
         ...createSystemCategory(
             'Super Admin',
-            applyWarnings(superAdminSystemItems),
+            applyIndicators(superAdminSystemItems),
             translate,
             isHeaderSystemWarningShownForCategory(systemWarnings, 'Super Admin'),
         ),
         ...createSystemCategory(
             'Administration',
-            applyWarnings(administrationSystemItems),
+            applyIndicators(administrationSystemItems),
             translate,
             isHeaderSystemWarningShownForCategory(systemWarnings, 'Administration'),
         ),
         ...createSystemCategory(
             'Login Methods',
-            applyWarnings(loginMethodsSystemItems),
+            applyIndicators(loginMethodsSystemItems),
             translate,
             isHeaderSystemWarningShownForCategory(systemWarnings, 'Login Methods'),
         ),
-        ...createSystemCategory('Monitoring & Usage', applyWarnings(monitoringAndUsageSystemItems), translate),
-        ...createSystemCategory('Integrations & Keys', applyWarnings(integrationsAndKeysSystemItems), translate),
-        ...createSystemCategory('Developer / Debug', applyWarnings(developerDebugSystemItems), translate),
-        ...createSystemCategory('Legal & About', applyWarnings(legalAndAboutSystemItems), translate),
+        ...createSystemCategory('Monitoring & Usage', applyIndicators(monitoringAndUsageSystemItems), translate),
+        ...createSystemCategory('Integrations & Keys', applyIndicators(integrationsAndKeysSystemItems), translate),
+        ...createSystemCategory('Developer / Debug', applyIndicators(developerDebugSystemItems), translate),
+        ...createSystemCategory('Legal & About', applyIndicators(legalAndAboutSystemItems), translate),
     ];
 }

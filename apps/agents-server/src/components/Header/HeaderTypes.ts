@@ -99,6 +99,11 @@ export type HeaderProps = {
      * Whether the active self-contained S3 storage needs super-admin attention.
      */
     isInternalS3WarningShown?: boolean;
+
+    /**
+     * Whether a standalone VPS self-update is running right now (super-admin-only activity).
+     */
+    isSelfUpdateRunning?: boolean;
 };
 
 /**
