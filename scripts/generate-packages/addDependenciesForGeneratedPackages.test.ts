@@ -1,6 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import type { PackageJson } from 'type-fest';
 import {
+    applyBrowserUnsupportedDependencyStubs,
     applyGeneratedPackageEntrypoints,
     bundleReferencesDependency,
     getGeneratedPackageDeclarationEntrypoint,
@@ -64,5 +65,43 @@ describe('addDependenciesForGeneratedPackages', () => {
         expect(
             bundleReferencesDependency(`import { renderToStaticMarkup } from 'react-dom/server';`, 'react-dom'),
         ).toBe(true);
+    });
+
+    it('stubs dependencies which no browser bundler can resolve in browser-facing packages', () => {
+        const packageJson = {
+            dependencies: {
+                dompurify: '3.4.6',
+                jsdom: '25.0.1',
+            },
+        } as PackageJson;
+
+        applyBrowserUnsupportedDependencyStubs(packageJson, '@promptbook/components');
+
+        expect(packageJson.browser).toEqual({ jsdom: false });
+        expect(packageJson.dependencies).toEqual({ dompurify: '3.4.6', jsdom: '25.0.1' });
+    });
+
+    it('keeps Node-only packages resolving dependencies which no browser bundler can resolve', () => {
+        const packageJson = {
+            dependencies: {
+                jsdom: '25.0.1',
+            },
+        } as PackageJson;
+
+        applyBrowserUnsupportedDependencyStubs(packageJson, '@promptbook/website-crawler');
+
+        expect(packageJson.browser).toBeUndefined();
+    });
+
+    it('keeps packages without dependencies which no browser bundler can resolve without a browser field', () => {
+        const packageJson = {
+            dependencies: {
+                spacetrim: '0.11.60',
+            },
+        } as PackageJson;
+
+        applyBrowserUnsupportedDependencyStubs(packageJson, '@promptbook/utils');
+
+        expect(packageJson.browser).toBeUndefined();
     });
 });

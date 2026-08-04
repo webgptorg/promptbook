@@ -9,6 +9,7 @@ import type { Converter as ShowdownConverter } from 'showdown';
 import showdown from 'showdown';
 import type { string_html, string_markdown } from '../../../types/string_markdown';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';
+import { $provideServerDomWindow } from './$provideServerDomWindow';
 import { createCitationMarkerRegex, parseCitationMarker } from './parseCitationMarker';
 
 /**
@@ -217,13 +218,6 @@ let browserMarkdownSanitizer: DomPurifyInstance | null = null;
  * @private utility of `renderMarkdown`
  */
 let serverMarkdownSanitizer: DomPurifyInstance | null = null;
-
-/**
- * Shared JSDOM window backing the server-side DOMPurify instance.
- *
- * @private utility of `renderMarkdown`
- */
-let serverMarkdownSanitizerWindow: DomPurifyWindowLike | null = null;
 
 /**
  * Pattern matching CODE FENCE.
@@ -547,21 +541,6 @@ function createMarkdownSanitizer(sanitizerWindow: DomPurifyWindowLike): DomPurif
 }
 
 /**
- * Lazily creates the JSDOM window used by server-side markdown sanitization.
- *
- * @private utility of `renderMarkdown`
- */
-function getServerMarkdownSanitizerWindow(): DomPurifyWindowLike {
-    if (!serverMarkdownSanitizerWindow) {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const { JSDOM } = require('jsdom') as typeof import('jsdom');
-        serverMarkdownSanitizerWindow = new JSDOM('').window as unknown as DomPurifyWindowLike;
-    }
-
-    return serverMarkdownSanitizerWindow;
-}
-
-/**
  * Returns the shared DOMPurify instance appropriate for the current runtime.
  *
  * @private utility of `renderMarkdown`
@@ -573,7 +552,7 @@ function getMarkdownSanitizer(): DomPurifyInstance {
         return browserMarkdownSanitizer;
     }
 
-    serverMarkdownSanitizer ??= createMarkdownSanitizer(getServerMarkdownSanitizerWindow());
+    serverMarkdownSanitizer ??= createMarkdownSanitizer($provideServerDomWindow());
 
     return serverMarkdownSanitizer;
 }

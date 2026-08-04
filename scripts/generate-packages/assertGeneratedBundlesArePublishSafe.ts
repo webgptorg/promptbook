@@ -3,24 +3,8 @@ import { readFile } from 'fs/promises';
 import glob from 'glob-promise'; // <- TODO: [🚰] Use just 'glob'
 import { spaceTrim } from 'spacetrim';
 import type { PackageMetadata } from './PackageMetadata';
+import { isNodeOnlyPackage } from './isNodeOnlyPackage';
 import { logPackageGenerationStep } from './logPackageGenerationStep';
-
-/**
- * Packages that are allowed to contain code marked as Node-only.
- *
- * @private internal utility of assertGeneratedBundlesArePublishSafe
- */
-const NODE_ONLY_PACKAGE_FULLNAMES = new Set([
-    '@promptbook/node',
-    '@promptbook/cli',
-    '@promptbook/wizard',
-    '@promptbook/remote-server',
-    '@promptbook/documents',
-    '@promptbook/legacy-documents',
-    '@promptbook/website-crawler',
-    '@promptbook/markitdown',
-    '@promptbook/pdf',
-]);
 
 /**
  * Packages that are allowed to contain code marked as browser-only.
@@ -288,7 +272,7 @@ function assertBundleFileDoesNotContainNodeOnlyMarkerOutsideNodePackages(
     bundleFileName: string,
     bundleFileContent: string,
 ): void {
-    if (NODE_ONLY_PACKAGE_FULLNAMES.has(packageFullname) || !bundleFileContent.includes('[🟢]')) {
+    if (isNodeOnlyPackage(packageFullname) || !bundleFileContent.includes('[🟢]')) {
         return;
     }
 

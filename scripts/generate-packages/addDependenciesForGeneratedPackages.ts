@@ -5,6 +5,7 @@ import { spaceTrim } from 'spacetrim';
 import type { PackageJson } from 'type-fest';
 import { isFileExisting } from '../../src/utils/files/isFileExisting';
 import type { PackageMetadata } from './PackageMetadata';
+import { isNodeOnlyPackage } from './isNodeOnlyPackage';
 import { logPackageGenerationStep } from './logPackageGenerationStep';
 
 /**
@@ -25,6 +26,16 @@ const PACKAGE_FULLNAMES_WITHOUT_CORE_PEER_DEPENDENCY = new Set([
  * @private internal utility of addDependenciesForGeneratedPackages
  */
 const CLI_AGENTS_SERVER_DEVELOPMENT_DEPENDENCY_NAMES = new Set(['react', 'react-dom']);
+
+/**
+ * Dependencies which a browser bundler can never resolve, because they reach for Node.js built-ins like `fs`.
+ *
+ * Note: [😷] These dependencies are used only in the Node.js code paths of a package, but a bundler resolves every
+ *       `import` and `require` statically, even the ones which are unreachable in a browser.
+ *
+ * @private internal utility of addDependenciesForGeneratedPackages
+ */
+const BROWSER_UNSUPPORTED_DEPENDENCY_NAMES = new Set(['jsdom']);
 
 /**
  * Finalizes package manifests with dependencies and executable metadata.
@@ -58,6 +69,7 @@ export async function addDependenciesForGeneratedPackages(
         );
         applyGeneratedPackageBin(packageJson, packageMetadata.packageFullname);
         removeReactRuntimeDependenciesFromComponents(packageJson, packageMetadata.packageFullname);
+        applyBrowserUnsupportedDependencyStubs(packageJson, packageMetadata.packageFullname);
 
         await writeGeneratedPackageExecutableFiles(packageMetadata.packageBasename, packageMetadata.packageFullname);
         await writeGeneratedPackageJson(packageMetadata.packageBasename, packageJson);
@@ -448,6 +460,41 @@ function createPtbkCliProxyFileContent(): string {
 
         require(promptbookCliEntrypoint);
     `);
+}
+
+/**
+ * Tells browser bundlers to replace Node-only dependencies of one generated package with an empty module.
+ *
+ * Note: [😷] `@promptbook/components` is bundled into browser applications, but it still needs a DOM created by
+ *       `jsdom` when it renders markdown outside of a browser, for example during server-side rendering in Next.js.
+ *       Without this mapping every browser build follows that Node-only code path and fails on `fs`, `child_process`
+ *       and `net`, which no browser provides. The `browser` field is honored by browser builds only, so Node.js
+ *       keeps resolving the real dependency.
+ *
+ * @param packageJson - Generated package manifest
+ * @param packageFullname - Full package name
+ * @private internal utility of addDependenciesForGeneratedPackages
+ */
+export function applyBrowserUnsupportedDependencyStubs(packageJson: PackageJson, packageFullname: string): void {
+    if (isNodeOnlyPackage(packageFullname)) {
+        return;
+    }
+
+    const browserUnsupportedDependencyStubs: Record<string, false> = {};
+
+    for (const dependencyName of Object.keys(packageJson.dependencies || {})) {
+        if (!BROWSER_UNSUPPORTED_DEPENDENCY_NAMES.has(dependencyName)) {
+            continue;
+        }
+
+        browserUnsupportedDependencyStubs[dependencyName] = false;
+    }
+
+    if (Object.keys(browserUnsupportedDependencyStubs).length === 0) {
+        return;
+    }
+
+    packageJson.browser = browserUnsupportedDependencyStubs;
 }
 
 /**
