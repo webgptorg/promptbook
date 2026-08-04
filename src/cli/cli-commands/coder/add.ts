@@ -108,7 +108,7 @@ export function $initializeCoderAddCommand(program: Program): $side_effect {
 
             await $pullCoderChanges({ gitSync, projectPath });
 
-            const { filePath, emojiTag } = await addCoderPrompt({
+            const { /* filePath,*/ emojiTag } = await addCoderPrompt({
                 projectPath,
                 description,
                 priority,
@@ -118,7 +118,7 @@ export function $initializeCoderAddCommand(program: Program): $side_effect {
             await $commitCoderChanges({
                 gitSync,
                 projectPath,
-                commitMessage: `Add ptbk coder prompt ${emojiTag} in ${filePath.replace(/\\/gu, '/')}`,
+                commitMessage: `${emojiTag} Add prompt`,
             });
         }),
     );

@@ -79,7 +79,7 @@ export function $initializeCoderGenerateBoilerplatesCommand(program: Program): $
             await $commitCoderChanges({
                 gitSync,
                 projectPath,
-                commitMessage: `Generate ${filesCount} ptbk coder prompt boilerplate file(s)`,
+                commitMessage: `Prompts ${filesCount}x`,
             });
 
             return process.exit(0);

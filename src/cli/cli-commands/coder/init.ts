@@ -94,7 +94,7 @@ export function $initializeCoderInitCommand(program: Program): $side_effect {
             await $commitCoderChanges({
                 gitSync,
                 projectPath,
-                commitMessage: 'Initialize ptbk coder configuration',
+                commitMessage: 'Initialize Promptbook Coder',
             });
 
             await $ensureHarnessInstallations(CODER_INIT_CHECKED_HARNESS_NAMES);
