@@ -1,4 +1,3 @@
-import { aggregateUseCommitmentSystemMessages } from '../../commitments/USE/aggregateUseCommitmentSystemMessages';
 import { createBasicAgentModelRequirements } from '../../commitments/_base/createEmptyAgentModelRequirements';
 import type { string_model_name } from '../../types/string_model_name';
 import type { AgentModelRequirements } from './AgentModelRequirements';
@@ -32,7 +31,6 @@ export async function createAgentModelRequirementsWithCommitments(
 
     let requirements = createInitialAgentModelRequirements(parseResult.agentName, modelName);
     requirements = await applyCommitmentsToAgentModelRequirements(requirements, filteredCommitments, options);
-    requirements = aggregateUseCommitmentSystemMessages(requirements, filteredCommitments);
     requirements = await augmentAgentModelRequirementsFromSource(requirements, parseResult, agentSource);
     requirements = await materializeInlineKnowledgeSources(requirements, options?.inlineKnowledgeSourceUploader);
 

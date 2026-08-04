@@ -10,7 +10,7 @@ type BuildAgentKitToolsAccessor = {
 };
 
 describe('OpenAiAgentKitExecutionTools', () => {
-    it('builds USE DEEPSEARCH as a native Agent SDK function tool backed by deep research', async () => {
+    it('builds `deep_search` as a native Agent SDK function tool backed by deep research', async () => {
         const tools = new OpenAiAgentKitExecutionTools({
             apiKey: 'test-api-key',
         });

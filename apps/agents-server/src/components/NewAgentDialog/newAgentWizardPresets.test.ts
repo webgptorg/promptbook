@@ -21,14 +21,14 @@ describe('newAgentWizardPresets', () => {
         const configurableCapabilityTypes = [...NEW_AGENT_WIZARD_CONFIGURABLE_CAPABILITY_COMMITMENTS]
             .sort();
 
-        expect(configurableCapabilityTypes).toEqual(['USE CALENDAR', 'USE EMAIL', 'USE MCP', 'USE PROJECT']);
+        expect(configurableCapabilityTypes).toEqual(['USE CALENDAR', 'USE MCP', 'USE PROJECT']);
     });
 
     it('adds the optional USE setup step only when a selected capability needs it', () => {
-        const browserOnlyStepIds = getNewAgentWizardStepDefinitions(['browser']).map((stepDefinition) => stepDefinition.id);
+        const privacyOnlyStepIds = getNewAgentWizardStepDefinitions(['privacy']).map((stepDefinition) => stepDefinition.id);
         const projectStepIds = getNewAgentWizardStepDefinitions(['project']).map((stepDefinition) => stepDefinition.id);
 
-        expect(browserOnlyStepIds).toEqual(['basic', 'persona', 'team', 'writing', 'rules', 'knowledge']);
+        expect(privacyOnlyStepIds).toEqual(['basic', 'persona', 'team', 'writing', 'rules', 'knowledge']);
         expect(projectStepIds).toEqual(['basic', 'persona', 'use-setup', 'team', 'writing', 'rules', 'knowledge']);
     });
 });

@@ -11,8 +11,6 @@ FROM @Void
 GOAL Empathetic and understanding support bot.
 
 
-USE TIME
-USE SEARCH ENGINE
 
 
 CLOSED

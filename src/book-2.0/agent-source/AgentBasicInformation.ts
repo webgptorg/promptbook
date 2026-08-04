@@ -36,29 +36,23 @@ export type BookParameter = {
 
 /**
  * Capability of the agent
- * This is parsed from commitments like USE BROWSER, USE SEARCH ENGINE, KNOWLEDGE, etc.
+ * This is parsed from commitments like USE CALENDAR, USE PROJECT, KNOWLEDGE, etc.
  */
 export type AgentCapability = {
     /**
      * The type of the capability
      */
     type:
-        | 'browser'
-        | 'search-engine'
         | 'knowledge'
-        | 'timeout'
-        | 'time'
         | 'user-location'
         | 'inheritance'
         | 'import'
         | 'image-generator'
         | 'team'
-        | 'email'
         | 'popup'
         | 'privacy'
         | 'project'
-        | 'calendar'
-        | 'wallet';
+        | 'calendar';
 
     /**
      * The label to display for this capability
@@ -160,7 +154,7 @@ export type AgentBasicInformation = {
 
     /**
      * Capabilities of the agent
-     * This is parsed from commitments like USE BROWSER, USE SEARCH ENGINE, KNOWLEDGE, etc.
+     * This is parsed from commitments like USE CALENDAR, USE PROJECT, KNOWLEDGE, etc.
      */
     capabilities: Array<AgentCapability>;
 

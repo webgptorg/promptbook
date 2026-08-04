@@ -142,27 +142,6 @@ describe('parseAgentSource', () => {
         // expect(result.meta.image).toBe('/agents/agent-name/images/default-avatar.png'); // Should be a default avatar URL
     });
 
-    it('parses agent with custom META commitments', () => {
-        const agentSource = validateBook(
-            spaceTrim(`
-                AI Avatar
-
-                PERSONA A friendly AI assistant that helps you with your tasks
-                META FOO foo
-            `),
-        );
-        const result = parseAgentSource(agentSource);
-        expect(result).toMatchObject({
-            agentName: 'ai-avatar',
-            personaDescription: 'A friendly AI assistant that helps you with your tasks',
-            meta: {
-                // image: '/agents/ai-avatar/images/default-avatar.png', // Should be a default avatar URL
-                foo: 'foo',
-            },
-            parameters: [],
-        });
-    });
-
     it('parses META AVATAR as a normalized built-in avatar visual', () => {
         expect(
             parseAgentSource(
@@ -259,10 +238,10 @@ describe('parseAgentSource', () => {
                 AI Avatar
 
                 PERSONA A friendly AI assistant that helps you with your tasks
-                META FOO foo
+                META IMAGE ./other-picture.png
                 META IMAGE ./picture.png
-                META BAR bar
-                META foo foo2
+                META DESCRIPTION First description
+                META DESCRIPTION Second description
             `),
         );
         const result = parseAgentSource(agentSource);
@@ -270,9 +249,8 @@ describe('parseAgentSource', () => {
             agentName: 'ai-avatar',
             personaDescription: 'A friendly AI assistant that helps you with your tasks',
             meta: {
-                image: './picture.png',
-                foo: 'foo2', // Later should override earlier
-                bar: 'bar',
+                image: './picture.png', // Later should override earlier
+                description: 'Second description', // Later should override earlier
             },
             parameters: [],
         });
@@ -283,8 +261,6 @@ describe('parseAgentSource', () => {
             spaceTrim(`
                 AI Avatar
 
-                META TITLE My Title
-                META title Another Title
                 META Link https://example.com
                 META LINK https://example2.com
                 META Description First description
@@ -295,7 +271,6 @@ describe('parseAgentSource', () => {
 
         expect(result.meta).toMatchObject({
             fullname: 'AI Avatar',
-            title: 'Another Title', // Later should override earlier
             link: 'https://example2.com', // Later should override earlier
             description: 'Second description', // Later should override earlier
         });
@@ -506,22 +481,6 @@ describe('parseAgentSource', () => {
         });
     });
 
-    it('parses USE TIMEOUT capability', () => {
-        const agentSource = validateBook(
-            spaceTrim(`
-                Agent Name
-                USE TIMEOUT
-            `),
-        );
-        const result = parseAgentSource(agentSource);
-
-        expect(result.capabilities).toContainEqual({
-            type: 'timeout',
-            label: 'Timers',
-            iconName: 'Clock',
-        });
-    });
-
     it('parses USE PRIVACY capability', () => {
         const agentSource = validateBook(
             spaceTrim(`
@@ -535,22 +494,6 @@ describe('parseAgentSource', () => {
             type: 'privacy',
             label: 'Privacy',
             iconName: 'Shield',
-        });
-    });
-
-    it('parses USE EMAIL capability', () => {
-        const agentSource = validateBook(
-            spaceTrim(`
-                Agent Name
-                USE EMAIL agent@example.com
-            `),
-        );
-        const result = parseAgentSource(agentSource);
-
-        expect(result.capabilities).toContainEqual({
-            type: 'email',
-            label: 'Email',
-            iconName: 'Mail',
         });
     });
 
@@ -583,34 +526,6 @@ describe('parseAgentSource', () => {
             type: 'calendar',
             label: 'Calendar',
             iconName: 'Calendar',
-        });
-    });
-
-    it('ignores deprecated WALLET commitment and keeps USE EMAIL and USE PROJECT capabilities', () => {
-        const agentSource = validateBook(
-            spaceTrim(`
-                Agent Name
-                WALLET
-                USE EMAIL agent@example.com
-                USE PROJECT https://github.com/example/project
-            `),
-        );
-        const result = parseAgentSource(agentSource);
-
-        expect(result.capabilities).not.toContainEqual(
-            expect.objectContaining({
-                type: 'wallet',
-            }),
-        );
-        expect(result.capabilities).toContainEqual({
-            type: 'email',
-            label: 'Email',
-            iconName: 'Mail',
-        });
-        expect(result.capabilities).toContainEqual({
-            type: 'project',
-            label: 'example/project',
-            iconName: 'Code',
         });
     });
 
@@ -683,37 +598,37 @@ describe('parseAgentSource', () => {
         let agentSource = validateBook(
             spaceTrim(`
                 Agent Name
-                META TITLE My Title
+                META DESCRIPTION My Description
                 ---
                 Some non-commitment text
             `),
         );
         let result = parseAgentSource(agentSource);
-        expect(result.meta.title).toBe('My Title');
+        expect(result.meta.description).toBe('My Description');
 
         // Test with more hyphens -----
         agentSource = validateBook(
             spaceTrim(`
                 Agent Name
-                META TITLE My Title
+                META DESCRIPTION My Description
                 -----
                 Some non-commitment text
             `),
         );
         result = parseAgentSource(agentSource);
-        expect(result.meta.title).toBe('My Title');
+        expect(result.meta.description).toBe('My Description');
 
         // Test with spaces between hyphens
         agentSource = validateBook(
             spaceTrim(`
                 Agent Name
-                META TITLE My Title
+                META DESCRIPTION My Description
                 - - -
                 Some non-commitment text
             `),
         );
         result = parseAgentSource(agentSource);
-        expect(result.meta.title).toBe('My Title');
+        expect(result.meta.description).toBe('My Description');
     });
 
     it('parses COLOR with comma separator', () => {

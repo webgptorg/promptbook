@@ -9,7 +9,6 @@ import {
     resolveMetaDisclaimerMarkdownFromAgentSource,
     resolveMetaDisclaimerStatusForUser,
 } from '@/src/utils/metaDisclaimer';
-import { extractUseEmailConfigurationFromAgentSource } from '@/src/utils/emails/extractUseEmailConfigurationFromAgentSource';
 import { extractProjectRepositoriesFromAgentSource } from '@/src/utils/projects/extractProjectRepositoriesFromAgentSource';
 import { extractUseCalendarConnectionsFromAgentSource } from '@/src/utils/calendars/extractUseCalendarConnectionsFromAgentSource';
 import { logCalendarToolCallsActivity } from '@/src/utils/calendars/logCalendarToolCallsActivity';
@@ -122,7 +121,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         const unresolvedAgentSource = resolvedAgentContext.unresolvedAgentSource;
         const projectRepositories = extractProjectRepositoriesFromAgentSource(agentSource);
         const calendarConnections = extractUseCalendarConnectionsFromAgentSource(agentSource);
-        const useEmailConfiguration = extractUseEmailConfigurationFromAgentSource(agentSource);
         const projectGithubToken = await resolveUseProjectGithubToken({
             userId: currentUserIdentity?.userId,
             agentPermanentId,
@@ -134,12 +132,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                       agentPermanentId,
                   })
                 : undefined;
-        const emailSmtpCredential = useEmailConfiguration.isEnabled
-            ? await resolveUseEmailSmtpCredential({
-                  userId: currentUserIdentity?.userId,
-                  agentPermanentId,
-              })
-            : undefined;
+        const emailSmtpCredential = await resolveUseEmailSmtpCredential({
+            userId: currentUserIdentity?.userId,
+            agentPermanentId,
+        });
         const disclaimerMarkdown = resolveMetaDisclaimerMarkdownFromAgentSource(agentSource);
 
         if (disclaimerMarkdown) {
@@ -183,7 +179,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             projectRepositories,
             projectGithubToken,
             emailSmtpCredential,
-            emailFromAddress: useEmailConfiguration.senderEmail,
             calendarGoogleAccessToken,
             calendarConnections,
             localServerUrl,

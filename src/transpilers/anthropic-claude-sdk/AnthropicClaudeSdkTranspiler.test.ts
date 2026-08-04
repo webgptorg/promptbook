@@ -75,22 +75,22 @@ describe('AnthropicClaudeSdkTranspiler', () => {
         expect(code).toContain('index = await VectorStoreIndex.fromDocuments(documents)');
     });
 
-    it('transpiles a book with USE TIME and includes Anthropic tool handling', async () => {
+    it('transpiles a book with USE POPUP and includes Anthropic tool handling', async () => {
         const agentSource = book`
             Time Keeper
 
             PERSONA You are a time-aware assistant
-            USE TIME
+            USE POPUP
         `;
 
         const llm = await $provideLlmToolsForTestingAndScriptsAndPlayground();
         const code = await AnthropicClaudeSdkTranspiler.transpileBook(agentSource, { llm }, { isVerbose: true });
 
         expect(code).toContain('const toolImplementations = {');
-        expect(code).toContain('async get_current_time(args) {');
-        expect(code).not.toContain('get_current_time: async get_current_time(args)');
+        expect(code).toContain('async open_popup(args) {');
+        expect(code).not.toContain('open_popup: async open_popup(args)');
         expect(code).toContain('const anthropicTools = toolDefinitions.map((toolDefinition) => ({');
-        expect(code).toContain('"name": "get_current_time"');
+        expect(code).toContain('"name": "open_popup"');
         expect(code).toContain('input_schema: toolDefinition.parameters');
         expect(code).toContain("contentBlock.type === 'tool_use'");
         expect(code).toContain("type: 'tool_result'");

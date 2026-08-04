@@ -1,9 +1,9 @@
 import { spaceTrim } from 'spacetrim';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
-import type { ScraperSourceHandler } from '../../scrapers/_common/Scraper';
-import { promptbookFetch } from '../../scrapers/_common/utils/promptbookFetch';
-import { WebsiteScraper } from '../../scrapers/website/WebsiteScraper';
+import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
+import { $provideFilesystemForNode } from '../register/$provideFilesystemForNode';
+import type { ScraperSourceHandler } from '../Scraper';
+import { WebsiteScraper } from '../../website/WebsiteScraper';
+import { promptbookFetch } from './promptbookFetch';
 
 /**
  * Fetches and scrapes content from a URL (SERVER-SIDE ONLY)
@@ -15,13 +15,12 @@ import { WebsiteScraper } from '../../scrapers/website/WebsiteScraper';
  * 4. Returns the scraped markdown content
  *
  * WARNING: This function should NOT be used directly in browser environments.
- * For browser environments, use fetchUrlContentViaBrowser which proxies through
- * the Agents Server API endpoint at /api/scrape
+ * For browser environments, proxy the request through the Agents Server API endpoint at /api/scrape
  *
  * @param url The URL to fetch and scrape
  * @returns Markdown content from the URL
  *
- * @private internal utility for USE BROWSER commitment
+ * @private internal scraping utility
  */
 export async function fetchUrlContent(url: string): Promise<string> {
     try {
@@ -137,4 +136,4 @@ export async function fetchUrlContent(url: string): Promise<string> {
     }
 }
 
-// Note: [🟢] Code for Node browser-fetch helper [fetchUrlContent](src/commitments/USE_BROWSER/fetchUrlContent.ts) should never be published into packages that could be imported into browser environment
+// Note: [🟢] Code for Node fetch-and-scrape helper [fetchUrlContent](src/scrapers/_common/utils/fetchUrlContent.ts) should never be published into packages that could be imported into browser environment

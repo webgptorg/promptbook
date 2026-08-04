@@ -30,22 +30,13 @@ const COMPOSITION_COMMITMENT_TYPES = new Set(['FROM', 'IMPORT', 'IMPORTS', 'TEAM
  * @private internal utility of `createStandaloneBookLanguageMarkdown`
  */
 const TOOLING_COMMITMENT_TYPES = new Set([
-    'USE BROWSER',
-    'USE DEEPSEARCH',
-    'USE SEARCH ENGINE',
-    'USE SEARCH',
-    'USE SPAWN',
-    'USE EMAIL',
     'USE POPUP',
-    'USE TIME',
     'USE USER LOCATION',
     'USE PROJECT',
     'USE CALENDAR',
     'USE IMAGE GENERATOR',
     'USE MCP',
     'USE PRIVACY',
-    'MEMORY',
-    'MEMORIES',
 ]);
 
 /**
@@ -56,7 +47,6 @@ const TOOLING_COMMITMENT_TYPES = new Set([
 const PROFILE_COMMITMENT_TYPES = new Set([
     'GOAL',
     'GOALS',
-    'META',
     'META AVATAR',
     'META VISUAL',
     'META IMAGE',
@@ -64,6 +54,8 @@ const PROFILE_COMMITMENT_TYPES = new Set([
     'META DOMAIN',
     'META DESCRIPTION',
     'META DISCLAIMER',
+    'META FULLNAME',
+    'META ID',
     'META INPUT PLACEHOLDER',
     'META THINKING MESSAGE',
     'META VISIBILITY',

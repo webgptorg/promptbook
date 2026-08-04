@@ -1,17 +1,17 @@
 import { spaceTrim } from 'spacetrim';
 
 /**
- * Wallet service id used by USE EMAIL for SMTP credentials.
+ * Wallet service id used by agent email for SMTP credentials.
  */
 export const USE_EMAIL_SMTP_WALLET_SERVICE = 'smtp';
 
 /**
- * Wallet key used by USE EMAIL for SMTP credentials.
+ * Wallet key used by agent email for SMTP credentials.
  */
 export const USE_EMAIL_SMTP_WALLET_KEY = 'use-email-smtp-credentials';
 
 /**
- * JSON schema expected in ACCESS_TOKEN secret for USE EMAIL SMTP credentials.
+ * JSON schema expected in ACCESS_TOKEN secret for agent email SMTP credentials.
  */
 export const USE_EMAIL_SMTP_WALLET_SECRET_JSON_SCHEMA = {
     type: 'object',
@@ -49,7 +49,7 @@ export const USE_EMAIL_SMTP_WALLET_SECRET_JSON_SCHEMA = {
 } as const;
 
 /**
- * Multiline JSON example for USE EMAIL SMTP secret payload.
+ * Multiline JSON example for agent email SMTP secret payload.
  */
 export const USE_EMAIL_SMTP_WALLET_SECRET_JSON_EXAMPLE = spaceTrim(`
     {
@@ -62,7 +62,7 @@ export const USE_EMAIL_SMTP_WALLET_SECRET_JSON_EXAMPLE = spaceTrim(`
 `);
 
 /**
- * Builds user-facing guidance for missing USE EMAIL SMTP wallet credentials.
+ * Builds user-facing guidance for missing agent email SMTP wallet credentials.
  */
 export function createUseEmailSmtpWalletMissingCredentialMessage(defaultFromAddress?: string): string {
     const defaultSenderLine = defaultFromAddress ? `Default sender from commitment: ${defaultFromAddress}` : undefined;

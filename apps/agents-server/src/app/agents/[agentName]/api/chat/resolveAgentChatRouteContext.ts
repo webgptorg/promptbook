@@ -25,7 +25,6 @@ import {
 } from '@/src/utils/metaDisclaimer';
 import { composePromptParametersWithMemoryContext } from '@/src/utils/memoryRuntimeContext';
 import { extractUseCalendarConnectionsFromAgentSource } from '@/src/utils/calendars/extractUseCalendarConnectionsFromAgentSource';
-import { extractUseEmailConfigurationFromAgentSource } from '@/src/utils/emails/extractUseEmailConfigurationFromAgentSource';
 import { extractProjectRepositoriesFromAgentSource } from '@/src/utils/projects/extractProjectRepositoriesFromAgentSource';
 import { resolveUseCalendarGoogleToken } from '@/src/utils/resolveUseCalendarGoogleToken';
 import { resolveUseEmailSmtpCredential } from '@/src/utils/resolveUseEmailSmtpCredential';
@@ -141,7 +140,6 @@ export async function resolveAgentChatRouteContext(
     const resolvedAgentName = resolvedAgentContext.resolvedAgentName;
     const projectRepositories = extractProjectRepositoriesFromAgentSource(agentSource);
     const calendarConnections = extractUseCalendarConnectionsFromAgentSource(agentSource);
-    const useEmailConfiguration = extractUseEmailConfigurationFromAgentSource(agentSource);
     const messageSuffix = resolveMessageSuffixFromAgentSource(agentSource);
     const incomingParameters = normalizeAgentChatIncomingParameters(rawParameters);
     const [preparedAgentModelRequirements, requestIdentities] = await Promise.all([
@@ -166,7 +164,6 @@ export async function resolveAgentChatRouteContext(
         currentUserId: currentUserIdentity?.userId,
         agentId,
         calendarConnections,
-        useEmailConfiguration,
     });
     const runtimeTools = createAgentProgressTools(createChatAttachmentTools([], attachments));
     const promptParameters = composePromptParametersWithMemoryContext({
@@ -178,7 +175,6 @@ export async function resolveAgentChatRouteContext(
         projectRepositories,
         projectGithubToken,
         emailSmtpCredential,
-        emailFromAddress: useEmailConfiguration.senderEmail,
         calendarGoogleAccessToken,
         calendarConnections,
         chatAttachments: attachments,
@@ -288,9 +284,8 @@ async function resolveAgentChatCredentials(options: {
     currentUserId: number | undefined;
     agentId: string;
     calendarConnections: ReturnType<typeof extractUseCalendarConnectionsFromAgentSource>;
-    useEmailConfiguration: ReturnType<typeof extractUseEmailConfigurationFromAgentSource>;
 }): Promise<AgentChatCredentials> {
-    const { currentUserId, agentId, calendarConnections, useEmailConfiguration } = options;
+    const { currentUserId, agentId, calendarConnections } = options;
     const [projectGithubToken, calendarGoogleAccessToken, emailSmtpCredential] = await Promise.all([
         resolveUseProjectGithubToken({
             userId: currentUserId,
@@ -302,12 +297,10 @@ async function resolveAgentChatCredentials(options: {
                   agentPermanentId: agentId,
               })
             : Promise.resolve(undefined),
-        useEmailConfiguration.isEnabled
-            ? resolveUseEmailSmtpCredential({
-                  userId: currentUserId,
-                  agentPermanentId: agentId,
-              })
-            : Promise.resolve(undefined),
+        resolveUseEmailSmtpCredential({
+            userId: currentUserId,
+            agentPermanentId: agentId,
+        }),
     ]);
 
     return {

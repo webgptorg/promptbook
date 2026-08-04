@@ -187,64 +187,6 @@ function renderCapabilitySetupFields(options: {
             );
         }
 
-        case 'USE EMAIL': {
-            const emailSetup = state.capabilitySetupByCommitment['USE EMAIL'];
-
-            return (
-                <>
-                    <div>
-                        <label className={NewAgentWizardClassNames.fieldLabel}>
-                            {t('agentCreation.wizard.useSetupEmailSenderLabel')}
-                        </label>
-                        <input
-                            type="email"
-                            value={emailSetup.senderEmail}
-                            onChange={(event) =>
-                                setState((previous) => ({
-                                    ...previous,
-                                    capabilitySetupByCommitment: {
-                                        ...previous.capabilitySetupByCommitment,
-                                        'USE EMAIL': {
-                                            ...previous.capabilitySetupByCommitment['USE EMAIL'],
-                                            senderEmail: event.target.value,
-                                        },
-                                    },
-                                }))
-                            }
-                            placeholder={t('agentCreation.wizard.useSetupEmailSenderPlaceholder')}
-                            className={NewAgentWizardClassNames.input}
-                        />
-                        <p className={`mt-2 ${NewAgentWizardClassNames.sectionHint}`}>
-                            {t('agentCreation.wizard.useSetupEmailSenderHint')}
-                        </p>
-                    </div>
-
-                    <div className="mt-4">
-                        <label className={NewAgentWizardClassNames.fieldLabel}>
-                            {t('agentCreation.wizard.useSetupInstructionsLabel')}
-                        </label>
-                        <textarea
-                            value={emailSetup.instructions}
-                            onChange={(event) =>
-                                setState((previous) => ({
-                                    ...previous,
-                                    capabilitySetupByCommitment: {
-                                        ...previous.capabilitySetupByCommitment,
-                                        'USE EMAIL': {
-                                            ...previous.capabilitySetupByCommitment['USE EMAIL'],
-                                            instructions: event.target.value,
-                                        },
-                                    },
-                                }))
-                            }
-                            placeholder={t('agentCreation.wizard.useSetupInstructionsPlaceholder')}
-                            className={NewAgentWizardClassNames.textarea}
-                        />
-                    </div>
-                </>
-            );
-        }
-
         case 'USE CALENDAR': {
             const calendarSetup = state.capabilitySetupByCommitment['USE CALENDAR'];
             const parsedCalendar = parseGoogleCalendarReference(calendarSetup.calendarUrl);

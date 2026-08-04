@@ -19,7 +19,7 @@ function createToolCall(partial: Partial<ToolCall>): ToolCall {
 }
 
 describe('createWalletCredentialToolCall', () => {
-    it('creates an SMTP credential chip tool call for successful USE EMAIL runs', () => {
+    it('creates an SMTP credential chip tool call for successful `send_email` runs', () => {
         const originalToolCall = createToolCall({
             name: 'send_email',
             result: JSON.stringify({

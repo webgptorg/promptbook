@@ -317,15 +317,8 @@ agentCreation.wizard.customWritingSampleLabel: Custom writing sample
 agentCreation.wizard.customWritingSamplePlaceholder: Write a sample reply that captures the desired voice.
 agentCreation.wizard.customWritingSamplePreviewTitle: Custom sample preview
 agentCreation.wizard.writingPreviewUserMessage: Can you summarize what I should do next?
-agentCreation.wizard.capabilityBrowser: Can use browser
-agentCreation.wizard.capabilitySearchEngine: Can search the web
-agentCreation.wizard.capabilityDeepSearch: Can do deep research
-agentCreation.wizard.capabilitySpawn: Can create new agents
-agentCreation.wizard.capabilityTimeout: Can manage timers
-agentCreation.wizard.capabilityTime: Knows current time
 agentCreation.wizard.capabilityUserLocation: Can use user location
 agentCreation.wizard.capabilityCalendar: Can manage calendar
-agentCreation.wizard.capabilityEmail: Can send email
 agentCreation.wizard.capabilityPopup: Can open popup UI
 agentCreation.wizard.capabilityImageGenerator: Can generate images
 agentCreation.wizard.capabilityPrivacy: Can use privacy mode
@@ -336,9 +329,6 @@ agentCreation.wizard.useSetupSectionHint: Only the selected `USE` commitments th
 agentCreation.wizard.useSetupProjectRepositoryLabel: GitHub repository
 agentCreation.wizard.useSetupProjectRepositoryPlaceholder: https://github.com/example/project or example/project
 agentCreation.wizard.useSetupProjectRepositoryHint: Paste a repository URL or `owner/repository` slug. If you only know a name, use the GitHub search shortcut.
-agentCreation.wizard.useSetupEmailSenderLabel: Sender email
-agentCreation.wizard.useSetupEmailSenderPlaceholder: agent@example.com
-agentCreation.wizard.useSetupEmailSenderHint: Optional. If empty, `USE EMAIL` falls back to wallet or runtime sender configuration.
 agentCreation.wizard.useSetupCalendarUrlLabel: Google Calendar URL
 agentCreation.wizard.useSetupCalendarUrlPlaceholder: https://calendar.google.com/calendar/u/0/r
 agentCreation.wizard.useSetupCalendarUrlHint: Paste a Google Calendar URL to scope the agent to one calendar.

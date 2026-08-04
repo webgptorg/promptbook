@@ -14,7 +14,7 @@ describe.each(['ACTION', 'ACTIONS'] as const)('ActionCommitmentDefinition %s', (
         expect(commitment.description).toContain('Deprecated legacy capability commitment');
         expect(commitment.documentation).toContain(`# ${type}`);
         expect(commitment.documentation).toContain('## Migration');
-        expect(commitment.documentation).toContain('USE SEARCH ENGINE');
+        expect(commitment.documentation).toContain('USE MCP');
 
         const updatedRequirements = commitment.applyToAgentModelRequirements(
             requirements,

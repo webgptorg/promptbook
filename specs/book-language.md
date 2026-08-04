@@ -10,13 +10,13 @@ Agent Name
 PERSONA You are a helpful assistant that helps with cooking recipes.
 RULE Answer only questions about cooking.
 KNOWLEDGE https://example.com/recipes.pdf
-USE SEARCH ENGINE Search only in French.
+USE MCP https://mcp.example.com/server
 META IMAGE https://example.com/avatar.png
 ```
 
 -   **Line 1** is the agent name. When missing/empty, a default name is derived.
 -   A **commitment** starts with a recognized keyword at the beginning of a line and extends until the next commitment keyword or end of file (so a commitment's content may span multiple lines).
--   The general pattern is `<KEYWORD> <content>`, e.g. `PERSONA You are…`, `USE SEARCH ENGINE Search only in French.`
+-   The general pattern is `<KEYWORD> <content>`, e.g. `PERSONA You are…`, `USE MCP https://mcp.example.com/server`
 -   Text that belongs to no commitment is free-form persona text (part of the system-message composition).
 -   **Parameters** may appear anywhere in content: `@ParameterName` (single word) or `{parameter name}` / `{parameterName: description}`. They are substituted from prompt parameters at execution time.
 -   **Agent references** in commitment content use curly braces around an agent name or URL, e.g. `TEAM You can talk to {Criminal lawyer} and {https://other-server/agents/xyz}`.
@@ -43,7 +43,6 @@ The commitment registry is the single source of truth for the language. Keywords
 | `PERSONA` / `PERSONAE`                                   | Describes who the agent is; contributes to the system message (legacy fallback for the profile description).                                    |
 | `GOAL` / `GOALS`                                         | The agent's objective; the last one becomes the profile `personaDescription`.                                                                   |
 | `KNOWLEDGE`                                              | Attaches a knowledge source (URL, file) or inline knowledge; sources are indexed for retrieval (see [Preparation](agents/preparation-and-caching.md#knowledge-indexing)). |
-| `MEMORY` / `MEMORIES`                                    | Enables [user memory](users/memory.md) behavior.                                                                                                |
 | `RULE` / `RULES`                                         | Hard behavioral constraint in the system message.                                                                                               |
 | `STYLE` / `STYLES`                                       | Writing style instructions.                                                                                                                     |
 | `LANGUAGE` / `LANGUAGES`                                 | Response language constraint.                                                                                                                   |
@@ -55,8 +54,6 @@ The commitment registry is the single source of truth for the language. Keywords
 | `IMPORT` / `IMPORTS`                                     | Textual inclusion of another agent's source.                                                                                                    |
 | `MODEL` / `MODELS`                                       | Selects the LLM (and parameters like temperature).                                                                                              |
 | `ACTION` / `ACTIONS`                                     | Declares actions the agent can perform (tool-like).                                                                                             |
-| `COMPONENT`                                              | Declares UI components the agent may render.                                                                                                    |
-| `META <TYPE> <content>`                                  | Generic metadata; later same-type entries override earlier. Recognized types below.                                                             |
 | `META IMAGE` (`IMAGE`)                                   | Avatar/profile image URL (see [Avatars](agents/avatars-and-visuals.md)).                                                                        |
 | `META AVATAR`, `META VISUAL`                             | Built-in avatar visual identifier.                                                                                                              |
 | `META COLOR` (`COLOR`), `META FONT` (`FONT`)             | Brand color / font of the agent page.                                                                                                           |
@@ -66,7 +63,9 @@ The commitment registry is the single source of truth for the language. Keywords
 | `META INPUT PLACEHOLDER`                                 | Placeholder text of the chat input.                                                                                                             |
 | `META VISIBILITY`                                        | Sets the [agent visibility](agents.md#visibility) from source.                                                                                  |
 | `META VOICE` (`VOICE`)                                   | Voice used for TTS (see [Voice](chat/voice.md)).                                                                                                |
-| `META DESCRIPTION` (`DESCRIPTION`)                       | Profile description override.                                                                                                                  |
+| `META DESCRIPTION`                                       | Profile description override.                                                                                                                  |
+| `META FULLNAME`                                          | Full display name of the agent; defaults to the agent name.                                                                                     |
+| `META ID`                                                | Permanent id of the agent; written and stripped by persistence, not by hand.                                                                     |
 | `MESSAGE`, `INITIAL MESSAGE`, `USER MESSAGE`, `AGENT MESSAGE`, `INTERNAL MESSAGE` | Scripted messages; `INITIAL MESSAGE` is shown when a chat starts.                                                     |
 | `MESSAGE SUFFIX`                                         | Markdown appended to every agent reply (streamed after the model output; see [Streaming protocol](chat/streaming-protocol.md)).                  |
 | `SCENARIO` / `SCENARIOS`                                 | Multi-step scripted scenarios.                                                                                                                  |
@@ -76,16 +75,8 @@ The commitment registry is the single source of truth for the language. Keywords
 | `OPEN`                                                   | Marks the book as openly self-improvable; carries teacher instructions (see [Self-learning](agents/self-learning.md)).                           |
 | `CLOSED`                                                 | Locks the book against self-learning.                                                                                                           |
 | `TEAM`                                                   | Declares teammate agents the agent can talk to (adds delegation tools; referenced as `{Agent Name}`; may cross servers).                         |
-| `WALLET` / `WALLETS`                                     | Declares credentials the agent needs from the [user wallet](users/wallet.md).                                                                   |
-| `USE BROWSER` (`BROWSER`)                                | Grants the web-browsing tool ([Runtime tools](chat/runtime-tools.md#run_browser)).                                                              |
-| `USE SEARCH ENGINE` (`USE SEARCH`)                       | Grants web search.                                                                                                                              |
-| `USE DEEPSEARCH`                                         | Grants deep research search.                                                                                                                    |
-| `USE SPAWN` (`SPAWN`)                                    | Grants creating new agents ([spawn tool](chat/runtime-tools.md#spawn_agent)).                                                                    |
-| `USE TIMEOUT`                                            | Grants scheduled wake-ups in durable chats ([Timeouts](chat/timeouts.md)).                                                                       |
-| `USE TIME` (`TIME`, `DATE`, `CURRENT TIME`)              | Injects current date/time context.                                                                                                              |
 | `USE USER LOCATION` (`USER LOCATION`)                    | Injects the user's location context.                                                                                                            |
 | `USE CALENDAR` (`CALENDAR`)                              | Grants calendar tools ([Calendar](integrations/calendar.md)).                                                                                    |
-| `USE EMAIL` (`EMAIL`, `MAIL`)                            | Grants email sending ([Email](integrations/email.md)).                                                                                           |
 | `USE POPUP` (`POPUP`)                                    | Grants popup UI interactions.                                                                                                                    |
 | `USE IMAGE GENERATOR`                                    | Grants image generation.                                                                                                                         |
 | `USE MCP` (`MCP`)                                        | Connects external MCP servers as tools.                                                                                                          |

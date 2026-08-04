@@ -3,7 +3,7 @@ import type { ResolveUseEmailSmtpCredentialOptions } from './UserWalletRecord';
 import { resolveWalletAccessTokenFromScopes } from './resolveWalletAccessTokenFromScopes';
 
 /**
- * Resolves SMTP credential payload for USE EMAIL from wallet using scope priority:
+ * Resolves SMTP credential payload for agent email from wallet using scope priority:
  * user+agent -> agent-only -> user-only -> server-global.
  */
 export async function resolveUseEmailSmtpCredentialFromWallet(

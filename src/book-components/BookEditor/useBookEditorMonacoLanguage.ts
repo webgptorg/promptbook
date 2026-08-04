@@ -162,7 +162,7 @@ function createCommitmentRegex(commitmentTypes: ReadonlyArray<string>): RegExp {
 
     const commitmentPatterns = [...commitmentTypes]
         .sort((a: string, b: string) => b.length - a.length)
-        .map((type: string) => (type === 'META' ? 'META\\s+\\w+' : type.replace(/\s+/, '\\s+')))
+        .map((type: string) => type.replace(/\s+/, '\\s+'))
         .join('|');
 
     return new RegExp(`^\\s*(${commitmentPatterns})(?=\\s|$)`);

@@ -47,7 +47,7 @@ export const englishBookLanguageManualDictionary: BookLanguageManualDictionary =
                 2. **Behavior layer**:
                 \`RULE\`, \`KNOWLEDGE\`, \`WRITING SAMPLE\`, \`WRITING RULES\`, \`LANGUAGE\`, \`GOAL\`, and related commitments.
                 3. **Capability layer**:
-                \`USE*\`, \`MEMORY\`, and other tooling commitments exposing runtime abilities.
+                \`USE*\` and other tooling commitments exposing runtime abilities.
                 4. **Composition layer**:
                 \`FROM\` inheritance, \`IMPORT\` reuse, and \`TEAM\` delegation.
             `),
@@ -69,8 +69,8 @@ export const englishBookLanguageManualDictionary: BookLanguageManualDictionary =
                 4. **Composition over monoliths**:
                 Use \`TEAM\`/\`IMPORT\` for specialized responsibilities.
                 Tradeoff: orchestration overhead, stronger modularity and reuse.
-                5. **Controlled memory**:
-                If using \`MEMORY\`, define what must and must not be remembered.
+                5. **Controlled data access**:
+                If using \`USE PRIVACY\`, define what must and must not leave the conversation.
                 Tradeoff: stricter policy design, better privacy and signal quality.
             `),
         },
@@ -102,7 +102,7 @@ export const englishBookLanguageManualDictionary: BookLanguageManualDictionary =
                 3. **Add grounding**
                 Add \`KNOWLEDGE\` commitments (inline text or local/importable sources).
                 4. **Add capabilities**
-                Add only necessary \`USE*\` and/or \`MEMORY\` commitments.
+                Add only necessary \`USE*\` commitments.
                 5. **Set profile metadata**
                 Add \`META DESCRIPTION\`, \`META AVATAR\` / \`META VISUAL\` or \`META IMAGE\`, \`META INPUT PLACEHOLDER\`, \`META THINKING MESSAGE\`, and disclaimers if needed.
                 6. **Add first interaction**
@@ -155,7 +155,7 @@ export const englishBookLanguageManualDictionary: BookLanguageManualDictionary =
         capabilities: {
             title: 'USE commitments',
             body: spaceTrim(`
-                \`USE*\` commitments enable capabilities (search, browser, project integration, email, image generation, etc.).
+                \`USE*\` commitments enable capabilities (project integration, calendar, image generation, etc.).
                 They expose runtime tools and system-message guidance used during execution.
             `),
         },
@@ -209,16 +209,6 @@ export const englishBookLanguageManualDictionary: BookLanguageManualDictionary =
                 '`CLOSED` prevents conversational self-modification.',
             ],
         },
-        'tool-using-browser-search-agent': {
-            title: 'Tool-using agent (Browser + Search engine)',
-            goal: 'Enable internet research with clear sourcing behavior.',
-            walkthrough: [
-                '`USE SEARCH ENGINE` provides web search tooling and optional search instructions.',
-                '`USE BROWSER` enables URL fetching and interactive browsing tools.',
-                '`RULE` commitments make reliability behavior explicit and repeatable.',
-                'This pattern is ideal for current-events and fact-checking agents.',
-            ],
-        },
         'rule-and-knowledge-agent': {
             title: 'Agent with RULE and KNOWLEDGE',
             goal: 'Ground responses in explicit constraints and curated sources.',
@@ -227,16 +217,6 @@ export const englishBookLanguageManualDictionary: BookLanguageManualDictionary =
                 '`RULE` commitments define non-negotiable behavior constraints.',
                 'Combining both creates predictable, grounded policy responses.',
                 'Use this pattern for compliance, support, and internal procedures.',
-            ],
-        },
-        'memory-agent-with-long-term-memory': {
-            title: 'MEMORY agent with long-term memory',
-            goal: 'Persist user preferences across conversations.',
-            walkthrough: [
-                '`MEMORY` adds runtime memory tools and memory-specific system guidance.',
-                '`RULE` commitments narrow what should be remembered to reduce privacy risks.',
-                'In Agents Server, memory is runtime-backed and user-scoped.',
-                'Use this for assistants that must preserve context over time.',
             ],
         },
         'use-project-integration-agent': {
@@ -283,7 +263,7 @@ export const englishBookLanguageManualDictionary: BookLanguageManualDictionary =
         {
             title: 'Unverifiable claims',
             dont: 'The agent answers internet-dependent questions without tools or without citing sources.',
-            doInstead: 'Add `USE SEARCH ENGINE` / `USE BROWSER` and a citation-oriented `RULE`.',
+            doInstead: 'Add `KNOWLEDGE` sources and a citation-oriented `RULE`.',
         },
         {
             title: 'Missing guardrails',
@@ -294,11 +274,6 @@ export const englishBookLanguageManualDictionary: BookLanguageManualDictionary =
             title: 'Overloaded inheritance',
             dont: 'Using deep `FROM` chains without documenting why each parent is needed.',
             doInstead: 'Keep inheritance shallow and use focused IMPORT/TEAM composition for reuse.',
-        },
-        {
-            title: 'Unsafe memory usage',
-            dont: 'Storing every detail in memory without boundaries.',
-            doInstead: 'Pair `MEMORY` with explicit rules about what is allowed to persist.',
         },
     ],
     tutorialSections: {

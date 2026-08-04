@@ -43,9 +43,9 @@ Do not edit these places manually, as they will be overwritten by the code gener
     -   **Promptbook Engine** is the core engine that powers AI agents, it is located in `/src` folder. It is framework-agnostic and can be used in different applications. It can run as standalone javascript/typescript library, CLI environment, or be integrated into different applications. It can be also runned in Agent Server:
     -   **Agent Server** is a specific application that uses the Promptbook Engine to provide a web and API interface for creating and interacting with AI agents. It is located in `/apps/agents-server` folder.
 -   **Commitments** are basic syntax elements that add specific functionalities to AI agents
-    -   They are used in `agentSource`, there are commitments like `PERSONA`, `RULE`, `KNOWLEDGE`, `USE BROWSER`, `USE SEARCH ENGINE`, `META IMAGE`, etc.
+    -   They are used in `agentSource`, there are commitments like `PERSONA`, `RULE`, `KNOWLEDGE`, `USE CALENDAR`, `USE PROJECT`, `META IMAGE`, etc.
     -   Commitments are in the folder `/src/commitments`
-    -   Each commitment starts with a keyword, e.g., `KNOWLEDGE`, `USE BROWSER`, etc. on a begining of the line and end by new co
+    -   Each commitment starts with a keyword, e.g., `KNOWLEDGE`, `USE PROJECT`, etc. on a begining of the line and end by new co
     -   Agent source with commitments is parsed by two functions:
         -   `parseAgentSource` which is a lightweight parser for agent source, it parses basic information and its purpose is to be quick and synchronous. The commitments there are hardcoded.
         -   `createAgentModelRequirements` which is an asynchronous function that creates model requirements it applies each commitment one by one and works asynchronously.
@@ -128,11 +128,11 @@ Use it as a reference for the syntax and semantics of the book language, and mod
 
 Commitments are basic syntax elements that add specific functionalities to AI agents written in `book` language.
 
--   They are used in `agentSource`, there are commitments like `PERSONA`, `RULE`, `KNOWLEDGE`, `USE BROWSER`, `USE SEARCH ENGINE`, `META IMAGE`, `CLOSED`, etc.
+-   They are used in `agentSource`, there are commitments like `PERSONA`, `RULE`, `KNOWLEDGE`, `USE CALENDAR`, `USE PROJECT`, `META IMAGE`, `CLOSED`, etc.
 -   They are in the folder `src/commitments`.
--   Each commitment starts with a keyword, e.g. `PERSONA`, `KNOWLEDGE`, `USE SEARCH ENGINE`, etc. on a beginning of the line and ends by a new commitment or the end of the book.
+-   Each commitment starts with a keyword, e.g. `PERSONA`, `KNOWLEDGE`, `USE PROJECT`, etc. on a beginning of the line and ends by a new commitment or the end of the book.
 -   There is a general pattern that the commitment keyword is followed by a space and then by the content of the commitment, for example:
     -   `PERSONA You are a helpful assistant that helps with cooking recipes.`
-    -   `USE SEARCH ENGINE Search only in French.`
+    -   `USE MCP https://mcp.example.com/server`
 -   In the commitment context, you can reference external agents, for example:
     -   `TEAM You can talk to {Criminal lawyer} and {Financial advisor}`

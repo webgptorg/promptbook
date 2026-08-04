@@ -14,7 +14,7 @@ import {
 } from '../utils/useEmailSmtpWalletConstants';
 
 /**
- * Hidden runtime context shape used by USE EMAIL server tool.
+ * Hidden runtime context shape used by the `send_email` server tool.
  */
 type UseEmailRuntimeContext = {
     email?: {
@@ -110,7 +110,7 @@ export async function send_email(args: SendEmailToolArgs): Promise<string> {
 }
 
 /**
- * Builds wallet-required result payload for USE EMAIL.
+ * Builds wallet-required result payload for the `send_email` server tool.
  */
 function createEmailWalletCredentialRequiredResult(
     defaultFromAddress?: string,
@@ -170,7 +170,7 @@ function normalizeSendEmailPayload(args: SendEmailToolArgs, fallbackFromAddress?
     const sender = normalizeNonEmptyString(normalizedMessage?.sender) || fallbackFromAddress;
 
     if (!sender) {
-        throw new Error('Sender email is missing. Configure sender in USE EMAIL or in SMTP credential.');
+        throw new Error('Sender email is missing. Configure the sender in the SMTP credential.');
     }
     if (!recipientsInput || recipientsInput.length === 0) {
         throw new Error('At least one recipient email address is required.');

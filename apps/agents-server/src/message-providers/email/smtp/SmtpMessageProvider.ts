@@ -19,7 +19,7 @@ export type SmtpMessageProviderConfiguration = {
 };
 
 /**
- * SMTP-backed message provider used by USE EMAIL runtime sending.
+ * SMTP-backed message provider used by agent email sending.
  */
 export class SmtpMessageProvider implements MessageProvider {
     private readonly transporter: Transporter;

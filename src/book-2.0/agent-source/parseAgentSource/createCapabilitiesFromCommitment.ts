@@ -12,45 +12,10 @@ import type { ParseAgentSourceState } from './ParseAgentSourceState';
  * Static capability descriptors for commitments that map one-to-one to a visible capability.
  */
 const SIMPLE_CAPABILITY_BY_COMMITMENT_TYPE: Readonly<Record<string, AgentCapability | undefined>> = {
-    'USE BROWSER': {
-        type: 'browser',
-        label: 'Browser',
-        iconName: 'Globe',
-    },
-    'USE SEARCH ENGINE': {
-        type: 'search-engine',
-        label: 'Internet',
-        iconName: 'Search',
-    },
-    'USE SEARCH': {
-        type: 'search-engine',
-        label: 'Internet',
-        iconName: 'Search',
-    },
-    'USE DEEPSEARCH': {
-        type: 'search-engine',
-        label: 'DeepSearch',
-        iconName: 'Search',
-    },
-    'USE TIME': {
-        type: 'time',
-        label: 'Time',
-        iconName: 'Clock',
-    },
-    'USE TIMEOUT': {
-        type: 'timeout',
-        label: 'Timers',
-        iconName: 'Clock',
-    },
     'USE USER LOCATION': {
         type: 'user-location',
         label: 'User location',
         iconName: 'MapPin',
-    },
-    'USE EMAIL': {
-        type: 'email',
-        label: 'Email',
-        iconName: 'Mail',
     },
     'USE POPUP': {
         type: 'popup',

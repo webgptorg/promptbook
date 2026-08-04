@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { randomUUID } from 'crypto';
 import { mkdir } from 'fs/promises';
 import type { BrowserContext, Page } from 'playwright';
-import { fetchUrlContent } from '../../../../src/commitments/USE_BROWSER/fetchUrlContent';
+import { fetchUrlContent } from '../../../../src/scrapers/_common/utils/fetchUrlContent';
 import { keepUnused } from '../../../../src/utils/organization/keepUnused';
 import { $provideBrowserForServer } from './$provideBrowserForServer';
 import { run_browser } from './run_browser';
@@ -20,7 +20,7 @@ jest.mock('./$provideBrowserForServer', () => ({
     $provideBrowserForServer: jest.fn(),
 }));
 
-jest.mock('../../../../src/commitments/USE_BROWSER/fetchUrlContent', () => ({
+jest.mock('../../../../src/scrapers/_common/utils/fetchUrlContent', () => ({
     fetchUrlContent: jest.fn(),
 }));
 

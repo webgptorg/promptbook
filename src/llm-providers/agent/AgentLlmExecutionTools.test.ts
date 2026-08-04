@@ -83,7 +83,7 @@ describe('AgentLlmExecutionTools', () => {
         const agentSource = `
             AI Agent
 
-            USE BROWSER
+            USE POPUP
         ` as string_book;
 
         const timing: { start: string_date_iso8601; complete: string_date_iso8601 } = {
@@ -149,7 +149,7 @@ describe('AgentLlmExecutionTools', () => {
 
         const forwardedPrompt = callChatModelMock.mock.calls[0]![0] as Prompt;
         expect(forwardedPrompt.modelRequirements.tools?.map((tool) => tool.name)).toEqual(
-            expect.arrayContaining(['fetch_url_content', 'run_browser', 'read_attached_file']),
+            expect.arrayContaining(['open_popup', 'read_attached_file']),
         );
     });
 

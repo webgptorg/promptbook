@@ -1,4 +1,4 @@
-# USE TIMEOUT Chip QA
+# Timeout Chip QA
 
 -   Friendly default popup:
     Trigger a `set_timeout` tool call in an agent chat, click the timeout chip under the assistant message, and confirm the first view shows friendly copy (for example `Will retry in ...`) plus local time, relative time, and timezone.

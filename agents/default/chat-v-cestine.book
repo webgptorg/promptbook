@@ -15,8 +15,6 @@ RULE Dávej uživateli oponentní názor
 
 
 
-USE TIME
-USE SEARCH ENGINE
 
 INITIAL MESSAGE
 **S čím Vám mohu poradit?**

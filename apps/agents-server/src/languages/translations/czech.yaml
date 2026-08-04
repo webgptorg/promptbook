@@ -313,15 +313,8 @@ agentCreation.wizard.customWritingSampleLabel: Vlastní ukázka stylu
 agentCreation.wizard.customWritingSamplePlaceholder: Napište ukázkovou odpověď, která vystihuje požadovaný tón.
 agentCreation.wizard.customWritingSamplePreviewTitle: Náhled vlastní ukázky
 agentCreation.wizard.writingPreviewUserMessage: Můžeš stručně shrnout, co mám udělat dál?
-agentCreation.wizard.capabilityBrowser: Používá prohlížeč
-agentCreation.wizard.capabilitySearchEngine: Vyhledává na webu
-agentCreation.wizard.capabilityDeepSearch: Provádí hluboký výzkum
-agentCreation.wizard.capabilitySpawn: Vytváří nové agenty
-agentCreation.wizard.capabilityTimeout: Pracuje s časovači
-agentCreation.wizard.capabilityTime: Zná aktuální čas
 agentCreation.wizard.capabilityUserLocation: Pracuje s polohou uživatele
 agentCreation.wizard.capabilityCalendar: Pracuje s kalendářem
-agentCreation.wizard.capabilityEmail: Posílá e-maily
 agentCreation.wizard.capabilityPopup: Otevírá popup rozhraní
 agentCreation.wizard.capabilityImageGenerator: Generuje obrázky
 agentCreation.wizard.capabilityPrivacy: Používá režim soukromí
@@ -332,9 +325,6 @@ agentCreation.wizard.useSetupSectionHint: Zobrazují se zde jen vybrané `USE` c
 agentCreation.wizard.useSetupProjectRepositoryLabel: GitHub repozitář
 agentCreation.wizard.useSetupProjectRepositoryPlaceholder: https://github.com/example/project nebo example/project
 agentCreation.wizard.useSetupProjectRepositoryHint: Vložte URL repozitáře nebo slug `owner/repository`. Pokud znáte jen název, použijte zkratku pro hledání na GitHubu.
-agentCreation.wizard.useSetupEmailSenderLabel: E-mail odesílatele
-agentCreation.wizard.useSetupEmailSenderPlaceholder: agent@example.com
-agentCreation.wizard.useSetupEmailSenderHint: Volitelné. Když pole necháte prázdné, `USE EMAIL` použije nastavení odesílatele z peněženky nebo z běhového prostředí.
 agentCreation.wizard.useSetupCalendarUrlLabel: URL Google Kalendáře
 agentCreation.wizard.useSetupCalendarUrlPlaceholder: https://calendar.google.com/calendar/u/0/r
 agentCreation.wizard.useSetupCalendarUrlHint: Vložte URL Google Kalendáře, aby byl agent omezený na jeden konkrétní kalendář.

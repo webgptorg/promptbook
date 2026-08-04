@@ -101,7 +101,7 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
 
     /**
      * Capabilities of the agent
-     * This is parsed from commitments like USE BROWSER, USE SEARCH ENGINE, KNOWLEDGE, etc.
+     * This is parsed from commitments like USE CALENDAR, USE PROJECT, KNOWLEDGE, etc.
      */
     public capabilities: Array<AgentCapability> = [];
 

@@ -30,10 +30,10 @@ describe('AgentOsTranspiler', () => {
 
     it('transpiles a book with tool commitments into AgentOS host tools', async () => {
         const agentSource = book`
-            Time Keeper
+            Popup Keeper
 
-            PERSONA You are a time-aware assistant
-            USE TIME
+            PERSONA You are a popup-aware assistant
+            USE POPUP
         `;
 
         const llm = await $provideLlmToolsForTestingAndScriptsAndPlayground();
@@ -42,10 +42,10 @@ describe('AgentOsTranspiler', () => {
         expect(code).toContain("import { hostTool, toolKit } from '@rivet-dev/agent-os-core'");
         expect(code).toContain("import { z } from 'zod'");
         expect(code).toContain('const PROMPTBOOK_TOOL_IMPLEMENTATIONS = {');
-        expect(code).toContain('async get_current_time(args)');
+        expect(code).toContain('async open_popup(args)');
         expect(code).toContain('const PROMPTBOOK_TOOLKIT = toolKit({');
         expect(code).toContain('hostTool({');
-        expect(code).toContain('"timezone": z.string()');
+        expect(code).toContain('"url": z.string()');
     });
 
     it('transpiles a book with large knowledge and uses retrieval scaffolding', async () => {

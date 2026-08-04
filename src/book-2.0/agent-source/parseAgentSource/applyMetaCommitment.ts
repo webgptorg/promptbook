@@ -1,6 +1,5 @@
 import { spaceTrim } from 'spacetrim';
 import { resolveAvatarVisualId } from '../../../avatars/visuals/avatarVisualRegistry';
-import { normalizeTo_camelCase } from '../../../utils/normalization/normalizeTo_camelCase';
 import { normalizeDomainForMatching } from '../../../utils/validators/url/normalizeDomainForMatching';
 import type { ParsedCommitment } from '../../../commitments/_base/ParsedCommitment';
 import { normalizeAgentVisibility } from '../agentSourceVisibility';
@@ -22,6 +21,8 @@ const META_COMMITMENT_APPLIERS: Readonly<Record<string, MetaCommitmentApplier | 
     'META IMAGE': applyMetaImageContent,
     'META DESCRIPTION': applyMetaDescriptionContent,
     'META DISCLAIMER': applyMetaDisclaimerContent,
+    'META FULLNAME': applyMetaFullnameContent,
+    'META ID': applyMetaIdContent,
     'META INPUT PLACEHOLDER': applyMetaInputPlaceholderContent,
     'META THINKING MESSAGE': applyMetaThinkingMessageContent,
     'MESSAGE SUFFIX': applyMessageSuffixContent,
@@ -40,37 +41,7 @@ export function applyMetaCommitment(state: ParseAgentSourceState, commitment: Pa
     const applyMetaContent = META_COMMITMENT_APPLIERS[commitment.type];
     if (applyMetaContent) {
         applyMetaContent(state, commitment.content);
-        return;
     }
-
-    if (commitment.type === 'META') {
-        applyGenericMetaCommitment(state, commitment.content);
-    }
-}
-
-/**
- * Applies the generic META commitment form (`META TYPE value`).
- */
-function applyGenericMetaCommitment(state: ParseAgentSourceState, content: string): void {
-    const metaTypeRaw = content.split(' ')[0] || 'NONE';
-    const metaValue = spaceTrim(content.substring(metaTypeRaw.length));
-
-    if (metaTypeRaw === 'LINK') {
-        state.links.push(metaValue);
-    }
-
-    if (metaTypeRaw.toUpperCase() === 'AVATAR') {
-        applyMetaAvatarContent(state, metaValue);
-        return;
-    }
-
-    if (metaTypeRaw.toUpperCase() === 'VISIBILITY') {
-        applyMetaVisibilityContent(state, metaValue);
-        return;
-    }
-
-    const metaType = normalizeTo_camelCase(metaTypeRaw);
-    state.meta[metaType] = metaValue;
 }
 
 /**
@@ -121,6 +92,20 @@ function applyMetaDescriptionContent(state: ParseAgentSourceState, content: stri
  */
 function applyMetaDisclaimerContent(state: ParseAgentSourceState, content: string): void {
     state.meta.disclaimer = content;
+}
+
+/**
+ * Applies META FULLNAME content into the canonical `meta.fullname` field.
+ */
+function applyMetaFullnameContent(state: ParseAgentSourceState, content: string): void {
+    state.meta.fullname = spaceTrim(content);
+}
+
+/**
+ * Applies META ID content into the canonical `meta.id` field.
+ */
+function applyMetaIdContent(state: ParseAgentSourceState, content: string): void {
+    state.meta.id = spaceTrim(content);
 }
 
 /**

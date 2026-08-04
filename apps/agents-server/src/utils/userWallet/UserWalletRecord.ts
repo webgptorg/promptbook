@@ -97,7 +97,7 @@ export type ResolveUseProjectGithubTokenOptions = {
 };
 
 /**
- * SMTP credential resolution options for USE EMAIL.
+ * SMTP credential resolution options for agent email.
  */
 export type ResolveUseEmailSmtpCredentialOptions = {
     userId?: number;

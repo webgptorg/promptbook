@@ -20,7 +20,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  */
 export class MetaDescriptionCommitmentDefinition extends BaseCommitmentDefinition<'META DESCRIPTION'> {
     public constructor() {
-        super('META DESCRIPTION', ['DESCRIPTION']);
+        super('META DESCRIPTION');
     }
 
     /**

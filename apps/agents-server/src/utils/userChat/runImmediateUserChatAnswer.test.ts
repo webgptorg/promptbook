@@ -11,10 +11,8 @@ describe('createImmediateUserChatAnswerModelRequirements', () => {
             RULE Be concise and practical.
             WRITING RULES Use short paragraphs.
             KNOWLEDGE Internal policy database should not be loaded for the fast answer.
-            MEMORY Remember user preferences.
-            USE SEARCH ENGINE Search public documentation before answering.
-            USE BROWSER Browse the product website.
-            USE EMAIL support@example.com
+            USE PRIVACY Do not store anything from this conversation.
+            USE CALENDAR https://calendar.google.com/calendar/u/0/r
         ` as string_book;
 
         const modelRequirements = createImmediateUserChatAnswerModelRequirements(agentSource);
@@ -34,9 +32,8 @@ describe('createImmediateUserChatAnswerModelRequirements', () => {
         expect(systemMessage).toContain('RULE: Be concise and practical.');
         expect(systemMessage).toContain('WRITING RULES: Use short paragraphs.');
         expect(systemMessage).not.toContain('Internal policy database');
-        expect(systemMessage).not.toContain('Search public documentation');
-        expect(systemMessage).not.toContain('Browse the product website');
-        expect(systemMessage).not.toContain('support@example.com');
+        expect(systemMessage).not.toContain('Do not store anything from this conversation.');
+        expect(systemMessage).not.toContain('https://calendar.google.com/calendar/u/0/r');
     });
 
     it('falls back to the agent name when no lightweight instruction commitments are present', () => {

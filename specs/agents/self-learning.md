@@ -34,7 +34,7 @@ Users can additionally disable self-learning for their own sessions via the cont
 
 The Teacher is the well-known Book-language expert agent [seeded](../agents.md#seeding) into the hidden `.core` folder of every server. At chat time the server connects to it as a remote agent (`/agents/teacher` on the local server, connection cached per process) and passes it to the engine as `teacherAgent`.
 
-The Teacher receives the interaction (prompt + response) plus any teacher instructions from the `OPEN` commitment and answers with suggested book additions (new `KNOWLEDGE`, `RULE`, `MEMORY`, … commitments). Teacher failures are logged and never fail the user's turn. When the Teacher is unavailable, learning degrades to sample-appending only.
+The Teacher receives the interaction (prompt + response) plus any teacher instructions from the `OPEN` commitment and answers with suggested book additions (new `KNOWLEDGE`, `RULE`, … commitments). Teacher failures are logged and never fail the user's turn. When the Teacher is unavailable, learning degrades to sample-appending only.
 
 ## Guarantees
 

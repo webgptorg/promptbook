@@ -14,12 +14,12 @@ describe('getGroupedCommitmentDefinitions USE commitments', () => {
         expect(groupedCommitments.map(({ primary }) => primary.type)).not.toContain('USE');
         expect(concreteUseCommitmentTypes).toEqual(
             expect.arrayContaining([
-                'USE BROWSER',
                 'USE CALENDAR',
-                'USE EMAIL',
+                'USE MCP',
+                'USE POPUP',
                 'USE PRIVACY',
                 'USE PROJECT',
-                'USE SEARCH ENGINE',
+                'USE USER LOCATION',
             ]),
         );
     });

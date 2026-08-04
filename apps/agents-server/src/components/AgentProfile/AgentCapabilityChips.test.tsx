@@ -3,18 +3,14 @@
 import type { AgentBasicInformation } from '@promptbook-local/types';
 import { describe, expect, it } from '@jest/globals';
 import { render, screen } from '@testing-library/react';
-import {
-    AGENT_CARD_HIDDEN_CAPABILITY_TYPES,
-    AgentCapabilityChips,
-    HOMEPAGE_CAPABILITY_CHIPS_LIMIT,
-} from './AgentCapabilityChips';
+import { AgentCapabilityChips, HOMEPAGE_CAPABILITY_CHIPS_LIMIT } from './AgentCapabilityChips';
 
 /**
  * Agent fixture with capability labels that should be filtered differently by profile and card views.
  */
 const TEST_AGENT = {
-    agentName: 'Clockless Void Agent',
-    agentHash: 'hash-clockless-void-agent',
+    agentName: 'Void Agent',
+    agentHash: 'hash-void-agent',
     meta: {},
     personaDescription: null,
     initialMessage: null,
@@ -30,44 +26,43 @@ const TEST_AGENT = {
             agentUrl: '{Void}',
         },
         {
-            type: 'time',
-            label: 'Time',
-            iconName: 'Clock',
+            type: 'calendar',
+            label: 'Calendar',
+            iconName: 'Calendar',
         },
         {
-            type: 'browser',
-            label: 'Browser',
-            iconName: 'Globe',
-        },
-        {
-            type: 'search-engine',
-            label: 'Internet',
-            iconName: 'Search',
+            type: 'privacy',
+            label: 'Privacy',
+            iconName: 'Shield',
         },
     ],
 } as unknown as AgentBasicInformation;
 
 describe('AgentCapabilityChips', () => {
-    it('hides non-card capability labels from homepage agent cards', () => {
+    it('hides the {Void} inheritance capability', () => {
+        render(<AgentCapabilityChips agent={TEST_AGENT} maxChips={HOMEPAGE_CAPABILITY_CHIPS_LIMIT} />);
+
+        expect(screen.queryByText('{Void}')).toBeNull();
+    });
+
+    it('renders the remaining capability labels', () => {
+        render(<AgentCapabilityChips agent={TEST_AGENT} maxChips={HOMEPAGE_CAPABILITY_CHIPS_LIMIT} />);
+
+        expect(screen.queryByText('Calendar')).not.toBeNull();
+        expect(screen.queryByText('Privacy')).not.toBeNull();
+    });
+
+    it('hides capability types passed through `hiddenCapabilityTypes`', () => {
         render(
             <AgentCapabilityChips
                 agent={TEST_AGENT}
-                hiddenCapabilityTypes={AGENT_CARD_HIDDEN_CAPABILITY_TYPES}
+                hiddenCapabilityTypes={['privacy']}
                 maxChips={HOMEPAGE_CAPABILITY_CHIPS_LIMIT}
                 size="compact"
             />,
         );
 
-        expect(screen.queryByText('{Void}')).toBeNull();
-        expect(screen.queryByText('Time')).toBeNull();
-        expect(screen.queryByText('Browser')).not.toBeNull();
-        expect(screen.queryByText('Internet')).not.toBeNull();
-    });
-
-    it('keeps the Time capability visible outside the card-specific filter', () => {
-        render(<AgentCapabilityChips agent={TEST_AGENT} maxChips={HOMEPAGE_CAPABILITY_CHIPS_LIMIT} />);
-
-        expect(screen.queryByText('{Void}')).toBeNull();
-        expect(screen.queryByText('Time')).not.toBeNull();
+        expect(screen.queryByText('Calendar')).not.toBeNull();
+        expect(screen.queryByText('Privacy')).toBeNull();
     });
 });

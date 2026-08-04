@@ -36,7 +36,7 @@ describe('buildDocumentationDropdownItems', () => {
         const lastItem = items[6]?.items?.[items[6]!.items!.length - 1];
         const lastLabel = lastItem?.label as { props?: { className?: string } } | undefined;
 
-        expect(lastItem?.href).toBe('/docs/MODEL');
+        expect(lastItem?.href).toBe('/docs/META ID');
         expect(lastLabel?.props?.className).toContain('opacity-70');
     });
 

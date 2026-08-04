@@ -306,7 +306,7 @@ describe('resolveAgentStateFromSource', () => {
                 Parent Agent
 
                 FROM VOID
-                USE BROWSER
+                USE PRIVACY
                 RULE Follow the parent rule.
                 META COLOR #123456
                 META FONT Arial, sans-serif
@@ -319,7 +319,7 @@ describe('resolveAgentStateFromSource', () => {
                 Child Agent
 
                 FROM ${parentAgentUrl}
-                USE SEARCH ENGINE
+                USE CALENDAR https://calendar.google.com/calendar/u/0/r
                 RULE Follow the child rule.
                 META COLOR #654321
                 INITIAL MESSAGE Hello from child.
@@ -335,12 +335,10 @@ describe('resolveAgentStateFromSource', () => {
         expect(resolvedAgentState.resolvedAgentProfile.meta.font).toBe('Arial, sans-serif');
         expect(resolvedAgentState.resolvedAgentProfile.initialMessage).toBe('Hello from child.');
         expect(
-            resolvedAgentState.resolvedAgentProfile.capabilities.some((capability) => capability.type === 'browser'),
+            resolvedAgentState.resolvedAgentProfile.capabilities.some((capability) => capability.type === 'privacy'),
         ).toBe(true);
         expect(
-            resolvedAgentState.resolvedAgentProfile.capabilities.some(
-                (capability) => capability.type === 'search-engine',
-            ),
+            resolvedAgentState.resolvedAgentProfile.capabilities.some((capability) => capability.type === 'calendar'),
         ).toBe(true);
         expect(modelRequirements.systemMessage).toContain('Follow the parent rule.');
         expect(modelRequirements.systemMessage).toContain('Follow the child rule.');

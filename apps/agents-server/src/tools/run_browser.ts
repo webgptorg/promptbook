@@ -1,4 +1,4 @@
-import { fetchUrlContent } from '../../../../src/commitments/USE_BROWSER/fetchUrlContent';
+import { fetchUrlContent } from '../../../../src/scrapers/_common/utils/fetchUrlContent';
 import { emitToolCallProgressFromToolArgs } from '../../../../src/commitments/_common/toolRuntimeContext';
 import type { string_date_iso8601 } from '../../../../src/types/typeAliases';
 import type { Page } from 'playwright';

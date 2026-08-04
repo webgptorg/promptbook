@@ -33,7 +33,7 @@ import { loadOpenAiAgentsModule } from './utils/loadOpenAiAgentsModule';
 const DEFAULT_DEEP_SEARCH_MODEL_NAME = 'o4-mini-deep-research';
 
 /**
- * Tool name used by the Book commitment-backed DeepSearch capability.
+ * Tool name used by the DeepSearch capability.
  */
 const DEEP_SEARCH_TOOL_NAME = 'deep_search' as string_javascript_name;
 
@@ -375,7 +375,7 @@ export class OpenAiAgentKitExecutionToolsToolBuilder {
     }
 
     /**
-     * Creates the native Agent SDK tool used for `USE DEEPSEARCH`.
+     * Creates the native Agent SDK tool used for the DeepSearch capability.
      */
     private async createDeepSearchAgentKitTool(toolDefinition: AgentKitToolDefinition): Promise<AgentKitTool> {
         const { Agent: AgentFromKit, webSearchTool } = await loadOpenAiAgentsModule();

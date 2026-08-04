@@ -5,7 +5,6 @@ import type { string_book, TODO_any } from '@promptbook-local/types';
 import { createInlineKnowledgeSourceUploader } from '@/src/utils/knowledge/createInlineKnowledgeSourceUploader';
 import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
 import { extractUseCalendarConnectionsFromAgentSource } from '@/src/utils/calendars/extractUseCalendarConnectionsFromAgentSource';
-import { extractUseEmailConfigurationFromAgentSource } from '@/src/utils/emails/extractUseEmailConfigurationFromAgentSource';
 import { extractProjectRepositoriesFromAgentSource } from '@/src/utils/projects/extractProjectRepositoriesFromAgentSource';
 import { resolveUseEmailSmtpCredential } from '@/src/utils/resolveUseEmailSmtpCredential';
 import { resolveUseCalendarGoogleToken } from '@/src/utils/resolveUseCalendarGoogleToken';
@@ -43,7 +42,6 @@ export type HandleChatCompletionRuntime = {
     agentHash: string;
     projectRepositories: ReturnType<typeof extractProjectRepositoriesFromAgentSource>;
     calendarConnections: ReturnType<typeof extractUseCalendarConnectionsFromAgentSource>;
-    useEmailConfiguration: ReturnType<typeof extractUseEmailConfigurationFromAgentSource>;
     currentUserIdentity: Awaited<ReturnType<typeof resolveCurrentUserMemoryIdentity>>;
     projectGithubToken: Awaited<ReturnType<typeof resolveUseProjectGithubToken>>;
     calendarGoogleAccessToken: Awaited<ReturnType<typeof resolveUseCalendarGoogleToken>>;
@@ -95,7 +93,6 @@ export async function resolveHandleChatCompletionRuntime(options: {
     const unresolvedAgentSource = resolvedAgentContext.unresolvedAgentSource;
     const projectRepositories = extractProjectRepositoriesFromAgentSource(agentSource);
     const calendarConnections = extractUseCalendarConnectionsFromAgentSource(agentSource);
-    const useEmailConfiguration = extractUseEmailConfigurationFromAgentSource(agentSource);
     const messageSuffix = resolveMessageSuffixFromAgentSource(agentSource);
     const { agentSourceWithContext, hasDynamicContext } = appendSystemMessagesToAgentSource(agentSource, messages);
     agentSource = agentSourceWithContext;
@@ -121,7 +118,6 @@ export async function resolveHandleChatCompletionRuntime(options: {
             currentUserIdentity,
             agentId,
             calendarConnections,
-            useEmailConfiguration,
         });
     const agent = await createHandleChatCompletionAgent({
         agentName,
@@ -145,7 +141,6 @@ export async function resolveHandleChatCompletionRuntime(options: {
         agentHash,
         projectRepositories,
         calendarConnections,
-        useEmailConfiguration,
         currentUserIdentity,
         projectGithubToken,
         calendarGoogleAccessToken,
@@ -213,7 +208,6 @@ async function resolveHandleChatCompletionCredentials(options: {
     currentUserIdentity: Awaited<ReturnType<typeof resolveCurrentUserMemoryIdentity>>;
     agentId: string;
     calendarConnections: ReturnType<typeof extractUseCalendarConnectionsFromAgentSource>;
-    useEmailConfiguration: ReturnType<typeof extractUseEmailConfigurationFromAgentSource>;
 }): Promise<{
     projectGithubToken: Awaited<ReturnType<typeof resolveUseProjectGithubToken>>;
     calendarGoogleAccessToken: Awaited<ReturnType<typeof resolveUseCalendarGoogleToken>>;
@@ -231,12 +225,10 @@ async function resolveHandleChatCompletionCredentials(options: {
                   agentPermanentId: options.agentId,
               })
             : Promise.resolve(undefined),
-        options.useEmailConfiguration.isEnabled
-            ? resolveUseEmailSmtpCredential({
-                  userId,
-                  agentPermanentId: options.agentId,
-              })
-            : Promise.resolve(undefined),
+        resolveUseEmailSmtpCredential({
+            userId,
+            agentPermanentId: options.agentId,
+        }),
     ]);
 
     return {

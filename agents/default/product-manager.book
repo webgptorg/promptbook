@@ -40,9 +40,6 @@ Dokážu rozpadnout MVP, sepsat zadání pro kódovacího agenta a připravit po
 [Navrhni MVP](?message=Máme nápad na interní portál pro zaměstnance. Rozpadni ho na MVP, klíčové scénáře a rizika.)
 [Prioritizuj backlog](?message=Pomoz mi prioritizovat backlog pro příští sprint podle dopadu a náročnosti.)
 
-USE TIME
-USE TIMEOUT
-USE EMAIL spravce-kalendare@ptbk.io
 USE CALENDAR https://calendar.google.com/calendar/ical/59da51719f8182de0b734dd9b4f231e2c10ed17b8858c8cb697701572e21a3e2%40group.calendar.google.com/public/basic.ics
 
 CLOSED

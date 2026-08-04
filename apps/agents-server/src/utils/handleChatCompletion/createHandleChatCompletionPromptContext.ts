@@ -64,7 +64,6 @@ export async function createHandleChatCompletionPromptContext(options: {
         projectRepositories: runtime.projectRepositories,
         projectGithubToken: runtime.projectGithubToken,
         emailSmtpCredential: runtime.emailSmtpCredential,
-        emailFromAddress: runtime.useEmailConfiguration.senderEmail,
         calendarGoogleAccessToken: runtime.calendarGoogleAccessToken,
         calendarConnections: runtime.calendarConnections,
         localServerUrl: runtime.localServerUrl,

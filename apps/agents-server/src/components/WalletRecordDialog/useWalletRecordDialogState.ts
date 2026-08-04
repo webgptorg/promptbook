@@ -174,7 +174,7 @@ function isUseCalendarWalletRequest(recordType: WalletRecordType, service: strin
 }
 
 /**
- * Returns true when dialog currently targets USE EMAIL SMTP access token.
+ * Returns true when dialog currently targets the agent email SMTP access token.
  *
  * @private function of WalletRecordDialog
  */

@@ -144,7 +144,7 @@ interface BookEditorProps {
     onChange?: (value: string) => void;
 
     // Explicit list of commitment keywords to highlight (case-insensitive).
-    // If omitted, a default set (PERSONA, KNOWLEDGE, MEMORY, STYLE, RULE, RULES, WRITING SAMPLE, WRITING RULES, SAMPLE, EXAMPLE, FORMAT, MODEL, ACTION, META IMAGE, META LINK, NOTE, GOAL, MESSAGE, SCENARIO, DELETE, CANCEL, DISCARD, REMOVE, EXPECT, SCENARIOS, BEHAVIOUR, BEHAVIOURS, AVOID, AVOIDANCE, GOALS, CONTEXT) is used.
+    // If omitted, a default set (PERSONA, KNOWLEDGE, STYLE, RULE, RULES, WRITING SAMPLE, WRITING RULES, SAMPLE, EXAMPLE, FORMAT, MODEL, ACTION, META IMAGE, META LINK, NOTE, GOAL, MESSAGE, SCENARIO, DELETE, CANCEL, DISCARD, REMOVE, EXPECT, SCENARIOS, BEHAVIOUR, BEHAVIOURS, AVOID, AVOIDANCE, GOALS, CONTEXT) is used.
     commitmentTypes?: string[];
 }
 ```
@@ -237,8 +237,6 @@ Respond to incoming legal inquiries via email and keep the company website updat
 **KNOWLEDGE** https://company.com/company-policies.pdf<br/>
 **KNOWLEDGE** https://company.com/internal-documents/employee-handbook.docx<br/>
 <br/>
-USE EMAIL<br/>
-USE BROWSER<br/>
 <br/>
 TEAM You are part of the legal team of Paul Smith & Associés, you discuss with {Emily White}, the head of the compliance department. {George Brown} is expert in corporate law and {Sophia Black} is expert in labor law.<br/>
 
@@ -327,7 +325,7 @@ GOAL Keep the company website updated with the latest legal policies and complia
 
 #### `Use` commitments
 
-Use commitments grant the agent real capabilities - tools it can use to interact with the outside world. `USE EMAIL` lets the agent send emails, `USE BROWSER` lets it access and read web content, `USE SEARCH ENGINE` lets it search the web, and many more.
+Use commitments grant the agent real capabilities - tools it can use to interact with the outside world. `USE CALENDAR` lets the agent work with a calendar, `USE PROJECT` gives it access to a code repository, `USE MCP` connects any external Model Context Protocol server, and many more.
 
 These are what turn a chatbot into a persistent agent that actually does work.
 
@@ -344,9 +342,6 @@ GOAL Keep the company website updated with the latest legal policies and complia
 **RULE** Never provide legal advice about criminal law.<br/>
 **KNOWLEDGE** https://company.com/company-policies.pdf<br/>
 **KNOWLEDGE** https://company.com/internal-documents/employee-handbook.docx<br/>
-USE EMAIL<br/>
-USE BROWSER<br/>
-USE SEARCH ENGINE<br/>
 
 </td></tr></table>
 
@@ -367,9 +362,6 @@ GOAL Keep the company website updated with the latest legal policies and complia
 **RULE** Never provide legal advice about criminal law.<br/>
 **KNOWLEDGE** https://company.com/company-policies.pdf<br/>
 **KNOWLEDGE** https://company.com/internal-documents/employee-handbook.docx<br/>
-USE EMAIL<br/>
-USE BROWSER<br/>
-USE SEARCH ENGINE<br/>
 TEAM You are part of the legal team of Paul Smith & Associés, you discuss with {Emily White}, the head of the compliance department. {George Brown} is expert in corporate law and {Sophia Black} is expert in labor law.<br/>
 
 </td></tr></table>

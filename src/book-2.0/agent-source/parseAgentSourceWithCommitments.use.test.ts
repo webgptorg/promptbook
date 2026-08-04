@@ -8,14 +8,14 @@ describe('parseAgentSourceWithCommitments USE commitments', () => {
             API Agent
             USE
             USE API Experimental API access
-            USE BROWSER
+            USE PRIVACY
         `);
 
         const result = parseAgentSourceWithCommitments(agentSource);
 
         expect(result.commitments).toEqual([
             expect.objectContaining({
-                type: 'USE BROWSER',
+                type: 'USE PRIVACY',
                 content: '',
             }),
         ]);

@@ -50,11 +50,11 @@
                 },
                 {
                     "name": "keyword.other.commitment.book",
-                    "match": "^\\s*(?:USE\\s+IMAGE\\s+GENERATOR)\\b"
+                    "match": "^\\s*(?:META\\s+THINKING\\s+MESSAGE)\\b"
                 },
                 {
                     "name": "keyword.other.commitment.book",
-                    "match": "^\\s*(?:USE\\s+SEARCH\\s+ENGINE|USE\\s+SEARCH)\\b"
+                    "match": "^\\s*(?:USE\\s+IMAGE\\s+GENERATOR)\\b"
                 },
                 {
                     "name": "keyword.other.commitment.book",
@@ -66,6 +66,10 @@
                 },
                 {
                     "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:META\\s+DESCRIPTION)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
                     "match": "^\\s*(?:INITIAL\\s+MESSAGE)\\b"
                 },
                 {
@@ -74,11 +78,11 @@
                 },
                 {
                     "name": "keyword.other.commitment.book",
-                    "match": "^\\s*(?:MESSAGE\\s+SUFFIX)\\b"
+                    "match": "^\\s*(?:META\\s+VISIBILITY)\\b"
                 },
                 {
                     "name": "keyword.other.commitment.book",
-                    "match": "^\\s*(?:USE\\s+DEEPSEARCH)\\b"
+                    "match": "^\\s*(?:MESSAGE\\s+SUFFIX)\\b"
                 },
                 {
                     "name": "keyword.other.commitment.book",
@@ -87,6 +91,10 @@
                 {
                     "name": "keyword.other.commitment.book",
                     "match": "^\\s*(?:AGENT\\s+MESSAGE)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:META\\s+FULLNAME)\\b"
                 },
                 {
                     "name": "keyword.other.commitment.book",
@@ -110,7 +118,7 @@
                 },
                 {
                     "name": "keyword.other.commitment.book",
-                    "match": "^\\s*(?:USE\\s+BROWSER|BROWSER)\\b"
+                    "match": "^\\s*(?:META\\s+VISUAL)\\b"
                 },
                 {
                     "name": "keyword.other.commitment.book",
@@ -119,10 +127,6 @@
                 {
                     "name": "keyword.other.commitment.book",
                     "match": "^\\s*(?:USE\\s+PROJECT|PROJECT)\\b"
-                },
-                {
-                    "name": "keyword.other.commitment.book",
-                    "match": "^\\s*(?:USE\\s+TIMEOUT)\\b"
                 },
                 {
                     "name": "keyword.other.commitment.book",
@@ -153,10 +157,6 @@
                     "match": "^\\s*(?:BEHAVIOUR)\\b"
                 },
                 {
-                    "name": "keyword.other.commitment.book",
-                    "match": "^\\s*(?:COMPONENT)\\b"
-                },
-                {
                     "name": "keyword.control.commitment.book",
                     "match": "^\\s*(?:KNOWLEDGE)\\b"
                 },
@@ -182,23 +182,11 @@
                 },
                 {
                     "name": "keyword.other.commitment.book",
-                    "match": "^\\s*(?:USE\\s+EMAIL|EMAIL|MAIL)\\b"
-                },
-                {
-                    "name": "keyword.other.commitment.book",
                     "match": "^\\s*(?:USE\\s+POPUP|POPUP)\\b"
                 },
                 {
                     "name": "keyword.other.commitment.book",
-                    "match": "^\\s*(?:USE\\s+SPAWN|SPAWN)\\b"
-                },
-                {
-                    "name": "keyword.other.commitment.book",
                     "match": "^\\s*(?:LANGUAGE)\\b"
-                },
-                {
-                    "name": "keyword.other.commitment.book",
-                    "match": "^\\s*(?:MEMORIES)\\b"
                 },
                 {
                     "name": "keyword.other.commitment.book",
@@ -215,10 +203,6 @@
                 {
                     "name": "invalid.deprecated.commitment.book",
                     "match": "^\\s*(?:TEMPLATE)\\b"
-                },
-                {
-                    "name": "keyword.other.commitment.book",
-                    "match": "^\\s*(?:USE\\s+TIME|CURRENT\\s+TIME|TIME|DATE)\\b"
                 },
                 {
                     "name": "invalid.deprecated.commitment.book",
@@ -253,16 +237,16 @@
                     "match": "^\\s*(?:MESSAGE)\\b"
                 },
                 {
+                    "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:META\\s+ID)\\b"
+                },
+                {
                     "name": "invalid.deprecated.commitment.book",
                     "match": "^\\s*(?:PERSONA)\\b"
                 },
                 {
                     "name": "keyword.other.commitment.book",
                     "match": "^\\s*(?:USE\\s+MCP|MCP)\\b"
-                },
-                {
-                    "name": "keyword.other.commitment.book",
-                    "match": "^\\s*(?:WALLETS)\\b"
                 },
                 {
                     "name": "invalid.deprecated.commitment.book",
@@ -294,10 +278,6 @@
                 },
                 {
                     "name": "keyword.other.commitment.book",
-                    "match": "^\\s*(?:MEMORY)\\b"
-                },
-                {
-                    "name": "keyword.other.commitment.book",
                     "match": "^\\s*(?:MODELS)\\b"
                 },
                 {
@@ -311,10 +291,6 @@
                 {
                     "name": "invalid.deprecated.commitment.book",
                     "match": "^\\s*(?:STYLES)\\b"
-                },
-                {
-                    "name": "keyword.other.commitment.book",
-                    "match": "^\\s*(?:WALLET)\\b"
                 },
                 {
                     "name": "keyword.other.commitment.book",
@@ -351,10 +327,6 @@
                 {
                     "name": "keyword.control.commitment.book",
                     "match": "^\\s*(?:GOAL)\\b"
-                },
-                {
-                    "name": "keyword.other.commitment.book",
-                    "match": "^\\s*(?:META)\\b"
                 },
                 {
                     "name": "comment.line.commitment.book",

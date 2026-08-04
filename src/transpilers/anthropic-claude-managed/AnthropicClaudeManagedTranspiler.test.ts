@@ -33,10 +33,10 @@ describe('AnthropicClaudeManagedTranspiler', () => {
 
     it('transpiles a book with tool commitments into Claude Agent SDK MCP tools', async () => {
         const agentSource = book`
-            Time Keeper
+            Popup Keeper
 
-            PERSONA You are a time-aware assistant
-            USE TIME
+            PERSONA You are a popup-aware assistant
+            USE POPUP
         `;
 
         const llm = await $provideLlmToolsForTestingAndScriptsAndPlayground();
@@ -46,9 +46,9 @@ describe('AnthropicClaudeManagedTranspiler', () => {
         expect(code).toContain('createSdkMcpServer({');
         expect(code).toContain('promptbook: PROMPTBOOK_MCP_SERVER');
         expect(code).toContain('const PROMPTBOOK_ALLOWED_TOOLS = [');
-        expect(code).toContain('"mcp__promptbook__get_current_time"');
+        expect(code).toContain('"mcp__promptbook__open_popup"');
         expect(code).toContain('tool(');
-        expect(code).toContain('"timezone": z.string()');
+        expect(code).toContain('"url": z.string()');
         expect(code).toContain('normalizeToolResponse(await toolImplementation(input))');
         expect(code).toContain('createToolErrorResponse(error)');
     });

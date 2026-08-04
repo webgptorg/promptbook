@@ -66,7 +66,7 @@ export class ActionCommitmentDefinition extends BaseCommitmentDefinition<'ACTION
             Research Assistant
 
             PERSONA You are a helpful research assistant
-            USE SEARCH ENGINE
+            USE MCP https://mcp.example.com/server
             RULE Always cite your sources when providing information from the web
             \`\`\`
 
@@ -86,8 +86,8 @@ export class ActionCommitmentDefinition extends BaseCommitmentDefinition<'ACTION
             Code Assistant
 
             PERSONA You are a programming assistant
-            USE BROWSER
-            USE SEARCH ENGINE
+            USE PROJECT https://github.com/example/project
+            USE MCP https://mcp.example.com/server
             RULE Prefer the narrowest useful capability for the task.
             \`\`\`
         `);

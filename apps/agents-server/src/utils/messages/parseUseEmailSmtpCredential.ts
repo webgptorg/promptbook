@@ -2,7 +2,7 @@ import { isValidEmail } from '../../../../../src/utils/validators/email/isValidE
 import type { SmtpMessageProviderConfiguration } from '../../message-providers/email/smtp/SmtpMessageProvider';
 
 /**
- * Normalized SMTP credential payload expected in wallet secret for USE EMAIL.
+ * Normalized SMTP credential payload expected in wallet secret for agent email.
  */
 export type UseEmailSmtpCredential = SmtpMessageProviderConfiguration & {
     fromAddress?: string;

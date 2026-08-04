@@ -50,19 +50,19 @@ describe('OpenAiAgentsTranspiler', () => {
         expect(code).not.toContain('llamaindex');
     });
 
-    it('transpiles a book with USE TIME and includes tool definitions and implementation', async () => {
+    it('transpiles a book with USE POPUP and includes tool definitions and implementation', async () => {
         const agentSource = book`
             Time Keeper
 
             PERSONA You are a time-aware assistant
-            USE TIME
+            USE POPUP
         `;
 
         const llm = await $provideLlmToolsForTestingAndScriptsAndPlayground();
         const code = await OpenAiAgentsTranspiler.transpileBook(agentSource, { llm }, { isVerbose: true });
 
         expect(code).toContain('const PROMPTBOOK_TOOL_IMPLEMENTATIONS = {');
-        expect(code).toContain('async get_current_time(args)');
+        expect(code).toContain('async open_popup(args)');
         expect(code).toContain('const PROMPTBOOK_FUNCTION_TOOLS = [');
         expect(code).toContain('tool({');
         expect(code).toContain('strict: false');

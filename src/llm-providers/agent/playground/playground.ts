@@ -89,13 +89,12 @@ async function playground() {
     let agentTools = createAgentLlmExecutionTools({
         llmTools,
         agentSource: book`
-            Testing time from agent playground
+            Testing popup from agent playground
 
             FROM VOID
-            PERSONA You are an assistant that can determine the current date and time. ${nonce}
-            RULE Reply in language and date and time format as per the user's locale and language.
-            RULE Prefer words instead of digits when expressing time, for example, say "half past three" instead of "3:30".
-            USE TIME
+            PERSONA You are an assistant that can show the user a website. ${nonce}
+            RULE Reply in language as per the user's locale and language.
+            USE POPUP
 
         `,
         // agentSource: book`
@@ -103,10 +102,9 @@ async function playground() {
         //
         //     FROM VOID
         //     RULE You are writing about news in AI and technology.
-        //     USE SEARCH
+        //     USE MCP https://mcp.example.com/server
         //
         // `,
-        // <- TODO: !!!! Test `USE BROWSER`
     });
 
     agentTools = just(agentTools);

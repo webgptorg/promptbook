@@ -32,5 +32,4 @@ In this example, John Green is connected to a private MCP server that provides t
 ## Related Concepts
 
 -   [**Agent**](../core/agent.md)
--   [**USE BROWSER**](./use-browser.md)
 -   [**Tools**](../technical/tools.md)

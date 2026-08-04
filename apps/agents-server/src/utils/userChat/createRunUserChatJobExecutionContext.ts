@@ -14,7 +14,6 @@ import {
     resolveCachedServerAgentModelRequirements,
 } from '@/src/utils/cachedServerAgentRuntime';
 import { extractUseCalendarConnectionsFromAgentSource } from '@/src/utils/calendars/extractUseCalendarConnectionsFromAgentSource';
-import { extractUseEmailConfigurationFromAgentSource } from '@/src/utils/emails/extractUseEmailConfigurationFromAgentSource';
 import { getTeacherRemoteAgent } from '@/src/utils/getTeacherRemoteAgent';
 import { composePromptParametersWithMemoryContext } from '@/src/utils/memoryRuntimeContext';
 import { extractProjectRepositoriesFromAgentSource } from '@/src/utils/projects/extractProjectRepositoriesFromAgentSource';
@@ -112,7 +111,6 @@ export async function createRunUserChatJobExecutionContext(options: {
     const resolvedAgentName = resolvedAgentContext.resolvedAgentName;
     const projectRepositories = extractProjectRepositoriesFromAgentSource(agentSource);
     const calendarConnections = extractUseCalendarConnectionsFromAgentSource(agentSource);
-    const useEmailConfiguration = extractUseEmailConfigurationFromAgentSource(agentSource);
     const agentToolDefinitions = preparedAgentModelRequirements.modelRequirements.tools ?? [];
     const agentKnowledgeSources = preparedAgentModelRequirements.modelRequirements.knowledgeSources ?? [];
 
@@ -124,7 +122,7 @@ export async function createRunUserChatJobExecutionContext(options: {
         toolCount: agentToolDefinitions.length,
         toolHighlights: resolveUserChatProgressToolHighlights(agentToolDefinitions),
         hasCalendarAccess: calendarConnections.length > 0,
-        hasEmailAccess: useEmailConfiguration.isEnabled,
+        hasEmailAccess: true,
         hasProjectAccess: projectRepositories.length > 0,
     };
 
@@ -135,7 +133,6 @@ export async function createRunUserChatJobExecutionContext(options: {
             userId: options.job.userId,
             agentPermanentId,
             calendarConnections,
-            isEmailEnabled: useEmailConfiguration.isEnabled,
         });
     const runtimeTools = createAgentProgressTools(
         createChatAttachmentTools([], options.userMessageAttachments || []),
@@ -164,7 +161,6 @@ export async function createRunUserChatJobExecutionContext(options: {
         projectRepositories,
         projectGithubToken,
         emailSmtpCredential,
-        emailFromAddress: useEmailConfiguration.senderEmail,
         calendarGoogleAccessToken,
         calendarConnections,
         chatAttachments: options.userMessageAttachments,
@@ -255,7 +251,6 @@ async function resolveRunUserChatJobCredentials(options: {
     userId: number;
     agentPermanentId: string;
     calendarConnections: ReturnType<typeof extractUseCalendarConnectionsFromAgentSource>;
-    isEmailEnabled: boolean;
 }) {
     const [projectGithubToken, calendarGoogleAccessToken, emailSmtpCredential] = await Promise.all([
         resolveUseProjectGithubToken({
@@ -268,12 +263,10 @@ async function resolveRunUserChatJobCredentials(options: {
                   agentPermanentId: options.agentPermanentId,
               })
             : Promise.resolve(undefined),
-        options.isEmailEnabled
-            ? resolveUseEmailSmtpCredential({
-                  userId: options.userId,
-                  agentPermanentId: options.agentPermanentId,
-              })
-            : Promise.resolve(undefined),
+        resolveUseEmailSmtpCredential({
+            userId: options.userId,
+            agentPermanentId: options.agentPermanentId,
+        }),
     ]);
 
     return {

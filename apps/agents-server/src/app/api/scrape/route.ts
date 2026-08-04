@@ -1,6 +1,6 @@
 import { serializeError } from '@promptbook-local/utils';
 import { NextRequest, NextResponse } from 'next/server';
-import { fetchUrlContent } from '../../../../../../src/commitments/USE_BROWSER/fetchUrlContent';
+import { fetchUrlContent } from '../../../../../../src/scrapers/_common/utils/fetchUrlContent';
 import { assertsError } from '../../../../../../src/errors/assertsError';
 import { getCurrentUser } from '../../../utils/getCurrentUser';
 import { assertSafeUrl } from '../../../utils/assertSafeUrl';

@@ -56,7 +56,7 @@ type UserWalletRecordRequestPayload = Omit<CreateUserWalletRecordOptions, 'userI
 const USE_EMAIL_SMTP_WALLET_SCHEMA_TEXT = formatWalletJsonSchemaForTextarea(USE_EMAIL_SMTP_WALLET_SECRET_JSON_SCHEMA);
 
 /**
- * Returns true when record identity matches USE EMAIL SMTP credentials.
+ * Returns true when record identity matches the agent email SMTP credentials.
  *
  * @private function of UserWalletClient
  */
@@ -219,7 +219,7 @@ export function clearSensitiveUserWalletDraftFields(draft: UserWalletDraft): Use
 }
 
 /**
- * Applies SMTP defaults to simplify USE EMAIL setup.
+ * Applies SMTP defaults to simplify agent email setup.
  *
  * @private function of UserWalletClient
  */

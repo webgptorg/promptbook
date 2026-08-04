@@ -22,19 +22,6 @@ export const bookLanguageDocumentationExamples: ReadonlyArray<BookLanguageDocume
         `),
     },
     {
-        id: 'tool-using-browser-search-agent',
-        source: spaceTrim(`
-            Web Research Assistant
-
-            GOAL Research topics using fresh and verifiable information.
-            USE SEARCH ENGINE Prefer official sources and recent publications.
-            USE BROWSER
-            RULE Verify important claims across multiple sources when possible.
-            RULE Include source links in your final answer.
-            INITIAL MESSAGE Ask me what topic you want to research and how deep the report should be.
-        `),
-    },
-    {
         id: 'rule-and-knowledge-agent',
         source: spaceTrim(`
             Support Policy Assistant
@@ -45,18 +32,6 @@ export const bookLanguageDocumentationExamples: ReadonlyArray<BookLanguageDocume
             RULE If a policy item is missing in available knowledge, say it explicitly.
             RULE Never invent legal or policy statements.
             INITIAL MESSAGE I can explain refund and support rules from provided knowledge.
-        `),
-    },
-    {
-        id: 'memory-agent-with-long-term-memory',
-        source: spaceTrim(`
-            Customer Success Memory Agent
-
-            GOAL Support SaaS customers while remembering relevant setup and preference context.
-            MEMORY Remember product setup, user goals, and communication preferences.
-            RULE Store only user-approved preferences and project context.
-            RULE Never store secrets or sensitive data unless explicitly requested and allowed.
-            INITIAL MESSAGE I can remember your setup and preferences for future sessions.
         `),
     },
     {

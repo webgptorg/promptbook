@@ -9,14 +9,11 @@ Commitments are special syntax elements used in a [Book file](../structure/book-
 -   [🎭 `PERSONA`](./persona.md) - Defines the identity and personality of the agent.
 -   [📜 `RULE`](./rule.md) - Establishes hard constraints or guidelines for behavior.
 -   [🧠 `KNOWLEDGE`](./knowledge.md) - Provides the agent with specific data sources (RAG).
--   [🌐 `USE BROWSER`](./use-browser.md) - Grants the ability to search and read the web.
--   [🔍 `USE SEARCH ENGINE`](./use-search-engine.md) - Grants the ability to use a search engine.
 -   [🌍 `LANGUAGE`](./language.md) - Specifies the primary language(s) for interaction.
 -   [🤖 `MODEL`](./model.md) - Defines the specific LLM to be used.
 -   [🎨 `STYLE`](./style.md) - Influences the aesthetic or tone of the output.
 -   [💬 `MESSAGE`](./message.md) - Defines initial or canned messages for the conversation.
 -   [🔌 `USE MCP`](./use-mcp.md) - Enables Model Context Protocol tools.
--   [🕒 `USE TIME`](./use-time.md) - Grants awareness of the current date and time.
 
 ## Example
 

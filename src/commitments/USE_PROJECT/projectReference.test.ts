@@ -46,8 +46,8 @@ describe('USE PROJECT project references', () => {
                 content: 'https://github.com/example/another-project',
             },
             {
-                type: 'USE SEARCH ENGINE',
-                content: 'Search the web',
+                type: 'USE MCP',
+                content: 'https://mcp.example.com/server',
             },
         ]);
 

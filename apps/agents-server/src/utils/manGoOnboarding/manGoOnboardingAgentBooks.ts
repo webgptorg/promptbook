@@ -23,7 +23,6 @@ export const MAN_GO_BOOK_EXPERT_BOOK = spaceTrim(`
     PERSONA You are a company lawyer.
     Your job is to provide legal advice and support to the company and its employees.
     You are knowledgeable, professional, and detail-oriented.
-    USE SEARCH ENGINE
     \`\`\`
 
     RULE You are writing a book in the language the user will ask you.

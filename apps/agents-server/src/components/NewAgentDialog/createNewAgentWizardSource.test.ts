@@ -14,11 +14,10 @@ describe('createNewAgentWizardSource', () => {
             isOpenToLearning: true,
             rules: ['Use a professional tone in every response.', 'Prefer concrete next steps.'],
             capabilityCommitments: [
-                { keyword: 'USE BROWSER' },
-                { keyword: 'USE SEARCH ENGINE' },
+                { keyword: 'USE PRIVACY' },
                 {
-                    keyword: 'USE EMAIL',
-                    content: 'chef@example.com\nKeep emails concise and practical.',
+                    keyword: 'USE CALENDAR',
+                    content: 'https://calendar.google.com/calendar/u/0/r\nKeep the calendar tidy.',
                 },
                 {
                     keyword: 'USE PROJECT',
@@ -44,7 +43,7 @@ describe('createNewAgentWizardSource', () => {
         expect(agentSource).toContain('- Goal: Help users cook with confidence using practical kitchen advice.');
         expect(agentSource).toContain('- Personality: helpful, analytical, strong at practical kitchen advice');
         expect(agentSource).toContain('- Learning: Open to learning');
-        expect(agentSource).toContain('- Capabilities: USE BROWSER, USE SEARCH ENGINE, USE EMAIL, USE PROJECT');
+        expect(agentSource).toContain('- Capabilities: USE PRIVACY, USE CALENDAR, USE PROJECT');
         expect(agentSource).toContain('- Team: legal reviewer');
         expect(agentSource).toContain('- Writing style: professional, concise');
         expect(agentSource).toContain('META DESCRIPTION Answers cooking questions');
@@ -54,10 +53,9 @@ describe('createNewAgentWizardSource', () => {
         );
         expect(agentSource).toContain('OPEN');
         expect(agentSource.indexOf('OPEN')).toBeGreaterThan(agentSource.indexOf('KNOWLEDGE https://example.com/faq'));
-        expect(agentSource).toContain('USE BROWSER');
-        expect(agentSource).toContain('USE SEARCH ENGINE');
-        expect(agentSource).toContain('USE EMAIL chef@example.com');
-        expect(agentSource).toContain('Keep emails concise and practical.');
+        expect(agentSource).toContain('USE PRIVACY');
+        expect(agentSource).toContain('USE CALENDAR https://calendar.google.com/calendar/u/0/r');
+        expect(agentSource).toContain('Keep the calendar tidy.');
         expect(agentSource).toContain('USE PROJECT https://github.com/example/recipes');
         expect(agentSource).toContain('Work only with the published recipe files.');
         expect(agentSource).toContain('TEAM https://example.com/agents/legal-reviewer');

@@ -1,61 +1,13 @@
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
 import { spaceTrim } from '../../utils/organization/spaceTrim';
-import { fetchUrlContent } from '../USE_BROWSER/fetchUrlContent';
-import { resolveRunBrowserToolForNode } from '../USE_BROWSER/resolveRunBrowserToolForNode';
-import { resolveSendEmailToolForNode } from '../USE_EMAIL/resolveSendEmailToolForNode';
-import { resolveSpawnAgentToolForNode } from '../USE_SPAWN/resolveSpawnAgentToolForNode';
 import type { CommitmentToolFunctions } from './commitmentToolFunctions';
 import { collectCommitmentToolFunctions, createToolFunctionsProxy } from './commitmentToolFunctions';
 
 /**
- * Map of node tool functions.
- */
-const nodeToolFunctions: CommitmentToolFunctions = {
-    /**
-     * @@@
-     *
-     * Note: [??] This function has implementation both for browser and node, this is the full one for node
-     */
-    async fetch_url_content(args: { url: string }): Promise<string> {
-        console.log('!!!! [Tool] fetch_url_content called', { args });
-
-        const { url } = args;
-
-        return await fetchUrlContent(url);
-    },
-
-    /**
-     * @@@
-     *
-     * Note: [??] This function has implementation both for browser and node, this is the server one for node
-     */
-    run_browser: resolveRunBrowserToolForNode(),
-
-    /**
-     * @@@
-     *
-     * Note: [??] This function has implementation both for browser and node, this is the server one for node
-     */
-    send_email: resolveSendEmailToolForNode(),
-
-    /**
-     * @@@
-     *
-     * Note: [??] This function has implementation both for browser and node, this is the server one for node
-     */
-    spawn_agent: resolveSpawnAgentToolForNode(),
-
-    // TODO: !!!! Unhardcode, make proper server function register from definitions
-};
-
-/**
  * Constant for node tool functions proxy.
  */
-const nodeToolFunctionsProxy = createToolFunctionsProxy(() => ({
-    ...collectCommitmentToolFunctions(),
-    ...nodeToolFunctions,
-}));
+const nodeToolFunctionsProxy = createToolFunctionsProxy(collectCommitmentToolFunctions);
 
 /**
  * Gets all function implementations provided by all commitments

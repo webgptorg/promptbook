@@ -47,7 +47,7 @@ export const czechBookLanguageManualDictionary: BookLanguageManualDictionary = {
                 2. **Vrstva chování**:
                 \`RULE\`, \`KNOWLEDGE\`, \`WRITING SAMPLE\`, \`WRITING RULES\`, \`LANGUAGE\`, \`GOAL\` a příbuzné commitmenty.
                 3. **Vrstva schopností**:
-                \`USE*\`, \`MEMORY\` a další nástrojové commitmenty, které agentovi otevírají běhové schopnosti.
+                \`USE*\` a další nástrojové commitmenty, které agentovi otevírají běhové schopnosti.
                 4. **Vrstva skládání**:
                 Dědičnost přes \`FROM\`, znovupoužití přes \`IMPORT\` a delegování přes \`TEAM\`.
             `),
@@ -69,9 +69,9 @@ export const czechBookLanguageManualDictionary: BookLanguageManualDictionary = {
                 4. **Skládání místo jednoho velkého agenta**:
                 Na specializované odpovědnosti použijte \`TEAM\` nebo \`IMPORT\`.
                 Kompromis: režie s koordinací, výrazně lepší modularita a znovupoužitelnost.
-                5. **Řízená paměť**:
-                Pokud používáte \`MEMORY\`, popište, co se pamatovat má a co v žádném případě ne.
-                Kompromis: přísnější návrh pravidel, lepší soukromí i kvalita zapamatovaného.
+                5. **Řízená práce s daty**:
+                Pokud používáte \`USE PRIVACY\`, popište, co smí a co v žádném případě nesmí opustit konverzaci.
+                Kompromis: přísnější návrh pravidel, lepší soukromí i kvalita odpovědí.
             `),
         },
         primitives: {
@@ -102,7 +102,7 @@ export const czechBookLanguageManualDictionary: BookLanguageManualDictionary = {
                 3. **Přidejte oporu ve znalostech**
                 Přidejte commitmenty \`KNOWLEDGE\` (přímý text, nebo lokální či importovatelné zdroje).
                 4. **Přidejte schopnosti**
-                Přidejte jen ty commitmenty \`USE*\` a \`MEMORY\`, které agent opravdu potřebuje.
+                Přidejte jen ty commitmenty \`USE*\`, které agent opravdu potřebuje.
                 5. **Doplňte profilová metadata**
                 Přidejte \`META DESCRIPTION\`, \`META AVATAR\` / \`META VISUAL\` nebo \`META IMAGE\`, \`META INPUT PLACEHOLDER\`, \`META THINKING MESSAGE\` a případná upozornění.
                 6. **Připravte první interakci**
@@ -155,7 +155,7 @@ export const czechBookLanguageManualDictionary: BookLanguageManualDictionary = {
         capabilities: {
             title: 'Commitmenty USE',
             body: spaceTrim(`
-                Commitmenty \`USE*\` zapínají schopnosti (vyhledávání, prohlížeč, napojení na projekt, e-mail, generování obrázků a další).
+                Commitmenty \`USE*\` zapínají schopnosti (napojení na projekt, kalendář, generování obrázků a další).
                 Zpřístupňují běhové nástroje a doplňují pokyny do systémové zprávy.
             `),
         },
@@ -209,16 +209,6 @@ export const czechBookLanguageManualDictionary: BookLanguageManualDictionary = {
                 '`CLOSED` brání tomu, aby se agent upravoval během konverzace.',
             ],
         },
-        'tool-using-browser-search-agent': {
-            title: 'Agent s nástroji (prohlížeč a vyhledávač)',
-            goal: 'Umožnit rešerši na internetu s jasnou prací se zdroji.',
-            walkthrough: [
-                '`USE SEARCH ENGINE` zpřístupní vyhledávání na webu a volitelné pokyny k němu.',
-                '`USE BROWSER` zapne stahování adres a interaktivní procházení webu.',
-                'Commitmenty `RULE` dělají požadavky na spolehlivost výslovnými a opakovatelnými.',
-                'Tento vzor se hodí pro agenty na aktuální dění a ověřování faktů.',
-            ],
-        },
         'rule-and-knowledge-agent': {
             title: 'Agent s RULE a KNOWLEDGE',
             goal: 'Opřít odpovědi o výslovná omezení a připravené zdroje.',
@@ -227,16 +217,6 @@ export const czechBookLanguageManualDictionary: BookLanguageManualDictionary = {
                 'Commitmenty `RULE` definují nepřekročitelná omezení chování.',
                 'Jejich kombinace vede k předvídatelným a doloženým odpovědím.',
                 'Tento vzor použijte pro compliance, podporu a interní postupy.',
-            ],
-        },
-        'memory-agent-with-long-term-memory': {
-            title: 'Agent s dlouhodobou pamětí (MEMORY)',
-            goal: 'Uchovat preference uživatele napříč konverzacemi.',
-            walkthrough: [
-                '`MEMORY` přidá běhové nástroje paměti a příslušné pokyny do systémové zprávy.',
-                'Commitmenty `RULE` zúží, co se smí pamatovat, a snižují tak rizika pro soukromí.',
-                'V Agents Serveru je paměť vedená za běhu a je vázaná na konkrétního uživatele.',
-                'Hodí se pro asistenty, kteří si musí držet kontext v čase.',
             ],
         },
         'use-project-integration-agent': {
@@ -283,7 +263,7 @@ export const czechBookLanguageManualDictionary: BookLanguageManualDictionary = {
         {
             title: 'Neověřitelná tvrzení',
             dont: 'Agent odpovídá na otázky závislé na internetu bez nástrojů nebo bez uvedení zdrojů.',
-            doInstead: 'Přidejte `USE SEARCH ENGINE` / `USE BROWSER` a `RULE` zaměřené na citování.',
+            doInstead: 'Přidejte zdroje `KNOWLEDGE` a `RULE` zaměřené na citování.',
         },
         {
             title: 'Chybějící mantinely',
@@ -294,11 +274,6 @@ export const czechBookLanguageManualDictionary: BookLanguageManualDictionary = {
             title: 'Přetížená dědičnost',
             dont: 'Dlouhé řetězce `FROM` bez vysvětlení, proč je každý rodič potřeba.',
             doInstead: 'Držte dědičnost mělkou a pro znovupoužití sáhněte po cíleném IMPORT nebo TEAM.',
-        },
-        {
-            title: 'Nebezpečné zacházení s pamětí',
-            dont: 'Ukládání každého detailu do paměti bez jakýchkoli hranic.',
-            doInstead: 'Doplňte `MEMORY` výslovnými pravidly, co se smí uchovávat.',
         },
     ],
     tutorialSections: {

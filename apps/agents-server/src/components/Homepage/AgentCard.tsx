@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 import type { AgentVisibility } from '../../utils/agentVisibility';
 import {
-    AGENT_CARD_HIDDEN_CAPABILITY_TYPES,
     AgentCapabilityChips,
     HOMEPAGE_CAPABILITY_CHIPS_LIMIT,
 } from '../AgentProfile/AgentCapabilityChips';
@@ -157,7 +156,6 @@ export function AgentCard({
                             <AgentCapabilityChips
                                 agent={agent}
                                 className="mt-2"
-                                hiddenCapabilityTypes={AGENT_CARD_HIDDEN_CAPABILITY_TYPES}
                                 maxChips={HOMEPAGE_CAPABILITY_CHIPS_LIMIT}
                                 size="compact"
                             />
@@ -207,7 +205,6 @@ export function AgentCard({
                             <AgentCapabilityChips
                                 agent={agent}
                                 className="mt-2"
-                                hiddenCapabilityTypes={AGENT_CARD_HIDDEN_CAPABILITY_TYPES}
                                 maxChips={HOMEPAGE_CAPABILITY_CHIPS_LIMIT}
                                 size="compact"
                             />

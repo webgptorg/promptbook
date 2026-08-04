@@ -62,10 +62,6 @@ export type NewAgentWizardCapabilitySetupByCommitment = {
         readonly calendarUrl: string;
         readonly instructions: string;
     };
-    readonly 'USE EMAIL': {
-        readonly instructions: string;
-        readonly senderEmail: string;
-    };
     readonly 'USE MCP': {
         readonly instructions: string;
         readonly serverUrl: string;
@@ -274,10 +270,6 @@ export function createInitialWizardState(
             'USE CALENDAR': {
                 calendarUrl: '',
                 instructions: '',
-            },
-            'USE EMAIL': {
-                instructions: '',
-                senderEmail: '',
             },
             'USE MCP': {
                 instructions: '',
@@ -589,10 +581,6 @@ export function buildWizardSourceOptions(state: NewAgentWizardState): CreateNewA
                     setup.repositoryReference,
                     setup.instructions,
                 );
-            }
-            case 'USE EMAIL': {
-                const setup = state.capabilitySetupByCommitment['USE EMAIL'];
-                return createCapabilityCommitmentEntry('USE EMAIL', setup.senderEmail, setup.instructions);
             }
             case 'USE CALENDAR': {
                 const setup = state.capabilitySetupByCommitment['USE CALENDAR'];

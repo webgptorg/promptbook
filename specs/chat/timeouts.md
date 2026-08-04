@@ -1,10 +1,10 @@
 # Timeouts (Scheduled Wake-ups)
 
-The `USE TIMEOUT` commitment lets an agent schedule **future wake-ups of a durable chat**: at the due time the server injects a synthetic message into the chat and runs a normal agent turn — no user action required. State lives in `prefix_UserChatTimeout` ([Data model](../data-model.md#prefix_userchattimeout)); timeouts exist only for [user chats](user-chats.md) (a signed-in user + agent scope).
+Timeouts let a durable chat schedule **future wake-ups**: at the due time the server injects a synthetic message into the chat and runs a normal agent turn — no user action required. State lives in `prefix_UserChatTimeout` ([Data model](../data-model.md#prefix_userchattimeout)); timeouts exist only for [user chats](user-chats.md) (a signed-in user + agent scope).
 
-## Model tools
+## Timeout operations
 
-When the book declares `USE TIMEOUT`, the compiled requirements include four tools (runtime adapter bound to the current chat scope):
+Timeouts are managed through the agent timeout API (bound to the current chat scope):
 
 | Tool | Behavior |
 | --- | --- |
@@ -12,8 +12,6 @@ When the book declares `USE TIMEOUT`, the compiled requirements include four too
 | `list_timeouts` | List timeout ids/details across **all chats of the same user + agent scope** (paged, bounded page size). |
 | `cancel_timeout` | Cancel one timeout by id, or all active ones in the scope with `allActive: true`. |
 | `update_timeout` | Modify one scheduled timeout (due time / message / recurrence) by id. |
-
-The `USE TIMEOUT` system-message section explains these tools to the model.
 
 ## Timeout record
 

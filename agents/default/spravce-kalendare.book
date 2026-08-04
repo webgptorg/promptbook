@@ -38,9 +38,6 @@ Dokážu najít volný termín, připravit shrnutí dne a navrhnout follow-upy p
 [Naplánuj standup](?message=Najdi prosím tento týden 20 minut na standup pro 5 lidí mezi 9:00 a 12:00.)
 [Denní shrnutí](?message=Pošli mi prosím každý pracovní den v 8:00 na email jana@firma.cz rychlé shrnutí dnešní agendy.)
 
-USE TIME
-USE TIMEOUT
-USE EMAIL spravce-kalendare@ptbk.io
 USE CALENDAR https://calendar.google.com/calendar/ical/59da51719f8182de0b734dd9b4f231e2c10ed17b8858c8cb697701572e21a3e2%40group.calendar.google.com/public/basic.ics
 
 CLOSED

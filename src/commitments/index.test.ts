@@ -6,7 +6,6 @@ import { COMMITMENT_REGISTRY } from './index';
  */
 const SINGULAR_PLURAL_COMMITMENT_FAMILIES = [
     ['PERSONA', 'PERSONAE'],
-    ['MEMORY', 'MEMORIES'],
     ['STYLE', 'STYLES'],
     ['RULE', 'RULES'],
     ['LANGUAGE', 'LANGUAGES'],
@@ -18,7 +17,6 @@ const SINGULAR_PLURAL_COMMITMENT_FAMILIES = [
     ['ACTION', 'ACTIONS'],
     ['MESSAGE', 'MESSAGES'],
     ['SCENARIO', 'SCENARIOS'],
-    ['WALLET', 'WALLETS'],
     ['NOTE', 'NOTES'],
 ] as const;
 

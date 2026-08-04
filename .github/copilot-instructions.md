@@ -15,7 +15,7 @@ The project is a monorepo with multiple packages in `/packages` published to NPM
 
 Books are agent definitions using commitments-special syntax elements defining AI agent contracts:
 
--   **Commitments**: Keywords like `PERSONA`, `RULE`, `KNOWLEDGE`, `USE BROWSER`, `USE SEARCH ENGINE` that define behavior
+-   **Commitments**: Keywords like `PERSONA`, `RULE`, `KNOWLEDGE`, `USE CALENDAR`, `USE PROJECT` that define behavior
 -   **Parsing Flow**: `parseAgentSource()` (lightweight, synchronous) → `createAgentModelRequirements()` (async, applies commitments)
 -   **Location**: `/src/commitments/` contains commitment implementations
 -   Each commitment starts with a keyword at line beginning and defines specific agent capabilities
@@ -177,9 +177,9 @@ Use project's error types in `/src/errors/`. Provide context about which commitm
     -   **Promptbook Engine** is the core engine that powers AI agents, it is located in `src` folder. It is framework-agnostic and can be used in different applications. It can run as standalone javascript/typescript library, CLI environment, or be integrated into different applications. It can be also runned in Agent Server:
     -   **Agent Server** is a specific application that uses the Promptbook Engine to provide a web and API interface for creating and interacting with AI agents. It is located in `apps/agents-server` folder.
 -   **Commitments** are basic syntax elements that add specific functionalities to AI agents
-    -   They are used in `agentSource`, there are commitments like `PERSONA`, `RULE`, `KNOWLEDGE`, `USE BROWSER`, `USE SEARCH ENGINE`, `META IMAGE`, etc.
+    -   They are used in `agentSource`, there are commitments like `PERSONA`, `RULE`, `KNOWLEDGE`, `USE CALENDAR`, `USE PROJECT`, `META IMAGE`, etc.
     -   Commitments are in the folder `src/commitments`
-    -   Each commitment starts with a keyword, e.g., \`KNOWLEDGE\`, \`USE BROWSER\`, etc. on a begining of the line and end by new commitment or end of the source
+    -   Each commitment starts with a keyword, e.g., \`KNOWLEDGE\`, \`USE PROJECT\`, etc. on a begining of the line and end by new commitment or end of the source
     -   Agent source with commitments is parsed by two functions:
         -   `parseAgentSource` which is a lightweight parser for agent source, it parses basic information and its purpose is to be quick and synchronous. The commitments there are hardcoded.
         -   `createAgentModelRequirements` which is an asynchronous function that creates model requirements it applies each commitment one by one and works asynchronously.

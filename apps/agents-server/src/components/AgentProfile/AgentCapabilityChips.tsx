@@ -3,13 +3,10 @@ import {
     Book,
     Calendar,
     Code,
-    Clock8Icon,
     ExternalLink,
     FileText,
-    Globe,
     Link,
     MapPin,
-    Search,
     Shield,
     ShieldAlert,
     ShieldQuestionMarkIcon,
@@ -34,11 +31,6 @@ export const HOMEPAGE_CAPABILITY_CHIPS_LIMIT = 3;
 export const AGENT_PROFILE_CAPABILITY_CHIPS_LIMIT = 7;
 
 /**
- * Capability types omitted from homepage agent cards.
- */
-export const AGENT_CARD_HIDDEN_CAPABILITY_TYPES: ReadonlyArray<AgentCapability['type']> = ['time'];
-
-/**
  * Constant for max individual knowledge chips.
  */
 const MAX_INDIVIDUAL_KNOWLEDGE_CHIPS = 2;
@@ -49,19 +41,7 @@ const MAX_INDIVIDUAL_KNOWLEDGE_CHIPS = 2;
 const CAPABILITY_PRIORITY_BUCKETS: ReadonlyArray<ReadonlyArray<AgentCapability['type']>> = [
     ['team'],
     ['inheritance', 'import'],
-    [
-        'browser',
-        'search-engine',
-        'timeout',
-        'time',
-        'user-location',
-        'image-generator',
-        'email',
-        'privacy',
-        'project',
-        'calendar',
-        'wallet',
-    ],
+    ['user-location', 'image-generator', 'privacy', 'project', 'calendar'],
     ['knowledge'],
 ];
 
@@ -188,11 +168,8 @@ export function AgentCapabilityChips({
 
                 const Icon =
                     {
-                        Globe,
-                        Search,
                         Book,
                         FileText,
-                        Clock: Clock8Icon,
                         SquareArrowOutUpRight,
                         SquareArrowUpRight,
                         ShieldAlert,

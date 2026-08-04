@@ -5,33 +5,7 @@ import { createTeamToolName } from './createTeamToolName';
 import { createPseudoUserTeammateLabel, PSEUDO_AGENT_USER_URL } from './pseudoAgentReferences';
 import { validateBook } from './string_book';
 
-describe('USE SEARCH ENGINE and USE BROWSER commitments', () => {
-    /* TODO: [🔰] Uncomment this test
-    it('should add web_search tool when USE SEARCH ENGINE is used', async () => {
-        const agentSource = validateBook(`
-            Test Agent
-            USE SEARCH ENGINE Hledej informace o Přemyslovcích
-        `);
-        const requirements = await createAgentModelRequirements(agentSource);
-        const searchTool = requirements.tools?.find((tool) => tool.name === 'web_search');
-        expect(searchTool).toBeDefined();
-        expect(searchTool?.description).toContain('Hledej informace o Přemyslovcích');
-        expect(requirements.metadata?.useSearchEngine).toBe('Hledej informace o Přemyslovcích');
-    });
-    */
-
-    it('should add web_browser tool when USE BROWSER is used', async () => {
-        const agentSource = validateBook(`
-            Test Agent
-            USE BROWSER
-        `);
-        const requirements = await createAgentModelRequirements(agentSource);
-        const fetch_url_content = requirements.tools?.find((tool) => tool.name === 'fetch_url_content');
-        expect(fetch_url_content).toBeDefined();
-        const run_browser = requirements.tools?.find((tool) => tool.name === 'run_browser');
-        expect(run_browser).toBeDefined();
-    });
-
+describe('commitment tools', () => {
     it('should add teammate tools when TEAM is used', async () => {
         const agentSource = validateBook(`
             Test Agent
@@ -188,18 +162,6 @@ describe('USE SEARCH ENGINE and USE BROWSER commitments', () => {
         );
     });
 
-    it('should add send_email tool when USE EMAIL is used', async () => {
-        const agentSource = validateBook(`
-            Test Agent
-            USE EMAIL agent@example.com
-        `);
-        const requirements = await createAgentModelRequirements(agentSource);
-
-        expect(requirements.tools).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'send_email' })]));
-        expect(requirements._metadata?.useEmail).toBe(true);
-        expect(requirements._metadata?.useEmailSender).toBe('agent@example.com');
-    });
-
     it('should add calendar tools when USE CALENDAR is used', async () => {
         const agentSource = validateBook(`
             Test Agent
@@ -228,24 +190,6 @@ describe('USE SEARCH ENGINE and USE BROWSER commitments', () => {
         );
     });
 
-    it('should add timeout tools when USE TIMEOUT is used', async () => {
-        const agentSource = validateBook(`
-            Test Agent
-            USE TIMEOUT
-        `);
-        const requirements = await createAgentModelRequirements(agentSource);
-
-        expect(requirements.tools).toEqual(
-            expect.arrayContaining([
-                expect.objectContaining({ name: 'set_timeout' }),
-                expect.objectContaining({ name: 'cancel_timeout' }),
-                expect.objectContaining({ name: 'list_timeouts' }),
-                expect.objectContaining({ name: 'update_timeout' }),
-            ]),
-        );
-        expect(requirements._metadata?.useTimeout).toBe(true);
-    });
-
     it('should not interpret the agent name as an MCP server when the title starts with `MCP`', async () => {
         const agentSource = validateBook(`
             MCP https://title.example.com/catalog
@@ -254,30 +198,6 @@ describe('USE SEARCH ENGINE and USE BROWSER commitments', () => {
         const requirements = await createAgentModelRequirements(agentSource);
 
         expect(requirements.mcpServers).toEqual(['https://runtime.example.com/server']);
-    });
-
-    it('should ignore WALLET and keep wallet-backed tools available through USE EMAIL and USE PROJECT', async () => {
-        const agentSource = validateBook(`
-            Test Agent
-            WALLET Store private credentials for project access
-            USE EMAIL agent@example.com
-            USE PROJECT https://github.com/example/project
-        `);
-        const requirements = await createAgentModelRequirements(agentSource);
-
-        expect(requirements.tools).toEqual(
-            expect.arrayContaining([
-                expect.objectContaining({ name: 'send_email' }),
-                expect.objectContaining({ name: 'project_list_files' }),
-            ]),
-        );
-        const toolNames = (requirements.tools || []).map((tool) => tool.name);
-        expect(toolNames).not.toContain('retrieve_wallet_records');
-        expect(toolNames).not.toContain('store_wallet_record');
-        expect(toolNames).not.toContain('update_wallet_record');
-        expect(toolNames).not.toContain('delete_wallet_record');
-        expect(toolNames).not.toContain('request_wallet_record');
-        expect(requirements._metadata?.useWallet).toBeUndefined();
     });
 
     it('should treat `FROM {Void}` as explicit no-parent inheritance', async () => {
@@ -299,17 +219,4 @@ describe('USE SEARCH ENGINE and USE BROWSER commitments', () => {
         const requirements = await createAgentModelRequirements(agentSource);
         expect(requirements.parentAgentUrl).toBeNull();
     });
-
-    /* TODO: [🔰] Uncomment this test
-    it('should add both tools when both commitments are used', async () => {
-        const agentSource = validateBook(`
-            Test Agent
-            USE SEARCH ENGINE
-            USE BROWSER
-        `);
-        const requirements = await createAgentModelRequirements(agentSource);
-        expect(requirements.tools?.some((tool) => tool.name === 'web_search')).toBe(true);
-        expect(requirements.tools?.some((tool) => tool.name === 'web_browser')).toBe(true);
-    });
-    */
 });

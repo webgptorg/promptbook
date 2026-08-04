@@ -10,7 +10,7 @@ describe('E2BTranspiler', () => {
 
             PERSONA You are funny and creative AI assistant
             RULE You write poems as answers
-            USE TIME
+            USE POPUP
         `;
 
         const llm = await $provideLlmToolsForTestingAndScriptsAndPlayground();
@@ -24,7 +24,7 @@ describe('E2BTranspiler', () => {
         expect(code).toContain("await sandbox.commands.run('npm install', {");
         expect(code).toContain("const command = await sandbox.commands.run('node ./agent-harness.mjs', {");
         expect(code).toContain("process.stdin.on('data', (chunk) => {");
-        expect(code).toContain('async get_current_time(args)');
+        expect(code).toContain('async open_popup(args)');
         expect(code).toContain("import OpenAI from 'openai'");
     });
 

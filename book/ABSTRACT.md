@@ -19,8 +19,6 @@ RULE You are knowledgeable, professional, and detail-oriented.
 KNOWLEDGE https://company.com/company-policies.pdf
 KNOWLEDGE https://company.com/internal-documents/employee-handbook.docx
 
-USE EMAIL
-USE BROWSER
 
 TEAM You are part of the legal team of Paul Smith & Associés, you discuss with {Emily White}, the head of the compliance department. {George Brown} is expert in corporate law and {Sophia Black} is expert in labor law.
 ```
@@ -100,7 +98,7 @@ KNOWLEDGE https://company.com/internal-documents/employee-handbook.docx
 
 ### `Use` commitments
 
-Use commitments grant the agent real capabilities - tools it can use to interact with the outside world. `USE EMAIL` lets the agent send emails, `USE BROWSER` lets it access and read web content, `USE SEARCH ENGINE` lets it search the web, and many more.
+Use commitments grant the agent real capabilities - tools it can use to interact with the outside world. `USE CALENDAR` lets the agent work with a calendar, `USE PROJECT` gives it access to a code repository, `USE MCP` connects any external Model Context Protocol server, and many more.
 
 These are what turn a chatbot into a persistent agent that actually does work.
 
@@ -116,9 +114,6 @@ RULE Never provide legal advice outside your area of expertise.
 RULE Never provide legal advice about criminal law.
 KNOWLEDGE https://company.com/company-policies.pdf
 KNOWLEDGE https://company.com/internal-documents/employee-handbook.docx
-USE EMAIL
-USE BROWSER
-USE SEARCH ENGINE
 ```
 
 ### `Team` commitment
@@ -137,9 +132,6 @@ RULE Never provide legal advice outside your area of expertise.
 RULE Never provide legal advice about criminal law.
 KNOWLEDGE https://company.com/company-policies.pdf
 KNOWLEDGE https://company.com/internal-documents/employee-handbook.docx
-USE EMAIL
-USE BROWSER
-USE SEARCH ENGINE
 TEAM You are part of the legal team of Paul Smith & Associés, you discuss with {Emily White}, the head of the compliance department. {George Brown} is expert in corporate law and {Sophia Black} is expert in labor law.
 ```
 

@@ -3,7 +3,6 @@ import type { CommitmentDefinition } from './_base/CommitmentDefinition';
 // Import all commitment definition classes
 import { ActionCommitmentDefinition } from './ACTION/ACTION';
 import { ClosedCommitmentDefinition } from './CLOSED/CLOSED';
-import { ComponentCommitmentDefinition } from './COMPONENT/COMPONENT';
 import { DeleteCommitmentDefinition } from './DELETE/DELETE';
 import { DictionaryCommitmentDefinition } from './DICTIONARY/DICTIONARY';
 import { FormatCommitmentDefinition } from './FORMAT/FORMAT';
@@ -12,19 +11,20 @@ import { GoalCommitmentDefinition } from './GOAL/GOAL';
 import { ImportCommitmentDefinition } from './IMPORT/IMPORT';
 import { KnowledgeCommitmentDefinition } from './KNOWLEDGE/KNOWLEDGE';
 import { LanguageCommitmentDefinition } from './LANGUAGE/LANGUAGE';
-import { MemoryCommitmentDefinition } from './MEMORY/MEMORY';
 import { AgentMessageCommitmentDefinition } from './MESSAGE/AgentMessageCommitmentDefinition';
 import { InitialMessageCommitmentDefinition } from './MESSAGE/InitialMessageCommitmentDefinition';
 import { InternalMessageCommitmentDefinition } from './MESSAGE/InternalMessageCommitmentDefinition';
 import { MessageCommitmentDefinition } from './MESSAGE/MESSAGE';
 import { UserMessageCommitmentDefinition } from './MESSAGE/UserMessageCommitmentDefinition';
 import { MessageSuffixCommitmentDefinition } from './MESSAGE_SUFFIX/MESSAGE_SUFFIX';
-import { MetaCommitmentDefinition } from './META/META';
 import { MetaAvatarCommitmentDefinition } from './META_AVATAR/META_AVATAR';
 import { MetaColorCommitmentDefinition } from './META_COLOR/META_COLOR';
+import { MetaDescriptionCommitmentDefinition } from './META_DESCRIPTION/META_DESCRIPTION';
 import { MetaDomainCommitmentDefinition } from './META_DOMAIN/META_DOMAIN';
 import { MetaDisclaimerCommitmentDefinition } from './META_DISCLAIMER/META_DISCLAIMER';
 import { MetaFontCommitmentDefinition } from './META_FONT/META_FONT';
+import { MetaFullnameCommitmentDefinition } from './META_FULLNAME/META_FULLNAME';
+import { MetaIdCommitmentDefinition } from './META_ID/META_ID';
 import { MetaImageCommitmentDefinition } from './META_IMAGE/META_IMAGE';
 import { MetaInputPlaceholderCommitmentDefinition } from './META_INPUT_PLACEHOLDER/META_INPUT_PLACEHOLDER';
 import { MetaLinkCommitmentDefinition } from './META_LINK/META_LINK';
@@ -41,21 +41,13 @@ import { ScenarioCommitmentDefinition } from './SCENARIO/SCENARIO';
 import { StyleCommitmentDefinition } from './STYLE/STYLE';
 import { TeamCommitmentDefinition } from './TEAM/TEAM';
 import { TemplateCommitmentDefinition } from './TEMPLATE/TEMPLATE';
-import { UseBrowserCommitmentDefinition } from './USE_BROWSER/USE_BROWSER';
 import { UseCalendarCommitmentDefinition } from './USE_CALENDAR/USE_CALENDAR';
-import { UseDeepSearchCommitmentDefinition } from './USE_DEEPSEARCH/USE_DEEPSEARCH';
-import { UseEmailCommitmentDefinition } from './USE_EMAIL/USE_EMAIL';
 import { UseImageGeneratorCommitmentDefinition } from './USE_IMAGE_GENERATOR/USE_IMAGE_GENERATOR';
 import { UseMcpCommitmentDefinition } from './USE_MCP/USE_MCP';
 import { UsePopupCommitmentDefinition } from './USE_POPUP/USE_POPUP';
 import { UsePrivacyCommitmentDefinition } from './USE_PRIVACY/USE_PRIVACY';
 import { UseProjectCommitmentDefinition } from './USE_PROJECT/USE_PROJECT';
-import { UseSearchEngineCommitmentDefinition } from './USE_SEARCH_ENGINE/USE_SEARCH_ENGINE';
-import { UseSpawnCommitmentDefinition } from './USE_SPAWN/USE_SPAWN';
-import { UseTimeoutCommitmentDefinition } from './USE_TIMEOUT/USE_TIMEOUT';
-import { UseTimeCommitmentDefinition } from './USE_TIME/USE_TIME';
 import { UseUserLocationCommitmentDefinition } from './USE_USER_LOCATION/USE_USER_LOCATION';
-import { WalletCommitmentDefinition } from './WALLET/WALLET';
 import { WritingRulesCommitmentDefinition } from './WRITING_RULES/WRITING_RULES';
 import { WritingSampleCommitmentDefinition } from './WRITING_SAMPLE/WRITING_SAMPLE';
 import { NotYetImplementedCommitmentDefinition } from './_base/NotYetImplementedCommitmentDefinition';
@@ -72,8 +64,6 @@ export const COMMITMENT_REGISTRY = [
     new PersonaCommitmentDefinition('PERSONA'),
     new PersonaCommitmentDefinition('PERSONAE'),
     new KnowledgeCommitmentDefinition(),
-    new MemoryCommitmentDefinition('MEMORY'),
-    new MemoryCommitmentDefinition('MEMORIES'),
     new StyleCommitmentDefinition('STYLE'),
     new StyleCommitmentDefinition('STYLES'),
     new RuleCommitmentDefinition('RULE'),
@@ -95,7 +85,6 @@ export const COMMITMENT_REGISTRY = [
     new ModelCommitmentDefinition('MODELS'),
     new ActionCommitmentDefinition('ACTION'),
     new ActionCommitmentDefinition('ACTIONS'),
-    new ComponentCommitmentDefinition(),
     new MetaAvatarCommitmentDefinition(),
     new MetaAvatarCommitmentDefinition('META VISUAL'),
     new MetaImageCommitmentDefinition(),
@@ -103,11 +92,13 @@ export const COMMITMENT_REGISTRY = [
     new MetaFontCommitmentDefinition(),
     new MetaLinkCommitmentDefinition(),
     new MetaDomainCommitmentDefinition(),
+    new MetaDescriptionCommitmentDefinition(),
     new MetaDisclaimerCommitmentDefinition(),
+    new MetaFullnameCommitmentDefinition(),
+    new MetaIdCommitmentDefinition(),
     new MetaInputPlaceholderCommitmentDefinition(),
     new MetaThinkingMessageCommitmentDefinition(),
     new MetaVisibilityCommitmentDefinition(),
-    new MetaCommitmentDefinition(),
     new MetaVoiceCommitmentDefinition(),
     new NoteCommitmentDefinition('NOTE'),
     new NoteCommitmentDefinition('NOTES'),
@@ -123,8 +114,6 @@ export const COMMITMENT_REGISTRY = [
     new MessageSuffixCommitmentDefinition(),
     new MessageCommitmentDefinition('MESSAGE'),
     new MessageCommitmentDefinition('MESSAGES'),
-    new WalletCommitmentDefinition('WALLET'),
-    new WalletCommitmentDefinition('WALLETS'),
     new ScenarioCommitmentDefinition('SCENARIO'),
     new ScenarioCommitmentDefinition('SCENARIOS'),
     new DeleteCommitmentDefinition('DELETE'),
@@ -135,15 +124,8 @@ export const COMMITMENT_REGISTRY = [
     new OpenCommitmentDefinition(),
     new ClosedCommitmentDefinition(),
     new TeamCommitmentDefinition(),
-    new UseBrowserCommitmentDefinition(),
-    new UseDeepSearchCommitmentDefinition(),
-    new UseSearchEngineCommitmentDefinition(),
-    new UseSpawnCommitmentDefinition(),
-    new UseTimeoutCommitmentDefinition(),
-    new UseTimeCommitmentDefinition(),
     new UseUserLocationCommitmentDefinition(),
     new UseCalendarCommitmentDefinition(),
-    new UseEmailCommitmentDefinition(),
     new UsePopupCommitmentDefinition(),
     new UseImageGeneratorCommitmentDefinition('USE IMAGE GENERATOR'),
     new UseMcpCommitmentDefinition(),
