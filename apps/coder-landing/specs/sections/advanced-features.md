@@ -27,7 +27,7 @@ Anchor `#features`. A grid of feature cards, each pairing a short explanation wi
 | 12  | Ping before you queue          | `ptbk coder ping --harness openai-codex --model gpt-5.6-sol --thinking-level xhigh`      |
 | 13  | Human in the loop              | `ptbk coder run --harness claude-code --no-auto`                                         |
 | 14  | Live status in the prompt file | `` [^] by OpenAI Codex `gpt-5.6-luna` - Implementation in progress ``                    |
-| 15  | Verify and archive             | `ptbk coder verify`                                                                      |
+| 15  | Verify and archive             | `ptbk coder verify --order from-latest`                                                  |
 | 16  | Many prompts per file          | `ptbk coder generate-boilerplates --count 10*7`                                          |
 
 ## Descriptions (verbatim card copy)
@@ -46,7 +46,7 @@ Anchor `#features`. A grid of feature cards, each pairing a short explanation wi
 12. **Ping before you queue** — "ptbk coder ping sends one tiny dummy prompt to a harness and model and reports the answer, the response time and the usage. Use it to check that a harness, model and login really work, and to start the hourly or weekly quota window early so it is already refreshing by the time you need it. Your project is left exactly as it was."
 13. **Human in the loop** — "Confirm each prompt manually with --no-auto, press P to pause a running queue, or press X to end after the current prompt."
 14. **Live status in the prompt file** — "A prompt turns from [ ] into [^] the moment the agent picks it up and names the step that is running, and only becomes [x] once the work is implemented, verified and committed. The [^] state is never reverted, so a killed or crashed queue shows you exactly which task was left in the middle."
-15. **Verify and archive** — "Successful coding rounds record the harness, model and selected thinking level in the prompt status line. Walk through completed prompts interactively, archive the finished ones to prompts/done/ and auto-append repair prompts for incomplete work."
+15. **Verify and archive** — "Successful coding rounds record the harness, model and selected thinking level in the prompt status line. Walk through completed prompts interactively, archive the finished ones to prompts/done/ and auto-append repair prompts for incomplete work. Choose the order of the walkthrough with --order from-earliest, --order from-latest or --order random."
 16. **Many prompts per file** — "ptbk coder generate-boilerplates writes one prompt per file by default (--count 5\*1). Power users can batch a whole backlog into fewer files with the advanced --count N\*M notation: N files with M prompts each, every prompt separated by a --- line, tagged with its own fresh emoji and run as its own task."
 
 Option semantics must stay consistent with [`../content/commands.md`](../content/commands.md).

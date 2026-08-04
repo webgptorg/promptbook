@@ -1,4 +1,4 @@
-[ ]
+[x] by Claude Code `claude-opus-5` thinking `max` - Implementation $5.33 10 minutes; Testing 4 minutes
 
 [✨🥨] Make `ptbk coder verify` support `--order` option
 
@@ -15,3 +15,4 @@ ptbk coder verify --order from-latest
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Update the [`ptbk coder` landing website](apps/coder-landing)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

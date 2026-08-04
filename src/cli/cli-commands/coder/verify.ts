@@ -1,8 +1,15 @@
 import colors from 'colors';
-import type {
+import {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
+    Option,
 } from 'commander';
 import { spaceTrim } from 'spacetrim';
+import type { VerifyPromptsOrder } from '../../../../scripts/verify-prompts/VerifyPromptsOrder';
+import {
+    DEFAULT_VERIFY_PROMPTS_ORDER,
+    VERIFY_PROMPTS_ORDER_DESCRIPTIONS,
+    VERIFY_PROMPTS_ORDER_VALUES,
+} from '../../../../scripts/verify-prompts/VerifyPromptsOrder';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
 import type { CoderGitSyncCliOptions } from '../common/coderGitSyncCliOptions';
 import {
@@ -33,6 +40,7 @@ export function $initializeCoderVerifyCommand(program: Program): $side_effect {
                 - Auto-appends repair prompts for incomplete work
                 - Processes files with all-done prompts first
                 - Supports ignoring matching prompt candidates for one verification run
+                - Supports processing the prompt files from the earliest, from the latest or in random order
 
                 ${block(CODER_GIT_SYNC_DESCRIPTION)}
 
@@ -41,7 +49,23 @@ export function $initializeCoderVerifyCommand(program: Program): $side_effect {
         ),
     );
 
-    command.option('--reverse', 'Process prompt files in reverse order', false);
+    command.addOption(
+        new Option(
+            '--order <order>',
+            spaceTrim(
+                (block) => `
+                    Order in which the prompt files are processed:
+                    ${block(
+                        VERIFY_PROMPTS_ORDER_VALUES.map(
+                            (order) => `- ${order}: ${VERIFY_PROMPTS_ORDER_DESCRIPTIONS[order]}`,
+                        ).join('\n'),
+                    )}
+                `,
+            ),
+        )
+            .choices([...VERIFY_PROMPTS_ORDER_VALUES])
+            .default(DEFAULT_VERIFY_PROMPTS_ORDER),
+    );
     command.option(
         '--ignore <candidate-text>',
         'Ignore prompt files whose filename or first prompt line contains the given text (repeatable)',
@@ -52,8 +76,8 @@ export function $initializeCoderVerifyCommand(program: Program): $side_effect {
 
     command.action(
         handleActionErrors(async (cliOptions) => {
-            const { reverse, ignore } = cliOptions as {
-                readonly reverse: boolean;
+            const { order, ignore } = cliOptions as {
+                readonly order: VerifyPromptsOrder;
                 readonly ignore: ReadonlyArray<string>;
             } & CoderGitSyncCliOptions;
 
@@ -63,7 +87,7 @@ export function $initializeCoderVerifyCommand(program: Program): $side_effect {
             const { verifyPrompts } = await import('../../../../scripts/verify-prompts/verify-prompts');
 
             try {
-                await verifyPrompts({ reverse, ignore, gitSync });
+                await verifyPrompts({ order, ignore, gitSync });
             } catch (error) {
                 console.error(colors.bgRed('Prompt verification failed:'), error);
                 return process.exit(1);

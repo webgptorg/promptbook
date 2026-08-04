@@ -119,7 +119,7 @@ export const ADVANCED_FEATURES: ReadonlyArray<AdvancedFeatureDefinition> = [
     {
         title: 'Verify and archive',
         description:
-            'Successful coding rounds record the harness, model and selected thinking level in the prompt status line. Walk through completed prompts interactively, archive the finished ones to prompts/done/ and auto-append repair prompts for incomplete work.',
+            'Successful coding rounds record the harness, model and selected thinking level in the prompt status line. Walk through completed prompts interactively, archive the finished ones to prompts/done/ and auto-append repair prompts for incomplete work. Choose the order of the walkthrough with --order from-earliest, --order from-latest or --order random.',
         sampleCommand: VERIFY_COMMAND,
     },
     {

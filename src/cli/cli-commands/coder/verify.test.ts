@@ -15,10 +15,18 @@ function getVerifyPromptsMock(): jest.MockedFunction<typeof verifyPrompts> {
 
 /**
  * Creates a Commander program with the `coder verify` subcommand registered.
+ *
+ * Note: Commander is prevented from ending the test process and from writing its errors into the test output
  */
 function createProgramWithVerifyCommand(): Command {
     const program = new Command();
     $initializeCoderVerifyCommand(program);
+
+    for (const command of [program, ...program.commands]) {
+        command.exitOverride();
+        command.configureOutput({ writeErr: () => undefined });
+    }
+
     return program;
 }
 
@@ -38,24 +46,24 @@ describe('$initializeCoderVerifyCommand', () => {
         jest.clearAllMocks();
     });
 
-    it('defaults ignore filters to an empty list when --ignore is omitted', async () => {
+    it('defaults the order to from-earliest and ignore filters to an empty list when the options are omitted', async () => {
         const program = createProgramWithVerifyCommand();
 
         await program.parseAsync(['node', 'test', 'verify'], { from: 'node' });
 
         expect(getVerifyPromptsMock()).toHaveBeenCalledWith(
             expect.objectContaining({
-                reverse: false,
+                order: 'from-earliest',
                 ignore: [],
             }),
         );
     });
 
-    it('passes reverse ordering and repeatable ignore filters through to the verifier', async () => {
+    it('passes the requested order and repeatable ignore filters through to the verifier', async () => {
         const program = createProgramWithVerifyCommand();
 
         await program.parseAsync(
-            ['node', 'test', 'verify', '--reverse', '--ignore', 'Refactor', '--ignore', 'Fix prompt'],
+            ['node', 'test', 'verify', '--order', 'from-latest', '--ignore', 'Refactor', '--ignore', 'Fix prompt'],
             {
                 from: 'node',
             },
@@ -63,10 +71,32 @@ describe('$initializeCoderVerifyCommand', () => {
 
         expect(getVerifyPromptsMock()).toHaveBeenCalledWith(
             expect.objectContaining({
-                reverse: true,
+                order: 'from-latest',
                 ignore: ['Refactor', 'Fix prompt'],
             }),
         );
+    });
+
+    it('passes the random order through to the verifier', async () => {
+        const program = createProgramWithVerifyCommand();
+
+        await program.parseAsync(['node', 'test', 'verify', '--order', 'random'], { from: 'node' });
+
+        expect(getVerifyPromptsMock()).toHaveBeenCalledWith(
+            expect.objectContaining({
+                order: 'random',
+            }),
+        );
+    });
+
+    it('refuses an unsupported order value', async () => {
+        const program = createProgramWithVerifyCommand();
+
+        await expect(
+            program.parseAsync(['node', 'test', 'verify', '--order', 'from-nowhere'], { from: 'node' }),
+        ).rejects.toThrow(/from-nowhere/);
+
+        expect(getVerifyPromptsMock()).not.toHaveBeenCalled();
     });
 
     it('keeps git untouched when no git synchronization flag is used', async () => {

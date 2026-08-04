@@ -80,6 +80,6 @@ export const AGENT_RUN_COMMAND =
     'ptbk coder run --harness claude-code --model fable --agent agents/developer.book --context AGENTS.md';
 
 /**
- * Command which interactively verifies completed prompts and archives them to `prompts/done/`.
+ * Command which interactively verifies completed prompts, newest first, and archives them to `prompts/done/`.
  */
-export const VERIFY_COMMAND = 'ptbk coder verify';
+export const VERIFY_COMMAND = 'ptbk coder verify --order from-latest';

@@ -16,6 +16,13 @@ import type { PromptFile } from '../run-codex-prompts/prompts/types/PromptFile';
 import type { PromptSection } from '../run-codex-prompts/prompts/types/PromptSection';
 import type { PromptSelection } from '../run-codex-prompts/prompts/types/PromptSelection';
 import { writePromptFile } from '../run-codex-prompts/prompts/writePromptFile';
+import { $orderPromptFiles } from './$orderPromptFiles';
+import type { VerifyPromptsOrder } from './VerifyPromptsOrder';
+import {
+    DEFAULT_VERIFY_PROMPTS_ORDER,
+    parseVerifyPromptsOrder,
+    VERIFY_PROMPTS_ORDER_DESCRIPTIONS,
+} from './VerifyPromptsOrder';
 
 /**
  * Path to the directory that holds the prompt markdown files.
@@ -62,9 +69,9 @@ type PromptVerificationOutcome = {
  */
 export type VerifyPromptsOptions = {
     /**
-     * Process prompt files in reverse order.
+     * Order in which the prompt files are processed.
      */
-    readonly reverse?: boolean;
+    readonly order?: VerifyPromptsOrder;
 
     /**
      * Ignore prompt files whose filename or first prompt line contains one of the provided values.
@@ -82,9 +89,9 @@ export type VerifyPromptsOptions = {
  */
 type NormalizedVerifyPromptsOptions = {
     /**
-     * Process prompt files in reverse order.
+     * Order in which the prompt files are processed.
      */
-    readonly reverse: boolean;
+    readonly order: VerifyPromptsOrder;
 
     /**
      * Ignore prompt files whose filename or first prompt line contains one of the provided values.
@@ -113,8 +120,8 @@ export async function verifyPrompts(options: VerifyPromptsOptions = DEFAULT_VERI
     const normalizedOptions = normalizeVerifyPromptsOptions(options);
 
     console.info(colors.cyan.bold('📋 Prompt verification helper'));
-    if (normalizedOptions.reverse) {
-        console.info(colors.gray('Processing files in reverse order'));
+    if (normalizedOptions.order !== DEFAULT_VERIFY_PROMPTS_ORDER) {
+        console.info(colors.gray(`Processing files ${VERIFY_PROMPTS_ORDER_DESCRIPTIONS[normalizedOptions.order]}`));
     }
     if (normalizedOptions.ignore.length > 0) {
         console.info(colors.gray(`Ignoring candidates matching: ${normalizedOptions.ignore.join(', ')}`));
@@ -183,7 +190,7 @@ async function $commitVerificationOutcome(
  */
 function parseVerifyPromptsCliOptions(args: ReadonlyArray<string>): VerifyPromptsOptions {
     return {
-        reverse: args.includes('--reverse'),
+        order: parseVerifyPromptsOrder(readStringOption(args, '--order')),
         ignore: readRepeatableStringOption(args, '--ignore'),
         gitSync: {
             isCommitEnabled: args.includes('--commit'),
@@ -202,11 +209,7 @@ async function loadPromptFilesForVerification(
     const loadedPromptFiles = await loadPromptFiles(PROMPTS_DIR);
     const { promptFiles, ignoredPromptFiles } = partitionPromptFilesByIgnore(loadedPromptFiles, options.ignore);
 
-    if (options.reverse) {
-        promptFiles.reverse();
-    }
-
-    return { promptFiles, ignoredPromptFiles };
+    return { promptFiles: $orderPromptFiles(promptFiles, options.order), ignoredPromptFiles };
 }
 
 /**
@@ -256,7 +259,7 @@ async function prepareArchiveDirectory(): Promise<void> {
  */
 function normalizeVerifyPromptsOptions(options: VerifyPromptsOptions): NormalizedVerifyPromptsOptions {
     return {
-        reverse: options.reverse ?? false,
+        order: options.order ?? DEFAULT_VERIFY_PROMPTS_ORDER,
         ignore: normalizeIgnoreValues(options.ignore ?? []),
         gitSync: options.gitSync ?? DISABLED_CODER_GIT_SYNC_OPTIONS,
     };
@@ -285,6 +288,14 @@ function normalizeIgnoreValues(ignoreValues: ReadonlyArray<string>): ReadonlyArr
     }
 
     return normalizedIgnoreValues;
+}
+
+/**
+ * Reads one single-value string option from raw CLI arguments, keeping the last occurrence.
+ */
+function readStringOption(args: ReadonlyArray<string>, flag: string): string | undefined {
+    const values = readRepeatableStringOption(args, flag);
+    return values[values.length - 1];
 }
 
 /**
