@@ -21,6 +21,11 @@ export const INSTALL_GLOBAL_COMMAND = 'npm install --global ptbk';
 export const INIT_COMMAND = 'ptbk coder init';
 
 /**
+ * Command which initializes the `ptbk coder` configuration and synchronizes the result with the remote repository.
+ */
+export const INIT_GIT_SYNC_COMMAND = 'ptbk coder init --auto-pull --commit --auto-push';
+
+/**
  * Command which appends one ready-to-run prompt file to the queue from a plain-language description.
  */
 export const ADD_COMMAND = 'ptbk coder add "Add a dark mode toggle to the settings page"';

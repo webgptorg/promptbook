@@ -118,12 +118,28 @@ describe('commitChanges', () => {
 
         const calledCommands = getCalledCommands(execMock);
         const gitAddIndex = calledCommands.indexOf('git add .');
-        const gitResetIndex = calledCommands.indexOf('git reset --quiet HEAD -- "prompts/2026-04-6490.log.txt"');
+        const gitResetIndex = calledCommands.findIndex((command) => command.startsWith('git reset --quiet HEAD -- '));
         const gitCommitIndex = calledCommands.findIndex((command) => command.startsWith('git commit '));
 
         expect(gitAddIndex).toBeGreaterThanOrEqual(0);
         expect(gitResetIndex).toBeGreaterThan(gitAddIndex);
         expect(gitCommitIndex).toBeGreaterThan(gitResetIndex);
+        expect(calledCommands[gitResetIndex]).toContain('"prompts/2026-04-6490.log.txt"');
+    });
+
+    it('always unstages its own temporary commit message file', async () => {
+        temporaryProjectPath = await createTemporaryGitProject();
+        process.chdir(temporaryProjectPath);
+
+        const execMock = getExecCommandMock();
+        execMock.mockImplementation(async () => okResult());
+
+        await commitChanges('test commit');
+
+        const calledCommands = getCalledCommands(execMock);
+        const gitResetCommand = calledCommands.find((command) => command.startsWith('git reset --quiet HEAD -- '));
+
+        expect(gitResetCommand).toContain('.promptbook/ptbk-coder/commit-messages/COMMIT_MESSAGE_');
     });
 
     it('can stage only selected paths before creating the commit', async () => {

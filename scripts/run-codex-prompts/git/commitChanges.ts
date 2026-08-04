@@ -13,6 +13,9 @@ import { runGitCommand } from './runGitCommand';
  * `options.includePaths` can restrict staging, `options.onlyPaths` can restrict the commit pathspec,
  * `options.excludePaths` can keep temporary artifacts out of the created commit and
  * `options.isEmptyCommitAllowed` keeps a round without any file change from failing.
+ *
+ * Note: The temporary commit message file is written inside the project, so it is always excluded from the commit
+ *       itself for projects which do not keep the Promptbook temporary directory out of version control.
  */
 export async function commitChanges(
     message: string,
@@ -38,7 +41,10 @@ export async function commitChanges(
     try {
         const agentEnv = buildAgentGitEnv();
         const signingFlag = buildAgentGitSigningFlag();
-        await stageCommitChanges(projectPath, agentEnv, options?.includePaths, options?.excludePaths);
+        await stageCommitChanges(projectPath, agentEnv, options?.includePaths, [
+            commitMessagePath,
+            ...(options?.excludePaths ?? []),
+        ]);
 
         await runGitCommand({
             command: buildGitCommitCommand({

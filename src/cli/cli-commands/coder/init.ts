@@ -3,6 +3,12 @@ import type {
 } from 'commander';
 import { spaceTrim } from 'spacetrim';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
+import type { CoderGitSyncCliOptions } from '../common/coderGitSyncCliOptions';
+import {
+    addCoderGitSyncOptions,
+    CODER_GIT_SYNC_DESCRIPTION,
+    normalizeCoderGitSyncCliOptions,
+} from '../common/coderGitSyncCliOptions';
 import { handleActionErrors } from '../common/handleActionErrors';
 import { $ensureHarnessInstallations } from '../common/harness/$ensureHarnessInstallations';
 import { getHarnessDefinition } from '../common/harness/HarnessDefinition';
@@ -61,16 +67,36 @@ export function $initializeCoderInitCommand(program: Program): $side_effect {
 
                 Checks that the coding harnesses are installed globally and up to date:
                 ${block(listCheckedHarnessLabels())}
+
+                ${block(CODER_GIT_SYNC_DESCRIPTION)}
             `,
         ),
     );
 
+    addCoderGitSyncOptions(command);
+
     command.action(
-        handleActionErrors(async () => {
+        handleActionErrors(async (cliOptions) => {
+            const gitSync = normalizeCoderGitSyncCliOptions(cliOptions as CoderGitSyncCliOptions);
             const projectPath = process.cwd();
+
+            // Note: Import the git synchronization dynamically to keep the CLI fast for runs without `--commit`
+            const { $commitCoderChanges, $pullCoderChanges } = await import(
+                '../../../../scripts/run-codex-prompts/git/coderGitSync'
+            );
+
+            await $pullCoderChanges({ gitSync, projectPath });
+
             const summary = await initializeCoderProjectConfiguration(projectPath);
             printInitializationSummary(summary);
             await generatePromptBoilerplate({ projectPath, filesCount: 5 });
+
+            await $commitCoderChanges({
+                gitSync,
+                projectPath,
+                commitMessage: 'Initialize ptbk coder configuration',
+            });
+
             await $ensureHarnessInstallations(CODER_INIT_CHECKED_HARNESS_NAMES);
         }),
     );

@@ -68,4 +68,38 @@ describe('$initializeCoderVerifyCommand', () => {
             }),
         );
     });
+
+    it('keeps git untouched when no git synchronization flag is used', async () => {
+        const program = createProgramWithVerifyCommand();
+
+        await program.parseAsync(['node', 'test', 'verify'], { from: 'node' });
+
+        expect(getVerifyPromptsMock()).toHaveBeenCalledWith(
+            expect.objectContaining({
+                gitSync: {
+                    isCommitEnabled: false,
+                    isAutoPushEnabled: false,
+                    isAutoPullEnabled: false,
+                },
+            }),
+        );
+    });
+
+    it('passes the git synchronization flags through to the verifier', async () => {
+        const program = createProgramWithVerifyCommand();
+
+        await program.parseAsync(['node', 'test', 'verify', '--commit', '--auto-push', '--auto-pull'], {
+            from: 'node',
+        });
+
+        expect(getVerifyPromptsMock()).toHaveBeenCalledWith(
+            expect.objectContaining({
+                gitSync: {
+                    isCommitEnabled: true,
+                    isAutoPushEnabled: true,
+                    isAutoPullEnabled: true,
+                },
+            }),
+        );
+    });
 });

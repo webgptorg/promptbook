@@ -4,6 +4,12 @@ import type {
 } from 'commander';
 import { spaceTrim } from 'spacetrim';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
+import type { CoderGitSyncCliOptions } from '../common/coderGitSyncCliOptions';
+import {
+    addCoderGitSyncOptions,
+    CODER_GIT_SYNC_DESCRIPTION,
+    normalizeCoderGitSyncCliOptions,
+} from '../common/coderGitSyncCliOptions';
 import { handleActionErrors } from '../common/handleActionErrors';
 
 /**
@@ -16,17 +22,23 @@ import { handleActionErrors } from '../common/handleActionErrors';
 export function $initializeCoderVerifyCommand(program: Program): $side_effect {
     const command = program.command('verify');
     command.description(
-        spaceTrim(`
-            Interactive verification helper for completed prompts
+        spaceTrim(
+            (block) => `
+                Interactive verification helper for completed prompts
 
-            Features:
-            - Displays list of prompt files with status counts
-            - Guides through verification of completed prompts marked [x]
-            - Archives verified prompt files to prompts/done/ directory
-            - Auto-appends repair prompts for incomplete work
-            - Processes files with all-done prompts first
-            - Supports ignoring matching prompt candidates for one verification run
-        `),
+                Features:
+                - Displays list of prompt files with status counts
+                - Guides through verification of completed prompts marked [x]
+                - Archives verified prompt files to prompts/done/ directory
+                - Auto-appends repair prompts for incomplete work
+                - Processes files with all-done prompts first
+                - Supports ignoring matching prompt candidates for one verification run
+
+                ${block(CODER_GIT_SYNC_DESCRIPTION)}
+
+                Note: The git synchronization is applied around each single verification, not once per run.
+            `,
+        ),
     );
 
     command.option('--reverse', 'Process prompt files in reverse order', false);
@@ -36,19 +48,22 @@ export function $initializeCoderVerifyCommand(program: Program): $side_effect {
         collectStringOption,
         [],
     );
+    addCoderGitSyncOptions(command);
 
     command.action(
         handleActionErrors(async (cliOptions) => {
             const { reverse, ignore } = cliOptions as {
                 readonly reverse: boolean;
                 readonly ignore: ReadonlyArray<string>;
-            };
+            } & CoderGitSyncCliOptions;
+
+            const gitSync = normalizeCoderGitSyncCliOptions(cliOptions as CoderGitSyncCliOptions);
 
             // Note: Import the main function dynamically to avoid loading heavy dependencies until needed
             const { verifyPrompts } = await import('../../../../scripts/verify-prompts/verify-prompts');
 
             try {
-                await verifyPrompts({ reverse, ignore });
+                await verifyPrompts({ reverse, ignore, gitSync });
             } catch (error) {
                 console.error(colors.bgRed('Prompt verification failed:'), error);
                 return process.exit(1);

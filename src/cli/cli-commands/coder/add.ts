@@ -10,6 +10,12 @@ import { ParseError } from '../../../errors/ParseError';
 import { normalizeToKebabCase } from '../../../utils/normalization/normalize-to-kebab-case';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
 import { loadPromptsModule } from '../../common/loadPromptsModule';
+import type { CoderGitSyncCliOptions } from '../common/coderGitSyncCliOptions';
+import {
+    addCoderGitSyncOptions,
+    CODER_GIT_SYNC_DESCRIPTION,
+    normalizeCoderGitSyncCliOptions,
+} from '../common/coderGitSyncCliOptions';
 import { handleActionErrors } from '../common/handleActionErrors';
 import {
     buildCoderPromptSection,
@@ -49,15 +55,19 @@ const FALLBACK_PROMPT_SLUG = 'prompt';
 export function $initializeCoderAddCommand(program: Program): $side_effect {
     const command = program.command('add');
     command.description(
-        spaceTrim(`
-            Add one ready-to-run prompt file to the queue
+        spaceTrim(
+            (block) => `
+                Add one ready-to-run prompt file to the queue
 
-            Provide the description as an argument, pipe it through stdin, or run without arguments to type it interactively:
-            - \`ptbk coder add "some new feature"\`
-            - \`ptbk coder add --priority 1 "some new feature"\`
-            - \`ptbk coder add <<EOF ... EOF\`
-            - \`ptbk coder add\`
-        `),
+                Provide the description as an argument, pipe it through stdin, or run without arguments to type it interactively:
+                - \`ptbk coder add "some new feature"\`
+                - \`ptbk coder add --priority 1 "some new feature"\`
+                - \`ptbk coder add <<EOF ... EOF\`
+                - \`ptbk coder add\`
+
+                ${block(CODER_GIT_SYNC_DESCRIPTION)}
+            `,
+        ),
     );
 
     command.argument('[description]', 'Plain-language description of the feature or task to implement');
@@ -77,21 +87,38 @@ export function $initializeCoderAddCommand(program: Program): $side_effect {
                 .join(', ')}) or a markdown file path relative to the current project root.
         `),
     );
+    addCoderGitSyncOptions(command);
 
     command.action(
         handleActionErrors(async (descriptionArgument: string | undefined, cliOptions) => {
             const { priority, template: templateOption } = cliOptions as {
                 readonly priority: number;
                 readonly template?: string;
-            };
+            } & CoderGitSyncCliOptions;
+
+            const gitSync = normalizeCoderGitSyncCliOptions(cliOptions as CoderGitSyncCliOptions);
+            const projectPath = process.cwd();
 
             const description = await resolveCoderPromptDescription(descriptionArgument);
 
-            await addCoderPrompt({
-                projectPath: process.cwd(),
+            // Note: Import the git synchronization dynamically to keep the CLI fast for runs without `--commit`
+            const { $commitCoderChanges, $pullCoderChanges } = await import(
+                '../../../../scripts/run-codex-prompts/git/coderGitSync'
+            );
+
+            await $pullCoderChanges({ gitSync, projectPath });
+
+            const { filePath, emojiTag } = await addCoderPrompt({
+                projectPath,
                 description,
                 priority,
                 templateOption,
+            });
+
+            await $commitCoderChanges({
+                gitSync,
+                projectPath,
+                commitMessage: `Add ptbk coder prompt ${emojiTag} in ${filePath.replace(/\\/gu, '/')}`,
             });
         }),
     );

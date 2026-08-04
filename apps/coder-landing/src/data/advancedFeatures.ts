@@ -1,4 +1,10 @@
-import { DRY_RUN_COMMAND, MODEL_FILTER_COMMAND, TEST_BEFORE_FIX_COMMAND, VERIFY_COMMAND } from './commands';
+import {
+    DRY_RUN_COMMAND,
+    INIT_GIT_SYNC_COMMAND,
+    MODEL_FILTER_COMMAND,
+    TEST_BEFORE_FIX_COMMAND,
+    VERIFY_COMMAND,
+} from './commands';
 
 /**
  * One advanced feature of `ptbk coder` presented as a card with a terminal snippet.
@@ -49,6 +55,12 @@ export const ADVANCED_FEATURES: ReadonlyArray<AdvancedFeatureDefinition> = [
         description:
             'Pull before prompts and push after commits, so a long-running queue stays in sync with your remote.',
         sampleCommand: 'ptbk coder run --harness claude-code --auto-pull --auto-push',
+    },
+    {
+        title: 'Git-synced housekeeping',
+        description:
+            'ptbk coder init, add, generate-boilerplates and verify take the same --commit, --auto-push and --auto-pull switches, so bootstrapping a project, queueing prompts and archiving verified ones never leaves uncommitted work behind. Verify synchronizes around every single verification.',
+        sampleCommand: INIT_GIT_SYNC_COMMAND,
     },
     {
         title: 'Isolated worktrees',

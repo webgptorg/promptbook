@@ -6,6 +6,12 @@ import { mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
+import type { CoderGitSyncCliOptions } from '../common/coderGitSyncCliOptions';
+import {
+    addCoderGitSyncOptions,
+    CODER_GIT_SYNC_DESCRIPTION,
+    normalizeCoderGitSyncCliOptions,
+} from '../common/coderGitSyncCliOptions';
 import { handleActionErrors } from '../common/handleActionErrors';
 import {
     buildCoderPromptSection,
@@ -24,9 +30,13 @@ import {
 export function $initializeCoderGenerateBoilerplatesCommand(program: Program): $side_effect {
     const command = program.command('generate-boilerplates');
     command.description(
-        spaceTrim(`
-            Generate prompt boilerplate files with unique emoji tags
-        `),
+        spaceTrim(
+            (block) => `
+                Generate prompt boilerplate files with unique emoji tags
+
+                ${block(CODER_GIT_SYNC_DESCRIPTION)}
+            `,
+        ),
     );
 
     command.option('--count <count>', `Number of prompt boilerplate files to generate`, '5');
@@ -40,20 +50,36 @@ export function $initializeCoderGenerateBoilerplatesCommand(program: Program): $
                 .join(', ')}) or a markdown file path relative to the current project root.
         `),
     );
+    addCoderGitSyncOptions(command);
 
     command.action(
         handleActionErrors(async (cliOptions) => {
             const { count: countOption, template: templateOption } = cliOptions as {
                 readonly count: string;
                 readonly template?: string;
-            };
+            } & CoderGitSyncCliOptions;
 
             const filesCount = parseFilesCount(countOption);
+            const gitSync = normalizeCoderGitSyncCliOptions(cliOptions as CoderGitSyncCliOptions);
+            const projectPath = process.cwd();
+
+            // Note: Import the git synchronization dynamically to keep the CLI fast for runs without `--commit`
+            const { $commitCoderChanges, $pullCoderChanges } = await import(
+                '../../../../scripts/run-codex-prompts/git/coderGitSync'
+            );
+
+            await $pullCoderChanges({ gitSync, projectPath });
 
             await generatePromptBoilerplate({
-                projectPath: process.cwd(),
+                projectPath,
                 filesCount,
                 templateOption,
+            });
+
+            await $commitCoderChanges({
+                gitSync,
+                projectPath,
+                commitMessage: `Generate ${filesCount} ptbk coder prompt boilerplate file(s)`,
             });
 
             return process.exit(0);
