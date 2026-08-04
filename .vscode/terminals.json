@@ -23,22 +23,11 @@
             "focus": true
         },
         {
-            "name": "🐙🚀 Run ptbk coder `gpt-5.4` Coding Agent (💸)(⏳)",
-            "commands": [
-                "set -a && source .env && set +a",
-                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness openai-codex --model gpt-5.4 --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --min-priority 1 --test npm run test-for-ptbk-coder --test-before yes-and-fix"
-            ],
-            "execute": true,
-            "onlySingle": true,
-            "focus": true
-        },
-        {
             "name": "🐙🚀 Run ptbk coder `gpt-5.5` Coding Agent (💤)(💸)(⏳)",
             "commands": [
                 "set -a && source .env && set +a",
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness openai-codex --model gpt-5.5 --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder --test-before yes-and-fix"
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness openai-codex --model gpt-5.5 --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder --test-before yes-and-fix --auto-push --auto-pull"
             ],
             "execute": false,
             "onlySingle": false,
@@ -49,7 +38,7 @@
             "commands": [
                 "set -a && source .env && set +a",
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness openai-codex --model gpt-5.6-sol --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder --test-before yes-and-fix --max-priority 1"
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness openai-codex --model gpt-5.6-sol --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder --test-before yes-and-fix  --auto-push --auto-pull --max-priority 1"
             ],
             "execute": false,
             "onlySingle": false,
@@ -60,7 +49,7 @@
             "commands": [
                 "set -a && source .env && set +a",
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness openai-codex --model gpt-5.6-terra --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder --test-before yes-and-fix --min-priority 1"
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness openai-codex --model gpt-5.6-terra --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder --test-before yes-and-fix  --auto-push --auto-pull --min-priority 1"
             ],
             "execute": false,
             "onlySingle": false,
@@ -71,7 +60,7 @@
             "commands": [
                 "set -a && source .env && set +a",
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness openai-codex --model gpt-5.6-luna --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder --test-before yes-and-fix --min-priority 2"
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --harness openai-codex --model gpt-5.6-luna --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder --test-before yes-and-fix  --auto-push --auto-pull --min-priority 2"
             ],
             "execute": false,
             "onlySingle": false,
@@ -79,14 +68,14 @@
         },
         {
             "name": "🐙🚀 Run ptbk coder `claude-opus` Coding Agent (💤)(💸)(⏳)",
-            "command": "npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code --model claude-opus --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder --test-before yes-and-fix",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code --model claude-opus --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder --test-before yes-and-fix  --auto-push --auto-pull",
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
             "name": "🐙🚀 Run ptbk coder `claude-fable` Coding Agent (💤)(💸)(⏳)",
-            "command": "npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code --model fable --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --min-priority 3 --test-before yes-and-fix",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code --model fable --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --min-priority 3 --test-before yes-and-fix  --auto-push --auto-pull",
             "execute": false,
             "onlySingle": false,
             "focus": false
@@ -156,7 +145,7 @@
         },
         {
             "name": "🐙✔ Verify prompts done by Coding Agent",
-            "command": "npx ts-node ./src/cli/test/ptbk.ts coder verify --reverse --ignore Refactor",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder verify --reverse --ignore Refactor --commit --auto-push --auto-pull",
             "execute": true,
             "onlySingle": false,
             "focus": false
