@@ -1,4 +1,5 @@
-import type { DnsRecordSelection } from '../../utils/dnsRecords/DnsRecordInstruction';
+import type { DnsRecordGroup } from '../../utils/dnsRecords/DnsRecordInstruction';
+import { hasAlternativeDnsRecordGroup } from '../../utils/dnsRecords/dnsRecordGroups';
 
 /**
  * Explains how to verify the configured records after they were written to Cloudflare.
@@ -6,18 +7,18 @@ import type { DnsRecordSelection } from '../../utils/dnsRecords/DnsRecordInstruc
  * @private used by the Cloudflare DNS setup wizard
  */
 export function CloudflareDnsCheckStep({
-    recordSelection,
+    recordGroups,
 }: {
     /**
-     * Whether all listed records or one listed alternative must be configured.
+     * All record groups displayed by the DNS manual.
      */
-    readonly recordSelection: DnsRecordSelection;
+    readonly recordGroups: ReadonlyArray<DnsRecordGroup>;
 }) {
     return (
         <div className="space-y-2">
             <p className="font-medium">Check the result</p>
             <ol className="list-decimal space-y-1 pl-5 text-amber-900">
-                {recordSelection === 'one' ? (
+                {hasAlternativeDnsRecordGroup(recordGroups) ? (
                     <li>Remove conflicting A, AAAA, or CNAME records for the same hostname.</li>
                 ) : null}
                 <li>Wait for DNS propagation.</li>

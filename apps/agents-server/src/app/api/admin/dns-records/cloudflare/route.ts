@@ -2,8 +2,9 @@ import { NextResponse } from 'next/server';
 import { spaceTrim } from 'spacetrim';
 import { NotFoundError } from '../../../../../../../../src/errors/NotFoundError';
 import { applyCloudflareDnsRecordInstructions } from '../../../../../utils/cloudflare/applyCloudflareDnsRecordInstructions';
-import type { DnsRecordInstruction, DnsRecordSelection } from '../../../../../utils/dnsRecords/DnsRecordInstruction';
-import { resolveDnsRecordBatchPlan } from '../../../../../utils/dnsRecords/resolveDnsRecordBatchPlan';
+import type { DnsRecordGroup } from '../../../../../utils/dnsRecords/DnsRecordInstruction';
+import { countDnsRecordGroupRecords } from '../../../../../utils/dnsRecords/dnsRecordGroups';
+import { resolveDnsRecordBatchPlanForGroups } from '../../../../../utils/dnsRecords/resolveDnsRecordBatchPlan';
 import { isUserAdmin } from '../../../../../utils/isUserAdmin';
 import { isUserGlobalAdmin } from '../../../../../utils/isUserGlobalAdmin';
 
@@ -22,14 +23,9 @@ type CloudflareDnsWizardRequestBody = {
     readonly domain?: string;
 
     /**
-     * Whether all shown records or one shown alternative has to be configured.
+     * Record groups shown in the DNS manual, each one with its own all-or-one rule.
      */
-    readonly recordSelection?: DnsRecordSelection;
-
-    /**
-     * DNS records shown in the DNS manual.
-     */
-    readonly records?: ReadonlyArray<DnsRecordInstruction>;
+    readonly recordGroups?: ReadonlyArray<DnsRecordGroup>;
 };
 
 /**
@@ -45,13 +41,13 @@ export async function POST(request: Request) {
 
     const body = ((await request.json().catch(() => null)) || {}) as CloudflareDnsWizardRequestBody;
     const domain = (body.domain || '').trim();
-    const records = body.records || [];
+    const recordGroups = normalizeCloudflareDnsWizardRecordGroups(body.recordGroups);
 
-    if (!domain || records.length === 0) {
+    if (!domain || countDnsRecordGroupRecords(recordGroups) === 0) {
         return NextResponse.json(
             {
                 error: spaceTrim(`
-                    Both \`domain\` and \`records\` are required to import DNS records into Cloudflare.
+                    Both \`domain\` and \`recordGroups\` are required to import DNS records into Cloudflare.
                 `),
             },
             { status: 400 },
@@ -79,10 +75,7 @@ export async function POST(request: Request) {
 
     // Note: The batch plan is resolved again on the server, so that placeholder values and record alternatives can
     //       never be written into Cloudflare even when the browser sends them.
-    const { applicableRecords } = resolveDnsRecordBatchPlan({
-        records,
-        recordSelection: body.recordSelection === 'one' ? 'one' : 'all',
-    });
+    const { applicableRecords } = resolveDnsRecordBatchPlanForGroups(recordGroups);
 
     if (applicableRecords.length === 0) {
         return NextResponse.json(
@@ -113,4 +106,21 @@ export async function POST(request: Request) {
             { status: error instanceof NotFoundError ? 404 : 502 },
         );
     }
+}
+
+/**
+ * Normalizes the record groups sent by the browser into trustworthy server-side groups.
+ *
+ * @param recordGroups - Record groups of the request body.
+ * @returns Record groups whose all-or-one rule is always one of the supported values.
+ *
+ * @private function of `POST`
+ */
+function normalizeCloudflareDnsWizardRecordGroups(
+    recordGroups: ReadonlyArray<DnsRecordGroup> | undefined,
+): ReadonlyArray<DnsRecordGroup> {
+    return (recordGroups || []).map((recordGroup) => ({
+        recordSelection: recordGroup.recordSelection === 'one' ? 'one' : 'all',
+        records: recordGroup.records || [],
+    }));
 }

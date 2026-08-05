@@ -1,4 +1,4 @@
-import type { DnsRecordInstruction, DnsRecordSelection } from './DnsRecordInstruction';
+import type { DnsRecordGroup, DnsRecordInstruction, DnsRecordSelection } from './DnsRecordInstruction';
 
 /**
  * Placeholder values like `<VPS_PUBLIC_IP>` have to be filled in by a human before the record can be created.
@@ -78,4 +78,50 @@ export function resolveDnsRecordBatchPlan(options: {
     }
 
     return { applicableRecords, excludedRecords };
+}
+
+/**
+ * Resolves one batch plan for all groups shown in one DNS manual.
+ *
+ * Every group keeps its own all-or-one rule, so a manual which shows the server domain, the generated project
+ * domains, and the email records at once still writes exactly the records which each of these parts needs.
+ *
+ * @param recordGroups - Groups shown in one DNS manual.
+ * @returns One batch plan covering all groups without duplicated records.
+ */
+export function resolveDnsRecordBatchPlanForGroups(recordGroups: ReadonlyArray<DnsRecordGroup>): DnsRecordBatchPlan {
+    const applicableRecords: Array<DnsRecordInstruction> = [];
+    const excludedRecords: Array<ExcludedDnsRecordInstruction> = [];
+    const alreadyPlannedRecordKeys = new Set<string>();
+
+    for (const recordGroup of recordGroups) {
+        const groupBatchPlan = resolveDnsRecordBatchPlan(recordGroup);
+
+        for (const record of groupBatchPlan.applicableRecords) {
+            const recordKey = createDnsRecordKey(record);
+
+            if (alreadyPlannedRecordKeys.has(recordKey)) {
+                continue;
+            }
+
+            alreadyPlannedRecordKeys.add(recordKey);
+            applicableRecords.push(record);
+        }
+
+        excludedRecords.push(...groupBatchPlan.excludedRecords);
+    }
+
+    return { applicableRecords, excludedRecords };
+}
+
+/**
+ * Creates the identity of one DNS record used to keep the batch free of duplicates.
+ *
+ * @param record - DNS record shown in the DNS manual.
+ * @returns Case-insensitive record key.
+ *
+ * @private function of `resolveDnsRecordBatchPlanForGroups`
+ */
+function createDnsRecordKey(record: DnsRecordInstruction): string {
+    return [record.type.toUpperCase(), record.name.toLowerCase(), record.value].join('\t');
 }

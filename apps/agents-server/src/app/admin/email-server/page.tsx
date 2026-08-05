@@ -4,11 +4,12 @@ import { ForbiddenPage } from '../../../components/ForbiddenPage/ForbiddenPage';
 import { StalwartSynchronizeButton } from '../../../components/StalwartSynchronizeButton/StalwartSynchronizeButton';
 import { $provideServer } from '../../../tools/$provideServer';
 import { isUserAdmin } from '../../../utils/isUserAdmin';
-import { createEmailDnsInstructions } from '../../../utils/stalwart/createEmailDnsInstructions';
+import { createEmailDnsRecordsSection } from '../../../utils/stalwart/createEmailDnsRecordsSection';
 import {
     isStalwartEmailSnapshotOperational,
     readStalwartEmailSnapshot,
 } from '../../../utils/stalwart/readStalwartEmailSnapshot';
+import { isManagedServerDnsDiagnosticIssue } from '../../superadmin/servers/ServersRegistryDnsTypes';
 import { AdminConfigurationShell } from '../_components/AdminConfigurationShell';
 import { $synchronizeStalwartEmailDomain } from './actions';
 
@@ -27,7 +28,12 @@ export default async function AdminEmailServerPage() {
 
     const server = await $provideServer();
     const snapshot = await readStalwartEmailSnapshot(server.publicUrl.hostname);
-    const dnsInstructions = createEmailDnsInstructions(snapshot.domain, snapshot.mailDnsDiagnostic.publicIpAddress);
+    const emailDnsRecordsSection = createEmailDnsRecordsSection({
+        domain: snapshot.domain,
+        publicIpAddress: snapshot.mailDnsDiagnostic.publicIpAddress,
+        statusSummary: snapshot.mailDnsDiagnostic.summary,
+        isDnsIssue: isManagedServerDnsDiagnosticIssue(snapshot.mailDnsDiagnostic),
+    });
     const isOperational = isStalwartEmailSnapshotOperational(snapshot);
 
     return (
@@ -111,21 +117,14 @@ export default async function AdminEmailServerPage() {
                     <div className="mt-4">
                         <DnsRecordsInstructions
                             description={
-                                snapshot.mailDnsDiagnostic.publicIpAddress ? (
-                                    <p>
-                                        Add these records at your DNS provider. The A records below use this VPS’s
-                                        detected public address.
-                                    </p>
-                                ) : (
-                                    <p>
-                                        Add these records at your DNS provider. Replace <code>&lt;VPS_PUBLIC_IP&gt;</code>{' '}
-                                        with the public address of this VPS.
-                                    </p>
-                                )
+                                <p>
+                                    Add these records at your DNS provider. The complete DNS setup of this server -
+                                    including its own domain and its generated project domains - is configured together
+                                    on the Super Admin <span className="font-mono">/superadmin/servers</span> page.
+                                </p>
                             }
                             domain={snapshot.domain}
-                            recordSelection="all"
-                            records={dnsInstructions}
+                            sections={[emailDnsRecordsSection]}
                         />
                     </div>
                     <div className="mt-4 space-y-2 rounded-lg bg-blue-50 p-4 text-sm text-blue-950">
@@ -148,9 +147,9 @@ export default async function AdminEmailServerPage() {
                             that hostname.
                         </p>
                         <p>
-                            Open TCP port <code>25</code> publicly. Keep the submission port <code>465</code>{' '}
-                            firewalled unless external mail clients need it, and never expose the Stalwart management
-                            API on port <code>8080</code>.
+                            Open TCP port <code>25</code> publicly. Keep the submission port <code>465</code> firewalled
+                            unless external mail clients need it, and never expose the Stalwart management API on port{' '}
+                            <code>8080</code>.
                         </p>
                     </div>
                     <pre className="mt-4 overflow-auto whitespace-pre-wrap rounded-lg bg-gray-950 p-4 text-xs text-gray-100">

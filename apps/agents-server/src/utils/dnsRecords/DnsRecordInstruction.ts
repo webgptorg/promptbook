@@ -31,3 +31,23 @@ export type DnsRecordInstruction = {
      */
     readonly note: string | null;
 };
+
+/**
+ * DNS records which belong together and share one all-or-one configuration rule.
+ *
+ * One DNS manual can show more groups at once, for example the server domain records, the generated project domain
+ * records, and the email records of one Agents Server.
+ *
+ * @private shared by the Agents Server DNS instruction views
+ */
+export type DnsRecordGroup = {
+    /**
+     * Whether every record of the group or just one of its alternatives must be configured.
+     */
+    readonly recordSelection: DnsRecordSelection;
+
+    /**
+     * DNS records of the group.
+     */
+    readonly records: ReadonlyArray<DnsRecordInstruction>;
+};

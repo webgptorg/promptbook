@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import type { CloudflareDnsBatchRecordStatus } from '../../utils/cloudflare/CloudflareDnsBatchApplication';
-import type { DnsRecordSelection } from '../../utils/dnsRecords/DnsRecordInstruction';
+import type { DnsRecordGroup } from '../../utils/dnsRecords/DnsRecordInstruction';
 import type { DnsRecordBatchPlan } from '../../utils/dnsRecords/resolveDnsRecordBatchPlan';
 import { CloudflareDnsExcludedRecordsNote } from './CloudflareDnsExcludedRecordsNote';
 import { useCloudflareDnsRecordImport } from './useCloudflareDnsRecordImport';
@@ -35,7 +35,7 @@ const CLOUDFLARE_DNS_IMPORT_STATUS_CLASS_NAMES: Record<CloudflareDnsBatchRecordS
 export function CloudflareDnsApiTokenImportStep({
     batchPlan,
     domain,
-    recordSelection,
+    recordGroups,
 }: {
     /**
      * Records which can be imported at once together with the excluded ones.
@@ -48,15 +48,14 @@ export function CloudflareDnsApiTokenImportStep({
     readonly domain: string;
 
     /**
-     * Whether all listed records or one listed alternative must be configured.
+     * All record groups displayed by the DNS manual.
      */
-    readonly recordSelection: DnsRecordSelection;
+    readonly recordGroups: ReadonlyArray<DnsRecordGroup>;
 }) {
     const [apiToken, setApiToken] = useState('');
     const { isImporting, application, errorMessage, importRecords } = useCloudflareDnsRecordImport({
         domain,
-        recordSelection,
-        records: batchPlan.applicableRecords,
+        recordGroups,
     });
     const recordCount = batchPlan.applicableRecords.length;
 

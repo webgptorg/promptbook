@@ -1,5 +1,6 @@
 import { isProxyableCloudflareDnsRecordType } from '../../utils/cloudflare/CloudflareApi';
-import type { DnsRecordInstruction, DnsRecordSelection } from '../../utils/dnsRecords/DnsRecordInstruction';
+import type { DnsRecordGroup } from '../../utils/dnsRecords/DnsRecordInstruction';
+import { countDnsRecordGroupRecords, isEveryDnsRecordGroupAlternative } from '../../utils/dnsRecords/dnsRecordGroups';
 
 /**
  * Direct Cloudflare dashboard URL for the DNS records page.
@@ -15,8 +16,7 @@ const CLOUDFLARE_DNS_RECORDS_URL = 'https://dash.cloudflare.com/?to=/:account/:z
  */
 export function CloudflareDnsManualStep({
     domain,
-    recordSelection,
-    records,
+    recordGroups,
 }: {
     /**
      * Hostname whose DNS records are being configured.
@@ -24,20 +24,16 @@ export function CloudflareDnsManualStep({
     readonly domain: string;
 
     /**
-     * Whether all listed records or one listed alternative must be configured.
+     * All record groups displayed by the DNS manual.
      */
-    readonly recordSelection: DnsRecordSelection;
-
-    /**
-     * The canonical DNS records displayed by the parent instruction panel.
-     */
-    readonly records: ReadonlyArray<DnsRecordInstruction>;
+    readonly recordGroups: ReadonlyArray<DnsRecordGroup>;
 }) {
+    const records = recordGroups.flatMap((recordGroup) => recordGroup.records);
     const isProxyStatusRelevant = records.some((record) => isProxyableCloudflareDnsRecordType(record.type));
-    const recordSelectionInstruction =
-        recordSelection === 'all'
-            ? `Repeat this for all ${records.length} record${records.length === 1 ? '' : 's'} shown above.`
-            : 'Choose one of the record alternatives shown above.';
+    const recordCount = countDnsRecordGroupRecords(recordGroups);
+    const recordSelectionInstruction = isEveryDnsRecordGroupAlternative(recordGroups)
+        ? 'Choose one of the record alternatives shown above.'
+        : `Repeat this for all ${recordCount} record${recordCount === 1 ? '' : 's'} shown above.`;
 
     return (
         <div className="space-y-2">

@@ -2,10 +2,10 @@
 
 import { Fragment } from 'react';
 import { ArrowRightLeft, Bot, ExternalLink, Loader2, Mail, RefreshCcw, Save } from 'lucide-react';
-import { AgentProjectDnsInstructions } from '../../../components/AgentProjectDnsInstructions/AgentProjectDnsInstructions';
 import { DnsRecordsInstructions } from '../../../components/DnsRecordsInstructions/DnsRecordsInstructions';
 import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
 import type { ServerLanguageCode } from '../../../languages/ServerLanguageRegistry';
+import { createServerDnsRecordsSections } from '../../../utils/dnsRecords/createServerDnsRecordsSections';
 import { formatServerLanguageHumanReadableDate } from '../../../utils/localization/formatServerLanguageHumanReadableDate';
 import { AdminSortableTableHeaderCell } from '../../admin/_components/AdminSortableTableHeaderCell';
 import { useAdminTableSorting } from '../../admin/_components/adminTableSorting';
@@ -244,6 +244,7 @@ function ServersRegistryTableRow(props: ServersRegistryTableRowProps) {
     const hasProjectDnsIssue = projectDomains.some((projectDomain) =>
         isManagedServerDnsDiagnosticIssue(projectDomain.dnsDiagnostic),
     );
+    const generatedProjectDomain = projectDomains.find((projectDomain) => !projectDomain.customDomain)?.domain ?? null;
     const columnCount = isStandaloneVps ? 6 : 8;
 
     return (
@@ -341,10 +342,10 @@ function ServersRegistryTableRow(props: ServersRegistryTableRowProps) {
                         <a
                             href={`https://${server.domain}/admin/email-server`}
                             className={`${SECONDARY_BUTTON_CLASS_NAME} px-2 py-1 text-xs`}
-                            title={`MX, SPF, DKIM, and DMARC instructions for ${server.domain}`}
+                            title={`Agent addresses and the generated DKIM zone of ${server.domain}`}
                         >
                             <Mail className="h-3.5 w-3.5" />
-                            Mail DNS
+                            Email server
                         </a>
                         <button
                             type="button"
@@ -390,57 +391,54 @@ function ServersRegistryTableRow(props: ServersRegistryTableRowProps) {
             </tr>
             <tr className="bg-sky-50/50">
                 <td colSpan={columnCount} className="px-4 py-4">
-                    <ProjectDomainsPanel
-                        projectDomains={projectDomains}
-                        publicIpAddress={dnsDiagnostic?.publicIpAddress}
-                        serverDomain={server.domain}
-                    />
+                    <ProjectDomainsPanel projectDomains={projectDomains} />
                 </td>
             </tr>
-            {hasDnsIssue && dnsDiagnostic ? (
-                <tr className="bg-amber-50/70">
-                    <td colSpan={columnCount} className="px-4 py-4">
-                        <DnsRecordsInstructions
-                            description={dnsDiagnostic.summary}
-                            domain={server.domain}
-                            recordSelection="one"
-                            records={dnsDiagnostic.expectedRecords}
-                            providerGuides={dnsDiagnostic.providerGuides}
-                            resolvedAddresses={dnsDiagnostic.resolvedAddresses}
-                            title={
+            <tr className="bg-amber-50/70">
+                <td colSpan={columnCount} className="px-4 py-4">
+                    <DnsRecordsInstructions
+                        description="Everything this server needs at its DNS provider - its own domain, the generated project domains, and its email. Add all of them at once with the Cloudflare wizard below."
+                        domain={server.domain}
+                        providerGuides={dnsDiagnostic?.providerGuides}
+                        sections={createServerDnsRecordsSections({
+                            serverDomain: server.domain,
+                            dnsDiagnostic,
+                            isProjectDnsIssue: hasProjectDnsIssue,
+                            projectDomain: generatedProjectDomain,
+                        })}
+                        title={
+                            hasDnsIssue || hasProjectDnsIssue ? (
                                 <>
                                     DNS setup needs attention for <span className="font-mono">{server.domain}</span>
                                 </>
-                            }
-                        />
-                    </td>
-                </tr>
-            ) : null}
+                            ) : (
+                                <>
+                                    DNS setup for <span className="font-mono">{server.domain}</span>
+                                </>
+                            )
+                        }
+                    />
+                </td>
+            </tr>
         </>
     );
 }
 
 /**
- * Renders assigned project domains and preventive DNS guidance for one server.
+ * Renders the project domains assigned to one server.
+ *
+ * Their DNS setup intentionally lives in the one shared DNS manual of the server instead of in this listing.
  */
 function ProjectDomainsPanel({
-    publicIpAddress,
     projectDomains,
-    serverDomain,
 }: {
-    readonly publicIpAddress: string | null | undefined;
     readonly projectDomains: NonNullable<ManagedServerRow['projectDomains']>;
-    readonly serverDomain: string;
 }) {
     const projectDomainSorting = useAdminTableSorting<ProjectDomainRow, ProjectDomainsTableSortField>({
         rows: projectDomains,
         defaultSortBy: 'projectName',
         resolveSortValue: resolveProjectDomainSortValue,
     });
-    const generatedProjectDomain = projectDomains.find((projectDomain) => !projectDomain.customDomain)?.domain ?? null;
-    const hasProjectDnsIssue = projectDomains.some((projectDomain) =>
-        isManagedServerDnsDiagnosticIssue(projectDomain.dnsDiagnostic),
-    );
 
     return (
         <div className="space-y-3 rounded-lg border border-sky-200 bg-sky-50 px-4 py-4 text-sm text-sky-950">
@@ -535,12 +533,6 @@ function ProjectDomainsPanel({
                     </table>
                 </div>
             )}
-            <AgentProjectDnsInstructions
-                isDnsIssue={hasProjectDnsIssue}
-                projectDomain={generatedProjectDomain}
-                publicIpAddress={publicIpAddress}
-                serverDomain={serverDomain}
-            />
         </div>
     );
 }

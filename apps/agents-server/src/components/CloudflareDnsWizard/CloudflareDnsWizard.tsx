@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import type { DnsRecordInstruction, DnsRecordSelection } from '../../utils/dnsRecords/DnsRecordInstruction';
-import { resolveDnsRecordBatchPlan } from '../../utils/dnsRecords/resolveDnsRecordBatchPlan';
+import type { DnsRecordGroup } from '../../utils/dnsRecords/DnsRecordInstruction';
+import { resolveDnsRecordBatchPlanForGroups } from '../../utils/dnsRecords/resolveDnsRecordBatchPlan';
 import { CloudflareDnsApiTokenImportStep } from './CloudflareDnsApiTokenImportStep';
 import { CloudflareDnsCheckStep } from './CloudflareDnsCheckStep';
 import { CloudflareDnsManualStep } from './CloudflareDnsManualStep';
@@ -15,14 +15,14 @@ import { CloudflareDnsZoneFileImportStep } from './CloudflareDnsZoneFileImportSt
  *
  * The record table remains the single source of truth for the values to configure. This wizard adds the two batch
  * ways of configuring all of them at once - an API token import and a zone file import - and keeps the manual steps
- * as a fallback.
+ * as a fallback. All record groups of the DNS manual, for example the server domain, the generated project domains,
+ * and the email records, are configured by this one wizard together.
  *
  * @private shared by the Agents Server DNS instruction views
  */
 export function CloudflareDnsWizard({
     domain,
-    recordSelection,
-    records,
+    recordGroups,
 }: {
     /**
      * Hostname whose DNS records are being configured.
@@ -30,16 +30,11 @@ export function CloudflareDnsWizard({
     readonly domain: string;
 
     /**
-     * Whether all listed records or one listed alternative must be configured.
+     * All record groups displayed by the parent instruction panel.
      */
-    readonly recordSelection: DnsRecordSelection;
-
-    /**
-     * The canonical DNS records displayed by the parent instruction panel.
-     */
-    readonly records: ReadonlyArray<DnsRecordInstruction>;
+    readonly recordGroups: ReadonlyArray<DnsRecordGroup>;
 }) {
-    const batchPlan = resolveDnsRecordBatchPlan({ records, recordSelection });
+    const batchPlan = resolveDnsRecordBatchPlanForGroups(recordGroups);
     const isBatchImportAvailable = batchPlan.applicableRecords.length > 0;
     const availableSteps = CLOUDFLARE_DNS_WIZARD_STEPS.filter((step) => isBatchImportAvailable || !step.isBatchStep);
     const [currentStep, setCurrentStep] = useState<CloudflareDnsWizardStep>(
@@ -67,11 +62,7 @@ export function CloudflareDnsWizard({
             />
 
             {currentStep === 'import-with-api-token' ? (
-                <CloudflareDnsApiTokenImportStep
-                    batchPlan={batchPlan}
-                    domain={domain}
-                    recordSelection={recordSelection}
-                />
+                <CloudflareDnsApiTokenImportStep batchPlan={batchPlan} domain={domain} recordGroups={recordGroups} />
             ) : null}
 
             {currentStep === 'import-zone-file' ? (
@@ -79,10 +70,10 @@ export function CloudflareDnsWizard({
             ) : null}
 
             {currentStep === 'add-manually' ? (
-                <CloudflareDnsManualStep domain={domain} recordSelection={recordSelection} records={records} />
+                <CloudflareDnsManualStep domain={domain} recordGroups={recordGroups} />
             ) : null}
 
-            {currentStep === 'check-dns' ? <CloudflareDnsCheckStep recordSelection={recordSelection} /> : null}
+            {currentStep === 'check-dns' ? <CloudflareDnsCheckStep recordGroups={recordGroups} /> : null}
         </section>
     );
 }

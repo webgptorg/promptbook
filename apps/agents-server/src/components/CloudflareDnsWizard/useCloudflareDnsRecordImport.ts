@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from 'react';
 import type { CloudflareDnsBatchApplication } from '../../utils/cloudflare/CloudflareDnsBatchApplication';
-import type { DnsRecordInstruction, DnsRecordSelection } from '../../utils/dnsRecords/DnsRecordInstruction';
+import type { DnsRecordGroup } from '../../utils/dnsRecords/DnsRecordInstruction';
 
 /**
  * Endpoint which writes the records of one DNS manual into Cloudflare.
@@ -23,8 +23,7 @@ const CLOUDFLARE_DNS_IMPORT_ENDPOINT = '/api/admin/dns-records/cloudflare';
  */
 export function useCloudflareDnsRecordImport(options: {
     readonly domain: string;
-    readonly recordSelection: DnsRecordSelection;
-    readonly records: ReadonlyArray<DnsRecordInstruction>;
+    readonly recordGroups: ReadonlyArray<DnsRecordGroup>;
 }): {
     readonly isImporting: boolean;
     readonly application: CloudflareDnsBatchApplication | null;
@@ -34,7 +33,7 @@ export function useCloudflareDnsRecordImport(options: {
     const [isImporting, setIsImporting] = useState(false);
     const [application, setApplication] = useState<CloudflareDnsBatchApplication | null>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
-    const { domain, recordSelection, records } = options;
+    const { domain, recordGroups } = options;
 
     const importRecords = useCallback(
         async (apiToken: string) => {
@@ -46,7 +45,7 @@ export function useCloudflareDnsRecordImport(options: {
                 const response = await fetch(CLOUDFLARE_DNS_IMPORT_ENDPOINT, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ apiToken, domain, recordSelection, records }),
+                    body: JSON.stringify({ apiToken, domain, recordGroups }),
                 });
                 const payload = (await response.json().catch(() => null)) as
                     | (CloudflareDnsBatchApplication & { readonly error?: string })
@@ -64,7 +63,7 @@ export function useCloudflareDnsRecordImport(options: {
                 setIsImporting(false);
             }
         },
-        [domain, recordSelection, records],
+        [domain, recordGroups],
     );
 
     return { isImporting, application, errorMessage, importRecords };
