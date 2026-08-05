@@ -267,16 +267,6 @@ const DETAILS_PLACEHOLDER_WRAPPED_REGEX = new RegExp(`<p>\\s*(${DETAILS_PLACEHOL
 const INLINE_REFERENCE_REGEX = /\[\[([^\]\r\n]+?)\]\]/g;
 
 /**
- * Pattern matching ordinary markdown links that can be promoted to inline reference chips.
- *
- * Images are intentionally captured separately and left unchanged by the replacement helper.
- *
- * @private utility of `renderMarkdown`
- */
-const MARKDOWN_INLINE_REFERENCE_LINK_REGEX =
-    /(!?)\[([^\]\r\n]*)\]\(\s*(<[^>\r\n]+>|[^)\s]+)(?:\s+(?:"[^"\r\n]*"|'[^'\r\n]*'|\([^)]*\)))?\s*\)/g;
-
-/**
  * Markdown patterns that are strong enough to identify content as markdown.
  */
 const MARKDOWN_CONTENT_PATTERNS: ReadonlyArray<RegExp> = [
@@ -342,14 +332,6 @@ export type MarkdownInlineReference = {
      * Link target for the rendered reference.
      */
     readonly href: string;
-
-    /**
-     * Markdown link destination prefixes that should render as this reference as well.
-     *
-     * This supports legacy links such as an Agents Server project file URL while keeping
-     * `reference` as the canonical `[[project]]` token.
-     */
-    readonly sourceHrefPrefixes?: ReadonlyArray<string>;
 
     /**
      * Optional hover title for the rendered reference.
@@ -696,12 +678,11 @@ const CHAT_MARKDOWN_CONVERTER = createChatMarkdownConverter();
  * outer `<details>` and optional `<summary>` markup untouched.
  *
  * @param detailsBlock - Raw `<details>...</details>` HTML captured from markdown.
- * @param options - Markdown rendering options to reuse for the details body.
  * @returns `<details>` HTML whose body has been converted from markdown to HTML.
  *
  * @private utility of `renderMarkdown`
  */
-function renderDetailsBlock(detailsBlock: string, options?: RenderMarkdownOptions): string_html {
+function renderDetailsBlock(detailsBlock: string): string_html {
     const openTagMatch = detailsBlock.match(/^<details\b[^>]*>/i);
     const closeTagMatch = detailsBlock.match(/<\/details\s*>$/i);
 
@@ -715,7 +696,7 @@ function renderDetailsBlock(detailsBlock: string, options?: RenderMarkdownOption
     const summaryMatch = innerContent.match(/^(\s*<summary\b[^>]*>[\s\S]*?<\/summary\s*>)([\s\S]*)$/i);
     const summaryHtml = summaryMatch?.[1] ?? '';
     const bodyMarkdown = (summaryMatch?.[2] ?? innerContent) as string_markdown;
-    const renderedBody = renderMarkdown(bodyMarkdown, options);
+    const renderedBody = renderMarkdown(bodyMarkdown);
 
     return `${openTag}${summaryHtml}${renderedBody}${closeTag}` as string_html;
 }
@@ -759,18 +740,17 @@ function maskMarkdownCodeSegments(markdown: string_markdown): MaskedCodeSegments
  * processes their content.
  *
  * @param markdown - Markdown text that may contain raw HTML `<details>` blocks.
- * @param options - Markdown rendering options to reuse for the details body.
  * @returns Masked markdown and a restore helper that returns `string_html`.
  *
  * @private utility of `renderMarkdown`
  */
-function maskDetailsBlocks(markdown: string_markdown, options?: RenderMarkdownOptions): MaskedDetailsBlocksResult {
+function maskDetailsBlocks(markdown: string_markdown): MaskedDetailsBlocksResult {
     const blocks: string_html[] = [];
 
     DETAILS_BLOCK_REGEX.lastIndex = 0;
     const masked = markdown.replace(DETAILS_BLOCK_REGEX, (match) => {
         const placeholder = `${DETAILS_PLACEHOLDER_PREFIX}${blocks.length}__`;
-        blocks.push(renderDetailsBlock(match, options));
+        blocks.push(renderDetailsBlock(match));
         return placeholder;
     }) as string_markdown;
 
@@ -885,93 +865,6 @@ function createMarkdownInlineReferenceByKey(
 }
 
 /**
- * Returns whether a href starts with a configured source href prefix.
- *
- * @param href - Markdown link destination.
- * @param sourceHrefPrefix - Configured source href prefix.
- * @returns Whether the href belongs to the source prefix.
- *
- * @private utility of `renderMarkdown`
- */
-function doesHrefStartWithSourceHrefPrefix(href: string, sourceHrefPrefix: string): boolean {
-    if (href === sourceHrefPrefix) {
-        return true;
-    }
-
-    const normalizedSourceHrefPrefix = sourceHrefPrefix.endsWith('/') ? sourceHrefPrefix : `${sourceHrefPrefix}/`;
-
-    return href.startsWith(normalizedSourceHrefPrefix);
-}
-
-/**
- * Returns a comparable path for an absolute href when the configured source prefix is relative.
- *
- * @param href - Href to normalize.
- * @returns Absolute URL pathname or the original href when it is relative/invalid.
- *
- * @private utility of `renderMarkdown`
- */
-function resolveAbsoluteHrefPath(href: string): string {
-    try {
-        return new URL(href).pathname;
-    } catch {
-        return href;
-    }
-}
-
-/**
- * Returns whether one markdown link destination belongs to one inline reference.
- *
- * Relative project paths also match absolute URLs on the current server, which keeps
- * server-generated relative links and model-generated absolute links consistent.
- *
- * @param reference - Candidate inline reference.
- * @param href - Markdown link destination.
- * @returns Whether the href should render as the reference chip.
- *
- * @private utility of `renderMarkdown`
- */
-function doesMarkdownInlineReferenceMatchHref(reference: MarkdownInlineReference, href: string): boolean {
-    const normalizedHref = href.trim();
-
-    return (reference.sourceHrefPrefixes || []).some((sourceHrefPrefix) => {
-        const normalizedSourceHrefPrefix = sourceHrefPrefix.trim();
-        if (!normalizedSourceHrefPrefix) {
-            return false;
-        }
-
-        if (doesHrefStartWithSourceHrefPrefix(normalizedHref, normalizedSourceHrefPrefix)) {
-            return true;
-        }
-
-        const isRelativeSourceHrefPrefix = !/^[a-z][a-z0-9+.-]*:/i.test(normalizedSourceHrefPrefix);
-        const isAbsoluteHref = /^[a-z][a-z0-9+.-]*:/i.test(normalizedHref);
-
-        return (
-            isRelativeSourceHrefPrefix &&
-            isAbsoluteHref &&
-            doesHrefStartWithSourceHrefPrefix(resolveAbsoluteHrefPath(normalizedHref), normalizedSourceHrefPrefix)
-        );
-    });
-}
-
-/**
- * Finds the inline reference represented by a markdown link destination.
- *
- * @param references - Inline references available to the markdown renderer.
- * @param href - Markdown link destination.
- * @returns Matching reference or `undefined` when the href is unrelated.
- *
- * @private utility of `renderMarkdown`
- */
-function findMarkdownInlineReferenceByHref(
-    references: ReadonlyArray<MarkdownInlineReference>,
-    href: string,
-): MarkdownInlineReference | undefined {
-    return references.find((reference) => doesMarkdownInlineReferenceMatchHref(reference, href));
-}
-
-/**
  * Renders one inline reference as raw HTML that is sanitized by the shared markdown sanitizer.
  *
  * @param reference - Resolved inline reference.
@@ -1063,28 +956,11 @@ function applyMarkdownInlineReferences(markdown: string_markdown, options?: Rend
         return markdown;
     }
 
-    const markdownWithInlineReferenceTokens = markdown.replace(
-        INLINE_REFERENCE_REGEX,
-        (match, rawReference: string) => {
-            const reference = referenceByKey.get(normalizeMarkdownInlineReferenceKey(rawReference));
+    return markdown.replace(INLINE_REFERENCE_REGEX, (match, rawReference: string) => {
+        const reference = referenceByKey.get(normalizeMarkdownInlineReferenceKey(rawReference));
 
-            return reference ? renderMarkdownInlineReferenceHtml(reference, className) : match;
-        },
-    );
-
-    return markdownWithInlineReferenceTokens.replace(
-        MARKDOWN_INLINE_REFERENCE_LINK_REGEX,
-        (match, imageMarker: string, _linkLabel: string, rawHref: string) => {
-            if (imageMarker) {
-                return match;
-            }
-
-            const href = rawHref.replace(/^<|>$/g, '');
-            const reference = findMarkdownInlineReferenceByHref(references, href);
-
-            return reference ? renderMarkdownInlineReferenceHtml(reference, className) : match;
-        },
-    ) as string_markdown;
+        return reference ? renderMarkdownInlineReferenceHtml(reference, className) : match;
+    }) as string_markdown;
 }
 
 /**
@@ -1129,7 +1005,7 @@ export function renderMarkdown(markdown: string_markdown, options?: RenderMarkdo
 
     try {
         const normalizedMarkdown = normalizeMarkdownSublists(markdown);
-        const { masked: maskedMarkdown, restore: restoreDetails } = maskDetailsBlocks(normalizedMarkdown, options);
+        const { masked: maskedMarkdown, restore: restoreDetails } = maskDetailsBlocks(normalizedMarkdown);
         const { masked: codeMaskedMarkdown, restore: restoreCode } = maskMarkdownCodeSegments(maskedMarkdown);
         const referencedMarkdown = applyMarkdownInlineReferences(codeMaskedMarkdown, options);
         const inlineReferenceMarkdown = restoreCode(referencedMarkdown);

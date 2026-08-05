@@ -44,17 +44,6 @@ export function buildAgentProjectProfileHref(agentPermanentId: string, projectNa
 }
 
 /**
- * Builds the href prefix serving files from one agent project.
- *
- * @param agentPermanentId - Permanent id of the agent.
- * @param projectName - Project directory name.
- * @returns Project file href prefix.
- */
-export function buildAgentProjectFilesHrefPrefix(agentPermanentId: string, projectName: string): string {
-    return `${buildAgentProjectProfileHref(agentPermanentId, projectName)}/files/`;
-}
-
-/**
  * Builds the href of one project on its owning server.
  *
  * @param options - Project and server identity.
