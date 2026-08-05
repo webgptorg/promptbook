@@ -67,8 +67,8 @@
             "focus": false
         },
         {
-            "name": "🐙🚀 Run ptbk coder `claude-opus` Coding Agent (💤)(💸)(⏳)",
-            "command": "npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code --model claude-opus --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder --test-before yes-and-fix  --auto-push --auto-pull",
+            "name": "🐙🚀 Run ptbk coder `claude-opus-5` Coding Agent (💤)(💸)(⏳)",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder run --harness claude-code --model claude-opus-5 --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder --test-before yes-and-fix  --auto-push --auto-pull",
             "execute": false,
             "onlySingle": false,
             "focus": false
