@@ -10,7 +10,7 @@ import { runGitCommand } from './runGitCommand';
 /**
  * Commits staged changes with the provided message using the dedicated coding-agent identity when configured,
  * otherwise falls back to the default Git configuration. Remote pushing is opt-in via `options.autoPush`,
- * `options.includePaths` can restrict staging, `options.onlyPaths` can restrict the commit pathspec,
+ * `options.relevantPaths` restricts both the staging and the commit to the files of the current operation,
  * `options.excludePaths` can keep temporary artifacts out of the created commit and
  * `options.isEmptyCommitAllowed` keeps a round without any file change from failing.
  *
@@ -21,8 +21,15 @@ export async function commitChanges(
     message: string,
     options?: {
         autoPush?: boolean;
-        includePaths?: ReadonlyArray<string>;
-        onlyPaths?: ReadonlyArray<string>;
+
+        /**
+         * Repository-relative paths which are relevant for the current operation.
+         *
+         * Only these paths are staged and only they end up in the created commit, so unrelated changes of the
+         * project are left in the working tree. Everything is committed when the paths are not provided at all,
+         * while an empty list commits nothing but the file changes already staged before.
+         */
+        relevantPaths?: ReadonlyArray<string>;
         excludePaths?: ReadonlyArray<string>;
         projectPath?: string;
         isEmptyCommitAllowed?: boolean;
@@ -41,16 +48,21 @@ export async function commitChanges(
     try {
         const agentEnv = buildAgentGitEnv();
         const signingFlag = buildAgentGitSigningFlag();
-        await stageCommitChanges(projectPath, agentEnv, options?.includePaths, [
+        const excludedGitPaths = await normalizeExcludedGitPaths(projectPath, [
             commitMessagePath,
             ...(options?.excludePaths ?? []),
         ]);
+        // Note: An excluded path must be dropped from the relevant paths as well, because a commit restricted by
+        //       a pathspec commits the working tree content of those paths and would ignore unstaging them
+        const relevantPaths = excludeGitPaths(options?.relevantPaths, excludedGitPaths);
+
+        await stageCommitChanges(projectPath, agentEnv, relevantPaths, excludedGitPaths);
 
         await runGitCommand({
             command: buildGitCommitCommand({
                 commitMessagePath,
                 signingFlag,
-                onlyPaths: options?.onlyPaths,
+                relevantPaths,
                 isEmptyCommitAllowed: options?.isEmptyCommitAllowed,
             }),
             cwd: projectPath,
@@ -66,21 +78,23 @@ export async function commitChanges(
 }
 
 /**
- * Stages repository changes and optionally unstages temporary files that should not end up inside the commit.
+ * Stages the relevant repository changes and unstages temporary files that should not end up inside the commit.
  */
 async function stageCommitChanges(
     projectPath: string,
     agentEnv: Record<string, string> | undefined,
-    includePaths: ReadonlyArray<string> | undefined,
-    excludePaths: ReadonlyArray<string> | undefined,
+    relevantPaths: ReadonlyArray<string> | undefined,
+    excludedGitPaths: ReadonlyArray<string>,
 ): Promise<void> {
-    await runGitCommand({
-        command: buildGitAddCommand(includePaths),
-        cwd: projectPath,
-        env: agentEnv,
-    });
+    // Note: An operation which changed nothing relevant has nothing to stage
+    if (relevantPaths === undefined || relevantPaths.length > 0) {
+        await runGitCommand({
+            command: buildGitAddCommand(relevantPaths),
+            cwd: projectPath,
+            env: agentEnv,
+        });
+    }
 
-    const excludedGitPaths = await normalizeExcludedGitPaths(projectPath, excludePaths);
     if (excludedGitPaths.length === 0) {
         return;
     }
@@ -94,14 +108,36 @@ async function stageCommitChanges(
 }
 
 /**
- * Builds the git add command for either the whole tree or a focused set of paths.
+ * Builds the git add command for either the whole tree or the relevant paths of the current operation.
  */
-function buildGitAddCommand(includePaths: ReadonlyArray<string> | undefined): string {
-    if (!includePaths || includePaths.length === 0) {
+function buildGitAddCommand(relevantPaths: ReadonlyArray<string> | undefined): string {
+    if (!relevantPaths || relevantPaths.length === 0) {
         return 'git add .';
     }
 
-    return `git add --all -- ${includePaths.map(quoteShellPath).join(' ')}`;
+    return `git add --all -- ${relevantPaths.map(quoteShellPath).join(' ')}`;
+}
+
+/**
+ * Removes the excluded repository paths from the relevant paths of the current operation.
+ */
+function excludeGitPaths(
+    relevantPaths: ReadonlyArray<string> | undefined,
+    excludedGitPaths: ReadonlyArray<string>,
+): ReadonlyArray<string> | undefined {
+    if (relevantPaths === undefined || excludedGitPaths.length === 0) {
+        return relevantPaths;
+    }
+
+    const excludedGitPathSet = new Set(excludedGitPaths);
+    return relevantPaths.filter((relevantPath) => !excludedGitPathSet.has(normalizeGitPathSeparators(relevantPath)));
+}
+
+/**
+ * Normalizes path separators so a relevant path can be matched against a repository-relative Git path.
+ */
+function normalizeGitPathSeparators(path: string): string {
+    return path.replace(/\\/gu, '/');
 }
 
 /**
@@ -312,7 +348,7 @@ async function executeGitPushCommand(
 function buildGitCommitCommand(options: {
     commitMessagePath: string;
     signingFlag?: string;
-    onlyPaths?: ReadonlyArray<string>;
+    relevantPaths?: ReadonlyArray<string>;
     isEmptyCommitAllowed?: boolean;
 }): string {
     const commandParts = ['git commit'];
@@ -327,8 +363,8 @@ function buildGitCommitCommand(options: {
 
     commandParts.push(`--file "${options.commitMessagePath}"`);
 
-    if (options.onlyPaths && options.onlyPaths.length > 0) {
-        commandParts.push('--', ...options.onlyPaths.map(quoteShellPath));
+    if (options.relevantPaths && options.relevantPaths.length > 0) {
+        commandParts.push('--', ...options.relevantPaths.map(quoteShellPath));
     }
 
     return commandParts.join(' ');

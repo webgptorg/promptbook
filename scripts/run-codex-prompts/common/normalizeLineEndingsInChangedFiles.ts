@@ -1,16 +1,7 @@
-import { createHash } from 'crypto';
 import { readFile, stat, writeFile } from 'fs/promises';
 import { resolve } from 'path';
-import { $execCommand } from '../../../src/utils/execCommand/$execCommand';
-
-/**
- * Git commands used to list changed and untracked files in the working tree.
- */
-const GIT_CHANGED_FILE_COMMANDS: ReadonlyArray<string> = [
-    'git diff --name-only --',
-    'git diff --name-only --cached --',
-    'git ls-files --others --exclude-standard',
-];
+import type { WorkingTreeChangesSnapshot } from '../git/workingTreeChanges';
+import { captureWorkingTreeChangesSnapshot, listFilesChangedSinceSnapshot } from '../git/workingTreeChanges';
 
 /**
  * File extensions that should always be treated as binary.
@@ -59,9 +50,7 @@ const BINARY_FILE_EXTENSIONS = new Set<string>([
 /**
  * Snapshot of file hashes for files that were already dirty before a coding round started.
  */
-export type ChangedFilesSnapshot = {
-    readonly changedFileHashes: ReadonlyMap<string, string>;
-};
+export type ChangedFilesSnapshot = WorkingTreeChangesSnapshot;
 
 /**
  * Options for normalizing line endings in files changed during one coding round.
@@ -84,19 +73,7 @@ export type NormalizeLineEndingsInChangedFilesResult = {
  * Captures hashes for files that are dirty before a coding round starts.
  */
 export async function captureChangedFilesSnapshot(projectPath: string): Promise<ChangedFilesSnapshot> {
-    const changedFiles = await listWorkingTreeChangedFiles(projectPath);
-    const changedFileHashes = new Map<string, string>();
-
-    for (const relativePath of changedFiles) {
-        const absolutePath = resolveProjectPath(projectPath, relativePath);
-        const fileHash = await readFileHashIfRegularFile(absolutePath);
-
-        if (fileHash) {
-            changedFileHashes.set(relativePath, fileHash);
-        }
-    }
-
-    return { changedFileHashes };
+    return captureWorkingTreeChangesSnapshot(projectPath);
 }
 
 /**
@@ -105,23 +82,16 @@ export async function captureChangedFilesSnapshot(projectPath: string): Promise<
 export async function normalizeLineEndingsInFilesChangedSinceSnapshot(
     options: NormalizeLineEndingsInChangedFilesOptions,
 ): Promise<NormalizeLineEndingsInChangedFilesResult> {
-    const changedFiles = await listWorkingTreeChangedFiles(options.projectPath);
+    const changedFiles = await listFilesChangedSinceSnapshot(options.projectPath, options.snapshot);
     let scannedFiles = 0;
     let normalizedFiles = 0;
     let skippedBinaryFiles = 0;
 
     for (const relativePath of changedFiles) {
         const absolutePath = resolveProjectPath(options.projectPath, relativePath);
-        const currentFileHash = await readFileHashIfRegularFile(absolutePath);
 
-        if (!currentFileHash) {
-            continue;
-        }
-
-        const hashBeforeRound = options.snapshot.changedFileHashes.get(relativePath);
-        const hasChangedInRound = hashBeforeRound === undefined || hashBeforeRound !== currentFileHash;
-
-        if (!hasChangedInRound) {
+        // Note: A file deleted or replaced by a directory during the round has no content to normalize
+        if (!(await isRegularFile(absolutePath))) {
             continue;
         }
 
@@ -155,34 +125,6 @@ export async function normalizeLineEndingsInFilesChangedSinceSnapshot(
 }
 
 /**
- * Lists dirty tracked files and untracked files in the working tree.
- */
-async function listWorkingTreeChangedFiles(projectPath: string): Promise<ReadonlyArray<string>> {
-    const changedFiles = new Set<string>();
-
-    for (const command of GIT_CHANGED_FILE_COMMANDS) {
-        const output = await $execCommand({
-            command,
-            cwd: projectPath,
-            isVerbose: false,
-        });
-
-        for (const filePath of output.split('\n').map(normalizeGitFilePath).filter(Boolean)) {
-            changedFiles.add(filePath);
-        }
-    }
-
-    return [...changedFiles.values()];
-}
-
-/**
- * Normalizes Git output paths for internal matching.
- */
-function normalizeGitFilePath(filePath: string): string {
-    return filePath.trim().replace(/\\/g, '/');
-}
-
-/**
  * Resolves a repository-relative file path to an absolute path.
  */
 function resolveProjectPath(projectPath: string, relativePath: string): string {
@@ -190,36 +132,14 @@ function resolveProjectPath(projectPath: string, relativePath: string): string {
 }
 
 /**
- * Reads file hash for a regular file and returns undefined for non-files/missing files.
+ * Checks whether a path exists and is a regular file.
  */
-async function readFileHashIfRegularFile(path: string): Promise<string | undefined> {
+async function isRegularFile(path: string): Promise<boolean> {
     try {
-        const fileStats = await stat(path);
-        if (!fileStats.isFile()) {
-            return undefined;
-        }
-
-        const content = await readFile(path);
-        return createHash('sha1').update(content).digest('hex');
-    } catch (error) {
-        if (isFileNotFoundError(error)) {
-            return undefined;
-        }
-
-        throw error;
+        return (await stat(path)).isFile();
+    } catch {
+        return false;
     }
-}
-
-/**
- * Returns true when an error is a missing-file filesystem error.
- */
-function isFileNotFoundError(error: unknown): boolean {
-    return Boolean(
-        error &&
-            typeof error === 'object' &&
-            'code' in error &&
-            (((error as { code?: string }).code === 'ENOENT') || (error as { code?: string }).code === 'ENOTDIR'),
-    );
 }
 
 /**

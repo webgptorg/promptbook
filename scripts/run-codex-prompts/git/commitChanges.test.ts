@@ -142,7 +142,7 @@ describe('commitChanges', () => {
         expect(gitResetCommand).toContain('.promptbook/ptbk-coder/commit-messages/COMMIT_MESSAGE_');
     });
 
-    it('can stage only selected paths before creating the commit', async () => {
+    it('stages and commits only the relevant paths of the current operation', async () => {
         temporaryProjectPath = await createTemporaryGitProject();
         process.chdir(temporaryProjectPath);
 
@@ -150,7 +150,7 @@ describe('commitChanges', () => {
         execMock.mockImplementation(async () => okResult());
 
         await commitChanges('test commit', {
-            includePaths: ['messages/queued/question.md', 'messages/finished/question.md'],
+            relevantPaths: ['messages/queued/question.md', 'messages/finished/question.md'],
         });
 
         const calledCommands = getCalledCommands(execMock);
@@ -158,9 +158,30 @@ describe('commitChanges', () => {
             'git add --all -- "messages/queued/question.md" "messages/finished/question.md"',
         );
         expect(calledCommands).not.toContain('git add .');
+        expect(calledCommands).toEqual(
+            expect.arrayContaining([
+                expect.stringMatching(
+                    /^git commit --gpg-sign="test" --file ".*COMMIT_MESSAGE_\d+\.txt" -- "messages\/queued\/question\.md" "messages\/finished\/question\.md"$/,
+                ),
+            ]),
+        );
     });
 
-    it('can restrict the commit itself to selected paths', async () => {
+    it('commits everything when no relevant paths are provided', async () => {
+        temporaryProjectPath = await createTemporaryGitProject();
+        process.chdir(temporaryProjectPath);
+
+        const execMock = getExecCommandMock();
+        execMock.mockImplementation(async () => okResult());
+
+        await commitChanges('test commit');
+
+        const calledCommands = getCalledCommands(execMock);
+        expect(calledCommands).toContain('git add .');
+        expect(calledCommands.find((command) => command.startsWith('git commit '))).not.toContain(' -- ');
+    });
+
+    it('drops an excluded path from the relevant paths so it never reaches the commit', async () => {
         temporaryProjectPath = await createTemporaryGitProject();
         process.chdir(temporaryProjectPath);
 
@@ -168,18 +189,31 @@ describe('commitChanges', () => {
         execMock.mockImplementation(async () => okResult());
 
         await commitChanges('test commit', {
-            includePaths: ['prompts/example.md'],
-            onlyPaths: ['prompts/example.md'],
+            relevantPaths: ['prompts/example.md', 'prompts/2026-04-6490.log.txt'],
+            excludePaths: [join(temporaryProjectPath, 'prompts', '2026-04-6490.log.txt')],
         });
 
         const calledCommands = getCalledCommands(execMock);
         expect(calledCommands).toContain('git add --all -- "prompts/example.md"');
         expect(calledCommands).toEqual(
-            expect.arrayContaining([
-                expect.stringMatching(
-                    /^git commit --gpg-sign="test" --file ".*\.promptbook\/ptbk-coder\/commit-messages\/COMMIT_MESSAGE_\d+\.txt" -- "prompts\/example\.md"$/,
-                ),
-            ]),
+            expect.arrayContaining([expect.stringMatching(/^git commit .* -- "prompts\/example\.md"$/)]),
+        );
+    });
+
+    it('stages nothing when the operation has changed no relevant path', async () => {
+        temporaryProjectPath = await createTemporaryGitProject();
+        process.chdir(temporaryProjectPath);
+
+        const execMock = getExecCommandMock();
+        execMock.mockImplementation(async () => okResult());
+
+        await commitChanges('test commit', { relevantPaths: [], isEmptyCommitAllowed: true });
+
+        const calledCommands = getCalledCommands(execMock);
+        expect(calledCommands).not.toContain('git add .');
+        expect(calledCommands.some((command) => command.startsWith('git add --all -- '))).toBe(false);
+        expect(calledCommands).toEqual(
+            expect.arrayContaining([expect.stringContaining('git commit --gpg-sign="test" --allow-empty --file ')]),
         );
     });
 

@@ -1,5 +1,6 @@
 import colors from 'colors';
 import { relative } from 'path';
+import { captureCoderCommitScope, resolveCoderCommitScopePaths } from '../git/coderCommitScope';
 import { commitChanges } from '../git/commitChanges';
 import type { RunPromptRoundOptions } from '../main/runPromptRound';
 import { runPromptRound } from '../main/runPromptRound';
@@ -32,6 +33,9 @@ import { removeCoderIsolationWorktree } from './removeCoderIsolationWorktree';
 export async function runIsolatedPromptRound(options: RunPromptRoundOptions): Promise<void> {
     const { nextPrompt, promptLabel, isRichUiEnabled, uiHandle, waitForRequestedPause } = options;
     const projectPath = options.projectPath ?? process.cwd();
+    // Note: The original project is left untouched by the isolated round itself, so its scope covers exactly
+    //       the prompt status update and the changes the merge brings back from the worktree
+    const originalProjectCommitScope = await captureCoderCommitScope(projectPath);
     const worktree = await createCoderIsolationWorktree({
         projectPath,
         taskName: buildCoderIsolationTaskName(nextPrompt.file, nextPrompt.section),
@@ -72,6 +76,7 @@ export async function runIsolatedPromptRound(options: RunPromptRoundOptions): Pr
     // Note: The merge only stages the isolated changes, so this commit joins them with the prompt status update
     await commitChanges(buildCommitMessage(nextPrompt.file, nextPrompt.section), {
         autoPush: options.options.autoPush,
+        relevantPaths: await resolveCoderCommitScopePaths(originalProjectCommitScope),
         projectPath,
     });
     await removeCoderIsolationWorktree(worktree);
@@ -103,7 +108,7 @@ async function recordIsolationMergeFailure(
     await commitChanges(buildCoderIsolationMergeFailureCommitMessage(worktree), {
         autoPush: options.options.autoPush,
         projectPath: worktree.projectPath,
-        includePaths: [nextPrompt.file.path, errorLogPath].map((path) =>
+        relevantPaths: [nextPrompt.file.path, errorLogPath].map((path) =>
             toProjectRelativeGitPath(worktree.projectPath, path),
         ),
     });

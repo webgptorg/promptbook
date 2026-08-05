@@ -13,6 +13,14 @@ import { mergeCoderIsolationWorktree } from './mergeCoderIsolationWorktree';
 import { removeCoderIsolationWorktree } from './removeCoderIsolationWorktree';
 import { runIsolatedPromptRound } from './runIsolatedPromptRound';
 
+jest.mock('../git/coderCommitScope', () => ({
+    captureCoderCommitScope: jest.fn(async (projectPath: string) => ({
+        projectPath,
+        snapshotBeforeOperation: { changedFileHashes: new Map() },
+    })),
+    resolveCoderCommitScopePaths: jest.fn(async () => ['prompts/example.md']),
+}));
+
 jest.mock('../git/commitChanges', () => ({
     commitChanges: jest.fn(),
 }));
@@ -140,9 +148,9 @@ describe('runIsolatedPromptRound', () => {
         jest.spyOn(console, 'info').mockImplementation(() => undefined);
         jest.spyOn(console, 'warn').mockImplementation(() => undefined);
         jest.spyOn(console, 'error').mockImplementation(() => undefined);
-        (
-            createCoderIsolationWorktree as jest.MockedFunction<typeof createCoderIsolationWorktree>
-        ).mockResolvedValue(WORKTREE);
+        (createCoderIsolationWorktree as jest.MockedFunction<typeof createCoderIsolationWorktree>).mockResolvedValue(
+            WORKTREE,
+        );
         (mergeCoderIsolationWorktree as jest.MockedFunction<typeof mergeCoderIsolationWorktree>).mockResolvedValue({
             isMerged: true,
         });
@@ -179,6 +187,8 @@ describe('runIsolatedPromptRound', () => {
         expect(commitChanges).toHaveBeenCalledWith(expect.any(String), {
             autoPush: true,
             projectPath: WORKTREE.projectPath,
+            // Note: The prompt status update and the merged changes are the only relevant paths of the round
+            relevantPaths: ['prompts/example.md'],
         });
         expect(removeCoderIsolationWorktree).toHaveBeenCalledWith(WORKTREE);
         expect(writePromptFile).not.toHaveBeenCalled();
@@ -207,7 +217,7 @@ describe('runIsolatedPromptRound', () => {
             expect.stringContaining('Merging the isolated task `example` failed'),
             expect.objectContaining({
                 projectPath: WORKTREE.projectPath,
-                includePaths: ['prompts/example.md', 'prompts/example.error.log'],
+                relevantPaths: ['prompts/example.md', 'prompts/example.error.log'],
             }),
         );
         expect(removeCoderIsolationWorktree).not.toHaveBeenCalled();

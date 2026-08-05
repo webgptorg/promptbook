@@ -251,7 +251,7 @@ describe('tickAgentMessages', () => {
         });
         expect(commitChanges).toHaveBeenCalledWith('Answering message question.book', {
             autoPush: true,
-            includePaths: ['messages/finished/question.book', 'messages/finished/question.book.report.json'],
+            relevantPaths: ['messages/finished/question.book', 'messages/finished/question.book.report.json'],
             projectPath: temporaryProjectPath,
         });
         expect(printAgentGitIdentityTipAtProcessExitIfNeeded).toHaveBeenCalled();
@@ -318,7 +318,7 @@ describe('tickAgentMessages', () => {
 
         expect(commitChanges).toHaveBeenCalledWith('Answering message tracked.book', {
             autoPush: false,
-            includePaths: [
+            relevantPaths: [
                 'messages/queued/tracked.book',
                 'messages/finished/tracked.book',
                 'messages/finished/tracked.book.report.json',

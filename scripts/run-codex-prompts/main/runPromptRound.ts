@@ -10,15 +10,13 @@ import { recordPromptDurationSample } from '../common/coderRunEstimateCache';
 import type { WaitForCoderRunPauseCheckpoint } from '../common/CoderRunPauseCheckpoint';
 import type { CoderRunStepProgress } from '../common/createCoderRunStepTracker';
 import { formatCommitMessageForDisplay } from '../common/formatCommitMessageForDisplay';
-import {
-    captureChangedFilesSnapshot,
-    normalizeLineEndingsInFilesChangedSinceSnapshot,
-    type ChangedFilesSnapshot,
-} from '../common/normalizeLineEndingsInChangedFiles';
+import { normalizeLineEndingsInFilesChangedSinceSnapshot } from '../common/normalizeLineEndingsInChangedFiles';
 import { printCommitMessage } from '../common/printCommitMessage';
 import { withPromptRuntimeLog } from '../common/runGoScript/withPromptRuntimeLog';
 import { sleepWithCountdown } from '../common/sleepWithCountdown';
 import { waitForEnter } from '../common/waitForEnter';
+import type { CoderCommitScope } from '../git/coderCommitScope';
+import { captureCoderCommitScope, resolveCoderCommitScopePaths } from '../git/coderCommitScope';
 import { commitChanges } from '../git/commitChanges';
 import { runAutoMigrateTestingServers } from '../migrations/runAutoMigrateTestingServers';
 import { buildCodexPrompt } from '../prompts/buildCodexPrompt';
@@ -120,9 +118,9 @@ export async function runPromptRound({
 
     const promptExecutionStartedDate = moment();
     let attemptCount = 1;
-    const roundChangedFilesSnapshot = options.normalizeLineEndings
-        ? await captureChangedFilesSnapshot(roundProjectPath)
-        : undefined;
+    // Note: The very same snapshot tells which files this round has changed, both for normalizing their line
+    //       endings and for committing only them instead of everything which is changed in the project
+    const roundCommitScope = await captureRoundCommitScopeIfNeeded(options, roundProjectPath);
 
     await withPromptRuntimeLog(
         scriptPath,
@@ -165,7 +163,7 @@ export async function runPromptRound({
                         result,
                         commitMessage,
                         logPath,
-                        roundChangedFilesSnapshot,
+                        roundCommitScope,
                         isRichUiEnabled,
                         progressDisplay,
                         uiHandle,
@@ -200,7 +198,7 @@ export async function runPromptRound({
                 attemptCount,
                 error: lastError,
                 options,
-                roundChangedFilesSnapshot,
+                roundCommitScope,
                 uiHandle,
                 waitForRequestedPause,
                 roundProjectPath,
@@ -344,7 +342,7 @@ async function finalizeSuccessfulPromptRound(options: {
     result: Awaited<ReturnType<typeof runPromptWithTestFeedback>>;
     commitMessage: string;
     logPath: string;
-    roundChangedFilesSnapshot?: ChangedFilesSnapshot;
+    roundCommitScope?: CoderCommitScope;
     isRichUiEnabled: boolean;
     progressDisplay?: CliProgressDisplay;
     uiHandle?: CoderRunUiHandle;
@@ -359,7 +357,7 @@ async function finalizeSuccessfulPromptRound(options: {
         result,
         commitMessage,
         logPath,
-        roundChangedFilesSnapshot,
+        roundCommitScope,
         isRichUiEnabled,
         progressDisplay,
         uiHandle,
@@ -387,7 +385,7 @@ async function finalizeSuccessfulPromptRound(options: {
     // Note: The prompt status is always written into the original project, an isolated round transports
     //       its own changes back through the merge instead
     await writePromptFile(nextPrompt.file);
-    await normalizeLineEndingsForCurrentRound(runOptions, roundProjectPath, roundChangedFilesSnapshot);
+    await normalizeLineEndingsForCurrentRound(runOptions, roundProjectPath, roundCommitScope);
     await recordPromptDurationInEstimateCache({
         options: runOptions,
         runnerMetadata,
@@ -409,6 +407,9 @@ async function finalizeSuccessfulPromptRound(options: {
         });
         await commitChanges(commitMessage, {
             autoPush: runOptions.autoPush,
+            // Note: Only the prompt file and the files the coding agent has changed belong to this round,
+            //       everything which was already changed before the round started stays in the working tree
+            relevantPaths: roundCommitScope && (await resolveCoderCommitScopePaths(roundCommitScope)),
             // Keep the live runtime log out of default commits because it is deleted after a successful round.
             excludePaths: runOptions.preserveLogs ? undefined : [logPath],
             projectPath: roundProjectPath,
@@ -442,7 +443,7 @@ async function finalizeFailedPromptRound(options: {
     attemptCount: number;
     error: unknown;
     options: RunOptions;
-    roundChangedFilesSnapshot?: ChangedFilesSnapshot;
+    roundCommitScope?: CoderCommitScope;
     uiHandle?: CoderRunUiHandle;
     waitForRequestedPause: WaitForCoderRunPauseCheckpoint;
     roundProjectPath: string;
@@ -454,7 +455,7 @@ async function finalizeFailedPromptRound(options: {
         attemptCount,
         error,
         options: runOptions,
-        roundChangedFilesSnapshot,
+        roundCommitScope,
         uiHandle,
         waitForRequestedPause,
         roundProjectPath,
@@ -485,7 +486,7 @@ async function finalizeFailedPromptRound(options: {
         modelName: runnerMetadata.modelName,
         error,
     });
-    await normalizeLineEndingsForCurrentRound(runOptions, roundProjectPath, roundChangedFilesSnapshot);
+    await normalizeLineEndingsForCurrentRound(runOptions, roundProjectPath, roundCommitScope);
 }
 
 /**
@@ -577,21 +578,38 @@ async function recordPromptDurationInEstimateCache(options: {
 }
 
 /**
+ * Captures which files are already changed before the round starts, when the round needs to know it later.
+ *
+ * The scope is needed to commit only the files of this round and to normalize the line endings of exactly
+ * those files, so a round which does neither of them does not pay for hashing the working tree.
+ */
+async function captureRoundCommitScopeIfNeeded(
+    options: RunOptions,
+    roundProjectPath: string,
+): Promise<CoderCommitScope | undefined> {
+    if (options.noCommit && !options.normalizeLineEndings) {
+        return undefined;
+    }
+
+    return captureCoderCommitScope(roundProjectPath);
+}
+
+/**
  * Normalizes line endings in files modified during the current coding round.
  */
 async function normalizeLineEndingsForCurrentRound(
     options: RunOptions,
     roundProjectPath: string,
-    roundChangedFilesSnapshot?: ChangedFilesSnapshot,
+    roundCommitScope?: CoderCommitScope,
 ): Promise<void> {
-    if (!options.normalizeLineEndings || !roundChangedFilesSnapshot) {
+    if (!options.normalizeLineEndings || !roundCommitScope) {
         return;
     }
 
     try {
         const result = await normalizeLineEndingsInFilesChangedSinceSnapshot({
             projectPath: roundProjectPath,
-            snapshot: roundChangedFilesSnapshot,
+            snapshot: roundCommitScope.snapshotBeforeOperation,
         });
 
         if (result.normalizedFiles > 0) {

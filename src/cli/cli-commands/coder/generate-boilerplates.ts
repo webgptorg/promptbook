@@ -71,11 +71,11 @@ export function $initializeCoderGenerateBoilerplatesCommand(program: Program): $
             const projectPath = process.cwd();
 
             // Note: Import the git synchronization dynamically to keep the CLI fast for runs without `--commit`
-            const { $commitCoderChanges, $pullCoderChanges } = await import(
+            const { $commitCoderChanges, $startCoderGitSync } = await import(
                 '../../../../scripts/run-codex-prompts/git/coderGitSync'
             );
 
-            await $pullCoderChanges({ gitSync, projectPath });
+            const commitScope = await $startCoderGitSync({ gitSync, projectPath });
 
             await generatePromptBoilerplate({
                 projectPath,
@@ -85,7 +85,7 @@ export function $initializeCoderGenerateBoilerplatesCommand(program: Program): $
 
             await $commitCoderChanges({
                 gitSync,
-                projectPath,
+                commitScope,
                 commitMessage: `Prompts ${formatBoilerplateCount(boilerplateCount)}`,
             });
 

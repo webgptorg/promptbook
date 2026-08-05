@@ -102,11 +102,11 @@ export function $initializeCoderAddCommand(program: Program): $side_effect {
             const description = await resolveCoderPromptDescription(descriptionArgument);
 
             // Note: Import the git synchronization dynamically to keep the CLI fast for runs without `--commit`
-            const { $commitCoderChanges, $pullCoderChanges } = await import(
+            const { $commitCoderChanges, $startCoderGitSync } = await import(
                 '../../../../scripts/run-codex-prompts/git/coderGitSync'
             );
 
-            await $pullCoderChanges({ gitSync, projectPath });
+            const commitScope = await $startCoderGitSync({ gitSync, projectPath });
 
             const { /* filePath,*/ emojiTag } = await addCoderPrompt({
                 projectPath,
@@ -117,7 +117,7 @@ export function $initializeCoderAddCommand(program: Program): $side_effect {
 
             await $commitCoderChanges({
                 gitSync,
-                projectPath,
+                commitScope,
                 commitMessage: `${emojiTag} Add prompt`,
             });
         }),

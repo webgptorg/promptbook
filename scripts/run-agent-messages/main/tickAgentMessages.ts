@@ -476,7 +476,12 @@ async function commitAnsweredMessageIfEnabled(options: {
     }
     await commitChanges(buildAgentMessageCommitMessage(queuedMessage), {
         autoPush: runOptions.autoPush,
-        includePaths: buildCommitIncludePaths(queuedMessage, finishedMessage, writtenRunReport, isQueuedMessageTracked),
+        relevantPaths: buildCommitRelevantPaths(
+            queuedMessage,
+            finishedMessage,
+            writtenRunReport,
+            isQueuedMessageTracked,
+        ),
         projectPath,
     });
 }
@@ -484,21 +489,21 @@ async function commitAnsweredMessageIfEnabled(options: {
 /**
  * Builds the focused git path list for the answered-message commit.
  */
-function buildCommitIncludePaths(
+function buildCommitRelevantPaths(
     queuedMessage: AgentMessageFile,
     finishedMessage: FinishedAgentMessageFile,
     writtenRunReport: WrittenAgentMessageRunReport | null,
     isQueuedMessageTracked: boolean,
 ): ReadonlyArray<string> {
-    const includePaths = isQueuedMessageTracked
+    const relevantPaths = isQueuedMessageTracked
         ? [queuedMessage.relativePath, finishedMessage.relativePath]
         : [finishedMessage.relativePath];
 
     if (writtenRunReport) {
-        includePaths.push(writtenRunReport.relativePath);
+        relevantPaths.push(writtenRunReport.relativePath);
     }
 
-    return includePaths;
+    return relevantPaths;
 }
 
 /**

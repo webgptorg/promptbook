@@ -26,7 +26,7 @@ export type CoderGitSyncCliOptions = {
 export const CODER_GIT_SYNC_DESCRIPTION = spaceTrim(`
     Git synchronization:
     - --auto-pull pulls the latest changes before this command changes anything
-    - --commit commits the changes made by this command
+    - --commit commits only the files this command has changed, unrelated changes stay in the working tree
     - --auto-push pushes the created commit to the remote repository
 `);
 
@@ -39,7 +39,11 @@ export const CODER_GIT_SYNC_DESCRIPTION = spaceTrim(`
  * @private internal utility of `promptbookCli`
  */
 export function addCoderGitSyncOptions(command: Program): void {
-    command.option('--commit', 'Commit the changes made by this command with the coding-agent git identity', false);
+    command.option(
+        '--commit',
+        'Commit the files changed by this command with the coding-agent git identity, leaving unrelated changes uncommitted',
+        false,
+    );
     command.option('--auto-push', 'Automatically git push the created commit, requires --commit', false);
     command.option(
         '--auto-pull',

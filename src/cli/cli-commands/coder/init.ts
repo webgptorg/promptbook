@@ -82,11 +82,11 @@ export function $initializeCoderInitCommand(program: Program): $side_effect {
             const projectPath = process.cwd();
 
             // Note: Import the git synchronization dynamically to keep the CLI fast for runs without `--commit`
-            const { $commitCoderChanges, $pullCoderChanges } = await import(
+            const { $commitCoderChanges, $startCoderGitSync } = await import(
                 '../../../../scripts/run-codex-prompts/git/coderGitSync'
             );
 
-            await $pullCoderChanges({ gitSync, projectPath });
+            const commitScope = await $startCoderGitSync({ gitSync, projectPath });
 
             const summary = await initializeCoderProjectConfiguration(projectPath);
             printInitializationSummary(summary);
@@ -94,7 +94,7 @@ export function $initializeCoderInitCommand(program: Program): $side_effect {
 
             await $commitCoderChanges({
                 gitSync,
-                projectPath,
+                commitScope,
                 commitMessage: 'Initialize Promptbook Coder',
             });
 

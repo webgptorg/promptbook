@@ -2,10 +2,11 @@ import colors from 'colors';
 import { mkdir, rename, stat } from 'fs/promises';
 import { extname, join, relative } from 'path';
 import { loadPromptsModule } from '../../src/cli/common/loadPromptsModule';
+import type { CoderCommitScope } from '../run-codex-prompts/git/coderCommitScope';
 import type { CoderGitSyncOptions } from '../run-codex-prompts/git/coderGitSync';
 import {
     $commitCoderChanges,
-    $pullCoderChanges,
+    $startCoderGitSync,
     DISABLED_CODER_GIT_SYNC_OPTIONS,
 } from '../run-codex-prompts/git/coderGitSync';
 import { buildPromptLabelForDisplay } from '../run-codex-prompts/prompts/buildPromptLabelForDisplay';
@@ -137,8 +138,9 @@ export async function verifyPrompts(options: VerifyPromptsOptions = DEFAULT_VERI
     const skippedFiles = new Set<string>();
 
     while (true) {
-        // Note: The git synchronization is applied around each single verification, not once per whole run
-        await $pullCoderChanges({ gitSync: normalizedOptions.gitSync });
+        // Note: The git synchronization is applied around each single verification, not once per whole run,
+        //       so each verification commits only the prompt file it has archived or repaired
+        const commitScope = await $startCoderGitSync({ gitSync: normalizedOptions.gitSync });
         if (normalizedOptions.gitSync.isAutoPullEnabled) {
             // Note: The pull can bring in prompt file changes, so the queue is reloaded before it is used
             promptFiles = (await loadPromptFilesForVerification(normalizedOptions)).promptFiles;
@@ -153,7 +155,7 @@ export async function verifyPrompts(options: VerifyPromptsOptions = DEFAULT_VERI
             if (outcome.wasSkipped) {
                 skippedFiles.add(fileWithAllDone.path);
             }
-            await $commitVerificationOutcome(normalizedOptions.gitSync, outcome);
+            await $commitVerificationOutcome(normalizedOptions.gitSync, commitScope, outcome);
             promptFiles = (await loadPromptFilesForVerification(normalizedOptions)).promptFiles;
             continue;
         }
@@ -166,7 +168,7 @@ export async function verifyPrompts(options: VerifyPromptsOptions = DEFAULT_VERI
         }
 
         const outcome = await resolvePrompt(nextPrompt);
-        await $commitVerificationOutcome(normalizedOptions.gitSync, outcome);
+        await $commitVerificationOutcome(normalizedOptions.gitSync, commitScope, outcome);
         promptFiles = (await loadPromptFilesForVerification(normalizedOptions)).promptFiles;
     }
 }
@@ -176,13 +178,14 @@ export async function verifyPrompts(options: VerifyPromptsOptions = DEFAULT_VERI
  */
 async function $commitVerificationOutcome(
     gitSync: CoderGitSyncOptions,
+    commitScope: CoderCommitScope,
     outcome: PromptVerificationOutcome,
 ): Promise<void> {
     if (outcome.commitMessage === null) {
         return;
     }
 
-    await $commitCoderChanges({ gitSync, commitMessage: outcome.commitMessage });
+    await $commitCoderChanges({ gitSync, commitScope, commitMessage: outcome.commitMessage });
 }
 
 /**

@@ -1,4 +1,4 @@
-[ ]
+[x] (2 attempts) by Claude Code `claude-opus-5` thinking `max` - Implementation 2.84 2 hours; Testing 15 minutes; Fixing $2.26 5 minutes; Testing 6 minutes
 
 [✨💝] When Promptbook Coder is committing, commit only relevant files for the current operation. 
 
@@ -21,3 +21,4 @@ ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh -
 -   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

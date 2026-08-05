@@ -2,9 +2,10 @@ import { UNCERTAIN_USAGE } from '../../../src/execution/utils/usage-constants';
 import type { RunOptions } from '../cli/RunOptions';
 import { appendCoderContext } from '../common/appendCoderContext';
 import type { WaitForCoderRunPauseCheckpoint } from '../common/CoderRunPauseCheckpoint';
-import { captureChangedFilesSnapshot, normalizeLineEndingsInFilesChangedSinceSnapshot } from '../common/normalizeLineEndingsInChangedFiles';
+import { normalizeLineEndingsInFilesChangedSinceSnapshot } from '../common/normalizeLineEndingsInChangedFiles';
 import { withPromptRuntimeLog } from '../common/runGoScript/withPromptRuntimeLog';
 import { waitForEnter } from '../common/waitForEnter';
+import { captureCoderCommitScope, resolveCoderCommitScopePaths } from '../git/coderCommitScope';
 import { commitChanges } from '../git/commitChanges';
 import { runAutoMigrateTestingServers } from '../migrations/runAutoMigrateTestingServers';
 import { buildCodexPrompt } from '../prompts/buildCodexPrompt';
@@ -27,8 +28,12 @@ jest.mock('../common/appendCoderContext', () => ({
 }));
 
 jest.mock('../common/normalizeLineEndingsInChangedFiles', () => ({
-    captureChangedFilesSnapshot: jest.fn(),
     normalizeLineEndingsInFilesChangedSinceSnapshot: jest.fn(),
+}));
+
+jest.mock('../git/coderCommitScope', () => ({
+    captureCoderCommitScope: jest.fn(),
+    resolveCoderCommitScopePaths: jest.fn(),
 }));
 
 jest.mock('../common/runGoScript/withPromptRuntimeLog', () => ({
@@ -156,9 +161,15 @@ describe('runPromptRound', () => {
             undefined,
         );
         (waitForEnter as jest.MockedFunction<typeof waitForEnter>).mockResolvedValue(undefined);
-        (
-            captureChangedFilesSnapshot as jest.MockedFunction<typeof captureChangedFilesSnapshot>
-        ).mockResolvedValue({ changedFileHashes: new Map() });
+        (captureCoderCommitScope as jest.MockedFunction<typeof captureCoderCommitScope>).mockImplementation(
+            async (projectPath: string) => ({
+                projectPath,
+                snapshotBeforeOperation: { changedFileHashes: new Map() },
+            }),
+        );
+        (resolveCoderCommitScopePaths as jest.MockedFunction<typeof resolveCoderCommitScopePaths>).mockResolvedValue([
+            'prompts/example.md',
+        ]);
         (
             normalizeLineEndingsInFilesChangedSinceSnapshot as jest.MockedFunction<
                 typeof normalizeLineEndingsInFilesChangedSinceSnapshot
@@ -265,6 +276,8 @@ describe('runPromptRound', () => {
             autoPush: false,
             excludePaths: ['C:\\temp\\runtime.log'],
             projectPath: process.cwd(),
+            // Note: Only the prompt file and the files the coding agent has changed are committed
+            relevantPaths: ['prompts/example.md'],
             isEmptyCommitAllowed: undefined,
         });
         expect(runAutoMigrateTestingServers).toHaveBeenCalled();
@@ -425,7 +438,7 @@ describe('runPromptRound', () => {
             projectPath: worktreePath,
         });
 
-        expect(captureChangedFilesSnapshot).toHaveBeenCalledWith(worktreePath);
+        expect(captureCoderCommitScope).toHaveBeenCalledWith(worktreePath);
         expect(runPromptWithTestFeedback).toHaveBeenCalledWith(
             expect.objectContaining({
                 projectPath: worktreePath,

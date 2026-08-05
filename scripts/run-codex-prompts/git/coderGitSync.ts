@@ -1,7 +1,8 @@
 import colors from 'colors';
+import type { CoderCommitScope } from './coderCommitScope';
+import { captureCoderCommitScope, resolveCoderCommitScopePaths } from './coderCommitScope';
 import { commitChanges } from './commitChanges';
 import { pullLatestChanges } from './pullLatestChanges';
-import { runGitCommand } from './runGitCommand';
 
 /**
  * Automatic git synchronization of the project changes made by one `ptbk coder` command.
@@ -38,6 +39,31 @@ export const DISABLED_CODER_GIT_SYNC_OPTIONS: CoderGitSyncOptions = Object.freez
 });
 
 /**
+ * Pulls the latest repository changes and captures the working tree state before a `ptbk coder` command
+ * changes the project.
+ *
+ * The returned scope is handed over to `$commitCoderChanges` of the very same command, which then commits
+ * exactly the files this command has changed.
+ */
+export async function $startCoderGitSync(options: {
+    readonly gitSync: CoderGitSyncOptions;
+    readonly projectPath?: string;
+}): Promise<CoderCommitScope> {
+    const { gitSync, projectPath = process.cwd() } = options;
+
+    await $pullCoderChanges({ gitSync, projectPath });
+
+    if (!gitSync.isCommitEnabled) {
+        // Note: A command which does not commit must not touch git at all, so that it also works in a project
+        //       which is not a git repository
+        return { projectPath, snapshotBeforeOperation: { changedFileHashes: new Map() } };
+    }
+
+    // Note: The scope is captured after pulling, so files brought in by the pull are not committed again
+    return captureCoderCommitScope(projectPath);
+}
+
+/**
  * Pulls the latest repository changes before a `ptbk coder` command changes the project.
  */
 export async function $pullCoderChanges(options: {
@@ -57,43 +83,33 @@ export async function $pullCoderChanges(options: {
 /**
  * Commits - and when requested also pushes - the changes one `ptbk coder` command has just made.
  *
- * Note: A repository without any change is left alone instead of creating an empty commit.
+ * Note: Only the files this very command has changed are committed, everything else is left in the working tree.
+ * Note: A command which changed nothing is left alone instead of creating an empty commit.
  */
 export async function $commitCoderChanges(options: {
     readonly gitSync: CoderGitSyncOptions;
     readonly commitMessage: string;
-    readonly projectPath?: string;
+    readonly commitScope: CoderCommitScope;
 }): Promise<void> {
-    const { gitSync, commitMessage, projectPath = process.cwd() } = options;
+    const { gitSync, commitMessage, commitScope } = options;
 
     if (!gitSync.isCommitEnabled) {
         return;
     }
 
-    if (!(await hasChangesToCommit(projectPath))) {
-        console.info(colors.gray('Nothing to commit, the working tree is clean'));
+    const relevantPaths = await resolveCoderCommitScopePaths(commitScope);
+    if (relevantPaths.length === 0) {
+        console.info(colors.gray('Nothing to commit, this command has not changed any file'));
         return;
     }
 
     await commitChanges(commitMessage, {
-        projectPath,
+        projectPath: commitScope.projectPath,
+        relevantPaths,
         autoPush: gitSync.isAutoPushEnabled,
     });
 
     console.info(
         colors.green(`✓ ${gitSync.isAutoPushEnabled ? 'Committed and pushed' : 'Committed'}: ${commitMessage}`),
     );
-}
-
-/**
- * Checks whether the repository holds any change which can be committed.
- */
-async function hasChangesToCommit(projectPath: string): Promise<boolean> {
-    const gitStatus = await runGitCommand({
-        command: 'git status --porcelain',
-        cwd: projectPath,
-        isVerbose: false,
-    });
-
-    return gitStatus.trim() !== '';
 }

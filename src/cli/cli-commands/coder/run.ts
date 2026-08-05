@@ -41,6 +41,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
 
             Features:
             - Automatically stages and commits changes with agent identity unless --no-commit is used
+            - Commits only the prompt file and the files the coding agent has changed, leaving unrelated changes alone
             - Optional post-commit git push with explicit --auto-push opt-in
             - Optional pre-prompt git pull with explicit --auto-pull opt-in
             - Optional --isolate runs every prompt in its own temporary git worktree and merges it back when verified

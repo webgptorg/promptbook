@@ -275,8 +275,7 @@ async function commitPromptEdit(promptFilePath: string, sectionIndex: number): P
     const relativePromptFilePath = relative(process.cwd(), promptFilePath).replace(/\\/gu, '/');
 
     await commitChanges(`Edit coder prompt ${relativePromptFilePath}#${sectionIndex + 1}`, {
-        includePaths: [relativePromptFilePath],
-        onlyPaths: [relativePromptFilePath],
+        relevantPaths: [relativePromptFilePath],
     });
 }
 
