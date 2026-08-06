@@ -1,4 +1,4 @@
-[ ] !!!!!
+[^] !!!!!
 
 [✨🔶] Create agent goal chats
 
