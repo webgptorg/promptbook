@@ -39,7 +39,7 @@ export function parseAgentProjectIndexHtml(indexHtml: AgentProjectIndexHtml | nu
     const document = new JSDOM(indexHtml.content).window.document;
     const faviconRelativePaths = [
         ...new Set(
-            [...document.querySelectorAll('link[rel][href]')]
+            [...document.querySelectorAll<HTMLLinkElement>('link[rel][href]')]
                 .filter(isFaviconLink)
                 .map((faviconLink) => resolveLocalFaviconRelativePath(faviconLink.getAttribute('href')))
                 .filter((faviconRelativePath): faviconRelativePath is string => faviconRelativePath !== null),
