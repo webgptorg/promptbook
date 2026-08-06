@@ -3,14 +3,10 @@ import { readdir, readFile, stat } from 'fs/promises';
 import { basename, isAbsolute, join, relative, resolve } from 'path';
 import { NotAllowed } from '../../../../../src/errors/NotAllowed';
 import { spaceTrim } from '../../../../../src/utils/organization/spaceTrim';
+import { AGENT_PROJECT_INDEX_HTML_FILE_NAMES } from './agentProjectFileNames';
 import { assertSafeAgentProjectPathSegment } from './agentProjectsPaths';
 import { isMissingPathError } from './isMissingPathError';
 import { resolveAgentProjectFileContentType } from './resolveAgentProjectFileContentType';
-
-/**
- * Filenames served automatically when a request targets a project directory.
- */
-const STATIC_DIRECTORY_INDEX_FILENAMES = ['index.html', 'index.htm'] as const;
 
 /**
  * HTML content type used for generated static directory listings.
@@ -170,7 +166,7 @@ async function serveStaticProjectDirectory(options: {
     readonly directoryPath: string;
     readonly response: ServerResponse;
 }): Promise<void> {
-    for (const indexFileName of STATIC_DIRECTORY_INDEX_FILENAMES) {
+    for (const indexFileName of AGENT_PROJECT_INDEX_HTML_FILE_NAMES) {
         const indexFilePath = join(options.directoryPath, indexFileName);
         const indexFileStats = await stat(indexFilePath).catch((error) => {
             if (isMissingPathError(error)) {
@@ -217,7 +213,9 @@ async function createStaticProjectDirectoryListingHtml(options: {
         .filter((entry) => entry.isDirectory() || entry.isFile())
         .sort((firstEntry, secondEntry) => firstEntry.name.localeCompare(secondEntry.name))
         .map((entry) => {
-            const href = `${normalizedRequestPathname}${encodeURIComponent(entry.name)}${entry.isDirectory() ? '/' : ''}`;
+            const href = `${normalizedRequestPathname}${encodeURIComponent(entry.name)}${
+                entry.isDirectory() ? '/' : ''
+            }`;
             const label = `${entry.name}${entry.isDirectory() ? '/' : ''}`;
 
             return `<li><a href="${escapeHtml(href)}">${escapeHtml(label)}</a></li>`;
@@ -272,4 +270,3 @@ function escapeHtml(value: string): string {
         .replace(/"/gu, '&quot;')
         .replace(/'/gu, '&#39;');
 }
-

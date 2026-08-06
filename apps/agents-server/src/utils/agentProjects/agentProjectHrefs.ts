@@ -108,6 +108,29 @@ export function buildAgentProjectFileHref(
 }
 
 /**
+ * Builds the href serving one raw project file on its owning server.
+ *
+ * A file owned by the current server stays a relative application link. A file owned by
+ * another server receives an absolute URL so browser-loaded project icons stay on the correct server.
+ *
+ * @param options - Project file and server identity.
+ * @returns Server-scoped raw project file href.
+ */
+export function buildAgentProjectFileHrefForServer(options: {
+    readonly agentPermanentId: string;
+    readonly projectName: string;
+    readonly fileRelativePath: string;
+    readonly serverDomain: string | null;
+    readonly currentServerDomain: string | null;
+}): string {
+    return buildAgentProjectHrefForServer(
+        buildAgentProjectFileHref(options.agentPermanentId, options.projectName, options.fileRelativePath),
+        options.serverDomain,
+        options.currentServerDomain,
+    );
+}
+
+/**
  * Builds the href opening one project in browser VS Code.
  *
  * @param agentPermanentId - Permanent id of the agent.

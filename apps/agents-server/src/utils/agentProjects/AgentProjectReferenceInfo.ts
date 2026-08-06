@@ -8,6 +8,13 @@ export type AgentProjectReferenceInfo = Pick<
     'projectName' | 'displayName' | 'description' | 'sizeBytes'
 > & {
     /**
+     * Project-relative local favicon path, when one is available.
+     *
+     * This remains optional so older remote project-reference payloads still render their initials fallback.
+     */
+    readonly faviconRelativePath?: string | null;
+
+    /**
      * Whether the project currently accepts requests on its assigned runtime port.
      */
     readonly isRunning?: boolean;

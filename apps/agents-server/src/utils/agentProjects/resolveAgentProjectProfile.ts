@@ -1,6 +1,7 @@
 import { parseMarkdownSection, splitMarkdownIntoSections } from '@promptbook-local/markdown-utils';
 import type { string_markdown } from '@promptbook-local/types';
 import { stripMarkdownText } from '../stripMarkdownText';
+import type { AgentProjectIndexHtmlMetadata } from './parseAgentProjectIndexHtml';
 import type { AgentProjectReadme } from './readAgentProjectReadme';
 
 /**
@@ -29,9 +30,9 @@ type AgentProjectReadmeSections = {
 };
 
 /**
- * Project profile values resolved from a project folder and optional README.
+ * Project profile values resolved from its README and HTML entrypoint.
  */
-export type AgentProjectReadmeProfile = {
+export type AgentProjectProfile = {
     /**
      * User-facing project name.
      */
@@ -43,41 +44,43 @@ export type AgentProjectReadmeProfile = {
     readonly description: string;
 
     /**
-     * README filename used to resolve the profile, or `null` when missing.
+     * README filename used to resolve the profile, or null when missing.
      */
     readonly readmeFileName: string | null;
+
+    /**
+     * Relative path of the detected local favicon, or null when unavailable.
+     */
+    readonly faviconRelativePath: string | null;
 };
 
 /**
- * Resolves display metadata for one agent project from its README.
+ * Resolves display metadata for one agent project from its README and HTML entrypoint.
  *
- * @param options - Project folder name and optional README content.
+ * A README heading is the primary project title. The title of index.html is used when the
+ * README has no usable heading, then the directory name remains the final fallback.
+ *
+ * @param options - Project folder name and parsed metadata files.
  * @returns Project display profile.
  */
-export function resolveAgentProjectReadmeProfile(options: {
+export function resolveAgentProjectProfile(options: {
     readonly projectDirectoryName: string;
     readonly readme: AgentProjectReadme | null;
-}): AgentProjectReadmeProfile {
-    const { projectDirectoryName, readme } = options;
-    if (!readme) {
-        return {
-            displayName: projectDirectoryName,
-            description: '',
-            readmeFileName: null,
-        };
-    }
-
-    const sections = parseMarkdownProfileSections(readme.content);
-    const displayName = resolveProjectDisplayName(
-        projectDirectoryName,
-        sections.firstExplicitHeadingSection?.title ?? null,
-    );
-    const description = resolveProjectDescription(readme.content, sections.firstSection?.content ?? readme.content);
+    readonly indexHtmlMetadata: AgentProjectIndexHtmlMetadata;
+    readonly faviconRelativePath: string | null;
+}): AgentProjectProfile {
+    const { projectDirectoryName, readme, indexHtmlMetadata, faviconRelativePath } = options;
+    const sections = readme ? parseMarkdownProfileSections(readme.content) : null;
+    const readmeTitle = resolveProjectReadmeTitle(sections?.firstExplicitHeadingSection?.title ?? null);
+    const description = readme
+        ? resolveProjectDescription(readme.content, sections?.firstSection?.content ?? readme.content)
+        : '';
 
     return {
-        displayName,
+        displayName: readmeTitle || indexHtmlMetadata.title || projectDirectoryName,
         description,
-        readmeFileName: readme.fileName,
+        readmeFileName: readme?.fileName ?? null,
+        faviconRelativePath,
     };
 }
 
@@ -102,8 +105,8 @@ function parseMarkdownProfileSections(markdown: string): AgentProjectReadmeSecti
     const firstExplicitHeadingSection = doesMarkdownStartWithHeading(markdown)
         ? parsedFirstSection
         : sections[1]
-          ? parseMarkdownSection(sections[1])
-          : null;
+        ? parseMarkdownSection(sections[1])
+        : null;
 
     return {
         firstSection: parsedFirstSection,
@@ -112,19 +115,17 @@ function parseMarkdownProfileSections(markdown: string): AgentProjectReadmeSecti
 }
 
 /**
- * Resolves a project display name from the README heading or folder fallback.
+ * Resolves a display title from an explicit README heading.
  *
- * @param projectDirectoryName - Project folder name.
  * @param parsedHeadingTitle - Title returned by the markdown section parser.
- * @returns Display name.
+ * @returns Plain-text title or null when the heading is unavailable.
  */
-function resolveProjectDisplayName(projectDirectoryName: string, parsedHeadingTitle: string | null): string {
+function resolveProjectReadmeTitle(parsedHeadingTitle: string | null): string | null {
     if (!parsedHeadingTitle) {
-        return projectDirectoryName;
+        return null;
     }
 
-    const displayName = stripMarkdownText(parsedHeadingTitle);
-    return displayName || projectDirectoryName;
+    return stripMarkdownText(parsedHeadingTitle) || null;
 }
 
 /**
@@ -154,7 +155,7 @@ function resolveProjectDescription(readmeContent: string, parsedSectionContent: 
  * Returns whether markdown starts with an explicit heading.
  *
  * @param markdown - Markdown content to inspect.
- * @returns `true` when the first non-empty line is a heading.
+ * @returns True when the first non-empty line is a heading.
  */
 function doesMarkdownStartWithHeading(markdown: string): boolean {
     const firstNonEmptyLine = markdown
@@ -185,7 +186,7 @@ function resolveFirstMarkdownParagraph(markdown: string): string {
  * Returns whether one markdown block can be treated as a paragraph preview.
  *
  * @param block - Markdown block candidate.
- * @returns `true` for paragraph-like blocks.
+ * @returns True for paragraph-like blocks.
  */
 function isMarkdownParagraphBlock(block: string): boolean {
     if (!block) {
@@ -215,5 +216,5 @@ function truncateProjectDescription(description: string): string {
         return description;
     }
 
-    return `${description.slice(0, PROJECT_DESCRIPTION_MAX_CHARACTERS).trimEnd()}...`;
+    return description.slice(0, PROJECT_DESCRIPTION_MAX_CHARACTERS).trimEnd() + '...';
 }

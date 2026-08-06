@@ -5,8 +5,11 @@ import type { AgentProjectInfo } from './AgentProjectInfo';
 import { resolveAgentProjectsRootPath, resolveSafeAgentProjectPath } from './agentProjectsPaths';
 import { isMissingPathError } from './isMissingPathError';
 import { measureDirectoryUsage } from './measureDirectoryUsage';
+import { parseAgentProjectIndexHtml } from './parseAgentProjectIndexHtml';
+import { readAgentProjectIndexHtml } from './readAgentProjectIndexHtml';
 import { readAgentProjectReadme } from './readAgentProjectReadme';
-import { resolveAgentProjectReadmeProfile } from './resolveAgentProjectReadmeProfile';
+import { resolveAgentProjectFaviconRelativePath } from './resolveAgentProjectFaviconRelativePath';
+import { resolveAgentProjectProfile } from './resolveAgentProjectProfile';
 
 /**
  * Builds metadata for one project directory.
@@ -20,14 +23,22 @@ export async function createAgentProjectInfo(
     projectDirectoryName: string,
 ): Promise<AgentProjectInfo> {
     const projectPath = join(projectsRootPath, projectDirectoryName);
-    const [projectUsage, isGitRepository, readme] = await Promise.all([
+    const [projectUsage, isGitRepository, readme, indexHtml] = await Promise.all([
         measureDirectoryUsage(projectPath),
         isGitRepositoryDirectory(projectPath),
         readAgentProjectReadme(projectPath),
+        readAgentProjectIndexHtml(projectPath),
     ]);
-    const profile = resolveAgentProjectReadmeProfile({
+    const indexHtmlMetadata = parseAgentProjectIndexHtml(indexHtml);
+    const faviconRelativePath = await resolveAgentProjectFaviconRelativePath({
+        projectPath,
+        faviconRelativePaths: indexHtmlMetadata.faviconRelativePaths,
+    });
+    const profile = resolveAgentProjectProfile({
         projectDirectoryName,
         readme,
+        indexHtmlMetadata,
+        faviconRelativePath,
     });
 
     return {
@@ -35,6 +46,7 @@ export async function createAgentProjectInfo(
         displayName: profile.displayName,
         description: profile.description,
         readmeFileName: profile.readmeFileName,
+        faviconRelativePath: profile.faviconRelativePath,
         relativePath: `${AGENT_PROJECTS_DIRECTORY_PATH}/${projectDirectoryName}`,
         absolutePath: projectPath,
         sizeBytes: projectUsage.sizeBytes,
