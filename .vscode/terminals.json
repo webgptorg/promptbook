@@ -145,7 +145,7 @@
         },
         {
             "name": "🐙✔ Verify prompts done by Coding Agent",
-            "command": "npx ts-node ./src/cli/test/ptbk.ts coder verify --reverse --ignore Refactor --commit --auto-push --auto-pull",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder verify --order from-latest --ignore Refactor --commit --auto-push --auto-pull",
             "execute": true,
             "onlySingle": false,
             "focus": false
