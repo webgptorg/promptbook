@@ -1,3 +1,4 @@
+import { isAgentGoalChatId } from '../../agentGoalChat/agentGoalChatIdentity';
 import type { AdminChatTaskCounters, AdminChatTaskRecord } from '../../chatTasksAdmin';
 import type { UserChatJobStatus } from '../../userChat/UserChatJobRecord';
 import { getUserChatJobRunReportFromParameters } from '../../userChat/userChatJobRunReport';
@@ -79,6 +80,7 @@ export function mapAdminChatTaskSqlRow(row: AdminChatTaskSqlRow): AdminChatTaskR
         chatId: row.chatId,
         workerId: null,
         queueName: row.queueName,
+        isAgentGoalTask: isAgentGoalChatId(row.chatId),
         runReport: getUserChatJobRunReportFromParameters(row.parameters),
     };
 }

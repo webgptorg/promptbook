@@ -18,7 +18,7 @@ const AGENT_PROFILE_DISALLOWED_SUBPATHS = [
     '/agents/*/images',
     '/agents/*/integration',
     '/agents/*/system-message',
-    '/agents/*/timeouts',
+    '/agents/*/goal',
     '/agents/*/website-integration',
 ] as const;
 

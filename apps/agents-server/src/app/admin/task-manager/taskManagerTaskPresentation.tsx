@@ -97,6 +97,29 @@ export function TaskStatusBadge({ isStuck, task }: TaskStatusBadgeProps) {
 }
 
 /**
+ * Compact badge marking the tasks an agent started for itself in its goal chat.
+ *
+ * Goal-chat tasks keep their normal kind, so this badge is what separates them from the
+ * user-invoked tasks in every task-manager surface.
+ *
+ * @private shared presentation of the admin task manager
+ */
+export function AgentGoalTaskBadge({ task }: { task: AdminChatTaskRecord }) {
+    if (!task.isAgentGoalTask) {
+        return null;
+    }
+
+    return (
+        <span
+            className="rounded-full border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-[11px] font-semibold text-indigo-700"
+            title="Started by the agent itself in its goal chat, not by a user"
+        >
+            Goal chat
+        </span>
+    );
+}
+
+/**
  * Formats a durable task kind for display.
  *
  * @private shared presentation of the admin task manager

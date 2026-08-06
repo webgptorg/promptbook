@@ -16,7 +16,11 @@ export { getUserChatJobByClientMessageId } from './userChat/getUserChatJobByClie
 export { heartbeatUserChatJob } from './userChat/heartbeatUserChatJob';
 export { isUserChatViewOnly } from './userChat/isUserChatViewOnly';
 export { listExpiredRunningUserChatJobs } from './userChat/listExpiredRunningUserChatJobs';
-export { listUserChats, listUserChatSummarySeeds } from './userChat/listUserChats';
+export {
+    createUserChatSummarySeedFromChatRecord,
+    listUserChats,
+    listUserChatSummarySeeds,
+} from './userChat/listUserChats';
 export { listUserChatJobActivityCounts, listUserChatJobs } from './userChat/listUserChatJobs';
 export { mutateUserChat } from './userChat/mutateUserChat';
 export { persistUserChatJobTerminalState } from './userChat/persistUserChatJobTerminalState';

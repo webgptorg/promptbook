@@ -32,6 +32,10 @@ type CanonicalAgentChatPanelProps = {
      */
     isExternalUserChat?: boolean;
     /**
+     * True when the viewed chat is the singleton thread the agent keeps with itself.
+     */
+    isAgentGoalChat?: boolean;
+    /**
      * Optional actions rendered inside the read-only banner (for example super-admin shortcuts).
      */
     readOnlyExtraActions?: ReactNode;
@@ -88,6 +92,7 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
         isReadOnly = false,
         readOnlySource,
         isExternalUserChat = false,
+        isAgentGoalChat = false,
         readOnlyExtraActions,
         projectReferences = [],
         messages,
@@ -142,6 +147,7 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
                 isReadOnly={isReadOnly}
                 readOnlySource={readOnlySource}
                 isExternalUserChat={isExternalUserChat}
+                isAgentGoalChat={isAgentGoalChat}
                 readOnlyExtraActions={readOnlyExtraActions}
                 projectReferences={projectReferences}
                 onDraftMessageChange={onDraftMessageChange}

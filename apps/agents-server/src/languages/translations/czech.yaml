@@ -8,7 +8,15 @@ common.profile: Profil
 common.chat: Chat
 chat.answerDurationLabel: 'Odpověď za {duration}'
 common.book: Book
-common.timeouts: Časovače
+common.goalChat: Cíl
+goalChat.noticeTitle: Toto je cílový chat agenta
+goalChat.noticeDescription: Agent si sem píše sám a plánuje práci ke svému cíli, proto je toto vlákno pro lidi jen ke čtení.
+goalChat.plannedMessagesTitle: Naplánované zprávy
+goalChat.plannedMessagesEmptyLabel: Žádné naplánované zprávy. Agent se probudí, až mu někdo napíše.
+goalChat.plannedMessagesLoadErrorLabel: Naplánované zprávy se nepodařilo načíst.
+goalChat.plannedMessageDefaultLabel: Naplánované probuzení
+goalChat.plannedMessageCancelLabel: Zrušit
+goalChat.plannedMessageCancellingLabel: Ruším
 common.projects: Projekty
 common.more: Více
 chatEnterBehavior.sectionEyebrow: Klávesové zkratky

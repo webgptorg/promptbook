@@ -73,6 +73,15 @@ export type AdminChatTaskRecord = {
     queueName: string | null;
 
     /**
+     * True when the task runs in the agent's own goal chat instead of a chat started by a user.
+     *
+     * Goal-chat tasks keep their normal kind (they really are chat completions / chat timeouts) and
+     * are only flagged, so they stay in the regular task streams while remaining distinguishable
+     * from user-invoked work.
+     */
+    isAgentGoalTask?: boolean;
+
+    /**
      * Registered server this task belongs to, when the source task is bound to one server or the
      * VPS-wide superadmin aggregation adds the owning server.
      *

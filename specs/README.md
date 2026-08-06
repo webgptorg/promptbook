@@ -44,6 +44,7 @@ The purpose of these specs is to be the **single source of truth** for the funct
 -   [Streaming protocol](chat/streaming-protocol.md) — markdown deltas, keep-alive tokens, tool-call frames.
 -   [User chats](chat/user-chats.md) — durable chats, queued jobs, job leases, snapshot streaming, replies, drafts.
 -   [Timeouts](chat/timeouts.md) — scheduled wake-ups, recurrence, limits.
+-   [Goal chat](chat/goal-chat.md) — the singleton thread each agent keeps with itself to plan towards its goal.
 -   [Attachments and files](chat/attachments-and-files.md) — uploads, file security checking, storage and serving.
 -   [History and feedback](chat/history-and-feedback.md) — frozen chat history chains and user feedback.
 -   [Voice](chat/voice.md) — text-to-speech, speech-to-text, voice calling flags.

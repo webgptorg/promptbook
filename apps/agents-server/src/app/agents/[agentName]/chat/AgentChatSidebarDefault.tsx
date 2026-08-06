@@ -1,4 +1,4 @@
-import { EyeIcon, EyeOffIcon, MessageSquarePlusIcon, Trash2Icon, XIcon } from 'lucide-react';
+import { EyeIcon, EyeOffIcon, MessageSquarePlusIcon, TargetIcon, Trash2Icon, XIcon } from 'lucide-react';
 import { SolidArrowButton } from '../../../../../../../src/book-components/icons/SolidArrowButton';
 import { ChatListLoadingSkeleton } from '../../../../components/Skeleton/ChatListLoadingSkeleton';
 import { AgentChatSidebarActivityIndicator } from './AgentChatSidebarActivityIndicator';
@@ -189,10 +189,16 @@ function AgentChatSidebarDefaultCollapsedRow({ item, onChatSelect }: AgentChatSi
             <span className="absolute left-1.5 top-1.5 z-[5]">
                 <AgentChatSidebarActivityIndicator indicator={item.content.activityIndicator} />
             </span>
-            {item.content.sourceChipLabel && (
-                <span className="absolute left-1.5 bottom-1.5 z-[5] inline-flex items-center rounded-full bg-slate-900/85 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-[0.18em] text-white shadow-sm">
-                    {item.content.sourceChipLabel}
+            {item.isAgentGoalChat ? (
+                <span className="absolute left-1.5 bottom-1.5 z-[5] inline-flex items-center justify-center rounded-full bg-indigo-600 p-1 text-white shadow-sm">
+                    <TargetIcon className="h-2.5 w-2.5" aria-hidden />
                 </span>
+            ) : (
+                item.content.sourceChipLabel && (
+                    <span className="absolute left-1.5 bottom-1.5 z-[5] inline-flex items-center rounded-full bg-slate-900/85 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-[0.18em] text-white shadow-sm">
+                        {item.content.sourceChipLabel}
+                    </span>
+                )
             )}
             <span
                 className={`absolute right-0.5 top-0.5 z-[5] inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-bold leading-none shadow-sm ${
@@ -255,10 +261,16 @@ function AgentChatSidebarDefaultExpandedRow({
                 title={item.content.accessibilityLabel}
             >
                 <div className="flex items-center gap-2">
+                    {item.isAgentGoalChat && (
+                        <TargetIcon
+                            className="h-4 w-4 flex-shrink-0 text-indigo-600 dark:text-indigo-300"
+                            aria-hidden
+                        />
+                    )}
                     <div className="agent-chat-sidebar-item-title min-w-0 flex-1 truncate text-sm font-medium text-slate-800 dark:text-slate-100">
                         {item.content.title}
                     </div>
-                    {item.content.sourceChipLabel && (
+                    {!item.isAgentGoalChat && item.content.sourceChipLabel && (
                         <span className="inline-flex flex-shrink-0 items-center rounded-full bg-slate-900 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white">
                             {item.content.sourceChipLabel}
                         </span>

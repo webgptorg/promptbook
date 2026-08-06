@@ -16,7 +16,7 @@ Complete inventory of the HTTP surface. Behavior is specified in the linked spec
 | `/agents/:agentName/book+chat` | Split editor + chat preview. |
 | `/agents/:agentName/history` | Source version history. |
 | `/agents/:agentName/system-message` | Compiled system-message inspector. |
-| `/agents/:agentName/timeouts` | Agent-scoped timers view. [Timeouts](chat/timeouts.md) |
+| `/agents/:agentName/goal` | Agent goal chat — the agent's own planning thread. [Goal chat](chat/goal-chat.md) |
 | `/agents/:agentName/iframe`, `/embed` | Embedding surfaces. [Embedding and PWA](ui/embedding-and-pwa.md) |
 | `/agents/:agentName/integration`, `/agents/:agentName/website-integration` | Integration snippets/instructions. |
 | `/agents/:agentName/export-as-transpiled-code` | Export agent as standalone code. [Transfer and backup](agents/transfer-and-backup.md#transpiled-export) |
@@ -57,7 +57,7 @@ All under `/admin` — see [Admin](ui/admin.md) for the section list.
 | `mcp` | ALL | [Public agent API](api/public-agent-api.md#mcp) |
 | `openai/chat/completions`, `openai/v1/chat/completions`, `openai/models`, `openai/v1/models`, `openrouter/chat/completions` | POST/GET | [OpenAI compatibility](api/openai-compatibility.md) |
 | `user-chats`, `user-chats/:chatId`, `…/draft`, `…/messages`, `…/stream`, `…/jobs/:jobId[/cancel]`, `…/timeouts/:timeoutId[/cancel]` | CRUD/stream | [User chats](chat/user-chats.md) |
-| `timeouts`, `timeouts/:timeoutId`, `timeouts/actions` | GET/POST/PATCH | [Timeouts](chat/timeouts.md#agent-scoped-api) |
+| `timeouts`, `timeouts/:timeoutId` | GET/DELETE | Planned messages of the [goal chat](chat/goal-chat.md). [Timeouts](chat/timeouts.md) |
 | `voice` | POST | [Voice](chat/voice.md) |
 | `calendar-connections[…]`, `calendar-events` | GET/POST | [Calendar](integrations/calendar.md) |
 | `share-target/:shareTargetId[/consume]` | GET/POST | [Embedding and PWA](ui/embedding-and-pwa.md#share-target) |

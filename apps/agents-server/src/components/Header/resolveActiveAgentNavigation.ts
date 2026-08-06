@@ -41,8 +41,8 @@ function resolveAgentHierarchyView(segment: string | undefined): AgentHierarchyV
         return 'Book';
     }
 
-    if (segment === 'timeouts') {
-        return 'Timeouts';
+    if (segment === 'goal') {
+        return 'Goal';
     }
 
     if (segment === 'projects') {

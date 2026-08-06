@@ -47,6 +47,11 @@ export type UserChatSummary = {
      * (visible only to admins/super-admins browsing external chats).
      */
     isExternalUserChat: boolean;
+    /**
+     * True for the singleton goal chat the agent keeps with itself, which is pinned above
+     * every other chat and rendered with its own icon.
+     */
+    isAgentGoalChat: boolean;
     messagesCount: number;
     title: string;
     preview: string;
@@ -80,6 +85,10 @@ export type GetUserChatOptions = {
      * who may open other users' chats in a view-only mode.
      */
     viewerIsSuperAdmin?: boolean;
+    /**
+     * True when the viewer may read the agent source book and therefore also the agent goal chat.
+     */
+    viewerCanAccessAgentGoalChat?: boolean;
     agentPermanentId: string;
     chatId: string;
 };

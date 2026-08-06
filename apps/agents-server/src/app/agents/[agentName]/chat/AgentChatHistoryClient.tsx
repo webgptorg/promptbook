@@ -372,6 +372,7 @@ function AgentChatHistoryReadyView(props: AgentChatHistoryReadyViewProps) {
                     isReadOnly={isActiveChatReadOnly}
                     readOnlySource={activeChatSummary?.source}
                     isExternalUserChat={isActiveExternalUserChat}
+                    isAgentGoalChat={activeChatSummary?.isAgentGoalChat === true}
                     readOnlyExtraActions={externalUserChatAdminActions}
                     projectReferences={projectReferences}
                     messages={renderedActiveMessages}

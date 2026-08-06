@@ -410,10 +410,8 @@ async function listUserChatSummarySeedsViaSupabase(options: ListUserChatsOptions
 
 /**
  * Maps one full chat record into a lightweight summary seed.
- *
- * @private function of `userChat`
  */
-function createUserChatSummarySeedFromChatRecord(chat: UserChatRecord): UserChatSummarySeed {
+export function createUserChatSummarySeedFromChatRecord(chat: UserChatRecord): UserChatSummarySeed {
     return {
         id: chat.id,
         createdAt: chat.createdAt,

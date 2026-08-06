@@ -14,10 +14,13 @@ export async function listAgentUserChatTimeouts(
     const userChatTimeoutTable = await provideUserChatTimeoutTable();
     let query = userChatTimeoutTable
         .select('*')
-        .eq('userId', options.userId)
         .eq('agentPermanentId', options.agentPermanentId)
         .order('updatedAt', { ascending: false })
         .order('createdAt', { ascending: false });
+
+    if (typeof options.userId === 'number') {
+        query = query.eq('userId', options.userId);
+    }
 
     if (options.statuses && options.statuses.length > 0) {
         query = query.in('status', options.statuses);

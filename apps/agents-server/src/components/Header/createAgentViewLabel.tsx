@@ -1,10 +1,10 @@
 import {
-    Clock3Icon,
     FileTextIcon,
     FolderKanbanIcon,
     MessageSquareIcon,
     MoreHorizontalIcon,
     NotebookPenIcon,
+    TargetIcon,
 } from 'lucide-react';
 import type { ServerTranslationKey } from '../../languages/ServerTranslationKeys';
 
@@ -13,7 +13,7 @@ import type { ServerTranslationKey } from '../../languages/ServerTranslationKeys
  *
  * @private type of Header
  */
-export type AgentHierarchyView = 'Profile' | 'Chat' | 'Book' | 'Timeouts' | 'Projects' | 'More';
+export type AgentHierarchyView = 'Profile' | 'Chat' | 'Book' | 'Goal' | 'Projects' | 'More';
 
 /**
  * Icon displayed next to each hierarchy view label.
@@ -22,7 +22,7 @@ const AGENT_VIEW_ICON_MAP: Record<AgentHierarchyView, typeof FileTextIcon> = {
     Profile: FileTextIcon,
     Chat: MessageSquareIcon,
     Book: NotebookPenIcon,
-    Timeouts: Clock3Icon,
+    Goal: TargetIcon,
     Projects: FolderKanbanIcon,
     More: MoreHorizontalIcon,
 };
@@ -34,7 +34,7 @@ const AGENT_VIEW_TRANSLATION_KEY_MAP: Record<AgentHierarchyView, ServerTranslati
     Profile: 'common.profile',
     Chat: 'common.chat',
     Book: 'common.book',
-    Timeouts: 'common.timeouts',
+    Goal: 'common.goalChat',
     Projects: 'common.projects',
     More: 'common.more',
 };

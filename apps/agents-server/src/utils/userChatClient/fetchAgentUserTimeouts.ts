@@ -4,7 +4,7 @@ import type { AgentUserTimeoutListResponse } from '../userChatClient';
 import { requestUserChatApi } from './requestUserChatApi';
 
 /**
- * Loads all durable timeouts for one user+agent across chats.
+ * Loads every planned message of one agent, as listed in its goal chat.
  *
  * @private shared helper for the Agents Server browser client
  */
@@ -15,6 +15,6 @@ export async function fetchAgentUserTimeouts(agentName: string): Promise<AgentUs
             method: 'GET',
             cache: 'no-store',
         },
-        'Failed to load agent timeouts.',
+        'Failed to load planned messages.',
     );
 }

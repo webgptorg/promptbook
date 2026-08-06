@@ -13,6 +13,7 @@ import {
     buildTaskRunReportRows,
     formatTaskDateTime,
     formatTaskDuration,
+    AgentGoalTaskBadge,
     formatTaskKind,
     getTaskQueueAgeMs,
     getTaskRuntimeDurationMs,
@@ -175,6 +176,7 @@ export function TaskManagerTaskRow({
                     <span className="rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 font-medium text-gray-600">
                         {formatTaskKind(task.kind)}
                     </span>
+                    <AgentGoalTaskBadge task={task} />
                 </div>
                 <div className="mt-2 space-y-1 text-[11px] text-gray-500">
                     <div>

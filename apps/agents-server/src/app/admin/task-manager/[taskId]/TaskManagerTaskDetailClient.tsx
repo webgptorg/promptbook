@@ -21,6 +21,7 @@ import {
     buildTaskRunReportRows,
     formatTaskDateTime,
     formatTaskDuration,
+    AgentGoalTaskBadge,
     formatTaskKind,
     getTaskQueueAgeMs,
     getTaskRuntimeDurationMs,
@@ -217,6 +218,7 @@ export function TaskManagerTaskDetailClient({ taskId, isSuperAdmin, serverDomain
                             <span className="rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-[11px] font-medium text-gray-600">
                                 {formatTaskKind(task.kind)}
                             </span>
+                            <AgentGoalTaskBadge task={task} />
                             {task.cancelRequestedAt ? (
                                 <span className="text-[11px] font-medium text-orange-700">Cancellation requested</span>
                             ) : null}

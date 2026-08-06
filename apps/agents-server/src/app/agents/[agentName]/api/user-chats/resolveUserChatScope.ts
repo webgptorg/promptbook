@@ -1,4 +1,5 @@
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
+import { canAccessAgentGoalChat } from '@/src/utils/agentGoalChat';
 import { canAccessAgentVisibility, resolveAgentVisibility } from '@/src/utils/agentAccess';
 import { resolveCurrentUserIdentity } from '@/src/utils/currentUserIdentity';
 import { isUserGlobalAdmin } from '@/src/utils/isUserGlobalAdmin';
@@ -15,6 +16,10 @@ export type ResolvedUserChatScope = {
      * who may browse all users' chats in a view-only mode.
      */
     viewerIsSuperAdmin: boolean;
+    /**
+     * True when the viewer may read the agent source book and therefore also the agent goal chat.
+     */
+    viewerCanAccessAgentGoalChat: boolean;
     agentPermanentId: string;
 };
 
@@ -38,9 +43,10 @@ export async function resolveUserChatScope(
 
     try {
         const collection = await $provideAgentCollectionForServer();
-        const [agentPermanentId, viewerIsSuperAdmin] = await Promise.all([
+        const [agentPermanentId, viewerIsSuperAdmin, viewerCanAccessAgentGoalChat] = await Promise.all([
             collection.getAgentPermanentId(agentIdentifier),
             isUserGlobalAdmin(),
+            canAccessAgentGoalChat(),
         ]);
         const visibility = await resolveAgentVisibility(agentPermanentId);
         const isAllowed = canAccessAgentVisibility({
@@ -58,6 +64,7 @@ export async function resolveUserChatScope(
                 userId: currentUserIdentity.userId,
                 viewerIsAdmin: currentUserIdentity.isAdmin,
                 viewerIsSuperAdmin,
+                viewerCanAccessAgentGoalChat,
                 agentPermanentId,
             },
         };

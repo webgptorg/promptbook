@@ -12,12 +12,10 @@ export { fetchAgentUserTimeouts } from './userChatClient/fetchAgentUserTimeouts'
 export { fetchUserChat } from './userChatClient/fetchUserChat';
 export { fetchUserChats } from './userChatClient/fetchUserChats';
 export { removeUserChat } from './userChatClient/removeUserChat';
-export { runAgentUserTimeoutBulkAction } from './userChatClient/runAgentUserTimeoutBulkAction';
 export { saveUserChatDraft } from './userChatClient/saveUserChatDraft';
 export { saveUserChatMessages } from './userChatClient/saveUserChatMessages';
 export { sendUserChatMessage } from './userChatClient/sendUserChatMessage';
 export { streamUserChat } from './userChatClient/streamUserChat';
-export { updateAgentUserTimeout } from './userChatClient/updateAgentUserTimeout';
 export { UserChatApiError } from './userChatClient/UserChatApiError';
 
 /**
@@ -45,6 +43,11 @@ export type UserChatSummary = {
      * (visible only to admins/super-admins browsing external chats).
      */
     isExternalUserChat?: boolean;
+    /**
+     * True for the singleton goal chat the agent keeps with itself, which is pinned above
+     * every other chat and rendered with its own icon.
+     */
+    isAgentGoalChat?: boolean;
     messagesCount: number;
     title: string;
     preview: string;
@@ -131,35 +134,6 @@ export type AgentUserTimeoutCounters = {
 export type AgentUserTimeoutListResponse = {
     items: Array<UserChatTimeout>;
     counters: AgentUserTimeoutCounters;
-    generatedAt: string;
-};
-
-/**
- * Editable timeout fields accepted by the agent-wide timeout update endpoint.
- */
-export type AgentUserTimeoutUpdatePayload = {
-    dueAt?: string;
-    recurrenceIntervalMs?: number | null;
-    message?: string | null;
-    parameters?: Record<string, unknown>;
-    paused?: boolean;
-    extendByMs?: number;
-};
-
-/**
- * Supported bulk timeout actions in the agent-wide timeout manager.
- */
-export type AgentUserTimeoutBulkAction = 'cancel_all_active' | 'pause_all_active' | 'resume_all_paused';
-
-/**
- * API payload returned after one bulk timeout action.
- */
-export type AgentUserTimeoutBulkActionResponse = {
-    action: AgentUserTimeoutBulkAction;
-    matchedCount: number;
-    updatedCount: number;
-    timeoutIds: Array<string>;
-    hasMore: boolean;
     generatedAt: string;
 };
 

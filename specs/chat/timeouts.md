@@ -37,17 +37,18 @@ From [server limits](../configuration.md#server-limits): `TIMEOUT_MAX_ACTIVE_PER
 
 ## Pause and resume
 
-A timeout can be **paused** (`pausedAt` set) without losing its schedule; paused rows are never claimed. Resuming clears `pausedAt`. Pause/resume/cancel exist per timeout and as bulk actions over the whole user + agent scope.
+A timeout can be **paused** (`pausedAt` set) without losing its schedule; paused rows are never claimed. Resuming clears `pausedAt`.
 
 ## User-facing surfaces
 
+Scheduled timeouts are the **planned messages** of the agent and are surfaced in its
+[goal chat](goal-chat.md), which replaced the former standalone timer dashboard.
+
 | Surface | Behavior |
 | --- | --- |
-| `GET /agents/:agentName/api/timeouts` | List the caller's timeouts with this agent (all chats of the scope). Session required. |
-| `PATCH /agents/:agentName/api/timeouts/:timeoutId` | Update schedule/message/pause state. |
-| `DELETE /agents/:agentName/api/timeouts/:timeoutId` | Cancel. |
-| `POST /agents/:agentName/api/timeouts/actions` | Bulk actions: `cancelAllActive`, `pauseAllActive`, `resumeAllPaused`. |
+| `GET /agents/:agentName/api/timeouts` | List every planned message of this agent (all chats, all users). Requires goal-chat access. |
+| `DELETE /agents/:agentName/api/timeouts/:timeoutId` | Cancel one planned message. Requires goal-chat access. |
 | `POST …/user-chats/:chatId/timeouts/:timeoutId/cancel` | Chat-scoped cancel ([User chats](user-chats.md#endpoints)). |
-| `/agents/:agentName/timeouts` page | Timer dashboard for the agent scope. |
+| `/agents/:agentName/goal` | Opens the agent goal chat, which lists the planned messages with their due time. |
 
 Scheduled timeouts are also included in the canonical chat payload/snapshots so viewers see pending timers live; schedule changes notify the [snapshot stream](user-chats.md#snapshot-stream).

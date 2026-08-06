@@ -1,3 +1,4 @@
+import { isAgentGoalChatId } from '../../agentGoalChat/agentGoalChatIdentity';
 import type { AdminChatTaskRecord } from '../../chatTasksAdmin';
 import { getUserChatJobRunReportFromParameters } from '../../userChat/userChatJobRunReport';
 import { resolveNullableSqlNumber } from './adminChatTaskSqlValues';
@@ -57,6 +58,7 @@ function mapAdminChatTaskJobRow(
         chatId: row.chatId,
         workerId: null,
         queueName: 'user-chat-jobs',
+        isAgentGoalTask: isAgentGoalChatId(row.chatId),
         runReport: getUserChatJobRunReportFromParameters(row.parameters),
     };
 }
@@ -97,5 +99,6 @@ function mapAdminChatTaskTimeoutRow(
         chatId: row.chatId,
         workerId: null,
         queueName: 'user-chat-timeouts',
+        isAgentGoalTask: isAgentGoalChatId(row.chatId),
     };
 }
