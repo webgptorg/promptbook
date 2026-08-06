@@ -3,7 +3,7 @@
 
 ---
 
-[ ] !!!
+[x] by Claude Code `claude-opus-5` thinking `max` - Implementation $4.23 5 hours; Testing 19 minutes
 
 [✨🥖] When the agent references the project, show it as a nice looking standardized chip
 
@@ -20,3 +20,4 @@
 
 ![The project exists](screenshots/2026-07-1020-agents-server-project-chips-1.png)
 ![But agent references this project wrongly by simple link](screenshots/2026-07-1020-agents-server-project-chips-2.png)
+

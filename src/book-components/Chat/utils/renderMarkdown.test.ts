@@ -57,3 +57,83 @@ describe('renderMarkdown sanitization', () => {
         expect(html).not.toContain(' href=');
     });
 });
+
+describe('renderMarkdown inline references', () => {
+    const PROJECT_REFERENCES = [
+        {
+            reference: 'prague-murders-map',
+            label: 'Prague Murders Map',
+            href: '/agents/Prague1/projects/prague-murders-map',
+            sourceHrefPrefixes: [
+                '/agents/Prague1/projects/prague-murders-map',
+                'https://prague-murders-map.live.ptbk.io',
+            ],
+            title: 'Interactive map of notable Prague murder cases',
+        },
+    ];
+
+    it('renders a link to an internal project file as the project chip', () => {
+        const html = renderMarkdown(
+            '[Open the Prague crimes map](/agents/prague1/projects/prague-murders-map/files/index.html)',
+            { inlineReferences: PROJECT_REFERENCES },
+        ) as string;
+
+        expect(html).toContain('class="inlineReferenceChip"');
+        expect(html).toContain('Prague Murders Map');
+        expect(html).toContain('href="/agents/Prague1/projects/prague-murders-map"');
+        expect(html).not.toContain('files/index.html');
+        expect(html).not.toContain('Open the Prague crimes map');
+    });
+
+    it('renders a bare project URL as the project chip and keeps the sentence punctuation', () => {
+        const html = renderMarkdown('Open https://prague-murders-map.live.ptbk.io/ and enjoy.', {
+            inlineReferences: PROJECT_REFERENCES,
+        }) as string;
+
+        expect(html).toContain('class="inlineReferenceChip"');
+        expect(html).toContain('Prague Murders Map');
+        expect(html).toContain('and enjoy.');
+        expect(html).not.toContain('>https://prague-murders-map.live.ptbk.io');
+    });
+
+    it('keeps unrelated links, images and code untouched', () => {
+        const html = renderMarkdown(
+            spaceTrim(`
+                [Other project](/agents/Prague1/projects/prague-murders-map-2)
+
+                ![Screenshot](/agents/Prague1/projects/prague-murders-map/files/screenshot.png)
+
+                \`https://prague-murders-map.live.ptbk.io/\`
+            `),
+            { inlineReferences: PROJECT_REFERENCES },
+        ) as string;
+
+        expect(html).toContain('href="/agents/Prague1/projects/prague-murders-map-2"');
+        expect(html).toContain('src="/agents/Prague1/projects/prague-murders-map/files/screenshot.png"');
+        expect(html).toContain('<code>https://prague-murders-map.live.ptbk.io/</code>');
+        expect(html).not.toContain('inlineReferenceChip');
+    });
+
+    it('keeps the chip menu links untouched by the bare URL pass', () => {
+        const html = renderMarkdown('[[prague-murders-map]]', {
+            inlineReferences: [
+                {
+                    ...PROJECT_REFERENCES[0]!,
+                    menu: {
+                        status: { label: 'Project is running', isActive: true },
+                        options: [
+                            {
+                                label: 'Open the project in a new tab',
+                                href: 'https://prague-murders-map.live.ptbk.io',
+                            },
+                        ],
+                    },
+                },
+            ],
+        }) as string;
+
+        expect(html).toContain('href="https://prague-murders-map.live.ptbk.io"');
+        expect(html).toContain('Project is running');
+        expect((html.match(/inlineReferenceChip/g) || []).length).toBe(1);
+    });
+});

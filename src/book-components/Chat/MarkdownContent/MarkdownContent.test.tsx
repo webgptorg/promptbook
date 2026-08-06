@@ -167,6 +167,58 @@ describe('MarkdownContent details rendering', () => {
         expect(projectLink.getAttribute('rel')).toBe('noopener noreferrer');
     });
 
+    it('renders project links and project URLs as the same expandable reference chip', () => {
+        const { container } = render(
+            <MarkdownContent
+                content={spaceTrim(`
+                    [Open the Prague crimes map](/agents/prague1/projects/prague-murders-map/files/index.html)
+
+                    The map is also on https://prague-murders-map.live.ptbk.io/
+                `)}
+                inlineReferences={[
+                    {
+                        reference: 'prague-murders-map',
+                        label: 'Prague Murders Map',
+                        href: '/agents/Prague1/projects/prague-murders-map',
+                        sourceHrefPrefixes: [
+                            '/agents/Prague1/projects/prague-murders-map',
+                            'https://prague-murders-map.live.ptbk.io',
+                        ],
+                        menu: {
+                            status: {
+                                label: 'Project is running',
+                                isActive: true,
+                            },
+                            options: [
+                                {
+                                    label: 'Open the project in a new tab',
+                                    href: 'https://prague-murders-map.live.ptbk.io',
+                                },
+                                {
+                                    label: 'Open the project page in a new tab',
+                                    href: '/agents/Prague1/projects/prague-murders-map',
+                                },
+                            ],
+                        },
+                    },
+                ]}
+            />,
+        );
+
+        const detailsElements = container.querySelectorAll('details');
+
+        expect(detailsElements).toHaveLength(2);
+        detailsElements.forEach((details) => {
+            expect(details.querySelector('summary')?.textContent).toContain('Prague Murders Map');
+            expect(details.textContent).toContain('Project is running');
+        });
+        expect(screen.getAllByRole('link', { name: 'Open the project in a new tab' })[0]?.getAttribute('href')).toBe(
+            'https://prague-murders-map.live.ptbk.io',
+        );
+        expect(container.textContent).not.toContain('files/index.html');
+        expect(container.textContent).not.toContain('https://prague-murders-map.live.ptbk.io/');
+    });
+
     it('keeps inline references inside code literal', () => {
         const { container } = render(
             <MarkdownContent

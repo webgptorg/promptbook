@@ -2,6 +2,7 @@ import { describe, expect, it, jest } from '@jest/globals';
 import { listAgentProjectRuntimes } from './agentProjectRuntimeRegistry';
 import { listAgentProjects } from './listAgentProjects';
 import { listAgentProjectChatReferences } from './listAgentProjectChatReferences';
+import { resolveAgentProjectPublicUrls } from './resolveAgentProjectPublicUrls';
 
 jest.mock('./agentProjectRuntimeRegistry', () => ({
     listAgentProjectRuntimes: jest.fn(),
@@ -11,11 +12,17 @@ jest.mock('./listAgentProjects', () => ({
     listAgentProjects: jest.fn(),
 }));
 
+jest.mock('./resolveAgentProjectPublicUrls', () => ({
+    resolveAgentProjectPublicUrls: jest.fn(),
+}));
+
 const listMockedAgentProjectRuntimes = jest.mocked(listAgentProjectRuntimes);
 const listMockedAgentProjects = jest.mocked(listAgentProjects);
+const resolveMockedAgentProjectPublicUrls = jest.mocked(resolveAgentProjectPublicUrls);
 
 describe('listAgentProjectChatReferences', () => {
     it('enriches only the owning agent projects with their matching runtime state', async () => {
+        resolveMockedAgentProjectPublicUrls.mockResolvedValue(new Map());
         listMockedAgentProjects.mockResolvedValue([
             {
                 projectName: 'Website',
@@ -61,6 +68,32 @@ describe('listAgentProjectChatReferences', () => {
                 sizeBytes: 240,
                 isRunning: false,
                 projectUrl: null,
+            },
+        ]);
+    });
+
+    it('keeps the public project URL of stopped projects', async () => {
+        listMockedAgentProjects.mockResolvedValue([
+            {
+                projectName: 'prague-murders-map',
+                displayName: 'prague-murders-map',
+                description: '',
+                sizeBytes: 4600,
+            },
+        ] as unknown as Awaited<ReturnType<typeof listAgentProjects>>);
+        listMockedAgentProjectRuntimes.mockResolvedValue([]);
+        resolveMockedAgentProjectPublicUrls.mockResolvedValue(
+            new Map([['prague-murders-map', 'https://prague-murders-map.live.ptbk.io']]),
+        );
+
+        await expect(listAgentProjectChatReferences('agent')).resolves.toEqual([
+            {
+                projectName: 'prague-murders-map',
+                displayName: 'prague-murders-map',
+                description: '',
+                sizeBytes: 4600,
+                isRunning: false,
+                projectUrl: 'https://prague-murders-map.live.ptbk.io',
             },
         ]);
     });

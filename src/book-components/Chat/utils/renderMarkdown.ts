@@ -267,6 +267,48 @@ const DETAILS_PLACEHOLDER_WRAPPED_REGEX = new RegExp(`<p>\\s*(${DETAILS_PLACEHOL
 const INLINE_REFERENCE_REGEX = /\[\[([^\]\r\n]+?)\]\]/g;
 
 /**
+ * Prefix for INLINE REFERENCE PLACEHOLDER.
+ *
+ * @private utility of `renderMarkdown`
+ */
+const INLINE_REFERENCE_PLACEHOLDER_PREFIX = '@@PROMPTBOOK_INLINE_REFERENCE_PLACEHOLDER__';
+
+/**
+ * Pattern matching INLINE REFERENCE PLACEHOLDER.
+ *
+ * @private utility of `renderMarkdown`
+ */
+const INLINE_REFERENCE_PLACEHOLDER_REGEX = new RegExp(`${INLINE_REFERENCE_PLACEHOLDER_PREFIX}(\\d+)__`, 'g');
+
+/**
+ * Pattern matching markdown links and images together with their raw target.
+ *
+ * @private utility of `renderMarkdown`
+ */
+const MARKDOWN_LINK_REGEX = /(!?)\[([^\]\r\n]*)\]\(\s*(<[^>\r\n]*>|[^()\s]+)(?:\s+(?:"[^"]*"|'[^']*'))?\s*\)/g;
+
+/**
+ * Pattern matching bare `http(s)` URLs written directly into markdown text.
+ *
+ * @private utility of `renderMarkdown`
+ */
+const BARE_URL_REGEX = /(^|\s)(https?:\/\/[^\s<>()[\]"']+)/g;
+
+/**
+ * Sentence punctuation which trails a bare URL instead of belonging to it.
+ *
+ * @private utility of `renderMarkdown`
+ */
+const BARE_URL_TRAILING_PUNCTUATION_REGEX = /[.,;:!?]+$/;
+
+/**
+ * Pattern splitting one URL into its scheme, host and remaining part.
+ *
+ * @private utility of `renderMarkdown`
+ */
+const ABSOLUTE_URL_REGEX = /^[a-z][a-z0-9+.-]*:\/\/([^/?#]*)(.*)$/i;
+
+/**
  * Markdown patterns that are strong enough to identify content as markdown.
  */
 const MARKDOWN_CONTENT_PATTERNS: ReadonlyArray<RegExp> = [
@@ -332,6 +374,16 @@ export type MarkdownInlineReference = {
      * Link target for the rendered reference.
      */
     readonly href: string;
+
+    /**
+     * Optional URL prefixes which also identify this reference in the authored markdown.
+     *
+     * A markdown link or a bare URL pointing to one of these prefixes is rendered as the same chip
+     * as the `[[reference]]` token. Both absolute URLs (for example `https://project.example.com`)
+     * and application paths (for example `/agents/agent/projects/website`) are supported; a path
+     * prefix matches on any host so that both relative and absolute links are recognized.
+     */
+    readonly sourceHrefPrefixes?: ReadonlyArray<string>;
 
     /**
      * Optional hover title for the rendered reference.
@@ -865,6 +917,184 @@ function createMarkdownInlineReferenceByKey(
 }
 
 /**
+ * Comparable parts of one URL used to recognize inline references written as links or bare URLs.
+ *
+ * @private utility of `renderMarkdown`
+ */
+type ComparableUrlParts = {
+    /**
+     * Lowercase host of an absolute URL, or an empty string for a host-independent application path.
+     */
+    readonly host: string;
+
+    /**
+     * Lowercase decoded path without query, hash and trailing slashes.
+     */
+    readonly path: string;
+};
+
+/**
+ * One inline reference together with its comparable source URL prefixes.
+ *
+ * @private utility of `renderMarkdown`
+ */
+type MarkdownInlineReferenceHrefMatcher = {
+    /**
+     * Reference rendered when one of its source prefixes matches.
+     */
+    readonly reference: MarkdownInlineReference;
+
+    /**
+     * Comparable form of the reference source URL prefixes.
+     */
+    readonly sourceHrefPrefixes: ReadonlyArray<ComparableUrlParts>;
+};
+
+/**
+ * Renders one matched reference and returns the placeholder standing for it.
+ *
+ * @private utility of `renderMarkdown`
+ */
+type CreateMarkdownInlineReferencePlaceholder = (reference: MarkdownInlineReference) => string;
+
+/**
+ * Decodes percent-encoded characters without failing on malformed input.
+ *
+ * @param value - Raw URL part.
+ * @returns Decoded value, or the original value when it cannot be decoded.
+ *
+ * @private utility of `renderMarkdown`
+ */
+function decodeUrlPartSafely(value: string): string {
+    try {
+        return decodeURIComponent(value);
+    } catch {
+        return value;
+    }
+}
+
+/**
+ * Normalizes one URL path so that encoding, casing and trailing slashes do not break matching.
+ *
+ * @param path - Raw path including an optional query and hash.
+ * @returns Comparable path.
+ *
+ * @private utility of `renderMarkdown`
+ */
+function normalizeUrlPathForComparison(path: string): string {
+    const pathWithoutQuery = path.split(/[?#]/, 1)[0] || '';
+
+    return decodeUrlPartSafely(pathWithoutQuery).toLowerCase().replace(/\/+$/, '');
+}
+
+/**
+ * Splits one absolute URL or application path into its comparable parts.
+ *
+ * @param url - Raw link target written in markdown.
+ * @returns Comparable URL parts, or `null` when the value cannot address a reference.
+ *
+ * @private utility of `renderMarkdown`
+ */
+function createComparableUrlParts(url: string): ComparableUrlParts | null {
+    const trimmedUrl = url
+        .trim()
+        .replace(/^<([\s\S]*)>$/, '$1')
+        .trim();
+
+    if (trimmedUrl === '') {
+        return null;
+    }
+
+    const absoluteUrlMatch = trimmedUrl.match(ABSOLUTE_URL_REGEX);
+    if (absoluteUrlMatch) {
+        return {
+            host: absoluteUrlMatch[1]!.toLowerCase(),
+            path: normalizeUrlPathForComparison(absoluteUrlMatch[2] || ''),
+        };
+    }
+
+    if (!trimmedUrl.startsWith('/')) {
+        return null;
+    }
+
+    return {
+        host: '',
+        path: normalizeUrlPathForComparison(trimmedUrl),
+    };
+}
+
+/**
+ * Returns whether one URL points into one reference source prefix.
+ *
+ * @param url - Comparable parts of the link target written in markdown.
+ * @param prefix - Comparable parts of one reference source prefix.
+ * @returns `true` when the URL belongs to the reference.
+ *
+ * @private utility of `renderMarkdown`
+ */
+function isUrlWithinReferencePrefix(url: ComparableUrlParts, prefix: ComparableUrlParts): boolean {
+    if (prefix.host !== '' && prefix.host !== url.host) {
+        return false;
+    }
+
+    if (prefix.path === '') {
+        // Note: A prefix without a path covers the whole host, a prefix without both would cover everything
+        return prefix.host !== '';
+    }
+
+    return url.path === prefix.path || url.path.startsWith(`${prefix.path}/`);
+}
+
+/**
+ * Builds matchers for references which can also be written as a markdown link or a bare URL.
+ *
+ * @param references - References available to this markdown render.
+ * @returns Matchers of references declaring at least one usable source prefix.
+ *
+ * @private utility of `renderMarkdown`
+ */
+function createMarkdownInlineReferenceHrefMatchers(
+    references: ReadonlyArray<MarkdownInlineReference>,
+): ReadonlyArray<MarkdownInlineReferenceHrefMatcher> {
+    return references
+        .map((reference) => ({
+            reference,
+            sourceHrefPrefixes: (reference.sourceHrefPrefixes || [])
+                .map((sourceHrefPrefix) => createComparableUrlParts(sourceHrefPrefix))
+                .filter((sourceHrefPrefix): sourceHrefPrefix is ComparableUrlParts => sourceHrefPrefix !== null),
+        }))
+        .filter((matcher) => matcher.sourceHrefPrefixes.length !== 0);
+}
+
+/**
+ * Finds the reference which owns one link target.
+ *
+ * @param href - Raw link target written in markdown.
+ * @param matchers - Reference matchers of this markdown render.
+ * @returns Matching reference or `null`.
+ *
+ * @private utility of `renderMarkdown`
+ */
+function findMarkdownInlineReferenceForHref(
+    href: string,
+    matchers: ReadonlyArray<MarkdownInlineReferenceHrefMatcher>,
+): MarkdownInlineReference | null {
+    const urlParts = createComparableUrlParts(href);
+
+    if (urlParts === null) {
+        return null;
+    }
+
+    const matcher = matchers.find((candidateMatcher) =>
+        candidateMatcher.sourceHrefPrefixes.some((sourceHrefPrefix) =>
+            isUrlWithinReferencePrefix(urlParts, sourceHrefPrefix),
+        ),
+    );
+
+    return matcher?.reference || null;
+}
+
+/**
  * Renders one inline reference as raw HTML that is sanitized by the shared markdown sanitizer.
  *
  * @param reference - Resolved inline reference.
@@ -935,11 +1165,113 @@ function renderMarkdownInlineReferenceMenuOptionHtml(option: MarkdownInlineRefer
 }
 
 /**
- * Replaces known `[[reference]]` tokens with link chips while leaving unknown tokens unchanged.
+ * Replaces known `[[reference]]` tokens with chip placeholders while leaving unknown tokens unchanged.
+ *
+ * @param markdown - Markdown content after code masking.
+ * @param references - References available to this markdown render.
+ * @param createPlaceholder - Renders one matched reference into a placeholder.
+ * @returns Markdown with known reference tokens replaced by placeholders.
+ *
+ * @private utility of `renderMarkdown`
+ */
+function replaceMarkdownInlineReferenceTokens(
+    markdown: string_markdown,
+    references: ReadonlyArray<MarkdownInlineReference>,
+    createPlaceholder: CreateMarkdownInlineReferencePlaceholder,
+): string_markdown {
+    const referenceByKey = createMarkdownInlineReferenceByKey(references);
+
+    if (referenceByKey.size === 0) {
+        return markdown;
+    }
+
+    return markdown.replace(INLINE_REFERENCE_REGEX, (match, rawReference: string) => {
+        const reference = referenceByKey.get(normalizeMarkdownInlineReferenceKey(rawReference));
+
+        return reference ? createPlaceholder(reference) : match;
+    }) as string_markdown;
+}
+
+/**
+ * Replaces markdown links pointing to a known reference with chip placeholders.
+ *
+ * Images keep their original markdown so that pictures served by a reference stay visible.
+ *
+ * @param markdown - Markdown content after code masking.
+ * @param matchers - Reference matchers of this markdown render.
+ * @param createPlaceholder - Renders one matched reference into a placeholder.
+ * @returns Markdown with known reference links replaced by placeholders.
+ *
+ * @private utility of `renderMarkdown`
+ */
+function replaceMarkdownInlineReferenceLinks(
+    markdown: string_markdown,
+    matchers: ReadonlyArray<MarkdownInlineReferenceHrefMatcher>,
+    createPlaceholder: CreateMarkdownInlineReferencePlaceholder,
+): string_markdown {
+    return markdown.replace(MARKDOWN_LINK_REGEX, (match, imageMarker: string, _label: string, rawHref: string) => {
+        if (imageMarker !== '') {
+            return match;
+        }
+
+        const reference = findMarkdownInlineReferenceForHref(rawHref, matchers);
+
+        return reference ? createPlaceholder(reference) : match;
+    }) as string_markdown;
+}
+
+/**
+ * Replaces bare URLs of known references with chip placeholders.
+ *
+ * @param markdown - Markdown content after reference links were replaced.
+ * @param matchers - Reference matchers of this markdown render.
+ * @param createPlaceholder - Renders one matched reference into a placeholder.
+ * @returns Markdown with known reference URLs replaced by placeholders.
+ *
+ * @private utility of `renderMarkdown`
+ */
+function replaceMarkdownInlineReferenceBareUrls(
+    markdown: string_markdown,
+    matchers: ReadonlyArray<MarkdownInlineReferenceHrefMatcher>,
+    createPlaceholder: CreateMarkdownInlineReferencePlaceholder,
+): string_markdown {
+    return markdown.replace(BARE_URL_REGEX, (match, leadingWhitespace: string, rawUrl: string) => {
+        const trailingPunctuation = rawUrl.match(BARE_URL_TRAILING_PUNCTUATION_REGEX)?.[0] || '';
+        const url = rawUrl.slice(0, rawUrl.length - trailingPunctuation.length);
+        const reference = findMarkdownInlineReferenceForHref(url, matchers);
+
+        return reference ? `${leadingWhitespace}${createPlaceholder(reference)}${trailingPunctuation}` : match;
+    }) as string_markdown;
+}
+
+/**
+ * Restores chips which replaced references during the reference passes.
+ *
+ * @param markdown - Markdown containing reference placeholders.
+ * @param renderedChips - Chip HTML indexed by placeholder number.
+ * @returns Markdown with inline references rendered as HTML chips.
+ *
+ * @private utility of `renderMarkdown`
+ */
+function restoreMarkdownInlineReferenceChips(
+    markdown: string_markdown,
+    renderedChips: ReadonlyArray<string>,
+): string_markdown {
+    return markdown.replace(
+        INLINE_REFERENCE_PLACEHOLDER_REGEX,
+        (_match, index) => renderedChips[Number(index)] ?? '',
+    ) as string_markdown;
+}
+
+/**
+ * Replaces known `[[reference]]` tokens, reference links and bare reference URLs with link chips.
+ *
+ * Every matched reference is first replaced by a placeholder so that the rendered chip HTML is
+ * never processed again by a later pass.
  *
  * @param markdown - Markdown content after code masking.
  * @param options - Markdown render options.
- * @returns Markdown with known inline references rendered as HTML anchors.
+ * @returns Markdown with known inline references rendered as HTML chips.
  *
  * @private utility of `renderMarkdown`
  */
@@ -951,16 +1283,27 @@ function applyMarkdownInlineReferences(markdown: string_markdown, options?: Rend
         return markdown;
     }
 
-    const referenceByKey = createMarkdownInlineReferenceByKey(references);
-    if (referenceByKey.size === 0) {
-        return markdown;
+    const renderedChips: Array<string> = [];
+    const createPlaceholder: CreateMarkdownInlineReferencePlaceholder = (reference) => {
+        const placeholder = `${INLINE_REFERENCE_PLACEHOLDER_PREFIX}${renderedChips.length}__`;
+        renderedChips.push(renderMarkdownInlineReferenceHtml(reference, className));
+
+        return placeholder;
+    };
+
+    const hrefMatchers = createMarkdownInlineReferenceHrefMatchers(references);
+    let referencedMarkdown = replaceMarkdownInlineReferenceTokens(markdown, references, createPlaceholder);
+
+    if (hrefMatchers.length !== 0) {
+        referencedMarkdown = replaceMarkdownInlineReferenceLinks(referencedMarkdown, hrefMatchers, createPlaceholder);
+        referencedMarkdown = replaceMarkdownInlineReferenceBareUrls(
+            referencedMarkdown,
+            hrefMatchers,
+            createPlaceholder,
+        );
     }
 
-    return markdown.replace(INLINE_REFERENCE_REGEX, (match, rawReference: string) => {
-        const reference = referenceByKey.get(normalizeMarkdownInlineReferenceKey(rawReference));
-
-        return reference ? renderMarkdownInlineReferenceHtml(reference, className) : match;
-    }) as string_markdown;
+    return restoreMarkdownInlineReferenceChips(referencedMarkdown, renderedChips);
 }
 
 /**

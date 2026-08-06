@@ -1,6 +1,7 @@
 import type { MarkdownInlineReference } from '@promptbook-local/types';
 import type { AgentProjectReferenceInfo } from './AgentProjectReferenceInfo';
 import { buildAgentProjectProfileHref } from './agentProjectHrefs';
+import { humanizeAgentProjectName } from './humanizeAgentProjectName';
 
 /**
  * Markdown inline reference data consumed by chat markdown rendering.
@@ -31,7 +32,28 @@ type AgentProjectMarkdownReferenceInfo = Pick<
 >;
 
 /**
- * Creates markdown references that render known `[[project-name]]` tokens as project profile chips.
+ * Resolves the human-readable project name shown inside one project chip.
+ *
+ * A display name resolved from the project README wins, a plain project directory name is humanized
+ * so that `prague-murders-map` reads as `Prague Murders Map`.
+ *
+ * @param project - Project metadata.
+ * @returns Project chip label.
+ */
+function resolveAgentProjectChipLabel(project: AgentProjectMarkdownReferenceInfo): string {
+    if (project.displayName && project.displayName !== project.projectName) {
+        return project.displayName;
+    }
+
+    return humanizeAgentProjectName(project.projectName);
+}
+
+/**
+ * Creates markdown references rendering every mention of one project as a project chip.
+ *
+ * One project is mentioned either by its `[[project-name]]` token, by a link into its project page
+ * or files, or by its public project URL. All of them render the same chip showing the project name
+ * together with its running state.
  *
  * @param options - Agent and project metadata.
  * @returns Inline markdown references for the shared chat renderer.
@@ -39,31 +61,38 @@ type AgentProjectMarkdownReferenceInfo = Pick<
 export function createAgentProjectMarkdownReferences(
     options: CreateAgentProjectMarkdownReferencesOptions,
 ): ReadonlyArray<AgentProjectMarkdownReference> {
-    return options.projects.map((project) => ({
-        reference: project.projectName,
-        label: project.displayName || project.projectName,
-        href: buildAgentProjectProfileHref(options.agentPermanentId, project.projectName),
-        title: project.description || project.displayName || project.projectName,
-        menu: {
-            status: {
-                label: project.isRunning ? 'Project is running' : 'Project is not running',
-                isActive: project.isRunning ?? false,
+    return options.projects.map((project) => {
+        const projectProfileHref = buildAgentProjectProfileHref(options.agentPermanentId, project.projectName);
+        const projectUrl = project.projectUrl || null;
+        const label = resolveAgentProjectChipLabel(project);
+
+        return {
+            reference: project.projectName,
+            label,
+            href: projectProfileHref,
+            sourceHrefPrefixes: [projectProfileHref, ...(projectUrl ? [projectUrl] : [])],
+            title: project.description || label,
+            menu: {
+                status: {
+                    label: project.isRunning ? 'Project is running' : 'Project is not running',
+                    isActive: project.isRunning ?? false,
+                },
+                options: [
+                    {
+                        label: 'Open the project in a new tab',
+                        href: project.isRunning ? projectUrl : null,
+                        title:
+                            project.isRunning && projectUrl
+                                ? 'Open the project in a new tab'
+                                : 'The project must run before it can be opened.',
+                    },
+                    {
+                        label: 'Open the project page in a new tab',
+                        href: projectProfileHref,
+                        title: 'Open the project page in a new tab',
+                    },
+                ],
             },
-            options: [
-                {
-                    label: 'Open the project in a new tab',
-                    href: project.isRunning ? project.projectUrl ?? null : null,
-                    title:
-                        project.isRunning && project.projectUrl
-                            ? 'Open the project in a new tab'
-                            : 'The project must run before it can be opened.',
-                },
-                {
-                    label: 'Open the project page in a new tab',
-                    href: buildAgentProjectProfileHref(options.agentPermanentId, project.projectName),
-                    title: 'Open the project page in a new tab',
-                },
-            ],
-        },
-    }));
+        };
+    });
 }

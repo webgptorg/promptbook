@@ -13,7 +13,10 @@ export type AgentProjectReferenceInfo = Pick<
     readonly isRunning?: boolean;
 
     /**
-     * Public runtime URL when the project has been assigned a runtime, otherwise `null`.
+     * Stable public project URL when the project has an assigned runtime or domain, otherwise `null`.
+     *
+     * The URL stays the same while the project is stopped so that the project stays recognizable
+     * wherever it is referenced.
      */
     readonly projectUrl?: string | null;
 };

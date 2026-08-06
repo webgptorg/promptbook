@@ -19,6 +19,7 @@ describe('createAgentProjectMarkdownReferences', () => {
                 reference: 'website',
                 label: 'Website',
                 href: '/agents/agent%20one/projects/website',
+                sourceHrefPrefixes: ['/agents/agent%20one/projects/website'],
                 title: 'Marketing website',
                 menu: {
                     status: {
@@ -42,24 +43,25 @@ describe('createAgentProjectMarkdownReferences', () => {
         ]);
     });
 
-    it('falls back to the project directory name when display metadata is empty', () => {
+    it('humanizes the project directory name when no display metadata is available', () => {
         expect(
             createAgentProjectMarkdownReferences({
                 agentPermanentId: 'agent',
                 projects: [
                     {
-                        projectName: 'project-a',
-                        displayName: '',
+                        projectName: 'prague-murders-map',
+                        displayName: 'prague-murders-map',
                         description: '',
                     },
                 ],
             }),
         ).toEqual([
             {
-                reference: 'project-a',
-                label: 'project-a',
-                href: '/agents/agent/projects/project-a',
-                title: 'project-a',
+                reference: 'prague-murders-map',
+                label: 'Prague Murders Map',
+                href: '/agents/agent/projects/prague-murders-map',
+                sourceHrefPrefixes: ['/agents/agent/projects/prague-murders-map'],
+                title: 'Prague Murders Map',
                 menu: {
                     status: {
                         label: 'Project is not running',
@@ -73,7 +75,7 @@ describe('createAgentProjectMarkdownReferences', () => {
                         },
                         {
                             label: 'Open the project page in a new tab',
-                            href: '/agents/agent/projects/project-a',
+                            href: '/agents/agent/projects/prague-murders-map',
                             title: 'Open the project page in a new tab',
                         },
                     ],
@@ -104,6 +106,31 @@ describe('createAgentProjectMarkdownReferences', () => {
         expect(reference?.menu?.options[0]).toMatchObject({
             label: 'Open the project in a new tab',
             href: 'https://website.example.com',
+        });
+    });
+
+    it('recognizes the project page, its files and its public URL as the same project', () => {
+        const [reference] = createAgentProjectMarkdownReferences({
+            agentPermanentId: 'agent',
+            projects: [
+                {
+                    projectName: 'website',
+                    displayName: 'Website',
+                    description: '',
+                    isRunning: false,
+                    projectUrl: 'https://website.example.com',
+                },
+            ],
+        });
+
+        expect(reference?.sourceHrefPrefixes).toEqual([
+            '/agents/agent/projects/website',
+            'https://website.example.com',
+        ]);
+        expect(reference?.menu?.options[0]).toMatchObject({
+            label: 'Open the project in a new tab',
+            href: null,
+            title: 'The project must run before it can be opened.',
         });
     });
 });

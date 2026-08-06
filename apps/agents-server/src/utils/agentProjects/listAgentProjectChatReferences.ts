@@ -1,6 +1,7 @@
 import type { AgentProjectReferenceInfo } from './AgentProjectReferenceInfo';
 import { listAgentProjectRuntimes } from './agentProjectRuntimeRegistry';
 import { listAgentProjects } from './listAgentProjects';
+import { resolveAgentProjectPublicUrls } from './resolveAgentProjectPublicUrls';
 
 /**
  * Lists browser-safe project references enriched with their current runtime state for chat.
@@ -11,7 +12,11 @@ import { listAgentProjects } from './listAgentProjects';
 export async function listAgentProjectChatReferences(
     agentPermanentId: string,
 ): Promise<ReadonlyArray<AgentProjectReferenceInfo>> {
-    const [projects, runtimes] = await Promise.all([listAgentProjects(agentPermanentId), listAgentProjectRuntimes()]);
+    const [projects, runtimes, publicUrlByProjectName] = await Promise.all([
+        listAgentProjects(agentPermanentId),
+        listAgentProjectRuntimes(),
+        resolveAgentProjectPublicUrls(agentPermanentId),
+    ]);
     const runtimeByProjectName = new Map(
         runtimes
             .filter((runtime) => runtime.agentPermanentId.toLowerCase() === agentPermanentId.toLowerCase())
@@ -19,7 +24,8 @@ export async function listAgentProjectChatReferences(
     );
 
     return projects.map((project) => {
-        const runtime = runtimeByProjectName.get(project.projectName.toLowerCase());
+        const normalizedProjectName = project.projectName.toLowerCase();
+        const runtime = runtimeByProjectName.get(normalizedProjectName);
 
         return {
             projectName: project.projectName,
@@ -27,7 +33,7 @@ export async function listAgentProjectChatReferences(
             description: project.description,
             sizeBytes: project.sizeBytes,
             isRunning: runtime?.isRunning ?? false,
-            projectUrl: runtime?.publicUrl ?? null,
+            projectUrl: runtime?.publicUrl ?? publicUrlByProjectName.get(normalizedProjectName) ?? null,
         };
     });
 }
