@@ -94,6 +94,52 @@ export type AvatarVisualRenderContext = {
 export type AvatarVisual = (context: AvatarVisualRenderContext) => void;
 
 /**
+ * One character cell of a terminal-text avatar frame.
+ *
+ * @private shared contract for the avatar rendering system
+ */
+export type AvatarVisualTerminalTextCell = {
+    /**
+     * Single character painted in the cell.
+     */
+    readonly character: string;
+
+    /**
+     * Color of the character as a CSS color string.
+     */
+    readonly color: string_color;
+};
+
+/**
+ * Rendering context forwarded to a terminal-text avatar visual.
+ *
+ * Unlike `AvatarVisualRenderContext` this carries no canvas, because the visual paints
+ * character cells instead of pixels.
+ *
+ * @private shared contract for the avatar rendering system
+ */
+export type AvatarVisualTerminalTextRenderContext = {
+    readonly columns: number;
+    readonly rows: number;
+    readonly timeMs: number;
+    readonly avatarDefinition: AvatarDefinition;
+    readonly palette: AvatarPalette;
+    readonly createRandom: (salt: string) => () => number;
+    readonly interaction: AvatarInteractionState;
+};
+
+/**
+ * Signature of one terminal-text avatar visual renderer.
+ *
+ * Returns `rows` rows of `columns` cells, where `null` leaves the terminal background visible.
+ *
+ * @private shared contract for the avatar rendering system
+ */
+export type AvatarVisualTerminalTextRenderer = (
+    context: AvatarVisualTerminalTextRenderContext,
+) => ReadonlyArray<ReadonlyArray<AvatarVisualTerminalTextCell | null>>;
+
+/**
  * Metadata and renderer for one built-in avatar visual.
  *
  * @private shared contract for the avatar rendering system
@@ -105,6 +151,15 @@ export type AvatarVisualDefinition = {
     readonly isAnimated: boolean;
     readonly supportsPointerTracking?: boolean;
     readonly render: AvatarVisual;
+
+    /**
+     * Optional native terminal-text renderer of visuals which are made of characters.
+     *
+     * Character-based visuals lose their identity when they are rasterized onto a canvas and
+     * converted back into half-block ASCII art, so they paint the terminal grid directly instead.
+     * Visuals without this renderer are rasterized through `renderAvatarVisualAsciiArt`.
+     */
+    readonly renderTerminalText?: AvatarVisualTerminalTextRenderer;
 };
 
 /**
