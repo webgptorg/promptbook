@@ -96,9 +96,7 @@ describe('coder boilerplate templates', () => {
         expect(normalizeLineEndings(agentsFileContent).trim()).toBe(getDefaultCoderAgentsFileContent());
 
         const agentCodingFileContent = await readFile(join(projectPath, AGENT_CODING_FILE_PATH), 'utf-8');
-        expect(normalizeLineEndings(agentCodingFileContent).trim()).toBe(
-            getDefaultCoderAgentCodingFileContent(),
-        );
+        expect(normalizeLineEndings(agentCodingFileContent).trim()).toBe(getDefaultCoderAgentCodingFileContent());
 
         await expect(
             readFile(join(projectPath, 'prompts', 'templates', 'agents-server.md'), 'utf-8'),

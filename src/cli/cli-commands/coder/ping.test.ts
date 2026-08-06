@@ -61,7 +61,17 @@ describe('$initializeCoderPingCommand', () => {
         const program = createProgramWithPingCommand();
 
         await program.parseAsync(
-            ['node', 'test', 'ping', '--harness', 'openai-codex', '--model', 'gpt-5.6-sol', '--thinking-level', 'xhigh'],
+            [
+                'node',
+                'test',
+                'ping',
+                '--harness',
+                'openai-codex',
+                '--model',
+                'gpt-5.6-sol',
+                '--thinking-level',
+                'xhigh',
+            ],
             { from: 'node' },
         );
 

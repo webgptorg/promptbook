@@ -53,10 +53,7 @@ export function renderCommitmentCatalogSection(options: RenderCommitmentCatalogS
             ${aliasesMarkdown}
 
             ${block(
-                renderGroupedCommitmentDocumentationMarkdown(
-                    groupedCommitment,
-                    COMMITMENT_CATALOG_HEADING_LEVEL_SHIFT,
-                ),
+                renderGroupedCommitmentDocumentationMarkdown(groupedCommitment, COMMITMENT_CATALOG_HEADING_LEVEL_SHIFT),
             )}
         `,
     );

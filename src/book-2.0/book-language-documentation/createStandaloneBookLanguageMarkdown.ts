@@ -280,9 +280,7 @@ export function createStandaloneBookLanguageMarkdown(
             ${block(dictionary.tutorialSections.checklistBody)}
 
             ${block(
-                isLowLevelCommitmentsIncluded
-                    ? renderLowLevelCommitmentsChapter(lowLevelCommitments, dictionary)
-                    : '',
+                isLowLevelCommitmentsIncluded ? renderLowLevelCommitmentsChapter(lowLevelCommitments, dictionary) : '',
             )}
 
             ---
@@ -596,7 +594,9 @@ function renderExampleSection(
             **${dictionary.exampleLabels.goal}:** ${exampleText.goal}
 
             **${dictionary.exampleLabels.commitmentsUsed}:** ${renderCommitmentSectionLinks(
-            parseAgentSourceWithCommitments(example.source as string_book).commitments.map((commitment) => commitment.type),
+            parseAgentSourceWithCommitments(example.source as string_book).commitments.map(
+                (commitment) => commitment.type,
+            ),
             commitmentSectionAnchorByType,
         )}
 

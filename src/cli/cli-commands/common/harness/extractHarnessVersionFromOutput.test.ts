@@ -11,9 +11,7 @@ describe('extractHarnessVersionFromOutput', () => {
 
     it('parses the GitHub Copilot version format ending with a dot', () => {
         expect(
-            extractHarnessVersionFromOutput(
-                'GitHub Copilot CLI 1.0.61.\nRun \'copilot update\' to check for updates.',
-            ),
+            extractHarnessVersionFromOutput("GitHub Copilot CLI 1.0.61.\nRun 'copilot update' to check for updates."),
         ).toBe('1.0.61');
     });
 
@@ -46,7 +44,7 @@ describe('extractHarnessVersionFromOutput', () => {
     });
 
     it('returns null when the harness command is not installed', () => {
-        expect(extractHarnessVersionFromOutput("bash: line 1: claude: command not found")).toBeNull();
+        expect(extractHarnessVersionFromOutput('bash: line 1: claude: command not found')).toBeNull();
     });
 
     it('returns null for empty output', () => {

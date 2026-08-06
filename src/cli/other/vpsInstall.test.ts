@@ -542,9 +542,9 @@ describe('install.sh', () => {
         expect(installScript).toContain('root ${PTBK_SHARED_NEXT_STATIC_ROOT};');
         expect(installScript).toContain('try_files \\$uri @promptbook_agents_server_next_static;');
         expect(installScript).toContain('cp -a $target_static_dir_shell/. $source_static_dir_shell/');
-        expect(
-            selfUpdateFunction.indexOf('"Preserving currently served Agents Server static assets"'),
-        ).toBeLessThan(selfUpdateFunction.indexOf('install_promptbook_repository'));
+        expect(selfUpdateFunction.indexOf('"Preserving currently served Agents Server static assets"')).toBeLessThan(
+            selfUpdateFunction.indexOf('install_promptbook_repository'),
+        );
         expect(selfUpdateFunction.indexOf('build_agents_server')).toBeLessThan(
             selfUpdateFunction.indexOf('start_pm2_agents_server_process'),
         );

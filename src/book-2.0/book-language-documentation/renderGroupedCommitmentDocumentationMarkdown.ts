@@ -196,10 +196,7 @@ export function renderGroupedCommitmentDocumentationMarkdown(
  *
  * @private internal utility of `createStandaloneBookLanguageMarkdown`
  */
-function renderFocusedCommitmentExamples(
-    documentation: string,
-    group: GroupedCommitmentDocumentationSource,
-): string {
+function renderFocusedCommitmentExamples(documentation: string, group: GroupedCommitmentDocumentationSource): string {
     return documentation.replace(BOOK_CODE_BLOCK_PATTERN, (codeBlock, _fence, source: string) => {
         const focusedSource = createFocusedCommitmentExampleSource(source, group);
         return focusedSource ? getSafeCodeBlock(focusedSource, 'book') : codeBlock;
@@ -223,12 +220,7 @@ function createFocusedCommitmentExampleSource(
     const commitmentTypes = new Set([group.primary.type, ...group.aliases]);
     const isOpenClosedCommitmentFamily =
         commitmentTypes.has(OPEN_COMMITMENT_TYPE) && commitmentTypes.has(CLOSED_COMMITMENT_TYPE);
-    const allowedCommitmentTypes = new Set([
-        group.primary.type,
-        ...group.aliases,
-        'GOAL',
-        CLOSED_COMMITMENT_TYPE,
-    ]);
+    const allowedCommitmentTypes = new Set([group.primary.type, ...group.aliases, 'GOAL', CLOSED_COMMITMENT_TYPE]);
     const canonicalTypeByCommitmentType = createCanonicalCommitmentTypeByCommitmentType(
         group,
         isOpenClosedCommitmentFamily,
@@ -384,9 +376,7 @@ function finalizeFocusedCommitmentExampleSource(
         normalizedFocusedCommitments.push(CLOSED_COMMITMENT_TYPE);
     }
 
-    return [agentName, ...normalizedFocusedCommitments]
-        .filter((line): line is string => Boolean(line))
-        .join('\n\n');
+    return [agentName, ...normalizedFocusedCommitments].filter((line): line is string => Boolean(line)).join('\n\n');
 }
 
 /**
@@ -427,10 +417,7 @@ function createCanonicalCommitmentTypeByCommitmentType(
     canonicalTypeByCommitmentType.set(group.primary.type, group.primary.type);
 
     for (const alias of group.aliases) {
-        canonicalTypeByCommitmentType.set(
-            alias,
-            isOpenClosedCommitmentFamily ? alias : group.primary.type,
-        );
+        canonicalTypeByCommitmentType.set(alias, isOpenClosedCommitmentFamily ? alias : group.primary.type);
     }
 
     return canonicalTypeByCommitmentType;

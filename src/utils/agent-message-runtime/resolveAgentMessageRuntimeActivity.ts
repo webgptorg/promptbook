@@ -181,7 +181,9 @@ function resolveCodexCommandActivity(
 function resolveCodexCommandActivityLabel(command: string | undefined): { running: string; completed: string } {
     const normalizedCommand = command?.toLowerCase() || '';
 
-    if (/(^|\s)(npm\s+(?:run\s+)?test|pnpm\s+(?:run\s+)?test|yarn\s+test|jest|vitest|pytest)\b/u.test(normalizedCommand)) {
+    if (
+        /(^|\s)(npm\s+(?:run\s+)?test|pnpm\s+(?:run\s+)?test|yarn\s+test|jest|vitest|pytest)\b/u.test(normalizedCommand)
+    ) {
         return { running: 'Running tests.', completed: 'Finished running tests.' };
     }
 
