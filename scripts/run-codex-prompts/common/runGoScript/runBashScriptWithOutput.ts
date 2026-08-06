@@ -89,8 +89,9 @@ export async function runBashScriptWithOutput(options: RunGoScriptOptions): Prom
             settleWithLog(`failed with exit code ${code ?? 'unknown'}`, () => reject(failure), failure);
         };
 
+        // The `exit` event can precede the final stdout or stderr chunk. Settling on `close`
+        // ensures both streams have drained before their combined output is returned.
         commandProcess.on('close', handleExit);
-        commandProcess.on('exit', handleExit);
         commandProcess.on('disconnect', () => {
             const failure = new Error(`Command "bash ${scriptPathPosix}" disconnected`);
             settleWithLog('failed after disconnect', () => reject(failure), failure);
