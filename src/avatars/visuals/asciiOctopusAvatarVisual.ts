@@ -1,12 +1,7 @@
 /* eslint-disable no-magic-numbers */
 
-import { DEFAULT_AVATAR_SIZE, drawAvatarFrame } from '../avatarRenderingUtils';
-import type {
-    AvatarPalette,
-    AvatarVisualDefinition,
-    AvatarVisualTerminalTextCell,
-    AvatarVisualTerminalTextRenderContext,
-} from '../types/AvatarVisualDefinition';
+import { drawAvatarFrame } from '../avatarRenderingUtils';
+import type { AvatarPalette, AvatarVisualDefinition } from '../types/AvatarVisualDefinition';
 import type { OrganicTentacleRibbonPoint } from './octopusAvatarVisualShared';
 import {
     createOrganicOctopusBodyPoints,
@@ -35,23 +30,6 @@ const OUTLINE_GLYPHS = ['#', '%', '@'];
  * @private helper of `asciiOctopusAvatarVisual`
  */
 const ATMOSPHERE_GLYPHS = ['.', ':', "'", '`'];
-
-/**
- * Height-to-width ratio of one terminal character cell, used to keep the octopus from being stretched.
- *
- * @private helper of `asciiOctopusAvatarVisual`
- */
-const TERMINAL_CHARACTER_CELL_ASPECT_RATIO = 2;
-
-/**
- * Virtual avatar size the octopus geometry is laid out in before it is sampled into terminal cells.
- *
- * The geometry scales with this size, so the value only fixes the coordinate space and
- * matches the canvas renderer to keep both variants of the visual identical in shape.
- *
- * @private helper of `asciiOctopusAvatarVisual`
- */
-const TERMINAL_TEXT_LAYOUT_SIZE = DEFAULT_AVATAR_SIZE;
 
 /**
  * One 2D point used by the ASCII octopus helpers.
@@ -198,69 +176,7 @@ export const asciiOctopusAvatarVisual: AvatarVisualDefinition = {
 
         context.restore();
     },
-    renderTerminalText: renderAsciiOctopusTerminalText,
 };
-
-/**
- * Paints the ASCII octopus straight into a terminal character grid.
- *
- * The very identity of this visual are its glyphs, so a terminal shows the same characters the
- * canvas variant draws instead of rasterizing them into half-blocks. Both variants sample the same
- * seeded geometry through `createAsciiOctopusLayout` and `resolveAsciiGlyph`, so the octopus of one
- * agent keeps its shape whether it is shown on the website or in `ptbk coder`.
- *
- * The square octopus is centered in a sub-grid whose cells account for the height-to-width ratio of
- * terminal characters, so it is not stretched across the wider terminal frame.
- *
- * @param context Terminal grid size, palette, seeded randomness, and animation time.
- * @returns One row of character cells per terminal row.
- *
- * @private helper of `asciiOctopusAvatarVisual`
- */
-function renderAsciiOctopusTerminalText(
-    context: AvatarVisualTerminalTextRenderContext,
-): ReadonlyArray<ReadonlyArray<AvatarVisualTerminalTextCell | null>> {
-    const { columns, rows, palette, createRandom, timeMs, interaction } = context;
-    const staticRandom = createRandom('ascii-octopus-static');
-    const layout = createAsciiOctopusLayout(TERMINAL_TEXT_LAYOUT_SIZE, timeMs, createRandom, staticRandom, interaction);
-    const octopusColumnCount = Math.max(1, Math.min(columns, rows * TERMINAL_CHARACTER_CELL_ASPECT_RATIO));
-    const octopusColumnOffset = Math.floor((columns - octopusColumnCount) / 2);
-    const cellWidth = TERMINAL_TEXT_LAYOUT_SIZE / octopusColumnCount;
-    const cellHeight = TERMINAL_TEXT_LAYOUT_SIZE / rows;
-    const cellRandom = createRandom('ascii-octopus-cells');
-    const cellRows: Array<Array<AvatarVisualTerminalTextCell | null>> = [];
-
-    for (let rowIndex = 0; rowIndex < rows; rowIndex++) {
-        const cellRow: Array<AvatarVisualTerminalTextCell | null> = new Array(columns).fill(null);
-
-        for (let columnIndex = 0; columnIndex < octopusColumnCount; columnIndex++) {
-            const point = {
-                x: (columnIndex + 0.5) * cellWidth,
-                y: (rowIndex + 0.5) * cellHeight,
-            };
-            const glyphDescriptor = resolveAsciiGlyph({
-                point,
-                layout,
-                palette,
-                cellWidth,
-                cellHeight,
-                noise: cellRandom(),
-                timeMs,
-            });
-
-            if (glyphDescriptor) {
-                cellRow[octopusColumnOffset + columnIndex] = {
-                    character: glyphDescriptor.character,
-                    color: glyphDescriptor.color,
-                };
-            }
-        }
-
-        cellRows.push(cellRow);
-    }
-
-    return cellRows;
-}
 
 /**
  * Draws the dark terminal-like glow behind the ASCII octopus.

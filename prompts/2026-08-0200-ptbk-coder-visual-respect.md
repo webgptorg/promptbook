@@ -1,4 +1,4 @@
-[^] by Claude Code `opus` thinking `max` - Implementation in progress
+[ ]
 
 [✨🧵] Take the visual from the agent book
 
@@ -64,6 +64,5 @@ Skipped, run `npm install -g @anthropic-ai/claude-code@latest` to do it manually
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Update the [`ptbk coder` landing website](apps/coder-landing) and use there the `ascii-octopus` visual
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
 
 
