@@ -9,8 +9,6 @@ This is the **default developer agent** which `ptbk coder init` creates at `agen
 ```book
 Developer
 
-META VISUAL ascii-octopus
-
 META VISIBILITY PRIVATE
 
 RULE

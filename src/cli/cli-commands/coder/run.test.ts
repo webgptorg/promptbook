@@ -318,19 +318,4 @@ describe('$initializeCoderRunCommand', () => {
             }),
         );
     });
-
-    it('passes the selected agent book through to the coder run pipeline', async () => {
-        const program = createProgramWithRunCommand();
-
-        await program.parseAsync(
-            ['node', 'test', 'run', '--dry-run', '--agent', 'agents/coding/developer.book'],
-            { from: 'node' },
-        );
-
-        expect(getRunCodexPromptsMock()).toHaveBeenCalledWith(
-            expect.objectContaining({
-                agent: 'agents/coding/developer.book',
-            }),
-        );
-    });
 });

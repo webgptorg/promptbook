@@ -1,4 +1,4 @@
-[^] (2 attempts) by OpenAI Codex `gpt-5.6-terra` thinking `max` (ChatGPT account) - Implementation ~.46 an hour; Testing 20 minutes; Fixing in progress
+[ ]
 
 [✨🧵] Take the visual from the agent book
 
@@ -64,6 +64,5 @@ Skipped, run `npm install -g @anthropic-ai/claude-code@latest` to do it manually
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Update the [`ptbk coder` landing website](apps/coder-landing) and use there the `ascii-octopus` visual
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
 
 
