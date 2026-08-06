@@ -5,7 +5,8 @@
 ```console
 ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md
 
-
+@@@@
+@@@@
 ┌ Session ─────────────────────────────────────────────────────────────────────────────────────┐
 │ State     RUNNING  Calling codex (attempt 1)                                                 │
 │ Runner   codex  ·  gpt-5.6-luna  ·  thinking max                                             │
