@@ -1,3 +1,4 @@
+import type { CreateCanvasForAsciiArt } from '../../../src/avatars/renderAvatarVisualAsciiArt';
 import type { string_book } from '../../../src/book-2.0/agent-source/string_book';
 import {
     createTerminalAgentAvatarVisual,
@@ -41,28 +42,22 @@ export type CoderRunAgentVisual = TerminalAgentAvatarVisual;
  * Builds the ANSI ASCII-art visual of the `--agent` book shown above the coder-run dashboard.
  *
  * The agent's avatar visual is resolved the same way as on the website - the `META AVATAR`
- * commitment wins, then the `META VISUAL` commitment, then the shared default visual - and is
- * rendered dynamically through the shared canvas avatar pipeline into terminal ASCII art.
- * The terminal variant uses a transparent horizontal canvas instead of the website's framed 1:1 surface.
+ * commitment wins, then the `META VISUAL` commitment, then the shared default visual.
+ * Character-based visuals such as `AsciiOctopus` paint the terminal grid directly, while pixel-based
+ * visuals are rendered through the shared canvas avatar pipeline into terminal ASCII art, using a
+ * transparent horizontal canvas instead of the website's framed 1:1 surface.
  *
- * The visual is decorative, so any failure (for example when the optional `@napi-rs/canvas`
- * module is not installed) returns `null` and the caller keeps the default brand banner.
+ * The visual is decorative, so any failure returns `null` and the caller keeps the default brand banner.
  *
  * @param agentSource Source of the `--agent` book file.
  * @returns ANSI-colored ASCII-art renderer or `null` when the visual cannot be rendered.
  */
 export async function buildCoderRunAgentVisual(agentSource: string_book): Promise<CoderRunAgentVisual | null> {
     try {
-        // Note: `@napi-rs/canvas` is an optional native module, so it is imported dynamically and lazily
-        const { createCanvas } = await import('@napi-rs/canvas');
-
-        const colorDepth = $detectTerminalAnsiColorDepth();
-        const createCanvasForAsciiArt = (width: number, height: number) =>
-            createCanvas(width, height) as unknown as HTMLCanvasElement;
         const agentVisual = createTerminalAgentAvatarVisual({
             agentSource,
-            colorDepth,
-            createCanvas: createCanvasForAsciiArt,
+            colorDepth: $detectTerminalAnsiColorDepth(),
+            createCanvas: await createOptionalNodeCanvasFactory(),
         });
 
         return {
@@ -80,5 +75,25 @@ export async function buildCoderRunAgentVisual(agentSource: string_book): Promis
         // Note: The agent visual is decorative - on any failure the coder UI falls back to the default banner
         keepUnused(error);
         return null;
+    }
+}
+
+/**
+ * Loads the optional Node.js canvas factory which rasterizes pixel-based avatar visuals.
+ *
+ * @returns Canvas factory or `undefined` when the optional native module is not installed.
+ *
+ * @private helper of `buildCoderRunAgentVisual`
+ */
+async function createOptionalNodeCanvasFactory(): Promise<CreateCanvasForAsciiArt | undefined> {
+    try {
+        // Note: `@napi-rs/canvas` is an optional native module, so it is imported dynamically and lazily
+        const { createCanvas } = await import('@napi-rs/canvas');
+
+        return (width: number, height: number) => createCanvas(width, height) as unknown as HTMLCanvasElement;
+    } catch (error) {
+        // Note: Character-based visuals paint the terminal grid directly, so they render without any canvas
+        keepUnused(error);
+        return undefined;
     }
 }

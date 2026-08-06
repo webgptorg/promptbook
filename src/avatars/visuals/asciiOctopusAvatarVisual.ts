@@ -1,6 +1,6 @@
 /* eslint-disable no-magic-numbers */
 
-import { drawAvatarFrame } from '../avatarRenderingUtils';
+import { DEFAULT_AVATAR_SIZE, drawAvatarFrame } from '../avatarRenderingUtils';
 import type { AvatarPalette, AvatarVisualDefinition } from '../types/AvatarVisualDefinition';
 import type { OrganicTentacleRibbonPoint } from './octopusAvatarVisualShared';
 import {
@@ -32,6 +32,16 @@ const OUTLINE_GLYPHS = ['#', '%', '@'];
 const ATMOSPHERE_GLYPHS = ['.', ':', "'", '`'];
 
 /**
+ * Coordinate space the octopus layout is generated in when it is painted into a terminal.
+ *
+ * The terminal renderer has its own character grid, so the geometry only needs one stable
+ * square coordinate space which the grid is then sampled from.
+ *
+ * @private helper of `asciiOctopusAvatarVisual`
+ */
+const TERMINAL_ASCII_OCTOPUS_LAYOUT_SIZE = DEFAULT_AVATAR_SIZE;
+
+/**
  * One 2D point used by the ASCII octopus helpers.
  *
  * @private helper of `asciiOctopusAvatarVisual`
@@ -42,12 +52,11 @@ type Point = {
 };
 
 /**
- * Character-grid metrics used by the ASCII renderer.
+ * Character-cell sampling grid shared by the canvas and the terminal ASCII renderers.
  *
  * @private helper of `asciiOctopusAvatarVisual`
  */
-type AsciiGridMetrics = {
-    readonly fontSize: number;
+type AsciiSampleGrid = {
     readonly cellWidth: number;
     readonly cellHeight: number;
     readonly columnCount: number;
@@ -55,6 +64,22 @@ type AsciiGridMetrics = {
     readonly offsetX: number;
     readonly offsetY: number;
 };
+
+/**
+ * Character-grid metrics used by the canvas ASCII renderer.
+ *
+ * @private helper of `asciiOctopusAvatarVisual`
+ */
+type AsciiGridMetrics = AsciiSampleGrid & {
+    readonly fontSize: number;
+};
+
+/**
+ * Resolved glyph of every sampled cell of one ASCII octopus frame.
+ *
+ * @private helper of `asciiOctopusAvatarVisual`
+ */
+type AsciiOctopusGlyphGrid = ReadonlyArray<ReadonlyArray<AsciiGlyphDescriptor | null>>;
 
 /**
  * One seeded eye definition used by the ASCII renderer.
@@ -135,6 +160,13 @@ export const asciiOctopusAvatarVisual: AvatarVisualDefinition = {
         const staticRandom = createRandom('ascii-octopus-static');
         const gridMetrics = createAsciiGridMetrics(size, gridRandom);
         const layout = createAsciiOctopusLayout(size, timeMs, createRandom, staticRandom, interaction);
+        const glyphGrid = createAsciiOctopusGlyphGrid({
+            sampleGrid: gridMetrics,
+            layout,
+            palette,
+            cellRandom: createRandom('ascii-octopus-cells'),
+            timeMs,
+        });
 
         drawAvatarFrame(context, size, palette);
         drawAsciiBackdrop(context, size, palette, layout, timeMs);
@@ -144,31 +176,15 @@ export const asciiOctopusAvatarVisual: AvatarVisualDefinition = {
         context.textAlign = 'center';
         context.textBaseline = 'middle';
 
-        // The ASCII renderer samples the morphing octopus field on a low-resolution grid so the shape stays organic
-        // while the glyph layout remains deterministic for the same avatar input.
-        const cellRandom = createRandom('ascii-octopus-cells');
-
         for (let rowIndex = 0; rowIndex < gridMetrics.rowCount; rowIndex++) {
             for (let columnIndex = 0; columnIndex < gridMetrics.columnCount; columnIndex++) {
-                const point = {
-                    x: gridMetrics.offsetX + columnIndex * gridMetrics.cellWidth,
-                    y: gridMetrics.offsetY + rowIndex * gridMetrics.cellHeight,
-                };
-                const noise = cellRandom();
-                const glyphDescriptor = resolveAsciiGlyph({
-                    point,
-                    layout,
-                    palette,
-                    cellWidth: gridMetrics.cellWidth,
-                    cellHeight: gridMetrics.cellHeight,
-                    noise,
-                    timeMs,
-                });
+                const glyphDescriptor = glyphGrid[rowIndex]![columnIndex]!;
 
                 if (!glyphDescriptor) {
                     continue;
                 }
 
+                const point = resolveAsciiSampleGridPoint(gridMetrics, columnIndex, rowIndex);
                 context.fillStyle = glyphDescriptor.color;
                 context.fillText(glyphDescriptor.character, point.x, point.y);
             }
@@ -176,7 +192,113 @@ export const asciiOctopusAvatarVisual: AvatarVisualDefinition = {
 
         context.restore();
     },
+    renderTerminalText({ columns, rows, palette, createRandom, timeMs, interaction }) {
+        const staticRandom = createRandom('ascii-octopus-static');
+        const layout = createAsciiOctopusLayout(
+            TERMINAL_ASCII_OCTOPUS_LAYOUT_SIZE,
+            timeMs,
+            createRandom,
+            staticRandom,
+            interaction,
+        );
+
+        return createAsciiOctopusGlyphGrid({
+            sampleGrid: createAsciiTerminalSampleGrid(columns, rows),
+            layout,
+            palette,
+            cellRandom: createRandom('ascii-octopus-cells'),
+            timeMs,
+        });
+    },
 };
+
+/**
+ * Resolves the geometry point sampled for one cell of the grid.
+ *
+ * @param sampleGrid Character-cell sampling grid.
+ * @param columnIndex Zero-based cell column.
+ * @param rowIndex Zero-based cell row.
+ * @returns Sampled point in the octopus coordinate space.
+ *
+ * @private helper of `asciiOctopusAvatarVisual`
+ */
+function resolveAsciiSampleGridPoint(sampleGrid: AsciiSampleGrid, columnIndex: number, rowIndex: number): Point {
+    return {
+        x: sampleGrid.offsetX + columnIndex * sampleGrid.cellWidth,
+        y: sampleGrid.offsetY + rowIndex * sampleGrid.cellHeight,
+    };
+}
+
+/**
+ * Builds the sampling grid used when the octopus is painted straight into terminal character cells.
+ *
+ * @param columns Available terminal columns.
+ * @param rows Available terminal rows.
+ * @returns Character-cell sampling grid covering the whole octopus coordinate space.
+ *
+ * @private helper of `asciiOctopusAvatarVisual`
+ */
+function createAsciiTerminalSampleGrid(columns: number, rows: number): AsciiSampleGrid {
+    const cellWidth = TERMINAL_ASCII_OCTOPUS_LAYOUT_SIZE / columns;
+    const cellHeight = TERMINAL_ASCII_OCTOPUS_LAYOUT_SIZE / rows;
+
+    return {
+        cellWidth,
+        cellHeight,
+        columnCount: columns,
+        rowCount: rows,
+        offsetX: cellWidth / 2,
+        offsetY: cellHeight / 2,
+    };
+}
+
+/**
+ * Samples the morphing octopus field into one deterministic grid of ASCII glyphs.
+ *
+ * The field is sampled on a low-resolution grid so the shape stays organic while the glyph
+ * layout remains deterministic for the same avatar input. Both the canvas visual and the
+ * terminal visual share this single sampling pass so they always describe the same octopus.
+ *
+ * @param options Sampling grid, prepared octopus layout, palette, per-cell noise, and animation time.
+ * @returns Resolved glyph of every sampled cell, where `null` means an empty cell.
+ *
+ * @private helper of `asciiOctopusAvatarVisual`
+ */
+function createAsciiOctopusGlyphGrid(options: {
+    sampleGrid: AsciiSampleGrid;
+    layout: AsciiOctopusLayout;
+    palette: AvatarPalette;
+    cellRandom: () => number;
+    timeMs: number;
+}): AsciiOctopusGlyphGrid {
+    const { sampleGrid, layout, palette, cellRandom, timeMs } = options;
+    const glyphGrid: Array<Array<AsciiGlyphDescriptor | null>> = [];
+
+    for (let rowIndex = 0; rowIndex < sampleGrid.rowCount; rowIndex++) {
+        const glyphRow: Array<AsciiGlyphDescriptor | null> = [];
+
+        for (let columnIndex = 0; columnIndex < sampleGrid.columnCount; columnIndex++) {
+            const point = resolveAsciiSampleGridPoint(sampleGrid, columnIndex, rowIndex);
+            const noise = cellRandom();
+
+            glyphRow.push(
+                resolveAsciiGlyph({
+                    point,
+                    layout,
+                    palette,
+                    cellWidth: sampleGrid.cellWidth,
+                    cellHeight: sampleGrid.cellHeight,
+                    noise,
+                    timeMs,
+                }),
+            );
+        }
+
+        glyphGrid.push(glyphRow);
+    }
+
+    return glyphGrid;
+}
 
 /**
  * Draws the dark terminal-like glow behind the ASCII octopus.

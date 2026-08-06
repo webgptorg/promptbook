@@ -2,7 +2,6 @@
 
 import { DEVELOPER_AGENT_BOOK } from '@/data/developerAgentBook';
 import { Avatar, createAvatarDefinitionFromAgentBasicInformation } from '@promptbook-source/avatars';
-import type { AvatarVisualId } from '@promptbook-source/avatars/types/AvatarVisualDefinition';
 import { parseAgentSource } from '@promptbook-source/book-2.0/agent-source/parseAgentSource';
 import { resolveAgentAvatarVisualId } from '@promptbook-source/utils/agents/resolveAgentAvatarImageUrl';
 
@@ -10,14 +9,6 @@ import { resolveAgentAvatarVisualId } from '@promptbook-source/utils/agents/reso
  * Size of the live demo avatar canvas in CSS pixels.
  */
 const LIVE_DEMO_AGENT_AVATAR_SIZE = 120;
-
-/**
- * Built-in fallback visual used by the landing live terminal sample.
- *
- * The actual Promptbook Developer coder agent in this repository declares the same visual,
- * while explicit `META AVATAR` / `META VISUAL` values in the demo source still take precedence.
- */
-const LIVE_DEMO_AGENT_AVATAR_VISUAL_ID: AvatarVisualId = 'ascii-octopus';
 
 /**
  * Parsed source of the default developer agent shown in the live terminal sample.
@@ -33,11 +24,12 @@ const LIVE_DEMO_AGENT_AVATAR_DEFINITION = createAvatarDefinitionFromAgentBasicIn
 
 /**
  * Built-in visual selected for the live demo avatar.
+ *
+ * The demo source declares `META VISUAL ascii-octopus`, exactly like the real Promptbook Developer
+ * coder agent, so the landing sample resolves its visual from the agent book instead of a
+ * landing-specific fallback.
  */
-const LIVE_DEMO_AGENT_RESOLVED_AVATAR_VISUAL_ID = resolveAgentAvatarVisualId(
-    LIVE_DEMO_AGENT_BASIC_INFORMATION,
-    LIVE_DEMO_AGENT_AVATAR_VISUAL_ID,
-);
+const LIVE_DEMO_AGENT_RESOLVED_AVATAR_VISUAL_ID = resolveAgentAvatarVisualId(LIVE_DEMO_AGENT_BASIC_INFORMATION);
 
 /**
  * Renders the same shared `AsciiOctopus` avatar visual used by the web avatar previews.

@@ -10,6 +10,7 @@ import type { string_book } from '@promptbook-source/book-2.0/agent-source/strin
 export const DEVELOPER_AGENT_BOOK = spaceTrim(`
     Developer
 
+    META VISUAL ascii-octopus
     META VISIBILITY PRIVATE
 
     RULE

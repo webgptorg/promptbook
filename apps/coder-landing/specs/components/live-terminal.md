@@ -16,7 +16,7 @@ Same window chrome as the [terminal block](./terminal-block.md) (rounded frame, 
 The script is an ordered list of terminal events:
 
 1.  The session starts with a shell prompt line, then the canonical `LIVE_DEMO_RUN_COMMAND` (see [`../content/commands.md`](../content/commands.md)) rendered as a command line: gray non-selectable `$ ` prompt, then the command **typed character by character** (~10ms per character).
-2.  The shared agent visual appears as the built-in web avatar canvas centered in the terminal stream. The demo `.book` source is parsed, explicit `META AVATAR` / `META VISUAL` wins, and the landing sample falls back to the real Promptbook Developer `AsciiOctopus` visual. The sample must render the existing shared `<Avatar/>` canvas visual directly instead of recreating or rasterizing the octopus in landing-specific terminal text.
+2.  The shared agent visual appears as the built-in web avatar canvas centered in the terminal stream. The demo `.book` source is parsed and its `META VISUAL ascii-octopus` selects the same `AsciiOctopus` visual the real Promptbook Developer coder agent uses — the visual always comes from the agent book, never from a landing-specific fallback. The sample must render the existing shared `<Avatar/>` canvas visual directly instead of recreating or rasterizing the octopus in landing-specific terminal text.
 3.  The terminal prints the rich `ptbk coder run` dashboard boxes: `Session`, `Current task`, `Live output`, `Errors`, and `Controls`.
 4.  When the script finishes, the terminal stays on the final output. It must not clear, loop, reset, or render a blinking cursor.
 

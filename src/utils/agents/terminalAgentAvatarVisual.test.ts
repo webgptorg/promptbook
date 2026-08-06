@@ -2,6 +2,7 @@ import { spaceTrim } from 'spacetrim';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import {
     centerTerminalAgentAvatarVisualLines,
+    createTerminalAgentAvatarVisual,
     resolveTerminalAgentAvatarVisualId,
     TERMINAL_AGENT_AVATAR_VISUAL_COLUMNS,
     TERMINAL_AGENT_AVATAR_VISUAL_ROWS,
@@ -29,6 +30,26 @@ describe('terminalAgentAvatarVisual', () => {
     it('keeps the terminal avatar frame dimensions aligned with the coder UI', () => {
         expect(TERMINAL_AGENT_AVATAR_VISUAL_COLUMNS).toBe(48);
         expect(TERMINAL_AGENT_AVATAR_VISUAL_ROWS).toBe(12);
+    });
+
+    it('paints the character visual declared by the agent book instead of the rasterized fallback', () => {
+        const agentSource = spaceTrim(`
+            Promptbook Developer
+
+            META VISUAL ascii-octopus
+        `) as string_book;
+        const terminalAgentAvatarVisual = createTerminalAgentAvatarVisual({
+            agentSource,
+            createCanvas: () => {
+                throw new Error('A character-based terminal visual must not be rasterized onto a canvas.');
+            },
+        });
+
+        const frameLines = terminalAgentAvatarVisual.renderFrame({ animationTimeMs: 840 });
+
+        expect(frameLines).toHaveLength(TERMINAL_AGENT_AVATAR_VISUAL_ROWS);
+        expect(frameLines.join('\n')).not.toContain('▀');
+        expect(frameLines.join('\n')).not.toContain('▄');
     });
 
     it('centers ANSI-colored avatar lines by visible terminal width', () => {

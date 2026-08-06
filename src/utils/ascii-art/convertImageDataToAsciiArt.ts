@@ -1,5 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import { UnexpectedError } from '../../errors/UnexpectedError';
+import type { AnsiRgbColor } from './createAnsiColorCode';
+import { ANSI_RESET, createAnsiBackgroundColorCode, createAnsiForegroundColorCode } from './createAnsiColorCode';
 
 /**
  * Color depth of the ANSI escape codes emitted by the ASCII-art conversion.
@@ -75,11 +77,11 @@ export type ConvertImageDataToAsciiArtOptions = {
 };
 
 /**
- * Default alpha channel value below which a half-cell is rendered as terminal background.
+ * Default alpha channel value below which a cell is rendered as terminal background.
  *
  * @private within the repository
  */
-const DEFAULT_ALPHA_THRESHOLD = 32;
+export const DEFAULT_ALPHA_THRESHOLD = 32;
 
 /**
  * Number of channels per pixel in an RGBA buffer.
@@ -103,56 +105,11 @@ const UPPER_HALF_BLOCK = '▀'; // <- ▀
 const LOWER_HALF_BLOCK = '▄'; // <- ▄
 
 /**
- * ANSI escape sequence that resets all colors and attributes.
- *
- * @private within the repository
- */
-const ANSI_RESET = '\u001b[0m';
-
-/**
- * Maximum spread between RGB channels for a color to be treated as (nearly) achromatic gray.
- *
- * @private within the repository
- */
-const ANSI_256_ACHROMATIC_CHANNEL_SPREAD = 12;
-
-/**
- * Gray level above which an achromatic color maps to the pure white color-cube entry.
- *
- * @private within the repository
- */
-const ANSI_256_NEAR_WHITE_GRAY_LEVEL = 246;
-
-/**
- * Index of pure white inside the 6×6×6 ANSI color cube.
- *
- * @private within the repository
- */
-const ANSI_256_WHITE_INDEX = 231;
-
-/**
- * Brightness of the lightest entry of the ANSI 256 grayscale ramp.
- *
- * @private within the repository
- */
-const ANSI_256_GRAYSCALE_RAMP_MAX_LEVEL = 238;
-
-/**
- * Number of grayscale ramp steps above its first entry (ANSI indexes 232-255).
- *
- * @private within the repository
- */
-const ANSI_256_GRAYSCALE_RAMP_INDEX_SPAN = 23;
-
-/**
  * Area-averaged color of one half of a character cell.
  *
  * @private helper of `convertImageDataToAsciiArt`
  */
-type HalfCellColor = {
-    readonly red: number;
-    readonly green: number;
-    readonly blue: number;
+type HalfCellColor = AnsiRgbColor & {
     readonly isOpaque: boolean;
 };
 
@@ -231,15 +188,15 @@ export function convertImageDataToAsciiArt(options: ConvertImageDataToAsciiArtOp
 
             if (topHalfColor.isOpaque && bottomHalfColor.isOpaque) {
                 character = UPPER_HALF_BLOCK;
-                nextForegroundCode = createForegroundColorCode(topHalfColor, colorDepth);
-                nextBackgroundCode = createBackgroundColorCode(bottomHalfColor, colorDepth);
+                nextForegroundCode = createAnsiForegroundColorCode(topHalfColor, colorDepth);
+                nextBackgroundCode = createAnsiBackgroundColorCode(bottomHalfColor, colorDepth);
             } else if (topHalfColor.isOpaque) {
                 character = UPPER_HALF_BLOCK;
-                nextForegroundCode = createForegroundColorCode(topHalfColor, colorDepth);
+                nextForegroundCode = createAnsiForegroundColorCode(topHalfColor, colorDepth);
                 nextBackgroundCode = undefined;
             } else if (bottomHalfColor.isOpaque) {
                 character = LOWER_HALF_BLOCK;
-                nextForegroundCode = createForegroundColorCode(bottomHalfColor, colorDepth);
+                nextForegroundCode = createAnsiForegroundColorCode(bottomHalfColor, colorDepth);
                 nextBackgroundCode = undefined;
             } else {
                 character = ' ';
@@ -336,61 +293,4 @@ function computeHalfCellColor(
         blue: Math.round(blueSum / alphaSum),
         isOpaque: true,
     };
-}
-
-/**
- * Creates the ANSI escape code that sets the foreground color of following characters.
- *
- * @private helper of `convertImageDataToAsciiArt`
- */
-function createForegroundColorCode(color: HalfCellColor, colorDepth: AsciiArtColorDepth): string {
-    if (colorDepth === 'TRUE_COLOR') {
-        return `\u001b[38;2;${color.red};${color.green};${color.blue}m`;
-    }
-
-    return `\u001b[38;5;${mapColorToAnsi256(color)}m`;
-}
-
-/**
- * Creates the ANSI escape code that sets the background color of following characters.
- *
- * @private helper of `convertImageDataToAsciiArt`
- */
-function createBackgroundColorCode(color: HalfCellColor, colorDepth: AsciiArtColorDepth): string {
-    if (colorDepth === 'TRUE_COLOR') {
-        return `\u001b[48;2;${color.red};${color.green};${color.blue}m`;
-    }
-
-    return `\u001b[48;5;${mapColorToAnsi256(color)}m`;
-}
-
-/**
- * Maps a 24-bit color onto the closest entry of the 256-color ANSI palette.
- *
- * Uses the 6×6×6 color cube (entries 16-231) and the grayscale ramp (entries 232-255).
- *
- * @private helper of `convertImageDataToAsciiArt`
- */
-function mapColorToAnsi256(color: HalfCellColor): number {
-    const { red, green, blue } = color;
-
-    // Note: Prefer the finer grayscale ramp when the color is (nearly) achromatic
-    const maxChannel = Math.max(red, green, blue);
-    const minChannel = Math.min(red, green, blue);
-    if (maxChannel - minChannel < ANSI_256_ACHROMATIC_CHANNEL_SPREAD) {
-        const gray = Math.round((red + green + blue) / 3);
-        if (gray < 4) {
-            return 16; // <- Note: Pure black lives in the color cube
-        }
-        if (gray > ANSI_256_NEAR_WHITE_GRAY_LEVEL) {
-            return ANSI_256_WHITE_INDEX; // <- Note: Pure white lives in the color cube
-        }
-        return 232 + Math.round(((gray - 8) / ANSI_256_GRAYSCALE_RAMP_MAX_LEVEL) * ANSI_256_GRAYSCALE_RAMP_INDEX_SPAN);
-    }
-
-    const redIndex = Math.round((red / 255) * 5);
-    const greenIndex = Math.round((green / 255) * 5);
-    const blueIndex = Math.round((blue / 255) * 5);
-
-    return 16 + 36 * redIndex + 6 * greenIndex + blueIndex;
 }

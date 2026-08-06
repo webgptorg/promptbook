@@ -6,6 +6,7 @@ import type { ResolvedAvatarRenderDefinition } from '../../avatars/renderAvatarV
 import { resolveAvatarRenderDefinition } from '../../avatars/renderAvatarVisual';
 import type { CreateCanvasForAsciiArt } from '../../avatars/renderAvatarVisualAsciiArt';
 import { renderAvatarVisualAsciiArt } from '../../avatars/renderAvatarVisualAsciiArt';
+import { renderAvatarVisualTerminalTextLines } from '../../avatars/renderAvatarVisualTerminalText';
 import type { AvatarDefinition } from '../../avatars/types/AvatarDefinition';
 import type { AvatarVisualId } from '../../avatars/types/AvatarVisualDefinition';
 import { resolveAvatarVisualId } from '../../avatars/visuals/avatarVisualRegistry';
@@ -127,9 +128,12 @@ export type CreateTerminalAgentAvatarVisualOptions = {
     readonly colorDepth?: AsciiArtColorDepth;
 
     /**
-     * Platform-specific canvas factory used to rasterize the visual.
+     * Platform-specific canvas factory used to rasterize pixel-based visuals.
+     *
+     * Character-based visuals such as `AsciiOctopus` paint the terminal grid directly, so they
+     * render without any canvas; a pixel-based visual renders an empty frame when it is missing.
      */
-    readonly createCanvas: CreateCanvasForAsciiArt;
+    readonly createCanvas?: CreateCanvasForAsciiArt;
 };
 
 /**
@@ -251,15 +255,39 @@ function resolveTerminalAgentAvatarVisualIdFromAgentBasicInformation(
 /**
  * Renders one terminal avatar frame through the shared avatar-to-ASCII pipeline.
  *
+ * Visuals which are made of characters themselves, for example `AsciiOctopus`, paint the terminal
+ * character grid directly, because rasterizing them into half-block ASCII art averages every glyph
+ * away and makes them indistinguishable from the other blob-shaped visuals.
+ *
  * @private shared helper for terminal avatar rendering
  */
 function renderTerminalAgentAvatarVisualFrame(
     options: TerminalAgentAvatarVisualRenderInputs & {
         readonly animationTimeMs: number;
         readonly colorDepth?: AsciiArtColorDepth;
-        readonly createCanvas: CreateCanvasForAsciiArt;
+        readonly createCanvas?: CreateCanvasForAsciiArt;
     },
 ): ReadonlyArray<string> {
+    const terminalTextLines = renderAvatarVisualTerminalTextLines({
+        avatarDefinition: options.avatarDefinition,
+        visualId: options.avatarVisualId,
+        surface: 'transparent',
+        columns: TERMINAL_AGENT_AVATAR_VISUAL_COLUMNS,
+        rows: TERMINAL_AGENT_AVATAR_VISUAL_ROWS,
+        colorDepth: options.colorDepth,
+        timeMs: options.animationTimeMs,
+        resolvedAvatarRenderDefinition: options.resolvedAvatarRenderDefinition,
+    });
+
+    if (terminalTextLines !== null) {
+        return terminalTextLines;
+    }
+
+    if (options.createCanvas === undefined) {
+        // Note: A pixel-based visual cannot be rasterized without a canvas, so the caller keeps its default banner
+        return [];
+    }
+
     return renderAvatarVisualAsciiArt({
         avatarDefinition: options.avatarDefinition,
         visualId: options.avatarVisualId,
