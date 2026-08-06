@@ -8,7 +8,15 @@ common.profile: Profile
 common.chat: Chat
 chat.answerDurationLabel: '{duration} to answer'
 common.book: Book
-common.timeouts: Timeouts
+common.goalChat: Goal
+goalChat.noticeTitle: This is the agent's goal chat
+goalChat.noticeDescription: The agent writes here on its own to plan work towards its goal, so this thread is read-only for people.
+goalChat.plannedMessagesTitle: Planned messages
+goalChat.plannedMessagesEmptyLabel: No planned messages. The agent will wake up only when someone writes to it.
+goalChat.plannedMessagesLoadErrorLabel: Failed to load planned messages.
+goalChat.plannedMessageDefaultLabel: Planned wake-up
+goalChat.plannedMessageCancelLabel: Cancel
+goalChat.plannedMessageCancellingLabel: Cancelling
 common.projects: Projects
 common.more: More
 chatEnterBehavior.sectionEyebrow: Keybindings

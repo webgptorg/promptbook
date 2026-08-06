@@ -70,6 +70,10 @@ export type AgentChatSidebarItem = {
     readonly isActive: boolean;
     readonly isEmpty: boolean;
     readonly isReadOnly: boolean;
+    /**
+     * True for the pinned goal chat the agent keeps with itself.
+     */
+    readonly isAgentGoalChat: boolean;
     readonly content: AgentChatSidebarItemContent;
 };
 
@@ -226,6 +230,22 @@ function resolveAgentChatSidebarItemContent(
 }
 
 /**
+ * Keeps the pinned goal chat above every regular conversation while preserving their order.
+ *
+ * @private function of AgentChatSidebar
+ */
+function compareAgentChatSidebarItemsByPinning(
+    leftItem: AgentChatSidebarItem,
+    rightItem: AgentChatSidebarItem,
+): number {
+    if (leftItem.isAgentGoalChat === rightItem.isAgentGoalChat) {
+        return 0;
+    }
+
+    return leftItem.isAgentGoalChat ? -1 : 1;
+}
+
+/**
  * Closes the mobile sidebar after an action that should dismiss the overlay.
  *
  * @private function of AgentChatSidebar
@@ -262,10 +282,14 @@ export function useAgentChatSidebarState({
         isActive: chat.id === activeChatId,
         isEmpty: chat.messagesCount <= EMPTY_CHAT_MAX_MESSAGES,
         isReadOnly: chat.isReadOnly,
+        isAgentGoalChat: chat.isAgentGoalChat === true,
         content: resolveAgentChatSidebarItemContent(chat, formatText, formatChatTimestamp, currentTimestamp),
     }));
-    const emptyChatCount = allSidebarItems.filter((item) => item.isEmpty).length;
-    const sidebarItems = allSidebarItems.filter((item) => isShowingEmptyChats || !item.isEmpty || item.isActive);
+    // Note: The goal chat is a singleton pinned above every conversation and is never hidden as empty
+    const emptyChatCount = allSidebarItems.filter((item) => item.isEmpty && !item.isAgentGoalChat).length;
+    const sidebarItems = allSidebarItems
+        .filter((item) => item.isAgentGoalChat || isShowingEmptyChats || !item.isEmpty || item.isActive)
+        .sort(compareAgentChatSidebarItemsByPinning);
     const shouldRenderFilters = emptyChatCount > 0 || isAdmin;
 
     const handleChatSelection = (chatId: string) => {

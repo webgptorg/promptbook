@@ -6,6 +6,11 @@ export const USER_CHAT_SOURCES = {
     OPENAI_API: 'OPENAI_API',
     TEAM_MEMBER: 'TEAM_MEMBER',
     EMAIL: 'EMAIL',
+
+    /**
+     * Singleton chat every agent keeps with itself to plan work towards its goal.
+     */
+    AGENT_GOAL: 'AGENT_GOAL',
 } as const;
 
 /**
@@ -24,6 +29,10 @@ export function isFrozenUserChatSource(source: UserChatSource): boolean {
  * Resolves a compact chip label for one chat source.
  */
 export function getUserChatSourceChipLabel(source: UserChatSource): string | null {
+    if (source === USER_CHAT_SOURCES.AGENT_GOAL) {
+        return 'GOAL';
+    }
+
     if (source === USER_CHAT_SOURCES.OPENAI_API) {
         return 'API';
     }
@@ -43,6 +52,11 @@ export function getUserChatSourceChipLabel(source: UserChatSource): string | nul
  * Resolves the banner copy used for frozen external chats.
  */
 export function getUserChatSourceBannerLabel(source: UserChatSource): string | null {
+    if (source === USER_CHAT_SOURCES.AGENT_GOAL) {
+        // Note: Goal chats explain their own specialty through a dedicated notice instead of the generic frozen banner
+        return null;
+    }
+
     if (source === USER_CHAT_SOURCES.OPENAI_API) {
         return 'API key';
     }

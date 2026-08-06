@@ -16,12 +16,16 @@ export async function getAgentScopedUserChatTimeout(
     options: GetAgentScopedUserChatTimeoutOptions,
 ): Promise<UserChatTimeoutRecord | null> {
     const userChatTimeoutTable = await provideUserChatTimeoutTable();
-    const { data, error } = await userChatTimeoutTable
+    let query = userChatTimeoutTable
         .select('*')
         .eq('id', options.timeoutId)
-        .eq('userId', options.userId)
-        .eq('agentPermanentId', options.agentPermanentId)
-        .maybeSingle();
+        .eq('agentPermanentId', options.agentPermanentId);
+
+    if (typeof options.userId === 'number') {
+        query = query.eq('userId', options.userId);
+    }
+
+    const { data, error } = await query.maybeSingle();
 
     if (error) {
         if (isMissingUserChatTimeoutRelationError(error)) {

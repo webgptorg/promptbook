@@ -134,7 +134,11 @@ export type ListUserChatTimeoutsOptions = {
  * Query options for loading one timeout scoped only to user + agent.
  */
 export type GetAgentScopedUserChatTimeoutOptions = {
-    userId: number;
+    /**
+     * Owning user, or `undefined` to span every user of the agent
+     * (used by the agent goal chat, which plans on behalf of the agent itself).
+     */
+    userId?: number;
     agentPermanentId: string;
     timeoutId: string;
 };
@@ -143,7 +147,11 @@ export type GetAgentScopedUserChatTimeoutOptions = {
  * Query options for listing all timeouts owned by one user+agent across chats.
  */
 export type ListAgentUserChatTimeoutsOptions = {
-    userId: number;
+    /**
+     * Owning user, or `undefined` to span every user of the agent
+     * (used by the agent goal chat, which plans on behalf of the agent itself).
+     */
+    userId?: number;
     agentPermanentId: string;
     statuses?: ReadonlyArray<UserChatTimeoutStatus>;
     includePaused?: boolean;

@@ -4,7 +4,7 @@ import type { UserChatTimeout } from '../userChatClient';
 import { requestUserChatApi } from './requestUserChatApi';
 
 /**
- * Cancels one durable timeout in the agent-wide timeout manager.
+ * Cancels one planned message of the agent from its goal chat.
  *
  * @private shared helper for the Agents Server browser client
  */
@@ -14,6 +14,6 @@ export async function cancelAgentUserTimeout(agentName: string, timeoutId: strin
         {
             method: 'DELETE',
         },
-        'Failed to cancel agent timeout.',
+        'Failed to cancel the planned message.',
     );
 }

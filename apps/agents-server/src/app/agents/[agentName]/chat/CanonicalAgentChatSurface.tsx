@@ -28,6 +28,8 @@ import { createAgentProjectMarkdownReferences } from '../../../../utils/agentPro
 import { createDefaultSpeechRecognition } from '../../../../utils/speech-to-text/createDefaultSpeechRecognition';
 import { chatFileUploadHandler } from '../../../../utils/upload/createBookEditorUploadHandler';
 import { getUserChatSourceBannerLabel, type UserChatSource } from '../../../../utils/userChat/UserChatSource';
+import { AgentGoalChatNotice } from './AgentGoalChatNotice';
+import { AgentGoalChatPlannedMessages } from './AgentGoalChatPlannedMessages';
 import type { UserChatJob, UserChatTimeout } from '../../../../utils/userChatClient';
 import { ChatTimeoutButton } from './ChatTimeoutButton';
 import { isReplyableCanonicalChatMessage } from './chatReplies';
@@ -79,6 +81,10 @@ type CanonicalAgentChatSurfaceProps = {
      */
     readonly isExternalUserChat?: boolean;
     /**
+     * True when the viewed chat is the singleton thread the agent keeps with itself.
+     */
+    readonly isAgentGoalChat?: boolean;
+    /**
      * Optional actions rendered inside the read-only banner (for example super-admin shortcuts).
      */
     readonly readOnlyExtraActions?: ReactNode;
@@ -121,6 +127,7 @@ export function CanonicalAgentChatSurface({
     isReadOnly,
     readOnlySource,
     isExternalUserChat = false,
+    isAgentGoalChat = false,
     readOnlyExtraActions,
     projectReferences = [],
     onDraftMessageChange,
@@ -318,6 +325,12 @@ export function CanonicalAgentChatSurface({
                     {translateText('chat.frozenBannerLabel', { source: frozenChatBannerLabel })}
                     {readOnlyExtraActions}
                 </div>
+            )}
+            {isAgentGoalChat && (
+                <>
+                    <AgentGoalChatNotice />
+                    <AgentGoalChatPlannedMessages agentName={agentName} currentTimestamp={currentTimestamp} />
+                </>
             )}
         </Chat>
     );

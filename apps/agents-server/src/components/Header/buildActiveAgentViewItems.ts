@@ -49,10 +49,6 @@ export function buildActiveAgentViewItems({
             label: createAgentViewLabel('Chat', translate),
             href: `${activeAgentBasePath}/chat`,
         },
-        {
-            label: createAgentViewLabel('Timeouts', translate),
-            href: `${activeAgentBasePath}/timeouts`,
-        },
     ];
 
     if (isProjectsViewVisible) {
@@ -66,6 +62,11 @@ export function buildActiveAgentViewItems({
         items.push({
             label: createAgentViewLabel('Book', translate),
             href: `${activeAgentBasePath}/book`,
+        });
+        // Note: The goal chat is readable by exactly who may read the agent source book
+        items.push({
+            label: createAgentViewLabel('Goal', translate),
+            href: `${activeAgentBasePath}/goal`,
         });
     }
 

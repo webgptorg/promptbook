@@ -41,6 +41,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
             userId: scopeResult.scope.userId,
             viewerIsAdmin: scopeResult.scope.viewerIsAdmin,
             viewerIsSuperAdmin: scopeResult.scope.viewerIsSuperAdmin,
+            viewerCanAccessAgentGoalChat: scopeResult.scope.viewerCanAccessAgentGoalChat,
             agentPermanentId: scopeResult.scope.agentPermanentId,
             chatId,
         });
@@ -86,6 +87,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ ag
             userId: scopeResult.scope.userId,
             viewerIsAdmin: scopeResult.scope.viewerIsAdmin,
             viewerIsSuperAdmin: scopeResult.scope.viewerIsSuperAdmin,
+            viewerCanAccessAgentGoalChat: scopeResult.scope.viewerCanAccessAgentGoalChat,
             agentPermanentId: scopeResult.scope.agentPermanentId,
             chatId,
         });
@@ -201,6 +203,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ a
             userId: scopeResult.scope.userId,
             viewerIsAdmin: scopeResult.scope.viewerIsAdmin,
             viewerIsSuperAdmin: scopeResult.scope.viewerIsSuperAdmin,
+            viewerCanAccessAgentGoalChat: scopeResult.scope.viewerCanAccessAgentGoalChat,
             agentPermanentId: scopeResult.scope.agentPermanentId,
             chatId,
         });

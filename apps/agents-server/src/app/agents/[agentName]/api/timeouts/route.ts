@@ -5,12 +5,12 @@ import type { UserChatTimeoutRecord, UserChatTimeoutStatus } from '@/src/utils/u
 import { resolveUserChatScope } from '../user-chats/resolveUserChatScope';
 
 /**
- * Upper bound for one agent-wide timeout listing response.
+ * Upper bound for one agent-wide planned-message listing response.
  */
 const MAX_AGENT_TIMEOUT_MANAGER_ITEMS = 500;
 
 /**
- * Deterministic status order used in the timeout manager table.
+ * Deterministic status order used in the goal-chat planned-message list.
  */
 const TIMEOUT_STATUS_ORDER: Record<UserChatTimeoutStatus, number> = {
     RUNNING: 0,
@@ -21,7 +21,7 @@ const TIMEOUT_STATUS_ORDER: Record<UserChatTimeoutStatus, number> = {
 };
 
 /**
- * Lists all durable timeouts owned by current user for one agent across chats.
+ * Lists every planned message of one agent, as shown in its goal chat.
  */
 export async function GET(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     if (isPrivateModeEnabledFromRequest(request)) {
@@ -44,9 +44,14 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
         return NextResponse.json({ error: 'Agent not found.' }, { status: 404 });
     }
 
+    if (!scopeResult.scope.viewerCanAccessAgentGoalChat) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     try {
+        // Note: Planned messages belong to the agent, so the goal chat lists them across every chat
+        //       and every user of the agent
         const timeouts = await listAgentUserChatTimeouts({
-            userId: scopeResult.scope.userId,
             agentPermanentId: scopeResult.scope.agentPermanentId,
             limit: MAX_AGENT_TIMEOUT_MANAGER_ITEMS,
         });

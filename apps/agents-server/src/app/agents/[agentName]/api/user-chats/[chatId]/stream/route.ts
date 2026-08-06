@@ -66,6 +66,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
     const chat = await getUserChat({
         userId: scopeResult.scope.userId,
         viewerIsAdmin: scopeResult.scope.viewerIsAdmin,
+        viewerCanAccessAgentGoalChat: scopeResult.scope.viewerCanAccessAgentGoalChat,
         agentPermanentId: scopeResult.scope.agentPermanentId,
         chatId,
     });
@@ -133,6 +134,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
                 const currentChat = await getUserChat({
                     userId: scopeResult.scope.userId,
                     viewerIsAdmin: scopeResult.scope.viewerIsAdmin,
+                    viewerCanAccessAgentGoalChat: scopeResult.scope.viewerCanAccessAgentGoalChat,
                     agentPermanentId: scopeResult.scope.agentPermanentId,
                     chatId,
                 });

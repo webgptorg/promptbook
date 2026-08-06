@@ -2,6 +2,11 @@ import { LimitReachedError } from '@promptbook-local/core';
 import type { ChatMessage } from '@promptbook-local/types';
 import { serializeError, spaceTrim } from '@promptbook-local/utils';
 import { $randomBase58 } from '../../../../../src/utils/random/$randomBase58';
+import { appendAgentGoalChatNote } from '../agentGoalChat/appendAgentGoalChatNote';
+import {
+    createAgentGoalChatCancelledPlannedMessageNoteContent,
+    createAgentGoalChatPlannedMessageNoteContent,
+} from '../agentGoalChat/createAgentGoalChatNoteContent';
 import { getToolUsageLimits } from '../toolUsageLimits';
 import { resolveCurrentOrInternalServerOrigin } from '../resolveCurrentOrInternalServerOrigin';
 import { sendUserChatPushNotification } from '../sendUserChatPushNotification';
@@ -119,6 +124,7 @@ export async function scheduleThreadScopedUserChatTimeout(options: {
         durationMs: timeout.durationMs,
     });
 
+    await recordAgentGoalChatPlannedMessageNote(timeout);
     scheduleUserChatTimeoutLocalWakeup(timeout);
 
     return timeout;
@@ -130,6 +136,8 @@ export async function scheduleThreadScopedUserChatTimeout(options: {
  * @private internal utility of userChatTimeout
  */
 export async function cancelScheduledUserChatTimeout(timeoutId: string): Promise<UserChatTimeoutRecord | null> {
+    // Note: Cancelling an already-cancelled timeout is a no-op, and must not repeat its goal-chat note
+    const timeoutBeforeCancellation = await getUserChatTimeoutById(timeoutId);
     const cancelledTimeout = await cancelUserChatTimeout(timeoutId);
     clearUserChatTimeoutLocalWakeup(timeoutId);
 
@@ -140,9 +148,54 @@ export async function cancelScheduledUserChatTimeout(timeoutId: string): Promise
             status: cancelledTimeout.status,
             cancelRequestedAt: cancelledTimeout.cancelRequestedAt,
         });
+
+        if (!timeoutBeforeCancellation?.cancelRequestedAt) {
+            await recordAgentGoalChatCancelledPlannedMessageNote(cancelledTimeout);
+        }
     }
 
     return cancelledTimeout;
+}
+
+/**
+ * Mirrors one newly planned message into the goal chat of the owning agent.
+ *
+ * Planned messages can be created from any chat, but the agent's own thread is where all of them
+ * become visible, so the goal chat always shows the full plan.
+ *
+ * @private internal utility of userChatTimeout
+ */
+async function recordAgentGoalChatPlannedMessageNote(timeout: UserChatTimeoutRecord): Promise<void> {
+    await appendAgentGoalChatNote({
+        agentPermanentId: timeout.agentPermanentId,
+        content: createAgentGoalChatPlannedMessageNoteContent({
+            timeoutId: timeout.timeoutId,
+            dueAt: timeout.dueAt,
+            message: timeout.message,
+        }),
+    }).catch((error) => {
+        console.error('[user-chat-timeout]', 'goal_chat_planned_note_failed', {
+            timeoutId: timeout.timeoutId,
+            error: serializeError(error as Error),
+        });
+    });
+}
+
+/**
+ * Mirrors one cancelled planned message into the goal chat of the owning agent.
+ *
+ * @private internal utility of userChatTimeout
+ */
+async function recordAgentGoalChatCancelledPlannedMessageNote(timeout: UserChatTimeoutRecord): Promise<void> {
+    await appendAgentGoalChatNote({
+        agentPermanentId: timeout.agentPermanentId,
+        content: createAgentGoalChatCancelledPlannedMessageNoteContent({ timeoutId: timeout.timeoutId }),
+    }).catch((error) => {
+        console.error('[user-chat-timeout]', 'goal_chat_cancelled_note_failed', {
+            timeoutId: timeout.timeoutId,
+            error: serializeError(error as Error),
+        });
+    });
 }
 
 /**

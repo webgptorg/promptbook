@@ -2,7 +2,7 @@ import type { UserChatRecord, UserChatSummary, UserChatTimeoutActivity } from '.
 import { createUserChatRunningActivity } from './createUserChatRunningActivity';
 import { shortenText } from '../shortenText';
 import { textToPreviewText } from '../textToPreviewText';
-import { isFrozenUserChatSource } from './UserChatSource';
+import { isFrozenUserChatSource, USER_CHAT_SOURCES } from './UserChatSource';
 
 /**
  * Max title length in chat list.
@@ -122,8 +122,14 @@ export function createUserChatSummaryFromSeed(
         options.activeJobCount && options.activeJobCount > 0
             ? options.activeJobCount
             : resolveSummaryPendingActivityCount(chat.updatedAt, chat.pendingAssistantMessageCount);
+    const isAgentGoalChat = chat.source === USER_CHAT_SOURCES.AGENT_GOAL;
+    // Note: Goal chats are owned by the agent rather than by any human, so they are never treated
+    //       as somebody else's chat even when the viewer is not their stored owner
     const isExternalUserChat =
-        options.viewerUserId !== undefined && chat.userId !== undefined && chat.userId !== options.viewerUserId;
+        !isAgentGoalChat &&
+        options.viewerUserId !== undefined &&
+        chat.userId !== undefined &&
+        chat.userId !== options.viewerUserId;
 
     return {
         id: chat.id,
@@ -133,6 +139,7 @@ export function createUserChatSummaryFromSeed(
         source: chat.source,
         isReadOnly: isFrozenUserChatSource(chat.source) || isExternalUserChat,
         isExternalUserChat,
+        isAgentGoalChat,
         messagesCount: chat.messagesCount,
         title: shortenText(storedTitle || titleSource || DEFAULT_CHAT_TITLE, CHAT_TITLE_MAX_LENGTH),
         preview: shortenText(previewSource, CHAT_PREVIEW_MAX_LENGTH),

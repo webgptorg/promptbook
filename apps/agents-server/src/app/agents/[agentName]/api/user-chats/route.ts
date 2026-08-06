@@ -1,3 +1,4 @@
+import { isAgentGoalChatId, prependAgentGoalChatSummarySeed } from '@/src/utils/agentGoalChat';
 import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 import {
     createUserChat,
@@ -38,12 +39,16 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
         const requestUrl = new URL(request.url);
         const requestedChatId = normalizeOptionalString(requestUrl.searchParams.get('chat'));
         const showExternalChats = normalizeBooleanFlag(requestUrl.searchParams.get('showExternalChats'));
-        const chatSummarySeeds = await listUserChatSummarySeeds({
-            userId: scopeResult.scope.userId,
-            viewerIsAdmin: scopeResult.scope.viewerIsAdmin,
-            viewerIsSuperAdmin: scopeResult.scope.viewerIsSuperAdmin,
+        const chatSummarySeeds = await prependAgentGoalChatSummarySeed({
+            chatSummarySeeds: await listUserChatSummarySeeds({
+                userId: scopeResult.scope.userId,
+                viewerIsAdmin: scopeResult.scope.viewerIsAdmin,
+                viewerIsSuperAdmin: scopeResult.scope.viewerIsSuperAdmin,
+                agentPermanentId: scopeResult.scope.agentPermanentId,
+                includeExternalChats: showExternalChats,
+            }),
             agentPermanentId: scopeResult.scope.agentPermanentId,
-            includeExternalChats: showExternalChats,
+            isAgentGoalChatVisible: scopeResult.scope.viewerCanAccessAgentGoalChat,
         });
         const activityUserId =
             (scopeResult.scope.viewerIsAdmin || scopeResult.scope.viewerIsSuperAdmin) && showExternalChats
@@ -62,15 +67,18 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
             }),
         ]);
 
+        // Note: The pinned goal chat is opened only on explicit request, never as the default thread
+        const defaultChatSummarySeed =
+            chatSummarySeeds.find((chat) => !isAgentGoalChatId(chat.id)) || chatSummarySeeds[0] || null;
         const activeChatSummarySeed =
             (requestedChatId ? chatSummarySeeds.find((chat) => chat.id === requestedChatId) : null) ||
-            chatSummarySeeds[0] ||
-            null;
+            defaultChatSummarySeed;
         const activeChat = activeChatSummarySeed
             ? await getUserChat({
                   userId: scopeResult.scope.userId,
                   viewerIsAdmin: scopeResult.scope.viewerIsAdmin,
                   viewerIsSuperAdmin: scopeResult.scope.viewerIsSuperAdmin,
+                  viewerCanAccessAgentGoalChat: scopeResult.scope.viewerCanAccessAgentGoalChat,
                   agentPermanentId: scopeResult.scope.agentPermanentId,
                   chatId: activeChatSummarySeed.id,
               })
