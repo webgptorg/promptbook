@@ -1,5 +1,9 @@
 [x] (2 attempts) by OpenAI Codex `gpt-5.6-terra` thinking `max` (ChatGPT account) - Implementation ~$0.7293 25 minutes; Testing 12 minutes; Fixing <$0.01 5 minutes; Testing 39 minutes
 
+---
+
+[ ]
+
 [✨🍆] When showing a project card, show it with the nice title and icon.
 
 -   The icon should be a favicon or some ad-hoc icon from letters of the project name. For example, for project `https://prague-murders-map.live.ptbk.io/` the icon should be `PMM` or `P` or `M` or `MM` or `PM` or something like that.
@@ -11,4 +15,3 @@
 
 ![alt text](screenshots/2026-08-0130-agents-server-project-card.png)
 ![alt text](screenshots/2026-08-0130-agents-server-project-card-1.png)
-

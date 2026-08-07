@@ -1,5 +1,4 @@
 import {
-    buildAgentProjectFileHrefForServer,
     buildAgentProjectProfileHrefForServer,
     buildAgentProjectsDashboardHrefForServer,
 } from './agentProjectHrefs';
@@ -35,17 +34,5 @@ describe('agentProjectHrefs', () => {
                 currentServerDomain: 'current.example.com',
             }),
         ).toBe('https://foreign.example.com/agents/AgentABC/projects');
-    });
-
-    it('uses the owning server for raw project-file links', () => {
-        expect(
-            buildAgentProjectFileHrefForServer({
-                agentPermanentId: 'AgentABC',
-                projectName: 'My Project',
-                fileRelativePath: 'assets/favicon.svg',
-                serverDomain: 'foreign.example.com',
-                currentServerDomain: 'current.example.com',
-            }),
-        ).toBe('https://foreign.example.com/agents/AgentABC/projects/My%20Project/files/assets/favicon.svg');
     });
 });
