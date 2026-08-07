@@ -43,14 +43,14 @@ describe('createAgentProjectMarkdownReferences', () => {
         ]);
     });
 
-    it('humanizes the project directory name when no display metadata is available', () => {
+    it('labels the chip with the resolved project display name', () => {
         expect(
             createAgentProjectMarkdownReferences({
                 agentPermanentId: 'agent',
                 projects: [
                     {
                         projectName: 'prague-murders-map',
-                        displayName: 'prague-murders-map',
+                        displayName: 'Prague Murders Map',
                         description: '',
                     },
                 ],

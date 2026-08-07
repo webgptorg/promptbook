@@ -2,7 +2,7 @@
 
 ---
 
-[ ]
+[x] by Claude Code `claude-opus-5` thinking `max` - Implementation $22.19 an hour; Testing 25 minutes
 
 [✨🍆] When showing a project card, show it with the nice title and icon.
 
@@ -15,3 +15,4 @@
 
 ![alt text](screenshots/2026-08-0130-agents-server-project-card.png)
 ![alt text](screenshots/2026-08-0130-agents-server-project-card-1.png)
+

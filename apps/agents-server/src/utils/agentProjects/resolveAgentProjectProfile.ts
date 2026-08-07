@@ -1,6 +1,7 @@
 import { parseMarkdownSection, splitMarkdownIntoSections } from '@promptbook-local/markdown-utils';
 import type { string_markdown } from '@promptbook-local/types';
 import { stripMarkdownText } from '../stripMarkdownText';
+import { humanizeAgentProjectName } from './humanizeAgentProjectName';
 import type { AgentProjectReadme } from './readAgentProjectReadme';
 
 /**
@@ -29,9 +30,9 @@ type AgentProjectReadmeSections = {
 };
 
 /**
- * Project profile values resolved from a project folder and optional README.
+ * Project profile values resolved from a project folder, its README and its `index.html`.
  */
-export type AgentProjectReadmeProfile = {
+export type AgentProjectProfile = {
     /**
      * User-facing project name.
      */
@@ -49,35 +50,30 @@ export type AgentProjectReadmeProfile = {
 };
 
 /**
- * Resolves display metadata for one agent project from its README.
+ * Resolves display metadata for one agent project.
  *
- * @param options - Project folder name and optional README content.
+ * @param options - Project folder name, optional README content and optional `index.html` title.
  * @returns Project display profile.
  */
-export function resolveAgentProjectReadmeProfile(options: {
+export function resolveAgentProjectProfile(options: {
     readonly projectDirectoryName: string;
     readonly readme: AgentProjectReadme | null;
-}): AgentProjectReadmeProfile {
-    const { projectDirectoryName, readme } = options;
-    if (!readme) {
-        return {
-            displayName: projectDirectoryName,
-            description: '',
-            readmeFileName: null,
-        };
-    }
-
-    const sections = parseMarkdownProfileSections(readme.content);
-    const displayName = resolveProjectDisplayName(
-        projectDirectoryName,
-        sections.firstExplicitHeadingSection?.title ?? null,
-    );
-    const description = resolveProjectDescription(readme.content, sections.firstSection?.content ?? readme.content);
+    readonly indexHtmlTitle: string | null;
+}): AgentProjectProfile {
+    const { projectDirectoryName, readme, indexHtmlTitle } = options;
+    const sections = readme === null ? null : parseMarkdownProfileSections(readme.content);
 
     return {
-        displayName,
-        description,
-        readmeFileName: readme.fileName,
+        displayName: resolveProjectDisplayName({
+            projectDirectoryName,
+            readmeHeadingTitle: sections?.firstExplicitHeadingSection?.title ?? null,
+            indexHtmlTitle,
+        }),
+        description:
+            readme === null
+                ? ''
+                : resolveProjectDescription(readme.content, sections?.firstSection?.content ?? readme.content),
+        readmeFileName: readme?.fileName ?? null,
     };
 }
 
@@ -112,19 +108,23 @@ function parseMarkdownProfileSections(markdown: string): AgentProjectReadmeSecti
 }
 
 /**
- * Resolves a project display name from the README heading or folder fallback.
+ * Resolves a project display name from the README heading, the `index.html` title or the folder name.
  *
- * @param projectDirectoryName - Project folder name.
- * @param parsedHeadingTitle - Title returned by the markdown section parser.
+ * A project which describes itself neither in a README nor in an `index.html` still gets a readable
+ * name, because its folder name is humanized — `prague-murders-map` reads as `Prague Murders Map`.
+ *
+ * @param options - Project folder name and the titles found in the project files.
  * @returns Display name.
  */
-function resolveProjectDisplayName(projectDirectoryName: string, parsedHeadingTitle: string | null): string {
-    if (!parsedHeadingTitle) {
-        return projectDirectoryName;
-    }
+function resolveProjectDisplayName(options: {
+    readonly projectDirectoryName: string;
+    readonly readmeHeadingTitle: string | null;
+    readonly indexHtmlTitle: string | null;
+}): string {
+    const readmeDisplayName = options.readmeHeadingTitle === null ? '' : stripMarkdownText(options.readmeHeadingTitle);
+    const indexHtmlDisplayName = (options.indexHtmlTitle || '').trim();
 
-    const displayName = stripMarkdownText(parsedHeadingTitle);
-    return displayName || projectDirectoryName;
+    return readmeDisplayName || indexHtmlDisplayName || humanizeAgentProjectName(options.projectDirectoryName);
 }
 
 /**

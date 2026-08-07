@@ -9,6 +9,11 @@ const path = require('node:path');
 const APP_ROOT = path.resolve(__dirname, '..');
 
 /**
+ * Root directory of the repository, which owns the shared build and test scripts.
+ */
+const PROJECT_ROOT = path.resolve(APP_ROOT, '..', '..');
+
+/**
  * Maximum Node.js heap size used by the Next.js production build.
  */
 const AGENTS_SERVER_BUILD_MAX_OLD_SPACE_MIB = 8192;
@@ -23,7 +28,7 @@ function buildAgentsServer() {
     const nextBuildArguments = [
         `--max-old-space-size=${AGENTS_SERVER_BUILD_MAX_OLD_SPACE_MIB}`,
         '-r',
-        path.join(APP_ROOT, 'scripts', 'ignore-kill-eperm.js'),
+        path.join(PROJECT_ROOT, 'scripts', 'ignore-kill-eperm.js'),
         path.join(APP_ROOT, 'scripts', 'next-cli.js'),
         'build',
     ];

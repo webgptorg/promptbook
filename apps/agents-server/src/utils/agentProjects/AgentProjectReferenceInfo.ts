@@ -5,7 +5,7 @@ import type { AgentProjectInfo } from './AgentProjectInfo';
  */
 export type AgentProjectReferenceInfo = Pick<
     AgentProjectInfo,
-    'projectName' | 'displayName' | 'description' | 'sizeBytes'
+    'projectName' | 'displayName' | 'description' | 'sizeBytes' | 'faviconRelativePath'
 > & {
     /**
      * Whether the project currently accepts requests on its assigned runtime port.

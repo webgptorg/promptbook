@@ -5,8 +5,10 @@ import type { AgentProjectInfo } from './AgentProjectInfo';
 import { resolveAgentProjectsRootPath, resolveSafeAgentProjectPath } from './agentProjectsPaths';
 import { isMissingPathError } from './isMissingPathError';
 import { measureDirectoryUsage } from './measureDirectoryUsage';
+import { readAgentProjectIndexHtmlProfile } from './readAgentProjectIndexHtmlProfile';
 import { readAgentProjectReadme } from './readAgentProjectReadme';
-import { resolveAgentProjectReadmeProfile } from './resolveAgentProjectReadmeProfile';
+import { resolveAgentProjectFaviconRelativePath } from './resolveAgentProjectFaviconRelativePath';
+import { resolveAgentProjectProfile } from './resolveAgentProjectProfile';
 
 /**
  * Builds metadata for one project directory.
@@ -20,14 +22,20 @@ export async function createAgentProjectInfo(
     projectDirectoryName: string,
 ): Promise<AgentProjectInfo> {
     const projectPath = join(projectsRootPath, projectDirectoryName);
-    const [projectUsage, isGitRepository, readme] = await Promise.all([
+    const [projectUsage, isGitRepository, readme, indexHtmlProfile] = await Promise.all([
         measureDirectoryUsage(projectPath),
         isGitRepositoryDirectory(projectPath),
         readAgentProjectReadme(projectPath),
+        readAgentProjectIndexHtmlProfile(projectPath),
     ]);
-    const profile = resolveAgentProjectReadmeProfile({
+    const profile = resolveAgentProjectProfile({
         projectDirectoryName,
         readme,
+        indexHtmlTitle: indexHtmlProfile?.title ?? null,
+    });
+    const faviconRelativePath = await resolveAgentProjectFaviconRelativePath({
+        projectPath,
+        indexHtmlFaviconHref: indexHtmlProfile?.faviconHref ?? null,
     });
 
     return {
@@ -35,6 +43,7 @@ export async function createAgentProjectInfo(
         displayName: profile.displayName,
         description: profile.description,
         readmeFileName: profile.readmeFileName,
+        faviconRelativePath,
         relativePath: `${AGENT_PROJECTS_DIRECTORY_PATH}/${projectDirectoryName}`,
         absolutePath: projectPath,
         sizeBytes: projectUsage.sizeBytes,

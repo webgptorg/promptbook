@@ -9,7 +9,6 @@ import {
     ExternalLinkIcon,
     FileIcon,
     FolderIcon,
-    FolderKanbanIcon,
     GitBranchIcon,
     PlayIcon,
     PlugZapIcon,
@@ -19,6 +18,7 @@ import {
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { AgentProjectDnsWarning } from '@/src/components/AgentProjects/AgentProjectDnsWarning';
+import { AgentProjectIcon } from '@/src/components/AgentProjects/AgentProjectIcon';
 import { AgentProjectRuntimeStatusBadge } from '@/src/components/AgentProjects/AgentProjectRuntimeStatusBadge';
 import { ForbiddenPage } from '@/src/components/ForbiddenPage/ForbiddenPage';
 import { isAgentsServerSqliteMode } from '@/src/database/agentsServerDatabaseMode';
@@ -467,7 +467,7 @@ function ProjectProfileHeader({
                 <div className="min-w-0">
                     <p className="text-xs font-semibold uppercase tracking-[0.22em] text-gray-400">Project</p>
                     <h1 className="mt-1 flex min-w-0 items-center gap-2 text-3xl font-light text-gray-900">
-                        <FolderKanbanIcon className="h-7 w-7 shrink-0 text-gray-400" aria-hidden />
+                        <AgentProjectIcon agentPermanentId={agentPermanentId} project={project} size="header" />
                         <span className="truncate">{project.displayName}</span>
                     </h1>
                     {project.displayName !== project.projectName && (

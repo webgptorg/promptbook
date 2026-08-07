@@ -61,6 +61,20 @@ export function parseAgentPermanentIdFromDirectoryName(agentDirectoryName: strin
 }
 
 /**
+ * Returns whether one path segment stays inside its parent directory.
+ *
+ * @param pathSegment - Single decoded path segment (project name or one file path part).
+ * @returns `true` when the segment is non-empty and cannot escape its parent directory.
+ */
+export function isSafeAgentProjectPathSegment(pathSegment: string): boolean {
+    const isTraversalSegment = pathSegment === '.' || pathSegment === '..';
+    const hasPathSeparator = pathSegment.includes('/') || pathSegment.includes('\\');
+    const hasNullByte = pathSegment.includes('\0');
+
+    return pathSegment.length > 0 && !isTraversalSegment && !hasPathSeparator && !hasNullByte;
+}
+
+/**
  * Asserts that one path segment coming from a URL cannot escape its parent directory.
  *
  * @param pathSegment - Single decoded path segment (project name or one file path part).
@@ -68,11 +82,7 @@ export function parseAgentPermanentIdFromDirectoryName(agentDirectoryName: strin
  * @throws {NotAllowed} When the segment is empty or attempts path traversal.
  */
 export function assertSafeAgentProjectPathSegment(pathSegment: string, segmentPurpose: string): void {
-    const isTraversalSegment = pathSegment === '.' || pathSegment === '..';
-    const hasPathSeparator = pathSegment.includes('/') || pathSegment.includes('\\');
-    const hasNullByte = pathSegment.includes('\0');
-
-    if (pathSegment.length === 0 || isTraversalSegment || hasPathSeparator || hasNullByte) {
+    if (!isSafeAgentProjectPathSegment(pathSegment)) {
         throw new NotAllowed(
             spaceTrim(`
                 Invalid ${segmentPurpose} \`${pathSegment}\`.

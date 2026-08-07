@@ -1,9 +1,9 @@
-import { FolderKanbanIcon } from 'lucide-react';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import type { AgentProjectReferenceInfo } from '../../utils/agentProjects/AgentProjectReferenceInfo';
 import { buildAgentProjectProfileHrefForServer } from '../../utils/agentProjects/agentProjectHrefs';
 import { formatResourceBytes } from '../../utils/resourceMonitor/formatResourceMonitorValue';
+import { AgentProjectIcon } from './AgentProjectIcon';
 
 /**
  * Visual variants supported by project references.
@@ -76,12 +76,22 @@ export function AgentProjectItem({
         serverDomain,
         currentServerDomain,
     });
+    const icon = (
+        <AgentProjectIcon
+            agentPermanentId={agentPermanentId}
+            project={project}
+            serverDomain={serverDomain}
+            currentServerDomain={currentServerDomain}
+            size={variant === 'small' ? 'small' : 'card'}
+            className={variant === 'small' ? 'mt-0.5' : ''}
+        />
+    );
 
     if (variant === 'small') {
-        return <SmallAgentProjectItem href={href} project={project} className={className} />;
+        return <SmallAgentProjectItem href={href} project={project} icon={icon} className={className} />;
     }
 
-    return <FullAgentProjectItem href={href} project={project} className={className} footer={footer} />;
+    return <FullAgentProjectItem href={href} project={project} icon={icon} className={className} footer={footer} />;
 }
 
 /**
@@ -97,6 +107,11 @@ type AgentProjectItemVariantProps = {
      * Displayed project metadata.
      */
     readonly project: AgentProjectItemInfo;
+
+    /**
+     * Rendered project icon.
+     */
+    readonly icon: ReactNode;
 
     /**
      * Optional CSS class overrides.
@@ -115,16 +130,17 @@ type AgentProjectItemVariantProps = {
  * @param props - Project item variant props.
  * @returns Full project link card.
  */
-function FullAgentProjectItem({ href, project, className, footer }: AgentProjectItemVariantProps) {
+function FullAgentProjectItem({ href, project, icon, className, footer }: AgentProjectItemVariantProps) {
     const isFooterVisible = footer !== undefined && footer !== null;
     const projectContent = (
         <>
             <div className="flex items-start gap-3">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-blue-100 bg-blue-50 text-blue-700">
-                    <FolderKanbanIcon className="h-5 w-5" aria-hidden />
-                </div>
+                {icon}
                 <div className="min-w-0 flex-1">
-                    <h3 className="truncate text-base font-semibold text-gray-950 group-hover:text-blue-700">
+                    <h3
+                        className="line-clamp-2 text-base font-semibold text-gray-950 group-hover:text-blue-700"
+                        title={project.displayName}
+                    >
                         {project.displayName}
                     </h3>
                     {project.displayName !== project.projectName && (
@@ -170,14 +186,14 @@ function FullAgentProjectItem({ href, project, className, footer }: AgentProject
  * @param props - Project item variant props.
  * @returns Compact project link item.
  */
-function SmallAgentProjectItem({ href, project, className }: AgentProjectItemVariantProps) {
+function SmallAgentProjectItem({ href, project, icon, className }: AgentProjectItemVariantProps) {
     return (
         <Link
             href={href}
             title={project.description || project.displayName}
             className={`inline-flex max-w-full items-start gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-left shadow-sm transition hover:border-blue-300 hover:bg-blue-50/50 ${className}`}
         >
-            <FolderKanbanIcon className="mt-0.5 h-4 w-4 shrink-0 text-blue-600" aria-hidden />
+            {icon}
             <span className="min-w-0 flex-1">
                 <span className="block truncate text-sm font-semibold text-gray-900">{project.displayName}</span>
                 {project.description && (

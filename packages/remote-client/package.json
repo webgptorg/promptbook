@@ -108,8 +108,12 @@
     },
     "dependencies": {
         "crypto-js": "4.2.0",
+        "jsdom": "25.0.1",
         "papaparse": "5.4.1",
         "socket.io-client": "4.7.5",
         "spacetrim": "0.11.60"
+    },
+    "browser": {
+        "jsdom": false
     }
 }

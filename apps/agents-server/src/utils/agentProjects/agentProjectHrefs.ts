@@ -108,6 +108,26 @@ export function buildAgentProjectFileHref(
 }
 
 /**
+ * Builds the href serving one raw file of one agent project on its owning server.
+ *
+ * @param options - Project file and server identity.
+ * @returns Server-scoped raw project file href.
+ */
+export function buildAgentProjectFileHrefForServer(options: {
+    readonly agentPermanentId: string;
+    readonly projectName: string;
+    readonly fileRelativePath: string;
+    readonly serverDomain: string | null;
+    readonly currentServerDomain: string | null;
+}): string {
+    return buildAgentProjectHrefForServer(
+        buildAgentProjectFileHref(options.agentPermanentId, options.projectName, options.fileRelativePath),
+        options.serverDomain,
+        options.currentServerDomain,
+    );
+}
+
+/**
  * Builds the href opening one project in browser VS Code.
  *
  * @param agentPermanentId - Permanent id of the agent.

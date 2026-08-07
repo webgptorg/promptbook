@@ -31,6 +31,12 @@ So there are two independent facts:
 
 This is **not** caused by the CLI startup optimization - none of the packages that were made lazy (`jsdom`, `@openai/agents`, `openai`, `@anthropic-ai/sdk`, `@azure/openai`, `jszip`, `socket.io-client`, `prompts`, `@mozilla/readability`) keeps a Node process alive when it is required, and the optimization only ever *removes* eagerly loaded modules. The `--forceExit` flag together with the `_TODO-0` note in [`package.json`](../package.json) *("now its present to ensure return code 0 when all tests")* was added long before this task, which documents that the slow worker shutdown already existed.
 
+## Resolved on 2026-08-07 (the crash, not the leak)
+
+`test-unit` now runs as `node -r ./scripts/ignore-kill-eperm.js ./node_modules/jest/bin/jest.js --forceExit`, so the run can no longer die on this race. The guard which the Agents Server build already used for the very same Windows race moved from `apps/agents-server/scripts/` to [`scripts/ignore-kill-eperm.js`](../scripts/ignore-kill-eperm.js) and is preloaded into the Jest main process, where `BaseWorkerPool.end()` and its force-kill timer run. It turns the `EPERM` (and `ESRCH`) failure of `ChildProcess.kill` back into the `false` return value which `kill` documents, instead of letting the unhandled `error` event escape a bare `setTimeout` callback. Both kill attempts of `forceExit()` are covered — the `SIGTERM` and the `SIGKILL` which follows it — because both go through the same patched method.
+
+**Fact 2 is therefore fixed and fact 1 is not:** a worker of this repository still regularly needs more than 500 ms to exit, so `A worker process has failed to exit gracefully and has been force exited.` is still printed on a healthy run. The suggested next step below stays open, and `--forceExit` still cannot be dropped as `_TODO-0` asks.
+
 ## Suggested next step
 
 Find the handle that keeps the worker alive after the last test - running `npx jest --detectOpenHandles` over the process-spawning and database-backed suites is the cheapest starting point - and release it in the relevant `afterAll`. Once the workers exit on their own, both the warning and this Windows-only crash disappear and `--forceExit` can finally be dropped as `_TODO-0` asks. Switching the pool to `workerThreads: true` in [`jest.config.js`](../jest.config.js) would also remove the `kill EPERM` class of failures, but it changes worker isolation for all 659 suites, so it should be evaluated separately.

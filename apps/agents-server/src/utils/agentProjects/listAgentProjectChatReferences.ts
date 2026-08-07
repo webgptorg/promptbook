@@ -32,6 +32,7 @@ export async function listAgentProjectChatReferences(
             displayName: project.displayName,
             description: project.description,
             sizeBytes: project.sizeBytes,
+            faviconRelativePath: project.faviconRelativePath ?? null,
             isRunning: runtime?.isRunning ?? false,
             projectUrl: runtime?.publicUrl ?? publicUrlByProjectName.get(normalizedProjectName) ?? null,
         };

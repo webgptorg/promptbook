@@ -1,7 +1,6 @@
 import type { MarkdownInlineReference } from '@promptbook-local/types';
 import type { AgentProjectReferenceInfo } from './AgentProjectReferenceInfo';
 import { buildAgentProjectProfileHref } from './agentProjectHrefs';
-import { humanizeAgentProjectName } from './humanizeAgentProjectName';
 
 /**
  * Markdown inline reference data consumed by chat markdown rendering.
@@ -32,23 +31,6 @@ type AgentProjectMarkdownReferenceInfo = Pick<
 >;
 
 /**
- * Resolves the human-readable project name shown inside one project chip.
- *
- * A display name resolved from the project README wins, a plain project directory name is humanized
- * so that `prague-murders-map` reads as `Prague Murders Map`.
- *
- * @param project - Project metadata.
- * @returns Project chip label.
- */
-function resolveAgentProjectChipLabel(project: AgentProjectMarkdownReferenceInfo): string {
-    if (project.displayName && project.displayName !== project.projectName) {
-        return project.displayName;
-    }
-
-    return humanizeAgentProjectName(project.projectName);
-}
-
-/**
  * Creates markdown references rendering every mention of one project as a project chip.
  *
  * One project is mentioned either by its `[[project-name]]` token, by a link into its project page
@@ -64,7 +46,7 @@ export function createAgentProjectMarkdownReferences(
     return options.projects.map((project) => {
         const projectProfileHref = buildAgentProjectProfileHref(options.agentPermanentId, project.projectName);
         const projectUrl = project.projectUrl || null;
-        const label = resolveAgentProjectChipLabel(project);
+        const label = project.displayName || project.projectName;
 
         return {
             reference: project.projectName,

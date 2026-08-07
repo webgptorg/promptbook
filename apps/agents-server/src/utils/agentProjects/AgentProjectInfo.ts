@@ -12,7 +12,8 @@ export type AgentProjectInfo = {
     readonly projectName: string;
 
     /**
-     * User-facing name of the project, resolved from the README heading when available.
+     * User-facing name of the project, resolved from the README heading, the `index.html` title
+     * or the humanized project directory name.
      */
     readonly displayName: string;
 
@@ -25,6 +26,14 @@ export type AgentProjectInfo = {
      * Original README filename used for the project profile, or `null` when there is no README.
      */
     readonly readmeFileName: string | null;
+
+    /**
+     * Path of the project icon relative to the project root, or `null` when the project has no icon.
+     *
+     * The icon is the favicon linked by the project `index.html` or a favicon found in one of the
+     * conventional locations; a project without one is shown with an icon made of its initials.
+     */
+    readonly faviconRelativePath: string | null;
 
     /**
      * Path of the project relative to the agent folder root, for example `projects/my-website`.
