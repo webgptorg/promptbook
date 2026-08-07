@@ -24,3 +24,14 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
+---
+
+@@@@@@@@@@@
+book update debounce
+
+## ![alt text](screenshots/2026-08-0140-agents-server-goal-chat.png)
+
+@@@@@@@@@@@
+popup
+
+![alt text](screenshots/2026-08-0140-agents-server-goal-chat.png)
