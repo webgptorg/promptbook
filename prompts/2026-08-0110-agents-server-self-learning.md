@@ -1,28 +1,27 @@
 [ ]
 
-[✨🛶] Implement the self-learning of the agents. 
+[✨🛶] Implement the self-learning of the agents.
 
 **Example of closed agents:**
 
 ```book
-Agent 
+Agent
 
 GOAL Be a great assistant to the user and help them with their tasks.
 CLOSED
 ```
 
-
 **Example of open agents:**
 
 ```book
-Agent 
+Agent
 
 GOAL Be a great assistant to the user and help them with their tasks.
 OPEN
 ```
 
 ```book
-Agent 
+Agent
 
 GOAL Be a great assistant to the user and help them with their tasks.
 ```

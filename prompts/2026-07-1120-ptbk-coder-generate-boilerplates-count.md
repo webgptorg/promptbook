@@ -16,3 +16,21 @@ ptbk coder generate-boilerplates --count 10*7 --template prompts/_templates/comm
 -   Update the [`ptbk coder` landing website](apps/coder-landing)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
+---
+
+[ ]
+
+[✨🔩] When generating boilerplates and there are multiple prompts in one prompt file, they all should have the same emoji tag.
+
+```bash
+ptbk coder generate-boilerplates --count 10*7 --template prompts/_templates/common.md
+```
+
+-   Each prompt file should have the same emojis in all of their prompts.
+-   But for every prompt file, there should be a unique emoji.
+-   So, for example, the `--count 10*7` will generate 10 prompt files, each with 7 prompts, and each prompt file will have a unique emoji tag, but all 7 prompts in that file will have the same emoji tag, so in total there will be 10 unique emoji tags, one for each prompt file.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
+-   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
+-   Update the [`ptbk coder` landing website](apps/coder-landing)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)

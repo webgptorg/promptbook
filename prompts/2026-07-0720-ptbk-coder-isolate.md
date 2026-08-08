@@ -180,7 +180,7 @@ $
 ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --isolate
 ```
 
--   **The isolation is already implemented but it not work as supposed** @@@@@@@@@@@@@@@@@
+-   **The isolation is already implemented but it not work as supposed** @@@@@@@
 -   When using isolate, it will create a temporary worktree, the worktree will have its own isolated environment.
 -   Temporary worktree folder should be inside the temporary folder of the Promptbook coder `.promptbook/coder-isolation-worktrees/<task-name>`, where `<task-name>` is the name of the task, for example `.promptbook/coder-isolation-worktrees/2026-07-0700-ptbk-coder-timing`.
 -   After the task is implemented and verified, automatically merge into the original branch from where the coder is running, and delete the worktree

@@ -1,4 +1,4 @@
-@@@@@@ Memories for new Agent system
+@@@ Memories for new Agent system
 
 
 
