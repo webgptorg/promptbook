@@ -1,4 +1,5 @@
 import { AgentsSection } from '@/components/sections/AgentsSection';
+import { ComparisonSection } from '@/components/sections/ComparisonSection';
 import { FeaturesSection } from '@/components/sections/FeaturesSection';
 import { Footer } from '@/components/sections/Footer';
 import { HarnessesSection } from '@/components/sections/HarnessesSection';
@@ -23,6 +24,7 @@ export default function HomePage() {
                 <AgentsSection />
                 <HarnessesSection />
                 <FeaturesSection />
+                <ComparisonSection />
             </main>
             <Footer />
         </>

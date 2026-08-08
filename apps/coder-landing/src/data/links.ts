@@ -93,4 +93,5 @@ export const HEADER_NAVIGATION: ReadonlyArray<PageLink> = [
     { title: 'Agents', href: '#agents' },
     { title: 'Harnesses', href: '#harnesses' },
     { title: 'Features', href: '#features' },
+    { title: 'Comparison', href: '#comparison' },
 ];

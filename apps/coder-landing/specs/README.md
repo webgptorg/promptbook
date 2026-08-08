@@ -31,6 +31,7 @@ Canonical data rendered by the page — commands, harness catalog, agent source.
 -   [`content/commands.md`](./content/commands.md)
 -   [`content/harness-catalog.md`](./content/harness-catalog.md)
 -   [`content/developer-agent.md`](./content/developer-agent.md)
+-   [`content/comparison-matrix.md`](./content/comparison-matrix.md)
 
 ## Component specs ([`components/`](./components/))
 
@@ -51,6 +52,7 @@ Top-to-bottom, in page order (see [`page-structure.md`](./page-structure.md)):
 -   [`sections/agent-book.md`](./sections/agent-book.md)
 -   [`sections/harnesses.md`](./sections/harnesses.md)
 -   [`sections/advanced-features.md`](./sections/advanced-features.md)
+-   [`sections/comparison.md`](./sections/comparison.md)
 -   [`sections/footer.md`](./sections/footer.md)
 
 ## Rules for maintaining specs

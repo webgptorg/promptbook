@@ -14,10 +14,11 @@ Sticky page header, always visible at the top (z-index above all content), with 
     | Agents       | `#agents`       |
     | Harnesses    | `#harnesses`    |
     | Features     | `#features`     |
+    | Comparison   | `#comparison`   |
 
 3. **Actions** (desktop only): outlined `GitHub` button → https://github.com/webgptorg/promptbook, and a filled primary `Get started` button (Promptbook Blue background, dark text, green on hover) → `#quickstart`.
 
 ## Mobile (< `md`)
 
 -   Navigation and action buttons are hidden; a bordered **hamburger button** appears on the right.
--   Tapping it toggles a vertical menu below the header bar with the same five anchor links plus `GitHub`; the icon switches between hamburger and ✕, `aria-expanded` reflects state, and choosing a link closes the menu.
+-   Tapping it toggles a vertical menu below the header bar with the same six anchor links plus `GitHub`; the icon switches between hamburger and ✕, `aria-expanded` reflects state, and choosing a link closes the menu.

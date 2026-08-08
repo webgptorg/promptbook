@@ -111,8 +111,12 @@ describe('coder boilerplate templates', () => {
         expect(await readJsonFile(join(projectPath, 'package.json'))).toEqual({
             scripts: defaultCoderPackageJsonScripts,
         });
+        // Note: Every script goes through NPX, because `ptbk` can be installed globally or locally
+        //       and NPX resolves it correctly in either case
         expect(
-            Object.values(defaultCoderPackageJsonScripts).every((scriptCommand) => !scriptCommand.includes('npx ')),
+            Object.values(defaultCoderPackageJsonScripts).every((scriptCommand) =>
+                scriptCommand.startsWith('npx ptbk'),
+            ),
         ).toBe(true);
         expect(normalizeLineEndings(agentCodingFileContent)).not.toContain('npx ptbk');
 
