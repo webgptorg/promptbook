@@ -1,8 +1,9 @@
-[ ]
+[ ] !!!!!!!!
 
 [✨☪️] Fix the Agents server email server.
 
--  @@@@@@@@@@@@@@@@@
+-   It seems that the email server receives something, but the emails are garbled and nothing is processed.
+    -   See the screenshots.
 -   Agents server has the Stalwart Mail Server
     -   Email server is managing both inbound and outbound emails.
 -   But there is some error and the email server is not working.
@@ -10,7 +11,7 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server) with `/admin/email-server`, the Stalwart Mail Server and install script and the `live.ptbk.io` server
-- You can send testing emails or SSH into the server `live.ptbk.io` to analyze the problem
+-   You can send testing emails or SSH into the server `live.ptbk.io` to analyze the problem
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 **The error when i try to send email:**

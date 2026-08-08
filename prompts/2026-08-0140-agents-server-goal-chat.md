@@ -26,18 +26,29 @@
 
 ---
 
-@@@@@@@@@@@
-book update debounce
+[ ]
+
+[✨🔶] Debounce writing an automatic message, after the agent source is updated to the goal chat
+
+-   Now, when the user is typing into the agent source, it can produce hundreds of messages into the goal chat.
+-   Debounce it to do one minute after the last update
+-   There is also another debounce, which debounces the saving of the agent source itself. These two debounce times and debounces should be different, but reuse the code if possible.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server) with goal chat
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![alt text](screenshots/2026-08-0140-agents-server-goal-chat.png)
+
+---
+
+[ ]
+
+[✨🔶] The pop-ups in the goal-chat are obstructing the chat content itself, fix it
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
--   You are working with the [Agents Server](apps/agents-server) with goal cgha
+-   You are working with the [Agents Server](apps/agents-server) with goal chat
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
-
-## ![alt text](screenshots/2026-08-0140-agents-server-goal-chat.png)
-
-@@@@@@@@@@@
-popup
 
 ![alt text](screenshots/2026-08-0140-agents-server-goal-chat.png)
