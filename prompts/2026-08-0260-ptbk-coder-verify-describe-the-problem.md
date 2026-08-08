@@ -1,15 +1,19 @@
-[-]
+[ ]
 
-[✨📖] foo
+[✨📖] When "❌ No, needs work" selected, Interactively ask what needs to be done. 
 
 ```bash
-@@@
+ptbk coder verify
 
-npm install ptbk
 
-ptbk coder init
+...
 
-ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md
+
+    -   When `ptbk coder run` is run, it should commit only the prompt file and the file cha…
+? Is prompts/2026-08-0180-ptbk-coder-commit-only-relevant-files.md#1 actually done? › - Use arrow-keys. Return to submit.
+    ✅ Yes, it's done
+❯   ❌ No, needs work
+    ⏩ Skip, do nothing
 ```
 
 -   @@@
