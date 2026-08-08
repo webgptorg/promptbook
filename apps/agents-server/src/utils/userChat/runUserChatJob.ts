@@ -17,7 +17,7 @@ import {
     DEFAULT_USER_CHAT_JOB_HEARTBEAT_MAX_CONSECUTIVE_FAILURES,
 } from './createUserChatJobHeartbeatController';
 import { finalizeUserChatJob } from './finalizeUserChatJob';
-import { getUserChat } from './getUserChat';
+import { getUserChatForJobRunner } from './getUserChatForJobRunner';
 import { heartbeatUserChatJob } from './heartbeatUserChatJob';
 import { persistUserChatJobTerminalState } from './persistUserChatJobTerminalState';
 import { persistUserChatJobProgressCard } from './persistUserChatJobProgressCard';
@@ -159,11 +159,7 @@ function createRunUserChatJobProgressReporter(
  */
 async function resolveRunUserChatJobStartContext(job: UserChatJobRecord): Promise<RunUserChatJobStartContext | null> {
     const [chat, userRow] = await Promise.all([
-        getUserChat({
-            userId: job.userId,
-            agentPermanentId: job.agentPermanentId,
-            chatId: job.chatId,
-        }),
+        getUserChatForJobRunner(job),
         getUserById(job.userId),
     ]);
 

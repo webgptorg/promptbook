@@ -5,6 +5,7 @@ import { ParseError } from '../../../../../../../../src/errors/ParseError';
 import { spaceTrim } from '../../../../../../../../src/utils/organization/spaceTrim';
 import type { StalwartMtaHookPayload } from '../../../../../message-providers/email/stalwart/StalwartMtaHookPayload';
 import { parseInboundStalwartEmail } from '../../../../../message-providers/email/stalwart/parseInboundStalwartEmail';
+import { $provideServer } from '../../../../../tools/$provideServer';
 import { processInboundAgentEmail } from '../../../../../utils/email/processInboundAgentEmail';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -16,6 +17,12 @@ export async function POST(request: NextRequest) {
         verifyStalwartMtaHookAuthorization(request.headers.get('authorization'));
         const payload = (await request.json()) as StalwartMtaHookPayload;
         const parsedEmail = await parseInboundStalwartEmail(payload);
+
+        // Note: `request.nextUrl` describes the internal listener this process was reached on, so behind
+        //       the VPS reverse proxy its hostname is `localhost` and never the mail domain. The server
+        //       registry is the single source of truth which already decides the database namespace of
+        //       this request, so the mail domain and the worker origin are taken from it as well.
+        const { publicUrl } = await $provideServer();
         const result = await processInboundAgentEmail({
             email: parsedEmail.email,
             envelope: {
@@ -23,8 +30,8 @@ export async function POST(request: NextRequest) {
                 recipients: parsedEmail.envelopeRecipients,
                 queueId: parsedEmail.queueId,
             },
-            domain: request.nextUrl.hostname,
-            origin: request.nextUrl.origin,
+            domain: publicUrl.hostname,
+            origin: publicUrl.origin,
         });
 
         return NextResponse.json({

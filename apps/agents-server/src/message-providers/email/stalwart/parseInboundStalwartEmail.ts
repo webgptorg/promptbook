@@ -15,6 +15,21 @@ export type ParsedInboundStalwartEmail = {
 };
 
 /**
+ * Rebuilds one RFC 5322 header line from a Stalwart header tuple.
+ *
+ * Stalwart reports every header exactly as it stood on the wire, so its value already carries the
+ * space after the colon and its own terminating line break, while folded values keep their inner
+ * line breaks. Emitting such a value verbatim would write `Name:  value` with a doubled space and,
+ * once the tuples are joined with another line break, an empty line after every header - which ends
+ * the header block right after the first one and turns all remaining headers into message body.
+ */
+function createInboundStalwartHeaderLine([name, value]: readonly [string, string]): string {
+    const headerValue = value.replace(/[\r\n]+$/, '');
+    const separator = /^[ \t]/.test(headerValue) ? '' : ' ';
+    return `${name}:${separator}${headerValue}`;
+}
+
+/**
  * Reconstructs an RFC 5322 message from Stalwart's DATA-stage MTA hook payload.
  */
 export async function parseInboundStalwartEmail(
@@ -38,7 +53,7 @@ export async function parseInboundStalwartEmail(
         .map((recipient) => recipient.address.trim())
         .filter(Boolean);
 
-    if (!headers || typeof contents !== 'string' || envelopeRecipients.length === 0) {
+    if (!headers?.length || typeof contents !== 'string' || envelopeRecipients.length === 0) {
         throw new ParseError(
             spaceTrim(`
                 Stalwart sent an incomplete DATA-stage MTA hook payload.
@@ -49,7 +64,7 @@ export async function parseInboundStalwartEmail(
     }
 
     const rawEmail = `${[...(payload.message?.serverHeaders || []), ...headers]
-        .map(([name, value]) => `${name}: ${value}`)
+        .map(createInboundStalwartHeaderLine)
         .join('\r\n')}\r\n\r\n${contents}`;
 
     let email: InboundEmail;

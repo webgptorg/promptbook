@@ -9,7 +9,7 @@ import {
 import { createUserChatJobFailureDetails } from '../userChat/createUserChatJobFailureDetails';
 import { claimNextQueuedUserChatJob } from '../userChat/claimNextQueuedUserChatJob';
 import { finalizeUserChatJob } from '../userChat/finalizeUserChatJob';
-import { getUserChat } from '../userChat/getUserChat';
+import { getUserChatForJobRunner } from '../userChat/getUserChatForJobRunner';
 import { getUserChatJobById } from '../userChat/getUserChatJobById';
 import { persistUserChatJobTerminalState } from '../userChat/persistUserChatJobTerminalState';
 import { provideUserChatJobTable } from '../userChat/provideUserChatJobTable';
@@ -145,11 +145,7 @@ async function enqueueLocalUserChatJobWithinTerminalCapture(
     job: UserChatJobRecord,
 ): Promise<ProcessLocalUserChatJobResult> {
     const [chat, agentSourceSnapshot] = await Promise.all([
-        getUserChat({
-            userId: job.userId,
-            agentPermanentId: job.agentPermanentId,
-            chatId: job.chatId,
-        }),
+        getUserChatForJobRunner(job),
         loadLocalAgentSourceSnapshot(job.agentPermanentId),
     ]);
 

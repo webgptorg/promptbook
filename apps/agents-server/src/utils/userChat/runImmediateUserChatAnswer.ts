@@ -9,7 +9,7 @@ import type { ChatMessage, ChatPrompt } from '@promptbook-local/types';
 import type { string_book } from '../../../../../src/book-2.0/agent-source/string_book';
 import type { ChatPromptResult } from '../../../../../src/execution/PromptResult';
 import { createImmediateUserChatAnswerModelRequirements } from './createImmediateUserChatAnswerModelRequirements';
-import { getUserChat } from './getUserChat';
+import { getUserChatForJobRunner } from './getUserChatForJobRunner';
 import { getUserChatJobById } from './getUserChatJobById';
 import { mutateUserChat } from './mutateUserChat';
 import type { UserChatJobParameters, UserChatJobRecord } from './UserChatJobRecord';
@@ -109,11 +109,7 @@ async function resolveImmediateUserChatAnswerContext(
         return null;
     }
 
-    const chat = await getUserChat({
-        userId: job.userId,
-        agentPermanentId: job.agentPermanentId,
-        chatId: job.chatId,
-    });
+    const chat = await getUserChatForJobRunner(job);
 
     if (!chat) {
         return null;
