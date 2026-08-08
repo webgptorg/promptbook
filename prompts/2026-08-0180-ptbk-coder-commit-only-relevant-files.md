@@ -22,3 +22,13 @@ ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh -
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
+
+---
+
+[ ]
+
+[✨💝] Fix "When Promptbook Coder is committing, commit only relevant files for the current operation."
+
+-   @@@
+-   You have implemented the "When Promptbook Coder is committing, commit only relevant files for the current operation." feature, but it is not working, fix it
+
