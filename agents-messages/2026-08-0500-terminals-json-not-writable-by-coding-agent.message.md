@@ -19,8 +19,8 @@ All seven `🐙🏭 Generate ... prompt boilerplates for Coding Agent` terminals
 The change has to be applied by a human (or by a harness that may write `.vscode/`). In `.vscode/terminals.json`, replace the `--count` value of every `coder generate-boilerplates` command with `5*1`:
 
 ```diff
--npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --count 10 --template prompts/_templates/common.md --commit --auto-push --auto-pull
-+npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --count 5*1 --template prompts/_templates/common.md --commit --auto-push --auto-pull
+-npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --count 10 --template prompts/_templates/common.md --commit --auto-pull --auto-push
++npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --count 5*1 --template prompts/_templates/common.md --commit --auto-pull --auto-push
 ```
 
 and the same for the `agents-server.md`, `utils-app.md`, `ptbk-coder.md`, `ptbk-agent.md`, `ptbk-agents-server.md` and `test.md` terminals.
