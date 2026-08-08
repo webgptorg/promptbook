@@ -274,7 +274,7 @@
             "focus": true
         },
         {
-            "name": "👨‍💻⚫ Run CLI example (💸)",
+            "name": "(old) 👨‍💻⚫ Run CLI example (💸)",
             "commands": [
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
                 "npx ts-node ./src/cli/test/ptbk.ts run ./book/examples/25-simple-knowledge.book.md --provider BRING_YOUR_OWN_KEYS"
@@ -284,7 +284,7 @@
             "focus": true
         },
         {
-            "name": "✨👨‍💻🟣 Run deprecated ptbk start-agents-server",
+            "name": "(old) ✨👨‍💻🟣 Run deprecated ptbk start-agents-server",
             "commands": [
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
                 "npx ts-node ./src/cli/test/ptbk.ts start-agents-server ./agents/examples --port 4440 --provider BRING_YOUR_OWN_KEYS"
@@ -294,7 +294,7 @@
             "focus": true
         },
         {
-            "name": "👨‍💻🟣 Run ptbk start-pipelines-server",
+            "name": "(old) 👨‍💻🟣 Run ptbk start-pipelines-server",
             "commands": [
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
                 "npx ts-node ./src/cli/test/ptbk.ts start-pipelines-server ./src/remote-server/testing-books --url http://localhost:4460 --provider BRING_YOUR_OWN_KEYS"
@@ -304,7 +304,7 @@
             "focus": true
         },
         {
-            "name": "👨‍💻⚪ Run simple-script example (💸)",
+            "name": "(old) 👨‍💻⚪ Run simple-script example (💸)",
             "commands": [
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
                 "npx ts-node ./examples/usage/simple-script/simple-script.ts"
@@ -314,7 +314,7 @@
             "focus": true
         },
         {
-            "name": "👨‍💻🔴 Run logging example (💸)",
+            "name": "(old) 👨‍💻🔴 Run logging example (💸)",
             "commands": [
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
                 "npx ts-node ./examples/usage/logging/logging.ts"
@@ -324,7 +324,7 @@
             "focus": true
         },
         {
-            "name": "👨‍💻🔵 Run remote example (💸)",
+            "name": "(old) 👨‍💻🔵 Run remote example (💸)",
             "commands": [
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
                 "npx ts-node ./examples/usage/remote/server.ts"
@@ -341,7 +341,7 @@
             "focus": true
         },
         {
-            "name": "👨‍💻🔠 Run Book Components web app",
+            "name": "(old) 👨‍💻🔠 Run Book Components web app",
             "cwd": "./apps/book-components/",
             "commands": ["unset OPENAI_API_KEY && unset OPENAI_BASE_URL", "npm run dev"],
             "execute": true,
@@ -455,7 +455,7 @@
             "focus": false
         },
         {
-            "name": "🧪 Test Books",
+            "name": "(old) 🧪 Test Books",
             "command": "npm run test-books",
             "execute": true,
             "onlySingle": true,
@@ -490,7 +490,7 @@
             "focus": true
         },
         {
-            "name": "🧪 (examples) Lint ",
+            "name": "(old) 🧪 (examples) Lint ",
             "command": "npx eslint examples",
             "execute": true,
             "onlySingle": true,
@@ -518,7 +518,7 @@
             "focus": true
         },
         {
-            "name": "(❗) 🗑️ Delete OpenAI assistants",
+            "name": "(old)(❗) 🗑️ Delete OpenAI assistants",
             "commands": [
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
                 "npx ts-node ./scripts/delete-openai-assistants/delete-openai-assistants.ts"
@@ -528,7 +528,7 @@
             "focus": true
         },
         {
-            "name": "(❗) 🗑️ Delete OpenAI resources (files + vector stores)",
+            "name": "(old)(❗) 🗑️ Delete OpenAI resources (files + vector stores)",
             "commands": [
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
                 "npx ts-node ./scripts/delete-openai-resources/delete-openai-resources.ts"
@@ -567,21 +567,21 @@
             "focus": true
         },
         {
-            "name": "🏭📦📚 Generate documentation",
+            "name": "(?old) 🏭📦📚 Generate documentation",
             "commands": ["npx ts-node ./scripts/generate-documentation/generate-documentation.ts"],
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "🏭📚 Generate server types from Open API",
+            "name": "(?old) 🏭📚 Generate server types from Open API",
             "commands": ["npm run generate-openapi-types"],
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "🏭📖 Generate examples .book -> .bookc (💸) [🍠]",
+            "name": "(old) 🏭📖 Generate examples .book -> .bookc (💸) [🍠]",
             "commands": [
                 "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
                 "npx ts-node ./scripts/generate-examples-bookc/generate-examples-bookc.ts --verbose"
@@ -591,7 +591,7 @@
             "focus": true
         },
         {
-            "name": "🏭📖 Generate reports .report.json -> .report.md",
+            "name": "(old) 🏭📖 Generate reports .report.json -> .report.md",
             "commands": ["npx ts-node ./scripts/generate-example-reports/generate-example-reports.ts"],
             "execute": true,
             "onlySingle": true,
@@ -643,7 +643,7 @@
             "focus": true
         },
         {
-            "name": "🧸 Agent with browser playground (💸)",
+            "name": "(old) 🧸 Agent with browser playground (💸)",
             "commands": [
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
                 "npx ts-node ./src/playground/permanent/agent-with-browser-playground.ts"
@@ -656,7 +656,7 @@
             "--note": "<- Note: [🎠] Add here new playgrounds"
         },
         {
-            "name": "🧸 OpenAI playground (💸)",
+            "name": "(old) 🧸 OpenAI playground (💸)",
             "commands": [
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
                 "npx ts-node ./src/llm-providers/openai/playground/playground.ts"
@@ -666,7 +666,7 @@
             "focus": true
         },
         {
-            "name": "🧸 Ollama playground",
+            "name": "(old) 🧸 Ollama playground",
             "commands": [
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
                 "npx ts-node ./src/llm-providers/ollama/playground/playground.ts"
@@ -676,7 +676,7 @@
             "focus": true
         },
         {
-            "name": "🧸 Anthropic Claude playground (💸)",
+            "name": "(old) 🧸 Anthropic Claude playground (💸)",
             "commands": [
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
                 "npx ts-node ./src/llm-providers/anthropic-claude/playground/playground.ts"
@@ -686,7 +686,7 @@
             "focus": true
         },
         {
-            "name": "🧸 Vercel playground (💸)",
+            "name": "(old) 🧸 Vercel playground (💸)",
             "commands": [
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
                 "npx ts-node ./src/llm-providers/vercel/playground/playground.ts"
@@ -696,7 +696,7 @@
             "focus": true
         },
         {
-            "name": "🧸 Azure OpenAI playground (💸)",
+            "name": "(old) 🧸 Azure OpenAI playground (💸)",
             "commands": [
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
                 "npx ts-node ./src/llm-providers/azure-openai/playground/playground.ts"
@@ -706,7 +706,7 @@
             "focus": true
         },
         {
-            "name": "🧸 Agent LLM tools playground (with browser and search) (💸)",
+            "name": "(old) 🧸 Agent LLM tools playground (with browser and search) (💸)",
             "commands": [
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
                 "npx ts-node ./src/llm-providers/agent/playground/playground.ts"
@@ -726,7 +726,7 @@
             "focus": true
         },
         {
-            "name": "🧸 Multiple LLMs playground (💸)",
+            "name": "(old) 🧸 Multiple LLMs playground (💸)",
             "commands": [
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
                 "npx ts-node ./src/llm-providers/multiple/playground/playground.ts"
@@ -736,7 +736,7 @@
             "focus": true
         },
         {
-            "name": "🧸 Remote server playground",
+            "name": "(old) 🧸 Remote server playground",
             "commands": [
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
                 "npx ts-node ./src/llm-providers/remote/playground/playground.ts"
@@ -746,7 +746,7 @@
             "focus": true
         },
         {
-            "name": "🧸📄💡 Scrape knowledge from Markdown (playground) (💸) [🍠]",
+            "name": "(old) 🧸📄💡 Scrape knowledge from Markdown (playground) (💸) [🍠]",
             "commands": [
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
                 "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
@@ -757,7 +757,7 @@
             "focus": true
         },
         {
-            "name": "🧸📄💡 Scrape knowledge by Markitdown (playground) (💸) [🍠]",
+            "name": "(old) 🧸📄💡 Scrape knowledge by Markitdown (playground) (💸) [🍠]",
             "commands": [
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
                 "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
@@ -769,7 +769,7 @@
         },
 
         {
-            "name": "🧸📃💡 Scrape knowledge from .docx (playground) (💸) [🍠]",
+            "name": "(old) 🧸📃💡 Scrape knowledge from .docx (playground) (💸) [🍠]",
             "commands": [
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
                 "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
@@ -781,7 +781,7 @@
         },
 
         {
-            "name": "🧸📃💡 Scrape knowledge from (legacy) .doc (playground) (💸) [🍠]",
+            "name": "(old) 🧸📃💡 Scrape knowledge from (legacy) .doc (playground) (💸) [🍠]",
             "commands": [
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
                 "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
@@ -793,7 +793,7 @@
         },
 
         {
-            "name": "🧸📃💡 Scrape knowledge from .pdf (playground) (💸) [🍠]",
+            "name": "(old) 🧸📃💡 Scrape knowledge from .pdf (playground) (💸) [🍠]",
             "commands": [
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
                 "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
@@ -805,7 +805,7 @@
         },
 
         {
-            "name": "🧸🌍💡 Scrape knowledge from website (playground) (💸)[🍠]",
+            "name": "(old) 🧸🌍💡 Scrape knowledge from website (playground) (💸)[🍠]",
             "commands": [
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
                 "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
@@ -823,7 +823,7 @@
             "focus": true
         },
         {
-            "name": "📖 Make Promptbook collection (💸)(+commit)[🍠]",
+            "name": "(old) 📖 Make Promptbook collection (💸)(+commit)[🍠]",
             "command": "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose --commit",
             "execute": true,
             "onlySingle": true,
@@ -868,21 +868,21 @@
             "focus": false
         },
         {
-            "name": "🍴🔼 Make empty commit / Trigger deployment",
+            "name": "🍴🔼 Make empty commit",
             "commands": ["git commit --allow-empty -m 'Empty commit'", "git push"],
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "(❗) 🍴⏫ Git push all branches (⏳)",
+            "name": "(old)(❗) 🍴⏫ Git push all branches (⏳)",
             "command": "git diff --exit-code && ./scripts/push-all-branches.sh",
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "(❗) 🍴⏬ Git pull all branches (⏳)",
+            "name": "(old)(❗) 🍴⏬ Git pull all branches (⏳)",
             "command": "git diff --exit-code && ./scripts/pull-all-branches.sh",
             "execute": true,
             "onlySingle": true,
