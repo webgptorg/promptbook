@@ -35,6 +35,15 @@ const AGENTS_SERVER_BUILD_WORKER_COUNT = parseAgentsServerBuildWorkerCount(
 );
 
 /**
+ * Whether this build has to stay inside a small memory budget.
+ *
+ * Standalone VPS self-updates request a single build worker because they compile the replacement
+ * server while the current one is still serving traffic, so such a build must not start additional
+ * concurrent work either.
+ */
+const IS_MEMORY_CONSTRAINED_BUILD = AGENTS_SERVER_BUILD_WORKER_COUNT === 1;
+
+/**
  * Whether Sentry source maps can be uploaded during production builds.
  */
 const IS_SENTRY_SOURCE_MAP_UPLOAD_ENABLED = Boolean(process.env.SENTRY_AUTH_TOKEN);
@@ -69,6 +78,19 @@ const nextConfig: NextConfig = {
 
     experimental: {
         externalDir: true,
+
+        // Note: Next.js turns its build workers off as soon as a `webpack` function is configured, and
+        //       that also turns off the parallel output file tracing pass. The `webpack` function below
+        //       only adds aliases, fallbacks and loaders, so the workers are asked for explicitly.
+        //       Compiling each target in a separate short-lived process also releases its memory as
+        //       soon as that target is done.
+        webpackBuildWorker: true,
+
+        // Note: Collecting the output file traces takes about two minutes and used to run alone between
+        //       the compilation and the static generation. It now runs next to the remaining compilation
+        //       and page generation - except for a build which has to save memory rather than time.
+        parallelServerBuildTraces: !IS_MEMORY_CONSTRAINED_BUILD,
+
         ...(AGENTS_SERVER_BUILD_WORKER_COUNT ? { cpus: AGENTS_SERVER_BUILD_WORKER_COUNT } : {}),
     },
 

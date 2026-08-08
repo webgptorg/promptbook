@@ -80,8 +80,19 @@ if (!fs.existsSync(generatedDir)) {
     fs.mkdirSync(generatedDir, { recursive: true });
 }
 
-// Write the file
-fs.writeFileSync(outputFile, content, 'utf-8');
+// Note: Rewriting an unchanged file would only move its modification time forward, which invalidates
+//       the webpack and TypeScript caches of every build and every development server start.
+/**
+ * Constant for current content.
+ */
+const currentContent = fs.existsSync(outputFile) ? fs.readFileSync(outputFile, 'utf-8') : null;
 
-console.log(`Generated ${outputFile} with ${allReservedPaths.length} reserved paths:`);
-console.log(allReservedPaths.join(', '));
+if (currentContent === content) {
+    console.log(`Kept ${outputFile} unchanged with ${allReservedPaths.length} reserved paths.`);
+} else {
+    // Write the file
+    fs.writeFileSync(outputFile, content, 'utf-8');
+
+    console.log(`Generated ${outputFile} with ${allReservedPaths.length} reserved paths:`);
+    console.log(allReservedPaths.join(', '));
+}
