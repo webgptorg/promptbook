@@ -287,7 +287,7 @@
             "name": "(old) ✨👨‍💻🟣 Run deprecated ptbk start-agents-server",
             "commands": [
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts start-agents-server ./agents/examples --port 4440 --provider BRING_YOUR_OWN_KEYS"
+                "npx ts-node ./src/cli/test/ptbk.ts start-agents-server ./agents/default --port 4440 --provider BRING_YOUR_OWN_KEYS"
             ],
             "execute": true,
             "onlySingle": true,
