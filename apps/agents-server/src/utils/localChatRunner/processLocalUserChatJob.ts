@@ -37,6 +37,9 @@ import {
     loadLocalAgentSourceSnapshot,
     resolveLocalAgentRootPath,
 } from './ensureLocalAgentFolder';
+import { parseFinishedLocalTeamConversations } from './parseLocalTeamConversations';
+import { prepareLocalTeamConversationWorkspace } from './prepareLocalTeamConversationWorkspace';
+import { persistLocalTeamConversations } from './persistLocalTeamConversations';
 import { persistLocalUserChatJobProgressFromRuntimeLog } from './persistLocalUserChatJobProgressFromRuntimeLog';
 
 /**
@@ -182,6 +185,12 @@ async function enqueueLocalUserChatJobWithinTerminalCapture(
     });
     const queuedMessagePath = join(agentFolder.directoryPath, metadata.queuedPath);
 
+    await prepareLocalTeamConversationWorkspaceIfPossible({
+        job,
+        agentFolder,
+        metadata,
+        primaryAgentName: agentSourceSnapshot.agentName,
+    });
     await mkdir(join(agentFolder.directoryPath, 'messages', 'queued'), { recursive: true });
     await writeFile(queuedMessagePath, createLocalChatQueuedMessageBook({ messages: threadMessages }), 'utf-8');
 
@@ -204,6 +213,22 @@ async function enqueueLocalUserChatJobWithinTerminalCapture(
 }
 
 /**
+ * Creates the optional TEAM workspace without preventing a normal answer when a teammate cannot be resolved.
+ */
+async function prepareLocalTeamConversationWorkspaceIfPossible(
+    options: Parameters<typeof prepareLocalTeamConversationWorkspace>[0],
+): Promise<void> {
+    try {
+        await prepareLocalTeamConversationWorkspace(options);
+    } catch (error) {
+        console.warn('[local-chat-runner] team_workspace_prepare_failed', {
+            agentPermanentId: options.job.agentPermanentId,
+            error,
+        });
+    }
+}
+
+/**
  * Synchronizes one already queued local job with message-folder output.
  */
 async function synchronizeLocalUserChatJob(
@@ -221,11 +246,21 @@ async function synchronizeLocalUserChatJob(
 
         if (content) {
             await persistLocalUserChatJobRunReportIfPresent(job, agentDirectoryPath, metadata);
+            const teamConversations = await parseFinishedLocalTeamConversations({
+                agentDirectoryPath,
+                metadata,
+                job,
+            });
+            const teamToolCalls = await persistLocalTeamConversations({
+                job,
+                conversations: teamConversations,
+            });
             await persistUserChatJobTerminalState({
                 job,
                 status: 'COMPLETED',
                 provider: LOCAL_USER_CHAT_JOB_PROVIDER,
                 content,
+                toolCalls: teamToolCalls.length > 0 ? teamToolCalls : undefined,
                 generationDurationMs: resolveLocalUserChatJobDurationMs(metadata.queuedAt),
             });
             return { didMutate: true, outcome: 'completed' };

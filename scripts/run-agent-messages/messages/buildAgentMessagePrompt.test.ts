@@ -51,6 +51,36 @@ describe('buildAgentMessagePrompt', () => {
         expect(prompt).toContain('$PTBK_AGENTS_SERVER_USER_CHAT_WORKER_TOKEN');
     });
 
+    it('explains the single-run TEAM transcript contract when a teammate workspace is prepared', () => {
+        const prompt = buildAgentMessagePrompt('messages/queued/question.book', 'You are Support Assistant', {
+            teamWorkspace: {
+                relativeWorkspacePath: 'messages/team/question',
+                manifest: {
+                    version: 1,
+                    primaryAgent: {
+                        permanentId: 'support-agent',
+                        agentName: 'Support Assistant',
+                    },
+                    teammates: [
+                        {
+                            permanentId: 'legal-agent',
+                            agentName: 'Legal Advisor',
+                            url: 'https://agents.example.com/agents/legal-agent',
+                            instructions: 'Check legal risk before publishing.',
+                            sourceFileName: 'legal-agent.book',
+                        },
+                    ],
+                },
+            },
+        });
+
+        expect(prompt).toContain('## Team consultations');
+        expect(prompt).toContain('Legal Advisor');
+        expect(prompt).toContain('exactly once');
+        expect(prompt).toContain('messages/team/question/legal-agent--01.book');
+        expect(prompt).toContain('MESSAGE @Support Assistant');
+    });
+
     it('falls back to plain project paths when the projects URL path is unknown', () => {
         const prompt = buildAgentMessagePrompt('messages/queued/question.book', 'You are Support Assistant');
 
