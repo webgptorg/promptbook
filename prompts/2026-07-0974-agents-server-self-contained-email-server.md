@@ -15,4 +15,9 @@
 
 **The error when i try to send email:**
 
-@@@@@@@@@@
+![alt text](screenshots/2026-07-0974-agents-server-self-contained-email-server.png)
+![alt text](screenshots/2026-07-0974-agents-server-self-contained-email-server-1.png)
+![alt text](screenshots/2026-07-0974-agents-server-self-contained-email-server-2.png)
+![alt text](screenshots/2026-07-0974-agents-server-self-contained-email-server-3.png)
+![alt text](screenshots/2026-07-0974-agents-server-self-contained-email-server-4.png)
+![alt text](screenshots/2026-07-0974-agents-server-self-contained-email-server-5.png)
