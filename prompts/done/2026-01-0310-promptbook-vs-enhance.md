@@ -1,8 +1,4 @@
 
-@@@@@ Write "Promptbook vs ..."
-
-
----
 
 [x] ~$0.00
 

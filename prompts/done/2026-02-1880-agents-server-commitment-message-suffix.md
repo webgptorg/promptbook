@@ -1,8 +1,4 @@
 
-@@@@@@ Prompt suffix in new Agents
-
-
----
 
 [x] ~$0.57 18 minutes by OpenAI Codex `gpt-5.3-codex`
 

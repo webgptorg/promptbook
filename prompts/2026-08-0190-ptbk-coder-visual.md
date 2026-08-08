@@ -37,7 +37,8 @@ ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh -
 │  P  Pause   S  Skip current waiting   X  End with this prompt   CTRL+C  Exit                 │
 ```
 
--   @@@@@@@@@@@@@@@@@@@@
+-   @@@@@@@
+
 -   Use already existing time estimation of the tasks.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
