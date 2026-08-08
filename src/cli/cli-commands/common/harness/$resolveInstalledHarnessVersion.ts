@@ -1,5 +1,5 @@
 import { $execCommand } from '../../../../utils/execCommand/$execCommand';
-import { extractHarnessVersionFromOutput } from './extractHarnessVersionFromOutput';
+import { extractNpmPackageVersionFromOutput } from '../npm/extractNpmPackageVersionFromOutput';
 import type { HarnessDefinition } from './HarnessDefinition';
 
 /**
@@ -23,7 +23,7 @@ export async function $resolveInstalledHarnessVersion(definition: HarnessDefinit
         isVerbose: false,
     }).catch(() => '');
 
-    return extractHarnessVersionFromOutput(output);
+    return extractNpmPackageVersionFromOutput(output);
 }
 
 // Note: [🟡] Code for CLI harness version detection [$resolveInstalledHarnessVersion](src/cli/cli-commands/common/harness/$resolveInstalledHarnessVersion.ts) should never be published outside of `@promptbook/cli`

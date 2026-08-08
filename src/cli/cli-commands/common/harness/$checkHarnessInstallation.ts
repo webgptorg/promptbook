@@ -1,8 +1,8 @@
 import { $resolveInstalledHarnessVersion } from './$resolveInstalledHarnessVersion';
-import { $resolveLatestHarnessVersion } from './$resolveLatestHarnessVersion';
+import { $resolveLatestNpmPackageVersion } from '../npm/$resolveLatestNpmPackageVersion';
 import type { HarnessDefinition } from './HarnessDefinition';
 import type { HarnessInstallationState, HarnessInstallationStatus } from './HarnessInstallationStatus';
-import { isHarnessVersionOutdated } from './isHarnessVersionOutdated';
+import { isNpmPackageVersionOutdated } from '../npm/isNpmPackageVersionOutdated';
 
 /**
  * Detects whether one CLI coding harness is installed globally and whether it is up to date.
@@ -14,7 +14,7 @@ import { isHarnessVersionOutdated } from './isHarnessVersionOutdated';
 export async function $checkHarnessInstallation(definition: HarnessDefinition): Promise<HarnessInstallationStatus> {
     const [installedVersion, latestVersion] = await Promise.all([
         $resolveInstalledHarnessVersion(definition),
-        $resolveLatestHarnessVersion(definition),
+        $resolveLatestNpmPackageVersion(definition.npmPackageName),
     ]);
 
     return {
@@ -40,7 +40,7 @@ function resolveHarnessInstallationState(
         return 'unknown';
     }
 
-    return isHarnessVersionOutdated(installedVersion, latestVersion) ? 'outdated' : 'up-to-date';
+    return isNpmPackageVersionOutdated(installedVersion, latestVersion) ? 'outdated' : 'up-to-date';
 }
 
 // Note: [🟡] Code for CLI harness installation check [$checkHarnessInstallation](src/cli/cli-commands/common/harness/$checkHarnessInstallation.ts) should never be published outside of `@promptbook/cli`
