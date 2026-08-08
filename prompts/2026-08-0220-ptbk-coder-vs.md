@@ -10,3 +10,13 @@
 -   Also look at [the dev scripts in `terminals.json`](.vscode/terminals.json)
 -   You are working with [`ptbk coder` landing website](apps/coder-landing)
 
+
+---
+
+[ ]
+
+[✨👻] Fix "Create a section that compares Promptbook Coder with other solutions."
+
+-   @@@
+-   You have implemented the "Create a section that compares Promptbook Coder with other solutions." feature, but it is not working, fix it
+

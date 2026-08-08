@@ -49,3 +49,4 @@ Nonce
 Test git push/pull
 22:22
 Self-update indicator working?
+Test that verify will commmit only the relevant chamnges
