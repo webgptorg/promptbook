@@ -15,7 +15,7 @@
             "commands": [
                 "set -a && source .env && set +a",
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts coder ping --harness claude-code --model claude-sonnet-4-8 --thinking-level low",
+                "npx ts-node ./src/cli/test/ptbk.ts coder ping --harness claude-code --model claude-sonnet-5 --thinking-level low",
                 "npx ts-node ./src/cli/test/ptbk.ts coder ping --harness openai-codex --model gpt-5.6-luna --thinking-level low"
             ],
             "execute": true,
