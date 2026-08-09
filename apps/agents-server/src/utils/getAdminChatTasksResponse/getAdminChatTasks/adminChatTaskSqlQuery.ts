@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import type { AdminChatTaskSortField, AdminChatTaskSortOrder, AdminChatTaskView } from '../../chatTasksAdmin';
 import type { ParsedAdminChatTaskQuery } from '../parseAdminChatTaskQuery';
 
@@ -12,7 +13,7 @@ export function createAdminChatTaskBaseQuery(options: {
     userTable: string;
     agentTable: string;
 }): string {
-    return `
+    return spaceTrim(`
         SELECT
             job."id" AS "id",
             'CHAT_COMPLETION'::text AS "kind",
@@ -70,7 +71,7 @@ export function createAdminChatTaskBaseQuery(options: {
         FROM ${options.userChatTimeoutTable} timeout
         LEFT JOIN ${options.userTable} "user" ON "user"."id" = timeout."userId"
         LEFT JOIN ${options.agentTable} agent ON agent."permanentId" = timeout."agentPermanentId"
-    `;
+    `);
 }
 
 /**
@@ -85,19 +86,21 @@ export function createAdminChatTaskListQuery(options: { baseTaskQuery: string; q
     const listQueryParts = createAdminChatTaskListQueryParts(options.query);
 
     return {
-        sql: `
-            WITH tasks AS (
-                ${options.baseTaskQuery}
-            )
-            SELECT
-                task.*,
-                COUNT(*) OVER() AS "totalCount"
-            FROM tasks task
-            ${listQueryParts.whereClause}
-            ORDER BY ${createAdminChatTaskOrderBySql(options.query, 'task')}
-            LIMIT $${listQueryParts.limitPlaceholder}
-            OFFSET $${listQueryParts.offsetPlaceholder}
-        `,
+        sql: spaceTrim(
+            (block) => `
+                WITH tasks AS (
+                    ${block(options.baseTaskQuery)}
+                )
+                SELECT
+                    task.*,
+                    COUNT(*) OVER() AS "totalCount"
+                FROM tasks task
+                ${block(listQueryParts.whereClause)}
+                ORDER BY ${block(createAdminChatTaskOrderBySql(options.query, 'task'))}
+                LIMIT $${listQueryParts.limitPlaceholder}
+                OFFSET $${listQueryParts.offsetPlaceholder}
+            `,
+        ),
         values: listQueryParts.values,
     };
 }
@@ -108,23 +111,25 @@ export function createAdminChatTaskListQuery(options: { baseTaskQuery: string; q
  * @private function of `getAdminChatTasks`
  */
 export function createAdminChatTaskCountersQuery(options: { baseTaskQuery: string }): string {
-    return `
-        WITH tasks AS (
-            ${options.baseTaskQuery}
-        )
-        SELECT
-            COUNT(*) FILTER (WHERE "status" = 'RUNNING') AS "runningCount",
-            COUNT(*) FILTER (WHERE "status" = 'QUEUED') AS "queuedCount",
-            COUNT(*) FILTER (
-                WHERE "status" = 'FAILED'
-                  AND "finishedAt" >= CURRENT_TIMESTAMP - INTERVAL '24 hours'
-            ) AS "failedLast24hCount",
-            CASE
-                WHEN MIN("queuedAt") FILTER (WHERE "status" = 'QUEUED') IS NULL THEN NULL
-                ELSE EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - MIN("queuedAt") FILTER (WHERE "status" = 'QUEUED'))) * 1000
-            END AS "oldestQueuedAgeMs"
-        FROM tasks
-    `;
+    return spaceTrim(
+        (block) => `
+            WITH tasks AS (
+                ${block(options.baseTaskQuery)}
+            )
+            SELECT
+                COUNT(*) FILTER (WHERE "status" = 'RUNNING') AS "runningCount",
+                COUNT(*) FILTER (WHERE "status" = 'QUEUED') AS "queuedCount",
+                COUNT(*) FILTER (
+                    WHERE "status" = 'FAILED'
+                      AND "finishedAt" >= CURRENT_TIMESTAMP - INTERVAL '24 hours'
+                ) AS "failedLast24hCount",
+                CASE
+                    WHEN MIN("queuedAt") FILTER (WHERE "status" = 'QUEUED') IS NULL THEN NULL
+                    ELSE EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - MIN("queuedAt") FILTER (WHERE "status" = 'QUEUED'))) * 1000
+                END AS "oldestQueuedAgeMs"
+            FROM tasks
+        `,
+    );
 }
 
 /**
@@ -265,7 +270,7 @@ function createAdminChatTaskDefaultOrderBySql(view: AdminChatTaskView, alias: st
             return `${createAdminChatTaskTimelineExpressionSql(alias)} DESC NULLS LAST, ${alias}."updatedAt" DESC, ${alias}."createdAt" DESC, ${alias}."id" DESC`;
         case 'active':
         default:
-            return `
+            return spaceTrim(`
                 CASE
                     WHEN ${alias}."status" = 'RUNNING' THEN 0
                     WHEN ${alias}."status" = 'QUEUED' THEN 1
@@ -281,7 +286,7 @@ function createAdminChatTaskDefaultOrderBySql(view: AdminChatTaskView, alias: st
                 END DESC NULLS LAST,
                 ${alias}."updatedAt" DESC,
                 ${alias}."id" DESC
-            `;
+            `);
     }
 }
 
@@ -328,13 +333,13 @@ function createAdminChatTaskCustomOrderBySql(
  * @private function of `getAdminChatTasks`
  */
 function createAdminChatTaskTimelineExpressionSql(alias: string): string {
-    return `
+    return spaceTrim(`
         CASE
             WHEN ${alias}."status" = 'RUNNING' THEN COALESCE(${alias}."startedAt", ${alias}."createdAt")
             WHEN ${alias}."status" = 'QUEUED' THEN ${alias}."createdAt"
             ELSE COALESCE(${alias}."finishedAt", ${alias}."updatedAt", ${alias}."createdAt")
         END
-    `;
+    `);
 }
 
 /**

@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { describe, expect, it } from '@jest/globals';
 import { countParagraphs } from './countParagraphs';
 
@@ -11,7 +12,11 @@ describe('countParagraphs', () => {
     });
 
     it('should return the correct count for a string with multiple paragraphs', () => {
-        expect(countParagraphs('This is paragraph 1.\n\nThis is paragraph 2.')).toBe(2);
+        expect(countParagraphs(spaceTrim(`
+            This is paragraph 1.
+
+            This is paragraph 2.
+        `))).toBe(2);
     });
 
     it('should return the correct count for a string with leading/trailing whitespace', () => {

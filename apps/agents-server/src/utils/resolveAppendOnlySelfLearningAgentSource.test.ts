@@ -106,9 +106,9 @@ describe('resolveAppendOnlySelfLearningAgentSource', () => {
         });
         const resolvedAfterLearning = appendBookSection(
             resolvedBeforeLearning,
-            `
+            spaceTrim(`
                 KNOWLEDGE Learned from chat interaction.
-            `,
+            `),
         );
 
         const nextStoredSource = resolveAppendOnlySelfLearningAgentSource({
@@ -149,9 +149,9 @@ describe('resolveAppendOnlySelfLearningAgentSource', () => {
         });
         const resolvedAfterLearning = appendBookSection(
             resolvedBeforeLearning,
-            `
+            spaceTrim(`
                 RULE Learned extra child behavior.
-            `,
+            `),
         );
 
         const nextStoredSource = resolveAppendOnlySelfLearningAgentSource({
@@ -178,9 +178,9 @@ describe('resolveAppendOnlySelfLearningAgentSource', () => {
         const resolvedBeforeLearning = unresolvedChildSource;
         const resolvedAfterLearning = appendBookSection(
             resolvedBeforeLearning,
-            `
+            spaceTrim(`
                 KNOWLEDGE Learned from chat interaction.
-            `,
+            `),
         );
 
         const nextStoredSource = resolveAppendOnlySelfLearningAgentSource({

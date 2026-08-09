@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import { book } from '../../../../src/_packages/core.index';
@@ -145,12 +146,12 @@ describe('customDomainRouting', () => {
                         createAgentRow({
                             agentName: 'Child Agent',
                             permanentId: 'child-agent',
-                            agentSource: `
+                            agentSource: spaceTrim(`
                                 Child Agent
 
                                 FROM ${parentAgentUrl}
                                 RULE Child rule.
-                            `,
+                            `),
                         }),
                     ],
                 },

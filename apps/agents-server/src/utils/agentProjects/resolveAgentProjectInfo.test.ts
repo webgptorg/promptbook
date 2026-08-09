@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { mkdir, mkdtemp, rm, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
@@ -37,7 +38,11 @@ describe('createAgentProjectInfo', () => {
     it('prefers the README heading and falls back to a conventional favicon', async () => {
         const projectPath = join(temporaryDirectory!, 'prague-leaflet-map');
         await mkdir(projectPath, { recursive: true });
-        await writeFile(join(projectPath, 'README.md'), '# Leaflet Map\n\nMap of Prague.', 'utf-8');
+        await writeFile(join(projectPath, 'README.md'), spaceTrim(`
+            # Leaflet Map
+
+            Map of Prague.
+        `), 'utf-8');
         await writeFile(join(projectPath, 'index.html'), '<html><head><title>Leaflet</title></head></html>', 'utf-8');
         await writeFile(join(projectPath, 'favicon.ico'), 'icon', 'utf-8');
 

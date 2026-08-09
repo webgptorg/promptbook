@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import {
     extractCitationLabelFromHtml,
@@ -21,7 +22,7 @@ afterEach(() => {
 describe('resolveCitationSourceLabel', () => {
     it('extracts Open Graph, title, and heading labels from HTML', () => {
         expect(
-            extractCitationLabelFromHtml(`
+            extractCitationLabelFromHtml(spaceTrim(`
                 <!doctype html>
                 <html>
                     <head>
@@ -32,7 +33,7 @@ describe('resolveCitationSourceLabel', () => {
                         <h1>Document Heading</h1>
                     </body>
                 </html>
-            `),
+            `)),
         ).toBe('Metadata Page Title');
     });
 
@@ -41,7 +42,12 @@ describe('resolveCitationSourceLabel', () => {
     });
 
     it('extracts PDF title metadata', () => {
-        const pdfBytes = Buffer.from('%PDF-1.7\n1 0 obj\n<< /Title (Annual Report 2020) >>\nendobj', 'latin1');
+        const pdfBytes = Buffer.from(spaceTrim(`
+            %PDF-1.7
+            1 0 obj
+            << /Title (Annual Report 2020) >>
+            endobj
+        `), 'latin1');
 
         expect(extractCitationLabelFromPdfBytes(pdfBytes)).toBe('Annual Report 2020');
     });

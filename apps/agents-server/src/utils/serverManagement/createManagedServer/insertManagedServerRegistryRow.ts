@@ -22,11 +22,11 @@ export async function insertManagedServerRegistryRow(
     sqlRecorder: SqlRecorder,
 ): Promise<ServerRecord> {
     const insertRegistryResult = await client.query<Record<string, unknown>>(
-        `
+        spaceTrim(`
             INSERT INTO "${SERVER_REGISTRY_TABLE_NAME}" ("name", "environment", "domain", "tablePrefix")
             VALUES ($1, $2, $3, $4)
             RETURNING "id", "name", "environment", "domain", "tablePrefix", "createdAt", "updatedAt"
-        `,
+        `),
         [input.name, input.environment, input.domain, input.tablePrefix],
     );
 

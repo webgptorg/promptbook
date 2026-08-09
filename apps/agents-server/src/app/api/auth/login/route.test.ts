@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { NextRequest } from 'next/server';
 import { authenticateUserWithRateLimit } from '../../../../utils/authenticateUser';
@@ -69,7 +70,11 @@ describe('POST /api/auth/login', () => {
         expect(response.status).toBe(429);
         expect(response.headers.get('Retry-After')).toBe('4');
         await expect(response.json()).resolves.toEqual({
-            error: 'Too many authentication attempts.\n\nTry again in **4** seconds.',
+            error: spaceTrim(`
+                Too many authentication attempts.
+
+                Try again in **4** seconds.
+            `),
         });
         expect(setSessionMock).not.toHaveBeenCalled();
     });

@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { $provideClientSql } from '@/src/database/$provideClientSql';
 import { isAgentsServerSqliteMode } from '@/src/database/agentsServerDatabaseMode';
 import { getUserChatTimeoutTableName } from './getUserChatTimeoutTableName';
@@ -21,7 +22,7 @@ export async function recoverExpiredRunningUserChatTimeouts(): Promise<number> {
 
     try {
         recoveredRows = await sql.raw<Array<{ id: string }>>(
-            `
+            spaceTrim(`
                 UPDATE ${tableIdentifier}
                 SET
                     "status" = CASE
@@ -46,7 +47,7 @@ export async function recoverExpiredRunningUserChatTimeouts(): Promise<number> {
                   AND "leaseExpiresAt" IS NOT NULL
                   AND "leaseExpiresAt" < CURRENT_TIMESTAMP
                 RETURNING "id"
-            `,
+            `),
         );
     } catch (error) {
         rethrowUnlessMissingUserChatTimeoutRelation(error);

@@ -9,7 +9,10 @@ import { AgentChatPageLayout } from './AgentChatPageLayout';
 import { AgentChatSidebar } from './AgentChatSidebar';
 import { CanonicalAgentChatPanel } from './CanonicalAgentChatPanel';
 import { ExternalUserChatAdminActions } from './ExternalUserChatAdminActions';
+import { TeamMemberFrozenChatPrimaryAgentLink } from './TeamMemberFrozenChatPrimaryAgentLink';
 import { type AgentChatHistoryClientProps, useAgentChatHistoryClientState } from './useAgentChatHistoryClientState';
+import { getTeamMemberUserChatContext } from '../../../../utils/userChat/teamMemberUserChatContext';
+import { USER_CHAT_SOURCES } from '../../../../utils/userChat/UserChatSource';
 
 /**
  * One user-authored chat turn submitted from the canonical chat panel.
@@ -343,6 +346,10 @@ function AgentChatHistoryReadyView(props: AgentChatHistoryReadyViewProps) {
         onAutoExecuteMessageConsumed,
     } = props;
     const isActiveExternalUserChat = activeChatSummary?.isExternalUserChat === true;
+    const teamMemberUserChatContext =
+        activeChatSummary?.source === USER_CHAT_SOURCES.TEAM_MEMBER
+            ? getTeamMemberUserChatContext(renderedActiveMessages)
+            : null;
     const externalUserChatAdminActions =
         isCurrentUserSuperAdmin === true && isActiveExternalUserChat ? (
             <ExternalUserChatAdminActions
@@ -351,6 +358,15 @@ function AgentChatHistoryReadyView(props: AgentChatHistoryReadyViewProps) {
                 chatTitle={activeChatSummary?.title || 'Recorded chat'}
                 messages={renderedActiveMessages}
             />
+        ) : undefined;
+    const readOnlyExtraActions =
+        teamMemberUserChatContext || externalUserChatAdminActions ? (
+            <>
+                {teamMemberUserChatContext && (
+                    <TeamMemberFrozenChatPrimaryAgentLink context={teamMemberUserChatContext} />
+                )}
+                {externalUserChatAdminActions}
+            </>
         ) : undefined;
     const chatSurface = (
         <div className="relative flex min-h-0 flex-1 overflow-hidden">
@@ -373,7 +389,7 @@ function AgentChatHistoryReadyView(props: AgentChatHistoryReadyViewProps) {
                     readOnlySource={activeChatSummary?.source}
                     isExternalUserChat={isActiveExternalUserChat}
                     isAgentGoalChat={activeChatSummary?.isAgentGoalChat === true}
-                    readOnlyExtraActions={externalUserChatAdminActions}
+                    readOnlyExtraActions={readOnlyExtraActions}
                     projectReferences={projectReferences}
                     messages={renderedActiveMessages}
                     draftMessage={isActiveChatReadOnly ? '' : activeChatDraftMessage}

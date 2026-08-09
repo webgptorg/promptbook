@@ -81,23 +81,25 @@ export function createBookLanguageDocumentationPdfHtml(
     const branding = getPromptbookExportBranding();
     const documentHtml = groupHtmlHeadingSections(highlightBookCodeBlocksInHtml(renderMarkdown(markdown)));
 
-    return `<!doctype html>
-<html lang="${escapeHtml(language)}">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    ${createPromptbookBrandingMetaTags(branding)}
-    <title>${escapeHtml(branding.productName)} - Book Language Manual</title>
-    <style>${createBookLanguageDocumentationPdfStyles()}</style>
-</head>
-<body>
-    <main>
-        ${createPromptbookBrandingHeader(branding, logoDataUrl)}
-        ${documentHtml}
-        ${createPromptbookBrandingFooter(branding)}
-    </main>
-</body>
-</html>`;
+    return spaceTrim(
+        (block) => `<!doctype html>
+    <html lang="${block(escapeHtml(language))}">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        ${block(createPromptbookBrandingMetaTags(branding))}
+        <title>${block(escapeHtml(branding.productName))} - Book Language Manual</title>
+        <style>${block(createBookLanguageDocumentationPdfStyles())}</style>
+    </head>
+    <body>
+        <main>
+            ${block(createPromptbookBrandingHeader(branding, logoDataUrl))}
+            ${block(documentHtml)}
+            ${block(createPromptbookBrandingFooter(branding))}
+        </main>
+    </body>
+    </html>`,
+    );
 }
 
 /**

@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { createAgentPersistenceRecords } from '../../../../../../src/collection/agent-collection/constructors/agent-collection-in-supabase/createAgentPersistenceRecords';
 import type { Client } from 'pg';
 import { DEFAULT_AGENT_VISIBILITY } from '../../agentVisibility';
@@ -34,7 +35,7 @@ export async function seedServerDefaultAgents(
         );
 
         await client.query(
-            `
+            spaceTrim(`
                 INSERT INTO ${agentTableIdentifier} (
                     "agentName",
                     "createdAt",
@@ -50,7 +51,7 @@ export async function seedServerDefaultAgents(
                     "visibility"
                 )
                 VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, $9::jsonb, $10, $11, $12)
-            `,
+            `),
             [
                 agentInsertRecord.agentName,
                 agentInsertRecord.createdAt,
@@ -78,7 +79,7 @@ export async function seedServerDefaultAgents(
         );
 
         await client.query(
-            `
+            spaceTrim(`
                 INSERT INTO ${agentHistoryTableIdentifier} (
                     "createdAt",
                     "agentName",
@@ -90,7 +91,7 @@ export async function seedServerDefaultAgents(
                     "versionName"
                 )
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-            `,
+            `),
             [
                 agentHistoryInsertRecord.createdAt,
                 agentHistoryInsertRecord.agentName,

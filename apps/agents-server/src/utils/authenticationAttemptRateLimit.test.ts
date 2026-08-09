@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import {
     AUTHENTICATION_ATTEMPT_PURPOSES,
@@ -170,7 +171,11 @@ describe('authenticationAttemptRateLimit', () => {
         expect(response.status).toBe(429);
         expect(response.headers.get('Retry-After')).toBe('7');
         await expect(response.json()).resolves.toEqual({
-            error: 'Too many authentication attempts.\n\nTry again in **7** seconds.',
+            error: spaceTrim(`
+                Too many authentication attempts.
+
+                Try again in **7** seconds.
+            `),
         });
     });
 });

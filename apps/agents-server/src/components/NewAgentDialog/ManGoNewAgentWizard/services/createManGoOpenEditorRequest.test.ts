@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { describe, expect, it } from '@jest/globals';
 
 import { createManGoOpenEditorRequest } from './createManGoOpenEditorRequest';
@@ -43,7 +44,13 @@ describe('createManGoOpenEditorRequest', () => {
             createTestOnboardingState({
                 agentName: 'Support Helper',
                 agentBrief: 'Answers support questions.',
-                bookSource: 'Support Helper\n\nGOAL Answers support questions.\n\nCLOSED',
+                bookSource: spaceTrim(`
+                    Support Helper
+
+                    GOAL Answers support questions.
+
+                    CLOSED
+                `),
                 knowledge: [
                     {
                         kind: 'url',

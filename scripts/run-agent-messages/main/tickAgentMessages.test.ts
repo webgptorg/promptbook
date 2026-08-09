@@ -257,6 +257,87 @@ describe('tickAgentMessages', () => {
         expect(printAgentGitIdentityTipAtProcessExitIfNeeded).toHaveBeenCalled();
     });
 
+    it('keeps harness-created TEAM transcripts while running the coding harness exactly once', async () => {
+        temporaryProjectPath = await createTemporaryProject();
+        process.chdir(temporaryProjectPath);
+        await mkdir(join(temporaryProjectPath, 'messages', 'queued'), { recursive: true });
+        await mkdir(join(temporaryProjectPath, 'messages', 'team', 'question', 'teammates'), { recursive: true });
+        await writeLocalAgentBook(temporaryProjectPath, 'Primary Agent\n\nRULE Answer the user.\n');
+        await writeFile(
+            join(temporaryProjectPath, 'messages', 'queued', 'question.book'),
+            'MESSAGE @User\nPlease prepare a campaign hook.\n',
+            'utf-8',
+        );
+        await writeFile(
+            join(temporaryProjectPath, 'messages', 'team', 'question', 'team.json'),
+            JSON.stringify({
+                version: 1,
+                primaryAgent: {
+                    permanentId: 'primary-123',
+                    agentName: 'Primary Agent',
+                },
+                teammates: [
+                    {
+                        permanentId: 'copywriter-123',
+                        agentName: 'Copywriter',
+                        url: 'https://agents.example.com/agents/copywriter-123',
+                        instructions: 'Ask for concise campaign hooks.',
+                        sourceFileName: 'copywriter-123.book',
+                    },
+                ],
+            }),
+            'utf-8',
+        );
+        await writeFile(
+            join(temporaryProjectPath, 'messages', 'team', 'question', 'teammates', 'copywriter-123.book'),
+            'Copywriter\n\nGOAL Write concise campaign hooks.\n',
+            'utf-8',
+        );
+
+        (runPromptWithTestFeedback as jest.MockedFunction<typeof runPromptWithTestFeedback>).mockImplementation(
+            async ({ prompt }) => {
+                expect(prompt).toContain(
+                    'The underlying coding harness is already executing this turn **exactly once**',
+                );
+                expect(prompt).toContain('Copywriter');
+                await appendFile(
+                    join(temporaryProjectPath!, 'messages', 'queued', 'question.book'),
+                    '\nMESSAGE @Agent\nUse the focused campaign hook from Copywriter.\n',
+                    'utf-8',
+                );
+                await writeFile(
+                    join(temporaryProjectPath!, 'messages', 'team', 'question', 'copywriter-123--01.book'),
+                    'MESSAGE @Primary Agent\nSuggest a hook.\n\nMESSAGE @Copywriter\nTurn attention into qualified demos.\n',
+                    'utf-8',
+                );
+                return { usage: UNCERTAIN_USAGE, attemptCount: 1, steps: [] };
+            },
+        );
+
+        await tickAgentMessages(createAgentRunOptions());
+
+        expect(runPromptWithTestFeedback).toHaveBeenCalledTimes(1);
+        await expect(
+            readFile(
+                join(temporaryProjectPath, 'messages', 'finished', 'team', 'question', 'copywriter-123--01.book'),
+                'utf-8',
+            ),
+        ).resolves.toContain('MESSAGE @Copywriter');
+        await expect(
+            readFile(join(temporaryProjectPath, 'messages', 'team', 'question', 'team.json'), 'utf-8'),
+        ).rejects.toMatchObject({ code: 'ENOENT' });
+        expect(commitChanges).toHaveBeenCalledWith('Answering message question.book', {
+            autoPush: false,
+            relevantPaths: [
+                'messages/finished/question.book',
+                'messages/finished/question.book.report.json',
+                'messages/finished/team/question/team.json',
+                'messages/finished/team/question/copywriter-123--01.book',
+            ],
+            projectPath: temporaryProjectPath,
+        });
+    });
+
     it('answers an explicitly selected queued message when multiple files are waiting', async () => {
         temporaryProjectPath = await createTemporaryProject();
         process.chdir(temporaryProjectPath);

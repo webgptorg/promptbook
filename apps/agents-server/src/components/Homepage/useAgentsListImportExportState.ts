@@ -2,6 +2,7 @@
 
 import JSZip from 'jszip';
 import { useCallback, useRef, useState, type DragEvent } from 'react';
+import { spaceTrim } from 'spacetrim';
 import { downloadBlob, parseFilenameFromContentDisposition } from '../../utils/download/browserFileDownload';
 import { showAlert, showConfirm, showPrompt } from '../AsyncDialogs/asyncDialogs';
 
@@ -323,7 +324,10 @@ async function uploadAgentsImportFiles(options: {
         formData.append(FILES_FORM_FIELD, file);
     }
 
-    formData.append(TARGET_FOLDER_ID_FORM_FIELD, options.targetFolderId === null ? 'null' : String(options.targetFolderId));
+    formData.append(
+        TARGET_FOLDER_ID_FORM_FIELD,
+        options.targetFolderId === null ? 'null' : String(options.targetFolderId),
+    );
     formData.append(CONFLICT_RESOLUTION_FORM_FIELD, options.conflictResolution);
 
     return fetch(AGENTS_IMPORT_ENDPOINT, {
@@ -392,11 +396,16 @@ async function promptAgentsImportConflictResolution(
 ): Promise<Exclude<AgentsImportConflictResolution, 'ASK'> | null> {
     const decision = await showPrompt({
         title: 'Duplicate agents',
-        message: [
-            'Some dropped books have the same agent name as existing agents but different book source.',
-            'Type `duplicate` to import them as additional agents, or `skip` to skip the conflicting books.',
-            createWarningListMessage(conflicts.map((conflict) => `${conflict.agentName}: ${conflict.path}`)),
-        ].join('\n\n'),
+        message: spaceTrim(
+            (block) => `
+                Some dropped books have the same agent name as existing agents but different book source.
+                Type \`duplicate\` to import them as additional agents, or \`skip\` to skip the conflicting books.
+
+                ${block(
+                    createWarningListMessage(conflicts.map((conflict) => `${conflict.agentName}: ${conflict.path}`)),
+                )}
+            `,
+        ),
         inputLabel: 'Decision',
         defaultValue: 'skip',
         placeholder: 'duplicate or skip',
@@ -437,10 +446,13 @@ async function confirmNonBookZipEntries(files: ReadonlyArray<File>): Promise<boo
 
     return showConfirm({
         title: 'Import agents',
-        message: [
-            'The ZIP archive contains files that are not `.book` files. They will be ignored.',
-            createWarningListMessage(nonBookZipEntryPaths),
-        ].join('\n\n'),
+        message: spaceTrim(
+            (block) => `
+                The ZIP archive contains files that are not \`.book\` files. They will be ignored.
+
+                ${block(createWarningListMessage(nonBookZipEntryPaths))}
+            `,
+        ),
         confirmLabel: 'Import agents',
         cancelLabel: 'Cancel',
     }).catch(() => false);

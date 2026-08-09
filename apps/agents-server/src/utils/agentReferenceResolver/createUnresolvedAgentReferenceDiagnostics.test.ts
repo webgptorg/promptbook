@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { describe, expect, it } from '@jest/globals';
 import type { AgentReferenceResolver } from '../../../../../src/book-2.0/agent-source/AgentReferenceResolver';
 import type { string_book } from '../../../../../src/book-2.0/agent-source/string_book';
@@ -40,13 +41,13 @@ function createMockResolver(): AgentReferenceResolver {
 describe('createUnresolvedAgentReferenceDiagnostics', () => {
     it('returns Monaco diagnostics for unresolved FROM/TEAM/IMPORT compact references', async () => {
         const resolver = createMockResolver();
-        const agentSource = `Editor Test Agent
+        const agentSource = spaceTrim(`Editor Test Agent
 FROM {Missing Parent}
 RULE Keep {this} untouched
 TEAM {Known Teammate}
 TEAM {Missing Teammate}
 IMPORT {Missing Import}
-TEAM {https://remote.example/agents/visible}` as string_book;
+TEAM {https://remote.example/agents/visible}`) as string_book;
 
         const result = await createUnresolvedAgentReferenceDiagnostics(agentSource, resolver);
         const diagnostics = result.diagnostics;
@@ -91,9 +92,9 @@ TEAM {https://remote.example/agents/visible}` as string_book;
 
     it('returns empty diagnostics when no compact references are present', async () => {
         const resolver = createMockResolver();
-        const agentSource = `Editor Test Agent
+        const agentSource = spaceTrim(`Editor Test Agent
 RULE Everything is explicit
-KNOWLEDGE https://example.com/doc.txt` as string_book;
+KNOWLEDGE https://example.com/doc.txt`) as string_book;
 
         const result = await createUnresolvedAgentReferenceDiagnostics(agentSource, resolver);
 
@@ -105,9 +106,9 @@ KNOWLEDGE https://example.com/doc.txt` as string_book;
 
     it('does not report pseudo-agent references as unresolved', async () => {
         const resolver = createMockResolver();
-        const agentSource = `Editor Test Agent
+        const agentSource = spaceTrim(`Editor Test Agent
 FROM {Void}
-TEAM {User}` as string_book;
+TEAM {User}`) as string_book;
 
         const result = await createUnresolvedAgentReferenceDiagnostics(agentSource, resolver);
 

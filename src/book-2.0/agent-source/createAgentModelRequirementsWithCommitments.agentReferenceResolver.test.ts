@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { describe, expect, it, jest } from '@jest/globals';
 import type { AgentReferenceResolver } from './AgentReferenceResolver';
 import { createAgentModelRequirementsWithCommitments } from './createAgentModelRequirementsWithCommitments';
@@ -9,11 +10,11 @@ describe('createAgentModelRequirementsWithCommitments agent reference resolver',
             resolveCommitmentContent: jest.fn(async () => 'https://example.com/agents/resolved'),
         };
 
-        const book = validateBook(`
+        const book = validateBook(spaceTrim(`
             Sample Agent
 
             FROM {foo}
-        `);
+        `));
 
         const modelRequirements = await createAgentModelRequirementsWithCommitments(book, undefined, {
             agentReferenceResolver: resolver,
@@ -30,11 +31,11 @@ describe('createAgentModelRequirementsWithCommitments agent reference resolver',
             }),
         };
 
-        const book = validateBook(`
+        const book = validateBook(spaceTrim(`
             Sample Agent
 
             FROM {foo}
-        `);
+        `));
 
         const modelRequirements = await createAgentModelRequirementsWithCommitments(book, undefined, {
             agentReferenceResolver: resolver,

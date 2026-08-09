@@ -63,9 +63,9 @@ export function buildCoderIsolationMergeFailureError(
  * Builds the markdown list of commands which merge one isolated task manually and clean it up.
  */
 function buildManualRecoveryHints(worktree: CoderIsolationWorktree): string {
-    return [
-        `- \`git merge ${worktree.branchName}\` and resolve the conflicts`,
-        `- \`git worktree remove ${worktree.worktreeDisplayPath}\``,
-        `- \`git branch -d ${worktree.branchName}\``,
-    ].join('\n');
+    return spaceTrim(`
+        - \`git merge ${worktree.branchName}\` and resolve the conflicts
+        - \`git worktree remove ${worktree.worktreeDisplayPath}\`
+        - \`git branch -d ${worktree.branchName}\`
+    `);
 }

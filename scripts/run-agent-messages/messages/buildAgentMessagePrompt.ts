@@ -4,11 +4,17 @@ import {
     buildAgentProjectsPromptSection,
     type AgentProjectsPromptSectionOptions,
 } from './buildAgentProjectsPromptSection';
+import { buildAgentTeamPromptSection, type AgentTeamPromptWorkspace } from './buildAgentTeamPromptSection';
 
 /**
  * Options adjusting the generated agent message prompt.
  */
-export type BuildAgentMessagePromptOptions = AgentProjectsPromptSectionOptions;
+export type BuildAgentMessagePromptOptions = AgentProjectsPromptSectionOptions & {
+    /**
+     * Optional local TEAM roster prepared by the Agents Server for this user turn.
+     */
+    teamWorkspace?: AgentTeamPromptWorkspace;
+};
 
 /**
  * Builds the prompt sent to the selected coding runner for one queued user-thread book.
@@ -25,7 +31,7 @@ export function buildAgentMessagePrompt(
 
                 -   Read \`${messageRelativePath}\` and answer the most recent \`MESSAGE @User\`
                 -   Only change the queued message file by appending one new \`MESSAGE @Agent\` block
-                -   Do not modify any other file in the repository, except files inside your own \`${AGENT_PROJECTS_DIRECTORY_PATH}/\` directory
+                ${block(buildAllowedFileChangesPromptLine(options.teamWorkspace))}
 
                 ## Rules for the answering
 
@@ -63,9 +69,25 @@ export function buildAgentMessagePrompt(
 
                 ${block(buildAgentProjectsPromptSection(options))}
 
+                ${block(buildAgentTeamPromptSection(options.teamWorkspace))}
+
                 ## This is how you should behave
 
                 ${block(agentSystemMessage)}
             `,
     );
+}
+
+/**
+ * Explains the exact files that one coding harness may change for a user turn.
+ */
+function buildAllowedFileChangesPromptLine(teamWorkspace: AgentTeamPromptWorkspace | undefined): string {
+    if (!teamWorkspace) {
+        return `-   Do not modify any other file in the repository, except files inside your own \`${AGENT_PROJECTS_DIRECTORY_PATH}/\` directory`;
+    }
+
+    return `-   Do not modify any other file in the repository, except files inside your own \`${AGENT_PROJECTS_DIRECTORY_PATH}/\` directory and new consultation transcripts inside \`${teamWorkspace.relativeWorkspacePath.replace(
+        /\\/gu,
+        '/',
+    )}\``;
 }

@@ -1,4 +1,6 @@
 'use client';
+import { spaceTrim } from 'spacetrim';
+
 // <- Note: mirrors the `'use client'` convention used in BookEditor source files;
 //          harmless in Vite but kept for consistency with the shared component files
 
@@ -17,12 +19,12 @@ declare global {
 /**
  * Default content shown when no file is open.
  */
-const DEFAULT_CONTENT = `PERSONA
+const DEFAULT_CONTENT = spaceTrim(`PERSONA
 You are a helpful assistant.
 
 RULE
 Always be concise and clear in your responses.
-`;
+`);
 
 /**
  * Extracts just the filename from a full path for display in the title bar.

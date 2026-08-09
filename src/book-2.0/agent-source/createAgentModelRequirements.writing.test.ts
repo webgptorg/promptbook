@@ -1,16 +1,17 @@
+import { spaceTrim } from 'spacetrim';
 import { describe, expect, it } from '@jest/globals';
 import { createAgentModelRequirements } from './createAgentModelRequirements';
 import { validateBook } from './string_book';
 
 describe('createAgentModelRequirements writing commitments', () => {
     it('applies WRITING SAMPLE and WRITING RULES in chronological order with explicit precedence guidance', async () => {
-        const agentSource = validateBook(`
+        const agentSource = validateBook(spaceTrim(`
             Copywriter
             WRITING SAMPLE First voice sample.
             WRITING RULES First writing rules.
             WRITING SAMPLE Second voice sample.
             WRITING RULES Second writing rules.
-        `);
+        `));
 
         const requirements = await createAgentModelRequirements(agentSource);
 
@@ -27,11 +28,11 @@ describe('createAgentModelRequirements writing commitments', () => {
     });
 
     it('keeps SAMPLE and EXAMPLE working as legacy writing-sample aliases', async () => {
-        const agentSource = validateBook(`
+        const agentSource = validateBook(spaceTrim(`
             Copywriter
             SAMPLE Legacy sample text.
             EXAMPLE Newer legacy sample text.
-        `);
+        `));
 
         const requirements = await createAgentModelRequirements(agentSource);
 

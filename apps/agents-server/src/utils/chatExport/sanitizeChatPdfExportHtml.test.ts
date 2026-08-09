@@ -1,9 +1,10 @@
+import { spaceTrim } from 'spacetrim';
 import { describe, expect, it } from '@jest/globals';
 import { sanitizeChatPdfExportHtml } from './sanitizeChatPdfExportHtml';
 
 describe('sanitizeChatPdfExportHtml', () => {
     it('removes private resource URLs before Playwright sees the HTML', () => {
-        const sanitizedHtml = sanitizeChatPdfExportHtml(`
+        const sanitizedHtml = sanitizeChatPdfExportHtml(spaceTrim(`
             <!doctype html>
             <html>
                 <body>
@@ -16,7 +17,7 @@ describe('sanitizeChatPdfExportHtml', () => {
                     <div style="background-image: url('http://10.0.0.1/private.png'); color: red;"></div>
                 </body>
             </html>
-        `);
+        `));
 
         expect(sanitizedHtml).toContain('<img alt="blocked">');
         expect(sanitizedHtml).toContain('<iframe></iframe>');

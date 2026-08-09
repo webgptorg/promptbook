@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { existsSync, mkdtempSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
@@ -130,7 +131,10 @@ describe('$provideLocalSqliteSupabase', () => {
                 agentHash: 'agent-hash',
                 permanentId: 'agent-permanent-id',
                 agentProfile: { agentName: 'owner-assignment-regression' },
-                agentSource: 'Owner Assignment Regression\nPERSONA You test SQLite updates.',
+                agentSource: spaceTrim(`
+                    Owner Assignment Regression
+                    PERSONA You test SQLite updates.
+                `),
                 promptbookEngineVersion: 'test',
                 usage: {},
                 createdAt: now,

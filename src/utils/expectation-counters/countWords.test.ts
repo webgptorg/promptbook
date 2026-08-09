@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { describe, expect, it } from '@jest/globals';
 import { countWords } from './countWords';
 
@@ -78,7 +79,10 @@ describe('countWords', () => {
     });
 
     it('should handle newlines and tabs', () => {
-        expect(countWords('Hello\nWorld')).toBe(2);
+        expect(countWords(spaceTrim(`
+            Hello
+            World
+        `))).toBe(2);
         expect(countWords('Count\tthe\twords')).toBe(3);
     });
 

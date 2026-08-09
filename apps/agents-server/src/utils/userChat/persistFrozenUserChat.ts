@@ -3,6 +3,7 @@ import type { UserChatRecord } from './UserChatRecord';
 import { createUserChat } from './createUserChat';
 import { updateUserChatMessages } from './updateUserChatMessages';
 import { isFrozenUserChatSource, type UserChatSource } from './UserChatSource';
+import { isUserChatNotFoundScopeError } from './UserChatScopeError';
 
 /**
  * Input payload for persisting one frozen external chat snapshot.
@@ -24,12 +25,26 @@ export async function persistFrozenUserChat(options: PersistFrozenUserChatOption
     }
 
     if (options.chatId) {
-        return updateUserChatMessages({
-            userId: options.userId,
-            agentPermanentId: options.agentPermanentId,
-            chatId: options.chatId,
-            messages: options.messages,
-        });
+        try {
+            return await updateUserChatMessages({
+                userId: options.userId,
+                agentPermanentId: options.agentPermanentId,
+                chatId: options.chatId,
+                messages: options.messages,
+            });
+        } catch (error) {
+            if (!isUserChatNotFoundScopeError(error)) {
+                throw error;
+            }
+
+            return createUserChat({
+                userId: options.userId,
+                agentPermanentId: options.agentPermanentId,
+                source: options.source,
+                chatId: options.chatId,
+                messages: options.messages,
+            });
+        }
     }
 
     return createUserChat({

@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { appendFile, mkdtemp, readFile, rm, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
@@ -149,8 +150,17 @@ describe('executeAgentChatTurn', () => {
         const projectPath = (runner.runPrompt as jest.Mock).mock.calls[0]![0].projectPath as string;
         const threadBook = await readFile(join(projectPath, 'messages', 'queued', 'thread.book'), 'utf-8');
 
-        expect(threadBook).toContain('MESSAGE @User\nFirst question');
-        expect(threadBook).toContain('MESSAGE @Agent\nFirst answer');
-        expect(threadBook).toContain('MESSAGE @User\nSecond question');
+        expect(threadBook).toContain(spaceTrim(`
+            MESSAGE @User
+            First question
+        `));
+        expect(threadBook).toContain(spaceTrim(`
+            MESSAGE @Agent
+            First answer
+        `));
+        expect(threadBook).toContain(spaceTrim(`
+            MESSAGE @User
+            Second question
+        `));
     });
 });

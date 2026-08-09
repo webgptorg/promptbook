@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { describe, expect, it } from '@jest/globals';
 import { normalizeTo_snake_case } from './normalizeTo_snake_case';
 
@@ -14,7 +15,10 @@ describe('how normalizing to snake_case works', () => {
         expect(normalizeTo_snake_case('hello_/_world')).toEqual('hello_world');
         expect(normalizeTo_snake_case('hello_\\_world')).toEqual('hello_world');
         expect(normalizeTo_snake_case('hello.world')).toEqual('hello_world');
-        expect(normalizeTo_snake_case('hello\nworld')).toEqual('hello_world');
+        expect(normalizeTo_snake_case(spaceTrim(`
+            hello
+            world
+        `))).toEqual('hello_world');
     });
 
     it('can normalize word with numbers', () => {

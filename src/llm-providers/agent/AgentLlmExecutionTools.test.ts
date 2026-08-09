@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { describe, expect, it, jest } from '@jest/globals';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
@@ -16,13 +17,13 @@ import { AgentLlmExecutionTools } from './AgentLlmExecutionTools';
 
 describe('AgentLlmExecutionTools', () => {
     it('appends promptSuffix from RULE commitments to outgoing chat prompts', async () => {
-        const agentSource = `
+        const agentSource = spaceTrim(`
             AI Agent
 
             RULE Rule 1
             RULE Rule 2
             RULE Rule 3
-        ` as string_book;
+        `) as string_book;
 
         const timing: { start: string_date_iso8601; complete: string_date_iso8601 } = {
             start: '2026-02-09T00:00:00.000Z' as string_date_iso8601,
@@ -76,15 +77,21 @@ describe('AgentLlmExecutionTools', () => {
 
         expect(callChatModelMock).toHaveBeenCalledTimes(1);
         const forwardedPrompt = callChatModelMock.mock.calls[0]![0] as Prompt;
-        expect(forwardedPrompt.content).toBe('Please answer plainly.\n\n-   Rule 1\n-   Rule 2\n-   Rule 3');
+        expect(forwardedPrompt.content).toBe(spaceTrim(`
+            Please answer plainly.
+
+            -   Rule 1
+            -   Rule 2
+            -   Rule 3
+        `));
     });
 
     it('merges runtime prompt tools with tools coming from agent commitments', async () => {
-        const agentSource = `
+        const agentSource = spaceTrim(`
             AI Agent
 
             USE POPUP
-        ` as string_book;
+        `) as string_book;
 
         const timing: { start: string_date_iso8601; complete: string_date_iso8601 } = {
             start: '2026-02-09T00:00:00.000Z' as string_date_iso8601,
@@ -154,15 +161,19 @@ describe('AgentLlmExecutionTools', () => {
     });
 
     it('uses precomputed model requirements instead of recompiling unresolved TEAM commitments', async () => {
-        const agentSource = `
+        const agentSource = spaceTrim(`
             Master
 
             TEAM Ask for anything {slave}
             CLOSED
-        ` as string_book;
+        `) as string_book;
 
         const precomputedModelRequirements: AgentModelRequirements = {
-            systemMessage: '## Teammates\n1) slave tool `team_chat_slave`\n   TEAM instructions: Ask for anything',
+            systemMessage: spaceTrim(`
+                ## Teammates
+                1) slave tool \`team_chat_slave\`
+                   TEAM instructions: Ask for anything
+            `),
             promptSuffix: '',
             modelName: 'mock-chat-model' as string_model_name,
             parentAgentUrl: null,
@@ -170,7 +181,10 @@ describe('AgentLlmExecutionTools', () => {
             tools: [
                 {
                     name: 'team_chat_slave',
-                    description: 'Consult teammate slave\nTEAM instructions: Ask for anything',
+                    description: spaceTrim(`
+                        Consult teammate slave
+                        TEAM instructions: Ask for anything
+                    `),
                     parameters: {
                         type: 'object',
                         properties: {

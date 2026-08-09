@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { mkdir, mkdtemp, rm, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
@@ -21,11 +22,19 @@ describe('readAgentProjectReadme', () => {
 
     it('reads README files case-insensitively and preserves the disk filename', async () => {
         temporaryDirectory = await mkdtemp(join(tmpdir(), 'promptbook-project-readme-'));
-        await writeFile(join(temporaryDirectory, 'ReadMe.MD'), '# Project\n\nPublic notes', 'utf-8');
+        await writeFile(join(temporaryDirectory, 'ReadMe.MD'), spaceTrim(`
+            # Project
+
+            Public notes
+        `), 'utf-8');
 
         await expect(readAgentProjectReadme(temporaryDirectory)).resolves.toEqual({
             fileName: 'ReadMe.MD',
-            content: '# Project\n\nPublic notes',
+            content: spaceTrim(`
+                # Project
+
+                Public notes
+            `),
         });
     });
 

@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { describe, expect, it, jest } from '@jest/globals';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
@@ -16,7 +17,11 @@ import { Agent } from './Agent';
 describe('Agent', () => {
     it('preserves precomputed model requirements during initial source subscription', async () => {
         const precomputedModelRequirements: AgentModelRequirements = {
-            systemMessage: '## Teammates\n1) slave tool `team_chat_slave`\n   TEAM instructions: Ask for anything',
+            systemMessage: spaceTrim(`
+                ## Teammates
+                1) slave tool \`team_chat_slave\`
+                   TEAM instructions: Ask for anything
+            `),
             promptSuffix: '',
             modelName: 'mock-chat-model' as string_model_name,
             parentAgentUrl: null,
@@ -24,7 +29,10 @@ describe('Agent', () => {
             tools: [
                 {
                     name: 'team_chat_slave',
-                    description: 'Consult teammate slave\nTEAM instructions: Ask for anything',
+                    description: spaceTrim(`
+                        Consult teammate slave
+                        TEAM instructions: Ask for anything
+                    `),
                     parameters: {
                         type: 'object',
                         properties: {
@@ -72,12 +80,12 @@ describe('Agent', () => {
             executionTools: {
                 llm: llmTools,
             },
-            agentSource: `
+            agentSource: spaceTrim(`
                 Master
 
                 TEAM Ask for anything {slave}
                 CLOSED
-            ` as string_book,
+            `) as string_book,
             precomputedModelRequirements,
             teacherAgent: null,
         });

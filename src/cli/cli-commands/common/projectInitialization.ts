@@ -1,5 +1,6 @@
 import { readFile, stat, writeFile } from 'fs/promises';
 import { join } from 'path';
+import { spaceTrim } from 'spacetrim';
 import { escapeRegExp } from '../../../utils/chat/escapeRegExp';
 
 /**
@@ -118,7 +119,15 @@ export async function ensureProjectGitignoreFile({
         return 'unchanged';
     }
 
-    const nextGitignoreContent = appendBlock(currentGitignoreContent || '', [blockHeader, ...missingRules].join('\n'));
+    const nextGitignoreContent = appendBlock(
+        currentGitignoreContent || '',
+        spaceTrim(
+            (block) => `
+                ${block(blockHeader)}
+                ${block(missingRules.join('\n'))}
+            `,
+        ),
+    );
     await writeFile(gitignorePath, nextGitignoreContent, 'utf-8');
     return currentGitignoreContent === undefined ? 'created' : 'updated';
 }

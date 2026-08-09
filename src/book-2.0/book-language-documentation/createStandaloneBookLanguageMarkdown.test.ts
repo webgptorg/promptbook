@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { describe, expect, it } from '@jest/globals';
 import type { string_book } from '../agent-source/string_book';
 import { createStandaloneBookLanguageMarkdown } from './createStandaloneBookLanguageMarkdown';
@@ -8,11 +9,11 @@ describe('createStandaloneBookLanguageMarkdown', () => {
             agents: [
                 {
                     agentName: 'Server Researcher',
-                    agentSource: `Server Researcher
+                    agentSource: spaceTrim(`Server Researcher
 
 TEAM Ask {Source Reviewer} to validate sources.
 TEAM Ask {Risk Reviewer} to identify uncertainty.
-RULE Cite every factual claim.` as string_book,
+RULE Cite every factual claim.`) as string_book,
                 },
             ],
         });
@@ -64,8 +65,16 @@ RULE Cite every factual claim.` as string_book,
         expect(markdown).toContain('Start and end with <code>```</code>');
         expect(markdown).toContain('`@Foo` and `{Foo foo}` reference another agent; they are not parameter notation.');
         expect(markdown).not.toContain('Commitment keywords currently recognized');
-        expect(markdown).toContain('Customer Support Agent\n\nRULE Always ask for clarification');
-        expect(markdown).toContain('RULE Never provide medical or legal advice\n\nCLOSED');
+        expect(markdown).toContain(spaceTrim(`
+            Customer Support Agent
+
+            RULE Always ask for clarification
+        `));
+        expect(markdown).toContain(spaceTrim(`
+            RULE Never provide medical or legal advice
+
+            CLOSED
+        `));
         expect(markdown).not.toContain('RULES Never provide medical or legal advice');
         expect(markdown).toContain('NOTE Remember to update the knowledge base monthly');
         expect(markdown).not.toContain('COMMENT Remember to update the knowledge base monthly');

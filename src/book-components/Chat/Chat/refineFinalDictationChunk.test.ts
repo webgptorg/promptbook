@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import type { DictationRefinementSettings } from './refineFinalDictationChunk';
 import { refineFinalDictationChunk } from './refineFinalDictationChunk';
 
@@ -15,7 +16,10 @@ describe('refineFinalDictationChunk', () => {
             refineFinalDictationChunk('um hello new line bullet promptbook', DEFAULT_TEST_SETTINGS, {
                 promptbook: 'Promptbook',
             }),
-        ).toBe('Hello\n- Promptbook.');
+        ).toBe(spaceTrim(`
+            Hello
+            - Promptbook.
+        `));
     });
 
     it('keeps optional filler cleanup disabled by default', () => {

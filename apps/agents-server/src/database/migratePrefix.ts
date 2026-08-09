@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import type { Client } from 'pg';
 import { importRuntimeModule } from './importRuntimeModule';
 import type { DatabaseMigrationAppliedBy, DatabaseMigrationLogger } from './runDatabaseMigrations';
@@ -219,42 +220,42 @@ export async function migratePrefix(options: MigratePrefixOptions): Promise<numb
  * @private function of runDatabaseMigrations
  */
 async function ensureMigrationsTableSchema(options: EnsureMigrationsTableSchemaOptions): Promise<void> {
-    await options.client.query(`
+    await options.client.query(spaceTrim(`
         CREATE TABLE IF NOT EXISTS ${options.migrationsTableIdentifier} (
             "filename" TEXT PRIMARY KEY,
             "appliedAt" TIMESTAMP WITH TIME ZONE DEFAULT now(),
             "appliedBy" TEXT NOT NULL DEFAULT '${options.manualAppliedByDefault}'
         );
-    `);
+    `));
 
-    await options.client.query(`
+    await options.client.query(spaceTrim(`
         ALTER TABLE ${options.migrationsTableIdentifier}
         ADD COLUMN IF NOT EXISTS "appliedBy" TEXT;
-    `);
+    `));
 
     await options.client.query(
-        `
+        spaceTrim(`
         UPDATE ${options.migrationsTableIdentifier}
         SET "appliedBy" = $1
         WHERE "appliedBy" IS NULL;
-        `,
+        `),
         [options.manualAppliedByDefault],
     );
 
-    await options.client.query(`
+    await options.client.query(spaceTrim(`
         ALTER TABLE ${options.migrationsTableIdentifier}
         ALTER COLUMN "appliedBy" SET DEFAULT '${options.manualAppliedByDefault}';
-    `);
+    `));
 
-    await options.client.query(`
+    await options.client.query(spaceTrim(`
         ALTER TABLE ${options.migrationsTableIdentifier}
         ALTER COLUMN "appliedBy" SET NOT NULL;
-    `);
+    `));
 
-    await options.client.query(`
+    await options.client.query(spaceTrim(`
         ALTER TABLE ${options.migrationsTableIdentifier}
         ENABLE ROW LEVEL SECURITY;
-    `);
+    `));
 }
 
 /**

@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { describe, expect, it } from '@jest/globals';
 import { parseDataUrlKnowledgeSource } from '../../utils/knowledge/inlineKnowledgeSource';
 import { createAgentModelRequirementsWithCommitments } from './createAgentModelRequirementsWithCommitments';
@@ -5,10 +6,10 @@ import { validateBook } from './string_book';
 
 describe('createAgentModelRequirementsWithCommitments with KNOWLEDGE', () => {
     it('keeps mixed text and embedded URLs as knowledge', async () => {
-        const book = validateBook(`Agent
+        const book = validateBook(spaceTrim(`Agent
 
 KNOWLEDGE Read https://example.com/alpha.pdf and https://example.com/beta.txt before answering.
-`);
+`));
 
         const requirements = await createAgentModelRequirementsWithCommitments(book);
         const sources = requirements.knowledgeSources ?? [];
@@ -26,10 +27,10 @@ KNOWLEDGE Read https://example.com/alpha.pdf and https://example.com/beta.txt be
     });
 
     it('treats URL-only knowledge as URL sources without creating inline data file', async () => {
-        const book = validateBook(`Agent
+        const book = validateBook(spaceTrim(`Agent
 
 KNOWLEDGE https://example.com/alpha.pdf https://example.com/beta.txt
-`);
+`));
 
         const requirements = await createAgentModelRequirementsWithCommitments(book);
         const sources = requirements.knowledgeSources ?? [];

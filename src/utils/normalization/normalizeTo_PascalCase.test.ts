@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { describe, expect, it } from '@jest/globals';
 import { normalizeTo_PascalCase } from './normalizeTo_PascalCase';
 
@@ -14,7 +15,10 @@ describe('how normalizing to camelCase works', () => {
         expect(normalizeTo_PascalCase('hello_/_world')).toEqual('HelloWorld');
         expect(normalizeTo_PascalCase('hello_\\_world')).toEqual('HelloWorld');
         expect(normalizeTo_PascalCase('hello.world')).toEqual('HelloWorld');
-        expect(normalizeTo_PascalCase('hello\nworld')).toEqual('HelloWorld');
+        expect(normalizeTo_PascalCase(spaceTrim(`
+            hello
+            world
+        `))).toEqual('HelloWorld');
     });
 
     it('can normalize word with numbers', () => {

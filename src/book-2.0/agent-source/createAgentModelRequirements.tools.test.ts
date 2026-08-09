@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { describe, expect, it } from '@jest/globals';
 import type { AgentReferenceResolver } from './AgentReferenceResolver';
 import { createAgentModelRequirements } from './createAgentModelRequirements';
@@ -7,10 +8,10 @@ import { validateBook } from './string_book';
 
 describe('commitment tools', () => {
     it('should add teammate tools when TEAM is used', async () => {
-        const agentSource = validateBook(`
+        const agentSource = validateBook(spaceTrim(`
             Test Agent
             TEAM https://agents.ptbk.ik/agents/joe-green
-        `);
+        `));
         const requirements = await createAgentModelRequirements(agentSource);
         const teamTool = requirements.tools?.find((tool) => tool.name.startsWith('team_chat_'));
         expect(teamTool).toBeDefined();
@@ -37,12 +38,12 @@ describe('commitment tools', () => {
         const pseudoUserLabel = createPseudoUserTeammateLabel(teamContent);
         const expectedToolName = createTeamToolName(PSEUDO_AGENT_USER_URL, pseudoUserLabel);
 
-        const agentSource = validateBook(`
+        const agentSource = validateBook(spaceTrim(`
             Interacting with User
             LANGUAGE Czech
             TEAM Ask {User} for everything. Always asks him in English
             CLOSED
-        `);
+        `));
         const requirements = await createAgentModelRequirements(agentSource, undefined, undefined, undefined, {
             agentReferenceResolver: pseudoUserResolver,
         });
@@ -70,10 +71,10 @@ describe('commitment tools', () => {
 
     it('should keep TEAM instructions in the model-facing tool description and system message', async () => {
         const teammateUrl = 'https://agents.ptbk.ik/agents/dns-expert';
-        const agentSource = validateBook(`
+        const agentSource = validateBook(spaceTrim(`
             Test Agent
             TEAM Ask for DNS records ${teammateUrl}
-        `);
+        `));
         const requirements = await createAgentModelRequirements(agentSource, undefined, undefined, undefined, {
             agentReferenceResolver: {
                 resolveCommitmentContent: async (_commitmentType, rawContent) => rawContent,
@@ -103,12 +104,12 @@ describe('commitment tools', () => {
 
     it('should preserve TEAM instructions for compact teammate references resolved by the server', async () => {
         const teammateUrl = 'https://local.example/agents/slave';
-        const agentSource = validateBook(`
+        const agentSource = validateBook(spaceTrim(`
             Master
             FROM {Void}
             TEAM Ask for anything {slave}
             CLOSED
-        `);
+        `));
 
         const requirements = await createAgentModelRequirements(agentSource, undefined, undefined, undefined, {
             agentReferenceResolver: {
@@ -134,10 +135,10 @@ describe('commitment tools', () => {
     });
 
     it('should add project tools when USE PROJECT is used', async () => {
-        const agentSource = validateBook(`
+        const agentSource = validateBook(spaceTrim(`
             Test Agent
             USE PROJECT https://github.com/example/project
-        `);
+        `));
         const requirements = await createAgentModelRequirements(agentSource);
 
         expect(requirements.tools).toEqual(
@@ -163,10 +164,10 @@ describe('commitment tools', () => {
     });
 
     it('should add calendar tools when USE CALENDAR is used', async () => {
-        const agentSource = validateBook(`
+        const agentSource = validateBook(spaceTrim(`
             Test Agent
             USE CALENDAR https://calendar.google.com/calendar/u/0/r
-        `);
+        `));
         const requirements = await createAgentModelRequirements(agentSource);
 
         expect(requirements.tools).toEqual(
@@ -191,30 +192,30 @@ describe('commitment tools', () => {
     });
 
     it('should not interpret the agent name as an MCP server when the title starts with `MCP`', async () => {
-        const agentSource = validateBook(`
+        const agentSource = validateBook(spaceTrim(`
             MCP https://title.example.com/catalog
             MCP https://runtime.example.com/server
-        `);
+        `));
         const requirements = await createAgentModelRequirements(agentSource);
 
         expect(requirements.mcpServers).toEqual(['https://runtime.example.com/server']);
     });
 
     it('should treat `FROM {Void}` as explicit no-parent inheritance', async () => {
-        const agentSource = validateBook(`
+        const agentSource = validateBook(spaceTrim(`
             Test Agent
             FROM {VoId}
-        `);
+        `));
 
         const requirements = await createAgentModelRequirements(agentSource);
         expect(requirements.parentAgentUrl).toBeNull();
     });
 
     it('should treat `FROM {Null}` as explicit no-parent inheritance', async () => {
-        const agentSource = validateBook(`
+        const agentSource = validateBook(spaceTrim(`
             Test Agent
             FROM {NuLl}
-        `);
+        `));
 
         const requirements = await createAgentModelRequirements(agentSource);
         expect(requirements.parentAgentUrl).toBeNull();

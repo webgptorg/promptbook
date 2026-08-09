@@ -1,5 +1,6 @@
 /** @jest-environment jsdom */
 
+import { spaceTrim } from 'spacetrim';
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { ApplicationErrorPage } from './ApplicationErrorPage';
@@ -24,7 +25,10 @@ function createTestError(): ApplicationBoundaryError {
  */
 function createChunkLoadError(): ApplicationBoundaryError {
     return Object.assign(
-        new Error('Loading chunk 311 failed.\n(timeout: https://example.test/_next/static/chunks/311-demo.js)'),
+        new Error(spaceTrim(`
+            Loading chunk 311 failed.
+            (timeout: https://example.test/_next/static/chunks/311-demo.js)
+        `)),
         {
             name: 'ChunkLoadError',
             digest: '0987654321',

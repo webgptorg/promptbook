@@ -32,13 +32,12 @@ import { buildAgentMessageCommitMessage } from '../messages/buildAgentMessageCom
 import { buildAgentMessagePrompt } from '../messages/buildAgentMessagePrompt';
 import { buildAgentMessageScriptPath } from '../messages/buildAgentMessageScriptPath';
 import { createAgentRunnerSystemMessage } from '../messages/createAgentRunnerSystemMessage';
+import { finalizeAgentTeamConversationWorkspace } from '../messages/finalizeAgentTeamConversationWorkspace';
+import { loadAgentTeamConversationWorkspace } from '../messages/loadAgentTeamConversationWorkspace';
 import { resolveAgentProjectRuntimePromptApi } from '../messages/resolveAgentProjectRuntimePromptApi';
 import { resolveAgentProjectsUrlPath } from '../messages/resolveAgentProjectsUrlPath';
 import { moveAgentMessageToFinished, type FinishedAgentMessageFile } from '../messages/moveAgentMessageToFinished';
-import {
-    writeAgentMessageRunReport,
-    type WrittenAgentMessageRunReport,
-} from '../messages/writeAgentMessageRunReport';
+import { writeAgentMessageRunReport, type WrittenAgentMessageRunReport } from '../messages/writeAgentMessageRunReport';
 import {
     createAgentQueueProgressSnapshot,
     loadAgentMessageQueueSnapshot,
@@ -249,12 +248,21 @@ async function runQueuedAgentMessage(options: {
     readonly uiHandle?: CoderRunUiHandle;
     readonly isSharedDashboard?: boolean;
 }): Promise<FinishedAgentMessageFile> {
-    const { projectPath, options: runOptions, runner, actualRunnerModel, queuedMessage, uiHandle, isSharedDashboard } =
-        options;
+    const {
+        projectPath,
+        options: runOptions,
+        runner,
+        actualRunnerModel,
+        queuedMessage,
+        uiHandle,
+        isSharedDashboard,
+    } = options;
     const agentSystemMessage = await loadLocalAgentSystemMessage(projectPath);
+    const teamWorkspace = await loadAgentTeamConversationWorkspace(projectPath, queuedMessage);
     const prompt = buildAgentMessagePrompt(queuedMessage.relativePath, agentSystemMessage, {
         projectRuntimeApi: resolveAgentProjectRuntimePromptApi(projectPath),
         projectsUrlPath: resolveAgentProjectsUrlPath(projectPath),
+        teamWorkspace: teamWorkspace || undefined,
     });
     const scriptPath = buildAgentMessageScriptPath(projectPath, queuedMessage);
     const runtimeLogPath = buildScriptLogPath(scriptPath);
@@ -310,6 +318,13 @@ async function runQueuedAgentMessage(options: {
 
     await normalizeLineEndingsForAgentRound(projectPath, runOptions, roundChangedFilesSnapshot);
 
+    const finishedTeamWorkspace = await finalizeAgentTeamConversationWorkspace({
+        projectPath,
+        queuedMessage,
+        workspace: teamWorkspace,
+    });
+    // Note: The Agents Server observes the primary finished `.book` as its completion signal.
+    //       Retain TEAM transcripts first so that observer can parse every consultation atomically.
     const finishedMessage = await moveAgentMessageToFinished(projectPath, queuedMessage);
     const writtenRunReport = await writeAgentMessageRunReport({
         finishedMessageAbsolutePath: finishedMessage.absolutePath,
@@ -326,6 +341,7 @@ async function runQueuedAgentMessage(options: {
         options: runOptions,
         queuedMessage,
         finishedMessage,
+        finishedTeamWorkspace,
         writtenRunReport,
         isQueuedMessageTracked,
         uiHandle,
@@ -447,6 +463,7 @@ async function commitAnsweredMessageIfEnabled(options: {
     readonly options: AgentRunOptions;
     readonly queuedMessage: AgentMessageFile;
     readonly finishedMessage: FinishedAgentMessageFile;
+    readonly finishedTeamWorkspace: Awaited<ReturnType<typeof finalizeAgentTeamConversationWorkspace>>;
     readonly writtenRunReport: WrittenAgentMessageRunReport | null;
     readonly isQueuedMessageTracked: boolean;
     readonly uiHandle?: CoderRunUiHandle;
@@ -457,6 +474,7 @@ async function commitAnsweredMessageIfEnabled(options: {
         options: runOptions,
         queuedMessage,
         finishedMessage,
+        finishedTeamWorkspace,
         writtenRunReport,
         isQueuedMessageTracked,
         uiHandle,
@@ -481,6 +499,7 @@ async function commitAnsweredMessageIfEnabled(options: {
             finishedMessage,
             writtenRunReport,
             isQueuedMessageTracked,
+            finishedTeamWorkspace,
         ),
         projectPath,
     });
@@ -494,6 +513,7 @@ function buildCommitRelevantPaths(
     finishedMessage: FinishedAgentMessageFile,
     writtenRunReport: WrittenAgentMessageRunReport | null,
     isQueuedMessageTracked: boolean,
+    finishedTeamWorkspace: Awaited<ReturnType<typeof finalizeAgentTeamConversationWorkspace>>,
 ): ReadonlyArray<string> {
     const relevantPaths = isQueuedMessageTracked
         ? [queuedMessage.relativePath, finishedMessage.relativePath]
@@ -501,6 +521,10 @@ function buildCommitRelevantPaths(
 
     if (writtenRunReport) {
         relevantPaths.push(writtenRunReport.relativePath);
+    }
+
+    if (finishedTeamWorkspace) {
+        relevantPaths.push(...finishedTeamWorkspace.relativePaths);
     }
 
     return relevantPaths;

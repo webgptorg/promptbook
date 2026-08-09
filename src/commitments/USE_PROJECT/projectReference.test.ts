@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { describe, expect, it } from '@jest/globals';
 import {
     extractUseProjectRepositoryUrlsFromCommitments,
@@ -22,13 +23,16 @@ describe('USE PROJECT project references', () => {
     });
 
     it('parses repository and instructions from commitment content', () => {
-        const parsed = parseUseProjectCommitmentContent(`
+        const parsed = parseUseProjectCommitmentContent(spaceTrim(`
             https://github.com/example/project Use feature branches
             Never push directly to main
-        `);
+        `));
 
         expect(parsed.repository?.slug).toBe('example/project');
-        expect(parsed.instructions).toBe('Use feature branches\nNever push directly to main');
+        expect(parsed.instructions).toBe(spaceTrim(`
+            Use feature branches
+            Never push directly to main
+        `));
     });
 
     it('extracts unique canonical repository URLs from commitments', () => {

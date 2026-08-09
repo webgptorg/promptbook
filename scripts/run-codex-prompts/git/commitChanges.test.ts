@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { existsSync } from 'fs';
 import { mkdir, mkdtemp, rm, utimes, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
@@ -283,7 +284,10 @@ describe('commitChanges', () => {
             }
 
             if (command === 'git remote') {
-                return 'origin\nupstream';
+                return spaceTrim(`
+                    origin
+                    upstream
+                `);
             }
 
             return okResult();
@@ -366,7 +370,10 @@ describe('commitChanges', () => {
                 if (isFirstGitAddAttempt) {
                     isFirstGitAddAttempt = false;
                     throw new Error(
-                        "fatal: Unable to create '.git/index.lock': File exists.\nAnother git process seems to be running in this repository.",
+                        spaceTrim(`
+                            fatal: Unable to create '.git/index.lock': File exists.
+                            Another git process seems to be running in this repository.
+                        `),
                     );
                 }
 

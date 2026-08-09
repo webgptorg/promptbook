@@ -155,13 +155,29 @@ describe('unwrapResult', () => {
     });
 
     it('should extract content from single markdown code block', () => {
-        expect(unwrapResult('```\nUnwrapped text\n```')).toBe('Unwrapped text');
+        expect(unwrapResult(spaceTrim(`
+            \`\`\`
+            Unwrapped text
+            \`\`\`
+        `))).toBe('Unwrapped text');
     });
 
     it('should extract content from single markdown code block with language', () => {
-        expect(unwrapResult('```foo\nUnwrapped text\n```')).toBe('Unwrapped text');
-        expect(unwrapResult('```javascript\nconst x = 1;\n```')).toBe('const x = 1;');
-        expect(unwrapResult('```python\nprint("hello")\n```')).toBe('print("hello")');
+        expect(unwrapResult(spaceTrim(`
+            \`\`\`foo
+            Unwrapped text
+            \`\`\`
+        `))).toBe('Unwrapped text');
+        expect(unwrapResult(spaceTrim(`
+            \`\`\`javascript
+            const x = 1;
+            \`\`\`
+        `))).toBe('const x = 1;');
+        expect(unwrapResult(spaceTrim(`
+            \`\`\`python
+            print("hello")
+            \`\`\`
+        `))).toBe('print("hello")');
     });
 
     it('should extract content from single markdown code block with whitespace', () => {

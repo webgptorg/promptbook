@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { describe, expect, it } from '@jest/globals';
 import JSZip from 'jszip';
 import { validateBook } from '../../../../../src/book-2.0/agent-source/string_book';
@@ -7,8 +8,11 @@ describe('createTranspiledAgentExportZipBuffer', () => {
     it('packages the stored book, transpiled harness, and manifest into one ZIP archive', async () => {
         const { filename, buffer } = await createTranspiledAgentExportZipBuffer({
             agentName: 'Support Router',
-            agentSource: validateBook('Support Router\nGOAL Route support tickets'),
-            transpiledCode: `#!/usr/bin/env node
+            agentSource: validateBook(spaceTrim(`
+                Support Router
+                GOAL Route support tickets
+            `)),
+            transpiledCode: spaceTrim(`#!/usr/bin/env node
 import * as dotenv from 'dotenv';
 import { spaceTrim } from '@promptbook/utils';
 import OpenAI from 'openai';
@@ -19,7 +23,7 @@ dotenv.config({ path: '.env' });
 console.log(process.env.OPENAI_API_KEY);
 console.log(spaceTrim('hello'));
 console.log(OpenAI);
-console.log(readline);`,
+console.log(readline);`),
             transpilerName: 'openai-sdk',
             transpilerTitle: 'OpenAI SDK',
         });
@@ -50,7 +54,10 @@ console.log(readline);`,
         const readme = await zip.file(`${archiveRoot}/README.md`)!.async('string');
 
         expect(filename).toBe('promptbook-agent-export-Support Router-openai-sdk.zip');
-        expect(await zip.file(`${archiveRoot}/agent.book`)!.async('string')).toBe('Support Router\nGOAL Route support tickets');
+        expect(await zip.file(`${archiveRoot}/agent.book`)!.async('string')).toBe(spaceTrim(`
+            Support Router
+            GOAL Route support tickets
+        `));
         expect(await zip.file(`${archiveRoot}/agent-harness.mjs`)!.async('string')).toContain("import OpenAI from 'openai';");
         expect(packageJson.scripts.start).toBe('node ./agent-harness.mjs');
         expect(Object.keys(packageJson.dependencies)).toEqual(['@promptbook/utils', 'dotenv', 'openai']);
@@ -84,7 +91,10 @@ console.log(readline);`,
     it('falls back to a plaintext harness filename for unknown transpilers', async () => {
         const { filename, buffer } = await createTranspiledAgentExportZipBuffer({
             agentName: '???',
-            agentSource: validateBook('Mystery Agent\nGOAL Unknown exporter'),
+            agentSource: validateBook(spaceTrim(`
+                Mystery Agent
+                GOAL Unknown exporter
+            `)),
             transpiledCode: 'echo hello',
             transpilerName: 'custom/transpiler',
             transpilerTitle: 'Custom',
@@ -129,8 +139,11 @@ console.log(readline);`,
     it('packages Anthropic SDK exports with inferred runtime dependencies and environment variables', async () => {
         const { filename, buffer } = await createTranspiledAgentExportZipBuffer({
             agentName: 'Claude Agent',
-            agentSource: validateBook('Claude Agent\nGOAL Help with Anthropic SDK exports'),
-            transpiledCode: `#!/usr/bin/env node
+            agentSource: validateBook(spaceTrim(`
+                Claude Agent
+                GOAL Help with Anthropic SDK exports
+            `)),
+            transpiledCode: spaceTrim(`#!/usr/bin/env node
 import * as dotenv from 'dotenv';
 import Anthropic from '@anthropic-ai/sdk';
 
@@ -140,7 +153,7 @@ const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_CLAUDE_API_KEY,
 });
 
-console.log(client);`,
+console.log(client);`),
             transpilerName: 'anthropic-claude-sdk',
             transpilerTitle: 'Anthropic Claude SDK',
         });
@@ -178,8 +191,11 @@ console.log(client);`,
     it('packages Anthropic Claude Managed exports as JavaScript harnesses with inferred runtime dependencies', async () => {
         const { filename, buffer } = await createTranspiledAgentExportZipBuffer({
             agentName: 'Claude Managed Agent',
-            agentSource: validateBook('Claude Managed Agent\nGOAL Help with Claude Agent SDK exports'),
-            transpiledCode: `#!/usr/bin/env node
+            agentSource: validateBook(spaceTrim(`
+                Claude Managed Agent
+                GOAL Help with Claude Agent SDK exports
+            `)),
+            transpiledCode: spaceTrim(`#!/usr/bin/env node
 import * as dotenv from 'dotenv';
 import { createSdkMcpServer, query, tool } from '@anthropic-ai/claude-agent-sdk';
 import { spaceTrim } from '@promptbook/utils';
@@ -188,7 +204,7 @@ import { z } from 'zod';
 
 dotenv.config({ path: '.env' });
 
-console.log(createSdkMcpServer, query, tool, spaceTrim, Document, SimpleDirectoryReader, VectorStoreIndex, z);`,
+console.log(createSdkMcpServer, query, tool, spaceTrim, Document, SimpleDirectoryReader, VectorStoreIndex, z);`),
             transpilerName: 'anthropic-claude-managed',
             transpilerTitle: 'Anthropic Claude Managed',
         });
@@ -235,8 +251,11 @@ console.log(createSdkMcpServer, query, tool, spaceTrim, Document, SimpleDirector
     it('packages AgentOS exports as JavaScript harnesses with the expected runtime scaffold', async () => {
         const { filename, buffer } = await createTranspiledAgentExportZipBuffer({
             agentName: 'AgentOS Agent',
-            agentSource: validateBook('AgentOS Agent\nGOAL Run inside AgentOS'),
-            transpiledCode: `#!/usr/bin/env node
+            agentSource: validateBook(spaceTrim(`
+                AgentOS Agent
+                GOAL Run inside AgentOS
+            `)),
+            transpiledCode: spaceTrim(`#!/usr/bin/env node
 import * as dotenv from 'dotenv';
 import { AgentOs, hostTool, toolKit } from '@rivet-dev/agent-os-core';
 import common from '@rivet-dev/agent-os-common';
@@ -268,7 +287,7 @@ console.log(process.env.ANTHROPIC_API_KEY);
 console.log(process.env.ANTHROPIC_CLAUDE_API_KEY);
 console.log(spaceTrim('hello'));
 console.log(Document, SimpleDirectoryReader, VectorStoreIndex);
-console.log(vm);`,
+console.log(vm);`),
             transpilerName: 'agent-os',
             transpilerTitle: 'AgentOS',
         });
@@ -339,8 +358,11 @@ console.log(vm);`,
     it('packages E2B exports as JavaScript harnesses with the expected sandbox scaffold', async () => {
         const { filename, buffer } = await createTranspiledAgentExportZipBuffer({
             agentName: 'E2B Agent',
-            agentSource: validateBook('E2B Agent\nGOAL Run inside E2B'),
-            transpiledCode: `#!/usr/bin/env node
+            agentSource: validateBook(spaceTrim(`
+                E2B Agent
+                GOAL Run inside E2B
+            `)),
+            transpiledCode: spaceTrim(`#!/usr/bin/env node
 import * as dotenv from 'dotenv';
 import { readFile } from 'node:fs/promises';
 import { Sandbox } from 'e2b';
@@ -354,7 +376,7 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 console.log(E2B_API_KEY);
 console.log(OPENAI_API_KEY);
-console.log(readFile, Sandbox, spaceTrim, OpenAI);`,
+console.log(readFile, Sandbox, spaceTrim, OpenAI);`),
             transpilerName: 'e2b',
             transpilerTitle: 'E2B',
         });

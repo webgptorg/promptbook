@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { describe, expect, it, jest } from '@jest/globals';
 import { UserChatScopeError } from './UserChatScopeError';
 
@@ -72,7 +73,11 @@ describe('persistUserChatJobTerminalState', () => {
                 },
                 status: 'FAILED',
                 failureReason: 'Chat missing.',
-                failureDetails: '{\n  "summary": "Chat missing."\n}',
+                failureDetails: spaceTrim(`
+                    {
+                      "summary": "Chat missing."
+                    }
+                `),
             }),
         ).resolves.toBeUndefined();
 
@@ -81,7 +86,11 @@ describe('persistUserChatJobTerminalState', () => {
             status: 'FAILED',
             provider: undefined,
             failureReason: 'Chat missing.',
-            failureDetails: '{\n  "summary": "Chat missing."\n}',
+            failureDetails: spaceTrim(`
+                {
+                  "summary": "Chat missing."
+                }
+            `),
         });
         expect(sendUserChatPushNotificationMock).not.toHaveBeenCalled();
     });
@@ -104,7 +113,10 @@ describe('persistUserChatJobTerminalState', () => {
             ],
             toolCalls: [{ name: 'web_search', arguments: { query: 'hello' } }],
             completedToolCalls: [{ name: 'web_search', arguments: { query: 'hello' }, result: 'done' }],
-            rawPromptContent: 'SYSTEM\nHello there',
+            rawPromptContent: spaceTrim(`
+                SYSTEM
+                Hello there
+            `),
             rawRequest: { provider: 'test' },
         };
 

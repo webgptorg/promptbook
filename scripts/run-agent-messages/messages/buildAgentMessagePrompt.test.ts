@@ -1,10 +1,17 @@
+import { spaceTrim } from 'spacetrim';
 import { buildAgentMessagePrompt } from './buildAgentMessagePrompt';
 
 describe('buildAgentMessagePrompt', () => {
     it('builds the message-answering prompt around the compiled local agent system message', () => {
         const prompt = buildAgentMessagePrompt(
             'messages/queued/question.book',
-            'You are Support Assistant\n\n## Rules\n\n-   Be concise.',
+            spaceTrim(`
+                You are Support Assistant
+
+                ## Rules
+
+                -   Be concise.
+            `),
         );
 
         expect(prompt).toContain('-   Read `messages/queued/question.book` and answer the most recent `MESSAGE @User`');
@@ -49,6 +56,36 @@ describe('buildAgentMessagePrompt', () => {
         expect(prompt).toContain('automatically runs `npm run dev`');
         expect(prompt).toContain('"agentPermanentId":"agent1234"');
         expect(prompt).toContain('$PTBK_AGENTS_SERVER_USER_CHAT_WORKER_TOKEN');
+    });
+
+    it('explains the single-run TEAM transcript contract when a teammate workspace is prepared', () => {
+        const prompt = buildAgentMessagePrompt('messages/queued/question.book', 'You are Support Assistant', {
+            teamWorkspace: {
+                relativeWorkspacePath: 'messages/team/question',
+                manifest: {
+                    version: 1,
+                    primaryAgent: {
+                        permanentId: 'support-agent',
+                        agentName: 'Support Assistant',
+                    },
+                    teammates: [
+                        {
+                            permanentId: 'legal-agent',
+                            agentName: 'Legal Advisor',
+                            url: 'https://agents.example.com/agents/legal-agent',
+                            instructions: 'Check legal risk before publishing.',
+                            sourceFileName: 'legal-agent.book',
+                        },
+                    ],
+                },
+            },
+        });
+
+        expect(prompt).toContain('## Team consultations');
+        expect(prompt).toContain('Legal Advisor');
+        expect(prompt).toContain('exactly once');
+        expect(prompt).toContain('messages/team/question/legal-agent--01.book');
+        expect(prompt).toContain('MESSAGE @Support Assistant');
     });
 
     it('falls back to plain project paths when the projects URL path is unknown', () => {

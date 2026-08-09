@@ -1,4 +1,6 @@
 /** @jest-environment jsdom */
+
+import { spaceTrim } from 'spacetrim';
 import { describe, expect, it, jest } from '@jest/globals';
 import { executeQuickActionButton } from './executeQuickActionButton';
 import * as notifications from '../../components/Notifications/notifications';
@@ -13,9 +15,9 @@ describe('executeQuickActionButton', () => {
         const actionWindow = window as WindowWithQuickActionState;
         delete actionWindow.__quickActionRuns;
 
-        await executeQuickActionButton(`
+        await executeQuickActionButton(spaceTrim(`
             window.__quickActionRuns = (window.__quickActionRuns || 0) + 1;
-        `);
+        `));
 
         expect(actionWindow.__quickActionRuns).toBe(1);
     });
@@ -24,9 +26,9 @@ describe('executeQuickActionButton', () => {
         const notifyErrorSpy = jest.spyOn(notifications, 'notifyError').mockReturnValue('notification-1');
 
         await expect(
-            executeQuickActionButton(`
+            executeQuickActionButton(spaceTrim(`
                 throw new Error('Quick action failed');
-            `),
+            `)),
         ).rejects.toThrow('Quick action failed');
 
         expect(notifyErrorSpy).toHaveBeenCalledWith('Quick action failed');

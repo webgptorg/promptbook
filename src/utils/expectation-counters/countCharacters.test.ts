@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { describe, expect, it } from '@jest/globals';
 import { countCharacters } from './countCharacters';
 
@@ -57,6 +58,9 @@ describe('countCharacters', () => {
 
     it('should return the correct count for a string with whitespace characters', () => {
         expect(countCharacters('Hello world')).toBe(11);
-        expect(countCharacters('Hello\nworld')).toBe(11);
+        expect(countCharacters(spaceTrim(`
+            Hello
+            world
+        `))).toBe(11);
     });
 });

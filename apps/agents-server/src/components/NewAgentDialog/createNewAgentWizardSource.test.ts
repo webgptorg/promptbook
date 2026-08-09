@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { describe, expect, it } from '@jest/globals';
 import { createAgentModelRequirements } from '../../../../../src/book-2.0/agent-source/createAgentModelRequirements';
 import { parseAgentSource } from '../../../../../src/book-2.0/agent-source/parseAgentSource';
@@ -17,11 +18,17 @@ describe('createNewAgentWizardSource', () => {
                 { keyword: 'USE PRIVACY' },
                 {
                     keyword: 'USE CALENDAR',
-                    content: 'https://calendar.google.com/calendar/u/0/r\nKeep the calendar tidy.',
+                    content: spaceTrim(`
+                        https://calendar.google.com/calendar/u/0/r
+                        Keep the calendar tidy.
+                    `),
                 },
                 {
                     keyword: 'USE PROJECT',
-                    content: 'https://github.com/example/recipes\nWork only with the published recipe files.',
+                    content: spaceTrim(`
+                        https://github.com/example/recipes
+                        Work only with the published recipe files.
+                    `),
                 },
             ],
             writingStyleTraits: ['professional', 'concise'],

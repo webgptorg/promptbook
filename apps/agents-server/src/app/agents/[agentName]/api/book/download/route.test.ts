@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { getCurrentUser } from '@/src/utils/getCurrentUser';
 import { NotFoundError } from '@promptbook-local/core';
@@ -56,7 +57,11 @@ describe('GET /agents/[agentName]/api/book/download', () => {
 
     it('returns a downloadable stored book source for an authenticated user', async () => {
         const collection = {
-            getAgentSource: jest.fn(async () => 'Školník\n\nPERSONA Helps with school administration.'),
+            getAgentSource: jest.fn(async () => spaceTrim(`
+                Školník
+
+                PERSONA Helps with school administration.
+            `)),
             findAgentBasicInformation: jest.fn(async () => ({ agentName: 'Školník' })),
         } as unknown as Awaited<ReturnType<typeof $provideAgentCollectionForServer>>;
 
@@ -74,7 +79,11 @@ describe('GET /agents/[agentName]/api/book/download', () => {
         expect(response.headers.get('Content-Disposition')).toContain(`filename*=UTF-8''%C5%A0koln%C3%ADk.book`);
         expect(collection.getAgentSource).toHaveBeenCalledWith('agent-123');
         expect(collection.findAgentBasicInformation).toHaveBeenCalledWith('agent-123');
-        await expect(response.text()).resolves.toBe('Školník\n\nPERSONA Helps with school administration.');
+        await expect(response.text()).resolves.toBe(spaceTrim(`
+            Školník
+
+            PERSONA Helps with school administration.
+        `));
     });
 
     it('decodes the routed agent identifier before reading the collection', async () => {
