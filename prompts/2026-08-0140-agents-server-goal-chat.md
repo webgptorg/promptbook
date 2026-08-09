@@ -26,7 +26,7 @@
 
 ---
 
-[ ]
+[x] by OpenAI Codex `gpt-5.6-terra` thinking `max` (ChatGPT account) - Implementation ~$0.5852 an hour; Testing 18 minutes
 
 [✨🔶] Debounce writing an automatic message, after the agent source is updated to the goal chat
 
@@ -52,3 +52,4 @@
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ![alt text](screenshots/2026-08-0140-agents-server-goal-chat.png)
+

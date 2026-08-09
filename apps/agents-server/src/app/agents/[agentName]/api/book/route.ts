@@ -1,5 +1,6 @@
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
-import { recordAgentGoalChatLifecycleNote } from '@/src/utils/agentGoalChat';
+import { $provideServer } from '@/src/tools/$provideServer';
+import { scheduleAgentGoalChatModifiedNote } from '@/src/utils/agentGoalChat';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import { invalidateCachedActiveOrganizationSnapshots } from '@/src/utils/agentOrganization/loadAgentOrganizationState';
 import {
@@ -186,10 +187,10 @@ export async function PUT(request: Request, { params }: { params: Promise<{ agen
 
         const agentId = await collection.getAgentPermanentId(agentName);
         await collection.updateAgentSource(agentId, agentSource, { versionName });
-        await recordAgentGoalChatLifecycleNote({
-            event: 'MODIFIED',
+        scheduleAgentGoalChatModifiedNote({
             agentPermanentId: agentId,
             agentName,
+            server: await $provideServer(),
         });
         invalidateCachedActiveOrganizationSnapshots();
         // <- TODO: [🐱‍🚀] Properly type as string_book
