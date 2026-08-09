@@ -29,7 +29,7 @@ export type BoilerplateCount = {
      * Number of prompts written into each generated file.
      *
      * Note: More than one prompt per file is an advanced option - each prompt is one separate
-     *       coding task separated by `---` and tagged with its own fresh emoji tag.
+     *       coding task separated by `---`, with all prompts in the file sharing its fresh emoji tag.
      */
     readonly promptsPerFileCount: number;
 };

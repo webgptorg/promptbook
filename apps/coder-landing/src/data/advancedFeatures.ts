@@ -125,7 +125,7 @@ export const ADVANCED_FEATURES: ReadonlyArray<AdvancedFeatureDefinition> = [
     {
         title: 'Many prompts per file',
         description:
-            'ptbk coder generate-boilerplates writes one prompt per file by default (--count 5*1). Power users can batch a whole backlog into fewer files with the advanced --count N*M notation: N files with M prompts each, every prompt separated by a --- line, tagged with its own fresh emoji and run as its own task.',
+            'ptbk coder generate-boilerplates writes one prompt per file by default (--count 5*1). Power users can batch a whole backlog into fewer files with the advanced --count N*M notation: N files with M prompts each. Their sections are separated by a --- line, share one fresh emoji tag per file, and still run as separate tasks.',
         sampleCommand: GENERATE_BOILERPLATES_COMMAND,
     },
 ];

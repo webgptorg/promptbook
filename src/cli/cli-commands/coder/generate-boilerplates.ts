@@ -39,7 +39,7 @@ export function $initializeCoderGenerateBoilerplatesCommand(program: Program): $
     command.description(
         spaceTrim(
             (block) => `
-                Generate prompt boilerplate files with unique emoji tags
+                Generate prompt boilerplate files with one unique emoji tag per file
 
                 ${block(CODER_GIT_SYNC_DESCRIPTION)}
             `,
@@ -95,7 +95,7 @@ export function $initializeCoderGenerateBoilerplatesCommand(program: Program): $
 }
 
 /**
- * Generates boilerplate prompt files with unique emoji tags.
+ * Generates boilerplate prompt files with one unique emoji tag per file.
  *
  * @private internal function of `generatePromptBoilerplate` command
  */
@@ -134,10 +134,10 @@ export async function generatePromptBoilerplate({
         colors.blue(`Highest existing number for ${promptNumbering.datePrefix} found: ${highestNumberFormatted}`),
     );
 
-    // Note: Every single generated prompt is one separate coding task, so each of them reserves its own fresh emoji tag
     const promptsCount = filesCount * promptsPerFileCount;
     const { availableCount, selectedEmojis } = await getFreshPromptEmojiTags({
-        count: promptsCount,
+        // Note: Each generated file reserves one fresh emoji tag shared by all of its prompt sections
+        count: filesCount,
         rootDir: projectPath,
     });
 
@@ -154,9 +154,7 @@ export async function generatePromptBoilerplate({
     for (let i = 0; i < filesCount; i++) {
         const number = promptNumbering.startNumber + i * promptNumbering.step;
         const title = titles[i % titles.length]!;
-        const emojiTags = selectedEmojis
-            .slice(i * promptsPerFileCount, (i + 1) * promptsPerFileCount)
-            .map((emoji) => formatPromptEmojiTag(emoji));
+        const emojiTag = formatPromptEmojiTag(selectedEmojis[i]!);
         const filename = buildPromptFilename(
             promptNumbering.datePrefix,
             number,
@@ -165,7 +163,8 @@ export async function generatePromptBoilerplate({
         const filepath = join(PROMPTS_DIRECTORY_PATH, filename);
         const absoluteFilepath = join(projectPath, filepath);
         const content = buildBoilerplatePromptFileContent({
-            emojiTags,
+            emojiTag,
+            promptsPerFileCount,
             title,
             body: promptTemplate.content,
         });
@@ -175,7 +174,7 @@ export async function generatePromptBoilerplate({
             absoluteFilepath,
             filename,
             content,
-            emojiTags,
+            emojiTag,
             number,
         });
     }
@@ -185,7 +184,7 @@ export async function generatePromptBoilerplate({
 
     for (const file of filesToCreate) {
         writeFileSync(file.absoluteFilepath, file.content, 'utf-8');
-        console.info(colors.green(`✓ Created: ${file.filename} with ${file.emojiTags.join(' ')}`));
+        console.info(colors.green(`✓ Created: ${file.filename} with ${file.emojiTag}`));
     }
 
     console.info(
@@ -196,31 +195,32 @@ export async function generatePromptBoilerplate({
 }
 
 /**
- * Builds the markdown content of one generated prompt file with one prompt section per emoji tag.
+ * Builds the markdown content of one generated prompt file with one prompt section per prompt.
  *
- * Multiple prompts in one file are separated by the `---` separator, exactly like the prompt runner expects them.
+ * Multiple prompts in one file share the file emoji tag and are separated by the `---` separator,
+ * exactly like the prompt runner expects them.
  *
  * @private internal utility of `generatePromptBoilerplate` command
  */
 function buildBoilerplatePromptFileContent({
-    emojiTags,
+    emojiTag,
+    promptsPerFileCount,
     title,
     body,
 }: {
-    readonly emojiTags: ReadonlyArray<string>;
+    readonly emojiTag: string;
+    readonly promptsPerFileCount: number;
     readonly title: string;
     readonly body: string;
 }): string {
-    return emojiTags
-        .map((emojiTag) =>
-            buildCoderPromptSection({
-                statusLine: '[-]',
-                emojiTag,
-                title,
-                body,
-            }),
-        )
-        .join('\n\n---\n\n');
+    return Array.from({ length: promptsPerFileCount }, () =>
+        buildCoderPromptSection({
+            statusLine: '[-]',
+            emojiTag,
+            title,
+            body,
+        }),
+    ).join('\n\n---\n\n');
 }
 
 /**
