@@ -6,6 +6,72 @@
 const MAX_RUNTIME_ACTIVITY_LENGTH = 160;
 
 /**
+ * One safe, concrete category of a command emitted by the Codex runtime.
+ *
+ * @private internal type of agent-message runtime activity
+ */
+type CodexCommandActivity = {
+    readonly pattern: RegExp;
+    readonly running: string;
+    readonly completed: string;
+};
+
+/**
+ * Ordered command categories that can be described truthfully without showing raw commands,
+ * arguments, file names, or other private runtime details.
+ *
+ * The local runner can execute on either Unix or Windows. Keeping the variants together here
+ * ensures that equivalent shell commands yield the same concise status in the chat.
+ *
+ * @private internal constant of agent-message runtime activity
+ */
+const CODEX_COMMAND_ACTIVITIES: ReadonlyArray<CodexCommandActivity> = [
+    {
+        pattern:
+            /(^|\s)(npm\s+(?:run\s+)?test|pnpm\s+(?:run\s+)?test|yarn\s+test|jest|vitest|pytest)\b/u,
+        running: 'Running tests.',
+        completed: 'Finished running tests.',
+    },
+    {
+        pattern: /(^|\s)(npm\s+run\s+build|pnpm\s+(?:run\s+)?build|yarn\s+build|next\s+build)\b/u,
+        running: 'Building the project.',
+        completed: 'Finished building the project.',
+    },
+    {
+        pattern: /(^|\s)(npm|pnpm|yarn)\s+(?:install|add)\b/u,
+        running: 'Installing dependencies.',
+        completed: 'Finished installing dependencies.',
+    },
+    {
+        pattern: /(^|\s)(npm\s+(?:run\s+)?lint|pnpm\s+(?:run\s+)?lint|yarn\s+lint|eslint|prettier)\b/u,
+        running: 'Checking the implementation.',
+        completed: 'Finished checking the implementation.',
+    },
+    {
+        pattern: /(^|\s)git\s+(?:status|diff|log|show)\b/u,
+        running: 'Reviewing changes.',
+        completed: 'Finished reviewing changes.',
+    },
+    {
+        pattern:
+            /(^|\s)(apply_patch|set-content|add-content|out-file|new-item|copy-item|move-item|set-item)\b/u,
+        running: 'Updating relevant files.',
+        completed: 'Finished updating relevant files.',
+    },
+    {
+        pattern:
+            /(^|\s)(ls|find|rg|grep|sed|cat|head|tail|get-content|get-childitem|get-item|select-string|findstr|type)\b/u,
+        running: 'Inspecting relevant files.',
+        completed: 'Finished inspecting relevant files.',
+    },
+    {
+        pattern: /(^|\s)(curl|wget|invoke-webrequest)\b/u,
+        running: 'Looking up information.',
+        completed: 'Finished looking up information.',
+    },
+];
+
+/**
  * Minimal shape of one coding-harness `stream-json` event relevant to progress extraction.
  *
  * Only the natural-language assistant narration is read; every other field is ignored so raw
@@ -35,9 +101,9 @@ type RuntimeLogEvent = {
  * Claude Code `--output-format stream-json`) into a live runtime log file next to the queued
  * message. This helper extracts the most recent natural-language assistant narration so the
  * durable chat can show what the agent is doing right now instead of a generic thinking
- * placeholder. Only plain assistant text is surfaced; raw tool payloads, JSON envelopes and
- * other technical details are intentionally ignored, and harnesses that do not stream
- * structured text simply resolve to `null` so the caller keeps its existing behavior.
+ * placeholder. Only concrete, safe activity is surfaced; raw tool payloads, JSON envelopes,
+ * and private reasoning are intentionally ignored. When no concrete activity is known, this
+ * resolves to `null` so the caller keeps the browser's rotating generic thinking state.
  *
  * @param logText - Raw runtime log content.
  * @returns Latest human-readable activity snippet, or `null` when none can be resolved.
@@ -118,6 +184,9 @@ function resolveRuntimeLogEventActivity(event: RuntimeLogEvent): string | null {
  *
  * Codex reasoning and raw command text deliberately remain private. The event type tells us
  * enough to report a useful action without exposing the internal trace or a command payload.
+ * Reasoning events are intentionally not a progress update: while they are the only signal,
+ * the chat retains its configured generic thinking rotation. Once a concrete action arrives,
+ * it becomes the latest user-facing status instead.
  *
  * @private internal helper of `resolveAgentMessageRuntimeActivity`
  */
@@ -130,7 +199,7 @@ function resolveCodexRuntimeLogEventActivity(event: RuntimeLogEvent): string | n
 
     switch (event.item.type) {
         case 'reasoning':
-            return isCompleted ? 'Considered the request.' : 'Considering the request.';
+            return null;
         case 'command_execution':
             return resolveCodexCommandActivity(event.item.command, isCompleted, event.item.exit_code);
         case 'file_change':
@@ -164,12 +233,16 @@ function resolveCodexCommandActivity(
     command: string | undefined,
     isCompleted: boolean,
     exitCode: number | null | undefined,
-): string {
+): string | null {
     if (isCompleted && exitCode !== undefined && exitCode !== null && exitCode !== 0) {
         return 'A command needs attention.';
     }
 
     const activity = resolveCodexCommandActivityLabel(command);
+    if (!activity) {
+        return null;
+    }
+
     return isCompleted ? activity.completed : activity.running;
 }
 
@@ -178,32 +251,10 @@ function resolveCodexCommandActivity(
  *
  * @private internal helper of `resolveAgentMessageRuntimeActivity`
  */
-function resolveCodexCommandActivityLabel(command: string | undefined): { running: string; completed: string } {
+function resolveCodexCommandActivityLabel(command: string | undefined): CodexCommandActivity | null {
     const normalizedCommand = command?.toLowerCase() || '';
 
-    if (
-        /(^|\s)(npm\s+(?:run\s+)?test|pnpm\s+(?:run\s+)?test|yarn\s+test|jest|vitest|pytest)\b/u.test(normalizedCommand)
-    ) {
-        return { running: 'Running tests.', completed: 'Finished running tests.' };
-    }
-
-    if (/(^|\s)(npm\s+run\s+build|pnpm\s+(?:run\s+)?build|yarn\s+build|next\s+build)\b/u.test(normalizedCommand)) {
-        return { running: 'Building the project.', completed: 'Finished building the project.' };
-    }
-
-    if (/(^|\s)(npm|pnpm|yarn)\s+(?:install|add)\b/u.test(normalizedCommand)) {
-        return { running: 'Installing dependencies.', completed: 'Finished installing dependencies.' };
-    }
-
-    if (/(^|\s)git\s+(?:status|diff|log|show)\b/u.test(normalizedCommand)) {
-        return { running: 'Reviewing changes.', completed: 'Finished reviewing changes.' };
-    }
-
-    if (/(^|\s)(ls|find|rg|grep|sed|cat|head|tail)\b/u.test(normalizedCommand)) {
-        return { running: 'Inspecting relevant files.', completed: 'Finished inspecting relevant files.' };
-    }
-
-    return { running: 'Running a task.', completed: 'Finished a task.' };
+    return CODEX_COMMAND_ACTIVITIES.find((activity) => activity.pattern.test(normalizedCommand)) ?? null;
 }
 
 /**

@@ -4,6 +4,9 @@ aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbb
 xxx
 spacetrim
 pytest
+childitem
+findstr
+webrequest
 unprepare
 promisable
 destroyable
