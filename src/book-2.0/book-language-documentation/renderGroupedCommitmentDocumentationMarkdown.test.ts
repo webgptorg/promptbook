@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { describe, expect, it } from '@jest/globals';
 import { getGroupedCommitmentDefinitions } from '../../commitments/_common/getGroupedCommitmentDefinitions';
 import { renderGroupedCommitmentDocumentationMarkdown } from './renderGroupedCommitmentDocumentationMarkdown';
@@ -51,9 +52,15 @@ describe('renderGroupedCommitmentDocumentationMarkdown', () => {
 
         const markdown = renderGroupedCommitmentDocumentationMarkdown(internalMessageGroup!);
 
-        expect(markdown).toContain('```book\nINTERNAL MESSAGE {');
+        expect(markdown).toContain(spaceTrim(`
+            \`\`\`book
+            INTERNAL MESSAGE {
+        `));
         expect(markdown).toContain('\nCLOSED\n```');
-        expect(markdown).not.toContain('```book\nUSER MESSAGE');
+        expect(markdown).not.toContain(spaceTrim(`
+            \`\`\`book
+            USER MESSAGE
+        `));
     });
 
     it('focuses compound commitment keywords before their shorter prefixes', () => {
@@ -63,7 +70,21 @@ describe('renderGroupedCommitmentDocumentationMarkdown', () => {
 
         const markdown = renderGroupedCommitmentDocumentationMarkdown(metaVoiceGroup!);
 
-        expect(markdown).toContain('```book\nFriendly Assistant\n\nMETA VOICE 21m00Tcm4TlvDq8ikWAM\n\nCLOSED\n```');
-        expect(markdown).not.toContain('```book\nFriendly Assistant\n\nMETA VOICE 21m00Tcm4TlvDq8ikWAM\nPERSONA');
+        expect(markdown).toContain(spaceTrim(`
+            \`\`\`book
+            Friendly Assistant
+
+            META VOICE 21m00Tcm4TlvDq8ikWAM
+
+            CLOSED
+            \`\`\`
+        `));
+        expect(markdown).not.toContain(spaceTrim(`
+            \`\`\`book
+            Friendly Assistant
+
+            META VOICE 21m00Tcm4TlvDq8ikWAM
+            PERSONA
+        `));
     });
 });

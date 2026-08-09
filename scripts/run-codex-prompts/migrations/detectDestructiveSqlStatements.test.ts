@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import {
     DESTRUCTIVE_SQL_RULE,
     detectDestructiveSqlStatements,
@@ -59,13 +60,13 @@ describe('detectDestructiveSqlStatements', () => {
     });
 
     it('ignores destructive text inside comments', () => {
-        const matches = detectDestructiveSqlStatements(`
+        const matches = detectDestructiveSqlStatements(spaceTrim(`
             -- DROP TABLE "prefix_Test";
             /*
              TRUNCATE TABLE "prefix_Test";
             */
             SELECT 1;
-        `);
+        `));
 
         expect(matches).toEqual([]);
     });

@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { describe, expect, it } from '@jest/globals';
 import { parseKeywordsFromString } from './parseKeywordsFromString';
 
@@ -14,12 +15,12 @@ describe('how parsing of keywords from string works', () => {
     it('can parse keywords with complex whitespacing', () => {
         expect(parseKeywordsFromString('    foo    bar')).toEqual(new Set(['foo', 'bar']));
         expect(
-            parseKeywordsFromString(`    foo
+            parseKeywordsFromString(spaceTrim(`    foo
        bar
 
 
 
-      `),
+      `)),
         ).toEqual(new Set(['foo', 'bar']));
     });
 

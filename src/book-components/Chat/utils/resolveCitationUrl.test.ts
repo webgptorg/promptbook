@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { describe, expect, it } from '@jest/globals';
 import type { string_book } from '../../../book-2.0/agent-source/string_book';
 import type { ChatParticipant } from '../types/ChatParticipant';
@@ -7,11 +8,11 @@ describe('resolveCitationUrl', () => {
     const mockParticipant: ChatParticipant = {
         name: 'AGENT',
         fullname: 'Test Agent',
-        agentSource: `
+        agentSource: spaceTrim(`
             AI Agent
             KNOWLEDGE https://ptbk.io/k/SS%202_2023%20-%20Informace%20106-fV9LzkrRbVN3zuMCEMgqb2ZeSxPPNs.docx
             KNOWLEDGE https://example.com/simple-document.pdf
-        ` as string_book,
+        `) as string_book,
     };
 
     it('should resolve simple document', () => {

@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { TOOL_RUNTIME_CONTEXT_ARGUMENT } from '../../../../src/commitments/_common/toolRuntimeContext';
 import {
@@ -80,7 +81,10 @@ describe('spawn_agent tool', () => {
 
     it('creates a persisted agent successfully', async () => {
         const resultRaw = await spawn_agent({
-            source: 'Child Agent\nPERSONA You are a child.',
+            source: spaceTrim(`
+                Child Agent
+                PERSONA You are a child.
+            `),
             visibility: 'UNLISTED',
         });
         const result = JSON.parse(resultRaw) as { status: string; agentId?: string; agent?: { agentName: string } };
@@ -90,7 +94,10 @@ describe('spawn_agent tool', () => {
         expect(result.agent?.agentName).toBe('Child Agent');
         expect(createAgentWithDefaultVisibilityMock).toHaveBeenCalledWith(
             expect.anything(),
-            'Child Agent\nPERSONA You are a child.',
+            spaceTrim(`
+                Child Agent
+                PERSONA You are a child.
+            `),
             { visibility: 'UNLISTED', folderId: undefined, sortOrder: undefined },
         );
     });

@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { describe, expect, it } from '@jest/globals';
 import { createAgentModelRequirements } from '../../../../src/book-2.0/agent-source/createAgentModelRequirements';
 import { validateBook } from '../../../../src/book-2.0/agent-source/string_book';
@@ -12,12 +13,12 @@ describe('getAllToolFunctionsForServer', () => {
         expect(toolFunctions[toolName]).toBeUndefined();
 
         await createAgentModelRequirements(
-            validateBook(`
+            validateBook(spaceTrim(`
                 Master
                 FROM {Void}
                 TEAM Ask for anything {slave}
                 CLOSED
-            `),
+            `)),
             undefined,
             undefined,
             undefined,

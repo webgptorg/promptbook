@@ -1,5 +1,6 @@
 /** @jest-environment jsdom */
 
+import { spaceTrim } from 'spacetrim';
 import { describe, expect, it, jest } from '@jest/globals';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import moment from 'moment';
@@ -244,7 +245,11 @@ describe('ChatMessageItem progress checklist rendering', () => {
                     items: [
                         {
                             id: 'step-parent',
-                            text: 'Prepare plan\n- [x] Gather context\n- [ ] Validate assumptions',
+                            text: spaceTrim(`
+                                Prepare plan
+                                - [x] Gather context
+                                - [ ] Validate assumptions
+                            `),
                             status: 'pending',
                         },
                     ],
@@ -562,7 +567,11 @@ describe('ChatMessageItem quick message buttons', () => {
             {
                 id: 'agent-quick-message-1',
                 sender: 'AGENT',
-                content: 'Pick an option\n\n[Send](?message=Tell me more)',
+                content: spaceTrim(`
+                    Pick an option
+
+                    [Send](?message=Tell me more)
+                `),
                 isComplete: true,
             },
             { onQuickMessageButton, onQuickMessageDraftButton },
@@ -581,7 +590,11 @@ describe('ChatMessageItem quick message buttons', () => {
             {
                 id: 'agent-quick-draft-1',
                 sender: 'AGENT',
-                content: 'Pick an option\n\n[Draft](?messageDraft=Write me a claim)',
+                content: spaceTrim(`
+                    Pick an option
+
+                    [Draft](?messageDraft=Write me a claim)
+                `),
                 isComplete: true,
             },
             { onQuickMessageButton, onQuickMessageDraftButton },
@@ -597,7 +610,11 @@ describe('ChatMessageItem quick message buttons', () => {
         renderChatMessageItem({
             id: 'agent-quick-draft-2',
             sender: 'AGENT',
-            content: 'Pick an option\n\n[Draft](?messageDraft=Write me a claim)',
+            content: spaceTrim(`
+                Pick an option
+
+                [Draft](?messageDraft=Write me a claim)
+            `),
             isComplete: true,
         });
 

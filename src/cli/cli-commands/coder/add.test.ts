@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { afterEach, beforeEach, describe, expect, it } from '@jest/globals';
 import { mkdtemp, readdir, readFile, rm } from 'fs/promises';
 import { tmpdir } from 'os';
@@ -71,13 +72,20 @@ describe('addCoderPrompt', () => {
 
         const result = await addCoderPrompt({
             projectPath,
-            description: 'First line summary\nSecond line detail\nThird line detail',
+            description: spaceTrim(`
+                First line summary
+                Second line detail
+                Third line detail
+            `),
             priority: 0,
         });
         const { content } = await readOnlyPromptFile(projectPath);
 
         expect(content).toContain(`${result.emojiTag} First line summary\n`);
-        expect(content).toContain('Second line detail\nThird line detail');
+        expect(content).toContain(spaceTrim(`
+            Second line detail
+            Third line detail
+        `));
     });
 
     it('throws a branded ParseError for an empty description', async () => {

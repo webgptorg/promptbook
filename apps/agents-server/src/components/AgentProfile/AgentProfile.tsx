@@ -1,4 +1,6 @@
 'use client';
+import { spaceTrim } from 'spacetrim';
+
 
 import { colorToDataUrl } from '@promptbook-local/color';
 import { AgentBasicInformation, string_agent_permanent_id, string_url } from '@promptbook-local/types';
@@ -120,9 +122,11 @@ export function AgentProfile(props: AgentProfileProps) {
     return (
         <>
             {primaryFontFamily && (
-                <style jsx global>{`
-                    @import url('https://fonts.googleapis.com/css2?family=${encodeURIComponent(primaryFontFamily)}:wght@400;600;700&display=swap');
-                `}</style>
+                <style jsx global>{spaceTrim(
+                    (block) => `
+                        @import url('https://fonts.googleapis.com/css2?family=${block(encodeURIComponent(primaryFontFamily))}:wght@400;600;700&display=swap');
+                    `,
+                )}</style>
             )}
 
             {/* Full-screen background with agent color */}

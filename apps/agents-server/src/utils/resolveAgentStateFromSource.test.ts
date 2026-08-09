@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import { book, createAgentModelRequirements } from '../../../../src/_packages/core.index'; // <- [🚾]
 import type { AgentBasicInformation } from '../../../../src/book-2.0/agent-source/AgentBasicInformation';
@@ -280,12 +281,12 @@ describe('resolveAgentStateFromSource', () => {
         });
 
         const resolvedAgentState = await resolveAgentStateFromSource(
-            `
+            spaceTrim(`
                 Child Agent
 
                 FROM ${parentAgentUrl}
                 RULE Answer shortly.
-            ` as string_book,
+            `) as string_book,
             {
                 adamAgentUrl: 'https://example.com/agents/adam',
                 canonicalAgentUrl: 'https://local.example/agents/child',
@@ -315,7 +316,7 @@ describe('resolveAgentStateFromSource', () => {
         });
 
         const resolvedAgentState = await resolveAgentStateFromSource(
-            `
+            spaceTrim(`
                 Child Agent
 
                 FROM ${parentAgentUrl}
@@ -323,7 +324,7 @@ describe('resolveAgentStateFromSource', () => {
                 RULE Follow the child rule.
                 META COLOR #654321
                 INITIAL MESSAGE Hello from child.
-            ` as string_book,
+            `) as string_book,
             {
                 adamAgentUrl: 'https://example.com/agents/adam',
                 canonicalAgentUrl: 'https://local.example/agents/child',
@@ -357,14 +358,14 @@ describe('resolveAgentStateFromSource', () => {
         });
 
         const resolvedAgentState = await resolveAgentStateFromSource(
-            `
+            spaceTrim(`
                 Child Agent
 
                 FROM ${parentAgentUrl}
                 PERSONA Deprecated child persona.
                 GOAL Child goal.
                 RULE Follow the child rule.
-            ` as string_book,
+            `) as string_book,
             {
                 adamAgentUrl: 'https://example.com/agents/adam',
                 canonicalAgentUrl: 'https://local.example/agents/child',

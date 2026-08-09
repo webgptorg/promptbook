@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { mkdtemp, mkdir, rm, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
@@ -27,10 +28,16 @@ describe('resolveCoderContext', () => {
 
     it('reads context content from an existing file', async () => {
         const contextFilePath = join(temporaryDirectoryPath, 'AGENTS.md');
-        await writeFile(contextFilePath, '## Rules\n- Keep it DRY', 'utf-8');
+        await writeFile(contextFilePath, spaceTrim(`
+            ## Rules
+            - Keep it DRY
+        `), 'utf-8');
 
         await expect(resolveCoderContext('AGENTS.md', temporaryDirectoryPath)).resolves.toBe(
-            '## Rules\n- Keep it DRY',
+            spaceTrim(`
+                ## Rules
+                - Keep it DRY
+            `),
         );
     });
 

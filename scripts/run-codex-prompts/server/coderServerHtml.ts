@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 /**
  * HTML source for the coder server kanban UI.
  *
@@ -6,7 +7,7 @@
  *
  * @private internal constant of `ptbk coder server`
  */
-export const CODER_SERVER_HTML = `<!DOCTYPE html>
+export const CODER_SERVER_HTML = spaceTrim(`<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -692,7 +693,7 @@ export const CODER_SERVER_HTML = `<!DOCTYPE html>
   </script>
 </body>
 </html>
-`;
+`);
 
 // Note: [🟡] Code for CLI command [coder server](scripts/run-codex-prompts/server/coderServerHtml.ts) should never be published outside of `@promptbook/cli`
 // Note: Keep in sync with apps/coder-server/index.html

@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { Chat } from '@promptbook/components';
 
 export function ChatPreviewChatComponent() {
@@ -43,7 +44,47 @@ export function ChatPreviewChatComponent() {
                     createdAt: '2025-10-12T23:13:15.925Z',
                     sender: 'ASSISTANT_1',
                     content:
-                        "**Absolutely!** Here’s a quick overview:\n\n- **Bold**\n- _Italic_\n- __Underline__\n- ~~Strikethrough~~\n- `Inline code`\n- Code block:\n\n```js\nconsole.log('Hello, world!');\n```\n> Blockquote\n> With\n> Multiple lines\n\n\n- Some text with [Link](https://example.com)\n- ![image](https://img.youtube.com/vi/nD1v9dMvnLY/maxresdefault.jpg)\n- Lists:\n  - Item 1\n    - Nested item\n- Numbered list:\n  1. First\n     1. Nested\n- Table:\n\n| Syntax | Description |\n|--------|-------------|\n| Header | Title       |\n| Cell   | Data        |\n\n- Emoji: 😄 🎉\n- Mention: @user\n- Hashtag: #demo\n- Math: $E=mc^2$\n- Horizontal rule:\n\n---",
+                        spaceTrim(`
+                            **Absolutely!** Here’s a quick overview:
+
+                            - **Bold**
+                            - _Italic_
+                            - __Underline__
+                            - ~~Strikethrough~~
+                            - \`Inline code\`
+                            - Code block:
+
+                            \`\`\`js
+                            console.log('Hello, world!');
+                            \`\`\`
+                            > Blockquote
+                            > With
+                            > Multiple lines
+
+
+                            - Some text with [Link](https://example.com)
+                            - ![image](https://img.youtube.com/vi/nD1v9dMvnLY/maxresdefault.jpg)
+                            - Lists:
+                              - Item 1
+                                - Nested item
+                            - Numbered list:
+                              1. First
+                                 1. Nested
+                            - Table:
+
+                            | Syntax | Description |
+                            |--------|-------------|
+                            | Header | Title       |
+                            | Cell   | Data        |
+
+                            - Emoji: 😄 🎉
+                            - Mention: @user
+                            - Hashtag: #demo
+                            - Math: $E=mc^2$
+                            - Horizontal rule:
+
+                            ---
+                        `),
                     isComplete: true,
                 },
                 {
@@ -51,7 +92,22 @@ export function ChatPreviewChatComponent() {
                     createdAt: '2025-10-12T23:13:15.925Z',
                     sender: 'USER',
                     content:
-                        "Wow, that's a lot! Can you combine some of them?\n\n**Bold _italic_ and `inline code`**\n\nOr maybe:\n> _Blockquote with a [link](https://example.com)_\n\nAnd a table:\n\n| Name | Value |\n|------|-------|\n| Pi   | $\\pi$ |\n\n---",
+                        spaceTrim(`
+                            Wow, that's a lot! Can you combine some of them?
+
+                            **Bold _italic_ and \`inline code\`**
+
+                            Or maybe:
+                            > _Blockquote with a [link](https://example.com)_
+
+                            And a table:
+
+                            | Name | Value |
+                            |------|-------|
+                            | Pi   | $\\pi$ |
+
+                            ---
+                        `),
                     isComplete: true,
                 },
                 {
@@ -59,7 +115,19 @@ export function ChatPreviewChatComponent() {
                     createdAt: '2025-10-12T23:13:15.925Z',
                     sender: 'ASSISTANT_1',
                     content:
-                        'Of course! Here’s a creative mix:\n\n- ~~Strikethrough~~ and __underline__\n- 1. Numbered with *italic* and emoji 🚀\n- - Nested `inline code`\n\n> Blockquote with math: $a^2 + b^2 = c^2$\n\n---\n\nLet me know if you want to see more! #rich #features',
+                        spaceTrim(`
+                            Of course! Here’s a creative mix:
+
+                            - ~~Strikethrough~~ and __underline__
+                            - 1. Numbered with *italic* and emoji 🚀
+                            - - Nested \`inline code\`
+
+                            > Blockquote with math: $a^2 + b^2 = c^2$
+
+                            ---
+
+                            Let me know if you want to see more! #rich #features
+                        `),
                     isComplete: true,
                 },
                 {
@@ -67,7 +135,15 @@ export function ChatPreviewChatComponent() {
                     createdAt: '2025-10-12T23:13:15.925Z',
                     sender: 'ASSISTANT_1',
                     content:
-                        'And here are some more emojis:\n\n😄🎉🚀💡📊📝🔥🌟✅❌\n❤🧡💙💚💛🧡❤️🤎🖤💜\n🐱‍👤🐱‍💻🐱🚀🐱‍🏍💫🎞🎫🎠🎏\n😀😀😁😂🤣😃😄😆😅🤩\n➿🛂🛃🛄🛅♿📶🚻🚹🚾',
+                        spaceTrim(`
+                            And here are some more emojis:
+
+                            😄🎉🚀💡📊📝🔥🌟✅❌
+                            ❤🧡💙💚💛🧡❤️🤎🖤💜
+                            🐱‍👤🐱‍💻🐱🚀🐱‍🏍💫🎞🎫🎠🎏
+                            😀😀😁😂🤣😃😄😆😅🤩
+                            ➿🛂🛃🛄🛅♿📶🚻🚹🚾
+                        `),
                     isComplete: true,
                 },
                 {
@@ -75,7 +151,21 @@ export function ChatPreviewChatComponent() {
                     createdAt: '2025-10-12T23:13:15.925Z',
                     sender: 'ASSISTANT_1',
                     content:
-                        '## And lists:\n\n- Item 1\n- Item 2\n    - Nested Item 2a\n    - Nested Item 2b\n- Item 3\n\n1. First item\n2. Second item\n   1. Nested second item a\n   2. Nested second item b\n3. Third item',
+                        spaceTrim(`
+                            ## And lists:
+
+                            - Item 1
+                            - Item 2
+                                - Nested Item 2a
+                                - Nested Item 2b
+                            - Item 3
+
+                            1. First item
+                            2. Second item
+                               1. Nested second item a
+                               2. Nested second item b
+                            3. Third item
+                        `),
                     isComplete: true,
                 },
             ]}

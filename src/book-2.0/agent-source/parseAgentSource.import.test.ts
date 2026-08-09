@@ -1,13 +1,14 @@
+import { spaceTrim } from 'spacetrim';
 import { describe, expect, it } from '@jest/globals';
 import { parseAgentSource } from './parseAgentSource';
 import { validateBook } from './string_book';
 
 describe('parseAgentSource with IMPORT', () => {
     it('parses generic IMPORT with URL', () => {
-        const agentSource = validateBook(`
+        const agentSource = validateBook(spaceTrim(`
             My Agent
             IMPORT https://example.com/file.txt
-        `);
+        `));
         const result = parseAgentSource(agentSource);
         expect(result.capabilities).toContainEqual({
             agentUrl: 'https://example.com/file.txt',
@@ -18,10 +19,10 @@ describe('parseAgentSource with IMPORT', () => {
     });
 
     it('parses generic IMPORT with local path', () => {
-        const agentSource = validateBook(`
+        const agentSource = validateBook(spaceTrim(`
             My Agent
             IMPORT ./local/path/data.json
-        `);
+        `));
         const result = parseAgentSource(agentSource);
         expect(result.capabilities).toContainEqual({
             agentUrl: './local/path/data.json',
@@ -32,10 +33,10 @@ describe('parseAgentSource with IMPORT', () => {
     });
 
     it('parses generic KNOWLEDGE with URL', () => {
-        const agentSource = validateBook(`
+        const agentSource = validateBook(spaceTrim(`
             My Agent
             KNOWLEDGE https://example.com/file.txt
-        `);
+        `));
         const result = parseAgentSource(agentSource);
         expect(result.capabilities).toContainEqual({
             type: 'knowledge',
@@ -45,10 +46,10 @@ describe('parseAgentSource with IMPORT', () => {
     });
 
     it('parses KNOWLEDGE with mixed text and multiple URLs', () => {
-        const agentSource = validateBook(`
+        const agentSource = validateBook(spaceTrim(`
             My Agent
             KNOWLEDGE Please review https://example.com/docs/alpha.pdf and then https://example.org/beta.txt before answering.
-        `);
+        `));
         const result = parseAgentSource(agentSource);
 
         expect(result.capabilities).toContainEqual({

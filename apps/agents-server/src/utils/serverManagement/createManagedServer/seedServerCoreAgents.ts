@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import type { Client } from 'pg';
 import { createAgentPersistenceRecords } from '../../../../../../src/collection/agent-collection/constructors/agent-collection-in-supabase/createAgentPersistenceRecords';
 import { DEFAULT_AGENT_VISIBILITY } from '../../agentVisibility';
@@ -40,7 +41,7 @@ export async function seedServerCoreAgents(
         );
 
         await client.query(
-            `
+            spaceTrim(`
                 INSERT INTO ${agentTableIdentifier} (
                     "agentName",
                     "createdAt",
@@ -56,7 +57,7 @@ export async function seedServerCoreAgents(
                     "visibility"
                 )
                 VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, $9::jsonb, $10, $11, $12)
-            `,
+            `),
             [
                 agentInsertRecord.agentName,
                 agentInsertRecord.createdAt,
@@ -84,7 +85,7 @@ export async function seedServerCoreAgents(
         );
 
         await client.query(
-            `
+            spaceTrim(`
                 INSERT INTO ${agentHistoryTableIdentifier} (
                     "createdAt",
                     "agentName",
@@ -96,7 +97,7 @@ export async function seedServerCoreAgents(
                     "versionName"
                 )
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-            `,
+            `),
             [
                 agentHistoryInsertRecord.createdAt,
                 agentHistoryInsertRecord.agentName,
@@ -130,7 +131,7 @@ async function insertCoreFolder(
     const agentFolderTableIdentifier = quoteIdentifier(`${input.tablePrefix}AgentFolder`);
     const createdAt = new Date().toISOString();
     const insertResult = await client.query<{ id: number }>(
-        `
+        spaceTrim(`
             INSERT INTO ${agentFolderTableIdentifier} (
                 "name",
                 "parentId",
@@ -142,7 +143,7 @@ async function insertCoreFolder(
             )
             VALUES ($1, NULL, $2, NULL, NULL, $3, NULL)
             RETURNING "id"
-        `,
+        `),
         [CORE_AGENT_DIRECTORY_NAME, 0, createdAt],
     );
 

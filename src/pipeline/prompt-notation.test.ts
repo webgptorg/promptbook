@@ -107,7 +107,10 @@ describe('how prompt tag function works', () => {
     });
 
     it('should format multiline data parameters on their own line', () => {
-        const notes = 'First line\nSecond line';
+        const notes = spaceTrim(`
+            First line
+            Second line
+        `);
         const notesPrompt = prompt`
             Notes:
             ${notes}

@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { $execCommand } from '../../../../utils/execCommand/$execCommand';
 import { $resolveLatestNpmPackageVersion } from './$resolveLatestNpmPackageVersion';
 
@@ -20,7 +21,10 @@ describe('$resolveLatestNpmPackageVersion', () => {
     });
 
     it('reads the last version when npm writes a warning before its JSON result', async () => {
-        getExecCommandMock().mockResolvedValue('npm warn cli npm v10.9.1 does not support Node.js v18.4.0.\n"0.114.0"');
+        getExecCommandMock().mockResolvedValue(spaceTrim(`
+            npm warn cli npm v10.9.1 does not support Node.js v18.4.0.
+            "0.114.0"
+        `));
 
         await expect($resolveLatestNpmPackageVersion('ptbk')).resolves.toBe('0.114.0');
 
@@ -32,7 +36,10 @@ describe('$resolveLatestNpmPackageVersion', () => {
     });
 
     it('keeps the JSON result when npm writes a warning afterwards', async () => {
-        getExecCommandMock().mockResolvedValue('"0.114.0"\nnpm warn cli npm v10.9.1 does not support Node.js v18.4.0.');
+        getExecCommandMock().mockResolvedValue(spaceTrim(`
+            "0.114.0"
+            npm warn cli npm v10.9.1 does not support Node.js v18.4.0.
+        `));
 
         await expect($resolveLatestNpmPackageVersion('ptbk')).resolves.toBe('0.114.0');
     });

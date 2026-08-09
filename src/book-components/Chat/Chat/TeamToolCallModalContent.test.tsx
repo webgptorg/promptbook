@@ -1,5 +1,6 @@
 /** @jest-environment jsdom */
 
+import { spaceTrim } from 'spacetrim';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, jest, beforeEach } from '@jest/globals';
 import { Color } from '../../../utils/color/Color';
@@ -62,12 +63,21 @@ describe('TeamToolCallModalContent', () => {
                             sender: 'AGENT',
                             name: 'Master',
                             content:
-                                'What CNAMEs are in the records?\n\nContext:\nPlease provide the CNAME DNS records for the domain ptbk.io.',
+                                spaceTrim(`
+                                    What CNAMEs are in the records?
+
+                                    Context:
+                                    Please provide the CNAME DNS records for the domain ptbk.io.
+                                `),
                         },
                         {
                             sender: 'TEAMMATE',
                             name: 'slave',
-                            content: 'The CNAME records for ptbk.io are:\n\n- books.ptbk.io -> webgptorg.github.io',
+                            content: spaceTrim(`
+                                The CNAME records for ptbk.io are:
+
+                                - books.ptbk.io -> webgptorg.github.io
+                            `),
                         },
                     ],
                 }}

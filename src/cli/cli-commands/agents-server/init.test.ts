@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { Command } from 'commander';
 import { mkdtemp, readFile, rm, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
@@ -67,10 +68,16 @@ describe('ptbk agents-server init', () => {
         expect(envContent).toContain('PTBK_AGENTS_SERVER_DATABASE=supabase');
         expect(envContent).toContain('PTBK_AGENTS_SERVER_SQLITE_PATH=.promptbook/agents-server.sqlite');
         expect(envContent).toContain(
-            '# Documentation: https://github.com/webgptorg/promptbook/blob/main/apps/agents-server/README.md#agents-server-env-openai-api-key\nOPENAI_API_KEY=',
+            spaceTrim(`
+                # Documentation: https://github.com/webgptorg/promptbook/blob/main/apps/agents-server/README.md#agents-server-env-openai-api-key
+                OPENAI_API_KEY=
+            `),
         );
         expect(envContent).toContain(
-            '# Documentation: https://github.com/webgptorg/promptbook/blob/main/apps/agents-server/README.md#agents-server-env-postgres-url\nPOSTGRES_URL=',
+            spaceTrim(`
+                # Documentation: https://github.com/webgptorg/promptbook/blob/main/apps/agents-server/README.md#agents-server-env-postgres-url
+                POSTGRES_URL=
+            `),
         );
         expect(envContent).toContain('SUPABASE_AUTO_MIGRATE=true');
         expect(envContent).toContain('ADMIN_PASSWORD=');

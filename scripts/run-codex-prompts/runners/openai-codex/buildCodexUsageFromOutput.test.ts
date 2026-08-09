@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { OPENAI_MODELS } from '../../../../src/llm-providers/openai/openai-models';
 import {
     DEFAULT_CODEX_COMPLETION_SHARE,
@@ -14,12 +15,12 @@ describe('buildCodexUsageFromOutput', () => {
     };
 
     it('uses the reported prompt/completion counts when both are available', () => {
-        const output = `
+        const output = spaceTrim(`
 tokens used
   total 100
   prompt 80
   completion 20
-`;
+`);
 
         const usage = buildCodexUsageFromOutput(output, 'gpt-5.1-codex-mini');
         const pricing = getMiniCodexPricing();
@@ -32,10 +33,12 @@ tokens used
 
     it('falls back to the shared completion share when only total is reported', () => {
         const totalTokens = 1_000;
-        const output = `
-tokens used
-  ${totalTokens.toLocaleString()} total
-`;
+        const output = spaceTrim(
+            (block) => `
+    tokens used
+      ${block(totalTokens.toLocaleString())} total
+    `,
+        );
 
         const usage = buildCodexUsageFromOutput(output, 'gpt-5.1-codex-mini');
         const pricing = getMiniCodexPricing();
@@ -51,11 +54,11 @@ tokens used
     });
 
     it('deduces prompt tokens when only completion and total are reported', () => {
-        const output = `
+        const output = spaceTrim(`
 tokens used
   200
   completion 60
-`;
+`);
 
         const usage = buildCodexUsageFromOutput(output, 'gpt-5.1-codex-mini');
         const pricing = getMiniCodexPricing();

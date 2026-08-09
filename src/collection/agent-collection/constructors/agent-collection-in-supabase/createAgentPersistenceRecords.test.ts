@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { describe, expect, it } from '@jest/globals';
 import type { string_book } from '../../../../book-2.0/agent-source/string_book';
 import { createAgentPersistenceRecords } from './createAgentPersistenceRecords';
@@ -5,12 +6,12 @@ import { createAgentPersistenceRecords } from './createAgentPersistenceRecords';
 describe('createAgentPersistenceRecords', () => {
     it('builds consistent agent and history insert rows for one new agent', () => {
         const createdAt = '2026-04-13T01:23:45.000Z';
-        const agentSource = `
+        const agentSource = spaceTrim(`
 Helper Agent
 
 PERSONA You help with testing.
 CLOSED
-` as string_book;
+`) as string_book;
 
         const result = createAgentPersistenceRecords(
             agentSource,
@@ -48,11 +49,11 @@ CLOSED
 
     it('uses META VISIBILITY from the book when no creation override is provided', () => {
         const result = createAgentPersistenceRecords(
-            `
+            spaceTrim(`
 Helper Agent
 META VISIBILITY private
 GOAL Help with testing.
-` as string_book,
+`) as string_book,
         );
 
         expect(result.agentInsertRecord.visibility).toBe('PRIVATE');
@@ -61,10 +62,10 @@ GOAL Help with testing.
 
     it('adds default META VISIBILITY when neither input nor book declares it', () => {
         const result = createAgentPersistenceRecords(
-            `
+            spaceTrim(`
 Helper Agent
 GOAL Help with testing.
-` as string_book,
+`) as string_book,
         );
 
         expect(result.agentInsertRecord.visibility).toBe('UNLISTED');

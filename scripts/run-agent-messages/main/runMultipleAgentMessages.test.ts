@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { mkdir, mkdtemp, readFile, readdir, realpath, rm, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
@@ -248,7 +249,10 @@ describe('runMultipleAgentMessages', () => {
             ['agent-active', 'Active Agent'],
             ['agent-raw-name', 'JohnSmith'],
             ['agent-normalized-name', 'John Doe'],
-            ['agent-id', 'Ignored By Id\nMETA ID ABC123'],
+            ['agent-id', spaceTrim(`
+                Ignored By Id
+                META ID ABC123
+            `)],
         ]);
 
         for (const [directoryName, agentSource] of agentSourcesByDirectoryName) {

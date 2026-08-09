@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideClientSql } from '@/src/database/$provideClientSql';
 import { isAgentsServerSqliteMode } from '@/src/database/agentsServerDatabaseMode';
@@ -97,19 +98,19 @@ export async function listUserChatSummarySeeds(options: ListUserChatsOptions): P
         shouldLoadAllUsersChats || (options.viewerIsAdmin && options.includeExternalChats);
 
     const whereClause = shouldLoadAllUsersChats
-        ? `
+        ? spaceTrim(`
             "agentPermanentId" = $1
-        `
+        `)
         : shouldLoadExternalChats
-        ? `
+        ? spaceTrim(`
             "agentPermanentId" = $1
             AND ("source" <> '${USER_CHAT_SOURCES.WEB_UI}' OR "userId" = $2)
-        `
-        : `
+        `)
+        : spaceTrim(`
             "userId" = $1
             AND "agentPermanentId" = $2
             AND "source" = '${USER_CHAT_SOURCES.WEB_UI}'
-        `;
+        `);
     const queryValues = shouldLoadAllUsersChats
         ? [options.agentPermanentId]
         : shouldLoadExternalChats
@@ -117,53 +118,55 @@ export async function listUserChatSummarySeeds(options: ListUserChatsOptions): P
         : [options.userId, options.agentPermanentId];
     try {
         const summaryRows = await sql.raw<Array<UserChatSummarySeedSqlRow>>(
-            `
-                SELECT
-                    "id",
-                    "createdAt",
-                    "updatedAt",
-                    "lastMessageAt",
-                    "title",
-                    "source",
-                    "userId",
-                    COALESCE(jsonb_array_length("messages"), 0) AS "messagesCount",
-                    COALESCE(
-                        (
-                            SELECT message."value"->>'content'
-                            FROM jsonb_array_elements("messages") WITH ORDINALITY AS message("value", "ordinality")
-                            WHERE UPPER(COALESCE(message."value"->>'sender', '')) = 'USER'
-                            ORDER BY message."ordinality" ASC
-                            LIMIT 1
-                        ),
-                        ''
-                    ) AS "firstUserMessageContent",
-                    COALESCE(
-                        (
-                            SELECT message."value"->>'content'
-                            FROM jsonb_array_elements("messages") WITH ORDINALITY AS message("value", "ordinality")
-                            WHERE LENGTH(BTRIM(COALESCE(message."value"->>'content', ''))) > 0
-                            ORDER BY message."ordinality" DESC
-                            LIMIT 1
-                        ),
-                        ''
-                    ) AS "lastPreviewMessageContent",
-                    COALESCE(
-                        (
-                            SELECT COUNT(*)::INT
-                            FROM jsonb_array_elements("messages") AS message("value")
-                            WHERE
-                                UPPER(COALESCE(message."value"->>'sender', '')) IN ('AGENT', 'MODEL')
-                                AND (
-                                    COALESCE(message."value"->>'isComplete', '') = 'false'
-                                    OR LOWER(COALESCE(message."value"->>'lifecycleState', '')) IN ('queued', 'running')
-                                )
-                        ),
-                        0
-                    ) AS "pendingAssistantMessageCount"
-                FROM ${userChatTableName}
-                WHERE ${whereClause}
-                ORDER BY "createdAt" DESC
-            `,
+            spaceTrim(
+                (block) => `
+                    SELECT
+                        "id",
+                        "createdAt",
+                        "updatedAt",
+                        "lastMessageAt",
+                        "title",
+                        "source",
+                        "userId",
+                        COALESCE(jsonb_array_length("messages"), 0) AS "messagesCount",
+                        COALESCE(
+                            (
+                                SELECT message."value"->>'content'
+                                FROM jsonb_array_elements("messages") WITH ORDINALITY AS message("value", "ordinality")
+                                WHERE UPPER(COALESCE(message."value"->>'sender', '')) = 'USER'
+                                ORDER BY message."ordinality" ASC
+                                LIMIT 1
+                            ),
+                            ''
+                        ) AS "firstUserMessageContent",
+                        COALESCE(
+                            (
+                                SELECT message."value"->>'content'
+                                FROM jsonb_array_elements("messages") WITH ORDINALITY AS message("value", "ordinality")
+                                WHERE LENGTH(BTRIM(COALESCE(message."value"->>'content', ''))) > 0
+                                ORDER BY message."ordinality" DESC
+                                LIMIT 1
+                            ),
+                            ''
+                        ) AS "lastPreviewMessageContent",
+                        COALESCE(
+                            (
+                                SELECT COUNT(*)::INT
+                                FROM jsonb_array_elements("messages") AS message("value")
+                                WHERE
+                                    UPPER(COALESCE(message."value"->>'sender', '')) IN ('AGENT', 'MODEL')
+                                    AND (
+                                        COALESCE(message."value"->>'isComplete', '') = 'false'
+                                        OR LOWER(COALESCE(message."value"->>'lifecycleState', '')) IN ('queued', 'running')
+                                    )
+                            ),
+                            0
+                        ) AS "pendingAssistantMessageCount"
+                    FROM ${userChatTableName}
+                    WHERE ${block(whereClause)}
+                    ORDER BY "createdAt" DESC
+                `,
+            ),
             queryValues,
         );
 
@@ -194,19 +197,19 @@ async function listUserChatSummarySeedsViaSqlite(options: ListUserChatsOptions):
     const shouldLoadExternalChats =
         shouldLoadAllUsersChats || (options.viewerIsAdmin && options.includeExternalChats);
     const whereClause = shouldLoadAllUsersChats
-        ? `
+        ? spaceTrim(`
             chat."agentPermanentId" = ?
-        `
+        `)
         : shouldLoadExternalChats
-        ? `
+        ? spaceTrim(`
             chat."agentPermanentId" = ?
             AND (chat."source" <> ? OR chat."userId" = ?)
-        `
-        : `
+        `)
+        : spaceTrim(`
             chat."userId" = ?
             AND chat."agentPermanentId" = ?
             AND chat."source" = ?
-        `;
+        `);
     const queryValues = shouldLoadAllUsersChats
         ? [options.agentPermanentId]
         : shouldLoadExternalChats
@@ -216,54 +219,56 @@ async function listUserChatSummarySeedsViaSqlite(options: ListUserChatsOptions):
     try {
         const summaryRows = database
             .prepare(
-                `
-                    SELECT
-                        chat."id",
-                        chat."createdAt",
-                        chat."updatedAt",
-                        chat."lastMessageAt",
-                        chat."title",
-                        chat."source",
-                        chat."userId",
-                        COALESCE(json_array_length(${SQLITE_CHAT_MESSAGES_JSON_EXPRESSION}), 0) AS "messagesCount",
-                        COALESCE(
-                            (
-                                SELECT CAST(json_extract(message.value, '$.content') AS TEXT)
-                                FROM json_each(${SQLITE_CHAT_MESSAGES_JSON_EXPRESSION}) AS message
-                                WHERE UPPER(CAST(COALESCE(json_extract(message.value, '$.sender'), '') AS TEXT)) = 'USER'
-                                ORDER BY CAST(message.key AS INTEGER) ASC
-                                LIMIT 1
-                            ),
-                            ''
-                        ) AS "firstUserMessageContent",
-                        COALESCE(
-                            (
-                                SELECT CAST(json_extract(message.value, '$.content') AS TEXT)
-                                FROM json_each(${SQLITE_CHAT_MESSAGES_JSON_EXPRESSION}) AS message
-                                WHERE LENGTH(TRIM(CAST(COALESCE(json_extract(message.value, '$.content'), '') AS TEXT))) > 0
-                                ORDER BY CAST(message.key AS INTEGER) DESC
-                                LIMIT 1
-                            ),
-                            ''
-                        ) AS "lastPreviewMessageContent",
-                        COALESCE(
-                            (
-                                SELECT COUNT(*)
-                                FROM json_each(${SQLITE_CHAT_MESSAGES_JSON_EXPRESSION}) AS message
-                                WHERE
-                                    UPPER(CAST(COALESCE(json_extract(message.value, '$.sender'), '') AS TEXT)) IN ('AGENT', 'MODEL')
-                                    AND (
-                                        json_extract(message.value, '$.isComplete') = 0
-                                        OR LOWER(CAST(COALESCE(json_extract(message.value, '$.isComplete'), '') AS TEXT)) = 'false'
-                                        OR LOWER(CAST(COALESCE(json_extract(message.value, '$.lifecycleState'), '') AS TEXT)) IN ('queued', 'running')
-                                    )
-                            ),
-                            0
-                        ) AS "pendingAssistantMessageCount"
-                    FROM ${userChatTableName} AS chat
-                    WHERE ${whereClause}
-                    ORDER BY chat."createdAt" DESC
-                `,
+                spaceTrim(
+                    (block) => `
+                        SELECT
+                            chat."id",
+                            chat."createdAt",
+                            chat."updatedAt",
+                            chat."lastMessageAt",
+                            chat."title",
+                            chat."source",
+                            chat."userId",
+                            COALESCE(json_array_length(${SQLITE_CHAT_MESSAGES_JSON_EXPRESSION}), 0) AS "messagesCount",
+                            COALESCE(
+                                (
+                                    SELECT CAST(json_extract(message.value, '$.content') AS TEXT)
+                                    FROM json_each(${SQLITE_CHAT_MESSAGES_JSON_EXPRESSION}) AS message
+                                    WHERE UPPER(CAST(COALESCE(json_extract(message.value, '$.sender'), '') AS TEXT)) = 'USER'
+                                    ORDER BY CAST(message.key AS INTEGER) ASC
+                                    LIMIT 1
+                                ),
+                                ''
+                            ) AS "firstUserMessageContent",
+                            COALESCE(
+                                (
+                                    SELECT CAST(json_extract(message.value, '$.content') AS TEXT)
+                                    FROM json_each(${SQLITE_CHAT_MESSAGES_JSON_EXPRESSION}) AS message
+                                    WHERE LENGTH(TRIM(CAST(COALESCE(json_extract(message.value, '$.content'), '') AS TEXT))) > 0
+                                    ORDER BY CAST(message.key AS INTEGER) DESC
+                                    LIMIT 1
+                                ),
+                                ''
+                            ) AS "lastPreviewMessageContent",
+                            COALESCE(
+                                (
+                                    SELECT COUNT(*)
+                                    FROM json_each(${SQLITE_CHAT_MESSAGES_JSON_EXPRESSION}) AS message
+                                    WHERE
+                                        UPPER(CAST(COALESCE(json_extract(message.value, '$.sender'), '') AS TEXT)) IN ('AGENT', 'MODEL')
+                                        AND (
+                                            json_extract(message.value, '$.isComplete') = 0
+                                            OR LOWER(CAST(COALESCE(json_extract(message.value, '$.isComplete'), '') AS TEXT)) = 'false'
+                                            OR LOWER(CAST(COALESCE(json_extract(message.value, '$.lifecycleState'), '') AS TEXT)) IN ('queued', 'running')
+                                        )
+                                ),
+                                0
+                            ) AS "pendingAssistantMessageCount"
+                        FROM ${userChatTableName} AS chat
+                        WHERE ${block(whereClause)}
+                        ORDER BY chat."createdAt" DESC
+                    `,
+                ),
             )
             .all(...queryValues) as Array<UserChatSummarySeedSqlRow>;
 

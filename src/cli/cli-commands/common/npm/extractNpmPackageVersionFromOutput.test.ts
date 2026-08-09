@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { extractNpmPackageVersionFromOutput } from './extractNpmPackageVersionFromOutput';
 
 describe('extractNpmPackageVersionFromOutput', () => {
@@ -12,7 +13,10 @@ describe('extractNpmPackageVersionFromOutput', () => {
     it('parses the GitHub Copilot version format ending with a dot', () => {
         expect(
             extractNpmPackageVersionFromOutput(
-                "GitHub Copilot CLI 1.0.61.\nRun 'copilot update' to check for updates.",
+                spaceTrim(`
+                    GitHub Copilot CLI 1.0.61.
+                    Run 'copilot update' to check for updates.
+                `),
             ),
         ).toBe('1.0.61');
     });
@@ -32,14 +36,20 @@ describe('extractNpmPackageVersionFromOutput', () => {
     it('skips log lines printed by the Opencode CLI', () => {
         expect(
             extractNpmPackageVersionFromOutput(
-                'INFO  2026-07-30T10:05:14 +166ms service=models.dev file={} refreshing\n1.1.36',
+                spaceTrim(`
+                    INFO  2026-07-30T10:05:14 +166ms service=models.dev file={} refreshing
+                    1.1.36
+                `),
             ),
         ).toBe('1.1.36');
     });
 
     it('prefers the last version when parsing npm output with a warning', () => {
         expect(
-            extractNpmPackageVersionFromOutput('npm warn cli npm v10.9.1 does not support Node.js v18.4.0.\n0.114.0', {
+            extractNpmPackageVersionFromOutput(spaceTrim(`
+                npm warn cli npm v10.9.1 does not support Node.js v18.4.0.
+                0.114.0
+            `), {
                 isLastMatchPreferred: true,
             }),
         ).toBe('0.114.0');

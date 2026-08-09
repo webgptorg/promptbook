@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { isSupportedShareTargetFile, resolveShareTargetMessage } from './shareTarget';
 
 describe('shareTarget', () => {
@@ -8,7 +9,11 @@ describe('shareTarget', () => {
                 text: 'Shared text',
                 url: 'https://example.com/article',
             }),
-        ).toBe('Shared text\n\nhttps://example.com/article');
+        ).toBe(spaceTrim(`
+            Shared text
+
+            https://example.com/article
+        `));
     });
 
     it('falls back to title when text and url are missing', () => {

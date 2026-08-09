@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { describe, expect, it } from '@jest/globals';
 import {
     addUniqueTeamReference,
@@ -69,15 +70,24 @@ describe('NewAgentWizardState', () => {
         expect(buildWizardSourceOptions(state).capabilityCommitments).toEqual([
             {
                 keyword: 'USE CALENDAR',
-                content: 'calendar.google.com/calendar/u/0/r?cid=team%40example.com\nPrefer the shared team calendar.',
+                content: spaceTrim(`
+                    calendar.google.com/calendar/u/0/r?cid=team%40example.com
+                    Prefer the shared team calendar.
+                `),
             },
             {
                 keyword: 'USE PROJECT',
-                content: 'example/project\nWork only in the docs folder.',
+                content: spaceTrim(`
+                    example/project
+                    Work only in the docs folder.
+                `),
             },
             {
                 keyword: 'USE MCP',
-                content: 'https://mcp.example.com/server\nUse the legal tools only for compliance questions.',
+                content: spaceTrim(`
+                    https://mcp.example.com/server
+                    Use the legal tools only for compliance questions.
+                `),
             },
         ]);
     });

@@ -1,13 +1,30 @@
+import { spaceTrim } from 'spacetrim';
 import { describe, expect, it } from '@jest/globals';
 import { formatUsedToolFunctions } from './formatUsedToolFunctions';
 
 describe('formatUsedToolFunctions', () => {
     it('normalizes method, function declaration, and arrow implementations into valid object members', () => {
         const formatted = formatUsedToolFunctions({
-            get_current_time: 'async get_current_time(args) {\n    return "time";\n}',
-            web_search: 'async (rawArgs) => {\n    return rawArgs.query;\n}',
-            send_email: 'async function send_email(args) {\n    return "sent";\n}',
-            spawn_agent: 'function spawn_agent(args) {\n    return "spawned";\n}',
+            get_current_time: spaceTrim(`
+                async get_current_time(args) {
+                    return "time";
+                }
+            `),
+            web_search: spaceTrim(`
+                async (rawArgs) => {
+                    return rawArgs.query;
+                }
+            `),
+            send_email: spaceTrim(`
+                async function send_email(args) {
+                    return "sent";
+                }
+            `),
+            spawn_agent: spaceTrim(`
+                function spawn_agent(args) {
+                    return "spawned";
+                }
+            `),
         });
 
         expect(formatted).toContain('async get_current_time(args) {');

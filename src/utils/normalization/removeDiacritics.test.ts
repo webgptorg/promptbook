@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { describe, expect, it } from '@jest/globals';
 import { removeDiacritics } from './removeDiacritics';
 
@@ -14,10 +15,10 @@ describe('how stripping of diacritics works', () => {
         expect(removeDiacritics(``)).toEqual(``);
         expect(removeDiacritics(` `)).toEqual(` `);
         expect(
-            removeDiacritics(` .
-        .`),
-        ).toEqual(` .
-        .`);
+            removeDiacritics(spaceTrim(` .
+        .`)),
+        ).toEqual(spaceTrim(` .
+        .`));
         expect(removeDiacritics(` ě ě`)).toEqual(` e e`);
     });
 });

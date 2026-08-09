@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { describe, expect, it } from '@jest/globals';
 import { countLines } from './countLines';
 
@@ -13,8 +14,15 @@ describe('countLines', () => {
     });
 
     it('should return the correct count for a string with multiple lines', () => {
-        expect(countLines('Hello\nworld')).toBe(2);
-        expect(countLines('Hello\nworld\n!')).toBe(3);
+        expect(countLines(spaceTrim(`
+            Hello
+            world
+        `))).toBe(2);
+        expect(countLines(spaceTrim(`
+            Hello
+            world
+            !
+        `))).toBe(3);
         expect(countLines('\nxxx\n')).toBe(3);
         expect(countLines('\n\n\nxxx\n\n\n')).toBe(7);
     });

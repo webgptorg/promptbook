@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { describe, expect, it, jest } from '@jest/globals';
 import { CHAT_STREAM_KEEP_ALIVE_TOKEN } from '../../constants/streaming';
 import type { Parameters } from '../../types/Parameters';
@@ -133,7 +134,10 @@ describe('RemoteAgent stream parsing', () => {
                 progressChunks.push(chunk.content);
             });
 
-            expect(result.content).toBe('Activation code: A_748_192 bro.\nBypass code: B_7QK_4M2 bro.');
+            expect(result.content).toBe(spaceTrim(`
+                Activation code: A_748_192 bro.
+                Bypass code: B_7QK_4M2 bro.
+            `));
             expect(result.content).not.toContain('toolCalls');
             expect(result.toolCalls).toHaveLength(1);
             expect(result.toolCalls?.[0]?.name).toBe('team_chat_c467984b9a');

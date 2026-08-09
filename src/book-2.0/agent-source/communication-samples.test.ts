@@ -51,8 +51,16 @@ describe('communication samples into system message', () => {
 
         const requirements = await createAgentModelRequirementsWithCommitments(agentSource);
         expect(requirements.systemMessage).toContain('## Sample of communication with the agent:');
-        expect(requirements.systemMessage).toContain('**Agent:**\nI am ready to help.');
-        expect(requirements.systemMessage).toContain('**User:** Hello\n\n**Agent:**\nHi there!');
+        expect(requirements.systemMessage).toContain(spaceTrim(`
+            **Agent:**
+            I am ready to help.
+        `));
+        expect(requirements.systemMessage).toContain(spaceTrim(`
+            **User:** Hello
+
+            **Agent:**
+            Hi there!
+        `));
     });
 
     it('should NOT include horizontal lines in the system message', async () => {
@@ -91,8 +99,18 @@ describe('communication samples into system message', () => {
         );
 
         const requirements = await createAgentModelRequirementsWithCommitments(agentSource);
-        expect(requirements.systemMessage).toContain('**User:** One\n\n**Agent:**\nTwo');
-        expect(requirements.systemMessage).toContain('**User:** Three\n\n**Agent:**\nFour');
+        expect(requirements.systemMessage).toContain(spaceTrim(`
+            **User:** One
+
+            **Agent:**
+            Two
+        `));
+        expect(requirements.systemMessage).toContain(spaceTrim(`
+            **User:** Three
+
+            **Agent:**
+            Four
+        `));
     });
 
     it('should keep USER and AGENT pairing when INTERNAL MESSAGE is present between them', async () => {
@@ -119,7 +137,12 @@ describe('communication samples into system message', () => {
         });
 
         const requirements = await createAgentModelRequirementsWithCommitments(agentSource);
-        expect(requirements.systemMessage).toContain('**User:** Find weather in Prague\n\n**Agent:**\nIt is sunny.');
+        expect(requirements.systemMessage).toContain(spaceTrim(`
+            **User:** Find weather in Prague
+
+            **Agent:**
+            It is sunny.
+        `));
         expect(requirements.systemMessage).not.toContain('INTERNAL MESSAGE');
     });
 });

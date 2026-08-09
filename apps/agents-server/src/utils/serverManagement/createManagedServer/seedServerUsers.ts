@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { Client } from 'pg';
 import { hashPassword } from '../../auth';
 import { createInsertStatement, quoteIdentifier, type SqlRecorder } from './createSqlRecorder';
@@ -23,10 +24,10 @@ export async function seedServerUsers(
         const passwordHash = await hashPassword(user.password);
 
         await client.query(
-            `
+            spaceTrim(`
                 INSERT INTO ${userTableIdentifier} ("username", "passwordHash", "isAdmin", "createdAt", "updatedAt")
                 VALUES ($1, $2, $3, now(), now())
-            `,
+            `),
             [user.username, passwordHash, user.isAdmin],
         );
 

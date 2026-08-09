@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { describe, expect, it } from '@jest/globals';
 import { COMMITMENT_REGISTRY } from '../../commitments/index';
 import { parseAgentSourceWithCommitments } from './parseAgentSourceWithCommitments';
@@ -23,9 +24,9 @@ function getSupportedCommitmentKeywords(): Array<string> {
 
 describe('parseAgentSourceWithCommitments title prelude', () => {
     it('treats the first non-empty line as the agent name when there is no description block', () => {
-        const agentSource = validateBook(`Persona John
+        const agentSource = validateBook(spaceTrim(`Persona John
 
-PERSONA This is the first real commitment`);
+PERSONA This is the first real commitment`));
 
         const result = parseAgentSourceWithCommitments(agentSource);
 
@@ -42,9 +43,9 @@ PERSONA This is the first real commitment`);
     });
 
     it('treats the first non-empty line as plain text even when another commitment keyword appears later in the line', () => {
-        const agentSource = validateBook(`I don't know, Goal Generator
+        const agentSource = validateBook(spaceTrim(`I don't know, Goal Generator
 
-GOAL This is the first real commitment`);
+GOAL This is the first real commitment`));
 
         const result = parseAgentSourceWithCommitments(agentSource);
 
@@ -99,9 +100,9 @@ GOAL This is the first real commitment`);
     it.each(getSupportedCommitmentKeywords())(
         'never classifies the first non-empty line as `%s` commitment syntax',
         (commitmentKeyword) => {
-            const agentSource = validateBook(`${commitmentKeyword} Title
+            const agentSource = validateBook(spaceTrim(`${commitmentKeyword} Title
 
-NOTE This is the first real commitment`);
+NOTE This is the first real commitment`));
 
             const result = parseAgentSourceWithCommitments(agentSource);
 

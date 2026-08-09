@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { describe, expect, it } from '@jest/globals';
 import { book } from '../pipeline/book-notation';
 import { Book } from './Book';
@@ -105,7 +106,17 @@ describe('how `Book` works', () => {
             {
                 sender: 'AGENT',
                 content:
-                    'Short answer\nThe procedure requires approval in advance.\n\nV části „Requirements" je uvedeno, že:\n- item one\n- item two\n\nNext step\nCheck that approval was granted.',
+                    spaceTrim(`
+                        Short answer
+                        The procedure requires approval in advance.
+
+                        V části „Requirements" je uvedeno, že:
+                        - item one
+                        - item two
+
+                        Next step
+                        Check that approval was granted.
+                    `),
                 isComplete: true,
             },
         ]);

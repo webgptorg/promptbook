@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { resolveAgentProjectProfile } from './resolveAgentProjectProfile';
 
 describe('resolveAgentProjectProfile', () => {
@@ -22,7 +23,15 @@ describe('resolveAgentProjectProfile', () => {
                 readme: {
                     fileName: 'README.md',
                     content:
-                        '# **Public Website**\n\nThis is the **main** website [project](https://example.com).\n\n## Usage\n\nRun it.',
+                        spaceTrim(`
+                            # **Public Website**
+
+                            This is the **main** website [project](https://example.com).
+
+                            ## Usage
+
+                            Run it.
+                        `),
                 },
                 indexHtmlTitle: 'Ignored HTML Title',
             }),
@@ -39,7 +48,11 @@ describe('resolveAgentProjectProfile', () => {
                 projectDirectoryName: 'my-script',
                 readme: {
                     fileName: 'README.txt',
-                    content: 'Small automation script.\n\nSecond paragraph.',
+                    content: spaceTrim(`
+                        Small automation script.
+
+                        Second paragraph.
+                    `),
                 },
                 indexHtmlTitle: 'Small Automation',
             }),
@@ -70,7 +83,13 @@ describe('resolveAgentProjectProfile', () => {
                 projectDirectoryName: 'dashboard',
                 readme: {
                     fileName: 'README.md',
-                    content: 'Status badge.\n\n# Operations Dashboard\n\nTrack running jobs.',
+                    content: spaceTrim(`
+                        Status badge.
+
+                        # Operations Dashboard
+
+                        Track running jobs.
+                    `),
                 },
                 indexHtmlTitle: null,
             }),

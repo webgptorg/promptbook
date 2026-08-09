@@ -1,10 +1,17 @@
+import { spaceTrim } from 'spacetrim';
 import { buildAgentMessagePrompt } from './buildAgentMessagePrompt';
 
 describe('buildAgentMessagePrompt', () => {
     it('builds the message-answering prompt around the compiled local agent system message', () => {
         const prompt = buildAgentMessagePrompt(
             'messages/queued/question.book',
-            'You are Support Assistant\n\n## Rules\n\n-   Be concise.',
+            spaceTrim(`
+                You are Support Assistant
+
+                ## Rules
+
+                -   Be concise.
+            `),
         );
 
         expect(prompt).toContain('-   Read `messages/queued/question.book` and answer the most recent `MESSAGE @User`');

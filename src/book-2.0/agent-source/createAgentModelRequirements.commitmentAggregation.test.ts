@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { describe, expect, it } from '@jest/globals';
 import { createAgentModelRequirements } from './createAgentModelRequirements';
 import { validateBook } from './string_book';
@@ -17,11 +18,11 @@ function countOccurrences(haystack: string, needle: string): number {
 
 describe('createAgentModelRequirements commitment aggregation', () => {
     it('keeps multi-PERSONA content merged without duplication or reordering', async () => {
-        const agentSource = validateBook(`
+        const agentSource = validateBook(spaceTrim(`
             Persona Agent
             PERSONA First persona trait.
             PERSONA Second persona trait.
-        `);
+        `));
 
         const requirements = await createAgentModelRequirements(agentSource);
 
@@ -34,12 +35,12 @@ describe('createAgentModelRequirements commitment aggregation', () => {
     });
 
     it('keeps only the last GOAL commitment effective after rewrite ordering', async () => {
-        const agentSource = validateBook(`
+        const agentSource = validateBook(spaceTrim(`
             Goal Agent
             GOAL Inherited goal.
             RULE Stay concise.
             GOALS Final goal.
-        `);
+        `));
 
         const requirements = await createAgentModelRequirements(agentSource);
 

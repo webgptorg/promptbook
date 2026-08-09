@@ -93,7 +93,10 @@ describe('loadAgentRunUiMetadata', () => {
 
 describe('extractLatestUserMessageLines', () => {
     it('falls back to the full file when no `MESSAGE @User` block exists', () => {
-        expect(extractLatestUserMessageLines('Plain text message\nWithout a structured block')).toEqual([
+        expect(extractLatestUserMessageLines(spaceTrim(`
+            Plain text message
+            Without a structured block
+        `))).toEqual([
             'Plain text message',
             'Without a structured block',
         ]);

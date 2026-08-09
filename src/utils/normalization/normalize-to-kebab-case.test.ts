@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { describe, expect, it } from '@jest/globals';
 import { normalizeToKebabCase } from './normalize-to-kebab-case';
 
@@ -16,7 +17,10 @@ describe('how normalizing to kebab-case works', () => {
         expect(normalizeToKebabCase('hello_/_world')).toEqual('hello-world');
         expect(normalizeToKebabCase('hello_\\_world')).toEqual('hello-world');
         expect(normalizeToKebabCase('hello.world')).toEqual('hello-world');
-        expect(normalizeToKebabCase('hello\nworld')).toEqual('hello-world');
+        expect(normalizeToKebabCase(spaceTrim(`
+            hello
+            world
+        `))).toEqual('hello-world');
     });
 
     it('will normalize chars with diacritics', () => {

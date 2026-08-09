@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideClientSql } from '@/src/database/$provideClientSql';
 import { isAgentsServerSqliteMode } from '@/src/database/agentsServerDatabaseMode';
@@ -46,7 +47,7 @@ async function persistFinalUserChatJobStatus(options: {
         const sql = await $provideClientSql();
         const userChatJobTable = quoteIdentifier(await $getTableName('UserChatJob'));
         const rows = await sql.raw<Array<UserChatJobRecord>>(
-            `
+            spaceTrim(`
                 UPDATE ${userChatJobTable}
                 SET
                     "status" = $1,
@@ -79,7 +80,7 @@ async function persistFinalUserChatJobStatus(options: {
                     "attemptCount",
                     "provider",
                     "failureReason"
-            `,
+            `),
             [
                 options.status,
                 nowIso,

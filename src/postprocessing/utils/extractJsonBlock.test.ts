@@ -48,11 +48,11 @@ describe('how `extractJsonBlock` works', () => {
     it('does not matter on formatting', () =>
         expect(
             jsonParse(
-                extractJsonBlock(`
+                extractJsonBlock(spaceTrim(`
                   { "foo"
 
                   : "bar"          }
-                `),
+                `)),
             ),
         ).toEqual({ foo: 'bar' }));
 

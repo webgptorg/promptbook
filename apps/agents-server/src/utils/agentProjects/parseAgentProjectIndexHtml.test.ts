@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { describe, expect, it } from '@jest/globals';
 import { parseAgentProjectIndexHtml } from './parseAgentProjectIndexHtml';
 
@@ -25,7 +26,12 @@ describe('parseAgentProjectIndexHtml', () => {
     });
 
     it('decodes entities and collapses whitespace of a multiline title', () => {
-        expect(parseAgentProjectIndexHtml('<title>\n  Maps &amp; Murders\n  &#8212; Prague\n</title>').title).toBe(
+        expect(parseAgentProjectIndexHtml(spaceTrim(`
+            <title>
+              Maps &amp; Murders
+              &#8212; Prague
+            </title>
+        `)).title).toBe(
             'Maps & Murders — Prague',
         );
     });

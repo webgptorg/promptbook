@@ -87,7 +87,11 @@ describe('SelfLearningManager', () => {
             // Check if the prompt contains the instruction to generate INITIAL MESSAGE
             if (prompt.content.includes('The agent source does not have an INITIAL MESSAGE defined, generate one.')) {
                 return {
-                    content: '```book\nINITIAL MESSAGE Hello! I am your helpful assistant.\n```',
+                    content: spaceTrim(`
+                        \`\`\`book
+                        INITIAL MESSAGE Hello! I am your helpful assistant.
+                        \`\`\`
+                    `),
                     modelName: 'teacher-model' as string_model_name,
                     timing: {
                         start: '2026-02-24T12:00:00.000Z' as string_date_iso8601,
@@ -100,7 +104,10 @@ describe('SelfLearningManager', () => {
                 } as ChatPromptResult;
             }
             return {
-                content: '```book\n```',
+                content: spaceTrim(`
+                    \`\`\`book
+                    \`\`\`
+                `),
                 modelName: 'teacher-model' as string_model_name,
                 timing: {
                     start: '2026-02-24T12:00:00.000Z' as string_date_iso8601,
@@ -169,7 +176,11 @@ describe('SelfLearningManager', () => {
 
         const callChatModelMock = jest.fn(async (prompt: Prompt) => {
             return {
-                content: '```book\nKNOWLEDGE New info.\n```',
+                content: spaceTrim(`
+                    \`\`\`book
+                    KNOWLEDGE New info.
+                    \`\`\`
+                `),
                 modelName: 'teacher-model' as string_model_name,
                 timing: {
                     start: '2026-02-24T12:00:00.000Z' as string_date_iso8601,

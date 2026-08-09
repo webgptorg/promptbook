@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { splitMessageContentIntoSegments } from './splitMessageContentIntoSegments';
 
 describe('splitMessageContentIntoSegments', () => {
@@ -12,7 +13,13 @@ describe('splitMessageContentIntoSegments', () => {
 
     it('parses fenced code into code segments while preserving surrounding text', () => {
         const segments = splitMessageContentIntoSegments(
-            'Here is a snippet:\n```ts\nconst foo = 123;\n```\nBack to words.',
+            spaceTrim(`
+                Here is a snippet:
+                \`\`\`ts
+                const foo = 123;
+                \`\`\`
+                Back to words.
+            `),
         );
 
         expect(segments).toHaveLength(3);
@@ -32,7 +39,13 @@ describe('splitMessageContentIntoSegments', () => {
     });
 
     it('supports tilde fences and language aliases for code blocks', () => {
-        const segments = splitMessageContentIntoSegments('Before\n~~~bash\nls -la\n~~~\nAfter');
+        const segments = splitMessageContentIntoSegments(spaceTrim(`
+            Before
+            ~~~bash
+            ls -la
+            ~~~
+            After
+        `));
 
         expect(segments[1]).toEqual({
             type: 'code',
@@ -43,7 +56,13 @@ describe('splitMessageContentIntoSegments', () => {
 
     it('parses GeoJSON blocks into map segments while preserving surrounding text', () => {
         const segments = splitMessageContentIntoSegments(
-            'Here is a map:\n```geojson\n{"type":"Feature","geometry":{"type":"Point","coordinates":[0,0]}}\n```\nSee you.',
+            spaceTrim(`
+                Here is a map:
+                \`\`\`geojson
+                {"type":"Feature","geometry":{"type":"Point","coordinates":[0,0]}}
+                \`\`\`
+                See you.
+            `),
         );
 
         expect(segments).toHaveLength(3);
@@ -79,7 +98,11 @@ describe('splitMessageContentIntoSegments', () => {
     });
 
     it('leaves unterminated code fences as plain text', () => {
-        const content = 'Broken code:\n```python\nprint("hi")';
+        const content = spaceTrim(`
+            Broken code:
+            \`\`\`python
+            print("hi")
+        `);
         const segments = splitMessageContentIntoSegments(content);
 
         expect(segments.every((segment) => segment.type === 'text')).toBe(true);

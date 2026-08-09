@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { $provideClientSql } from '@/src/database/$provideClientSql';
 import { isAgentsServerSqliteMode } from '@/src/database/agentsServerDatabaseMode';
 import type { UserChatTimeoutRecord, UserChatTimeoutRow } from '../UserChatTimeoutRecord';
@@ -32,31 +33,33 @@ export async function claimNextDueUserChatTimeout(
 
     try {
         claimedRows = await sql.raw<Array<UserChatTimeoutRow>>(
-            `
-                WITH candidate AS (
-                    SELECT timeout."id"
-                    FROM ${tableIdentifier} timeout
-                    WHERE timeout."status" = 'QUEUED'
-                      AND timeout."cancelRequestedAt" IS NULL
-                      AND timeout."pausedAt" IS NULL
-                      AND timeout."dueAt" <= CURRENT_TIMESTAMP
-                      ${preferredTimeoutClause}
-                    ORDER BY timeout."dueAt" ASC, timeout."createdAt" ASC
-                    LIMIT 1
-                    FOR UPDATE SKIP LOCKED
-                )
-                UPDATE ${tableIdentifier} timeout
-                SET
-                    "status" = 'RUNNING',
-                    "updatedAt" = CURRENT_TIMESTAMP,
-                    "startedAt" = COALESCE(timeout."startedAt", CURRENT_TIMESTAMP),
-                    "leaseExpiresAt" = CURRENT_TIMESTAMP + ($1 * INTERVAL '1 millisecond'),
-                    "attemptCount" = timeout."attemptCount" + 1,
-                    "failureReason" = NULL
-                FROM candidate
-                WHERE timeout."id" = candidate."id"
-                RETURNING timeout.*
-            `,
+            spaceTrim(
+                (block) => `
+                    WITH candidate AS (
+                        SELECT timeout."id"
+                        FROM ${tableIdentifier} timeout
+                        WHERE timeout."status" = 'QUEUED'
+                          AND timeout."cancelRequestedAt" IS NULL
+                          AND timeout."pausedAt" IS NULL
+                          AND timeout."dueAt" <= CURRENT_TIMESTAMP
+                          ${block(preferredTimeoutClause)}
+                        ORDER BY timeout."dueAt" ASC, timeout."createdAt" ASC
+                        LIMIT 1
+                        FOR UPDATE SKIP LOCKED
+                    )
+                    UPDATE ${tableIdentifier} timeout
+                    SET
+                        "status" = 'RUNNING',
+                        "updatedAt" = CURRENT_TIMESTAMP,
+                        "startedAt" = COALESCE(timeout."startedAt", CURRENT_TIMESTAMP),
+                        "leaseExpiresAt" = CURRENT_TIMESTAMP + ($1 * INTERVAL '1 millisecond'),
+                        "attemptCount" = timeout."attemptCount" + 1,
+                        "failureReason" = NULL
+                    FROM candidate
+                    WHERE timeout."id" = candidate."id"
+                    RETURNING timeout.*
+                `,
+            ),
             values,
         );
     } catch (error) {

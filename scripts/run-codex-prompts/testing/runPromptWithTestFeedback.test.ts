@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { UNCERTAIN_USAGE } from '../../../src/execution/utils/usage-constants';
 import type { WaitForCoderRunPauseCheckpoint } from '../common/CoderRunPauseCheckpoint';
 import type { PromptRunner } from '../runners/types/PromptRunner';
@@ -67,7 +68,10 @@ describe('runPromptWithTestFeedback', () => {
         const pauseCheckpointLabels: string[] = [];
         const runPromptTestCommandExecutor = jest
             .fn<ReturnType<RunPromptTestCommandExecutor>, Parameters<RunPromptTestCommandExecutor>>()
-            .mockRejectedValueOnce(new Error('Test suite failed\nExpected `true` to equal `false`'))
+            .mockRejectedValueOnce(new Error(spaceTrim(`
+                Test suite failed
+                Expected \`true\` to equal \`false\`
+            `)))
             .mockResolvedValueOnce('All tests passed');
         const waitForPauseCheckpoint = jest.fn<
             ReturnType<WaitForCoderRunPauseCheckpoint>,

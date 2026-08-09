@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { describe, expect, it } from '@jest/globals';
 import { validateBook } from '../../book-2.0/agent-source/string_book';
 import { createDeprecatedCommitmentDiagnostics } from './createDeprecatedCommitmentDiagnostics';
@@ -5,11 +6,11 @@ import { createDeprecatedCommitmentDiagnostics } from './createDeprecatedCommitm
 describe('createDeprecatedCommitmentDiagnostics', () => {
     it('creates warning diagnostics for deprecated SAMPLE and EXAMPLE commitments', () => {
         const diagnostics = createDeprecatedCommitmentDiagnostics(
-            validateBook(`Copywriter
+            validateBook(spaceTrim(`Copywriter
 
 SAMPLE Legacy sample
 RULE Stay accurate
-EXAMPLE Newer legacy sample`),
+EXAMPLE Newer legacy sample`)),
         );
 
         expect(diagnostics).toEqual([
@@ -30,10 +31,10 @@ EXAMPLE Newer legacy sample`),
 
     it('creates warning diagnostics for deprecated PERSONA commitments', () => {
         const diagnostics = createDeprecatedCommitmentDiagnostics(
-            validateBook(`Planner
+            validateBook(spaceTrim(`Planner
 
 PERSONA You are a practical planning assistant.
-GOAL Help the user turn plans into concrete next steps.`),
+GOAL Help the user turn plans into concrete next steps.`)),
         );
 
         expect(diagnostics).toEqual([
@@ -48,10 +49,10 @@ GOAL Help the user turn plans into concrete next steps.`),
 
     it('creates warning diagnostics for deprecated STYLE commitments', () => {
         const diagnostics = createDeprecatedCommitmentDiagnostics(
-            validateBook(`Copywriter
+            validateBook(spaceTrim(`Copywriter
 
 STYLE Keep responses crisp and upbeat.
-WRITING RULES Keep paragraphs short.`),
+WRITING RULES Keep paragraphs short.`)),
         );
 
         expect(diagnostics).toEqual([
@@ -67,10 +68,10 @@ WRITING RULES Keep paragraphs short.`),
 
     it('creates warning diagnostics for deprecated TEMPLATE and FORMAT commitments', () => {
         const diagnostics = createDeprecatedCommitmentDiagnostics(
-            validateBook(`Data Analyst
+            validateBook(spaceTrim(`Data Analyst
 
 TEMPLATE Always structure the response with summary, details, and next steps.
-FORMAT Use markdown headings and bullet points.`),
+FORMAT Use markdown headings and bullet points.`)),
         );
 
         expect(diagnostics).toEqual([
@@ -91,10 +92,10 @@ FORMAT Use markdown headings and bullet points.`),
 
     it('creates warning diagnostics for unfinished DELETE commitments', () => {
         const diagnostics = createDeprecatedCommitmentDiagnostics(
-            validateBook(`Prompt Surgeon
+            validateBook(spaceTrim(`Prompt Surgeon
 
 DELETE Remove conflicting instructions
-REMOVE Remove conflicting tone requirements`),
+REMOVE Remove conflicting tone requirements`)),
         );
 
         expect(diagnostics).toEqual([
@@ -115,10 +116,10 @@ REMOVE Remove conflicting tone requirements`),
 
     it('creates warning diagnostics for low-level MODEL commitments', () => {
         const diagnostics = createDeprecatedCommitmentDiagnostics(
-            validateBook(`Model Tuner
+            validateBook(spaceTrim(`Model Tuner
 
 MODEL NAME gpt-4
-RULE Keep responses precise.`),
+RULE Keep responses precise.`)),
         );
 
         expect(diagnostics).toEqual([
@@ -133,11 +134,11 @@ RULE Keep responses precise.`),
 
     it('does not create warnings for WRITING SAMPLE, WRITING RULES, or RULE', () => {
         const diagnostics = createDeprecatedCommitmentDiagnostics(
-            validateBook(`Copywriter
+            validateBook(spaceTrim(`Copywriter
 
 WRITING SAMPLE Fresh sample
 WRITING RULES Keep it short
-RULE Stay accurate`),
+RULE Stay accurate`)),
         );
 
         expect(diagnostics).toEqual([]);

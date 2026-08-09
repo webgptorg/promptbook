@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { $execCommand } from '../../../src/utils/execCommand/$execCommand';
 import { pullLatestChanges } from './pullLatestChanges';
 import { runGitCommand } from './runGitCommand';
@@ -70,7 +71,10 @@ describe('pullLatestChanges', () => {
             }
 
             if (command === 'git remote') {
-                return 'origin\nupstream';
+                return spaceTrim(`
+                    origin
+                    upstream
+                `);
             }
 
             throw new Error(`Unexpected command: ${command}`);

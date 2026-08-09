@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import JSZip from 'jszip';
 import { $getTableName } from '../../database/$getTableName';
@@ -90,7 +91,11 @@ function createConflictPlanningSupabaseMock() {
                 data: [
                     {
                         agentName: 'helper',
-                        agentSource: 'Helper\n\nPERSONA Existing assistant',
+                        agentSource: spaceTrim(`
+                            Helper
+
+                            PERSONA Existing assistant
+                        `),
                     },
                 ],
                 error: null,
@@ -140,7 +145,11 @@ describe('agents import utilities', () => {
         provideSupabaseForServerMock.mockReturnValue(createConflictPlanningSupabaseMock() as never);
 
         const result = await importAgentsFromFiles({
-            files: [createTextImportFile('Helper.book', 'Helper\n\nPERSONA Imported assistant')],
+            files: [createTextImportFile('Helper.book', spaceTrim(`
+                Helper
+
+                PERSONA Imported assistant
+            `))],
             targetFolderId: null,
             conflictResolution: 'ASK',
         });

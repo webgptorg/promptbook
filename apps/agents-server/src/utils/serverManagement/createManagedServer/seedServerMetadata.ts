@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { Client } from 'pg';
 import { createInsertStatement, quoteIdentifier, type SqlRecorder } from './createSqlRecorder';
 import type { NormalizedCreateServerInput } from './normalizeCreateServerInput';
@@ -20,10 +21,10 @@ export async function seedServerMetadata(
 
     for (const metadataEntry of input.metadataEntries) {
         await client.query(
-            `
+            spaceTrim(`
                 INSERT INTO ${metadataTableIdentifier} ("key", "value", "note", "createdAt", "updatedAt")
                 VALUES ($1, $2, $3, now(), now())
-            `,
+            `),
             [metadataEntry.key, metadataEntry.value, metadataEntry.note],
         );
 

@@ -47,12 +47,12 @@ export async function deleteManagedServer(options: {
         }
 
         const remainingRows = await client.query<Record<string, unknown>>(
-            `
+            spaceTrim(`
                 SELECT "id", "name", "environment", "domain", "tablePrefix", "createdAt", "updatedAt"
                 FROM "${SERVER_REGISTRY_TABLE_NAME}"
                 ORDER BY "name" ASC
                 LIMIT 1
-            `,
+            `),
         );
 
         await client.query('COMMIT');

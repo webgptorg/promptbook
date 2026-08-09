@@ -1,10 +1,11 @@
+import { spaceTrim } from 'spacetrim';
 import { describe, expect, it } from '@jest/globals';
 import type { string_book } from '../../../../../src/book-2.0/agent-source/string_book';
 import { createImmediateUserChatAnswerModelRequirements } from './createImmediateUserChatAnswerModelRequirements';
 
 describe('createImmediateUserChatAnswerModelRequirements', () => {
     it('keeps only lightweight instruction commitments in the immediate pre-answer system message', () => {
-        const agentSource = `
+        const agentSource = spaceTrim(`
             Support Agent
 
             GOAL Help users understand the product quickly.
@@ -13,7 +14,7 @@ describe('createImmediateUserChatAnswerModelRequirements', () => {
             KNOWLEDGE Internal policy database should not be loaded for the fast answer.
             USE PRIVACY Do not store anything from this conversation.
             USE CALENDAR https://calendar.google.com/calendar/u/0/r
-        ` as string_book;
+        `) as string_book;
 
         const modelRequirements = createImmediateUserChatAnswerModelRequirements(agentSource);
         const systemMessage = modelRequirements.systemMessage || '';
@@ -37,11 +38,11 @@ describe('createImmediateUserChatAnswerModelRequirements', () => {
     });
 
     it('falls back to the agent name when no lightweight instruction commitments are present', () => {
-        const agentSource = `
+        const agentSource = spaceTrim(`
             Bare Agent
 
             KNOWLEDGE Slow knowledge source.
-        ` as string_book;
+        `) as string_book;
 
         const modelRequirements = createImmediateUserChatAnswerModelRequirements(agentSource);
         const systemMessage = modelRequirements.systemMessage || '';

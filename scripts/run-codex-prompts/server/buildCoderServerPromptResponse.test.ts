@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { join } from 'path';
 import moment from 'moment';
 import { parsePromptFile } from '../prompts/parsePromptFile';
@@ -36,7 +37,7 @@ describe('buildCoderServerPromptFileResponses', () => {
     it('classifies prompt sections into the server board columns', () => {
         const promptFile = createPromptFile(
             'prompts/queue.md',
-            `
+            spaceTrim(`
             [ ] !!
             Active ready prompt
             ---
@@ -60,14 +61,14 @@ describe('buildCoderServerPromptFileResponses', () => {
             ---
             [!] failed by agent
             Failed prompt
-        `,
+        `),
         );
         const finishedPromptFile = createPromptFile(
             'prompts/done/finished.md',
-            `
+            spaceTrim(`
             [x] verified
             Finished prompt
-        `,
+        `),
         );
         const uiState = new CoderRunUiState(moment());
         uiState.setCurrentPrompt(buildPromptLabelForDisplay(promptFile, promptFile.sections[0]!));
@@ -110,10 +111,10 @@ describe('buildCoderServerPromptFileResponses', () => {
     it('keeps a prompt left in the middle of its implementation in the in-progress column', () => {
         const promptFile = createPromptFile(
             'prompts/left-in-progress.md',
-            `
+            spaceTrim(`
             [^] by OpenAI Codex \`gpt-5.6-luna\` - Implementation in progress
             Abandoned prompt
-        `,
+        `),
         );
 
         const responses = buildCoderServerPromptFileResponses({
@@ -132,10 +133,10 @@ describe('buildCoderServerPromptFileResponses', () => {
     it('uses the implementing tag for the active running prompt', () => {
         const promptFile = createPromptFile(
             'prompts/active.md',
-            `
+            spaceTrim(`
             [ ] !
             Running prompt
-        `,
+        `),
         );
         const uiState = new CoderRunUiState(moment());
         uiState.setCurrentPrompt(buildPromptLabelForDisplay(promptFile, promptFile.sections[0]!));

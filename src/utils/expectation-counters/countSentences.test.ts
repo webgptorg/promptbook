@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { describe, expect, it } from '@jest/globals';
 import { countSentences } from './countSentences';
 
@@ -26,6 +27,9 @@ describe('countSentences', () => {
 
     it('should return the correct count for a string with whitespace characters', () => {
         expect(countSentences('Hello world. How are you?')).toBe(2);
-        expect(countSentences('This is a sentence.\nThis is another sentence.')).toBe(2);
+        expect(countSentences(spaceTrim(`
+            This is a sentence.
+            This is another sentence.
+        `))).toBe(2);
     });
 });

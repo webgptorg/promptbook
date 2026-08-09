@@ -1,4 +1,6 @@
 'use client';
+import { spaceTrim } from 'spacetrim';
+
 
 import type { Feature, GeoJsonObject, GeoJsonProperties, Geometry } from 'geojson';
 import type { LatLng, Layer, Map as LeafletMap, Path, PathOptions } from 'leaflet';
@@ -253,10 +255,12 @@ function createPointOfInterestMarker(leaflet: LeafletNamespace, feature: ChatGeo
 
     const icon = leaflet.divIcon({
         className: styles.poiMarkerIcon,
-        html: `
-            <span class="${styles.poiMarkerPulse}" aria-hidden="true"></span>
-            ${initialHtml}
-        `.trim(),
+        html: spaceTrim(
+            (block) => `
+                <span class="${styles.poiMarkerPulse}" aria-hidden="true"></span>
+                ${block(initialHtml)}
+            `,
+        ).trim(),
         iconSize: [POI_MARKER_CONFIG.size, POI_MARKER_CONFIG.size],
         iconAnchor: POI_MARKER_CONFIG.anchor,
     });

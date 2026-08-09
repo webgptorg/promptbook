@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { describe, expect, it } from '@jest/globals';
 
 import { parseAgentSourceWithCommitments } from '../../../../../../../src/book-2.0/agent-source/parseAgentSourceWithCommitments';
@@ -8,7 +9,13 @@ import { insertBookContentBeforeLearningMarker } from '../lib/bookSource';
 /**
  * Minimal valid Book used to test section insertion.
  */
-const BASE_BOOK = 'Support Helper\n\nGOAL Answers support questions.\n\nCLOSED';
+const BASE_BOOK = spaceTrim(`
+    Support Helper
+
+    GOAL Answers support questions.
+
+    CLOSED
+`);
 
 describe('manGo Book sections', () => {
     it('uses Book-language commitments for every section preset', () => {
