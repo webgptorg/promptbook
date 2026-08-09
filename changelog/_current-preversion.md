@@ -1,3 +1,7 @@
+-   Fixed the `ptbk coder` landing page live terminal so its agent visual now uses the exact same shared animated
+    ANSI ASCII renderer as `ptbk coder run`, rather than showing the browser canvas avatar. The visual keeps the
+    developer agent book as its source and maps only the shared renderer's terminal colors to browser text spans.
+
 -   Fixed long-running rich `ptbk coder` sessions making VS Code lag after a terminal regains focus. Terminal frame
     updates now batch all cursor movement and changed animated-avatar rows into one stdout write, instead of issuing a
     write for every row, so the dashboard remains animated without building a large terminal-rendering backlog.
