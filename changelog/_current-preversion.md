@@ -1,3 +1,7 @@
+-   Fixed long-running rich `ptbk coder` sessions making VS Code lag after a terminal regains focus. Terminal frame
+    updates now batch all cursor movement and changed animated-avatar rows into one stdout write, instead of issuing a
+    write for every row, so the dashboard remains animated without building a large terminal-rendering backlog.
+
 -   Fixed goal-chat notices and planned-message panels covering the beginning of the conversation. The shared chat header
     slot now reserves space above the messages instead of overlaying them.
 

@@ -1,5 +1,5 @@
 import moment from 'moment';
-import { clearLine, cursorTo, emitKeypressEvents } from 'readline';
+import { emitKeypressEvents } from 'readline';
 import {
     getEndAfterCurrentPromptState,
     getPauseState,
@@ -9,6 +9,7 @@ import {
     togglePauseState,
 } from '../common/waitForPause';
 import { buildCoderRunUiFrame, type BuildCoderRunUiFrameOptions } from './buildCoderRunUiFrame';
+import { buildCoderRunUiTerminalFrameUpdate } from './buildCoderRunUiTerminalFrameUpdate';
 import { CoderRunUiState } from './CoderRunUiState';
 import { getCoderRunUiAutoRefreshInterval } from './coderRunUiRefresh';
 
@@ -195,69 +196,6 @@ export function renderCoderRunUi(
     }
 
     /**
-     * Moves the cursor relative to the bottom of the current frame and rewrites one line in place.
-     */
-    function rewriteFrameLine(frameLineCount: number, lineIndex: number, line: string): void {
-        const linesUpFromBottom = Math.max(0, frameLineCount - 1 - lineIndex);
-
-        if (linesUpFromBottom > 0) {
-            process.stdout.write(`\x1b[${linesUpFromBottom}A`);
-        }
-
-        clearLine(process.stdout, 0);
-        cursorTo(process.stdout, 0);
-        process.stdout.write(line);
-        cursorTo(process.stdout, 0);
-
-        if (linesUpFromBottom > 0) {
-            process.stdout.write(`\x1b[${linesUpFromBottom}B`);
-            cursorTo(process.stdout, 0);
-        }
-    }
-
-    /**
-     * Fully rewrites the reserved frame area.
-     */
-    function renderFullFrame(lines: readonly string[]): void {
-        const previousFrameLineCount = previousFrameLines.length;
-        const linesToRewriteCount = Math.max(previousFrameLineCount, lines.length);
-
-        if (previousFrameLineCount > 1) {
-            process.stdout.write(`\x1b[${previousFrameLineCount - 1}A`);
-        }
-
-        for (let i = 0; i < linesToRewriteCount; i++) {
-            clearLine(process.stdout, 0);
-            cursorTo(process.stdout, 0);
-            process.stdout.write(lines[i] ?? '');
-
-            if (i < linesToRewriteCount - 1) {
-                process.stdout.write('\n');
-            }
-        }
-
-        const clearedTrailingLines = linesToRewriteCount - lines.length;
-        if (clearedTrailingLines > 0) {
-            process.stdout.write(`\x1b[${clearedTrailingLines}A`);
-        }
-
-        cursorTo(process.stdout, 0);
-    }
-
-    /**
-     * Updates only the frame rows whose visible content changed.
-     */
-    function renderChangedLines(lines: readonly string[]): void {
-        for (let i = 0; i < lines.length; i++) {
-            if (previousFrameLines[i] === lines[i]) {
-                continue;
-            }
-
-            rewriteFrameLine(lines.length, i, lines[i]!);
-        }
-    }
-
-    /**
      * Builds the current frame snapshot from the latest state.
      */
     function buildFrameLines(): string[] {
@@ -302,10 +240,13 @@ export function renderCoderRunUi(
         try {
             const lines = buildFrameLines();
 
-            if (previousFrameLines.length === 0 || previousFrameLines.length !== lines.length) {
-                renderFullFrame(lines);
-            } else {
-                renderChangedLines(lines);
+            const terminalFrameUpdate = buildCoderRunUiTerminalFrameUpdate({
+                previousFrameLines,
+                nextFrameLines: lines,
+            });
+
+            if (terminalFrameUpdate !== undefined) {
+                process.stdout.write(terminalFrameUpdate);
             }
 
             previousFrameLines = [...lines];
