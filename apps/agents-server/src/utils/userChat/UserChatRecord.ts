@@ -41,6 +41,10 @@ export type UserChatSummary = {
     updatedAt: string;
     lastMessageAt: string | null;
     source: UserChatSource;
+    /**
+     * Database user id owning the chat, used to link a super-admin to its owner.
+     */
+    userId?: number;
     isReadOnly: boolean;
     /**
      * True when the chat belongs to a different user than the current viewer

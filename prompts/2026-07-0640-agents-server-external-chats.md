@@ -1,4 +1,4 @@
-[ ]
+[x] (2 attempts) by OpenAI Codex `gpt-5.6-terra` thinking `max` (ChatGPT account) - Implementation ~$0.4804 31 minutes; Testing 13 minutes; Fixing ~$0.8590 an hour; Testing 18 minutes
 
 [✨🏟] When a superadmin is looking on external chats, allow to see the chats from all users that happened on
 
@@ -11,3 +11,4 @@
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ![alt text](screenshots/2026-07-0640-agents-server-external-chats.png)
+

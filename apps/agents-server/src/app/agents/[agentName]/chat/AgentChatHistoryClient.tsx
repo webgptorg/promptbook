@@ -355,6 +355,7 @@ function AgentChatHistoryReadyView(props: AgentChatHistoryReadyViewProps) {
             <ExternalUserChatAdminActions
                 agentName={agentName}
                 chatId={activeChatId}
+                userId={activeChatSummary?.userId}
                 chatTitle={activeChatSummary?.title || 'Recorded chat'}
                 messages={renderedActiveMessages}
             />

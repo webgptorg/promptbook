@@ -16,6 +16,13 @@ import {
 const ADMIN_CHAT_HISTORY_ROUTE = '/admin/chat-history';
 
 /**
+ * Route of one admin user detail page linked from the external-chat view.
+ *
+ * @private constant of <ExternalUserChatAdminActions/>
+ */
+const ADMIN_USERS_ROUTE = '/admin/users';
+
+/**
  * Builds the admin chat-history link pointing at the most detailed view of one chat.
  *
  * When the agent and chat thread are known the link opens the recorded conversation
@@ -23,11 +30,15 @@ const ADMIN_CHAT_HISTORY_ROUTE = '/admin/chat-history';
  *
  * @private utility of <ExternalUserChatAdminActions/>
  */
-function buildAdminChatHistoryHref(agentName: string, chatId: string): string {
+function buildAdminChatHistoryHref(agentName: string, chatId: string, userId: number | undefined): string {
     const params = new URLSearchParams();
 
     if (agentName) {
         params.set('agentName', agentName);
+    }
+
+    if (isValidUserId(userId)) {
+        params.set('userId', String(userId));
     }
 
     if (chatId) {
@@ -37,6 +48,28 @@ function buildAdminChatHistoryHref(agentName: string, chatId: string): string {
 
     const qs = params.toString();
     return qs ? `${ADMIN_CHAT_HISTORY_ROUTE}?${qs}` : ADMIN_CHAT_HISTORY_ROUTE;
+}
+
+/**
+ * Builds the user detail link for a valid chat owner id.
+ *
+ * @private utility of <ExternalUserChatAdminActions/>
+ */
+function buildAdminUserHref(userId: number | undefined): string | null {
+    if (!isValidUserId(userId)) {
+        return null;
+    }
+
+    return `${ADMIN_USERS_ROUTE}/${encodeURIComponent(String(userId))}`;
+}
+
+/**
+ * Returns whether a value can identify one persisted user.
+ *
+ * @private utility of <ExternalUserChatAdminActions/>
+ */
+function isValidUserId(userId: number | undefined): userId is number {
+    return typeof userId === 'number' && Number.isSafeInteger(userId) && userId > 0;
 }
 
 /**
@@ -54,6 +87,10 @@ type ExternalUserChatAdminActionsProps = {
      */
     readonly chatId: string;
     /**
+     * Database user id of the person who owns the viewed chat.
+     */
+    readonly userId?: number;
+    /**
      * Title of the viewed chat used as the mocked-chat preset name.
      */
     readonly chatTitle: string;
@@ -65,18 +102,20 @@ type ExternalUserChatAdminActionsProps = {
 
 /**
  * Super-admin quick actions rendered inside the frozen banner of external users' chats:
- * create a mocked chat from the conversation and jump to the admin chat history.
+ * create a mocked chat from the conversation, open its owner profile, and jump to the admin chat history.
  *
  * @private component of <AgentChatHistoryClient/>
  */
 export function ExternalUserChatAdminActions({
     agentName,
     chatId,
+    userId,
     chatTitle,
     messages,
 }: ExternalUserChatAdminActionsProps) {
     const [isCreatingMock, setIsCreatingMock] = useState(false);
-    const adminChatHistoryHref = buildAdminChatHistoryHref(agentName, chatId);
+    const adminChatHistoryHref = buildAdminChatHistoryHref(agentName, chatId, userId);
+    const adminUserHref = buildAdminUserHref(userId);
 
     const handleCreateMock = useCallback(async () => {
         if (isCreatingMock) {
@@ -113,6 +152,15 @@ export function ExternalUserChatAdminActions({
             >
                 {isCreatingMock ? 'Creating mock…' : 'Create mock'}
             </button>
+            {adminUserHref && (
+                <a
+                    href={adminUserHref}
+                    className="rounded-full border border-amber-300 bg-white/80 px-3 py-1 text-xs font-semibold text-amber-900 hover:bg-white dark:border-amber-500/40 dark:bg-transparent dark:text-amber-100"
+                    title="Open the profile of the user who created this chat"
+                >
+                    User #{userId}
+                </a>
+            )}
             <a
                 href={adminChatHistoryHref}
                 className="rounded-full border border-amber-300 bg-white/80 px-3 py-1 text-xs font-semibold text-amber-900 hover:bg-white dark:border-amber-500/40 dark:bg-transparent dark:text-amber-100"
