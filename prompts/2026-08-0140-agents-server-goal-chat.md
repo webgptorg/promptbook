@@ -42,7 +42,7 @@
 
 ---
 
-[ ]
+[x] by OpenAI Codex `gpt-5.6-terra` thinking `max` (ChatGPT account) - Implementation ~$0.4576 33 minutes; Testing 18 minutes
 
 [✨🔶] The pop-ups in the goal-chat are obstructing the chat content itself, fix it
 
@@ -52,4 +52,5 @@
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ![alt text](screenshots/2026-08-0140-agents-server-goal-chat.png)
+
 

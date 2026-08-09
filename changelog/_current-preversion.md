@@ -1,3 +1,6 @@
+-   Fixed goal-chat notices and planned-message panels covering the beginning of the conversation. The shared chat header
+    slot now reserves space above the messages instead of overlaying them.
+
 -   Debounced the Agents Server’s automatic **“My book was updated”** goal-chat note independently for each agent. Book persistence retains its existing 1-second editor debounce, while the note is now written once, one minute after the latest successful source update, so typing no longer floods an agent’s goal chat.
 
 -   Fixed `ptbk coder generate-boilerplates --count N*M` so all `M` prompts in a generated file share one fresh emoji tag, while every generated file receives a different tag. Updated the `ptbk coder` landing page accordingly.

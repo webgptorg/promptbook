@@ -681,8 +681,9 @@ export type ChatProps = {
     readonly tasksProgress?: Array<{ id: string; name: string; progress?: number }>; // Simplified task progress type
 
     /**
-     * Content to be shown inside the chat bar in head
-     * If not provided, the chat bar will not be rendered
+     * Optional content displayed in the chat header above the message list.
+     *
+     * If not provided, the header row is not rendered.
      */
     readonly children?: ReactNode;
 
