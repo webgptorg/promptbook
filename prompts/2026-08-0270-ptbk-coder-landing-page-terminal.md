@@ -1,4 +1,4 @@
-[ ]
+[x] by Claude Code `claude-opus-5` thinking `max` - Implementation $0.00 5 hours; Testing 23 minutes
 
 [✨😡] The terminal on `https://coder.ptbk.io` should have better scrolling
 
@@ -11,3 +11,4 @@
 ![alt text](screenshots/2026-08-0270-ptbk-coder-landing-page-terminal-3.png)
 ![alt text](screenshots/2026-08-0270-ptbk-coder-landing-page-terminal.png)
 ![alt text](screenshots/2026-08-0270-ptbk-coder-landing-page-terminal-1.png)
+

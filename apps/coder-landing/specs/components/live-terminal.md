@@ -8,8 +8,10 @@ Same window chrome as the [terminal block](./terminal-block.md) (rounded frame, 
 
 -   Title: `ptbk coder run — live terminal`.
 -   Instead of a Copy button, a static Promptbook Green dot + `sample run`. The indicator must not pulse or blink.
--   Body height is fixed (~30rem, ~38rem on desktop) and scrolls vertically and horizontally; the view **auto-scrolls to the latest line**.
--   Dashboard rows use fixed-width terminal text. Long output is truncated with `...` inside the box, not wrapped through the border. Full file paths in the `Errors` box are the exception: render them as wrapped `File` rows so every path segment stays visible.
+-   The body is a character grid fitted to the width available to it, the same way a terminal emulator fits its grid into its window: as many character cells as fit at the preferred terminal text size, clamped to the same 56–96 columns the real `ptbk coder run` frame is clamped to, and a smaller text size when even 56 columns would not fit. The dashboard is drawn for that column count, so the terminal **never scrolls horizontally** at any viewport width.
+-   The body is as tall as the whole scripted session, so the session never scrolls vertically either and the agent visual **stays fully visible** once the sample has finished. The view must not auto-scroll away from it.
+-   A character which the terminal font does not provide — the box drawing characters, the shade of the progress bar, the status marks — is drawn from a fallback font in a different width. Such text is pulled back onto the character grid by letter spacing, so every row stays exactly as wide as the cells it is counted as and the box borders line up.
+-   Dashboard rows use fixed-width terminal text. Long output is truncated with `...` inside the box, not wrapped through the border. Full file paths in the `Errors` box are the exception: render them as wrapped `File` rows so every path segment stays visible. The typed command is real terminal output, so it wraps onto the following rows instead of being truncated.
 
 ## Script playback
 
