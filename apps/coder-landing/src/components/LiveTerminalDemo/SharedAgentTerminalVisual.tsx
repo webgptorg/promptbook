@@ -46,8 +46,10 @@ export function SharedAgentTerminalVisual() {
     }, []);
 
     return (
-        <div className="flex justify-center py-2" aria-hidden>
-            <div className="whitespace-pre leading-tight">
+        // Note: The terminal around the visual owns the size of a character cell, so every visual row
+        //       occupies exactly one terminal row
+        <div className="flex justify-center" aria-hidden>
+            <div className="whitespace-pre">
                 {agentVisualLines.map((agentVisualLine, agentVisualLineIndex) => (
                     <div key={agentVisualLineIndex}>
                         <TerminalAnsiTextLine line={agentVisualLine} />
