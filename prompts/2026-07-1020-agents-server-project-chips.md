@@ -21,3 +21,25 @@
 ![The project exists](screenshots/2026-07-1020-agents-server-project-chips-1.png)
 ![But agent references this project wrongly by simple link](screenshots/2026-07-1020-agents-server-project-chips-2.png)
 
+---
+
+[ ]
+
+[✨🥖] When the agent references the project, show it as a nice looking standardized chip
+
+-   When the user clicks on this chip, it should show two options:
+    -   Open the project in a new tab
+    -   Open the project page in a new tab
+-   Now this should theoretically work, but the icon on a chip is not showing up, and the chip does nothing, Icon is just rotating like it should open something, but nothing is shown.
+-   Also, when the agent is referencing some of his older projects, the chip is not shown at
+-   Also when agent references the project, it should show the project name and not the project URL. For example, instead of showing `https://prague-murders-map.live.ptbk.io/` it should show `Prague Murders Map` in a nice looking chip.
+-   It should also show the status whether the project is running or not.
+-   Do not lint the internal prokect file like `/agents/yznzwhgnqpinl1/projects/prague-murders-map/files/index.html` but project URL like `https://prague-murders-map.live.ptbk.io/`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server) with chat
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![alt text](screenshots/2026-07-1020-agents-server-project-chips-3.png)
+![alt text](screenshots/2026-07-1020-agents-server-project-chips-4.png)
+![Opened but broken chip](screenshots/2026-07-1020-agents-server-project-chips-5.png)
