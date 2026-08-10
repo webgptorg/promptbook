@@ -1,5 +1,6 @@
 import type { string_book } from '@promptbook-local/types';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { debounce } from '@promptbook-local/utils';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { resolveBookEditorApiErrorMessage } from './resolveBookEditorApiErrorMessage';
 
 /**
@@ -81,13 +82,6 @@ export function useBookEditorSaving({ agentName, initialAgentSource }: UseBookEd
     const [isSaveInFlight, setIsSaveInFlight] = useState(false);
     const [isSaveDebounced, setIsSaveDebounced] = useState(false);
     const [successfulSaveSequence, setSuccessfulSaveSequence] = useState(0);
-
-    /**
-     * Debounce timer ref so pending saves can be replaced before dispatch.
-     *
-     * @private function of useBookEditorWrapper
-     */
-    const debounceTimerRef = useRef<number | null>(null);
 
     /**
      * Stores the newest queued save request.
@@ -176,25 +170,28 @@ export function useBookEditorSaving({ agentName, initialAgentSource }: UseBookEd
     );
 
     /**
+     * Reuses the shared debounce utility while keeping source persistence separate from goal-chat notifications.
+     *
+     * @private function of useBookEditorWrapper
+     */
+    const debouncedEnqueueSave = useMemo(
+        () => debounce(enqueueSave, SAVE_DEBOUNCE_DELAY_MS),
+        [enqueueSave],
+    );
+
+    /**
      * Schedules one autosave after the debounce delay.
      *
      * @private function of useBookEditorWrapper
      */
     const scheduleSave = useCallback(
         (nextSource: string_book, version: number) => {
-            if (debounceTimerRef.current) {
-                clearTimeout(debounceTimerRef.current);
-            }
-
             setIsSaveDebounced(true);
             setSaveStatus('pending');
 
-            debounceTimerRef.current = window.setTimeout(() => {
-                debounceTimerRef.current = null;
-                enqueueSave(nextSource, version, null);
-            }, SAVE_DEBOUNCE_DELAY_MS);
+            debouncedEnqueueSave(nextSource, version, null);
         },
-        [enqueueSave],
+        [debouncedEnqueueSave],
     );
 
     /**
@@ -218,14 +215,10 @@ export function useBookEditorSaving({ agentName, initialAgentSource }: UseBookEd
      * @private function of useBookEditorWrapper
      */
     const cancelPendingSave = useCallback(() => {
-        if (debounceTimerRef.current) {
-            clearTimeout(debounceTimerRef.current);
-            debounceTimerRef.current = null;
-        }
-
+        debouncedEnqueueSave.cancel();
         pendingSaveRef.current = null;
         setIsSaveDebounced(false);
-    }, []);
+    }, [debouncedEnqueueSave]);
 
     /**
      * Retries saving the current editor content immediately.
@@ -297,11 +290,9 @@ export function useBookEditorSaving({ agentName, initialAgentSource }: UseBookEd
      */
     useEffect(() => {
         return () => {
-            if (debounceTimerRef.current) {
-                clearTimeout(debounceTimerRef.current);
-            }
+            debouncedEnqueueSave.cancel();
         };
-    }, []);
+    }, [debouncedEnqueueSave]);
 
     /**
      * Indicates whether the latest local source revision is already confirmed on the server.
@@ -329,5 +320,4 @@ export function useBookEditorSaving({ agentName, initialAgentSource }: UseBookEd
     };
 }
 
-// TODO: Prompt: Use `import { debounce } from '@promptbook-local/utils';` instead of custom debounce implementation
 // TODO: [🚗] Transfer the saving logic to `<BookEditor/>` be aware of CRDT / yjs approach to be implementable in future

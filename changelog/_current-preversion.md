@@ -1,3 +1,22 @@
+-   Fixed the `ptbk coder` landing page live terminal so its agent visual now uses the exact same shared animated
+    ANSI ASCII renderer as `ptbk coder run`, rather than showing the browser canvas avatar. The visual keeps the
+    developer agent book as its source and maps only the shared renderer's terminal colors to browser text spans.
+
+-   Fixed long-running rich `ptbk coder` sessions making VS Code lag after a terminal regains focus. Terminal frame
+    updates now batch all cursor movement and changed animated-avatar rows into one stdout write, instead of issuing a
+    write for every row, so the dashboard remains animated without building a large terminal-rendering backlog.
+
+-   Fixed goal-chat notices and planned-message panels covering the beginning of the conversation. The shared chat header
+    slot now reserves space above the messages instead of overlaying them.
+
+-   Debounced the Agents Server’s automatic **“My book was updated”** goal-chat note independently for each agent. Book persistence retains its existing 1-second editor debounce, while the note is now written once, one minute after the latest successful source update, so typing no longer floods an agent’s goal chat.
+
+-   Fixed `ptbk coder generate-boilerplates --count N*M` so all `M` prompts in a generated file share one fresh emoji tag, while every generated file receives a different tag. Updated the `ptbk coder` landing page accordingly.
+
+-   Improved the one-line live progress in Agents Server local chats so it now follows the intended handoff from generic thinking to real work. The browser continues rotating the configured `THINKING_MESSAGES` while Codex has only private reasoning or an unknown command, rather than replacing it with the uninformative **“Considering the request.”** / **“Running a task.”** status. Once the runner emits a concrete activity, the existing progress card shows only that latest safe action — for example **“Inspecting relevant files.”**, **“Updating relevant files.”**, or **“Running tests.”** — and it does not regress to generic reasoning between actions. The shared resolver now recognizes equivalent PowerShell and Unix inspection/update commands, while still withholding raw reasoning, commands, arguments, paths, and tool payloads.
+
+-   Completed the Agents Server superadmin external-chat view: it now exposes the frozen chats of other users with a direct owner-profile link and an owner-filtered link to the recorded chat-history thread.
+
 -   Refactored multiline prompts, Book-language fixtures, SQL, CSS, generated text, and user-facing import/recovery messages across the repository to use `spaceTrim`. Nested runtime content now uses `block(...)` where it can span lines, while protocol delimiters and other boundary-sensitive strings remain explicit so their exact wire format is preserved.
 
 -   Made the Agents Server local coding-harness path honor the `TEAM` commitment without multiplying harness runs. A queued user turn now snapshots its resolved local teammates and their instructions into a per-message workspace, gives that roster to the one primary harness run, and retains any harness-created teammate `.book` transcripts alongside the finished message. The server parses those transcripts into ordinary `TEAM` tool calls, so the primary answer gets the existing teammate chip and mocked-chat modal, while each consulted local teammate receives a frozen `TEAM_MEMBER` external chat linked back to the invoking primary-agent thread. The existing Social Media Manager / Copywriter default-agent pair remains the runnable example of a compact `{Copywriter}` teammate reference.

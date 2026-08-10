@@ -137,6 +137,7 @@ export function createUserChatSummaryFromSeed(
         updatedAt: chat.updatedAt,
         lastMessageAt: chat.lastMessageAt,
         source: chat.source,
+        userId: chat.userId,
         isReadOnly: isFrozenUserChatSource(chat.source) || isExternalUserChat,
         isExternalUserChat,
         isAgentGoalChat,

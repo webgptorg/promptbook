@@ -122,5 +122,20 @@ describe('listUserChatSummarySeeds', () => {
             source: 'TEAM_MEMBER',
             pendingAssistantMessageCount: 1,
         });
+
+        const superAdminSeeds = await listUserChatSummarySeeds({
+            userId: 1,
+            viewerIsAdmin: true,
+            viewerIsSuperAdmin: true,
+            agentPermanentId: 'agent-1',
+            includeExternalChats: true,
+        });
+
+        expect(superAdminSeeds.map((chat) => chat.id)).toEqual([
+            'chat-external',
+            'chat-other-web-user',
+            'chat-new',
+            'chat-old',
+        ]);
     });
 });

@@ -63,5 +63,6 @@ describe('createUserChatSummaryFromSeed for agent goal chats', () => {
 
         expect(summary.isExternalUserChat).toBe(true);
         expect(summary.isReadOnly).toBe(true);
+        expect(summary.userId).toBe(VIEWER_USER_ID + 1);
     });
 });

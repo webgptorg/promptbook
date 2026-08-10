@@ -106,6 +106,13 @@ export function AgentProfile(props: AgentProfileProps) {
     // Dynamic Font Loading
     const fontString = meta.font;
     const primaryFontFamily = fontString ? (fontString.split(',')[0] || '').trim().replace(/['"]/g, '') : '';
+    const PRIMARY_FONT_IMPORT_STYLES = primaryFontFamily
+        ? spaceTrim(
+              (block) => `
+                  @import url('https://fonts.googleapis.com/css2?family=${block(encodeURIComponent(primaryFontFamily))}:wght@400;600;700&display=swap');
+              `,
+          )
+        : '';
     let fontStyle: React.CSSProperties = {};
 
     if (fontString) {
@@ -122,11 +129,7 @@ export function AgentProfile(props: AgentProfileProps) {
     return (
         <>
             {primaryFontFamily && (
-                <style jsx global>{spaceTrim(
-                    (block) => `
-                        @import url('https://fonts.googleapis.com/css2?family=${block(encodeURIComponent(primaryFontFamily))}:wght@400;600;700&display=swap');
-                    `,
-                )}</style>
+                <style jsx global>{PRIMARY_FONT_IMPORT_STYLES}</style>
             )}
 
             {/* Full-screen background with agent color */}

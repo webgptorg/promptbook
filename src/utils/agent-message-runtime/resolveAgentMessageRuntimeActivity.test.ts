@@ -86,6 +86,54 @@ describe('resolveAgentMessageRuntimeActivity', () => {
         expect(resolveAgentMessageRuntimeActivity(logText)).toBe('Inspecting relevant files.');
     });
 
+    it('keeps generic thinking visible while Codex has only private reasoning', () => {
+        const logText = [
+            JSON.stringify({
+                type: 'item.started',
+                item: { type: 'reasoning', text: 'I should inspect the chat implementation.' },
+            }),
+            JSON.stringify({
+                type: 'item.completed',
+                item: { type: 'reasoning', text: 'I will begin by checking the repository.' },
+            }),
+        ].join('\n');
+
+        expect(resolveAgentMessageRuntimeActivity(logText)).toBeNull();
+    });
+
+    it('keeps the latest concrete action when Codex resumes private reasoning', () => {
+        const logText = [
+            JSON.stringify({
+                type: 'item.started',
+                item: { type: 'command_execution', command: 'Get-Content apps/agents-server/src/app/page.tsx' },
+            }),
+            JSON.stringify({
+                type: 'item.completed',
+                item: { type: 'reasoning', text: 'Now I know where the chat state lives.' },
+            }),
+        ].join('\n');
+
+        expect(resolveAgentMessageRuntimeActivity(logText)).toBe('Inspecting relevant files.');
+    });
+
+    it('maps a file update command to a concise user-facing action', () => {
+        const logText = JSON.stringify({
+            type: 'item.started',
+            item: { type: 'command_execution', command: 'apply_patch <<\'PATCH\'' },
+        });
+
+        expect(resolveAgentMessageRuntimeActivity(logText)).toBe('Updating relevant files.');
+    });
+
+    it('keeps generic thinking visible for an unclassified Codex command', () => {
+        const logText = JSON.stringify({
+            type: 'item.started',
+            item: { type: 'command_execution', command: 'custom-project-helper --synchronize' },
+        });
+
+        expect(resolveAgentMessageRuntimeActivity(logText)).toBeNull();
+    });
+
     it('maps a completed Codex test command without showing its technical payload', () => {
         const logText = JSON.stringify({
             type: 'item.completed',

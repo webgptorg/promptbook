@@ -1,4 +1,4 @@
-[ ]
+[x] by OpenAI Codex `gpt-5.6-terra` thinking `max` (ChatGPT account) - Implementation ~$0.6780 an hour; Testing 17 minutes
 
 [✨🦥] Promptbook coder can cause unacceptable lag
 
@@ -18,3 +18,4 @@ ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh -
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ![alt text](screenshots/2026-08-0210-ptbk-coder-lag.png)
+

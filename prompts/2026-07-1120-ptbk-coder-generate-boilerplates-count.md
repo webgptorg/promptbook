@@ -18,7 +18,7 @@ ptbk coder generate-boilerplates --count 10*7 --template prompts/_templates/comm
 
 ---
 
-[ ]
+[x] by OpenAI Codex `gpt-5.6-terra` thinking `max` (ChatGPT account) - Implementation ~$0.2924 31 minutes; Testing 16 minutes
 
 [✨🔩] When generating boilerplates and there are multiple prompts in one prompt file, they all should have the same emoji tag.
 
@@ -34,3 +34,4 @@ ptbk coder generate-boilerplates --count 10*7 --template prompts/_templates/comm
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Update the [`ptbk coder` landing website](apps/coder-landing)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

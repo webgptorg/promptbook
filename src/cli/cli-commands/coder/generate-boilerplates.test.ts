@@ -60,7 +60,7 @@ describe('generatePromptBoilerplate', () => {
         }
     });
 
-    it('generates N files with M prompts each and gives every prompt its own fresh emoji tag', async () => {
+    it('generates N files with M prompts each and shares one fresh emoji tag within each file', async () => {
         const projectPath = await createTemporaryDirectory(temporaryDirectories);
 
         await generatePromptBoilerplate({
@@ -71,14 +71,15 @@ describe('generatePromptBoilerplate', () => {
 
         expect(promptFileContents).toHaveLength(3);
 
-        const allEmojiTags: Array<string> = [];
+        const fileEmojiTags: Array<string> = [];
         for (const content of promptFileContents) {
             const emojiTags = listEmojiTags(content);
             expect(emojiTags).toHaveLength(4);
             expect(content.split('\n---\n')).toHaveLength(4);
-            allEmojiTags.push(...emojiTags);
+            expect(new Set(emojiTags).size).toBe(1);
+            fileEmojiTags.push(emojiTags[0]!);
         }
 
-        expect(new Set(allEmojiTags).size).toBe(3 * 4);
+        expect(new Set(fileEmojiTags).size).toBe(3);
     });
 });
