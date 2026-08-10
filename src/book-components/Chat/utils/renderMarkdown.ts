@@ -281,6 +281,23 @@ const INLINE_REFERENCE_PLACEHOLDER_PREFIX = '@@PROMPTBOOK_INLINE_REFERENCE_PLACE
 const INLINE_REFERENCE_PLACEHOLDER_REGEX = new RegExp(`${INLINE_REFERENCE_PLACEHOLDER_PREFIX}(\\d+)__`, 'g');
 
 /**
+ * Prefix for markdown text-segment placeholders used while resolving plain-text inline-reference aliases.
+ *
+ * @private utility of `renderMarkdown`
+ */
+const MARKDOWN_REFERENCE_TEXT_MASK_PLACEHOLDER_PREFIX = '@@PROMPTBOOK_MARKDOWN_REFERENCE_TEXT_MASK_PLACEHOLDER__';
+
+/**
+ * Pattern matching markdown text-segment placeholders.
+ *
+ * @private utility of `renderMarkdown`
+ */
+const MARKDOWN_REFERENCE_TEXT_MASK_PLACEHOLDER_REGEX = new RegExp(
+    `${MARKDOWN_REFERENCE_TEXT_MASK_PLACEHOLDER_PREFIX}(\\d+)__`,
+    'g',
+);
+
+/**
  * Pattern matching markdown links and images together with their raw target.
  *
  * @private utility of `renderMarkdown`
@@ -364,6 +381,14 @@ export type MarkdownInlineReference = {
      * Raw reference text between `[[` and `]]`.
      */
     readonly reference: string;
+
+    /**
+     * Optional text aliases which should render as this reference when an agent mentions them in markdown.
+     *
+     * They are also accepted inside a `[[reference]]` token. This lets application code use a stable
+     * technical reference while recognizing a human-facing name in older messages.
+     */
+    readonly sourceTextAliases?: ReadonlyArray<string>;
 
     /**
      * Human-readable label rendered inside the link chip.
@@ -456,6 +481,14 @@ export type MarkdownInlineReferenceMenu = {
  * Result of masked code segments.
  */
 type MaskedCodeSegmentsResult = {
+    masked: string_markdown;
+    restore: (value: string_markdown) => string_markdown;
+};
+
+/**
+ * Result of temporarily masked markdown links, images and bare URLs.
+ */
+type MaskedMarkdownLinkAndUrlSegmentsResult = {
     masked: string_markdown;
     restore: (value: string_markdown) => string_markdown;
 };
@@ -788,6 +821,44 @@ function maskMarkdownCodeSegments(markdown: string_markdown): MaskedCodeSegments
 }
 
 /**
+ * Masks markdown links, images and bare URLs while plain-text reference aliases are resolved.
+ *
+ * A matching display name inside an unrelated link label must keep that original link instead of
+ * producing a nested chip inside its anchor.
+ *
+ * @param markdown - Markdown without code segments.
+ * @returns Masked markdown and a restore helper.
+ *
+ * @private utility of `renderMarkdown`
+ */
+function maskMarkdownLinksAndBareUrls(markdown: string_markdown): MaskedMarkdownLinkAndUrlSegmentsResult {
+    const segments: string[] = [];
+    const addPlaceholder = (segment: string): string => {
+        const placeholder = `${MARKDOWN_REFERENCE_TEXT_MASK_PLACEHOLDER_PREFIX}${segments.length}__`;
+        segments.push(segment);
+        return placeholder;
+    };
+
+    MARKDOWN_LINK_REGEX.lastIndex = 0;
+    let masked = markdown.replace(MARKDOWN_LINK_REGEX, (match) => addPlaceholder(match)) as string_markdown;
+
+    BARE_URL_REGEX.lastIndex = 0;
+    masked = masked.replace(BARE_URL_REGEX, (_match, leadingWhitespace: string, rawUrl: string) => {
+        return `${leadingWhitespace}${addPlaceholder(rawUrl)}`;
+    }) as string_markdown;
+
+    return {
+        masked,
+        restore(value: string_markdown): string_markdown {
+            return value.replace(
+                MARKDOWN_REFERENCE_TEXT_MASK_PLACEHOLDER_REGEX,
+                (_match, index) => segments[Number(index)] ?? '',
+            );
+        },
+    };
+}
+
+/**
  * Masks `<details>...</details>` blocks in the markdown source so that Showdown never
  * processes their content.
  *
@@ -892,6 +963,18 @@ function normalizeMarkdownInlineReferenceKey(value: string): string {
 }
 
 /**
+ * Lists all token keys which can identify one inline reference.
+ *
+ * @param reference - Inline reference with its stable key and optional display-name aliases.
+ * @returns Keys recognized inside `[[...]]` tokens.
+ *
+ * @private utility of `renderMarkdown`
+ */
+function listMarkdownInlineReferenceKeys(reference: MarkdownInlineReference): ReadonlyArray<string> {
+    return [reference.reference, ...(reference.sourceTextAliases || [])];
+}
+
+/**
  * Builds a lookup of inline markdown references keyed by the authored `[[reference]]` text.
  *
  * @param references - References available to this markdown render.
@@ -905,15 +988,146 @@ function createMarkdownInlineReferenceByKey(
     const referenceByKey = new Map<string, MarkdownInlineReference>();
 
     for (const reference of references) {
-        const normalizedReference = normalizeMarkdownInlineReferenceKey(reference.reference);
-        if (!normalizedReference || referenceByKey.has(normalizedReference)) {
-            continue;
-        }
+        for (const referenceKey of listMarkdownInlineReferenceKeys(reference)) {
+            const normalizedReference = normalizeMarkdownInlineReferenceKey(referenceKey);
+            if (!normalizedReference || referenceByKey.has(normalizedReference)) {
+                continue;
+            }
 
-        referenceByKey.set(normalizedReference, reference);
+            referenceByKey.set(normalizedReference, reference);
+        }
     }
 
     return referenceByKey;
+}
+
+/**
+ * One display-name alias and the inline reference it renders.
+ *
+ * @private utility of `renderMarkdown`
+ */
+type MarkdownInlineReferenceTextMatcher = {
+    /**
+     * Reference rendered for the alias.
+     */
+    readonly reference: MarkdownInlineReference;
+
+    /**
+     * Human-readable source text recognized in markdown.
+     */
+    readonly sourceTextAlias: string;
+};
+
+/**
+ * Escapes text before embedding it into a regular expression.
+ *
+ * @param value - Literal text to match.
+ * @returns Regular-expression-safe text.
+ *
+ * @private utility of `renderMarkdown`
+ */
+function escapeRegularExpression(value: string): string {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Creates non-ambiguous display-name matchers for inline references.
+ *
+ * Longer aliases are matched first so a project named `Prague Map` wins over a project named `Map`.
+ * An alias shared by more than one reference is deliberately ignored instead of linking to an arbitrary project.
+ *
+ * @param references - References available to this markdown render.
+ * @returns Plain-text matchers ordered from longest to shortest alias.
+ *
+ * @private utility of `renderMarkdown`
+ */
+function createMarkdownInlineReferenceTextMatchers(
+    references: ReadonlyArray<MarkdownInlineReference>,
+): ReadonlyArray<MarkdownInlineReferenceTextMatcher> {
+    const matcherByNormalizedAlias = new Map<string, MarkdownInlineReferenceTextMatcher | null>();
+
+    for (const reference of references) {
+        for (const sourceTextAliasCandidate of reference.sourceTextAliases || []) {
+            const sourceTextAlias = sourceTextAliasCandidate.trim();
+            const normalizedAlias = normalizeMarkdownInlineReferenceKey(sourceTextAlias);
+            if (!normalizedAlias) {
+                continue;
+            }
+
+            const existingMatcher = matcherByNormalizedAlias.get(normalizedAlias);
+            if (existingMatcher === undefined) {
+                matcherByNormalizedAlias.set(normalizedAlias, { reference, sourceTextAlias });
+            } else if (existingMatcher !== null && existingMatcher.reference !== reference) {
+                matcherByNormalizedAlias.set(normalizedAlias, null);
+            }
+        }
+    }
+
+    return Array.from(matcherByNormalizedAlias.values())
+        .filter((matcher): matcher is MarkdownInlineReferenceTextMatcher => matcher !== null)
+        .sort(
+            (firstMatcher, secondMatcher) =>
+                secondMatcher.sourceTextAlias.length - firstMatcher.sourceTextAlias.length ||
+                firstMatcher.sourceTextAlias.localeCompare(secondMatcher.sourceTextAlias),
+        );
+}
+
+/**
+ * Creates a regular expression matching one plain-text alias with optional bold markdown around it.
+ *
+ * @param sourceTextAlias - Literal display name to match.
+ * @param isMarkdownFormattingMatched - Whether matching `**alias**` and `__alias__` form.
+ * @returns Unicode-aware whole-text regular expression.
+ *
+ * @private utility of `renderMarkdown`
+ */
+function createMarkdownInlineReferenceTextAliasRegex(
+    sourceTextAlias: string,
+    isMarkdownFormattingMatched: boolean,
+): RegExp {
+    const escapedAlias = escapeRegularExpression(sourceTextAlias);
+    const boundaryCharacterClass = '\\p{L}\\p{N}_-';
+    const boundaryPattern = `[^${boundaryCharacterClass}]`;
+    const aliasPattern = isMarkdownFormattingMatched
+        ? `(?:\\*\\*|__)${escapedAlias}(?:\\*\\*|__)`
+        : escapedAlias;
+
+    return new RegExp(`(^|${boundaryPattern})${aliasPattern}(?=$|${boundaryPattern})`, 'giu');
+}
+
+/**
+ * Replaces known project display names in agent markdown with inline-reference placeholders.
+ *
+ * Bold aliases are replaced first so an older message such as `**Prague Murders Map**` becomes one
+ * chip rather than a chip nested inside formatting markup.
+ *
+ * @param markdown - Markdown with code and links already masked.
+ * @param matchers - Non-ambiguous display-name aliases available to this render.
+ * @param createPlaceholder - Renders a matched reference into a placeholder.
+ * @returns Markdown containing inline-reference placeholders.
+ *
+ * @private utility of `renderMarkdown`
+ */
+function replaceMarkdownInlineReferenceTextAliases(
+    markdown: string_markdown,
+    matchers: ReadonlyArray<MarkdownInlineReferenceTextMatcher>,
+    createPlaceholder: CreateMarkdownInlineReferencePlaceholder,
+): string_markdown {
+    let referencedMarkdown = markdown;
+
+    for (const matcher of matchers) {
+        for (const isMarkdownFormattingMatched of [true, false]) {
+            const aliasRegex = createMarkdownInlineReferenceTextAliasRegex(
+                matcher.sourceTextAlias,
+                isMarkdownFormattingMatched,
+            );
+            referencedMarkdown = referencedMarkdown.replace(aliasRegex, (_match, leadingBoundary: string) => {
+                return `${leadingBoundary || ''}${createPlaceholder(matcher.reference)}`;
+            }) as string_markdown;
+        }
+    }
+
+    return referencedMarkdown;
 }
 
 /**
@@ -1300,6 +1514,19 @@ function applyMarkdownInlineReferences(markdown: string_markdown, options?: Rend
             referencedMarkdown,
             hrefMatchers,
             createPlaceholder,
+        );
+    }
+
+    const textMatchers = createMarkdownInlineReferenceTextMatchers(references);
+    if (textMatchers.length !== 0) {
+        const { masked: markdownWithMaskedLinksAndUrls, restore: restoreLinksAndUrls } =
+            maskMarkdownLinksAndBareUrls(referencedMarkdown);
+        referencedMarkdown = restoreLinksAndUrls(
+            replaceMarkdownInlineReferenceTextAliases(
+                markdownWithMaskedLinksAndUrls,
+                textMatchers,
+                createPlaceholder,
+            ),
         );
     }
 

@@ -62,6 +62,7 @@ describe('renderMarkdown inline references', () => {
     const PROJECT_REFERENCES = [
         {
             reference: 'prague-murders-map',
+            sourceTextAliases: ['Prague Murders Map'],
             label: 'Prague Murders Map',
             href: '/agents/Prague1/projects/prague-murders-map',
             sourceHrefPrefixes: [
@@ -94,6 +95,35 @@ describe('renderMarkdown inline references', () => {
         expect(html).toContain('Prague Murders Map');
         expect(html).toContain('and enjoy.');
         expect(html).not.toContain('>https://prague-murders-map.live.ptbk.io');
+    });
+
+    it('renders a bold project display name from an older message as the project chip', () => {
+        const html = renderMarkdown('I previously created **Prague Murders Map** for this investigation.', {
+            inlineReferences: PROJECT_REFERENCES,
+        }) as string;
+
+        expect(html).toContain('class="inlineReferenceChip"');
+        expect(html).toContain('Prague Murders Map');
+        expect(html).not.toContain('<strong>Prague Murders Map</strong>');
+    });
+
+    it('keeps an unrelated markdown link which happens to use a project display name', () => {
+        const html = renderMarkdown('[Prague Murders Map](https://example.com/reference)', {
+            inlineReferences: PROJECT_REFERENCES,
+        }) as string;
+
+        expect(html).toContain('href="https://example.com/reference"');
+        expect(html).toContain('>Prague Murders Map</a>');
+        expect(html).not.toContain('inlineReferenceChip');
+    });
+
+    it('keeps an unrelated bare URL which contains a project display name', () => {
+        const html = renderMarkdown('Read https://unrelated-website.example.com before opening the project.', {
+            inlineReferences: PROJECT_REFERENCES,
+        }) as string;
+
+        expect(html).toContain('href="https://unrelated-website.example.com"');
+        expect(html).not.toContain('inlineReferenceChip');
     });
 
     it('keeps unrelated links, images and code untouched', () => {

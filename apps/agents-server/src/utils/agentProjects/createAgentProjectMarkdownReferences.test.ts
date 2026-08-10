@@ -17,6 +17,7 @@ describe('createAgentProjectMarkdownReferences', () => {
         ).toEqual([
             {
                 reference: 'website',
+                sourceTextAliases: ['Website'],
                 label: 'Website',
                 href: '/agents/agent%20one/projects/website',
                 sourceHrefPrefixes: ['/agents/agent%20one/projects/website'],
@@ -58,6 +59,7 @@ describe('createAgentProjectMarkdownReferences', () => {
         ).toEqual([
             {
                 reference: 'prague-murders-map',
+                sourceTextAliases: ['Prague Murders Map'],
                 label: 'Prague Murders Map',
                 href: '/agents/agent/projects/prague-murders-map',
                 sourceHrefPrefixes: ['/agents/agent/projects/prague-murders-map'],
@@ -99,6 +101,7 @@ describe('createAgentProjectMarkdownReferences', () => {
         });
 
         expect(reference?.reference).toBe('website');
+        expect(reference?.sourceTextAliases).toEqual(['Website']);
         expect(reference?.menu?.status).toEqual({
             label: 'Project is running',
             isActive: true,

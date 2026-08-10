@@ -33,9 +33,9 @@ type AgentProjectMarkdownReferenceInfo = Pick<
 /**
  * Creates markdown references rendering every mention of one project as a project chip.
  *
- * One project is mentioned either by its `[[project-name]]` token, by a link into its project page
- * or files, or by its public project URL. All of them render the same chip showing the project name
- * together with its running state.
+ * One project is mentioned either by its display name in chat prose, its `[[project-name]]` token,
+ * a link into its project page or files, or its public project URL. All of them render the same chip
+ * showing the project name together with its running state.
  *
  * @param options - Agent and project metadata.
  * @returns Inline markdown references for the shared chat renderer.
@@ -50,6 +50,7 @@ export function createAgentProjectMarkdownReferences(
 
         return {
             reference: project.projectName,
+            sourceTextAliases: [label],
             label,
             href: projectProfileHref,
             sourceHrefPrefixes: [projectProfileHref, ...(projectUrl ? [projectUrl] : [])],

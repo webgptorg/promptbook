@@ -23,7 +23,7 @@
 
 ---
 
-[ ]
+[x] by OpenAI Codex `gpt-5.6-terra` thinking `max` (ChatGPT account) - Implementation ~.29 an hour; Testing 24 minutes
 
 [✨🥖] When the agent references the project, show it as a nice looking standardized chip
 
@@ -43,3 +43,4 @@
 ![alt text](screenshots/2026-07-1020-agents-server-project-chips-3.png)
 ![alt text](screenshots/2026-07-1020-agents-server-project-chips-4.png)
 ![Opened but broken chip](screenshots/2026-07-1020-agents-server-project-chips-5.png)
+
