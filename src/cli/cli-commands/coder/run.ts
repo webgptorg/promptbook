@@ -10,7 +10,6 @@ import { createNonNegativeIntegerOptionParser } from '../common/createNonNegativ
 import { createPositiveIntegerOptionParser } from '../common/createPositiveIntegerOptionParser';
 import { handleActionErrors } from '../common/handleActionErrors';
 import { $ensureHarnessInstallations } from '../common/harness/$ensureHarnessInstallations';
-import { $ensurePromptbookCliInstallations } from '../common/promptbook-cli/$ensurePromptbookCliInstallations';
 import type { PromptRunnerCliOptions } from '../common/promptRunnerCliOptions';
 import {
     addPromptRunnerExecutionOptions,
@@ -49,7 +48,6 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             - Optional --preserve-logs keeps temp prompt/log artifacts after successful rounds
             - Optional --no-ui keeps plain streaming console output for logging and debugging
             - Checks that the selected harness is installed globally and up to date before the first prompt
-            - In interactive mode, checks local and global Promptbook CLI installations and offers to update them
             - Supports GPG signing of commits
             - Optional pre-coding test run that can stop or repair pre-existing failures
             - Optional post-prompt verification with test-feedback retries
@@ -199,6 +197,8 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 isAgentRequired: !dryRun,
             });
 
+            await $ensureHarnessInstallations([runnerOptions.agentName]);
+
             // [1] Parse the wait options and --no-auto:
             //   default: run automatically through the queue (no waiting between prompts)
             //   --no-auto: wait for user confirmation before each prompt (interactive mode)
@@ -206,13 +206,6 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             //   --wait-between-prompts: pace from start of one prompt to start of next
             //   --wait-after-error: wait before retrying after an error (default 10m)
             const waitForUser = !auto;
-
-            if (waitForUser && (await $ensurePromptbookCliInstallations())) {
-                return process.exit(0);
-            }
-
-            await $ensureHarnessInstallations([runnerOptions.agentName]);
-
             const waitAfterPrompt = parseOptionalWaitDuration(waitAfterPromptValue, 0);
             const waitBetweenPrompts = parseOptionalWaitDuration(waitBetweenPromptsValue, 0);
             const waitAfterError = parseOptionalWaitDuration(waitAfterErrorValue, DEFAULT_WAIT_AFTER_ERROR_MS);

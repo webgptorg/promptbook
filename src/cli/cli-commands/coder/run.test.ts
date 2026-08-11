@@ -1,14 +1,9 @@
 import { Command } from 'commander';
 import { runCodexPrompts } from '../../../../scripts/run-codex-prompts/main/runCodexPrompts';
-import { $ensurePromptbookCliInstallations } from '../common/promptbook-cli/$ensurePromptbookCliInstallations';
 import { $initializeCoderRunCommand } from './run';
 
 jest.mock('../../../../scripts/run-codex-prompts/main/runCodexPrompts', () => ({
     runCodexPrompts: jest.fn(),
-}));
-
-jest.mock('../common/promptbook-cli/$ensurePromptbookCliInstallations', () => ({
-    $ensurePromptbookCliInstallations: jest.fn(),
 }));
 
 /**
@@ -16,13 +11,6 @@ jest.mock('../common/promptbook-cli/$ensurePromptbookCliInstallations', () => ({
  */
 function getRunCodexPromptsMock(): jest.MockedFunction<typeof runCodexPrompts> {
     return runCodexPrompts as jest.MockedFunction<typeof runCodexPrompts>;
-}
-
-/**
- * Typed Jest mock for the interactive Promptbook CLI update check.
- */
-function getEnsurePromptbookCliInstallationsMock(): jest.MockedFunction<typeof $ensurePromptbookCliInstallations> {
-    return $ensurePromptbookCliInstallations as jest.MockedFunction<typeof $ensurePromptbookCliInstallations>;
 }
 
 /**
@@ -40,7 +28,6 @@ describe('$initializeCoderRunCommand', () => {
 
     beforeEach(() => {
         getRunCodexPromptsMock().mockResolvedValue(undefined);
-        getEnsurePromptbookCliInstallationsMock().mockResolvedValue(false);
         processExitSpy = jest.spyOn(process, 'exit').mockImplementation((() => undefined) as never);
         consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
     });
@@ -75,32 +62,6 @@ describe('$initializeCoderRunCommand', () => {
                 waitForUser: true,
             }),
         );
-    });
-
-    it('checks for a Promptbook CLI update in interactive mode', async () => {
-        const program = createProgramWithRunCommand();
-
-        await program.parseAsync(['node', 'test', 'run', '--dry-run', '--no-auto'], { from: 'node' });
-
-        expect($ensurePromptbookCliInstallations).toHaveBeenCalledTimes(1);
-    });
-
-    it('does not check for a Promptbook CLI update in automatic mode', async () => {
-        const program = createProgramWithRunCommand();
-
-        await program.parseAsync(['node', 'test', 'run', '--dry-run'], { from: 'node' });
-
-        expect($ensurePromptbookCliInstallations).not.toHaveBeenCalled();
-    });
-
-    it('stops the current run after an approved Promptbook CLI update', async () => {
-        getEnsurePromptbookCliInstallationsMock().mockResolvedValue(true);
-        const program = createProgramWithRunCommand();
-
-        await program.parseAsync(['node', 'test', 'run', '--dry-run', '--no-auto'], { from: 'node' });
-
-        expect(getRunCodexPromptsMock()).not.toHaveBeenCalled();
-        expect(processExitSpy).toHaveBeenCalledWith(0);
     });
 
     it('defaults noCommit to false when --no-commit is omitted', async () => {

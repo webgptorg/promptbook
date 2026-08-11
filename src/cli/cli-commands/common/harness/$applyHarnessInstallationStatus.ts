@@ -1,5 +1,5 @@
 import colors from 'colors';
-import { $askForNpmPackageInstallationApproval } from '../npm/$askForNpmPackageInstallationApproval';
+import { $askForHarnessInstallationApproval } from './$askForHarnessInstallationApproval';
 import { $installHarness } from './$installHarness';
 import { buildHarnessInstallCommand } from './buildHarnessInstallCommand';
 import type { HarnessInstallationStatus } from './HarnessInstallationStatus';
@@ -31,7 +31,7 @@ export async function $applyHarnessInstallationStatus(status: HarnessInstallatio
 
     console.warn(colors.yellow(formatHarnessInstallationWarning(status)));
 
-    const isInstallationApproved = await $askForNpmPackageInstallationApproval(
+    const isInstallationApproved = await $askForHarnessInstallationApproval(
         installationState === 'not-installed'
             ? `Install ${definition.label} globally now?`
             : `Update ${definition.label} to ${latestVersion} now?`,
