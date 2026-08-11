@@ -44,3 +44,22 @@
 ![alt text](screenshots/2026-07-1020-agents-server-project-chips-4.png)
 ![Opened but broken chip](screenshots/2026-07-1020-agents-server-project-chips-5.png)
 
+---
+
+[ ]
+
+[✨🥖] Allow to start/stop projects from the chip
+
+-   When the user clicks on this chip, it should show two options:
+    -   Open the project in a new tab
+    -   Open the project page in a new tab
+-   The icons are broken now. It shows empty, probably broken, or you can go see the screenshots.
+-   There should be the favicon of the project or the temporary icon of the project there.
+-   When the chip menu is opened, there should be a red or green dot whether the project is running.
+-   There should be an option to start or stop the project directly from this chip menu.
+-   Also, always allow opening the project when the project is not running. Automatically run it when user opens the project in a new tab.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server) with chat
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![alt text](screenshots/2026-07-1020-agents-server-project-chips-6.png)
