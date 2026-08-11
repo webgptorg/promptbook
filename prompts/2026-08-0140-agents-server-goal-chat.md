@@ -53,4 +53,26 @@
 
 ![alt text](screenshots/2026-08-0140-agents-server-goal-chat.png)
 
+---
 
+[ ]
+
+[✨🔶] The goal-chat should work and do something
+
+-   The goal chat is a special chat that is created for each agent and is used by the agent to communicate with itself and the agent server during the execution of its tasks.
+-   When the agent is invoked, either in the goal chat or in any other chat, one of the things the agent can do is set up a planned message for the future. This message will appear in his goal chat.
+-   The automatic message after the AgentKit is changed should contain its new goals.
+    -   Now it is just a generic message that the source was changed.
+-   This planned message will wake the agent, allowing him to take actions towards his goal, do something, or plan another message.
+-   This goal chat is like internal communication and thinking of the agent itself, which can lead the agent to set up the next invocation in some time.
+-   In the goal chat show the planned messages with the time when they are planned to be executed. The agent can also set up a message for the future in the goal chat, which will wake him up and allow him to take actions towards his goal.
+-   The agent can also list all the planned messages and cancel them any time.
+-   There should be exactly one goal chat corresponding with each agent.
+-   The goal chat is something like a chat that an agent does with itself.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server) with goal chat
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![alt text](screenshots/2026-08-0140-agents-server-goal-chat-1.png)
+![alt text](screenshots/2026-08-0140-agents-server-goal-chat-2.png)
