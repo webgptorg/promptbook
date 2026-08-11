@@ -93,6 +93,8 @@ function createPublishWorkflowFileContent(packagesMetadata: ReadonlyArray<Packag
                             })),
                         ],
                     },
+                    /*
+                    Note: The `publish-docker` job is currently disabled because it was created for old Pipelines server and should be reworked for the new Agents server
                     // TODO: Maybe share build steps between `publish-npm` and `publish-docker`
                     'publish-docker': {
                         name: 'Publish Docker image to DockerHub',
@@ -158,6 +160,7 @@ function createPublishWorkflowFileContent(packagesMetadata: ReadonlyArray<Packag
                             },
                         ],
                     },
+                    */
                 },
             },
             { indent: 4 },
