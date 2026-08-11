@@ -1,3 +1,4 @@
+import { buildNpmPackageInstallCommand } from '../npm/buildNpmPackageInstallCommand';
 import type { HarnessDefinition } from './HarnessDefinition';
 
 /**
@@ -9,7 +10,7 @@ import type { HarnessDefinition } from './HarnessDefinition';
  * @private internal utility of `promptbookCli`
  */
 export function buildHarnessInstallCommand(definition: HarnessDefinition): string {
-    return `npm install -g ${definition.npmPackageName}@latest`;
+    return buildNpmPackageInstallCommand(definition.npmPackageName, 'global');
 }
 
 // Note: [🟡] Code for CLI harness install command [buildHarnessInstallCommand](src/cli/cli-commands/common/harness/buildHarnessInstallCommand.ts) should never be published outside of `@promptbook/cli`
