@@ -35,3 +35,7 @@ ptbk coder generate-boilerplates --count 10*7 --template prompts/_templates/comm
 -   Update the [`ptbk coder` landing website](apps/coder-landing)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
+---
+
+
+@@@@@@ Change * to x and study why
