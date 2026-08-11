@@ -1,6 +1,7 @@
 import { debounce } from '@promptbook-local/utils';
 import type { ProvidedServer } from '@/src/tools/$provideServer';
 import { runWithServerContextOverride } from '@/src/tools/serverContextOverride';
+import type { string_book } from '../../../../../src/book-2.0/agent-source/string_book';
 import { recordAgentGoalChatLifecycleNote } from './recordAgentGoalChatLifecycleNote';
 
 /**
@@ -16,6 +17,7 @@ export const AGENT_GOAL_CHAT_MODIFIED_NOTE_DEBOUNCE_DELAY_MS = 60_000;
 type AgentGoalChatModifiedNote = {
     readonly agentPermanentId: string;
     readonly agentName: string;
+    readonly agentSource: string_book;
     readonly server: ProvidedServer;
 };
 
@@ -57,6 +59,7 @@ export function createAgentGoalChatModifiedNoteScheduler(options?: {
                         event: 'MODIFIED',
                         agentPermanentId: latestAgentGoalChatModifiedNote.agentPermanentId,
                         agentName: latestAgentGoalChatModifiedNote.agentName,
+                        agentSource: latestAgentGoalChatModifiedNote.agentSource,
                     }),
                 );
             }, AGENT_GOAL_CHAT_MODIFIED_NOTE_DEBOUNCE_DELAY_MS);

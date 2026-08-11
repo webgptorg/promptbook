@@ -29,6 +29,11 @@ export async function appendQueuedUserChatTurn(options: {
     chatId: string;
     clientMessageId: string;
     messageContent: string;
+    /**
+     * Sender persisted for the input message. Defaults to `USER`; autonomous goal-chat turns use
+     * `AGENT` so the transcript cannot imply that the goal-chat owner wrote the internal wake-up.
+     */
+    messageSender?: 'USER' | 'AGENT';
     attachments?: ChatMessage['attachments'];
     replyingTo?: ChatMessage['replyingTo'];
     parameters?: Record<string, unknown>;
@@ -75,6 +80,7 @@ export async function appendQueuedUserChatTurn(options: {
                         messageId: userMessageId,
                         clientMessageId: options.clientMessageId,
                         content: options.messageContent,
+                        ...(options.messageSender ? { sender: options.messageSender } : {}),
                         attachments: options.attachments,
                         replyingTo: options.replyingTo,
                         createdAt: nowIso,
@@ -100,14 +106,15 @@ export async function appendQueuedUserChatTurn(options: {
         });
 
         // Note: Recording is best-effort telemetry for `/admin/chat-history` and must never block the chat turn
+        const isAgentAuthoredInput = options.messageSender === 'AGENT';
         void recordUserChatMessageInChatHistory({
             agentPermanentId: options.agentPermanentId,
             chatId: options.chatId,
             taskId: jobId,
             userId: options.userId,
             message: {
-                role: 'USER',
-                sender: 'USER',
+                role: isAgentAuthoredInput ? 'MODEL' : 'USER',
+                sender: isAgentAuthoredInput ? 'MODEL' : 'USER',
                 content: options.messageContent,
                 attachments: options.attachments,
             },

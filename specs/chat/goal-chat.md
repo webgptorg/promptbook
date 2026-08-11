@@ -10,7 +10,7 @@ The goal chat is stored as one ordinary `prefix_UserChat` row with `source = 'AG
 
 -   its `id` is derived from the agent permanent id (`goal-<agentPermanentId>`), so the singleton is enforced by the primary key and any layer holding only a `chatId` can recognize a goal chat without an extra lookup;
 -   its `userId` is the agent owner (with a stable fallback when the agent has no owner), because `UserChat.userId` is a non-null foreign key — the chat conceptually belongs to the agent, not to that user;
--   it is created lazily on first use and can never be duplicated by concurrent requests.
+-   it is ensured when the agent is created and lazily repaired on first use for older agents; concurrent requests can never duplicate it.
 
 ## Access
 
@@ -22,8 +22,8 @@ The goal chat is **read-only for people** — only the agent (and the server act
 
 | Event | Note left in the goal chat |
 | --- | --- |
-| Agent created | The agent records that it came into existence. |
-| Agent book modified | The agent records that its book changed and that its plans should be re-checked. |
+| Agent created | The server queues an agent-owned turn containing the effective `GOAL` / `GOALS` so the agent can begin useful work. |
+| Agent book modified | The server queues an agent-owned turn containing the new effective goal so the agent can re-check its work and planned messages. |
 | Planned message scheduled | The planned message and the time it will fire. |
 | Planned message cancelled | The cancellation of that planned message. |
 
@@ -32,6 +32,8 @@ The goal chat is **read-only for people** — only the agent (and the server act
 Planned messages are [timeouts](timeouts.md): future wake-ups that inject a synthetic turn and run a normal agent turn. They can be scheduled from the goal chat or from any other chat of the agent, and **all of them are listed in the goal chat** together with the time they are planned to be executed, where they can also be cancelled at any time.
 
 Because a planned message belongs to the agent rather than to one user, the goal-chat listing spans every chat and every user of that agent.
+
+Every Agents Server chat invocation exposes `set_timeout`, `list_timeouts`, and `cancel_timeout`. `set_timeout` always stores the future message in the singleton goal chat, regardless of which conversation invoked the agent. Managed coding-agent runners receive the same operations through the authenticated internal runtime API. When the timeout fires, its agent-authored message queues a durable goal-chat turn and wakes the agent immediately.
 
 ## Task manager
 
@@ -44,3 +46,4 @@ A chat completion or timeout that runs in the goal chat keeps its normal kind in
 | `/agents/:agentName/goal` | Resolves the singleton goal chat and opens it in the shared chat surface. |
 | `GET /agents/:agentName/api/timeouts` | Lists the planned messages shown in the goal chat. |
 | `DELETE /agents/:agentName/api/timeouts/:timeoutId` | Cancels one planned message from the goal chat. |
+| `POST /api/internal/agent-goal-chat-planned-messages` | Authenticated `set`, `list`, and `cancel` bridge for Agents Server-managed coding agents. |

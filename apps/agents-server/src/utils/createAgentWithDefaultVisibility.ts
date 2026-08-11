@@ -1,5 +1,6 @@
 import type { AgentBasicInformation, AgentCollection, string_book } from '@promptbook-local/types';
 import type { CreateAgentInput } from '../../../../src/collection/agent-collection/CreateAgentInput';
+import { recordAgentGoalChatLifecycleNote } from './agentGoalChat/recordAgentGoalChatLifecycleNote';
 import { assignAgentOwner } from './agentOwnership';
 import { parseAgentSourceVisibility } from './agentVisibility';
 import { getDefaultAgentVisibility } from './getDefaultAgentVisibility';
@@ -39,6 +40,13 @@ export async function createAgentWithDefaultVisibility(
     if (typeof userId === 'number') {
         await assignAgentOwner(createdAgent.permanentId, userId);
     }
+
+    await recordAgentGoalChatLifecycleNote({
+        event: 'CREATED',
+        agentPermanentId: createdAgent.permanentId,
+        agentName: createdAgent.agentName,
+        agentSource,
+    });
 
     return createdAgent;
 }

@@ -1,25 +1,11 @@
 import { spaceTrim } from 'spacetrim';
 import { AGENT_PROJECTS_DIRECTORY_PATH } from '../../../src/book-3.0/agentFolderPaths';
+import type { AgentServerRuntimePromptApi } from './AgentServerRuntimePromptApi';
 
 /**
  * Internal runtime API details available to Agents Server-managed local agents.
  */
-export type AgentProjectRuntimePromptApi = {
-    /**
-     * Permanent id of the agent currently answering the message.
-     */
-    readonly agentPermanentId: string;
-
-    /**
-     * Environment variable containing the Agents Server origin.
-     */
-    readonly serverUrlEnvironmentVariableName: string;
-
-    /**
-     * Environment variable containing the internal worker token.
-     */
-    readonly tokenEnvironmentVariableName: string;
-};
+export type AgentProjectRuntimePromptApi = AgentServerRuntimePromptApi;
 
 /**
  * Options of the projects prompt section shared by every coding harness.

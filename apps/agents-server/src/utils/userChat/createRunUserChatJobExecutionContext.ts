@@ -1,7 +1,6 @@
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideOpenAiAgentKitExecutionToolsForServer } from '@/src/tools/$provideOpenAiAgentKitExecutionToolsForServer';
-import { createAgentProgressTools } from '@/src/tools/createAgentProgressTools';
-import { createChatAttachmentTools } from '@/src/tools/createChatAttachmentTools';
+import { createServerChatRuntimeTools } from '@/src/tools/createServerChatRuntimeTools';
 import {
     AGENT_PREPARATION_CHAT_WAIT_TIMEOUT_MS,
     resolveAgentCollectionTablePrefix,
@@ -134,9 +133,7 @@ export async function createRunUserChatJobExecutionContext(options: {
             agentPermanentId,
             calendarConnections,
         });
-    const runtimeTools = createAgentProgressTools(
-        createChatAttachmentTools([], options.userMessageAttachments || []),
-    );
+    const runtimeTools = createServerChatRuntimeTools(options.userMessageAttachments || []);
 
     /**
      * Full list of tools that were available to the model for this chat turn.

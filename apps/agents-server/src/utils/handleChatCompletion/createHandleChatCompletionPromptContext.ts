@@ -1,5 +1,6 @@
 import { createChatHistoryRecorder } from '@/src/utils/chat/createChatHistoryRecorder';
 import { composePromptParametersWithMemoryContext } from '@/src/utils/memoryRuntimeContext';
+import { createAgentGoalChatTimeoutTools } from '@/src/tools/agentGoalChatTimeoutTools';
 import type { ChatMessage, ChatPrompt } from '@promptbook-local/types';
 import { $getCurrentDate } from '@promptbook-local/utils';
 import type { NextRequest } from 'next/server';
@@ -69,6 +70,7 @@ export async function createHandleChatCompletionPromptContext(options: {
         localServerUrl: runtime.localServerUrl,
         teamInternalAccessToken: resolveTeamInternalAgentAccessToken(),
     });
+    const runtimeTools = createAgentGoalChatTimeoutTools(parsedRequest.runtimeTools || []);
     const prompt: ChatPrompt = {
         title,
         content: lastMessage.content,
@@ -79,7 +81,7 @@ export async function createHandleChatCompletionPromptContext(options: {
         },
         parameters: promptParameters,
         thread,
-        ...(parsedRequest.runtimeTools ? { tools: parsedRequest.runtimeTools } : {}),
+        tools: runtimeTools,
     };
 
     return {

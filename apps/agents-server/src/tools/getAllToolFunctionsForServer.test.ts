@@ -5,6 +5,14 @@ import { validateBook } from '../../../../src/book-2.0/agent-source/string_book'
 import { getAllToolFunctionsForServer } from './getAllToolFunctionsForServer';
 
 describe('getAllToolFunctionsForServer', () => {
+    it('registers all planned goal-chat message functions', () => {
+        const toolFunctions = getAllToolFunctionsForServer();
+
+        expect(toolFunctions.set_timeout).toEqual(expect.any(Function));
+        expect(toolFunctions.list_timeouts).toEqual(expect.any(Function));
+        expect(toolFunctions.cancel_timeout).toEqual(expect.any(Function));
+    });
+
     it('keeps TEAM tool functions live after the server registry is created', async () => {
         const teammateUrl = 'https://local.example/agents/slave';
         const toolName = 'team_chat_slave';

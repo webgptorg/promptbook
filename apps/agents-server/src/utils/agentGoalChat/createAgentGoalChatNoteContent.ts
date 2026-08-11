@@ -14,20 +14,43 @@ export type AgentGoalChatLifecycleEvent = 'CREATED' | 'MODIFIED';
 export function createAgentGoalChatLifecycleNoteContent(options: {
     readonly event: AgentGoalChatLifecycleEvent;
     readonly agentName: string;
+    readonly currentGoal: string | null;
 }): string {
-    if (options.event === 'CREATED') {
-        return spaceTrim(`
-            🌱 I was created as \`${options.agentName}\`.
+    const currentGoal = options.currentGoal?.trim() || null;
+    const goalSection = currentGoal
+        ? spaceTrim(
+              (block) => `
+                  My current goal is:
 
-            From now on I keep my own plans towards my goal in this thread.
-        `);
+                  ${block(currentGoal)}
+              `,
+          )
+        : 'I currently have no `GOAL` or `GOALS` commitment.';
+
+    if (options.event === 'CREATED') {
+        return spaceTrim(
+            (block) => `
+                🌱 I was created as \`${options.agentName}\`.
+
+                ${block(goalSection)}
+
+                This is my own thread for acting towards that goal. I should work on it now when useful,
+                inspect existing planned messages with \`list_timeouts\`, and use \`set_timeout\` or
+                \`cancel_timeout\` to arrange the next useful wake-up without creating duplicates.
+            `,
+        );
     }
 
-    return spaceTrim(`
-        📝 My book was updated, so \`${options.agentName}\` may work differently from now on.
+    return spaceTrim(
+        (block) => `
+            📝 My book was updated, so \`${options.agentName}\` may work differently from now on.
 
-        I should re-check my plans towards my goal against the new book.
-    `);
+            ${block(goalSection)}
+
+            I should re-check my work and planned messages against this new goal, act on it now when useful,
+            and arrange another goal-chat wake-up with \`set_timeout\` when future follow-up is needed.
+        `,
+    );
 }
 
 /**

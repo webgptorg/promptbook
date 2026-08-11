@@ -76,6 +76,18 @@ describe('userChatMessageLifecycle', () => {
         expect(assistantMessage.progressCard).toBeUndefined();
     });
 
+    it('should preserve the agent sender for an internal goal-chat wake-up', () => {
+        const agentMessage = createQueuedUserChatUserMessage({
+            messageId: 'agent-message',
+            clientMessageId: 'agent-client-message',
+            content: 'Continue working towards the current goal.',
+            sender: 'AGENT',
+            createdAt: createdAtIso,
+        });
+
+        expect(agentMessage.sender).toBe('AGENT');
+    });
+
     it('should resolve the prompt thread that existed before a queued user turn', () => {
         const messages: Array<UserChatMessage> = [
             {

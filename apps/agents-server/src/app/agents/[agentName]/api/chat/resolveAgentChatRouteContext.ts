@@ -3,8 +3,7 @@ import { computeAgentHash } from '@promptbook-local/core';
 import { resolveTeamInternalAgentAccessToken } from '../../../../../../../../src/commitments/_common/teamInternalAgentAccess';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideOpenAiAgentKitExecutionToolsForServer } from '@/src/tools/$provideOpenAiAgentKitExecutionToolsForServer';
-import { createChatAttachmentTools } from '@/src/tools/createChatAttachmentTools';
-import { createAgentProgressTools } from '@/src/tools/createAgentProgressTools';
+import { createServerChatRuntimeTools } from '@/src/tools/createServerChatRuntimeTools';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import {
     AGENT_PREPARATION_CHAT_WAIT_TIMEOUT_MS,
@@ -54,7 +53,7 @@ export type ResolvedAgentChatRouteContext = {
     message: string;
     thread?: Array<ChatMessage>;
     attachments: ChatMessage['attachments'];
-    runtimeTools: ReturnType<typeof createAgentProgressTools>;
+    runtimeTools: ReturnType<typeof createServerChatRuntimeTools>;
     promptParameters: ReturnType<typeof composePromptParametersWithMemoryContext>;
     messageSuffix: ReturnType<typeof resolveMessageSuffixFromAgentSource>;
     currentUserIdentity: ResolvedCurrentUserMemoryIdentity | null;
@@ -165,7 +164,7 @@ export async function resolveAgentChatRouteContext(
         agentId,
         calendarConnections,
     });
-    const runtimeTools = createAgentProgressTools(createChatAttachmentTools([], attachments));
+    const runtimeTools = createServerChatRuntimeTools(attachments);
     const promptParameters = composePromptParametersWithMemoryContext({
         baseParameters: incomingParameters,
         currentUserIdentity,

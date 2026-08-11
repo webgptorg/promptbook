@@ -15,7 +15,6 @@ import { buildAgentChatHref, buildAgentProfileHref } from '../utils/agentRouting
 import { type AgentVisibility, parseAgentVisibility } from '../utils/agentVisibility';
 import { authenticateUserWithRateLimit } from '../utils/authenticateUser';
 import { resolveAuthenticationAttemptHeaderIp } from '../utils/authenticationAttemptRateLimit';
-import { recordAgentGoalChatLifecycleNote } from '../utils/agentGoalChat';
 import { createAgentWithDefaultVisibility } from '../utils/createAgentWithDefaultVisibility';
 import { resolveCurrentUserIdentity } from '../utils/currentUserIdentity';
 import { isUserAdmin } from '../utils/isUserAdmin';
@@ -50,7 +49,6 @@ export async function $createAgentAction(): Promise<{ agentName: string_agent_na
     const { agentName, permanentId } = await createAgentWithDefaultVisibility(collection, agentSource, {
         userId: currentUserIdentity?.userId,
     });
-    await recordAgentGoalChatLifecycleNote({ event: 'CREATED', agentPermanentId: permanentId, agentName });
     revalidateCreatedAgentPaths(permanentId);
     await waitForCreatedAgentRoute(permanentId);
 
@@ -141,7 +139,6 @@ export async function $createAgentFromBookAction(
         visibility: visibility ?? undefined,
         userId: currentUserIdentity?.userId,
     });
-    await recordAgentGoalChatLifecycleNote({ event: 'CREATED', agentPermanentId: permanentId, agentName });
     revalidateCreatedAgentPaths(permanentId);
     await waitForCreatedAgentRoute(permanentId);
 

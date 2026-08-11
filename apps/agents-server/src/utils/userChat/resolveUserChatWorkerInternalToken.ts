@@ -13,7 +13,7 @@ import { EnvironmentMismatchError } from '../../../../../src/errors/EnvironmentM
 let resolvedUserChatWorkerInternalToken: string | null = null;
 
 /**
- * Resolves the shared internal token used to protect background worker routes.
+ * Resolves the shared internal token used to protect managed-agent and background worker routes.
  *
  * In production, `PTBK_AGENTS_SERVER_USER_CHAT_WORKER_TOKEN` must be configured
  * explicitly — falling back to any shared credential (in particular
@@ -44,11 +44,12 @@ export function resolveUserChatWorkerInternalToken(): string {
             spaceTrim(`
                 Missing required \`PTBK_AGENTS_SERVER_USER_CHAT_WORKER_TOKEN\` environment variable in production.
 
-                The Agents Server protects its internal worker routes
+                The Agents Server protects its internal managed-agent and worker routes
                 (\`/api/internal/user-chat-jobs/run\`,
                 \`/api/internal/user-chat-timeouts/run\`,
-                \`/api/internal/agent-runner-limits\`, and
-                \`/api/internal/agent-project-runtimes\`) with this shared token.
+                \`/api/internal/agent-runner-limits\`,
+                \`/api/internal/agent-project-runtimes\`, and
+                \`/api/internal/agent-goal-chat-planned-messages\`) with this shared token.
                 Reusing \`ADMIN_PASSWORD\`, \`SUPABASE_SERVICE_ROLE_KEY\`, or a
                 hardcoded fallback would let anyone who learns that value drive
                 background jobs at will.

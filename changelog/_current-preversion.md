@@ -22,6 +22,14 @@
 -   Fixed goal-chat notices and planned-message panels covering the beginning of the conversation. The shared chat header
     slot now reserves space above the messages instead of overlaying them.
 
+-   Made the Agents Server goal chat active rather than informational. Creating or changing an agent whose Book contains
+    a `GOAL` / `GOALS` commitment now queues a real turn in that agent's singleton goal chat, and the lifecycle message
+    includes the effective new goal. Every server chat invocation can now set, list, and cancel durable planned messages;
+    they are always stored for and fired into the singleton goal chat, where firing wakes the agent to act and optionally
+    plan its next invocation. The in-process AgentKit runtime and the managed coding-agent runner share the same
+    goal-chat scheduling operations, and the planned-message panel refreshes while a turn is running so new execution
+    times and cancellations appear without reopening the chat.
+
 -   Debounced the Agents Server’s automatic **“My book was updated”** goal-chat note independently for each agent. Book persistence retains its existing 1-second editor debounce, while the note is now written once, one minute after the latest successful source update, so typing no longer floods an agent’s goal chat.
 
 -   Fixed `ptbk coder generate-boilerplates --count N*M` so all `M` prompts in a generated file share one fresh emoji tag, while every generated file receives a different tag. Updated the `ptbk coder` landing page accordingly.

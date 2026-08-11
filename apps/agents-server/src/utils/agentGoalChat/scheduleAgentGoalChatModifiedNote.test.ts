@@ -1,5 +1,6 @@
 import { describe, expect, it, jest } from '@jest/globals';
 import type { ProvidedServer } from '@/src/tools/$provideServer';
+import type { string_book } from '../../../../../src/book-2.0/agent-source/string_book';
 import {
     AGENT_GOAL_CHAT_MODIFIED_NOTE_DEBOUNCE_DELAY_MS,
     createAgentGoalChatModifiedNoteScheduler,
@@ -23,6 +24,21 @@ const SECOND_TEST_SERVER: ProvidedServer = {
     tablePrefix: 'second_',
 };
 
+/**
+ * First source version used before the debounce is reset.
+ */
+const FIRST_AGENT_SOURCE = 'First name\n\nGOAL Keep the first plan.' as string_book;
+
+/**
+ * Latest source version that must reach the lifecycle recorder.
+ */
+const LATEST_AGENT_SOURCE = 'Latest name\n\nGOAL Keep the latest plan.' as string_book;
+
+/**
+ * Source belonging to the isolated second server.
+ */
+const SECOND_SERVER_AGENT_SOURCE = 'Other agent\n\nGOAL Keep the other plan.' as string_book;
+
 describe('scheduleAgentGoalChatModifiedNote', () => {
     it('writes one latest note per server and agent after one minute of inactivity', () => {
         jest.useFakeTimers();
@@ -40,18 +56,21 @@ describe('scheduleAgentGoalChatModifiedNote', () => {
             scheduleAgentGoalChatModifiedNote({
                 agentPermanentId: 'agent-a',
                 agentName: 'First name',
+                agentSource: FIRST_AGENT_SOURCE,
                 server: FIRST_TEST_SERVER,
             });
             jest.advanceTimersByTime(30_000);
             scheduleAgentGoalChatModifiedNote({
                 agentPermanentId: 'agent-a',
                 agentName: 'Latest name',
+                agentSource: LATEST_AGENT_SOURCE,
                 server: FIRST_TEST_SERVER,
             });
             jest.advanceTimersByTime(15_000);
             scheduleAgentGoalChatModifiedNote({
                 agentPermanentId: 'agent-a',
                 agentName: 'Other agent',
+                agentSource: SECOND_SERVER_AGENT_SOURCE,
                 server: SECOND_TEST_SERVER,
             });
             jest.advanceTimersByTime(AGENT_GOAL_CHAT_MODIFIED_NOTE_DEBOUNCE_DELAY_MS - 15_001);
@@ -65,6 +84,7 @@ describe('scheduleAgentGoalChatModifiedNote', () => {
                 event: 'MODIFIED',
                 agentPermanentId: 'agent-a',
                 agentName: 'Latest name',
+                agentSource: LATEST_AGENT_SOURCE,
             });
             expect(runWithServerContextOverride).toHaveBeenCalledWith(FIRST_TEST_SERVER, expect.any(Function));
 
@@ -75,6 +95,7 @@ describe('scheduleAgentGoalChatModifiedNote', () => {
                 event: 'MODIFIED',
                 agentPermanentId: 'agent-a',
                 agentName: 'Other agent',
+                agentSource: SECOND_SERVER_AGENT_SOURCE,
             });
             expect(runWithServerContextOverride).toHaveBeenLastCalledWith(SECOND_TEST_SERVER, expect.any(Function));
         } finally {
