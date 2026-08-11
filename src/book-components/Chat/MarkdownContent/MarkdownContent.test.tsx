@@ -1,6 +1,6 @@
 /** @jest-environment jsdom */
 
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it, jest } from '@jest/globals';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { spaceTrim } from 'spacetrim';
 
@@ -165,6 +165,62 @@ describe('MarkdownContent details rendering', () => {
         expect(projectPageLink.getAttribute('href')).toBe('/agents/example-agent/projects/website');
         expect(projectLink.getAttribute('target')).toBe('_blank');
         expect(projectLink.getAttribute('rel')).toBe('noopener noreferrer');
+    });
+
+    it('renders an inline-reference favicon fallback and executes menu button actions', async () => {
+        const onSelect = jest.fn(async () => undefined);
+        const { container } = render(
+            <MarkdownContent
+                content="Open [[website]]."
+                inlineReferences={[
+                    {
+                        reference: 'website',
+                        label: 'Website',
+                        href: '/agents/example-agent/projects/website',
+                        icon: {
+                            src: '/agents/example-agent/projects/website/files/favicon.svg',
+                            fallbackText: 'W',
+                        },
+                        menu: {
+                            status: {
+                                label: 'Project is not running',
+                                isActive: false,
+                            },
+                            options: [
+                                {
+                                    label: 'Start the project',
+                                    href: null,
+                                    action: {
+                                        id: 'start-project',
+                                        onSelect,
+                                    },
+                                },
+                            ],
+                        },
+                    },
+                ]}
+            />,
+        );
+
+        const details = container.querySelector<HTMLDetailsElement>('details');
+        const summary = details?.querySelector('summary');
+        const faviconImage = container.querySelector<HTMLImageElement>(
+            'img[data-promptbook-inline-reference-icon]',
+        );
+
+        expect(summary?.textContent).toContain('Website');
+        expect(container.querySelector('.inlineReferenceIconFallback')?.textContent).toBe('W');
+        expect(faviconImage?.getAttribute('src')).toBe('/agents/example-agent/projects/website/files/favicon.svg');
+        expect(details?.querySelector('.inlineReferenceMenuStatus--inactive')).toBeTruthy();
+
+        fireEvent.error(faviconImage!);
+        expect(faviconImage?.hidden).toBe(true);
+
+        fireEvent.click(summary!);
+        await waitFor(() => expect(details?.open).toBe(true));
+
+        fireEvent.click(screen.getByRole('button', { name: 'Start the project' }));
+        await waitFor(() => expect(onSelect).toHaveBeenCalledTimes(1));
     });
 
     it('renders project links and project URLs as the same expandable reference chip', () => {

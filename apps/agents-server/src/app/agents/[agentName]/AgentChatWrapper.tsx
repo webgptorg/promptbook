@@ -8,6 +8,7 @@ import { ClientVersionMismatchError } from '@promptbook-local/utils';
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { string_agent_url } from '../../../../../../src/types/typeAliases';
 import type { AgentProjectItemInfo } from '../../../components/AgentProjects/AgentProjectReferencesList';
+import { useAgentProjectMarkdownReferences } from '../../../components/AgentProjects/useAgentProjectMarkdownReferences';
 import { useAgentBackground } from '../../../components/AgentProfile/useAgentBackground';
 import { useChatEnterBehaviorPreferences } from '../../../components/ChatEnterBehavior/ChatEnterBehaviorPreferencesProvider';
 import { ChatErrorDialog } from '../../../components/ChatErrorDialog';
@@ -33,7 +34,6 @@ import { reportClientVersionMismatch } from '../../../utils/clientVersionClient'
 import type { FriendlyErrorMessage } from '../../../utils/errorMessages';
 import { handleChatError } from '../../../utils/errorMessages';
 import { fetchGithubAppStatus, type GithubAppStatusResponse } from '../../../utils/githubAppClient';
-import { createAgentProjectMarkdownReferences } from '../../../utils/agentProjects/createAgentProjectMarkdownReferences';
 import { createDefaultSpeechRecognition } from '../../../utils/speech-to-text/createDefaultSpeechRecognition';
 import { chatFileUploadHandler } from '../../../utils/upload/createBookEditorUploadHandler';
 import {
@@ -144,14 +144,10 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
 
     const { value: agent } = usePromise(agentPromise, [agentPromise]);
     const teamAgentProfiles = useTeamAgentProfiles(agent?.capabilities);
-    const markdownInlineReferences = useMemo(
-        () =>
-            createAgentProjectMarkdownReferences({
-                agentPermanentId: agentName,
-                projects: projectReferences,
-            }),
-        [agentName, projectReferences],
-    );
+    const markdownInlineReferences = useAgentProjectMarkdownReferences({
+        agentPermanentId: agentName,
+        projects: projectReferences,
+    });
 
     // Error state management
     const [currentError, setCurrentError] = useState<FriendlyErrorMessage | null>(null);

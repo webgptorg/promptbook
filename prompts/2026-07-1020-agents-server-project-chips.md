@@ -46,7 +46,7 @@
 
 ---
 
-[ ]
+[x] by OpenAI Codex `gpt-5.6-sol` thinking `max` (ChatGPT account) - Implementation ~.69 2 hours; Testing 24 minutes
 
 [✨🥖] Allow to start/stop projects from the chip
 
@@ -63,3 +63,4 @@
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ![alt text](screenshots/2026-07-1020-agents-server-project-chips-6.png)
+

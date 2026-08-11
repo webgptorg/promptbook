@@ -43,6 +43,7 @@ const MARKDOWN_SANITIZER_ALLOWED_TAGS = [
     'b',
     'blockquote',
     'br',
+    'button',
     'code',
     'del',
     'details',
@@ -157,6 +158,29 @@ const MARKDOWN_SANITIZER_ALLOWED_PROTOCOLS = new Set(['http', 'https', 'mailto',
 const INLINE_REFERENCE_MENU_OPTION_MARKER_ATTRIBUTE = 'data-promptbook-inline-reference-menu-option';
 
 /**
+ * Attribute marking a client action generated for an inline-reference menu.
+ *
+ * @private utility shared with `MarkdownContent`
+ */
+export const MARKDOWN_INLINE_REFERENCE_MENU_ACTION_ATTRIBUTE =
+    'data-promptbook-inline-reference-menu-action';
+
+/**
+ * Attribute identifying the inline reference which owns a client menu action.
+ *
+ * @private utility shared with `MarkdownContent`
+ */
+export const MARKDOWN_INLINE_REFERENCE_MENU_ACTION_REFERENCE_ATTRIBUTE =
+    'data-promptbook-inline-reference-menu-action-reference';
+
+/**
+ * Attribute marking a favicon rendered inside an inline-reference chip.
+ *
+ * @private utility shared with `MarkdownContent`
+ */
+export const MARKDOWN_INLINE_REFERENCE_ICON_ATTRIBUTE = 'data-promptbook-inline-reference-icon';
+
+/**
  * Internal `data-*` attributes that Promptbook injects into rendered markdown and must survive sanitization.
  *
  * @private utility of `renderMarkdown`
@@ -165,6 +189,9 @@ const MARKDOWN_SANITIZER_ALLOWED_DATA_ATTRIBUTES = new Set([
     'data-citation-footnote',
     'data-chat-progress-marker',
     INLINE_REFERENCE_MENU_OPTION_MARKER_ATTRIBUTE,
+    MARKDOWN_INLINE_REFERENCE_MENU_ACTION_ATTRIBUTE,
+    MARKDOWN_INLINE_REFERENCE_MENU_ACTION_REFERENCE_ATTRIBUTE,
+    MARKDOWN_INLINE_REFERENCE_ICON_ATTRIBUTE,
 ]);
 
 /**
@@ -416,9 +443,31 @@ export type MarkdownInlineReference = {
     readonly title?: string;
 
     /**
+     * Optional favicon and text fallback rendered before the reference label.
+     */
+    readonly icon?: MarkdownInlineReferenceIcon;
+
+    /**
      * Optional expandable menu shown when the reference chip is clicked.
      */
     readonly menu?: MarkdownInlineReferenceMenu;
+};
+
+/**
+ * Visual identity rendered inside one markdown inline-reference chip.
+ *
+ * @public exported from `@promptbook/components`
+ */
+export type MarkdownInlineReferenceIcon = {
+    /**
+     * Optional image URL. The fallback remains visible when the image is unavailable.
+     */
+    readonly src?: string | null;
+
+    /**
+     * Short text rendered when the image is missing or broken.
+     */
+    readonly fallbackText: string;
 };
 
 /**
@@ -458,6 +507,28 @@ export type MarkdownInlineReferenceMenuOption = {
      * Optional hover text for the option.
      */
     readonly title?: string;
+
+    /**
+     * Optional client action rendered as a button instead of a link.
+     */
+    readonly action?: MarkdownInlineReferenceMenuAction;
+};
+
+/**
+ * Client-side action exposed by an expandable markdown inline-reference menu.
+ *
+ * @public exported from `@promptbook/components`
+ */
+export type MarkdownInlineReferenceMenuAction = {
+    /**
+     * Stable identifier unique within the owning reference menu.
+     */
+    readonly id: string;
+
+    /**
+     * Callback invoked when the menu button is selected.
+     */
+    readonly onSelect: () => void | Promise<void>;
 };
 
 /**
@@ -1322,12 +1393,50 @@ function renderMarkdownInlineReferenceHtml(reference: MarkdownInlineReference, c
         return renderMarkdownInlineReferenceMenuHtml(reference, className);
     }
 
-    const escapedClassName = escapeHtml(className);
+    const escapedClassName = escapeHtml(createMarkdownInlineReferenceClassName(reference, className));
     const escapedHref = escapeHtml(reference.href);
     const escapedLabel = escapeHtml(reference.label);
     const escapedTitle = escapeHtml(reference.title || reference.label);
+    const iconHtml = renderMarkdownInlineReferenceIconHtml(reference.icon);
 
-    return `<a class="${escapedClassName}" href="${escapedHref}" title="${escapedTitle}">${escapedLabel}</a>`;
+    return `<a class="${escapedClassName}" href="${escapedHref}" title="${escapedTitle}">${iconHtml}<span>${escapedLabel}</span></a>`;
+}
+
+/**
+ * Adds the icon marker class only to references which provide icon metadata.
+ *
+ * @param reference - Inline reference being rendered.
+ * @param className - Base chip class name.
+ * @returns Complete class name for the rendered chip.
+ *
+ * @private utility of `renderMarkdown`
+ */
+function createMarkdownInlineReferenceClassName(reference: MarkdownInlineReference, className: string): string {
+    return reference.icon ? `${className} inlineReferenceChip--with-icon` : className;
+}
+
+/**
+ * Renders one inline-reference favicon with a text fallback.
+ *
+ * @param icon - Optional icon metadata.
+ * @returns Safe icon markup, or an empty string when no icon is configured.
+ *
+ * @private utility of `renderMarkdown`
+ */
+function renderMarkdownInlineReferenceIconHtml(icon: MarkdownInlineReferenceIcon | undefined): string {
+    if (!icon) {
+        return '';
+    }
+
+    const escapedFallbackText = escapeHtml(icon.fallbackText);
+    const fallbackHtml = `<span class="inlineReferenceIconFallback">${escapedFallbackText}</span>`;
+
+    if (!icon.src) {
+        return `<span class="inlineReferenceIcon" aria-hidden="true">${fallbackHtml}</span>`;
+    }
+
+    const escapedSrc = escapeHtml(icon.src);
+    return `<span class="inlineReferenceIcon" aria-hidden="true">${fallbackHtml}<img ${MARKDOWN_INLINE_REFERENCE_ICON_ATTRIBUTE} src="${escapedSrc}" alt=""></span>`;
 }
 
 /**
@@ -1346,29 +1455,43 @@ function renderMarkdownInlineReferenceMenuHtml(reference: MarkdownInlineReferenc
         return renderMarkdownInlineReferenceHtml({ ...reference, menu: undefined }, className);
     }
 
-    const escapedClassName = escapeHtml(className);
+    const escapedClassName = escapeHtml(createMarkdownInlineReferenceClassName(reference, className));
     const escapedLabel = escapeHtml(reference.label);
     const escapedTitle = escapeHtml(reference.title || reference.label);
     const escapedStatusLabel = escapeHtml(menu.status.label);
     const statusClassName = menu.status.isActive
         ? 'inlineReferenceMenuStatus inlineReferenceMenuStatus--active'
-        : 'inlineReferenceMenuStatus';
-    const optionsHtml = menu.options.map((option) => renderMarkdownInlineReferenceMenuOptionHtml(option)).join('');
+        : 'inlineReferenceMenuStatus inlineReferenceMenuStatus--inactive';
+    const iconHtml = renderMarkdownInlineReferenceIconHtml(reference.icon);
+    const optionsHtml = menu.options
+        .map((option) => renderMarkdownInlineReferenceMenuOptionHtml(reference, option))
+        .join('');
 
-    return `<details class="${escapedClassName}" title="${escapedTitle}"><summary><span>${escapedLabel}</span><span class="${statusClassName}" title="${escapedStatusLabel}"></span></summary><div><span class="${statusClassName}">${escapedStatusLabel}</span>${optionsHtml}</div></details>`;
+    return `<details class="${escapedClassName}" title="${escapedTitle}"><summary>${iconHtml}<span>${escapedLabel}</span><span class="${statusClassName}" title="${escapedStatusLabel}"></span></summary><div><span class="${statusClassName}">${escapedStatusLabel}</span>${optionsHtml}</div></details>`;
 }
 
 /**
  * Renders one option in an expandable markdown inline reference menu.
  *
+ * @param reference - Inline reference which owns the option.
  * @param option - Menu option definition.
  * @returns HTML anchor or disabled label markup.
  *
  * @private utility of `renderMarkdown`
  */
-function renderMarkdownInlineReferenceMenuOptionHtml(option: MarkdownInlineReferenceMenuOption): string {
+function renderMarkdownInlineReferenceMenuOptionHtml(
+    reference: MarkdownInlineReference,
+    option: MarkdownInlineReferenceMenuOption,
+): string {
     const escapedLabel = escapeHtml(option.label);
     const escapedTitle = escapeHtml(option.title || option.label);
+
+    if (option.action) {
+        const escapedActionId = escapeHtml(option.action.id);
+        const escapedReference = escapeHtml(reference.reference);
+
+        return `<button type="button" ${MARKDOWN_INLINE_REFERENCE_MENU_ACTION_ATTRIBUTE}="${escapedActionId}" ${MARKDOWN_INLINE_REFERENCE_MENU_ACTION_REFERENCE_ATTRIBUTE}="${escapedReference}" class="inlineReferenceMenuOption" title="${escapedTitle}">${escapedLabel}</button>`;
+    }
 
     if (option.href === null) {
         return `<span class="inlineReferenceMenuOption inlineReferenceMenuOption--disabled" title="${escapedTitle}">${escapedLabel}</span>`;

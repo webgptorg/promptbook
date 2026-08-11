@@ -6,7 +6,12 @@ import type { string_markdown } from '../../../types/string_markdown';
 import { classNames } from '../../_common/react-utils/classNames';
 import { CodeBlock } from '../CodeBlock/CodeBlock';
 import type { MarkdownInlineReference } from '../utils/renderMarkdown';
-import { renderMarkdown } from '../utils/renderMarkdown';
+import {
+    MARKDOWN_INLINE_REFERENCE_ICON_ATTRIBUTE,
+    MARKDOWN_INLINE_REFERENCE_MENU_ACTION_ATTRIBUTE,
+    MARKDOWN_INLINE_REFERENCE_MENU_ACTION_REFERENCE_ATTRIBUTE,
+    renderMarkdown,
+} from '../utils/renderMarkdown';
 import styles from './MarkdownContent.module.css';
 
 /**
@@ -15,6 +20,20 @@ import styles from './MarkdownContent.module.css';
  * @private utility of `MarkdownContent` component
  */
 const DETAILS_SUMMARY_SELECTOR = 'summary';
+
+/**
+ * Selector matching client-action buttons rendered inside inline-reference menus.
+ *
+ * @private utility of `MarkdownContent` component
+ */
+const INLINE_REFERENCE_MENU_ACTION_SELECTOR = `[${MARKDOWN_INLINE_REFERENCE_MENU_ACTION_ATTRIBUTE}]`;
+
+/**
+ * Selector matching inline-reference favicon images which need a broken-image fallback.
+ *
+ * @private utility of `MarkdownContent` component
+ */
+const INLINE_REFERENCE_ICON_SELECTOR = `img[${MARKDOWN_INLINE_REFERENCE_ICON_ATTRIBUTE}]`;
 
 /**
  * Props for markdown content.
@@ -108,6 +127,45 @@ function resolveClickedDetailsElement(target: EventTarget | null, container: HTM
 
     const details = summary.closest('details');
     return details instanceof HTMLDetailsElement ? details : null;
+}
+
+/**
+ * Resolves the configured callback for one rendered inline-reference menu action.
+ *
+ * @param actionButton - Clicked menu action button.
+ * @param inlineReferences - References available to the markdown content.
+ * @returns Matching action callback, or `null` when the rendered marker is stale.
+ *
+ * @private utility of `MarkdownContent` component
+ */
+function resolveInlineReferenceMenuAction(
+    actionButton: HTMLButtonElement,
+    inlineReferences: ReadonlyArray<MarkdownInlineReference> | undefined,
+): (() => void | Promise<void>) | null {
+    const actionId = actionButton.getAttribute(MARKDOWN_INLINE_REFERENCE_MENU_ACTION_ATTRIBUTE);
+    const referenceId = actionButton.getAttribute(MARKDOWN_INLINE_REFERENCE_MENU_ACTION_REFERENCE_ATTRIBUTE);
+
+    if (!actionId || !referenceId || !inlineReferences) {
+        return null;
+    }
+
+    const reference = inlineReferences.find((candidateReference) => candidateReference.reference === referenceId);
+    const option = reference?.menu?.options.find((candidateOption) => candidateOption.action?.id === actionId);
+
+    return option?.action?.onSelect || null;
+}
+
+/**
+ * Hides a favicon when it has completed without loading any pixels.
+ *
+ * @param faviconImage - Inline-reference favicon to inspect.
+ *
+ * @private utility of `MarkdownContent` component
+ */
+function hideBrokenInlineReferenceIcon(faviconImage: HTMLImageElement): void {
+    if (faviconImage.complete && faviconImage.naturalWidth === 0) {
+        faviconImage.hidden = true;
+    }
 }
 
 /**
@@ -215,8 +273,60 @@ export const MarkdownContent = memo(function MarkdownContent(props: MarkdownCont
             pendingToggleFallbackTimeoutIds.add(fallbackTimeoutId);
         };
 
+        /**
+         * Executes one delegated inline-reference menu action without allowing the click to reach
+         * surrounding chat message handlers.
+         */
+        const handleInlineReferenceMenuActionClick = (event: MouseEvent) => {
+            const targetElement = event.target instanceof Element ? event.target : null;
+            const actionButton = targetElement?.closest(INLINE_REFERENCE_MENU_ACTION_SELECTOR);
+
+            if (!(actionButton instanceof HTMLButtonElement) || !containerElement.contains(actionButton)) {
+                return;
+            }
+
+            const action = resolveInlineReferenceMenuAction(actionButton, inlineReferences);
+            if (!action || actionButton.disabled) {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+            actionButton.disabled = true;
+            actionButton.setAttribute('aria-busy', 'true');
+
+            void Promise.resolve()
+                .then(action)
+                .catch((error) => {
+                    console.error('Inline reference menu action failed:', error);
+                })
+                .finally(() => {
+                    if (!actionButton.isConnected) {
+                        return;
+                    }
+
+                    actionButton.disabled = false;
+                    actionButton.removeAttribute('aria-busy');
+                });
+        };
+
         containerElement.addEventListener('toggle', handleToggle, true);
         containerElement.addEventListener('click', handleSummaryClick);
+        containerElement.addEventListener('click', handleInlineReferenceMenuActionClick);
+
+        const inlineReferenceIconImages = containerElement.querySelectorAll<HTMLImageElement>(
+            INLINE_REFERENCE_ICON_SELECTOR,
+        );
+        const handleInlineReferenceIconError = (event: Event) => {
+            if (event.currentTarget instanceof HTMLImageElement) {
+                event.currentTarget.hidden = true;
+            }
+        };
+
+        inlineReferenceIconImages.forEach((faviconImage) => {
+            hideBrokenInlineReferenceIcon(faviconImage);
+            faviconImage.addEventListener('error', handleInlineReferenceIconError);
+        });
 
         const preElements = containerElement.querySelectorAll('pre');
 
@@ -261,12 +371,16 @@ export const MarkdownContent = memo(function MarkdownContent(props: MarkdownCont
         return () => {
             containerElement.removeEventListener('toggle', handleToggle, true);
             containerElement.removeEventListener('click', handleSummaryClick);
+            containerElement.removeEventListener('click', handleInlineReferenceMenuActionClick);
+            inlineReferenceIconImages.forEach((faviconImage) => {
+                faviconImage.removeEventListener('error', handleInlineReferenceIconError);
+            });
             pendingToggleFallbackTimeoutIds.forEach((timeoutId) => window.clearTimeout(timeoutId));
             pendingToggleFallbackTimeoutIds.clear();
             rootsRef.current.forEach((root) => root.unmount());
             rootsRef.current = [];
         };
-    }, [htmlContent, resolvedTheme]);
+    }, [htmlContent, inlineReferences, resolvedTheme]);
 
     return (
         <div

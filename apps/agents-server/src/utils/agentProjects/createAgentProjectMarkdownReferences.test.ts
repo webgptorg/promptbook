@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it, jest } from '@jest/globals';
 import { createAgentProjectMarkdownReferences } from './createAgentProjectMarkdownReferences';
 
 describe('createAgentProjectMarkdownReferences', () => {
@@ -11,6 +11,7 @@ describe('createAgentProjectMarkdownReferences', () => {
                         projectName: 'website',
                         displayName: 'Website',
                         description: 'Marketing website',
+                        faviconRelativePath: null,
                     },
                 ],
             }),
@@ -22,6 +23,10 @@ describe('createAgentProjectMarkdownReferences', () => {
                 href: '/agents/agent%20one/projects/website',
                 sourceHrefPrefixes: ['/agents/agent%20one/projects/website'],
                 title: 'Marketing website',
+                icon: {
+                    src: null,
+                    fallbackText: 'W',
+                },
                 menu: {
                     status: {
                         label: 'Project is not running',
@@ -53,6 +58,7 @@ describe('createAgentProjectMarkdownReferences', () => {
                         projectName: 'prague-murders-map',
                         displayName: 'Prague Murders Map',
                         description: '',
+                        faviconRelativePath: null,
                     },
                 ],
             }),
@@ -64,6 +70,10 @@ describe('createAgentProjectMarkdownReferences', () => {
                 href: '/agents/agent/projects/prague-murders-map',
                 sourceHrefPrefixes: ['/agents/agent/projects/prague-murders-map'],
                 title: 'Prague Murders Map',
+                icon: {
+                    src: null,
+                    fallbackText: 'PMM',
+                },
                 menu: {
                     status: {
                         label: 'Project is not running',
@@ -94,6 +104,7 @@ describe('createAgentProjectMarkdownReferences', () => {
                     projectName: 'website',
                     displayName: 'Website',
                     description: '',
+                    faviconRelativePath: null,
                     isRunning: true,
                     projectUrl: 'https://website.example.com',
                 },
@@ -120,6 +131,7 @@ describe('createAgentProjectMarkdownReferences', () => {
                     projectName: 'website',
                     displayName: 'Website',
                     description: '',
+                    faviconRelativePath: null,
                     isRunning: false,
                     projectUrl: 'https://website.example.com',
                 },
@@ -135,5 +147,50 @@ describe('createAgentProjectMarkdownReferences', () => {
             href: null,
             title: 'The project must run before it can be opened.',
         });
+    });
+
+    it('adds the favicon and interactive open and runtime actions', async () => {
+        const onOpenProject = jest.fn(async () => undefined);
+        const onChangeProjectRuntime = jest.fn(async () => undefined);
+        const [reference] = createAgentProjectMarkdownReferences({
+            agentPermanentId: 'agent',
+            projects: [
+                {
+                    projectName: 'website-studio',
+                    displayName: 'Website Studio',
+                    description: '',
+                    faviconRelativePath: 'assets/favicon.svg',
+                    isRunning: false,
+                    projectUrl: 'https://website.example.com',
+                },
+            ],
+            onOpenProject,
+            onChangeProjectRuntime,
+        });
+
+        expect(reference?.icon).toEqual({
+            src: '/agents/agent/projects/website-studio/files/assets/favicon.svg',
+            fallbackText: 'WS',
+        });
+        expect(reference?.menu?.options).toHaveLength(3);
+        expect(reference?.menu?.options[0]).toMatchObject({
+            label: 'Open the project in a new tab',
+            href: null,
+            action: { id: 'open-agent-project' },
+        });
+        expect(reference?.menu?.options[2]).toMatchObject({
+            label: 'Start the project',
+            href: null,
+            action: { id: 'start-agent-project' },
+        });
+
+        await reference?.menu?.options[0]?.action?.onSelect();
+        await reference?.menu?.options[2]?.action?.onSelect();
+
+        expect(onOpenProject).toHaveBeenCalledWith(expect.objectContaining({ projectName: 'website-studio' }));
+        expect(onChangeProjectRuntime).toHaveBeenCalledWith(
+            expect.objectContaining({ projectName: 'website-studio' }),
+            true,
+        );
     });
 });

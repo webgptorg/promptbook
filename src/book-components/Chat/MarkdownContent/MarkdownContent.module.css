@@ -229,6 +229,57 @@
     transform: translateY(0.03em);
 }
 
+.MarkdownContent
+    :is(
+        a.inlineReferenceChip:global(.inlineReferenceChip--with-icon),
+        details.inlineReferenceChip:global(.inlineReferenceChip--with-icon) > summary
+    )::before {
+    display: none;
+}
+
+.MarkdownContent :global(.inlineReferenceIcon) {
+    position: relative;
+    display: inline-flex;
+    width: 1.1em;
+    height: 1.1em;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--md-link-color) 22%, transparent);
+    border-radius: 0.24em;
+    background: color-mix(in srgb, var(--md-link-color) 10%, white);
+    font-size: 0.86em;
+    line-height: 1;
+}
+
+.MarkdownContent :global(.inlineReferenceIconFallback) {
+    overflow: hidden;
+    max-width: 100%;
+    color: var(--md-link-color);
+    font-size: 0.48em;
+    font-weight: 750;
+    letter-spacing: -0.04em;
+    white-space: nowrap;
+}
+
+.MarkdownContent :global(.inlineReferenceIcon) img {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    margin: 0;
+    border-radius: 0;
+    background: color-mix(in srgb, var(--md-link-color) 7%, white);
+    object-fit: contain;
+}
+
+.MarkdownContent :global(.inlineReferenceIcon) img[hidden] {
+    display: none;
+}
+
 .MarkdownContent :is(a.inlineReferenceChip, details.inlineReferenceChip > summary):hover,
 .MarkdownContent :is(a.inlineReferenceChip, details.inlineReferenceChip > summary):focus-visible {
     border-color: color-mix(in srgb, var(--md-link-color) 52%, rgba(148, 163, 184, 0.35));
@@ -254,7 +305,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0.38em;
-    color: var(--md-muted-color);
+    color: #b91c1c;
     font-size: 0.78em;
     font-weight: 650;
 }
@@ -264,7 +315,8 @@
     height: 0.52em;
     margin-left: 0.05em;
     border-radius: 999px;
-    background: color-mix(in srgb, var(--md-muted-color) 55%, transparent);
+    background: #ef4444;
+    box-shadow: 0 0 0 0.16em color-mix(in srgb, #ef4444 18%, transparent);
 }
 
 .MarkdownContent :global(.inlineReferenceMenuStatus--active) {
@@ -290,19 +342,35 @@
 
 .MarkdownContent :global(.inlineReferenceMenuOption) {
     display: block;
+    width: 100%;
     padding: 0.45rem 0.55rem;
+    border: 0;
     border-radius: 0.4rem;
+    background: transparent;
     color: var(--md-link-color);
+    font-family: inherit;
     font-size: 0.82em;
     font-weight: 650;
     line-height: 1.35;
+    text-align: left;
     text-decoration: none;
 }
 
 .MarkdownContent a:global(.inlineReferenceMenuOption):hover,
-.MarkdownContent a:global(.inlineReferenceMenuOption):focus-visible {
+.MarkdownContent a:global(.inlineReferenceMenuOption):focus-visible,
+.MarkdownContent button:global(.inlineReferenceMenuOption):hover,
+.MarkdownContent button:global(.inlineReferenceMenuOption):focus-visible {
     background: color-mix(in srgb, var(--md-link-color) 10%, transparent);
     text-decoration: none;
+}
+
+.MarkdownContent button:global(.inlineReferenceMenuOption) {
+    cursor: pointer;
+}
+
+.MarkdownContent button:global(.inlineReferenceMenuOption):disabled {
+    cursor: wait;
+    opacity: 0.55;
 }
 
 .MarkdownContent :global(.inlineReferenceMenuOption--disabled) {

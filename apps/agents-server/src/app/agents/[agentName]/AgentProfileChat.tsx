@@ -21,12 +21,12 @@ import { useFileUploadAvailability } from '../../../components/FileUploadAvailab
 import { createMyChatsMobileMenuItem } from '../../../components/Header/createMyChatsMobileMenuItem';
 import { useHoistedMobileMenuItems } from '../../../components/Header/MobileMenuHoistingContext';
 import type { AgentProjectItemInfo } from '../../../components/AgentProjects/AgentProjectReferencesList';
+import { useAgentProjectMarkdownReferences } from '../../../components/AgentProjects/useAgentProjectMarkdownReferences';
 import { usePrivateModePreferences } from '../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
 import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
 import { ChatThreadLoadingSkeleton } from '../../../components/Skeleton/ChatThreadLoadingSkeleton';
 import { usePromptbookTheme } from '../../../components/ThemeMode/usePromptbookTheme';
 import type { ServerLanguageCode } from '../../../languages/ServerLanguageRegistry';
-import { createAgentProjectMarkdownReferences } from '../../../utils/agentProjects/createAgentProjectMarkdownReferences';
 import { buildFreshAgentChatHref } from '../../../utils/agentRouting/agentRouteHrefs';
 import { executeQuickActionButton } from '../../../utils/chat/executeQuickActionButton';
 import { resolveChatMessageValidationIssue } from '../../../utils/chat/validateChatMessageContent';
@@ -284,14 +284,10 @@ export function AgentProfileChat({
     keepUnused(isCreatingAgent);
 
     const chatRoute = useMemo(() => `/agents/${encodeURIComponent(agentName)}/chat`, [agentName]);
-    const markdownInlineReferences = useMemo(
-        () =>
-            createAgentProjectMarkdownReferences({
-                agentPermanentId: agentName,
-                projects: projectReferences,
-            }),
-        [agentName, projectReferences],
-    );
+    const markdownInlineReferences = useAgentProjectMarkdownReferences({
+        agentPermanentId: agentName,
+        projects: projectReferences,
+    });
     const agentPromise = useMemo(
         () =>
             RemoteAgent.connect({

@@ -5,6 +5,7 @@ import { useCallback, useMemo, type CSSProperties, type ReactNode } from 'react'
 import type { ChatParticipant } from '../../../../../../../src/book-components/Chat/types/ChatParticipant';
 import type { ChatSaveFormatHandlerOptions } from '../../../../../../../src/book-components/Chat/save/_common/ChatSaveFormatHandler';
 import type { AgentProjectItemInfo } from '../../../../components/AgentProjects/AgentProjectReferencesList';
+import { useAgentProjectMarkdownReferences } from '../../../../components/AgentProjects/useAgentProjectMarkdownReferences';
 import { useAgentBackground } from '../../../../components/AgentProfile/useAgentBackground';
 import { useChatEnterBehaviorPreferences } from '../../../../components/ChatEnterBehavior/ChatEnterBehaviorPreferencesProvider';
 import { notifyError } from '../../../../components/Notifications/notifications';
@@ -24,7 +25,6 @@ import {
     toChatComponentFeedbackMode,
     type ChatFeedbackMode,
 } from '../../../../utils/chatFeedbackMode';
-import { createAgentProjectMarkdownReferences } from '../../../../utils/agentProjects/createAgentProjectMarkdownReferences';
 import { createDefaultSpeechRecognition } from '../../../../utils/speech-to-text/createDefaultSpeechRecognition';
 import { chatFileUploadHandler } from '../../../../utils/upload/createBookEditorUploadHandler';
 import { getUserChatSourceBannerLabel, type UserChatSource } from '../../../../utils/userChat/UserChatSource';
@@ -140,14 +140,10 @@ export function CanonicalAgentChatSurface({
     state,
 }: CanonicalAgentChatSurfaceProps) {
     const { backgroundImage, brandColorHex, brandColorLightHex, brandColorDarkHex } = useAgentBackground(brandColor);
-    const markdownInlineReferences = useMemo(
-        () =>
-            createAgentProjectMarkdownReferences({
-                agentPermanentId: agentName,
-                projects: projectReferences,
-            }),
-        [agentName, projectReferences],
-    );
+    const markdownInlineReferences = useAgentProjectMarkdownReferences({
+        agentPermanentId: agentName,
+        projects: projectReferences,
+    });
     const chatBackgroundStyle = useMemo(
         () =>
             createCanonicalAgentChatBackgroundStyle({
