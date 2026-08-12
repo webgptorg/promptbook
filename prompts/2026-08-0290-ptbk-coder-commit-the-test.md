@@ -7,20 +7,7 @@ me@DESKTOP-2QD9KQQ MINGW64 ~/work/ai/promptbook (main)
 $ ptbk coder run --harness claude-code --model claude-opus-5 --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder --test-before yes-and-fix  --auto-pull --auto-push
 ✔ Claude Code 2.1.228 is up to date.
 
-                                                 .
-                                       . :: :@@@%@@ :: :.
-                                      .  ::@%#**+##%@'':: :
-                                       . :: ::@@@@@ :: :
-                                    .:::'''o*o---o*oo@'' ::
-                                    .:  : |!0o--==o0!| ':::.
-                                     .:::'!|!+\--/!!!!!: :
-                                     . ::!|!!!!||!|!||0\:.
-                                        ||!|o!|||!|!0! !\
-                                       o| !!!! ||!o|!|| !
-                                       ! !!||  !  !0!||
-                                           !  !!   |
-                                         !!||  !  !0!||  |
-                                           !| !!    !!
+
 │ State     LOADING  Checking the working tree...                                              │
 │ Runner   claude-code  ·  claude-opus-5  ·  thinking max                                      │
 │ Context  AGENTS.md                                                                           │
