@@ -124,23 +124,11 @@ const DEFAULT_CODER_PROMPT_TEMPLATE_DEFINITIONS = [
             -   @@@
             -   Keep in mind the DRY _(don't repeat yourself)_ principle.
             -   Do a proper analysis of the current functionality before you start implementing.
-            -   Add the changes into the [changelog](changelog/_current-preversion.md)
+            -   Add the changes into the [changelog](CHANGELOG.md)
+            -   Update the [README](README.md) if needed.
+            -   Update the [AGENTS.md](AGENTS.md) for the next job to be done if it makes sense.
         `),
         isDefaultProjectTemplate: true,
-    },
-    {
-        id: 'agents-server',
-        relativeFilePath: join(PROMPTS_TEMPLATES_DIRECTORY_PATH, 'agents-server.md'),
-        slugPrefix: 'agents-server',
-        content: spaceTrim(`
-            -   @@@
-            -   Keep in mind the DRY _(don't repeat yourself)_ principle.
-            -   Do a proper analysis of the current functionality before you start implementing.
-            -   You are working with the [Agents Server](apps/agents-server)
-            -   If you need to do the database migration, do it
-            -   Add the changes into the [changelog](changelog/_current-preversion.md)
-        `),
-        isDefaultProjectTemplate: false,
     },
 ] as const satisfies ReadonlyArray<CoderPromptTemplateDefinition>;
 
