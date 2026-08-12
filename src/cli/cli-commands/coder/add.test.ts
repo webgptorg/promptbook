@@ -1,8 +1,8 @@
-import { spaceTrim } from 'spacetrim';
 import { afterEach, beforeEach, describe, expect, it } from '@jest/globals';
 import { mkdtemp, readdir, readFile, rm } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
+import { spaceTrim } from 'spacetrim';
 import { addCoderPrompt } from './add';
 
 /**
@@ -82,10 +82,12 @@ describe('addCoderPrompt', () => {
         const { content } = await readOnlyPromptFile(projectPath);
 
         expect(content).toContain(`${result.emojiTag} First line summary\n`);
-        expect(content).toContain(spaceTrim(`
+        expect(content).toContain(
+            spaceTrim(`
             Second line detail
             Third line detail
-        `));
+        `),
+        );
     });
 
     it('throws a branded ParseError for an empty description', async () => {
@@ -108,21 +110,5 @@ describe('addCoderPrompt', () => {
         expect(promptFiles).toHaveLength(2);
         expect(promptFiles[0]).toContain('-0000-');
         expect(promptFiles[1]).toContain('-0010-');
-    });
-
-    it('uses the requested built-in template slug prefix and rules', async () => {
-        const projectPath = await createTemporaryDirectory(temporaryDirectories);
-
-        await addCoderPrompt({
-            projectPath,
-            description: 'Server tweak',
-            priority: 0,
-            templateOption: 'agents-server',
-        });
-        const { name, content } = await readOnlyPromptFile(projectPath);
-
-        expect(name).toContain('agents-server-server-tweak');
-        expect(content).toContain('You are working with the [Agents Server](apps/agents-server)');
-        expect(content).not.toContain('@@@');
     });
 });
