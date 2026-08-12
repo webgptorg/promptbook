@@ -14,6 +14,13 @@ import { formatChatTimeoutRemainingTime } from './formatChatTimeoutRemainingTime
 const PLANNED_MESSAGE_STATUSES = new Set(['QUEUED', 'RUNNING']);
 
 /**
+ * Refresh cadence that keeps model-created planned messages visible while a goal turn is running.
+ *
+ * @private function of AgentGoalChatPlannedMessages
+ */
+const PLANNED_MESSAGES_REFRESH_INTERVAL_MS = 5_000;
+
+/**
  * Props consumed by the goal-chat planned-message list.
  *
  * @private function of AgentGoalChatPlannedMessages
@@ -66,6 +73,14 @@ export function AgentGoalChatPlannedMessages({ agentName, currentTimestamp }: Ag
 
     useEffect(() => {
         void reloadPlannedMessages();
+
+        const refreshInterval = window.setInterval(() => {
+            void reloadPlannedMessages();
+        }, PLANNED_MESSAGES_REFRESH_INTERVAL_MS);
+
+        return () => {
+            window.clearInterval(refreshInterval);
+        };
     }, [reloadPlannedMessages]);
 
     const handleCancelPlannedMessage = useCallback(

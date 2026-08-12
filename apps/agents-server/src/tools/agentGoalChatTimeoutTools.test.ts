@@ -1,0 +1,167 @@
+import { describe, expect, it, jest } from '@jest/globals';
+import { parseToolExecutionEnvelope } from '../../../../src/commitments/_common/toolExecutionEnvelope';
+import { TOOL_RUNTIME_CONTEXT_ARGUMENT } from '../../../../src/commitments/_common/toolRuntimeContext';
+import type { UserChatTimeoutRecord } from '../utils/userChatTimeout';
+import { createAgentGoalChatTimeoutToolFunctions } from './agentGoalChatTimeoutToolFunctions';
+import { AGENT_GOAL_CHAT_TIMEOUT_TOOL_NAMES, createAgentGoalChatTimeoutTools } from './agentGoalChatTimeoutTools';
+
+/**
+ * Stable timestamp shared by planned-message fixtures.
+ */
+const TEST_TIMESTAMP = '2026-08-11T12:00:00.000Z';
+
+/**
+ * Creates one complete durable timeout fixture.
+ *
+ * @param overrides - Fields specific to one test case.
+ * @returns Stored timeout record.
+ */
+function createTimeoutFixture(overrides: Partial<UserChatTimeoutRecord> = {}): UserChatTimeoutRecord {
+    return {
+        id: 'timeout-1',
+        timeoutId: 'timeout-1',
+        createdAt: TEST_TIMESTAMP,
+        updatedAt: TEST_TIMESTAMP,
+        chatId: 'goal-agent-1',
+        userId: 42,
+        agentPermanentId: 'agent-1',
+        status: 'QUEUED',
+        message: 'Continue the goal.',
+        parameters: {},
+        durationMs: 60_000,
+        dueAt: '2026-08-11T12:01:00.000Z',
+        recurrenceIntervalMs: null,
+        queuedAt: TEST_TIMESTAMP,
+        startedAt: null,
+        completedAt: null,
+        cancelRequestedAt: null,
+        pausedAt: null,
+        leaseExpiresAt: null,
+        attemptCount: 0,
+        runCount: 0,
+        lastFiredAt: null,
+        failureReason: null,
+        ...overrides,
+    };
+}
+
+/**
+ * Hidden runtime context passed to tool calls in focused tests.
+ */
+const TEST_RUNTIME_ARGUMENTS = {
+    [TOOL_RUNTIME_CONTEXT_ARGUMENT]: {
+        memory: {
+            agentId: 'agent-1',
+        },
+    },
+};
+
+describe('agent goal-chat timeout tools', () => {
+    it('adds scheduling, listing, and cancellation definitions without duplicates', () => {
+        const tools = createAgentGoalChatTimeoutTools(
+            createAgentGoalChatTimeoutTools([
+                {
+                    name: 'existing_tool',
+                    description: 'Existing tool.',
+                    parameters: { type: 'object', properties: {} },
+                },
+            ]),
+        );
+
+        expect(tools.map((tool) => tool.name)).toEqual([
+            'existing_tool',
+            AGENT_GOAL_CHAT_TIMEOUT_TOOL_NAMES.set,
+            AGENT_GOAL_CHAT_TIMEOUT_TOOL_NAMES.list,
+            AGENT_GOAL_CHAT_TIMEOUT_TOOL_NAMES.cancel,
+        ]);
+    });
+
+    it('rejects a delay shorter than one millisecond before touching persistence', async () => {
+        const scheduleThreadScopedUserChatTimeout = jest.fn();
+        const toolFunctions = createAgentGoalChatTimeoutToolFunctions({ scheduleThreadScopedUserChatTimeout });
+
+        const rawResult = await toolFunctions[AGENT_GOAL_CHAT_TIMEOUT_TOOL_NAMES.set]!({
+            ...TEST_RUNTIME_ARGUMENTS,
+            milliseconds: 0.5,
+            message: 'Continue the goal.',
+        });
+
+        expect(JSON.parse(rawResult)).toMatchObject({
+            action: 'set',
+            status: 'error',
+            message: expect.stringContaining('`milliseconds`'),
+        });
+        expect(scheduleThreadScopedUserChatTimeout).not.toHaveBeenCalled();
+    });
+
+    it('always schedules a future message in the singleton goal chat', async () => {
+        const scheduledTimeout = createTimeoutFixture();
+        const ensureAgentGoalChat = jest.fn(async () => ({ id: 'goal-agent-1', userId: 42 }));
+        const scheduleThreadScopedUserChatTimeout = jest.fn(async () => scheduledTimeout);
+        const toolFunctions = createAgentGoalChatTimeoutToolFunctions({
+            ensureAgentGoalChat,
+            scheduleThreadScopedUserChatTimeout,
+        });
+
+        const rawResult = await toolFunctions[AGENT_GOAL_CHAT_TIMEOUT_TOOL_NAMES.set]!({
+            ...TEST_RUNTIME_ARGUMENTS,
+            milliseconds: 60_000,
+            message: 'Continue the goal.',
+        });
+        const result = parseToolExecutionEnvelope(rawResult);
+
+        expect(ensureAgentGoalChat).toHaveBeenCalledWith('agent-1');
+        expect(scheduleThreadScopedUserChatTimeout).toHaveBeenCalledWith({
+            userId: 42,
+            agentPermanentId: 'agent-1',
+            chatId: 'goal-agent-1',
+            durationMs: 60_000,
+            message: 'Continue the goal.',
+        });
+        expect(result?.toolResult).toMatchObject({
+            action: 'set',
+            status: 'set',
+            timeoutId: 'timeout-1',
+        });
+    });
+
+    it('lists and cancels planned messages across the whole agent scope', async () => {
+        const activeTimeout = createTimeoutFixture();
+        const cancelledTimeout = createTimeoutFixture({
+            status: 'CANCELLED',
+            cancelRequestedAt: TEST_TIMESTAMP,
+            completedAt: TEST_TIMESTAMP,
+        });
+        const listAgentUserChatTimeouts = jest.fn(async () => [activeTimeout]);
+        const getAgentScopedUserChatTimeout = jest.fn(async () => activeTimeout);
+        const cancelScheduledUserChatTimeout = jest.fn(async () => cancelledTimeout);
+        const toolFunctions = createAgentGoalChatTimeoutToolFunctions({
+            listAgentUserChatTimeouts,
+            getAgentScopedUserChatTimeout,
+            cancelScheduledUserChatTimeout,
+        });
+
+        await toolFunctions[AGENT_GOAL_CHAT_TIMEOUT_TOOL_NAMES.list]!(TEST_RUNTIME_ARGUMENTS);
+        const rawCancelResult = await toolFunctions[AGENT_GOAL_CHAT_TIMEOUT_TOOL_NAMES.cancel]!({
+            ...TEST_RUNTIME_ARGUMENTS,
+            timeoutId: 'timeout-1',
+        });
+        const cancelResult = parseToolExecutionEnvelope(rawCancelResult);
+
+        expect(listAgentUserChatTimeouts).toHaveBeenCalledWith({
+            agentPermanentId: 'agent-1',
+            statuses: ['QUEUED', 'RUNNING'],
+            limit: 20,
+        });
+        expect(getAgentScopedUserChatTimeout).toHaveBeenCalledWith({
+            agentPermanentId: 'agent-1',
+            timeoutId: 'timeout-1',
+        });
+        expect(cancelScheduledUserChatTimeout).toHaveBeenCalledWith('timeout-1');
+        expect(cancelResult?.toolResult).toMatchObject({
+            action: 'cancel',
+            status: 'cancelled',
+            timeoutId: 'timeout-1',
+        });
+    });
+});

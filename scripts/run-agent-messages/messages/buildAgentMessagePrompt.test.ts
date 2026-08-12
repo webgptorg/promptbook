@@ -14,7 +14,7 @@ describe('buildAgentMessagePrompt', () => {
             `),
         );
 
-        expect(prompt).toContain('-   Read `messages/queued/question.book` and answer the most recent `MESSAGE @User`');
+        expect(prompt).toContain('-   Read `messages/queued/question.book` and answer the most recent `MESSAGE` block');
         expect(prompt).toContain('You are Support Assistant');
         expect(prompt).toContain('## Rules');
         expect(prompt).toContain('-   Only change the queued message file by appending one new `MESSAGE @Agent` block');
@@ -58,6 +58,23 @@ describe('buildAgentMessagePrompt', () => {
         expect(prompt).toContain('$PTBK_AGENTS_SERVER_USER_CHAT_WORKER_TOKEN');
     });
 
+    it('teaches every managed invocation to manage planned goal-chat messages', () => {
+        const prompt = buildAgentMessagePrompt('messages/queued/question.book', 'You are Support Assistant', {
+            goalChatRuntimeApi: {
+                agentPermanentId: 'agent1234',
+                serverUrlEnvironmentVariableName: 'PTBK_AGENTS_SERVER_URL',
+                tokenEnvironmentVariableName: 'PTBK_AGENTS_SERVER_USER_CHAT_WORKER_TOKEN',
+            },
+        });
+
+        expect(prompt).toContain('## Planned goal-chat messages');
+        expect(prompt).toContain('/api/internal/agent-goal-chat-planned-messages');
+        expect(prompt).toContain('# list_timeouts');
+        expect(prompt).toContain('# set_timeout');
+        expect(prompt).toContain('# cancel_timeout');
+        expect(prompt).toContain('"agentPermanentId":"agent1234"');
+    });
+
     it('explains the single-run TEAM transcript contract when a teammate workspace is prepared', () => {
         const prompt = buildAgentMessagePrompt('messages/queued/question.book', 'You are Support Assistant', {
             teamWorkspace: {
@@ -94,5 +111,6 @@ describe('buildAgentMessagePrompt', () => {
         expect(prompt).toContain('`projects/my-website/index.html`');
         expect(prompt).not.toContain('files/index.html)');
         expect(prompt).not.toContain('/api/internal/agent-project-runtimes');
+        expect(prompt).not.toContain('/api/internal/agent-goal-chat-planned-messages');
     });
 });

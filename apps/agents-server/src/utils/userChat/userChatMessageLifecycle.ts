@@ -20,13 +20,18 @@ export function createQueuedUserChatUserMessage(options: {
     messageId: string;
     clientMessageId: string;
     content: string;
+    /**
+     * Sender persisted for the input turn. Agent-owned goal-chat wake-ups use `AGENT` because
+     * no human authored them, while ordinary durable turns keep the default `USER` sender.
+     */
+    sender?: 'USER' | 'AGENT';
     attachments?: ChatMessage['attachments'];
     replyingTo?: ChatMessage['replyingTo'];
     createdAt: NonNullable<ChatMessage['createdAt']>;
 }): ChatMessage {
     return {
         id: options.messageId,
-        sender: 'USER',
+        sender: options.sender || 'USER',
         content: options.content,
         attachments: options.attachments,
         replyingTo: options.replyingTo,

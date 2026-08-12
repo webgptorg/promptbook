@@ -212,7 +212,10 @@ describe('tickAgentMessages', () => {
         (runPromptWithTestFeedback as jest.MockedFunction<typeof runPromptWithTestFeedback>).mockImplementation(
             async ({ prompt }) => {
                 expect(prompt).toContain(
-                    'Read `messages/queued/question.book` and answer the most recent `MESSAGE @User`',
+                    'Read `messages/queued/question.book` and answer the most recent `MESSAGE` block',
+                );
+                expect(prompt).toContain(
+                    'In a normal chat it is from `@User`; in your internal goal chat it can be from `@Agent`',
                 );
                 expect(prompt).toContain('You are Calendar Agent');
                 expect(prompt).toContain('You answer calendar questions with exact counts.');

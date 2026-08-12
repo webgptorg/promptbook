@@ -259,8 +259,10 @@ async function runQueuedAgentMessage(options: {
     } = options;
     const agentSystemMessage = await loadLocalAgentSystemMessage(projectPath);
     const teamWorkspace = await loadAgentTeamConversationWorkspace(projectPath, queuedMessage);
+    const agentServerRuntimeApi = resolveAgentProjectRuntimePromptApi(projectPath);
     const prompt = buildAgentMessagePrompt(queuedMessage.relativePath, agentSystemMessage, {
-        projectRuntimeApi: resolveAgentProjectRuntimePromptApi(projectPath),
+        projectRuntimeApi: agentServerRuntimeApi,
+        goalChatRuntimeApi: agentServerRuntimeApi,
         projectsUrlPath: resolveAgentProjectsUrlPath(projectPath),
         teamWorkspace: teamWorkspace || undefined,
     });

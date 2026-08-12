@@ -3,6 +3,7 @@ import type { ChatMessage } from '@promptbook-local/types';
 import { serializeError, spaceTrim } from '@promptbook-local/utils';
 import { $randomBase58 } from '../../../../../src/utils/random/$randomBase58';
 import { appendAgentGoalChatNote } from '../agentGoalChat/appendAgentGoalChatNote';
+import { isAgentGoalChatId } from '../agentGoalChat/agentGoalChatIdentity';
 import {
     createAgentGoalChatCancelledPlannedMessageNoteContent,
     createAgentGoalChatPlannedMessageNoteContent,
@@ -350,6 +351,7 @@ async function processClaimedUserChatTimeout(timeout: UserChatTimeoutRecord): Pr
                         durationMs: latestTimeout.durationMs,
                         message: latestTimeout.message,
                     }),
+                    messageSender: isAgentGoalChatId(latestTimeout.chatId) ? 'AGENT' : 'USER',
                     parameters: latestTimeout.parameters,
                 });
                 queuedJob = enqueuedTurn.job;

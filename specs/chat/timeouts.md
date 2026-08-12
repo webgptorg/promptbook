@@ -1,17 +1,16 @@
 # Timeouts (Scheduled Wake-ups)
 
-Timeouts let a durable chat schedule **future wake-ups**: at the due time the server injects a synthetic message into the chat and runs a normal agent turn — no user action required. State lives in `prefix_UserChatTimeout` ([Data model](../data-model.md#prefix_userchattimeout)); timeouts exist only for [user chats](user-chats.md) (a signed-in user + agent scope).
+Timeouts let a durable chat schedule **future wake-ups**: at the due time the server injects a synthetic message into the chat and runs a normal agent turn — no user action required. State lives in `prefix_UserChatTimeout` ([Data model](../data-model.md#prefix_userchattimeout)); each timeout points to a persisted [user chat](user-chats.md), including the agent's singleton [goal chat](goal-chat.md).
 
 ## Timeout operations
 
-Timeouts are managed through the agent timeout API (bound to the current chat scope):
+Agents manage planned messages through three runtime tools backed by the same durable timeout service:
 
 | Tool | Behavior |
 | --- | --- |
-| `set_timeout` | Schedule a wake-up of the **current** chat thread after a duration, with an optional message and optional `recurrenceIntervalMs`. Rejected with an explanatory message when the chat already has `TIMEOUT_MAX_ACTIVE_PER_CHAT` active timers. |
-| `list_timeouts` | List timeout ids/details across **all chats of the same user + agent scope** (paged, bounded page size). |
-| `cancel_timeout` | Cancel one timeout by id, or all active ones in the scope with `allActive: true`. |
-| `update_timeout` | Modify one scheduled timeout (due time / message / recurrence) by id. |
+| `set_timeout` | Schedule a required future message in the agent's **singleton goal chat** after a positive millisecond delay. The target stays the same when the tool is called from another chat. |
+| `list_timeouts` | List the agent's planned-message ids, due times, states, and messages. Active messages are returned by default; finished rows can be requested explicitly. |
+| `cancel_timeout` | Cancel one active planned message by id within the current agent scope. |
 
 ## Timeout record
 

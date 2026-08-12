@@ -190,6 +190,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ agen
         scheduleAgentGoalChatModifiedNote({
             agentPermanentId: agentId,
             agentName,
+            agentSource,
             server: await $provideServer(),
         });
         invalidateCachedActiveOrganizationSnapshots();

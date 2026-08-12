@@ -1,9 +1,11 @@
 import { spaceTrim } from 'spacetrim';
 import { AGENT_PROJECTS_DIRECTORY_PATH } from '../../../src/book-3.0/agentFolderPaths';
+import type { AgentServerRuntimePromptApi } from './AgentServerRuntimePromptApi';
 import {
     buildAgentProjectsPromptSection,
     type AgentProjectsPromptSectionOptions,
 } from './buildAgentProjectsPromptSection';
+import { buildAgentGoalChatPromptSection } from './buildAgentGoalChatPromptSection';
 import { buildAgentTeamPromptSection, type AgentTeamPromptWorkspace } from './buildAgentTeamPromptSection';
 
 /**
@@ -14,6 +16,11 @@ export type BuildAgentMessagePromptOptions = AgentProjectsPromptSectionOptions &
      * Optional local TEAM roster prepared by the Agents Server for this user turn.
      */
     teamWorkspace?: AgentTeamPromptWorkspace;
+
+    /**
+     * Internal API details used to manage planned messages in the agent's singleton goal chat.
+     */
+    goalChatRuntimeApi?: AgentServerRuntimePromptApi;
 };
 
 /**
@@ -27,9 +34,9 @@ export function buildAgentMessagePrompt(
     return spaceTrim(
         (block) =>
             `
-                # Answer 1 user question
+                # Answer 1 pending message
 
-                -   Read \`${messageRelativePath}\` and answer the most recent \`MESSAGE @User\`
+                -   Read \`${messageRelativePath}\` and answer the most recent \`MESSAGE\` block. In a normal chat it is from \`@User\`; in your internal goal chat it can be from \`@Agent\`.
                 -   Only change the queued message file by appending one new \`MESSAGE @Agent\` block
                 ${block(buildAllowedFileChangesPromptLine(options.teamWorkspace))}
 
@@ -66,6 +73,8 @@ export function buildAgentMessagePrompt(
                 \`\`\`
 
                 - You can use \`message\` for message that will be sent immediately after clicking the button, or \`messageDraft\` for message that will be prefilled in the input field for editing before sending.
+
+                ${block(buildAgentGoalChatPromptSection(options.goalChatRuntimeApi))}
 
                 ${block(buildAgentProjectsPromptSection(options))}
 

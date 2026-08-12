@@ -7,13 +7,14 @@ import type { ServerLanguageCode } from '../../../languages/ServerLanguageRegist
 import {
     $fetchMessages,
     type MessageRow,
-    type MessageSendAttemptRow,
     type MessageSortField,
     type MessageSortOrder,
 } from '../../../utils/messagesAdmin';
 import { formatServerLanguageHumanReadableDate } from '../../../utils/localization/formatServerLanguageHumanReadableDate';
 import { AdminSortableTableHeaderCell } from '../_components/AdminSortableTableHeaderCell';
 import { resolveNextAdminTableSortState } from '../_components/adminTableSorting';
+import { MessageParticipants } from './MessageParticipants';
+import { MessageStatus } from './MessageStatus';
 
 /**
  * Formats date.
@@ -28,20 +29,6 @@ function formatDate(dateString: string | null | undefined, language: ServerLangu
 function getMessagePreview(content: string, maxLength = 120): string {
     if (!content) return '-';
     return content.length > maxLength ? `${content.slice(0, maxLength)}…` : content;
-}
-
-/**
- * Gets status badge.
- */
-function getStatusBadge(attempts: MessageSendAttemptRow[] | undefined) {
-    if (!attempts || attempts.length === 0) {
-        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">Pending</span>;
-    }
-    const success = attempts.find(a => a.isSuccessful);
-    if (success) {
-        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Sent ({success.providerName})</span>;
-    }
-    return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">Failed ({attempts.length})</span>;
 }
 
 /**
@@ -227,7 +214,10 @@ export function MessagesClient() {
                             <select
                                 id="channelFilter"
                                 value={channel}
-                                onChange={(e) => { setChannel(e.target.value); setPage(1); }}
+                                onChange={(e) => {
+                                    setChannel(e.target.value);
+                                    setPage(1);
+                                }}
                                 className="w-full md:w-40 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
                                 <option value="">All</option>
@@ -243,7 +233,10 @@ export function MessagesClient() {
                             <select
                                 id="directionFilter"
                                 value={direction}
-                                onChange={(e) => { setDirection(e.target.value); setPage(1); }}
+                                onChange={(e) => {
+                                    setDirection(e.target.value);
+                                    setPage(1);
+                                }}
                                 className="w-full md:w-40 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
                                 <option value="">All</option>
@@ -337,26 +330,22 @@ export function MessagesClient() {
                                         <td className="whitespace-nowrap px-4 py-3 text-gray-700">
                                             {formatDate(row.createdAt, language)}
                                         </td>
-                                        <td className="whitespace-nowrap px-4 py-3 text-gray-700">
-                                            {row.channel}
+                                        <td className="whitespace-nowrap px-4 py-3 text-gray-700">{row.channel}</td>
+                                        <td className="whitespace-nowrap px-4 py-3 text-gray-700">{row.direction}</td>
+                                        <td className="max-w-sm px-4 py-3 align-top text-gray-700">
+                                            <MessageParticipants
+                                                channel={row.channel}
+                                                sender={row.sender}
+                                                recipients={row.recipients}
+                                            />
                                         </td>
-                                        <td className="whitespace-nowrap px-4 py-3 text-gray-700">
-                                            {row.direction}
-                                        </td>
-                                        <td className="max-w-xs px-4 py-3 text-gray-700">
-                                            <div className="truncate" title={JSON.stringify({ sender: row.sender, recipients: row.recipients }, null, 2)}>
-                                                {/* Simple preview of sender/recipients */}
-                                                S: {JSON.stringify(row.sender)}<br/>
-                                                R: {JSON.stringify(row.recipients)}
-                                            </div>
-                                        </td>
-                                        <td className="max-w-md px-4 py-3 text-gray-700">
+                                        <td className="max-w-md px-4 py-3 align-top text-gray-700">
                                             <div className="max-h-24 overflow-hidden overflow-ellipsis text-xs leading-snug">
                                                 {getMessagePreview(row.content)}
                                             </div>
                                         </td>
-                                        <td className="whitespace-nowrap px-4 py-3 text-gray-700">
-                                            {getStatusBadge(row.sendAttempts)}
+                                        <td className="px-4 py-3 align-top text-gray-700">
+                                            <MessageStatus direction={row.direction} attempts={row.sendAttempts} />
                                         </td>
                                     </tr>
                                 ))}
