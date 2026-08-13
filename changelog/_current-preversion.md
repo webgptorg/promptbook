@@ -1,3 +1,8 @@
+-   Fixed `ptbk coder run --test-before yes-and-fix` failing at the first prompt when its pre-coding verification
+    generated repository changes. Promptbook now snapshots the tree before that test and commits exactly the files it
+    changed before continuing to a queued or repair prompt, pushes that commit when `--auto-push` is enabled, and does
+    not create an empty commit when the test changed nothing.
+
 -   Fixed `ptbk coder` leaving a coding harness running after the coder process stops. Every temporary runner shell now
     owns its full harness process tree and watches its parent coder process, so a normal exit, termination signal,
     crash, or fatal out-of-memory exit terminates all nested harness processes on Windows, macOS, and Linux.

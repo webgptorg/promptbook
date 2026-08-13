@@ -23,6 +23,8 @@ import {
     resetPauseTargetLabel,
 } from '../common/waitForPause';
 import { printAgentGitIdentityTipIfNeeded } from '../git/agentGitIdentity';
+import { captureCoderCommitScope, resolveCoderCommitScopePaths, type CoderCommitScope } from '../git/coderCommitScope';
+import { commitChanges } from '../git/commitChanges';
 import { ensureWorkingTreeClean } from '../git/ensureWorkingTreeClean';
 import { pullLatestChanges } from '../git/pullLatestChanges';
 import { runIsolatedPromptRound } from '../isolation/runIsolatedPromptRound';
@@ -55,6 +57,11 @@ import { runPromptRound } from './runPromptRound';
  * Constant for prompts dir.
  */
 const PROMPTS_DIR = join(process.cwd(), 'prompts');
+
+/**
+ * Commit message for files changed by a successful or failed pre-coding test in repair mode.
+ */
+const PRE_CODING_TEST_CHANGES_COMMIT_MESSAGE = 'test: Apply changes made by pre-coding tests';
 
 /**
  * Prompt queue snapshot for one top-level loop iteration.
@@ -474,6 +481,8 @@ async function runTestBeforeIfNeeded(options: {
         await ensureWorkingTreeClean();
     }
 
+    const testBeforeCommitScope = await captureTestBeforeCommitScopeIfNeeded(runOptions);
+
     uiHandle?.startCapturingAgentOutput();
     const testBeforeResult = await runTestBefore({
         testCommand: runOptions.testCommand,
@@ -481,6 +490,12 @@ async function runTestBeforeIfNeeded(options: {
         waitForPauseCheckpoint: waitForRequestedPause,
     }).finally(() => {
         uiHandle?.stopCapturingAgentOutput();
+    });
+
+    await commitTestBeforeChangesIfNeeded({
+        runOptions,
+        testBeforeCommitScope,
+        waitForRequestedPause,
     });
 
     if (testBeforeResult.isPassed) {
@@ -539,6 +554,48 @@ async function runTestBeforeIfNeeded(options: {
     });
 
     return updatedHasWaitedForStart;
+}
+
+/**
+ * Captures the files present before a `yes-and-fix` pre-coding test, so only changes made by that test can be committed.
+ */
+async function captureTestBeforeCommitScopeIfNeeded(runOptions: RunOptions): Promise<CoderCommitScope | undefined> {
+    if (runOptions.testBefore !== 'yes-and-fix' || runOptions.noCommit) {
+        return undefined;
+    }
+
+    return captureCoderCommitScope(process.cwd());
+}
+
+/**
+ * Commits files changed by a `yes-and-fix` pre-coding test before the coder continues to a queued or repair prompt.
+ */
+async function commitTestBeforeChangesIfNeeded(options: {
+    runOptions: RunOptions;
+    testBeforeCommitScope?: CoderCommitScope;
+    waitForRequestedPause: WaitForCoderRunPauseCheckpoint;
+}): Promise<void> {
+    const { runOptions, testBeforeCommitScope, waitForRequestedPause } = options;
+
+    if (!testBeforeCommitScope) {
+        return;
+    }
+
+    const relevantPaths = await resolveCoderCommitScopePaths(testBeforeCommitScope);
+    if (relevantPaths.length === 0) {
+        return;
+    }
+
+    await waitForRequestedPause({
+        checkpointLabel: 'committing changes made by pre-coding tests',
+        phase: 'verifying',
+        statusMessage: 'Committing changes made by pre-coding tests...',
+    });
+    await commitChanges(PRE_CODING_TEST_CHANGES_COMMIT_MESSAGE, {
+        autoPush: runOptions.autoPush,
+        projectPath: testBeforeCommitScope.projectPath,
+        relevantPaths,
+    });
 }
 
 /**

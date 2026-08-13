@@ -1,4 +1,4 @@
-[ ]
+[x] by OpenAI Codex `gpt-5.6-terra` thinking `max` - Implementation ~$0.6217 28 minutes; Testing 21 minutes
 
 [✨🖕] When `ptbk coder` is using `--test-before yes-and-fix` and the test will do changes in the repository, do not fail but commit them
 
@@ -57,3 +57,4 @@ me@DESKTOP-2QD9KQQ MINGW64 ~/work/ai/promptbook (main)
 -   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
