@@ -1,3 +1,8 @@
+-   Fixed Windows executable discovery to check the system `PATH` before the conventional installation directories, so
+    LibreOffice installed through a package manager's command shim can be located for legacy-document processing.
+    The LibreOffice locator now has deterministic configuration coverage, while the shared Windows locator has
+    filesystem-backed coverage for `PATH` discovery.
+
 -   Fixed `ptbk coder run --test-before yes-and-fix` failing at the first prompt when its pre-coding verification
     generated repository changes. Promptbook now snapshots the tree before that test and commits exactly the files it
     changed before continuing to a queued or repair prompt, pushes that commit when `--auto-push` is enabled, and does
