@@ -77,3 +77,17 @@
 ![alt text](screenshots/2026-08-0140-agents-server-goal-chat-1.png)
 ![alt text](screenshots/2026-08-0140-agents-server-goal-chat-2.png)
 
+---
+
+[ ]
+
+[✨🔶] The goal-chat should be able to plan the messages for self-invocation in the future
+
+-   The goal chat is a special chat that is created for each agent and is used by the agent to communicate with itself and the agent server during the execution of its tasks.
+-   When the agent is invoked, either in the goal chat or in any other chat, one of the things the agent can do is set up a planned message for the future. This scheduled message(s) will appear in his goal chat.
+-   Now the agent says that he planned a message BUT there is no planned messages.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server) with goal chat
+
+![alt text](screenshots/2026-08-0140-agents-server-goal-chat-3.png)
