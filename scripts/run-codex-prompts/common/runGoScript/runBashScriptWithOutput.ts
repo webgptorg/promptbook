@@ -1,11 +1,7 @@
-import { spawn } from 'child_process';
 import { spaceTrim } from 'spacetrim';
 import type { RunGoScriptOptions } from './RunGoScriptOptions';
-import {
-    appendScriptExecutionLogFinish,
-    appendScriptExecutionLogStart,
-    buildLoggedBashExecution,
-} from './scriptExecutionLog';
+import { appendScriptExecutionLogFinish, appendScriptExecutionLogStart } from './scriptExecutionLog';
+import { $spawnLoggedBashScript } from './$spawnLoggedBashScript';
 import { printLiveScriptChunk } from './printLiveScriptChunk';
 import { toPosixPath } from './toPosixPath';
 
@@ -14,13 +10,13 @@ import { toPosixPath } from './toPosixPath';
  */
 export async function runBashScriptWithOutput(options: RunGoScriptOptions): Promise<string> {
     await appendScriptExecutionLogStart(options);
-    const bashExecution = buildLoggedBashExecution(options.scriptPath, options.logPath);
     const scriptPathPosix = toPosixPath(options.scriptPath);
     const shouldPrintLiveOutput = options.shouldPrintLiveOutput ?? true;
 
     return await new Promise<string>((resolve, reject) => {
-        const commandProcess = spawn('bash', bashExecution.args, {
-            env: bashExecution.env ? { ...process.env, ...bashExecution.env } : process.env,
+        const commandProcess = $spawnLoggedBashScript({
+            scriptPath: options.scriptPath,
+            logPath: options.logPath,
         });
         let output = '';
         let settled = false;
@@ -85,12 +81,15 @@ export async function runBashScriptWithOutput(options: RunGoScriptOptions): Prom
                 return;
             }
 
-            const failure = new Error(spaceTrim(output) || `Command "bash ${scriptPathPosix}" exited with code ${code}`);
+            const failure = new Error(
+                spaceTrim(output) || `Command "bash ${scriptPathPosix}" exited with code ${code}`,
+            );
             settleWithLog(`failed with exit code ${code ?? 'unknown'}`, () => reject(failure), failure);
         };
 
+        // Wait for `close`, not only `exit`, because the Bash wrapper can still be flushing its tee process
+        // substitutions after the direct shell exits.
         commandProcess.on('close', handleExit);
-        commandProcess.on('exit', handleExit);
         commandProcess.on('disconnect', () => {
             const failure = new Error(`Command "bash ${scriptPathPosix}" disconnected`);
             settleWithLog('failed after disconnect', () => reject(failure), failure);

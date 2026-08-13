@@ -1,11 +1,8 @@
-import { spawn } from 'child_process';
 import { spaceTrim } from 'spacetrim';
 import type { RunScriptUntilMarkerIdleOptions } from './RunScriptUntilMarkerIdleOptions';
-import {
-    appendScriptExecutionLogFinish,
-    appendScriptExecutionLogStart,
-    buildLoggedBashExecution,
-} from './scriptExecutionLog';
+import { appendScriptExecutionLogFinish, appendScriptExecutionLogStart } from './scriptExecutionLog';
+import { $spawnLoggedBashScript } from './$spawnLoggedBashScript';
+import { $terminateLoggedBashProcessTree } from './$terminateLoggedBashProcessTree';
 import { printLiveScriptChunk } from './printLiveScriptChunk';
 import { toPosixPath } from './toPosixPath';
 
@@ -60,16 +57,17 @@ export async function runScriptUntilMarkerIdle(options: RunScriptUntilMarkerIdle
     const scriptPathPosix = toPosixPath(scriptPath);
     const shouldPrintLiveOutput = options.shouldPrintLiveOutput ?? true;
     await appendScriptExecutionLogStart(options);
-    const bashExecution = buildLoggedBashExecution(scriptPath, options.logPath);
 
     return await new Promise<string>((resolve, reject) => {
-        const commandProcess = spawn('bash', bashExecution.args, {
-            env: bashExecution.env ? { ...process.env, ...bashExecution.env } : process.env,
+        const commandProcess = $spawnLoggedBashScript({
+            scriptPath,
+            logPath: options.logPath,
         });
         let stdoutBuffer = '';
         let stderrBuffer = '';
         let fullOutput = '';
         let markerSeen = false;
+        let isCompletedAfterIdleTimeout = false;
         let idleTimer: NodeJS.Timeout | undefined;
         let settled = false;
         let isSettling = false;
@@ -116,15 +114,16 @@ export async function runScriptUntilMarkerIdle(options: RunScriptUntilMarkerIdle
         };
 
         /**
-         * Finishes a marker-completed run and then asks bash to stop.
+         * Stops a marker-completed process tree after its trailing output becomes idle.
          */
         const finishAfterIdleTimeout = (): void => {
-            settleWithLog('completed after idle timeout', () => resolve(fullOutput));
+            isCompletedAfterIdleTimeout = true;
+            idleTimer = undefined;
 
             try {
-                commandProcess.kill();
+                $terminateLoggedBashProcessTree(commandProcess);
             } catch {
-                // Windows can report EPERM when bash exits before the idle timer fires.
+                // The close handler below still settles normally when Bash already exited before the idle timer fired.
             }
         };
 
@@ -189,7 +188,11 @@ export async function runScriptUntilMarkerIdle(options: RunScriptUntilMarkerIdle
                 code === 0 || markerSeen
                     ? undefined
                     : new Error(buildCommandFailureMessage(scriptPathPosix, code, fullOutput));
-            const status = failure ? `failed with exit code ${code ?? 'unknown'}` : 'succeeded';
+            const status = isCompletedAfterIdleTimeout
+                ? 'completed after idle timeout'
+                : failure
+                ? `failed with exit code ${code ?? 'unknown'}`
+                : 'succeeded';
 
             settleWithLog(status, () => {
                 if (!failure) {
@@ -201,8 +204,9 @@ export async function runScriptUntilMarkerIdle(options: RunScriptUntilMarkerIdle
             });
         };
 
+        // Wait for `close`, not only `exit`, because the Bash wrapper can still be flushing its tee process
+        // substitutions after the direct shell exits.
         commandProcess.on('close', handleExit);
-        commandProcess.on('exit', handleExit);
         commandProcess.on('disconnect', () => {
             const failure = new Error(buildCommandFailureMessage(scriptPathPosix, null, fullOutput));
             settleWithLog('failed after disconnect', () => reject(failure), failure);
