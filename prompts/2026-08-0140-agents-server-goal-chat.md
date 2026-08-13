@@ -90,4 +90,7 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server) with goal chat
 
+**The agent is saying that he planned a message, but there is no planned messages:**
+
 ![alt text](screenshots/2026-08-0140-agents-server-goal-chat-3.png)
+![alt text](screenshots/2026-08-0140-agents-server-goal-chat-4.png)
