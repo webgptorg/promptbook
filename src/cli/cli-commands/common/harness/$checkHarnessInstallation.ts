@@ -5,21 +5,28 @@ import type { HarnessDefinition } from './HarnessDefinition';
 import type { HarnessInstallationState, HarnessInstallationStatus } from './HarnessInstallationStatus';
 
 /**
- * Detects whether one CLI coding harness is installed globally and whether it is up to date.
+ * Detects whether one CLI coding harness is installed globally and, when enabled, whether it is up to date.
  *
- * Note: `$` is used to indicate that this function is not a pure function - it runs the harness command and queries npm
+ * Note: `$` is used to indicate that this function is not a pure function - it runs the harness command and may query npm
  *
  * @private internal utility of `promptbookCli`
  */
-export async function $checkHarnessInstallation(definition: HarnessDefinition): Promise<HarnessInstallationStatus> {
+export async function $checkHarnessInstallation(
+    definition: HarnessDefinition,
+    isHarnessUpdateCheckEnabled = true,
+): Promise<HarnessInstallationStatus> {
     const [installedVersion, latestVersion] = await Promise.all([
         $resolveInstalledHarnessVersion(definition),
-        $resolveLatestNpmPackageVersion(definition.npmPackageName),
+        isHarnessUpdateCheckEnabled ? $resolveLatestNpmPackageVersion(definition.npmPackageName) : Promise.resolve(null),
     ]);
 
     return {
         definition,
-        installationState: resolveHarnessInstallationState(installedVersion, latestVersion),
+        installationState: resolveHarnessInstallationState(
+            installedVersion,
+            latestVersion,
+            isHarnessUpdateCheckEnabled,
+        ),
         installedVersion,
         latestVersion,
     };
@@ -31,9 +38,14 @@ export async function $checkHarnessInstallation(definition: HarnessDefinition): 
 function resolveHarnessInstallationState(
     installedVersion: string | null,
     latestVersion: string | null,
+    isHarnessUpdateCheckEnabled: boolean,
 ): HarnessInstallationState {
     if (installedVersion === null) {
         return 'not-installed';
+    }
+
+    if (!isHarnessUpdateCheckEnabled) {
+        return 'installed';
     }
 
     if (latestVersion === null) {

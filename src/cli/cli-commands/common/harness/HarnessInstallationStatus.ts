@@ -6,11 +6,12 @@ import type { HarnessDefinition } from './HarnessDefinition';
  * - `up-to-date` the newest published version is installed
  * - `outdated` an older version is installed
  * - `not-installed` the harness command is not available globally
+ * - `installed` the harness is installed and automatic update checking was disabled
  * - `unknown` the harness is installed but the newest published version could not be resolved, for example when offline
  *
  * @private internal utility of `promptbookCli`
  */
-export type HarnessInstallationState = 'up-to-date' | 'outdated' | 'not-installed' | 'unknown';
+export type HarnessInstallationState = 'up-to-date' | 'outdated' | 'not-installed' | 'installed' | 'unknown';
 
 /**
  * Installation state of one CLI coding harness on the current machine.
@@ -24,7 +25,7 @@ export type HarnessInstallationStatus = {
     readonly definition: HarnessDefinition;
 
     /**
-     * Comparison of the installed version with the newest published one.
+     * Installation state, including whether the newest published version was checked.
      */
     readonly installationState: HarnessInstallationState;
 

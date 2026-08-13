@@ -12,6 +12,11 @@ import type { $side_effect } from '../../../utils/organization/$side_effect';
 import { createNonNegativeIntegerOptionParser } from '../common/createNonNegativeIntegerOptionParser';
 import { handleActionErrors } from '../common/handleActionErrors';
 import { $ensureHarnessInstallations } from '../common/harness/$ensureHarnessInstallations';
+import {
+    addHarnessUpdateOption,
+    normalizeHarnessUpdateCliOptions,
+    type HarnessUpdateCliOptions,
+} from '../common/harnessUpdateCliOptions';
 import type { PromptRunnerCliOptions } from '../common/promptRunnerCliOptions';
 import {
     addPromptRunnerExecutionOptions,
@@ -48,7 +53,7 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
 
             Features:
             - Runs the same prompt processing as \`ptbk coder run\`
-            - Checks that the selected harness is installed globally and up to date on startup
+            - Checks that the selected harness is installed globally and up to date on startup unless --no-harness-update is used
             - Does not exit when all prompts are done; polls for new prompt files instead
             - Serves a kanban board at http://localhost:<port> for visual progress tracking
             - Allows editing prompt files directly from the browser (Trello-style)
@@ -64,6 +69,7 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
     );
     command.option('--dry-run', 'Print unwritten prompts without executing', false);
     addPromptRunnerSelectionOptions(command);
+    addHarnessUpdateOption(command);
     command.option(
         '--agent <agent-book-path>',
         'Path to a .book file whose compiled system message is prepended to each coding prompt',
@@ -173,8 +179,11 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
             const runnerOptions = normalizePromptRunnerCliOptions(cliOptions as PromptRunnerCliOptions, {
                 isAgentRequired: !dryRun,
             });
+            const { isHarnessUpdateCheckEnabled } = normalizeHarnessUpdateCliOptions(
+                cliOptions as HarnessUpdateCliOptions,
+            );
 
-            await $ensureHarnessInstallations([runnerOptions.agentName]);
+            await $ensureHarnessInstallations([runnerOptions.agentName], isHarnessUpdateCheckEnabled);
 
             // [1] Parse the wait options and --no-auto (same logic as `coder run`)
             const waitForUser = !auto;

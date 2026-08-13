@@ -89,7 +89,18 @@ describe('$initializeCoderPingCommand', () => {
 
         await program.parseAsync(['node', 'test', 'ping', '--harness', 'claude-code'], { from: 'node' });
 
-        expect($ensureHarnessInstallations).toHaveBeenCalledWith(['claude-code']);
+        expect($ensureHarnessInstallations).toHaveBeenCalledWith(['claude-code'], true);
+    });
+
+    it('skips the harness update check when --no-harness-update is provided', async () => {
+        const program = createProgramWithPingCommand();
+
+        await program.parseAsync(
+            ['node', 'test', 'ping', '--harness', 'claude-code', '--no-harness-update'],
+            { from: 'node' },
+        );
+
+        expect($ensureHarnessInstallations).toHaveBeenCalledWith(['claude-code'], false);
     });
 
     it('keeps the compact result without streaming the raw harness output by default', async () => {

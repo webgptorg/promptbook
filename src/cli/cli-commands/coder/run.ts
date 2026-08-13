@@ -10,6 +10,11 @@ import { createNonNegativeIntegerOptionParser } from '../common/createNonNegativ
 import { createPositiveIntegerOptionParser } from '../common/createPositiveIntegerOptionParser';
 import { handleActionErrors } from '../common/handleActionErrors';
 import { $ensureHarnessInstallations } from '../common/harness/$ensureHarnessInstallations';
+import {
+    addHarnessUpdateOption,
+    normalizeHarnessUpdateCliOptions,
+    type HarnessUpdateCliOptions,
+} from '../common/harnessUpdateCliOptions';
 import { $ensurePromptbookCliInstallations } from '../common/promptbook-cli/$ensurePromptbookCliInstallations';
 import type { PromptRunnerCliOptions } from '../common/promptRunnerCliOptions';
 import {
@@ -48,7 +53,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             - Optional --isolate runs every prompt in its own temporary git worktree and merges it back when verified
             - Optional --preserve-logs keeps temp prompt/log artifacts after successful rounds
             - Optional --no-ui keeps plain streaming console output for logging and debugging
-            - Checks that the selected harness is installed globally and up to date before the first prompt
+            - Checks that the selected harness is installed globally and up to date before the first prompt unless --no-harness-update is used
             - In interactive mode, checks local and global Promptbook CLI installations and offers to update them
             - Supports GPG signing of commits
             - Optional pre-coding test run that can stop or repair pre-existing failures
@@ -60,6 +65,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
 
     command.option('--dry-run', 'Print unwritten prompts without executing', false);
     addPromptRunnerSelectionOptions(command);
+    addHarnessUpdateOption(command);
     command.option(
         '--agent <agent-book-path>',
         'Path to a .book file whose compiled system message is prepended to each coding prompt',
@@ -198,6 +204,9 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             const runnerOptions = normalizePromptRunnerCliOptions(cliOptions as PromptRunnerCliOptions, {
                 isAgentRequired: !dryRun,
             });
+            const { isHarnessUpdateCheckEnabled } = normalizeHarnessUpdateCliOptions(
+                cliOptions as HarnessUpdateCliOptions,
+            );
 
             // [1] Parse the wait options and --no-auto:
             //   default: run automatically through the queue (no waiting between prompts)
@@ -211,7 +220,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 return process.exit(0);
             }
 
-            await $ensureHarnessInstallations([runnerOptions.agentName]);
+            await $ensureHarnessInstallations([runnerOptions.agentName], isHarnessUpdateCheckEnabled);
 
             const waitAfterPrompt = parseOptionalWaitDuration(waitAfterPromptValue, 0);
             const waitBetweenPrompts = parseOptionalWaitDuration(waitBetweenPromptsValue, 0);

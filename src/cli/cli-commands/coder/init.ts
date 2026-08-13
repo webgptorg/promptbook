@@ -12,6 +12,11 @@ import {
 import { handleActionErrors } from '../common/handleActionErrors';
 import { $ensureHarnessInstallations } from '../common/harness/$ensureHarnessInstallations';
 import { getHarnessDefinition } from '../common/harness/HarnessDefinition';
+import {
+    addHarnessUpdateOption,
+    normalizeHarnessUpdateCliOptions,
+    type HarnessUpdateCliOptions,
+} from '../common/harnessUpdateCliOptions';
 import type { PromptRunnerHarnessName } from '../common/promptRunnerCliOptions';
 import { AGENT_CODING_FILE_PATH } from './agentCodingFile';
 import { AGENTS_FILE_PATH } from './agentsFile';
@@ -66,7 +71,7 @@ export function $initializeCoderInitCommand(program: Program): $side_effect {
                 - CODING_AGENT_GIT_EMAIL
                 - CODING_AGENT_GIT_SIGNING_KEY
 
-                Checks that the coding harnesses are installed globally and up to date:
+                Checks that the coding harnesses are installed globally and up to date unless \`--no-harness-update\` is used:
                 ${block(listCheckedHarnessLabels())}
 
                 ${block(CODER_GIT_SYNC_DESCRIPTION)}
@@ -75,10 +80,14 @@ export function $initializeCoderInitCommand(program: Program): $side_effect {
     );
 
     addCoderGitSyncOptions(command);
+    addHarnessUpdateOption(command);
 
     command.action(
         handleActionErrors(async (cliOptions) => {
             const gitSync = normalizeCoderGitSyncCliOptions(cliOptions as CoderGitSyncCliOptions);
+            const { isHarnessUpdateCheckEnabled } = normalizeHarnessUpdateCliOptions(
+                cliOptions as HarnessUpdateCliOptions,
+            );
             const projectPath = process.cwd();
 
             // Note: Import the git synchronization dynamically to keep the CLI fast for runs without `--commit`
@@ -98,7 +107,7 @@ export function $initializeCoderInitCommand(program: Program): $side_effect {
                 commitMessage: 'Initialize Promptbook Coder',
             });
 
-            await $ensureHarnessInstallations(CODER_INIT_CHECKED_HARNESS_NAMES);
+            await $ensureHarnessInstallations(CODER_INIT_CHECKED_HARNESS_NAMES, isHarnessUpdateCheckEnabled);
         }),
     );
 }

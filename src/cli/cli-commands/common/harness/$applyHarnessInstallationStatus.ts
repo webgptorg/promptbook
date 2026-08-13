@@ -20,6 +20,11 @@ export async function $applyHarnessInstallationStatus(status: HarnessInstallatio
         return;
     }
 
+    if (installationState === 'installed') {
+        console.info(colors.gray(`✔ ${definition.label} ${installedVersion} is installed. Skipped checking for updates.`));
+        return;
+    }
+
     if (installationState === 'unknown') {
         console.info(
             colors.gray(

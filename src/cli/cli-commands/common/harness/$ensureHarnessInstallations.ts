@@ -5,8 +5,8 @@ import type { HarnessDefinition } from './HarnessDefinition';
 import { getHarnessDefinition } from './HarnessDefinition';
 
 /**
- * Checks that every given CLI coding harness is installed globally and up to date and offers to
- * install or update the ones which are not.
+ * Checks that every given CLI coding harness is installed globally and, when enabled, up to date.
+ * Offers to install missing harnesses and update outdated ones.
  *
  * Harness names which are `undefined`, for example when no `--harness` is selected in a dry run,
  * are ignored so that every call site can pass its raw selection.
@@ -17,6 +17,7 @@ import { getHarnessDefinition } from './HarnessDefinition';
  */
 export async function $ensureHarnessInstallations(
     harnessNames: ReadonlyArray<PromptRunnerHarnessName | undefined>,
+    isHarnessUpdateCheckEnabled = true,
 ): Promise<void> {
     const definitions = resolveCheckedHarnessDefinitions(harnessNames);
 
@@ -25,7 +26,9 @@ export async function $ensureHarnessInstallations(
     }
 
     // Note: Detection of all harnesses runs in parallel, the questions have to be asked one by one
-    const statuses = await Promise.all(definitions.map((definition) => $checkHarnessInstallation(definition)));
+    const statuses = await Promise.all(
+        definitions.map((definition) => $checkHarnessInstallation(definition, isHarnessUpdateCheckEnabled)),
+    );
 
     for (const status of statuses) {
         await $applyHarnessInstallationStatus(status);

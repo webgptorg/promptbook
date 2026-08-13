@@ -5,6 +5,11 @@ import { spaceTrim } from 'spacetrim';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
 import { handleActionErrors } from '../common/handleActionErrors';
 import { $ensureHarnessInstallations } from '../common/harness/$ensureHarnessInstallations';
+import {
+    addHarnessUpdateOption,
+    normalizeHarnessUpdateCliOptions,
+    type HarnessUpdateCliOptions,
+} from '../common/harnessUpdateCliOptions';
 import type { PromptRunnerSelectionCliOptions } from '../common/promptRunnerCliOptions';
 import {
     addPromptRunnerRuntimeOptions,
@@ -33,11 +38,13 @@ export function $initializeCoderPingCommand(program: Program): $side_effect {
             - Reports the answer of the harness, the response time and the reported usage
             - Starts the hourly/weekly quota window before you need it, so it is already refreshing when you do
             - Leaves the project exactly as it was — nothing is read, written, changed or committed
+            - Checks that the selected harness is installed globally and up to date unless --no-harness-update is used
             - Use --no-ui to stream the raw harness output instead of only the compact result
         `),
     );
 
     addPromptRunnerSelectionOptions(command);
+    addHarnessUpdateOption(command);
     addPromptRunnerRuntimeOptions(command);
 
     command.action(
@@ -46,8 +53,11 @@ export function $initializeCoderPingCommand(program: Program): $side_effect {
                 cliOptions as PromptRunnerSelectionCliOptions,
                 { isAgentRequired: true },
             );
+            const { isHarnessUpdateCheckEnabled } = normalizeHarnessUpdateCliOptions(
+                cliOptions as HarnessUpdateCliOptions,
+            );
 
-            await $ensureHarnessInstallations([runnerOptions.agentName]);
+            await $ensureHarnessInstallations([runnerOptions.agentName], isHarnessUpdateCheckEnabled);
 
             // Note: Import the ping dynamically to avoid loading heavy dependencies until needed
             const { pingCoderHarness } = await import('../../../../scripts/run-codex-prompts/ping/pingCoderHarness');

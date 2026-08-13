@@ -1,3 +1,7 @@
+-   Added `--no-harness-update` to the harness-aware `ptbk coder` commands. `init`, `run`, `ping`, and `server`
+    still detect a missing global harness, but can now skip the npm latest-version lookup and automatic update offer.
+    The VS Code Coder terminal commands use the flag to avoid a registry check on each development run.
+
 -   Fixed Windows executable discovery to check the system `PATH` before the conventional installation directories, so
     LibreOffice installed through a package manager's command shim can be located for legacy-document processing.
     The LibreOffice locator now has deterministic configuration coverage, while the shared Windows locator has

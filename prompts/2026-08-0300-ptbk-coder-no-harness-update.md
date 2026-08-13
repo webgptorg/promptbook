@@ -1,4 +1,4 @@
-[ ]
+[x] by OpenAI Codex `gpt-5.6-terra` thinking `max` (ChatGPT account) - Implementation ~$0.5822 an hour; Testing 17 minutes
 
 [✨🛕] Add flag `--no-harness-update` which will turn off automatic check if the harness is up to date
 
@@ -12,3 +12,4 @@ ptbk coder run --no-harness-update --harness github-copilot --model gpt-5.4 --th
 -   Also look and use it in all [the dev scripts in `terminals.json`](.vscode/terminals.json)
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
