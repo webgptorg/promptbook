@@ -1,3 +1,10 @@
+-   Fixed a flaky `$spawnLoggedBashScript` coder test that could fail `npm run test-for-ptbk-coder` before any
+    coding prompt started. Waiting for the test harness fixture to boot reused the process-tree termination budget,
+    even though booting it pays for a full Bash login shell whose cost belongs to the machine - profiles loading a
+    version manager need about ten seconds on Windows, and parallel Jest workers multiply that. Fixture startup now
+    has its own budget, and a wrapper shell that exits before the harness starts fails immediately with its exit
+    code, signal, and captured output instead of timing out silently.
+
 -   Fixed Agents Server goal-chat planned messages created by coding-agent runners. Runner folder names normalize
     permanent ids to lowercase, while goal-chat records use their canonical IDs; the internal scheduler now resolves
     the canonical agent before setting, listing, or cancelling a planned message, so self-invocations appear in and

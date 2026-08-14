@@ -3,6 +3,7 @@ import { mkdtemp, readFile, rm, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
+import { EnvironmentMismatchError } from '../../../../src/errors/EnvironmentMismatchError';
 import { $spawnLoggedBashScript } from './$spawnLoggedBashScript';
 import { toPosixPath } from './toPosixPath';
 
@@ -10,6 +11,16 @@ import { toPosixPath } from './toPosixPath';
  * Maximum time allowed for the shell ownership watcher to stop the process tree.
  */
 const PROCESS_TREE_TERMINATION_TIMEOUT_MS = 20_000;
+
+/**
+ * Maximum time allowed for the harness fixture to boot and write its first heartbeat.
+ *
+ * Booting the fixture pays for a full Bash *login* shell, which is a cost of the machine and not of the ownership
+ * behavior verified here - shell profiles that load version managers such as `nvm` need roughly ten seconds on
+ * Windows, and parallel Jest workers multiply that further. This startup budget is therefore deliberately much
+ * larger than `PROCESS_TREE_TERMINATION_TIMEOUT_MS`, which keeps bounding the behavior actually under test.
+ */
+const HARNESS_FIXTURE_STARTUP_TIMEOUT_MS = 90_000;
 
 /**
  * Delay used to prove that a stopped harness no longer writes its heartbeat file.
@@ -64,8 +75,9 @@ describe('$spawnLoggedBashScript', () => {
             scriptPath,
             parentProcessId: parentProcess.pid,
         });
+        const bashOutput = collectProcessOutput(bashProcess);
 
-        await waitForNonEmptyFile(harnessHeartbeatPath);
+        await waitForHarnessHeartbeat({ harnessHeartbeatPath, bashProcess, bashOutput });
 
         parentProcess.kill();
         await waitForProcessToExit(parentProcess);
@@ -132,21 +144,105 @@ function isChildProcessFinished(commandProcess: ChildProcess): boolean {
 }
 
 /**
- * Waits until the fixture wrote non-empty content to one file.
+ * Buffered standard streams of one test process, used to explain unexpected fixture failures.
  */
-async function waitForNonEmptyFile(filePath: string): Promise<void> {
-    const deadlineTimeMs = Date.now() + PROCESS_TREE_TERMINATION_TIMEOUT_MS;
+type CollectedProcessOutput = {
+    readonly text: string;
+};
+
+/**
+ * Mirrors the standard streams of one spawned test process into a buffer.
+ */
+function collectProcessOutput(commandProcess: ChildProcessWithoutNullStreams): CollectedProcessOutput {
+    const chunks: string[] = [];
+
+    commandProcess.stdout.on('data', (chunk) => chunks.push(chunk.toString()));
+    commandProcess.stderr.on('data', (chunk) => chunks.push(chunk.toString()));
+
+    return {
+        get text(): string {
+            return chunks.join('');
+        },
+    };
+}
+
+/**
+ * One started harness fixture together with the wrapper shell that owns it.
+ */
+type HarnessFixture = {
+    harnessHeartbeatPath: string;
+    bashProcess: ChildProcessWithoutNullStreams;
+    bashOutput: CollectedProcessOutput;
+};
+
+/**
+ * Waits until the harness fixture writes its first heartbeat.
+ *
+ * When the wrapper shell exits before writing anything, waiting for the full startup budget would only hide why, so
+ * the fixture failure is reported immediately together with the output the shell produced.
+ */
+async function waitForHarnessHeartbeat({
+    harnessHeartbeatPath,
+    bashProcess,
+    bashOutput,
+}: HarnessFixture): Promise<void> {
+    const deadlineTimeMs = Date.now() + HARNESS_FIXTURE_STARTUP_TIMEOUT_MS;
+    const isHeartbeatWritten = async (): Promise<boolean> =>
+        Boolean((await readFile(harnessHeartbeatPath, 'utf-8').catch(() => '')).trim());
 
     while (Date.now() < deadlineTimeMs) {
-        const content = await readFile(filePath, 'utf-8').catch(() => '');
-        if (content.trim()) {
+        if (await isHeartbeatWritten()) {
             return;
+        }
+
+        if (isChildProcessFinished(bashProcess)) {
+            // Note: The heartbeat can still land between the last check and the exit of the wrapper shell.
+            if (await isHeartbeatWritten()) {
+                return;
+            }
+
+            throw createHarnessStartupError({
+                reason: 'its wrapper shell exited first',
+                harnessHeartbeatPath,
+                bashProcess,
+                bashOutput,
+            });
         }
 
         await wait(FIXTURE_POLL_INTERVAL_MS);
     }
 
-    throw new Error(`The test fixture did not create ${filePath} before the timeout.`);
+    throw createHarnessStartupError({
+        reason: `it did not start within ${HARNESS_FIXTURE_STARTUP_TIMEOUT_MS} ms`,
+        harnessHeartbeatPath,
+        bashProcess,
+        bashOutput,
+    });
+}
+
+/**
+ * Describes one failed harness fixture startup with everything needed to tell a broken wrapper from a slow machine.
+ */
+function createHarnessStartupError({
+    reason,
+    harnessHeartbeatPath,
+    bashProcess,
+    bashOutput,
+}: HarnessFixture & { reason: string }): EnvironmentMismatchError {
+    return new EnvironmentMismatchError(
+        spaceTrim(
+            (block) => `
+                The test fixture did not write its heartbeat because ${reason}.
+
+                Heartbeat file: ${harnessHeartbeatPath}
+                Wrapper shell exit code: ${bashProcess.exitCode ?? '(still running)'}
+                Wrapper shell signal: ${bashProcess.signalCode ?? '(none)'}
+
+                Wrapper shell output:
+                ${block(bashOutput.text.trim() || '(no output)')}
+            `,
+        ),
+    );
 }
 
 /**
