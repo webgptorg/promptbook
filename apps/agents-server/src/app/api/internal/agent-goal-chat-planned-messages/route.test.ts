@@ -15,6 +15,11 @@ const LIST_PLANNED_MESSAGES_MOCK = jest.fn();
  */
 const CANCEL_PLANNED_MESSAGE_MOCK = jest.fn();
 
+/**
+ * Mocked agent collection used to recover canonical permanent ids from runner folder names.
+ */
+const FIND_AGENT_BASIC_INFORMATION_MOCK = jest.fn();
+
 jest.mock('@/src/utils/agentGoalChat/agentGoalChatPlannedMessageActions', () => ({
     AGENT_GOAL_CHAT_PLANNED_MESSAGE_ACTIONS: {
         set: SET_PLANNED_MESSAGE_MOCK,
@@ -27,6 +32,11 @@ jest.mock('@/src/utils/userChat', () => ({
     resolveUserChatWorkerInternalToken: jest.fn(),
 }));
 
+jest.mock('@/src/tools/$provideAgentCollectionForServer', () => ({
+    $provideAgentCollectionForServer: jest.fn(),
+}));
+
+import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { resolveUserChatWorkerInternalToken } from '@/src/utils/userChat';
 import { POST } from './route';
 
@@ -37,10 +47,21 @@ const RESOLVE_USER_CHAT_WORKER_INTERNAL_TOKEN_MOCK = resolveUserChatWorkerIntern
     typeof resolveUserChatWorkerInternalToken
 >;
 
+/**
+ * Mocked collection provider used by internal planned-message route tests.
+ */
+const PROVIDE_AGENT_COLLECTION_FOR_SERVER_MOCK = $provideAgentCollectionForServer as jest.MockedFunction<
+    typeof $provideAgentCollectionForServer
+>;
+
 describe('POST /api/internal/agent-goal-chat-planned-messages', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         RESOLVE_USER_CHAT_WORKER_INTERNAL_TOKEN_MOCK.mockReturnValue('test-worker-token');
+        FIND_AGENT_BASIC_INFORMATION_MOCK.mockResolvedValue({ permanentId: 'agent-1' });
+        PROVIDE_AGENT_COLLECTION_FOR_SERVER_MOCK.mockResolvedValue({
+            findAgentBasicInformation: FIND_AGENT_BASIC_INFORMATION_MOCK,
+        } as never);
     });
 
     it('rejects requests without the internal worker token', async () => {
@@ -77,6 +98,34 @@ describe('POST /api/internal/agent-goal-chat-planned-messages', () => {
         await expect(response.json()).resolves.toMatchObject({
             status: 'set',
             timeoutId: 'timeout-1',
+        });
+    });
+
+    it('uses the canonical permanent id when a runner folder lowercases it', async () => {
+        FIND_AGENT_BASIC_INFORMATION_MOCK.mockResolvedValue({ permanentId: 'YznZWHGNQPinL1' });
+        SET_PLANNED_MESSAGE_MOCK.mockResolvedValue({
+            action: 'set',
+            status: 'set',
+            timeoutId: 'timeout-1',
+            dueAt: '2026-08-11T13:00:00.000Z',
+            message: 'Continue the goal.',
+        });
+
+        const response = await POST(
+            createPlannedMessageRequest({
+                action: 'set',
+                agentPermanentId: 'yznzwhgnqpinl1',
+                milliseconds: 60_000,
+                message: 'Continue the goal.',
+            }),
+        );
+
+        expect(response.status).toBe(200);
+        expect(FIND_AGENT_BASIC_INFORMATION_MOCK).toHaveBeenCalledWith('yznzwhgnqpinl1');
+        expect(SET_PLANNED_MESSAGE_MOCK).toHaveBeenCalledWith({
+            agentPermanentId: 'YznZWHGNQPinL1',
+            milliseconds: 60_000,
+            message: 'Continue the goal.',
         });
     });
 

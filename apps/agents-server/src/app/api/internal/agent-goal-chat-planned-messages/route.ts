@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server';
 import { spaceTrim } from 'spacetrim';
 import { LimitReachedError } from '../../../../../../../src/errors/LimitReachedError';
+import { NotFoundError } from '../../../../../../../src/errors/NotFoundError';
 import { ParseError } from '../../../../../../../src/errors/ParseError';
 import { isTimingSafeEqualString } from '../../../../../../../src/utils/isTimingSafeEqualString';
 import { USER_CHAT_WORKER_TOKEN_HEADER } from '@/src/utils/agentProjects/agentProjectRuntimeConstants';
 import { AGENT_GOAL_CHAT_PLANNED_MESSAGE_ACTIONS } from '@/src/utils/agentGoalChat/agentGoalChatPlannedMessageActions';
+import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { resolveUserChatWorkerInternalToken } from '@/src/utils/userChat';
 
 /**
@@ -52,6 +54,10 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: error.message }, { status: 429 });
         }
 
+        if (error instanceof NotFoundError) {
+            return NextResponse.json({ error: error.message }, { status: 404 });
+        }
+
         console.error('[agent-goal-chat-planned-messages] internal route failed', error);
         return NextResponse.json(
             {
@@ -82,11 +88,11 @@ async function parseAgentGoalChatPlannedMessageRequest(request: Request): Promis
  * Executes one normalized planned-message request through the shared action service.
  */
 async function executeAgentGoalChatPlannedMessageRequest(request: AgentGoalChatPlannedMessageRequest) {
-    const agentPermanentId = request.body.agentPermanentId;
+    const agentPermanentId = await resolveCanonicalAgentPermanentId(request.body.agentPermanentId);
 
     if (request.action === 'set') {
         return await AGENT_GOAL_CHAT_PLANNED_MESSAGE_ACTIONS.set({
-            agentPermanentId: normalizeAgentPermanentId(agentPermanentId),
+            agentPermanentId,
             milliseconds: request.body.milliseconds,
             message: request.body.message,
         });
@@ -94,14 +100,14 @@ async function executeAgentGoalChatPlannedMessageRequest(request: AgentGoalChatP
 
     if (request.action === 'list') {
         return await AGENT_GOAL_CHAT_PLANNED_MESSAGE_ACTIONS.list({
-            agentPermanentId: normalizeAgentPermanentId(agentPermanentId),
+            agentPermanentId,
             isIncludingFinished: request.body.isIncludingFinished,
             limit: request.body.limit,
         });
     }
 
     return await AGENT_GOAL_CHAT_PLANNED_MESSAGE_ACTIONS.cancel({
-        agentPermanentId: normalizeAgentPermanentId(agentPermanentId),
+        agentPermanentId,
         timeoutId: request.body.timeoutId,
     });
 }
@@ -127,14 +133,35 @@ function normalizeAgentGoalChatPlannedMessageAction(rawAction: unknown): AgentGo
 }
 
 /**
- * Validates the agent identifier before dispatching the runtime action.
+ * Resolves an agent identifier to its canonical permanent id before persistence.
+ *
+ * Coding runners identify local folders with lowercase ids, while goal-chat and
+ * timeout records use the canonical database id.
+ *
+ * @param rawAgentPermanentId - Untrusted identifier from the internal runtime request.
+ * @returns The canonical permanent id of the active agent.
  */
-function normalizeAgentPermanentId(rawAgentPermanentId: unknown): string {
+async function resolveCanonicalAgentPermanentId(rawAgentPermanentId: unknown): Promise<string> {
     if (typeof rawAgentPermanentId !== 'string' || rawAgentPermanentId.trim().length === 0) {
         throw new ParseError('Missing required `agentPermanentId` string.');
     }
 
-    return rawAgentPermanentId.trim();
+    const requestedAgentIdentifier = rawAgentPermanentId.trim();
+    const collection = await $provideAgentCollectionForServer();
+    const agent = await collection.findAgentBasicInformation(requestedAgentIdentifier);
+    const agentPermanentId = agent?.permanentId?.trim();
+
+    if (!agentPermanentId) {
+        throw new NotFoundError(
+            spaceTrim(`
+                Agent \`${requestedAgentIdentifier}\` was not found.
+
+                **Note:** Planned messages can only be managed for an active Agents Server agent.
+            `),
+        );
+    }
+
+    return agentPermanentId;
 }
 
 /**

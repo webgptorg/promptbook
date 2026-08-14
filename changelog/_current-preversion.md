@@ -1,3 +1,8 @@
+-   Fixed Agents Server goal-chat planned messages created by coding-agent runners. Runner folder names normalize
+    permanent ids to lowercase, while goal-chat records use their canonical IDs; the internal scheduler now resolves
+    the canonical agent before setting, listing, or cancelling a planned message, so self-invocations appear in and
+    wake the correct goal chat.
+
 -   Fixed unknown uppercase Book commitments in the Agents Server. They now terminate the preceding commitment,
     remain visible as red-underlined editor errors, and are appended only as final extra context in the generated
     system message rather than leaking into the preceding commitment's behavior or prompt suffix.
