@@ -1,7 +1,6 @@
-import { readdir } from 'fs/promises';
 import type { AgentProjectInfo } from './AgentProjectInfo';
 import { resolveAgentProjectsRootPath } from './agentProjectsPaths';
-import { isMissingPathError } from './isMissingPathError';
+import { listAgentProjectNames } from './listAgentProjectNames';
 import { createAgentProjectInfo } from './resolveAgentProjectInfo';
 
 /**
@@ -15,27 +14,11 @@ import { createAgentProjectInfo } from './resolveAgentProjectInfo';
  */
 export async function listAgentProjects(agentPermanentId: string): Promise<ReadonlyArray<AgentProjectInfo>> {
     const projectsRootPath = resolveAgentProjectsRootPath(agentPermanentId);
+    const projectNames = await listAgentProjectNames(agentPermanentId);
 
-    let projectsRootEntries;
-    try {
-        projectsRootEntries = await readdir(projectsRootPath, { withFileTypes: true });
-    } catch (error) {
-        if (isMissingPathError(error)) {
-            return [];
-        }
-
-        throw error;
-    }
-
-    const projects = await Promise.all(
-        projectsRootEntries
-            .filter((projectsRootEntry) => projectsRootEntry.isDirectory())
-            .map((projectDirectoryEntry): Promise<AgentProjectInfo> =>
-                createAgentProjectInfo(projectsRootPath, projectDirectoryEntry.name),
-            ),
-    );
-
-    return projects.sort((firstProject, secondProject) =>
-        firstProject.projectName.localeCompare(secondProject.projectName),
+    return await Promise.all(
+        projectNames.map(
+            (projectName): Promise<AgentProjectInfo> => createAgentProjectInfo(projectsRootPath, projectName),
+        ),
     );
 }

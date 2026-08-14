@@ -1,7 +1,8 @@
 'use client';
 
-import type { MarkdownInlineReference } from '@promptbook-local/types';
+import type { ChatMessage, MarkdownInlineReference } from '@promptbook-local/types';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { $refreshAgentProjectChatReferencesAction } from '../../app/agents/[agentName]/projectReferenceActions';
 import {
     $startAgentProjectRuntimeAction,
     $stopAgentProjectRuntimeAction,
@@ -13,6 +14,7 @@ import {
     type AgentProjectMarkdownReferenceInfo,
 } from '../../utils/agentProjects/createAgentProjectMarkdownReferences';
 import { notifyError } from '../Notifications/notifications';
+import { resolveLatestCompletedAgentMessageKey } from './resolveLatestCompletedAgentMessageKey';
 
 /**
  * Options used to build interactive project references for an Agents Server chat.
@@ -27,6 +29,14 @@ type UseAgentProjectMarkdownReferencesOptions = {
      * Initial browser-safe project references loaded by the server page.
      */
     readonly projects: ReadonlyArray<AgentProjectReferenceInfo>;
+
+    /**
+     * Messages currently rendered in the chat.
+     *
+     * They are watched only to notice that the agent finished an answer, which is when a project it just
+     * created must become a chip without waiting for a page reload.
+     */
+    readonly messages?: ReadonlyArray<ChatMessage>;
 };
 
 /**
@@ -38,7 +48,7 @@ type UseAgentProjectMarkdownReferencesOptions = {
 export function useAgentProjectMarkdownReferences(
     options: UseAgentProjectMarkdownReferencesOptions,
 ): ReadonlyArray<MarkdownInlineReference> {
-    const { agentPermanentId, projects } = options;
+    const { agentPermanentId, projects, messages } = options;
     const [currentProjects, setCurrentProjects] = useState<ReadonlyArray<AgentProjectReferenceInfo>>(projects);
     const previousProjectsRef = useRef(projects);
 
@@ -50,6 +60,13 @@ export function useAgentProjectMarkdownReferences(
         previousProjectsRef.current = projects;
         setCurrentProjects(projects);
     }, [projects]);
+
+    useRefreshedAgentProjectReferences({
+        agentPermanentId,
+        currentProjects,
+        messages,
+        setCurrentProjects,
+    });
 
     /**
      * Merges one action result into the local project reference state.
@@ -141,6 +158,111 @@ export function useAgentProjectMarkdownReferences(
             }),
         [agentPermanentId, changeProjectRuntime, currentProjects, openProject],
     );
+}
+
+/**
+ * Options of the refresh keeping chat project references current while the chat stays open.
+ *
+ * @private type of `useAgentProjectMarkdownReferences`
+ */
+type UseRefreshedAgentProjectReferencesOptions = {
+    /**
+     * Permanent id of the agent owning the projects.
+     */
+    readonly agentPermanentId: string;
+
+    /**
+     * Project references the chat currently renders.
+     */
+    readonly currentProjects: ReadonlyArray<AgentProjectReferenceInfo>;
+
+    /**
+     * Messages currently rendered in the chat.
+     */
+    readonly messages: ReadonlyArray<ChatMessage> | undefined;
+
+    /**
+     * Replaces the project references the chat renders.
+     */
+    readonly setCurrentProjects: (projects: ReadonlyArray<AgentProjectReferenceInfo>) => void;
+};
+
+/**
+ * Reloads the project references after each finished agent answer which could have created a project.
+ *
+ * The server renders a chat with the projects existing at that moment, so an agent creating a project
+ * during the conversation would otherwise reference it as a plain link until the page is reloaded. The
+ * messages already present when the chat thread opens arrive together with their projects and never
+ * trigger a reload, and the server skips rebuilding the references while the agent owns the very same
+ * projects.
+ *
+ * @param options - Owning agent, current references, and the messages the chat renders.
+ *
+ * @private function of `useAgentProjectMarkdownReferences`
+ */
+function useRefreshedAgentProjectReferences({
+    agentPermanentId,
+    currentProjects,
+    messages,
+    setCurrentProjects,
+}: UseRefreshedAgentProjectReferencesOptions): void {
+    const currentProjectsRef = useRef(currentProjects);
+    const isLatestCompletedAgentMessageKeyKnownRef = useRef(false);
+    const refreshedAgentMessageKeyRef = useRef<string | null>(null);
+    const hasRenderedChatMessages = messages !== undefined && messages.length > 0;
+    const latestCompletedAgentMessageKey = resolveLatestCompletedAgentMessageKey(messages);
+
+    useEffect(() => {
+        currentProjectsRef.current = currentProjects;
+    }, [currentProjects]);
+
+    useEffect(() => {
+        if (!hasRenderedChatMessages) {
+            // Note: An empty thread is also the state of a chat whose history is still being loaded
+            return undefined;
+        }
+
+        if (!isLatestCompletedAgentMessageKeyKnownRef.current) {
+            // Note: The messages rendered when the chat opens were listed together with the server projects
+            isLatestCompletedAgentMessageKeyKnownRef.current = true;
+            refreshedAgentMessageKeyRef.current = latestCompletedAgentMessageKey;
+            return undefined;
+        }
+
+        if (refreshedAgentMessageKeyRef.current === latestCompletedAgentMessageKey) {
+            return undefined;
+        }
+
+        refreshedAgentMessageKeyRef.current = latestCompletedAgentMessageKey;
+        let isDisposed = false;
+
+        void (async () => {
+            const knownProjectNames = currentProjectsRef.current.map((project) => project.projectName);
+
+            try {
+                const refreshedProjects = await $refreshAgentProjectChatReferencesAction(
+                    agentPermanentId,
+                    knownProjectNames,
+                );
+
+                if (isDisposed || refreshedProjects === null) {
+                    return;
+                }
+
+                setCurrentProjects(refreshedProjects);
+            } catch (error) {
+                // Note: A chat stays usable without fresh projects, the chip then appears after the next answer
+                console.error('[agents-server:agent-projects] Failed to refresh chat project references', {
+                    agentPermanentId,
+                    error,
+                });
+            }
+        })();
+
+        return () => {
+            isDisposed = true;
+        };
+    }, [agentPermanentId, hasRenderedChatMessages, latestCompletedAgentMessageKey, setCurrentProjects]);
 }
 
 /**

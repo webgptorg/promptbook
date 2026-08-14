@@ -4,8 +4,7 @@ import { ForbiddenPage } from '@/src/components/ForbiddenPage/ForbiddenPage';
 import type { AgentProjectItemInfo } from '@/src/components/AgentProjects/AgentProjectReferencesList';
 import { $provideServer } from '@/src/tools/$provideServer';
 import { resolveAgentAccess } from '@/src/utils/agentAccess';
-import { resolveAgentProjectsAccess } from '@/src/utils/agentProjects/agentProjectAccess';
-import { listAgentProjectChatReferences } from '@/src/utils/agentProjects/listAgentProjectChatReferences';
+import { resolveAgentChatProjectReferences } from '@/src/utils/agentProjects/resolveAgentChatProjectReferences';
 import { loadChatConfiguration } from '@/src/utils/chatConfiguration';
 import { ensureChatHistoryIdentity } from '@/src/utils/currentUserIdentity';
 import { getCurrentUser } from '@/src/utils/getCurrentUser';
@@ -72,23 +71,6 @@ function buildCanonicalAgentChatPath(
 }
 
 /**
- * Resolves compact project references available to the agent chat surface.
- *
- * @param agentPermanentId - Permanent id of the agent owning the projects.
- * @returns Display-only project references safe to send to the client.
- */
-async function resolveAgentChatProjectReferences(
-    agentPermanentId: string,
-): Promise<ReadonlyArray<AgentProjectItemInfo>> {
-    const projectAccess = await resolveAgentProjectsAccess(agentPermanentId);
-    if (!projectAccess.isProjectOverviewVisible) {
-        return [];
-    }
-
-    return await listAgentProjectChatReferences(agentPermanentId);
-}
-
-/**
  * Handles agent chat page.
  */
 export default async function AgentChatPage({
@@ -149,7 +131,7 @@ export default async function AgentChatPage({
     const providedServerPromise = $provideServer();
     const agentProjectReferencesPromise = isHeadless
         ? Promise.resolve<ReadonlyArray<AgentProjectItemInfo>>([])
-        : resolveAgentChatProjectReferences(canonicalAgentId);
+        : resolveAgentChatProjectReferences({ agentPermanentId: canonicalAgentId });
     const shareTargetPayloadPromise = shareTarget
         ? peekShareTargetPayload({
               shareTargetId: shareTarget,

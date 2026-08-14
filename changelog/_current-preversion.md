@@ -1,3 +1,20 @@
+-   Fixed an Agents Server agent referencing a project it just created as a plain link, which turned into a proper
+    project chip only after the page was reloaded. Every mention of a project — its `[[project-name]]` token, its
+    display name in prose, a link to its project page, or its public project URL — becomes a chip by matching the
+    message against the project references the chat holds, and those references were resolved once while the server
+    rendered the page. A project created during the conversation simply did not exist yet at that moment.
+
+    The open chat now reloads its project references whenever the agent finishes an answer, so the chip appears with
+    the answer that announces the project instead of after a reload. Answers still being generated are ignored — their
+    content keeps changing while the progress card updates, which says nothing about the projects on the server — and
+    the answers already rendered when the chat opens arrive together with their projects, so opening a chat reloads
+    nothing. Building the references walks every project folder, therefore the server first compares the project
+    directory names against the ones the chat already renders and rebuilds them only when the set really changed.
+
+    The chips themselves are unchanged: one shared hook still feeds the chat, the profile preview, and the private-mode
+    chat, and the permission deciding whether a chat may see projects at all now lives in a single resolver shared by
+    the agent page, the chat page, and the reload.
+
 -   Added Agents Server chips below a chat answer for the projects it worked with and the wake-ups it planned,
     next to the source chips that already show the knowledge behind an answer.
 

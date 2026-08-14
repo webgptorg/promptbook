@@ -145,10 +145,6 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
 
     const { value: agent } = usePromise(agentPromise, [agentPromise]);
     const teamAgentProfiles = useTeamAgentProfiles(agent?.capabilities);
-    const markdownInlineReferences = useAgentProjectMarkdownReferences({
-        agentPermanentId: agentName,
-        projects: projectReferences,
-    });
 
     // Error state management
     const [currentError, setCurrentError] = useState<FriendlyErrorMessage | null>(null);
@@ -158,6 +154,11 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     const [githubAppStatus, setGithubAppStatus] = useState<GithubAppStatusResponse | null>(null);
     const [calendarOAuthStatus, setCalendarOAuthStatus] = useState<CalendarOAuthStatusResponse | null>(null);
     const [renderedMessages, setRenderedMessages] = useState<ReadonlyArray<ChatMessage>>([]);
+    const markdownInlineReferences = useAgentProjectMarkdownReferences({
+        agentPermanentId: agentName,
+        projects: projectReferences,
+        messages: renderedMessages,
+    });
     const currentAgentPermanentId = useMemo(() => {
         return typeof (agent as { permanentId?: unknown } | undefined)?.permanentId === 'string'
             ? ((agent as { permanentId?: string }).permanentId as string)

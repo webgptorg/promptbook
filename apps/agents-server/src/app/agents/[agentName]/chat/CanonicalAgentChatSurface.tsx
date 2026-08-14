@@ -144,6 +144,7 @@ export function CanonicalAgentChatSurface({
     const markdownInlineReferences = useAgentProjectMarkdownReferences({
         agentPermanentId: agentName,
         projects: projectReferences,
+        messages: state.renderedMessages,
     });
     const chatBackgroundStyle = useMemo(
         () =>

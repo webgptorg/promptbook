@@ -6,6 +6,7 @@ import { $provideServer } from '@/src/tools/$provideServer';
 import { resolveAgentProjectsAccess } from '@/src/utils/agentProjects/agentProjectAccess';
 import { buildAgentProjectsDashboardHref } from '@/src/utils/agentProjects/agentProjectHrefs';
 import { listAgentProjectChatReferences } from '@/src/utils/agentProjects/listAgentProjectChatReferences';
+import { resolveAgentChatProjectReferences } from '@/src/utils/agentProjects/resolveAgentChatProjectReferences';
 import { isPublicAgentVisibility } from '@/src/utils/agentVisibility';
 import { ensureChatHistoryIdentity } from '@/src/utils/currentUserIdentity';
 import { createAgentEmailAddress } from '@/src/utils/email/agentEmailAddress';
@@ -689,7 +690,7 @@ export default async function AgentPage(props: AgentPageProps) {
 
     const [pageData, projects] = await Promise.all([
         loadAgentPageData(route.canonicalAgentId, Boolean(access.currentUser)),
-        access.isProjectOverviewVisible ? listAgentProjectChatReferences(route.canonicalAgentId) : Promise.resolve([]),
+        resolveAgentChatProjectReferences({ agentPermanentId: route.canonicalAgentId, projectsAccess: access }),
     ]);
     return renderAgentProfilePage(createAgentPageViewModel(route, pageData, projects));
 }
