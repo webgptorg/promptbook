@@ -15,6 +15,7 @@ import { BookEditorMonacoConstants } from './BookEditorMonacoConstants';
 import { BookEditorMonacoUploadPanel } from './BookEditorMonacoUploadPanel';
 import { BOOK_EDITOR_RENDER_THEME, resolveBookEditorRenderTheme } from './BookEditorTheme';
 import { createDeprecatedCommitmentDiagnostics } from './createDeprecatedCommitmentDiagnostics.browser';
+import { createUnknownCommitmentDiagnostics } from './createUnknownCommitmentDiagnostics';
 import { useBookEditorMonacoDecorations } from './useBookEditorMonacoDecorations';
 import { useBookEditorMonacoDiagnostics } from './useBookEditorMonacoDiagnostics';
 import { useBookEditorMonacoInteractions } from './useBookEditorMonacoInteractions';
@@ -257,7 +258,11 @@ export function BookEditorMonaco(props: BookEditorProps) {
         editor,
         handleFiles,
     });
-    const combinedDiagnostics = [...(diagnostics || []), ...createDeprecatedCommitmentDiagnostics(value)];
+    const combinedDiagnostics = [
+        ...(diagnostics || []),
+        ...createDeprecatedCommitmentDiagnostics(value),
+        ...createUnknownCommitmentDiagnostics(value),
+    ];
     const isActionBarVisible = isBookEditorMonacoActionbarVisible({
         hoistedMenuItems,
         isUploadButtonShown,

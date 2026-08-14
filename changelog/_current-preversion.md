@@ -1,3 +1,7 @@
+-   Fixed unknown uppercase Book commitments in the Agents Server. They now terminate the preceding commitment,
+    remain visible as red-underlined editor errors, and are appended only as final extra context in the generated
+    system message rather than leaking into the preceding commitment's behavior or prompt suffix.
+
 -   Added an Agents Server administration email testing tool. Administrators can compose and send mail through the
     bundled Stalwart service, use existing agent addresses to pre-fill sender and recipient fields, and inspect the
     persisted result in Messages. Normal administrators are restricted to sender addresses on their current server;

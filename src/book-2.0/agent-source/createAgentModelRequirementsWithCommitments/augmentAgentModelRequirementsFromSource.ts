@@ -46,8 +46,9 @@ export async function augmentAgentModelRequirementsFromSource(
     requirements = await importReferencedFiles(requirements);
     requirements = appendMcpServers(requirements, agentSource);
     requirements = appendNonCommitmentContent(requirements, parseResult);
+    requirements = appendExampleInteractions(requirements, parseResult);
 
-    return appendExampleInteractions(requirements, parseResult);
+    return appendUnknownCommitmentContent(requirements, parseResult);
 }
 
 /**
@@ -186,6 +187,42 @@ function appendNonCommitmentContent(
     }
 
     return appendSystemMessageSection(requirements, nonCommitmentContent);
+}
+
+/**
+ * Appends unknown commitment blocks as final extra context without applying commitment side effects.
+ *
+ * @param requirements - Current requirements snapshot.
+ * @param parseResult - Parsed source including unknown commitment blocks.
+ * @returns Requirements with unknown commitment context appended at the end of the system message.
+ *
+ * @private internal utility of `augmentAgentModelRequirementsFromSource`
+ */
+function appendUnknownCommitmentContent(
+    requirements: AgentModelRequirements,
+    parseResult: ParsedAgentSourceWithCommitments,
+): AgentModelRequirements {
+    const unknownCommitmentContent = getUnknownCommitmentContent(parseResult);
+    if (!unknownCommitmentContent) {
+        return requirements;
+    }
+
+    return appendSystemMessageSection(requirements, unknownCommitmentContent);
+}
+
+/**
+ * Joins unknown commitment blocks into their final extra-context representation.
+ *
+ * @param parseResult - Parsed source including unknown commitment blocks.
+ * @returns Unknown commitment source blocks in their original order.
+ *
+ * @private internal utility of `appendUnknownCommitmentContent`
+ */
+function getUnknownCommitmentContent(parseResult: ParsedAgentSourceWithCommitments): string {
+    return parseResult.unknownCommitments
+        .map((commitment) => commitment.source)
+        .filter(Boolean)
+        .join('\n\n');
 }
 
 /**

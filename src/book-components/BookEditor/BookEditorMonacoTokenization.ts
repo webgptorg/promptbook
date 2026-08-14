@@ -1,3 +1,5 @@
+import { createBookCommitmentLineTypeRegex } from '../../book-2.0/agent-source/getBookCommitmentLineType';
+
 /**
  * Regex source for absolute URL references inside TEAM/FROM/IMPORT commitments.
  *
@@ -47,7 +49,7 @@ const AGENT_REFERENCE_COMMITMENT_TYPES = ['FROM', 'IMPORT', 'IMPORTS', 'TEAM'] a
  *
  * @private function of BookEditorMonaco
  */
-const DYNAMIC_COMMITMENT_REGEX = /^\s*[A-Z][A-Z0-9]+(?:\s+[A-Z][A-Z0-9]+)*(?=\s|$)/;
+const DYNAMIC_COMMITMENT_REGEX = createBookCommitmentLineTypeRegex();
 
 /**
  * Regex pattern to match horizontal lines.

@@ -4,7 +4,7 @@ import { parseAgentSourceWithCommitments } from './parseAgentSourceWithCommitmen
 import { validateBook } from './string_book';
 
 describe('parseAgentSourceWithCommitments USE commitments', () => {
-    it('does not parse bare or unknown USE-prefixed lines as commitments', () => {
+    it('keeps bare or unknown USE-prefixed lines as unknown commitment blocks', () => {
         const agentSource = validateBook(spaceTrim(`
             API Agent
             USE
@@ -20,10 +20,18 @@ describe('parseAgentSourceWithCommitments USE commitments', () => {
                 content: '',
             }),
         ]);
-        expect(result.nonCommitmentLines.map((line) => line.trim())).toEqual([
-            'API Agent',
-            'USE',
-            'USE API Experimental API access',
+        expect(result.unknownCommitments).toEqual([
+            expect.objectContaining({
+                type: 'USE',
+                source: 'USE',
+                lineNumber: 2,
+            }),
+            expect.objectContaining({
+                type: 'USE API',
+                source: 'USE API Experimental API access',
+                lineNumber: 3,
+            }),
         ]);
+        expect(result.nonCommitmentLines.map((line) => line.trim())).toEqual(['API Agent']);
     });
 });

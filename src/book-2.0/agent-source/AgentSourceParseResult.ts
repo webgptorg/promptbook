@@ -1,5 +1,6 @@
 import type { ParsedCommitment } from '../../commitments/_base/ParsedCommitment';
 import type { string_agent_name } from '../../types/string_agent_name';
+import type { ParsedUnknownCommitment } from './ParsedUnknownCommitment';
 
 /**
  * Result of parsing agent source for commitments
@@ -21,6 +22,11 @@ export type AgentSourceParseResult = {
      * All parsed commitments
      */
     commitments: ParsedCommitment[];
+
+    /**
+     * Uppercase commitment blocks whose types are not registered by Promptbook.
+     */
+    unknownCommitments: ParsedUnknownCommitment[];
 
     /**
      * Lines that are not commitments (for system message)

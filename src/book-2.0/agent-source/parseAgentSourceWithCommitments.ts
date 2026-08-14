@@ -3,7 +3,9 @@ import type { BookCommitment } from '../../commitments/_base/BookCommitment';
 import type { ParsedCommitment } from '../../commitments/_base/ParsedCommitment';
 import { COMMITMENT_REGISTRY } from '../../commitments/index';
 import type { AgentSourceParseResult } from './AgentSourceParseResult';
+import { getBookCommitmentLineType } from './getBookCommitmentLineType';
 import { parseAgentSourcePrelude } from './parseAgentSourcePrelude';
+import type { ParsedUnknownCommitment } from './ParsedUnknownCommitment';
 import type { string_book } from './string_book';
 
 /**
@@ -11,6 +13,39 @@ import type { string_book } from './string_book';
  * Matches 3 or more hyphens, underscores, or asterisks (with optional spaces between)
  */
 const HORIZONTAL_LINE_PATTERN = /^[\s]*[-_*][\s]*[-_*][\s]*[-_*][\s]*[-_*]*[\s]*$/;
+
+/**
+ * Registered commitment block currently being collected from Book source.
+ *
+ * @private internal type of `parseAgentSourceWithCommitments`
+ */
+type CurrentKnownCommitment = {
+    readonly kind: 'known';
+    readonly type: string;
+    readonly startLineNumber: number;
+    readonly originalStartLine: string;
+    readonly contentLines: string[];
+};
+
+/**
+ * Unknown commitment block currently being collected from Book source.
+ *
+ * @private internal type of `parseAgentSourceWithCommitments`
+ */
+type CurrentUnknownCommitment = {
+    readonly kind: 'unknown';
+    readonly type: string;
+    readonly startLineNumber: number;
+    readonly originalStartLine: string;
+    readonly sourceLines: string[];
+};
+
+/**
+ * Commitment-like source block currently being collected.
+ *
+ * @private internal type of `parseAgentSourceWithCommitments`
+ */
+type CurrentCommitment = CurrentKnownCommitment | CurrentUnknownCommitment;
 
 /**
  * Parses agent source using the new commitment system with multiline support
@@ -26,6 +61,7 @@ export function parseAgentSourceWithCommitments(agentSource: string_book): Omit<
         return {
             agentName: null,
             commitments: [],
+            unknownCommitments: [],
             nonCommitmentLines: [],
         };
     }
@@ -33,15 +69,11 @@ export function parseAgentSourceWithCommitments(agentSource: string_book): Omit<
     const { lines, agentName, agentNameLineIndex, agentNameLineNumber } = parseAgentSourcePrelude(agentSource);
 
     const commitments: ParsedCommitment[] = [];
+    const unknownCommitments: ParsedUnknownCommitment[] = [];
     const nonCommitmentLines: string[] = agentNameLineIndex >= 0 ? [lines[agentNameLineIndex]!] : [];
 
-    // Parse commitments with multiline support
-    let currentCommitment: {
-        type: string;
-        startLineNumber: number;
-        originalStartLine: string;
-        contentLines: string[];
-    } | null = null;
+    // Parse commitments with multiline support.
+    let currentCommitment: CurrentCommitment | null = null;
 
     // Process lines starting from after the agent name line
     const startIndex = agentNameLineIndex >= 0 ? agentNameLineIndex + 1 : 0;
@@ -58,24 +90,12 @@ export function parseAgentSourceWithCommitments(agentSource: string_book): Omit<
         if (trimmedLine.startsWith('```')) {
             isInsideCodeBlock = !isInsideCodeBlock;
 
-            if (currentCommitment) {
-                // If we are inside a commitment, the code block is part of it
-                currentCommitment.contentLines.push(line);
-            } else {
-                // If we are not inside a commitment, the code block is non-commitment
-                nonCommitmentLines.push(line);
-            }
+            appendLineToCurrentCommitmentOrNonCommitmentLines(currentCommitment, line, nonCommitmentLines);
             continue;
         }
 
         if (isInsideCodeBlock) {
-            if (currentCommitment) {
-                // If we are inside a commitment and a code block, the line is part of the commitment
-                currentCommitment.contentLines.push(line);
-            } else {
-                // If we are inside a code block but not a commitment, the line is non-commitment
-                nonCommitmentLines.push(line);
-            }
+            appendLineToCurrentCommitmentOrNonCommitmentLines(currentCommitment, line, nonCommitmentLines);
             continue;
         }
 
@@ -86,16 +106,7 @@ export function parseAgentSourceWithCommitments(agentSource: string_book): Omit<
             const match = typeRegex.exec(line.trim());
 
             if (match && match.groups?.type) {
-                // Save the previous commitment if it exists
-                if (currentCommitment) {
-                    const fullContent = currentCommitment.contentLines.join('\n');
-                    commitments.push({
-                        type: currentCommitment.type as BookCommitment,
-                        content: spaceTrim(fullContent),
-                        originalLine: currentCommitment.originalStartLine,
-                        lineNumber: currentCommitment.startLineNumber,
-                    });
-                }
+                appendCurrentCommitment(currentCommitment, commitments, unknownCommitments);
 
                 // Extract the initial content from the commitment line
                 const fullRegex = definition.createRegex();
@@ -104,6 +115,7 @@ export function parseAgentSourceWithCommitments(agentSource: string_book): Omit<
 
                 // Start a new commitment
                 currentCommitment = {
+                    kind: 'known',
                     type: definition.type,
                     startLineNumber: i + 1,
                     originalStartLine: line,
@@ -114,51 +126,106 @@ export function parseAgentSourceWithCommitments(agentSource: string_book): Omit<
             }
         }
 
+        if (foundNewCommitment) {
+            continue;
+        }
+
+        const unknownCommitmentType = getBookCommitmentLineType(line);
+        if (unknownCommitmentType) {
+            appendCurrentCommitment(currentCommitment, commitments, unknownCommitments);
+            currentCommitment = {
+                kind: 'unknown',
+                type: unknownCommitmentType,
+                startLineNumber: i + 1,
+                originalStartLine: line,
+                sourceLines: [line],
+            };
+            continue;
+        }
+
         // Check if this is a horizontal line (ends any current commitment)
         const isHorizontalLine = HORIZONTAL_LINE_PATTERN.test(line);
         if (isHorizontalLine) {
-            // Save the current commitment if it exists
-            if (currentCommitment) {
-                const fullContent = currentCommitment.contentLines.join('\n');
-                commitments.push({
-                    type: currentCommitment.type as BookCommitment,
-                    content: spaceTrim(fullContent),
-                    originalLine: currentCommitment.originalStartLine,
-                    lineNumber: currentCommitment.startLineNumber,
-                });
-                currentCommitment = null;
-            }
+            appendCurrentCommitment(currentCommitment, commitments, unknownCommitments);
+            currentCommitment = null;
             // Add horizontal line to non-commitment lines
             nonCommitmentLines.push(line);
             continue;
         }
 
-        if (!foundNewCommitment) {
-            if (currentCommitment) {
-                // This line belongs to the current commitment
-                currentCommitment.contentLines.push(line);
-            } else {
-                // This line is not part of any commitment
-                nonCommitmentLines.push(line);
-            }
-        }
+        appendLineToCurrentCommitmentOrNonCommitmentLines(currentCommitment, line, nonCommitmentLines);
     }
 
-    // Don't forget to save the last commitment if it exists
-    if (currentCommitment) {
-        const fullContent = currentCommitment.contentLines.join('\n');
-        commitments.push({
-            type: currentCommitment.type as BookCommitment,
-            content: spaceTrim(fullContent) as BookCommitment,
-            originalLine: currentCommitment.originalStartLine,
-            lineNumber: currentCommitment.startLineNumber,
-        });
-    }
+    appendCurrentCommitment(currentCommitment, commitments, unknownCommitments);
 
     return {
         agentName,
         agentNameLineNumber,
         commitments,
+        unknownCommitments,
         nonCommitmentLines,
     };
+}
+
+/**
+ * Stores the current known or unknown commitment in its appropriate parsed collection.
+ *
+ * @param currentCommitment - Commitment-like block collected so far.
+ * @param commitments - Parsed registered commitments to append to.
+ * @param unknownCommitments - Parsed unregistered commitments to append to.
+ *
+ * @private internal utility of `parseAgentSourceWithCommitments`
+ */
+function appendCurrentCommitment(
+    currentCommitment: CurrentCommitment | null,
+    commitments: ParsedCommitment[],
+    unknownCommitments: ParsedUnknownCommitment[],
+): void {
+    if (!currentCommitment) {
+        return;
+    }
+
+    if (currentCommitment.kind === 'unknown') {
+        unknownCommitments.push({
+            type: currentCommitment.type,
+            originalLine: currentCommitment.originalStartLine,
+            lineNumber: currentCommitment.startLineNumber,
+            source: spaceTrim(currentCommitment.sourceLines.join('\n')),
+        });
+        return;
+    }
+
+    commitments.push({
+        type: currentCommitment.type as BookCommitment,
+        content: spaceTrim(currentCommitment.contentLines.join('\n')),
+        originalLine: currentCommitment.originalStartLine,
+        lineNumber: currentCommitment.startLineNumber,
+    });
+}
+
+/**
+ * Adds one source line to the active commitment-like block, or to plain source content when none is active.
+ *
+ * @param currentCommitment - Commitment-like block currently being collected.
+ * @param line - Source line to append.
+ * @param nonCommitmentLines - Plain source lines to append to when no block is active.
+ *
+ * @private internal utility of `parseAgentSourceWithCommitments`
+ */
+function appendLineToCurrentCommitmentOrNonCommitmentLines(
+    currentCommitment: CurrentCommitment | null,
+    line: string,
+    nonCommitmentLines: string[],
+): void {
+    if (!currentCommitment) {
+        nonCommitmentLines.push(line);
+        return;
+    }
+
+    if (currentCommitment.kind === 'unknown') {
+        currentCommitment.sourceLines.push(line);
+        return;
+    }
+
+    currentCommitment.contentLines.push(line);
 }
