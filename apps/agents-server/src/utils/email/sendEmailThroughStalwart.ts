@@ -4,6 +4,7 @@ import { parseEmailAddress } from '../../message-providers/email/_common/utils/p
 import { createStalwartMessageProviderFromEnvironment } from '../../message-providers/email/stalwart/StalwartMessageProvider';
 import { sendMessage } from '../messages/sendMessage';
 import { synchronizeStalwartEmailDomain } from '../stalwart/synchronizeStalwartEmailDomain';
+import { getEmailAddressDomain } from './agentEmailAddress';
 
 /**
  * Stable provider name stored with outbound Stalwart delivery attempts.
@@ -20,7 +21,7 @@ export async function sendEmailThroughStalwart(message: OutboundEmail): Promise<
     }
 
     const senderAddress = parseEmailAddress(message.sender).fullEmail;
-    const senderDomain = senderAddress.slice(senderAddress.lastIndexOf('@') + 1).toLowerCase();
+    const senderDomain = getEmailAddressDomain(senderAddress);
     await synchronizeStalwartEmailDomain(senderDomain).catch((error) => {
         console.error('[stalwart-email]', 'pre_delivery_domain_synchronization_failed', {
             senderDomain,

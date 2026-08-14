@@ -1,4 +1,5 @@
 import type { really_any } from '@promptbook-local/types';
+import { getEmailAddressDomain } from '../../../utils/email/agentEmailAddress';
 import { buildStalwartMailBridgeAddress } from '../../../utils/stalwart/stalwartMailBridge';
 import type { MessageProvider } from '../../interfaces/MessageProvider';
 import type { OutboundEmail } from '../_common/Email';
@@ -51,7 +52,7 @@ export class StalwartMessageProvider implements MessageProvider {
      */
     public async send(message: OutboundEmail): Promise<really_any> {
         const senderAddress = parseEmailAddress(message.sender).fullEmail;
-        const senderDomain = senderAddress.slice(senderAddress.lastIndexOf('@') + 1).toLowerCase();
+        const senderDomain = getEmailAddressDomain(senderAddress);
         const provider = new SmtpMessageProvider({
             host: this.configuration.host,
             port: this.configuration.port,

@@ -1,4 +1,4 @@
-[ ] !!
+[x] by OpenAI Codex `gpt-5.6-terra` thinking `max` (ChatGPT account) - Implementation ~$0.9263 an hour; Testing 20 minutes
 
 [✨🐓] In administration, create a simple testing tool for sending emails.
 
@@ -8,3 +8,4 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

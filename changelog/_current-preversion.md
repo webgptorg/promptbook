@@ -1,3 +1,8 @@
+-   Added an Agents Server administration email testing tool. Administrators can compose and send mail through the
+    bundled Stalwart service, use existing agent addresses to pre-fill sender and recipient fields, and inspect the
+    persisted result in Messages. Normal administrators are restricted to sender addresses on their current server;
+    the VPS superadmin can test any sender domain.
+
 -   Added `--no-harness-update` to the harness-aware `ptbk coder` commands. `init`, `run`, `ping`, and `server`
     still detect a missing global harness, but can now skip the npm latest-version lookup and automatic update offer.
     The VS Code Coder terminal commands use the flag to avoid a registry check on each development run.

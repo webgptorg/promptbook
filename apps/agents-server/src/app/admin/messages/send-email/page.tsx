@@ -1,16 +1,29 @@
 import { ForbiddenPage } from '../../../../components/ForbiddenPage/ForbiddenPage';
-import { isUserAdmin } from '../../../../utils/isUserAdmin';
+import { listAgentEmailIdentities } from '../../../../utils/email/listAgentEmailIdentities';
 import { SendEmailClient } from './SendEmailClient';
+import { getEmailTestingAccessContext } from './emailTestingAccess';
 
 /**
- * Handles admin send email page.
+ * Renders the current server's email testing tool.
  */
 export default async function AdminSendEmailPage() {
-    const isAdmin = await isUserAdmin();
+    const accessContext = await getEmailTestingAccessContext();
 
-    if (!isAdmin) {
+    if (!accessContext) {
         return <ForbiddenPage />;
     }
 
-    return <SendEmailClient />;
+    const agentEmailOptions = (await listAgentEmailIdentities(accessContext.currentServerDomain)).map((agent) => ({
+        id: agent.permanentId,
+        label: agent.displayName,
+        address: agent.preferredEmail,
+    }));
+
+    return (
+        <SendEmailClient
+            currentServerDomain={accessContext.currentServerDomain}
+            isGlobalAdmin={accessContext.isGlobalAdmin}
+            agentEmailOptions={agentEmailOptions}
+        />
+    );
 }

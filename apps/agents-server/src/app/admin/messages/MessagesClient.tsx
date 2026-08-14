@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
 import { Card } from '../../../components/Homepage/Card';
@@ -175,7 +176,13 @@ export function MessagesClient() {
                         Inspect all inbound and outbound messages and their statuses.
                     </p>
                 </div>
-                <div className="flex items-end gap-4 text-sm text-gray-500 md:text-right">
+                <div className="flex flex-wrap items-end gap-4 text-sm text-gray-500 md:text-right">
+                    <Link
+                        href="/admin/messages/send-email"
+                        className="rounded-md border border-blue-600 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50"
+                    >
+                        Send test email
+                    </Link>
                     <div>
                         <div className="text-xl font-semibold text-gray-900">{total.toLocaleString()}</div>
                         <div className="text-xs uppercase tracking-wide text-gray-400">Total messages</div>

@@ -3,6 +3,7 @@ import {
     createAgentEmailAliases,
     createAgentIdEmailLocalPart,
     createAgentEmailLocalParts,
+    getEmailAddressDomain,
     normalizeAgentEmailRecipientLocalPart,
     normalizeEmailAddressForIdentity,
 } from './agentEmailAddress';
@@ -51,5 +52,9 @@ describe('agentEmailAddress', () => {
     it('ignores plus tags when matching recipients and sender identities', () => {
         expect(normalizeAgentEmailRecipientLocalPart('John.Doe+test@agents-server.com')).toBe('john.doe');
         expect(normalizeEmailAddressForIdentity('John Doe <John.Doe+test@GMAIL.com>')).toBe('john.doe@gmail.com');
+    });
+
+    it('extracts a normalized domain from a display-name email address', () => {
+        expect(getEmailAddressDomain('John Doe <John.Doe@AGENTS-SERVER.COM>')).toBe('agents-server.com');
     });
 });

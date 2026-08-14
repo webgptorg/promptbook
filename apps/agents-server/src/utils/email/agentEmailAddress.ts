@@ -83,6 +83,20 @@ export function extractEmailAddress(value: string): string {
 }
 
 /**
+ * Extracts and normalizes the domain of an email address.
+ */
+export function getEmailAddressDomain(value: string): string {
+    const emailAddress = extractEmailAddress(value);
+    const separatorIndex = emailAddress.lastIndexOf('@');
+
+    if (separatorIndex === -1) {
+        return '';
+    }
+
+    return normalizeEmailDomain(emailAddress.slice(separatorIndex + 1));
+}
+
+/**
  * Normalizes a mail domain for comparisons and generated addresses.
  */
 export function normalizeEmailDomain(value: string): string {
