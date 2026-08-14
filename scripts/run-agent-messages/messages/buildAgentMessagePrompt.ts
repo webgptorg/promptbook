@@ -1,11 +1,13 @@
 import { spaceTrim } from 'spacetrim';
 import { AGENT_PROJECTS_DIRECTORY_PATH } from '../../../src/book-3.0/agentFolderPaths';
-import type { AgentServerRuntimePromptApi } from './AgentServerRuntimePromptApi';
 import {
     buildAgentProjectsPromptSection,
     type AgentProjectsPromptSectionOptions,
 } from './buildAgentProjectsPromptSection';
-import { buildAgentGoalChatPromptSection } from './buildAgentGoalChatPromptSection';
+import {
+    buildAgentGoalChatPromptSection,
+    type AgentPlannedMessagesPromptSidecar,
+} from './buildAgentGoalChatPromptSection';
 import { buildAgentTeamPromptSection, type AgentTeamPromptWorkspace } from './buildAgentTeamPromptSection';
 
 /**
@@ -18,9 +20,9 @@ export type BuildAgentMessagePromptOptions = AgentProjectsPromptSectionOptions &
     teamWorkspace?: AgentTeamPromptWorkspace;
 
     /**
-     * Internal API details used to manage planned messages in the agent's singleton goal chat.
+     * Planned-message sidecar prepared by the Agents Server for the agent's singleton goal chat.
      */
-    goalChatRuntimeApi?: AgentServerRuntimePromptApi;
+    plannedMessagesSidecar?: AgentPlannedMessagesPromptSidecar;
 };
 
 /**
@@ -38,7 +40,7 @@ export function buildAgentMessagePrompt(
 
                 -   Read \`${messageRelativePath}\` and answer the most recent \`MESSAGE\` block. In a normal chat it is from \`@User\`; in your internal goal chat it can be from \`@Agent\`.
                 -   Only change the queued message file by appending one new \`MESSAGE @Agent\` block
-                ${block(buildAllowedFileChangesPromptLine(options.teamWorkspace))}
+                ${block(buildAllowedFileChangesPromptLine(options))}
 
                 ## Rules for the answering
 
@@ -74,7 +76,7 @@ export function buildAgentMessagePrompt(
 
                 - You can use \`message\` for message that will be sent immediately after clicking the button, or \`messageDraft\` for message that will be prefilled in the input field for editing before sending.
 
-                ${block(buildAgentGoalChatPromptSection(options.goalChatRuntimeApi))}
+                ${block(buildAgentGoalChatPromptSection(options.plannedMessagesSidecar))}
 
                 ${block(buildAgentProjectsPromptSection(options))}
 
@@ -90,13 +92,38 @@ export function buildAgentMessagePrompt(
 /**
  * Explains the exact files that one coding harness may change for a user turn.
  */
-function buildAllowedFileChangesPromptLine(teamWorkspace: AgentTeamPromptWorkspace | undefined): string {
-    if (!teamWorkspace) {
-        return `-   Do not modify any other file in the repository, except files inside your own \`${AGENT_PROJECTS_DIRECTORY_PATH}/\` directory`;
+function buildAllowedFileChangesPromptLine(options: BuildAgentMessagePromptOptions): string {
+    const allowedFileChanges = [`files inside your own \`${AGENT_PROJECTS_DIRECTORY_PATH}/\` directory`];
+
+    if (options.teamWorkspace) {
+        allowedFileChanges.push(
+            `new consultation transcripts inside \`${toPromptPath(options.teamWorkspace.relativeWorkspacePath)}\``,
+        );
     }
 
-    return `-   Do not modify any other file in the repository, except files inside your own \`${AGENT_PROJECTS_DIRECTORY_PATH}/\` directory and new consultation transcripts inside \`${teamWorkspace.relativeWorkspacePath.replace(
-        /\\/gu,
-        '/',
-    )}\``;
+    if (options.plannedMessagesSidecar) {
+        allowedFileChanges.push(
+            `the \`commands\` array of \`${toPromptPath(options.plannedMessagesSidecar.relativeSidecarPath)}\``,
+        );
+    }
+
+    return `-   Do not modify any other file in the repository, except ${formatAllowedFileChanges(allowedFileChanges)}`;
+}
+
+/**
+ * Joins the allowed file-change phrases into one readable enumeration.
+ */
+function formatAllowedFileChanges(allowedFileChanges: ReadonlyArray<string>): string {
+    if (allowedFileChanges.length === 1) {
+        return allowedFileChanges[0]!;
+    }
+
+    return `${allowedFileChanges.slice(0, -1).join(', ')} and ${allowedFileChanges[allowedFileChanges.length - 1]!}`;
+}
+
+/**
+ * Converts a filesystem-relative path into the portable path notation used in prompts.
+ */
+function toPromptPath(path: string): string {
+    return path.replace(/\\/gu, '/');
 }

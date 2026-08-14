@@ -33,6 +33,7 @@ import { buildAgentMessagePrompt } from '../messages/buildAgentMessagePrompt';
 import { buildAgentMessageScriptPath } from '../messages/buildAgentMessageScriptPath';
 import { createAgentRunnerSystemMessage } from '../messages/createAgentRunnerSystemMessage';
 import { finalizeAgentTeamConversationWorkspace } from '../messages/finalizeAgentTeamConversationWorkspace';
+import { loadAgentPlannedMessagesSidecar } from '../messages/loadAgentPlannedMessagesSidecar';
 import { loadAgentTeamConversationWorkspace } from '../messages/loadAgentTeamConversationWorkspace';
 import { resolveAgentProjectRuntimePromptApi } from '../messages/resolveAgentProjectRuntimePromptApi';
 import { resolveAgentProjectsUrlPath } from '../messages/resolveAgentProjectsUrlPath';
@@ -259,10 +260,11 @@ async function runQueuedAgentMessage(options: {
     } = options;
     const agentSystemMessage = await loadLocalAgentSystemMessage(projectPath);
     const teamWorkspace = await loadAgentTeamConversationWorkspace(projectPath, queuedMessage);
+    const plannedMessagesSidecar = await loadAgentPlannedMessagesSidecar(projectPath, queuedMessage);
     const agentServerRuntimeApi = resolveAgentProjectRuntimePromptApi(projectPath);
     const prompt = buildAgentMessagePrompt(queuedMessage.relativePath, agentSystemMessage, {
         projectRuntimeApi: agentServerRuntimeApi,
-        goalChatRuntimeApi: agentServerRuntimeApi,
+        plannedMessagesSidecar: plannedMessagesSidecar || undefined,
         projectsUrlPath: resolveAgentProjectsUrlPath(projectPath),
         teamWorkspace: teamWorkspace || undefined,
     });

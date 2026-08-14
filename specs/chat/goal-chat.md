@@ -33,7 +33,13 @@ Planned messages are [timeouts](timeouts.md): future wake-ups that inject a synt
 
 Because a planned message belongs to the agent rather than to one user, the goal-chat listing spans every chat and every user of that agent.
 
-Every Agents Server chat invocation exposes `set_timeout`, `list_timeouts`, and `cancel_timeout`. `set_timeout` always stores the future message in the singleton goal chat, regardless of which conversation invoked the agent. Managed coding-agent runners receive the same operations through the authenticated internal runtime API. When the timeout fires, its agent-authored message queues a durable goal-chat turn and wakes the agent immediately.
+Every Agents Server chat invocation can plan a message, and planning always stores the future message in the singleton goal chat regardless of which conversation invoked the agent. When the timeout fires, its agent-authored message queues a durable goal-chat turn and wakes the agent immediately.
+
+All planning paths share one service (`AGENT_GOAL_CHAT_PLANNED_MESSAGE_ACTIONS`) and differ only in how the agent reaches it:
+
+-   in-process model runs call the `set_timeout`, `list_timeouts`, and `cancel_timeout` tools;
+-   **managed coding-agent runners use the planned-message sidecar**: before a message is queued into the agent folder, the server writes `messages/planned/<message>.json` with the currently planned messages and an empty `commands` array. The harness appends `{"action":"set",...}` / `{"action":"cancel",...}` entries to `commands`, and the server applies them exactly once when it synchronizes the finished answer, then removes the sidecar. Because the sidecar needs no network call, token, or shell, an announced follow-up is either really planned or was never requested at all;
+-   the authenticated internal runtime API stays available for callers outside one queued message.
 
 ## Task manager
 

@@ -35,8 +35,8 @@ export function createAgentGoalChatLifecycleNoteContent(options: {
                 ${block(goalSection)}
 
                 This is my own thread for acting towards that goal. I should work on it now when useful,
-                inspect existing planned messages with \`list_timeouts\`, and use \`set_timeout\` or
-                \`cancel_timeout\` to arrange the next useful wake-up without creating duplicates.
+                review the planned messages I already have, and plan or cancel a wake-up with the
+                planned-message capability of my invocation so I do not create duplicates.
             `,
         );
     }
@@ -48,7 +48,8 @@ export function createAgentGoalChatLifecycleNoteContent(options: {
             ${block(goalSection)}
 
             I should re-check my work and planned messages against this new goal, act on it now when useful,
-            and arrange another goal-chat wake-up with \`set_timeout\` when future follow-up is needed.
+            and really plan another goal-chat wake-up when future follow-up is needed — announcing one
+            without planning it changes nothing.
         `,
     );
 }

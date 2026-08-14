@@ -33,6 +33,11 @@ import {
 } from './localChatMessageBook';
 import { LOCAL_USER_CHAT_JOB_ANSWER_TIMEOUT_MS, LOCAL_USER_CHAT_JOB_PROVIDER } from './localChatRunnerConstants';
 import {
+    applyLocalAgentPlannedMessageCommands,
+    removeLocalAgentPlannedMessagesSidecar,
+} from './applyLocalAgentPlannedMessageCommands';
+import { prepareLocalAgentPlannedMessagesSidecar } from './prepareLocalAgentPlannedMessagesSidecar';
+import {
     ensureLocalAgentFolder,
     loadLocalAgentSourceSnapshot,
     resolveLocalAgentRootPath,
@@ -191,6 +196,7 @@ async function enqueueLocalUserChatJobWithinTerminalCapture(
         metadata,
         primaryAgentName: agentSourceSnapshot.agentName,
     });
+    await prepareLocalAgentPlannedMessagesSidecarIfPossible({ job, agentFolder, metadata });
     await mkdir(join(agentFolder.directoryPath, 'messages', 'queued'), { recursive: true });
     await writeFile(queuedMessagePath, createLocalChatQueuedMessageBook({ messages: threadMessages }), 'utf-8');
 
@@ -229,6 +235,22 @@ async function prepareLocalTeamConversationWorkspaceIfPossible(
 }
 
 /**
+ * Prepares the planned-message sidecar without preventing an answer when planned messages cannot be read.
+ */
+async function prepareLocalAgentPlannedMessagesSidecarIfPossible(
+    options: Parameters<typeof prepareLocalAgentPlannedMessagesSidecar>[0],
+): Promise<void> {
+    try {
+        await prepareLocalAgentPlannedMessagesSidecar(options);
+    } catch (error) {
+        console.warn('[local-chat-runner] planned_messages_sidecar_prepare_failed', {
+            agentPermanentId: options.job.agentPermanentId,
+            error,
+        });
+    }
+}
+
+/**
  * Synchronizes one already queued local job with message-folder output.
  */
 async function synchronizeLocalUserChatJob(
@@ -246,6 +268,9 @@ async function synchronizeLocalUserChatJob(
 
         if (content) {
             await persistLocalUserChatJobRunReportIfPresent(job, agentDirectoryPath, metadata);
+            // Note: Planned messages are applied before the answer becomes terminal, so a wake-up the
+            //       agent announced in its answer is already stored when the answer becomes visible.
+            await applyLocalAgentPlannedMessageCommandsIfPossible({ job, agentDirectoryPath, metadata });
             const teamConversations = await parseFinishedLocalTeamConversations({
                 agentDirectoryPath,
                 metadata,
@@ -278,6 +303,7 @@ async function synchronizeLocalUserChatJob(
             return { didMutate: false, outcome: 'waiting' };
         }
 
+        await removeLocalAgentPlannedMessagesSidecar(agentDirectoryPath, metadata);
         await persistUserChatJobTerminalState({
             job,
             status: 'FAILED',
@@ -291,6 +317,7 @@ async function synchronizeLocalUserChatJob(
 
     if (isLocalUserChatJobTimedOut(metadata) && job.status !== 'FAILED') {
         const failureReason = 'Local agent runner did not finish the queued message within 30 minutes.';
+        await removeLocalAgentPlannedMessagesSidecar(agentDirectoryPath, metadata);
         await persistUserChatJobTerminalState({
             job,
             status: 'FAILED',
@@ -451,9 +478,27 @@ async function removeQueuedLocalMessageIfPresent(metadata: LocalUserChatJobMetad
         return;
     }
 
-    await rm(join(resolveLocalAgentRootPath(), metadata.agentDirectoryName, metadata.queuedPath), {
-        force: true,
-    }).catch(() => undefined);
+    const agentDirectoryPath = join(resolveLocalAgentRootPath(), metadata.agentDirectoryName);
+
+    await rm(join(agentDirectoryPath, metadata.queuedPath), { force: true }).catch(() => undefined);
+    await removeLocalAgentPlannedMessagesSidecar(agentDirectoryPath, metadata);
+}
+
+/**
+ * Applies planned-message commands without preventing an already answered message from completing.
+ */
+async function applyLocalAgentPlannedMessageCommandsIfPossible(
+    options: Parameters<typeof applyLocalAgentPlannedMessageCommands>[0],
+): Promise<void> {
+    try {
+        await applyLocalAgentPlannedMessageCommands(options);
+    } catch (error) {
+        console.warn('[local-chat-runner] planned_messages_sidecar_apply_failed', {
+            chatId: options.job.chatId,
+            jobId: options.job.id,
+            error,
+        });
+    }
 }
 
 /**

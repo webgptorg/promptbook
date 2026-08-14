@@ -5,10 +5,33 @@
     has its own budget, and a wrapper shell that exits before the harness starts fails immediately with its exit
     code, signal, and captured output instead of timing out silently.
 
--   Fixed Agents Server goal-chat planned messages created by coding-agent runners. Runner folder names normalize
-    permanent ids to lowercase, while goal-chat records use their canonical IDs; the internal scheduler now resolves
-    the canonical agent before setting, listing, or cancelling a planned message, so self-invocations appear in and
-    wake the correct goal chat.
+-   Fixed Agents Server agents announcing a planned goal-chat message that was never actually planned. Chat answers
+    are produced by a coding-agent runner in a separate process, and the only planning channel that runner had was a
+    documented `curl` snippet against `/api/internal/agent-goal-chat-planned-messages` — an optional shell command
+    with no verifiable artifact, so a model could (and did) write "I also scheduled a follow-up check in one hour"
+    while the goal chat kept showing **No planned messages** and no `⏳` note was ever recorded.
+
+    Planning is now a deterministic part of the runner contract, mirroring the proven TEAM-transcript sidecar
+    pattern instead of a network call:
+
+    -   Before a message is queued into the agent folder, the server writes `messages/planned/<message>.json` with
+        the agent's `currentPlannedMessages` (which also replaces `list_timeouts` — the harness simply sees them)
+        and an empty `commands` array.
+    -   The prompt section now teaches that editing this file is the **only** way to plan or cancel a wake-up,
+        that announcing one in the answer schedules nothing, and it explicitly allows changing the `commands` array
+        next to the existing `projects/` and TEAM-transcript allowances (the `## Projects` "do not touch anything
+        outside" line now defers to that single list instead of contradicting it).
+    -   When the finished answer is synchronized, the server applies every `{"action":"set",...}` /
+        `{"action":"cancel",...}` command through the very same `AGENT_GOAL_CHAT_PLANNED_MESSAGE_ACTIONS` service
+        that backs the model tools and the internal API, then deletes the sidecar so a repeated worker tick can
+        never plan the same wake-up twice. One rejected command is logged and never blocks the others or the
+        already answered message, and the sidecar is also dropped on cancellation, failure, and timeout.
+    -   The goal-chat lifecycle notes no longer instruct the agent to "use `set_timeout`" (a tool that does not
+        exist in a coding-runner invocation) but to really plan a wake-up, since announcing one changes nothing.
+
+    Kept from the previous fix: runner folder names normalize permanent ids to lowercase while goal-chat records use
+    their canonical IDs, so the internal scheduler resolves the canonical agent before setting, listing, or
+    cancelling a planned message.
 
 -   Fixed unknown uppercase Book commitments in the Agents Server. They now terminate the preceding commitment,
     remain visible as red-underlined editor errors, and are appended only as final extra context in the generated

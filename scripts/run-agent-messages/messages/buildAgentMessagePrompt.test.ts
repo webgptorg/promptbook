@@ -58,21 +58,45 @@ describe('buildAgentMessagePrompt', () => {
         expect(prompt).toContain('$PTBK_AGENTS_SERVER_USER_CHAT_WORKER_TOKEN');
     });
 
-    it('teaches every managed invocation to manage planned goal-chat messages', () => {
+    it('teaches every managed invocation to plan goal-chat messages through the prepared sidecar', () => {
         const prompt = buildAgentMessagePrompt('messages/queued/question.book', 'You are Support Assistant', {
-            goalChatRuntimeApi: {
-                agentPermanentId: 'agent1234',
-                serverUrlEnvironmentVariableName: 'PTBK_AGENTS_SERVER_URL',
-                tokenEnvironmentVariableName: 'PTBK_AGENTS_SERVER_USER_CHAT_WORKER_TOKEN',
+            plannedMessagesSidecar: {
+                relativeSidecarPath: 'messages/planned/question.json',
+                currentPlannedMessages: [],
             },
         });
 
         expect(prompt).toContain('## Planned goal-chat messages');
-        expect(prompt).toContain('/api/internal/agent-goal-chat-planned-messages');
-        expect(prompt).toContain('# list_timeouts');
-        expect(prompt).toContain('# set_timeout');
-        expect(prompt).toContain('# cancel_timeout');
-        expect(prompt).toContain('"agentPermanentId":"agent1234"');
+        expect(prompt).toContain('You currently have no planned messages waiting.');
+        expect(prompt).toContain('Editing `messages/planned/question.json` is the **only** way');
+        expect(prompt).toContain('{"action":"set","milliseconds":<positive delay>');
+        expect(prompt).toContain('{"action":"cancel","timeoutId":"<timeout id>"}');
+        expect(prompt).toContain(
+            '-   Do not modify any other file in the repository, except files inside your own `projects/` directory and the `commands` array of `messages/planned/question.json`',
+        );
+    });
+
+    it('lists the already planned messages so the harness does not create duplicates', () => {
+        const prompt = buildAgentMessagePrompt('messages/queued/question.book', 'You are Support Assistant', {
+            plannedMessagesSidecar: {
+                relativeSidecarPath: 'messages/planned/question.json',
+                currentPlannedMessages: [
+                    {
+                        timeoutId: 'timeout-1',
+                        dueAt: '2026-08-14T10:00:00.000Z',
+                        message: 'Re-check the stale projects.',
+                    },
+                    { timeoutId: 'timeout-2', dueAt: '2026-08-15T10:00:00.000Z', message: null },
+                ],
+            },
+        });
+
+        expect(prompt).toContain('You already planned these messages, so do not create duplicates:');
+        expect(prompt).toContain('-   `timeout-1` at 2026-08-14T10:00:00.000Z: Re-check the stale projects.');
+        expect(prompt).toContain(
+            '-   `timeout-2` at 2026-08-15T10:00:00.000Z: Continue working towards the current goal.',
+        );
+        expect(prompt).not.toContain('You currently have no planned messages waiting.');
     });
 
     it('explains the single-run TEAM transcript contract when a teammate workspace is prepared', () => {
@@ -111,6 +135,6 @@ describe('buildAgentMessagePrompt', () => {
         expect(prompt).toContain('`projects/my-website/index.html`');
         expect(prompt).not.toContain('files/index.html)');
         expect(prompt).not.toContain('/api/internal/agent-project-runtimes');
-        expect(prompt).not.toContain('/api/internal/agent-goal-chat-planned-messages');
+        expect(prompt).not.toContain('## Planned goal-chat messages');
     });
 });

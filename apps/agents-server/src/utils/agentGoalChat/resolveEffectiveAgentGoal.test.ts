@@ -33,6 +33,6 @@ describe('resolveEffectiveAgentGoal', () => {
 
         expect(content).toContain('My current goal is:');
         expect(content).toContain('Keep projects current.');
-        expect(content).toContain('`set_timeout`');
+        expect(content).toContain('really plan another goal-chat wake-up when future follow-up is needed');
     });
 });

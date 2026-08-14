@@ -1,5 +1,6 @@
-import { basename, join } from 'path';
+import { join } from 'path';
 import { AGENT_FINISHED_MESSAGES_DIRECTORY_PATH, AGENT_MESSAGES_DIRECTORY_PATH } from './agentFolderPaths';
+import { createAgentMessageSidecarBaseName } from './createAgentMessageSidecarBaseName';
 
 // Note: [💞] This file defines the shared TEAM workspace convention rather than one standalone entity.
 
@@ -71,10 +72,7 @@ export type AgentTeamConversationWorkspaceManifest = {
  * @private internal convention shared by the Agents Server and agent-folder runner
  */
 export function createAgentTeamConversationWorkspaceDirectoryName(messageFileName: string): string {
-    const rawBaseName = basename(messageFileName).replace(/\.book$/iu, '');
-    const normalizedBaseName = rawBaseName.replace(/[^A-Za-z0-9._-]+/gu, '-').replace(/^[._-]+|[._-]+$/gu, '');
-
-    return normalizedBaseName || 'message';
+    return createAgentMessageSidecarBaseName(messageFileName);
 }
 
 /**
