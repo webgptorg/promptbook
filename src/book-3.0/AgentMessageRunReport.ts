@@ -52,6 +52,14 @@ export type AgentMessageRunReport = {
      * Usage statistics of the run (price, token counts, duration).
      */
     readonly usage: Usage;
+
+    /**
+     * Directory names of the agent projects the harness worked with while answering the message.
+     *
+     * Reported by the runner from its live runtime log, which is deleted once the message is
+     * answered, so this is the only trace of the projects one answer viewed or edited.
+     */
+    readonly touchedProjectNames?: ReadonlyArray<string>;
 };
 
 /**
@@ -110,7 +118,20 @@ export function normalizeAgentMessageRunReport(value: unknown): AgentMessageRunR
         return null;
     }
 
+    if (report.touchedProjectNames !== undefined && !isSerializedProjectNameList(report.touchedProjectNames)) {
+        return null;
+    }
+
     return report as AgentMessageRunReport;
+}
+
+/**
+ * Checks that one value structurally matches a list of project directory names.
+ *
+ * @private internal helper of `normalizeAgentMessageRunReport`
+ */
+function isSerializedProjectNameList(value: unknown): value is ReadonlyArray<string> {
+    return Array.isArray(value) && value.every((projectName) => typeof projectName === 'string');
 }
 
 /**

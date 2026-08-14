@@ -3,11 +3,25 @@ import { formatToolCallDateTime } from './formatToolCallDateTime';
 import { formatToolCallTranslationTemplate } from './formatToolCallTranslationTemplate';
 
 /**
+ * Tool name of one scheduled wake-up, used by every producer of timeout chips.
+ *
+ * @private internal timeout-chat constant
+ */
+export const SET_TIMEOUT_TOOL_CALL_NAME = 'set_timeout';
+
+/**
+ * Tool name of one cancelled wake-up, used by every producer of timeout chips.
+ *
+ * @private internal timeout-chat constant
+ */
+export const CANCEL_TIMEOUT_TOOL_CALL_NAME = 'cancel_timeout';
+
+/**
  * Tool names handled by timeout-specific chat presentation.
  *
  * @private internal timeout-chat constant
  */
-const TIMEOUT_TOOL_NAMES = ['set_timeout', 'cancel_timeout'] as const;
+const TIMEOUT_TOOL_NAMES = [SET_TIMEOUT_TOOL_CALL_NAME, CANCEL_TIMEOUT_TOOL_CALL_NAME] as const;
 
 /**
  * Milliseconds in one second.

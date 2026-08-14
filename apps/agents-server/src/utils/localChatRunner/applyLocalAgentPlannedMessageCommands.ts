@@ -6,7 +6,11 @@ import {
     parseAgentPlannedMessagesSidecar,
     type AgentPlannedMessageCommand,
 } from '../../../../../src/book-3.0/AgentPlannedMessagesSidecar';
-import { AGENT_GOAL_CHAT_PLANNED_MESSAGE_ACTIONS } from '../agentGoalChat/agentGoalChatPlannedMessageActions';
+import {
+    AGENT_GOAL_CHAT_PLANNED_MESSAGE_ACTIONS,
+    type CancelAgentGoalChatPlannedMessageResult,
+    type SetAgentGoalChatPlannedMessageResult,
+} from '../agentGoalChat/agentGoalChatPlannedMessageActions';
 import type { UserChatJobRecord } from '../userChat/UserChatJobRecord';
 import type { LocalUserChatJobMetadata } from './LocalUserChatJobMetadata';
 
@@ -16,27 +20,38 @@ import type { LocalUserChatJobMetadata } from './LocalUserChatJobMetadata';
 export type LocalAgentPlannedMessageActions = Pick<typeof AGENT_GOAL_CHAT_PLANNED_MESSAGE_ACTIONS, 'set' | 'cancel'>;
 
 /**
+ * One planned-message command that was applied together with its result.
+ *
+ * The command carries what the agent asked for (for example the requested delay) and the result
+ * carries what really happened, so the chat can show the wake-up below the message that planned it.
+ */
+export type AppliedAgentPlannedMessageCommand = {
+    readonly command: AgentPlannedMessageCommand;
+    readonly result: SetAgentGoalChatPlannedMessageResult | CancelAgentGoalChatPlannedMessageResult;
+};
+
+/**
  * Applies every planned-message command a coding harness wrote while answering one message.
  *
  * The sidecar is consumed exactly once: it is removed afterwards so a replayed worker tick can never
  * schedule the very same wake-up twice.
  *
  * @param options - Answered job, its agent folder path, and the local runner metadata of the message.
- * @returns Number of planned-message commands that were applied successfully.
+ * @returns Planned-message commands that were applied successfully, in sidecar order.
  */
 export async function applyLocalAgentPlannedMessageCommands(options: {
     readonly job: Pick<UserChatJobRecord, 'id' | 'chatId' | 'agentPermanentId'>;
     readonly agentDirectoryPath: string;
     readonly metadata: LocalUserChatJobMetadata;
     readonly actions?: LocalAgentPlannedMessageActions;
-}): Promise<number> {
+}): Promise<ReadonlyArray<AppliedAgentPlannedMessageCommand>> {
     const sidecarPath = resolveLocalAgentPlannedMessagesSidecarPath(options.agentDirectoryPath, options.metadata);
     const sidecarContent = await readOptionalTextFile(sidecarPath);
 
     await removeLocalAgentPlannedMessagesSidecar(options.agentDirectoryPath, options.metadata);
 
     if (sidecarContent === null) {
-        return 0;
+        return [];
     }
 
     const sidecar = parseAgentPlannedMessagesSidecar(sidecarContent);
@@ -46,26 +61,26 @@ export async function applyLocalAgentPlannedMessageCommands(options: {
             chatId: options.job.chatId,
             jobId: options.job.id,
         });
-        return 0;
+        return [];
     }
 
     const actions = options.actions || AGENT_GOAL_CHAT_PLANNED_MESSAGE_ACTIONS;
-    let appliedCommandCount = 0;
+    const appliedCommands: Array<AppliedAgentPlannedMessageCommand> = [];
 
     for (const command of sidecar.commands) {
-        const isApplied = await applyLocalAgentPlannedMessageCommand({
+        const result = await applyLocalAgentPlannedMessageCommand({
             command,
             actions,
             agentPermanentId: options.job.agentPermanentId,
             job: options.job,
         });
 
-        if (isApplied) {
-            appliedCommandCount += 1;
+        if (result) {
+            appliedCommands.push({ command, result });
         }
     }
 
-    return appliedCommandCount;
+    return appliedCommands;
 }
 
 /**
@@ -90,7 +105,7 @@ export async function removeLocalAgentPlannedMessagesSidecar(
  * harness owns this sidecar.
  *
  * @param options - Command, actions, and the agent whose goal chat owns the planned message.
- * @returns `true` when the command was applied.
+ * @returns Result of the applied command, or `null` when it was rejected.
  *
  * @private function of `applyLocalAgentPlannedMessageCommands`
  */
@@ -99,7 +114,7 @@ async function applyLocalAgentPlannedMessageCommand(options: {
     readonly actions: LocalAgentPlannedMessageActions;
     readonly agentPermanentId: string;
     readonly job: Pick<UserChatJobRecord, 'id' | 'chatId'>;
-}): Promise<boolean> {
+}): Promise<AppliedAgentPlannedMessageCommand['result'] | null> {
     try {
         if (options.command.action === 'set') {
             const plannedMessage = await options.actions.set({
@@ -115,7 +130,7 @@ async function applyLocalAgentPlannedMessageCommand(options: {
                 dueAt: plannedMessage.dueAt,
             });
 
-            return true;
+            return plannedMessage;
         }
 
         const cancelledPlannedMessage = await options.actions.cancel({
@@ -130,7 +145,7 @@ async function applyLocalAgentPlannedMessageCommand(options: {
             status: cancelledPlannedMessage.status,
         });
 
-        return cancelledPlannedMessage.status === 'cancelled';
+        return cancelledPlannedMessage.status === 'cancelled' ? cancelledPlannedMessage : null;
     } catch (error) {
         console.error('[local-chat-runner]', 'planned_message_command_failed', {
             chatId: options.job.chatId,
@@ -139,7 +154,7 @@ async function applyLocalAgentPlannedMessageCommand(options: {
             error: serializeError(error as Error),
         });
 
-        return false;
+        return null;
     }
 }
 

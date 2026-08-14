@@ -4,6 +4,7 @@ import { Chat } from '@promptbook-local/components';
 import { useCallback, useMemo, type CSSProperties, type ReactNode } from 'react';
 import type { ChatParticipant } from '../../../../../../../src/book-components/Chat/types/ChatParticipant';
 import type { ChatSaveFormatHandlerOptions } from '../../../../../../../src/book-components/Chat/save/_common/ChatSaveFormatHandler';
+import { AGENT_PROJECT_TOOL_CALL_NAME } from '../../../../../../../src/book-components/Chat/utils/agentProjectToolCall';
 import type { AgentProjectItemInfo } from '../../../../components/AgentProjects/AgentProjectReferencesList';
 import { useAgentProjectMarkdownReferences } from '../../../../components/AgentProjects/useAgentProjectMarkdownReferences';
 import { useAgentBackground } from '../../../../components/AgentProfile/useAgentBackground';
@@ -520,6 +521,7 @@ function createCanonicalAgentChatTranslations(translateText: TranslateText): Can
             project_delete_file: translateText('chat.toolTitle.projectFileDeleter'),
             project_create_branch: translateText('chat.toolTitle.projectBranchCreator'),
             project_create_pull_request: translateText('chat.toolTitle.projectPullRequestCreator'),
+            [AGENT_PROJECT_TOOL_CALL_NAME]: translateText('chat.toolTitle.agentProjectTouched'),
         },
         timingTranslations: {
             answerDurationLabel: translateText('chat.answerDurationLabel'),

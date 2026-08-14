@@ -586,6 +586,7 @@ export const SERVER_TRANSLATION_KEYS = [
     'chat.toolTitle.projectFileDeleter',
     'chat.toolTitle.projectBranchCreator',
     'chat.toolTitle.projectPullRequestCreator',
+    'chat.toolTitle.agentProjectTouched',
     'chatTimeout.defaultLabel',
     'chatTimeout.singleActiveLabel',
     'chatTimeout.multipleActiveLabel',

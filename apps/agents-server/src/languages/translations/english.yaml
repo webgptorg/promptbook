@@ -584,6 +584,7 @@ chat.toolTitle.projectFileWriter: Writing project file
 chat.toolTitle.projectFileDeleter: Deleting project file
 chat.toolTitle.projectBranchCreator: Creating project branch
 chat.toolTitle.projectPullRequestCreator: Creating pull request
+chat.toolTitle.agentProjectTouched: Project
 chatTimeout.defaultLabel: Scheduled timeout
 chatTimeout.singleActiveLabel: 1 active timeout
 chatTimeout.multipleActiveLabel: '{count} active timeouts'

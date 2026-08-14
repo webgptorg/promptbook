@@ -1,3 +1,22 @@
+-   Added Agents Server chips below a chat answer for the projects it worked with and the wake-ups it planned,
+    next to the source chips that already show the knowledge behind an answer.
+
+    -   **Projects:** the local agent runner resolves which `projects/<project-name>/` folders the answering coding
+        harness really used — viewed or edited — from its live runtime log, which is deleted the moment a message is
+        answered. The projects are reported in the run-report sidecar the runner already writes next to the answered
+        message, and the server turns each of them into one chip showing the same human-readable project name and
+        link as every other project surface. Only harness tool payloads are inspected and every project is matched
+        against the projects that really exist, so a project merely mentioned in the conversation, or a
+        `projects/<project-name>/` placeholder from the prompt, never produces a chip.
+    -   **Planned messages:** applying the planned-message sidecar now returns what was really scheduled or
+        cancelled, and each applied command becomes one timeout chip. This revives the timeout chip and its detail
+        popup that `<Chat/>` already implements for `set_timeout` / `cancel_timeout`, instead of leaving the planned
+        wake-up visible only as raw text such as `timeoutId: tmo_…` inside the answer.
+
+    Both chips ride the assistant message as tool calls, so they show up in normal chats, in the goal chat, and when
+    an external chat such as an email conversation is opened in the Agents Server — while the outbound email itself
+    is rendered from the answer text alone and stays unchanged.
+
 -   Fixed a flaky `$spawnLoggedBashScript` coder test that could fail `npm run test-for-ptbk-coder` before any
     coding prompt started. Waiting for the test harness fixture to boot reused the process-tree termination budget,
     even though booting it pays for a full Bash login shell whose cost belongs to the machine - profiles loading a

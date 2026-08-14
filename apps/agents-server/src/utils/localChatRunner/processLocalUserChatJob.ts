@@ -1,11 +1,14 @@
 import type { Json } from '@/src/database/schema';
+import type { ToolCall } from '@promptbook-local/types';
 import { mkdir, readFile, rm, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { parseAgentSource } from '../../../../../src/book-2.0/agent-source/parseAgentSource';
 import {
     buildAgentMessageRunReportPath,
     parseAgentMessageRunReport,
+    type AgentMessageRunReport,
 } from '../../../../../src/book-3.0/AgentMessageRunReport';
+import { createAnsweredMessageChipToolCalls } from '../chatMessageChips/createAnsweredMessageChipToolCalls';
 import { createUserChatJobFailureDetails } from '../userChat/createUserChatJobFailureDetails';
 import { claimNextQueuedUserChatJob } from '../userChat/claimNextQueuedUserChatJob';
 import { finalizeUserChatJob } from '../userChat/finalizeUserChatJob';
@@ -35,6 +38,7 @@ import { LOCAL_USER_CHAT_JOB_ANSWER_TIMEOUT_MS, LOCAL_USER_CHAT_JOB_PROVIDER } f
 import {
     applyLocalAgentPlannedMessageCommands,
     removeLocalAgentPlannedMessagesSidecar,
+    type AppliedAgentPlannedMessageCommand,
 } from './applyLocalAgentPlannedMessageCommands';
 import { prepareLocalAgentPlannedMessagesSidecar } from './prepareLocalAgentPlannedMessagesSidecar';
 import {
@@ -267,10 +271,14 @@ async function synchronizeLocalUserChatJob(
         });
 
         if (content) {
-            await persistLocalUserChatJobRunReportIfPresent(job, agentDirectoryPath, metadata);
+            const runReport = await persistLocalUserChatJobRunReportIfPresent(job, agentDirectoryPath, metadata);
             // Note: Planned messages are applied before the answer becomes terminal, so a wake-up the
             //       agent announced in its answer is already stored when the answer becomes visible.
-            await applyLocalAgentPlannedMessageCommandsIfPossible({ job, agentDirectoryPath, metadata });
+            const appliedPlannedMessageCommands = await applyLocalAgentPlannedMessageCommandsIfPossible({
+                job,
+                agentDirectoryPath,
+                metadata,
+            });
             const teamConversations = await parseFinishedLocalTeamConversations({
                 agentDirectoryPath,
                 metadata,
@@ -280,12 +288,18 @@ async function synchronizeLocalUserChatJob(
                 job,
                 conversations: teamConversations,
             });
+            const chipToolCalls = await createAnsweredMessageChipToolCallsIfPossible({
+                job,
+                appliedPlannedMessageCommands,
+                touchedProjectNames: runReport?.touchedProjectNames || [],
+            });
+            const toolCalls = [...teamToolCalls, ...chipToolCalls];
             await persistUserChatJobTerminalState({
                 job,
                 status: 'COMPLETED',
                 provider: LOCAL_USER_CHAT_JOB_PROVIDER,
                 content,
-                toolCalls: teamToolCalls.length > 0 ? teamToolCalls : undefined,
+                toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
                 generationDurationMs: resolveLocalUserChatJobDurationMs(metadata.queuedAt),
             });
             return { didMutate: true, outcome: 'completed' };
@@ -342,28 +356,34 @@ async function synchronizeLocalUserChatJob(
  *
  * The report is best-effort telemetry shown in the admin task details, so any read or
  * persistence failure only logs a warning instead of failing the finished chat answer.
+ *
+ * @returns The report of the answered message, or `null` when the runner wrote none.
  */
 async function persistLocalUserChatJobRunReportIfPresent(
     job: UserChatJobRecord,
     agentDirectoryPath: string,
     metadata: LocalUserChatJobMetadata,
-): Promise<void> {
+): Promise<AgentMessageRunReport | null> {
     try {
         const reportFileContent = await readOptionalTextFile(
             join(agentDirectoryPath, buildAgentMessageRunReportPath(metadata.finishedPath)),
         );
         const report = reportFileContent === null ? null : parseAgentMessageRunReport(reportFileContent);
         if (!report) {
-            return;
+            return null;
         }
 
         await persistUserChatJobRunReport(job, report);
+
+        return report;
     } catch (error) {
         console.warn('[local-chat-runner] run_report_sync_failed', {
             chatId: job.chatId,
             jobId: job.id,
             error,
         });
+
+        return null;
     }
 }
 
@@ -486,18 +506,52 @@ async function removeQueuedLocalMessageIfPresent(metadata: LocalUserChatJobMetad
 
 /**
  * Applies planned-message commands without preventing an already answered message from completing.
+ *
+ * @returns The applied commands, or an empty list when the sidecar could not be applied.
  */
 async function applyLocalAgentPlannedMessageCommandsIfPossible(
     options: Parameters<typeof applyLocalAgentPlannedMessageCommands>[0],
-): Promise<void> {
+): Promise<ReadonlyArray<AppliedAgentPlannedMessageCommand>> {
     try {
-        await applyLocalAgentPlannedMessageCommands(options);
+        return await applyLocalAgentPlannedMessageCommands(options);
     } catch (error) {
         console.warn('[local-chat-runner] planned_messages_sidecar_apply_failed', {
             chatId: options.job.chatId,
             jobId: options.job.id,
             error,
         });
+
+        return [];
+    }
+}
+
+/**
+ * Builds the chips of one answered message without preventing it from completing.
+ *
+ * The chips only enrich the answer, so a failure to resolve them never hides an answer the
+ * agent already produced.
+ *
+ * @returns Tool calls rendered as chips below the answer, or an empty list when they failed.
+ */
+async function createAnsweredMessageChipToolCallsIfPossible(options: {
+    readonly job: UserChatJobRecord;
+    readonly appliedPlannedMessageCommands: ReadonlyArray<AppliedAgentPlannedMessageCommand>;
+    readonly touchedProjectNames: ReadonlyArray<string>;
+}): Promise<ReadonlyArray<ToolCall>> {
+    try {
+        return await createAnsweredMessageChipToolCalls({
+            agentPermanentId: options.job.agentPermanentId,
+            appliedPlannedMessageCommands: options.appliedPlannedMessageCommands,
+            touchedProjectNames: options.touchedProjectNames,
+        });
+    } catch (error) {
+        console.warn('[local-chat-runner] message_chips_build_failed', {
+            chatId: options.job.chatId,
+            jobId: options.job.id,
+            error,
+        });
+
+        return [];
     }
 }
 

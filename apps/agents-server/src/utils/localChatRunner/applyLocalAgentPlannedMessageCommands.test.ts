@@ -44,14 +44,14 @@ describe('applyLocalAgentPlannedMessageCommands', () => {
         const set = jest.fn(async () => createSetResult());
         const cancel = jest.fn(async () => createCancelResult('cancelled'));
 
-        const appliedCommandCount = await applyLocalAgentPlannedMessageCommands({
+        const appliedCommands = await applyLocalAgentPlannedMessageCommands({
             job: JOB,
             agentDirectoryPath,
             metadata: METADATA,
             actions: { set, cancel },
         });
 
-        expect(appliedCommandCount).toBe(2);
+        expect(appliedCommands.map(({ result }) => result.action)).toEqual(['set', 'cancel']);
         // Note: The canonical permanent id of the answered job wins over the lowercase runner-folder id
         expect(set).toHaveBeenCalledWith({
             agentPermanentId: 'Agent1234',
@@ -95,14 +95,19 @@ describe('applyLocalAgentPlannedMessageCommands', () => {
             .mockRejectedValueOnce(new Error('Invalid planned-message delay.'))
             .mockResolvedValueOnce(createSetResult());
 
-        const appliedCommandCount = await applyLocalAgentPlannedMessageCommands({
+        const appliedCommands = await applyLocalAgentPlannedMessageCommands({
             job: JOB,
             agentDirectoryPath,
             metadata: METADATA,
             actions: { set, cancel: jest.fn(async () => createCancelResult()) },
         });
 
-        expect(appliedCommandCount).toBe(1);
+        expect(appliedCommands).toEqual([
+            {
+                command: { action: 'set', milliseconds: 60_000, message: 'Continue the goal.' },
+                result: createSetResult(),
+            },
+        ]);
         expect(set).toHaveBeenCalledTimes(2);
     });
 
@@ -116,14 +121,14 @@ describe('applyLocalAgentPlannedMessageCommands', () => {
         const set = jest.fn(async () => createSetResult());
         const cancel = jest.fn(async () => createCancelResult());
 
-        const appliedCommandCount = await applyLocalAgentPlannedMessageCommands({
+        const appliedCommands = await applyLocalAgentPlannedMessageCommands({
             job: JOB,
             agentDirectoryPath,
             metadata: METADATA,
             actions: { set, cancel },
         });
 
-        expect(appliedCommandCount).toBe(0);
+        expect(appliedCommands).toEqual([]);
         expect(set).not.toHaveBeenCalled();
         expect(cancel).not.toHaveBeenCalled();
     });
@@ -139,7 +144,7 @@ describe('applyLocalAgentPlannedMessageCommands', () => {
                 metadata: METADATA,
                 actions: { set, cancel: jest.fn(async () => createCancelResult()) },
             }),
-        ).resolves.toBe(0);
+        ).resolves.toEqual([]);
         expect(set).not.toHaveBeenCalled();
     });
 });

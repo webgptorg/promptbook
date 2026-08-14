@@ -1,3 +1,6 @@
+import type { AgentMessageRuntimeLogEvent } from './parseAgentMessageRuntimeLogEvents';
+import { parseAgentMessageRuntimeLogEvents } from './parseAgentMessageRuntimeLogEvents';
+
 /**
  * Maximum length of one user-facing progress activity snippet.
  *
@@ -72,29 +75,6 @@ const CODEX_COMMAND_ACTIVITIES: ReadonlyArray<CodexCommandActivity> = [
 ];
 
 /**
- * Minimal shape of one coding-harness `stream-json` event relevant to progress extraction.
- *
- * Only the natural-language assistant narration is read; every other field is ignored so raw
- * tool payloads and technical envelopes never reach the user-facing progress card.
- *
- * @private internal type of agent-message runtime activity
- */
-type RuntimeLogEvent = {
-    readonly type?: string;
-    readonly message?: {
-        readonly content?: ReadonlyArray<{
-            readonly type?: string;
-            readonly text?: string;
-        }>;
-    };
-    readonly item?: {
-        readonly type?: string;
-        readonly command?: string;
-        readonly exit_code?: number | null;
-    };
-};
-
-/**
  * Resolves the latest user-friendly activity snippet from a coding-harness runtime log.
  *
  * The Agents Server local agent runner streams the answering harness output (for example
@@ -116,12 +96,7 @@ export function resolveAgentMessageRuntimeActivity(logText: string | null | unde
 
     let latestActivity: string | null = null;
 
-    for (const line of logText.split(/\r?\n/u)) {
-        const event = parseRuntimeLogEvent(line);
-        if (!event) {
-            continue;
-        }
-
+    for (const event of parseAgentMessageRuntimeLogEvents(logText)) {
         const activity = resolveRuntimeLogEventActivity(event);
         if (activity) {
             latestActivity = activity;
@@ -132,34 +107,11 @@ export function resolveAgentMessageRuntimeActivity(logText: string | null | unde
 }
 
 /**
- * Parses one runtime log line into a structured event when it embeds JSON.
- *
- * @private internal helper of `resolveAgentMessageRuntimeActivity`
- */
-function parseRuntimeLogEvent(line: string): RuntimeLogEvent | null {
-    const jsonStartIndex = line.indexOf('{');
-    if (jsonStartIndex === -1) {
-        return null;
-    }
-
-    try {
-        const parsed = JSON.parse(line.slice(jsonStartIndex).trim()) as unknown;
-        if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
-            return null;
-        }
-
-        return parsed as RuntimeLogEvent;
-    } catch {
-        return null;
-    }
-}
-
-/**
  * Resolves the natural-language assistant narration from one complete assistant event.
  *
  * @private internal helper of `resolveAgentMessageRuntimeActivity`
  */
-function resolveRuntimeLogEventActivity(event: RuntimeLogEvent): string | null {
+function resolveRuntimeLogEventActivity(event: AgentMessageRuntimeLogEvent): string | null {
     const codexActivity = resolveCodexRuntimeLogEventActivity(event);
     if (codexActivity) {
         return codexActivity;
@@ -190,7 +142,7 @@ function resolveRuntimeLogEventActivity(event: RuntimeLogEvent): string | null {
  *
  * @private internal helper of `resolveAgentMessageRuntimeActivity`
  */
-function resolveCodexRuntimeLogEventActivity(event: RuntimeLogEvent): string | null {
+function resolveCodexRuntimeLogEventActivity(event: AgentMessageRuntimeLogEvent): string | null {
     if (!event.item || !isCodexItemEvent(event.type)) {
         return null;
     }

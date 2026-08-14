@@ -138,9 +138,11 @@ describe('persistUserChatJobTerminalState', () => {
             prompt,
         });
 
-        const mutateMessage = (updateUserChatAssistantMessageMock.mock.calls[0]?.[0] as {
-            mutateMessage: (message: Record<string, unknown>) => Record<string, unknown>;
-        }).mutateMessage;
+        const mutateMessage = (
+            updateUserChatAssistantMessageMock.mock.calls[0]?.[0] as {
+                mutateMessage: (message: Record<string, unknown>) => Record<string, unknown>;
+            }
+        ).mutateMessage;
 
         expect(
             mutateMessage({
@@ -174,6 +176,45 @@ describe('persistUserChatJobTerminalState', () => {
             status: 'COMPLETED',
         });
 
+        expect(sendEmailChatReplyMock).toHaveBeenCalledWith({
+            jobId: 'job-123',
+            content: 'Email answer',
+        });
+    });
+
+    it('keeps the message chips out of the outbound email reply', async () => {
+        const chipToolCall = {
+            name: 'agent_project_touched',
+            arguments: { projectName: 'my-website' },
+            result: { projectName: 'my-website', displayName: 'My Website' },
+        };
+        let storedMessage: Record<string, unknown> | null = null;
+
+        updateUserChatAssistantMessageMock.mockImplementation(async (options) => {
+            const { mutateMessage } = options as {
+                mutateMessage: (message: Record<string, unknown>) => Record<string, unknown>;
+            };
+            storedMessage = mutateMessage({ id: 'assistant-123', content: 'Email answer' });
+
+            return { id: 'email-chat-123', userId: 3, source: 'EMAIL', messages: [storedMessage] };
+        });
+
+        await persistUserChatJobTerminalState({
+            job: {
+                id: 'job-123',
+                userId: 3,
+                agentPermanentId: 'agent-123',
+                chatId: 'email-chat-123',
+                assistantMessageId: 'assistant-123',
+            },
+            status: 'COMPLETED',
+            content: 'Email answer',
+            toolCalls: [chipToolCall],
+        });
+
+        // Note: The chips ride the assistant message, so they are visible when the email chat is
+        //       opened in the Agents Server UI while the sent email stays plain text.
+        expect(storedMessage).toMatchObject({ toolCalls: [chipToolCall] });
         expect(sendEmailChatReplyMock).toHaveBeenCalledWith({
             jobId: 'job-123',
             content: 'Email answer',

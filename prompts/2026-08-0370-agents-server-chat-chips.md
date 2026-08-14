@@ -1,4 +1,4 @@
-[ ]
+[x] by Claude Code `claude-opus-5` thinking `max` - Implementation $6.25 an hour; Testing 24 minutes
 
 [✨📣] When the agent touches a project or plans the timeout, show this information as a chip under the message.
 
@@ -14,3 +14,4 @@
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ![ When the agent sets the timeout for the future, show it as the chip under the message which planned this timeout](screenshots/2026-08-0370-agents-server-chat-chips.png)
+

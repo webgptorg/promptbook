@@ -37,6 +37,7 @@ import { loadAgentPlannedMessagesSidecar } from '../messages/loadAgentPlannedMes
 import { loadAgentTeamConversationWorkspace } from '../messages/loadAgentTeamConversationWorkspace';
 import { resolveAgentProjectRuntimePromptApi } from '../messages/resolveAgentProjectRuntimePromptApi';
 import { resolveAgentProjectsUrlPath } from '../messages/resolveAgentProjectsUrlPath';
+import { resolveTouchedAgentProjects } from '../messages/resolveTouchedAgentProjects';
 import { moveAgentMessageToFinished, type FinishedAgentMessageFile } from '../messages/moveAgentMessageToFinished';
 import { writeAgentMessageRunReport, type WrittenAgentMessageRunReport } from '../messages/writeAgentMessageRunReport';
 import {
@@ -289,12 +290,13 @@ async function runQueuedAgentMessage(options: {
     uiHandle?.startCapturingAgentOutput();
 
     let promptRunResult: RunPromptWithTestFeedbackResult;
+    let touchedProjectNames: ReadonlyArray<string> = [];
     try {
         try {
             promptRunResult = await withPromptRuntimeLog(
                 scriptPath,
-                async (logPath) =>
-                    await runPromptWithTestFeedback({
+                async (logPath) => {
+                    const runResult = await runPromptWithTestFeedback({
                         runner,
                         prompt,
                         scriptPath,
@@ -305,7 +307,14 @@ async function runQueuedAgentMessage(options: {
                         onAttemptStarted: (attemptCount) => {
                             uiHandle?.state.setAttempt(attemptCount);
                         },
-                    }),
+                    });
+
+                    // Note: The runtime log is deleted right after this handler, so the projects this
+                    //       answer worked with must be resolved while the log still exists.
+                    touchedProjectNames = await resolveTouchedAgentProjects({ projectPath, runtimeLogPath: logPath });
+
+                    return runResult;
+                },
                 { preserveArtifactsOnSuccess: false },
             );
         } catch (error) {
@@ -339,6 +348,7 @@ async function runQueuedAgentMessage(options: {
             modelName: actualRunnerModel,
             loginMethod: promptRunResult.loginMethod,
             usage: promptRunResult.usage,
+            ...(touchedProjectNames.length === 0 ? {} : { touchedProjectNames }),
         },
     });
     await commitAnsweredMessageIfEnabled({

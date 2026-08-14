@@ -1,6 +1,11 @@
 import type { ToolCall } from '../../../types/ToolCall';
 import { ASSISTANT_PREPARATION_TOOL_CALL_NAME } from '../../../types/ToolCall';
 import type { AgentChipData } from '../AgentChip/AgentChip';
+import {
+    AGENT_PROJECT_TOOL_CALL_NAME,
+    parseAgentProjectToolCallResult,
+    resolveAgentProjectToolCallLabel,
+} from './agentProjectToolCall';
 import { formatToolCallLocalTime } from './formatToolCallLocalTime';
 import { formatToolCallTranslationTemplate } from './formatToolCallTranslationTemplate';
 import {
@@ -112,6 +117,7 @@ type ToolCallChipletResolver = (context: ToolCallChipletContext) => ToolCallChip
  */
 const SPECIALIZED_TOOL_CALL_CHIPLET_RESOLVERS: ReadonlyArray<ToolCallChipletResolver> = [
     resolveWalletCredentialChipletInfo,
+    resolveAgentProjectToolCallChipletInfo,
     resolveTeamToolCallChipletInfo,
     resolveTimeToolCallChipletInfo,
     resolveEmailToolCallChipletInfo,
@@ -140,6 +146,7 @@ export function buildToolCallChipText(chipletInfo: ToolCallChipletInfo): string 
 export const TOOL_TITLES: Record<string, { title: string; emoji: string }> = {
     [ASSISTANT_PREPARATION_TOOL_CALL_NAME]: { title: 'Preparing agent', emoji: '✨' },
     [WALLET_CREDENTIAL_TOOL_CALL_NAME]: { title: 'Credential used', emoji: '🔐' },
+    [AGENT_PROJECT_TOOL_CALL_NAME]: { title: 'Project', emoji: '📁' },
     'self-learning': { title: 'self-learning', emoji: '🧠' },
     retrieve_user_memory: { title: 'Reading memory', emoji: '🧠' },
     store_user_memory: { title: 'Storing memory', emoji: '🧠' },
@@ -318,6 +325,27 @@ function resolveWalletCredentialChipletInfo(context: ToolCallChipletContext): To
     }
 
     return createEmojiToolCallChipletInfo(context, walletCredentialResult.credentialName);
+}
+
+/**
+ * Resolves the project-name chip label for touched agent projects.
+ *
+ * @param context - Shared chiplet resolution context.
+ * @returns Chiplet info when the tool call marks a touched project, otherwise `null`.
+ *
+ * @private utility of `<Chat/>`
+ */
+function resolveAgentProjectToolCallChipletInfo(context: ToolCallChipletContext): ToolCallChipletInfo | null {
+    if (context.toolCall.name !== AGENT_PROJECT_TOOL_CALL_NAME) {
+        return null;
+    }
+
+    const projectResult = parseAgentProjectToolCallResult(context.resultRaw);
+    if (!projectResult) {
+        return null;
+    }
+
+    return createEmojiToolCallChipletInfo(context, resolveAgentProjectToolCallLabel(projectResult));
 }
 
 /**

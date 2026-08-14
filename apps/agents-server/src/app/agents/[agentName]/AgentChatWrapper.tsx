@@ -6,6 +6,7 @@ import { AgentChat, ChatMessage, useSendMessageToLlmChat } from '@promptbook-loc
 import { RemoteAgent } from '@promptbook-local/core';
 import { ClientVersionMismatchError } from '@promptbook-local/utils';
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { AGENT_PROJECT_TOOL_CALL_NAME } from '../../../../../../src/book-components/Chat/utils/agentProjectToolCall';
 import { string_agent_url } from '../../../../../../src/types/typeAliases';
 import type { AgentProjectItemInfo } from '../../../components/AgentProjects/AgentProjectReferencesList';
 import { useAgentProjectMarkdownReferences } from '../../../components/AgentProjects/useAgentProjectMarkdownReferences';
@@ -454,6 +455,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
                 project_delete_file: t('chat.toolTitle.projectFileDeleter'),
                 project_create_branch: t('chat.toolTitle.projectBranchCreator'),
                 project_create_pull_request: t('chat.toolTitle.projectPullRequestCreator'),
+                [AGENT_PROJECT_TOOL_CALL_NAME]: t('chat.toolTitle.agentProjectTouched'),
             }}
             feedbackMode={toChatComponentFeedbackMode(feedbackMode)}
             onFeedback={shouldEnableFeedback ? handleFeedback : undefined}

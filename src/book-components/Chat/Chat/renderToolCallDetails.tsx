@@ -7,6 +7,7 @@ import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
 import { getToolCallChipletInfo, TOOL_TITLES } from '../utils/getToolCallChipletInfo';
 import { resolveToolCallState } from '../utils/resolveToolCallState';
+import { isTimeoutToolCallName } from '../utils/timeoutToolCallPresentation';
 import { getToolCallTimestamp } from '../utils/toolCallParsing/getToolCallTimestamp';
 import { parseToolCallArguments } from '../utils/toolCallParsing/parseToolCallArguments';
 import { parseToolCallResult } from '../utils/toolCallParsing/parseToolCallResult';
@@ -373,18 +374,6 @@ function isSearchToolCallName(toolName: string): boolean {
  */
 function isTimeToolCallName(toolName: string): boolean {
     return toolName === 'get_current_time' || toolName === 'useTime';
-}
-
-/**
- * Checks whether a tool name should use the timeout renderer.
- *
- * @param toolName - Raw tool name.
- * @returns `true` when the tool is a timeout-like tool.
- *
- * @private function of ChatToolCallModal
- */
-function isTimeoutToolCallName(toolName: string): boolean {
-    return toolName === 'set_timeout' || toolName === 'cancel_timeout';
 }
 
 /**
