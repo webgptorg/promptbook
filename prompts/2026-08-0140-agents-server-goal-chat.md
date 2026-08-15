@@ -100,3 +100,27 @@
 ![alt text](screenshots/2026-08-0140-agents-server-goal-chat-4.png)
 ![alt text](screenshots/2026-08-0140-agents-server-goal-chat-5.png)
 
+---
+
+[ ]
+
+[✨🔶] In the goal chat the durations of messageses looks absurd, show real time how long the message was executed and when it was executed
+
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server) with goal chat
+
+![alt text](screenshots/2026-08-0140-agents-server-goal-chat-6.png)
+
+---
+
+[ ] !
+
+[✨🔶] The goal chat planned messages should work like setInterval not setTimeout
+
+-   Agent can modify its planned messages (timeouts) - set new timeouts, cancel timeouts,... but default behavior is to keep it as it is
+-   For examle when the agent goal is "Check emails every 5 minutes" and the agent is invoked, it will check its planned messages and if its matching with the goal, it will keep it as it is
+-   For example, if the agent goal changed to "Check emails every 10 minutes" and the agent is invoked, it will check its planned messages and detects the planned message is not matching with the goal, so it will cancel the planned message and set a new one for 10 minutes
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server) with goal chat
+
+![alt text](screenshots/2026-08-0140-agents-server-goal-chat-7.png)
