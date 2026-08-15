@@ -115,7 +115,14 @@ describe('applyLocalAgentPlannedMessageCommands', () => {
         const agentDirectoryPath = await createAgentDirectoryWithSidecar({
             version: 1,
             agentPermanentId: 'agent1234',
-            currentPlannedMessages: [{ timeoutId: 'timeout-1', dueAt: '2026-08-14T11:00:00.000Z', message: null }],
+            currentPlannedMessages: [
+                {
+                    timeoutId: 'timeout-1',
+                    dueAt: '2026-08-14T11:00:00.000Z',
+                    message: null,
+                    intervalMs: 3_600_000,
+                },
+            ],
             commands: [],
         });
         const set = jest.fn(async () => createSetResult());
@@ -179,6 +186,7 @@ function createSetResult(): SetAgentGoalChatPlannedMessageResult {
         timeoutId: 'timeout-2',
         dueAt: '2026-08-14T11:00:00.000Z',
         message: 'Continue the goal.',
+        intervalMs: 3_600_000,
     };
 }
 

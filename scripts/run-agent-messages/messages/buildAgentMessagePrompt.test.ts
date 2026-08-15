@@ -69,14 +69,14 @@ describe('buildAgentMessagePrompt', () => {
         expect(prompt).toContain('## Planned goal-chat messages');
         expect(prompt).toContain('You currently have no planned messages waiting.');
         expect(prompt).toContain('Editing `messages/planned/question.json` is the **only** way');
-        expect(prompt).toContain('{"action":"set","milliseconds":<positive delay>');
+        expect(prompt).toContain('{"action":"set","milliseconds":<repeat interval>');
         expect(prompt).toContain('{"action":"cancel","timeoutId":"<timeout id>"}');
         expect(prompt).toContain(
             '-   Do not modify any other file in the repository, except files inside your own `projects/` directory and the `commands` array of `messages/planned/question.json`',
         );
     });
 
-    it('lists the already planned messages so the harness does not create duplicates', () => {
+    it('lists the repeat interval of every planned message so the harness can keep or replace it', () => {
         const prompt = buildAgentMessagePrompt('messages/queued/question.book', 'You are Support Assistant', {
             plannedMessagesSidecar: {
                 relativeSidecarPath: 'messages/planned/question.json',
@@ -85,16 +85,19 @@ describe('buildAgentMessagePrompt', () => {
                         timeoutId: 'timeout-1',
                         dueAt: '2026-08-14T10:00:00.000Z',
                         message: 'Re-check the stale projects.',
+                        intervalMs: 300_000,
                     },
-                    { timeoutId: 'timeout-2', dueAt: '2026-08-15T10:00:00.000Z', message: null },
+                    { timeoutId: 'timeout-2', dueAt: '2026-08-15T10:00:00.000Z', message: null, intervalMs: null },
                 ],
             },
         });
 
-        expect(prompt).toContain('You already planned these messages, so do not create duplicates:');
-        expect(prompt).toContain('-   `timeout-1` at 2026-08-14T10:00:00.000Z: Re-check the stale projects.');
         expect(prompt).toContain(
-            '-   `timeout-2` at 2026-08-15T10:00:00.000Z: Continue working towards the current goal.',
+            'These planned messages are already waiting for you, so keep them unless they stopped matching your goal:',
+        );
+        expect(prompt).toContain('-   `timeout-1` repeats every 5 minutes: Re-check the stale projects.');
+        expect(prompt).toContain(
+            '-   `timeout-2` wakes you once at 2026-08-15T10:00:00.000Z: Continue working towards the current goal.',
         );
         expect(prompt).not.toContain('You currently have no planned messages waiting.');
     });

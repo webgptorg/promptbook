@@ -1,3 +1,24 @@
+-   Changed Agents Server goal-chat planned messages from `setTimeout` to `setInterval`. A planned message used to be
+    consumed by its own firing, so an agent whose goal is "check emails every 5 minutes" had to re-plan the very same
+    wake-up on every single invocation — and the moment one answer forgot to, the goal chat was left with **No planned
+    messages** and the agent never woke up again.
+
+    A planned message now repeats at the interval it was planned with until it is cancelled, which makes **keeping the
+    current plan the default**: an invoked agent sees its planned messages with their intervals and does nothing at all
+    while they still match its goal. When the goal changes to "every 10 minutes", the agent cancels the message that no
+    longer matches and sets one with the interval its goal now requires.
+
+    -   The durable timeout of a repeating message is re-armed in place after each firing instead of scheduling a
+        successor row, so one plan keeps one `timeoutId` for its whole life. The identifier an agent saw while it was
+        answering therefore still cancels the message when its answer is applied minutes later, and a crash between two
+        repetitions can never leave two schedules behind.
+    -   The wake-up turn of each repetition stays idempotent by carrying how many times its timeout already fired.
+    -   The planned-message sidecar, the runtime tools, the goal-chat notes, and the planned-message panel of the goal
+        chat all show the repeat interval, so an agent (and a person) can compare the plan with the goal instead of
+        guessing from a single due time.
+    -   An interval shorter than one minute is rejected, because a repeating message with a tiny interval would be an
+        unattended self-invocation loop rather than a plan.
+
 -   Fixed an Agents Server agent referencing a project it just created as a plain link, which turned into a proper
     project chip only after the page was reloaded. Every mention of a project — its `[[project-name]]` token, its
     display name in prose, a link to its project page, or its public project URL — becomes a chip by matching the

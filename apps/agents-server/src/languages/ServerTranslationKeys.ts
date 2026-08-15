@@ -21,6 +21,7 @@ export const SERVER_TRANSLATION_KEYS = [
     'goalChat.plannedMessagesEmptyLabel',
     'goalChat.plannedMessagesLoadErrorLabel',
     'goalChat.plannedMessageDefaultLabel',
+    'goalChat.plannedMessageIntervalLabel',
     'goalChat.plannedMessageCancelLabel',
     'goalChat.plannedMessageCancellingLabel',
     'common.projects',

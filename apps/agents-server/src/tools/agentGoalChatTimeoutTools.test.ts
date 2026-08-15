@@ -76,13 +76,13 @@ describe('agent goal-chat timeout tools', () => {
         ]);
     });
 
-    it('rejects a delay shorter than one millisecond before touching persistence', async () => {
+    it('rejects an interval shorter than one minute before touching persistence', async () => {
         const scheduleThreadScopedUserChatTimeout = jest.fn();
         const toolFunctions = createAgentGoalChatTimeoutToolFunctions({ scheduleThreadScopedUserChatTimeout });
 
         const rawResult = await toolFunctions[AGENT_GOAL_CHAT_TIMEOUT_TOOL_NAMES.set]!({
             ...TEST_RUNTIME_ARGUMENTS,
-            milliseconds: 0.5,
+            milliseconds: 1_000,
             message: 'Continue the goal.',
         });
 
@@ -94,8 +94,8 @@ describe('agent goal-chat timeout tools', () => {
         expect(scheduleThreadScopedUserChatTimeout).not.toHaveBeenCalled();
     });
 
-    it('always schedules a future message in the singleton goal chat', async () => {
-        const scheduledTimeout = createTimeoutFixture();
+    it('always schedules a repeating message in the singleton goal chat', async () => {
+        const scheduledTimeout = createTimeoutFixture({ recurrenceIntervalMs: 60_000 });
         const ensureAgentGoalChat = jest.fn(async () => ({ id: 'goal-agent-1', userId: 42 }));
         const scheduleThreadScopedUserChatTimeout = jest.fn(async () => scheduledTimeout);
         const toolFunctions = createAgentGoalChatTimeoutToolFunctions({
@@ -111,17 +111,20 @@ describe('agent goal-chat timeout tools', () => {
         const result = parseToolExecutionEnvelope(rawResult);
 
         expect(ensureAgentGoalChat).toHaveBeenCalledWith('agent-1');
+        // Note: The requested delay is also the repeat interval, so the planned message keeps waking the agent
         expect(scheduleThreadScopedUserChatTimeout).toHaveBeenCalledWith({
             userId: 42,
             agentPermanentId: 'agent-1',
             chatId: 'goal-agent-1',
             durationMs: 60_000,
+            recurrenceIntervalMs: 60_000,
             message: 'Continue the goal.',
         });
         expect(result?.toolResult).toMatchObject({
             action: 'set',
             status: 'set',
             timeoutId: 'timeout-1',
+            intervalMs: 60_000,
         });
     });
 

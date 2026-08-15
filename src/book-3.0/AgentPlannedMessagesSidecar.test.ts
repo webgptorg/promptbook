@@ -19,7 +19,12 @@ describe('AgentPlannedMessagesSidecar', () => {
             version: 1,
             agentPermanentId: 'Agent1234',
             currentPlannedMessages: [
-                { timeoutId: 'timeout-1', dueAt: '2026-08-14T10:00:00.000Z', message: 'Re-check the projects.' },
+                {
+                    timeoutId: 'timeout-1',
+                    dueAt: '2026-08-14T10:00:00.000Z',
+                    message: 'Re-check the projects.',
+                    intervalMs: 300_000,
+                },
             ],
             commands: [],
         });
@@ -28,10 +33,34 @@ describe('AgentPlannedMessagesSidecar', () => {
             version: 1,
             agentPermanentId: 'Agent1234',
             currentPlannedMessages: [
-                { timeoutId: 'timeout-1', dueAt: '2026-08-14T10:00:00.000Z', message: 'Re-check the projects.' },
+                {
+                    timeoutId: 'timeout-1',
+                    dueAt: '2026-08-14T10:00:00.000Z',
+                    message: 'Re-check the projects.',
+                    intervalMs: 300_000,
+                },
             ],
             commands: [],
         });
+    });
+
+    it('normalizes an unusable repeat interval of one planned message', () => {
+        const sidecar = parseAgentPlannedMessagesSidecar(
+            JSON.stringify({
+                version: 1,
+                agentPermanentId: 'agent1234',
+                currentPlannedMessages: [
+                    { timeoutId: 'timeout-1', dueAt: '2026-08-14T10:00:00.000Z' },
+                    { timeoutId: 'timeout-2', dueAt: '2026-08-14T11:00:00.000Z', intervalMs: -1 },
+                ],
+                commands: [],
+            }),
+        );
+
+        expect(sidecar?.currentPlannedMessages).toEqual([
+            { timeoutId: 'timeout-1', dueAt: '2026-08-14T10:00:00.000Z', message: null, intervalMs: null },
+            { timeoutId: 'timeout-2', dueAt: '2026-08-14T11:00:00.000Z', message: null, intervalMs: null },
+        ]);
     });
 
     it('keeps the harness-appended commands in their original order', () => {

@@ -28,12 +28,20 @@ export type AgentPlannedMessageCommandAction = (typeof AGENT_PLANNED_MESSAGE_COM
 /**
  * One planned message that is already waiting to wake the agent.
  *
+ * A planned message repeats like `setInterval`, so `intervalMs` is what the agent compares with its
+ * goal, while `dueAt` only says when the nearest repetition happens.
+ *
  * @private internal convention shared by the Agents Server and agent-folder runner
  */
 export type AgentPlannedMessageSnapshot = {
     readonly timeoutId: string;
     readonly dueAt: string;
     readonly message: string | null;
+
+    /**
+     * Repeat interval in milliseconds, or `null` for a planned message that wakes the agent only once.
+     */
+    readonly intervalMs: number | null;
 };
 
 /**
@@ -41,6 +49,8 @@ export type AgentPlannedMessageSnapshot = {
  *
  * The payload stays untyped on purpose: it is untrusted harness output and is validated by the very
  * same shared planned-message actions that back the model tools and the internal runtime API.
+ *
+ * For a `set` command, `milliseconds` is the repeat interval of the planned message, not a one-shot delay.
  *
  * @private internal convention shared by the Agents Server and agent-folder runner
  */
@@ -177,7 +187,28 @@ function normalizeAgentPlannedMessageSnapshots(rawSnapshots: unknown): Array<Age
         return [];
     }
 
-    return rawSnapshots.filter(isAgentPlannedMessageSnapshot);
+    return rawSnapshots.filter(isAgentPlannedMessageSnapshot).map(createNormalizedAgentPlannedMessageSnapshot);
+}
+
+/**
+ * Normalizes the optional fields of one already planned message.
+ *
+ * @param snapshot - Planned-message entry with the required identity fields.
+ * @returns Snapshot with a usable repeat interval and message.
+ *
+ * @private internal utility of `parseAgentPlannedMessagesSidecar`
+ */
+function createNormalizedAgentPlannedMessageSnapshot(
+    snapshot: AgentPlannedMessageSnapshot,
+): AgentPlannedMessageSnapshot {
+    const intervalMs = Number(snapshot.intervalMs);
+
+    return {
+        timeoutId: snapshot.timeoutId,
+        dueAt: snapshot.dueAt,
+        message: typeof snapshot.message === 'string' ? snapshot.message : null,
+        intervalMs: Number.isFinite(intervalMs) && intervalMs > 0 ? Math.floor(intervalMs) : null,
+    };
 }
 
 /**

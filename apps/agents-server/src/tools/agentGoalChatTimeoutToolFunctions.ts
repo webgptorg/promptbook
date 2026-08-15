@@ -1,4 +1,5 @@
 import { spaceTrim } from 'spacetrim';
+import { formatTimeoutDurationHuman } from '../../../../src/book-components/Chat/utils/timeoutToolCallPresentation';
 import type { string_javascript_name } from '../../../../src/types/string_person_fullname';
 import type { ToolFunction } from '../../../../src/scripting/javascript/JavascriptExecutionToolsOptions';
 import { createToolExecutionEnvelope } from '../../../../src/commitments/_common/toolExecutionEnvelope';
@@ -45,7 +46,9 @@ export function createAgentGoalChatTimeoutToolFunctions(
                 });
 
                 return createToolExecutionEnvelope({
-                    assistantMessage: `Planned message ${JSON.stringify(result.timeoutId)} for ${result.dueAt}.`,
+                    assistantMessage: `Planned message ${JSON.stringify(
+                        result.timeoutId,
+                    )} ${createPlannedMessageScheduleLabel(result)}.`,
                     toolResult: result,
                 });
             } catch (error) {
@@ -147,7 +150,9 @@ function createPlannedMessagesAssistantSummary(
     const visiblePlannedMessages = plannedMessages.slice(0, MAX_ASSISTANT_VISIBLE_PLANNED_MESSAGES);
     const summaryRows = visiblePlannedMessages.map((plannedMessage, index) => {
         const message = plannedMessage.message?.trim() || 'Wake up and continue working towards the current goal.';
-        return `${index + 1}. ${plannedMessage.timeoutId} at ${plannedMessage.dueAt}: ${message}`;
+        return `${index + 1}. ${plannedMessage.timeoutId} ${createPlannedMessageScheduleLabel(
+            plannedMessage,
+        )}: ${message}`;
     });
     const hiddenPlannedMessageCount = plannedMessages.length - visiblePlannedMessages.length;
 
@@ -162,6 +167,23 @@ function createPlannedMessagesAssistantSummary(
             ${block(summaryRows.join('\n'))}
         `,
     );
+}
+
+/**
+ * Describes when one planned message wakes the agent.
+ *
+ * @param plannedMessage - Planned message with its repeat interval and nearest execution time.
+ * @returns Schedule fragment such as `repeating every 5 minutes (next at ...)`.
+ */
+function createPlannedMessageScheduleLabel(plannedMessage: {
+    readonly dueAt: string;
+    readonly intervalMs: number | null;
+}): string {
+    if (!plannedMessage.intervalMs) {
+        return `at ${plannedMessage.dueAt}`;
+    }
+
+    return `repeating every ${formatTimeoutDurationHuman(plannedMessage.intervalMs)} (next at ${plannedMessage.dueAt})`;
 }
 
 /**

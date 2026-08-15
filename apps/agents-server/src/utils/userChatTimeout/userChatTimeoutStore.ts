@@ -13,6 +13,7 @@ export { markUserChatTimeoutCancelled } from './userChatTimeoutStore/markUserCha
 export { markUserChatTimeoutCompleted } from './userChatTimeoutStore/markUserChatTimeoutCompleted';
 export { markUserChatTimeoutFailed } from './userChatTimeoutStore/markUserChatTimeoutFailed';
 export { recoverExpiredRunningUserChatTimeouts } from './userChatTimeoutStore/recoverExpiredRunningUserChatTimeouts';
+export { repeatFiredUserChatTimeout } from './userChatTimeoutStore/repeatFiredUserChatTimeout';
 export { retryUserChatTimeout } from './userChatTimeoutStore/retryUserChatTimeout';
 export { updateAgentScopedUserChatTimeout } from './userChatTimeoutStore/updateAgentScopedUserChatTimeout';
 export { cancelUserChatTimeout } from './userChatTimeoutStore/cancelUserChatTimeout';

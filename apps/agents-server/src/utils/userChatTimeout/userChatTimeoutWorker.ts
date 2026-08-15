@@ -30,6 +30,7 @@ import {
     markUserChatTimeoutCompleted,
     markUserChatTimeoutFailed,
     recoverExpiredRunningUserChatTimeouts,
+    repeatFiredUserChatTimeout,
 } from './userChatTimeoutStore';
 
 /**
@@ -172,6 +173,7 @@ async function recordAgentGoalChatPlannedMessageNote(timeout: UserChatTimeoutRec
         content: createAgentGoalChatPlannedMessageNoteContent({
             timeoutId: timeout.timeoutId,
             dueAt: timeout.dueAt,
+            intervalMs: timeout.recurrenceIntervalMs,
             message: timeout.message,
         }),
     }).catch((error) => {
@@ -331,7 +333,7 @@ async function processClaimedUserChatTimeout(timeout: UserChatTimeoutRecord): Pr
             return;
         }
 
-        const timeoutClientMessageId = createTimeoutClientMessageId(latestTimeout.timeoutId);
+        const timeoutClientMessageId = createTimeoutClientMessageId(latestTimeout);
         let queuedJob = await getUserChatJobByClientMessageId({
             userId: latestTimeout.userId,
             agentPermanentId: latestTimeout.agentPermanentId,
@@ -349,6 +351,7 @@ async function processClaimedUserChatTimeout(timeout: UserChatTimeoutRecord): Pr
                     messageContent: createTimeoutWakeUpMessage({
                         timeoutId: latestTimeout.timeoutId,
                         durationMs: latestTimeout.durationMs,
+                        intervalMs: latestTimeout.recurrenceIntervalMs,
                         message: latestTimeout.message,
                     }),
                     messageSender: isAgentGoalChatId(latestTimeout.chatId) ? 'AGENT' : 'USER',
@@ -391,42 +394,19 @@ async function processClaimedUserChatTimeout(timeout: UserChatTimeoutRecord): Pr
             return;
         }
 
-        const completedTimeout = await markUserChatTimeoutCompleted(latestTimeout.timeoutId);
-
-        if (!completedTimeout || completedTimeout.status !== 'COMPLETED') {
-            console.info('[user-chat-timeout]', 'skip_recurrence_non_completed', {
-                chatId: latestTimeout.chatId,
-                timeoutId: latestTimeout.timeoutId,
-                resultingStatus: completedTimeout?.status || null,
-            });
-            return;
-        }
-
         try {
-            const recurringTimeout = await scheduleRecurringUserChatTimeout(completedTimeout);
-
-            if (recurringTimeout) {
-                console.info('[user-chat-timeout]', 'rescheduled', {
-                    chatId: recurringTimeout.chatId,
-                    previousTimeoutId: latestTimeout.timeoutId,
-                    timeoutId: recurringTimeout.timeoutId,
-                    dueAt: recurringTimeout.dueAt,
-                    recurrenceIntervalMs: recurringTimeout.recurrenceIntervalMs,
-                });
-            }
-        } catch (recurrenceError) {
-            const recurrenceReason =
-                recurrenceError instanceof Error
-                    ? recurrenceError.message
-                    : 'Failed to schedule recurring timeout.';
+            await finishFiredUserChatTimeout(latestTimeout);
+        } catch (repetitionError) {
+            const repetitionReason =
+                repetitionError instanceof Error ? repetitionError.message : 'Failed to repeat the planned message.';
             await appendUserChatTimeoutWarningMessage(
                 latestTimeout,
-                `Recurring schedule failed: ${recurrenceReason}`,
+                `Repeating schedule failed: ${repetitionReason}`,
             ).catch(() => undefined);
-            console.error('[user-chat-timeout]', 'recurrence_schedule_failed', {
+            console.error('[user-chat-timeout]', 'repeat_failed', {
                 chatId: latestTimeout.chatId,
                 timeoutId: latestTimeout.timeoutId,
-                error: serializeError(recurrenceError as Error),
+                error: serializeError(repetitionError as Error),
             });
         }
 
@@ -553,33 +533,50 @@ function clearUserChatTimeoutLocalWakeup(timeoutId: string): void {
 }
 
 /**
- * Creates the next queued row for recurring timeouts after one successful fire.
+ * Closes one fired timeout, keeping a repeating planned message armed for its next interval.
+ *
+ * A repeating timeout is the durable counterpart of `setInterval`, so it is re-armed in place
+ * instead of being completed: it keeps one row, one identity, and one cancellation point. A
+ * timeout that does not repeat, or one that was cancelled while it was firing, becomes terminal.
+ *
+ * @param firedTimeout - Timeout whose wake-up turn was just queued.
  *
  * @private internal utility of userChatTimeout
  */
-async function scheduleRecurringUserChatTimeout(
-    completedTimeout: UserChatTimeoutRecord,
-): Promise<UserChatTimeoutRecord | null> {
-    const recurrenceIntervalMs = completedTimeout.recurrenceIntervalMs;
+async function finishFiredUserChatTimeout(firedTimeout: UserChatTimeoutRecord): Promise<void> {
+    if (firedTimeout.recurrenceIntervalMs) {
+        const repeatedTimeout = await repeatFiredUserChatTimeout(firedTimeout.timeoutId);
 
-    if (typeof recurrenceIntervalMs !== 'number' || !Number.isFinite(recurrenceIntervalMs) || recurrenceIntervalMs <= 0) {
-        return null;
+        if (repeatedTimeout?.status === 'QUEUED') {
+            console.info('[user-chat-timeout]', 'repeated', {
+                chatId: repeatedTimeout.chatId,
+                timeoutId: repeatedTimeout.timeoutId,
+                dueAt: repeatedTimeout.dueAt,
+                recurrenceIntervalMs: repeatedTimeout.recurrenceIntervalMs,
+                runCount: repeatedTimeout.runCount,
+            });
+            scheduleUserChatTimeoutLocalWakeup(repeatedTimeout);
+            return;
+        }
+
+        // Note: A planned message that could not be re-armed, for example because it was cancelled while
+        //       it was firing, stops repeating and is closed like a timeout that never repeated
+        console.info('[user-chat-timeout]', 'skip_repeat', {
+            chatId: firedTimeout.chatId,
+            timeoutId: firedTimeout.timeoutId,
+            resultingStatus: repeatedTimeout?.status || null,
+        });
     }
 
-    const nextDueAtIso = new Date(Date.now() + Math.floor(recurrenceIntervalMs)).toISOString();
-    const nextTimeout = await createUserChatTimeout({
-        userId: completedTimeout.userId,
-        agentPermanentId: completedTimeout.agentPermanentId,
-        chatId: completedTimeout.chatId,
-        durationMs: Math.floor(recurrenceIntervalMs),
-        recurrenceIntervalMs: Math.floor(recurrenceIntervalMs),
-        dueAt: nextDueAtIso,
-        message: completedTimeout.message || undefined,
-        parameters: completedTimeout.parameters,
-    });
+    const completedTimeout = await markUserChatTimeoutCompleted(firedTimeout.timeoutId);
 
-    scheduleUserChatTimeoutLocalWakeup(nextTimeout);
-    return nextTimeout;
+    if (!completedTimeout || completedTimeout.status !== 'COMPLETED') {
+        console.info('[user-chat-timeout]', 'skip_completion_non_completed', {
+            chatId: firedTimeout.chatId,
+            timeoutId: firedTimeout.timeoutId,
+            resultingStatus: completedTimeout?.status || null,
+        });
+    }
 }
 
 /**
@@ -600,12 +597,24 @@ function shouldDisableBackgroundWorkerLoop(): boolean {
 }
 
 /**
- * Builds the synthetic client message id used for timeout wake-ups.
+ * Builds the synthetic client message id used for one timeout wake-up.
+ *
+ * A repeating timeout keeps its identity across firings, so the id also carries how many times it
+ * already fired: retrying the very same firing stays idempotent, while the next repetition still
+ * queues its own wake-up turn.
+ *
+ * @param timeout - Timeout that is firing.
+ * @returns Client message id of this wake-up.
  *
  * @private internal utility of userChatTimeout
  */
-function createTimeoutClientMessageId(timeoutId: string): string {
-    return `${USER_CHAT_TIMEOUT_CLIENT_MESSAGE_ID_PREFIX}${timeoutId}`;
+function createTimeoutClientMessageId(timeout: Pick<UserChatTimeoutRecord, 'timeoutId' | 'runCount'>): string {
+    // Note: The first firing keeps the historical id, so wake-ups queued before repeating support stay deduplicated
+    if (timeout.runCount === 0) {
+        return `${USER_CHAT_TIMEOUT_CLIENT_MESSAGE_ID_PREFIX}${timeout.timeoutId}`;
+    }
+
+    return `${USER_CHAT_TIMEOUT_CLIENT_MESSAGE_ID_PREFIX}${timeout.timeoutId}:${timeout.runCount}`;
 }
 
 /**

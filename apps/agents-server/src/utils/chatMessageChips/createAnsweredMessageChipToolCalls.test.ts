@@ -90,6 +90,7 @@ describe('createAnsweredMessageChipToolCalls', () => {
                         timeoutId: 'tmo_f7xazzVMmhbPqE',
                         dueAt: '2026-08-14T18:21:29.024Z',
                         message: 'Re-check the projects.',
+                        intervalMs: 3_600_000,
                     },
                 },
             ],

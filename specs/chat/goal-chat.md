@@ -24,21 +24,27 @@ The goal chat is **read-only for people** — only the agent (and the server act
 | --- | --- |
 | Agent created | The server queues an agent-owned turn containing the effective `GOAL` / `GOALS` so the agent can begin useful work. |
 | Agent book modified | The server queues an agent-owned turn containing the new effective goal so the agent can re-check its work and planned messages. |
-| Planned message scheduled | The planned message and the time it will fire. |
-| Planned message cancelled | The cancellation of that planned message. |
+| Planned message scheduled | The planned message, its repeat interval, and the time it will fire first. |
+| Planned message cancelled | The cancellation of that planned message, which also stops its repetitions. |
 
 ## Planned messages
 
-Planned messages are [timeouts](timeouts.md): future wake-ups that inject a synthetic turn and run a normal agent turn. They can be scheduled from the goal chat or from any other chat of the agent, and **all of them are listed in the goal chat** together with the time they are planned to be executed, where they can also be cancelled at any time.
+Planned messages are [timeouts](timeouts.md): future wake-ups that inject a synthetic turn and run a normal agent turn. They can be scheduled from the goal chat or from any other chat of the agent, and **all of them are listed in the goal chat** together with their repeat interval and the time they are planned to be executed next, where they can also be cancelled at any time.
 
 Because a planned message belongs to the agent rather than to one user, the goal-chat listing spans every chat and every user of that agent.
 
 Every Agents Server chat invocation can plan a message, and planning always stores the future message in the singleton goal chat regardless of which conversation invoked the agent. When the timeout fires, its agent-authored message queues a durable goal-chat turn and wakes the agent immediately.
 
+### Planned messages repeat
+
+A planned message works like `setInterval`, not like `setTimeout`: the interval given to `set` is the interval at which the message keeps waking the agent, and only a cancellation stops it. The timeout row is re-armed in place after every firing, so one plan keeps one `timeoutId` for its whole life.
+
+This makes **keeping the current plan the default**: an invoked agent sees its planned messages with their intervals, and when they still match its goal it does nothing at all. When its goal changed (say from "check emails every 5 minutes" to "every 10 minutes"), the agent cancels the planned message that no longer matches and sets one with the interval the goal now requires.
+
 All planning paths share one service (`AGENT_GOAL_CHAT_PLANNED_MESSAGE_ACTIONS`) and differ only in how the agent reaches it:
 
 -   in-process model runs call the `set_timeout`, `list_timeouts`, and `cancel_timeout` tools;
--   **managed coding-agent runners use the planned-message sidecar**: before a message is queued into the agent folder, the server writes `messages/planned/<message>.json` with the currently planned messages and an empty `commands` array. The harness appends `{"action":"set",...}` / `{"action":"cancel",...}` entries to `commands`, and the server applies them exactly once when it synchronizes the finished answer, then removes the sidecar. Because the sidecar needs no network call, token, or shell, an announced follow-up is either really planned or was never requested at all;
+-   **managed coding-agent runners use the planned-message sidecar**: before a message is queued into the agent folder, the server writes `messages/planned/<message>.json` with the currently planned messages (each with its repeat interval) and an empty `commands` array. The harness appends `{"action":"set",...}` / `{"action":"cancel",...}` entries to `commands`, and the server applies them exactly once when it synchronizes the finished answer, then removes the sidecar. An empty `commands` array therefore means "keep the current plan", and because the sidecar needs no network call, token, or shell, an announced follow-up is either really planned or was never requested at all;
 -   the authenticated internal runtime API stays available for callers outside one queued message.
 
 ## Task manager

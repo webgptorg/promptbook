@@ -27,13 +27,14 @@ export function createAgentGoalChatTimeoutTools(
         tools.push({
             name: AGENT_GOAL_CHAT_TIMEOUT_TOOL_NAMES.set,
             description:
-                'Plan a message that will wake you in your singleton goal chat after a delay. Use this for useful autonomous follow-up towards your current goal; the wake-up is not tied to the human conversation where you schedule it.',
+                'Plan a message that repeatedly wakes you in your singleton goal chat, like `setInterval`. Use this for useful autonomous follow-up towards your current goal; the wake-up is not tied to the human conversation where you schedule it, and it keeps repeating until you cancel it. Do not plan a message that matches one you already planned.',
             parameters: {
                 type: 'object',
                 properties: {
                     milliseconds: {
                         type: 'number',
-                        description: 'Positive delay in milliseconds before the planned message wakes you.',
+                        description:
+                            'Repeat interval in milliseconds between two wake-ups by this planned message (at least 60000).',
                     },
                     message: {
                         type: 'string',
@@ -51,7 +52,7 @@ export function createAgentGoalChatTimeoutTools(
         tools.push({
             name: AGENT_GOAL_CHAT_TIMEOUT_TOOL_NAMES.list,
             description:
-                'List your planned goal-chat messages, including their identifiers and execution times, across every conversation in which you were invoked.',
+                'List your planned goal-chat messages, including their identifiers, repeat intervals, and next execution times, across every conversation in which you were invoked. Keep the listed messages as they are unless they no longer match your goal.',
             parameters: {
                 type: 'object',
                 properties: {
@@ -73,7 +74,7 @@ export function createAgentGoalChatTimeoutTools(
         tools.push({
             name: AGENT_GOAL_CHAT_TIMEOUT_TOOL_NAMES.cancel,
             description:
-                'Cancel one planned goal-chat message by its timeout identifier. List planned messages first when the identifier is not known.',
+                'Stop one repeating planned goal-chat message by its timeout identifier. List planned messages first when the identifier is not known.',
             parameters: {
                 type: 'object',
                 properties: {

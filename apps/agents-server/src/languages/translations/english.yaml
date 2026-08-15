@@ -15,6 +15,7 @@ goalChat.plannedMessagesTitle: Planned messages
 goalChat.plannedMessagesEmptyLabel: No planned messages. The agent will wake up when invoked by a new message or book update.
 goalChat.plannedMessagesLoadErrorLabel: Failed to load planned messages.
 goalChat.plannedMessageDefaultLabel: Planned wake-up
+goalChat.plannedMessageIntervalLabel: Repeats every {interval}
 goalChat.plannedMessageCancelLabel: Cancel
 goalChat.plannedMessageCancellingLabel: Cancelling
 common.projects: Projects

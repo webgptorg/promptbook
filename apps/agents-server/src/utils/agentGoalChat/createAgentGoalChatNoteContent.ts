@@ -1,4 +1,5 @@
 import { spaceTrim } from 'spacetrim';
+import { formatTimeoutDurationHuman } from '../../../../../src/book-components/Chat/utils/timeoutToolCallPresentation';
 
 /**
  * Lifecycle events of an agent that are recorded in its goal chat.
@@ -35,8 +36,8 @@ export function createAgentGoalChatLifecycleNoteContent(options: {
                 ${block(goalSection)}
 
                 This is my own thread for acting towards that goal. I should work on it now when useful,
-                review the planned messages I already have, and plan or cancel a wake-up with the
-                planned-message capability of my invocation so I do not create duplicates.
+                review the planned messages I already have, and plan a repeating wake-up with the
+                planned-message capability of my invocation when my goal needs one that is not planned yet.
             `,
         );
     }
@@ -47,9 +48,10 @@ export function createAgentGoalChatLifecycleNoteContent(options: {
 
             ${block(goalSection)}
 
-            I should re-check my work and planned messages against this new goal, act on it now when useful,
-            and really plan another goal-chat wake-up when future follow-up is needed — announcing one
-            without planning it changes nothing.
+            I should re-check my work and planned messages against this new goal and act on it now when useful.
+            My planned messages keep repeating on their own, so I keep the ones that still match this goal,
+            and cancel and re-plan only the ones that do not — announcing a wake-up without planning it
+            changes nothing.
         `,
     );
 }
@@ -57,19 +59,25 @@ export function createAgentGoalChatLifecycleNoteContent(options: {
 /**
  * Builds the goal-chat note left when a planned message is scheduled.
  *
- * @param options - Planned-message identity, due time, and optional payload message.
+ * @param options - Planned-message identity, repeat interval, due time, and optional payload message.
  * @returns Note content stored as one agent message.
  */
 export function createAgentGoalChatPlannedMessageNoteContent(options: {
     readonly timeoutId: string;
     readonly dueAt: string;
+    readonly intervalMs?: number | null;
     readonly message?: string | null;
 }): string {
     const plannedMessage = options.message?.trim() || '';
+    const headline = options.intervalMs
+        ? `⏳ I planned a message that will wake me up every ${formatTimeoutDurationHuman(
+              options.intervalMs,
+          )}, for the first time at ${options.dueAt}.`
+        : `⏳ I planned a message that will wake me up at ${options.dueAt}.`;
 
     return spaceTrim(
         (block) => `
-            ⏳ I planned a message that will wake me up at ${options.dueAt}.
+            ${headline}
 
             ${plannedMessage ? block(plannedMessage) : ''}
 

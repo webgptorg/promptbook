@@ -25,6 +25,14 @@ const MAX_LISTED_PLANNED_MESSAGES_LIMIT = 100;
 const ACTIVE_PLANNED_MESSAGE_STATUSES: ReadonlyArray<UserChatTimeoutStatus> = ['QUEUED', 'RUNNING'];
 
 /**
+ * Shortest repeat interval one agent may plan for itself.
+ *
+ * Planned messages repeat like `setInterval`, so an interval below one minute would turn the goal
+ * chat into an unattended self-invocation loop instead of a plan.
+ */
+const MINIMUM_PLANNED_MESSAGE_INTERVAL_MS = 60_000;
+
+/**
  * Minimal goal-chat identity needed when scheduling a planned message.
  */
 type AgentGoalChatPlannedMessageTarget = {
@@ -41,6 +49,11 @@ export type AgentGoalChatPlannedMessageItem = {
     readonly dueAt: string;
     readonly isPaused: boolean;
     readonly message: string | null;
+
+    /**
+     * Repeat interval in milliseconds, or `null` for a planned message that wakes the agent only once.
+     */
+    readonly intervalMs: number | null;
 };
 
 /**
@@ -52,6 +65,11 @@ export type SetAgentGoalChatPlannedMessageResult = {
     readonly timeoutId: string;
     readonly dueAt: string;
     readonly message: string | null;
+
+    /**
+     * Repeat interval in milliseconds of the scheduled planned message.
+     */
+    readonly intervalMs: number | null;
 };
 
 /**
@@ -76,8 +94,14 @@ export type CancelAgentGoalChatPlannedMessageResult = {
 
 /**
  * Shared operations used by both model tools and the coding-agent runtime API.
+ *
+ * Planned messages behave like `setInterval`: `set` starts a repeating wake-up and only `cancel`
+ * stops it, so an agent that is happy with its plan does not have to do anything.
  */
 export type AgentGoalChatPlannedMessageActions = {
+    /**
+     * Starts one repeating planned message, where `milliseconds` is its repeat interval.
+     */
     readonly set: (options: {
         readonly agentPermanentId: string;
         readonly milliseconds: unknown;
@@ -133,14 +157,16 @@ export function createAgentGoalChatPlannedMessageActions(
     return {
         async set(options): Promise<SetAgentGoalChatPlannedMessageResult> {
             const agentPermanentId = parseRequiredText(options.agentPermanentId, 'agentPermanentId');
-            const milliseconds = parsePositiveMilliseconds(options.milliseconds);
+            const intervalMs = parsePlannedMessageIntervalMs(options.milliseconds);
             const message = parseRequiredText(options.message, 'message');
             const goalChat = await dependencies.ensureAgentGoalChat(agentPermanentId);
+            // Note: A planned message repeats like `setInterval`, so the requested delay is also its interval
             const plannedMessage = await dependencies.scheduleThreadScopedUserChatTimeout({
                 userId: goalChat.userId,
                 agentPermanentId,
                 chatId: goalChat.id,
-                durationMs: milliseconds,
+                durationMs: intervalMs,
+                recurrenceIntervalMs: intervalMs,
                 message,
             });
 
@@ -150,6 +176,7 @@ export function createAgentGoalChatPlannedMessageActions(
                 timeoutId: plannedMessage.timeoutId,
                 dueAt: plannedMessage.dueAt,
                 message: plannedMessage.message,
+                intervalMs: plannedMessage.recurrenceIntervalMs,
             };
         },
 
@@ -209,20 +236,21 @@ export function createAgentGoalChatPlannedMessageActions(
 export const AGENT_GOAL_CHAT_PLANNED_MESSAGE_ACTIONS = createAgentGoalChatPlannedMessageActions();
 
 /**
- * Parses one positive timeout duration.
+ * Parses one planned-message repeat interval.
  *
- * @param rawMilliseconds - Untrusted duration supplied by a model or runtime API.
- * @returns Positive whole milliseconds.
+ * @param rawMilliseconds - Untrusted interval supplied by a model or runtime API.
+ * @returns Repeat interval in whole milliseconds.
  */
-function parsePositiveMilliseconds(rawMilliseconds: unknown): number {
+function parsePlannedMessageIntervalMs(rawMilliseconds: unknown): number {
     const milliseconds = Number(rawMilliseconds);
 
-    if (!Number.isFinite(milliseconds) || milliseconds < 1) {
+    if (!Number.isFinite(milliseconds) || milliseconds < MINIMUM_PLANNED_MESSAGE_INTERVAL_MS) {
         throw new ParseError(
             spaceTrim(`
-                Invalid planned-message delay.
+                Invalid planned-message interval.
 
-                - \`milliseconds\` must be a positive number of at least \`1\`.
+                - A planned message **repeats** at this interval until it is cancelled.
+                - \`milliseconds\` must be a number of at least \`${MINIMUM_PLANNED_MESSAGE_INTERVAL_MS}\`.
             `),
         );
     }
@@ -289,6 +317,7 @@ function createPlannedMessageListItem(plannedMessage: UserChatTimeoutRecord): Ag
         dueAt: plannedMessage.dueAt,
         isPaused: Boolean(plannedMessage.pausedAt),
         message: plannedMessage.message,
+        intervalMs: plannedMessage.recurrenceIntervalMs,
     };
 }
 

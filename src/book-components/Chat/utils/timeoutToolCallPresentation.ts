@@ -426,9 +426,15 @@ function formatTimeoutDurationCompact(milliseconds: number): string {
 /**
  * Converts timeout duration into natural language sentence fragments.
  *
- * @private internal timeout-chat helper
+ * Shared by every timeout surface: the chat chips, the goal-chat planned messages of the Agents
+ * Server, and the planned-message prompt section of the agent-folder runner.
+ *
+ * @param milliseconds - Duration or repeat interval in milliseconds.
+ * @returns Label such as `5 minutes` or `1 hour 30 minutes`.
+ *
+ * @private internal utility of `<Chat/>` and the Agents Server planned messages
  */
-function formatTimeoutDurationHuman(milliseconds: number): string {
+export function formatTimeoutDurationHuman(milliseconds: number): string {
     const normalizedMilliseconds = Math.max(0, Math.floor(milliseconds));
     const totalSeconds = Math.max(1, Math.floor(normalizedMilliseconds / SECOND_IN_MILLISECONDS));
 

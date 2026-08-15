@@ -33,6 +33,8 @@ describe('resolveEffectiveAgentGoal', () => {
 
         expect(content).toContain('My current goal is:');
         expect(content).toContain('Keep projects current.');
-        expect(content).toContain('really plan another goal-chat wake-up when future follow-up is needed');
+        // Note: Planned messages repeat, so a changed goal means keeping the matching ones and re-planning the rest
+        expect(content).toContain('My planned messages keep repeating on their own');
+        expect(content).toContain('cancel and re-plan only the ones that do not');
     });
 });

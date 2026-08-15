@@ -16,6 +16,7 @@ import type { LocalUserChatJobMetadata } from './LocalUserChatJobMetadata';
  *
  * The sidecar is the only planning channel of a locally executed turn: the harness never has to reach
  * the Agents Server over the network, and a wake-up exists only when it was actually requested here.
+ * Planned messages repeat on their own, so an empty `commands` array keeps the current plan intact.
  *
  * @param options - Answered job, its agent folder, and the local runner metadata of the queued message.
  */
@@ -54,10 +55,12 @@ function createLocalAgentPlannedMessageSnapshot(plannedMessage: {
     readonly timeoutId: string;
     readonly dueAt: string;
     readonly message: string | null;
+    readonly intervalMs: number | null;
 }): AgentPlannedMessageSnapshot {
     return {
         timeoutId: plannedMessage.timeoutId,
         dueAt: plannedMessage.dueAt,
         message: plannedMessage.message,
+        intervalMs: plannedMessage.intervalMs,
     };
 }

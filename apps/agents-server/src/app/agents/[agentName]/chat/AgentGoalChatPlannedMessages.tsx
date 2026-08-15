@@ -1,7 +1,8 @@
 'use client';
 
-import { Clock3Icon } from 'lucide-react';
+import { Clock3Icon, RepeatIcon } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
+import { formatTimeoutDurationHuman } from '../../../../../../../src/book-components/Chat/utils/timeoutToolCallPresentation';
 import { useServerLanguage } from '../../../../components/ServerLanguage/ServerLanguageProvider';
 import { cancelAgentUserTimeout, fetchAgentUserTimeouts, type UserChatTimeout } from '../../../../utils/userChatClient';
 import { formatChatTimeoutRemainingTime } from './formatChatTimeoutRemainingTime';
@@ -136,14 +137,28 @@ export function AgentGoalChatPlannedMessages({ agentName, currentTimestamp }: Ag
                                         {plannedMessage.message ||
                                             translateText('goalChat.plannedMessageDefaultLabel')}
                                     </div>
-                                    <div className="mt-1 inline-flex items-center gap-1.5 text-xs font-medium text-amber-700 dark:text-amber-300">
-                                        <Clock3Icon className="h-3.5 w-3.5" />
-                                        <span>
-                                            {formatChatTimeoutRemainingTime(plannedMessage.dueAt, currentTimestamp)}
+                                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-medium text-amber-700 dark:text-amber-300">
+                                        <span className="inline-flex items-center gap-1.5">
+                                            <Clock3Icon className="h-3.5 w-3.5" />
+                                            <span>
+                                                {formatChatTimeoutRemainingTime(plannedMessage.dueAt, currentTimestamp)}
+                                            </span>
+                                            <span className="text-slate-400 dark:text-slate-500">
+                                                {new Date(plannedMessage.dueAt).toLocaleString()}
+                                            </span>
                                         </span>
-                                        <span className="text-slate-400 dark:text-slate-500">
-                                            {new Date(plannedMessage.dueAt).toLocaleString()}
-                                        </span>
+                                        {plannedMessage.recurrenceIntervalMs !== null && (
+                                            <span className="inline-flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
+                                                <RepeatIcon className="h-3.5 w-3.5" />
+                                                <span>
+                                                    {translateText('goalChat.plannedMessageIntervalLabel', {
+                                                        interval: formatTimeoutDurationHuman(
+                                                            plannedMessage.recurrenceIntervalMs,
+                                                        ),
+                                                    })}
+                                                </span>
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
                                 <button
