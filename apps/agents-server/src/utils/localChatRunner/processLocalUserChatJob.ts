@@ -17,6 +17,7 @@ import { getUserChatJobById } from '../userChat/getUserChatJobById';
 import { persistUserChatJobTerminalState } from '../userChat/persistUserChatJobTerminalState';
 import { provideUserChatJobTable } from '../userChat/provideUserChatJobTable';
 import { updateUserChatAssistantMessage } from '../userChat/updateUserChatAssistantMessage';
+import { resolveUserChatJobExecutionTiming } from '../userChat/userChatJobRunReport';
 import type { UserChatJobRecord } from '../userChat/UserChatJobRecord';
 import type { UserChatJobRow } from '../userChat/UserChatJobRow';
 import { createUserChatRunnerThreadMessages } from '../userChat/userChatMessageLifecycle';
@@ -272,6 +273,7 @@ async function synchronizeLocalUserChatJob(
 
         if (content) {
             const runReport = await persistLocalUserChatJobRunReportIfPresent(job, agentDirectoryPath, metadata);
+            const executionTiming = resolveUserChatJobExecutionTiming(runReport);
             // Note: Planned messages are applied before the answer becomes terminal, so a wake-up the
             //       agent announced in its answer is already stored when the answer becomes visible.
             const appliedPlannedMessageCommands = await applyLocalAgentPlannedMessageCommandsIfPossible({
@@ -300,7 +302,8 @@ async function synchronizeLocalUserChatJob(
                 provider: LOCAL_USER_CHAT_JOB_PROVIDER,
                 content,
                 toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
-                generationDurationMs: resolveLocalUserChatJobDurationMs(metadata.queuedAt),
+                executedAt: executionTiming?.executedAt,
+                generationDurationMs: executionTiming?.generationDurationMs,
             });
             return { didMutate: true, outcome: 'completed' };
         }
@@ -324,7 +327,6 @@ async function synchronizeLocalUserChatJob(
             provider: LOCAL_USER_CHAT_JOB_PROVIDER,
             failureReason,
             failureDetails: createLocalUserChatJobFailureDetails(job, failureReason, 'localRunnerFailedFile'),
-            generationDurationMs: resolveLocalUserChatJobDurationMs(metadata.queuedAt),
         });
         return { didMutate: true, outcome: 'failed' };
     }
@@ -338,7 +340,6 @@ async function synchronizeLocalUserChatJob(
             provider: LOCAL_USER_CHAT_JOB_PROVIDER,
             failureReason,
             failureDetails: createLocalUserChatJobFailureDetails(job, failureReason, 'localRunnerTimeout'),
-            generationDurationMs: resolveLocalUserChatJobDurationMs(metadata.queuedAt),
         });
         return { didMutate: true, outcome: 'failed' };
     }
@@ -576,18 +577,6 @@ async function readOptionalTextFile(path: string): Promise<string | null> {
 function isLocalUserChatJobTimedOut(metadata: LocalUserChatJobMetadata): boolean {
     const queuedAtMs = Date.parse(metadata.queuedAt);
     return Number.isFinite(queuedAtMs) && Date.now() - queuedAtMs >= LOCAL_USER_CHAT_JOB_ANSWER_TIMEOUT_MS;
-}
-
-/**
- * Resolves elapsed time since the local message was queued.
- */
-function resolveLocalUserChatJobDurationMs(queuedAt: string): number | undefined {
-    const queuedAtMs = Date.parse(queuedAt);
-    if (!Number.isFinite(queuedAtMs)) {
-        return undefined;
-    }
-
-    return Math.max(0, Date.now() - queuedAtMs);
 }
 
 /**

@@ -1,4 +1,5 @@
 import type { Json } from '@/src/database/schema';
+import type { ChatMessage } from '@promptbook-local/types';
 import {
     normalizeAgentMessageRunReport,
     type AgentMessageRunReport,
@@ -39,6 +40,35 @@ export function withUserChatJobRunReport(
     return {
         ...parameters,
         [USER_CHAT_JOB_RUN_REPORT_PARAMETERS_KEY]: report,
+    };
+}
+
+/**
+ * Resolves display-ready execution timing from one runner-produced message report.
+ *
+ * The runner's timestamps describe only active harness work, unlike durable job timestamps which also include time
+ * waiting for the out-of-process runner to pick up a queued message.
+ *
+ * @returns The completed message timestamp and actual execution duration, or `null` for older reports without timing.
+ */
+export function resolveUserChatJobExecutionTiming(report: AgentMessageRunReport | null): {
+    readonly executedAt: NonNullable<ChatMessage['createdAt']>;
+    readonly generationDurationMs: number;
+} | null {
+    const executionTiming = report?.executionTiming;
+    if (!executionTiming) {
+        return null;
+    }
+
+    const startedAtMilliseconds = Date.parse(executionTiming.startedAt);
+    const finishedAtMilliseconds = Date.parse(executionTiming.finishedAt);
+    if (!Number.isFinite(startedAtMilliseconds) || !Number.isFinite(finishedAtMilliseconds)) {
+        return null;
+    }
+
+    return {
+        executedAt: executionTiming.finishedAt as NonNullable<ChatMessage['createdAt']>,
+        generationDurationMs: Math.max(0, finishedAtMilliseconds - startedAtMilliseconds),
     };
 }
 

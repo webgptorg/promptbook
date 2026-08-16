@@ -176,7 +176,10 @@ export function CanonicalAgentChatSurface({
         ],
     );
     const { language, t: translateText } = useServerLanguage();
-    const translations = useMemo(() => createCanonicalAgentChatTranslations(translateText), [translateText]);
+    const translations = useMemo(
+        () => createCanonicalAgentChatTranslations(translateText, isAgentGoalChat),
+        [isAgentGoalChat, translateText],
+    );
     const frozenChatBannerLabel = useMemo(() => {
         const sourceBannerLabel = readOnlySource ? getUserChatSourceBannerLabel(readOnlySource) : null;
         if (sourceBannerLabel) {
@@ -433,7 +436,10 @@ function renderCanonicalAgentChatLoadingSkeleton(): ReactNode {
  *
  * @private function of CanonicalAgentChatPanel
  */
-function createCanonicalAgentChatTranslations(translateText: TranslateText): CanonicalAgentChatTranslations {
+function createCanonicalAgentChatTranslations(
+    translateText: TranslateText,
+    isAgentGoalChat: boolean,
+): CanonicalAgentChatTranslations {
     return {
         chatUiTranslations: {
             inputPlaceholder: translateText('chat.inputPlaceholder'),
@@ -525,7 +531,9 @@ function createCanonicalAgentChatTranslations(translateText: TranslateText): Can
             [AGENT_PROJECT_TOOL_CALL_NAME]: translateText('chat.toolTitle.agentProjectTouched'),
         },
         timingTranslations: {
-            answerDurationLabel: translateText('chat.answerDurationLabel'),
+            answerDurationLabel: translateText(
+                isAgentGoalChat ? 'goalChat.executionDurationLabel' : 'chat.answerDurationLabel',
+            ),
         },
         feedbackTranslations: {
             reportIssueButtonTitle: translateText('chat.feedback.reportIssueButtonTitle'),

@@ -14,6 +14,25 @@ import type { CodexLoginMethod } from './codexLoginMethod';
 export const AGENT_MESSAGE_RUN_REPORT_FILE_SUFFIX = '.report.json';
 
 /**
+ * Exact wall-clock interval during which one harness processed an agent message.
+ *
+ * Note: [🚉] This is fully serializable as JSON
+ *
+ * @private internal type of the agent folder convention
+ */
+export type AgentMessageRunExecutionTiming = {
+    /**
+     * ISO 8601 timestamp captured immediately before the harness begins the message.
+     */
+    readonly startedAt: string;
+
+    /**
+     * ISO 8601 timestamp captured when the harness finishes the message.
+     */
+    readonly finishedAt: string;
+};
+
+/**
  * Report describing how one queued agent message was answered by a CLI harness runner.
  *
  * The agent runner writes it next to the answered message book so consumers
@@ -52,6 +71,11 @@ export type AgentMessageRunReport = {
      * Usage statistics of the run (price, token counts, duration).
      */
     readonly usage: Usage;
+
+    /**
+     * Measured wall-clock timing of the actual harness execution, excluding time spent waiting in the queue.
+     */
+    readonly executionTiming?: AgentMessageRunExecutionTiming;
 
     /**
      * Directory names of the agent projects the harness worked with while answering the message.
@@ -118,6 +142,10 @@ export function normalizeAgentMessageRunReport(value: unknown): AgentMessageRunR
         return null;
     }
 
+    if (report.executionTiming !== undefined && !isSerializedAgentMessageRunExecutionTiming(report.executionTiming)) {
+        return null;
+    }
+
     if (report.touchedProjectNames !== undefined && !isSerializedProjectNameList(report.touchedProjectNames)) {
         return null;
     }
@@ -132,6 +160,33 @@ export function normalizeAgentMessageRunReport(value: unknown): AgentMessageRunR
  */
 function isSerializedProjectNameList(value: unknown): value is ReadonlyArray<string> {
     return Array.isArray(value) && value.every((projectName) => typeof projectName === 'string');
+}
+
+/**
+ * Checks that one value contains a valid, non-negative agent-message execution interval.
+ *
+ * @private internal helper of `normalizeAgentMessageRunReport`
+ */
+function isSerializedAgentMessageRunExecutionTiming(value: unknown): value is AgentMessageRunExecutionTiming {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+        return false;
+    }
+
+    const executionTiming = value as Record<string, unknown>;
+    if (!isSerializedIsoTimestamp(executionTiming.startedAt) || !isSerializedIsoTimestamp(executionTiming.finishedAt)) {
+        return false;
+    }
+
+    return Date.parse(executionTiming.finishedAt) >= Date.parse(executionTiming.startedAt);
+}
+
+/**
+ * Checks that one JSON value is a parseable ISO timestamp.
+ *
+ * @private internal helper of `normalizeAgentMessageRunReport`
+ */
+function isSerializedIsoTimestamp(value: unknown): value is string {
+    return typeof value === 'string' && value.length > 0 && Number.isFinite(Date.parse(value));
 }
 
 /**

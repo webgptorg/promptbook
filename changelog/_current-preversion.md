@@ -1,3 +1,9 @@
+-   Fixed misleading **Goal Chat** response timing. The old label measured from the time a message entered the local
+    runner queue, so a scheduled wake-up could claim it took many hours to answer even when the agent had only just
+    run. The coding harness now records its real start and finish times in the existing answer report; the server uses
+    those timestamps for the completed answer's time and duration. Goal Chat now says **“executed for …”**, while an
+    older runner report with no execution timing shows no misleading queue-age duration.
+
 -   Changed Agents Server goal-chat planned messages from `setTimeout` to `setInterval`. A planned message used to be
     consumed by its own firing, so an agent whose goal is "check emails every 5 minutes" had to re-plan the very same
     wake-up on every single invocation — and the moment one answer forgot to, the goal chat was left with **No planned

@@ -2,6 +2,7 @@ import { UNCERTAIN_USAGE } from '../../../../../src/execution/utils/usage-consta
 import type { AgentMessageRunReport } from '../../../../../src/book-3.0/AgentMessageRunReport';
 import {
     getUserChatJobRunReportFromParameters,
+    resolveUserChatJobExecutionTiming,
     USER_CHAT_JOB_RUN_REPORT_PARAMETERS_KEY,
     withUserChatJobRunReport,
 } from './userChatJobRunReport';
@@ -39,5 +40,24 @@ describe('userChatJobRunReport', () => {
                 [USER_CHAT_JOB_RUN_REPORT_PARAMETERS_KEY]: { version: 999 },
             }),
         ).toBe(null);
+    });
+
+    it('uses runner execution timestamps instead of queued-job age', () => {
+        expect(
+            resolveUserChatJobExecutionTiming({
+                ...report,
+                executionTiming: {
+                    startedAt: '2026-08-15T09:30:00.000Z',
+                    finishedAt: '2026-08-15T09:31:57.500Z',
+                },
+            }),
+        ).toEqual({
+            executedAt: '2026-08-15T09:31:57.500Z',
+            generationDurationMs: 117_500,
+        });
+    });
+
+    it('returns null when an older runner report has no execution timestamps', () => {
+        expect(resolveUserChatJobExecutionTiming(report)).toBe(null);
     });
 });

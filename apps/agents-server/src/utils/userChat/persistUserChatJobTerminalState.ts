@@ -28,6 +28,10 @@ export async function persistUserChatJobTerminalState(options: {
     provider?: string | null;
     failureReason?: string | null;
     failureDetails?: string | null;
+    /**
+     * Actual time at which an out-of-process runner finished this assistant message.
+     */
+    executedAt?: NonNullable<ChatMessage['createdAt']>;
     generationDurationMs?: number;
 }): Promise<void> {
     let updatedChat: Awaited<ReturnType<typeof updateUserChatAssistantMessage>> | null = null;
@@ -47,6 +51,7 @@ export async function persistUserChatJobTerminalState(options: {
                 ongoingToolCalls: undefined,
                 toolCalls: options.toolCalls ?? message.toolCalls,
                 completedToolCalls: options.toolCalls ?? message.completedToolCalls,
+                createdAt: options.executedAt ?? message.createdAt,
                 generationDurationMs: options.generationDurationMs ?? message.generationDurationMs,
                 progressCard: undefined,
                 availableTools: options.availableTools ?? message.availableTools,

@@ -152,6 +152,46 @@ describe('persistUserChatJobTerminalState', () => {
         ).toBe(prompt);
     });
 
+    it('uses the runner completion time as the completed assistant message timestamp', async () => {
+        const EXECUTED_AT = '2026-08-15T09:31:57.500Z' as NonNullable<
+            Parameters<typeof persistUserChatJobTerminalState>[0]['executedAt']
+        >;
+        updateUserChatAssistantMessageMock.mockResolvedValue({
+            id: 'chat-123',
+            userId: 3,
+            messages: [],
+        });
+
+        await persistUserChatJobTerminalState({
+            job: {
+                id: 'job-123',
+                userId: 3,
+                agentPermanentId: 'agent-123',
+                chatId: 'chat-123',
+                assistantMessageId: 'assistant-123',
+            },
+            status: 'COMPLETED',
+            executedAt: EXECUTED_AT,
+            generationDurationMs: 117_500,
+        });
+
+        const mutateMessage = (
+            updateUserChatAssistantMessageMock.mock.calls[0]?.[0] as {
+                mutateMessage: (message: Record<string, unknown>) => Record<string, unknown>;
+            }
+        ).mutateMessage;
+
+        expect(
+            mutateMessage({
+                createdAt: '2026-08-15T09:00:00.000Z',
+                generationDurationMs: 99_999,
+            }),
+        ).toMatchObject({
+            createdAt: '2026-08-15T09:31:57.500Z',
+            generationDurationMs: 117_500,
+        });
+    });
+
     it('sends completed email-chat answers through the email transport', async () => {
         updateUserChatAssistantMessageMock.mockResolvedValue({
             id: 'email-chat-123',

@@ -239,19 +239,22 @@ describe('tickAgentMessages', () => {
         expect(await readFile(join(temporaryProjectPath, 'messages', 'finished', 'question.book'), 'utf-8')).toContain(
             'MESSAGE @Agent',
         );
-        expect(
-            JSON.parse(
-                await readFile(
-                    join(temporaryProjectPath, 'messages', 'finished', 'question.book.report.json'),
-                    'utf-8',
-                ),
-            ),
-        ).toEqual({
+        const runReport = JSON.parse(
+            await readFile(join(temporaryProjectPath, 'messages', 'finished', 'question.book.report.json'), 'utf-8'),
+        );
+        expect(runReport).toMatchObject({
             version: 1,
             runnerName: 'github-copilot',
             modelName: 'gpt-5.4',
             usage: UNCERTAIN_USAGE,
+            executionTiming: {
+                startedAt: expect.any(String),
+                finishedAt: expect.any(String),
+            },
         });
+        expect(Date.parse(runReport.executionTiming.finishedAt)).toBeGreaterThanOrEqual(
+            Date.parse(runReport.executionTiming.startedAt),
+        );
         expect(commitChanges).toHaveBeenCalledWith('Answering message question.book', {
             autoPush: true,
             relevantPaths: ['messages/finished/question.book', 'messages/finished/question.book.report.json'],
@@ -449,12 +452,16 @@ describe('tickAgentMessages', () => {
                     'utf-8',
                 ),
             ),
-        ).toEqual({
+        ).toMatchObject({
             version: 1,
             runnerName: 'codex',
             modelName: 'gpt-5.2-codex',
             loginMethod: 'chatgpt',
             usage: UNCERTAIN_USAGE,
+            executionTiming: {
+                startedAt: expect.any(String),
+                finishedAt: expect.any(String),
+            },
         });
     });
 

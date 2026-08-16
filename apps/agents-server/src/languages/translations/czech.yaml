@@ -11,6 +11,7 @@ common.book: Book
 common.goalChat: Cíl
 goalChat.noticeTitle: Toto je cílový chat agenta
 goalChat.noticeDescription: Agent si sem píše sám a plánuje práci ke svému cíli, proto je toto vlákno pro lidi jen ke čtení.
+goalChat.executionDurationLabel: 'běželo {duration}'
 goalChat.plannedMessagesTitle: Naplánované zprávy
 goalChat.plannedMessagesEmptyLabel: Žádné naplánované zprávy. Agent se probudí při nové zprávě nebo aktualizaci knihy.
 goalChat.plannedMessagesLoadErrorLabel: Naplánované zprávy se nepodařilo načíst.

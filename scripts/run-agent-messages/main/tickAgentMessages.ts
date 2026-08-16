@@ -289,6 +289,7 @@ async function runQueuedAgentMessage(options: {
     }
     uiHandle?.startCapturingAgentOutput();
 
+    const executionStartedAt = new Date().toISOString();
     let promptRunResult: RunPromptWithTestFeedbackResult;
     let touchedProjectNames: ReadonlyArray<string> = [];
     try {
@@ -329,6 +330,7 @@ async function runQueuedAgentMessage(options: {
         uiHandle?.stopCapturingAgentOutput();
     }
 
+    const executionFinishedAt = new Date().toISOString();
     await normalizeLineEndingsForAgentRound(projectPath, runOptions, roundChangedFilesSnapshot);
 
     const finishedTeamWorkspace = await finalizeAgentTeamConversationWorkspace({
@@ -348,6 +350,10 @@ async function runQueuedAgentMessage(options: {
             modelName: actualRunnerModel,
             loginMethod: promptRunResult.loginMethod,
             usage: promptRunResult.usage,
+            executionTiming: {
+                startedAt: executionStartedAt,
+                finishedAt: executionFinishedAt,
+            },
             ...(touchedProjectNames.length === 0 ? {} : { touchedProjectNames }),
         },
     });

@@ -11,6 +11,7 @@ common.book: Book
 common.goalChat: Goal
 goalChat.noticeTitle: This is the agent's goal chat
 goalChat.noticeDescription: The agent writes here on its own to plan work towards its goal, so this thread is read-only for people.
+goalChat.executionDurationLabel: 'executed for {duration}'
 goalChat.plannedMessagesTitle: Planned messages
 goalChat.plannedMessagesEmptyLabel: No planned messages. The agent will wake up when invoked by a new message or book update.
 goalChat.plannedMessagesLoadErrorLabel: Failed to load planned messages.

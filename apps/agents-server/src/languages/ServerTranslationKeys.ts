@@ -17,6 +17,7 @@ export const SERVER_TRANSLATION_KEYS = [
     'common.goalChat',
     'goalChat.noticeTitle',
     'goalChat.noticeDescription',
+    'goalChat.executionDurationLabel',
     'goalChat.plannedMessagesTitle',
     'goalChat.plannedMessagesEmptyLabel',
     'goalChat.plannedMessagesLoadErrorLabel',

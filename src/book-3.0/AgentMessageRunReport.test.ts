@@ -24,6 +24,10 @@ describe('serializeAgentMessageRunReport and parseAgentMessageRunReport', () => 
             modelName: 'gpt-5.2-codex',
             loginMethod: 'chatgpt',
             usage: UNCERTAIN_USAGE,
+            executionTiming: {
+                startedAt: '2026-08-15T09:30:00.000Z',
+                finishedAt: '2026-08-15T09:31:57.000Z',
+            },
         };
 
         expect(parseAgentMessageRunReport(serializeAgentMessageRunReport(report))).toEqual(report);
@@ -87,6 +91,20 @@ describe('normalizeAgentMessageRunReport', () => {
             normalizeAgentMessageRunReport({
                 version: 1,
                 runnerName: 'codex',
+            }),
+        ).toBe(null);
+    });
+
+    it('rejects an execution interval whose finish precedes its start', () => {
+        expect(
+            normalizeAgentMessageRunReport({
+                version: 1,
+                runnerName: 'codex',
+                usage: UNCERTAIN_USAGE,
+                executionTiming: {
+                    startedAt: '2026-08-15T09:31:57.000Z',
+                    finishedAt: '2026-08-15T09:30:00.000Z',
+                },
             }),
         ).toBe(null);
     });
