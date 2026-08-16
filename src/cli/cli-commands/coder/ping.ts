@@ -17,6 +17,7 @@ import {
     normalizePromptRunnerSelectionCliOptions,
     PROMPT_RUNNER_DESCRIPTION,
 } from '../common/promptRunnerCliOptions';
+import { parseOptionalPeriodDuration } from './waitOptions';
 
 /**
  * Initializes `coder ping` command for Promptbook CLI utilities
@@ -37,6 +38,7 @@ export function $initializeCoderPingCommand(program: Program): $side_effect {
             - Verifies that the selected harness, model, thinking level and authentication really work
             - Reports the answer of the harness, the response time and the reported usage
             - Starts the hourly/weekly quota window before you need it, so it is already refreshing when you do
+            - Optional --period keeps the quota window refreshing by pinging once per period until stopped
             - Leaves the project exactly as it was — nothing is read, written, changed or committed
             - Checks that the selected harness is installed globally and up to date unless --no-harness-update is used
             - Use --no-ui to stream the raw harness output instead of only the compact result
@@ -46,9 +48,20 @@ export function $initializeCoderPingCommand(program: Program): $side_effect {
     addPromptRunnerSelectionOptions(command);
     addHarnessUpdateOption(command);
     addPromptRunnerRuntimeOptions(command);
+    command.option(
+        '--period <duration>',
+        spaceTrim(`
+            Keep pinging once per period instead of pinging only once.
+            Accepts durations like 5h, 30m, 1h30m and repeats until it is stopped with CTRL+C.
+        `),
+    );
 
     command.action(
         handleActionErrors(async (cliOptions) => {
+            const { period: periodValue } = cliOptions as {
+                readonly period?: string;
+            } & PromptRunnerSelectionCliOptions;
+
             const runnerOptions = normalizePromptRunnerSelectionCliOptions(
                 cliOptions as PromptRunnerSelectionCliOptions,
                 { isAgentRequired: true },
@@ -57,23 +70,36 @@ export function $initializeCoderPingCommand(program: Program): $side_effect {
                 cliOptions as HarnessUpdateCliOptions,
             );
 
+            // Note: The period is validated before the harness installation check, so a mistyped duration fails fast
+            const periodMs = parseOptionalPeriodDuration('--period', periodValue);
+
             await $ensureHarnessInstallations([runnerOptions.agentName], isHarnessUpdateCheckEnabled);
 
-            // Note: Import the ping dynamically to avoid loading heavy dependencies until needed
-            const { pingCoderHarness } = await import('../../../../scripts/run-codex-prompts/ping/pingCoderHarness');
-            const { printCoderPingResult } = await import(
-                '../../../../scripts/run-codex-prompts/ping/printCoderPingResult'
-            );
-
-            const result = await pingCoderHarness({
+            const pingOptions = {
                 agentName: runnerOptions.agentName,
                 model: runnerOptions.model,
                 thinkingLevel: runnerOptions.thinkingLevel,
                 allowCredits: runnerOptions.allowCredits,
                 shouldPrintLiveOutput: runnerOptions.noUi,
-            });
+            };
 
-            printCoderPingResult(result);
+            // Note: Import the ping dynamically to avoid loading heavy dependencies until needed
+            if (periodMs !== undefined) {
+                const { pingCoderHarnessPeriodically } = await import(
+                    '../../../../scripts/run-codex-prompts/ping/pingCoderHarnessPeriodically'
+                );
+
+                // Note: This never returns - it keeps pinging until the user stops the process
+                await pingCoderHarnessPeriodically({ ...pingOptions, periodMs });
+                return;
+            }
+
+            const { pingCoderHarness } = await import('../../../../scripts/run-codex-prompts/ping/pingCoderHarness');
+            const { printCoderPingResult } = await import(
+                '../../../../scripts/run-codex-prompts/ping/printCoderPingResult'
+            );
+
+            printCoderPingResult(await pingCoderHarness(pingOptions));
         }),
     );
 }

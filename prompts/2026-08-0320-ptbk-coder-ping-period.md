@@ -1,4 +1,4 @@
-[ ]
+[x] by Claude Code `claude-opus-5` thinking `max` - Implementation $8.92 31 minutes; Testing 28 minutes
 
 [✨🐪] Add optional `--period` flag to `ptbk coder ping`
 
@@ -16,3 +16,4 @@ ptbk coder ping --harness claude-code --model claude-sonnet-5 --thinking-level l
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Update the [`ptbk coder` landing website](apps/coder-landing) and show this ad advanced perk to always ping the harness every 5 hours to keep the Claude code 5h limit already and always running without spending almost any tokens
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

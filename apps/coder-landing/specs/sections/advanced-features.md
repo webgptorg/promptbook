@@ -9,26 +9,27 @@ Anchor `#features`. A grid of feature cards, each pairing a short explanation wi
 
 ## Cards
 
-3-column grid on desktop, 2 on tablet, 1 on mobile. Each card: title (Outfit semibold), description, and a [terminal block](../components/terminal-block.md) snippet. Exactly these sixteen cards, in this order:
+3-column grid on desktop, 2 on tablet, 1 on mobile. Each card: title (Outfit semibold), description, and a [terminal block](../components/terminal-block.md) snippet. Exactly these seventeen cards, in this order:
 
-| #   | Title                          | Snippet                                                                                  |
-| --- | ------------------------------ | ---------------------------------------------------------------------------------------- |
-| 1   | Verified by your tests         | `ptbk coder run --harness claude-code --test npm test`                                   |
-| 2   | Test before coding             | `ptbk coder run --harness claude-code --test npm test --test-before yes-and-fix`         |
-| 3   | Commits with its own identity  | `CODING_AGENT_GIT_NAME="Promptbook Coding Agent"`                                        |
-| 4   | Autopilot git                  | `ptbk coder run --harness claude-code --auto-pull --auto-push`                           |
-| 5   | Git-synced housekeeping        | `ptbk coder init --auto-pull --commit --auto-push`                                       |
-| 6   | Isolated worktrees             | `ptbk coder run --harness claude-code --isolate`                                         |
-| 7   | Kanban web UI                  | `ptbk coder server --port 4441 --harness claude-code`                                    |
-| 8   | Prompt priorities              | `ptbk coder run --harness claude-code --min-priority 1 --max-priority 5`                 |
-| 9   | Model-specific prompts         | `ptbk coder run --harness github-copilot --model gpt-5.5`                                |
-| 10  | Pacing and retries             | `ptbk coder run --harness claude-code --wait-between-prompts 30m --wait-after-error 10m` |
-| 11  | Dry run first                  | `ptbk coder run --dry-run`                                                               |
-| 12  | Ping before you queue          | `ptbk coder ping --harness openai-codex --model gpt-5.6-sol --thinking-level xhigh`      |
-| 13  | Human in the loop              | `ptbk coder run --harness claude-code --no-auto`                                         |
-| 14  | Live status in the prompt file | `` [^] by OpenAI Codex `gpt-5.6-luna` - Implementation in progress ``                    |
-| 15  | Verify and archive             | `ptbk coder verify --order from-latest`                                                  |
-| 16  | Many prompts per file          | `ptbk coder generate-boilerplates --count 10*7`                                          |
+| #   | Title                          | Snippet                                                                                          |
+| --- | ------------------------------ | ------------------------------------------------------------------------------------------------ |
+| 1   | Verified by your tests         | `ptbk coder run --harness claude-code --test npm test`                                           |
+| 2   | Test before coding             | `ptbk coder run --harness claude-code --test npm test --test-before yes-and-fix`                 |
+| 3   | Commits with its own identity  | `CODING_AGENT_GIT_NAME="Promptbook Coding Agent"`                                                |
+| 4   | Autopilot git                  | `ptbk coder run --harness claude-code --auto-pull --auto-push`                                   |
+| 5   | Git-synced housekeeping        | `ptbk coder init --auto-pull --commit --auto-push`                                               |
+| 6   | Isolated worktrees             | `ptbk coder run --harness claude-code --isolate`                                                 |
+| 7   | Kanban web UI                  | `ptbk coder server --port 4441 --harness claude-code`                                            |
+| 8   | Prompt priorities              | `ptbk coder run --harness claude-code --min-priority 1 --max-priority 5`                         |
+| 9   | Model-specific prompts         | `ptbk coder run --harness github-copilot --model gpt-5.5`                                        |
+| 10  | Pacing and retries             | `ptbk coder run --harness claude-code --wait-between-prompts 30m --wait-after-error 10m`         |
+| 11  | Dry run first                  | `ptbk coder run --dry-run`                                                                       |
+| 12  | Ping before you queue          | `ptbk coder ping --harness openai-codex --model gpt-5.6-sol --thinking-level xhigh`              |
+| 13  | Keep the 5-hour window rolling | `ptbk coder ping --harness claude-code --model claude-sonnet-5 --thinking-level low --period 5h` |
+| 14  | Human in the loop              | `ptbk coder run --harness claude-code --no-auto`                                                 |
+| 15  | Live status in the prompt file | `` [^] by OpenAI Codex `gpt-5.6-luna` - Implementation in progress ``                            |
+| 16  | Verify and archive             | `ptbk coder verify --order from-latest`                                                          |
+| 17  | Many prompts per file          | `ptbk coder generate-boilerplates --count 10*7`                                                  |
 
 ## Descriptions (verbatim card copy)
 
@@ -44,9 +45,10 @@ Anchor `#features`. A grid of feature cards, each pairing a short explanation wi
 10. **Pacing and retries** — "Pace the queue with wall-clock wait durations that keep elapsing through pause and sleep, skip the active wait with S, and retry errors after a cool-down."
 11. **Dry run first** — "Preview which prompts would run — without touching your code or spending a single token."
 12. **Ping before you queue** — "ptbk coder ping sends one tiny dummy prompt to a harness and model and reports the answer, the response time and the usage. Use it to check that a harness, model and login really work, and to start the hourly or weekly quota window early so it is already refreshing by the time you need it. Your project is left exactly as it was."
-13. **Human in the loop** — "Confirm each prompt manually with --no-auto, press P to pause a running queue, or press X to end after the current prompt."
-14. **Live status in the prompt file** — "A prompt turns from [ ] into [^] the moment the agent picks it up and names the step that is running, and only becomes [x] once the work is implemented, verified and committed. The [^] state is never reverted, so a killed or crashed queue shows you exactly which task was left in the middle."
-15. **Verify and archive** — "Successful coding rounds record the harness, model and selected thinking level in the prompt status line. Walk through completed prompts interactively, archive the finished ones to prompts/done/ and auto-append repair prompts for incomplete work. Choose the order of the walkthrough with --order from-earliest, --order from-latest or --order random."
-16. **Many prompts per file** — "ptbk coder generate-boilerplates writes one prompt per file by default (--count 5\*1). Power users can batch a whole backlog into fewer files with the advanced --count N\*M notation: N files with M prompts each. Their sections are separated by a --- line, share one fresh emoji tag per file, and still run as separate tasks."
+13. **Keep the 5-hour window rolling** — "Add --period and the ping repeats itself until you stop it with CTRL+C. A ping every 5h keeps the Claude Code 5-hour limit window permanently open, so the quota is always refreshing and a queue you start at any hour already has a window waiting — for a handful of tokens per ping instead of a run you have to babysit."
+14. **Human in the loop** — "Confirm each prompt manually with --no-auto, press P to pause a running queue, or press X to end after the current prompt."
+15. **Live status in the prompt file** — "A prompt turns from [ ] into [^] the moment the agent picks it up and names the step that is running, and only becomes [x] once the work is implemented, verified and committed. The [^] state is never reverted, so a killed or crashed queue shows you exactly which task was left in the middle."
+16. **Verify and archive** — "Successful coding rounds record the harness, model and selected thinking level in the prompt status line. Walk through completed prompts interactively, archive the finished ones to prompts/done/ and auto-append repair prompts for incomplete work. Choose the order of the walkthrough with --order from-earliest, --order from-latest or --order random."
+17. **Many prompts per file** — "ptbk coder generate-boilerplates writes one prompt per file by default (--count 5\*1). Power users can batch a whole backlog into fewer files with the advanced --count N\*M notation: N files with M prompts each. Their sections are separated by a --- line, share one fresh emoji tag per file, and still run as separate tasks."
 
 Option semantics must stay consistent with [`../content/commands.md`](../content/commands.md).

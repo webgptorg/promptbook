@@ -1,3 +1,18 @@
+-   Added `--period <duration>` to `ptbk coder ping`. Without it the ping stays exactly what it was — one tiny dummy
+    prompt, one reported result, done. With it that very same ping repeats once per period until it is stopped with
+    `CTRL+C`, which keeps the quota window of a harness permanently refreshing for a handful of tokens per ping.
+    Pinging `claude-code` with `--period 5h` therefore keeps the **Claude Code 5-hour limit window always open**, so a
+    queue started at any hour already has a fresh window waiting instead of burning the first minutes of it.
+
+    -   The period is measured from the start of one ping to the start of the next one, so `--period 5h` really pings
+        every 5 hours instead of every 5 hours plus however long a ping happens to take. It is a wall-clock deadline,
+        so a computer which falls asleep during a period does not stretch it.
+    -   A ping which fails is reported and the loop simply continues with the next period, because a keep-alive which
+        dies on the first hiccup is not a keep-alive.
+    -   The duration uses the same `5h`, `30m`, `1h30m` format as the `--wait-*` options of `ptbk coder run` and is
+        rejected when it is not a positive one, so `--period` can never become a loop without a pause between rounds.
+    -   The `ptbk coder` landing page presents this as an advanced feature of its own.
+
 -   Fixed Agents Server planned-message chips hiding the numeric part of their scheduled time. The chip now uses the
     shared chat typography for its text while retaining the existing OpenMoji fallback for its stopwatch icon, so a
     label such as **“Timeout: 10:28 AM”** renders exactly as it is copied.

@@ -61,6 +61,12 @@ export const DRY_RUN_COMMAND = 'ptbk coder run --dry-run';
 export const PING_COMMAND = 'ptbk coder ping --harness openai-codex --model gpt-5.6-sol --thinking-level xhigh';
 
 /**
+ * Command which keeps pinging one harness and model every 5 hours to keep its quota window refreshing.
+ */
+export const PING_PERIOD_COMMAND =
+    'ptbk coder ping --harness claude-code --model claude-sonnet-5 --thinking-level low --period 5h';
+
+/**
  * Full-featured command which starts the coder server with kanban UI, agent persona,
  * project context and post-prompt test verification.
  */

@@ -4,6 +4,7 @@ import {
     INIT_GIT_SYNC_COMMAND,
     MODEL_FILTER_COMMAND,
     PING_COMMAND,
+    PING_PERIOD_COMMAND,
     TEST_BEFORE_FIX_COMMAND,
     VERIFY_COMMAND,
 } from './commands';
@@ -103,6 +104,12 @@ export const ADVANCED_FEATURES: ReadonlyArray<AdvancedFeatureDefinition> = [
         description:
             'ptbk coder ping sends one tiny dummy prompt to a harness and model and reports the answer, the response time and the usage. Use it to check that a harness, model and login really work, and to start the hourly or weekly quota window early so it is already refreshing by the time you need it. Your project is left exactly as it was.',
         sampleCommand: PING_COMMAND,
+    },
+    {
+        title: 'Keep the 5-hour window rolling',
+        description:
+            'Add --period and the ping repeats itself until you stop it with CTRL+C. A ping every 5h keeps the Claude Code 5-hour limit window permanently open, so the quota is always refreshing and a queue you start at any hour already has a window waiting — for a handful of tokens per ping instead of a run you have to babysit.',
+        sampleCommand: PING_PERIOD_COMMAND,
     },
     {
         title: 'Human in the loop',

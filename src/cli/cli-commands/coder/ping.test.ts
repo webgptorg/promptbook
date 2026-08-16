@@ -1,5 +1,6 @@
 import { Command } from 'commander';
 import { pingCoderHarness } from '../../../../scripts/run-codex-prompts/ping/pingCoderHarness';
+import { pingCoderHarnessPeriodically } from '../../../../scripts/run-codex-prompts/ping/pingCoderHarnessPeriodically';
 import { printCoderPingResult } from '../../../../scripts/run-codex-prompts/ping/printCoderPingResult';
 import { ZERO_USAGE } from '../../../execution/utils/usage-constants';
 import { $ensureHarnessInstallations } from '../common/harness/$ensureHarnessInstallations';
@@ -13,6 +14,10 @@ jest.mock('../../../../scripts/run-codex-prompts/ping/pingCoderHarness', () => (
     pingCoderHarness: jest.fn(),
 }));
 
+jest.mock('../../../../scripts/run-codex-prompts/ping/pingCoderHarnessPeriodically', () => ({
+    pingCoderHarnessPeriodically: jest.fn(),
+}));
+
 jest.mock('../../../../scripts/run-codex-prompts/ping/printCoderPingResult', () => ({
     printCoderPingResult: jest.fn(),
 }));
@@ -22,6 +27,13 @@ jest.mock('../../../../scripts/run-codex-prompts/ping/printCoderPingResult', () 
  */
 function getPingCoderHarnessMock(): jest.MockedFunction<typeof pingCoderHarness> {
     return pingCoderHarness as jest.MockedFunction<typeof pingCoderHarness>;
+}
+
+/**
+ * Typed Jest mock for the endless periodic harness ping entrypoint.
+ */
+function getPingCoderHarnessPeriodicallyMock(): jest.MockedFunction<typeof pingCoderHarnessPeriodically> {
+    return pingCoderHarnessPeriodically as jest.MockedFunction<typeof pingCoderHarnessPeriodically>;
 }
 
 /**
@@ -95,10 +107,9 @@ describe('$initializeCoderPingCommand', () => {
     it('skips the harness update check when --no-harness-update is provided', async () => {
         const program = createProgramWithPingCommand();
 
-        await program.parseAsync(
-            ['node', 'test', 'ping', '--harness', 'claude-code', '--no-harness-update'],
-            { from: 'node' },
-        );
+        await program.parseAsync(['node', 'test', 'ping', '--harness', 'claude-code', '--no-harness-update'], {
+            from: 'node',
+        });
 
         expect($ensureHarnessInstallations).toHaveBeenCalledWith(['claude-code'], false);
     });
@@ -133,6 +144,82 @@ describe('$initializeCoderPingCommand', () => {
 
         await program.parseAsync(['node', 'test', 'ping'], { from: 'node' });
 
+        expect(getPingCoderHarnessMock()).not.toHaveBeenCalled();
+        expect(processExitSpy).toHaveBeenCalledWith(1);
+    });
+
+    it('pings only once when --period is not provided', async () => {
+        const program = createProgramWithPingCommand();
+
+        await program.parseAsync(['node', 'test', 'ping', '--harness', 'claude-code'], { from: 'node' });
+
+        expect(getPingCoderHarnessMock()).toHaveBeenCalledTimes(1);
+        expect(getPingCoderHarnessPeriodicallyMock()).not.toHaveBeenCalled();
+    });
+
+    it('keeps pinging on the given period when --period is provided', async () => {
+        const program = createProgramWithPingCommand();
+
+        await program.parseAsync(
+            [
+                'node',
+                'test',
+                'ping',
+                '--harness',
+                'claude-code',
+                '--model',
+                'claude-sonnet-5',
+                '--thinking-level',
+                'low',
+                '--period',
+                '5h',
+            ],
+            { from: 'node' },
+        );
+
+        expect(getPingCoderHarnessPeriodicallyMock()).toHaveBeenCalledWith(
+            expect.objectContaining({
+                agentName: 'claude-code',
+                model: 'claude-sonnet-5',
+                thinkingLevel: 'low',
+                periodMs: 5 * 60 * 60 * 1000,
+            }),
+        );
+        expect(getPingCoderHarnessMock()).not.toHaveBeenCalled();
+    });
+
+    it('understands combined --period durations', async () => {
+        const program = createProgramWithPingCommand();
+
+        await program.parseAsync(['node', 'test', 'ping', '--harness', 'claude-code', '--period', '1h30m'], {
+            from: 'node',
+        });
+
+        expect(getPingCoderHarnessPeriodicallyMock()).toHaveBeenCalledWith(
+            expect.objectContaining({ periodMs: 90 * 60 * 1000 }),
+        );
+    });
+
+    it('refuses a --period which is not a positive duration', async () => {
+        const program = createProgramWithPingCommand();
+
+        await program.parseAsync(['node', 'test', 'ping', '--harness', 'claude-code', '--period', '0s'], {
+            from: 'node',
+        });
+
+        expect(getPingCoderHarnessPeriodicallyMock()).not.toHaveBeenCalled();
+        expect(getPingCoderHarnessMock()).not.toHaveBeenCalled();
+        expect(processExitSpy).toHaveBeenCalledWith(1);
+    });
+
+    it('refuses a --period which is not a duration at all', async () => {
+        const program = createProgramWithPingCommand();
+
+        await program.parseAsync(['node', 'test', 'ping', '--harness', 'claude-code', '--period', 'often'], {
+            from: 'node',
+        });
+
+        expect(getPingCoderHarnessPeriodicallyMock()).not.toHaveBeenCalled();
         expect(getPingCoderHarnessMock()).not.toHaveBeenCalled();
         expect(processExitSpy).toHaveBeenCalledWith(1);
     });
