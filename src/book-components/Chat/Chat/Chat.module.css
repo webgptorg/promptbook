@@ -735,7 +735,12 @@
     border-radius: 999px;
     box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
     color: inherit;
-    font-family: 'OpenMojiColor', 'OpenMojiBlack', Arial, Helvetica, sans-serif;
+    /*
+     * OpenMoji includes ASCII digits for keycap emoji sequences. Keeping it first in this stack
+     * makes time labels such as `10:28 AM` use its non-text digit glyphs, so chips must inherit
+     * the chat typography and use OpenMoji only as its existing emoji fallback.
+     */
+    font-family: inherit;
     cursor: pointer;
     transition: all 0.2s ease;
     backdrop-filter: blur(8px);

@@ -1,3 +1,7 @@
+-   Fixed Agents Server planned-message chips hiding the numeric part of their scheduled time. The chip now uses the
+    shared chat typography for its text while retaining the existing OpenMoji fallback for its stopwatch icon, so a
+    label such as **“Timeout: 10:28 AM”** renders exactly as it is copied.
+
 -   Fixed misleading **Goal Chat** response timing. The old label measured from the time a message entered the local
     runner queue, so a scheduled wake-up could claim it took many hours to answer even when the agent had only just
     run. The coding harness now records its real start and finish times in the existing answer report; the server uses
