@@ -1,6 +1,8 @@
 // Note: [💞] Ignore a discrepancy between file name and entity name
 
 import type { Usage } from '../execution/Usage';
+import type { AgentMessageTouchedExternalSource } from '../utils/agent-message-runtime/AgentMessageTouchedExternalSource';
+import { normalizeAgentMessageTouchedExternalSource } from '../utils/agent-message-runtime/AgentMessageTouchedExternalSource';
 import type { CodexLoginMethod } from './codexLoginMethod';
 
 /**
@@ -84,6 +86,15 @@ export type AgentMessageRunReport = {
      * answered, so this is the only trace of the projects one answer viewed or edited.
      */
     readonly touchedProjectNames?: ReadonlyArray<string>;
+
+    /**
+     * Sources outside the agent — integrations, websites and web searches — the harness reached
+     * while answering the message.
+     *
+     * Reported from the same live runtime log as `touchedProjectNames`, so this is the only trace
+     * of what one answer touched beyond the agent itself.
+     */
+    readonly touchedExternalSources?: ReadonlyArray<AgentMessageTouchedExternalSource>;
 };
 
 /**
@@ -150,7 +161,28 @@ export function normalizeAgentMessageRunReport(value: unknown): AgentMessageRunR
         return null;
     }
 
+    if (
+        report.touchedExternalSources !== undefined &&
+        !isSerializedTouchedExternalSourceList(report.touchedExternalSources)
+    ) {
+        return null;
+    }
+
     return report as AgentMessageRunReport;
+}
+
+/**
+ * Checks that one value structurally matches a list of touched external sources.
+ *
+ * @private internal helper of `normalizeAgentMessageRunReport`
+ */
+function isSerializedTouchedExternalSourceList(
+    value: unknown,
+): value is ReadonlyArray<AgentMessageTouchedExternalSource> {
+    return (
+        Array.isArray(value) &&
+        value.every((externalSource) => normalizeAgentMessageTouchedExternalSource(externalSource) !== null)
+    );
 }
 
 /**

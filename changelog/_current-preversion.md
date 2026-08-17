@@ -1,3 +1,25 @@
+-   Added Agents Server chips below a chat answer for every source outside the agent it touched, so an answer never
+    silently reaches beyond the agent again. An agent that reviews a Gmail mailbox and drafts a mail now says so with
+    a **🔌 Gmail** chip below its message, exactly like the project and wake-up chips already added next to the source
+    chips that show the knowledge behind an answer.
+
+    This completes the same universal pattern rather than adding a second one: the local agent runner resolves what
+    the answering coding harness really reached from its live runtime log — which is deleted the moment a message is
+    answered — reports it in the run-report sidecar it already writes, and the server turns each source into one chip
+    on the assistant message. The chips therefore show up in normal chats, in the goal chat, and when an external
+    chat such as an email conversation is opened, while the outbound email itself is still rendered from the answer
+    text alone and stays unchanged.
+
+    -   **Integrations** such as Gmail or Google Calendar are recognized from the integration tool calls of both
+        supported harnesses and shown under their human-readable name.
+    -   **Websites** are shown by hostname, both when the harness fetched an address directly and when it ran a
+        network client such as `curl` or `wget` in the shell.
+    -   **Web searches** are shown with the query that was looked up.
+    -   Work an agent does only inside itself still produces no chip at all. Only harness tool payloads are
+        inspected, so an address or service merely mentioned in the conversation — or written into a file the agent
+        edits — is never reported as touched, and addresses of the machine the agent runs on are dropped because they
+        are internal.
+
 -   Added `--period <duration>` to `ptbk coder ping`. Without it the ping stays exactly what it was — one tiny dummy
     prompt, one reported result, done. With it that very same ping repeats once per period until it is stopped with
     `CTRL+C`, which keeps the quota window of a harness permanently refreshing for a handful of tokens per ping.

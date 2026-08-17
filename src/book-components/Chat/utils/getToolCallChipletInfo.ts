@@ -6,6 +6,12 @@ import {
     parseAgentProjectToolCallResult,
     resolveAgentProjectToolCallLabel,
 } from './agentProjectToolCall';
+import {
+    EXTERNAL_SOURCE_TOOL_CALL_NAME,
+    parseExternalSourceToolCallResult,
+    resolveExternalSourceToolCallEmoji,
+    resolveExternalSourceToolCallLabel,
+} from './externalSourceToolCall';
 import { formatToolCallLocalTime } from './formatToolCallLocalTime';
 import { formatToolCallTranslationTemplate } from './formatToolCallTranslationTemplate';
 import {
@@ -118,6 +124,7 @@ type ToolCallChipletResolver = (context: ToolCallChipletContext) => ToolCallChip
 const SPECIALIZED_TOOL_CALL_CHIPLET_RESOLVERS: ReadonlyArray<ToolCallChipletResolver> = [
     resolveWalletCredentialChipletInfo,
     resolveAgentProjectToolCallChipletInfo,
+    resolveExternalSourceToolCallChipletInfo,
     resolveTeamToolCallChipletInfo,
     resolveTimeToolCallChipletInfo,
     resolveEmailToolCallChipletInfo,
@@ -147,6 +154,7 @@ export const TOOL_TITLES: Record<string, { title: string; emoji: string }> = {
     [ASSISTANT_PREPARATION_TOOL_CALL_NAME]: { title: 'Preparing agent', emoji: '✨' },
     [WALLET_CREDENTIAL_TOOL_CALL_NAME]: { title: 'Credential used', emoji: '🔐' },
     [AGENT_PROJECT_TOOL_CALL_NAME]: { title: 'Project', emoji: '📁' },
+    [EXTERNAL_SOURCE_TOOL_CALL_NAME]: { title: 'External source', emoji: '🌐' },
     'self-learning': { title: 'self-learning', emoji: '🧠' },
     retrieve_user_memory: { title: 'Reading memory', emoji: '🧠' },
     store_user_memory: { title: 'Storing memory', emoji: '🧠' },
@@ -346,6 +354,34 @@ function resolveAgentProjectToolCallChipletInfo(context: ToolCallChipletContext)
     }
 
     return createEmojiToolCallChipletInfo(context, resolveAgentProjectToolCallLabel(projectResult));
+}
+
+/**
+ * Resolves the source-name chip label for touched external sources.
+ *
+ * The emoji tells apart an integration, a website and a search, so it overrides the single emoji
+ * registered for the tool name itself.
+ *
+ * @param context - Shared chiplet resolution context.
+ * @returns Chiplet info when the tool call marks a touched external source, otherwise `null`.
+ *
+ * @private utility of `<Chat/>`
+ */
+function resolveExternalSourceToolCallChipletInfo(context: ToolCallChipletContext): ToolCallChipletInfo | null {
+    if (context.toolCall.name !== EXTERNAL_SOURCE_TOOL_CALL_NAME) {
+        return null;
+    }
+
+    const externalSource = parseExternalSourceToolCallResult(context.resultRaw);
+    if (!externalSource) {
+        return null;
+    }
+
+    return {
+        text: `${resolveExternalSourceToolCallEmoji(externalSource)} ${resolveExternalSourceToolCallLabel(
+            externalSource,
+        )}`,
+    };
 }
 
 /**

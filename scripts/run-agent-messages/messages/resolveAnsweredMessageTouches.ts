@@ -1,29 +1,49 @@
 import { readdir, readFile } from 'fs/promises';
 import { join } from 'path';
 import { AGENT_PROJECTS_DIRECTORY_PATH } from '../../../src/book-3.0/agentFolderPaths';
+import type { AgentMessageTouchedExternalSource } from '../../../src/utils/agent-message-runtime/AgentMessageTouchedExternalSource';
+import { resolveAgentMessageTouchedExternalSources } from '../../../src/utils/agent-message-runtime/resolveAgentMessageTouchedExternalSources';
 import { resolveAgentMessageTouchedProjectNames } from '../../../src/utils/agent-message-runtime/resolveAgentMessageTouchedProjectNames';
 
 /**
- * Resolves which agent projects one answered message viewed or edited.
+ * Everything one answered message worked with, both inside and outside the agent.
+ */
+export type AnsweredMessageTouches = {
+    /**
+     * Directory names of the agent projects the answer viewed or edited.
+     */
+    readonly touchedProjectNames: ReadonlyArray<string>;
+
+    /**
+     * Sources outside the agent the answer reached.
+     */
+    readonly touchedExternalSources: ReadonlyArray<AgentMessageTouchedExternalSource>;
+};
+
+/**
+ * Resolves which agent projects and which external sources one answered message touched.
  *
  * The runtime log is deleted as soon as the harness run finishes, so this must be called while
- * the log still exists — the Agents Server later shows the reported projects as chips below the
- * answer. Reporting touched projects is best-effort telemetry: an unreadable log or projects
- * folder simply yields no projects instead of failing the already answered message.
+ * the log still exists — the Agents Server later shows everything reported here as chips below
+ * the answer. Reporting touches is best-effort telemetry: an unreadable log or projects folder
+ * simply yields nothing instead of failing the already answered message.
  *
  * @param options - Agent folder path and the live runtime log path of the answered message.
- * @returns Touched project directory names, ordered by first appearance in the run.
+ * @returns Touched projects and external sources, ordered by first appearance in the run.
  */
-export async function resolveTouchedAgentProjects(options: {
+export async function resolveAnsweredMessageTouches(options: {
     readonly projectPath: string;
     readonly runtimeLogPath: string;
-}): Promise<ReadonlyArray<string>> {
+}): Promise<AnsweredMessageTouches> {
     const [logText, knownProjectNames] = await Promise.all([
         readOptionalTextFile(options.runtimeLogPath),
         listAgentProjectDirectoryNames(options.projectPath),
     ]);
 
-    return resolveAgentMessageTouchedProjectNames({ logText, knownProjectNames });
+    return {
+        touchedProjectNames: resolveAgentMessageTouchedProjectNames({ logText, knownProjectNames }),
+        touchedExternalSources: resolveAgentMessageTouchedExternalSources({ logText }),
+    };
 }
 
 /**
@@ -32,7 +52,7 @@ export async function resolveTouchedAgentProjects(options: {
  * @param projectPath - Absolute path of the local agent folder.
  * @returns Project directory names, or an empty list when the agent has no projects folder.
  *
- * @private helper of `resolveTouchedAgentProjects`
+ * @private helper of `resolveAnsweredMessageTouches`
  */
 async function listAgentProjectDirectoryNames(projectPath: string): Promise<ReadonlyArray<string>> {
     try {
@@ -54,7 +74,7 @@ async function listAgentProjectDirectoryNames(projectPath: string): Promise<Read
  * @param filePath - Absolute path of the file to read.
  * @returns File content, or `null` when it cannot be read.
  *
- * @private helper of `resolveTouchedAgentProjects`
+ * @private helper of `resolveAnsweredMessageTouches`
  */
 async function readOptionalTextFile(filePath: string): Promise<string | null> {
     try {

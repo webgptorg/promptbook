@@ -37,7 +37,7 @@ import { loadAgentPlannedMessagesSidecar } from '../messages/loadAgentPlannedMes
 import { loadAgentTeamConversationWorkspace } from '../messages/loadAgentTeamConversationWorkspace';
 import { resolveAgentProjectRuntimePromptApi } from '../messages/resolveAgentProjectRuntimePromptApi';
 import { resolveAgentProjectsUrlPath } from '../messages/resolveAgentProjectsUrlPath';
-import { resolveTouchedAgentProjects } from '../messages/resolveTouchedAgentProjects';
+import { resolveAnsweredMessageTouches, type AnsweredMessageTouches } from '../messages/resolveAnsweredMessageTouches';
 import { moveAgentMessageToFinished, type FinishedAgentMessageFile } from '../messages/moveAgentMessageToFinished';
 import { writeAgentMessageRunReport, type WrittenAgentMessageRunReport } from '../messages/writeAgentMessageRunReport';
 import {
@@ -291,7 +291,7 @@ async function runQueuedAgentMessage(options: {
 
     const executionStartedAt = new Date().toISOString();
     let promptRunResult: RunPromptWithTestFeedbackResult;
-    let touchedProjectNames: ReadonlyArray<string> = [];
+    let answeredMessageTouches: AnsweredMessageTouches = { touchedProjectNames: [], touchedExternalSources: [] };
     try {
         try {
             promptRunResult = await withPromptRuntimeLog(
@@ -310,9 +310,12 @@ async function runQueuedAgentMessage(options: {
                         },
                     });
 
-                    // Note: The runtime log is deleted right after this handler, so the projects this
+                    // Note: The runtime log is deleted right after this handler, so everything this
                     //       answer worked with must be resolved while the log still exists.
-                    touchedProjectNames = await resolveTouchedAgentProjects({ projectPath, runtimeLogPath: logPath });
+                    answeredMessageTouches = await resolveAnsweredMessageTouches({
+                        projectPath,
+                        runtimeLogPath: logPath,
+                    });
 
                     return runResult;
                 },
@@ -354,7 +357,12 @@ async function runQueuedAgentMessage(options: {
                 startedAt: executionStartedAt,
                 finishedAt: executionFinishedAt,
             },
-            ...(touchedProjectNames.length === 0 ? {} : { touchedProjectNames }),
+            ...(answeredMessageTouches.touchedProjectNames.length === 0
+                ? {}
+                : { touchedProjectNames: answeredMessageTouches.touchedProjectNames }),
+            ...(answeredMessageTouches.touchedExternalSources.length === 0
+                ? {}
+                : { touchedExternalSources: answeredMessageTouches.touchedExternalSources }),
         },
     });
     await commitAnsweredMessageIfEnabled({

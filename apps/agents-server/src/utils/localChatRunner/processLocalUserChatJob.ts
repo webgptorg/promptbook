@@ -8,6 +8,7 @@ import {
     parseAgentMessageRunReport,
     type AgentMessageRunReport,
 } from '../../../../../src/book-3.0/AgentMessageRunReport';
+import type { AgentMessageTouchedExternalSource } from '../../../../../src/utils/agent-message-runtime/AgentMessageTouchedExternalSource';
 import { createAnsweredMessageChipToolCalls } from '../chatMessageChips/createAnsweredMessageChipToolCalls';
 import { createUserChatJobFailureDetails } from '../userChat/createUserChatJobFailureDetails';
 import { claimNextQueuedUserChatJob } from '../userChat/claimNextQueuedUserChatJob';
@@ -294,6 +295,7 @@ async function synchronizeLocalUserChatJob(
                 job,
                 appliedPlannedMessageCommands,
                 touchedProjectNames: runReport?.touchedProjectNames || [],
+                touchedExternalSources: runReport?.touchedExternalSources || [],
             });
             const toolCalls = [...teamToolCalls, ...chipToolCalls];
             await persistUserChatJobTerminalState({
@@ -538,12 +540,14 @@ async function createAnsweredMessageChipToolCallsIfPossible(options: {
     readonly job: UserChatJobRecord;
     readonly appliedPlannedMessageCommands: ReadonlyArray<AppliedAgentPlannedMessageCommand>;
     readonly touchedProjectNames: ReadonlyArray<string>;
+    readonly touchedExternalSources: ReadonlyArray<AgentMessageTouchedExternalSource>;
 }): Promise<ReadonlyArray<ToolCall>> {
     try {
         return await createAnsweredMessageChipToolCalls({
             agentPermanentId: options.job.agentPermanentId,
             appliedPlannedMessageCommands: options.appliedPlannedMessageCommands,
             touchedProjectNames: options.touchedProjectNames,
+            touchedExternalSources: options.touchedExternalSources,
         });
     } catch (error) {
         console.warn('[local-chat-runner] message_chips_build_failed', {

@@ -33,7 +33,7 @@ describe('createAnsweredMessageChipToolCalls', () => {
         }
     });
 
-    it('creates no chips for an answer that planned nothing and touched no project', async () => {
+    it('creates no chips for an answer that planned nothing and touched nothing', async () => {
         temporaryDirectory = await createAgentRootWithProject('my-website');
 
         await expect(
@@ -41,6 +41,7 @@ describe('createAnsweredMessageChipToolCalls', () => {
                 agentPermanentId: AGENT_PERMANENT_ID,
                 appliedPlannedMessageCommands: [],
                 touchedProjectNames: [],
+                touchedExternalSources: [],
             }),
         ).resolves.toEqual([]);
     });
@@ -52,6 +53,7 @@ describe('createAnsweredMessageChipToolCalls', () => {
             agentPermanentId: AGENT_PERMANENT_ID,
             appliedPlannedMessageCommands: [],
             touchedProjectNames: ['my-website'],
+            touchedExternalSources: [],
         });
 
         expect(chipToolCalls).toHaveLength(1);
@@ -71,9 +73,36 @@ describe('createAnsweredMessageChipToolCalls', () => {
             agentPermanentId: AGENT_PERMANENT_ID,
             appliedPlannedMessageCommands: [],
             touchedProjectNames: ['deleted-project', '../secrets', 'my-website'],
+            touchedExternalSources: [],
         });
 
         expect(chipToolCalls.map((chipToolCall) => chipToolCall.arguments)).toEqual([{ projectName: 'my-website' }]);
+    });
+
+    it('creates one chip per external source the answer touched', async () => {
+        temporaryDirectory = await createAgentRootWithProject('my-website');
+
+        const chipToolCalls = await createAnsweredMessageChipToolCalls({
+            agentPermanentId: AGENT_PERMANENT_ID,
+            appliedPlannedMessageCommands: [],
+            touchedProjectNames: [],
+            touchedExternalSources: [
+                { kind: 'integration', name: 'Gmail' },
+                { kind: 'website', name: 'ptbk.io', url: 'https://ptbk.io/pricing' },
+                { kind: 'search', name: 'promptbook pricing' },
+            ],
+        });
+
+        expect(chipToolCalls.map((chipToolCall) => chipToolCall.name)).toEqual([
+            'external_source_touched',
+            'external_source_touched',
+            'external_source_touched',
+        ]);
+        expect(chipToolCalls.map((chipToolCall) => getToolCallChipletInfo(chipToolCall).text)).toEqual([
+            '🔌 Gmail',
+            '🌐 ptbk.io',
+            '🔎 promptbook pricing',
+        ]);
     });
 
     it('creates one timeout chip for the wake-up the answer planned', async () => {
@@ -95,6 +124,7 @@ describe('createAnsweredMessageChipToolCalls', () => {
                 },
             ],
             touchedProjectNames: [],
+            touchedExternalSources: [],
         });
 
         expect(chipToolCalls).toHaveLength(1);
@@ -119,6 +149,7 @@ describe('createAnsweredMessageChipToolCalls', () => {
                 },
             ],
             touchedProjectNames: [],
+            touchedExternalSources: [],
         });
 
         expect(chipToolCalls).toHaveLength(1);

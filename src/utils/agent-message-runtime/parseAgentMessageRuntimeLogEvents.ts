@@ -45,6 +45,9 @@ export type AgentMessageRuntimeLogEvent = {
         readonly command?: string;
         readonly exit_code?: number | null;
         readonly changes?: ReadonlyArray<AgentMessageRuntimeLogFileChange>;
+        readonly server?: string;
+        readonly tool?: string;
+        readonly query?: string;
     };
 };
 

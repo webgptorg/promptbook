@@ -28,6 +28,11 @@ describe('serializeAgentMessageRunReport and parseAgentMessageRunReport', () => 
                 startedAt: '2026-08-15T09:30:00.000Z',
                 finishedAt: '2026-08-15T09:31:57.000Z',
             },
+            touchedProjectNames: ['my-website'],
+            touchedExternalSources: [
+                { kind: 'integration', name: 'Gmail' },
+                { kind: 'website', name: 'ptbk.io', url: 'https://ptbk.io/pricing' },
+            ],
         };
 
         expect(parseAgentMessageRunReport(serializeAgentMessageRunReport(report))).toEqual(report);
@@ -105,6 +110,17 @@ describe('normalizeAgentMessageRunReport', () => {
                     startedAt: '2026-08-15T09:31:57.000Z',
                     finishedAt: '2026-08-15T09:30:00.000Z',
                 },
+            }),
+        ).toBe(null);
+    });
+
+    it('rejects touched external sources of an unknown category', () => {
+        expect(
+            normalizeAgentMessageRunReport({
+                version: 1,
+                runnerName: 'codex',
+                usage: UNCERTAIN_USAGE,
+                touchedExternalSources: [{ kind: 'database', name: 'Postgres' }],
             }),
         ).toBe(null);
     });

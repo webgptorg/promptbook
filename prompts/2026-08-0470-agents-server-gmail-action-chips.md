@@ -1,4 +1,4 @@
-[ ] !!!!!!
+[x] by Claude Code `claude-opus-5` thinking `max` - Implementation 0.44 42 minutes; Testing 13 minutes
 
 [✨🫓] When the agent touches any external sources, the chip should be shown under the message.
 
@@ -13,3 +13,4 @@
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ![alt text](screenshots/2026-08-0470-agents-server-gmail-action-chips.png)
+
