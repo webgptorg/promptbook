@@ -17,10 +17,14 @@ describe('how normalizing to kebab-case works', () => {
         expect(normalizeToKebabCase('hello_/_world')).toEqual('hello-world');
         expect(normalizeToKebabCase('hello_\\_world')).toEqual('hello-world');
         expect(normalizeToKebabCase('hello.world')).toEqual('hello-world');
-        expect(normalizeToKebabCase(spaceTrim(`
+        expect(
+            normalizeToKebabCase(
+                spaceTrim(`
             hello
             world
-        `))).toEqual('hello-world');
+        `),
+            ),
+        ).toEqual('hello-world');
     });
 
     it('will normalize chars with diacritics', () => {

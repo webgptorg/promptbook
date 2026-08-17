@@ -14,15 +14,23 @@ describe('countLines', () => {
     });
 
     it('should return the correct count for a string with multiple lines', () => {
-        expect(countLines(spaceTrim(`
+        expect(
+            countLines(
+                spaceTrim(`
             Hello
             world
-        `))).toBe(2);
-        expect(countLines(spaceTrim(`
+        `),
+            ),
+        ).toBe(2);
+        expect(
+            countLines(
+                spaceTrim(`
             Hello
             world
             !
-        `))).toBe(3);
+        `),
+            ),
+        ).toBe(3);
         expect(countLines('\nxxx\n')).toBe(3);
         expect(countLines('\n\n\nxxx\n\n\n')).toBe(7);
     });

@@ -6,11 +6,13 @@ import { parseDataUrlKnowledgeSource } from '../../utils/knowledge/inlineKnowled
 
 describe('DELETE commitment invalidates prior tagged commitments', () => {
     it('example: DELETE @Example removes earlier @Example KNOWLEDGE', async () => {
-        const book = validateBook(spaceTrim(`AI agent
+        const book = validateBook(
+            spaceTrim(`AI agent
 
 KNOWLEDGE @Example https://example.com
 PERSONA Friendly assistant
-DELETE @Example`));
+DELETE @Example`),
+        );
 
         const modelRequirements = await createAgentModelRequirementsWithCommitments(book);
 
@@ -21,11 +23,13 @@ DELETE @Example`));
     });
 
     it('only invalidates commitments above; below commitments remain', async () => {
-        const book = validateBook(spaceTrim(`AI agent
+        const book = validateBook(
+            spaceTrim(`AI agent
 
 KNOWLEDGE @X First knowledge above
 DELETE {X}
-KNOWLEDGE {X: second knowledge below}`));
+KNOWLEDGE {X: second knowledge below}`),
+        );
 
         const modelRequirements = await createAgentModelRequirementsWithCommitments(book);
 
@@ -44,10 +48,12 @@ KNOWLEDGE {X: second knowledge below}`));
     });
 
     it('uses the provided inline knowledge uploader when available', async () => {
-        const book = validateBook(spaceTrim(`AI agent
+        const book = validateBook(
+            spaceTrim(`AI agent
 
 KNOWLEDGE Inline knowledge content for CDN
-`));
+`),
+        );
         const uploader = jest.fn(async () => 'https://cdn.example/inline-knowledge.txt');
         const modelRequirements = await createAgentModelRequirementsWithCommitments(book, undefined, {
             inlineKnowledgeSourceUploader: uploader,

@@ -12,11 +12,15 @@ describe('countParagraphs', () => {
     });
 
     it('should return the correct count for a string with multiple paragraphs', () => {
-        expect(countParagraphs(spaceTrim(`
+        expect(
+            countParagraphs(
+                spaceTrim(`
             This is paragraph 1.
 
             This is paragraph 2.
-        `))).toBe(2);
+        `),
+            ),
+        ).toBe(2);
     });
 
     it('should return the correct count for a string with leading/trailing whitespace', () => {

@@ -13,25 +13,33 @@ describe('how normalizeMessageText works', () => {
 
     it('will normalize multiline text', () => {
         expect(
-            normalizeMessageText(spaceTrim(`
+            normalizeMessageText(
+                spaceTrim(`
             Hello
             World
-        `)),
-        ).toEqual(spaceTrim(`
+        `),
+            ),
+        ).toEqual(
+            spaceTrim(`
             Hello
             World
-        `));
+        `),
+        );
     });
 
     it('will normalize multiline text with indentation', () => {
         expect(
-            normalizeMessageText(spaceTrim(`
+            normalizeMessageText(
+                spaceTrim(`
             Hello
                 World
-        `)),
-        ).toEqual(spaceTrim(`
+        `),
+            ),
+        ).toEqual(
+            spaceTrim(`
             Hello
                 World
-        `));
+        `),
+        );
     });
 });

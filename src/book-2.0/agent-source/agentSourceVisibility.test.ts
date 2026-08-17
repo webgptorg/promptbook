@@ -21,12 +21,14 @@ Helper Agent
 GOAL Help with testing.
 `) as string_book;
 
-        expect(setAgentSourceVisibility(agentSource, 'PRIVATE')).toBe(spaceTrim(`
+        expect(setAgentSourceVisibility(agentSource, 'PRIVATE')).toBe(
+            spaceTrim(`
 Helper Agent
 META VISIBILITY PRIVATE
 
 GOAL Help with testing.
-`));
+`),
+        );
     });
 
     it('normalizes one META VISIBILITY line and removes duplicates', () => {
@@ -37,11 +39,13 @@ GOAL Help with testing.
 META VISIBILITY PUBLIC
 `) as string_book;
 
-        expect(setAgentSourceVisibility(agentSource, 'UNLISTED')).toBe(spaceTrim(`
+        expect(setAgentSourceVisibility(agentSource, 'UNLISTED')).toBe(
+            spaceTrim(`
 Helper Agent
 META VISIBILITY UNLISTED
 GOAL Help with testing.
-`));
+`),
+        );
     });
 
     it('throws a branded error for invalid strict META VISIBILITY values', () => {

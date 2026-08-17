@@ -62,8 +62,7 @@ describe('TeamToolCallModalContent', () => {
                         {
                             sender: 'AGENT',
                             name: 'Master',
-                            content:
-                                spaceTrim(`
+                            content: spaceTrim(`
                                     What CNAMEs are in the records?
 
                                     Context:

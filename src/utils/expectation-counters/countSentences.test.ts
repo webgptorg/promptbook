@@ -27,9 +27,13 @@ describe('countSentences', () => {
 
     it('should return the correct count for a string with whitespace characters', () => {
         expect(countSentences('Hello world. How are you?')).toBe(2);
-        expect(countSentences(spaceTrim(`
+        expect(
+            countSentences(
+                spaceTrim(`
             This is a sentence.
             This is another sentence.
-        `))).toBe(2);
+        `),
+            ),
+        ).toBe(2);
     });
 });

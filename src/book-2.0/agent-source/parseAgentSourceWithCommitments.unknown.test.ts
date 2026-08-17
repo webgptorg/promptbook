@@ -5,7 +5,8 @@ import { validateBook } from './string_book';
 
 describe('parseAgentSourceWithCommitments unknown commitments', () => {
     it('separates unknown commitment blocks from the preceding registered commitment', () => {
-        const agentSource = validateBook(spaceTrim(`
+        const agentSource = validateBook(
+            spaceTrim(`
             Generic chatter
 
             GOAL Empathetic and understanding support bot whi
@@ -18,7 +19,8 @@ describe('parseAgentSourceWithCommitments unknown commitments', () => {
             Content of unknown commitment bar bzz
 
             CLOSED
-        `));
+        `),
+        );
 
         const result = parseAgentSourceWithCommitments(agentSource);
 
@@ -53,7 +55,8 @@ describe('parseAgentSourceWithCommitments unknown commitments', () => {
     });
 
     it('keeps uppercase lines inside a code block as commitment content', () => {
-        const agentSource = validateBook(spaceTrim(`
+        const agentSource = validateBook(
+            spaceTrim(`
             Code Agent
 
             GOAL Preserve the literal code block.
@@ -61,7 +64,8 @@ describe('parseAgentSourceWithCommitments unknown commitments', () => {
             FOO
             \`\`\`
             CLOSED
-        `));
+        `),
+        );
 
         const result = parseAgentSourceWithCommitments(agentSource);
 

@@ -10,8 +10,10 @@ describe('how titleToName works', () => {
         expect(titleToName(`hello_world`)).toBe(`hello-world`);
         expect(titleToName(`Hello, how are ýóů?`)).toBe(`hello-how-are-you`);
         expect(
-            titleToName(spaceTrim(`  Hello, how
-                           are ýóů?   `)),
+            titleToName(
+                spaceTrim(`  Hello, how
+                           are ýóů?   `),
+            ),
         ).toBe(`hello-how-are-you`);
     });
 

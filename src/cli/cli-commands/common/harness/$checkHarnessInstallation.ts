@@ -17,7 +17,9 @@ export async function $checkHarnessInstallation(
 ): Promise<HarnessInstallationStatus> {
     const [installedVersion, latestVersion] = await Promise.all([
         $resolveInstalledHarnessVersion(definition),
-        isHarnessUpdateCheckEnabled ? $resolveLatestNpmPackageVersion(definition.npmPackageName) : Promise.resolve(null),
+        isHarnessUpdateCheckEnabled
+            ? $resolveLatestNpmPackageVersion(definition.npmPackageName)
+            : Promise.resolve(null),
     ]);
 
     return {

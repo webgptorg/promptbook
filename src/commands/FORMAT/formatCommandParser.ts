@@ -70,8 +70,10 @@ export const formatCommandParser: PipelineTaskCommandParser<FormatCommand> = {
      */
     $applyToTaskJson(command: FormatCommand, $taskJson: $TaskJson): $side_effect {
         if ($taskJson.format !== undefined && command.format !== $taskJson.format) {
-            throw new ParseError(spaceTrim(`Format format is already defined to "${$taskJson.format}".
-                Now you try to redefine it by "${command.format}"`));
+            throw new ParseError(
+                spaceTrim(`Format format is already defined to "${$taskJson.format}".
+                Now you try to redefine it by "${command.format}"`),
+            );
         }
         $taskJson.format = command.format;
     },

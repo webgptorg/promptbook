@@ -30,8 +30,7 @@ type CodexCommandActivity = {
  */
 const CODEX_COMMAND_ACTIVITIES: ReadonlyArray<CodexCommandActivity> = [
     {
-        pattern:
-            /(^|\s)(npm\s+(?:run\s+)?test|pnpm\s+(?:run\s+)?test|yarn\s+test|jest|vitest|pytest)\b/u,
+        pattern: /(^|\s)(npm\s+(?:run\s+)?test|pnpm\s+(?:run\s+)?test|yarn\s+test|jest|vitest|pytest)\b/u,
         running: 'Running tests.',
         completed: 'Finished running tests.',
     },
@@ -56,8 +55,7 @@ const CODEX_COMMAND_ACTIVITIES: ReadonlyArray<CodexCommandActivity> = [
         completed: 'Finished reviewing changes.',
     },
     {
-        pattern:
-            /(^|\s)(apply_patch|set-content|add-content|out-file|new-item|copy-item|move-item|set-item)\b/u,
+        pattern: /(^|\s)(apply_patch|set-content|add-content|out-file|new-item|copy-item|move-item|set-item)\b/u,
         running: 'Updating relevant files.',
         completed: 'Finished updating relevant files.',
     },

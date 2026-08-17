@@ -119,7 +119,7 @@ describe('resolveAgentMessageRuntimeActivity', () => {
     it('maps a file update command to a concise user-facing action', () => {
         const logText = JSON.stringify({
             type: 'item.started',
-            item: { type: 'command_execution', command: 'apply_patch <<\'PATCH\'' },
+            item: { type: 'command_execution', command: "apply_patch <<'PATCH'" },
         });
 
         expect(resolveAgentMessageRuntimeActivity(logText)).toBe('Updating relevant files.');

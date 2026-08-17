@@ -39,13 +39,15 @@ describe('splitMessageContentIntoSegments', () => {
     });
 
     it('supports tilde fences and language aliases for code blocks', () => {
-        const segments = splitMessageContentIntoSegments(spaceTrim(`
+        const segments = splitMessageContentIntoSegments(
+            spaceTrim(`
             Before
             ~~~bash
             ls -la
             ~~~
             After
-        `));
+        `),
+        );
 
         expect(segments[1]).toEqual({
             type: 'code',

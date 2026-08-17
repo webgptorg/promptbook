@@ -5,7 +5,8 @@ import { validateBook } from './string_book';
 
 describe('createAgentModelRequirementsWithCommitments unknown commitments', () => {
     it('adds unknown commitments as final system-message context without adding them to the prompt suffix', async () => {
-        const agentSource = validateBook(spaceTrim(`
+        const agentSource = validateBook(
+            spaceTrim(`
             Generic chatter
 
             GOAL Empathetic and understanding support bot whi
@@ -19,7 +20,8 @@ describe('createAgentModelRequirementsWithCommitments unknown commitments', () =
             Content of unknown commitment bar bzz
 
             CLOSED
-        `));
+        `),
+        );
         const unknownCommitmentContext = spaceTrim(`
             FOO
             Content of unknown commitment foo

@@ -16,10 +16,14 @@ describe('how normalizing to SCREAMING_CASE works', () => {
         expect(normalizeTo_SCREAMING_CASE('hello_/_world')).toEqual('HELLO_WORLD');
         expect(normalizeTo_SCREAMING_CASE('hello_\\_world')).toEqual('HELLO_WORLD');
         expect(normalizeTo_SCREAMING_CASE('hello.world')).toEqual('HELLO_WORLD');
-        expect(normalizeTo_SCREAMING_CASE(spaceTrim(`
+        expect(
+            normalizeTo_SCREAMING_CASE(
+                spaceTrim(`
             hello
             world
-        `))).toEqual('HELLO_WORLD');
+        `),
+            ),
+        ).toEqual('HELLO_WORLD');
     });
 
     it('can normalize word with numbers', () => {

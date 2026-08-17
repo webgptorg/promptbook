@@ -162,8 +162,7 @@ const INLINE_REFERENCE_MENU_OPTION_MARKER_ATTRIBUTE = 'data-promptbook-inline-re
  *
  * @private utility shared with `MarkdownContent`
  */
-export const MARKDOWN_INLINE_REFERENCE_MENU_ACTION_ATTRIBUTE =
-    'data-promptbook-inline-reference-menu-action';
+export const MARKDOWN_INLINE_REFERENCE_MENU_ACTION_ATTRIBUTE = 'data-promptbook-inline-reference-menu-action';
 
 /**
  * Attribute identifying the inline reference which owns a client menu action.
@@ -1159,9 +1158,7 @@ function createMarkdownInlineReferenceTextAliasRegex(
     const escapedAlias = escapeRegularExpression(sourceTextAlias);
     const boundaryCharacterClass = '\\p{L}\\p{N}_-';
     const boundaryPattern = `[^${boundaryCharacterClass}]`;
-    const aliasPattern = isMarkdownFormattingMatched
-        ? `(?:\\*\\*|__)${escapedAlias}(?:\\*\\*|__)`
-        : escapedAlias;
+    const aliasPattern = isMarkdownFormattingMatched ? `(?:\\*\\*|__)${escapedAlias}(?:\\*\\*|__)` : escapedAlias;
 
     return new RegExp(`(^|${boundaryPattern})${aliasPattern}(?=$|${boundaryPattern})`, 'giu');
 }
@@ -1645,11 +1642,7 @@ function applyMarkdownInlineReferences(markdown: string_markdown, options?: Rend
         const { masked: markdownWithMaskedLinksAndUrls, restore: restoreLinksAndUrls } =
             maskMarkdownLinksAndBareUrls(referencedMarkdown);
         referencedMarkdown = restoreLinksAndUrls(
-            replaceMarkdownInlineReferenceTextAliases(
-                markdownWithMaskedLinksAndUrls,
-                textMatchers,
-                createPlaceholder,
-            ),
+            replaceMarkdownInlineReferenceTextAliases(markdownWithMaskedLinksAndUrls, textMatchers, createPlaceholder),
         );
     }
 

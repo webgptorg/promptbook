@@ -314,9 +314,8 @@ export const MarkdownContent = memo(function MarkdownContent(props: MarkdownCont
         containerElement.addEventListener('click', handleSummaryClick);
         containerElement.addEventListener('click', handleInlineReferenceMenuActionClick);
 
-        const inlineReferenceIconImages = containerElement.querySelectorAll<HTMLImageElement>(
-            INLINE_REFERENCE_ICON_SELECTOR,
-        );
+        const inlineReferenceIconImages =
+            containerElement.querySelectorAll<HTMLImageElement>(INLINE_REFERENCE_ICON_SELECTOR);
         const handleInlineReferenceIconError = (event: Event) => {
             if (event.currentTarget instanceof HTMLImageElement) {
                 event.currentTarget.hidden = true;

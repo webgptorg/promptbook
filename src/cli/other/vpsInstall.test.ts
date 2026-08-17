@@ -478,10 +478,12 @@ describe('install.sh', () => {
         expect(installScript).toContain('wait_for_agents_server_health');
         expect(installScript).toContain('switch_nginx_to_agents_server_port "$replacement_port"');
         expect(installScript).toContain('stop_pm2_process_if_running "$old_app_name"');
-        expect(installScript).not.toContain(spaceTrim(`
+        expect(installScript).not.toContain(
+            spaceTrim(`
             trap '
                     local exit_code=$?
-        `));
+        `),
+        );
     });
 
     it('keeps the installer entrypoint safe when the script is executed from stdin', () => {

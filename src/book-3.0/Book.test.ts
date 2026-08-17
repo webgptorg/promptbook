@@ -105,8 +105,7 @@ describe('how `Book` works', () => {
             },
             {
                 sender: 'AGENT',
-                content:
-                    spaceTrim(`
+                content: spaceTrim(`
                         Short answer
                         The procedure requires approval in advance.
 

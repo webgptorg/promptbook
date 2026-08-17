@@ -155,29 +155,45 @@ describe('unwrapResult', () => {
     });
 
     it('should extract content from single markdown code block', () => {
-        expect(unwrapResult(spaceTrim(`
+        expect(
+            unwrapResult(
+                spaceTrim(`
             \`\`\`
             Unwrapped text
             \`\`\`
-        `))).toBe('Unwrapped text');
+        `),
+            ),
+        ).toBe('Unwrapped text');
     });
 
     it('should extract content from single markdown code block with language', () => {
-        expect(unwrapResult(spaceTrim(`
+        expect(
+            unwrapResult(
+                spaceTrim(`
             \`\`\`foo
             Unwrapped text
             \`\`\`
-        `))).toBe('Unwrapped text');
-        expect(unwrapResult(spaceTrim(`
+        `),
+            ),
+        ).toBe('Unwrapped text');
+        expect(
+            unwrapResult(
+                spaceTrim(`
             \`\`\`javascript
             const x = 1;
             \`\`\`
-        `))).toBe('const x = 1;');
-        expect(unwrapResult(spaceTrim(`
+        `),
+            ),
+        ).toBe('const x = 1;');
+        expect(
+            unwrapResult(
+                spaceTrim(`
             \`\`\`python
             print("hello")
             \`\`\`
-        `))).toBe('print("hello")');
+        `),
+            ),
+        ).toBe('print("hello")');
     });
 
     it('should extract content from single markdown code block with whitespace', () => {

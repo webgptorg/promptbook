@@ -16,10 +16,12 @@ describe('refineFinalDictationChunk', () => {
             refineFinalDictationChunk('um hello new line bullet promptbook', DEFAULT_TEST_SETTINGS, {
                 promptbook: 'Promptbook',
             }),
-        ).toBe(spaceTrim(`
+        ).toBe(
+            spaceTrim(`
             Hello
             - Promptbook.
-        `));
+        `),
+        );
     });
 
     it('keeps optional filler cleanup disabled by default', () => {

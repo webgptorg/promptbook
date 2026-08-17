@@ -4,7 +4,8 @@ import { resolveRunBrowserArtifactUrl } from './toolCallParsing/resolveRunBrowse
 
 describe('toolCallParsing run_browser helpers', () => {
     it('parses embedded run_browser JSON payload from markdown', () => {
-        const result = parseRunBrowserToolResult(spaceTrim(`
+        const result = parseRunBrowserToolResult(
+            spaceTrim(`
 # Browser run completed
 
 \`\`\`json
@@ -29,7 +30,8 @@ describe('toolCallParsing run_browser helpers', () => {
   ]
 }
 \`\`\`
-        `));
+        `),
+        );
 
         expect(result).toMatchObject({
             sessionId: 'agents-server-run-browser-000',
@@ -46,7 +48,8 @@ describe('toolCallParsing run_browser helpers', () => {
     });
 
     it('parses legacy markdown run_browser output', () => {
-        const result = parseRunBrowserToolResult(spaceTrim(`
+        const result = parseRunBrowserToolResult(
+            spaceTrim(`
 # Browser run completed
 
 **Session:** agents-server-run-browser-111
@@ -66,7 +69,8 @@ describe('toolCallParsing run_browser helpers', () => {
 
 - 1. {"type":"wait","milliseconds":250}
 - 2. {"type":"click","selector":"#submit"}
-        `));
+        `),
+        );
 
         expect(result?.sessionId).toBe('agents-server-run-browser-111');
         expect(result?.modeUsed).toBeNull();
@@ -75,7 +79,8 @@ describe('toolCallParsing run_browser helpers', () => {
     });
 
     it('keeps structured error payload and extracted fallback content', () => {
-        const result = parseRunBrowserToolResult(spaceTrim(`
+        const result = parseRunBrowserToolResult(
+            spaceTrim(`
 # Browser run completed with fallback
 
 **Session:** agents-server-run-browser-222
@@ -115,7 +120,8 @@ Fallback body
   }
 }
 \`\`\`
-        `));
+        `),
+        );
 
         expect(result?.modeUsed).toBe('fallback');
         expect(result?.warning).toBe('Dynamic content may be missing');

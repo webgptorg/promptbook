@@ -58,9 +58,13 @@ describe('countCharacters', () => {
 
     it('should return the correct count for a string with whitespace characters', () => {
         expect(countCharacters('Hello world')).toBe(11);
-        expect(countCharacters(spaceTrim(`
+        expect(
+            countCharacters(
+                spaceTrim(`
             Hello
             world
-        `))).toBe(11);
+        `),
+            ),
+        ).toBe(11);
     });
 });

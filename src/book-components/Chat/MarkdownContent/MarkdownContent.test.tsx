@@ -204,9 +204,7 @@ describe('MarkdownContent details rendering', () => {
 
         const details = container.querySelector<HTMLDetailsElement>('details');
         const summary = details?.querySelector('summary');
-        const faviconImage = container.querySelector<HTMLImageElement>(
-            'img[data-promptbook-inline-reference-icon]',
-        );
+        const faviconImage = container.querySelector<HTMLImageElement>('img[data-promptbook-inline-reference-icon]');
 
         expect(summary?.textContent).toContain('Website');
         expect(container.querySelector('.inlineReferenceIconFallback')?.textContent).toBe('W');

@@ -26,10 +26,7 @@ export type NormalizedHarnessUpdateCliOptions = {
  * @private internal utility of `promptbookCli`
  */
 export function addHarnessUpdateOption(command: Program): void {
-    command.option(
-        '--no-harness-update',
-        'Skip checking whether globally installed coding harnesses are up to date',
-    );
+    command.option('--no-harness-update', 'Skip checking whether globally installed coding harnesses are up to date');
 }
 
 /**

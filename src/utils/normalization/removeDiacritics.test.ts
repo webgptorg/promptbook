@@ -15,10 +15,14 @@ describe('how stripping of diacritics works', () => {
         expect(removeDiacritics(``)).toEqual(``);
         expect(removeDiacritics(` `)).toEqual(` `);
         expect(
-            removeDiacritics(spaceTrim(` .
-        .`)),
-        ).toEqual(spaceTrim(` .
-        .`));
+            removeDiacritics(
+                spaceTrim(` .
+        .`),
+            ),
+        ).toEqual(
+            spaceTrim(` .
+        .`),
+        );
         expect(removeDiacritics(` ě ě`)).toEqual(` e e`);
     });
 });

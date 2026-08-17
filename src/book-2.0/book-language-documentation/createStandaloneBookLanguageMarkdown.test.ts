@@ -65,16 +65,20 @@ RULE Cite every factual claim.`) as string_book,
         expect(markdown).toContain('Start and end with <code>```</code>');
         expect(markdown).toContain('`@Foo` and `{Foo foo}` reference another agent; they are not parameter notation.');
         expect(markdown).not.toContain('Commitment keywords currently recognized');
-        expect(markdown).toContain(spaceTrim(`
+        expect(markdown).toContain(
+            spaceTrim(`
             Customer Support Agent
 
             RULE Always ask for clarification
-        `));
-        expect(markdown).toContain(spaceTrim(`
+        `),
+        );
+        expect(markdown).toContain(
+            spaceTrim(`
             RULE Never provide medical or legal advice
 
             CLOSED
-        `));
+        `),
+        );
         expect(markdown).not.toContain('RULES Never provide medical or legal advice');
         expect(markdown).toContain('NOTE Remember to update the knowledge base monthly');
         expect(markdown).not.toContain('COMMENT Remember to update the knowledge base monthly');

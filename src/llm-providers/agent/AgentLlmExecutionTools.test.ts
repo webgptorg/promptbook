@@ -77,13 +77,15 @@ describe('AgentLlmExecutionTools', () => {
 
         expect(callChatModelMock).toHaveBeenCalledTimes(1);
         const forwardedPrompt = callChatModelMock.mock.calls[0]![0] as Prompt;
-        expect(forwardedPrompt.content).toBe(spaceTrim(`
+        expect(forwardedPrompt.content).toBe(
+            spaceTrim(`
             Please answer plainly.
 
             -   Rule 1
             -   Rule 2
             -   Rule 3
-        `));
+        `),
+        );
     });
 
     it('merges runtime prompt tools with tools coming from agent commitments', async () => {

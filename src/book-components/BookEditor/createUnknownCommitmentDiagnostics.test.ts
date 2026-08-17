@@ -6,7 +6,8 @@ import { createUnknownCommitmentDiagnostics } from './createUnknownCommitmentDia
 describe('createUnknownCommitmentDiagnostics', () => {
     it('creates error diagnostics for unknown commitment keywords only', () => {
         const diagnostics = createUnknownCommitmentDiagnostics(
-            validateBook(spaceTrim(`
+            validateBook(
+                spaceTrim(`
                 Generic chatter
 
                 GOAL Keep your projects up to date
@@ -18,7 +19,8 @@ describe('createUnknownCommitmentDiagnostics', () => {
                 Content of unknown commitment bar bzz
 
                 CLOSED
-            `)),
+            `),
+            ),
         );
 
         expect(diagnostics).toEqual([
@@ -45,7 +47,8 @@ describe('createUnknownCommitmentDiagnostics', () => {
 
     it('does not report uppercase content inside a code block', () => {
         const diagnostics = createUnknownCommitmentDiagnostics(
-            validateBook(spaceTrim(`
+            validateBook(
+                spaceTrim(`
                 Code Agent
 
                 GOAL Preserve the literal code block.
@@ -53,7 +56,8 @@ describe('createUnknownCommitmentDiagnostics', () => {
                 FOO
                 \`\`\`
                 CLOSED
-            `)),
+            `),
+            ),
         );
 
         expect(diagnostics).toEqual([]);

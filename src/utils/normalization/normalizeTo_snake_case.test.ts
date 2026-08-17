@@ -15,10 +15,14 @@ describe('how normalizing to snake_case works', () => {
         expect(normalizeTo_snake_case('hello_/_world')).toEqual('hello_world');
         expect(normalizeTo_snake_case('hello_\\_world')).toEqual('hello_world');
         expect(normalizeTo_snake_case('hello.world')).toEqual('hello_world');
-        expect(normalizeTo_snake_case(spaceTrim(`
+        expect(
+            normalizeTo_snake_case(
+                spaceTrim(`
             hello
             world
-        `))).toEqual('hello_world');
+        `),
+            ),
+        ).toEqual('hello_world');
     });
 
     it('can normalize word with numbers', () => {

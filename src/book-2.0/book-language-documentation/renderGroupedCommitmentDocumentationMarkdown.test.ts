@@ -52,15 +52,19 @@ describe('renderGroupedCommitmentDocumentationMarkdown', () => {
 
         const markdown = renderGroupedCommitmentDocumentationMarkdown(internalMessageGroup!);
 
-        expect(markdown).toContain(spaceTrim(`
+        expect(markdown).toContain(
+            spaceTrim(`
             \`\`\`book
             INTERNAL MESSAGE {
-        `));
+        `),
+        );
         expect(markdown).toContain('\nCLOSED\n```');
-        expect(markdown).not.toContain(spaceTrim(`
+        expect(markdown).not.toContain(
+            spaceTrim(`
             \`\`\`book
             USER MESSAGE
-        `));
+        `),
+        );
     });
 
     it('focuses compound commitment keywords before their shorter prefixes', () => {
@@ -70,7 +74,8 @@ describe('renderGroupedCommitmentDocumentationMarkdown', () => {
 
         const markdown = renderGroupedCommitmentDocumentationMarkdown(metaVoiceGroup!);
 
-        expect(markdown).toContain(spaceTrim(`
+        expect(markdown).toContain(
+            spaceTrim(`
             \`\`\`book
             Friendly Assistant
 
@@ -78,13 +83,16 @@ describe('renderGroupedCommitmentDocumentationMarkdown', () => {
 
             CLOSED
             \`\`\`
-        `));
-        expect(markdown).not.toContain(spaceTrim(`
+        `),
+        );
+        expect(markdown).not.toContain(
+            spaceTrim(`
             \`\`\`book
             Friendly Assistant
 
             META VOICE 21m00Tcm4TlvDq8ikWAM
             PERSONA
-        `));
+        `),
+        );
     });
 });

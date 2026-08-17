@@ -1,7 +1,6 @@
 'use client';
 import { spaceTrim } from 'spacetrim';
 
-
 import type { Feature, GeoJsonObject, GeoJsonProperties, Geometry } from 'geojson';
 import type { LatLng, Layer, Map as LeafletMap, Path, PathOptions } from 'leaflet';
 import { Maximize2, X } from 'lucide-react';

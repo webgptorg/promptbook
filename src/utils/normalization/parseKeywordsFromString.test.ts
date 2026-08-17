@@ -15,12 +15,14 @@ describe('how parsing of keywords from string works', () => {
     it('can parse keywords with complex whitespacing', () => {
         expect(parseKeywordsFromString('    foo    bar')).toEqual(new Set(['foo', 'bar']));
         expect(
-            parseKeywordsFromString(spaceTrim(`    foo
+            parseKeywordsFromString(
+                spaceTrim(`    foo
        bar
 
 
 
-      `)),
+      `),
+            ),
         ).toEqual(new Set(['foo', 'bar']));
     });
 

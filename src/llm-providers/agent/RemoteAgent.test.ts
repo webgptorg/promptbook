@@ -134,10 +134,12 @@ describe('RemoteAgent stream parsing', () => {
                 progressChunks.push(chunk.content);
             });
 
-            expect(result.content).toBe(spaceTrim(`
+            expect(result.content).toBe(
+                spaceTrim(`
                 Activation code: A_748_192 bro.
                 Bypass code: B_7QK_4M2 bro.
-            `));
+            `),
+            );
             expect(result.content).not.toContain('toolCalls');
             expect(result.toolCalls).toHaveLength(1);
             expect(result.toolCalls?.[0]?.name).toBe('team_chat_c467984b9a');

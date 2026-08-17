@@ -15,10 +15,14 @@ describe('how normalizing to camelCase works', () => {
         expect(normalizeTo_camelCase('hello_/_world')).toEqual('helloWorld');
         expect(normalizeTo_camelCase('hello_\\_world')).toEqual('helloWorld');
         expect(normalizeTo_camelCase('hello.world')).toEqual('helloWorld');
-        expect(normalizeTo_camelCase(spaceTrim(`
+        expect(
+            normalizeTo_camelCase(
+                spaceTrim(`
             hello
             world
-        `))).toEqual('helloWorld');
+        `),
+            ),
+        ).toEqual('helloWorld');
     });
 
     it('can normalize word with numbers', () => {

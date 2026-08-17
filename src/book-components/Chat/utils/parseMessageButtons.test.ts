@@ -4,11 +4,13 @@ import { parseMessageButtons } from './parseMessageButtons';
 
 describe('parseMessageButtons', () => {
     it('parses message quick buttons without changing existing syntax', () => {
-        const result = parseMessageButtons(spaceTrim(`
+        const result = parseMessageButtons(
+            spaceTrim(`
             Hello
 
             [Ask](?message=Hello%20there)
-        `));
+        `),
+        );
 
         expect(result.contentWithoutButtons).toBe('Hello');
         expect(result.buttons).toEqual([
@@ -21,11 +23,13 @@ describe('parseMessageButtons', () => {
     });
 
     it('parses message-draft quick buttons without changing existing syntax', () => {
-        const result = parseMessageButtons(spaceTrim(`
+        const result = parseMessageButtons(
+            spaceTrim(`
             Hello
 
             [Draft](?messageDraft=Write%20me%20a%20claim)
-        `));
+        `),
+        );
 
         expect(result.contentWithoutButtons).toBe('Hello');
         expect(result.buttons).toEqual([
@@ -88,17 +92,21 @@ describe('parseMessageButtons', () => {
     });
 
     it('leaves unsupported query links in message content', () => {
-        const result = parseMessageButtons(spaceTrim(`
+        const result = parseMessageButtons(
+            spaceTrim(`
             Hello
 
             [Regular](?foo=bar)
-        `));
+        `),
+        );
 
-        expect(result.contentWithoutButtons).toBe(spaceTrim(`
+        expect(result.contentWithoutButtons).toBe(
+            spaceTrim(`
             Hello
 
             [Regular](?foo=bar)
-        `));
+        `),
+        );
         expect(result.buttons).toEqual([]);
     });
 });

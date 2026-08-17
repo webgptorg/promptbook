@@ -5,12 +5,14 @@ import { validateBook } from './string_book';
 
 describe('parseAgentSourceWithCommitments USE commitments', () => {
     it('keeps bare or unknown USE-prefixed lines as unknown commitment blocks', () => {
-        const agentSource = validateBook(spaceTrim(`
+        const agentSource = validateBook(
+            spaceTrim(`
             API Agent
             USE
             USE API Experimental API access
             USE PRIVACY
-        `));
+        `),
+        );
 
         const result = parseAgentSourceWithCommitments(agentSource);
 
