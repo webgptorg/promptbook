@@ -7,6 +7,7 @@ export { getAgentScopedUserChatTimeout } from './userChatTimeoutStore/getAgentSc
 export { getUserChatTimeout } from './userChatTimeoutStore/getUserChatTimeout';
 export { getUserChatTimeoutById } from './userChatTimeoutStore/getUserChatTimeoutById';
 export { listAgentUserChatTimeouts } from './userChatTimeoutStore/listAgentUserChatTimeouts';
+export { listAllUserChatTimeouts } from './userChatTimeoutStore/listAllUserChatTimeouts';
 export { listUserChatTimeoutActivities } from './userChatTimeoutStore/listUserChatTimeoutActivities';
 export { listUserChatTimeouts } from './userChatTimeoutStore/listUserChatTimeouts';
 export { markUserChatTimeoutCancelled } from './userChatTimeoutStore/markUserChatTimeoutCancelled';

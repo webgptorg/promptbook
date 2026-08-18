@@ -150,6 +150,16 @@ export type ListUserChatTimeoutsOptions = {
 };
 
 /**
+ * Query options for listing the timeouts of every agent on the server.
+ */
+export type ListAllUserChatTimeoutsOptions = {
+    /**
+     * Largest number of rows to return, newest first.
+     */
+    limit: number;
+};
+
+/**
  * Query options for loading one timeout scoped only to user + agent.
  */
 export type GetAgentScopedUserChatTimeoutOptions = {

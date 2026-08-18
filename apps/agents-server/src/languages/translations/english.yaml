@@ -173,6 +173,7 @@ header.chatHistory: Chat history
 header.usageAnalytics: Usage analytics
 header.taskManager: Task manager
 header.vpsTaskManager: Task manager (all servers)
+header.plannedMessageManager: Planned messages
 header.messagesEmails: Messages & Emails
 header.emailServer: Email server
 header.backups: Backups

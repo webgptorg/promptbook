@@ -1,6 +1,7 @@
+import { setAgentScopedUserChatTimeoutPausedState } from './setAgentScopedUserChatTimeoutPausedState';
 import type { UserChatTimeoutStatus, UserChatTimeoutRecord } from './UserChatTimeoutRecord';
-import { listAgentUserChatTimeouts, updateAgentScopedUserChatTimeout } from './userChatTimeoutStore';
-import { cancelScheduledUserChatTimeout, notifyUserChatTimeoutScheduleChanged } from './userChatTimeoutWorker';
+import { listAgentUserChatTimeouts } from './userChatTimeoutStore';
+import { cancelScheduledUserChatTimeout } from './userChatTimeoutWorker';
 
 /**
  * Number of timeout rows loaded per page while collecting bulk-mutation targets.
@@ -68,22 +69,18 @@ export async function pauseAllActiveAgentScopedUserChatTimeouts(options: {
         statuses: ['QUEUED'],
         paused: false,
     });
-    const pausedAtIso = new Date().toISOString();
     const pausedTimeoutIds: Array<string> = [];
 
     for (const timeout of collectedTimeouts.timeouts) {
-        const updatedTimeout = await updateAgentScopedUserChatTimeout({
+        const pauseResult = await setAgentScopedUserChatTimeoutPausedState({
             userId: options.userId,
             agentPermanentId: options.agentPermanentId,
             timeoutId: timeout.timeoutId,
-            patch: {
-                pausedAt: pausedAtIso,
-            },
+            isPaused: true,
         });
 
-        if (updatedTimeout && updatedTimeout.pausedAt) {
-            notifyUserChatTimeoutScheduleChanged(updatedTimeout);
-            pausedTimeoutIds.push(updatedTimeout.timeoutId);
+        if (pauseResult.isApplied) {
+            pausedTimeoutIds.push(pauseResult.plannedMessage.timeoutId);
         }
     }
 
@@ -111,18 +108,15 @@ export async function resumeAllPausedAgentScopedUserChatTimeouts(options: {
     const resumedTimeoutIds: Array<string> = [];
 
     for (const timeout of collectedTimeouts.timeouts) {
-        const updatedTimeout = await updateAgentScopedUserChatTimeout({
+        const resumeResult = await setAgentScopedUserChatTimeoutPausedState({
             userId: options.userId,
             agentPermanentId: options.agentPermanentId,
             timeoutId: timeout.timeoutId,
-            patch: {
-                pausedAt: null,
-            },
+            isPaused: false,
         });
 
-        if (updatedTimeout && !updatedTimeout.pausedAt) {
-            notifyUserChatTimeoutScheduleChanged(updatedTimeout);
-            resumedTimeoutIds.push(updatedTimeout.timeoutId);
+        if (resumeResult.isApplied) {
+            resumedTimeoutIds.push(resumeResult.plannedMessage.timeoutId);
         }
     }
 

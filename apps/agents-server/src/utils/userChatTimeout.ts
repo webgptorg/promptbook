@@ -14,6 +14,7 @@ export {
     getUserChatTimeout,
     getUserChatTimeoutById,
     listAgentUserChatTimeouts,
+    listAllUserChatTimeouts,
     listUserChatTimeouts,
     markUserChatTimeoutCancelled,
     markUserChatTimeoutCompleted,
@@ -40,12 +41,18 @@ export {
     resolvePlannedMessageDueAt,
 } from './userChatTimeout/plannedMessageSchedule';
 export type { PlannedMessageSchedule, PlannedMessageScheduleInput } from './userChatTimeout/plannedMessageSchedule';
+export { setAgentScopedUserChatTimeoutPausedState } from './userChatTimeout/setAgentScopedUserChatTimeoutPausedState';
+export type {
+    SetAgentScopedUserChatTimeoutPausedStateOptions,
+    SetAgentScopedUserChatTimeoutPausedStateResult,
+} from './userChatTimeout/setAgentScopedUserChatTimeoutPausedState';
 export { triggerUserChatTimeoutWorker } from './userChatTimeout/triggerUserChatTimeoutWorker';
 export type {
     CreateUserChatTimeoutOptions,
     GetAgentScopedUserChatTimeoutOptions,
     GetUserChatTimeoutOptions,
     ListAgentUserChatTimeoutsOptions,
+    ListAllUserChatTimeoutsOptions,
     ListUserChatTimeoutsOptions,
     UpdateAgentScopedUserChatTimeoutOptions,
     UpdateAgentScopedUserChatTimeoutPatch,

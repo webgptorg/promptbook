@@ -16,7 +16,7 @@ import {
 import { TaskManagerTaskLogActions } from '../TaskManagerTaskLogActions';
 import { TaskManagerTaskTargetLink } from '../TaskManagerTaskTargetLink';
 import { TaskManagerTaskTerminalDialog } from '../TaskManagerTaskTerminalDialog';
-import { SERVER_TASK_MANAGER_PATH, VPS_TASK_MANAGER_PATH } from '../TaskManagerScopeTabs';
+import { SERVER_TASK_MANAGER_PATH, VPS_TASK_MANAGER_PATH } from '../../_components/AdminTaskManagerTabs';
 import {
     buildTaskRunReportRows,
     formatTaskDateTime,

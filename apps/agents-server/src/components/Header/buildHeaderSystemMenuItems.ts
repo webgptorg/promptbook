@@ -1,5 +1,6 @@
 import {
     Activity,
+    AlarmClock,
     Archive,
     BadgeInfo,
     BarChart3,
@@ -137,6 +138,7 @@ type SystemMenuItemHref =
     | '/admin/usage'
     | '/admin/task-manager'
     | '/superadmin/task-manager'
+    | '/admin/planned-messages'
     | '/admin/chat-history'
     | '/admin/chat-feedback'
     | '/admin/api-tokens'
@@ -239,6 +241,7 @@ const SYSTEM_MENU_ICON_BY_HREF: Record<SystemMenuItemHref, LucideIcon> = {
     '/admin/usage': ChartNoAxesColumn,
     '/admin/task-manager': ClipboardList,
     '/superadmin/task-manager': ServerCog,
+    '/admin/planned-messages': AlarmClock,
     '/admin/chat-history': History,
     '/admin/chat-feedback': MessageCircle,
     '/admin/api-tokens': KeyRound,
@@ -647,6 +650,10 @@ export function buildHeaderSystemMenuItems({
                   } as SubMenuItem,
               ]
             : []),
+        {
+            label: translate('header.plannedMessageManager'),
+            href: '/admin/planned-messages',
+        },
         {
             label: translate('header.chatHistory'),
             href: '/admin/chat-history',

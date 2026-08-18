@@ -4,7 +4,12 @@ import { $fetchVpsAdminChatTasks } from '@/src/utils/chatTasksAdmin';
 import { Card } from '../../../components/Homepage/Card';
 import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
 import { TaskManagerFiltersCard } from './TaskManagerFiltersCard';
-import { SERVER_TASK_MANAGER_PATH, TaskManagerScopeTabs, VPS_TASK_MANAGER_PATH, type TaskManagerScope } from './TaskManagerScopeTabs';
+import {
+    AdminTaskManagerTabs,
+    SERVER_TASK_MANAGER_PATH,
+    VPS_TASK_MANAGER_PATH,
+    type TaskManagerScope,
+} from '../_components/AdminTaskManagerTabs';
 import { TaskManagerSummaryMetrics } from './TaskManagerSummaryMetrics';
 import { TaskManagerTasksCard } from './TaskManagerTasksCard';
 import { useTaskManagerState } from './useTaskManagerState';
@@ -42,7 +47,7 @@ export function TaskManagerClient({ isSuperAdmin, scope = 'server' }: TaskManage
     return (
         <div className="container mx-auto space-y-6 px-4 py-8">
             <div className="mt-20">
-                <TaskManagerScopeTabs activeScope={scope} isSuperAdmin={isSuperAdmin} />
+                <AdminTaskManagerTabs activeTabId={scope} isSuperAdmin={isSuperAdmin} />
             </div>
 
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">

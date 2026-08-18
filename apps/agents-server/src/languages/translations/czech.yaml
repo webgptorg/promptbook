@@ -171,6 +171,7 @@ header.chatHistory: Historie chatů
 header.usageAnalytics: Analytika využití
 header.taskManager: Správa úloh
 header.vpsTaskManager: Správa úloh (všechny servery)
+header.plannedMessageManager: Naplánované zprávy
 header.messagesEmails: Zprávy a e-maily
 header.emailServer: E-mailový server
 header.backups: Zálohy

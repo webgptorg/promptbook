@@ -177,6 +177,7 @@ export const SERVER_TRANSLATION_KEYS = [
     'header.usageAnalytics',
     'header.taskManager',
     'header.vpsTaskManager',
+    'header.plannedMessageManager',
     'header.messagesEmails',
     'header.emailServer',
     'header.backups',

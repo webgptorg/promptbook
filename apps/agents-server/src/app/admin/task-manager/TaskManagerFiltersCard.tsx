@@ -1,6 +1,6 @@
 import type { AdminChatTaskView } from '@/src/utils/chatTasksAdmin';
-import type { ReactNode } from 'react';
 import { Card } from '../../../components/Homepage/Card';
+import { AdminFilterField, AdminFilterSelectField } from '../_components/AdminFilterFields';
 import type { useTaskManagerState } from './useTaskManagerState';
 
 /**
@@ -21,31 +21,6 @@ type TaskViewOption = {
  */
 type TaskManagerFiltersCardProps = {
     state: ReturnType<typeof useTaskManagerState>;
-};
-
-/**
- * Props for the shared field wrapper.
- *
- * @private function of TaskManagerFiltersCard
- */
-type FieldProps = {
-    children: ReactNode;
-    htmlFor: string;
-    label: string;
-};
-
-/**
- * Props for the shared select field.
- *
- * @private function of TaskManagerFiltersCard
- */
-type SelectFieldProps = {
-    disabled?: boolean;
-    id: string;
-    label: string;
-    onChange: (value: string) => void;
-    options: Array<{ label: string; value: string }>;
-    value: string;
 };
 
 /**
@@ -109,47 +84,6 @@ const TASK_TIME_WINDOW_OPTIONS = [
 ];
 
 /**
- * Shared field wrapper for compact filter controls.
- *
- * @private function of TaskManagerFiltersCard
- */
-function Field({ children, htmlFor, label }: FieldProps) {
-    return (
-        <div className="flex flex-col gap-1">
-            <label htmlFor={htmlFor} className="text-sm font-medium text-gray-700">
-                {label}
-            </label>
-            {children}
-        </div>
-    );
-}
-
-/**
- * Shared select field used in the filter panel.
- *
- * @private function of TaskManagerFiltersCard
- */
-function SelectField({ disabled, id, label, onChange, options, value }: SelectFieldProps) {
-    return (
-        <Field label={label} htmlFor={id}>
-            <select
-                id={id}
-                value={value}
-                disabled={disabled}
-                onChange={(event) => onChange(event.target.value)}
-                className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
-            >
-                {options.map((option) => (
-                    <option key={option.value} value={option.value}>
-                        {option.label}
-                    </option>
-                ))}
-            </select>
-        </Field>
-    );
-}
-
-/**
  * Resolves the current explanatory text for the selected task view.
  *
  * @private function of TaskManagerFiltersCard
@@ -196,7 +130,7 @@ export function TaskManagerFiltersCard({ state }: TaskManagerFiltersCardProps) {
                 </div>
 
                 <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_repeat(4,minmax(0,1fr))]">
-                    <Field label="Search" htmlFor="task-search">
+                    <AdminFilterField label="Search" htmlFor="task-search">
                         <input
                             id="task-search"
                             type="text"
@@ -205,9 +139,9 @@ export function TaskManagerFiltersCard({ state }: TaskManagerFiltersCardProps) {
                             placeholder="Task id / chat id / user id / agent id"
                             className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
-                    </Field>
+                    </AdminFilterField>
 
-                    <SelectField
+                    <AdminFilterSelectField
                         id="task-page-size"
                         label="Page size"
                         value={String(state.pageSize)}
@@ -215,7 +149,7 @@ export function TaskManagerFiltersCard({ state }: TaskManagerFiltersCardProps) {
                         options={TASK_PAGE_SIZE_OPTIONS}
                     />
 
-                    <SelectField
+                    <AdminFilterSelectField
                         id="task-poll-interval"
                         label="Auto-refresh"
                         value={String(state.pollIntervalMs)}
@@ -223,7 +157,7 @@ export function TaskManagerFiltersCard({ state }: TaskManagerFiltersCardProps) {
                         options={TASK_POLL_INTERVAL_OPTIONS}
                     />
 
-                    <SelectField
+                    <AdminFilterSelectField
                         id="task-stuck-threshold"
                         label="Stuck after"
                         value={String(state.stuckThresholdMinutes)}
@@ -231,7 +165,7 @@ export function TaskManagerFiltersCard({ state }: TaskManagerFiltersCardProps) {
                         options={TASK_STUCK_THRESHOLD_OPTIONS}
                     />
 
-                    <SelectField
+                    <AdminFilterSelectField
                         id="task-time-window"
                         label="All window"
                         value={String(state.timeWindowHours)}

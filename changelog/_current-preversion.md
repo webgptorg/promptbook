@@ -1,3 +1,22 @@
+-   Added a **planned-message manager** to the Agents Server, so an administrator can finally see and steer every
+    timeout every agent planned — not only the one agent whose goal chat happens to be open. It lives in the same tab
+    group as the task manager, because the task manager answers "what is running right now" while this answers "what
+    keeps making it run".
+
+    -   **The whole life of a plan, in one place.** Planned messages are listed with the wake-ups still ahead, the ones
+        whose starting date has not arrived yet, the ones waking an agent right now, the ones being held back, and the
+        ones that are over — whether they were cancelled, ran out of runs, or passed their ending date. A finished plan
+        keeps its row and says which of those three ended it, so the manager also answers what a planned message did
+        before it stopped.
+    -   **Steering, not just watching.** Any planned message of any agent can be re-planned, held back and let go
+        again, or cancelled. Re-planning goes through the very same planned-message service an agent re-plans itself
+        with, so an administrator can never write a schedule the agent itself could not have written, and a planned
+        message that is firing at that very moment says so instead of quietly losing the change.
+    -   **Filters made of the plan itself.** The listing narrows by stage, by agent, by how often a message repeats
+        (a fixed interval, a cron, or a single wake-up), by when it last woke its agent, and by free text over the
+        message, its agent, its chat, and its owner. Every row links straight to the agent that planned it and to the
+        chat it wakes.
+
 -   Turned Agents Server planned messages from "repeats every N milliseconds until cancelled" into a real schedule, so
     an agent can plan a message that repeats, one that runs exactly once, and anything between the two. Each planned
     message can now carry a **cron expression**, a **total number of runs**, and a **starting and ending date**, and it
