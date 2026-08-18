@@ -1,3 +1,6 @@
+import type { AgentMessageProjectChange } from '../../../utils/agent-message-runtime/AgentMessageProjectChange';
+import { normalizeAgentMessageProjectChange } from '../../../utils/agent-message-runtime/AgentMessageProjectChange';
+
 /**
  * Synthetic tool name used for agent-project chips in chat UI.
  *
@@ -10,6 +13,9 @@ export const AGENT_PROJECT_TOOL_CALL_NAME = 'agent_project_touched';
 
 /**
  * Safe, user-facing metadata shown in agent-project chips.
+ *
+ * Everything besides the project name is optional, because a chip written by an older server — or
+ * one whose project has meanwhile been deleted — still has to render.
  *
  * @private internal chat-ui type for touched agent projects
  */
@@ -25,9 +31,52 @@ export type AgentProjectToolCallResult = {
     readonly displayName?: string;
 
     /**
+     * Short project description, resolved the same way as on the project page.
+     */
+    readonly description?: string;
+
+    /**
      * Link to the project page, when the chat knows where the project lives.
      */
     readonly projectHref?: string;
+
+    /**
+     * Address the running project itself is served on, when it has one.
+     */
+    readonly projectUrl?: string;
+
+    /**
+     * Whether the project was running when the answer finished.
+     */
+    readonly isRunning?: boolean;
+
+    /**
+     * Runtime status label, the same one the project page shows.
+     */
+    readonly runtimeStatusLabel?: string;
+
+    /**
+     * Total size of the project, already formatted for display.
+     */
+    readonly sizeLabel?: string;
+
+    /**
+     * Count of files inside the project.
+     */
+    readonly fileCount?: number;
+
+    /**
+     * Whether the project folder is a git repository.
+     */
+    readonly isGitRepository?: boolean;
+
+    /**
+     * What this very message changed in the project, when it changed anything.
+     *
+     * Its `projectName` repeats the one above because the change is reported by the agent runner
+     * in exactly this shape, and reusing it keeps the two descriptions from drifting apart.
+     */
+    readonly change?: AgentMessageProjectChange;
 };
 
 /**
@@ -48,15 +97,43 @@ export function parseAgentProjectToolCallResult(result: unknown): AgentProjectTo
         return null;
     }
 
+    const change = normalizeAgentMessageProjectChange(candidate.change);
+
     return {
         projectName: candidate.projectName.trim(),
-        ...(typeof candidate.displayName === 'string' && candidate.displayName.trim().length > 0
-            ? { displayName: candidate.displayName.trim() }
+        ...pickTrimmedText('displayName', candidate.displayName),
+        ...pickTrimmedText('description', candidate.description),
+        ...pickTrimmedText('projectHref', candidate.projectHref),
+        ...pickTrimmedText('projectUrl', candidate.projectUrl),
+        ...pickTrimmedText('runtimeStatusLabel', candidate.runtimeStatusLabel),
+        ...pickTrimmedText('sizeLabel', candidate.sizeLabel),
+        ...(typeof candidate.isRunning === 'boolean' ? { isRunning: candidate.isRunning } : {}),
+        ...(typeof candidate.isGitRepository === 'boolean' ? { isGitRepository: candidate.isGitRepository } : {}),
+        ...(typeof candidate.fileCount === 'number' && Number.isFinite(candidate.fileCount) && candidate.fileCount >= 0
+            ? { fileCount: candidate.fileCount }
             : {}),
-        ...(typeof candidate.projectHref === 'string' && candidate.projectHref.trim().length > 0
-            ? { projectHref: candidate.projectHref.trim() }
-            : {}),
+        ...(change ? { change } : {}),
     };
+}
+
+/**
+ * Keeps one optional text field only when it carries content.
+ *
+ * @param fieldName - Name of the payload field.
+ * @param value - Raw field value.
+ * @returns Object holding the trimmed field, or an empty object.
+ *
+ * @private internal helper of `parseAgentProjectToolCallResult`
+ */
+function pickTrimmedText<TFieldName extends string>(
+    fieldName: TFieldName,
+    value: unknown,
+): Partial<Record<TFieldName, string>> {
+    if (typeof value !== 'string' || value.trim().length === 0) {
+        return {};
+    }
+
+    return { [fieldName]: value.trim() } as Record<TFieldName, string>;
 }
 
 /**

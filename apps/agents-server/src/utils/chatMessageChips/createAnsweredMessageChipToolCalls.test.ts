@@ -3,6 +3,7 @@ import { tmpdir } from 'os';
 import { join } from 'path';
 import { AGENT_PROJECTS_DIRECTORY_PATH } from '../../../../../src/book-3.0/agentFolderPaths';
 import { getToolCallChipletInfo } from '../../../../../src/book-components/Chat/utils/getToolCallChipletInfo';
+import type { AgentMessageProjectChange } from '../../../../../src/utils/agent-message-runtime/AgentMessageProjectChange';
 import { createLocalAgentDirectoryName } from '../localChatRunner/ensureLocalAgentFolder';
 import { PTBK_AGENTS_SERVER_AGENT_ROOT_ENV } from '../localChatRunner/localChatRunnerConstants';
 import { createAnsweredMessageChipToolCalls } from './createAnsweredMessageChipToolCalls';
@@ -64,6 +65,61 @@ describe('createAnsweredMessageChipToolCalls', () => {
             projectHref: '/agents/Agent1234/projects/my-website',
         });
         expect(getToolCallChipletInfo(chipToolCalls[0]!).text).toBe('📁 My Website');
+    });
+
+    it('carries the project status and the changes the message committed', async () => {
+        temporaryDirectory = await createAgentRootWithProject('my-website');
+
+        const chipToolCalls = await createAnsweredMessageChipToolCalls({
+            agentPermanentId: AGENT_PERMANENT_ID,
+            appliedPlannedMessageCommands: [],
+            touchedProjectNames: ['my-website'],
+            projectChanges: [createProjectChange('my-website')],
+            touchedExternalSources: [],
+        });
+
+        expect(chipToolCalls[0]!.result).toMatchObject({
+            projectName: 'my-website',
+            isRunning: false,
+            runtimeStatusLabel: 'Not running',
+            fileCount: 1,
+            isGitRepository: false,
+            change: {
+                commitHash: '6f1c0de2b7a94e5c1c2b3d4e5f60718293a4b5c6',
+                insertionCount: 12,
+                deletionCount: 3,
+                changedFiles: [{ path: 'index.html', insertionCount: 12, deletionCount: 3 }],
+                isDiffTruncated: false,
+            },
+        });
+    });
+
+    it('creates a chip for a project the message changed even when the harness log named none', async () => {
+        temporaryDirectory = await createAgentRootWithProject('my-website');
+
+        const chipToolCalls = await createAnsweredMessageChipToolCalls({
+            agentPermanentId: AGENT_PERMANENT_ID,
+            appliedPlannedMessageCommands: [],
+            touchedProjectNames: [],
+            projectChanges: [createProjectChange('my-website')],
+            touchedExternalSources: [],
+        });
+
+        expect(chipToolCalls.map((chipToolCall) => chipToolCall.arguments)).toEqual([{ projectName: 'my-website' }]);
+    });
+
+    it('creates only one chip for a project that was both touched and changed', async () => {
+        temporaryDirectory = await createAgentRootWithProject('my-website');
+
+        const chipToolCalls = await createAnsweredMessageChipToolCalls({
+            agentPermanentId: AGENT_PERMANENT_ID,
+            appliedPlannedMessageCommands: [],
+            touchedProjectNames: ['my-website', 'My-Website'],
+            projectChanges: [createProjectChange('my-website')],
+            touchedExternalSources: [],
+        });
+
+        expect(chipToolCalls).toHaveLength(1);
     });
 
     it('skips projects that no longer exist and unsafe project names', async () => {
@@ -159,6 +215,22 @@ describe('createAnsweredMessageChipToolCalls', () => {
         });
     });
 });
+
+/**
+ * Creates one committed project change as the agent runner reports it.
+ */
+function createProjectChange(projectName: string): AgentMessageProjectChange {
+    return {
+        projectName,
+        commitHash: '6f1c0de2b7a94e5c1c2b3d4e5f60718293a4b5c6',
+        committedAt: '2026-08-17T10:15:00.000Z',
+        changedFiles: [{ path: 'index.html', insertionCount: 12, deletionCount: 3 }],
+        insertionCount: 12,
+        deletionCount: 3,
+        diff: '--- a/index.html\n+++ b/index.html\n@@ -1 +1 @@\n-<html></html>\n+<html>Hello</html>\n',
+        isDiffTruncated: false,
+    };
+}
 
 /**
  * Creates one temporary local agent root holding a single project of the fixture agent.

@@ -159,8 +159,7 @@
         rgba(248, 250, 252, 0.94) 100%
     );
     --chat-input-container-border-color: rgba(148, 163, 184, 0.3);
-    --chat-input-container-shadow: 0 14px 34px rgba(15, 23, 42, 0.12),
-        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    --chat-input-container-shadow: 0 14px 34px rgba(15, 23, 42, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.9);
     --chat-input-text-color: #0f172a;
     --chat-input-placeholder-color: #8b9bb1;
     --chat-input-action-color: #64748b;
@@ -244,19 +243,10 @@
         rgba(2, 6, 23, 0.88) 58%,
         rgba(2, 6, 23, 0.98) 100%
     );
-    --chat-input-drag-over-backdrop: linear-gradient(
-        180deg,
-        rgba(14, 165, 233, 0.08) 0%,
-        rgba(8, 47, 73, 0.5) 100%
-    );
-    --chat-input-container-background: linear-gradient(
-        150deg,
-        rgba(15, 23, 42, 0.96) 0%,
-        rgba(15, 23, 42, 0.9) 100%
-    );
+    --chat-input-drag-over-backdrop: linear-gradient(180deg, rgba(14, 165, 233, 0.08) 0%, rgba(8, 47, 73, 0.5) 100%);
+    --chat-input-container-background: linear-gradient(150deg, rgba(15, 23, 42, 0.96) 0%, rgba(15, 23, 42, 0.9) 100%);
     --chat-input-container-border-color: rgba(71, 85, 105, 0.88);
-    --chat-input-container-shadow: 0 20px 44px rgba(2, 6, 23, 0.42),
-        inset 0 1px 0 rgba(148, 163, 184, 0.1);
+    --chat-input-container-shadow: 0 20px 44px rgba(2, 6, 23, 0.42), inset 0 1px 0 rgba(148, 163, 184, 0.1);
     --chat-input-text-color: #e2e8f0;
     --chat-input-placeholder-color: #94a3b8;
     --chat-input-action-color: #cbd5e1;
@@ -1487,10 +1477,7 @@
     color: inherit;
     cursor: pointer;
     opacity: 0.85;
-    transition:
-        background 0.2s ease,
-        opacity 0.2s ease,
-        transform 0.2s ease;
+    transition: background 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
 }
 
 .attachmentRemoveButton:hover {
@@ -2815,6 +2802,166 @@
 .toolCallIssueWarning {
     background: rgba(234, 179, 8, 0.16);
     color: #a16207;
+}
+
+.agentProjectStatus {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 14px 0;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.agentProjectStatusDot {
+    width: 9px;
+    height: 9px;
+    border-radius: 999px;
+    background: currentColor;
+    flex: none;
+}
+
+.agentProjectStatusRunning {
+    color: #047857;
+}
+
+.agentProjectStatusStopped {
+    color: #64748b;
+}
+
+.agentProjectLinks {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.agentProjectLink {
+    color: #1d4ed8;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    word-break: break-word;
+}
+
+.agentProjectLink:hover {
+    text-decoration: underline;
+}
+
+.agentProjectChange {
+    padding: 0 32px 8px;
+    background: #fefefe;
+}
+
+.agentProjectChangeSummary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.agentProjectChangeCount {
+    font-family: Consolas, 'Courier New', monospace;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.agentProjectChangeCountAdded {
+    color: #047857;
+}
+
+.agentProjectChangeCountRemoved {
+    color: #b91c1c;
+}
+
+.agentProjectCommit {
+    font-family: Consolas, 'Courier New', monospace;
+    font-size: 12px;
+    color: #64748b;
+}
+
+.agentProjectChangedFiles {
+    list-style: none;
+    margin: 0 0 12px 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 160px;
+    overflow-y: auto;
+}
+
+.agentProjectChangedFile {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 13px;
+}
+
+.agentProjectChangedFilePath {
+    font-family: Consolas, 'Courier New', monospace;
+    color: #0f172a;
+    word-break: break-all;
+}
+
+.agentProjectChangedFileCounts {
+    font-family: Consolas, 'Courier New', monospace;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.agentProjectDiff {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #f8fafc;
+}
+
+.agentProjectDiffCode {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 12px 0;
+    max-height: 320px;
+    overflow: auto;
+    font-family: Consolas, 'Courier New', monospace;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.agentProjectDiffLine {
+    padding: 0 12px;
+    white-space: pre;
+    color: #334155;
+}
+
+.agentProjectDiffLineAdded {
+    background: rgba(16, 185, 129, 0.14);
+    color: #065f46;
+}
+
+.agentProjectDiffLineRemoved {
+    background: rgba(239, 68, 68, 0.12);
+    color: #991b1b;
+}
+
+.agentProjectDiffLineHunk {
+    color: #6d28d9;
+    background: rgba(109, 40, 217, 0.08);
+}
+
+.agentProjectDiffLineMeta {
+    color: #94a3b8;
+}
+
+.agentProjectDiffTruncated {
+    margin: 0;
+    padding: 8px 12px;
+    border-top: 1px solid #e2e8f0;
+    font-size: 12px;
+    color: #64748b;
 }
 
 .toolCallModeFooter {

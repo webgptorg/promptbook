@@ -1,4 +1,5 @@
 import type { ToolCall } from '@promptbook-local/types';
+import type { AgentMessageProjectChange } from '../../../../../src/utils/agent-message-runtime/AgentMessageProjectChange';
 import type { AgentMessageTouchedExternalSource } from '../../../../../src/utils/agent-message-runtime/AgentMessageTouchedExternalSource';
 import type { AppliedAgentPlannedMessageCommand } from '../localChatRunner/applyLocalAgentPlannedMessageCommands';
 import { createPlannedMessageChipToolCalls } from './createPlannedMessageChipToolCalls';
@@ -9,7 +10,8 @@ import { createTouchedProjectChipToolCalls } from './createTouchedProjectChipToo
  * Creates every extra chip shown below one answered chat message.
  *
  * This is the single place deciding what an answer shows besides its text: the wake-ups it
- * planned, the projects it worked with and the sources outside the agent it touched. The chips
+ * planned, the projects it worked with — including what it changed in them — and the sources
+ * outside the agent it touched. The chips
  * travel as tool calls of the assistant message, so they are visible in every chat view —
  * including external chats such as email, whose outbound reply is rendered from the message text
  * alone and therefore stays unchanged.
@@ -21,6 +23,7 @@ export async function createAnsweredMessageChipToolCalls(options: {
     readonly agentPermanentId: string;
     readonly appliedPlannedMessageCommands: ReadonlyArray<AppliedAgentPlannedMessageCommand>;
     readonly touchedProjectNames: ReadonlyArray<string>;
+    readonly projectChanges?: ReadonlyArray<AgentMessageProjectChange>;
     readonly touchedExternalSources: ReadonlyArray<AgentMessageTouchedExternalSource>;
     readonly createdAt?: NonNullable<ToolCall['createdAt']>;
 }): Promise<ReadonlyArray<ToolCall>> {
@@ -28,6 +31,7 @@ export async function createAnsweredMessageChipToolCalls(options: {
     const projectChipToolCalls = await createTouchedProjectChipToolCalls({
         agentPermanentId: options.agentPermanentId,
         touchedProjectNames: options.touchedProjectNames,
+        projectChanges: options.projectChanges || [],
         createdAt,
     });
 

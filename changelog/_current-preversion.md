@@ -1,3 +1,25 @@
+-   Made every Agents Server agent project a git repository whose history is written by the agent itself, and turned
+    the popup behind a **📁 project** chip into a card that is actually worth opening. Clicking the chip used to show
+    little more than the project directory name; it now shows what the project is, what state it is in, and the exact
+    diff of what that very message did to it.
+
+    -   **Every project is a git repository.** The local agent runner initializes one for a project which is not a
+        repository yet and commits everything an answer changed into it, under the same message as the answered
+        message itself. Agents are told about this in their projects prompt section, so nothing has to `git init` or
+        commit by hand anymore, and work done in a project stays recoverable and reviewable as normal history. A
+        project which already belongs to a repository around the agent folder is deliberately left to that
+        repository instead of being turned into an embedded one, and a freshly initialized repository gets ignore
+        rules so installed dependencies and `.env` secrets never enter an automatic commit.
+    -   **The card shows the project.** Its running state and status label, a link opening the running project in a
+        new tab, a link opening its project page in a new tab, plus its size, file count and whether it is a git
+        repository — all resolved through the same helpers the project page itself uses, so the chip and the page it
+        links to can never describe one project differently.
+    -   **The card shows the change.** How many files the message changed with the added and removed line counts, the
+        commit it created, the list of changed files, and the unified diff itself with added, removed and context
+        lines told apart. A change too large to carry into a chat is shortened and says so.
+    -   A project the answer committed something into now gets a chip even when nothing in the harness log named it,
+        because a project that was changed was obviously worked with.
+
 -   Added Agents Server chips below a chat answer for every source outside the agent it touched, so an answer never
     silently reaches beyond the agent again. An agent that reviews a Gmail mailbox and drafts a mail now says so with
     a **🔌 Gmail** chip below its message, exactly like the project and wake-up chips already added next to the source

@@ -41,7 +41,7 @@ export function buildAgentProjectsPromptSection(options: AgentProjectsPromptSect
 
             - You have 100% control over every project folder: create, read, modify, and delete files there, run scripts and commands inside it, and keep any persistent data you need between conversations.
             - When the user asks you to build something (for example a website) or to do longer-term work, create a new project folder \`${AGENT_PROJECTS_DIRECTORY_PATH}/<project-name>/\` (use a short kebab-case name) and do the work inside it. Modify an existing project when the user refers to work you already did.
-            - A project can be a git repository — you can run \`git init\` inside a project folder and commit your work there.
+            - Every project is a git repository and everything you change in one is committed there automatically once you finish the message, so you never need to run \`git init\` or \`git commit\` yourself and your work stays recoverable.
             - Do not touch anything outside the \`${AGENT_PROJECTS_DIRECTORY_PATH}/\` directory beyond the file changes allowed at the top of this prompt.
 
             ${block(buildProjectReferenceInstructions(projectsUrlPath))}

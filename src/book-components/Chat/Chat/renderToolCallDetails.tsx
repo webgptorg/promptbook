@@ -5,6 +5,7 @@ import type { WithTake } from '../../../utils/take/interfaces/ITakeChain';
 import { classNames } from '../../_common/react-utils/classNames';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
+import { AGENT_PROJECT_TOOL_CALL_NAME, parseAgentProjectToolCallResult } from '../utils/agentProjectToolCall';
 import { getToolCallChipletInfo, TOOL_TITLES } from '../utils/getToolCallChipletInfo';
 import { resolveToolCallState } from '../utils/resolveToolCallState';
 import { isTimeoutToolCallName } from '../utils/timeoutToolCallPresentation';
@@ -16,6 +17,7 @@ import {
     WALLET_CREDENTIAL_TOOL_CALL_NAME,
 } from '../utils/walletCredentialToolCall';
 import styles from './Chat.module.css';
+import { renderAgentProjectToolCallDetails } from './renderAgentProjectToolCallDetails';
 import { renderEmailToolCallDetails } from './renderEmailToolCallDetails';
 import { renderMemoryToolCallDetails } from './renderMemoryToolCallDetails';
 import { renderPopupToolCallDetails } from './renderPopupToolCallDetails';
@@ -123,6 +125,12 @@ export function renderToolCallDetails(options: ToolCallDetailsOptions): ReactEle
     });
     if (memoryView) {
         return memoryView;
+    }
+
+    const agentProjectResult =
+        toolCall.name === AGENT_PROJECT_TOOL_CALL_NAME ? parseAgentProjectToolCallResult(resultRaw) : null;
+    if (agentProjectResult) {
+        return renderAgentProjectToolCallDetails({ project: agentProjectResult });
     }
 
     const walletCredentialResult =

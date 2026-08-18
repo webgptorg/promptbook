@@ -21,10 +21,14 @@ export function formatAgentProjectRuntimeMode(mode: AgentProjectRuntimeMode): st
 /**
  * Formats one project runtime status for UI display.
  *
- * @param runtime - Runtime info.
+ * @param runtime - Runtime info, or `null` for a project which has no runtime at all.
  * @returns Human-readable status label.
  */
-export function formatAgentProjectRuntimeStatus(runtime: AgentProjectRuntimeInfo): string {
+export function formatAgentProjectRuntimeStatus(runtime: AgentProjectRuntimeInfo | null): string {
+    if (!runtime) {
+        return 'Not running';
+    }
+
     if (runtime.isRunning) {
         return 'Running';
     }
@@ -39,4 +43,3 @@ export function formatAgentProjectRuntimeStatus(runtime: AgentProjectRuntimeInfo
 
     return 'Stopped';
 }
-

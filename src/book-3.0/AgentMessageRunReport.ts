@@ -1,6 +1,8 @@
 // Note: [💞] Ignore a discrepancy between file name and entity name
 
 import type { Usage } from '../execution/Usage';
+import type { AgentMessageProjectChange } from '../utils/agent-message-runtime/AgentMessageProjectChange';
+import { normalizeAgentMessageProjectChange } from '../utils/agent-message-runtime/AgentMessageProjectChange';
 import type { AgentMessageTouchedExternalSource } from '../utils/agent-message-runtime/AgentMessageTouchedExternalSource';
 import { normalizeAgentMessageTouchedExternalSource } from '../utils/agent-message-runtime/AgentMessageTouchedExternalSource';
 import type { CodexLoginMethod } from './codexLoginMethod';
@@ -95,6 +97,15 @@ export type AgentMessageRunReport = {
      * of what one answer touched beyond the agent itself.
      */
     readonly touchedExternalSources?: ReadonlyArray<AgentMessageTouchedExternalSource>;
+
+    /**
+     * Changes the harness made to the agent projects while answering the message.
+     *
+     * Every agent project is a git repository and the runner commits each answer into it, so one
+     * entry describes exactly what one message did to one project — including the diff of the
+     * commit it created.
+     */
+    readonly projectChanges?: ReadonlyArray<AgentMessageProjectChange>;
 };
 
 /**
@@ -168,7 +179,23 @@ export function normalizeAgentMessageRunReport(value: unknown): AgentMessageRunR
         return null;
     }
 
+    if (report.projectChanges !== undefined && !isSerializedProjectChangeList(report.projectChanges)) {
+        return null;
+    }
+
     return report as AgentMessageRunReport;
+}
+
+/**
+ * Checks that one value structurally matches a list of project changes.
+ *
+ * @private internal helper of `normalizeAgentMessageRunReport`
+ */
+function isSerializedProjectChangeList(value: unknown): value is ReadonlyArray<AgentMessageProjectChange> {
+    return (
+        Array.isArray(value) &&
+        value.every((projectChange) => normalizeAgentMessageProjectChange(projectChange) !== null)
+    );
 }
 
 /**

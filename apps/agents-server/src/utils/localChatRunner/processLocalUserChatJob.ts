@@ -8,6 +8,7 @@ import {
     parseAgentMessageRunReport,
     type AgentMessageRunReport,
 } from '../../../../../src/book-3.0/AgentMessageRunReport';
+import type { AgentMessageProjectChange } from '../../../../../src/utils/agent-message-runtime/AgentMessageProjectChange';
 import type { AgentMessageTouchedExternalSource } from '../../../../../src/utils/agent-message-runtime/AgentMessageTouchedExternalSource';
 import { createAnsweredMessageChipToolCalls } from '../chatMessageChips/createAnsweredMessageChipToolCalls';
 import { createUserChatJobFailureDetails } from '../userChat/createUserChatJobFailureDetails';
@@ -295,6 +296,7 @@ async function synchronizeLocalUserChatJob(
                 job,
                 appliedPlannedMessageCommands,
                 touchedProjectNames: runReport?.touchedProjectNames || [],
+                projectChanges: runReport?.projectChanges || [],
                 touchedExternalSources: runReport?.touchedExternalSources || [],
             });
             const toolCalls = [...teamToolCalls, ...chipToolCalls];
@@ -540,6 +542,7 @@ async function createAnsweredMessageChipToolCallsIfPossible(options: {
     readonly job: UserChatJobRecord;
     readonly appliedPlannedMessageCommands: ReadonlyArray<AppliedAgentPlannedMessageCommand>;
     readonly touchedProjectNames: ReadonlyArray<string>;
+    readonly projectChanges: ReadonlyArray<AgentMessageProjectChange>;
     readonly touchedExternalSources: ReadonlyArray<AgentMessageTouchedExternalSource>;
 }): Promise<ReadonlyArray<ToolCall>> {
     try {
@@ -547,6 +550,7 @@ async function createAnsweredMessageChipToolCallsIfPossible(options: {
             agentPermanentId: options.job.agentPermanentId,
             appliedPlannedMessageCommands: options.appliedPlannedMessageCommands,
             touchedProjectNames: options.touchedProjectNames,
+            projectChanges: options.projectChanges,
             touchedExternalSources: options.touchedExternalSources,
         });
     } catch (error) {

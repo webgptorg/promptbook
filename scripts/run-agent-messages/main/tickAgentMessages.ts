@@ -26,6 +26,7 @@ import type {
     AgentRunStatusTableRow,
 } from '../../run-codex-prompts/ui/buildCoderRunUiFrame';
 import type { AgentRunOptions } from '../AgentRunOptions';
+import { commitAnsweredMessageProjectChanges } from '../git/commitAnsweredMessageProjectChanges';
 import { isGitPathTracked } from '../git/isGitPathTracked';
 import type { AgentMessageFile } from '../messages/AgentMessageFile';
 import { buildAgentMessageCommitMessage } from '../messages/buildAgentMessageCommitMessage';
@@ -336,6 +337,13 @@ async function runQueuedAgentMessage(options: {
     const executionFinishedAt = new Date().toISOString();
     await normalizeLineEndingsForAgentRound(projectPath, runOptions, roundChangedFilesSnapshot);
 
+    // Note: Every agent project keeps its own git history, so what this message did to a project is
+    //       committed there before the answer becomes visible and travels with the run report.
+    const projectChanges = await commitAnsweredMessageProjectChanges({
+        agentFolderPath: projectPath,
+        commitMessage: buildAgentMessageCommitMessage(queuedMessage),
+    });
+
     const finishedTeamWorkspace = await finalizeAgentTeamConversationWorkspace({
         projectPath,
         queuedMessage,
@@ -363,6 +371,7 @@ async function runQueuedAgentMessage(options: {
             ...(answeredMessageTouches.touchedExternalSources.length === 0
                 ? {}
                 : { touchedExternalSources: answeredMessageTouches.touchedExternalSources }),
+            ...(projectChanges.length === 0 ? {} : { projectChanges }),
         },
     });
     await commitAnsweredMessageIfEnabled({

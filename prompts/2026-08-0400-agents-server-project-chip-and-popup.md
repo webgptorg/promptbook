@@ -1,4 +1,4 @@
-[ ] !!!!
+[x] (2 attempts) by Claude Code `claude-opus-5` thinking `max` - Implementation $0.00 3 hours; Testing 12 hours; Fixing $3.78 9 minutes; Testing 13 minutes
 
 [✨🙀] When the agent touches a project, there is a chip under the message, but when the user clicks on this chip, the pop-up isn't very useful. Show there more useful information.
 
@@ -13,3 +13,4 @@
 ![alt text](screenshots/2026-08-0400-agents-server-project-popup.png)
 ![alt text](screenshots/2026-08-0400-agents-server-project-popup-1.png)
 ![alt text](screenshots/2026-08-0400-agents-server-project-popup-2.png)
+

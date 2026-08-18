@@ -1,9 +1,8 @@
-import { readdir, readFile } from 'fs/promises';
-import { join } from 'path';
-import { AGENT_PROJECTS_DIRECTORY_PATH } from '../../../src/book-3.0/agentFolderPaths';
+import { readFile } from 'fs/promises';
 import type { AgentMessageTouchedExternalSource } from '../../../src/utils/agent-message-runtime/AgentMessageTouchedExternalSource';
 import { resolveAgentMessageTouchedExternalSources } from '../../../src/utils/agent-message-runtime/resolveAgentMessageTouchedExternalSources';
 import { resolveAgentMessageTouchedProjectNames } from '../../../src/utils/agent-message-runtime/resolveAgentMessageTouchedProjectNames';
+import { listAgentProjectDirectoryNames } from './listAgentProjectDirectoryNames';
 
 /**
  * Everything one answered message worked with, both inside and outside the agent.
@@ -44,28 +43,6 @@ export async function resolveAnsweredMessageTouches(options: {
         touchedProjectNames: resolveAgentMessageTouchedProjectNames({ logText, knownProjectNames }),
         touchedExternalSources: resolveAgentMessageTouchedExternalSources({ logText }),
     };
-}
-
-/**
- * Lists the direct project directories of one agent folder.
- *
- * @param projectPath - Absolute path of the local agent folder.
- * @returns Project directory names, or an empty list when the agent has no projects folder.
- *
- * @private helper of `resolveAnsweredMessageTouches`
- */
-async function listAgentProjectDirectoryNames(projectPath: string): Promise<ReadonlyArray<string>> {
-    try {
-        const projectsRootEntries = await readdir(join(projectPath, AGENT_PROJECTS_DIRECTORY_PATH), {
-            withFileTypes: true,
-        });
-
-        return projectsRootEntries
-            .filter((projectsRootEntry) => projectsRootEntry.isDirectory())
-            .map((projectDirectoryEntry) => projectDirectoryEntry.name);
-    } catch {
-        return [];
-    }
 }
 
 /**
