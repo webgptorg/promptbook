@@ -12,7 +12,7 @@ import { resolveUserChatWorkerInternalToken } from '@/src/utils/userChat';
 /**
  * Actions accepted by the internal planned-message runtime route.
  */
-const AGENT_GOAL_CHAT_PLANNED_MESSAGE_REQUEST_ACTIONS = ['set', 'list', 'cancel'] as const;
+const AGENT_GOAL_CHAT_PLANNED_MESSAGE_REQUEST_ACTIONS = ['set', 'update', 'list', 'cancel'] as const;
 
 /**
  * Supported planned-message runtime action.
@@ -93,8 +93,17 @@ async function executeAgentGoalChatPlannedMessageRequest(request: AgentGoalChatP
     if (request.action === 'set') {
         return await AGENT_GOAL_CHAT_PLANNED_MESSAGE_ACTIONS.set({
             agentPermanentId,
-            milliseconds: request.body.milliseconds,
+            ...createPlannedMessageScheduleRequest(request.body),
             message: request.body.message,
+        });
+    }
+
+    if (request.action === 'update') {
+        return await AGENT_GOAL_CHAT_PLANNED_MESSAGE_ACTIONS.update({
+            agentPermanentId,
+            timeoutId: request.body.timeoutId,
+            ...createPlannedMessageScheduleRequest(request.body),
+            ...(request.body.message === undefined ? {} : { message: request.body.message }),
         });
     }
 
@@ -110,6 +119,25 @@ async function executeAgentGoalChatPlannedMessageRequest(request: AgentGoalChatP
         agentPermanentId,
         timeoutId: request.body.timeoutId,
     });
+}
+
+/**
+ * Collects the schedule fields of one internal planned-message request.
+ *
+ * A field which is not part of the request body stays absent, so one update changes only what it
+ * really names and everything else keeps its stored value.
+ *
+ * @param body - Parsed request body.
+ * @returns Schedule fields passed to the shared planned-message actions.
+ */
+function createPlannedMessageScheduleRequest(body: Record<string, unknown>): Record<string, unknown> {
+    return {
+        ...(body.milliseconds === undefined ? {} : { milliseconds: body.milliseconds }),
+        ...(body.cronExpression === undefined ? {} : { cronExpression: body.cronExpression }),
+        ...(body.startsAt === undefined ? {} : { startsAt: body.startsAt }),
+        ...(body.endsAt === undefined ? {} : { endsAt: body.endsAt }),
+        ...(body.maxRunCount === undefined ? {} : { maxRunCount: body.maxRunCount }),
+    };
 }
 
 /**

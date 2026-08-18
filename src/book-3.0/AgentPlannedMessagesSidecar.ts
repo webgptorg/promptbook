@@ -16,7 +16,7 @@ export const AGENT_PLANNED_MESSAGES_DIRECTORY_PATH = join(AGENT_MESSAGES_DIRECTO
  *
  * @private internal convention shared by the Agents Server and agent-folder runner
  */
-export const AGENT_PLANNED_MESSAGE_COMMAND_ACTIONS = ['set', 'cancel'] as const;
+export const AGENT_PLANNED_MESSAGE_COMMAND_ACTIONS = ['set', 'update', 'cancel'] as const;
 
 /**
  * One planned-message command action.
@@ -28,8 +28,9 @@ export type AgentPlannedMessageCommandAction = (typeof AGENT_PLANNED_MESSAGE_COM
 /**
  * One planned message that is already waiting to wake the agent.
  *
- * A planned message repeats like `setInterval`, so `intervalMs` is what the agent compares with its
- * goal, while `dueAt` only says when the nearest repetition happens.
+ * A planned message can repeat like `setInterval`, run a bounded number of times, or wake the agent
+ * only once, so the whole schedule is what the agent compares with its goal, while `dueAt` only says
+ * when the nearest wake-up happens.
  *
  * @private internal convention shared by the Agents Server and agent-folder runner
  */
@@ -39,9 +40,39 @@ export type AgentPlannedMessageSnapshot = {
     readonly message: string | null;
 
     /**
-     * Repeat interval in milliseconds, or `null` for a planned message that wakes the agent only once.
+     * Repeat interval in milliseconds, or `null` for a planned message that does not repeat at a fixed
+     * interval.
      */
     readonly intervalMs: number | null;
+
+    /**
+     * Five-field cron expression driving the repetitions, or `null` when the planned message does not
+     * follow a cron.
+     */
+    readonly cronExpression: string | null;
+
+    /**
+     * Moment before which the planned message never wakes the agent, or `null` when it has no starting
+     * date.
+     */
+    readonly startsAt: string | null;
+
+    /**
+     * Moment after which the planned message never wakes the agent again, or `null` when it has no
+     * ending date.
+     */
+    readonly endsAt: string | null;
+
+    /**
+     * Total number of wake-ups the planned message performs, or `null` when it repeats until it is
+     * cancelled.
+     */
+    readonly maxRunCount: number | null;
+
+    /**
+     * Number of times the planned message already woke the agent.
+     */
+    readonly runCount: number;
 };
 
 /**
@@ -50,13 +81,20 @@ export type AgentPlannedMessageSnapshot = {
  * The payload stays untyped on purpose: it is untrusted harness output and is validated by the very
  * same shared planned-message actions that back the model tools and the internal runtime API.
  *
- * For a `set` command, `milliseconds` is the repeat interval of the planned message, not a one-shot delay.
+ * For a `set` command, `milliseconds` is the repeat interval of the planned message, not a one-shot
+ * delay, and `cronExpression`, `startsAt`, `endsAt`, and `maxRunCount` bound how it repeats. An
+ * `update` command changes the very same fields of the planned message named by `timeoutId`, where a
+ * field that is left out stays as it is and an explicit `null` removes the bound.
  *
  * @private internal convention shared by the Agents Server and agent-folder runner
  */
 export type AgentPlannedMessageCommand = {
     readonly action: AgentPlannedMessageCommandAction;
     readonly milliseconds?: unknown;
+    readonly cronExpression?: unknown;
+    readonly startsAt?: unknown;
+    readonly endsAt?: unknown;
+    readonly maxRunCount?: unknown;
     readonly message?: unknown;
     readonly timeoutId?: unknown;
 };
@@ -194,21 +232,38 @@ function normalizeAgentPlannedMessageSnapshots(rawSnapshots: unknown): Array<Age
  * Normalizes the optional fields of one already planned message.
  *
  * @param snapshot - Planned-message entry with the required identity fields.
- * @returns Snapshot with a usable repeat interval and message.
+ * @returns Snapshot with a usable schedule and message.
  *
  * @private internal utility of `parseAgentPlannedMessagesSidecar`
  */
 function createNormalizedAgentPlannedMessageSnapshot(
     snapshot: AgentPlannedMessageSnapshot,
 ): AgentPlannedMessageSnapshot {
-    const intervalMs = Number(snapshot.intervalMs);
-
     return {
         timeoutId: snapshot.timeoutId,
         dueAt: snapshot.dueAt,
         message: typeof snapshot.message === 'string' ? snapshot.message : null,
-        intervalMs: Number.isFinite(intervalMs) && intervalMs > 0 ? Math.floor(intervalMs) : null,
+        intervalMs: normalizeAgentPlannedMessagePositiveCount(snapshot.intervalMs),
+        cronExpression: typeof snapshot.cronExpression === 'string' ? snapshot.cronExpression : null,
+        startsAt: typeof snapshot.startsAt === 'string' ? snapshot.startsAt : null,
+        endsAt: typeof snapshot.endsAt === 'string' ? snapshot.endsAt : null,
+        maxRunCount: normalizeAgentPlannedMessagePositiveCount(snapshot.maxRunCount),
+        runCount: normalizeAgentPlannedMessagePositiveCount(snapshot.runCount) || 0,
     };
+}
+
+/**
+ * Normalizes one optional positive whole number of a planned-message snapshot.
+ *
+ * @param value - Untrusted interval, run count, or run-count limit.
+ * @returns Whole positive number, or `null` when the value cannot be used.
+ *
+ * @private internal utility of `parseAgentPlannedMessagesSidecar`
+ */
+function normalizeAgentPlannedMessagePositiveCount(value: unknown): number | null {
+    const numericValue = Number(value);
+
+    return Number.isFinite(numericValue) && numericValue > 0 ? Math.floor(numericValue) : null;
 }
 
 /**

@@ -88,6 +88,50 @@ describe('repeatFiredUserChatTimeout', () => {
         await expect(repeatFiredUserChatTimeout('timeout-1')).resolves.toBeNull();
         expect(timeoutTableMock.update).not.toHaveBeenCalled();
     });
+
+    it('stops repeating one planned message that reached its total number of runs', async () => {
+        const timeoutTableMock = createUserChatTimeoutTableMock();
+        // Note: This very firing is the third one, so a plan of three runs is over and must not be re-armed
+        GET_USER_CHAT_TIMEOUT_BY_ID_MOCK.mockResolvedValue(
+            createTimeoutFixture({ status: 'RUNNING', recurrenceIntervalMs: 300_000, runCount: 2, maxRunCount: 3 }),
+        );
+        PROVIDE_USER_CHAT_TIMEOUT_TABLE_MOCK.mockResolvedValue(timeoutTableMock);
+
+        await expect(repeatFiredUserChatTimeout('timeout-1')).resolves.toBeNull();
+        expect(timeoutTableMock.update).not.toHaveBeenCalled();
+    });
+
+    it('stops repeating one planned message whose next wake-up would be after its ending date', async () => {
+        const timeoutTableMock = createUserChatTimeoutTableMock();
+        GET_USER_CHAT_TIMEOUT_BY_ID_MOCK.mockResolvedValue(
+            createTimeoutFixture({
+                status: 'RUNNING',
+                recurrenceIntervalMs: 300_000,
+                endsAt: new Date(Date.now() + 60_000).toISOString(),
+            }),
+        );
+        PROVIDE_USER_CHAT_TIMEOUT_TABLE_MOCK.mockResolvedValue(timeoutTableMock);
+
+        await expect(repeatFiredUserChatTimeout('timeout-1')).resolves.toBeNull();
+        expect(timeoutTableMock.update).not.toHaveBeenCalled();
+    });
+
+    it('re-arms one fired cron planned message on its next cron run', async () => {
+        const timeoutTableMock = createUserChatTimeoutTableMock();
+        GET_USER_CHAT_TIMEOUT_BY_ID_MOCK.mockResolvedValue(
+            createTimeoutFixture({ status: 'RUNNING', cronExpression: '*/5 * * * *', maxRunCount: 10, runCount: 1 }),
+        );
+        PROVIDE_USER_CHAT_TIMEOUT_TABLE_MOCK.mockResolvedValue(timeoutTableMock);
+
+        await repeatFiredUserChatTimeout('timeout-1');
+
+        const [updatePayload] = timeoutTableMock.update.mock.calls[0] as [Record<string, unknown>];
+        const nextDueAtDate = new Date(updatePayload.dueAt as string);
+        expect(updatePayload).toMatchObject({ status: 'QUEUED', runCount: 2 });
+        expect(nextDueAtDate.getTime()).toBeGreaterThan(Date.now());
+        expect(nextDueAtDate.getMinutes() % 5).toBe(0);
+        expect(nextDueAtDate.getSeconds()).toBe(0);
+    });
 });
 
 /**
@@ -111,6 +155,10 @@ function createTimeoutFixture(overrides: Partial<UserChatTimeoutRecord> = {}): U
         durationMs: 300_000,
         dueAt: TEST_TIMESTAMP,
         recurrenceIntervalMs: null,
+        cronExpression: null,
+        startsAt: null,
+        endsAt: null,
+        maxRunCount: null,
         queuedAt: TEST_TIMESTAMP,
         startedAt: null,
         completedAt: null,
@@ -145,6 +193,10 @@ function createUserChatTimeoutTableMock() {
             durationMs: 300_000,
             dueAt: '2026-08-15T12:05:00.000Z',
             recurrenceIntervalMs: 300_000,
+            cronExpression: null,
+            startsAt: null,
+            endsAt: null,
+            maxRunCount: null,
             queuedAt: TEST_TIMESTAMP,
             startedAt: null,
             completedAt: null,

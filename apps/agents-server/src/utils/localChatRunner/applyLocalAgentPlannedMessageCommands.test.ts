@@ -5,6 +5,7 @@ import { createAgentPlannedMessagesSidecarPath } from '../../../../../src/book-3
 import type {
     CancelAgentGoalChatPlannedMessageResult,
     SetAgentGoalChatPlannedMessageResult,
+    UpdateAgentGoalChatPlannedMessageResult,
 } from '../agentGoalChat/agentGoalChatPlannedMessageActions';
 import {
     applyLocalAgentPlannedMessageCommands,
@@ -48,7 +49,7 @@ describe('applyLocalAgentPlannedMessageCommands', () => {
             job: JOB,
             agentDirectoryPath,
             metadata: METADATA,
-            actions: { set, cancel },
+            actions: createLocalAgentPlannedMessageActions({ set, cancel }),
         });
 
         expect(appliedCommands.map(({ result }) => result.action)).toEqual(['set', 'cancel']);
@@ -69,7 +70,7 @@ describe('applyLocalAgentPlannedMessageCommands', () => {
             commands: [{ action: 'set', milliseconds: 60_000, message: 'Continue the goal.' }],
         });
         const set = jest.fn(async () => createSetResult());
-        const actions: LocalAgentPlannedMessageActions = { set, cancel: jest.fn(async () => createCancelResult()) };
+        const actions: LocalAgentPlannedMessageActions = createLocalAgentPlannedMessageActions({ set });
 
         await applyLocalAgentPlannedMessageCommands({ job: JOB, agentDirectoryPath, metadata: METADATA, actions });
         await applyLocalAgentPlannedMessageCommands({ job: JOB, agentDirectoryPath, metadata: METADATA, actions });
@@ -99,7 +100,7 @@ describe('applyLocalAgentPlannedMessageCommands', () => {
             job: JOB,
             agentDirectoryPath,
             metadata: METADATA,
-            actions: { set, cancel: jest.fn(async () => createCancelResult()) },
+            actions: createLocalAgentPlannedMessageActions({ set }),
         });
 
         expect(appliedCommands).toEqual([
@@ -109,6 +110,52 @@ describe('applyLocalAgentPlannedMessageCommands', () => {
             },
         ]);
         expect(set).toHaveBeenCalledTimes(2);
+    });
+
+    it('re-plans one listed message through an update command', async () => {
+        const agentDirectoryPath = await createAgentDirectoryWithSidecar({
+            version: 1,
+            agentPermanentId: 'agent1234',
+            currentPlannedMessages: [],
+            commands: [{ action: 'update', timeoutId: 'timeout-1', cronExpression: '0 9 * * 1-5', maxRunCount: 10 }],
+        });
+        const update = jest.fn(async () => createUpdateResult());
+
+        const appliedCommands = await applyLocalAgentPlannedMessageCommands({
+            job: JOB,
+            agentDirectoryPath,
+            metadata: METADATA,
+            actions: createLocalAgentPlannedMessageActions({ update }),
+        });
+
+        // Note: The message text is left out of the command, so re-planning must not overwrite it
+        expect(update).toHaveBeenCalledWith({
+            agentPermanentId: 'Agent1234',
+            timeoutId: 'timeout-1',
+            cronExpression: '0 9 * * 1-5',
+            maxRunCount: 10,
+        });
+        expect(appliedCommands.map(({ result }) => result.action)).toEqual(['update']);
+    });
+
+    it('reports nothing for an update of a planned message that is already gone', async () => {
+        const agentDirectoryPath = await createAgentDirectoryWithSidecar({
+            version: 1,
+            agentPermanentId: 'agent1234',
+            currentPlannedMessages: [],
+            commands: [{ action: 'update', timeoutId: 'timeout-1', endsAt: null }],
+        });
+
+        const appliedCommands = await applyLocalAgentPlannedMessageCommands({
+            job: JOB,
+            agentDirectoryPath,
+            metadata: METADATA,
+            actions: createLocalAgentPlannedMessageActions({
+                update: jest.fn(async () => createUpdateResult('not_found')),
+            }),
+        });
+
+        expect(appliedCommands).toEqual([]);
     });
 
     it('does nothing when the harness never touched the sidecar', async () => {
@@ -132,7 +179,7 @@ describe('applyLocalAgentPlannedMessageCommands', () => {
             job: JOB,
             agentDirectoryPath,
             metadata: METADATA,
-            actions: { set, cancel },
+            actions: createLocalAgentPlannedMessageActions({ set, cancel }),
         });
 
         expect(appliedCommands).toEqual([]);
@@ -149,12 +196,26 @@ describe('applyLocalAgentPlannedMessageCommands', () => {
                 job: JOB,
                 agentDirectoryPath,
                 metadata: METADATA,
-                actions: { set, cancel: jest.fn(async () => createCancelResult()) },
+                actions: createLocalAgentPlannedMessageActions({ set }),
             }),
         ).resolves.toEqual([]);
         expect(set).not.toHaveBeenCalled();
     });
 });
+
+/**
+ * Builds the planned-message actions of one focused test, defaulting the ones it does not exercise.
+ */
+function createLocalAgentPlannedMessageActions(
+    actionOverrides: Partial<LocalAgentPlannedMessageActions> = {},
+): LocalAgentPlannedMessageActions {
+    return {
+        set: jest.fn(async () => createSetResult()),
+        update: jest.fn(async () => createUpdateResult()),
+        cancel: jest.fn(async () => createCancelResult()),
+        ...actionOverrides,
+    };
+}
 
 /**
  * Creates one temporary agent folder holding the given planned-message sidecar.
@@ -187,6 +248,32 @@ function createSetResult(): SetAgentGoalChatPlannedMessageResult {
         dueAt: '2026-08-14T11:00:00.000Z',
         message: 'Continue the goal.',
         intervalMs: 3_600_000,
+        cronExpression: null,
+        startsAt: null,
+        endsAt: null,
+        maxRunCount: null,
+        runCount: 0,
+    };
+}
+
+/**
+ * Builds one successful re-planning result.
+ */
+function createUpdateResult(
+    status: UpdateAgentGoalChatPlannedMessageResult['status'] = 'updated',
+): UpdateAgentGoalChatPlannedMessageResult {
+    return {
+        action: 'update',
+        status,
+        timeoutId: 'timeout-1',
+        dueAt: '2026-08-14T12:00:00.000Z',
+        message: 'Continue the goal.',
+        intervalMs: null,
+        cronExpression: '0 9 * * 1-5',
+        startsAt: null,
+        endsAt: null,
+        maxRunCount: 10,
+        runCount: 1,
     };
 }
 

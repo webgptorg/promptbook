@@ -30,7 +30,16 @@ export {
     notifyUserChatTimeoutScheduleChanged,
     runUserChatTimeoutWorkerTick,
     scheduleThreadScopedUserChatTimeout,
+    updateScheduledUserChatTimeout,
 } from './userChatTimeout/userChatTimeoutWorker';
+export {
+    hasPlannedMessageRecurrence,
+    isPlannedMessageScheduleFinished,
+    MINIMUM_PLANNED_MESSAGE_INTERVAL_MS,
+    parsePlannedMessageSchedule,
+    resolvePlannedMessageDueAt,
+} from './userChatTimeout/plannedMessageSchedule';
+export type { PlannedMessageSchedule, PlannedMessageScheduleInput } from './userChatTimeout/plannedMessageSchedule';
 export { triggerUserChatTimeoutWorker } from './userChatTimeout/triggerUserChatTimeoutWorker';
 export type {
     CreateUserChatTimeoutOptions,

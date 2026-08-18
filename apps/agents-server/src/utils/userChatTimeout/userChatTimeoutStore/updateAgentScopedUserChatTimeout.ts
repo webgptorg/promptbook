@@ -1,5 +1,14 @@
 import type { Json } from '@/src/database/schema';
-import type { UpdateAgentScopedUserChatTimeoutOptions, UserChatTimeoutRecord, UserChatTimeoutRow } from '../UserChatTimeoutRecord';
+import type {
+    UpdateAgentScopedUserChatTimeoutOptions,
+    UserChatTimeoutRecord,
+    UserChatTimeoutRow,
+} from '../UserChatTimeoutRecord';
+import {
+    normalizePlannedMessageCronExpression,
+    normalizePlannedMessageDateIso,
+    normalizePlannedMessageMaxRunCount,
+} from '../plannedMessageSchedule';
 import { getAgentScopedUserChatTimeout } from './getAgentScopedUserChatTimeout';
 import { isMissingUserChatTimeoutRelationError } from './isMissingUserChatTimeoutRelationError';
 import { isTerminalUserChatTimeoutStatus } from './isTerminalUserChatTimeoutStatus';
@@ -51,6 +60,26 @@ export async function updateAgentScopedUserChatTimeout(
         hasPatchChanges = true;
     }
 
+    if (Object.prototype.hasOwnProperty.call(options.patch, 'cronExpression')) {
+        updatePayload.cronExpression = normalizePlannedMessageCronExpression(options.patch.cronExpression);
+        hasPatchChanges = true;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(options.patch, 'startsAt')) {
+        updatePayload.startsAt = normalizePlannedMessageDateIso(options.patch.startsAt);
+        hasPatchChanges = true;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(options.patch, 'endsAt')) {
+        updatePayload.endsAt = normalizePlannedMessageDateIso(options.patch.endsAt);
+        hasPatchChanges = true;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(options.patch, 'maxRunCount')) {
+        updatePayload.maxRunCount = normalizePlannedMessageMaxRunCount(options.patch.maxRunCount);
+        hasPatchChanges = true;
+    }
+
     if (Object.prototype.hasOwnProperty.call(options.patch, 'pausedAt')) {
         updatePayload.pausedAt = options.patch.pausedAt || null;
         hasPatchChanges = true;
@@ -74,14 +103,18 @@ export async function updateAgentScopedUserChatTimeout(
     }
 
     const userChatTimeoutTable = await provideUserChatTimeoutTable();
-    const { data, error } = await userChatTimeoutTable
+    let updateQuery = userChatTimeoutTable
         .update(updatePayload)
         .eq('id', options.timeoutId)
-        .eq('userId', options.userId)
         .eq('agentPermanentId', options.agentPermanentId)
-        .eq('status', existingTimeout.status)
-        .select('*')
-        .maybeSingle();
+        .eq('status', existingTimeout.status);
+
+    // Note: A planned message belongs to the agent, so the goal chat edits it without naming one user
+    if (typeof options.userId === 'number') {
+        updateQuery = updateQuery.eq('userId', options.userId);
+    }
+
+    const { data, error } = await updateQuery.select('*').maybeSingle();
 
     if (error) {
         if (isMissingUserChatTimeoutRelationError(error)) {

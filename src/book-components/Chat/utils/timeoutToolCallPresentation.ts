@@ -10,6 +10,13 @@ import { formatToolCallTranslationTemplate } from './formatToolCallTranslationTe
 export const SET_TIMEOUT_TOOL_CALL_NAME = 'set_timeout';
 
 /**
+ * Tool name of one re-planned wake-up, used by every producer of timeout chips.
+ *
+ * @private internal timeout-chat constant
+ */
+export const UPDATE_TIMEOUT_TOOL_CALL_NAME = 'update_timeout';
+
+/**
  * Tool name of one cancelled wake-up, used by every producer of timeout chips.
  *
  * @private internal timeout-chat constant
@@ -21,7 +28,11 @@ export const CANCEL_TIMEOUT_TOOL_CALL_NAME = 'cancel_timeout';
  *
  * @private internal timeout-chat constant
  */
-const TIMEOUT_TOOL_NAMES = [SET_TIMEOUT_TOOL_CALL_NAME, CANCEL_TIMEOUT_TOOL_CALL_NAME] as const;
+const TIMEOUT_TOOL_NAMES = [
+    SET_TIMEOUT_TOOL_CALL_NAME,
+    UPDATE_TIMEOUT_TOOL_CALL_NAME,
+    CANCEL_TIMEOUT_TOOL_CALL_NAME,
+] as const;
 
 /**
  * Milliseconds in one second.

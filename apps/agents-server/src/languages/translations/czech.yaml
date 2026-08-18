@@ -17,6 +17,9 @@ goalChat.plannedMessagesEmptyLabel: Žádné naplánované zprávy. Agent se pro
 goalChat.plannedMessagesLoadErrorLabel: Naplánované zprávy se nepodařilo načíst.
 goalChat.plannedMessageDefaultLabel: Naplánované probuzení
 goalChat.plannedMessageIntervalLabel: 'Opakování: {interval}'
+goalChat.plannedMessageCronLabel: 'Opakování podle cronu {cron}'
+goalChat.plannedMessageRunCountLabel: 'Proběhlo {runCount} z {maxRunCount} spuštění'
+goalChat.plannedMessageWindowLabel: 'Od {from} do {to}'
 goalChat.plannedMessageCancelLabel: Zrušit
 goalChat.plannedMessageCancellingLabel: Ruším
 common.projects: Projekty

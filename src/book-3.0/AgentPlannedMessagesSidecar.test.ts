@@ -15,51 +15,68 @@ describe('AgentPlannedMessagesSidecar', () => {
     });
 
     it('round-trips one prepared sidecar', () => {
+        const plannedMessage = {
+            timeoutId: 'timeout-1',
+            dueAt: '2026-08-14T10:00:00.000Z',
+            message: 'Re-check the projects.',
+            intervalMs: null,
+            cronExpression: '0 9 * * 1-5',
+            startsAt: '2026-08-14T08:00:00.000Z',
+            endsAt: '2026-09-14T08:00:00.000Z',
+            maxRunCount: 10,
+            runCount: 2,
+        };
         const sidecarContent = createAgentPlannedMessagesSidecarContent({
             version: 1,
             agentPermanentId: 'Agent1234',
-            currentPlannedMessages: [
-                {
-                    timeoutId: 'timeout-1',
-                    dueAt: '2026-08-14T10:00:00.000Z',
-                    message: 'Re-check the projects.',
-                    intervalMs: 300_000,
-                },
-            ],
+            currentPlannedMessages: [plannedMessage],
             commands: [],
         });
 
         expect(parseAgentPlannedMessagesSidecar(sidecarContent)).toEqual({
             version: 1,
             agentPermanentId: 'Agent1234',
-            currentPlannedMessages: [
-                {
-                    timeoutId: 'timeout-1',
-                    dueAt: '2026-08-14T10:00:00.000Z',
-                    message: 'Re-check the projects.',
-                    intervalMs: 300_000,
-                },
-            ],
+            currentPlannedMessages: [plannedMessage],
             commands: [],
         });
     });
 
-    it('normalizes an unusable repeat interval of one planned message', () => {
+    it('normalizes an unusable schedule of one planned message', () => {
         const sidecar = parseAgentPlannedMessagesSidecar(
             JSON.stringify({
                 version: 1,
                 agentPermanentId: 'agent1234',
                 currentPlannedMessages: [
                     { timeoutId: 'timeout-1', dueAt: '2026-08-14T10:00:00.000Z' },
-                    { timeoutId: 'timeout-2', dueAt: '2026-08-14T11:00:00.000Z', intervalMs: -1 },
+                    { timeoutId: 'timeout-2', dueAt: '2026-08-14T11:00:00.000Z', intervalMs: -1, maxRunCount: 0 },
                 ],
                 commands: [],
             }),
         );
 
         expect(sidecar?.currentPlannedMessages).toEqual([
-            { timeoutId: 'timeout-1', dueAt: '2026-08-14T10:00:00.000Z', message: null, intervalMs: null },
-            { timeoutId: 'timeout-2', dueAt: '2026-08-14T11:00:00.000Z', message: null, intervalMs: null },
+            {
+                timeoutId: 'timeout-1',
+                dueAt: '2026-08-14T10:00:00.000Z',
+                message: null,
+                intervalMs: null,
+                cronExpression: null,
+                startsAt: null,
+                endsAt: null,
+                maxRunCount: null,
+                runCount: 0,
+            },
+            {
+                timeoutId: 'timeout-2',
+                dueAt: '2026-08-14T11:00:00.000Z',
+                message: null,
+                intervalMs: null,
+                cronExpression: null,
+                startsAt: null,
+                endsAt: null,
+                maxRunCount: null,
+                runCount: 0,
+            },
         ]);
     });
 
@@ -71,6 +88,7 @@ describe('AgentPlannedMessagesSidecar', () => {
                 currentPlannedMessages: [],
                 commands: [
                     { action: 'set', milliseconds: 3_600_000, message: 'Inspect the stale projects.' },
+                    { action: 'update', timeoutId: 'timeout-2', cronExpression: '0 9 * * 1-5', maxRunCount: 5 },
                     { action: 'cancel', timeoutId: 'timeout-1' },
                 ],
             }),
@@ -78,6 +96,7 @@ describe('AgentPlannedMessagesSidecar', () => {
 
         expect(sidecar?.commands).toEqual([
             { action: 'set', milliseconds: 3_600_000, message: 'Inspect the stale projects.' },
+            { action: 'update', timeoutId: 'timeout-2', cronExpression: '0 9 * * 1-5', maxRunCount: 5 },
             { action: 'cancel', timeoutId: 'timeout-1' },
         ]);
     });

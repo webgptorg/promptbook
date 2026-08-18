@@ -1,6 +1,20 @@
 import type { Json } from '@/src/database/schema';
+import { spaceTrim } from 'spacetrim';
+import { ParseError } from '../../../../../../src/errors/ParseError';
 import { $randomBase58 } from '../../../../../../src/utils/random/$randomBase58';
-import type { CreateUserChatTimeoutOptions, UserChatTimeoutInsert, UserChatTimeoutRecord, UserChatTimeoutRow } from '../UserChatTimeoutRecord';
+import type {
+    CreateUserChatTimeoutOptions,
+    UserChatTimeoutInsert,
+    UserChatTimeoutRecord,
+    UserChatTimeoutRow,
+} from '../UserChatTimeoutRecord';
+import {
+    normalizePlannedMessageCronExpression,
+    normalizePlannedMessageDateIso,
+    normalizePlannedMessageMaxRunCount,
+    resolvePlannedMessageDueAt,
+    type PlannedMessageSchedule,
+} from '../plannedMessageSchedule';
 import { isMissingUserChatTimeoutRelationError } from './isMissingUserChatTimeoutRelationError';
 import { mapUserChatTimeoutRow } from './mapUserChatTimeoutRow';
 import { normalizeRecurrenceIntervalMs } from './normalizeRecurrenceIntervalMs';
@@ -38,8 +52,9 @@ export async function createUserChatTimeout(options: CreateUserChatTimeoutOption
     const nowIso = new Date().toISOString();
     const timeoutId =
         options.id || `${USER_CHAT_TIMEOUT_ID_PREFIX}${$randomBase58(GENERATED_USER_CHAT_TIMEOUT_ID_LENGTH)}`;
-    const dueAt = options.dueAt || new Date(Date.now() + options.durationMs).toISOString();
-    const recurrenceIntervalMs = normalizeRecurrenceIntervalMs(options.recurrenceIntervalMs);
+    const schedule = createUserChatTimeoutSchedule(options);
+    const dueAt = options.dueAt || resolveCreatedUserChatTimeoutDueAtIso(schedule, options.durationMs ?? null);
+    const durationMs = options.durationMs ?? Math.max(0, Date.parse(dueAt) - Date.parse(nowIso));
     const userChatTimeoutTable = await provideUserChatTimeoutTable();
     const insertPayload: UserChatTimeoutInsert = {
         id: timeoutId,
@@ -51,9 +66,13 @@ export async function createUserChatTimeout(options: CreateUserChatTimeoutOption
         status: 'QUEUED',
         message: options.message || null,
         parameters: (options.parameters || {}) satisfies Record<string, unknown> as Json,
-        durationMs: options.durationMs,
+        durationMs,
         dueAt,
-        recurrenceIntervalMs,
+        recurrenceIntervalMs: schedule.recurrenceIntervalMs,
+        cronExpression: schedule.cronExpression,
+        startsAt: schedule.startsAt,
+        endsAt: schedule.endsAt,
+        maxRunCount: schedule.maxRunCount,
         queuedAt: nowIso,
         pausedAt: null,
         attemptCount: 0,
@@ -76,4 +95,56 @@ export async function createUserChatTimeout(options: CreateUserChatTimeoutOption
     }
 
     return mapUserChatTimeoutRow(data as UserChatTimeoutRow);
+}
+
+/**
+ * Collects the recurrence rule of one newly created timeout.
+ *
+ * @param options - Input of the created timeout.
+ * @returns Normalized recurrence rule.
+ *
+ * @private function of createUserChatTimeout
+ */
+function createUserChatTimeoutSchedule(options: CreateUserChatTimeoutOptions): PlannedMessageSchedule {
+    return {
+        recurrenceIntervalMs: normalizeRecurrenceIntervalMs(options.recurrenceIntervalMs),
+        cronExpression: normalizePlannedMessageCronExpression(options.cronExpression),
+        startsAt: normalizePlannedMessageDateIso(options.startsAt),
+        endsAt: normalizePlannedMessageDateIso(options.endsAt),
+        maxRunCount: normalizePlannedMessageMaxRunCount(options.maxRunCount),
+    };
+}
+
+/**
+ * Resolves when one newly created timeout fires for the first time.
+ *
+ * @param schedule - Recurrence rule of the created timeout.
+ * @param fallbackDelayMs - Delay used by a timeout that does not repeat.
+ * @returns ISO time of the first wake-up.
+ *
+ * @private function of createUserChatTimeout
+ */
+function resolveCreatedUserChatTimeoutDueAtIso(
+    schedule: PlannedMessageSchedule,
+    fallbackDelayMs: number | null,
+): string {
+    const dueAtDate = resolvePlannedMessageDueAt({
+        schedule,
+        completedRunCount: 0,
+        afterDate: new Date(),
+        fallbackDelayMs,
+    });
+
+    if (dueAtDate === null) {
+        throw new ParseError(
+            spaceTrim(`
+                This planned message would never wake the agent.
+
+                - Its schedule is already over, for example because \`endsAt\` is in the past or \`maxRunCount\` is exhausted.
+                - Plan a schedule with at least one wake-up still ahead.
+            `),
+        );
+    }
+
+    return dueAtDate.toISOString();
 }

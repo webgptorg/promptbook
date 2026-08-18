@@ -107,6 +107,10 @@ export type UserChatTimeout = {
     durationMs: number;
     dueAt: string;
     recurrenceIntervalMs: number | null;
+    cronExpression: string | null;
+    startsAt: string | null;
+    endsAt: string | null;
+    maxRunCount: number | null;
     queuedAt: string;
     startedAt: string | null;
     completedAt: string | null;

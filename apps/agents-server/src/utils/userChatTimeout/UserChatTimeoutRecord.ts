@@ -27,6 +27,10 @@ export type UserChatTimeoutRecord = {
     durationMs: number;
     dueAt: string;
     recurrenceIntervalMs: number | null;
+    cronExpression: string | null;
+    startsAt: string | null;
+    endsAt: string | null;
+    maxRunCount: number | null;
     queuedAt: string;
     startedAt: string | null;
     completedAt: string | null;
@@ -55,6 +59,10 @@ export type UserChatTimeoutRow = {
     durationMs: number;
     dueAt: string;
     recurrenceIntervalMs: number | null;
+    cronExpression: string | null;
+    startsAt: string | null;
+    endsAt: string | null;
+    maxRunCount: number | null;
     queuedAt: string;
     startedAt: string | null;
     completedAt: string | null;
@@ -83,6 +91,10 @@ export type UserChatTimeoutInsert = {
     durationMs: number;
     dueAt: string;
     recurrenceIntervalMs?: number | null;
+    cronExpression?: string | null;
+    startsAt?: string | null;
+    endsAt?: string | null;
+    maxRunCount?: number | null;
     queuedAt: string;
     startedAt?: string | null;
     completedAt?: string | null;
@@ -97,15 +109,22 @@ export type UserChatTimeoutInsert = {
 
 /**
  * Input used when persisting one new chat timeout.
+ *
+ * The schedule fields describe the whole life of a planned message, so `durationMs` and `dueAt` are
+ * only needed by a caller that schedules one plain wake-up at a fixed delay.
  */
 export type CreateUserChatTimeoutOptions = {
     id?: string;
     userId: number;
     agentPermanentId: string;
     chatId: string;
-    durationMs: number;
+    durationMs?: number;
     dueAt?: string;
     recurrenceIntervalMs?: number | null;
+    cronExpression?: string | null;
+    startsAt?: string | null;
+    endsAt?: string | null;
+    maxRunCount?: number | null;
     message?: string;
     parameters?: UserChatTimeoutParameters;
 };
@@ -162,10 +181,17 @@ export type ListAgentUserChatTimeoutsOptions = {
 
 /**
  * Mutable fields accepted when editing one agent-scoped timeout.
+ *
+ * Every schedule field that is present is written, so leaving one out keeps it as it is and passing
+ * `null` removes it.
  */
 export type UpdateAgentScopedUserChatTimeoutPatch = {
     dueAt?: string;
     recurrenceIntervalMs?: number | null;
+    cronExpression?: string | null;
+    startsAt?: string | null;
+    endsAt?: string | null;
+    maxRunCount?: number | null;
     message?: string | null;
     parameters?: UserChatTimeoutParameters;
     pausedAt?: string | null;

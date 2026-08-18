@@ -16,6 +16,11 @@ const LIST_PLANNED_MESSAGES_MOCK = jest.fn();
 const CANCEL_PLANNED_MESSAGE_MOCK = jest.fn();
 
 /**
+ * Mocked shared re-planning action.
+ */
+const UPDATE_PLANNED_MESSAGE_MOCK = jest.fn();
+
+/**
  * Mocked agent collection used to recover canonical permanent ids from runner folder names.
  */
 const FIND_AGENT_BASIC_INFORMATION_MOCK = jest.fn();
@@ -23,6 +28,7 @@ const FIND_AGENT_BASIC_INFORMATION_MOCK = jest.fn();
 jest.mock('@/src/utils/agentGoalChat/agentGoalChatPlannedMessageActions', () => ({
     AGENT_GOAL_CHAT_PLANNED_MESSAGE_ACTIONS: {
         set: SET_PLANNED_MESSAGE_MOCK,
+        update: UPDATE_PLANNED_MESSAGE_MOCK,
         list: LIST_PLANNED_MESSAGES_MOCK,
         cancel: CANCEL_PLANNED_MESSAGE_MOCK,
     },
@@ -164,6 +170,39 @@ describe('POST /api/internal/agent-goal-chat-planned-messages', () => {
             agentPermanentId: 'agent-1',
             timeoutId: 'timeout-1',
         });
+    });
+
+    it('re-plans one planned message with only the schedule fields it names', async () => {
+        UPDATE_PLANNED_MESSAGE_MOCK.mockResolvedValue({
+            action: 'update',
+            status: 'updated',
+            timeoutId: 'timeout-1',
+            dueAt: '2026-08-19T09:00:00.000Z',
+            cronExpression: '0 9 * * 1-5',
+            maxRunCount: 10,
+        });
+
+        const response = await POST(
+            createPlannedMessageRequest({
+                action: 'update',
+                agentPermanentId: 'agent-1',
+                timeoutId: 'timeout-1',
+                cronExpression: '0 9 * * 1-5',
+                maxRunCount: 10,
+                endsAt: null,
+            }),
+        );
+
+        expect(response.status).toBe(200);
+        // Note: `milliseconds` and `startsAt` stay out of the call, so the stored values of both are kept
+        expect(UPDATE_PLANNED_MESSAGE_MOCK).toHaveBeenCalledWith({
+            agentPermanentId: 'agent-1',
+            timeoutId: 'timeout-1',
+            cronExpression: '0 9 * * 1-5',
+            maxRunCount: 10,
+            endsAt: null,
+        });
+        await expect(response.json()).resolves.toMatchObject({ status: 'updated', timeoutId: 'timeout-1' });
     });
 
     it('returns a branded parse failure for an unsupported action', async () => {

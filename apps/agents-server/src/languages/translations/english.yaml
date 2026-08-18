@@ -17,6 +17,9 @@ goalChat.plannedMessagesEmptyLabel: No planned messages. The agent will wake up 
 goalChat.plannedMessagesLoadErrorLabel: Failed to load planned messages.
 goalChat.plannedMessageDefaultLabel: Planned wake-up
 goalChat.plannedMessageIntervalLabel: Repeats every {interval}
+goalChat.plannedMessageCronLabel: 'Repeats on cron {cron}'
+goalChat.plannedMessageRunCountLabel: '{runCount} of {maxRunCount} runs done'
+goalChat.plannedMessageWindowLabel: 'From {from} to {to}'
 goalChat.plannedMessageCancelLabel: Cancel
 goalChat.plannedMessageCancellingLabel: Cancelling
 common.projects: Projects

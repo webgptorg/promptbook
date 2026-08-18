@@ -6,7 +6,10 @@ import {
     type AgentPlannedMessageSnapshot,
     type AgentPlannedMessagesSidecar,
 } from '../../../../../src/book-3.0/AgentPlannedMessagesSidecar';
-import { AGENT_GOAL_CHAT_PLANNED_MESSAGE_ACTIONS } from '../agentGoalChat/agentGoalChatPlannedMessageActions';
+import {
+    AGENT_GOAL_CHAT_PLANNED_MESSAGE_ACTIONS,
+    type AgentGoalChatPlannedMessageItem,
+} from '../agentGoalChat/agentGoalChatPlannedMessageActions';
 import type { UserChatJobRecord } from '../userChat/UserChatJobRecord';
 import type { LocalAgentFolder } from './ensureLocalAgentFolder';
 import type { LocalUserChatJobMetadata } from './LocalUserChatJobMetadata';
@@ -46,21 +49,26 @@ export async function prepareLocalAgentPlannedMessagesSidecar(options: {
 /**
  * Reduces one stored planned message to the fields a coding harness needs.
  *
+ * The whole schedule travels into the sidecar, so the harness can compare a plan with its goal instead
+ * of only seeing when the next wake-up happens.
+ *
  * @param plannedMessage - Planned message returned by the shared planned-message actions.
  * @returns Snapshot written into the sidecar.
  *
  * @private function of `prepareLocalAgentPlannedMessagesSidecar`
  */
-function createLocalAgentPlannedMessageSnapshot(plannedMessage: {
-    readonly timeoutId: string;
-    readonly dueAt: string;
-    readonly message: string | null;
-    readonly intervalMs: number | null;
-}): AgentPlannedMessageSnapshot {
+function createLocalAgentPlannedMessageSnapshot(
+    plannedMessage: AgentGoalChatPlannedMessageItem,
+): AgentPlannedMessageSnapshot {
     return {
         timeoutId: plannedMessage.timeoutId,
         dueAt: plannedMessage.dueAt,
         message: plannedMessage.message,
         intervalMs: plannedMessage.intervalMs,
+        cronExpression: plannedMessage.cronExpression,
+        startsAt: plannedMessage.startsAt,
+        endsAt: plannedMessage.endsAt,
+        maxRunCount: plannedMessage.maxRunCount,
+        runCount: plannedMessage.runCount,
     };
 }

@@ -1,4 +1,9 @@
 import type { UserChatTimeoutRecord, UserChatTimeoutRow } from '../UserChatTimeoutRecord';
+import {
+    normalizePlannedMessageCronExpression,
+    normalizePlannedMessageDateIso,
+    normalizePlannedMessageMaxRunCount,
+} from '../plannedMessageSchedule';
 import { normalizeRecurrenceIntervalMs } from './normalizeRecurrenceIntervalMs';
 import { normalizeUserChatTimeoutParameters } from './normalizeUserChatTimeoutParameters';
 
@@ -22,6 +27,10 @@ export function mapUserChatTimeoutRow(row: UserChatTimeoutRow): UserChatTimeoutR
         durationMs: row.durationMs,
         dueAt: row.dueAt,
         recurrenceIntervalMs: normalizeRecurrenceIntervalMs(row.recurrenceIntervalMs),
+        cronExpression: normalizePlannedMessageCronExpression(row.cronExpression),
+        startsAt: normalizePlannedMessageDateIso(row.startsAt),
+        endsAt: normalizePlannedMessageDateIso(row.endsAt),
+        maxRunCount: normalizePlannedMessageMaxRunCount(row.maxRunCount),
         queuedAt: row.queuedAt,
         startedAt: row.startedAt,
         completedAt: row.completedAt,

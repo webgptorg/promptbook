@@ -1,5 +1,8 @@
 import { spaceTrim } from 'spacetrim';
-import { formatTimeoutDurationHuman } from '../../../../../src/book-components/Chat/utils/timeoutToolCallPresentation';
+import {
+    describeAgentPlannedMessageSchedule,
+    type AgentPlannedMessageScheduleDescription,
+} from '../../../../../src/book-3.0/describeAgentPlannedMessageSchedule';
 
 /**
  * Lifecycle events of an agent that are recorded in its goal chat.
@@ -57,27 +60,54 @@ export function createAgentGoalChatLifecycleNoteContent(options: {
 }
 
 /**
- * Builds the goal-chat note left when a planned message is scheduled.
- *
- * @param options - Planned-message identity, repeat interval, due time, and optional payload message.
- * @returns Note content stored as one agent message.
+ * Planned-message details shown in one goal-chat note.
  */
-export function createAgentGoalChatPlannedMessageNoteContent(options: {
+export type AgentGoalChatPlannedMessageNoteOptions = AgentPlannedMessageScheduleDescription & {
     readonly timeoutId: string;
     readonly dueAt: string;
-    readonly intervalMs?: number | null;
     readonly message?: string | null;
-}): string {
+};
+
+/**
+ * Builds the goal-chat note left when a planned message is scheduled.
+ *
+ * @param options - Planned-message identity, its whole schedule, and optional payload message.
+ * @returns Note content stored as one agent message.
+ */
+export function createAgentGoalChatPlannedMessageNoteContent(options: AgentGoalChatPlannedMessageNoteOptions): string {
+    return createAgentGoalChatPlannedMessageScheduleNoteContent('⏳ I planned a message that', options);
+}
+
+/**
+ * Builds the goal-chat note left when the schedule of a planned message is changed.
+ *
+ * @param options - Planned-message identity, its new schedule, and optional payload message.
+ * @returns Note content stored as one agent message.
+ */
+export function createAgentGoalChatUpdatedPlannedMessageNoteContent(
+    options: AgentGoalChatPlannedMessageNoteOptions,
+): string {
+    return createAgentGoalChatPlannedMessageScheduleNoteContent('🔁 I changed a planned message, which now', options);
+}
+
+/**
+ * Builds one goal-chat note describing the current schedule of a planned message.
+ *
+ * @param headlinePrefix - Sentence opening telling apart a new plan from a changed one.
+ * @param options - Planned-message identity, its schedule, and optional payload message.
+ * @returns Note content stored as one agent message.
+ *
+ * @private function of `createAgentGoalChatNoteContent`
+ */
+function createAgentGoalChatPlannedMessageScheduleNoteContent(
+    headlinePrefix: string,
+    options: AgentGoalChatPlannedMessageNoteOptions,
+): string {
     const plannedMessage = options.message?.trim() || '';
-    const headline = options.intervalMs
-        ? `⏳ I planned a message that will wake me up every ${formatTimeoutDurationHuman(
-              options.intervalMs,
-          )}, for the first time at ${options.dueAt}.`
-        : `⏳ I planned a message that will wake me up at ${options.dueAt}.`;
 
     return spaceTrim(
         (block) => `
-            ${headline}
+            ${headlinePrefix} ${describeAgentPlannedMessageSchedule(options)}.
 
             ${plannedMessage ? block(plannedMessage) : ''}
 
@@ -92,9 +122,7 @@ export function createAgentGoalChatPlannedMessageNoteContent(options: {
  * @param options - Planned-message identity.
  * @returns Note content stored as one agent message.
  */
-export function createAgentGoalChatCancelledPlannedMessageNoteContent(options: {
-    readonly timeoutId: string;
-}): string {
+export function createAgentGoalChatCancelledPlannedMessageNoteContent(options: { readonly timeoutId: string }): string {
     return spaceTrim(`
         🚫 I cancelled the planned message \`${options.timeoutId}\`, so it will not wake me up anymore.
     `);

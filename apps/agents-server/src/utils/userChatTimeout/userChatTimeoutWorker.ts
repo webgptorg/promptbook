@@ -7,6 +7,8 @@ import { isAgentGoalChatId } from '../agentGoalChat/agentGoalChatIdentity';
 import {
     createAgentGoalChatCancelledPlannedMessageNoteContent,
     createAgentGoalChatPlannedMessageNoteContent,
+    createAgentGoalChatUpdatedPlannedMessageNoteContent,
+    type AgentGoalChatPlannedMessageNoteOptions,
 } from '../agentGoalChat/createAgentGoalChatNoteContent';
 import { getToolUsageLimits } from '../toolUsageLimits';
 import { resolveCurrentOrInternalServerOrigin } from '../resolveCurrentOrInternalServerOrigin';
@@ -17,8 +19,13 @@ import { getUserChatJobByClientMessageId } from '../userChat/getUserChatJobByCli
 import { mutateUserChat } from '../userChat/mutateUserChat';
 import { triggerUserChatJobWorker } from '../userChat/triggerUserChatJobWorker';
 import { runWithTaskTerminalCapture } from '../taskTerminal/runWithTaskTerminalCapture';
-import type { UserChatTimeoutParameters, UserChatTimeoutRecord } from './UserChatTimeoutRecord';
+import type {
+    UpdateAgentScopedUserChatTimeoutOptions,
+    UserChatTimeoutParameters,
+    UserChatTimeoutRecord,
+} from './UserChatTimeoutRecord';
 import { createTimeoutWakeUpMessage } from './createTimeoutWakeUpMessage';
+import { hasPlannedMessageRecurrence, isPlannedMessageScheduleFinished } from './plannedMessageSchedule';
 import {
     cancelUserChatTimeout,
     claimNextDueUserChatTimeout,
@@ -31,6 +38,7 @@ import {
     markUserChatTimeoutFailed,
     recoverExpiredRunningUserChatTimeouts,
     repeatFiredUserChatTimeout,
+    updateAgentScopedUserChatTimeout,
 } from './userChatTimeoutStore';
 
 /**
@@ -91,8 +99,12 @@ export async function scheduleThreadScopedUserChatTimeout(options: {
     readonly userId: number;
     readonly agentPermanentId: string;
     readonly chatId: string;
-    readonly durationMs: number;
+    readonly durationMs?: number;
     readonly recurrenceIntervalMs?: number | null;
+    readonly cronExpression?: string | null;
+    readonly startsAt?: string | null;
+    readonly endsAt?: string | null;
+    readonly maxRunCount?: number | null;
     readonly message?: string;
     readonly parameters?: UserChatTimeoutParameters;
 }): Promise<UserChatTimeoutRecord> {
@@ -115,6 +127,10 @@ export async function scheduleThreadScopedUserChatTimeout(options: {
         chatId: options.chatId,
         durationMs: options.durationMs,
         recurrenceIntervalMs: options.recurrenceIntervalMs,
+        cronExpression: options.cronExpression,
+        startsAt: options.startsAt,
+        endsAt: options.endsAt,
+        maxRunCount: options.maxRunCount,
         message: options.message,
         parameters: options.parameters,
     });
@@ -160,20 +176,68 @@ export async function cancelScheduledUserChatTimeout(timeoutId: string): Promise
 }
 
 /**
- * Mirrors one newly planned message into the goal chat of the owning agent.
+ * Updates the schedule of one planned message and keeps every wake-up surface in sync.
+ *
+ * This is the counterpart of scheduling and cancelling: one planned message can be re-planned without
+ * losing its identity, so the agent keeps the `timeoutId` it already knows and the goal chat records
+ * the new schedule.
+ *
+ * @param options - Scoped timeout identity together with the schedule patch.
+ * @returns The updated timeout, or `null` when there is no such planned message.
+ *
+ * @private internal utility of userChatTimeout
+ */
+export async function updateScheduledUserChatTimeout(
+    options: UpdateAgentScopedUserChatTimeoutOptions,
+): Promise<UserChatTimeoutRecord | null> {
+    const updatedTimeout = await updateAgentScopedUserChatTimeout(options);
+
+    if (!updatedTimeout) {
+        return null;
+    }
+
+    console.info('[user-chat-timeout]', 'update', {
+        chatId: updatedTimeout.chatId,
+        timeoutId: updatedTimeout.timeoutId,
+        dueAt: updatedTimeout.dueAt,
+        recurrenceIntervalMs: updatedTimeout.recurrenceIntervalMs,
+        cronExpression: updatedTimeout.cronExpression,
+    });
+
+    notifyUserChatTimeoutScheduleChanged(updatedTimeout);
+    await recordAgentGoalChatPlannedMessageNote(updatedTimeout, createAgentGoalChatUpdatedPlannedMessageNoteContent);
+
+    return updatedTimeout;
+}
+
+/**
+ * Mirrors one planned message and its schedule into the goal chat of the owning agent.
  *
  * Planned messages can be created from any chat, but the agent's own thread is where all of them
  * become visible, so the goal chat always shows the full plan.
  *
+ * @param timeout - Planned message that was just scheduled or re-planned.
+ * @param createNoteContent - Note wording of the recorded schedule change.
+ *
  * @private internal utility of userChatTimeout
  */
-async function recordAgentGoalChatPlannedMessageNote(timeout: UserChatTimeoutRecord): Promise<void> {
+async function recordAgentGoalChatPlannedMessageNote(
+    timeout: UserChatTimeoutRecord,
+    createNoteContent: (
+        options: AgentGoalChatPlannedMessageNoteOptions,
+    ) => string = createAgentGoalChatPlannedMessageNoteContent,
+): Promise<void> {
     await appendAgentGoalChatNote({
         agentPermanentId: timeout.agentPermanentId,
-        content: createAgentGoalChatPlannedMessageNoteContent({
+        content: createNoteContent({
             timeoutId: timeout.timeoutId,
             dueAt: timeout.dueAt,
             intervalMs: timeout.recurrenceIntervalMs,
+            cronExpression: timeout.cronExpression,
+            startsAt: timeout.startsAt,
+            endsAt: timeout.endsAt,
+            maxRunCount: timeout.maxRunCount,
+            runCount: timeout.runCount,
             message: timeout.message,
         }),
     }).catch((error) => {
@@ -302,6 +366,29 @@ async function processClaimedUserChatTimeout(timeout: UserChatTimeoutRecord): Pr
             return;
         }
 
+        if (
+            isPlannedMessageScheduleFinished({
+                schedule: latestTimeout,
+                completedRunCount: latestTimeout.runCount,
+                atDate: new Date(),
+            })
+        ) {
+            // Note: A wake-up delayed past the ending date of its plan is dropped instead of fired late
+            await markUserChatTimeoutCancelled(
+                latestTimeout.timeoutId,
+                'Planned message reached the end of its schedule.',
+            );
+            console.info('[user-chat-timeout]', 'schedule_finished', {
+                chatId: latestTimeout.chatId,
+                timeoutId: latestTimeout.timeoutId,
+                dueAt: latestTimeout.dueAt,
+                endsAt: latestTimeout.endsAt,
+                runCount: latestTimeout.runCount,
+                maxRunCount: latestTimeout.maxRunCount,
+            });
+            return;
+        }
+
         const chat = await getUserChat({
             userId: latestTimeout.userId,
             agentPermanentId: latestTimeout.agentPermanentId,
@@ -352,6 +439,11 @@ async function processClaimedUserChatTimeout(timeout: UserChatTimeoutRecord): Pr
                         timeoutId: latestTimeout.timeoutId,
                         durationMs: latestTimeout.durationMs,
                         intervalMs: latestTimeout.recurrenceIntervalMs,
+                        cronExpression: latestTimeout.cronExpression,
+                        startsAt: latestTimeout.startsAt,
+                        endsAt: latestTimeout.endsAt,
+                        maxRunCount: latestTimeout.maxRunCount,
+                        runCount: latestTimeout.runCount + 1,
                         message: latestTimeout.message,
                     }),
                     messageSender: isAgentGoalChatId(latestTimeout.chatId) ? 'AGENT' : 'USER',
@@ -433,7 +525,10 @@ async function processClaimedUserChatTimeout(timeout: UserChatTimeoutRecord): Pr
  *
  * @private internal utility of userChatTimeout
  */
-async function appendUserChatTimeoutWarningMessage(timeout: UserChatTimeoutRecord, failureReason: string): Promise<void> {
+async function appendUserChatTimeoutWarningMessage(
+    timeout: UserChatTimeoutRecord,
+    failureReason: string,
+): Promise<void> {
     const chat = await getUserChat({
         userId: timeout.userId,
         agentPermanentId: timeout.agentPermanentId,
@@ -533,18 +628,20 @@ function clearUserChatTimeoutLocalWakeup(timeoutId: string): void {
 }
 
 /**
- * Closes one fired timeout, keeping a repeating planned message armed for its next interval.
+ * Closes one fired timeout, keeping a repeating planned message armed for its next wake-up.
  *
  * A repeating timeout is the durable counterpart of `setInterval`, so it is re-armed in place
  * instead of being completed: it keeps one row, one identity, and one cancellation point. A
- * timeout that does not repeat, or one that was cancelled while it was firing, becomes terminal.
+ * timeout that does not repeat, one whose schedule is over — because it ran as many times as it was
+ * planned to run or its ending date passed — and one that was cancelled while it was firing all
+ * become terminal, so a finished plan disappears from everything the agent is shown.
  *
  * @param firedTimeout - Timeout whose wake-up turn was just queued.
  *
  * @private internal utility of userChatTimeout
  */
 async function finishFiredUserChatTimeout(firedTimeout: UserChatTimeoutRecord): Promise<void> {
-    if (firedTimeout.recurrenceIntervalMs) {
+    if (hasPlannedMessageRecurrence(firedTimeout)) {
         const repeatedTimeout = await repeatFiredUserChatTimeout(firedTimeout.timeoutId);
 
         if (repeatedTimeout?.status === 'QUEUED') {
@@ -553,14 +650,16 @@ async function finishFiredUserChatTimeout(firedTimeout: UserChatTimeoutRecord): 
                 timeoutId: repeatedTimeout.timeoutId,
                 dueAt: repeatedTimeout.dueAt,
                 recurrenceIntervalMs: repeatedTimeout.recurrenceIntervalMs,
+                cronExpression: repeatedTimeout.cronExpression,
                 runCount: repeatedTimeout.runCount,
+                maxRunCount: repeatedTimeout.maxRunCount,
             });
             scheduleUserChatTimeoutLocalWakeup(repeatedTimeout);
             return;
         }
 
-        // Note: A planned message that could not be re-armed, for example because it was cancelled while
-        //       it was firing, stops repeating and is closed like a timeout that never repeated
+        // Note: A planned message that could not be re-armed, for example because its schedule is over or
+        //       because it was cancelled while it was firing, is closed like a timeout that never repeated
         console.info('[user-chat-timeout]', 'skip_repeat', {
             chatId: firedTimeout.chatId,
             timeoutId: firedTimeout.timeoutId,

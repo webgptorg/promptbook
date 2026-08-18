@@ -1,6 +1,6 @@
 'use client';
 
-import { Clock3Icon, RepeatIcon } from 'lucide-react';
+import { CalendarRangeIcon, Clock3Icon, RepeatIcon } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { formatTimeoutDurationHuman } from '../../../../../../../src/book-components/Chat/utils/timeoutToolCallPresentation';
 import { useServerLanguage } from '../../../../components/ServerLanguage/ServerLanguageProvider';
@@ -36,6 +36,18 @@ type AgentGoalChatPlannedMessagesProps = {
      */
     readonly currentTimestamp: number;
 };
+
+/**
+ * Renders one boundary of the window in which a planned message may wake the agent.
+ *
+ * @param boundary - Starting or ending date of the planned message.
+ * @returns Local date-time text, or `∞` for a side of the window which is not bounded.
+ *
+ * @private function of AgentGoalChatPlannedMessages
+ */
+function formatPlannedMessageBoundary(boundary: string | null): string {
+    return boundary === null ? '∞' : new Date(boundary).toLocaleString();
+}
 
 /**
  * Keeps only the planned messages that can still wake the agent up.
@@ -134,8 +146,7 @@ export function AgentGoalChatPlannedMessages({ agentName, currentTimestamp }: Ag
                             >
                                 <div className="min-w-0 flex-1">
                                     <div className="truncate text-sm font-medium text-slate-800 dark:text-slate-100">
-                                        {plannedMessage.message ||
-                                            translateText('goalChat.plannedMessageDefaultLabel')}
+                                        {plannedMessage.message || translateText('goalChat.plannedMessageDefaultLabel')}
                                     </div>
                                     <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-medium text-amber-700 dark:text-amber-300">
                                         <span className="inline-flex items-center gap-1.5">
@@ -155,6 +166,38 @@ export function AgentGoalChatPlannedMessages({ agentName, currentTimestamp }: Ag
                                                         interval: formatTimeoutDurationHuman(
                                                             plannedMessage.recurrenceIntervalMs,
                                                         ),
+                                                    })}
+                                                </span>
+                                            </span>
+                                        )}
+                                        {plannedMessage.cronExpression !== null && (
+                                            <span className="inline-flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
+                                                <RepeatIcon className="h-3.5 w-3.5" />
+                                                <span>
+                                                    {translateText('goalChat.plannedMessageCronLabel', {
+                                                        cron: plannedMessage.cronExpression,
+                                                    })}
+                                                </span>
+                                            </span>
+                                        )}
+                                        {plannedMessage.maxRunCount !== null && (
+                                            <span className="inline-flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
+                                                <RepeatIcon className="h-3.5 w-3.5" />
+                                                <span>
+                                                    {translateText('goalChat.plannedMessageRunCountLabel', {
+                                                        runCount: String(plannedMessage.runCount),
+                                                        maxRunCount: String(plannedMessage.maxRunCount),
+                                                    })}
+                                                </span>
+                                            </span>
+                                        )}
+                                        {(plannedMessage.startsAt !== null || plannedMessage.endsAt !== null) && (
+                                            <span className="inline-flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
+                                                <CalendarRangeIcon className="h-3.5 w-3.5" />
+                                                <span>
+                                                    {translateText('goalChat.plannedMessageWindowLabel', {
+                                                        from: formatPlannedMessageBoundary(plannedMessage.startsAt),
+                                                        to: formatPlannedMessageBoundary(plannedMessage.endsAt),
                                                     })}
                                                 </span>
                                             </span>

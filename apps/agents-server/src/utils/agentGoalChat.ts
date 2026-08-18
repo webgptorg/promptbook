@@ -10,6 +10,7 @@ export {
     createAgentGoalChatCancelledPlannedMessageNoteContent,
     createAgentGoalChatLifecycleNoteContent,
     createAgentGoalChatPlannedMessageNoteContent,
+    createAgentGoalChatUpdatedPlannedMessageNoteContent,
 } from './agentGoalChat/createAgentGoalChatNoteContent';
 export { ensureAgentGoalChat } from './agentGoalChat/ensureAgentGoalChat';
 export {

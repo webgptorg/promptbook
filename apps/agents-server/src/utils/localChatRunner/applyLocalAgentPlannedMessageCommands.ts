@@ -10,6 +10,7 @@ import {
     AGENT_GOAL_CHAT_PLANNED_MESSAGE_ACTIONS,
     type CancelAgentGoalChatPlannedMessageResult,
     type SetAgentGoalChatPlannedMessageResult,
+    type UpdateAgentGoalChatPlannedMessageResult,
 } from '../agentGoalChat/agentGoalChatPlannedMessageActions';
 import type { UserChatJobRecord } from '../userChat/UserChatJobRecord';
 import type { LocalUserChatJobMetadata } from './LocalUserChatJobMetadata';
@@ -17,17 +18,23 @@ import type { LocalUserChatJobMetadata } from './LocalUserChatJobMetadata';
 /**
  * Planned-message operations used while applying one sidecar.
  */
-export type LocalAgentPlannedMessageActions = Pick<typeof AGENT_GOAL_CHAT_PLANNED_MESSAGE_ACTIONS, 'set' | 'cancel'>;
+export type LocalAgentPlannedMessageActions = Pick<
+    typeof AGENT_GOAL_CHAT_PLANNED_MESSAGE_ACTIONS,
+    'set' | 'update' | 'cancel'
+>;
 
 /**
  * One planned-message command that was applied together with its result.
  *
- * The command carries what the agent asked for (for example the requested delay) and the result
+ * The command carries what the agent asked for (for example the requested schedule) and the result
  * carries what really happened, so the chat can show the wake-up below the message that planned it.
  */
 export type AppliedAgentPlannedMessageCommand = {
     readonly command: AgentPlannedMessageCommand;
-    readonly result: SetAgentGoalChatPlannedMessageResult | CancelAgentGoalChatPlannedMessageResult;
+    readonly result:
+        | SetAgentGoalChatPlannedMessageResult
+        | UpdateAgentGoalChatPlannedMessageResult
+        | CancelAgentGoalChatPlannedMessageResult;
 };
 
 /**
@@ -119,7 +126,7 @@ async function applyLocalAgentPlannedMessageCommand(options: {
         if (options.command.action === 'set') {
             const plannedMessage = await options.actions.set({
                 agentPermanentId: options.agentPermanentId,
-                milliseconds: options.command.milliseconds,
+                ...createLocalAgentPlannedMessageScheduleRequest(options.command),
                 message: options.command.message,
             });
 
@@ -131,6 +138,25 @@ async function applyLocalAgentPlannedMessageCommand(options: {
             });
 
             return plannedMessage;
+        }
+
+        if (options.command.action === 'update') {
+            const updatedPlannedMessage = await options.actions.update({
+                agentPermanentId: options.agentPermanentId,
+                timeoutId: options.command.timeoutId,
+                ...createLocalAgentPlannedMessageScheduleRequest(options.command),
+                ...(options.command.message === undefined ? {} : { message: options.command.message }),
+            });
+
+            console.info('[local-chat-runner]', 'planned_message_update', {
+                chatId: options.job.chatId,
+                jobId: options.job.id,
+                timeoutId: updatedPlannedMessage.timeoutId,
+                status: updatedPlannedMessage.status,
+                dueAt: updatedPlannedMessage.dueAt,
+            });
+
+            return updatedPlannedMessage.status === 'updated' ? updatedPlannedMessage : null;
         }
 
         const cancelledPlannedMessage = await options.actions.cancel({
@@ -156,6 +182,29 @@ async function applyLocalAgentPlannedMessageCommand(options: {
 
         return null;
     }
+}
+
+/**
+ * Collects the schedule fields of one sidecar command.
+ *
+ * A field the harness did not write stays absent, which is what tells "keep this part of the schedule"
+ * apart from "remove this bound".
+ *
+ * @param command - Planned-message command written by the coding harness.
+ * @returns Schedule fields passed to the shared planned-message actions.
+ *
+ * @private function of `applyLocalAgentPlannedMessageCommands`
+ */
+function createLocalAgentPlannedMessageScheduleRequest(command: AgentPlannedMessageCommand): {
+    readonly [FieldName: string]: unknown;
+} {
+    return {
+        ...(command.milliseconds === undefined ? {} : { milliseconds: command.milliseconds }),
+        ...(command.cronExpression === undefined ? {} : { cronExpression: command.cronExpression }),
+        ...(command.startsAt === undefined ? {} : { startsAt: command.startsAt }),
+        ...(command.endsAt === undefined ? {} : { endsAt: command.endsAt }),
+        ...(command.maxRunCount === undefined ? {} : { maxRunCount: command.maxRunCount }),
+    };
 }
 
 /**

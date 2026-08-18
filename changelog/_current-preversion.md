@@ -1,3 +1,28 @@
+-   Turned Agents Server planned messages from "repeats every N milliseconds until cancelled" into a real schedule, so
+    an agent can plan a message that repeats, one that runs exactly once, and anything between the two. Each planned
+    message can now carry a **cron expression**, a **total number of runs**, and a **starting and ending date**, and it
+    finishes by itself once that schedule is over.
+
+    -   **One schedule, one place deciding it.** A planned message follows either a fixed interval or a five-field cron
+        expression, bounded by `startsAt`, `endsAt`, and `maxRunCount`. A single resolver answers when the message wakes
+        the agent first, when it wakes it again, and when the plan is over, so scheduling, repeating, and finishing can
+        never disagree. The cron engine is the one already used by the automatic VPS self-update, which was extracted
+        into a shared utility instead of being written a second time.
+    -   **A finished plan disappears.** A message that ran as many times as it was planned to run, or whose ending date
+        passed, becomes terminal instead of being re-armed, and a wake-up delayed past its own ending date is dropped
+        rather than fired late. Finished messages are therefore never listed to the agent, never sent into its prompt,
+        and never wake it again — the agent only ever sees what is still ahead.
+    -   **The agent can re-plan, not only plan and cancel.** A new `update` action changes the schedule or the text of a
+        planned message while keeping its identifier, so a wake-up an agent already announced stays the same wake-up.
+        Only the named fields change, and `null` removes a bound.
+    -   **From every invocation.** Planning, re-planning, and cancelling work the same way from a normal chat, from an
+        external chat such as an email or API conversation, from a goal chat woken by a planned message itself, and from
+        the goal-chat turn queued when the agent's book was updated — all of them go through the one shared
+        planned-message service, reached through the planned-message sidecar of the answering runner, the model tools,
+        or the internal runtime API.
+    -   The goal chat lists the cron, the run counter, and the date window next to the repeat interval it showed before,
+        and the wake-up message itself now says which run of the plan it is.
+
 -   Made every Agents Server agent project a git repository whose history is written by the agent itself, and turned
     the popup behind a **📁 project** chip into a card that is actually worth opening. Clicking the chip used to show
     little more than the project directory name; it now shows what the project is, what state it is in, and the exact

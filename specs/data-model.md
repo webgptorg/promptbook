@@ -72,7 +72,7 @@ One background turn per user message: `id` TEXT PK, `chatId` FK cascade, `userId
 
 ### `prefix_UserChatTimeout`
 
-Scheduled wake-ups (see [Timeouts](chat/timeouts.md)): `id` TEXT PK, `chatId`/`userId`/`agentPermanentId` FKs cascade, `status` (same enum as jobs, CHECK-constrained; a repeating wake-up returns to `QUEUED` after each firing), `message` (nullable wake-up text), `parameters` (JSON prompt parameters), `durationMs`, `dueAt`, `recurrenceIntervalMs` (repeat interval, `null` for one-shot rows), `runCount`/`lastFiredAt` (firing history), `pausedAt`, `queuedAt`, `startedAt`, `completedAt`, `cancelRequestedAt`, `leaseExpiresAt`, `attemptCount`, `failureReason`. Indexed by `(status, dueAt)` and per chat.
+Scheduled wake-ups (see [Timeouts](chat/timeouts.md)): `id` TEXT PK, `chatId`/`userId`/`agentPermanentId` FKs cascade, `status` (same enum as jobs, CHECK-constrained; a repeating wake-up returns to `QUEUED` after each firing), `message` (nullable wake-up text), `parameters` (JSON prompt parameters), `durationMs`, `dueAt`, the recurrence rule `recurrenceIntervalMs` (fixed repeat interval) / `cronExpression` (five-field cron, mutually exclusive with the interval) bounded by `startsAt`, `endsAt`, and `maxRunCount` (all `null` for an unbounded or one-shot row), `runCount`/`lastFiredAt` (firing history), `pausedAt`, `queuedAt`, `startedAt`, `completedAt`, `cancelRequestedAt`, `leaseExpiresAt`, `attemptCount`, `failureReason`. Indexed by `(status, dueAt)`, per chat, and by `endsAt`.
 
 ## Identity and personal data
 

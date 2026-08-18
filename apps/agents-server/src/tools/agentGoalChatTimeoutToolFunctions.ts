@@ -1,5 +1,5 @@
 import { spaceTrim } from 'spacetrim';
-import { formatTimeoutDurationHuman } from '../../../../src/book-components/Chat/utils/timeoutToolCallPresentation';
+import { describeAgentPlannedMessageSchedule } from '../../../../src/book-3.0/describeAgentPlannedMessageSchedule';
 import type { string_javascript_name } from '../../../../src/types/string_person_fullname';
 import type { ToolFunction } from '../../../../src/scripting/javascript/JavascriptExecutionToolsOptions';
 import { createToolExecutionEnvelope } from '../../../../src/commitments/_common/toolExecutionEnvelope';
@@ -9,6 +9,7 @@ import {
     createAgentGoalChatPlannedMessageActions,
     type AgentGoalChatPlannedMessageDependencies,
     type AgentGoalChatPlannedMessageItem,
+    type UpdateAgentGoalChatPlannedMessageResult,
 } from '../utils/agentGoalChat/agentGoalChatPlannedMessageActions';
 import { AGENT_GOAL_CHAT_TIMEOUT_TOOL_NAMES } from './agentGoalChatTimeoutTools';
 
@@ -41,18 +42,39 @@ export function createAgentGoalChatTimeoutToolFunctions(
                 const agentPermanentId = resolveAgentPermanentId(toolArguments);
                 const result = await actions.set({
                     agentPermanentId,
-                    milliseconds: toolArguments.milliseconds,
+                    ...createPlannedMessageScheduleArguments(toolArguments),
                     message: toolArguments.message,
                 });
 
                 return createToolExecutionEnvelope({
                     assistantMessage: `Planned message ${JSON.stringify(
                         result.timeoutId,
-                    )} ${createPlannedMessageScheduleLabel(result)}.`,
+                    )} ${describeAgentPlannedMessageSchedule(result)}.`,
                     toolResult: result,
                 });
             } catch (error) {
                 return serializeToolError('set', error);
+            }
+        },
+
+        async [AGENT_GOAL_CHAT_TIMEOUT_TOOL_NAMES.update](
+            toolArguments: AgentGoalChatTimeoutToolArguments,
+        ): Promise<string> {
+            try {
+                const agentPermanentId = resolveAgentPermanentId(toolArguments);
+                const result = await actions.update({
+                    agentPermanentId,
+                    timeoutId: toolArguments.timeoutId,
+                    ...createPlannedMessageScheduleArguments(toolArguments),
+                    ...(toolArguments.message === undefined ? {} : { message: toolArguments.message }),
+                });
+
+                return createToolExecutionEnvelope({
+                    assistantMessage: createUpdatedPlannedMessageAssistantMessage(result),
+                    toolResult: result,
+                });
+            } catch (error) {
+                return serializeToolError('update', error);
             }
         },
 
@@ -150,7 +172,7 @@ function createPlannedMessagesAssistantSummary(
     const visiblePlannedMessages = plannedMessages.slice(0, MAX_ASSISTANT_VISIBLE_PLANNED_MESSAGES);
     const summaryRows = visiblePlannedMessages.map((plannedMessage, index) => {
         const message = plannedMessage.message?.trim() || 'Wake up and continue working towards the current goal.';
-        return `${index + 1}. ${plannedMessage.timeoutId} ${createPlannedMessageScheduleLabel(
+        return `${index + 1}. ${plannedMessage.timeoutId} ${describeAgentPlannedMessageSchedule(
             plannedMessage,
         )}: ${message}`;
     });
@@ -170,20 +192,45 @@ function createPlannedMessagesAssistantSummary(
 }
 
 /**
- * Describes when one planned message wakes the agent.
+ * Builds the text shown to the model after one re-planning attempt.
  *
- * @param plannedMessage - Planned message with its repeat interval and nearest execution time.
- * @returns Schedule fragment such as `repeating every 5 minutes (next at ...)`.
+ * @param result - Result of the shared re-planning action.
+ * @returns Assistant-visible sentence telling what really happened to the planned message.
  */
-function createPlannedMessageScheduleLabel(plannedMessage: {
-    readonly dueAt: string;
-    readonly intervalMs: number | null;
-}): string {
-    if (!plannedMessage.intervalMs) {
-        return `at ${plannedMessage.dueAt}`;
+function createUpdatedPlannedMessageAssistantMessage(result: UpdateAgentGoalChatPlannedMessageResult): string {
+    if (result.status === 'updated') {
+        return `Planned message ${JSON.stringify(result.timeoutId)} now ${describeAgentPlannedMessageSchedule(
+            result,
+        )}.`;
     }
 
-    return `repeating every ${formatTimeoutDurationHuman(plannedMessage.intervalMs)} (next at ${plannedMessage.dueAt})`;
+    if (result.status === 'busy') {
+        return `Planned message ${JSON.stringify(
+            result.timeoutId,
+        )} is waking you right now and was left unchanged, so change it again afterwards.`;
+    }
+
+    return 'The planned message was already inactive or was not found.';
+}
+
+/**
+ * Collects the schedule arguments of one planned-message tool call.
+ *
+ * An argument the model did not pass stays absent, so an update changes only the fields it names.
+ *
+ * @param toolArguments - Raw arguments of the tool call.
+ * @returns Schedule fields passed to the shared planned-message actions.
+ */
+function createPlannedMessageScheduleArguments(
+    toolArguments: AgentGoalChatTimeoutToolArguments,
+): AgentGoalChatTimeoutToolArguments {
+    return {
+        ...(toolArguments.milliseconds === undefined ? {} : { milliseconds: toolArguments.milliseconds }),
+        ...(toolArguments.cronExpression === undefined ? {} : { cronExpression: toolArguments.cronExpression }),
+        ...(toolArguments.startsAt === undefined ? {} : { startsAt: toolArguments.startsAt }),
+        ...(toolArguments.endsAt === undefined ? {} : { endsAt: toolArguments.endsAt }),
+        ...(toolArguments.maxRunCount === undefined ? {} : { maxRunCount: toolArguments.maxRunCount }),
+    };
 }
 
 /**
@@ -193,7 +240,7 @@ function createPlannedMessageScheduleLabel(plannedMessage: {
  * @param error - Caught failure.
  * @returns JSON result readable by the model and persisted tool-call inspector.
  */
-function serializeToolError(action: 'set' | 'list' | 'cancel', error: unknown): string {
+function serializeToolError(action: 'set' | 'update' | 'list' | 'cancel', error: unknown): string {
     return JSON.stringify({
         action,
         status: 'error',

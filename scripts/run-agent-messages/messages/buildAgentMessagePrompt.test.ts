@@ -70,13 +70,18 @@ describe('buildAgentMessagePrompt', () => {
         expect(prompt).toContain('You currently have no planned messages waiting.');
         expect(prompt).toContain('Editing `messages/planned/question.json` is the **only** way');
         expect(prompt).toContain('{"action":"set","milliseconds":<repeat interval>');
+        expect(prompt).toContain('{"action":"update","timeoutId":"<timeout id>","<field>":<new value>}');
         expect(prompt).toContain('{"action":"cancel","timeoutId":"<timeout id>"}');
+        // Note: The whole schedule vocabulary has to reach the harness, otherwise it can only plan endless repetitions
+        expect(prompt).toContain('`cronExpression`');
+        expect(prompt).toContain('`maxRunCount`');
+        expect(prompt).toContain('`startsAt` and `endsAt`');
         expect(prompt).toContain(
             '-   Do not modify any other file in the repository, except files inside your own `projects/` directory and the `commands` array of `messages/planned/question.json`',
         );
     });
 
-    it('lists the repeat interval of every planned message so the harness can keep or replace it', () => {
+    it('lists the whole schedule of every planned message so the harness can keep or replace it', () => {
         const prompt = buildAgentMessagePrompt('messages/queued/question.book', 'You are Support Assistant', {
             plannedMessagesSidecar: {
                 relativeSidecarPath: 'messages/planned/question.json',
@@ -86,8 +91,34 @@ describe('buildAgentMessagePrompt', () => {
                         dueAt: '2026-08-14T10:00:00.000Z',
                         message: 'Re-check the stale projects.',
                         intervalMs: 300_000,
+                        cronExpression: null,
+                        startsAt: null,
+                        endsAt: null,
+                        maxRunCount: null,
+                        runCount: 0,
                     },
-                    { timeoutId: 'timeout-2', dueAt: '2026-08-15T10:00:00.000Z', message: null, intervalMs: null },
+                    {
+                        timeoutId: 'timeout-2',
+                        dueAt: '2026-08-15T10:00:00.000Z',
+                        message: null,
+                        intervalMs: null,
+                        cronExpression: null,
+                        startsAt: null,
+                        endsAt: null,
+                        maxRunCount: null,
+                        runCount: 0,
+                    },
+                    {
+                        timeoutId: 'timeout-3',
+                        dueAt: '2026-08-16T07:00:00.000Z',
+                        message: 'Send the daily report.',
+                        intervalMs: null,
+                        cronExpression: '0 9 * * 1-5',
+                        startsAt: null,
+                        endsAt: '2026-09-16T07:00:00.000Z',
+                        maxRunCount: 10,
+                        runCount: 3,
+                    },
                 ],
             },
         });
@@ -95,9 +126,15 @@ describe('buildAgentMessagePrompt', () => {
         expect(prompt).toContain(
             'These planned messages are already waiting for you, so keep them unless they stopped matching your goal:',
         );
-        expect(prompt).toContain('-   `timeout-1` repeats every 5 minutes: Re-check the stale projects.');
+        expect(prompt).toContain(
+            '-   `timeout-1` repeats every 5 minutes, next at 2026-08-14T10:00:00.000Z: Re-check the stale projects.',
+        );
         expect(prompt).toContain(
             '-   `timeout-2` wakes you once at 2026-08-15T10:00:00.000Z: Continue working towards the current goal.',
+        );
+        // Note: A bounded plan has to show how much of it is left, otherwise the agent cannot compare it with its goal
+        expect(prompt).toContain(
+            '-   `timeout-3` repeats on cron `0 9 * * 1-5`, until 2026-09-16T07:00:00.000Z, 3 of 10 runs done, next at 2026-08-16T07:00:00.000Z: Send the daily report.',
         );
         expect(prompt).not.toContain('You currently have no planned messages waiting.');
     });
