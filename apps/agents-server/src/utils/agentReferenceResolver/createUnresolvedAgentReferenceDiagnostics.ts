@@ -5,7 +5,6 @@ import type { BookCommitment } from '../../../../../src/commitments/_base/BookCo
 import type { ParsedCommitment } from '../../../../../src/commitments/_base/ParsedCommitment';
 import { consumeAgentReferenceResolutionIssues } from './AgentReferenceResolutionIssue';
 import { extractAgentReferenceTokens } from './extractAgentReferenceTokens';
-import type { MissingCoreAgentRecovery } from './MissingCoreAgentRecovery';
 
 /**
  * Monaco-compatible diagnostic payload for unresolved compact agent references.
@@ -49,19 +48,6 @@ export type MissingAgentReference = {
     readonly reference: string;
     readonly token: string;
     readonly commitmentType: BookCommitment;
-
-    /**
-     * Whether the reference is implied by the Book language itself instead of being written in the book.
-     *
-     * A book without any `FROM` commitment implicitly inherits from `@Adam`, so a missing Adam has to be reported
-     * even though no token points at it.
-     */
-    readonly isImplicit?: boolean;
-
-    /**
-     * Reinstatement offered when the missing reference points to one of the bundled core agents.
-     */
-    readonly coreAgentRecovery?: MissingCoreAgentRecovery;
 };
 
 /**

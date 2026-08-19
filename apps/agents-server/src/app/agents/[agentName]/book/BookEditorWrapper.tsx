@@ -39,7 +39,6 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
         missingAgentReferences,
         creatingReference,
         handleCreateReferencedAgent,
-        handleCoreAgentsReinstated,
         historyPanelProps,
     } = useBookEditorWrapper({ agentName, initialAgentSource });
 
@@ -78,7 +77,6 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
                         missingAgentReferences={missingAgentReferences}
                         creatingReference={creatingReference}
                         onCreateReferencedAgent={handleCreateReferencedAgent}
-                        onCoreAgentsReinstated={handleCoreAgentsReinstated}
                     />
                 </div>
 
@@ -90,7 +88,6 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
                 missingAgentReferences={missingAgentReferences}
                 creatingReference={creatingReference}
                 onCreateReferencedAgent={handleCreateReferencedAgent}
-                onCoreAgentsReinstated={handleCoreAgentsReinstated}
             />
         </div>
     );

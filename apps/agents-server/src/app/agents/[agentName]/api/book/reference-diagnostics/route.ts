@@ -3,9 +3,7 @@ import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentColle
 import { createBookScopedAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/bookScopedAgentReferences';
 import { createUnresolvedAgentReferenceDiagnostics } from '@/src/utils/agentReferenceResolver/createUnresolvedAgentReferenceDiagnostics';
 import { createAgentNameCollisionDiagnostics } from '@/src/utils/agentReferenceResolver/createAgentNameCollisionDiagnostics';
-import { resolveCoreAgentAwareMissingReferences } from '@/src/utils/agentReferenceResolver/resolveCoreAgentAwareMissingReferences';
 import { getCurrentUser } from '@/src/utils/getCurrentUser';
-import { isUserAdmin } from '@/src/utils/isUserAdmin';
 import { string_book } from '@promptbook-local/types';
 import { serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../../src/errors/assertsError';
@@ -40,23 +38,17 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             fallbackResolver: baseAgentReferenceResolver,
         });
 
-        const [referenceDiagnostics, nameCollisionDiagnostics, isReinstateAllowed] = await Promise.all([
+        const [referenceDiagnostics, nameCollisionDiagnostics] = await Promise.all([
             createUnresolvedAgentReferenceDiagnostics(agentSource, agentReferenceResolver),
             createAgentNameCollisionDiagnostics(agentSource, parentAgentPermanentId, collection),
-            isUserAdmin(),
         ]);
-        const missingAgentReferences = await resolveCoreAgentAwareMissingReferences({
-            agentSource,
-            missingAgentReferences: referenceDiagnostics.missingAgentReferences,
-            isReinstateAllowed,
-        });
 
         return new Response(
             JSON.stringify({
                 isSuccessful: true,
                 agentName,
                 diagnostics: [...referenceDiagnostics.diagnostics, ...nameCollisionDiagnostics],
-                missingAgentReferences,
+                missingAgentReferences: referenceDiagnostics.missingAgentReferences,
             }),
             {
                 status: 200,

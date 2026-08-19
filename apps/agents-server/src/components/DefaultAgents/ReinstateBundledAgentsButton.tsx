@@ -48,11 +48,6 @@ type ReinstateBundledAgentsButtonProps = {
      * Tailwind classes controlling the button appearance.
      */
     readonly className: string;
-
-    /**
-     * Invoked after a successful reinstatement, for client state that a server re-render does not refresh.
-     */
-    readonly onReinstated?: () => void;
 };
 
 /**
@@ -72,7 +67,6 @@ export function ReinstateBundledAgentsButton({
     pendingLabel,
     confirmMessage,
     className,
-    onReinstated,
 }: ReinstateBundledAgentsButtonProps) {
     const router = useRouter();
     const [isReinstating, setIsReinstating] = useState(false);
@@ -107,7 +101,6 @@ export function ReinstateBundledAgentsButton({
             }
 
             router.refresh();
-            onReinstated?.();
         } catch (reinstateError) {
             await showAlert({
                 title: 'Reinstate agents',
