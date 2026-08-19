@@ -19,6 +19,9 @@
         `FROM` used to abort the whole resolution with an error. The last `FROM` now simply wins and overrides every
         earlier one, which are dropped from the resolved source instead of being loaded, and the Book editor warns on
         every `FROM` keyword involved — telling the overridden ones which line took their place.
+    -   Implicit inheritance recognizes the current agent's URL aliases as well as its canonical URL, preventing the
+        Adam core agent from resolving as its own parent when it is addressed by a name URL but stored under a
+        permanent-ID URL.
 
 -   Added a **planned-message manager** to the Agents Server, so an administrator can finally see and steer every
     timeout every agent planned — not only the one agent whose goal chat happens to be open. It lives in the same tab
