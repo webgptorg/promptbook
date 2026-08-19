@@ -140,7 +140,9 @@ export const czechBookLanguageManualDictionary: BookLanguageManualDictionary = {
                 \`FROM\` odkazuje na zdroj rodičovského agenta. Při vyhodnocení dědičnosti platí:
 
                 - Obsah rodiče se sloučí do výsledného zdroje.
-                - \`FROM {Void}\` / \`FROM VOID\` znamená výslovné „žádný rodič“.
+                - Když \`FROM\` není uvedeno vůbec, platí to samé jako \`FROM @Adam\`, tedy jádrový agent, ze kterého dědí každý agent.
+                - \`FROM @Null\` / \`FROM {Void}\` / \`FROM VOID\` znamená výslovné „žádný rodič“.
+                - Když je \`FROM\` uvedeno vícekrát, platí poslední a přepíše všechna předchozí.
                 - Chybějící odkazy se do výsledného zdroje propíší jako poznámky.
             `),
         },

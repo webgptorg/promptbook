@@ -1,12 +1,6 @@
 import Link from 'next/link';
+import { CORE_AGENTS_ADMIN_HREF } from '../DefaultAgents/coreAgentsAdminRoute';
 import { ReinstateBundledAgentsButton } from '../DefaultAgents/ReinstateBundledAgentsButton';
-
-/**
- * Admin page tracking the presence of the core agents.
- *
- * @private constant of <DefaultAgentsStatusNotice/>
- */
-const CORE_AGENTS_ADMIN_HREF = '/admin/core-agents';
 
 /**
  * Props for the admin-only home page notice about missing bundled agents.

@@ -1,3 +1,25 @@
+-   Made **`@Adam` the implicit ancestor of every agent**, so a book that says nothing about inheritance behaves
+    exactly like one writing `FROM @Adam` or `FROM {Adam}`. An agent that should start from nothing says so explicitly
+    with `FROM @Null` (or `FROM {Void}`), and the Book language manual now documents both halves of that rule.
+
+    -   **A missing Adam stopped being silent.** Because the ancestor is implicit, a server whose core `Adam` agent had
+        been deleted inherited nothing without ever saying so. The Book editor now shows the very same "referenced
+        agent was not found" card on its right panel as if the book had written `FROM {Adam}` itself — right away,
+        without the author having to write the reference first to discover the problem. Whether a core agent is there
+        is read from the same status the Core Agents page renders, so the card and the page it links to can never
+        disagree, and a namesake on a federated server never hides an ancestor this server cannot actually load.
+    -   **The card offers the repair, not just the complaint.** A core agent is bundled with the server, so instead of
+        the ordinary "create it from scratch" button the card reinstates it from its repository book, names every other
+        core agent missing at the same time — one click brings back all of them — and links to the Core Agents admin
+        page. Reinstating is offered only to administrators, runs through the same reinstate flow the home page notice
+        and the Core Agents page already use, and refreshes the panel once the agents are back.
+    -   The same recovery is attached to an explicitly written reference, so `FROM {Adam}` on a server without Adam
+        offers to reinstate the core agent instead of creating an empty one that would shadow it.
+    -   **A book that declares its parent twice no longer breaks.** An agent has exactly one parent, so a repeated
+        `FROM` used to abort the whole resolution with an error. The last `FROM` now simply wins and overrides every
+        earlier one, which are dropped from the resolved source instead of being loaded, and the Book editor warns on
+        every `FROM` keyword involved — telling the overridden ones which line took their place.
+
 -   Added a **planned-message manager** to the Agents Server, so an administrator can finally see and steer every
     timeout every agent planned — not only the one agent whose goal chat happens to be open. It lives in the same tab
     group as the task manager, because the task manager answers "what is running right now" while this answers "what

@@ -4,7 +4,6 @@ import { padBook } from '../../../../src/book-2.0/agent-source/padBook';
 import { isVoidPseudoAgentReference } from '../../../../src/book-2.0/agent-source/pseudoAgentReferences';
 import { validateBook } from '../../../../src/book-2.0/agent-source/string_book';
 import { ParseError } from '../../../../src/errors/ParseError';
-import { UnexpectedError } from '../../../../src/errors/UnexpectedError';
 import { spaceTrim } from '../../../../src/utils/organization/spaceTrim';
 import { isValidAgentUrl } from '../../../../src/utils/validators/url/isValidAgentUrl';
 import {
@@ -15,6 +14,7 @@ import {
     type AgentReferenceResolutionIssue,
     consumeAgentReferenceResolutionIssues,
 } from './agentReferenceResolver/AgentReferenceResolutionIssue';
+import { collectExplicitFromCommitments, getExplicitFromCommitmentContent } from './explicitFromCommitment';
 import { type ImportAgentOptions } from './importAgent';
 import { importAgentWithFallback } from './importAgentWithFallback';
 
@@ -104,57 +104,6 @@ function insertNotesAfterTitle(agentSource: string_book, notes: ReadonlyArray<st
 }
 
 /**
- * Returns the last explicit single-line commitment content for one commitment type.
- *
- * This lightweight parser is intentionally limited to the subset needed by
- * inheritance resolution so it stays safe to bundle into the Next.js proxy path.
- *
- * @param agentSource - Raw book source.
- * @param commitmentType - Commitment keyword to search for.
- * @returns Trimmed commitment content, empty string for a blank explicit commitment, or `undefined` when absent.
- */
-function getLastSingleLineCommitmentContent(agentSource: string_book, commitmentType: 'FROM'): string | undefined {
-    const commitmentPrefix = `${commitmentType} `;
-    const lines = agentSource.split(/\r?\n/);
-    let hasSeenTitle = false;
-    let isInsideCodeBlock = false;
-    let matchedContent: string | undefined;
-
-    for (const line of lines) {
-        const trimmedLine = line.trim();
-
-        if (!hasSeenTitle) {
-            if (!trimmedLine) {
-                continue;
-            }
-
-            hasSeenTitle = true;
-            continue;
-        }
-
-        if (trimmedLine.startsWith('```')) {
-            isInsideCodeBlock = !isInsideCodeBlock;
-            continue;
-        }
-
-        if (isInsideCodeBlock) {
-            continue;
-        }
-
-        if (trimmedLine === commitmentType) {
-            matchedContent = '';
-            continue;
-        }
-
-        if (trimmedLine.startsWith(commitmentPrefix)) {
-            matchedContent = trimmedLine.slice(commitmentPrefix.length).trim();
-        }
-    }
-
-    return matchedContent;
-}
-
-/**
  * Resolves the effective `FROM` parent URL using only lightweight commitment parsing.
  *
  * @param rawAgentSource - Original source used for diagnostics.
@@ -165,7 +114,7 @@ async function resolveParentAgentUrlFromCommitments(
     rawAgentSource: string_book,
     agentReferenceResolver?: AgentReferenceResolver,
 ): Promise<string_agent_url | null | undefined> {
-    const explicitFromContent = getLastSingleLineCommitmentContent(rawAgentSource, 'FROM');
+    const explicitFromContent = getExplicitFromCommitmentContent(rawAgentSource);
 
     if (explicitFromContent === undefined) {
         return undefined;
@@ -496,7 +445,7 @@ async function resolveParentAgentContext(
     agentSource: string_book,
     context: AgentImportContext,
 ): Promise<ResolvedParentAgentContext> {
-    const explicitFromContent = getLastSingleLineCommitmentContent(agentSource, 'FROM');
+    const explicitFromContent = getExplicitFromCommitmentContent(agentSource);
     const hasExplicitFromCommitment = explicitFromContent !== undefined;
     const resolvedParentAgentUrl = await resolveParentAgentUrlFromCommitments(
         agentSource,
@@ -591,34 +540,16 @@ async function resolveImportCommitmentLine(line: string, context: AgentImportCon
 }
 
 /**
- * Resolves one explicit `FROM ...` line into inherited content or fallback NOTE lines.
+ * Resolves the effective `FROM ...` line into inherited content or fallback NOTE lines.
  *
  * @param line - Current source line.
- * @param agentSource - Full source used for duplicate-`FROM` diagnostics.
- * @param isFromResolved - Whether a previous `FROM ...` line was already handled.
  * @param parentContext - Effective parent state computed earlier in the resolution.
  * @returns Output lines and remaining `FROM` issues.
  */
 function resolveFromCommitmentLine(
     line: string,
-    agentSource: string_book,
-    isFromResolved: boolean,
     parentContext: ResolvedParentAgentContext,
 ): ResolvedFromCommitmentLine {
-    if (isFromResolved) {
-        throw new UnexpectedError(
-            spaceTrim(
-                (block) => `
-                    Multiple \`FROM\` commitments found in agent source:
-
-                    \`\`\`book
-                    ${block(agentSource)}
-                    \`\`\`
-                `,
-            ),
-        );
-    }
-
     if (parentContext.parentAgentUrl === null) {
         const agentSourceChunks = [line];
 
@@ -655,6 +586,23 @@ function resolveFromCommitmentLine(
 }
 
 /**
+ * Finds the `FROM` lines that a later `FROM` takes precedence over.
+ *
+ * A book is allowed to repeat `FROM`; the last one wins, so every earlier one is dropped instead of being resolved.
+ * The Book editor warns about this while the author is still writing the book.
+ *
+ * @param sourceLines - Book source already split into lines.
+ * @returns Zero-based indexes of every overridden `FROM` line, empty when at most one `FROM` is present.
+ */
+function collectOverriddenFromLineIndexes(sourceLines: ReadonlyArray<string>): ReadonlySet<number> {
+    const explicitFromCommitments = collectExplicitFromCommitments(sourceLines);
+
+    return new Set(
+        explicitFromCommitments.slice(0, -1).map((explicitFromCommitment) => explicitFromCommitment.lineIndex),
+    );
+}
+
+/**
  * Rewrites the source body line by line while delegating each branching step to a focused helper.
  *
  * @param agentSource - Raw child agent source.
@@ -669,26 +617,29 @@ async function resolveAgentSourceBuild(
 ): Promise<ResolvedAgentSourceBuild> {
     const agentSourceChunks = spaceTrim(agentSource).split(/\r?\n/);
     const resolvedAgentSourceChunks: Array<string> = [];
+    const overriddenFromLineIndexes = collectOverriddenFromLineIndexes(agentSourceChunks);
     let isFromResolved = false;
     let fromResolutionIssues = parentContext.fromResolutionIssues;
     // <- TODO: [🈲] Simple and encapsulated way to split book into commitments
 
-    for (const line of agentSourceChunks) {
+    for (let lineIndex = 0; lineIndex < agentSourceChunks.length; lineIndex++) {
+        const line = agentSourceChunks[lineIndex] || '';
+
+        // Note: A repeated `FROM` is overridden by the last one, so the outdated line is dropped from the resolved source.
+        if (overriddenFromLineIndexes.has(lineIndex)) {
+            continue;
+        }
+
         if (line.trim().startsWith('IMPORT ')) {
             resolvedAgentSourceChunks.push(...(await resolveImportCommitmentLine(line, context)));
             continue;
         }
 
         if (line.trim().startsWith('FROM ')) {
-            const resolvedFromCommitment = resolveFromCommitmentLine(
-                line,
-                agentSource,
-                isFromResolved,
-                {
-                    ...parentContext,
-                    fromResolutionIssues,
-                },
-            );
+            const resolvedFromCommitment = resolveFromCommitmentLine(line, {
+                ...parentContext,
+                fromResolutionIssues,
+            });
 
             resolvedAgentSourceChunks.push(...resolvedFromCommitment.agentSourceChunks);
             fromResolutionIssues = resolvedFromCommitment.fromResolutionIssues;

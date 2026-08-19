@@ -140,7 +140,9 @@ export const englishBookLanguageManualDictionary: BookLanguageManualDictionary =
                 \`FROM\` points to a parent agent source. During inheritance resolution:
 
                 - Parent corpus is merged into effective source.
-                - \`FROM {Void}\` / \`FROM VOID\` means explicit "no parent".
+                - Writing no \`FROM\` at all is the same as writing \`FROM @Adam\`, the core agent every agent inherits from.
+                - \`FROM @Null\` / \`FROM {Void}\` / \`FROM VOID\` means explicit "no parent".
+                - When \`FROM\` is written more than once, the last one wins and overrides every earlier one.
                 - Missing references are surfaced as notes in resolved source.
             `),
         },
