@@ -16,6 +16,11 @@ export const PTBK_AGENT_PROJECT_DOMAIN_REGISTRY_FILE_ENV = 'PTBK_AGENT_PROJECT_D
 export const PTBK_AGENT_PROJECT_DOMAINS_FILE_ENV = 'PTBK_AGENT_PROJECT_DOMAINS_FILE';
 
 /**
+ * Environment variable overriding the persisted project desired-state file.
+ */
+export const PTBK_AGENT_PROJECT_RUNTIME_DESIRED_STATE_FILE_ENV = 'PTBK_AGENT_PROJECT_RUNTIME_DESIRED_STATE_FILE';
+
+/**
  * Directory under the Agents Server data root used for project runtime state.
  */
 const AGENT_PROJECT_RUNTIME_STATE_DIRECTORY_NAME = 'agent-projects';
@@ -34,6 +39,11 @@ const AGENT_PROJECT_DOMAIN_REGISTRY_FILE_NAME = 'domains.json';
  * Installer-facing project domains filename.
  */
 const AGENT_PROJECT_DOMAINS_FILE_NAME = 'domains.txt';
+
+/**
+ * Persisted desired-state filename.
+ */
+const AGENT_PROJECT_RUNTIME_DESIRED_STATE_FILE_NAME = 'desired-states.json';
 
 /**
  * Resolves the durable state root used by agent project runtime managers.
@@ -84,6 +94,21 @@ export function resolveAgentProjectDomainRegistryFilePath(): string {
     }
 
     return join(resolveAgentProjectRuntimeStateRoot(), AGENT_PROJECT_DOMAIN_REGISTRY_FILE_NAME);
+}
+
+/**
+ * Resolves the JSON file remembering which projects were explicitly started or stopped.
+ *
+ * @returns Absolute file path.
+ */
+export function resolveAgentProjectRuntimeDesiredStateFilePath(): string {
+    const configuredFilePath = process.env[PTBK_AGENT_PROJECT_RUNTIME_DESIRED_STATE_FILE_ENV]?.trim();
+
+    if (configuredFilePath) {
+        return resolve(configuredFilePath);
+    }
+
+    return join(resolveAgentProjectRuntimeStateRoot(), AGENT_PROJECT_RUNTIME_DESIRED_STATE_FILE_NAME);
 }
 
 /**

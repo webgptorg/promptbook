@@ -71,6 +71,24 @@ export async function registerNodeRuntimeInstrumentation(): Promise<void> {
     }
 
     try {
+        // Note: Running is the default state of an agent project, so every project which was not
+        //       explicitly stopped is started again right after the server was restarted, and is
+        //       kept running by later passes.
+        const { ensureAgentProjectRuntimeAutostartBootstrapped } = await import(
+            './utils/agentProjects/agentProjectRuntimeAutostartScheduler'
+        );
+        ensureAgentProjectRuntimeAutostartBootstrapped();
+    } catch (error) {
+        console.error('❌ Automatic agent project start failed during Agents Server instrumentation.', {
+            nextRuntime: process.env.NEXT_RUNTIME,
+            nodeEnv: process.env.NODE_ENV,
+            errorName: error instanceof Error ? error.name : undefined,
+            errorMessage: error instanceof Error ? error.message : String(error),
+            errorStack: error instanceof Error ? error.stack : undefined,
+        });
+    }
+
+    try {
         // Note: Keeps Let's Encrypt certificates for every assigned server and project
         //       domain obtained and renewed automatically. A domain whose DNS was not
         //       ready when it was created gets its certificate on a later maintenance

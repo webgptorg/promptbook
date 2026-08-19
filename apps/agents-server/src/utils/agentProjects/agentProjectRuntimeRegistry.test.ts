@@ -11,9 +11,11 @@ import {
     terminateAllAgentProjectRuntimes,
 } from './agentProjectRuntimeRegistry';
 import { setAgentProjectCustomDomain } from './agentProjectRuntimeDomains';
+import { resolveAgentProjectRuntimeDesiredState } from './agentProjectRuntimeDesiredState';
 import {
     PTBK_AGENT_PROJECT_DOMAINS_FILE_ENV,
     PTBK_AGENT_PROJECT_DOMAIN_REGISTRY_FILE_ENV,
+    PTBK_AGENT_PROJECT_RUNTIME_DESIRED_STATE_FILE_ENV,
     PTBK_AGENT_PROJECT_RUNTIME_REGISTRY_FILE_ENV,
 } from './agentProjectRuntimePaths';
 import { PTBK_AGENT_PROJECT_RUNTIME_PM2_ENABLED_ENV } from './agentProjectRuntimePm2';
@@ -51,6 +53,7 @@ const ORIGINAL_ENVIRONMENT = {
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
     PTBK_AGENT_PROJECT_DOMAINS_FILE: process.env[PTBK_AGENT_PROJECT_DOMAINS_FILE_ENV],
     PTBK_AGENT_PROJECT_DOMAIN_REGISTRY_FILE: process.env[PTBK_AGENT_PROJECT_DOMAIN_REGISTRY_FILE_ENV],
+    PTBK_AGENT_PROJECT_RUNTIME_DESIRED_STATE_FILE: process.env[PTBK_AGENT_PROJECT_RUNTIME_DESIRED_STATE_FILE_ENV],
     PTBK_AGENT_PROJECT_RUNTIME_PM2_ENABLED: process.env[PTBK_AGENT_PROJECT_RUNTIME_PM2_ENABLED_ENV],
     PTBK_AGENT_PROJECT_RUNTIME_REGISTRY_FILE: process.env[PTBK_AGENT_PROJECT_RUNTIME_REGISTRY_FILE_ENV],
     SERVERS: process.env.SERVERS,
@@ -63,6 +66,10 @@ describe('agentProjectRuntimeRegistry', () => {
         temporaryDirectory = await mkdtemp(join(tmpdir(), 'promptbook-project-runtime-'));
         process.env[PTBK_AGENT_PROJECT_DOMAINS_FILE_ENV] = join(temporaryDirectory, 'domains.txt');
         process.env[PTBK_AGENT_PROJECT_DOMAIN_REGISTRY_FILE_ENV] = join(temporaryDirectory, 'domains.json');
+        process.env[PTBK_AGENT_PROJECT_RUNTIME_DESIRED_STATE_FILE_ENV] = join(
+            temporaryDirectory,
+            'desired-states.json',
+        );
         process.env[PTBK_AGENT_PROJECT_RUNTIME_PM2_ENABLED_ENV] = '0';
         process.env[PTBK_AGENT_PROJECT_RUNTIME_REGISTRY_FILE_ENV] = join(temporaryDirectory, 'runtimes.json');
         delete process.env.NEXT_PUBLIC_SITE_URL;
@@ -92,6 +99,10 @@ describe('agentProjectRuntimeRegistry', () => {
         restoreEnvironmentVariable(
             PTBK_AGENT_PROJECT_DOMAIN_REGISTRY_FILE_ENV,
             ORIGINAL_ENVIRONMENT.PTBK_AGENT_PROJECT_DOMAIN_REGISTRY_FILE,
+        );
+        restoreEnvironmentVariable(
+            PTBK_AGENT_PROJECT_RUNTIME_DESIRED_STATE_FILE_ENV,
+            ORIGINAL_ENVIRONMENT.PTBK_AGENT_PROJECT_RUNTIME_DESIRED_STATE_FILE,
         );
         restoreEnvironmentVariable(
             PTBK_AGENT_PROJECT_RUNTIME_PM2_ENABLED_ENV,
@@ -180,6 +191,43 @@ describe('agentProjectRuntimeRegistry', () => {
         expect(runtime.mode).toBe('dev-server');
         expect(runtime.isRunning).toBe(true);
         await expect(fetch(runtime.url).then((response) => response.text())).resolves.toContain('Dev project');
+    });
+
+    it('remembers an explicitly stopped project and starts it again on request', async () => {
+        await createProject(temporaryDirectory!, 'abc123', 'website', {
+            'index.html': '<h1>Runnable project</h1>',
+        });
+
+        await startAgentProjectRuntime({ agentPermanentId: 'abc123', projectName: 'website' });
+
+        await expect(
+            resolveAgentProjectRuntimeDesiredState({ agentPermanentId: 'abc123', projectName: 'website' }),
+        ).resolves.toBe('running');
+
+        await terminateAgentProjectRuntimeForProject({ agentPermanentId: 'abc123', projectName: 'website' });
+
+        await expect(
+            resolveAgentProjectRuntimeDesiredState({ agentPermanentId: 'abc123', projectName: 'website' }),
+        ).resolves.toBe('stopped');
+
+        await startAgentProjectRuntime({ agentPermanentId: 'abc123', projectName: 'website' });
+
+        await expect(
+            resolveAgentProjectRuntimeDesiredState({ agentPermanentId: 'abc123', projectName: 'website' }),
+        ).resolves.toBe('running');
+    });
+
+    it('keeps the desired state of every project when all runtimes are cleaned up', async () => {
+        await createProject(temporaryDirectory!, 'abc123', 'website', {
+            'index.html': '<h1>Runnable project</h1>',
+        });
+
+        await startAgentProjectRuntime({ agentPermanentId: 'abc123', projectName: 'website' });
+        await terminateAllAgentProjectRuntimes();
+
+        await expect(
+            resolveAgentProjectRuntimeDesiredState({ agentPermanentId: 'abc123', projectName: 'website' }),
+        ).resolves.toBe('running');
     });
 
     it('uses and refreshes custom project domains on runtime records', async () => {

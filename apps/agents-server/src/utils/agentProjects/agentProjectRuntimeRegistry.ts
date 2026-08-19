@@ -13,6 +13,7 @@ import type {
     AgentProjectRuntimeMode,
     AgentProjectRuntimeStatus,
 } from './AgentProjectRuntimeInfo';
+import { isSameAgentProjectIdentity } from './agentProjectIdentity';
 import {
     AGENT_PROJECT_RUNTIME_DEFAULT_DEV_COMMAND,
     AGENT_PROJECT_RUNTIME_HOST,
@@ -21,6 +22,7 @@ import {
     AGENT_PROJECT_RUNTIME_STOP_POLL_INTERVAL_MS,
     AGENT_PROJECT_RUNTIME_STOP_TIMEOUT_MS,
 } from './agentProjectRuntimeConstants';
+import { setAgentProjectRuntimeDesiredState } from './agentProjectRuntimeDesiredState';
 import {
     assignAgentProjectDomain,
     resolveAgentProjectDomainRecord,
@@ -207,6 +209,9 @@ export async function assignAgentProjectPort(
 /**
  * Starts one project using its npm `dev` script when available, otherwise a static file server.
  *
+ * Starting a project also makes it expected to be running, so a project which was stopped earlier
+ * is started again by itself after the next server restart.
+ *
  * @param options - Agent and project identification.
  * @returns Runtime info for the started project.
  */
@@ -216,6 +221,15 @@ export async function startAgentProjectRuntime(
     await hydrateAgentProjectRuntimeRegistryState();
 
     const project = await resolveExistingAgentProject(options);
+
+    // Note: The intent is remembered before the project is started so that a project which fails to
+    //       start now is still tried again by the next automatic pass.
+    await setAgentProjectRuntimeDesiredState({
+        agentPermanentId: options.agentPermanentId,
+        projectName: project.projectName,
+        desiredState: 'running',
+    });
+
     const isDevRuntime = await hasAgentProjectDevScript(project.absolutePath);
     const preparedStart = await prepareAgentProjectRuntimeStart(options, project);
 
@@ -375,7 +389,9 @@ export async function listAgentProjectRuntimes(): Promise<ReadonlyArray<AgentPro
 }
 
 /**
- * Terminates one runtime by runtime id.
+ * Terminates one runtime by runtime id on explicit request.
+ *
+ * The project is remembered as stopped, so it stays down until it is started again.
  *
  * @param runtimeId - Runtime id.
  * @returns Terminated runtime info or `null` when it no longer exists.
@@ -389,14 +405,19 @@ export async function terminateAgentProjectRuntimeById(runtimeId: string): Promi
         return null;
     }
 
-    await terminateAgentProjectRuntimeRecord(runtimeRecord);
-    getAgentProjectRuntimeRegistryState().runtimesById.delete(runtimeId);
-    await persistAgentProjectRuntimeRegistryState();
-    return toAgentProjectRuntimeInfo(runtimeRecord);
+    await setAgentProjectRuntimeDesiredState({
+        agentPermanentId: runtimeRecord.agentPermanentId,
+        projectName: runtimeRecord.projectName,
+        desiredState: 'stopped',
+    });
+
+    return await removeAgentProjectRuntimeById(runtimeId);
 }
 
 /**
- * Terminates any runtime assigned to one project.
+ * Terminates any runtime assigned to one project on explicit request.
+ *
+ * The project is remembered as stopped, so it stays down until it is started again.
  *
  * @param options - Agent and project identification.
  * @returns Terminated runtime info or `null` when no runtime exists.
@@ -405,30 +426,64 @@ export async function terminateAgentProjectRuntimeForProject(
     options: AgentProjectRuntimeProjectOptions,
 ): Promise<AgentProjectRuntimeInfo | null> {
     await hydrateAgentProjectRuntimeRegistryState();
+    await setAgentProjectRuntimeDesiredState({
+        agentPermanentId: options.agentPermanentId,
+        projectName: options.projectName,
+        desiredState: 'stopped',
+    });
 
-    const runtimeRecord = findAgentProjectRuntimeRecord(options.agentPermanentId, options.projectName);
-
-    if (!runtimeRecord) {
-        return null;
-    }
-
-    await terminateAgentProjectRuntimeRecord(runtimeRecord);
-    getAgentProjectRuntimeRegistryState().runtimesById.delete(runtimeRecord.id);
-    await persistAgentProjectRuntimeRegistryState();
-    return toAgentProjectRuntimeInfo(runtimeRecord);
+    return await removeAgentProjectRuntimeForProject(options);
 }
 
 /**
  * Terminates all project runtimes in the current process.
  *
- * This is used by tests and process-level cleanup.
+ * This is used by tests and process-level cleanup, so it says nothing about which projects should
+ * be running — every project keeps the state it is expected to be in.
  */
 export async function terminateAllAgentProjectRuntimes(): Promise<void> {
     await hydrateAgentProjectRuntimeRegistryState();
 
     const runtimeIds = [...getAgentProjectRuntimeRegistryState().runtimesById.keys()];
 
-    await Promise.all(runtimeIds.map((runtimeId) => terminateAgentProjectRuntimeById(runtimeId)));
+    await Promise.all(runtimeIds.map((runtimeId) => removeAgentProjectRuntimeById(runtimeId)));
+}
+
+/**
+ * Terminates one runtime by runtime id without changing which state the project is expected to be in.
+ *
+ * @param runtimeId - Runtime id.
+ * @returns Terminated runtime info or `null` when it no longer exists.
+ */
+async function removeAgentProjectRuntimeById(runtimeId: string): Promise<AgentProjectRuntimeInfo | null> {
+    const runtimeRecord = getAgentProjectRuntimeRegistryState().runtimesById.get(runtimeId);
+
+    if (!runtimeRecord) {
+        return null;
+    }
+
+    await terminateAgentProjectRuntimeRecord(runtimeRecord);
+    getAgentProjectRuntimeRegistryState().runtimesById.delete(runtimeId);
+    await persistAgentProjectRuntimeRegistryState();
+    return toAgentProjectRuntimeInfo(runtimeRecord);
+}
+
+/**
+ * Terminates the runtime of one project without changing which state the project is expected to be in.
+ *
+ * @param options - Agent and project identification.
+ * @returns Terminated runtime info or `null` when no runtime exists.
+ */
+async function removeAgentProjectRuntimeForProject(
+    options: AgentProjectRuntimeProjectOptions,
+): Promise<AgentProjectRuntimeInfo | null> {
+    const runtimeRecord = findAgentProjectRuntimeRecord(options.agentPermanentId, options.projectName);
+
+    if (!runtimeRecord) {
+        return null;
+    }
+
+    return await removeAgentProjectRuntimeById(runtimeRecord.id);
 }
 
 /**
@@ -438,7 +493,7 @@ async function prepareAgentProjectRuntimeStart(
     options: AgentProjectRuntimeProjectOptions,
     project: NonNullable<Awaited<ReturnType<typeof resolveAgentProjectInfo>>>,
 ): Promise<PreparedAgentProjectRuntimeStart> {
-    await terminateAgentProjectRuntimeForProject({
+    await removeAgentProjectRuntimeForProject({
         agentPermanentId: options.agentPermanentId,
         projectName: project.projectName,
     });
@@ -595,12 +650,16 @@ function startChildProcessAgentProjectDevRuntime(runtimeRecord: MutableAgentProj
 }
 
 /**
- * Applies installer-managed nginx and SSL configuration when a public domain exists.
+ * Applies installer-managed nginx and SSL configuration when a project domain was added or changed.
+ *
+ * The generated nginx configuration resolves the runtime port of a project per request, so it only
+ * has to be regenerated when the set of project domains itself changes — never when an unchanged
+ * project is merely started again on a new port.
  */
 async function applyAgentProjectRuntimePublicConfiguration(
     domainAssignment: AgentProjectDomainAssignment,
 ): Promise<void> {
-    if (!domainAssignment.record) {
+    if (!domainAssignment.record || !domainAssignment.isChanged) {
         return;
     }
 
@@ -642,14 +701,8 @@ function findAgentProjectRuntimeRecord(
     agentPermanentId: string,
     projectName: string,
 ): MutableAgentProjectRuntimeRecord | null {
-    const normalizedAgentPermanentId = agentPermanentId.toLowerCase();
-    const normalizedProjectName = projectName.toLowerCase();
-
     for (const runtimeRecord of getAgentProjectRuntimeRegistryState().runtimesById.values()) {
-        if (
-            runtimeRecord.agentPermanentId.toLowerCase() === normalizedAgentPermanentId &&
-            runtimeRecord.projectName.toLowerCase() === normalizedProjectName
-        ) {
+        if (isSameAgentProjectIdentity(runtimeRecord, { agentPermanentId, projectName })) {
             return runtimeRecord;
         }
     }

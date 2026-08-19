@@ -3,6 +3,7 @@ import { createHash } from 'crypto';
 import { promisify } from 'util';
 import { AGENT_PROJECT_RUNTIME_HOST } from './agentProjectRuntimeConstants';
 import type { AgentProjectRuntimeMode } from './AgentProjectRuntimeInfo';
+import { resolveAgentProjectRuntimeEnvironmentFlag } from './resolveAgentProjectRuntimeEnvironmentFlag';
 
 const execFileAsync = promisify(execFile);
 
@@ -137,10 +138,10 @@ export type StartAgentProjectRuntimePm2ProcessOptions = {
  * @returns `true` on production Linux unless explicitly disabled.
  */
 export function isAgentProjectRuntimePm2Enabled(): boolean {
-    const configuredValue = process.env[PTBK_AGENT_PROJECT_RUNTIME_PM2_ENABLED_ENV]?.trim().toLowerCase();
+    const configuredFlag = resolveAgentProjectRuntimeEnvironmentFlag(PTBK_AGENT_PROJECT_RUNTIME_PM2_ENABLED_ENV);
 
-    if (configuredValue) {
-        return ['1', 'true', 'yes', 'y'].includes(configuredValue);
+    if (configuredFlag !== null) {
+        return configuredFlag;
     }
 
     return process.platform === 'linux' && process.env.NODE_ENV === 'production';

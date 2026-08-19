@@ -1,3 +1,25 @@
+-   Made **running the default state of an Agents Server project**. Until now a project only ran while somebody kept it
+    running: a restarted server came back with every project down, its public project domain answering nothing, and the
+    projects an agent listed in a chat all wearing the red "Project is not running" dot until each one was started by
+    hand. A project now runs because it exists.
+
+    -   **A restarted server brings its projects back up.** Every project folder on the machine is looked up while the
+        server boots — without asking a database, so it also works before the first request picks a server — and every
+        project which is not already serving requests is started again. Each project keeps the public domain it was
+        already assigned, so a multi-server VPS never moves a project to the wrong server's domain, and one project
+        which cannot start never stops the rest from coming up.
+    -   **Stopping a project is still a decision that sticks.** Stopping a project from its project page, from the
+        admin projects dashboard, or from the resource monitor is remembered, so it stays stopped across restarts
+        instead of being started again behind the administrator's back. Starting it again takes the decision back. A
+        project nobody ever stopped stores nothing at all — it simply runs, which is what "default" means here.
+    -   **The state is kept, not only restored.** The same reconciliation runs every few minutes, so a project which
+        crashed and a project which was created minutes ago both end up running without anybody pressing a button. A
+        project which is still coming up is left alone instead of being restarted underneath itself.
+    -   Starting a project no longer regenerates the installer-managed nginx configuration when nothing about its
+        domains changed. The generated configuration resolves a project's port per request, so it only has to be
+        rebuilt when a project domain is actually added or changed — which is what made starting many projects at once
+        affordable in the first place.
+
 -   Made **`@Adam` the implicit ancestor of every agent**, so a book that says nothing about inheritance behaves
     exactly like one writing `FROM @Adam` or `FROM {Adam}`. An agent that should start from nothing says so explicitly
     with `FROM @Null` (or `FROM {Void}`), and the Book language manual now documents both halves of that rule.

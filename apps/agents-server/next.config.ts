@@ -137,6 +137,12 @@ const nextConfig: NextConfig = {
                 tls: false,
                 dns: false,
                 child_process: false,
+                // Note: The startup hooks of `instrumentation.ts` only run in the Node.js runtime, but the
+                //       whole graph behind them is still compiled into the edge bundle as dead code. Agent
+                //       project runtimes hash and identify processes and serve built projects over plain
+                //       HTTP, so both modules have to be stubbed there just like the other Node.js-only ones.
+                crypto: false,
+                http: false,
                 // jsdom and related dependencies that require Node.js APIs
                 canvas: false,
                 // Standalone VPS SQLite backend is Node-only; edge middleware never runs it

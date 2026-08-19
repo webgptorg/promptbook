@@ -9,6 +9,7 @@ import {
     resolveAgentProjectDomainRegistryFilePath,
     resolveAgentProjectDomainsFilePath,
 } from './agentProjectRuntimePaths';
+import { runAgentProjectStateMutation } from './agentProjectStateMutationQueue';
 
 /**
  * Current on-disk domain registry schema version.
@@ -137,23 +138,6 @@ type AgentProjectDomainRecordIdentity = {
 type PersistedAgentProjectDomainRegistry = {
     readonly version: number;
     readonly domains: ReadonlyArray<AgentProjectDomainRecord>;
-};
-
-/**
- * Process-wide domain registry state.
- */
-type AgentProjectDomainRegistryState = {
-    /**
-     * Promise chain used as a lightweight mutation queue.
-     */
-    domainMutationQueue: Promise<void>;
-};
-
-/**
- * Global object shape used for process-wide domain registry state.
- */
-type AgentProjectDomainRegistryGlobal = typeof globalThis & {
-    [AGENT_PROJECT_DOMAIN_REGISTRY_GLOBAL_KEY]?: AgentProjectDomainRegistryState;
 };
 
 /**
@@ -483,21 +467,7 @@ async function writeAgentProjectDomainRecords(records: ReadonlyArray<AgentProjec
  * Runs one domain-registry mutation after previous mutations have finished.
  */
 async function runAgentProjectDomainRegistryMutation<TValue>(operation: () => Promise<TValue>): Promise<TValue> {
-    const registryState = getAgentProjectDomainRegistryState();
-    const previousMutation = registryState.domainMutationQueue;
-    let releaseMutation!: () => void;
-
-    registryState.domainMutationQueue = new Promise<void>((resolve) => {
-        releaseMutation = resolve;
-    });
-
-    await previousMutation.catch(() => undefined);
-
-    try {
-        return await operation();
-    } finally {
-        releaseMutation();
-    }
+    return await runAgentProjectStateMutation(AGENT_PROJECT_DOMAIN_REGISTRY_GLOBAL_KEY, operation);
 }
 
 /**
@@ -718,16 +688,4 @@ function isExternallyRoutableProjectDomain(domain: string): boolean {
 async function writeTextFile(filePath: string, content: string): Promise<void> {
     await mkdir(dirname(filePath), { recursive: true });
     await writeFile(filePath, content, 'utf-8');
-}
-
-/**
- * Returns process-wide project-domain registry state.
- */
-function getAgentProjectDomainRegistryState(): AgentProjectDomainRegistryState {
-    const registryGlobal = globalThis as AgentProjectDomainRegistryGlobal;
-    registryGlobal[AGENT_PROJECT_DOMAIN_REGISTRY_GLOBAL_KEY] ??= {
-        domainMutationQueue: Promise.resolve(),
-    };
-
-    return registryGlobal[AGENT_PROJECT_DOMAIN_REGISTRY_GLOBAL_KEY]!;
 }
