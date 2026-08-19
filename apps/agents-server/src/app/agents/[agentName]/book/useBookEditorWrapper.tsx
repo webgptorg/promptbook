@@ -113,6 +113,7 @@ export function useBookEditorWrapper({ agentName, initialAgentSource }: UseBookE
         requestDiagnostics,
         scheduleDiagnostics,
         handleCreateReferencedAgent,
+        handleCoreAgentsReinstated,
     } = useBookEditorDiagnostics({
         agentName,
         initialAgentSource,
@@ -212,6 +213,7 @@ export function useBookEditorWrapper({ agentName, initialAgentSource }: UseBookE
         missingAgentReferences,
         creatingReference,
         handleCreateReferencedAgent,
+        handleCoreAgentsReinstated,
         historyPanelProps,
     };
 }

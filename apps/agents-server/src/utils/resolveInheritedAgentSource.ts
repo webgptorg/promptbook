@@ -15,6 +15,7 @@ import {
     type AgentReferenceResolutionIssue,
     consumeAgentReferenceResolutionIssues,
 } from './agentReferenceResolver/AgentReferenceResolutionIssue';
+import { getExplicitFromCommitmentContent } from './explicitFromCommitment';
 import { type ImportAgentOptions } from './importAgent';
 import { importAgentWithFallback } from './importAgentWithFallback';
 
@@ -104,57 +105,6 @@ function insertNotesAfterTitle(agentSource: string_book, notes: ReadonlyArray<st
 }
 
 /**
- * Returns the last explicit single-line commitment content for one commitment type.
- *
- * This lightweight parser is intentionally limited to the subset needed by
- * inheritance resolution so it stays safe to bundle into the Next.js proxy path.
- *
- * @param agentSource - Raw book source.
- * @param commitmentType - Commitment keyword to search for.
- * @returns Trimmed commitment content, empty string for a blank explicit commitment, or `undefined` when absent.
- */
-function getLastSingleLineCommitmentContent(agentSource: string_book, commitmentType: 'FROM'): string | undefined {
-    const commitmentPrefix = `${commitmentType} `;
-    const lines = agentSource.split(/\r?\n/);
-    let hasSeenTitle = false;
-    let isInsideCodeBlock = false;
-    let matchedContent: string | undefined;
-
-    for (const line of lines) {
-        const trimmedLine = line.trim();
-
-        if (!hasSeenTitle) {
-            if (!trimmedLine) {
-                continue;
-            }
-
-            hasSeenTitle = true;
-            continue;
-        }
-
-        if (trimmedLine.startsWith('```')) {
-            isInsideCodeBlock = !isInsideCodeBlock;
-            continue;
-        }
-
-        if (isInsideCodeBlock) {
-            continue;
-        }
-
-        if (trimmedLine === commitmentType) {
-            matchedContent = '';
-            continue;
-        }
-
-        if (trimmedLine.startsWith(commitmentPrefix)) {
-            matchedContent = trimmedLine.slice(commitmentPrefix.length).trim();
-        }
-    }
-
-    return matchedContent;
-}
-
-/**
  * Resolves the effective `FROM` parent URL using only lightweight commitment parsing.
  *
  * @param rawAgentSource - Original source used for diagnostics.
@@ -165,7 +115,7 @@ async function resolveParentAgentUrlFromCommitments(
     rawAgentSource: string_book,
     agentReferenceResolver?: AgentReferenceResolver,
 ): Promise<string_agent_url | null | undefined> {
-    const explicitFromContent = getLastSingleLineCommitmentContent(rawAgentSource, 'FROM');
+    const explicitFromContent = getExplicitFromCommitmentContent(rawAgentSource);
 
     if (explicitFromContent === undefined) {
         return undefined;
@@ -496,7 +446,7 @@ async function resolveParentAgentContext(
     agentSource: string_book,
     context: AgentImportContext,
 ): Promise<ResolvedParentAgentContext> {
-    const explicitFromContent = getLastSingleLineCommitmentContent(agentSource, 'FROM');
+    const explicitFromContent = getExplicitFromCommitmentContent(agentSource);
     const hasExplicitFromCommitment = explicitFromContent !== undefined;
     const resolvedParentAgentUrl = await resolveParentAgentUrlFromCommitments(
         agentSource,

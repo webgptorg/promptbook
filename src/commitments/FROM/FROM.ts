@@ -46,12 +46,22 @@ export class FromCommitmentDefinition extends BaseCommitmentDefinition<'FROM'> {
 
             Inherits agent source from another agent.
 
+            Every agent inherits from the core agent \`@Adam\` unless it says otherwise, so writing no ${this.type} at all
+            is the same as writing \`${this.type} @Adam\`. Write \`${this.type} @Null\` to inherit from nothing.
+
             ## Examples
 
             \`\`\`book
             My AI Agent
 
             FROM https://s6.ptbk.io/benjamin-white
+            RULE Speak only in English.
+            \`\`\`
+
+            \`\`\`book
+            My Standalone Agent
+
+            FROM @Null
             RULE Speak only in English.
             \`\`\`
         `);

@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
-import { ParseError, book } from '../../../../src/_packages/core.index'; // <- [🚾]
+import { spaceTrim } from 'spacetrim';
+import { ParseError, book, validateBook } from '../../../../src/_packages/core.index'; // <- [🚾]
+import type { string_book } from '../../../../src/_packages/types.index'; // <- [🚾]
 import type { AgentCollection } from '../../../../src/collection/agent-collection/AgentCollection';
 import {
     DEFAULT_FEDERATED_AGENT_IMPORT_CONFIGURATION,
@@ -150,6 +152,99 @@ describe('how `resolveInheritedAgentSource` works', () => {
         expect(resolvedAgentSource).toContain('NOTE Inherited Adam FROM https://core-test.ptbk.io/agents/adam');
         expect(resolvedAgentSource).toContain('RULE Start from Adam.');
         expect(resolvedAgentSource).toContain('LANGUAGE Italian');
+    });
+
+    it('should treat a book without `FROM` exactly like an explicit `FROM @Adam` / `FROM {Adam}`', async () => {
+        const localAdamAgentUrl = 'https://local.example/agents/adam-1';
+
+        /**
+         * Resolves one of the three equivalent books against the same local Adam agent.
+         *
+         * @param agentSource - Book to resolve.
+         * @returns Resolved source with the implicit-inheritance note normalized to the explicit one.
+         */
+        async function resolveAgainstLocalAdam(agentSource: string_book): Promise<string> {
+            const agentReferenceResolver = await createServerAgentReferenceResolver({
+                agentCollection: createMockAgentCollection([{ agentName: 'Adam', permanentId: 'adam-1' }]),
+                localServerUrl: 'https://local.example',
+            });
+
+            mockFetchRoutes({
+                [`${localAdamAgentUrl}/api/book?recursionLevel=1`]: {
+                    body: book`
+                        Adam
+
+                        FROM VOID
+                        RULE Start from Adam.
+                    `,
+                },
+            });
+
+            const resolvedAgentSource = await resolveInheritedAgentSource(agentSource, {
+                agentReferenceResolver,
+                adamAgentUrl: localAdamAgentUrl,
+                currentAgentUrl: 'https://local.example/agents/generic-chatter',
+            });
+
+            // Note: The implicit ancestor is only labeled differently, everything else must match byte for byte.
+            return resolvedAgentSource.split('NOTE Inherited Adam FROM ').join('NOTE Inherited FROM ');
+        }
+
+        const resolvedWithoutFrom = await resolveAgainstLocalAdam(book`
+            Generic chatter
+
+            GOAL Keep your projects up to date
+            CLOSED
+        `);
+        const resolvedWithAtAdam = await resolveAgainstLocalAdam(book`
+            Generic chatter
+
+            FROM @Adam
+            GOAL Keep your projects up to date
+            CLOSED
+        `);
+        const resolvedWithBracedAdam = await resolveAgainstLocalAdam(book`
+            Generic chatter
+
+            FROM {Adam}
+            GOAL Keep your projects up to date
+            CLOSED
+        `);
+
+        expect(resolvedWithoutFrom).toContain('RULE Start from Adam.');
+        expect(resolvedWithoutFrom).toContain('GOAL Keep your projects up to date');
+        expect(resolvedWithAtAdam).toBe(resolvedWithoutFrom);
+        expect(resolvedWithBracedAdam).toBe(resolvedWithoutFrom);
+    });
+
+    it('should disable inheritance completely via `FROM @Null` / `FROM {null}`', async () => {
+        for (const voidReference of ['@Null', '{null}']) {
+            const agentReferenceResolver = await createServerAgentReferenceResolver({
+                agentCollection: createMockAgentCollection([{ agentName: 'Adam', permanentId: 'adam-1' }]),
+                localServerUrl: 'https://local.example',
+            });
+
+            const resolvedAgentSource = await resolveInheritedAgentSource(
+                validateBook(
+                    spaceTrim(`
+                        Generic chatter
+
+                        FROM ${voidReference}
+                        GOAL Keep your projects up to date
+                        CLOSED
+                    `),
+                ),
+                {
+                    agentReferenceResolver,
+                    adamAgentUrl: 'https://local.example/agents/adam-1',
+                    currentAgentUrl: 'https://local.example/agents/generic-chatter',
+                },
+            );
+
+            expect(resolvedAgentSource).not.toContain('Inherited');
+            expect(resolvedAgentSource).toContain(`FROM ${voidReference}`);
+            expect(resolvedAgentSource).toContain('GOAL Keep your projects up to date');
+        }
     });
 
     it('should resolve explicit no-parent inheritance via `FROM VOID`', async () => {

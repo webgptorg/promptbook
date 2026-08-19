@@ -234,6 +234,17 @@ export function useBookEditorDiagnostics({
         [agentName, agentSource, requestDiagnostics],
     );
 
+    /**
+     * Reloads diagnostics after the missing core agents were reinstated.
+     *
+     * The resolver is cached per server, so the refresh has to be forced for the reinstated agents to be visible.
+     *
+     * @private function of useBookEditorWrapper
+     */
+    const handleCoreAgentsReinstated = useCallback(() => {
+        void requestDiagnostics(agentSource, { forceRefresh: true });
+    }, [agentSource, requestDiagnostics]);
+
     useEffect(() => {
         void requestDiagnostics(initialAgentSource);
     }, [initialAgentSource, requestDiagnostics]);
@@ -257,5 +268,6 @@ export function useBookEditorDiagnostics({
         requestDiagnostics,
         scheduleDiagnostics,
         handleCreateReferencedAgent,
+        handleCoreAgentsReinstated,
     };
 }
