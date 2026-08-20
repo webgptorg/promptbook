@@ -551,27 +551,4 @@ describe('how `resolveInheritedAgentSource` works', () => {
             ),
         ).rejects.toBeInstanceOf(ParseError);
     });
-
-    it('should not make Adam implicitly inherit from itself through an agent URL alias', async () => {
-        const adamAgentUrl = 'https://local.example/agents/adam';
-        const agentSourceImporter = jest.fn();
-
-        const resolvedAgentSource = await resolveInheritedAgentSource(
-            book`
-                Adam
-
-                RULE Adam rule.
-            `,
-            {
-                adamAgentUrl,
-                currentAgentUrl: 'https://local.example/agents/adam-permanent-id',
-                currentAgentAliases: [adamAgentUrl],
-                agentSourceImporter,
-            },
-        );
-
-        expect(agentSourceImporter).not.toHaveBeenCalled();
-        expect(resolvedAgentSource).toContain('RULE Adam rule.');
-        expect(resolvedAgentSource).not.toContain('Inherited Adam FROM');
-    });
 });

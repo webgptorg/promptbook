@@ -364,7 +364,6 @@ function createAgentImportContext(options?: ResolveInheritedAgentSourceOptions):
  * @param hasExplicitFromCommitment - Whether the source explicitly declared `FROM`.
  * @param adamAgentUrl - Default Adam ancestor URL.
  * @param currentAgentUrl - Canonical URL of the source being resolved.
- * @param currentAgentAliases - Additional URLs that identify the source being resolved.
  * @param agentSource - Raw source used for unexpected diagnostics.
  * @returns Effective parent URL or `null` when inheritance is disabled.
  */
@@ -373,7 +372,6 @@ function determineParentAgentUrl(
     hasExplicitFromCommitment: boolean,
     adamAgentUrl: string_agent_url,
     currentAgentUrl?: string_agent_url,
-    currentAgentAliases?: ReadonlyArray<string_agent_url>,
     agentSource?: string_book,
 ): string_agent_url | null {
     if (isValidAgentUrl(resolvedParentAgentUrl)) {
@@ -385,14 +383,9 @@ function determineParentAgentUrl(
     }
 
     if (resolvedParentAgentUrl === undefined || resolvedParentAgentUrl === null) {
-        const currentAgentUrls = [currentAgentUrl, ...(currentAgentAliases || [])].filter(
-            (agentUrl): agentUrl is string_agent_url => Boolean(agentUrl),
-        );
-        const isCurrentAgentAdam = currentAgentUrls.some(
-            (agentUrl) => normalizeAgentUrl(agentUrl) === normalizeAgentUrl(adamAgentUrl),
-        );
-
-        return isCurrentAgentAdam ? null : adamAgentUrl;
+        return currentAgentUrl && normalizeAgentUrl(currentAgentUrl) === normalizeAgentUrl(adamAgentUrl)
+            ? null
+            : adamAgentUrl;
     }
 
     throw new ParseError(
@@ -466,7 +459,6 @@ async function resolveParentAgentContext(
         hasExplicitFromCommitment,
         context.adamAgentUrl,
         context.resolutionOptions?.currentAgentUrl,
-        context.resolutionOptions?.currentAgentAliases,
         agentSource,
     );
     const parentAgentSourceCorpus = parentAgentUrl ? await importAgentCorpus(parentAgentUrl, 'FROM', context) : null;
