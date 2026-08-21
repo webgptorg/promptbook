@@ -22,6 +22,14 @@
     -   Implicit inheritance recognizes the current agent's URL aliases as well as its canonical URL, preventing the
         Adam core agent from resolving as its own parent when it is addressed by a name URL but stored under a
         permanent-ID URL.
+    -   **A reinstated Adam is found again.** The implicit ancestor is addressed by the well-known name `adam`, and an
+        agent name used to resolve to the oldest agent that ever carried it — including one sitting in the recycle bin.
+        On a server where the core `Adam` had been deleted and reinstated, the name therefore pointed at the deleted
+        leftover, its source could no longer be loaded, and every book without `FROM` quietly inherited nothing while
+        an explicitly written `FROM @Adam` kept working, because that path resolves through the list of agents that
+        exist. An agent that exists now always wins over a deleted namesake, so both halves of the rule agree again. A
+        deleted agent stays resolvable when no live agent answers to that name, which is how the recycle bin restores
+        one.
 
 -   Added a **planned-message manager** to the Agents Server, so an administrator can finally see and steer every
     timeout every agent planned — not only the one agent whose goal chat happens to be open. It lives in the same tab

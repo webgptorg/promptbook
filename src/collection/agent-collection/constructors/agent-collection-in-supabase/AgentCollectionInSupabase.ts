@@ -214,20 +214,64 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
 
     /**
      * Retrieves the permanent ID of an agent by its name or permanent ID.
+     *
+     * An agent that still exists always wins over a soft-deleted one, so a name that was deleted and
+     * later created again resolves to the agent that is live now instead of to the recycle-bin leftover.
+     * Soft-deleted agents stay resolvable as a fallback because the recycle bin restores them by name
+     * or permanent id.
      */
     public async getAgentPermanentId(
         agentNameOrPermanentId: string_agent_name | string_agent_permanent_id,
     ): Promise<string_agent_permanent_id> {
-        const selectResult = await this.supabaseClient
+        const activeAgentPermanentId = await this.findAgentPermanentId(agentNameOrPermanentId, {
+            isDeletedAgentIncluded: false,
+        });
+
+        if (activeAgentPermanentId !== null) {
+            return activeAgentPermanentId;
+        }
+
+        const deletedAgentPermanentId = await this.findAgentPermanentId(agentNameOrPermanentId, {
+            isDeletedAgentIncluded: true,
+        });
+
+        if (deletedAgentPermanentId !== null) {
+            return deletedAgentPermanentId;
+        }
+
+        throw new NotFoundError(`Agent with name or id "${agentNameOrPermanentId}" not found`);
+    }
+
+    /**
+     * Looks up the permanent id of the oldest agent matching one name or permanent id.
+     *
+     * @param agentNameOrPermanentId - Agent name or stable permanent identifier to match.
+     * @param options - Whether soft-deleted agents may be matched as well.
+     * @returns Permanent id of the matched agent, or `null` when nothing matches.
+     *
+     * @private internal helper of `AgentCollectionInSupabase`
+     */
+    private async findAgentPermanentId(
+        agentNameOrPermanentId: string_agent_name | string_agent_permanent_id,
+        options: { readonly isDeletedAgentIncluded: boolean },
+    ): Promise<string_agent_permanent_id | null> {
+        const selectQuery = this.supabaseClient
             .from(this.getTableName('Agent'))
             .select('permanentId')
-            .or(buildAgentNameOrPermanentIdFilter(agentNameOrPermanentId))
+            .or(buildAgentNameOrPermanentIdFilter(agentNameOrPermanentId));
+
+        if (!options.isDeletedAgentIncluded) {
+            selectQuery.is('deletedAt', null);
+        }
+
+        const selectResult = await selectQuery
             .order('createdAt', { ascending: true }) // Pick oldest if multiple match by name
             .limit(1);
 
         if (selectResult.error || !selectResult.data || selectResult.data.length === 0) {
-            throw new NotFoundError(`Agent with name or id "${agentNameOrPermanentId}" not found`);
+            return null;
         }
+
         return selectResult.data[0]!.permanentId as string_agent_permanent_id;
     }
 
