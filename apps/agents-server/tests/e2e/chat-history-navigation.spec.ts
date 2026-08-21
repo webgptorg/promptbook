@@ -10,9 +10,9 @@ import { ChatHistoryNavigationSupport } from './support/ChatHistoryNavigationSup
 const CHAT_HISTORY_API_TOKEN_NOTE = 'E2E chat history navigation';
 
 /**
- * Persona used by deterministic chat-history test agents.
+ * Goal used by deterministic chat-history test agents.
  */
-const CHAT_HISTORY_TEST_AGENT_PERSONA = 'You help with regression tests.';
+const CHAT_HISTORY_TEST_AGENT_GOAL = 'Help with regression tests.';
 
 /**
  * Rule used by deterministic chat-history test agents.
@@ -52,7 +52,7 @@ async function createChatHistoryTestAgent(page: Page, label: string, initialMess
 
     return AgentManagementApi.createTestAgent(page, apiKey, {
         label,
-        persona: CHAT_HISTORY_TEST_AGENT_PERSONA,
+        goal: CHAT_HISTORY_TEST_AGENT_GOAL,
         rule: CHAT_HISTORY_TEST_AGENT_RULE,
         initialMessage,
     });

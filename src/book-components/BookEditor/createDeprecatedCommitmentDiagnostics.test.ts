@@ -1,9 +1,35 @@
 import { spaceTrim } from 'spacetrim';
 import { describe, expect, it } from '@jest/globals';
 import { validateBook } from '../../book-2.0/agent-source/string_book';
-import { createDeprecatedCommitmentDiagnostics } from './createDeprecatedCommitmentDiagnostics';
+import { COMMITMENT_REGISTRY } from '../../commitments';
+import { createDeprecatedCommitmentDiagnostics } from './createDeprecatedCommitmentDiagnostics.browser';
 
 describe('createDeprecatedCommitmentDiagnostics', () => {
+    it('creates warnings for every deprecated commitment in the shared catalog', () => {
+        const deprecatedCommitmentTypes = COMMITMENT_REGISTRY.filter(({ deprecation }) => deprecation).map(
+            ({ type }) => type,
+        );
+        const diagnostics = createDeprecatedCommitmentDiagnostics(
+            validateBook(
+                spaceTrim(`Catalog test agent
+
+${deprecatedCommitmentTypes.map((type) => `${type} Legacy commitment content.`).join('\n')}`),
+            ),
+        );
+
+        expect(diagnostics).toHaveLength(deprecatedCommitmentTypes.length);
+
+        for (const commitmentType of deprecatedCommitmentTypes) {
+            expect(diagnostics).toContainEqual(
+                expect.objectContaining({
+                    message: expect.stringContaining(`\`${commitmentType}\` is deprecated.`),
+                    severity: 'warning',
+                    source: 'Promptbook',
+                }),
+            );
+        }
+    });
+
     it('creates warning diagnostics for deprecated SAMPLE and EXAMPLE commitments', () => {
         const diagnostics = createDeprecatedCommitmentDiagnostics(
             validateBook(

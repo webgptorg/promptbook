@@ -65,7 +65,7 @@ export type EvaluateManGoAgentReplyInput = {
 const MAN_GO_TEST_FALLBACK_BOOK = spaceTrim(`
     Agent
 
-    PERSONA Jste užitečný asistent.
+    GOAL Pomáhejte uživatelům jako užitečný asistent.
     RULE Odpovídejte stručně a prakticky.
     CLOSED
 `);
@@ -127,7 +127,7 @@ function createBookPrompt(input: GenerateManGoBookInput): string {
         Requirements:
         - Use the provided name as the agent title.
         - Write natural-language commitments in Czech unless the brief clearly asks for another language.
-        - Include a useful PERSONA, GOAL, and practical RULE commitments derived from the description.
+        - Include a clear GOAL and practical RULE commitments derived from the description.
         - Keep commitment keywords in English.
         - Use Book-language commitments such as WRITING SAMPLE, WRITING RULES, MESSAGE SUFFIX, and NOTE when they fit the agent.
         - Do not use Markdown headings such as \`##\` as a substitute for Book-language commitments.

@@ -44,7 +44,7 @@ export const DEFAULT_BOOK = padBook(
         spaceTrim(`
             AI Avatar
 
-            PERSONA A friendly AI assistant that helps you with your tasks
+            GOAL Help users with their tasks as a friendly AI assistant.
         `),
     ),
 );

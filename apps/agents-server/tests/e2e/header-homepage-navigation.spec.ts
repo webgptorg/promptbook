@@ -8,9 +8,9 @@ import { AgentManagementApi } from './support/AgentManagementApi';
 const HEADER_HOMEPAGE_API_TOKEN_NOTE = 'E2E header homepage navigation';
 
 /**
- * Persona used by deterministic header homepage navigation test agents.
+ * Goal used by deterministic header homepage navigation test agents.
  */
-const HEADER_HOMEPAGE_PERSONA = 'You help with homepage navigation regression tests.';
+const HEADER_HOMEPAGE_GOAL = 'Help with homepage navigation regression tests.';
 
 /**
  * Accessible label exposed by the shared homepage branding link in the header and mobile drawer.
@@ -83,7 +83,7 @@ test.describe('header homepage navigation', () => {
         const apiKey = await AgentManagementApi.createManagementApiToken(page, HEADER_HOMEPAGE_API_TOKEN_NOTE);
         const agent = await AgentManagementApi.createTestAgent(page, apiKey, {
             label: 'E2E Header Homepage Profile Navigation',
-            persona: HEADER_HOMEPAGE_PERSONA,
+            goal: HEADER_HOMEPAGE_GOAL,
         });
 
         await page.goto(`/agents/${encodeURIComponent(agent.agentId)}`);
@@ -103,7 +103,7 @@ test.describe('header homepage navigation', () => {
         const apiKey = await AgentManagementApi.createManagementApiToken(page, HEADER_HOMEPAGE_API_TOKEN_NOTE);
         const agent = await AgentManagementApi.createTestAgent(page, apiKey, {
             label: 'E2E Header Homepage Mobile Profile Navigation',
-            persona: HEADER_HOMEPAGE_PERSONA,
+            goal: HEADER_HOMEPAGE_GOAL,
         });
 
         await page.goto(`/agents/${encodeURIComponent(agent.agentId)}`);

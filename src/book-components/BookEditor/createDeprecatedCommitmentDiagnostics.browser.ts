@@ -1,11 +1,3 @@
-/**
- * Browser-compatible stub for `createDeprecatedCommitmentDiagnostics`.
- *
- * In the browser build the full Node.js implementation is not available,
- * so this stub always returns an empty array to keep the editor functional.
- *
- * @private internal utility of `BookEditorMonaco`
- */
-export function createDeprecatedCommitmentDiagnostics(_agentSource?: string): [] {
-    return [];
-}
+// The Book editor already uses the commitment parser in the browser for other
+// diagnostics, so reuse the same catalog-driven implementation here as well.
+export { createDeprecatedCommitmentDiagnostics } from './createDeprecatedCommitmentDiagnostics';

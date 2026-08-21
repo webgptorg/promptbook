@@ -8,9 +8,9 @@ import { AgentManagementApi } from './support/AgentManagementApi';
 const HEADER_AGENT_VIEW_API_TOKEN_NOTE = 'E2E header agent-view navigation';
 
 /**
- * Persona used by deterministic header agent-view navigation test agents.
+ * Goal used by deterministic header agent-view navigation test agents.
  */
-const HEADER_AGENT_VIEW_PERSONA = 'You help with header navigation regression tests.';
+const HEADER_AGENT_VIEW_GOAL = 'Help with header navigation regression tests.';
 
 /**
  * Escapes one literal string so it can be embedded into a `RegExp`.
@@ -30,7 +30,7 @@ test.describe('header agent-view navigation', () => {
         const apiKey = await AgentManagementApi.createManagementApiToken(page, HEADER_AGENT_VIEW_API_TOKEN_NOTE);
         const agent = await AgentManagementApi.createTestAgent(page, apiKey, {
             label: 'E2E Header Agent View Navigation',
-            persona: HEADER_AGENT_VIEW_PERSONA,
+            goal: HEADER_AGENT_VIEW_GOAL,
         });
         const escapedAgentId = escapeForRegExp(agent.agentId);
         const header = page.getByRole('banner');

@@ -73,7 +73,7 @@ export function $generateBookBoilerplate(options?: GenerateBookBoilerplateOption
                 ${agentName}
     
                 
-                PERSONA ${block(personaDescription!)}
+                GOAL ${block(personaDescription!)}
                 ${block(initialRules.map((rule) => `RULE ${rule}`).join('\n'))}
                 CLOSED
             `,

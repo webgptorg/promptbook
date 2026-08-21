@@ -1,3 +1,5 @@
+-   Deprecated `PERSONA` for newly created Agents Server books. New-agent boilerplates and onboarding templates now use `GOAL` and `RULE` commitments, while the Book editor yellow-underlines every commitment marked as deprecated in the shared catalog and explains its replacement.
+
 -   Fixed the Agents Server's effective `FROM` inheritance handling. An explicitly selected parent now fully replaces
     implicit Adam inheritance, while that parent's own chain is still materialized normally; only the final `FROM`
     participates in both runtime resolution and missing-reference diagnostics. The Book editor now warns directly on

@@ -12,11 +12,11 @@ type CreateTestAgentOptions = {
      */
     readonly label: string;
     /**
-     * Persona sentence inserted into the agent source.
+     * Goal sentence inserted into the agent source.
      *
      * @private internal utility of AgentManagementApi
      */
-    readonly persona: string;
+    readonly goal: string;
     /**
      * Optional rule sentence inserted into the agent source.
      *
@@ -82,7 +82,7 @@ const DEFAULT_RULE = 'Keep replies concise.';
 function buildTestAgentSource(options: CreateTestAgentOptions): string {
     return spaceTrim(`
         ${options.label}
-        PERSONA ${options.persona}
+        GOAL ${options.goal}
         RULE ${options.rule ?? DEFAULT_RULE}
         ${options.initialMessage ? `INITIAL MESSAGE ${options.initialMessage}` : ''}
     `);

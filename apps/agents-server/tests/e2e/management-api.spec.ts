@@ -136,7 +136,7 @@ test.describe('Agents Server management API', () => {
             body: {
                 source: spaceTrim(`
                     E2E Support Agent
-                    PERSONA You help with support tickets.
+                    GOAL Help with support tickets.
                     RULE Keep replies concise.
                 `),
                 visibility: 'UNLISTED',
@@ -192,7 +192,7 @@ test.describe('Agents Server management API', () => {
         expect(detailResponse.status).toBe(200);
         expect(detailResponse.body).toMatchObject({
             id: agentId,
-            source: expect.stringContaining('PERSONA'),
+            source: expect.stringContaining('GOAL'),
             links: {
                 profileUrl: expect.stringContaining(agentId),
                 chatUrl: expect.stringContaining(agentId),
@@ -207,7 +207,7 @@ test.describe('Agents Server management API', () => {
                 name: 'E2E Support Agent Updated',
                 source: spaceTrim(`
                     Placeholder
-                    PERSONA You help with escalations.
+                    GOAL Help with escalations.
                     RULE Provide next steps.
                 `),
                 visibility: 'PUBLIC',

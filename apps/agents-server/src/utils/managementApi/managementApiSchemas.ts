@@ -332,7 +332,7 @@ export const MANAGEMENT_API_EXAMPLES = {
         },
         source: spaceTrim(`
             Support Concierge
-            PERSONA You triage support tickets.
+            GOAL Triage support tickets.
             RULE Escalate billing issues.
         `),
         profile: {
@@ -346,7 +346,7 @@ export const MANAGEMENT_API_EXAMPLES = {
     createAgentRequest: {
         source: spaceTrim(`
             Support Concierge
-            PERSONA You triage support tickets.
+            GOAL Triage support tickets.
             RULE Escalate billing issues.
         `),
         folderId: 12,
