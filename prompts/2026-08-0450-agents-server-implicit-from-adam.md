@@ -1,8 +1,9 @@
 [x] by Claude Code `claude-opus-5` thinking `max` - Implementation $0.00 3 hours; Testing 13 minutes
+[x] by OpenAI Codex `gpt-5.6-sol` thinking `max` (ChatGPT account) - Implementation ~$0.8384 38 minutes; Testing 17 minutes
 
 ---
 
-[x] by OpenAI Codex `gpt-5.6-sol` thinking `max` (ChatGPT account) - Implementation ~$0.8384 38 minutes; Testing 17 minutes
+[ ]
 
 [✨🟥] Every agent should implicitly inherit `FROM @Adam`
 
@@ -48,6 +49,7 @@ GOAL Keep your projects up to date
 CLOSED
 ```
 
+-   It looks that the task is implemented and working, but its not
 -   By Default, every agent should inherit `FROM @Adam` unless explicitly specified otherwise. This means that if an agent does not have a `FROM` statement, it will effectively have `FROM @Adam` commitment.
 -   If you want an agent to inherit from a different agent or not inherit from any agent at all, it must explicitly specify that in the `FROM` statement.
 -   If multiple `FROM` statements are present in one agent book source, the last `FROM` statement will take precedence and override any previous `FROM` statements. But warn in the BookEditor that multiple `FROM` statements are present and that only the last one will be used. (<- this is implemented and working)
@@ -63,3 +65,9 @@ CLOSED
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
+
+![alt text](screenshots/2026-08-0450-agents-server-implicit-from-adam.png)
+![alt text](screenshots/2026-08-0450-agents-server-implicit-from-adam-1.png)
+![alt text](screenshots/2026-08-0450-agents-server-implicit-from-adam-2.png)
+![alt text](screenshots/2026-08-0450-agents-server-implicit-from-adam-3.png)
+![alt text](screenshots/2026-08-0450-agents-server-implicit-from-adam-4.png)
