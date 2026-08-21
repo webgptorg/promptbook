@@ -599,12 +599,12 @@ function resolveFromCommitmentLine(
  * A book is allowed to repeat `FROM`; the last one wins, so every earlier one is dropped instead of being resolved.
  * The Book editor warns about this while the author is still writing the book.
  *
- * @param sourceLines - Book source already split into lines.
+ * @param explicitFromCommitments - Explicit parent declarations found in source order.
  * @returns Zero-based indexes of every overridden `FROM` line, empty when at most one `FROM` is present.
  */
-function collectOverriddenFromLineIndexes(sourceLines: ReadonlyArray<string>): ReadonlySet<number> {
-    const explicitFromCommitments = collectExplicitFromCommitments(sourceLines);
-
+function collectOverriddenFromLineIndexes(
+    explicitFromCommitments: ReadonlyArray<{ readonly lineIndex: number }>,
+): ReadonlySet<number> {
     return new Set(
         explicitFromCommitments.slice(0, -1).map((explicitFromCommitment) => explicitFromCommitment.lineIndex),
     );
@@ -625,7 +625,9 @@ async function resolveAgentSourceBuild(
 ): Promise<ResolvedAgentSourceBuild> {
     const agentSourceChunks = spaceTrim(agentSource).split(/\r?\n/);
     const resolvedAgentSourceChunks: Array<string> = [];
-    const overriddenFromLineIndexes = collectOverriddenFromLineIndexes(agentSourceChunks);
+    const explicitFromCommitments = collectExplicitFromCommitments(agentSourceChunks);
+    const effectiveFromCommitment = explicitFromCommitments[explicitFromCommitments.length - 1];
+    const overriddenFromLineIndexes = collectOverriddenFromLineIndexes(explicitFromCommitments);
     let isFromResolved = false;
     let fromResolutionIssues = parentContext.fromResolutionIssues;
     // <- TODO: [🈲] Simple and encapsulated way to split book into commitments
@@ -643,7 +645,7 @@ async function resolveAgentSourceBuild(
             continue;
         }
 
-        if (line.trim().startsWith('FROM ')) {
+        if (effectiveFromCommitment?.lineIndex === lineIndex) {
             const resolvedFromCommitment = resolveFromCommitmentLine(line, {
                 ...parentContext,
                 fromResolutionIssues,

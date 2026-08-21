@@ -142,7 +142,10 @@ export const czechBookLanguageManualDictionary: BookLanguageManualDictionary = {
                 - Obsah rodiče se sloučí do výsledného zdroje.
                 - Když \`FROM\` není uvedeno vůbec, platí to samé jako \`FROM @Adam\`, tedy jádrový agent, ze kterého dědí každý agent.
                 - \`FROM @Null\` / \`FROM {Void}\` / \`FROM VOID\` znamená výslovné „žádný rodič“.
+                - Výslovně zvolený rodič nahradí implicitního Adama; vlastní řetězec \`FROM\` tohoto rodiče se pak zdědí běžným způsobem.
+                - \`@Jmeno\` je pro jednoslovné jméno agenta zkratka zápisu \`{Jmeno}\`.
                 - Když je \`FROM\` uvedeno vícekrát, platí poslední a přepíše všechna předchozí.
+                - Adam je kořenový agent a musí výslovně použít \`FROM @Null\` (\`@Void\` je ekvivalentní). Editor knihy upozorní na jiného Adamova rodiče i na lokální cykly dědičnosti.
                 - Chybějící odkazy se do výsledného zdroje propíší jako poznámky.
             `),
         },

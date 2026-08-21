@@ -3,11 +3,7 @@ import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import { book, createAgentModelRequirements } from '../../../../src/_packages/core.index'; // <- [🚾]
 import type { AgentBasicInformation } from '../../../../src/book-2.0/agent-source/AgentBasicInformation';
 import type { AgentCollection } from '../../../../src/collection/agent-collection/AgentCollection';
-import type {
-    string_agent_permanent_id,
-    string_agent_url,
-    string_book,
-} from '../../../../src/_packages/types.index';
+import type { string_agent_permanent_id, string_agent_url, string_book } from '../../../../src/_packages/types.index';
 import { createServerAgentReferenceResolver } from './agentReferenceResolver/createServerAgentReferenceResolver';
 import { createLocalAgentSourceImporter } from './createLocalAgentSourceImporter';
 import { resolveAgentStateFromSource } from './resolveAgentStateFromSource';
@@ -176,8 +172,10 @@ describe('resolveAgentStateFromSource', () => {
         expect(resolvedAgentState.resolvedAgentSource).toContain(
             'NOTE Inherited FROM https://local.example/agents/basic-id',
         );
+        expect(resolvedAgentState.resolvedAgentSource).not.toContain('RULE Start from Adam.');
         expect(modelRequirements.systemMessage).toContain('Follow the Basic parent rule.');
         expect(modelRequirements.systemMessage).toContain('Empathetic and understanding support bot.');
+        expect(modelRequirements.systemMessage).not.toContain('Start from Adam.');
     });
 
     it('inherits from local Adam by default without HTTP import', async () => {
@@ -263,6 +261,120 @@ describe('resolveAgentStateFromSource', () => {
         expect(global.fetch).not.toHaveBeenCalled();
         expect(resolvedAgentState.resolvedAgentSource).toContain('FROM @Void');
         expect(resolvedAgentState.resolvedAgentSource).not.toContain('RULE Start from Adam.');
+    });
+
+    it('inherits each explicitly selected local ancestor without adding Adam after an explicit Null root', async () => {
+        const adamAgentUrl = 'https://local.example/agents/adam';
+        const collection = createMockAgentCollection([
+            {
+                agentName: 'Adam',
+                permanentId: 'adam',
+                agentSource: book`
+                    Adam
+
+                    FROM @Null
+                    RULE Start from Adam.
+                `,
+            },
+            {
+                agentName: 'Agent C',
+                permanentId: 'agent-c',
+                agentSource: book`
+                    Agent C
+
+                    FROM @Null
+                    RULE Rule from Agent C.
+                `,
+            },
+            {
+                agentName: 'Agent B',
+                permanentId: 'agent-b',
+                agentSource: book`
+                    Agent B
+
+                    FROM {Agent C}
+                    RULE Rule from Agent B.
+                `,
+            },
+        ]);
+        const { agentReferenceResolver, agentSourceImporter } = await createLocalInheritanceTestDependencies(
+            collection,
+            adamAgentUrl,
+        );
+        global.fetch = jest.fn(async () => {
+            throw new Error('HTTP import should not be used for the local inheritance chain.');
+        }) as typeof fetch;
+
+        const resolvedAgentState = await resolveAgentStateFromSource(
+            book`
+                Agent A
+
+                FROM {Agent B}
+                RULE Rule from Agent A.
+            `,
+            {
+                adamAgentUrl: adamAgentUrl as string_agent_url,
+                canonicalAgentUrl: 'https://local.example/agents/agent-a' as string_agent_url,
+                agentReferenceResolver,
+                agentSourceImporter,
+            },
+        );
+        const modelRequirements = await createAgentModelRequirements(resolvedAgentState.resolvedAgentSource);
+
+        expect(global.fetch).not.toHaveBeenCalled();
+        expect(modelRequirements.systemMessage).toContain('Rule from Agent C.');
+        expect(modelRequirements.systemMessage).toContain('Rule from Agent B.');
+        expect(modelRequirements.systemMessage).toContain('Rule from Agent A.');
+        expect(modelRequirements.systemMessage).not.toContain('Start from Adam.');
+    });
+
+    it('includes Adam through an ancestor that does not declare its own FROM', async () => {
+        const adamAgentUrl = 'https://local.example/agents/adam';
+        const collection = createMockAgentCollection([
+            {
+                agentName: 'Adam',
+                permanentId: 'adam',
+                agentSource: book`
+                    Adam
+
+                    FROM @Null
+                    RULE Start from Adam.
+                `,
+            },
+            {
+                agentName: 'Agent B',
+                permanentId: 'agent-b',
+                agentSource: book`
+                    Agent B
+
+                    RULE Rule from Agent B.
+                `,
+            },
+        ]);
+        const { agentReferenceResolver, agentSourceImporter } = await createLocalInheritanceTestDependencies(
+            collection,
+            adamAgentUrl,
+        );
+
+        const resolvedAgentState = await resolveAgentStateFromSource(
+            book`
+                Agent A
+
+                FROM {Agent B}
+                RULE Rule from Agent A.
+            `,
+            {
+                adamAgentUrl: adamAgentUrl as string_agent_url,
+                canonicalAgentUrl: 'https://local.example/agents/agent-a' as string_agent_url,
+                agentReferenceResolver,
+                agentSourceImporter,
+            },
+        );
+        const modelRequirements = await createAgentModelRequirements(resolvedAgentState.resolvedAgentSource);
+
+        expect(modelRequirements.systemMessage).toContain('Start from Adam.');
+        expect(modelRequirements.systemMessage).toContain('Rule from Agent B.');
+        expect(modelRequirements.systemMessage).toContain('Rule from Agent A.');
     });
 
     it('inherits metadata and initial message from the resolved parent source', async () => {

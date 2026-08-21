@@ -8,6 +8,16 @@ import type { string_book } from '../../../../src/_packages/types.index'; // <- 
 const FROM_COMMITMENT_TYPE = 'FROM';
 
 /**
+ * Matches one standalone `FROM` commitment line and captures its inline content.
+ *
+ * The Book parser accepts horizontal whitespace between a commitment keyword and its value, so inheritance resolution
+ * must do the same. Keeping this pattern here makes every server-side consumer agree on which `FROM` lines are real.
+ *
+ * @private utility of Agents Server inheritance resolution
+ */
+const FROM_COMMITMENT_LINE_PATTERN = new RegExp(`^${FROM_COMMITMENT_TYPE}(?:\\s+(.*))?$`);
+
+/**
  * One explicit `FROM` commitment written in a book.
  *
  * @private utility of Agents Server inheritance resolution
@@ -38,7 +48,6 @@ export type ExplicitFromCommitment = {
 export function collectExplicitFromCommitments(
     sourceLines: ReadonlyArray<string>,
 ): ReadonlyArray<ExplicitFromCommitment> {
-    const commitmentPrefix = `${FROM_COMMITMENT_TYPE} `;
     const explicitFromCommitments: Array<ExplicitFromCommitment> = [];
     let hasSeenTitle = false;
     let isInsideCodeBlock = false;
@@ -64,20 +73,31 @@ export function collectExplicitFromCommitments(
             continue;
         }
 
-        if (trimmedLine === FROM_COMMITMENT_TYPE) {
-            explicitFromCommitments.push({ lineIndex, content: '' });
-            continue;
-        }
-
-        if (trimmedLine.startsWith(commitmentPrefix)) {
+        const fromCommitmentMatch = FROM_COMMITMENT_LINE_PATTERN.exec(trimmedLine);
+        if (fromCommitmentMatch) {
             explicitFromCommitments.push({
                 lineIndex,
-                content: trimmedLine.slice(commitmentPrefix.length).trim(),
+                content: (fromCommitmentMatch[1] || '').trim(),
             });
         }
     }
 
     return explicitFromCommitments;
+}
+
+/**
+ * Returns the effective explicit `FROM` commitment of one book.
+ *
+ * A book may repeat `FROM`, in which case the last one wins and overrides every earlier one.
+ *
+ * @param agentSource - Raw book source.
+ * @returns The last explicit `FROM` commitment, or `undefined` when the book declares no parent.
+ *
+ * @private utility of Agents Server inheritance resolution
+ */
+export function getEffectiveExplicitFromCommitment(agentSource: string_book): ExplicitFromCommitment | undefined {
+    const explicitFromCommitments = collectExplicitFromCommitments(agentSource.split(/\r?\n/));
+    return explicitFromCommitments[explicitFromCommitments.length - 1];
 }
 
 /**
@@ -91,8 +111,7 @@ export function collectExplicitFromCommitments(
  * @private utility of Agents Server inheritance resolution
  */
 export function getExplicitFromCommitmentContent(agentSource: string_book): string | undefined {
-    const explicitFromCommitments = collectExplicitFromCommitments(agentSource.split(/\r?\n/));
-    return explicitFromCommitments[explicitFromCommitments.length - 1]?.content;
+    return getEffectiveExplicitFromCommitment(agentSource)?.content;
 }
 
 /**

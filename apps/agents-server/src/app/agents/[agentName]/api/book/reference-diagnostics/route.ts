@@ -1,6 +1,7 @@
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { createBookScopedAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/bookScopedAgentReferences';
+import { createAgentInheritanceDiagnostics } from '@/src/utils/agentReferenceResolver/createAgentInheritanceDiagnostics';
 import { createUnresolvedAgentReferenceDiagnostics } from '@/src/utils/agentReferenceResolver/createUnresolvedAgentReferenceDiagnostics';
 import { createAgentNameCollisionDiagnostics } from '@/src/utils/agentReferenceResolver/createAgentNameCollisionDiagnostics';
 import { resolveCoreAgentAwareMissingReferences } from '@/src/utils/agentReferenceResolver/resolveCoreAgentAwareMissingReferences';
@@ -40,11 +41,19 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             fallbackResolver: baseAgentReferenceResolver,
         });
 
-        const [referenceDiagnostics, nameCollisionDiagnostics, isReinstateAllowed] = await Promise.all([
-            createUnresolvedAgentReferenceDiagnostics(agentSource, agentReferenceResolver),
-            createAgentNameCollisionDiagnostics(agentSource, parentAgentPermanentId, collection),
-            isUserAdmin(),
-        ]);
+        const localServerUrl = new URL(request.url).origin;
+        const [referenceDiagnostics, nameCollisionDiagnostics, inheritanceDiagnostics, isReinstateAllowed] =
+            await Promise.all([
+                createUnresolvedAgentReferenceDiagnostics(agentSource, agentReferenceResolver),
+                createAgentNameCollisionDiagnostics(agentSource, parentAgentPermanentId, collection),
+                createAgentInheritanceDiagnostics({
+                    agentSource,
+                    agentPermanentId: parentAgentPermanentId,
+                    collection,
+                    localServerUrl,
+                }),
+                isUserAdmin(),
+            ]);
         const missingAgentReferences = await resolveCoreAgentAwareMissingReferences({
             agentSource,
             missingAgentReferences: referenceDiagnostics.missingAgentReferences,
@@ -55,7 +64,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             JSON.stringify({
                 isSuccessful: true,
                 agentName,
-                diagnostics: [...referenceDiagnostics.diagnostics, ...nameCollisionDiagnostics],
+                diagnostics: [
+                    ...referenceDiagnostics.diagnostics,
+                    ...nameCollisionDiagnostics,
+                    ...inheritanceDiagnostics,
+                ],
                 missingAgentReferences,
             }),
             {
@@ -87,5 +100,7 @@ function isTruthySearchParam(value: string | null): boolean {
     }
 
     const normalizedValue = value.trim().toLowerCase();
-    return normalizedValue === '1' || normalizedValue === 'true' || normalizedValue === 'yes' || normalizedValue === 'on';
+    return (
+        normalizedValue === '1' || normalizedValue === 'true' || normalizedValue === 'yes' || normalizedValue === 'on'
+    );
 }

@@ -2,6 +2,7 @@ import type { AgentReferenceResolver } from '../../../../../src/book-2.0/agent-s
 import { normalizeAgentName } from '../../../../../src/book-2.0/agent-source/normalizeAgentName';
 import { parseAgentSourceWithCommitments } from '../../../../../src/book-2.0/agent-source/parseAgentSourceWithCommitments';
 import { parseAgentSource } from '../../../../../src/book-2.0/agent-source/parseAgentSource';
+import { resolvePseudoAgentKindFromReference } from '../../../../../src/book-2.0/agent-source/pseudoAgentReferences';
 import type { string_book } from '../../../../../src/book-2.0/agent-source/string_book';
 import type { AgentCollection } from '../../../../../src/collection/agent-collection/AgentCollection';
 import type { BookCommitment } from '../../../../../src/commitments/_base/BookCommitment';
@@ -219,6 +220,12 @@ export function createBookScopedAgentReferenceResolver(options: {
 
                     chunks.push(content.slice(previousIndex, tokenMatch.index));
                     previousIndex = tokenMatch.index + tokenMatch.length;
+
+                    // Note: `Null`/`Void` (and other pseudo agents) are reserved language values, never embedded agents.
+                    if (resolvePseudoAgentKindFromReference(tokenReference)) {
+                        chunks.push(tokenMatch.token);
+                        continue;
+                    }
 
                     if (!tokenReference || !embeddedSources.has(normalizedTokenReference)) {
                         chunks.push(tokenMatch.token);

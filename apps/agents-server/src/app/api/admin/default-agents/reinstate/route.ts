@@ -2,7 +2,9 @@ import { NextResponse } from 'next/server';
 import { seedCoreAgents } from '../../../../../database/seedCoreAgents';
 import { reinstateDefaultAgents } from '../../../../../database/reinstateDefaultAgents';
 import { $provideServer } from '../../../../../tools/$provideServer';
+import { $invalidateProvidedAgentReferenceResolverCache } from '../../../../../utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import { invalidateCachedActiveOrganizationSnapshots } from '../../../../../utils/agentOrganization/loadAgentOrganizationState';
+import { invalidateCachedServerAgentRuntime } from '../../../../../utils/cachedServerAgentRuntime';
 import { isUserAdmin } from '../../../../../utils/isUserAdmin';
 
 /**
@@ -47,7 +49,9 @@ export async function POST(request: Request) {
                 ? (await seedCoreAgents({ tablePrefix })).createdAgentNames
                 : (await reinstateDefaultAgents({ tablePrefix })).createdAgentNames;
 
-        // Note: Drop the short-lived organization snapshot cache so the newly created agents appear immediately.
+        // Note: These direct collection writes bypass the normal collection decoration that invalidates these caches.
+        $invalidateProvidedAgentReferenceResolverCache();
+        invalidateCachedServerAgentRuntime();
         invalidateCachedActiveOrganizationSnapshots();
 
         return NextResponse.json({ scope, createdAgentNames });

@@ -1,3 +1,8 @@
+-   Fixed the Agents Server's effective `FROM` inheritance handling. An explicitly selected parent now fully replaces
+    implicit Adam inheritance, while that parent's own chain is still materialized normally; only the final `FROM`
+    participates in both runtime resolution and missing-reference diagnostics. The Book editor now warns directly on
+    local inheritance cycles and when the core Adam agent does not explicitly inherit from `@Null`/`@Void`.
+
 -   Made **`@Adam` the implicit ancestor of every agent**, so a book that says nothing about inheritance behaves
     exactly like one writing `FROM @Adam` or `FROM {Adam}`. An agent that should start from nothing says so explicitly
     with `FROM @Null` (or `FROM {Void}`), and the Book language manual now documents both halves of that rule.

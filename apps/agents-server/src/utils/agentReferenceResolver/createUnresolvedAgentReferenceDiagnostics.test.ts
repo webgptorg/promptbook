@@ -117,4 +117,19 @@ TEAM {User}`) as string_book;
             missingAgentReferences: [],
         });
     });
+
+    it('does not resolve or report an overridden FROM reference', async () => {
+        const resolver = createMockResolver();
+        const agentSource = spaceTrim(`Editor Test Agent
+FROM {Missing Parent}
+FROM {Void}
+RULE Keep only the final parent declaration.`) as string_book;
+
+        const result = await createUnresolvedAgentReferenceDiagnostics(agentSource, resolver);
+
+        expect(result).toEqual({
+            diagnostics: [],
+            missingAgentReferences: [],
+        });
+    });
 });

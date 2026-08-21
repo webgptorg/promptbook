@@ -142,7 +142,10 @@ export const englishBookLanguageManualDictionary: BookLanguageManualDictionary =
                 - Parent corpus is merged into effective source.
                 - Writing no \`FROM\` at all is the same as writing \`FROM @Adam\`, the core agent every agent inherits from.
                 - \`FROM @Null\` / \`FROM {Void}\` / \`FROM VOID\` means explicit "no parent".
+                - An explicit parent replaces the implicit Adam parent; the selected parent's own \`FROM\` chain is then inherited normally.
+                - \`@Name\` is shorthand for \`{Name}\` when the agent name is one word.
                 - When \`FROM\` is written more than once, the last one wins and overrides every earlier one.
+                - Adam is the root agent and must explicitly use \`FROM @Null\` (\`@Void\` is equivalent). The Book editor warns about a different Adam parent and local inheritance cycles.
                 - Missing references are surfaced as notes in resolved source.
             `),
         },
