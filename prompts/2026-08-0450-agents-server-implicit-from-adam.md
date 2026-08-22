@@ -88,54 +88,39 @@ CLOSED
 ![alt text](screenshots/2026-08-0450-agents-server-implicit-from-adam-6.png)
 ![alt text](screenshots/2026-08-0450-agents-server-implicit-from-adam-5.png)
 
-# Application Error Report
-
-## Human Summary
-
-A server exception occurred while loading Promptbook Agents Server.
-
-An error occurred in the Server Components render. The specific message is omitted in production builds to avoid leaking sensitive details. A digest property is included on this error instance which may provide additional details about the nature of the error. - the server for Promptbook Agents Server logged this failure.
-
-## Correlation
-
--   Server: `Promptbook Agents Server`
--   Variant: `advanced`
--   Digest: `1394009221`
--   Next.js digest: `1394009221`
--   Reported at (UTC): `2026-08-22T15:48:41.282Z`
-
-## Request Context
-
--   Page URL: `https://live.ptbk.io/agents/YznZWHGNQPinL1/system-message`
-
-## Exception
-
--   Name: `Error`
-
-### Message
-
-```text
-An error occurred in the Server Components render. The specific message is omitted in production builds to avoid leaking sensitive details. A digest property is included on this error instance which may provide additional details about the nature of the error.
-```
-
-### Stack Trace
-
-```text
-Error: An error occurred in the Server Components render. The specific message is omitted in production builds to avoid leaking sensitive details. A digest property is included on this error instance which may provide additional details about the nature of the error.
-```
-
-## Raw Report Payload
-
-```json
-{
-    "variant": "advanced",
-    "serverName": "Promptbook Agents Server",
-    "digest": "1394009221",
-    "nextDigest": "1394009221",
-    "errorName": "Error",
-    "errorMessage": "An error occurred in the Server Components render. The specific message is omitted in production builds to avoid leaking sensitive details. A digest property is included on this error instance which may provide additional details about the nature of the error.",
-    "errorStack": "Error: An error occurred in the Server Components render. The specific message is omitted in production builds to avoid leaking sensitive details. A digest property is included on this error instance which may provide additional details about the nature of the error.",
-    "pageUrl": "https://live.ptbk.io/agents/YznZWHGNQPinL1/system-message",
-    "reportedAt": "2026-08-22T15:48:41.282Z"
-}
+```log
+15|promptbook-agents-server-06d70c7  | 2026-08-22T15:56:52: [next] Resolution chain:
+15|promptbook-agents-server-06d70c7  | 2026-08-22T15:56:52: [next] - `https://live.ptbk.io/agents/YznZWHGNQPinL1`
+15|promptbook-agents-server-06d70c7  | 2026-08-22T15:56:52: [next] - `https://live.ptbk.io/agents/generic-chatter`
+15|promptbook-agents-server-06d70c7  | 2026-08-22T15:56:52: [next] - `https://live.ptbk.io/agents/sH8n9C52Qx95x7`
+15|promptbook-agents-server-06d70c7  | 2026-08-22T15:56:52: [next] - `https://live.ptbk.io/agents/adamx`
+15|promptbook-agents-server-06d70c7  | 2026-08-22T15:56:52: [next] - `https://live.ptbk.io/agents/YznZWHGNQPinL1`
+15|promptbook-agents-server-06d70c7  | 2026-08-22T15:56:52: [next]     at <unknown> (.next/server/chunks/8264.js:26:409)
+15|promptbook-agents-server-06d70c7  | 2026-08-22T15:56:52: [next]     at s (.next/server/chunks/8264.js:31:17)
+15|promptbook-agents-server-06d70c7  | 2026-08-22T15:56:52: [next]     at t (.next/server/chunks/8264.js:37:137)
+15|promptbook-agents-server-06d70c7  | 2026-08-22T15:56:52: [next]     at async x (.next/server/chunks/8264.js:43:1914)
+15|promptbook-agents-server-06d70c7  | 2026-08-22T15:56:52: [next]     at async s (.next/server/chunks/8264.js:31:73)
+15|promptbook-agents-server-06d70c7  | 2026-08-22T15:56:52: [next]     at async t (.next/server/chunks/8264.js:37:131)
+15|promptbook-agents-server-06d70c7  | 2026-08-22T15:56:52: [next]     at async x (.next/server/chunks/8264.js:43:1914)
+15|promptbook-agents-server-06d70c7  | 2026-08-22T15:56:52: [next]     at async k (.next/server/chunks/8264.js:1:911)
+15|promptbook-agents-server-06d70c7  | 2026-08-22T15:56:52: [next]     at async i (.next/server/chunks/4637.js:33:4409) {
+15|promptbook-agents-server-06d70c7  | 2026-08-22T15:56:52: [next]   digest: '1407701731'
+15|promptbook-agents-server-06d70c7  | 2026-08-22T15:56:52: [next] }
+15|promptbook-agents-server-06d70c7  | 2026-08-22T15:56:52: [next] Failed to generate metadata for agent YznZWHGNQPinL1 Error [ParseError]: Cyclic `FROM` reference detected while resolving agent source.
+15|promptbook-agents-server-06d70c7  | 2026-08-22T15:56:52: [next] Resolution chain:
+15|promptbook-agents-server-06d70c7  | 2026-08-22T15:56:52: [next] - `https://live.ptbk.io/agents/YznZWHGNQPinL1`
+15|promptbook-agents-server-06d70c7  | 2026-08-22T15:56:52: [next] - `https://live.ptbk.io/agents/generic-chatter`
+15|promptbook-agents-server-06d70c7  | 2026-08-22T15:56:52: [next] - `https://live.ptbk.io/agents/sH8n9C52Qx95x7`
+15|promptbook-agents-server-06d70c7  | 2026-08-22T15:56:52: [next] - `https://live.ptbk.io/agents/adamx`
+15|promptbook-agents-server-06d70c7  | 2026-08-22T15:56:52: [next] - `https://live.ptbk.io/agents/YznZWHGNQPinL1`
+15|promptbook-agents-server-06d70c7  | 2026-08-22T15:56:52: [next]     at <unknown> (.next/server/chunks/8264.js:26:409)
+15|promptbook-agents-server-06d70c7  | 2026-08-22T15:56:52: [next]     at s (.next/server/chunks/8264.js:31:17)
+15|promptbook-agents-server-06d70c7  | 2026-08-22T15:56:52: [next]     at t (.next/server/chunks/8264.js:37:137)
+15|promptbook-agents-server-06d70c7  | 2026-08-22T15:56:52: [next]     at async x (.next/server/chunks/8264.js:43:1914)
+15|promptbook-agents-server-06d70c7  | 2026-08-22T15:56:52: [next]     at async s (.next/server/chunks/8264.js:31:73)
+15|promptbook-agents-server-06d70c7  | 2026-08-22T15:56:52: [next]     at async t (.next/server/chunks/8264.js:37:131)
+15|promptbook-agents-server-06d70c7  | 2026-08-22T15:56:52: [next]     at async x (.next/server/chunks/8264.js:43:1914)
+15|promptbook-agents-server-06d70c7  | 2026-08-22T15:56:52: [next]     at async k (.next/server/chunks/8264.js:1:911)
+15|promptbook-agents-server-06d70c7  | 2026-08-22T15:56:52: [next]     at async i (.next/server/chunks/4637.js:33:4409)
+15|promptbook-agents-server-06d70c7  | 2026-08-22T15:56:52: [next]     at async (.next/server/chunks/4670.js:18:14844)
 ```
