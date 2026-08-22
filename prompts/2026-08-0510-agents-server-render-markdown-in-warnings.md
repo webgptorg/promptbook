@@ -9,3 +9,4 @@
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ![alt text](screenshots/2026-08-0510-agents-server-render-markdown-in-warnings.png)
+![alt text](screenshots/2026-08-0510-agents-server-render-markdown-in-warnings-1.png)
