@@ -1,5 +1,5 @@
-import { spaceTrim } from 'spacetrim';
 import { describe, expect, it } from '@jest/globals';
+import { spaceTrim } from 'spacetrim';
 import { validateBook } from '../../book-2.0/agent-source/string_book';
 import { COMMITMENT_REGISTRY } from '../../commitments';
 import { createDeprecatedCommitmentDiagnostics } from './createDeprecatedCommitmentDiagnostics.browser';
@@ -70,7 +70,7 @@ GOAL Help the user turn plans into concrete next steps.`),
         expect(diagnostics).toEqual([
             expect.objectContaining({
                 startLineNumber: 3,
-                message: '`PERSONA` is deprecated. Use `GOAL` for agent profile text and inheritance-safe rewrites.',
+                message: '`PERSONA` is deprecated. Use `GOAL` or `RULE` instead',
                 severity: 'warning',
                 source: 'Promptbook',
             }),
