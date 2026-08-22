@@ -72,3 +72,70 @@ CLOSED
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
+---
+
+[ ]
+
+[✨🟥] Cyclic `FROM` dependency should not fail the app
+
+-   @@@@@@@@
+-   In the book editor there is correct warning "Cyclic `FROM` inheritance detected: `Adamx` → `Generic chatter` → `Adamx`. Change one of these parent references to break the cycle.agent-inheritance"
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![alt text](screenshots/2026-08-0450-agents-server-implicit-from-adam-6.png)
+![alt text](screenshots/2026-08-0450-agents-server-implicit-from-adam-5.png)
+
+# Application Error Report
+
+## Human Summary
+
+A server exception occurred while loading Promptbook Agents Server.
+
+An error occurred in the Server Components render. The specific message is omitted in production builds to avoid leaking sensitive details. A digest property is included on this error instance which may provide additional details about the nature of the error. - the server for Promptbook Agents Server logged this failure.
+
+## Correlation
+
+-   Server: `Promptbook Agents Server`
+-   Variant: `advanced`
+-   Digest: `1394009221`
+-   Next.js digest: `1394009221`
+-   Reported at (UTC): `2026-08-22T15:48:41.282Z`
+
+## Request Context
+
+-   Page URL: `https://live.ptbk.io/agents/YznZWHGNQPinL1/system-message`
+
+## Exception
+
+-   Name: `Error`
+
+### Message
+
+```text
+An error occurred in the Server Components render. The specific message is omitted in production builds to avoid leaking sensitive details. A digest property is included on this error instance which may provide additional details about the nature of the error.
+```
+
+### Stack Trace
+
+```text
+Error: An error occurred in the Server Components render. The specific message is omitted in production builds to avoid leaking sensitive details. A digest property is included on this error instance which may provide additional details about the nature of the error.
+```
+
+## Raw Report Payload
+
+```json
+{
+    "variant": "advanced",
+    "serverName": "Promptbook Agents Server",
+    "digest": "1394009221",
+    "nextDigest": "1394009221",
+    "errorName": "Error",
+    "errorMessage": "An error occurred in the Server Components render. The specific message is omitted in production builds to avoid leaking sensitive details. A digest property is included on this error instance which may provide additional details about the nature of the error.",
+    "errorStack": "Error: An error occurred in the Server Components render. The specific message is omitted in production builds to avoid leaking sensitive details. A digest property is included on this error instance which may provide additional details about the nature of the error.",
+    "pageUrl": "https://live.ptbk.io/agents/YznZWHGNQPinL1/system-message",
+    "reportedAt": "2026-08-22T15:48:41.282Z"
+}
+```
