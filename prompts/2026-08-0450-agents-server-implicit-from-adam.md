@@ -74,12 +74,13 @@ CLOSED
 
 ---
 
-[ ]
+[ ] !!!!!
 
 [✨🟥] Cyclic `FROM` dependency should not fail the app
 
--   @@@@@@@@
+-   When cyclic `FROM` dependency is present, it should behave as if the `FROM` statement is `FROM @Null` and show a warning in the BookEditor that there is a cyclic `FROM` dependency and that it should be fixed.
 -   In the book editor there is correct warning "Cyclic `FROM` inheritance detected: `Adamx` → `Generic chatter` → `Adamx`. Change one of these parent references to break the cycle.agent-inheritance"
+-   But never results in 500 fail on any page or api endpoint
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
