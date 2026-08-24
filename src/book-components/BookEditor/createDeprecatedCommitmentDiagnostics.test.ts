@@ -70,7 +70,7 @@ GOAL Help the user turn plans into concrete next steps.`),
         expect(diagnostics).toEqual([
             expect.objectContaining({
                 startLineNumber: 3,
-                message: '`PERSONA` is deprecated. Use `GOAL` or `RULE` instead',
+                message: '`PERSONA` is deprecated. Use `GOAL` for agent profile text and inheritance-safe rewrites.',
                 severity: 'warning',
                 source: 'Promptbook',
             }),

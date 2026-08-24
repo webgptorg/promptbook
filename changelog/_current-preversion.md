@@ -1,3 +1,5 @@
+-   Fixed the Book editor `PERSONA` deprecation diagnostic regression test to assert the replacement guidance defined in the shared commitment catalog.
+
 -   Deprecated `PERSONA` for newly created Agents Server books. New-agent boilerplates and onboarding templates now use `GOAL` and `RULE` commitments, while the Book editor yellow-underlines every commitment marked as deprecated in the shared catalog and explains its replacement.
 
 -   Fixed the Agents Server's effective `FROM` inheritance handling. An explicitly selected parent now fully replaces
