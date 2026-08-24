@@ -328,6 +328,60 @@ describe('resolveAgentStateFromSource', () => {
         expect(modelRequirements.systemMessage).not.toContain('Start from Adam.');
     });
 
+    it('treats the edge closing a local cyclic FROM chain as no-parent inheritance', async () => {
+        const adamAgentUrl = 'https://local.example/agents/adam';
+        const agentASource = book`
+            Agent A
+
+            FROM {Agent B}
+            RULE Rule from Agent A.
+        `;
+        const collection = createMockAgentCollection([
+            {
+                agentName: 'Agent A',
+                permanentId: 'agent-a',
+                agentSource: agentASource,
+            },
+            {
+                agentName: 'Agent B',
+                permanentId: 'agent-b',
+                agentSource: book`
+                    Agent B
+
+                    FROM {Agent A}
+                    RULE Rule from Agent B.
+                `,
+            },
+        ]);
+        const { agentReferenceResolver, agentSourceImporter } = await createLocalInheritanceTestDependencies(
+            collection,
+            adamAgentUrl,
+        );
+        global.fetch = jest.fn(async () => {
+            throw new Error('HTTP import should not be used for a local cyclic inheritance chain.');
+        }) as typeof fetch;
+
+        const resolvedAgentState = await resolveAgentStateFromSource(agentASource, {
+            adamAgentUrl: adamAgentUrl as string_agent_url,
+            canonicalAgentUrl: 'https://local.example/agents/agent-a' as string_agent_url,
+            agentReferenceResolver,
+            agentSourceImporter,
+        });
+        const modelRequirements = await createAgentModelRequirements(resolvedAgentState.resolvedAgentSource);
+
+        expect(global.fetch).not.toHaveBeenCalled();
+        expect(resolvedAgentState.resolvedAgentSource).toContain(
+            'NOTE Inherited FROM https://local.example/agents/agent-b',
+        );
+        expect(resolvedAgentState.resolvedAgentSource).not.toContain(
+            'NOTE Inherited FROM https://local.example/agents/agent-a',
+        );
+        expect(resolvedAgentState.resolvedAgentSource).toContain('FROM @Null');
+        expect(resolvedAgentState.resolvedAgentSource).not.toContain('FROM {Agent A}');
+        expect(modelRequirements.systemMessage).toContain('Rule from Agent A.');
+        expect(modelRequirements.systemMessage).toContain('Rule from Agent B.');
+    });
+
     it('includes Adam through an ancestor that does not declare its own FROM', async () => {
         const adamAgentUrl = 'https://local.example/agents/adam';
         const collection = createMockAgentCollection([

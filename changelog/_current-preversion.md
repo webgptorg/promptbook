@@ -1,3 +1,6 @@
+-   Fixed cyclic Agents Server `FROM` inheritance so resolution stops at the cycle edge as if it used `FROM @Null`.
+    Pages and APIs now continue to resolve while the existing Book editor warning identifies the cycle for repair.
+
 -   Fixed the Book editor `PERSONA` deprecation diagnostic regression test to assert the replacement guidance defined in the shared commitment catalog.
 
 -   Deprecated `PERSONA` for newly created Agents Server books. New-agent boilerplates and onboarding templates now use `GOAL` and `RULE` commitments, while the Book editor yellow-underlines every commitment marked as deprecated in the shared catalog and explains its replacement.

@@ -113,6 +113,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
             adamAgentUrl,
             recursionLevel,
             currentAgentUrl: resolvedAgentContext.canonicalAgentUrl,
+            currentAgentAliases: resolvedAgentContext.currentAgentAliases,
             inheritancePath: inheritancePath as Array<string_agent_url>,
             agentReferenceResolver,
             federatedAgentImportConfiguration,

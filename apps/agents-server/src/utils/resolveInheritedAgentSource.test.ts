@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
-import { ParseError, book, validateBook } from '../../../../src/_packages/core.index'; // <- [🚾]
+import { book, validateBook } from '../../../../src/_packages/core.index'; // <- [🚾]
 import type { string_book } from '../../../../src/_packages/types.index'; // <- [🚾]
 import type { AgentCollection } from '../../../../src/collection/agent-collection/AgentCollection';
 import {
@@ -521,35 +521,53 @@ describe('how `resolveInheritedAgentSource` works', () => {
         expect(resolvedAgentSource).toContain('LANGUAGE Italian');
     });
 
-    it('should fail safely on inheritance cycles', async () => {
-        await expect(
-            resolveInheritedAgentSource(
-                book`
-                    Cyclic Agent
+    it('should materialize a self-referencing FROM as FROM @Null', async () => {
+        const agentSourceImporter = jest.fn();
+        const agentSource = book`
+            Cyclic Agent
 
-                    FROM https://local.example/agents/cyclic
-                `,
-                {
-                    currentAgentUrl: 'https://local.example/agents/cyclic',
-                },
-            ),
-        ).rejects.toBeInstanceOf(ParseError);
+            FROM https://local.example/agents/cyclic
+            RULE Continue without a parent.
+        `;
+
+        await expect(
+            resolveInheritedAgentSource(agentSource, {
+                currentAgentUrl: 'https://local.example/agents/cyclic',
+                agentSourceImporter,
+            }),
+        ).resolves.toEqual(book`
+            Cyclic Agent
+
+            FROM @Null
+            RULE Continue without a parent.
+        `);
+
+        expect(agentSourceImporter).not.toHaveBeenCalled();
     });
 
-    it('should detect self-cycles when canonical and name-based URLs refer to the same agent', async () => {
-        await expect(
-            resolveInheritedAgentSource(
-                book`
-                    Recursive 0
+    it('should materialize an alias-based self-referencing FROM as FROM @Null', async () => {
+        const agentSourceImporter = jest.fn();
+        const agentSource = book`
+            Recursive 0
 
-                    FROM https://core-test.ptbk.io/agents/recursive-0
-                `,
-                {
-                    currentAgentUrl: 'https://core-test.ptbk.io/agents/perm-recursive-0',
-                    currentAgentAliases: ['https://core-test.ptbk.io/agents/recursive-0'],
-                },
-            ),
-        ).rejects.toBeInstanceOf(ParseError);
+            FROM https://core-test.ptbk.io/agents/recursive-0
+            RULE Continue without a parent.
+        `;
+
+        await expect(
+            resolveInheritedAgentSource(agentSource, {
+                currentAgentUrl: 'https://core-test.ptbk.io/agents/perm-recursive-0',
+                currentAgentAliases: ['https://core-test.ptbk.io/agents/recursive-0'],
+                agentSourceImporter,
+            }),
+        ).resolves.toEqual(book`
+            Recursive 0
+
+            FROM @Null
+            RULE Continue without a parent.
+        `);
+
+        expect(agentSourceImporter).not.toHaveBeenCalled();
     });
 
     it('should not make Adam implicitly inherit from itself through an agent URL alias', async () => {

@@ -234,6 +234,11 @@ type ResolvedParentAgentContext = {
      * Unresolved compact-reference issues captured while resolving `FROM`.
      */
     readonly fromResolutionIssues: Array<AgentReferenceResolutionIssue>;
+
+    /**
+     * Whether the effective parent closed the current lineage and must be materialized as `FROM @Null`.
+     */
+    readonly isCyclicFrom: boolean;
 };
 
 /**
@@ -307,6 +312,28 @@ type ResolvedFromCommitmentLine = {
 };
 
 /**
+ * One cycle found while following a source-resolution lineage.
+ *
+ * @private internal helper for Agents Server inherited/imported agent resolution
+ */
+type ResolutionCycle = {
+    /**
+     * Normalized URL that closes the cycle.
+     */
+    readonly normalizedReferenceUrl: string_agent_url;
+
+    /**
+     * URLs visited before the repeated reference was encountered.
+     */
+    readonly lineage: ReadonlyArray<string_agent_url>;
+
+    /**
+     * Position in `lineage` where the cycle begins.
+     */
+    readonly cycleStartIndex: number;
+};
+
+/**
  * Normalizes agent URLs used for cycle detection and lineage reporting.
  *
  * @param agentUrl - Raw agent URL.
@@ -334,6 +361,30 @@ function createResolutionLineage(options?: ResolveInheritedAgentSourceOptions): 
     }
 
     return [...new Set(lineage.map(normalizeAgentUrl))];
+}
+
+/**
+ * Finds a cycle that would be closed by resolving one more agent reference.
+ *
+ * @param referenceUrl - Next agent reference to resolve.
+ * @param options - Current resolution options.
+ * @returns Cycle details, or `null` when the reference is not in the current lineage.
+ *
+ * @private internal helper for Agents Server inherited/imported agent resolution
+ */
+function findResolutionCycle(
+    referenceUrl: string_agent_url,
+    options?: ResolveInheritedAgentSourceOptions,
+): ResolutionCycle | null {
+    const normalizedReferenceUrl = normalizeAgentUrl(referenceUrl);
+    const lineage = createResolutionLineage(options);
+    const cycleStartIndex = lineage.findIndex((visitedUrl) => visitedUrl === normalizedReferenceUrl);
+
+    if (cycleStartIndex === -1) {
+        return null;
+    }
+
+    return { normalizedReferenceUrl, lineage, cycleStartIndex };
 }
 
 /**
@@ -469,12 +520,18 @@ async function resolveParentAgentContext(
         context.resolutionOptions?.currentAgentAliases,
         agentSource,
     );
-    const parentAgentSourceCorpus = parentAgentUrl ? await importAgentCorpus(parentAgentUrl, 'FROM', context) : null;
+    const isCyclicFrom = Boolean(parentAgentUrl && findResolutionCycle(parentAgentUrl, context.resolutionOptions));
+    const effectiveParentAgentUrl = isCyclicFrom ? null : parentAgentUrl;
+    const parentAgentSourceCorpus = effectiveParentAgentUrl
+        ? await importAgentCorpus(effectiveParentAgentUrl, 'FROM', context)
+        : null;
 
     return {
-        parentAgentUrl,
+        // A parent that closes the current lineage has the same runtime effect as `FROM @Null`.
+        parentAgentUrl: effectiveParentAgentUrl,
         parentAgentSourceCorpus,
         fromResolutionIssues,
+        isCyclicFrom,
     };
 }
 
@@ -559,7 +616,7 @@ function resolveFromCommitmentLine(
     parentContext: ResolvedParentAgentContext,
 ): ResolvedFromCommitmentLine {
     if (parentContext.parentAgentUrl === null) {
-        const agentSourceChunks = [line];
+        const agentSourceChunks = [parentContext.isCyclicFrom ? 'FROM @Null' : line];
 
         if (parentContext.fromResolutionIssues.length > 0) {
             appendResolutionIssueNotes(agentSourceChunks, parentContext.fromResolutionIssues);
@@ -740,15 +797,16 @@ function assertNoResolutionCycle(
     commitmentType: 'FROM' | 'IMPORT',
     options?: ResolveInheritedAgentSourceOptions,
 ): void {
-    const normalizedReferenceUrl = normalizeAgentUrl(referenceUrl);
-    const lineage = createResolutionLineage(options);
-    const cycleStartIndex = lineage.findIndex((visitedUrl) => visitedUrl === normalizedReferenceUrl);
+    const resolutionCycle = findResolutionCycle(referenceUrl, options);
 
-    if (cycleStartIndex === -1) {
+    if (!resolutionCycle) {
         return;
     }
 
-    const cycleChain = [...lineage.slice(cycleStartIndex), normalizedReferenceUrl]
+    const cycleChain = [
+        ...resolutionCycle.lineage.slice(resolutionCycle.cycleStartIndex),
+        resolutionCycle.normalizedReferenceUrl,
+    ]
         .map((visitedUrl) => `- \`${visitedUrl}\``)
         .join('\n');
 
