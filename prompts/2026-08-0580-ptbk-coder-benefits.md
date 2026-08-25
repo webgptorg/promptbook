@@ -1,14 +1,12 @@
 [ ]
 
-[✨✤] brr
+[✨✤] Update the `ptbk coder` landing website and more emphasize:
 
-1. No babysitting
-2. Done PRDs in sync with code out of the box
+1. No babysitting - Coder allows you to run the agent, and the agent will be working on every PRD automatically. It will do the implementation, testing and quality checks, and you can let him work, not answer questions or babysit every 10 minutes.
+2. Done PRDs in sync with code out of the box - the system of the PRD markdown files and their checks ensures that the job marked as done is always automatically in sync with the job actually completed.
+   This has benefits; for example, when you revert or go back, you always undo both the actual work and the mark that the work was done.
 
--   @@@@@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
--   Also look and update [the dev scripts in `terminals.json`](.vscode/terminals.json)
--   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
--   Update the [`ptbk coder` landing website](apps/coder-landing)
+-   You are working with the [`ptbk coder` landing website](apps/coder-landing)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
