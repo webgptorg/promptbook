@@ -87,6 +87,29 @@ function createPublishWorkflowFileContent(packagesMetadata: ReadonlyArray<Packag
                                 'working-directory': `./packages/${packageBasename}`,
                                 run: 'npm publish --provenance --access public',
                                 env: {
+                                    /*
+                                    npm notice Tarball Details
+                                    npm notice name: @promptbook/anthropic-claude
+                                    npm notice version: 0.114.0-16
+                                    npm notice filename: promptbook-anthropic-claude-0.114.0-16.tgz
+                                    npm notice package size: 606.3 kB
+                                    npm notice unpacked size: 3.9 MB
+                                    npm notice shasum: 6605ce445765dd166e743168d6f7900a12729c74
+                                    npm notice integrity: sha512-onzDjg3DMNu3N[...]uBYPPjnrd+z9A==
+                                    npm notice total files: 3778
+                                    npm notice
+                                    npm notice Publishing to https://registry.npmjs.org/ with tag latest and public access
+                                    npm notice publish Signed provenance statement with source and build information from GitHub Actions
+                                    npm notice publish Provenance statement published to transparency log: https://search.sigstore.dev/?logIndex=2581516868
+                                    npm error code E404
+                                    npm error 404 Not Found - PUT https://registry.npmjs.org/@promptbook%2fanthropic-claude - Not found
+                                    npm error 404
+                                    npm error 404  '@promptbook/anthropic-claude@0.114.0-16' is not in this registry.
+                                    npm error 404
+                                    npm error 404 Note that you can also install from a
+                                    npm error 404 tarball, folder, http url, or git url.
+                                    npm error A complete log of this run can be found in: /home/runner/.npm/_logs/2026-08-24T17_20_24_913Z-debug-0.log
+                                    */
                                     NODE_AUTH_TOKEN: '${{secrets.NPM_TOKEN}}',
                                     // <- Note: To obtain `NPM_TOKEN`, go to https://www.npmjs.com/settings/hejny/tokens and pass it here https://github.com/webgptorg/promptbook/settings/secrets/actions/NPM_TOKEN
                                 },
