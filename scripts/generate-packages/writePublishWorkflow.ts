@@ -111,7 +111,11 @@ function createPublishWorkflowFileContent(packagesMetadata: ReadonlyArray<Packag
                                     npm error A complete log of this run can be found in: /home/runner/.npm/_logs/2026-08-24T17_20_24_913Z-debug-0.log
                                     */
                                     NODE_AUTH_TOKEN: '${{secrets.NPM_TOKEN}}',
-                                    // <- Note: To obtain `NPM_TOKEN`, go to https://www.npmjs.com/settings/hejny/tokens and pass it here https://github.com/webgptorg/promptbook/settings/secrets/actions/NPM_TOKEN
+                                    // <- Note: When publishing key expires, you will get an error like listed above. To fix it:
+                                    //          1) Obtain `NPM_TOKEN`, go to https://www.npmjs.com/settings/hejny/tokens
+                                    //             [x] Bypass the 2FA
+                                    //             Packages and scopes Read+Write: @promptbook, promptbook, ptbk
+                                    //          2) Pass it here https://github.com/webgptorg/promptbook/settings/secrets/actions/NPM_TOKEN
                                 },
                             })),
                         ],
