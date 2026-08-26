@@ -1,3 +1,5 @@
+-   Redesigned the **ptbk coder** landing page benefits around unattended PRD runs, portable `.book` agents, and PRD/code state that travels together in git commits. The visual cards now use centered code-native illustrations, and the comparison table brings those three advantages to the top.
+
 -   Fixed cyclic Agents Server `FROM` inheritance so resolution stops at the cycle edge as if it used `FROM @Null`.
     Pages and APIs now continue to resolve while the existing Book editor warning identifies the cycle for repair.
 

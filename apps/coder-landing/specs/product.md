@@ -21,7 +21,9 @@ Consequence: the page may reference Claude Code / Codex as familiar anchors, but
 ## Positioning
 
 -   `ptbk coder` **does not replace** coding agents — it sits **one level above** them ("harnesses") and keeps them working through a whole backlog unattended.
--   The mental shift to communicate: *from interactive chat sessions* (one task at a time) *to a versioned queue of prompt files* (`prompts/` folder) processed autonomously.
+-   The mental shift to communicate: _from interactive chat sessions_ (one task at a time) _to a versioned queue of prompt files_ (`prompts/` folder) processed autonomously.
+-   The agent's behavior lives in a versioned `.book` file, not in one vendor's prompt box. The same queue and behavior can move between supported harnesses with `--harness`; opencode can use the provider, including a local model, configured in that harness.
+-   A successful task records its `[x]` status in the PRD and commits that status with the implementation. Reverting the commit therefore returns both the code and the PRD state together.
 -   Around the agent, `ptbk coder` adds the unattended-operation machinery: test verification with retry feedback, git commits under a dedicated agent identity (optionally GPG-signed), auto pull/push, isolated worktrees, pacing, priorities, a kanban web UI, and personas defined in the Book language.
 
 ## Core workflow (the loop the page must explain)
@@ -38,12 +40,12 @@ Consequence: the page may reference Claude Code / Codex as familiar anchors, but
 
 ## Key subcommands
 
-| Command              | Purpose                                                                     |
-| -------------------- | --------------------------------------------------------------------------- |
-| `ptbk coder init`    | Scaffold `prompts/`, `prompts/done/`, `agents/developer.book`, `AGENTS.md`, `.env` agent-identity entries, `.gitignore`, `package.json` scripts, `.vscode/settings.json` |
-| `ptbk coder run`     | Process the prompt queue once, then exit                                     |
-| `ptbk coder server`  | Same processing, but never exits; watches for new prompts; serves kanban UI |
-| `ptbk coder verify`  | Interactive verification of completed prompts; archives to `prompts/done/`  |
+| Command             | Purpose                                                                                                                                                                  |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `ptbk coder init`   | Scaffold `prompts/`, `prompts/done/`, `agents/developer.book`, `AGENTS.md`, `.env` agent-identity entries, `.gitignore`, `package.json` scripts, `.vscode/settings.json` |
+| `ptbk coder run`    | Process the prompt queue once, then exit                                                                                                                                 |
+| `ptbk coder server` | Same processing, but never exits; watches for new prompts; serves kanban UI                                                                                              |
+| `ptbk coder verify` | Interactive verification of completed prompts; archives to `prompts/done/`                                                                                               |
 
 ## Tone
 

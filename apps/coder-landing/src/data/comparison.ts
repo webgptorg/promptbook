@@ -195,23 +195,35 @@ export const COMPARISON_ROWS: ReadonlyArray<ComparisonRowDefinition> = [
         },
     },
     {
-        capability: 'A whole backlog in one run',
-        description: 'Many tasks queued as markdown files and implemented one after another, unattended.',
+        capability: 'Unattended PRD queue',
+        description:
+            'PRD markdown files are implemented one after another, with configured checks, feedback retries and a commit before the queue moves on.',
         cells: {
-            'ptbk-coder': { level: 'built-in', note: 'The prompts/ queue' },
-            'claude-code': { level: 'do-it-yourself', note: 'Script one session per task' },
-            'openai-codex': { level: 'do-it-yourself', note: 'Script one session per task' },
-            opencode: { level: 'do-it-yourself', note: 'Script one session per task' },
+            'ptbk-coder': { level: 'built-in', note: 'Automatic prompts/ queue' },
+            'claude-code': { level: 'do-it-yourself', note: 'Script one session per PRD' },
+            'openai-codex': { level: 'do-it-yourself', note: 'Script one session per PRD' },
+            opencode: { level: 'do-it-yourself', note: 'Script one session per PRD' },
         },
     },
     {
-        capability: 'Harness-agnostic',
-        description: 'The same backlog and the same rules, whichever coding agent implements them.',
+        capability: 'Portable agent definition',
+        description: 'The same PRD queue and .book behavior can run with another harness or model.',
         cells: {
-            'ptbk-coder': { level: 'built-in', note: 'Six harnesses, one flag' },
+            'ptbk-coder': { level: 'built-in', note: 'Same .book, change --harness' },
             'claude-code': { level: 'not-available', note: 'Is one of the harnesses' },
             'openai-codex': { level: 'not-available', note: 'Is one of the harnesses' },
-            opencode: { level: 'do-it-yourself', note: 'Any model, its own agent' },
+            opencode: { level: 'do-it-yourself', note: 'Provider config, own agent' },
+        },
+    },
+    {
+        capability: 'PRD status committed with code',
+        description:
+            'A completed [x] PRD state is committed with the implementation it describes, so reverting history rolls them back together.',
+        cells: {
+            'ptbk-coder': { level: 'built-in', note: 'One commit: code + [x]' },
+            'claude-code': { level: 'do-it-yourself', note: 'Keep a separate checklist' },
+            'openai-codex': { level: 'do-it-yourself', note: 'Keep a separate checklist' },
+            opencode: { level: 'do-it-yourself', note: 'Keep a separate checklist' },
         },
     },
     {
@@ -282,17 +294,6 @@ export const COMPARISON_ROWS: ReadonlyArray<ComparisonRowDefinition> = [
             'claude-code': { level: 'not-available', note: 'No backlog to show' },
             'openai-codex': { level: 'not-available', note: 'No backlog to show' },
             opencode: { level: 'not-available', note: 'No backlog to show' },
-        },
-    },
-    {
-        capability: 'Task state kept in git',
-        description:
-            'The prompt file itself records the harness, the model, the thinking level, the duration and the price of every step.',
-        cells: {
-            'ptbk-coder': { level: 'built-in', note: 'Status line in the prompt' },
-            'claude-code': { level: 'do-it-yourself', note: 'Local session history' },
-            'openai-codex': { level: 'do-it-yourself', note: 'Local session history' },
-            opencode: { level: 'do-it-yourself', note: 'Local session history' },
         },
     },
     {

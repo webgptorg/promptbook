@@ -16,8 +16,9 @@ export function ComparisonSection() {
                 </h2>
                 <p className="mt-4 max-w-3xl text-lg text-gray-300">
                     Claude Code, OpenAI Codex and opencode are agents that ptbk coder drives, so you keep the one you
-                    already use. What the table compares is everything <em>around</em> a task — the backlog, the
-                    verification, the git hygiene, the pacing — never how well an agent writes code.
+                    already use. What the table compares is everything <em>around</em> a task — an unattended PRD queue,
+                    a portable agent definition, and git history that keeps code and completion state together — never
+                    how well an agent writes code.
                 </p>
 
                 <div className="mt-12">

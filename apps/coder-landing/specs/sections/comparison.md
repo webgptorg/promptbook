@@ -5,7 +5,7 @@ Anchor `#comparison`. The last section before the footer, on the lighter panel b
 ## Copy
 
 -   **Heading**: `Not another agent — the layer above them` ("the layer above them" in Promptbook Blue).
--   **Lead paragraph**: Claude Code, OpenAI Codex and opencode are agents that ptbk coder drives, so you keep the one you already use. What the table compares is everything _around_ a task — the backlog, the verification, the git hygiene, the pacing — never how well an agent writes code.
+-   **Lead paragraph**: Claude Code, OpenAI Codex and opencode are agents that ptbk coder drives, so you keep the one you already use. What the table compares is everything _around_ a task — an unattended PRD queue, a portable agent definition, and git history that keeps code and completion state together — never how well an agent writes code.
 
 ## Table
 
