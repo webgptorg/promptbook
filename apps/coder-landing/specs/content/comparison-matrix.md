@@ -47,7 +47,7 @@ Exactly these fifteen capabilities, in this order. Legend of the cells: ✅ `bui
 | 8   | Pull and push around each task | ✅ `--auto-pull --auto-push`           | 🛠 When you ask for it         | 🛠 When you ask for it         | 🛠 When you ask for it         |
 | 9   | One worktree per task          | ✅ `--isolate`                         | 🛠 Set up worktrees yourself   | 🛠 Set up worktrees yourself   | 🛠 Set up worktrees yourself   |
 | 10  | Board over the backlog         | ✅ `ptbk coder server`                 | ❌ No backlog to show         | ❌ No backlog to show         | ❌ No backlog to show         |
-| 11  | Task state kept in git         | ✅ Status line in the prompt           | 🛠 Local session history       | 🛠 Local session history       | 🛠 Local session history       |
+| 11  | PRD and code in one commit     | ✅ PRD status + code commit            | 🛠 Local session history       | 🛠 Local session history       | 🛠 Local session history       |
 | 12  | Pacing for quota windows       | ✅ `--wait-between-prompts`            | ❌ Pace it by hand            | ❌ Pace it by hand            | ❌ Pace it by hand            |
 | 13  | Preflight check of a harness   | ✅ `ptbk coder ping`                   | 🛠 Check limits in the session | 🛠 Check limits in the session | 🛠 Depends on the provider     |
 | 14  | Writes the backlog for you     | ✅ `ptbk coder generate-boilerplates`  | 🛠 Ask for it in a session     | 🛠 Ask for it in a session     | 🛠 Ask for it in a session     |
@@ -65,7 +65,7 @@ Exactly these fifteen capabilities, in this order. Legend of the cells: ✅ `bui
 8. **Pull and push around each task** — "A queue running for hours stays in sync with the remote without anybody watching it."
 9. **One worktree per task** — "Every prompt is implemented in its own temporary git worktree and merged back once verified."
 10. **Board over the backlog** — "A Trello-style kanban of the prompt files, editable in the browser while the queue runs."
-11. **Task state kept in git** — "The prompt file itself records the harness, the model, the thinking level, the duration and the price of every step."
+11. **PRD and code in one commit** — "A completed PRD and its code changes are committed together by default, so a revert takes both the implementation and its done state back."
 12. **Pacing for quota windows** — "Wall-clock waits between prompts and a cool-down retry after an error keep a long queue alive."
 13. **Preflight check of a harness** — "One tiny dummy prompt reports the answer, the response time and the usage — and warms the quota window."
 14. **Writes the backlog for you** — "Boilerplates, refactor candidates and one-line ideas become ready-to-run prompt files."

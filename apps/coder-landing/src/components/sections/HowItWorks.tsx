@@ -18,19 +18,19 @@ type HowItWorksStep = {
  */
 const HOW_IT_WORKS_STEPS: ReadonlyArray<HowItWorksStep> = [
     {
-        title: 'You write prompts, not sessions',
+        title: 'You write PRDs, not sessions',
         description:
-            'Instead of chatting with an agent one task at a time, you drop each task as a markdown file into the prompts/ folder — a backlog your whole team can read, review and version in git.',
+            'Instead of chatting with an agent one task at a time, you drop each task as a markdown PRD into the prompts/ folder — a backlog your whole team can read, review and version in git.',
     },
     {
-        title: 'ptbk coder drives your agent',
+        title: 'Start once, then stop babysitting',
         description:
-            'It feeds the queue to the coding agent you already use — Claude Code, OpenAI Codex, GitHub Copilot, Gemini CLI, opencode or Cline — one prompt at a time, with your project context and an agent persona.',
+            'By default, it sends the next ready PRD to the coding agent you already use — Claude Code, OpenAI Codex, GitHub Copilot, Gemini CLI, opencode or Cline — as soon as the last one finishes. You do not need to approve every task or answer a new chat session every few minutes.',
     },
     {
-        title: 'Every change lands verified in git',
+        title: 'A done PRD means a done commit',
         description:
-            'It can run your tests before coding to catch pre-existing failures, then verifies each prompt, feeds failures back for retries, and commits the result under a dedicated agent identity. Finished prompts are archived to prompts/done/.',
+            'It runs your configured tests and quality checks, feeds failures back for retries, then commits the PRD status together with its code under a dedicated agent identity. Revert the commit, and both the implementation and its done mark go back together. Finished PRDs are archived to prompts/done/.',
     },
 ];
 
@@ -49,7 +49,7 @@ export function HowItWorks() {
             <p className="mt-4 max-w-3xl text-lg text-gray-300">
                 Coding agents are great at one task at a time. <strong className="text-white">ptbk coder</strong> sits
                 one level above them: it is an orchestrator that keeps your favorite agent working through an entire
-                queue of tasks, unattended.
+                queue of PRDs, unattended.
             </p>
 
             <div className="mt-12 grid gap-6 md:grid-cols-3">

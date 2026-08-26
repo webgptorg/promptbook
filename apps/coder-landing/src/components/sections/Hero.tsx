@@ -25,13 +25,14 @@ export function Hero() {
                         Your coding agents,
                         <br />
                         <span className="bg-gradient-to-r from-promptbook-blue to-promptbook-green bg-clip-text text-transparent">
-                            running your backlog.
+                            shipping every PRD.
                         </span>
                     </h1>
                     <p className="mt-6 max-w-xl text-lg text-gray-300">
-                        <strong className="text-white">ptbk coder</strong> drives Claude Code, OpenAI Codex, Gemini CLI
-                        and other coding agents through a queue of plain-markdown prompts — testing, committing and
-                        pushing every change, even while you sleep.
+                        Start one queue, then step away. <strong className="text-white">ptbk coder</strong> sends every
+                        plain-markdown PRD to Claude Code, OpenAI Codex, Gemini CLI and other coding agents —
+                        implementing it, running your configured tests and quality checks, and committing the code
+                        together with its done status. No task-by-task babysitting.
                     </p>
 
                     <div className="mt-8 max-w-xl">

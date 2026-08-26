@@ -4,7 +4,7 @@ This spec defines the product story every section of the page must be consistent
 
 ## One-sentence definition
 
-**`ptbk coder` is an orchestrator that drives existing AI coding agents (Claude Code, OpenAI Codex, GitHub Copilot, Gemini CLI, opencode, Cline) through a queue of plain-markdown prompt files — implementing, testing, committing and pushing each task automatically.**
+**`ptbk coder` is an orchestrator that drives existing AI coding agents (Claude Code, OpenAI Codex, GitHub Copilot, Gemini CLI, opencode, Cline) through a queue of plain-markdown PRD files — automatically implementing each task, running configured checks, and committing its code together with the completed PRD status.**
 
 `ptbk coder` is a CLI tool shipped inside the [`ptbk` npm package](https://www.npmjs.com/package/ptbk). It is a **subproduct of Promptbook** (see [`sections/footer.md`](./sections/footer.md) for how this relationship is presented).
 
@@ -20,19 +20,19 @@ Consequence: the page may reference Claude Code / Codex as familiar anchors, but
 
 ## Positioning
 
--   `ptbk coder` **does not replace** coding agents — it sits **one level above** them ("harnesses") and keeps them working through a whole backlog unattended.
--   The mental shift to communicate: *from interactive chat sessions* (one task at a time) *to a versioned queue of prompt files* (`prompts/` folder) processed autonomously.
+-   `ptbk coder` **does not replace** coding agents — it sits **one level above** them ("harnesses") and keeps them working through a whole backlog unattended, without task-by-task babysitting.
+-   The mental shift to communicate: *from interactive chat sessions* (one task at a time) *to a versioned queue of markdown PRD files* (`prompts/` folder) processed autonomously.
 -   Around the agent, `ptbk coder` adds the unattended-operation machinery: test verification with retry feedback, git commits under a dedicated agent identity (optionally GPG-signed), auto pull/push, isolated worktrees, pacing, priorities, a kanban web UI, and personas defined in the Book language.
 
 ## Core workflow (the loop the page must explain)
 
 1. `ptbk coder init` scaffolds the project (see [`content/commands.md`](./content/commands.md)).
-2. The developer writes each task as one markdown file in `prompts/`.
+2. The developer writes each task as one markdown PRD file in `prompts/`.
 3. `ptbk coder run` (or `ptbk coder server`) feeds prompts one by one to the selected harness, with:
     - an optional agent persona from a `.book` file (`--agent`, see [`content/developer-agent.md`](./content/developer-agent.md)),
     - optional project context (`--context`, e.g. `AGENTS.md`).
-4. When enabled, tests run before the first coding prompt (`--test-before`); existing failures either stop the run or create one repair prompt. After each prompt, the test command (`--test`) runs and failures are fed back to the agent, which retries until green.
-5. The changes are committed under the agent git identity; optionally pushed (`--auto-push`). With `--isolate` the whole round happens in a temporary git worktree that is merged back into the current branch once the task is verified.
+4. When enabled, tests run before the first coding prompt (`--test-before`); existing failures either stop the run or create one repair prompt. After each prompt, the configured test or quality command (`--test`) runs and failures are fed back to the agent, which retries until green.
+5. The completed PRD status and the changes are committed together under the agent git identity by default; optionally pushed (`--auto-push`). Reverting that commit restores both the implementation and the done mark. With `--isolate` the whole round happens in a temporary git worktree that is merged back into the current branch once the task is verified.
 6. Finished prompts are verified and archived to `prompts/done/` (`ptbk coder verify`).
 7. `ptbk coder server` additionally keeps running forever, watches `prompts/` for new files, and serves a Trello-style kanban board (default port 4441).
 

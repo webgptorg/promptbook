@@ -8,13 +8,13 @@ First content block under the header. Two-column on desktop (text left, live ter
 2. **Headline** (Outfit bold, ~3rem/3.5rem):
 
     > Your coding agents,
-    > **running your backlog.**
+    > **shipping every PRD.**
 
     The second line uses a Promptbook Blue → Promptbook Green gradient text fill.
 
 3. **Subheadline** (~1.125rem, gray-300):
 
-    > **ptbk coder** drives Claude Code, OpenAI Codex, Gemini CLI and other coding agents through a queue of plain-markdown prompts — testing, committing and pushing every change, even while you sleep.
+    > Start one queue, then step away. **ptbk coder** sends every plain-markdown PRD to Claude Code, OpenAI Codex, Gemini CLI and other coding agents — implementing it, running your configured tests and quality checks, and committing the code together with its done status. No task-by-task babysitting.
 
 4. **Install terminal**: a [terminal block](../components/terminal-block.md) with the canonical `INSTALL_COMMAND` (`npm install ptbk`, see [`../content/commands.md`](../content/commands.md)).
 5. **CTA row**:
