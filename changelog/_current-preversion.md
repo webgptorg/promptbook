@@ -1,3 +1,7 @@
+-   Fixed horizontal overflow on the **ptbk coder** landing page on mobile. The accessible labels of comparison-table
+    support marks now remain within their icons, and responsive feature and harness cards can shrink to the viewport
+    instead of creating an empty scrollable area at the right edge.
+
 -   Redesigned the **ptbk coder** landing page benefits around unattended PRD runs, portable `.book` agents, and PRD/code state that travels together in git commits. The visual cards now use centered code-native illustrations, and the comparison table brings those three advantages to the top.
 
 -   Fixed cyclic Agents Server `FROM` inheritance so resolution stops at the cycle edge as if it used `FROM @Null`.

@@ -44,7 +44,7 @@ const MARK_ICONS: Readonly<Record<ComparisonSupportLevel, ReactNode>> = {
 export function ComparisonSupportMark({ level }: ComparisonSupportMarkProps) {
     return (
         <span
-            className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border ${MARK_CLASS_NAMES[level]}`}
+            className={`relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full border ${MARK_CLASS_NAMES[level]}`}
         >
             <svg
                 width="18"

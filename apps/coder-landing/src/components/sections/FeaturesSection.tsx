@@ -21,7 +21,7 @@ export function FeaturesSection() {
                 {ADVANCED_FEATURES.map((feature) => (
                     <article
                         key={feature.title}
-                        className="flex flex-col rounded-xl border border-gray-800 bg-gray-900/50 p-6 transition-colors hover:border-gray-600"
+                        className="flex min-w-0 flex-col rounded-xl border border-gray-800 bg-gray-900/50 p-6 transition-colors hover:border-gray-600"
                     >
                         <h3 className="font-display text-lg font-semibold text-white">{feature.title}</h3>
                         <p className="mt-2 flex-1 text-sm text-gray-400">{feature.description}</p>

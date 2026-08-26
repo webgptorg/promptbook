@@ -27,7 +27,7 @@ export function HarnessesSection() {
                     {HARNESS_CATALOG.map((harness) => (
                         <article
                             key={harness.harnessName}
-                            className="flex flex-col rounded-xl border border-gray-800 bg-gray-900/60 p-6 transition-colors hover:border-gray-600"
+                            className="flex min-w-0 flex-col rounded-xl border border-gray-800 bg-gray-900/60 p-6 transition-colors hover:border-gray-600"
                         >
                             <div className="flex items-center gap-4">
                                 <HarnessLogo harnessName={harness.harnessName} accentColor={harness.accentColor} />
