@@ -1,9 +1,3 @@
--   Enhanced the `ptbk coder` landing page to make its unattended PRD workflow explicit:
-
-    -   One run now clearly promises automatic work through every markdown PRD, without task-by-task babysitting.
-    -   The page explains that configured test and quality checks feed failures back for retries before a completed PRD is committed.
-    -   Completed PRD markdown and code are presented as one default commit, so reverting a task restores both its implementation and done state.
-
 -   Fixed cyclic Agents Server `FROM` inheritance so resolution stops at the cycle edge as if it used `FROM @Null`.
     Pages and APIs now continue to resolve while the existing Book editor warning identifies the cycle for repair.
 

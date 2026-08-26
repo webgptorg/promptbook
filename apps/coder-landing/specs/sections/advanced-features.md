@@ -13,7 +13,7 @@ Anchor `#features`. A grid of feature cards, each pairing a short explanation wi
 
 | #   | Title                          | Snippet                                                                                          |
 | --- | ------------------------------ | ------------------------------------------------------------------------------------------------ |
-| 1   | Verified before it is done     | `ptbk coder run --harness claude-code --test npm test`                                           |
+| 1   | Verified by your tests         | `ptbk coder run --harness claude-code --test npm test`                                           |
 | 2   | Test before coding             | `ptbk coder run --harness claude-code --test npm test --test-before yes-and-fix`                 |
 | 3   | Commits with its own identity  | `CODING_AGENT_GIT_NAME="Promptbook Coding Agent"`                                                |
 | 4   | Autopilot git                  | `ptbk coder run --harness claude-code --auto-pull --auto-push`                                   |
@@ -27,13 +27,13 @@ Anchor `#features`. A grid of feature cards, each pairing a short explanation wi
 | 12  | Ping before you queue          | `ptbk coder ping --harness openai-codex --model gpt-5.6-sol --thinking-level xhigh`              |
 | 13  | Keep the 5-hour window rolling | `ptbk coder ping --harness claude-code --model claude-sonnet-5 --thinking-level low --period 5h` |
 | 14  | Human in the loop              | `ptbk coder run --harness claude-code --no-auto`                                                 |
-| 15  | Done PRDs and code stay together | `` [^] by OpenAI Codex `gpt-5.6-luna` - Implementation in progress ``                          |
+| 15  | Live status in the prompt file | `` [^] by OpenAI Codex `gpt-5.6-luna` - Implementation in progress ``                            |
 | 16  | Verify and archive             | `ptbk coder verify --order from-latest`                                                          |
 | 17  | Many prompts per file          | `ptbk coder generate-boilerplates --count 10*7`                                                  |
 
 ## Descriptions (verbatim card copy)
 
-1. **Verified before it is done** — "Run any test or quality command after each PRD. Failures are fed back to the agent, which retries until the checks pass before the completed PRD is committed."
+1. **Verified by your tests** — "Run any test command after each prompt. Failures are fed back to the agent, which retries until the tests pass."
 2. **Test before coding** — "Run tests before the first coding prompt. Stop on pre-existing failures, or let one repair prompt fix them before the backlog starts."
 3. **Commits with its own identity** — "Every successful round is staged and committed under a dedicated agent git identity — optionally GPG-signed — so agent work is always attributable."
 4. **Autopilot git** — "Pull before prompts and push after commits, so a long-running queue stays in sync with your remote."
@@ -47,7 +47,7 @@ Anchor `#features`. A grid of feature cards, each pairing a short explanation wi
 12. **Ping before you queue** — "ptbk coder ping sends one tiny dummy prompt to a harness and model and reports the answer, the response time and the usage. Use it to check that a harness, model and login really work, and to start the hourly or weekly quota window early so it is already refreshing by the time you need it. Your project is left exactly as it was."
 13. **Keep the 5-hour window rolling** — "Add --period and the ping repeats itself until you stop it with CTRL+C. A ping every 5h keeps the Claude Code 5-hour limit window permanently open, so the quota is always refreshing and a queue you start at any hour already has a window waiting — for a handful of tokens per ping instead of a run you have to babysit."
 14. **Human in the loop** — "Confirm each prompt manually with --no-auto, press P to pause a running queue, or press X to end after the current prompt."
-15. **Done PRDs and code stay together** — "A PRD turns from [ ] into [^] the moment the agent picks it up and names the step that is running, then becomes [x] when the round completes. By default, its markdown file and code changes share one commit, so a git revert restores both the implementation and the done mark."
+15. **Live status in the prompt file** — "A prompt turns from [ ] into [^] the moment the agent picks it up and names the step that is running, and only becomes [x] once the work is implemented, verified and committed. The [^] state is never reverted, so a killed or crashed queue shows you exactly which task was left in the middle."
 16. **Verify and archive** — "Successful coding rounds record the harness, model and selected thinking level in the prompt status line. Walk through completed prompts interactively, archive the finished ones to prompts/done/ and auto-append repair prompts for incomplete work. Choose the order of the walkthrough with --order from-earliest, --order from-latest or --order random."
 17. **Many prompts per file** — "ptbk coder generate-boilerplates writes one prompt per file by default (--count 5\*1). Power users can batch a whole backlog into fewer files with the advanced --count N\*M notation: N files with M prompts each. Their sections are separated by a --- line, share one fresh emoji tag per file, and still run as separate tasks."
 

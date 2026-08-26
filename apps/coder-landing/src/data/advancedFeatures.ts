@@ -36,9 +36,9 @@ export type AdvancedFeatureDefinition = {
  */
 export const ADVANCED_FEATURES: ReadonlyArray<AdvancedFeatureDefinition> = [
     {
-        title: 'Verified before it is done',
+        title: 'Verified by your tests',
         description:
-            'Run any test or quality command after each PRD. Failures are fed back to the agent, which retries until the checks pass before the completed PRD is committed.',
+            'Run any test command after each prompt. Failures are fed back to the agent, which retries until the tests pass.',
         sampleCommand: 'ptbk coder run --harness claude-code --test npm test',
     },
     {
@@ -118,9 +118,9 @@ export const ADVANCED_FEATURES: ReadonlyArray<AdvancedFeatureDefinition> = [
         sampleCommand: 'ptbk coder run --harness claude-code --no-auto',
     },
     {
-        title: 'Done PRDs and code stay together',
+        title: 'Live status in the prompt file',
         description:
-            'A PRD turns from [ ] into [^] the moment the agent picks it up and names the step that is running, then becomes [x] when the round completes. By default, its markdown file and code changes share one commit, so a git revert restores both the implementation and the done mark.',
+            'A prompt turns from [ ] into [^] the moment the agent picks it up and names the step that is running, and only becomes [x] once the work is implemented, verified and committed. The [^] state is never reverted, so a killed or crashed queue shows you exactly which task was left in the middle.',
         sampleCommand: '[^] by OpenAI Codex `gpt-5.6-luna` - Implementation in progress',
     },
     {

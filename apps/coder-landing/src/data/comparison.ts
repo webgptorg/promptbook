@@ -285,11 +285,11 @@ export const COMPARISON_ROWS: ReadonlyArray<ComparisonRowDefinition> = [
         },
     },
     {
-        capability: 'PRD and code in one commit',
+        capability: 'Task state kept in git',
         description:
-            'A completed PRD and its code changes are committed together by default, so a revert takes both the implementation and its done state back.',
+            'The prompt file itself records the harness, the model, the thinking level, the duration and the price of every step.',
         cells: {
-            'ptbk-coder': { level: 'built-in', note: 'PRD status + code commit' },
+            'ptbk-coder': { level: 'built-in', note: 'Status line in the prompt' },
             'claude-code': { level: 'do-it-yourself', note: 'Local session history' },
             'openai-codex': { level: 'do-it-yourself', note: 'Local session history' },
             opencode: { level: 'do-it-yourself', note: 'Local session history' },

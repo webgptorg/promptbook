@@ -70,13 +70,12 @@ const QUICKSTART_STEPS: ReadonlyArray<QuickstartStep> = [
         command: ADD_COMMAND,
     },
     {
-        title: 'Run the queue, then step away',
+        title: 'Run the queue',
         description: (
             <>
-                Pick a harness and let it work through every ready PRD automatically — no task-by-task confirmation.
-                Configure <code className="text-promptbook-blue">--test</code> for your test or quality command;
-                failures return to the agent for retries before the PRD and code are committed together. Add{' '}
-                <code className="text-promptbook-blue">--dry-run</code> first if you just want to preview the queue.
+                Pick a harness and let it work. Every prompt is implemented, verified and committed — then the next one
+                starts. Add <code className="text-promptbook-blue">--dry-run</code> first if you just want to preview
+                the queue.
             </>
         ),
         command: RUN_COMMAND,
