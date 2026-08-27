@@ -76,7 +76,7 @@ export const HARNESS_CATALOG: ReadonlyArray<HarnessDefinition> = [
         displayName: 'OpenAI Codex',
         vendorName: 'OpenAI',
         description:
-            'The OpenAI Codex CLI. Requires an explicit model; spending credits beyond rate limits is an explicit opt-in via --allow-credits.',
+            'The OpenAI Codex CLI. It needs an explicit model, and it only spends credits beyond your rate limits when you pass --allow-credits.',
         isModelRequired: true,
         modelExamples: ['gpt-5.2-codex', 'default'],
         sampleCommand: 'ptbk coder run --harness openai-codex --model gpt-5.6-terra',
@@ -97,7 +97,7 @@ export const HARNESS_CATALOG: ReadonlyArray<HarnessDefinition> = [
         harnessName: 'gemini',
         displayName: 'Gemini CLI',
         vendorName: 'Google',
-        description: 'The Google Gemini CLI. Requires an explicit model such as the fast flash previews.',
+        description: 'The Google Gemini CLI. It needs an explicit model, such as one of the fast flash previews.',
         isModelRequired: true,
         modelExamples: ['gemini-3-flash-preview', 'default'],
         sampleCommand: 'ptbk coder run --harness gemini --model gemini-3-flash-preview',

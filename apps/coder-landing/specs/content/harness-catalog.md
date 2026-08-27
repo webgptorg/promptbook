@@ -19,9 +19,9 @@ Shared facts:
 ## Descriptions (verbatim card copy)
 
 1. **Claude Code** — "The agentic CLI by Anthropic. ptbk coder drives it through your whole prompt queue, with thinking levels up to max."
-2. **OpenAI Codex** — "The OpenAI Codex CLI. Requires an explicit model; spending credits beyond rate limits is an explicit opt-in via --allow-credits."
+2. **OpenAI Codex** — "The OpenAI Codex CLI. It needs an explicit model, and it only spends credits beyond your rate limits when you pass --allow-credits."
 3. **GitHub Copilot CLI** — "GitHub Copilot in your terminal. Works out of the box with your Copilot subscription and supports thinking levels."
-4. **Gemini CLI** — "The Google Gemini CLI. Requires an explicit model such as the fast flash previews."
+4. **Gemini CLI** — "The Google Gemini CLI. It needs an explicit model, such as one of the fast flash previews."
 5. **opencode** — "The open-source terminal coding agent. Bring any provider configured in your opencode installation."
 6. **Cline** — "The Cline CLI agent. Uses the models configured in your Cline setup."
 

@@ -6,7 +6,7 @@ A scripted terminal in the [hero](../sections/hero.md) which shows what a real `
 
 Same window chrome as the [terminal block](./terminal-block.md) (rounded frame, `#0d1117` body, `#161b22` title bar, traffic lights), with these differences:
 
--   Title: `ptbk coder run — live terminal`.
+-   Title: `ptbk coder run`, the command the session is running.
 -   Instead of a Copy button, a static Promptbook Green dot + `sample run`. The indicator must not pulse or blink.
 -   The body is a character grid fitted to the width available to it, the same way a terminal emulator fits its grid into its window: as many character cells as fit at the preferred terminal text size, clamped to the same 56–96 columns the real `ptbk coder run` frame is clamped to, and a smaller text size when even 56 columns would not fit. The dashboard is drawn for that column count, so the terminal **never scrolls horizontally** at any viewport width.
 -   The body is as tall as the whole scripted session, so the session never scrolls vertically either and the agent visual **stays fully visible** once the sample has finished. The view must not auto-scroll away from it.

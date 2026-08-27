@@ -12,19 +12,19 @@ export function AgentsSection() {
     return (
         <section id="agents" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-20">
             <h2 className="font-display text-3xl font-bold text-white md:text-4xl">
-                Give your agent a <span className="text-promptbook-green">soul</span> — in plain text
+                Give your agent a <span className="text-promptbook-green">soul</span>, in plain text
             </h2>
             <p className="mt-4 max-w-3xl text-lg text-gray-300">
-                Every run can carry a persona written in the{' '}
+                Every run can carry an agent written in the{' '}
                 <a
                     href="https://github.com/webgptorg/book"
                     className="text-promptbook-blue underline decoration-promptbook-blue-dark underline-offset-4 hover:text-promptbook-green"
                 >
                     Book language
                 </a>
-                — Promptbook&apos;s human-readable language for defining AI agents. Rules, persona and knowledge live
-                in a <code className="text-promptbook-blue">.book</code> file that is compiled into the system message
-                of every coding prompt.
+                , Promptbook&apos;s human-readable language for defining AI agents. Its rules, its persona and what it
+                knows live in one <code className="text-promptbook-blue">.book</code> file, and ptbk coder compiles that
+                file into the system message of every coding prompt.
             </p>
 
             <div className="mt-12 grid gap-8 lg:grid-cols-2 lg:items-start">
@@ -36,13 +36,13 @@ export function AgentsSection() {
                     <TerminalBlock command={AGENT_RUN_COMMAND} />
                     <p className="mt-6 text-gray-400">
                         <code className="text-promptbook-blue">ptbk coder init</code> creates this default developer
-                        agent at <code className="text-promptbook-blue">agents/developer.book</code> — edit it like any
+                        agent at <code className="text-promptbook-blue">agents/developer.book</code>. Edit it like any
                         other file in your repository to change how your agent codes.
                     </p>
                 </div>
 
                 <div>
-                    <p className="mb-4 font-mono text-sm text-gray-500">agents/developer.book — readonly preview</p>
+                    <p className="mb-4 font-mono text-sm text-gray-500">readonly preview of agents/developer.book</p>
                     <DeveloperAgentBookPreview />
                 </div>
             </div>

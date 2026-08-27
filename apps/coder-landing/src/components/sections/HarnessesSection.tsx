@@ -16,10 +16,10 @@ export function HarnessesSection() {
                     Bring the agent <span className="text-promptbook-blue">you already use</span>
                 </h2>
                 <p className="mt-4 max-w-3xl text-lg text-gray-300">
-                    ptbk coder does not replace your coding agent — it orchestrates it. Pick a harness with{' '}
-                    <code className="text-promptbook-blue">--harness</code>, optionally a{' '}
-                    <code className="text-promptbook-blue">--model</code>, and for supported harnesses a{' '}
-                    <code className="text-promptbook-blue">--thinking-level</code> (
+                    ptbk coder does not replace your coding agent. It drives it. Pick a harness with{' '}
+                    <code className="text-promptbook-blue">--harness</code>, add a{' '}
+                    <code className="text-promptbook-blue">--model</code> if you want one, and for the harnesses that
+                    support it a <code className="text-promptbook-blue">--thinking-level</code> (
                     {THINKING_LEVELS.join(', ')}).
                 </p>
 

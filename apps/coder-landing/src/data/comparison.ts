@@ -60,11 +60,11 @@ export const COMPARISON_SUPPORT_LEVEL_NAMES: ReadonlyArray<ComparisonSupportLeve
 export const COMPARISON_SUPPORT_LEVELS: Readonly<Record<ComparisonSupportLevel, ComparisonSupportLevelDefinition>> = {
     'built-in': {
         label: 'Built in',
-        legend: 'Built in — one option or command away',
+        legend: 'Built in, one option or command away',
     },
     'do-it-yourself': {
         label: 'Do it yourself',
-        legend: 'Reachable — but you script and maintain it yourself',
+        legend: 'Reachable, but you script and maintain it yourself',
     },
     'not-available': {
         label: 'Not available',
@@ -197,7 +197,7 @@ export const COMPARISON_ROWS: ReadonlyArray<ComparisonRowDefinition> = [
     {
         capability: 'Unattended PRD queue',
         description:
-            'PRD markdown files are implemented one after another, with configured checks, feedback retries and a commit before the queue moves on.',
+            'PRD markdown files go through the agent one after another, each with your checks, a retry on failure and a commit before the queue moves on.',
         cells: {
             'ptbk-coder': { level: 'built-in', note: 'Automatic prompts/ queue' },
             'claude-code': { level: 'do-it-yourself', note: 'Script one session per PRD' },
@@ -218,7 +218,7 @@ export const COMPARISON_ROWS: ReadonlyArray<ComparisonRowDefinition> = [
     {
         capability: 'PRD status committed with code',
         description:
-            'A completed [x] PRD state is committed with the implementation it describes, so reverting history rolls them back together.',
+            'The finished [x] goes into the same commit as the implementation it describes, so reverting history rolls both back together.',
         cells: {
             'ptbk-coder': { level: 'built-in', note: 'One commit: code + [x]' },
             'claude-code': { level: 'do-it-yourself', note: 'Keep a separate checklist' },
@@ -248,7 +248,7 @@ export const COMPARISON_ROWS: ReadonlyArray<ComparisonRowDefinition> = [
     },
     {
         capability: 'Tests before the first task',
-        description: 'Failures which were already there are found before the queue starts — and repaired first.',
+        description: 'Failures that were already there show up before the queue starts, and get repaired first.',
         cells: {
             'ptbk-coder': { level: 'built-in', note: '--test-before yes-and-fix' },
             'claude-code': { level: 'not-available', note: 'Nothing runs before you' },
@@ -258,7 +258,7 @@ export const COMPARISON_ROWS: ReadonlyArray<ComparisonRowDefinition> = [
     },
     {
         capability: 'Commits as its own author',
-        description: 'Each verified round is committed under a separate agent git identity, optionally GPG-signed.',
+        description: 'Each verified round lands under a separate agent git identity, GPG-signed if you set that up.',
         cells: {
             'ptbk-coder': { level: 'built-in', note: 'Dedicated agent identity' },
             'claude-code': { level: 'do-it-yourself', note: 'Commits as you' },
@@ -278,7 +278,7 @@ export const COMPARISON_ROWS: ReadonlyArray<ComparisonRowDefinition> = [
     },
     {
         capability: 'One worktree per task',
-        description: 'Every prompt is implemented in its own temporary git worktree and merged back once verified.',
+        description: 'Each prompt runs in its own temporary git worktree and merges back once it is verified.',
         cells: {
             'ptbk-coder': { level: 'built-in', note: '--isolate' },
             'claude-code': { level: 'do-it-yourself', note: 'Set up worktrees yourself' },
@@ -309,7 +309,7 @@ export const COMPARISON_ROWS: ReadonlyArray<ComparisonRowDefinition> = [
     {
         capability: 'Preflight check of a harness',
         description:
-            'One tiny dummy prompt reports the answer, the response time and the usage — and warms the quota window.',
+            'One tiny dummy prompt reports the answer, the response time and the usage, and warms the quota window.',
         cells: {
             'ptbk-coder': { level: 'built-in', note: 'ptbk coder ping' },
             'claude-code': { level: 'do-it-yourself', note: 'Check limits in the session' },

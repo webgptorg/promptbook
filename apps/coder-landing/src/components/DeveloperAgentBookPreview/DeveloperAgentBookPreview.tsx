@@ -23,7 +23,7 @@ export function DeveloperAgentBookPreview() {
             isVerbose={false}
             translations={{
                 readonlyMessage:
-                    'This is a preview of agents/developer.book — run `ptbk coder init` to get your own editable copy.',
+                    'This is a preview of agents/developer.book. Run `ptbk coder init` to get your own editable copy.',
             }}
         />
     );

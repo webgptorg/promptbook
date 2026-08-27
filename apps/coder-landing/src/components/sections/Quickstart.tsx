@@ -63,8 +63,8 @@ const QUICKSTART_STEPS: ReadonlyArray<QuickstartStep> = [
             <>
                 <code className="text-promptbook-blue">ptbk coder add</code> writes one ready-to-run markdown file into{' '}
                 <code className="text-promptbook-blue">prompts/</code> for you. Describe the task the same way you would
-                prompt Claude Code or Codex — plain language, as specific as you like. Pipe in a heredoc for longer
-                descriptions, or run it with no arguments to type one interactively.
+                prompt Claude Code or Codex, in plain language and as specific as you like. Pipe in a heredoc for longer
+                descriptions, or run it with no arguments and type one interactively.
             </>
         ),
         command: ADD_COMMAND,
@@ -73,9 +73,9 @@ const QUICKSTART_STEPS: ReadonlyArray<QuickstartStep> = [
         title: 'Run the queue',
         description: (
             <>
-                Pick a harness and let it work. Every prompt is implemented, verified and committed — then the next one
-                starts. Add <code className="text-promptbook-blue">--dry-run</code> first if you just want to preview
-                the queue.
+                Pick a harness and let it work. It implements one prompt, verifies it, commits it, then starts the next
+                one. Add <code className="text-promptbook-blue">--dry-run</code> first if you only want to see what the
+                queue would do.
             </>
         ),
         command: RUN_COMMAND,
@@ -84,10 +84,10 @@ const QUICKSTART_STEPS: ReadonlyArray<QuickstartStep> = [
         title: 'Or keep it running as a server',
         description: (
             <>
-                <code className="text-promptbook-blue">ptbk coder server</code> never stops: it watches{' '}
+                <code className="text-promptbook-blue">ptbk coder server</code> never stops. It watches{' '}
                 <code className="text-promptbook-blue">prompts/</code> for new files and serves a Trello-style kanban
-                board at <code className="text-promptbook-blue">localhost:4441</code> where you can watch progress and
-                edit prompts from the browser.
+                board at <code className="text-promptbook-blue">localhost:4441</code>, where you can follow progress and
+                edit prompts in the browser.
             </>
         ),
         command: SERVER_COMMAND,

@@ -25,7 +25,7 @@ Separated by a hairline; on desktop a single row, stacked on mobile:
 -   Left: white Promptbook mark (28px) + wordmark **Promptbook** (Outfit semibold).
 -   Right (small gray text):
 
-    > ptbk coder is a part of the [Promptbook](https://www.ptbk.io/en) ecosystem by AI Web s.r.o.
+    > ptbk coder is part of [Promptbook](https://www.ptbk.io/en), built by AI Web s.r.o.
     > © `<current year>` Promptbook. All rights reserved. Create AI that truly understands your business.
 
 The claim "Create AI that truly understands your business." is the official Promptbook primary claim from the [brand kit](../design.md).

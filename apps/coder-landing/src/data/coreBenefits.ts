@@ -36,21 +36,21 @@ export const CORE_BENEFITS: ReadonlyArray<CoreBenefitDefinition> = [
         label: 'No babysitting',
         title: 'Start the queue. Get back to your work.',
         description:
-            'Put PRD markdown files in prompts/, start a run, and step away. Coder takes every task through implementation, your configured checks, feedback retries, and a commit before it moves on.',
+            'Put your PRD markdown files in prompts/ and start a run. ptbk coder implements each task, runs the checks you configured, feeds every failure back to the agent, and commits before it moves to the next one.',
         illustration: 'autopilot',
     },
     {
         label: 'No vendor lock-in',
         title: 'Keep your agent portable.',
         description:
-            'Your behavior is a versioned .book file, not a vendor prompt box. Change --harness to move from Claude Code to OpenAI Codex, or use opencode with the provider — including local models — that you configure.',
+            'The behavior of the agent lives in a .book file you commit next to the code, not in one vendor prompt box. Change --harness and the same queue runs on Claude Code or OpenAI Codex. With opencode you point it at whatever provider you configured, local models included.',
         illustration: 'portable-agent',
     },
     {
         label: 'One source of truth',
         title: 'Let your PRD tell the truth.',
         description:
-            'A successful task records its [x] state in the PRD and commits it with the code it describes. Revert that commit and both the implementation and its done state return together.',
+            'When a task passes, ptbk coder writes its [x] into the PRD and puts that line in the same commit as the code it describes. Revert the commit and the checkbox goes back to [ ] together with the code.',
         illustration: 'git-synced-prd',
     },
 ];

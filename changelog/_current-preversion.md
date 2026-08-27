@@ -1,3 +1,20 @@
+-   Rewrote the copy of the **ptbk coder** landing page so it reads like a developer wrote it. Not one em dash is left
+    in the visible text, and neither are the phrases that gave the page away: "an autonomous, versioned development
+    loop", "everything around the agent is handled by ptbk coder", "part of the Promptbook ecosystem". Passive
+    sentences now name who does the work, the long ones are split in two, and adverbs propping up weak verbs are gone.
+
+    -   **One benefit card was saying the opposite of what it meant.** "Revert that commit and both the implementation
+        and its done state return together" described a revert as bringing work back. It now reads "Revert the commit
+        and the checkbox goes back to `[ ]` together with the code."
+    -   **The `<title>` separator is a colon instead of an em dash**, so the browser tab and the Google result read
+        `ptbk coder: Your coding agents, running your backlog`. The search description and the sharing description were
+        rewritten as well, both still short enough for the lengths the build validates.
+    -   The hero no longer promises work "even while you sleep" and the features lead no longer hides behind "is
+        handled by". Both now say which commands run and which keys stop them.
+    -   The specs under [`apps/coder-landing/specs/`](../apps/coder-landing/specs/) quote the page copy verbatim, so
+        every rewritten sentence was updated there in the same pass and the page stays re-implementable from its specs
+        alone.
+
 -   Gave the **ptbk coder** landing page the metadata it deserves when it is shared or found. Everything it says about
     itself — titles, descriptions, URLs, keywords and the publisher — now comes from one module, so the page, its
     sharing preview, its structured data and its sitemap can never contradict each other.

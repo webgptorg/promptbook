@@ -130,9 +130,7 @@ export function LiveTerminalDemo() {
                 <span className="h-3 w-3 rounded-full bg-[#ff5f57]" aria-hidden />
                 <span className="h-3 w-3 rounded-full bg-[#febc2e]" aria-hidden />
                 <span className="h-3 w-3 rounded-full bg-[#28c840]" aria-hidden />
-                <span className="ml-2 flex-1 truncate font-mono text-xs text-gray-400">
-                    ptbk coder run — live terminal
-                </span>
+                <span className="ml-2 flex-1 truncate font-mono text-xs text-gray-400">ptbk coder run</span>
                 <span className="flex items-center gap-1.5 text-xs text-promptbook-green">
                     <span className="h-2 w-2 rounded-full bg-promptbook-green" aria-hidden />
                     sample run

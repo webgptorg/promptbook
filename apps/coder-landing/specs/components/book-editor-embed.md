@@ -11,7 +11,7 @@ The [Agent personas section](../sections/agent-book.md) embeds the real `<BookEd
 | Theme      | Host theme `DARK`; the editor surface itself intentionally renders as light "paper" (that is the product's design: book sources look like paper in both light and dark apps) |
 | Height     | Fixed per breakpoint so the whole agent source fits without inner scrolling (the book text wraps more on narrow screens): ~1450px below the `sm` breakpoint, ~1100px above it |
 | Buttons    | All editor toolbar buttons (upload, camera, download, about, fullscreen) hidden                   |
-| Readonly notice | When a visitor attempts to edit, the editor shows: *"This is a preview of agents/developer.book — run `ptbk coder init` to get your own editable copy."* |
+| Readonly notice | When a visitor attempts to edit, the editor shows: *"This is a preview of agents/developer.book. Run `ptbk coder init` to get your own editable copy."* |
 
 ## Why the real component
 

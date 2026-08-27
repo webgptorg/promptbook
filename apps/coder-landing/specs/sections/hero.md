@@ -4,7 +4,7 @@ First content block under the header. Two-column on desktop (text left, live ter
 
 ## Left column
 
-1. **Badge** (pill, blue-dark border and tint): `Part of the Promptbook ecosystem` — the only mention of Promptbook above the footer, kept subtle by design (see [`footer.md`](./footer.md) for the full attribution).
+1. **Badge** (pill, blue-dark border and tint): `Part of Promptbook`. This is the only mention of Promptbook above the footer, kept subtle by design (see [`footer.md`](./footer.md) for the full attribution).
 2. **Headline** (Outfit bold, ~3rem/3.5rem):
 
     > Your coding agents,
@@ -14,7 +14,7 @@ First content block under the header. Two-column on desktop (text left, live ter
 
 3. **Subheadline** (~1.125rem, gray-300):
 
-    > **ptbk coder** drives Claude Code, OpenAI Codex, Gemini CLI and other coding agents through a queue of plain-markdown prompts — testing, committing and pushing every change, even while you sleep.
+    > **ptbk coder** drives Claude Code, OpenAI Codex, Gemini CLI and other coding agents through a queue of plain-markdown prompts. It runs your tests after every task, commits what passes and pushes it. You do not have to be at the keyboard for any of it.
 
 4. **Install terminal**: a [terminal block](../components/terminal-block.md) with the canonical `INSTALL_COMMAND` (`npm install ptbk`, see [`../content/commands.md`](../content/commands.md)).
 5. **CTA row**:

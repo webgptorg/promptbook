@@ -25,9 +25,9 @@ Every cell carries one support level and a few-word note naming the option, comm
 
 | Level            | Mark              | Legend                                              |
 | ---------------- | ----------------- | --------------------------------------------------- |
-| `built-in`       | check, green      | Built in — one option or command away               |
-| `do-it-yourself` | dash, gray        | Reachable — but you script and maintain it yourself |
-| `not-available`  | cross, muted gray | Not provided by the tool                            |
+| `built-in`       | check, green      | Built in, one option or command away               |
+| `do-it-yourself` | dash, gray        | Reachable, but you script and maintain it yourself |
+| `not-available`  | cross, muted gray | Not provided by the tool                           |
 
 Accessible labels of the marks (screen readers): `Built in`, `Do it yourself`, `Not available`.
 
@@ -56,18 +56,18 @@ Exactly these fifteen capabilities, in this order. Legend of the cells: ✅ `bui
 ### Descriptions (verbatim row copy)
 
 1. **Interactive coding session** — "Sit next to the agent in a terminal and steer a single task while it happens."
-2. **Unattended PRD queue** — "PRD markdown files are implemented one after another, with configured checks, feedback retries and a commit before the queue moves on."
+2. **Unattended PRD queue** — "PRD markdown files go through the agent one after another, each with your checks, a retry on failure and a commit before the queue moves on."
 3. **Portable agent definition** — "The same PRD queue and .book behavior can run with another harness or model."
-4. **PRD status committed with code** — "A completed [x] PRD state is committed with the implementation it describes, so reverting history rolls them back together."
+4. **PRD status committed with code** — "The finished [x] goes into the same commit as the implementation it describes, so reverting history rolls both back together."
 5. **Several agents on one backlog** — "Run more harnesses and models at once, each taking its own slice of the queue."
 6. **Tests after every task** — "Your test command runs after each prompt and failures go back to the agent until it is green."
-7. **Tests before the first task** — "Failures which were already there are found before the queue starts — and repaired first."
-8. **Commits as its own author** — "Each verified round is committed under a separate agent git identity, optionally GPG-signed."
+7. **Tests before the first task** — "Failures that were already there show up before the queue starts, and get repaired first."
+8. **Commits as its own author** — "Each verified round lands under a separate agent git identity, GPG-signed if you set that up."
 9. **Pull and push around each task** — "A queue running for hours stays in sync with the remote without anybody watching it."
-10. **One worktree per task** — "Every prompt is implemented in its own temporary git worktree and merged back once verified."
+10. **One worktree per task** — "Each prompt runs in its own temporary git worktree and merges back once it is verified."
 11. **Board over the backlog** — "A Trello-style kanban of the prompt files, editable in the browser while the queue runs."
 12. **Pacing for quota windows** — "Wall-clock waits between prompts and a cool-down retry after an error keep a long queue alive."
-13. **Preflight check of a harness** — "One tiny dummy prompt reports the answer, the response time and the usage — and warms the quota window."
+13. **Preflight check of a harness** — "One tiny dummy prompt reports the answer, the response time and the usage, and warms the quota window."
 14. **Writes the backlog for you** — "Boilerplates, refactor candidates and one-line ideas become ready-to-run prompt files."
 15. **Human in the loop** — "Confirm each task, pause a running queue, or end it after the task which is running now."
 

@@ -12,7 +12,7 @@ All copy, URLs and identifiers used by the metadata live in **one** data module 
 | Product name        | `ptbk coder` (split into the lead `ptbk` and the highlighted `coder`)                                     |
 | Alternate name      | `Promptbook Coder`                                                                                        |
 | Tagline             | `Your coding agents,` + `running your backlog` — the two lines of the [hero](./sections/hero.md) headline |
-| Title               | `<product name> — <tagline>`                                                                              |
+| Title               | `<product name>: <tagline>`                                                                               |
 | Description         | The one-sentence definition from [`product.md`](./product.md), shown in search results                    |
 | Sharing description | A shorter, punchier variant shown in sharing previews                                                     |
 | Keywords            | From the most specific (`ptbk coder`) to the most generic (harness names)                                 |

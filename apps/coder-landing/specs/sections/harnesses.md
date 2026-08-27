@@ -5,7 +5,7 @@ Anchor `#harnesses`. Sits on the lighter panel background. Lists every coding ag
 ## Copy
 
 -   **Heading**: `Bring the agent you already use` ("you already use" in Promptbook Blue).
--   **Lead paragraph**: ptbk coder does not replace your coding agent — it orchestrates it. Pick a harness with `--harness`, optionally a `--model`, and for supported harnesses a `--thinking-level` (low, medium, high, xhigh, max).
+-   **Lead paragraph**: ptbk coder does not replace your coding agent. It drives it. Pick a harness with `--harness`, add a `--model` if you want one, and for the harnesses that support it a `--thinking-level` (low, medium, high, xhigh, max).
 
 ## Cards
 

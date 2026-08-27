@@ -13,8 +13,9 @@ export function FeaturesSection() {
                 Built for <span className="text-promptbook-blue">unattended</span> coding
             </h2>
             <p className="mt-4 max-w-3xl text-lg text-gray-300">
-                Everything around the agent — git hygiene, verification, pacing, and control — is handled by ptbk
-                coder so the queue can run for hours without you.
+                The agent writes the code. ptbk coder does the rest: it runs your tests, commits, pulls and pushes,
+                paces the queue against your quota window, and gives you back control the moment you press P or X. That
+                is what keeps a run going for hours without you.
             </p>
 
             <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">

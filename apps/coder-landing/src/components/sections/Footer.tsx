@@ -41,11 +41,11 @@ export function Footer() {
                         <span className="font-display font-semibold text-white">Promptbook</span>
                     </div>
                     <p className="text-sm text-gray-500 md:ml-auto md:text-right">
-                        ptbk coder is a part of the{' '}
+                        ptbk coder is part of{' '}
                         <a href={PROMPTBOOK_URL} className="text-gray-300 hover:text-promptbook-blue">
                             Promptbook
-                        </a>{' '}
-                        ecosystem by AI Web s.r.o.
+                        </a>
+                        , built by AI Web s.r.o.
                         <br />© {new Date().getFullYear()} Promptbook. All rights reserved. Create AI that truly
                         understands your business.
                     </p>

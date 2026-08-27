@@ -14,9 +14,10 @@ export function HowItWorks() {
                 Ship a backlog, not a <span className="text-promptbook-blue">stream of interruptions.</span>
             </h2>
             <p className="mt-4 max-w-3xl text-lg text-gray-300">
-                <strong className="text-white">ptbk coder</strong> turns PRD markdown files into an autonomous,
-                versioned development loop. Start a run, choose its harness, and come back to verified commits — not a
-                queue of questions that needs your attention every few minutes.
+                <strong className="text-white">ptbk coder</strong> reads the PRD markdown files in{' '}
+                <code className="text-promptbook-blue">prompts/</code> and works through them one at a time. You choose
+                the harness and start the run. Come back to commits that already passed your tests, instead of a chat
+                window full of questions.
             </p>
 
             <div className="mt-12 grid gap-6 md:grid-cols-3">
