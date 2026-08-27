@@ -1,5 +1,20 @@
-import faviconLogoImage from '@public/favicon.ico';
-import type { Metadata } from 'next';
+import { PROMPTBOOK_URL } from '@/data/links';
+import {
+    PUBLISHER_LEGAL_NAME,
+    PUBLISHER_NAME,
+    SITE_DESCRIPTION,
+    SITE_FAVICON_PATH,
+    SITE_KEYWORDS,
+    SITE_LANGUAGE,
+    SITE_LOCALE,
+    SITE_LOGO_PATH,
+    SITE_NAME,
+    SITE_SOCIAL_DESCRIPTION,
+    SITE_THEME_COLOR,
+    SITE_TITLE,
+    SITE_URL,
+} from '@/data/siteMetadata';
+import type { Metadata, Viewport } from 'next';
 import { Inter, JetBrains_Mono, Outfit } from 'next/font/google';
 import './globals.css';
 
@@ -31,37 +46,68 @@ const jetBrainsMono = JetBrains_Mono({
 });
 
 /**
- * Map of metadata.
+ * Metadata of the page for search engines, social networks and browsers.
+ *
+ * Note: Every value comes from [`siteMetadata`](../data/siteMetadata.ts) so that the page, the sharing image,
+ *       the structured data and the sitemap can never disagree about what `ptbk coder` is,
+ *       specified in [`specs/metadata.md`](../../specs/metadata.md)
+ *
+ * Note: The sharing image itself is added by the [`opengraph-image`](./opengraph-image.tsx)
+ *       and [`twitter-image`](./twitter-image.tsx) file conventions of Next.js
  */
 export const metadata: Metadata = {
-    title: 'ptbk coder — Your coding agents, running your backlog',
-    description:
-        'ptbk coder drives Claude Code, OpenAI Codex, Gemini CLI and other coding agents through a queue of plain-markdown prompts — testing, committing and pushing every change. Part of Promptbook.',
-    keywords: [
-        'ptbk coder',
-        'Promptbook',
-        'AI coding agent',
-        'coding agent orchestration',
-        'Claude Code',
-        'OpenAI Codex',
-        'GitHub Copilot',
-        'Gemini CLI',
-        'opencode',
-        'Cline',
-    ],
-    authors: [{ name: 'Promptbook Team' }],
+    metadataBase: new URL(SITE_URL),
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    applicationName: SITE_NAME,
+    keywords: [...SITE_KEYWORDS],
+    authors: [{ name: PUBLISHER_NAME, url: PROMPTBOOK_URL }],
+    creator: PUBLISHER_NAME,
+    publisher: PUBLISHER_LEGAL_NAME,
+    category: 'technology',
+    alternates: {
+        canonical: '/',
+    },
+    icons: {
+        icon: SITE_FAVICON_PATH,
+        shortcut: SITE_FAVICON_PATH,
+        apple: SITE_LOGO_PATH,
+    },
     openGraph: {
-        title: 'ptbk coder — Your coding agents, running your backlog',
-        description:
-            'Queue prompts as markdown files and let your favorite coding agent implement, test and commit them one by one.',
         type: 'website',
+        url: SITE_URL,
+        siteName: SITE_NAME,
+        title: SITE_TITLE,
+        description: SITE_SOCIAL_DESCRIPTION,
+        locale: SITE_LOCALE,
     },
     twitter: {
         card: 'summary_large_image',
-        title: 'ptbk coder — Your coding agents, running your backlog',
-        description:
-            'Queue prompts as markdown files and let your favorite coding agent implement, test and commit them one by one.',
+        title: SITE_TITLE,
+        description: SITE_SOCIAL_DESCRIPTION,
     },
+    robots: {
+        index: true,
+        follow: true,
+        googleBot: {
+            index: true,
+            follow: true,
+            'max-image-preview': 'large',
+            'max-snippet': -1,
+            'max-video-preview': -1,
+        },
+    },
+    formatDetection: {
+        telephone: false,
+    },
+};
+
+/**
+ * Viewport of the page, which tells the browser that the page is dark and which color its chrome should take.
+ */
+export const viewport: Viewport = {
+    themeColor: SITE_THEME_COLOR,
+    colorScheme: 'dark',
 };
 
 /**
@@ -73,10 +119,7 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="en" className="dark">
-            <head>
-                <link rel="icon" href={faviconLogoImage.src} type="image/x-icon" />
-            </head>
+        <html lang={SITE_LANGUAGE} className="dark">
             <body
                 className={`${outfit.variable} ${inter.variable} ${jetBrainsMono.variable} font-sans antialiased bg-promptbook-dark-gray text-gray-100`}
             >

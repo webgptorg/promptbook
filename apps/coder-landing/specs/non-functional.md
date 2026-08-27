@@ -15,6 +15,7 @@
 ## Single source of truth (DRY)
 
 -   Canonical page data (commands, harness catalog, links, demo script, agent source) lives in one data module per concern (`src/data/`), mirrored 1:1 by the specs in [`content/`](./content/). No command or catalog value may be duplicated as a string in two components.
+-   The same holds for the identity of the page — every title, description and URL used by the page metadata, the sharing image, the structured data, `sitemap.xml` and `robots.txt` comes from one module, see [`metadata.md`](./metadata.md).
 -   The specs in this folder must allow a 1:1 re-implementation of the page without the source code (see [`README.md`](./README.md)).
 
 ## Accessibility

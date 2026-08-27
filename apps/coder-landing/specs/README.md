@@ -22,6 +22,7 @@ The specs serve three purposes:
 | [`product.md`](./product.md)               | What `ptbk coder` is and the story the page must tell                     |
 | [`page-structure.md`](./page-structure.md) | Order, anchors and layout of all page sections                            |
 | [`design.md`](./design.md)                 | Branding, colors, typography, dark mode, responsiveness                   |
+| [`metadata.md`](./metadata.md)             | Titles, descriptions, sharing previews, structured data, sitemap, robots  |
 | [`non-functional.md`](./non-functional.md) | Technology, port, accessibility and quality requirements                  |
 
 ## Content specs ([`content/`](./content/))

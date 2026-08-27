@@ -39,6 +39,26 @@ export const GITHUB_URL = 'https://github.com/webgptorg/promptbook';
 export const NPM_PACKAGE_URL = 'https://www.npmjs.com/package/ptbk';
 
 /**
+ * URL of Promptbook, the product `ptbk coder` is a part of.
+ */
+export const PROMPTBOOK_URL = 'https://www.ptbk.io/en';
+
+/**
+ * URL of the Promptbook profile on LinkedIn.
+ */
+export const LINKEDIN_URL = 'https://linkedin.com/company/promptbook';
+
+/**
+ * URL of the Promptbook community on Discord.
+ */
+export const DISCORD_URL = 'https://discord.gg/x3QWNaa89N';
+
+/**
+ * Profiles which represent Promptbook on other websites, used as `sameAs` in the structured data.
+ */
+export const BRAND_PROFILE_URLS: ReadonlyArray<string> = [GITHUB_URL, NPM_PACKAGE_URL, LINKEDIN_URL, DISCORD_URL];
+
+/**
  * Footer link columns, mirroring the footer of https://www.ptbk.io/en adjusted for `ptbk coder`.
  *
  * Note: Specified in [`specs/sections/footer.md`](../../specs/sections/footer.md)
@@ -56,7 +76,7 @@ export const FOOTER_COLUMNS: ReadonlyArray<FooterColumn> = [
     {
         heading: 'Promptbook',
         links: [
-            { title: 'Promptbook.io', href: 'https://www.ptbk.io/en' },
+            { title: 'Promptbook.io', href: PROMPTBOOK_URL },
             { title: 'Manifest', href: 'https://ptbk.io/manifest' },
             { title: 'Playground', href: 'https://promptbook.studio/miniapps/new' },
             { title: 'Branding', href: 'https://www.ptbk.io/branding' },
@@ -78,8 +98,8 @@ export const FOOTER_COLUMNS: ReadonlyArray<FooterColumn> = [
         heading: 'Connect',
         links: [
             { title: 'GitHub', href: GITHUB_URL },
-            { title: 'LinkedIn', href: 'https://linkedin.com/company/promptbook' },
-            { title: 'Discord', href: 'https://discord.gg/x3QWNaa89N' },
+            { title: 'LinkedIn', href: LINKEDIN_URL },
+            { title: 'Discord', href: DISCORD_URL },
         ],
     },
 ];

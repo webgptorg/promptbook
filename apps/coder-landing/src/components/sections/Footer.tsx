@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import logoImage from '@public/logo-white-transparent-1024.png';
-import { FOOTER_COLUMNS } from '@/data/links';
+import { FOOTER_COLUMNS, PROMPTBOOK_URL } from '@/data/links';
 
 /**
  * Renders the page footer, mirroring the footer of https://www.ptbk.io/en adjusted for `ptbk coder`.
@@ -42,7 +42,7 @@ export function Footer() {
                     </div>
                     <p className="text-sm text-gray-500 md:ml-auto md:text-right">
                         ptbk coder is a part of the{' '}
-                        <a href="https://www.ptbk.io/en" className="text-gray-300 hover:text-promptbook-blue">
+                        <a href={PROMPTBOOK_URL} className="text-gray-300 hover:text-promptbook-blue">
                             Promptbook
                         </a>{' '}
                         ecosystem by AI Web s.r.o.

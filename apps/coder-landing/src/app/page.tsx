@@ -7,6 +7,7 @@ import { Header } from '@/components/sections/Header';
 import { Hero } from '@/components/sections/Hero';
 import { HowItWorks } from '@/components/sections/HowItWorks';
 import { Quickstart } from '@/components/sections/Quickstart';
+import { StructuredData } from '@/components/StructuredData/StructuredData';
 
 /**
  * Handles the `ptbk coder` landing page.
@@ -16,6 +17,7 @@ import { Quickstart } from '@/components/sections/Quickstart';
 export default function HomePage() {
     return (
         <>
+            <StructuredData />
             <Header />
             <main>
                 <Hero />

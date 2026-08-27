@@ -1,3 +1,27 @@
+-   Gave the **ptbk coder** landing page the metadata it deserves when it is shared or found. Everything it says about
+    itself — titles, descriptions, URLs, keywords and the publisher — now comes from one module, so the page, its
+    sharing preview, its structured data and its sitemap can never contradict each other.
+
+    -   **A sharing preview instead of a blank rectangle.** The page declared a `summary_large_image` card without ever
+        offering an image, so every link to it arrived on LinkedIn, Discord or Slack as a bare headline. Both the Open
+        Graph and the Twitter image are now generated from the page data itself: the brand logo and the domain, the
+        two-line tagline, the sharing description, and a terminal window showing the very install and run commands the
+        quickstart teaches. Because it is built from the same data modules as the page, it cannot go stale.
+    -   **Everything Google looks for.** A canonical link, `robots` and `googlebot` directives with large image
+        previews and unlimited snippets, the publisher and author, the locale, the theme color, the Apple touch icon —
+        and a `metadataBase`, so every metadata URL resolves absolutely. Titles and descriptions are checked against
+        the length at which search engines truncate them, so copy that would be cut off fails the build instead of the
+        preview.
+    -   **The page now explains itself in JSON-LD.** One structured-data graph tells search engines about the company
+        behind the page, the website, the page itself and `ptbk coder` as a `SoftwareApplication` — with its operating
+        systems, requirements, repository, license and feature list. The features and the supported harnesses are read
+        from the same data modules the page renders, so the structured data can never claim a feature a visitor cannot
+        see.
+    -   **Added `robots.txt` and `sitemap.xml`**, both built from the canonical URL. The sitemap lists the single route
+        of the page, because its sections are anchors inside it rather than pages of their own.
+    -   The new [`specs/metadata.md`](../apps/coder-landing/specs/metadata.md) documents all of it, so the page keeps
+        being re-implementable from its specs alone.
+
 -   Fixed horizontal overflow on the **ptbk coder** landing page on mobile. The accessible labels of comparison-table
     support marks now remain within their icons, and responsive feature and harness cards can shrink to the viewport
     instead of creating an empty scrollable area at the right edge.
