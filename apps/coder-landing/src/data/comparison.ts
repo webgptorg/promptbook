@@ -24,9 +24,9 @@ export type ComparisonColumnName = typeof PTBK_CODER_COLUMN_NAME | ComparedHarne
 /**
  * How well one solution covers one capability on its own.
  *
- * - `built-in` — the solution provides the capability itself
- * - `do-it-yourself` — the capability is reachable, but you have to wire it up yourself
- * - `not-available` — the solution does not provide the capability at all
+ * - `built-in` — the solution does the whole thing for you
+ * - `do-it-yourself` — the solution gives you the pieces and you wire them together
+ * - `not-available` — the solution has no such concept, you would be writing the orchestrator
  */
 export type ComparisonSupportLevel = 'built-in' | 'do-it-yourself' | 'not-available';
 
@@ -68,7 +68,7 @@ export const COMPARISON_SUPPORT_LEVELS: Readonly<Record<ComparisonSupportLevel, 
     },
     'not-available': {
         label: 'Not available',
-        legend: 'Not provided by the tool',
+        legend: 'No such concept in the tool',
     },
 };
 
@@ -89,6 +89,9 @@ export type ComparisonCellDefinition = {
 
 /**
  * One row of the comparison table — one capability compared across all solutions.
+ *
+ * Note: The compared harnesses behave the same in almost every row, so one shared claim is written
+ *       for all of them and only the harnesses which really differ are listed in `harnessCellOverrides`
  */
 export type ComparisonRowDefinition = {
     /**
@@ -102,17 +105,37 @@ export type ComparisonRowDefinition = {
     readonly description: string;
 
     /**
-     * Cell of every column of the table
+     * How `ptbk coder` itself covers the capability
      */
-    readonly cells: Readonly<Record<ComparisonColumnName, ComparisonCellDefinition>>;
+    readonly ptbkCoderCell: ComparisonCellDefinition;
+
+    /**
+     * How every compared harness covers the capability, unless it is listed in `harnessCellOverrides`
+     */
+    readonly harnessCell: ComparisonCellDefinition;
+
+    /**
+     * Harnesses which cover the capability differently from `harnessCell`
+     */
+    readonly harnessCellOverrides?: Readonly<Partial<Record<ComparedHarnessName, ComparisonCellDefinition>>>;
 };
+
+/**
+ * Reads what one compared harness claims in one row, applying its override over the shared claim.
+ */
+export function resolveComparisonHarnessCell(
+    row: ComparisonRowDefinition,
+    harnessName: ComparedHarnessName,
+): ComparisonCellDefinition {
+    return row.harnessCellOverrides?.[harnessName] ?? row.harnessCell;
+}
 
 /**
  * One column of the comparison table.
  */
 export type ComparisonColumnDefinition = {
     /**
-     * Name of the column, used as the key into the cells of every row
+     * Name of the column, identifying which cells of a row belong to it
      */
     readonly columnName: ComparisonColumnName;
 
@@ -135,7 +158,7 @@ export type ComparisonColumnDefinition = {
 /**
  * Harnesses compared with `ptbk coder`, in the order of the harness catalog.
  */
-const COMPARED_HARNESS_NAMES: ReadonlyArray<ComparedHarnessName> = ['claude-code', 'openai-codex', 'opencode'];
+export const COMPARED_HARNESS_NAMES: ReadonlyArray<ComparedHarnessName> = ['claude-code', 'openai-codex', 'opencode'];
 
 /**
  * Builds the column of one compared harness from its catalog entry, so that no catalog value is duplicated.
@@ -185,156 +208,65 @@ export const COMPARISON_COLUMNS: ReadonlyArray<ComparisonColumnDefinition> = [
  */
 export const COMPARISON_ROWS: ReadonlyArray<ComparisonRowDefinition> = [
     {
-        capability: 'Interactive coding session',
-        description: 'Sit next to the agent in a terminal and steer a single task while it happens.',
-        cells: {
-            'ptbk-coder': { level: 'not-available', note: 'Drives the agents instead' },
-            'claude-code': { level: 'built-in', note: 'Its home ground' },
-            'openai-codex': { level: 'built-in', note: 'Its home ground' },
-            opencode: { level: 'built-in', note: 'Its home ground' },
-        },
+        capability: 'One task, side by side',
+        description: 'Sit in the terminal with the agent and steer a single task while it happens.',
+        ptbkCoderCell: { level: 'not-available', note: 'It drives them instead' },
+        harnessCell: { level: 'built-in', note: 'What they are built for' },
     },
     {
-        capability: 'Unattended PRD queue',
-        description:
-            'PRD markdown files go through the agent one after another, each with your checks, a retry on failure and a commit before the queue moves on.',
-        cells: {
-            'ptbk-coder': { level: 'built-in', note: 'Automatic prompts/ queue' },
-            'claude-code': { level: 'do-it-yourself', note: 'Script one session per PRD' },
-            'openai-codex': { level: 'do-it-yourself', note: 'Script one session per PRD' },
-            opencode: { level: 'do-it-yourself', note: 'Script one session per PRD' },
-        },
-    },
-    {
-        capability: 'Portable agent definition',
-        description: 'The same PRD queue and .book behavior can run with another harness or model.',
-        cells: {
-            'ptbk-coder': { level: 'built-in', note: 'Same .book, change --harness' },
-            'claude-code': { level: 'not-available', note: 'Is one of the harnesses' },
-            'openai-codex': { level: 'not-available', note: 'Is one of the harnesses' },
-            opencode: { level: 'do-it-yourself', note: 'Provider config, own agent' },
-        },
-    },
-    {
-        capability: 'PRD status committed with code',
-        description:
-            'The finished [x] goes into the same commit as the implementation it describes, so reverting history rolls both back together.',
-        cells: {
-            'ptbk-coder': { level: 'built-in', note: 'One commit: code + [x]' },
-            'claude-code': { level: 'do-it-yourself', note: 'Keep a separate checklist' },
-            'openai-codex': { level: 'do-it-yourself', note: 'Keep a separate checklist' },
-            opencode: { level: 'do-it-yourself', note: 'Keep a separate checklist' },
-        },
+        capability: 'The whole backlog, unattended',
+        description: 'Task files go through the agent one after another: implement, verify, commit, next one.',
+        ptbkCoderCell: { level: 'built-in', note: 'ptbk coder run' },
+        harnessCell: { level: 'do-it-yourself', note: 'Script one session per task' },
     },
     {
         capability: 'Several agents on one backlog',
         description: 'Run more harnesses and models at once, each taking its own slice of the queue.',
-        cells: {
-            'ptbk-coder': { level: 'built-in', note: '--min-priority / --max-priority' },
-            'claude-code': { level: 'not-available', note: 'No shared queue' },
-            'openai-codex': { level: 'not-available', note: 'No shared queue' },
-            opencode: { level: 'not-available', note: 'No shared queue' },
+        ptbkCoderCell: { level: 'built-in', note: '--min-priority --max-priority' },
+        harnessCell: { level: 'not-available', note: 'No shared queue' },
+    },
+    {
+        capability: 'The same agent on another vendor',
+        description: 'The queue and the .book behavior move to a different harness or model without a rewrite.',
+        ptbkCoderCell: { level: 'built-in', note: '--harness' },
+        harnessCell: { level: 'not-available', note: 'One of the harnesses' },
+        harnessCellOverrides: {
+            opencode: { level: 'do-it-yourself', note: 'Any provider, your config' },
         },
     },
     {
-        capability: 'Tests after every task',
-        description: 'Your test command runs after each prompt and failures go back to the agent until it is green.',
-        cells: {
-            'ptbk-coder': { level: 'built-in', note: '--test, retried until green' },
-            'claude-code': { level: 'do-it-yourself', note: 'If asked, or via hooks' },
-            'openai-codex': { level: 'do-it-yourself', note: 'If asked in the prompt' },
-            opencode: { level: 'do-it-yourself', note: 'If asked in the prompt' },
-        },
-    },
-    {
-        capability: 'Tests before the first task',
-        description: 'Failures that were already there show up before the queue starts, and get repaired first.',
-        cells: {
-            'ptbk-coder': { level: 'built-in', note: '--test-before yes-and-fix' },
-            'claude-code': { level: 'not-available', note: 'Nothing runs before you' },
-            'openai-codex': { level: 'not-available', note: 'Nothing runs before you' },
-            opencode: { level: 'not-available', note: 'Nothing runs before you' },
-        },
-    },
-    {
-        capability: 'Commits as its own author',
-        description: 'Each verified round lands under a separate agent git identity, GPG-signed if you set that up.',
-        cells: {
-            'ptbk-coder': { level: 'built-in', note: 'Dedicated agent identity' },
-            'claude-code': { level: 'do-it-yourself', note: 'Commits as you' },
-            'openai-codex': { level: 'do-it-yourself', note: 'Commits as you' },
-            opencode: { level: 'do-it-yourself', note: 'Commits as you' },
-        },
-    },
-    {
-        capability: 'Pull and push around each task',
-        description: 'A queue running for hours stays in sync with the remote without anybody watching it.',
-        cells: {
-            'ptbk-coder': { level: 'built-in', note: '--auto-pull --auto-push' },
-            'claude-code': { level: 'do-it-yourself', note: 'When you ask for it' },
-            'openai-codex': { level: 'do-it-yourself', note: 'When you ask for it' },
-            opencode: { level: 'do-it-yourself', note: 'When you ask for it' },
-        },
-    },
-    {
-        capability: 'One worktree per task',
-        description: 'Each prompt runs in its own temporary git worktree and merges back once it is verified.',
-        cells: {
-            'ptbk-coder': { level: 'built-in', note: '--isolate' },
-            'claude-code': { level: 'do-it-yourself', note: 'Set up worktrees yourself' },
-            'openai-codex': { level: 'do-it-yourself', note: 'Set up worktrees yourself' },
-            opencode: { level: 'do-it-yourself', note: 'Set up worktrees yourself' },
-        },
-    },
-    {
-        capability: 'Board over the backlog',
-        description: 'A Trello-style kanban of the prompt files, editable in the browser while the queue runs.',
-        cells: {
-            'ptbk-coder': { level: 'built-in', note: 'ptbk coder server' },
-            'claude-code': { level: 'not-available', note: 'No backlog to show' },
-            'openai-codex': { level: 'not-available', note: 'No backlog to show' },
-            opencode: { level: 'not-available', note: 'No backlog to show' },
-        },
-    },
-    {
-        capability: 'Pacing for quota windows',
-        description: 'Wall-clock waits between prompts and a cool-down retry after an error keep a long queue alive.',
-        cells: {
-            'ptbk-coder': { level: 'built-in', note: '--wait-between-prompts' },
-            'claude-code': { level: 'not-available', note: 'Pace it by hand' },
-            'openai-codex': { level: 'not-available', note: 'Pace it by hand' },
-            opencode: { level: 'not-available', note: 'Pace it by hand' },
-        },
-    },
-    {
-        capability: 'Preflight check of a harness',
+        capability: 'Your tests gate every task',
         description:
-            'One tiny dummy prompt reports the answer, the response time and the usage, and warms the quota window.',
-        cells: {
-            'ptbk-coder': { level: 'built-in', note: 'ptbk coder ping' },
-            'claude-code': { level: 'do-it-yourself', note: 'Check limits in the session' },
-            'openai-codex': { level: 'do-it-yourself', note: 'Check limits in the session' },
-            opencode: { level: 'do-it-yourself', note: 'Depends on the provider' },
-        },
+            'Tests run before the queue starts and after every task, and failures go back to the agent until it is green.',
+        ptbkCoderCell: { level: 'built-in', note: '--test --test-before' },
+        harnessCell: { level: 'do-it-yourself', note: 'Ask for it, or wire a hook' },
     },
     {
-        capability: 'Writes the backlog for you',
-        description: 'Boilerplates, refactor candidates and one-line ideas become ready-to-run prompt files.',
-        cells: {
-            'ptbk-coder': { level: 'built-in', note: 'ptbk coder generate-boilerplates' },
-            'claude-code': { level: 'do-it-yourself', note: 'Ask for it in a session' },
-            'openai-codex': { level: 'do-it-yourself', note: 'Ask for it in a session' },
-            opencode: { level: 'do-it-yourself', note: 'Ask for it in a session' },
-        },
+        capability: 'Done state committed with the code',
+        description:
+            'The finished [x] lands in the same commit as the work it describes, so reverting takes both back.',
+        ptbkCoderCell: { level: 'built-in', note: 'In every commit' },
+        harnessCell: { level: 'do-it-yourself', note: 'Track it by hand' },
     },
     {
-        capability: 'Human in the loop',
-        description: 'Confirm each task, pause a running queue, or end it after the task which is running now.',
-        cells: {
-            'ptbk-coder': { level: 'built-in', note: '--no-auto, P, X' },
-            'claude-code': { level: 'built-in', note: 'You are in the session' },
-            'openai-codex': { level: 'built-in', note: 'You are in the session' },
-            opencode: { level: 'built-in', note: 'You are in the session' },
-        },
+        capability: 'Git kept in order around each task',
+        description:
+            'Commits under the agent git identity, a pull before and a push after, and one throwaway worktree per task.',
+        ptbkCoderCell: { level: 'built-in', note: '--auto-pull --auto-push --isolate' },
+        harnessCell: { level: 'do-it-yourself', note: 'It commits as you, when asked' },
+    },
+    {
+        capability: 'Long runs that outlast a quota window',
+        description:
+            'Pacing between tasks, a cool-down retry after an error, and a ping that keeps the quota window refreshing.',
+        ptbkCoderCell: { level: 'built-in', note: '--wait-between-prompts' },
+        harnessCell: { level: 'not-available', note: 'No queue to pace' },
+    },
+    {
+        capability: 'A backlog you can watch and refill',
+        description:
+            'A kanban board over the prompt files while the queue runs, with commands that write new ones and archive the finished.',
+        ptbkCoderCell: { level: 'built-in', note: 'ptbk coder server' },
+        harnessCell: { level: 'not-available', note: 'No backlog to show' },
     },
 ];

@@ -1,6 +1,7 @@
 import { COMPARISON_COLUMNS, COMPARISON_ROWS, PTBK_CODER_COLUMN_NAME } from '@/data/comparison';
 import { ComparisonSolutionLogo } from './ComparisonSolutionLogo';
 import { ComparisonSupportMark } from './ComparisonSupportMark';
+import { resolveComparisonRowCellGroups } from './resolveComparisonRowCellGroups';
 
 /**
  * Classes of the sticky capability column, whose background must be opaque so that the
@@ -9,6 +10,18 @@ import { ComparisonSupportMark } from './ComparisonSupportMark';
  * Note: The column is narrower on phones, so that one whole solution column fits next to it
  */
 const STICKY_CAPABILITY_COLUMN_CLASS_NAME = 'sticky left-0 z-10 w-48 bg-promptbook-dark-gray sm:w-64';
+
+/**
+ * Classes of the `ptbk coder` column, tinted along its whole height so that it reads as the subject
+ * of the table rather than as one more competitor.
+ */
+const PTBK_CODER_COLUMN_CLASS_NAME = 'bg-promptbook-blue-dark/10';
+
+/**
+ * Classes of one compared harness column, whose hairline divider shows where one claim ends and the
+ * next begins, so that a cell covering several columns is recognizable as one.
+ */
+const COMPARED_HARNESS_COLUMN_CLASS_NAME = 'border-l border-gray-800/60';
 
 /**
  * Decides whether one cell note is a command-line token, which the branding renders in monospace.
@@ -36,31 +49,35 @@ export function ComparisonTable() {
                         >
                             Capability
                         </th>
-                        {COMPARISON_COLUMNS.map((column) => (
-                            <th
-                                key={column.columnName}
-                                scope="col"
-                                className={`px-4 pb-6 align-bottom ${
-                                    column.columnName === PTBK_CODER_COLUMN_NAME
-                                        ? 'rounded-t-xl bg-promptbook-blue-dark/10'
-                                        : ''
-                                }`}
-                            >
-                                <span className="flex flex-col items-center gap-2 text-center">
-                                    <ComparisonSolutionLogo column={column} />
-                                    <span
-                                        className={`font-display text-base font-semibold ${
-                                            column.columnName === PTBK_CODER_COLUMN_NAME
-                                                ? 'text-promptbook-blue'
-                                                : 'text-white'
-                                        }`}
-                                    >
-                                        {column.displayName}
+                        {COMPARISON_COLUMNS.map((column) => {
+                            const isPtbkCoderColumn = column.columnName === PTBK_CODER_COLUMN_NAME;
+
+                            return (
+                                <th
+                                    key={column.columnName}
+                                    scope="col"
+                                    className={`px-4 pb-6 align-bottom ${
+                                        isPtbkCoderColumn
+                                            ? `rounded-t-xl ${PTBK_CODER_COLUMN_CLASS_NAME}`
+                                            : COMPARED_HARNESS_COLUMN_CLASS_NAME
+                                    }`}
+                                >
+                                    <span className="flex flex-col items-center gap-2 text-center">
+                                        <ComparisonSolutionLogo column={column} />
+                                        <span
+                                            className={`font-display text-base font-semibold ${
+                                                isPtbkCoderColumn ? 'text-promptbook-blue' : 'text-white'
+                                            }`}
+                                        >
+                                            {column.displayName}
+                                        </span>
+                                        <span className="text-xs font-normal text-gray-500">
+                                            by {column.vendorName}
+                                        </span>
                                     </span>
-                                    <span className="text-xs font-normal text-gray-500">by {column.vendorName}</span>
-                                </span>
-                            </th>
-                        ))}
+                                </th>
+                            );
+                        })}
                     </tr>
                 </thead>
                 <tbody>
@@ -73,28 +90,27 @@ export function ComparisonTable() {
                                 <span className="font-display font-semibold text-white">{row.capability}</span>
                                 <span className="mt-1 block text-sm text-gray-400">{row.description}</span>
                             </th>
-                            {COMPARISON_COLUMNS.map((column) => {
-                                const cell = row.cells[column.columnName];
+                            {resolveComparisonRowCellGroups(row).map((group) => {
+                                const isPtbkCoderGroup = group.columnNames.includes(PTBK_CODER_COLUMN_NAME);
 
                                 return (
                                     <td
-                                        key={column.columnName}
+                                        key={group.columnNames.join(' ')}
+                                        colSpan={group.columnNames.length}
                                         className={`border-t border-gray-800 px-4 py-4 align-top ${
-                                            column.columnName === PTBK_CODER_COLUMN_NAME
-                                                ? 'bg-promptbook-blue-dark/10'
-                                                : ''
+                                            isPtbkCoderGroup
+                                                ? PTBK_CODER_COLUMN_CLASS_NAME
+                                                : COMPARED_HARNESS_COLUMN_CLASS_NAME
                                         }`}
                                     >
                                         <span className="flex flex-col items-center gap-2 text-center">
-                                            <ComparisonSupportMark level={cell.level} />
+                                            <ComparisonSupportMark level={group.cell.level} />
                                             <span
-                                                className={`text-xs ${
-                                                    column.columnName === PTBK_CODER_COLUMN_NAME
-                                                        ? 'text-gray-300'
-                                                        : 'text-gray-500'
-                                                } ${isCommandLineNote(cell.note) ? 'font-mono' : ''}`}
+                                                className={`text-xs break-words ${
+                                                    isPtbkCoderGroup ? 'text-gray-300' : 'text-gray-500'
+                                                } ${isCommandLineNote(group.cell.note) ? 'font-mono' : ''}`}
                                             >
-                                                {cell.note}
+                                                {group.cell.note}
                                             </span>
                                         </span>
                                     </td>

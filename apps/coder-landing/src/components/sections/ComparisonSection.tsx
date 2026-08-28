@@ -18,7 +18,8 @@ export function ComparisonSection() {
                     Claude Code, OpenAI Codex and opencode are agents that ptbk coder drives, so you keep the one you
                     already use. The table is not about who writes better code. It compares what happens{' '}
                     <em>around</em> a task: whether the queue runs unattended, whether the agent definition moves to
-                    another vendor, and whether git history keeps the code and its done state together.
+                    another vendor, and whether git history keeps the code and its done state together. Where all three
+                    behave the same, the table says so once instead of three times.
                 </p>
 
                 <div className="mt-12">

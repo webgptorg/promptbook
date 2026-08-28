@@ -1,3 +1,21 @@
+-   Simplified the comparison table on the **ptbk coder** landing page. Fifteen rows became nine, and the three agent
+    columns stopped repeating themselves: where Claude Code, OpenAI Codex and opencode make the same claim, the table
+    draws one cell across all three instead of printing the same sentence side by side three times. Exactly one row
+    still splits them, the one about moving your agent to another vendor, and that is the row worth stopping at.
+
+    -   **The rows that carried no signal are gone.** "Human in the loop" was a check mark in all four columns, which
+        tells a visitor nothing, and the features section explains it anyway. Thin slices of one idea were merged:
+        tests before the first task and tests after every task are one row now, and the three separate git rows
+        (commit identity, pull and push, worktree per task) are one.
+    -   **The support levels mean something again.** The matrix already ruled that anything you can script yourself is
+        `do-it-yourself` and never `not-available`, yet pacing and pre-flight tests were marked `not-available`.
+        `not-available` now means the tool has no such concept, such as a queue or a backlog, while `do-it-yourself`
+        means it hands you the pieces, such as a hook or a session to ask in.
+    -   Every claim about a compared harness is written once in the data instead of three times, so the two products
+        that genuinely differ cannot drift apart by a typo. Notes of `ptbk coder` cells are now the flag or command
+        itself, which is what makes them render in monospace, and a long one like `--wait-between-prompts` breaks
+        inside the word instead of spilling into the neighbouring column.
+
 -   Rewrote the copy of the **ptbk coder** landing page so it reads like a developer wrote it. Not one em dash is left
     in the visible text, and neither are the phrases that gave the page away: "an autonomous, versioned development
     loop", "everything around the agent is handled by ptbk coder", "part of the Promptbook ecosystem". Passive
