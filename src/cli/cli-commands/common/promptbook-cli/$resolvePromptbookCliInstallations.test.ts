@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, rm, writeFile } from 'fs/promises';
+import { mkdir, mkdtemp, realpath, rm, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { $execCommand } from '../../../../utils/execCommand/$execCommand';
@@ -32,6 +32,15 @@ async function writeInstalledPackageManifest(
     await writeFile(join(packagePath, 'package.json'), JSON.stringify({ name: npmPackageName, version }), 'utf8');
 }
 
+/**
+ * Creates a canonical temporary project directory for tests which compare it with `process.cwd()`.
+ *
+ * @private internal utility of `$resolvePromptbookCliInstallations.test`
+ */
+async function createTemporaryProject(): Promise<string> {
+    return realpath(await mkdtemp(join(tmpdir(), 'promptbook-cli-installation-project-')));
+}
+
 describe('$resolvePromptbookCliInstallations', () => {
     const temporaryDirectories: Array<string> = [];
     const originalWorkingDirectory = process.cwd();
@@ -47,7 +56,7 @@ describe('$resolvePromptbookCliInstallations', () => {
     });
 
     it('finds direct local dependencies and direct global CLI installations', async () => {
-        const projectPath = await mkdtemp(join(tmpdir(), 'promptbook-cli-installation-project-'));
+        const projectPath = await createTemporaryProject();
         temporaryDirectories.push(projectPath);
         await writeFile(
             join(projectPath, 'package.json'),
@@ -92,7 +101,7 @@ describe('$resolvePromptbookCliInstallations', () => {
     });
 
     it('finds an ancestor project manifest and its hoisted node_modules installation', async () => {
-        const projectPath = await mkdtemp(join(tmpdir(), 'promptbook-cli-installation-project-'));
+        const projectPath = await createTemporaryProject();
         const nestedWorkingDirectory = join(projectPath, 'packages', 'application', 'src');
         temporaryDirectories.push(projectPath);
         await mkdir(nestedWorkingDirectory, { recursive: true });
@@ -116,7 +125,7 @@ describe('$resolvePromptbookCliInstallations', () => {
     });
 
     it('does not treat transitive local or global packages as update targets', async () => {
-        const projectPath = await mkdtemp(join(tmpdir(), 'promptbook-cli-installation-project-'));
+        const projectPath = await createTemporaryProject();
         temporaryDirectories.push(projectPath);
         await writeFile(join(projectPath, 'package.json'), JSON.stringify({ dependencies: {} }), 'utf8');
         await writeInstalledPackageManifest(join(projectPath, 'node_modules'), 'ptbk', '0.114.0-8');
@@ -136,7 +145,7 @@ describe('$resolvePromptbookCliInstallations', () => {
     });
 
     it('tolerates npm warnings around the global package JSON', async () => {
-        const projectPath = await mkdtemp(join(tmpdir(), 'promptbook-cli-installation-project-'));
+        const projectPath = await createTemporaryProject();
         temporaryDirectories.push(projectPath);
         await writeFile(join(projectPath, 'package.json'), JSON.stringify({ dependencies: {} }), 'utf8');
         getExecCommandMock().mockResolvedValue(
