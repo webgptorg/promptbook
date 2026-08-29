@@ -63,6 +63,30 @@ describe('parseRunOptions', () => {
         expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 
+    it('fails on a dirty working tree unless --git-changes says otherwise', () => {
+        const options = parseRunOptions(['--harness', 'gemini']);
+
+        expect(options).toMatchObject({ gitChanges: 'fail' });
+    });
+
+    it('parses the requested behavior for a dirty working tree', () => {
+        const options = parseRunOptions(['--harness', 'claude-code', '--git-changes', 'continue']);
+
+        expect(options).toMatchObject({ gitChanges: 'continue' });
+    });
+
+    it('rejects an invalid behavior for a dirty working tree', () => {
+        expect(() => parseRunOptions(['--harness', 'claude-code', '--git-changes', 'whatever'])).toThrow(
+            'process.exit',
+        );
+        expect(processExitSpy).toHaveBeenCalledWith(1);
+    });
+
+    it('rejects a missing behavior for a dirty working tree', () => {
+        expect(() => parseRunOptions(['--harness', 'claude-code', '--git-changes'])).toThrow('process.exit');
+        expect(processExitSpy).toHaveBeenCalledWith(1);
+    });
+
     it('parses GitHub Copilot as a supported runner', () => {
         const options = parseRunOptions(['--harness', 'github-copilot', '--model', 'gpt-5.4']);
 
@@ -112,13 +136,14 @@ describe('parseRunOptions', () => {
             'AGENTS.md',
             '--priority',
             '3',
-            '--ignore-git-changes',
+            '--git-changes',
+            'ignore',
         ]);
 
         expect(options).toMatchObject({
             dryRun: false,
             waitForUser: false,
-            ignoreGitChanges: true,
+            gitChanges: 'ignore',
             autoPush: false,
             autoPull: false,
             preserveLogs: false,

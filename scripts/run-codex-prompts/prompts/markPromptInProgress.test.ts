@@ -114,16 +114,15 @@ describe('markPromptInProgress', () => {
             attemptCount: 1,
             thinkingLevel: 'max',
         });
-        markPromptDone(
+        markPromptDone({
             file,
             section,
-            [createImplementationStep(), { kind: 'testing', usage: null, durationMs: 35 * ONE_MINUTE_MS }],
-            'OpenAI Codex',
-            'gpt-5.6-luna',
-            1,
-            undefined,
-            'max',
-        );
+            steps: [createImplementationStep(), { kind: 'testing', usage: null, durationMs: 35 * ONE_MINUTE_MS }],
+            runnerName: 'OpenAI Codex',
+            modelName: 'gpt-5.6-luna',
+            attemptCount: 1,
+            thinkingLevel: 'max',
+        });
 
         expect(file.lines[0]).toBe(
             '[x] by OpenAI Codex `gpt-5.6-luna` thinking `max` - Implementation $0.2036 10 minutes; Testing 35 minutes',
@@ -142,7 +141,14 @@ describe('markPromptInProgress', () => {
             modelName: 'gpt-5.6-luna',
             attemptCount: 1,
         });
-        markPromptFailed(file, section, 'OpenAI Codex', 'gpt-5.6-luna', moment().subtract(2, 'minutes'), 3);
+        markPromptFailed({
+            file,
+            section,
+            runnerName: 'OpenAI Codex',
+            modelName: 'gpt-5.6-luna',
+            promptExecutionStartedDate: moment().subtract(2, 'minutes'),
+            attemptCount: 3,
+        });
 
         expect(file.lines[0]).toMatch(/^\[!\] \(failed after 3 attempts\) /u);
         expect(file.lines[0]).not.toContain('in progress');

@@ -10,6 +10,8 @@ import {
     PTBK_MODEL_ENV,
     PTBK_THINKING_LEVEL_ENV,
 } from '../../../book-3.0/cliAgentEnv';
+import type { GitChangesMode } from '../coder/GitChangesMode';
+import { DEFAULT_GIT_CHANGES_MODE, GIT_CHANGES_MODE_VALUES } from '../coder/GitChangesMode';
 import type { ThinkingLevel } from '../coder/ThinkingLevel';
 import { THINKING_LEVEL_VALUES } from '../coder/ThinkingLevel';
 
@@ -40,7 +42,7 @@ export type PromptRunnerCliOptions = {
     readonly ui: boolean;
     readonly thinkingLevel?: ThinkingLevel;
     readonly commit: boolean;
-    readonly ignoreGitChanges: boolean;
+    readonly gitChanges: GitChangesMode;
     readonly allowCredits: boolean;
     readonly normalizeLineEndings: boolean;
     readonly autoPush: boolean;
@@ -68,7 +70,7 @@ export type NormalizedPromptRunnerCliOptions = {
     readonly noUi: boolean;
     readonly thinkingLevel?: ThinkingLevel;
     readonly noCommit: boolean;
-    readonly ignoreGitChanges: boolean;
+    readonly gitChanges: GitChangesMode;
     readonly allowCredits: boolean;
     readonly normalizeLineEndings: boolean;
     readonly autoPush: boolean;
@@ -121,6 +123,18 @@ export const PROMPT_RUNNER_MODEL_OPTION_DESCRIPTION = spaceTrim(`
 `);
 
 /**
+ * Commander description for the `--git-changes` option.
+ *
+ * @private internal utility of `promptbookCli`
+ */
+export const GIT_CHANGES_OPTION_DESCRIPTION = spaceTrim(`
+    Decide what happens when the working tree has uncommitted changes before a prompt starts:
+    - fail: refuse to start and ask for a commit or a stash (the default)
+    - ignore: start anyway and leave the uncommitted changes where they are
+    - continue: resume the single prompt which was left in the middle of its implementation
+`);
+
+/**
  * Registers runner selection flags on a command.
  *
  * @private internal utility of `promptbookCli`
@@ -165,7 +179,11 @@ export function addPromptRunnerRuntimeOptions(command: Program): void {
 export function addPromptRunnerExecutionOptions(command: Program): void {
     addPromptRunnerRuntimeOptions(command);
     command.option('--no-commit', 'Leave successful changes in the working directory instead of creating git commits');
-    command.option('--ignore-git-changes', 'Skip clean working tree check before running prompts', false);
+    command.addOption(
+        new Option('--git-changes <mode>', GIT_CHANGES_OPTION_DESCRIPTION)
+            .choices([...GIT_CHANGES_MODE_VALUES])
+            .default(DEFAULT_GIT_CHANGES_MODE),
+    );
     command.option(
         '--no-normalize-line-endings',
         'Disable automatic LF normalization for files changed in each coding round',
@@ -190,7 +208,7 @@ export function normalizePromptRunnerCliOptions(
     return {
         ...selectionOptions,
         noCommit: !cliOptions.commit,
-        ignoreGitChanges: cliOptions.ignoreGitChanges,
+        gitChanges: cliOptions.gitChanges ?? DEFAULT_GIT_CHANGES_MODE,
         normalizeLineEndings: cliOptions.normalizeLineEndings,
         autoPush: cliOptions.autoPush,
         autoPull: cliOptions.autoPull,

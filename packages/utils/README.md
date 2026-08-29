@@ -727,7 +727,7 @@ In short: tools like Claude Code, Codex, or GitHub Copilot are the **engines**; 
 5. Promptbook Coder marks the prompt as done `[x]`, records runner metadata, then stages, commits, and pushes the resulting changes.
 6. `ptbk coder verify` reviews completed prompts, archives finished files to `prompts/done/`, and appends a repair prompt when more work is needed.
 
-Prompts marked with `[-]` are not ready yet, prompts containing `@@@` are treated as not fully written, and prompts with more `!` markers have higher priority. A prompt left as `[^]` was interrupted in the middle of its implementation — the in-progress status is never reverted, so a killed or crashed coder always leaves that signal behind.
+Prompts marked with `[-]` are not ready yet, prompts containing `@@@` are treated as not fully written, and prompts with more `!` markers have higher priority. A prompt left as `[^]` was interrupted in the middle of its implementation — the in-progress status is never reverted, so a killed or crashed coder always leaves that signal behind, and `--git-changes continue` resumes exactly that prompt with its uncommitted changes still in place.
 
 #### Features
 
@@ -735,7 +735,7 @@ Prompts marked with `[-]` are not ready yet, prompts containing `@@@` are treate
 -   **Context injection:** `--agent agents/coding/developer.book --context AGENTS.md` or inline extra instructions
 -   **Reasoning control:** `--thinking-level low|medium|high|xhigh` for supported runners
 -   **Unattended or interactive runs:** default auto mode, or `--no-auto` to wait for user confirmation before each prompt
--   **Git safety:** clean working tree check by default, optional `--ignore-git-changes`
+-   **Git safety:** clean working tree check by default, or `--git-changes ignore` to keep the changes and `--git-changes continue` to resume an interrupted prompt
 -   **Opt-in remote pushes:** commits stay local unless you explicitly pass `--auto-push`
 -   **Prompt triage:** `--priority` to process only more important tasks first
 -   **Failure logging:** failed runs write a neighboring `.error.log`
@@ -756,7 +756,7 @@ npx ts-node ./src/cli/test/ptbk.ts coder run --harness github-copilot --model gp
 
 npx ts-node ./src/cli/test/ptbk.ts coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --auto-push
 
-npx ts-node ./src/cli/test/ptbk.ts coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --ignore-git-changes
+npx ts-node ./src/cli/test/ptbk.ts coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --git-changes ignore
 
 npx ts-node ./src/cli/test/ptbk.ts coder find-refactor-candidates
 
@@ -782,7 +782,7 @@ ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh -
 
 ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --auto-push
 
-ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --test npm run test --ignore-git-changes
+ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --test npm run test --git-changes ignore
 
 ptbk coder find-refactor-candidates
 
@@ -814,7 +814,7 @@ ptbk coder verify
 | `--test-before <mode>`     | Runs tests before coding: `no` (default), `yes-and-fail` (stop with results), or `yes-and-fix` (create one repair prompt first); defaults to `npm test` when enabled without `--test`. |
 | `--thinking-level <level>` | Sets reasoning effort for supported runners.                                                                                                                                           |
 | `--no-auto`                | Waits for user confirmation before each prompt instead of running automatically through the queue.                                                                                     |
-| `--ignore-git-changes`     | Disables the clean-working-tree guard.                                                                                                                                                 |
+| `--git-changes <mode>`     | Decides what happens with a dirty working tree: `fail` (default), `ignore` to keep the changes, or `continue` to resume the single interrupted `[^]` prompt with them.                 |
 | `--priority <n>`           | Runs only prompts at or above the given priority.                                                                                                                                      |
 | `--dry-run`                | Prints which prompts are ready instead of executing them.                                                                                                                              |
 | `--allow-credits`          | Lets OpenAI Codex spend credits when required.                                                                                                                                         |

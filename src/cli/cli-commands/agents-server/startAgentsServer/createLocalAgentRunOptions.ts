@@ -17,7 +17,7 @@ export function createLocalAgentRunOptions(
         noUi: options.noUi,
         thinkingLevel: options.thinkingLevel,
         noCommit: true,
-        ignoreGitChanges: true,
+        gitChanges: 'ignore',
         normalizeLineEndings: false,
         allowCredits: options.allowCredits,
         autoPush: false,

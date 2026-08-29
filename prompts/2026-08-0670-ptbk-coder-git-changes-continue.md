@@ -1,4 +1,4 @@
-[ ]
+[x] by Claude Code `claude-opus-5` thinking `max` - Implementation $26.45 an hour; Testing 12 minutes
 
 [✨🛼] Allow to pick what happen with dirty working dir in coder
 
@@ -29,3 +29,4 @@ And this will continue the interrupted work.
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ![alt text](screenshots/2026-08-0670-ptbk-coder-git-changes-continue.png)
+

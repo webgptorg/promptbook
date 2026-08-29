@@ -20,7 +20,7 @@ function createAgentRunOptions(overrides: Partial<AgentRunOptions> = {}): AgentR
         noUi: true,
         thinkingLevel: undefined,
         noCommit: false,
-        ignoreGitChanges: false,
+        gitChanges: 'fail',
         normalizeLineEndings: false,
         allowCredits: false,
         autoPush: false,
@@ -74,12 +74,12 @@ describe('runAgentMessages', () => {
         );
     });
 
-    it('rejects `--no-commit` watch mode without `--ignore-git-changes`', async () => {
+    it('rejects `--no-commit` watch mode without `--git-changes ignore`', async () => {
         await expect(
             runAgentMessages(createAgentRunOptions({ noCommit: true }), {
                 shouldContinue: () => false,
             }),
-        ).rejects.toThrow('requires `--ignore-git-changes`');
+        ).rejects.toThrow('requires `--git-changes ignore`');
     });
 
     it('logs recoverable queued-message failures and keeps watching', async () => {

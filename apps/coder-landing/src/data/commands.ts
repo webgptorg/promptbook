@@ -51,6 +51,11 @@ export const MODEL_FILTER_COMMAND = 'ptbk coder run --harness github-copilot --m
 export const TEST_BEFORE_FIX_COMMAND = 'ptbk coder run --harness claude-code --test npm test --test-before yes-and-fix';
 
 /**
+ * Command which resumes the prompt a killed or crashed coder left in the middle of its implementation.
+ */
+export const GIT_CHANGES_CONTINUE_COMMAND = 'ptbk coder run --harness claude-code --git-changes continue';
+
+/**
  * Command which previews the prompt queue without executing anything.
  */
 export const DRY_RUN_COMMAND = 'ptbk coder run --dry-run';

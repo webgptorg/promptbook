@@ -36,7 +36,7 @@ function createAgentRunOptions(overrides: Partial<AgentRunOptions> = {}): AgentR
         noUi: true,
         thinkingLevel: undefined,
         noCommit: false,
-        ignoreGitChanges: false,
+        gitChanges: 'fail',
         normalizeLineEndings: false,
         allowCredits: false,
         autoPush: false,

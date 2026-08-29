@@ -4,6 +4,7 @@ import type { CoderRunStep, CoderRunStepKind } from '../common/CoderRunStep';
 import { formatCoderRunSteps } from './formatCoderRunSteps';
 import { formatPromptAttemptMetadata } from './formatPromptAttemptMetadata';
 import { formatRunnerSignature } from './formatRunnerSignature';
+import { formatPromptRunnerAttribution } from './promptRunnerAttribution';
 
 /**
  * Everything one prompt status line says after its checklist marker.
@@ -30,6 +31,14 @@ export type BuildPromptStatusDetailsOptions = {
     readonly modelName: string | undefined;
 
     /**
+     * Harness which left the prompt in the middle of its implementation, when another harness took the work over.
+     *
+     * Present only for a prompt resumed through `--git-changes continue`, so a status line always names both the
+     * harness which started the work and the one which is finishing it.
+     */
+    readonly startedByRunnerSignature?: string;
+
+    /**
      * How many coding attempts the prompt has taken so far.
      */
     readonly attemptCount: number;
@@ -52,14 +61,27 @@ export type BuildPromptStatusDetailsOptions = {
  * ``by OpenAI Codex `gpt-5.6-luna` thinking `max` (ChatGPT account) - Implementation ~$0.2036 10 minutes``.
  */
 export function buildPromptStatusDetails(options: BuildPromptStatusDetailsOptions): string {
-    const { steps, inProgressStepKind, runnerName, modelName, attemptCount, loginMethod, thinkingLevel } = options;
+    const {
+        steps,
+        inProgressStepKind,
+        runnerName,
+        modelName,
+        startedByRunnerSignature,
+        attemptCount,
+        loginMethod,
+        thinkingLevel,
+    } = options;
 
     const runnerSignature = formatRunnerSignature(runnerName, modelName, thinkingLevel);
     const attemptMetadata = formatPromptAttemptMetadata('done', attemptCount);
     const loginMethodLabel = formatCodexLoginMethod(loginMethod);
     const loginMethodSuffix = loginMethodLabel ? ` (${loginMethodLabel})` : '';
+    const attribution = formatPromptRunnerAttribution({
+        currentRunnerSignature: `${runnerSignature}${loginMethodSuffix}`,
+        startedByRunnerSignature,
+    });
     const stepsSummary = formatCoderRunSteps(steps, inProgressStepKind);
     const stepsSuffix = stepsSummary === '' ? '' : ` - ${stepsSummary}`;
 
-    return `${attemptMetadata}by ${runnerSignature}${loginMethodSuffix}${stepsSuffix}`;
+    return `${attemptMetadata}${attribution}${stepsSuffix}`;
 }

@@ -1,3 +1,4 @@
+import type { GitChangesMode } from '../../../src/cli/cli-commands/coder/GitChangesMode';
 import type { ThinkingLevel } from '../../../src/cli/cli-commands/coder/ThinkingLevel';
 import type { PromptRunnerHarnessName } from '../../../src/cli/cli-commands/common/promptRunnerCliOptions';
 import type { PriorityFilter } from '../prompts/priorityFilter';
@@ -57,9 +58,12 @@ export type RunOptions = {
      */
     noCommit: boolean;
     /**
-     * Skip the clean working tree check before running prompts.
+     * Decides what happens when the working tree has uncommitted changes before a prompt starts.
+     *
+     * `continue` resumes the single prompt which was left in the middle of its implementation
+     * and only applies to that first round, every later round expects a clean working tree again.
      */
-    ignoreGitChanges: boolean;
+    gitChanges: GitChangesMode;
     /**
      * Automatically normalize CRLF line endings to LF in files changed during each coding round.
      */

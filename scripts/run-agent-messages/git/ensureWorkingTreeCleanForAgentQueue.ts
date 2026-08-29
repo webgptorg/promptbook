@@ -28,7 +28,7 @@ export async function ensureWorkingTreeCleanForAgentQueue(projectPath: string): 
             Git working tree has changes outside of \`${normalizeGitPath(AGENT_QUEUED_MESSAGES_DIRECTORY_PATH)}/\`.
 
             Please commit or stash unrelated changes before running \`ptbk agent-folder\`
-            OR run with \`--ignore-git-changes\`.
+            OR run with \`--git-changes ignore\`.
 
             Unrelated changed files:
             ${unrelatedChangedFiles.map((relativePath) => `- \`${relativePath}\``).join('\n')}

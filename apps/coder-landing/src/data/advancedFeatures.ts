@@ -1,6 +1,7 @@
 import {
     DRY_RUN_COMMAND,
     GENERATE_BOILERPLATES_COMMAND,
+    GIT_CHANGES_CONTINUE_COMMAND,
     INIT_GIT_SYNC_COMMAND,
     MODEL_FILTER_COMMAND,
     PING_COMMAND,
@@ -122,6 +123,12 @@ export const ADVANCED_FEATURES: ReadonlyArray<AdvancedFeatureDefinition> = [
         description:
             'A prompt turns from [ ] into [^] the moment the agent picks it up, and the line names the step that is running. It only becomes [x] after the work is implemented, verified and committed. ptbk coder never reverts a [^], so if the queue is killed or crashes you can see which task was left half-done.',
         sampleCommand: '[^] by OpenAI Codex `gpt-5.6-luna` - Implementation in progress',
+    },
+    {
+        title: 'Pick up where the run stopped',
+        description:
+            'A dirty working tree stops ptbk coder by default. --git-changes ignore starts anyway, and --git-changes continue resumes the one prompt left in [^] with its half-finished changes still in place. Any harness can take the work over, and the status line then names both the one that started and the one that finished it.',
+        sampleCommand: GIT_CHANGES_CONTINUE_COMMAND,
     },
     {
         title: 'Verify and archive',

@@ -3,6 +3,7 @@ import moment from 'moment';
 import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
 import type { string_book } from '../../../src/book-2.0/agent-source/string_book';
+import type { GitChangesMode } from '../../../src/cli/cli-commands/coder/GitChangesMode';
 import { DatabaseError } from '../../../src/errors/DatabaseError';
 import { NotAllowed } from '../../../src/errors/NotAllowed';
 import { just } from '../../../src/utils/organization/just';
@@ -39,6 +40,7 @@ import { printPromptsToBeWritten } from '../prompts/printPromptsToBeWritten';
 import { printStats } from '../prompts/printStats';
 import { normalizePriorityFilter, type PriorityFilter } from '../prompts/priorityFilter';
 import { printUpcomingTasks } from '../prompts/printUpcomingTasks';
+import { resolveInterruptedPrompt } from '../prompts/resolveInterruptedPrompt';
 import { summarizePrompts } from '../prompts/summarizePrompts';
 import type { PromptFile } from '../prompts/types/PromptFile';
 import type { PromptSelection } from '../prompts/types/PromptSelection';
@@ -122,6 +124,8 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
         let previousRoundEndTime: number | undefined;
         let completedRunCount = 0;
         let hasRunTestBefore = false;
+        // Note: Only the very first round resumes the interrupted prompt, every later round starts from a clean tree
+        let isContinuingInterruptedPrompt = options.gitChanges === 'continue';
 
         while (just(true)) {
             if (options.autoPull && !options.dryRun) {
@@ -148,6 +152,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                     progressDisplay,
                     uiHandle,
                     promptRunnerIdentity,
+                    isContinuingInterruptedPrompt,
                 });
             }
 
@@ -163,6 +168,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                     uiHandle,
                     waitForRequestedPause,
                     hasWaitedForStart,
+                    isContinuingInterruptedPrompt,
                 });
                 hasRunTestBefore = true;
             }
@@ -178,6 +184,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                 progressDisplay,
                 uiHandle,
                 promptRunnerIdentity,
+                isContinuingInterruptedPrompt,
             });
 
             hasShownUpcomingTasks ||= showUpcomingTasksOnce({
@@ -247,7 +254,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                 uiHandle,
             });
 
-            if (!options.ignoreGitChanges) {
+            if (isCleanWorkingTreeRequired(options.gitChanges, isContinuingInterruptedPrompt)) {
                 await waitForRequestedPause({
                     checkpointLabel: 'checking the git working tree',
                     phase: 'loading',
@@ -272,6 +279,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                 uiHandle,
                 waitForRequestedPause,
             });
+            isContinuingInterruptedPrompt = false;
             previousRoundStartTime = currentRoundStartTime;
             previousRoundEndTime = Date.now();
             completedRunCount += 1;
@@ -322,10 +330,10 @@ function validateRunCodexPromptOptions(options: RunOptions): void {
         );
     }
 
-    if (options.noCommit && !options.waitForUser && !options.ignoreGitChanges) {
+    if (options.noCommit && !options.waitForUser && options.gitChanges !== 'ignore') {
         throw new NotAllowed(
             spaceTrim(`
-                Flag \`--no-commit\` requires \`--ignore-git-changes\` when running in auto mode (the default; pass \`--no-auto\` for interactive confirmation).
+                Flag \`--no-commit\` requires \`--git-changes ignore\` when running in auto mode (the default; pass \`--no-auto\` for interactive confirmation).
 
                 Without commits, the next prompt round would fail the clean working tree check.
             `),
@@ -352,6 +360,16 @@ function validateRunCodexPromptOptions(options: RunOptions): void {
         );
     }
 
+    if (options.isIsolated && options.gitChanges === 'continue') {
+        throw new NotAllowed(
+            spaceTrim(`
+                Flag \`--isolate\` cannot be combined with \`--git-changes continue\`.
+
+                An isolated task is implemented in a fresh temporary worktree checked out from the last commit, so the uncommitted changes of the interrupted prompt would be left behind instead of being continued.
+            `),
+        );
+    }
+
     if (options.limit !== undefined && (!Number.isInteger(options.limit) || options.limit <= 0)) {
         throw new NotAllowed(
             spaceTrim(`
@@ -361,6 +379,20 @@ function validateRunCodexPromptOptions(options: RunOptions): void {
             `),
         );
     }
+}
+
+/**
+ * Decides whether the working tree has to be verified clean before the next prompt starts.
+ *
+ * `--git-changes continue` waives the check for the single round which resumes the interrupted prompt,
+ * because that round is started exactly for the uncommitted changes the interrupted prompt left behind.
+ */
+function isCleanWorkingTreeRequired(gitChanges: GitChangesMode, isContinuingInterruptedPrompt: boolean): boolean {
+    if (gitChanges === 'ignore') {
+        return false;
+    }
+
+    return !isContinuingInterruptedPrompt;
 }
 
 /**
@@ -450,6 +482,7 @@ async function runTestBeforeIfNeeded(options: {
     uiHandle?: CoderRunUiHandle;
     waitForRequestedPause: WaitForCoderRunPauseCheckpoint;
     hasWaitedForStart: boolean;
+    isContinuingInterruptedPrompt: boolean;
 }): Promise<boolean> {
     const {
         options: runOptions,
@@ -462,6 +495,7 @@ async function runTestBeforeIfNeeded(options: {
         uiHandle,
         waitForRequestedPause,
         hasWaitedForStart,
+        isContinuingInterruptedPrompt,
     } = options;
 
     if (runOptions.testBefore === 'no') {
@@ -478,7 +512,7 @@ async function runTestBeforeIfNeeded(options: {
         );
     }
 
-    if (!runOptions.ignoreGitChanges) {
+    if (isCleanWorkingTreeRequired(runOptions.gitChanges, isContinuingInterruptedPrompt)) {
         await waitForRequestedPause({
             checkpointLabel: 'checking the git working tree before testing',
             phase: 'loading',
@@ -716,8 +750,16 @@ async function loadPromptQueueSnapshot(options: {
     progressDisplay?: CliProgressDisplay;
     uiHandle?: CoderRunUiHandle;
     promptRunnerIdentity: PromptRunnerIdentity;
+    isContinuingInterruptedPrompt: boolean;
 }): Promise<PromptQueueSnapshot> {
-    const { options: runOptions, isRichUiEnabled, progressDisplay, uiHandle, promptRunnerIdentity } = options;
+    const {
+        options: runOptions,
+        isRichUiEnabled,
+        progressDisplay,
+        uiHandle,
+        promptRunnerIdentity,
+        isContinuingInterruptedPrompt,
+    } = options;
     uiHandle?.state.setCurrentScriptPath(undefined);
 
     const promptFiles = await loadPromptFiles(PROMPTS_DIR);
@@ -733,7 +775,11 @@ async function loadPromptQueueSnapshot(options: {
     return {
         promptFiles,
         stats,
-        nextPrompt: findNextTodoPrompt(promptFiles, runOptions.priorityFilter, promptRunnerIdentity),
+        // Note: A resumed prompt is picked by its `[^]` status alone, the priority and runner filters select
+        //       which prompt is started next, not which unfinished work is continued
+        nextPrompt: isContinuingInterruptedPrompt
+            ? resolveInterruptedPrompt(promptFiles)
+            : findNextTodoPrompt(promptFiles, runOptions.priorityFilter, promptRunnerIdentity),
     };
 }
 

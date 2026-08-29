@@ -48,6 +48,8 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             Features:
             - Automatically stages and commits changes with agent identity unless --no-commit is used
             - Commits only the prompt file and the files the coding agent has changed, leaving unrelated changes alone
+            - Refuses to start on a dirty working tree unless --git-changes says what should happen with the changes
+            - Optional --git-changes continue resumes the single prompt an interrupted coder left in the [^] status
             - Optional post-commit git push with explicit --auto-push opt-in
             - Optional pre-prompt git pull with explicit --auto-pull opt-in
             - Optional --isolate runs every prompt in its own temporary git worktree and merges it back when verified
@@ -234,7 +236,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 waitBetweenPrompts,
                 waitAfterError,
                 noCommit: runnerOptions.noCommit,
-                ignoreGitChanges: runnerOptions.ignoreGitChanges,
+                gitChanges: runnerOptions.gitChanges,
                 agentName: runnerOptions.agentName,
                 model: runnerOptions.model,
                 agent,

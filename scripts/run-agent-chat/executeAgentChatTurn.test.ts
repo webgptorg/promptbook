@@ -103,7 +103,7 @@ describe('executeAgentChatTurn', () => {
                 noUi: true,
                 thinkingLevel: 'xhigh',
                 noCommit: true,
-                ignoreGitChanges: true,
+                gitChanges: 'ignore',
             }),
         );
         expect(runner.runPrompt).toHaveBeenCalledWith(

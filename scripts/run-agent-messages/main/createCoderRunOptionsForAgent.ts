@@ -17,7 +17,7 @@ export function createCoderRunOptionsForAgent(options: AgentRunOptions): RunOpti
         waitBetweenPrompts: 0,
         waitAfterError: 0,
         noCommit: options.noCommit,
-        ignoreGitChanges: options.ignoreGitChanges,
+        gitChanges: options.gitChanges,
         normalizeLineEndings: options.normalizeLineEndings,
         allowCredits: options.allowCredits,
         autoMigrate: false,

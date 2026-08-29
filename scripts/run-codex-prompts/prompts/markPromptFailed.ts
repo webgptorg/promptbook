@@ -1,29 +1,69 @@
 import moment from 'moment';
 import { formatPromptAttemptMetadata } from './formatPromptAttemptMetadata';
 import { formatRunnerSignature } from './formatRunnerSignature';
+import { formatPromptRunnerAttribution } from './promptRunnerAttribution';
 import type { PromptFile } from './types/PromptFile';
 import type { PromptSection } from './types/PromptSection';
 import { writePromptStatusLine } from './writePromptStatusLine';
 
 /**
+ * Input for marking one prompt section as failed.
+ */
+export type MarkPromptFailedOptions = {
+    /**
+     * Prompt file the marked section belongs to.
+     */
+    readonly file: PromptFile;
+
+    /**
+     * Section which could not be implemented.
+     */
+    readonly section: PromptSection;
+
+    /**
+     * Harness which ran the prompt.
+     */
+    readonly runnerName: string | undefined;
+
+    /**
+     * Model the harness ran the prompt with.
+     */
+    readonly modelName: string | undefined;
+
+    /**
+     * Harness which left the prompt in the middle of its implementation, when another harness took the work over.
+     */
+    readonly startedByRunnerSignature?: string;
+
+    /**
+     * Moment the failed prompt round started, used to report how long the attempt took.
+     */
+    readonly promptExecutionStartedDate: moment.Moment;
+
+    /**
+     * How many coding attempts the prompt has taken before it was given up on.
+     */
+    readonly attemptCount: number;
+};
+
+/**
  * Marks a prompt section as failed and records runner details.
  */
-export function markPromptFailed(
-    file: PromptFile,
-    section: PromptSection,
-    runnerName: string | undefined,
-    modelName: string | undefined,
-    promptExecutionStartedDate: moment.Moment,
-    attemptCount = 1,
-): void {
-    const runnerSignature = formatRunnerSignature(runnerName, modelName);
+export function markPromptFailed(options: MarkPromptFailedOptions): void {
+    const { file, section, runnerName, modelName, startedByRunnerSignature, promptExecutionStartedDate, attemptCount } =
+        options;
+
+    const attribution = formatPromptRunnerAttribution({
+        currentRunnerSignature: formatRunnerSignature(runnerName, modelName),
+        startedByRunnerSignature,
+    });
     const attemptMetadata = formatPromptAttemptMetadata('failed', attemptCount);
     const duration = moment().diff(promptExecutionStartedDate);
     const durationString = moment.duration(duration).humanize();
     const failureDetails =
         attemptMetadata === ''
-            ? `failed after ${durationString} by ${runnerSignature}`
-            : `${attemptMetadata}${durationString} by ${runnerSignature}`;
+            ? `failed after ${durationString} ${attribution}`
+            : `${attemptMetadata}${durationString} ${attribution}`;
 
     writePromptStatusLine(file, section, `[!] ${failureDetails}`);
 }

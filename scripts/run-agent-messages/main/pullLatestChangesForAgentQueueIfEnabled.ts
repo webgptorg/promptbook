@@ -30,7 +30,7 @@ export async function pullLatestChangesForAgentQueueIfEnabled(options: {
  * Runs the clean working tree guard unless the user explicitly disabled it.
  */
 async function ensureCleanQueueIfNeeded(projectPath: string, options: AgentRunOptions): Promise<void> {
-    if (options.ignoreGitChanges) {
+    if (options.gitChanges !== 'fail') {
         return;
     }
 

@@ -233,7 +233,7 @@ function createPromptRunnerOptions(options: AgentCliRunOptions): RunOptions {
         waitBetweenPrompts: 0,
         waitAfterError: 0,
         noCommit: true,
-        ignoreGitChanges: true,
+        gitChanges: 'ignore',
         normalizeLineEndings: false,
         allowCredits: options.allowCredits,
         isVerbose: options.isVerbose,

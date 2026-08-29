@@ -199,7 +199,7 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
                 waitBetweenPrompts,
                 waitAfterError,
                 noCommit: runnerOptions.noCommit,
-                ignoreGitChanges: runnerOptions.ignoreGitChanges,
+                gitChanges: runnerOptions.gitChanges,
                 agentName: runnerOptions.agentName,
                 model: runnerOptions.model,
                 agent,

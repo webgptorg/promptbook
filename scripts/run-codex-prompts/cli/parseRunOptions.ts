@@ -1,4 +1,10 @@
 import colors from 'colors';
+import type { GitChangesMode } from '../../../src/cli/cli-commands/coder/GitChangesMode';
+import {
+    DEFAULT_GIT_CHANGES_MODE,
+    GIT_CHANGES_MODE_VALUES,
+    isGitChangesMode,
+} from '../../../src/cli/cli-commands/coder/GitChangesMode';
 import type { ThinkingLevel } from '../../../src/cli/cli-commands/coder/ThinkingLevel';
 import { THINKING_LEVEL_VALUES, parseThinkingLevel } from '../../../src/cli/cli-commands/coder/ThinkingLevel';
 import {
@@ -19,7 +25,7 @@ const DEFAULT_WAIT_AFTER_ERROR_MS = 10 * 60 * 1000;
  * CLI usage text for this script.
  */
 const USAGE =
-    'Usage: run-codex-prompts [--dry-run] [--harness <harness-name>] [--model <model>] [--context <context-or-file>] [--test <test-command...>] [--test-before <no|yes-and-fail|yes-and-fix>] [--preserve-logs] [--isolate] [--no-ui] [--thinking-level <thinking-level>] [--priority <minimum-priority>] [--min-priority <minimum-priority>] [--max-priority <maximum-priority>] [--limit <run-count>] [--allow-credits] [--auto-migrate] [--allow-destructive-auto-migrate] [--wait-after-prompt <duration>] [--wait-between-prompts <duration>] [--wait-after-error <duration>] [--no-auto] [--no-commit] [--ignore-git-changes] [--no-normalize-line-endings] [--auto-push] [--auto-pull]';
+    'Usage: run-codex-prompts [--dry-run] [--harness <harness-name>] [--model <model>] [--context <context-or-file>] [--test <test-command...>] [--test-before <no|yes-and-fail|yes-and-fix>] [--preserve-logs] [--isolate] [--no-ui] [--thinking-level <thinking-level>] [--priority <minimum-priority>] [--min-priority <minimum-priority>] [--max-priority <maximum-priority>] [--limit <run-count>] [--allow-credits] [--auto-migrate] [--allow-destructive-auto-migrate] [--wait-after-prompt <duration>] [--wait-between-prompts <duration>] [--wait-after-error <duration>] [--no-auto] [--no-commit] [--git-changes <fail|ignore|continue>] [--no-normalize-line-endings] [--auto-push] [--auto-pull]';
 
 /**
  * Top-level flags supported by this command.
@@ -47,7 +53,7 @@ const KNOWN_OPTION_FLAGS = new Set([
     '--wait-after-error',
     '--no-auto',
     '--no-commit',
-    '--ignore-git-changes',
+    '--git-changes',
     '--no-normalize-line-endings',
     '--auto-push',
     '--auto-pull',
@@ -106,7 +112,8 @@ export function parseRunOptions(args: string[]): RunOptions {
     const hasLimitFlag = args.includes('--limit');
     const limit = parseLimit(readOptionValue(args, '--limit'), hasLimitFlag);
     const noCommit = args.includes('--no-commit');
-    const ignoreGitChanges = args.includes('--ignore-git-changes');
+    const hasGitChangesFlag = args.includes('--git-changes');
+    const gitChanges = parseGitChangesOption(readOptionValue(args, '--git-changes'), hasGitChangesFlag);
     const normalizeLineEndings = !args.includes('--no-normalize-line-endings');
     const allowCredits = args.includes('--allow-credits');
     const autoMigrate = args.includes('--auto-migrate');
@@ -152,7 +159,7 @@ export function parseRunOptions(args: string[]): RunOptions {
         waitBetweenPrompts,
         waitAfterError,
         noCommit,
-        ignoreGitChanges,
+        gitChanges,
         normalizeLineEndings,
         allowCredits,
         autoMigrate,
@@ -191,6 +198,27 @@ function parseTestBeforeOption(value: string | undefined, hasTestBeforeFlag: boo
     if (!isTestBeforeMode(value)) {
         exitWithUsageError(
             `Invalid value for --test-before: "${value}". Use one of: ${TEST_BEFORE_MODE_VALUES.join(', ')}.`,
+        );
+    }
+
+    return value;
+}
+
+/**
+ * Parses and validates the requested behavior for a dirty working tree.
+ */
+function parseGitChangesOption(value: string | undefined, hasGitChangesFlag: boolean): GitChangesMode {
+    if (value === undefined) {
+        if (hasGitChangesFlag) {
+            exitWithUsageError(`Missing value for --git-changes. Use one of: ${GIT_CHANGES_MODE_VALUES.join(', ')}.`);
+        }
+
+        return DEFAULT_GIT_CHANGES_MODE;
+    }
+
+    if (!isGitChangesMode(value)) {
+        exitWithUsageError(
+            `Invalid value for --git-changes: "${value}". Use one of: ${GIT_CHANGES_MODE_VALUES.join(', ')}.`,
         );
     }
 

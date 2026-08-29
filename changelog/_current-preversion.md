@@ -1,3 +1,27 @@
+-   Let you decide what **ptbk coder** does with a dirty working tree. The clean-working-tree guard used to be a yes/no
+    question — either the coder refused to start, or `--ignore-git-changes` waved the changes through. The far more
+    common case had no answer at all: a run that was killed or crashed mid-task, leaving half-finished work in the tree
+    and one prompt stuck in the in-progress `[^]` status. The only way forward was to throw that work away.
+
+    -   **The new `--git-changes <fail|ignore|continue>` replaces `--ignore-git-changes`**, which is gone; use
+        `--git-changes ignore` instead. `fail` stays the default and now says in its error which of the other two modes
+        to reach for.
+    -   **`--git-changes continue` resumes the interrupted prompt** with its uncommitted changes still in place. It
+        expects **exactly one** prompt in the `[^]` status and refuses to guess otherwise: finding none or finding
+        several fails with a message naming the prompts it found, because the changes in the tree cannot be attributed
+        to a single task. Only that one round runs on the dirty tree — once it is committed, every later round expects a
+        clean working tree again. It cannot be combined with `--isolate`, whose fresh worktree is checked out from the
+        last commit and would leave exactly those changes behind.
+    -   **A prompt one harness started and another one finished says so.** The status line of a resumed prompt names
+        both, as `` [^] by Claude Code `claude-opus-5` thinking `high`, started by OpenAI Codex `gpt-5.6-luna` thinking `max` - Implementation in progress ``,
+        and the `[x]` and `[!]` lines keep that attribution. The harness which continues its own work is still named
+        only once. All three statuses go through one
+        [`formatPromptRunnerAttribution`](../scripts/run-codex-prompts/prompts/promptRunnerAttribution.ts), which reads
+        the original harness back out of the very line the round is about to overwrite, so a third harness taking over
+        still credits the one which started.
+    -   `ptbk coder server` and `ptbk agent-folder run` share the same flag. An agent folder answers queued messages
+        instead of running a prompt queue, so `continue` keeps the changes there exactly like `ignore` does.
+
 -   Made the terminal controls of **ptbk coder** answer every key press. Pressing `P`, `S` or `X` used to be a leap of
     faith: `S Skip current waiting` in particular changed nothing on screen, so there was no way to tell whether the key
     had arrived, whether the wait was being skipped, or whether the terminal had simply stopped repainting.

@@ -1,4 +1,5 @@
 import { NotAllowed } from '../../../src/errors/NotAllowed';
+import { NotFoundError } from '../../../src/errors/NotFoundError';
 import { resolveCoderContext } from '../common/resolveCoderContext';
 import { toggleEndAfterCurrentPromptState } from '../common/waitForPause';
 import type { RunOptions } from '../cli/RunOptions';
@@ -8,6 +9,7 @@ import { ensureWorkingTreeClean } from '../git/ensureWorkingTreeClean';
 import { pullLatestChanges } from '../git/pullLatestChanges';
 import { findNextTodoPrompt } from '../prompts/findNextTodoPrompt';
 import { loadPromptFiles } from '../prompts/loadPromptFiles';
+import { resolveInterruptedPrompt } from '../prompts/resolveInterruptedPrompt';
 import { summarizePrompts } from '../prompts/summarizePrompts';
 import type { PromptFile } from '../prompts/types/PromptFile';
 import type { PromptSection } from '../prompts/types/PromptSection';
@@ -46,6 +48,10 @@ jest.mock('../prompts/findNextTodoPrompt', () => ({
 
 jest.mock('../prompts/loadPromptFiles', () => ({
     loadPromptFiles: jest.fn(async () => []),
+}));
+
+jest.mock('../prompts/resolveInterruptedPrompt', () => ({
+    resolveInterruptedPrompt: jest.fn(),
 }));
 
 jest.mock('../prompts/summarizePrompts', () => ({
@@ -93,7 +99,7 @@ function createRunOptions(overrides: Partial<RunOptions> = {}): RunOptions {
         waitBetweenPrompts: 0,
         waitAfterError: 0,
         noCommit: false,
-        ignoreGitChanges: false,
+        gitChanges: 'fail',
         normalizeLineEndings: true,
         allowCredits: false,
         autoMigrate: false,
@@ -162,6 +168,9 @@ describe('runCodexPrompts', () => {
             },
         });
         (runPromptRound as jest.MockedFunction<typeof runPromptRound>).mockResolvedValue(undefined);
+        (resolveInterruptedPrompt as jest.MockedFunction<typeof resolveInterruptedPrompt>).mockReturnValue(
+            createPromptSelection(),
+        );
         (runTestBefore as jest.MockedFunction<typeof runTestBefore>).mockResolvedValue({
             isPassed: true,
             testOutput: 'All tests passed',
@@ -171,7 +180,7 @@ describe('runCodexPrompts', () => {
         );
     });
 
-    it('rejects --no-commit in auto mode unless --ignore-git-changes is also enabled', async () => {
+    it('rejects --no-commit in auto mode unless --git-changes ignore is also enabled', async () => {
         await expect(
             runCodexPrompts(
                 createRunOptions({
@@ -188,7 +197,7 @@ describe('runCodexPrompts', () => {
                     waitForUser: false,
                 }),
             ),
-        ).rejects.toThrow(/--ignore-git-changes/);
+        ).rejects.toThrow(/--git-changes ignore/);
     });
 
     it('rejects --auto-pull together with --no-commit in real runs', async () => {
@@ -217,10 +226,82 @@ describe('runCodexPrompts', () => {
                 createRunOptions({
                     isIsolated: true,
                     noCommit: true,
-                    ignoreGitChanges: true,
+                    gitChanges: 'ignore',
                 }),
             ),
         ).rejects.toThrow(/--isolate/);
+    });
+
+    it('rejects --isolate together with --git-changes continue', async () => {
+        await expect(
+            runCodexPrompts(
+                createRunOptions({
+                    isIsolated: true,
+                    gitChanges: 'continue',
+                }),
+            ),
+        ).rejects.toThrow(/--git-changes continue/);
+    });
+
+    it('checks the clean working tree before each prompt by default', async () => {
+        const promptSelection = createPromptSelection();
+
+        (findNextTodoPrompt as jest.MockedFunction<typeof findNextTodoPrompt>)
+            .mockReturnValueOnce(promptSelection)
+            .mockReturnValueOnce(undefined);
+
+        await runCodexPrompts(createRunOptions({ waitForUser: false }));
+
+        expect(ensureWorkingTreeClean).toHaveBeenCalledTimes(1);
+        expect(resolveInterruptedPrompt).not.toHaveBeenCalled();
+    });
+
+    it('skips the clean working tree check with --git-changes ignore', async () => {
+        const promptSelection = createPromptSelection();
+
+        (findNextTodoPrompt as jest.MockedFunction<typeof findNextTodoPrompt>)
+            .mockReturnValueOnce(promptSelection)
+            .mockReturnValueOnce(undefined);
+
+        await runCodexPrompts(createRunOptions({ waitForUser: false, gitChanges: 'ignore' }));
+
+        expect(ensureWorkingTreeClean).not.toHaveBeenCalled();
+    });
+
+    it('continues the interrupted prompt first and expects a clean working tree again afterwards', async () => {
+        const interruptedPrompt = createPromptSelection();
+        const queuedPrompt = createPromptSelection();
+
+        (resolveInterruptedPrompt as jest.MockedFunction<typeof resolveInterruptedPrompt>).mockReturnValue(
+            interruptedPrompt,
+        );
+        (findNextTodoPrompt as jest.MockedFunction<typeof findNextTodoPrompt>)
+            .mockReturnValueOnce(queuedPrompt)
+            .mockReturnValueOnce(undefined);
+
+        await runCodexPrompts(createRunOptions({ waitForUser: false, gitChanges: 'continue' }));
+
+        expect(runPromptRound).toHaveBeenCalledTimes(2);
+        expect((runPromptRound as jest.MockedFunction<typeof runPromptRound>).mock.calls[0]?.[0].nextPrompt).toBe(
+            interruptedPrompt,
+        );
+        expect((runPromptRound as jest.MockedFunction<typeof runPromptRound>).mock.calls[1]?.[0].nextPrompt).toBe(
+            queuedPrompt,
+        );
+        // Note: The continued round runs on the changes of the interrupted prompt, every later round starts clean
+        expect(ensureWorkingTreeClean).toHaveBeenCalledTimes(1);
+    });
+
+    it('fails when --git-changes continue finds no interrupted prompt', async () => {
+        (resolveInterruptedPrompt as jest.MockedFunction<typeof resolveInterruptedPrompt>).mockImplementation(() => {
+            throw new NotFoundError('Flag `--git-changes continue` found no interrupted prompt to continue.');
+        });
+
+        await expect(
+            runCodexPrompts(createRunOptions({ waitForUser: false, gitChanges: 'continue' })),
+        ).rejects.toThrow(NotFoundError);
+
+        expect(runPromptRound).not.toHaveBeenCalled();
     });
 
     it('rejects invalid run limits', async () => {
@@ -383,7 +464,7 @@ describe('runCodexPrompts', () => {
                 testCommand: 'npm test',
                 waitForUser: false,
                 noCommit: true,
-                ignoreGitChanges: true,
+                gitChanges: 'ignore',
             }),
         );
 
@@ -488,7 +569,7 @@ describe('runCodexPrompts', () => {
             createRunOptions({
                 limit: 2,
                 waitForUser: false,
-                ignoreGitChanges: true,
+                gitChanges: 'ignore',
             }),
         );
 
@@ -507,7 +588,7 @@ describe('runCodexPrompts', () => {
         await runCodexPrompts(
             createRunOptions({
                 waitForUser: false,
-                ignoreGitChanges: true,
+                gitChanges: 'ignore',
             }),
         );
 

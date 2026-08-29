@@ -106,7 +106,7 @@ function createRunOptions(overrides: Partial<RunOptions> = {}): RunOptions {
         waitBetweenPrompts: 0,
         waitAfterError: 0,
         noCommit: false,
-        ignoreGitChanges: false,
+        gitChanges: 'fail',
         normalizeLineEndings: false,
         allowCredits: false,
         autoMigrate: false,
@@ -138,6 +138,30 @@ function createPromptSelection(): PromptSelection {
         endLine: 1,
         status: 'todo',
         priority: 0,
+    };
+
+    return { file, section };
+}
+
+/**
+ * Creates the selection of a prompt another harness left behind in the in-progress `[^]` status.
+ */
+function createInterruptedPromptSelection(statusLine: string): PromptSelection {
+    const file: PromptFile = {
+        path: 'prompts\\example.md',
+        name: 'example',
+        lines: [statusLine, 'Implement the feature'],
+        eol: '\n',
+        hasFinalEol: true,
+        sections: [],
+    };
+    const section: PromptSection = {
+        index: 0,
+        startLine: 0,
+        endLine: 1,
+        status: 'in-progress',
+        priority: 0,
+        statusLineIndex: 0,
     };
 
     return { file, section };
@@ -216,14 +240,14 @@ describe('runPromptRound', () => {
             }),
         );
         expect(markPromptDone).toHaveBeenCalledWith(
-            expect.anything(),
-            expect.anything(),
-            expect.anything(),
-            'github-copilot',
-            'gpt-5.4',
-            1,
-            undefined,
-            'xhigh',
+            expect.objectContaining({
+                runnerName: 'github-copilot',
+                modelName: 'gpt-5.4',
+                startedByRunnerSignature: undefined,
+                attemptCount: 1,
+                loginMethod: undefined,
+                thinkingLevel: 'xhigh',
+            }),
         );
         expect(writePromptFile).toHaveBeenCalled();
         expect(commitChanges).not.toHaveBeenCalled();
@@ -363,6 +387,150 @@ describe('runPromptRound', () => {
         expect(
             (markPromptInProgress as jest.MockedFunction<typeof markPromptInProgress>).mock.invocationCallOrder[1],
         ).toBeLessThan((markPromptDone as jest.MockedFunction<typeof markPromptDone>).mock.invocationCallOrder[0]!);
+    });
+
+    it('records the harness which started an interrupted prompt continued by another harness', async () => {
+        const runner: PromptRunner = {
+            name: 'Claude Code',
+            runPrompt: jest.fn(),
+        };
+        const waitForRequestedPause = jest.fn<
+            ReturnType<WaitForCoderRunPauseCheckpoint>,
+            Parameters<WaitForCoderRunPauseCheckpoint>
+        >(async () => undefined);
+
+        (runPromptWithTestFeedback as jest.MockedFunction<typeof runPromptWithTestFeedback>).mockImplementation(
+            async (options) => {
+                await options.onStepStarted?.({ startedStepKind: 'implementation', finishedSteps: [] });
+
+                return { usage: UNCERTAIN_USAGE, attemptCount: 1, steps: [] };
+            },
+        );
+
+        await runPromptRound({
+            options: createRunOptions({
+                noCommit: true,
+                waitForUser: false,
+                gitChanges: 'continue',
+                thinkingLevel: 'high',
+            }),
+            runner,
+            runnerMetadata: {
+                runnerName: 'Claude Code',
+                modelName: 'claude-opus-5',
+            },
+            nextPrompt: createInterruptedPromptSelection(
+                '[^] by OpenAI Codex `gpt-5.6-luna` thinking `max` - Implementation in progress',
+            ),
+            promptLabel: 'example.md#1',
+            resolvedCoderContext: undefined,
+            isRichUiEnabled: false,
+            progressDisplay: undefined,
+            uiHandle: undefined,
+            waitForRequestedPause,
+        });
+
+        expect(markPromptInProgress).toHaveBeenCalledWith(
+            expect.objectContaining({
+                runnerName: 'Claude Code',
+                modelName: 'claude-opus-5',
+                startedByRunnerSignature: 'OpenAI Codex `gpt-5.6-luna` thinking `max`',
+            }),
+        );
+        expect(markPromptDone).toHaveBeenCalledWith(
+            expect.objectContaining({
+                runnerName: 'Claude Code',
+                startedByRunnerSignature: 'OpenAI Codex `gpt-5.6-luna` thinking `max`',
+            }),
+        );
+    });
+
+    it('does not repeat the harness which continues its own interrupted prompt', async () => {
+        const runner: PromptRunner = {
+            name: 'Claude Code',
+            runPrompt: jest.fn(),
+        };
+        const waitForRequestedPause = jest.fn<
+            ReturnType<WaitForCoderRunPauseCheckpoint>,
+            Parameters<WaitForCoderRunPauseCheckpoint>
+        >(async () => undefined);
+
+        await runPromptRound({
+            options: createRunOptions({
+                noCommit: true,
+                waitForUser: false,
+                gitChanges: 'continue',
+                thinkingLevel: 'high',
+            }),
+            runner,
+            runnerMetadata: {
+                runnerName: 'Claude Code',
+                modelName: 'claude-opus-5',
+            },
+            nextPrompt: createInterruptedPromptSelection(
+                '[^] by Claude Code `claude-opus-5` thinking `high` - Implementation in progress',
+            ),
+            promptLabel: 'example.md#1',
+            resolvedCoderContext: undefined,
+            isRichUiEnabled: false,
+            progressDisplay: undefined,
+            uiHandle: undefined,
+            waitForRequestedPause,
+        });
+
+        expect(markPromptDone).toHaveBeenCalledWith(
+            expect.objectContaining({
+                startedByRunnerSignature: undefined,
+            }),
+        );
+    });
+
+    it('records the harness which started an interrupted prompt that another harness failed', async () => {
+        const runner: PromptRunner = {
+            name: 'Claude Code',
+            runPrompt: jest.fn(),
+        };
+        const waitForRequestedPause = jest.fn<
+            ReturnType<WaitForCoderRunPauseCheckpoint>,
+            Parameters<WaitForCoderRunPauseCheckpoint>
+        >(async () => undefined);
+
+        (runPromptWithTestFeedback as jest.MockedFunction<typeof runPromptWithTestFeedback>).mockRejectedValue(
+            new Error('The harness died'),
+        );
+
+        await expect(
+            runPromptRound({
+                options: createRunOptions({
+                    noCommit: true,
+                    waitForUser: false,
+                    waitAfterError: 0,
+                    gitChanges: 'continue',
+                }),
+                runner,
+                runnerMetadata: {
+                    runnerName: 'Claude Code',
+                    modelName: 'claude-opus-5',
+                },
+                nextPrompt: createInterruptedPromptSelection(
+                    '[^] by OpenAI Codex `gpt-5.6-luna` - Implementation in progress',
+                ),
+                promptLabel: 'example.md#1',
+                resolvedCoderContext: undefined,
+                isRichUiEnabled: false,
+                progressDisplay: undefined,
+                uiHandle: undefined,
+                waitForRequestedPause,
+            }),
+        ).rejects.toThrow('The harness died');
+
+        expect(markPromptFailed).toHaveBeenCalledWith(
+            expect.objectContaining({
+                runnerName: 'Claude Code',
+                modelName: 'claude-opus-5',
+                startedByRunnerSignature: 'OpenAI Codex `gpt-5.6-luna`',
+            }),
+        );
     });
 
     it('records the in-progress status even when the round ends as failed', async () => {

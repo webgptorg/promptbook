@@ -24,7 +24,14 @@ describe('prompt attempt metadata', () => {
         );
         const section = file.sections[0]!;
 
-        markPromptDone(file, section, createDoneSteps(), 'GitHub Copilot', 'gpt-5.4', 1);
+        markPromptDone({
+            file,
+            section,
+            steps: createDoneSteps(),
+            runnerName: 'GitHub Copilot',
+            modelName: 'gpt-5.4',
+            attemptCount: 1,
+        });
 
         expect(file.lines[0]).toMatch(/^\[x\] /);
         expect(file.lines[0]).toContain('by GitHub Copilot `gpt-5.4` - Implementation ');
@@ -41,7 +48,14 @@ describe('prompt attempt metadata', () => {
         );
         const section = file.sections[0]!;
 
-        markPromptDone(file, section, createDoneSteps(), 'GitHub Copilot', 'gpt-5.5', 1);
+        markPromptDone({
+            file,
+            section,
+            steps: createDoneSteps(),
+            runnerName: 'GitHub Copilot',
+            modelName: 'gpt-5.5',
+            attemptCount: 1,
+        });
 
         expect(file.lines[0]).toMatch(/^\[x\] /);
         expect(file.lines[0]).not.toContain('use model');
@@ -58,7 +72,15 @@ describe('prompt attempt metadata', () => {
         );
         const section = file.sections[0]!;
 
-        markPromptDone(file, section, createDoneSteps(), 'Claude Code', 'claude-opus-4-8', 1, undefined, 'xhigh');
+        markPromptDone({
+            file,
+            section,
+            steps: createDoneSteps(),
+            runnerName: 'Claude Code',
+            modelName: 'claude-opus-4-8',
+            attemptCount: 1,
+            thinkingLevel: 'xhigh',
+        });
 
         expect(file.lines[0]).toContain('by Claude Code `claude-opus-4-8` thinking `xhigh` - Implementation ');
     });
@@ -73,7 +95,14 @@ describe('prompt attempt metadata', () => {
         );
         const section = file.sections[0]!;
 
-        markPromptDone(file, section, createDoneSteps(), 'GitHub Copilot', 'gpt-5.4', 2);
+        markPromptDone({
+            file,
+            section,
+            steps: createDoneSteps(),
+            runnerName: 'GitHub Copilot',
+            modelName: 'gpt-5.4',
+            attemptCount: 2,
+        });
 
         expect(file.lines[0]).toContain('[x] (2 attempts) ');
     });
@@ -88,7 +117,15 @@ describe('prompt attempt metadata', () => {
         );
         const section = file.sections[0]!;
 
-        markPromptDone(file, section, createDoneSteps(), 'OpenAI Codex', 'gpt-5.4', 1, 'chatgpt');
+        markPromptDone({
+            file,
+            section,
+            steps: createDoneSteps(),
+            runnerName: 'OpenAI Codex',
+            modelName: 'gpt-5.4',
+            attemptCount: 1,
+            loginMethod: 'chatgpt',
+        });
 
         expect(file.lines[0]).toContain('by OpenAI Codex `gpt-5.4` (ChatGPT account)');
     });
@@ -103,7 +140,15 @@ describe('prompt attempt metadata', () => {
         );
         const section = file.sections[0]!;
 
-        markPromptDone(file, section, createDoneSteps(), 'OpenAI Codex', 'gpt-5.4', 1, 'api');
+        markPromptDone({
+            file,
+            section,
+            steps: createDoneSteps(),
+            runnerName: 'OpenAI Codex',
+            modelName: 'gpt-5.4',
+            attemptCount: 1,
+            loginMethod: 'api',
+        });
 
         expect(file.lines[0]).toContain('by OpenAI Codex `gpt-5.4` (API key)');
     });
@@ -118,7 +163,15 @@ describe('prompt attempt metadata', () => {
         );
         const section = file.sections[0]!;
 
-        markPromptDone(file, section, createDoneSteps(), 'OpenAI Codex', 'gpt-5.4', 1, 'unknown');
+        markPromptDone({
+            file,
+            section,
+            steps: createDoneSteps(),
+            runnerName: 'OpenAI Codex',
+            modelName: 'gpt-5.4',
+            attemptCount: 1,
+            loginMethod: 'unknown',
+        });
 
         expect(file.lines[0]).toContain('by OpenAI Codex `gpt-5.4`');
         expect(file.lines[0]).not.toMatch(/\((?:ChatGPT account|API key)\)/);
@@ -134,7 +187,14 @@ describe('prompt attempt metadata', () => {
         );
         const section = file.sections[0]!;
 
-        markPromptFailed(file, section, 'GitHub Copilot', 'gpt-5.4', moment(), 3);
+        markPromptFailed({
+            file,
+            section,
+            runnerName: 'GitHub Copilot',
+            modelName: 'gpt-5.4',
+            promptExecutionStartedDate: moment(),
+            attemptCount: 3,
+        });
 
         expect(file.lines[0]).toContain('[!] (failed after 3 attempts) ');
         expect(file.lines[0]).toContain('by GitHub Copilot `gpt-5.4`');
@@ -150,7 +210,14 @@ describe('prompt attempt metadata', () => {
         );
         const section = file.sections[0]!;
 
-        markPromptFailed(file, section, 'GitHub Copilot', 'gpt-5.4', moment(), 1);
+        markPromptFailed({
+            file,
+            section,
+            runnerName: 'GitHub Copilot',
+            modelName: 'gpt-5.4',
+            promptExecutionStartedDate: moment(),
+            attemptCount: 1,
+        });
 
         expect(file.lines[0]).toMatch(/^\[!] /);
         expect(file.lines[0]).not.toContain('github-copilot');

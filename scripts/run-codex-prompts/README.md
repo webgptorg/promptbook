@@ -43,7 +43,7 @@ npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --harness openai-co
 --wait-after-prompt <duration>    # Wait this long after each prompt finishes before starting the next prompt (default 0)
 --wait-between-prompts <duration> # Pace prompts so each next prompt starts at least this long after the previous start (default 0)
 --wait-after-error <duration>     # Wait this long before retrying after an error (up to 3 retries, default 10m)
---ignore-git-changes          # Skip clean working tree check before running prompts
+--git-changes <mode>          # Dirty working tree: fail (default), ignore the changes, or continue the interrupted [^] prompt
 --no-normalize-line-endings   # Disable per-round CRLF -> LF normalization for changed files
 ```
 
@@ -114,6 +114,12 @@ ptbk coder run --harness openai-codex --model gpt-5.2-codex --auto-migrate
 
 # Run each prompt in its own isolated git worktree
 ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --isolate
+
+# Start the next prompt even though the working tree still has uncommitted changes
+ptbk coder run --harness claude-code --git-changes ignore
+
+# Continue the one prompt a killed or crashed coder left behind in the [^] status
+ptbk coder run --harness claude-code --git-changes continue
 ```
 
 ## Prompt statuses
@@ -137,7 +143,26 @@ The `[^]` in-progress status is rewritten before every single step of the round,
 [x] by OpenAI Codex `gpt-5.6-luna` thinking `max` (ChatGPT account) - Implementation ~$0.2036 10 minutes; Testing 35 minutes
 ```
 
-Only the final `[x]` state is committed, because the round commit is created after the prompt has been implemented and verified. The `[^]` status is deliberately never reverted: when the coder is killed or crashes, the prompt file keeps `[^]` as the signal that this task was left in the middle of its implementation. Such a prompt is not picked up again automatically — decide yourself whether to reset it to `[ ]` or to keep the partial work.
+Only the final `[x]` state is committed, because the round commit is created after the prompt has been implemented and verified. The `[^]` status is deliberately never reverted: when the coder is killed or crashes, the prompt file keeps `[^]` as the signal that this task was left in the middle of its implementation. Such a prompt is not picked up again automatically — decide yourself whether to reset it to `[ ]`, to keep the partial work, or to resume it with `--git-changes continue`.
+
+## Dirty working tree
+
+`--git-changes` decides what happens when the working tree still has uncommitted changes before a prompt starts:
+
+| Mode       | Behavior                                                                                                     |
+| ---------- | ------------------------------------------------------------------------------------------------------------ |
+| `fail`     | Refuses to start and asks for a commit, a stash or one of the other two modes (the default)                  |
+| `ignore`   | Starts the next `[ ]` prompt anyway and leaves the uncommitted changes where they are                        |
+| `continue` | Resumes the interrupted `[^]` prompt with its half-finished changes still in place                           |
+
+`continue` expects **exactly one** prompt in the `[^]` status and fails when it finds none or more than one, because the uncommitted changes could not be attributed to a single interrupted task. Only the resuming round runs on the dirty tree; once it is finished and committed, every later round expects a clean working tree again. It cannot be combined with `--isolate`, whose fresh worktree is checked out from the last commit and would leave the uncommitted changes behind.
+
+The harness which resumes the work does not have to be the one which started it. Both are then recorded in the `[^]`, `[x]` and `[!]` status line alike:
+
+```text
+[^] by Claude Code `claude-opus-5` thinking `high`, started by OpenAI Codex `gpt-5.6-luna` thinking `max` - Implementation in progress
+[x] by Claude Code `claude-opus-5` thinking `high`, started by OpenAI Codex `gpt-5.6-luna` thinking `max` - Implementation ~$0.2036 10 minutes; Testing 35 minutes
+```
 
 ## Isolated runs
 

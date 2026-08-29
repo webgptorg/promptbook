@@ -1,3 +1,4 @@
+import type { GitChangesMode } from '../../src/cli/cli-commands/coder/GitChangesMode';
 import type { ThinkingLevel } from '../../src/cli/cli-commands/coder/ThinkingLevel';
 import type { PromptRunnerHarnessName } from '../../src/cli/cli-commands/common/promptRunnerCliOptions';
 
@@ -10,7 +11,14 @@ export type AgentRunOptions = {
     readonly noUi: boolean;
     readonly thinkingLevel?: ThinkingLevel;
     readonly noCommit: boolean;
-    readonly ignoreGitChanges: boolean;
+
+    /**
+     * Decides what happens when the working tree has uncommitted changes before a message round starts.
+     *
+     * An agent folder answers queued messages instead of running a prompt queue, so there is no interrupted
+     * prompt to resume here and `continue` keeps the changes exactly like `ignore` does.
+     */
+    readonly gitChanges: GitChangesMode;
     readonly normalizeLineEndings: boolean;
     readonly allowCredits: boolean;
     readonly autoPush: boolean;

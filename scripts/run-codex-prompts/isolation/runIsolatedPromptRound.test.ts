@@ -74,7 +74,7 @@ function createRunOptions(overrides: Partial<RunOptions> = {}): RunOptions {
         waitBetweenPrompts: 0,
         waitAfterError: 0,
         noCommit: false,
-        ignoreGitChanges: false,
+        gitChanges: 'fail',
         normalizeLineEndings: false,
         allowCredits: false,
         autoMigrate: false,
