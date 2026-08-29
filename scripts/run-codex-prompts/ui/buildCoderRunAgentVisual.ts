@@ -47,7 +47,7 @@ export type CoderRunAgentVisual = TerminalAgentAvatarVisual;
  * visuals are rendered through the shared canvas avatar pipeline into terminal ASCII art, using a
  * transparent horizontal canvas instead of the website's framed 1:1 surface.
  *
- * The visual is decorative, so any failure returns `null` and the caller keeps the default brand banner.
+ * The visual is decorative, so any failure returns `null` and the caller renders no header visual at all.
  *
  * @param agentSource Source of the `--agent` book file.
  * @returns ANSI-colored ASCII-art renderer or `null` when the visual cannot be rendered.
@@ -72,7 +72,7 @@ export async function buildCoderRunAgentVisual(agentSource: string_book): Promis
             },
         };
     } catch (error) {
-        // Note: The agent visual is decorative - on any failure the coder UI falls back to the default banner
+        // Note: The agent visual is decorative - on any failure the coder UI shows no header visual
         keepUnused(error);
         return null;
     }

@@ -3,7 +3,6 @@ import type { CoderRunPauseState } from '../common/waitForPause';
 import { formatPriorityFilter } from '../prompts/priorityFilter';
 import type { CoderRunConfig, CoderRunPhase, CoderRunProgressSnapshot } from './CoderRunUiState';
 import type { CoderRunAgentVisual } from './buildCoderRunAgentVisual';
-import { buildCoderRunOctopusVisual } from './buildCoderRunOctopusVisual';
 import {
     buildCoderRunControlPills,
     buildErrorDisplayLines,
@@ -18,7 +17,6 @@ import {
     type PausePresentation,
     type SessionRow,
 } from './buildRunUiFrameShared';
-import { isCoderRunUiAutoRefreshing } from './coderRunUiRefresh';
 import { centerAnsiText, fitPlainText } from './coderRunUiText';
 
 /**
@@ -46,7 +44,7 @@ export type BuildCoderRunUiFrameOptions = {
     readonly spinner: string;
 
     /**
-     * ANSI ASCII-art renderer of the `--agent` avatar visual shown instead of the default brand banner.
+     * ANSI ASCII-art renderer of the `--agent` avatar visual shown above the dashboard boxes.
      */
     readonly agentVisual?: CoderRunAgentVisual;
 
@@ -99,9 +97,6 @@ export function buildCoderRunUiFrame(options: BuildCoderRunUiFrameOptions): stri
     const totalWidth = Math.max(MIN_FRAME_WIDTH, Math.min(options.terminalWidth, MAX_FRAME_WIDTH));
     const isPromptActive = options.phase === 'running' || options.phase === 'verifying' || options.phase === 'loading';
     const promptStatusPrefix = isPromptActive ? `${colors.yellow(`${options.spinner} `)}` : '';
-    const octopusAnimationFrame = isCoderRunUiAutoRefreshing(options.phase, options.pauseState)
-        ? options.animationFrame
-        : 0;
     const pausePresentation = buildPausePresentation(
         options.phase,
         options.pauseState,
@@ -129,7 +124,7 @@ export function buildCoderRunUiFrame(options: BuildCoderRunUiFrameOptions): stri
     }).join('  ');
 
     const frame = [
-        ...buildFrameHeaderVisual(options, totalWidth, octopusAnimationFrame),
+        ...buildFrameHeaderVisual(options, totalWidth),
         '',
         ...renderBox('Session', sessionLines, totalWidth, colors.yellow.bold),
         ...renderBox(
@@ -156,14 +151,11 @@ export function buildCoderRunUiFrame(options: BuildCoderRunUiFrameOptions): stri
 /**
  * Builds the header visual above the dashboard boxes.
  *
- * Shows the ASCII-art `--agent` avatar visual when one is available and
- * falls back to the default brand banner otherwise.
+ * Shows the ASCII-art `--agent` avatar visual as soon as one is available. Until the avatar is
+ * loaded - and when no avatar can be rendered at all - the header stays empty, because the
+ * placeholder ASCII `PTBK.IO` wordmark only added terminal noise while nothing was rendered yet.
  */
-function buildFrameHeaderVisual(
-    options: BuildCoderRunUiFrameOptions,
-    totalWidth: number,
-    octopusAnimationFrame: number,
-): readonly string[] {
+function buildFrameHeaderVisual(options: BuildCoderRunUiFrameOptions, totalWidth: number): readonly string[] {
     if (options.agentVisualLines !== undefined && options.agentVisualLines.length > 0) {
         return options.agentVisualLines.map((agentVisualLine) => centerAnsiText(agentVisualLine, totalWidth));
     }
@@ -178,7 +170,7 @@ function buildFrameHeaderVisual(
         }
     }
 
-    return buildCoderRunOctopusVisual({ totalWidth, animationFrame: octopusAnimationFrame });
+    return [];
 }
 
 /**

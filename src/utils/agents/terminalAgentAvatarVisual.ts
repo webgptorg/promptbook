@@ -284,7 +284,7 @@ function renderTerminalAgentAvatarVisualFrame(
     }
 
     if (options.createCanvas === undefined) {
-        // Note: A pixel-based visual cannot be rasterized without a canvas, so the caller keeps its default banner
+        // Note: A pixel-based visual cannot be rasterized without a canvas, so the caller renders no avatar
         return [];
     }
 

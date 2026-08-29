@@ -53,11 +53,10 @@ function createFrameOptions(
 }
 
 describe('buildCoderRunUiFrame', () => {
-    it('renders standalone branding and a structured session box with enter and pause controls', () => {
+    it('renders a structured session box with enter and pause controls', () => {
         const lines = buildCoderRunUiFrame(createFrameOptions()).map(stripAnsi);
         const output = lines.join('\n');
 
-        expect(output).toContain('▄▄▄▄ ▄▄▄▄▄▄ ▄▄▄▄');
         expect(output).not.toContain('ptbk coder');
         expect(output).not.toContain('run >_');
         expect(output).not.toContain('shipping fix');
@@ -132,7 +131,17 @@ describe('buildCoderRunUiFrame', () => {
         expect(output).toContain('Scope    Priority 1-5  ·  Write 1 prompt first');
     });
 
-    it('shows the ASCII-art agent visual instead of the default brand banner when one is provided', () => {
+    it('renders no ASCII wordmark in the header before the agent avatar is loaded', () => {
+        const lines = buildCoderRunUiFrame(createFrameOptions()).map(stripAnsi);
+        const output = lines.join('\n');
+
+        expect(output).not.toContain('▄▄▄▄ ▄▄▄▄▄▄ ▄▄▄▄');
+        expect(output).not.toContain('ptbk.io');
+        expect(lines[0]).toBe(''); // <- Note: Only the separator line stays above the first dashboard box
+        expect(lines[1]!.startsWith('┌ Session')).toBe(true);
+    });
+
+    it('shows the ASCII-art agent visual in the header once the agent avatar is loaded', () => {
         const agentVisualLines = [
             '\u001b[38;2;34;211;238m▄▀▄▀▄▀▄▀\u001b[0m',
             '\u001b[38;2;34;211;238m▀▄▀▄▀▄▀▄\u001b[0m',
@@ -162,19 +171,19 @@ describe('buildCoderRunUiFrame', () => {
         expect(output).toContain('agent frame 1234');
     });
 
-    it('falls back to the default banner when the agent visual cannot render a frame', () => {
-        const output = buildCoderRunUiFrame(
+    it('keeps the header empty when the agent visual cannot render a frame', () => {
+        const lines = buildCoderRunUiFrame(
             createFrameOptions({
                 agentVisual: {
                     isAnimated: true,
                     renderFrame: () => [],
                 },
             }),
-        )
-            .map(stripAnsi)
-            .join('\n');
+        ).map(stripAnsi);
 
-        expect(output).toContain('▄▄▄▄ ▄▄▄▄▄▄ ▄▄▄▄');
+        expect(lines.join('\n')).not.toContain('▄▄▄▄ ▄▄▄▄▄▄ ▄▄▄▄');
+        expect(lines[0]).toBe('');
+        expect(lines[1]!.startsWith('┌ Session')).toBe(true);
     });
 
     it('keeps the frame height stable while live output grows', () => {
@@ -186,26 +195,6 @@ describe('buildCoderRunUiFrame', () => {
         );
 
         expect(streamingOutputFrame).toHaveLength(emptyOutputFrame.length);
-    });
-
-    it('animates the octopus only during active phases', () => {
-        const waitingFrameA = buildCoderRunUiFrame(createFrameOptions({ phase: 'waiting', animationFrame: 0, spinner: '⠋' }))
-            .slice(0, 6)
-            .map(stripAnsi)
-            .join('\n');
-        const waitingFrameB = buildCoderRunUiFrame(createFrameOptions({ phase: 'waiting', animationFrame: 1, spinner: '⠙' }))
-            .slice(0, 6)
-            .map(stripAnsi)
-            .join('\n');
-        const runningFrameA = buildCoderRunUiFrame(createFrameOptions({ phase: 'running', animationFrame: 0, spinner: '⠋' }))
-            .map(stripAnsi)
-            .join('\n');
-        const runningFrameB = buildCoderRunUiFrame(createFrameOptions({ phase: 'running', animationFrame: 1, spinner: '⠙' }))
-            .map(stripAnsi)
-            .join('\n');
-
-        expect(waitingFrameB).toBe(waitingFrameA);
-        expect(runningFrameB).not.toBe(runningFrameA);
     });
 
     it('renders distinct pausing and paused controls', () => {

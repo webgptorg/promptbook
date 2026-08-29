@@ -116,7 +116,7 @@ export class CoderRunUiState extends EventEmitter {
     }
 
     /**
-     * Replaces the ASCII-art agent visual renderer shown instead of the default brand banner.
+     * Replaces the ASCII-art agent visual renderer shown above the dashboard boxes.
      */
     public setAgentVisual(agentVisual: CoderRunAgentVisual | undefined): void {
         this.agentVisual = agentVisual;

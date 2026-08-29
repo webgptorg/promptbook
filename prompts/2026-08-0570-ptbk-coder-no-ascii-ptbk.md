@@ -1,4 +1,4 @@
-[ ]
+[x] by Claude Code `claude-opus-5` thinking `max` - Implementation $6.35 13 minutes; Testing 13 minutes
 
 [✨😝] Before the agent avatar is loaded, do not show ASCII "PTBK.IO" text in terminal
 
@@ -12,3 +12,4 @@ ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh -
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ![alt text](screenshots/2026-08-0570-ptbk-coder-no-ascii-ptbk.png)
+

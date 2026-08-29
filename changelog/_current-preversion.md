@@ -1,3 +1,14 @@
+-   Took the ASCII `PTBK.IO` wordmark out of the **ptbk coder** terminal dashboard. The area above the `Session` box now
+    stays empty until the `--agent` avatar has been rendered, instead of being filled with a block-character logo that
+    was only ever a placeholder. It flashed at every start-up, and it stayed on screen for the whole run whenever no
+    agent was selected or its avatar could not be rasterized.
+
+    -   The header is still decided in one place,
+        [`buildFrameHeaderVisual`](../scripts/run-codex-prompts/ui/buildCoderRunUiFrame.ts): it draws the agent avatar
+        as soon as [`buildCoderRunAgentVisual`](../scripts/run-codex-prompts/ui/buildCoderRunAgentVisual.ts) hands one
+        over, and draws nothing before that.
+    -   `buildCoderRunOctopusVisual.ts`, which existed only to paint that wordmark, is gone.
+
 -   Simplified the comparison table on the **ptbk coder** landing page. Fifteen rows became nine, and the three agent
     columns stopped repeating themselves: where Claude Code, OpenAI Codex and opencode make the same claim, the table
     draws one cell across all three instead of printing the same sentence side by side three times. Exactly one row

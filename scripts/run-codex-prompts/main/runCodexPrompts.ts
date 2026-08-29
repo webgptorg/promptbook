@@ -682,9 +682,9 @@ function initializeRunUi(
 }
 
 /**
- * Prepares the `--agent` book avatar ASCII-art renderer and shows it instead of the default brand banner.
+ * Prepares the `--agent` book avatar ASCII-art renderer and shows it above the dashboard boxes.
  *
- * Keeps the default banner when no agent is selected, the UI is disabled, or the visual cannot be rendered.
+ * Leaves the header empty when no agent is selected, the UI is disabled, or the visual cannot be rendered.
  */
 async function initializeRunUiAgentVisual(
     uiHandle: CoderRunUiHandle | undefined,
