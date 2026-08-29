@@ -1,7 +1,7 @@
 import colors from 'colors';
 import { formatDurationMs } from '../../common/parseDuration';
 import { $runGoScriptWithOutput } from '../../common/runGoScript/$runGoScriptWithOutput';
-import { waitUntilWorldTimeDeadline } from '../../common/waitUntilWorldTimeDeadline';
+import { waitForSkippableWorldTimeDeadline } from '../../common/waitForSkippableWorldTimeDeadline';
 import type { PromptRunOptions } from '../types/PromptRunOptions';
 import type { PromptRunResult } from '../types/PromptRunResult';
 import type { PromptRunner } from '../types/PromptRunner';
@@ -107,6 +107,10 @@ export class ClaudeCodeRunner implements PromptRunner {
 
 /**
  * Waits until the Claude Code session can be resumed, keeping terminal status clear.
+ *
+ * The wait runs in the `waiting` phase, where the terminal UI offers `S  Skip current waiting`, so it is
+ * a skippable wait: pressing `S` resumes the session with `--resume` immediately instead of sitting out
+ * the reset window.
  */
 async function waitForClaudeCodeSessionLimitReset(
     sessionLimit: ClaudeCodeSessionLimit,
@@ -126,7 +130,7 @@ async function waitForClaudeCodeSessionLimitReset(
         );
     }
 
-    await waitUntilWorldTimeDeadline({
+    await waitForSkippableWorldTimeDeadline({
         deadlineTimeMs: resetDeadlineTimeMs,
         pollIntervalMs: CLAUDE_CODE_SESSION_RESURRECTION_POLL_MS,
         onTick: async (remainingDelayMs) => {

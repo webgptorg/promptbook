@@ -1,6 +1,9 @@
 import colors from 'colors';
 import { isAbsolute, relative, resolve } from 'path';
 import { pathToFileURL } from 'url';
+import { buildCoderRunControlKeyBadge } from '../common/buildCoderRunControlKeyBadge';
+import type { CoderRunControlFeedbackNotice } from '../common/CoderRunControlFeedback';
+import { formatCoderRunControlFeedback } from '../common/formatCoderRunControlFeedback';
 import type { CoderRunPauseState } from '../common/waitForPause';
 import type { CoderRunPhase } from './CoderRunUiState';
 import { fitAnsiText, fitPlainText, padAnsiText, stripAnsi } from './coderRunUiText';
@@ -166,7 +169,8 @@ export function buildPausePresentation(
     return {
         badge: buildRunningPhaseBadge(phase),
         stateMessage: statusMessage,
-        pauseControl: colors.bgYellow.black(' P ') + colors.white(' Pause'),
+        // Note: The two paused variants above deliberately recolor the `P` badge, everything else uses the shared one
+        pauseControl: buildCoderRunControlKeyBadge('P') + colors.white(' Pause'),
     };
 }
 
@@ -227,10 +231,30 @@ export function buildCoderRunControlPills(options: {
 }
 
 /**
+ * Builds the body of the `Controls` box.
+ *
+ * The pills are always shown, and right after a control key was pressed the answer of the runner to
+ * that key is shown underneath, so no key press ever leaves the frame unchanged.
+ */
+export function buildControlsBoxLines(options: {
+    readonly controlPills: readonly string[];
+    readonly controlFeedback: CoderRunControlFeedbackNotice | undefined;
+}): readonly string[] {
+    const { controlPills, controlFeedback } = options;
+    const controlPillsLine = controlPills.join('  ');
+
+    if (controlFeedback === undefined) {
+        return [controlPillsLine];
+    }
+
+    return [controlPillsLine, formatCoderRunControlFeedback(controlFeedback, controlFeedback.repeatCount)];
+}
+
+/**
  * Builds the `S` wait-skip control label.
  */
 function buildSkipCurrentWaitControl(): string {
-    return colors.bgCyan.black(' S ') + colors.white(' Skip current waiting');
+    return buildCoderRunControlKeyBadge('S') + colors.white(' Skip current waiting');
 }
 
 /**
@@ -238,10 +262,10 @@ function buildSkipCurrentWaitControl(): string {
  */
 function buildEndAfterCurrentPromptControl(isEndAfterCurrentPromptRequested: boolean, sessionTotal: number): string {
     if (isEndAfterCurrentPromptRequested) {
-        return colors.bgBlue.white(' X ') + colors.white(` Do all ${formatControlPromptCount(sessionTotal)}`);
+        return buildCoderRunControlKeyBadge('X') + colors.white(` Do all ${formatControlPromptCount(sessionTotal)}`);
     }
 
-    return colors.bgBlue.white(' X ') + colors.white(' End with this prompt');
+    return buildCoderRunControlKeyBadge('X') + colors.white(' End with this prompt');
 }
 
 /**

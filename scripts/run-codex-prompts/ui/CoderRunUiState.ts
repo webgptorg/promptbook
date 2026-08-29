@@ -1,6 +1,7 @@
 import { EventEmitter } from 'events';
 import moment from 'moment';
 import { buildCoderRunProgressSnapshot, type CoderRunProgressSnapshot } from '../common/buildCoderRunProgressSnapshot';
+import type { CoderRunControlFeedback, CoderRunControlFeedbackNotice } from '../common/CoderRunControlFeedback';
 import { CoderRunTimer } from '../common/CoderRunTimer';
 import type { PriorityFilter } from '../prompts/priorityFilter';
 import type { PromptStats } from '../prompts/types/PromptStats';
@@ -78,6 +79,7 @@ export class CoderRunUiState extends EventEmitter {
     public phase: CoderRunPhase = 'initializing';
     public statusMessage = 'Initializing...';
     public errors: string[] = [];
+    public controlFeedback: CoderRunControlFeedbackNotice | undefined;
 
     private stats: PromptStats = { done: 0, forAgent: 0, outsidePriorityRange: 0, toBeWritten: 0 };
     private readonly timer: CoderRunTimer;
@@ -276,11 +278,39 @@ export class CoderRunUiState extends EventEmitter {
     }
 
     /**
+     * Shows the answer of the runner to one pressed control key, or clears the currently shown one.
+     *
+     * Pressing one control twice in a row can produce the very same answer, for example when there is
+     * nothing to skip. The repeat count is therefore tracked here, so that even such a press changes the
+     * rendered frame and the user always sees that the key arrived.
+     */
+    public setControlFeedback(controlFeedback: CoderRunControlFeedback | undefined): void {
+        this.controlFeedback =
+            controlFeedback === undefined
+                ? undefined
+                : { ...controlFeedback, repeatCount: this.countControlFeedbackRepeat(controlFeedback) };
+        this.emitChange();
+    }
+
+    /**
      * Appends an error message to the error list shown in the UI.
      */
     public addError(errorMessage: string): void {
         this.errors.push(errorMessage);
         this.emitChange();
+    }
+
+    /**
+     * Counts how many times the shown answer repeats the previously shown one.
+     */
+    private countControlFeedbackRepeat(controlFeedback: CoderRunControlFeedback): number {
+        const previousControlFeedback = this.controlFeedback;
+        const isSameControlFeedback =
+            previousControlFeedback !== undefined &&
+            previousControlFeedback.controlKey === controlFeedback.controlKey &&
+            previousControlFeedback.message === controlFeedback.message;
+
+        return isSameControlFeedback ? previousControlFeedback.repeatCount + 1 : 1;
     }
 
     private emitChange(): void {

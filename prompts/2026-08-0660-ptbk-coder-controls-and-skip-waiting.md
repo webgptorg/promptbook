@@ -1,4 +1,4 @@
-[ ]
+[x] by Claude Code `claude-opus-5` thinking `max` - Implementation 6.38 32 minutes; Testing 15 minutes
 
 [✨🏹] Controls in promptbook coder are not very reactive, fix it.
 
@@ -40,3 +40,4 @@ ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh -
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ![alt text](screenshots/2026-08-0660-ptbk-coder-baz.png)
+

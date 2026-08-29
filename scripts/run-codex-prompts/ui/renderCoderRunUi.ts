@@ -1,13 +1,11 @@
 import moment from 'moment';
 import { emitKeypressEvents } from 'readline';
+import { applyCoderRunControlKey } from '../common/applyCoderRunControlKey';
 import {
-    getEndAfterCurrentPromptState,
-    getPauseState,
-    getPauseTargetLabel,
-    requestSkipCurrentWait,
-    toggleEndAfterCurrentPromptState,
-    togglePauseState,
-} from '../common/waitForPause';
+    CODER_RUN_CONTROL_FEEDBACK_DURATION_MS,
+    type CoderRunControlFeedback,
+} from '../common/CoderRunControlFeedback';
+import { getEndAfterCurrentPromptState, getPauseState, getPauseTargetLabel } from '../common/waitForPause';
 import { buildCoderRunUiFrame, type BuildCoderRunUiFrameOptions } from './buildCoderRunUiFrame';
 import { buildCoderRunUiTerminalFrameUpdate } from './buildCoderRunUiTerminalFrameUpdate';
 import { CoderRunUiState } from './CoderRunUiState';
@@ -148,6 +146,7 @@ export function renderCoderRunUi(
     let isRendering = false;
     let renderScheduled = false;
     let autoRefreshTimeout: NodeJS.Timeout | undefined;
+    let controlFeedbackTimeout: NodeJS.Timeout | undefined;
     let isDisposed = false;
 
     /**
@@ -223,8 +222,36 @@ export function renderCoderRunUi(
             pendingEnterLabel: state.pendingEnterLabel,
             agentOutputLines: state.agentOutputLines,
             errors: state.errors,
+            controlFeedback: state.controlFeedback,
             progress: state.getProgress(),
         });
+    }
+
+    /**
+     * Answers one pressed control key in the frame and hides that answer again after a short moment.
+     */
+    function showControlFeedback(controlFeedback: CoderRunControlFeedback): void {
+        clearControlFeedbackTimeout();
+
+        // Note: Every state change re-renders the frame, so the answer appears with the very next frame
+        state.setControlFeedback(controlFeedback);
+
+        controlFeedbackTimeout = setTimeout(() => {
+            controlFeedbackTimeout = undefined;
+            state.setControlFeedback(undefined);
+        }, CODER_RUN_CONTROL_FEEDBACK_DURATION_MS);
+    }
+
+    /**
+     * Stops the timer which hides the currently shown control answer.
+     */
+    function clearControlFeedbackTimeout(): void {
+        if (controlFeedbackTimeout === undefined) {
+            return;
+        }
+
+        clearTimeout(controlFeedbackTimeout);
+        controlFeedbackTimeout = undefined;
     }
 
     /**
@@ -265,21 +292,11 @@ export function renderCoderRunUi(
             process.exit(0);
         }
 
-        if (key.name === 'p') {
-            togglePauseState();
-            scheduleRender();
-            return;
-        }
+        // Note: [🏹] The very same key handling is shared with the plain console mode, see `applyCoderRunControlKey`
+        const controlFeedback = applyCoderRunControlKey(key.name);
 
-        if (key.name === 's') {
-            requestSkipCurrentWait();
-            scheduleRender();
-            return;
-        }
-
-        if (key.name === 'x') {
-            toggleEndAfterCurrentPromptState();
-            scheduleRender();
+        if (controlFeedback !== undefined) {
+            showControlFeedback(controlFeedback);
             return;
         }
 
@@ -311,6 +328,7 @@ export function renderCoderRunUi(
             autoRefreshTimeout = undefined;
         }
 
+        clearControlFeedbackTimeout();
         state.off('change', scheduleRender);
         process.stdin.off('keypress', keypressHandler);
         process.stdout.off('resize', scheduleRender);

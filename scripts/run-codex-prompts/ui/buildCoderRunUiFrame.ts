@@ -1,10 +1,12 @@
 import colors from 'colors';
+import type { CoderRunControlFeedbackNotice } from '../common/CoderRunControlFeedback';
 import type { CoderRunPauseState } from '../common/waitForPause';
 import { formatPriorityFilter } from '../prompts/priorityFilter';
 import type { CoderRunConfig, CoderRunPhase, CoderRunProgressSnapshot } from './CoderRunUiState';
 import type { CoderRunAgentVisual } from './buildCoderRunAgentVisual';
 import {
     buildCoderRunControlPills,
+    buildControlsBoxLines,
     buildErrorDisplayLines,
     buildLabeledSessionLine,
     buildPausePresentation,
@@ -71,6 +73,11 @@ export type BuildCoderRunUiFrameOptions = {
     readonly agentOutputLines: readonly string[];
     readonly errors: readonly string[];
     readonly progress: CoderRunProgressSnapshot;
+
+    /**
+     * Answer of the runner to the control key which was pressed last, shown in the `Controls` box.
+     */
+    readonly controlFeedback?: CoderRunControlFeedbackNotice;
 };
 
 /**
@@ -115,13 +122,16 @@ export function buildCoderRunUiFrame(options: BuildCoderRunUiFrameOptions): stri
 
     const visibleOutputLines = buildVisibleOutputLines(options.agentOutputLines);
 
-    const controls = buildCoderRunControlPills({
-        phase: options.phase,
-        pauseControl: pausePresentation.pauseControl,
-        pendingEnterLabel: options.pendingEnterLabel,
-        isEndAfterCurrentPromptRequested: options.isEndAfterCurrentPromptRequested,
-        sessionTotal: options.progress.sessionTotal,
-    }).join('  ');
+    const controlsBoxLines = buildControlsBoxLines({
+        controlPills: buildCoderRunControlPills({
+            phase: options.phase,
+            pauseControl: pausePresentation.pauseControl,
+            pendingEnterLabel: options.pendingEnterLabel,
+            isEndAfterCurrentPromptRequested: options.isEndAfterCurrentPromptRequested,
+            sessionTotal: options.progress.sessionTotal,
+        }),
+        controlFeedback: options.controlFeedback,
+    });
 
     const frame = [
         ...buildFrameHeaderVisual(options, totalWidth),
@@ -144,7 +154,7 @@ export function buildCoderRunUiFrame(options: BuildCoderRunUiFrameOptions): stri
         );
     }
 
-    frame.push(...renderBox('Controls', [controls], totalWidth, colors.white.bold));
+    frame.push(...renderBox('Controls', controlsBoxLines, totalWidth, colors.white.bold));
     return frame;
 }
 

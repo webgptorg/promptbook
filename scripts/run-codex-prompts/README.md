@@ -59,6 +59,17 @@ P  Pause  S  Skip current waiting  X  End with this prompt  CTRL+C  Exit
 
 Press `X` again after requesting the dynamic end to continue the full current run.
 
+Every press is answered right under the pills, so you never have to guess whether the key arrived:
+
+```text
+» S  Skipping the current waiting, continuing right now
+» S  Nothing to skip, the coder is not waiting right now (×2)
+```
+
+The answer stays on screen for a few seconds and repeated identical answers are counted, so pressing the same control twice redraws the frame too. In `--no-ui` mode the very same line is printed to the console instead.
+
+Whenever `S  Skip current waiting` is offered, the wait really ends on that key press: the `--wait-between-prompts` and `--wait-after-prompt` pacing, the `--wait-after-error` cool-down, the Claude Code session-limit wait before a `--resume` resurrection, and the `ptbk coder server` keep-alive poll.
+
 ### Examples:
 
 ```bash

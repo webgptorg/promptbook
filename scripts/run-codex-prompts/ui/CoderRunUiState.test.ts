@@ -26,6 +26,36 @@ describe('CoderRunUiState', () => {
         expect(progress.isEstimatedTotalKnown).toBe(true);
     });
 
+    it('re-renders and counts repeats for every answered control key press', () => {
+        const state = new CoderRunUiState(moment());
+        const onChange = jest.fn();
+        const skipFeedback = {
+            controlKey: 'S',
+            message: 'Nothing to skip, the coder is not waiting right now',
+            tone: 'info',
+        } as const;
+
+        state.on('change', onChange);
+
+        state.setControlFeedback(skipFeedback);
+        expect(state.controlFeedback).toEqual({ ...skipFeedback, repeatCount: 1 });
+
+        state.setControlFeedback(skipFeedback);
+        expect(state.controlFeedback).toEqual({ ...skipFeedback, repeatCount: 2 });
+
+        state.setControlFeedback({
+            controlKey: 'P',
+            message: 'Resuming the run',
+            tone: 'success',
+        });
+        expect(state.controlFeedback).toMatchObject({ controlKey: 'P', repeatCount: 1 });
+
+        state.setControlFeedback(undefined);
+        expect(state.controlFeedback).toBeUndefined();
+
+        expect(onChange).toHaveBeenCalledTimes(4);
+    });
+
     it('uses the configured run limit for rich UI session progress', () => {
         const state = new CoderRunUiState(moment());
 

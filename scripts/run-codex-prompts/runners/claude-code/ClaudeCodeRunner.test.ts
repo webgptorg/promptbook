@@ -1,5 +1,6 @@
 import { $runGoScriptWithOutput } from '../../common/runGoScript/$runGoScriptWithOutput';
 import type { WaitForCoderRunPauseCheckpoint } from '../../common/CoderRunPauseCheckpoint';
+import { requestSkipCurrentWait, resetCoderRunControls } from '../../common/waitForPause';
 import { ClaudeCodeRunner } from './ClaudeCodeRunner';
 
 jest.mock('../../common/runGoScript/$runGoScriptWithOutput', () => ({
@@ -35,6 +36,7 @@ describe('ClaudeCodeRunner', () => {
     });
 
     afterEach(() => {
+        resetCoderRunControls();
         jest.useRealTimers();
     });
 
@@ -115,5 +117,31 @@ describe('ClaudeCodeRunner', () => {
         expect(waitForPauseCheckpoint.mock.calls.map(([checkpoint]) => checkpoint.checkpointLabel)).toContain(
             'resurrecting the Claude Code session with --resume',
         );
+    });
+
+    it('resumes right away when the session-limit wait is skipped with the `S` control', async () => {
+        // Note: The reset is one hour away, so only an accepted skip can end this wait during the test
+        jest.useFakeTimers({ now: new Date(1000 * 1000).getTime() - 60 * 60 * 1000 });
+        ($runGoScriptWithOutput as jest.MockedFunction<typeof $runGoScriptWithOutput>)
+            .mockRejectedValueOnce(new Error(CLAUDE_CODE_SESSION_LIMIT_OUTPUT))
+            .mockResolvedValueOnce(CLAUDE_CODE_RESULT_JSON);
+        const runner = new ClaudeCodeRunner({ model: 'claude-opus-4-8' });
+
+        const runPromise = runner.runPrompt({
+            prompt: 'Prompt body',
+            projectPath: 'C:\\repo',
+            scriptPath: 'C:\\repo\\temp\\runner.sh',
+            preserveArtifactsOnSuccess: false,
+            shouldPrintLiveOutput: false,
+        });
+
+        // Note: One tick lets the runner reach its session-limit wait and register it as skippable
+        await jest.advanceTimersByTimeAsync(0);
+
+        expect(requestSkipCurrentWait()).toBe('REQUESTED_SKIP');
+        await jest.advanceTimersByTimeAsync(0);
+
+        await expect(runPromise).resolves.toEqual({ usage: expect.anything() });
+        expect($runGoScriptWithOutput).toHaveBeenCalledTimes(2);
     });
 });

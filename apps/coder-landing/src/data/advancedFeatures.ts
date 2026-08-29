@@ -91,7 +91,7 @@ export const ADVANCED_FEATURES: ReadonlyArray<AdvancedFeatureDefinition> = [
     {
         title: 'Pacing and retries',
         description:
-            'Wait a fixed wall-clock duration between prompts. The clock keeps running through a pause and through sleep. Press S to skip the current wait, and errors retry after a cool-down.',
+            'Wait a fixed wall-clock duration between prompts. The clock keeps running through a pause and through sleep, and errors retry after a cool-down. Whenever S is offered it skips whatever the coder waits for right now, down to the harness session limit that would otherwise hold the run for hours.',
         sampleCommand: 'ptbk coder run --harness claude-code --wait-between-prompts 30m --wait-after-error 10m',
     },
     {
@@ -114,7 +114,7 @@ export const ADVANCED_FEATURES: ReadonlyArray<AdvancedFeatureDefinition> = [
     {
         title: 'Human in the loop',
         description:
-            'Confirm each prompt yourself with --no-auto. Press P to pause a running queue, or X to end it after the current prompt.',
+            'Confirm each prompt yourself with --no-auto. Press P to pause a running queue, or X to end it after the current prompt. Every press is answered in the Controls panel on the next frame, so you can tell that the key landed even when it changed nothing.',
         sampleCommand: 'ptbk coder run --harness claude-code --no-auto',
     },
     {

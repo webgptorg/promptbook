@@ -14,14 +14,15 @@ import { loadCachedAveragePromptDurationMs } from '../common/coderRunEstimateCac
 import { resolveCoderAgent } from '../common/resolveCoderAgent';
 import { sleepWithCountdown } from '../common/sleepWithCountdown';
 import { resolveCoderContext } from '../common/resolveCoderContext';
+import { listenForCoderRunControls } from '../common/listenForCoderRunControls';
 import {
     announcePauseTargetLabel,
     checkPause,
     getEndAfterCurrentPromptState,
-    listenForCoderRunControls,
     resetCoderRunControls,
     resetPauseTargetLabel,
 } from '../common/waitForPause';
+import { waitForSkippableWorldTimeDeadline } from '../common/waitForSkippableWorldTimeDeadline';
 import { printAgentGitIdentityTipIfNeeded } from '../git/agentGitIdentity';
 import { captureCoderCommitScope, resolveCoderCommitScopePaths, type CoderCommitScope } from '../git/coderCommitScope';
 import { commitChanges } from '../git/commitChanges';
@@ -200,7 +201,12 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
 
                 if (options.keepAlive) {
                     announceKeepAliveStatus(promptQueueSnapshot, isRichUiEnabled, uiHandle);
-                    await new Promise<void>((resolve) => setTimeout(resolve, KEEP_ALIVE_POLL_INTERVAL_MS));
+                    // Note: The keep-alive poll runs in the `waiting` phase, where `S  Skip current waiting`
+                    //       is offered, so pressing `S` looks for new prompts right away
+                    await waitForSkippableWorldTimeDeadline({
+                        deadlineTimeMs: Date.now() + KEEP_ALIVE_POLL_INTERVAL_MS,
+                        pollIntervalMs: KEEP_ALIVE_POLL_INTERVAL_MS,
+                    });
                     continue;
                 }
                 finishWhenNoPromptIsAvailable(promptQueueSnapshot, isRichUiEnabled, uiHandle);

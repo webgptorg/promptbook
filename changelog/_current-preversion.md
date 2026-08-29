@@ -1,3 +1,27 @@
+-   Made the terminal controls of **ptbk coder** answer every key press. Pressing `P`, `S` or `X` used to be a leap of
+    faith: `S Skip current waiting` in particular changed nothing on screen, so there was no way to tell whether the key
+    had arrived, whether the wait was being skipped, or whether the terminal had simply stopped repainting.
+
+    -   **Every press is now answered inside the `Controls` box**, on the frame that follows it, for example
+        `» S Skipping the current waiting, continuing right now`. A press which changes nothing is answered too
+        (`» S Nothing to skip, the coder is not waiting right now`), because "nothing happened" and "the key was lost"
+        must not look the same. The answer fades after a few seconds and repeated identical answers are counted
+        (`(×2)`), so even pressing the same control twice redraws the frame.
+    -   **`S` now really skips the wait it is offered for.** The control is shown during every `waiting` phase, but two
+        of those waits were never registered as skippable and quietly ignored the key: the Claude Code session-limit
+        wait before a `--resume` resurrection, which can hold a run for hours, and the `ptbk coder server` keep-alive
+        poll. Both go through
+        [`waitForSkippableWorldTimeDeadline`](../scripts/run-codex-prompts/common/waitForSkippableWorldTimeDeadline.ts)
+        now, the single way the coder waits for a deadline the user may cut short, which
+        [`sleepWithCountdown`](../scripts/run-codex-prompts/common/sleepWithCountdown.ts) already used for the pacing
+        and error waits.
+    -   **The keys are handled in exactly one place.** The rich terminal UI and the plain `--no-ui` console listener
+        each had their own copy of the `P`/`S`/`X` dispatch, and only the plain one said anything back.
+        [`applyCoderRunControlKey`](../scripts/run-codex-prompts/common/applyCoderRunControlKey.ts) performs the action
+        and describes it, and both front ends render that one description through
+        [`formatCoderRunControlFeedback`](../scripts/run-codex-prompts/common/formatCoderRunControlFeedback.ts). The
+        `ptbk agent-folder run` dashboard, which shares the same renderer, answers its controls the same way.
+
 -   Took the ASCII `PTBK.IO` wordmark out of the **ptbk coder** terminal dashboard. The area above the `Session` box now
     stays empty until the `--agent` avatar has been rendered, instead of being filled with a block-character logo that
     was only ever a placeholder. It flashed at every start-up, and it stayed on screen for the whole run whenever no

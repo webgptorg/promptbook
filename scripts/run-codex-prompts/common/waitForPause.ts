@@ -1,5 +1,4 @@
 import colors from 'colors';
-import * as readline from 'readline';
 
 /**
  * Default label used before the next pause checkpoint is known.
@@ -218,58 +217,6 @@ export function resetCoderRunControls(): void {
     activeSkippableWaitToken = undefined;
     isSkipCurrentWaitRequested = false;
     SKIP_CURRENT_WAIT_RESOLVERS.clear();
-}
-
-/**
- * Listens for the terminal control keys.
- */
-export function listenForCoderRunControls(): void {
-    if (!process.stdin.isTTY) {
-        return;
-    }
-
-    readline.emitKeypressEvents(process.stdin);
-    process.stdin.setRawMode(true);
-    process.stdin.on('keypress', (str, key) => {
-        if (key.ctrl && key.name === 'c') {
-            process.exit();
-        }
-
-        if (key.name === 'p') {
-            const toggleResult = togglePauseState();
-
-            if (toggleResult === 'REQUESTED_PAUSE') {
-                // Note: Using console.log here which adds a new line.
-                // This is intentional to prevent the message from being overwritten.
-                console.log(colors.bgWhite('Pausing...'));
-            } else if (toggleResult === 'CANCELLED_PAUSE') {
-                console.log(colors.green('Pause cancelled. Resuming...'));
-            }
-        }
-
-        if (key.name === 's') {
-            if (requestSkipCurrentWait() === 'REQUESTED_SKIP') {
-                console.log(colors.green('Skipping current wait...'));
-            }
-        }
-
-        if (key.name === 'x') {
-            const toggleResult = toggleEndAfterCurrentPromptState();
-
-            if (toggleResult === 'REQUESTED_END') {
-                console.log(colors.yellow('Will end after the current prompt finishes.'));
-            } else {
-                console.log(colors.green('End request cancelled. Continuing all prompts.'));
-            }
-        }
-    });
-}
-
-/**
- * Backwards-compatible alias for the shared terminal controls listener.
- */
-export function listenForPause(): void {
-    listenForCoderRunControls();
 }
 
 /**

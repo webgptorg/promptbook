@@ -5,6 +5,7 @@ import type {
 } from '../../run-codex-prompts/ui/buildCoderRunUiFrame';
 import {
     buildControlPills,
+    buildControlsBoxLines,
     buildLabeledSessionLine,
     buildPausePresentation,
     buildScriptPathSessionRows,
@@ -83,10 +84,13 @@ export function buildAgentRunUiFrame(options: BuildAgentRunUiFrameOptions): stri
         : [options.statusMessage, ...options.detailLines.map((detailLine) => `• ${detailLine}`)];
     const userMessageBoxes = buildUserMessageBoxes(options, totalWidth);
     const visibleOutputLines = buildVisibleOutputLines(options.agentOutputLines);
-    const controls = buildControlPills({
-        pauseControl: pausePresentation.pauseControl,
-        pendingEnterLabel: options.pendingEnterLabel,
-    }).join('  ');
+    const controlsBoxLines = buildControlsBoxLines({
+        controlPills: buildControlPills({
+            pauseControl: pausePresentation.pauseControl,
+            pendingEnterLabel: options.pendingEnterLabel,
+        }),
+        controlFeedback: options.controlFeedback,
+    });
     const frame = [
         ...buildAgentRunInitialsVisual(options.config.localAgentName || 'Local Agent', totalWidth),
         '',
@@ -108,7 +112,7 @@ export function buildAgentRunUiFrame(options: BuildAgentRunUiFrameOptions): stri
         );
     }
 
-    frame.push(...renderBox('Controls', [controls], totalWidth, colors.white.bold));
+    frame.push(...renderBox('Controls', controlsBoxLines, totalWidth, colors.white.bold));
     return frame;
 }
 

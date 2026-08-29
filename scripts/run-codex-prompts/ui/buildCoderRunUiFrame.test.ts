@@ -78,6 +78,54 @@ describe('buildCoderRunUiFrame', () => {
         expect(output).toContain('CTRL+C  Exit');
     });
 
+    it('answers a pressed control key inside the Controls box', () => {
+        const frameWithoutFeedback = buildCoderRunUiFrame(createFrameOptions());
+        const frameWithFeedback = buildCoderRunUiFrame(
+            createFrameOptions({
+                controlFeedback: {
+                    controlKey: 'S',
+                    message: 'Skipping the current waiting, continuing right now',
+                    tone: 'success',
+                    repeatCount: 1,
+                },
+            }),
+        );
+        const output = frameWithFeedback.map(stripAnsi).join('\n');
+
+        expect(output).toContain('S  Skip current waiting');
+        expect(output).toContain('S  Skipping the current waiting, continuing right now');
+        expect(output).not.toContain('(×');
+        expect(frameWithFeedback).toHaveLength(frameWithoutFeedback.length + 1);
+    });
+
+    it('counts repeated identical answers so every key press changes the frame', () => {
+        const firstPressFrame = buildCoderRunUiFrame(
+            createFrameOptions({
+                controlFeedback: {
+                    controlKey: 'S',
+                    message: 'Nothing to skip, the coder is not waiting right now',
+                    tone: 'info',
+                    repeatCount: 1,
+                },
+            }),
+        );
+        const secondPressFrame = buildCoderRunUiFrame(
+            createFrameOptions({
+                controlFeedback: {
+                    controlKey: 'S',
+                    message: 'Nothing to skip, the coder is not waiting right now',
+                    tone: 'info',
+                    repeatCount: 2,
+                },
+            }),
+        );
+
+        expect(secondPressFrame.map(stripAnsi).join('\n')).toContain(
+            'S  Nothing to skip, the coder is not waiting right now (×2)',
+        );
+        expect(secondPressFrame).not.toEqual(firstPressFrame);
+    });
+
     it('renders the cancel-end control with the current run total', () => {
         const output = buildCoderRunUiFrame(
             createFrameOptions({
