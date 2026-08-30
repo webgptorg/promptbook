@@ -30,3 +30,51 @@ And this will continue the interrupted work.
 
 ![alt text](screenshots/2026-08-0670-ptbk-coder-git-changes-continue.png)
 
+---
+
+[ ]
+
+[✨🛼] Build report progresively as time goes on when using `--git-changes continue`
+
+**1. Do not do:**
+
+```markdown
+[^] by OpenAI Codex `gpt-5.6-terra` thinking `max`, started by Claude Code `claude-opus-5` thinking `max` - Implementation in progress
+```
+
+**1. Do instead:**
+
+```markdown
+[^] by Claude Code `claude-opus-5` thinking `max`, interrupted, continued by OpenAI Codex `gpt-5.6-terra` thinking `max` - Implementation in progress
+```
+
+**2. Do not do:**
+
+```markdown
+[x] by OpenAI Codex `gpt-5.6-terra` thinking `max` (ChatGPT account), started by Claude Code `claude-opus-5` thinking `max` - Implementation ~$0.3108 9 minutes; Testing 6 minutes
+```
+
+**2. Do instead:**
+
+```markdown
+[x] by Claude Code `claude-opus-5` thinking `max` (ChatGPT account), interrupted, continued by OpenAI Codex `gpt-5.6-terra` thinking `max` (ChatGPT account)
+```
+
+-   Every part of the report should be built progressively as time goes on
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
+-   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
+
+---
+
+[ ]
+
+[✨🛼] When `--git-changes continue` is used do not allow to use `--test-before yes-and-fix`
+
+-   This combination does not make sense and should be disallowed.
+-   `--test-before yes-and-fix` is useful to test the code before anything is done, but when `--git-changes continue` is used, it means that the code has already been modified and the test was already run, and also the code in in mid of being modified, so it does not make sense to run the test before anything is done.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
+-   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
+
+![alt text](screenshots/2026-08-0670-ptbk-coder-git-changes-continue-1.png)
