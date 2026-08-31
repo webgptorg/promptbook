@@ -1,7 +1,7 @@
 import type { string_char_emoji } from '../../../src/types/typeAliasEmoji';
 import { $shuffleItems } from '../../find-fresh-emoji-tags/utils/$shuffleItems';
-import { EMOJIS_OF_SINGLE_PICTOGRAM } from '../../find-fresh-emoji-tags/utils/emojis';
 import { scanEmojiTagUsage } from '../emojiTags/scanEmojiTagUsage';
+import { VALID_SINGLE_PICTOGRAM_EMOJIS } from '../emojiTags/validSinglePictogramEmojis';
 
 /**
  * Emoji prefix used for prompt tags (e.g. `[prefix + emoji]`).
@@ -78,11 +78,9 @@ export async function getFreshPromptEmojiTags(options: PromptEmojiTagOptions): P
         includeGlobs,
         ignoreGlobs,
         tagPrefix,
-        candidateEmojis: EMOJIS_OF_SINGLE_PICTOGRAM,
+        candidateEmojis: VALID_SINGLE_PICTOGRAM_EMOJIS,
     });
-    const freshEmojis = new Set(
-        Array.from(EMOJIS_OF_SINGLE_PICTOGRAM).filter((emoji) => !usedEmojis.has(emoji)),
-    );
+    const freshEmojis = new Set(Array.from(VALID_SINGLE_PICTOGRAM_EMOJIS).filter((emoji) => !usedEmojis.has(emoji)));
     const shuffledEmojis = $shuffleItems(...Array.from(freshEmojis));
     const selectedEmojis = shuffledEmojis.slice(0, count);
 

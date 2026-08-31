@@ -1,3 +1,4 @@
+import { createHash } from 'crypto';
 import { readFileSync, statSync } from 'fs';
 import { mkdir, readFile, writeFile } from 'fs/promises';
 import glob from 'glob-promise';
@@ -28,7 +29,7 @@ const EMOJI_TAG_SCAN_CACHE_FILE_PATH = `${PTBK_CODER_CACHE_DIRECTORY_PATH}/emoji
 /**
  * Current schema version of the persisted emoji-tag scan cache.
  */
-const EMOJI_TAG_SCAN_CACHE_VERSION = 1;
+const EMOJI_TAG_SCAN_CACHE_VERSION = 2;
 
 /**
  * Options controlling one repository emoji-tag scan.
@@ -99,6 +100,10 @@ type EmojiTagScanCacheFile = {
  */
 type EmojiTagScanCache = {
     readonly version: number;
+    /**
+     * Stable fingerprint of the candidate emoji set that produced this cache.
+     */
+    readonly candidateEmojisFingerprint: string;
     readonly files: Readonly<Record<string, EmojiTagScanCacheFile>>;
 };
 
@@ -112,8 +117,9 @@ export async function scanEmojiTagUsage(options: EmojiTagScanOptions): Promise<E
     const tagPrefix = options.tagPrefix ?? '';
     const filesToScan = await findFilesToScan(rootDir, includeGlobs, ignoreGlobs);
     const matcher = buildEmojiTagMatcher(options.candidateEmojis, tagPrefix);
+    const candidateEmojisFingerprint = createCandidateEmojisFingerprint(options.candidateEmojis);
     const usedEmojis = new Set<string_char_emoji>();
-    const existingCache = await readEmojiTagScanCache(rootDir);
+    const existingCache = await readEmojiTagScanCache(rootDir, candidateEmojisFingerprint);
     const nextCacheFiles: Record<string, EmojiTagScanCacheFile> = { ...existingCache.files };
     let isCacheDirty = false;
     let scannedFileCount = 0;
@@ -157,6 +163,7 @@ export async function scanEmojiTagUsage(options: EmojiTagScanOptions): Promise<E
     if (isCacheDirty) {
         await writeEmojiTagScanCache(rootDir, {
             version: EMOJI_TAG_SCAN_CACHE_VERSION,
+            candidateEmojisFingerprint,
             files: nextCacheFiles,
         });
     }
@@ -269,12 +276,12 @@ function updateCachedFile(
 /**
  * Loads the persisted emoji-tag scan cache and falls back to an empty cache when it is missing or invalid.
  */
-async function readEmojiTagScanCache(rootDir: string): Promise<EmojiTagScanCache> {
+async function readEmojiTagScanCache(rootDir: string, candidateEmojisFingerprint: string): Promise<EmojiTagScanCache> {
     try {
         const cacheContent = await readFile(join(rootDir, EMOJI_TAG_SCAN_CACHE_FILE_PATH), 'utf-8');
-        return normalizeEmojiTagScanCache(JSON.parse(cacheContent));
+        return normalizeEmojiTagScanCache(JSON.parse(cacheContent), candidateEmojisFingerprint);
     } catch {
-        return createEmptyEmojiTagScanCache();
+        return createEmptyEmojiTagScanCache(candidateEmojisFingerprint);
     }
 }
 
@@ -293,9 +300,14 @@ async function writeEmojiTagScanCache(rootDir: string, cache: EmojiTagScanCache)
 /**
  * Normalizes one parsed cache payload into the current typed cache shape.
  */
-function normalizeEmojiTagScanCache(value: unknown): EmojiTagScanCache {
-    if (!isPlainObject(value) || value.version !== EMOJI_TAG_SCAN_CACHE_VERSION || !isPlainObject(value.files)) {
-        return createEmptyEmojiTagScanCache();
+function normalizeEmojiTagScanCache(value: unknown, candidateEmojisFingerprint: string): EmojiTagScanCache {
+    if (
+        !isPlainObject(value) ||
+        value.version !== EMOJI_TAG_SCAN_CACHE_VERSION ||
+        value.candidateEmojisFingerprint !== candidateEmojisFingerprint ||
+        !isPlainObject(value.files)
+    ) {
+        return createEmptyEmojiTagScanCache(candidateEmojisFingerprint);
     }
 
     const files: Record<string, EmojiTagScanCacheFile> = {};
@@ -330,6 +342,7 @@ function normalizeEmojiTagScanCache(value: unknown): EmojiTagScanCache {
 
     return {
         version: EMOJI_TAG_SCAN_CACHE_VERSION,
+        candidateEmojisFingerprint,
         files,
     };
 }
@@ -337,11 +350,26 @@ function normalizeEmojiTagScanCache(value: unknown): EmojiTagScanCache {
 /**
  * Creates an empty cache payload for emoji-tag scans.
  */
-function createEmptyEmojiTagScanCache(): EmojiTagScanCache {
+function createEmptyEmojiTagScanCache(candidateEmojisFingerprint: string): EmojiTagScanCache {
     return {
         version: EMOJI_TAG_SCAN_CACHE_VERSION,
+        candidateEmojisFingerprint,
         files: {},
     };
+}
+
+/**
+ * Creates a stable fingerprint for the complete candidate emoji set.
+ *
+ * A cached scan is only valid when it was created from the exact same candidates.
+ * Otherwise a tag that was not part of an older catalogue could be mistaken for a
+ * fresh tag after the catalogue grows.
+ *
+ * @private internal utility of `scanEmojiTagUsage`
+ */
+function createCandidateEmojisFingerprint(candidateEmojis: ReadonlySet<string_char_emoji>): string {
+    const normalizedCandidateEmojis = Array.from(candidateEmojis).sort().join('\u0000');
+    return createHash('sha256').update(normalizedCandidateEmojis, 'utf-8').digest('hex');
 }
 
 /**

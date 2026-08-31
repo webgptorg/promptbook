@@ -5,8 +5,8 @@ import * as dotenv from 'dotenv';
 import colors from 'colors';
 import { basename } from 'path';
 import { $shuffleItems } from './utils/$shuffleItems';
-import { EMOJIS, EMOJIS_OF_SINGLE_PICTOGRAM } from './utils/emojis';
 import { scanEmojiTagUsage } from '../utils/emojiTags/scanEmojiTagUsage';
+import { VALID_SINGLE_PICTOGRAM_EMOJIS } from '../utils/emojiTags/validSinglePictogramEmojis';
 
 // Note: When run as a standalone script, call the exported function
 if (require.main === module) {
@@ -40,11 +40,7 @@ export async function findFreshEmojiTag(): Promise<void> {
 
     console.info(`🤪  Find fresh emoji tag`);
 
-    // Do here stuff you want to test
-    //========================================>
-    EMOJIS;
-
-    const allEmojis = EMOJIS_OF_SINGLE_PICTOGRAM;
+    const allEmojis = VALID_SINGLE_PICTOGRAM_EMOJIS;
     const { usedEmojis } = await scanEmojiTagUsage({
         candidateEmojis: allEmojis,
         tagPrefix: '',
@@ -65,10 +61,6 @@ export async function findFreshEmojiTag(): Promise<void> {
         const tag = `[${emoji}]`;
         console.info(colors.bgWhite(tag));
     }
-
-    //========================================/
-
-    // console.info(`[ Done 🤪  Find fresh emoji tag ]`);
 }
 
 // Note: [🟡] Code for CLI support script [find-fresh-emoji-tags](scripts/find-fresh-emoji-tags/find-fresh-emoji-tags.ts) should never be published outside of `@promptbook/cli`

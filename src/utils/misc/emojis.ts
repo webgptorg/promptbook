@@ -114,14 +114,14 @@ export const EMOJIS_IN_CATEGORIES: Record<string, ReadonlyArray<string_char_emoj
 };
 
 /**
- * All possible emoji chars like "🍆", "🍡", "🍤"...
+ * Curated repository catalogue of emoji and legacy pictographic symbols.
  *
- * @deprecated Use /\p{Extended_Pictographic}/ instead
+ * Code that needs to generate a valid Unicode emoji should apply its own validation
+ * to this catalogue rather than assume every entry is an emoji.
  *
  * @private within the repository
  */
 export const EMOJIS: Set<string_char_emoji> = new Set(Object.values(EMOJIS_IN_CATEGORIES).flat());
 
-// TODO: [💴] DRY - just one version of emojis.ts
 // TODO: Mirror from Collboard or some common package
 // Note: [💞] Ignore a discrepancy between file name and entity name

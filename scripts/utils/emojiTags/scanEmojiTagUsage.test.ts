@@ -103,6 +103,29 @@ describe('scanEmojiTagUsage', () => {
         expect(updatedScan.reusedFileCount).toBe(0);
     });
 
+    it('invalidates cached scans when the candidate emoji set changes', async () => {
+        const rootDir = await createTemporaryDirectory(temporaryDirectories);
+        await writeFile(join(rootDir, 'notes.md'), 'Existing tag [✨🛼]\n', 'utf-8');
+
+        const firstScan = await scanEmojiTagUsage({
+            rootDir,
+            tagPrefix: '✨',
+            candidateEmojis: createCandidateEmojiSet('😀'),
+        });
+
+        expect(sortEmojis(firstScan.usedEmojis)).toEqual([]);
+
+        const secondScan = await scanEmojiTagUsage({
+            rootDir,
+            tagPrefix: '✨',
+            candidateEmojis: createCandidateEmojiSet('😀', '🛼'),
+        });
+
+        expect(sortEmojis(secondScan.usedEmojis)).toEqual(['🛼']);
+        expect(secondScan.scannedFileCount).toBe(1);
+        expect(secondScan.reusedFileCount).toBe(0);
+    });
+
     it('supports scans without any tag prefix for plain `[emoji]` tags', async () => {
         const rootDir = await createTemporaryDirectory(temporaryDirectories);
         await writeFile(join(rootDir, 'plain-tags.md'), 'Plain tag [😀]\n', 'utf-8');

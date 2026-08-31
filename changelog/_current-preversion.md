@@ -1,3 +1,5 @@
+-   Fixed generated `ptbk` prompt emoji tags so `coder add`, `coder generate-boilerplates`, refactor prompt generation, and `coder find-fresh-emoji-tags` share one Unicode-valid single-pictogram catalogue instead of a duplicated legacy list containing non-emoji symbols. The emoji-tag scan cache now records the candidate catalogue fingerprint and rescans when it changes, so an already assigned tag such as `[✨🛼]` is not mistaken for a fresh tag after an update.
+
 -   Added remaining subscription-limit visibility to the rich **ptbk coder** terminal dashboard.
 
     -   The `Session` box now lists every rolling limit a selected harness reports, including its remaining percentage
