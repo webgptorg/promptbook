@@ -1,10 +1,17 @@
 /**
- * Separator which introduces the harness that started a prompt another harness has taken over.
+ * Separator between consecutive harness reports in the chronological history of one continued prompt.
  *
- * It is used both for writing and for reading the attribution, so the status line of a continued prompt
- * stays parseable when yet another harness continues it later.
+ * It is used both for writing and reading, so each `--git-changes continue` invocation can extend the
+ * report that the preceding invocation left in the prompt status line.
  */
-const STARTED_BY_SEPARATOR = ', started by ';
+const INTERRUPTED_CONTINUED_BY_SEPARATOR = ', interrupted, continued by ';
+
+/**
+ * Separator written by earlier versions of `ptbk coder`, whose continuation attribution was reverse-ordered.
+ *
+ * Existing interrupted prompts must remain resumable after the report format becomes chronological.
+ */
+const LEGACY_STARTED_BY_SEPARATOR = ', started by ';
 
 /**
  * Matches the attribution of one status line, which reaches from `by ` up to the step summary.
@@ -12,11 +19,18 @@ const STARTED_BY_SEPARATOR = ', started by ';
 const PROMPT_RUNNER_ATTRIBUTION_PATTERN = /(?:^|\s)by (?<attribution>.*?)(?: - |$)/u;
 
 /**
+ * Ordered runner signatures recorded in a prompt status line.
+ *
+ * The first signature started the work and every following signature continued an interrupted run.
+ */
+export type PromptRunnerAttribution = ReadonlyArray<string>;
+
+/**
  * Formats who worked on one prompt for its status line.
  *
  * Produces `` by Claude Code `claude-opus-5` `` for a prompt implemented by a single harness and
- * `` by Claude Code `claude-opus-5`, started by OpenAI Codex `gpt-5.6-luna` `` for a prompt which one
- * harness started and another one continued through `--git-changes continue`.
+ * `` by OpenAI Codex `gpt-5.6-luna`, interrupted, continued by Claude Code `claude-opus-5` `` for a
+ * prompt which one harness started and another one continued through `--git-changes continue`.
  */
 export function formatPromptRunnerAttribution(options: {
     /**
@@ -25,39 +39,91 @@ export function formatPromptRunnerAttribution(options: {
     readonly currentRunnerSignature: string;
 
     /**
-     * Harness which left the prompt in the middle of its implementation, when the work was taken over.
+     * Chronological runner report read from the interrupted prompt before its status line is rewritten.
      */
-    readonly startedByRunnerSignature?: string;
+    readonly previousRunnerSignatures?: PromptRunnerAttribution;
 }): string {
-    const { currentRunnerSignature, startedByRunnerSignature } = options;
+    const { currentRunnerSignature, previousRunnerSignatures } = options;
+    const runnerSignatures = [...(previousRunnerSignatures ?? [])];
 
-    if (startedByRunnerSignature === undefined || startedByRunnerSignature === currentRunnerSignature) {
+    const latestRunnerSignature = runnerSignatures.at(-1);
+
+    if (latestRunnerSignature === undefined) {
         return `by ${currentRunnerSignature}`;
     }
 
-    return `by ${currentRunnerSignature}${STARTED_BY_SEPARATOR}${startedByRunnerSignature}`;
+    if (isSameRunnerSignature(latestRunnerSignature, currentRunnerSignature)) {
+        runnerSignatures[runnerSignatures.length - 1] = resolveLatestRunnerSignature(
+            latestRunnerSignature,
+            currentRunnerSignature,
+        );
+    } else {
+        runnerSignatures.push(currentRunnerSignature);
+    }
+
+    return `by ${runnerSignatures.join(INTERRUPTED_CONTINUED_BY_SEPARATOR)}`;
 }
 
 /**
- * Reads which harness started the work recorded on one prompt status line.
+ * Reads the chronological harness report recorded on one prompt status line.
  *
- * A line written by a single harness names that harness, and a line of a prompt which was already taken
- * over keeps naming the harness which started it, so the original author survives any number of takeovers.
+ * A line written by a single harness produces one signature. A line which has already been continued produces
+ * every signature in the order in which it worked on the prompt, so another continuation can append to it.
  */
-export function parsePromptStartedByRunnerSignature(statusLine: string): string | undefined {
+export function parsePromptRunnerAttribution(statusLine: string): PromptRunnerAttribution | undefined {
     const attribution = statusLine.match(PROMPT_RUNNER_ATTRIBUTION_PATTERN)?.groups?.attribution?.trim();
 
     if (!attribution) {
         return undefined;
     }
 
-    const startedBySeparatorIndex = attribution.indexOf(STARTED_BY_SEPARATOR);
+    const legacyStartedBySeparatorIndex = attribution.indexOf(LEGACY_STARTED_BY_SEPARATOR);
 
-    if (startedBySeparatorIndex === -1) {
-        return attribution;
+    if (legacyStartedBySeparatorIndex !== -1) {
+        const currentRunnerSignature = attribution.slice(0, legacyStartedBySeparatorIndex).trim();
+        const startedByRunnerSignature = attribution
+            .slice(legacyStartedBySeparatorIndex + LEGACY_STARTED_BY_SEPARATOR.length)
+            .trim();
+
+        return toPromptRunnerAttribution([startedByRunnerSignature, currentRunnerSignature]);
     }
 
-    return attribution.slice(startedBySeparatorIndex + STARTED_BY_SEPARATOR.length).trim() || undefined;
+    return toPromptRunnerAttribution(attribution.split(INTERRUPTED_CONTINUED_BY_SEPARATOR));
+}
+
+/**
+ * Keeps the authentication label that is already known when the same harness resumes its own work before
+ * reporting another label, and otherwise upgrades that last report with the newly known label.
+ */
+function resolveLatestRunnerSignature(latestRunnerSignature: string, currentRunnerSignature: string): string {
+    if (currentRunnerSignature.startsWith(`${latestRunnerSignature} (`)) {
+        return currentRunnerSignature;
+    }
+
+    return latestRunnerSignature;
+}
+
+/**
+ * Checks whether two report signatures describe the same harness/model/thinking configuration, allowing the
+ * newer signature to add its authentication label.
+ */
+function isSameRunnerSignature(latestRunnerSignature: string, currentRunnerSignature: string): boolean {
+    return (
+        latestRunnerSignature === currentRunnerSignature ||
+        latestRunnerSignature.startsWith(`${currentRunnerSignature} (`) ||
+        currentRunnerSignature.startsWith(`${latestRunnerSignature} (`)
+    );
+}
+
+/**
+ * Normalizes parsed signatures and rejects malformed or empty attribution fragments.
+ */
+function toPromptRunnerAttribution(runnerSignatures: ReadonlyArray<string>): PromptRunnerAttribution | undefined {
+    const normalizedRunnerSignatures = runnerSignatures
+        .map((runnerSignature) => runnerSignature.trim())
+        .filter(Boolean);
+
+    return normalizedRunnerSignatures.length === 0 ? undefined : normalizedRunnerSignatures;
 }
 
 // Note: [💞] Ignore a discrepancy between file name and exported helper names

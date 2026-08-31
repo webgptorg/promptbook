@@ -157,12 +157,16 @@ Only the final `[x]` state is committed, because the round commit is created aft
 
 `continue` expects **exactly one** prompt in the `[^]` status and fails when it finds none or more than one, because the uncommitted changes could not be attributed to a single interrupted task. Only the resuming round runs on the dirty tree; once it is finished and committed, every later round expects a clean working tree again. It cannot be combined with `--isolate`, whose fresh worktree is checked out from the last commit and would leave the uncommitted changes behind.
 
-The harness which resumes the work does not have to be the one which started it. Both are then recorded in the `[^]`, `[x]` and `[!]` status line alike:
+The harness which resumes the work does not have to be the one which started it. Its status report is built in
+chronological order and remains extendable if another run is interrupted later:
 
 ```text
-[^] by Claude Code `claude-opus-5` thinking `high`, started by OpenAI Codex `gpt-5.6-luna` thinking `max` - Implementation in progress
-[x] by Claude Code `claude-opus-5` thinking `high`, started by OpenAI Codex `gpt-5.6-luna` thinking `max` - Implementation ~$0.2036 10 minutes; Testing 35 minutes
+[^] by OpenAI Codex `gpt-5.6-luna` thinking `max`, interrupted, continued by Claude Code `claude-opus-5` thinking `high` - Implementation in progress
+[x] by OpenAI Codex `gpt-5.6-luna` thinking `max`, interrupted, continued by Claude Code `claude-opus-5` thinking `high`
 ```
+
+The status still names the phase currently running, but it does not append a completed continuation's own cost and
+duration as though they measured the whole interrupted prompt.
 
 ## Isolated runs
 

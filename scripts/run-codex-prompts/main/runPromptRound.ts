@@ -22,11 +22,10 @@ import { runAutoMigrateTestingServers } from '../migrations/runAutoMigrateTestin
 import { buildCodexPrompt } from '../prompts/buildCodexPrompt';
 import { buildCommitMessage } from '../prompts/buildCommitMessage';
 import { buildScriptPath } from '../prompts/buildScriptPath';
-import { formatRunnerSignature } from '../prompts/formatRunnerSignature';
 import { markPromptDone } from '../prompts/markPromptDone';
 import { markPromptFailed } from '../prompts/markPromptFailed';
 import { markPromptInProgress } from '../prompts/markPromptInProgress';
-import { parsePromptStartedByRunnerSignature } from '../prompts/promptRunnerAttribution';
+import { parsePromptRunnerAttribution, type PromptRunnerAttribution } from '../prompts/promptRunnerAttribution';
 import { resolvePromptStatusLine } from '../prompts/resolvePromptStatusLine';
 import type { PromptSelection } from '../prompts/types/PromptSelection';
 import { writePromptErrorLog } from '../prompts/writePromptErrorLog';
@@ -112,12 +111,8 @@ export async function runPromptRound({
     const codexPrompt = appendCoderContext(promptWithAgent, resolvedCoderContext);
     // Note: Temporary scripts and runtime logs stay in the original project so they outlive an isolated worktree
     const scriptPath = buildScriptPath(nextPrompt.file, nextPrompt.section);
-    // Note: Read before the first `[^]` rewrite of this round, which would overwrite the harness recorded so far
-    const startedByRunnerSignature = resolveStartedByRunnerSignature({
-        nextPrompt,
-        runnerMetadata,
-        thinkingLevel: options.thinkingLevel,
-    });
+    // Note: Read before the first `[^]` rewrite of this round, which would overwrite the report recorded so far
+    const previousRunnerSignatures = resolvePreviousRunnerSignatures(nextPrompt);
 
     setPromptRoundRunningState({ isRichUiEnabled, promptLabel, scriptPath, uiHandle });
     await waitForRequestedPause({
@@ -158,7 +153,7 @@ export async function runPromptRound({
                             recordPromptRoundInProgress({
                                 nextPrompt,
                                 runnerMetadata,
-                                startedByRunnerSignature,
+                                previousRunnerSignatures,
                                 thinkingLevel: options.thinkingLevel,
                                 attemptCount,
                                 progress,
@@ -175,7 +170,7 @@ export async function runPromptRound({
                         options,
                         nextPrompt,
                         runnerMetadata,
-                        startedByRunnerSignature,
+                        previousRunnerSignatures,
                         promptExecutionStartedDate,
                         result,
                         commitMessage,
@@ -211,7 +206,7 @@ export async function runPromptRound({
             await finalizeFailedPromptRound({
                 nextPrompt,
                 runnerMetadata,
-                startedByRunnerSignature,
+                previousRunnerSignatures,
                 promptExecutionStartedDate,
                 attemptCount,
                 error: lastError,
@@ -229,35 +224,18 @@ export async function runPromptRound({
 }
 
 /**
- * Reads which harness left the prompt of this round in the middle of its implementation.
+ * Reads the chronological harness report left on the prompt before this round rewrites its in-progress status.
  *
  * Only a prompt resumed through `--git-changes continue` still carries the in-progress `[^]` status when its
- * round starts, so every other round reports no earlier harness. A harness which continues its own work is
- * reported as no earlier harness either, because the status line would just name it twice.
+ * round starts, so every other round starts a fresh report.
  */
-function resolveStartedByRunnerSignature(options: {
-    nextPrompt: PromptSelection;
-    runnerMetadata: {
-        runnerName: string;
-        modelName?: string;
-    };
-    thinkingLevel?: ThinkingLevel;
-}): string | undefined {
-    const { nextPrompt, runnerMetadata, thinkingLevel } = options;
-
+function resolvePreviousRunnerSignatures(nextPrompt: PromptSelection): PromptRunnerAttribution | undefined {
     if (nextPrompt.section.status !== 'in-progress') {
         return undefined;
     }
 
     const { line } = resolvePromptStatusLine(nextPrompt.file, nextPrompt.section);
-    const startedByRunnerSignature = parsePromptStartedByRunnerSignature(line);
-    const currentRunnerSignature = formatRunnerSignature(
-        runnerMetadata.runnerName,
-        runnerMetadata.modelName,
-        thinkingLevel,
-    );
-
-    return startedByRunnerSignature === currentRunnerSignature ? undefined : startedByRunnerSignature;
+    return parsePromptRunnerAttribution(line);
 }
 
 /**
@@ -273,12 +251,12 @@ async function recordPromptRoundInProgress(options: {
         runnerName: string;
         modelName?: string;
     };
-    startedByRunnerSignature?: string;
+    previousRunnerSignatures?: PromptRunnerAttribution;
     thinkingLevel?: ThinkingLevel;
     attemptCount: number;
     progress: CoderRunStepProgress;
 }): Promise<void> {
-    const { nextPrompt, runnerMetadata, startedByRunnerSignature, thinkingLevel, attemptCount, progress } = options;
+    const { nextPrompt, runnerMetadata, previousRunnerSignatures, thinkingLevel, attemptCount, progress } = options;
 
     markPromptInProgress({
         file: nextPrompt.file,
@@ -287,7 +265,7 @@ async function recordPromptRoundInProgress(options: {
         inProgressStepKind: progress.startedStepKind,
         runnerName: runnerMetadata.runnerName,
         modelName: runnerMetadata.modelName,
-        startedByRunnerSignature,
+        previousRunnerSignatures,
         attemptCount,
         loginMethod: progress.loginMethod,
         thinkingLevel,
@@ -390,7 +368,7 @@ async function finalizeSuccessfulPromptRound(options: {
         runnerName: string;
         modelName?: string;
     };
-    startedByRunnerSignature?: string;
+    previousRunnerSignatures?: PromptRunnerAttribution;
     promptExecutionStartedDate: moment.Moment;
     result: Awaited<ReturnType<typeof runPromptWithTestFeedback>>;
     commitMessage: string;
@@ -406,7 +384,7 @@ async function finalizeSuccessfulPromptRound(options: {
         options: runOptions,
         nextPrompt,
         runnerMetadata,
-        startedByRunnerSignature,
+        previousRunnerSignatures,
         promptExecutionStartedDate,
         result,
         commitMessage,
@@ -432,7 +410,7 @@ async function finalizeSuccessfulPromptRound(options: {
         steps: result.steps,
         runnerName: runnerMetadata.runnerName,
         modelName: runnerMetadata.modelName,
-        startedByRunnerSignature,
+        previousRunnerSignatures,
         attemptCount: result.attemptCount,
         loginMethod: result.loginMethod,
         thinkingLevel: runOptions.thinkingLevel,
@@ -494,7 +472,7 @@ async function finalizeFailedPromptRound(options: {
         runnerName: string;
         modelName?: string;
     };
-    startedByRunnerSignature?: string;
+    previousRunnerSignatures?: PromptRunnerAttribution;
     promptExecutionStartedDate: moment.Moment;
     attemptCount: number;
     error: unknown;
@@ -507,7 +485,7 @@ async function finalizeFailedPromptRound(options: {
     const {
         nextPrompt,
         runnerMetadata,
-        startedByRunnerSignature,
+        previousRunnerSignatures,
         promptExecutionStartedDate,
         attemptCount,
         error,
@@ -532,7 +510,7 @@ async function finalizeFailedPromptRound(options: {
         section: nextPrompt.section,
         runnerName: runnerMetadata.runnerName,
         modelName: runnerMetadata.modelName,
-        startedByRunnerSignature,
+        previousRunnerSignatures,
         promptExecutionStartedDate,
         attemptCount,
     });

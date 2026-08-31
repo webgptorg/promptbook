@@ -4,7 +4,7 @@ import type { CoderRunStep, CoderRunStepKind } from '../common/CoderRunStep';
 import { formatCoderRunSteps } from './formatCoderRunSteps';
 import { formatPromptAttemptMetadata } from './formatPromptAttemptMetadata';
 import { formatRunnerSignature } from './formatRunnerSignature';
-import { formatPromptRunnerAttribution } from './promptRunnerAttribution';
+import { formatPromptRunnerAttribution, type PromptRunnerAttribution } from './promptRunnerAttribution';
 
 /**
  * Everything one prompt status line says after its checklist marker.
@@ -31,12 +31,12 @@ export type BuildPromptStatusDetailsOptions = {
     readonly modelName: string | undefined;
 
     /**
-     * Harness which left the prompt in the middle of its implementation, when another harness took the work over.
+     * Chronological runner report read from a prompt left in the middle of its implementation.
      *
-     * Present only for a prompt resumed through `--git-changes continue`, so a status line always names both the
-     * harness which started the work and the one which is finishing it.
+     * Present only for a prompt resumed through `--git-changes continue`, so each status rewrite preserves every
+     * preceding harness and appends the harness which is currently continuing the work.
      */
-    readonly startedByRunnerSignature?: string;
+    readonly previousRunnerSignatures?: PromptRunnerAttribution;
 
     /**
      * How many coding attempts the prompt has taken so far.
@@ -66,7 +66,7 @@ export function buildPromptStatusDetails(options: BuildPromptStatusDetailsOption
         inProgressStepKind,
         runnerName,
         modelName,
-        startedByRunnerSignature,
+        previousRunnerSignatures,
         attemptCount,
         loginMethod,
         thinkingLevel,
@@ -78,9 +78,13 @@ export function buildPromptStatusDetails(options: BuildPromptStatusDetailsOption
     const loginMethodSuffix = loginMethodLabel ? ` (${loginMethodLabel})` : '';
     const attribution = formatPromptRunnerAttribution({
         currentRunnerSignature: `${runnerSignature}${loginMethodSuffix}`,
-        startedByRunnerSignature,
+        previousRunnerSignatures,
     });
-    const stepsSummary = formatCoderRunSteps(steps, inProgressStepKind);
+    // Note: An interrupted prompt has step measurements from an earlier process which cannot be reconstructed
+    //       from its status line. Do not report just the continuing process as the whole prompt; keep only its
+    //       current phase while it runs, and finish with the progressive harness report.
+    const completedStepsToReport = previousRunnerSignatures === undefined ? steps : [];
+    const stepsSummary = formatCoderRunSteps(completedStepsToReport, inProgressStepKind);
     const stepsSuffix = stepsSummary === '' ? '' : ` - ${stepsSummary}`;
 
     return `${attemptMetadata}${attribution}${stepsSuffix}`;

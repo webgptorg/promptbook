@@ -1,7 +1,7 @@
 import moment from 'moment';
 import { formatPromptAttemptMetadata } from './formatPromptAttemptMetadata';
 import { formatRunnerSignature } from './formatRunnerSignature';
-import { formatPromptRunnerAttribution } from './promptRunnerAttribution';
+import { formatPromptRunnerAttribution, type PromptRunnerAttribution } from './promptRunnerAttribution';
 import type { PromptFile } from './types/PromptFile';
 import type { PromptSection } from './types/PromptSection';
 import { writePromptStatusLine } from './writePromptStatusLine';
@@ -31,9 +31,9 @@ export type MarkPromptFailedOptions = {
     readonly modelName: string | undefined;
 
     /**
-     * Harness which left the prompt in the middle of its implementation, when another harness took the work over.
+     * Chronological runner report read from a prompt left in the middle of its implementation.
      */
-    readonly startedByRunnerSignature?: string;
+    readonly previousRunnerSignatures?: PromptRunnerAttribution;
 
     /**
      * Moment the failed prompt round started, used to report how long the attempt took.
@@ -50,12 +50,12 @@ export type MarkPromptFailedOptions = {
  * Marks a prompt section as failed and records runner details.
  */
 export function markPromptFailed(options: MarkPromptFailedOptions): void {
-    const { file, section, runnerName, modelName, startedByRunnerSignature, promptExecutionStartedDate, attemptCount } =
+    const { file, section, runnerName, modelName, previousRunnerSignatures, promptExecutionStartedDate, attemptCount } =
         options;
 
     const attribution = formatPromptRunnerAttribution({
         currentRunnerSignature: formatRunnerSignature(runnerName, modelName),
-        startedByRunnerSignature,
+        previousRunnerSignatures,
     });
     const attemptMetadata = formatPromptAttemptMetadata('failed', attemptCount);
     const duration = moment().diff(promptExecutionStartedDate);

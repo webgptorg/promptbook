@@ -243,7 +243,7 @@ describe('runPromptRound', () => {
             expect.objectContaining({
                 runnerName: 'github-copilot',
                 modelName: 'gpt-5.4',
-                startedByRunnerSignature: undefined,
+                previousRunnerSignatures: undefined,
                 attemptCount: 1,
                 loginMethod: undefined,
                 thinkingLevel: 'xhigh',
@@ -389,7 +389,7 @@ describe('runPromptRound', () => {
         ).toBeLessThan((markPromptDone as jest.MockedFunction<typeof markPromptDone>).mock.invocationCallOrder[0]!);
     });
 
-    it('records the harness which started an interrupted prompt continued by another harness', async () => {
+    it('records the chronological report of an interrupted prompt continued by another harness', async () => {
         const runner: PromptRunner = {
             name: 'Claude Code',
             runPrompt: jest.fn(),
@@ -434,18 +434,61 @@ describe('runPromptRound', () => {
             expect.objectContaining({
                 runnerName: 'Claude Code',
                 modelName: 'claude-opus-5',
-                startedByRunnerSignature: 'OpenAI Codex `gpt-5.6-luna` thinking `max`',
+                previousRunnerSignatures: ['OpenAI Codex `gpt-5.6-luna` thinking `max`'],
             }),
         );
         expect(markPromptDone).toHaveBeenCalledWith(
             expect.objectContaining({
                 runnerName: 'Claude Code',
-                startedByRunnerSignature: 'OpenAI Codex `gpt-5.6-luna` thinking `max`',
+                previousRunnerSignatures: ['OpenAI Codex `gpt-5.6-luna` thinking `max`'],
             }),
         );
     });
 
-    it('does not repeat the harness which continues its own interrupted prompt', async () => {
+    it('retains every earlier harness when another continuation starts', async () => {
+        const runner: PromptRunner = {
+            name: 'GitHub Copilot',
+            runPrompt: jest.fn(),
+        };
+        const waitForRequestedPause = jest.fn<
+            ReturnType<WaitForCoderRunPauseCheckpoint>,
+            Parameters<WaitForCoderRunPauseCheckpoint>
+        >(async () => undefined);
+
+        await runPromptRound({
+            options: createRunOptions({
+                noCommit: true,
+                waitForUser: false,
+                gitChanges: 'continue',
+                thinkingLevel: 'high',
+            }),
+            runner,
+            runnerMetadata: {
+                runnerName: 'GitHub Copilot',
+                modelName: 'gpt-5.5',
+            },
+            nextPrompt: createInterruptedPromptSelection(
+                '[^] by Claude Code `claude-opus-5` thinking `max`, interrupted, continued by OpenAI Codex `gpt-5.6-terra` thinking `max` - Implementation in progress',
+            ),
+            promptLabel: 'example.md#1',
+            resolvedCoderContext: undefined,
+            isRichUiEnabled: false,
+            progressDisplay: undefined,
+            uiHandle: undefined,
+            waitForRequestedPause,
+        });
+
+        expect(markPromptDone).toHaveBeenCalledWith(
+            expect.objectContaining({
+                previousRunnerSignatures: [
+                    'Claude Code `claude-opus-5` thinking `max`',
+                    'OpenAI Codex `gpt-5.6-terra` thinking `max`',
+                ],
+            }),
+        );
+    });
+
+    it('keeps the prior report when the same harness continues its own interrupted prompt', async () => {
         const runner: PromptRunner = {
             name: 'Claude Code',
             runPrompt: jest.fn(),
@@ -480,12 +523,12 @@ describe('runPromptRound', () => {
 
         expect(markPromptDone).toHaveBeenCalledWith(
             expect.objectContaining({
-                startedByRunnerSignature: undefined,
+                previousRunnerSignatures: ['Claude Code `claude-opus-5` thinking `high`'],
             }),
         );
     });
 
-    it('records the harness which started an interrupted prompt that another harness failed', async () => {
+    it('records the chronological report of an interrupted prompt that another harness failed', async () => {
         const runner: PromptRunner = {
             name: 'Claude Code',
             runPrompt: jest.fn(),
@@ -528,7 +571,7 @@ describe('runPromptRound', () => {
             expect.objectContaining({
                 runnerName: 'Claude Code',
                 modelName: 'claude-opus-5',
-                startedByRunnerSignature: 'OpenAI Codex `gpt-5.6-luna`',
+                previousRunnerSignatures: ['OpenAI Codex `gpt-5.6-luna`'],
             }),
         );
     });

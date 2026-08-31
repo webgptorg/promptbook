@@ -23,13 +23,15 @@
         to a single task. Only that one round runs on the dirty tree — once it is committed, every later round expects a
         clean working tree again. It cannot be combined with `--isolate`, whose fresh worktree is checked out from the
         last commit and would leave exactly those changes behind.
-    -   **A prompt one harness started and another one finished says so.** The status line of a resumed prompt names
-        both, as `` [^] by Claude Code `claude-opus-5` thinking `high`, started by OpenAI Codex `gpt-5.6-luna` thinking `max` - Implementation in progress ``,
-        and the `[x]` and `[!]` lines keep that attribution. The harness which continues its own work is still named
-        only once. All three statuses go through one
-        [`formatPromptRunnerAttribution`](../scripts/run-codex-prompts/prompts/promptRunnerAttribution.ts), which reads
-        the original harness back out of the very line the round is about to overwrite, so a third harness taking over
-        still credits the one which started.
+    -   **A prompt one harness started and another one finished says so in chronological order.** A resumed status
+        now reads `` [^] by OpenAI Codex `gpt-5.6-luna` thinking `max`, interrupted, continued by Claude Code `claude-opus-5` thinking `high` - Implementation in progress ``,
+        and the `[x]` and `[!]` lines keep that report. Each further `--git-changes continue` invocation extends the
+        same report with another `interrupted, continued by …` segment, so no earlier harness is dropped; resuming the
+        same harness keeps its existing authentication label instead of naming it twice. The live status still reports
+        its active phase, but the final continuation report omits its partial step usage and duration rather than
+        presenting them as the whole task. All three statuses go through one
+        [`formatPromptRunnerAttribution`](../scripts/run-codex-prompts/prompts/promptRunnerAttribution.ts), which also
+        understands the reverse-ordered `started by` status lines written by the preceding version.
     -   `ptbk coder server` and `ptbk agent-folder run` share the same flag. An agent folder answers queued messages
         instead of running a prompt queue, so `continue` keeps the changes there exactly like `ignore` does.
 

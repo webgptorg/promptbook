@@ -32,7 +32,7 @@ And this will continue the interrupted work.
 
 ---
 
-[ ]
+[x] by OpenAI Codex `gpt-5.6-terra` thinking `max` - Implementation ~$0.8153 36 minutes; Testing 10 minutes
 
 [✨🛼] Build report progresively as time goes on when using `--git-changes continue`
 
@@ -78,3 +78,4 @@ And this will continue the interrupted work.
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 
 ![alt text](screenshots/2026-08-0670-ptbk-coder-git-changes-continue-1.png)
+
