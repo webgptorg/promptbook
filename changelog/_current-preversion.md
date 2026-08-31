@@ -22,7 +22,8 @@
         several fails with a message naming the prompts it found, because the changes in the tree cannot be attributed
         to a single task. Only that one round runs on the dirty tree — once it is committed, every later round expects a
         clean working tree again. It cannot be combined with `--isolate`, whose fresh worktree is checked out from the
-        last commit and would leave exactly those changes behind.
+        last commit and would leave exactly those changes behind, or `--test-before yes-and-fix`, which has no
+        unmodified project state to verify and repair.
     -   **A prompt one harness started and another one finished says so in chronological order.** A resumed status
         now reads `` [^] by OpenAI Codex `gpt-5.6-luna` thinking `max`, interrupted, continued by Claude Code `claude-opus-5` thinking `high` - Implementation in progress ``,
         and the `[x]` and `[!]` lines keep that report. Each further `--git-changes continue` invocation extends the

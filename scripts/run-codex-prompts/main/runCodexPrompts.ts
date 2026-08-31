@@ -375,6 +375,16 @@ function validateRunCodexPromptOptions(options: RunOptions): void {
         );
     }
 
+    if (options.gitChanges === 'continue' && options.testBefore === 'yes-and-fix') {
+        throw new NotAllowed(
+            spaceTrim(`
+                Flag \`--git-changes continue\` cannot be combined with \`--test-before yes-and-fix\`.
+
+                An interrupted prompt already has changes in progress, so there is no unmodified project state for pre-coding verification to repair.
+            `),
+        );
+    }
+
     if (options.limit !== undefined && (!Number.isInteger(options.limit) || options.limit <= 0)) {
         throw new NotAllowed(
             spaceTrim(`

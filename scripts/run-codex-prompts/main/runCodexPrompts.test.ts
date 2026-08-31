@@ -243,6 +243,28 @@ describe('runCodexPrompts', () => {
         ).rejects.toThrow(/--git-changes continue/);
     });
 
+    it('rejects --test-before yes-and-fix together with --git-changes continue', async () => {
+        await expect(
+            runCodexPrompts(
+                createRunOptions({
+                    testBefore: 'yes-and-fix',
+                    gitChanges: 'continue',
+                }),
+            ),
+        ).rejects.toThrow(NotAllowed);
+
+        await expect(
+            runCodexPrompts(
+                createRunOptions({
+                    testBefore: 'yes-and-fix',
+                    gitChanges: 'continue',
+                }),
+            ),
+        ).rejects.toThrow(/--test-before yes-and-fix/);
+
+        expect(runTestBefore).not.toHaveBeenCalled();
+    });
+
     it('checks the clean working tree before each prompt by default', async () => {
         const promptSelection = createPromptSelection();
 
