@@ -207,6 +207,7 @@ export function renderCoderRunUi(
             pauseTargetLabel: getPauseTargetLabel(),
             isEndAfterCurrentPromptRequested: getEndAfterCurrentPromptState(),
             config: state.config,
+            subscriptionUsage: state.subscriptionUsage,
             agentVisual: state.agentVisual,
             phase: state.phase,
             currentPromptLabel: state.currentPromptLabel,

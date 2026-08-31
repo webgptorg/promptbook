@@ -27,6 +27,15 @@ const CLAUDE_CODE_SESSION_LIMIT_OUTPUT = [
     `{"type":"result","subtype":"success","is_error":true,"api_error_status":429,"result":"You've hit your session limit · resets 1:40pm (Europe/Prague)","session_id":"${CLAUDE_CODE_SESSION_ID}","total_cost_usd":0,"usage":{"input_tokens":0,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":0,"server_tool_use":{"web_search_requests":0,"web_fetch_requests":0},"service_tier":"standard"},"permission_denials":[],"uuid":"limit"}`,
 ].join('\n');
 
+/**
+ * Successful Claude Code output carrying two subscription-limit updates.
+ */
+const CLAUDE_CODE_SUBSCRIPTION_USAGE_OUTPUT = [
+    '{"type":"rate_limit_event","rate_limit_info":{"status":"allowed","rateLimitType":"five_hour","utilization":0.46,"resetsAt":1780000000}}',
+    '{"type":"rate_limit_event","rate_limit_info":{"status":"allowed","rateLimitType":"seven_day","utilization":0.21,"resetsAt":1780500000}}',
+    CLAUDE_CODE_RESULT_JSON,
+].join('\n');
+
 describe('ClaudeCodeRunner', () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -74,6 +83,59 @@ describe('ClaudeCodeRunner', () => {
         );
     });
 
+    it('keeps every subscription limit from the latest Claude Code stream', async () => {
+        ($runGoScriptWithOutput as jest.MockedFunction<typeof $runGoScriptWithOutput>).mockResolvedValue(
+            CLAUDE_CODE_SUBSCRIPTION_USAGE_OUTPUT,
+        );
+        const runner = new ClaudeCodeRunner();
+
+        await runner.runPrompt({
+            prompt: 'Prompt body',
+            projectPath: 'C:\\repo',
+            scriptPath: 'C:\\repo\\temp\\runner.sh',
+            preserveArtifactsOnSuccess: false,
+        });
+
+        await expect(runner.getSubscriptionUsage()).resolves.toEqual({
+            limits: [
+                { label: '5h', usedPercentage: 46, resetsAt: 1_780_000_000 },
+                { label: '7d', usedPercentage: 21, resetsAt: 1_780_500_000 },
+            ],
+        });
+    });
+
+    it('keeps unchanged subscription windows when Claude reports an update for only one window', async () => {
+        ($runGoScriptWithOutput as jest.MockedFunction<typeof $runGoScriptWithOutput>)
+            .mockResolvedValueOnce(CLAUDE_CODE_SUBSCRIPTION_USAGE_OUTPUT)
+            .mockResolvedValueOnce(
+                [
+                    '{"type":"rate_limit_event","rate_limit_info":{"status":"allowed","rateLimitType":"five_hour","utilization":0.5,"resetsAt":1780003600}}',
+                    CLAUDE_CODE_RESULT_JSON,
+                ].join('\n'),
+            );
+        const runner = new ClaudeCodeRunner();
+
+        await runner.runPrompt({
+            prompt: 'First prompt body',
+            projectPath: 'C:\\repo',
+            scriptPath: 'C:\\repo\\temp\\runner.sh',
+            preserveArtifactsOnSuccess: false,
+        });
+        await runner.runPrompt({
+            prompt: 'Second prompt body',
+            projectPath: 'C:\\repo',
+            scriptPath: 'C:\\repo\\temp\\runner.sh',
+            preserveArtifactsOnSuccess: false,
+        });
+
+        await expect(runner.getSubscriptionUsage()).resolves.toEqual({
+            limits: [
+                { label: '5h', usedPercentage: 50, resetsAt: 1_780_003_600 },
+                { label: '7d', usedPercentage: 21, resetsAt: 1_780_500_000 },
+            ],
+        });
+    });
+
     it('automatically resumes the same Claude Code session after a session limit', async () => {
         jest.useFakeTimers({ now: new Date(1000 * 1000).getTime() });
         const waitForPauseCheckpoint = jest.fn<
@@ -104,12 +166,16 @@ describe('ClaudeCodeRunner', () => {
             }),
         });
         expect($runGoScriptWithOutput).toHaveBeenCalledTimes(2);
-        expect(($runGoScriptWithOutput as jest.MockedFunction<typeof $runGoScriptWithOutput>).mock.calls[1]?.[0]).toEqual(
+        expect(
+            ($runGoScriptWithOutput as jest.MockedFunction<typeof $runGoScriptWithOutput>).mock.calls[1]?.[0],
+        ).toEqual(
             expect.objectContaining({
                 scriptContent: expect.stringContaining(`--resume "${CLAUDE_CODE_SESSION_ID}"`),
             }),
         );
-        expect(($runGoScriptWithOutput as jest.MockedFunction<typeof $runGoScriptWithOutput>).mock.calls[1]?.[0]).toEqual(
+        expect(
+            ($runGoScriptWithOutput as jest.MockedFunction<typeof $runGoScriptWithOutput>).mock.calls[1]?.[0],
+        ).toEqual(
             expect.objectContaining({
                 scriptContent: expect.stringContaining('Claude Code session resurrection'),
             }),

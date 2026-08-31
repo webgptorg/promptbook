@@ -2,6 +2,8 @@ import colors from 'colors';
 import type { CoderRunControlFeedbackNotice } from '../common/CoderRunControlFeedback';
 import type { CoderRunPauseState } from '../common/waitForPause';
 import { formatPriorityFilter } from '../prompts/priorityFilter';
+import type { HarnessSubscriptionUsage } from '../runners/types/HarnessSubscriptionUsage';
+import { buildSubscriptionUsageSessionRows } from './buildSubscriptionUsageSessionRows';
 import type { CoderRunConfig, CoderRunPhase, CoderRunProgressSnapshot } from './CoderRunUiState';
 import type { CoderRunAgentVisual } from './buildCoderRunAgentVisual';
 import {
@@ -58,6 +60,7 @@ export type BuildCoderRunUiFrameOptions = {
     readonly pauseTargetLabel: string;
     readonly isEndAfterCurrentPromptRequested: boolean;
     readonly config: CoderRunConfig;
+    readonly subscriptionUsage?: HarnessSubscriptionUsage;
     readonly phase: CoderRunPhase;
     readonly currentPromptLabel: string;
     readonly currentScriptPaths?: readonly string[];
@@ -235,6 +238,7 @@ function buildSessionRows(
             value: runnerParts.join('  ·  '),
         },
         ...configurationRows,
+        ...buildSubscriptionUsageSessionRows(options.subscriptionUsage),
         ...buildScriptPathSessionRows(options.currentScriptPaths || [], bodyWidth),
         {
             label: 'This run',

@@ -243,6 +243,8 @@ export function createLiveDemoScript(terminalColumnCount: number): ReadonlyArray
             ]),
             buildLabeledLine('Context', [createTextPart('AGENTS.md', 'plain')]),
             buildLabeledLine('Test', [createTextPart('npm run test-for-ptbk-coder', 'plain')]),
+            buildLabeledLine('Usage', [createTextPart('5h  ·  54% remaining  ·  resets in 2h 12m', 'plain')]),
+            buildLabeledLine('', [createTextPart('7d  ·  71% remaining  ·  resets in 5d 8h', 'plain')]),
             buildLabeledLine('This run', [createTextPart('Task 1/7  ·  0 done  ·  7 left', 'plain')]),
             buildLabeledLine('Backlog', [createTextPart('Repo 363 total', 'plain')]),
             buildLabeledLine('Scope', [

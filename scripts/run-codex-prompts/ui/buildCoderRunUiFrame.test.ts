@@ -5,9 +5,7 @@ import { stripAnsi } from './coderRunUiText';
 /**
  * Builds one stable frame input so individual tests only override the parts they care about.
  */
-function createFrameOptions(
-    overrides: Partial<BuildCoderRunUiFrameOptions> = {},
-): BuildCoderRunUiFrameOptions {
+function createFrameOptions(overrides: Partial<BuildCoderRunUiFrameOptions> = {}): BuildCoderRunUiFrameOptions {
     return {
         terminalWidth: 96,
         animationFrame: 0,
@@ -141,9 +139,7 @@ describe('buildCoderRunUiFrame', () => {
     it.each(['initializing', 'loading', 'running', 'verifying', 'paused', 'done', 'error'] as const)(
         'hides the skip-wait control while the coder is in the %s phase',
         (phase) => {
-            const output = buildCoderRunUiFrame(createFrameOptions({ phase }))
-                .map(stripAnsi)
-                .join('\n');
+            const output = buildCoderRunUiFrame(createFrameOptions({ phase })).map(stripAnsi).join('\n');
 
             expect(output).not.toContain('S  Skip current waiting');
         },
@@ -177,6 +173,30 @@ describe('buildCoderRunUiFrame', () => {
             .join('\n');
 
         expect(output).toContain('Scope    Priority 1-5  ·  Write 1 prompt first');
+    });
+
+    it('renders every available subscription limit with its remaining allowance and reset time', () => {
+        jest.useFakeTimers({ now: 1_700_000_000_000 });
+
+        const output = buildCoderRunUiFrame(
+            createFrameOptions({
+                subscriptionUsage: {
+                    limits: [
+                        { label: '5h', usedPercentage: 46, resetsAt: 1_700_007_200 },
+                        { label: '7d', usedPercentage: 21, resetsAt: 1_700_259_200 },
+                        { label: '7d Opus', usedPercentage: 100, resetsAt: 1_700_003_600 },
+                    ],
+                },
+            }),
+        )
+            .map(stripAnsi)
+            .join('\n');
+
+        expect(output).toContain('Usage    5h  ·  54% remaining  ·  resets in 2h');
+        expect(output).toContain('7d  ·  79% remaining  ·  resets in 3d');
+        expect(output).toContain('7d Opus  ·  0% remaining  ·  resets in 1h');
+
+        jest.useRealTimers();
     });
 
     it('renders no ASCII wordmark in the header before the agent avatar is loaded', () => {

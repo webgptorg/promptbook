@@ -1,3 +1,14 @@
+-   Added remaining subscription-limit visibility to the rich **ptbk coder** terminal dashboard.
+
+    -   The `Session` box now lists every rolling limit a selected harness reports, including its remaining percentage
+        and reset time. It does not assume a fixed pair of windows, so a 5-hour, weekly, model-specific, or future
+        additional limit all render as separate aligned rows.
+    -   OpenAI Codex reads its current account snapshot through the Codex app-server protocol, while Claude Code
+        reuses its normal `stream-json` rate-limit events instead of spending a separate quota-only prompt. Other
+        harnesses keep their existing behavior until they implement the same optional runner capability.
+    -   Updated the **ptbk coder** landing-page terminal demo and pacing copy to show the new 5-hour and 7-day
+        subscription rows.
+
 -   Let you decide what **ptbk coder** does with a dirty working tree. The clean-working-tree guard used to be a yes/no
     question — either the coder refused to start, or `--ignore-git-changes` waved the changes through. The far more
     common case had no answer at all: a run that was killed or crashed mid-task, leaving half-finished work in the tree

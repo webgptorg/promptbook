@@ -5,8 +5,10 @@ import { waitUntilWorldTimeDeadline } from '../../common/waitUntilWorldTimeDeadl
 import type { PromptRunOptions } from '../types/PromptRunOptions';
 import type { PromptRunResult } from '../types/PromptRunResult';
 import type { PromptRunner } from '../types/PromptRunner';
+import type { HarnessSubscriptionUsage } from '../types/HarnessSubscriptionUsage';
 import { buildCodexScript } from './buildCodexScript';
 import { buildCodexUsageFromOutput } from './buildCodexUsageFromOutput';
+import { getCodexSubscriptionUsage } from './getCodexSubscriptionUsage';
 import { parseCodexLoginMethodFromOutput } from './parseCodexLoginMethodFromOutput';
 import {
     buildCreditsDisallowedError,
@@ -100,6 +102,16 @@ export class OpenAiCodexRunner implements PromptRunner {
     public constructor(private readonly options: OpenAiCodexRunnerOptions) {}
 
     /**
+     * Reads the current ChatGPT subscription quota snapshot through Codex's local app server.
+     *
+     * API-key sessions and unsupported Codex versions simply return no snapshot, which keeps this optional dashboard
+     * information from affecting the actual prompt execution.
+     */
+    public async getSubscriptionUsage(): Promise<HarnessSubscriptionUsage | undefined> {
+        return await getCodexSubscriptionUsage(this.options.codexCommand);
+    }
+
+    /**
      * Runs the Codex prompt in a temporary script and waits for completion output.
      */
     public async runPrompt(options: PromptRunOptions): Promise<PromptRunResult> {
@@ -162,7 +174,9 @@ export class OpenAiCodexRunner implements PromptRunner {
                 if (options.shouldPrintLiveOutput ?? true) {
                     console.warn(
                         colors.yellow(
-                            `[codex] Rate limit/quota detected (${summary}). Retry #${retryIndex} in ${formatDelay(delayMs)} at ${retryAt}.`,
+                            `[codex] Rate limit/quota detected (${summary}). Retry #${retryIndex} in ${formatDelay(
+                                delayMs,
+                            )} at ${retryAt}.`,
                         ),
                     );
                 }

@@ -49,6 +49,7 @@ import { waitForPromptStart } from '../prompts/waitForPromptStart';
 import type { PromptRunner } from '../runners/types/PromptRunner';
 import { buildCoderRunAgentVisual } from '../ui/buildCoderRunAgentVisual';
 import { renderCoderRunUi, type CoderRunUiHandle } from '../ui/renderCoderRunUi';
+import { refreshCoderRunUiSubscriptionUsage } from '../ui/refreshCoderRunUiSubscriptionUsage';
 import { createTestBeforeRepairPrompt } from '../testing/createTestBeforeRepairPrompt';
 import { DEFAULT_CODER_TEST_COMMAND, isTestBeforeMode, type TestBeforeMode } from '../testing/TestBeforeMode';
 import { limitTestOutput } from '../testing/limitTestOutput';
@@ -111,6 +112,10 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
 
         initializeRunUi(uiHandle, runner.name, actualRunnerModel, options);
         await initializeRunUiAgentVisual(uiHandle, resolvedCoderAgent?.agentSource);
+        await refreshCoderRunUiSubscriptionUsage({
+            runner,
+            uiState: uiHandle?.state,
+        });
         await seedCachedAveragePromptDuration({
             options,
             actualRunnerModel,

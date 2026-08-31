@@ -5,6 +5,7 @@ import type { CoderRunControlFeedback, CoderRunControlFeedbackNotice } from '../
 import { CoderRunTimer } from '../common/CoderRunTimer';
 import type { PriorityFilter } from '../prompts/priorityFilter';
 import type { PromptStats } from '../prompts/types/PromptStats';
+import type { HarnessSubscriptionUsage } from '../runners/types/HarnessSubscriptionUsage';
 import type { CoderRunAgentVisual } from './buildCoderRunAgentVisual';
 import type { AgentRunMessagePreviewSection, AgentRunStatusTableRow } from './buildCoderRunUiFrame';
 
@@ -74,6 +75,7 @@ export class CoderRunUiState extends EventEmitter {
     public messagePreviewSections: AgentRunMessagePreviewSection[] = [];
     public agentStatusLines: string[] = [];
     public agentStatusTableRows: AgentRunStatusTableRow[] = [];
+    public subscriptionUsage: HarnessSubscriptionUsage | undefined;
     public pendingEnterLabel: string | undefined;
     public agentOutputLines: string[] = [];
     public phase: CoderRunPhase = 'initializing';
@@ -266,6 +268,14 @@ export class CoderRunUiState extends EventEmitter {
      */
     public setAgentStatusTableRows(agentStatusTableRows: AgentRunStatusTableRow[]): void {
         this.agentStatusTableRows = [...agentStatusTableRows];
+        this.emitChange();
+    }
+
+    /**
+     * Replaces the optional harness subscription usage shown in the Session box.
+     */
+    public setSubscriptionUsage(subscriptionUsage: HarnessSubscriptionUsage): void {
+        this.subscriptionUsage = subscriptionUsage;
         this.emitChange();
     }
 

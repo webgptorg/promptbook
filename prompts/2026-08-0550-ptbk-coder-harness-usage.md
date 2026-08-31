@@ -1,4 +1,4 @@
-[ ]
+[x] by OpenAI Codex `gpt-5.6-terra` thinking `max` (ChatGPT account) - Implementation ~$0.9141 33 minutes; Testing 17 minutes
 
 [✨🐎] Show the usage of `ptbk coder`
 
@@ -17,3 +17,4 @@ ptbk coder run --harness openai-codex --model gpt-5.4 --thinking-level xhigh --a
 
 ![alt text](screenshots/2026-08-0550-ptbk-coder-harness-usage.png)
 ![alt text](screenshots/2026-08-0550-ptbk-coder-harness-usage-1.png)
+

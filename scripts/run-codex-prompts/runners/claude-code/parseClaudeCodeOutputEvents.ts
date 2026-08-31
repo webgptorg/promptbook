@@ -12,7 +12,10 @@ export type ClaudeCodeOutputEvent = {
     readonly rate_limit_info?: {
         readonly status?: string;
         readonly resetsAt?: number;
+        readonly resets_at?: number;
         readonly rateLimitType?: string;
+        readonly rate_limit_type?: string;
+        readonly utilization?: number;
     };
     readonly usage?: {
         readonly input_tokens?: number;

@@ -92,7 +92,7 @@ export const ADVANCED_FEATURES: ReadonlyArray<AdvancedFeatureDefinition> = [
     {
         title: 'Pacing and retries',
         description:
-            'Wait a fixed wall-clock duration between prompts. The clock keeps running through a pause and through sleep, and errors retry after a cool-down. Whenever S is offered it skips whatever the coder waits for right now, down to the harness session limit that would otherwise hold the run for hours.',
+            'Wait a fixed wall-clock duration between prompts. The clock keeps running through a pause and through sleep, and errors retry after a cool-down. The terminal also shows every subscription window a harness reports, with its remaining allowance and reset time. Whenever S is offered it skips whatever the coder waits for right now, down to the harness session limit that would otherwise hold the run for hours.',
         sampleCommand: 'ptbk coder run --harness claude-code --wait-between-prompts 30m --wait-after-error 10m',
     },
     {

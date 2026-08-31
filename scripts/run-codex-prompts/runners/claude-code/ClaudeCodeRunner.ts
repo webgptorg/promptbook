@@ -5,6 +5,7 @@ import { waitForSkippableWorldTimeDeadline } from '../../common/waitForSkippable
 import type { PromptRunOptions } from '../types/PromptRunOptions';
 import type { PromptRunResult } from '../types/PromptRunResult';
 import type { PromptRunner } from '../types/PromptRunner';
+import { mergeHarnessSubscriptionUsage, type HarnessSubscriptionUsage } from '../types/HarnessSubscriptionUsage';
 import { buildClaudeScript } from './buildClaudeScript';
 import {
     buildClaudeCodeSessionResurrectionPrompt,
@@ -16,6 +17,7 @@ import {
 } from './ClaudeCodeSessionResurrection';
 import type { ClaudeCodeRunnerOptions } from './ClaudeCodeRunnerOptions';
 import { parseClaudeCodeJsonOutput } from './parseClaudeCodeJsonOutput';
+import { parseClaudeCodeSubscriptionUsage } from './parseClaudeCodeSubscriptionUsage';
 
 /**
  * Polling interval used while waiting for Claude Code session limits to reset.
@@ -27,11 +29,21 @@ const CLAUDE_CODE_SESSION_RESURRECTION_POLL_MS = 30 * 1000;
  */
 export class ClaudeCodeRunner implements PromptRunner {
     public readonly name = 'claude-code';
+    private subscriptionUsage: HarnessSubscriptionUsage | undefined;
 
     /**
      * Creates a new Claude Code runner.
      */
     public constructor(private readonly options: ClaudeCodeRunnerOptions = {}) {}
+
+    /**
+     * Returns the latest subscription-limit snapshot emitted by this Claude Code session.
+     *
+     * Claude exposes these values in the normal stream after a response, so no separate quota-only model call is made.
+     */
+    public async getSubscriptionUsage(): Promise<HarnessSubscriptionUsage | undefined> {
+        return this.subscriptionUsage;
+    }
 
     /**
      * Runs the prompt using Claude Code and parses usage output.
@@ -47,6 +59,7 @@ export class ClaudeCodeRunner implements PromptRunner {
                 prompt,
                 resumeSessionId,
             }).catch(async (error) => {
+                this.updateSubscriptionUsage(error instanceof Error ? error.message : String(error));
                 const sessionLimit = extractClaudeCodeSessionLimitFromError(error);
 
                 if (!sessionLimit) {
@@ -65,6 +78,8 @@ export class ClaudeCodeRunner implements PromptRunner {
             }
 
             const sessionLimit = extractClaudeCodeSessionLimitFromOutput(output);
+
+            this.updateSubscriptionUsage(output);
 
             if (sessionLimit) {
                 resurrectionCount++;
@@ -103,6 +118,20 @@ export class ClaudeCodeRunner implements PromptRunner {
             preserveArtifactsOnSuccess: options.preserveArtifactsOnSuccess,
         });
     }
+
+    /**
+     * Keeps the newest usable Claude subscription-limit values reported by the stream.
+     *
+     * A stream can omit these values for API-key users or unsupported plan types; retaining the prior snapshot avoids
+     * a temporary omission erasing a still-valid dashboard value while a long queue is running.
+     */
+    private updateSubscriptionUsage(output: string): void {
+        const subscriptionUsage = parseClaudeCodeSubscriptionUsage(output);
+
+        if (subscriptionUsage) {
+            this.subscriptionUsage = mergeHarnessSubscriptionUsage(this.subscriptionUsage, subscriptionUsage);
+        }
+    }
 }
 
 /**
@@ -125,7 +154,11 @@ async function waitForClaudeCodeSessionLimitReset(
     if (options.shouldPrintLiveOutput ?? true) {
         console.warn(
             colors.yellow(
-                `[claude-code] Session limit detected for ${sessionLimit.sessionId}. Resurrection #${resurrectionCount} will resume with --resume after ${formatDurationMs(delayMs)}. ${resetSummary}`,
+                `[claude-code] Session limit detected for ${
+                    sessionLimit.sessionId
+                }. Resurrection #${resurrectionCount} will resume with --resume after ${formatDurationMs(
+                    delayMs,
+                )}. ${resetSummary}`,
             ),
         );
     }
@@ -137,7 +170,9 @@ async function waitForClaudeCodeSessionLimitReset(
             await options.waitForPauseCheckpoint?.({
                 checkpointLabel: 'the Claude Code session limit reset',
                 phase: 'waiting',
-                statusMessage: `Claude Code session ${sessionLabel} hit its limit; resurrection #${resurrectionCount} resumes in ${formatDurationMs(Math.min(remainingDelayMs, delayMs))}`,
+                statusMessage: `Claude Code session ${sessionLabel} hit its limit; resurrection #${resurrectionCount} resumes in ${formatDurationMs(
+                    Math.min(remainingDelayMs, delayMs),
+                )}`,
             });
         },
     });
