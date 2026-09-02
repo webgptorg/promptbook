@@ -23,3 +23,5 @@ ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh -
 ![alt text](screenshots/2026-08-0810-ptbk-coder-smarter-waiting-for-limit.png)
 ![alt text](screenshots/2026-08-0810-ptbk-coder-smarter-waiting-for-limit-1.png)
 ![alt text](screenshots/2026-08-0810-ptbk-coder-smarter-waiting-for-limit-2.png)
+![For claude code the waiting is working](screenshots/2026-08-0810-ptbk-coder-smarter-waiting-for-limit-3.png)
+![alt text](screenshots/2026-08-0810-ptbk-coder-smarter-waiting-for-limit-4.png)
