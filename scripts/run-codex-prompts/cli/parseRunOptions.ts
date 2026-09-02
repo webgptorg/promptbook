@@ -9,6 +9,7 @@ import type { ThinkingLevel } from '../../../src/cli/cli-commands/coder/Thinking
 import { THINKING_LEVEL_VALUES, parseThinkingLevel } from '../../../src/cli/cli-commands/coder/ThinkingLevel';
 import {
     PROMPT_RUNNER_HARNESS_NAMES,
+    PROMPT_RUNNER_HARNESS_OPTION_HINT,
     type PromptRunnerHarnessName,
 } from '../../../src/cli/cli-commands/common/promptRunnerCliOptions';
 import { parseDuration } from '../common/parseDuration';
@@ -147,9 +148,7 @@ export function parseRunOptions(args: string[]): RunOptions {
     }
 
     if (!agentName && !dryRun) {
-        exitWithUsageError(
-            'You must choose a harness using --harness <openai-codex|github-copilot|cline|claude-code|opencode|gemini>',
-        );
+        exitWithUsageError(`You must choose a harness using ${PROMPT_RUNNER_HARNESS_OPTION_HINT}`);
     }
 
     return {

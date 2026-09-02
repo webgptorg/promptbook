@@ -12,6 +12,7 @@ export const CLI_AGENT_HARNESS_NAMES = [
     'claude-code',
     'opencode',
     'gemini',
+    'qwen-code',
 ] as const;
 
 /**
@@ -24,8 +25,8 @@ export const CLI_AGENT_THINKING_LEVEL_VALUES = ['low', 'medium', 'high', 'xhigh'
 /**
  * Environment variable used as the default runner identifier when `--harness` is omitted or not set in `CliAgent`.
  *
- * Set this to one of the harness names (`openai-codex`, `github-copilot`, `cline`, `claude-code`, `opencode`, `gemini`)
- * so that `CliAgent` and `ptbk agent exec` can run without an explicit `harness` option.
+ * Set this to one of the harness names (`openai-codex`, `github-copilot`, `cline`, `claude-code`, `opencode`, `gemini`,
+ * `qwen-code`) so that `CliAgent` and `ptbk agent exec` can run without an explicit `harness` option.
  *
  * @public exported from `@promptbook/node`
  */

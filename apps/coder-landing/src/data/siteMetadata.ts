@@ -141,6 +141,7 @@ export const SITE_KEYWORDS: ReadonlyArray<string> = [
     'OpenAI Codex',
     'GitHub Copilot',
     'Gemini CLI',
+    'Qwen Code',
     'opencode',
     'Cline',
 ];

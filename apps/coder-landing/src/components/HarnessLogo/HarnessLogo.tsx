@@ -60,6 +60,13 @@ export function HarnessLogo({ harnessName, accentColor }: HarnessLogoProps) {
                         strokeLinejoin="round"
                     />
                 )}
+                {harnessName === 'qwen-code' && (
+                    // Q mark: circle with a tail
+                    <g strokeLinecap="round">
+                        <circle cx="13" cy="12.5" r="8.5" />
+                        <line x1="17.5" y1="18" x2="23" y2="24" />
+                    </g>
+                )}
                 {harnessName === 'opencode' && (
                     // Terminal prompt mark
                     <g strokeLinecap="round">

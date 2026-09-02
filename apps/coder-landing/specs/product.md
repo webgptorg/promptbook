@@ -4,7 +4,7 @@ This spec defines the product story every section of the page must be consistent
 
 ## One-sentence definition
 
-**`ptbk coder` is an orchestrator that drives existing AI coding agents (Claude Code, OpenAI Codex, GitHub Copilot, Gemini CLI, opencode, Cline) through a queue of plain-markdown prompt files — implementing, testing, committing and pushing each task automatically.**
+**`ptbk coder` is an orchestrator that drives existing AI coding agents (Claude Code, OpenAI Codex, GitHub Copilot, Gemini CLI, Qwen Code, opencode, Cline) through a queue of plain-markdown prompt files — implementing, testing, committing and pushing each task automatically.**
 
 `ptbk coder` is a CLI tool shipped inside the [`ptbk` npm package](https://www.npmjs.com/package/ptbk). It is a **subproduct of Promptbook** (see [`sections/footer.md`](./sections/footer.md) for how this relationship is presented).
 

@@ -78,6 +78,12 @@ export const HARNESS_DEFINITIONS: Readonly<Record<PromptRunnerHarnessName, Harne
         commandName: 'gemini',
         npmPackageName: '@google/gemini-cli',
     },
+    'qwen-code': {
+        harnessName: 'qwen-code',
+        label: 'Qwen Code',
+        commandName: 'qwen',
+        npmPackageName: '@qwen-code/qwen-code',
+    },
 };
 
 /**

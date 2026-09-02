@@ -1,4 +1,4 @@
-[ ]
+[x] by Claude Code `claude-opus-5` thinking `max` - Implementation $0.00 2 hours; Testing 10 minutes
 
 [✨🆓] Add `qwen-code` harness to `ptbk coder`
 
@@ -13,3 +13,4 @@ ptbk coder run --harness qwen-code --model qwen3.8-max --thinking-level xhigh --
 -   Also look at [the dev scripts in `terminals.json`](.vscode/terminals.json) and add newly created scripts for `qwen-code`.
 -   Update the [`ptbk coder` landing website](apps/coder-landing) and list Qwen Code as a supported harness.
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

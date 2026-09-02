@@ -1,7 +1,14 @@
 /**
  * Identifier of one supported harness, matching the `--harness` CLI option of `ptbk coder`.
  */
-export type HarnessName = 'claude-code' | 'openai-codex' | 'github-copilot' | 'gemini' | 'opencode' | 'cline';
+export type HarnessName =
+    | 'claude-code'
+    | 'openai-codex'
+    | 'github-copilot'
+    | 'gemini'
+    | 'qwen-code'
+    | 'opencode'
+    | 'cline';
 
 /**
  * One coding-agent harness which `ptbk coder` can drive.
@@ -102,6 +109,17 @@ export const HARNESS_CATALOG: ReadonlyArray<HarnessDefinition> = [
         modelExamples: ['gemini-3-flash-preview', 'default'],
         sampleCommand: 'ptbk coder run --harness gemini --model gemini-3-flash-preview',
         accentColor: '#4E82EE',
+    },
+    {
+        harnessName: 'qwen-code',
+        displayName: 'Qwen Code',
+        vendorName: 'Alibaba',
+        description:
+            'The Qwen Code CLI. It needs an explicit model, such as one of the Qwen coder or max models, and signs in with a Qwen account or an OpenAI-compatible API key.',
+        isModelRequired: true,
+        modelExamples: ['qwen3.8-max', 'qwen3-coder-plus', 'default'],
+        sampleCommand: 'ptbk coder run --harness qwen-code --model qwen3.8-max',
+        accentColor: '#615CED',
     },
     {
         harnessName: 'opencode',

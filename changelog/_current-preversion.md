@@ -1,3 +1,15 @@
+-   Added the **Qwen Code** harness, so `ptbk coder` now drives seven coding agents instead of six.
+
+    -   `ptbk coder run --harness qwen-code --model qwen3.8-max` runs the whole prompt queue through the Qwen Code CLI,
+        and every other harness-aware command — `ptbk coder ping`, `ptbk coder server`, `ptbk agent exec`, `CliAgent`
+        and the `PTBK_HARNESS` environment variable — accepts `qwen-code` the same way.
+    -   Like `openai-codex` and `gemini`, Qwen Code **requires an explicit `--model`**; `--model default` resolves to
+        `qwen3.8-max`. Its global `@qwen-code/qwen-code` installation is checked and updated before the first prompt,
+        just like the other harnesses. Qwen Code exposes no reasoning-effort flag, so `--thinking-level` does not
+        apply to it.
+    -   Price estimation of harnesses which do not report their own token counts is now shared between Qwen Code and
+        Gemini instead of being written twice.
+
 -   Fixed generated `ptbk` prompt emoji tags so `coder add`, `coder generate-boilerplates`, refactor prompt generation, and `coder find-fresh-emoji-tags` share one Unicode-valid single-pictogram catalogue instead of a duplicated legacy list containing non-emoji symbols. The emoji-tag scan cache now records the candidate catalogue fingerprint and rescans when it changes, so an already assigned tag such as `[✨🛼]` is not mistaken for a fresh tag after an update.
 
 -   Added remaining subscription-limit visibility to the rich **ptbk coder** terminal dashboard.

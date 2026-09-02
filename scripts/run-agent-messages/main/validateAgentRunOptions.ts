@@ -1,5 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import { NotAllowed } from '../../../src/errors/NotAllowed';
+import { PROMPT_RUNNER_HARNESS_OPTION_HINT } from '../../../src/cli/cli-commands/common/promptRunnerCliOptions';
 import type { AgentRunOptions } from '../AgentRunOptions';
 
 /**
@@ -7,9 +8,7 @@ import type { AgentRunOptions } from '../AgentRunOptions';
  */
 export function validateAgentRunOptions(options: AgentRunOptions): void {
     if (!options.agentName) {
-        throw new NotAllowed(
-            'You must choose a harness using --harness <openai-codex|github-copilot|cline|claude-code|opencode|gemini>.',
-        );
+        throw new NotAllowed(`You must choose a harness using ${PROMPT_RUNNER_HARNESS_OPTION_HINT}.`);
     }
 
     if (options.autoPull && options.noCommit) {

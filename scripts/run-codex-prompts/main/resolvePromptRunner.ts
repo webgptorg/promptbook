@@ -8,6 +8,7 @@ import { DEFAULT_GEMINI_MODEL, GeminiRunner } from '../runners/gemini/GeminiRunn
 import { GitHubCopilotRunner } from '../runners/github-copilot/GitHubCopilotRunner';
 import { OpenAiCodexRunner } from '../runners/openai-codex/OpenAiCodexRunner';
 import { OpencodeRunner } from '../runners/opencode/OpencodeRunner';
+import { DEFAULT_QWEN_CODE_MODEL, QwenCodeRunner } from '../runners/qwen-code/QwenCodeRunner';
 import type { PromptRunner } from '../runners/types/PromptRunner';
 
 /**
@@ -19,6 +20,17 @@ const DEFAULT_CODEX_MODEL = 'gpt-5.2-codex';
  * Constant for cline model.
  */
 const CLINE_MODEL = 'gemini:gemini-3-flash-preview';
+
+/**
+ * Harnesses which refuse to run without an explicit `--model`, because they expose many models
+ * of very different capability and price and never pick a sensible one on their own.
+ */
+const MODEL_REQUIRING_HARNESS_NAMES = ['openai-codex', 'gemini', 'qwen-code'] as const;
+
+/**
+ * Harness which refuses to run without an explicit `--model`.
+ */
+type ModelRequiringHarnessName = (typeof MODEL_REQUIRING_HARNESS_NAMES)[number];
 
 /**
  * Runner metadata used in prompt status lines.
@@ -106,6 +118,10 @@ export function resolvePromptRunner(options: PromptRunnerSelectionOptions): Prom
         return createGeminiRunnerResolution(options);
     }
 
+    if (agentName === 'qwen-code') {
+        return createQwenCodeRunnerResolution(options);
+    }
+
     throw new Error(`Unknown harness: ${agentName}`);
 }
 
@@ -160,6 +176,29 @@ function createGeminiRunnerResolution(options: PromptRunnerSelectionOptions): Pr
 }
 
 /**
+ * Builds the Qwen Code CLI runner resolution, including required-model validation.
+ */
+function createQwenCodeRunnerResolution(options: PromptRunnerSelectionOptions): PromptRunnerResolution {
+    const actualRunnerModel = resolveRequiredModel({
+        agentName: 'qwen-code',
+        providedModel: options.model,
+        defaultModel: DEFAULT_QWEN_CODE_MODEL,
+        exampleUsages: [
+            `--harness qwen-code --model ${DEFAULT_QWEN_CODE_MODEL}`,
+            '--harness qwen-code --model default',
+        ],
+    });
+
+    return createRunnerResolution(
+        options,
+        new QwenCodeRunner({
+            model: actualRunnerModel,
+        }),
+        actualRunnerModel,
+    );
+}
+
+/**
  * Combines the instantiated runner with prompt status metadata.
  */
 function createRunnerResolution(
@@ -180,11 +219,7 @@ function createRunnerResolution(
 function getRunnerMetadata(options: PromptRunnerSelectionOptions, actualRunnerModel?: string): RunnerMetadata {
     const runnerName = options.agentName ? getHarnessDefinition(options.agentName).label : 'unknown';
 
-    if (
-        options.agentName === 'openai-codex' ||
-        options.agentName === 'github-copilot' ||
-        options.agentName === 'gemini'
-    ) {
+    if (options.agentName === 'github-copilot' || isModelRequiringHarnessName(options.agentName)) {
         return { runnerName, modelName: actualRunnerModel };
     }
 
@@ -200,10 +235,17 @@ function getRunnerMetadata(options: PromptRunnerSelectionOptions, actualRunnerMo
 }
 
 /**
+ * Checks whether one harness refuses to run without an explicit `--model`.
+ */
+function isModelRequiringHarnessName(agentName?: string): agentName is ModelRequiringHarnessName {
+    return MODEL_REQUIRING_HARNESS_NAMES.includes(agentName as ModelRequiringHarnessName);
+}
+
+/**
  * Resolves a runner model, allowing `default` but otherwise requiring an explicit value.
  */
 function resolveRequiredModel(options: {
-    agentName: 'openai-codex' | 'gemini';
+    agentName: ModelRequiringHarnessName;
     providedModel?: string;
     defaultModel: string;
     availableModels?: ReadonlyArray<string>;
@@ -224,7 +266,7 @@ function resolveRequiredModel(options: {
  * Prints the missing-model guidance and exits with the historical non-zero status code.
  */
 function exitForMissingModel(
-    agentName: 'openai-codex' | 'gemini',
+    agentName: ModelRequiringHarnessName,
     availableModels: ReadonlyArray<string> | undefined,
     exampleUsages: ReadonlyArray<string>,
 ): never {

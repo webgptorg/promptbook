@@ -13,8 +13,9 @@ Shared facts:
 | 2 | `openai-codex`   | OpenAI Codex       | OpenAI          | **yes**        | `gpt-5.2-codex`, `default`        | `#FFFFFF`    |
 | 3 | `github-copilot` | GitHub Copilot CLI | GitHub          | no             | `gpt-5.4`                         | `#8957E5`    |
 | 4 | `gemini`         | Gemini CLI         | Google          | **yes**        | `gemini-3-flash-preview`, `default` | `#4E82EE`  |
-| 5 | `opencode`       | opencode           | opencode        | no             | — (uses harness config)           | `#F0F0F0`    |
-| 6 | `cline`          | Cline              | Cline Bot Inc.  | no             | — (uses harness config)           | `#9038FF`    |
+| 5 | `qwen-code`      | Qwen Code          | Alibaba         | **yes**        | `qwen3.8-max`, `qwen3-coder-plus`, `default` | `#615CED` |
+| 6 | `opencode`       | opencode           | opencode        | no             | — (uses harness config)           | `#F0F0F0`    |
+| 7 | `cline`          | Cline              | Cline Bot Inc.  | no             | — (uses harness config)           | `#9038FF`    |
 
 ## Descriptions (verbatim card copy)
 
@@ -22,8 +23,9 @@ Shared facts:
 2. **OpenAI Codex** — "The OpenAI Codex CLI. It needs an explicit model, and it only spends credits beyond your rate limits when you pass --allow-credits."
 3. **GitHub Copilot CLI** — "GitHub Copilot in your terminal. Works out of the box with your Copilot subscription and supports thinking levels."
 4. **Gemini CLI** — "The Google Gemini CLI. It needs an explicit model, such as one of the fast flash previews."
-5. **opencode** — "The open-source terminal coding agent. Bring any provider configured in your opencode installation."
-6. **Cline** — "The Cline CLI agent. Uses the models configured in your Cline setup."
+5. **Qwen Code** — "The Qwen Code CLI. It needs an explicit model, such as one of the Qwen coder or max models, and signs in with a Qwen account or an OpenAI-compatible API key."
+6. **opencode** — "The open-source terminal coding agent. Bring any provider configured in your opencode installation."
+7. **Cline** — "The Cline CLI agent. Uses the models configured in your Cline setup."
 
 ## Sample command per card
 
@@ -33,6 +35,7 @@ Shared facts:
 | `openai-codex`   | `ptbk coder run --harness openai-codex --model gpt-5.6-terra`                        |
 | `github-copilot` | `ptbk coder run --harness github-copilot --model gpt-5.6 --thinking-level xhigh`     |
 | `gemini`         | `ptbk coder run --harness gemini --model gemini-3-flash-preview`                     |
+| `qwen-code`      | `ptbk coder run --harness qwen-code --model qwen3.8-max`                             |
 | `opencode`       | `ptbk coder run --harness opencode`                                                  |
 | `cline`          | `ptbk coder run --harness cline`                                                     |
 
@@ -44,6 +47,7 @@ Each card shows a **simple original inline-SVG mark** (28px stroke drawing on a 
 -   `openai-codex`: hexagon with a circle inside
 -   `github-copilot`: two rounded goggle lenses joined by a bridge
 -   `gemini`: four-point spark with concave edges
+-   `qwen-code`: `Q` mark — a circle with a tail
 -   `opencode`: terminal prompt `>` with an underscore
 -   `cline`: robot head (rounded rect, antenna, two dot eyes)
 

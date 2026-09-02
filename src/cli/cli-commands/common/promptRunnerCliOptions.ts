@@ -100,6 +100,7 @@ export const PROMPT_RUNNER_DESCRIPTION = spaceTrim(`
     - claude-code: Claude Code integration
     - opencode: Opencode integration
     - gemini: Google Gemini CLI integration (requires --model)
+    - qwen-code: Qwen Code CLI integration (requires --model)
 `);
 
 /**
@@ -107,8 +108,16 @@ export const PROMPT_RUNNER_DESCRIPTION = spaceTrim(`
  *
  * @private internal utility of `promptbookCli`
  */
-export const PROMPT_RUNNER_HARNESS_OPTION_DESCRIPTION =
-    'Select runner: openai-codex, github-copilot, cline, claude-code, opencode, gemini (required for non-dry-run)';
+export const PROMPT_RUNNER_HARNESS_OPTION_DESCRIPTION = `Select runner: ${PROMPT_RUNNER_HARNESS_NAMES.join(
+    ', ',
+)} (required for non-dry-run)`;
+
+/**
+ * Runner harness names listed as alternatives of the `--harness` option in error messages.
+ *
+ * @private internal utility of `promptbookCli`
+ */
+export const PROMPT_RUNNER_HARNESS_OPTION_HINT = `--harness <${PROMPT_RUNNER_HARNESS_NAMES.join('|')}>`;
 
 /**
  * Commander description for the `--model` option.
@@ -116,10 +125,11 @@ export const PROMPT_RUNNER_HARNESS_OPTION_DESCRIPTION =
  * @private internal utility of `promptbookCli`
  */
 export const PROMPT_RUNNER_MODEL_OPTION_DESCRIPTION = spaceTrim(`
-    Model to use (required for openai-codex and gemini)
+    Model to use (required for openai-codex, gemini and qwen-code)
 
     OpenAI examples: gpt-5.2-codex, default
     Gemini examples: gemini-3-flash-preview, default
+    Qwen examples: qwen3.8-max, default
 `);
 
 /**
@@ -249,11 +259,7 @@ function resolvePromptRunnerHarnessName(
             return undefined;
         }
 
-        throw new Error(
-            colors.red(
-                'You must choose a harness using --harness <openai-codex|github-copilot|cline|claude-code|opencode|gemini>',
-            ),
-        );
+        throw new Error(colors.red(`You must choose a harness using ${PROMPT_RUNNER_HARNESS_OPTION_HINT}`));
     }
 
     if (isPromptRunnerHarnessName(harness)) {

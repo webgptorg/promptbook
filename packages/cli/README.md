@@ -549,7 +549,7 @@ Prompts marked with `[-]` are not ready yet, prompts containing `@@@` are treate
 
 #### Features
 
--   **Multi-runner execution:** `openai-codex`, `github-copilot`, `cline`, `claude-code`, `opencode`, `gemini`
+-   **Multi-runner execution:** `openai-codex`, `github-copilot`, `cline`, `claude-code`, `opencode`, `gemini`, `qwen-code`
 -   **Context injection:** `--agent agents/coding/developer.book --context AGENTS.md` or inline extra instructions
 -   **Reasoning control:** `--thinking-level low|medium|high|xhigh` for supported runners
 -   **Unattended or interactive runs:** default auto mode, or `--no-auto` to wait for user confirmation before each prompt
@@ -626,7 +626,7 @@ ptbk coder verify
 | Flag                       | Purpose                                                                                                                                                                                |
 | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `--harness <name>`         | Selects the coding harness.                                                                                                                                                            |
-| `--model <model>`          | Chooses the runner model; required for `openai-codex` and `gemini`, optional for `github-copilot`.                                                                                     |
+| `--model <model>`          | Chooses the runner model; required for `openai-codex`, `gemini` and `qwen-code`, optional for `github-copilot`.                                                                        |
 | `--context <text-or-file>` | Appends extra instructions inline or from a file like `AGENTS.md`.                                                                                                                     |
 | `--test <command>`         | Runs a verification command after each prompt attempt and feeds failing output back for retries.                                                                                       |
 | `--test-before <mode>`     | Runs tests before coding: `no` (default), `yes-and-fail` (stop with results), or `yes-and-fix` (create one repair prompt first); defaults to `npm test` when enabled without `--test`. |
