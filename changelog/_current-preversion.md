@@ -1,3 +1,7 @@
+-   Added the singular `WRITING RULE` keyword as an equivalent variant of `WRITING RULES`, exactly like `RULE` and
+    `RULES` are interchangeable. Both spellings are parsed, applied, documented, and syntax-highlighted identically, so
+    a single writing constraint no longer has to be written in plural.
+
 -   Fixed the Agents Server starting one more pm2 process of the same agent project on every single start, which
     eventually took the whole server down.
 

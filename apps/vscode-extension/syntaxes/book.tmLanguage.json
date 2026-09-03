@@ -110,6 +110,10 @@
                 },
                 {
                     "name": "keyword.other.commitment.book",
+                    "match": "^\\s*(?:WRITING\\s+RULE)\\b"
+                },
+                {
+                    "name": "keyword.other.commitment.book",
                     "match": "^\\s*(?:META\\s+AVATAR)\\b"
                 },
                 {

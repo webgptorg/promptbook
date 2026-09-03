@@ -46,7 +46,7 @@ The commitment registry is the single source of truth for the language. Keywords
 | `RULE` / `RULES`                                         | Hard behavioral constraint in the system message.                                                                                               |
 | `STYLE` / `STYLES`                                       | Writing style instructions.                                                                                                                     |
 | `LANGUAGE` / `LANGUAGES`                                 | Response language constraint.                                                                                                                   |
-| `WRITING SAMPLE` / `WRITING RULES`                       | Style-by-example instructions.                                                                                                                  |
+| `WRITING SAMPLE`, `WRITING RULES` / `WRITING RULE`       | Style-by-example instructions.                                                                                                                  |
 | `SAMPLE` / `EXAMPLE`                                     | Example conversations (question/answer pairs surfaced in the profile).                                                                          |
 | `FORMAT` / `FORMATS`                                     | Output format constraints.                                                                                                                      |
 | `TEMPLATE` / `TEMPLATES`                                 | Response templates.                                                                                                                             |

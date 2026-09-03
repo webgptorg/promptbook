@@ -19,6 +19,7 @@ const IMMEDIATE_USER_CHAT_ANSWER_INSTRUCTION_COMMITMENTS = new Set<string>([
     'STYLE',
     'STYLES',
     'WRITING RULES',
+    'WRITING RULE',
     'FORMAT',
     'FORMATS',
     'SCENARIO',

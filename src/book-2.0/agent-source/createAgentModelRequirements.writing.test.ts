@@ -29,6 +29,25 @@ describe('createAgentModelRequirements writing commitments', () => {
         );
     });
 
+    it('treats WRITING RULE as an equivalent singular variant of WRITING RULES', async () => {
+        const agentSource = validateBook(
+            spaceTrim(`
+            Copywriter
+            WRITING RULE Keep every response under 120 words.
+            WRITING RULES Always end the message with an emoji.
+        `),
+        );
+
+        const requirements = await createAgentModelRequirements(agentSource);
+
+        expect(requirements.systemMessage).toContain('## Writing rules');
+        expect(requirements.systemMessage).toContain('Keep every response under 120 words.');
+        expect(requirements.systemMessage).toContain('Always end the message with an emoji.');
+        expect(requirements.systemMessage.indexOf('Keep every response under 120 words.')).toBeLessThan(
+            requirements.systemMessage.indexOf('Always end the message with an emoji.'),
+        );
+    });
+
     it('keeps SAMPLE and EXAMPLE working as legacy writing-sample aliases', async () => {
         const agentSource = validateBook(
             spaceTrim(`
