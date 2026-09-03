@@ -13,6 +13,7 @@ ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh -
 ```
 
 -   @@@@@@
+-   Same principle should be applied waiting for overloaded model responses
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
 -   Also look and update [the dev scripts in `terminals.json`](.vscode/terminals.json)
@@ -25,3 +26,4 @@ ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh -
 ![alt text](screenshots/2026-08-0810-ptbk-coder-smarter-waiting-for-limit-2.png)
 ![For claude code the waiting is working](screenshots/2026-08-0810-ptbk-coder-smarter-waiting-for-limit-3.png)
 ![alt text](screenshots/2026-08-0810-ptbk-coder-smarter-waiting-for-limit-4.png)
+![Claude failed because its overloaded](screenshots/2026-08-0810-ptbk-coder-smarter-waiting-for-limit-5.png)
