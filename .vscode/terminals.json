@@ -194,7 +194,7 @@
             "focus": false
         },
         {
-            "name": "(❗) ✨⏩ Migrate Agents server `preview` (💤)",
+            "name": "(old)(❗) ✨⏩ Migrate Agents server `preview` (💤)",
             "cwd": "./apps/agents-server/",
             "command": "npx tsx ./src/database/migrate.ts --only=preview",
             "execute": false,
