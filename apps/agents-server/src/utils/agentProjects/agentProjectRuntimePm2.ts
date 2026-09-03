@@ -1,6 +1,8 @@
 import { execFile } from 'child_process';
 import { createHash } from 'crypto';
 import { promisify } from 'util';
+import { UnexpectedError } from '../../../../../src/errors/UnexpectedError';
+import { spaceTrim } from '../../../../../src/utils/organization/spaceTrim';
 import { AGENT_PROJECT_RUNTIME_HOST } from './agentProjectRuntimeConstants';
 import type { AgentProjectRuntimeMode } from './AgentProjectRuntimeInfo';
 import { resolveAgentProjectRuntimeEnvironmentFlag } from './resolveAgentProjectRuntimeEnvironmentFlag';
@@ -44,8 +46,18 @@ const AGENT_PROJECT_PM2_PROCESS_LABEL_LENGTH = 36;
 
 /**
  * Max output retained from pm2 commands.
+ *
+ * Note: `pm2 jlist` embeds a full environment snapshot into every listed process, so the list grows by tens of
+ *       kilobytes with each started project. A budget of one megabyte was exhausted by roughly a dozen projects,
+ *       after which `execFile` killed every `pm2 jlist` call with `ERR_CHILD_PROCESS_STDIO_MAXBUFFER` and pm2
+ *       appeared to know no process at all.
  */
-const PM2_COMMAND_MAX_BUFFER_BYTES = 1024 * 1024;
+const PM2_COMMAND_MAX_BUFFER_BYTES = 64 * 1024 * 1024;
+
+/**
+ * pm2 error reported when no process of the requested name is registered.
+ */
+const PM2_MISSING_PROCESS_ERROR_PATTERN = /Process or Namespace .* not found/u;
 
 /**
  * Status snapshot for one pm2 process.
@@ -189,25 +201,46 @@ export async function startAgentProjectRuntimePm2Process(
 }
 
 /**
- * Stops one pm2 project process when it exists.
+ * Deletes every pm2 process registered under one name.
+ *
+ * Note: The delete is never skipped because pm2 could not be asked for its current process list. `pm2 start`
+ *       appends another process instead of replacing the existing one when a process of the same name is already
+ *       registered, so a delete which silently does nothing turns every later start of the same project into one
+ *       more duplicate. Only pm2 itself reporting an unknown name counts as "already gone", every other failure
+ *       is reported to the caller, which then must not start the project again.
  *
  * @param processName - pm2 process name.
  */
 export async function stopAgentProjectRuntimePm2Process(processName: string | null | undefined): Promise<void> {
-    if (!processName) {
+    if (!processName || !isAgentProjectRuntimePm2Enabled()) {
         return;
     }
 
-    const status = await resolveAgentProjectRuntimePm2Status(processName);
+    try {
+        await execFileAsync(PM2_COMMAND, ['delete', processName], {
+            maxBuffer: PM2_COMMAND_MAX_BUFFER_BYTES,
+            windowsHide: true,
+        });
+    } catch (error) {
+        if (isPm2MissingProcessError(error)) {
+            return;
+        }
 
-    if (!status.isKnown) {
-        return;
+        throw new UnexpectedError(
+            spaceTrim(
+                (block) => `
+                    Failed to delete the pm2 process \`${processName}\` of an agent project.
+
+                    Starting the project again would register one more pm2 process of the same name instead of
+                    replacing the existing one, so the project was left alone.
+
+                    **Cause:**
+                    ${block(error instanceof Error ? error.message : String(error))}
+                `,
+            ),
+        );
     }
 
-    await execFileAsync(PM2_COMMAND, ['delete', processName], {
-        maxBuffer: PM2_COMMAND_MAX_BUFFER_BYTES,
-        windowsHide: true,
-    });
     await savePm2ProcessList();
 }
 
@@ -364,6 +397,19 @@ async function savePm2ProcessList(): Promise<void> {
         maxBuffer: PM2_COMMAND_MAX_BUFFER_BYTES,
         windowsHide: true,
     });
+}
+
+/**
+ * Returns whether one failed pm2 command failed only because pm2 knows no process of the requested name.
+ */
+function isPm2MissingProcessError(error: unknown): boolean {
+    if (!error || typeof error !== 'object') {
+        return false;
+    }
+
+    const { stderr } = error as { readonly stderr?: unknown };
+
+    return typeof stderr === 'string' && PM2_MISSING_PROCESS_ERROR_PATTERN.test(stderr);
 }
 
 /**

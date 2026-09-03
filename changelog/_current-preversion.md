@@ -1,3 +1,24 @@
+-   Fixed the Agents Server starting one more pm2 process of the same agent project on every single start, which
+    eventually took the whole server down.
+
+    -   Every project runtime is registered under a stable pm2 process name, and a project was expected to be replaced
+        rather than duplicated because it is deleted right before it is started again. That delete was **skipped
+        whenever pm2 could not be asked for its process list**, and `pm2 start` appends a second process instead of
+        refusing a name it already knows, so each start added one more copy of the same project.
+    -   The process list could not be read because `pm2 jlist` embeds a full environment snapshot into every listed
+        process — roughly 70 kB each — while its output was capped at one megabyte. A dozen projects were enough to
+        exceed that cap, after which **every** pm2 query failed with `ERR_CHILD_PROCESS_STDIO_MAXBUFFER` and reported
+        every process as unknown. Each new duplicate made the output larger, so the failure never recovered on its own.
+    -   Every duplicate got its own port but the project's dev command kept binding the port it had chosen itself, so
+        all but one copy crash-looped on `EADDRINUSE`, and pm2 restarted them hundreds of times per hour until the VPS
+        ran out of threads (`pthread_create: Resource temporarily unavailable`) and the Agents Server itself was
+        killed.
+    -   Deleting a project process no longer depends on reading the process list: it is always attempted, only pm2
+        itself reporting an unknown name counts as "already gone", and any other failure is reported instead of
+        swallowed — so a project is now left alone rather than duplicated when pm2 misbehaves. Because `pm2 delete`
+        removes every process sharing one name, a server which already accumulated duplicates converges back to a
+        single process per project.
+
 -   Added the **Qwen Code** harness, so `ptbk coder` now drives seven coding agents instead of six.
 
     -   `ptbk coder run --harness qwen-code --model qwen3.8-max` runs the whole prompt queue through the Qwen Code CLI,
